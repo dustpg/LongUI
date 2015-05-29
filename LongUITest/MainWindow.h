@@ -1,31 +1,31 @@
-#pragma once
+ï»¿#pragma once
 
 
 
-// test window ²âÊÔ´°¿Ú
+// test window æµ‹è¯•çª—å£
 class MainWindow final : public LongUI::UIWindow {
-    // super class -- ¸¸ÀàÉêÃ÷
+    // super class -- çˆ¶ç±»ç”³æ˜
     typedef LongUI::UIWindow Super;
 public:
-    // Render äÖÈ¾!
+    // Render æ¸²æŸ“!
     //virtual HRESULT LongUIMethodCall Render() noexcept override;
-    // do event ÊÂ¼ş´¦Àí
+    // do event äº‹ä»¶å¤„ç†
     virtual bool    LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-    // Ô¤äÖÈ¾
+    // é¢„æ¸²æŸ“
     //virtual void    LongUIMethodCall PreRender() noexcept override;
-    // recreate ÖØ½¨
+    // recreate é‡å»º
     //virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept override;
-    // close this control ¹Ø±Õ¿Ø¼ş
+    // close this control å…³é—­æ§ä»¶
     virtual void    LongUIMethodCall Close() noexcept override;
 public:
-    // ¹¹Ôìº¯Êı
+    // æ„é€ å‡½æ•°
     MainWindow(pugi::xml_node , LongUI::UIWindow* );
-    // Îö¹¹º¯Êı
+    // ææ„å‡½æ•°
     ~MainWindow();
-    // delete this method , we donn't need it É¾³ı¸´ÖÆ¹¹Ôì
+    // delete this method , we donn't need it åˆ é™¤å¤åˆ¶æ„é€ 
     MainWindow(const MainWindow&) = delete;
 private:
-    // UAC °´Å¥°´ÏÂ
+    // UAC æŒ‰é’®æŒ‰ä¸‹
     bool OnUACButtonOn(UIControl* sender);
 private:
     // your own data

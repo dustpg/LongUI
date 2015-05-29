@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby - An embeddable Ruby implementation
 **
 ** Copyright (c) mruby developers 2010-2014

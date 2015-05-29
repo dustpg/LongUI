@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/class.h - Class class
 **
 ** See Copyright Notice in mruby.h

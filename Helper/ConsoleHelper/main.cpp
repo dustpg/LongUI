@@ -1,4 +1,4 @@
-// ConsoleLoggerHelper.cpp : Defines the entry point for the console application.
+ï»¿// ConsoleLoggerHelper.cpp : Defines the entry point for the console application.
 //
 
 #include <stdio.h>
@@ -51,18 +51,18 @@ BYTE ReadByte(void) {
 }
 
 
-// ¿ØÖÆÌ¨Ñ­»·
+// æ§åˆ¶å°å¾ªç¯
 long ConsoleLoop(void) {
     DWORD cbRead, cbWritten=0;
     wchar_t chBuf[1024 * 8];
     BOOL bSuccess;
     long lResult = -1;
     do  {
-        // ¶ÁÈ¡¹ÜµÀ
+        // è¯»å–ç®¡é“
         bSuccess = ::ReadFile(g_hPipe, chBuf, sizeof(chBuf), &cbRead, nullptr);
-        // ¼ì²é´íÎó
+        // æ£€æŸ¥é”™è¯¯
         if (!bSuccess && ::GetLastError() != ERROR_MORE_DATA) break;
-        // Ğ´Èëµ½STDOUT
+        // å†™å…¥åˆ°STDOUT
         chBuf[cbRead / sizeof(wchar_t)] = 0;
         ::wprintf(chBuf);
         /*if (!WriteFile(g_hConsole, chBuf, cbRead, &cbWritten, nullptr)) {
@@ -94,7 +94,7 @@ long ConsoleExLoop(void) {
     bool loop = true;
     while (loop) {
         //////////////////////////////////////////////////////////////////////////
-        // ¶ÁÈ¡DWORD×öÎªÃüÁî
+        // è¯»å–DWORDåšä¸ºå‘½ä»¤
         //////////////////////////////////////////////////////////////////////////
         cbRead = 0;
         if (!::ReadFile(g_hPipe, &dwCommand, sizeof(dwCommand), &cbRead, nullptr) || cbRead != sizeof(dwCommand)) {
@@ -193,7 +193,7 @@ long ConsoleExLoop(void) {
 
 
 int wmain(int argc, wchar_t* argv[]){ 
-    // ²ÎÊı¼ì²é
+    // å‚æ•°æ£€æŸ¥
     if (argc == 1 || !argv[1] || !argv[1][0]) {
         ::MessageBoxW(nullptr, L"\nFailed to start logger\n", L"FAILED", MB_ICONERROR);
         return -1;
@@ -201,7 +201,7 @@ int wmain(int argc, wchar_t* argv[]){
 
     wchar_t szPipename[64];
     ::swprintf(szPipename, lengthof(szPipename), L"\\\\.\\pipe\\%s", argv[1]);
-    // Ö÷Ñ­»·
+    // ä¸»å¾ªç¯
     while (true) {
         g_hPipe = ::CreateFileW(
             szPipename,
@@ -212,26 +212,26 @@ int wmain(int argc, wchar_t* argv[]){
             0,
             nullptr
             );
-        // ÎŞĞ§ÍË³ö
+        // æ— æ•ˆé€€å‡º
         if (g_hPipe != INVALID_HANDLE_VALUE)
             break;
-        // ¼ì²é´íÎó
+        // æ£€æŸ¥é”™è¯¯
         if (::GetLastError() != ERROR_PIPE_BUSY)  {
             ::MessageBoxW(nullptr, L"Could not open pipe(1)", L"FAILED", MB_ICONERROR);
             ::getchar();
             return 0;
         }
-        // Ã¦Ê±µÈ´ı
+        // å¿™æ—¶ç­‰å¾…
         ::wprintf(L"Wait for pipe...");
         if (!::WaitNamedPipeW(szPipename, 20000)) {
             ::MessageBoxW(nullptr, L"Could not open pipe(2)", L"FAILED", MB_ICONERROR);
             ::getchar();
             return 0;
         }
-        // µÈ´ı
+        // ç­‰å¾…
         ::Sleep(500);
     }
-    // ×ª»»Îªmessage-readÄ£Ê½
+    // è½¬æ¢ä¸ºmessage-readæ¨¡å¼
     // The pipe connected; change to message-read mode.
 
     BOOL bSuccess;
@@ -248,7 +248,7 @@ int wmain(int argc, wchar_t* argv[]){
         header[lengthof(header) - 1] = 0;
 
         do {
-            // ¶ÁÈ¡¹ÜµÀ
+            // è¯»å–ç®¡é“
             bSuccess = ::ReadFile(
                 g_hPipe,
                 &ch,
@@ -256,7 +256,7 @@ int wmain(int argc, wchar_t* argv[]){
                 &cbRead,
                 nullptr
                 ); 
-            // ¼ì²é´íÎó
+            // æ£€æŸ¥é”™è¯¯
             if (!bSuccess && ::GetLastError() != ERROR_MORE_DATA)  {
                 MessageBoxW(nullptr, L"ReadFile failed", L"FAILED", MB_ICONERROR);
                 return -1;
@@ -264,7 +264,7 @@ int wmain(int argc, wchar_t* argv[]){
             header[len++] = ch;
         } while (ch && len <= lengthof(header) - 1);
         header[len] = 0;
-        // ÉèÖÃ±êÌâ
+        // è®¾ç½®æ ‡é¢˜
         {
             if ((p1 = ::wcsstr(header, L"TITLE:"))) {
                 p1 += 6;
@@ -282,7 +282,7 @@ int wmain(int argc, wchar_t* argv[]){
 
         }
         {
-            // ÉèÖÃÎ»ÖÃ
+            // è®¾ç½®ä½ç½®
             if ((p1 = ::wcsstr(header, L"POS:"))) {
                 p1 += 4;
                 while (*p1 == L' ' || *p1 == L'\t')
@@ -304,7 +304,7 @@ int wmain(int argc, wchar_t* argv[]){
             }
         }
         {
-            // ÉèÖÃÊôĞÔ
+            // è®¾ç½®å±æ€§
             if ((p1 = ::wcsstr(header, L"ATTR:"))) {
                 p1 += 5;
                 while (*p1 == L' ' || *p1 == L'\t')
@@ -324,7 +324,7 @@ int wmain(int argc, wchar_t* argv[]){
                 *p2 = ch;
             }
         }
-        // ÉèÖÃ»º³åÇø
+        // è®¾ç½®ç¼“å†²åŒº
         // Set buffer-size
         {
             COORD coord;
@@ -345,13 +345,13 @@ int wmain(int argc, wchar_t* argv[]){
                 *p2 = 0;
                 coord.Y = (SHORT)::_wtoi(p1);
                 *p2 = ch;
-                // ÓĞĞ§
+                // æœ‰æ•ˆ
                 if (coord.X && coord.Y)
                     ::SetConsoleScreenBufferSize(::GetStdHandle(STD_OUTPUT_HANDLE), coord);
             }
 
         }
-        // ¼ì²éÊÇ·ñÎª"extended"¿ØÖÆÌ¨
+        // æ£€æŸ¥æ˜¯å¦ä¸º"extended"æ§åˆ¶å°
         {
             if (::wcsstr(header, L"Extended-Console: TRUE"))
                 g_bExtendedConsole = TRUE;
@@ -361,7 +361,7 @@ int wmain(int argc, wchar_t* argv[]){
     }
     ::setlocale(LC_ALL, "");
     //////////////////////////////////////////////////////////////////////////
-    // »ñÈ¡¾²Ì¬ĞÅÏ¢
+    // è·å–é™æ€ä¿¡æ¯
     //////////////////////////////////////////////////////////////////////////
     g_hConsole = ::GetStdHandle(STD_OUTPUT_HANDLE);
     if (!::GetConsoleScreenBufferInfo(g_hConsole, &g_ConsoleBufferInfo)) {

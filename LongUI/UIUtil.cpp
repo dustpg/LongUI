@@ -1,33 +1,33 @@
-
+ï»¿
 #include "LongUI.h"
 
-// UIString ÉèÖÃ×Ö·û´®
+// UIString è®¾ç½®å­—ç¬¦ä¸²
 void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     assert(str && "<LongUI::CUIString::CUIString@const wchar_t*> str == null");
-    // Î´ÖªÔò¼ÆËã
+    // æœªçŸ¥åˆ™è®¡ç®—
     if (!length && *str) { length = ::wcslen(str); }
-    // ³¬³¤µÄ»°
+    // è¶…é•¿çš„è¯
     if (length > m_cBufferLength) {
         m_cBufferLength = length + LongUIStringLength / 2;
-        // ³£ÊÔÊÍ·Å
+        // å¸¸è¯•é‡Šæ”¾
         if (m_pString != m_aDataStatic) {
             LongUICtrlFree(m_pString);
         }
-        // ÉêÇëÄÚ´æ
+        // ç”³è¯·å†…å­˜
         m_pString = reinterpret_cast<wchar_t*>(
             LongUICtrlAlloc(sizeof(wchar_t) * (m_cBufferLength))
             );
 
     }
-    // ¸´ÖÆÊı¾İ
+    // å¤åˆ¶æ•°æ®
     assert(str && "<LongUI::CUIString::CUIString@const wchar_t*> m_pString == null");
     ::wcscpy(m_pString, str);
     m_cLength = length;
 }
 
-// UIString ×Ö·û´®Îö¹¹º¯Êı
+// UIString å­—ç¬¦ä¸²ææ„å‡½æ•°
 LongUI::CUIString::~CUIString() noexcept {
-    // ÊÍ·ÅÊı¾İ
+    // é‡Šæ”¾æ•°æ®
     if (m_pString && m_pString != m_aDataStatic) {
         LongUICtrlFree(m_pString);
     }
@@ -35,28 +35,28 @@ LongUI::CUIString::~CUIString() noexcept {
     m_cLength = 0;
 }
 
-// ¸´ÖÆ¹¹Ôìº¯Êı
+// å¤åˆ¶æ„é€ å‡½æ•°
 LongUI::CUIString::CUIString(const LongUI::CUIString& obj) noexcept {
-    // ¹¹Ôì
+    // æ„é€ 
     if (obj.m_pString != obj.m_aDataStatic) {
         m_pString = reinterpret_cast<wchar_t*>(
             LongUICtrlAlloc(sizeof(wchar_t) * (obj.m_cLength + 1))
             );
     }
-    // ¸´ÖÆÊı¾İ
+    // å¤åˆ¶æ•°æ®
     assert(m_pString && "<LongUI::CUIString::CUIString@const CUIString&> m_pString == null");
     ::wcscpy(m_pString, obj.m_pString);
     m_cLength = obj.m_cLength;
 }
 
-// move¹¹Ôìº¯Êı
+// moveæ„é€ å‡½æ•°
 LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
-    // ¹¹Ôì
+    // æ„é€ 
     if (obj.m_pString != obj.m_aDataStatic) {
         m_pString = obj.m_pString;
     }
     else {
-        // ¸´ÖÆÊı¾İ
+        // å¤åˆ¶æ•°æ®
         ::wcscpy(m_aDataStatic, obj.m_aDataStatic);
     }
     m_cLength = obj.m_cLength;
@@ -64,26 +64,26 @@ LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
     obj.m_pString = nullptr;
 }
 
-// += ²Ù×÷
+// += æ“ä½œ
 //const LongUI::CUIString& LongUI::CUIString::operator+=(const wchar_t*);
 
-// DllControlLoader ¹¹Ôìº¯Êı
+// DllControlLoader æ„é€ å‡½æ•°
 LongUI::DllControlLoader::DllControlLoader(
     const wchar_t* file, const wchar_t* name, const char* proc)
     noexcept : dll(::LoadLibraryW(file)){
     CreateControlFunction tmpfunc = nullptr;
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     assert(file && name && proc && "bad argument");
-    // »ñÈ¡º¯ÊıµØÖ·
+    // è·å–å‡½æ•°åœ°å€
     if (this->dll && (tmpfunc=reinterpret_cast<CreateControlFunction>(::GetProcAddress(dll, proc)))) {
-        // Ç¿ÖÆ×ª»»
+        // å¼ºåˆ¶è½¬æ¢
         const_cast<CreateControlFunction&>(this->function) = tmpfunc;
-        // Ìí¼Óº¯ÊıÓ³Éä
+        // æ·»åŠ å‡½æ•°æ˜ å°„
         UIManager.AddS2CPair(name, this->function);
     }
 }
 
-// DllControlLoader Îö¹¹º¯Êı
+// DllControlLoader ææ„å‡½æ•°
 LongUI::DllControlLoader::~DllControlLoader() noexcept {
     if (this->dll) {
         ::FreeLibrary(this->dll);
@@ -91,14 +91,14 @@ LongUI::DllControlLoader::~DllControlLoader() noexcept {
     }
 }
 
-// UIIcon ¸´ÖÆ¹¹Ôìº¯Êı
+// UIIcon å¤åˆ¶æ„é€ å‡½æ•°
 LongUI::UIIcon::UIIcon(const UIIcon & obj) noexcept {
     if (obj.m_hIcon) {
         this->m_hIcon = ::CopyIcon(obj.m_hIcon);
     }
 }
 
-// UIIcon ÒÆ¶¯¹¹Ôìº¯Êı
+// UIIcon ç§»åŠ¨æ„é€ å‡½æ•°
 LongUI::UIIcon::UIIcon(UIIcon && obj) noexcept {
     if (obj.m_hIcon) {
         this->m_hIcon = obj.m_hIcon;
@@ -107,7 +107,7 @@ LongUI::UIIcon::UIIcon(UIIcon && obj) noexcept {
 }
 
 
-// UIIcon ¹¹Ôìº¯Êı
+// UIIcon æ„é€ å‡½æ•°
 LongUI::UIIcon::UIIcon(const Meta &) noexcept {
     assert(!"not compalte");
 }
@@ -120,13 +120,13 @@ LongUI::UIIcon::UIIcon(const Meta &) noexcept {
 #endif
 #define Attr(a) attribute(::strcat(buffer, a)).value()
 
-// CUIElement ¹¹Ôìº¯Êı
+// CUIElement æ„é€ å‡½æ•°
 LongUI::CUIElement::CUIElement(const pugi::xml_node node, const char* prefix) noexcept:
 animationc(AnimationType::Type_QuadraticEaseOut),
 animationo(AnimationType::Type_QuadraticEaseOut){
-    // ³õÊ¼»¯Meta
+    // åˆå§‹åŒ–Meta
     ZeroMemory(metas, sizeof(metas));
-    // ³õÊ¼»¯ÑÕÉ«
+    // åˆå§‹åŒ–é¢œè‰²
     colors[LongUI::Status_Disabled] = D2D1::ColorF(LongUIDefaultDisabledColor);
     colors[LongUI::Status_Normal] = D2D1::ColorF(LongUIDefaultNormalColor);
     colors[LongUI::Status_Hover] = D2D1::ColorF(LongUIDefaultHoverColor);
@@ -134,60 +134,60 @@ animationo(AnimationType::Type_QuadraticEaseOut){
     if (!node)  return;
     char buffer[LongUIStringBufferLength]; *buffer = 0;
     const char* str = nullptr;
-    // »ñÈ¡¶¯»­ÀàĞÍ
+    // è·å–åŠ¨ç”»ç±»å‹
     INITBUFFER;
     if (str = node.Attr("animationtype")) {
         animationo.type  = animationc.type = static_cast<AnimationType>(::LongUI::AtoI(str));
        
     }
-    // »ñÈ¡¶¯»­³ÖĞøÊ±¼ä
+    // è·å–åŠ¨ç”»æŒç»­æ—¶é—´
     INITBUFFER;
     if (str = node.Attr("animationduration")) {
         animationo.duration = animationc.duration = ::LongUI::AtoF(str);
     }
     {
-        // ½ûÓÃ×´Ì¬µÄMeta
+        // ç¦ç”¨çŠ¶æ€çš„Meta
         INITBUFFER;
         if (str = node.Attr("disabledmeta")) {
             UIManager.GetMeta(::LongUI::AtoI(str), metas[Status_Disabled]);
         }
-        // ½ûÓÃ×´Ì¬µÄÑÕÉ«(2Ñ¡Ò»)
+        // ç¦ç”¨çŠ¶æ€çš„é¢œè‰²(2é€‰ä¸€)
         else {
             INITBUFFER;
             UIControl::MakeColor(node.Attr("disabledcolor"), colors[Status_Disabled]);
         }
     }
     {
-        // Í¨³£×´Ì¬µÄMeta
+        // é€šå¸¸çŠ¶æ€çš„Meta
         INITBUFFER;
         if (str = node.Attr("normalmeta")) {
             UIManager.GetMeta(::LongUI::AtoI(str), metas[Status_Normal]);
         }
-        // Í¨³£×´Ì¬ÑÕÉ«(2Ñ¡Ò»)
+        // é€šå¸¸çŠ¶æ€é¢œè‰²(2é€‰ä¸€)
         else {
             INITBUFFER;
             UIControl::MakeColor(node.Attr("normalcolor"), colors[Status_Normal]);
         }
     }
     {
-        // ÅÌĞı×´Ì¬µÄMeta
+        // ç›˜æ—‹çŠ¶æ€çš„Meta
         INITBUFFER;
         if (str = node.Attr("hovermeta")) {
             UIManager.GetMeta(::LongUI::AtoI(str), metas[Status_Hover]);
         }
-        // ÅÌĞı×´Ì¬ÑÕÉ«(2Ñ¡Ò»)
+        // ç›˜æ—‹çŠ¶æ€é¢œè‰²(2é€‰ä¸€)
         else {
             INITBUFFER;
             UIControl::MakeColor(node.Attr("hovercolor"), colors[Status_Hover]);
         }
     }
     {
-        // µã»÷×´Ì¬µÄMeta
+        // ç‚¹å‡»çŠ¶æ€çš„Meta
         INITBUFFER;
         if (str = node.Attr("pushedmeta")) {
             UIManager.GetMeta(::LongUI::AtoI(str), metas[Status_Pushed]);
         }
-        // µã»÷×´Ì¬ÑÕÉ«(2Ñ¡Ò»)
+        // ç‚¹å‡»çŠ¶æ€é¢œè‰²(2é€‰ä¸€)
         else {
             INITBUFFER;
             UIControl::MakeColor(node.Attr("pushedcolor"), colors[Status_Pushed]);
@@ -195,7 +195,7 @@ animationo(AnimationType::Type_QuadraticEaseOut){
     }
 }
 
-// Í¼½â
+// å›¾è§£
 // A--B-----C--D
 // | 0|  1  | 2|
 // E--F-----G--H
@@ -205,63 +205,63 @@ animationo(AnimationType::Type_QuadraticEaseOut){
 // | 6|  7  | 8|
 // M--N-----O--P
 
-// ÉèÖÃÎ»ÖÃA
+// è®¾ç½®ä½ç½®A
 #define RenderMeta_SetZoneA(tmp, src, wd4, hd4) (tmp)[0] = (src)[0];        (tmp)[1] = (src)[1];
-// ÉèÖÃÎ»ÖÃB
+// è®¾ç½®ä½ç½®B
 #define RenderMeta_SetZoneB(tmp, src, wd4, hd4) (tmp)[0] = (src)[0] + wd4;  (tmp)[1] = (src)[1];
-// ÉèÖÃÎ»ÖÃC
+// è®¾ç½®ä½ç½®C
 #define RenderMeta_SetZoneC(tmp, src, wd4, hd4) (tmp)[0] = (src)[2] - wd4;  (tmp)[1] = (src)[1];
-// ÉèÖÃÎ»ÖÃD
+// è®¾ç½®ä½ç½®D
 #define RenderMeta_SetZoneD(tmp, src, wd4, hd4) (tmp)[0] = (src)[2];        (tmp)[1] = (src)[1];
-// ÉèÖÃÎ»ÖÃE
+// è®¾ç½®ä½ç½®E
 #define RenderMeta_SetZoneE(tmp, src, wd4, hd4) (tmp)[0] = (src)[0];        (tmp)[1] = (src)[1] + hd4;
-// ÉèÖÃÎ»ÖÃF
+// è®¾ç½®ä½ç½®F
 #define RenderMeta_SetZoneF(tmp, src, wd4, hd4) (tmp)[0] = (src)[0] + wd4;  (tmp)[1] = (src)[1] + hd4;
-// ÉèÖÃÎ»ÖÃG
+// è®¾ç½®ä½ç½®G
 #define RenderMeta_SetZoneG(tmp, src, wd4, hd4) (tmp)[0] = (src)[2] - wd4;  (tmp)[1] = (src)[1] + hd4;
-// ÉèÖÃÎ»ÖÃH
+// è®¾ç½®ä½ç½®H
 #define RenderMeta_SetZoneH(tmp, src, wd4, hd4) (tmp)[0] = (src)[2];        (tmp)[1] = (src)[1] + hd4;
-// ÉèÖÃÎ»ÖÃI
+// è®¾ç½®ä½ç½®I
 #define RenderMeta_SetZoneI(tmp, src, wd4, hd4) (tmp)[0] = (src)[0];        (tmp)[1] = (src)[3] - hd4;
-// ÉèÖÃÎ»ÖÃJ
+// è®¾ç½®ä½ç½®J
 #define RenderMeta_SetZoneJ(tmp, src, wd4, hd4) (tmp)[0] = (src)[0] + wd4;  (tmp)[1] = (src)[3] - hd4;
-// ÉèÖÃÎ»ÖÃK
+// è®¾ç½®ä½ç½®K
 #define RenderMeta_SetZoneK(tmp, src, wd4, hd4) (tmp)[0] = (src)[2] - wd4;  (tmp)[1] = (src)[3] - hd4;
-// ÉèÖÃÎ»ÖÃL
+// è®¾ç½®ä½ç½®L
 #define RenderMeta_SetZoneL(tmp, src, wd4, hd4) (tmp)[0] = (src)[2];        (tmp)[1] = (src)[3] - hd4;
-// ÉèÖÃÎ»ÖÃM
+// è®¾ç½®ä½ç½®M
 #define RenderMeta_SetZoneM(tmp, src, wd4, hd4) (tmp)[0] = (src)[0];        (tmp)[1] = (src)[3];
-// ÉèÖÃÎ»ÖÃN
+// è®¾ç½®ä½ç½®N
 #define RenderMeta_SetZoneN(tmp, src, wd4, hd4) (tmp)[0] = (src)[0] + wd4;  (tmp)[1] = (src)[3];
-// ÉèÖÃÎ»ÖÃO
+// è®¾ç½®ä½ç½®O
 #define RenderMeta_SetZoneO(tmp, src, wd4, hd4) (tmp)[0] = (src)[2] - wd4;  (tmp)[1] = (src)[3];
-// ÉèÖÃÎ»ÖÃP
+// è®¾ç½®ä½ç½®P
 #define RenderMeta_SetZoneP(tmp, src, wd4, hd4) (tmp)[0] = (src)[2];        (tmp)[1] = (src)[3];
 
 
 
-// äÖÈ¾Î»Í¼
+// æ¸²æŸ“ä½å›¾
 #define RenderMeta_DrawBitmap(i, m) \
     this->target->DrawBitmap(\
         meta.bitmap, tmp_des_rect + i, opa,\
         static_cast<D2D1_INTERPOLATION_MODE>(m),\
         tmp_src_rect + i, nullptr)
 
-// äÖÈ¾Í¼Ôª
+// æ¸²æŸ“å›¾å…ƒ
 void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa) noexcept {
     if (meta.rule == BitmapRenderRule::Rule_ButtonLike) {
-#pragma region Button Like Rule °´¼üÀàËÆ¹æÔò
+#pragma region Button Like Rule æŒ‰é”®ç±»ä¼¼è§„åˆ™
         auto src_width = meta.src_rect.right - meta.src_rect.left;
         auto src_height= meta.src_rect.bottom - meta.src_rect.top;
         auto width_difference = des_rect->right - des_rect->left - src_width;
         auto height_difference = des_rect->bottom - des_rect->top - src_height;
-        // ·ÖÎª¾Å¹¬¸ñäÖÈ¾
+        // åˆ†ä¸ºä¹å®«æ ¼æ¸²æŸ“
         D2D1_RECT_F tmp_src_rect[9], tmp_des_rect[9];
-        // ¸ß¶ÈÒ»ÖÂ?(¼¸ÂÊ¸ß)
+        // é«˜åº¦ä¸€è‡´?(å‡ ç‡é«˜)
         if (height_difference < 0.5f  && width_difference > -0.5f) {
-            // ¿í¶ÈÒ»ÖÂ?
+            // å®½åº¦ä¸€è‡´?
             if (width_difference < 0.5f  && width_difference > -0.5f) {
-                // Ö±½ÓäÖÈ¾
+                // ç›´æ¥æ¸²æŸ“
                 this->target->DrawBitmap(
                     meta.bitmap,
                     des_rect, opa,
@@ -272,101 +272,101 @@ void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa
                 return;
             }
             float src_width_div4 = src_width * 0.25f;
-            // ÇøÓò1  ¾ØĞÎ ABMN A->N
+            // åŒºåŸŸ1  çŸ©å½¢ ABMN A->N
             RenderMeta_SetZoneA(&tmp_src_rect[0].left, &meta.src_rect.left, src_width_div4, void);
             RenderMeta_SetZoneN(&tmp_src_rect[0].right, &meta.src_rect.left, src_width_div4, void);
             RenderMeta_SetZoneA(&tmp_des_rect[0].left, &(des_rect->left), src_width_div4, void);
             RenderMeta_SetZoneN(&tmp_des_rect[0].right, &(des_rect->left), src_width_div4, void);
-            // ÇøÓò2  ¾ØĞÎ BCNO B->O
+            // åŒºåŸŸ2  çŸ©å½¢ BCNO B->O
             RenderMeta_SetZoneB(&tmp_src_rect[1].left, &meta.src_rect.left, src_width_div4, void);
             RenderMeta_SetZoneO(&tmp_src_rect[1].right, &meta.src_rect.left, src_width_div4, void);
             RenderMeta_SetZoneB(&tmp_des_rect[1].left, &(des_rect->left), src_width_div4, void);
             RenderMeta_SetZoneO(&tmp_des_rect[1].right, &(des_rect->left), src_width_div4, void);
-            // ÇøÓò3  ¾ØĞÎ CDOP C->P
+            // åŒºåŸŸ3  çŸ©å½¢ CDOP C->P
             RenderMeta_SetZoneC(&tmp_src_rect[2].left, &meta.src_rect.left, src_width_div4, void);
             RenderMeta_SetZoneP(&tmp_src_rect[2].right, &meta.src_rect.left, src_width_div4, void);
             RenderMeta_SetZoneC(&tmp_des_rect[2].left, &(des_rect->left), src_width_div4, void);
             RenderMeta_SetZoneP(&tmp_des_rect[2].right, &(des_rect->left), src_width_div4, void);
-            // äÖÈ¾
+            // æ¸²æŸ“
             RenderMeta_DrawBitmap(0, 0);
             RenderMeta_DrawBitmap(1, meta.interpolation);
             RenderMeta_DrawBitmap(2, 0);
             return;
         }
-        // ¿í¶ÈÒ»ÖÂ?
+        // å®½åº¦ä¸€è‡´?
         else if (width_difference < 0.5f  && width_difference > -0.5f) {
             float src_height_div4 = src_height * 0.25f;
-            // ÇøÓò1  ¾ØĞÎ ADEH A->H
+            // åŒºåŸŸ1  çŸ©å½¢ ADEH A->H
             RenderMeta_SetZoneA(&tmp_src_rect[0].left, &meta.src_rect.left, void, src_height_div4);
             RenderMeta_SetZoneH(&tmp_src_rect[0].right, &meta.src_rect.left, void, src_height_div4);
             RenderMeta_SetZoneA(&tmp_des_rect[0].left, &(des_rect->left), void, src_height_div4);
             RenderMeta_SetZoneH(&tmp_des_rect[0].right, &(des_rect->left), void, src_height_div4);
-            // ÇøÓò2  ¾ØĞÎ EHIL E->L
+            // åŒºåŸŸ2  çŸ©å½¢ EHIL E->L
             RenderMeta_SetZoneE(&tmp_src_rect[1].left, &meta.src_rect.left, void, src_height_div4);
             RenderMeta_SetZoneL(&tmp_src_rect[1].right, &meta.src_rect.left, void, src_height_div4);
             RenderMeta_SetZoneE(&tmp_des_rect[1].left, &(des_rect->left), void, src_height_div4);
             RenderMeta_SetZoneL(&tmp_des_rect[1].right, &(des_rect->left), void, src_height_div4);
-            // ÇøÓò3  ¾ØĞÎ ILMP I->P
+            // åŒºåŸŸ3  çŸ©å½¢ ILMP I->P
             RenderMeta_SetZoneI(&tmp_src_rect[2].left, &meta.src_rect.left, void, src_height_div4);
             RenderMeta_SetZoneP(&tmp_src_rect[2].right, &meta.src_rect.left, void, src_height_div4);
             RenderMeta_SetZoneI(&tmp_des_rect[2].left, &(des_rect->left), void, src_height_div4);
             RenderMeta_SetZoneP(&tmp_des_rect[2].right, &(des_rect->left), void, src_height_div4);
-            // äÖÈ¾
+            // æ¸²æŸ“
             RenderMeta_DrawBitmap(0, 0);
             RenderMeta_DrawBitmap(1, meta.interpolation);
             RenderMeta_DrawBitmap(2, 0);
             return;
         }
-        // Ò»°ã
+        // ä¸€èˆ¬
         else {
             float hdiv4 = src_height * 0.25f;
             float wdiv4 = src_width * 0.25f;
-            // ÇøÓò0  ¾ØĞÎ ABEF A->F
+            // åŒºåŸŸ0  çŸ©å½¢ ABEF A->F
             RenderMeta_SetZoneA(&tmp_src_rect[0].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneF(&tmp_src_rect[0].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneA(&tmp_des_rect[0].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneF(&tmp_des_rect[0].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò1  ¾ØĞÎ BCFG B->G
+            // åŒºåŸŸ1  çŸ©å½¢ BCFG B->G
             RenderMeta_SetZoneB(&tmp_src_rect[1].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneG(&tmp_src_rect[1].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneB(&tmp_des_rect[1].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneG(&tmp_des_rect[1].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò2  ¾ØĞÎ CDGH C->H
+            // åŒºåŸŸ2  çŸ©å½¢ CDGH C->H
             RenderMeta_SetZoneC(&tmp_src_rect[2].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneH(&tmp_src_rect[2].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneC(&tmp_des_rect[2].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneH(&tmp_des_rect[2].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò3  ¾ØĞÎ EFIJ E->J
+            // åŒºåŸŸ3  çŸ©å½¢ EFIJ E->J
             RenderMeta_SetZoneE(&tmp_src_rect[3].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneJ(&tmp_src_rect[3].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneE(&tmp_des_rect[3].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneJ(&tmp_des_rect[3].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò4  ¾ØĞÎ FGJK F->K
+            // åŒºåŸŸ4  çŸ©å½¢ FGJK F->K
             RenderMeta_SetZoneF(&tmp_src_rect[4].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneK(&tmp_src_rect[4].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneF(&tmp_des_rect[4].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneK(&tmp_des_rect[4].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò5  ¾ØĞÎ GHKL G->L
+            // åŒºåŸŸ5  çŸ©å½¢ GHKL G->L
             RenderMeta_SetZoneG(&tmp_src_rect[5].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneL(&tmp_src_rect[5].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneG(&tmp_des_rect[5].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneL(&tmp_des_rect[5].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò6  ¾ØĞÎ IJMN I->N
+            // åŒºåŸŸ6  çŸ©å½¢ IJMN I->N
             RenderMeta_SetZoneI(&tmp_src_rect[6].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneN(&tmp_src_rect[6].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneI(&tmp_des_rect[6].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneN(&tmp_des_rect[6].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò7  ¾ØĞÎ JKNO J->O
+            // åŒºåŸŸ7  çŸ©å½¢ JKNO J->O
             RenderMeta_SetZoneJ(&tmp_src_rect[7].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneO(&tmp_src_rect[7].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneJ(&tmp_des_rect[7].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneO(&tmp_des_rect[7].right, &(des_rect->left), wdiv4, hdiv4);
-            // ÇøÓò8  ¾ØĞÎ KLOP K->P
+            // åŒºåŸŸ8  çŸ©å½¢ KLOP K->P
             RenderMeta_SetZoneK(&tmp_src_rect[8].left, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneP(&tmp_src_rect[8].right, &meta.src_rect.left, wdiv4, hdiv4);
             RenderMeta_SetZoneK(&tmp_des_rect[8].left, &(des_rect->left), wdiv4, hdiv4);
             RenderMeta_SetZoneP(&tmp_des_rect[8].right, &(des_rect->left), wdiv4, hdiv4);
-            // äÖÈ¾ 
+            // æ¸²æŸ“ 
             RenderMeta_DrawBitmap(0, 0);
             RenderMeta_DrawBitmap(1, 0);
             RenderMeta_DrawBitmap(2, 0);
@@ -381,7 +381,7 @@ void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa
 #pragma endregion
     }
     else {
-        // Ö±½ÓäÖÈ¾
+        // ç›´æ¥æ¸²æŸ“
         this->target->DrawBitmap(
             meta.bitmap,
             des_rect, opa,
@@ -393,13 +393,13 @@ void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa
 }
 
 
-// äÖÈ¾ UIElement
+// æ¸²æŸ“ UIElement
 void LongUI::CUIElement::Render(D2D1_RECT_F * des_rect) noexcept{
     if (UIElement_IsMetaMode) {
-        // ÏÈ»æÖÆµ±Ç°×´Ì¬
+        // å…ˆç»˜åˆ¶å½“å‰çŠ¶æ€
         if (animationo.value < animationo.end)
             this->RenderMeta(metas[old_status], des_rect, animationo.end);
-        // ÔÙ»æÖÆÄ¿±ê×´Ì¬
+        // å†ç»˜åˆ¶ç›®æ ‡çŠ¶æ€
         this->RenderMeta(metas[tar_status], des_rect, animationo.value);
     }
     else {
@@ -408,7 +408,7 @@ void LongUI::CUIElement::Render(D2D1_RECT_F * des_rect) noexcept{
     }
 }
 
-// ÉèÖÃĞÂµÄ×´Ì¬
+// è®¾ç½®æ–°çš„çŠ¶æ€
 auto LongUI::CUIElement::SetNewStatus(ControlStatus new_status) noexcept ->float{
     old_status = tar_status;
     tar_status = new_status;
@@ -422,11 +422,11 @@ auto LongUI::CUIElement::SetNewStatus(ControlStatus new_status) noexcept ->float
         animationc.end = colors[new_status];
         rc = animationc.time = animationc.duration;
     }
-    // ¶à30ms(60HzµÄ2Ö¡)±£Ö¤¶¯»­²¥·ÅÍê±Ï
+    // å¤š30ms(60Hzçš„2å¸§)ä¿è¯åŠ¨ç”»æ’­æ”¾å®Œæ¯•
     return rc + 0.033f;
 }
 
-// ³õÊ¼»¯×´Ì¬
+// åˆå§‹åŒ–çŠ¶æ€
 void LongUI::CUIElement::InitStatus(ControlStatus s) noexcept {
     old_status = tar_status = s;
     animationc.end = animationc.start = animationc.value = colors[s];
@@ -439,7 +439,7 @@ void LongUI::CUIElement::InitStatus(ControlStatus s) noexcept {
 #define valid_digit(c) ((c) >= '0' && (c) <= '9')
 
 
-// ×Ô¼ºÊµÏÖLongUI::AtoI
+// è‡ªå·±å®ç°LongUI::AtoI
 auto __fastcall LongUI::AtoI(const char* str) -> int {
     if (!str) return 0;
     register bool negative = false;
@@ -468,13 +468,13 @@ auto __fastcall LongUI::AtoI(const char* str) -> int {
 }
 
 
-// ×Ô¼ºÊµÏÖµÄLongUI::AtoF
+// è‡ªå·±å®ç°çš„LongUI::AtoF
 auto __fastcall LongUI::AtoF(const char* p) -> float {
     bool negative = false;
     float value, scale;
-    // Ìø¹ı¿Õ°×
+    // è·³è¿‡ç©ºç™½
     while (white_space(*p)) ++p;
-    // ¼ì²é·ûºÅ
+    // æ£€æŸ¥ç¬¦å·
     if (*p == '-') {
         negative = true;
         ++p;
@@ -482,11 +482,11 @@ auto __fastcall LongUI::AtoF(const char* p) -> float {
     else if (*p == '+') {
         ++p;
     }
-    // »ñÈ¡Ğ¡Êıµã»òÕßÖ¸ÊıÖ®Ç°µÄÊı×Ö(ÓĞµÄ»°)
+    // è·å–å°æ•°ç‚¹æˆ–è€…æŒ‡æ•°ä¹‹å‰çš„æ•°å­—(æœ‰çš„è¯)
     for (value = 0.0f; valid_digit(*p); ++p) {
         value = value * 10.0f + static_cast<float>(*p - '0');
     }
-    // »ñÈ¡Ğ¡Êıµã»òÕßÖ¸ÊıÖ®ºóµÄÊı×Ö(ÓĞµÄ»°)
+    // è·å–å°æ•°ç‚¹æˆ–è€…æŒ‡æ•°ä¹‹åçš„æ•°å­—(æœ‰çš„è¯)
     if (*p == '.') {
         float pow10 = 10.0f;
         ++p;
@@ -496,11 +496,11 @@ auto __fastcall LongUI::AtoF(const char* p) -> float {
             ++p;
         }
     }
-    // ´¦ÀíÖ¸Êı(ÓĞµÄ»°)
+    // å¤„ç†æŒ‡æ•°(æœ‰çš„è¯)
     bool frac = false;
     scale = 1.0f;
     if ((*p == 'e') || (*p == 'E')) {
-        // »ñÈ¡Ö¸ÊıµÄ·ûºÅ(ÓĞµÄ»°)
+        // è·å–æŒ‡æ•°çš„ç¬¦å·(æœ‰çš„è¯)
         ++p;
         if (*p == '-') {
             frac = true;
@@ -510,17 +510,17 @@ auto __fastcall LongUI::AtoF(const char* p) -> float {
             ++p;
         }
         unsigned int expon;
-        // »ñÈ¡Ö¸ÊıµÄÊı×Ö(ÓĞµÄ»°)
+        // è·å–æŒ‡æ•°çš„æ•°å­—(æœ‰çš„è¯)
         for (expon = 0; valid_digit(*p); ++p) {
             expon = expon * 10 + (*p - '0');
         }
-        // float ×î´ó38 double ×î´ó308
+        // float æœ€å¤§38 double æœ€å¤§308
         if (expon > 38) expon = 38;
-        // ¼ÆËã±ÈÀıÒòÊı
+        // è®¡ç®—æ¯”ä¾‹å› æ•°
         while (expon >= 8) { scale *= 1E8f;  expon -= 8; }
         while (expon) { scale *= 10.0f; --expon; }
     }
-    // ·µ»Ø
+    // è¿”å›
     register float returncoude = (frac ? (value / scale) : (value * scale));
     if (negative) {
         // float
@@ -531,8 +531,8 @@ auto __fastcall LongUI::AtoF(const char* p) -> float {
 
 
 
-// Ô´: http://llvm.org/svn/llvm-project/llvm/trunk/lib/Support/ConvertUTF.c
-// ÓĞĞŞ¸Ä
+// æº: http://llvm.org/svn/llvm-project/llvm/trunk/lib/Support/ConvertUTF.c
+// æœ‰ä¿®æ”¹
 
 static constexpr int halfShift = 10;
 
@@ -555,7 +555,7 @@ static constexpr char32_t halfMask = 0x3FFUL;
 #define UNI_UTF16_BYTE_ORDER_MARK_NATIVE  0xFEFF
 #define UNI_UTF16_BYTE_ORDER_MARK_SWAPPED 0xFFFE
 
-// ×ª»»±í
+// è½¬æ¢è¡¨
 static constexpr char trailingBytesForUTF8[256] = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -585,7 +585,7 @@ static constexpr char32_t offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x0
 static constexpr char firstByteMark[7] = { (char)0x00, (char)0x00, (char)0xC0, (char)0xE0, (char)0xF0,(char)0xF8, (char)0xFC };
 
 
-// ±àÂë
+// ç¼–ç 
 auto __fastcall LongUI::Base64Encode(IN const uint8_t* bindata, IN size_t binlen, OUT char* const base64 ) noexcept -> char * {
     register uint8_t current;
     register auto base64_index = base64;
@@ -621,26 +621,26 @@ auto __fastcall LongUI::Base64Encode(IN const uint8_t* bindata, IN size_t binlen
     return base64;
 }
 
-// ½âÂë
+// è§£ç 
 auto __fastcall LongUI::Base64Decode(IN const char * base64, OUT uint8_t * bindata) noexcept -> size_t{
-    // ¶ş½øÖÆ³¤¶È
+    // äºŒè¿›åˆ¶é•¿åº¦
     register union { uint8_t temp[4]; uint32_t temp_u32; };
     register uint8_t* bindata_index = bindata;
-    // Ö÷Ñ­»·
+    // ä¸»å¾ªç¯
     while (*base64) {
         temp_u32 = uint32_t(-1);
-        // »ù±¾×ª»»
+        // åŸºæœ¬è½¬æ¢
         temp[0] = Base64Datas[base64[0]];  temp[1] = Base64Datas[base64[1]];
         temp[2] = Base64Datas[base64[2]];  temp[3] = Base64Datas[base64[3]];
-        // µÚÒ»¸ö¶ş½øÖÆÊı¾İ
+        // ç¬¬ä¸€ä¸ªäºŒè¿›åˆ¶æ•°æ®
         *bindata_index = ((temp[0] << 2) & uint8_t(0xFC)) | ((temp[1] >> 4) & uint8_t(0x03));
         ++bindata_index;
         if (base64[2] == '=') break;
-        // µÚÈı¸ö¶ş½øÖÆÊı¾İ
+        // ç¬¬ä¸‰ä¸ªäºŒè¿›åˆ¶æ•°æ®
         *bindata_index = ((temp[1] << 4) & uint8_t(0xF0)) | ((temp[2] >> 2) & uint8_t(0x0F));
         ++bindata_index;
         if (base64[3] == '=') break;
-        // µÚÈı¸ö¶ş½øÖÆÊı¾İ
+        // ç¬¬ä¸‰ä¸ªäºŒè¿›åˆ¶æ•°æ®
         *bindata_index = ((temp[2] << 6) & uint8_t(0xF0)) | ((temp[2] >> 0) & uint8_t(0x3F));
         ++bindata_index;
         base64 += 4;
@@ -655,7 +655,7 @@ auto __fastcall LongUI::UTF16toUTF8(const char16_t* pUTF16String, char* pUTF8Str
     const char16_t* source = pUTF16String;
     char* target = pUTF8String;
     //char* targetEnd = pUTF8String + uBufferLength;
-    // ×ª»»
+    // è½¬æ¢
     while (*source) {
         char32_t ch;
         unsigned short bytesToWrite = 0;
@@ -744,7 +744,7 @@ auto __fastcall LongUI::UTF8toUTF16(const char* pUTF8String, char16_t* pUTF16Str
     auto source = reinterpret_cast<const unsigned char*>(pUTF8String);
     char16_t* target = pUTF16String;
     //char16_t* targetEnd = pUTF16String + uBufferLength;
-    // ±éÀú
+    // éå†
     while (*source) {
         char32_t ch = 0;
         unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
@@ -812,14 +812,14 @@ auto __fastcall LongUI::UTF8toUTF16(const char* pUTF8String, char16_t* pUTF16Str
             length += 2;
         }
     }
-    // ×îºóĞŞÕı
+    // æœ€åä¿®æ­£
     return length;
 }
 
 
 // ----------------------------
 #define UIText_NewAttribute(a) { ::strcpy(attribute_buffer, prefix); ::strcat(attribute_buffer, a); }
-// UIText ¹¹Ôìº¯Êı
+// UIText æ„é€ å‡½æ•°
 LongUI::UIText::UIText(pugi::xml_node node, const char * prefix) noexcept
     : m_pTextRenderer(nullptr){
     m_config = {
@@ -828,19 +828,19 @@ LongUI::UIText::UIText(pugi::xml_node node, const char * prefix) noexcept
         UIManager.inline_handler,
         128.f, 64.f, 1.f, 0
     };
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     assert(node && prefix && "bad arguments");
     register union { const char* str; const uint32_t* pui32; };
     str = nullptr;
     char attribute_buffer[256];
-    // »ñÈ¡½ø¶È
+    // è·å–è¿›åº¦
     {
         UIText_NewAttribute("progress");
         if ((str = node.attribute(attribute_buffer).value())) {
             m_config.progress = LongUI::AtoF(str);
         }
     }
-    // »ñÈ¡äÖÈ¾Æ÷
+    // è·å–æ¸²æŸ“å™¨
     {
         int renderer_index = Type_NormalTextRenderer;
         UIText_NewAttribute("renderer");
@@ -849,7 +849,7 @@ LongUI::UIText::UIText(pugi::xml_node node, const char * prefix) noexcept
         }
         auto renderer = UIManager.GetTextRenderer(renderer_index);
         m_pTextRenderer = renderer;
-        // ±£Ö¤»º³åÇø
+        // ä¿è¯ç¼“å†²åŒº
         if (renderer) {
             auto length = renderer->GetContextSizeInByte();
             if (length) {
@@ -862,13 +862,13 @@ LongUI::UIText::UIText(pugi::xml_node node, const char * prefix) noexcept
         }
     }
     {
-        // ¼ì²é»ù±¾ÑÕÉ«
+        // æ£€æŸ¥åŸºæœ¬é¢œè‰²
         m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
         UIText_NewAttribute("color");
         UIControl::MakeColor(node.attribute(attribute_buffer).value(), m_basicColor);
     }
     {
-        // ¼ì²é¸ñÊ½
+        // æ£€æŸ¥æ ¼å¼
         uint32_t format_index = 0;
         UIText_NewAttribute("format");
         if ((str = node.attribute(attribute_buffer).value())) {
@@ -877,7 +877,7 @@ LongUI::UIText::UIText(pugi::xml_node node, const char * prefix) noexcept
         m_config.text_format = UIManager.GetTextFormat(format_index);
     }
     {
-        // ¼ì²éÀàĞÍ
+        // æ£€æŸ¥ç±»å‹
         UIText_SetIsRich(false);
         UIText_NewAttribute("type");
         if (str = node.attribute(attribute_buffer).value()) {
@@ -901,13 +901,13 @@ LongUI::UIText::UIText(pugi::xml_node node, const char * prefix) noexcept
             }
         }
     }
-    // ÖØ½¨
+    // é‡å»º
     this->recreate(node.attribute(prefix).value());
 }
 
 // UIText = L"***"
 LongUI::UIText& LongUI::UIText::operator=(const wchar_t* new_string) noexcept {
-    // ²»ÄÜÊÇXMLÄ£Ê½
+    // ä¸èƒ½æ˜¯XMLæ¨¡å¼
     assert(UIText_GetIsXML() == false && "=(const wchar_t*) must be in core-mode, can't be xml-mode");
     m_text.Set(new_string);
     this->recreate();
@@ -928,7 +928,7 @@ LongUI::UIText & LongUI::UIText::operator=(const char* str) noexcept {
 }
 
 
-// UIText Îö¹¹
+// UIText ææ„
 LongUI::UIText::~UIText() noexcept{
     m_pTextRenderer.SafeRelease();
     ::SafeRelease(m_pLayout);
@@ -938,19 +938,19 @@ LongUI::UIText::~UIText() noexcept{
 
 void LongUI::UIText::recreate(const char* utf8) noexcept{
     wchar_t text_buffer[LongUIStringBufferLength];
-    // ×ª»»ÎªºËĞÄÄ£Ê½
+    // è½¬æ¢ä¸ºæ ¸å¿ƒæ¨¡å¼
     if (UIText_GetIsXML() && UIText_GetIsRich()) {
         CUIManager::XMLToCoreFormat(utf8, text_buffer);
     }
     else if(utf8){
-        // Ö±½Ó×ªÂë
+        // ç›´æ¥è½¬ç 
         register auto length = LongUI::UTF8toWideChar(utf8, text_buffer);
         text_buffer[length] = L'\0';
         m_text.Set(text_buffer, length);
     }
-    // ´´½¨²¼¾Ö
+    // åˆ›å»ºå¸ƒå±€
     ::SafeRelease(m_pLayout);
-    // ¸»ÎÄ±¾
+    // å¯Œæ–‡æœ¬
     if (UIText_GetIsRich()) {
         m_pLayout = CUIManager::FormatTextCore(
             m_config,
@@ -958,7 +958,7 @@ void LongUI::UIText::recreate(const char* utf8) noexcept{
             nullptr
             );
     }
-    // Æ½Ì¨ÎÄ±¾
+    // å¹³å°æ–‡æœ¬
     else {
         register auto string_length_need = static_cast<uint32_t>(static_cast<float>(m_text.length() + 1) * 
             m_config.progress);
@@ -976,25 +976,25 @@ void LongUI::UIText::recreate(const char* utf8) noexcept{
 }
 
 
-// UIFileLoader ¶ÁÈ¡ÎÄ¼ş
+// UIFileLoader è¯»å–æ–‡ä»¶
 bool LongUIMethodCall LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
-    // ´ò¿ªÎÄ¼ş
+    // æ‰“å¼€æ–‡ä»¶
     FILE* file = nullptr;
     if (file = ::_wfopen(file_name, L"rb")) {
-        // »ñÈ¡ÎÄ¼ş´óĞ¡
+        // è·å–æ–‡ä»¶å¤§å°
         ::fseek(file, 0L, SEEK_END);
         m_cLength = ::ftell(file);
         ::fseek(file, 0L, SEEK_SET);
-        // »º´æ²»×ã?
+        // ç¼“å­˜ä¸è¶³?
         if (m_cLength > m_cLengthReal) {
             m_cLengthReal = m_cLength;
             if (m_pData) free(m_pData);
             m_pData = malloc(m_cLength);
         }
-        // ¶ÁÈ¡ÎÄ¼ş
+        // è¯»å–æ–‡ä»¶
         if (m_pData) ::fread(m_pData, 1, m_cLength, file);
     }
-    // ¹Ø±ÕÎÄ¼ş
+    // å…³é—­æ–‡ä»¶
     if (file) ::fclose(file);
     return file && m_pData;
 }
@@ -1010,17 +1010,17 @@ auto LongUI::CUIDefaultConfigure::LoadBitmapByRI(CUIManager& manager, const char
 
 
 // --------------  CUIConsole ------------
-// CUIConsole ¹¹Ôìº¯Êı
+// CUIConsole æ„é€ å‡½æ•°
 LongUI::CUIConsole::CUIConsole() noexcept {
     ::InitializeCriticalSection(&m_cs);
     m_name[0] = 0;
     { if (m_hConsole != INVALID_HANDLE_VALUE) this->Close(); }
 }
 
-// CUIConsole Îö¹¹º¯Êı
+// CUIConsole ææ„å‡½æ•°
 LongUI::CUIConsole::~CUIConsole() noexcept {
     this->Close();
-    // ¹Ø±Õ
+    // å…³é—­
     if (m_hConsole != INVALID_HANDLE_VALUE) {
         ::CloseHandle(m_hConsole);
         m_hConsole = INVALID_HANDLE_VALUE;
@@ -1028,7 +1028,7 @@ LongUI::CUIConsole::~CUIConsole() noexcept {
     ::DeleteCriticalSection(&m_cs);
 }
 
-// CUIConsole ¹Ø±Õ
+// CUIConsole å…³é—­
 long LongUI::CUIConsole::Close() noexcept {
     if (!(*this))
         return -1;
@@ -1036,12 +1036,12 @@ long LongUI::CUIConsole::Close() noexcept {
         return ::DisconnectNamedPipe(m_hConsole);
 }
 
-// CUIConsole Êä³ö
+// CUIConsole è¾“å‡º
 long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexcept {
     if (len == -1) len = ::wcslen(str);
-    // ¹ı³¤Ôò·ÖÅú
+    // è¿‡é•¿åˆ™åˆ†æ‰¹
     if (len > LongUIStringBufferLength) {
-        // Ö±½Óµİ¹é
+        // ç›´æ¥é€’å½’
         while (len) {
             auto len_in = len > LongUIStringBufferLength ? LongUIStringBufferLength : len;
             this->Output(str, true, len_in);
@@ -1050,25 +1050,25 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
         }
         return 0;
     }
-    // ¼ÆËãÄ¿±ê
+    // è®¡ç®—ç›®æ ‡
     if (m_length + len > LongUIStringBufferLength) {
         flush = true;
     }
-    // Ğ´Èë
+    // å†™å…¥
     if (m_length + len < LongUIStringBufferLength) {
         ::memcpy(m_buffer + m_length, str, len * sizeof(wchar_t));
         m_length += len;
         str = nullptr;
-        // ²»flush
+        // ä¸flush
         if(!flush) return 0;
     }
     DWORD dwWritten = DWORD(-1);
-    // ÏÈĞ´Èë»º³åÇø
+    // å…ˆå†™å…¥ç¼“å†²åŒº
     if (m_length) {
         this->SafeWriteFile(m_hConsole, m_buffer, m_length * sizeof(wchar_t), &dwWritten, nullptr);
         m_length = 0;
     }
-    // ÔÙĞ´ÈëÄ¿±ê
+    // å†å†™å…¥ç›®æ ‡
     if (str) {
         len *= sizeof(wchar_t);
         return (!this->SafeWriteFile(m_hConsole, str, len, &dwWritten, nullptr)
@@ -1077,18 +1077,18 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
     return 0;
 }
 
-// CUIConsole ´´½¨
+// CUIConsole åˆ›å»º
 long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) noexcept {
-    // ¶ş´Î´´½¨?
+    // äºŒæ¬¡åˆ›å»º?
     if (m_hConsole != INVALID_HANDLE_VALUE) {
         ::DisconnectNamedPipe(m_hConsole);
         ::CloseHandle(m_hConsole);
         m_hConsole = INVALID_HANDLE_VALUE;
     }
-    // ÏÈ¸´ÖÆ
+    // å…ˆå¤åˆ¶
     ::wcsncpy(m_name, LR"(\\.\pipe\)", 9);
     wchar_t logger_name_buffer[128];
-    // Î´¸ølogger?
+    // æœªç»™logger?
     if (!config.logger_name)  {
         ::swprintf(
             logger_name_buffer, lengthof(logger_name_buffer),
@@ -1097,23 +1097,23 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         config.logger_name = logger_name_buffer;
     }
     ::wcscat(m_name, config.logger_name);
-    // ´´½¨¹ÜµÀ
+    // åˆ›å»ºç®¡é“
     m_hConsole = ::CreateNamedPipeW(
         m_name,
         PIPE_ACCESS_OUTBOUND,
         PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT,
         1,
-        4096,   // Êä³ö»º´æ
-        0,      // ÊäÈë»º´æ
+        4096,   // è¾“å‡ºç¼“å­˜
+        0,      // è¾“å…¥ç¼“å­˜
         1,
         nullptr
     );
-    // ÎŞĞ§
+    // æ— æ•ˆ
     if (m_hConsole == INVALID_HANDLE_VALUE) {
         ::MessageBoxW(nullptr, L"CreateNamedPipe failed", L"CUIConsole::Create failed", MB_ICONERROR);
         return -1;
     }
-    // ´´½¨¿ØÖÆÌ¨
+    // åˆ›å»ºæ§åˆ¶å°
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     ::GetStartupInfoW(&si);
@@ -1143,7 +1143,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
     BOOL bConnected = ::ConnectNamedPipe(m_hConsole, nullptr) ?
         TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-    // Á¬½ÓÊ§°Ü
+    // è¿æ¥å¤±è´¥
     if (!bConnected) {
         ::MessageBoxW(nullptr, L"ConnectNamedPipe failed", L"ConsoleLogger failed", MB_ICONERROR);
         ::CloseHandle(m_hConsole);
@@ -1153,10 +1153,10 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
     DWORD cbWritten;
 
-    // ÌØĞÔ
+    // ç‰¹æ€§
 
     wchar_t buffer[128];
-    // ´«ËÍ±êÌâ
+    // ä¼ é€æ ‡é¢˜
     if (!lpszWindowTitle) lpszWindowTitle = m_name + 9;
     ::swprintf(buffer, lengthof(buffer), L"TITLE: %ls\r\n", lpszWindowTitle);
     auto len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
@@ -1169,7 +1169,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         return -1;
     }
 
-    // ´«ËÍÎ»ÖÃ
+    // ä¼ é€ä½ç½®
     if (config.position_xy != -1) {
         ::swprintf(buffer, lengthof(buffer), L"POS: %d\r\n", config.position_xy);
         len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
@@ -1182,7 +1182,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
             return -1;
         }
     }
-    // ´«ËÍÊôĞÔ
+    // ä¼ é€å±æ€§
     if (config.atribute) {
         ::swprintf(buffer, lengthof(buffer), L"ATTR: %d\r\n", config.atribute);
         len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
@@ -1196,7 +1196,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         }
     }
 
-    // ´«ËÍ»º´æÇø´óĞ¡
+    // ä¼ é€ç¼“å­˜åŒºå¤§å°
     if (config.buffer_size_x != -1 && config.buffer_size_y != -1)  {
         ::swprintf(buffer, lengthof(buffer), L"BUFFER-SIZE: %dx%d\r\n", config.buffer_size_x, config.buffer_size_y);
         len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
@@ -1210,7 +1210,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         }
     }
 
-    // Ìí¼ÓÍ·
+    // æ·»åŠ å¤´
     if (false)  {
         ::DisconnectNamedPipe(m_hConsole);
         ::CloseHandle(m_hConsole);
@@ -1218,7 +1218,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         return -1;
     }
 
-    // ´«ËÍÍê±Ï
+    // ä¼ é€å®Œæ¯•
 
     buffer[0] = 0;
     ::WriteFile(m_hConsole, buffer, 2, &cbWritten, nullptr);
@@ -1235,7 +1235,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 // --------------  CUIDefaultConfigure ------------
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t {
-    // ºËÏÔ¿¨ÓÅÏÈ 
+    // æ ¸æ˜¾å¡ä¼˜å…ˆ 
 #ifdef LONGUI_NUCLEAR_FIRST
     for (size_t i = 0; i < length; ++i) {
         DXGI_ADAPTER_DESC1 desc;
@@ -1247,7 +1247,7 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size
     return length;
 }
 
-// CUIDefaultConfigure ÏÔÊ¾´íÎóĞÅÏ¢
+// CUIDefaultConfigure æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
 auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t * str_a, const wchar_t* str_b) noexcept -> void {
     assert(str_a && "bad argument!");
     if(!str_b) str_b = L"Error!";
@@ -1255,15 +1255,15 @@ auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t * str_a, const wchar_t
 }
 
 #ifdef _DEBUG
-// Êä³öµ÷ÊÔ×Ö·û´®
+// è¾“å‡ºè°ƒè¯•å­—ç¬¦ä¸²
 auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
     DebugStringLevel level, const wchar_t * string, bool flush) noexcept -> void {
     auto& console = this->consoles[level];
-    // ÎŞĞ§¾Í´´½¨
+    // æ— æ•ˆå°±åˆ›å»º
     if (!console) {
         this->CreateConsole(level);
     }
-    // ÓĞĞ§¾ÍÊä³ö
+    // æœ‰æ•ˆå°±è¾“å‡º
     if (console) {
         console.Output(string, flush);
     }
@@ -1290,7 +1290,7 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
         break;
     }
     assert(level < LongUI::DLEVEL_SIZE);
-    // Ãû³Æ
+    // åç§°
     const wchar_t* strings[LongUI::DLEVEL_SIZE] = {
         L"None      Console", 
         L"Log       Console", 
@@ -1310,7 +1310,7 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
 // Video
 //////////////////////////////////////////
 #ifdef LONGUI_VIDEO_IN_MF
-// CUIVideoComponent ÊÂ¼şÍ¨Öª
+// CUIVideoComponent äº‹ä»¶é€šçŸ¥
 HRESULT LongUI::CUIVideoComponent::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
     switch (event)
     {
@@ -1349,28 +1349,28 @@ HRESULT LongUI::CUIVideoComponent::EventNotify(DWORD event, DWORD_PTR param1, DW
 HRESULT LongUI::CUIVideoComponent::Init() noexcept {
     HRESULT hr = S_OK;
     IMFAttributes* attributes = nullptr;
-    // ´´½¨MFÊôĞÔ
+    // åˆ›å»ºMFå±æ€§
     if (SUCCEEDED(hr)) {
         hr = ::MFCreateAttributes(&attributes, 1);
     }
-    // ÉèÖÃÊôĞÔ: DXGI¹ÜÀíÆ÷
+    // è®¾ç½®å±æ€§: DXGIç®¡ç†å™¨
     if (SUCCEEDED(hr)) {
         hr = attributes->SetUnknown(MF_MEDIA_ENGINE_DXGI_MANAGER, UIManager_MFDXGIDeviceManager);
     }
-    // ÉèÖÃÊôĞÔ: ÊÂ¼şÍ¨Öª
+    // è®¾ç½®å±æ€§: äº‹ä»¶é€šçŸ¥
     if (SUCCEEDED(hr)) {
         hr = attributes->SetUnknown(MF_MEDIA_ENGINE_CALLBACK, this);
     }
-    // ÉèÖÃÊôĞÔ: Êä³ö¸ñÊ½
+    // è®¾ç½®å±æ€§: è¾“å‡ºæ ¼å¼
     if (SUCCEEDED(hr)) {
         hr = attributes->SetUINT32(MF_MEDIA_ENGINE_VIDEO_OUTPUT_FORMAT, DXGI_FORMAT_B8G8R8A8_UNORM);
     }
-    // ´´½¨Ã½ÌåÒıÇæ
+    // åˆ›å»ºåª’ä½“å¼•æ“
     if (SUCCEEDED(hr)) {
         constexpr DWORD flags = MF_MEDIA_ENGINE_WAITFORSTABLE_STATE;
         hr = UIManager_MFMediaEngineClassFactory->CreateInstance(flags, attributes, &m_pMediaEngine);
     }
-    // »ñÈ¡Ex°æ
+    // è·å–Exç‰ˆ
     /*if (SUCCEEDED(hr)) {
         hr = m_pMediaEngine->QueryInterface(LongUI_IID_PV_ARGS(m_pEngineEx));
     }*/
@@ -1379,7 +1379,7 @@ HRESULT LongUI::CUIVideoComponent::Init() noexcept {
     return hr;
 }
 
-// ÖØ½¨
+// é‡å»º
 HRESULT LongUI::CUIVideoComponent::Recreate(ID2D1RenderTarget* target) noexcept {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pTargetSurface);
@@ -1390,15 +1390,15 @@ HRESULT LongUI::CUIVideoComponent::Recreate(ID2D1RenderTarget* target) noexcept 
     return this->recreate_surface();
 }
 
-// äÖÈ¾
+// æ¸²æŸ“
 void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) noexcept {
     const MFARGB bkColor = { 0,0,0,0 };
     assert(m_pMediaEngine);
-    // ±íÃæÎŞĞ§
+    // è¡¨é¢æ— æ•ˆ
     if (!m_pDrawSurface) {
         this->recreate_surface();
     }
-    // ±íÃæÓĞĞ§
+    // è¡¨é¢æœ‰æ•ˆ
     if (m_pDrawSurface) {
         LONGLONG pts;
         if ((m_pMediaEngine->OnVideoStreamTick(&pts)) == S_OK) {
@@ -1415,12 +1415,12 @@ void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) noexcept {
 }
 
 
-// CUIVideoComponent ¹¹Ôìº¯Êı
+// CUIVideoComponent æ„é€ å‡½æ•°
 LongUI::CUIVideoComponent::CUIVideoComponent() noexcept {
     force_cast(dst_rect) = { 0 };
 }
 
-// CUIVideoComponent Îö¹¹º¯Êı
+// CUIVideoComponent ææ„å‡½æ•°
 LongUI::CUIVideoComponent::~CUIVideoComponent() noexcept {
     if (m_pMediaEngine) {
         m_pMediaEngine->Shutdown();
@@ -1436,18 +1436,18 @@ LongUI::CUIVideoComponent::~CUIVideoComponent() noexcept {
 #define MakeAsUnit(a) (((a) + (LongUITargetBitmapUnitSize-1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize)
 
 
-// ÖØ½¨±íÃæ
+// é‡å»ºè¡¨é¢
 HRESULT LongUI::CUIVideoComponent::recreate_surface() noexcept {
-    // ÓĞĞ§Çé¿öÏÂ
+    // æœ‰æ•ˆæƒ…å†µä¸‹
     DWORD w, h; HRESULT hr = S_FALSE;
     if (this->HasVideo() && SUCCEEDED(hr = m_pMediaEngine->GetNativeVideoSize(&w, &h))) {
         force_cast(dst_rect.right) = w;
         force_cast(dst_rect.bottom) = h;
-        // »ñÈ¡¹æ·¶´óĞ¡
+        // è·å–è§„èŒƒå¤§å°
         w = MakeAsUnit(w); h = MakeAsUnit(h);
-        // ¼ì²é³ĞÔØ´óĞ¡
+        // æ£€æŸ¥æ‰¿è½½å¤§å°
         D2D1_SIZE_U size = m_pDrawSurface ? m_pDrawSurface->GetPixelSize() : D2D1::SizeU();
-        // ÖØ½¨±íÃæ
+        // é‡å»ºè¡¨é¢
         if (w > size.width || h > size.height) {
             size = { w, h };
             ::SafeRelease(m_pTargetSurface);
@@ -1460,33 +1460,33 @@ HRESULT LongUI::CUIVideoComponent::recreate_surface() noexcept {
                 D3D11_BIND_RENDER_TARGET, 0, 0
             };
             hr = UIManager_D3DDevice->CreateTexture2D(&desc, nullptr, &m_pTargetSurface);
-            // »ñÈ¡Dxgi±íÃæ
+            // è·å–Dxgiè¡¨é¢
             if (SUCCEEDED(hr)) {
                 hr = m_pTargetSurface->QueryInterface(LongUI_IID_PV_ARGS(surface));
             }
-            // ´ÓDxgi±íÃæ´´½¨Î»Í¼
+            // ä»Dxgiè¡¨é¢åˆ›å»ºä½å›¾
             if (SUCCEEDED(hr)) {
                 hr = UIManager_RenderTaget->CreateBitmapFromDxgiSurface(
                     surface, nullptr, &m_pDrawSurface
                     );
             }
 #else
-            // ´´½¨D2DÎ»Í¼
+            // åˆ›å»ºD2Dä½å›¾
             D2D1_BITMAP_PROPERTIES1 prop = {
                 D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
                 96.f, 96.f,
                 D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET, nullptr
             };
             hr = UIManager_RenderTaget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pSharedSurface);
-            // »ñÈ¡Dxgi±íÃæ
+            // è·å–Dxgiè¡¨é¢
             if (SUCCEEDED(hr)) {
                 hr = m_pSharedSurface->GetSurface(&surface);
             }
-            // »ñÈ¡D3D11 2DÎÆÀí
+            // è·å–D3D11 2Dçº¹ç†
             if (SUCCEEDED(hr)) {
                 hr = surface->QueryInterface(LongUI_IID_PV_ARGS(m_pTargetSurface));
             }
-            // ´´½¨¿Ì»­Î»Í¼
+            // åˆ›å»ºåˆ»ç”»ä½å›¾
             if (SUCCEEDED(hr)) {
                 prop.bitmapOptions = D2D1_BITMAP_OPTIONS_NONE;
                 hr = UIManager_RenderTaget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pDrawSurface);
@@ -1506,12 +1506,12 @@ HRESULT LongUI::CUIVideoComponent::recreate_surface() noexcept {
 
 
 
-// ¦Ğ
+// Ï€
 #define EZ_PI 3.1415296F
-// ¶ş·ÖÖ®Ò»¦Ğ
+// äºŒåˆ†ä¹‹ä¸€Ï€
 #define EZ_PI_2 1.5707963F
 
-// ·´µ¯½¥³ö
+// åå¼¹æ¸å‡º
 float inline __fastcall BounceEaseOut(float p) noexcept {
     if (p < 4.f / 11.f) {
         return (121.f * p * p) / 16.f;
@@ -1528,7 +1528,7 @@ float inline __fastcall BounceEaseOut(float p) noexcept {
 }
 
 
-// CUIAnimation »º¶¯º¯Êı
+// CUIAnimation ç¼“åŠ¨å‡½æ•°
 float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
     assert((p >= 0.f && p <= 1.f) && "bad argument");
     switch (type)
@@ -1537,30 +1537,30 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
         assert(!"type unknown");
         __fallthrough;
     case LongUI::AnimationType::Type_LinearInterpolation:
-        // ÏßĞÔ²åÖµ     f(x) = x
+        // çº¿æ€§æ’å€¼     f(x) = x
         return p;
     case LongUI::AnimationType::Type_QuadraticEaseIn:
-        // Æ½´Î½¥Èë     f(x) = x^2
+        // å¹³æ¬¡æ¸å…¥     f(x) = x^2
         return p * p;
     case LongUI::AnimationType::Type_QuadraticEaseOut:
-        // Æ½´Î½¥³ö     f(x) =  -x^2 + 2x
+        // å¹³æ¬¡æ¸å‡º     f(x) =  -x^2 + 2x
         return -(p * (p - 2.f));
     case LongUI::AnimationType::Type_QuadraticEaseInOut:
-        // Æ½´Î³öÈë
+        // å¹³æ¬¡å‡ºå…¥
         // [0, 0.5)     f(x) = (1/2)((2x)^2)
         // [0.5, 1.f]   f(x) = -(1/2)((2x-1)*(2x-3)-1) ; 
         return p < 0.5f ? (p * p * 2.f) : ((-2.f * p * p) + (4.f * p) - 1.f);
     case LongUI::AnimationType::Type_CubicEaseIn:
-        // Á¢´Î½¥Èë     f(x) = x^3;
+        // ç«‹æ¬¡æ¸å…¥     f(x) = x^3;
         return p * p * p;
     case LongUI::AnimationType::Type_CubicEaseOut:
-        // Á¢´Î½¥³ö     f(x) = (x - 1)^3 + 1
+        // ç«‹æ¬¡æ¸å‡º     f(x) = (x - 1)^3 + 1
     {
         register float f = p - 1.f;
         return f * f * f + 1.f;
     }
     case LongUI::AnimationType::Type_CubicEaseInOut:
-        // Á¢´Î³öÈë
+        // ç«‹æ¬¡å‡ºå…¥
         // [0, 0.5)     f(x) = (1/2)((2x)^3) 
         // [0.5, 1.f]   f(x) = (1/2)((2x-2)^3 + 2) 
         if (p < 0.5f) {
@@ -1571,19 +1571,19 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return 0.5f * f * f * f + 1.f;
         }
     case LongUI::AnimationType::Type_QuarticEaseIn:
-        // ËÄ´Î½¥Èë     f(x) = x^4
+        // å››æ¬¡æ¸å…¥     f(x) = x^4
     {
         register float f = p * p;
         return f * f;
     }
     case LongUI::AnimationType::Type_QuarticEaseOut:
-        // ËÄ´Î½¥³ö     f(x) = 1 - (x - 1)^4
+        // å››æ¬¡æ¸å‡º     f(x) = 1 - (x - 1)^4
     {
         register float f = (p - 1.f); f *= f;
         return 1.f - f * f;
     }
     case LongUI::AnimationType::Type_QuarticEaseInOut:
-        // ËÄ´Î³öÈë
+        // å››æ¬¡å‡ºå…¥
         // [0, 0.5)     f(x) = (1/2)((2x)^4)
         // [0.5, 1.f]   f(x) = -(1/2)((2x-2)^4 - 2)
         if (p < 0.5f) {
@@ -1595,19 +1595,19 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return 1.f - 8.f * f * f;
         }
     case LongUI::AnimationType::Type_QuinticEaseIn:
-        // Îå´Î½¥Èë     f(x) = x^5
+        // äº”æ¬¡æ¸å…¥     f(x) = x^5
     {
         register float f = p * p;
         return f * f * p;
     }
     case LongUI::AnimationType::Type_QuinticEaseOut:
-        // Îå´Î½¥³ö     f(x) = (x - 1)^5 + 1
+        // äº”æ¬¡æ¸å‡º     f(x) = (x - 1)^5 + 1
     {
         register float f = (p - 1.f);
         return f * f * f * f * f + 1.f;
     }
     case LongUI::AnimationType::Type_QuinticEaseInOut:
-        // Îå´Î³öÈë
+        // äº”æ¬¡å‡ºå…¥
         // [0, 0.5)     f(x) = (1/2)((2x)^5) 
         // [0.5, 1.f]   f(x) = (1/2)((2x-2)^5 + 2)
         if (p < 0.5) {
@@ -1619,22 +1619,22 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return  f * f * f * f * f * 0.5f + 1.f;
         }
     case LongUI::AnimationType::Type_SineEaseIn:
-        // ÕıÏÒ½¥Èë     
+        // æ­£å¼¦æ¸å…¥     
         return ::sin((p - 1.f) * EZ_PI_2) + 1.f;
     case LongUI::AnimationType::Type_SineEaseOut:
-        // ÕıÏÒ½¥³ö     
+        // æ­£å¼¦æ¸å‡º     
         return ::sin(p * EZ_PI_2);
     case LongUI::AnimationType::Type_SineEaseInOut:
-        // ÕıÏÒ³öÈë     
+        // æ­£å¼¦å‡ºå…¥     
         return 0.5f * (1.f - ::cos(p * EZ_PI));
     case LongUI::AnimationType::Type_CircularEaseIn:
-        // ËÄÏóÔ²»¡
+        // å››è±¡åœ†å¼§
         return 1.f - ::sqrt(1.f - (p * p));
     case LongUI::AnimationType::Type_CircularEaseOut:
-        // ¶şÏóÔ²»¡
+        // äºŒè±¡åœ†å¼§
         return ::sqrt((2.f - p) * p);
     case LongUI::AnimationType::Type_CircularEaseInOut:
-        // Ô²»¡³öÈë
+        // åœ†å¼§å‡ºå…¥
         if (p < 0.5f) {
             return 0.5f * (1.f - ::sqrt(1.f - 4.f * (p * p)));
         }
@@ -1642,13 +1642,13 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return 0.5f * (::sqrt(-((2.f * p) - 3.f) * ((2.f * p) - 1.f)) + 1.f);
         }
     case LongUI::AnimationType::Type_ExponentialEaseIn:
-        // Ö¸Êı½¥Èë     f(x) = 2^(10(x - 1))
+        // æŒ‡æ•°æ¸å…¥     f(x) = 2^(10(x - 1))
         return (p == 0.f) ? (p) : (::pow(2.f, 10.f * (p - 1.f)));
     case LongUI::AnimationType::Type_ExponentialEaseOut:
-        // Ö¸Êı½¥³ö     f(x) =  -2^(-10x) + 1
+        // æŒ‡æ•°æ¸å‡º     f(x) =  -2^(-10x) + 1
         return (p == 1.f) ? (p) : (1.f - ::powf(2.f, -10.f * p));
     case LongUI::AnimationType::Type_ExponentialEaseInOut:
-        // Ö¸Êı³öÈë
+        // æŒ‡æ•°å‡ºå…¥
         // [0,0.5)      f(x) = (1/2)2^(10(2x - 1)) 
         // [0.5,1.f]    f(x) = -(1/2)*2^(-10(2x - 1))) + 1 
         if (p == 0.0f || p == 1.0f) return p;
@@ -1659,13 +1659,13 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return -0.5f * ::powf(2.f, (-20.f * p) + 1.f) + 1.f;
         }
     case LongUI::AnimationType::Type_ElasticEaseIn:
-        // µ¯ĞÔ½¥Èë
+        // å¼¹æ€§æ¸å…¥
         return ::sin(13.f * EZ_PI_2 * p) * ::pow(2.f, 10.f * (p - 1.f));
     case LongUI::AnimationType::Type_ElasticEaseOut:
-        // µ¯ĞÔ½¥³ö
+        // å¼¹æ€§æ¸å‡º
         return ::sin(-13.f * EZ_PI_2 * (p + 1.f)) * ::powf(2.f, -10.f * p) + 1.f;
     case LongUI::AnimationType::Type_ElasticEaseInOut:
-        // µ¯ĞÔ³öÈë
+        // å¼¹æ€§å‡ºå…¥
         if (p < 0.5f) {
             return 0.5f * ::sin(13.f * EZ_PI_2 * (2.f * p)) * ::pow(2.f, 10.f * ((2.f * p) - 1.f));
         }
@@ -1673,16 +1673,16 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return 0.5f * (::sin(-13.f * EZ_PI_2 * ((2.f * p - 1.f) + 1.f)) * ::pow(2.f, -10.f * (2.f * p - 1.f)) + 2.f);
         }
     case LongUI::AnimationType::Type_BackEaseIn:
-        // »ØÍË½¥Èë
+        // å›é€€æ¸å…¥
         return  p * p * p - p * ::sin(p * EZ_PI);
     case LongUI::AnimationType::Type_BackEaseOut:
-        // »ØÍË½¥³ö
+        // å›é€€æ¸å‡º
     {
         register float f = (1.f - p);
         return 1.f - (f * f * f - f * ::sin(f * EZ_PI));
     }
     case LongUI::AnimationType::Type_BackEaseInOut:
-        // »ØÍË³öÈë
+        // å›é€€å‡ºå…¥
         if (p < 0.5f) {
             register float f = 2.f * p;
             return 0.5f * (f * f * f - f * ::sin(f * EZ_PI));
@@ -1692,13 +1692,13 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return 0.5f * (1.f - (f * f * f - f * ::sin(f * EZ_PI))) + 0.5f;
         }
     case LongUI::AnimationType::Type_BounceEaseIn:
-        // ·´µ¯½¥Èë
+        // åå¼¹æ¸å…¥
         return 1.f - ::BounceEaseOut(1.f - p);
     case LongUI::AnimationType::Type_BounceEaseOut:
-        // ·´µ¯½¥³ö
+        // åå¼¹æ¸å‡º
         return ::BounceEaseOut(p);
     case LongUI::AnimationType::Type_BounceEaseInOut:
-        // ·´µ¯³öÈë
+        // åå¼¹å‡ºå…¥
         if (p < 0.5f) {
             return 0.5f * (1.f - ::BounceEaseOut(1.f - (p*2.f)));
         }

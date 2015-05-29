@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/gc.h - garbage collector for mruby
 **
 ** See Copyright Notice in mruby.h

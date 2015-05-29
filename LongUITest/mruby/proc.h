@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/proc.h - Proc class
 **
 ** See Copyright Notice in mruby.h

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -26,37 +26,37 @@
 
 // LongUI namespace
 namespace LongUI{
-    // Horizontal Layout -- Ë®Æ½²¼¾Ö ÈÝÆ÷
+    // Horizontal Layout -- æ°´å¹³å¸ƒå±€ å®¹å™¨
     class LongUIAPI UIHorizontalLayout : public UIContainer{
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜Ž
         using Super = UIContainer;
     public: // UIControl
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         //virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
-        // do event ÊÂ¼þ´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         //virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         //virtual void LongUIMethodCall PreRender() noexcept override;
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼þ
+        // close this control å…³é—­æŽ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
     public: // UIContainer
         // update children's layout
         virtual void LongUIMethodCall RefreshChildLayout(bool refresh_scroll) noexcept override;
     public:
-        // create ´´½¨
+        // create åˆ›å»º
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
-        // UIVerticalLayout ¹¹Ôìº¯Êý
+        // UIVerticalLayout æž„é€ å‡½æ•°
         UIHorizontalLayout(pugi::xml_node node) noexcept :Super(node) { }
-        // UIVerticalLayout Îö¹¹º¯Êý
+        // UIVerticalLayout æžæž„å‡½æ•°
         ~UIHorizontalLayout() noexcept = default;
-        // É¾³ý
+        // åˆ é™¤
         UIHorizontalLayout(const UIHorizontalLayout&) = delete;
     protected:
-        // ÐÞ¸Ä×Ó²¼¾Ö¿Ø¼þ²¼¾Ö
+        // ä¿®æ”¹å­å¸ƒå±€æŽ§ä»¶å¸ƒå±€
         //void LongUIMethodCall change_child_layout() noexcept;
-        // »ñÈ¡Ö¸¶¨Î»ÖÃµÄ¿Ø¼þ
+        // èŽ·å–æŒ‡å®šä½ç½®çš„æŽ§ä»¶
         //auto LongUIMethodCall get_child_by_position(float) noexcept ->UIControl*;
     };
 }

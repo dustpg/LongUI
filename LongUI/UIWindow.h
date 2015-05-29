@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -35,31 +35,31 @@ namespace LongUI{
         enum UnusedIndex {
             UNUSED_SIZE
         };
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UIVerticalLayout ;
-        // ÓÑÔªÉêÃ÷
+        // å‹å…ƒç”³æ˜
         friend class CUIManager;
-        // Rendering äÖÈ¾¶ÓÁĞ
+        // Rendering æ¸²æŸ“é˜Ÿåˆ—
         class RenderingQueue;
-    public: // UIControl ½Ó¿ÚÊµÏÖ
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+    public: // UIControl æ¥å£å®ç°
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void LongUIMethodCall PreRender() noexcept override { /*return Super::PreRender();*/ }
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
-    public: // IDropTarget ½Ó¿Ú ÊµÏÖ
-        // IDropTarget::DragEnter ÊµÏÖ
+    public: // IDropTarget æ¥å£ å®ç°
+        // IDropTarget::DragEnter å®ç°
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
-        // IDropTarget::DragOver ÊµÏÖ
+        // IDropTarget::DragOver å®ç°
         HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) noexcept override;
-        // IDropTarget::DragLeave ÊµÏÖ
+        // IDropTarget::DragLeave å®ç°
         HRESULT STDMETHODCALLTYPE DragLeave(void) noexcept override;
-        // IDropTarget::Drop ÊµÏÖ
+        // IDropTarget::Drop å®ç°
         HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) noexcept override;
     public:
         // update rendering state
@@ -80,7 +80,7 @@ namespace LongUI{
         void ShowCaret() noexcept;
         // hide the caret
         void HideCaret() noexcept;
-    public: // ÄÚÁªÇø
+    public: // å†…è”åŒº
         // register for calling PreRender with 3d content
         LongUIInline auto RegisterPreRender3D(UIControl* c) noexcept { return this->RegisterPreRender(c, true); }
         // register for calling PreRender with 2d content
@@ -142,11 +142,11 @@ namespace LongUI{
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
         // window handle
         HWND                    m_hwnd = nullptr;
-        // ´´½¨Êı¾İ¶ÔÏó
+        // åˆ›å»ºæ•°æ®å¯¹è±¡
         IDataObject*            m_pCurDataObject = nullptr;
-        // ÍÏ·Å°ïÖú¹¤¾ß
+        // æ‹–æ”¾å¸®åŠ©å·¥å…·
         IDropTargetHelper*      m_pDropTargetHelper = nullptr;
-        // swap chain ½»»»Á´
+        // swap chain äº¤æ¢é“¾
         IDXGISwapChain1*        m_pSwapChain = nullptr;
         // target bitmap
         ID2D1Bitmap1*           m_pTargetBimtap = nullptr;
@@ -202,7 +202,7 @@ namespace LongUI{
         UITimer                 m_timer;
         // track mouse event
         TRACKMOUSEEVENT         m_csTME;
-        // current STGMEDIUMµ±Ç°Ã½Ìå
+        // current STGMEDIUMå½“å‰åª’ä½“
         STGMEDIUM               m_curMedium;
     public:
         // default(arrow)cursor
@@ -214,7 +214,7 @@ namespace LongUI{
         uint16_t                full_render_counter = 0;
         uint16_t                dirty_render_counter = 0;
 #endif
-        // ÇåÀíÑÕÉ«
+        // æ¸…ç†é¢œè‰²
         D2D1::ColorF            clear_color = D2D1::ColorF(D2D1::ColorF::White);
     protected:
         // registered control

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *

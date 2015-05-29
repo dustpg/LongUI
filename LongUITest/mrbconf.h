@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mrbconf.h - mruby core configuration
 **
 ** See Copyright Notice in mruby.h

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -26,12 +26,12 @@
 
 // LongUI namespace
 namespace LongUI {
-    // base container control class -- »ù±¾ÈİÆ÷Àà
+    // base container control class -- åŸºæœ¬å®¹å™¨ç±»
     class LongUIAPI UIContainer : public UIControl {
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UIControl;
     protected:
-        // itr µü´úÆ÷
+        // itr è¿­ä»£å™¨
         class Iterator {
         public:
             // operator =
@@ -68,7 +68,7 @@ namespace LongUI {
             UIControl*      m_pControl;
         };
     public:
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
@@ -102,50 +102,50 @@ namespace LongUI {
         // end
         LongUIInline auto end() const noexcept { return Iterator(nullptr); };
     protected:
-        // dtor Îö¹¹º¯Êı
+        // dtor ææ„å‡½æ•°
         ~UIContainer() noexcept;
-        // ×Ó¿Ø¼şÊıÁ¿
+        // å­æ§ä»¶æ•°é‡
         size_t                  m_cChildrenCount = 0;
-        // Í·¿Ø¼şÖ¸Õë
+        // å¤´æ§ä»¶æŒ‡é’ˆ
         UIControl*              m_pHead = nullptr;
-        // Î²¿Ø¼şÖ¸Õë
+        // å°¾æ§ä»¶æŒ‡é’ˆ
         UIControl*              m_pTail = nullptr;
     public:
         // end of right
         float             const end_of_right = 0.f;
         // end of bottom
         float             const end_of_bottom = 0.f;
-        // µ±Ç°ÊÀ½ç×ª»»¾ØÕó
+        // å½“å‰ä¸–ç•Œè½¬æ¢çŸ©é˜µ
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
-        // ±¾ÈİÆ÷×ª»»¾ØÕó
+        // æœ¬å®¹å™¨è½¬æ¢çŸ©é˜µ
         D2D1_MATRIX_3X2_F       transform = D2D1::Matrix3x2F::Identity();
-        // Ë®Æ½¹ö¶¯Ìõ
+        // æ°´å¹³æ»šåŠ¨æ¡
         UIScrollBar             scrollbar_h;
-        // ´¹Ö±¹ö¶¯Ìõ
+        // å‚ç›´æ»šåŠ¨æ¡
         UIScrollBar             scrollbar_v;
     };
 #if 0
     // -------------------------------------------------
-    // [Test] Single Container µ¥ÈİÆ÷
+    // [Test] Single Container å•å®¹å™¨
     class UISingleContainer : public UIContainer {
-        // ¸¸ÀàÉùÃ÷
+        // çˆ¶ç±»å£°æ˜
         using Super = UIContainer;
     public: // UIControl
-        // ¹¹Ôì
+        // æ„é€ 
         UISingleContainer(pugi::xml_node node) noexcept : Super(node){
             new(&m_itrBegin) Iterator(reinterpret_cast<void**>(&single_control), nullptr);
             m_itrEnd = m_itrBegin;
         }
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void LongUIMethodCall PreRender() noexcept override{ 
             if (this->single_control) {
                 this->single_control->PreRender();
             }
             return Super::PreRender();
         }
-        // ÖØ½¨
+        // é‡å»º
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget* target) noexcept ->HRESULT override { return Super::Recreate(target); }
-        // äÖÈ¾
+        // æ¸²æŸ“
         virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
     public: // UIContainer
         // get child at

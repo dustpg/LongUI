@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/boxing_nan.h - nan boxing mrb_value definition
 **
 ** See Copyright Notice in mruby.h

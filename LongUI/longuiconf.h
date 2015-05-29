@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 // THIS FILE IS NONE-LICENSE
 
 
@@ -17,7 +17,7 @@
 #endif
 
 
-// «Ø◊°
+// Èí≥‰Ωè
 #define LongUIClamp(x, i, a) {if(x < i) x = i; else if(x > a) x = a;}
 
 // maybe you want to export to dll
@@ -64,7 +64,7 @@
 #define __fallthrough (void)(0)
 #endif
 
-// std::floorf // ∏∫ ˝“≤ø¥≤ªµΩ
+// std::floorf // Ë¥üÊï∞‰πüÁúã‰∏çÂà∞
 //#define LongUIFloorF(v) static_cast<float>(static_cast<int>(v))
 
 // if you impl a IUIConfigure by yourself, undef it
@@ -145,7 +145,7 @@ namespace LongUI {
     constexpr static wchar_t* LongUIDefaultTextFontName = L"Arial";
     // LongUI Default Text Font Size
     constexpr static float LongUIDefaultTextFontSize = 22.f;
-    // LongUI ≥£¡ø
+    // LongUI Â∏∏Èáè
     enum EnumUIConstant : uint32_t {
         // LongUI String Static Buffer Length(object)
         LongUIStringLength = 64,
@@ -250,7 +250,7 @@ namespace LongUI {
     template<typename T> using Vector = std::vector < T >;
     // String, you can change to other like eastl stl lib, or you own 
     using DynamicString = std::wstring;
-    // Basic Container ª˘±æ»›∆˜
+    // Basic Container Âü∫Êú¨ÂÆπÂô®
     using BasicContainer = LongUI::Vector<void*>;
     // map string to funtion, you can change to other like eastl stl lib, or you own 
     using StringMap = std::map<const CUIString, void*>;

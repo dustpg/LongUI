@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -27,7 +27,7 @@
 
 // LongUI namespace
 namespace LongUI {
-    // default rich edit Ä¬ÈÏ¸»ÎÄ±¾±à¼­¿Ø¼ş
+    // default rich edit é»˜è®¤å¯Œæ–‡æœ¬ç¼–è¾‘æ§ä»¶
     class LongUIAPI  UIRichEdit :  public UIControl, public ComStatic<QiList<ITextHost2>> {
         // unused
         enum UnusedIndex {
@@ -35,39 +35,39 @@ namespace LongUI {
             UNUSED_SIZE
         };
     public:
-        // Text Services 2 IIDÖ¸Õë
+        // Text Services 2 IIDæŒ‡é’ˆ
         static IID*                                IID_ITextServices2;
-        // ´´½¨ÎÄ±¾·şÎñ-º¯ÊıÖ¸Õë
+        // åˆ›å»ºæ–‡æœ¬æœåŠ¡-å‡½æ•°æŒ‡é’ˆ
         static decltype(&::CreateTextServices)     CreateTextServices;
-        // ¹Ø±ÕÎÄ±¾·şÎñ-º¯ÊıÖ¸Õë
+        // å…³é—­æ–‡æœ¬æœåŠ¡-å‡½æ•°æŒ‡é’ˆ
         static decltype(&::ShutdownTextServices)   ShutdownTextServices;
     private:
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UIControl ;
     public:
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual HRESULT LongUIMethodCall Render() noexcept override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool    LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void    LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void    LongUIMethodCall Close() noexcept override;
     public:
         // get the service of RichText
         LongUIInline auto GetService() { return m_pTextServices; }
-        // create ´´½¨
+        // create åˆ›å»º
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
     protected:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         UIRichEdit(pugi::xml_node) noexcept;
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~UIRichEdit() noexcept;
         // deleted function
         UIRichEdit(const UIRichEdit&) = delete;
-    public: // ITextHost ÊµÏÖ
+    public: // ITextHost å®ç°
         //@cmember Get the DC for the host
         virtual HDC         TxGetDC() override;
         //@cmember Release the DC gotten from the host
@@ -157,7 +157,7 @@ namespace LongUI {
         virtual void        TxImmReleaseContext(HIMC himc) override;
         //@cmember Returns HIMETRIC size of the control bar.
         virtual HRESULT     TxGetSelectionBarWidth(LONG *lSelBarWidth) override;
-    public: // ITextHost2 ÊµÏÖ
+    public: // ITextHost2 å®ç°
         //@cmember Is a double click in the message queue?
         virtual BOOL        TxIsDoubleClickPending() override;
         //@cmember Get the overall window for this control     

@@ -1,7 +1,7 @@
-#include "LongUI.h"
+ï»¿#include "LongUI.h"
 
 #define InitStaticVar(v)  decltype(v) v = nullptr
-// ³õÊ¼»¯¾²Ì¬±äÁ¿
+// åˆå§‹åŒ–é™æ€å˜é‡
 
 InitStaticVar(LongUI::UIRichEdit::IID_ITextServices2);
 InitStaticVar(LongUI::UIRichEdit::CreateTextServices);
@@ -15,7 +15,7 @@ InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
 #define LoadFunction(a, b, c) a = reinterpret_cast<decltype(a)>(::GetProcAddress(c, #b))
 
-// ³õÊ¼»¯¿â
+// åˆå§‹åŒ–åº“
 class InitializeLibrary {
     typedef enum PROCESS_DPI_AWARENESS {
         PROCESS_DPI_UNAWARE = 0,
@@ -106,7 +106,7 @@ private:
 } instance;
 
 
-// ³õÊ¼»¯¾²Ì¬±äÁ¿
+// åˆå§‹åŒ–é™æ€å˜é‡
 LongUI::CUIFileLoader       LongUI::CUIFileLoader::s_instanceForMainThread;
 LongUI::CUIManager          LongUI::CUIManager::s_instance;
 
@@ -119,7 +119,7 @@ LongUI::CUIManager          LongUI::CUIManager::s_instance;
 
 
 // ------------------------------------------------------------
-// ²¼¾ÖÉÏÏÂÎÄ
+// å¸ƒå±€ä¸Šä¸‹æ–‡
 class CUILayoutContext {
     // layout type
     enum LayoutType : uint32_t {

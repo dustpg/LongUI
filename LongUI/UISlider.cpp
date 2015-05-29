@@ -1,51 +1,51 @@
-
+ï»¿
 #include "LongUI.h"
 
 
 
-// Render äÖÈ¾ 
+// Render æ¸²æŸ“ 
 auto LongUI::UISlider::Render() noexcept ->HRESULT {
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
     }
     D2D1_RECT_F draw_rect = GetDrawRect(this);
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
-    // ´¹Ö±»¬¿é
+    // å‚ç›´æ»‘å—
     if (this->flags & Flag_Slider_VerticalSlider){
 
     }
-    // Ë®Æ½»¬¿é
+    // æ°´å¹³æ»‘å—
     else{
         draw_rect.left += m_fSliderHalfWidth;
         draw_rect.right -= m_fSliderHalfWidth;
         draw_rect.top = (draw_rect.top + draw_rect.bottom)*0.5f - 2.f;
         draw_rect.bottom = draw_rect.top + 2.f;
-        // äÖÈ¾»¬²Û
+        // æ¸²æŸ“æ»‘æ§½
         m_pRenderTarget->FillRectangle(draw_rect, m_pBrush_SetBeforeUse);
-        // ¸ù¾İ value ¼ÆËã»¬¿éÎ»ÖÃ
+        // æ ¹æ® value è®¡ç®—æ»‘å—ä½ç½®
         m_rcSlider.top = this->show_zone.top;
         m_rcSlider.bottom = m_rcSlider.top + this->show_zone.height;
         m_rcSlider.left = this->show_zone.left + ((draw_rect.right - draw_rect.left) * m_fValue);
         m_rcSlider.right = m_rcSlider.left + m_fSliderHalfWidth * 2.f;
-        // äÖÈ¾»¬¿é
+        // æ¸²æŸ“æ»‘å—
         m_pRenderTarget->FillRectangle(m_rcSlider, m_pBrush_SetBeforeUse);
     }
     return S_OK;
 }
 
 
-// UISlider ¹¹Ôìº¯Êı
+// UISlider æ„é€ å‡½æ•°
 LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node)
 {
     static_assert(UNUSED_SIZE <= lengthof(m_unused), "unused size!");
 }
 
-// UISlider::CreateControl º¯Êı
+// UISlider::CreateControl å‡½æ•°
 LongUI::UIControl* LongUI::UISlider::CreateControl(pugi::xml_node node) noexcept {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UISlider>(
         node,
         [=](void* p) noexcept { new(p) UISlider(node);}
@@ -58,7 +58,7 @@ LongUI::UIControl* LongUI::UISlider::CreateControl(pugi::xml_node node) noexcept
 
 
 
-// do event ÊÂ¼ş´¦Àí
+// do event äº‹ä»¶å¤„ç†
 bool LongUIMethodCall LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender){
         switch (arg.event)
@@ -96,41 +96,41 @@ bool LongUIMethodCall LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noex
             m_pWindow->ReleaseCapture();
             break;
         }
-        // ¼ì²éÊÂ¼ş
+        // æ£€æŸ¥äº‹ä»¶
         if (m_fValueOld != m_fValue) {
             m_fValueOld = m_fValue;
             auto tempmsg = arg.msg;
             arg.sender = this;
             arg.event = LongUI::Event::Event_SliderValueChanged;
-            // ¼ì²é½Å±¾
+            // æ£€æŸ¥è„šæœ¬
             if (m_pScript && m_script.data) {
                 m_pScript->Evaluation(m_script, arg);
             }
-            // ¼ì²éÊÇ·ñÓĞÊÂ¼ş»Øµ÷
+            // æ£€æŸ¥æ˜¯å¦æœ‰äº‹ä»¶å›è°ƒ
             if (m_eventChanged) {
                 (m_pChangedTarget->*m_eventChanged)(this);
             }
             else {
-                // ·ñÔò·¢ËÍÊÂ¼şµ½´°¿Ú
+                // å¦åˆ™å‘é€äº‹ä»¶åˆ°çª—å£
                 m_pWindow->DoEvent(arg);
             }
             arg.msg = tempmsg;
-            // Ë¢ĞÂ
+            // åˆ·æ–°
             m_pWindow->Invalidate(this);
         }
     }
     return false;
 }
 
-// recreate ÖØ½¨
+// recreate é‡å»º
 /*HRESULT LongUIMethodCall LongUI::UISlider::Recreate(LongUIRenderTarget* newRT) noexcept {
     ::SafeRelease(m_pBrush);
-    // ÉèÖÃĞÂµÄ±ÊË¢
+    // è®¾ç½®æ–°çš„ç¬”åˆ·
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
     return Super::Recreate(newRT);
 }*/
 
-// close this control ¹Ø±Õ¿Ø¼ş
+// close this control å…³é—­æ§ä»¶
 void LongUIMethodCall LongUI::UISlider::Close() noexcept {
     delete this;
 }

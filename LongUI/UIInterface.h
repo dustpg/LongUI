@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -72,7 +72,7 @@ namespace LongUI {
         // level's size
         DLEVEL_SIZE
     };
-    // pre-dec Ã·«∞…˘√˜
+    // pre-dec ÊèêÂâçÂ£∞Êòé
     class LongUIAPI CUIManager;
     // script
     class DECLSPEC_NOVTABLE IUIScript : public IUIInterface {
@@ -138,7 +138,7 @@ namespace LongUI {
         // btw, in the adapter list, also include the SOFTWARE-adapter
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[/*length*/], size_t const length /*length <=256*/) noexcept->size_t = 0;
         // SetEventCallBack for custom control
-        // in normal case, you just return and say "≤ª∑Ω±„" is ok
+        // in normal case, you just return and say "‰∏çÊñπ‰æø" is ok
         virtual auto SetEventCallBack(LongUI::Event, LongUICallBack call, UIControl* target, UIControl* caller) noexcept -> void = 0;
         // show the error string
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b=nullptr) noexcept -> void = 0;

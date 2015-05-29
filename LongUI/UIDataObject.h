@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -26,15 +26,15 @@
 
 // longui namespace
 namespace LongUI {
-    // Êı¾İ´¢´æ
+    // æ•°æ®å‚¨å­˜
     struct DATASTORAGE {
         FORMATETC formatEtc;
         STGMEDIUM stgMedium;
     };
-    // UIDataObject Àà: ÊµÏÖIDataObject
+    // UIDataObject ç±»: å®ç°IDataObject
     class CUIDataObject final  :public ComBase<QiListSelf<IUnknown, QiList<IDataObject>>> {
     public:
-        // ´´½¨¶ÔÏó
+        // åˆ›å»ºå¯¹è±¡
         static CUIDataObject* New() noexcept;
     private:
         // delete new operator
@@ -45,45 +45,45 @@ namespace LongUI {
         void  operator delete(void* p) noexcept { LongUISmallFree(p); };
         // delete new operator
         void  operator delete[](void*) = delete;
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         CUIDataObject() noexcept;
-        // É¾³ı¸´ÖÆ¹¹Ôìº¯Êı
+        // åˆ é™¤å¤åˆ¶æ„é€ å‡½æ•°
         CUIDataObject(const CUIDataObject&) = delete;
-        // É¾³ı=
+        // åˆ é™¤=
         CUIDataObject& operator =(const CUIDataObject&) = delete;
-        // Îö¹¹º¯Êı
+        // ææ„å‡½æ•°
         ~CUIDataObject() noexcept;
     public:
-        // ÉèÖÃUnicode
+        // è®¾ç½®Unicode
         HRESULT LongUIMethodCall SetUnicodeText(const wchar_t*, size_t =0) noexcept;
-        // ÉèÖÃUnicode
+        // è®¾ç½®Unicode
         HRESULT LongUIMethodCall SetUnicodeText(HGLOBAL) noexcept;
-    public: // IDataObject ½Ó¿Ú ÊµÏÖ
-        // IDataObject::GetData ÊµÏÖ
+    public: // IDataObject æ¥å£ å®ç°
+        // IDataObject::GetData å®ç°
         HRESULT STDMETHODCALLTYPE GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium) noexcept override;
-        // IDataObject::GetDataHere ÊµÏÖ
+        // IDataObject::GetDataHere å®ç°
         HRESULT STDMETHODCALLTYPE GetDataHere(FORMATETC *pformatetc, STGMEDIUM *pmedium) noexcept override;
-        // IDataObject::QueryGetData ÊµÏÖ
+        // IDataObject::QueryGetData å®ç°
         HRESULT STDMETHODCALLTYPE QueryGetData(FORMATETC *pformatetc) noexcept override;
-        // IDataObject::GetCanonicalFormatEtc ÊµÏÖ
+        // IDataObject::GetCanonicalFormatEtc å®ç°
         HRESULT STDMETHODCALLTYPE GetCanonicalFormatEtc(FORMATETC *pformatetcIn, FORMATETC *pformatetcOut) noexcept override;
-        // IDataObject::SetData ÊµÏÖ
+        // IDataObject::SetData å®ç°
         HRESULT STDMETHODCALLTYPE SetData(FORMATETC *pformatetc, STGMEDIUM *pmedium, BOOL fRelease) noexcept override;
-        // IDataObject::EnumFormatEtc ÊµÏÖ
+        // IDataObject::EnumFormatEtc å®ç°
         HRESULT STDMETHODCALLTYPE EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppenumFormatEtc) noexcept override;
-        // IDataObject::DAdvise ÊµÏÖ
+        // IDataObject::DAdvise å®ç°
         HRESULT STDMETHODCALLTYPE DAdvise(FORMATETC *pformatetc, DWORD advf, IAdviseSink *pAdvSnk, DWORD *pdwConnection) noexcept override;
-        // IDataObject::DUnadvise ÊµÏÖ
+        // IDataObject::DUnadvise å®ç°
         HRESULT STDMETHODCALLTYPE DUnadvise(DWORD dwConnection) noexcept override;
-        // IDataObject::EnumDAdvise ÊµÏÖ
+        // IDataObject::EnumDAdvise å®ç°
         HRESULT STDMETHODCALLTYPE  EnumDAdvise(IEnumSTATDATA **ppenumAdvise) noexcept override;
     private:
-        // ¸´ÖÆÃ½ÌåÊı¾İ
+        // å¤åˆ¶åª’ä½“æ•°æ®
         HRESULT CopyMedium(STGMEDIUM* pMedDest, STGMEDIUM* pMedSrc, FORMATETC* pFmtSrc) noexcept;
-        // ÉèÖÃBlob
+        // è®¾ç½®Blob
         HRESULT SetBlob(CLIPFORMAT cf, const void *pvBlob, UINT cbBlob) noexcept;
     private:
-        // µ±Ç°Êı¾İ
+        // å½“å‰æ•°æ®
         DATASTORAGE             m_dataStorage;
     };
 }

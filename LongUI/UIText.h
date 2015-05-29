@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -34,7 +34,7 @@ namespace LongUI {
     // UI Text: implemented in UIUtil.cpp file
     class UIText {
         using InfoUIBasicTextRenderer = InfomationPointer<UIBasicTextRenderer> ;
-        // �ؽ�
+        // 重建
         void __fastcall recreate(const char* = nullptr) noexcept;
     public:
         // constructor

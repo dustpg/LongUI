@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -27,7 +27,7 @@
 
 // LongUI namespace
 namespace LongUI{
-    // base control class -- »ù±¾¿Ø¼şÀà
+    // base control class -- åŸºæœ¬æ§ä»¶ç±»
     class LongUIAlignas LongUIAPI UIControl{
         // Super class
         using Super = void;
@@ -91,7 +91,7 @@ namespace LongUI{
     protected:
         // new operator with buffer -- placement new 
         void* operator new(size_t s, void* buffer) noexcept{ return buffer; };
-        // delete -- placement new paired operator Åä¶ÔÓÃ, ÎŞÊµ¼ÊÓÃÍ¾
+        // delete -- placement new paired operator é…å¯¹ç”¨, æ— å®é™…ç”¨é€”
         void  operator delete(void* p, void* buffer) noexcept { /*nothing*/ };
         // delete new operator
         void* operator new(size_t) = delete;
@@ -101,12 +101,12 @@ namespace LongUI{
         void  operator delete(void* p, size_t) { LongUICtrlFree(p); };
         // delete delete[] operator
         void  operator delete[](void*, size_t) = delete;
-    public: // ÄÚÁªÇø
-        // control name ¿Ø¼şÃû³Æ
+    public: // å†…è”åŒº
+        // control name æ§ä»¶åç§°
         LongUIInline auto GetNameStr() const noexcept { return m_strControlName.c_str(); }
-        // control name ¿Ø¼şÃû³Æ
+        // control name æ§ä»¶åç§°
         LongUIInline auto&GetName() const noexcept { return m_strControlName; }
-        // control name ¿Ø¼şÃû³Æ
+        // control name æ§ä»¶åç§°
         LongUIInline auto&GetName() noexcept { return m_strControlName; }
         // change control draw size
         LongUIInline auto DrawSizeChanged() noexcept { m_bDrawSizeChanged = true; }
@@ -131,9 +131,9 @@ namespace LongUI{
         LongUIRenderTarget*     m_pRenderTarget = nullptr;
         // index 0 brush
         ID2D1SolidColorBrush*   m_pBrush_SetBeforeUse = nullptr;
-        // parent window        ËùÔÚ´°¿Ú
+        // parent window        æ‰€åœ¨çª—å£
         UIWindow*               m_pWindow = nullptr;
-        // ½Å±¾½Ó¿Ú
+        // è„šæœ¬æ¥å£
         IUIScript*              m_pScript = nullptr;
     public:
         // using for container, prev control
@@ -191,7 +191,7 @@ namespace LongUI{
         // super class define
         using Super = LongUI::UIControl;
     public:
-        // create ´´½¨
+        // create åˆ›å»º
         static UIControl* WINAPI CreateControl(pugi::xml_node node) noexcept {
             auto* pControl = reinterpret_cast<TemplateControl*>(
                 LongUICtrlAlloc(sizeof(TemplateControl))

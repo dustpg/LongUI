@@ -1,11 +1,11 @@
-
+ï»¿
 #include "LongUI.h"
 
 // node->Attribute\((.+?)\)
 // node.attribute($1).value()
 
 
-// CUIManager ³õÊ¼»¯
+// CUIManager åˆå§‹åŒ–
 auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -14,7 +14,7 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
         return E_INVALIDARG;
 #endif
     }
-    // ½âÎö×ÊÔ´½Å±¾
+    // è§£æèµ„æºè„šæœ¬
     auto res_xml = config->GetResourceXML();
     if (res_xml) {
         auto re = m_docResource.load_string(res_xml);
@@ -23,7 +23,7 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
             ::MessageBoxA(nullptr, re.description(), "<LongUI::CUIManager::Initialize>: Failed to Parse XML", MB_ICONERROR);
         }
     }
-    // »ñÈ¡²Ù×÷ÏµÍ³ĞÅÏ¢
+    // è·å–æ“ä½œç³»ç»Ÿä¿¡æ¯
 #if 0
     if (IsWindows10OrGreater()) {
         force_cast(this->version) = WindowsVersion::Style_Win10;
@@ -33,15 +33,15 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
     if (IsWindows8Point1OrGreater()) {
         force_cast(this->version) = WindowsVersion::Style_Win8_1;
     }
-    // »ñÈ¡ĞÅÏ¢
+    // è·å–ä¿¡æ¯
     force_cast(this->configure) = config;
     force_cast(this->script) = config->GetScript();
     force_cast(this->inline_handler) = config->GetInlineParamHandler();
     *m_szLocaleName = 0;
     config->GetLocaleName(m_szLocaleName);
-    // ³õÊ¼»¯ÆäËû
+    // åˆå§‹åŒ–å…¶ä»–
     ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
-    // Ìí¼ÓÄ¬ÈÏ´´½¨º¯Êı
+    // æ·»åŠ é»˜è®¤åˆ›å»ºå‡½æ•°
     this->AddS2CPair(L"Label", LongUI::UILabel::CreateControl);
     this->AddS2CPair(L"Button", LongUI::UIButton::CreateControl);
     this->AddS2CPair(L"VerticalLayout", LongUI::UIVerticalLayout::CreateControl);
@@ -53,11 +53,11 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
     this->AddS2CPair(L"EditBasic", LongUI::UIEditBasic::CreateControl);
     this->AddS2CPair(L"Edit", LongUI::UIEditBasic::CreateControl);
     ///
-    // Ìí¼Ó×Ô¶¨Òå¿Ø¼ş
+    // æ·»åŠ è‡ªå®šä¹‰æ§ä»¶
     config->AddCustomControl(*this);
-    // »ñÈ¡ÊµÀı¾ä±ú
+    // è·å–å®ä¾‹å¥æŸ„
     auto hInstance = ::GetModuleHandleW(nullptr);
-    // ×¢²á´°¿ÚÀà | CS_DBLCLKS
+    // æ³¨å†Œçª—å£ç±» | CS_DBLCLKS
     WNDCLASSEX wcex = { 0 };
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW ;
@@ -71,14 +71,14 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
     wcex.lpszClassName = L"LongUIWindow"; 
     auto hicon = LoadIconW(hInstance, MAKEINTRESOURCEW(1));
     wcex.hIcon = hicon;
-    // ×¢²á´°¿Ú
+    // æ³¨å†Œçª—å£
     ::RegisterClassExW(&wcex);
     m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(malloc(
         sizeof(RGBQUAD)* LongUIDefaultBitmapSize * LongUIDefaultBitmapSize)
         );
-    // ÖØ½¨×ÊÔ´
+    // é‡å»ºèµ„æº
     register HRESULT hr = m_pBitmap0Buffer ? S_OK : E_OUTOFMEMORY;
-    // ´´½¨DirectInput¶ÔÏó
+    // åˆ›å»ºDirectInputå¯¹è±¡
     if (SUCCEEDED(hr)) {
         hr = ::DirectInput8Create(
             hInstance, 
@@ -87,23 +87,23 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
             0
             );
     }
-    // ´´½¨Êó±êÉè±¸
+    // åˆ›å»ºé¼ æ ‡è®¾å¤‡
     if (SUCCEEDED(hr)) {
         hr = m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pDInputMouse, 0);
     }
-    // ÉèÖÃÊı¾İ¸ñÊ½ :Êó±ê
+    // è®¾ç½®æ•°æ®æ ¼å¼ :é¼ æ ‡
     if SUCCEEDED(hr) {
         hr = m_pDInputMouse->SetDataFormat(&c_dfDIMouse);
     }
-    // ÉèÖÃĞ­×÷µÈ¼¶ ²»¶ÀÕ¼
+    // è®¾ç½®åä½œç­‰çº§ ä¸ç‹¬å 
     if SUCCEEDED(hr) {
         hr = m_pDInputMouse->SetCooperativeLevel(nullptr, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
     }
-    // »ñµÃÊó±êÊäÈëÉè±¸ Í¨Öª²Ù×÷ÏµÍ³ÒÑ¾­×¼±¸Íê±Ï
+    // è·å¾—é¼ æ ‡è¾“å…¥è®¾å¤‡ é€šçŸ¥æ“ä½œç³»ç»Ÿå·²ç»å‡†å¤‡å®Œæ¯•
     if SUCCEEDED(hr) {
         hr = m_pDInputMouse->Acquire();
     }
-    // ´´½¨D2D¹¤³§
+    // åˆ›å»ºD2Då·¥å‚
     if (SUCCEEDED(hr)) {
         D2D1_FACTORY_OPTIONS options = { D2D1_DEBUG_LEVEL_NONE };
 #ifdef _DEBUG
@@ -116,7 +116,7 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
             reinterpret_cast<void**>(&m_pd2dFactory)
             );
     }
-    // ´´½¨ WIC ¹¤³§.
+    // åˆ›å»º WIC å·¥å‚.
     if (SUCCEEDED(hr)) {
         hr = ::CoCreateInstance(
             CLSID_WICImagingFactory2,
@@ -125,7 +125,7 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
             LongUI_IID_PV_ARGS(m_pWICFactory)
             );
     }
-    // ´´½¨ DirectWrite ¹¤³§.
+    // åˆ›å»º DirectWrite å·¥å‚.
     IDWriteFactory1;
     if (SUCCEEDED(hr)) {
         hr = LongUI::Dll::DWriteCreateFactory(
@@ -133,15 +133,15 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
             LongUI_IID_PV_ARGS_Ex(m_pDWriteFactory)
             );
     }
-    // ´´½¨×ÖÌå¼¯
+    // åˆ›å»ºå­—ä½“é›†
     if (SUCCEEDED(hr)) {
         m_pFontCollection = config->CreateFontCollection(*this);
-        // Ê§°Ü»ñÈ¡ÏµÍ³×ÖÌå¼¯
+        // å¤±è´¥è·å–ç³»ç»Ÿå­—ä½“é›†
         if (!m_pFontCollection) {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
         }
     }
-    // ×¼±¸»º³åÇø
+    // å‡†å¤‡ç¼“å†²åŒº
     if (SUCCEEDED(hr)) {
         try {
             m_textFormats.reserve(64);
@@ -153,81 +153,81 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
         }
         CATCH_HRESULT(hr)
     }
-    // ×¢²áäÖÈ¾Æ÷
+    // æ³¨å†Œæ¸²æŸ“å™¨
     if (SUCCEEDED(hr)) {
-        // ÆÕÍ¨äÖÈ¾Æ÷
+        // æ™®é€šæ¸²æŸ“å™¨
         if (this->RegisterTextRenderer(&m_normalTRenderer) != Type_NormalTextRenderer) {
             hr = E_FAIL;
         }
     }
-    // ³õÊ¼»¯½Å±¾
+    // åˆå§‹åŒ–è„šæœ¬
     if (this->script && !(this->script->Initialize(this))) {
         hr = E_FAIL;
     }
-    // ´´½¨×ÊÔ´
+    // åˆ›å»ºèµ„æº
     if (SUCCEEDED(hr)) {
         hr = this->RecreateResources();
     }
     return hr;
 }
 
-// CUIManager  ·´³õÊ¼»¯
+// CUIManager  ååˆå§‹åŒ–
 void LongUIMethodCall LongUI::CUIManager::UnInitialize() noexcept {
-    // ·ÅÆúÉè±¸
+    // æ”¾å¼ƒè®¾å¤‡
     if (m_pDInputMouse) {
         m_pDInputMouse->Unacquire();
         m_pDInputMouse->Release();
         m_pDInputMouse = nullptr;
     }
     SafeRelease(m_pDirectInput);
-    // ÊÍ·Å¶ÁÈ¡Æ÷
+    // é‡Šæ”¾è¯»å–å™¨
     ::SafeRelease(m_pBinResLoader);
-    // ÊÍ·ÅÎÄ±¾äÖÈ¾Æ÷
+    // é‡Šæ”¾æ–‡æœ¬æ¸²æŸ“å™¨
     for (uint32_t i = 0; i < m_uTextRenderCount; ++i) {
         ::SafeRelease(m_apTextRenderer[i]);
     }
-    // ÊÍ·Å×ÊÔ´
+    // é‡Šæ”¾èµ„æº
     this->discard_resources();
     ::SafeRelease(m_pFontCollection);
     ::SafeRelease(m_pDWriteFactory);
     ::SafeRelease(m_pWICFactory);
     ::SafeRelease(m_pd2dFactory);
-    // ÊÍ·ÅÄÚ´æ
+    // é‡Šæ”¾å†…å­˜
     if (m_pBitmap0Buffer) {
         free(m_pBitmap0Buffer);
         m_pBitmap0Buffer = nullptr;
     }
-    // ·´³õÊ¼»¯½Å±¾
+    // ååˆå§‹åŒ–è„šæœ¬
     if (this->script) {
         this->script->UnInitialize();
         this->script->Release();
         force_cast(script) = nullptr;
     }
-    // ÊÍ·ÅÅäÖÃ
+    // é‡Šæ”¾é…ç½®
     ::SafeRelease(force_cast(this->configure));
 }
 
 
-// CUIManager ´´½¨¿Ø¼şÊ÷
-// Ä¬ÈÏÏûºÄ 64kb+, µ¼ÖÂÕ»(Ä¬ÈÏ1~2M)Òç³ö¼¸ÂÊ½ÏµÍ
+// CUIManager åˆ›å»ºæ§ä»¶æ ‘
+// é»˜è®¤æ¶ˆè€— 64kb+, å¯¼è‡´æ ˆ(é»˜è®¤1~2M)æº¢å‡ºå‡ ç‡è¾ƒä½
 void LongUIMethodCall LongUI::CUIManager::make_control_tree(
     LongUI::UIWindow* window,
     pugi::xml_node node) noexcept {
-    // ¶ÏÑÔ
+    // æ–­è¨€
     assert(window && node && "bad argument");
-    // Ìí¼Ó´°¿Ú
+    // æ·»åŠ çª—å£
     add_control(window, node);
-    // ¶ÓÁĞ -- Ë³Ğò±éÀúÊ÷
+    // é˜Ÿåˆ— -- é¡ºåºéå†æ ‘
     LongUI::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
     LongUI::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
     // 
     UIControl* now_control = nullptr;
     UIContainer* parent_node = window;
-    // Î¨Ò»Ãû³Æ
+    // å”¯ä¸€åç§°
     std::pair<CUIString, void*> control_name;
-    // ±éÀúËã·¨: 1.Ñ¹ÈëËùÓĞ×Ó½Úµã 2.ÒÀ´Îµ¯³ö 3.ÖØ¸´1
+    // éå†ç®—æ³•: 1.å‹å…¥æ‰€æœ‰å­èŠ‚ç‚¹ 2.ä¾æ¬¡å¼¹å‡º 3.é‡å¤1
     while (true) {
-        // Ñ¹Èë/Èë¶Ó ËùÓĞ×Ó½Úµã
+        // å‹å…¥/å…¥é˜Ÿ æ‰€æœ‰å­èŠ‚ç‚¹
         node = node.first_child();
         while (node) {
             xml_queue.push(node);
@@ -235,12 +235,12 @@ void LongUIMethodCall LongUI::CUIManager::make_control_tree(
             node = node.next_sibling();
         }
     recheck:
-        // Îª¿ÕÔòÍË³ö
+        // ä¸ºç©ºåˆ™é€€å‡º
         if (xml_queue.empty()) break;
-        // µ¯³ö/³ö¶Ó µÚÒ»¸ö½Úµã
+        // å¼¹å‡º/å‡ºé˜Ÿ ç¬¬ä¸€ä¸ªèŠ‚ç‚¹
         node = *xml_queue.front;  xml_queue.pop();
         parent_node = *parents_queue.front; parents_queue.pop();
-        // ¸ù¾İÃû³Æ´´½¨¿Ø¼ş
+        // æ ¹æ®åç§°åˆ›å»ºæ§ä»¶
         if (!(now_control = this->create_control(node))) {
             parent_node = nullptr;
 #ifdef _DEBUG
@@ -249,7 +249,7 @@ void LongUIMethodCall LongUI::CUIManager::make_control_tree(
 #endif
             continue;
         }
-        // Ìí¼Óµ½±í
+        // æ·»åŠ åˆ°è¡¨
         if (UIControl::MakeString(node.attribute("name").value(), control_name.first)) {
             control_name.second = now_control;
             try {
@@ -265,44 +265,44 @@ void LongUIMethodCall LongUI::CUIManager::make_control_tree(
                     );
             }
         }
-        // ÉèÖÃ´°¿Ú½Úµã
+        // è®¾ç½®çª—å£èŠ‚ç‚¹
         now_control->m_pWindow = window;
-        // Ìí¼Ó×Ó½Úµã
+        // æ·»åŠ å­èŠ‚ç‚¹
         parent_node->insert(parent_node->end(), now_control);
-        // ÉèÖÃ½ÚµãÎªÏÂ´Î¸¸½Úµã
+        // è®¾ç½®èŠ‚ç‚¹ä¸ºä¸‹æ¬¡çˆ¶èŠ‚ç‚¹
         parent_node = static_cast<decltype(parent_node)>(now_control);
-        // ¼ì²é±¾¿Ø¼şÊÇ·ñĞèÒªXML×Ó½ÚµãĞÅÏ¢
+        // æ£€æŸ¥æœ¬æ§ä»¶æ˜¯å¦éœ€è¦XMLå­èŠ‚ç‚¹ä¿¡æ¯
         if (now_control->flags & Flag_ControlNeedFullXMLNode) {
             goto recheck;
         }
     }
 }
 
-// UIManager Ìí¼Ó¿Ø¼ş
+// UIManager æ·»åŠ æ§ä»¶
 void LongUIMethodCall LongUI::CUIManager::add_control(
     UIControl* ctrl, pugi::xml_node node) noexcept {
-    // ¶ÏÑÔ
+    // æ–­è¨€
     assert(ctrl && node && "bad argument");
-    // ´´½¨Pair
+    // åˆ›å»ºPair
     std::pair<CUIString, void*> paired;
-    // ÉèÖÃ
+    // è®¾ç½®
     UIControl::MakeString(node.attribute("name").value(), paired.first);
     paired.second = ctrl;
-    // ²åÈë
+    // æ’å…¥
     m_mapString2Control.insert(paired);
 }
 
-// ´´½¨¿Ø¼ş
+// åˆ›å»ºæ§ä»¶
 auto LongUIMethodCall LongUI::CUIManager::create_control(
     pugi::xml_node node) noexcept -> UIControl* {
     assert(node && "bad argument");
-    // ×ªÂë
+    // è½¬ç 
     WCHAR buffer[LongUIStringBufferLength];
     auto length = LongUI::UTF8toWideChar(node.name(), buffer);
     buffer[length] = L'\0';
-    // ´´½¨×Ö·û´®
+    // åˆ›å»ºå­—ç¬¦ä¸²
     CUIString class_name(buffer, length);
-    // ²éÕÒ
+    // æŸ¥æ‰¾
     const auto itr = m_mapString2CreateFunction.find(class_name);
     if (itr != m_mapString2CreateFunction.end()) {
         return reinterpret_cast<CreateControlFunction>(itr->second)(node);
@@ -311,20 +311,20 @@ auto LongUIMethodCall LongUI::CUIManager::create_control(
 }
 
 
-// ÏûÏ¢Ñ­»·
+// æ¶ˆæ¯å¾ªç¯
 void LongUIMethodCall LongUI::CUIManager::Run() noexcept {
     MSG msg;
     //auto now_time = ::timeGetTime();
     while (!m_exitFlag) {
-        // »ñÈ¡Êó±ê×´Ì¬
+        // è·å–é¼ æ ‡çŠ¶æ€
         m_lastMouseStates = this->now_mouse_states;
         if (m_pDInputMouse->GetDeviceState(sizeof(DIMOUSESTATE), &force_cast(this->now_mouse_states))
             == DIERR_INPUTLOST){
             m_pDInputMouse->Acquire();
         }
-        // ÏûÏ¢Ñ­»·
+        // æ¶ˆæ¯å¾ªç¯
         if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
-            // Á½ÖÖ·½Ê½ÍË³ö ::PostQuitMessage(0) or UIManager.Exit()
+            // ä¸¤ç§æ–¹å¼é€€å‡º ::PostQuitMessage(0) or UIManager.Exit()
             if (msg.message == WM_QUIT) {
                 m_exitFlag = true;
                 break;
@@ -332,16 +332,16 @@ void LongUIMethodCall LongUI::CUIManager::Run() noexcept {
             ::TranslateMessage(&msg);
             ::DispatchMessageW(&msg);
         }
-        // ÉèÖÃÎªäÖÈ¾
+        // è®¾ç½®ä¸ºæ¸²æŸ“
         else {
             msg.message = WM_PAINT;
         }
-        // äÖÈ¾
+        // æ¸²æŸ“
         if(msg.message == WM_PAINT){
-            // ÓĞ´°¿Ú¾ÍäÖÈ¾
+            // æœ‰çª—å£å°±æ¸²æŸ“
             UIWindow* windows[LongUIMaxWindow];
             UIWindow** window_end = windows;
-            // ¼ì²é´°¿Ú
+            // æ£€æŸ¥çª—å£
             for (auto itr = m_windows.begin(); itr != m_windows.end(); ++itr) {
                 register auto wnd = reinterpret_cast<UIWindow*>(*itr);
                 if (wnd->UpdateRendering()) {
@@ -349,7 +349,7 @@ void LongUIMethodCall LongUI::CUIManager::Run() noexcept {
                     ++window_end;
                 }
             }
-            // äÖÈ¾´°¿Ú
+            // æ¸²æŸ“çª—å£
             if (window_end != windows){
                 for (auto itr = windows; itr < window_end; ++itr) {
                     (*itr)->BeginDraw();
@@ -360,49 +360,49 @@ void LongUIMethodCall LongUI::CUIManager::Run() noexcept {
             else {
                 //std::this_thread::sleep_for
                 ::Sleep(1);
-                // ½»³öÊ±¼äÆ¬
+                // äº¤å‡ºæ—¶é—´ç‰‡
                 //::Sleep(0);
             }
         }
     }
-    // ³¢ÊÔÇ¿ĞĞ¹Ø±Õ(Ê¹ÓÃµü´úÆ÷»áÊ¹µü´úÆ÷Ê§Ğ§)
+    // å°è¯•å¼ºè¡Œå…³é—­(ä½¿ç”¨è¿­ä»£å™¨ä¼šä½¿è¿­ä»£å™¨å¤±æ•ˆ)
     while (!m_windows.empty()) {
         reinterpret_cast<UIWindow*>(m_windows.back())->Close();
     }
 }
 
-// ´°¿Ú¹ı³Ìº¯Êı
+// çª—å£è¿‡ç¨‹å‡½æ•°
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
-    // ÌîĞ´²ÎÊı
+    // å¡«å†™å‚æ•°
     LongUI::EventArgument arg;  arg.msg = message;  arg.sender = nullptr;
     POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
     arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);
     arg.wParam_sys = wParam; arg.lParam_sys = lParam;
-    // ·µ»Ø
+    // è¿”å›
     arg.lr = 0;
-    // ´´½¨´°¿ÚÊ±ÉèÖÃÖ¸Õë
+    // åˆ›å»ºçª—å£æ—¶è®¾ç½®æŒ‡é’ˆ
     if (message == WM_CREATE)    {
-        // »ñÈ¡Ö¸Õë
+        // è·å–æŒ‡é’ˆ
         LongUI::UIWindow *pUIWindow = reinterpret_cast<LongUI::UIWindow*>(
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
             );
-        // ÉèÖÃ´°¿ÚÖ¸Õë
+        // è®¾ç½®çª—å£æŒ‡é’ˆ
         ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, PtrToUlong(pUIWindow));
-        // ·µ»Ø1
+        // è¿”å›1
         arg.lr = 1;
     }
     else {
-        // »ñÈ¡´¢´æµÄÖ¸Õë
+        // è·å–å‚¨å­˜çš„æŒ‡é’ˆ
         LongUI::UIWindow *pUIWindow = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
             ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))
             );
-        // ¼ì²éÊÇ·ñ´¦ÀíÁË
+        // æ£€æŸ¥æ˜¯å¦å¤„ç†äº†
         bool wasHandled = false;
-        //Ö¸ÕëÓĞĞ§µÄÇé¿ö
+        //æŒ‡é’ˆæœ‰æ•ˆçš„æƒ…å†µ
         if (pUIWindow) {
             wasHandled = pUIWindow->DoEvent(arg);
         }
-        // ĞèÒªÄ¬ÈÏ´¦Àí
+        // éœ€è¦é»˜è®¤å¤„ç†
         if (!wasHandled) {
             arg.lr = ::DefWindowProcW(hwnd, message, wParam, lParam);
         }
@@ -410,11 +410,11 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
     return  arg.lr;
 }
 
-// »ñÈ¡MetaµÄÍ¼±ê¾ä±ú
+// è·å–Metaçš„å›¾æ ‡å¥æŸ„
 auto LongUIMethodCall LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
     // TODO DO IT
     auto& data = m_metaicons[index];
-    // Ã»ÓĞ¾Í´´½¨
+    // æ²¡æœ‰å°±åˆ›å»º
     if (!data) {
         ID2D1Bitmap1* bitmap = this->GetBitmap(LongUIDefaultBitmapIndex);
         Meta meta; this->GetMeta(index, meta);
@@ -425,11 +425,11 @@ auto LongUIMethodCall LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept 
             static_cast<uint32_t>(meta.src_rect.bottom)
         };
         HRESULT hr = (bitmap && meta.bitmap) ? E_FAIL : S_OK;
-        // ¸´ÖÆÊı¾İ
+        // å¤åˆ¶æ•°æ®
         if (SUCCEEDED(hr)) {
             hr = bitmap->CopyFromBitmap(nullptr, meta.bitmap, &rect);
         }
-        // Ó³ÉäÊı¾İ
+        // æ˜ å°„æ•°æ®
         if (SUCCEEDED(hr)) {
             D2D1_MAPPED_RECT mapped_rect = { 
                 LongUIDefaultBitmapSize * sizeof(RGBQUAD) ,
@@ -437,7 +437,7 @@ auto LongUIMethodCall LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept 
             };
             hr = bitmap->Map(D2D1_MAP_OPTIONS_READ, &mapped_rect);
         }
-        // È¡ÏûÓ³Éä
+        // å–æ¶ˆæ˜ å°„
         if (SUCCEEDED(hr)) {
             hr = bitmap->Unmap();
         }
@@ -448,37 +448,37 @@ auto LongUIMethodCall LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept 
     return static_cast<HICON>(data);
 }
 
-// CUIManager ¹¹Ôìº¯Êı
+// CUIManager æ„é€ å‡½æ•°
 LongUI::CUIManager::CUIManager() noexcept {
 
 }
 
-// CUIManager Îö¹¹º¯Êı
+// CUIManager ææ„å‡½æ•°
 LongUI::CUIManager::~CUIManager() noexcept {
     this->discard_resources();
 }
 
 
 
-// »ñÈ¡¿Ø¼ş wchar_tÖ¸Õë
+// è·å–æ§ä»¶ wchar_tæŒ‡é’ˆ
 auto LongUIMethodCall LongUI::CUIManager::AddS2CPair(
     const wchar_t* name, CreateControlFunction func) noexcept ->HRESULT {
     if (!name || !(*name)) return S_FALSE;
-    // ´´½¨pair
+    // åˆ›å»ºpair
     std::pair<LongUI::CUIString, CreateControlFunction> pair(name, func);
     HRESULT hr = S_OK;
-    // ²åÈë
+    // æ’å…¥
     try {
         m_mapString2CreateFunction.insert(pair);
     }
-    // ´´½¨Ê§°Ü
+    // åˆ›å»ºå¤±è´¥
     CATCH_HRESULT(hr);
     return hr;
 }
 
 
 
-// »ñÈ¡¿Ø¼ş wchar_tÖ¸Õë
+// è·å–æ§ä»¶ wchar_tæŒ‡é’ˆ
 auto LongUIMethodCall LongUI::CUIManager::FindControlW(
     const wchar_t* str) noexcept ->LongUI::UIControl* {
     LongUI::CUIString uistr(str);
@@ -486,24 +486,24 @@ auto LongUIMethodCall LongUI::CUIManager::FindControlW(
 }
 
 
-// »ñÈ¡¿Ø¼ş 
+// è·å–æ§ä»¶ 
 auto LongUIMethodCall LongUI::CUIManager::FindControl(
     const LongUI::CUIString& str) noexcept ->LongUI::UIControl* {
-    // ²éÕÒ¿Ø¼ş
+    // æŸ¥æ‰¾æ§ä»¶
     const auto itr = m_mapString2Control.find(str);
-    // Î´ÕÒµ½·µ»Ø¿Õ
+    // æœªæ‰¾åˆ°è¿”å›ç©º
     if (itr == m_mapString2Control.cend()){
-        // ¾¯¸æ
+        // è­¦å‘Š
         UIManager << DL_Warning << L"Control Not Found:\n  " << str.c_str() << LongUI::endl;
         return nullptr;
     }
-    // ÕÒµ½¾Í·µ»ØÖ¸Õë
+    // æ‰¾åˆ°å°±è¿”å›æŒ‡é’ˆ
     else{
         return reinterpret_cast<LongUI::UIControl*>(itr->second);
     }
 }
 
-// ÏÔÊ¾´íÎó´úÂë
+// æ˜¾ç¤ºé”™è¯¯ä»£ç 
 void LongUIMethodCall LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     if (!::FormatMessageW(
@@ -513,32 +513,32 @@ void LongUIMethodCall LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* s
         buffer,
         lengthof(buffer),
         nullptr)) {
-        // ´¦Àí
+        // å¤„ç†
         ::swprintf(
             buffer, LongUIStringBufferLength,
             L"Error! HRESULT Code: 0x%08X",
             hr
             );
     }
-    // ´íÎó
+    // é”™è¯¯
     this->ShowError(buffer, str_b);
 }
 
-// ´´½¨LongUIµÄ×ÖÌå¼¯: ±¾º¯Êı»á½øĞĞI/O, ËùÒÔ³ÌĞò¿ªÊ¼µ÷ÓÃÒ»´Î¼´¿É
+// åˆ›å»ºLongUIçš„å­—ä½“é›†: æœ¬å‡½æ•°ä¼šè¿›è¡ŒI/O, æ‰€ä»¥ç¨‹åºå¼€å§‹è°ƒç”¨ä¸€æ¬¡å³å¯
 auto LongUI::CUIManager::CreateLongUIFontCollection(
     IDWriteFactory* factory, const wchar_t * filename, const wchar_t * folder)
     noexcept -> IDWriteFontCollection *{
-    // ×ÖÌåÎÄ¼şÃ¶¾Ù
+    // å­—ä½“æ–‡ä»¶æšä¸¾
     class LongUIFontFileEnumerator final : public ComStatic<QiList<IDWriteFontFileEnumerator>> {
     public:
-        // »ñÈ¡µ±Ç°×ÖÌåÎÄ¼ş
+        // è·å–å½“å‰å­—ä½“æ–‡ä»¶
         HRESULT STDMETHODCALLTYPE GetCurrentFontFile(IDWriteFontFile **ppFontFile) noexcept override  {
             if (!ppFontFile) return E_INVALIDARG;
             if (!m_pFilePath || !m_pFactory)  return E_FAIL;
             *ppFontFile = ::SafeAcquire(m_pCurFontFie);
             return m_pCurFontFie ? S_OK : E_FAIL;
         }
-        // ÒÆ¶¯µ½ÏÂÒ»¸öÎÄ¼ş
+        // ç§»åŠ¨åˆ°ä¸‹ä¸€ä¸ªæ–‡ä»¶
         HRESULT STDMETHODCALLTYPE MoveNext(BOOL *pHasCurrentFile) noexcept override {
             if (!pHasCurrentFile)return E_INVALIDARG;
             if (!m_pFilePath || !m_pFactory) return E_FAIL;
@@ -554,26 +554,26 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
             return hr;
         }
     public:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         LongUIFontFileEnumerator(IDWriteFactory* f) :m_pFactory(::SafeAcquire(f)) {}
-        // Îö¹¹º¯Êı
+        // ææ„å‡½æ•°
         ~LongUIFontFileEnumerator() { ::SafeRelease(m_pCurFontFie); ::SafeRelease(m_pFactory); }
-        // ³õÊ¼»¯
+        // åˆå§‹åŒ–
         auto Initialize(const wchar_t* path) { m_pFilePathNow = m_pFilePath = path; };
     private:
-        // ÎÄ¼şÂ·¾¶ Á¬Ğø×Ö·û´®
+        // æ–‡ä»¶è·¯å¾„ è¿ç»­å­—ç¬¦ä¸²
         const wchar_t*              m_pFilePath = nullptr;
-        // µ±Ç°ÎÄ¼şÂ·¾¶
+        // å½“å‰æ–‡ä»¶è·¯å¾„
         const wchar_t*              m_pFilePathNow = nullptr;
-        // µ±Ç°Direct Write Font File
+        // å½“å‰Direct Write Font File
         IDWriteFontFile*            m_pCurFontFie = nullptr;
-        // DWrite ¹¤³§
+        // DWrite å·¥å‚
         IDWriteFactory*             m_pFactory;
     };
-    // ×ÖÌåÎÄ¼şÔØÈëÆ÷
+    // å­—ä½“æ–‡ä»¶è½½å…¥å™¨
     class LongUIFontCollectionLoader final : public ComStatic<QiList<IDWriteFontCollectionLoader>> {
     public:
-        // ´´½¨Ã¶¾ÙÆ÷
+        // åˆ›å»ºæšä¸¾å™¨
         HRESULT STDMETHODCALLTYPE CreateEnumeratorFromKey(
             IDWriteFactory *pFactory,
             const void *collectionKey,
@@ -588,17 +588,17 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
             return S_OK;
         }
     public:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         LongUIFontCollectionLoader() :m_enumerator(nullptr) {}
-        // Îö¹¹º¯Êı
+        // ææ„å‡½æ•°
         ~LongUIFontCollectionLoader() = default;
     private:
-        // Ã¶¾ÙÆ÷
+        // æšä¸¾å™¨
         LongUIFontFileEnumerator        m_enumerator;
     };
     IDWriteFontCollection* collection = nullptr;
     constexpr size_t buffer_length = 256 * 256;
-    // ÉêÇë×ã¹»µÄ¿Õ¼ä
+    // ç”³è¯·è¶³å¤Ÿçš„ç©ºé—´
     wchar_t* const buffer(new(std::nothrow) wchar_t[buffer_length]);
     if (buffer) {
         wchar_t* index = buffer; *buffer = 0;
@@ -606,7 +606,7 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
         wchar_t file_name_path[MAX_PATH]; ::swprintf(file_name_path, MAX_PATH, L"%ls\\%ls", folder, filename);
         HANDLE hFile = ::FindFirstFileW(file_name_path, &fileinfo);
         DWORD errorcode = ::GetLastError();
-        // ±éÀúÎÄ¼ş
+        // éå†æ–‡ä»¶
         while (hFile != INVALID_HANDLE_VALUE && errorcode != ERROR_NO_MORE_FILES) {
             ::swprintf(index, MAX_PATH, L"%ls\\%ls", folder, fileinfo.cFileName);
             index += ::wcslen(index) + 1; *index = 0;
@@ -617,7 +617,7 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
             errorcode = ::GetLastError();
         }
         ::FindClose(hFile);
-        // µ±´æÔÚ·ûºÏ±ê×¼µÄÎÄ¼şÊ±
+        // å½“å­˜åœ¨ç¬¦åˆæ ‡å‡†çš„æ–‡ä»¶æ—¶
         if (index != buffer) {
             LongUIFontCollectionLoader loader;
             factory->RegisterFontCollectionLoader(&loader);
@@ -633,7 +633,7 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
     return collection;
 }
 
-// ´Ó ÎÄ±¾¸ñÊ½´´½¨¼¸ºÎ
+// ä» æ–‡æœ¬æ ¼å¼åˆ›å»ºå‡ ä½•
 auto LongUI::CUIManager::CreateTextPathGeometry(
     IN const char32_t* utf32_string,
     IN size_t string_length,
@@ -642,39 +642,39 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
     IN OUT OPTIONAL IDWriteFontFace** _fontface,
     OUT ID2D1PathGeometry** geometry
     ) noexcept -> HRESULT {
-    // ²ÎÊı¼ì²é
+    // å‚æ•°æ£€æŸ¥
     if (!utf32_string || !string_length || !format || !geometry || !factory) return E_INVALIDARG;
-    // ×ÖÌå¼¯
+    // å­—ä½“é›†
     IDWriteFontCollection* collection = nullptr;
     IDWriteFontFamily* family = nullptr;
     IDWriteFont* font = nullptr;
     IDWriteFontFace* fontface = nullptr;
     ID2D1PathGeometry* pathgeometry = nullptr;
     if (_fontface) fontface = ::SafeAcquire(*_fontface);
-    // ×ÖÌåÃû³Æ»º´æ
+    // å­—ä½“åç§°ç¼“å­˜
     wchar_t fontname_buffer[MAX_PATH]; *fontname_buffer = 0;
-    // ±ØÒª»º´æ
+    // å¿…è¦ç¼“å­˜
     uint16_t glyph_indices_buffer[1024];
-    // ±£Ö¤¿Õ¼ä
+    // ä¿è¯ç©ºé—´
     uint16_t* glyph_indices = string_length > lengthof(glyph_indices_buffer) ?
         new(std::nothrow) uint16_t[string_length * sizeof(uint16_t)] : glyph_indices_buffer;
     HRESULT hr = glyph_indices ? S_OK : E_OUTOFMEMORY;
-    // ´´½¨×ÖĞÎ
+    // åˆ›å»ºå­—å½¢
     if (!fontface) {
-        // »ñÈ¡×ÖÌåÃû³Æ
+        // è·å–å­—ä½“åç§°
         if (SUCCEEDED(hr)) {
             hr = format->GetFontFamilyName(fontname_buffer, MAX_PATH);
         }
-        // »ñÈ¡×ÖÌå¼¯
+        // è·å–å­—ä½“é›†
         if (SUCCEEDED(hr)) {
             hr = format->GetFontCollection(&collection);
         }
-        // ²éÕÒË÷Òı
+        // æŸ¥æ‰¾ç´¢å¼•
         uint32_t index = 0; BOOL exists = FALSE;
         if (SUCCEEDED(hr)) {
             hr = collection->FindFamilyName(fontname_buffer, &index, &exists);
         }
-        // »ñÈ¡×ÖÌå×å
+        // è·å–å­—ä½“æ—
         if (SUCCEEDED(hr)) {
             if (exists) {
                 hr = collection->GetFontFamily(index, &family);
@@ -683,7 +683,7 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
                 hr = E_FAIL;
             }
         }
-        // »ñÈ¡×ÖÌå
+        // è·å–å­—ä½“
         if (SUCCEEDED(hr)) {
             hr = family->GetFirstMatchingFont(
                 format->GetFontWeight(),
@@ -692,27 +692,27 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
                 &font
                 );
         }
-        // ´´½¨×ÖĞÎ
+        // åˆ›å»ºå­—å½¢
         if (SUCCEEDED(hr)) {
             hr = font->CreateFontFace(&fontface);
         }
     }
-    // ´´½¨¼¸ºÎ
+    // åˆ›å»ºå‡ ä½•
     if (SUCCEEDED(hr)) {
         hr = factory->CreatePathGeometry(&pathgeometry);
         ID2D1GeometrySink* sink = nullptr;
-        // ´ò¿ªSink
+        // æ‰“å¼€Sink
         if (SUCCEEDED(hr)) {
             hr = pathgeometry->Open(&sink);
         }
-        // ´´½¨Ë÷Òı±àºÅ
+        // åˆ›å»ºç´¢å¼•ç¼–å·
         if (SUCCEEDED(hr)) {
             static_assert(sizeof(uint32_t) == sizeof(char32_t), "32 != 32 ?!");
             hr = fontface->GetGlyphIndices(
                 reinterpret_cast<const uint32_t*>(utf32_string), string_length, glyph_indices
                 );
         }
-        // ´´½¨ÂÖÀªÂ·¾¶¼¸ºÎ
+        // åˆ›å»ºè½®å»“è·¯å¾„å‡ ä½•
         if (SUCCEEDED(hr)) {
             hr = fontface->GetGlyphRunOutline(
                 format->GetFontSize(),
@@ -722,13 +722,13 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
                 true, true, sink
                 );
         }
-        // ¹Ø±ÕÂ·¾¶
+        // å…³é—­è·¯å¾„
         if (SUCCEEDED(hr)) {
             sink->Close();
         }
         ::SafeRelease(sink);
     }
-    // É¨Î²
+    // æ‰«å°¾
     ::SafeRelease(collection);
     ::SafeRelease(family);
     ::SafeRelease(font);
@@ -754,14 +754,14 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
     return hr;
 }
 
-// ÀûÓÃ¼¸ºÎÌå´´½¨Íø¸ñ
+// åˆ©ç”¨å‡ ä½•ä½“åˆ›å»ºç½‘æ ¼
 auto LongUI::CUIManager::CreateMeshFromGeometry(ID2D1Geometry * geometry, ID2D1Mesh ** mesh) noexcept -> HRESULT {
     return E_NOTIMPL;
 }
 
 
 
-// ×ª»»ÎªCore-Mode¸ñÊ½
+// è½¬æ¢ä¸ºCore-Modeæ ¼å¼
 auto LongUI::CUIManager::XMLToCoreFormat(const char* xml, wchar_t* core) noexcept -> bool {
     if (!xml || !core) return false;
     wchar_t buffer[LongUIStringBufferLength];
@@ -770,7 +770,7 @@ auto LongUI::CUIManager::XMLToCoreFormat(const char* xml, wchar_t* core) noexcep
 }
 
 
-// ×¢²áÎÄ±¾äÖÈ¾Æ÷
+// æ³¨å†Œæ–‡æœ¬æ¸²æŸ“å™¨
 auto LongUIMethodCall LongUI::CUIManager::RegisterTextRenderer(
     UIBasicTextRenderer* renderer) noexcept -> int32_t {
     if (m_uTextRenderCount == lengthof(m_apTextRenderer)) {
@@ -782,18 +782,18 @@ auto LongUIMethodCall LongUI::CUIManager::RegisterTextRenderer(
     return count;
 }
 
-// CUIManager »ñÈ¡ÎÄ±¾¸ñÊ½
+// CUIManager è·å–æ–‡æœ¬æ ¼å¼
 auto LongUIMethodCall LongUI::CUIManager::GetTextFormat(
     uint32_t index) noexcept ->IDWriteTextFormat* {
     IDWriteTextFormat* pTextFormat = nullptr;
     if (index >= m_textFormats.size()) {
-        // Ô½½ç
+        // è¶Šç•Œ
         UIManager << DL_Warning << L"index@" << long(index)
             << L" is out of range\n   Now set to 0" << LongUI::endl;
         index = 0;
     }
     pTextFormat = reinterpret_cast<IDWriteTextFormat*>(m_textFormats[index]);
-    // Î´ÕÒµ½
+    // æœªæ‰¾åˆ°
     if (!pTextFormat) {
         UIManager << DL_Error << L"index@" << long(index) << L" TF is null" << LongUI::endl;
     }
@@ -801,119 +801,119 @@ auto LongUIMethodCall LongUI::CUIManager::GetTextFormat(
 
 }
 
-// ´´½¨³ÌĞò×ÊÔ´
+// åˆ›å»ºç¨‹åºèµ„æº
 auto LongUIMethodCall LongUI::CUIManager::create_programs_resources() /*throw(std::bad_alloc &)*/-> void {
-    // ´æÔÚ¶ş½øÖÆ¶ÁÈ¡Æ÷?
+    // å­˜åœ¨äºŒè¿›åˆ¶è¯»å–å™¨?
     if (m_pBinResLoader) {
-        // »ñÈ¡Î»Í¼¸öÊı
+        // è·å–ä½å›¾ä¸ªæ•°
         register auto count = m_pBinResLoader->GetBitmapCount();
         m_bitmaps.reserve(count);
-        // ¶ÁÈ¡Î»Í¼
+        // è¯»å–ä½å›¾
         for (decltype(count) i = 0; i < count; ++i) {
             m_bitmaps.push_back(m_pBinResLoader->LoadBitmapAt(*this, i));
         }
-        // »ñÈ¡±ÊË¢¸öÊı
+        // è·å–ç¬”åˆ·ä¸ªæ•°
         count = m_pBinResLoader->GetBrushCount();
         m_brushes.reserve(count);
-        // ¶ÁÈ¡±ÊË¢
+        // è¯»å–ç¬”åˆ·
         for (decltype(count) i = 0; i < count; ++i) {
             m_brushes.push_back(m_pBinResLoader->LoadBrushAt(*this, i));
         }
-        // »ñÈ¡ÎÄ±¾¸ñÊ½¸öÊı
+        // è·å–æ–‡æœ¬æ ¼å¼ä¸ªæ•°
         count = m_pBinResLoader->GetTextFormatCount();
         m_textFormats.reserve(count);
-        // ¶ÁÈ¡ÎÄ±¾¸ñÊ½
+        // è¯»å–æ–‡æœ¬æ ¼å¼
         for (decltype(count) i = 0; i < count; ++i) {
             m_textFormats.push_back(m_pBinResLoader->LoadTextFormatAt(*this, i));
         }
-        // »ñÈ¡Meta¸öÊı
+        // è·å–Metaä¸ªæ•°
         count = m_pBinResLoader->GetMetaCount();
         m_metas.reserve(count);
-        // Í¼±ê
+        // å›¾æ ‡
         m_metaicons.resize(count);
-        // ¶ÁÈ¡ÎÄ±¾¸ñÊ½
+        // è¯»å–æ–‡æœ¬æ ¼å¼
         for (decltype(count) i = 0; i < count; ++i) {
             Meta meta; m_pBinResLoader->LoadMetaAt(*this, i, meta);
             m_metas.push_back(meta);
         }
     }
     else {
-        // pugixml Ê¹ÓÃµÄÊÇ¾ä±úÊ½, ËùÒÔÏÂÃæµÄ´úÂëÊÇ°²È«µÄ.
-        // µ«ÊÇ»áÉÔÎ¢ËğÊ§ĞÔÄÜ(¹À¼ÆcacheÃüÖĞ¾Í×¬»ØÒ»µãÁË)
-        // ËùÒÔpugixml²ÅÊÇÕæÕıµÄC++´úÂë, ×Ô¼ºµÄ¾ÍÆ«ÏòÓÚ
-        // C·ç¸ñ, È«ÊÇÖ¸Õë, µ½´¦¶¼ÊÇÖ¸Õë¼ì²é
+        // pugixml ä½¿ç”¨çš„æ˜¯å¥æŸ„å¼, æ‰€ä»¥ä¸‹é¢çš„ä»£ç æ˜¯å®‰å…¨çš„.
+        // ä½†æ˜¯ä¼šç¨å¾®æŸå¤±æ€§èƒ½(ä¼°è®¡cacheå‘½ä¸­å°±èµšå›ä¸€ç‚¹äº†)
+        // æ‰€ä»¥pugixmlæ‰æ˜¯çœŸæ­£çš„C++ä»£ç , è‡ªå·±çš„å°±åå‘äº
+        // Cé£æ ¼, å…¨æ˜¯æŒ‡é’ˆ, åˆ°å¤„éƒ½æ˜¯æŒ‡é’ˆæ£€æŸ¥
         register auto now_node = m_docResource.first_child().first_child();
         while (now_node) {
-            // Î»Í¼?
+            // ä½å›¾?
             if (!::strcmp(now_node.name(), "Bitmap")) {
                 this->add_bitmap(now_node);
             }
-            // ±ÊË¢?
+            // ç¬”åˆ·?
             else if (!::strcmp(now_node.name(), "Brush")) {
                 this->add_brush(now_node);
             }
-            // ÎÄ±¾¸ñÊ½?
+            // æ–‡æœ¬æ ¼å¼?
             else if (!::strcmp(now_node.name(), "Font") ||
                 !::strcmp(now_node.name(), "TextFormat")) {
                 this->add_textformat(now_node);
             }
-            // Í¼Ôª?
+            // å›¾å…ƒ?
             else if (!::strcmp(now_node.name(), "Meta")) {
                 this->add_meta(now_node);
             }
-            // ¶¯»­Í¼Ôª?
+            // åŠ¨ç”»å›¾å…ƒ?
             else if (!::strcmp(now_node.name(), "MetaEx")) {
                 this->add_meta(now_node);
             }
-            // ÍÆ½ø
+            // æ¨è¿›
             now_node = now_node.next_sibling();
         }
     }
 }
 
 
-// UIManager ´´½¨
+// UIManager åˆ›å»º
 auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT {
-    // ¼ì²éäÖÈ¾ÅäÖÃ
+    // æ£€æŸ¥æ¸²æŸ“é…ç½®
     bool cpu_rendering = this->configure->IsRenderByCPU();
-    // ´ıÓÃÊÊÅäÆ÷
+    // å¾…ç”¨é€‚é…å™¨
     IDXGIAdapter1* ready2use = nullptr;
-    // Ã¶¾ÙÏÔÊ¾ÊÊÅäÆ÷
+    // æšä¸¾æ˜¾ç¤ºé€‚é…å™¨
     if(!cpu_rendering) {
         IDXGIFactory1* temp_factory = nullptr;
-        // ´´½¨Ò»¸öÁÙÊ±¹¤³Ì
+        // åˆ›å»ºä¸€ä¸ªä¸´æ—¶å·¥ç¨‹
         register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
         if (SUCCEEDED(hr)) {
             IDXGIAdapter1* apAdapters[256]; size_t adnum;
-            // Ã¶¾ÙÊÊÅäÆ÷
+            // æšä¸¾é€‚é…å™¨
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
                 if (temp_factory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
                     break;
                 }
             }
-            // Ñ¡ÔñÊÊÅäÆ÷
+            // é€‰æ‹©é€‚é…å™¨
             register auto index = this->configure->ChooseAdapter(apAdapters, adnum);
             if (index < adnum) {
                 ready2use = ::SafeAcquire(apAdapters[index]);
             }
-            // ÊÍ·ÅÊÊÅäÆ÷
+            // é‡Šæ”¾é€‚é…å™¨
             for (size_t i = 0; i < adnum; ++i) {
                 ::SafeRelease(apAdapters[i]);
             }
         }
         ::SafeRelease(temp_factory);
     }
-    // ´´½¨Éè±¸×ÊÔ´
+    // åˆ›å»ºè®¾å¤‡èµ„æº
     register HRESULT hr /*= m_docResource.Error() ? E_FAIL :*/ S_OK;
-    // ´´½¨ D3D11Éè±¸ÓëÉè±¸ÉÏÏÂÎÄ 
+    // åˆ›å»º D3D11è®¾å¤‡ä¸è®¾å¤‡ä¸Šä¸‹æ–‡ 
     if (SUCCEEDED(hr)) {
-        // D3D11 ´´½¨flag 
-        // Ò»¶¨ÒªÓĞD3D11_CREATE_DEVICE_BGRA_SUPPORT
-        // ·ñÔò´´½¨D2DÉè±¸ÉÏÏÂÎÄ»áÊ§°Ü
+        // D3D11 åˆ›å»ºflag 
+        // ä¸€å®šè¦æœ‰D3D11_CREATE_DEVICE_BGRA_SUPPORT
+        // å¦åˆ™åˆ›å»ºD2Dè®¾å¤‡ä¸Šä¸‹æ–‡ä¼šå¤±è´¥
         UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #ifdef _DEBUG
 #ifdef D3D11_DEBUG
-        // Debug×´Ì¬ ÓĞD3D DebugLayer¾Í¿ÉÒÔÈ¡Ïû×¢ÊÍ
+        // DebugçŠ¶æ€ æœ‰D3D DebugLayerå°±å¯ä»¥å–æ¶ˆæ³¨é‡Š
         creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
         auto tmpflag = D3D11_CREATE_DEVICE_FLAG(creationFlags);
 #endif
@@ -927,127 +927,127 @@ auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT 
             D3D_FEATURE_LEVEL_9_2,
             D3D_FEATURE_LEVEL_9_1
         };
-        // ´´½¨Éè±¸
+        // åˆ›å»ºè®¾å¤‡
         hr = LongUI::Dll::D3D11CreateDevice(
-            // ÉèÖÃÎªäÖÈ¾
+            // è®¾ç½®ä¸ºæ¸²æŸ“
             ready2use,
-            // ¸ù¾İÇé¿öÑ¡ÔñÀàĞÍ
+            // æ ¹æ®æƒ…å†µé€‰æ‹©ç±»å‹
             cpu_rendering ? D3D_DRIVER_TYPE_WARP : 
                 (ready2use ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE),
-            // Ã»ÓĞÈí¼ş½Ó¿Ú
+            // æ²¡æœ‰è½¯ä»¶æ¥å£
             nullptr,
-            // ´´½¨flag
+            // åˆ›å»ºflag
             creationFlags,
-            // ÓûÊ¹ÓÃµÄÌØĞÔµÈ¼¶ÁĞ±í
+            // æ¬²ä½¿ç”¨çš„ç‰¹æ€§ç­‰çº§åˆ—è¡¨
             featureLevels,
-            // ÌØĞÔµÈ¼¶ÁĞ±í³¤¶È
+            // ç‰¹æ€§ç­‰çº§åˆ—è¡¨é•¿åº¦
             lengthof(featureLevels),
-            // SDK °æ±¾
+            // SDK ç‰ˆæœ¬
             D3D11_SDK_VERSION,
-            // ·µ»ØµÄD3D11Éè±¸Ö¸Õë
+            // è¿”å›çš„D3D11è®¾å¤‡æŒ‡é’ˆ
             &m_pd3dDevice,
-            // ·µ»ØµÄÌØĞÔµÈ¼¶
+            // è¿”å›çš„ç‰¹æ€§ç­‰çº§
             &m_featureLevel,
-            // ·µ»ØµÄD3D11Éè±¸ÉÏÏÂÎÄÖ¸Õë
+            // è¿”å›çš„D3D11è®¾å¤‡ä¸Šä¸‹æ–‡æŒ‡é’ˆ
             &m_pd3dDeviceContext
             );
-        // ¼ì²é
+        // æ£€æŸ¥
         if (FAILED(hr)) {
             UIManager << DL_Hint << L"Create D3D11 Device Failed,"
                 L" Now, Try to Create In WARP Mode" << LongUI::endl;
         }
-        // ´´½¨Ê§°ÜÔò³¢ÊÔÊ¹ÓÃÈí¼ş
+        // åˆ›å»ºå¤±è´¥åˆ™å°è¯•ä½¿ç”¨è½¯ä»¶
         if (FAILED(hr)) {
             hr = LongUI::Dll::D3D11CreateDevice(
-                // ÉèÖÃÎªäÖÈ¾
+                // è®¾ç½®ä¸ºæ¸²æŸ“
                 nullptr,
-                // ¸ù¾İÇé¿öÑ¡ÔñÀàĞÍ
+                // æ ¹æ®æƒ…å†µé€‰æ‹©ç±»å‹
                 D3D_DRIVER_TYPE_WARP,
-                // Ã»ÓĞÈí¼ş½Ó¿Ú
+                // æ²¡æœ‰è½¯ä»¶æ¥å£
                 nullptr,
-                // ´´½¨flag
+                // åˆ›å»ºflag
                 creationFlags,
-                // ÓûÊ¹ÓÃµÄÌØĞÔµÈ¼¶ÁĞ±í
+                // æ¬²ä½¿ç”¨çš„ç‰¹æ€§ç­‰çº§åˆ—è¡¨
                 featureLevels,
-                // ÌØĞÔµÈ¼¶ÁĞ±í³¤¶È
+                // ç‰¹æ€§ç­‰çº§åˆ—è¡¨é•¿åº¦
                 lengthof(featureLevels),
-                // SDK °æ±¾
+                // SDK ç‰ˆæœ¬
                 D3D11_SDK_VERSION,
-                // ·µ»ØµÄD3D11Éè±¸Ö¸Õë
+                // è¿”å›çš„D3D11è®¾å¤‡æŒ‡é’ˆ
                 &m_pd3dDevice,
-                // ·µ»ØµÄÌØĞÔµÈ¼¶
+                // è¿”å›çš„ç‰¹æ€§ç­‰çº§
                 &m_featureLevel,
-                // ·µ»ØµÄD3D11Éè±¸ÉÏÏÂÎÄÖ¸Õë
+                // è¿”å›çš„D3D11è®¾å¤‡ä¸Šä¸‹æ–‡æŒ‡é’ˆ
                 &m_pd3dDeviceContext
                 );
         }
     }
 #ifdef _DEBUG
 #ifdef D3D11_DEBUG
-    // ´´½¨ ID3D11Debug
+    // åˆ›å»º ID3D11Debug
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pd3dDebug));
     }
 #endif
 #endif
-    // ´´½¨ IDXGIDevice
+    // åˆ›å»º IDXGIDevice
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pDxgiDevice));
     }
-    // ´´½¨D2DÉè±¸
+    // åˆ›å»ºD2Dè®¾å¤‡
     if (SUCCEEDED(hr)) {
         hr = m_pd2dFactory->CreateDevice(m_pDxgiDevice, &m_pd2dDevice);
     }
-    // ´´½¨D2DÉè±¸ÉÏÏÂÎÄ
+    // åˆ›å»ºD2Dè®¾å¤‡ä¸Šä¸‹æ–‡
     if (SUCCEEDED(hr)) {
         hr = m_pd2dDevice->CreateDeviceContext(
             D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
             &m_pd2dDeviceContext
             );
     }
-    // »ñÈ¡DxgiÊÊÅäÆ÷ ¿ÉÒÔ»ñÈ¡¸ÃÊÊÅäÆ÷ĞÅÏ¢
+    // è·å–Dxgié€‚é…å™¨ å¯ä»¥è·å–è¯¥é€‚é…å™¨ä¿¡æ¯
     if (SUCCEEDED(hr)) {
-        // Ë³´øÊ¹ÓÃÏñËØ×÷Îªµ¥Î»
+        // é¡ºå¸¦ä½¿ç”¨åƒç´ ä½œä¸ºå•ä½
         m_pd2dDeviceContext->SetUnitMode(D2D1_UNIT_MODE_PIXELS);
         hr = m_pDxgiDevice->GetAdapter(&m_pDxgiAdapter);
     }
 #ifdef _DEBUG
-    // Êä³öÏÔ¿¨ĞÅÏ¢
+    // è¾“å‡ºæ˜¾å¡ä¿¡æ¯
     if (SUCCEEDED(hr)) {
         DXGI_ADAPTER_DESC desc;
         m_pDxgiAdapter->GetDesc(&desc);
         UIManager << DL_Hint << &desc << LongUI::endl;
     }
 #endif
-    // »ñÈ¡Dxgi¹¤³§
+    // è·å–Dxgiå·¥å‚
     if (SUCCEEDED(hr)) {
         hr = m_pDxgiAdapter->GetParent(LongUI_IID_PV_ARGS(m_pDxgiFactory));
     }
 #ifdef LONGUI_VIDEO_IN_MF
     uint32_t token = 0;
-    // ¶àÏß³Ì
+    // å¤šçº¿ç¨‹
     if (SUCCEEDED(hr)) {
         ID3D10Multithread* mt = nullptr;
         hr = m_pd3dDevice->QueryInterface(IID_ID3D10Multithread, (void**)&mt);
-        // ±£»¤
+        // ä¿æŠ¤
         if (SUCCEEDED(hr)) {
             mt->SetMultithreadProtected(TRUE);
         }
         ::SafeRelease(mt);
     }
-    // ÉèÖÃMF
+    // è®¾ç½®MF
     if (SUCCEEDED(hr)) {
         hr = ::MFStartup(MF_VERSION);
     }
-    // ´´½¨MF Dxgi Éè±¸¹ÜÀíÆ÷
+    // åˆ›å»ºMF Dxgi è®¾å¤‡ç®¡ç†å™¨
     if (SUCCEEDED(hr)) {
         hr = ::MFCreateDXGIDeviceManager(&token, &m_pDXGIManager);
     }
-    // ÖØÖÃÉè±¸
+    // é‡ç½®è®¾å¤‡
     if (SUCCEEDED(hr)) {
         hr = m_pDXGIManager->ResetDevice(m_pd3dDevice, token);
     }
-    // ´´½¨MFÃ½ÌåÀà¹¤³§
+    // åˆ›å»ºMFåª’ä½“ç±»å·¥å‚
     if (SUCCEEDED(hr)) {
         hr = CoCreateInstance(
             CLSID_MFMediaEngineClassFactory,
@@ -1057,13 +1057,13 @@ auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT 
             );
     }
 #endif
-    /*// ½ûÖ¹ Alt + Enter È«ÆÁ
+    /*// ç¦æ­¢ Alt + Enter å…¨å±
     if (SUCCEEDED(hr)) {
         hr = m_pDxgiFactory->MakeWindowAssociation(m_hwnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
     }*/
-    // ´´½¨Ë÷Òı0×ÊÔ´
+    // åˆ›å»ºç´¢å¼•0èµ„æº
     if (SUCCEEDED(hr)) {
-        // ¿ÉMapµÄÎ»Í¼
+        // å¯Mapçš„ä½å›¾
         if (SUCCEEDED(hr)) {
             ID2D1Bitmap1* bitmap_index0 = nullptr;
             hr = m_pd2dDeviceContext->CreateBitmap(
@@ -1077,7 +1077,7 @@ auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT 
                 );
             m_bitmaps.push_back(bitmap_index0);
         }
-        // ±ÊË¢
+        // ç¬”åˆ·
         if (SUCCEEDED(hr)) {
             ID2D1SolidColorBrush* scbrush = nullptr;
             D2D1_COLOR_F color = D2D1::ColorF(D2D1::ColorF::Black);
@@ -1086,7 +1086,7 @@ auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT 
                 );
             m_brushes.push_back(scbrush);
         }
-        // ÎÄ±¾¸ñÊ½
+        // æ–‡æœ¬æ ¼å¼
         if (SUCCEEDED(hr)) {
             IDWriteTextFormat* format = nullptr;
             hr = m_pDWriteFactory->CreateTextFormat(
@@ -1105,10 +1105,10 @@ auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT 
                 m_textFormats.push_back(format);
             }
         }
-        // Í¼Ôª
+        // å›¾å…ƒ
         Meta meta = { 0 }; m_metas.push_back(meta);
     }
-    // ´´½¨×ÊÔ´ÃèÊö×ÊÔ´
+    // åˆ›å»ºèµ„æºæè¿°èµ„æº
     if (SUCCEEDED(hr)) {
         try {
             this->create_programs_resources();
@@ -1116,18 +1116,18 @@ auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT 
         CATCH_HRESULT(hr);
     }
     ::SafeRelease(ready2use);
-    // ÉèÖÃÎÄ±¾äÖÈ¾Æ÷Êı¾İ
+    // è®¾ç½®æ–‡æœ¬æ¸²æŸ“å™¨æ•°æ®
     if (SUCCEEDED(hr)) {
         for (uint32_t i = 0u; i < m_uTextRenderCount; ++i) {
             m_apTextRenderer[i]->SetNewRT(m_pd2dDeviceContext);
             m_apTextRenderer[i]->SetNewBrush(static_cast<ID2D1SolidColorBrush*>(m_brushes[0]));
         }
-        // ÖØ½¨ËùÓĞ´°¿Ú
+        // é‡å»ºæ‰€æœ‰çª—å£
         for (auto i : m_windows) {
             reinterpret_cast<UIWindow*>(i)->Recreate(nullptr);
         }
     }
-    // ¶ÏÑÔ HR
+    // æ–­è¨€ HR
     AssertHR(hr);
     return hr;
 }
@@ -1167,19 +1167,19 @@ void AssertRelease(T* t) {
         c.clear();\
     }
 #endif
-// UIManager ¶ªÆú
+// UIManager ä¸¢å¼ƒ
 void LongUIMethodCall LongUI::CUIManager::discard_resources() noexcept {
-    // ÊÍ·Å Î»Í¼
+    // é‡Šæ”¾ ä½å›¾
     SafeReleaseContainer(m_bitmaps);
-    // ÊÍ·Å ±ÊË¢
+    // é‡Šæ”¾ ç¬”åˆ·
     SafeReleaseContainer(m_brushes);
-    // ÊÍ·ÅÎÄ±¾¸ñÊ½
+    // é‡Šæ”¾æ–‡æœ¬æ ¼å¼
     SafeReleaseContainer(m_textFormats);
-    // metaÖ±½ÓÊÍ·Å
+    // metaç›´æ¥é‡Šæ”¾
     if (m_metas.size()) {
         m_metas.clear();
     }
-    // Í¼±ê´İ»Ù
+    // å›¾æ ‡æ‘§æ¯
     if (m_metaicons.size()) {
         for (auto itr = m_metaicons.begin(); itr != m_metaicons.end(); ++itr) {
              register auto handle = static_cast<HICON>(*itr);
@@ -1190,7 +1190,7 @@ void LongUIMethodCall LongUI::CUIManager::discard_resources() noexcept {
         }
         m_metaicons.clear();
     }
-    // ÊÍ·Å Éè±¸
+    // é‡Šæ”¾ è®¾å¤‡
     ::SafeRelease(m_pDxgiFactory);
     ::SafeRelease(m_pd2dDeviceContext);
     ::SafeRelease(m_pd2dDevice);
@@ -1213,47 +1213,47 @@ void LongUIMethodCall LongUI::CUIManager::discard_resources() noexcept {
 
 
 
-// »ñÈ¡±ÊË¢
+// è·å–ç¬”åˆ·
 auto LongUIMethodCall LongUI::CUIManager::GetBrush(
     uint32_t index) noexcept -> ID2D1Brush* {
     ID2D1Brush* brush = nullptr;
     if (index >= m_brushes.size()) {
-        // Ô½½ç
+        // è¶Šç•Œ
         UIManager << DL_Warning << L"index@" << long(index)
             << L"is out of range\n   Now set to 0" << LongUI::endl;
         index = 0;
     }
     brush = reinterpret_cast<ID2D1Brush*>(m_brushes[index]);
-    // ´íÎó
+    // é”™è¯¯
     if (!brush) {
         UIManager << DL_Error << L"index@" << long(index) << L"brush is null" << LongUI::endl;
     }
     return ::SafeAcquire(brush);
 }
 
-// »ñÈ¡Î»Í¼
+// è·å–ä½å›¾
 auto LongUIMethodCall LongUI::CUIManager::GetBitmap(
     uint32_t index) noexcept ->ID2D1Bitmap1* {
     ID2D1Bitmap1* bitmap = nullptr;
     if (index >= m_bitmaps.size()) {
-        // Ô½½ç
+        // è¶Šç•Œ
         UIManager << DL_Warning << L"index@" << long(index)
             << L"is out of range\n   Now set to 0" << LongUI::endl;
         index = 0;
     }
     bitmap = static_cast<ID2D1Bitmap1*>(m_bitmaps[index]);
-    // ´íÎó
+    // é”™è¯¯
     if (!bitmap) {
         UIManager << DL_Error << L"index@" << long(index) << L"bitmap is null" << LongUI::endl;
     }
     return ::SafeAcquire(bitmap);
 }
 
-// »ñÈ¡Í¼Ôª
+// è·å–å›¾å…ƒ
 void LongUIMethodCall LongUI::CUIManager::GetMeta(
     uint32_t index, LongUI::Meta& meta) noexcept {
     if (index >= m_metas.size()) {
-        // Ô½½ç
+        // è¶Šç•Œ
         UIManager << DL_Warning << L"index@" << long(index)
             << L"is out of range\n   Now set to 0" << LongUI::endl;
         index = 0;
@@ -1261,22 +1261,22 @@ void LongUIMethodCall LongUI::CUIManager::GetMeta(
     meta = m_metas[index];
 }
 
-// Ìí¼ÓÎ»Í¼
+// æ·»åŠ ä½å›¾
 void LongUIMethodCall LongUI::CUIManager::add_bitmap(
     const pugi::xml_node node) noexcept {
     assert(node && "bad argument");
-    // »ñÈ¡Â·¾¶
+    // è·å–è·¯å¾„
     const char* uri = node.attribute("res").value();
-    // ÔØÈëÎ»Í¼
+    // è½½å…¥ä½å›¾
     auto bitmap = this->configure->LoadBitmapByRI(*this, uri);
-    // Ã»ÓĞ
+    // æ²¡æœ‰
     if (!bitmap) {
         UIManager << DL_Error << L"Resource Identifier: [" << uri << L"], got a null pointer" << LongUI::endl;
     }
     m_bitmaps.push_back(bitmap);
 }
 
-// Ìí¼Ó±ÊË¢
+// æ·»åŠ ç¬”åˆ·
 void LongUIMethodCall LongUI::CUIManager::add_brush(
     const pugi::xml_node node) noexcept {
     union {
@@ -1289,7 +1289,7 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
     brush = nullptr;
     const char* str = nullptr;
     assert(node && "bad argument");
-    // ±ÊË¢ÊôĞÔ
+    // ç¬”åˆ·å±æ€§
     D2D1_BRUSH_PROPERTIES brush_prop = D2D1::BrushProperties();
     if (str = node.attribute("opacity").value()) {
         brush_prop.opacity = static_cast<float>(::LongUI::AtoF(str));
@@ -1297,7 +1297,7 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
     if (str = node.attribute("transform").value()) {
         UIControl::MakeFloats(str, &brush_prop.transform._11, 6);
     }
-    // ¼ì²éÀàĞÍ
+    // æ£€æŸ¥ç±»å‹
     auto type = BrushType::Type_SolidColor;
     if (str = node.attribute("type").value()) {
         type = static_cast<decltype(type)>(::LongUI::AtoI(str));
@@ -1307,7 +1307,7 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
     case LongUI::BrushType::Type_SolidColor:
     {
         D2D1_COLOR_F color;
-        // »ñÈ¡ÑÕÉ«
+        // è·å–é¢œè‰²
         if (!UIControl::MakeColor(node.attribute( "color").value(), color)) {
             color = D2D1::ColorF(D2D1::ColorF::Black);
         }
@@ -1318,24 +1318,24 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
         __fallthrough;
     case LongUI::BrushType::Type_RadialGradient:
         if (str = node.attribute("stops").value()) {
-            // Óï·¨ [pos0, color0] [pos1, color1] ....
+            // è¯­æ³• [pos0, color0] [pos1, color1] ....
             uint32_t stop_count = 0;
             ID2D1GradientStopCollection * collection = nullptr;
             D2D1_GRADIENT_STOP stops[LongUIMaxGradientStop];
             D2D1_GRADIENT_STOP* now_stop = stops;
 
             char buffer[LongUIStringBufferLength];
-            // ¸´ÖÆµ½»º³åÇø
+            // å¤åˆ¶åˆ°ç¼“å†²åŒº
             strcpy(buffer, str);
             char* index = buffer;
             const char* paragraph = nullptr;
             register char ch = 0;
             bool ispos = false;
-            // ±éÀú¼ì²é
+            // éå†æ£€æŸ¥
             while (ch = *index) {
-                // ²éÕÒµÚÒ»¸ö¸¡µãÊı×öÎªÎ»ÖÃ
+                // æŸ¥æ‰¾ç¬¬ä¸€ä¸ªæµ®ç‚¹æ•°åšä¸ºä½ç½®
                 if (ispos) {
-                    // ,±íÊ¾Î»ÖÃ¶Î½áÊø, ¸Ã½âÎöÁË
+                    // ,è¡¨ç¤ºä½ç½®æ®µç»“æŸ, è¯¥è§£æäº†
                     if (ch = ',') {
                         *index = 0;
                         now_stop->position = LongUI::AtoF(paragraph);
@@ -1343,14 +1343,14 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
                         paragraph = index + 1;
                     }
                 }
-                // ²éÕÒºóÃæµÄÊıÖµ×öÎªÑÕÉ«
+                // æŸ¥æ‰¾åé¢çš„æ•°å€¼åšä¸ºé¢œè‰²
                 else {
-                    // [ ×öÎªÎ»ÖÃ¶Î±êÊ¶¿ªÊ¼
+                    // [ åšä¸ºä½ç½®æ®µæ ‡è¯†å¼€å§‹
                     if (ch == '[') {
                         paragraph = index + 1;
                         ispos = true;
                     }
-                    // ] ×öÎªÑÕÉ«¶Î±êÊ¶½áÊø ¸Ã½âÎöÁË
+                    // ] åšä¸ºé¢œè‰²æ®µæ ‡è¯†ç»“æŸ è¯¥è§£æäº†
                     else if (ch == ']') {
                         *index = 0;
                         UIControl::MakeColor(paragraph, now_stop->color);
@@ -1359,33 +1359,33 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
                     }
                 }
             }
-            // ´´½¨StopCollection
+            // åˆ›å»ºStopCollection
             m_pd2dDeviceContext->CreateGradientStopCollection(stops, stop_count, &collection);
             if (collection) {
-                // ÏßĞÔ½¥±ä?
+                // çº¿æ€§æ¸å˜?
                 if (type == LongUI::BrushType::Type_LinearGradient) {
                     D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES lgbprop = {
                         {0.f, 0.f}, {0.f, 0.f}
                     };
-                    // ¼ì²éÊôĞÔ
+                    // æ£€æŸ¥å±æ€§
                     UIControl::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
                     UIControl::MakeFloats(node.attribute("end").value(), &lgbprop.startPoint.x, 2);
-                    // ´´½¨±ÊË¢
+                    // åˆ›å»ºç¬”åˆ·
                     m_pd2dDeviceContext->CreateLinearGradientBrush(
                         &lgbprop, &brush_prop, collection, &lgb
                         );
                 }
-                // ¾¶Ïò½¥±ä±ÊË¢
+                // å¾„å‘æ¸å˜ç¬”åˆ·
                 else {
                     D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES rgbprop = {
                         {0.f, 0.f}, {0.f, 0.f}, 0.f, 0.f
                     };
-                    // ¼ì²éÊôĞÔ
+                    // æ£€æŸ¥å±æ€§
                     UIControl::MakeFloats(node.attribute("center").value(), &rgbprop.center.x, 2);
                     UIControl::MakeFloats(node.attribute("offset").value(), &rgbprop.gradientOriginOffset.x, 2);
                     UIControl::MakeFloats(node.attribute("rx").value(), &rgbprop.radiusX, 1);
                     UIControl::MakeFloats(node.attribute("ry").value(), &rgbprop.radiusY, 1);
-                    // ´´½¨±ÊË¢
+                    // åˆ›å»ºç¬”åˆ·
                     m_pd2dDeviceContext->CreateRadialGradientBrush(
                         &rgbprop, &brush_prop, collection, &rgb
                         );
@@ -1401,7 +1401,7 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
             D2D1_BITMAP_BRUSH_PROPERTIES1 bbprop = {
                 D2D1_EXTEND_MODE_CLAMP, D2D1_EXTEND_MODE_CLAMP,D2D1_INTERPOLATION_MODE_LINEAR
             };
-            // ¼ì²éÊôĞÔ
+            // æ£€æŸ¥å±æ€§
             if (str = node.attribute("extendx").value()) {
                 bbprop.extendModeX = static_cast<D2D1_EXTEND_MODE>(LongUI::AtoI(str));
             }
@@ -1411,7 +1411,7 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
             if (str = node.attribute("interpolation").value()) {
                 bbprop.interpolationMode = static_cast<D2D1_INTERPOLATION_MODE>(LongUI::AtoI(str));
             }
-            // ´´½¨±ÊË¢
+            // åˆ›å»ºç¬”åˆ·
             m_pd2dDeviceContext->CreateBitmapBrush(
                 static_cast<ID2D1Bitmap*>(m_bitmaps[index]), 
                 &bbprop, &brush_prop, &b1b
@@ -1419,12 +1419,12 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
         }
         break;
     }
-    // ×ö×öÑù×Ó¼ì²éÒ»ÏÂ
+    // åšåšæ ·å­æ£€æŸ¥ä¸€ä¸‹
     assert(brush);
     m_brushes.push_back(brush);
 }
 
-// Ìí¼ÓÍ¼Ôª
+// æ·»åŠ å›¾å…ƒ
 void LongUIMethodCall LongUI::CUIManager::add_meta(
     const pugi::xml_node node) noexcept {
     LongUI::Meta meta = {
@@ -1434,26 +1434,26 @@ void LongUIMethodCall LongUI::CUIManager::add_meta(
     };
     const char* str = nullptr;
     assert(node && "bad argument");
-    // »ñÈ¡Î»Í¼
+    // è·å–ä½å›¾
     meta.bitmap = static_cast<ID2D1Bitmap1*>(m_bitmaps[LongUI::AtoI(node.attribute("bitmap").value())]);
-    // »ñÈ¡äÖÈ¾¹æÔò
+    // è·å–æ¸²æŸ“è§„åˆ™
     if (str = node.attribute("rule").value()) {
         meta.rule = static_cast<BitmapRenderRule>(LongUI::AtoI(str));
     }
-    // »ñÈ¡²åÖµÄ£Ê½
+    // è·å–æ’å€¼æ¨¡å¼
     if (str = node.attribute("interpolation").value()) {
         meta.interpolation = static_cast<uint16_t>(LongUI::AtoI(str));
     }
-    // »ñÈ¡¾ØĞÎ
+    // è·å–çŸ©å½¢
     UIControl::MakeFloats(node.attribute("rect").value(), &meta.src_rect.left, 4);
-    // ÍÆËÍ
+    // æ¨é€
     m_metas.push_back(meta);
-    // Í¼±ê
+    // å›¾æ ‡
     m_metaicons.push_back(nullptr);
 }
 
 
-// Ìí¼ÓÎÄ±¾¸ñÊ½
+// æ·»åŠ æ–‡æœ¬æ ¼å¼
 void LongUIMethodCall LongUI::CUIManager::add_textformat(
     const pugi::xml_node node) noexcept {
     register const char* str = nullptr;
@@ -1463,25 +1463,25 @@ void LongUIMethodCall LongUI::CUIManager::add_textformat(
     DWRITE_FONT_STYLE fontstyle = DWRITE_FONT_STYLE_NORMAL;
     DWRITE_FONT_STRETCH fontstretch = DWRITE_FONT_STRETCH_NORMAL;
     float fontsize = 12.f ;
-    // »ñÈ¡×ÖÌåÃû³Æ
+    // è·å–å­—ä½“åç§°
     UIControl::MakeString(node.attribute("family").value(), fontfamilyname);
-    // »ñÈ¡×ÖÌå´ÖÏ¸
+    // è·å–å­—ä½“ç²—ç»†
     if (str = node.attribute("weight").value()) {
         fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));
     }
-    // »ñÈ¡×ÖÌå·ç¸ñ
+    // è·å–å­—ä½“é£æ ¼
     if (str = node.attribute("style").value()) {
         fontstyle = static_cast<DWRITE_FONT_STYLE>(LongUI::AtoI(str));
     }
-    // »ñÈ¡×ÖÌåÀ­Éì
+    // è·å–å­—ä½“æ‹‰ä¼¸
     if (str = node.attribute("stretch").value()) {
         fontstretch = static_cast<DWRITE_FONT_STRETCH>(LongUI::AtoI(str));
     }
-    // »ñÈ¡×ÖÌå´óĞ¡
+    // è·å–å­—ä½“å¤§å°
     if (str = node.attribute("size").value()) {
         fontsize = LongUI::AtoF(str);
     }
-    // ´´½¨»ù±¾×ÖÌå
+    // åˆ›å»ºåŸºæœ¬å­—ä½“
     IDWriteTextFormat* textformat = nullptr;
     m_pDWriteFactory->CreateTextFormat(
         fontfamilyname.c_str(),
@@ -1493,7 +1493,7 @@ void LongUIMethodCall LongUI::CUIManager::add_textformat(
         m_szLocaleName,
         &textformat
         );
-    // ³É¹¦»ñÈ¡ÔòÔÙÉèÖÃ
+    // æˆåŠŸè·å–åˆ™å†è®¾ç½®
     if (textformat) {
         // DWRITE_LINE_SPACING_METHOD;
         DWRITE_FLOW_DIRECTION flowdirection = DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM;
@@ -1502,47 +1502,47 @@ void LongUIMethodCall LongUI::CUIManager::add_textformat(
         DWRITE_TEXT_ALIGNMENT halign = DWRITE_TEXT_ALIGNMENT_LEADING;
         DWRITE_READING_DIRECTION readingdirection = DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
         DWRITE_WORD_WRAPPING wordwrapping = DWRITE_WORD_WRAPPING_NO_WRAP;
-        // ¼ì²é¶ÎÂäÅÅÁĞ·½Ïò
+        // æ£€æŸ¥æ®µè½æ’åˆ—æ–¹å‘
         if (str = node.attribute("flowdirection").value()) {
             flowdirection = static_cast<DWRITE_FLOW_DIRECTION>(LongUI::AtoI(str));
         }
-        // ¼ì²éTab¿í¶È
+        // æ£€æŸ¥Tabå®½åº¦
         if (str = node.attribute("tabstop").value()) {
             tabstop = LongUI::AtoF(str);
         }
-        // ¼ì²é¶ÎÂä(´¹Ö±)¶ÔÆë
+        // æ£€æŸ¥æ®µè½(å‚ç›´)å¯¹é½
         if (str = node.attribute("valign").value()) {
             valign = static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(LongUI::AtoI(str));
         }
-        // ¼ì²éÎÄ±¾(Ë®Æ½)¶ÔÆë
+        // æ£€æŸ¥æ–‡æœ¬(æ°´å¹³)å¯¹é½
         if (str = node.attribute("halign").value()) {
             halign = static_cast<DWRITE_TEXT_ALIGNMENT>(LongUI::AtoI(str));
         }
-        // ¼ì²éÔÄ¶Á½øĞĞ·½Ïò
+        // æ£€æŸ¥é˜…è¯»è¿›è¡Œæ–¹å‘
         if (str = node.attribute("readingdirection").value()) {
             readingdirection = static_cast<DWRITE_READING_DIRECTION>(LongUI::AtoI(str));
         }
-        // ¼ì²é×Ô¶¯»»ĞĞ
+        // æ£€æŸ¥è‡ªåŠ¨æ¢è¡Œ
         if (str = node.attribute("wordwrapping").value()) {
             wordwrapping = static_cast<DWRITE_WORD_WRAPPING>(LongUI::AtoI(str));
         }
-        // ÉèÖÃ¶ÎÂäÅÅÁĞ·½Ïò
+        // è®¾ç½®æ®µè½æ’åˆ—æ–¹å‘
         textformat->SetFlowDirection(flowdirection);
-        // ÉèÖÃTab¿í¶È
+        // è®¾ç½®Tabå®½åº¦
         textformat->SetIncrementalTabStop(tabstop);
-        // ÉèÖÃ¶ÎÂä(´¹Ö±)¶ÔÆë
+        // è®¾ç½®æ®µè½(å‚ç›´)å¯¹é½
         textformat->SetParagraphAlignment(valign);
-        // ÉèÖÃÎÄ±¾(Ë®Æ½)¶ÔÆë
+        // è®¾ç½®æ–‡æœ¬(æ°´å¹³)å¯¹é½
         textformat->SetTextAlignment(halign);
-        // ÉèÖÃÔÄ¶Á½øĞĞ·½Ïò
+        // è®¾ç½®é˜…è¯»è¿›è¡Œæ–¹å‘
         textformat->SetReadingDirection(readingdirection);
-        // ÉèÖÃ×Ô¶¯»»ĞĞ
+        // è®¾ç½®è‡ªåŠ¨æ¢è¡Œ
         textformat->SetWordWrapping(wordwrapping);
     }
     m_textFormats.push_back(textformat);
 }
 
-// ¸ñÊ½»¯ÎÄ×Ö
+// æ ¼å¼åŒ–æ–‡å­—
 /*
 control char    C-Type      Infomation                                  StringInlineParamSupported
   
@@ -1588,7 +1588,7 @@ using %p or %P to mark PARAMETERS start
 
 */
 
-// ´´½¨¸ñÊ½ÎÄ±¾
+// åˆ›å»ºæ ¼å¼æ–‡æœ¬
 auto LongUI::CUIManager::FormatTextCore(
     FormatTextConfig& config,
     const wchar_t* format,
@@ -1624,24 +1624,24 @@ const wchar_t*  __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_
 #define CUIManager_GetNextTokenA(n) param = FindNextToken(reinterpret_cast<char*>(param_buffer), param, n)
 
 
-// ´´½¨¸ñÊ½ÎÄ±¾
-// ±¾º¯ÊıºÄÊ±²Î¿¼:
-// °üº¬ÊÍ·ÅÊı¾İ(::SafeRelease(layout))
+// åˆ›å»ºæ ¼å¼æ–‡æœ¬
+// æœ¬å‡½æ•°è€—æ—¶å‚è€ƒ:
+// åŒ…å«é‡Šæ”¾æ•°æ®(::SafeRelease(layout))
 // 1. L"%cHello%], world!%p#FFFF0000"
-// Debug    : Ñ­»· 1000000(Ò»°ÙÍò)´Î£¬ºÄÊ±8750ms(¾«È·µ½16ms)
-// Release  : Ñ­»· 1000000(Ò»°ÙÍò)´Î£¬ºÄÊ±3484ms(¾«È·µ½16ms)
+// Debug    : å¾ªç¯ 1000000(ä¸€ç™¾ä¸‡)æ¬¡ï¼Œè€—æ—¶8750ms(ç²¾ç¡®åˆ°16ms)
+// Release  : å¾ªç¯ 1000000(ä¸€ç™¾ä¸‡)æ¬¡ï¼Œè€—æ—¶3484ms(ç²¾ç¡®åˆ°16ms)
 // 2. L"%cHello%], world!%cHello%], world!%p#FFFF0000, #FF00FF00"
-// Debug    : Ñ­»· 1000000(Ò»°ÙÍò)´Î£¬ºÄÊ±13922ms(¾«È·µ½16ms)
-// Release  : Ñ­»· 1000000(Ò»°ÙÍò)´Î£¬ºÄÊ± 6812ms(¾«È·µ½16ms)
-// ½áÂÛ: Release°æÃ¿´¦ÀíÒ»¸ö×Ö·û(°üÀ¨¸ñÊ½Óë²ÎÊı)Æ½¾ùÏûºÄ0.12Î¢Ãë, Debug°æ¼Ó±¶
-// ¼ÙÉè: 60HzÃ¿Ö¡16ms ÄÃ³ö8ms´¦Àí±¾º¯Êı, ¿ÉÒÔ´¦Àí6Íò6¸ö×Ö·û
-//Ò»°ãÂÛ: ²»¿ÉÄÜÃ¿Ö¡µ÷ÓÃ6Íò×Ö, Ò»°ã¿ÉÄÜÃ¿Ö¡´¦ÀíÊı°Ù×Ö·û(Ã¦ÂµÊ±), ¿ÉÒÔºöÂÔ²»¼Æ
+// Debug    : å¾ªç¯ 1000000(ä¸€ç™¾ä¸‡)æ¬¡ï¼Œè€—æ—¶13922ms(ç²¾ç¡®åˆ°16ms)
+// Release  : å¾ªç¯ 1000000(ä¸€ç™¾ä¸‡)æ¬¡ï¼Œè€—æ—¶ 6812ms(ç²¾ç¡®åˆ°16ms)
+// ç»“è®º: Releaseç‰ˆæ¯å¤„ç†ä¸€ä¸ªå­—ç¬¦(åŒ…æ‹¬æ ¼å¼ä¸å‚æ•°)å¹³å‡æ¶ˆè€—0.12å¾®ç§’, Debugç‰ˆåŠ å€
+// å‡è®¾: 60Hzæ¯å¸§16ms æ‹¿å‡º8mså¤„ç†æœ¬å‡½æ•°, å¯ä»¥å¤„ç†6ä¸‡6ä¸ªå­—ç¬¦
+//ä¸€èˆ¬è®º: ä¸å¯èƒ½æ¯å¸§è°ƒç”¨6ä¸‡å­—, ä¸€èˆ¬å¯èƒ½æ¯å¸§å¤„ç†æ•°ç™¾å­—ç¬¦(å¿™ç¢Œæ—¶), å¯ä»¥å¿½ç•¥ä¸è®¡
 auto  LongUI::CUIManager::FormatTextCore(
     FormatTextConfig& config,
     const wchar_t* format, 
     va_list ap) noexcept->IDWriteTextLayout* {
     const wchar_t* param = nullptr;
-    // ¼ì²éÊÇ·ñ´ø²ÎÊı
+    // æ£€æŸ¥æ˜¯å¦å¸¦å‚æ•°
     if (!ap) {
         register auto format_param_tmp = format;
         register wchar_t ch;
@@ -1693,37 +1693,37 @@ auto  LongUI::CUIManager::FormatTextCore(
     assert(format && "bad argument");
     IDWriteTextLayout* layout = nullptr;
     register UIColorEffect* tmp_color = nullptr;
-    // »º´æ×Ö·û´®³¤¶È
+    // ç¼“å­˜å­—ç¬¦ä¸²é•¿åº¦
     uint32_t string_length = 0;
-    // µ±Ç°×Ö·û
+    // å½“å‰å­—ç¬¦
     wchar_t ch;
-    // »º³åÇøË÷Òı
+    // ç¼“å†²åŒºç´¢å¼•
     wchar_t* buffer_index;
-    // ²ÎÊı»º³åÇø
+    // å‚æ•°ç¼“å†²åŒº
     wchar_t param_buffer[256];
-    // »º³åÇø
+    // ç¼“å†²åŒº
     wchar_t buffer[LongUIStringBufferLength];
-    // »º³åÇø
+    // ç¼“å†²åŒº
     wchar_t fontname_buffer[LongUIStringBufferLength];
     auto fontname_buffer_index = fontname_buffer;
-    // Ê¹ÓÃÕ»
+    // ä½¿ç”¨æ ˆ
     FixedStack<RangeData, 1024> stack_check, statck_set;
-    // »º´æÆğµã
+    // ç¼“å­˜èµ·ç‚¹
     buffer_index = buffer;
-    // ±ãÀû
+    // ä¾¿åˆ©
     while (ch = *format) {
-        // Îª%Ê±, ¼ì²éÏÂÒ»×Ö·û
+        // ä¸º%æ—¶, æ£€æŸ¥ä¸‹ä¸€å­—ç¬¦
         if (ch == L'%' && (++format, ch = *format)) {
             switch (ch)
             {
             case L'%':
-                // Ìí¼Ó%
+                // æ·»åŠ %
                 *buffer_index = L'%';
                 ++buffer_index;
                 ++string_length;
                 break;
             case L'A': case L'a': // [A]dd string
-                // ¸´ÖÆ×Ö·û´®
+                // å¤åˆ¶å­—ç¬¦ä¸²
                 {
                     register const wchar_t* i;
                     if (ap) {
@@ -1741,20 +1741,20 @@ auto  LongUI::CUIManager::FormatTextCore(
                 }
                 break;
             case L'C': // [C]olor in float4
-                // ¸¡µãÊı×éÑÕÉ«¿ªÊ¼±ê¼Ç: 
+                // æµ®ç‚¹æ•°ç»„é¢œè‰²å¼€å§‹æ ‡è®°: 
                 range_data.range.startPosition = string_length;
                 if (ap) {
                     range_data.color = va_arg(ap, D2D1_COLOR_F*);
                 }
                 range_data.range_type = R::D;
-                // ¶¯Ì¬´´½¨ÑÕÉ«Ğ§¹û
+                // åŠ¨æ€åˆ›å»ºé¢œè‰²æ•ˆæœ
                 tmp_color = UIColorEffect::Create();
                 assert(tmp_color && "C");
-                // ´Ó·¶Î§Êı¾İÖĞ»ñÈ¡
+                // ä»èŒƒå›´æ•°æ®ä¸­è·å–
                 if (ap) {
                     tmp_color->color = *range_data.color;
                 }
-                // Ö±½ÓÉèÖÃ
+                // ç›´æ¥è®¾ç½®
                 else {
                     CUIManager_GetNextTokenA(4);
                     UIControl::MakeColor(reinterpret_cast<char*>(param_buffer), tmp_color->color);
@@ -1763,13 +1763,13 @@ auto  LongUI::CUIManager::FormatTextCore(
                 stack_check.push(range_data);
                 break;
             case L'c': // [C]olor in uint32
-                // 32Î»ÑÕÉ«¿ªÊ¼±ê¼Ç: 
+                // 32ä½é¢œè‰²å¼€å§‹æ ‡è®°: 
                 range_data.range.startPosition = string_length;
                 if (ap) {
                     range_data.u32 = va_arg(ap, uint32_t);
                 }
                 range_data.range_type = R::D;
-                // ¶¯Ì¬´´½¨ÑÕÉ«Ğ§¹û
+                // åŠ¨æ€åˆ›å»ºé¢œè‰²æ•ˆæœ
                 tmp_color = UIColorEffect::Create();
                 assert(tmp_color && "c");
                 if (ap) {
@@ -1853,7 +1853,7 @@ auto  LongUI::CUIManager::FormatTextCore(
                     range_data.name = va_arg(ap, const wchar_t*);
                 }
                 else {
-                    // ¸´ÖÆ×ÖÌåÃû³Æ ²¢È¥³ıÇ°ºó¿Õ°×
+                    // å¤åˆ¶å­—ä½“åç§° å¹¶å»é™¤å‰åç©ºç™½
                     register wchar_t now_ch;
                     auto param_buffer_index = param_buffer;
                     wchar_t* last_firststart_while = nullptr;
@@ -1939,16 +1939,16 @@ auto  LongUI::CUIManager::FormatTextCore(
             case L'P': case L'p': // end of main string, then, is the param
                 goto force_break;
             case L']': case L'}': // All Range type end
-                // ¼ì²éÕ»µ¯³ö
+                // æ£€æŸ¥æ ˆå¼¹å‡º
                 stack_check.pop();
-                // ¼ÆËã³¤¶È
+                // è®¡ç®—é•¿åº¦
                 stack_check.top->range.length = string_length - stack_check.top->range.startPosition;
-                // Ñ¹ÈëÉèÖÃÕ»
+                // å‹å…¥è®¾ç½®æ ˆ
                 statck_set.push(*stack_check.top);
                 break;
             }
         }
-        // Ìí¼Ó
+        // æ·»åŠ 
         else {
             *buffer_index = ch;
             ++buffer_index;
@@ -1957,24 +1957,24 @@ auto  LongUI::CUIManager::FormatTextCore(
         ++format;
     }
 force_break:
-    // Î²°Í0
+    // å°¾å·´0
     *buffer_index = 0;
-    // ¼ÆËã³¤¶È
+    // è®¡ç®—é•¿åº¦
     assert(string_length < lengthof(buffer));
-    // ¼ÆËãĞèÒª³¤¶È
+    // è®¡ç®—éœ€è¦é•¿åº¦
     config.text_length = string_length;
     register auto string_length_need = static_cast<uint32_t>(static_cast<float>(string_length + 1) * config.progress);
     LongUIClamp(string_length_need, 0, string_length);
-    // ĞŞÕı
+    // ä¿®æ­£
     va_end(ap);
-    // ´´½¨²¼¾Ö
+    // åˆ›å»ºå¸ƒå±€
     if (config.dw_factory && SUCCEEDED(config.dw_factory->CreateTextLayout(
         buffer, string_length_need, config.text_format, config.width, config.height,&layout
         ))) {
-        // ´´½¨
+        // åˆ›å»º
         while (!statck_set.empty()) {
             statck_set.pop();
-            // ¼ì²é½ø¶È(progress)·¶Î§ ÊÍ·ÅÊı¾İ
+            // æ£€æŸ¥è¿›åº¦(progress)èŒƒå›´ é‡Šæ”¾æ•°æ®
             if (statck_set.top->range.startPosition 
                 + statck_set.top->range.length > string_length_need) {
                 if (statck_set.top->range_type == R::D || statck_set.top->range_type == R::I) {
@@ -2019,7 +2019,7 @@ force_break:
 }
 
 
-// ´ÓÎÄ¼ş¶ÁÈ¡Î»Í¼
+// ä»æ–‡ä»¶è¯»å–ä½å›¾
 auto LongUI::CUIManager::LoadBitmapFromFile(
     LongUIRenderTarget *pRenderTarget,
     IWICImagingFactory *pIWICFactory,
@@ -2116,7 +2116,7 @@ auto LongUI::CUIManager::LoadBitmapFromFile(
 }
 
 
-// Ìí¼Ó´°¿Ú
+// æ·»åŠ çª—å£
 void LongUIMethodCall LongUI::CUIManager::AddWindow(UIWindow * wnd) noexcept {
     assert(wnd && "bad argument");
 #ifdef _DEBUG
@@ -2131,7 +2131,7 @@ void LongUIMethodCall LongUI::CUIManager::AddWindow(UIWindow * wnd) noexcept {
     }
 }
 
-// ÒÆ³ö´°¿Ú
+// ç§»å‡ºçª—å£
 void LongUIMethodCall LongUI::CUIManager::RemoveWindow(UIWindow * wnd) noexcept {
     assert(wnd && "bad argument");
 #ifdef _DEBUG
@@ -2146,7 +2146,7 @@ void LongUIMethodCall LongUI::CUIManager::RemoveWindow(UIWindow * wnd) noexcept 
     }
 }
 
-// ÊÇ·ñÒÔ¹ÜÀíÔ±È¨ÏŞÔËĞĞ
+// æ˜¯å¦ä»¥ç®¡ç†å‘˜æƒé™è¿è¡Œ
 bool LongUI::CUIManager::IsRunAsAdministrator() noexcept {
     BOOL fIsRunAsAdmin = FALSE;
     PSID pAdministratorsGroup = nullptr;
@@ -2159,21 +2159,21 @@ bool LongUI::CUIManager::IsRunAsAdministrator() noexcept {
         0, 0, 0, 0, 0, 0,
         &pAdministratorsGroup
     );
-    // ³É¹¦? ÇåÀí×ÊÔ´
+    // æˆåŠŸ? æ¸…ç†èµ„æº
     if (pAdministratorsGroup) {
         ::CheckTokenMembership(nullptr, pAdministratorsGroup, &fIsRunAsAdmin);
         ::FreeSid(pAdministratorsGroup);
         pAdministratorsGroup = nullptr;
     }
-    // ·µ»Ø½á¹û
+    // è¿”å›ç»“æœ
     return fIsRunAsAdmin != 0;
 }
 
-// ÌáÉıÈ¨ÏŞ
+// æå‡æƒé™
 bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) noexcept {
     if (!CUIManager::IsRunAsAdministrator()) {
         wchar_t szPath[MAX_PATH];
-        // »ñÈ¡ÊµÀı¾ä±ú
+        // è·å–å®ä¾‹å¥æŸ„
         if (::GetModuleFileNameW(NULL, szPath, ARRAYSIZE(szPath))) {
             // Launch itself as admin
             SHELLEXECUTEINFO sei = { 0 };
@@ -2183,14 +2183,14 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
             sei.lpParameters = parameters;
             sei.hwnd = nullptr;
             sei.nShow = SW_NORMAL;
-            // Ö´ĞĞ
+            // æ‰§è¡Œ
             if (!::ShellExecuteExW(&sei)) {
                 DWORD dwError = ::GetLastError();
                 assert(dwError == ERROR_CANCELLED && "anyelse?");
                 return false;
             }
             else if(exit) {
-                // ÍË³ö
+                // é€€å‡º
                 UIManager.Exit();
             }
         }
@@ -2202,7 +2202,7 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 
 #ifdef _DEBUG
 
-// »»ĞĞË¢ĞÂÖØÔØ
+// æ¢è¡Œåˆ·æ–°é‡è½½
 template <>
 auto LongUI::CUIManager::operator<<(LongUI::EndL) noexcept ->CUIManager& {
     wchar_t chs[3] = { L'\r',L'\n', 0 }; 
@@ -2237,21 +2237,21 @@ auto LongUI::CUIManager::operator<<(DXGI_ADAPTER_DESC* pdesc) noexcept->CUIManag
     return *this;
 }
 
-// Êä³öUTF-8×Ö·û´® ²¢Ë¢ĞÂ
+// è¾“å‡ºUTF-8å­—ç¬¦ä¸² å¹¶åˆ·æ–°
 void LongUI::CUIManager::Output(DebugStringLevel l, const char * s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
     this->Output(m_lastLevel, buffer);
 }
 
-// Êä³öUTF-8×Ö·û´®
+// è¾“å‡ºUTF-8å­—ç¬¦ä¸²
 void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char * s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
     this->OutputNoFlush(m_lastLevel, buffer);
 }
 
-// ¸¡µãÖØÔØ
+// æµ®ç‚¹é‡è½½
 template <>
 auto LongUI::CUIManager::operator<<(float f) noexcept ->CUIManager&  {
     wchar_t buffer[LongUIStringBufferLength];
@@ -2260,7 +2260,7 @@ auto LongUI::CUIManager::operator<<(float f) noexcept ->CUIManager&  {
     return *this;
 }
 
-// ÕûĞÍÖØÔØ
+// æ•´å‹é‡è½½
 template <>
 auto LongUI::CUIManager::operator<<(long l) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
@@ -2270,7 +2270,7 @@ auto LongUI::CUIManager::operator<<(long l) noexcept ->CUIManager& {
 }
 
 
-// µ÷ÊÔÊä³ö
+// è°ƒè¯•è¾“å‡º
 #define OutputDebug(a, b)\
 void LongUI::CUIManager::a(const wchar_t* format, ...) noexcept {\
     wchar_t buffer[LongUIStringBufferLength];\

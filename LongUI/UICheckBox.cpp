@@ -1,24 +1,24 @@
-
+ï»¿
 #include "LongUI.h"
 
 
 
-// Render äÖÈ¾ 
+// Render æ¸²æŸ“ 
 HRESULT LongUIMethodCall LongUI::UICheckBox::Render() noexcept {
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
     }
     D2D1_RECT_F draw_rect = GetDrawRect(this);
     draw_rect.left += 1.f;
-    // ¼ÆËãäÖÈ¾Çø
+    // è®¡ç®—æ¸²æŸ“åŒº
     draw_rect.top = (draw_rect.bottom + draw_rect.top - m_szCheckBox.height) * 0.5f;
     draw_rect.bottom = draw_rect.top + m_szCheckBox.height;
     draw_rect.right = draw_rect.left + m_szCheckBox.width;
-    // äÖÈ¾¿ò
+    // æ¸²æŸ“æ¡†
     m_pRenderTarget->DrawRectangle(
         draw_rect, m_pBrush, 1.5f
         );
-    // äÖÈ¾¼ıÍ·
+    // æ¸²æŸ“ç®­å¤´
     switch (this->state)
     {
     case CheckBoxState::State_Checked:
@@ -29,30 +29,30 @@ HRESULT LongUIMethodCall LongUI::UICheckBox::Render() noexcept {
         m_pRenderTarget->SetTransform(&matrix);
         break;
     case CheckBoxState::State_Indeterminate:
-        // ÊÕËõ·¶Î§
+        // æ”¶ç¼©èŒƒå›´
         draw_rect.left += m_szCheckBox.width * 0.2f;
         draw_rect.right -= m_szCheckBox.width * 0.2f;
         draw_rect.top += m_szCheckBox.height * 0.2f;
         draw_rect.bottom -= m_szCheckBox.height * 0.2f;
-        // äÖÈ¾¿ò
+        // æ¸²æŸ“æ¡†
         m_pRenderTarget->FillRectangle(draw_rect, m_pBrush);
         break;
     }
-    // µ÷½ÚÎÄ±¾·¶Î§ +
+    // è°ƒèŠ‚æ–‡æœ¬èŒƒå›´ +
     this->show_zone.left += m_szCheckBox.width;
-    // ¿Ì»­ÎÄ±¾
+    // åˆ»ç”»æ–‡æœ¬
     Super::Render();
-    // µ÷½ÚÎÄ±¾·¶Î§ -
+    // è°ƒèŠ‚æ–‡æœ¬èŒƒå›´ -
     this->show_zone.left -= m_szCheckBox.width;
     return S_OK;
 }
 
 
-// UICheckBox ¹¹Ôìº¯Êı
+// UICheckBox æ„é€ å‡½æ•°
 LongUI::UICheckBox::UICheckBox(pugi::xml_node node) noexcept: Super(node) {
-    // ¡Ì symbol
+    // âˆš symbol
     auto format = UIManager.GetTextFormat(LongUIDefaultTextFormatIndex);
-    char32_t chars = U'¡Ì';
+    char32_t chars = U'âˆš';
     CUIManager::CreateTextPathGeometry(
         &chars, 1,
         format,
@@ -63,19 +63,19 @@ LongUI::UICheckBox::UICheckBox(pugi::xml_node node) noexcept: Super(node) {
     ::SafeRelease(format);
 }
 
-// UICheckBox Îö¹¹º¯Êı
+// UICheckBox ææ„å‡½æ•°
 LongUI::UICheckBox::~UICheckBox() noexcept {
     ::SafeRelease(m_pCheckedGeometry);
     ::SafeRelease(m_pBrush);
 }
 
 
-// UICheckBox::CreateControl º¯Êı
+// UICheckBox::CreateControl å‡½æ•°
 LongUI::UIControl* LongUI::UICheckBox::CreateControl(pugi::xml_node node) noexcept {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UICheckBox>(
         node,
         [=](void* p) noexcept { new(p) UICheckBox(node);}
@@ -88,7 +88,7 @@ LongUI::UIControl* LongUI::UICheckBox::CreateControl(pugi::xml_node node) noexce
 
 
 
-// do event ÊÂ¼ş´¦Àí
+// do event äº‹ä»¶å¤„ç†
 bool LongUIMethodCall LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) noexcept {
     D2D1_COLOR_F* color = nullptr;
     if (arg.sender) {
@@ -116,9 +116,9 @@ bool LongUIMethodCall LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) no
         switch (arg.msg)
         {
         case WM_LBUTTONUP:
-            // ÓĞĞ§
+            // æœ‰æ•ˆ
             if (IsPointInRect(this->show_zone, arg.pt)) {
-                // ¼ì²éflag
+                // æ£€æŸ¥flag
                 if (this->flags & Flag_CheckBox_WithIndeterminate) {
                     if (this->state == CheckBoxState::State_UnChecked) {
                         force_cast(this->state) = CheckBoxState::State_Checked;
@@ -142,15 +142,15 @@ bool LongUIMethodCall LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) no
     return Super::DoEvent(arg);
 }
 
-// recreate ÖØ½¨
+// recreate é‡å»º
 HRESULT LongUIMethodCall LongUI::UICheckBox::Recreate(LongUIRenderTarget* newRT) noexcept {
     ::SafeRelease(m_pBrush);
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
-    // ¸¸Àà´¦Àí
+    // çˆ¶ç±»å¤„ç†
     return Super::Recreate(newRT);
 }
 
-// ¹Ø±Õ¿Ø¼ş
+// å…³é—­æ§ä»¶
 void LongUIMethodCall LongUI::UICheckBox::Close() noexcept {
     delete this;
 }

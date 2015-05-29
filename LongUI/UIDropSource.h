@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -27,28 +27,28 @@
 
 // longui namespace
 namespace LongUI {
-    // UIDropSource Àà 
+    // UIDropSource ç±» 
     class CUIDropSource final: public ComBase<QiListSelf<IUnknown, QiList<IDropSource>>> {
     public:
-        // ´´½¨¶ÔÏó
+        // åˆ›å»ºå¯¹è±¡
         static CUIDropSource* New() noexcept;
     private:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         CUIDropSource() noexcept {};
-        // Îö¹¹º¯Êı
+        // ææ„å‡½æ•°
         ~CUIDropSource() noexcept {};
-        // ½ûÖ¹¶¯Ì¬¹¹Ôì
+        // ç¦æ­¢åŠ¨æ€æ„é€ 
         void* operator new(size_t) = delete;
-        // ½ûÖ¹¶¯Ì¬¹¹Ôì
+        // ç¦æ­¢åŠ¨æ€æ„é€ 
         void* operator new[](size_t) = delete;
-        // ½ûÖ¹¶¯Ì¬¹¹Ôì
+        // ç¦æ­¢åŠ¨æ€æ„é€ 
         void operator delete(void* p) noexcept { LongUISmallFree(p); };
-        // ½ûÖ¹¶¯Ì¬¹¹Ôì
+        // ç¦æ­¢åŠ¨æ€æ„é€ 
         void operator delete[](void*) = delete;
-    public: // IDropSource ½Ó¿Ú ÊµÏÖ
-        // IDropSource::QueryContinueDrag ÊµÏÖ
+    public: // IDropSource æ¥å£ å®ç°
+        // IDropSource::QueryContinueDrag å®ç°
         HRESULT STDMETHODCALLTYPE   QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) noexcept override;
-        // IDropSource::GiveFeedback ÊµÏÖ
+        // IDropSource::GiveFeedback å®ç°
         HRESULT STDMETHODCALLTYPE   GiveFeedback(DWORD dwEffect) noexcept override;
     private:
     };

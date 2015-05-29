@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/object.h - mruby object definition
 **
 ** See Copyright Notice in mruby.h

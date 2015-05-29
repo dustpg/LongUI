@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -29,7 +29,7 @@
 namespace LongUI {
     // endl for longUI
     static struct EndL { } endl;
-    // ui manager ui ¹ÜÀíÆ÷
+    // ui manager ui ç®¡ç†å™¨
     class LongUIAlignas LongUIAPI CUIManager {
     public: 
         // Windows Version
@@ -41,22 +41,22 @@ namespace LongUI {
             // Win10
             Style_Win10
         };
-    public: // handle zone ²Ù×÷Çø
-        // initialize ³õÊ¼»¯
+    public: // handle zone æ“ä½œåŒº
+        // initialize åˆå§‹åŒ–
         auto LongUIMethodCall Initialize(IUIConfigure* =nullptr) noexcept->HRESULT;
-        // uninitialize ·´³õÊ¼»¯
+        // uninitialize ååˆå§‹åŒ–
         void LongUIMethodCall UnInitialize() noexcept;
-        // run ÔËĞĞ
+        // run è¿è¡Œ
         void LongUIMethodCall Run() noexcept;
-        // add "string to create funtion" map Ìí¼Óº¯ÊıÓ³Éä¹ØÏµ
+        // add "string to create funtion" map æ·»åŠ å‡½æ•°æ˜ å°„å…³ç³»
         auto LongUIMethodCall AddS2CPair(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
-        // get control by wchar_t pointer »ñÈ¡¿Ø¼ş
+        // get control by wchar_t pointer è·å–æ§ä»¶
         auto LongUIMethodCall FindControlW(const wchar_t*) noexcept ->UIControl*;
-        // get control by CUIString »ñÈ¡¿Ø¼ş
+        // get control by CUIString è·å–æ§ä»¶
         auto LongUIMethodCall FindControl(const CUIString&) noexcept ->UIControl*;
         // ShowError with HRESULT code
         void LongUIMethodCall ShowError(HRESULT, const wchar_t* str_b =nullptr) noexcept;
-    public: // ÌØÀı
+    public: // ç‰¹ä¾‹
         // load bitmap
         static auto __cdecl LoadBitmapFromFile(
             LongUIRenderTarget*, IWICImagingFactory *, PCWSTR, UINT, UINT, ID2D1Bitmap1 **
@@ -80,16 +80,16 @@ namespace LongUI {
             ) noexcept->HRESULT;
         // create mesh from geometry
         static auto __cdecl CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept->HRESULT;
-        // format the text into core-mode with xml string: ÃæÏòÊı¾İ
+        // format the text into core-mode with xml string: é¢å‘æ•°æ®
         static auto __cdecl XMLToCoreFormat(const char*, wchar_t*) noexcept->bool;
-        // format the text into textlayout with format: ÃæÏòC/C++
+        // format the text into textlayout with format: é¢å‘C/C++
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
-        // format the text into textlayout with format: ÃæÏòC/C++
+        // format the text into textlayout with format: é¢å‘C/C++
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
-        // create ui window via xml string ´´½¨´°¿Ú
+        // create ui window via xml string åˆ›å»ºçª—å£
         template<typename T = UIWindow>
         LongUINoinline auto CreateUIWindow(const char*, void* = nullptr, UIWindow* = nullptr) noexcept->T*;
-        // create ui window via pugixml node ´´½¨´°¿Ú
+        // create ui window via pugixml node åˆ›å»ºçª—å£
         template<typename T = UIWindow>
         LongUINoinline auto CreateUIWindow(const pugi::xml_node, void* = nullptr, UIWindow* = nullptr) noexcept->T*;
     public: // UAC About
@@ -99,60 +99,60 @@ namespace LongUI {
         // exit this instance if success. be careful about your app if
         // only can be in one instance
         static bool WINAPI TryElevateUACNow(const wchar_t* parameters = nullptr, bool exit = true) noexcept;
-    public: // inline Çø
+    public: // inline åŒº
         // ShowError with string
         LongUIInline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) { this->configure->ShowError(str, str_b); }
-        // »ñÈ¡ÎÄ±¾äÖÈ¾Æ÷ GetXXX method will call AddRef if it is a COM object
+        // è·å–æ–‡æœ¬æ¸²æŸ“å™¨ GetXXX method will call AddRef if it is a COM object
         LongUIInline auto GetTextRenderer(int i) const { return ::SafeAcquire(m_apTextRenderer[i]); }
-        // Exit ÍË³ö
+        // Exit é€€å‡º
         LongUIInline auto Exit() { m_exitFlag = true; }
-        // ÖØ½¨×ÊÔ´
+        // é‡å»ºèµ„æº
         LongUIInline auto RecreateResources() { this->discard_resources(); return this->create_resources(); }
-    public: // ÒşĞÎ×ª»»Çø
-        // ×ª»»Îª LongUIRenderTarget
+    public: // éšå½¢è½¬æ¢åŒº
+        // è½¬æ¢ä¸º LongUIRenderTarget
 #define UIManager_RenderTaget (static_cast<ID2D1DeviceContext*>(UIManager))
         LongUIInline operator ID2D1DeviceContext*()const noexcept { return m_pd2dDeviceContext; };
-        // ×ª»»Îª DXGI Factory2
+        // è½¬æ¢ä¸º DXGI Factory2
 #define UIManager_DXGIFactory (static_cast<IDXGIFactory2*>(UIManager))
         LongUIInline operator IDXGIFactory2*()const noexcept { return m_pDxgiFactory; };
-        // ×ª»»Îª D3D11 Device
+        // è½¬æ¢ä¸º D3D11 Device
 #define UIManager_D3DDevice  (static_cast<ID3D11Device*>(UIManager))
         LongUIInline operator ID3D11Device*()const noexcept { return m_pd3dDevice; };
-        // ×ª»»Îª D3D11 Device Context
+        // è½¬æ¢ä¸º D3D11 Device Context
 #define UIManager_D3DContext (static_cast<ID3D11DeviceContext*>(UIManager))
         LongUIInline operator ID3D11DeviceContext*()const noexcept { return m_pd3dDeviceContext; };
-        // ×ª»»Îª D2D1 Device
+        // è½¬æ¢ä¸º D2D1 Device
 #define UIManager_D2DDevice  (static_cast<ID2D1Device*>(UIManager))
         LongUIInline operator ID2D1Device*()const noexcept { return m_pd2dDevice; };
-        // ×ª»»Îª DXGI Device1
+        // è½¬æ¢ä¸º DXGI Device1
 #define UIManager_DXGIDevice (static_cast<IDXGIDevice1*>(UIManager))
         LongUIInline operator IDXGIDevice1*()const noexcept { return m_pDxgiDevice; };
-        // ×ª»»Îª DXGI Adapter
+        // è½¬æ¢ä¸º DXGI Adapter
 #define UIManager_DXGIAdapter (static_cast<IDXGIAdapter*>(UIManager))
         LongUIInline operator IDXGIAdapter*()const noexcept { return m_pDxgiAdapter; };
-        // ×ª»»Îª DWrite Factory1
+        // è½¬æ¢ä¸º DWrite Factory1
 #define UIManager_DWriteFactory (static_cast<IDWriteFactory1*>(UIManager))
         LongUIInline operator IDWriteFactory1*()const noexcept { return m_pDWriteFactory; };
-        // ×ª»»Îª D2D Factory1
+        // è½¬æ¢ä¸º D2D Factory1
 #define UIManager_D2DFactory (static_cast<ID2D1Factory1*>(UIManager))
         LongUIInline operator ID2D1Factory1*()const noexcept { return m_pd2dFactory; };
-        // ×ª»»Îª IWICImagingFactory2
+        // è½¬æ¢ä¸º IWICImagingFactory2
 #define UIManager_WICImagingFactory (static_cast<IWICImagingFactory2*>(UIManager))
         LongUIInline operator IWICImagingFactory2*()const noexcept { return m_pWICFactory; };
 #ifdef LONGUI_VIDEO_IN_MF
-        // ×ª»»Îª  IMFDXGIDeviceManager
+        // è½¬æ¢ä¸º  IMFDXGIDeviceManager
 #   define UIManager_MFDXGIDeviceManager (static_cast<IMFDXGIDeviceManager*>(UIManager))
         LongUIInline operator IMFDXGIDeviceManager*()const noexcept { return m_pDXGIManager; };
-        // ×ª»»Îª  IMFMediaEngineClassFactory
+        // è½¬æ¢ä¸º  IMFMediaEngineClassFactory
 #   define UIManager_MFMediaEngineClassFactory (static_cast<IMFMediaEngineClassFactory*>(UIManager))
         LongUIInline operator IMFMediaEngineClassFactory*()const noexcept { return m_pMediaEngineFactory; };
-        // MF DxgiÉè±¸¹ÜÀíÆ÷
+        // MF Dxgiè®¾å¤‡ç®¡ç†å™¨
         IMFDXGIDeviceManager*           m_pDXGIManager = nullptr;
-        // MF Ã½ÌåÒıÇæ
+        // MF åª’ä½“å¼•æ“
         IMFMediaEngineClassFactory*     m_pMediaEngineFactory = nullptr;
 #endif
     public:
-        // script ½Å±¾
+        // script è„šæœ¬
         IUIScript*           const      script = nullptr;
         // the handler
         InlineParamHandler   const      inline_handler = nullptr;
@@ -160,7 +160,7 @@ namespace LongUI {
         IUIConfigure*        const      configure = nullptr;
         // windows version
         WindowsVersion       const      version = WindowsVersion::Style_Win8;
-        // user context size ÓÃ»§ÉÏÏÂÎÄ´óĞ¡
+        // user context size ç”¨æˆ·ä¸Šä¸‹æ–‡å¤§å°
         size_t               const      user_context_size = 0;
         // now mouse states
         DIMOUSESTATE         const      now_mouse_states = DIMOUSESTATE();
@@ -171,71 +171,71 @@ namespace LongUI {
         IDirectInput8W*                 m_pDirectInput = nullptr;
         // DInput Mouse
         IDirectInputDevice8W*           m_pDInputMouse = nullptr;
-        // D2D ¹¤³§
+        // D2D å·¥å‚
         ID2D1Factory1*                  m_pd2dFactory = nullptr;
-        // WIC ¹¤³§
+        // WIC å·¥å‚
         IWICImagingFactory2*            m_pWICFactory = nullptr;
-        // DWrite¹¤³§
+        // DWriteå·¥å‚
         IDWriteFactory1*                m_pDWriteFactory = nullptr;
-        // DWrite ×ÖÌå¼¯
+        // DWrite å­—ä½“é›†
         IDWriteFontCollection*          m_pFontCollection = nullptr;
-        // D3D Éè±¸
+        // D3D è®¾å¤‡
         ID3D11Device*                   m_pd3dDevice = nullptr;
-        // D3D Éè±¸ÉÏÏÂÎÄ
+        // D3D è®¾å¤‡ä¸Šä¸‹æ–‡
         ID3D11DeviceContext*            m_pd3dDeviceContext = nullptr;
-        // D2D Éè±¸
+        // D2D è®¾å¤‡
         ID2D1Device*                    m_pd2dDevice = nullptr;
-        // D2D Éè±¸ÉÏÏÂÎÄ
+        // D2D è®¾å¤‡ä¸Šä¸‹æ–‡
         ID2D1DeviceContext*             m_pd2dDeviceContext = nullptr;
-        // DXGI ¹¤³§
+        // DXGI å·¥å‚
         IDXGIFactory2*                  m_pDxgiFactory = nullptr;
-        // DXGI Éè±¸
+        // DXGI è®¾å¤‡
         IDXGIDevice1*                   m_pDxgiDevice = nullptr;
-        // DXGI ÊÊÅäÆ÷
+        // DXGI é€‚é…å™¨
         IDXGIAdapter*                   m_pDxgiAdapter = nullptr;
 #ifdef _DEBUG
-        // µ÷ÊÔ¶ÔÏó
+        // è°ƒè¯•å¯¹è±¡
         ID3D11Debug*                    m_pd3dDebug = nullptr;
 #endif
-        // ÎÄ±¾äÖÈ¾Æ÷
+        // æ–‡æœ¬æ¸²æŸ“å™¨
         UIBasicTextRenderer*            m_apTextRenderer[LongUIMaxTextRenderer];
-        // ¶ş½øÖÆ×ÊÔ´¶ÁÈ¡Æ÷
+        // äºŒè¿›åˆ¶èµ„æºè¯»å–å™¨
         IUIBinaryResourceLoader*        m_pBinResLoader = nullptr;
         // default bitmap buffer
         uint8_t*                        m_pBitmap0Buffer = nullptr;
-        // map º¯ÊıÓ³Éä
+        // map å‡½æ•°æ˜ å°„
         StringMap                       m_mapString2CreateFunction;
-        // map ¶ÔÏóÓ³Éä
+        // map å¯¹è±¡æ˜ å°„
         StringMap                       m_mapString2Control;
-        // Ëù´´Éè±¸ÌØĞÔµÈ¼¶
+        // æ‰€åˆ›è®¾å¤‡ç‰¹æ€§ç­‰çº§
         D3D_FEATURE_LEVEL               m_featureLevel;
-        // ÍË³öĞÅºÅ
+        // é€€å‡ºä¿¡å·
         BOOL                            m_exitFlag = false;
-        // äÖÈ¾Æ÷ÊıÁ¿
+        // æ¸²æŸ“å™¨æ•°é‡
         uint32_t                        m_uTextRenderCount = 0;
-        // TF ²Ö¿â
+        // TF ä»“åº“
         BasicContainer                  m_textFormats;
-        // ±ÊË¢ÈİÆ÷
+        // ç¬”åˆ·å®¹å™¨
         BasicContainer                  m_brushes;
-        // ´°¿ÚÈİÆ÷
+        // çª—å£å®¹å™¨
         BasicContainer                  m_windows;
-        // Î»Í¼ÈİÆ÷
+        // ä½å›¾å®¹å™¨
         BasicContainer                  m_bitmaps;
-        // MetaÍ¼±êÈİÆ÷
+        // Metaå›¾æ ‡å®¹å™¨
         BasicContainer                  m_metaicons;
-        // MetaÈİÆ÷
+        // Metaå®¹å™¨
         LongUI::Vector<Meta>            m_metas;
-        // µØÇøÃû³Æ
+        // åœ°åŒºåç§°
         wchar_t                         m_szLocaleName[LOCALE_NAME_MAX_LENGTH / 4 * 4 + 4];
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
-        // Ä¬ÈÏÅäÖÃ
+        // é»˜è®¤é…ç½®
         CUIDefaultConfigure             m_config;
 #endif
-        // ÆÕÍ¨ÎÄ±¾äÖÈ¾Æ÷
+        // æ™®é€šæ–‡æœ¬æ¸²æŸ“å™¨
         UINormalTextRender              m_normalTRenderer;
-        // tinyxml2 ×ÊÔ´
+        // tinyxml2 èµ„æº
         pugi::xml_document              m_docResource;
-        // tinyxml2 ´°¿Ú
+        // tinyxml2 çª—å£
         pugi::xml_document              m_docWindow;
     public:
         // add window
@@ -258,11 +258,11 @@ namespace LongUI {
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
         auto LongUIMethodCall GetMetaHICON(uint32_t index) noexcept->HICON;
     public:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         CUIManager() noexcept;
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~CUIManager() noexcept;
-        // delte this method É¾³ı¸´ÖÆ¹¹Ôìº¯Êı
+        // delte this method åˆ é™¤å¤åˆ¶æ„é€ å‡½æ•°
         CUIManager(const CUIManager&) = delete;
     private:
         // create programs resources
@@ -279,23 +279,23 @@ namespace LongUI {
         void LongUIMethodCall add_textformat(const pugi::xml_node) noexcept;
         // create meta
         void LongUIMethodCall add_meta(const pugi::xml_node) noexcept;
-        // ´´½¨¿Ø¼ş
+        // åˆ›å»ºæ§ä»¶
         auto LongUIMethodCall create_control(pugi::xml_node) noexcept->UIControl*;
-        // ´´½¨¿Ø¼şÊ÷
+        // åˆ›å»ºæ§ä»¶æ ‘
         void LongUIMethodCall make_control_tree(UIWindow*, pugi::xml_node) noexcept;
-        // Ìí¼Ó¿Ø¼ş
+        // æ·»åŠ æ§ä»¶
         void LongUIMethodCall add_control(UIControl*, pugi::xml_node) noexcept;
     private:
-        // main window proc ´°¿Ú¹ı³Ìº¯Êı
+        // main window proc çª—å£è¿‡ç¨‹å‡½æ•°
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
     public:
-        // µ¥Àı CUIRenderer
+        // å•ä¾‹ CUIRenderer
         static      CUIManager      s_instance;
-    public: // DEBUG ZONE µ÷ÊÔÇø
+    public: // DEBUG ZONE è°ƒè¯•åŒº
 #ifdef _DEBUG
         // last DebugStringLevel
         DebugStringLevel        m_lastLevel = DebugStringLevel::DLevel_Log;
-        // overload << operator ÖØÔØ << ÔËËã·û
+        // overload << operator é‡è½½ << è¿ç®—ç¬¦
         template<typename T> CUIManager& operator<< (T t) noexcept;
         // overload << operator for DebugStringLevel
         template<> CUIManager& operator<< (DebugStringLevel l) noexcept { m_lastLevel = l; return *this; }
@@ -340,7 +340,7 @@ namespace LongUI {
         inline void OutputNoFlush(DebugStringLevel l, const wchar_t* s) noexcept { this->configure->OutputDebugStringW(l, s, false); }
     public:
 #else
-        // overload << operator ÖØÔØ << ÔËËã·û
+        // overload << operator é‡è½½ << è¿ç®—ç¬¦
         template<typename T> CUIManager& operator<< (T t) noexcept { return *this; }
         // output with wide char
         inline void Output(DebugStringLevel l, const wchar_t* s) noexcept {  }
@@ -361,7 +361,7 @@ namespace LongUI {
 #endif
 
     };
-    // ´´½¨´°¿Ú
+    // åˆ›å»ºçª—å£
     template<typename T>
     LongUINoinline auto CUIManager::CreateUIWindow(const char* xml, void* buffer_sent, UIWindow* parent) noexcept->T* {
         pugi::xml_node root_node(nullptr); T* wnd = nullptr; auto buffer = buffer_sent;
@@ -385,14 +385,14 @@ namespace LongUI {
         else if(!buffer_sent && buffer) {
             LongUICtrlFree(buffer);
         }
-        // ´íÎó¼ì²â
+        // é”™è¯¯æ£€æµ‹
         if (!result) {
             UIManager << DL_Error << L"XML Parse Error: " << result.description() << LongUI::endl;
         }
         assert(wnd && "no window created");
         return wnd;
     }
-    // ´´½¨´°¿Ú
+    // åˆ›å»ºçª—å£
     template<typename T>
     LongUINoinline auto CUIManager::CreateUIWindow(const pugi::xml_node node, void* buffer_sent, UIWindow* parent) noexcept->T* {
         pugi::xml_node root_node(nullptr); T* wnd = nullptr; auto buffer = buffer_sent;

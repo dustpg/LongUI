@@ -1,37 +1,37 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "included.h"
 
 
-// ¹¹Ôìº¯Êı
+// æ„é€ å‡½æ•°
 MainWindow::MainWindow(pugi::xml_node node, LongUI::UIWindow* p) :Super(node, p) {
 
 }
 
 
-// Îö¹¹º¯Êı
+// ææ„å‡½æ•°
 MainWindow::~MainWindow(){
 
 }
 
-// UAC °´Å¥°´ÏÂ
+// UAC æŒ‰é’®æŒ‰ä¸‹
 bool MainWindow::OnUACButtonOn(UIControl * sender) {
-    // »ñÈ¡UACÈ¨ÏŞ
+    // è·å–UACæƒé™
     register auto re = LongUI::CUIManager::TryElevateUACNow();
     return re;
 }
 
-// ¹Ø±Õ´°¿Ú
+// å…³é—­çª—å£
 void LongUIMethodCall MainWindow::Close() noexcept {
-    // Îö¹¹¶ÔÏó
+    // ææ„å¯¹è±¡
     //operator delete(this, this);
     this->~MainWindow();
     UIManager.Exit();
 }
 
-// ÊÂ¼ş
+// äº‹ä»¶
 bool LongUIMethodCall MainWindow::DoEvent(LongUI::EventArgument& arg) noexcept {
     // if sender is valid, it's some events need window to handle
-    // Èç¹ûsenderÓĞĞ§, ËµÃ÷ĞèÒª±¾´°¿Ú´¦Àí¸ÃÏûÏ¢
+    // å¦‚æœsenderæœ‰æ•ˆ, è¯´æ˜éœ€è¦æœ¬çª—å£å¤„ç†è¯¥æ¶ˆæ¯
     if (arg.sender){
         bool done = false;
         switch (arg.event)
@@ -45,11 +45,11 @@ bool LongUIMethodCall MainWindow::DoEvent(LongUI::EventArgument& arg) noexcept {
         }
 
         if(done) return true;
-        // ÆäËûÏûÏ¢ÓÉ¸¸Àà´¦Àí
+        // å…¶ä»–æ¶ˆæ¯ç”±çˆ¶ç±»å¤„ç†
     }
     // if null,it's a system message, you can handle msg that you interested in, 
     // or, send it to super class, super class will handle it
-    // ·ñÔò, Ö¤Ã÷ÎªÏµÍ³ÏûÏ¢, Äã¿ÉÒÔ´¦ÀíÒ»Ğ©¸ĞĞËÈ¤µÄÏûÏ¢,
-    // »òÕß, ½»¸ø¸¸Àà´¦Àí
+    // å¦åˆ™, è¯æ˜ä¸ºç³»ç»Ÿæ¶ˆæ¯, ä½ å¯ä»¥å¤„ç†ä¸€äº›æ„Ÿå…´è¶£çš„æ¶ˆæ¯,
+    // æˆ–è€…, äº¤ç»™çˆ¶ç±»å¤„ç†
     return Super::DoEvent(arg);
 }

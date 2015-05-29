@@ -1,8 +1,8 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "included.h"
 
 
-// ²âÊÔXML &#xD; --> \r &#xA; --> \n
+// æµ‹è¯•XML &#xD; --> \r &#xA; --> \n
 #if 1
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" >
@@ -12,9 +12,9 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Slider name="6" renderparent="true"/>
     </VerticalLayout>
     <HorizontalLayout name="HLayout" pos="0, 0, 0, 256">
-        <EditBasic name="edit01" textmultiline="true" text="Hello, world!&#xD;&#xA;Äàº¾, ÊÀ½ç!"/>
+        <EditBasic name="edit01" textmultiline="true" text="Hello, world!&#xD;&#xA;æ³¥å£•, ä¸–ç•Œ!"/>
         <VerticalLayout name="VLayout2">
-            <Label name="2" texttype="core" text="%cHello%], world!Äàº¾!ÊÀ½ç!%p#F00"/>
+            <Label name="2" texttype="core" text="%cHello%], world!æ³¥å£•!ä¸–ç•Œ!%p#F00"/>
             <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
                 hovermeta="3" pushedmeta="4" text="Hello, world!"/>
             <CheckBox name="5" text="Hello, world!"/>
@@ -41,13 +41,13 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Resource>
-    <!-- BitmapÇøÓòZone -->
-    <Bitmap desc="°´Å¥1" res="btn.png"/>
-    <!-- MetaÇøÓòZone -->
-    <Meta desc="°´Å¥1ÎŞĞ§Í¼Ôª" bitmap="1" rect="0,  0, 96, 24"/>
-    <Meta desc="°´Å¥1Í¨³£Í¼Ôª" bitmap="1" rect="0, 72, 96, 96"/>
-    <Meta desc="°´Å¥1Ğü¸¡Í¼Ôª" bitmap="1" rect="0, 24, 96, 48"/>
-    <Meta desc="°´Å¥1°´ÏÂÍ¼Ôª" bitmap="1" rect="0, 48, 96, 72"/>
+    <!-- BitmapåŒºåŸŸZone -->
+    <Bitmap desc="æŒ‰é’®1" res="btn.png"/>
+    <!-- MetaåŒºåŸŸZone -->
+    <Meta desc="æŒ‰é’®1æ— æ•ˆå›¾å…ƒ" bitmap="1" rect="0,  0, 96, 24"/>
+    <Meta desc="æŒ‰é’®1é€šå¸¸å›¾å…ƒ" bitmap="1" rect="0, 72, 96, 96"/>
+    <Meta desc="æŒ‰é’®1æ‚¬æµ®å›¾å…ƒ" bitmap="1" rect="0, 24, 96, 48"/>
+    <Meta desc="æŒ‰é’®1æŒ‰ä¸‹å›¾å…ƒ" bitmap="1" rect="0, 48, 96, 72"/>
 </Resource>
 )xml";
 
@@ -59,12 +59,12 @@ class TestControl : public LongUI::UIControl {
     // super class define
     typedef LongUI::UIControl Super;
 public:
-    // create ´´½¨
+    // create åˆ›å»º
     static UIControl* WINAPI CreateControl(pugi::xml_node node) noexcept {
         if (!node) {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
-        // ÉêÇë¿Õ¼ä
+        // ç”³è¯·ç©ºé—´
         auto pControl = LongUI::UIControl::AllocRealControl<TestControl>(
             node,
             [=](void* p) noexcept { new(p) TestControl(node);}
@@ -98,7 +98,7 @@ public:
                 arg.ctrl = this;
             }
             else if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
-                // ×¢²áÊÂ¼ş
+                // æ³¨å†Œäº‹ä»¶
                 this->SetEventCallBackT(L"6", LongUI::Event::Event_SliderValueChanged, &TestControl::OnValueChanged);
             }
         }
@@ -110,19 +110,19 @@ public:
             this->draw_zone = this->show_zone;
         }
         D2D1_RECT_F draw_rect = GetDrawRect(this);
-        // ¼ì²é²¼¾Ö
+        // æ£€æŸ¥å¸ƒå±€
         if (m_bDrawSizeChanged) {
             ::SafeRelease(m_pCmdList);
             m_pRenderTarget->CreateCommandList(&m_pCmdList);
-            // ÉèÖÃ´óĞ¡
+            // è®¾ç½®å¤§å°
             m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
-            // äÖÈ¾ÎÄ×Ö
+            // æ¸²æŸ“æ–‡å­—
             m_pRenderTarget->SetTarget(m_pCmdList);
             m_pRenderTarget->BeginDraw();
             m_text.Render(draw_rect.left, draw_rect.top);
             m_pRenderTarget->EndDraw();
             m_pCmdList->Close();
-            // ÉèÖÃÎªÊäÈë
+            // è®¾ç½®ä¸ºè¾“å…¥
             m_pEffect->SetInput(0, m_pCmdList);
         }
     }
@@ -131,15 +131,15 @@ public:
     virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget* target) noexcept {
         ::SafeRelease(m_pEffectOut);
         ::SafeRelease(m_pEffect);
-        // ´´½¨ÌØĞ§
+        // åˆ›å»ºç‰¹æ•ˆ
         target->CreateEffect(CLSID_D2D1GaussianBlur, &m_pEffect);
         assert(m_pEffect);
-        // ÉèÖÃÄ£ºıÊôĞÔ
+        // è®¾ç½®æ¨¡ç³Šå±æ€§
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_QUALITY );
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 0.f  );
-        // »ñÈ¡Êä³ö
+        // è·å–è¾“å‡º
         m_pEffect->GetOutput(&m_pEffectOut);
-        // ·´×¢²áÔÙ×¢²á
+        // åæ³¨å†Œå†æ³¨å†Œ
         if (m_FirstRecreate) {
             m_pWindow->RegisterPreRender2D(this);
             m_FirstRecreate = false;
@@ -186,12 +186,12 @@ class UIVideoAlpha : public LongUI::UIControl {
     // super class define
     typedef LongUI::UIControl Super;
 public:
-    // create ´´½¨
+    // create åˆ›å»º
     static UIControl* WINAPI CreateControl(pugi::xml_node node) noexcept {
         if (!node) {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
-        // ÉêÇë¿Õ¼ä
+        // ç”³è¯·ç©ºé—´
         auto pControl = LongUI::UIControl::AllocRealControl<UIVideoAlpha>(
             node,
             [=](void* p) noexcept { new(p) UIVideoAlpha(node); }
@@ -226,9 +226,9 @@ public:
     }
     // recreate resource
     virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget* target) noexcept {
-        // ÖØ½¨ÊÓÆµ
+        // é‡å»ºè§†é¢‘
         register auto hr = m_video.Recreate(target);
-        // ÖØ½¨¸¸Àà
+        // é‡å»ºçˆ¶ç±»
         if (SUCCEEDED(hr)) {
             hr = Super::Recreate(target);
         }
@@ -252,7 +252,7 @@ protected:
 };
 
 
-// Ó¦ÓÃ³ÌĞòÈë¿Ú
+// åº”ç”¨ç¨‹åºå…¥å£
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
     DWORD colors[32];
     const DWORD ycolor = (237 << 16) | (222 << 8) | (105);
@@ -274,18 +274,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     class DemoConfigure final : public LongUI::CUIDefaultConfigure {
         typedef LongUI::CUIDefaultConfigure Super;
     public:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         DemoConfigure() : Super() { this->script = &mruby; this->resource = res_xml; }
-        // »ñÈ¡µØÇøÃû³Æ
+        // è·å–åœ°åŒºåç§°
         auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
             ::wcscpy(name, L"en-us");
         };
-        // Ìí¼Ó×Ô¶¨Òå¿Ø¼ş
+        // æ·»åŠ è‡ªå®šä¹‰æ§ä»¶
         auto AddCustomControl(LongUI::CUIManager& manager) noexcept->void override{
             manager.AddS2CPair(L"Test", TestControl::CreateControl);
             manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
         };
-        // Ê¹ÓÃCPUäÖÈ¾
+        // ä½¿ç”¨CPUæ¸²æŸ“
         auto IsRenderByCPU() noexcept ->bool override { return false; }
     private:
         // mruby script
@@ -294,21 +294,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     //
     // Buffer of MainWindow, align for 4(x86)
     alignas(sizeof(void*)) size_t buffer[sizeof(MainWindow) / sizeof(size_t) + 1];
-    // ³õÊ¼»¯ OLE (OLE»áµ÷ÓÃCoInitializeEx³õÊ¼»¯COM)
+    // åˆå§‹åŒ– OLE (OLEä¼šè°ƒç”¨CoInitializeExåˆå§‹åŒ–COM)
     if (SUCCEEDED(::OleInitialize(nullptr))) {
-        // ³õÊ¼»¯ ´°¿Ú¹ÜÀíÆ÷ 
+        // åˆå§‹åŒ– çª—å£ç®¡ç†å™¨ 
         UIManager.Initialize(&config);
-        // ×÷Õ½¿ØÖÆÁ¬Ïß!
+        // ä½œæˆ˜æ§åˆ¶è¿çº¿!
         UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
-        // ´´½¨Ö÷´°¿Ú
+        // åˆ›å»ºä¸»çª—å£
         UIManager.CreateUIWindow<MainWindow>(test_xml, buffer);
-        // ÔËĞĞ±¾³ÌĞò
+        // è¿è¡Œæœ¬ç¨‹åº
         UIManager.Run();
-        // ×÷Õ½¿ØÖÆÖÕÖ¹!
+        // ä½œæˆ˜æ§åˆ¶ç»ˆæ­¢!
         UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
-        // ·´³õÊ¼»¯ ´°¿Ú¹ÜÀíÆ÷
+        // ååˆå§‹åŒ– çª—å£ç®¡ç†å™¨
         UIManager.UnInitialize();
-        // ·´³õÊ¼»¯ COM Óë OLE
+        // ååˆå§‹åŒ– COM ä¸ OLE
         ::OleUninitialize(); 
     }
     return EXIT_SUCCESS;

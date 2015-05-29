@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -26,48 +26,48 @@
 
 // LongUI namespace
 namespace LongUI{
-    // ¸´Ñ¡¿ò×´Ì¬
+    // å¤é€‰æ¡†çŠ¶æ€
     // the disabled state is one lowest bit of state (state & 1)
     // "CheckBoxState" is state right shift a bit (state>>1)
     enum class CheckBoxState : uint32_t {
-        // Î´Öª
+        // æœªçŸ¥
         State_Unknown = ControlStatus::Status_Disabled,
-        // Î´Ñ¡ÖĞ
+        // æœªé€‰ä¸­
         State_UnChecked = ControlStatus::Status_Normal,
-        // ²»È·¶¨
+        // ä¸ç¡®å®š
         State_Indeterminate = ControlStatus::Status_Hover,
-        // Ñ¡ÖĞ
+        // é€‰ä¸­
         State_Checked = ControlStatus::Status_Pushed,
     };
-    // default CheckBox control Ä¬ÈÏ¸´Ñ¡¿ò¿Ø¼ş
+    // default CheckBox control é»˜è®¤å¤é€‰æ¡†æ§ä»¶
     class LongUIAPI UICheckBox final : public UILabel {
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UILabel ;
     public:
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual auto LongUIMethodCall Render() noexcept->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
     public:
-        // create ´´½¨
+        // create åˆ›å»º
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
     protected:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         UICheckBox(pugi::xml_node) noexcept;
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~UICheckBox() noexcept;
         // deleted function
         UICheckBox(const UICheckBox&) = delete;
     protected:
         // default brush
         ID2D1Brush*             m_pBrush = nullptr;
-        // geometry for "¡Ì"
+        // geometry for "âˆš"
         ID2D1PathGeometry*      m_pCheckedGeometry = nullptr;
         // hand cursor
         HCURSOR                 m_hCursorHand = ::LoadCursorW(nullptr, IDC_HAND);

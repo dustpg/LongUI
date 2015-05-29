@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace LongUI {
 #define MakeGetIID(c) template<> LongUIInline const IID& GetIID<c>() { return IID_##c; }

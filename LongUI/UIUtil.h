@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -29,7 +29,7 @@
 #include "DataContainer.h"
 
 
-// the _longui32 ºó×º
+// the _longui32 åç¼€
 constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
     return len == 2 ?
         static_cast<uint32_t>(src[0]) << (8 * 0) |
@@ -74,7 +74,7 @@ constexpr uint64_t LongUIStringToUI64<8>(const char* src) {
             LongUI64(4) | LongUI64(5) | LongUI64(6) | LongUI64(7);
 }
 #undef LongUI64
-// the _longui64 ºó×º
+// the _longui64 åç¼€
 constexpr uint64_t operator"" _longui64(const char* src, size_t len) {
     return len >= 8 ? LongUIStringToUI64<8>(src) : (
             len == 7 ? LongUIStringToUI64<7>(src) : (
@@ -93,7 +93,7 @@ constexpr uint64_t operator"" _longui64(const char* src, size_t len) {
 
 // get IID form typename, __uuidof is just impl in MSC
 namespace LongUI {
-    // using template specialization  Ê¹ÓÃÄ£°åÌØ»¯
+    // using template specialization  ä½¿ç”¨æ¨¡æ¿ç‰¹åŒ–
     template<typename T> LongUIInline const IID& GetIID();
     // get IID from pointer
     template<typename T> LongUIInline const IID& GetIID(T*) { return LongUI::GetIID<T>(); }
@@ -173,12 +173,12 @@ namespace LongUI {
         // handle to the icon
         HICON       m_hIcon = nullptr;
     };
-    // data ·ÅËÁ!450½»ÁËÃ´!
+    // data æ”¾è‚†!450äº¤äº†ä¹ˆ!
     constexpr size_t  INFOPDATA12_ZONE =  (size_t(3));
     constexpr size_t  INFOPOINTER_ZONE = ~INFOPDATA12_ZONE;
     constexpr size_t  INFOPTDATA1_ZONE = ~(size_t(2));
     constexpr size_t  INFOPTDATA2_ZONE = ~(size_t(1));
-    // Infomation-ed pointer£¬ ¼ÆËã»úÖĞÃ¿Ò»×Ö½Ú¶¼ºÜ±¦¹ó
+    // Infomation-ed pointerï¼Œ è®¡ç®—æœºä¸­æ¯ä¸€å­—èŠ‚éƒ½å¾ˆå®è´µ
     template<typename T>
     class InfomationPointer {
     public:
@@ -257,14 +257,14 @@ namespace LongUI {
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e6) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
     private:
-        // CPU µ±Ç°ÆµÂÊ
+        // CPU å½“å‰é¢‘ç‡
         LARGE_INTEGER            m_cpuFrequency;
-        // CPU ¿ªÊ¼¼ÆÊ±Ê±¼ä
+        // CPU å¼€å§‹è®¡æ—¶æ—¶é—´
         LARGE_INTEGER            m_cpuCounterStart;
-        // CPU ½áÊø¼ÆÊ±Ê±¼ä
+        // CPU ç»“æŸè®¡æ—¶æ—¶é—´
         LARGE_INTEGER            m_cpuCounterEnd;
     public:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         UITimer() { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
 #else
         // refresh the frequency
@@ -292,12 +292,12 @@ namespace LongUI {
             return static_cast<T>(m_dwNow - m_dwStart) * static_cast<T>(1000);
         }
     private:
-        // ¿ªÊ¼Ê±¼ä
+        // å¼€å§‹æ—¶é—´
         DWORD                   m_dwStart = 0;
-        // µ±Ç°Ê±¼ä
+        // å½“å‰æ—¶é—´
         DWORD                   m_dwNow = 0;
     public:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         UITimer() noexcept { this->Start(); }
 #endif
     };
@@ -339,9 +339,9 @@ namespace LongUI {
         // [112,128)
         41,42,43,44, 45,46,47,48,      49,50,51, 0, 0, 0, 0, 0,
     };
-    // Base64 Encode ±àÂë
+    // Base64 Encode ç¼–ç 
     auto __fastcall Base64Encode(IN const uint8_t * bindata, IN size_t binlen, OUT char* const base64) noexcept -> char *;
-    // Base64 Decode ½âÂë
+    // Base64 Decode è§£ç 
     auto __fastcall Base64Decode(IN const char * base64, OUT uint8_t * bindata) noexcept->size_t;
     // UTF-16 to UTF-8
     // Return: UTF-8 string length, 0 maybe error
@@ -583,7 +583,7 @@ namespace LongUI {
         // buffer
         wchar_t             m_buffer[LongUIStringBufferLength];
     public:
-        // °²È«Ğ´Èë
+        // å®‰å…¨å†™å…¥
         inline BOOL SafeWriteFile(
              HANDLE hFile,
             LPCVOID lpBuffer,
@@ -601,7 +601,7 @@ namespace LongUI {
     // CUIDefaultConfigure, default impl for IUIConfigure
     class CUIDefaultConfigure : public IUIConfigure {
     public:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         CUIDefaultConfigure() = default;
     public:
         // release it

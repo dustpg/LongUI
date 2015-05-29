@@ -1,35 +1,35 @@
-
+ï»¿
 #include "LongUI.h"
 /*
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
 */
 
-// Òªµã:
-// 1. ¸üĞÂ¿Õ¼äÏÔÊ¾Çø´óĞ¡
-//      -> ÓĞ¹ö¶¯Ìõ, ½»¸ø¹ö¶¯Ìõ´¦Àí
-//      -> Ã»ÓĞ, ½»¸ø×Ô¼º´¦Àí
+// è¦ç‚¹:
+// 1. æ›´æ–°ç©ºé—´æ˜¾ç¤ºåŒºå¤§å°
+//      -> æœ‰æ»šåŠ¨æ¡, äº¤ç»™æ»šåŠ¨æ¡å¤„ç†
+//      -> æ²¡æœ‰, äº¤ç»™è‡ªå·±å¤„ç†
 
 
-// TODO: ¼ì²éËùÓĞ¿Ø¼şRender, ĞèÒªµ÷ÓÃUIControl::Render;
+// TODO: æ£€æŸ¥æ‰€æœ‰æ§ä»¶Render, éœ€è¦è°ƒç”¨UIControl::Render;
 
-// UIControl ¹¹Ôìº¯Êı
+// UIControl æ„é€ å‡½æ•°
 LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
-    // ¹¹ÔìÄ¬ÈÏ
+    // æ„é€ é»˜è®¤
     int flag = LongUIFlag::Flag_None | LongUIFlag::Flag_Visible;
-    // ÓĞĞ§?
+    // æœ‰æ•ˆ?
     if (node) {
         m_pScript = UIManager.script;
         const char* data = nullptr;
-        // ¼ì²é½Å±¾
+        // æ£€æŸ¥è„šæœ¬
         if ((data = node.attribute("script").value()) && m_pScript) {
             m_script = m_pScript->AllocScript(data);
         }
@@ -37,48 +37,48 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             m_script.data = nullptr;
             m_script.size = 0;
         }
-        // ¼ì²éäÖÈ¾¸¸¿Ø¼ş
+        // æ£€æŸ¥æ¸²æŸ“çˆ¶æ§ä»¶
         if (node.attribute("renderparent").as_bool(false)) {
             flag |= LongUI::Flag_RenderParent;
         }
-        // ¼ì²éÃû³Æ
+        // æ£€æŸ¥åç§°
         UIControl::MakeString(node.attribute("name").value(), m_strControlName);
-        // ¼ì²éÎ»ÖÃ
+        // æ£€æŸ¥ä½ç½®
         UIControl::MakeFloats(node.attribute("pos").value(), const_cast<float*>(&show_zone.left), 4);
-        // ¿í¶È¹Ì¶¨
+        // å®½åº¦å›ºå®š
         if (show_zone.width > 0.f) {
             flag |= LongUI::Flag_WidthFixed;
         }
-        // ¸ß¶È¹Ì¶¨
+        // é«˜åº¦å›ºå®š
         if (show_zone.height > 0.f) {
             flag |= LongUI::Flag_HeightFixed;
         }
     }
     else  {
-        // ´íÎó
+        // é”™è¯¯
         //UIManager << DL_Warning << L"given a null xml node" << LongUI::endl;
     }
-    // ĞŞ¸Äflag
+    // ä¿®æ”¹flag
     force_cast(this->flags) = static_cast<LongUIFlag>(this->flags | (flag));
 }
 
-// Îö¹¹º¯Êı
+// ææ„å‡½æ•°
 LongUI::UIControl::~UIControl() noexcept {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
-    // ÊÍ·Å½Å±¾Õ¼ÓÃ¿Õ¼ä
+    // é‡Šæ”¾è„šæœ¬å ç”¨ç©ºé—´
     if (m_script.data) {
         assert(m_pScript && "no script interface but data");
         m_pScript->FreeScript(m_script);
     }
-    // ·´×¢²á
+    // åæ³¨å†Œ
     if (this->flags & Flag_NeedPreRender) {
         m_pWindow->UnRegisterPreRender(this);
     }
 }
 
 
-// äÖÈ¾¿Ø¼ş
+// æ¸²æŸ“æ§ä»¶
 auto LongUIMethodCall LongUI::UIControl::Render() noexcept -> HRESULT {
     m_bDrawPosChanged = false;
     m_bDrawSizeChanged = false;
@@ -86,7 +86,7 @@ auto LongUIMethodCall LongUI::UIControl::Render() noexcept -> HRESULT {
 }
 
 
-// ÖØ½¨
+// é‡å»º
 HRESULT LongUIMethodCall LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
@@ -97,7 +97,7 @@ HRESULT LongUIMethodCall LongUI::UIControl::Recreate(LongUIRenderTarget* target)
     return target ? S_OK : E_INVALIDARG;
 }
 
-// ×ª»»Êó±êµÄDoEvent
+// è½¬æ¢é¼ æ ‡çš„DoEvent
 bool LongUIMethodCall LongUI::UIControl::DoEventEx(LongUI::EventArgument& arg) noexcept {
     auto old = arg.pt;
     D2D1_MATRIX_3X2_F* transform;
@@ -108,40 +108,40 @@ bool LongUIMethodCall LongUI::UIControl::DoEventEx(LongUI::EventArgument& arg) n
         assert(this->flags & Flag_UIContainer);
         transform = &static_cast<UIContainer*>(this)->transform;
     }
-    // ×ª»¯
+    // è½¬åŒ–
     arg.pt = LongUI::TransformPointInverse(*transform, arg.pt);
     auto code = this->DoEvent(arg);
     arg.pt = old;
     return code;
 }
 
-// ´´½¨×Ö·û´®
+// åˆ›å»ºå­—ç¬¦ä¸²
 bool LongUI::UIControl::MakeString(const char* data, CUIString& str) noexcept {
     if (!data || !*data) return false;
     wchar_t buffer[LongUIStringBufferLength];
-    // ×ªÂë
+    // è½¬ç 
     auto length = LongUI::UTF8toWideChar(data, buffer);
     buffer[length] = L'\0';
-    // ÉèÖÃ×Ö·û´®
+    // è®¾ç½®å­—ç¬¦ä¸²
     str.Set(buffer, length);
     return true;
 }
 
-// ´´½¨¸¡µã
+// åˆ›å»ºæµ®ç‚¹
 bool LongUI::UIControl::MakeFloats(const char* sdata, float* fdata, int size) noexcept {
     if (!sdata || !*sdata) return false;
-    // ¶ÏÑÔ
+    // æ–­è¨€
     assert(fdata && size && "bad argument");
-    // ¿½±´Êı¾İ
+    // æ‹·è´æ•°æ®
     char buffer[LongUIStringBufferLength];
     ::strcpy_s(buffer, sdata);
     char* index = buffer;
     const char* to_parse = buffer;
-    // ±éÀú¼ì²é
+    // éå†æ£€æŸ¥
     bool new_float = true;
     while (size) {
         char ch = *index;
-        // ·Ö¶Î·û?
+        // åˆ†æ®µç¬¦?
         if (ch == ',' || ch == ' ' || !ch) {
             if (new_float) {
                 *index = 0;
@@ -155,7 +155,7 @@ bool LongUI::UIControl::MakeFloats(const char* sdata, float* fdata, int size) no
             to_parse = index;
             new_float = true;
         }
-        // ÍË³ö
+        // é€€å‡º
         if (!ch) break;
         ++index;
     }
@@ -163,7 +163,7 @@ bool LongUI::UIControl::MakeFloats(const char* sdata, float* fdata, int size) no
 }
 
 
-// 16½øÖÆ
+// 16è¿›åˆ¶
 unsigned int __fastcall Hex2Int(char c) {
     if (c >= 'A' && c <= 'Z') {
         return c - 'A' + 10;
@@ -179,12 +179,12 @@ unsigned int __fastcall Hex2Int(char c) {
 #define white_space(c) ((c) == ' ' || (c) == '\t')
 
 
-// »ñÈ¡ÑÕÉ«±íÊ¾
+// è·å–é¢œè‰²è¡¨ç¤º
 bool LongUI::UIControl::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
     if (!data || !*data) return false;
-    // »ñÈ¡ÓĞĞ§Öµ
+    // è·å–æœ‰æ•ˆå€¼
     while (white_space(*data)) ++data;
-    // ÒÔ#¿ªÍ·?
+    // ä»¥#å¼€å¤´?
     if (*data == '#') {
         color.a = 1.f;
         // #RGB
@@ -208,20 +208,20 @@ bool LongUI::UIControl::MakeColor(const char* data, D2D1_COLOR_F& color) noexcep
         }
         return true;
     }
-    // ¸¡µãÊı×é
+    // æµ®ç‚¹æ•°ç»„
     else {
         return UIControl::MakeFloats(data, reinterpret_cast<float*>(&color), 4);
     }
 }
 
-// LongUI::UIControl ×¢²á»Øµ÷ÊÂ¼ş
+// LongUI::UIControl æ³¨å†Œå›è°ƒäº‹ä»¶
 void LongUIMethodCall  LongUI::UIControl::SetEventCallBack(
     const wchar_t* control_name, LongUI::Event event, LongUICallBack call) noexcept {
     assert(control_name && call&&  "bad argument");
     UIControl* control = UIManager.FindControlW(control_name);
     assert(control && " no control found");
     if (!control) return;
-    // ×Ô¶¨ÒåÏûÏ¢?
+    // è‡ªå®šä¹‰æ¶ˆæ¯?
     if (event >= LongUI::Event::Event_CustomEvent) {
         UIManager.configure->SetEventCallBack(
             event, call, control, this
@@ -249,34 +249,34 @@ void LongUIMethodCall  LongUI::UIControl::SetEventCallBack(
 // -------------------------------------------------------
 
 
-// Render äÖÈ¾ 
+// Render æ¸²æŸ“ 
 auto LongUIMethodCall LongUI::UILabel::Render() noexcept ->HRESULT {
     //
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
-        // ÉèÖÃ´óĞ¡
+        // è®¾ç½®å¤§å°
         m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
         // super will do it
         //m_bDrawSizeChanged = false;
     }
-    // äÖÈ¾ÎÄ×Ö
+    // æ¸²æŸ“æ–‡å­—
     m_text.Render(this->draw_zone.left, this->draw_zone.top);
     return Super::Render();
 }
 
 
-// UILabel ¹¹Ôìº¯Êı
+// UILabel æ„é€ å‡½æ•°
 /*LongUI::UILabel::UILabel(pugi::xml_node node) noexcept: Super(node), m_text(node) {
     //m_bInitZoneChanged = true;
 }*/
 
 
-// UILabel::CreateControl º¯Êı
+// UILabel::CreateControl å‡½æ•°
 LongUI::UIControl* LongUI::UILabel::CreateControl(pugi::xml_node node) noexcept {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UILabel>(
         node,
         [=](void* p) noexcept { new(p) UILabel(node);}
@@ -289,7 +289,7 @@ LongUI::UIControl* LongUI::UILabel::CreateControl(pugi::xml_node node) noexcept 
 
 
 
-// do event ÊÂ¼ş´¦Àí
+// do event äº‹ä»¶å¤„ç†
 bool LongUIMethodCall LongUI::UILabel::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         if (arg.event == LongUI::Event::Event_FindControl &&
@@ -300,13 +300,13 @@ bool LongUIMethodCall LongUI::UILabel::DoEvent(LongUI::EventArgument& arg) noexc
     return false;
 }
 
-// recreate ÖØ½¨
+// recreate é‡å»º
 /*HRESULT LongUIMethodCall LongUI::UILabel::Recreate(LongUIRenderTarget* newRT) noexcept {
-// ¶ÏÑÔ
+// æ–­è¨€
 return Super::Recreate(newRT);
 }*/
 
-// close this control ¹Ø±Õ¿Ø¼ş
+// close this control å…³é—­æ§ä»¶
 void LongUIMethodCall LongUI::UILabel::Close() noexcept {
     delete this;
 }
@@ -316,9 +316,9 @@ void LongUIMethodCall LongUI::UILabel::Close() noexcept {
 // UIButton
 // -------------------------------------------------------
 
-// Render äÖÈ¾ 
+// Render æ¸²æŸ“ 
 auto LongUI::UIButton::Render() noexcept ->HRESULT {
-    // ¸üĞÂ¿Ì»­µØÇø
+    // æ›´æ–°åˆ»ç”»åœ°åŒº
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
         // super will do it
@@ -326,30 +326,30 @@ auto LongUI::UIButton::Render() noexcept ->HRESULT {
     }
     D2D1_RECT_F draw_rect = GetDrawRect(this);
     m_uiElement.Render(&draw_rect);
-    // ¸üĞÂ¼ÆÊ±Æ÷
+    // æ›´æ–°è®¡æ—¶å™¨
     UIElement_Update(m_uiElement);
     return Super::Render();
 }
 
 
-// UIButton ¹¹Ôìº¯Êı
+// UIButton æ„é€ å‡½æ•°
 LongUI::UIButton::UIButton(pugi::xml_node node) noexcept :
 Super(node), m_uiElement(node, nullptr) {
 
 }
 
-// UIButton Îö¹¹º¯Êı
+// UIButton ææ„å‡½æ•°
 LongUI::UIButton::~UIButton() noexcept {
     ::SafeRelease(m_pBGBrush);
 }
 
 
-// UIButton::CreateControl º¯Êı
+// UIButton::CreateControl å‡½æ•°
 auto LongUI::UIButton::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIButton>(
         node,
         [=](void* p) noexcept { new(p) UIButton(node);}
@@ -361,7 +361,7 @@ auto LongUI::UIButton::CreateControl(pugi::xml_node node) noexcept ->UIControl* 
 }
 
 
-// do event ÊÂ¼ş´¦Àí
+// do event äº‹ä»¶å¤„ç†
 bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
@@ -398,16 +398,16 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
         case WM_LBUTTONUP:
             arg.event = LongUI::Event::Event_ButtoClicked;
             m_tarStatusClick = LongUI::Status_Hover;
-            // ¼ì²é½Å±¾
+            // æ£€æŸ¥è„šæœ¬
             if (m_pScript && m_script.data) {
                 m_pScript->Evaluation(m_script, arg);
             }
-            // ¼ì²éÊÇ·ñÓĞÊÂ¼ş»Øµ÷
+            // æ£€æŸ¥æ˜¯å¦æœ‰äº‹ä»¶å›è°ƒ
             if (m_eventClick) {
                 rec = (m_pClickTarget->*m_eventClick)(this);
             }
             else {
-                // ·ñÔò·¢ËÍÊÂ¼şµ½´°¿Ú
+                // å¦åˆ™å‘é€äº‹ä»¶åˆ°çª—å£
                 rec = m_pWindow->DoEvent(arg);
             }
             arg.msg = tempmsg;
@@ -420,18 +420,18 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
-// recreate ÖØ½¨
+// recreate é‡å»º
 auto LongUI::UIButton::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     SafeRelease(m_pBGBrush);
     newRT->CreateSolidColorBrush(m_uiElement.colors, nullptr, &m_pBGBrush);
     m_uiElement.target = newRT;
     m_uiElement.brush = m_pBGBrush;
     m_uiElement.InitStatus(LongUI::Status_Normal);
-    // ¸¸Àà´¦Àí
+    // çˆ¶ç±»å¤„ç†
     return Super::Recreate(newRT);
 }
 
-// ¹Ø±Õ¿Ø¼ş
+// å…³é—­æ§ä»¶
 void LongUI::UIButton::Close() noexcept {
     delete this;
 }
@@ -443,7 +443,7 @@ void LongUI::UIButton::Close() noexcept {
 
 
 HRESULT LongUIMethodCall LongUI::UIEditBasic::Render() noexcept {
-    // ¸üĞÂ¿Ì»­µØÇø
+    // æ›´æ–°åˆ»ç”»åœ°åŒº
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
         // super will do it
@@ -459,7 +459,7 @@ bool    LongUIMethodCall LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_FindControl: // ²éÕÒ±¾¿Ø¼ş
+        case LongUI::Event::Event_FindControl: // æŸ¥æ‰¾æœ¬æ§ä»¶
             if (IsPointInRect(this->show_zone, arg.pt)) {
                 arg.ctrl = this;
             }
@@ -503,7 +503,7 @@ bool    LongUIMethodCall LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg
             m_text.OnChar(static_cast<char32_t>(arg.wParam_sys));
             break;
         case WM_MOUSEMOVE:
-            // ÍÏ×§?
+            // æ‹–æ‹½?
             if (arg.wParam_sys & MK_LBUTTON) {
                 m_text.OnLButtonHold(
                     arg.pt.x - this->show_zone.left,
@@ -529,24 +529,24 @@ bool    LongUIMethodCall LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg
     return false;
 }
 
-// close this control ¹Ø±Õ¿Ø¼ş
+// close this control å…³é—­æ§ä»¶
 HRESULT    LongUIMethodCall LongUI::UIEditBasic::Recreate(LongUIRenderTarget* target) noexcept {
     m_text.Recreate(target);
     return Super::Recreate(target);
 }
 
-// close this control ¹Ø±Õ¿Ø¼ş
+// close this control å…³é—­æ§ä»¶
 void    LongUIMethodCall LongUI::UIEditBasic::Close() noexcept {
     delete this;
 }
 
 
-// UIEditBasic::CreateControl º¯Êı
+// UIEditBasic::CreateControl å‡½æ•°
 LongUI::UIControl* LongUI::UIEditBasic::CreateControl(pugi::xml_node node) noexcept {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIEditBasic>(
         node,
         [=](void* p) noexcept { new(p) UIEditBasic(node);}
@@ -558,7 +558,7 @@ LongUI::UIControl* LongUI::UIEditBasic::CreateControl(pugi::xml_node node) noexc
 }
 
 
-// ¹¹Ôìº¯Êı
+// æ„é€ å‡½æ•°
 LongUI::UIEditBasic::UIEditBasic(pugi::xml_node node) noexcept
     :  Super(node), m_text(this, node) {
 }

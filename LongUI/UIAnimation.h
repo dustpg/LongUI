@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -28,37 +28,37 @@
 namespace LongUI {
     // the type of aniamtion
     enum class AnimationType : uint32_t {
-        Type_LinearInterpolation = 0,   // ÏßĞÔ²åÖµ
-        Type_QuadraticEaseIn,           // Æ½·½½¥Èë²åÖµ
-        Type_QuadraticEaseOut,          // Æ½·½½¥³ö²åÖµ
-        Type_QuadraticEaseInOut,        // Æ½·½½¥Èë½¥³ö²åÖµ
-        Type_CubicEaseIn,               // Á¢·½½¥Èë²åÖµ
-        Type_CubicEaseOut,              // Á¢·½½¥³ö²åÖµ
-        Type_CubicEaseInOut,            // Á¢·½½¥Èë½¥³ö²åÖµ
-        Type_QuarticEaseIn,             // ËÄ´Î½¥Èë²åÖµ
-        Type_QuarticEaseOut,            // ËÄ´Î½¥³ö²åÖµ
-        Type_QuarticEaseInOut,          // ËÄ´Î½¥Èë½¥³ö²åÖµ
-        Type_QuinticEaseIn,             // Îå´Î½¥Èë²åÖµ
-        Type_QuinticEaseOut,            // Îå´Î½¥³ö²åÖµ
-        Type_QuinticEaseInOut,          // Îå´Î½¥Èë½¥³ö²åÖµ
-        Type_SineEaseIn,                // ÕıÏÒ½¥Èë²åÖµ
-        Type_SineEaseOut,               // ÕıÏÒ½¥³ö²åÖµ
-        Type_SineEaseInOut,             // ÕıÏÒ½¥Èë½¥³ö²åÖµ
-        Type_CircularEaseIn,            // ËÄÏóÔ²»¡²åÖµ
-        Type_CircularEaseOut,           // ¶şÏóÔ²»¡²åÖµ
-        Type_CircularEaseInOut,         // Ô²»¡½¥Èë½¥³ö²åÖµ
-        Type_ExponentialEaseIn,         // Ö¸Êı½¥Èë²åÖµ
-        Type_ExponentialEaseOut,        // Ö¸Êı½¥³ö²åÖµ
-        Type_ExponentialEaseInOut,      // Ö¸Êı½¥Èë½¥³ö²åÖµ
-        Type_ElasticEaseIn,             // µ¯ĞÔ½¥Èë²åÖµ
-        Type_ElasticEaseOut,            // µ¯ĞÔ½¥³ö²åÖµ
-        Type_ElasticEaseInOut,          // µ¯ĞÔ½¥Èë½¥³ö²åÖµ
-        Type_BackEaseIn,                // »ØÍË½¥Èë²åÖµ
-        Type_BackEaseOut,               // »ØÍË½¥³ö²åÖµ
-        Type_BackEaseInOut,             // »ØÍË½¥³ö½¥³ö²åÖµ
-        Type_BounceEaseIn,              // ·´µ¯½¥Èë²åÖµ
-        Type_BounceEaseOut,             // ·´µ¯½¥³ö²åÖµ
-        Type_BounceEaseInOut,           // ·´µ¯½¥Èë½¥³ö²åÖµ
+        Type_LinearInterpolation = 0,   // çº¿æ€§æ’å€¼
+        Type_QuadraticEaseIn,           // å¹³æ–¹æ¸å…¥æ’å€¼
+        Type_QuadraticEaseOut,          // å¹³æ–¹æ¸å‡ºæ’å€¼
+        Type_QuadraticEaseInOut,        // å¹³æ–¹æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_CubicEaseIn,               // ç«‹æ–¹æ¸å…¥æ’å€¼
+        Type_CubicEaseOut,              // ç«‹æ–¹æ¸å‡ºæ’å€¼
+        Type_CubicEaseInOut,            // ç«‹æ–¹æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_QuarticEaseIn,             // å››æ¬¡æ¸å…¥æ’å€¼
+        Type_QuarticEaseOut,            // å››æ¬¡æ¸å‡ºæ’å€¼
+        Type_QuarticEaseInOut,          // å››æ¬¡æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_QuinticEaseIn,             // äº”æ¬¡æ¸å…¥æ’å€¼
+        Type_QuinticEaseOut,            // äº”æ¬¡æ¸å‡ºæ’å€¼
+        Type_QuinticEaseInOut,          // äº”æ¬¡æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_SineEaseIn,                // æ­£å¼¦æ¸å…¥æ’å€¼
+        Type_SineEaseOut,               // æ­£å¼¦æ¸å‡ºæ’å€¼
+        Type_SineEaseInOut,             // æ­£å¼¦æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_CircularEaseIn,            // å››è±¡åœ†å¼§æ’å€¼
+        Type_CircularEaseOut,           // äºŒè±¡åœ†å¼§æ’å€¼
+        Type_CircularEaseInOut,         // åœ†å¼§æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_ExponentialEaseIn,         // æŒ‡æ•°æ¸å…¥æ’å€¼
+        Type_ExponentialEaseOut,        // æŒ‡æ•°æ¸å‡ºæ’å€¼
+        Type_ExponentialEaseInOut,      // æŒ‡æ•°æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_ElasticEaseIn,             // å¼¹æ€§æ¸å…¥æ’å€¼
+        Type_ElasticEaseOut,            // å¼¹æ€§æ¸å‡ºæ’å€¼
+        Type_ElasticEaseInOut,          // å¼¹æ€§æ¸å…¥æ¸å‡ºæ’å€¼
+        Type_BackEaseIn,                // å›é€€æ¸å…¥æ’å€¼
+        Type_BackEaseOut,               // å›é€€æ¸å‡ºæ’å€¼
+        Type_BackEaseInOut,             // å›é€€æ¸å‡ºæ¸å‡ºæ’å€¼
+        Type_BounceEaseIn,              // åå¼¹æ¸å…¥æ’å€¼
+        Type_BounceEaseOut,             // åå¼¹æ¸å‡ºæ’å€¼
+        Type_BounceEaseInOut,           // åå¼¹æ¸å…¥æ¸å‡ºæ’å€¼
     };
     // easing func
     float __fastcall EasingFunction(AnimationType, float) noexcept;

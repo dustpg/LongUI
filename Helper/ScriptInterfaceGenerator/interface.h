@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 
 /*this script is c++ liked but very tiny version with some
@@ -126,9 +126,9 @@ struct ISInfo {
 #endif
 };
 
-// Êä³öÀàÐÍ
+// è¾“å‡ºç±»åž‹
 enum class OutputType : uint32_t {
-    // 2½øÖÆ
+    // 2è¿›åˆ¶
     Bin = 0,
     // XML
     XML,

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../longui/longui.h"
 #include "MRubyScript.h"

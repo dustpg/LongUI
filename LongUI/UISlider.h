@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -27,39 +27,39 @@
 
 // LongUI namespace
 namespace LongUI{
-    // default slider control Ä¬ÈÏ»¬¿é¿Ø¼ş
+    // default slider control é»˜è®¤æ»‘å—æ§ä»¶
     class LongUIAPI UISlider : public UIControl {
         enum UnusedIndex{
             Unused_MouseClickIn = 0,
             UNUSED_SIZE
         };
     private:
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UIControl ;
     public:
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual auto LongUIMethodCall Render() noexcept->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         //virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
     public:
-        // create ´´½¨
+        // create åˆ›å»º
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
-        // register Value Changed ×¢²á±ä¶¯ÊÂ¼ş
+        // register Value Changed æ³¨å†Œå˜åŠ¨äº‹ä»¶
         LongUIInline void RegisterValueChangedEvent(LongUICallBack call, UIControl* target) noexcept {
             m_eventChanged = call; m_pChangedTarget = target;
         };
-        // »ñÈ¡ÊıÖµ
+        // è·å–æ•°å€¼
         LongUIInline auto GetValue() { return m_fValue; }
     protected:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         UISlider(pugi::xml_node) noexcept;
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~UISlider() noexcept { }
         // deleted function
         UISlider(const UISlider&) = delete;

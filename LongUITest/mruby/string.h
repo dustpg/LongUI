@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/string.h - String class
 **
 ** See Copyright Notice in mruby.h

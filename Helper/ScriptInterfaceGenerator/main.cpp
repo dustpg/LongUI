@@ -1,17 +1,17 @@
-#include "script.h"
+ï»¿#include "script.h"
 
-// ÃüÁîĞĞ°ïÖú
+// å‘½ä»¤è¡Œå¸®åŠ©
 static const char* CommandHelp = R"longui([HELP]:
      -h -help       : show help content
     [-o] <filename> : output the C++ source code to this file
 )longui";
 
 
-// Ó¦ÓÃ³ÌĞòÈë¿Ú
+// åº”ç”¨ç¨‹åºå…¥å£
 int main(int argc, const char* argv[]) {
     InterfaceScriptReader reader;
     reader.read(LongUIInterface);
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     if (argc == 1 || *reinterpret_cast<const uint16_t*>(argv[1]) == 'h-' ||
         *reinterpret_cast<const uint32_t*>(argv[1]) == 'leh-') {
         printf(CommandHelp);

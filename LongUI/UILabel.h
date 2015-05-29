@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -27,35 +27,35 @@
 
 // LongUI namespace
 namespace LongUI{
-    // default label control Ä¬ÈÏ±êÇ©¿Ø¼ş
+    // default label control é»˜è®¤æ ‡ç­¾æ§ä»¶
     class LongUIAPI UILabel : public UIControl{
     private:
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UIControl ;
     public:
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual auto LongUIMethodCall Render() noexcept->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         //virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
     public:
-        // create ´´½¨
+        // create åˆ›å»º
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
-        // control text ¿Ø¼şÎÄ±¾
+        // control text æ§ä»¶æ–‡æœ¬
         const auto LongUIMethodCall GetText() const noexcept{ return m_text.c_str(); }
         // set control text
         const void LongUIMethodCall SetText(const wchar_t* t) noexcept { m_text = t; }
         // set control text
         const void LongUIMethodCall SetText(const char* t) noexcept { m_text = t;  }
     protected:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         UILabel(pugi::xml_node node) noexcept : Super(node), m_text(node) {}
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~UILabel() noexcept { }
         // deleted function
         UILabel(const UILabel&) = delete;

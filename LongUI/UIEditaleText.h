@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -35,35 +35,35 @@ namespace LongUI {
 #define EditaleTextType_SetFalse(value, type) value &= ~type 
     // core editable text component
     class LongUIAlignas CUIEditaleText {
-        // ¼òĞ´
+        // ç®€å†™
         using HitTestMetrics = DWRITE_HIT_TEST_METRICS;
-        // »º³åÇø
+        // ç¼“å†²åŒº
         using MetricsBuffer = SimpleSmallBuffer<HitTestMetrics, 8>;
     public:
-        // the mode of text selection zone Ñ¡ÔñÇøÄ£Ê½
+        // the mode of text selection zone é€‰æ‹©åŒºæ¨¡å¼
         enum SelectionMode : uint32_t {
-            Mode_Left = 0,      // ×óÒÆ
-            Mode_Right,         // ÓÒÒÆ
-            Mode_Up,            // ĞĞÉÏÉı
-            Mode_Down,          // ĞĞÏÂ½µ
-            Mode_LeftChar,      // ×óÒÆ¶¯Ò»¸ö×Ö·û
-            Mode_RightChar,     // ÓÒÒÆ¶¯Ò»¸ö×Ö·û
-            Mode_LeftWord,      // ×óÒÆ¶¯Ò»¸öµ¥´Ê
-            Mode_RightWord,     // ÓÒÒÆ¶¯Ò»¸öµ¥´Ê
-            Mode_Home,          // ×ÜÆğÊ¼Î»ÖÃ
-            Mode_End,           // ×Ü½áÊøÎªÖ¹
-            Mode_First,         // ĞĞÆğÊ¼Î»ÖÃ
-            Mode_Last,          // ĞĞ½áÊøÎªÖ¹
-            Mode_Leading,       // Êó±êµã»÷Î»ÖÃ
-            Mode_Trailing,      // Ñ¡ÔñºóÔµ
-            Mode_SelectAll,     // È«Ñ¡
+            Mode_Left = 0,      // å·¦ç§»
+            Mode_Right,         // å³ç§»
+            Mode_Up,            // è¡Œä¸Šå‡
+            Mode_Down,          // è¡Œä¸‹é™
+            Mode_LeftChar,      // å·¦ç§»åŠ¨ä¸€ä¸ªå­—ç¬¦
+            Mode_RightChar,     // å³ç§»åŠ¨ä¸€ä¸ªå­—ç¬¦
+            Mode_LeftWord,      // å·¦ç§»åŠ¨ä¸€ä¸ªå•è¯
+            Mode_RightWord,     // å³ç§»åŠ¨ä¸€ä¸ªå•è¯
+            Mode_Home,          // æ€»èµ·å§‹ä½ç½®
+            Mode_End,           // æ€»ç»“æŸä¸ºæ­¢
+            Mode_First,         // è¡Œèµ·å§‹ä½ç½®
+            Mode_Last,          // è¡Œç»“æŸä¸ºæ­¢
+            Mode_Leading,       // é¼ æ ‡ç‚¹å‡»ä½ç½®
+            Mode_Trailing,      // é€‰æ‹©åç¼˜
+            Mode_SelectAll,     // å…¨é€‰
         };
         // the type of editable text, bit array
         // same as TXTBIT_XXXXXXX in TextServ.h
         enum EditaleTextType : uint32_t {
             Type_All = uint32_t(-1),
             Type_None = 0,
-            // rich¡®ED¡¯(not richer more than RICHTEXT(UIRichEdit))
+            // richâ€˜EDâ€™(not richer more than RICHTEXT(UIRichEdit))
             Type_Riched = 1 << 0,
             // multi-line
             Type_MultiLine = 1 << 1,
@@ -80,7 +80,7 @@ namespace LongUI {
         static void __fastcall CopySinglePropertyRange(IDWriteTextLayout*, uint32_t, IDWriteTextLayout*, uint32_t, uint32_t) noexcept;
         // copy the range prop for layout
         static void __fastcall CopyRangedProperties(IDWriteTextLayout*, IDWriteTextLayout*, uint32_t, uint32_t, uint32_t, bool = false) noexcept;
-    public: // Íâ²¿ÉèÖÃÇø
+    public: // å¤–éƒ¨è®¾ç½®åŒº
         // set new size
         LongUIInline auto SetNewSize(float w, float h) noexcept {
             m_size.width = w; m_size.height = h;
@@ -101,7 +101,7 @@ namespace LongUI {
         void __fastcall recreate_layout() noexcept;
         // insert text
         auto __fastcall insert(const wchar_t* str, uint32_t pos, uint32_t length) noexcept->HRESULT;
-    public: // Ò»°ãÄÚ²¿ÉèÖÃÇø
+    public: // ä¸€èˆ¬å†…éƒ¨è®¾ç½®åŒº
         // get selection range
         auto __fastcall GetSelectionRange()const noexcept->DWRITE_TEXT_RANGE;
         // set selection zone
@@ -135,7 +135,7 @@ namespace LongUI {
         void __fastcall OnLButtonDown(float x, float y, bool =false) noexcept;
         // on L button hold && move: relative postion
         void __fastcall OnLButtonHold(float x, float y, bool = false) noexcept;
-    public: // Ò»°ãÍâ²¿ÉèÖÃÇø
+    public: // ä¸€èˆ¬å¤–éƒ¨è®¾ç½®åŒº
         // align caret
         void __fastcall AlignCaretToNearestCluster(bool, bool = false) noexcept;
         // get the caret rect
@@ -207,11 +207,11 @@ namespace LongUI {
         STGMEDIUM               m_recentMedium;
         // hit test metrics
         MetricsBuffer           m_metriceBuffer;
-        // the anchor of caret ¹â±êÃªÎ» -- µ±Ç°Î»ÖÃ
+        // the anchor of caret å…‰æ ‡é”šä½ -- å½“å‰ä½ç½®
         uint32_t                m_u32CaretAnchor = 0;
-        // the position of caret ¹â±êÎ»ÖÃ -- ÆğÊ¼Î»ÖÃ
+        // the position of caret å…‰æ ‡ä½ç½® -- èµ·å§‹ä½ç½®
         uint32_t                m_u32CaretPos = 0;
-        // the pos offset of caret ¹â±êÆ«ÒÆ -- Ñ¡ÔñÇø´óĞ¡
+        // the pos offset of caret å…‰æ ‡åç§» -- é€‰æ‹©åŒºå¤§å°
         uint32_t                m_u32CaretPosOffset = 0;
         // string of text
         DynamicString           m_text;

@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/data.h - Data class
 **
 ** See Copyright Notice in mruby.h

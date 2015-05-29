@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -26,12 +26,12 @@
 
 // LongUI namespace
 namespace LongUI{
-    // CUIFileLoaderÀà
+    // CUIFileLoaderç±»
     class CUIFileLoader{
     private:
-        // Ë½ÓĞ»¯¹¹Ôìº¯Êı
+        // ç§æœ‰åŒ–æ„é€ å‡½æ•°
         CUIFileLoader() noexcept{}
-        // Ë½ÓĞ»¯Îö¹¹º¯Êı
+        // ç§æœ‰åŒ–ææ„å‡½æ•°
         ~CUIFileLoader() noexcept{
             if (m_pData){
                 free(m_pData);
@@ -39,21 +39,21 @@ namespace LongUI{
             }
         }
     public:
-        // ¶ÁÈ¡ÎÄ¼ş
+        // è¯»å–æ–‡ä»¶
         bool LongUIMethodCall ReadFile(WCHAR* file_name) noexcept;
-        // »ñÈ¡Êı¾İÖ¸Õë
+        // è·å–æ•°æ®æŒ‡é’ˆ
         auto LongUIMethodCall GetData() const  noexcept{ return m_pData; }
-        // »ñÈ¡Êı¾İ³¤¶È
+        // è·å–æ•°æ®é•¿åº¦
         auto LongUIMethodCall GetLength()const noexcept{ return m_cLength; }
     private:
-        // Êı¾İÖ¸Õë
+        // æ•°æ®æŒ‡é’ˆ
         void*           m_pData = nullptr;
-        // Êı¾İ³¤¶È
+        // æ•°æ®é•¿åº¦
         size_t          m_cLength = 0;
-        // Êµ¼Ê³¤¶È
+        // å®é™…é•¿åº¦
         size_t          m_cLengthReal = 0;
     public:
-        // Ö÷Ïß³ÌÏß³Ìµ¥Àı
+        // ä¸»çº¿ç¨‹çº¿ç¨‹å•ä¾‹
         static CUIFileLoader s_instanceForMainThread;
     };
 }

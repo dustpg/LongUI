@@ -1,7 +1,7 @@
-
+ï»¿
 #include "LongUI.h"
 
-// ¹¹Ôì¶ÔÏó
+// æ„é€ å¯¹è±¡
 LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {
     auto* pointer = reinterpret_cast<LongUI::CUIDataObject*>(LongUISmallAlloc(sizeof(LongUI::CUIDataObject)));
     if (pointer) {
@@ -12,25 +12,25 @@ LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {
 
 
 
-// CUIDataObject ¹¹Ôìº¯Êı
+// CUIDataObject æ„é€ å‡½æ•°
 LongUI::CUIDataObject::CUIDataObject() noexcept {
     ZeroMemory(&m_dataStorage, sizeof(m_dataStorage));
 }
 
 
-// CUIDataObject Îö¹¹º¯Êı
+// CUIDataObject ææ„å‡½æ•°
 LongUI::CUIDataObject::~CUIDataObject() noexcept {
-    // ÊÍ·ÅÊı¾İ
+    // é‡Šæ”¾æ•°æ®
     if (m_dataStorage.formatEtc.cfFormat) {
         ::ReleaseStgMedium(&m_dataStorage.stgMedium);
     }
 }
 
 
-// ÉèÖÃUnicode
+// è®¾ç½®Unicode
 HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) noexcept {
     assert(hGlobal && "hGlobal -> null");
-    // ÊÍ·ÅÊı¾İ
+    // é‡Šæ”¾æ•°æ®
     if (m_dataStorage.formatEtc.cfFormat) {
         ::ReleaseStgMedium(&m_dataStorage.stgMedium);
     }
@@ -40,13 +40,13 @@ HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) 
     return S_OK;
 }
 
-// ÉèÖÃUnicode×Ö·û
+// è®¾ç½®Unicodeå­—ç¬¦
 HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length) noexcept {
     HRESULT hr = S_OK;
     if (!length) length = ::wcslen(str);
-    // È«¾Ö
+    // å…¨å±€
     HGLOBAL hGlobal = nullptr;
-    // ÉêÇë³É¹¦
+    // ç”³è¯·æˆåŠŸ
     auto size = sizeof(wchar_t) * (length + 1);
     if (hGlobal = ::GlobalAlloc(GMEM_FIXED, size)) {
         LPVOID pdest = ::GlobalLock(hGlobal);
@@ -61,7 +61,7 @@ HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(const wchar_t* st
     else {
         hr = E_OUTOFMEMORY;
     }
-    // ÉèÖÃÊı¾İ
+    // è®¾ç½®æ•°æ®
     if (SUCCEEDED(hr)) {
         hr = this->SetUnicodeText(hGlobal);
     }
@@ -69,15 +69,15 @@ HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(const wchar_t* st
 }
 
 
-// IDataObject::GetData ÊµÏÖ: 
+// IDataObject::GetData å®ç°: 
 HRESULT LongUI::CUIDataObject::GetData(FORMATETC * pFormatetcIn, STGMEDIUM * pMedium) noexcept {
-    // ²ÎÊı¼ì²é
+    // å‚æ•°æ£€æŸ¥
     if (!pFormatetcIn || !pMedium) return E_INVALIDARG;
     // 
     pMedium->hGlobal = nullptr;
-    // ¼ì²éÊı¾İ
+    // æ£€æŸ¥æ•°æ®
     if (m_dataStorage.formatEtc.cfFormat) {
-        // ·µ»ØĞèÒª»ñÈ¡µÄ¸ñÊ½
+        // è¿”å›éœ€è¦è·å–çš„æ ¼å¼
         if ((pFormatetcIn->tymed & m_dataStorage.formatEtc.tymed) &&
             (pFormatetcIn->dwAspect == m_dataStorage.formatEtc.dwAspect) &&
             (pFormatetcIn->cfFormat == m_dataStorage.formatEtc.cfFormat))
@@ -88,23 +88,23 @@ HRESULT LongUI::CUIDataObject::GetData(FORMATETC * pFormatetcIn, STGMEDIUM * pMe
     return DV_E_FORMATETC;
 }
 
-// IDataObject::GetDataHere ÊµÏÖ
+// IDataObject::GetDataHere å®ç°
 HRESULT LongUI::CUIDataObject::GetDataHere(FORMATETC * pFormatetcIn, STGMEDIUM * pMedium) noexcept {
     UNREFERENCED_PARAMETER(pFormatetcIn);
     UNREFERENCED_PARAMETER(pMedium);
     return E_NOTIMPL;
 }
 
-// IDataObject::QueryGetData ÊµÏÖ: ²éÑ¯Ö§³Ö¸ñÊ½Êı¾İ
+// IDataObject::QueryGetData å®ç°: æŸ¥è¯¢æ”¯æŒæ ¼å¼æ•°æ®
 HRESULT LongUI::CUIDataObject::QueryGetData(FORMATETC * pFormatetc) noexcept {
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     if (!pFormatetc) return E_INVALIDARG;
     // 
     if (!(DVASPECT_CONTENT & pFormatetc->dwAspect)) {
         return DV_E_DVASPECT;
     }
     HRESULT hr = DV_E_TYMED;
-    // ±éÀúÊı¾İ
+    // éå†æ•°æ®
     if (m_dataStorage.formatEtc.cfFormat && m_dataStorage.formatEtc.tymed & pFormatetc->tymed) {
         if (m_dataStorage.formatEtc.cfFormat == pFormatetc->cfFormat) {
             hr = S_OK;
@@ -119,28 +119,28 @@ HRESULT LongUI::CUIDataObject::QueryGetData(FORMATETC * pFormatetc) noexcept {
     return hr;
 }
 
-// IDataObject::GetCanonicalFormatEtc ÊµÏÖ
+// IDataObject::GetCanonicalFormatEtc å®ç°
 HRESULT LongUI::CUIDataObject::GetCanonicalFormatEtc(FORMATETC * pFormatetcIn, FORMATETC * pFormatetcOut) noexcept {
     return E_NOTIMPL;
 }
 
-// IDataObject::SetData ÊµÏÖ
+// IDataObject::SetData å®ç°
 HRESULT LongUI::CUIDataObject::SetData(FORMATETC * pFormatetc, STGMEDIUM * pMedium, BOOL fRelease) noexcept {
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     if (!pFormatetc || !pMedium) return E_INVALIDARG;
     UNREFERENCED_PARAMETER(fRelease);
     return E_NOTIMPL;
 }
 
-// IDataObject::EnumFormatEtc ÊµÏÖ: Ã¶¾ÙÖ§³Ö¸ñÊ½
+// IDataObject::EnumFormatEtc å®ç°: æšä¸¾æ”¯æŒæ ¼å¼
 HRESULT LongUI::CUIDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC ** ppEnumFormatEtc) noexcept {
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     if (!ppEnumFormatEtc) return E_INVALIDARG;
     *ppEnumFormatEtc = nullptr;
     HRESULT hr = E_NOTIMPL;
     if (DATADIR_GET == dwDirection) {
-        // ÉèÖÃÖ§³Ö¸ñÊ½
-        // ÔİÊ±½öÖ§³Ö Unicode×Ö·û(UTF-16 on WindowsDO)
+        // è®¾ç½®æ”¯æŒæ ¼å¼
+        // æš‚æ—¶ä»…æ”¯æŒ Unicodeå­—ç¬¦(UTF-16 on WindowsDO)
         static FORMATETC rgfmtetc[] = {
             { CF_UNICODETEXT, nullptr, DVASPECT_CONTENT, 0, TYMED_HGLOBAL },
         };
@@ -149,7 +149,7 @@ HRESULT LongUI::CUIDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC *
     return hr;
 }
 
-// IDataObject::DAdvise ÊµÏÖ
+// IDataObject::DAdvise å®ç°
 HRESULT LongUI::CUIDataObject::DAdvise(FORMATETC * pFormatetc, DWORD advf,
     IAdviseSink * pAdvSnk, DWORD * pdwConnection) noexcept {
     UNREFERENCED_PARAMETER(pFormatetc);
@@ -159,23 +159,23 @@ HRESULT LongUI::CUIDataObject::DAdvise(FORMATETC * pFormatetc, DWORD advf,
     return E_NOTIMPL;
 }
 
-// IDataObject::DUnadvise ÊµÏÖ
+// IDataObject::DUnadvise å®ç°
 HRESULT LongUI::CUIDataObject::DUnadvise(DWORD dwConnection) noexcept {
     UNREFERENCED_PARAMETER(dwConnection);
     return E_NOTIMPL;
 }
 
-// IDataObject::EnumDAdvise ÊµÏÖ
+// IDataObject::EnumDAdvise å®ç°
 HRESULT LongUI::CUIDataObject::EnumDAdvise(IEnumSTATDATA ** ppenumAdvise) noexcept {
     UNREFERENCED_PARAMETER(ppenumAdvise);
     return E_NOTIMPL;
 }
 
-// ¸´ÖÆÃ½ÌåÊı¾İ
+// å¤åˆ¶åª’ä½“æ•°æ®
 HRESULT LongUI::CUIDataObject::CopyMedium(STGMEDIUM * pMedDest, STGMEDIUM * pMedSrc, FORMATETC * pFmtSrc) noexcept {
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     if (!pMedDest || !pMedSrc || !pFmtSrc) return E_INVALIDARG;
-    // °´ÀàĞÍ´¦Àí
+    // æŒ‰ç±»å‹å¤„ç†
     switch (pMedSrc->tymed)
     {
     case TYMED_HGLOBAL:
@@ -216,7 +216,7 @@ HRESULT LongUI::CUIDataObject::CopyMedium(STGMEDIUM * pMedDest, STGMEDIUM * pMed
     return S_OK;
 }
 
-// ÉèÖÃBlob
+// è®¾ç½®Blob
 HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void * pvBlob, UINT cbBlob) noexcept {
     void *pv = GlobalAlloc(GPTR, cbBlob);
     HRESULT hr = pv ? S_OK : E_OUTOFMEMORY;
@@ -243,7 +243,7 @@ HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void * pvBlob, UINT 
 // ----------------------------------------------------------------------------------
 
 
-// ¹¹Ôì¶ÔÏó
+// æ„é€ å¯¹è±¡
 LongUI::CUIDropSource* LongUI::CUIDropSource::New() noexcept {
     auto* pointer = reinterpret_cast<LongUI::CUIDropSource*>(LongUISmallAlloc(sizeof(LongUI::CUIDropSource)));
     if (pointer) {
@@ -252,20 +252,20 @@ LongUI::CUIDropSource* LongUI::CUIDropSource::New() noexcept {
     return pointer;
 }
 
-// CUIDropSource::QueryContinueDrag ÊµÏÖ: 
+// CUIDropSource::QueryContinueDrag å®ç°: 
 HRESULT LongUI::CUIDropSource::QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) noexcept {
-    // Esc°´ÏÂ»òÕßÊó±êÓÒ¼ü°´ÏÂ : È¡ÏûÍÏ×§
+    // EscæŒ‰ä¸‹æˆ–è€…é¼ æ ‡å³é”®æŒ‰ä¸‹ : å–æ¶ˆæ‹–æ‹½
     if (fEscapePressed || (grfKeyState & MK_RBUTTON)) {
         return DRAGDROP_S_CANCEL;
     }
-    // Êó±ê×ó¼üµ¯Æğ: ÍÏ×§½áÊø
+    // é¼ æ ‡å·¦é”®å¼¹èµ·: æ‹–æ‹½ç»“æŸ
     if (!(grfKeyState & MK_LBUTTON)) {
         return DRAGDROP_S_DROP;
     }
     return S_OK;
 }
 
-// CUIDropSource::GiveFeedback ÊµÏÖ
+// CUIDropSource::GiveFeedback å®ç°
 HRESULT LongUI::CUIDropSource::GiveFeedback(DWORD dwEffect) noexcept {
     UNREFERENCED_PARAMETER(dwEffect);
     return DRAGDROP_S_USEDEFAULTCURSORS;

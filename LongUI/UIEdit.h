@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -27,31 +27,31 @@
 
 // LongUI namespace
 namespace LongUI {
-    // »ù±¾±à¼­Àà
+    // åŸºæœ¬ç¼–è¾‘ç±»
     class LongUIAPI UIEditBasic : public UIControl {
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UIControl;
     public:
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual auto LongUIMethodCall Render() noexcept->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         //virtual void LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
     public:
-        // create ´´½¨
+        // create åˆ›å»º
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
     public:
-        // control text ¿Ø¼şÎÄ±¾
+        // control text æ§ä»¶æ–‡æœ¬
         auto LongUIMethodCall GetText() const noexcept { return m_text.c_str(); }
     protected:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         UIEditBasic(pugi::xml_node) noexcept;
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~UIEditBasic() noexcept {};
         // deleted function
         UIEditBasic(const UIEditBasic&) = delete;

@@ -1,19 +1,19 @@
-#include "LongUI.h"
+ï»¿#include "LongUI.h"
 
 
-// CUIRubyCharacter ¹¹Ôìº¯Êý
+// CUIRubyCharacter æž„é€ å‡½æ•°
 LongUI::CUIRubyCharacter::CUIRubyCharacter(const CtorContext& ctx) 
 noexcept : Super(UIInlineObject::Type_Ruby) {
 
 }
 
-// CUIRubyCharacter Îö¹¹º¯Êý
+// CUIRubyCharacter æžæž„å‡½æ•°
 LongUI::CUIRubyCharacter::~CUIRubyCharacter() noexcept {
     ::SafeRelease(m_pBaseLayout);
     ::SafeRelease(m_pRubyLayout);
 }
 
-// CUIRubyCharacter ¿Ì»­
+// CUIRubyCharacter åˆ»ç”»
 auto LongUI::CUIRubyCharacter::Draw(
     void* clientDrawingContext,
     IDWriteTextRenderer* renderer,
@@ -26,7 +26,7 @@ auto LongUI::CUIRubyCharacter::Draw(
     return E_NOTIMPL;
 }
 
-// »ñÈ¡ Metrics
+// èŽ·å– Metrics
 auto LongUI::CUIRubyCharacter::GetMetrics(
     DWRITE_INLINE_OBJECT_METRICS* metrics) noexcept ->HRESULT {
     DWRITE_INLINE_OBJECT_METRICS inlineMetrics = { 0 };
@@ -37,7 +37,7 @@ auto LongUI::CUIRubyCharacter::GetMetrics(
 }
 
 
-// »ñÈ¡ Overhang Metrics
+// èŽ·å– Overhang Metrics
 auto LongUI::CUIRubyCharacter::GetOverhangMetrics(
      DWRITE_OVERHANG_METRICS* overhangs) noexcept ->HRESULT {
     overhangs->left = 0;

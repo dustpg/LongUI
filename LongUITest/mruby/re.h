@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/re.h - Regexp class
 **
 ** See Copyright Notice in mruby.h

@@ -1,8 +1,8 @@
-
+ï»¿
 #include "LongUI.h"
 
 
-// ÒÆ³ı×Ö·û´®
+// ç§»é™¤å­—ç¬¦ä¸²
 auto __fastcall UIEditaleText_RemoveText(
     LongUI::DynamicString& text, uint32_t pos, uint32_t len, bool readonly) noexcept {
     HRESULT hr = S_OK;
@@ -16,12 +16,12 @@ auto __fastcall UIEditaleText_RemoveText(
     return hr;
 }
 
-// DWrite²¿·Ö´úÂë²Î¿¼: 
+// DWriteéƒ¨åˆ†ä»£ç å‚è€ƒ: 
 // http://msdn.microsoft.com/zh-cn/library/windows/desktop/dd941792(v=vs.85).aspx
 
 
 
-// Ë¢ĞÂ²¼¾Ö
+// åˆ·æ–°å¸ƒå±€
 auto LongUI::CUIEditaleText::refresh(bool update) noexcept ->UIWindow* {
     if (!m_bThisFocused) return nullptr;
     RectLTWH_F rect; this->GetCaretRect(rect);
@@ -34,10 +34,10 @@ auto LongUI::CUIEditaleText::refresh(bool update) noexcept ->UIWindow* {
     return window;
 }
 
-// ÖØĞÂ´´½¨²¼¾Ö
+// é‡æ–°åˆ›å»ºå¸ƒå±€
 void LongUI::CUIEditaleText::recreate_layout() noexcept {
     ::SafeRelease(this->layout);
-    // ´´½¨²¼¾Ö
+    // åˆ›å»ºå¸ƒå±€
     m_pFactory->CreateTextLayout(
         m_text.c_str(), m_text.length(),
         m_pBasicFormat,
@@ -46,44 +46,44 @@ void LongUI::CUIEditaleText::recreate_layout() noexcept {
         );
 }
 
-// ²åÈë×Ö·û(´®)
+// æ’å…¥å­—ç¬¦(ä¸²)
 auto LongUI::CUIEditaleText::insert(
     const wchar_t * str, uint32_t pos, uint32_t length) noexcept -> HRESULT {
     HRESULT hr = S_OK;
-    // Ö»¶Á
+    // åªè¯»
     if (UIEditaleText_IsReadOnly) {
         ::MessageBeep(MB_ICONERROR);
         return S_FALSE;
     }
     auto old_length = static_cast<uint32_t>(m_text.length());
-    // ²åÈë×Ö·û
+    // æ’å…¥å­—ç¬¦
     try { m_text.insert(pos, str, length); }
     CATCH_HRESULT(hr);
-    // ±£Áô¾É²¼¾Ö
+    // ä¿ç•™æ—§å¸ƒå±€
     auto old_layout = ::SafeAcquire(this->layout);
-    // ÖØĞÂ´´½¨²¼¾Ö
+    // é‡æ–°åˆ›å»ºå¸ƒå±€
     this->recreate_layout();
-    // ¸»ÎÄ±¾Çé¿öÏÂ?
+    // å¯Œæ–‡æœ¬æƒ…å†µä¸‹?
     if (old_layout && UIEditaleText_IsRiched && SUCCEEDED(hr)) {
-        // ¸´ÖÆÈ«¾ÖÊôĞÔ
+        // å¤åˆ¶å…¨å±€å±æ€§
         CUIEditaleText::CopyGlobalProperties(old_layout, this->layout);
-        // ¶ÔÓÚÃ¿ÖÖÊôĞÔ, »ñÈ¡²¢Ó¦ÓÃµ½ĞÂ²¼¾Ö
-        // ÔÚÊ×Î»?
+        // å¯¹äºæ¯ç§å±æ€§, è·å–å¹¶åº”ç”¨åˆ°æ–°å¸ƒå±€
+        // åœ¨é¦–ä½?
         if (pos) {
-            // µÚÒ»¿é
+            // ç¬¬ä¸€å—
             CUIEditaleText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
-            // ²åÈë¿é
+            // æ’å…¥å—
             CUIEditaleText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
-            // ½áÊø¿é
+            // ç»“æŸå—
             CUIEditaleText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
         }
         else {
-            // ²åÈë¿é
+            // æ’å…¥å—
             CUIEditaleText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
-            // ½áÊø¿é
+            // ç»“æŸå—
             CUIEditaleText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
         }
-        // Ä©Î²
+        // æœ«å°¾
         CUIEditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_text.length()), UINT32_MAX);
     }
     ::SafeRelease(old_layout);
@@ -91,24 +91,24 @@ auto LongUI::CUIEditaleText::insert(
 }
 
 
-// ·µ»Øµ±Ç°Ñ¡ÔñÇøÓò
+// è¿”å›å½“å‰é€‰æ‹©åŒºåŸŸ
 auto LongUI::CUIEditaleText::GetSelectionRange() const noexcept-> DWRITE_TEXT_RANGE {
-    // ·µ»Øµ±Ç°Ñ¡Ôñ·µ»Ø
+    // è¿”å›å½“å‰é€‰æ‹©è¿”å›
     auto caretBegin = m_u32CaretAnchor;
     auto caretEnd = m_u32CaretPos + m_u32CaretPosOffset;
-    // Ïà·´Ôò½»»»
+    // ç›¸ååˆ™äº¤æ¢
     if (caretBegin > caretEnd) {
         std::swap(caretBegin, caretEnd);
     }
-    // ÏŞÖÆ·¶Î§ÔÚÎÄ±¾³¤¶ÈÖ®ÄÚ
+    // é™åˆ¶èŒƒå›´åœ¨æ–‡æœ¬é•¿åº¦ä¹‹å†…
     auto textLength = static_cast<uint32_t>(m_text.size());
     caretBegin = std::min(caretBegin, textLength);
     caretEnd = std::min(caretEnd, textLength);
-    // ·µ»Ø·¶Î§
+    // è¿”å›èŒƒå›´
     return{ caretBegin, caretEnd - caretBegin };
 }
 
-// ÉèÖÃÑ¡ÔñÇø
+// è®¾ç½®é€‰æ‹©åŒº
 auto LongUI::CUIEditaleText::SetSelection(
     SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept-> HRESULT {
     //uint32_t line = uint32_t(-1);
@@ -125,7 +125,7 @@ auto LongUI::CUIEditaleText::SetSelection(
             --m_u32CaretPos;
             this->AlignCaretToNearestCluster(false, true);
             absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
-            // ¼ì²é»»ĞĞ·û
+            // æ£€æŸ¥æ¢è¡Œç¬¦
             absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
             if (absolute_position >= 1
                 && absolute_position < m_text.size()
@@ -177,7 +177,7 @@ auto LongUI::CUIEditaleText::SetSelection(
     case SelectionMode::Mode_Down:
     {
         SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
-        // »ñÈ¡ĞĞÖ¸±ê
+        // è·å–è¡ŒæŒ‡æ ‡
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
         this->layout->GetLineMetrics(
@@ -185,7 +185,7 @@ auto LongUI::CUIEditaleText::SetSelection(
             textMetrics.lineCount,
             &textMetrics.lineCount
             );
-        // »ñÈ¡ĞĞ
+        // è·å–è¡Œ
         uint32_t line, linePosition;
         CUIEditaleText::GetLineFromPosition(
             metrice_buffer.data,
@@ -194,7 +194,7 @@ auto LongUI::CUIEditaleText::SetSelection(
             &line,
             &linePosition
             );
-        // ÏÂÒÆ»òÉÏÒÆ
+        // ä¸‹ç§»æˆ–ä¸Šç§»
         if (mode == SelectionMode::Mode_Up) {
             if (line <= 0) break;
             line--;
@@ -207,7 +207,7 @@ auto LongUI::CUIEditaleText::SetSelection(
         }
         DWRITE_HIT_TEST_METRICS hitTestMetrics;
         float caretX, caretY, dummyX;
-        // »ñÈ¡µ±Ç°ÎÄ±¾XÎ»ÖÃ
+        // è·å–å½“å‰æ–‡æœ¬Xä½ç½®
         this->layout->HitTestTextPosition(
             m_u32CaretPos,
             m_u32CaretPosOffset > 0, // trailing if nonzero, else leading edge
@@ -215,7 +215,7 @@ auto LongUI::CUIEditaleText::SetSelection(
             &caretY,
             &hitTestMetrics
             );
-        // »ñÈ¡ĞÂÎ»ÖÃY×ø±ê
+        // è·å–æ–°ä½ç½®Yåæ ‡
         this->layout->HitTestTextPosition(
             linePosition,
             false, // leading edge
@@ -223,7 +223,7 @@ auto LongUI::CUIEditaleText::SetSelection(
             &caretY,
             &hitTestMetrics
             );
-        // »ñÈ¡ĞÂx, y µÄÎÄ±¾Î»ÖÃ
+        // è·å–æ–°x, y çš„æ–‡æœ¬ä½ç½®
         BOOL isInside, isTrailingHit;
         this->layout->HitTestPoint(
             caretX, caretY,
@@ -238,18 +238,18 @@ auto LongUI::CUIEditaleText::SetSelection(
     case SelectionMode::Mode_LeftWord:
     case SelectionMode::Mode_RightWord:
     {
-        // ¼ÆËãËùĞè×Ö·û´®¼¯
+        // è®¡ç®—æ‰€éœ€å­—ç¬¦ä¸²é›†
         SimpleSmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
         UINT32 clusterCount;
         this->layout->GetClusterMetrics(nullptr, 0, &clusterCount);
         if (clusterCount == 0) break;
-        // ÖØÖÃ´óĞ¡
+        // é‡ç½®å¤§å°
         metrice_buffer.NewSize(clusterCount);
         this->layout->GetClusterMetrics(metrice_buffer.data, clusterCount, &clusterCount);
         m_u32CaretPos = absolute_position;
         UINT32 clusterPosition = 0;
         UINT32 oldCaretPosition = m_u32CaretPos;
-        // ×óÒÆ
+        // å·¦ç§»
         if (mode == SelectionMode::Mode_LeftWord) {
             m_u32CaretPos = 0;
             m_u32CaretPosOffset = 0; // leading edge
@@ -258,13 +258,13 @@ auto LongUI::CUIEditaleText::SetSelection(
                 if (metrice_buffer.data[cluster].canWrapLineAfter) {
                     if (clusterPosition >= oldCaretPosition)
                         break;
-                    // Ë¢ĞÂ.
+                    // åˆ·æ–°.
                     m_u32CaretPos = clusterPosition;
                 }
             }
         }
         else {
-            // Ö®ºó
+            // ä¹‹å
             for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
                 UINT32 clusterLength = metrice_buffer.data[cluster].length;
                 m_u32CaretPos = clusterPosition;
@@ -282,9 +282,9 @@ auto LongUI::CUIEditaleText::SetSelection(
     case SelectionMode::Mode_Home:
     case SelectionMode::Mode_End:
     {
-        // »ñÈ¡Ô¤ÖªµÄÊ×Î»ÖÃ»òÕßÄ©Î»ÖÃ
+        // è·å–é¢„çŸ¥çš„é¦–ä½ç½®æˆ–è€…æœ«ä½ç½®
         SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
-        // »ñÈ¡ĞĞÖ¸±ê
+        // è·å–è¡ŒæŒ‡æ ‡
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
         this->layout->GetLineMetrics(
@@ -302,7 +302,7 @@ auto LongUI::CUIEditaleText::SetSelection(
             );
         m_u32CaretPosOffset = 0;
         if (mode == SelectionMode::Mode_End) {
-            // ·ÅÖÃ²åÈë·ûºÅ
+            // æ”¾ç½®æ’å…¥ç¬¦å·
             UINT32 lineLength = metrice_buffer.data[line].length -
                 metrice_buffer.data[line].newlineLength;
             m_u32CaretPosOffset = std::min(lineLength, 1u);
@@ -335,20 +335,20 @@ auto LongUI::CUIEditaleText::SetSelection(
         break;
     }
     absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
-    // ¸½¼ÓÑ¡Ôñ
+    // é™„åŠ é€‰æ‹©
     if (!exsel) {
         m_u32CaretAnchor = absolute_position;
     }
-    // ¼ì²éÒÆ¶¯
+    // æ£€æŸ¥ç§»åŠ¨
     bool caretMoved = (absolute_position != oldabsolute_position)
         || (m_u32CaretAnchor != old_caret_anchor);
-    // ÒÆ¶¯ÁË?
+    // ç§»åŠ¨äº†?
     if (caretMoved) {
-        // ¸üĞÂ¸ñÊ½
+        // æ›´æ–°æ ¼å¼
         if (update) {
 
         }
-        // Ë¢ĞÂ²åÈë·ûºÅ
+        // åˆ·æ–°æ’å…¥ç¬¦å·
         this->refresh(true);
     }
 
@@ -356,17 +356,17 @@ auto LongUI::CUIEditaleText::SetSelection(
     //return S_OK;
 }
 
-// É¾³ıÑ¡ÔñÇøÎÄ×Ö
+// åˆ é™¤é€‰æ‹©åŒºæ–‡å­—
 auto LongUI::CUIEditaleText::DeleteSelection() noexcept-> HRESULT {
     HRESULT hr = S_FALSE;
     DWRITE_TEXT_RANGE selection = this->GetSelectionRange();
     if (selection.length == 0 || UIEditaleText_IsReadOnly) return hr;
-    // É¾³ı
+    // åˆ é™¤
     hr = UIEditaleText_RemoveText(
         m_text, selection.startPosition, selection.length,
         UIEditaleText_IsReadOnly
         );
-    // ³É¹¦µÄ»°ÉèÖÃÑ¡ÔñÇø
+    // æˆåŠŸçš„è¯è®¾ç½®é€‰æ‹©åŒº
     if (hr == S_OK) {
         hr = this->SetSelection(Mode_Leading, selection.startPosition, false);
     }
@@ -374,19 +374,19 @@ auto LongUI::CUIEditaleText::DeleteSelection() noexcept-> HRESULT {
 }
 
 
-// ÉèÖÃÑ¡ÔñÇø
+// è®¾ç½®é€‰æ‹©åŒº
 bool LongUI::CUIEditaleText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
     BOOL isTrailingHit;
     BOOL isInside;
     DWRITE_HIT_TEST_METRICS caret_metrics;
-    // »ñÈ¡µ±Ç°µã»÷Î»ÖÃ
+    // è·å–å½“å‰ç‚¹å‡»ä½ç½®
     this->layout->HitTestPoint(
         x, y,
         &isTrailingHit,
         &isInside,
         &caret_metrics
         );
-    // ¸üĞÂµ±Ç°Ñ¡ÔñÇø
+    // æ›´æ–°å½“å‰é€‰æ‹©åŒº
     this->SetSelection(
         isTrailingHit ? SelectionMode::Mode_Trailing : SelectionMode::Mode_Leading,
         caret_metrics.textPosition,
@@ -396,7 +396,7 @@ bool LongUI::CUIEditaleText::SetSelectionFromPoint(float x, float y, bool exsel)
 }
 
 
-// ÍÏÈë
+// æ‹–å…¥
 bool LongUI::CUIEditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
     m_bDragFormatOK = false;
     m_bThisFocused = true;
@@ -404,7 +404,7 @@ bool LongUI::CUIEditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexc
     assert(data && effect && "bad argument");
     m_pHost->GetWindow()->ShowCaret();
     ::ReleaseStgMedium(&m_recentMedium);
-    // ¼ì²éÖ§³Ö¸ñÊ½: Unicode-Text
+    // æ£€æŸ¥æ”¯æŒæ ¼å¼: Unicode-Text
     FORMATETC fmtetc = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
     if (SUCCEEDED(data->GetData(&fmtetc, &m_recentMedium))) {
         m_bDragFormatOK = true;
@@ -413,34 +413,34 @@ bool LongUI::CUIEditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexc
 }
 
 
-// ÍÏÉÏ
+// æ‹–ä¸Š
 bool LongUI::CUIEditaleText::OnDragOver(float x, float y) noexcept {
-    // ×Ô¼ºµÄ?²¢ÇÒÔÚÑ¡Ôñ·¶Î§ÄÚ?
+    // è‡ªå·±çš„?å¹¶ä¸”åœ¨é€‰æ‹©èŒƒå›´å†…?
     if (m_bDragFromThis) {
         register auto range = m_dragRange;
         BOOL trailin, inside;
         DWRITE_HIT_TEST_METRICS caret_metrics;
-        // »ñÈ¡µ±Ç°µã»÷Î»ÖÃ
+        // è·å–å½“å‰ç‚¹å‡»ä½ç½®
         this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
         register bool inzone = caret_metrics.textPosition >= range.startPosition &&
             caret_metrics.textPosition < range.startPosition + range.length;
         if (inzone) return false;
     }
-    // Ñ¡ÔñÎ»ÖÃ
+    // é€‰æ‹©ä½ç½®
     if (m_bDragFormatOK) {
         this->SetSelectionFromPoint(x, y, false);
-        // ÏÔÊ¾²åÈë·ûºÅ
+        // æ˜¾ç¤ºæ’å…¥ç¬¦å·
         this->refresh(false);
         return true;
     }
     return false;
 }
 
-// ÖØ½¨
+// é‡å»º
 void LongUI::CUIEditaleText::Recreate(ID2D1RenderTarget* target) noexcept {
-    // ÎŞĞ§²ÎÊı
+    // æ— æ•ˆå‚æ•°
     assert(target); if (!target) return;
-    // ÖØĞÂ´´½¨×ÊÔ´
+    // é‡æ–°åˆ›å»ºèµ„æº
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pSelectionColor);
     m_pRenderTarget = ::SafeAcquire(target);
@@ -450,25 +450,25 @@ void LongUI::CUIEditaleText::Recreate(ID2D1RenderTarget* target) noexcept {
         );
 }
 
-// ¼üÈëÒ»¸ö×Ö·ûÊ±
+// é”®å…¥ä¸€ä¸ªå­—ç¬¦æ—¶
 void LongUI::CUIEditaleText::OnChar(char32_t ch) noexcept {
-    // ×Ö·ûÓĞĞ§
+    // å­—ç¬¦æœ‰æ•ˆ
     if ((ch >= 0x20 || ch == 9)) {
         if (UIEditaleText_IsReadOnly) {
             ::MessageBeep(MB_ICONERROR);
             return;
         }
-        // É¾³ıÑ¡ÔñÇø×Ö·û´®
+        // åˆ é™¤é€‰æ‹©åŒºå­—ç¬¦ä¸²
         this->DeleteSelection();
         //
         uint32_t length = 1;
         wchar_t chars[] = { static_cast<wchar_t>(ch), 0, 0 };
-        // sizeof(wchar_t) == sizeof(char32_t) Çé¿öÏÂ
+        // sizeof(wchar_t) == sizeof(char32_t) æƒ…å†µä¸‹
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change it");
 #if 0 // sizeof(wchar_t) == sizeof(char32_t)
 
 #else
-        // ¼ì²éÊÇ·ñĞèÒª×ª»»
+        // æ£€æŸ¥æ˜¯å¦éœ€è¦è½¬æ¢
         if (ch > 0xFFFF) {
             // From http://unicode.org/faq/utf_bom.html#35
             chars[0] = wchar_t(0xD800 + (ch >> 10) - (0x10000 >> 10));
@@ -476,36 +476,36 @@ void LongUI::CUIEditaleText::OnChar(char32_t ch) noexcept {
             length++;
         }
 #endif
-        // ²åÈë
+        // æ’å…¥
         this->insert(chars, m_u32CaretPos + m_u32CaretPosOffset, length);
-        // ÉèÖÃÑ¡ÔñÇø
+        // è®¾ç½®é€‰æ‹©åŒº
         this->SetSelection(SelectionMode::Mode_Right, length, false, false);
-        // Ë¢ĞÂ
+        // åˆ·æ–°
         this->refresh(true);
     }
 }
 
 
-// °´¼üÊ±
+// æŒ‰é”®æ—¶
 void LongUI::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
-    // ¼ì²é°´¼ü maybe IUIInput
+    // æ£€æŸ¥æŒ‰é”® maybe IUIInput
     bool heldShift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
     bool heldControl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
-    // ¾ø¶ÔÎ»ÖÃ
+    // ç»å¯¹ä½ç½®
     UINT32 absolutePosition = m_u32CaretPos + m_u32CaretPosOffset;
 
     switch (keycode)
     {
-    case VK_RETURN:     // »Ø³µ¼ü
-        // ¶àĞĞ - ¼üCRLF×Ö·û
+    case VK_RETURN:     // å›è½¦é”®
+        // å¤šè¡Œ - é”®CRLFå­—ç¬¦
         if (UIEditaleText_IsMultiLine) {
             this->DeleteSelection();
             this->insert(L"\r\n", absolutePosition, 2);
             this->SetSelection(SelectionMode::Mode_Leading, absolutePosition + 2, false, false);
-            // ĞŞ¸Ä
+            // ä¿®æ”¹
             this->refresh();
         }
-        // µ¥ĞĞ - Ïò´°¿Ú·¢ËÍÊäÈëÍê±ÏÏûÏ¢
+        // å•è¡Œ - å‘çª—å£å‘é€è¾“å…¥å®Œæ¯•æ¶ˆæ¯
         else {
             LongUI::EventArgument arg = { 0 };
             arg.event = LongUI::Event::Event_EditReturn;
@@ -514,46 +514,46 @@ void LongUI::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
             // TODO: single line
         }
         break;
-    case VK_BACK:       // ÍË¸ñ¼ü
-                        // ÓĞÑ¡ÔñµÄ»°
+    case VK_BACK:       // é€€æ ¼é”®
+                        // æœ‰é€‰æ‹©çš„è¯
         if (absolutePosition != m_u32CaretAnchor) {
-            // É¾³ıÑ¡ÔñÇø
+            // åˆ é™¤é€‰æ‹©åŒº
             this->DeleteSelection();
-            // ÖØ½¨²¼¾Ö
+            // é‡å»ºå¸ƒå±€
             this->recreate_layout();
         }
         else if (absolutePosition > 0) {
             UINT32 count = 1;
-            // ¶ÔÓÚCR/LF ÌØ±ğ´¦Àí
+            // å¯¹äºCR/LF ç‰¹åˆ«å¤„ç†
             if (absolutePosition >= 2 && absolutePosition <= m_text.size()) {
                 auto* __restrict base = m_text.data() + absolutePosition;
                 if (base[-2] == L'\r' && base[-1] == L'\n') {
                     count = 2;
                 }
             }
-            // ×óÒÆ
+            // å·¦ç§»
             this->SetSelection(SelectionMode::Mode_LeftChar, count, false);
-            // ×Ö·û´®: É¾³ıcount¸ö×Ö·û
+            // å­—ç¬¦ä¸²: åˆ é™¤countä¸ªå­—ç¬¦
             if (::UIEditaleText_RemoveText(m_text, m_u32CaretPos, count, UIEditaleText_IsReadOnly) == S_OK) {
                 this->recreate_layout();
             }
         }
-        // ĞŞ¸Ä
+        // ä¿®æ”¹
         this->refresh();
         break;
-    case VK_DELETE:     // É¾³ı¼ü
-                        // ÓĞÑ¡ÔñµÄ»°
+    case VK_DELETE:     // åˆ é™¤é”®
+                        // æœ‰é€‰æ‹©çš„è¯
         if (absolutePosition != m_u32CaretAnchor) {
-            // É¾³ıÑ¡ÔñÇø
+            // åˆ é™¤é€‰æ‹©åŒº
             this->DeleteSelection();
-            // ÖØ½¨²¼¾Ö
+            // é‡å»ºå¸ƒå±€
             this->recreate_layout();
         }
-        // É¾³ıÏÂÒ»¸öµÄ×Ö·û
+        // åˆ é™¤ä¸‹ä¸€ä¸ªçš„å­—ç¬¦
         else {
             DWRITE_HIT_TEST_METRICS hitTestMetrics;
             float caretX, caretY;
-            // »ñÈ¡¼¯Èº´óĞ¡
+            // è·å–é›†ç¾¤å¤§å°
             this->layout->HitTestTextPosition(
                 absolutePosition,
                 false,
@@ -568,9 +568,9 @@ void LongUI::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
                     ++hitTestMetrics.length;
                 }
             }
-            // ĞŞ¸Ä
+            // ä¿®æ”¹
             this->SetSelection(SelectionMode::Mode_Leading, hitTestMetrics.textPosition, false);
-            // É¾³ı×Ö·û
+            // åˆ é™¤å­—ç¬¦
             if (::UIEditaleText_RemoveText(m_text,
                 hitTestMetrics.textPosition, hitTestMetrics.length,
                 UIEditaleText_IsReadOnly
@@ -578,42 +578,42 @@ void LongUI::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
                 this->recreate_layout();
             }
         }
-        // ĞŞ¸Ä
+        // ä¿®æ”¹
         this->refresh();
         break;
-    case VK_TAB:        // Tab¼ü
+    case VK_TAB:        // Tabé”®
         break;
-    case VK_LEFT:       // ¹â±ê×óÒÆÒ»¸ö×Ö·û/¼¯Èº
+    case VK_LEFT:       // å…‰æ ‡å·¦ç§»ä¸€ä¸ªå­—ç¬¦/é›†ç¾¤
         this->SetSelection(heldControl ? SelectionMode::Mode_LeftWord : SelectionMode::Mode_Left, 1, heldShift);
         break;
-    case VK_RIGHT:      // ¹â±êÓÒÒÆÒ»¸ö×Ö·û/¼¯Èº
+    case VK_RIGHT:      // å…‰æ ‡å³ç§»ä¸€ä¸ªå­—ç¬¦/é›†ç¾¤
         this->SetSelection(heldControl ? SelectionMode::Mode_RightWord : SelectionMode::Mode_Right, 1, heldShift);
         break;
-    case VK_UP:         // ¶àĞĞÄ£Ê½: ÉÏÒÆÒ»ĞĞ
+    case VK_UP:         // å¤šè¡Œæ¨¡å¼: ä¸Šç§»ä¸€è¡Œ
         if (UIEditaleText_IsMultiLine)
             this->SetSelection(SelectionMode::Mode_Up, 1, heldShift);
         break;
-    case VK_DOWN:       // ¶àĞĞÄ£Ê½: ÏÂÒÆÒ»ĞĞ
+    case VK_DOWN:       // å¤šè¡Œæ¨¡å¼: ä¸‹ç§»ä¸€è¡Œ
         if (UIEditaleText_IsMultiLine)
             this->SetSelection(SelectionMode::Mode_Down, 1, heldShift);
         break;
-    case VK_HOME:       // HOME¼ü
+    case VK_HOME:       // HOMEé”®
         this->SetSelection(heldControl ? SelectionMode::Mode_First : SelectionMode::Mode_Home, 0, heldShift);
         break;
-    case VK_END:        // END¼ü
+    case VK_END:        // ENDé”®
         this->SetSelection(heldControl ? SelectionMode::Mode_Last : SelectionMode::Mode_End, 0, heldShift);
         break;
-    case 'C':           // 'C'¼ü Ctrl+C ¸´ÖÆ
+    case 'C':           // 'C'é”® Ctrl+C å¤åˆ¶
         if (heldControl) this->CopyToClipboard();
         break;
-    case VK_INSERT:     // Insert¼ü
+    case VK_INSERT:     // Inserté”®
         if (heldControl)    this->CopyToClipboard();
         else if (heldShift) this->PasteFromClipboard();
         break;
-    case 'V':           // 'V'¼ü Ctrl+V Õ³Ìù
+    case 'V':           // 'V'é”® Ctrl+V ç²˜è´´
         if (heldControl)   this->PasteFromClipboard();
         break;
-    case 'X':           // 'X'¼ü Ctrl+X ¼ôÇĞ
+    case 'X':           // 'X'é”® Ctrl+X å‰ªåˆ‡
         if (heldControl) {
             this->CopyToClipboard();
             this->DeleteSelection();
@@ -621,7 +621,7 @@ void LongUI::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
             this->refresh();
         }
         break;
-    case 'A':           // 'A'¼ü Ctrl+A È«Ñ¡
+    case 'A':           // 'A'é”® Ctrl+A å…¨é€‰
         if (heldControl)
             this->SetSelection(SelectionMode::Mode_SelectAll, 0, true);
         break;
@@ -634,47 +634,47 @@ void LongUI::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
     }
 }
 
-// µ±ÉèÖÃ½¹µãÊ±
+// å½“è®¾ç½®ç„¦ç‚¹æ—¶
 void LongUI::CUIEditaleText::OnSetFocus() noexcept {
     m_bThisFocused = true;
     this->refresh()->ShowCaret();
 }
 
-// µ±Ê§È¥½¹µãÊ±
+// å½“å¤±å»ç„¦ç‚¹æ—¶
 void LongUI::CUIEditaleText::OnKillFocus() noexcept {
     register auto* window = m_pHost->GetWindow();
     window->HideCaret();
     m_bThisFocused = false;
 }
 
-// ×ó¼üµ¯ÆğÊ±
+// å·¦é”®å¼¹èµ·æ—¶
 void LongUI::CUIEditaleText::OnLButtonUp(float x, float y) noexcept {
-    // ¼ì²é
+    // æ£€æŸ¥
     if (m_bClickInSelection && m_ptStart.x == x && m_ptStart.y == y) {
-        // Ñ¡Ôñ
+        // é€‰æ‹©
         this->SetSelectionFromPoint(x, y, false);
-        // ÏÔÊ¾²åÈë·ûºÅ
+        // æ˜¾ç¤ºæ’å…¥ç¬¦å·
         this->refresh(false);
     }
     m_pHost->GetWindow()->ReleaseCapture();
 
 }
 
-// ×ó¼ü°´ÏÂÊ±
+// å·¦é”®æŒ‰ä¸‹æ—¶
 void LongUI::CUIEditaleText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
-    // ÉèÖÃÊó±ê²¶»ñ
+    // è®¾ç½®é¼ æ ‡æ•è·
     m_pHost->GetWindow()->SetCapture(m_pHost);
-    // Ë¢ĞÂ
+    // åˆ·æ–°
     auto range = this->GetSelectionRange();
     this->RefreshSelectionMetrics(range);
-    // ¼ÇÂ¼µã»÷Î»ÖÃ
+    // è®°å½•ç‚¹å‡»ä½ç½®
     m_ptStart = { x, y };
-    // Ñ¡ÔñÇøÖĞ?
+    // é€‰æ‹©åŒºä¸­?
     if (m_metriceBuffer.data_length) {
-        // ¼ÆËã
+        // è®¡ç®—
         BOOL trailin, inside;
         DWRITE_HIT_TEST_METRICS caret_metrics;
-        // »ñÈ¡µ±Ç°µã»÷Î»ÖÃ
+        // è·å–å½“å‰ç‚¹å‡»ä½ç½®
         this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
         m_bClickInSelection = caret_metrics.textPosition >= range.startPosition &&
             caret_metrics.textPosition < range.startPosition + range.length;
@@ -682,41 +682,41 @@ void LongUI::CUIEditaleText::OnLButtonDown(float x, float y, bool shfit_hold) no
     else {
         m_bClickInSelection = false;
     }
-    // ²åÈë
+    // æ’å…¥
     if (!m_bClickInSelection) {
-        // Ñ¡Ôñ
+        // é€‰æ‹©
         this->SetSelectionFromPoint(x, y, shfit_hold);
-        // ÏÔÊ¾²åÈë·ûºÅ
+        // æ˜¾ç¤ºæ’å…¥ç¬¦å·
         // CUIEditaleText_ShowTheCaret
     }
 }
 
-// ×ó¼ü°´×¡Ê±
+// å·¦é”®æŒ‰ä½æ—¶
 void LongUI::CUIEditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
-    // ÆğµãÔÚÑ¡ÔñÇø
+    // èµ·ç‚¹åœ¨é€‰æ‹©åŒº
     if (!shfit_hold && m_bClickInSelection) {
-        // ¿ªÊ¼ÍÏ×§
+        // å¼€å§‹æ‹–æ‹½
         if (m_ptStart.x != x || m_ptStart.y != y) {
-            // ¼ì²é·¶Î§
+            // æ£€æŸ¥èŒƒå›´
             m_dragRange = this->GetSelectionRange();
-            // È¥³ıÊó±ê²¶»ñ
+            // å»é™¤é¼ æ ‡æ•è·
             m_pHost->GetWindow()->ReleaseCapture();
-            // ÉèÖÃ
+            // è®¾ç½®
             m_pDataObject->SetUnicodeText(this->CopyToGlobal());
-            // ¿ªÊ¼ÍÏ×§
+            // å¼€å§‹æ‹–æ‹½
             DWORD effect = DROPEFFECT_COPY;
             if (!(UIEditaleText_IsReadOnly)) effect |= DROPEFFECT_MOVE; 
             const register HRESULT hr = ::SHDoDragDrop(
                 m_pHost->GetWindow()->GetHwnd(),
                 m_pDataObject, m_pDropSource, effect, &effect
                 );
-            // ÍÏ·Å³É¹¦ ÇÒÎªÒÆ¶¯
+            // æ‹–æ”¾æˆåŠŸ ä¸”ä¸ºç§»åŠ¨
             if (hr == DRAGDROP_S_DROP && effect == DROPEFFECT_MOVE) {
-                //×Ô¼ºµÄ£¿
+                //è‡ªå·±çš„ï¼Ÿ
                 if (m_bDragFromThis) {
                     m_dragRange.startPosition += m_dragRange.length;
                 }
-                // É¾³ı
+                // åˆ é™¤
                 if (UIEditaleText_RemoveText(
                     m_text, m_dragRange.startPosition, m_dragRange.length,
                     UIEditaleText_IsReadOnly
@@ -727,7 +727,7 @@ void LongUI::CUIEditaleText::OnLButtonHold(float x, float y, bool shfit_hold) no
                 }
 
             }
-            // »Ø¹é?
+            // å›å½’?
             //m_pHost->GetWindow()->SetCapture(m_pHost);
         }
     }
@@ -736,11 +736,11 @@ void LongUI::CUIEditaleText::OnLButtonHold(float x, float y, bool shfit_hold) no
     }
 }
 
-// ¶ÔÆë×î½ü×Ö·û¼¯
+// å¯¹é½æœ€è¿‘å­—ç¬¦é›†
 void LongUI::CUIEditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
     DWRITE_HIT_TEST_METRICS hitTestMetrics;
     float caretX, caretY;
-    // ¶ÔÆë×î½ü×Ö·û¼¯
+    // å¯¹é½æœ€è¿‘å­—ç¬¦é›†
     this->layout->HitTestTextPosition(
         m_u32CaretPos,
         false,
@@ -748,21 +748,21 @@ void LongUI::CUIEditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noe
         &caretY,
         &hitTestMetrics
         );
-    // Ìø¹ı0
+    // è·³è¿‡0
     m_u32CaretPos = hitTestMetrics.textPosition;
     m_u32CaretPosOffset = (hit) ? hitTestMetrics.length : 0;
-    // ¶ÔÓÚ²»¿ÉÊÓµÄ
+    // å¯¹äºä¸å¯è§†çš„
     if (skip && hitTestMetrics.width == 0) {
         m_u32CaretPos += m_u32CaretPosOffset;
         m_u32CaretPosOffset = 0;
     }
 }
 
-// »ñÈ¡²åÈë·ûºÅ¾ØĞÎ
+// è·å–æ’å…¥ç¬¦å·çŸ©å½¢
 void LongUI::CUIEditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
-    // ¼ì²é²¼¾Ö
+    // æ£€æŸ¥å¸ƒå±€
     if (this->layout) {
-        // »ñÈ¡ f(ÎÄ±¾Æ«ÒÆ) -> ×ø±ê
+        // è·å– f(æ–‡æœ¬åç§») -> åæ ‡
         DWRITE_HIT_TEST_METRICS caretMetrics;
         float caretX, caretY;
         this->layout->HitTestTextPosition(
@@ -772,7 +772,7 @@ void LongUI::CUIEditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
             &caretY,
             &caretMetrics
             );
-        // »ñÈ¡µ±Ç°Ñ¡Ôñ·¶Î§
+        // è·å–å½“å‰é€‰æ‹©èŒƒå›´
         DWRITE_TEXT_RANGE selectionRange = this->GetSelectionRange();
         if (selectionRange.length > 0) {
             UINT32 actualHitTestCount = 1;
@@ -787,12 +787,12 @@ void LongUI::CUIEditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
                 );
             caretY = caretMetrics.top;
         }
-        // »ñÈ¡²åÈë·ûºÅ¿í¶È
+        // è·å–æ’å…¥ç¬¦å·å®½åº¦
         DWORD caretIntThickness = 2;
         ::SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretIntThickness, FALSE);
         register float caretThickness = static_cast<float>(caretIntThickness);
-        // ¼ÆËãÏà¶ÔÎ»ÖÃ
-        // XXX: ¼ì²édraw_zone
+        // è®¡ç®—ç›¸å¯¹ä½ç½®
+        // XXX: æ£€æŸ¥draw_zone
         rect.left = caretX - caretThickness * 0.5f + m_pHost->draw_zone.left;
         rect.width = caretThickness;
         rect.top = caretY + m_pHost->draw_zone.top;
@@ -800,18 +800,18 @@ void LongUI::CUIEditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
     }
 }
 
-// äÖÈ¾
+// æ¸²æŸ“
 void LongUI::CUIEditaleText::Render(float x, float y) noexcept {
     assert(m_pRenderTarget);
     this->refresh(false);
-    // ¼ì²éÑ¡ÔñÇø
+    // æ£€æŸ¥é€‰æ‹©åŒº
     auto range = this->GetSelectionRange();
-    // ÓĞĞ§
+    // æœ‰æ•ˆ
     if (range.length > 0) {
         this->RefreshSelectionMetrics(range);
         if (m_metriceBuffer.data_length) {
             m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-            // ±éÀú
+            // éå†
             for (auto itr = m_metriceBuffer.data;
             itr != m_metriceBuffer.data + m_metriceBuffer.data_length; ++itr) {
                 const DWRITE_HIT_TEST_METRICS& htm = *itr;
@@ -826,23 +826,23 @@ void LongUI::CUIEditaleText::Render(float x, float y) noexcept {
             m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
     }
-    // ¿Ì»­×ÖÌå
+    // åˆ»ç”»å­—ä½“
     this->layout->Draw(m_buffer.data, m_pTextRenderer, x, y);
 }
 
-// ¸´ÖÆµ½ Ä¿±êÈ«¾Ö¾ä±ú
+// å¤åˆ¶åˆ° ç›®æ ‡å…¨å±€å¥æŸ„
 auto LongUI::CUIEditaleText::CopyToGlobal() noexcept-> HGLOBAL {
     HGLOBAL global = nullptr;
     auto selection = this->GetSelectionRange();
-    // ÓĞĞ§
+    // æœ‰æ•ˆ
     if (selection.length) {
-        // »ñÈ¡Ñ¡Ôñ×Ö·û³¤¶È
+        // è·å–é€‰æ‹©å­—ç¬¦é•¿åº¦
         size_t byteSize = sizeof(wchar_t) * (selection.length + 1);
         global = ::GlobalAlloc(GMEM_DDESHARE | GMEM_ZEROINIT, byteSize);
-        // ÓĞĞ§?
+        // æœ‰æ•ˆ?
         if (global) {
             auto* memory = reinterpret_cast<wchar_t*>(::GlobalLock(global));
-            // ÉêÇëÈ«¾ÖÄÚ´æ³É¹¦
+            // ç”³è¯·å…¨å±€å†…å­˜æˆåŠŸ
             if (memory) {
                 const wchar_t* text = m_text.c_str();
                 ::memcpy(memory, text + selection.startPosition, byteSize);
@@ -854,30 +854,30 @@ auto LongUI::CUIEditaleText::CopyToGlobal() noexcept-> HGLOBAL {
     return global;
 }
 
-// ¸´ÖÆµ½ ¼ôÇĞ°å
+// å¤åˆ¶åˆ° å‰ªåˆ‡æ¿
 auto LongUI::CUIEditaleText::CopyToClipboard() noexcept-> HRESULT {
     HRESULT hr = E_FAIL;
     auto selection = this->GetSelectionRange();
     if (selection.length) {
-        // ´ò¿ª¼ôÇĞ°å
+        // æ‰“å¼€å‰ªåˆ‡æ¿
         if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
             if (::EmptyClipboard()) {
-                // »ñÈ¡Ğı×ª×Ö·û³¤¶È
+                // è·å–æ—‹è½¬å­—ç¬¦é•¿åº¦
                 size_t byteSize = sizeof(wchar_t) * (selection.length + 1);
                 HGLOBAL hClipboardData = GlobalAlloc(GMEM_DDESHARE | GMEM_ZEROINIT, byteSize);
-                // ÓĞĞ§?
+                // æœ‰æ•ˆ?
                 if (hClipboardData) {
                     auto* memory = reinterpret_cast<wchar_t*>(::GlobalLock(hClipboardData));
-                    // ÉêÇëÈ«¾ÖÄÚ´æ³É¹¦
+                    // ç”³è¯·å…¨å±€å†…å­˜æˆåŠŸ
                     if (memory) {
                         const wchar_t* text = m_text.c_str();
                         ::memcpy(memory, text + selection.startPosition, byteSize);
                         memory[selection.length] = L'\0';
                         ::GlobalUnlock(hClipboardData);
-                        // »ñÈ¡¸»ÎÄ±¾Êı¾İ
+                        // è·å–å¯Œæ–‡æœ¬æ•°æ®
                         if (UIEditaleText_IsRiched) {
                             assert(!"Unsupported Now");
-                            // TODO: ¸»ÎÄ±¾
+                            // TODO: å¯Œæ–‡æœ¬
                         }
                         if (::SetClipboardData(CF_UNICODETEXT, hClipboardData) != nullptr) {
                             hClipboardData = nullptr;
@@ -889,7 +889,7 @@ auto LongUI::CUIEditaleText::CopyToClipboard() noexcept-> HRESULT {
                     ::GlobalFree(hClipboardData);
                 }
             }
-            //  ¹Ø±Õ¼ôÇĞ°å
+            //  å…³é—­å‰ªåˆ‡æ¿
             ::CloseClipboard();
         }
     }
@@ -898,52 +898,52 @@ auto LongUI::CUIEditaleText::CopyToClipboard() noexcept-> HRESULT {
 
 
 
-// ´Ó Ä¿±êÈ«¾Ö¾ä±ú ğ¤Ìù
+// ä» ç›®æ ‡å…¨å±€å¥æŸ„ é»è´´
 auto LongUI::CUIEditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> HRESULT {
-    // ÕıÊ½¿ªÊ¼
+    // æ­£å¼å¼€å§‹
     size_t byteSize = ::GlobalSize(global);
-    // »ñÈ¡Êı¾İ
+    // è·å–æ•°æ®
     void* memory = ::GlobalLock(global);
     HRESULT hr = E_INVALIDARG;
-    // Êı¾İÓĞĞ§?
+    // æ•°æ®æœ‰æ•ˆ?
     if (memory) {
-        // Ìæ»»Ñ¡ÔñÇø
+        // æ›¿æ¢é€‰æ‹©åŒº
         this->DeleteSelection();
         const wchar_t* text = reinterpret_cast<const wchar_t*>(memory);
-        // ¼ÆËã³¤¶È
+        // è®¡ç®—é•¿åº¦
         auto characterCount = static_cast<UINT32>(::wcsnlen(text, byteSize / sizeof(wchar_t)));
-        // ²åÈë
+        // æ’å…¥
         hr = this->insert(text, m_u32CaretPos + m_u32CaretPosOffset, characterCount);
         ::GlobalUnlock(global);
-        // ÒÆ¶¯
+        // ç§»åŠ¨
         this->SetSelection(SelectionMode::Mode_RightChar, characterCount, true);
     }
     return hr;
 }
 
-// ´Ó ¼ôÇĞ°å ğ¤Ìù
+// ä» å‰ªåˆ‡æ¿ é»è´´
 auto LongUI::CUIEditaleText::PasteFromClipboard() noexcept-> HRESULT {
-    // ÕıÊ½¿ªÊ¼
+    // æ­£å¼å¼€å§‹
     HRESULT hr = S_OK;  uint32_t characterCount = 0ui32;
-    // ´ò¿ª¼ôÇĞ°å
+    // æ‰“å¼€å‰ªåˆ‡æ¿
     if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
-        // »ñÈ¡¸»ÎÄ±¾Êı¾İ
+        // è·å–å¯Œæ–‡æœ¬æ•°æ®
         if (UIEditaleText_IsRiched) {
             assert(!"Unsupported Now");
             // TODO
         }
-        // »ñÈ¡UnicodeÊı¾İ
+        // è·å–Unicodeæ•°æ®
         else {
             auto data = ::GetClipboardData(CF_UNICODETEXT);
             hr = this->PasteFromGlobal(data);
         }
-        // ¹Ø±Õ¼ôÇĞ°å
+        // å…³é—­å‰ªåˆ‡æ¿
         ::CloseClipboard();
     }
     return hr;
 }
 
-// »ñÈ¡ĞĞ±àºÅ
+// è·å–è¡Œç¼–å·
 void LongUI::CUIEditaleText::GetLineFromPosition(
     const DWRITE_LINE_METRICS * lineMetrics,
     uint32_t lineCount, uint32_t textPosition,
@@ -956,7 +956,7 @@ void LongUI::CUIEditaleText::GetLineFromPosition(
         linePosition = nextLinePosition;
         nextLinePosition = linePosition + lineMetrics[line].length;
         if (nextLinePosition > textPosition) {
-            // ²»ĞèÒª.
+            // ä¸éœ€è¦.
             break;
         }
     }
@@ -964,14 +964,14 @@ void LongUI::CUIEditaleText::GetLineFromPosition(
     *lineOut = std::min(line, lineCount - 1);
 }
 
-// ¸üĞÂÑ¡ÔñÇøµã»÷²âÊÔÇø¿é
+// æ›´æ–°é€‰æ‹©åŒºç‚¹å‡»æµ‹è¯•åŒºå—
 void LongUI::CUIEditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
-    // ÓĞÑ¡ÔñµÄÇé¿öÏÂ
+    // æœ‰é€‰æ‹©çš„æƒ…å†µä¸‹
     if (selection.length == 0) {
         m_metriceBuffer.data_length = 0;
         return;
     };
-    // ¼ì²éÑ¡ÔñµÄÇø¿éÊıÁ¿
+    // æ£€æŸ¥é€‰æ‹©çš„åŒºå—æ•°é‡
     uint32_t actualHitTestCount = 0;
     this->layout->HitTestTextRange(
         selection.startPosition,
@@ -982,10 +982,10 @@ void LongUI::CUIEditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection
         0, // metrics count
         &actualHitTestCount
         );
-    // ±£Ö¤Êı¾İÕıÈ·
+    // ä¿è¯æ•°æ®æ­£ç¡®
     m_metriceBuffer.NewSize(actualHitTestCount);
     if (!actualHitTestCount) return;
-    // ÕıÊ½»ñÈ¡
+    // æ­£å¼è·å–
     this->layout->HitTestTextRange(
         selection.startPosition,
         selection.length,
@@ -999,7 +999,7 @@ void LongUI::CUIEditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection
 
 
 
-// CUIEditaleText Îö¹¹º¯Êı
+// CUIEditaleText ææ„å‡½æ•°
 LongUI::CUIEditaleText::~CUIEditaleText() noexcept {
     ::ReleaseStgMedium(&m_recentMedium);
     ::SafeRelease(this->layout);
@@ -1016,40 +1016,40 @@ LongUI::CUIEditaleText::~CUIEditaleText() noexcept {
 
 #define UIEditaleText_NewAttribute(a) { ::strcpy(attribute_buffer, prefix); ::strcat(attribute_buffer, a); }
 
-// ÅäÖÃ¹¹Ôìº¯Êı
+// é…ç½®æ„é€ å‡½æ•°
 LongUI::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_node node,
     const char* prefix) noexcept : m_pHost(host) {
     m_dragRange = { 0, 0 };
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     assert(node && prefix && "bad arguments");
     ZeroMemory(&m_recentMedium, sizeof(m_recentMedium));
     m_pFactory = ::SafeAcquire(UIManager_DWriteFactory);
     register const char* str = nullptr;
     char attribute_buffer[256];
-    // ¼ì²éÀàĞÍ
+    // æ£€æŸ¥ç±»å‹
     {
         uint32_t tmptype = Type_None;
-        // ¸»ÎÄ±¾
+        // å¯Œæ–‡æœ¬
         UIEditaleText_NewAttribute("rich");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_Riched;
         }
-        // ¶àĞĞÏÔÊ¾
+        // å¤šè¡Œæ˜¾ç¤º
         UIEditaleText_NewAttribute("multiline");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_MultiLine;
         }
-        // Ö»¶Á
+        // åªè¯»
         UIEditaleText_NewAttribute("readonly");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_ReadOnly;
         }
-        // Ö»¶Á
+        // åªè¯»
         UIEditaleText_NewAttribute("accelerator");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_Accelerator;
         }
-        // ÃÜÂë
+        // å¯†ç 
         UIEditaleText_NewAttribute("password");
         if (str = node.attribute(attribute_buffer).value()) {
             tmptype |= Type_Password;
@@ -1058,7 +1058,7 @@ LongUI::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_node node,
         }
         this->type = static_cast<EditaleTextType>(tmptype);
     }
-    // »ñÈ¡äÖÈ¾Æ÷
+    // è·å–æ¸²æŸ“å™¨
     {
         int renderer_index = Type_NormalTextRenderer;
         UIEditaleText_NewAttribute("renderer");
@@ -1067,7 +1067,7 @@ LongUI::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_node node,
         }
         auto renderer = UIManager.GetTextRenderer(renderer_index);
         m_pTextRenderer = renderer;
-        // ±£Ö¤»º³åÇø
+        // ä¿è¯ç¼“å†²åŒº
         if (renderer) {
             auto length = renderer->GetContextSizeInByte();
             if (length) {
@@ -1079,13 +1079,13 @@ LongUI::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_node node,
             }
         }
     }
-    // ¼ì²é»ù±¾ÑÕÉ«
+    // æ£€æŸ¥åŸºæœ¬é¢œè‰²
     {
         m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
         UIEditaleText_NewAttribute("color");
         UIControl::MakeColor(node.attribute(attribute_buffer).value(), m_basicColor);
     }
-    // ¼ì²é¸ñÊ½
+    // æ£€æŸ¥æ ¼å¼
     {
         uint32_t format_index = LongUIDefaultTextFormatIndex;
         UIEditaleText_NewAttribute("format");
@@ -1094,7 +1094,7 @@ LongUI::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_node node,
         }
         m_pBasicFormat = UIManager.GetTextFormat(format_index);
     }
-    // »ñÈ¡ÎÄ±¾
+    // è·å–æ–‡æœ¬
     {
         wchar_t buffer[LongUIStringBufferLength];
         if (str = node.attribute(prefix).value()) {
@@ -1106,22 +1106,22 @@ LongUI::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_node node,
             }
         }
     }
-    // ´´½¨²¼¾Ö
+    // åˆ›å»ºå¸ƒå±€
     this->recreate_layout();
 }
 
-// ¸´ÖÆÈ«¾ÖÊôĞÔ
+// å¤åˆ¶å…¨å±€å±æ€§
 void LongUI::CUIEditaleText::CopyGlobalProperties(
     IDWriteTextLayout* old_layout,
     IDWriteTextLayout* new_layout) noexcept {
-    // »ù±¾ÊôĞÔ
+    // åŸºæœ¬å±æ€§
     new_layout->SetTextAlignment(old_layout->GetTextAlignment());
     new_layout->SetParagraphAlignment(old_layout->GetParagraphAlignment());
     new_layout->SetWordWrapping(old_layout->GetWordWrapping());
     new_layout->SetReadingDirection(old_layout->GetReadingDirection());
     new_layout->SetFlowDirection(old_layout->GetFlowDirection());
     new_layout->SetIncrementalTabStop(old_layout->GetIncrementalTabStop());
-    // ¶îÍâÊôĞÔ
+    // é¢å¤–å±æ€§
 #ifndef LONGUI_EDITCORE_COPYMAINPROP
     DWRITE_TRIMMING trimmingOptions = {};
     IDWriteInlineObject* inlineObject = nullptr;
@@ -1136,13 +1136,13 @@ void LongUI::CUIEditaleText::CopyGlobalProperties(
 #endif
 }
 
-// ¶Ô·¶Î§¸´ÖÆµ¥¸öÊôĞÔ
+// å¯¹èŒƒå›´å¤åˆ¶å•ä¸ªå±æ€§
 void LongUI::CUIEditaleText::CopySinglePropertyRange(
     IDWriteTextLayout* old_layout, uint32_t old_start,
     IDWriteTextLayout* new_layout, uint32_t new_start, uint32_t length) noexcept {
-    // ¼ÆËã·¶Î§
+    // è®¡ç®—èŒƒå›´
     DWRITE_TEXT_RANGE range = { new_start,  std::min(length, UINT32_MAX - new_start) };
-    // ×ÖÌå¼¯
+    // å­—ä½“é›†
 #ifndef LONGUI_EDITCORE_COPYMAINPROP
     IDWriteFontCollection* fontCollection = nullptr;
     old_layout->GetFontCollection(old_start, &fontCollection);
@@ -1150,12 +1150,12 @@ void LongUI::CUIEditaleText::CopySinglePropertyRange(
     SafeRelease(fontCollection);
 #endif
     {
-        // ×ÖÌåÃû
+        // å­—ä½“å
         wchar_t fontFamilyName[100];
         fontFamilyName[0] = L'\0';
         old_layout->GetFontFamilyName(old_start, &fontFamilyName[0], ARRAYSIZE(fontFamilyName));
         new_layout->SetFontFamilyName(fontFamilyName, range);
-        // Ò»°ãÊôĞÔ
+        // ä¸€èˆ¬å±æ€§
         DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
         DWRITE_FONT_STYLE style = DWRITE_FONT_STYLE_NORMAL;
         DWRITE_FONT_STRETCH stretch = DWRITE_FONT_STRETCH_NORMAL;
@@ -1165,36 +1165,36 @@ void LongUI::CUIEditaleText::CopySinglePropertyRange(
         new_layout->SetFontWeight(weight, range);
         new_layout->SetFontStyle(style, range);
         new_layout->SetFontStretch(stretch, range);
-        // ×ÖÌå´óĞ¡
+        // å­—ä½“å¤§å°
         FLOAT fontSize = 12.0f;
         old_layout->GetFontSize(old_start, &fontSize);
         new_layout->SetFontSize(fontSize, range);
-        // ÏÂ»®Ïß. É¾³ıÏß
+        // ä¸‹åˆ’çº¿. åˆ é™¤çº¿
         BOOL value = FALSE;
         old_layout->GetUnderline(old_start, &value);
         new_layout->SetUnderline(value, range);
         old_layout->GetStrikethrough(old_start, &value);
         new_layout->SetStrikethrough(value, range);
 #ifndef LONGUI_EDITCORE_COPYMAINPROP
-        // µØÇøÃû
+        // åœ°åŒºå
         wchar_t localeName[LOCALE_NAME_MAX_LENGTH];
         localeName[0] = L'\0';
         old_layout->GetLocaleName(old_start, &localeName[0], ARRAYSIZE(localeName));
         new_layout->SetLocaleName(localeName, range);
 #endif
     }
-    // ¿Ì»­Ğ§¹û
+    // åˆ»ç”»æ•ˆæœ
     IUnknown* drawingEffect = nullptr;
     old_layout->GetDrawingEffect(old_start, &drawingEffect);
     new_layout->SetDrawingEffect(drawingEffect, range);
     SafeRelease(drawingEffect);
-    // ÄÚÁª¶ÔÏó
+    // å†…è”å¯¹è±¡
     IDWriteInlineObject* inlineObject = nullptr;
     old_layout->GetInlineObject(old_start, &inlineObject);
     new_layout->SetInlineObject(inlineObject, range);
     SafeRelease(inlineObject);
 #ifndef LONGUI_EDITCORE_COPYMAINPROP
-    // ÅÅ°æ
+    // æ’ç‰ˆ
     IDWriteTypography* typography = nullptr;
     old_layout->GetTypography(old_start, &typography);
     new_layout->SetTypography(typography, range);
@@ -1202,21 +1202,21 @@ void LongUI::CUIEditaleText::CopySinglePropertyRange(
 #endif
 }
 
-// ·¶Î§¸´ÖÆAoE!
+// èŒƒå›´å¤åˆ¶AoE!
 void LongUI::CUIEditaleText::CopyRangedProperties(
     IDWriteTextLayout* old_layout, IDWriteTextLayout* new_layout,
     uint32_t begin, uint32_t end, uint32_t new_offset, bool negative) noexcept {
     auto current = begin;
-    // ±éÀú
+    // éå†
     while (current < end) {
-        // ¼ÆËã·¶Î§³¤¶È
+        // è®¡ç®—èŒƒå›´é•¿åº¦
         DWRITE_TEXT_RANGE increment = { current, 1 };
         DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
         old_layout->GetFontWeight(current, &weight, &increment);
         UINT32 rangeLength = increment.length - (current - increment.startPosition);
-        // ¼ì²éÓĞĞ§ĞÔ
+        // æ£€æŸ¥æœ‰æ•ˆæ€§
         rangeLength = std::min(rangeLength, end - current);
-        // ¸´ÖÆµ¥¸ö
+        // å¤åˆ¶å•ä¸ª
         CUIEditaleText::CopySinglePropertyRange(
             old_layout,
             current,
@@ -1224,7 +1224,7 @@ void LongUI::CUIEditaleText::CopyRangedProperties(
             negative ? (current - new_offset) : (current + new_offset),
             rangeLength
             );
-        // ÍÆ½ø
+        // æ¨è¿›
         current += rangeLength;
     }
 }
@@ -1234,26 +1234,26 @@ void LongUI::CUIEditaleText::CopyRangedProperties(
 // -------------------------------------------------------------
 
 
-// ·µ»ØFALSE
+// è¿”å›FALSE
 HRESULT LongUI::UIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDisabled) noexcept {
     *isDisabled = false;
     return S_OK;
 }
 
-// ´ÓÄ¿±êäÖÈ¾³ÊÏÖÆ÷»ñÈ¡
+// ä»ç›®æ ‡æ¸²æŸ“å‘ˆç°å™¨è·å–
 HRESULT LongUI::UIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
     assert(m_pRenderTarget);
     m_pRenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
     return S_OK;
 }
 
-// Ê¼ÖÕÈçÒ», ·½±ã×ª»»
+// å§‹ç»ˆå¦‚ä¸€, æ–¹ä¾¿è½¬æ¢
 HRESULT LongUI::UIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) noexcept {
     *bilibili = 1.f;
     return S_OK;
 }
 
-// äÖÈ¾ÄÚÁª¶ÔÏó
+// æ¸²æŸ“å†…è”å¯¹è±¡
 HRESULT LongUI::UIBasicTextRenderer::DrawInlineObject(
     void * clientDrawingContext,
     FLOAT originX, FLOAT originY,
@@ -1261,8 +1261,8 @@ HRESULT LongUI::UIBasicTextRenderer::DrawInlineObject(
     BOOL isSideways, BOOL isRightToLeft,
     IUnknown * clientDrawingEffect) noexcept {
     assert(inlineObject && "bad argument");
-    // ÄÚÁª¶ÔÏó±ØĞëÊÇLongUIÄÚÁª¶ÔÏó
-    // äÖÈ¾
+    // å†…è”å¯¹è±¡å¿…é¡»æ˜¯LongUIå†…è”å¯¹è±¡
+    // æ¸²æŸ“
     inlineObject->Draw(
         clientDrawingContext,
         this,
@@ -1274,7 +1274,7 @@ HRESULT LongUI::UIBasicTextRenderer::DrawInlineObject(
 }
 
 // ------------------UINormalTextRender-----------------------
-// ¿Ì»­×ÖĞÎ
+// åˆ»ç”»å­—å½¢
 HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
     void * clientDrawingContext,
     FLOAT baselineOriginX, FLOAT baselineOriginY,
@@ -1282,7 +1282,7 @@ HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
     const DWRITE_GLYPH_RUN * glyphRun,
     const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
     IUnknown * effect) noexcept {
-    // »ñÈ¡ÑÕÉ«
+    // è·å–é¢œè‰²
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
         color = &static_cast<UIColorEffect*>(effect)->color;
@@ -1290,9 +1290,9 @@ HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
     else {
         color = &this->basic_color.color;
     }
-    // ÉèÖÃÑÕÉ«
+    // è®¾ç½®é¢œè‰²
     m_pBrush->SetColor(color);
-    // ÀûÓÃD2D½Ó¿ÚÖ±½ÓäÖÈ¾×ÖĞÎ
+    // åˆ©ç”¨D2Dæ¥å£ç›´æ¥æ¸²æŸ“å­—å½¢
     m_pRenderTarget->DrawGlyphRun(
         D2D1::Point2(baselineOriginX, baselineOriginY),
         glyphRun,
@@ -1302,7 +1302,7 @@ HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
     return S_OK;
 }
 
-// ¿Ì»­ÏÂ»®Ïß
+// åˆ»ç”»ä¸‹åˆ’çº¿
 HRESULT LongUI::UINormalTextRender::DrawUnderline(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
@@ -1310,7 +1310,7 @@ HRESULT LongUI::UINormalTextRender::DrawUnderline(
     const DWRITE_UNDERLINE* underline,
     IUnknown* effect
     ) noexcept {
-    // »ñÈ¡ÑÕÉ«
+    // è·å–é¢œè‰²
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
         color = &static_cast<UIColorEffect*>(effect)->color;
@@ -1318,21 +1318,21 @@ HRESULT LongUI::UINormalTextRender::DrawUnderline(
     else {
         color = &this->basic_color.color;
     }
-    // ÉèÖÃÑÕÉ«
+    // è®¾ç½®é¢œè‰²
     m_pBrush->SetColor(color);
-    // ¼ÆËã¾ØĞÎ
+    // è®¡ç®—çŸ©å½¢
     D2D1_RECT_F rectangle = {
         baselineOriginX,
         baselineOriginY + underline->offset,
         baselineOriginX + underline->width,
         baselineOriginY + underline->offset + underline->thickness
     };
-    // Ìî³ä¾ØĞÎ
+    // å¡«å……çŸ©å½¢
     m_pRenderTarget->FillRectangle(&rectangle, m_pBrush);
     return S_OK;
 }
 
-// ¿Ì»­É¾³ıÏß
+// åˆ»ç”»åˆ é™¤çº¿
 HRESULT LongUI::UINormalTextRender::DrawStrikethrough(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
@@ -1340,7 +1340,7 @@ HRESULT LongUI::UINormalTextRender::DrawStrikethrough(
     const DWRITE_STRIKETHROUGH* strikethrough,
     IUnknown* effect
     ) noexcept {
-    // »ñÈ¡ÑÕÉ«
+    // è·å–é¢œè‰²
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
         color = &static_cast<UIColorEffect*>(effect)->color;
@@ -1348,16 +1348,16 @@ HRESULT LongUI::UINormalTextRender::DrawStrikethrough(
     else {
         color = &this->basic_color.color;
     }
-    // ÉèÖÃÑÕÉ«
+    // è®¾ç½®é¢œè‰²
     m_pBrush->SetColor(color);
-    // ¼ÆËã¾ØĞÎ
+    // è®¡ç®—çŸ©å½¢
     D2D1_RECT_F rectangle = {
         baselineOriginX,
         baselineOriginY + strikethrough->offset,
         baselineOriginX + strikethrough->width,
         baselineOriginY + strikethrough->offset + strikethrough->thickness
     };
-    // Ìî³ä¾ØĞÎ
+    // å¡«å……çŸ©å½¢
     m_pRenderTarget->FillRectangle(&rectangle, m_pBrush);
     return S_OK;
 }

@@ -1,11 +1,11 @@
-
+ï»¿
 #include "LongUI.h"
 
 
 
 
 // -------------------------- UIContainer -------------------------
-// UIContainer ¹¹Ôìº¯Êı
+// UIContainer æ„é€ å‡½æ•°
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept :
 Super(node),
 scrollbar_h(UIScrollBar::CreateDesc(nullptr, ScrollBarType::Type_Horizontal), this),
@@ -18,7 +18,7 @@ scrollbar_v(UIScrollBar::CreateDesc(nullptr, ScrollBarType::Type_Vertical), this
     force_cast(this->flags) = LongUIFlag(flag);
 }
 
-// UIContainer Îö¹¹º¯Êı
+// UIContainer ææ„å‡½æ•°
 LongUI::UIContainer::~UIContainer() noexcept {
     for (auto itr = this->begin(); itr != this->end(); ) {
         auto itr_next = itr; ++itr_next;
@@ -27,7 +27,7 @@ LongUI::UIContainer::~UIContainer() noexcept {
     }
 }
 
-// ²åÈëºó´¦Àí
+// æ’å…¥åå¤„ç†
 void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     assert(child && "bad argument");
     // check flag
@@ -44,24 +44,24 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     this->DrawSizeChanged();
 }
 
-// ¸üĞÂ²¼¾Ö
+// æ›´æ–°å¸ƒå±€
 void LongUIMethodCall LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
     if (!refresh_scroll) return;
-    // ¼ì²é¿í¶È
+    // æ£€æŸ¥å®½åº¦
     this->scrollbar_h.show_zone.left = 0.f;
     this->scrollbar_h.show_zone.top = this->show_zone.height - this->scrollbar_h.desc.size;
     this->scrollbar_h.show_zone.width = this->show_zone.width;
     this->scrollbar_h.show_zone.height = this->scrollbar_h.desc.size;
     this->scrollbar_h.draw_zone = this->scrollbar_h.show_zone;
     this->scrollbar_h.Refresh();
-    // ¼ì²é¸ß¶È
+    // æ£€æŸ¥é«˜åº¦
     this->scrollbar_v.show_zone.left = this->show_zone.width - this->scrollbar_v.desc.size;
     this->scrollbar_v.show_zone.top = 0.f;
     this->scrollbar_v.show_zone.width = this->scrollbar_v.desc.size;
     this->scrollbar_v.show_zone.height = this->show_zone.height;
     this->scrollbar_v.draw_zone = this->scrollbar_v.show_zone;
     this->scrollbar_v.Refresh();
-    // µÚ¶ş´Î¼ì²é
+    // ç¬¬äºŒæ¬¡æ£€æŸ¥
     if (this->scrollbar_h) {
 
     }
@@ -70,29 +70,29 @@ void LongUIMethodCall LongUI::UIContainer::RefreshChildLayout(bool refresh_scrol
     }
 }
 
-// do event ÊÂ¼ş´¦Àí
+// do event äº‹ä»¶å¤„ç†
 bool LongUIMethodCall LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
-    // TODO: ²ÎÊıEventArgument¸ÄÎªconst
+    // TODO: å‚æ•°EventArgumentæ”¹ä¸ºconst
     bool done = false;
-    // ×ª»»×ø±ê
+    // è½¬æ¢åæ ‡
     auto pt_old = arg.pt;
     auto pt4self = LongUI::TransformPointInverse(this->transform, pt_old);
     arg.pt = pt4self;
-    // ´¦Àí´°¿ÚÊÂ¼ş
+    // å¤„ç†çª—å£äº‹ä»¶
     if (arg.sender) {
         switch (arg.event)
         {
         case LongUI::Event::Event_FindControl:
-            // ¼ì²é¹ö¶¯Ìõ
+            // æ£€æŸ¥æ»šåŠ¨æ¡
             if (scrollbar_h) {
 
             }
             if (scrollbar_v) {
 
             }
-            // ¼ì²é×Ó¿Ø¼ş
+            // æ£€æŸ¥å­æ§ä»¶
             if (!done) {
-                // XXX: ÓÅ»¯
+                // XXX: ä¼˜åŒ–
                 for (auto ctrl : (*this)) {
                     if (IsPointInRect(ctrl->show_zone, pt4self)) {
                         done = ctrl->DoEvent(arg);
@@ -103,7 +103,7 @@ bool LongUIMethodCall LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) n
             done = true;
             break;
         case LongUI::Event::Event_FinishedTreeBuliding:
-            // ³õ´ÎÍê³É¿Õ¼äÊ÷½¨Á¢
+            // åˆæ¬¡å®Œæˆç©ºé—´æ ‘å»ºç«‹
             for (auto ctrl : (*this)) {
                 ctrl->DoEvent(arg);
             }
@@ -111,27 +111,27 @@ bool LongUIMethodCall LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) n
             break;
         }
     }
-    // °â»ØÀ´
+    // æ‰³å›æ¥
     arg.pt = pt_old;
     return done;
 }
 
-// UIContainer äÖÈ¾º¯Êı
+// UIContainer æ¸²æŸ“å‡½æ•°
 auto LongUIMethodCall LongUI::UIContainer::Render() noexcept -> HRESULT {
-    // ¼ì²é
+    // æ£€æŸ¥
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
         this->transform = D2D1::Matrix3x2F::Translation(
             this->show_zone.left - this->margin_rect.left,
             this->show_zone.top - this->margin_rect.top
             );
     }
-    // ±£Áô×ª»»
+    // ä¿ç•™è½¬æ¢
     D2D1_MATRIX_3X2_F old_transform;
     m_pRenderTarget->GetTransform(&old_transform);
-    // ¼ÆËãÊÀ½ç×ª»»
+    // è®¡ç®—ä¸–ç•Œè½¬æ¢
     this->world = this->transform * old_transform;
     m_pRenderTarget->SetTransform(&this->world);
-    // äÖÈ¾ËùÓĞ×Ó²¿¼ş
+    // æ¸²æŸ“æ‰€æœ‰å­éƒ¨ä»¶
     for (auto ctrl : (*this)) {
         D2D1_RECT_F clip_rect;
         clip_rect.left = ctrl->show_zone.left - ctrl->margin_rect.left;
@@ -142,21 +142,21 @@ auto LongUIMethodCall LongUI::UIContainer::Render() noexcept -> HRESULT {
         ctrl->Render();
         m_pRenderTarget->PopAxisAlignedClip();
     }
-    // äÖÈ¾¹ö¶¯Ìõ
+    // æ¸²æŸ“æ»šåŠ¨æ¡
     if (this->scrollbar_h) {
         this->scrollbar_h.Render();
     }
     if (this->scrollbar_v) {
         this->scrollbar_v.Render();
     }
-    // ¸¸Àà
+    // çˆ¶ç±»
     auto hr = Super::Render();
-    // »ØÍË×ª»»
+    // å›é€€è½¬æ¢
     m_pRenderTarget->SetTransform(&old_transform);
     return hr;
 }
 
-// UIContainer ÖØ½¨
+// UIContainer é‡å»º
 auto LongUIMethodCall LongUI::UIContainer::Recreate(
     LongUIRenderTarget* newRT) noexcept ->HRESULT {
     this->scrollbar_h.Recreate(newRT);
@@ -164,20 +164,20 @@ auto LongUIMethodCall LongUI::UIContainer::Recreate(
     return Super::Recreate(newRT);
 }
 
-// »ñÈ¡Ö¸¶¨¿Ø¼ş
+// è·å–æŒ‡å®šæ§ä»¶
 auto LongUIMethodCall LongUI::UIContainer::
 at(uint32_t i) const noexcept -> UIControl * {
-    // ĞÔÄÜ¾¯¸æ
+    // æ€§èƒ½è­¦å‘Š
     UIManager << DL_Warning << L"Performance Warning!"
         L"random accessig is not fine for list" << LongUI::endl;
-    // ¼ì²é·¶Î§
+    // æ£€æŸ¥èŒƒå›´
     if (i >= this->size()) {
         UIManager << DL_Error << L"out of range" << LongUI::endl;
         return nullptr;
     }
-    // Ö»ÓĞÒ»¸ö?
+    // åªæœ‰ä¸€ä¸ª?
     if (this->size() == 1) return m_pHead;
-    // Ç°°ë²¿·Ö?
+    // å‰åŠéƒ¨åˆ†?
     UIControl * control;
     if (i < this->size() / 2) {
         control = m_pHead;
@@ -187,7 +187,7 @@ at(uint32_t i) const noexcept -> UIControl * {
             --i;
         }
     }
-    // ºó°ë²¿·Ö?
+    // ååŠéƒ¨åˆ†?
     else {
         control = m_pTail;
         i = this->size() - i - 1;
@@ -199,7 +199,7 @@ at(uint32_t i) const noexcept -> UIControl * {
     }
     return control;
 }
-// ²åÈë¿Ø¼ş
+// æ’å…¥æ§ä»¶
 void LongUIMethodCall LongUI::UIContainer::
 insert(Iterator itr, UIControl* ctrl) noexcept {
     assert(ctrl && "bad arguments");
@@ -217,23 +217,23 @@ insert(Iterator itr, UIControl* ctrl) noexcept {
             << "] that to insert is not null"
             << LongUI::endl;
     }
-    // ²åÈëÎ²²¿?
+    // æ’å…¥å°¾éƒ¨?
     if (itr == this->end()) {
-        // Á´½Ó
+        // é“¾æ¥
         force_cast(ctrl->prev) = m_pTail;
-        // ÎŞÎ²?
+        // æ— å°¾?
         if(m_pTail) force_cast(m_pTail->next) = ctrl;
-        // ÎŞÍ·?
+        // æ— å¤´?
         if (!m_pHead) m_pHead = ctrl;
-        // ÉèÖÃÎ²
+        // è®¾ç½®å°¾
         m_pTail = ctrl;
     }
     else {
         // ctrl->next = itr;
-        // ctrl->prev = Ç°Ãæ;
+        // ctrl->prev = å‰é¢;
         force_cast(ctrl->next) = itr.Ptr();
         force_cast(ctrl->prev) = itr->prev;
-        // Ç°Ãæ->next = ctrl
+        // å‰é¢->next = ctrl
         // itr->prev = ctrl
         if (itr->prev) {
             force_cast(itr->prev) = ctrl;
@@ -241,14 +241,14 @@ insert(Iterator itr, UIControl* ctrl) noexcept {
         force_cast(itr->prev) = ctrl;
     }
     ++m_cChildrenCount;
-    // Ìí¼ÓÖ®ºóµÄ´¦Àí
+    // æ·»åŠ ä¹‹åçš„å¤„ç†
     this->AfterInsert(ctrl);
 }
 
 
-// ÒÆ³ı¿Ø¼ş
+// ç§»é™¤æ§ä»¶
 bool LongUIMethodCall LongUI::UIContainer::remove(Iterator itr) noexcept {
-    // ¼ì²éÊÇ·ñÊôÓÚ±¾ÈİÆ÷
+    // æ£€æŸ¥æ˜¯å¦å±äºæœ¬å®¹å™¨
 #ifdef _DEBUG
     bool ok = false;
     for (auto i : (*this)) {
@@ -263,42 +263,42 @@ bool LongUIMethodCall LongUI::UIContainer::remove(Iterator itr) noexcept {
         return false;
     }
 #endif
-    // Á¬½ÓÇ°ºó½Úµã
+    // è¿æ¥å‰åèŠ‚ç‚¹
     register auto prev = itr->prev;
     register auto next = itr->next;
-    // ¼ì²é
+    // æ£€æŸ¥
     if (prev) {
         force_cast(prev->next) = next;
     }
-    // Ê×²¿
+    // é¦–éƒ¨
     else {
         m_pHead = next;
     }
-    // ¼ì²é
+    // æ£€æŸ¥
     if (next) {
         force_cast(next->prev) = prev;
     }
-    // Î²²¿
+    // å°¾éƒ¨
     else {
         m_pTail = prev;
     }
-    // ¼õÉÙ
+    // å‡å°‘
     force_cast(itr->prev) = nullptr;
     force_cast(itr->next) = nullptr;
     --m_cChildrenCount;
-    // ĞŞ¸Ä
+    // ä¿®æ”¹
     this->DrawSizeChanged();
     return true;
 }
 
 
 // -------------------------- UIVerticalLayout -------------------------
-// UIVerticalLayout ´´½¨
+// UIVerticalLayout åˆ›å»º
 auto LongUI::UIVerticalLayout::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIVerticalLayout>(
         node,
         [=](void* p) noexcept { new(p) UIVerticalLayout(node);}
@@ -309,77 +309,77 @@ auto LongUI::UIVerticalLayout::CreateControl(pugi::xml_node node) noexcept ->UIC
     return pControl;
 }
 
-// ¸üĞÂ×Ó¿Ø¼ş²¼¾Ö
+// æ›´æ–°å­æ§ä»¶å¸ƒå±€
 void LongUIMethodCall LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
-    // »ù±¾Ëã·¨:
-    // 1. È¥³ı¸¡¶¯¿Ø¼şÓ°Ïì
-    // 2. Ò»´Î±éÀú, ¼ì²éÖ¸¶¨¸ß¶ÈµÄ¿Ø¼ş, ¼ÆËã»ù±¾¸ß¶È/¿í¶È
-    // 3. ¼ÆËãÊµ¼Ê¸ß¶È/¿í¶È, ĞŞ¸Äshow_zone, ¸üĞÂ¹ö¶¯Ìõ, ¾¡Á¿×îĞ¡»¯¸Ä¶¯
+    // åŸºæœ¬ç®—æ³•:
+    // 1. å»é™¤æµ®åŠ¨æ§ä»¶å½±å“
+    // 2. ä¸€æ¬¡éå†, æ£€æŸ¥æŒ‡å®šé«˜åº¦çš„æ§ä»¶, è®¡ç®—åŸºæœ¬é«˜åº¦/å®½åº¦
+    // 3. è®¡ç®—å®é™…é«˜åº¦/å®½åº¦, ä¿®æ”¹show_zone, æ›´æ–°æ»šåŠ¨æ¡, å°½é‡æœ€å°åŒ–æ”¹åŠ¨
     float base_width = 0.f, base_height = 0.f;
     float counter = 0.0f;
-    // µÚÒ»´Î
+    // ç¬¬ä¸€æ¬¡
     for (auto ctrl : (*this)) {
-        // ·Ç¸¡µã¿Ø¼ş
+        // éæµ®ç‚¹æ§ä»¶
         if (!(ctrl->flags & Flag_Floating)) {
-            // ¿í¶È¹Ì¶¨?
+            // å®½åº¦å›ºå®š?
             if (ctrl->flags & Flag_WidthFixed) {
                 base_width = std::max(base_width, ctrl->GetTakingUpWidth());
             }
-            // ¸ß¶È¹Ì¶¨?
+            // é«˜åº¦å›ºå®š?
             if (ctrl->flags & Flag_HeightFixed) {
                 base_height += ctrl->GetTakingUpHeight();
             }
-            // Î´Ö¸¶¨¸ß¶È?
+            // æœªæŒ‡å®šé«˜åº¦?
             else {
                 counter += 1.f;
             }
         }
     }
-    // ¼ÆËã
+    // è®¡ç®—
     base_width = std::max(base_width, this->show_zone.width);
-    // ´¹Ö±¹ö¶¯Ìõ?
+    // å‚ç›´æ»šåŠ¨æ¡?
     if (this->scrollbar_v) {
         base_width -= this->scrollbar_v.desc.size;
-    }    // Ë®Æ½¹ö¶¯Ìõ?
+    }    // æ°´å¹³æ»šåŠ¨æ¡?
     if (this->scrollbar_h) {
         base_height -= this->scrollbar_h.desc.size;
     }
-    // ¸ß¶È²½½ø
+    // é«˜åº¦æ­¥è¿›
     float height_step = counter > 0.f ? (this->show_zone.height - base_height) / counter : 0.f;
     float position_y = 0.f;
-    // µÚ¶ş´Î
+    // ç¬¬äºŒæ¬¡
     for (auto ctrl : (*this)) {
-        // ¸¡µã¿Ø
+        // æµ®ç‚¹æ§
         if (ctrl->flags & Flag_Floating) continue;
         ctrl->show_zone.left = 0.f;
-        // ÉèÖÃ¿Ø¼ş¿í¶È
+        // è®¾ç½®æ§ä»¶å®½åº¦
         if (!(ctrl->flags & Flag_WidthFixed)) {
             register auto old_width = ctrl->show_zone.width;
             ctrl->show_zone.width = base_width - ctrl->margin_rect.left - ctrl->margin_rect.right;
         }
-        // ÉèÖÃ¿Ø¼ş¸ß¶È
+        // è®¾ç½®æ§ä»¶é«˜åº¦
         if (!(ctrl->flags & Flag_HeightFixed)) {
             ctrl->show_zone.height = height_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
         }
-        // ĞŞ¸Ä
+        // ä¿®æ”¹
         ctrl->DrawSizeChanged();
         ctrl->DrawPosChanged();
         ctrl->show_zone.top = position_y;
         position_y += ctrl->GetTakingUpHeight();
-        // ×Ó¿Ø¼şÒ²ÊÇÈİÆ÷Ôò¼ÌĞøµ÷ÓÃ
+        // å­æ§ä»¶ä¹Ÿæ˜¯å®¹å™¨åˆ™ç»§ç»­è°ƒç”¨
         if (ctrl->flags & Flag_UIContainer) {
             static_cast<UIContainer*>(ctrl)->UpdateChildLayout();
         }
     }
-    // ĞŞ¸Ä
+    // ä¿®æ”¹
     force_cast(this->end_of_right) = base_width;
     force_cast(this->end_of_bottom) = position_y;
-    // ¸üĞÂ
+    // æ›´æ–°
     return Super::RefreshChildLayout(refresh_scroll);
 }
 
 
-// UIVerticalLayout ÖØ½¨
+// UIVerticalLayout é‡å»º
 auto LongUIMethodCall LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     HRESULT hr = S_OK;
     for (auto ctrl : (*this)) {
@@ -389,18 +389,18 @@ auto LongUIMethodCall LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* new
     return Super::Recreate(newRT);
 }
 
-// UIVerticalLayout ¹Ø±Õ¿Ø¼ş
+// UIVerticalLayout å…³é—­æ§ä»¶
 void LongUIMethodCall LongUI::UIVerticalLayout::Close() noexcept {
     delete this;
 }
 
 // -------------------------- UIHorizontalLayout -------------------------
-// UIHorizontalLayout ´´½¨
+// UIHorizontalLayout åˆ›å»º
 auto LongUI::UIHorizontalLayout::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIHorizontalLayout>(
         node,
         [=](void* p) noexcept { new(p) UIHorizontalLayout(node);}
@@ -412,76 +412,76 @@ auto LongUI::UIHorizontalLayout::CreateControl(pugi::xml_node node) noexcept ->U
 }
 
 
-// ¸üĞÂ×Ó¿Ø¼ş²¼¾Ö
+// æ›´æ–°å­æ§ä»¶å¸ƒå±€
 void LongUIMethodCall LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
-    // »ù±¾Ëã·¨:
-    // 1. È¥³ı¸¡¶¯¿Ø¼şÓ°Ïì
-    // 2. Ò»´Î±éÀú, ¼ì²éÖ¸¶¨¸ß¶ÈµÄ¿Ø¼ş, ¼ÆËã»ù±¾¸ß¶È/¿í¶È
-    // 3. ¼ÆËãÊµ¼Ê¸ß¶È/¿í¶È, ĞŞ¸Äshow_zone, ¸üĞÂ¹ö¶¯Ìõ, ¾¡Á¿×îĞ¡»¯¸Ä¶¯
+    // åŸºæœ¬ç®—æ³•:
+    // 1. å»é™¤æµ®åŠ¨æ§ä»¶å½±å“
+    // 2. ä¸€æ¬¡éå†, æ£€æŸ¥æŒ‡å®šé«˜åº¦çš„æ§ä»¶, è®¡ç®—åŸºæœ¬é«˜åº¦/å®½åº¦
+    // 3. è®¡ç®—å®é™…é«˜åº¦/å®½åº¦, ä¿®æ”¹show_zone, æ›´æ–°æ»šåŠ¨æ¡, å°½é‡æœ€å°åŒ–æ”¹åŠ¨
     float base_width = 0.f, base_height = 0.f;
     float counter = 0.0f;
-    // µÚÒ»´Î
+    // ç¬¬ä¸€æ¬¡
     for (auto ctrl : (*this)) {
-        // ·Ç¸¡µã¿Ø¼ş
+        // éæµ®ç‚¹æ§ä»¶
         if (!(ctrl->flags & Flag_Floating)) {
-            // ¸ß¶È¹Ì¶¨?
+            // é«˜åº¦å›ºå®š?
             if (ctrl->flags & Flag_HeightFixed) {
                 base_height = std::max(base_height, ctrl->GetTakingUpHeight());
             }
-            // ¿í¶È¹Ì¶¨?
+            // å®½åº¦å›ºå®š?
             if (ctrl->flags & Flag_WidthFixed) {
                 base_width += ctrl->GetTakingUpWidth();
             }
-            // Î´Ö¸¶¨¿í¶È?
+            // æœªæŒ‡å®šå®½åº¦?
             else {
                 counter += 1.f;
             }
         }
     }
-    // ¼ÆËã
+    // è®¡ç®—
     base_height = std::max(base_height, this->show_zone.height);
-    // ´¹Ö±¹ö¶¯Ìõ?
+    // å‚ç›´æ»šåŠ¨æ¡?
     if (this->scrollbar_v) {
         base_width -= this->scrollbar_v.desc.size;
-    }    // Ë®Æ½¹ö¶¯Ìõ?
+    }    // æ°´å¹³æ»šåŠ¨æ¡?
     if (this->scrollbar_h) {
         base_height -= this->scrollbar_h.desc.size;
     }
-    // ¿í¶È²½½ø
+    // å®½åº¦æ­¥è¿›
     float width_step = counter > 0.f ? (this->show_zone.width - base_width) / counter : 0.f;
     float position_x = 0.f;
-    // µÚ¶ş´Î
+    // ç¬¬äºŒæ¬¡
     for (auto ctrl : (*this)) {
-        // ¸¡µã¿Ø
+        // æµ®ç‚¹æ§
         if (ctrl->flags & Flag_Floating) continue;
         ctrl->show_zone.top = 0.f;
-        // ÉèÖÃ¿Ø¼ş¸ß¶È
+        // è®¾ç½®æ§ä»¶é«˜åº¦
         if (!(ctrl->flags & Flag_HeightFixed)) {
             register auto old_height = ctrl->show_zone.height;
             ctrl->show_zone.height = base_height - ctrl->margin_rect.left - ctrl->margin_rect.right;
         }
-        // ÉèÖÃ¿Ø¼ş¿í¶È
+        // è®¾ç½®æ§ä»¶å®½åº¦
         if (!(ctrl->flags & Flag_WidthFixed)) {
             ctrl->show_zone.width = width_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
         }
-        // ĞŞ¸Ä
+        // ä¿®æ”¹
         ctrl->DrawSizeChanged();
         ctrl->DrawPosChanged();
         ctrl->show_zone.left = position_x;
         position_x += ctrl->GetTakingUpWidth();
-        // ×Ó¿Ø¼şÒ²ÊÇÈİÆ÷Ôò¼ÌĞøµ÷ÓÃ
+        // å­æ§ä»¶ä¹Ÿæ˜¯å®¹å™¨åˆ™ç»§ç»­è°ƒç”¨
         if (ctrl->flags & Flag_UIContainer) {
             static_cast<UIContainer*>(ctrl)->UpdateChildLayout();
         }
     }
-    // ĞŞ¸Ä
+    // ä¿®æ”¹
     force_cast(this->end_of_right) = position_x;
     force_cast(this->end_of_bottom) = base_height;
-    // ¸üĞÂ
+    // æ›´æ–°
     return Super::RefreshChildLayout(refresh_scroll);
 }
 
-// UIHorizontalLayout ÖØ½¨
+// UIHorizontalLayout é‡å»º
 auto LongUIMethodCall LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     HRESULT hr = S_OK;
     if (newRT) {
@@ -493,7 +493,7 @@ auto LongUIMethodCall LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* n
     return Super::Recreate(newRT);
 }
 
-// UIHorizontalLayout ¹Ø±Õ¿Ø¼ş
+// UIHorizontalLayout å…³é—­æ§ä»¶
 void LongUIMethodCall LongUI::UIHorizontalLayout::Close() noexcept {
     delete this;
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/value.h - mruby value definitions
 **
 ** See Copyright Notice in mruby.h

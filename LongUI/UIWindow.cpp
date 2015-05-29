@@ -1,52 +1,52 @@
-
+ï»¿
 #include "LongUI.h"
 
 
-// Î»Í¼¹æ»®:
+// ä½å›¾è§„åˆ’:
 /*
 -----
 |1|2|
 -----
 |3|4|
 -----
-1-2     ±êÌâÏà¹Ø
-3       ²åÈë·û
+1-2     æ ‡é¢˜ç›¸å…³
+3       æ’å…¥ç¬¦
 */
 
 #define MakeAsUnit(a) (((a) + (LongUITargetBitmapUnitSize-1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize)
 
-// UIWindow ¹¹Ôìº¯Êı
+// UIWindow æ„é€ å‡½æ•°
 LongUI::UIWindow::UIWindow(pugi::xml_node node,
     UIWindow* parent) noexcept : Super(node) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     uint32_t flag = this->flags;
-    // ¼ì²éDComposition±ê¼Ç
+    // æ£€æŸ¥DCompositionæ ‡è®°
     if (node.attribute("dcomp").as_bool(true)) {
         flag |= Flag_Window_DComposition;
     }
-    // Ä¿Ç°²»Ö§³Ö·ÇFlag_Window_DComposition
-    // ¿ÉÄÜ»á·¢ÉúÎ´Öª´íÎó
+    // ç›®å‰ä¸æ”¯æŒéFlag_Window_DComposition
+    // å¯èƒ½ä¼šå‘ç”ŸæœªçŸ¥é”™è¯¯
     assert(flag & Flag_Window_DComposition && "NOT IMPL");
-    // ¼ì²éFullRendering±ê¼Ç
+    // æ£€æŸ¥FullRenderingæ ‡è®°
     if (node.attribute("fullrender").as_bool(false)) {
         flag |= Flag_Window_FullRendering;
     }
     else {
         this->reset_renderqueue();
     }
-    // ¼ì²éRenderedOnParentWindow±ê¼Ç
+    // æ£€æŸ¥RenderedOnParentWindowæ ‡è®°
     if (node.attribute("renderonparent").as_bool(false)) {
         flag |= Flag_Window_RenderedOnParentWindow;
     }
-    // ¼ì²éalwaysrendering
+    // æ£€æŸ¥alwaysrendering
     if (node.attribute("alwaysrendering").as_bool(false)) {
         flag |= Flag_Window_AlwaysRendering;
     }
     force_cast(this->flags) = static_cast<LongUIFlag>(flag);
-    // Ä¬ÈÏÑùÊ½
+    // é»˜è®¤æ ·å¼
     DWORD window_style = WS_OVERLAPPEDWINDOW;
     const char* str_get = nullptr;
-    // ÉèÖÃ´°¿Ú´óĞ¡
+    // è®¾ç½®çª—å£å¤§å°
     RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
     if (str_get = node.attribute("size").value()) {
         UIControl::MakeFloats(str_get, &draw_zone.width, 2);
@@ -59,14 +59,14 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     }
     m_clientSize.width = this->draw_zone.width;
     m_clientSize.height = this->draw_zone.height;
-    // µ÷Õû´óĞ¡
+    // è°ƒæ•´å¤§å°
     ::AdjustWindowRect(&window_rect, window_style, FALSE);
-    // ¾ÓÖĞ
+    // å±…ä¸­
     window_rect.right -= window_rect.left;
     window_rect.bottom -= window_rect.top;
     window_rect.left = (::GetSystemMetrics(SM_CXFULLSCREEN) - window_rect.right) / 2;
     window_rect.top = (::GetSystemMetrics(SM_CYFULLSCREEN) - window_rect.bottom) / 2;
-    // ´´½¨´°¿Ú
+    // åˆ›å»ºçª—å£
     m_hwnd = ::CreateWindowExW(
         //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
         (this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
@@ -78,63 +78,63 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         this
         );
     //SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
-    // ÉèÖÃHover
+    // è®¾ç½®Hover
     m_csTME.cbSize = sizeof(m_csTME);
     m_csTME.dwFlags = TME_HOVER | TME_LEAVE;
     m_csTME.hwndTrack = m_hwnd;
     m_csTME.dwHoverTime = LongUIDefaultHoverTime;
-    // ´´½¨ÉÁË¸¼ÆÊ±Æ÷
+    // åˆ›å»ºé—ªçƒè®¡æ—¶å™¨
     m_idBlinkTimer = ::SetTimer(m_hwnd, 0, ::GetCaretBlinkTime(), nullptr);
-    // Ìí¼Ó´°¿Ú
+    // æ·»åŠ çª—å£
     UIManager.AddWindow(this);
     this->clear_color.a = 0.95f;
-    // ´´½¨°ïÖúÆ÷
+    // åˆ›å»ºå¸®åŠ©å™¨
     ::CoCreateInstance(
         CLSID_DragDropHelper, 
         nullptr, 
         CLSCTX_INPROC_SERVER,
         LongUI_IID_PV_ARGS(m_pDropTargetHelper)
         );
-    // ×¢²áÍÏ×§Ä¿±ê
+    // æ³¨å†Œæ‹–æ‹½ç›®æ ‡
     ::RegisterDragDrop(m_hwnd, this);
-    // ÏÔÊ¾´°¿Ú
+    // æ˜¾ç¤ºçª—å£
     ::ShowWindow(m_hwnd, SW_SHOW);
     // Set Timer
     m_timer.Start();
-    // ËùÔÚ´°¿Ú¾ÍÊÇ×Ô¼º
+    // æ‰€åœ¨çª—å£å°±æ˜¯è‡ªå·±
     m_pWindow = this;
-    // ³ÊÏÖ²ÎÊı
+    // å‘ˆç°å‚æ•°
     ZeroMemory(&m_rcScroll, sizeof(m_dirtyRects));
     ZeroMemory(m_dirtyRects, sizeof(m_dirtyRects));
     m_present = { 0, m_dirtyRects, nullptr, nullptr };
 }
 
-// UIWindow Îö¹¹º¯Êı
+// UIWindow ææ„å‡½æ•°
 LongUI::UIWindow::~UIWindow() noexcept {
-    // ¼ì²é
+    // æ£€æŸ¥
     if (m_pRenderQueue) {
         LongUICtrlFree(m_pRenderQueue);
         m_pRenderQueue = nullptr;
     }
-    // È¡Ïû×¢²á
+    // å–æ¶ˆæ³¨å†Œ
     ::RevokeDragDrop(m_hwnd);
-    // ´İ»Ù´°¿Ú
+    // æ‘§æ¯çª—å£
     ::DestroyWindow(m_hwnd);
-    // ÒÆ³ı´°¿Ú
+    // ç§»é™¤çª—å£
     UIManager.RemoveWindow(this);
-    // É±µô!
+    // æ€æ‰!
     ::KillTimer(m_hwnd, m_idBlinkTimer);
-    // ÊÍ·Å×ÊÔ´
+    // é‡Šæ”¾èµ„æº
     this->release_data();
-    // ÊÍ·ÅÊı¾İ
+    // é‡Šæ”¾æ•°æ®
     ::SafeRelease(m_pDropTargetHelper);
     ::SafeRelease(m_pCurDataObject);
 }
 
 
-// ×¢²á
+// æ³¨å†Œ
 void LongUI::UIWindow::RegisterPreRender(UIControl* c, bool is3d) noexcept {
-    // ¼ì²é
+    // æ£€æŸ¥
 #ifdef _DEBUG
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
     if (itr != m_vRegisteredControl.end()) {
@@ -155,7 +155,7 @@ void LongUI::UIWindow::RegisterPreRender(UIControl* c, bool is3d) noexcept {
     }
 }
 
-// ·´×¢²á
+// åæ³¨å†Œ
 void LongUI::UIWindow::UnRegisterPreRender(UIControl* c) noexcept {
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
     if (itr != m_vRegisteredControl.end()) {
@@ -169,10 +169,10 @@ void LongUI::UIWindow::UnRegisterPreRender(UIControl* c) noexcept {
 }
 
 
-// ÉèÖÃ²åÈë·ûºÅ
+// è®¾ç½®æ’å…¥ç¬¦å·
 void LongUI::UIWindow::SetCaretPos(UIControl* c, float x, float y) noexcept {
     if (!m_cShowCaret) return;
-    // ×ª»»ÎªÏñËØ×ø±ê
+    // è½¬æ¢ä¸ºåƒç´ åæ ‡
     auto pt = D2D1::Point2F(x, y);
     if (c && c->parent) {
         pt = LongUI::TransformPoint(c->parent->world, pt);
@@ -201,32 +201,32 @@ void LongUI::UIWindow::SetCaretPos(UIControl* c, float x, float y) noexcept {
             rects[1].left, rects[1].top, rects[1].right, rects[1].bottom
             );*/
         DXGI_PRESENT_PARAMETERS para = { 0, nullptr, nullptr, nullptr };
-        // Ôà¾ØĞÎË¢ĞÂ
+        // è„çŸ©å½¢åˆ·æ–°
         m_pSwapChain->Present1(0, 0, &para);
 #endif
     }
 }
 
-// ´´½¨²åÈë·ûºÅ
+// åˆ›å»ºæ’å…¥ç¬¦å·
 void LongUI::UIWindow::CreateCaret(float width, float height) noexcept {
     this->refresh_caret();
-    // TODO: ×ª»»ÎªÏñËØµ¥Î»
+    // TODO: è½¬æ¢ä¸ºåƒç´ å•ä½
     m_rcCaretPx.width = static_cast<decltype(m_rcCaretPx.height)>(width);
     m_rcCaretPx.height = static_cast<decltype(m_rcCaretPx.width)>(height);
     if (!m_rcCaretPx.width) m_rcCaretPx.width = 1;
     if (!m_rcCaretPx.height) m_rcCaretPx.height = 1;
 }
 
-// ÏÔÊ¾²åÈë·ûºÅ
+// æ˜¾ç¤ºæ’å…¥ç¬¦å·
 void LongUI::UIWindow::ShowCaret() noexcept {
     ++m_cShowCaret;
-    // ´´½¨AEÎ»Í¼
+    // åˆ›å»ºAEä½å›¾
     //if (!m_pd2dBitmapAE) {
         //this->recreate_ae_bitmap();
     //}
 }
 
-// Òì³£²åÈë·ûºÅ
+// å¼‚å¸¸æ’å…¥ç¬¦å·
 void LongUI::UIWindow::HideCaret() noexcept { 
     if (m_cShowCaret) {
         --m_cShowCaret;
@@ -241,7 +241,7 @@ void LongUI::UIWindow::HideCaret() noexcept {
 
 // release data
 void LongUIMethodCall LongUI::UIWindow::release_data() noexcept {
-    // ÊÍ·Å×ÊÔ´
+    // é‡Šæ”¾èµ„æº
     ::SafeRelease(m_pTargetBimtap);
     ::SafeRelease(m_pSwapChain);
     ::SafeRelease(m_pDcompDevice);
@@ -252,68 +252,68 @@ void LongUIMethodCall LongUI::UIWindow::release_data() noexcept {
 
 
 namespace LongUI {
-    // äÖÈ¾µ¥Î»
+    // æ¸²æŸ“å•ä½
     struct RenderingUnit {
         // length of this unit
         size_t      length;
         // main data of unit
         UIControl*  units[LongUIDirtyControlSize];
     };
-    // ÊµÏÖ RenderingQueue
+    // å®ç° RenderingQueue
     class UIWindow::RenderingQueue {
     public:
-        // ¹¹Ôìº¯Êı
+        // æ„é€ å‡½æ•°
         RenderingQueue(uint32_t i) noexcept : display_frequency(i) { }
-        // ¸üĞÂ
+        // æ›´æ–°
         void Update() noexcept {
             this->current_time = ::timeGetTime();
-            // ¼ä¸ô
+            // é—´éš”
             auto dur = this->current_time - this->start_time;
             if (dur >= 1000ui32 * LongUIPlanRenderingTotalTime) {
                 this->start_time += 1000ui32 * LongUIPlanRenderingTotalTime;
                 dur %= 1000ui32 * LongUIPlanRenderingTotalTime;
             }
-            // ¶¨Î»
+            // å®šä½
             auto offset = dur * display_frequency / 1000;
             assert(offset >= 0 && offset < display_frequency * LongUIPlanRenderingTotalTime);
             current_unit = this->units + offset;
         }
-        // »ñÈ¡
+        // è·å–
         auto Get(float time_in_the_feature) {
             assert(time_in_the_feature < float(LongUIPlanRenderingTotalTime));
-            // »ñÈ¡Ä¿±êÖµ
+            // è·å–ç›®æ ‡å€¼
             auto offset = uint32_t(time_in_the_feature * float(display_frequency));
             auto got = this->current_unit + offset;
-            // Ô½½ç¼ì²é
+            // è¶Šç•Œæ£€æŸ¥
             if (got >= units + queue_length) {
                 got -= queue_length;
             }
             return got;
         }
     public:
-        // ±¾´ÎµÄÆÁÄ»Ë¢ĞÂÂÊ
+        // æœ¬æ¬¡çš„å±å¹•åˆ·æ–°ç‡
         uint32_t        display_frequency = 0;
-        // ±¾¶ÓÁĞ³¤¶È
+        // æœ¬é˜Ÿåˆ—é•¿åº¦
         uint32_t        queue_length = 0;
-        // ¶ÓÁĞ¿ªÊ¼Ê±¼ä
+        // é˜Ÿåˆ—å¼€å§‹æ—¶é—´
         uint32_t        start_time = ::timeGetTime();
-        // ¶ÓÁĞµ±Ç°Ê±¼ä
+        // é˜Ÿåˆ—å½“å‰æ—¶é—´
         uint32_t        current_time = start_time;
-        // µ±Ç°µ¥Î»
+        // å½“å‰å•ä½
         RenderingUnit*  current_unit = this->units;
-        // ÉÏ´Îµ¥Î»
+        // ä¸Šæ¬¡å•ä½
         RenderingUnit*  last_uint = this->units;
 #ifdef _MSC_VER
 #pragma warning(disable: 4200)
 #endif
-        // µ¥Î»»º´æ
+        // å•ä½ç¼“å­˜
         RenderingUnit   units[0];
     };
 
 }
 
 
-// ÖØÖÃäÖÈ¾¶ÓÁĞ
+// é‡ç½®æ¸²æŸ“é˜Ÿåˆ—
 void LongUIMethodCall LongUI::UIWindow::reset_renderqueue() noexcept {
     assert(!(this->flags & Flag_Window_FullRendering));
     DEVMODEW mode;
@@ -326,15 +326,15 @@ void LongUIMethodCall LongUI::UIWindow::reset_renderqueue() noexcept {
     if (new_queue) {
         new(new_queue) RenderingQueue(mode.dmDisplayFrequency);
         ZeroMemory(new_queue->units, size_alloc);
-        // ÉèÖÃ
+        // è®¾ç½®
         new_queue->queue_length = mode.dmDisplayFrequency * LongUIPlanRenderingTotalTime;
-        // ¼ì²éÓĞĞ§
+        // æ£€æŸ¥æœ‰æ•ˆ
         if (m_pRenderQueue) {
-            // TODO: Íê³É×ª»»
-            // ×ª»»
+            // TODO: å®Œæˆè½¬æ¢
+            // è½¬æ¢
             LongUICtrlFree(m_pRenderQueue);
         }
-        // È«Ë¢ĞÂÒ»Ö¡
+        // å…¨åˆ·æ–°ä¸€å¸§
         new_queue->current_unit->length = 1;
         new_queue->current_unit->units[0] = this;
         m_pRenderQueue = new_queue;
@@ -343,12 +343,12 @@ void LongUIMethodCall LongUI::UIWindow::reset_renderqueue() noexcept {
 
 
 
-// ¼Æ»®äÖÈ¾¿Ø¼ş
+// è®¡åˆ’æ¸²æŸ“æ§ä»¶
 void LongUI::UIWindow::PlanToRender(
     float waiting_time, float rendering_time, UIControl* control) noexcept {
     assert((waiting_time + rendering_time) < float(LongUIPlanRenderingTotalTime) && "time overflow");
     if (m_pRenderQueue) {
-        // ¼ì²é
+        // æ£€æŸ¥
         auto begin_unit = m_pRenderQueue->Get(waiting_time);
         if (rendering_time > 0.f) rendering_time += 0.02f;
         auto end_unit = m_pRenderQueue->Get(waiting_time + rendering_time);
@@ -356,11 +356,11 @@ void LongUI::UIWindow::PlanToRender(
         auto sssssssslength = end_unit - begin_unit + 1;
 #endif
         for (auto current_unit = begin_unit;;) {
-            // Ô½½ç
+            // è¶Šç•Œ
             if (current_unit >= m_pRenderQueue->units + m_pRenderQueue->queue_length) {
                 current_unit = m_pRenderQueue->units;
             }
-            // ÒÑ¾­ÓĞÁË
+            // å·²ç»æœ‰äº†
             bool doit = true;
             if (current_unit->length) {
                 if (current_unit->units[0] == this)
@@ -371,9 +371,9 @@ void LongUI::UIWindow::PlanToRender(
                     doit = false;
                 }
             }
-            // ¸ÉËü!
+            // å¹²å®ƒ!
             if (doit) {
-                // »ñÈ¡ÕæÕı
+                // è·å–çœŸæ­£
                 while (control != this) {
                     if (control->flags & Flag_RenderParent) {
                         control = control->parent;
@@ -383,12 +383,12 @@ void LongUI::UIWindow::PlanToRender(
                     }
                 }
             }
-            // ÊÇ×Ô¼º¾ÍĞ´ÔÚµÚÒ»¸ö
+            // æ˜¯è‡ªå·±å°±å†™åœ¨ç¬¬ä¸€ä¸ª
             if (control == this) {
                 current_unit->units[0] = this;
                 current_unit->length = 1;
             }
-            // ²»ÔÚ¾ÍÌí¼Ó
+            // ä¸åœ¨å°±æ·»åŠ 
             else if (std::none_of(
                 current_unit->units,
                 current_unit->units + current_unit->length,
@@ -397,7 +397,7 @@ void LongUI::UIWindow::PlanToRender(
                 current_unit->units[current_unit->length] = control;
                 ++current_unit->length;
             }
-            // µü´ú
+            // è¿­ä»£
             if (current_unit == end_unit) {
                 break;
             }
@@ -405,7 +405,7 @@ void LongUI::UIWindow::PlanToRender(
         }
     }
     else {
-        // TODO: ÑÓ³ÙË¢ĞÂ
+        // TODO: å»¶è¿Ÿåˆ·æ–°
         if (m_fConRenderTime < rendering_time) m_fConRenderTime = rendering_time;
         //m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
         //m_timer.MovStartEnd();
@@ -413,9 +413,9 @@ void LongUI::UIWindow::PlanToRender(
 }
 
 
-// ¿Ì»­²åÈë·ûºÅ
+// åˆ»ç”»æ’å…¥ç¬¦å·
 void LongUIMethodCall LongUI::UIWindow::draw_caret() noexcept {
-    // ²»ÄÜÔÚBeginDraw/EndDrawÖ®¼äµ÷ÓÃ
+    // ä¸èƒ½åœ¨BeginDraw/EndDrawä¹‹é—´è°ƒç”¨
     D2D1_POINT_2U pt = { m_rcCaretPx.left, m_rcCaretPx.top };
     D2D1_RECT_U src_rect;
     src_rect.top = LongUIWindowPlanningBitmap / 2;
@@ -427,15 +427,15 @@ void LongUIMethodCall LongUI::UIWindow::draw_caret() noexcept {
         );
 }
 
-// ¸üĞÂ²åÈë·ûºÅ
+// æ›´æ–°æ’å…¥ç¬¦å·
 void LongUIMethodCall LongUI::UIWindow::refresh_caret() noexcept {
-    // ²»ÄÜÔÚBeginDraw/EndDrawÖ®¼äµ÷ÓÃ
-    // TODO: Íê³ÉÎ»Í¼¸´ÖÆ
+    // ä¸èƒ½åœ¨BeginDraw/EndDrawä¹‹é—´è°ƒç”¨
+    // TODO: å®Œæˆä½å›¾å¤åˆ¶
 }
 
-// ÉèÖÃ³ÊÏÖ
+// è®¾ç½®å‘ˆç°
 void LongUIMethodCall LongUI::UIWindow::set_present() noexcept {
-    // ÏÔÊ¾¹â±ê?
+    // æ˜¾ç¤ºå…‰æ ‡?
     if (m_cShowCaret) {
         this->draw_caret();
         m_dirtyRects[m_present.DirtyRectsCount].left = m_rcCaretPx.left;
@@ -444,7 +444,7 @@ void LongUIMethodCall LongUI::UIWindow::set_present() noexcept {
         m_dirtyRects[m_present.DirtyRectsCount].bottom = m_rcCaretPx.top + m_rcCaretPx.height;
         ++m_present.DirtyRectsCount;
     }
-    // ´æÔÚÔà¾ØĞÎ?
+    // å­˜åœ¨è„çŸ©å½¢?
     if (m_present.DirtyRectsCount) {
         m_present.pScrollRect = &m_rcScroll;
 #ifdef _DEBUG
@@ -462,11 +462,11 @@ void LongUIMethodCall LongUI::UIWindow::set_present() noexcept {
 
 // begin draw
 void LongUIMethodCall LongUI::UIWindow::BeginDraw() noexcept {
-    // »ñÈ¡µ±Ç°´óĞ¡
+    // è·å–å½“å‰å¤§å°
     reinterpret_cast<D2D1_SIZE_F&>(this->show_zone.width) = m_clientSize;
-    // Ë¢ĞÂ×Ó¿Ø¼ş²¼¾Ö
+    // åˆ·æ–°å­æ§ä»¶å¸ƒå±€
     Super::UpdateChildLayout();
-    // Ô¤äÖÈ¾
+    // é¢„æ¸²æŸ“
     if (!m_vRegisteredControl.empty()) {
         for (auto i : m_vRegisteredControl) {
             auto ctrl = reinterpret_cast<UIControl*>(i);
@@ -475,27 +475,27 @@ void LongUIMethodCall LongUI::UIWindow::BeginDraw() noexcept {
             ctrl->PreRender();
         }
     }
-    // ÉèÎªµ±Ç°äÖÈ¾¶ÔÏó
+    // è®¾ä¸ºå½“å‰æ¸²æŸ“å¯¹è±¡
     m_pRenderTarget->SetTarget(m_pTargetBimtap);
-    // ¿ªÊ¼äÖÈ¾
+    // å¼€å§‹æ¸²æŸ“
     m_pRenderTarget->BeginDraw();
-    // ÉèÖÃ×ª»»¾ØÕó
+    // è®¾ç½®è½¬æ¢çŸ©é˜µ
     m_pRenderTarget->SetTransform(&this->transform);
 }
 
 // end draw
 auto LongUIMethodCall LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESULT {
-    // ½áÊøäÖÈ¾
+    // ç»“æŸæ¸²æŸ“
     m_pRenderTarget->EndDraw();
-    // ³ÊÏÖ
+    // å‘ˆç°
     this->set_present();
     HRESULT hr = m_pSwapChain->Present1(vsyc, 0, &m_present);
-    // »ñÈ¡Ë¢ĞÂÊ±¼ä
+    // è·å–åˆ·æ–°æ—¶é—´
     if (this->flags & Flag_Window_FullRendering) {
         if (m_fConRenderTime == 0.0f) m_fConRenderTime = -1.f;
         else m_fConRenderTime -= this->GetDeltaTime();
     }
-    // ÊÕµ½ÖØ½¨ÏûÏ¢Ê± ÖØ½¨UI
+    // æ”¶åˆ°é‡å»ºæ¶ˆæ¯æ—¶ é‡å»ºUI
 #ifdef _DEBUG
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET || test_D2DERR_RECREATE_TARGET) {
         test_D2DERR_RECREATE_TARGET = false;
@@ -511,18 +511,18 @@ auto LongUIMethodCall LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESU
         }
 #endif
     }
-    // ¼ì²é
+    // æ£€æŸ¥
     AssertHR(hr);
     return hr;
 }
 
-// UIWindow äÖÈ¾ 
+// UIWindow æ¸²æŸ“ 
 auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
-    // ÉèÖÃ¼ä¸ôÊ±¼ä
+    // è®¾ç½®é—´éš”æ—¶é—´
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     //UIManager << DL_Log << long(m_fDeltaTime * 1000.f) << LongUI::endl;
     m_timer.MovStartEnd();
-    // Çå¿Õ±³¾°  clear_color
+    // æ¸…ç©ºèƒŒæ™¯  clear_color
     m_pRenderTarget->Clear(this->clear_color);
     //
     LongUI::RenderingUnit* current_unit = nullptr;
@@ -536,22 +536,22 @@ auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
             full = true;
         }
     }
-    // È«Ë¢ĞÂ: ¼Ì³Ğ¸¸Àà
+    // å…¨åˆ·æ–°: ç»§æ‰¿çˆ¶ç±»
     if (full) {
         m_present.DirtyRectsCount = 0;
         Super::Render();
     }
-    // ²¿·ÖË¢ĞÂ:
+    // éƒ¨åˆ†åˆ·æ–°:
     else {
         m_present.DirtyRectsCount = current_unit->length;
         for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
             auto ctrl = current_unit->units[i];
             assert(ctrl->parent && "check it");
-            // ÉèÖÃ×ª»»¾ØÕó
+            // è®¾ç½®è½¬æ¢çŸ©é˜µ
             m_pRenderTarget->SetTransform(&ctrl->parent->world);
             ctrl->Render();
             D2D1_RECT_F draw_rect = GetDrawRect(ctrl);
-            // ×óÉÏ×ø±ê
+            // å·¦ä¸Šåæ ‡
             auto lefttop = LongUI::TransformPoint(
                 ctrl->parent->world,
                 D2D1::Point2F(ctrl->show_zone.left, ctrl->show_zone.top)
@@ -562,19 +562,19 @@ auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
                     ctrl->show_zone.left + ctrl->show_zone.width,
                     ctrl->show_zone.top + ctrl->show_zone.height)
                 );
-            // ×ª»»
+            // è½¬æ¢
             m_dirtyRects[i].left = static_cast<LONG>(lefttop.x);
             m_dirtyRects[i].top = static_cast<LONG>(lefttop.y);
             m_dirtyRects[i].right = static_cast<LONG>(rightbuttom.x);
             m_dirtyRects[i].bottom = static_cast<LONG>(rightbuttom.y);
         }
     }
-    // ÓĞĞ§ -> ÇåÁã
+    // æœ‰æ•ˆ -> æ¸…é›¶
     if (current_unit) {
         current_unit->length = 0;
     }
 #ifdef _DEBUG
-    // µ÷ÊÔÊä³ö
+    // è°ƒè¯•è¾“å‡º
     {
         D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.5f, 0.5f);
         m_pRenderTarget->GetTransform(&nowMatrix);
@@ -610,18 +610,18 @@ auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
     return S_OK;
 }
 
-// UIWindow ÊÂ¼ş´¦Àí
+// UIWindow äº‹ä»¶å¤„ç†
 bool LongUIMethodCall LongUI::UIWindow::
 DoEvent(LongUI::EventArgument& _arg) noexcept {
-    // ×Ô¼º²»´¦ÀíLongUIÊÂ¼ş
+    // è‡ªå·±ä¸å¤„ç†LongUIäº‹ä»¶
     if (_arg.sender) return Super::DoEvent(_arg);
     LongUI::EventArgument new_arg;
     bool handled = false; UIControl* control_got = nullptr;
-    // ´¦ÀíÊÂ¼ş
+    // å¤„ç†äº‹ä»¶
     switch (_arg.msg)
     {
     case WM_SETCURSOR:
-        // ÉèÖÃ¹â±ê
+        // è®¾ç½®å…‰æ ‡
         ::SetCursor(now_cursor);
         break;
     /*case WM_DWMCOLORIZATIONCOLORCHANGED:
@@ -648,15 +648,15 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
             handled = true;
             break;
         }
-        // ÓĞ´ı²¶»ñ¿Ø¼ş
+        // æœ‰å¾…æ•è·æ§ä»¶
         if (m_pCapturedControl) {
             m_pCapturedControl->DoEventEx(_arg);
             handled = true;
             break;
         }
-        // ²éÕÒ×Ó¿Ø¼ş
+        // æŸ¥æ‰¾å­æ§ä»¶
         control_got = this->FindControl(_arg.pt);
-        // ¿Ø¼şÓĞĞ§
+        // æ§ä»¶æœ‰æ•ˆ
         if (control_got){
             if (control_got != m_pPointedControl ) {
                 new_arg = _arg;
@@ -669,7 +669,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
                 new_arg.event = LongUI::Event::Event_MouseEnter;
                 m_pPointedControl->DoEventEx(new_arg);
             }
-            // ÏàÍ¬
+            // ç›¸åŒ
             else {
                 control_got->DoEventEx(_arg);
             }
@@ -677,9 +677,9 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         handled = true;
         break;
     case WM_TIMER:
-        // ÉÁË¸?
+        // é—ªçƒ?
         if (_arg.wParam_sys == 0 && m_cShowCaret) {
-            // ÉÁË¸
+            // é—ªçƒ
             m_present.DirtyRectsCount = 0;
             this->set_present();
             m_pSwapChain->Present1(0, 0, &m_present);
@@ -687,10 +687,10 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         }
         handled = true;
         break;
-    case WM_LBUTTONDOWN:    // °´ÏÂÊó±ê×ó¼ü
-        // ²éÕÒ×Ó¿Ø¼ş
+    case WM_LBUTTONDOWN:    // æŒ‰ä¸‹é¼ æ ‡å·¦é”®
+        // æŸ¥æ‰¾å­æ§ä»¶
         control_got = this->FindControl(_arg.pt);
-        // ¿Ø¼şÓĞĞ§
+        // æ§ä»¶æœ‰æ•ˆ
         if (control_got && control_got != m_pFocusedControl){
             new_arg = _arg;
             new_arg.sender = this;
@@ -699,7 +699,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
                 m_pFocusedControl->DoEventEx(new_arg);
             }
             new_arg.event = LongUI::Event::Event_SetFocus;
-            // ¿Ø¼şÏìÓ¦ÁË?
+            // æ§ä»¶å“åº”äº†?
             m_pFocusedControl = control_got->DoEventEx(new_arg) ? control_got : nullptr;
         }
         break;
@@ -712,7 +712,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         handled = true;
         break;
     case WM_KILLFOCUS:
-        // ´æÔÚ½¹µã¿Ø¼ş
+        // å­˜åœ¨ç„¦ç‚¹æ§ä»¶
         if (m_pFocusedControl){
             new_arg = _arg;
             new_arg.sender = this;
@@ -723,7 +723,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         ::DestroyCaret();
         handled = true;
         break;
-    case WM_MOUSELEAVE:     // Êó±êÒÆ³ö´°¿Ú
+    case WM_MOUSELEAVE:     // é¼ æ ‡ç§»å‡ºçª—å£
         if (m_pPointedControl){
             new_arg = _arg;
             new_arg.sender = this;
@@ -733,11 +733,11 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         }
         handled = true;
         break;
-    case WM_SIZE:           // ¸Ä±ä´óĞ¡
+    case WM_SIZE:           // æ”¹å˜å¤§å°
         this->DrawSizeChanged();
         if (_arg.lParam_sys && m_pSwapChain){
             this->OnResize();
-            // Ç¿ĞĞË¢ĞÂÒ»Ö¡
+            // å¼ºè¡Œåˆ·æ–°ä¸€å¸§
             this->Invalidate(this);
             this->UpdateRendering();
             this->BeginDraw();
@@ -746,47 +746,47 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
             handled = true;
         }
         break;
-    case WM_GETMINMAXINFO:  // »ñÈ¡ÏŞÖÆ´óĞ¡
+    case WM_GETMINMAXINFO:  // è·å–é™åˆ¶å¤§å°
         reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.x = 128;
         reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.y = 128;
         break;
     case WM_DISPLAYCHANGE:
-        // ¸üĞÂ·Ö±æÂÊ
+        // æ›´æ–°åˆ†è¾¨ç‡
         if(!(this->flags & Flag_Window_FullRendering))   this->reset_renderqueue();
-        // TODO: OOM´¦Àí
+        // TODO: OOMå¤„ç†
         break;
-    case WM_CLOSE:          // ¹Ø±Õ´°¿Ú
-        // ´°¿Ú¹Ø±Õ
+    case WM_CLOSE:          // å…³é—­çª—å£
+        // çª—å£å…³é—­
         this->Close();
         handled = true;
         break;
     }
-    // ´¦Àí
+    // å¤„ç†
     if (handled) return true;
-    // ´¦Àí¿Ø¼ş
+    // å¤„ç†æ§ä»¶
     register UIControl* processor = nullptr;
-    // Êó±êÊÂ¼ş½»ÓÉ²¶»ñ¿Ø¼ş(ÓÅÏÈ)»òÕßÊó±êÖ¸Ïò¿Ø¼ş´¦Àí
+    // é¼ æ ‡äº‹ä»¶äº¤ç”±æ•è·æ§ä»¶(ä¼˜å…ˆ)æˆ–è€…é¼ æ ‡æŒ‡å‘æ§ä»¶å¤„ç†
     if (_arg.msg >= WM_MOUSEFIRST && _arg.msg <= WM_MOUSELAST) {
         processor = m_pCapturedControl ? m_pCapturedControl : m_pPointedControl;
     }
-    // ÆäËûÊÂ¼ş½»ÓÉ½¹µã¿Ø¼ş´¦Àí
+    // å…¶ä»–äº‹ä»¶äº¤ç”±ç„¦ç‚¹æ§ä»¶å¤„ç†
     else {
         processor = m_pFocusedControl;
     }
-    // ÓĞ¾Í´¦Àí
-    // ´¦ÀíÁË¾ÍÖ±½Ó·µ»Ø
+    // æœ‰å°±å¤„ç†
+    // å¤„ç†äº†å°±ç›´æ¥è¿”å›
     if (processor && processor->DoEventEx(_arg)) {
         return true;
     }
-    // »¹ÊÇÃ»ÓĞ´¦Àí¾Í½»¸ø¸¸Àà´¦Àí
+    // è¿˜æ˜¯æ²¡æœ‰å¤„ç†å°±äº¤ç»™çˆ¶ç±»å¤„ç†
     return Super::DoEvent(_arg);
 }
 
 
-// Ë¢ĞÂäÖÈ¾×´Ì¬
+// åˆ·æ–°æ¸²æŸ“çŠ¶æ€
 bool LongUI::UIWindow::UpdateRendering() noexcept {
     bool isrender = false;
-    // ¸üĞÂäÖÈ¾¶ÓÁĞ
+    // æ›´æ–°æ¸²æŸ“é˜Ÿåˆ—
     if (m_pRenderQueue) {
         if (m_pRenderQueue->current_unit->length) {
             isrender = true;
@@ -794,21 +794,21 @@ bool LongUI::UIWindow::UpdateRendering() noexcept {
         }
         m_pRenderQueue->Update();
     }
-    // È«Ë¢ĞÂ
+    // å…¨åˆ·æ–°
     else {
         isrender = m_fConRenderTime >= 0.0f;
     }
     return isrender;
 }
 
-// ÖØÖÃ´°¿Ú´óĞ¡
+// é‡ç½®çª—å£å¤§å°
 void LongUI::UIWindow::OnResize(bool force) noexcept {
-    // ĞŞ¸Ä´óĞ¡
+    // ä¿®æ”¹å¤§å°
     this->DrawSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
     RECT rect; ::GetClientRect(m_hwnd, &rect);
     rect.right -= rect.left;
     rect.bottom -= rect.top;
-    // ¹ö¶¯
+    // æ»šåŠ¨
     m_rcScroll.right = rect.right;
     m_rcScroll.bottom = rect.bottom;
 
@@ -818,23 +818,23 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     rect.bottom = MakeAsUnit(rect.bottom);
     auto old_size = m_pTargetBimtap->GetPixelSize();
     register HRESULT hr = S_OK;
-    // Ç¿ĞĞ »òÕß Ğ¡ÓÚ²ÅResize
+    // å¼ºè¡Œ æˆ–è€… å°äºæ‰Resize
     if (force || old_size.width < uint32_t(rect.right) || old_size.height < uint32_t(rect.bottom)) {
         UIManager << DL_Hint << L"Window: [" << this->GetNameStr() << L"] \n\t\tTarget Bitmap Resize to " 
             << long(rect.right) << ", " << long(rect.bottom) << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
         ::SafeRelease(m_pTargetBimtap);
         hr = m_pSwapChain->ResizeBuffers(2, rect.right, rect.bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
-        // ¼ì²é
+        // æ£€æŸ¥
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
             UIManager.RecreateResources();
             UIManager << DL_Hint << L"Recreate device" << LongUI::endl;
         }
-        // ÀûÓÃ½»»»Á´»ñÈ¡Dxgi±íÃæ
+        // åˆ©ç”¨äº¤æ¢é“¾è·å–Dxgiè¡¨é¢
         if (SUCCEEDED(hr)) {
             hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));
         }
-        // ÀûÓÃDxgi±íÃæ´´½¨Î»Í¼
+        // åˆ©ç”¨Dxgiè¡¨é¢åˆ›å»ºä½å›¾
         if (SUCCEEDED(hr)) {
             D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
                 D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
@@ -854,26 +854,26 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
         }
         ::SafeRelease(pDxgiBackBuffer);
     }
-    // Ç¿ĞĞË¢ĞÂÒ»Ö¡
+    // å¼ºè¡Œåˆ·æ–°ä¸€å¸§
     this->Invalidate(this);
 }
 
 
-// UIWindow ÖØ½¨
+// UIWindow é‡å»º
 auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    // UIWindow::Recreate²ÎÊı²»»áÎªnullptr
+    // UIWindow::Recreateå‚æ•°ä¸ä¼šä¸ºnullptr
     assert(newRT && "bad argument");
-    // DXGI Surface ºóÌ¨»º³å
+    // DXGI Surface åå°ç¼“å†²
     IDXGISurface*                        pDxgiBackBuffer = nullptr;
     this->release_data();
-    // ´´½¨½»»»Á´
+    // åˆ›å»ºäº¤æ¢é“¾
     IDXGIFactory2* pDxgiFactory = UIManager;
     assert(pDxgiFactory);
     HRESULT hr = S_OK;
-    // ´´½¨½»»»Á´
+    // åˆ›å»ºäº¤æ¢é“¾
     if (SUCCEEDED(hr)) {
         RECT rect = { 0 }; ::GetClientRect(m_hwnd, &rect);
-        // ½»»»Á´ĞÅÏ¢
+        // äº¤æ¢é“¾ä¿¡æ¯
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = { 0 };
         swapChainDesc.Width = MakeAsUnit(rect.right - rect.left);
         swapChainDesc.Height = MakeAsUnit(rect.bottom - rect.top);
@@ -885,14 +885,14 @@ auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noex
         swapChainDesc.BufferCount = 2;
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.Flags = 0;
-        // ¹ö¶¯
+        // æ»šåŠ¨
         m_rcScroll.right = rect.right - rect.left;
         m_rcScroll.bottom = rect.bottom - rect.top;
         if (this->flags & Flag_Window_DComposition) {
-            // DirectComposition×ÀÃæÓ¦ÓÃ³ÌĞò
+            // DirectCompositionæ¡Œé¢åº”ç”¨ç¨‹åº
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-            // ´´½¨DirectComposition½»»»Á´
+            // åˆ›å»ºDirectCompositionäº¤æ¢é“¾
             hr = pDxgiFactory->CreateSwapChainForComposition(
                 UIManager_DXGIDevice,
                 &swapChainDesc,
@@ -901,10 +901,10 @@ auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noex
                 );
         }
         else {
-            // Ò»°ã×ÀÃæÓ¦ÓÃ³ÌĞò
+            // ä¸€èˆ¬æ¡Œé¢åº”ç”¨ç¨‹åº
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-            // ÀûÓÃ´°¿Ú¾ä±ú´´½¨½»»»Á´
+            // åˆ©ç”¨çª—å£å¥æŸ„åˆ›å»ºäº¤æ¢é“¾
             hr = pDxgiFactory->CreateSwapChainForHwnd(
                 UIManager_D3DDevice,
                 m_hwnd,
@@ -915,15 +915,15 @@ auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noex
                 );
         }
     }
-    // È·±£DXGI¶ÓÁĞÀï±ß²»»á³¬¹ıÒ»Ö¡
+    // ç¡®ä¿DXGIé˜Ÿåˆ—é‡Œè¾¹ä¸ä¼šè¶…è¿‡ä¸€å¸§
     if (SUCCEEDED(hr)) {
         hr = UIManager_DXGIDevice->SetMaximumFrameLatency(1);
     }
-    // ÀûÓÃ½»»»Á´»ñÈ¡Dxgi±íÃæ
+    // åˆ©ç”¨äº¤æ¢é“¾è·å–Dxgiè¡¨é¢
     if (SUCCEEDED(hr)) {
         hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));
     }
-    // ÀûÓÃDxgi±íÃæ´´½¨Î»Í¼
+    // åˆ©ç”¨Dxgiè¡¨é¢åˆ›å»ºä½å›¾
     if (SUCCEEDED(hr)) {
         D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
             D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
@@ -937,7 +937,7 @@ auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noex
             &m_pTargetBimtap
             );
     }
-    // ´´½¨¼Æ»®Î»Í¼
+    // åˆ›å»ºè®¡åˆ’ä½å›¾
     if (SUCCEEDED(hr)) {
         D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
             D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
@@ -952,48 +952,48 @@ auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noex
             &m_pBitmapPlanning
             );
     }
-    // Ê¹ÓÃDComp
+    // ä½¿ç”¨DComp
     if (this->flags & Flag_Window_DComposition) {
-        // ´´½¨Ö±½Ó×éºÏ(Direct Composition)Éè±¸
+        // åˆ›å»ºç›´æ¥ç»„åˆ(Direct Composition)è®¾å¤‡
         if (SUCCEEDED(hr)) {
             hr = LongUI::Dll::DCompositionCreateDevice(
                 UIManager_DXGIDevice,
                 LongUI_IID_PV_ARGS(m_pDcompDevice)
                 );
         }
-        // ´´½¨Ö±½Ó×éºÏ(Direct Composition)Ä¿±ê
+        // åˆ›å»ºç›´æ¥ç»„åˆ(Direct Composition)ç›®æ ‡
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->CreateTargetForHwnd(
                 m_hwnd, true, &m_pDcompTarget
                 );
         }
-        // ´´½¨Ö±½Ó×éºÏ(Direct Composition)ÊÓ¾õ
+        // åˆ›å»ºç›´æ¥ç»„åˆ(Direct Composition)è§†è§‰
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->CreateVisual(&m_pDcompVisual);
         }
-        // ÉèÖÃµ±Ç°½»»»Á´ÎªÊÓ¾õÄÚÈİ
+        // è®¾ç½®å½“å‰äº¤æ¢é“¾ä¸ºè§†è§‰å†…å®¹
         if (SUCCEEDED(hr)) {
             hr = m_pDcompVisual->SetContent(m_pSwapChain);
         }
-        // ÉèÖÃµ±Ç°ÊÓ¾õÎª´°¿ÚÄ¿±ê
+        // è®¾ç½®å½“å‰è§†è§‰ä¸ºçª—å£ç›®æ ‡
         if (SUCCEEDED(hr)) {
             hr = m_pDcompTarget->SetRoot(m_pDcompVisual);
         }
-        // ÏòÏµÍ³Ìá½»
+        // å‘ç³»ç»Ÿæäº¤
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->Commit();
         }
     }
-    // ´íÎó
+    // é”™è¯¯
     if (FAILED(hr)){
         UIManager << L"Recreate Failed!" << LongUI::endl;
         AssertHR(hr);
     }
     ::SafeRelease(pDxgiBackBuffer);
-    // ÉèÖÃ¹æ»®Î»Í¼
+    // è®¾ç½®è§„åˆ’ä½å›¾
     if (SUCCEEDED(hr)) {
         constexpr float PBS = float(LongUIWindowPlanningBitmap);
-        // ÈıÇø×ó±ßÍ¿ºÚ
+        // ä¸‰åŒºå·¦è¾¹æ¶‚é»‘
         newRT->SetTarget(m_pBitmapPlanning);
         newRT->BeginDraw();
         newRT->PushAxisAlignedClip(
@@ -1010,46 +1010,46 @@ auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noex
         newRT->PopAxisAlignedClip();
         newRT->EndDraw();
     }
-    // ÖØ½¨ ×Ó¿Ø¼şUI
+    // é‡å»º å­æ§ä»¶UI
     return Super::Recreate(newRT);
 }
 
-// UIWindow ¹Ø±Õ¿Ø¼ş
+// UIWindow å…³é—­æ§ä»¶
 void LongUI::UIWindow::Close() noexcept {
-    // É¾³ı¶ÔÏó
+    // åˆ é™¤å¯¹è±¡
     delete this;
-    // ÍË³ö
+    // é€€å‡º
     UIManager.Exit();
 }
 
 
 // ----------------- IDropTarget!!!! Yooooooooooo~-----
 
-// ÉèÖÃ²ÎÊı
+// è®¾ç½®å‚æ•°
 void __fastcall SetLongUIEventArgument(LongUI::EventArgument& arg, HWND hwnd, POINTL pt) {
-    // »ñÈ¡´°¿ÚÎ»ÖÃ
+    // è·å–çª—å£ä½ç½®
     RECT rc = { 0 }; ::GetWindowRect(hwnd, &rc);
-    // Ó³Éäµ½´°¿Ú×ø±ê
+    // æ˜ å°„åˆ°çª—å£åæ ‡
     POINT ppt = { pt.x, pt.y };  ::ScreenToClient(hwnd, &ppt);
-    // ²éÕÒ¶ÔÓ¦¿Ø¼ş
+    // æŸ¥æ‰¾å¯¹åº”æ§ä»¶
     arg = { 0 };
     arg.pt.x = static_cast<float>(ppt.x);
     arg.pt.y = static_cast<float>(ppt.y);
 
 }
 
-// »ñÈ¡ÍÏ·ÅĞ§¹û
+// è·å–æ‹–æ”¾æ•ˆæœ
 DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
     register DWORD dwEffect = 0;
-    // 1. ¼ì²éptÀ´¿´ÊÇ·ñÔÊĞídrop²Ù×÷ÔÚÄ³¸öÎ»ÖÃ
-    // 2. ¼ÆËã³ö»ùÓÚgrfKeyStateµÄdropĞ§¹û
+    // 1. æ£€æŸ¥ptæ¥çœ‹æ˜¯å¦å…è®¸dropæ“ä½œåœ¨æŸä¸ªä½ç½®
+    // 2. è®¡ç®—å‡ºåŸºäºgrfKeyStateçš„dropæ•ˆæœ
     if (grfKeyState & MK_CONTROL) {
         dwEffect = dwAllowed & DROPEFFECT_COPY;
     }
     else if (grfKeyState & MK_SHIFT) {
         dwEffect = dwAllowed & DROPEFFECT_MOVE;
     }
-    // 3. ·Ç¼üÅÌĞŞÊÎ·ûÖ¸¶¨(»òdropĞ§¹û²»ÔÊĞí), Òò´Ë»ùÓÚdropÔ´µÄĞ§¹û
+    // 3. éé”®ç›˜ä¿®é¥°ç¬¦æŒ‡å®š(æˆ–dropæ•ˆæœä¸å…è®¸), å› æ­¤åŸºäºdropæºçš„æ•ˆæœ
     if (dwEffect == 0) {
         if (dwAllowed & DROPEFFECT_COPY) dwEffect = DROPEFFECT_COPY;
         if (dwAllowed & DROPEFFECT_MOVE) dwEffect = DROPEFFECT_MOVE;
@@ -1057,13 +1057,13 @@ DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
     return dwEffect;
 }
 
-// IDropTarget::DragEnter ÊµÏÖ
+// IDropTarget::DragEnter å®ç°
 HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
     DWORD grfKeyState, POINTL pt, DWORD * pdwEffect) noexcept {
     m_bInDraging = true;
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     if (!pDataObj) return E_INVALIDARG;
-    // È¡Ïû¾Û½¹´°¿Ú
+    // å–æ¶ˆèšç„¦çª—å£
     if(m_pFocusedControl){
         LongUI::EventArgument arg = { 0 };
         arg.sender = this;
@@ -1071,10 +1071,10 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
         m_pFocusedControl->DoEventEx(arg);
         m_pFocusedControl = nullptr;
     }
-    // ±£ÁôÊı¾İ
+    // ä¿ç•™æ•°æ®
     ::SafeRelease(m_pCurDataObject);
     m_pCurDataObject = SafeAcquire(pDataObj);
-    // ÓÉ°ïÖúÆ÷´¦Àí
+    // ç”±å¸®åŠ©å™¨å¤„ç†
     POINT ppt = { pt.x, pt.y };
     if (m_pDropTargetHelper) {
         m_pDropTargetHelper->DragEnter(m_hwnd, pDataObj, &ppt, *pdwEffect);
@@ -1083,26 +1083,26 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
 }
 
 
-// IDropTarget::DragOver ÊµÏÖ
+// IDropTarget::DragOver å®ç°
 HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
     LongUI::EventArgument arg;
     ::SetLongUIEventArgument(arg, m_hwnd, pt);
     arg.sender = this;
     arg.event = LongUI::Event::Event_FindControl;
-    // ¼ì²é¿Ø¼şÖ§³Ö
+    // æ£€æŸ¥æ§ä»¶æ”¯æŒ
     if (Super::DoEventEx(arg) && arg.ctrl) {
-        // µÚÒ»¸ö¿Ø¼ş?
+        // ç¬¬ä¸€ä¸ªæ§ä»¶?
         if (m_pDragDropControl == arg.ctrl) {
-            // Ò»Ñù¾ÍÊÇOver
+            // ä¸€æ ·å°±æ˜¯Over
             arg.event = LongUI::Event::Event_DragOver;
         }
         else {
-            // ¶ÔÀÏ¿Ø¼ş·¢ËÍÀë¿ªÊÂ¼ş
+            // å¯¹è€æ§ä»¶å‘é€ç¦»å¼€äº‹ä»¶
             if (m_pDragDropControl) {
                 arg.event = LongUI::Event::Event_DragLeave;
                 m_pDragDropControl->DoEventEx(arg);
             }
-            // ĞÂ¿Ø¼ş·¢ËÍ½øÈë
+            // æ–°æ§ä»¶å‘é€è¿›å…¥
             arg.event = LongUI::Event::Event_DragEnter;
             m_pDragDropControl = arg.ctrl;
         }
@@ -1111,10 +1111,10 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL p
         if (!arg.ctrl->DoEventEx(arg)) *pdwEffect = DROPEFFECT_NONE;
     }
     else {
-        // ²»Ö§³Ö
+        // ä¸æ”¯æŒ
         *pdwEffect = DROPEFFECT_NONE;
     }
-    // ÓÉ°ïÖúÆ÷´¦Àí
+    // ç”±å¸®åŠ©å™¨å¤„ç†
     if (m_pDropTargetHelper) {
         POINT ppt = { pt.x, pt.y };
         m_pDropTargetHelper->DragOver(&ppt, *pdwEffect);
@@ -1122,16 +1122,16 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL p
     return S_OK;
 }
 
-// IDropTarget::DragLeave ÊµÏÖ
+// IDropTarget::DragLeave å®ç°
 HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
-    // ·¢ËÍÊÂ¼ş
+    // å‘é€äº‹ä»¶
     if (m_pDragDropControl) {
         LongUI::EventArgument arg = { 0 };
         arg.sender = this;
         arg.event = LongUI::Event::Event_DragLeave;
         m_pDragDropControl->DoEventEx(arg);
         m_pDragDropControl = nullptr;
-        // ´æÔÚ²¶»ñ¿Ø¼ş?
+        // å­˜åœ¨æ•è·æ§ä»¶?
         /*if (m_pCapturedControl) {
             this->ReleaseCapture();
             /*arg.sender = nullptr;
@@ -1149,9 +1149,9 @@ HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
     return S_OK;
 }
 
-// IDropTarget::Drop ÊµÏÖ
+// IDropTarget::Drop å®ç°
 HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
-    // ·¢ËÍÊÂ¼ş
+    // å‘é€äº‹ä»¶
     if (m_pDragDropControl) {
         LongUI::EventArgument arg;
         ::SetLongUIEventArgument(arg, m_hwnd, pt);
@@ -1159,12 +1159,12 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
         arg.event = LongUI::Event::Event_Drop;
         arg.dataobj_cf = m_pCurDataObject;
         arg.outeffect_cf = pdwEffect;
-        // ·¢ËÍÊÂ¼ş
+        // å‘é€äº‹ä»¶
         m_pDragDropControl->DoEventEx(arg);
         m_pDragDropControl = nullptr;
         
     }
-    // ¼ì²é²ÎÊı
+    // æ£€æŸ¥å‚æ•°
     if (!pDataObj) return E_INVALIDARG;
     if (m_pDropTargetHelper){
         POINT ppt = { pt.x, pt.y };

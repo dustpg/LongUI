@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/irep.h - mrb_irep structure
 **
 ** See Copyright Notice in mruby.h

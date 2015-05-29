@@ -1,4 +1,4 @@
-
+ï»¿
 #include "LongUI.h"
 
 #if defined(_DEBUG)  && 1
@@ -8,7 +8,7 @@
 #endif
 
 
-// Render äÖÈ¾ 
+// Render æ¸²æŸ“ 
 HRESULT LongUIMethodCall LongUI::UIRichEdit::Render() noexcept {
     HRESULT hr = S_OK;
     RECT draw_rect = { 0, 0, 100, 100 }; //AdjustRectT(LONG);
@@ -20,7 +20,7 @@ HRESULT LongUIMethodCall LongUI::UIRichEdit::Render() noexcept {
             TXTVIEW_ACTIVE
             );
     }
-    // ¿Ì»­¹â±ê
+    // åˆ»ç”»å…‰æ ‡
     if (SUCCEEDED(hr) && m_unused[Unused_ShowCaret]) {
         D2D1_RECT_F caretRect = {
             m_ptCaret.x, m_ptCaret.y,
@@ -34,28 +34,28 @@ HRESULT LongUIMethodCall LongUI::UIRichEdit::Render() noexcept {
 }
 
 
-// UIRichEdit ¹¹Ôìº¯Êı
+// UIRichEdit æ„é€ å‡½æ•°
 LongUI::UIRichEdit::UIRichEdit(pugi::xml_node node) noexcept: Super(node){
     static_assert(UNUSED_SIZE <= lengthof(m_unused), "unused size!");
 }
 
-// UIRichEdit Îö¹¹º¯Êı
+// UIRichEdit ææ„å‡½æ•°
 LongUI::UIRichEdit::~UIRichEdit() noexcept{
     ::SafeRelease(m_pFontBrush);
     if (m_pTextServices) {
         m_pTextServices->OnTxInPlaceDeactivate();
     }
-    // ¹Ø±Õ·şÎñ
+    // å…³é—­æœåŠ¡
     UIRichEdit::ShutdownTextServices(m_pTextServices);
     //::SafeRelease(m_pTextServices);
 }
 
-// UIRichEdit::CreateControl º¯Êı
+// UIRichEdit::CreateControl å‡½æ•°
 LongUI::UIControl* LongUI::UIRichEdit::CreateControl(pugi::xml_node node) noexcept {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
-    // ÉêÇë¿Õ¼ä
+    // ç”³è¯·ç©ºé—´
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIRichEdit>(
         node,
         [=](void* p) noexcept { new(p) UIRichEdit(node);}
@@ -68,12 +68,12 @@ LongUI::UIControl* LongUI::UIRichEdit::CreateControl(pugi::xml_node node) noexce
 
 
 
-// do event ÊÂ¼ş´¦Àí
+// do event äº‹ä»¶å¤„ç†
 bool LongUIMethodCall LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_FindControl: // ²éÕÒ±¾¿Õ¼ä
+        case LongUI::Event::Event_FindControl: // æŸ¥æ‰¾æœ¬ç©ºé—´
             if (IsPointInRect(this->show_zone, arg.pt)) {
                 arg.ctrl = this;
             }
@@ -99,18 +99,18 @@ bool LongUIMethodCall LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) no
             return true;
         }
     }
-    // ´¦ÀíÏµÍ³ÏûÏ¢
+    // å¤„ç†ç³»ç»Ÿæ¶ˆæ¯
     else if(m_pTextServices) {
-        // ¼ì²é
+        // æ£€æŸ¥
         if (m_pTextServices->TxSendMessage(arg.msg, arg.wParam_sys, arg.lParam_sys, &arg.lr) != S_FALSE) {
-            // ÒÑ¾­´¦ÀíÁË
+            // å·²ç»å¤„ç†äº†
             return true;
         }
     }
     return false;
 }
 
-// recreate ÖØ½¨
+// recreate é‡å»º
 HRESULT LongUIMethodCall LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT) noexcept {
     HRESULT hr = S_OK;
     if (m_pTextServices) {
@@ -118,13 +118,13 @@ HRESULT LongUIMethodCall LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT)
     }
     ::SafeRelease(m_pTextServices);
     ::SafeRelease(m_pFontBrush);
-    // ÉèÖÃĞÂµÄ±ÊË¢
+    // è®¾ç½®æ–°çš„ç¬”åˆ·
     m_pFontBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
-    // »ñÈ¡´°¿Ú¾ä±ú
+    // è·å–çª—å£å¥æŸ„
     m_hwnd = m_pWindow->GetHwnd();
     IUnknown* pUk = nullptr;
     hr = UIRichEdit::CreateTextServices(nullptr, this, &pUk);
-    // ´´½¨ÎÄ±¾·şÎñ
+    // åˆ›å»ºæ–‡æœ¬æœåŠ¡
     if (SUCCEEDED(hr)) {
         hr = pUk->QueryInterface(
             *UIRichEdit::IID_ITextServices2, reinterpret_cast<void**>(&m_pTextServices)
@@ -133,7 +133,7 @@ HRESULT LongUIMethodCall LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT)
     if (SUCCEEDED(hr)) {
         hr = m_pTextServices->TxSetText(L"Hello, World!");
     }
-    // ¾ÍµØ¼¤»î¸»ÎÄ±¾¿Ø¼ş
+    // å°±åœ°æ¿€æ´»å¯Œæ–‡æœ¬æ§ä»¶
     if (SUCCEEDED(hr)) {
         hr = m_pTextServices->OnTxInPlaceActivate(nullptr);
     }
@@ -141,28 +141,28 @@ HRESULT LongUIMethodCall LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT)
     return Super::Recreate(newRT);
 }
 
-// close this control ¹Ø±Õ¿Ø¼ş
+// close this control å…³é—­æ§ä»¶
 void LongUIMethodCall LongUI::UIRichEdit::Close() noexcept {
     delete this;
 }
 
 // ----- ITextHost
-// ITextHost::TxGetDC ÊµÏÖ: »ñÈ¡DC
+// ITextHost::TxGetDC å®ç°: è·å–DC
 HDC LongUI::UIRichEdit::TxGetDC() {
-    // ²»Ö§³Ö!!
+    // ä¸æ”¯æŒ!!
     assert(!"- GDI MODE - Not Supported");
     TRACE_FUCTION;
     return nullptr;
 }
 
-// ITextHost::TxReleaseDC ÊµÏÖ: ÊÍ·ÅDC
+// ITextHost::TxReleaseDC å®ç°: é‡Šæ”¾DC
 INT LongUI::UIRichEdit::TxReleaseDC(HDC hdc){
     assert(!"- GDI MODE - Not Supported");
     TRACE_FUCTION;
     return 0;
 }
 
-// ITextHost::TxShowScrollBar ÊµÏÖ: ÏÔÊ¾¹ö¶¯Ìõ
+// ITextHost::TxShowScrollBar å®ç°: æ˜¾ç¤ºæ»šåŠ¨æ¡
 BOOL LongUI::UIRichEdit::TxShowScrollBar(INT fnBar, BOOL fShow){
     TRACE_FUCTION;
     return FALSE;
@@ -194,17 +194,17 @@ void LongUI::UIRichEdit::TxViewChange(BOOL fUpdate){
     //}
 }
 
-// ITextHost::TxCreateCaret ÊµÏÖ:´´½¨¹â±ê
+// ITextHost::TxCreateCaret å®ç°:åˆ›å»ºå…‰æ ‡
 BOOL LongUI::UIRichEdit::TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight){
     TRACE_FUCTION;
     m_sizeCaret = {static_cast<float>(xWidth), static_cast<float>(yHeight) };
-    // ´´½¨¿şÀÜ
+    // åˆ›å»ºå‚€å„¡
     ::DestroyCaret();
     ::CreateCaret(m_hwnd, nullptr, xWidth, yHeight);
     return TRUE;
 }
 
-// ITextHost::TxShowCaret ÊµÏÖ:ÏÔÊ¾/Òş²Ø¹â±ê
+// ITextHost::TxShowCaret å®ç°:æ˜¾ç¤º/éšè—å…‰æ ‡
 BOOL LongUI::UIRichEdit::TxShowCaret(BOOL fShow){
     TRACE_FUCTION;
     m_unused[Unused_ShowCaret] = (fShow != 0);

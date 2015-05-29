@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -26,32 +26,32 @@
 
 // LongUI namespace
 namespace LongUI{
-    // default button control Ä¬ÈÏ°´Å¥¿Ø¼ş
+    // default button control é»˜è®¤æŒ‰é’®æ§ä»¶
     class LongUIAPI UIButton final : public UILabel{
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UILabel ;
     public:
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         virtual void LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         virtual void LongUIMethodCall Close() noexcept override;
     public:
-        // create ´´½¨
+        // create åˆ›å»º
         static auto WINAPI CreateControl(pugi::xml_node) noexcept ->UIControl*;
-        // register click event ×¢²áµã»÷ÊÂ¼ş
+        // register click event æ³¨å†Œç‚¹å‡»äº‹ä»¶
         LongUIInline void RegisterClickEvent(LongUICallBack call, UIControl* target) noexcept{ 
             m_eventClick = call; m_pClickTarget = target;
         };
     protected:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         UIButton(pugi::xml_node) noexcept;
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~UIButton() noexcept;
         // deleted function
         UIButton(const UIButton&) = delete;

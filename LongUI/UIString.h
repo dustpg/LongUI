@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -29,20 +29,20 @@ namespace LongUI{
     // UI String -- compatible with std library string interface(part of) but static
     class LongUIAPI CUIString {
     public:
-        // Ä¬ÈÏ¹¹Ôìº¯Êı
+        // é»˜è®¤æ„é€ å‡½æ•°
         LongUIInline CUIString() noexcept { *m_aDataStatic = 0; }
-        // ×Ö·û´®¹¹Ôìº¯Êı
+        // å­—ç¬¦ä¸²æ„é€ å‡½æ•°
         CUIString(const wchar_t* str, uint32_t l = 0) noexcept { this->Set(str, l); }
-        // Îö¹¹º¯Êı
+        // ææ„å‡½æ•°
         ~CUIString() noexcept;
-        // ¸´ÖÆ¹¹Ôìº¯Êı
+        // å¤åˆ¶æ„é€ å‡½æ•°
         CUIString(const CUIString&) noexcept;
-        // move¹¹Ôìº¯Êı
+        // moveæ„é€ å‡½æ•°
         CUIString(CUIString&&) noexcept;
     public:
-        // ÉèÖÃ
+        // è®¾ç½®
         void __fastcall Set(const wchar_t* str, uint32_t = 0) noexcept;
-        // ×ª»»Îª wchar_t*
+        // è½¬æ¢ä¸º wchar_t*
         LongUIInline  operator const wchar_t*()const noexcept{ return m_pString; }
     public: // std::string compatibled interface/method
         // get data
@@ -53,30 +53,30 @@ namespace LongUI{
         LongUIInline auto length() const noexcept{ return m_cLength; }
         // get size
         LongUIInline auto size() const noexcept{ return m_cLength; }
-        // = ²Ù×÷
+        // = æ“ä½œ
         const CUIString& __fastcall operator=(const wchar_t* s) noexcept{ this->Set(s); }
-        // += ²Ù×÷
+        // += æ“ä½œ
         //const CUIString& __fastcall operator+=(const wchar_t*) noexcept;
-        // == ²Ù×÷
+        // == æ“ä½œ
         bool __fastcall operator == (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) == 0); };
-        // != ²Ù×÷
+        // != æ“ä½œ
         bool __fastcall operator != (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) != 0); };
-        // <= ²Ù×÷
+        // <= æ“ä½œ
         bool __fastcall operator <= (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) <= 0); };
-        // < ²Ù×÷
+        // < æ“ä½œ
         bool __fastcall operator <  (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) < 0); };
-        // >= ²Ù×÷
+        // >= æ“ä½œ
         bool __fastcall operator >= (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) >= 0); };
-        // > ²Ù×÷
+        // > æ“ä½œ
         bool __fastcall operator >  (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) > 0); };
     private:
-        // ×Ö·û´®
+        // å­—ç¬¦ä¸²
         wchar_t*            m_pString = m_aDataStatic;
-        // ×Ö·û´®³¤¶È
+        // å­—ç¬¦ä¸²é•¿åº¦
         uint32_t            m_cLength = 0;
-        // »º³åÇø³¤¶È
+        // ç¼“å†²åŒºé•¿åº¦
         uint32_t            m_cBufferLength = LongUIStringLength;
-        // ¾²Ì¬Êı¾İ
+        // é™æ€æ•°æ®
         wchar_t             m_aDataStatic[LongUIStringLength];
     };
 }

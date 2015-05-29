@@ -1,4 +1,4 @@
-/*
+﻿/*
 ** mruby/boxing_no.h - unboxed mrb_value definition
 **
 ** See Copyright Notice in mruby.h

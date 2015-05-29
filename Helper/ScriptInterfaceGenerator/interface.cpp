@@ -1,14 +1,14 @@
-#include "interface.h"
+ï»¿#include "interface.h"
 #include <vector>
 #include <regex>
 
 
 static const char* ClassRegex =
 u8R"regex((?://(.+?))?\s*class\s+([\w:]+?)\s*(?:\[([\w:]+?)\])?\s+:\s*([\w:]+)\s*\{([\s\S]+?)\};)regex";
-//          ×¢ÊÍ         class    ÀàÃû       ±ğÃû         :         ¸¸Àà            ·½·¨
+//          æ³¨é‡Š         class    ç±»å       åˆ«å         :         çˆ¶ç±»            æ–¹æ³•
 static const char* MethodRegex =
 u8R"regex((?://(.+?))?(?:\s+(static))?\s+([\w\*]+?)\s+(\w+?)(?:\[(\w+?)\])*\(([\s\S]+?)\);)regex";
-//          ×¢ÊÍ             static     ·µ»ØÀàĞÍ   ·½·¨Ãû    ±ğÃû           ²ÎÊıÁĞ±í
+//          æ³¨é‡Š             static     è¿”å›ç±»å‹   æ–¹æ³•å    åˆ«å           å‚æ•°åˆ—è¡¨
 // 
 // 
 
@@ -45,44 +45,44 @@ enum MethodRegExpIndex {
 };
 
 
-// ½âÎöµ¥¸ö²ÎÊı
+// è§£æå•ä¸ªå‚æ•°
 ISType parse_arg(const char* str);
-// ½âÎö²ÎÊıÁĞ±í
+// è§£æå‚æ•°åˆ—è¡¨
 uint32_t parse_arglist(const char* sbegin, const char* send, ISType[/*256*/]);
 
 
-// ¶ÁÈ¡×Ö·û´®
+// è¯»å–å­—ç¬¦ä¸²
 bool InterfaceScriptReader::read(const char* script_) {
     if (!script) return false;
     this->~InterfaceScriptReader();
     std::vector<uint8_t> buffer;
     buffer.reserve(64 * 1024);
-    // Ïà¹ØÊı¾İ
+    // ç›¸å…³æ•°æ®
     uint32_t class_number = 0;
-    // ÕıÔò±í´ïÊ½Æ¥Åä
+    // æ­£åˆ™è¡¨è¾¾å¼åŒ¹é…
     const std::regex class_regex(ClassRegex);
     const std::regex method_regex(MethodRegex);
     const std::cregex_iterator itr_end;
-    // Ñ­»·Æ¥Åä
+    // å¾ªç¯åŒ¹é…
     auto script_end = script + std::strlen(script);
     for (std::cregex_iterator itr(script, script_end, class_regex); itr != itr_end; ++itr) {
         const auto& resultc = *itr;
         ++class_number;
-        // ³õÊ¼»¯
+        // åˆå§‹åŒ–
         auto now_offsetc = buffer.size();
         buffer.resize(now_offsetc + sizeof(ISClass) - sizeof(ISClass::method));
         ISClass& tmp_class = reinterpret_cast<ISClass&>(buffer[now_offsetc]);
         tmp_class.size = sizeof(ISClass) - sizeof(ISClass::method);
         tmp_class.method_number = 0;
-        // ¸´ÖÆ×¢ÊÍ
+        // å¤åˆ¶æ³¨é‡Š
         register auto length = resultc[IndexC_Comment].second - resultc[IndexC_Comment].first;
         tmp_class.comment[length] = 0;
         std::strncpy(tmp_class.comment, resultc[IndexC_Comment].first, length);
-        // ¸´ÖÆÀàÃû
+        // å¤åˆ¶ç±»å
         length = resultc[IndexC_ClassName].second - resultc[IndexC_ClassName].first;
         tmp_class.name[length] = 0;
         std::strncpy(tmp_class.name, resultc[IndexC_ClassName].first, length);
-        // ¸´ÖÆ±ğÃû
+        // å¤åˆ¶åˆ«å
         length = resultc[IndexC_AliasName].second - resultc[IndexC_AliasName].first;
         if (length) {
             tmp_class.alias[length] = 0;
@@ -91,35 +91,35 @@ bool InterfaceScriptReader::read(const char* script_) {
         else {
             std::strcpy(tmp_class.alias, tmp_class.name);
         }
-        // ¸´ÖÆ¸¸ÀàÃû
+        // å¤åˆ¶çˆ¶ç±»å
         length = resultc[IndexC_SuperName].second - resultc[IndexC_SuperName].first;
         tmp_class.super[length] = 0;
         std::strncpy(tmp_class.super, resultc[IndexC_SuperName].first, length);
-        // ¼ì²é·½·¨
+        // æ£€æŸ¥æ–¹æ³•
         for (std::cregex_iterator itrm(
             resultc[IndexC_MethodZone].first, resultc[IndexC_MethodZone].second, method_regex
             ); itrm != itr_end; ++itrm) {
             const auto& resultm = *itrm;
-            // Ìí¼Ó·½·¨ÊıÁ¿
+            // æ·»åŠ æ–¹æ³•æ•°é‡
             ++tmp_class.method_number;
-            // ¼ì²éÆ«ÒÆÖµ
+            // æ£€æŸ¥åç§»å€¼
             auto now_offsetm = buffer.size();
             buffer.resize(now_offsetm + sizeof(ISMethod) - sizeof(ISMethod::params));
             ISMethod& tmp_method = reinterpret_cast<ISMethod&>(buffer[now_offsetm]);
-            // ¸´ÖÆ×¢ÊÍ
+            // å¤åˆ¶æ³¨é‡Š
             length = resultm[IndexM_Comment].second - resultm[IndexM_Comment].first;
             tmp_method.comment[length] = 0;
             std::strncpy(tmp_method.comment, resultm[IndexM_Comment].first, length);
-            // ¼ì²éÀàĞÍ
+            // æ£€æŸ¥ç±»å‹
             tmp_method.method_type =
                 resultm[IndexM_IsStatic].matched ? ISMethodType::Static : ISMethodType::Normal;
-            // ¼ì²é·µ»ØÖµÀàĞÍ
+            // æ£€æŸ¥è¿”å›å€¼ç±»å‹
             tmp_method.return_type = parse_arg(resultm[IndexM_ReturnType].first);
-            // ¸´ÖÆ·½·¨Ãû
+            // å¤åˆ¶æ–¹æ³•å
             length = resultm[IndexM_MethodName].second - resultm[IndexM_MethodName].first;
             tmp_method.name[length] = 0;
             std::strncpy(tmp_method.name, resultm[IndexM_MethodName].first, length);
-            // ¸´ÖÆ±ğÃû
+            // å¤åˆ¶åˆ«å
             length = resultm[IndexM_AliasName].second - resultm[IndexM_AliasName].first;
             if (length) {
                 tmp_method.alias[length] = 0;
@@ -128,23 +128,23 @@ bool InterfaceScriptReader::read(const char* script_) {
             else {
                 std::strcpy(tmp_method.alias, tmp_method.name);
             }
-            // ¼ì²é²ÎÊıÁĞ±í
+            // æ£€æŸ¥å‚æ•°åˆ—è¡¨
             ISType tmptype[256];
             tmp_method.param_number = parse_arglist(
                 resultm[IndexM_ParamList].first,
                 resultm[IndexM_ParamList].second,
                 tmptype
                 );
-            // À©ÕÅ
+            // æ‰©å¼ 
             register auto tmp_type_size = tmp_method.param_number * sizeof(ISType);
             buffer.resize(tmp_type_size + buffer.size());
-            // ¸´ÖÆÊı¾İ
+            // å¤åˆ¶æ•°æ®
             ::memcpy(tmp_method.params, tmptype, sizeof(ISType) * tmp_method.param_number);
-            // Ôö¼Ó´óĞ¡
+            // å¢åŠ å¤§å°
             tmp_class.size += sizeof(ISMethod) - sizeof(ISMethod::params) + tmp_type_size;
         }
     }
-    // Éú³ÉÊı¾İ
+    // ç”Ÿæˆæ•°æ®
     register auto total_size = buffer.size() + sizeof(ISInfo);
     if (this->info = reinterpret_cast<ISInfo*>(std::malloc(total_size))) {
         this->info->size = total_size;
@@ -154,7 +154,7 @@ bool InterfaceScriptReader::read(const char* script_) {
     return this->doit();
 }
 
-// ¶ÁÈ¡¶ş½øÖÆ
+// è¯»å–äºŒè¿›åˆ¶
 bool InterfaceScriptReader::read(ISInfo* infogiven) {
     if (!infogiven) return false;
     this->~InterfaceScriptReader();
@@ -166,7 +166,7 @@ bool InterfaceScriptReader::read(ISInfo* infogiven) {
     return false;
 }
 
-// Ö´ĞĞ
+// æ‰§è¡Œ
 bool InterfaceScriptReader::doit() {
     return false;
     return this->output("out.bin", OutputType::Bin) &&
@@ -175,7 +175,7 @@ bool InterfaceScriptReader::doit() {
 }
 
 
-// Êä³ö
+// è¾“å‡º
 bool InterfaceScriptReader::output(FILE * file, OutputType type) {
     if (file && this->info) {
         switch (type)
@@ -194,7 +194,7 @@ bool InterfaceScriptReader::output(FILE * file, OutputType type) {
     }
     return false;
 }
-// the _longui32 ºó×º
+// the _longui32 åç¼€
 constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
     return len == 2 ?
         static_cast<uint32_t>(src[0]) << (8 * 0) |
@@ -230,26 +230,26 @@ ISType parse_arg(const char* str) {
     }
 }
 
-// ½âÎö²ÎÊıÁĞ±í
+// è§£æå‚æ•°åˆ—è¡¨
 uint32_t parse_arglist(const char* sbegin, const char* send, ISType types[/*256*/]){
     ISType* now_type = types;
-    // ²éÕÒÊ×²¿
+    // æŸ¥æ‰¾é¦–éƒ¨
     const char* token_begin = nullptr;
     auto index = sbegin;
     while (index < send) {
-        // ²éÕÒ´Ê¶ÎÊ×
+        // æŸ¥æ‰¾è¯æ®µé¦–
         if (!token_begin && (*index != ' ' || *index != ',' || *index != '\t')) {
             token_begin = index;
         }
-        // ÍÆ½øË÷Òı
+        // æ¨è¿›ç´¢å¼•
         ++index;
-        // Íê³É×Ö¶Î
+        // å®Œæˆå­—æ®µ
         if (index == send || *index == ',') {
             *now_type = parse_arg(token_begin);
             ++now_type;
             token_begin = nullptr;
         }
     }
-    // ·µ»ØÊıÁ¿
+    // è¿”å›æ•°é‡
     return now_type - types;
 }

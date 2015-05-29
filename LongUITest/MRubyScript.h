@@ -1,53 +1,53 @@
-#pragma once
+ï»¿#pragma once
 
 
-// MRuby½Å±¾
+// MRubyè„šæœ¬
 class MRubyScript final : public LongUI::IUIScript {
-    // ²ÎÊı
+    // å‚æ•°
     /*enum ArgumentIndex : uint32_t {
-        // ÊÂ¼şÀàĞÍ
+        // äº‹ä»¶ç±»å‹
         Index_UIEventType = 0,
-        // ¿Ø¼şÖ¸Õë
+        // æ§ä»¶æŒ‡é’ˆ
         Index_ControlPointer,
-        // Ë÷Òı´óĞ¡
+        // ç´¢å¼•å¤§å°
         Index_Count,
     };*/
 public:
-    // ¹¹Ôìº¯Êı
+    // æ„é€ å‡½æ•°
     MRubyScript() noexcept;
-    // ÄÚÁªÎö¹¹º¯Êı
+    // å†…è”ææ„å‡½æ•°
     ~MRubyScript() noexcept {}
 public:
-    // ÊÍ·Å½Å±¾
+    // é‡Šæ”¾è„šæœ¬
     virtual auto Release() noexcept -> int32_t { return 0; };
-    // ÔËĞĞ½Å±¾
+    // è¿è¡Œè„šæœ¬
     virtual auto Evaluation(const LongUI::UIScript, const LongUI::EventArgument&) noexcept->size_t;
-    // »ñÈ¡ÅäÖÃĞÅÏ¢
+    // è·å–é…ç½®ä¿¡æ¯
     virtual auto GetConfigInfo() noexcept->LongUI::ScriptConfigInfo { return LongUI::Info_None; };
-    // ³õÊ¼»¯Àà
+    // åˆå§‹åŒ–ç±»
     virtual auto Initialize(LongUI::CUIManager*) noexcept ->bool ;
-    // ·´³õÊ¼»¯
+    // ååˆå§‹åŒ–
     virtual auto UnInitialize() noexcept->void;
-    // ÉêÇë²¢ÌîĞ´½Å±¾¿Õ¼ä
+    // ç”³è¯·å¹¶å¡«å†™è„šæœ¬ç©ºé—´
     virtual auto AllocScript(const char*) noexcept->LongUI::UIScript ;
-    // ÊÍ·Å½Å±¾¿Õ¼ä
+    // é‡Šæ”¾è„šæœ¬ç©ºé—´
     virtual auto FreeScript(LongUI::UIScript&) noexcept->void ;
 public:
-    // »ñÈ¡ÀàID
+    // è·å–ç±»ID
     auto GetClassID(const char*) noexcept->size_t;
 private:
-    // ¶¨Òå API ½Ó¿Ú
+    // å®šä¹‰ API æ¥å£
     bool define_api() noexcept;
 private:
-    // µ±Ç°´°¿Ú
+    // å½“å‰çª—å£
     static HWND s_hNowWnd;
     // API.msg_box
     static auto MsgBox(mrb_state *mrb, mrb_value self) noexcept->mrb_value;
 private:
-    // LongUI ¹ÜÀíÆ÷
+    // LongUI ç®¡ç†å™¨
     LongUI::CUIManager*             m_pUIManager = nullptr;
-    // MRuby ×´Ì¬(ĞéÄâ»ú)
+    // MRuby çŠ¶æ€(è™šæ‹Ÿæœº)
     mrb_state*                      m_pMRuby = nullptr;
-    // È«¾Ö²ÎÊı·ûºÅ
+    // å…¨å±€å‚æ•°ç¬¦å·
     mrb_sym                         m_symArgument = 0;
 };

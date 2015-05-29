@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -148,7 +148,7 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
 #define DL_Fatal LongUI::DebugStringLevel::DLevel_Fatal
 #endif
 
-// LongUI render target Ä¿±êäÖÈ¾³ÊÏÖÆ÷
+// LongUI render target ç›®æ ‡æ¸²æŸ“å‘ˆç°å™¨
 using LongUIRenderTarget = ID2D1DeviceContext;
 
 // longui
@@ -158,20 +158,20 @@ namespace LongUI {
     // force modify some (class member) variables
     template<typename T>
     inline T& force_cast(const T& a) { return const_cast<T&>(a); }
-    // LTWHÄ£ĞÍ¾ØĞÎ
+    // LTWHæ¨¡å‹çŸ©å½¢
     template<typename T> struct RectLTWH { RectLTWH() {} T left=T(0), top = T(0), width = T(0), height = T(0); };
     using RectLTWH_F = RectLTWH<float>;
     using RectLTWH_L = RectLTWH<int32_t>;
     using RectLTWH_U = RectLTWH<uint32_t>;
-    // LTRBÄ£ĞÍ¾ØĞÎ
+    // LTRBæ¨¡å‹çŸ©å½¢
     template<typename T> struct RectLTRB { RectLTRB() {} T left = T(0), top = T(0), right = T(0), bottom = T(0); };
     using RectLTRB_F = RectLTRB<float>;
     using RectLTRB_L = RectLTRB<int32_t>;
     using RectLTRB_U = RectLTRB<uint32_t>;
     // --------------------------------
-    //longui callback func ¿Ø¼ş»Øµ÷
+    //longui callback func æ§ä»¶å›è°ƒ
     using LongUICallBack = bool (LongUIMethodCall UIControl::*)(UIControl*);
-    // CreateControl Function ¿Ø¼ş´´½¨º¯Êı
+    // CreateControl Function æ§ä»¶åˆ›å»ºå‡½æ•°
     using CreateControlFunction = UIControl* (WINAPI*)(pugi::xml_node);
     // LongUI Custom Formated String Inline Param Handler
     // type:  0 for drawing effect, 1 for inline object
@@ -249,23 +249,23 @@ namespace LongUI {
     };
     // Control Status
     enum ControlStatus : uint32_t {
-        Status_Disabled = 0,    // ½ûÓÃ×´Ì¬
-        Status_Normal,          // Í¨³£×´Ì¬
-        Status_Hover,           // Êó±êÅÌĞı
-        Status_Pushed,          // µã»÷×´Ì¬
-        Status_Count,           // ×´Ì¬ÊıÁ¿
+        Status_Disabled = 0,    // ç¦ç”¨çŠ¶æ€
+        Status_Normal,          // é€šå¸¸çŠ¶æ€
+        Status_Hover,           // é¼ æ ‡ç›˜æ—‹
+        Status_Pushed,          // ç‚¹å‡»çŠ¶æ€
+        Status_Count,           // çŠ¶æ€æ•°é‡
     };
     // bitmap render rule
     enum class BitmapRenderRule : uint16_t {
-        Rule_Scale = 0,         // Ö±½ÓËõ·Å
-        Rule_ButtonLike,        // ¾Å¹¬¸ñäÖÈ¾
+        Rule_Scale = 0,         // ç›´æ¥ç¼©æ”¾
+        Rule_ButtonLike,        // ä¹å®«æ ¼æ¸²æŸ“
     };
     // brush type
     enum class BrushType : size_t {
-        Type_SolidColor = 0,    // ´¿É«±ÊË¢
-        Type_LinearGradient,    // ÏßĞÔ½¥±ä
-        Type_RadialGradient,    // ¾¶Ïò½¥±ä
-        Type_Bitmap,            // Î»Í¼±ÊË¢
+        Type_SolidColor = 0,    // çº¯è‰²ç¬”åˆ·
+        Type_LinearGradient,    // çº¿æ€§æ¸å˜
+        Type_RadialGradient,    // å¾„å‘æ¸å˜
+        Type_Bitmap,            // ä½å›¾ç¬”åˆ·
     };
     // LongUI Event
     enum class Event : size_t {
@@ -368,7 +368,7 @@ namespace LongUI {
         result.y = (matrix._12*m - matrix._11 * n) / bc_ad;
         return result;
     }
-    // ËÄÉáÎåÈë
+    // å››èˆäº”å…¥
     inline auto RoundToInt(float x) { return static_cast<int>(x + .5f); }
     // script interface
     class IUIScript;

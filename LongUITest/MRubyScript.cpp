@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "included.h"
 #include "mruby\class.h"
 #include "mruby\data.h"
@@ -12,9 +12,9 @@
 
 constexpr char* ruby_script = u8R"ruby(
 module App
-  # µã»÷²âÊÔ
+  # ç‚¹å‡»æµ‹è¯•
   def self.click_button1(arg)
-    msg_box "click_button1  " + arg.to_s, "µã»÷²âÊÔ"
+    msg_box "click_button1  " + arg.to_s, "ç‚¹å‡»æµ‹è¯•"
   end
 end
 )ruby";
@@ -24,7 +24,7 @@ template<const wchar_t FileName[128],
     const char ProcName[32] = "LongUICreateControl">
 class LoaderTemplate {
 public:
-    // ¹¹Ôìº¯Êı
+    // æ„é€ å‡½æ•°
     LoaderTemplate() { 
         register LongUI::CreateControlFunction tmp = nullptr;
         if (dll && tmp = reinterpret_cast<decltype(tmp)>(
@@ -33,7 +33,7 @@ public:
             UIManager.AddS2CPair(ControlName, tmp);
         }
     }
-    // Îö¹¹º¯Êı
+    // ææ„å‡½æ•°
     ~LoaderTemplate() {
         if(dll) 
             ::FreeLibrary(dll); 
@@ -46,42 +46,42 @@ private:
 
 
 
-// MRubyScript ¹¹Ôìº¯Êı
+// MRubyScript æ„é€ å‡½æ•°
 MRubyScript::MRubyScript() noexcept {
 
 }
 
-// ³õÊ¼»¯
+// åˆå§‹åŒ–
 auto MRubyScript::Initialize(LongUI::CUIManager* manager) noexcept -> bool {
     bool rc = false;
     m_pUIManager = manager;
-    // ¶¯Ì¬Á´½Ó½¨ÒéÊ¹ÓÃ²ÎÊı, ¾²Ì¬Á´½ÓÖ±½ÓÊ¹ÓÃ"UIManager"¼´¿É
+    // åŠ¨æ€é“¾æ¥å»ºè®®ä½¿ç”¨å‚æ•°, é™æ€é“¾æ¥ç›´æ¥ä½¿ç”¨"UIManager"å³å¯
     // if IUIScript implemented in dll(dynamic link), use the para: @manager
     // if not(static link), use Marco "UIManager"
     assert(manager == &UIManager);
-    // ´ò¿ªmruby
+    // æ‰“å¼€mruby
     m_pMRuby = ::mrb_open();
     if (m_pMRuby && (m_symArgument = mrb_intern_lit(m_pMRuby, "$apparg"))) {
-        // ¶¨ÒåÈ«¾Ö±äÁ¿×öÎª²ÎÊı
+        // å®šä¹‰å…¨å±€å˜é‡åšä¸ºå‚æ•°
         ::mrb_gv_set(m_pMRuby, m_symArgument, mrb_fixnum_value(0));
-        // ÔØÈë³õÊ¼»¯×Ö·û´®
+        // è½½å…¥åˆå§‹åŒ–å­—ç¬¦ä¸²
         ::mrb_load_string(m_pMRuby, ruby_script);
-        // ¶¨ÒåAPI
+        // å®šä¹‰API
         rc = this->define_api();
     }
     return rc;
 }
 
-// ·´³õÊ¼»¯
+// ååˆå§‹åŒ–
 auto MRubyScript::UnInitialize() noexcept -> void {
-    // ¹Ø±ÕMRuby
+    // å…³é—­MRuby
     if (m_pMRuby) {
         ::mrb_close(m_pMRuby);
         m_pMRuby = nullptr;
     }
 }
 
-// ÉêÇë²¢ÌîĞ´½Å±¾¿Õ¼ä
+// ç”³è¯·å¹¶å¡«å†™è„šæœ¬ç©ºé—´
 auto MRubyScript::AllocScript(const char * str) noexcept-> LongUI::UIScript {
     LongUI::UIScript script;
     script.size = ::strlen(str) + 1;
@@ -90,7 +90,7 @@ auto MRubyScript::AllocScript(const char * str) noexcept-> LongUI::UIScript {
     return script;
 }
 
-// ÊÍ·Å½Å±¾¿Õ¼ä
+// é‡Šæ”¾è„šæœ¬ç©ºé—´
 auto MRubyScript::FreeScript(LongUI::UIScript& script) noexcept-> void {
     if (script.data) {
         ::free(script.data);
@@ -98,7 +98,7 @@ auto MRubyScript::FreeScript(LongUI::UIScript& script) noexcept-> void {
     }
 }
 
-// »ñÈ¡Ààid
+// è·å–ç±»id
 auto MRubyScript::GetClassID(const char* class_name) noexcept -> size_t {
 
     return 0;
@@ -106,16 +106,16 @@ auto MRubyScript::GetClassID(const char* class_name) noexcept -> size_t {
 
 
 
-// Ö´ĞĞ½Å±¾Æ¬¶Î
+// æ‰§è¡Œè„šæœ¬ç‰‡æ®µ
 auto MRubyScript::Evaluation(
     const LongUI::UIScript script,
     const LongUI::EventArgument& arg
     ) noexcept -> size_t {
-    // ÉèÖÃ²ÎÊı
+    // è®¾ç½®å‚æ•°
     mrb_gv_set(m_pMRuby, m_symArgument, mrb_fixnum_value(static_cast<mrb_int>(arg.event)));
-    // ÉèÖÃ´°¿Ú
+    // è®¾ç½®çª—å£
     s_hNowWnd = arg.sender->GetWindow()->GetHwnd();
-    // Ö´ĞĞ
+    // æ‰§è¡Œ
     ::mrb_load_string(m_pMRuby, script.script);
     return 0;
 }
@@ -126,7 +126,7 @@ auto MRubyScript::Evaluation(
 auto MRubyScript::MsgBox(mrb_state * mrb, mrb_value self) noexcept-> mrb_value {
     wchar_t buffer1[1024];
     wchar_t buffer2[1024] = L"LongUI Demo";
-    // »ñÈ¡²ÎÊı
+    // è·å–å‚æ•°
     char* str1 = nullptr;
     char* str2 = nullptr;
     mrb_int type = MB_OK;
@@ -139,7 +139,7 @@ auto MRubyScript::MsgBox(mrb_state * mrb, mrb_value self) noexcept-> mrb_value {
     return ::mrb_fixnum_value(::MessageBoxW(s_hNowWnd, buffer1, buffer2, type));
 }
 
-// ¶¨Òå½Ó¿Ú
+// å®šä¹‰æ¥å£
 bool MRubyScript::define_api() noexcept {
     auto rclass = mrb_module_get_under(m_pMRuby, m_pMRuby->object_class, "App");
     if (rclass) {
@@ -149,7 +149,7 @@ bool MRubyScript::define_api() noexcept {
     return false;
 }
 
-// ³õÊ¼»¯
+// åˆå§‹åŒ–
 HWND MRubyScript::s_hNowWnd = nullptr;
 
 

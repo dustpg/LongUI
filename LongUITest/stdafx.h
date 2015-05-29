@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #ifndef WINVER
 #define WINVER 0x0800

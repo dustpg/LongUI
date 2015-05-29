@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 /**
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
@@ -29,50 +29,50 @@
 namespace LongUI{
     // Scroll Bar Type
     enum class ScrollBarType : uint32_t {
-        Type_Vertical = 0,      // ´¹Ö±
-        Type_Horizontal,        // Ë®Æ½
+        Type_Vertical = 0,      // å‚ç›´
+        Type_Horizontal,        // æ°´å¹³
     };
-    // ScrollBar ĞÎÈİ½á¹¹Ìå
+    // ScrollBar å½¢å®¹ç»“æ„ä½“
     struct ScrollBarDesc{
-        // ¹ö¶¯ÌõÀàĞÍ
+        // æ»šåŠ¨æ¡ç±»å‹
         ScrollBarType       type;
         // the size(width/height) of scroll bar
         float               size;
     };
     // UIContainer
     class UIContainer;
-    // default scroll bar Ä¬ÈÏ¹ö¶¯Ìõ
+    // default scroll bar é»˜è®¤æ»šåŠ¨æ¡
     class LongUIAPI UIScrollBar final : public UIControl {
     private:
-        // ¸¸ÀàÉêÃ÷
+        // çˆ¶ç±»ç”³æ˜
         using Super = UIControl ;
     public:
-        // Render äÖÈ¾ --- ·ÅÔÚµÚÒ»Î»!
+        // Render æ¸²æŸ“ --- æ”¾åœ¨ç¬¬ä¸€ä½!
         auto LongUIMethodCall Render() noexcept ->HRESULT override;
-        // do event ÊÂ¼ş´¦Àí
+        // do event äº‹ä»¶å¤„ç†
         bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // Ô¤äÖÈ¾
+        // é¢„æ¸²æŸ“
         void LongUIMethodCall PreRender() noexcept override {};
-        // recreate ÖØ½¨
+        // recreate é‡å»º
         auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control ¹Ø±Õ¿Ø¼ş
+        // close this control å…³é—­æ§ä»¶
         void LongUIMethodCall Close() noexcept override;
     public:
         // is effective
         operator bool() const noexcept { return m_bEffective; }
-        // create desc of bar ´´½¨¹ö¶¯ÌõÃèÊö
+        // create desc of bar åˆ›å»ºæ»šåŠ¨æ¡æè¿°
         static auto CreateDesc(const char* attr, ScrollBarType) noexcept -> const ScrollBarDesc&;
     public:
-        // constructor ¹¹Ôìº¯Êı
+        // constructor æ„é€ å‡½æ•°
         UIScrollBar(const ScrollBarDesc&, UIContainer* ) noexcept;
-        // destructor Îö¹¹º¯Êı
+        // destructor ææ„å‡½æ•°
         ~UIScrollBar() noexcept;
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
-        // ¸üĞÂ
+        // æ›´æ–°
         void Refresh() noexcept;
     public:
-        // desc ÃèÊöÌå
+        // desc æè¿°ä½“
         const ScrollBarDesc     desc;
         // now index of scroll bar
         float                   index = 0.f;
