@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="LongUI">
+      <UniqueIdentifier>{049b19bb-58a5-4ba5-b11d-fe8f181dd2d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Header">
+      <UniqueIdentifier>{3cd6f68b-2622-4956-9817-1cfad09905d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Header\Base">
+      <UniqueIdentifier>{b2b62a3b-fd2e-4f73-86f9-0520a03977e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Header\Control">
+      <UniqueIdentifier>{a7147101-f6a6-45a8-8937-d743b5b358bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Text">
+      <UniqueIdentifier>{5600ff57-eb9a-453e-a2d4-727135630307}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Util">
+      <UniqueIdentifier>{8530eb64-27a6-4cb3-9985-c27e16d68d0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Impl">
+      <UniqueIdentifier>{68565e05-2423-436a-9084-22d86a5f9454}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Source">
+      <UniqueIdentifier>{31fb1c29-dfad-4ad6-a04f-43e567b23084}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Source\Base">
+      <UniqueIdentifier>{cebb2a47-ae2f-41ad-9af1-ebd386c36d23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Source\Control">
+      <UniqueIdentifier>{0f0fcf6c-7edc-4fea-8988-b893192c4a9a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LongUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="longuiconf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UIAnimation.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIContainer.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIControl.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIInterface.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIElement.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIString.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUtil.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIManager.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIButton.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UICheckBox.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UIWindow.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UIVerticalLayout.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UISlider.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UILabel.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UIRichEdit.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UIScrollBar.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UIEdit.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UIHorizontalLayout.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UITextRenderer.h">
+      <Filter>LongUI\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="UIText.h">
+      <Filter>LongUI\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="UIInlineObject.h">
+      <Filter>LongUI\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="UIEditaleText.h">
+      <Filter>LongUI\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="UIDataObject.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UIDropSource.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UIFileLoader.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="GetIIDTemplate.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="DataContainer.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilImpl.cpp">
+      <Filter>LongUI\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="TextImpl.cpp">
+      <Filter>LongUI\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUtil.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="UIManager.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="UICheckBox.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRichEdit.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UIScrollBar.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UISlider.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UIWindow.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlImpl1.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="InlineObjImpl.cpp">
+      <Filter>LongUI\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="ContainerImpl.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

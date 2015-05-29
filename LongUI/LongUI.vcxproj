@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{08A52CC4-96C2-4BCD-8378-7F70BC54485B}</ProjectGuid>
+    <RootNamespace>LongUI</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;LONGUI_WITH_DEFAULT_HEADER;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;LONGUI_WITH_DEFAULT_HEADER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="DataContainer.h" />
+    <ClInclude Include="GetIIDTemplate.h" />
+    <ClInclude Include="LongUI.h" />
+    <ClInclude Include="longuiconf.h" />
+    <ClInclude Include="UIAnimation.h" />
+    <ClInclude Include="UIButton.h" />
+    <ClInclude Include="UICheckBox.h" />
+    <ClInclude Include="UIContainer.h" />
+    <ClInclude Include="UIControl.h" />
+    <ClInclude Include="UIDataObject.h" />
+    <ClInclude Include="UIDropSource.h" />
+    <ClInclude Include="UIEdit.h" />
+    <ClInclude Include="UIEditaleText.h" />
+    <ClInclude Include="UIElement.h" />
+    <ClInclude Include="UIFileLoader.h" />
+    <ClInclude Include="UIHorizontalLayout.h" />
+    <ClInclude Include="UIInlineObject.h" />
+    <ClInclude Include="UIInterface.h" />
+    <ClInclude Include="UILabel.h" />
+    <ClInclude Include="UIManager.h" />
+    <ClInclude Include="UIRichEdit.h" />
+    <ClInclude Include="UIScrollBar.h" />
+    <ClInclude Include="UISlider.h" />
+    <ClInclude Include="UIString.h" />
+    <ClInclude Include="UIText.h" />
+    <ClInclude Include="UITextRenderer.h" />
+    <ClInclude Include="UIUtil.h" />
+    <ClInclude Include="UIVerticalLayout.h" />
+    <ClInclude Include="UIWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ContainerImpl.cpp" />
+    <ClCompile Include="ControlImpl1.cpp" />
+    <ClCompile Include="InlineObjImpl.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="TextImpl.cpp" />
+    <ClCompile Include="UICheckBox.cpp" />
+    <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="UIRichEdit.cpp" />
+    <ClCompile Include="UIScrollBar.cpp" />
+    <ClCompile Include="UISlider.cpp" />
+    <ClCompile Include="UIUtil.cpp" />
+    <ClCompile Include="UIWindow.cpp" />
+    <ClCompile Include="UtilImpl.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
