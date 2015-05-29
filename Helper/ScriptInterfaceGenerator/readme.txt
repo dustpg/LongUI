@@ -28,10 +28,8 @@ define method:
 
 About PARAMLIST:
     No const(and so on), No ref(&), all int32_t, uint32_t...
-    is int, just easy, if careful about bit-number or signe,
-    even if you want to store some pointer data with size_t,
-    as always, and, some ex-type, impl by you self, just easy
-    and, NO SPACE with type, hard to deal with space by regex
+    is int, just easy, NO SPACE with type,
+    hard to deal with space by regex
 
 Example:
     // ABCD
@@ -75,7 +73,7 @@ C++, 并且简单到不能称之为"脚本"了. 默认情况下, 您无需在意
 
 关于参数列表:
     没有const等限定词, 没有引用(&), 所有整形都是int, 
-    简单就好, 假设真的很关心位数或者符号, 还有就是想
+    简单就好. 除非真的很关心位数或者符号, 还有就是想
     利用size_t储存指针数据, 还是那样, 请自己实现.
     还有就是类型名不要带空格, 用正则表达式很难处理
 
