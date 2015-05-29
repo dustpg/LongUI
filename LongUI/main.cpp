@@ -13,7 +13,7 @@ InitStaticVar(LongUI::Dll::DWriteCreateFactory);
 InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
 
-#define LoadFunction(a, b, c) a = reinterpret_cast<decltype(a)>(::GetProcAddress(c, #b))
+#define LoadFunction(a, b, c) { if(c) a = reinterpret_cast<decltype(a)>(::GetProcAddress(c, #b)); }
 
 // 初始化库
 class InitializeLibrary {

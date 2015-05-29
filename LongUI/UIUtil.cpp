@@ -977,7 +977,7 @@ void LongUI::UIText::recreate(const char* utf8) noexcept{
 
 
 // UIFileLoader 读取文件
-bool LongUIMethodCall LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
+bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
     // 打开文件
     FILE* file = nullptr;
     if (file = ::_wfopen(file_name, L"rb")) {
@@ -1129,7 +1129,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     if (!bRet)  {
         char *path = ::getenv("ConsoleLoggerHelper");
         if (path) {
-            ::swprintf(cmdline, MAX_PATH, L"%ls %ls", path, config.logger_name);
+            ::swprintf(cmdline, MAX_PATH, L"%s %ls", path, config.logger_name);
             bRet = ::CreateProcessW(nullptr, nullptr, nullptr, nullptr, false, CREATE_NEW_CONSOLE, nullptr, nullptr, &si, &pi);
         }
         if (!bRet) {

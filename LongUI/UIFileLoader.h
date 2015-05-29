@@ -40,11 +40,11 @@ namespace LongUI{
         }
     public:
         // 读取文件
-        bool LongUIMethodCall ReadFile(WCHAR* file_name) noexcept;
+        bool ReadFile(WCHAR* file_name) noexcept;
         // 获取数据指针
-        auto LongUIMethodCall GetData() const  noexcept{ return m_pData; }
+        auto GetData() const  noexcept{ return m_pData; }
         // 获取数据长度
-        auto LongUIMethodCall GetLength()const noexcept{ return m_cLength; }
+        auto GetLength()const noexcept{ return m_cLength; }
     private:
         // 数据指针
         void*           m_pData = nullptr;

@@ -28,7 +28,7 @@ LongUI::CUIDataObject::~CUIDataObject() noexcept {
 
 
 // 设置Unicode
-HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) noexcept {
+HRESULT LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) noexcept {
     assert(hGlobal && "hGlobal -> null");
     // 释放数据
     if (m_dataStorage.formatEtc.cfFormat) {
@@ -41,7 +41,7 @@ HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) 
 }
 
 // 设置Unicode字符
-HRESULT LongUIMethodCall LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length) noexcept {
+HRESULT LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length) noexcept {
     HRESULT hr = S_OK;
     if (!length) length = ::wcslen(str);
     // 全局

@@ -1,5 +1,4 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
 
 #if defined(_DEBUG)  && 1
 #define TRACE_FUCTION UIManager << DL_Log << L"Trace:<%S> called" << LongUI::endl
@@ -9,7 +8,7 @@
 
 
 // Render 渲染 
-HRESULT LongUIMethodCall LongUI::UIRichEdit::Render() noexcept {
+auto LongUI::UIRichEdit::Render(RenderType) noexcept ->HRESULT {
     HRESULT hr = S_OK;
     RECT draw_rect = { 0, 0, 100, 100 }; //AdjustRectT(LONG);
     if (m_pTextServices) {
@@ -69,7 +68,7 @@ LongUI::UIControl* LongUI::UIRichEdit::CreateControl(pugi::xml_node node) noexce
 
 
 // do event 事件处理
-bool LongUIMethodCall LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
@@ -111,7 +110,7 @@ bool LongUIMethodCall LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) no
 }
 
 // recreate 重建
-HRESULT LongUIMethodCall LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT) noexcept {
+HRESULT LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT) noexcept {
     HRESULT hr = S_OK;
     if (m_pTextServices) {
         m_pTextServices->OnTxInPlaceDeactivate();
@@ -142,7 +141,7 @@ HRESULT LongUIMethodCall LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT)
 }
 
 // close this control 关闭控件
-void LongUIMethodCall LongUI::UIRichEdit::Close() noexcept {
+void LongUI::UIRichEdit::Close() noexcept {
     delete this;
 }
 

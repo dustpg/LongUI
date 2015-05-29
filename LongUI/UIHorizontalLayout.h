@@ -32,18 +32,18 @@ namespace LongUI{
         using Super = UIContainer;
     public: // UIControl
         // Render 渲染 --- 放在第一位!
-        //virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
+        //virtual auto Render() noexcept ->HRESULT override;
         // do event 事件处理
-        //virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
+        //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // 预渲染
-        //virtual void LongUIMethodCall PreRender() noexcept override;
+        //virtual void PreRender() noexcept override;
         // recreate 重建
-        virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
+        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void LongUIMethodCall Close() noexcept override;
+        virtual void Close() noexcept override;
     public: // UIContainer
         // update children's layout
-        virtual void LongUIMethodCall RefreshChildLayout(bool refresh_scroll) noexcept override;
+        virtual void RefreshChildLayout(bool refresh_scroll) noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
@@ -55,8 +55,8 @@ namespace LongUI{
         UIHorizontalLayout(const UIHorizontalLayout&) = delete;
     protected:
         // 修改子布局控件布局
-        //void LongUIMethodCall change_child_layout() noexcept;
+        //void change_child_layout() noexcept;
         // 获取指定位置的控件
-        //auto LongUIMethodCall get_child_by_position(float) noexcept ->UIControl*;
+        //auto get_child_by_position(float) noexcept ->UIControl*;
     };
 }

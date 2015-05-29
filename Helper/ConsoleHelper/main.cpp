@@ -54,7 +54,7 @@ BYTE ReadByte(void) {
 // 控制台循环
 long ConsoleLoop(void) {
     DWORD cbRead, cbWritten=0;
-    wchar_t chBuf[1024 * 8];
+    wchar_t chBuf[1024 * 8 + 2];
     BOOL bSuccess;
     long lResult = -1;
     do  {
@@ -218,14 +218,14 @@ int wmain(int argc, wchar_t* argv[]){
         // 检查错误
         if (::GetLastError() != ERROR_PIPE_BUSY)  {
             ::MessageBoxW(nullptr, L"Could not open pipe(1)", L"FAILED", MB_ICONERROR);
-            ::getchar();
+            (void)::getchar();
             return 0;
         }
         // 忙时等待
         ::wprintf(L"Wait for pipe...");
         if (!::WaitNamedPipeW(szPipename, 20000)) {
             ::MessageBoxW(nullptr, L"Could not open pipe(2)", L"FAILED", MB_ICONERROR);
-            ::getchar();
+            (void)::getchar();
             return 0;
         }
         // 等待

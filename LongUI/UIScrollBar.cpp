@@ -1,5 +1,4 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
 
 // TODO: 滚动条优化
 //std::atomic_uint32_t g_cScrollBarCount = 0;
@@ -124,7 +123,7 @@ void LongUI::UIScrollBar::Refresh() noexcept {
 }
 
 // UIScrollBar 渲染 
-auto  LongUI::UIScrollBar::Render() noexcept ->HRESULT {
+auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
     register float tmpsize = this->desc.size;
     D2D1_RECT_F draw_rect = GetDrawRect(this);
     m_rtThumb = m_rtArrow2 =  m_rtArrow1 = draw_rect;

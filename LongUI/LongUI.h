@@ -170,7 +170,7 @@ namespace LongUI {
     using RectLTRB_U = RectLTRB<uint32_t>;
     // --------------------------------
     //longui callback func 控件回调
-    using LongUICallBack = bool (LongUIMethodCall UIControl::*)(UIControl*);
+    using LongUICallBack = bool (UIControl::*)(UIControl*);
     // CreateControl Function 控件创建函数
     using CreateControlFunction = UIControl* (WINAPI*)(pugi::xml_node);
     // LongUI Custom Formated String Inline Param Handler
@@ -198,13 +198,13 @@ namespace LongUI {
         Flag_Visible = 1 << 4,
         // [default: false][auto, no specified]
         // control need pre-render for content
-        // call UIWindow::RegisterPreRender2D or
-        // call UIWindow::RegisterPreRender3D to set
-        Flag_NeedPreRender = 1 << 5,
+        // call UIWindow::RegisterOffScreenRender2D or
+        // call UIWindow::RegisterOffScreenRender3D to set
+        Flag_NeedRegisterOffScreenRender = 1 << 5,
         // [default: false][auto, no specified]
         // control need Direct3D api to render,
-        // call UIWindow::RegisterPreRender3D to set
-        // if using Direct2D , call UIWindow::RegisterPreRender2D
+        // call UIWindow::RegisterOffScreenRender3D to set
+        // if using Direct2D , call UIWindow::RegisterOffScreenRender2D
         Flag_3DContent = 1 << 6,
         // [default: false][auto, and XML Attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,
@@ -266,6 +266,13 @@ namespace LongUI {
         Type_LinearGradient,    // 线性渐变
         Type_RadialGradient,    // 径向渐变
         Type_Bitmap,            // 位图笔刷
+    };
+    // LongUI Render Type
+    enum class RenderType : uint32_t {
+        Type_RenderBackground = 0,
+        Type_Render,
+        Type_RenderForeground,
+        Type_RenderOffScreen,
     };
     // LongUI Event
     enum class Event : size_t {

@@ -69,11 +69,11 @@ namespace LongUI {
         };
     public:
         // do event 事件处理
-        virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate
-        virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
+        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // render
-        virtual auto LongUIMethodCall Render() noexcept->HRESULT override;
+        virtual auto Render(RenderType) noexcept->HRESULT override;
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
@@ -82,18 +82,18 @@ namespace LongUI {
         void AfterInsert(UIControl* child) noexcept;
     public: //
         // update children's layout
-        inline  void LongUIMethodCall UpdateChildLayout(bool b=true) noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout(b); }
+        inline  void UpdateChildLayout(bool b=true) noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout(b); }
         // refresh children's layout
-        virtual void LongUIMethodCall RefreshChildLayout(bool refresh_scroll) noexcept ;
+        virtual void RefreshChildLayout(bool refresh_scroll) noexcept ;
     public: // STL Container Compatibled interface/method
         // get child at, because of list, will get warning of performance
-        auto LongUIMethodCall at(uint32_t) const noexcept ->UIControl*;
+        auto at(uint32_t) const noexcept ->UIControl*;
         // insert child,
-        void LongUIMethodCall insert(Iterator, UIControl*) noexcept;
+        void insert(Iterator, UIControl*) noexcept;
         // just remove child, : remove from list and set prev/next to null
-        bool LongUIMethodCall remove(Iterator) noexcept;
+        bool remove(Iterator) noexcept;
         // remove and close child
-        void LongUIMethodCall erase(Iterator itr) noexcept { this->remove(itr); itr->Close(); }
+        void erase(Iterator itr) noexcept { this->remove(itr); itr->Close(); }
     public: 
         // get children count
         LongUIInline auto size() const noexcept { return m_cChildrenCount; } ;
@@ -137,23 +137,23 @@ namespace LongUI {
             m_itrEnd = m_itrBegin;
         }
         // 预渲染
-        virtual void LongUIMethodCall PreRender() noexcept override{ 
+        virtual void PreRender() noexcept override{ 
             if (this->single_control) {
                 this->single_control->PreRender();
             }
             return Super::PreRender();
         }
         // 重建
-        virtual auto LongUIMethodCall Recreate(LongUIRenderTarget* target) noexcept ->HRESULT override { return Super::Recreate(target); }
+        virtual auto Recreate(LongUIRenderTarget* target) noexcept ->HRESULT override { return Super::Recreate(target); }
         // 渲染
-        virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
+        virtual auto Render(RenderType) noexcept ->HRESULT override;
     public: // UIContainer
         // get child at
-        auto LongUIMethodCall at(uint32_t i) const noexcept ->UIControl* override final {
+        auto at(uint32_t i) const noexcept ->UIControl* override final {
             return i == 0 ? single_control : nullptr; 
         };
         // insert child 
-        void LongUIMethodCall insert(BasicContainer::iterator, UIControl* c) noexcept final override {
+        void insert(BasicContainer::iterator, UIControl* c) noexcept final override {
             if (this->single_control) this->single_control->Close();
             this->single_control = c;
             this->AfterInsert(c);
@@ -161,7 +161,7 @@ namespace LongUI {
             m_cChildrenCount = 1;
         }
         // remove
-        void LongUIMethodCall erase(BasicContainer::iterator i) noexcept final override {
+        void erase(BasicContainer::iterator i) noexcept final override {
             if (this->single_control && i == m_itrBegin) {
                 this->single_control->Close();
                 this->single_control = nullptr;

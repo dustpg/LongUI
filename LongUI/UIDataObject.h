@@ -55,9 +55,9 @@ namespace LongUI {
         ~CUIDataObject() noexcept;
     public:
         // 设置Unicode
-        HRESULT LongUIMethodCall SetUnicodeText(const wchar_t*, size_t =0) noexcept;
+        HRESULT SetUnicodeText(const wchar_t*, size_t =0) noexcept;
         // 设置Unicode
-        HRESULT LongUIMethodCall SetUnicodeText(HGLOBAL) noexcept;
+        HRESULT SetUnicodeText(HGLOBAL) noexcept;
     public: // IDataObject 接口 实现
         // IDataObject::GetData 实现
         HRESULT STDMETHODCALLTYPE GetData(FORMATETC *pformatetcIn, STGMEDIUM *pmedium) noexcept override;

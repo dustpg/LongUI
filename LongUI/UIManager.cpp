@@ -6,7 +6,7 @@
 
 
 // CUIManager 初始化
-auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
+auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
         config = &m_config;
@@ -172,7 +172,7 @@ auto LongUIMethodCall LongUI::CUIManager::Initialize(IUIConfigure* config) noexc
 }
 
 // CUIManager  反初始化
-void LongUIMethodCall LongUI::CUIManager::UnInitialize() noexcept {
+void LongUI::CUIManager::UnInitialize() noexcept {
     // 放弃设备
     if (m_pDInputMouse) {
         m_pDInputMouse->Unacquire();
@@ -210,7 +210,7 @@ void LongUIMethodCall LongUI::CUIManager::UnInitialize() noexcept {
 
 // CUIManager 创建控件树
 // 默认消耗 64kb+, 导致栈(默认1~2M)溢出几率较低
-void LongUIMethodCall LongUI::CUIManager::make_control_tree(
+void LongUI::CUIManager::make_control_tree(
     LongUI::UIWindow* window,
     pugi::xml_node node) noexcept {
     // 断言
@@ -279,7 +279,7 @@ void LongUIMethodCall LongUI::CUIManager::make_control_tree(
 }
 
 // UIManager 添加控件
-void LongUIMethodCall LongUI::CUIManager::add_control(
+void LongUI::CUIManager::add_control(
     UIControl* ctrl, pugi::xml_node node) noexcept {
     // 断言
     assert(ctrl && node && "bad argument");
@@ -293,7 +293,7 @@ void LongUIMethodCall LongUI::CUIManager::add_control(
 }
 
 // 创建控件
-auto LongUIMethodCall LongUI::CUIManager::create_control(
+auto LongUI::CUIManager::create_control(
     pugi::xml_node node) noexcept -> UIControl* {
     assert(node && "bad argument");
     // 转码
@@ -312,7 +312,7 @@ auto LongUIMethodCall LongUI::CUIManager::create_control(
 
 
 // 消息循环
-void LongUIMethodCall LongUI::CUIManager::Run() noexcept {
+void LongUI::CUIManager::Run() noexcept {
     MSG msg;
     //auto now_time = ::timeGetTime();
     while (!m_exitFlag) {
@@ -353,7 +353,7 @@ void LongUIMethodCall LongUI::CUIManager::Run() noexcept {
             if (window_end != windows){
                 for (auto itr = windows; itr < window_end; ++itr) {
                     (*itr)->BeginDraw();
-                    (*itr)->Render();
+                    (*itr)->Render(RenderType::Type_Render);
                     (*itr)->EndDraw(itr == window_end - 1);
                 }
             }
@@ -411,7 +411,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 }
 
 // 获取Meta的图标句柄
-auto LongUIMethodCall LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
+auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
     // TODO DO IT
     auto& data = m_metaicons[index];
     // 没有就创建
@@ -461,7 +461,7 @@ LongUI::CUIManager::~CUIManager() noexcept {
 
 
 // 获取控件 wchar_t指针
-auto LongUIMethodCall LongUI::CUIManager::AddS2CPair(
+auto LongUI::CUIManager::AddS2CPair(
     const wchar_t* name, CreateControlFunction func) noexcept ->HRESULT {
     if (!name || !(*name)) return S_FALSE;
     // 创建pair
@@ -479,7 +479,7 @@ auto LongUIMethodCall LongUI::CUIManager::AddS2CPair(
 
 
 // 获取控件 wchar_t指针
-auto LongUIMethodCall LongUI::CUIManager::FindControlW(
+auto LongUI::CUIManager::FindControlW(
     const wchar_t* str) noexcept ->LongUI::UIControl* {
     LongUI::CUIString uistr(str);
     return FindControl(uistr);
@@ -487,7 +487,7 @@ auto LongUIMethodCall LongUI::CUIManager::FindControlW(
 
 
 // 获取控件 
-auto LongUIMethodCall LongUI::CUIManager::FindControl(
+auto LongUI::CUIManager::FindControl(
     const LongUI::CUIString& str) noexcept ->LongUI::UIControl* {
     // 查找控件
     const auto itr = m_mapString2Control.find(str);
@@ -504,7 +504,7 @@ auto LongUIMethodCall LongUI::CUIManager::FindControl(
 }
 
 // 显示错误代码
-void LongUIMethodCall LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
+void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     if (!::FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM,
@@ -771,7 +771,7 @@ auto LongUI::CUIManager::XMLToCoreFormat(const char* xml, wchar_t* core) noexcep
 
 
 // 注册文本渲染器
-auto LongUIMethodCall LongUI::CUIManager::RegisterTextRenderer(
+auto LongUI::CUIManager::RegisterTextRenderer(
     UIBasicTextRenderer* renderer) noexcept -> int32_t {
     if (m_uTextRenderCount == lengthof(m_apTextRenderer)) {
         return -1;
@@ -783,7 +783,7 @@ auto LongUIMethodCall LongUI::CUIManager::RegisterTextRenderer(
 }
 
 // CUIManager 获取文本格式
-auto LongUIMethodCall LongUI::CUIManager::GetTextFormat(
+auto LongUI::CUIManager::GetTextFormat(
     uint32_t index) noexcept ->IDWriteTextFormat* {
     IDWriteTextFormat* pTextFormat = nullptr;
     if (index >= m_textFormats.size()) {
@@ -802,7 +802,7 @@ auto LongUIMethodCall LongUI::CUIManager::GetTextFormat(
 }
 
 // 创建程序资源
-auto LongUIMethodCall LongUI::CUIManager::create_programs_resources() /*throw(std::bad_alloc &)*/-> void {
+auto LongUI::CUIManager::create_programs_resources() /*throw(std::bad_alloc &)*/-> void {
     // 存在二进制读取器?
     if (m_pBinResLoader) {
         // 获取位图个数
@@ -873,7 +873,7 @@ auto LongUIMethodCall LongUI::CUIManager::create_programs_resources() /*throw(st
 
 
 // UIManager 创建
-auto LongUIMethodCall LongUI::CUIManager::create_resources() noexcept ->HRESULT {
+auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
     // 检查渲染配置
     bool cpu_rendering = this->configure->IsRenderByCPU();
     // 待用适配器
@@ -1168,7 +1168,7 @@ void AssertRelease(T* t) {
     }
 #endif
 // UIManager 丢弃
-void LongUIMethodCall LongUI::CUIManager::discard_resources() noexcept {
+void LongUI::CUIManager::discard_resources() noexcept {
     // 释放 位图
     SafeReleaseContainer(m_bitmaps);
     // 释放 笔刷
@@ -1214,7 +1214,7 @@ void LongUIMethodCall LongUI::CUIManager::discard_resources() noexcept {
 
 
 // 获取笔刷
-auto LongUIMethodCall LongUI::CUIManager::GetBrush(
+auto LongUI::CUIManager::GetBrush(
     uint32_t index) noexcept -> ID2D1Brush* {
     ID2D1Brush* brush = nullptr;
     if (index >= m_brushes.size()) {
@@ -1232,7 +1232,7 @@ auto LongUIMethodCall LongUI::CUIManager::GetBrush(
 }
 
 // 获取位图
-auto LongUIMethodCall LongUI::CUIManager::GetBitmap(
+auto LongUI::CUIManager::GetBitmap(
     uint32_t index) noexcept ->ID2D1Bitmap1* {
     ID2D1Bitmap1* bitmap = nullptr;
     if (index >= m_bitmaps.size()) {
@@ -1250,7 +1250,7 @@ auto LongUIMethodCall LongUI::CUIManager::GetBitmap(
 }
 
 // 获取图元
-void LongUIMethodCall LongUI::CUIManager::GetMeta(
+void LongUI::CUIManager::GetMeta(
     uint32_t index, LongUI::Meta& meta) noexcept {
     if (index >= m_metas.size()) {
         // 越界
@@ -1262,7 +1262,7 @@ void LongUIMethodCall LongUI::CUIManager::GetMeta(
 }
 
 // 添加位图
-void LongUIMethodCall LongUI::CUIManager::add_bitmap(
+void LongUI::CUIManager::add_bitmap(
     const pugi::xml_node node) noexcept {
     assert(node && "bad argument");
     // 获取路径
@@ -1277,7 +1277,7 @@ void LongUIMethodCall LongUI::CUIManager::add_bitmap(
 }
 
 // 添加笔刷
-void LongUIMethodCall LongUI::CUIManager::add_brush(
+void LongUI::CUIManager::add_brush(
     const pugi::xml_node node) noexcept {
     union {
         ID2D1SolidColorBrush*       scb;
@@ -1425,7 +1425,7 @@ void LongUIMethodCall LongUI::CUIManager::add_brush(
 }
 
 // 添加图元
-void LongUIMethodCall LongUI::CUIManager::add_meta(
+void LongUI::CUIManager::add_meta(
     const pugi::xml_node node) noexcept {
     LongUI::Meta meta = {
         nullptr, BitmapRenderRule::Rule_Scale, 
@@ -1454,7 +1454,7 @@ void LongUIMethodCall LongUI::CUIManager::add_meta(
 
 
 // 添加文本格式
-void LongUIMethodCall LongUI::CUIManager::add_textformat(
+void LongUI::CUIManager::add_textformat(
     const pugi::xml_node node) noexcept {
     register const char* str = nullptr;
     assert(node && "bad argument");
@@ -2117,7 +2117,7 @@ auto LongUI::CUIManager::LoadBitmapFromFile(
 
 
 // 添加窗口
-void LongUIMethodCall LongUI::CUIManager::AddWindow(UIWindow * wnd) noexcept {
+void LongUI::CUIManager::AddWindow(UIWindow * wnd) noexcept {
     assert(wnd && "bad argument");
 #ifdef _DEBUG
     if (std::find(m_windows.cbegin(), m_windows.cend(), wnd) != m_windows.cend()) {
@@ -2132,7 +2132,7 @@ void LongUIMethodCall LongUI::CUIManager::AddWindow(UIWindow * wnd) noexcept {
 }
 
 // 移出窗口
-void LongUIMethodCall LongUI::CUIManager::RemoveWindow(UIWindow * wnd) noexcept {
+void LongUI::CUIManager::RemoveWindow(UIWindow * wnd) noexcept {
     assert(wnd && "bad argument");
 #ifdef _DEBUG
     if (std::find(m_windows.cbegin(), m_windows.cend(), wnd) == m_windows.cend()) {

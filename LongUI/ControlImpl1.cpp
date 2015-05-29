@@ -1,17 +1,5 @@
-﻿
-#include "LongUI.h"
-/*
-        // Render 渲染 --- 放在第一位!
-        virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
-        // do event 事件处理
-        virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // 预渲染
-        virtual void LongUIMethodCall PreRender() noexcept override {};
-        // recreate 重建
-        virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control 关闭控件
-        virtual void LongUIMethodCall Close() noexcept override;
-*/
+﻿#include "LongUI.h"
+
 
 // 要点:
 // 1. 更新空间显示区大小
@@ -72,22 +60,32 @@ LongUI::UIControl::~UIControl() noexcept {
         m_pScript->FreeScript(m_script);
     }
     // 反注册
-    if (this->flags & Flag_NeedPreRender) {
-        m_pWindow->UnRegisterPreRender(this);
+    if (this->flags & Flag_NeedRegisterOffScreenRender) {
+        m_pWindow->UnRegisterOffScreenRender(this);
     }
 }
 
 
 // 渲染控件
-auto LongUIMethodCall LongUI::UIControl::Render() noexcept -> HRESULT {
-    m_bDrawPosChanged = false;
-    m_bDrawSizeChanged = false;
+auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        break;
+    case LongUI::RenderType::Type_Render:
+        m_bDrawPosChanged = false;
+        m_bDrawSizeChanged = false;
+        break;
+    case LongUI::RenderType::Type_RenderForeground:
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
+    }
     return S_OK;
 }
 
-
 // 重建
-HRESULT LongUIMethodCall LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept {
+HRESULT LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
     m_pRenderTarget = ::SafeAcquire(target);
@@ -98,7 +96,7 @@ HRESULT LongUIMethodCall LongUI::UIControl::Recreate(LongUIRenderTarget* target)
 }
 
 // 转换鼠标的DoEvent
-bool LongUIMethodCall LongUI::UIControl::DoEventEx(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIControl::DoEventEx(LongUI::EventArgument& arg) noexcept {
     auto old = arg.pt;
     D2D1_MATRIX_3X2_F* transform;
     if (this->parent) {
@@ -215,7 +213,7 @@ bool LongUI::UIControl::MakeColor(const char* data, D2D1_COLOR_F& color) noexcep
 }
 
 // LongUI::UIControl 注册回调事件
-void LongUIMethodCall  LongUI::UIControl::SetEventCallBack(
+void LongUI::UIControl::SetEventCallBack(
     const wchar_t* control_name, LongUI::Event event, LongUICallBack call) noexcept {
     assert(control_name && call&&  "bad argument");
     UIControl* control = UIManager.FindControlW(control_name);
@@ -250,36 +248,56 @@ void LongUIMethodCall  LongUI::UIControl::SetEventCallBack(
 
 
 // Render 渲染 
-auto LongUIMethodCall LongUI::UILabel::Render() noexcept ->HRESULT {
-    //
-    if (m_bDrawSizeChanged) {
-        this->draw_zone = this->show_zone;
-        // 设置大小
-        m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
-        // super will do it
-        //m_bDrawSizeChanged = false;
+auto LongUI::UILabel::Render(RenderType type) noexcept ->HRESULT {
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        __fallthrough;
+    case LongUI::RenderType::Type_Render:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        // 背景中断
+        if (type == LongUI::RenderType::Type_RenderBackground) {
+            break;
+        }
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        // 文本属于前景
+        if (m_bDrawSizeChanged) {
+            this->draw_zone = this->show_zone;
+            // 设置大小
+            m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
+            // super will do it
+            //m_bDrawSizeChanged = false;
+        }
+        // 渲染文字
+        m_text.Render(this->draw_zone.left, this->draw_zone.top);
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
     }
-    // 渲染文字
-    m_text.Render(this->draw_zone.left, this->draw_zone.top);
-    return Super::Render();
+    return S_OK;
 }
 
 
-// UILabel 构造函数
-/*LongUI::UILabel::UILabel(pugi::xml_node node) noexcept: Super(node), m_text(node) {
+/*/ UILabel 构造函数
+LongUI::UILabel::UILabel(pugi::xml_node node) noexcept: Super(node), m_text(node) {
     //m_bInitZoneChanged = true;
-}*/
+}
+*/
 
 
 // UILabel::CreateControl 函数
-LongUI::UIControl* LongUI::UILabel::CreateControl(pugi::xml_node node) noexcept {
+auto LongUI::UILabel::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
     if (!node) {
         UIManager << DL_Warning << L"node null" << LongUI::endl;
     }
     // 申请空间
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UILabel>(
         node,
-        [=](void* p) noexcept { new(p) UILabel(node);}
+        [=](void* p) noexcept { new(p) UILabel(node); }
     );
     if (!pControl) {
         UIManager << DL_Error << L"alloc null" << LongUI::endl;
@@ -290,7 +308,7 @@ LongUI::UIControl* LongUI::UILabel::CreateControl(pugi::xml_node node) noexcept 
 
 
 // do event 事件处理
-bool LongUIMethodCall LongUI::UILabel::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UILabel::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         if (arg.event == LongUI::Event::Event_FindControl &&
             IsPointInRect(this->show_zone, arg.pt)) {
@@ -301,13 +319,13 @@ bool LongUIMethodCall LongUI::UILabel::DoEvent(LongUI::EventArgument& arg) noexc
 }
 
 // recreate 重建
-/*HRESULT LongUIMethodCall LongUI::UILabel::Recreate(LongUIRenderTarget* newRT) noexcept {
+/*HRESULT LongUI::UILabel::Recreate(LongUIRenderTarget* newRT) noexcept {
 // 断言
 return Super::Recreate(newRT);
 }*/
 
 // close this control 关闭控件
-void LongUIMethodCall LongUI::UILabel::Close() noexcept {
+void LongUI::UILabel::Close() noexcept {
     delete this;
 }
 
@@ -317,24 +335,41 @@ void LongUIMethodCall LongUI::UILabel::Close() noexcept {
 // -------------------------------------------------------
 
 // Render 渲染 
-auto LongUI::UIButton::Render() noexcept ->HRESULT {
-    // 更新刻画地区
-    if (m_bDrawSizeChanged) {
-        this->draw_zone = this->show_zone;
-        // super will do it
-        // m_bDrawSizeChanged = false;
+auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        D2D1_RECT_F draw_rect;
+        __fallthrough;
+    case LongUI::RenderType::Type_Render:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        // 背景中断
+        if (type == LongUI::RenderType::Type_RenderBackground) {
+            break;
+        }
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        // 更新刻画地区
+        if (m_bDrawSizeChanged) {
+            this->draw_zone = this->show_zone;
+        }
+        draw_rect = GetDrawRect(this);
+         m_uiElement.Render(&draw_rect);
+        // 更新计时器
+        UIElement_Update(m_uiElement);
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
     }
-    D2D1_RECT_F draw_rect = GetDrawRect(this);
-    m_uiElement.Render(&draw_rect);
-    // 更新计时器
-    UIElement_Update(m_uiElement);
-    return Super::Render();
+    return S_OK;
 }
 
 
 // UIButton 构造函数
-LongUI::UIButton::UIButton(pugi::xml_node node) noexcept :
-Super(node), m_uiElement(node, nullptr) {
+LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node),m_uiElement(node, nullptr){
 
 }
 
@@ -442,20 +477,38 @@ void LongUI::UIButton::Close() noexcept {
 // -------------------------------------------------------
 
 
-HRESULT LongUIMethodCall LongUI::UIEditBasic::Render() noexcept {
-    // 更新刻画地区
-    if (m_bDrawSizeChanged) {
-        this->draw_zone = this->show_zone;
-        // super will do it
-        // m_bDrawSizeChanged = false;
-        m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
+HRESULT LongUI::UIEditBasic::Render(RenderType type) noexcept {
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        __fallthrough;
+    case LongUI::RenderType::Type_Render:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        __fallthrough;
+        // 背景中断
+        if (type == LongUI::RenderType::Type_RenderBackground) {
+            break;
+        }
+    case LongUI::RenderType::Type_RenderForeground:
+        // 更新刻画地区
+        if (m_bDrawSizeChanged) {
+            this->draw_zone = this->show_zone;
+            m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
+        }
+        m_text.Render(this->draw_zone.left, this->draw_zone.top);
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
     }
-    m_text.Render(this->draw_zone.left, this->draw_zone.top);
-    return Super::Render();
+    return S_OK;
 }
 
 // do event 
-bool    LongUIMethodCall LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
+    // ui msg
     if (arg.sender) {
         switch (arg.event)
         {
@@ -491,6 +544,7 @@ bool    LongUIMethodCall LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg
             return true;
         }
     }
+    // sys msg
     else {
         switch (arg.msg)
         {
@@ -530,13 +584,13 @@ bool    LongUIMethodCall LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg
 }
 
 // close this control 关闭控件
-HRESULT    LongUIMethodCall LongUI::UIEditBasic::Recreate(LongUIRenderTarget* target) noexcept {
+HRESULT    LongUI::UIEditBasic::Recreate(LongUIRenderTarget* target) noexcept {
     m_text.Recreate(target);
     return Super::Recreate(target);
 }
 
 // close this control 关闭控件
-void    LongUIMethodCall LongUI::UIEditBasic::Close() noexcept {
+void    LongUI::UIEditBasic::Close() noexcept {
     delete this;
 }
 

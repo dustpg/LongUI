@@ -37,16 +37,14 @@ namespace LongUI{
         // 父类申明
         using Super = UIControl ;
     public:
-        // Render 渲染 --- 放在第一位!
-        virtual auto LongUIMethodCall Render() noexcept->HRESULT override;
+        // Render 渲染
+        virtual auto Render(RenderType) noexcept->HRESULT override;
         // do event 事件处理
-        virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // 预渲染
-        virtual void LongUIMethodCall PreRender() noexcept override {};
+        virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建
-        //virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
+        //virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
         // close this control 关闭控件
-        virtual void LongUIMethodCall Close() noexcept override;
+        virtual void Close() noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;

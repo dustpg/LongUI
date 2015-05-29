@@ -76,22 +76,60 @@ public:
     }
 public:
     // Render This Control
-    virtual HRESULT LongUIMethodCall Render() noexcept {
-        D2D1_RECT_F draw_rect = GetDrawRect(this);
-        D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
-        m_pBrush_SetBeforeUse->SetColor(&color);
-        m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-        color.a = float(reinterpret_cast<uint8_t*>(&color_a)[3]) / 255.f;
-        color.r = float(reinterpret_cast<uint8_t*>(&color_a)[2]) / 255.f;
-        color.g = float(reinterpret_cast<uint8_t*>(&color_a)[1]) / 255.f;
-        color.b = float(reinterpret_cast<uint8_t*>(&color_a)[0]) / 255.f;
-        m_pBrush_SetBeforeUse->SetColor(&color);
-        m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-        m_pRenderTarget->DrawImage(m_pEffectOut);
+    virtual HRESULT Render(LongUI::RenderType type) noexcept override {
+        D2D1_RECT_F draw_rect;
+        switch (type)
+        {
+        case LongUI::RenderType::Type_RenderBackground:
+            __fallthrough;
+        case LongUI::RenderType::Type_Render:
+            // 父类背景
+            Super::Render(LongUI::RenderType::Type_RenderBackground);
+            // 背景中断
+            if (type == LongUI::RenderType::Type_RenderBackground) {
+                break;
+            }
+            __fallthrough;
+        case LongUI::RenderType::Type_RenderForeground:
+            draw_rect = GetDrawRect(this);
+            D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
+            m_pBrush_SetBeforeUse->SetColor(&color);
+            m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
+            color.a = float(reinterpret_cast<uint8_t*>(&color_a)[3]) / 255.f;
+            color.r = float(reinterpret_cast<uint8_t*>(&color_a)[2]) / 255.f;
+            color.g = float(reinterpret_cast<uint8_t*>(&color_a)[1]) / 255.f;
+            color.b = float(reinterpret_cast<uint8_t*>(&color_a)[0]) / 255.f;
+            m_pBrush_SetBeforeUse->SetColor(&color);
+            m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
+            m_pRenderTarget->DrawImage(m_pEffectOut);
+            // 父类前景
+            Super::Render(LongUI::RenderType::Type_RenderForeground);
+            break;
+        case LongUI::RenderType::Type_RenderOffScreen:
+            if (m_bDrawSizeChanged) {
+                this->draw_zone = this->show_zone;
+            }
+            draw_rect = GetDrawRect(this);
+            // 检查布局
+            if (m_bDrawSizeChanged) {
+                ::SafeRelease(m_pCmdList);
+                m_pRenderTarget->CreateCommandList(&m_pCmdList);
+                // 设置大小
+                m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
+                // 渲染文字
+                m_pRenderTarget->SetTarget(m_pCmdList);
+                m_pRenderTarget->BeginDraw();
+                m_text.Render(draw_rect.left, draw_rect.top);
+                m_pRenderTarget->EndDraw();
+                m_pCmdList->Close();
+                // 设置为输入
+                m_pEffect->SetInput(0, m_pCmdList);
+            }
+        }
         return S_OK;
     }
     //do the event
-    virtual bool    LongUIMethodCall DoEvent(LongUI::EventArgument& arg) noexcept {
+    virtual bool DoEvent(LongUI::EventArgument& arg) noexcept  override {
         if (arg.sender) {
             if (arg.event == LongUI::Event::Event_FindControl &&
                 LongUI::IsPointInRect(this->show_zone, arg.pt)) {
@@ -104,31 +142,8 @@ public:
         }
         return false;
     }
-    // prerender
-    virtual void    LongUIMethodCall PreRender() noexcept {
-        if (m_bDrawSizeChanged) {
-            this->draw_zone = this->show_zone;
-        }
-        D2D1_RECT_F draw_rect = GetDrawRect(this);
-        // 检查布局
-        if (m_bDrawSizeChanged) {
-            ::SafeRelease(m_pCmdList);
-            m_pRenderTarget->CreateCommandList(&m_pCmdList);
-            // 设置大小
-            m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
-            // 渲染文字
-            m_pRenderTarget->SetTarget(m_pCmdList);
-            m_pRenderTarget->BeginDraw();
-            m_text.Render(draw_rect.left, draw_rect.top);
-            m_pRenderTarget->EndDraw();
-            m_pCmdList->Close();
-            // 设置为输入
-            m_pEffect->SetInput(0, m_pCmdList);
-        }
-    }
-
     // recreate resource
-    virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget* target) noexcept {
+    virtual HRESULT Recreate(LongUIRenderTarget* target) noexcept override {
         ::SafeRelease(m_pEffectOut);
         ::SafeRelease(m_pEffect);
         // 创建特效
@@ -139,21 +154,21 @@ public:
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 0.f  );
         // 获取输出
         m_pEffect->GetOutput(&m_pEffectOut);
-        // 反注册再注册
+        // 首次就注册
         if (m_FirstRecreate) {
-            m_pWindow->RegisterPreRender2D(this);
+            m_pWindow->RegisterOffScreenRender2D(this);
             m_FirstRecreate = false;
         }
         return Super::Recreate(target);
     }
     // On Value Changed
-    bool LongUIMethodCall OnValueChanged(UIControl* control) {
+    bool OnValueChanged(UIControl* control) {
         register auto value = static_cast<LongUI::UISlider*>(control)->GetValue();
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, value * 10.f);
         return true;
     }
     // close this control
-    virtual void    LongUIMethodCall Close() noexcept { delete this; };
+    virtual void Close() noexcept { delete this; };
 protected:
     // constructor
     TestControl(pugi::xml_node node) noexcept : Super(node), m_text(node){
@@ -203,17 +218,46 @@ public:
     }
 public:
     // Render This Control
-    virtual HRESULT LongUIMethodCall Render() noexcept {
-        if (m_bDrawSizeChanged) {
-            this->draw_zone = this->show_zone;
+    virtual HRESULT Render(LongUI::RenderType type) noexcept override {
+        switch (type)
+        {
+        case LongUI::RenderType::Type_RenderBackground:
+            D2D1_RECT_F draw_rect;
+            __fallthrough;
+        case LongUI::RenderType::Type_Render:
+            // 父类背景
+            Super::Render(LongUI::RenderType::Type_RenderBackground);
+            // 背景中断
+            if (type == LongUI::RenderType::Type_RenderBackground) {
+                break;
+            }
+            __fallthrough;
+        case LongUI::RenderType::Type_RenderForeground:
+            // 更新刻画地区
+            if (m_bDrawSizeChanged) {
+                this->draw_zone = this->show_zone;
+            }
+            if (m_bDrawSizeChanged) {
+                this->draw_zone = this->show_zone;
+            }
+            draw_rect = GetDrawRect(this);
+            m_video.Render(&draw_rect);
+            m_pWindow->StartRender(1.f, this);
+            // 父类前景
+            Super::Render(LongUI::RenderType::Type_RenderForeground);
+            break;
+        case LongUI::RenderType::Type_RenderOffScreen:
+            break;
         }
-        D2D1_RECT_F draw_rect = GetDrawRect(this);
-        m_video.Render(&draw_rect);
-        m_pWindow->StartRender(1.f, this);
         return S_OK;
+
+
+
+
+
     }
     //do the event
-    virtual bool    LongUIMethodCall DoEvent(LongUI::EventArgument& arg) noexcept {
+    virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override {
         if (arg.sender) {
             if (arg.event == LongUI::Event::Event_FindControl &&
                 LongUI::IsPointInRect(this->show_zone, arg.pt)) {
@@ -225,7 +269,7 @@ public:
         return false;
     }
     // recreate resource
-    virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget* target) noexcept {
+    virtual HRESULT Recreate(LongUIRenderTarget* target) noexcept override {
         // 重建视频
         register auto hr = m_video.Recreate(target);
         // 重建父类
@@ -235,7 +279,7 @@ public:
         return hr;
     }
     // close this control
-    virtual void    LongUIMethodCall Close() noexcept { delete this; };
+    virtual void Close() noexcept override { delete this; };
 protected:
     // constructor
     UIVideoAlpha(pugi::xml_node node) noexcept : Super(node) {

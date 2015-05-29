@@ -26,11 +26,10 @@
 
 #define UIManager (LongUI::CUIManager::s_instance)
 
-//#define __fastcall
 
 // all longui control class' method(not inline), and callback call type
-#define LongUIMethodCall  __thiscall
-//#define LongUIMethodCall __fastcall 
+#define __thiscall
+//#define __fastcall 
 
 // mainly prop only?
 #define LONGUI_EDITCORE_COPYMAINPROP

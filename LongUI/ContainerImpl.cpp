@@ -45,7 +45,7 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 }
 
 // 更新布局
-void LongUIMethodCall LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
+void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
     if (!refresh_scroll) return;
     // 检查宽度
     this->scrollbar_h.show_zone.left = 0.f;
@@ -71,7 +71,7 @@ void LongUIMethodCall LongUI::UIContainer::RefreshChildLayout(bool refresh_scrol
 }
 
 // do event 事件处理
-bool LongUIMethodCall LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
     // TODO: 参数EventArgument改为const
     bool done = false;
     // 转换坐标
@@ -117,47 +117,65 @@ bool LongUIMethodCall LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) n
 }
 
 // UIContainer 渲染函数
-auto LongUIMethodCall LongUI::UIContainer::Render() noexcept -> HRESULT {
-    // 检查
-    if (m_bDrawPosChanged || m_bDrawSizeChanged) {
-        this->transform = D2D1::Matrix3x2F::Translation(
-            this->show_zone.left - this->margin_rect.left,
-            this->show_zone.top - this->margin_rect.top
-            );
+auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        __fallthrough;
+    case LongUI::RenderType::Type_Render:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        // 背景中断
+        if (type == LongUI::RenderType::Type_RenderBackground) {
+            break;
+        }
+        // 检查
+        if (m_bDrawPosChanged || m_bDrawSizeChanged) {
+            this->transform = D2D1::Matrix3x2F::Translation(
+                this->show_zone.left - this->margin_rect.left,
+                this->show_zone.top - this->margin_rect.top
+                );
+        }
+        // 保留转换
+        D2D1_MATRIX_3X2_F old_transform;
+        m_pRenderTarget->GetTransform(&old_transform);
+        // 计算世界转换
+        this->world = this->transform * old_transform;
+        m_pRenderTarget->SetTransform(&this->world);
+        // 渲染所有子部件
+        for (auto ctrl : (*this)) {
+            D2D1_RECT_F clip_rect;
+            clip_rect.left = ctrl->show_zone.left - ctrl->margin_rect.left;
+            clip_rect.top = ctrl->show_zone.top - ctrl->margin_rect.top;
+            clip_rect.right = clip_rect.left + ctrl->show_zone.width + ctrl->margin_rect.right;
+            clip_rect.bottom = clip_rect.top + ctrl->show_zone.height + ctrl->margin_rect.bottom;
+            m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            ctrl->Render(LongUI::RenderType::Type_Render);
+            m_pRenderTarget->PopAxisAlignedClip();
+        }
+        // 渲染滚动条
+        if (this->scrollbar_h) {
+            this->scrollbar_h.Render(LongUI::RenderType::Type_Render);
+        }
+        if (this->scrollbar_v) {
+            this->scrollbar_v.Render(LongUI::RenderType::Type_Render);
+        }
+        // 父类
+        Super::Render(LongUI::RenderType::Type_Render);
+        // 回退转换
+        m_pRenderTarget->SetTransform(&old_transform);
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
     }
-    // 保留转换
-    D2D1_MATRIX_3X2_F old_transform;
-    m_pRenderTarget->GetTransform(&old_transform);
-    // 计算世界转换
-    this->world = this->transform * old_transform;
-    m_pRenderTarget->SetTransform(&this->world);
-    // 渲染所有子部件
-    for (auto ctrl : (*this)) {
-        D2D1_RECT_F clip_rect;
-        clip_rect.left = ctrl->show_zone.left - ctrl->margin_rect.left;
-        clip_rect.top = ctrl->show_zone.top - ctrl->margin_rect.top;
-        clip_rect.right = clip_rect.left + ctrl->show_zone.width + ctrl->margin_rect.right;
-        clip_rect.bottom = clip_rect.top + ctrl->show_zone.height + ctrl->margin_rect.bottom;
-        m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        ctrl->Render();
-        m_pRenderTarget->PopAxisAlignedClip();
-    }
-    // 渲染滚动条
-    if (this->scrollbar_h) {
-        this->scrollbar_h.Render();
-    }
-    if (this->scrollbar_v) {
-        this->scrollbar_v.Render();
-    }
-    // 父类
-    auto hr = Super::Render();
-    // 回退转换
-    m_pRenderTarget->SetTransform(&old_transform);
-    return hr;
+    return S_OK;
 }
-
 // UIContainer 重建
-auto LongUIMethodCall LongUI::UIContainer::Recreate(
+auto LongUI::UIContainer::Recreate(
     LongUIRenderTarget* newRT) noexcept ->HRESULT {
     this->scrollbar_h.Recreate(newRT);
     this->scrollbar_v.Recreate(newRT);
@@ -165,7 +183,7 @@ auto LongUIMethodCall LongUI::UIContainer::Recreate(
 }
 
 // 获取指定控件
-auto LongUIMethodCall LongUI::UIContainer::
+auto LongUI::UIContainer::
 at(uint32_t i) const noexcept -> UIControl * {
     // 性能警告
     UIManager << DL_Warning << L"Performance Warning!"
@@ -200,7 +218,7 @@ at(uint32_t i) const noexcept -> UIControl * {
     return control;
 }
 // 插入控件
-void LongUIMethodCall LongUI::UIContainer::
+void LongUI::UIContainer::
 insert(Iterator itr, UIControl* ctrl) noexcept {
     assert(ctrl && "bad arguments");
     if (ctrl->prev) {
@@ -247,7 +265,7 @@ insert(Iterator itr, UIControl* ctrl) noexcept {
 
 
 // 移除控件
-bool LongUIMethodCall LongUI::UIContainer::remove(Iterator itr) noexcept {
+bool LongUI::UIContainer::remove(Iterator itr) noexcept {
     // 检查是否属于本容器
 #ifdef _DEBUG
     bool ok = false;
@@ -310,7 +328,7 @@ auto LongUI::UIVerticalLayout::CreateControl(pugi::xml_node node) noexcept ->UIC
 }
 
 // 更新子控件布局
-void LongUIMethodCall LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
+void LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -380,7 +398,7 @@ void LongUIMethodCall LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_
 
 
 // UIVerticalLayout 重建
-auto LongUIMethodCall LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
+auto LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     HRESULT hr = S_OK;
     for (auto ctrl : (*this)) {
         hr = ctrl->Recreate(newRT);
@@ -390,7 +408,7 @@ auto LongUIMethodCall LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* new
 }
 
 // UIVerticalLayout 关闭控件
-void LongUIMethodCall LongUI::UIVerticalLayout::Close() noexcept {
+void LongUI::UIVerticalLayout::Close() noexcept {
     delete this;
 }
 
@@ -413,7 +431,7 @@ auto LongUI::UIHorizontalLayout::CreateControl(pugi::xml_node node) noexcept ->U
 
 
 // 更新子控件布局
-void LongUIMethodCall LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
+void LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -482,7 +500,7 @@ void LongUIMethodCall LongUI::UIHorizontalLayout::RefreshChildLayout(bool refres
 }
 
 // UIHorizontalLayout 重建
-auto LongUIMethodCall LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
+auto LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     HRESULT hr = S_OK;
     if (newRT) {
         for (auto ctrl : (*this)) {
@@ -494,7 +512,7 @@ auto LongUIMethodCall LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* n
 }
 
 // UIHorizontalLayout 关闭控件
-void LongUIMethodCall LongUI::UIHorizontalLayout::Close() noexcept {
+void LongUI::UIHorizontalLayout::Close() noexcept {
     delete this;
 }
 

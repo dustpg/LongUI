@@ -1,10 +1,9 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
 
 
 
 // Render 渲染 
-auto LongUI::UISlider::Render() noexcept ->HRESULT {
+auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
     }
@@ -59,7 +58,7 @@ LongUI::UIControl* LongUI::UISlider::CreateControl(pugi::xml_node node) noexcept
 
 
 // do event 事件处理
-bool LongUIMethodCall LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender){
         switch (arg.event)
         {
@@ -123,7 +122,7 @@ bool LongUIMethodCall LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noex
 }
 
 // recreate 重建
-/*HRESULT LongUIMethodCall LongUI::UISlider::Recreate(LongUIRenderTarget* newRT) noexcept {
+/*HRESULT LongUI::UISlider::Recreate(LongUIRenderTarget* newRT) noexcept {
     ::SafeRelease(m_pBrush);
     // 设置新的笔刷
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
@@ -131,6 +130,6 @@ bool LongUIMethodCall LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noex
 }*/
 
 // close this control 关闭控件
-void LongUIMethodCall LongUI::UISlider::Close() noexcept {
+void LongUI::UISlider::Close() noexcept {
     delete this;
 }

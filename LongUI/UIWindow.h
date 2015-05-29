@@ -32,6 +32,7 @@ namespace LongUI{
     // ui's window
     class LongUIAPI UIWindow : public UIVerticalLayout,
         public ComStatic<QiListSelf<IUnknown, QiList<IDropTarget>>>{
+        // size
         enum UnusedIndex {
             UNUSED_SIZE
         };
@@ -42,16 +43,14 @@ namespace LongUI{
         // Rendering 渲染队列
         class RenderingQueue;
     public: // UIControl 接口实现
-        // Render 渲染 --- 放在第一位!
-        virtual auto LongUIMethodCall Render() noexcept ->HRESULT override;
+        // Render 渲染 
+        virtual auto Render(RenderType type) noexcept ->HRESULT override;
         // do event 事件处理
-        virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // 预渲染
-        virtual void LongUIMethodCall PreRender() noexcept override { /*return Super::PreRender();*/ }
+        virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建
-        virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
+        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void LongUIMethodCall Close() noexcept override;
+        virtual void Close() noexcept override;
     public: // IDropTarget 接口 实现
         // IDropTarget::DragEnter 实现
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
@@ -69,9 +68,9 @@ namespace LongUI{
         // plan to render
         void PlanToRender(float w, float r, UIControl* obj) noexcept;
         // register for calling PreRender
-        void RegisterPreRender(UIControl* c, bool is3d) noexcept;
+        void RegisterOffScreenRender(UIControl* c, bool is3d) noexcept;
         // unregister for calling PreRender
-        void UnRegisterPreRender(UIControl*) noexcept;
+        void UnRegisterOffScreenRender(UIControl*) noexcept;
         // set the caret
         void SetCaretPos(UIControl* c, float x, float y) noexcept;
         // create the caret
@@ -82,9 +81,9 @@ namespace LongUI{
         void HideCaret() noexcept;
     public: // 内联区
         // register for calling PreRender with 3d content
-        LongUIInline auto RegisterPreRender3D(UIControl* c) noexcept { return this->RegisterPreRender(c, true); }
+        LongUIInline auto RegisterOffScreenRender3D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, true); }
         // register for calling PreRender with 2d content
-        LongUIInline auto RegisterPreRender2D(UIControl* c) noexcept { return this->RegisterPreRender(c, false); }
+        LongUIInline auto RegisterOffScreenRender2D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, false); }
         // start render in sec.
         LongUIInline auto StartRender(float t, UIControl* c) noexcept { return this->PlanToRender(0.f, t, c); }
         // update control later
@@ -101,22 +100,22 @@ namespace LongUI{
         LongUIInline auto GetBackBuffer() noexcept { return ::SafeAcquire(m_pTargetBimtap); }
     private:
         // release data
-        void LongUIMethodCall release_data() noexcept;
+        void release_data() noexcept;
         // reset rendering queue
-        void LongUIMethodCall reset_renderqueue() noexcept;
+        void reset_renderqueue() noexcept;
         // draw the caret
-        void LongUIMethodCall draw_caret() noexcept;
+        void draw_caret() noexcept;
         // refresh the caret
-        void LongUIMethodCall refresh_caret() noexcept;
+        void refresh_caret() noexcept;
         // set the present
-        void LongUIMethodCall set_present() noexcept;
+        void set_present() noexcept;
     public:
         // begin draw
-        void LongUIMethodCall BeginDraw() noexcept;
+        void BeginDraw() noexcept;
         // end draw
-        auto LongUIMethodCall EndDraw(uint32_t vsyc = 0) noexcept->HRESULT;
+        auto EndDraw(uint32_t vsyc = 0) noexcept->HRESULT;
         // find control where mouse pointed
-        auto LongUIMethodCall FindControl(const LongUI::EventArgument& _arg) noexcept{
+        auto FindControl(const LongUI::EventArgument& _arg) noexcept{
             auto arg = _arg;
             arg.sender = this;
             arg.event = LongUI::Event::Event_FindControl;
@@ -124,7 +123,7 @@ namespace LongUI{
             return arg.ctrl;
         }
         // find control where mouse pointed
-        auto LongUIMethodCall FindControl(D2D1_POINT_2F pt) noexcept {
+        auto FindControl(D2D1_POINT_2F pt) noexcept {
             LongUI::EventArgument arg;
             arg.ctrl = nullptr;
             arg.pt = pt;

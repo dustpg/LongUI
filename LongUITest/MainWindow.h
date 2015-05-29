@@ -8,15 +8,13 @@ class MainWindow final : public LongUI::UIWindow {
     typedef LongUI::UIWindow Super;
 public:
     // Render 渲染!
-    //virtual HRESULT LongUIMethodCall Render() noexcept override;
+    //virtual HRESULT Render() noexcept override;
     // do event 事件处理
-    virtual bool    LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-    // 预渲染
-    //virtual void    LongUIMethodCall PreRender() noexcept override;
+    virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
     // recreate 重建
-    //virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept override;
+    //virtual HRESULT Recreate(LongUIRenderTarget*) noexcept override;
     // close this control 关闭控件
-    virtual void    LongUIMethodCall Close() noexcept override;
+    virtual void Close() noexcept override;
 public:
     // 构造函数
     MainWindow(pugi::xml_node , LongUI::UIWindow* );

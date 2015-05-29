@@ -101,6 +101,8 @@ namespace LongUI {
 #include "GetIIDTemplate.h"
 // longui
 namespace LongUI {
+    // is 2 power?
+    static auto Is2Power(size_t i) { return i && !(i& (i - 1)); }
     // data to bool
     template<typename T> bool DataToBool(const T& t) { return !!(t); }
     // Dll Function Helper

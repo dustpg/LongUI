@@ -16,6 +16,6 @@ int main(int argc, const char* argv[]) {
         *reinterpret_cast<const uint32_t*>(argv[1]) == 'leh-') {
         printf(CommandHelp);
     }
-    std::getchar();
+    (void)std::getchar();
     return EXIT_SUCCESS;
 }

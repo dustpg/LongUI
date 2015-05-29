@@ -225,7 +225,7 @@ ISType parse_arg(const char* str) {
         }
     type_error:
     default:
-        std::fprintf(stderr, "Unknown Type: \n", str);
+        std::fprintf(stderr, "Unknown Type: %s\n", str);
         return ISType::Void;
     }
 }

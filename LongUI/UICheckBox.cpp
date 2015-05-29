@@ -1,10 +1,9 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
 
 
 
 // Render 渲染 
-HRESULT LongUIMethodCall LongUI::UICheckBox::Render() noexcept {
+auto LongUI::UICheckBox::Render(RenderType) noexcept ->HRESULT {
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
     }
@@ -41,7 +40,7 @@ HRESULT LongUIMethodCall LongUI::UICheckBox::Render() noexcept {
     // 调节文本范围 +
     this->show_zone.left += m_szCheckBox.width;
     // 刻画文本
-    Super::Render();
+    Super::Render(RenderType::Type_Render);
     // 调节文本范围 -
     this->show_zone.left -= m_szCheckBox.width;
     return S_OK;
@@ -89,7 +88,7 @@ LongUI::UIControl* LongUI::UICheckBox::CreateControl(pugi::xml_node node) noexce
 
 
 // do event 事件处理
-bool LongUIMethodCall LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) noexcept {
     D2D1_COLOR_F* color = nullptr;
     if (arg.sender) {
         switch (arg.event)
@@ -143,7 +142,7 @@ bool LongUIMethodCall LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) no
 }
 
 // recreate 重建
-HRESULT LongUIMethodCall LongUI::UICheckBox::Recreate(LongUIRenderTarget* newRT) noexcept {
+HRESULT LongUI::UICheckBox::Recreate(LongUIRenderTarget* newRT) noexcept {
     ::SafeRelease(m_pBrush);
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
     // 父类处理
@@ -151,6 +150,6 @@ HRESULT LongUIMethodCall LongUI::UICheckBox::Recreate(LongUIRenderTarget* newRT)
 }
 
 // 关闭控件
-void LongUIMethodCall LongUI::UICheckBox::Close() noexcept {
+void LongUI::UICheckBox::Close() noexcept {
     delete this;
 }

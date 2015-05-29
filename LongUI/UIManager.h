@@ -43,19 +43,19 @@ namespace LongUI {
         };
     public: // handle zone 操作区
         // initialize 初始化
-        auto LongUIMethodCall Initialize(IUIConfigure* =nullptr) noexcept->HRESULT;
+        auto Initialize(IUIConfigure* =nullptr) noexcept->HRESULT;
         // uninitialize 反初始化
-        void LongUIMethodCall UnInitialize() noexcept;
+        void UnInitialize() noexcept;
         // run 运行
-        void LongUIMethodCall Run() noexcept;
+        void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
-        auto LongUIMethodCall AddS2CPair(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
+        auto AddS2CPair(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
         // get control by wchar_t pointer 获取控件
-        auto LongUIMethodCall FindControlW(const wchar_t*) noexcept ->UIControl*;
+        auto FindControlW(const wchar_t*) noexcept ->UIControl*;
         // get control by CUIString 获取控件
-        auto LongUIMethodCall FindControl(const CUIString&) noexcept ->UIControl*;
+        auto FindControl(const CUIString&) noexcept ->UIControl*;
         // ShowError with HRESULT code
-        void LongUIMethodCall ShowError(HRESULT, const wchar_t* str_b =nullptr) noexcept;
+        void ShowError(HRESULT, const wchar_t* str_b =nullptr) noexcept;
     public: // 特例
         // load bitmap
         static auto __cdecl LoadBitmapFromFile(
@@ -239,24 +239,24 @@ namespace LongUI {
         pugi::xml_document              m_docWindow;
     public:
         // add window
-        void LongUIMethodCall AddWindow(UIWindow* wnd) noexcept;
+        void AddWindow(UIWindow* wnd) noexcept;
         // remove window
-        void LongUIMethodCall RemoveWindow(UIWindow* wnd) noexcept;
+        void RemoveWindow(UIWindow* wnd) noexcept;
         // register, return -1 for error(out of renderer space), return other for index
-        auto LongUIMethodCall RegisterTextRenderer(UIBasicTextRenderer*) noexcept-> int32_t;
+        auto RegisterTextRenderer(UIBasicTextRenderer*) noexcept-> int32_t;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto LongUIMethodCall GetTextFormat(uint32_t i) noexcept->IDWriteTextFormat*;
+        auto GetTextFormat(uint32_t i) noexcept->IDWriteTextFormat*;
         // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto LongUIMethodCall GetBitmap(uint32_t index) noexcept->ID2D1Bitmap1*;
+        auto GetBitmap(uint32_t index) noexcept->ID2D1Bitmap1*;
         // get brush by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto LongUIMethodCall GetBrush(uint32_t index) noexcept->ID2D1Brush*;
+        auto GetBrush(uint32_t index) noexcept->ID2D1Brush*;
         // get meta by index, "Get" method will call IUnknown::AddRef if it is a COM object
         // Meta isn't a IUnknown object, so, won't call Meta::bitmap->AddRef
-        void LongUIMethodCall GetMeta(uint32_t index, LongUI::Meta&) noexcept;
+        void GetMeta(uint32_t index, LongUI::Meta&) noexcept;
         // get meta's icon handle by index, will do runtime-converting if first call the
         //  same index. "Get" method will call IUnknown::AddRef if it is a COM object
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
-        auto LongUIMethodCall GetMetaHICON(uint32_t index) noexcept->HICON;
+        auto GetMetaHICON(uint32_t index) noexcept->HICON;
     public:
         // constructor 构造函数
         CUIManager() noexcept;
@@ -266,25 +266,25 @@ namespace LongUI {
         CUIManager(const CUIManager&) = delete;
     private:
         // create programs resources
-        auto LongUIMethodCall create_programs_resources() /*throw(std::bad_alloc&)*/ ->void;
+        auto create_programs_resources() /*throw(std::bad_alloc&)*/ ->void;
         // create all resources
-        auto LongUIMethodCall create_resources() noexcept ->HRESULT;
+        auto create_resources() noexcept ->HRESULT;
         // discard resources
-        void LongUIMethodCall discard_resources() noexcept;
+        void discard_resources() noexcept;
         // create bitmap
-        void LongUIMethodCall add_bitmap(const pugi::xml_node) noexcept;
+        void add_bitmap(const pugi::xml_node) noexcept;
         // create brush
-        void LongUIMethodCall add_brush(const pugi::xml_node) noexcept;
+        void add_brush(const pugi::xml_node) noexcept;
         // create text format
-        void LongUIMethodCall add_textformat(const pugi::xml_node) noexcept;
+        void add_textformat(const pugi::xml_node) noexcept;
         // create meta
-        void LongUIMethodCall add_meta(const pugi::xml_node) noexcept;
+        void add_meta(const pugi::xml_node) noexcept;
         // 创建控件
-        auto LongUIMethodCall create_control(pugi::xml_node) noexcept->UIControl*;
+        auto create_control(pugi::xml_node) noexcept->UIControl*;
         // 创建控件树
-        void LongUIMethodCall make_control_tree(UIWindow*, pugi::xml_node) noexcept;
+        void make_control_tree(UIWindow*, pugi::xml_node) noexcept;
         // 添加控件
-        void LongUIMethodCall add_control(UIControl*, pugi::xml_node) noexcept;
+        void add_control(UIControl*, pugi::xml_node) noexcept;
     private:
         // main window proc 窗口过程函数
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;

@@ -1,5 +1,4 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
 
 
 // 位图规划:
@@ -133,7 +132,7 @@ LongUI::UIWindow::~UIWindow() noexcept {
 
 
 // 注册
-void LongUI::UIWindow::RegisterPreRender(UIControl* c, bool is3d) noexcept {
+void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept {
     // 检查
 #ifdef _DEBUG
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
@@ -156,7 +155,7 @@ void LongUI::UIWindow::RegisterPreRender(UIControl* c, bool is3d) noexcept {
 }
 
 // 反注册
-void LongUI::UIWindow::UnRegisterPreRender(UIControl* c) noexcept {
+void LongUI::UIWindow::UnRegisterOffScreenRender(UIControl* c) noexcept {
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
     if (itr != m_vRegisteredControl.end()) {
         m_vRegisteredControl.erase(itr);
@@ -240,7 +239,7 @@ void LongUI::UIWindow::HideCaret() noexcept {
 }
 
 // release data
-void LongUIMethodCall LongUI::UIWindow::release_data() noexcept {
+void LongUI::UIWindow::release_data() noexcept {
     // 释放资源
     ::SafeRelease(m_pTargetBimtap);
     ::SafeRelease(m_pSwapChain);
@@ -314,9 +313,9 @@ namespace LongUI {
 
 
 // 重置渲染队列
-void LongUIMethodCall LongUI::UIWindow::reset_renderqueue() noexcept {
+void LongUI::UIWindow::reset_renderqueue() noexcept {
     assert(!(this->flags & Flag_Window_FullRendering));
-    DEVMODEW mode;
+    DEVMODEW mode = { 0 };
     ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
     size_t size_alloc = mode.dmDisplayFrequency * LongUIPlanRenderingTotalTime 
         * sizeof(RenderingUnit);
@@ -414,7 +413,7 @@ void LongUI::UIWindow::PlanToRender(
 
 
 // 刻画插入符号
-void LongUIMethodCall LongUI::UIWindow::draw_caret() noexcept {
+void LongUI::UIWindow::draw_caret() noexcept {
     // 不能在BeginDraw/EndDraw之间调用
     D2D1_POINT_2U pt = { m_rcCaretPx.left, m_rcCaretPx.top };
     D2D1_RECT_U src_rect;
@@ -428,13 +427,13 @@ void LongUIMethodCall LongUI::UIWindow::draw_caret() noexcept {
 }
 
 // 更新插入符号
-void LongUIMethodCall LongUI::UIWindow::refresh_caret() noexcept {
+void LongUI::UIWindow::refresh_caret() noexcept {
     // 不能在BeginDraw/EndDraw之间调用
     // TODO: 完成位图复制
 }
 
 // 设置呈现
-void LongUIMethodCall LongUI::UIWindow::set_present() noexcept {
+void LongUI::UIWindow::set_present() noexcept {
     // 显示光标?
     if (m_cShowCaret) {
         this->draw_caret();
@@ -461,18 +460,18 @@ void LongUIMethodCall LongUI::UIWindow::set_present() noexcept {
 }
 
 // begin draw
-void LongUIMethodCall LongUI::UIWindow::BeginDraw() noexcept {
+void LongUI::UIWindow::BeginDraw() noexcept {
     // 获取当前大小
     reinterpret_cast<D2D1_SIZE_F&>(this->show_zone.width) = m_clientSize;
     // 刷新子控件布局
     Super::UpdateChildLayout();
-    // 预渲染
+    // 离屏渲染
     if (!m_vRegisteredControl.empty()) {
         for (auto i : m_vRegisteredControl) {
             auto ctrl = reinterpret_cast<UIControl*>(i);
             assert(ctrl->parent && "check it");
             m_pRenderTarget->SetTransform(&ctrl->parent->world);
-            ctrl->PreRender();
+            ctrl->Render(RenderType::Type_RenderOffScreen);
         }
     }
     // 设为当前渲染对象
@@ -484,7 +483,7 @@ void LongUIMethodCall LongUI::UIWindow::BeginDraw() noexcept {
 }
 
 // end draw
-auto LongUIMethodCall LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESULT {
+auto LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESULT {
     // 结束渲染
     m_pRenderTarget->EndDraw();
     // 呈现
@@ -517,7 +516,8 @@ auto LongUIMethodCall LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESU
 }
 
 // UIWindow 渲染 
-auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
+auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
+    if (type != RenderType::Type_Render) return S_FALSE;
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     //UIManager << DL_Log << long(m_fDeltaTime * 1000.f) << LongUI::endl;
@@ -539,7 +539,7 @@ auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
     // 全刷新: 继承父类
     if (full) {
         m_present.DirtyRectsCount = 0;
-        Super::Render();
+        Super::Render(RenderType::Type_Render);
     }
     // 部分刷新:
     else {
@@ -549,7 +549,7 @@ auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
             assert(ctrl->parent && "check it");
             // 设置转换矩阵
             m_pRenderTarget->SetTransform(&ctrl->parent->world);
-            ctrl->Render();
+            ctrl->Render(RenderType::Type_Render);
             D2D1_RECT_F draw_rect = GetDrawRect(ctrl);
             // 左上坐标
             auto lefttop = LongUI::TransformPoint(
@@ -611,7 +611,7 @@ auto LongUIMethodCall LongUI::UIWindow::Render() noexcept ->HRESULT {
 }
 
 // UIWindow 事件处理
-bool LongUIMethodCall LongUI::UIWindow::
+bool LongUI::UIWindow::
 DoEvent(LongUI::EventArgument& _arg) noexcept {
     // 自己不处理LongUI事件
     if (_arg.sender) return Super::DoEvent(_arg);
@@ -741,7 +741,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
             this->Invalidate(this);
             this->UpdateRendering();
             this->BeginDraw();
-            this->Render();
+            this->Render(RenderType::Type_Render);
             this->EndDraw(0);
             handled = true;
         }
@@ -860,7 +860,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
 
 
 // UIWindow 重建
-auto LongUIMethodCall LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
+auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     // UIWindow::Recreate参数不会为nullptr
     assert(newRT && "bad argument");
     // DXGI Surface 后台缓冲

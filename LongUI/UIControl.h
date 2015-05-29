@@ -60,9 +60,13 @@ namespace LongUI{
             if (node) {
                 exsize = LongUI::AtoI(node.attribute("exdatasize").value());
             }
-            auto* control = reinterpret_cast<T*>
-                (LongUICtrlAlloc(sizeof(T) + UIManager.user_context_size + exsize)
+            T* control = reinterpret_cast<T*>(
+                LongUICtrlAlloc(sizeof(T) + UIManager.user_context_size + exsize)
                     );
+            // check alignof
+            assert(Is2Power(alignof(T)) && "alignas(Control) must be 2powered");
+            assert(size_t(control) % alignof(T) == 0);
+            // set align
             if (control) {
                 lam(control);
                 control->extend_data = reinterpret_cast<uint8_t*>(control) + sizeof(T);
@@ -74,20 +78,16 @@ namespace LongUI{
         }
     public:
         // Render 
-        virtual auto LongUIMethodCall Render() noexcept->HRESULT;
+        virtual auto Render(RenderType) noexcept->HRESULT;
         // do event 
-        virtual bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept = 0;
-        // prerender, called before Render() , must be registered 
-        // why?   direct2d and direct3d can work together,
-        // but will cause some prefomance problem while switching
-        virtual inline void LongUIMethodCall PreRender() noexcept {};
+        virtual bool DoEvent(LongUI::EventArgument&) noexcept = 0;
         // recreate , first call or device reset
-        virtual auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT;
+        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT;
         // close this control  DO NOT call Super::Close()
-        virtual void LongUIMethodCall Close() noexcept = 0;
+        virtual void Close() noexcept = 0;
     public:
         // DoEventEx, transed mouse point
-        bool LongUIMethodCall DoEventEx(LongUI::EventArgument&) noexcept;
+        bool DoEventEx(LongUI::EventArgument&) noexcept;
     protected:
         // new operator with buffer -- placement new 
         void* operator new(size_t s, void* buffer) noexcept{ return buffer; };
@@ -120,10 +120,10 @@ namespace LongUI{
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
     protected: // Helper Zone
         // Set Event Call Back
-        void LongUIMethodCall SetEventCallBack(const wchar_t*, LongUI::Event, LongUICallBack) noexcept;
+        void SetEventCallBack(const wchar_t*, LongUI::Event, LongUICallBack) noexcept;
         // Set Event Call Back
         template<typename T>
-        LongUIInline auto LongUIMethodCall SetEventCallBackT(const wchar_t* n, LongUI::Event e, T call) noexcept {
+        LongUIInline auto SetEventCallBackT(const wchar_t* n, LongUI::Event e, T call) noexcept {
             return this->SetEventCallBack(n, e, static_cast<LongUICallBack>(call));
         }
     protected:
@@ -203,15 +203,15 @@ namespace LongUI{
     }
     public:
         // Render This Control
-        virtual HRESULT LongUIMethodCall Render() noexcept;
+        virtual HRESULT Render() noexcept;
         // do the event
-        virtual bool    LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept;
+        virtual bool    DoEvent(LongUI::EventArgument&) noexcept;
         // prerender
-        virtual void    LongUIMethodCall PreRender() noexcept;
+        virtual void    PreRender() noexcept;
         // recreate resource
-        virtual HRESULT LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept;
+        virtual HRESULT Recreate(LongUIRenderTarget*) noexcept;
         // close this control
-        virtual void    LongUIMethodCall Close() noexcept { delete this; };
+        virtual void    Close() noexcept { delete this; };
     protected:
         // constructor
         TemplateControl(pugi::xml_node node) noexcept :Super(node) {}

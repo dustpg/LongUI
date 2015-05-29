@@ -48,15 +48,13 @@ namespace LongUI{
         using Super = UIControl ;
     public:
         // Render 渲染 --- 放在第一位!
-        auto LongUIMethodCall Render() noexcept ->HRESULT override;
+        auto Render(RenderType) noexcept ->HRESULT override;
         // do event 事件处理
-        bool LongUIMethodCall DoEvent(LongUI::EventArgument&) noexcept override;
-        // 预渲染
-        void LongUIMethodCall PreRender() noexcept override {};
+        bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建
-        auto LongUIMethodCall Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
+        auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        void LongUIMethodCall Close() noexcept override;
+        void Close() noexcept override;
     public:
         // is effective
         operator bool() const noexcept { return m_bEffective; }
