@@ -123,20 +123,10 @@
 
 // pugixml
 #include "../3rdparty/pugixml/pugixml.hpp"
-#ifdef _DEBUG
-#   pragma comment(lib, "../Debug/pugixml")
-#else
-#   pragma comment(lib, "../Release/pugixml")
-#endif
 
 // dlmalloc
 #define USE_DL_PREFIX
 #include "../3rdparty/dlmalloc/dlmalloc.h"
-#ifdef _DEBUG
-#   pragma comment(lib, "../Debug/dlmalloc")
-#else
-#   pragma comment(lib, "../Release/dlmalloc")
-#endif
 #endif
 
 namespace LongUI {

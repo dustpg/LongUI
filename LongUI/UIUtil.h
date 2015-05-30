@@ -193,7 +193,7 @@ namespace LongUI {
         // operator =
         T* operator=(T* pt) { assert(!(data&INFOPDATA12_ZONE)); data = reinterpret_cast<size_t>(pt) | (data&INFOPDATA12_ZONE); return pt; }
         // operator ->
-        T* operator->() noexcept{return reinterpret_cast<T*>(data & INFOPOINTER_ZONE);}
+        T* operator->() noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE);}
         // operator T*
         operator T*() noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
         // operator []
