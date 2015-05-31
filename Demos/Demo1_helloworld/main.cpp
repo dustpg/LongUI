@@ -20,6 +20,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, char*, int) {
     return 0;
 }
 
+#ifdef _MSC_VER
 
 #ifdef _DEBUG
 #   pragma comment(lib, "../../Debug/longui")
@@ -42,3 +43,4 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, char*, int) {
 #   pragma comment(lib, "../../Release/dlmalloc")
 #endif
 
+#endif
