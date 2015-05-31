@@ -226,7 +226,7 @@ namespace LongUI {
     // the timer of ui in frame
     class UITimer {
     public:
-#if 1
+#if 0
         // QueryPerformanceCounter
         static inline auto QueryPerformanceCounter(LARGE_INTEGER* ll) noexcept {
             auto old = ::SetThreadAffinityMask(::GetCurrentThread(), 0);

@@ -1,5 +1,5 @@
 ﻿TODOLIST
-    PRPR: 完成UIEditCore,删除沉余代码, 并嵌到UIEdit: DoDragDrop
+    PRPR: 完成UIEditCore, 删除沉余代码, 并嵌到UIEdit: DoDragDrop
     PRPR: 完成窗口渲染队列
     TODO: 完成滚动条与容器的匹配
     TODO: 完成特效框架
@@ -10,6 +10,7 @@
     TODO: 完成UITab
     TODO: 规范化消息架构
     TODO: 可以正式发表了 ~yooooooooo~
+    TODO: 移除STL要求
     TODO: 完成脚本对接框架
     TODO: UIRichEdit的整理
     TODO: 完成文本内联对象

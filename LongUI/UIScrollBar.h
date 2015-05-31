@@ -42,7 +42,7 @@ namespace LongUI{
     // UIContainer
     class UIContainer;
     // default scroll bar 默认滚动条
-    class LongUIAPI UIScrollBar final : public UIControl {
+    class LongUIAPI UIScrollBar : public UIControl {
     private:
         // 父类申明
         using Super = UIControl ;

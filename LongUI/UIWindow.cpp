@@ -349,7 +349,7 @@ void LongUI::UIWindow::PlanToRender(
     if (m_pRenderQueue) {
         // 检查
         auto begin_unit = m_pRenderQueue->Get(waiting_time);
-        if (rendering_time > 0.f) rendering_time += 0.02f;
+        if (rendering_time > 0.f) rendering_time += 0.1f;
         auto end_unit = m_pRenderQueue->Get(waiting_time + rendering_time);
 #ifdef _DEBUG
         auto sssssssslength = end_unit - begin_unit + 1;
