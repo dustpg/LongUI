@@ -1,7 +1,20 @@
 ﻿UNFINSHED YET  
 
-PROJECTS LIST:  
+## Requirements
+  
+For this repo, you need:
+  
+  - OS: 
+    - **Windows 8 or later**
+  - Tool-chain/Environment A:
+    - Visual Stuidio 2015 - Express for Desktop/Community or higher
+    - Windows SDK/DirectX SDK
+  - Tool-chain/Environment B(would support in the future):
+    - Rakefile(ruby)
+    - MingW-W64
 
+## PROJECTS LIST
+  
   -  3rdparty/* , 3rdparty library, like dlmalloc
   -  Demos/* , demos
   
@@ -13,8 +26,8 @@ PROJECTS LIST:
   -  LongUI -- core project, designed to be a static-link framework
   -  LongUITest -- my test project, just for me for debugging,  maybe you cannot build it
 
-项目列表: 
-
+## 项目列表
+  
   - 3rdparty/*, 第三方库, 比如dlmalloc
   - Demos/* ,示例
   
