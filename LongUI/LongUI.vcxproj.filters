@@ -25,9 +25,6 @@
     <Filter Include="LongUI\Header\Control">
       <UniqueIdentifier>{a7147101-f6a6-45a8-8937-d743b5b358bb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Text">
-      <UniqueIdentifier>{5600ff57-eb9a-453e-a2d4-727135630307}</UniqueIdentifier>
-    </Filter>
     <Filter Include="LongUI\Util">
       <UniqueIdentifier>{8530eb64-27a6-4cb3-9985-c27e16d68d0b}</UniqueIdentifier>
     </Filter>
@@ -42,6 +39,12 @@
     </Filter>
     <Filter Include="LongUI\Source\Control">
       <UniqueIdentifier>{0f0fcf6c-7edc-4fea-8988-b893192c4a9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Component">
+      <UniqueIdentifier>{1019e09f-9b5a-4869-ac5f-98ba1267315b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Component\Text">
+      <UniqueIdentifier>{5600ff57-eb9a-453e-a2d4-727135630307}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -106,16 +109,16 @@
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="UITextRenderer.h">
-      <Filter>LongUI\Text</Filter>
+      <Filter>LongUI\Component\Text</Filter>
     </ClInclude>
     <ClInclude Include="UIText.h">
-      <Filter>LongUI\Text</Filter>
+      <Filter>LongUI\Component\Text</Filter>
     </ClInclude>
     <ClInclude Include="UIInlineObject.h">
-      <Filter>LongUI\Text</Filter>
+      <Filter>LongUI\Component\Text</Filter>
     </ClInclude>
     <ClInclude Include="UIEditaleText.h">
-      <Filter>LongUI\Text</Filter>
+      <Filter>LongUI\Component\Text</Filter>
     </ClInclude>
     <ClInclude Include="UIDataObject.h">
       <Filter>LongUI\Util</Filter>

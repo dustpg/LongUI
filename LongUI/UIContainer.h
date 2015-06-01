@@ -120,9 +120,14 @@ namespace LongUI {
         // 本容器转换矩阵
         D2D1_MATRIX_3X2_F       transform = D2D1::Matrix3x2F::Identity();
         // 水平滚动条
-        UIScrollBar             scrollbar_h;
+        UIScrollBar*            scrollbar_h = nullptr;
         // 垂直滚动条
-        UIScrollBar             scrollbar_v;
+        UIScrollBar*            scrollbar_v = nullptr;
+    protected:
+        // create h-sb
+        CreateControlFunction   m_pCreateH = nullptr;
+        // create v-sb
+        CreateControlFunction   m_pCreateV = nullptr;
     };
 #if 0
     // -------------------------------------------------

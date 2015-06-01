@@ -55,8 +55,8 @@ namespace LongUI {
         UIEditBasic(const UIEditBasic&) = delete;
     protected:
         // core editable text component
-        CUIEditaleText          m_text;
+        Component::CUIEditaleText   m_text;
         // 'I' cursor
-        HCURSOR                 m_hCursorI = ::LoadCursorW(nullptr, IDC_IBEAM);
+        HCURSOR                     m_hCursorI = ::LoadCursorW(nullptr, IDC_IBEAM);
     };
 }

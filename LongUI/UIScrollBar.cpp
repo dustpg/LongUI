@@ -14,10 +14,9 @@ auto LongUI::UIScrollBar::CreateDesc(const char * attr, ScrollBarType type) noex
 }
 
 // UIScrollBar 构造函数
-LongUI::UIScrollBar::UIScrollBar(const LongUI::ScrollBarDesc& desc, UIContainer* p)
-noexcept: desc(desc), m_pOwner(p), Super(LongUINullXMLNode) {
-    assert(p && "bad argument");
-    char32_t buffer[] = {
+LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
+    ZeroMemory(&m_desc, sizeof(m_desc));
+    /*char32_t buffer[] = {
         9652,    // UP
         9662,    // DOWN
         9666,    // LEFT
@@ -61,7 +60,7 @@ noexcept: desc(desc), m_pOwner(p), Super(LongUINullXMLNode) {
             );
     }
     ::SafeRelease(format);
-    ::SafeRelease(fontface);
+    ::SafeRelease(fontface);*/
 }
 
 // UIScrollBar 析构函数
@@ -73,6 +72,7 @@ LongUI::UIScrollBar::~UIScrollBar() noexcept {
 
 // 更新值
 void LongUI::UIScrollBar::Refresh() noexcept {
+#if 0
     // 边界 > 显示  -> 刻画边界 = 边界
     // 另外:      -> 刻画边界 = 显示
     bool old = false;
@@ -120,10 +120,12 @@ void LongUI::UIScrollBar::Refresh() noexcept {
         }*/
     }
     // TODO: 更新滚动条状态
+#endif
 }
 
 // UIScrollBar 渲染 
 auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
+#if 0
     register float tmpsize = this->desc.size;
     D2D1_RECT_F draw_rect = GetDrawRect(this);
     m_rtThumb = m_rtArrow2 =  m_rtArrow1 = draw_rect;
@@ -157,7 +159,7 @@ auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
     // 先画一个矩形
     m_pRenderTarget->DrawRectangle(&m_rtArrow2, m_pBrush, 1.f);
     // 修改转变矩阵
-
+#endif
     return S_OK;
 }
 

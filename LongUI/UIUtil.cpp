@@ -1420,6 +1420,7 @@ LongUI::CUIVideoComponent::CUIVideoComponent() noexcept {
     force_cast(dst_rect) = { 0 };
 }
 
+
 // CUIVideoComponent 析构函数
 LongUI::CUIVideoComponent::~CUIVideoComponent() noexcept {
     if (m_pMediaEngine) {

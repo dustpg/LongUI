@@ -6,10 +6,7 @@
 
 // -------------------------- UIContainer -------------------------
 // UIContainer 构造函数
-LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept :
-Super(node),
-scrollbar_h(UIScrollBar::CreateDesc(nullptr, ScrollBarType::Type_Horizontal), this),
-scrollbar_v(UIScrollBar::CreateDesc(nullptr, ScrollBarType::Type_Vertical), this) {
+LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
     assert(node && "bad argument.");
     uint32_t flag = this->flags | Flag_UIContainer;
     if ((this->flags & Flag_RenderParent) || node.attribute("rendercd").as_bool(false)) {
@@ -20,6 +17,16 @@ scrollbar_v(UIScrollBar::CreateDesc(nullptr, ScrollBarType::Type_Vertical), this
 
 // UIContainer 析构函数
 LongUI::UIContainer::~UIContainer() noexcept {
+    // 关闭滚动条
+    if (this->scrollbar_h) {
+        this->scrollbar_h->Close();
+        this->scrollbar_h = nullptr;
+    }
+    if (this->scrollbar_v) {
+        this->scrollbar_v->Close();
+        this->scrollbar_v = nullptr;
+    }
+    // 关闭子控件
     for (auto itr = this->begin(); itr != this->end(); ) {
         auto itr_next = itr; ++itr_next;
         itr->Close();
@@ -47,6 +54,7 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 // 更新布局
 void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
     if (!refresh_scroll) return;
+#if 0
     // 检查宽度
     this->scrollbar_h.show_zone.left = 0.f;
     this->scrollbar_h.show_zone.top = this->show_zone.height - this->scrollbar_h.desc.size;
@@ -68,6 +76,7 @@ void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
     if (this->scrollbar_v) {
 
     }
+#endif
 }
 
 // do event 事件处理
@@ -155,10 +164,10 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         }
         // 渲染滚动条
         if (this->scrollbar_h) {
-            this->scrollbar_h.Render(LongUI::RenderType::Type_Render);
+            this->scrollbar_h->Render(LongUI::RenderType::Type_Render);
         }
         if (this->scrollbar_v) {
-            this->scrollbar_v.Render(LongUI::RenderType::Type_Render);
+            this->scrollbar_v->Render(LongUI::RenderType::Type_Render);
         }
         // 父类
         Super::Render(LongUI::RenderType::Type_Render);
@@ -177,9 +186,20 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
 // UIContainer 重建
 auto LongUI::UIContainer::Recreate(
     LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    this->scrollbar_h.Recreate(newRT);
-    this->scrollbar_v.Recreate(newRT);
-    return Super::Recreate(newRT);
+    auto hr = S_OK;
+    // 重建水平滚动条
+    if (SUCCEEDED(hr) && this->scrollbar_h) {
+        hr = this->scrollbar_h->Recreate(newRT);
+    }
+    // 重建垂直滚动条
+    if (SUCCEEDED(hr) && this->scrollbar_v) {
+        hr = this->scrollbar_v->Recreate(newRT);
+    }
+    // 重建父类
+    if (SUCCEEDED(hr)) {
+        hr = Super::Recreate(newRT);
+    }
+    return hr;
 }
 
 // 获取指定控件
@@ -356,12 +376,12 @@ void LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept 
     // 计算
     base_width = std::max(base_width, this->show_zone.width);
     // 垂直滚动条?
-    if (this->scrollbar_v) {
+    /*if (this->scrollbar_v) {
         base_width -= this->scrollbar_v.desc.size;
     }    // 水平滚动条?
     if (this->scrollbar_h) {
         base_height -= this->scrollbar_h.desc.size;
-    }
+    }*/
     // 高度步进
     float height_step = counter > 0.f ? (this->show_zone.height - base_height) / counter : 0.f;
     float position_y = 0.f;
@@ -459,12 +479,12 @@ void LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcep
     // 计算
     base_height = std::max(base_height, this->show_zone.height);
     // 垂直滚动条?
-    if (this->scrollbar_v) {
+    /*if (this->scrollbar_v) {
         base_width -= this->scrollbar_v.desc.size;
     }    // 水平滚动条?
     if (this->scrollbar_h) {
         base_height -= this->scrollbar_h.desc.size;
-    }
+    }*/
     // 宽度步进
     float width_step = counter > 0.f ? (this->show_zone.width - base_width) / counter : 0.f;
     float position_x = 0.f;

@@ -34,7 +34,7 @@ namespace LongUI{
     };
     // ScrollBar 形容结构体
     struct ScrollBarDesc{
-        // 滚动条类型
+        // type of bar
         ScrollBarType       type;
         // the size(width/height) of scroll bar
         float               size;
@@ -47,7 +47,7 @@ namespace LongUI{
         // 父类申明
         using Super = UIControl ;
     public:
-        // Render 渲染 --- 放在第一位!
+        // Render 渲染
         auto Render(RenderType) noexcept ->HRESULT override;
         // do event 事件处理
         bool DoEvent(LongUI::EventArgument&) noexcept override;
@@ -56,22 +56,26 @@ namespace LongUI{
         // close this control 关闭控件
         void Close() noexcept override;
     public:
-        // is effective
-        operator bool() const noexcept { return m_bEffective; }
+        // init sb
+        virtual inline void InitScrollBar(UIContainer* owner, const ScrollBarDesc& desc) noexcept { m_pOwner = owner; m_desc = desc; }
+    public:
+        // is would take up the owner's space ?
+        auto TakeUpSapce() const noexcept { return m_bTakeSpace; }
         // create desc of bar 创建滚动条描述
         static auto CreateDesc(const char* attr, ScrollBarType) noexcept -> const ScrollBarDesc&;
     public:
         // constructor 构造函数
-        UIScrollBar(const ScrollBarDesc&, UIContainer* ) noexcept;
+        UIScrollBar(pugi::xml_node) noexcept;
         // destructor 析构函数
         ~UIScrollBar() noexcept;
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
         // 更新
         void Refresh() noexcept;
-    public:
+    protected:
         // desc 描述体
-        const ScrollBarDesc     desc;
+        ScrollBarDesc           m_desc;
+    public:
         // now index of scroll bar
         float                   index = 0.f;
         // max range of scroll bar
@@ -100,8 +104,8 @@ namespace LongUI{
             Type_Arrow2,    // Arrow2
         };
         PointType               m_pointType = PointType::Type_None;
-        // is effective ?
-        bool                    m_bEffective = false;
+        // is would take up the owner's space ?
+        bool                    m_bTakeSpace = false;
         //
         bool                    scrollbar_unused[3];
     };
