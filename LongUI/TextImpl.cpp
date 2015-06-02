@@ -22,7 +22,7 @@ auto __fastcall UIEditaleText_RemoveText(
 
 
 // 刷新布局
-auto LongUI::Component::CUIEditaleText::refresh(bool update) noexcept ->UIWindow* {
+auto LongUI::Component::EditaleText::refresh(bool update) noexcept ->UIWindow* {
     if (!m_bThisFocused) return nullptr;
     RectLTWH_F rect; this->GetCaretRect(rect);
     register auto* window = m_pHost->GetWindow();
@@ -35,7 +35,7 @@ auto LongUI::Component::CUIEditaleText::refresh(bool update) noexcept ->UIWindow
 }
 
 // 重新创建布局
-void LongUI::Component::CUIEditaleText::recreate_layout() noexcept {
+void LongUI::Component::EditaleText::recreate_layout() noexcept {
     ::SafeRelease(this->layout);
     // 创建布局
     m_pFactory->CreateTextLayout(
@@ -47,7 +47,7 @@ void LongUI::Component::CUIEditaleText::recreate_layout() noexcept {
 }
 
 // 插入字符(串)
-auto LongUI::Component::CUIEditaleText::insert(
+auto LongUI::Component::EditaleText::insert(
     const wchar_t * str, uint32_t pos, uint32_t length) noexcept -> HRESULT {
     HRESULT hr = S_OK;
     // 只读
@@ -66,25 +66,25 @@ auto LongUI::Component::CUIEditaleText::insert(
     // 富文本情况下?
     if (old_layout && UIEditaleText_IsRiched && SUCCEEDED(hr)) {
         // 复制全局属性
-        Component::CUIEditaleText::CopyGlobalProperties(old_layout, this->layout);
+        Component::EditaleText::CopyGlobalProperties(old_layout, this->layout);
         // 对于每种属性, 获取并应用到新布局
         // 在首位?
         if (pos) {
             // 第一块
-            Component::CUIEditaleText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
+            Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
             // 插入块
-            Component::CUIEditaleText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
+            Component::EditaleText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
             // 结束块
-            Component::CUIEditaleText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
+            Component::EditaleText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
         }
         else {
             // 插入块
-           Component::CUIEditaleText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
+           Component::EditaleText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
             // 结束块
-           Component::CUIEditaleText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
+           Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
         }
         // 末尾
-       Component::CUIEditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_text.length()), UINT32_MAX);
+       Component::EditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_text.length()), UINT32_MAX);
     }
     ::SafeRelease(old_layout);
     return hr;
@@ -92,7 +92,7 @@ auto LongUI::Component::CUIEditaleText::insert(
 
 
 // 返回当前选择区域
-auto LongUI::Component::CUIEditaleText::GetSelectionRange() const noexcept-> DWRITE_TEXT_RANGE {
+auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE_TEXT_RANGE {
     // 返回当前选择返回
     auto caretBegin = m_u32CaretAnchor;
     auto caretEnd = m_u32CaretPos + m_u32CaretPosOffset;
@@ -109,7 +109,7 @@ auto LongUI::Component::CUIEditaleText::GetSelectionRange() const noexcept-> DWR
 }
 
 // 设置选择区
-auto LongUI::Component::CUIEditaleText::SetSelection(
+auto LongUI::Component::EditaleText::SetSelection(
     SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept-> HRESULT {
     //uint32_t line = uint32_t(-1);
     uint32_t absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
@@ -187,7 +187,7 @@ auto LongUI::Component::CUIEditaleText::SetSelection(
             );
         // 获取行
         uint32_t line, linePosition;
-       Component::CUIEditaleText::GetLineFromPosition(
+       Component::EditaleText::GetLineFromPosition(
             metrice_buffer.data,
             metrice_buffer.data_length,
             m_u32CaretPos,
@@ -293,7 +293,7 @@ auto LongUI::Component::CUIEditaleText::SetSelection(
             &textMetrics.lineCount
             );
         uint32_t line;
-       Component::CUIEditaleText::GetLineFromPosition(
+       Component::EditaleText::GetLineFromPosition(
             metrice_buffer.data,
             metrice_buffer.data_length,
             m_u32CaretPos,
@@ -357,7 +357,7 @@ auto LongUI::Component::CUIEditaleText::SetSelection(
 }
 
 // 删除选择区文字
-auto LongUI::Component::CUIEditaleText::DeleteSelection() noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::DeleteSelection() noexcept-> HRESULT {
     HRESULT hr = S_FALSE;
     DWRITE_TEXT_RANGE selection = this->GetSelectionRange();
     if (selection.length == 0 || UIEditaleText_IsReadOnly) return hr;
@@ -375,7 +375,7 @@ auto LongUI::Component::CUIEditaleText::DeleteSelection() noexcept-> HRESULT {
 
 
 // 设置选择区
-bool LongUI::Component::CUIEditaleText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
+bool LongUI::Component::EditaleText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
     BOOL isTrailingHit;
     BOOL isInside;
     DWRITE_HIT_TEST_METRICS caret_metrics;
@@ -397,7 +397,7 @@ bool LongUI::Component::CUIEditaleText::SetSelectionFromPoint(float x, float y, 
 
 
 // 拖入
-bool LongUI::Component::CUIEditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
+bool LongUI::Component::EditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
     m_bDragFormatOK = false;
     m_bThisFocused = true;
     m_bDragFromThis = m_pDataObject == data;
@@ -414,7 +414,7 @@ bool LongUI::Component::CUIEditaleText::OnDragEnter(IDataObject* data, DWORD* ef
 
 
 // 拖上
-bool LongUI::Component::CUIEditaleText::OnDragOver(float x, float y) noexcept {
+bool LongUI::Component::EditaleText::OnDragOver(float x, float y) noexcept {
     // 自己的?并且在选择范围内?
     if (m_bDragFromThis) {
         register auto range = m_dragRange;
@@ -437,7 +437,7 @@ bool LongUI::Component::CUIEditaleText::OnDragOver(float x, float y) noexcept {
 }
 
 // 重建
-void LongUI::Component::CUIEditaleText::Recreate(ID2D1RenderTarget* target) noexcept {
+void LongUI::Component::EditaleText::Recreate(ID2D1RenderTarget* target) noexcept {
     // 无效参数
     assert(target); if (!target) return;
     // 重新创建资源
@@ -451,7 +451,7 @@ void LongUI::Component::CUIEditaleText::Recreate(ID2D1RenderTarget* target) noex
 }
 
 // 键入一个字符时
-void LongUI::Component::CUIEditaleText::OnChar(char32_t ch) noexcept {
+void LongUI::Component::EditaleText::OnChar(char32_t ch) noexcept {
     // 字符有效
     if ((ch >= 0x20 || ch == 9)) {
         if (UIEditaleText_IsReadOnly) {
@@ -487,7 +487,7 @@ void LongUI::Component::CUIEditaleText::OnChar(char32_t ch) noexcept {
 
 
 // 按键时
-void LongUI::Component::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
+void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
     // 检查按键 maybe IUIInput
     bool heldShift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
     bool heldControl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
@@ -635,20 +635,20 @@ void LongUI::Component::CUIEditaleText::OnKey(uint32_t keycode) noexcept {
 }
 
 // 当设置焦点时
-void LongUI::Component::CUIEditaleText::OnSetFocus() noexcept {
+void LongUI::Component::EditaleText::OnSetFocus() noexcept {
     m_bThisFocused = true;
     this->refresh()->ShowCaret();
 }
 
 // 当失去焦点时
-void LongUI::Component::CUIEditaleText::OnKillFocus() noexcept {
+void LongUI::Component::EditaleText::OnKillFocus() noexcept {
     register auto* window = m_pHost->GetWindow();
     window->HideCaret();
     m_bThisFocused = false;
 }
 
 // 左键弹起时
-void LongUI::Component::CUIEditaleText::OnLButtonUp(float x, float y) noexcept {
+void LongUI::Component::EditaleText::OnLButtonUp(float x, float y) noexcept {
     // 检查
     if (m_bClickInSelection && m_ptStart.x == x && m_ptStart.y == y) {
         // 选择
@@ -661,7 +661,7 @@ void LongUI::Component::CUIEditaleText::OnLButtonUp(float x, float y) noexcept {
 }
 
 // 左键按下时
-void LongUI::Component::CUIEditaleText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
+void LongUI::Component::EditaleText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
     // 设置鼠标捕获
     m_pHost->GetWindow()->SetCapture(m_pHost);
     // 刷新
@@ -692,7 +692,7 @@ void LongUI::Component::CUIEditaleText::OnLButtonDown(float x, float y, bool shf
 }
 
 // 左键按住时
-void LongUI::Component::CUIEditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
+void LongUI::Component::EditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
     // 起点在选择区
     if (!shfit_hold && m_bClickInSelection) {
         // 开始拖拽
@@ -737,7 +737,7 @@ void LongUI::Component::CUIEditaleText::OnLButtonHold(float x, float y, bool shf
 }
 
 // 对齐最近字符集
-void LongUI::Component::CUIEditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
+void LongUI::Component::EditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
     DWRITE_HIT_TEST_METRICS hitTestMetrics;
     float caretX, caretY;
     // 对齐最近字符集
@@ -759,7 +759,7 @@ void LongUI::Component::CUIEditaleText::AlignCaretToNearestCluster(bool hit, boo
 }
 
 // 获取插入符号矩形
-void LongUI::Component::CUIEditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
+void LongUI::Component::EditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
     // 检查布局
     if (this->layout) {
         // 获取 f(文本偏移) -> 坐标
@@ -801,7 +801,7 @@ void LongUI::Component::CUIEditaleText::GetCaretRect(RectLTWH_F& rect) noexcept 
 }
 
 // 渲染
-void LongUI::Component::CUIEditaleText::Render(float x, float y) noexcept {
+void LongUI::Component::EditaleText::Render(float x, float y) noexcept {
     assert(m_pRenderTarget);
     this->refresh(false);
     // 检查选择区
@@ -831,7 +831,7 @@ void LongUI::Component::CUIEditaleText::Render(float x, float y) noexcept {
 }
 
 // 复制到 目标全局句柄
-auto LongUI::Component::CUIEditaleText::CopyToGlobal() noexcept-> HGLOBAL {
+auto LongUI::Component::EditaleText::CopyToGlobal() noexcept-> HGLOBAL {
     HGLOBAL global = nullptr;
     auto selection = this->GetSelectionRange();
     // 有效
@@ -855,7 +855,7 @@ auto LongUI::Component::CUIEditaleText::CopyToGlobal() noexcept-> HGLOBAL {
 }
 
 // 复制到 剪切板
-auto LongUI::Component::CUIEditaleText::CopyToClipboard() noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::CopyToClipboard() noexcept-> HRESULT {
     HRESULT hr = E_FAIL;
     auto selection = this->GetSelectionRange();
     if (selection.length) {
@@ -899,7 +899,7 @@ auto LongUI::Component::CUIEditaleText::CopyToClipboard() noexcept-> HRESULT {
 
 
 // 从 目标全局句柄 黏贴
-auto LongUI::Component::CUIEditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> HRESULT {
     // 正式开始
     size_t byteSize = ::GlobalSize(global);
     // 获取数据
@@ -922,7 +922,7 @@ auto LongUI::Component::CUIEditaleText::PasteFromGlobal(HGLOBAL global) noexcept
 }
 
 // 从 剪切板 黏贴
-auto LongUI::Component::CUIEditaleText::PasteFromClipboard() noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::PasteFromClipboard() noexcept-> HRESULT {
     // 正式开始
     HRESULT hr = S_OK;  uint32_t characterCount = 0ui32;
     // 打开剪切板
@@ -944,7 +944,7 @@ auto LongUI::Component::CUIEditaleText::PasteFromClipboard() noexcept-> HRESULT 
 }
 
 // 获取行编号
-void LongUI::Component::CUIEditaleText::GetLineFromPosition(
+void LongUI::Component::EditaleText::GetLineFromPosition(
     const DWRITE_LINE_METRICS * lineMetrics,
     uint32_t lineCount, uint32_t textPosition,
     OUT uint32_t * lineOut,
@@ -965,7 +965,7 @@ void LongUI::Component::CUIEditaleText::GetLineFromPosition(
 }
 
 // 更新选择区点击测试区块
-void LongUI::Component::CUIEditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
+void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
     // 有选择的情况下
     if (selection.length == 0) {
         m_metriceBuffer.data_length = 0;
@@ -999,8 +999,8 @@ void LongUI::Component::CUIEditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANG
 
 
 
-//Component::CUIEditaleText 析构函数
-LongUI::Component::CUIEditaleText::~CUIEditaleText() noexcept {
+// EditaleText 析构函数
+LongUI::Component::EditaleText::~EditaleText() noexcept {
     ::ReleaseStgMedium(&m_recentMedium);
     ::SafeRelease(this->layout);
     ::SafeRelease(m_pBasicFormat);
@@ -1017,7 +1017,7 @@ LongUI::Component::CUIEditaleText::~CUIEditaleText() noexcept {
 #define UIEditaleText_NewAttribute(a) { ::strcpy(attribute_buffer, prefix); ::strcat(attribute_buffer, a); }
 
 // 配置构造函数
-LongUI::Component::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_node node,
+LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node,
     const char* prefix) noexcept : m_pHost(host) {
     m_dragRange = { 0, 0 };
     // 检查参数
@@ -1111,7 +1111,7 @@ LongUI::Component::CUIEditaleText::CUIEditaleText(UIControl* host, pugi::xml_nod
 }
 
 // 复制全局属性
-void LongUI::Component::CUIEditaleText::CopyGlobalProperties(
+void LongUI::Component::EditaleText::CopyGlobalProperties(
     IDWriteTextLayout* old_layout,
     IDWriteTextLayout* new_layout) noexcept {
     // 基本属性
@@ -1137,7 +1137,7 @@ void LongUI::Component::CUIEditaleText::CopyGlobalProperties(
 }
 
 // 对范围复制单个属性
-void LongUI::Component::CUIEditaleText::CopySinglePropertyRange(
+void LongUI::Component::EditaleText::CopySinglePropertyRange(
     IDWriteTextLayout* old_layout, uint32_t old_start,
     IDWriteTextLayout* new_layout, uint32_t new_start, uint32_t length) noexcept {
     // 计算范围
@@ -1203,7 +1203,7 @@ void LongUI::Component::CUIEditaleText::CopySinglePropertyRange(
 }
 
 // 范围复制AoE!
-void LongUI::Component::CUIEditaleText::CopyRangedProperties(
+void LongUI::Component::EditaleText::CopyRangedProperties(
     IDWriteTextLayout* old_layout, IDWriteTextLayout* new_layout,
     uint32_t begin, uint32_t end, uint32_t new_offset, bool negative) noexcept {
     auto current = begin;
@@ -1217,7 +1217,7 @@ void LongUI::Component::CUIEditaleText::CopyRangedProperties(
         // 检查有效性
         rangeLength = std::min(rangeLength, end - current);
         // 复制单个
-       Component::CUIEditaleText::CopySinglePropertyRange(
+       Component::EditaleText::CopySinglePropertyRange(
             old_layout,
             current,
             new_layout,

@@ -36,7 +36,7 @@ namespace LongUI {
     // Component namespace
     namespace Component {
         // core editable text component
-        class LongUIAlignas CUIEditaleText {
+        class LongUIAlignas EditaleText {
             // 简写
             using HitTestMetrics = DWRITE_HIT_TEST_METRICS;
             // 缓冲区
@@ -165,9 +165,9 @@ namespace LongUI {
                 ) noexcept;
         public:
             // destructor
-            ~CUIEditaleText() noexcept;
+            ~EditaleText() noexcept;
             // constructor
-           Component::CUIEditaleText(UIControl*, pugi::xml_node, const char* prefix = "text") noexcept;
+            EditaleText(UIControl*, pugi::xml_node, const char* prefix = "text") noexcept;
             // type of text
             IDWriteTextLayout*      layout = nullptr;
             // type of text

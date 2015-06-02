@@ -208,10 +208,19 @@ void LongUI::CUIManager::UnInitialize() noexcept {
 }
 
 
+// 创建控件
+inline auto LongUI::CUIManager::create_control(pugi::xml_node node) noexcept -> UIControl* {
+    assert(node && "bad argument");
+    // 获取创建指针
+    auto create = this->get_create_func(node.name());
+    if (create) return create(node);
+    return nullptr;
+}
+
 // CUIManager 创建控件树
 // 默认消耗 64kb+, 导致栈(默认1~2M)溢出几率较低
 void LongUI::CUIManager::make_control_tree(
-    LongUI::UIWindow* window,
+    LongUI::UIWindow* window, 
     pugi::xml_node node) noexcept {
     // 断言
     assert(window && node && "bad argument");
@@ -279,8 +288,7 @@ void LongUI::CUIManager::make_control_tree(
 }
 
 // UIManager 添加控件
-void LongUI::CUIManager::add_control(
-    UIControl* ctrl, pugi::xml_node node) noexcept {
+void LongUI::CUIManager::add_control(UIControl* ctrl, pugi::xml_node node) noexcept {
     // 断言
     assert(ctrl && node && "bad argument");
     // 创建Pair
@@ -292,24 +300,36 @@ void LongUI::CUIManager::add_control(
     m_mapString2Control.insert(paired);
 }
 
-// 创建控件
-auto LongUI::CUIManager::create_control(
-    pugi::xml_node node) noexcept -> UIControl* {
-    assert(node && "bad argument");
-    // 转码
-    WCHAR buffer[LongUIStringBufferLength];
-    auto length = LongUI::UTF8toWideChar(node.name(), buffer);
-    buffer[length] = L'\0';
-    // 创建字符串
-    CUIString class_name(buffer, length);
+// 获取创建控件函数指针
+auto LongUI::CUIManager::get_create_func(const char* class_name) noexcept -> CreateControlFunction {
+    // 缓冲区
+    wchar_t buffer[LongUIStringBufferLength];
+    auto* __restrict itra = class_name;
+    auto* __restrict itrb = buffer;
+    // 类名一定是英文的
+    for (; *itra; ++itra, ++itrb) {
+        assert(*itra >= 0 && "bad name");
+        *itrb = *itra;
+    }
+    *itrb = L'\0';
+    // 获取
+    return this->get_create_func(buffer, itra - class_name);
+}
+
+// 获取创建控件函数指针
+auto LongUI::CUIManager::get_create_func(const CUIString& name) noexcept -> CreateControlFunction {
     // 查找
-    const auto itr = m_mapString2CreateFunction.find(class_name);
-    if (itr != m_mapString2CreateFunction.end()) {
-        return reinterpret_cast<CreateControlFunction>(itr->second)(node);
+    try {
+        const auto itr = m_mapString2CreateFunction.find(name);
+        if (itr != m_mapString2CreateFunction.end()) {
+            return reinterpret_cast<CreateControlFunction>(itr->second);
+        }
+    }
+    catch (...)  {
+
     }
     return nullptr;
 }
-
 
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
@@ -457,8 +477,6 @@ LongUI::CUIManager::CUIManager() noexcept {
 LongUI::CUIManager::~CUIManager() noexcept {
     this->discard_resources();
 }
-
-
 
 // 获取控件 wchar_t指针
 auto LongUI::CUIManager::AddS2CPair(
@@ -802,7 +820,7 @@ auto LongUI::CUIManager::GetTextFormat(
 }
 
 // 创建程序资源
-auto LongUI::CUIManager::create_programs_resources() /*throw(std::bad_alloc &)*/-> void {
+auto LongUI::CUIManager::create_programs_resources() throw(std::bad_alloc &)-> void {
     // 存在二进制读取器?
     if (m_pBinResLoader) {
         // 获取位图个数

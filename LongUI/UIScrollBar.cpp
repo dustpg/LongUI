@@ -5,17 +5,8 @@
 //ID2D1PathGeometry*  g_pScrollBar1 = nullptr;
 //ID2D1PathGeometry*  g_pScrollBar2 = nullptr;
 
-// 创建描述
-auto LongUI::UIScrollBar::CreateDesc(const char * attr, ScrollBarType type) noexcept -> const ScrollBarDesc &{
-    static ScrollBarDesc s_desc;
-    s_desc.type = type;
-    s_desc.size = 16.f;
-    return s_desc;
-}
-
 // UIScrollBar 构造函数
 LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
-    ZeroMemory(&m_desc, sizeof(m_desc));
     /*char32_t buffer[] = {
         9652,    // UP
         9662,    // DOWN
@@ -63,12 +54,6 @@ LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
     ::SafeRelease(fontface);*/
 }
 
-// UIScrollBar 析构函数
-LongUI::UIScrollBar::~UIScrollBar() noexcept {
-    ::SafeRelease(m_pArrow1Text);
-    ::SafeRelease(m_pArrow2Text);
-    ::SafeRelease(m_pBrush);
-}
 
 // 更新值
 void LongUI::UIScrollBar::Refresh() noexcept {
@@ -164,13 +149,6 @@ auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
 }
 
 
-// UIScrollBar 渲染 
-auto LongUI::UIScrollBar::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    ::SafeRelease(m_pBrush);
-    // 设置新的笔刷
-    m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
-    return Super::Recreate(newRT);
-}
 
 // do event 事件处理
 bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
@@ -220,7 +198,22 @@ bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
 }
 
 
-// UIScrollBar 关闭控件
-void  LongUI::UIScrollBar::Close() noexcept {
+// UIScrollBar 渲染 
+auto LongUI::UIScrollBarBasic::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
+    ::SafeRelease(m_pBrush);
+    // 设置新的笔刷
+    m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
+    return Super::Recreate(newRT);
+}
+
+// UIScrollBarBasic 析构函数
+inline LongUI::UIScrollBarBasic::~UIScrollBarBasic() noexcept {
+    ::SafeRelease(m_pArrow1Text);
+    ::SafeRelease(m_pArrow2Text);
+    ::SafeRelease(m_pBrush);
+}
+
+// UIScrollBarBasic 关闭控件
+void  LongUI::UIScrollBarBasic::Close() noexcept {
     delete this;
 }

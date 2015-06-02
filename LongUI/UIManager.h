@@ -266,7 +266,7 @@ namespace LongUI {
         CUIManager(const CUIManager&) = delete;
     private:
         // create programs resources
-        auto create_programs_resources() /*throw(std::bad_alloc&)*/ ->void;
+        auto create_programs_resources() throw(std::bad_alloc&) ->void;
         // create all resources
         auto create_resources() noexcept ->HRESULT;
         // discard resources
@@ -279,6 +279,12 @@ namespace LongUI {
         void add_textformat(const pugi::xml_node) noexcept;
         // create meta
         void add_meta(const pugi::xml_node) noexcept;
+        // get create function
+        auto get_create_func(const char*)noexcept->CreateControlFunction;
+        // get create function
+        auto get_create_func(const CUIString&)noexcept->CreateControlFunction;
+        // get create function
+        auto get_create_func(const wchar_t* class_name, int len=-1)noexcept { CUIString name(class_name, len); return get_create_func(name); }
         // 创建控件
         auto create_control(pugi::xml_node) noexcept->UIControl*;
         // 创建控件树

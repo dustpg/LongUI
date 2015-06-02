@@ -32,69 +32,14 @@ namespace LongUI{
         Type_Vertical = 0,      // 垂直
         Type_Horizontal,        // 水平
     };
-    // ScrollBar 形容结构体
-    struct ScrollBarDesc{
-        // type of bar
-        ScrollBarType       type;
-        // the size(width/height) of scroll bar
-        float               size;
-    };
     // UIContainer
     class UIContainer;
-    // default scroll bar 默认滚动条
+    // base scroll bar 默认滚动条
     class LongUIAPI UIScrollBar : public UIControl {
     private:
         // 父类申明
         using Super = UIControl ;
-    public:
-        // Render 渲染
-        auto Render(RenderType) noexcept ->HRESULT override;
-        // do event 事件处理
-        bool DoEvent(LongUI::EventArgument&) noexcept override;
-        // recreate 重建
-        auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control 关闭控件
-        void Close() noexcept override;
-    public:
-        // init sb
-        virtual inline void InitScrollBar(UIContainer* owner, const ScrollBarDesc& desc) noexcept { m_pOwner = owner; m_desc = desc; }
-    public:
-        // is would take up the owner's space ?
-        auto TakeUpSapce() const noexcept { return m_bTakeSpace; }
-        // create desc of bar 创建滚动条描述
-        static auto CreateDesc(const char* attr, ScrollBarType) noexcept -> const ScrollBarDesc&;
-    public:
-        // constructor 构造函数
-        UIScrollBar(pugi::xml_node) noexcept;
-        // destructor 析构函数
-        ~UIScrollBar() noexcept;
-        // deleted function
-        UIScrollBar(const UIScrollBar&) = delete;
-        // 更新
-        void Refresh() noexcept;
     protected:
-        // desc 描述体
-        ScrollBarDesc           m_desc;
-    public:
-        // now index of scroll bar
-        float                   index = 0.f;
-        // max range of scroll bar
-        float                   max_range = 1.f;
-    protected:
-        // the onwer of scroll bar
-        UIContainer*            m_pOwner = nullptr;
-        // brush of this
-        ID2D1Brush*             m_pBrush = nullptr;
-        // arrow 1 text path geo
-        ID2D1PathGeometry*      m_pArrow1Text = nullptr;
-        // arrow 2 text path geo
-        ID2D1PathGeometry*      m_pArrow2Text = nullptr;
-        // the rect of arrow 2
-        D2D1_RECT_F             m_rtArrow1 = D2D1::RectF();
-        // the rect of arrow 2
-        D2D1_RECT_F             m_rtArrow2 = D2D1::RectF();
-        // the rect of thumb
-        D2D1_RECT_F             m_rtThumb = D2D1::RectF();
         // mouse point [0, 1, 2, 3, 4]
         enum class PointType : uint32_t {
             Type_None,      // None
@@ -103,11 +48,73 @@ namespace LongUI{
             Type_Shaft,     // Shaft
             Type_Arrow2,    // Arrow2
         };
+    public:
+        // Render 渲染
+        auto Render(RenderType) noexcept ->HRESULT override;
+        // do event 事件处理
+        bool DoEvent(LongUI::EventArgument&) noexcept override;
+    public:
+        // init sb
+        virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { m_pOwner = owner; force_cast(type) = _type; }
+    public:
+        // how size that take up the owner's space
+        auto GetTakeUpSapce() const noexcept { return m_fNowTakeSpace; }
+        // how size that take up the owner's space
+        auto GetIndex() const noexcept { return m_fIndex; }
+    protected:
+        // destructor 析构函数
+        //~UIScrollBar() noexcept;
+    public:
+        // constructor 构造函数
+        UIScrollBar(pugi::xml_node) noexcept;
+        // deleted function
+        UIScrollBar(const UIScrollBar&) = delete;
+        // 更新
+        void Refresh() noexcept;
+    public:
+        // type of scrollbar
+        ScrollBarType   const   type = ScrollBarType::Type_Vertical;
+    protected:
+        // tpye of mouse pointed
         PointType               m_pointType = PointType::Type_None;
-        // is would take up the owner's space ?
-        bool                    m_bTakeSpace = false;
-        //
-        bool                    scrollbar_unused[3];
+    protected:
+        // now take space of this
+        float                   m_fNowTakeSpace = 0.f;
+        // max take space of this
+        float                   m_fMaxTakeSpace = 16.f;
+        // now index of scroll bar
+        float                   m_fIndex = 0.f;
+        // max range of scroll bar
+        float                   m_fMaxRange = 1.f;
+        // the rect of arrow 2
+        D2D1_RECT_F             m_rtArrow1 = D2D1::RectF();
+        // the rect of arrow 2
+        D2D1_RECT_F             m_rtArrow2 = D2D1::RectF();
+        // the rect of thumb
+        D2D1_RECT_F             m_rtThumb = D2D1::RectF();
+        // the onwer of scroll bar
+        UIContainer*            m_pOwner = nullptr;
+    };
+    // basic srcoll bar 基本滚动条
+    class LongUIAPI UIScrollBarBasic final : public UIScrollBar {
+    private:
+        // 父类申明
+        using Super = UIScrollBar;
+    public:
+        // recreate 重建
+        auto Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
+        // close this control 关闭控件
+        void Close() noexcept override;
+    private:
+        // dtor
+        ~UIScrollBarBasic() noexcept;
+    private:
+        // brush of this
+        ID2D1Brush*             m_pBrush = nullptr;
+        // arrow 1 text path geo
+        ID2D1PathGeometry*      m_pArrow1Text = nullptr;
+        // arrow 2 text path geo
+        ID2D1PathGeometry*      m_pArrow2Text = nullptr;
     };
 
 }
