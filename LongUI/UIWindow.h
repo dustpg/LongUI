@@ -91,7 +91,7 @@ namespace LongUI{
         // get delta time in second
         LongUIInline auto GetDeltaTime() const noexcept { return m_fDeltaTime > 0.04f ? 0.f : m_fDeltaTime; };
         // get window handle
-        LongUIInline auto GetHwnd() const noexcept{ return m_hwnd;};
+        LongUIInline auto GetHwnd() const noexcept { return m_hwnd;};
         // set mouse capture
         LongUIInline auto SetCapture(UIControl* c) noexcept { ::SetCapture(m_hwnd); m_pCapturedControl = c; };
         // release mouse capture
@@ -115,7 +115,7 @@ namespace LongUI{
         // end draw
         auto EndDraw(uint32_t vsyc = 0) noexcept->HRESULT;
         // find control where mouse pointed
-        auto FindControl(const LongUI::EventArgument& _arg) noexcept{
+        auto FindControl(const LongUI::EventArgument& _arg) noexcept {
             auto arg = _arg;
             arg.sender = this;
             arg.event = LongUI::Event::Event_FindControl;

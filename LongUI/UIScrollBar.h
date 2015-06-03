@@ -57,8 +57,10 @@ namespace LongUI{
         // init sb
         virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { m_pOwner = owner; force_cast(type) = _type; }
     public:
-        // how size that take up the owner's space
-        auto GetTakeUpSapce() const noexcept { return m_fNowTakeSpace; }
+        // how size that take up the owner's space in layout
+        auto GetTakingUpSapce() const noexcept { return m_fTakeSpace; }
+        // how size that take up the owner's space in hit-test
+        auto GetHitSapce() const noexcept { return m_fHitSpace; }
         // how size that take up the owner's space
         auto GetIndex() const noexcept { return m_fIndex; }
     protected:
@@ -78,10 +80,10 @@ namespace LongUI{
         // tpye of mouse pointed
         PointType               m_pointType = PointType::Type_None;
     protected:
-        // now take space of this
-        float                   m_fNowTakeSpace = 0.f;
-        // max take space of this
-        float                   m_fMaxTakeSpace = 16.f;
+        // now take up the space of this
+        float                   m_fTakeSpace = 0.f;
+        // max hit-test space of this
+        float                   m_fHitSpace = 0.f;
         // now index of scroll bar
         float                   m_fIndex = 0.f;
         // max range of scroll bar

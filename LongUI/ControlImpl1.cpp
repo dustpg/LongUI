@@ -344,20 +344,16 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
     case LongUI::RenderType::Type_Render:
         // 父类背景
         Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 背景中断
-        if (type == LongUI::RenderType::Type_RenderBackground) {
-            break;
-        }
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 更新刻画地区
+        // 本类背景, 更新刻画地区
         if (m_bDrawSizeChanged) {
             this->draw_zone = this->show_zone;
         }
         draw_rect = GetDrawRect(this);
-         m_uiElement.Render(&draw_rect);
+        m_uiElement.Render(&draw_rect);
         // 更新计时器
         UIElement_Update(m_uiElement);
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
         Super::Render(LongUI::RenderType::Type_RenderForeground);
         break;

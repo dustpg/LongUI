@@ -43,7 +43,7 @@ namespace LongUI{
         // create 创建
         static auto WINAPI CreateControl(pugi::xml_node) noexcept ->UIControl*;
         // register click event 注册点击事件
-        LongUIInline void RegisterClickEvent(LongUICallBack call, UIControl* target) noexcept{ 
+        LongUIInline void RegisterClickEvent(LongUICallBack call, UIControl* target) noexcept { 
             m_eventClick = call; m_pClickTarget = target;
         };
     protected:

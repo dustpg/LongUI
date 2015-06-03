@@ -30,9 +30,9 @@ namespace LongUI{
     class CUIFileLoader{
     private:
         // 私有化构造函数
-        CUIFileLoader() noexcept{}
+        CUIFileLoader() noexcept {}
         // 私有化析构函数
-        ~CUIFileLoader() noexcept{
+        ~CUIFileLoader() noexcept {
             if (m_pData){
                 free(m_pData);
                 m_pData = nullptr;
@@ -42,9 +42,9 @@ namespace LongUI{
         // 读取文件
         bool ReadFile(WCHAR* file_name) noexcept;
         // 获取数据指针
-        auto GetData() const  noexcept{ return m_pData; }
+        auto GetData() const  noexcept { return m_pData; }
         // 获取数据长度
-        auto GetLength()const noexcept{ return m_cLength; }
+        auto GetLength()const noexcept { return m_cLength; }
     private:
         // 数据指针
         void*           m_pData = nullptr;

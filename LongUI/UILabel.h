@@ -45,7 +45,7 @@ namespace LongUI{
         // create 创建
         static auto WINAPI CreateControl(pugi::xml_node) noexcept ->UIControl*;
         // control text 控件文本
-        const auto GetText() const noexcept{ return m_text.c_str(); }
+        const auto GetText() const noexcept { return m_text.c_str(); }
         // set control text
         const void SetText(const wchar_t* t) noexcept { m_text = t; }
         // set control text

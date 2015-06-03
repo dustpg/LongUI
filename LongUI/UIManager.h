@@ -279,12 +279,14 @@ namespace LongUI {
         void add_textformat(const pugi::xml_node) noexcept;
         // create meta
         void add_meta(const pugi::xml_node) noexcept;
+    public:
         // get create function
-        auto get_create_func(const char*)noexcept->CreateControlFunction;
+        auto GetCreateFunc(const char*)noexcept->CreateControlFunction;
         // get create function
-        auto get_create_func(const CUIString&)noexcept->CreateControlFunction;
+        auto GetCreateFunc(const CUIString&)noexcept->CreateControlFunction;
         // get create function
-        auto get_create_func(const wchar_t* class_name, int len=-1)noexcept { CUIString name(class_name, len); return get_create_func(name); }
+        auto GetCreateFunc(const wchar_t* class_name, uint32_t len=0)noexcept { CUIString name(class_name, len); return GetCreateFunc(name); }
+    private:
         // 创建控件
         auto create_control(pugi::xml_node) noexcept->UIControl*;
         // 创建控件树
@@ -301,28 +303,28 @@ namespace LongUI {
 #ifdef _DEBUG
         // last DebugStringLevel
         DebugStringLevel        m_lastLevel = DebugStringLevel::DLevel_Log;
-        // overload << operator 重载 << 运算符
-        template<typename T> CUIManager& operator<< (T t) noexcept;
         // overload << operator for DebugStringLevel
-        template<> CUIManager& operator<< (DebugStringLevel l) noexcept { m_lastLevel = l; return *this; }
+        CUIManager& operator<< (DebugStringLevel l) noexcept { m_lastLevel = l; return *this; }
         // overload << operator for float
-        template<> CUIManager& operator<< (float f) noexcept;
+        CUIManager& operator<< (float f) noexcept;
         // overload << operator for long
-        template<> CUIManager& operator<< (long l) noexcept;
+        CUIManager& operator<< (long l) noexcept;
         // overload << operator for endl
-        template<> CUIManager& operator<< (LongUI::EndL) noexcept;
+        CUIManager& operator<< (LongUI::EndL) noexcept;
         // overload << operator for DXGI_ADAPTER_DESC*
-        template<> CUIManager& operator<< (DXGI_ADAPTER_DESC* d) noexcept;
+        CUIManager& operator<< (DXGI_ADAPTER_DESC& d) noexcept;
+        // overload << operator for RectLTWH_F
+        CUIManager& operator<< (RectLTWH_F& r) noexcept;
+        // overload << operator for D2D1_RECT_F
+        CUIManager& operator<< (D2D1_RECT_F& r) noexcept;
+        // overload << operator for CUIString
+        CUIManager& operator<< (const CUIString& s) noexcept { this->OutputNoFlush(m_lastLevel, s.c_str()); return *this; }
         // overload << operator for const wchar_t*
-        template<> CUIManager& operator<< (const wchar_t* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
-        // overload << operator for wchar_t*
-        template<> CUIManager& operator<< (wchar_t* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
+        CUIManager& operator<< (const wchar_t* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
         // overload << operator for const char*
-        template<> CUIManager& operator<< (const char* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
-        // overload << operator for char*
-        template<> CUIManager& operator<< (char* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
+        CUIManager& operator<< (const char* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
         // overload << operator for wchar_t
-        template<> CUIManager& operator<< (wchar_t ch) noexcept { wchar_t chs[2] = { ch, 0 }; this->OutputNoFlush(m_lastLevel, chs); return *this; }
+        CUIManager& operator<< (wchar_t ch) noexcept { wchar_t chs[2] = { ch, 0 }; this->OutputNoFlush(m_lastLevel, chs); return *this; }
         // output debug string with flush
         inline void Output(DebugStringLevel l, const wchar_t* s) noexcept { this->configure->OutputDebugStringW(l, s, true); }
         // output debug string with flush

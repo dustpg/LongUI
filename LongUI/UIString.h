@@ -43,32 +43,32 @@ namespace LongUI{
         // 设置
         void __fastcall Set(const wchar_t* str, uint32_t = 0) noexcept;
         // 转换为 wchar_t*
-        LongUIInline  operator const wchar_t*()const noexcept{ return m_pString; }
+        LongUIInline  operator const wchar_t*()const noexcept { return m_pString; }
     public: // std::string compatibled interface/method
         // get data
-        LongUIInline const auto* data() const noexcept{ return m_pString; }
+        LongUIInline const auto* data() const noexcept { return m_pString; }
         // c style string
-        LongUIInline const auto* c_str() const noexcept{ return m_pString; }
+        LongUIInline const auto* c_str() const noexcept { return m_pString; }
         // get dlengthata
-        LongUIInline auto length() const noexcept{ return m_cLength; }
+        LongUIInline auto length() const noexcept { return m_cLength; }
         // get size
-        LongUIInline auto size() const noexcept{ return m_cLength; }
+        LongUIInline auto size() const noexcept { return m_cLength; }
         // = 操作
-        const CUIString& __fastcall operator=(const wchar_t* s) noexcept{ this->Set(s); }
+        const CUIString& __fastcall operator=(const wchar_t* s) noexcept { this->Set(s); }
         // += 操作
         //const CUIString& __fastcall operator+=(const wchar_t*) noexcept;
         // == 操作
-        bool __fastcall operator == (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) == 0); };
+        bool __fastcall operator == (const wchar_t* str) const noexcept { return (::wcscmp(m_pString, str) == 0); };
         // != 操作
-        bool __fastcall operator != (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) != 0); };
+        bool __fastcall operator != (const wchar_t* str) const noexcept { return (::wcscmp(m_pString, str) != 0); };
         // <= 操作
-        bool __fastcall operator <= (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) <= 0); };
+        bool __fastcall operator <= (const wchar_t* str) const noexcept { return (::wcscmp(m_pString, str) <= 0); };
         // < 操作
-        bool __fastcall operator <  (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) < 0); };
+        bool __fastcall operator <  (const wchar_t* str) const noexcept { return (::wcscmp(m_pString, str) < 0); };
         // >= 操作
-        bool __fastcall operator >= (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) >= 0); };
+        bool __fastcall operator >= (const wchar_t* str) const noexcept { return (::wcscmp(m_pString, str) >= 0); };
         // > 操作
-        bool __fastcall operator >  (const wchar_t* str) const noexcept{ return (::wcscmp(m_pString, str) > 0); };
+        bool __fastcall operator >  (const wchar_t* str) const noexcept { return (::wcscmp(m_pString, str) > 0); };
     private:
         // 字符串
         wchar_t*            m_pString = m_aDataStatic;

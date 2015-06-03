@@ -127,12 +127,12 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
 }
 
 // debug level
-#define DL_None LongUI::DebugStringLevel::DLevel_None << L'<' << (const wchar_t*)__FUNCTIONW__ << L">: "
-#define DL_Log LongUI::DebugStringLevel::DLevel_Log << L'<' << (const wchar_t*)__FUNCTIONW__ << L">: "
-#define DL_Hint LongUI::DebugStringLevel::DLevel_Hint << L'<' << (const wchar_t*)__FUNCTIONW__ << L">: "
-#define DL_Warning LongUI::DebugStringLevel::DLevel_Warning << L'<' << (const wchar_t*)__FUNCTIONW__ << L">: "
-#define DL_Error LongUI::DebugStringLevel::DLevel_Error << L'<' << (const wchar_t*)__FUNCTIONW__ << L">: "
-#define DL_Fatal LongUI::DebugStringLevel::DLevel_Fatal << L'<' << (const wchar_t*)__FUNCTIONW__ << L">: "
+#define DL_None LongUI::DebugStringLevel::DLevel_None << L'<' << __FUNCTION__ << L">: "
+#define DL_Log LongUI::DebugStringLevel::DLevel_Log << L'<' << __FUNCTION__ << L">: "
+#define DL_Hint LongUI::DebugStringLevel::DLevel_Hint << L'<' << __FUNCTION__ << L">: "
+#define DL_Warning LongUI::DebugStringLevel::DLevel_Warning << L'<' << __FUNCTION__ << L">: "
+#define DL_Error LongUI::DebugStringLevel::DLevel_Error << L'<' << __FUNCTION__ << L">: "
+#define DL_Fatal LongUI::DebugStringLevel::DLevel_Fatal << L'<' << __FUNCTION__ << L">: "
 #else
 // show hr error
 #define ShowErrorWithHR(hr) UIManager.ShowError(hr)

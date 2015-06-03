@@ -90,7 +90,7 @@ namespace LongUI{
         bool DoEventEx(LongUI::EventArgument&) noexcept;
     protected:
         // new operator with buffer -- placement new 
-        void* operator new(size_t s, void* buffer) noexcept{ return buffer; };
+        void* operator new(size_t s, void* buffer) noexcept { return buffer; };
         // delete -- placement new paired operator 配对用, 无实际用途
         void  operator delete(void* p, void* buffer) noexcept { /*nothing*/ };
         // delete new operator
@@ -193,21 +193,24 @@ namespace LongUI{
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(pugi::xml_node node) noexcept {
-            auto* pControl = reinterpret_cast<TemplateControl*>(
-                LongUICtrlAlloc(sizeof(TemplateControl))
-                );
-            if (pControl) {
-                pControl->TemplateControl::TemplateControl(node);
+            if (!node) {
+                UIManager << DL_Warning << L"node null" << LongUI::endl;
+            }
+            // 申请空间
+            auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIVerticalLayout>(
+                node,
+                [=](void* p) noexcept { new(p) UIVerticalLayout(node);}
+            );
+            if (!pControl) {
+                UIManager << DL_Error << L"alloc null" << LongUI::endl;
             }
             return pControl;
     }
     public:
         // Render This Control
-        virtual HRESULT Render() noexcept;
+        virtual HRESULT Render(RenderType) noexcept;
         // do the event
         virtual bool    DoEvent(LongUI::EventArgument&) noexcept;
-        // prerender
-        virtual void    PreRender() noexcept;
         // recreate resource
         virtual HRESULT Recreate(LongUIRenderTarget*) noexcept;
         // close this control

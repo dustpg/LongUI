@@ -8,6 +8,19 @@
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
     assert(node && "bad argument.");
+    // 检查滚动条
+    {
+        register auto vscrollbar = node.attribute("vscrollbar").value();
+        if (vscrollbar) {
+            m_pCreateV = UIManager.GetCreateFunc(vscrollbar);
+        }
+    }
+    {
+        register auto hscrollbar = node.attribute("hscrollbar").value();
+        if (hscrollbar) {
+            m_pCreateH = UIManager.GetCreateFunc(hscrollbar);
+        }
+    }
     uint32_t flag = this->flags | Flag_UIContainer;
     if ((this->flags & Flag_RenderParent) || node.attribute("rendercd").as_bool(false)) {
         flag |= LongUI::Flag_Container_AlwaysRenderChildrenDirectly;
@@ -93,11 +106,15 @@ bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
         {
         case LongUI::Event::Event_FindControl:
             // 检查滚动条
-            if (scrollbar_h) {
-
+            if (scrollbar_v && this->show_zone.left + this->show_zone.width 
+                - pt4self.x < scrollbar_v->GetHitSapce()) {
+                done = scrollbar_v->DoEvent(arg);
+                break;
             }
-            if (scrollbar_v) {
-
+            if (scrollbar_h && this->show_zone.top + this->show_zone.height
+                - pt4self.y < scrollbar_h->GetHitSapce()) {
+                done = scrollbar_h->DoEvent(arg);
+                break;
             }
             // 检查子控件
             if (!done) {
@@ -140,10 +157,23 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         }
         // 检查
         if (m_bDrawPosChanged || m_bDrawSizeChanged) {
+            // 更新转变
             this->transform = D2D1::Matrix3x2F::Translation(
                 this->show_zone.left - this->margin_rect.left,
                 this->show_zone.top - this->margin_rect.top
                 );
+            // 空间不够?
+            do {
+                if (draw_zone.width > show_zone.width) {
+
+                }
+                else {
+                    break;
+                }
+                if (m_strControlName == L"MainWindow") {
+                    UIManager << DL_Hint << m_strControlName << ":  Changed" << LongUI::endl;
+                }
+            } while (false);
         }
         // 保留转换
         D2D1_MATRIX_3X2_F old_transform;

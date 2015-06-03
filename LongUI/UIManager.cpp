@@ -212,7 +212,7 @@ void LongUI::CUIManager::UnInitialize() noexcept {
 inline auto LongUI::CUIManager::create_control(pugi::xml_node node) noexcept -> UIControl* {
     assert(node && "bad argument");
     // 获取创建指针
-    auto create = this->get_create_func(node.name());
+    auto create = this->GetCreateFunc(node.name());
     if (create) return create(node);
     return nullptr;
 }
@@ -300,8 +300,10 @@ void LongUI::CUIManager::add_control(UIControl* ctrl, pugi::xml_node node) noexc
     m_mapString2Control.insert(paired);
 }
 
+
+
 // 获取创建控件函数指针
-auto LongUI::CUIManager::get_create_func(const char* class_name) noexcept -> CreateControlFunction {
+auto LongUI::CUIManager::GetCreateFunc(const char* class_name) noexcept -> CreateControlFunction {
     // 缓冲区
     wchar_t buffer[LongUIStringBufferLength];
     auto* __restrict itra = class_name;
@@ -313,11 +315,11 @@ auto LongUI::CUIManager::get_create_func(const char* class_name) noexcept -> Cre
     }
     *itrb = L'\0';
     // 获取
-    return this->get_create_func(buffer, itra - class_name);
+    return this->GetCreateFunc(buffer, itra - class_name);
 }
 
 // 获取创建控件函数指针
-auto LongUI::CUIManager::get_create_func(const CUIString& name) noexcept -> CreateControlFunction {
+auto LongUI::CUIManager::GetCreateFunc(const CUIString& name) noexcept -> CreateControlFunction {
     // 查找
     try {
         const auto itr = m_mapString2CreateFunction.find(name);
@@ -1032,9 +1034,9 @@ auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
 #ifdef _DEBUG
     // 输出显卡信息
     if (SUCCEEDED(hr)) {
-        DXGI_ADAPTER_DESC desc;
+        DXGI_ADAPTER_DESC desc = { 0 }; 
         m_pDxgiAdapter->GetDesc(&desc);
-        UIManager << DL_Hint << &desc << LongUI::endl;
+        UIManager << DL_Hint << desc << LongUI::endl;
     }
 #endif
     // 获取Dxgi工厂
@@ -2221,16 +2223,13 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 #ifdef _DEBUG
 
 // 换行刷新重载
-template <>
 auto LongUI::CUIManager::operator<<(LongUI::EndL) noexcept ->CUIManager& {
     wchar_t chs[3] = { L'\r',L'\n', 0 }; 
     this->Output(m_lastLevel, chs);
     return *this;
 }
 
-template <>
-auto LongUI::CUIManager::operator<<(DXGI_ADAPTER_DESC* pdesc) noexcept->CUIManager& {
-    const DXGI_ADAPTER_DESC& desc = *pdesc;
+auto LongUI::CUIManager::operator<<(DXGI_ADAPTER_DESC& desc) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
@@ -2255,6 +2254,28 @@ auto LongUI::CUIManager::operator<<(DXGI_ADAPTER_DESC* pdesc) noexcept->CUIManag
     return *this;
 }
 
+auto LongUI::CUIManager::operator<<(RectLTWH_F& rect) noexcept->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    ::swprintf(
+        buffer, LongUIStringBufferLength,
+        L"RECT_WH(%f, %f, %f, %f)",
+        rect.left, rect.top, rect.width, rect.height
+        );
+    this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
+auto LongUI::CUIManager::operator<<(D2D1_RECT_F& rect) noexcept->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    ::swprintf(
+        buffer, LongUIStringBufferLength,
+        L"RECT_RB(%f, %f, %f, %f)",
+        rect.left, rect.top, rect.right, rect.bottom
+        );
+    this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
 // 输出UTF-8字符串 并刷新
 void LongUI::CUIManager::Output(DebugStringLevel l, const char * s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
@@ -2270,7 +2291,6 @@ void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char * s) noexc
 }
 
 // 浮点重载
-template <>
 auto LongUI::CUIManager::operator<<(float f) noexcept ->CUIManager&  {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(buffer, LongUIStringBufferLength, L"%f", f);
@@ -2279,7 +2299,6 @@ auto LongUI::CUIManager::operator<<(float f) noexcept ->CUIManager&  {
 }
 
 // 整型重载
-template <>
 auto LongUI::CUIManager::operator<<(long l) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(buffer, LongUIStringBufferLength, L"%d", l);

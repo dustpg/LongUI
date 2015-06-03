@@ -39,7 +39,7 @@ LongUI::UIRichEdit::UIRichEdit(pugi::xml_node node) noexcept: Super(node){
 }
 
 // UIRichEdit 析构函数
-LongUI::UIRichEdit::~UIRichEdit() noexcept{
+LongUI::UIRichEdit::~UIRichEdit() noexcept {
     ::SafeRelease(m_pFontBrush);
     if (m_pTextServices) {
         m_pTextServices->OnTxInPlaceDeactivate();

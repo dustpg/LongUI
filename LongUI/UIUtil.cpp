@@ -394,7 +394,7 @@ void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa
 
 
 // 渲染 UIElement
-void LongUI::CUIElement::Render(D2D1_RECT_F * des_rect) noexcept{
+void LongUI::CUIElement::Render(D2D1_RECT_F * des_rect) noexcept {
     if (UIElement_IsMetaMode) {
         // 先绘制当前状态
         if (animationo.value < animationo.end)
@@ -929,14 +929,14 @@ LongUI::UIText & LongUI::UIText::operator=(const char* str) noexcept {
 
 
 // UIText 析构
-LongUI::UIText::~UIText() noexcept{
+LongUI::UIText::~UIText() noexcept {
     m_pTextRenderer.SafeRelease();
     ::SafeRelease(m_pLayout);
     ::SafeRelease(m_config.dw_factory);
     ::SafeRelease(m_config.text_format);
 }
 
-void LongUI::UIText::recreate(const char* utf8) noexcept{
+void LongUI::UIText::recreate(const char* utf8) noexcept {
     wchar_t text_buffer[LongUIStringBufferLength];
     // 转换为核心模式
     if (UIText_GetIsXML() && UIText_GetIsRich()) {

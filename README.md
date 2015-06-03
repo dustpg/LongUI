@@ -11,7 +11,7 @@ For this repo, you need:
     - Windows SDK/DirectX SDK
   - Tool-chain/Environment B(would support in the future):
     - Rakefile(ruby)
-    - MingW-W64
+    - MinGW-W64
 
 ## PROJECTS LIST
   
