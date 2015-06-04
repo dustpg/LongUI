@@ -67,6 +67,11 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 // 更新布局
 void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
     if (!refresh_scroll) return;
+    auto check = [](UIScrollBar* bar) ->uint8_t {
+        return bar && bar->GetTakingUpSapce() > 0.f ? 1 : 0;
+    };
+    // 检查
+    uint8_t need_refresh = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
     // 检查宽度
     if (this->scrollbar_h) {
         this->scrollbar_h->show_zone.left = 0.f;
@@ -85,24 +90,43 @@ void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
         this->scrollbar_v->draw_zone = this->scrollbar_v->show_zone;
         this->scrollbar_v->Refresh();
     }
+    auto need_refresh_v2 = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
+    // 需要再次刷新?
+    if (m_strControlName == L"MainWindow") {
+        UIManager << DL_Hint << long(need_refresh) << " : " << long(need_refresh_v2) << LongUI::endl;
+    }
+    if (need_refresh != ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v))) {
+        this->RefreshChildLayout(false);
+    }
 }
 
 // UIContainer 保证滚动条
 void LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
     // 水平滚动条
-    if(!this->scrollbar_h && m_pCreateH && basew > this->GetTakingUpWidth() &&
-        (this->scrollbar_h = static_cast<UIScrollBar*>(m_pCreateH(LongUINullXMLNode)))) {
-        this->AfterInsert(this->scrollbar_h);
+    {
+        auto needed = basew > this->GetTakingUpWidth();
+        if (!this->scrollbar_h && m_pCreateH && needed &&
+            (this->scrollbar_h = static_cast<UIScrollBar*>(m_pCreateH(LongUINullXMLNode)))) {
+            this->scrollbar_h->InitScrollBar(this, ScrollBarType::Type_Horizontal);
+            this->AfterInsert(this->scrollbar_h);
+        }
+        if (this->scrollbar_h) {
+            this->scrollbar_h->another = this->scrollbar_v;
+            this->scrollbar_h->OnNeeded(needed);
+        }
     }
     // 垂直滚动条
-    if (!this->scrollbar_v && m_pCreateV && baseh > this->GetTakingUpHeight() &&
-        (this->scrollbar_v = static_cast<UIScrollBar*>(m_pCreateV(LongUINullXMLNode)))) {
-        this->AfterInsert(this->scrollbar_v);
-    }
-    // 检查
-    if (this->scrollbar_h && this->scrollbar_v) {
-        this->scrollbar_h->another = this->scrollbar_v;
-        this->scrollbar_v->another = this->scrollbar_h;
+    {
+        auto needed = baseh > this->GetTakingUpHeight();
+        if (!this->scrollbar_v && m_pCreateV && needed &&
+            (this->scrollbar_v = static_cast<UIScrollBar*>(m_pCreateV(LongUINullXMLNode)))) {
+            this->scrollbar_v->InitScrollBar(this, ScrollBarType::Type_Vertical);
+            this->AfterInsert(this->scrollbar_v);
+        }
+        if (this->scrollbar_v) {
+            this->scrollbar_v->another = this->scrollbar_h;
+            this->scrollbar_v->OnNeeded(needed);
+        }
     }
 }
 
@@ -422,7 +446,7 @@ void LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept 
     // 垂直滚动条?
     if (this->scrollbar_v) {
         base_width -= this->scrollbar_v->GetTakingUpWidth();
-    }    
+    }
     // 水平滚动条?
     if (this->scrollbar_h) {
         base_height -= this->scrollbar_h->GetTakingUpWidth();

@@ -56,6 +56,8 @@ namespace LongUI{
     public:
         // init sb
         virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { m_pOwner = owner; force_cast(type) = _type; }
+        // on needed
+        virtual void OnNeeded(bool need) noexcept = 0;
     public:
         // how size that take up the owner's space in layout
         auto GetTakingUpSapce() const noexcept { return m_fTakeSpace; }
@@ -115,6 +117,9 @@ namespace LongUI{
         auto Render(RenderType type) noexcept->HRESULT override;
         // close this control 关闭控件
         void Close() noexcept override;
+    public:
+        // on needed
+        void OnNeeded(bool need) noexcept override;
     private:
         // dtor
         ~UIScrollBarA() noexcept;

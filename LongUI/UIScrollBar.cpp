@@ -57,14 +57,12 @@ LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
 
 // 更新值
 void LongUI::UIScrollBar::Refresh() noexcept {
-#if 0
     // 边界 > 显示  -> 刻画边界 = 边界
     // 另外:      -> 刻画边界 = 显示
     bool old = false;
 
-
     // 垂直?
-    if (this->desc.type == ScrollBarType::Type_Vertical) {
+    if (this->type == ScrollBarType::Type_Vertical) {
         // 更新
         if ((old = m_pOwner->end_of_bottom > m_pOwner->show_zone.height)) {
             m_pOwner->draw_zone.height = m_pOwner->end_of_bottom;
@@ -72,12 +70,7 @@ void LongUI::UIScrollBar::Refresh() noexcept {
         else {
             m_pOwner->draw_zone.height = m_pOwner->show_zone.height;
         }
-        this->max_range = m_pOwner->draw_zone.height;
-        // 不同?
-        if (m_bEffective != old) {
-            m_bEffective = old;
-            m_pOwner->RefreshChildLayout(false);
-        }
+        m_fMaxRange = m_pOwner->draw_zone.height;
         // 检查上边界
 
         // 检查下边界
@@ -89,13 +82,13 @@ void LongUI::UIScrollBar::Refresh() noexcept {
     // 水平?
     else {
         // 更新
-        if ((m_bEffective = m_pOwner->end_of_right > m_pOwner->show_zone.width)) {
+        if ((old = m_pOwner->end_of_right > m_pOwner->show_zone.width)) {
             m_pOwner->draw_zone.width = m_pOwner->end_of_right;
         }
         else {
             m_pOwner->draw_zone.width = m_pOwner->show_zone.width;
         }
-        this->max_range = m_pOwner->draw_zone.width;
+        m_fMaxRange = m_pOwner->draw_zone.width;
         // 检查左边界
 
         // 检查右边界
@@ -105,7 +98,6 @@ void LongUI::UIScrollBar::Refresh() noexcept {
         }*/
     }
     // TODO: 更新滚动条状态
-#endif
 }
 
 // UIScrollBar 渲染 
@@ -146,6 +138,11 @@ auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
     // 修改转变矩阵
 #endif
     return S_OK;
+}
+
+// 
+void LongUI::UIScrollBar::OnNeeded(bool need) noexcept
+{
 }
 
 
@@ -198,31 +195,50 @@ bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
 
 // UIScrollBarA 渲染 
 auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
-    case LongUI::RenderType::Type_Render:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 背景中断
-        if (type == LongUI::RenderType::Type_RenderBackground) {
-            break;
+    if (type != RenderType::Type_Render) return S_FALSE;
+    register float tmpsize = this->GetTakingUpSapce();
+    D2D1_RECT_F draw_rect = GetDrawRect(this);
+    // 双滚动条修正
+    if (this->another) {
+        if (this->type == ScrollBarType::Type_Vertical) {
+            draw_rect.bottom -= this->another->GetTakingUpSapce();
         }
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
-        m_pRenderTarget->FillRectangle(D2D1::RectF(
-            this->draw_zone.left, this->draw_zone.top,
-            this->draw_zone.left + this->draw_zone.width,
-            this->draw_zone.top + this->draw_zone.height
-            ), m_pBrush_SetBeforeUse);
-        // 父类前景
-        //Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
+        else {
+            draw_rect.right -= this->another->GetTakingUpSapce();
+        }
     }
+    m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
+    // 垂直滚动条
+    if (this->type == ScrollBarType::Type_Vertical) {
+        m_rtArrow1.bottom = m_rtArrow1.top + tmpsize;
+        m_rtArrow2.top = m_rtArrow2.bottom - tmpsize;
+        // 计算Thumb
+        register auto height = m_pOwner->show_zone.height - tmpsize*2.f;
+        register auto bilibili = height / m_fMaxRange;
+        m_rtThumb.top = (m_fIndex * bilibili + m_rtArrow1.bottom);
+        m_rtThumb.bottom = (m_rtThumb.top + bilibili * height);
+        //assert(m_rtThumb.bottom <= m_rtArrow2.top);
+    }
+    // 水平滚动条
+    else {
+        m_rtArrow1.right = m_rtArrow1.left + tmpsize;
+        m_rtArrow2.left = m_rtArrow2.right - tmpsize;
+        // 计算Thumb
+        register auto width = m_pOwner->show_zone.width - tmpsize*2.f;
+        register auto bilibili = width / m_fMaxRange;
+        m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
+        m_rtThumb.right = m_rtThumb.left + bilibili * width;
+        //assert(m_rtThumb.right <= m_rtArrow2.left);
+    }
+
+    m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
+    // 先画一个矩形
+    m_pRenderTarget->DrawRectangle(&m_rtArrow1, m_pBrush_SetBeforeUse, 1.f);
+    // -------------
+    m_pRenderTarget->FillRectangle(&m_rtThumb, m_pBrush_SetBeforeUse);
+    // -------------
+    // 先画一个矩形
+    m_pRenderTarget->DrawRectangle(&m_rtArrow2, m_pBrush_SetBeforeUse, 1.f);
     return S_OK;
 }
 
@@ -233,6 +249,13 @@ auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESUL
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
     return Super::Recreate(newRT);
 }*/
+
+// UIScrollBarA: 需要
+void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
+    m_fTakeSpace = need ? 16.f : 0.f;
+    m_fHitSpace = m_fTakeSpace;
+    // 检查
+}
 
 // UIScrollBarA 析构函数
 inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
@@ -248,9 +271,6 @@ void  LongUI::UIScrollBarA::Close() noexcept {
 
 // create 创建
 auto WINAPI LongUI::UIScrollBarA::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
-    if (!node) {
-        UIManager << DL_Warning << L"node null" << LongUI::endl;
-    }
     // 申请空间
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarA>(
         node,

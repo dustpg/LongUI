@@ -25,8 +25,6 @@
 */
 
 
-#define GETSIZEOF(x) ((char*)(&(x) + 1) - (char*)&(x))
-
 // LongUI namespace
 namespace LongUI{
     // ui's window
