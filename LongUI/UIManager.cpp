@@ -41,6 +41,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     config->GetLocaleName(m_szLocaleName);
     // 初始化其他
     ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
+    ZeroMemory(m_apSystemBrushes, sizeof(m_apSystemBrushes));
     // 添加默认创建函数
     this->AddS2CPair(L"Label", LongUI::UILabel::CreateControl);
     this->AddS2CPair(L"Button", LongUI::UIButton::CreateControl);
@@ -49,6 +50,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     this->AddS2CPair(L"Slider", LongUI::UISlider::CreateControl);
     this->AddS2CPair(L"CheckBox", LongUI::UICheckBox::CreateControl);
     this->AddS2CPair(L"RichEdit", LongUI::UIRichEdit::CreateControl);
+    this->AddS2CPair(L"ScrollBarA", LongUI::UIScrollBarA::CreateControl);
     ///
     this->AddS2CPair(L"EditBasic", LongUI::UIEditBasic::CreateControl);
     this->AddS2CPair(L"Edit", LongUI::UIEditBasic::CreateControl);
@@ -183,8 +185,12 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     // 释放读取器
     ::SafeRelease(m_pBinResLoader);
     // 释放文本渲染器
-    for (uint32_t i = 0; i < m_uTextRenderCount; ++i) {
-        ::SafeRelease(m_apTextRenderer[i]);
+    for (auto& renderer : m_apTextRenderer) {
+        ::SafeRelease(renderer);
+    }
+    // 释放系统笔刷
+    for (auto& brush : m_apSystemBrushes) {
+        ::SafeRelease(brush);
     }
     // 释放资源
     this->discard_resources();
@@ -219,13 +225,11 @@ inline auto LongUI::CUIManager::create_control(pugi::xml_node node) noexcept -> 
 
 // CUIManager 创建控件树
 // 默认消耗 64kb+, 导致栈(默认1~2M)溢出几率较低
-void LongUI::CUIManager::make_control_tree(
-    LongUI::UIWindow* window, 
-    pugi::xml_node node) noexcept {
+void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_node node) noexcept {
     // 断言
     assert(window && node && "bad argument");
     // 添加窗口
-    add_control(window, node);
+    //add_control(window, node);
     // 队列 -- 顺序遍历树
     LongUI::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
     LongUI::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
@@ -261,18 +265,7 @@ void LongUI::CUIManager::make_control_tree(
         // 添加到表
         if (UIControl::MakeString(node.attribute("name").value(), control_name.first)) {
             control_name.second = now_control;
-            try {
-                m_mapString2Control.insert(control_name);
-            }
-            catch (...) {
-                ::MessageBoxW(
-                    window->GetHwnd(),
-                    L"<LongUI::CUIManager::make_control_tree>"
-                    L"try: m_mapString2Control.insert(control_name); -> Error",
-                    L"LongUI Error!",
-                    MB_ICONERROR
-                    );
-            }
+            window->AddControl(control_name);
         }
         // 设置窗口节点
         now_control->m_pWindow = window;
@@ -286,21 +279,6 @@ void LongUI::CUIManager::make_control_tree(
         }
     }
 }
-
-// UIManager 添加控件
-void LongUI::CUIManager::add_control(UIControl* ctrl, pugi::xml_node node) noexcept {
-    // 断言
-    assert(ctrl && node && "bad argument");
-    // 创建Pair
-    std::pair<CUIString, void*> paired;
-    // 设置
-    UIControl::MakeString(node.attribute("name").value(), paired.first);
-    paired.second = ctrl;
-    // 插入
-    m_mapString2Control.insert(paired);
-}
-
-
 
 // 获取创建控件函数指针
 auto LongUI::CUIManager::GetCreateFunc(const char* class_name) noexcept -> CreateControlFunction {
@@ -472,7 +450,6 @@ auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
 
 // CUIManager 构造函数
 LongUI::CUIManager::CUIManager() noexcept {
-
 }
 
 // CUIManager 析构函数
@@ -494,33 +471,6 @@ auto LongUI::CUIManager::AddS2CPair(
     // 创建失败
     CATCH_HRESULT(hr);
     return hr;
-}
-
-
-
-// 获取控件 wchar_t指针
-auto LongUI::CUIManager::FindControlW(
-    const wchar_t* str) noexcept ->LongUI::UIControl* {
-    LongUI::CUIString uistr(str);
-    return FindControl(uistr);
-}
-
-
-// 获取控件 
-auto LongUI::CUIManager::FindControl(
-    const LongUI::CUIString& str) noexcept ->LongUI::UIControl* {
-    // 查找控件
-    const auto itr = m_mapString2Control.find(str);
-    // 未找到返回空
-    if (itr == m_mapString2Control.cend()){
-        // 警告
-        UIManager << DL_Warning << L"Control Not Found:\n  " << str.c_str() << LongUI::endl;
-        return nullptr;
-    }
-    // 找到就返回指针
-    else{
-        return reinterpret_cast<LongUI::UIControl*>(itr->second);
-    }
 }
 
 // 显示错误代码
@@ -1128,6 +1078,10 @@ auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
         // 图元
         Meta meta = { 0 }; m_metas.push_back(meta);
     }
+    // 创建系统笔刷
+    if (SUCCEEDED(hr)) {
+        hr = this->create_system_brushes();
+    }
     // 创建资源描述资源
     if (SUCCEEDED(hr)) {
         try {
@@ -1152,6 +1106,101 @@ auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
     return hr;
 }
 
+
+// 创建系统笔刷
+auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
+    HRESULT hr = S_OK;
+    /*
+    焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
+    0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
+    1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
+    2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
+    3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
+    */
+    // 禁用
+    if (SUCCEEDED(hr)) {
+        hr = m_pd2dDeviceContext->CreateSolidColorBrush(
+            D2D1::ColorF(0xEFEFEF),
+            reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + Brush_Disabled)
+            );
+    }
+    // 普通
+    if (SUCCEEDED(hr)) {
+        ID2D1GradientStopCollection* collection = nullptr;
+        D2D1_GRADIENT_STOP stops[] = {
+            { 0.f, D2D1::ColorF(0xF0F0F0) },
+            { 1.f, D2D1::ColorF(0xE5E5E5) }
+        };
+        // 渐变关键点集
+        if (SUCCEEDED(hr)) {
+            hr = m_pd2dDeviceContext->CreateGradientStopCollection(
+                stops, lengthof(stops), &collection
+                );
+        }
+        // 创建笔刷
+        if (SUCCEEDED(hr)) {
+            hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
+                D2D1::LinearGradientBrushProperties(
+                    D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
+                    ),
+                collection,
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Brush_Normal)
+                );
+        }
+        ::SafeRelease(collection);
+    }
+    // 移上
+    if (SUCCEEDED(hr)) {
+        ID2D1GradientStopCollection* collection = nullptr;
+        D2D1_GRADIENT_STOP stops[] = {
+            { 0.f, D2D1::ColorF(0xECF4FC) },
+            { 1.f, D2D1::ColorF(0xDCECFC) }
+        };
+        // 渐变关键点集
+        if (SUCCEEDED(hr)) {
+            hr = m_pd2dDeviceContext->CreateGradientStopCollection(
+                stops, lengthof(stops), &collection
+                );
+        }
+        // 创建笔刷
+        if (SUCCEEDED(hr)) {
+            hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
+                D2D1::LinearGradientBrushProperties(
+                    D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
+                    ),
+                collection,
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Brush_Hover)
+                );
+        }
+        ::SafeRelease(collection);
+    }
+    // 按下
+    if (SUCCEEDED(hr)) {
+        ID2D1GradientStopCollection* collection = nullptr;
+        D2D1_GRADIENT_STOP stops[] = {
+            { 0.f, D2D1::ColorF(0xDAECFC) },
+            { 1.f, D2D1::ColorF(0xC4E0FC) }
+        };
+        // 渐变关键点集
+        if (SUCCEEDED(hr)) {
+            hr = m_pd2dDeviceContext->CreateGradientStopCollection(
+                stops, lengthof(stops), &collection
+                );
+        }
+        // 创建笔刷
+        if (SUCCEEDED(hr)) {
+            hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
+                D2D1::LinearGradientBrushProperties(
+                    D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
+                    ),
+                collection,
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Brush_Pushed)
+                );
+        }
+        ::SafeRelease(collection);
+    }
+    return hr;
+}
 
 #ifdef _DEBUG
 template<typename T>
@@ -2218,7 +2267,7 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
     return true;
 }
 
-#include <valarray>
+//#include <valarray>
 
 #ifdef _DEBUG
 

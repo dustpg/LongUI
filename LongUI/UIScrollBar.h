@@ -96,20 +96,28 @@ namespace LongUI{
         D2D1_RECT_F             m_rtThumb = D2D1::RectF();
         // the onwer of scroll bar
         UIContainer*            m_pOwner = nullptr;
+    public:
+        // another sb
+        UIScrollBar*            another = nullptr;
     };
-    // basic srcoll bar 基本滚动条
-    class LongUIAPI UIScrollBarBasic final : public UIScrollBar {
+    // srcoll bar - type A 型 滚动条
+    class LongUIAPI UIScrollBarA final : public UIScrollBar {
     private:
         // 父类申明
         using Super = UIScrollBar;
     public:
-        // recreate 重建
-        auto Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
+        // ctor
+        UIScrollBarA(pugi::xml_node node) noexcept : Super(node) {}
+        // create this
+        static auto WINAPI CreateControl(pugi::xml_node node) noexcept->UIControl*;
+    public:
+        // Render 渲染
+        auto Render(RenderType type) noexcept->HRESULT override;
         // close this control 关闭控件
         void Close() noexcept override;
     private:
         // dtor
-        ~UIScrollBarBasic() noexcept;
+        ~UIScrollBarA() noexcept;
     private:
         // brush of this
         ID2D1Brush*             m_pBrush = nullptr;

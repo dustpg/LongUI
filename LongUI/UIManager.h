@@ -41,6 +41,19 @@ namespace LongUI {
             // Win10
             Style_Win10
         };
+        // System Brush
+        enum SystemBrush : size_t {
+            // disbale brush
+            Brush_Disabled = 0,
+            // normal brush
+            Brush_Normal,
+            // hover brush
+            Brush_Hover,
+            // pushed brush
+            Brush_Pushed,
+            // size of this
+            BRUSH_SIZE
+        };
     public: // handle zone 操作区
         // initialize 初始化
         auto Initialize(IUIConfigure* =nullptr) noexcept->HRESULT;
@@ -50,10 +63,6 @@ namespace LongUI {
         void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
         auto AddS2CPair(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
-        // get control by wchar_t pointer 获取控件
-        auto FindControlW(const wchar_t*) noexcept ->UIControl*;
-        // get control by CUIString 获取控件
-        auto FindControl(const CUIString&) noexcept ->UIControl*;
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b =nullptr) noexcept;
     public: // 特例
@@ -199,14 +208,14 @@ namespace LongUI {
 #endif
         // 文本渲染器
         UIBasicTextRenderer*            m_apTextRenderer[LongUIMaxTextRenderer];
+        // system brush
+        ID2D1Brush*                     m_apSystemBrushes[BRUSH_SIZE];
         // 二进制资源读取器
         IUIBinaryResourceLoader*        m_pBinResLoader = nullptr;
         // default bitmap buffer
         uint8_t*                        m_pBitmap0Buffer = nullptr;
         // map 函数映射
         StringMap                       m_mapString2CreateFunction;
-        // map 对象映射
-        StringMap                       m_mapString2Control;
         // 所创设备特性等级
         D3D_FEATURE_LEVEL               m_featureLevel;
         // 退出信号
@@ -257,6 +266,8 @@ namespace LongUI {
         //  same index. "Get" method will call IUnknown::AddRef if it is a COM object
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
         auto GetMetaHICON(uint32_t index) noexcept->HICON;
+        // get system brush
+        auto GetSystemBrush(SystemBrush index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
     public:
         // constructor 构造函数
         CUIManager() noexcept;
@@ -269,6 +280,8 @@ namespace LongUI {
         auto create_programs_resources() throw(std::bad_alloc&) ->void;
         // create all resources
         auto create_resources() noexcept ->HRESULT;
+        // create system brush
+        auto create_system_brushes() noexcept->HRESULT;
         // discard resources
         void discard_resources() noexcept;
         // create bitmap
@@ -291,8 +304,6 @@ namespace LongUI {
         auto create_control(pugi::xml_node) noexcept->UIControl*;
         // 创建控件树
         void make_control_tree(UIWindow*, pugi::xml_node) noexcept;
-        // 添加控件
-        void add_control(UIControl*, pugi::xml_node) noexcept;
     private:
         // main window proc 窗口过程函数
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;

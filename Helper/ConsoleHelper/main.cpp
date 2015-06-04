@@ -5,6 +5,8 @@
 #include <windows.h>
 #include <cwchar>
 #include <clocale>
+#include <VersionHelpers.h>
+#include <cassert>
 
 #define lengthof(a) sizeof(a)/sizeof(*a)
 
@@ -485,3 +487,42 @@ void clear_eol(WORD color) {
         );
 }
 
+// 初始化库
+class InitializeLibrary {
+    typedef enum PROCESS_DPI_AWARENESS {
+        PROCESS_DPI_UNAWARE = 0,
+        PROCESS_SYSTEM_DPI_AWARE = 1,
+        PROCESS_PER_MONITOR_DPI_AWARE = 2
+    } PROCESS_DPI_AWARENESS;
+    // SetProcessDpiAwareness
+    static HRESULT STDAPICALLTYPE SetProcessDpiAwarenessF(PROCESS_DPI_AWARENESS);
+public:
+    //
+    InitializeLibrary() {
+        // >= Win8.1 ?
+        if (::IsWindows8OrGreater()) {
+            m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
+            assert(m_hDllShcore);
+            if (m_hDllShcore) {
+                auto setProcessDpiAwareness =
+                    reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
+                        ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
+                        );
+                assert(setProcessDpiAwareness);
+                if (setProcessDpiAwareness) {
+                    setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
+                }
+            }
+        }
+    };
+    //
+    ~InitializeLibrary() {
+        if (m_hDllShcore) {
+            ::FreeLibrary(m_hDllShcore);
+            m_hDllShcore = nullptr;
+        }
+    }
+private:
+    // Shcore
+    HMODULE     m_hDllShcore = nullptr;
+} instance;

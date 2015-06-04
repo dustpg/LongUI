@@ -1243,6 +1243,7 @@ HRESULT LongUI::UIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDi
 // 从目标渲染呈现器获取
 HRESULT LongUI::UIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
     assert(m_pRenderTarget);
+    // XXX: 优化 Profiler 就这1行 0.05%
     m_pRenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
     return S_OK;
 }

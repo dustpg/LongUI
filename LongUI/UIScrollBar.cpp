@@ -152,7 +152,6 @@ auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
 
 // do event 事件处理
 bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
-    
     // 控件消息
     if (arg.sender) {
         switch (arg.event)
@@ -197,23 +196,68 @@ bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
     return false;
 }
 
+// UIScrollBarA 渲染 
+auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        __fallthrough;
+    case LongUI::RenderType::Type_Render:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        // 背景中断
+        if (type == LongUI::RenderType::Type_RenderBackground) {
+            break;
+        }
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
+        m_pRenderTarget->FillRectangle(D2D1::RectF(
+            this->draw_zone.left, this->draw_zone.top,
+            this->draw_zone.left + this->draw_zone.width,
+            this->draw_zone.top + this->draw_zone.height
+            ), m_pBrush_SetBeforeUse);
+        // 父类前景
+        //Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
+    }
+    return S_OK;
+}
 
-// UIScrollBar 渲染 
-auto LongUI::UIScrollBarBasic::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
+/*/ UIScrollBaAr 重建 
+auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     ::SafeRelease(m_pBrush);
     // 设置新的笔刷
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
     return Super::Recreate(newRT);
-}
+}*/
 
-// UIScrollBarBasic 析构函数
-inline LongUI::UIScrollBarBasic::~UIScrollBarBasic() noexcept {
+// UIScrollBarA 析构函数
+inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
     ::SafeRelease(m_pArrow1Text);
     ::SafeRelease(m_pArrow2Text);
     ::SafeRelease(m_pBrush);
 }
 
-// UIScrollBarBasic 关闭控件
-void  LongUI::UIScrollBarBasic::Close() noexcept {
+// UIScrollBarA 关闭控件
+void  LongUI::UIScrollBarA::Close() noexcept {
     delete this;
+}
+
+// create 创建
+auto WINAPI LongUI::UIScrollBarA::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
+    if (!node) {
+        UIManager << DL_Warning << L"node null" << LongUI::endl;
+    }
+    // 申请空间
+    auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarA>(
+        node,
+        [=](void* p) noexcept { new(p) UIScrollBarA(node); }
+    );
+    if (!pControl) {
+        UIManager << DL_Error << L"alloc null" << LongUI::endl;
+    }
+    return pControl;
 }

@@ -248,7 +248,16 @@ animationo(AnimationType::Type_QuadraticEaseOut){
         tmp_src_rect + i, nullptr)
 
 // 渲染图元
-void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa) noexcept {
+inline void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa) noexcept {
+    // 直接渲染
+    this->target->DrawBitmap(
+        meta.bitmap,
+        des_rect, opa,
+        static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+        &meta.src_rect,
+        nullptr
+        );
+#if 0
     if (meta.rule == BitmapRenderRule::Rule_ButtonLike) {
 #pragma region Button Like Rule 按键类似规则
         auto src_width = meta.src_rect.right - meta.src_rect.left;
@@ -390,6 +399,7 @@ void LongUI::CUIElement::RenderMeta(Meta& meta, D2D1_RECT_F* des_rect, float opa
             nullptr
             );
     }
+#endif
 }
 
 

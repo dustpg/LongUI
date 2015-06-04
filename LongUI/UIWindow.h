@@ -79,6 +79,12 @@ namespace LongUI{
         void ShowCaret() noexcept;
         // hide the caret
         void HideCaret() noexcept;
+        // get control by CUIString
+        auto FindControl(const CUIString&) noexcept->UIControl*;
+        // get control by wchar_t pointer
+        auto FindControl(const wchar_t* name) noexcept { CUIString n(name); return this->FindControl(n); }
+        // add control with name
+        void AddControl(const std::pair<CUIString, void*>& pair) noexcept;
     public: // 内联区
         // register for calling PreRender with 3d content
         LongUIInline auto RegisterOffScreenRender3D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, true); }
@@ -203,6 +209,8 @@ namespace LongUI{
         TRACKMOUSEEVENT         m_csTME;
         // current STGMEDIUM当前媒体
         STGMEDIUM               m_curMedium;
+        // map 对象映射
+        StringMap               m_mapString2Control;
     public:
         // default(arrow)cursor
         HCURSOR     const       default_cursor = ::LoadCursorW(nullptr, IDC_ARROW);

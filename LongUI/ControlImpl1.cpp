@@ -7,6 +7,19 @@
 //      -> 没有, 交给自己处理
 
 
+
+// 系统按钮:
+/*
+
+焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
+0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
+1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
+2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
+3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
+
+*/
+
+
 // TODO: 检查所有控件Render, 需要调用UIControl::Render;
 
 // UIControl 构造函数
@@ -216,7 +229,7 @@ bool LongUI::UIControl::MakeColor(const char* data, D2D1_COLOR_F& color) noexcep
 void LongUI::UIControl::SetEventCallBack(
     const wchar_t* control_name, LongUI::Event event, LongUICallBack call) noexcept {
     assert(control_name && call&&  "bad argument");
-    UIControl* control = UIManager.FindControlW(control_name);
+    UIControl* control = m_pWindow->FindControl(control_name);
     assert(control && " no control found");
     if (!control) return;
     // 自定义消息?
@@ -343,7 +356,7 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
         __fallthrough;
     case LongUI::RenderType::Type_Render:
         // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
         if (m_bDrawSizeChanged) {
             this->draw_zone = this->show_zone;

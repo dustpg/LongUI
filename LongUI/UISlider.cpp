@@ -1,7 +1,5 @@
 ﻿#include "LongUI.h"
 
-
-
 // Render 渲染 
 auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
     if (m_bDrawSizeChanged) {
@@ -34,8 +32,7 @@ auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
 
 
 // UISlider 构造函数
-LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node)
-{
+LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node) {
     static_assert(UNUSED_SIZE <= lengthof(m_unused), "unused size!");
 }
 

@@ -55,7 +55,7 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
         force_cast(child->flags) = LongUIFlag(child->flags | Flag_RenderParent);
     }
     // recreate resource
-    if (m_pRenderTarget) child->Recreate(m_pRenderTarget);
+    child->Recreate(m_pRenderTarget);
     // set parent
     force_cast(child->parent) = this;
     // change draw zone
@@ -67,29 +67,43 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 // 更新布局
 void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
     if (!refresh_scroll) return;
-#if 0
     // 检查宽度
-    this->scrollbar_h.show_zone.left = 0.f;
-    this->scrollbar_h.show_zone.top = this->show_zone.height - this->scrollbar_h.desc.size;
-    this->scrollbar_h.show_zone.width = this->show_zone.width;
-    this->scrollbar_h.show_zone.height = this->scrollbar_h.desc.size;
-    this->scrollbar_h.draw_zone = this->scrollbar_h.show_zone;
-    this->scrollbar_h.Refresh();
-    // 检查高度
-    this->scrollbar_v.show_zone.left = this->show_zone.width - this->scrollbar_v.desc.size;
-    this->scrollbar_v.show_zone.top = 0.f;
-    this->scrollbar_v.show_zone.width = this->scrollbar_v.desc.size;
-    this->scrollbar_v.show_zone.height = this->show_zone.height;
-    this->scrollbar_v.draw_zone = this->scrollbar_v.show_zone;
-    this->scrollbar_v.Refresh();
-    // 第二次检查
     if (this->scrollbar_h) {
-
+        this->scrollbar_h->show_zone.left = 0.f;
+        this->scrollbar_h->show_zone.top = this->show_zone.height - this->scrollbar_h->GetTakingUpSapce();
+        this->scrollbar_h->show_zone.width = this->show_zone.width;
+        this->scrollbar_h->show_zone.height = this->scrollbar_h->GetTakingUpSapce();
+        this->scrollbar_h->draw_zone = this->scrollbar_h->show_zone;
+        this->scrollbar_h->Refresh();
     }
+    // 检查高度
     if (this->scrollbar_v) {
-
+        this->scrollbar_v->show_zone.left = this->show_zone.width - this->scrollbar_v->GetTakingUpSapce();
+        this->scrollbar_v->show_zone.top = 0.f;
+        this->scrollbar_v->show_zone.width = this->scrollbar_v->GetTakingUpSapce();
+        this->scrollbar_v->show_zone.height = this->show_zone.height;
+        this->scrollbar_v->draw_zone = this->scrollbar_v->show_zone;
+        this->scrollbar_v->Refresh();
     }
-#endif
+}
+
+// UIContainer 保证滚动条
+void LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
+    // 水平滚动条
+    if(!this->scrollbar_h && m_pCreateH && basew > this->GetTakingUpWidth() &&
+        (this->scrollbar_h = static_cast<UIScrollBar*>(m_pCreateH(LongUINullXMLNode)))) {
+        this->AfterInsert(this->scrollbar_h);
+    }
+    // 垂直滚动条
+    if (!this->scrollbar_v && m_pCreateV && baseh > this->GetTakingUpHeight() &&
+        (this->scrollbar_v = static_cast<UIScrollBar*>(m_pCreateV(LongUINullXMLNode)))) {
+        this->AfterInsert(this->scrollbar_v);
+    }
+    // 检查
+    if (this->scrollbar_h && this->scrollbar_v) {
+        this->scrollbar_h->another = this->scrollbar_v;
+        this->scrollbar_v->another = this->scrollbar_h;
+    }
 }
 
 // do event 事件处理
@@ -163,7 +177,7 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
                 this->show_zone.top - this->margin_rect.top
                 );
             // 空间不够?
-            do {
+            /*do {
                 if (draw_zone.width > show_zone.width) {
 
                 }
@@ -173,7 +187,7 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
                 if (m_strControlName == L"MainWindow") {
                     UIManager << DL_Hint << m_strControlName << ":  Changed" << LongUI::endl;
                 }
-            } while (false);
+            } while (false);*/
         }
         // 保留转换
         D2D1_MATRIX_3X2_F old_transform;
@@ -214,8 +228,7 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
     return S_OK;
 }
 // UIContainer 重建
-auto LongUI::UIContainer::Recreate(
-    LongUIRenderTarget* newRT) noexcept ->HRESULT {
+auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     auto hr = S_OK;
     // 重建水平滚动条
     if (SUCCEEDED(hr) && this->scrollbar_h) {
@@ -233,8 +246,7 @@ auto LongUI::UIContainer::Recreate(
 }
 
 // 获取指定控件
-auto LongUI::UIContainer::
-at(uint32_t i) const noexcept -> UIControl * {
+auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
     // 性能警告
     UIManager << DL_Warning << L"Performance Warning!"
         L"random accessig is not fine for list" << LongUI::endl;
@@ -405,13 +417,16 @@ void LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept 
     }
     // 计算
     base_width = std::max(base_width, this->show_zone.width);
+    // 保证滚动条
+    this->AssureScrollBar(base_width, base_height);
     // 垂直滚动条?
-    /*if (this->scrollbar_v) {
-        base_width -= this->scrollbar_v.desc.size;
-    }    // 水平滚动条?
+    if (this->scrollbar_v) {
+        base_width -= this->scrollbar_v->GetTakingUpWidth();
+    }    
+    // 水平滚动条?
     if (this->scrollbar_h) {
-        base_height -= this->scrollbar_h.desc.size;
-    }*/
+        base_height -= this->scrollbar_h->GetTakingUpWidth();
+    }
     // 高度步进
     float height_step = counter > 0.f ? (this->show_zone.height - base_height) / counter : 0.f;
     float position_y = 0.f;
@@ -509,12 +524,13 @@ void LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcep
     // 计算
     base_height = std::max(base_height, this->show_zone.height);
     // 垂直滚动条?
-    /*if (this->scrollbar_v) {
-        base_width -= this->scrollbar_v.desc.size;
-    }    // 水平滚动条?
+    if (this->scrollbar_v) {
+        base_width -= this->scrollbar_v->GetTakingUpWidth();
+    }    
+    // 水平滚动条?
     if (this->scrollbar_h) {
-        base_height -= this->scrollbar_h.desc.size;
-    }*/
+        base_height -= this->scrollbar_h->GetTakingUpWidth();
+    }
     // 宽度步进
     float width_step = counter > 0.f ? (this->show_zone.width - base_width) / counter : 0.f;
     float position_x = 0.f;

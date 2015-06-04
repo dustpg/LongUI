@@ -238,6 +238,35 @@ void LongUI::UIWindow::HideCaret() noexcept {
     if (!m_cShowCaret) m_bCaretIn = false;
 }
 
+// 查找控件
+auto LongUI::UIWindow::FindControl(const CUIString& str) noexcept -> UIControl * {
+    // 查找控件
+    const auto itr = m_mapString2Control.find(str);
+    // 未找到返回空
+    if (itr == m_mapString2Control.cend()) {
+        // 警告
+        UIManager << DL_Warning << L"Control Not Found:\n  " << str.c_str() << LongUI::endl;
+        return nullptr;
+    }
+    // 找到就返回指针
+    else {
+        return reinterpret_cast<LongUI::UIControl*>(itr->second);
+    }
+}
+
+// 添加控件
+void LongUI::UIWindow::AddControl(const std::pair<CUIString, void*>& pair) noexcept {
+    // 有效
+    if (pair.first != L"") {
+        try {
+            m_mapString2Control.insert(pair);
+        }
+        catch (...) {
+            ShowErrorWithStr(L"Failed to add control");
+        }
+    }
+}
+
 // release data
 void LongUI::UIWindow::release_data() noexcept {
     // 释放资源

@@ -120,8 +120,8 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
     wchar_t buffffffffffer[LongUIStringBufferLength];\
     ::swprintf(\
         buffffffffffer, LongUIStringBufferLength,\
-        L"<%ls>HR:0x%08X",\
-        __FUNCTIONW__, hr\
+        L"<%ls>: %ls",\
+        __FUNCTIONW__, str\
         );\
     UIManager.ShowError(str, buffffffffffer);\
 }

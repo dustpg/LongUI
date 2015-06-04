@@ -5,10 +5,10 @@
 // 测试XML &#xD; --> \r &#xA; --> \n
 #if 1
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow" >
+<Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA">
     <VerticalLayout name="VLayout1" pos="0, 0, 512, 128">
         <!--Video name="asd" /-->
-        <Test name="test" text="Hello, world!"/>
+        <Test name="test" texttype="core" text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
         <Slider name="6" renderparent="true"/>
     </VerticalLayout>
     <HorizontalLayout name="HLayout" pos="0, 0, 0, 256">
