@@ -61,6 +61,24 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     this->DrawSizeChanged();
 }
 
+// 压入剪切区
+void LongUI::UIContainer::PushAxisAlignedClip(D2D1_ANTIALIAS_MODE mode) noexcept {
+    // 排除滚动条
+    D2D1_RECT_F rect = {
+        this->show_zone.left,
+        this->show_zone.top ,
+        this->show_zone.left + this->show_zone.width,
+        this->show_zone.top + this->show_zone.height
+    };
+    if (this->scrollbar_h) {
+        rect.bottom -= this->scrollbar_h->GetTakingUpSapce();
+    }
+    if (this->scrollbar_v) {
+        rect.right -= this->scrollbar_v->GetTakingUpSapce();
+    }
+    m_pRenderTarget->PushAxisAlignedClip(&rect, mode);
+}
+
 // 更新布局
 void LongUI::UIContainer::RefreshChildLayout() noexcept {
     // 检查宽度
@@ -81,6 +99,7 @@ void LongUI::UIContainer::RefreshChildLayout() noexcept {
         this->scrollbar_v->draw_zone = this->scrollbar_v->show_zone;
         this->scrollbar_v->Refresh();
     }
+
 }
 
 // UIContainer 保证滚动条
@@ -118,7 +137,7 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
     }
     auto need_refresh_v2 = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
     // 需要再次刷新?
-    if (m_strControlName == L"MainWindow") {
+    if (need_refresh_v2 != need_refresh && m_strControlName == L"MainWindow") {
         UIManager << DL_Hint << long(need_refresh) << " : " << long(need_refresh_v2) << LongUI::endl;
     }
     return need_refresh != ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
@@ -207,6 +226,8 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
                 }
             } while (false);*/
         }
+        // 压入
+        this->PushAxisAlignedClip();
         // 保留转换
         D2D1_MATRIX_3X2_F old_transform;
         m_pRenderTarget->GetTransform(&old_transform);
@@ -224,6 +245,7 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
             ctrl->Render(LongUI::RenderType::Type_Render);
             m_pRenderTarget->PopAxisAlignedClip();
         }
+        m_pRenderTarget->PopAxisAlignedClip();
         // 渲染滚动条
         if (this->scrollbar_h) {
             this->scrollbar_h->Render(LongUI::RenderType::Type_Render);

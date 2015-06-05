@@ -1,4 +1,8 @@
-﻿UNFINSHED YET  
+﻿UNFINSHED DOC YET
+
+## LongUI
+  
+Lightweight Direct2D GUI Library/Framework
 
 ## Requirements
   

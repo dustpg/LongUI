@@ -80,9 +80,11 @@ namespace LongUI {
     public:
         // add a child
         void AfterInsert(UIControl* child) noexcept;
+        // push clip
+        void PushAxisAlignedClip(D2D1_ANTIALIAS_MODE = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE) noexcept;
     public: //
         // update children's layout
-        inline  void UpdateChildLayout() noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout(); }
+        inline  void UpdateChildLayout() noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout();  }
         // refresh children's layout
         virtual void RefreshChildLayout() noexcept;
     public: //
