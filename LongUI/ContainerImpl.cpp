@@ -1,7 +1,4 @@
-﻿
-#include "LongUI.h"
-
-
+﻿#include "LongUI.h"
 
 
 // -------------------------- UIContainer -------------------------
@@ -65,13 +62,7 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 }
 
 // 更新布局
-void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
-    if (!refresh_scroll) return;
-    auto check = [](UIScrollBar* bar) ->uint8_t {
-        return bar && bar->GetTakingUpSapce() > 0.f ? 1 : 0;
-    };
-    // 检查
-    uint8_t need_refresh = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
+void LongUI::UIContainer::RefreshChildLayout() noexcept {
     // 检查宽度
     if (this->scrollbar_h) {
         this->scrollbar_h->show_zone.left = 0.f;
@@ -90,18 +81,15 @@ void LongUI::UIContainer::RefreshChildLayout(bool refresh_scroll) noexcept {
         this->scrollbar_v->draw_zone = this->scrollbar_v->show_zone;
         this->scrollbar_v->Refresh();
     }
-    auto need_refresh_v2 = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
-    // 需要再次刷新?
-    if (m_strControlName == L"MainWindow") {
-        UIManager << DL_Hint << long(need_refresh) << " : " << long(need_refresh_v2) << LongUI::endl;
-    }
-    if (need_refresh != ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v))) {
-        this->RefreshChildLayout(false);
-    }
 }
 
 // UIContainer 保证滚动条
-void LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
+bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
+    auto check = [](UIScrollBar* bar) ->uint8_t {
+        return bar && bar->GetTakingUpSapce() > 0.f ? 1 : 0;
+    };
+    // 检查
+    uint8_t need_refresh = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
     // 水平滚动条
     {
         auto needed = basew > this->GetTakingUpWidth();
@@ -128,6 +116,12 @@ void LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
             this->scrollbar_v->OnNeeded(needed);
         }
     }
+    auto need_refresh_v2 = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
+    // 需要再次刷新?
+    if (m_strControlName == L"MainWindow") {
+        UIManager << DL_Hint << long(need_refresh) << " : " << long(need_refresh_v2) << LongUI::endl;
+    }
+    return need_refresh != ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
 }
 
 // do event 事件处理
@@ -414,7 +408,7 @@ auto LongUI::UIVerticalLayout::CreateControl(pugi::xml_node node) noexcept ->UIC
 }
 
 // 更新子控件布局
-void LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
+void LongUI::UIVerticalLayout::RefreshChildLayout() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -442,7 +436,7 @@ void LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept 
     // 计算
     base_width = std::max(base_width, this->show_zone.width);
     // 保证滚动条
-    this->AssureScrollBar(base_width, base_height);
+    auto need_refresh = this->AssureScrollBar(base_width, base_height);
     // 垂直滚动条?
     if (this->scrollbar_v) {
         base_width -= this->scrollbar_v->GetTakingUpWidth();
@@ -481,8 +475,12 @@ void LongUI::UIVerticalLayout::RefreshChildLayout(bool refresh_scroll) noexcept 
     // 修改
     force_cast(this->end_of_right) = base_width;
     force_cast(this->end_of_bottom) = position_y;
+    // 需要刷新?
+    if (need_refresh) {
+        return this->RefreshChildLayout();
+    }
     // 更新
-    return Super::RefreshChildLayout(refresh_scroll);
+    return Super::RefreshChildLayout();
 }
 
 
@@ -520,7 +518,7 @@ auto LongUI::UIHorizontalLayout::CreateControl(pugi::xml_node node) noexcept ->U
 
 
 // 更新子控件布局
-void LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcept {
+void LongUI::UIHorizontalLayout::RefreshChildLayout() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -547,6 +545,8 @@ void LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcep
     }
     // 计算
     base_height = std::max(base_height, this->show_zone.height);
+    // 保证滚动条
+    auto need_refresh = this->AssureScrollBar(base_width, base_height);
     // 垂直滚动条?
     if (this->scrollbar_v) {
         base_width -= this->scrollbar_v->GetTakingUpWidth();
@@ -585,8 +585,12 @@ void LongUI::UIHorizontalLayout::RefreshChildLayout(bool refresh_scroll) noexcep
     // 修改
     force_cast(this->end_of_right) = position_x;
     force_cast(this->end_of_bottom) = base_height;
+    // 需要刷新?
+    if (need_refresh) {
+        return this->RefreshChildLayout();
+    }
     // 更新
-    return Super::RefreshChildLayout(refresh_scroll);
+    return Super::RefreshChildLayout();
 }
 
 // UIHorizontalLayout 重建

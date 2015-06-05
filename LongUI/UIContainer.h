@@ -82,11 +82,12 @@ namespace LongUI {
         void AfterInsert(UIControl* child) noexcept;
     public: //
         // update children's layout
-        inline  void UpdateChildLayout(bool b=true) noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout(b); }
+        inline  void UpdateChildLayout() noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout(); }
         // refresh children's layout
-        virtual void RefreshChildLayout(bool refresh_scroll) noexcept;
+        virtual void RefreshChildLayout() noexcept;
+    public: //
         // Assure the ScrollBar
-        void AssureScrollBar(float, float) noexcept;
+        bool AssureScrollBar(float, float) noexcept;
     public: // STL Container Compatibled interface/method
         // get child at, because of list, will get warning of performance
         auto at(uint32_t) const noexcept ->UIControl*;

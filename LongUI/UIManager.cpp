@@ -4,6 +4,7 @@
 // node->Attribute\((.+?)\)
 // node.attribute($1).value()
 
+#define D3D11_DEBUG
 
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {

@@ -6,7 +6,7 @@
 #if 1
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA">
-    <VerticalLayout name="VLayout1" pos="0, 0, 512, 128">
+    <VerticalLayout name="VLayout1" pos="0, 0, 1366, 128">
         <!--Video name="asd" /-->
         <Test name="test" texttype="core" text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
         <Slider name="6" renderparent="true"/>
@@ -330,7 +330,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
         };
         // 使用CPU渲染
-        auto IsRenderByCPU() noexcept ->bool override { return false; }
+        auto IsRenderByCPU() noexcept ->bool override { return true; }
     private:
         // mruby script
         MRubyScript     mruby;

@@ -43,7 +43,7 @@ namespace LongUI{
         virtual void Close() noexcept override;
     public: // UIContainer
         // update children's layout
-        virtual void RefreshChildLayout(bool refresh_scroll) noexcept override;
+        virtual void RefreshChildLayout() noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;

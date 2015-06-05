@@ -140,12 +140,6 @@ auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
     return S_OK;
 }
 
-// 
-void LongUI::UIScrollBar::OnNeeded(bool need) noexcept
-{
-}
-
-
 
 // do event 事件处理
 bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
@@ -230,15 +224,14 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
         m_rtThumb.right = m_rtThumb.left + bilibili * width;
         //assert(m_rtThumb.right <= m_rtArrow2.left);
     }
-
+    // 背景
+    m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
+    m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
+    // thumb
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
-    // 先画一个矩形
-    m_pRenderTarget->DrawRectangle(&m_rtArrow1, m_pBrush_SetBeforeUse, 1.f);
-    // -------------
     m_pRenderTarget->FillRectangle(&m_rtThumb, m_pBrush_SetBeforeUse);
-    // -------------
-    // 先画一个矩形
-    m_pRenderTarget->DrawRectangle(&m_rtArrow2, m_pBrush_SetBeforeUse, 1.f);
+    //m_pRenderTarget->FillRectangle(&m_rtArrow1, m_pBrush_SetBeforeUse);
+    //m_pRenderTarget->FillRectangle(&m_rtArrow2, m_pBrush_SetBeforeUse);
     return S_OK;
 }
 

@@ -471,10 +471,14 @@ void LongUI::UIWindow::set_present() noexcept {
     // 显示光标?
     if (m_cShowCaret) {
         this->draw_caret();
-        m_dirtyRects[m_present.DirtyRectsCount].left = m_rcCaretPx.left;
-        m_dirtyRects[m_present.DirtyRectsCount].top = m_rcCaretPx.top;
-        m_dirtyRects[m_present.DirtyRectsCount].right = m_rcCaretPx.left + m_rcCaretPx.width;
-        m_dirtyRects[m_present.DirtyRectsCount].bottom = m_rcCaretPx.top + m_rcCaretPx.height;
+        m_dirtyRects[m_present.DirtyRectsCount].left 
+            = std::max(static_cast<LONG>(m_rcCaretPx.left), long(0));
+        m_dirtyRects[m_present.DirtyRectsCount].top 
+            = std::max(static_cast<LONG>(m_rcCaretPx.top), long(0));
+        m_dirtyRects[m_present.DirtyRectsCount].right 
+            = std::min(static_cast<LONG>(m_rcCaretPx.left + m_rcCaretPx.width), long(m_clientSize.width));
+        m_dirtyRects[m_present.DirtyRectsCount].bottom 
+            = std::min(static_cast<LONG>(m_rcCaretPx.top + m_rcCaretPx.height), long(m_clientSize.height));
         ++m_present.DirtyRectsCount;
     }
     // 存在脏矩形?
@@ -596,11 +600,11 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
                     ctrl->show_zone.left + ctrl->show_zone.width,
                     ctrl->show_zone.top + ctrl->show_zone.height)
                 );
-            // 转换
-            m_dirtyRects[i].left = static_cast<LONG>(lefttop.x);
-            m_dirtyRects[i].top = static_cast<LONG>(lefttop.y);
-            m_dirtyRects[i].right = static_cast<LONG>(rightbuttom.x);
-            m_dirtyRects[i].bottom = static_cast<LONG>(rightbuttom.y);
+            // 限制转换
+            m_dirtyRects[i].left = std::max(static_cast<LONG>(lefttop.x), long(0));
+            m_dirtyRects[i].top = std::max(static_cast<LONG>(lefttop.y), long(0));
+            m_dirtyRects[i].right = std::min(static_cast<LONG>(rightbuttom.x), long(m_clientSize.width));
+            m_dirtyRects[i].bottom = std::min(static_cast<LONG>(rightbuttom.y), long(m_clientSize.height));
         }
     }
     // 有效 -> 清零
