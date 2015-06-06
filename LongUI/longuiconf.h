@@ -16,10 +16,13 @@
 #   define LongUISmallFree dlfree
 #endif
 
+
 #ifdef _MSC_VER
 // 微软蛋疼
 #pragma warning(disable: 4290)
+#pragma warning(disable: 4200)
 #endif
+
 
 // 钳住
 #define LongUIClamp(x, i, a) { if(x < i) x = i; else if(x > a) x = a;}

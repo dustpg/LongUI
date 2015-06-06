@@ -1498,9 +1498,9 @@ void LongUI::CUIManager::add_brush(
 void LongUI::CUIManager::add_meta(
     const pugi::xml_node node) noexcept {
     LongUI::Meta meta = {
+        { 0.f, 0.f, 1.f, 1.f },
         nullptr, BitmapRenderRule::Rule_Scale, 
-        D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR,
-        { 0.f, 0.f, 1.f, 1.f}
+        D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR
     };
     const char* str = nullptr;
     assert(node && "bad argument");

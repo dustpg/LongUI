@@ -1,50 +1,109 @@
 ﻿#include "LongUI.h"
 
-
-enum class Unit : size_t {
-    Unknown = 0,
-    Bitmap ,
-    ColorRect,
-};
-
-template<Unit... Elements> class Units;
-template<Unit Head, Unit... Tail>
-class Units<Head, Tail...> : protected Units<Tail...> {
-    using Super = Units<Tail...>;
-protected:
-    Units<Head> head;
-public:
-    // ctor
-    Units(pugi::xml_node node) : Super(node), head(node) {};
-    // set unit type
-    inline void SetUnitType(Unit unit) { m_type = unit; }
-    // render this
-    void Render(float x, float y) {
-        if (this->now_unit == Head) {
-            head.Render(x, y);
+namespace LongUI {
+    // ele
+    enum class Element : uint32_t {
+        Basic = 0,
+        Meta,
+        ColorRect,
+        BrushRect,
+        ColorGeometry,
+    };
+    // class decl
+    template<Element... > class Elements;
+    // render unit
+    template<Element Head, Element... Tail>
+    class Elements<Head, Tail...> : protected Elements<Tail...> {
+        // super class
+        using Super = Elements<Tail...>;
+    protected:
+        // head of this list
+        Elements<Head>         head;
+    public:
+        // set unit type
+        inline void SetElementType(Element unit) noexcept { this->type = unit; }
+        // ctor
+        Elements(pugi::xml_node node) noexcept : Super(node), head(node) {}
+    public:
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<ElementType>& { return Super::GetByType<ElementType>(); }
+        // get element for head
+        template<>
+        auto GetByType<Head>() noexcept ->Elements<Head>& { return head; }
+        // render this
+        void Render(const D2D1_RECT_F& rect) noexcept { this->type == Head ? head.Render(rect) : Super::Render(rect); }
+        // recreate
+        auto Recreate(ID2D1RenderTarget* target) noexcept {
+            HRESULT hr = S_OK;
+            if (SUCCEEDED(hr)) {
+                hr = head.Recreate(target);
+            }
+            if (SUCCEEDED(hr)) {
+                hr = Super::Recreate(target);
+            }
+            return hr;
         }
-        else {
-            Super::Render(x, y);
-        }
-    }
-};
+    };
+    // element for all
+    template<> class Elements<Element::Basic> {
+    public:
+        // ctor 
+        Elements(pugi::xml_node node) noexcept;
+        // render this
+        void Render(const D2D1_RECT_F&) noexcept { }
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
+        // set new status
+        auto SetNewStatus(ControlStatus) noexcept ->float;
+        // recreate
+        auto Recreate(ID2D1RenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
+        // type of unit
+        Element                 type = Element::Basic;
+    protected:
+        // render target
+        ID2D1RenderTarget*      m_pRenderTarget = nullptr;
+        // state of unit
+        ControlStatus           m_state = ControlStatus::Status_Disabled;
+        // state of unit
+        ControlStatus           m_stateTartget = ControlStatus::Status_Disabled;
+        // animation
+        CUIAnimationOpacity     m_animation;
+    };
+    // element for bitmap
+    template<> class Elements<Element::Meta> {
+    public:
+        // ctor
+        Elements(pugi::xml_node node) noexcept;
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
+        // render this
+        void Render(const D2D1_RECT_F&) noexcept;
+        // recreate
+        auto Recreate(ID2D1RenderTarget* target) noexcept ->HRESULT;
+    protected:
+        // metas
+        Meta            m_metas[Status_Count];
+        // metas id
+        uint16_t        m_aID[Status_Count];
+    };
+    // element for color rect
+    template<> class Elements<Element::BrushRect> {
+    public:
+        // ctor
+        Elements(pugi::xml_node node) noexcept {}
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<Element::ColorRect>& { return *this; }
+        // render this
+        void Render(const D2D1_RECT_F& rect) noexcept;
+        // recreate
+        auto Recreate(ID2D1RenderTarget* target) noexcept { return S_OK; }
+    };
 
-template<> class Units<> {
-protected:
-    Unit        m_type = Unit::Unknown;
-};
-
-template<> class Units<Unit::Bitmap> : public Units<> {
-public:
-    int a;
-};
-
-template<> class Units<Unit::ColorRect> : public Units<>{
-public:
-    float b;
-};
-
-
+}
 
 // TODO: 滚动条优化
 //std::atomic_uint32_t g_cScrollBarCount = 0;
@@ -53,10 +112,9 @@ public:
 
 // UIScrollBar 构造函数
 LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
-    Units<Unit::Bitmap, Unit::ColorRect> unit;
-    unit.now_unit = Unit::ColorRect;
-    unit.Render(0.f, 0.f);
-
+    Elements<Element::Meta, Element::BrushRect, Element::Basic> unit(LongUINullXMLNode);
+    
+    auto& base = unit.GetByType<Element::Basic>();
     constexpr int azz = sizeof(unit);
     /*char32_t buffer[] = {
         9652,    // UP
@@ -339,4 +397,65 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(pugi::xml_node node) noexcept ->
         UIManager << DL_Error << L"alloc null" << LongUI::endl;
     }
     return pControl;
+}
+
+// 实现
+
+// Elements<Basic> 构造函数
+LongUI::Elements<LongUI::Element::Basic>::Elements(pugi::xml_node node)
+    noexcept : m_animation(AnimationType::Type_QuadraticEaseOut){
+    // 无效?
+    if (!node) return;
+    const char* str = nullptr;
+    // 动画类型
+    if (str = node.attribute("animationtype").value()) {
+        m_animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
+    }
+    // 动画持续时间
+    if (str = node.attribute("animationduration").value()) {
+        m_animation.duration = LongUI::AtoF(str);
+    }
+}
+
+// 设置新的状态
+auto LongUI::Elements<LongUI::Element::Basic>::
+SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
+    m_state = m_stateTartget;
+    m_stateTartget = new_status;
+    m_animation.value = 0.f;
+    return m_animation.time = m_animation.duration;
+}
+
+// Elements<Meta> 构造函数
+LongUI::Elements<LongUI::Element::Meta>::Elements(pugi::xml_node node) noexcept {
+    ZeroMemory(m_metas, sizeof(m_metas));
+    ZeroMemory(m_aID, sizeof(m_aID));
+    // 无效?
+    if (!node) return;
+    // 禁用状态Meta ID
+    m_aID[Status_Disabled] = LongUI::AtoI(node.attribute("disabledmeta").value());
+    // 通常状态Meta ID
+    m_aID[Status_Normal] = LongUI::AtoI(node.attribute("normalmeta").value());
+    // 移上状态Meta ID
+    m_aID[Status_Hover] = LongUI::AtoI(node.attribute("hovermeta").value());
+    // 按下状态Meta ID
+    m_aID[Status_Pushed] = LongUI::AtoI(node.attribute("pushedmeta").value());
+}
+
+
+// Elements<Meta> 重建
+auto LongUI::Elements<LongUI::Element::Meta>::
+Recreate(ID2D1RenderTarget* target) noexcept ->HRESULT {
+    for (auto i = 0u; i < Status_Count; ++i) {
+        // 有效
+        if (m_aID[i]) {
+            UIManager.GetMeta(m_aID[i], m_metas[i]);
+        }
+    }
+    return S_OK;
+}
+
+// Elements<Meta> 渲染
+void LongUI::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F&) noexcept {
+
 }

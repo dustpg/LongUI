@@ -133,30 +133,27 @@ namespace LongUI {
     };
     // Meta (Graphics Element)
     // render implemented @ CUIElement::RenderMeta
-    struct Meta {
+    struct alignas(sizeof(void*)) Meta {
+        // source rect
+        D2D1_RECT_F         src_rect;
         // bitmap
         ID2D1Bitmap1*       bitmap;
         // render rule
         BitmapRenderRule    rule;
         //  interpolation mode
         uint16_t            interpolation;
-        // source rect
-        D2D1_RECT_F         src_rect;
     };
+#ifdef _MSC_VER
+#pragma warning(disable: 4200)
+#endif
     // MetaEx: store a group of metas, like gif, MUST stored as pointer(or ref)
     struct MetaEx {
+        // unit
         struct Unit { Meta meta; float delta_time; };
         // the length of group
         size_t      length;
         // group of it("0" in C99, "1" for other)
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4200)
         Unit        group[0];
-#pragma warning(pop)
-#else
-        Unit        group[0];
-#endif
     };
     // Dynamic HICON 
     class UIIcon {
@@ -217,7 +214,7 @@ namespace LongUI {
 #ifdef _DEBUG
         union{
             size_t          data;
-            T*              _pointer;
+            T*              pointer__;
         };
 #else
         size_t          data;
@@ -306,9 +303,9 @@ namespace LongUI {
     // Meta (Graphics Element)
     using GraphicsElement = Meta;
     // std::atoi diy version
-    auto __fastcall AtoI(const char*) -> int;
+    auto __fastcall AtoI(const char* __restrict) -> int;
     // std::atof diy version(float ver)
-    auto __fastcall AtoF(const char*) -> float;
+    auto __fastcall AtoF(const char* __restrict) -> float;
     // LongUI::AtoI diy version(double ver)
     //auto __fastcall AtoLF(const char*) -> double;
     // UTF-8 UTF-16 UTF-32
@@ -342,15 +339,15 @@ namespace LongUI {
         41,42,43,44, 45,46,47,48,      49,50,51, 0, 0, 0, 0, 0,
     };
     // Base64 Encode 编码
-    auto __fastcall Base64Encode(IN const uint8_t * bindata, IN size_t binlen, OUT char* const base64) noexcept -> char *;
+    auto __fastcall Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* const __restrict base64) noexcept -> char *;
     // Base64 Decode 解码
-    auto __fastcall Base64Decode(IN const char * base64, OUT uint8_t * bindata) noexcept->size_t;
+    auto __fastcall Base64Decode(IN const char* __restrict  base64, OUT uint8_t* __restrict bindata) noexcept->size_t;
     // UTF-16 to UTF-8
     // Return: UTF-8 string length, 0 maybe error
-    auto __fastcall UTF16toUTF8(const char16_t* , char* ) noexcept -> uint32_t;
+    auto __fastcall UTF16toUTF8(const char16_t* __restrict, char* __restrict) noexcept -> uint32_t;
     // UTF-8 to UTF-16
     // Return: UTF-16 string length, 0 maybe error
-    auto __fastcall UTF8toUTF16(const char*, char16_t*) noexcept -> uint32_t;
+    auto __fastcall UTF8toUTF16(const char* __restrict, char16_t* __restrict) noexcept -> uint32_t;
     // ------------------- Windows COM Interface Helper
 #define LONGUICOMMETHOD virtual HRESULT STDMETHODCALLTYPE
 #define LONGUIVTABLE(pointer)  (*reinterpret_cast<const size_t * const>(pointer))

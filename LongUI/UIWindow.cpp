@@ -331,9 +331,6 @@ namespace LongUI {
         RenderingUnit*  current_unit = this->units;
         // 上次单位
         RenderingUnit*  last_uint = this->units;
-#ifdef _MSC_VER
-#pragma warning(disable: 4200)
-#endif
         // 单位缓存
         RenderingUnit   units[0];
     };

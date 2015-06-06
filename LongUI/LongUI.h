@@ -255,11 +255,11 @@ namespace LongUI {
         Flag_Window_AlwaysRendering = 1 << 23,
     };
     // Control Status
-    enum ControlStatus : uint32_t {
+    enum ControlStatus : uint16_t {
         Status_Disabled = 0,    // 禁用状态
         Status_Normal,          // 通常状态
-        Status_Hover,           // 鼠标盘旋
-        Status_Pushed,          // 点击状态
+        Status_Hover,           // 鼠标移上
+        Status_Pushed,          // 鼠标按下
         Status_Count,           // 状态数量
     };
     // bitmap render rule

@@ -138,7 +138,6 @@ animationo(AnimationType::Type_QuadraticEaseOut){
     INITBUFFER;
     if (str = node.Attr("animationtype")) {
         animationo.type  = animationc.type = static_cast<AnimationType>(::LongUI::AtoI(str));
-       
     }
     // 获取动画持续时间
     INITBUFFER;
@@ -450,7 +449,7 @@ void LongUI::CUIElement::InitStatus(ControlStatus s) noexcept {
 
 
 // 自己实现LongUI::AtoI
-auto __fastcall LongUI::AtoI(const char* str) -> int {
+auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
     if (!str) return 0;
     register bool negative = false;
     register int value = 0;
@@ -479,7 +478,7 @@ auto __fastcall LongUI::AtoI(const char* str) -> int {
 
 
 // 自己实现的LongUI::AtoF
-auto __fastcall LongUI::AtoF(const char* p) -> float {
+auto __fastcall LongUI::AtoF(const char* __restrict p) -> float {
     bool negative = false;
     float value, scale;
     // 跳过空白
@@ -596,7 +595,7 @@ static constexpr char firstByteMark[7] = { (char)0x00, (char)0x00, (char)0xC0, (
 
 
 // 编码
-auto __fastcall LongUI::Base64Encode(IN const uint8_t* bindata, IN size_t binlen, OUT char* const base64 ) noexcept -> char * {
+auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64 ) noexcept -> char * {
     register uint8_t current;
     register auto base64_index = base64;
     // 
@@ -632,7 +631,7 @@ auto __fastcall LongUI::Base64Encode(IN const uint8_t* bindata, IN size_t binlen
 }
 
 // 解码
-auto __fastcall LongUI::Base64Decode(IN const char * base64, OUT uint8_t * bindata) noexcept -> size_t{
+auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t{
     // 二进制长度
     register union { uint8_t temp[4]; uint32_t temp_u32; };
     register uint8_t* bindata_index = bindata;
@@ -660,7 +659,7 @@ auto __fastcall LongUI::Base64Decode(IN const char * base64, OUT uint8_t * binda
 
 // UTF-16 to UTF-8
 // Return: UTF-8 string length, 0 maybe error
-auto __fastcall LongUI::UTF16toUTF8(const char16_t* pUTF16String, char* pUTF8String) noexcept->uint32_t {
+auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept->uint32_t {
     UINT32 length = 0;
     const char16_t* source = pUTF16String;
     char* target = pUTF8String;
@@ -749,7 +748,7 @@ auto __fastcall LongUI::UTF16toUTF8(const char16_t* pUTF16String, char* pUTF8Str
 
 // UTF-8 to UTF-16
 // Return: UTF-16 string length, 0 maybe error
-auto __fastcall LongUI::UTF8toUTF16(const char* pUTF8String, char16_t* pUTF16String) noexcept -> uint32_t {
+auto __fastcall LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t* __restrict pUTF16String) noexcept -> uint32_t {
     UINT32 length = 0;
     auto source = reinterpret_cast<const unsigned char*>(pUTF8String);
     char16_t* target = pUTF16String;
