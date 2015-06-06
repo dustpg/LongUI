@@ -101,6 +101,13 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
     c->draw_zone.top + c->draw_zone.height \
 }
 
+#define GetShowRect(c) { \
+    c->show_zone.left, \
+    c->show_zone.top , \
+    c->show_zone.left + c->show_zone.width, \
+    c->show_zone.top + c->show_zone.height \
+}
+
 
 #define AssertHR(hr) if(FAILED(hr)) ShowErrorWithHR(hr)
 #ifdef _DEBUG
@@ -342,6 +349,12 @@ namespace LongUI {
             // [out] Control for Parent
             OUT UIControl*    ctrl;
         };
+        /*/ default ctor
+        EventArgument() noexcept =default;
+        // copy ctor
+        EventArgument(const EventArgument&) noexcept;
+        // move ctor
+        EventArgument(EventArgument&&) =delete;*/
     };
     // point in rect?
     inline static auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F& pt) noexcept {

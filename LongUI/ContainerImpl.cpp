@@ -1,6 +1,8 @@
 ﻿#include "LongUI.h"
 
 
+//#define LONGUI_RECHECK_LAYOUT
+
 // -------------------------- UIContainer -------------------------
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
@@ -76,6 +78,7 @@ void LongUI::UIContainer::PushAxisAlignedClip(D2D1_ANTIALIAS_MODE mode) noexcept
     if (this->scrollbar_v) {
         rect.right -= this->scrollbar_v->GetTakingUpSapce();
     }
+    //
     m_pRenderTarget->PushAxisAlignedClip(&rect, mode);
 }
 
@@ -104,11 +107,13 @@ void LongUI::UIContainer::RefreshChildLayout() noexcept {
 
 // UIContainer 保证滚动条
 bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
+#ifdef LONGUI_RECHECK_LAYOUT
     auto check = [](UIScrollBar* bar) ->uint8_t {
         return bar && bar->GetTakingUpSapce() > 0.f ? 1 : 0;
     };
     // 检查
     uint8_t need_refresh = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
+#endif
     // 水平滚动条
     {
         auto needed = basew > this->GetTakingUpWidth();
@@ -135,12 +140,11 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
             this->scrollbar_v->OnNeeded(needed);
         }
     }
-    auto need_refresh_v2 = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
-    // 需要再次刷新?
-    if (need_refresh_v2 != need_refresh && m_strControlName == L"MainWindow") {
-        UIManager << DL_Hint << long(need_refresh) << " : " << long(need_refresh_v2) << LongUI::endl;
-    }
+#ifdef LONGUI_RECHECK_LAYOUT
     return need_refresh != ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
+#else
+    return false;
+#endif
 }
 
 // do event 事件处理
@@ -195,6 +199,7 @@ bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
 
 // UIContainer 渲染函数
 auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
+    //
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
@@ -208,6 +213,7 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         }
         // 检查
         if (m_bDrawPosChanged || m_bDrawSizeChanged) {
+            this->draw_zone = this->show_zone;
             // 更新转变
             this->transform = D2D1::Matrix3x2F::Translation(
                 this->show_zone.left - this->margin_rect.left,
@@ -241,7 +247,26 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
             clip_rect.top = ctrl->show_zone.top - ctrl->margin_rect.top;
             clip_rect.right = clip_rect.left + ctrl->show_zone.width + ctrl->margin_rect.right;
             clip_rect.bottom = clip_rect.top + ctrl->show_zone.height + ctrl->margin_rect.bottom;
+            // 剪切区入栈
             m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            auto tmp_right = this->visible_rect.right;
+            auto tmp_bottom = this->visible_rect.bottom;
+            if (this->scrollbar_v) {
+                clip_rect.right -= this->scrollbar_v->GetTakingUpSapce();
+                tmp_right -= this->scrollbar_v->GetTakingUpSapce();
+            }
+            if (this->scrollbar_h) {
+                clip_rect.bottom -= this->scrollbar_h->GetTakingUpSapce();
+                tmp_bottom -= this->scrollbar_h->GetTakingUpSapce();
+            }
+            // 映射
+            auto lt = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+            auto rb = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+            // 修改
+            ctrl->visible_rect.left = std::max(lt.x, 0.f);
+            ctrl->visible_rect.top = std::max(lt.y, 0.f);
+            ctrl->visible_rect.right = std::min(rb.x, tmp_right);
+            ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
             ctrl->Render(LongUI::RenderType::Type_Render);
             m_pRenderTarget->PopAxisAlignedClip();
         }
@@ -437,6 +462,9 @@ void LongUI::UIVerticalLayout::RefreshChildLayout() noexcept {
     // 3. 计算实际高度/宽度, 修改show_zone, 更新滚动条, 尽量最小化改动
     float base_width = 0.f, base_height = 0.f;
     float counter = 0.0f;
+    if (m_strControlName == L"MainWindow") {
+        int a = 0;
+    }
     // 第一次
     for (auto ctrl : (*this)) {
         // 非浮点控件
@@ -458,14 +486,17 @@ void LongUI::UIVerticalLayout::RefreshChildLayout() noexcept {
     // 计算
     base_width = std::max(base_width, this->show_zone.width);
     // 保证滚动条
-    auto need_refresh = this->AssureScrollBar(base_width, base_height);
+#ifdef LONGUI_RECHECK_LAYOUT
+    auto need_refresh = 
+#endif
+    this->AssureScrollBar(base_width, base_height);
     // 垂直滚动条?
     if (this->scrollbar_v) {
-        base_width -= this->scrollbar_v->GetTakingUpWidth();
+        base_width -= this->scrollbar_v->GetTakingUpSapce();
     }
     // 水平滚动条?
     if (this->scrollbar_h) {
-        base_height -= this->scrollbar_h->GetTakingUpWidth();
+        base_height -= this->scrollbar_h->GetTakingUpSapce();
     }
     // 高度步进
     float height_step = counter > 0.f ? (this->show_zone.height - base_height) / counter : 0.f;
@@ -497,10 +528,12 @@ void LongUI::UIVerticalLayout::RefreshChildLayout() noexcept {
     // 修改
     force_cast(this->end_of_right) = base_width;
     force_cast(this->end_of_bottom) = position_y;
+#ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
     if (need_refresh) {
         return this->RefreshChildLayout();
     }
+#endif
     // 更新
     return Super::RefreshChildLayout();
 }
@@ -568,14 +601,17 @@ void LongUI::UIHorizontalLayout::RefreshChildLayout() noexcept {
     // 计算
     base_height = std::max(base_height, this->show_zone.height);
     // 保证滚动条
-    auto need_refresh = this->AssureScrollBar(base_width, base_height);
+#ifdef LONGUI_RECHECK_LAYOUT
+    auto need_refresh = 
+#endif
+    this->AssureScrollBar(base_width, base_height);
     // 垂直滚动条?
     if (this->scrollbar_v) {
-        base_width -= this->scrollbar_v->GetTakingUpWidth();
+        base_width -= this->scrollbar_v->GetTakingUpSapce();
     }    
     // 水平滚动条?
     if (this->scrollbar_h) {
-        base_height -= this->scrollbar_h->GetTakingUpWidth();
+        base_height -= this->scrollbar_h->GetTakingUpSapce();
     }
     // 宽度步进
     float width_step = counter > 0.f ? (this->show_zone.width - base_width) / counter : 0.f;
@@ -607,10 +643,12 @@ void LongUI::UIHorizontalLayout::RefreshChildLayout() noexcept {
     // 修改
     force_cast(this->end_of_right) = position_x;
     force_cast(this->end_of_bottom) = base_height;
+#ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
     if (need_refresh) {
         return this->RefreshChildLayout();
     }
+#endif
     // 更新
     return Super::RefreshChildLayout();
 }

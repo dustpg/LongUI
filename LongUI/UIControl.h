@@ -181,9 +181,12 @@ namespace LongUI{
         // control current show position(offset for parent) , modified by 
         // parent, read only for self, read/write by parent
         RectLTWH_F          show_zone;
-        // control current draw position(offset for show_zone) , modified by
+        // control current draw position(offset for parent) , modified by
         // parent, read only for self, read/write by scrollbar
         RectLTWH_F          draw_zone;
+        // control current visible position(offset for world) , modified by 
+        // parent, read only for self, read/write by parent
+        D2D1_RECT_F         visible_rect = D2D1::RectF();
     };
 #if 0
     // Template UIControl

@@ -13,6 +13,18 @@ InitStaticVar(LongUI::Dll::DWriteCreateFactory);
 InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
 
+/*// 复制构造
+LongUI::EventArgument::EventArgument(const EventArgument& arg) noexcept {
+    this->event = arg.event;
+    this->sender = arg.sender;
+    this->wParam_sys = arg.wParam_sys;
+    this->lParam_sys = arg.lParam_sys;
+    this->pt.x = arg.pt.x;
+    this->pt.y = arg.pt.y;
+    this->lr = arg.lr;
+}*/
+
+
 #define LoadFunction(a, b, c) { if(c) a = reinterpret_cast<decltype(a)>(::GetProcAddress(c, #b)); }
 
 // 初始化库

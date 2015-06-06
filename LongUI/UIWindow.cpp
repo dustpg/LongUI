@@ -56,8 +56,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         this->draw_zone.width = static_cast<float>(LongUIDefaultWindowWidth);
         this->draw_zone.height = static_cast<float>(LongUIDefaultWindowHeight);
     }
-    m_clientSize.width = this->draw_zone.width;
-    m_clientSize.height = this->draw_zone.height;
+    visible_rect.right = m_clientSize.width = this->draw_zone.width;
+    visible_rect.bottom = m_clientSize.height = this->draw_zone.height;
     // 调整大小
     ::AdjustWindowRect(&window_rect, window_style, FALSE);
     // 居中
@@ -245,7 +245,7 @@ auto LongUI::UIWindow::FindControl(const CUIString& str) noexcept -> UIControl *
     // 未找到返回空
     if (itr == m_mapString2Control.cend()) {
         // 警告
-        UIManager << DL_Warning << L"Control Not Found:\n  " << str.c_str() << LongUI::endl;
+        UIManager << DL_Warning << L"Control Not Found:\n  " << str << LongUI::endl;
         return nullptr;
     }
     // 找到就返回指针
@@ -588,23 +588,11 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
             // 设置转换矩阵
             m_pRenderTarget->SetTransform(&ctrl->parent->world);
             ctrl->Render(RenderType::Type_Render);
-            D2D1_RECT_F draw_rect = GetDrawRect(ctrl);
-            // 左上坐标
-            auto lefttop = LongUI::TransformPoint(
-                ctrl->parent->world,
-                D2D1::Point2F(ctrl->show_zone.left, ctrl->show_zone.top)
-                );
-            auto rightbuttom = LongUI::TransformPoint(
-                ctrl->parent->world,
-                D2D1::Point2F(
-                    ctrl->show_zone.left + ctrl->show_zone.width,
-                    ctrl->show_zone.top + ctrl->show_zone.height)
-                );
             // 限制转换
-            m_dirtyRects[i].left = std::max(static_cast<LONG>(lefttop.x), long(0));
-            m_dirtyRects[i].top = std::max(static_cast<LONG>(lefttop.y), long(0));
-            m_dirtyRects[i].right = std::min(static_cast<LONG>(rightbuttom.x), long(m_clientSize.width));
-            m_dirtyRects[i].bottom = std::min(static_cast<LONG>(rightbuttom.y), long(m_clientSize.height));
+            m_dirtyRects[i].left = static_cast<LONG>(ctrl->visible_rect.left);
+            m_dirtyRects[i].top = static_cast<LONG>(ctrl->visible_rect.top);
+            m_dirtyRects[i].right = static_cast<LONG>(ctrl->visible_rect.right);
+            m_dirtyRects[i].bottom = static_cast<LONG>(ctrl->visible_rect.bottom);
         }
     }
     // 有效 -> 清零
@@ -850,8 +838,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     m_rcScroll.right = rect.right;
     m_rcScroll.bottom = rect.bottom;
 
-    m_clientSize.width = static_cast<float>(rect.right);
-    m_clientSize.height = static_cast<float>(rect.bottom);
+    visible_rect.right = m_clientSize.width = static_cast<float>(rect.right);
+    visible_rect.bottom = m_clientSize.height = static_cast<float>(rect.bottom);
     rect.right = MakeAsUnit(rect.right);
     rect.bottom = MakeAsUnit(rect.bottom);
     auto old_size = m_pTargetBimtap->GetPixelSize();

@@ -111,7 +111,6 @@ bool LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) noexcept {
         }
     }
     else {
-        auto new_arg = arg;
         switch (arg.msg)
         {
         case WM_LBUTTONUP:

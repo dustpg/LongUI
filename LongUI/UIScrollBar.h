@@ -90,12 +90,6 @@ namespace LongUI{
         float                   m_fIndex = 0.f;
         // max range of scroll bar
         float                   m_fMaxRange = 1.f;
-        // the rect of arrow 2
-        D2D1_RECT_F             m_rtArrow1 = D2D1::RectF();
-        // the rect of arrow 2
-        D2D1_RECT_F             m_rtArrow2 = D2D1::RectF();
-        // the rect of thumb
-        D2D1_RECT_F             m_rtThumb = D2D1::RectF();
         // the onwer of scroll bar
         UIContainer*            m_pOwner = nullptr;
     public:
@@ -115,6 +109,8 @@ namespace LongUI{
     public:
         // Render 渲染
         auto Render(RenderType type) noexcept->HRESULT override;
+        // do event 事件处理
+        bool DoEvent(LongUI::EventArgument&) noexcept override;
         // close this control 关闭控件
         void Close() noexcept override;
     public:
@@ -124,6 +120,12 @@ namespace LongUI{
         // dtor
         ~UIScrollBarA() noexcept;
     private:
+        // the rect of arrow 2
+        D2D1_RECT_F             m_rtArrow1 = D2D1::RectF();
+        // the rect of arrow 2
+        D2D1_RECT_F             m_rtArrow2 = D2D1::RectF();
+        // the rect of thumb
+        D2D1_RECT_F             m_rtThumb = D2D1::RectF();
         // brush of this
         ID2D1Brush*             m_pBrush = nullptr;
         // arrow 1 text path geo

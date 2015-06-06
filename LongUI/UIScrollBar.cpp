@@ -1,5 +1,51 @@
 ﻿#include "LongUI.h"
 
+
+enum class Unit : size_t {
+    Unknown = 0,
+    Bitmap ,
+    ColorRect,
+};
+
+template<Unit... Elements> class Units;
+template<Unit Head, Unit... Tail>
+class Units<Head, Tail...> : protected Units<Tail...> {
+    using Super = Units<Tail...>;
+protected:
+    Units<Head> head;
+public:
+    // ctor
+    Units(pugi::xml_node node) : Super(node), head(node) {};
+    // set unit type
+    inline void SetUnitType(Unit unit) { m_type = unit; }
+    // render this
+    void Render(float x, float y) {
+        if (this->now_unit == Head) {
+            head.Render(x, y);
+        }
+        else {
+            Super::Render(x, y);
+        }
+    }
+};
+
+template<> class Units<> {
+protected:
+    Unit        m_type = Unit::Unknown;
+};
+
+template<> class Units<Unit::Bitmap> : public Units<> {
+public:
+    int a;
+};
+
+template<> class Units<Unit::ColorRect> : public Units<>{
+public:
+    float b;
+};
+
+
+
 // TODO: 滚动条优化
 //std::atomic_uint32_t g_cScrollBarCount = 0;
 //ID2D1PathGeometry*  g_pScrollBar1 = nullptr;
@@ -7,6 +53,11 @@
 
 // UIScrollBar 构造函数
 LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
+    Units<Unit::Bitmap, Unit::ColorRect> unit;
+    unit.now_unit = Unit::ColorRect;
+    unit.Render(0.f, 0.f);
+
+    constexpr int azz = sizeof(unit);
     /*char32_t buffer[] = {
         9652,    // UP
         9662,    // DOWN
@@ -166,23 +217,8 @@ bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
     }
     // 系统消息
     else {
-        switch (arg.msg) {
-        case WM_MOUSEMOVE:
-            // 检查指向类型
-            if (IsPointInRect(m_rtArrow1, arg.pt)) {
-                m_pointType = PointType::Type_Arrow1;
-            }
-            else if (IsPointInRect(m_rtArrow2, arg.pt)) {
-                m_pointType = PointType::Type_Arrow2;
-            }
-            else if (IsPointInRect(m_rtThumb, arg.pt)) {
-                m_pointType = PointType::Type_Thumb;
-            }
-            else {
-                m_pointType = PointType::Type_Shaft;
-            }
-            break;
-        }
+        // 鼠标移上
+
     }
     return false;
 }
@@ -233,6 +269,36 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
     //m_pRenderTarget->FillRectangle(&m_rtArrow1, m_pBrush_SetBeforeUse);
     //m_pRenderTarget->FillRectangle(&m_rtArrow2, m_pBrush_SetBeforeUse);
     return S_OK;
+}
+
+
+// UIScrollBarA::do event 事件处理
+bool  LongUI::UIScrollBarA::DoEvent(LongUI::EventArgument& arg) noexcept {
+    // 控件消息
+    if (arg.sender) {
+
+    }
+    // 系统消息
+    else {
+        switch (arg.msg) {
+        case WM_MOUSEMOVE:
+            // 检查指向类型
+            if (IsPointInRect(m_rtArrow1, arg.pt)) {
+                m_pointType = PointType::Type_Arrow1;
+            }
+            else if (IsPointInRect(m_rtArrow2, arg.pt)) {
+                m_pointType = PointType::Type_Arrow2;
+            }
+            else if (IsPointInRect(m_rtThumb, arg.pt)) {
+                m_pointType = PointType::Type_Thumb;
+            }
+            else {
+                m_pointType = PointType::Type_Shaft;
+            }
+            return true;
+        }
+    }
+    return Super::DoEvent(arg);
 }
 
 /*/ UIScrollBaAr 重建 
