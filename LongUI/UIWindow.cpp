@@ -588,8 +588,8 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
             // 限制转换
             m_dirtyRects[i].left = static_cast<LONG>(ctrl->visible_rect.left);
             m_dirtyRects[i].top = static_cast<LONG>(ctrl->visible_rect.top);
-            m_dirtyRects[i].right = static_cast<LONG>(ctrl->visible_rect.right);
-            m_dirtyRects[i].bottom = static_cast<LONG>(ctrl->visible_rect.bottom);
+            m_dirtyRects[i].right = static_cast<LONG>(std::ceil(ctrl->visible_rect.right));
+            m_dirtyRects[i].bottom = static_cast<LONG>(std::ceil(ctrl->visible_rect.bottom));
         }
     }
     // 有效 -> 清零
@@ -599,7 +599,7 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
 #ifdef _DEBUG
     // 调试输出
     {
-        D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.5f, 0.5f);
+        D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.45f, 0.45f);
         m_pRenderTarget->GetTransform(&nowMatrix);
         m_pRenderTarget->SetTransform(&iMatrix);
         if (full) {
@@ -611,7 +611,7 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
         wchar_t buffer[1024];
         auto length = ::swprintf(
             buffer, 1024,
-            L"Full Render Count: %d\nDirty Render Count: %d\nThis DirtyRectsCount:%d",
+            L"Full Rendering Count: %d\nDirty Rendering Count: %d\nThis DirtyRectsCount:%d",
             full_render_counter,
             dirty_render_counter,
             m_present.DirtyRectsCount

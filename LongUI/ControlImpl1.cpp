@@ -20,10 +20,147 @@
 */
 
 
+namespace LongUI {
+    // ele
+    enum class Element : uint32_t {
+        Basic = 0,
+        Meta,
+        ColorRect,
+        BrushRect,
+        ColorGeometry,
+    };
+    // class decl
+    template<Element... > class Elements;
+    // render unit
+    template<Element Head, Element... Tail>
+    class Elements<Head, Tail...> : protected virtual Elements<Tail...>, protected Elements<Head>{
+        // super class
+        using SuperA = Elements<Tail...>;
+    // super class
+    using SuperB = Elements<Head>;
+    public:
+        // set unit type
+        inline void SetElementType(Element unit) noexcept { this->type = unit; }
+        // ctor
+        Elements(pugi::xml_node node) noexcept : SuperA(node), SuperB(node) {}
+    public:
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<ElementType>& { return Super::GetByType<ElementType>(); }
+        // get element for head
+        template<>
+        auto GetByType<Head>() noexcept ->Elements<Head>& { return static_cast<Elements<Head>&>(*this); }
+        // render this
+        void Render(const D2D1_RECT_F& rect) noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
+        // update
+        auto Update(float t) noexcept { m_animation.Update(t); }
+        // recreate
+        auto Recreate(LongUIRenderTarget* target) noexcept {
+            HRESULT hr = S_OK;
+            if (SUCCEEDED(hr)) {
+                hr = SuperA::Recreate(target);
+            }
+            if (SUCCEEDED(hr)) {
+                hr = SuperB::Recreate(target);
+            }
+            return hr;
+        }
+    };
+    // element for all
+    template<> class Elements<Element::Basic> {
+    public:
+        // ctor 
+        Elements(pugi::xml_node node = LongUINullXMLNode) noexcept 
+            : m_animation(AnimationType::Type_QuadraticEaseOut) {
+            m_animation.end = 1.f;
+        }
+        // init 
+        void Init(pugi::xml_node node) noexcept;
+        // render this
+        void Render(const D2D1_RECT_F&) noexcept { }
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
+        // set new status
+        auto SetNewStatus(ControlStatus) noexcept ->float;
+        // recreate
+        auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
+        // type of unit
+        Element                 type = Element::Basic;
+    protected:
+        // render target
+        LongUIRenderTarget*     m_pRenderTarget = nullptr;
+        // state of unit
+        ControlStatus           m_state = ControlStatus::Status_Disabled;
+        // state of unit
+        ControlStatus           m_stateTartget = ControlStatus::Status_Disabled;
+        // animation
+        CUIAnimationOpacity     m_animation;
+    };
+    // element for bitmap
+    template<> class Elements<Element::Meta> : protected virtual Elements<Element::Basic>{
+        // super class
+        using Super = Elements<Element::Basic>;
+    public:
+        // ctor
+        Elements(pugi::xml_node node) noexcept;
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
+        // render this
+        void Render(const D2D1_RECT_F&) noexcept;
+        // recreate
+        auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+        // is OK?
+        auto IsOK() noexcept { return m_metas[Status_Normal].bitmap != nullptr; }
+    protected:
+        // metas
+        Meta            m_metas[STATUS_COUNT];
+        // metas id
+        uint16_t        m_aID[STATUS_COUNT];
+    };
+    // element for color rect
+    template<> class Elements<Element::BrushRect> : protected virtual Elements<Element::Basic>{
+        // super class
+        using Super = Elements<Element::Basic>;
+    public:
+        // ctor
+        Elements(pugi::xml_node node) noexcept;
+        // dtor
+        ~Elements() noexcept { this->release_data(); }
+        // get element
+        template<Element ElementType>
+        auto GetByType() noexcept ->Elements<Element::ColorRect>& { return *this; }
+        // render this
+        void Render(const D2D1_RECT_F& rect) noexcept;
+        // recreate
+        auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+    private:
+        // relase data
+        void release_data() noexcept;
+    protected:
+        // brush
+        ID2D1Brush*     m_apBrushes[STATUS_COUNT];
+        // brush id
+        uint16_t        m_aID[STATUS_COUNT];
+    };
+
+}
+
+using BtnEle = LongUI::Elements<LongUI::Element::Meta, LongUI::Element::BrushRect, LongUI::Element::Basic>;
+BtnEle g_unit(LongUINullXMLNode);
+
+
+
 // TODO: 检查所有控件Render, 需要调用UIControl::Render;
 
 // UIControl 构造函数
 LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
+    // 颜色
+    m_aBorderColor[Status_Disabled] = D2D1::ColorF(0xD9D9D9);
+    m_aBorderColor[Status_Normal] = D2D1::ColorF(0xACACAC);
+    m_aBorderColor[Status_Hover] = D2D1::ColorF(0x7EB4EA);
+    m_aBorderColor[Status_Pushed] = D2D1::ColorF(0x569DE5);
     // 构造默认
     int flag = LongUIFlag::Flag_None | LongUIFlag::Flag_Visible;
     // 有效?
@@ -54,6 +191,20 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if (show_zone.height > 0.f) {
             flag |= LongUI::Flag_HeightFixed;
         }
+        // 边框大小
+        if (data = node.attribute("bordersize").value()) {
+            m_fBorderSize = LongUI::AtoF(data);
+        }
+        // 边框圆角
+        UIControl::MakeFloats(node.attribute("borderround").value(),&m_fBorderRdius.width, 4);
+        if (data = node.attribute("borderround").value()) {
+            m_fBorderSize = LongUI::AtoF(data);
+        }
+        // 边框颜色
+        UIControl::MakeColor(node.attribute("disabledbordercolor").value(), m_aBorderColor[Status_Disabled]);
+        UIControl::MakeColor(node.attribute("normalbordercolor").value(), m_aBorderColor[Status_Normal]);
+        UIControl::MakeColor(node.attribute("hoverbordercolor").value(), m_aBorderColor[Status_Hover]);
+        UIControl::MakeColor(node.attribute("pushedbordercolor").value(), m_aBorderColor[Status_Pushed]);
     }
     else  {
         // 错误
@@ -88,8 +239,21 @@ auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
     case LongUI::RenderType::Type_Render:
         m_bDrawPosChanged = false;
         m_bDrawSizeChanged = false;
-        break;
+        __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
+        // 渲染边框
+        if (m_fBorderSize > 0.f) {
+            D2D1_ROUNDED_RECT rrect;
+            rrect.rect = GetDrawRect(this);
+            rrect.radiusX = m_fBorderRdius.width;
+            rrect.radiusY = m_fBorderRdius.height;
+            m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
+            //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+            m_pRenderTarget->DrawRoundedRectangle(
+                &rrect, m_pBrush_SetBeforeUse, m_fBorderSize
+                );
+            //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        }
         break;
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
@@ -362,9 +526,12 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
             this->draw_zone = this->show_zone;
         }
         draw_rect = GetDrawRect(this);
-        m_uiElement.Render(&draw_rect);
+        g_unit.Render(draw_rect);
+        UIElement_Update(g_unit);
+        //m_uiElement.Render(&draw_rect);
         // 更新计时器
-        UIElement_Update(m_uiElement);
+        //UIElement_Update(m_uiElement);
+
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -379,7 +546,10 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
 
 // UIButton 构造函数
 LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node),m_uiElement(node, nullptr){
-
+    new(&g_unit) BtnEle(node);
+    g_unit.GetByType<Element::Basic>().Init(node);
+    g_unit.SetElementType(Element::BrushRect);
+    constexpr int azz = sizeof(g_unit);
 }
 
 // UIButton 析构函数
@@ -422,11 +592,13 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
             return true;
         case LongUI::Event::Event_MouseEnter:
             //m_bEffective = true;
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), LongUI::Status_Hover);
+            m_colorBorderNow = m_aBorderColor[LongUI::Status_Hover];
             break;
         case LongUI::Event::Event_MouseLeave:
             //m_bEffective = false;
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), LongUI::Status_Normal);
+            m_colorBorderNow = m_aBorderColor[LongUI::Status_Normal];
             break;
         }
     }
@@ -437,7 +609,8 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
         {
         case WM_LBUTTONDOWN:
             m_pWindow->SetCapture(this);
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
+            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), LongUI::Status_Pushed);
+            m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
             break;
         case WM_LBUTTONUP:
             arg.event = LongUI::Event::Event_ButtoClicked;
@@ -450,12 +623,13 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
             if (m_eventClick) {
                 rec = (m_pClickTarget->*m_eventClick)(this);
             }
+            // 否则发送事件到窗口
             else {
-                // 否则发送事件到窗口
                 rec = m_pWindow->DoEvent(arg);
             }
             arg.msg = tempmsg;
-            UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
+            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), m_tarStatusClick);
+            m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
             m_pWindow->ReleaseCapture();
             break;
         }
@@ -471,6 +645,8 @@ auto LongUI::UIButton::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     m_uiElement.target = newRT;
     m_uiElement.brush = m_pBGBrush;
     m_uiElement.InitStatus(LongUI::Status_Normal);
+    //
+    g_unit.Recreate(newRT);
     // 父类处理
     return Super::Recreate(newRT);
 }
@@ -628,3 +804,147 @@ LongUI::UIEditBasic::UIEditBasic(pugi::xml_node node) noexcept
 
 
 
+
+
+
+
+
+
+
+
+// 实现
+
+// Elements<Basic> Init
+void LongUI::Elements<LongUI::Element::Basic>::Init(pugi::xml_node node) noexcept {
+    // 无效?
+    if (!node) return; const char* str = nullptr;
+    // 动画类型
+    if (str = node.attribute("animationtype").value()) {
+        m_animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
+    }
+    // 动画持续时间
+    if (str = node.attribute("animationduration").value()) {
+        m_animation.duration = LongUI::AtoF(str);
+    }
+}
+
+// 设置新的状态
+auto LongUI::Elements<LongUI::Element::Basic>::
+SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
+    m_state = m_stateTartget;
+    m_stateTartget = new_status;
+    m_animation.value = 0.f;
+    return m_animation.time = m_animation.duration;
+}
+
+// Elements<Meta> 构造函数
+LongUI::Elements<LongUI::Element::Meta>::Elements(pugi::xml_node node) noexcept: Super(node) {
+    ZeroMemory(m_metas, sizeof(m_metas));
+    ZeroMemory(m_aID, sizeof(m_aID));
+    // 无效?
+    if (!node) return;
+    // 禁用状态Meta ID
+    m_aID[Status_Disabled] = LongUI::AtoI(node.attribute("disabledmeta").value());
+    // 通常状态Meta ID
+    m_aID[Status_Normal] = LongUI::AtoI(node.attribute("normalmeta").value());
+    // 移上状态Meta ID
+    m_aID[Status_Hover] = LongUI::AtoI(node.attribute("hovermeta").value());
+    // 按下状态Meta ID
+    m_aID[Status_Pushed] = LongUI::AtoI(node.attribute("pushedmeta").value());
+}
+
+
+// Elements<Meta> 重建
+auto LongUI::Elements<LongUI::Element::Meta>::
+Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
+    for (auto i = 0u; i < STATUS_COUNT; ++i) {
+        // 有效
+        register auto id = m_aID[i];
+        if (id) {
+            UIManager.GetMeta(id, m_metas[i]);
+        }
+    }
+    return S_OK;
+}
+
+// Elements<Meta> 渲染
+void LongUI::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F& rect) noexcept {
+    assert(m_pRenderTarget);
+    // 先绘制当前状态
+    if (m_animation.value < m_animation.end) {
+        auto meta = m_metas[m_state];
+        assert(meta.bitmap);
+        m_pRenderTarget->DrawBitmap(
+            meta.bitmap,
+            rect, 1.f,
+            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+            meta.src_rect,
+            nullptr
+            );
+    }
+    // 再绘制目标状态
+    auto meta = m_metas[m_stateTartget];
+    assert(meta.bitmap);
+    m_pRenderTarget->DrawBitmap(
+        meta.bitmap,
+        rect, m_animation.value,
+        static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+        meta.src_rect,
+        nullptr
+        );
+}
+
+
+
+// Elements<BrushMeta> 构造函数
+LongUI::Elements<LongUI::Element::BrushRect>::Elements(pugi::xml_node node) noexcept :Super(node) {
+    ZeroMemory(m_apBrushes, sizeof(m_apBrushes));
+    ZeroMemory(m_aID, sizeof(m_aID));
+    // 无效?
+    if (!node) return;
+}
+
+// 释放数据
+void LongUI::Elements<LongUI::Element::BrushRect>::release_data() noexcept {
+    for (auto& brush : m_apBrushes) {
+        ::SafeRelease(brush);
+    }
+}
+
+// Elements<BrushRectta> 渲染
+void LongUI::Elements<LongUI::Element::BrushRect>::Render(const D2D1_RECT_F& rect) noexcept {
+    assert(m_pRenderTarget);
+    D2D1_MATRIX_3X2_F matrix; m_pRenderTarget->GetTransform(&matrix);
+    // 计算转换后的矩形
+    auto height = rect.bottom - rect.top;
+    D2D1_RECT_F rect2 = {
+        0.f, 0.f, (rect.right - rect.left) / height , 1.f
+    };
+    // 计算转换后的矩阵
+    m_pRenderTarget->SetTransform(
+        D2D1::Matrix3x2F::Scale(height, height) *
+        D2D1::Matrix3x2F::Translation(rect.left, rect.top) *
+        matrix
+        );
+    // 先绘制当前状态
+    if (m_animation.value < m_animation.end) {
+        m_pRenderTarget->FillRectangle(rect2, m_apBrushes[m_state]);
+    }
+    // 后绘制目标状态
+    auto brush = m_apBrushes[m_stateTartget];
+    brush->SetOpacity(m_animation.value);
+    m_pRenderTarget->FillRectangle(rect2, brush);
+    brush->SetOpacity(1.f);
+    m_pRenderTarget->SetTransform(&matrix);
+}
+
+// Elements<BrushRectta> 渲染
+auto LongUI::Elements<LongUI::Element::BrushRect>::
+Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
+    this->release_data();
+    for (auto i = 0u; i < STATUS_COUNT; ++i) {
+        register auto id = m_aID[i];
+        m_apBrushes[i] = id ? UIManager.GetBrush(id) : UIManager.GetSystemBrush(i);
+    }
+    return S_OK;
+}

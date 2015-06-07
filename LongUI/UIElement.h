@@ -57,7 +57,7 @@ namespace LongUI {
         // Init status
         void __fastcall InitStatus(ControlStatus) noexcept;
         // update
-        void __fastcall Update(float t) { UIElement_IsMetaMode ? animationo.Updata(t) : animationc.Updata(t); }
+        void __fastcall Update(float t) { UIElement_IsMetaMode ? animationo.Update(t) : animationc.Update(t); }
         // render target
         LongUIRenderTarget*     target;
         // common brush
@@ -67,9 +67,9 @@ namespace LongUI {
         // target status
         ControlStatus           tar_status;
         // color of it
-        D2D1_COLOR_F            colors[Status_Count];
+        D2D1_COLOR_F            colors[STATUS_COUNT];
         // meta of it
-        Meta                    metas[Status_Count];
+        Meta                    metas[STATUS_COUNT];
         // animation color
         CUIAnimationColor       animationc;
         // animation opacity

@@ -260,7 +260,7 @@ namespace LongUI {
         Status_Normal,          // 通常状态
         Status_Hover,           // 鼠标移上
         Status_Pushed,          // 鼠标按下
-        Status_Count,           // 状态数量
+        STATUS_COUNT,           // 状态数量
     };
     // bitmap render rule
     enum class BitmapRenderRule : uint16_t {

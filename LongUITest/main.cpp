@@ -6,7 +6,7 @@
 #if 1
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA">
-    <VerticalLayout name="VLayout1" pos="0, 0, 1366, 128">
+    <VerticalLayout name="VLayout1" pos="0, 0, 512, 128">
         <!--Video name="asd" /-->
         <Test name="test" texttype="core" text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
         <Slider name="6" renderparent="true"/>
@@ -16,7 +16,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <VerticalLayout name="VLayout2">
             <Label name="2" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
             <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
-                hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+                hovermeta="3" pushedmeta="4" bordersize="1" text="Hello, world!"/>
             <CheckBox name="5" text="Hello, world!"/>
             <!--Button name="uac" disabledmeta="1" normalmeta="2" 
                 hovermeta="3" pushedmeta="4" text="Try  Elevate UAC Now "/-->

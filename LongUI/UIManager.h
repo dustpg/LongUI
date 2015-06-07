@@ -41,19 +41,6 @@ namespace LongUI {
             // Win10
             Style_Win10
         };
-        // System Brush
-        enum SystemBrush : size_t {
-            // disbale brush
-            Brush_Disabled = 0,
-            // normal brush
-            Brush_Normal,
-            // hover brush
-            Brush_Hover,
-            // pushed brush
-            Brush_Pushed,
-            // size of this
-            BRUSH_SIZE
-        };
     public: // handle zone 操作区
         // initialize 初始化
         auto Initialize(IUIConfigure* =nullptr) noexcept->HRESULT;
@@ -209,7 +196,7 @@ namespace LongUI {
         // 文本渲染器
         UIBasicTextRenderer*            m_apTextRenderer[LongUIMaxTextRenderer];
         // system brush
-        ID2D1Brush*                     m_apSystemBrushes[BRUSH_SIZE];
+        ID2D1Brush*                     m_apSystemBrushes[STATUS_COUNT];
         // 二进制资源读取器
         IUIBinaryResourceLoader*        m_pBinResLoader = nullptr;
         // default bitmap buffer
@@ -267,7 +254,7 @@ namespace LongUI {
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
         auto GetMetaHICON(uint32_t index) noexcept->HICON;
         // get system brush
-        auto GetSystemBrush(SystemBrush index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
+        auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
     public:
         // constructor 构造函数
         CUIManager() noexcept;

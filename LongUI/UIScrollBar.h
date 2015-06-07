@@ -111,6 +111,8 @@ namespace LongUI{
         auto Render(RenderType type) noexcept->HRESULT override;
         // do event 事件处理
         bool DoEvent(LongUI::EventArgument&) noexcept override;
+        // recreate
+        auto Recreate(LongUIRenderTarget* )noexcept->HRESULT override;
         // close this control 关闭控件
         void Close() noexcept override;
     public:

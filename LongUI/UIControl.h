@@ -160,6 +160,17 @@ namespace LongUI{
     protected:
         // user context
         void*                   user_context = nullptr;
+    protected: // border
+        // color of border
+        D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
+        // now color of border
+        D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(D2D1::ColorF::Black);
+        // size of border
+        float                   m_fBorderSize = 0.f;
+        // reserved
+        uint32_t                m_uBorderReserved = 0;
+        // roundsize of border
+        D2D1_SIZE_F             m_fBorderRdius = D2D1::SizeF();
     protected:
         // control name
         CUIString               m_strControlName;

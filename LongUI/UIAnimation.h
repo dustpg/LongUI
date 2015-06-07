@@ -71,7 +71,7 @@ namespace LongUI {
         // destructor
         ~CUIAnimation() noexcept {}
         // update
-        void __fastcall Updata(float t) noexcept {
+        void __fastcall Update(float t) noexcept {
             if (this->time <= 0.f) {
                 this->value = this->end;
                 return;
@@ -104,7 +104,7 @@ namespace LongUI {
 
     // for D2D1_COLOR_F or Float4
     template<> static
-    void LongUI::CUIAnimation<D2D1_COLOR_F>::Updata(float t) noexcept {
+    void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept {
         if (this->time <= 0.f) {
             this->value = this->end;
             return;
@@ -120,7 +120,7 @@ namespace LongUI {
 
     // for D2D1_POINT_2F or Float2
     template<> static
-        void LongUI::CUIAnimation<D2D1_POINT_2F>::Updata(float t) noexcept {
+        void LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept {
         if (this->time <= 0.f) {
             this->value = this->end;
             return;
@@ -134,7 +134,7 @@ namespace LongUI {
 
     // for D2D1_MATRIX_3X2_F or Float6
     template<> static
-        void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Updata(float t) noexcept {
+        void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept {
         if (this->time <= 0.f) {
             this->value = this->end;
             return;
