@@ -49,15 +49,33 @@ namespace LongUI {
     };
     // Component namespace
     namespace Component {
-    // class decl
+        // class decl
         template<Element... > class Elements;
+        // code bloat limiter, because of "lightweight"
+        class CodeBloatLimiter {
+        public:
+            // ctor for Elements<Meta>
+            static void __fastcall ElementsMetaCtor(
+                pugi::xml_node node, const char* prefix,
+                uint16_t* first, uint32_t size, const char** list
+                ) noexcept;
+            // recreate for Elements<Meta>
+            static void __fastcall ElementsMetaRecreate(
+                Meta* metas, uint16_t* ids, uint32_t size
+                ) noexcept;
+            // render for Elements<Meta>
+            static void __fastcall ElementsMetaRender(
+                Elements<Element::Basic>& ele, Meta* metas,
+                const D2D1_RECT_F& rect
+                ) noexcept;
+        };
         // render unit
         template<Element Head, Element... Tail>
         class Elements<Head, Tail...> : protected virtual Elements<Tail...>, protected Elements<Head>{
             // super class
             using SuperA = Elements<Tail...>;
-        // super class
-        using SuperB = Elements<Head>;
+            // super class
+            using SuperB = Elements<Head>;
         public:
             // set unit type
             auto SetElementType(Element unit) noexcept { this->type = unit; }
@@ -88,6 +106,8 @@ namespace LongUI {
         };
         // element for all
         template<> class Elements<Element::Basic> {
+            // friend class
+            friend class CodeBloatLimiter;
         public:
             // ctor 
             Elements(pugi::xml_node node = LongUINullXMLNode, const char* prefix = nullptr)
@@ -132,7 +152,7 @@ namespace LongUI {
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
             // is OK?
-            auto IsOK() noexcept { return m_metas[Status_Normal].bitmap != nullptr; }
+            auto IsOK() noexcept { return m_aID[Status_Normal] != 0; }
         protected:
             // metas
             Meta            m_metas[STATUS_COUNT];

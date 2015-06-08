@@ -29,6 +29,7 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
     m_aBorderColor[Status_Normal] = D2D1::ColorF(0xACACAC);
     m_aBorderColor[Status_Hover] = D2D1::ColorF(0x7EB4EA);
     m_aBorderColor[Status_Pushed] = D2D1::ColorF(0x569DE5);
+    m_colorBorderNow = m_aBorderColor[Status_Normal];
     // 构造默认
     int flag = LongUIFlag::Flag_None | LongUIFlag::Flag_Visible;
     // 有效?
@@ -397,11 +398,14 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
         }
         draw_rect = GetDrawRect(this);
         m_uiElement.Render(draw_rect);
-        UIElement_Update(m_uiElement);
-        //m_uiElement.Render(&draw_rect);
+        {
+            auto time = m_pWindow->GetDeltaTime();
+            if (time > 0.f) {
+                m_uiElement.Update(time);
+            }
+        }
         // 更新计时器
         //UIElement_Update(m_uiElement);
-
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -416,7 +420,6 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
 
 // UIButton 构造函数
 LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node){
-    // , nullptr
     // 初始化代码
     m_uiElement.GetByType<Element::Basic>().Init(node);
     if (m_uiElement.GetByType<Element::Meta>().IsOK()) {
@@ -426,7 +429,7 @@ LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElemen
         m_uiElement.SetElementType(Element::BrushRect);
     }
     // 特殊
-    m_uiElement.SetElementType(Element::BrushRect);
+    //m_uiElement.SetElementType(Element::BrushRect);
     constexpr int azz = sizeof(m_uiElement);
 }
 
