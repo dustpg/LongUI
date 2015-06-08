@@ -1,6 +1,4 @@
-﻿UNFINSHED DOC YET
-
-## LongUI
+﻿## LongUI
   
 Lightweight Direct2D GUI Library/Framework
 
@@ -16,7 +14,13 @@ For this repo, you need:
   - Tool-chain/Environment B(would support in the future):
     - Rakefile(ruby)
     - MinGW-W64
-
+    
+##Remarks
+  
+  Windows 7 also supported Direct2D 1.1, but DirectComposition,  
+  planned support for Win7 without DirectComposition,but MS   
+  said that Win7 could upgrade to Win10 for free, so just 'planned'
+  
 ## PROJECTS LIST
   
   -  3rdparty/* , 3rdparty library, like dlmalloc
