@@ -29,7 +29,9 @@ namespace LongUI{
     // default button control 默认按钮控件
     class LongUIAPI UIButton final : public UILabel{
         // 父类申明
-        using Super = UILabel ;
+        using Super = UILabel;
+        // ui element
+        using ButtonElement = Component::Elements<Element::Meta, Element::BrushRect, Element::Basic>;
     public:
         // Render 渲染 
         virtual auto Render(RenderType type) noexcept ->HRESULT override;
@@ -50,18 +52,16 @@ namespace LongUI{
         // constructor 构造函数
         UIButton(pugi::xml_node) noexcept;
         // destructor 析构函数
-        ~UIButton() noexcept;
+        ~UIButton() noexcept {};
         // deleted function
         UIButton(const UIButton&) = delete;
     protected:
-        // backgroud color
-        ID2D1SolidColorBrush*   m_pBGBrush = nullptr;
         // event target 
         UIControl*              m_pClickTarget = nullptr;
         // click event
         LongUICallBack          m_eventClick = nullptr;
-        // btn node
-        CUIElement              m_uiElement;
+        // element
+        ButtonElement           m_uiElement;
         // target status when clicked
         ControlStatus           m_tarStatusClick = LongUI::Status_Hover;
         /*// effective

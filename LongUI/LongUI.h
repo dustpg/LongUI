@@ -120,6 +120,7 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
         __FUNCTIONW__, hr\
         );\
     UIManager.ShowError(hr, buffffffffffer);\
+    assert(!"ShowErrorWithHR");\
 }
 
 // show string error

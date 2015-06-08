@@ -66,9 +66,6 @@
     <ClInclude Include="UIInterface.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
-    <ClInclude Include="UIElement.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
     <ClInclude Include="UIString.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
@@ -135,6 +132,9 @@
     <ClInclude Include="DataContainer.h">
       <Filter>LongUI\Util</Filter>
     </ClInclude>
+    <ClInclude Include="UIElement.h">
+      <Filter>LongUI\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -175,6 +175,9 @@
     </ClCompile>
     <ClCompile Include="ContainerImpl.cpp">
       <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UIElement.cpp">
+      <Filter>LongUI\Component</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

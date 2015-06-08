@@ -20,172 +20,6 @@
 */
 
 
-namespace LongUI {
-    // ele
-    enum class Element : uint32_t {
-        Basic = 0,
-        Meta,
-        ColorRect,
-        BrushRect,
-        ColorGeometry,
-    };
-    // class decl
-    template<Element... > class Elements;
-    // render unit
-    template<Element Head, Element... Tail>
-    class Elements<Head, Tail...> : protected virtual Elements<Tail...>, protected Elements<Head>{
-        // super class
-        using SuperA = Elements<Tail...>;
-    // super class
-    using SuperB = Elements<Head>;
-    public:
-        // set unit type
-        inline void SetElementType(Element unit) noexcept { this->type = unit; }
-        // ctor
-        Elements(pugi::xml_node node) noexcept : SuperA(node), SuperB(node) {}
-    public:
-        // get element
-        template<Element ElementType>
-        auto GetByType() noexcept ->Elements<ElementType>& { return Super::GetByType<ElementType>(); }
-        // get element for head
-        template<>
-        auto GetByType<Head>() noexcept ->Elements<Head>& { return static_cast<Elements<Head>&>(*this); }
-        // render this
-        void Render(const D2D1_RECT_F& rect) noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
-        // update
-        auto Update(float t) noexcept { m_animation.Update(t); }
-        // recreate
-        auto Recreate(LongUIRenderTarget* target) noexcept {
-            HRESULT hr = S_OK;
-            if (SUCCEEDED(hr)) {
-                hr = SuperA::Recreate(target);
-            }
-            if (SUCCEEDED(hr)) {
-                hr = SuperB::Recreate(target);
-            }
-            return hr;
-        }
-    };
-    // element for all
-    template<> class Elements<Element::Basic> {
-    public:
-        // ctor 
-        Elements(pugi::xml_node node = LongUINullXMLNode) noexcept 
-            : m_animation(AnimationType::Type_QuadraticEaseOut) {
-            m_animation.end = 1.f;
-        }
-        // init 
-        void Init(pugi::xml_node node) noexcept;
-        // render this
-        void Render(const D2D1_RECT_F&) noexcept { }
-        // get element
-        template<Element ElementType>
-        auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
-        // set new status
-        auto SetNewStatus(ControlStatus) noexcept ->float;
-        // recreate
-        auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
-        // type of unit
-        Element                 type = Element::Basic;
-    protected:
-        // render target
-        LongUIRenderTarget*     m_pRenderTarget = nullptr;
-        // state of unit
-        ControlStatus           m_state = ControlStatus::Status_Disabled;
-        // state of unit
-        ControlStatus           m_stateTartget = ControlStatus::Status_Disabled;
-        // animation
-        CUIAnimationOpacity     m_animation;
-    };
-    // element for bitmap
-    template<> class Elements<Element::Meta> : protected virtual Elements<Element::Basic>{
-        // super class
-        using Super = Elements<Element::Basic>;
-    public:
-        // ctor
-        Elements(pugi::xml_node node) noexcept;
-        // get element
-        template<Element ElementType>
-        auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
-        // render this
-        void Render(const D2D1_RECT_F&) noexcept;
-        // recreate
-        auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
-        // is OK?
-        auto IsOK() noexcept { return m_metas[Status_Normal].bitmap != nullptr; }
-    protected:
-        // metas
-        Meta            m_metas[STATUS_COUNT];
-        // metas id
-        uint16_t        m_aID[STATUS_COUNT];
-    };
-    // element for brush rect
-    template<> class Elements<Element::BrushRect> : protected virtual Elements<Element::Basic>{
-        // super class
-        using Super = Elements<Element::Basic>;
-    public:
-        // ctor
-        Elements(pugi::xml_node node) noexcept;
-        // dtor
-        ~Elements() noexcept { this->release_data(); }
-        // get element
-        template<Element ElementType>
-        auto GetByType() noexcept ->Elements<Element::BrushRect>& { return *this; }
-        // render this
-        void Render(const D2D1_RECT_F& rect) noexcept;
-        // recreate
-        auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
-        // change brush
-        void ChangeBrush(ControlStatus index, ID2D1Brush* brush) noexcept {
-            ::SafeRelease(m_apBrushes[index]); 
-            m_apBrushes[index] = ::SafeAcquire(brush);
-        }
-    private:
-        // relase data
-        void release_data() noexcept;
-    protected:
-        // brush
-        ID2D1Brush*     m_apBrushes[STATUS_COUNT];
-        // brush id
-        uint16_t        m_aID[STATUS_COUNT];
-    };
-    // element for color rect
-    template<> class Elements<Element::ColorRect> : protected virtual Elements<Element::Basic>{
-        // super class
-        using Super = Elements<Element::Basic>;
-    public:
-        // ctor
-        Elements(pugi::xml_node node) noexcept;
-        // dtor
-        ~Elements() noexcept { ::SafeRelease(m_pBrush); }
-        // get element
-        template<Element ElementType>
-        auto GetByType() noexcept ->Elements<Element::ColorRect>& { return *this; }
-        // render this
-        void Render(const D2D1_RECT_F& rect) noexcept;
-        // recreate
-        auto Recreate(LongUIRenderTarget* target) noexcept { 
-            ::SafeRelease(m_pBrush);
-            m_pBrush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
-            return S_OK; 
-        }
-        // change color
-        void ChangeColor(ControlStatus index, D2D1_COLOR_F& color) noexcept { m_aColor[index] = color; }
-        // change color
-        void ChangeColor(ControlStatus index, uint32_t color, float alpha=1.f) noexcept { m_aColor[index] = D2D1::ColorF(color, alpha); }
-    protected:
-        // brush id
-        D2D1_COLOR_F            m_aColor[STATUS_COUNT];
-        // brush
-        ID2D1SolidColorBrush*   m_pBrush = nullptr;
-    };
-}
-
-using BtnEle = LongUI::Elements<LongUI::Element::Meta, LongUI::Element::BrushRect, LongUI::Element::Basic>;
-BtnEle g_unit(LongUINullXMLNode);
-
-
-
 // TODO: 检查所有控件Render, 需要调用UIControl::Render;
 
 // UIControl 构造函数
@@ -217,6 +51,8 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         UIControl::MakeString(node.attribute("name").value(), m_strControlName);
         // 检查位置
         UIControl::MakeFloats(node.attribute("pos").value(), const_cast<float*>(&show_zone.left), 4);
+        // 检查外边距
+        UIControl::MakeFloats(node.attribute("margin").value(), const_cast<float*>(&margin_rect.left), 4);
         // 宽度固定
         if (show_zone.width > 0.f) {
             flag |= LongUI::Flag_WidthFixed;
@@ -560,8 +396,8 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
             this->draw_zone = this->show_zone;
         }
         draw_rect = GetDrawRect(this);
-        g_unit.Render(draw_rect);
-        UIElement_Update(g_unit);
+        m_uiElement.Render(draw_rect);
+        UIElement_Update(m_uiElement);
         //m_uiElement.Render(&draw_rect);
         // 更新计时器
         //UIElement_Update(m_uiElement);
@@ -579,16 +415,19 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
 
 
 // UIButton 构造函数
-LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node),m_uiElement(node, nullptr){
-    new(&g_unit) BtnEle(node);
-    g_unit.GetByType<Element::Basic>().Init(node);
-    g_unit.SetElementType(Element::BrushRect);
-    constexpr int azz = sizeof(g_unit);
-}
-
-// UIButton 析构函数
-LongUI::UIButton::~UIButton() noexcept {
-    ::SafeRelease(m_pBGBrush);
+LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node){
+    // , nullptr
+    // 初始化代码
+    m_uiElement.GetByType<Element::Basic>().Init(node);
+    if (m_uiElement.GetByType<Element::Meta>().IsOK()) {
+        m_uiElement.SetElementType(Element::Meta);
+    }
+    else {
+        m_uiElement.SetElementType(Element::BrushRect);
+    }
+    // 特殊
+    m_uiElement.SetElementType(Element::BrushRect);
+    constexpr int azz = sizeof(m_uiElement);
 }
 
 
@@ -626,12 +465,12 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
             return true;
         case LongUI::Event::Event_MouseEnter:
             //m_bEffective = true;
-            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), LongUI::Status_Hover);
+            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
             m_colorBorderNow = m_aBorderColor[LongUI::Status_Hover];
             break;
         case LongUI::Event::Event_MouseLeave:
             //m_bEffective = false;
-            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), LongUI::Status_Normal);
+            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
             m_colorBorderNow = m_aBorderColor[LongUI::Status_Normal];
             break;
         }
@@ -643,7 +482,7 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
         {
         case WM_LBUTTONDOWN:
             m_pWindow->SetCapture(this);
-            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), LongUI::Status_Pushed);
+            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
             m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
             break;
         case WM_LBUTTONUP:
@@ -662,7 +501,7 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
                 rec = m_pWindow->DoEvent(arg);
             }
             arg.msg = tempmsg;
-            UIElement_SetNewStatus(g_unit.GetByType<Element::Basic>(), m_tarStatusClick);
+            UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
             m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
             m_pWindow->ReleaseCapture();
             break;
@@ -674,13 +513,8 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
 
 // recreate 重建
 auto LongUI::UIButton::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    SafeRelease(m_pBGBrush);
-    newRT->CreateSolidColorBrush(m_uiElement.colors, nullptr, &m_pBGBrush);
-    m_uiElement.target = newRT;
-    m_uiElement.brush = m_pBGBrush;
-    m_uiElement.InitStatus(LongUI::Status_Normal);
-    //
-    g_unit.Recreate(newRT);
+    // 重建元素
+    m_uiElement.Recreate(newRT);
     // 父类处理
     return Super::Recreate(newRT);
 }
@@ -838,205 +672,3 @@ LongUI::UIEditBasic::UIEditBasic(pugi::xml_node node) noexcept
 
 
 
-
-
-
-
-
-
-
-
-// 实现
-
-// Elements<Basic> Init
-void LongUI::Elements<LongUI::Element::Basic>::Init(pugi::xml_node node) noexcept {
-    // 无效?
-    if (!node) return; const char* str = nullptr;
-    // 动画类型
-    if (str = node.attribute("animationtype").value()) {
-        m_animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
-    }
-    // 动画持续时间
-    if (str = node.attribute("animationduration").value()) {
-        m_animation.duration = LongUI::AtoF(str);
-    }
-}
-
-// 设置新的状态
-auto LongUI::Elements<LongUI::Element::Basic>::
-SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
-    m_state = m_stateTartget;
-    m_stateTartget = new_status;
-    m_animation.value = 0.f;
-    return m_animation.time = m_animation.duration;
-}
-
-// Elements<Meta> 构造函数
-LongUI::Elements<LongUI::Element::Meta>::Elements(pugi::xml_node node) noexcept: Super(node) {
-    ZeroMemory(m_metas, sizeof(m_metas));
-    ZeroMemory(m_aID, sizeof(m_aID));
-    // 无效?
-    if (!node) return;
-    // 禁用状态Meta ID
-    m_aID[Status_Disabled] = LongUI::AtoI(node.attribute("disabledmeta").value());
-    // 通常状态Meta ID
-    m_aID[Status_Normal] = LongUI::AtoI(node.attribute("normalmeta").value());
-    // 移上状态Meta ID
-    m_aID[Status_Hover] = LongUI::AtoI(node.attribute("hovermeta").value());
-    // 按下状态Meta ID
-    m_aID[Status_Pushed] = LongUI::AtoI(node.attribute("pushedmeta").value());
-}
-
-
-// Elements<Meta> 重建
-auto LongUI::Elements<LongUI::Element::Meta>::
-Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
-    for (auto i = 0u; i < STATUS_COUNT; ++i) {
-        // 有效
-        register auto id = m_aID[i];
-        if (id) {
-            UIManager.GetMeta(id, m_metas[i]);
-        }
-    }
-    return S_OK;
-}
-
-// Elements<Meta> 渲染
-void LongUI::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F& rect) noexcept {
-    assert(m_pRenderTarget);
-    // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
-        auto meta = m_metas[m_state];
-        assert(meta.bitmap);
-        m_pRenderTarget->DrawBitmap(
-            meta.bitmap,
-            rect, 1.f,
-            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-            meta.src_rect,
-            nullptr
-            );
-    }
-    // 再绘制目标状态
-    auto meta = m_metas[m_stateTartget];
-    assert(meta.bitmap);
-    m_pRenderTarget->DrawBitmap(
-        meta.bitmap,
-        rect, m_animation.value,
-        static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-        meta.src_rect,
-        nullptr
-        );
-}
-
-
-
-// Elements<BrushRect> 构造函数
-LongUI::Elements<LongUI::Element::BrushRect>::Elements(pugi::xml_node node) noexcept :Super(node) {
-    ZeroMemory(m_apBrushes, sizeof(m_apBrushes));
-    ZeroMemory(m_aID, sizeof(m_aID));
-    // 无效?
-    if (!node) return;
-    // 禁用状态笔刷ID
-    m_aID[Status_Disabled] = LongUI::AtoI(node.attribute("disabledbrush").value());
-    // 通常状态笔刷ID
-    m_aID[Status_Normal] = LongUI::AtoI(node.attribute("normalbrush").value());
-    // 移上状态笔刷ID
-    m_aID[Status_Hover] = LongUI::AtoI(node.attribute("hoverbrush").value());
-    // 按下状态笔刷ID
-    m_aID[Status_Pushed] = LongUI::AtoI(node.attribute("pushedbrush").value());
-}
-
-// 释放数据
-void LongUI::Elements<LongUI::Element::BrushRect>::release_data() noexcept {
-    for (auto& brush : m_apBrushes) {
-        ::SafeRelease(brush);
-    }
-}
-
-// Elements<BrushRectta> 渲染
-void LongUI::Elements<LongUI::Element::BrushRect>::Render(const D2D1_RECT_F& rect) noexcept {
-    assert(m_pRenderTarget);
-    D2D1_MATRIX_3X2_F matrix; m_pRenderTarget->GetTransform(&matrix);
-#if 1
-    // 计算转换后的矩形
-    auto height = rect.bottom - rect.top;
-    D2D1_RECT_F rect2 = {
-        0.f, 0.f, (rect.right - rect.left) / height , 1.f
-    };
-    // 计算转换后的矩阵
-    m_pRenderTarget->SetTransform(
-        D2D1::Matrix3x2F::Scale(height, height) *
-        D2D1::Matrix3x2F::Translation(rect.left, rect.top) *
-        matrix
-        );
-    // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
-        m_pRenderTarget->FillRectangle(rect2, m_apBrushes[m_state]);
-    }
-    // 后绘制目标状态
-    auto brush = m_apBrushes[m_stateTartget];
-    brush->SetOpacity(m_animation.value);
-    m_pRenderTarget->FillRectangle(rect2, brush);
-    brush->SetOpacity(1.f);
-    m_pRenderTarget->SetTransform(&matrix);
-#else
-    //m_pRenderTarget->SetTransform(D2D1::IdentityMatrix());
-    // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
-        m_apBrushes[m_state]->SetTransform(&matrix);
-        m_pRenderTarget->FillRectangle(rect, m_apBrushes[m_state]);
-    }
-    // 后绘制目标状态
-    auto brush = m_apBrushes[m_stateTartget];
-    brush->SetOpacity(m_animation.value);
-    //brush->SetTransform(&matrix);
-    m_pRenderTarget->FillRectangle(rect, brush);
-    brush->SetOpacity(1.f);
-    //m_pRenderTarget->SetTransform(&matrix);
-#endif
-}
-
-// Elements<BrushRect> 重建
-auto LongUI::Elements<LongUI::Element::BrushRect>::
-Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
-    this->release_data();
-    for (auto i = 0u; i < STATUS_COUNT; ++i) {
-        register auto id = m_aID[i];
-        m_apBrushes[i] = id ? UIManager.GetBrush(id) : UIManager.GetSystemBrush(i);
-    }
-    return S_OK;
-}
-
-// Elements<ColorRect> 构造函数
-LongUI::Elements<LongUI::Element::ColorRect>::Elements(pugi::xml_node node) noexcept: Super(node) {
-    m_aColor[Status_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-    m_aColor[Status_Normal] = D2D1::ColorF(0xCDCDCDCD);
-    m_aColor[Status_Hover] = D2D1::ColorF(0xA9A9A9A9);
-    m_aColor[Status_Pushed] = D2D1::ColorF(0x98989898);
-    // 无效?
-    if (!node) return;
-    // 禁用状态颜色
-    UIControl::MakeColor(node.attribute("disabledcolor").value(), m_aColor[Status_Disabled]);
-    // 通常状态颜色
-    UIControl::MakeColor(node.attribute("normalcolor").value(), m_aColor[Status_Normal]);
-    // 移上状态颜色
-    UIControl::MakeColor(node.attribute("hovercolor").value(), m_aColor[Status_Hover]);
-    // 按下状态颜色
-    UIControl::MakeColor(node.attribute("pushedcolor").value(), m_aColor[Status_Pushed]);
-}
-
-
-// Elements<ColorRect> 渲染
-void LongUI::Elements<LongUI::Element::ColorRect>::Render(const D2D1_RECT_F& rect) noexcept {
-    assert(m_pRenderTarget && m_pBrush);
-    // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
-        m_pBrush->SetColor(m_aColor + m_state);
-        m_pRenderTarget->FillRectangle(&rect, m_pBrush);
-    }
-    // 再绘制目标状态
-    m_pBrush->SetOpacity(m_animation.value);
-    m_pBrush->SetColor(m_aColor + m_stateTartget);
-    m_pRenderTarget->FillRectangle(&rect, m_pBrush);
-    m_pBrush->SetOpacity(1.f);
-}

@@ -27,57 +27,178 @@
 
 // longui namespace
 namespace LongUI {
-    // check mode
-#define UIElement_IsMetaMode        (this->metas[Status_Normal].bitmap)
     // set new status
-#define UIElement_SetNewStatus(e,s) m_pWindow->StartRender(e.SetNewStatus(s), this)
+#define UIElement_SetNewStatus(e,s) m_pWindow->StartRender(e.GetByType<Element::Basic>().SetNewStatus(s), this)
     // update the node
 #define UIElement_Update(a)         a.Update(m_pWindow->GetDeltaTime())
-#define UIElement_UpdateA           register float delta_time = m_pWindow->GetDeltaTime()
-#define UIElement_UpdateB(a)        a.Update(delta_time)
     // UI Animation for Color
     using CUIAnimationColor = CUIAnimation<D2D1_COLOR_F>;
     // UI Animation for Opacity
-    using CUIAnimationOpacity = CUIAnimation<FLOAT> ;
+    using CUIAnimationOpacity = CUIAnimation<FLOAT>;
     // UI Animation for Posotion
     using CUIAnimationPosition = CUIAnimation<D2D1_POINT_2F>;
     // UI Animation for Posotion
     using CUIAnimationTransform = CUIAnimation<D2D1_MATRIX_3X2_F>;
-    // UIElement
-    class CUIElement {
-        // render meta: implemented in UIUtil.cpp file
-        void __fastcall RenderMeta(Meta&, D2D1_RECT_F*, float) noexcept;
-    public:
-        // constructor: implemented in UIUtil.cpp file
-        CUIElement(const pugi::xml_node = LongUINullXMLNode, const char* prefix = nullptr) noexcept;
-        // render: implemented in UIUtil.cpp file
-        void __fastcall Render(D2D1_RECT_F* des) noexcept;
-        // set new status
-        auto __fastcall SetNewStatus(ControlStatus) noexcept ->float;
-        // Init status
-        void __fastcall InitStatus(ControlStatus) noexcept;
-        // update
-        void __fastcall Update(float t) { UIElement_IsMetaMode ? animationo.Update(t) : animationc.Update(t); }
-        // render target
-        LongUIRenderTarget*     target;
-        // common brush
-        ID2D1SolidColorBrush*   brush;
-        // now status
-        ControlStatus           old_status;
-        // target status
-        ControlStatus           tar_status;
-        // color of it
-        D2D1_COLOR_F            colors[STATUS_COUNT];
-        // meta of it
-        Meta                    metas[STATUS_COUNT];
-        // animation color
-        CUIAnimationColor       animationc;
-        // animation opacity
-        CUIAnimationOpacity     animationo;
+    // Element
+    enum class Element : uint32_t {
+        Basic = 0,
+        Meta,
+        ColorRect,
+        BrushRect,
+        ColorGeometry,
     };
+    // Component namespace
+    namespace Component {
+    // class decl
+        template<Element... > class Elements;
+        // render unit
+        template<Element Head, Element... Tail>
+        class Elements<Head, Tail...> : protected virtual Elements<Tail...>, protected Elements<Head>{
+            // super class
+            using SuperA = Elements<Tail...>;
+        // super class
+        using SuperB = Elements<Head>;
+        public:
+            // set unit type
+            auto SetElementType(Element unit) noexcept { this->type = unit; }
+            // ctor
+            Elements(pugi::xml_node node, const char* prefix=nullptr) noexcept : SuperA(node, prefix), SuperB(node, prefix) {}
+        public:
+            // get element
+            template<Element ElementType>
+            auto GetByType() noexcept ->Elements<ElementType>& { return Super::GetByType<ElementType>(); }
+            // get element for head
+            template<>
+            auto GetByType<Head>() noexcept ->Elements<Head>& { return static_cast<Elements<Head>&>(*this); }
+            // render this
+            void Render(const D2D1_RECT_F& rect) noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
+            // update
+            auto Update(float t) noexcept { m_animation.Update(t); }
+            // recreate
+            auto Recreate(LongUIRenderTarget* target) noexcept {
+                HRESULT hr = S_OK;
+                if (SUCCEEDED(hr)) {
+                    hr = SuperA::Recreate(target);
+                }
+                if (SUCCEEDED(hr)) {
+                    hr = SuperB::Recreate(target);
+                }
+                return hr;
+            }
+        };
+        // element for all
+        template<> class Elements<Element::Basic> {
+        public:
+            // ctor 
+            Elements(pugi::xml_node node = LongUINullXMLNode, const char* prefix = nullptr)
+                noexcept : m_animation(AnimationType::Type_QuadraticEaseOut) {
+                m_animation.end = 1.f;
+            }
+            // init 
+            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            // render this
+            void Render(const D2D1_RECT_F&) noexcept { }
+            // get element
+            template<Element ElementType>
+            auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
+            // set new status
+            auto SetNewStatus(ControlStatus) noexcept ->float;
+            // recreate
+            auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
+            // type of unit
+            Element                 type = Element::Basic;
+        protected:
+            // render target
+            LongUIRenderTarget*     m_pRenderTarget = nullptr;
+            // state of unit
+            ControlStatus           m_state = ControlStatus::Status_Disabled;
+            // state of unit
+            ControlStatus           m_stateTartget = ControlStatus::Status_Disabled;
+            // animation
+            CUIAnimationOpacity     m_animation;
+        };
+        // element for bitmap
+        template<> class Elements<Element::Meta> : protected virtual Elements<Element::Basic>{
+            // super class
+            using Super = Elements<Element::Basic>;
+        public:
+            // ctor
+            Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            // get element
+            template<Element ElementType>
+            auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
+            // render this
+            void Render(const D2D1_RECT_F&) noexcept;
+            // recreate
+            auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+            // is OK?
+            auto IsOK() noexcept { return m_metas[Status_Normal].bitmap != nullptr; }
+        protected:
+            // metas
+            Meta            m_metas[STATUS_COUNT];
+            // metas id
+            uint16_t        m_aID[STATUS_COUNT];
+        };
+        // element for brush rect
+        template<> class Elements<Element::BrushRect> : protected virtual Elements<Element::Basic>{
+            // super class
+            using Super = Elements<Element::Basic>;
+        public:
+            // ctor
+            Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            // dtor
+            ~Elements() noexcept { this->release_data(); }
+            // get element
+            template<Element ElementType>
+            auto GetByType() noexcept ->Elements<Element::BrushRect>& { return *this; }
+            // render this
+            void Render(const D2D1_RECT_F& rect) noexcept;
+            // recreate
+            auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+            // change brush
+            void ChangeBrush(ControlStatus index, ID2D1Brush* brush) noexcept {
+                ::SafeRelease(m_apBrushes[index]);
+                m_apBrushes[index] = ::SafeAcquire(brush);
+            }
+        private:
+            // relase data
+            void release_data() noexcept;
+        protected:
+            // brush
+            ID2D1Brush*     m_apBrushes[STATUS_COUNT];
+            // brush id
+            uint16_t        m_aID[STATUS_COUNT];
+        };
+        // element for color rect
+        template<> class Elements<Element::ColorRect> : protected virtual Elements<Element::Basic>{
+            // super class
+            using Super = Elements<Element::Basic>;
+        public:
+            // ctor
+            Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            // dtor
+            ~Elements() noexcept { ::SafeRelease(m_pBrush); }
+            // get element
+            template<Element ElementType>
+            auto GetByType() noexcept ->Elements<Element::ColorRect>& { return *this; }
+            // render this
+            void Render(const D2D1_RECT_F& rect) noexcept;
+            // recreate
+            auto Recreate(LongUIRenderTarget* target) noexcept ->HRESULT;
+            // change color
+            void ChangeColor(ControlStatus index, D2D1_COLOR_F& color) noexcept { m_aColor[index] = color; }
+            // change color
+            void ChangeColor(ControlStatus index, uint32_t color, float alpha = 1.f) noexcept { m_aColor[index] = D2D1::ColorF(color, alpha); }
+        protected:
+            // brush id
+            D2D1_COLOR_F            m_aColor[STATUS_COUNT];
+            // brush
+            ID2D1SolidColorBrush*   m_pBrush = nullptr;
+        };
+    }
 #ifdef LONGUI_VIDEO_IN_MF
     // Video Component implemented in UIUtil.cpp file
-    class CUIVideoComponent : ComStatic<QiList<IMFMediaEngineNotify>>{
+    class CUIVideoComponent : ComStatic<QiList<IMFMediaEngineNotify>> {
     public: // IMFMediaEngineNotify Interface
         // Event Notify
         virtual HRESULT STDMETHODCALLTYPE EventNotify(

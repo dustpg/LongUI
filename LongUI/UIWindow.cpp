@@ -703,9 +703,9 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         // 闪烁?
         if (_arg.wParam_sys == 0 && m_cShowCaret) {
             // 闪烁
-            m_present.DirtyRectsCount = 0;
+           /* m_present.DirtyRectsCount = 0;
             this->set_present();
-            m_pSwapChain->Present1(0, 0, &m_present);
+            m_pSwapChain->Present1(0, 0, &m_present);*/
             m_bCaretIn = !m_bCaretIn;
         }
         handled = true;
