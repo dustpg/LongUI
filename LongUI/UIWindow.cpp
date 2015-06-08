@@ -86,7 +86,7 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     m_idBlinkTimer = ::SetTimer(m_hwnd, 0, ::GetCaretBlinkTime(), nullptr);
     // 添加窗口
     UIManager.AddWindow(this);
-    this->clear_color.a = 0.95f;
+    this->clear_color.a = 0.85f;
     // 创建帮助器
     ::CoCreateInstance(
         CLSID_DragDropHelper, 
