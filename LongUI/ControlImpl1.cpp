@@ -422,7 +422,7 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
 LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node){
     // 初始化代码
     m_uiElement.GetByType<Element::Basic>().Init(node);
-    if (m_uiElement.GetByType<Element::Meta>().IsOK()) {
+    if (m_uiElement.GetByType<Element::Meta>().IsOK(Status_Normal)) {
         m_uiElement.SetElementType(Element::Meta);
     }
     else {

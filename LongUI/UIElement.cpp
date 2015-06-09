@@ -4,26 +4,13 @@
 // Status_Disabled
 namespace LongUI {
     //
-    class ControlStatusHelper {
-    public:
-        // get count
-        static constexpr auto GetCount() { return static_cast<uint32_t>(STATUS_COUNT); }
-        // get zero for type
-        static constexpr auto GetZero() { return Status_Disabled; }
-        // get string list
-        static const     auto GetList() {
-            static const char* s_list[] = { "disabled", "normal", "hover", "pushed" };
-            return s_list;
-        }
-    };
-    //
 }
 
 // 实现
 #define UIElements_Prefix() if (!prefix) prefix = ""; char attrbuffer[LongUIStringBufferLength]
 #define UIElements_NewAttribute(a) { ::strcpy(attrbuffer, prefix); ::strcat(attrbuffer, a); }
 
-// Elements<Basic> Init
+/*/ Elements<Basic> Init
 void LongUI::Component::Elements<LongUI::Element::Basic>::
 Init(pugi::xml_node node, const char* prefix) noexcept {
     // 无效?
@@ -73,7 +60,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
     // 按下状态Meta ID
     UIElements_NewAttribute("pushedmeta");
     m_aID[Status_Pushed] = LongUI::AtoI(node.attribute(attrbuffer).value());
-}
+}*/
 
 
 #define CodeBloatLimiter_Prefix() \
@@ -114,7 +101,7 @@ void LongUI::Component::CodeBloatLimiter::ElementsMetaRecreate(
 
 // 代码膨胀限制器: Elements<Meta> 渲染
 void LongUI::Component::CodeBloatLimiter::ElementsMetaRender(
-    Elements<Element::Basic>& ele, Meta* metas,
+    ElementsBasic& ele, Meta* metas,
     const D2D1_RECT_F& rect) noexcept {
     assert(ele.m_pRenderTarget);
     // 先绘制当前状态
@@ -141,6 +128,7 @@ void LongUI::Component::CodeBloatLimiter::ElementsMetaRender(
         );
 }
 
+// 代码膨胀限制器: Elements<BrushRect> 构造函数
 void LongUI::Component::CodeBloatLimiter::ElementBrushRectCtor(
     pugi::xml_node node, const char * prefix, ID2D1Brush** brushes,
     uint16_t* ids, uint32_t size, const char ** list
@@ -154,16 +142,18 @@ void LongUI::Component::CodeBloatLimiter::ElementBrushRectCtor(
         ids[i] = LongUI::AtoI(node.attribute(attrbuffer).value());
     }
 }
+
+// 代码膨胀限制器: Elements<BrushRect> 析构函数
 void LongUI::Component::CodeBloatLimiter::ElementBrushRectDtor(
-    ID2D1Brush** brushes, uint32_t size
-    ) noexcept {
+    ID2D1Brush** brushes, uint32_t size) noexcept {
     for (auto i = 0ui32; i < size; ++i) {
         ::SafeRelease(brushes[i]);
     }
 }
+
+// 代码膨胀限制器: Elements<BrushRect> 渲染
 void LongUI::Component::CodeBloatLimiter::ElementBrushRectRender(
-    Elements<Element::Basic>& ele, ID2D1Brush** brushes,
-    const D2D1_RECT_F& rect
+    ElementsBasic& ele, ID2D1Brush** brushes, const D2D1_RECT_F& rect
     ) noexcept {
     assert(ele.m_pRenderTarget);
     D2D1_MATRIX_3X2_F matrix; ele.m_pRenderTarget->GetTransform(&matrix);
@@ -206,7 +196,20 @@ void LongUI::Component::CodeBloatLimiter::ElementBrushRectRender(
 #endif
 }
 
-// Elements<BrushRect> 构造函数
+// 代码膨胀限制器: Elements<BrushRect> 重建
+void LongUI::Component::CodeBloatLimiter::ElementBrushRectRecreate(
+    ID2D1Brush ** brushes, uint16_t * ids, uint32_t size
+    ) noexcept{
+    // 先析构
+    CodeBloatLimiter::ElementBrushRectDtor(brushes, size);
+    // 重建
+    for (auto i = 0u; i < size; ++i) {
+        register auto id = ids[i];
+        brushes[i] = id ? UIManager.GetBrush(id) : UIManager.GetSystemBrush(i);
+    }
+}
+
+/*/ Elements<BrushRect> 构造函数
 LongUI::Component::Elements<LongUI::Element::BrushRect>::
 Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) {
     ZeroMemory(m_apBrushes, sizeof(m_apBrushes));
@@ -336,4 +339,4 @@ void LongUI::Component::Elements<LongUI::Element::ColorRect>::Render(const D2D1_
     m_pBrush->SetColor(m_aColor + m_stateTartget);
     m_pRenderTarget->FillRectangle(&rect, m_pBrush);
     m_pBrush->SetOpacity(1.f);
-}
+}*/
