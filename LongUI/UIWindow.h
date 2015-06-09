@@ -145,12 +145,14 @@ namespace LongUI{
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
         // window handle
         HWND                    m_hwnd = nullptr;
+        // VSync Handle
+        HANDLE                  m_hVSync = nullptr;
         // 创建数据对象
         IDataObject*            m_pCurDataObject = nullptr;
         // 拖放帮助工具
         IDropTargetHelper*      m_pDropTargetHelper = nullptr;
         // swap chain 交换链
-        IDXGISwapChain1*        m_pSwapChain = nullptr;
+        IDXGISwapChain2*        m_pSwapChain = nullptr;
         // target bitmap
         ID2D1Bitmap1*           m_pTargetBimtap = nullptr;
         // planning bitmap

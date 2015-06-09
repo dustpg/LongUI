@@ -68,6 +68,20 @@ namespace LongUI {
                 Elements<Element::Basic>& ele, Meta* metas,
                 const D2D1_RECT_F& rect
                 ) noexcept;
+            //------
+            // ctor for Elements<Meta>
+            void ElementBrushRectCtor(
+                pugi::xml_node node, const char * prefix, ID2D1Brush** brushes,
+                uint16_t* ids, uint32_t size, const char ** list
+                ) noexcept;
+            // dtor for Elements<Meta>
+            void ElementBrushRectDtor(
+                ID2D1Brush** brushes, uint32_t size
+                ) noexcept;
+            void ElementBrushRectRender(
+                Elements<Element::Basic>& ele, ID2D1Brush** brushes,
+                const D2D1_RECT_F& rect
+                ) noexcept;
         };
         // render unit
         template<Element Head, Element... Tail>
@@ -148,9 +162,14 @@ namespace LongUI {
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
             // render this
-            void Render(const D2D1_RECT_F&) noexcept;
+            void Render(const D2D1_RECT_F& rect) noexcept {
+                CodeBloatLimiter::ElementsMetaRender(*this, m_metas, rect);
+            }
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+            auto Recreate(LongUIRenderTarget* target) noexcept {
+                CodeBloatLimiter::ElementsMetaRecreate(m_metas, m_aID, STATUS_COUNT);
+                return S_OK;
+            }
             // is OK?
             auto IsOK() noexcept { return m_aID[Status_Normal] != 0; }
         protected:

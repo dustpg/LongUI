@@ -91,6 +91,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
 void LongUI::Component::CodeBloatLimiter::ElementsMetaCtor(
     pugi::xml_node node, const char * prefix, 
     uint16_t* first, uint32_t size, const char ** list) noexcept {
+    ZeroMemory(first, sizeof(*first)*size);
     // 前缀
     CodeBloatLimiter_Prefix();
     for (auto i = 0ui32; i < size; ++i) {
@@ -140,7 +141,70 @@ void LongUI::Component::CodeBloatLimiter::ElementsMetaRender(
         );
 }
 
-
+void LongUI::Component::CodeBloatLimiter::ElementBrushRectCtor(
+    pugi::xml_node node, const char * prefix, ID2D1Brush** brushes,
+    uint16_t* ids, uint32_t size, const char ** list
+    ) noexcept {
+    ZeroMemory(brushes, sizeof(*brushes)*size);
+    ZeroMemory(ids, sizeof(*ids)*size);
+    // 前缀
+    CodeBloatLimiter_Prefix();
+    for (auto i = 0ui32; i < size; ++i) {
+        CodeBloatLimiter_NewAttribute("brush");
+        ids[i] = LongUI::AtoI(node.attribute(attrbuffer).value());
+    }
+}
+void LongUI::Component::CodeBloatLimiter::ElementBrushRectDtor(
+    ID2D1Brush** brushes, uint32_t size
+    ) noexcept {
+    for (auto i = 0ui32; i < size; ++i) {
+        ::SafeRelease(brushes[i]);
+    }
+}
+void LongUI::Component::CodeBloatLimiter::ElementBrushRectRender(
+    Elements<Element::Basic>& ele, ID2D1Brush** brushes,
+    const D2D1_RECT_F& rect
+    ) noexcept {
+    assert(ele.m_pRenderTarget);
+    D2D1_MATRIX_3X2_F matrix; ele.m_pRenderTarget->GetTransform(&matrix);
+#if 1
+        // 计算转换后的矩形
+    auto height = rect.bottom - rect.top;
+    D2D1_RECT_F rect2 = {
+        0.f, 0.f, (rect.right - rect.left) / height , 1.f
+    };
+    // 计算转换后的矩阵
+    ele.m_pRenderTarget->SetTransform(
+        D2D1::Matrix3x2F::Scale(height, height) *
+        D2D1::Matrix3x2F::Translation(rect.left, rect.top) *
+        matrix
+        );
+    // 先绘制当前状态
+    if (ele.m_animation.value < ele.m_animation.end) {
+        ele.m_pRenderTarget->FillRectangle(rect2, brushes[ele.m_state]);
+    }
+    // 后绘制目标状态
+    auto brush = brushes[ele.m_stateTartget];
+    brush->SetOpacity(ele.m_animation.value);
+    ele.m_pRenderTarget->FillRectangle(rect2, brush);
+    brush->SetOpacity(1.f);
+    ele.m_pRenderTarget->SetTransform(&matrix);
+#else
+        //m_pRenderTarget->SetTransform(D2D1::IdentityMatrix());
+        // 先绘制当前状态
+    if (ele.m_animation.value < ele.m_animation.end) {
+        brushes[ele.m_state]->SetTransform(&matrix);
+        ele.m_pRenderTarget->FillRectangle(rect, brushes[ele.m_state]);
+    }
+    // 后绘制目标状态
+    auto brush = brushes[ele.m_stateTartget];
+    brush->SetOpacity(ele.m_animation.value);
+    //brush->SetTransform(&matrix);
+    ele.m_pRenderTarget->FillRectangle(rect, brush);
+    brush->SetOpacity(1.f);
+    //m_pRenderTarget->SetTransform(&matrix);
+#endif
+}
 
 // Elements<BrushRect> 构造函数
 LongUI::Component::Elements<LongUI::Element::BrushRect>::

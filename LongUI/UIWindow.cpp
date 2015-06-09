@@ -1,6 +1,5 @@
 ﻿#include "LongUI.h"
 
-
 // 位图规划:
 /*
 -----
@@ -269,6 +268,10 @@ void LongUI::UIWindow::AddControl(const std::pair<CUIString, void*>& pair) noexc
 
 // release data
 void LongUI::UIWindow::release_data() noexcept {
+    if (m_hVSync) {
+        ::CloseHandle(m_hVSync);
+        m_hVSync = nullptr;
+    }
     // 释放资源
     ::SafeRelease(m_pTargetBimtap);
     ::SafeRelease(m_pSwapChain);
@@ -888,6 +891,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     assert(newRT && "bad argument");
     // DXGI Surface 后台缓冲
     IDXGISurface*                        pDxgiBackBuffer = nullptr;
+    IDXGISwapChain1*                     pSwapChain = nullptr;
     this->release_data();
     // 创建交换链
     IDXGIFactory2* pDxgiFactory = UIManager;
@@ -907,7 +911,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.BufferCount = 2;
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-        swapChainDesc.Flags = 0;
+        swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         // 滚动
         m_rcScroll.right = rect.right - rect.left;
         m_rcScroll.bottom = rect.bottom - rect.top;
@@ -920,7 +924,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
                 UIManager_DXGIDevice,
                 &swapChainDesc,
                 nullptr,
-                &m_pSwapChain
+                &pSwapChain
                 );
         }
         else {
@@ -934,9 +938,25 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
                 &swapChainDesc,
                 nullptr,
                 nullptr,
-                &m_pSwapChain
+                &pSwapChain
                 );
         }
+    }
+    // 获取交换链
+    if (SUCCEEDED(hr)) {
+        assert(!m_pSwapChain);
+        hr = pSwapChain->QueryInterface(
+            IID_IDXGISwapChain2,
+            reinterpret_cast<void**>(&m_pSwapChain)
+            );
+        // 交换链v2 要求Win8.1
+        if (FAILED(hr)) {
+            UIManager.ShowError(L"DXGI 1.3 need Win8.1 or greater");
+        }
+    }
+    // 获取垂直同步事件
+    if (SUCCEEDED(hr)) {
+        m_hVSync = m_pSwapChain->GetFrameLatencyWaitableObject();
     }
     // 确保DXGI队列里边不会超过一帧
     if (SUCCEEDED(hr)) {
@@ -1013,6 +1033,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         AssertHR(hr);
     }
     ::SafeRelease(pDxgiBackBuffer);
+    ::SafeRelease(pSwapChain);
     // 设置规划位图
     if (SUCCEEDED(hr)) {
         constexpr float PBS = float(LongUIWindowPlanningBitmap);
