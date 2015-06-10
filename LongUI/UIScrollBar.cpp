@@ -163,61 +163,7 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
     // 检查属性
     m_bArrow1InColor = m_uiArrow1.GetByType<Element::Basic>().type == Element::ColorRect;
     m_bArrow2InColor = m_uiArrow2.GetByType<Element::Basic>().type == Element::ColorRect;
-    //
-    auto create_geo = [](D2D1_POINT_2F* list, uint32_t length) {
-        auto hr = S_OK;
-        ID2D1PathGeometry* geometry = nullptr;
-        ID2D1GeometrySink* sink = nullptr;
-        // 创建几何体
-        if (SUCCEEDED(hr)) {
-            hr = UIManager_D2DFactory->CreatePathGeometry(&geometry);
-        }
-        // 打开
-        if (SUCCEEDED(hr)) {
-            hr = geometry->Open(&sink);
-        }
-        // 开始绘制
-        if (SUCCEEDED(hr)) {
-            sink->BeginFigure(list[0], D2D1_FIGURE_BEGIN_HOLLOW);
-            sink->AddLines(list + 1, length - 1);
-            sink->EndFigure(D2D1_FIGURE_END_OPEN);
-            hr = sink->Close();
-        }
-        AssertHR(hr);
-        ::SafeRelease(sink);
-        return geometry;
-    };
-    D2D1_POINT_2F point_list_1[3];
-    D2D1_POINT_2F point_list_2[3];
-    constexpr float BASIC_SIZE = 16.f;
-    constexpr float BASIC_SIZE_MID = BASIC_SIZE * 0.5f;
-    constexpr float BASIC_SIZE_NEAR = BASIC_SIZE_MID * 0.5f;
-    constexpr float BASIC_SIZE_FAR = BASIC_SIZE - BASIC_SIZE_NEAR;
-    // 水平滚动条
-    if (this->type != ScrollBarType::Type_Vertical) {
-        //
-        point_list_1[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
-        point_list_1[1] = { BASIC_SIZE_NEAR , BASIC_SIZE_MID };
-        point_list_1[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
-        //
-        point_list_2[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
-        point_list_2[1] = { BASIC_SIZE_FAR , BASIC_SIZE_MID };
-        point_list_2[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
-    }
-    // 垂直滚动条
-    else {
-        //
-        point_list_1[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID};
-        point_list_1[1] = { BASIC_SIZE_MID, BASIC_SIZE_NEAR};
-        point_list_1[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID};
-        //
-        point_list_2[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID  };
-        point_list_2[1] = { BASIC_SIZE_MID, BASIC_SIZE_FAR  };
-        point_list_2[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
-    }
-    // 创建
-    m_pArrow1Geo = create_geo(point_list_1, lengthof(point_list_1));
-    m_pArrow2Geo = create_geo(point_list_2, lengthof(point_list_2));
+
 }
 
 // UIScrollBarA 渲染 
@@ -366,7 +312,67 @@ auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* target) noexcept -> HRES
     return Super::Recreate(target);
 }
 
-// UIScrollBarA: 需要
+// UIScrollBarA: 初始化时
+void LongUI::UIScrollBarA::InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept {
+    // 创建几何
+    auto create_geo = [](D2D1_POINT_2F* list, uint32_t length) {
+        auto hr = S_OK;
+        ID2D1PathGeometry* geometry = nullptr;
+        ID2D1GeometrySink* sink = nullptr;
+        // 创建几何体
+        if (SUCCEEDED(hr)) {
+            hr = UIManager_D2DFactory->CreatePathGeometry(&geometry);
+        }
+        // 打开
+        if (SUCCEEDED(hr)) {
+            hr = geometry->Open(&sink);
+        }
+        // 开始绘制
+        if (SUCCEEDED(hr)) {
+            sink->BeginFigure(list[0], D2D1_FIGURE_BEGIN_HOLLOW);
+            sink->AddLines(list + 1, length - 1);
+            sink->EndFigure(D2D1_FIGURE_END_OPEN);
+            hr = sink->Close();
+        }
+        AssertHR(hr);
+        ::SafeRelease(sink);
+        return geometry;
+    };
+    D2D1_POINT_2F point_list_1[3];
+    D2D1_POINT_2F point_list_2[3];
+    constexpr float BASIC_SIZE = 16.f;
+    constexpr float BASIC_SIZE_MID = BASIC_SIZE * 0.5f;
+    constexpr float BASIC_SIZE_NEAR = BASIC_SIZE_MID * 0.5f;
+    constexpr float BASIC_SIZE_FAR = BASIC_SIZE - BASIC_SIZE_NEAR;
+    // 水平滚动条
+    if (_type != ScrollBarType::Type_Vertical) {
+        //
+        point_list_1[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
+        point_list_1[1] = { BASIC_SIZE_NEAR , BASIC_SIZE_MID };
+        point_list_1[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
+        //
+        point_list_2[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
+        point_list_2[1] = { BASIC_SIZE_FAR , BASIC_SIZE_MID };
+        point_list_2[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
+    }
+    // 垂直滚动条
+    else {
+        //
+        point_list_1[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
+        point_list_1[1] = { BASIC_SIZE_MID, BASIC_SIZE_NEAR };
+        point_list_1[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
+        //
+        point_list_2[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
+        point_list_2[1] = { BASIC_SIZE_MID, BASIC_SIZE_FAR };
+        point_list_2[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
+    }
+    // 创建
+    m_pArrow1Geo = create_geo(point_list_1, lengthof(point_list_1));
+    m_pArrow2Geo = create_geo(point_list_2, lengthof(point_list_2));
+    return Super::InitScrollBar(owner, _type);
+}
+
+// UIScrollBarA: 需要时
 void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
     m_fTakeSpace = need ? 16.f : 0.f;
     m_fHitSpace = m_fTakeSpace;

@@ -132,7 +132,6 @@ namespace LongUI {
         CreateControlFunction const function = nullptr;
     };
     // Meta (Graphics Element)
-    // render implemented @ CUIElement::RenderMeta
     struct alignas(sizeof(void*)) Meta {
         // source rect
         D2D1_RECT_F         src_rect;
@@ -143,6 +142,11 @@ namespace LongUI {
         //  interpolation mode
         uint16_t            interpolation;
     };
+    // render the meta
+    void __fastcall Meta_Render(
+        const Meta&, LongUIRenderTarget*, 
+        const D2D1_RECT_F& des_rect, float opacity = 1.f
+        ) noexcept;
 #ifdef _MSC_VER
 #pragma warning(disable: 4200)
 #endif

@@ -91,6 +91,73 @@ LongUI::DllControlLoader::~DllControlLoader() noexcept {
     }
 }
 
+// Meta 渲染
+void __fastcall LongUI::Meta_Render(
+    const Meta& meta, LongUIRenderTarget* target, 
+    const D2D1_RECT_F& des_rect, float opacity) noexcept {
+    assert(meta.bitmap && "bitmap -> null");
+    switch (meta.rule)
+    {
+    case LongUI::BitmapRenderRule::Rule_Scale:
+        target->DrawBitmap(
+            meta.bitmap,
+            des_rect, opacity,
+            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+            meta.src_rect,
+            nullptr
+            );
+        break;
+    case LongUI::BitmapRenderRule::Rule_ButtonLike:
+    {
+        target->PushAxisAlignedClip(&des_rect, D2D1_ANTIALIAS_MODE_ALIASED);
+        constexpr float MARKER = 0.25f;
+        auto width = meta.src_rect.right - meta.src_rect.left;
+        auto bilibili = width * MARKER / (meta.src_rect.bottom - meta.src_rect.top) *
+            (des_rect.bottom - des_rect.top);
+        D2D1_RECT_F des_rects[3]; D2D1_RECT_F src_rects[3];
+        // ---------------------------------------
+        des_rects[0] = {
+            des_rect.left, des_rect.top,
+            des_rect.left + bilibili, des_rect.bottom
+        };
+        des_rects[1] = {
+            des_rects[0].right, des_rect.top,
+            des_rect.right - bilibili, des_rect.bottom
+        };
+        des_rects[2] = {
+            des_rects[1].right, des_rect.top,
+            des_rect.right, des_rect.bottom
+        };
+        // ---------------------------------------
+        src_rects[0] = {
+            meta.src_rect.left, meta.src_rect.top,
+            meta.src_rect.left + width * MARKER, meta.src_rect.bottom
+        };
+        src_rects[1] = {
+            src_rects[0].right, meta.src_rect.top,
+            meta.src_rect.right - width * MARKER, meta.src_rect.bottom
+        };
+        src_rects[2] = {
+            src_rects[1].right, meta.src_rect.top,
+            meta.src_rect.right, meta.src_rect.bottom
+        };
+        // 正式渲染
+        for (auto i = 0u; i < lengthof(src_rects); ++i) {
+            target->DrawBitmap(
+                meta.bitmap,
+                des_rects[i], opacity,
+                static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+                src_rects[i],
+                nullptr
+                );
+        }
+        target->PopAxisAlignedClip();
+        break;
+    }
+        break;
+    }
+}
+
 // UIIcon 复制构造函数
 LongUI::UIIcon::UIIcon(const UIIcon & obj) noexcept {
     if (obj.m_hIcon) {

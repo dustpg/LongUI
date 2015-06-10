@@ -74,26 +74,14 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 void LongUI::Component::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F& rect) noexcept {
     assert(m_pRenderTarget);
     // 先绘制当前状态
-    if (animation.value < animation.end) {
-        auto meta = m_metas[m_state];
-        assert(meta.bitmap);
-        m_pRenderTarget->DrawBitmap(
-            meta.bitmap,
-            rect, 1.f,
-            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-            meta.src_rect,
-            nullptr
+    if (this->animation.value < this->animation.end) {
+        LongUI::Meta_Render(
+            m_metas[m_state], m_pRenderTarget, rect, this->animation.end
             );
     }
     // 再绘制目标状态
-    auto meta = m_metas[m_stateTartget];
-    assert(meta.bitmap);
-    m_pRenderTarget->DrawBitmap(
-        meta.bitmap,
-        rect, animation.value,
-        static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-        meta.src_rect,
-        nullptr
+    LongUI::Meta_Render(
+        m_metas[m_stateTartget], m_pRenderTarget, rect, this->animation.value
         );
 }
 

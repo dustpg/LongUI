@@ -118,6 +118,8 @@ namespace LongUI{
         // close this control 关闭控件
         void Close() noexcept override;
     public:
+        // init sb
+        void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept override;
         // on needed
         void OnNeeded(bool need) noexcept override;
     private:

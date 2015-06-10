@@ -266,7 +266,7 @@ namespace LongUI {
     // bitmap render rule
     enum class BitmapRenderRule : uint16_t {
         Rule_Scale = 0,         // 直接缩放
-        Rule_ButtonLike,        // 九宫格渲染
+        Rule_ButtonLike,        // 三段渲染
     };
     // brush type
     enum class BrushType : size_t {

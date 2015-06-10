@@ -45,10 +45,10 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <!-- Bitmap区域Zone -->
     <Bitmap desc="按钮1" res="btn.png"/>
     <!-- Meta区域Zone -->
-    <Meta desc="按钮1无效图元" bitmap="1" rect="0,  0, 96, 24"/>
-    <Meta desc="按钮1通常图元" bitmap="1" rect="0, 72, 96, 96"/>
-    <Meta desc="按钮1悬浮图元" bitmap="1" rect="0, 24, 96, 48"/>
-    <Meta desc="按钮1按下图元" bitmap="1" rect="0, 48, 96, 72"/>
+    <Meta desc="按钮1无效图元" bitmap="1" rect="0,  0, 96, 24" rule="1"/>
+    <Meta desc="按钮1通常图元" bitmap="1" rect="0, 72, 96, 96" rule="1"/>
+    <Meta desc="按钮1悬浮图元" bitmap="1" rect="0, 24, 96, 48" rule="1"/>
+    <Meta desc="按钮1按下图元" bitmap="1" rect="0, 48, 96, 72" rule="1"/>
 </Resource>
 )xml";
 

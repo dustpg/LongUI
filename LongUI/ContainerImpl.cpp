@@ -254,11 +254,9 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
             auto tmp_right = this->visible_rect.right;
             auto tmp_bottom = this->visible_rect.bottom;
             if (this->scrollbar_v) {
-                clip_rect.right -= this->scrollbar_v->GetTakingUpSapce();
                 tmp_right -= this->scrollbar_v->GetTakingUpSapce();
             }
             if (this->scrollbar_h) {
-                clip_rect.bottom -= this->scrollbar_h->GetTakingUpSapce();
                 tmp_bottom -= this->scrollbar_h->GetTakingUpSapce();
             }
             // 映射
