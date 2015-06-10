@@ -268,8 +268,6 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             control_name.second = now_control;
             window->AddControl(control_name);
         }
-        // 设置窗口节点
-        now_control->m_pWindow = window;
         // 添加子节点
         parent_node->insert(parent_node->end(), now_control);
         // 设置节点为下次父节点

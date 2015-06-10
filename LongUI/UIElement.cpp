@@ -2,18 +2,26 @@
 
 // 实现
 
+#define UIElements_Prefix if (!node) return; if(!prefix) prefix = ""; char buffer[256];
+#define UIElements_NewAttribute(a) { ::strcpy(buffer, prefix); ::strcat(buffer, a); }
+#define UIElements_Attribute node.attribute(buffer).value()
+
+
 // Elements<Basic> Init
 void LongUI::Component::Elements<LongUI::Element::Basic>::
 Init(pugi::xml_node node, const char* prefix) noexcept {
     // 无效?
-    if (!node) return; const char* str = nullptr;
+    UIElements_Prefix;
+    const char* str = nullptr;
     // 动画类型
-    if (str = node.attribute("animationtype").value()) {
-        m_animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
+    UIElements_NewAttribute("animationtype");
+    if (str = UIElements_Attribute) {
+        animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
     }
     // 动画持续时间
-    if (str = node.attribute("animationduration").value()) {
-        m_animation.duration = LongUI::AtoF(str);
+    UIElements_NewAttribute("animationtype");
+    if (str = UIElements_Attribute) {
+        animation.duration = LongUI::AtoF(str);
     }
 }
 
@@ -22,9 +30,9 @@ auto LongUI::Component::Elements<LongUI::Element::Basic>::
 SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
     m_state = m_stateTartget;
     m_stateTartget = new_status;
-    m_animation.value = 0.f;
-    m_animation.start = 0.f;
-    return m_animation.time = m_animation.duration;
+    animation.value = 0.f;
+    animation.start = 0.f;
+    return animation.time = animation.duration;
 }
 
 // Elements<Meta> 构造函数
@@ -33,15 +41,19 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
     ZeroMemory(m_metas, sizeof(m_metas));
     ZeroMemory(m_aID, sizeof(m_aID));
     // 无效?
-    if (!node) return;
+    UIElements_Prefix;
     // 禁用状态Meta ID
-    m_aID[Status_Disabled] = LongUI::AtoI(node.attribute("disabledmeta").value());
+    UIElements_NewAttribute("disabledmeta");
+    m_aID[Status_Disabled] = LongUI::AtoI(UIElements_Attribute);
     // 通常状态Meta ID
-    m_aID[Status_Normal] = LongUI::AtoI(node.attribute("normalmeta").value());
+    UIElements_NewAttribute("normalmeta");
+    m_aID[Status_Normal] = LongUI::AtoI(UIElements_Attribute);
     // 移上状态Meta ID
-    m_aID[Status_Hover] = LongUI::AtoI(node.attribute("hovermeta").value());
+    UIElements_NewAttribute("hovermeta");
+    m_aID[Status_Hover] = LongUI::AtoI(UIElements_Attribute);
     // 按下状态Meta ID
-    m_aID[Status_Pushed] = LongUI::AtoI(node.attribute("pushedmeta").value());
+    UIElements_NewAttribute("pushedmeta");
+    m_aID[Status_Pushed] = LongUI::AtoI(UIElements_Attribute);
 }
 
 
@@ -62,7 +74,7 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 void LongUI::Component::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F& rect) noexcept {
     assert(m_pRenderTarget);
     // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
+    if (animation.value < animation.end) {
         auto meta = m_metas[m_state];
         assert(meta.bitmap);
         m_pRenderTarget->DrawBitmap(
@@ -78,7 +90,7 @@ void LongUI::Component::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_
     assert(meta.bitmap);
     m_pRenderTarget->DrawBitmap(
         meta.bitmap,
-        rect, m_animation.value,
+        rect, animation.value,
         static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
         meta.src_rect,
         nullptr
@@ -93,15 +105,19 @@ Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) 
     ZeroMemory(m_apBrushes, sizeof(m_apBrushes));
     ZeroMemory(m_aID, sizeof(m_aID));
     // 无效?
-    if (!node) return;
+    UIElements_Prefix;
     // 禁用状态笔刷ID
-    m_aID[Status_Disabled] = LongUI::AtoI(node.attribute("disabledbrush").value());
+    UIElements_NewAttribute("disabledbrush");
+    m_aID[Status_Disabled] = LongUI::AtoI(UIElements_Attribute);
     // 通常状态笔刷ID
-    m_aID[Status_Normal] = LongUI::AtoI(node.attribute("normalbrush").value());
+    UIElements_NewAttribute("normalbrush");
+    m_aID[Status_Normal] = LongUI::AtoI(UIElements_Attribute);
     // 移上状态笔刷ID
-    m_aID[Status_Hover] = LongUI::AtoI(node.attribute("hoverbrush").value());
+    UIElements_NewAttribute("hoverbrush");
+    m_aID[Status_Hover] = LongUI::AtoI(UIElements_Attribute);
     // 按下状态笔刷ID
-    m_aID[Status_Pushed] = LongUI::AtoI(node.attribute("pushedbrush").value());
+    UIElements_NewAttribute("pushedbrush");
+    m_aID[Status_Pushed] = LongUI::AtoI(UIElements_Attribute);
 }
 
 // 释放数据
@@ -128,25 +144,25 @@ void LongUI::Component::Elements<LongUI::Element::BrushRect>::Render(const D2D1_
         matrix
         );
     // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
+    if (animation.value < animation.end) {
         m_pRenderTarget->FillRectangle(rect2, m_apBrushes[m_state]);
     }
     // 后绘制目标状态
     auto brush = m_apBrushes[m_stateTartget];
-    brush->SetOpacity(m_animation.value);
+    brush->SetOpacity(animation.value);
     m_pRenderTarget->FillRectangle(rect2, brush);
     brush->SetOpacity(1.f);
     m_pRenderTarget->SetTransform(&matrix);
 #else
     //m_pRenderTarget->SetTransform(D2D1::IdentityMatrix());
     // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
+    if (animation.value < animation.end) {
         m_apBrushes[m_state]->SetTransform(&matrix);
         m_pRenderTarget->FillRectangle(rect, m_apBrushes[m_state]);
     }
     // 后绘制目标状态
     auto brush = m_apBrushes[m_stateTartget];
-    brush->SetOpacity(m_animation.value);
+    brush->SetOpacity(animation.value);
     //brush->SetTransform(&matrix);
     m_pRenderTarget->FillRectangle(rect, brush);
     brush->SetOpacity(1.f);
@@ -168,20 +184,24 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 // Elements<ColorRect> 构造函数
 LongUI::Component::Elements<LongUI::Element::ColorRect>::
 Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
-    m_aColor[Status_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-    m_aColor[Status_Normal] = D2D1::ColorF(0xCDCDCDCD);
-    m_aColor[Status_Hover] = D2D1::ColorF(0xA9A9A9A9);
-    m_aColor[Status_Pushed] = D2D1::ColorF(0x98989898);
+    colors[Status_Disabled] = D2D1::ColorF(0xDEDEDEDE);
+    colors[Status_Normal] = D2D1::ColorF(0xCDCDCDCD);
+    colors[Status_Hover] = D2D1::ColorF(0xA9A9A9A9);
+    colors[Status_Pushed] = D2D1::ColorF(0x78787878);
     // 无效?
-    if (!node) return;
+    UIElements_Prefix;
     // 禁用状态颜色
-    UIControl::MakeColor(node.attribute("disabledcolor").value(), m_aColor[Status_Disabled]);
+    UIElements_NewAttribute("disabledcolor");
+    UIControl::MakeColor(UIElements_Attribute, colors[Status_Disabled]);
     // 通常状态颜色
-    UIControl::MakeColor(node.attribute("normalcolor").value(), m_aColor[Status_Normal]);
+    UIElements_NewAttribute("normalcolor");
+    UIControl::MakeColor(UIElements_Attribute, colors[Status_Normal]);
     // 移上状态颜色
-    UIControl::MakeColor(node.attribute("hovercolor").value(), m_aColor[Status_Hover]);
+    UIElements_NewAttribute("hovercolor");
+    UIControl::MakeColor(UIElements_Attribute, colors[Status_Hover]);
     // 按下状态颜色
-    UIControl::MakeColor(node.attribute("pushedcolor").value(), m_aColor[Status_Pushed]);
+    UIElements_NewAttribute("pushedcolor");
+    UIControl::MakeColor(UIElements_Attribute, colors[Status_Pushed]);
 }
 
 // Elements<ColorRect> 重建
@@ -196,13 +216,13 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 void LongUI::Component::Elements<LongUI::Element::ColorRect>::Render(const D2D1_RECT_F& rect) noexcept {
     assert(m_pRenderTarget && m_pBrush);
     // 先绘制当前状态
-    if (m_animation.value < m_animation.end) {
-        m_pBrush->SetColor(m_aColor + m_state);
+    if (animation.value < animation.end) {
+        m_pBrush->SetColor(colors + m_state);
         m_pRenderTarget->FillRectangle(&rect, m_pBrush);
     }
     // 再绘制目标状态
-    m_pBrush->SetOpacity(m_animation.value);
-    m_pBrush->SetColor(m_aColor + m_stateTartget);
+    m_pBrush->SetOpacity(animation.value);
+    m_pBrush->SetColor(colors + m_stateTartget);
     m_pRenderTarget->FillRectangle(&rect, m_pBrush);
     m_pBrush->SetOpacity(1.f);
 }

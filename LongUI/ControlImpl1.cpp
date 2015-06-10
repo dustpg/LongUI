@@ -108,8 +108,6 @@ auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
     case LongUI::RenderType::Type_RenderBackground:
         break;
     case LongUI::RenderType::Type_Render:
-        m_bDrawPosChanged = false;
-        m_bDrawSizeChanged = false;
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 渲染边框
@@ -125,6 +123,8 @@ auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
                 );
             //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
+        m_bDrawPosChanged = false;
+        m_bDrawSizeChanged = false;
         break;
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
@@ -397,6 +397,7 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
             this->draw_zone = this->show_zone;
         }
         draw_rect = GetDrawRect(this);
+        // 渲染部件
         m_uiElement.Render(draw_rect);
         // 更新计时器
         UIElement_Update(m_uiElement);
@@ -414,7 +415,6 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
 
 // UIButton 构造函数
 LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node){
-    // , nullptr
     // 初始化代码
     m_uiElement.GetByType<Element::Basic>().Init(node);
     if (m_uiElement.GetByType<Element::Meta>().IsOK()) {
@@ -424,7 +424,8 @@ LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElemen
         m_uiElement.SetElementType(Element::BrushRect);
     }
     // 特殊
-    //m_uiElement.SetElementType(Element::BrushRect);
+    m_uiElement.GetByType<Element::Basic>().SetNewStatus(Status_Normal);
+    m_uiElement.GetByType<Element::Basic>().SetNewStatus(Status_Normal);
     constexpr int azz = sizeof(m_uiElement);
 }
 

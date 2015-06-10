@@ -27,12 +27,16 @@
 
 // LongUI namespace
 namespace LongUI{
+    // Container
+    class UIContainer;
     // base control class -- 基本控件类
     class LongUIAlignas LongUIAPI UIControl{
         // Super class
         using Super = void;
         // friend class
         friend class CUIManager;
+        // friend class
+        friend class UIContainer;
     public: // for script method zone, easy-type to send/get
         // control name
         LongUIInline auto ForScript_GetName() const noexcept {

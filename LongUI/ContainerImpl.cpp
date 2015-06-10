@@ -49,15 +49,17 @@ LongUI::UIContainer::~UIContainer() noexcept {
 // 插入后处理
 void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     assert(child && "bad argument");
-    // check flag
+    // 检查flag
     if (this->flags & Flag_Container_AlwaysRenderChildrenDirectly) {
         force_cast(child->flags) = LongUIFlag(child->flags | Flag_RenderParent);
     }
-    // recreate resource
-    child->Recreate(m_pRenderTarget);
-    // set parent
+    // 设置父类
     force_cast(child->parent) = this;
-    // change draw zone
+    // 设置窗口节点
+    child->m_pWindow = m_pWindow;
+    // 重建资源
+    child->Recreate(m_pRenderTarget);
+    // 修改
     child->DrawPosChanged();
     child->DrawSizeChanged();
     this->DrawSizeChanged();
@@ -272,10 +274,23 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         }
         m_pRenderTarget->PopAxisAlignedClip();
         // 渲染滚动条
-        if (this->scrollbar_h) {
+        if (this->scrollbar_h && this->scrollbar_h->GetTakingUpSapce() > 0.f) {
+            // 计算高度
+            auto height = this->scrollbar_h->GetTakingUpSapce() * this->world._22;
+            assert(height != 0.f);
+            this->scrollbar_h->visible_rect = this->visible_rect;
+            this->scrollbar_h->visible_rect.top = this->visible_rect.bottom - height;
+            // 渲染
             this->scrollbar_h->Render(LongUI::RenderType::Type_Render);
         }
-        if (this->scrollbar_v) {
+        // 渲染滚动条
+        if (this->scrollbar_v && this->scrollbar_v->GetTakingUpSapce() > 0.f) {
+            // 计算宽度
+            auto width = this->scrollbar_v->GetTakingUpSapce() * this->world._11;
+            assert(width != 0.f);
+            this->scrollbar_v->visible_rect = this->visible_rect;
+            this->scrollbar_v->visible_rect.left = this->visible_rect.right - width;
+            // 渲染
             this->scrollbar_v->Render(LongUI::RenderType::Type_Render);
         }
         // 父类

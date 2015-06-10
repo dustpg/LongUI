@@ -1,10 +1,5 @@
 ﻿#include "LongUI.h"
 
-// TODO: 滚动条优化
-//std::atomic_uint32_t g_cScrollBarCount = 0;
-//ID2D1PathGeometry*  g_pScrollBar1 = nullptr;
-//ID2D1PathGeometry*  g_pScrollBar2 = nullptr;
-
 // UIScrollBar 构造函数
 
 LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
@@ -101,45 +96,6 @@ void LongUI::UIScrollBar::Refresh() noexcept {
     // TODO: 更新滚动条状态
 }
 
-// UIScrollBar 渲染 
-auto  LongUI::UIScrollBar::Render(RenderType type) noexcept ->HRESULT {
-#if 0
-    register float tmpsize = this->desc.size;
-    D2D1_RECT_F draw_rect = GetDrawRect(this);
-    m_rtThumb = m_rtArrow2 =  m_rtArrow1 = draw_rect;
-    // 垂直滚动条
-    if (this->desc.type == ScrollBarType::Type_Vertical) {
-        m_rtArrow1.bottom = m_rtArrow1.top + tmpsize;
-        m_rtArrow2.top = m_rtArrow2.bottom - tmpsize;
-        // 计算Thumb
-        register auto height = m_pOwner->show_zone.height - tmpsize;
-        register auto bilibili = height / this->max_range;
-        m_rtThumb.top = (this->index * bilibili + m_rtArrow1.bottom);
-        m_rtThumb.bottom = (m_rtThumb.top + bilibili * height);
-        //assert(m_rtThumb.bottom <= m_rtArrow2.top);
-    }
-    // 水平滚动条
-    else {
-        m_rtArrow1.right = m_rtArrow1.left + tmpsize;
-        m_rtArrow2.left = m_rtArrow2.right - tmpsize;
-        // 计算Thumb
-        register auto width = m_pOwner->show_zone.width;
-        register auto bilibili = width / this->max_range;
-        m_rtThumb.left = this->index * bilibili;
-        m_rtThumb.right = m_rtThumb.left + bilibili * width;
-        //assert(m_rtThumb.right <= m_rtArrow2.left);
-    }
-    // 先画一个矩形
-    m_pRenderTarget->DrawRectangle(&m_rtArrow1, m_pBrush, 1.f);
-    // -------------
-    m_pRenderTarget->FillRectangle(&m_rtThumb, m_pBrush);
-    // -------------
-    // 先画一个矩形
-    m_pRenderTarget->DrawRectangle(&m_rtArrow2, m_pBrush, 1.f);
-    // 修改转变矩阵
-#endif
-    return S_OK;
-}
 
 
 // do event 事件处理
@@ -160,9 +116,11 @@ bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_MouseEnter:
             (L"<%S>: MouseEnter\n", __FUNCTION__);
             break;*/
+            break;
         case LongUI::Event::Event_MouseLeave:
             m_pointType = PointType::Type_None;
-            break;
+            m_lastPointType = PointType::Type_None;
+            return true;
         }
     }
     // 系统消息
@@ -171,6 +129,95 @@ bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
 
     }
     return false;
+}
+
+
+// UIScrollBarA 构造函数
+LongUI::UIScrollBarA::UIScrollBarA(pugi::xml_node node) noexcept: Super(node), 
+m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb"){
+    // 修改颜色
+    if (!node) {
+        D2D1_COLOR_F normal_color = D2D1::ColorF(0xF0F0F0);
+        m_uiArrow1.GetByType<Element::ColorRect>().colors[Status_Normal] = normal_color;
+        m_uiArrow2.GetByType<Element::ColorRect>().colors[Status_Normal] = normal_color;
+        normal_color = D2D1::ColorF(0x2F2F2F);
+        m_uiArrow1.GetByType<Element::ColorRect>().colors[Status_Pushed] = normal_color;
+        m_uiArrow2.GetByType<Element::ColorRect>().colors[Status_Pushed] = normal_color;
+    }
+    // 初始化代码
+    m_uiArrow1.GetByType<Element::Basic>().Init(node, "arrow1");
+    m_uiArrow2.GetByType<Element::Basic>().Init(node, "arrow2");
+    m_uiThumb.GetByType<Element::Basic>().Init(node, "thumb");
+    // 检查
+    BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
+    for (auto element : elements) {
+        if (element->GetByType<Element::Meta>().IsOK()) {
+            element->SetElementType(Element::Meta);
+        }
+        else {
+            element->SetElementType(Element::ColorRect);
+        }
+        element->GetByType<Element::Basic>().SetNewStatus(Status_Normal);
+        element->GetByType<Element::Basic>().SetNewStatus(Status_Normal);
+    }
+    // 检查属性
+    m_bArrow1InColor = m_uiArrow1.GetByType<Element::Basic>().type == Element::ColorRect;
+    m_bArrow2InColor = m_uiArrow2.GetByType<Element::Basic>().type == Element::ColorRect;
+    //
+    auto create_geo = [](D2D1_POINT_2F* list, uint32_t length) {
+        auto hr = S_OK;
+        ID2D1PathGeometry* geometry = nullptr;
+        ID2D1GeometrySink* sink = nullptr;
+        // 创建几何体
+        if (SUCCEEDED(hr)) {
+            hr = UIManager_D2DFactory->CreatePathGeometry(&geometry);
+        }
+        // 打开
+        if (SUCCEEDED(hr)) {
+            hr = geometry->Open(&sink);
+        }
+        // 开始绘制
+        if (SUCCEEDED(hr)) {
+            sink->BeginFigure(list[0], D2D1_FIGURE_BEGIN_HOLLOW);
+            sink->AddLines(list + 1, length - 1);
+            sink->EndFigure(D2D1_FIGURE_END_OPEN);
+            hr = sink->Close();
+        }
+        AssertHR(hr);
+        ::SafeRelease(sink);
+        return geometry;
+    };
+    D2D1_POINT_2F point_list_1[3];
+    D2D1_POINT_2F point_list_2[3];
+    constexpr float BASIC_SIZE = 16.f;
+    constexpr float BASIC_SIZE_MID = BASIC_SIZE * 0.5f;
+    constexpr float BASIC_SIZE_NEAR = BASIC_SIZE_MID * 0.5f;
+    constexpr float BASIC_SIZE_FAR = BASIC_SIZE - BASIC_SIZE_NEAR;
+    // 水平滚动条
+    if (this->type != ScrollBarType::Type_Vertical) {
+        //
+        point_list_1[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
+        point_list_1[1] = { BASIC_SIZE_NEAR , BASIC_SIZE_MID };
+        point_list_1[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
+        //
+        point_list_2[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
+        point_list_2[1] = { BASIC_SIZE_FAR , BASIC_SIZE_MID };
+        point_list_2[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
+    }
+    // 垂直滚动条
+    else {
+        //
+        point_list_1[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID};
+        point_list_1[1] = { BASIC_SIZE_MID, BASIC_SIZE_NEAR};
+        point_list_1[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID};
+        //
+        point_list_2[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID  };
+        point_list_2[1] = { BASIC_SIZE_MID, BASIC_SIZE_FAR  };
+        point_list_2[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
+    }
+    // 创建
+    m_pArrow1Geo = create_geo(point_list_1, lengthof(point_list_1));
+    m_pArrow2Geo = create_geo(point_list_2, lengthof(point_list_2));
 }
 
 // UIScrollBarA 渲染 
@@ -196,7 +243,7 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
         register auto height = m_pOwner->show_zone.height - tmpsize*2.f;
         register auto bilibili = height / m_fMaxRange;
         m_rtThumb.top = (m_fIndex * bilibili + m_rtArrow1.bottom);
-        m_rtThumb.bottom = (m_rtThumb.top + bilibili * height);
+        m_rtThumb.bottom = (m_rtThumb.top + bilibili * height) - 1.f;
         //assert(m_rtThumb.bottom <= m_rtArrow2.top);
     }
     // 水平滚动条
@@ -207,49 +254,103 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
         register auto width = m_pOwner->show_zone.width - tmpsize*2.f;
         register auto bilibili = width / m_fMaxRange;
         m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
-        m_rtThumb.right = m_rtThumb.left + bilibili * width;
+        m_rtThumb.right = m_rtThumb.left + bilibili * width - 1.f;
         //assert(m_rtThumb.right <= m_rtArrow2.left);
     }
-    // 背景
+    // 基本背景: Shaft
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-    // thumb
-    m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
-    m_pRenderTarget->FillRectangle(&m_rtThumb, m_pBrush_SetBeforeUse);
-    // 渲染
-    //m_pRenderTarget->FillRectangle(&m_rtArrow1, m_pBrush_SetBeforeUse);
-    //m_pRenderTarget->FillRectangle(&m_rtArrow2, m_pBrush_SetBeforeUse);
+    // 渲染部件
+    m_uiArrow1.Render(m_rtArrow1);
+    UIElement_Update(m_uiArrow1);
+    m_uiArrow2.Render(m_rtArrow2);
+    UIElement_Update(m_uiArrow2);
+    m_uiThumb.Render(m_rtThumb);
+    UIElement_Update(m_uiThumb);
+    // 前景
+    auto render_geo = [](ID2D1RenderTarget* target, ID2D1Brush* bush, ID2D1Geometry* geo, D2D1_RECT_F& rect) {
+        D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
+        target->SetTransform(
+            D2D1::Matrix3x2F::Translation(rect.left, rect.top) * matrix
+            );
+        target->DrawGeometry(geo, bush, 2.33f);
+        // 修改
+        target->SetTransform(&matrix);
+    };
+    // 渲染几何体
+    if (m_bArrow1InColor) {
+        D2D1_COLOR_F tcolor = m_uiArrow1.GetByType<Element::ColorRect>().colors[
+            m_uiArrow1.GetByType<Element::Basic>().GetStatus()
+        ];
+        tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
+        m_pBrush_SetBeforeUse->SetColor(&tcolor);
+        render_geo(m_pRenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
+    }
+    // 渲染几何体
+    if (m_bArrow2InColor) {
+        D2D1_COLOR_F tcolor = m_uiArrow2.GetByType<Element::ColorRect>().colors[
+            m_uiArrow2.GetByType<Element::Basic>().GetStatus()
+        ];
+        tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
+        m_pBrush_SetBeforeUse->SetColor(&tcolor);
+        render_geo(m_pRenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
+    }
+    // 前景
+    Super::Render(RenderType::Type_RenderForeground);
     return S_OK;
 }
 
-// UIScrollBarA:: 重建
-auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* target) noexcept -> HRESULT {
-    return Super::Recreate(target);
-}
 
 
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoEvent(LongUI::EventArgument& arg) noexcept {
     // 控件消息
     if (arg.sender) {
-
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_MouseLeave:
+            this->set_status(m_lastPointType, LongUI::Status_Normal);
+            break;
+        }
     }
     // 系统消息
     else {
         switch (arg.msg) {
+        case WM_LBUTTONDOWN:
+            m_pWindow->SetCapture(this);
+            m_bCaptured = true;
+            this->set_status(m_pointType, LongUI::Status_Pushed);
+            break;
+        case WM_LBUTTONUP:
+            this->set_status(m_pointType, LongUI::Status_Hover);
+            m_bCaptured = false;
+            m_pWindow->ReleaseCapture();
+            break;
         case WM_MOUSEMOVE:
-            // 检查指向类型
-            if (IsPointInRect(m_rtArrow1, arg.pt)) {
-                m_pointType = PointType::Type_Arrow1;
+            // Captured状态
+            if (m_bCaptured) {
+                // 移动
             }
-            else if (IsPointInRect(m_rtArrow2, arg.pt)) {
-                m_pointType = PointType::Type_Arrow2;
-            }
-            else if (IsPointInRect(m_rtThumb, arg.pt)) {
-                m_pointType = PointType::Type_Thumb;
-            }
-            else {
-                m_pointType = PointType::Type_Shaft;
+            //  检查指向类型
+            else{
+                if (IsPointInRect(m_rtArrow1, arg.pt)) {
+                    m_pointType = PointType::Type_Arrow1;
+                }
+                else if (IsPointInRect(m_rtArrow2, arg.pt)) {
+                    m_pointType = PointType::Type_Arrow2;
+                }
+                else if (IsPointInRect(m_rtThumb, arg.pt)) {
+                    m_pointType = PointType::Type_Thumb;
+                }
+                else {
+                    m_pointType = PointType::Type_Shaft;
+                }
+                // 修改
+                if (m_lastPointType != m_pointType) {
+                    this->set_status(m_lastPointType, LongUI::Status_Normal);
+                    this->set_status(m_pointType, LongUI::Status_Hover);
+                    m_lastPointType = m_pointType;
+                }
             }
             return true;
         }
@@ -257,13 +358,13 @@ bool  LongUI::UIScrollBarA::DoEvent(LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
-/*/ UIScrollBaAr 重建 
-auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    ::SafeRelease(m_pBrush);
-    // 设置新的笔刷
-    m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
-    return Super::Recreate(newRT);
-}*/
+// UIScrollBarA:: 重建
+auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* target) noexcept -> HRESULT {
+    m_uiArrow1.Recreate(target);
+    m_uiArrow2.Recreate(target);
+    m_uiThumb.Recreate(target);
+    return Super::Recreate(target);
+}
 
 // UIScrollBarA: 需要
 void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
@@ -274,9 +375,8 @@ void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
 
 // UIScrollBarA 析构函数
 inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
-    ::SafeRelease(m_pArrow1Text);
-    ::SafeRelease(m_pArrow2Text);
-    ::SafeRelease(m_pBrush);
+    ::SafeRelease(m_pArrow1Geo);
+    ::SafeRelease(m_pArrow2Geo);
 }
 
 // UIScrollBarA 关闭控件
@@ -284,8 +384,23 @@ void  LongUI::UIScrollBarA::Close() noexcept {
     delete this;
 }
 
+// 设置状态
+void LongUI::UIScrollBarA::set_status(PointType type, ControlStatus state) noexcept {
+    BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
+    // 检查
+    if (type >= PointType::Type_Arrow1 && type <= PointType::Type_Thumb) {
+        auto& element = *(elements[
+            static_cast<uint32_t>(type) - static_cast<uint32_t>(PointType::Type_Arrow1)
+        ]);
+        UIElement_SetNewStatus(element, state);
+    }
+}
 // create 创建
 auto WINAPI LongUI::UIScrollBarA::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
+    // 获取模板节点
+    if (!node) {
+
+    }
     // 申请空间
     auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarA>(
         node,

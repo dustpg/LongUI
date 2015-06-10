@@ -41,16 +41,14 @@ namespace LongUI{
         using Super = UIControl ;
     protected:
         // mouse point [0, 1, 2, 3, 4]
-        enum class PointType : uint32_t {
+        enum class PointType : uint16_t {
             Type_None,      // None
             Type_Arrow1,    // Arrow1
+            Type_Arrow2,    // Arrow2
             Type_Thumb,     // Thumb
             Type_Shaft,     // Shaft
-            Type_Arrow2,    // Arrow2
         };
     public:
-        // Render 渲染
-        auto Render(RenderType) noexcept ->HRESULT override;
         // do event 事件处理
         bool DoEvent(LongUI::EventArgument&) noexcept override;
     public:
@@ -81,6 +79,8 @@ namespace LongUI{
     protected:
         // tpye of mouse pointed
         PointType               m_pointType = PointType::Type_None;
+        // tpye of mouse last pointed
+        PointType               m_lastPointType = PointType::Type_None;
     protected:
         // now take up the space of this
         float                   m_fTakeSpace = 0.f;
@@ -101,9 +101,11 @@ namespace LongUI{
     private:
         // 父类申明
         using Super = UIScrollBar;
+        // ui element
+        using BarElement = Component::Elements<Element::Meta, Element::ColorRect, Element::Basic>;
     public:
         // ctor
-        UIScrollBarA(pugi::xml_node node) noexcept : Super(node) {}
+        UIScrollBarA(pugi::xml_node node) noexcept;
         // create this
         static auto WINAPI CreateControl(pugi::xml_node node) noexcept->UIControl*;
     public:
@@ -119,6 +121,8 @@ namespace LongUI{
         // on needed
         void OnNeeded(bool need) noexcept override;
     private:
+        // set new status
+        void set_status(PointType type, ControlStatus state) noexcept;
         // dtor
         ~UIScrollBarA() noexcept;
     private:
@@ -128,12 +132,24 @@ namespace LongUI{
         D2D1_RECT_F             m_rtArrow2 = D2D1::RectF();
         // the rect of thumb
         D2D1_RECT_F             m_rtThumb = D2D1::RectF();
-        // brush of this
-        ID2D1Brush*             m_pBrush = nullptr;
         // arrow 1 text path geo
-        ID2D1PathGeometry*      m_pArrow1Text = nullptr;
+        ID2D1PathGeometry*      m_pArrow1Geo = nullptr;
         // arrow 2 text path geo
-        ID2D1PathGeometry*      m_pArrow2Text = nullptr;
+        ID2D1PathGeometry*      m_pArrow2Geo = nullptr;
+        // arrow1
+        BarElement              m_uiArrow1;
+        // arrow2
+        BarElement              m_uiArrow2;
+        // thumb
+        BarElement              m_uiThumb;
+        // captured this
+        bool                    m_bCaptured = false;
+        // arrow1 use colorrect
+        bool                    m_bArrow1InColor = false;
+        // arrow2 use colorrect
+        bool                    m_bArrow2InColor = false;
+        // unused
+        bool                    m_unused_sb;
     };
 
 }

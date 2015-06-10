@@ -683,23 +683,24 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         }
         // 查找子控件
         control_got = this->FindControl(_arg.pt);
-        // 控件有效
-        if (control_got){
-            if (control_got != m_pPointedControl ) {
-                new_arg = _arg;
-                new_arg.sender = this;
-                if (m_pPointedControl) {
-                    new_arg.event = LongUI::Event::Event_MouseLeave;
-                    m_pPointedControl->DoEventEx(new_arg);
-                }
-                m_pPointedControl = control_got;
+        // 不同
+        if (control_got != m_pPointedControl) {
+            new_arg = _arg;
+            new_arg.sender = this;
+            // 有效
+            if (m_pPointedControl) {
+                new_arg.event = LongUI::Event::Event_MouseLeave;
+                m_pPointedControl->DoEventEx(new_arg);
+            }
+            // 有效
+            if ((m_pPointedControl = control_got)) {
                 new_arg.event = LongUI::Event::Event_MouseEnter;
                 m_pPointedControl->DoEventEx(new_arg);
             }
-            // 相同
-            else {
-                control_got->DoEventEx(_arg);
-            }
+        }
+        // 相同
+        else if(control_got) {
+            control_got->DoEventEx(_arg);
         }
         handled = true;
         break;
@@ -851,7 +852,10 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
             << long(rect.right) << ", " << long(rect.bottom) << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
         ::SafeRelease(m_pTargetBimtap);
-        hr = m_pSwapChain->ResizeBuffers(2, rect.right, rect.bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+        hr = m_pSwapChain->ResizeBuffers(
+            2, rect.right, rect.bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 
+            DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
+            );
         // 检查
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
             UIManager.RecreateResources();
@@ -912,7 +916,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.BufferCount = 2;
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-        swapChainDesc.Flags = 0;
+        swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         // 滚动
         m_rcScroll.right = rect.right - rect.left;
         m_rcScroll.bottom = rect.bottom - rect.top;

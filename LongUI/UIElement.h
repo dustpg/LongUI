@@ -53,11 +53,11 @@ namespace LongUI {
         template<Element... > class Elements;
         // render unit
         template<Element Head, Element... Tail>
-        class Elements<Head, Tail...> : protected virtual Elements<Tail...>, protected Elements<Head>{
+        class Elements<Head, Tail...> : protected virtual Elements<Tail...>, protected Elements<Head> {
             // super class
             using SuperA = Elements<Tail...>;
-        // super class
-        using SuperB = Elements<Head>;
+            // super class
+            using SuperB = Elements<Head>;
         public:
             // set unit type
             auto SetElementType(Element unit) noexcept { this->type = unit; }
@@ -66,14 +66,14 @@ namespace LongUI {
         public:
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<ElementType>& { return Super::GetByType<ElementType>(); }
+            auto GetByType() noexcept ->Elements<ElementType>& { return SuperA::GetByType<ElementType>(); }
             // get element for head
             template<>
             auto GetByType<Head>() noexcept ->Elements<Head>& { return static_cast<Elements<Head>&>(*this); }
             // render this
             void Render(const D2D1_RECT_F& rect) noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
             // update
-            auto Update(float t) noexcept { m_animation.Update(t); }
+            auto Update(float t) noexcept { animation.Update(t); }
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept {
                 HRESULT hr = S_OK;
@@ -91,8 +91,8 @@ namespace LongUI {
         public:
             // ctor 
             Elements(pugi::xml_node node = LongUINullXMLNode, const char* prefix = nullptr)
-                noexcept : m_animation(AnimationType::Type_QuadraticEaseOut) {
-                m_animation.end = 1.f;
+                noexcept : animation(AnimationType::Type_QuadraticEaseOut) {
+                animation.end = 1.f;
             }
             // init 
             void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept;
@@ -103,6 +103,8 @@ namespace LongUI {
             auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
             // set new status
             auto SetNewStatus(ControlStatus) noexcept ->float;
+            // get status
+            auto GetStatus() noexcept { return m_stateTartget; }
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
             // type of unit
@@ -114,8 +116,9 @@ namespace LongUI {
             ControlStatus           m_state = ControlStatus::Status_Disabled;
             // state of unit
             ControlStatus           m_stateTartget = ControlStatus::Status_Disabled;
+        public:
             // animation
-            CUIAnimationOpacity     m_animation;
+            CUIAnimationOpacity     animation;
         };
         // element for bitmap
         template<> class Elements<Element::Meta> : protected virtual Elements<Element::Basic>{
@@ -186,12 +189,13 @@ namespace LongUI {
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept ->HRESULT;
             // change color
-            void ChangeColor(ControlStatus index, D2D1_COLOR_F& color) noexcept { m_aColor[index] = color; }
+            void ChangeColor(ControlStatus index, D2D1_COLOR_F& color) noexcept { colors[index] = color; }
             // change color
-            void ChangeColor(ControlStatus index, uint32_t color, float alpha = 1.f) noexcept { m_aColor[index] = D2D1::ColorF(color, alpha); }
-        protected:
+            void ChangeColor(ControlStatus index, uint32_t color, float alpha = 1.f) noexcept { colors[index] = D2D1::ColorF(color, alpha); }
+        public:
             // brush id
-            D2D1_COLOR_F            m_aColor[STATUS_COUNT];
+            D2D1_COLOR_F            colors[STATUS_COUNT];
+        protected:
             // brush
             ID2D1SolidColorBrush*   m_pBrush = nullptr;
         };
