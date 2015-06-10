@@ -269,6 +269,10 @@ void LongUI::UIWindow::AddControl(const std::pair<CUIString, void*>& pair) noexc
 
 // release data
 void LongUI::UIWindow::release_data() noexcept {
+    if (m_hVSync) {
+        ::CloseHandle(m_hVSync);
+        m_hVSync = nullptr;
+    }
     // 释放资源
     ::SafeRelease(m_pTargetBimtap);
     ::SafeRelease(m_pSwapChain);
@@ -887,7 +891,8 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     // UIWindow::Recreate参数不会为nullptr
     assert(newRT && "bad argument");
     // DXGI Surface 后台缓冲
-    IDXGISurface*                        pDxgiBackBuffer = nullptr;
+    IDXGISurface*                       pDxgiBackBuffer = nullptr;
+    IDXGISwapChain1*                    pSwapChain = nullptr;
     this->release_data();
     // 创建交换链
     IDXGIFactory2* pDxgiFactory = UIManager;
@@ -920,7 +925,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
                 UIManager_DXGIDevice,
                 &swapChainDesc,
                 nullptr,
-                &m_pSwapChain
+                &pSwapChain
                 );
         }
         else {
@@ -934,9 +939,20 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
                 &swapChainDesc,
                 nullptr,
                 nullptr,
-                &m_pSwapChain
+                &pSwapChain
                 );
         }
+    }
+    // 获取交换链V2
+    if (SUCCEEDED(hr)) {
+        hr = pSwapChain->QueryInterface(
+            IID_IDXGISwapChain2,
+            reinterpret_cast<void**>(&m_pSwapChain)
+            );
+    }
+    // 获取垂直等待事件
+    if (SUCCEEDED(hr)) {
+        m_hVSync = m_pSwapChain->GetFrameLatencyWaitableObject();
     }
     // 确保DXGI队列里边不会超过一帧
     if (SUCCEEDED(hr)) {
@@ -1013,6 +1029,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         AssertHR(hr);
     }
     ::SafeRelease(pDxgiBackBuffer);
+    ::SafeRelease(pSwapChain);
     // 设置规划位图
     if (SUCCEEDED(hr)) {
         constexpr float PBS = float(LongUIWindowPlanningBitmap);

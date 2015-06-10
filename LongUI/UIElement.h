@@ -132,7 +132,7 @@ namespace LongUI {
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
             // is OK?
-            auto IsOK() noexcept { return m_metas[Status_Normal].bitmap != nullptr; }
+            auto IsOK() noexcept { return m_aID[Status_Normal] != 0; }
         protected:
             // metas
             Meta            m_metas[STATUS_COUNT];

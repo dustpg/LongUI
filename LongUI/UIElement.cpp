@@ -23,6 +23,7 @@ SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
     m_state = m_stateTartget;
     m_stateTartget = new_status;
     m_animation.value = 0.f;
+    m_animation.start = 0.f;
     return m_animation.time = m_animation.duration;
 }
 

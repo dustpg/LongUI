@@ -149,8 +149,10 @@ namespace LongUI{
         IDataObject*            m_pCurDataObject = nullptr;
         // 拖放帮助工具
         IDropTargetHelper*      m_pDropTargetHelper = nullptr;
+        // wait for vsync
+        HANDLE                  m_hVSync = nullptr;
         // swap chain 交换链
-        IDXGISwapChain1*        m_pSwapChain = nullptr;
+        IDXGISwapChain2*        m_pSwapChain = nullptr;
         // target bitmap
         ID2D1Bitmap1*           m_pTargetBimtap = nullptr;
         // planning bitmap

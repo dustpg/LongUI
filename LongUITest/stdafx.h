@@ -41,7 +41,7 @@
 // Basic Lib
 #undef DrawText
 #include <strsafe.h>
-#include <dxgi1_2.h>
+#include <dxgi1_3.h>
 #include <d3d11.h>
 #include <D3D11SDKLayers.h>
 #include <d2d1_1.h>
