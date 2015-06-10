@@ -4,6 +4,7 @@
     TODO: 完成滚动条与容器的匹配
     TODO: 完成特效框架
     TODO: 完成UIList
+    TODO: 子控件部分刷新
     TODO: 封装XML接口
     TODO: 分离UIWindow
     TODO: 子窗口渲染
