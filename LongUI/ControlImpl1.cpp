@@ -398,8 +398,19 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
         }
         draw_rect = GetDrawRect(this);
         m_uiElement.Render(draw_rect);
+<<<<<<< HEAD
         // 更新计时器
         UIElement_Update(m_uiElement);
+=======
+        {
+            auto time = m_pWindow->GetDeltaTime();
+            if (time > 0.f) {
+                m_uiElement.Update(time);
+            }
+        }
+        // 更新计时器
+        //UIElement_Update(m_uiElement);
+>>>>>>> origin/master
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -414,10 +425,9 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
 
 // UIButton 构造函数
 LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node){
-    // , nullptr
     // 初始化代码
     m_uiElement.GetByType<Element::Basic>().Init(node);
-    if (m_uiElement.GetByType<Element::Meta>().IsOK()) {
+    if (m_uiElement.GetByType<Element::Meta>().IsOK(Status_Normal)) {
         m_uiElement.SetElementType(Element::Meta);
     }
     else {

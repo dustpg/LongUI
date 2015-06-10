@@ -49,15 +49,78 @@ namespace LongUI {
     };
     // Component namespace
     namespace Component {
-    // class decl
-        template<Element... > class Elements;
-        // render unit
-        template<Element Head, Element... Tail>
-        class Elements<Head, Tail...> : protected virtual Elements<Tail...>, protected Elements<Head>{
+        // helper for control status as default
+        class ControlStatusHelper {
+        public:
+            // get count
+            static constexpr auto GetCount() { return static_cast<uint32_t>(STATUS_COUNT); }
+            // get zero for type
+            static           auto GetZero() { return Status_Disabled; }
+            // get string list
+            static const     auto GetList() {
+                static const char* s_list[] = { "disabled", "normal", "hover", "pushed" };
+                return s_list;
+            }
+        };
+        // class decl
+        template<class, Element... > class Elements;
+        // basic
+        using ElementsBasic = Elements<ControlStatusHelper, Element::Basic>;
+        // code bloat limiter, because of "lightweight"
+        class CodeBloatLimiter {
+        public:
+            // Init for Elements<Basic>
+            static void __fastcall ElementsBasicInit(
+                pugi::xml_node node, const char* prefix,
+                CUIAnimationOpacity& anim, uint32_t size, const char** list
+                ) noexcept;
+            // SetNewStatus for Elements<Basic>
+            static auto __fastcall ElementsBasicSetNewStatus(
+                ElementsBasic& ele, uint32_t index
+                ) noexcept ->float;
+            // ------
+            // ctor for Elements<Meta>
+            static void __fastcall ElementsMetaCtor(
+                pugi::xml_node node, const char* prefix,
+                uint16_t* first, uint32_t size, const char** list
+                ) noexcept;
+            // recreate for Elements<Meta>
+            static void __fastcall ElementsMetaRecreate(
+                Meta* metas, uint16_t* ids, uint32_t size
+                ) noexcept;
+            // render for Elements<Meta>
+            static void __fastcall ElementsMetaRender(
+                ElementsBasic& ele, Meta* metas,
+                const D2D1_RECT_F& rect
+                ) noexcept;
+            // ------
+            // ctor for Elements<BrushRect>
+            static void __fastcall ElementBrushRectCtor(
+                pugi::xml_node node, const char * prefix, ID2D1Brush** brushes,
+                uint16_t* ids, uint32_t size, const char ** list
+                ) noexcept;
+            // dtor for Elements<BrushRect>
+            static void __fastcall ElementBrushRectDtor(
+                ID2D1Brush** brushes, uint32_t size
+                ) noexcept;
+            // render for Elements<BrushRect>
+            static void __fastcall ElementBrushRectRender(
+                ElementsBasic& ele, ID2D1Brush** brushes,
+                const D2D1_RECT_F& rect
+                ) noexcept;
+            // recreate for Elements<BrushRect>
+            static void __fastcall ElementBrushRectRecreate(
+                 ID2D1Brush** brushes, uint16_t* ids, uint32_t size
+                ) noexcept;
+        };
+        // render elements
+        template<class Helper, Element Head, Element... Tail>
+        class Elements<Helper, Head, Tail...> : 
+            protected virtual Elements<Helper, Tail...>, protected Elements<Helper, Head>{
             // super class
-            using SuperA = Elements<Tail...>;
-        // super class
-        using SuperB = Elements<Head>;
+            using SuperA = Elements<Helper, Tail...>;
+            // super class
+            using SuperB = Elements<Helper, Head>;
         public:
             // set unit type
             auto SetElementType(Element unit) noexcept { this->type = unit; }
@@ -66,10 +129,10 @@ namespace LongUI {
         public:
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<ElementType>& { return Super::GetByType<ElementType>(); }
+            auto GetByType() noexcept ->Elements<Helper, ElementType>& { return Super::GetByType<ElementType>(); }
             // get element for head
             template<>
-            auto GetByType<Head>() noexcept ->Elements<Head>& { return static_cast<Elements<Head>&>(*this); }
+            auto GetByType<Head>() noexcept ->Elements<Helper, Head>& { return static_cast<Elements<Helper, Head>&>(*this); }
             // render this
             void Render(const D2D1_RECT_F& rect) noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
             // update
@@ -87,7 +150,12 @@ namespace LongUI {
             }
         };
         // element for all
-        template<> class Elements<Element::Basic> {
+        template<class Helper> class Elements<Helper, Element::Basic> {
+            // friend class
+            friend class CodeBloatLimiter;
+        public:
+            // control status
+            using StatusForUsing = decltype(Helper::GetZero());
         public:
             // ctor 
             Elements(pugi::xml_node node = LongUINullXMLNode, const char* prefix = nullptr)
@@ -95,84 +163,137 @@ namespace LongUI {
                 m_animation.end = 1.f;
             }
             // init 
-            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept;
-            // render this
-            void Render(const D2D1_RECT_F&) noexcept { }
+            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept {
+                CodeBloatLimiter::ElementsBasicInit(
+                    node, prefix, m_animation, 
+                    Helper::GetCount(), Helper::GetList()
+                    );
+            }
+            // set new status
+            auto SetNewStatus(StatusForUsing new_status) noexcept {
+                return CodeBloatLimiter::ElementsBasicSetNewStatus(
+                    reinterpret_cast<ElementsBasic&>(*this),
+                    static_cast<uint32_t>(new_status)
+                    );
+            }
+        public:
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
-            // set new status
-            auto SetNewStatus(ControlStatus) noexcept ->float;
+            auto GetByType() noexcept ->Elements<Helper, Element::Basic>& { return *this; }
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
+            // render this
+            void Render(const D2D1_RECT_F&) noexcept { }
+        public:
             // type of unit
             Element                 type = Element::Basic;
         protected:
             // render target
             LongUIRenderTarget*     m_pRenderTarget = nullptr;
             // state of unit
-            ControlStatus           m_state = ControlStatus::Status_Disabled;
+            uint32_t                m_state = 0;
             // state of unit
-            ControlStatus           m_stateTartget = ControlStatus::Status_Disabled;
+            uint32_t                m_stateTartget = 0;
             // animation
             CUIAnimationOpacity     m_animation;
         };
         // element for bitmap
-        template<> class Elements<Element::Meta> : protected virtual Elements<Element::Basic>{
+        template<class Helper> class Elements<Helper, Element::Meta> : 
+            protected virtual Elements<Helper, Element::Basic>{
             // super class
-            using Super = Elements<Element::Basic>;
+            using Super = Elements<Helper, Element::Basic>;
+        public:
+            // control status
+            using StatusForUsing = decltype(Helper::GetZero());
         public:
             // ctor
-            Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept {
+                CodeBloatLimiter::ElementsMetaCtor(
+                    node, prefix, m_aID, Helper::GetCount(), Helper::GetList()
+                    );
+            }
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
+            auto GetByType() noexcept ->Elements<Helper, Element::Meta>& { return *this; }
             // render this
-            void Render(const D2D1_RECT_F&) noexcept;
+            void Render(const D2D1_RECT_F& rect) noexcept {
+                CodeBloatLimiter::ElementsMetaRender(*this, m_metas, rect);
+            }
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+            auto Recreate(LongUIRenderTarget* target) noexcept {
+                CodeBloatLimiter::ElementsMetaRecreate(m_metas, m_aID, Helper::GetCount());
+                return S_OK;
+            }
             // is OK?
+<<<<<<< HEAD
             auto IsOK() noexcept { return m_aID[Status_Normal] != 0; }
+=======
+            auto IsOK(StatusForUsing index) noexcept { return m_aID[index] != 0; }
+>>>>>>> origin/master
         protected:
             // metas
-            Meta            m_metas[STATUS_COUNT];
+            Meta            m_metas[Helper::GetCount()];
             // metas id
-            uint16_t        m_aID[STATUS_COUNT];
+            uint16_t        m_aID[Helper::GetCount()];
         };
         // element for brush rect
-        template<> class Elements<Element::BrushRect> : protected virtual Elements<Element::Basic>{
+        template<class Helper> class Elements<Helper, Element::BrushRect> 
+            : protected virtual Elements<Helper, Element::Basic>{
             // super class
-            using Super = Elements<Element::Basic>;
+            using Super = Elements<Helper, Element::Basic>;
+        public:
+            // control status
+            using StatusForUsing = decltype(Helper::GetZero());
         public:
             // ctor
-            Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept {
+                CodeBloatLimiter::ElementBrushRectCtor(
+                    node, prefix, m_apBrushes, m_aID,
+                    Helper::GetCount(), Helper::GetList()
+                    );
+            }
             // dtor
-            ~Elements() noexcept { this->release_data(); }
+            ~Elements() noexcept {
+                CodeBloatLimiter::ElementBrushRectDtor(
+                    m_apBrushes, Helper::GetCount()
+                    );
+            }
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<Element::BrushRect>& { return *this; }
+            auto GetByType() noexcept ->Elements<Helper, Element::BrushRect>& { return *this; }
             // render this
-            void Render(const D2D1_RECT_F& rect) noexcept;
+            void Render(const D2D1_RECT_F& rect) noexcept {
+                CodeBloatLimiter::ElementBrushRectRender(
+                    reinterpret_cast<ElementsBasic&>(static_cast<Super&>(*this)),
+                    m_apBrushes, rect
+                    );
+            }
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+            auto Recreate(LongUIRenderTarget* target) noexcept {
+                //CodeBloatLimiter::ElementBrushRectDtor(
+                 //   m_apBrushes, Helper::GetCount()
+                   // );
+                CodeBloatLimiter::ElementBrushRectRecreate(
+                    m_apBrushes, m_aID, Helper::GetCount()
+                    );
+                return S_OK;
+            }
             // change brush
             void ChangeBrush(ControlStatus index, ID2D1Brush* brush) noexcept {
                 ::SafeRelease(m_apBrushes[index]);
                 m_apBrushes[index] = ::SafeAcquire(brush);
             }
-        private:
-            // relase data
-            void release_data() noexcept;
         protected:
             // brush
-            ID2D1Brush*     m_apBrushes[STATUS_COUNT];
+            ID2D1Brush*     m_apBrushes[Helper::GetCount()];
             // brush id
-            uint16_t        m_aID[STATUS_COUNT];
+            uint16_t        m_aID[Helper::GetCount()];
         };
-        // element for color rect
-        template<> class Elements<Element::ColorRect> : protected virtual Elements<Element::Basic>{
+        /*/ element for color rect
+        template<class Helper> class Elements<Helper, Element::ColorRect> 
+            : protected virtual Elements<Helper, Element::Basic>{
             // super class
-            using Super = Elements<Element::Basic>;
+            using Super = Elements<Helper, Element::Basic>;
         public:
             // ctor
             Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
@@ -191,10 +312,10 @@ namespace LongUI {
             void ChangeColor(ControlStatus index, uint32_t color, float alpha = 1.f) noexcept { m_aColor[index] = D2D1::ColorF(color, alpha); }
         protected:
             // brush id
-            D2D1_COLOR_F            m_aColor[STATUS_COUNT];
+            D2D1_COLOR_F            m_aColor[Helper::GetCount()];
             // brush
             ID2D1SolidColorBrush*   m_pBrush = nullptr;
-        };
+        };*/
     }
 #ifdef LONGUI_VIDEO_IN_MF
     // Video Component implemented in UIUtil.cpp file

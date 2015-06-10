@@ -17,7 +17,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             <Label name="2" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
             <Button name="4.1" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
             <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
-                margin="4,4,4,4" hovermeta="3" pushedmeta="4" bordersize="1" text="Hello, world!"/>
+                margin="4,4,4,4" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
             <CheckBox name="5" text="Hello, world!"/>
             <!--Button name="uac" disabledmeta="1" normalmeta="2" 
                 hovermeta="3" pushedmeta="4" text="Try  Elevate UAC Now "/-->

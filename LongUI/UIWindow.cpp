@@ -1,6 +1,5 @@
 ﻿#include "LongUI.h"
 
-
 // 位图规划:
 /*
 -----
@@ -891,8 +890,13 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     // UIWindow::Recreate参数不会为nullptr
     assert(newRT && "bad argument");
     // DXGI Surface 后台缓冲
+<<<<<<< HEAD
     IDXGISurface*                       pDxgiBackBuffer = nullptr;
     IDXGISwapChain1*                    pSwapChain = nullptr;
+=======
+    IDXGISurface*                        pDxgiBackBuffer = nullptr;
+    IDXGISwapChain1*                     pSwapChain = nullptr;
+>>>>>>> origin/master
     this->release_data();
     // 创建交换链
     IDXGIFactory2* pDxgiFactory = UIManager;
@@ -912,7 +916,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.BufferCount = 2;
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
-        swapChainDesc.Flags = 0;
+        swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         // 滚动
         m_rcScroll.right = rect.right - rect.left;
         m_rcScroll.bottom = rect.bottom - rect.top;
@@ -943,14 +947,29 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
                 );
         }
     }
+<<<<<<< HEAD
     // 获取交换链V2
     if (SUCCEEDED(hr)) {
+=======
+    // 获取交换链
+    if (SUCCEEDED(hr)) {
+        assert(!m_pSwapChain);
+>>>>>>> origin/master
         hr = pSwapChain->QueryInterface(
             IID_IDXGISwapChain2,
             reinterpret_cast<void**>(&m_pSwapChain)
             );
+<<<<<<< HEAD
     }
     // 获取垂直等待事件
+=======
+        // 交换链v2 要求Win8.1
+        if (FAILED(hr)) {
+            UIManager.ShowError(L"DXGI 1.3 need Win8.1 or greater");
+        }
+    }
+    // 获取垂直同步事件
+>>>>>>> origin/master
     if (SUCCEEDED(hr)) {
         m_hVSync = m_pSwapChain->GetFrameLatencyWaitableObject();
     }

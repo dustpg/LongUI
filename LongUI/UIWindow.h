@@ -145,6 +145,8 @@ namespace LongUI{
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
         // window handle
         HWND                    m_hwnd = nullptr;
+        // VSync Handle
+        HANDLE                  m_hVSync = nullptr;
         // 创建数据对象
         IDataObject*            m_pCurDataObject = nullptr;
         // 拖放帮助工具

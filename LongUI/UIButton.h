@@ -31,7 +31,9 @@ namespace LongUI{
         // 父类申明
         using Super = UILabel;
         // ui element
-        using ButtonElement = Component::Elements<Element::Meta, Element::BrushRect, Element::Basic>;
+        using ButtonElement = Component::Elements<
+            Component::ControlStatusHelper, Element::Meta, Element::BrushRect, Element::Basic
+        >;
     public:
         // Render 渲染 
         virtual auto Render(RenderType type) noexcept ->HRESULT override;
