@@ -157,7 +157,6 @@ void LongUI::Component::Elements<LongUI::Element::BrushRect>::Render(const D2D1_
     //m_pRenderTarget->SetTransform(&matrix);
 #endif
 }
-
 // Elements<BrushRect> 重建
 auto LongUI::Component::Elements<LongUI::Element::BrushRect>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {

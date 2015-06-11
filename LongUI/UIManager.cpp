@@ -310,9 +310,34 @@ auto LongUI::CUIManager::GetCreateFunc(const CUIString& name) noexcept -> Create
     return nullptr;
 }
 
+// 渲染线程
+void LongUI::CUIManager::rendering_thread() {
+    while (!m_exitFlag) {
+        UIWindow* windows[LongUIMaxWindow];
+        uint32_t length = 0;
+        // 复制
+        UIManager.Lock();
+        length = m_windows.size();
+        for (auto i = 0u; i < length; ++i) {
+            windows[i] = reinterpret_cast<UIWindow*>(m_windows[i]);
+        }
+        UIManager.Unlock();
+        ::Sleep(16);
+    }
+}
+
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
     MSG msg;
+    // 创建线程
+    std::thread thread;
+    try {
+        thread = std::move(std::thread(&CUIManager::rendering_thread, this));
+    }
+    catch (...) {
+        this->ShowError(L"Failed to Create Thread");
+        return;
+    }
     //auto now_time = ::timeGetTime();
     while (!m_exitFlag) {
         // 获取鼠标状态
@@ -363,6 +388,16 @@ void LongUI::CUIManager::Run() noexcept {
                 //::Sleep(0);
             }
         }
+    }
+    m_exitFlag = true;
+    // 等待线程
+    try {
+        if (thread.joinable()) {
+            thread.join();
+        }
+    }
+    catch (...) {
+
     }
     // 尝试强行关闭(使用迭代器会使迭代器失效)
     while (!m_windows.empty()) {
@@ -2271,13 +2306,13 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 #ifdef _DEBUG
 
 // 换行刷新重载
-auto LongUI::CUIManager::operator<<(LongUI::EndL) noexcept ->CUIManager& {
+auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
     wchar_t chs[3] = { L'\r',L'\n', 0 }; 
     this->Output(m_lastLevel, chs);
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(DXGI_ADAPTER_DESC& desc) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
@@ -2302,7 +2337,7 @@ auto LongUI::CUIManager::operator<<(DXGI_ADAPTER_DESC& desc) noexcept->CUIManage
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(RectLTWH_F& rect) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
@@ -2313,12 +2348,23 @@ auto LongUI::CUIManager::operator<<(RectLTWH_F& rect) noexcept->CUIManager& {
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(D2D1_RECT_F& rect) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
         L"RECT_RB(%f, %f, %f, %f)",
         rect.left, rect.top, rect.right, rect.bottom
+        );
+    this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
+auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    ::swprintf(
+        buffer, LongUIStringBufferLength,
+        L"POINT(%f, %f)",
+        pt.x, pt.y
         );
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
@@ -2339,7 +2385,7 @@ void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char * s) noexc
 }
 
 // 浮点重载
-auto LongUI::CUIManager::operator<<(float f) noexcept ->CUIManager&  {
+auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(buffer, LongUIStringBufferLength, L"%f", f);
     this->OutputNoFlush(m_lastLevel, buffer);
@@ -2347,7 +2393,7 @@ auto LongUI::CUIManager::operator<<(float f) noexcept ->CUIManager&  {
 }
 
 // 整型重载
-auto LongUI::CUIManager::operator<<(long l) noexcept ->CUIManager& {
+auto LongUI::CUIManager::operator<<(const long l) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(buffer, LongUIStringBufferLength, L"%d", l);
     this->OutputNoFlush(m_lastLevel, buffer);

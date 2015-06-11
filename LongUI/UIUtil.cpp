@@ -152,7 +152,6 @@ void __fastcall LongUI::Meta_Render(
                 );
         }
         target->PopAxisAlignedClip();
-        break;
     }
         break;
     }

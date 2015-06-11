@@ -116,10 +116,14 @@ namespace LongUI {
         // 尾控件指针
         UIControl*              m_pTail = nullptr;
     public:
-        // end of right
+        // [UNSTATBLE] end of right
         float             const end_of_right = 0.f;
-        // end of bottom
+        // [UNSTATBLE] end of bottom
         float             const end_of_bottom = 0.f;
+        // [UNSTATBLE] x offset for sb
+        float                   x_offset = 0.f;
+        // [UNSTATBLE] y offset for sb
+        float                   y_offset = 0.f;
         // 当前世界转换矩阵
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
         // 本容器转换矩阵

@@ -7,7 +7,7 @@ auto LongUI::UICheckBox::Render(RenderType) noexcept ->HRESULT {
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
     }
-    D2D1_RECT_F draw_rect = GetDrawRect(this);
+    D2D1_RECT_F draw_rect = this->GetDrawRect();;
     draw_rect.left += 1.f;
     // 计算渲染区
     draw_rect.top = (draw_rect.bottom + draw_rect.top - m_szCheckBox.height) * 0.5f;

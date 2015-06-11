@@ -66,13 +66,17 @@ namespace LongUI{
     protected:
         // destructor 析构函数
         //~UIScrollBar() noexcept;
+        // get bar length
+        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? m_pOwner->show_zone.height : m_pOwner->show_zone.width; }
     public:
         // constructor 构造函数
         UIScrollBar(pugi::xml_node) noexcept;
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
-        // 更新
+        // refresh this
         void Refresh() noexcept;
+        // set new index
+        void SetIndex(float) noexcept;
     public:
         // type of scrollbar
         ScrollBarType   const   type = ScrollBarType::Type_Vertical;
@@ -88,6 +92,10 @@ namespace LongUI{
         float                   m_fHitSpace = 0.f;
         // now index of scroll bar
         float                   m_fIndex = 0.f;
+        // max index of scroll bar
+        float                   m_fMaxIndex = 0.f;
+        // old point of scroll bar
+        float                   m_fOldPoint = 0.f;
         // max range of scroll bar
         float                   m_fMaxRange = 1.f;
         // the onwer of scroll bar
@@ -99,6 +107,8 @@ namespace LongUI{
     // srcoll bar - type A 型 滚动条
     class LongUIAPI UIScrollBarA final : public UIScrollBar {
     private:
+        // basic size
+        static constexpr float BASIC_SIZE = 16.f;
         // 父类申明
         using Super = UIScrollBar;
         // ui element

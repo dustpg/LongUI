@@ -201,6 +201,21 @@ namespace LongUI {
         // LongUI Default Bitmap Options(CANNOT draw, Orz.....)
         LongUIDefaultBitmapOptions = (uint32_t)D2D1_BITMAP_OPTIONS_CPU_READ | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
     };
+    // UI Locker
+    class CUILocker {
+    public:
+        // ctor
+        CUILocker() noexcept { ::InitializeCriticalSection(&m_cs); }
+        // dtor
+        ~CUILocker() noexcept { ::DeleteCriticalSection(&m_cs); }
+        // lock
+        auto Lock() noexcept { ::EnterCriticalSection(&m_cs); }
+        // unlock
+        auto Unlock() noexcept { ::LeaveCriticalSection(&m_cs); }
+    private:
+        // cs
+        CRITICAL_SECTION        m_cs;
+    };
 }
 
 

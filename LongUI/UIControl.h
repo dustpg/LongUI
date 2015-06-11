@@ -130,6 +130,9 @@ namespace LongUI{
         LongUIInline auto SetEventCallBackT(const wchar_t* n, LongUI::Event e, T call) noexcept {
             return this->SetEventCallBack(n, e, static_cast<LongUICallBack>(call));
         }
+    public:
+        // get draw rect
+        auto GetDrawRect()noexcept->D2D1_RECT_F;
     protected:
         // d2d render target
         LongUIRenderTarget*     m_pRenderTarget = nullptr;

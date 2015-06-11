@@ -52,6 +52,13 @@ namespace LongUI {
         auto AddS2CPair(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b =nullptr) noexcept;
+        // lock
+        auto Lock() noexcept { return m_locker.Lock(); }
+        // unlock
+        auto Unlock() noexcept { return m_locker.Lock(); }
+    private:
+        // rendering thread
+        void rendering_thread();
     public: // 特例
         // load bitmap
         static auto __cdecl LoadBitmapFromFile(
@@ -206,9 +213,11 @@ namespace LongUI {
         // 所创设备特性等级
         D3D_FEATURE_LEVEL               m_featureLevel;
         // 退出信号
-        BOOL                            m_exitFlag = false;
+        std::atomic_uint32_t            m_exitFlag = false;
         // 渲染器数量
         uint32_t                        m_uTextRenderCount = 0;
+        // 锁
+        CUILocker                       m_locker;
         // TF 仓库
         BasicContainer                  m_textFormats;
         // 笔刷容器
@@ -302,19 +311,21 @@ namespace LongUI {
         // last DebugStringLevel
         DebugStringLevel        m_lastLevel = DebugStringLevel::DLevel_Log;
         // overload << operator for DebugStringLevel
-        CUIManager& operator<< (DebugStringLevel l) noexcept { m_lastLevel = l; return *this; }
+        CUIManager& operator<< (const DebugStringLevel l) noexcept { m_lastLevel = l; return *this; }
         // overload << operator for float
-        CUIManager& operator<< (float f) noexcept;
+        CUIManager& operator<< (const float f) noexcept;
         // overload << operator for long
-        CUIManager& operator<< (long l) noexcept;
+        CUIManager& operator<< (const long l) noexcept;
         // overload << operator for endl
-        CUIManager& operator<< (LongUI::EndL) noexcept;
+        CUIManager& operator<< (const LongUI::EndL) noexcept;
         // overload << operator for DXGI_ADAPTER_DESC*
-        CUIManager& operator<< (DXGI_ADAPTER_DESC& d) noexcept;
+        CUIManager& operator<< (const DXGI_ADAPTER_DESC& d) noexcept;
         // overload << operator for RectLTWH_F
-        CUIManager& operator<< (RectLTWH_F& r) noexcept;
+        CUIManager& operator<< (const RectLTWH_F& r) noexcept;
         // overload << operator for D2D1_RECT_F
-        CUIManager& operator<< (D2D1_RECT_F& r) noexcept;
+        CUIManager& operator<< (const D2D1_RECT_F& r) noexcept;
+        // overload << operator for D2D1_POINT_2F
+        CUIManager& operator<< (const D2D1_POINT_2F& p) noexcept;
         // overload << operator for CUIString
         CUIManager& operator<< (const CUIString& s) noexcept { this->OutputNoFlush(m_lastLevel, s.c_str()); return *this; }
         // overload << operator for const wchar_t*
@@ -322,7 +333,7 @@ namespace LongUI {
         // overload << operator for const char*
         CUIManager& operator<< (const char* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
         // overload << operator for wchar_t
-        CUIManager& operator<< (wchar_t ch) noexcept { wchar_t chs[2] = { ch, 0 }; this->OutputNoFlush(m_lastLevel, chs); return *this; }
+        CUIManager& operator<< (const wchar_t ch) noexcept { wchar_t chs[2] = { ch, 0 }; this->OutputNoFlush(m_lastLevel, chs); return *this; }
         // output debug string with flush
         inline void Output(DebugStringLevel l, const wchar_t* s) noexcept { this->configure->OutputDebugStringW(l, s, true); }
         // output debug string with flush

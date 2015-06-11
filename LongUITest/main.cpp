@@ -92,7 +92,7 @@ public:
             }
             __fallthrough;
         case LongUI::RenderType::Type_RenderForeground:
-            draw_rect = GetDrawRect(this);
+            draw_rect = this->GetDrawRect();
             D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
             m_pBrush_SetBeforeUse->SetColor(&color);
             m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
@@ -110,7 +110,7 @@ public:
             if (m_bDrawSizeChanged) {
                 this->draw_zone = this->show_zone;
             }
-            draw_rect = GetDrawRect(this);
+            draw_rect = this->GetDrawRect();
             // 检查布局
             if (m_bDrawSizeChanged) {
                 ::SafeRelease(m_pCmdList);
@@ -164,6 +164,10 @@ public:
     }
     // On Value Changed
     bool OnValueChanged(UIControl* control) {
+        return OnValueChangedConst(control);
+    }
+    // On Value Changed
+    bool OnValueChangedConst(UIControl* control) const {
         register auto value = static_cast<LongUI::UISlider*>(control)->GetValue();
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, value * 10.f);
         return true;
@@ -241,7 +245,7 @@ public:
             if (m_bDrawSizeChanged) {
                 this->draw_zone = this->show_zone;
             }
-            draw_rect = GetDrawRect(this);
+            draw_rect = this->GetDrawRect();
             m_video.Render(&draw_rect);
             m_pWindow->StartRender(1.f, this);
             // 父类前景

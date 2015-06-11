@@ -113,7 +113,7 @@ auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
         // 渲染边框
         if (m_fBorderSize > 0.f) {
             D2D1_ROUNDED_RECT rrect;
-            rrect.rect = GetDrawRect(this);
+            rrect.rect = this->GetDrawRect();
             rrect.radiusX = m_fBorderRdius.width;
             rrect.radiusY = m_fBorderRdius.height;
             m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
@@ -288,6 +288,14 @@ void LongUI::UIControl::SetEventCallBack(
     }
 }
 
+// 获取刻画矩形
+auto LongUI::UIControl::GetDrawRect() noexcept -> D2D1_RECT_F {
+    D2D1_RECT_F rect; rect.left = draw_zone.left /*+ parent->draw_zone.left*/;
+    rect.top = draw_zone.top /*+ parent->draw_zone.top*/;
+    rect.right = rect.left + draw_zone.width;
+    rect.bottom = rect.top + draw_zone.height;
+    return rect;
+}
 
 
 // -------------------------------------------------------
@@ -396,7 +404,7 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
         if (m_bDrawSizeChanged) {
             this->draw_zone = this->show_zone;
         }
-        draw_rect = GetDrawRect(this);
+        draw_rect = this->GetDrawRect();
         // 渲染部件
         m_uiElement.Render(draw_rect);
         // 更新计时器

@@ -215,7 +215,7 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         }
         // 检查
         if (m_bDrawPosChanged || m_bDrawSizeChanged) {
-            this->draw_zone = this->show_zone;
+            //this->draw_zone = this->show_zone;
             // 更新转变
             this->transform = D2D1::Matrix3x2F::Translation(
                 this->show_zone.left - this->margin_rect.left,

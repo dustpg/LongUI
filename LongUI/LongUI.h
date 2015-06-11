@@ -94,12 +94,7 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
     c->show_zone.bottom - c->padding_rect.bottom \
 }
 
-#define GetDrawRect(c) { \
-    c->draw_zone.left, \
-    c->draw_zone.top , \
-    c->draw_zone.left + c->draw_zone.width, \
-    c->draw_zone.top + c->draw_zone.height \
-}
+
 
 #define GetShowRect(c) { \
     c->show_zone.left, \
@@ -346,9 +341,9 @@ namespace LongUI {
         // Return Code
         union {
             // [out] LRESULT for System
-            OUT LRESULT       lr;
+            OUT mutable  LRESULT       lr;
             // [out] Control for Parent
-            OUT UIControl*    ctrl;
+            OUT mutable  UIControl*    ctrl;
         };
         /*/ default ctor
         EventArgument() noexcept =default;
@@ -435,8 +430,8 @@ namespace LongUI {
 
 #include "UIControl.h"
 #ifndef LongUICoreOnly // only longui core ?
-#   include "UIScrollBar.h"
 #   include "UIContainer.h"
+#   include "UIScrollBar.h"
 #   include "UISlider.h"
 #   include "UIVerticalLayout.h"
 #   include "UIHorizontalLayout.h"

@@ -5,7 +5,7 @@ auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
     if (m_bDrawSizeChanged) {
         this->draw_zone = this->show_zone;
     }
-    D2D1_RECT_F draw_rect = GetDrawRect(this);
+    D2D1_RECT_F draw_rect = this->GetDrawRect();
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
     // 垂直滑块
     if (this->flags & Flag_Slider_VerticalSlider){
