@@ -196,19 +196,22 @@ namespace LongUI {
         // [default: false]control is floating
         // XML Attribute: "float"@bool
         Flag_Floating = 1 << 3,
+        // [default: false]control is not affected by ScrollBar
+        // XML Attribute: "free"@bool
+        Flag_FreeFromScrollBar = 1 << 4 ,
         // [default: true]control is visible
         // XML Attribute: "visible"@bool
-        Flag_Visible = 1 << 4,
+        Flag_Visible = 1 << 5,
         // [default: false][auto, no specified]
         // control need pre-render for content
         // call UIWindow::RegisterOffScreenRender2D or
         // call UIWindow::RegisterOffScreenRender3D to set
-        Flag_NeedRegisterOffScreenRender = 1 << 5,
+        Flag_NeedRegisterOffScreenRender = 1 << 6,
         // [default: false][auto, no specified]
         // control need Direct3D api to render,
         // call UIWindow::RegisterOffScreenRender3D to set
         // if using Direct2D , call UIWindow::RegisterOffScreenRender2D
-        Flag_3DContent = 1 << 6,
+        Flag_3DContent = 1 << 7,
         // [default: false][auto, and XML Attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,
         //  must be rendering whole parent, parent call control->Render() 
@@ -216,10 +219,10 @@ namespace LongUI {
         // if a container setted this flag, it will set 
         // flag Flag_Container_AlwaysRenderChildrenDirectly, too,
         // and set all children
-        Flag_RenderParent = 1 << 7,
+        Flag_RenderParent = 1 << 8,
         // control construct with full xml node info
         // if your impl control needed, set it to true by const_cast
-        Flag_ControlNeedFullXMLNode = 1 << 8,
+        Flag_ControlNeedFullXMLNode = 1 << 9,
         // ------- Lv1 Control Flag ------------
         // [default: false] container 's child renderedt hrough
         // this control, not window directly, if container  hold
