@@ -831,7 +831,7 @@ bool LongUI::UIWindow::UpdateRendering() noexcept {
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
-    // 修改大小
+    // 修改大小, 需要取消目标
     this->DrawSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
     RECT rect; ::GetClientRect(m_hwnd, &rect);
     rect.right -= rect.left;
@@ -879,6 +879,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
                 &m_pTargetBimtap
                 );
         }
+        // 重建失败?
         if (FAILED(hr)) {
             UIManager << DL_Error << L" Recreate FAILED!" << LongUI::endl;
             AssertHR(hr);

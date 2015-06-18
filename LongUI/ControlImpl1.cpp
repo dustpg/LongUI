@@ -62,6 +62,10 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if (show_zone.height > 0.f) {
             flag |= LongUI::Flag_HeightFixed;
         }
+        // 自由
+        if (node.attribute("free").as_bool(false)) {
+            flag |= LongUI::Flag_FreeFromScrollBar;
+        }
         // 边框大小
         if (data = node.attribute("bordersize").value()) {
             m_fBorderSize = LongUI::AtoF(data);
