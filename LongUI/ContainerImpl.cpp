@@ -218,8 +218,8 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
             //this->draw_zone = this->show_zone;
             // 更新转变
             this->transform = D2D1::Matrix3x2F::Translation(
-                this->show_zone.left - this->margin_rect.left,
-                this->show_zone.top - this->margin_rect.top
+                this->show_zone.left - this->margin_rect.left + this->x_offset,
+                this->show_zone.top - this->margin_rect.top + this->y_offset
                 );
             // 空间不够?
             /*do {
@@ -245,7 +245,7 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         // 渲染所有子部件
         for (auto ctrl : (*this)) {
             // 检查非自由控件
-            {
+            if(false){
                 register bool settransform = !(ctrl->flags & Flag_FreeFromScrollBar) && (
                     this->x_offset != 0.f || this->y_offset != 0.f
                     );
@@ -284,8 +284,6 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
             m_pRenderTarget->PopAxisAlignedClip();
         }
         m_pRenderTarget->PopAxisAlignedClip();
-        // 回退转换
-        m_pRenderTarget->SetTransform(&old_transform);
         // 渲染滚动条
         if (this->scrollbar_h && this->scrollbar_h->GetTakingUpSapce() > 0.f) {
             // 计算高度
@@ -308,6 +306,8 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         }
         // 父类
         Super::Render(LongUI::RenderType::Type_Render);
+        // 回退转换
+        m_pRenderTarget->SetTransform(&old_transform);
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景

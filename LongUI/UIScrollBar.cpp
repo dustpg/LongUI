@@ -13,7 +13,7 @@ void LongUI::UIScrollBar::Refresh() noexcept {
     // 边界 > 显示  -> 刻画边界 = 边界
     // 另外:      -> 刻画边界 = 显示
     bool old = false;
-
+    UIManager << DL_Hint << "called" << endl;
     // 垂直?
     if (this->type == ScrollBarType::Type_Vertical) {
         // 更新
@@ -64,11 +64,12 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
         m_fIndex = new_index;
 #if 1
         if (this->type == ScrollBarType::Type_Vertical) {
-            m_pOwner->y_offset = new_index;
+            m_pOwner->y_offset = -new_index;
         }
         else {
-            m_pOwner->x_offset = new_index;
+            m_pOwner->x_offset = -new_index;
         }
+        //this->draw_zone = this->show_zone;
         m_pOwner->DrawPosChanged();
         // 刷新拥有着
         m_pWindow->Invalidate(m_pOwner);
@@ -153,6 +154,7 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 // UIScrollBarA 渲染 
 auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
     if (type != RenderType::Type_Render) return S_FALSE;
+    // 更新
     D2D1_RECT_F draw_rect = this->GetDrawRect();
     // 双滚动条修正
     if (this->another) {
@@ -187,6 +189,10 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
     // 基本背景: Shaft
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
+    //
+    this->parent;
+    UIManager << DL_Hint << m_rtArrow2 << endl;
+
     // 渲染部件
     m_uiArrow1.Render(m_rtArrow1);
     UIElement_Update(m_uiArrow1);
@@ -256,6 +262,15 @@ bool  LongUI::UIScrollBarA::DoEvent(LongUI::EventArgument& arg) noexcept {
                 this->type == ScrollBarType::Type_Vertical ? arg.pt.y : arg.pt.x
                 );
             this->set_status(m_pointType, LongUI::Status_Pushed);
+            // 检查
+            if (m_pointType == PointType::Type_Arrow1) {
+                // 左/上移动
+                this->SetIndex(m_fIndex - m_fStep *0.25f);
+            }
+            else if (m_pointType == PointType::Type_Arrow2) {
+                // 左/上移动
+                this->SetIndex(m_fIndex + m_fStep*0.25f);
+            }
             break;
         case WM_LBUTTONUP:
             this->set_status(m_pointType, LongUI::Status_Hover);

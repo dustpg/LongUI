@@ -563,6 +563,7 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
     m_timer.MovStartEnd();
     // 清空背景  clear_color
     m_pRenderTarget->Clear(this->clear_color);
+    m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
     //
     LongUI::RenderingUnit* current_unit = nullptr;
     bool full = false;
