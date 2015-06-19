@@ -65,11 +65,13 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
 #if 1
         if (this->type == ScrollBarType::Type_Vertical) {
             m_pOwner->y_offset = -new_index;
+            this->show_zone.top = new_index;
         }
         else {
             m_pOwner->x_offset = -new_index;
+            this->show_zone.left = new_index;
         }
-        //this->draw_zone = this->show_zone;
+        this->draw_zone = this->show_zone;
         m_pOwner->DrawPosChanged();
         // 刷新拥有着
         m_pWindow->Invalidate(m_pOwner);
@@ -190,8 +192,8 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
     //
-    this->parent;
-    UIManager << DL_Hint << m_rtArrow2 << endl;
+    //this->parent;
+    //UIManager << DL_Hint << m_rtArrow2 << endl;
 
     // 渲染部件
     m_uiArrow1.Render(m_rtArrow1);
@@ -200,6 +202,8 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
     UIElement_Update(m_uiArrow2);
     m_uiThumb.Render(m_rtThumb);
     UIElement_Update(m_uiThumb);
+    //
+    //UIManager << DL_Hint << m_rtThumb << endl;
     // 前景
     auto render_geo = [](ID2D1RenderTarget* target, ID2D1Brush* bush, ID2D1Geometry* geo, D2D1_RECT_F& rect) {
         D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
@@ -240,7 +244,7 @@ bool  LongUI::UIScrollBarA::DoEvent(LongUI::EventArgument& arg) noexcept {
     auto get_real_pos = [this](float pos)  {
         pos -= UIScrollBarA::BASIC_SIZE ;
         auto length = this->get_length() - UIScrollBarA::BASIC_SIZE * 2.f;
-        return pos / length * m_fMaxRange;
+        return (pos - m_fIndex) / length * m_fMaxRange;
     };
     // 控件消息
     if (arg.sender) {
