@@ -150,19 +150,47 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
 #endif
 }
 
+// UI容器: 查找控件
+auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIControl* {
+    UIControl* control_out = nullptr;
+    for (auto ctrl : (*this)) {
+        if (m_strControlName == L"MainWindow") {
+            int a = 9;
+        }
+        // 区域内判断
+        if (IsPointInRect(ctrl->visible_rect, pt)) {
+            if (ctrl->flags & Flag_UIContainer) {
+                control_out = static_cast<UIContainer*>(ctrl)->FindControl(pt);
+            }
+            else {
+                control_out = ctrl;
+            }
+            break;
+        }
+    }
+    return control_out;
+}
+
 // do event 事件处理
 bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
     // TODO: 参数EventArgument改为const
     bool done = false;
     // 转换坐标
     auto pt_old = arg.pt;
-    auto pt4self = LongUI::TransformPointInverse(this->transform, pt_old);
+    auto pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
     arg.pt = pt4self;
     // 处理窗口事件
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_FindControl:
+        /*case LongUI::Event::Event_FindControl:
+            if (m_strControlName == L"HLayout") {
+                int bk = 9;
+            }
+            // 检查是否为自己的范围之内
+            if (!FindControlHelper(pt4self, this)) {
+                return false;
+            }
             // 检查滚动条
             if (scrollbar_v && this->width - pt4self.x < scrollbar_v->GetHitSapce()) {
                 done = scrollbar_v->DoEvent(arg);
@@ -176,14 +204,16 @@ bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
             if (!done) {
                 // XXX: 优化
                 for (auto ctrl : (*this)) {
-                    if (pt4self.x < ctrl->width && pt4self.y < ctrl->height) {
-                        done = ctrl->DoEvent(arg);
+                    ctrl->DoEvent(arg);
+                    // 找到
+                    if (arg.ctrl) {
+                        done = true;
                         break;
                     }
                 }
             }
             done = true;
-            break;
+            break;*/
         case LongUI::Event::Event_FinishedTreeBuliding:
             // 初次完成空间树建立
             for (auto ctrl : (*this)) {
@@ -243,21 +273,8 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         m_pRenderTarget->SetTransform(&this->world);
         // 渲染所有子部件
         for (auto ctrl : (*this)) {
-            // 检查非自由控件
-            {
-                // 修改世界转换矩阵
-                if (ctrl->flags & Flag_FreeFromScrollBar) {
-                    m_pRenderTarget->SetTransform(&this->world);
-                }
-                else {
-                    m_pRenderTarget->SetTransform(
-                        D2D1::Matrix3x2F::Translation(this->x_offset, this->y_offset)
-                        * this->world
-                        );
-
-                }
-            }
-
+            // 修改世界转换矩阵
+            m_pRenderTarget->SetTransform(ctrl->transform * this->world);
             D2D1_RECT_F clip_rect;
             clip_rect.left = - ctrl->margin_rect.left;
             clip_rect.top = - ctrl->margin_rect.top;
@@ -546,7 +563,7 @@ void LongUI::UIVerticalLayout::RefreshChildLayout() noexcept {
         // 修改
         ctrl->DrawSizeChanged();
         ctrl->DrawPosChanged();
-        //ctrl->show_zone.top = position_y;
+        ctrl->transform._32 = position_y;
         position_y += ctrl->GetTakingUpHeight();
         // 子控件也是容器则继续调用
         if (ctrl->flags & Flag_UIContainer) {
@@ -562,6 +579,9 @@ void LongUI::UIVerticalLayout::RefreshChildLayout() noexcept {
         return this->RefreshChildLayout();
     }
 #endif
+    if (m_strControlName == L"MainWindow") {
+        int a = 0;
+    }
     // 更新
     return Super::RefreshChildLayout();
 }
@@ -661,7 +681,7 @@ void LongUI::UIHorizontalLayout::RefreshChildLayout() noexcept {
         // 修改
         ctrl->DrawSizeChanged();
         ctrl->DrawPosChanged();
-        //ctrl->show_zone.left = position_x;
+        ctrl->transform._31 = position_x;
         position_x += ctrl->GetTakingUpWidth();
         // 子控件也是容器则继续调用
         if (ctrl->flags & Flag_UIContainer) {

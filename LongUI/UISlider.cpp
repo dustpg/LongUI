@@ -56,13 +56,13 @@ bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender){
         switch (arg.event)
         {
-        case LongUI::Event::Event_FindControl:
+        /*case LongUI::Event::Event_FindControl:
             if (arg.event == LongUI::Event::Event_FindControl) {
                 // 检查鼠标范围
                 assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
-            __fallthrough;
+            __fallthrough;*/
         case LongUI::Event::Event_SetFocus:
             __fallthrough;
         case LongUI::Event::Event_KillFocus:

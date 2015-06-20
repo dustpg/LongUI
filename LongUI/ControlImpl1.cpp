@@ -376,19 +376,6 @@ auto LongUI::UILabel::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
 }
 
 
-
-// do event 事件处理
-bool LongUI::UILabel::DoEvent(LongUI::EventArgument& arg) noexcept {
-    if (arg.sender) {
-        if (arg.event == LongUI::Event::Event_FindControl) {
-            // 检查鼠标范围
-            assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
-            arg.ctrl = this;
-        }
-    }
-    return false;
-}
-
 // recreate 重建
 /*HRESULT LongUI::UILabel::Recreate(LongUIRenderTarget* newRT) noexcept {
 // 断言
@@ -469,16 +456,16 @@ auto LongUI::UIButton::CreateControl(pugi::xml_node node) noexcept ->UIControl* 
 
 // do event 事件处理
 bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_FindControl:
-            if (arg.event == LongUI::Event::Event_FindControl) {
-                // 检查鼠标范围
-                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
+        /*case LongUI::Event::Event_FindControl:
+            // 检查鼠标范围
+            if (FindControlHelper(pt4self, this)) {
                 arg.ctrl = this;
             }
-            __fallthrough;
+            __fallthrough;*/
         case LongUI::Event::Event_SetFocus:
             return true;
         case LongUI::Event::Event_KillFocus:
@@ -581,23 +568,22 @@ HRESULT LongUI::UIEditBasic::Render(RenderType type) noexcept {
 
 // do event 
 bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
     // ui msg
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_FindControl: // 查找本控件
-            if (arg.event == LongUI::Event::Event_FindControl) {
-                // 检查鼠标范围
-                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
+        /*case LongUI::Event::Event_FindControl: // 查找本控件
+            if (FindControlHelper(pt4self, this)) {
                 arg.ctrl = this;
             }
-            return true;
+            return true;*/
         case LongUI::Event::Event_FinishedTreeBuliding:
             return true;
         case LongUI::Event::Event_DragEnter:
             return m_text.OnDragEnter(arg.dataobj_cf, arg.outeffect_cf);
         case LongUI::Event::Event_DragOver:
-            return m_text.OnDragOver(arg.pt.x, arg.pt.y);
+            return m_text.OnDragOver(pt4self.x, pt4self.y);
         case LongUI::Event::Event_DragLeave:
             return m_text.OnDragLeave();
         case LongUI::Event::Event_Drop:
@@ -631,14 +617,14 @@ bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
         case WM_MOUSEMOVE:
             // 拖拽?
             if (arg.wParam_sys & MK_LBUTTON) {
-                m_text.OnLButtonHold(arg.pt.x, arg.pt.y);
+                m_text.OnLButtonHold(pt4self.x, pt4self.y);
             }
             break;
         case WM_LBUTTONDOWN:
-            m_text.OnLButtonDown(arg.pt.x, arg.pt.y, !!(arg.wParam_sys & MK_SHIFT));
+            m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.wParam_sys & MK_SHIFT));
             break;
         case WM_LBUTTONUP:
-            m_text.OnLButtonUp(arg.pt.x, arg.pt.y);
+            m_text.OnLButtonUp(pt4self.x, pt4self.y);
             break;
         }
     }

@@ -81,6 +81,8 @@ namespace LongUI{
         auto FindControl(const CUIString&) noexcept->UIControl*;
         // get control by wchar_t pointer
         auto FindControl(const wchar_t* name) noexcept { CUIString n(name); return this->FindControl(n); }
+        // find control where mouse pointed
+        auto FindControl(const D2D1_POINT_2F pt) noexcept { return static_cast<UIContainer*>(this)->FindControl(pt); }
         // add control with name
         void AddControl(const std::pair<CUIString, void*>& pair) noexcept;
     public: // 内联区
@@ -118,24 +120,6 @@ namespace LongUI{
         void BeginDraw() noexcept;
         // end draw
         auto EndDraw(uint32_t vsyc = 0) noexcept->HRESULT;
-        // find control where mouse pointed
-        auto FindControl(const LongUI::EventArgument& _arg) noexcept {
-            auto arg = _arg;
-            arg.sender = this;
-            arg.event = LongUI::Event::Event_FindControl;
-            this->UIWindow::DoEvent(arg);
-            return arg.ctrl;
-        }
-        // find control where mouse pointed
-        auto FindControl(D2D1_POINT_2F pt) noexcept {
-            LongUI::EventArgument arg;
-            arg.ctrl = nullptr;
-            arg.pt = pt;
-            arg.sender = this;
-            arg.event = LongUI::Event::Event_FindControl;
-            this->UIWindow::DoEvent(arg);
-            return arg.ctrl;
-        }
     protected:
         // constructor
         UIWindow(pugi::xml_node node, UIWindow * parent=nullptr) noexcept;

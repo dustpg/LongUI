@@ -14,11 +14,11 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <HorizontalLayout name="HLayout" pos="0, 0, 0, 256">
         <EditBasic name="edit01" textmultiline="true" text="Hello, world!&#xD;&#xA;泥壕, 世界!"/>
         <VerticalLayout name="VLayout2">
-            <Label name="2" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
-            <Button name="4.1" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
+            <Label name="label_test" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
+            <Button name="btn_systemlook" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
             <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
                 margin="4,4,4,4" hovermeta="3" pushedmeta="4" bordersize="1" text="Hello, world!"/>
-            <CheckBox name="5" text="Hello, world!"/>
+            <CheckBox name="btn_skinlook" text="Hello, world!"/>
             <!--Button name="uac" disabledmeta="1" normalmeta="2" 
                 hovermeta="3" pushedmeta="4" text="Try  Elevate UAC Now "/-->
         </VerticalLayout>
@@ -128,13 +128,16 @@ public:
     }
     //do the event
     virtual bool DoEvent(LongUI::EventArgument& arg) noexcept  override {
+        D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
         if (arg.sender) {
-            if (arg.event == LongUI::Event::Event_FindControl) {
+            /*if (arg.event == LongUI::Event::Event_FindControl) {
                 // 检查鼠标范围
-                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
-                arg.ctrl = this;
+                if (FindControlHelper(pt4self, this)) {
+                    arg.ctrl = this;
+                }
+                return true;
             }
-            else if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
+            else*/ if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
                 // 注册事件
                 this->SetEventCallBackT(L"6", LongUI::Event::Event_SliderValueChanged, &TestControl::OnValueChanged);
             }
@@ -247,21 +250,16 @@ public:
             break;
         }
         return S_OK;
-
-
-
-
-
     }
     //do the event
     virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override {
         if (arg.sender) {
-            if (arg.event == LongUI::Event::Event_FindControl) {
+            /*if (arg.event == LongUI::Event::Event_FindControl) {
                 // 检查鼠标范围
                 assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
-            else if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
+            else*/ if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
             }
         }
         return false;

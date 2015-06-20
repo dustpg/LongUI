@@ -51,8 +51,15 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     if (this->width == 0.f) {
         this->width = static_cast<float>(LongUIDefaultWindowWidth);
     }
+    else {
+        window_rect.right = static_cast<LONG>(this->width);
+    }
+    // 更新
     if (this->height == 0.f) {
         this->height = static_cast<float>(LongUIDefaultWindowHeight);
+    }
+    else {
+        window_rect.bottom = static_cast<LONG>(this->height);
     }
     visible_rect.right = m_clientSize.width = this->width;
     visible_rect.bottom = m_clientSize.height = this->height;
@@ -683,6 +690,9 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         }
         // 查找子控件
         control_got = this->FindControl(_arg.pt);
+        if (control_got) {
+            UIManager << DL_Hint << "FIND: " << control_got->GetName() << endl;
+        }
         // 不同
         if (control_got != m_pPointedControl) {
             new_arg = _arg;
@@ -1130,14 +1140,15 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
 
 // IDropTarget::DragOver 实现
 HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
-    LongUI::EventArgument arg;
-    ::SetLongUIEventArgument(arg, m_hwnd, pt);
-    arg.sender = this;
-    arg.event = LongUI::Event::Event_FindControl;
+    D2D1_POINT_2F pt2f = { static_cast<float>(pt.x), static_cast<float>(pt.y) };
+    UIControl* control = nullptr;
     // 检查控件支持
-    if (Super::DoEventEx(arg) && arg.ctrl) {
+    if ((control = this->FindControl(pt2f))) {
+        LongUI::EventArgument arg;
+        ::SetLongUIEventArgument(arg, m_hwnd, pt);
+        arg.sender = this;
         // 第一个控件?
-        if (m_pDragDropControl == arg.ctrl) {
+        if (m_pDragDropControl == control) {
             // 一样就是Over
             arg.event = LongUI::Event::Event_DragOver;
         }

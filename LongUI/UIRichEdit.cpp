@@ -72,13 +72,13 @@ bool LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_FindControl: // 查找本空间
+        /*case LongUI::Event::Event_FindControl: // 查找本空间
             if (arg.event == LongUI::Event::Event_FindControl) {
                 // 检查鼠标范围
                 assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
-            return true;
+            return true;*/
         case LongUI::Event::Event_MouseEnter:
             m_pWindow->now_cursor = m_hCursorI;
             break;

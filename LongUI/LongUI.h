@@ -284,8 +284,6 @@ namespace LongUI {
     enum class Event : size_t {
         // null
         Event_Null = 0,
-        // event -- find mouse pointed control
-        Event_FindControl,
         // event -- finished control-tree buliding
         Event_FinishedTreeBuliding,
         // drag enter on this control
@@ -338,8 +336,7 @@ namespace LongUI {
             // control
             struct { LongUI::SubEvent subevent_ui; void* pointer_ui; };
         };
-        // Mouse Position, is a offset value, current control's
-        // draw_none top-left point is (0, 0)
+        // world mouse position, you should transfrom it while using
         D2D1_POINT_2F   pt;
         // Return Code
         union {
@@ -364,7 +361,7 @@ namespace LongUI {
         return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.left + rect.width && pt.y < rect.top + rect.height);
     }
     // get transformed pointer
-    inline static auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
+    LongUIInline static auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
         D2D1_POINT_2F result = {
             point.x * matrix._11 + point.y * matrix._21 + matrix._31,
             point.x * matrix._12 + point.y * matrix._22 + matrix._32
@@ -372,7 +369,7 @@ namespace LongUI {
         return result;
     }
     // get transformed pointer
-    static auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
+    LongUINoinline static auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
         D2D1_POINT_2F result;
         // x = (bn-dm)/(bc-ad)
         // y = (an-cm)/(ad-bc)

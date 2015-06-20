@@ -90,6 +90,8 @@ namespace LongUI {
     public: //
         // Assure the ScrollBar
         bool AssureScrollBar(float, float) noexcept;
+        // find control where mouse pointed
+        auto FindControl(const D2D1_POINT_2F pt) noexcept->UIControl*;
     public: // STL Container Compatibled interface/method
         // get child at, because of list, will get warning of performance
         auto at(uint32_t) const noexcept ->UIControl*;
