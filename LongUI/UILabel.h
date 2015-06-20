@@ -34,7 +34,9 @@ namespace LongUI{
         using Super = UIControl ;
     public:
         // Render 渲染
-        virtual auto Render(RenderType) noexcept->HRESULT override;
+        virtual void Render(RenderType) const noexcept override;
+        // update 刷新
+        virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(LongUI::EventArgument&) noexcept override { return false; }
         // recreate 重建

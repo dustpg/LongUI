@@ -50,13 +50,10 @@ namespace LongUI {
             this->recreate();
         }
         // render it
-        auto Render(float x, float y) noexcept {
-            m_pTextRenderer->basic_color.color = m_basicColor;
-            m_pLayout->Draw(
-                m_buffer.data,
-                m_pTextRenderer,
-                x, y
-                );
+        auto Render(float x, float y) const noexcept {
+            auto ptr = m_pTextRenderer.p();
+            ptr->basic_color.color = m_basicColor;
+            m_pLayout->Draw(m_buffer.data, ptr, x, y);
         }
         // destructor
         ~UIText() noexcept;

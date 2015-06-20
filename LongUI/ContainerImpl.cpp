@@ -66,7 +66,7 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 }
 
 // 压入剪切区
-void LongUI::UIContainer::PushAxisAlignedClip(D2D1_ANTIALIAS_MODE mode) noexcept {
+void LongUI::UIContainer::PushAxisAlignedClip(D2D1_ANTIALIAS_MODE mode) const noexcept {
     // 排除滚动条
     /*D2D1_RECT_F rect = {
         this->show_zone.left,
@@ -229,7 +229,7 @@ bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
 }
 
 // UIContainer 渲染函数
-auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
+void LongUI::UIContainer::Render(RenderType type) const noexcept {
     //
     switch (type)
     {
@@ -242,34 +242,12 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
         if (type == LongUI::RenderType::Type_RenderBackground) {
             break;
         }
-        // 检查
-        if (m_bDrawPosChanged || m_bDrawSizeChanged) {
-            //this->draw_zone = this->show_zone;
-            // 更新转变
-            this->transform = D2D1::Matrix3x2F::Translation(
-                this->margin_rect.left ,
-                this->margin_rect.top 
-                );
-            // 空间不够?
-            /*do {
-                if (draw_zone.width > show_zone.width) {
-
-                }
-                else {
-                    break;
-                }
-                if (m_strControlName == L"MainWindow") {
-                    UIManager << DL_Hint << m_strControlName << ":  Changed" << LongUI::endl;
-                }
-            } while (false);*/
-        }
         // 压入
         this->PushAxisAlignedClip();
         // 保留转换
         D2D1_MATRIX_3X2_F old_transform;
         m_pRenderTarget->GetTransform(&old_transform);
         // 计算世界转换
-        this->world = this->transform * old_transform;
         m_pRenderTarget->SetTransform(&this->world);
         // 渲染所有子部件
         for (auto ctrl : (*this)) {
@@ -336,8 +314,41 @@ auto LongUI::UIContainer::Render(RenderType type) noexcept -> HRESULT {
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
     }
-    return S_OK;
 }
+
+// UI容器: 刷新
+void LongUI::UIContainer::Update() noexcept  {
+    // 检查
+    if (m_bDrawPosChanged || m_bDrawSizeChanged) {
+        // 更新转变
+        this->transform = D2D1::Matrix3x2F::Translation(
+            this->margin_rect.left,
+            this->margin_rect.top
+            );
+    }
+    // 更新世界转换矩阵
+    if (this->parent) {
+        this->world = this->transform * this->parent->world;
+    }
+    else {
+        this->world = this->transform;
+    }
+    // 刷新容器
+    for (auto ctrl : (*this)) {
+        ctrl->Update();
+    }
+    // 刷新滚动条
+    if (this->scrollbar_h) {
+        this->scrollbar_h->Update();
+    }
+    if (this->scrollbar_v) {
+        this->scrollbar_v->Update();
+    }
+    // 刷新父类
+    return Super::Update();
+}
+
+
 // UIContainer 重建
 auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     auto hr = S_OK;
@@ -348,6 +359,13 @@ auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT
     // 重建垂直滚动条
     if (SUCCEEDED(hr) && this->scrollbar_v) {
         hr = this->scrollbar_v->Recreate(newRT);
+    }
+    // 重建容器
+    if (SUCCEEDED(hr)) {
+        for (auto ctrl : (*this)) {
+            hr = ctrl->Recreate(newRT);
+            if (FAILED(hr)) break;
+        }
     }
     // 重建父类
     if (SUCCEEDED(hr)) {

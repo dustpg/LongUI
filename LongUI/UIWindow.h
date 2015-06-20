@@ -42,7 +42,9 @@ namespace LongUI{
         class RenderingQueue;
     public: // UIControl 接口实现
         // Render 渲染 
-        virtual auto Render(RenderType type) noexcept ->HRESULT override;
+        virtual void Render(RenderType type) const noexcept override;
+        // udate 刷新
+        virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建

@@ -68,12 +68,14 @@ namespace LongUI {
             UIControl*      m_pControl;
         };
     public:
+        // render
+        virtual void Render(RenderType) const noexcept override;
+        // update
+        virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // render
-        virtual auto Render(RenderType) noexcept->HRESULT override;
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
@@ -81,7 +83,7 @@ namespace LongUI {
         // add a child
         void AfterInsert(UIControl* child) noexcept;
         // push clip
-        void PushAxisAlignedClip(D2D1_ANTIALIAS_MODE = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE) noexcept;
+        void PushAxisAlignedClip(D2D1_ANTIALIAS_MODE = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)const noexcept;
     public: //
         // update children's layout
         inline  void UpdateChildLayout() noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout();  }

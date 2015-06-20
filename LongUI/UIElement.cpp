@@ -71,7 +71,7 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 }
 
 // Elements<Meta> 渲染
-void LongUI::Component::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F& rect) noexcept {
+void LongUI::Component::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F& rect) const noexcept {
     assert(m_pRenderTarget);
     // 先绘制当前状态
     if (this->animation.value < this->animation.end) {
@@ -116,7 +116,7 @@ void LongUI::Component::Elements<LongUI::Element::BrushRect>::release_data() noe
 }
 
 // Elements<BrushRectta> 渲染
-void LongUI::Component::Elements<LongUI::Element::BrushRect>::Render(const D2D1_RECT_F& rect) noexcept {
+void LongUI::Component::Elements<LongUI::Element::BrushRect>::Render(const D2D1_RECT_F& rect) const noexcept {
     assert(m_pRenderTarget);
     D2D1_MATRIX_3X2_F matrix; m_pRenderTarget->GetTransform(&matrix);
 #if 1
@@ -200,7 +200,7 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 }
 
 // Elements<ColorRect> 渲染
-void LongUI::Component::Elements<LongUI::Element::ColorRect>::Render(const D2D1_RECT_F& rect) noexcept {
+void LongUI::Component::Elements<LongUI::Element::ColorRect>::Render(const D2D1_RECT_F& rect) const noexcept {
     assert(m_pRenderTarget && m_pBrush);
     // 先绘制当前状态
     if (animation.value < animation.end) {

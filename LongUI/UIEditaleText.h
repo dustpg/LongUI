@@ -98,7 +98,7 @@ namespace LongUI {
             LongUIInline auto assign(const wchar_t* str, size_t length) noexcept { m_text.assign(str, length); return recreate_layout(); }
         private:
             // refresh, while layout chenged, should be refreshed
-            auto __fastcall refresh(bool = true) noexcept->UIWindow*;
+            auto __fastcall refresh(bool = true)const noexcept->UIWindow*;
             // recreate layout
             void __fastcall recreate_layout() noexcept;
             // insert text
@@ -141,9 +141,11 @@ namespace LongUI {
             // align caret
             void __fastcall AlignCaretToNearestCluster(bool, bool = false) noexcept;
             // get the caret rect
-            void __fastcall GetCaretRect(RectLTWH_F&) noexcept;
+            void __fastcall GetCaretRect(RectLTWH_F&)const noexcept;
+            // update this
+            void __fastcall Update() noexcept;
             // render this: absolute postion
-            void __fastcall Render(float x, float y) noexcept;
+            void __fastcall Render(float x, float y)const noexcept;
             // refresh the selection HitTestMetrics
             void __fastcall RefreshSelectionMetrics(DWRITE_TEXT_RANGE) noexcept;
             // copy to HGLOBAL

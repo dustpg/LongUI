@@ -119,8 +119,10 @@ namespace LongUI{
         // create this
         static auto WINAPI CreateControl(pugi::xml_node node) noexcept->UIControl*;
     public:
-        // Render 渲染
-        auto Render(RenderType type) noexcept->HRESULT override;
+        // Render 渲染 
+        virtual void Render(RenderType type) const noexcept override;
+        // udate 刷新
+        virtual void Update() noexcept override;
         // do event 事件处理
         bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate

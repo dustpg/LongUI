@@ -3,8 +3,8 @@
 
 
 // Render 渲染 
-auto LongUI::UICheckBox::Render(RenderType) noexcept ->HRESULT {
-    D2D1_RECT_F draw_rect = this->GetDrawRect();;
+void LongUI::UICheckBox::Render(RenderType type) const noexcept  {
+    /*D2D1_RECT_F draw_rect = this->GetDrawRect();;
     draw_rect.left += 1.f;
     // 计算渲染区
     draw_rect.top = (draw_rect.bottom + draw_rect.top - m_szCheckBox.height) * 0.5f;
@@ -40,9 +40,14 @@ auto LongUI::UICheckBox::Render(RenderType) noexcept ->HRESULT {
     Super::Render(RenderType::Type_Render);
     // 调节文本范围 -
     //this->show_zone.left -= m_szCheckBox.width;
-    return S_OK;
+    return S_OK;*/
+    return Super::Render(type);
 }
 
+// UI检查框: 刷新
+void LongUI::UICheckBox::Update() noexcept {
+    return Super::Update();
+}
 
 // UICheckBox 构造函数
 LongUI::UICheckBox::UICheckBox(pugi::xml_node node) noexcept: Super(node) {

@@ -44,8 +44,10 @@ namespace LongUI{
         // 父类申明
         using Super = UILabel ;
     public:
-        // Render 渲染
-        virtual auto Render(RenderType) noexcept->HRESULT override;
+        // Render 渲染 
+        virtual void Render(RenderType type) const noexcept override;
+        // udate 刷新
+        virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建

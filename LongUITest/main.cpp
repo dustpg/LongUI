@@ -77,7 +77,7 @@ public:
     }
 public:
     // Render This Control
-    virtual HRESULT Render(LongUI::RenderType type) noexcept override {
+    virtual void Render(LongUI::RenderType type) const noexcept override {
         D2D1_RECT_F draw_rect;
         switch (type)
         {
@@ -108,13 +108,8 @@ public:
             break;
         case LongUI::RenderType::Type_RenderOffScreen:
             draw_rect = this->GetDrawRect();
-            // 检查布局
-            if (m_bDrawSizeChanged) {
-                ::SafeRelease(m_pCmdList);
-                m_pRenderTarget->CreateCommandList(&m_pCmdList);
-                // 设置大小
-                m_text.SetNewSize(this->width, this->height);
-                // 渲染文字
+            // 渲染文字
+            if (false) {
                 m_pRenderTarget->SetTarget(m_pCmdList);
                 m_pRenderTarget->BeginDraw();
                 m_text.Render(draw_rect.left, draw_rect.top);
@@ -124,7 +119,18 @@ public:
                 m_pEffect->SetInput(0, m_pCmdList);
             }
         }
-        return S_OK;
+    }
+    // update
+    void Update() noexcept override {
+        // 检查布局
+        if (m_bDrawSizeChanged) {
+            ::SafeRelease(m_pCmdList);
+            m_pRenderTarget->CreateCommandList(&m_pCmdList);
+            // 设置大小
+            m_text.SetNewSize(this->width, this->height);
+
+        }
+        Super::Update();
     }
     //do the event
     virtual bool DoEvent(LongUI::EventArgument& arg) noexcept  override {
@@ -224,8 +230,8 @@ public:
     }
 public:
     // Render This Control
-    virtual HRESULT Render(LongUI::RenderType type) noexcept override {
-        switch (type)
+    virtual void Render(LongUI::RenderType type) const noexcept override {
+        /*switch (type)
         {
         case LongUI::RenderType::Type_RenderBackground:
             D2D1_RECT_F draw_rect;
@@ -249,7 +255,7 @@ public:
         case LongUI::RenderType::Type_RenderOffScreen:
             break;
         }
-        return S_OK;
+        return S_OK;*/
     }
     //do the event
     virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override {

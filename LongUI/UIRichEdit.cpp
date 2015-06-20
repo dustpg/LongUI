@@ -7,9 +7,9 @@
 #endif
 
 
-// Render 渲染 
-auto LongUI::UIRichEdit::Render(RenderType) noexcept ->HRESULT {
-    HRESULT hr = S_OK;
+// UI富文本编辑框: Render 渲染 
+void LongUI::UIRichEdit::Render(RenderType type) const noexcept {
+    /*HRESULT hr = S_OK;
     RECT draw_rect = { 0, 0, 100, 100 }; //AdjustRectT(LONG);
     if (m_pTextServices) {
         hr = m_pTextServices->TxDrawD2D(
@@ -29,9 +29,14 @@ auto LongUI::UIRichEdit::Render(RenderType) noexcept ->HRESULT {
         m_pRenderTarget->FillRectangle(caretRect, m_pFontBrush);
         m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
-    return S_OK;
+    return S_OK;*/
+    return Super::Render(type);
 }
 
+// UI富文本编辑框: Render 刷新
+void LongUI::UIRichEdit::Update() noexcept {
+
+}
 
 // UIRichEdit 构造函数
 LongUI::UIRichEdit::UIRichEdit(pugi::xml_node node) noexcept: Super(node){

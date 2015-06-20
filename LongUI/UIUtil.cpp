@@ -1136,8 +1136,8 @@ HRESULT LongUI::CUIVideoComponent::Recreate(ID2D1RenderTarget* target) noexcept 
 }
 
 // 渲染
-void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) noexcept {
-    const MFARGB bkColor = { 0,0,0,0 };
+void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) const noexcept {
+    /*const MFARGB bkColor = { 0,0,0,0 };
     assert(m_pMediaEngine);
     // 表面无效
     if (!m_pDrawSurface) {
@@ -1156,7 +1156,7 @@ void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) noexcept {
         m_pRenderTarget->DrawBitmap(m_pDrawSurface, dst, 1.f,
             D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &src
             );
-    }
+    }*/
 }
 
 

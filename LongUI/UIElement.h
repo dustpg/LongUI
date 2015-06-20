@@ -71,7 +71,7 @@ namespace LongUI {
             template<>
             auto GetByType<Head>() noexcept ->Elements<Head>& { return static_cast<Elements<Head>&>(*this); }
             // render this
-            void Render(const D2D1_RECT_F& rect) noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
+            void Render(const D2D1_RECT_F& rect) const noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
             // update
             auto Update(float t) noexcept { animation.Update(t); }
             // recreate
@@ -97,7 +97,7 @@ namespace LongUI {
             // init 
             void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept;
             // render this
-            void Render(const D2D1_RECT_F&) noexcept { }
+            void Render(const D2D1_RECT_F&) const noexcept { }
             // get element
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
@@ -131,7 +131,7 @@ namespace LongUI {
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
             // render this
-            void Render(const D2D1_RECT_F&) noexcept;
+            void Render(const D2D1_RECT_F&) const noexcept;
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
             // is OK?
@@ -155,7 +155,7 @@ namespace LongUI {
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::BrushRect>& { return *this; }
             // render this
-            void Render(const D2D1_RECT_F& rect) noexcept;
+            void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
             // change brush
@@ -185,7 +185,7 @@ namespace LongUI {
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::ColorRect>& { return *this; }
             // render this
-            void Render(const D2D1_RECT_F& rect) noexcept;
+            void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept ->HRESULT;
             // change color
@@ -247,7 +247,7 @@ namespace LongUI {
         // recreate
         HRESULT Recreate(ID2D1RenderTarget*) noexcept;
         // Render
-        void Render(D2D1_RECT_F* dst) noexcept;
+        void Render(D2D1_RECT_F* dst) const noexcept;
         // ctor
         CUIVideoComponent() noexcept;
         // dtor

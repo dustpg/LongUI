@@ -118,7 +118,7 @@ LongUI::UIControl::~UIControl() noexcept {
 
 
 // 渲染控件
-auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
+void LongUI::UIControl::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
@@ -139,16 +139,20 @@ auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
                 );
             //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
-        m_bDrawPosChanged = false;
-        m_bDrawSizeChanged = false;
         break;
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
     }
-    return S_OK;
 }
 
-// 重建
+
+// UI控件: 刷新
+void LongUI::UIControl::Update() noexcept {
+    m_bDrawPosChanged = false;
+    m_bDrawSizeChanged = false;
+}
+
+// UI控件: 重建
 auto LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
@@ -305,7 +309,7 @@ void LongUI::UIControl::SetEventCallBack(
 }
 
 // 获取刻画矩形
-auto LongUI::UIControl::GetDrawRect() noexcept -> D2D1_RECT_F {
+auto LongUI::UIControl::GetDrawRect() const noexcept -> D2D1_RECT_F {
     D2D1_RECT_F rect = {
         0.f, 0.f, this->width, this->height
     };
@@ -319,7 +323,7 @@ auto LongUI::UIControl::GetDrawRect() noexcept -> D2D1_RECT_F {
 
 
 // Render 渲染 
-auto LongUI::UILabel::Render(RenderType type) noexcept ->HRESULT {
+void LongUI::UILabel::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
@@ -333,13 +337,6 @@ auto LongUI::UILabel::Render(RenderType type) noexcept ->HRESULT {
         }
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
-        // 文本属于前景
-        if (m_bDrawSizeChanged) {
-            // 设置大小
-            m_text.SetNewSize(this->width, this->height);
-            // super will do it
-            //m_bDrawSizeChanged = false;
-        }
         // 渲染文字
         m_text.Render(0.f, 0.f);
         // 父类前景
@@ -348,7 +345,16 @@ auto LongUI::UILabel::Render(RenderType type) noexcept ->HRESULT {
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
     }
-    return S_OK;
+}
+
+// UILabel: 刷新
+void LongUI::UILabel::Update() noexcept {
+    // 文本属于前景
+    if (m_bDrawSizeChanged) {
+        // 设置大小
+        m_text.SetNewSize(this->width, this->height);
+    }
+    return Super::Update();
 }
 
 
@@ -393,7 +399,7 @@ void LongUI::UILabel::Close() noexcept {
 // -------------------------------------------------------
 
 // Render 渲染 
-auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
+void LongUI::UIButton::Render(RenderType type)const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
@@ -406,8 +412,6 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
         draw_rect = this->GetDrawRect();
         // 渲染部件
         m_uiElement.Render(draw_rect);
-        // 更新计时器
-        UIElement_Update(m_uiElement);
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -416,9 +420,15 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
     }
-    return S_OK;
 }
 
+
+// UI按钮: 刷新
+void LongUI::UIButton::Update() noexcept {
+    // 更新计时器
+    UIElement_Update(m_uiElement);
+    return Super::Update();
+}
 
 // UIButton 构造函数
 LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node){
@@ -538,7 +548,7 @@ void LongUI::UIButton::Close() noexcept {
 // -------------------------------------------------------
 
 
-HRESULT LongUI::UIEditBasic::Render(RenderType type) noexcept {
+void LongUI::UIEditBasic::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
@@ -552,10 +562,6 @@ HRESULT LongUI::UIEditBasic::Render(RenderType type) noexcept {
             break;
         }
     case LongUI::RenderType::Type_RenderForeground:
-        // 更新刻画地区
-        if (m_bDrawSizeChanged) {
-            m_text.SetNewSize(this->width, this->height);
-        }
         m_text.Render(0.f, 0.f);
         // 父类前景
         Super::Render(LongUI::RenderType::Type_RenderForeground);
@@ -563,7 +569,17 @@ HRESULT LongUI::UIEditBasic::Render(RenderType type) noexcept {
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
     }
-    return S_OK;
+}
+
+// UI基本编辑框: 刷新
+void LongUI::UIEditBasic::Update() noexcept {
+    // 更新刻画地区
+    if (m_bDrawSizeChanged) {
+        m_text.SetNewSize(this->width, this->height);
+    }
+    // 刷新
+    m_text.Update();
+    return Super::Update();
 }
 
 // do event 

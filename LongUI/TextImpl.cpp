@@ -22,7 +22,7 @@ auto __fastcall UIEditaleText_RemoveText(
 
 
 // 刷新布局
-auto LongUI::Component::EditaleText::refresh(bool update) noexcept ->UIWindow* {
+auto LongUI::Component::EditaleText::refresh(bool update) const noexcept ->UIWindow* {
     if (!m_bThisFocused) return nullptr;
     RectLTWH_F rect; this->GetCaretRect(rect);
     register auto* window = m_pHost->GetWindow();
@@ -759,7 +759,7 @@ void LongUI::Component::EditaleText::AlignCaretToNearestCluster(bool hit, bool s
 }
 
 // 获取插入符号矩形
-void LongUI::Component::EditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
+void LongUI::Component::EditaleText::GetCaretRect(RectLTWH_F& rect)const noexcept {
     // 检查布局
     if (this->layout) {
         // 获取 f(文本偏移) -> 坐标
@@ -800,31 +800,36 @@ void LongUI::Component::EditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
     }
 }
 
-// 渲染
-void LongUI::Component::EditaleText::Render(float x, float y) noexcept {
-    assert(m_pRenderTarget);
+// 刷新
+void LongUI::Component::EditaleText::Update() noexcept {
+    // s
     this->refresh(false);
     // 检查选择区
     auto range = this->GetSelectionRange();
     // 有效
     if (range.length > 0) {
         this->RefreshSelectionMetrics(range);
-        if (m_metriceBuffer.data_length) {
-            m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-            // 遍历
-            for (auto itr = m_metriceBuffer.data;
-            itr != m_metriceBuffer.data + m_metriceBuffer.data_length; ++itr) {
-                const DWRITE_HIT_TEST_METRICS& htm = *itr;
-                D2D1_RECT_F highlightRect = {
-                    htm.left + x,
-                    htm.top + y,
-                    htm.left + htm.width + x,
-                    htm.top + htm.height + y
-                };
-                m_pRenderTarget->FillRectangle(highlightRect, m_pSelectionColor);
-            }
-            m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    }
+}
+
+// 渲染
+void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
+    assert(m_pRenderTarget);
+    if (m_metriceBuffer.data_length) {
+        m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+        // 遍历
+        for (auto itr = m_metriceBuffer.data;
+        itr != m_metriceBuffer.data + m_metriceBuffer.data_length; ++itr) {
+            const DWRITE_HIT_TEST_METRICS& htm = *itr;
+            D2D1_RECT_F highlightRect = {
+                htm.left + x,
+                htm.top + y,
+                htm.left + htm.width + x,
+                htm.top + htm.height + y
+            };
+            m_pRenderTarget->FillRectangle(highlightRect, m_pSelectionColor);
         }
+        m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
     // 刻画字体
     this->layout->Draw(m_buffer.data, m_pTextRenderer, x, y);

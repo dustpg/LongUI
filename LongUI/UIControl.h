@@ -82,7 +82,9 @@ namespace LongUI{
         }
     public:
         // Render 
-        virtual auto Render(RenderType) noexcept->HRESULT;
+        virtual void Render(RenderType) const noexcept;
+        // update
+        virtual void Update() noexcept;
         // do event 
         virtual bool DoEvent(LongUI::EventArgument&) noexcept = 0;
         // recreate , first call or device reset
@@ -132,7 +134,7 @@ namespace LongUI{
         }
     public:
         // get draw rect
-        auto GetDrawRect()noexcept->D2D1_RECT_F;
+        auto GetDrawRect() const noexcept->D2D1_RECT_F;
     protected:
         // d2d render target
         LongUIRenderTarget*     m_pRenderTarget = nullptr;

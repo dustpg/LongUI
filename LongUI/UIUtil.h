@@ -196,17 +196,17 @@ namespace LongUI {
         // operator ->
         T* operator->() noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE);}
         // operator T*
-        operator T*() noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
+        operator T*() const noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
         // operator []
         T& operator [](const int index) noexcept { return (reinterpret_cast<T*>(data & INFOPOINTER_ZONE))[index]; }
         // operator [] const ver.
         const T& operator [](const int index) const noexcept { return (reinterpret_cast<T*>(data & INFOPOINTER_ZONE))[index]; }
         // pointer
-        T* p() noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
+        T* p() const noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
         // bool1
-        bool bool1() noexcept { return (data & (1 << 0)) > 0; }
+        bool bool1() const noexcept { return (data & (1 << 0)) > 0; }
         // bool2
-        bool bool2() noexcept { return (data & (1 << 1)) > 0; }
+        bool bool2() const noexcept { return (data & (1 << 1)) > 0; }
         // set bool1
         void set_bool1(bool b) noexcept { data = (data & INFOPTDATA2_ZONE) | size_t(b); }
         // bool2

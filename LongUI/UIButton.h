@@ -34,7 +34,9 @@ namespace LongUI{
         using ButtonElement = Component::Elements<Element::Meta, Element::BrushRect, Element::Basic>;
     public:
         // Render 渲染 
-        virtual auto Render(RenderType type) noexcept ->HRESULT override;
+        virtual void Render(RenderType type) const noexcept override;
+        // udate 刷新
+        virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建

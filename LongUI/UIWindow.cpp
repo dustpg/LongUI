@@ -560,13 +560,60 @@ auto LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESULT {
     return hr;
 }
 
-// UIWindow 渲染 
-auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
-    if (type != RenderType::Type_Render) return S_FALSE;
+// UI窗口: 刷新
+void LongUI::UIWindow::Update() noexcept {
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     //UIManager << DL_Log << long(m_fDeltaTime * 1000.f) << LongUI::endl;
     m_timer.MovStartEnd();
+    //
+    LongUI::RenderingUnit* current_unit = nullptr;
+    bool full = false;
+    if (this->flags & Flag_Window_FullRendering) {
+        full = true;
+    }
+    else if (m_pRenderQueue) {
+        current_unit = m_pRenderQueue->last_uint;
+        if (current_unit->length && current_unit->units[0] == this) {
+            full = true;
+        }
+    }
+    // 全刷新
+    if (full) {
+        m_present.DirtyRectsCount = 0;
+        //Super::Render(RenderType::Type_Render);
+    }
+    // 部分刷新
+    else {
+        m_present.DirtyRectsCount = current_unit->length;
+        // 更新脏矩形
+        for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
+            auto ctrl = current_unit->units[i];
+            assert(ctrl->parent && "check it");
+            // 设置转换矩阵
+            ctrl->Update();
+            // 限制转换
+            m_dirtyRects[i].left = static_cast<LONG>(ctrl->visible_rect.left);
+            m_dirtyRects[i].top = static_cast<LONG>(ctrl->visible_rect.top);
+            m_dirtyRects[i].right = static_cast<LONG>(std::ceil(ctrl->visible_rect.right));
+            m_dirtyRects[i].bottom = static_cast<LONG>(std::ceil(ctrl->visible_rect.bottom));
+        }
+    }
+    // 调试
+#ifdef _DEBUG
+    if (full) {
+        ++full_render_counter;
+    }
+    else {
+        ++dirty_render_counter;
+    }
+#endif
+    return Super::Update();
+}
+
+// UIWindow 渲染 
+void LongUI::UIWindow::Render(RenderType type)const noexcept  {
+    if (type != RenderType::Type_Render) return ;
     // 清空背景  clear_color
     m_pRenderTarget->Clear(this->clear_color);
     m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
@@ -583,24 +630,17 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
         }
     }
     // 全刷新: 继承父类
-    if (full) {
-        m_present.DirtyRectsCount = 0;
+    if (!m_present.DirtyRectsCount) {
         Super::Render(RenderType::Type_Render);
     }
     // 部分刷新:
     else {
-        m_present.DirtyRectsCount = current_unit->length;
         for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
             auto ctrl = current_unit->units[i];
             assert(ctrl->parent && "check it");
             // 设置转换矩阵
             m_pRenderTarget->SetTransform(&ctrl->parent->world);
             ctrl->Render(RenderType::Type_Render);
-            // 限制转换
-            m_dirtyRects[i].left = static_cast<LONG>(ctrl->visible_rect.left);
-            m_dirtyRects[i].top = static_cast<LONG>(ctrl->visible_rect.top);
-            m_dirtyRects[i].right = static_cast<LONG>(std::ceil(ctrl->visible_rect.right));
-            m_dirtyRects[i].bottom = static_cast<LONG>(std::ceil(ctrl->visible_rect.bottom));
         }
     }
     // 有效 -> 清零
@@ -613,12 +653,6 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
         D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.45f, 0.45f);
         m_pRenderTarget->GetTransform(&nowMatrix);
         m_pRenderTarget->SetTransform(&iMatrix);
-        if (full) {
-            ++full_render_counter;
-        }
-        else {
-            ++dirty_render_counter;
-        }
         wchar_t buffer[1024];
         auto length = ::swprintf(
             buffer, 1024,
@@ -641,7 +675,6 @@ auto LongUI::UIWindow::Render(RenderType type) noexcept ->HRESULT {
         m_pRenderTarget->SetTransform(&nowMatrix);
     }
 #endif
-    return S_OK;
 }
 
 // UIWindow 事件处理
