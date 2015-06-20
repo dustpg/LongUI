@@ -124,10 +124,8 @@ namespace LongUI {
         float                   x_offset = 0.f;
         // [UNSTATBLE] y offset for sb
         float                   y_offset = 0.f;
-        // 当前世界转换矩阵
+        // 世界转换矩阵
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
-        // 本容器转换矩阵
-        D2D1_MATRIX_3X2_F       transform = D2D1::Matrix3x2F::Identity();
         // 水平滚动条
         UIScrollBar*            scrollbar_h = nullptr;
         // 垂直滚动条

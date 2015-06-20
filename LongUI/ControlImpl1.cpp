@@ -51,15 +51,27 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         // 检查名称
         UIControl::MakeString(node.attribute("name").value(), m_strControlName);
         // 检查位置
-        UIControl::MakeFloats(node.attribute("pos").value(), const_cast<float*>(&show_zone.left), 4);
+        {
+            float pos[2];
+            // 检查位置
+            if (UIControl::MakeFloats(node.attribute("pos").value(), pos, 2)) {
+                this->transform._31 = pos[0];
+                this->transform._32 = pos[1];
+            }
+            // 检查大小
+            if (UIControl::MakeFloats(node.attribute("size").value(), pos, 2)) {
+                this->width = pos[0];
+                this->height = pos[1];
+            }
+        }
         // 检查外边距
         UIControl::MakeFloats(node.attribute("margin").value(), const_cast<float*>(&margin_rect.left), 4);
         // 宽度固定
-        if (show_zone.width > 0.f) {
+        if (this->width > 0.f) {
             flag |= LongUI::Flag_WidthFixed;
         }
         // 高度固定
-        if (show_zone.height > 0.f) {
+        if (this->height > 0.f) {
             flag |= LongUI::Flag_HeightFixed;
         }
         // 自由
@@ -137,7 +149,7 @@ auto LongUI::UIControl::Render(RenderType type) noexcept -> HRESULT {
 }
 
 // 重建
-HRESULT LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept {
+auto LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
     m_pRenderTarget = ::SafeAcquire(target);
@@ -152,7 +164,7 @@ bool LongUI::UIControl::DoEventEx(LongUI::EventArgument& arg) noexcept {
     auto old = arg.pt;
     D2D1_MATRIX_3X2_F* transform;
     if (this->parent) {
-        transform = &this->parent->world;
+        transform = &parent->world;
     }
     else {
         assert(this->flags & Flag_UIContainer);
@@ -294,10 +306,9 @@ void LongUI::UIControl::SetEventCallBack(
 
 // 获取刻画矩形
 auto LongUI::UIControl::GetDrawRect() noexcept -> D2D1_RECT_F {
-    D2D1_RECT_F rect; rect.left = draw_zone.left /*+ parent->draw_zone.left*/;
-    rect.top = draw_zone.top /*+ parent->draw_zone.top*/;
-    rect.right = rect.left + draw_zone.width;
-    rect.bottom = rect.top + draw_zone.height;
+    D2D1_RECT_F rect = {
+        0.f, 0.f, this->width, this->height
+    };
     return rect;
 }
 
@@ -324,14 +335,13 @@ auto LongUI::UILabel::Render(RenderType type) noexcept ->HRESULT {
     case LongUI::RenderType::Type_RenderForeground:
         // 文本属于前景
         if (m_bDrawSizeChanged) {
-            this->draw_zone = this->show_zone;
             // 设置大小
-            m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
+            m_text.SetNewSize(this->width, this->height);
             // super will do it
             //m_bDrawSizeChanged = false;
         }
         // 渲染文字
-        m_text.Render(this->draw_zone.left, this->draw_zone.top);
+        m_text.Render(0.f, 0.f);
         // 父类前景
         Super::Render(LongUI::RenderType::Type_RenderForeground);
         break;
@@ -370,8 +380,9 @@ auto LongUI::UILabel::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
 // do event 事件处理
 bool LongUI::UILabel::DoEvent(LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
-        if (arg.event == LongUI::Event::Event_FindControl &&
-            IsPointInRect(this->show_zone, arg.pt)) {
+        if (arg.event == LongUI::Event::Event_FindControl) {
+            // 检查鼠标范围
+            assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
             arg.ctrl = this;
         }
     }
@@ -405,9 +416,6 @@ auto LongUI::UIButton::Render(RenderType type) noexcept ->HRESULT {
         // 父类背景
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
-        if (m_bDrawSizeChanged) {
-            this->draw_zone = this->show_zone;
-        }
         draw_rect = this->GetDrawRect();
         // 渲染部件
         m_uiElement.Render(draw_rect);
@@ -465,7 +473,9 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_FindControl:
-            if (IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             __fallthrough;
@@ -557,10 +567,9 @@ HRESULT LongUI::UIEditBasic::Render(RenderType type) noexcept {
     case LongUI::RenderType::Type_RenderForeground:
         // 更新刻画地区
         if (m_bDrawSizeChanged) {
-            this->draw_zone = this->show_zone;
-            m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
+            m_text.SetNewSize(this->width, this->height);
         }
-        m_text.Render(this->draw_zone.left, this->draw_zone.top);
+        m_text.Render(0.f, 0.f);
         // 父类前景
         Super::Render(LongUI::RenderType::Type_RenderForeground);
         break;
@@ -577,7 +586,9 @@ bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_FindControl: // 查找本控件
-            if (IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             return true;
@@ -586,10 +597,7 @@ bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_DragEnter:
             return m_text.OnDragEnter(arg.dataobj_cf, arg.outeffect_cf);
         case LongUI::Event::Event_DragOver:
-            return m_text.OnDragOver(
-                arg.pt.x - this->show_zone.left,
-                arg.pt.y - this->show_zone.top
-                );
+            return m_text.OnDragOver(arg.pt.x, arg.pt.y);
         case LongUI::Event::Event_DragLeave:
             return m_text.OnDragLeave();
         case LongUI::Event::Event_Drop:
@@ -623,24 +631,14 @@ bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
         case WM_MOUSEMOVE:
             // 拖拽?
             if (arg.wParam_sys & MK_LBUTTON) {
-                m_text.OnLButtonHold(
-                    arg.pt.x - this->show_zone.left,
-                    arg.pt.y - this->show_zone.top
-                    );
+                m_text.OnLButtonHold(arg.pt.x, arg.pt.y);
             }
             break;
         case WM_LBUTTONDOWN:
-            m_text.OnLButtonDown(
-                arg.pt.x - this->show_zone.left,
-                arg.pt.y - this->show_zone.top,
-                (arg.wParam_sys & MK_SHIFT) > 0
-                );
+            m_text.OnLButtonDown(arg.pt.x, arg.pt.y, !!(arg.wParam_sys & MK_SHIFT));
             break;
         case WM_LBUTTONUP:
-            m_text.OnLButtonUp(
-                arg.pt.x - this->show_zone.left,
-                arg.pt.y - this->show_zone.top
-                );
+            m_text.OnLButtonUp(arg.pt.x, arg.pt.y);
             break;
         }
     }

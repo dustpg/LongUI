@@ -17,14 +17,11 @@ void LongUI::UIScrollBar::Refresh() noexcept {
     // 垂直?
     if (this->type == ScrollBarType::Type_Vertical) {
         // 更新
-        if ((old = m_pOwner->end_of_bottom > m_pOwner->show_zone.height)) {
-            m_pOwner->draw_zone.height = m_pOwner->end_of_bottom;
+        if ((old = m_pOwner->end_of_bottom > m_pOwner->height)) {
+            m_pOwner->height = m_pOwner->end_of_bottom;
         }
-        else {
-            m_pOwner->draw_zone.height = m_pOwner->show_zone.height;
-        }
-        m_fMaxRange = m_pOwner->draw_zone.height;
-        m_fMaxIndex = m_fMaxRange - m_pOwner->show_zone.height;
+        m_fMaxRange = m_pOwner->height;
+        m_fMaxIndex = m_fMaxRange - m_pOwner->height;
         // 检查上边界
 
         // 检查下边界
@@ -36,15 +33,11 @@ void LongUI::UIScrollBar::Refresh() noexcept {
     // 水平?
     else {
         // 更新
-        if ((old = m_pOwner->end_of_right > m_pOwner->show_zone.width)) {
-            m_pOwner->draw_zone.width = m_pOwner->end_of_right;
+        if ((old = m_pOwner->end_of_right > m_pOwner->width)) {
+            m_pOwner->width = m_pOwner->end_of_right;
         }
-        else {
-            m_pOwner->draw_zone.width = m_pOwner->show_zone.width;
-        }
-       
-        m_fMaxRange = m_pOwner->draw_zone.width;
-        m_fMaxIndex = m_fMaxRange - m_pOwner->show_zone.width;
+        m_fMaxRange = m_pOwner->width;
+        m_fMaxIndex = m_fMaxRange - m_pOwner->width;
         // 检查左边界
 
         // 检查右边界
@@ -65,13 +58,13 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
 #if 1
         if (this->type == ScrollBarType::Type_Vertical) {
             m_pOwner->y_offset = -new_index;
-            this->show_zone.top = new_index;
+            //this->show_zone.top = new_index;
         }
         else {
             m_pOwner->x_offset = -new_index;
-            this->show_zone.left = new_index;
+            //this->show_zone.left = new_index;
         }
-        this->draw_zone = this->show_zone;
+        //this->draw_zone = this->show_zone;
         m_pOwner->DrawPosChanged();
         // 刷新拥有着
         m_pWindow->Invalidate(m_pOwner);
@@ -90,7 +83,9 @@ bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_FindControl:
-            if (IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             __fallthrough;
@@ -175,7 +170,7 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
         m_rtArrow1.bottom = m_rtArrow1.top + BASIC_SIZE;
         m_rtArrow2.top = m_rtArrow2.bottom - BASIC_SIZE;
         // 计算Thumb
-        register auto height = m_pOwner->show_zone.height - BASIC_SIZE*2.f;
+        register auto height = m_pOwner->height - BASIC_SIZE*2.f;
         m_rtThumb.top = (m_fIndex * bilibili + m_rtArrow1.bottom);
         m_rtThumb.bottom = (m_rtThumb.top + bilibili * height) - 1.f;
     }
@@ -184,7 +179,7 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
         m_rtArrow1.right = m_rtArrow1.left + BASIC_SIZE;
         m_rtArrow2.left = m_rtArrow2.right - BASIC_SIZE;
         // 计算Thumb
-        register auto width = m_pOwner->show_zone.width - BASIC_SIZE*2.f;
+        register auto width = m_pOwner->width - BASIC_SIZE*2.f;
         m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
         m_rtThumb.right = m_rtThumb.left + bilibili * width - 1.f;
     }
@@ -244,7 +239,7 @@ bool  LongUI::UIScrollBarA::DoEvent(LongUI::EventArgument& arg) noexcept {
     auto get_real_pos = [this](float pos)  {
         pos -= UIScrollBarA::BASIC_SIZE ;
         auto length = this->get_length() - UIScrollBarA::BASIC_SIZE * 2.f;
-        return (pos - m_fIndex) / length * m_fMaxRange;
+        return (pos) / length * m_fMaxRange;
     };
     // 控件消息
     if (arg.sender) {

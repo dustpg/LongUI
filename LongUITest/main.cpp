@@ -107,16 +107,13 @@ public:
             Super::Render(LongUI::RenderType::Type_RenderForeground);
             break;
         case LongUI::RenderType::Type_RenderOffScreen:
-            if (m_bDrawSizeChanged) {
-                this->draw_zone = this->show_zone;
-            }
             draw_rect = this->GetDrawRect();
             // 检查布局
             if (m_bDrawSizeChanged) {
                 ::SafeRelease(m_pCmdList);
                 m_pRenderTarget->CreateCommandList(&m_pCmdList);
                 // 设置大小
-                m_text.SetNewSize(this->draw_zone.width, this->draw_zone.height);
+                m_text.SetNewSize(this->width, this->height);
                 // 渲染文字
                 m_pRenderTarget->SetTarget(m_pCmdList);
                 m_pRenderTarget->BeginDraw();
@@ -132,8 +129,9 @@ public:
     //do the event
     virtual bool DoEvent(LongUI::EventArgument& arg) noexcept  override {
         if (arg.sender) {
-            if (arg.event == LongUI::Event::Event_FindControl &&
-                LongUI::IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             else if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
@@ -239,12 +237,6 @@ public:
             __fallthrough;
         case LongUI::RenderType::Type_RenderForeground:
             // 更新刻画地区
-            if (m_bDrawSizeChanged) {
-                this->draw_zone = this->show_zone;
-            }
-            if (m_bDrawSizeChanged) {
-                this->draw_zone = this->show_zone;
-            }
             draw_rect = this->GetDrawRect();
             m_video.Render(&draw_rect);
             m_pWindow->StartRender(1.f, this);
@@ -264,8 +256,9 @@ public:
     //do the event
     virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override {
         if (arg.sender) {
-            if (arg.event == LongUI::Event::Event_FindControl &&
-                LongUI::IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             else if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {

@@ -4,9 +4,6 @@
 
 // Render 渲染 
 auto LongUI::UICheckBox::Render(RenderType) noexcept ->HRESULT {
-    if (m_bDrawSizeChanged) {
-        this->draw_zone = this->show_zone;
-    }
     D2D1_RECT_F draw_rect = this->GetDrawRect();;
     draw_rect.left += 1.f;
     // 计算渲染区
@@ -38,11 +35,11 @@ auto LongUI::UICheckBox::Render(RenderType) noexcept ->HRESULT {
         break;
     }
     // 调节文本范围 +
-    this->show_zone.left += m_szCheckBox.width;
+    //this->show_zone.left += m_szCheckBox.width;
     // 刻画文本
     Super::Render(RenderType::Type_Render);
     // 调节文本范围 -
-    this->show_zone.left -= m_szCheckBox.width;
+    //this->show_zone.left -= m_szCheckBox.width;
     return S_OK;
 }
 
@@ -94,7 +91,9 @@ bool LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_FindControl:
-            if (IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             __fallthrough;
@@ -115,7 +114,7 @@ bool LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) noexcept {
         {
         case WM_LBUTTONUP:
             // 有效
-            if (IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.pt.x < this->width && arg.pt.y) {
                 // 检查flag
                 if (this->flags & Flag_CheckBox_WithIndeterminate) {
                     if (this->state == CheckBoxState::State_UnChecked) {

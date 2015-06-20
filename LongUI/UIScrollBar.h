@@ -67,7 +67,7 @@ namespace LongUI{
         // destructor 析构函数
         //~UIScrollBar() noexcept;
         // get bar length
-        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? m_pOwner->show_zone.height : m_pOwner->show_zone.width; }
+        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? m_pOwner->height : m_pOwner->width; }
     public:
         // constructor 构造函数
         UIScrollBar(pugi::xml_node) noexcept;

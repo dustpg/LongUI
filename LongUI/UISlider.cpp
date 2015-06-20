@@ -2,9 +2,6 @@
 
 // Render 渲染 
 auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
-    if (m_bDrawSizeChanged) {
-        this->draw_zone = this->show_zone;
-    }
     D2D1_RECT_F draw_rect = this->GetDrawRect();
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
     // 垂直滑块
@@ -20,9 +17,9 @@ auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
         // 渲染滑槽
         m_pRenderTarget->FillRectangle(draw_rect, m_pBrush_SetBeforeUse);
         // 根据 value 计算滑块位置
-        m_rcSlider.top = this->show_zone.top;
-        m_rcSlider.bottom = m_rcSlider.top + this->show_zone.height;
-        m_rcSlider.left = this->show_zone.left + ((draw_rect.right - draw_rect.left) * m_fValue);
+        m_rcSlider.top = 0.f;
+        m_rcSlider.bottom = m_rcSlider.top + this->height;
+        m_rcSlider.left = ((draw_rect.right - draw_rect.left) * m_fValue);
         m_rcSlider.right = m_rcSlider.left + m_fSliderHalfWidth * 2.f;
         // 渲染滑块
         m_pRenderTarget->FillRectangle(m_rcSlider, m_pBrush_SetBeforeUse);
@@ -60,7 +57,9 @@ bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_FindControl:
-            if (IsPointInRect(this->show_zone, arg.pt)){
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             __fallthrough;
@@ -81,7 +80,7 @@ bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
             break;
         case WM_MOUSEMOVE:
             if (m_unused[Unused_MouseClickIn] && arg.wParam_sys & MK_LBUTTON){
-                m_fValue = (arg.pt.x - this->show_zone.left) / this->show_zone.width;
+                m_fValue = (arg.pt.x) / this->width;
                 if (m_fValue > 1.f) m_fValue = 1.f;
                 if (m_fValue < 0.f) m_fValue = 0.f;
 

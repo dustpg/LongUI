@@ -117,9 +117,9 @@ namespace LongUI{
         // change control draw pos
         LongUIInline auto DrawPosChanged() noexcept { m_bDrawPosChanged = true; }
         // get taking up width of control
-        LongUIInline auto GetTakingUpWidth() const noexcept { return show_zone.width + margin_rect.right + margin_rect.left; }
+        LongUIInline auto GetTakingUpWidth() const noexcept { return this->width + margin_rect.right + margin_rect.left; }
         // get taking up height of control
-        LongUIInline auto GetTakingUpHeight() const noexcept { return show_zone.height + margin_rect.bottom + margin_rect.top; }
+        LongUIInline auto GetTakingUpHeight() const noexcept { return this->height + margin_rect.bottom + margin_rect.top; }
         // get window of control
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
     protected: // Helper Zone
@@ -167,6 +167,13 @@ namespace LongUI{
     protected:
         // user context
         void*                   user_context = nullptr;
+    public:
+        // transform, relative to parent
+        D2D1_MATRIX_3X2_F       transform = D2D1::Matrix3x2F::Identity();
+        // width of control
+        float                   width = 0.f;
+        // height of control
+        float                   height = 0.f;
     protected: // border
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
@@ -196,14 +203,8 @@ namespace LongUI{
         // margin rect
         D2D1_RECT_F   const margin_rect = D2D1::RectF();
     public:
-        // control current show position(offset for parent) , modified by 
-        // parent, read only for self, read/write by parent
-        RectLTWH_F          show_zone;
-        // control current draw position(offset for parent) , modified by
-        // parent, read only for self, read/write by scrollbar
-        RectLTWH_F          draw_zone;
-        // control current visible position(offset for world) , modified by 
-        // parent, read only for self, read/write by parent
+        // control current visible position(relative for world) , modified by 
+        // parent, read only for self,
         D2D1_RECT_F         visible_rect = D2D1::RectF();
     };
 #if 0

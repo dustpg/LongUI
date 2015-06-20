@@ -793,9 +793,9 @@ void LongUI::Component::EditaleText::GetCaretRect(RectLTWH_F& rect) noexcept {
         register float caretThickness = static_cast<float>(caretIntThickness);
         // 计算相对位置
         // XXX: 检查draw_zone
-        rect.left = caretX - caretThickness * 0.5f + m_pHost->draw_zone.left;
+        rect.left = caretX - caretThickness * 0.5f;
         rect.width = caretThickness;
-        rect.top = caretY + m_pHost->draw_zone.top;
+        rect.top = caretY;
         rect.height = caretMetrics.height;
     }
 }

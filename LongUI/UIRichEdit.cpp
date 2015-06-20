@@ -73,7 +73,9 @@ bool LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_FindControl: // 查找本空间
-            if (IsPointInRect(this->show_zone, arg.pt)) {
+            if (arg.event == LongUI::Event::Event_FindControl) {
+                // 检查鼠标范围
+                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
             return true;

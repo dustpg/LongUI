@@ -47,17 +47,15 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     const char* str_get = nullptr;
     // 设置窗口大小
     RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
-    if (str_get = node.attribute("size").value()) {
-        UIControl::MakeFloats(str_get, &draw_zone.width, 2);
-        window_rect.right = static_cast<decltype(window_rect.right)>(draw_zone.width);
-        window_rect.bottom = static_cast<decltype(window_rect.bottom)>(draw_zone.height);
+    // 默认
+    if (this->width == 0.f) {
+        this->width = static_cast<float>(LongUIDefaultWindowWidth);
     }
-    else {
-        this->draw_zone.width = static_cast<float>(LongUIDefaultWindowWidth);
-        this->draw_zone.height = static_cast<float>(LongUIDefaultWindowHeight);
+    if (this->height == 0.f) {
+        this->height = static_cast<float>(LongUIDefaultWindowHeight);
     }
-    visible_rect.right = m_clientSize.width = this->draw_zone.width;
-    visible_rect.bottom = m_clientSize.height = this->draw_zone.height;
+    visible_rect.right = m_clientSize.width = this->width;
+    visible_rect.bottom = m_clientSize.height = this->height;
     // 调整大小
     ::AdjustWindowRect(&window_rect, window_style, FALSE);
     // 居中
@@ -501,7 +499,8 @@ void LongUI::UIWindow::set_present() noexcept {
 // begin draw
 void LongUI::UIWindow::BeginDraw() noexcept {
     // 获取当前大小
-    reinterpret_cast<D2D1_SIZE_F&>(this->show_zone.width) = m_clientSize;
+    this->width = m_clientSize.width;
+    this->height = m_clientSize.height;
     // 刷新子控件布局
     Super::UpdateChildLayout();
     // 离屏渲染
