@@ -70,6 +70,12 @@ namespace LongUI {
             // get element for head
             template<>
             auto GetByType<Head>() noexcept ->Elements<Head>& { return static_cast<Elements<Head>&>(*this); }
+            // get element: const overload
+            template<Element ElementType> 
+            auto GetByType() const noexcept ->const Elements<ElementType>& { return SuperA::GetByType<ElementType>(); }
+            // get element for head: const overload
+            template<>
+            auto GetByType<Head>() const noexcept ->const Elements<Head>& { return static_cast<const Elements<Head>&>(*this); }
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
             // update
@@ -101,10 +107,13 @@ namespace LongUI {
             // get element
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
+            // get element: const overload
+            template<Element ElementType>
+            auto GetByType()const noexcept ->const Elements<Element::Basic>& { return *this; }
             // set new status
             auto SetNewStatus(ControlStatus) noexcept ->float;
             // get status
-            auto GetStatus() noexcept { return m_stateTartget; }
+            auto GetStatus() const noexcept { return m_stateTartget; }
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
             // type of unit
@@ -130,6 +139,9 @@ namespace LongUI {
             // get element
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
+            // get element: const overload
+            template<Element ElementType>
+            auto GetByType()const noexcept ->const Elements<Element::Meta>& { return *this; }
             // render this
             void Render(const D2D1_RECT_F&) const noexcept;
             // recreate
@@ -154,6 +166,9 @@ namespace LongUI {
             // get element
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::BrushRect>& { return *this; }
+            // get element : const overload
+            template<Element ElementType>
+            auto GetByType()const noexcept ->const Elements<Element::BrushRect>& { return *this; }
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
@@ -184,6 +199,9 @@ namespace LongUI {
             // get element
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element::ColorRect>& { return *this; }
+            // get element: const overload
+            template<Element ElementType>
+            auto GetByType()const noexcept ->const Elements<Element::ColorRect>& { return *this; }
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate

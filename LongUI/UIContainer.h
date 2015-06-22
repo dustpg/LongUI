@@ -79,22 +79,15 @@ namespace LongUI {
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
-    public:
         // add a child
         void AfterInsert(UIControl* child) noexcept;
         // push clip
         void PushAxisAlignedClip(D2D1_ANTIALIAS_MODE = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)const noexcept;
-    public: //
-        // update children's layout
-        inline  void UpdateChildLayout() noexcept { if (m_bDrawSizeChanged) this->RefreshChildLayout();  }
-        // refresh children's layout
-        virtual void RefreshChildLayout() noexcept;
-    public: //
         // Assure the ScrollBar
         bool AssureScrollBar(float, float) noexcept;
         // find control where mouse pointed
         auto FindControl(const D2D1_POINT_2F pt) noexcept->UIControl*;
-    public: // STL Container Compatibled interface/method
+    public: // STL Container Compatibled/style interface/method
         // get child at, because of list, will get warning of performance
         auto at(uint32_t) const noexcept ->UIControl*;
         // insert child,
@@ -110,6 +103,9 @@ namespace LongUI {
         LongUIInline auto begin() const noexcept { return Iterator(m_pHead); };
         // end
         LongUIInline auto end() const noexcept { return Iterator(nullptr); };
+    private: 
+        // refresh children's layout
+        void refresh_child_layout() noexcept;
     protected:
         // dtor 析构函数
         ~UIContainer() noexcept;

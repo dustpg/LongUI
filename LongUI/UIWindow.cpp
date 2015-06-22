@@ -508,8 +508,6 @@ void LongUI::UIWindow::BeginDraw() noexcept {
     // 获取当前大小
     this->width = m_clientSize.width;
     this->height = m_clientSize.height;
-    // 刷新子控件布局
-    Super::UpdateChildLayout();
     // 离屏渲染
     if (!m_vRegisteredControl.empty()) {
         for (auto i : m_vRegisteredControl) {
@@ -524,7 +522,7 @@ void LongUI::UIWindow::BeginDraw() noexcept {
     // 开始渲染
     m_pRenderTarget->BeginDraw();
     // 设置转换矩阵
-    m_pRenderTarget->SetTransform(&this->transform);
+    m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 }
 
 // end draw
@@ -608,6 +606,7 @@ void LongUI::UIWindow::Update() noexcept {
         ++dirty_render_counter;
     }
 #endif
+    // 交给父类处理
     return Super::Update();
 }
 
@@ -616,7 +615,6 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
     if (type != RenderType::Type_Render) return ;
     // 清空背景  clear_color
     m_pRenderTarget->Clear(this->clear_color);
-    m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
     //
     LongUI::RenderingUnit* current_unit = nullptr;
     bool full = false;
@@ -807,13 +805,13 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
     case WM_SIZE:           // 改变大小
         this->DrawSizeChanged();
         if (_arg.lParam_sys && m_pSwapChain){
-            this->OnResize();
+            /*this->OnResize();
             // 强行刷新一帧
             this->Invalidate(this);
             this->UpdateRendering();
             this->BeginDraw();
             this->Render(RenderType::Type_Render);
-            this->EndDraw(0);
+            this->EndDraw(0);*/
             handled = true;
         }
         break;

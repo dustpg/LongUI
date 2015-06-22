@@ -35,19 +35,16 @@ namespace LongUI{
         // 父类申明
         using Super = UIContainer;
     public: // UIControl
-        // Render 渲染 --- 放在第一位!
+        // Render 渲染
         //virtual auto Render() noexcept ->HRESULT override;
+        // 刷新
+        virtual void Update() noexcept override;
         // do event 事件处理
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
-        // 预渲染
-        //virtual void PreRender() noexcept override;
-        // recreate 重建
+        // recreate
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
         virtual void Close() noexcept override;
-    public: // UIContainer
-        // update children's layout
-        virtual void RefreshChildLayout() noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;

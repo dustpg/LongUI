@@ -3,7 +3,7 @@
 
 
 // 测试XML &#xD; --> \r &#xA; --> \n
-#if 1
+#if 0
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA">
     <VerticalLayout name="VLayout1" pos="0, 0, 1100, 128">
@@ -29,12 +29,12 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" >
     <VerticalLayout name="VLayout1">
-        <Button name="1" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="2" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+        <Button name="1" margin="4,4,4,4" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+        <Button name="2" margin="4,4,4,4"/>
     </VerticalLayout>
     <HorizontalLayout name="HLayout">
-        <Button name="3" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="4" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+        <Button name="3" margin="4,4,4,4" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+        <Button name="4" margin="4,4,4,4"/>
     </HorizontalLayout>
 </Window>
 )xml";

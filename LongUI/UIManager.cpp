@@ -376,6 +376,7 @@ void LongUI::CUIManager::Run() noexcept {
             // 渲染窗口
             if (window_end != windows){
                 for (auto itr = windows; itr < window_end; ++itr) {
+                    (*itr)->Update();
                     (*itr)->BeginDraw();
                     (*itr)->Render(RenderType::Type_Render);
                     (*itr)->EndDraw(itr == window_end - 1);

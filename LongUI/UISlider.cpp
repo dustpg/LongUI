@@ -1,7 +1,7 @@
 ﻿#include "LongUI.h"
 
 // Render 渲染 
-auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
+void LongUI::UISlider::Render(RenderType) const noexcept {
     D2D1_RECT_F draw_rect = this->GetDrawRect();
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
     // 垂直滑块
@@ -16,17 +16,27 @@ auto LongUI::UISlider::Render(RenderType) noexcept ->HRESULT {
         draw_rect.bottom = draw_rect.top + 2.f;
         // 渲染滑槽
         m_pRenderTarget->FillRectangle(draw_rect, m_pBrush_SetBeforeUse);
-        // 根据 value 计算滑块位置
-        m_rcSlider.top = 0.f;
-        m_rcSlider.bottom = m_rcSlider.top + this->height;
-        m_rcSlider.left = ((draw_rect.right - draw_rect.left) * m_fValue);
-        m_rcSlider.right = m_rcSlider.left + m_fSliderHalfWidth * 2.f;
         // 渲染滑块
         m_pRenderTarget->FillRectangle(m_rcSlider, m_pBrush_SetBeforeUse);
     }
-    return S_OK;
 }
 
+
+// UI滑动条: 刷新
+void LongUI::UISlider::Update() noexcept {
+    // 垂直滑块
+    if (this->flags & Flag_Slider_VerticalSlider) {
+
+    }
+    // 水平滑块
+    else {
+        // 根据 value 计算滑块位置
+        m_rcSlider.top = 0.f;
+        m_rcSlider.bottom = m_rcSlider.top + this->height;
+        m_rcSlider.left = this->width * m_fValue;
+        m_rcSlider.right = m_rcSlider.left + m_fSliderHalfWidth * 2.f;
+    }
+}
 
 // UISlider 构造函数
 LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node) {

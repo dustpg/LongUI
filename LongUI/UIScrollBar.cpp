@@ -148,10 +148,8 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 #define LONGUI_FLOAT_OFFSET()
 
 
-// UIScrollBarA 渲染 
-auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
-    if (type != RenderType::Type_Render) return S_FALSE;
-    // 更新
+// UI滚动条(类型A): 刷新
+void LongUI::UIScrollBarA::Update() noexcept {
     D2D1_RECT_F draw_rect = this->GetDrawRect();
     // 双滚动条修正
     if (this->another) {
@@ -164,7 +162,6 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
     }
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
     register auto bilibili = 1.f - m_fMaxIndex / m_fMaxRange;
-    // TODO: 合并
     // 垂直滚动条
     if (this->type == ScrollBarType::Type_Vertical) {
         m_rtArrow1.bottom = m_rtArrow1.top + BASIC_SIZE;
@@ -183,7 +180,27 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
         m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
         m_rtThumb.right = m_rtThumb.left + bilibili * width - 1.f;
     }
-    // 基本背景: Shaft
+    // 刷新
+    UIElement_Update(m_uiArrow1);
+    UIElement_Update(m_uiArrow2);
+    UIElement_Update(m_uiThumb);
+
+}
+
+// UIScrollBarA 渲染 
+void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
+    if (type != RenderType::Type_Render) return;
+    // 更新
+    D2D1_RECT_F draw_rect = this->GetDrawRect();
+    // 双滚动条修正
+    if (this->another) {
+        if (this->type == ScrollBarType::Type_Vertical) {
+            draw_rect.bottom -= this->another->GetTakingUpSapce();
+        }
+        else {
+            draw_rect.right -= this->another->GetTakingUpSapce();
+        }
+    }
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
     //
@@ -192,15 +209,13 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
 
     // 渲染部件
     m_uiArrow1.Render(m_rtArrow1);
-    UIElement_Update(m_uiArrow1);
     m_uiArrow2.Render(m_rtArrow2);
-    UIElement_Update(m_uiArrow2);
     m_uiThumb.Render(m_rtThumb);
-    UIElement_Update(m_uiThumb);
     //
     //UIManager << DL_Hint << m_rtThumb << endl;
     // 前景
-    auto render_geo = [](ID2D1RenderTarget* target, ID2D1Brush* bush, ID2D1Geometry* geo, D2D1_RECT_F& rect) {
+    auto render_geo = [](ID2D1RenderTarget* const target, ID2D1Brush* const bush,
+        ID2D1Geometry* const geo, const D2D1_RECT_F& rect) noexcept {
         D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
         target->SetTransform(
             D2D1::Matrix3x2F::Translation(rect.left, rect.top) * matrix
@@ -229,7 +244,6 @@ auto LongUI::UIScrollBarA::Render(RenderType type) noexcept -> HRESULT {
     }
     // 前景
     Super::Render(RenderType::Type_RenderForeground);
-    return S_OK;
 }
 
 

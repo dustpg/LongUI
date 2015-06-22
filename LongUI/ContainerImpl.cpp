@@ -86,7 +86,7 @@ void LongUI::UIContainer::PushAxisAlignedClip(D2D1_ANTIALIAS_MODE mode) const no
 }
 
 // 更新布局
-void LongUI::UIContainer::RefreshChildLayout() noexcept {
+void LongUI::UIContainer::refresh_child_layout() noexcept {
     // 检查宽度
     if (this->scrollbar_h) {
         /*this->scrollbar_h->show_zone.left = 0.f;
@@ -326,6 +326,10 @@ void LongUI::UIContainer::Update() noexcept  {
             this->margin_rect.top
             );
     }
+    // 更新子控件布局
+    if (m_bDrawSizeChanged) {
+        this->refresh_child_layout();
+    }
     // 更新世界转换矩阵
     if (this->parent) {
         this->world = this->transform * this->parent->world;
@@ -519,89 +523,88 @@ auto LongUI::UIVerticalLayout::CreateControl(pugi::xml_node node) noexcept ->UIC
 }
 
 // 更新子控件布局
-void LongUI::UIVerticalLayout::RefreshChildLayout() noexcept {
+void LongUI::UIVerticalLayout::Update() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
     // 3. 计算实际高度/宽度, 修改show_zone, 更新滚动条, 尽量最小化改动
-    float base_width = 0.f, base_height = 0.f;
-    float counter = 0.0f;
-    if (m_strControlName == L"MainWindow") {
-        int a = 0;
-    }
-    // 第一次
-    for (auto ctrl : (*this)) {
-        // 非浮点控件
-        if (!(ctrl->flags & Flag_Floating)) {
-            // 宽度固定?
-            if (ctrl->flags & Flag_WidthFixed) {
-                base_width = std::max(base_width, ctrl->GetTakingUpWidth());
-            }
-            // 高度固定?
-            if (ctrl->flags & Flag_HeightFixed) {
-                base_height += ctrl->GetTakingUpHeight();
-            }
-            // 未指定高度?
-            else {
-                counter += 1.f;
+    if (m_bDrawSizeChanged) {
+        // 初始化
+        float base_width = 0.f, base_height = 0.f;
+        float counter = 0.0f;
+        if (m_strControlName == L"MainWindow") {
+            int a = 0;
+        }
+        // 第一次
+        for (auto ctrl : (*this)) {
+            // 非浮点控件
+            if (!(ctrl->flags & Flag_Floating)) {
+                // 宽度固定?
+                if (ctrl->flags & Flag_WidthFixed) {
+                    base_width = std::max(base_width, ctrl->GetTakingUpWidth());
+                }
+                // 高度固定?
+                if (ctrl->flags & Flag_HeightFixed) {
+                    base_height += ctrl->GetTakingUpHeight();
+                }
+                // 未指定高度?
+                else {
+                    counter += 1.f;
+                }
             }
         }
-    }
-    // 计算
-    base_width = std::max(base_width, this->width);
-    // 保证滚动条
+        // 计算
+        base_width = std::max(base_width, this->width);
+        // 保证滚动条
 #ifdef LONGUI_RECHECK_LAYOUT
-    auto need_refresh = 
+        auto need_refresh =
 #endif
-    this->AssureScrollBar(base_width, base_height);
-    // 垂直滚动条?
-    if (this->scrollbar_v) {
-        base_width -= this->scrollbar_v->GetTakingUpSapce();
-    }
-    // 水平滚动条?
-    if (this->scrollbar_h) {
-        base_height -= this->scrollbar_h->GetTakingUpSapce();
-    }
-    // 高度步进
-    float height_step = counter > 0.f ? (this->height - base_height) / counter : 0.f;
-    float position_y = 0.f;
-    // 第二次
-    for (auto ctrl : (*this)) {
-        // 浮点控
-        if (ctrl->flags & Flag_Floating) continue;
-        // 设置控件宽度
-        if (!(ctrl->flags & Flag_WidthFixed)) {
-            register auto old_width = ctrl->width;
-            ctrl->width = base_width - ctrl->margin_rect.left - ctrl->margin_rect.right;
+            this->AssureScrollBar(base_width, base_height);
+            // 垂直滚动条?
+        if (this->scrollbar_v) {
+            base_width -= this->scrollbar_v->GetTakingUpSapce();
         }
-        // 设置控件高度
-        if (!(ctrl->flags & Flag_HeightFixed)) {
-            ctrl->height = height_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
+        // 水平滚动条?
+        if (this->scrollbar_h) {
+            base_height -= this->scrollbar_h->GetTakingUpSapce();
+        }
+        // 高度步进
+        float height_step = counter > 0.f ? (this->height - base_height) / counter : 0.f;
+        float position_y = 0.f;
+        // 第二次
+        for (auto ctrl : (*this)) {
+            // 浮点控
+            if (ctrl->flags & Flag_Floating) continue;
+            // 设置控件宽度
+            if (!(ctrl->flags & Flag_WidthFixed)) {
+                register auto old_width = ctrl->width;
+                ctrl->width = base_width - ctrl->margin_rect.left - ctrl->margin_rect.right;
+            }
+            // 设置控件高度
+            if (!(ctrl->flags & Flag_HeightFixed)) {
+                ctrl->height = height_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
+            }
+            // 修改
+            ctrl->DrawSizeChanged();
+            ctrl->DrawPosChanged();
+            ctrl->transform._32 = position_y;
+            position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
-        ctrl->DrawSizeChanged();
-        ctrl->DrawPosChanged();
-        ctrl->transform._32 = position_y;
-        position_y += ctrl->GetTakingUpHeight();
-        // 子控件也是容器则继续调用
-        if (ctrl->flags & Flag_UIContainer) {
-            static_cast<UIContainer*>(ctrl)->UpdateChildLayout();
-        }
-    }
-    // 修改
-    force_cast(this->end_of_right) = base_width;
-    force_cast(this->end_of_bottom) = position_y;
+        force_cast(this->end_of_right) = base_width;
+        force_cast(this->end_of_bottom) = position_y;
 #ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
-    if (need_refresh) {
-        return this->RefreshChildLayout();
-    }
+        if (need_refresh) {
+            return this->refresh_child_layout();
+        }
 #endif
-    if (m_strControlName == L"MainWindow") {
-        int a = 0;
+        if (m_strControlName == L"MainWindow") {
+            int a = 0;
+        }
     }
-    // 更新
-    return Super::RefreshChildLayout();
+    // 父类刷新
+    return Super::Update();
 }
 
 
@@ -639,84 +642,83 @@ auto LongUI::UIHorizontalLayout::CreateControl(pugi::xml_node node) noexcept ->U
 
 
 // 更新子控件布局
-void LongUI::UIHorizontalLayout::RefreshChildLayout() noexcept {
+void LongUI::UIHorizontalLayout::Update() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
     // 3. 计算实际高度/宽度, 修改show_zone, 更新滚动条, 尽量最小化改动
-    float base_width = 0.f, base_height = 0.f;
-    float counter = 0.0f;
-    // 第一次
-    for (auto ctrl : (*this)) {
-        // 非浮点控件
-        if (!(ctrl->flags & Flag_Floating)) {
-            // 高度固定?
-            if (ctrl->flags & Flag_HeightFixed) {
-                base_height = std::max(base_height, ctrl->GetTakingUpHeight());
-            }
-            // 宽度固定?
-            if (ctrl->flags & Flag_WidthFixed) {
-                base_width += ctrl->GetTakingUpWidth();
-            }
-            // 未指定宽度?
-            else {
-                counter += 1.f;
+    if (m_bDrawSizeChanged) {
+    // 初始化
+        float base_width = 0.f, base_height = 0.f;
+        float counter = 0.0f;
+        // 第一次
+        for (auto ctrl : (*this)) {
+            // 非浮点控件
+            if (!(ctrl->flags & Flag_Floating)) {
+                // 高度固定?
+                if (ctrl->flags & Flag_HeightFixed) {
+                    base_height = std::max(base_height, ctrl->GetTakingUpHeight());
+                }
+                // 宽度固定?
+                if (ctrl->flags & Flag_WidthFixed) {
+                    base_width += ctrl->GetTakingUpWidth();
+                }
+                // 未指定宽度?
+                else {
+                    counter += 1.f;
+                }
             }
         }
-    }
-    // 计算
-    base_height = std::max(base_height, this->height);
-    // 保证滚动条
+        // 计算
+        base_height = std::max(base_height, this->height);
+        // 保证滚动条
 #ifdef LONGUI_RECHECK_LAYOUT
-    auto need_refresh = 
+        auto need_refresh =
 #endif
-    this->AssureScrollBar(base_width, base_height);
-    // 垂直滚动条?
-    if (this->scrollbar_v) {
-        base_width -= this->scrollbar_v->GetTakingUpSapce();
-    }    
-    // 水平滚动条?
-    if (this->scrollbar_h) {
-        base_height -= this->scrollbar_h->GetTakingUpSapce();
-    }
-    // 宽度步进
-    float width_step = counter > 0.f ? (this->width - base_width) / counter : 0.f;
-    float position_x = 0.f;
-    // 第二次
-    for (auto ctrl : (*this)) {
-        // 浮点控
-        if (ctrl->flags & Flag_Floating) continue;
-        //ctrl->show_zone.top = 0.f;
-        // 设置控件高度
-        if (!(ctrl->flags & Flag_HeightFixed)) {
-            register auto old_height = ctrl->height;
-            ctrl->height = base_height - ctrl->margin_rect.left - ctrl->margin_rect.right;
+            this->AssureScrollBar(base_width, base_height);
+            // 垂直滚动条?
+        if (this->scrollbar_v) {
+            base_width -= this->scrollbar_v->GetTakingUpSapce();
         }
-        // 设置控件宽度
-        if (!(ctrl->flags & Flag_WidthFixed)) {
-            ctrl->width = width_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
+        // 水平滚动条?
+        if (this->scrollbar_h) {
+            base_height -= this->scrollbar_h->GetTakingUpSapce();
+        }
+        // 宽度步进
+        float width_step = counter > 0.f ? (this->width - base_width) / counter : 0.f;
+        float position_x = 0.f;
+        // 第二次
+        for (auto ctrl : (*this)) {
+            // 浮点控
+            if (ctrl->flags & Flag_Floating) continue;
+            //ctrl->show_zone.top = 0.f;
+            // 设置控件高度
+            if (!(ctrl->flags & Flag_HeightFixed)) {
+                register auto old_height = ctrl->height;
+                ctrl->height = base_height - ctrl->margin_rect.left - ctrl->margin_rect.right;
+            }
+            // 设置控件宽度
+            if (!(ctrl->flags & Flag_WidthFixed)) {
+                ctrl->width = width_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
+            }
+            // 修改
+            ctrl->DrawSizeChanged();
+            ctrl->DrawPosChanged();
+            ctrl->transform._31 = position_x;
+            position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
-        ctrl->DrawSizeChanged();
-        ctrl->DrawPosChanged();
-        ctrl->transform._31 = position_x;
-        position_x += ctrl->GetTakingUpWidth();
-        // 子控件也是容器则继续调用
-        if (ctrl->flags & Flag_UIContainer) {
-            static_cast<UIContainer*>(ctrl)->UpdateChildLayout();
-        }
-    }
-    // 修改
-    force_cast(this->end_of_right) = position_x;
-    force_cast(this->end_of_bottom) = base_height;
+        force_cast(this->end_of_right) = position_x;
+        force_cast(this->end_of_bottom) = base_height;
 #ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
-    if (need_refresh) {
-        return this->RefreshChildLayout();
-    }
+        if (need_refresh) {
+            return this->refresh_child_layout();
+        }
 #endif
-    // 更新
-    return Super::RefreshChildLayout();
+    }
+    // 父类刷新
+    return Super::Update();
 }
 
 // UIHorizontalLayout 重建
