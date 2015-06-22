@@ -115,10 +115,6 @@ namespace LongUI{
         LongUIInline auto DrawSizeChanged() noexcept { m_bDrawSizeChanged = true; }
         // change control draw pos
         LongUIInline auto DrawPosChanged() noexcept { m_bDrawPosChanged = true; }
-        // get taking up width of control
-        LongUIInline auto GetTakingUpWidth() const noexcept { return this->width + margin_rect.right + margin_rect.left; }
-        // get taking up height of control
-        LongUIInline auto GetTakingUpHeight() const noexcept { return this->height + margin_rect.bottom + margin_rect.top; }
         // get window of control
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
     protected: // Helper Zone
@@ -130,13 +126,20 @@ namespace LongUI{
             return this->SetEventCallBack(n, e, static_cast<LongUICallBack>(call));
         }
     public:
-        // get draw rect
-        auto GetDrawRect() const noexcept ->D2D1_RECT_F { return D2D1::RectF(0.f, 0.f, this->width, this->height); }
-    public:
+        // get taking up width of control
+        auto GetTakingUpWidth() const noexcept ->float;
+        // get taking up height of control
+        auto GetTakingUpHeight() const noexcept ->float;
+        // get non-content width of control
+        auto GetNonContentWidth() const noexcept ->float;
+        // get taking up height of control
+        auto GetNonContentHeight() const noexcept ->float;
         // get taking up rect/ clip rect
         void __fastcall GetClipRect(D2D1_RECT_F&) const noexcept;
         // get border rect
         void __fastcall GetBorderRect(D2D1_RECT_F&) const noexcept;
+        // get draw rect
+        void __fastcall GetContentRect(D2D1_RECT_F&) const noexcept;
         // get world transform matrix
         void __fastcall GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept;
     protected:

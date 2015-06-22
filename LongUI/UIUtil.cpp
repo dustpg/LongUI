@@ -109,12 +109,11 @@ void __fastcall LongUI::Meta_Render(
         break;
     case LongUI::BitmapRenderRule::Rule_ButtonLike:
     {
-        target->PushAxisAlignedClip(&des_rect, D2D1_ANTIALIAS_MODE_ALIASED);
         constexpr float MARKER = 0.25f;
         auto width = meta.src_rect.right - meta.src_rect.left;
         auto bilibili = width * MARKER / (meta.src_rect.bottom - meta.src_rect.top) *
             (des_rect.bottom - des_rect.top);
-        D2D1_RECT_F des_rects[3]; D2D1_RECT_F src_rects[3];
+        D2D1_RECT_F des_rects[3]; D2D1_RECT_F src_rects[3]; D2D1_RECT_F clip_rects[3];
         // ---------------------------------------
         des_rects[0] = {
             des_rect.left, des_rect.top,
@@ -128,6 +127,14 @@ void __fastcall LongUI::Meta_Render(
             des_rects[1].right, des_rect.top,
             des_rect.right, des_rect.bottom
         };
+        // ---------------------------------------
+        ::memcpy(clip_rects, des_rects, sizeof(des_rects));
+        if (clip_rects[1].left > des_rects[1].right) {
+            std::swap(clip_rects[1].right, des_rects[1].left);
+            std::swap(des_rects[1].right, des_rects[1].left);
+            clip_rects[0].right = des_rects[1].left;
+            clip_rects[2].left = des_rects[1].right;
+        }
         // ---------------------------------------
         src_rects[0] = {
             meta.src_rect.left, meta.src_rect.top,
@@ -143,6 +150,7 @@ void __fastcall LongUI::Meta_Render(
         };
         // 正式渲染
         for (auto i = 0u; i < lengthof(src_rects); ++i) {
+            target->PushAxisAlignedClip(clip_rects + i, D2D1_ANTIALIAS_MODE_ALIASED);
             target->DrawBitmap(
                 meta.bitmap,
                 des_rects[i], opacity,
@@ -150,8 +158,8 @@ void __fastcall LongUI::Meta_Render(
                 src_rects[i],
                 nullptr
                 );
+            target->PopAxisAlignedClip();
         }
-        target->PopAxisAlignedClip();
     }
         break;
     }

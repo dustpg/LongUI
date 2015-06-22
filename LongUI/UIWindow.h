@@ -185,7 +185,7 @@ namespace LongUI{
         float                   m_uuuuuu = 0.f;
         // caret rect in px
         RectLTWH_U              m_rcCaretPx;
-        // clientsize
+        // clientsize in 
         D2D1_SIZE_F             m_clientSize = D2D1::SizeF();
         // windowsize
         D2D1_SIZE_F             m_windowSize = D2D1::SizeF();

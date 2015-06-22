@@ -2,6 +2,7 @@
 #include "included.h"
 
 
+//  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
 #if 0
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -29,11 +30,13 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" >
     <VerticalLayout name="VLayout1">
-        <Button name="1" margin="4,4,4,4" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+        <Button name="1" margin="4,4,4,4" disabledmeta="1"
+            normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="2" margin="4,4,4,4" bordersize="1"/>
     </VerticalLayout>
     <HorizontalLayout name="HLayout">
-        <Button name="3" margin="4,4,4,4" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+        <Button name="3" margin="4,4,4,4" disabledmeta="1"
+            normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" bordersize="1"/>
     </HorizontalLayout>
 </Window>
@@ -92,7 +95,7 @@ public:
             }
             __fallthrough;
         case LongUI::RenderType::Type_RenderForeground:
-            draw_rect = this->GetDrawRect();
+            this->GetContentRect(draw_rect);
             D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
             m_pBrush_SetBeforeUse->SetColor(&color);
             m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
@@ -107,7 +110,7 @@ public:
             Super::Render(LongUI::RenderType::Type_RenderForeground);
             break;
         case LongUI::RenderType::Type_RenderOffScreen:
-            draw_rect = this->GetDrawRect();
+            this->GetContentRect(draw_rect);
             // 渲染文字
             if (false) {
                 m_pRenderTarget->SetTarget(m_pCmdList);
@@ -333,7 +336,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
         };
         // 使用CPU渲染
-        auto IsRenderByCPU() noexcept ->bool override { return true; }
+        auto IsRenderByCPU() noexcept ->bool override { return false; }
     private:
         // mruby script
         MRubyScript     mruby;

@@ -292,46 +292,33 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 void LongUI::UIContainer::Update() noexcept  {
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
-        // 计算转变
-        auto transform = D2D1::Matrix3x2F::Translation(
-            this->margin_rect.left,
-            this->margin_rect.top
-            );
-        // 更新转变
-        if (this->parent) {
-            this->world = transform * this->parent->world;
-        }
-        else {
-            this->world = transform;
+        this->GetWorldTransform(this->world);
+        // 更新
+        for (auto ctrl : (*this)) {
+            // 更新矩阵
+            D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
+            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+            // 坐标转换
+            auto lt = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+            auto rb = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+            // 修改
+            auto tmp_right = this->visible_rect.right;
+            auto tmp_bottom = this->visible_rect.bottom;
+            if (this->scrollbar_v) {
+                tmp_right -= this->scrollbar_v->GetTakingUpSapce();
+            }
+            if (this->scrollbar_h) {
+                tmp_bottom -= this->scrollbar_h->GetTakingUpSapce();
+            }
+            ctrl->visible_rect.left = std::max(lt.x, 0.f);
+            ctrl->visible_rect.top = std::max(lt.y, 0.f);
+            ctrl->visible_rect.right = std::min(rb.x, tmp_right);
+            ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
         }
     }
     // 更新子控件布局
     if (m_bDrawSizeChanged) {
         this->refresh_child_layout();
-    }
-    // 刷新容器
-    for (auto ctrl : (*this)) {
-        // 更新矩阵
-        ctrl->GetWorldTransform(this->world);
-        D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-        // 坐标转换
-        auto lt = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-        auto rb = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-        // 修改
-        auto tmp_right = this->visible_rect.right;
-        auto tmp_bottom = this->visible_rect.bottom;
-        if (this->scrollbar_v) {
-            tmp_right -= this->scrollbar_v->GetTakingUpSapce();
-        }
-        if (this->scrollbar_h) {
-            tmp_bottom -= this->scrollbar_h->GetTakingUpSapce();
-        }
-        ctrl->visible_rect.left = std::max(lt.x, 0.f);
-        ctrl->visible_rect.top = std::max(lt.y, 0.f);
-        ctrl->visible_rect.right = std::min(rb.x, tmp_right);
-        ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
-        // 刷新
-        ctrl->Update();
     }
     // 刷新滚动条
     if (this->scrollbar_h) {
@@ -340,6 +327,8 @@ void LongUI::UIContainer::Update() noexcept  {
     if (this->scrollbar_v) {
         this->scrollbar_v->Update();
     }
+    // 刷新
+    for(auto ctrl : (*this)) ctrl->Update();
     // 刷新父类
     return Super::Update();
 }
@@ -570,11 +559,11 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
                 register auto old_width = ctrl->width;
-                ctrl->width = base_width - ctrl->margin_rect.left - ctrl->margin_rect.right;
+                ctrl->width = base_width - ctrl->GetNonContentWidth();
             }
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
-                ctrl->height = height_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
+                ctrl->height = height_step - ctrl->GetNonContentHeight();
             }
             // 修改
             ctrl->DrawSizeChanged();
@@ -687,11 +676,11 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
                 register auto old_height = ctrl->height;
-                ctrl->height = base_height - ctrl->margin_rect.left - ctrl->margin_rect.right;
+                ctrl->height = base_height - ctrl->GetNonContentHeight();
             }
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
-                ctrl->width = width_step - ctrl->margin_rect.top - ctrl->margin_rect.bottom;
+                ctrl->width = width_step - ctrl->GetNonContentWidth();
             }
             // 修改
             ctrl->DrawSizeChanged();

@@ -150,7 +150,7 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 
 // UI滚动条(类型A): 刷新
 void LongUI::UIScrollBarA::Update() noexcept {
-    D2D1_RECT_F draw_rect = this->GetDrawRect();
+    D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
     if (this->another) {
         if (this->type == ScrollBarType::Type_Vertical) {
@@ -191,7 +191,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
 void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
     if (type != RenderType::Type_Render) return;
     // 更新
-    D2D1_RECT_F draw_rect = this->GetDrawRect();
+    D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
     if (this->another) {
         if (this->type == ScrollBarType::Type_Vertical) {

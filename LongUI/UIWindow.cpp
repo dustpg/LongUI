@@ -560,10 +560,6 @@ auto LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESULT {
 
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
-    visible_rect.left = 0.f;
-    visible_rect.top = 0.f;
-    visible_rect.right = m_windowSize.width;
-    visible_rect.bottom = m_windowSize.height;
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     //UIManager << DL_Log << long(m_fDeltaTime * 1000.f) << LongUI::endl;
@@ -583,7 +579,8 @@ void LongUI::UIWindow::Update() noexcept {
     // 全刷新
     if (full) {
         m_present.DirtyRectsCount = 0;
-        //Super::Render(RenderType::Type_Render);
+        // 交给父类处理
+        Super::Update();
     }
     // 部分刷新
     else {
@@ -610,8 +607,6 @@ void LongUI::UIWindow::Update() noexcept {
         ++dirty_render_counter;
     }
 #endif
-    // 交给父类处理
-    return Super::Update();
 }
 
 // UIWindow 渲染 
@@ -639,9 +634,9 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
     else {
         for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
             auto ctrl = current_unit->units[i];
-            assert(ctrl->parent && "check it");
             // 设置转换矩阵
-            m_pRenderTarget->SetTransform(&ctrl->parent->world);
+            D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
+            m_pRenderTarget->SetTransform(&matrix);
             ctrl->Render(RenderType::Type_Render);
         }
     }
@@ -726,7 +721,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         // 查找子控件
         control_got = this->FindControl(_arg.pt);
         if (control_got) {
-            UIManager << DL_Hint << "FIND: " << control_got->GetName() << endl;
+            //UIManager << DL_Hint << "FIND: " << control_got->GetName() << endl;
         }
         // 不同
         if (control_got != m_pPointedControl) {

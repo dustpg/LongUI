@@ -80,30 +80,6 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
 #define OPTIONAL
 #endif
 
-#define GetUsageRect(c) { \
-    c->show_zone.left - c->margin_rect.left, \
-    c->show_zone.top - c->margin_rect.top, \
-    c->show_zone.right + c->margin_rect.right, \
-    c->show_zone.bottom + c->margin_rect.bottom \
-}
-
-#define GetContentRect(c) { \
-    c->show_zone.left + c->padding_rect.left, \
-    c->show_zone.top + c->padding_rect.top, \
-    c->show_zone.right - c->padding_rect.right, \
-    c->show_zone.bottom - c->padding_rect.bottom \
-}
-
-
-
-#define GetShowRect(c) { \
-    c->show_zone.left, \
-    c->show_zone.top , \
-    c->show_zone.left + c->show_zone.width, \
-    c->show_zone.top + c->show_zone.height \
-}
-
-
 #define AssertHR(hr) if(FAILED(hr)) ShowErrorWithHR(hr)
 #ifdef _DEBUG
 // show hr error

@@ -2,7 +2,7 @@
 
 // Render 渲染 
 void LongUI::UISlider::Render(RenderType) const noexcept {
-    D2D1_RECT_F draw_rect = this->GetDrawRect();
+    D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
     // 垂直滑块
     if (this->flags & Flag_Slider_VerticalSlider){

@@ -132,15 +132,12 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
     case LongUI::RenderType::Type_RenderForeground:
         // 渲染边框
         if (m_fBorderSize > 0.f) {
-            D2D1_ROUNDED_RECT rrect;
-            rrect.rect = this->GetDrawRect();
-            rrect.radiusX = m_fBorderRdius.width;
-            rrect.radiusY = m_fBorderRdius.height;
+            D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
+            brect.radiusX = m_fBorderRdius.width;
+            brect.radiusY = m_fBorderRdius.height;
             m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
             //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-            m_pRenderTarget->DrawRoundedRectangle(
-                &rrect, m_pBrush_SetBeforeUse, m_fBorderSize
-                );
+            m_pRenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderSize);
             //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
         break;
@@ -294,6 +291,37 @@ void LongUI::UIControl::SetEventCallBack(
     }
 }
 
+
+// 获取占用宽度
+auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
+    return this->width 
+        + margin_rect.left 
+        + margin_rect.right
+        + m_fBorderSize * 2.f;
+}
+
+// 获取占用高度
+auto LongUI::UIControl::GetTakingUpHeight() const noexcept -> float{
+    return this->height 
+        + margin_rect.top 
+        + margin_rect.bottom
+        + m_fBorderSize * 2.f;
+}
+
+// 获取非内容区域总宽度
+auto LongUI::UIControl::GetNonContentWidth() const noexcept -> float {
+    return margin_rect.left
+        + margin_rect.right
+        + m_fBorderSize * 2.f;
+}
+
+// 获取非内容区域总高度
+auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
+    return margin_rect.top
+        + margin_rect.bottom
+        + m_fBorderSize * 2.f;
+}
+
 // 获取占用/剪切矩形
 void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + this->m_fBorderSize);
@@ -310,10 +338,18 @@ void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
     rect.bottom = this->height + this->m_fBorderSize;
 }
 
+// 获取刻画矩形
+void LongUI::UIControl::GetContentRect(D2D1_RECT_F& rect) const noexcept {
+    rect.left = 0.f;
+    rect.top = 0.f;
+    rect.right = this->width;
+    rect.bottom = this->height;
+}
+
 // 获得世界转换矩阵
 void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept {
-    float xx = this->x /*+ this->margin_rect.left + this->m_fBorderSize*/;
-    float yy = this->y /*+ this->margin_rect.top + this->m_fBorderSize*/;
+    float xx = this->x + this->margin_rect.left + this->m_fBorderSize;
+    float yy = this->y + this->margin_rect.top + this->m_fBorderSize;
     // 检查
     if (this->parent && !(this->flags & Flag_FreeFromScrollBar)) {
         xx += this->parent->x_offset;
@@ -414,15 +450,15 @@ void LongUI::UILabel::Close() noexcept {
 void LongUI::UIButton::Render(RenderType type)const noexcept {
     switch (type)
     {
-    case LongUI::RenderType::Type_RenderBackground:
         D2D1_RECT_F draw_rect;
+    case LongUI::RenderType::Type_RenderBackground:
         __fallthrough;
     case LongUI::RenderType::Type_Render:
         // 父类背景
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
-        draw_rect = this->GetDrawRect();
-        m_pWindow;
+        this->GetContentRect(draw_rect);
+        this->visible_rect;
         // 渲染部件
         m_uiElement.Render(draw_rect);
         __fallthrough;
@@ -434,7 +470,6 @@ void LongUI::UIButton::Render(RenderType type)const noexcept {
         break;
     }
 }
-
 
 // UI按钮: 刷新
 void LongUI::UIButton::Update() noexcept {

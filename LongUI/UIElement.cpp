@@ -19,7 +19,7 @@ Init(pugi::xml_node node, const char* prefix) noexcept {
         animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
     }
     // 动画持续时间
-    UIElements_NewAttribute("animationtype");
+    UIElements_NewAttribute("animationduration");
     if (str = UIElements_Attribute) {
         animation.duration = LongUI::AtoF(str);
     }
@@ -30,8 +30,10 @@ auto LongUI::Component::Elements<LongUI::Element::Basic>::
 SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
     m_state = m_stateTartget;
     m_stateTartget = new_status;
-    animation.value = 0.f;
+    // 剩余值
     animation.start = 0.f;
+    animation.value = 0.f;
+    // 剩余时间
     return animation.time = animation.duration;
 }
 
