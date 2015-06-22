@@ -560,6 +560,10 @@ auto LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESULT {
 
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
+    visible_rect.left = 0.f;
+    visible_rect.top = 0.f;
+    visible_rect.right = m_windowSize.width;
+    visible_rect.bottom = m_windowSize.height;
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     //UIManager << DL_Log << long(m_fDeltaTime * 1000.f) << LongUI::endl;
@@ -715,7 +719,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
         }
         // 有待捕获控件
         if (m_pCapturedControl) {
-            m_pCapturedControl->DoEventEx(_arg);
+            m_pCapturedControl->DoEvent(_arg);
             handled = true;
             break;
         }
@@ -731,17 +735,17 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
             // 有效
             if (m_pPointedControl) {
                 new_arg.event = LongUI::Event::Event_MouseLeave;
-                m_pPointedControl->DoEventEx(new_arg);
+                m_pPointedControl->DoEvent(new_arg);
             }
             // 有效
             if ((m_pPointedControl = control_got)) {
                 new_arg.event = LongUI::Event::Event_MouseEnter;
-                m_pPointedControl->DoEventEx(new_arg);
+                m_pPointedControl->DoEvent(new_arg);
             }
         }
         // 相同
         else if(control_got) {
-            control_got->DoEventEx(_arg);
+            control_got->DoEvent(_arg);
         }
         handled = true;
         break;
@@ -765,11 +769,11 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
             new_arg.sender = this;
             if (m_pFocusedControl){
                 new_arg.event = LongUI::Event::Event_KillFocus;
-                m_pFocusedControl->DoEventEx(new_arg);
+                m_pFocusedControl->DoEvent(new_arg);
             }
             new_arg.event = LongUI::Event::Event_SetFocus;
             // 控件响应了?
-            m_pFocusedControl = control_got->DoEventEx(new_arg) ? control_got : nullptr;
+            m_pFocusedControl = control_got->DoEvent(new_arg) ? control_got : nullptr;
         }
         break;
     /*case WM_NCHITTEST:
@@ -844,7 +848,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
     }
     // 有就处理
     // 处理了就直接返回
-    if (processor && processor->DoEventEx(_arg)) {
+    if (processor && processor->DoEvent(_arg)) {
         return true;
     }
     // 还是没有处理就交给父类处理
@@ -1154,7 +1158,7 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
         LongUI::EventArgument arg = { 0 };
         arg.sender = this;
         arg.event = LongUI::Event::Event_KillFocus;
-        m_pFocusedControl->DoEventEx(arg);
+        m_pFocusedControl->DoEvent(arg);
         m_pFocusedControl = nullptr;
     }
     // 保留数据
@@ -1187,7 +1191,7 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL p
             // 对老控件发送离开事件
             if (m_pDragDropControl) {
                 arg.event = LongUI::Event::Event_DragLeave;
-                m_pDragDropControl->DoEventEx(arg);
+                m_pDragDropControl->DoEvent(arg);
             }
             // 新控件发送进入
             arg.event = LongUI::Event::Event_DragEnter;
@@ -1195,7 +1199,7 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL p
         }
         arg.dataobj_cf = m_pCurDataObject;
         arg.outeffect_cf = pdwEffect;
-        if (!arg.ctrl->DoEventEx(arg)) *pdwEffect = DROPEFFECT_NONE;
+        if (!arg.ctrl->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;
     }
     else {
         // 不支持
@@ -1216,14 +1220,14 @@ HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
         LongUI::EventArgument arg = { 0 };
         arg.sender = this;
         arg.event = LongUI::Event::Event_DragLeave;
-        m_pDragDropControl->DoEventEx(arg);
+        m_pDragDropControl->DoEvent(arg);
         m_pDragDropControl = nullptr;
         // 存在捕获控件?
         /*if (m_pCapturedControl) {
             this->ReleaseCapture();
             /*arg.sender = nullptr;
             arg.msg = WM_LBUTTONUP;
-            m_pCapturedControl->DoEventEx(arg);
+            m_pCapturedControl->DoEvent(arg);
         }*/
     }
     /*OnDragLeave(m_hTargetWnd);*/
@@ -1247,7 +1251,7 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
         arg.dataobj_cf = m_pCurDataObject;
         arg.outeffect_cf = pdwEffect;
         // 发送事件
-        m_pDragDropControl->DoEventEx(arg);
+        m_pDragDropControl->DoEvent(arg);
         m_pDragDropControl = nullptr;
         
     }

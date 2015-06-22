@@ -177,7 +177,7 @@ bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
     bool done = false;
     // 转换坐标
     auto pt_old = arg.pt;
-    auto pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
+    auto pt4self = arg.pt;// LongUI::TransformPointInverse(this->transform, arg.pt);
     arg.pt = pt4self;
     // 处理窗口事件
     if (arg.sender) {
@@ -242,46 +242,22 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         if (type == LongUI::RenderType::Type_RenderBackground) {
             break;
         }
-        // 压入
-        this->PushAxisAlignedClip();
-        // 保留转换
-        D2D1_MATRIX_3X2_F old_transform;
-        m_pRenderTarget->GetTransform(&old_transform);
-        // 计算世界转换
-        m_pRenderTarget->SetTransform(&this->world);
         // 渲染所有子部件
-        for (auto ctrl : (*this)) {
+        for(const auto* ctrl : (*this)) {
             // 修改世界转换矩阵
-            m_pRenderTarget->SetTransform(ctrl->transform * this->world);
-            D2D1_RECT_F clip_rect;
-            clip_rect.left = - ctrl->margin_rect.left;
-            clip_rect.top = - ctrl->margin_rect.top;
-            clip_rect.right = ctrl->width + ctrl->margin_rect.right;
-            clip_rect.bottom = ctrl->height + ctrl->margin_rect.bottom;
-            // 剪切区入栈
-            m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-            auto tmp_right = this->visible_rect.right;
-            auto tmp_bottom = this->visible_rect.bottom;
-            if (this->scrollbar_v) {
-                tmp_right -= this->scrollbar_v->GetTakingUpSapce();
+            D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
+            m_pRenderTarget->SetTransform(&matrix);
+            // 检查剪切规则
+            if (ctrl->flags & Flag_StrictClip) {
+                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+                m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             }
-            if (this->scrollbar_h) {
-                tmp_bottom -= this->scrollbar_h->GetTakingUpSapce();
-            }
-            // 映射
-            auto lt = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-            auto rb = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-            // 修改
-            ctrl->visible_rect.left = std::max(lt.x, 0.f);
-            ctrl->visible_rect.top = std::max(lt.y, 0.f);
-            ctrl->visible_rect.right = std::min(rb.x, tmp_right);
-            ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
             ctrl->Render(LongUI::RenderType::Type_Render);
-            m_pRenderTarget->PopAxisAlignedClip();
+            // 检查剪切规则
+            if (ctrl->flags & Flag_StrictClip) {
+                m_pRenderTarget->PopAxisAlignedClip();
+            }
         }
-        m_pRenderTarget->PopAxisAlignedClip();
-        // 滚动条不需要
-        m_pRenderTarget->SetTransform(&this->world);
         // 渲染滚动条
         if (this->scrollbar_h && this->scrollbar_h->GetTakingUpSapce() > 0.f) {
             // 计算高度
@@ -302,10 +278,6 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
             // 渲染
             this->scrollbar_v->Render(LongUI::RenderType::Type_Render);
         }
-        // 父类
-        //Super::Render(LongUI::RenderType::Type_Render);
-        // 回退转换
-        m_pRenderTarget->SetTransform(&old_transform);
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -320,25 +292,45 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 void LongUI::UIContainer::Update() noexcept  {
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
-        // 更新转变
-        this->transform = D2D1::Matrix3x2F::Translation(
+        // 计算转变
+        auto transform = D2D1::Matrix3x2F::Translation(
             this->margin_rect.left,
             this->margin_rect.top
             );
+        // 更新转变
+        if (this->parent) {
+            this->world = transform * this->parent->world;
+        }
+        else {
+            this->world = transform;
+        }
     }
     // 更新子控件布局
     if (m_bDrawSizeChanged) {
         this->refresh_child_layout();
     }
-    // 更新世界转换矩阵
-    if (this->parent) {
-        this->world = this->transform * this->parent->world;
-    }
-    else {
-        this->world = this->transform;
-    }
     // 刷新容器
     for (auto ctrl : (*this)) {
+        // 更新矩阵
+        ctrl->GetWorldTransform(this->world);
+        D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+        // 坐标转换
+        auto lt = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+        auto rb = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+        // 修改
+        auto tmp_right = this->visible_rect.right;
+        auto tmp_bottom = this->visible_rect.bottom;
+        if (this->scrollbar_v) {
+            tmp_right -= this->scrollbar_v->GetTakingUpSapce();
+        }
+        if (this->scrollbar_h) {
+            tmp_bottom -= this->scrollbar_h->GetTakingUpSapce();
+        }
+        ctrl->visible_rect.left = std::max(lt.x, 0.f);
+        ctrl->visible_rect.top = std::max(lt.y, 0.f);
+        ctrl->visible_rect.right = std::min(rb.x, tmp_right);
+        ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
+        // 刷新
         ctrl->Update();
     }
     // 刷新滚动条
@@ -587,7 +579,7 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             // 修改
             ctrl->DrawSizeChanged();
             ctrl->DrawPosChanged();
-            ctrl->transform._32 = position_y;
+            ctrl->y = position_y;
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
@@ -704,7 +696,7 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             // 修改
             ctrl->DrawSizeChanged();
             ctrl->DrawPosChanged();
-            ctrl->transform._31 = position_x;
+            ctrl->x = position_x;
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改

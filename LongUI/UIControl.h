@@ -91,9 +91,6 @@ namespace LongUI{
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT;
         // close this control  DO NOT call Super::Close()
         virtual void Close() noexcept = 0;
-    public:
-        // DoEventEx, transed mouse point
-        bool DoEventEx(LongUI::EventArgument&) noexcept;
     protected:
         // new operator with buffer -- placement new 
         void* operator new(size_t s, void* buffer) noexcept { return buffer; };
@@ -134,7 +131,14 @@ namespace LongUI{
         }
     public:
         // get draw rect
-        auto GetDrawRect() const noexcept->D2D1_RECT_F;
+        auto GetDrawRect() const noexcept ->D2D1_RECT_F { return D2D1::RectF(0.f, 0.f, this->width, this->height); }
+    public:
+        // get taking up rect/ clip rect
+        void __fastcall GetClipRect(D2D1_RECT_F&) const noexcept;
+        // get border rect
+        void __fastcall GetBorderRect(D2D1_RECT_F&) const noexcept;
+        // get world transform matrix
+        void __fastcall GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept;
     protected:
         // d2d render target
         LongUIRenderTarget*     m_pRenderTarget = nullptr;
@@ -170,8 +174,10 @@ namespace LongUI{
         // user context
         void*                   user_context = nullptr;
     public:
-        // transform, relative to parent
-        D2D1_MATRIX_3X2_F       transform = D2D1::Matrix3x2F::Identity();
+        // x position of control
+        float                   x = 0.f;
+        // y position of control
+        float                   y = 0.f;
         // width of control
         float                   width = 0.f;
         // height of control

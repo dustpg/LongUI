@@ -30,7 +30,7 @@ namespace LongUI {
     class LongUIAPI UIContainer : public UIControl {
         // 父类申明
         using Super = UIControl;
-    protected:
+    public:
         // itr 迭代器
         class Iterator {
         public:
@@ -65,7 +65,7 @@ namespace LongUI {
             // operator *
             auto operator*() const noexcept { return m_pControl; }
         private:
-            UIControl*      m_pControl;
+            UIControl*          m_pControl;
         };
     public:
         // render
@@ -103,7 +103,7 @@ namespace LongUI {
         LongUIInline auto begin() const noexcept { return Iterator(m_pHead); };
         // end
         LongUIInline auto end() const noexcept { return Iterator(nullptr); };
-    private: 
+    private: // normal
         // refresh children's layout
         void refresh_child_layout() noexcept;
     protected:

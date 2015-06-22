@@ -223,17 +223,18 @@ namespace LongUI {
         // control construct with full xml node info
         // if your impl control needed, set it to true by const_cast
         Flag_ControlNeedFullXMLNode = 1 << 9,
+        // [default: true] if true, this caontrol cann't draw out of
+        // it's cliprect, if false, it coule draw on sibling/parent.
+        // NOTE: this attribute used by parent
+        // NOTE: container should be true in this case but not mandatory
+        // XML Attribute : "strictclip"@bool
+        Flag_StrictClip = 1 << 10,
         // ------- Lv1 Control Flag ------------
         // [default: false] container 's child renderedt hrough
         // this control, not window directly, if container  hold
         // this flag, will mark all children's Flag_RenderParent to true
         // XML Attribute : "rendercd"@bool
         Flag_Container_AlwaysRenderChildrenDirectly = 1 << 16,
-        // [default: false] if true, container's child cann't draw on
-        // it's sibling, if false, container's child can draw on sibling.
-        // but in both case, cann't draw on parent's sibling.
-        // XML Attribute : "strictclip"@bool
-        Flag_Container_StrictChildrenClip = 1 << 17,
         Flag_Edit_MultipleLine = 1 << 16,
         Flag_Slider_VerticalSlider = 1 << 16,
         Flag_CheckBox_WithIndeterminate = 1 << 16,

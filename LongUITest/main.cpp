@@ -30,11 +30,11 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" >
     <VerticalLayout name="VLayout1">
         <Button name="1" margin="4,4,4,4" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="2" margin="4,4,4,4"/>
+        <Button name="2" margin="4,4,4,4" bordersize="1"/>
     </VerticalLayout>
     <HorizontalLayout name="HLayout">
         <Button name="3" margin="4,4,4,4" disabledmeta="1" normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="4" margin="4,4,4,4"/>
+        <Button name="4" margin="4,4,4,4" bordersize="1"/>
     </HorizontalLayout>
 </Window>
 )xml";
@@ -134,7 +134,8 @@ public:
     }
     //do the event
     virtual bool DoEvent(LongUI::EventArgument& arg) noexcept  override {
-        D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
+        D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
+        D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
         if (arg.sender) {
             /*if (arg.event == LongUI::Event::Event_FindControl) {
                 // 检查鼠标范围

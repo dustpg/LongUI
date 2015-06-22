@@ -55,8 +55,8 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             float pos[2];
             // 检查位置
             if (UIControl::MakeFloats(node.attribute("pos").value(), pos, 2)) {
-                this->transform._31 = pos[0];
-                this->transform._32 = pos[1];
+                this->x = pos[0];
+                this->y = pos[1];
             }
             // 检查大小
             if (UIControl::MakeFloats(node.attribute("size").value(), pos, 2)) {
@@ -77,6 +77,10 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         // 自由
         if (node.attribute("free").as_bool(false)) {
             flag |= LongUI::Flag_FreeFromScrollBar;
+        }
+        // 检查裁剪规则
+        if (node.attribute("strictclip").as_bool(true)) {
+            flag |= LongUI::Flag_StrictClip;
         }
         // 边框大小
         if (data = node.attribute("bordersize").value()) {
@@ -161,24 +165,6 @@ auto LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept ->HRESULT 
         UIManager.GetBrush(LongUICommonSolidColorBrushIndex)
         );
     return target ? S_OK : E_INVALIDARG;
-}
-
-// 转换鼠标的DoEvent
-bool LongUI::UIControl::DoEventEx(LongUI::EventArgument& arg) noexcept {
-    auto old = arg.pt;
-    D2D1_MATRIX_3X2_F* transform;
-    if (this->parent) {
-        transform = &parent->world;
-    }
-    else {
-        assert(this->flags & Flag_UIContainer);
-        transform = &static_cast<UIContainer*>(this)->transform;
-    }
-    // 转化
-    arg.pt = LongUI::TransformPointInverse(*transform, arg.pt);
-    auto code = this->DoEvent(arg);
-    arg.pt = old;
-    return code;
 }
 
 // 创建字符串
@@ -308,12 +294,38 @@ void LongUI::UIControl::SetEventCallBack(
     }
 }
 
-// 获取刻画矩形
-auto LongUI::UIControl::GetDrawRect() const noexcept -> D2D1_RECT_F {
-    D2D1_RECT_F rect = {
-        0.f, 0.f, this->width, this->height
-    };
-    return rect;
+// 获取占用/剪切矩形
+void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
+    rect.left = -(this->margin_rect.left + this->m_fBorderSize);
+    rect.top = -(this->margin_rect.top + this->m_fBorderSize);
+    rect.right = this->width + this->margin_rect.right +this->m_fBorderSize;
+    rect.bottom = this->height + this->margin_rect.bottom + +this->m_fBorderSize;
+}
+
+// 获取边框矩形
+void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
+    rect.left = -this->m_fBorderSize;
+    rect.top = -this->m_fBorderSize;
+    rect.right = this->width + this->m_fBorderSize;
+    rect.bottom = this->height + this->m_fBorderSize;
+}
+
+// 获得世界转换矩阵
+void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept {
+    float xx = this->x /*+ this->margin_rect.left + this->m_fBorderSize*/;
+    float yy = this->y /*+ this->margin_rect.top + this->m_fBorderSize*/;
+    // 检查
+    if (this->parent && !(this->flags & Flag_FreeFromScrollBar)) {
+        xx += this->parent->x_offset;
+        yy += this->parent->y_offset;
+    }
+    // 转换
+    if (this->parent) {
+        matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+    }
+    else {
+        matrix = D2D1::Matrix3x2F::Translation(xx, yy);
+    }
 }
 
 
@@ -410,6 +422,7 @@ void LongUI::UIButton::Render(RenderType type)const noexcept {
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
         draw_rect = this->GetDrawRect();
+        m_pWindow;
         // 渲染部件
         m_uiElement.Render(draw_rect);
         __fallthrough;
@@ -466,7 +479,8 @@ auto LongUI::UIButton::CreateControl(pugi::xml_node node) noexcept ->UIControl* 
 
 // do event 事件处理
 bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
+    D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     if (arg.sender) {
         switch (arg.event)
         {
@@ -584,7 +598,8 @@ void LongUI::UIEditBasic::Update() noexcept {
 
 // do event 
 bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->transform, arg.pt);
+    D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     // ui msg
     if (arg.sender) {
         switch (arg.event)
