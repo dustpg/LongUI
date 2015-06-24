@@ -103,9 +103,6 @@ namespace LongUI {
         LongUIInline auto begin() const noexcept { return Iterator(m_pHead); };
         // end
         LongUIInline auto end() const noexcept { return Iterator(nullptr); };
-    private: // normal
-        // refresh children's layout
-        void refresh_child_layout() noexcept;
     protected:
         // dtor 析构函数
         ~UIContainer() noexcept;
@@ -116,14 +113,10 @@ namespace LongUI {
         // 尾控件指针
         UIControl*              m_pTail = nullptr;
     public:
-        // [UNSTATBLE] end of right
-        float             const end_of_right = 0.f;
-        // [UNSTATBLE] end of bottom
-        float             const end_of_bottom = 0.f;
-        // [UNSTATBLE] x offset for sb
-        float                   x_offset = 0.f;
-        // [UNSTATBLE] y offset for sb
-        float                   y_offset = 0.f;
+        // offset position
+        D2D1_POINT_2F           offset = D2D1::Point2F();
+        // visible size
+        D2D1_SIZE_F             visible_size = D2D1::SizeF();
         // 世界转换矩阵
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
         // 水平滚动条

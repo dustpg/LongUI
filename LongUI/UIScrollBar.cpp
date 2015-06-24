@@ -8,8 +8,8 @@ UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
 }
 
 
-// 更新值
-void LongUI::UIScrollBar::Refresh() noexcept {
+// 刷新
+void LongUI::UIScrollBar::Update() noexcept {
     // 边界 > 显示  -> 刻画边界 = 边界
     // 另外:      -> 刻画边界 = 显示
     bool old = false;
@@ -47,6 +47,7 @@ void LongUI::UIScrollBar::Refresh() noexcept {
         }*/
     }
     // TODO: 更新滚动条状态
+    return Super::Update();
 }
 
 // 设置新的索引位置
@@ -184,7 +185,8 @@ void LongUI::UIScrollBarA::Update() noexcept {
     UIElement_Update(m_uiArrow1);
     UIElement_Update(m_uiArrow2);
     UIElement_Update(m_uiThumb);
-
+    // 刷新
+    return Super::Update();
 }
 
 // UIScrollBarA 渲染 
@@ -211,6 +213,8 @@ void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
     m_uiArrow1.Render(m_rtArrow1);
     m_uiArrow2.Render(m_rtArrow2);
     m_uiThumb.Render(m_rtThumb);
+    //
+    UIManager << DL_Hint << m_rtArrow1 << m_rtArrow2 << m_rtArrow2 << endl;
     //
     //UIManager << DL_Hint << m_rtThumb << endl;
     // 前景

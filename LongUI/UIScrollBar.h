@@ -52,6 +52,10 @@ namespace LongUI{
         // do event 事件处理
         bool DoEvent(LongUI::EventArgument&) noexcept override;
     public:
+        // Render 渲染 
+        //virtual void Render(RenderType type) const noexcept override;
+        // udate 刷新
+        virtual void Update() noexcept override;
         // init sb
         virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { m_pOwner = owner; force_cast(type) = _type; }
         // on needed
@@ -73,8 +77,6 @@ namespace LongUI{
         UIScrollBar(pugi::xml_node) noexcept;
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
-        // refresh this
-        void Refresh() noexcept;
         // set new index
         void SetIndex(float) noexcept;
     public:

@@ -28,16 +28,16 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 )xml";
 #else
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow" >
-    <VerticalLayout name="VLayout1">
+<Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA">
+    <VerticalLayout name="VLayout1" size="1366, 256">
         <Button name="1" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="2" margin="4,4,4,4" bordersize="1"/>
+        <Button name="2" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
     </VerticalLayout>
-    <HorizontalLayout name="HLayout">
+    <HorizontalLayout name="HLayout" size="0, 256">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="4" margin="4,4,4,4" bordersize="1"/>
+        <Button name="4" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
     </HorizontalLayout>
 </Window>
 )xml";
@@ -304,11 +304,6 @@ protected:
 
 // 应用程序入口
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
-    DWORD colors[32];
-    const DWORD ycolor = (237 << 16) | (222 << 8) | (105);
-    for (int i = 0; i < lengthof(colors); ++i) {
-        colors[i] = ::GetSysColor(i);
-    }
     DWORD buffer_size = sizeof DWORD;
     auto error_code = ::RegGetValueA(
         HKEY_CURRENT_USER,
@@ -336,7 +331,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
         };
         // 使用CPU渲染
-        auto IsRenderByCPU() noexcept ->bool override { return false; }
+        auto IsRenderByCPU() noexcept ->bool override { return true; }
     private:
         // mruby script
         MRubyScript     mruby;

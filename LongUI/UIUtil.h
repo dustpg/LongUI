@@ -526,7 +526,7 @@ namespace LongUI {
     // default size of cmd-stack
     using DefaultCommadStack = FixedCommadStack<LongUIDefaultUnRedoCommandSize>;
     // XML Resource Loader
-    class UIXMLResourceLoader : public IUIBinaryResourceLoader {
+    class UIXMLResourceLoader : public IUResourceLoader {
     public:
         // xml doc
         pugi::xml_document          m_xmlDoc;
@@ -608,11 +608,13 @@ namespace LongUI {
         CUIDefaultConfigure() = default;
     public:
         // release it
-        virtual auto Release() noexcept -> int32_t override { return 0; };
+        virtual void Release() noexcept override {  };
         // get bin-res loader, return nullptr for xml-based resource
-        virtual auto GetBinResLoader() noexcept->IUIBinaryResourceLoader* { return nullptr; };
+        virtual auto GetResLoader() noexcept->IUResourceLoader* { return nullptr; };
         // get xml based resource(not file name)
         virtual auto GetResourceXML() noexcept -> const char* override { return resource; };
+        // get template string for control
+        virtual auto GetTemplateString() noexcept->const char* { return nullptr; }
         // get inline param handler
         virtual auto GetInlineParamHandler() noexcept->InlineParamHandler override { return handler; };
         // get script interface

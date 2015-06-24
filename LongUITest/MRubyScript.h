@@ -19,7 +19,7 @@ public:
     ~MRubyScript() noexcept {}
 public:
     // 释放脚本
-    virtual auto Release() noexcept -> int32_t { return 0; };
+    virtual void Release() noexcept {  };
     // 运行脚本
     virtual auto Evaluation(const LongUI::UIScript, const LongUI::EventArgument&) noexcept->size_t;
     // 获取配置信息

@@ -32,7 +32,7 @@ namespace LongUI {
     class DECLSPEC_NOVTABLE IUIInterface {
     public:
         // release it
-        virtual auto Release() noexcept -> int32_t = 0;
+        virtual void Release() noexcept = 0;
     };
     // Script define
     struct UIScript {
@@ -93,7 +93,7 @@ namespace LongUI {
     // Meta
     struct Meta;
     // UI Binary Resource Loader
-    class DECLSPEC_NOVTABLE IUIBinaryResourceLoader : public IUIInterface {
+    class DECLSPEC_NOVTABLE IUResourceLoader : public IUIInterface {
     public:
         // get count of bitmap in resouce
         virtual auto GetBitmapCount() noexcept -> size_t = 0;
@@ -115,12 +115,14 @@ namespace LongUI {
     // UI Configure
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
-        // get bin-res loader, return nullptr for xml-based resource
-        virtual auto GetBinResLoader() noexcept->IUIBinaryResourceLoader* = 0;
+        // get res loader, return nullptr for default xml-based-resource loader
+        virtual auto GetResLoader() noexcept->IUResourceLoader* = 0;
         // if no bin-res loader, get xml based resource(not file name), maybe nullptr(no resource)
         virtual auto GetResourceXML() noexcept -> const char* = 0;
         // get script interface, maybe nullptr(no script)
         virtual auto GetScript() noexcept ->IUIScript* = 0;
+        // get template string for control
+        virtual auto GetTemplateString() noexcept->const char* = 0;
         // get inline param handler
         virtual auto GetInlineParamHandler() noexcept->InlineParamHandler = 0;
         // create font collection, maybe nullptr(using system default)

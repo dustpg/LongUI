@@ -107,6 +107,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     m_timer.Start();
     // 所在窗口就是自己
     m_pWindow = this;
+    // 自己的父类就是自己以保证parent不为null
+    force_cast(this->parent) = this;
     // 呈现参数
     ZeroMemory(&m_rcScroll, sizeof(m_dirtyRects));
     ZeroMemory(m_dirtyRects, sizeof(m_dirtyRects));
@@ -178,7 +180,9 @@ void LongUI::UIWindow::SetCaretPos(UIControl* c, float x, float y) noexcept {
     if (!m_cShowCaret) return;
     // 转换为像素坐标
     auto pt = D2D1::Point2F(x, y);
-    if (c && c->parent) {
+    if (c) {
+        // FIXME
+        // TODO: FIX IT
         pt = LongUI::TransformPoint(c->parent->world, pt);
     }
     m_bCaretIn = true;

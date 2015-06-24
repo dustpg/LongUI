@@ -1,6 +1,5 @@
 ﻿#include "LongUI.h"
 
-
 //#define LONGUI_RECHECK_LAYOUT
 
 // -------------------------- UIContainer -------------------------
@@ -85,29 +84,6 @@ void LongUI::UIContainer::PushAxisAlignedClip(D2D1_ANTIALIAS_MODE mode) const no
     m_pRenderTarget->PushAxisAlignedClip(&rect, mode);
 }
 
-// 更新布局
-void LongUI::UIContainer::refresh_child_layout() noexcept {
-    // 检查宽度
-    if (this->scrollbar_h) {
-        /*this->scrollbar_h->show_zone.left = 0.f;
-        this->scrollbar_h->show_zone.top = this->show_zone.height - this->scrollbar_h->GetTakingUpSapce();
-        this->scrollbar_h->show_zone.width = this->show_zone.width;
-        this->scrollbar_h->show_zone.height = this->scrollbar_h->GetTakingUpSapce();
-        this->scrollbar_h->draw_zone = this->scrollbar_h->show_zone;*/
-        this->scrollbar_h->Refresh();
-    }
-    // 检查高度
-    if (this->scrollbar_v) {
-        /*this->scrollbar_v->show_zone.left = this->show_zone.width - this->scrollbar_v->GetTakingUpSapce();
-        this->scrollbar_v->show_zone.top = 0.f;
-        this->scrollbar_v->show_zone.width = this->scrollbar_v->GetTakingUpSapce();
-        this->scrollbar_v->show_zone.height = this->show_zone.height;
-        this->scrollbar_v->draw_zone = this->scrollbar_v->show_zone;*/
-        this->scrollbar_v->Refresh();
-    }
-
-}
-
 // UIContainer 保证滚动条
 bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
 #ifdef LONGUI_RECHECK_LAYOUT
@@ -176,44 +152,10 @@ bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
     // TODO: 参数EventArgument改为const
     bool done = false;
     // 转换坐标
-    auto pt_old = arg.pt;
-    auto pt4self = arg.pt;// LongUI::TransformPointInverse(this->transform, arg.pt);
-    arg.pt = pt4self;
     // 处理窗口事件
     if (arg.sender) {
         switch (arg.event)
         {
-        /*case LongUI::Event::Event_FindControl:
-            if (m_strControlName == L"HLayout") {
-                int bk = 9;
-            }
-            // 检查是否为自己的范围之内
-            if (!FindControlHelper(pt4self, this)) {
-                return false;
-            }
-            // 检查滚动条
-            if (scrollbar_v && this->width - pt4self.x < scrollbar_v->GetHitSapce()) {
-                done = scrollbar_v->DoEvent(arg);
-                break;
-            }
-            if (scrollbar_h && this->height - pt4self.y < scrollbar_h->GetHitSapce()) {
-                done = scrollbar_h->DoEvent(arg);
-                break;
-            }
-            // 检查子控件
-            if (!done) {
-                // XXX: 优化
-                for (auto ctrl : (*this)) {
-                    ctrl->DoEvent(arg);
-                    // 找到
-                    if (arg.ctrl) {
-                        done = true;
-                        break;
-                    }
-                }
-            }
-            done = true;
-            break;*/
         case LongUI::Event::Event_FinishedTreeBuliding:
             // 初次完成空间树建立
             for (auto ctrl : (*this)) {
@@ -224,13 +166,28 @@ bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
         }
     }
     // 扳回来
-    arg.pt = pt_old;
     return done;
 }
 
 // UIContainer 渲染函数
 void LongUI::UIContainer::Render(RenderType type) const noexcept {
-    //
+    //  正确渲染控件
+    auto do_render = [](ID2D1RenderTarget* const target, const UIControl* const ctrl) {
+        // 修改世界转换矩阵
+        D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
+        target->SetTransform(&matrix);
+        // 检查剪切规则
+        if (ctrl->flags & Flag_StrictClip) {
+            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+            target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        }
+        ctrl->Render(LongUI::RenderType::Type_Render);
+        // 检查剪切规则
+        if (ctrl->flags & Flag_StrictClip) {
+            target->PopAxisAlignedClip();
+        }
+    };
+    // 查看
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
@@ -244,39 +201,15 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         }
         // 渲染所有子部件
         for(const auto* ctrl : (*this)) {
-            // 修改世界转换矩阵
-            D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
-            m_pRenderTarget->SetTransform(&matrix);
-            // 检查剪切规则
-            if (ctrl->flags & Flag_StrictClip) {
-                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-                m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-            }
-            ctrl->Render(LongUI::RenderType::Type_Render);
-            // 检查剪切规则
-            if (ctrl->flags & Flag_StrictClip) {
-                m_pRenderTarget->PopAxisAlignedClip();
-            }
+            do_render(m_pRenderTarget, ctrl);
         }
         // 渲染滚动条
-        if (this->scrollbar_h && this->scrollbar_h->GetTakingUpSapce() > 0.f) {
-            // 计算高度
-            auto height = this->scrollbar_h->GetTakingUpSapce() * this->world._22;
-            assert(height != 0.f);
-            this->scrollbar_h->visible_rect = this->visible_rect;
-            this->scrollbar_h->visible_rect.top = this->visible_rect.bottom - height;
-            // 渲染
-            this->scrollbar_h->Render(LongUI::RenderType::Type_Render);
+        if (this->scrollbar_h) {
+            do_render(m_pRenderTarget, this->scrollbar_h);
         }
         // 渲染滚动条
-        if (this->scrollbar_v && this->scrollbar_v->GetTakingUpSapce() > 0.f) {
-            // 计算宽度
-            auto width = this->scrollbar_v->GetTakingUpSapce() * this->world._11;
-            assert(width != 0.f);
-            this->scrollbar_v->visible_rect = this->visible_rect;
-            this->scrollbar_v->visible_rect.left = this->visible_rect.right - width;
-            // 渲染
-            this->scrollbar_v->Render(LongUI::RenderType::Type_Render);
+        if (this->scrollbar_v) {
+            do_render(m_pRenderTarget, this->scrollbar_v);
         }
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
@@ -315,10 +248,22 @@ void LongUI::UIContainer::Update() noexcept  {
             ctrl->visible_rect.right = std::min(rb.x, tmp_right);
             ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
         }
-    }
-    // 更新子控件布局
-    if (m_bDrawSizeChanged) {
-        this->refresh_child_layout();
+        // 更新滚动条
+        if (this->scrollbar_h) {
+            register float size = this->scrollbar_h->GetTakingUpSapce();
+            this->scrollbar_h->x = 0.f;
+            this->scrollbar_h->y = this->parent->height - size;
+            this->scrollbar_h->width = this->parent->width;
+            this->scrollbar_h->height = size;
+
+        }
+        if (this->scrollbar_v) {
+            register float size = this->scrollbar_h->GetTakingUpSapce();
+            this->scrollbar_v->x = this->parent->width - size;
+            this->scrollbar_v->y = 0.f;
+            this->scrollbar_v->width = size;
+            this->scrollbar_v->height = this->parent->height;
+        }
     }
     // 刷新滚动条
     if (this->scrollbar_h) {

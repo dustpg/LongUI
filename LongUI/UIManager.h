@@ -205,7 +205,7 @@ namespace LongUI {
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATUS_COUNT];
         // 二进制资源读取器
-        IUIBinaryResourceLoader*        m_pBinResLoader = nullptr;
+        IUResourceLoader*        m_pBinResLoader = nullptr;
         // default bitmap buffer
         uint8_t*                        m_pBitmap0Buffer = nullptr;
         // map 函数映射
@@ -311,7 +311,7 @@ namespace LongUI {
         // last DebugStringLevel
         DebugStringLevel        m_lastLevel = DebugStringLevel::DLevel_Log;
         // overload << operator for DebugStringLevel
-        CUIManager& operator<< (const DebugStringLevel l) noexcept { m_lastLevel = l; return *this; }
+        CUIManager& operator<< (const DebugStringLevel l)  noexcept { m_lastLevel = l; return *this; }
         // overload << operator for float
         CUIManager& operator<< (const float f) noexcept;
         // overload << operator for long
@@ -354,27 +354,27 @@ namespace LongUI {
         // output debug (utf-8) string without flush
         void OutputNoFlush(DebugStringLevel l, const char* s) noexcept;
         // output debug string without flush
-        inline void OutputNoFlush(DebugStringLevel l, const wchar_t* s) noexcept { this->configure->OutputDebugStringW(l, s, false); }
+        inline void OutputNoFlush(DebugStringLevel l, const wchar_t* s) const noexcept { this->configure->OutputDebugStringW(l, s, false); }
     public:
 #else
         // overload << operator 重载 << 运算符
-        template<typename T> CUIManager& operator<< (T t) noexcept { return *this; }
+        template<typename T> CUIManager& operator<< (T t) const noexcept { return *this; }
         // output with wide char
-        inline void Output(DebugStringLevel l, const wchar_t* s) noexcept {  }
+        inline void Output(DebugStringLevel l, const wchar_t* s) const noexcept {  }
         // output with utf-8
-        inline void Output(DebugStringLevel l, const char* s) noexcept {  }
+        inline void Output(DebugStringLevel l, const char* s) const noexcept {  }
         // Output with format for None
-        inline void _cdecl OutputN(const wchar_t*, ...) noexcept {  }
+        inline void _cdecl OutputN(const wchar_t*, ...) const noexcept {  }
         // Output with format for Log
-        inline void _cdecl OutputL(const wchar_t*, ...) noexcept {  }
+        inline void _cdecl OutputL(const wchar_t*, ...) const noexcept {  }
         // Output with format for Hint
-        inline void _cdecl OutputH(const wchar_t*, ...) noexcept {  }
+        inline void _cdecl OutputH(const wchar_t*, ...) const noexcept {  }
         // Output with format for Warning
-        inline void _cdecl OutputW(const wchar_t*, ...) noexcept {  }
+        inline void _cdecl OutputW(const wchar_t*, ...) const noexcept {  }
         // Output with format for Error
-        inline void _cdecl OutputE(const wchar_t*, ...) noexcept {  }
+        inline void _cdecl OutputE(const wchar_t*, ...) const noexcept {  }
         // Output with format for Fatal
-        inline void _cdecl OutputF(const wchar_t*, ...) noexcept {  }
+        inline void _cdecl OutputF(const wchar_t*, ...) const noexcept {  }
 #endif
 
     };

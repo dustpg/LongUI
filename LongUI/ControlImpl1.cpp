@@ -324,18 +324,18 @@ auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
 
 // 获取占用/剪切矩形
 void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
-    rect.left = -(this->margin_rect.left + this->m_fBorderSize);
-    rect.top = -(this->margin_rect.top + this->m_fBorderSize);
-    rect.right = this->width + this->margin_rect.right +this->m_fBorderSize;
-    rect.bottom = this->height + this->margin_rect.bottom + +this->m_fBorderSize;
+    rect.left = -(this->margin_rect.left + m_fBorderSize);
+    rect.top = -(this->margin_rect.top + m_fBorderSize);
+    rect.right = this->width + this->margin_rect.right + m_fBorderSize;
+    rect.bottom = this->height + this->margin_rect.bottom + m_fBorderSize;
 }
 
 // 获取边框矩形
 void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
-    rect.left = -this->m_fBorderSize;
-    rect.top = -this->m_fBorderSize;
-    rect.right = this->width + this->m_fBorderSize;
-    rect.bottom = this->height + this->m_fBorderSize;
+    rect.left = -m_fBorderSize;
+    rect.top = -m_fBorderSize;
+    rect.right = this->width + m_fBorderSize;
+    rect.bottom = this->height + m_fBorderSize;
 }
 
 // 获取刻画矩形
@@ -348,20 +348,15 @@ void LongUI::UIControl::GetContentRect(D2D1_RECT_F& rect) const noexcept {
 
 // 获得世界转换矩阵
 void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept {
-    float xx = this->x + this->margin_rect.left + this->m_fBorderSize;
-    float yy = this->y + this->margin_rect.top + this->m_fBorderSize;
+    float xx = this->x + this->margin_rect.left + m_fBorderSize;
+    float yy = this->y + this->margin_rect.top + m_fBorderSize;
     // 检查
-    if (this->parent && !(this->flags & Flag_FreeFromScrollBar)) {
+    if (!(this->flags & Flag_FreeFromScrollBar)) {
         xx += this->parent->x_offset;
         yy += this->parent->y_offset;
     }
     // 转换
-    if (this->parent) {
-        matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
-    }
-    else {
-        matrix = D2D1::Matrix3x2F::Translation(xx, yy);
-    }
+    matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
 }
 
 
