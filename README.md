@@ -21,6 +21,30 @@ For this repo, you need:
   planned support for Win7 without DirectComposition,but MS   
   said that Win7 could upgrade to Win10 for free, so just 'planned'
   
+##LongUI Programming Style
+  
+  class : \[C/I/?\] UI ClassName, etc. CUIManager IUIInterface  
+  member variable:  
+    public: member_variable, etc. parent, user_data  
+    private/protect: m_typeMemberVariable, etc, m_pWindow
+  method/function:  
+    public: ClassMethod() except to match STL-style  
+      etc GetWindow(), Update(), begin()
+    private/protect:  class_method(), etc, refresh_this()  
+  enum:  see it
+```cpp
+        enum class PointType : uint16_t {
+            Type_None,      // None
+            Type_Arrow1,    // Arrow1
+            Type_Arrow2,    // Arrow2
+            Type_Thumb,     // Thumb
+            Type_Shaft,     // Shaft
+        };
+```
+  auto variable:  
+    DEPENDS ON MY MOOD, etc, int old_x, oldX, uOldX
+    
+  
 ## PROJECTS LIST
   
   -  3rdparty/* , 3rdparty library, like dlmalloc

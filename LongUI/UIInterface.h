@@ -93,7 +93,7 @@ namespace LongUI {
     // Meta
     struct Meta;
     // UI Binary Resource Loader
-    class DECLSPEC_NOVTABLE IUResourceLoader : public IUIInterface {
+    class DECLSPEC_NOVTABLE IUIResourceLoader : public IUIInterface {
     public:
         // get count of bitmap in resouce
         virtual auto GetBitmapCount() noexcept -> size_t = 0;
@@ -116,7 +116,7 @@ namespace LongUI {
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
         // get res loader, return nullptr for default xml-based-resource loader
-        virtual auto GetResLoader() noexcept->IUResourceLoader* = 0;
+        virtual auto GetResLoader() noexcept->IUIResourceLoader* = 0;
         // if no bin-res loader, get xml based resource(not file name), maybe nullptr(no resource)
         virtual auto GetResourceXML() noexcept -> const char* = 0;
         // get script interface, maybe nullptr(no script)

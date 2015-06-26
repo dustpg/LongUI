@@ -205,7 +205,7 @@ namespace LongUI {
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATUS_COUNT];
         // 二进制资源读取器
-        IUResourceLoader*        m_pBinResLoader = nullptr;
+        IUIResourceLoader*              m_pResourceLoader = nullptr;
         // default bitmap buffer
         uint8_t*                        m_pBitmap0Buffer = nullptr;
         // map 函数映射

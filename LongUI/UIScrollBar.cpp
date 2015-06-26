@@ -58,11 +58,11 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
         m_fIndex = new_index;
 #if 1
         if (this->type == ScrollBarType::Type_Vertical) {
-            m_pOwner->y_offset = -new_index;
+            m_pOwner->offset.y = -new_index;
             //this->show_zone.top = new_index;
         }
         else {
-            m_pOwner->x_offset = -new_index;
+            m_pOwner->offset.x = -new_index;
             //this->show_zone.left = new_index;
         }
         //this->draw_zone = this->show_zone;
