@@ -350,6 +350,20 @@ void LongUI::UIControl::GetContentRect(D2D1_RECT_F& rect) const noexcept {
 void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept {
     float xx = this->x + this->margin_rect.left + m_fBorderSize;
     float yy = this->y + this->margin_rect.top + m_fBorderSize;
+#if 0
+    // 检查
+    if (this->parent && !(this->flags & Flag_FreeFromScrollBar)) {
+        xx += this->parent->offset.x;
+        yy += this->parent->offset.y;
+    }
+    // 转换
+    if (this->parent) {
+        matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+    }
+    else {
+        matrix = D2D1::Matrix3x2F::Translation(xx, yy);
+    }
+#else
     // 检查
     if (!(this->flags & Flag_FreeFromScrollBar)) {
         xx += this->parent->offset.x;
@@ -357,6 +371,7 @@ void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexc
     }
     // 转换
     matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+#endif
 }
 
 

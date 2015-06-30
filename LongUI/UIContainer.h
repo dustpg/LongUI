@@ -87,6 +87,8 @@ namespace LongUI {
         bool AssureScrollBar(float, float) noexcept;
         // find control where mouse pointed
         auto FindControl(const D2D1_POINT_2F pt) noexcept->UIControl*;
+        // XXX: is top level?
+        auto IsTopLevel() const noexcept { return static_cast<UIControl*>(this->parent) == this; }
     public: // STL Container Compatibled/style interface/method
         // get child at, because of list, will get warning of performance
         auto at(uint32_t) const noexcept ->UIControl*;
@@ -112,6 +114,8 @@ namespace LongUI {
         UIControl*              m_pHead = nullptr;
         // 尾控件指针
         UIControl*              m_pTail = nullptr;
+        // old margin size for sbar
+        D2D1_SIZE_F             m_oldMarginSize = D2D1::SizeF();
     public:
         // offset position
         D2D1_POINT_2F           offset = D2D1::Point2F();

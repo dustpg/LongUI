@@ -184,7 +184,7 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     }
     SafeRelease(m_pDirectInput);
     // 释放读取器
-    ::SafeRelease(m_pBinResLoader);
+    ::SafeRelease(m_pResourceLoader);
     // 释放文本渲染器
     for (auto& renderer : m_apTextRenderer) {
         ::SafeRelease(renderer);
@@ -809,36 +809,36 @@ auto LongUI::CUIManager::GetTextFormat(
 // 创建程序资源
 auto LongUI::CUIManager::create_programs_resources() throw(std::bad_alloc &)-> void {
     // 存在二进制读取器?
-    if (m_pBinResLoader) {
+    if (m_pResourceLoader) {
         // 获取位图个数
-        register auto count = m_pBinResLoader->GetBitmapCount();
+        register auto count = m_pResourceLoader->GetBitmapCount();
         m_bitmaps.reserve(count);
         // 读取位图
         for (decltype(count) i = 0; i < count; ++i) {
-            m_bitmaps.push_back(m_pBinResLoader->LoadBitmapAt(*this, i));
+            m_bitmaps.push_back(m_pResourceLoader->LoadBitmapAt(*this, i));
         }
         // 获取笔刷个数
-        count = m_pBinResLoader->GetBrushCount();
+        count = m_pResourceLoader->GetBrushCount();
         m_brushes.reserve(count);
         // 读取笔刷
         for (decltype(count) i = 0; i < count; ++i) {
-            m_brushes.push_back(m_pBinResLoader->LoadBrushAt(*this, i));
+            m_brushes.push_back(m_pResourceLoader->LoadBrushAt(*this, i));
         }
         // 获取文本格式个数
-        count = m_pBinResLoader->GetTextFormatCount();
+        count = m_pResourceLoader->GetTextFormatCount();
         m_textFormats.reserve(count);
         // 读取文本格式
         for (decltype(count) i = 0; i < count; ++i) {
-            m_textFormats.push_back(m_pBinResLoader->LoadTextFormatAt(*this, i));
+            m_textFormats.push_back(m_pResourceLoader->LoadTextFormatAt(*this, i));
         }
         // 获取Meta个数
-        count = m_pBinResLoader->GetMetaCount();
+        count = m_pResourceLoader->GetMetaCount();
         m_metas.reserve(count);
         // 图标
         m_metaicons.resize(count);
         // 读取文本格式
         for (decltype(count) i = 0; i < count; ++i) {
-            Meta meta; m_pBinResLoader->LoadMetaAt(*this, i, meta);
+            Meta meta; m_pResourceLoader->LoadMetaAt(*this, i, meta);
             m_metas.push_back(meta);
         }
     }

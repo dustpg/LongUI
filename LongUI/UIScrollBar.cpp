@@ -2,49 +2,28 @@
 
 
 // UIScrollBar 构造函数
-inline LongUI::UIScrollBar::
-UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
+inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
 
 }
 
 
-// 刷新
-void LongUI::UIScrollBar::Update() noexcept {
-    // 边界 > 显示  -> 刻画边界 = 边界
-    // 另外:      -> 刻画边界 = 显示
-    bool old = false;
-    UIManager << DL_Hint << "called" << endl;
+// 刷新前
+void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 垂直?
     if (this->type == ScrollBarType::Type_Vertical) {
-        // 更新
-        if ((old = m_pOwner->end_of_bottom > m_pOwner->height)) {
-            m_pOwner->height = m_pOwner->end_of_bottom;
-        }
         m_fMaxRange = m_pOwner->height;
         m_fMaxIndex = m_fMaxRange - m_pOwner->height;
         // 检查上边界
 
         // 检查下边界
-        /*auto lower = m_pOwner->show_zone.top + m_pOwner->show_zone.height;
-        if (m_pOwner->draw_zone.top + m_pOwner->draw_zone.height < lower) {
-            m_pOwner->draw_zone.top = lower - m_pOwner->draw_zone.height;
-        }*/
     }
     // 水平?
     else {
-        // 更新
-        if ((old = m_pOwner->end_of_right > m_pOwner->width)) {
-            m_pOwner->width = m_pOwner->end_of_right;
-        }
         m_fMaxRange = m_pOwner->width;
         m_fMaxIndex = m_fMaxRange - m_pOwner->width;
         // 检查左边界
 
         // 检查右边界
-        /*auto right = m_pOwner->show_zone.left + m_pOwner->show_zone.width;
-        if (m_pOwner->draw_zone.left + m_pOwner->draw_zone.width < right) {
-            m_pOwner->draw_zone.left = right - m_pOwner->draw_zone.width;
-        }*/
     }
     // TODO: 更新滚动条状态
     return Super::Update();
@@ -151,6 +130,8 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 
 // UI滚动条(类型A): 刷新
 void LongUI::UIScrollBarA::Update() noexcept {
+    // 先刷新父类
+    Super::BeforeUpdate();
     D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
     if (this->another) {
@@ -192,6 +173,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
 // UIScrollBarA 渲染 
 void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
     if (type != RenderType::Type_Render) return;
+    D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
     // 更新
     D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正

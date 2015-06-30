@@ -55,7 +55,7 @@ namespace LongUI{
         // Render 渲染 
         //virtual void Render(RenderType type) const noexcept override;
         // udate 刷新
-        virtual void Update() noexcept override;
+        //virtual void Update() noexcept override;
         // init sb
         virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { m_pOwner = owner; force_cast(type) = _type; }
         // on needed
@@ -67,6 +67,8 @@ namespace LongUI{
         auto GetHitSapce() const noexcept { return m_fHitSpace; }
         // how size that take up the owner's space
         auto GetIndex() const noexcept { return m_fIndex; }
+        // before update
+        void BeforeUpdate() noexcept;
     protected:
         // destructor 析构函数
         //~UIScrollBar() noexcept;

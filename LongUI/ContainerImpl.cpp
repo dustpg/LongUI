@@ -6,6 +6,9 @@
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
     assert(node && "bad argument.");
+    // 保留
+    m_oldMarginSize.width = this->margin_rect.right;
+    m_oldMarginSize.height = this->margin_rect.bottom;
     // 检查滚动条
     {
         register auto vscrollbar = node.attribute("vscrollbar").value();
@@ -226,6 +229,9 @@ void LongUI::UIContainer::Update() noexcept  {
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
         this->GetWorldTransform(this->world);
+        // 修改可视化区域
+        this->visible_size.width = std::min(this->width, this->parent->width);
+        this->visible_size.height = std::min(this->height, this->parent->height);
         // 更新
         for (auto ctrl : (*this)) {
             // 更新矩阵
@@ -248,21 +254,24 @@ void LongUI::UIContainer::Update() noexcept  {
             ctrl->visible_rect.right = std::min(rb.x, tmp_right);
             ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
         }
+        auto basic_margin_right = m_oldMarginSize.width;
+        auto basic_margin_bottom = m_oldMarginSize.height;
         // 更新滚动条
         if (this->scrollbar_h) {
             register float size = this->scrollbar_h->GetTakingUpSapce();
+            basic_margin_bottom += size;
             this->scrollbar_h->x = 0.f;
-            this->scrollbar_h->y = this->parent->height - size;
-            this->scrollbar_h->width = this->parent->width;
+            this->scrollbar_h->y = this->visible_size.height - size;
+            this->scrollbar_h->width = this->visible_size.width;
             this->scrollbar_h->height = size;
-
         }
         if (this->scrollbar_v) {
             register float size = this->scrollbar_h->GetTakingUpSapce();
-            this->scrollbar_v->x = this->parent->width - size;
+            basic_margin_right += size;
+            this->scrollbar_v->x = this->visible_size.width - size;
             this->scrollbar_v->y = 0.f;
             this->scrollbar_v->width = size;
-            this->scrollbar_v->height = this->parent->height;
+            this->scrollbar_v->height = this->visible_size.height;
         }
     }
     // 刷新滚动条
@@ -517,8 +526,10 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
-        force_cast(this->end_of_right) = base_width;
-        force_cast(this->end_of_bottom) = position_y;
+        if (!this->IsTopLevel()) {
+            this->width = base_width;
+            this->height = position_y;
+        }
 #ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
         if (need_refresh) {
@@ -634,8 +645,10 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
-        force_cast(this->end_of_right) = position_x;
-        force_cast(this->end_of_bottom) = base_height;
+        if (!this->IsTopLevel()) {
+            this->width = position_x;
+            this->height = base_height;
+        }
 #ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
         if (need_refresh) {
