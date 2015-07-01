@@ -24,6 +24,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{164DAB8D-E1C9-4577-AD17-7519A9760DD2}</ProjectGuid>
     <RootNamespace>ScriptInterfaceGenerator</RootNamespace>
+    <TargetPlatformVersion>10.0.10158.0</TargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
