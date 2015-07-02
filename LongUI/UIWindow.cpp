@@ -49,20 +49,22 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
     // 默认
     if (this->width == 0.f) {
-        this->width = static_cast<float>(LongUIDefaultWindowWidth);
+        this->UIControl::width = static_cast<float>(LongUIDefaultWindowWidth);
     }
     else {
         window_rect.right = static_cast<LONG>(this->width);
     }
     // 更新
     if (this->height == 0.f) {
-        this->height = static_cast<float>(LongUIDefaultWindowHeight);
+        this->UIControl::height = static_cast<float>(LongUIDefaultWindowHeight);
     }
     else {
         window_rect.bottom = static_cast<LONG>(this->height);
     }
-    visible_rect.right = m_clientSize.width = this->width;
-    visible_rect.bottom = m_clientSize.height = this->height;
+    force_cast(this->windows_size.width) = this->UIControl::width;
+    force_cast(this->UIWindow::width) = this->UIControl::width;
+    force_cast(this->windows_size.height) = this->UIControl::height;
+    force_cast(this->UIWindow::height) = this->UIControl::width;
     // 调整大小
     ::AdjustWindowRect(&window_rect, window_style, FALSE);
     // 居中
@@ -486,9 +488,9 @@ void LongUI::UIWindow::set_present() noexcept {
         m_dirtyRects[m_present.DirtyRectsCount].top 
             = std::max(static_cast<LONG>(m_rcCaretPx.top), long(0));
         m_dirtyRects[m_present.DirtyRectsCount].right 
-            = std::min(static_cast<LONG>(m_rcCaretPx.left + m_rcCaretPx.width), long(m_clientSize.width));
+            = std::min(static_cast<LONG>(m_rcCaretPx.left + m_rcCaretPx.width), long(this->windows_size.width));
         m_dirtyRects[m_present.DirtyRectsCount].bottom 
-            = std::min(static_cast<LONG>(m_rcCaretPx.top + m_rcCaretPx.height), long(m_clientSize.height));
+            = std::min(static_cast<LONG>(m_rcCaretPx.top + m_rcCaretPx.height), long(this->windows_size.height));
         ++m_present.DirtyRectsCount;
     }
     // 存在脏矩形?
@@ -509,9 +511,6 @@ void LongUI::UIWindow::set_present() noexcept {
 
 // begin draw
 void LongUI::UIWindow::BeginDraw() noexcept {
-    // 获取当前大小
-    this->width = m_clientSize.width;
-    this->height = m_clientSize.height;
     // 离屏渲染
     if (!m_vRegisteredControl.empty()) {
         for (auto i : m_vRegisteredControl) {
@@ -884,8 +883,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     m_rcScroll.right = rect.right;
     m_rcScroll.bottom = rect.bottom;
 
-    visible_rect.right = m_clientSize.width = static_cast<float>(rect.right);
-    visible_rect.bottom = m_clientSize.height = static_cast<float>(rect.bottom);
+    visible_rect.right = force_cast(this->windows_size.width) = static_cast<float>(rect.right);
+    visible_rect.bottom = force_cast(this->windows_size.height) = static_cast<float>(rect.bottom);
     rect.right = MakeAsUnit(rect.right);
     rect.bottom = MakeAsUnit(rect.bottom);
     auto old_size = m_pTargetBimtap->GetPixelSize();

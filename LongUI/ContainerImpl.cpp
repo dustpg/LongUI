@@ -230,8 +230,19 @@ void LongUI::UIContainer::Update() noexcept  {
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
         this->GetWorldTransform(this->world);
         // 修改可视化区域
-        this->visible_size.width = std::min(this->width, this->parent->width);
-        this->visible_size.height = std::min(this->height, this->parent->height);
+        if (this->IsTopLevel()) {
+#if 0
+            this->visible_size.width = m_pWindow->UIWindow::width;
+            this->visible_size.height = m_pWindow->UIWindow::height;
+#else
+            this->visible_size.width = static_cast<UIWindow*>(this)->UIWindow::width;
+            this->visible_size.height = static_cast<UIWindow*>(this)->UIWindow::height;
+#endif
+        }
+        else{
+            this->visible_size.width = std::min(this->width, this->parent->width);
+            this->visible_size.height = std::min(this->height, this->parent->height);
+        }
         // 更新
         for (auto ctrl : (*this)) {
             // 更新矩阵
@@ -526,10 +537,8 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
-        if (!this->IsTopLevel()) {
-            this->width = base_width;
-            this->height = position_y;
-        }
+        this->width = base_width;
+        this->height = position_y;
 #ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
         if (need_refresh) {
@@ -645,10 +654,8 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
-        if (!this->IsTopLevel()) {
-            this->width = position_x;
-            this->height = base_height;
-        }
+        this->width = position_x;
+        this->height = base_height;
 #ifdef LONGUI_RECHECK_LAYOUT
     // 需要刷新?
         if (need_refresh) {

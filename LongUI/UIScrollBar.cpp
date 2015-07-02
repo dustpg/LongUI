@@ -12,7 +12,7 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 垂直?
     if (this->type == ScrollBarType::Type_Vertical) {
         m_fMaxRange = m_pOwner->height;
-        m_fMaxIndex = m_fMaxRange - m_pOwner->height;
+        m_fMaxIndex = m_fMaxRange - m_pOwner->visible_size.height;
         // 检查上边界
 
         // 检查下边界
@@ -20,7 +20,7 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 水平?
     else {
         m_fMaxRange = m_pOwner->width;
-        m_fMaxIndex = m_fMaxRange - m_pOwner->width;
+        m_fMaxIndex = m_fMaxRange - m_pOwner->visible_size.width;
         // 检查左边界
 
         // 检查右边界
@@ -160,7 +160,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
         // 计算Thumb
         register auto width = m_pOwner->width - BASIC_SIZE*2.f;
         m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
-        m_rtThumb.right = m_rtThumb.left + bilibili * width - 1.f;
+        m_rtThumb.right = (m_rtThumb.left + bilibili * width) - 1.f;
     }
     // 刷新
     UIElement_Update(m_uiArrow1);

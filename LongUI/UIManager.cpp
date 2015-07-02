@@ -4,7 +4,7 @@
 // node->Attribute\((.+?)\)
 // node.attribute($1).value()
 
-#define D3D11_DEBUG
+#define LONGUI_D3D_DEBUG
 
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
@@ -15,6 +15,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         return E_INVALIDARG;
 #endif
     }
+    
     // 解析资源脚本
     auto res_xml = config->GetResourceXML();
     if (res_xml) {
@@ -917,7 +918,7 @@ auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
         // 否则创建D2D设备上下文会失败
         UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #ifdef _DEBUG
-#ifdef D3D11_DEBUG
+#ifdef LONGUI_D3D_DEBUG
         // Debug状态 有D3D DebugLayer就可以取消注释
         creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
         auto tmpflag = D3D11_CREATE_DEVICE_FLAG(creationFlags);
@@ -988,7 +989,7 @@ auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
         }
     }
 #ifdef _DEBUG
-#ifdef D3D11_DEBUG
+#ifdef LONGUI_D3D_DEBUG
     // 创建 ID3D11Debug
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pd3dDebug));

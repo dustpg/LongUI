@@ -129,6 +129,14 @@ namespace LongUI{
         ~UIWindow() noexcept;
         // deleted 
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
+    public:
+        // the real logic width  of window(HWND)
+        float           const   width = 0.f;
+        // the real logic height of window(HWND)
+        float           const   height = 0.f;
+        // the real pixel size  of window(HWND)
+        D2D1_SIZE_F     const   windows_size = D2D1::SizeF();
+    protected:
         // window handle
         HWND                    m_hwnd = nullptr;
         // 创建数据对象
@@ -185,10 +193,6 @@ namespace LongUI{
         float                   m_uuuuuu = 0.f;
         // caret rect in px
         RectLTWH_U              m_rcCaretPx;
-        // clientsize in 
-        D2D1_SIZE_F             m_clientSize = D2D1::SizeF();
-        // windowsize
-        D2D1_SIZE_F             m_windowSize = D2D1::SizeF();
         // timer
         UITimer                 m_timer;
         // track mouse event
