@@ -57,7 +57,7 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
 
 
 // do event 事件处理
-bool  LongUI::UIScrollBar::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool  LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 控件消息
     if (arg.sender) {
         switch (arg.event)
@@ -173,7 +173,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
 // UIScrollBarA 渲染 
 void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
     if (type != RenderType::Type_Render) return;
-    D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
+    //D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
     // 更新
     D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
@@ -234,7 +234,7 @@ void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
 
 
 // UIScrollBarA::do event 事件处理
-bool  LongUI::UIScrollBarA::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 获取点击
     auto get_real_pos = [this](float pos)  {
         pos -= UIScrollBarA::BASIC_SIZE ;

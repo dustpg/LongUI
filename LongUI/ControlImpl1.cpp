@@ -523,7 +523,7 @@ auto LongUI::UIButton::CreateControl(pugi::xml_node node) noexcept ->UIControl* 
 
 
 // do event 事件处理
-bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     if (arg.sender) {
@@ -554,7 +554,7 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
     }
     else {
         bool rec = false;
-        arg.sender = this;   auto tempmsg = arg.msg;
+        force_cast(arg.sender) = this;   auto tempmsg = arg.msg;
         switch (arg.msg)
         {
         case WM_LBUTTONDOWN:
@@ -563,7 +563,7 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
             m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
             break;
         case WM_LBUTTONUP:
-            arg.event = LongUI::Event::Event_ButtoClicked;
+            force_cast(arg.event) = LongUI::Event::Event_ButtoClicked;
             m_tarStatusClick = LongUI::Status_Hover;
             // 检查脚本
             if (m_pScript && m_script.data) {
@@ -577,13 +577,13 @@ bool LongUI::UIButton::DoEvent(LongUI::EventArgument& arg) noexcept {
             else {
                 rec = m_pWindow->DoEvent(arg);
             }
-            arg.msg = tempmsg;
+            force_cast(arg.msg) = tempmsg;
             UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
             m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
             m_pWindow->ReleaseCapture();
             break;
         }
-        arg.sender = nullptr;
+        force_cast(arg.sender) = nullptr;
     }
     return Super::DoEvent(arg);
 }
@@ -642,7 +642,7 @@ void LongUI::UIEditBasic::Update() noexcept {
 }
 
 // do event 
-bool  LongUI::UIEditBasic::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     // ui msg

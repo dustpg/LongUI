@@ -37,12 +37,23 @@ namespace LongUI{
         friend class CUIManager;
         // friend class
         friend class UIContainer;
-    public: // for script method zone, easy-type to send/get
-        // control name
-        LongUIInline auto ForScript_GetName() const noexcept {
+    public:
+        // Render 
+        virtual void Render(RenderType) const noexcept;
+        // update
+        virtual void Update() noexcept;
+        // do event 
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept = 0;
+        // recreate , first call or device reset
+        virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT;
+        // close this control  DO NOT call Super::Close()
+        virtual void Close() noexcept = 0;
+    public:
+        // get control name for script
+        LongUIInline auto GetName_fs() const noexcept {
             static char buffer[LongUIStringBufferLength];
             buffer[LongUI::WideChartoUTF8(m_strControlName.c_str(), buffer)] = L'\0';
-            return buffer;
+            return static_cast<const char*>(buffer);
         }
     public:
         // ator
@@ -80,17 +91,6 @@ namespace LongUI{
             }
             return control;
         }
-    public:
-        // Render 
-        virtual void Render(RenderType) const noexcept;
-        // update
-        virtual void Update() noexcept;
-        // do event 
-        virtual bool DoEvent(LongUI::EventArgument&) noexcept = 0;
-        // recreate , first call or device reset
-        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT;
-        // close this control  DO NOT call Super::Close()
-        virtual void Close() noexcept = 0;
     protected:
         // new operator with buffer -- placement new 
         void* operator new(size_t s, void* buffer) noexcept { return buffer; };
@@ -160,7 +160,7 @@ namespace LongUI{
         union {
             void*               p = nullptr;
             size_t              i;
-            float               f[sizeof(void*) / sizeof(float)];
+            float               f;
         } user_data;
         // extend data
         void*                   extend_data = nullptr;
@@ -172,7 +172,7 @@ namespace LongUI{
         // the position of draw zone has been changed
         bool                    m_bDrawPosChanged = false;
         // align for sizeof(void*)
-        bool                    m_unused[2];
+        bool                    m_unused_bool2_control[2];
     protected:
         // user context
         void*                   user_context = nullptr;
@@ -213,48 +213,8 @@ namespace LongUI{
         UIControl*    const related_retained = nullptr;
         // margin rect
         D2D1_RECT_F   const margin_rect = D2D1::RectF();
-    public:
-        // control current visible position(relative for world) , modified by 
-        // parent, read only for self,
+        // control current visible position(relative to world) , modified by parent
         D2D1_RECT_F         visible_rect = D2D1::RectF();
     };
-#if 0
-    // Template UIControl
-    class TemplateControl : public LongUI::UIControl {
-        // super class define
-        using Super = LongUI::UIControl;
-    public:
-        // create 创建
-        static UIControl* WINAPI CreateControl(pugi::xml_node node) noexcept {
-            if (!node) {
-                UIManager << DL_Warning << L"node null" << LongUI::endl;
-            }
-            // 申请空间
-            auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIVerticalLayout>(
-                node,
-                [=](void* p) noexcept { new(p) UIVerticalLayout(node);}
-            );
-            if (!pControl) {
-                UIManager << DL_Error << L"alloc null" << LongUI::endl;
-            }
-            return pControl;
-    }
-    public:
-        // Render This Control
-        virtual HRESULT Render(RenderType) noexcept;
-        // do the event
-        virtual bool    DoEvent(LongUI::EventArgument&) noexcept;
-        // recreate resource
-        virtual HRESULT Recreate(LongUIRenderTarget*) noexcept;
-        // close this control
-        virtual void    Close() noexcept { delete this; };
-    protected:
-        // constructor
-        TemplateControl(pugi::xml_node node) noexcept :Super(node) {}
-        // destructor
-        ~TemplateControl() {}
-    protected:
-    };
-#endif
 }
 

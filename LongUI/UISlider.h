@@ -29,11 +29,6 @@
 namespace LongUI{
     // default slider control 默认滑块控件
     class LongUIAPI UISlider : public UIControl {
-        enum UnusedIndex{
-            Unused_MouseClickIn = 0,
-            UNUSED_SIZE
-        };
-    private:
         // 父类申明
         using Super = UIControl ;
     public:
@@ -42,7 +37,7 @@ namespace LongUI{
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate 重建
         //virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
         // close this control 关闭控件
@@ -80,5 +75,9 @@ namespace LongUI{
         float               m_fEnd = 100.f;
         // slider half width
         float               m_fSliderHalfWidth = static_cast<float>(LongUIDefaultSliderHalfWidth);
+        // is mouse click in
+        bool                m_bMouseClickIn = false;
+        // unused for slider
+        bool                m_bunsed_slider[3];
     };
 }

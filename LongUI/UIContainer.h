@@ -73,7 +73,7 @@ namespace LongUI {
         // update
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
     public:

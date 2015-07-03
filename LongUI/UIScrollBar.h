@@ -50,7 +50,7 @@ namespace LongUI{
         };
     public:
         // do event 事件处理
-        bool DoEvent(LongUI::EventArgument&) noexcept override;
+        bool DoEvent(const LongUI::EventArgument&) noexcept override;
     public:
         // Render 渲染 
         //virtual void Render(RenderType type) const noexcept override;
@@ -128,7 +128,7 @@ namespace LongUI{
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        bool DoEvent(LongUI::EventArgument&) noexcept override;
+        bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate
         auto Recreate(LongUIRenderTarget* )noexcept->HRESULT override;
         // close this control 关闭控件

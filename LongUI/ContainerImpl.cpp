@@ -133,9 +133,9 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
 auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIControl* {
     UIControl* control_out = nullptr;
     for (auto ctrl : (*this)) {
-        if (m_strControlName == L"MainWindow") {
+        /*if (m_strControlName == L"MainWindow") {
             int a = 9;
-        }
+        }*/
         // 区域内判断
         if (IsPointInRect(ctrl->visible_rect, pt)) {
             if (ctrl->flags & Flag_UIContainer) {
@@ -151,7 +151,7 @@ auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIContro
 }
 
 // do event 事件处理
-bool LongUI::UIContainer::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // TODO: 参数EventArgument改为const
     bool done = false;
     // 转换坐标
@@ -478,9 +478,9 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
         float counter = 0.0f;
-        if (m_strControlName == L"MainWindow") {
+        /*if (m_strControlName == L"MainWindow") {
             int a = 0;
-        }
+        }*/
         // 第一次
         for (auto ctrl : (*this)) {
             // 非浮点控件
@@ -545,9 +545,9 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             return this->refresh_child_layout();
         }
 #endif
-        if (m_strControlName == L"MainWindow") {
+        /*if (m_strControlName == L"MainWindow") {
             int a = 0;
-        }
+        }*/
     }
     // 父类刷新
     return Super::Update();
@@ -669,7 +669,7 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
 
 // UIHorizontalLayout 重建
 auto LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    HRESULT hr = S_OK;
+    auto hr = S_OK;
     if (newRT) {
         for (auto ctrl : (*this)) {
             hr = ctrl->Recreate(newRT);

@@ -18,8 +18,9 @@ For this repo, you need:
 ##Remarks
   
   Windows 7 also supported Direct2D 1.1, but DirectComposition,  
-  planned support for Win7 without DirectComposition,but MS   
-  said that Win7 could upgrade to Win10 for free, so just 'planned'
+  planned support for Win7 without DirectComposition,but MS  
+  said that Win7 could upgrade to Win10 for free, so just 'planned'  
+  and, maybe Win8.1/Win10 support in the next year
   
 ##LongUI Programming Style
   

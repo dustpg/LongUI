@@ -90,7 +90,7 @@ LongUI::UIControl* LongUI::UICheckBox::CreateControl(pugi::xml_node node) noexce
 
 
 // do event 事件处理
-bool LongUI::UICheckBox::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
     D2D1_COLOR_F* color = nullptr;
     if (arg.sender) {
         switch (arg.event)

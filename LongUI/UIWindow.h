@@ -46,7 +46,7 @@ namespace LongUI{
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate 重建
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
@@ -122,6 +122,9 @@ namespace LongUI{
         void BeginDraw() noexcept;
         // end draw
         auto EndDraw(uint32_t vsyc = 0) noexcept->HRESULT;
+    public: // MSG MAPPING ZONE
+        // on WM_MOUSEMOVE
+        bool OnMouseMove(const LongUI::EventArgument&) noexcept;
     protected:
         // constructor
         UIWindow(pugi::xml_node node, UIWindow * parent=nullptr) noexcept;
@@ -130,10 +133,13 @@ namespace LongUI{
         // deleted 
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
     public:
+        // use UIControl::visible_rect instead of this
+#if 0
         // the real logic width  of window(HWND)
         float           const   width = 0.f;
         // the real logic height of window(HWND)
         float           const   height = 0.f;
+#endif
         // the real pixel size  of window(HWND)
         D2D1_SIZE_F     const   windows_size = D2D1::SizeF();
     protected:

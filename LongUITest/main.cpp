@@ -136,7 +136,7 @@ public:
         Super::Update();
     }
     //do the event
-    virtual bool DoEvent(LongUI::EventArgument& arg) noexcept  override {
+    virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept  override {
         D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
         D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
         if (arg.sender) {
@@ -262,7 +262,7 @@ public:
         return S_OK;*/
     }
     //do the event
-    virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override {
+    virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override {
         if (arg.sender) {
             /*if (arg.event == LongUI::Event::Event_FindControl) {
                 // 检查鼠标范围

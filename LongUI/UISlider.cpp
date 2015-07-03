@@ -39,9 +39,7 @@ void LongUI::UISlider::Update() noexcept {
 }
 
 // UISlider 构造函数
-LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node) {
-    static_assert(UNUSED_SIZE <= lengthof(m_unused), "unused size!");
-}
+inline LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node) { }
 
 // UISlider::CreateControl 函数
 LongUI::UIControl* LongUI::UISlider::CreateControl(pugi::xml_node node) noexcept {
@@ -62,7 +60,7 @@ LongUI::UIControl* LongUI::UISlider::CreateControl(pugi::xml_node node) noexcept
 
 
 // do event 事件处理
-bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender){
         switch (arg.event)
         {
@@ -85,11 +83,11 @@ bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
         case WM_LBUTTONDOWN:
             m_pWindow->SetCapture(this);
             if (IsPointInRect(m_rcSlider, arg.pt)){
-                m_unused[Unused_MouseClickIn] = true;
+                m_bMouseClickIn = true;
             }
             break;
         case WM_MOUSEMOVE:
-            if (m_unused[Unused_MouseClickIn] && arg.wParam_sys & MK_LBUTTON){
+            if (m_bMouseClickIn && arg.wParam_sys & MK_LBUTTON){
                 m_fValue = (arg.pt.x) / this->width;
                 if (m_fValue > 1.f) m_fValue = 1.f;
                 if (m_fValue < 0.f) m_fValue = 0.f;
@@ -97,19 +95,19 @@ bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
             }
             break;
         case WM_LBUTTONUP:
-            m_unused[Unused_MouseClickIn] = false;
+            m_bMouseClickIn = false;
             m_pWindow->ReleaseCapture();
             break;
         }
         // 检查事件
         if (m_fValueOld != m_fValue) {
             m_fValueOld = m_fValue;
-            auto tempmsg = arg.msg;
-            arg.sender = this;
-            arg.event = LongUI::Event::Event_SliderValueChanged;
+            auto temparg = arg;
+            temparg.sender = this;
+            temparg.event = LongUI::Event::Event_SliderValueChanged;
             // 检查脚本
             if (m_pScript && m_script.data) {
-                m_pScript->Evaluation(m_script, arg);
+                m_pScript->Evaluation(m_script, temparg);
             }
             // 检查是否有事件回调
             if (m_eventChanged) {
@@ -117,9 +115,8 @@ bool LongUI::UISlider::DoEvent(LongUI::EventArgument& arg) noexcept {
             }
             else {
                 // 否则发送事件到窗口
-                m_pWindow->DoEvent(arg);
+                m_pWindow->DoEvent(temparg);
             }
-            arg.msg = tempmsg;
             // 刷新
             m_pWindow->Invalidate(this);
         }

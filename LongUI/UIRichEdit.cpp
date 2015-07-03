@@ -1,7 +1,7 @@
 ﻿#include "LongUI.h"
 
 #if defined(_DEBUG)  && 1
-#define TRACE_FUCTION UIManager << DL_Log << L"Trace:<%S> called" << LongUI::endl
+#define TRACE_FUCTION UIManager << DL_Log << L"Trace: called" << LongUI::endl
 #else
 #define TRACE_FUCTION
 #endif
@@ -39,9 +39,7 @@ void LongUI::UIRichEdit::Update() noexcept {
 }
 
 // UIRichEdit 构造函数
-LongUI::UIRichEdit::UIRichEdit(pugi::xml_node node) noexcept: Super(node){
-    static_assert(UNUSED_SIZE <= lengthof(m_unused), "unused size!");
-}
+inline LongUI::UIRichEdit::UIRichEdit(pugi::xml_node node) noexcept: Super(node){ }
 
 // UIRichEdit 析构函数
 LongUI::UIRichEdit::~UIRichEdit() noexcept {
@@ -73,7 +71,7 @@ LongUI::UIControl* LongUI::UIRichEdit::CreateControl(pugi::xml_node node) noexce
 
 
 // do event 事件处理
-bool LongUI::UIRichEdit::DoEvent(LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIRichEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
@@ -213,7 +211,7 @@ BOOL LongUI::UIRichEdit::TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight){
 // ITextHost::TxShowCaret 实现:显示/隐藏光标
 BOOL LongUI::UIRichEdit::TxShowCaret(BOOL fShow){
     TRACE_FUCTION;
-    m_unused[Unused_ShowCaret] = (fShow != 0);
+    //m_unused[Unused_ShowCaret] = (fShow != 0);
     return TRUE;
 }
 

@@ -14,6 +14,7 @@
 
 #define MakeAsUnit(a) (((a) + (LongUITargetBitmapUnitSize-1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize)
 
+
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node,
     UIWindow* parent) noexcept : Super(node) {
@@ -61,10 +62,10 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     else {
         window_rect.bottom = static_cast<LONG>(this->height);
     }
-    force_cast(this->windows_size.width) = this->UIControl::width;
-    force_cast(this->UIWindow::width) = this->UIControl::width;
-    force_cast(this->windows_size.height) = this->UIControl::height;
-    force_cast(this->UIWindow::height) = this->UIControl::width;
+    force_cast(this->windows_size.width) = this->width;
+    force_cast(this->windows_size.height) = this->height;
+    visible_rect.right = this->width;
+    visible_rect.bottom = this->height;
     // 调整大小
     ::AdjustWindowRect(&window_rect, window_style, FALSE);
     // 居中
@@ -678,15 +679,14 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
 }
 
 // UIWindow 事件处理
-bool LongUI::UIWindow::
-DoEvent(LongUI::EventArgument& _arg) noexcept {
+bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     // 自己不处理LongUI事件
     if (_arg.sender) return Super::DoEvent(_arg);
-    LongUI::EventArgument new_arg;
     bool handled = false; UIControl* control_got = nullptr;
     // 处理事件
     switch (_arg.msg)
     {
+        LongUI::EventArgument new_arg;
     case WM_SETCURSOR:
         // 设置光标
         ::SetCursor(now_cursor);
@@ -707,45 +707,7 @@ DoEvent(LongUI::EventArgument& _arg) noexcept {
     }
     break;*/
     case WM_MOUSEMOVE:
-        ::TrackMouseEvent(&m_csTME);
-        if (m_normalLParam != _arg.lParam_sys) {
-            m_normalLParam = _arg.lParam_sys;
-        }
-        else {
-            handled = true;
-            break;
-        }
-        // 有待捕获控件
-        if (m_pCapturedControl) {
-            m_pCapturedControl->DoEvent(_arg);
-            handled = true;
-            break;
-        }
-        // 查找子控件
-        control_got = this->FindControl(_arg.pt);
-        if (control_got) {
-            //UIManager << DL_Hint << "FIND: " << control_got->GetName() << endl;
-        }
-        // 不同
-        if (control_got != m_pPointedControl) {
-            new_arg = _arg;
-            new_arg.sender = this;
-            // 有效
-            if (m_pPointedControl) {
-                new_arg.event = LongUI::Event::Event_MouseLeave;
-                m_pPointedControl->DoEvent(new_arg);
-            }
-            // 有效
-            if ((m_pPointedControl = control_got)) {
-                new_arg.event = LongUI::Event::Event_MouseEnter;
-                m_pPointedControl->DoEvent(new_arg);
-            }
-        }
-        // 相同
-        else if(control_got) {
-            control_got->DoEvent(_arg);
-        }
-        handled = true;
+        handled = this->OnMouseMove(_arg);
         break;
     case WM_TIMER:
         // 闪烁?
@@ -1110,6 +1072,53 @@ void LongUI::UIWindow::Close() noexcept {
     UIManager.Exit();
 }
 
+
+// 鼠标移动时候
+bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
+    bool handled = false;
+    do {
+        ::TrackMouseEvent(&m_csTME);
+        if (m_normalLParam != arg.lParam_sys) {
+            m_normalLParam = arg.lParam_sys;
+        }
+        else {
+            handled = true;
+            break;
+        }
+        // 有待捕获控件
+        if (m_pCapturedControl) {
+            m_pCapturedControl->DoEvent(arg);
+            handled = true;
+            break;
+        }
+        // 查找子控件
+        auto control_got = this->FindControl(arg.pt);
+        if (control_got) {
+            //UIManager << DL_Hint << "FIND: " << control_got->GetName() << endl;
+        }
+        // 不同
+        if (control_got != m_pPointedControl) {
+            auto new_arg = arg;
+            new_arg.sender = this;
+            // 有效
+            if (m_pPointedControl) {
+                new_arg.event = LongUI::Event::Event_MouseLeave;
+                m_pPointedControl->DoEvent(new_arg);
+            }
+            // 有效
+            if ((m_pPointedControl = control_got)) {
+                new_arg.event = LongUI::Event::Event_MouseEnter;
+                m_pPointedControl->DoEvent(new_arg);
+            }
+        }
+        // 相同
+        else if (control_got) {
+            control_got->DoEvent(arg);
+        }
+        handled = true;
+    } while (false);
+    return handled;
+}
 
 // ----------------- IDropTarget!!!! Yooooooooooo~-----
 

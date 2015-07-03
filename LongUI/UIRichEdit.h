@@ -29,11 +29,8 @@
 namespace LongUI {
     // default rich edit 默认富文本编辑控件
     class LongUIAPI  UIRichEdit :  public UIControl, public ComStatic<QiList<ITextHost2>> {
-        // unused
-        enum UnusedIndex {
-            Unused_ShowCaret = 0,
-            UNUSED_SIZE
-        };
+        // 父类申明
+        using Super = UIControl;
     public:
         // Text Services 2 IID指针
         static IID*                                IID_ITextServices2;
@@ -41,16 +38,13 @@ namespace LongUI {
         static decltype(&::CreateTextServices)     CreateTextServices;
         // 关闭文本服务-函数指针
         static decltype(&::ShutdownTextServices)   ShutdownTextServices;
-    private:
-        // 父类申明
-        using Super = UIControl ;
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate 重建
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
