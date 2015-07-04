@@ -50,14 +50,14 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
     // 默认
     if (this->width == 0.f) {
-        this->UIControl::width = static_cast<float>(LongUIDefaultWindowWidth);
+        this->width = static_cast<float>(LongUIDefaultWindowWidth);
     }
     else {
         window_rect.right = static_cast<LONG>(this->width);
     }
     // 更新
     if (this->height == 0.f) {
-        this->UIControl::height = static_cast<float>(LongUIDefaultWindowHeight);
+        this->height = static_cast<float>(LongUIDefaultWindowHeight);
     }
     else {
         window_rect.bottom = static_cast<LONG>(this->height);

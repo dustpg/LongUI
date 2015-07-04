@@ -117,6 +117,8 @@ namespace LongUI{
         LongUIInline auto DrawPosChanged() noexcept { m_bDrawPosChanged = true; }
         // get window of control
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
+        // XXX: is top level?
+        LongUIInline auto IsTopLevel() const noexcept;
     protected: // Helper Zone
         // Set Event Call Back
         void SetEventCallBack(const wchar_t*, LongUI::Event, LongUICallBack) noexcept;

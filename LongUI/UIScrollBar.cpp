@@ -149,7 +149,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
         m_rtArrow1.bottom = m_rtArrow1.top + BASIC_SIZE;
         m_rtArrow2.top = m_rtArrow2.bottom - BASIC_SIZE;
         // 计算Thumb
-        register auto height = m_pOwner->height - BASIC_SIZE*2.f;
+        register auto height = m_pOwner->visible_size.height - BASIC_SIZE*2.f;
         m_rtThumb.top = (m_fIndex * bilibili + m_rtArrow1.bottom);
         m_rtThumb.bottom = (m_rtThumb.top + bilibili * height) - 1.f;
     }
@@ -158,7 +158,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
         m_rtArrow1.right = m_rtArrow1.left + BASIC_SIZE;
         m_rtArrow2.left = m_rtArrow2.right - BASIC_SIZE;
         // 计算Thumb
-        register auto width = m_pOwner->width - BASIC_SIZE*2.f;
+        register auto width = m_pOwner->visible_size.width - BASIC_SIZE*2.f;
         m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
         m_rtThumb.right = (m_rtThumb.left + bilibili * width) - 1.f;
     }
@@ -173,7 +173,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
 // UIScrollBarA 渲染 
 void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
     if (type != RenderType::Type_Render) return;
-    //D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
+    D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
     // 更新
     D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
@@ -195,10 +195,6 @@ void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
     m_uiArrow1.Render(m_rtArrow1);
     m_uiArrow2.Render(m_rtArrow2);
     m_uiThumb.Render(m_rtThumb);
-    //
-    UIManager << DL_Hint << m_rtArrow1 << m_rtArrow2 << m_rtArrow2 << endl;
-    //
-    //UIManager << DL_Hint << m_rtThumb << endl;
     // 前景
     auto render_geo = [](ID2D1RenderTarget* const target, ID2D1Brush* const bush,
         ID2D1Geometry* const geo, const D2D1_RECT_F& rect) noexcept {
@@ -241,6 +237,8 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
         auto length = this->get_length() - UIScrollBarA::BASIC_SIZE * 2.f;
         return (pos) / length * m_fMaxRange;
     };
+    D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     // 控件消息
     if (arg.sender) {
         switch (arg.event)
@@ -258,7 +256,7 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 记录点击点
             m_bCaptured = true;
             m_fOldPoint = get_real_pos(
-                this->type == ScrollBarType::Type_Vertical ? arg.pt.y : arg.pt.x
+                this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x
                 );
             this->set_status(m_pointType, LongUI::Status_Pushed);
             // 检查
@@ -282,7 +280,7 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 // 指向thumb?
                 if (m_pointType == PointType::Type_Thumb) {
                     auto index = get_real_pos(
-                        this->type == ScrollBarType::Type_Vertical ? arg.pt.y : arg.pt.x
+                        this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x
                         );
                     this->SetIndex(m_fIndex + index - m_fOldPoint);
                     m_fOldPoint = index;
@@ -290,13 +288,13 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             }
             //  检查指向类型
             else {
-                if (IsPointInRect(m_rtArrow1, arg.pt)) {
+                if (IsPointInRect(m_rtArrow1, pt4self)) {
                     m_pointType = PointType::Type_Arrow1;
                 }
-                else if (IsPointInRect(m_rtArrow2, arg.pt)) {
+                else if (IsPointInRect(m_rtArrow2, pt4self)) {
                     m_pointType = PointType::Type_Arrow2;
                 }
-                else if (IsPointInRect(m_rtThumb, arg.pt)) {
+                else if (IsPointInRect(m_rtThumb, pt4self)) {
                     m_pointType = PointType::Type_Thumb;
                 }
                 else {

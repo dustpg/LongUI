@@ -136,6 +136,13 @@ auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIContro
         /*if (m_strControlName == L"MainWindow") {
             int a = 9;
         }*/
+        // 滚动条
+        if (this->scrollbar_h && IsPointInRect(this->scrollbar_h->visible_rect, pt)) {
+            return this->scrollbar_h;
+        }
+        if (this->scrollbar_v && IsPointInRect(this->scrollbar_v->visible_rect, pt)) {
+            return this->scrollbar_v;
+        }
         // 区域内判断
         if (IsPointInRect(ctrl->visible_rect, pt)) {
             if (ctrl->flags & Flag_UIContainer) {
@@ -229,17 +236,13 @@ void LongUI::UIContainer::Update() noexcept  {
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
         this->GetWorldTransform(this->world);
-        // 修改可视化区域
+        // 修改可视化区域, 顶级就是窗口大小
         if (this->IsTopLevel()) {
-#if 0
-            this->visible_size.width = m_pWindow->UIWindow::width;
-            this->visible_size.height = m_pWindow->UIWindow::height;
-#else
-            this->visible_size.width = static_cast<UIWindow*>(this)->UIWindow::width;
-            this->visible_size.height = static_cast<UIWindow*>(this)->UIWindow::height;
-#endif
+            this->visible_size.width = this->visible_rect.right;
+            this->visible_size.height = this->visible_rect.bottom;
         }
-        else{
+        // 然后...?
+        else {
             this->visible_size.width = std::min(this->width, this->parent->width);
             this->visible_size.height = std::min(this->height, this->parent->height);
         }
@@ -271,18 +274,28 @@ void LongUI::UIContainer::Update() noexcept  {
         if (this->scrollbar_h) {
             register float size = this->scrollbar_h->GetTakingUpSapce();
             basic_margin_bottom += size;
-            this->scrollbar_h->x = 0.f;
-            this->scrollbar_h->y = this->visible_size.height - size;
+            this->scrollbar_h->x = -this->offset.x;
+            this->scrollbar_h->y = -this->offset.y + this->visible_size.height - size;
             this->scrollbar_h->width = this->visible_size.width;
             this->scrollbar_h->height = size;
+            // 修改可视区域
+            //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
+            this->scrollbar_h->visible_rect = this->visible_rect;
+            this->scrollbar_h->visible_rect.top = this->scrollbar_h->visible_rect.bottom -
+                this->world._11 * this->scrollbar_h->GetHitSapce();
         }
         if (this->scrollbar_v) {
             register float size = this->scrollbar_h->GetTakingUpSapce();
             basic_margin_right += size;
-            this->scrollbar_v->x = this->visible_size.width - size;
-            this->scrollbar_v->y = 0.f;
+            this->scrollbar_v->x = -this->offset.x + this->visible_size.width - size;
+            this->scrollbar_v->y = -this->offset.y;
             this->scrollbar_v->width = size;
             this->scrollbar_v->height = this->visible_size.height;
+            // 修改可视区域
+            //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
+            this->scrollbar_v->visible_rect = this->visible_rect;
+            this->scrollbar_v->visible_rect.left = this->scrollbar_v->visible_rect.right -
+                this->world._22 * this->scrollbar_v->GetHitSapce();
         }
     }
     // 刷新滚动条

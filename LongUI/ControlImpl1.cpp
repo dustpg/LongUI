@@ -272,9 +272,7 @@ void LongUI::UIControl::SetEventCallBack(
     if (!control) return;
     // 自定义消息?
     if (event >= LongUI::Event::Event_CustomEvent) {
-        UIManager.configure->SetEventCallBack(
-            event, call, control, this
-            );
+        UIManager.configure->SetEventCallBack(event, call, control, this);
         return;
     }
     switch (event)
@@ -350,28 +348,19 @@ void LongUI::UIControl::GetContentRect(D2D1_RECT_F& rect) const noexcept {
 void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept {
     float xx = this->x + this->margin_rect.left + m_fBorderSize;
     float yy = this->y + this->margin_rect.top + m_fBorderSize;
-#if 0
-    // 检查
-    if (this->parent && !(this->flags & Flag_FreeFromScrollBar)) {
-        xx += this->parent->offset.x;
-        yy += this->parent->offset.y;
-    }
-    // 转换
-    if (this->parent) {
+    // 非顶级控件
+    if (!this->IsTopLevel()) {
+        // 检查
+        if (!(this->flags & Flag_FreeFromScrollBar)) {
+            xx += this->parent->offset.x;
+            yy += this->parent->offset.y;
+        }
+        // 转换
         matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     }
     else {
         matrix = D2D1::Matrix3x2F::Translation(xx, yy);
     }
-#else
-    // 检查
-    if (!(this->flags & Flag_FreeFromScrollBar)) {
-        xx += this->parent->offset.x;
-        yy += this->parent->offset.y;
-    }
-    // 转换
-    matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
-#endif
 }
 
 
@@ -468,7 +457,13 @@ void LongUI::UIButton::Render(RenderType type)const noexcept {
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
         this->GetContentRect(draw_rect);
-        this->visible_rect;
+        {
+            D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
+            if (m_strControlName == L"1") {
+                UIManager << DL_Hint << matrix._31 << "  "
+                    << this->parent->offset << "  " << endl;
+            }
+        }
         // 渲染部件
         m_uiElement.Render(draw_rect);
         __fallthrough;
