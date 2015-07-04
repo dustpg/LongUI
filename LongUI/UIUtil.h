@@ -585,48 +585,33 @@ namespace LongUI {
         wchar_t             m_name[64];
         // buffer
         wchar_t             m_buffer[LongUIStringBufferLength];
-    public:
-        // 安全写入
-        inline BOOL SafeWriteFile(
-             HANDLE hFile,
-            LPCVOID lpBuffer,
-            DWORD nNumberOfBytesToWrite,
-            LPDWORD lpNumberOfBytesWritten,
-             LPOVERLAPPED lpOverlapped
-            ) {
-            ::EnterCriticalSection(&m_cs);
-            BOOL bRet = ::WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped);
-            ::LeaveCriticalSection(&m_cs);
-            return bRet;
-        }
     };
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
     // CUIDefaultConfigure, default impl for IUIConfigure
     class CUIDefaultConfigure : public IUIConfigure {
     public:
         // 构造函数
-        CUIDefaultConfigure() = default;
+        CUIDefaultConfigure(CUIManager& manager) : m_manager(manager) {}
     public:
-        // release it
-        virtual void Release() noexcept override {  };
+        // qi
+        virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid,void** ppvObject) noexcept ->HRESULT override final;
+        // add ref count
+        virtual auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return 2; }
+        // release
+        virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
+    public:
         // get bin-res loader, return nullptr for xml-based resource
         virtual auto GetResLoader() noexcept->IUIResourceLoader* { return nullptr; };
         // get xml based resource(not file name)
         virtual auto GetResourceXML() noexcept -> const char* override { return resource; };
         // get template string for control
         virtual auto GetTemplateString() noexcept->const char* { return nullptr; }
-        // get inline param handler
-        virtual auto GetInlineParamHandler() noexcept->InlineParamHandler override { return handler; };
-        // get script interface
-        virtual auto GetScript() noexcept->IUIScript* override { return script; };
-        // create font collection
-        virtual auto CreateFontCollection(CUIManager& manager) noexcept->IDWriteFontCollection* override { return nullptr; };
         // get locale name of ui(for text)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
         // create bitmap from resource identifier
-        virtual auto LoadBitmapByRI(CUIManager& manager, const char* res_iden) noexcept->ID2D1Bitmap1* override;
+        virtual auto LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* override;
         // add all custom controls
-        virtual auto AddCustomControl(CUIManager& manager) noexcept->void override {};
+        virtual auto AddCustomControl() noexcept->void override {};
         // return true, if using cpu rendering
         virtual auto IsRenderByCPU() noexcept->bool override { return false; }
         // if using gpu render, you should choose a video card, return the index
@@ -642,6 +627,9 @@ namespace LongUI {
         // create debug console
         void CreateConsole(DebugStringLevel level) noexcept;
 #endif
+    protected:
+        // manager
+        CUIManager&         m_manager;
     public:
         // resource
         const char*         resource = nullptr;

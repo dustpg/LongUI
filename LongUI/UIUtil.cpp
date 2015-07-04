@@ -753,10 +753,10 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
 }
 
 // CUIDefaultConfigure::LoadBitmapByRI Impl
-auto LongUI::CUIDefaultConfigure::LoadBitmapByRI(CUIManager& manager, const char* res_iden) noexcept->ID2D1Bitmap1* {
+auto LongUI::CUIDefaultConfigure::LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* {
     wchar_t buffer[MAX_PATH * 4]; buffer[LongUI::UTF8toWideChar(res_iden, buffer)] = L'\0';
     ID2D1Bitmap1* bitmap = nullptr;
-    CUIManager::LoadBitmapFromFile(manager, manager, buffer, 0, 0, &bitmap);
+    CUIManager::LoadBitmapFromFile(m_manager, m_manager, buffer, 0, 0, &bitmap);
     return bitmap;
 }
 
@@ -816,15 +816,23 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
         if(!flush) return 0;
     }
     DWORD dwWritten = DWORD(-1);
+    auto safe_write_file = [this](HANDLE hFile, LPCVOID lpBuffer,
+        DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten,
+        LPOVERLAPPED lpOverlapped) noexcept {
+        ::EnterCriticalSection(&m_cs);
+        BOOL bRet = ::WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped);
+        ::LeaveCriticalSection(&m_cs);
+        return bRet;
+    };
     // 先写入缓冲区
     if (m_length) {
-        this->SafeWriteFile(m_hConsole, m_buffer, m_length * sizeof(wchar_t), &dwWritten, nullptr);
+        safe_write_file(m_hConsole, m_buffer, m_length * sizeof(wchar_t), &dwWritten, nullptr);
         m_length = 0;
     }
     // 再写入目标
     if (str) {
         len *= sizeof(wchar_t);
-        return (!this->SafeWriteFile(m_hConsole, str, len, &dwWritten, nullptr)
+        return (!safe_write_file(m_hConsole, str, len, &dwWritten, nullptr)
             || (int)dwWritten != len) ? -1 : (int)dwWritten;
     }
     return 0;
@@ -987,6 +995,41 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
 // --------------  CUIDefaultConfigure ------------
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
+// 查询接口信息
+auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
+    // 非接口
+    if (riid == IID_LONGUI_InlineParamHandler) {
+        if (handler) {
+            *ppvObject = handler;
+            return S_OK;
+        }
+        else {
+            return E_NOINTERFACE;
+        }
+    }
+    // 接口
+    IUIInterface* uiinterface = nullptr;
+    if (riid == IID_LONGUI_IUIConfigure) {
+        uiinterface = this;
+    }
+    else if (riid == IID_LONGUI_IUIResourceLoader) {
+        //uiinterface = nullptr;
+    }
+    else if (riid == IID_LONGUI_IUIScript) {
+        uiinterface = script;
+
+    }
+    script->Release();
+    // 检查
+    if (uiinterface) {
+        uiinterface->AddRef();
+        return S_OK;
+    }
+    else {
+        return E_NOINTERFACE;
+    }
+}
+
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t {
     // 核显卡优先 
 #ifdef LONGUI_NUCLEAR_FIRST

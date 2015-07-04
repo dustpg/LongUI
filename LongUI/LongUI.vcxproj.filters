@@ -135,6 +135,9 @@
     <ClInclude Include="UIElement.h">
       <Filter>LongUI\Component</Filter>
     </ClInclude>
+    <ClInclude Include="UIInput.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

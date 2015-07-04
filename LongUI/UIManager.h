@@ -53,9 +53,9 @@ namespace LongUI {
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b =nullptr) noexcept;
         // lock
-        auto Lock() noexcept { return m_locker.Lock(); }
+        auto Lock() noexcept { return m_uiLocker.Lock(); }
         // unlock
-        auto Unlock() noexcept { return m_locker.Lock(); }
+        auto Unlock() noexcept { return m_uiLocker.Unlock(); }
     private:
         // rendering thread
         void rendering_thread();
@@ -154,6 +154,9 @@ namespace LongUI {
         // MF 媒体引擎
         IMFMediaEngineClassFactory*     m_pMediaEngineFactory = nullptr;
 #endif
+        // 转换为 CUIInput
+        LongUIInline operator const CUIInput&() const noexcept { return m_uiInput; };
+#define UIInput (static_cast<const CUIInput&>(UIManager))
     public:
         // script 脚本
         IUIScript*           const      script = nullptr;
@@ -165,15 +168,7 @@ namespace LongUI {
         WindowsVersion       const      version = WindowsVersion::Style_Win8;
         // user context size 用户上下文大小
         size_t               const      user_context_size = 0;
-        // now mouse states
-        DIMOUSESTATE         const      now_mouse_states = DIMOUSESTATE();
     private:
-        // last mouse states
-        DIMOUSESTATE                    m_lastMouseStates;
-        // DirectInput
-        IDirectInput8W*                 m_pDirectInput = nullptr;
-        // DInput Mouse
-        IDirectInputDevice8W*           m_pDInputMouse = nullptr;
         // D2D 工厂
         ID2D1Factory1*                  m_pd2dFactory = nullptr;
         // WIC 工厂
@@ -216,8 +211,10 @@ namespace LongUI {
         std::atomic_uint32_t            m_exitFlag = false;
         // 渲染器数量
         uint32_t                        m_uTextRenderCount = 0;
+        // 输入
+        CUIInput                        m_uiInput;
         // 锁
-        CUILocker                       m_locker;
+        CUILocker                       m_uiLocker;
         // TF 仓库
         BasicContainer                  m_textFormats;
         // 笔刷容器

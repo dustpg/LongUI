@@ -28,12 +28,20 @@
 
 // longui namespace
 namespace LongUI {
-    // LongUI UI Interface
-    class DECLSPEC_NOVTABLE IUIInterface {
+    // LongUI UI Interface, IUnkown like interface
+    class DECLSPEC_NOVTABLE IUIInterface { 
     public:
-        // release it
-        virtual void Release() noexcept = 0;
+        // qi
+        virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT = 0;
+        // add ref count
+        virtual auto STDMETHODCALLTYPE AddRef() noexcept->ULONG = 0;
+        // release
+        virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG = 0;
     };
+#define LONGUI_BASIC_INTERFACE_IMPL\
+    auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final { return E_NOINTERFACE; }\
+    auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return 2; }\
+    auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { return 1; };
     // Script define
     struct UIScript {
         UIScript() = default;
@@ -74,7 +82,9 @@ namespace LongUI {
     };
     // pre-dec 提前声明
     class LongUIAPI CUIManager;
-    // script
+    // script {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
+    static const GUID IID_LONGUI_IUIScript =
+    { 0x9b531bd, 0x2e3b, 0x4c98, { 0x98, 0x5c, 0x1f, 0xd6, 0xb4, 0x6, 0xe5, 0x3d } };
     class DECLSPEC_NOVTABLE IUIScript : public IUIInterface {
     public:
         // run a section script with event
@@ -92,6 +102,9 @@ namespace LongUI {
     };
     // Meta
     struct Meta;
+    // {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
+    static const GUID IID_LONGUI_IUIResourceLoader = 
+    { 0x16222e4b, 0x9ac8, 0x4756,{ 0x8c, 0xa9, 0x75, 0xa7, 0x2d, 0x2f, 0x4f, 0x60 } };
     // UI Binary Resource Loader
     class DECLSPEC_NOVTABLE IUIResourceLoader : public IUIInterface {
     public:
@@ -112,27 +125,26 @@ namespace LongUI {
         // get brush by index, index in range [0, meta_count)
         virtual auto LoadMetaAt(CUIManager& manager, size_t index, LongUI::Meta& meta) noexcept->void = 0;
     };
+    // {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
+    static const GUID IID_LONGUI_IUIConfigure =
+    { 0x16222e4b, 0x9ac8, 0x4756,{ 0x8c, 0xa9, 0x75, 0xa7, 0x2d, 0x2f, 0x4f, 0x60 } };
     // UI Configure
+    // can be QI :  IID_LONGUI_InlineParamHandler(opt),
+    //              IID_LONGUI_IUIResourceLoader(opt), 
+    //              IID_LONGUI_IUIScript(opt),
+    //              IDWriteFontCollection(opt)
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
-        // get res loader, return nullptr for default xml-based-resource loader
-        virtual auto GetResLoader() noexcept->IUIResourceLoader* = 0;
         // if no bin-res loader, get xml based resource(not file name), maybe nullptr(no resource)
         virtual auto GetResourceXML() noexcept -> const char* = 0;
-        // get script interface, maybe nullptr(no script)
-        virtual auto GetScript() noexcept ->IUIScript* = 0;
         // get template string for control
         virtual auto GetTemplateString() noexcept->const char* = 0;
-        // get inline param handler
-        virtual auto GetInlineParamHandler() noexcept->InlineParamHandler = 0;
-        // create font collection, maybe nullptr(using system default)
-        virtual auto CreateFontCollection(CUIManager& manager) noexcept ->IDWriteFontCollection* = 0;
         // get locale name of ui(for text), default is L"" (locale)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void = 0;
         // if no bin-res loader,  create bitmap from resource identifier
-        virtual auto LoadBitmapByRI(CUIManager& manager, const char* res_iden) noexcept->ID2D1Bitmap1* = 0;
+        virtual auto LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* = 0;
         // add all custom controls, just return if no custom control
-        virtual auto AddCustomControl(CUIManager& manager) noexcept->void = 0;
+        virtual auto AddCustomControl() noexcept->void = 0;
         // return true, if using cpu rendering
         virtual auto IsRenderByCPU() noexcept->bool = 0;
         // if using gpu render, you should choose a video card,return the index,
@@ -149,6 +161,9 @@ namespace LongUI {
         virtual auto OutputDebugStringW(DebugStringLevel level, const wchar_t* string, bool flush) noexcept -> void = 0;
 #endif
     };
+    // {375B7749-B9F9-4F9D-BBF9-76A31CB76720}
+    static const GUID IID_LONGUI_IUICommand =
+    { 0x375b7749, 0xb9f9, 0x4f9d,{ 0xbb, 0xf9, 0x76, 0xa3, 0x1c, 0xb7, 0x67, 0x20 } };
     // UI Undo Redo Commnad
     class DECLSPEC_NOVTABLE IUICommand : public IUIInterface {
     public:
@@ -158,3 +173,4 @@ namespace LongUI {
         virtual void Redo() noexcept = 0;
     };
 }
+

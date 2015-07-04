@@ -4,8 +4,6 @@ namespace LongUI {
 #define MakeGetIID(c) template<> LongUIInline const IID& GetIID<c>() { return IID_##c; }
     // IUnknown
     MakeGetIID(IUnknown);
-    // IUnknown
-    MakeGetIID(IDirectInput8W);
     // IDropTarget
     MakeGetIID(IDropTarget);
     // IDataObject

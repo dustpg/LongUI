@@ -29,9 +29,9 @@ void MainWindow::Close() noexcept {
 }
 
 // 事件
-bool MainWindow::DoEvent(LongUI::EventArgument& arg) noexcept {
-    // if sender is valid, it's some events need window to handle
-    // 如果sender有效, 说明需要本窗口处理该消息
+bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // if sender is valid, it's some longui events need window to handle
+    // 如果sender有效, 说明需要处理longui消息
     if (arg.sender){
         bool done = false;
         switch (arg.event)

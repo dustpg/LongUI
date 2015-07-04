@@ -17,9 +17,9 @@ public:
     MRubyScript() noexcept;
     // 内联析构函数
     ~MRubyScript() noexcept {}
+    // 基本接口
+    LONGUI_BASIC_INTERFACE_IMPL;
 public:
-    // 释放脚本
-    virtual void Release() noexcept {  };
     // 运行脚本
     virtual auto Evaluation(const LongUI::UIScript, const LongUI::EventArgument&) noexcept->size_t;
     // 获取配置信息

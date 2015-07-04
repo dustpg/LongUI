@@ -37,8 +37,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     }
     // 获取信息
     force_cast(this->configure) = config;
-    force_cast(this->script) = config->GetScript();
-    force_cast(this->inline_handler) = config->GetInlineParamHandler();
+    //force_cast(this->script) = config->GetScript();
+    //force_cast(this->inline_handler) = config->GetInlineParamHandler();
     *m_szLocaleName = 0;
     config->GetLocaleName(m_szLocaleName);
     // 初始化其他
@@ -58,7 +58,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     this->AddS2CPair(L"Edit", LongUI::UIEditBasic::CreateControl);
     ///
     // 添加自定义控件
-    config->AddCustomControl(*this);
+    config->AddCustomControl();
     // 获取实例句柄
     auto hInstance = ::GetModuleHandleW(nullptr);
     // 注册窗口类 | CS_DBLCLKS
@@ -82,31 +82,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         );
     // 重建资源
     register HRESULT hr = m_pBitmap0Buffer ? S_OK : E_OUTOFMEMORY;
-    // 创建DirectInput对象
-    if (SUCCEEDED(hr)) {
-        hr = ::DirectInput8Create(
-            hInstance, 
-            DIRECTINPUT_VERSION,
-            LongUI_IID_PV_ARGS(m_pDirectInput),
-            0
-            );
-    }
-    // 创建鼠标设备
-    if (SUCCEEDED(hr)) {
-        hr = m_pDirectInput->CreateDevice(GUID_SysMouse, &m_pDInputMouse, 0);
-    }
-    // 设置数据格式 :鼠标
-    if SUCCEEDED(hr) {
-        hr = m_pDInputMouse->SetDataFormat(&c_dfDIMouse);
-    }
-    // 设置协作等级 不独占
-    if SUCCEEDED(hr) {
-        hr = m_pDInputMouse->SetCooperativeLevel(nullptr, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
-    }
-    // 获得鼠标输入设备 通知操作系统已经准备完毕
-    if SUCCEEDED(hr) {
-        hr = m_pDInputMouse->Acquire();
-    }
     // 创建D2D工厂
     if (SUCCEEDED(hr)) {
         D2D1_FACTORY_OPTIONS options = { D2D1_DEBUG_LEVEL_NONE };
@@ -139,7 +114,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     }
     // 创建字体集
     if (SUCCEEDED(hr)) {
-        m_pFontCollection = config->CreateFontCollection(*this);
+       // m_pFontCollection = config->CreateFontCollection();
         // 失败获取系统字体集
         if (!m_pFontCollection) {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
@@ -175,15 +150,9 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     return hr;
 }
 
+
 // CUIManager  反初始化
 void LongUI::CUIManager::UnInitialize() noexcept {
-    // 放弃设备
-    if (m_pDInputMouse) {
-        m_pDInputMouse->Unacquire();
-        m_pDInputMouse->Release();
-        m_pDInputMouse = nullptr;
-    }
-    SafeRelease(m_pDirectInput);
     // 释放读取器
     ::SafeRelease(m_pResourceLoader);
     // 释放文本渲染器
@@ -341,12 +310,6 @@ void LongUI::CUIManager::Run() noexcept {
     }
     //auto now_time = ::timeGetTime();
     while (!m_exitFlag) {
-        // 获取鼠标状态
-        m_lastMouseStates = this->now_mouse_states;
-        if (m_pDInputMouse->GetDeviceState(sizeof(DIMOUSESTATE), &force_cast(this->now_mouse_states))
-            == DIERR_INPUTLOST){
-            m_pDInputMouse->Acquire();
-        }
         // 消息循环
         if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
             // 两种方式退出 ::PostQuitMessage(0) or UIManager.Exit()
@@ -485,7 +448,7 @@ auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
 }
 
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept {
+LongUI::CUIManager::CUIManager() noexcept : m_config(*this) {
 }
 
 // CUIManager 析构函数
@@ -1373,7 +1336,7 @@ void LongUI::CUIManager::add_bitmap(
     // 获取路径
     const char* uri = node.attribute("res").value();
     // 载入位图
-    auto bitmap = this->configure->LoadBitmapByRI(*this, uri);
+    auto bitmap = this->configure->LoadBitmapByRI(uri);
     // 没有
     if (!bitmap) {
         UIManager << DL_Error << L"Resource Identifier: [" << uri << L"], got a null pointer" << LongUI::endl;

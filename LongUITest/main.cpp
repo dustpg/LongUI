@@ -320,15 +320,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         typedef LongUI::CUIDefaultConfigure Super;
     public:
         // 构造函数
-        DemoConfigure() : Super() { this->script = &mruby; this->resource = res_xml; }
+        DemoConfigure() : Super(UIManager) { this->script = &mruby; this->resource = res_xml; }
         // 获取地区名称
         auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
             ::wcscpy(name, L"en-us");
         };
         // 添加自定义控件
-        auto AddCustomControl(LongUI::CUIManager& manager) noexcept->void override{
-            manager.AddS2CPair(L"Test", TestControl::CreateControl);
-            manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
+        auto AddCustomControl() noexcept->void override{
+            m_manager.AddS2CPair(L"Test", TestControl::CreateControl);
+            m_manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
         };
         // 使用CPU渲染
         auto IsRenderByCPU() noexcept ->bool override { return true; }

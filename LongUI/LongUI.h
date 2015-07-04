@@ -152,6 +152,9 @@ namespace LongUI {
     using LongUICallBack = bool (UIControl::*)(UIControl*);
     // CreateControl Function 控件创建函数
     using CreateControlFunction = UIControl* (WINAPI*)(pugi::xml_node);
+    // {B0CC8D79-9761-46F0-8558-F93A073CA0E6}
+    static const GUID IID_LONGUI_InlineParamHandler =
+    { 0xb0cc8d79, 0x9761, 0x46f0,{ 0x85, 0x58, 0xf9, 0x3a, 0x7, 0x3c, 0xa0, 0xe6 } };
     // LongUI Custom Formated String Inline Param Handler
     // type:  0 for drawing effect, 1 for inline object
     // token: the string segment of this part
@@ -385,10 +388,6 @@ namespace LongUI {
     };
 }
 
-#ifndef DIRECTINPUT_VERSION
-#define DIRECTINPUT_VERSION (0x0800)
-#endif
-#include <dinput.h>
 // 
 #include "UIInterface.h"
 #include "UIString.h"
@@ -403,6 +402,7 @@ namespace LongUI {
 #include "UIEditaleText.h"
 #include "UIText.h"
 // LongUI Manager
+#include "UIInput.h"
 #include "UIManager.h"
 
 #include "UIControl.h"
