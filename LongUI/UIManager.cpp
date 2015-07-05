@@ -2357,11 +2357,30 @@ auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
     return *this;
 }
 
+// 控件
+auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    ::swprintf(
+        buffer, LongUIStringBufferLength,
+        L"[control:%ls@%ls]",
+        ctrl->GetNameStr(),
+        ctrl->GetControlClassName()
+        );
+    this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
 // 整型重载
 auto LongUI::CUIManager::operator<<(const long l) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(buffer, LongUIStringBufferLength, L"%d", l);
     this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
+// 整型重载
+auto LongUI::CUIManager::operator<<(const bool b) noexcept ->CUIManager& {
+    this->OutputNoFlush(m_lastLevel, b ? "true" : "false");
     return *this;
 }
 

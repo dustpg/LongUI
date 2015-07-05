@@ -268,6 +268,8 @@ namespace LongUI {
         ~CUIManager() noexcept;
         // delte this method 删除复制构造函数
         CUIManager(const CUIManager&) = delete;
+        // delte this method 删除移动构造函数
+        CUIManager(CUIManager&&) = delete;
     private:
         // create programs resources
         auto create_programs_resources() throw(std::bad_alloc&) ->void;
@@ -313,6 +315,10 @@ namespace LongUI {
         CUIManager& operator<< (const float f) noexcept;
         // overload << operator for long
         CUIManager& operator<< (const long l) noexcept;
+        // overload << operator for long
+        CUIManager& operator<< (const bool b) noexcept;
+        // overload << operator for long
+        CUIManager& operator<< (const UIControl*) noexcept;
         // overload << operator for endl
         CUIManager& operator<< (const LongUI::EndL) noexcept;
         // overload << operator for DXGI_ADAPTER_DESC*

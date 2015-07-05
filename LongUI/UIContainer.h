@@ -131,57 +131,6 @@ namespace LongUI {
         // create v-sb
         CreateControlFunction   m_pCreateV = nullptr;
     };
-#if 0
-    // -------------------------------------------------
-    // [Test] Single Container 单容器
-    class UISingleContainer : public UIContainer {
-        // 父类声明
-        using Super = UIContainer;
-    public: // UIControl
-        // 构造
-        UISingleContainer(pugi::xml_node node) noexcept : Super(node){
-            new(&m_itrBegin) Iterator(reinterpret_cast<void**>(&single_control), nullptr);
-            m_itrEnd = m_itrBegin;
-        }
-        // 预渲染
-        virtual void PreRender() noexcept override{ 
-            if (this->single_control) {
-                this->single_control->PreRender();
-            }
-            return Super::PreRender();
-        }
-        // 重建
-        virtual auto Recreate(LongUIRenderTarget* target) noexcept ->HRESULT override { return Super::Recreate(target); }
-        // 渲染
-        virtual auto Render(RenderType) noexcept ->HRESULT override;
-    public: // UIContainer
-        // get child at
-        auto at(uint32_t i) const noexcept ->UIControl* override final {
-            return i == 0 ? single_control : nullptr; 
-        };
-        // insert child 
-        void insert(BasicContainer::iterator, UIControl* c) noexcept final override {
-            if (this->single_control) this->single_control->Close();
-            this->single_control = c;
-            this->AfterInsert(c);
-            m_itrEnd = m_itrBegin + 1;
-            m_cChildrenCount = 1;
-        }
-        // remove
-        void erase(BasicContainer::iterator i) noexcept final override {
-            if (this->single_control && i == m_itrBegin) {
-                this->single_control->Close();
-                this->single_control = nullptr;
-                m_cChildrenCount = 0;
-                m_itrEnd = m_itrBegin;
-            }
-        }
-    public:
-        // single control
-        UIControl*                  single_control = nullptr;
-    protected:
-    };
-#endif
     // XXX: top level?
     LongUIInline auto UIControl::IsTopLevel() const noexcept { return static_cast<UIControl*>(this->parent) == this; }
 }

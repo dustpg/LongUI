@@ -66,6 +66,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     force_cast(this->windows_size.height) = this->height;
     visible_rect.right = this->width;
     visible_rect.bottom = this->height;
+    visible_size.width = this->width;
+    visible_size.height = this->height;
     // 调整大小
     ::AdjustWindowRect(&window_rect, window_style, FALSE);
     // 居中
@@ -385,8 +387,8 @@ void LongUI::UIWindow::reset_renderqueue() noexcept {
 
 
 // 计划渲染控件
-void LongUI::UIWindow::PlanToRender(
-    float waiting_time, float rendering_time, UIControl* control) noexcept {
+void LongUI::UIWindow::PlanToRender(float waiting_time, 
+    float rendering_time, UIControl* control) noexcept {
     assert((waiting_time + rendering_time) < float(LongUIPlanRenderingTotalTime) && "time overflow");
     if (m_pRenderQueue) {
         // 检查
@@ -769,13 +771,14 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     case WM_SIZE:           // 改变大小
         this->DrawSizeChanged();
         if (_arg.lParam_sys && m_pSwapChain){
-            /*this->OnResize();
+            this->OnResize();
             // 强行刷新一帧
             this->Invalidate(this);
             this->UpdateRendering();
+            this->Update();
             this->BeginDraw();
             this->Render(RenderType::Type_Render);
-            this->EndDraw(0);*/
+            this->EndDraw(0);
             handled = true;
         }
         break;

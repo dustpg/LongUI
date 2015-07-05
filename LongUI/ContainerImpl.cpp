@@ -98,7 +98,7 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
 #endif
     // 水平滚动条
     {
-        auto needed = basew > this->GetTakingUpWidth();
+        auto needed = basew > this->visible_size.width;
         if (!this->scrollbar_h && m_pCreateH && needed &&
             (this->scrollbar_h = static_cast<UIScrollBar*>(m_pCreateH(LongUINullXMLNode)))) {
             this->scrollbar_h->InitScrollBar(this, ScrollBarType::Type_Horizontal);
@@ -111,7 +111,7 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
     }
     // 垂直滚动条
     {
-        auto needed = baseh > this->GetTakingUpHeight();
+        auto needed = baseh > this->visible_size.height;
         if (!this->scrollbar_v && m_pCreateV && needed &&
             (this->scrollbar_v = static_cast<UIScrollBar*>(m_pCreateV(LongUINullXMLNode)))) {
             this->scrollbar_v->InitScrollBar(this, ScrollBarType::Type_Vertical);
@@ -236,6 +236,10 @@ void LongUI::UIContainer::Update() noexcept  {
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
         this->GetWorldTransform(this->world);
+        // 设置
+        auto set_draw_changed = [](bool draw, UIControl* ctrl) noexcept {
+            if (draw) ctrl->DrawPosChanged();
+        };
         // 修改可视化区域, 顶级就是窗口大小
         if (this->IsTopLevel()) {
             this->visible_size.width = this->visible_rect.right;
@@ -248,6 +252,7 @@ void LongUI::UIContainer::Update() noexcept  {
         }
         // 更新
         for (auto ctrl : (*this)) {
+            set_draw_changed(m_bDrawPosChanged, ctrl);
             // 更新矩阵
             D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
             D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
@@ -283,6 +288,7 @@ void LongUI::UIContainer::Update() noexcept  {
             this->scrollbar_h->visible_rect = this->visible_rect;
             this->scrollbar_h->visible_rect.top = this->scrollbar_h->visible_rect.bottom -
                 this->world._11 * this->scrollbar_h->GetHitSapce();
+            //set_draw_changed(m_bDrawPosChanged, scrollbar_h);
         }
         if (this->scrollbar_v) {
             register float size = this->scrollbar_h->GetTakingUpSapce();
@@ -296,6 +302,8 @@ void LongUI::UIContainer::Update() noexcept  {
             this->scrollbar_v->visible_rect = this->visible_rect;
             this->scrollbar_v->visible_rect.left = this->scrollbar_v->visible_rect.right -
                 this->world._22 * this->scrollbar_v->GetHitSapce();
+            //
+            //set_draw_changed(m_bDrawPosChanged, scrollbar_v);
         }
     }
     // 刷新滚动条

@@ -262,8 +262,8 @@ namespace LongUI {
     };
     // LongUI Event
     enum class Event : size_t {
-        // null
-        Event_Null = 0,
+        // get class name, remark: this is a const operator, do not change member
+        Event_GetClassName_Const = 0,
         // event -- finished control-tree buliding
         Event_FinishedTreeBuliding,
         // drag enter on this control
@@ -324,6 +324,8 @@ namespace LongUI {
             OUT mutable  LRESULT       lr;
             // [out] Control for Parent
             OUT mutable  UIControl*    ctrl;
+            // [out] Control for Parent
+            OUT mutable const wchar_t* str;
         };
         /*/ default ctor
         EventArgument() noexcept =default;

@@ -57,7 +57,7 @@ namespace LongUI{
         // udate 刷新
         //virtual void Update() noexcept override;
         // init sb
-        virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { m_pOwner = owner; force_cast(type) = _type; }
+        virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { force_cast(parent) = owner; force_cast(type) = _type; }
         // on needed
         virtual void OnNeeded(bool need) noexcept = 0;
     public:
@@ -73,7 +73,7 @@ namespace LongUI{
         // destructor 析构函数
         //~UIScrollBar() noexcept;
         // get bar length
-        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? m_pOwner->height : m_pOwner->width; }
+        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? parent->height : parent->width; }
     public:
         // constructor 构造函数
         UIScrollBar(pugi::xml_node) noexcept;
@@ -102,8 +102,6 @@ namespace LongUI{
         float                   m_fOldPoint = 0.f;
         // max range of scroll bar
         float                   m_fMaxRange = 1.f;
-        // the onwer of scroll bar
-        UIContainer*            m_pOwner = nullptr;
     public:
         // another sb
         UIScrollBar*            another = nullptr;

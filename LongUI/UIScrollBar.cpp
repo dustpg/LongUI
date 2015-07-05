@@ -11,16 +11,16 @@ inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(nod
 void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 垂直?
     if (this->type == ScrollBarType::Type_Vertical) {
-        m_fMaxRange = m_pOwner->height;
-        m_fMaxIndex = m_fMaxRange - m_pOwner->visible_size.height;
+        m_fMaxRange = this->parent->height;
+        m_fMaxIndex = m_fMaxRange - this->parent->visible_size.height;
         // 检查上边界
 
         // 检查下边界
     }
     // 水平?
     else {
-        m_fMaxRange = m_pOwner->width;
-        m_fMaxIndex = m_fMaxRange - m_pOwner->visible_size.width;
+        m_fMaxRange = this->parent->width;
+        m_fMaxIndex = m_fMaxRange - this->parent->visible_size.width;
         // 检查左边界
 
         // 检查右边界
@@ -37,17 +37,14 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
         m_fIndex = new_index;
 #if 1
         if (this->type == ScrollBarType::Type_Vertical) {
-            m_pOwner->offset.y = -new_index;
-            //this->show_zone.top = new_index;
+            this->parent->offset.y = -new_index;
         }
         else {
-            m_pOwner->offset.x = -new_index;
-            //this->show_zone.left = new_index;
+            this->parent->offset.x = -new_index;
         }
-        //this->draw_zone = this->show_zone;
-        m_pOwner->DrawPosChanged();
+        this->parent->DrawPosChanged();
         // 刷新拥有着
-        m_pWindow->Invalidate(m_pOwner);
+        m_pWindow->Invalidate(this->parent);
 #else
         m_pWindow->Invalidate(this);
 #endif
@@ -149,7 +146,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
         m_rtArrow1.bottom = m_rtArrow1.top + BASIC_SIZE;
         m_rtArrow2.top = m_rtArrow2.bottom - BASIC_SIZE;
         // 计算Thumb
-        register auto height = m_pOwner->visible_size.height - BASIC_SIZE*2.f;
+        register auto height = this->parent->visible_size.height - BASIC_SIZE*2.f;
         m_rtThumb.top = (m_fIndex * bilibili + m_rtArrow1.bottom);
         m_rtThumb.bottom = (m_rtThumb.top + bilibili * height) - 1.f;
     }
@@ -158,7 +155,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
         m_rtArrow1.right = m_rtArrow1.left + BASIC_SIZE;
         m_rtArrow2.left = m_rtArrow2.right - BASIC_SIZE;
         // 计算Thumb
-        register auto width = m_pOwner->visible_size.width - BASIC_SIZE*2.f;
+        register auto width = this->parent->visible_size.width - BASIC_SIZE*2.f;
         m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
         m_rtThumb.right = (m_rtThumb.left + bilibili * width) - 1.f;
     }
@@ -231,6 +228,12 @@ void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
 
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 常量事件
+    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
+        arg.str = L"UIScrollBarA";
+        return true;
+    }
+    //--------------------------------------------------
     // 获取点击
     auto get_real_pos = [this](float pos)  {
         pos -= UIScrollBarA::BASIC_SIZE ;
@@ -382,6 +385,7 @@ void LongUI::UIScrollBarA::InitScrollBar(UIContainer* owner, ScrollBarType _type
 
 // UIScrollBarA: 需要时
 void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
+    UIManager << DL_Hint << this << need << endl;
     m_fTakeSpace = need ? BASIC_SIZE : 0.f;
     m_fHitSpace = m_fTakeSpace;
     // 检查

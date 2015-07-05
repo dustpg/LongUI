@@ -136,6 +136,8 @@ namespace LongUI{
         auto GetNonContentWidth() const noexcept ->float;
         // get taking up height of control
         auto GetNonContentHeight() const noexcept ->float;
+        // get class name
+        auto GetControlClassName() const noexcept ->const wchar_t*;
         // get taking up rect/ clip rect
         void __fastcall GetClipRect(D2D1_RECT_F&) const noexcept;
         // get border rect

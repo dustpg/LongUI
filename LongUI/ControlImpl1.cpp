@@ -1,16 +1,8 @@
 ﻿#include "LongUI.h"
 
-
-// 要点:
-// 1. 更新空间显示区大小
-//      -> 有滚动条, 交给滚动条处理
-//      -> 没有, 交给自己处理
-
-
-
 // 系统按钮:
 /*
-
+Win8/8.1/10 
 焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
 0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
 1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
@@ -18,9 +10,6 @@
 3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
 
 */
-
-
-// TODO: 检查所有控件Render, 需要调用UIControl::Render;
 
 // UIControl 构造函数
 LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
@@ -40,10 +29,9 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if ((data = node.attribute("script").value()) && m_pScript) {
             m_script = m_pScript->AllocScript(data);
         }
-        else {
-            m_script.data = nullptr;
-            m_script.size = 0;
-        }
+        /*else {
+            m_script.data = nullptr; m_script.size = 0;
+        }*/
         // 检查渲染父控件
         if (node.attribute("renderparent").as_bool(false)) {
             flag |= LongUI::Flag_RenderParent;
@@ -169,7 +157,7 @@ bool LongUI::UIControl::MakeString(const char* data, CUIString& str) noexcept {
     if (!data || !*data) return false;
     wchar_t buffer[LongUIStringBufferLength];
     // 转码
-    auto length = LongUI::UTF8toWideChar(data, buffer);
+    register auto length = LongUI::UTF8toWideChar(data, buffer);
     buffer[length] = L'\0';
     // 设置字符串
     str.Set(buffer, length);
@@ -320,6 +308,16 @@ auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
         + m_fBorderSize * 2.f;
 }
 
+// 获取类名
+auto LongUI::UIControl::GetControlClassName() const noexcept -> const wchar_t* {
+    EventArgument arg;
+    arg.sender = const_cast<UIControl*>(this);
+    arg.event = Event::Event_GetClassName_Const;
+    arg.str = nullptr;
+    const_cast<UIControl*>(this)->DoEvent(arg);
+    return arg.str;
+}
+
 // 获取占用/剪切矩形
 void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderSize);
@@ -367,7 +365,15 @@ void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexc
 // -------------------------------------------------------
 // UILabel
 // -------------------------------------------------------
-
+// UILabel: do event 事件处理
+bool LongUI::UILabel::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 常量事件
+    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
+        arg.str = L"UILabel";
+        return true;
+    }
+    return false;
+}
 
 // Render 渲染 
 void LongUI::UILabel::Render(RenderType type) const noexcept {
@@ -457,13 +463,14 @@ void LongUI::UIButton::Render(RenderType type)const noexcept {
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
         this->GetContentRect(draw_rect);
-        {
+        /*{
             D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
             if (m_strControlName == L"1") {
                 UIManager << DL_Hint << matrix._31 << "  "
+                    << this->parent->GetName()
                     << this->parent->offset << "  " << endl;
             }
-        }
+        }*/
         // 渲染部件
         m_uiElement.Render(draw_rect);
         __fallthrough;
@@ -519,6 +526,12 @@ auto LongUI::UIButton::CreateControl(pugi::xml_node node) noexcept ->UIControl* 
 
 // do event 事件处理
 bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 常量事件
+    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
+        arg.str = L"UIButton";
+        return true;
+    }
+    //--------------------------------------------------
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     if (arg.sender) {
@@ -638,6 +651,12 @@ void LongUI::UIEditBasic::Update() noexcept {
 
 // do event 
 bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 常量事件
+    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
+        arg.str = L"UIEditBasic";
+        return true;
+    }
+    // ---------------------------------------------
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     // ui msg

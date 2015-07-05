@@ -17,7 +17,6 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
         m_pString = reinterpret_cast<wchar_t*>(
             LongUICtrlAlloc(sizeof(wchar_t) * (m_cBufferLength))
             );
-
     }
     // 复制数据
     assert(str && "<LongUI::CUIString::CUIString@const wchar_t*> m_pString == null");
