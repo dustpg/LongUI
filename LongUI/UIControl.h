@@ -176,7 +176,10 @@ namespace LongUI{
         // the position of draw zone has been changed
         bool                    m_bDrawPosChanged = false;
         // align for sizeof(void*)
-        bool                    m_unused_bool2_control[2];
+        bool                    m_unused_bool2_control;
+    public:
+        // priority for render
+        int8_t       const      priority = 0;
     protected:
         // user context
         void*                   user_context = nullptr;

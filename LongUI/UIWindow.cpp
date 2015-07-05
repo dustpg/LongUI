@@ -638,6 +638,28 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
     }
     // 部分刷新:
     else {
+#if 1
+        // 先排序
+        UIControl* units[LongUIDirtyControlSize];
+        assert(current_unit->length < LongUIDirtyControlSize);
+        auto length_for_units = current_unit->length;
+        ::memcpy(units, current_unit->units, length_for_units * sizeof(void*));
+        std::sort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
+            return a->priority > b->priority;
+        });
+        if (current_unit->length >= 2) {
+            assert(units[0]->priority >= units[1]->priority);
+        }
+        // 再渲染
+        for (auto unit = units; unit < units + length_for_units; ++unit) {
+            auto ctrl = *unit;
+            // 设置转换矩阵
+            D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
+            m_pRenderTarget->SetTransform(&matrix);
+            ctrl->Render(RenderType::Type_Render);
+    }
+#else
+        // 再渲染
         for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
             auto ctrl = current_unit->units[i];
             // 设置转换矩阵
@@ -645,6 +667,7 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
             m_pRenderTarget->SetTransform(&matrix);
             ctrl->Render(RenderType::Type_Render);
         }
+#endif
     }
     // 有效 -> 清零
     if (current_unit) {

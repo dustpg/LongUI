@@ -28,9 +28,9 @@
 // LongUI namespace
 namespace LongUI{
     // Scroll Bar Type
-    enum class ScrollBarType : uint32_t {
-        Type_Vertical = 0,      // 垂直
-        Type_Horizontal,        // 水平
+    enum class ScrollBarType : uint8_t {
+        Type_Horizontal = 0,    // 水平
+        Type_Vertical = 1,      // 垂直
     };
     // UIContainer
     class UIContainer;
@@ -41,7 +41,7 @@ namespace LongUI{
         using Super = UIControl ;
     protected:
         // mouse point [0, 1, 2, 3, 4]
-        enum class PointType : uint16_t {
+        enum class PointType : uint8_t {
             Type_None,      // None
             Type_Arrow1,    // Arrow1
             Type_Arrow2,    // Arrow2
@@ -84,6 +84,8 @@ namespace LongUI{
     public:
         // type of scrollbar
         ScrollBarType   const   type = ScrollBarType::Type_Vertical;
+        // unused
+        bool                    unused_bool_sb = false;
     protected:
         // tpye of mouse pointed
         PointType               m_pointType = PointType::Type_None;
@@ -98,10 +100,12 @@ namespace LongUI{
         float                   m_fIndex = 0.f;
         // max index of scroll bar
         float                   m_fMaxIndex = 0.f;
-        // old point of scroll bar
-        float                   m_fOldPoint = 0.f;
         // max range of scroll bar
         float                   m_fMaxRange = 1.f;
+        // old index of scroll bar
+        float                   m_fOldIndex = 0.f;
+        // old point of scroll bar
+        float                   m_fOldPoint = 0.f;
     public:
         // another sb
         UIScrollBar*            another = nullptr;
@@ -167,7 +171,7 @@ namespace LongUI{
         // arrow2 use colorrect
         bool                    m_bArrow2InColor = false;
         // unused
-        bool                    m_unused_sb;
+        bool                    m_unused_sba;
     };
 
 }

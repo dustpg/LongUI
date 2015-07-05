@@ -301,6 +301,23 @@ namespace LongUI {
         // -----control custom
 
     };
+    // priority for rendering
+    enum RenderingPriority : int8_t {
+        // last
+        Priority_Last = -128,
+        // after most
+        Priority_AfterMost = -100,
+        // low
+        Priority_Low = -1,
+        // normal
+        Priority_Normal = 0,
+        // high
+        Priority_High = 1,
+        // before most
+        Priority_BeforeMost = 100,
+        // first
+        Priority_First = 127,
+    };
     // LongUI Event Argument
     struct EventArgument {
         // event id

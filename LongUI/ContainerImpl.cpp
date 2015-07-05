@@ -275,6 +275,7 @@ void LongUI::UIContainer::Update() noexcept  {
         }
         auto basic_margin_right = m_oldMarginSize.width;
         auto basic_margin_bottom = m_oldMarginSize.height;
+        assert(!"old margin!");
         // 更新滚动条
         if (this->scrollbar_h) {
             register float size = this->scrollbar_h->GetTakingUpSapce();

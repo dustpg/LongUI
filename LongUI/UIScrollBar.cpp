@@ -3,7 +3,10 @@
 
 // UIScrollBar 构造函数
 inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
-
+    // 降低渲染优先级以保证最后渲染
+    if (!this->priority) {
+        force_cast(this->priority) = Priority_AfterMost;
+    }
 }
 
 
@@ -140,24 +143,30 @@ void LongUI::UIScrollBarA::Update() noexcept {
         }
     }
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
-    register auto bilibili = 1.f - m_fMaxIndex / m_fMaxRange;
+    register float length_of_thumb, start_offset;
+    {
+        register float tmpsize = (&(this->width))[int(this->type)] - BASIC_SIZE*2.f;
+        if (this->another) {
+            tmpsize -= this->another->GetHitSapce();
+        }
+        start_offset = tmpsize * m_fIndex / m_fMaxRange;
+        length_of_thumb = tmpsize * (1.f - m_fMaxIndex / m_fMaxRange);
+    }
+    // 修改数据
+
     // 垂直滚动条
     if (this->type == ScrollBarType::Type_Vertical) {
         m_rtArrow1.bottom = m_rtArrow1.top + BASIC_SIZE;
         m_rtArrow2.top = m_rtArrow2.bottom - BASIC_SIZE;
-        // 计算Thumb
-        register auto height = this->parent->visible_size.height - BASIC_SIZE*2.f;
-        m_rtThumb.top = (m_fIndex * bilibili + m_rtArrow1.bottom);
-        m_rtThumb.bottom = (m_rtThumb.top + bilibili * height) - 1.f;
+        m_rtThumb.top = m_rtArrow1.bottom + start_offset;
+        m_rtThumb.bottom = m_rtThumb.top + length_of_thumb;
     }
     // 水平滚动条
     else {
         m_rtArrow1.right = m_rtArrow1.left + BASIC_SIZE;
         m_rtArrow2.left = m_rtArrow2.right - BASIC_SIZE;
-        // 计算Thumb
-        register auto width = this->parent->visible_size.width - BASIC_SIZE*2.f;
-        m_rtThumb.left = m_fIndex * bilibili + m_rtArrow1.right;
-        m_rtThumb.right = (m_rtThumb.left + bilibili * width) - 1.f;
+        m_rtThumb.left = m_rtArrow1.right + start_offset;
+        m_rtThumb.right = m_rtThumb.left + length_of_thumb;
     }
     // 刷新
     UIElement_Update(m_uiArrow1);
@@ -235,11 +244,6 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
     }
     //--------------------------------------------------
     // 获取点击
-    auto get_real_pos = [this](float pos)  {
-        pos -= UIScrollBarA::BASIC_SIZE ;
-        auto length = this->get_length() - UIScrollBarA::BASIC_SIZE * 2.f;
-        return (pos) / length * m_fMaxRange;
-    };
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
     // 控件消息
@@ -257,10 +261,9 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case WM_LBUTTONDOWN:
             m_pWindow->SetCapture(this);
             // 记录点击点
-            m_bCaptured = true;
-            m_fOldPoint = get_real_pos(
-                this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x
-                );
+            m_bCaptured = true; 
+            m_fOldPoint = this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x;
+            m_fOldIndex = m_fIndex;
             this->set_status(m_pointType, LongUI::Status_Pushed);
             // 检查
             if (m_pointType == PointType::Type_Arrow1) {
@@ -282,11 +285,9 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             if (m_bCaptured) {
                 // 指向thumb?
                 if (m_pointType == PointType::Type_Thumb) {
-                    auto index = get_real_pos(
-                        this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x
-                        );
-                    this->SetIndex(m_fIndex + index - m_fOldPoint);
-                    m_fOldPoint = index;
+                    auto pos = this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x;
+                    auto rate = 1.f - m_fMaxIndex / m_fMaxRange;
+                    this->SetIndex((pos - m_fOldPoint) / rate + m_fOldIndex);
                 }
             }
             //  检查指向类型

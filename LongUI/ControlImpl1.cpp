@@ -29,6 +29,10 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if ((data = node.attribute("script").value()) && m_pScript) {
             m_script = m_pScript->AllocScript(data);
         }
+        // 渲染优先级
+        if (data = node.attribute("priority").value()){
+            force_cast(this->priority) = int8_t(LongUI::AtoI(data));
+        }
         /*else {
             m_script.data = nullptr; m_script.size = 0;
         }*/
@@ -322,8 +326,24 @@ auto LongUI::UIControl::GetControlClassName() const noexcept -> const wchar_t* {
 void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderSize);
     rect.top = -(this->margin_rect.top + m_fBorderSize);
-    rect.right = this->width + this->margin_rect.right + m_fBorderSize;
-    rect.bottom = this->height + this->margin_rect.bottom + m_fBorderSize;
+    // 容器
+    if ((this->flags & Flag_UIContainer) && false) {
+        // 修改裁剪区域
+        rect.left += static_cast<const UIContainer*>(this)->offset.x;
+        rect.top += static_cast<const UIContainer*>(this)->offset.y;
+        rect.right = rect.left + static_cast<const UIContainer*>(this)->visible_size.width;
+        rect.bottom = rect.top + static_cast<const UIContainer*>(this)->visible_size.height;
+        if (static_cast<const UIContainer*>(this)->scrollbar_h) {
+            rect.bottom -= static_cast<const UIContainer*>(this)->scrollbar_h->GetTakingUpSapce();
+        }
+        if (static_cast<const UIContainer*>(this)->scrollbar_v) {
+            rect.right -= static_cast<const UIContainer*>(this)->scrollbar_v->GetTakingUpSapce();
+        }
+    }
+    else {
+        rect.right = this->width + this->margin_rect.right + m_fBorderSize;
+        rect.bottom = this->height + this->margin_rect.bottom + m_fBorderSize;
+    }
 }
 
 // 获取边框矩形
