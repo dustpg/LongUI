@@ -873,6 +873,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
 
     visible_rect.right = force_cast(this->windows_size.width) = static_cast<float>(rect.right);
     visible_rect.bottom = force_cast(this->windows_size.height) = static_cast<float>(rect.bottom);
+    visible_size.width = visible_rect.right;
+    visible_size.height = visible_rect.bottom;
     rect.right = MakeAsUnit(rect.right);
     rect.bottom = MakeAsUnit(rect.bottom);
     auto old_size = m_pTargetBimtap->GetPixelSize();
@@ -1120,7 +1122,7 @@ bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
         // 查找子控件
         auto control_got = this->FindControl(arg.pt);
         if (control_got) {
-            //UIManager << DL_Hint << "FIND: " << control_got->GetName() << endl;
+            //UIManager << DL_Hint << "FIND: " << control_got << endl;
         }
         // 不同
         if (control_got != m_pPointedControl) {

@@ -58,7 +58,7 @@ namespace LongUI{
         //virtual void Update() noexcept override;
         // init sb
         virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { force_cast(parent) = owner; force_cast(type) = _type; }
-        // on needed
+        // on needed, maybe 'need' is same in twice
         virtual void OnNeeded(bool need) noexcept = 0;
     public:
         // how size that take up the owner's space in layout

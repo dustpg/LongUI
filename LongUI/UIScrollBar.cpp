@@ -386,7 +386,7 @@ void LongUI::UIScrollBarA::InitScrollBar(UIContainer* owner, ScrollBarType _type
 
 // UIScrollBarA: 需要时
 void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
-    UIManager << DL_Hint << this << need << endl;
+    //UIManager << DL_Log << this << need << endl;
     m_fTakeSpace = need ? BASIC_SIZE : 0.f;
     m_fHitSpace = m_fTakeSpace;
     // 检查

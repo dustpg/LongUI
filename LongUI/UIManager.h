@@ -361,7 +361,7 @@ namespace LongUI {
     public:
 #else
         // overload << operator 重载 << 运算符
-        template<typename T> CUIManager& operator<< (T t) const noexcept { return *this; }
+        template<typename T> const CUIManager& operator<< (T t) const noexcept { return *this; }
         // output with wide char
         inline void Output(DebugStringLevel l, const wchar_t* s) const noexcept {  }
         // output with utf-8

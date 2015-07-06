@@ -327,10 +327,12 @@ void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderSize);
     rect.top = -(this->margin_rect.top + m_fBorderSize);
     // 容器
-    if ((this->flags & Flag_UIContainer) && false) {
+    if ((this->flags & Flag_UIContainer)) {
         // 修改裁剪区域
-        rect.left += static_cast<const UIContainer*>(this)->offset.x;
-        rect.top += static_cast<const UIContainer*>(this)->offset.y;
+        //rect.left -= static_cast<const UIContainer*>(this)->offset.x;
+        //rect.top -= static_cast<const UIContainer*>(this)->offset.y;
+        auto container = static_cast<const UIContainer*>(this);
+        container->visible_size;
         rect.right = rect.left + static_cast<const UIContainer*>(this)->visible_size.width;
         rect.bottom = rect.top + static_cast<const UIContainer*>(this)->visible_size.height;
         if (static_cast<const UIContainer*>(this)->scrollbar_h) {
