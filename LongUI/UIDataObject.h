@@ -42,7 +42,7 @@ namespace LongUI {
         // delete new operator
         void* operator new[](size_t ) = delete;
         // delete operator
-        void  operator delete(void* p) noexcept { LongUISmallFree(p); };
+        void  operator delete(void* p) noexcept { LongUI::SmallFree(p); };
         // delete new operator
         void  operator delete[](void*) = delete;
         // 构造函数

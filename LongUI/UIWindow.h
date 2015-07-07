@@ -29,11 +29,7 @@
 namespace LongUI{
     // ui's window
     class LongUIAPI UIWindow : public UIVerticalLayout,
-        public ComStatic<QiListSelf<IUnknown, QiList<IDropTarget>>>{
-        // size
-        enum UnusedIndex {
-            UNUSED_SIZE
-        };
+        public ComStatic<QiListSelf<IUnknown, QiList<IDropTarget>>> {
         // 父类申明
         using Super = UIVerticalLayout ;
         // 友元申明
@@ -61,12 +57,12 @@ namespace LongUI{
         // IDropTarget::Drop 实现
         HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) noexcept override;
     public:
-        // update rendering state
-        bool UpdateRendering() noexcept;
-        // resize window
-        void OnResize(bool force=false) noexcept;
-        // plan to render
-        void PlanToRender(float w, float r, UIControl* obj) noexcept;
+        // begin render
+        void BeginDraw() const noexcept;
+        // end ender
+        void EndDraw() const noexcept;
+        // wait for VS
+        void WaitVS() const noexcept;
         // register for calling PreRender
         void RegisterOffScreenRender(UIControl* c, bool is3d) noexcept;
         // unregister for calling PreRender
@@ -93,9 +89,9 @@ namespace LongUI{
         // register for calling PreRender with 2d content
         LongUIInline auto RegisterOffScreenRender2D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, false); }
         // start render in sec.
-        LongUIInline auto StartRender(float t, UIControl* c) noexcept { return this->PlanToRender(0.f, t, c); }
+        LongUIInline auto StartRender(float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, t, c); }
         // update control later
-        LongUIInline auto Invalidate(UIControl* c) noexcept { return this->PlanToRender(0.f, 0.f, c); }
+        LongUIInline auto Invalidate(UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, 0.f, c); }
         // get delta time in second
         LongUIInline auto GetDeltaTime() const noexcept { return m_fDeltaTime > 0.04f ? 0.f : m_fDeltaTime; };
         // get window handle
@@ -106,25 +102,26 @@ namespace LongUI{
         LongUIInline auto ReleaseCapture() noexcept { ::ReleaseCapture(); m_pCapturedControl = nullptr; };
         // get back buffer
         LongUIInline auto GetBackBuffer() noexcept { return ::SafeAcquire(m_pTargetBimtap); }
+        // is rendered
+        LongUIInline auto IsRendered() const noexcept { return m_bRendered; }
+        // render window
+        LongUIInline auto RenderWindow() const noexcept { return this->Render(RenderType::Type_Render); }
+        // next frame
+        LongUIInline auto NextFrame() noexcept {  ++m_uiRenderQueue; }
     private:
         // release data
         void release_data() noexcept;
-        // reset rendering queue
-        void reset_renderqueue() noexcept;
         // draw the caret
         void draw_caret() noexcept;
         // refresh the caret
         void refresh_caret() noexcept;
         // set the present
         void set_present() noexcept;
-    public:
-        // begin draw
-        void BeginDraw() noexcept;
-        // end draw
-        auto EndDraw(uint32_t vsyc = 0) noexcept->HRESULT;
     public: // MSG MAPPING ZONE
         // on WM_MOUSEMOVE
         bool OnMouseMove(const LongUI::EventArgument&) noexcept;
+        // resize window
+        void OnResize(bool force = false) noexcept;
     protected:
         // constructor
         UIWindow(pugi::xml_node node, UIWindow * parent=nullptr) noexcept;
@@ -155,8 +152,6 @@ namespace LongUI{
         IDXGISwapChain2*        m_pSwapChain = nullptr;
         // target bitmap
         ID2D1Bitmap1*           m_pTargetBimtap = nullptr;
-        // planning bitmap
-        ID2D1Bitmap1*           m_pBitmapPlanning = nullptr;
         // Direct Composition Device
         IDCompositionDevice*    m_pDcompDevice = nullptr;
         // Direct Composition Target
@@ -172,7 +167,7 @@ namespace LongUI{
         // now captured control (only one)
         UIControl*              m_pCapturedControl = nullptr;
         // rendering queue
-        RenderingQueue*         m_pRenderQueue = nullptr;
+        CUIRenderQueue          m_uiRenderQueue;
         // blink timer id
         UINT_PTR                m_idBlinkTimer = 0;
         // normal  l-param
@@ -181,22 +176,20 @@ namespace LongUI{
         bool                    m_bCaretIn = false;
         // in draging
         bool                    m_bInDraging = false;
-        //
-        bool                    window_unused[2];
+        // window rendered in last time, or want to render in this time
+        bool                    m_bRendered = false;
+        // unused
+        bool                    window_unused[sizeof(void*)-3];
+        // delta time [in sec.]
+        float                   m_fDeltaTime = 0.f;
+        // show the caret
+        uint32_t                m_cShowCaret = 0;
         // scroll rect
         RECT                    m_rcScroll;
         // dirty rects, + 1 for caret
         RECT                    m_dirtyRects[LongUIDirtyControlSize + 1];
         // present prame
         DXGI_PRESENT_PARAMETERS m_present;
-        // show the caret
-        uint32_t                m_cShowCaret = 0;
-        // delta time [in sec.]
-        float                   m_fDeltaTime = 0.f;
-        // continuous render time [in sec.]
-        float                   m_fConRenderTime = 0.f;
-        // 
-        float                   m_uuuuuu = 0.f;
         // caret rect in px
         RectLTWH_U              m_rcCaretPx;
         // timer

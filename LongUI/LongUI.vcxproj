@@ -92,6 +92,7 @@
     <ClInclude Include="UIInterface.h" />
     <ClInclude Include="UILabel.h" />
     <ClInclude Include="UIManager.h" />
+    <ClInclude Include="UIRenderQueue.h" />
     <ClInclude Include="UIRichEdit.h" />
     <ClInclude Include="UIScrollBar.h" />
     <ClInclude Include="UISlider.h" />
@@ -111,6 +112,7 @@
     <ClCompile Include="UICheckBox.cpp" />
     <ClCompile Include="UIElement.cpp" />
     <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="UIRenderQueue.cpp" />
     <ClCompile Include="UIRichEdit.cpp" />
     <ClCompile Include="UIScrollBar.cpp" />
     <ClCompile Include="UISlider.cpp" />

@@ -138,6 +138,9 @@
     <ClInclude Include="UIInput.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
+    <ClInclude Include="UIRenderQueue.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -181,6 +184,9 @@
     </ClCompile>
     <ClCompile Include="UIElement.cpp">
       <Filter>LongUI\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRenderQueue.cpp">
+      <Filter>LongUI\Impl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

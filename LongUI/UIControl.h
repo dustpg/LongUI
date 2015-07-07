@@ -76,7 +76,7 @@ namespace LongUI{
                 exsize = LongUI::AtoI(node.attribute("exdatasize").value());
             }
             T* control = reinterpret_cast<T*>(
-                LongUICtrlAlloc(sizeof(T) + UIManager.user_context_size + exsize)
+                LongUI::CtrlAlloc(sizeof(T) + UIManager.user_context_size + exsize)
                     );
             // check alignof
             assert(Is2Power(alignof(T)) && "alignas(Control) must be 2powered");
@@ -101,7 +101,7 @@ namespace LongUI{
         // delete new[] operator
         void* operator new[](size_t) = delete;
         // delete operator
-        void  operator delete(void* p, size_t) { LongUICtrlFree(p); };
+        void  operator delete(void* p, size_t) { LongUI::CtrlFree(p); };
         // delete delete[] operator
         void  operator delete[](void*, size_t) = delete;
     public: // 内联区

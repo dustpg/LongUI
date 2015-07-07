@@ -1,20 +1,27 @@
 ﻿#pragma once
 // THIS FILE IS NONE-LICENSE
-
-
-// Alloc/Free Interface
-#ifndef LongUICtrlAlloc
-#   define LongUICtrlAlloc malloc
-#endif
-#ifndef LongUICtrlFree
-#   define LongUICtrlFree free
-#endif
-#ifndef LongUISmallAlloc
-#   define LongUISmallAlloc dlmalloc
-#endif
-#ifndef LongUISmallFree
-#   define LongUISmallFree dlfree
-#endif
+// malloc
+#include <memory>
+// dlmalloc
+#define USE_DL_PREFIX
+#include "../3rdparty/dlmalloc/dlmalloc.h"
+// longui namespace
+namespace LongUI {
+    // alloc for longui control
+    static auto CtrlAlloc(size_t length) noexcept { return ::malloc(length); }
+    // free for longui control
+    static auto CtrlFree(void* address) noexcept { return ::free(address); }
+    // alloc for small space
+    static auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
+    // free for small space
+    static auto SmallFree(void* address) noexcept { return ::dlfree(address); }
+    // template helper
+    template<typename T>
+    static auto CtrlAllocT(T* pointer, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::CtrlAlloc(length * sizeof(T))); }
+    // template helper
+    template<typename T>
+    static auto SmallAllocT(T* pointer, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
+}
 
 
 #ifdef _MSC_VER
@@ -99,14 +106,10 @@
 #include <vector>
 #include <thread>
 #include <atomic>
-#include <memory>
 #include <queue>
 #include <mutex>
 #include <map>
 #include <new>
-// C RunTime Header Files
-#include <malloc.h>
-#include <memory.h>
 
 // RichEdit
 #include <Richedit.h>
@@ -130,12 +133,9 @@
 
 // pugixml
 #include "../3rdparty/pugixml/pugixml.hpp"
-
-// dlmalloc
-#define USE_DL_PREFIX
-#include "../3rdparty/dlmalloc/dlmalloc.h"
 #endif
 
+// longui 
 namespace LongUI {
     // LongUI Default Text Font Family Name
     constexpr static wchar_t* LongUIDefaultTextFontName = L"Arial";
@@ -171,8 +171,6 @@ namespace LongUI {
         // will call IDXGISwapChain::ResizeBuffers,
         // but to large will waste some memory
         LongUITargetBitmapUnitSize = 128,
-        // Planning bitmap size in window
-        LongUIWindowPlanningBitmap = 64,
         // dirty control size
         // if dirty control number bigger than this in one frame,
         // will do the full-rendering, not dirty-rendering

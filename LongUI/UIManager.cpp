@@ -1,5 +1,4 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
 
 // node->Attribute\((.+?)\)
 // node.attribute($1).value()
@@ -280,79 +279,79 @@ auto LongUI::CUIManager::GetCreateFunc(const CUIString& name) noexcept -> Create
     return nullptr;
 }
 
-// 渲染线程
-void LongUI::CUIManager::rendering_thread() {
-    while (!m_exitFlag) {
-        UIWindow* windows[LongUIMaxWindow];
-        uint32_t length = 0;
-        // 复制
-        UIManager.Lock();
-        length = m_windows.size();
-        for (auto i = 0u; i < length; ++i) {
-            windows[i] = reinterpret_cast<UIWindow*>(m_windows[i]);
-        }
-        UIManager.Unlock();
-        ::Sleep(16);
+/*
+if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
+    // 两种方式退出 ::PostQuitMessage(0) or UIManager.Exit()
+    if (msg.message == WM_QUIT) {
+        m_exitFlag = true;
+        break;
     }
+    ::TranslateMessage(&msg);
+    ::DispatchMessageW(&msg);
 }
+*/
+
 
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
     MSG msg;
-    // 创建线程
-    std::thread thread;
-    try {
-        thread = std::move(std::thread(&CUIManager::rendering_thread, this));
-    }
-    catch (...) {
-        this->ShowError(L"Failed to Create Thread");
-        return;
-    }
-    //auto now_time = ::timeGetTime();
-    while (!m_exitFlag) {
-        // 消息循环
-        if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
-            // 两种方式退出 ::PostQuitMessage(0) or UIManager.Exit()
-            if (msg.message == WM_QUIT) {
-                m_exitFlag = true;
-                break;
-            }
-            ::TranslateMessage(&msg);
-            ::DispatchMessageW(&msg);
-        }
-        // 设置为渲染
-        else {
-            msg.message = WM_PAINT;
-        }
-        // 渲染
-        if(msg.message == WM_PAINT){
-            // 有窗口就渲染
+    // 创建渲染线程
+    std::thread thread([this]() noexcept {
+        // 1. 上真渲染的一个窗口等待垂直同步
+        //    a.没有就选个窗口强行等待
+        // 2. 刷新所有窗口, 渲染需要渲染的窗口
+        while (!m_exitFlag) {
             UIWindow* windows[LongUIMaxWindow];
-            UIWindow** window_end = windows;
-            // 检查窗口
-            for (auto itr = m_windows.begin(); itr != m_windows.end(); ++itr) {
-                register auto wnd = reinterpret_cast<UIWindow*>(*itr);
-                if (wnd->UpdateRendering()) {
-                    *window_end = wnd;
-                    ++window_end;
+            uint32_t length = 0;
+            UIWindow* waitvs = nullptr;
+            // 复制
+            UIManager.Lock();
+            {
+                length = m_windows.size();
+                waitvs = this->rendered_last_frame;
+                // 没有窗口
+                if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
+                for (auto i = 0u; i < length; ++i) {
+                    windows[i] = reinterpret_cast<UIWindow*>(m_windows[i]);
+                }
+                // 注释: a.
+                if (!waitvs) waitvs = *windows;
+            }
+            UIManager.Unlock();
+            assert(waitvs && "non window");
+            // **小心**
+            waitvs->WaitVS();
+            UIManager.Lock();
+            {
+                // 刷新窗口
+                for (auto i = 0u; i < length; ++i) {
+                    windows[i]->Update();
+                    if (!windows[i]->IsRendered()) {
+                        windows[i] = nullptr;
+                    }
+                }
+                // 渲染窗口
+                for (auto i = 0u; i < length; ++i) {
+                    if (windows[i]) {
+                        windows[i]->RenderWindow();
+                    }
                 }
             }
-            // 渲染窗口
-            if (window_end != windows){
-                for (auto itr = windows; itr < window_end; ++itr) {
-                    (*itr)->Update();
-                    (*itr)->BeginDraw();
-                    (*itr)->Render(RenderType::Type_Render);
-                    (*itr)->EndDraw(itr == window_end - 1);
+            UIManager.Unlock();
+            UIManager.Lock();
+            {
+                // 迭代窗口
+                for (auto ctrl : m_windows) {
+                    static_cast<UIWindow*>(ctrl)->NextFrame();
                 }
             }
-            else {
-                //std::this_thread::sleep_for
-                ::Sleep(1);
-                // 交出时间片
-                //::Sleep(0);
-            }
+            UIManager.Unlock();
         }
+    });
+    // 消息响应
+    while (::GetMessageW(&msg, nullptr, 0, 0)) {
+        ::TranslateMessage(&msg);
+        ::DispatchMessageW(&msg);
     }
     m_exitFlag = true;
     // 等待线程
@@ -399,7 +398,9 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
         bool wasHandled = false;
         //指针有效的情况
         if (pUIWindow) {
+            UIManager.Lock();
             wasHandled = pUIWindow->DoEvent(arg);
+            UIManager.Unlock();
         }
         // 需要默认处理
         if (!wasHandled) {

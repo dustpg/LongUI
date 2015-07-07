@@ -3,7 +3,7 @@
 
 // 构造对象
 LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {
-    auto* pointer = reinterpret_cast<LongUI::CUIDataObject*>(LongUISmallAlloc(sizeof(LongUI::CUIDataObject)));
+    auto* pointer = reinterpret_cast<LongUI::CUIDataObject*>(LongUI::SmallAlloc(sizeof(LongUI::CUIDataObject)));
     if (pointer) {
         pointer->CUIDataObject::CUIDataObject();
     }
@@ -245,7 +245,7 @@ HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void * pvBlob, UINT 
 
 // 构造对象
 LongUI::CUIDropSource* LongUI::CUIDropSource::New() noexcept {
-    auto* pointer = reinterpret_cast<LongUI::CUIDropSource*>(LongUISmallAlloc(sizeof(LongUI::CUIDropSource)));
+    auto* pointer = reinterpret_cast<LongUI::CUIDropSource*>(LongUI::SmallAlloc(sizeof(LongUI::CUIDropSource)));
     if (pointer) {
         pointer->CUIDropSource::CUIDropSource();
     }

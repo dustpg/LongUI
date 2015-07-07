@@ -11,11 +11,11 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
         m_cBufferLength = length + LongUIStringLength / 2;
         // 常试释放
         if (m_pString != m_aDataStatic) {
-            LongUICtrlFree(m_pString);
+            LongUI::CtrlFree(m_pString);
         }
         // 申请内存
         m_pString = reinterpret_cast<wchar_t*>(
-            LongUICtrlAlloc(sizeof(wchar_t) * (m_cBufferLength))
+            LongUI::CtrlAlloc(sizeof(wchar_t) * (m_cBufferLength))
             );
     }
     // 复制数据
@@ -28,7 +28,7 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
 LongUI::CUIString::~CUIString() noexcept {
     // 释放数据
     if (m_pString && m_pString != m_aDataStatic) {
-        LongUICtrlFree(m_pString);
+        LongUI::CtrlFree(m_pString);
     }
     m_pString = nullptr;
     m_cLength = 0;
@@ -39,7 +39,7 @@ LongUI::CUIString::CUIString(const LongUI::CUIString& obj) noexcept {
     // 构造
     if (obj.m_pString != obj.m_aDataStatic) {
         m_pString = reinterpret_cast<wchar_t*>(
-            LongUICtrlAlloc(sizeof(wchar_t) * (obj.m_cLength + 1))
+            LongUI::CtrlAlloc(sizeof(wchar_t) * (obj.m_cLength + 1))
             );
     }
     // 复制数据

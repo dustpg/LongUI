@@ -42,7 +42,7 @@ namespace LongUI {
         // 禁止动态构造
         void* operator new[](size_t) = delete;
         // 禁止动态构造
-        void operator delete(void* p) noexcept { LongUISmallFree(p); };
+        void operator delete(void* p) noexcept { LongUI::SmallFree(p); };
         // 禁止动态构造
         void operator delete[](void*) = delete;
     public: // IDropSource 接口 实现

@@ -1,6 +1,5 @@
 ﻿#include "LongUI.h"
 
-
 // 位图规划:
 /*
 -----
@@ -17,7 +16,7 @@
 
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node,
-    UIWindow* parent) noexcept : Super(node) {
+    UIWindow* parent) noexcept : Super(node), m_uiRenderQueue(this) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     uint32_t flag = this->flags;
     // 检查DComposition标记
@@ -32,7 +31,13 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         flag |= Flag_Window_FullRendering;
     }
     else {
-        this->reset_renderqueue();
+        //this->reset_renderqueue();
+    }
+    // 获取屏幕刷新率
+    {
+        DEVMODEW mode = { 0 };
+        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+        m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
     }
     // 检查RenderedOnParentWindow标记
     if (node.attribute("renderonparent").as_bool(false)) {
@@ -122,11 +127,6 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
 
 // UIWindow 析构函数
 LongUI::UIWindow::~UIWindow() noexcept {
-    // 检查
-    if (m_pRenderQueue) {
-        LongUICtrlFree(m_pRenderQueue);
-        m_pRenderQueue = nullptr;
-    }
     // 取消注册
     ::RevokeDragDrop(m_hwnd);
     // 摧毁窗口
@@ -293,177 +293,11 @@ void LongUI::UIWindow::release_data() noexcept {
     ::SafeRelease(m_pDcompDevice);
     ::SafeRelease(m_pDcompTarget);
     ::SafeRelease(m_pDcompVisual);
-    ::SafeRelease(m_pBitmapPlanning);
 }
-
-
-namespace LongUI {
-    // 渲染单位
-    struct RenderingUnit {
-        // length of this unit
-        size_t      length;
-        // main data of unit
-        UIControl*  units[LongUIDirtyControlSize];
-    };
-    // 实现 RenderingQueue
-    class UIWindow::RenderingQueue {
-    public:
-        // 构造函数
-        RenderingQueue(uint32_t i) noexcept : display_frequency(i) { }
-        // 更新
-        void Update() noexcept {
-            this->current_time = ::timeGetTime();
-            // 间隔
-            auto dur = this->current_time - this->start_time;
-            if (dur >= 1000ui32 * LongUIPlanRenderingTotalTime) {
-                this->start_time += 1000ui32 * LongUIPlanRenderingTotalTime;
-                dur %= 1000ui32 * LongUIPlanRenderingTotalTime;
-            }
-            // 定位
-            auto offset = dur * display_frequency / 1000;
-            assert(offset >= 0 && offset < display_frequency * LongUIPlanRenderingTotalTime);
-            current_unit = this->units + offset;
-        }
-        // 获取
-        auto Get(float time_in_the_feature) {
-            assert(time_in_the_feature < float(LongUIPlanRenderingTotalTime));
-            // 获取目标值
-            auto offset = uint32_t(time_in_the_feature * float(display_frequency));
-            auto got = this->current_unit + offset;
-            // 越界检查
-            if (got >= units + queue_length) {
-                got -= queue_length;
-            }
-            return got;
-        }
-    public:
-        // 本次的屏幕刷新率
-        uint32_t        display_frequency = 0;
-        // 本队列长度
-        uint32_t        queue_length = 0;
-        // 队列开始时间
-        uint32_t        start_time = ::timeGetTime();
-        // 队列当前时间
-        uint32_t        current_time = start_time;
-        // 当前单位
-        RenderingUnit*  current_unit = this->units;
-        // 上次单位
-        RenderingUnit*  last_uint = this->units;
-        // 单位缓存
-        RenderingUnit   units[0];
-    };
-
-}
-
-
-// 重置渲染队列
-void LongUI::UIWindow::reset_renderqueue() noexcept {
-    assert(!(this->flags & Flag_Window_FullRendering));
-    DEVMODEW mode = { 0 };
-    ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-    size_t size_alloc = mode.dmDisplayFrequency * LongUIPlanRenderingTotalTime 
-        * sizeof(RenderingUnit);
-    RenderingQueue* new_queue = reinterpret_cast<RenderingQueue*>(
-        LongUICtrlAlloc(sizeof(RenderingQueue) + size_alloc)
-        );
-    if (new_queue) {
-        new(new_queue) RenderingQueue(mode.dmDisplayFrequency);
-        ZeroMemory(new_queue->units, size_alloc);
-        // 设置
-        new_queue->queue_length = mode.dmDisplayFrequency * LongUIPlanRenderingTotalTime;
-        // 检查有效
-        if (m_pRenderQueue) {
-            // TODO: 完成转换
-            // 转换
-            LongUICtrlFree(m_pRenderQueue);
-        }
-        // 全刷新一帧
-        new_queue->current_unit->length = 1;
-        new_queue->current_unit->units[0] = this;
-        m_pRenderQueue = new_queue;
-    }
-}
-
-
-
-// 计划渲染控件
-void LongUI::UIWindow::PlanToRender(float waiting_time, 
-    float rendering_time, UIControl* control) noexcept {
-    assert((waiting_time + rendering_time) < float(LongUIPlanRenderingTotalTime) && "time overflow");
-    if (m_pRenderQueue) {
-        // 检查
-        auto begin_unit = m_pRenderQueue->Get(waiting_time);
-        // 保留刷新
-        if (rendering_time > 0.f) {
-            rendering_time += 0.1f 
-                //* 40.f / float(m_pRenderQueue->display_frequency)
-                ;
-        }
-        auto end_unit = m_pRenderQueue->Get(waiting_time + rendering_time);
-#ifdef _DEBUG
-        auto sssssssslength = end_unit - begin_unit + 1;
-#endif
-        for (auto current_unit = begin_unit;;) {
-            // 越界
-            if (current_unit >= m_pRenderQueue->units + m_pRenderQueue->queue_length) {
-                current_unit = m_pRenderQueue->units;
-            }
-            // 已经有了
-            bool doit = true;
-            if (current_unit->length) {
-                if (current_unit->units[0] == this)
-                    doit = false;
-                if (current_unit->length == LongUIPlanRenderingTotalTime) {
-                    current_unit->length = 1;
-                    current_unit->units[0] = this;
-                    doit = false;
-                }
-            }
-            // 干它!
-            if (doit) {
-                // 获取真正
-                while (control != this) {
-                    if (control->flags & Flag_RenderParent) {
-                        control = control->parent;
-                    }
-                    else {
-                        break;
-                    }
-                }
-            }
-            // 是自己就写在第一个
-            if (control == this) {
-                current_unit->units[0] = this;
-                current_unit->length = 1;
-            }
-            // 不在就添加
-            else if (std::none_of(
-                current_unit->units,
-                current_unit->units + current_unit->length,
-                [=](LongUI::UIControl* unit) noexcept -> bool { return unit == control; }
-                )) {
-                current_unit->units[current_unit->length] = control;
-                ++current_unit->length;
-            }
-            // 迭代
-            if (current_unit == end_unit) {
-                break;
-            }
-            ++current_unit;
-        }
-    }
-    else {
-        // TODO: 延迟刷新
-        if (m_fConRenderTime < rendering_time) m_fConRenderTime = rendering_time;
-        //m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
-        //m_timer.MovStartEnd();
-    }
-}
-
 
 // 刻画插入符号
 void LongUI::UIWindow::draw_caret() noexcept {
-    // 不能在BeginDraw/EndDraw之间调用
+    /*// 不能在BeginDraw/EndDraw之间调用
     D2D1_POINT_2U pt = { m_rcCaretPx.left, m_rcCaretPx.top };
     D2D1_RECT_U src_rect;
     src_rect.top = LongUIWindowPlanningBitmap / 2;
@@ -472,7 +306,7 @@ void LongUI::UIWindow::draw_caret() noexcept {
     src_rect.bottom = src_rect.top + m_rcCaretPx.height;
     m_pTargetBimtap->CopyFromBitmap(
         &pt, m_pBitmapPlanning, &src_rect
-        );
+        );*/
 }
 
 // 更新插入符号
@@ -513,7 +347,7 @@ void LongUI::UIWindow::set_present() noexcept {
 }
 
 // begin draw
-void LongUI::UIWindow::BeginDraw() noexcept {
+void LongUI::UIWindow::BeginDraw() const noexcept {
     // 离屏渲染
     if (!m_vRegisteredControl.empty()) {
         for (auto i : m_vRegisteredControl) {
@@ -531,59 +365,49 @@ void LongUI::UIWindow::BeginDraw() noexcept {
     m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 }
 
-// end draw
-auto LongUI::UIWindow::EndDraw(uint32_t vsyc) noexcept -> HRESULT {
+// 结束渲染
+void LongUI::UIWindow::EndDraw() const noexcept {
     // 结束渲染
     m_pRenderTarget->EndDraw();
-    // 呈现
-    this->set_present();
-    HRESULT hr = m_pSwapChain->Present1(vsyc, 0, &m_present);
-    // 获取刷新时间
-    if (this->flags & Flag_Window_FullRendering) {
-        if (m_fConRenderTime == 0.0f) m_fConRenderTime = -1.f;
-        else m_fConRenderTime -= this->GetDeltaTime();
-    }
+    // !!!!!!!一切小心!
+    UIWindow* pThis = const_cast<UIWindow*>(this);
+    pThis->set_present();
+    HRESULT hr = m_pSwapChain->Present1(1, 0, &m_present);
     // 收到重建消息时 重建UI
 #ifdef _DEBUG
-    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET || test_D2DERR_RECREATE_TARGET) {
-        test_D2DERR_RECREATE_TARGET = false;
+    if (hr == DXGI_ERROR_DEVICE_REMOVED 
+        || hr == DXGI_ERROR_DEVICE_RESET 
+        || test_D2DERR_RECREATE_TARGET) {
+        pThis->test_D2DERR_RECREATE_TARGET = false;
         UIManager << DL_Hint << L"D2DERR_RECREATE_TARGET!" << LongUI::endl;
-#else
-    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
-#endif
-        UIManager.RecreateResources();
-#ifdef _DEBUG
+        hr = UIManager.RecreateResources();
         if (FAILED(hr)) {
             UIManager << DL_Hint << L"But, Recreate Failed!!!" << LongUI::endl;
             UIManager << DL_Error << L"Recreate Failed!!!" << LongUI::endl;
         }
-#endif
     }
+#else
+    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+        hr = UIManager.RecreateResources();
+    }
+#endif
     // 检查
     AssertHR(hr);
-    return hr;
 }
+
 
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
+    m_bRendered = false;
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     //UIManager << DL_Log << long(m_fDeltaTime * 1000.f) << LongUI::endl;
     m_timer.MovStartEnd();
-    //
-    LongUI::RenderingUnit* current_unit = nullptr;
-    bool full = false;
-    if (this->flags & Flag_Window_FullRendering) {
-        full = true;
-    }
-    else if (m_pRenderQueue) {
-        current_unit = m_pRenderQueue->last_uint;
-        if (current_unit->length && current_unit->units[0] == this) {
-            full = true;
-        }
-    }
-    // 全刷新
-    if (full) {
+    auto current_unit = m_uiRenderQueue.GetCurrentUnit();
+    // 没有就不刷新了
+    if (!current_unit->length) return;
+    // 全刷新?
+    if (current_unit->units[0] == static_cast<UIControl*>(this)) {
         m_present.DirtyRectsCount = 0;
         // 交给父类处理
         Super::Update();
@@ -606,7 +430,7 @@ void LongUI::UIWindow::Update() noexcept {
     }
     // 调试
 #ifdef _DEBUG
-    if (full) {
+    if (!m_present.DirtyRectsCount) {
         ++full_render_counter;
     }
     else {
@@ -620,18 +444,7 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
     if (type != RenderType::Type_Render) return ;
     // 清空背景  clear_color
     m_pRenderTarget->Clear(this->clear_color);
-    //
-    LongUI::RenderingUnit* current_unit = nullptr;
-    bool full = false;
-    if (this->flags & Flag_Window_FullRendering) {
-        full = true;
-    }
-    else if(m_pRenderQueue){
-        current_unit = m_pRenderQueue->last_uint;
-        if (current_unit->length && current_unit->units[0] == this) {
-            full = true;
-        }
-    }
+    const auto current_unit = m_uiRenderQueue.GetCurrentUnit();
     // 全刷新: 继承父类
     if (!m_present.DirtyRectsCount) {
         Super::Render(RenderType::Type_Render);
@@ -668,10 +481,6 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
             ctrl->Render(RenderType::Type_Render);
         }
 #endif
-    }
-    // 有效 -> 清零
-    if (current_unit) {
-        current_unit->length = 0;
     }
 #ifdef _DEBUG
     // 调试输出
@@ -795,13 +604,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         this->DrawSizeChanged();
         if (_arg.lParam_sys && m_pSwapChain){
             this->OnResize();
-            // 强行刷新一帧
             this->Invalidate(this);
-            this->UpdateRendering();
-            this->Update();
-            this->BeginDraw();
-            this->Render(RenderType::Type_Render);
-            this->EndDraw(0);
             handled = true;
         }
         break;
@@ -811,7 +614,9 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         break;
     case WM_DISPLAYCHANGE:
         // 更新分辨率
-        if(!(this->flags & Flag_Window_FullRendering))   this->reset_renderqueue();
+        if (!(this->flags & Flag_Window_FullRendering)) {
+
+        }
         // TODO: OOM处理
         break;
     case WM_CLOSE:          // 关闭窗口
@@ -841,23 +646,19 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     return Super::DoEvent(_arg);
 }
 
-
-// 刷新渲染状态
-bool LongUI::UIWindow::UpdateRendering() noexcept {
-    bool isrender = false;
-    // 更新渲染队列
-    if (m_pRenderQueue) {
-        if (m_pRenderQueue->current_unit->length) {
-            isrender = true;
-            m_pRenderQueue->last_uint = m_pRenderQueue->current_unit;
-        }
-        m_pRenderQueue->Update();
+// 等待重置同步
+void LongUI::UIWindow::WaitVS() const noexcept {
+    // 没渲染则强行渲染
+    if (!m_bRendered) {
+        DXGI_PRESENT_PARAMETERS param; RECT rect = { 0, 0, 1, 1 };
+        param.DirtyRectsCount = 1;
+        param.pDirtyRects = &rect;
+        param.pScrollOffset = nullptr;
+        param.pScrollRect = nullptr;
+        m_pSwapChain->Present1(1, 0, &param);
     }
-    // 全刷新
-    else {
-        isrender = m_fConRenderTime >= 0.0f;
-    }
-    return isrender;
+    // 等待VS
+    ::WaitForSingleObject(m_hVSync, INFINITE);
 }
 
 // 重置窗口大小
@@ -1014,21 +815,6 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
             &m_pTargetBimtap
             );
     }
-    // 创建计划位图
-    if (SUCCEEDED(hr)) {
-        D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
-            D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-            D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-            96.0f,
-            96.0f
-            );
-        hr = newRT->CreateBitmap(
-            D2D1::SizeU(LongUIWindowPlanningBitmap, LongUIWindowPlanningBitmap),
-            nullptr, 0,
-            &bitmapProperties,
-            &m_pBitmapPlanning
-            );
-    }
     // 使用DComp
     if (this->flags & Flag_Window_DComposition) {
         // 创建直接组合(Direct Composition)设备
@@ -1068,26 +854,6 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     }
     ::SafeRelease(pDxgiBackBuffer);
     ::SafeRelease(pSwapChain);
-    // 设置规划位图
-    if (SUCCEEDED(hr)) {
-        constexpr float PBS = float(LongUIWindowPlanningBitmap);
-        // 三区左边涂黑
-        newRT->SetTarget(m_pBitmapPlanning);
-        newRT->BeginDraw();
-        newRT->PushAxisAlignedClip(
-            D2D1::RectF(0.f, PBS*0.5f, PBS * 0.25f, PBS),
-            D2D1_ANTIALIAS_MODE_ALIASED
-            );
-        newRT->Clear(D2D1::ColorF(D2D1::ColorF::Black));
-        newRT->PopAxisAlignedClip();
-        newRT->PushAxisAlignedClip(
-            D2D1::RectF(PBS * 0.25f, PBS*0.5f, PBS * 0.5f, PBS),
-            D2D1_ANTIALIAS_MODE_ALIASED
-            );
-        newRT->Clear(D2D1::ColorF(D2D1::ColorF::White));
-        newRT->PopAxisAlignedClip();
-        newRT->EndDraw();
-    }
     // 重建 子控件UI
     return Super::Recreate(newRT);
 }

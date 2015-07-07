@@ -57,8 +57,6 @@ namespace LongUI {
         // unlock
         auto Unlock() noexcept { return m_uiLocker.Unlock(); }
     private:
-        // rendering thread
-        void rendering_thread();
     public: // 特例
         // load bitmap
         static auto __cdecl LoadBitmapFromFile(
@@ -168,6 +166,8 @@ namespace LongUI {
         WindowsVersion       const      version = WindowsVersion::Style_Win8;
         // user context size 用户上下文大小
         size_t               const      user_context_size = 0;
+        // last frame rendered window
+        UIWindow*                       rendered_last_frame = nullptr;
     private:
         // D2D 工厂
         ID2D1Factory1*                  m_pd2dFactory = nullptr;
@@ -387,7 +387,7 @@ namespace LongUI {
         pugi::xml_node root_node(nullptr); T* wnd = nullptr; auto buffer = buffer_sent;
         pugi::xml_parse_result result;
         // get buffer of window
-        if (!buffer) buffer = LongUICtrlAlloc(sizeof(T));
+        if (!buffer) buffer = LongUI::CtrlAlloc(sizeof(T));
         // parse the xml and check error
         if (buffer && (result = this->m_docWindow.load_string(xml)) &&
             (root_node = this->m_docWindow.first_child())) {
@@ -403,7 +403,7 @@ namespace LongUI {
             wnd->DoEvent(arg);
         }
         else if(!buffer_sent && buffer) {
-            LongUICtrlFree(buffer);
+            LongUI::CtrlFree(buffer);
         }
         // 错误检测
         if (!result) {
@@ -417,7 +417,7 @@ namespace LongUI {
     LongUINoinline auto CUIManager::CreateUIWindow(const pugi::xml_node node, void* buffer_sent, UIWindow* parent) noexcept->T* {
         pugi::xml_node root_node(nullptr); T* wnd = nullptr; auto buffer = buffer_sent;
         // get buffer of window
-        if (!buffer) buffer = LongUICtrlAlloc(sizeof(T));
+        if (!buffer) buffer = LongUI::CtrlAlloc(sizeof(T));
         // check no error
         if (buffer && node) {
             // create the window
@@ -432,7 +432,7 @@ namespace LongUI {
             wnd->DoEvent(arg);
         }
         else if(!buffer_sent && buffer) {
-            LongUICtrlFree(buffer);
+            LongUI::CtrlFree(buffer);
         }
         assert(wnd && "no window created");
         return wnd;

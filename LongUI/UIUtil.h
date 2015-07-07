@@ -27,7 +27,7 @@
 
 #include "UIFileLoader.h"
 #include "DataContainer.h"
-
+#include "UIRenderQueue.h"
 
 // the _longui32 后缀
 constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
@@ -454,7 +454,7 @@ namespace LongUI {
         // c
         UIColorEffect() {}
         // operator @delete
-        void  operator delete(void* p, size_t) noexcept { LongUISmallFree(p); };
+        void  operator delete(void* p, size_t) noexcept { LongUI::SmallFree(p); };
         // userdata
         ULONG               userdata = 0;
         // color of effect
@@ -463,7 +463,7 @@ namespace LongUI {
         // create a object
         static inline auto Create(uint32_t exdata_size=0, bool addref=false) { 
             auto* obj = reinterpret_cast<UIColorEffect*>(
-                LongUISmallAlloc(sizeof(UIColorEffect) + exdata_size)
+                LongUI::SmallAlloc(sizeof(UIColorEffect) + exdata_size)
                 ); 
             if (obj) { 
                 obj->UIColorEffect::UIColorEffect();
