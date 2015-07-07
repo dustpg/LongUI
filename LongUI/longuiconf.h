@@ -161,12 +161,14 @@ namespace LongUI {
         LongUIDefaultCheckBoxWidth = 16,
         // max count of longui window
         LongUIMaxWindow = 256,
+        // update message
+        LongUIUpdateMessage = WM_USER + 64,
         // max count of longui text renderer
         LongUIMaxTextRenderer = 10,
         // max count of gradient stop
         LongUIMaxGradientStop = 128,
         // PlanToRender total time in sec.
-        LongUIPlanRenderingTotalTime = 10,
+        LongUIPlanRenderingTotalTime = 5,
         // target bitmap unit size, larger than this,
         // will call IDXGISwapChain::ResizeBuffers,
         // but to large will waste some memory
@@ -202,6 +204,7 @@ namespace LongUI {
     // UI Locker
     class CUILocker {
     public:
+#if 0
         // ctor
         CUILocker() noexcept { ::InitializeCriticalSection(&m_cs); }
         // dtor
@@ -213,6 +216,15 @@ namespace LongUI {
     private:
         // cs
         CRITICAL_SECTION        m_cs;
+#else
+        // lock
+        auto Lock() noexcept { m_mux.lock(); }
+        // unlock
+        auto Unlock() noexcept { m_mux.unlock(); }
+    private:
+        // mutex
+        std::recursive_mutex    m_mux;
+#endif
     };
 }
 

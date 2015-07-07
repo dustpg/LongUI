@@ -105,9 +105,11 @@ namespace LongUI{
         // is rendered
         LongUIInline auto IsRendered() const noexcept { return m_bRendered; }
         // render window
-        LongUIInline auto RenderWindow() const noexcept { return this->Render(RenderType::Type_Render); }
+        LongUIInline auto RenderWindow() const noexcept { this->BeginDraw(); this->Render(RenderType::Type_Render); return this->EndDraw(); }
         // next frame
-        LongUIInline auto NextFrame() noexcept {  ++m_uiRenderQueue; }
+        LongUIInline auto NextFrame() noexcept { m_uiRenderQueue.GetCurrentUnit()->length = 0; ++m_uiRenderQueue; }
+        // post update message
+        LongUIInline auto PostUpdateMessage() noexcept { ::PostMessageW(m_hwnd, LongUIUpdateMessage, 0, 0); }
     private:
         // release data
         void release_data() noexcept;
@@ -138,7 +140,7 @@ namespace LongUI{
         float           const   height = 0.f;
 #endif
         // the real pixel size  of window(HWND)
-        D2D1_SIZE_F     const   windows_size = D2D1::SizeF();
+        D2D1_SIZE_U     const   windows_size = D2D1::SizeU();
     protected:
         // window handle
         HWND                    m_hwnd = nullptr;
@@ -172,14 +174,6 @@ namespace LongUI{
         UINT_PTR                m_idBlinkTimer = 0;
         // normal  l-param
         LPARAM                  m_normalLParam = 0;
-        // caret in(true) or out?
-        bool                    m_bCaretIn = false;
-        // in draging
-        bool                    m_bInDraging = false;
-        // window rendered in last time, or want to render in this time
-        bool                    m_bRendered = false;
-        // unused
-        bool                    window_unused[sizeof(void*)-3];
         // delta time [in sec.]
         float                   m_fDeltaTime = 0.f;
         // show the caret
@@ -215,5 +209,13 @@ namespace LongUI{
     protected:
         // registered control
         BasicContainer          m_vRegisteredControl;
+        // caret in(true) or out?
+        bool                    m_bCaretIn = false;
+        // in draging
+        bool                    m_bInDraging = false;
+        // window rendered in last time, or want to render in this time
+        bool                    m_bRendered = false;
+        // unused
+        bool                    m_bNewSize = false;
     };
 }

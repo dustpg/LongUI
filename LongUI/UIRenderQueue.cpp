@@ -15,6 +15,9 @@ LongUI::CUIRenderQueue::~CUIRenderQueue() noexcept {
 
 // 重置
 void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
+    // 一样就不处理
+    if (m_dwDisplayFrequency == freq) return;
+    // 修改
     m_dwDisplayFrequency = freq;
     // 创建
     CUIRenderQueue::UNIT* data = nullptr;
@@ -68,11 +71,17 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
 
 // 计划渲染
 void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* ctrl) noexcept {
+    // 保留刷新
+    if (render != 0.0f) render += 0.1f;
     assert((wait + render) < float(LongUIPlanRenderingTotalTime) && "time overflow");
     // 当前窗口
     auto window = m_unitLike.window;
     // 设置单元
     auto set_unit = [window](UNIT* unit, UIControl* ctrl) noexcept {
+        // 已经全渲染了就不干
+        if (unit->length && unit->units[0] == window) {
+            return;
+        }
         // 单元满了就设置为全渲染
         if (unit->length == LongUIDirtyControlSize) {
             unit->length = 1;

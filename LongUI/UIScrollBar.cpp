@@ -41,9 +41,11 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
 #if 1
         if (this->type == ScrollBarType::Type_Vertical) {
             this->parent->offset.y = -new_index;
+            this->y = new_index;
         }
         else {
             this->parent->offset.x = -new_index;
+            this->x = new_index;
         }
         this->parent->DrawPosChanged();
         // 刷新拥有着
@@ -288,6 +290,7 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
                     auto pos = this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x;
                     auto rate = 1.f - m_fMaxIndex / m_fMaxRange;
                     this->SetIndex((pos - m_fOldPoint) / rate + m_fOldIndex);
+                    rate = 0.f;
                 }
             }
             //  检查指向类型

@@ -235,6 +235,7 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 
 // 刷新子控件前
 void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
+
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
         this->GetWorldTransform(this->world);
@@ -298,11 +299,6 @@ void LongUI::UIContainer::Update() noexcept  {
             this->scrollbar_h->width = this->visible_size.width;
             this->scrollbar_h->height = size;
             //
-            UIManager << DL_Hint 
-                << " X: " << this->scrollbar_h->x 
-                << " Y: " << this->scrollbar_h->y 
-                << " V: " << this->visible_size.height
-                << endl;
             // 修改可视区域
             //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
             this->scrollbar_h->visible_rect = this->visible_rect;

@@ -56,7 +56,8 @@ namespace LongUI {
         auto Lock() noexcept { return m_uiLocker.Lock(); }
         // unlock
         auto Unlock() noexcept { return m_uiLocker.Unlock(); }
-    private:
+        // wait for VS
+        auto WaitVS(UIWindow* window) noexcept ->void;
     public: // 特例
         // load bitmap
         static auto __cdecl LoadBitmapFromFile(
@@ -103,11 +104,11 @@ namespace LongUI {
     public: // inline 区
         // ShowError with string
         LongUIInline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) { this->configure->ShowError(str, str_b); }
-        // 获取文本渲染器 GetXXX method will call AddRef if it is a COM object
+        // GetXXX method will call AddRef if it is a COM object
         LongUIInline auto GetTextRenderer(int i) const { return ::SafeAcquire(m_apTextRenderer[i]); }
-        // Exit 退出
-        LongUIInline auto Exit() { m_exitFlag = true; }
-        // 重建资源
+        // eixt the app
+        LongUIInline auto Exit() { m_exitFlag = true; ::PostQuitMessage(0); }
+        // recreate
         LongUIInline auto RecreateResources() { this->discard_resources(); return this->create_resources(); }
     public: // 隐形转换区
         // 转换为 LongUIRenderTarget
@@ -166,8 +167,6 @@ namespace LongUI {
         WindowsVersion       const      version = WindowsVersion::Style_Win8;
         // user context size 用户上下文大小
         size_t               const      user_context_size = 0;
-        // last frame rendered window
-        UIWindow*                       rendered_last_frame = nullptr;
     private:
         // D2D 工厂
         ID2D1Factory1*                  m_pd2dFactory = nullptr;
@@ -211,6 +210,10 @@ namespace LongUI {
         std::atomic_uint32_t            m_exitFlag = false;
         // 渲染器数量
         uint32_t                        m_uTextRenderCount = 0;
+        // 等待垂直同步次数
+        uint32_t                        m_dwWaitVSCount = 0;
+        // 等待垂直同步起始时间
+        uint32_t                        m_dwWaitVSStartTime = 0;
         // 输入
         CUIInput                        m_uiInput;
         // 锁
@@ -437,4 +440,14 @@ namespace LongUI {
         assert(wnd && "no window created");
         return wnd;
     }
+    // auto locker
+    class CUIAutoLocker {
+    public:
+        // ctor
+        CUIAutoLocker() noexcept { UIManager.Lock(); }
+        // dtor
+        ~CUIAutoLocker() noexcept { UIManager.Unlock(); }
+    private:
+    };
+#define AutoLocker CUIAutoLocker locker
 }

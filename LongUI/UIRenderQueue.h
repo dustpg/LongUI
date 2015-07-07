@@ -49,6 +49,8 @@ namespace LongUI {
         void PlanToRender(float wait_time, float render_time, UIControl* control) noexcept;
         // get current unit
         auto GetCurrentUnit() const noexcept { return m_pCurrentUnit; }
+        // get display frequency
+        auto GetDisplayFrequency() const noexcept { return m_dwDisplayFrequency; }
     private: // queue zone
         // frequency for display
         uint32_t            m_dwDisplayFrequency = 0;

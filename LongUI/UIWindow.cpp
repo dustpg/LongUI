@@ -18,79 +18,78 @@
 LongUI::UIWindow::UIWindow(pugi::xml_node node,
     UIWindow* parent) noexcept : Super(node), m_uiRenderQueue(this) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
-    uint32_t flag = this->flags;
-    // 检查DComposition标记
-    if (node.attribute("dcomp").as_bool(true)) {
-        flag |= Flag_Window_DComposition;
-    }
-    // 目前不支持非Flag_Window_DComposition
-    // 可能会发生未知错误
-    assert(flag & Flag_Window_DComposition && "NOT IMPL");
-    // 检查FullRendering标记
-    if (node.attribute("fullrender").as_bool(false)) {
-        flag |= Flag_Window_FullRendering;
-    }
-    else {
-        //this->reset_renderqueue();
-    }
-    // 获取屏幕刷新率
+    // flag 区
     {
-        DEVMODEW mode = { 0 };
-        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-        m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
+        uint32_t flag = this->flags;
+        // 检查DComposition标记
+        if (node.attribute("dcomp").as_bool(true)) {
+            flag |= Flag_Window_DComposition;
+        }
+        // 目前不支持非Flag_Window_DComposition
+        // 可能会发生未知错误
+        assert(flag & Flag_Window_DComposition && "NOT IMPL");
+        // 检查FullRendering标记
+        if (node.attribute("fullrender").as_bool(false)) {
+            flag |= Flag_Window_FullRendering;
+        }
+        else {
+            //this->reset_renderqueue();
+        }
+        // 检查RenderedOnParentWindow标记
+        if (node.attribute("renderonparent").as_bool(false)) {
+            flag |= Flag_Window_RenderedOnParentWindow;
+        }
+        // 检查alwaysrendering
+        if (node.attribute("alwaysrendering").as_bool(false)) {
+            flag |= Flag_Window_AlwaysRendering;
+        }
+        force_cast(this->flags) = static_cast<LongUIFlag>(flag);
     }
-    // 检查RenderedOnParentWindow标记
-    if (node.attribute("renderonparent").as_bool(false)) {
-        flag |= Flag_Window_RenderedOnParentWindow;
+    // 窗口区
+    {
+        // 默认样式
+        DWORD window_style = WS_OVERLAPPEDWINDOW;
+        // 设置窗口大小
+        RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
+        // 默认
+        if (this->width == 0.f) {
+            this->width = static_cast<float>(LongUIDefaultWindowWidth);
+        }
+        else {
+            window_rect.right = static_cast<LONG>(this->width);
+        }
+        // 更新
+        if (this->height == 0.f) {
+            this->height = static_cast<float>(LongUIDefaultWindowHeight);
+        }
+        else {
+            window_rect.bottom = static_cast<LONG>(this->height);
+        }
+        force_cast(this->windows_size.width) = window_rect.left;
+        force_cast(this->windows_size.height) = window_rect.bottom;
+        visible_rect.right = this->width;
+        visible_rect.bottom = this->height;
+        visible_size.width = this->width;
+        visible_size.height = this->height;
+        // 调整大小
+        ::AdjustWindowRect(&window_rect, window_style, FALSE);
+        // 居中
+        window_rect.right -= window_rect.left;
+        window_rect.bottom -= window_rect.top;
+        window_rect.left = (::GetSystemMetrics(SM_CXFULLSCREEN) - window_rect.right) / 2;
+        window_rect.top = (::GetSystemMetrics(SM_CYFULLSCREEN) - window_rect.bottom) / 2;
+        // 创建窗口
+        m_hwnd = ::CreateWindowExW(
+            //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
+            (this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
+            L"LongUIWindow", L"Nameless",
+            WS_OVERLAPPEDWINDOW,
+            window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
+            parent ? parent->GetHwnd() : nullptr, nullptr,
+            ::GetModuleHandleW(nullptr),
+            this
+            );
     }
-    // 检查alwaysrendering
-    if (node.attribute("alwaysrendering").as_bool(false)) {
-        flag |= Flag_Window_AlwaysRendering;
-    }
-    force_cast(this->flags) = static_cast<LongUIFlag>(flag);
-    // 默认样式
-    DWORD window_style = WS_OVERLAPPEDWINDOW;
-    const char* str_get = nullptr;
-    // 设置窗口大小
-    RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
-    // 默认
-    if (this->width == 0.f) {
-        this->width = static_cast<float>(LongUIDefaultWindowWidth);
-    }
-    else {
-        window_rect.right = static_cast<LONG>(this->width);
-    }
-    // 更新
-    if (this->height == 0.f) {
-        this->height = static_cast<float>(LongUIDefaultWindowHeight);
-    }
-    else {
-        window_rect.bottom = static_cast<LONG>(this->height);
-    }
-    force_cast(this->windows_size.width) = this->width;
-    force_cast(this->windows_size.height) = this->height;
-    visible_rect.right = this->width;
-    visible_rect.bottom = this->height;
-    visible_size.width = this->width;
-    visible_size.height = this->height;
-    // 调整大小
-    ::AdjustWindowRect(&window_rect, window_style, FALSE);
-    // 居中
-    window_rect.right -= window_rect.left;
-    window_rect.bottom -= window_rect.top;
-    window_rect.left = (::GetSystemMetrics(SM_CXFULLSCREEN) - window_rect.right) / 2;
-    window_rect.top = (::GetSystemMetrics(SM_CYFULLSCREEN) - window_rect.bottom) / 2;
-    // 创建窗口
-    m_hwnd = ::CreateWindowExW(
-        //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
-        (this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
-        L"LongUIWindow", L"Nameless",
-        WS_OVERLAPPEDWINDOW,
-        window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
-        parent ? parent->GetHwnd() : nullptr, nullptr, 
-        ::GetModuleHandleW(nullptr), 
-        this
-        );
     //SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
     // 设置Hover
     m_csTME.cbSize = sizeof(m_csTME);
@@ -113,7 +112,7 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     ::RegisterDragDrop(m_hwnd, this);
     // 显示窗口
     ::ShowWindow(m_hwnd, SW_SHOW);
-    // Set Timer
+    // 开始计时
     m_timer.Start();
     // 所在窗口就是自己
     m_pWindow = this;
@@ -123,6 +122,14 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     ZeroMemory(&m_rcScroll, sizeof(m_dirtyRects));
     ZeroMemory(m_dirtyRects, sizeof(m_dirtyRects));
     m_present = { 0, m_dirtyRects, nullptr, nullptr };
+    {
+        // 获取屏幕刷新率
+        DEVMODEW mode = { 0 };
+        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+        m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
+        // 强行刷新一帧
+        this->Invalidate(this);
+    }
 }
 
 // UIWindow 析构函数
@@ -363,6 +370,8 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
     m_pRenderTarget->BeginDraw();
     // 设置转换矩阵
     m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+    // 清空背景
+    m_pRenderTarget->Clear(this->clear_color);
 }
 
 // 结束渲染
@@ -398,13 +407,17 @@ void LongUI::UIWindow::EndDraw() const noexcept {
 
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
-    m_bRendered = false;
+    // 新窗口大小?
+    if (m_bNewSize) {
+        this->OnResize();
+        m_bNewSize = false;
+    }
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
-    //UIManager << DL_Log << long(m_fDeltaTime * 1000.f) << LongUI::endl;
     m_timer.MovStartEnd();
     auto current_unit = m_uiRenderQueue.GetCurrentUnit();
     // 没有就不刷新了
+    m_bRendered = !!current_unit->length;
     if (!current_unit->length) return;
     // 全刷新?
     if (current_unit->units[0] == static_cast<UIControl*>(this)) {
@@ -442,8 +455,6 @@ void LongUI::UIWindow::Update() noexcept {
 // UIWindow 渲染 
 void LongUI::UIWindow::Render(RenderType type)const noexcept  {
     if (type != RenderType::Type_Render) return ;
-    // 清空背景  clear_color
-    m_pRenderTarget->Clear(this->clear_color);
     const auto current_unit = m_uiRenderQueue.GetCurrentUnit();
     // 全刷新: 继承父类
     if (!m_present.DirtyRectsCount) {
@@ -514,8 +525,9 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
 
 // UIWindow 事件处理
 bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
-    // 自己不处理LongUI事件
+    // 自己一般不处理LongUI事件
     if (_arg.sender) return Super::DoEvent(_arg);
+    // 其他LongUI事件
     bool handled = false; UIControl* control_got = nullptr;
     // 处理事件
     switch (_arg.msg)
@@ -601,12 +613,13 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         handled = true;
         break;
     case WM_SIZE:           // 改变大小
-        this->DrawSizeChanged();
-        if (_arg.lParam_sys && m_pSwapChain){
-            this->OnResize();
-            this->Invalidate(this);
-            handled = true;
-        }
+    {
+        RECT rect; ::GetClientRect(m_hwnd, &rect);
+        force_cast(this->windows_size.width) = rect.right - rect.left;
+        force_cast(this->windows_size.height) = rect.bottom - rect.top;
+        m_bNewSize = true;
+    }
+        handled = true;
         break;
     case WM_GETMINMAXINFO:  // 获取限制大小
         reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.x = 128;
@@ -646,48 +659,59 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     return Super::DoEvent(_arg);
 }
 
+LongUINoinline auto PresentTest(IDXGISwapChain2* chain, DXGI_PRESENT_PARAMETERS* param) noexcept {
+    return chain->Present1(1, 0, param);
+}
+
 // 等待重置同步
 void LongUI::UIWindow::WaitVS() const noexcept {
     // 没渲染则强行渲染
-    if (!m_bRendered) {
-        DXGI_PRESENT_PARAMETERS param; RECT rect = { 0, 0, 1, 1 };
-        param.DirtyRectsCount = 1;
-        param.pDirtyRects = &rect;
-        param.pScrollOffset = nullptr;
-        param.pScrollRect = nullptr;
-        m_pSwapChain->Present1(1, 0, &param);
+#ifdef _DEBUG
+    static bool first_time = true;
+    if (first_time && !m_bRendered) {
+        assert(!"should be rendered @ first time !");
     }
-    // 等待VS
+    first_time = false;
+    // 渲染
+    if (m_bRendered) {
+        // 等待VS
+        ::WaitForSingleObject(m_hVSync, INFINITE);
+    }
+    else {
+        assert(!"error!");
+    }
+#else
     ::WaitForSingleObject(m_hVSync, INFINITE);
+#endif
+
 }
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
     // 修改大小, 需要取消目标
     this->DrawSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
-    RECT rect; ::GetClientRect(m_hwnd, &rect);
-    rect.right -= rect.left;
-    rect.bottom -= rect.top;
     // 滚动
-    m_rcScroll.right = rect.right;
-    m_rcScroll.bottom = rect.bottom;
+    m_rcScroll.right = this->windows_size.width;
+    m_rcScroll.bottom = this->windows_size.height;
 
-    visible_rect.right = force_cast(this->windows_size.width) = static_cast<float>(rect.right);
-    visible_rect.bottom = force_cast(this->windows_size.height) = static_cast<float>(rect.bottom);
+    visible_rect.right = static_cast<float>(this->windows_size.width);
+    visible_rect.bottom = static_cast<float>(this->windows_size.height);
     visible_size.width = visible_rect.right;
     visible_size.height = visible_rect.bottom;
-    rect.right = MakeAsUnit(rect.right);
-    rect.bottom = MakeAsUnit(rect.bottom);
+    //
+
+    auto rect_right = MakeAsUnit(this->windows_size.width);
+    auto rect_bottom = MakeAsUnit(this->windows_size.height);
     auto old_size = m_pTargetBimtap->GetPixelSize();
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
-    if (force || old_size.width < uint32_t(rect.right) || old_size.height < uint32_t(rect.bottom)) {
+    if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
         UIManager << DL_Hint << L"Window: [" << this->GetNameStr() << L"] \n\t\tTarget Bitmap Resize to " 
-            << long(rect.right) << ", " << long(rect.bottom) << LongUI::endl;
+            << long(rect_right) << ", " << long(rect_bottom) << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
         ::SafeRelease(m_pTargetBimtap);
         hr = m_pSwapChain->ResizeBuffers(
-            2, rect.right, rect.bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 
+            2, rect_right, rect_bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 
             DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
             );
         // 检查

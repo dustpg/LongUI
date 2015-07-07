@@ -4,6 +4,7 @@
 // node.attribute($1).value()
 
 #define LONGUI_D3D_DEBUG
+#define LONGUI_RENDER_IN_UNSAFE_MODE
 
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
@@ -281,7 +282,7 @@ auto LongUI::CUIManager::GetCreateFunc(const CUIString& name) noexcept -> Create
 
 /*
 if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
-    // 两种方式退出 ::PostQuitMessage(0) or UIManager.Exit()
+    // 两种方式退出 
     if (msg.message == WM_QUIT) {
         m_exitFlag = true;
         break;
@@ -296,32 +297,20 @@ if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
 void LongUI::CUIManager::Run() noexcept {
     MSG msg;
     // 创建渲染线程
-    std::thread thread([this]() noexcept {
-        // 1. 上真渲染的一个窗口等待垂直同步
-        //    a.没有就选个窗口强行等待
-        // 2. 刷新所有窗口, 渲染需要渲染的窗口
-        while (!m_exitFlag) {
+    std::thread thread([]() noexcept {
+        while (!UIManager.m_exitFlag) {
             UIWindow* windows[LongUIMaxWindow];
             uint32_t length = 0;
-            UIWindow* waitvs = nullptr;
             // 复制
             UIManager.Lock();
             {
-                length = m_windows.size();
-                waitvs = this->rendered_last_frame;
+                length = UIManager.m_windows.size();
                 // 没有窗口
                 if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
                 for (auto i = 0u; i < length; ++i) {
-                    windows[i] = reinterpret_cast<UIWindow*>(m_windows[i]);
+                    windows[i] = static_cast<UIWindow*>(UIManager.m_windows[i]);
                 }
-                // 注释: a.
-                if (!waitvs) waitvs = *windows;
             }
-            UIManager.Unlock();
-            assert(waitvs && "non window");
-            // **小心**
-            waitvs->WaitVS();
-            UIManager.Lock();
             {
                 // 刷新窗口
                 for (auto i = 0u; i < length; ++i) {
@@ -330,22 +319,30 @@ void LongUI::CUIManager::Run() noexcept {
                         windows[i] = nullptr;
                     }
                 }
-                // 渲染窗口
-                for (auto i = 0u; i < length; ++i) {
-                    if (windows[i]) {
-                        windows[i]->RenderWindow();
-                    }
+            }
+            UIWindow* waitvs = nullptr;
+#ifdef LONGUI_RENDER_IN_UNSAFE_MODE
+            UIManager.Unlock();
+#endif
+            // 渲染窗口 -- 不安全模式
+            for (auto i = 0u; i < length; ++i) {
+                if (windows[i]) {
+                    waitvs = windows[i];
+                    windows[i]->RenderWindow();
                 }
             }
-            UIManager.Unlock();
+#ifdef LONGUI_RENDER_IN_UNSAFE_MODE
             UIManager.Lock();
+#endif
             {
                 // 迭代窗口
-                for (auto ctrl : m_windows) {
+                for (auto ctrl : UIManager.m_windows) {
                     static_cast<UIWindow*>(ctrl)->NextFrame();
                 }
             }
             UIManager.Unlock();
+            // 等待垂直同步
+            UIManager.WaitVS(waitvs);
         }
     });
     // 消息响应
@@ -366,6 +363,30 @@ void LongUI::CUIManager::Run() noexcept {
     // 尝试强行关闭(使用迭代器会使迭代器失效)
     while (!m_windows.empty()) {
         reinterpret_cast<UIWindow*>(m_windows.back())->Close();
+    }
+}
+
+// 等待垂直同步
+auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
+    // 直接等待
+    //UIManager << DL_Hint << window << endl;
+    if (window) {
+        window->WaitVS();
+        m_dwWaitVSCount = 0;
+        m_dwWaitVSStartTime = 0;
+    }
+    // 粗略等待
+    else {
+        if (!m_dwWaitVSCount) {
+            m_dwWaitVSStartTime = ::timeGetTime();
+        }
+        // 获取屏幕刷新率
+        DEVMODEW mode = { 0 };
+        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+        ++m_dwWaitVSCount;
+        auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency;
+        end_time_of_sleep += m_dwWaitVSStartTime;
+        do { ::Sleep(1); } while (::timeGetTime() < end_time_of_sleep);
     }
 }
 
@@ -398,9 +419,8 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
         bool wasHandled = false;
         //指针有效的情况
         if (pUIWindow) {
-            UIManager.Lock();
+            AutoLocker;
             wasHandled = pUIWindow->DoEvent(arg);
-            UIManager.Unlock();
         }
         // 需要默认处理
         if (!wasHandled) {
@@ -2361,13 +2381,18 @@ auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
 // 控件
 auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(
-        buffer, LongUIStringBufferLength,
-        L"[Control:%ls@%ls@0x%p] ",
-        ctrl->GetNameStr(),
-        ctrl->GetControlClassName(),
-        ctrl
-        );
+    if (ctrl) {
+        ::swprintf(
+            buffer, LongUIStringBufferLength,
+            L"[Control:%ls@%ls@0x%p] ",
+            ctrl->GetNameStr(),
+            ctrl->GetControlClassName(),
+            ctrl
+            );
+    }
+    else {
+        ::swprintf(buffer, LongUIStringBufferLength, L"[Control:null] ");
+    }
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
