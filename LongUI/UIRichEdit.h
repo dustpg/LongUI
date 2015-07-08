@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI {
     // default rich edit 默认富文本编辑控件
-    class LongUIAPI  UIRichEdit :  public UIControl, public ComStatic<QiList<ITextHost2>> {
+    class  UIRichEdit :  public UIControl, public ComStatic<QiList<ITextHost2>> {
         // 父类申明
         using Super = UIControl;
     public:

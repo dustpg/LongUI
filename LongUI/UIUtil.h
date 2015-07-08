@@ -590,8 +590,10 @@ namespace LongUI {
     // CUIDefaultConfigure, default impl for IUIConfigure
     class CUIDefaultConfigure : public IUIConfigure {
     public:
-        // 构造函数
-        CUIDefaultConfigure(CUIManager& manager) : m_manager(manager) {}
+        // ctor
+        CUIDefaultConfigure(CUIManager& manager) noexcept : m_manager(manager) {}
+        // dtor
+        ~CUIDefaultConfigure() noexcept;
     public:
         // qi
         virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid,void** ppvObject) noexcept ->HRESULT override final;
@@ -600,12 +602,10 @@ namespace LongUI {
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
-        // get bin-res loader, return nullptr for xml-based resource
-        virtual auto GetResLoader() noexcept->IUIResourceLoader* { return nullptr; };
         // get xml based resource(not file name)
         virtual auto GetResourceXML() noexcept -> const char* override { return resource; };
         // get template string for control
-        virtual auto GetTemplateString() noexcept->const char* { return nullptr; }
+        virtual auto GetTemplateString() noexcept->const char* override  { return nullptr; }
         // get locale name of ui(for text)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
         // create bitmap from resource identifier
@@ -629,17 +629,19 @@ namespace LongUI {
 #endif
     protected:
         // manager
-        CUIManager&         m_manager;
+        CUIManager&             m_manager;
+        // resource loader
+        IUIResourceLoader*      m_pXMLResourceLoader = nullptr;
     public:
-        // resource
-        const char*         resource = nullptr;
+        // resource xml null-end-string
+        const char*             resource = nullptr;
         // script
-        IUIScript*          script = nullptr;
+        IUIScript*              script = nullptr;
         // inline param handler
-        InlineParamHandler  handler = nullptr;
+        InlineParamHandler      handler = nullptr;
 #ifdef _DEBUG
         // debug console
-        CUIConsole          consoles[DLEVEL_SIZE];
+        CUIConsole              consoles[DLEVEL_SIZE];
 #endif
     };
 #endif

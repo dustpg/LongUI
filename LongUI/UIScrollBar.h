@@ -35,7 +35,7 @@ namespace LongUI{
     // UIContainer
     class UIContainer;
     // base scroll bar 默认滚动条
-    class LongUIAPI UIScrollBar : public UIControl {
+    class UIScrollBar : public UIControl {
     private:
         // 父类申明
         using Super = UIControl ;
@@ -111,7 +111,7 @@ namespace LongUI{
         UIScrollBar*            another = nullptr;
     };
     // srcoll bar - type A 型 滚动条
-    class LongUIAPI UIScrollBarA final : public UIScrollBar {
+    class UIScrollBarA final : public UIScrollBar {
     private:
         // basic size
         static constexpr float BASIC_SIZE = 16.f;

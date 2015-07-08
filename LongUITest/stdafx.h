@@ -50,7 +50,6 @@
 #include <d2d1effectauthor.h>
 #include <d2d1effecthelpers.h>
 #include <dwrite_1.h>
-#include <wincodec.h>
 // DirectComposition 
 #include <dcomp.h>
 

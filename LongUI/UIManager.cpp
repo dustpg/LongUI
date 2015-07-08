@@ -8,6 +8,8 @@
 
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
+    m_szLocaleName[0] = L'\0';
+
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
         config = &m_config;
@@ -15,7 +17,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         return E_INVALIDARG;
 #endif
     }
-    
     // 解析资源脚本
     auto res_xml = config->GetResourceXML();
     if (res_xml) {
@@ -27,9 +28,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     }
     // 获取信息
     force_cast(this->configure) = config;
-    //force_cast(this->script) = config->GetScript();
-    //force_cast(this->inline_handler) = config->GetInlineParamHandler();
-    *m_szLocaleName = 0;
     config->GetLocaleName(m_szLocaleName);
     // 初始化其他
     ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
@@ -83,15 +81,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             IID_ID2D1Factory1,
             &options,
             reinterpret_cast<void**>(&m_pd2dFactory)
-            );
-    }
-    // 创建 WIC 工厂.
-    if (SUCCEEDED(hr)) {
-        hr = ::CoCreateInstance(
-            CLSID_WICImagingFactory2,
-            nullptr,
-            CLSCTX_INPROC_SERVER,
-            LongUI_IID_PV_ARGS(m_pWICFactory)
             );
     }
     // 创建 DirectWrite 工厂.
@@ -157,7 +146,6 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     this->discard_resources();
     ::SafeRelease(m_pFontCollection);
     ::SafeRelease(m_pDWriteFactory);
-    ::SafeRelease(m_pWICFactory);
     ::SafeRelease(m_pd2dFactory);
     // 释放内存
     if (m_pBitmap0Buffer) {
@@ -2096,7 +2084,7 @@ force_break:
 
 
 // 从文件读取位图
-auto LongUI::CUIManager::LoadBitmapFromFile(
+/*auto LongUI::CUIManager::LoadBitmapFromFile(
     LongUIRenderTarget *pRenderTarget,
     IWICImagingFactory *pIWICFactory,
     PCWSTR uri,
@@ -2189,7 +2177,7 @@ auto LongUI::CUIManager::LoadBitmapFromFile(
     ::SafeRelease(pScaler);
 
     return hr;
-}
+}*/
 
 
 // 添加窗口

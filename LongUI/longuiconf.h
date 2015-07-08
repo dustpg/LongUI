@@ -34,9 +34,6 @@ namespace LongUI {
 // 钳住
 #define LongUIClamp(x, i, a) { if(x < i) x = i; else if(x > a) x = a;}
 
-// maybe you want to export to dll
-#define LongUIAPI 
-//#define LongUIAPI __declspec(dllexport)
 
 #define UIManager (LongUI::CUIManager::s_instance)
 
@@ -126,7 +123,6 @@ namespace LongUI {
 #include <d2d1effectauthor.h>
 #include <d2d1effecthelpers.h>
 #include <dwrite_1.h>
-#include <wincodec.h>
 // DirectComposition 
 #include <dcomp.h>
 

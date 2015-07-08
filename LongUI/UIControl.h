@@ -30,7 +30,7 @@ namespace LongUI{
     // Container
     class UIContainer;
     // base control class -- 基本控件类
-    class LongUIAlignas LongUIAPI UIControl /*: public IUIInterface*/{
+    class LongUIAlignas UIControl /*: public IUIInterface*/{
         // Super class
         using Super = IUIInterface;
         // friend class

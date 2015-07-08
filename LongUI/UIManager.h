@@ -30,7 +30,7 @@ namespace LongUI {
     // endl for longUI
     static struct EndL { } endl;
     // ui manager ui 管理器
-    class LongUIAlignas LongUIAPI CUIManager {
+    class LongUIAlignas CUIManager {
     public: 
         // Windows Version
         enum WindowsVersion : size_t {
@@ -61,13 +61,11 @@ namespace LongUI {
         // wait for VS
         auto WaitVS(UIWindow* window) noexcept ->void;
     public: // 特例
-        // load bitmap
-        static auto __cdecl LoadBitmapFromFile(
-            LongUIRenderTarget*, IWICImagingFactory *, PCWSTR, UINT, UINT, ID2D1Bitmap1 **
-            ) noexcept ->HRESULT;
         // get default LongUI imp IDWriteFontCollection
         static auto __cdecl CreateLongUIFontCollection(
-            IDWriteFactory*, const wchar_t* filename=L"*.*tf", const wchar_t* folder=L"Fonts"
+            IDWriteFactory*, 
+            const wchar_t* filename=L"*.*tf", 
+            const wchar_t* folder=L"Fonts"
             ) noexcept->IDWriteFontCollection*;
         // create path-geometry from utf-32 char array using text format
         // fontface: (you can see <LongUI::UIScrollBar::UIScrollBar>)
@@ -140,9 +138,6 @@ namespace LongUI {
         // 转换为 D2D Factory1
 #define UIManager_D2DFactory (static_cast<ID2D1Factory1*>(UIManager))
         LongUIInline operator ID2D1Factory1*()const noexcept { return m_pd2dFactory; };
-        // 转换为 IWICImagingFactory2
-#define UIManager_WICImagingFactory (static_cast<IWICImagingFactory2*>(UIManager))
-        LongUIInline operator IWICImagingFactory2*()const noexcept { return m_pWICFactory; };
 #ifdef LONGUI_VIDEO_IN_MF
         // 转换为  IMFDXGIDeviceManager
 #   define UIManager_MFDXGIDeviceManager (static_cast<IMFDXGIDeviceManager*>(UIManager))
@@ -172,8 +167,6 @@ namespace LongUI {
     private:
         // D2D 工厂
         ID2D1Factory1*                  m_pd2dFactory = nullptr;
-        // WIC 工厂
-        IWICImagingFactory2*            m_pWICFactory = nullptr;
         // DWrite工厂
         IDWriteFactory1*                m_pDWriteFactory = nullptr;
         // DWrite 字体集

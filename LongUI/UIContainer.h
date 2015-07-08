@@ -27,7 +27,7 @@
 // LongUI namespace
 namespace LongUI {
     // base container control class -- 基本容器类
-    class LongUIAPI UIContainer : public UIControl {
+    class UIContainer : public UIControl {
         // 父类申明
         using Super = UIControl;
     public:

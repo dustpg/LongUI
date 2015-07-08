@@ -27,7 +27,7 @@
 // LongUI namespace
 namespace LongUI{
     // Horizontal Layout -- 水平布局 容器
-    class LongUIAPI UIHorizontalLayout : public UIContainer{
+    class UIHorizontalLayout : public UIContainer{
         // 父类申明
         using Super = UIContainer;
     public: // UIControl

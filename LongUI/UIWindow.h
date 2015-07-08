@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI{
     // ui's window
-    class LongUIAPI UIWindow : public UIVerticalLayout,
+    class UIWindow : public UIVerticalLayout,
         public ComStatic<QiListSelf<IUnknown, QiList<IDropTarget>>> {
         // 父类申明
         using Super = UIVerticalLayout ;

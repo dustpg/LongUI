@@ -31,7 +31,7 @@
 // LongUI namespace
 namespace LongUI{
     // Vertical Layout -- 垂直布局 容器
-    class LongUIAPI UIVerticalLayout : public UIContainer{
+    class UIVerticalLayout : public UIContainer{
         // 父类申明
         using Super = UIContainer;
     public: // UIControl

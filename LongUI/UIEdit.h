@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI {
     // 基本编辑类
-    class LongUIAPI UIEditBasic : public UIControl {
+    class UIEditBasic : public UIControl {
         // 父类申明
         using Super = UIControl;
     public:

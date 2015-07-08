@@ -751,21 +751,11 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
     return file && m_pData;
 }
 
-// CUIDefaultConfigure::LoadBitmapByRI Impl
-auto LongUI::CUIDefaultConfigure::LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* {
-    wchar_t buffer[MAX_PATH * 4]; buffer[LongUI::UTF8toWideChar(res_iden, buffer)] = L'\0';
-    ID2D1Bitmap1* bitmap = nullptr;
-    CUIManager::LoadBitmapFromFile(m_manager, m_manager, buffer, 0, 0, &bitmap);
-    return bitmap;
-}
-
-
 
 // --------------  CUIConsole ------------
 // CUIConsole 构造函数
 LongUI::CUIConsole::CUIConsole() noexcept {
-    ::InitializeCriticalSection(&m_cs);
-    m_name[0] = 0;
+    ::InitializeCriticalSection(&m_cs); m_name[0] = L'\0';
     { if (m_hConsole != INVALID_HANDLE_VALUE) this->Close(); }
 }
 
@@ -994,6 +984,28 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
 // --------------  CUIDefaultConfigure ------------
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
+
+// CUIDefaultConfigure::LoadBitmapByRI Impl
+auto LongUI::CUIDefaultConfigure::LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* {
+    wchar_t buffer[MAX_PATH * 4]; buffer[LongUI::UTF8toWideChar(res_iden, buffer)] = L'\0';
+    ID2D1Bitmap1* bitmap = nullptr;
+    //CUIManager::LoadBitmapFromFile(m_manager, nullptr, buffer, 0, 0, &bitmap);
+    return bitmap;
+}
+
+
+// CUIDefaultConfigure 析构函数
+LongUI::CUIDefaultConfigure::~CUIDefaultConfigure() noexcept {
+    ::SafeRelease(m_pXMLResourceLoader);
+    ::SafeRelease(this->script);
+}
+
+// longui
+namespace LongUI {
+    // 创建XML资源读取器
+    auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept->IUIResourceLoader*;
+}
+
 // 查询接口信息
 auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
     // 非接口
@@ -1008,15 +1020,22 @@ auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvOb
     }
     // 接口
     IUIInterface* uiinterface = nullptr;
+    // 配置信息
     if (riid == IID_LONGUI_IUIConfigure) {
         uiinterface = this;
     }
+    // 资源读取器
     else if (riid == IID_LONGUI_IUIResourceLoader) {
-        //uiinterface = nullptr;
+        if (m_pXMLResourceLoader) {
+            uiinterface = m_pXMLResourceLoader;
+        }
+        else {
+            uiinterface = LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
+        }
     }
+    // 脚本
     else if (riid == IID_LONGUI_IUIScript) {
         uiinterface = script;
-
     }
     script->Release();
     // 检查

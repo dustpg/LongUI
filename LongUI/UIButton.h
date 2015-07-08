@@ -27,7 +27,7 @@
 // LongUI namespace
 namespace LongUI{
     // default button control 默认按钮控件
-    class LongUIAPI UIButton final : public UILabel {
+    class UIButton final : public UILabel {
         // 父类申明
         using Super = UILabel;
         // ui element

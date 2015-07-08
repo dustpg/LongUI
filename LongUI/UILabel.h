@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI{
     // default label control 默认标签控件
-    class LongUIAPI UILabel : public UIControl{
+    class UILabel : public UIControl{
     private:
         // 父类申明
         using Super = UIControl ;

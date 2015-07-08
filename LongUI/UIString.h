@@ -27,7 +27,7 @@
 // LongUI namespace
 namespace LongUI{
     // UI String -- compatible with std library string interface(part of) but static
-    class LongUIAPI CUIString {
+    class CUIString {
     public:
         // 默认构造函数
         LongUIInline CUIString() noexcept { *m_aDataStatic = 0; }
