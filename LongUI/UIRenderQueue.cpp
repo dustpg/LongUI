@@ -147,3 +147,47 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         assert(!"error");
     }
 }
+
+// longui namespace
+namespace LongUI {
+     // 检查Windows版本
+     bool IsWindowsVersionOrGreater(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor) noexcept {
+        RTL_OSVERSIONINFOEXW verInfo = { 0 };
+        verInfo.dwOSVersionInfoSize = sizeof(verInfo);
+        // 获取地址
+        static auto RtlGetVersion = reinterpret_cast<LongUI::fnRtlGetVersion>(
+            ::GetProcAddress(::GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion")
+            );
+        // 比较版本
+        if (RtlGetVersion && RtlGetVersion((PRTL_OSVERSIONINFOW)&verInfo) == 0) {
+            if (verInfo.dwMajorVersion > wMajorVersion)
+                return true;
+            else if (verInfo.dwMajorVersion < wMajorVersion)
+                return false;
+            if (verInfo.dwMinorVersion > wMinorVersion)
+                return true;
+            else if (verInfo.dwMinorVersion < wMinorVersion)
+                return false;
+            if (verInfo.wServicePackMajor >= wServicePackMajor)
+                return true;
+        }
+        return false;
+    }
+    // 获取Windows版本
+    auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion {
+        CUIManager::WindowsVersion version = CUIManager::WindowsVersion::Version_Win7SP1;
+        // >= Win10 ?
+        if (LongUI::IsWindows10OrGreater()) {
+            version = CUIManager::WindowsVersion::Version_Win10;
+        }
+        // >= Win8.1 ?
+        else if (LongUI::IsWindows8Point1OrGreater()) {
+            version = CUIManager::WindowsVersion::Version_Win8_1;
+        }
+        // >= Win8 ?
+        else if (LongUI::IsWindows8OrGreater()) {
+            version = CUIManager::WindowsVersion::Version_Win8;
+        }
+        return version;
+    }
+}

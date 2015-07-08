@@ -95,7 +95,6 @@ namespace LongUI {
 #include <Shlobj.h>
 #include <Shlwapi.h>
 #include <ShObjIdl.h>
-#include <VersionHelpers.h>
 // C++ 
 #include <cassert>
 #include <cstdlib>

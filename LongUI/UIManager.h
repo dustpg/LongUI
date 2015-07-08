@@ -34,12 +34,14 @@ namespace LongUI {
     public: 
         // Windows Version
         enum WindowsVersion : size_t {
+            // win7 sp1
+            Version_Win7SP1 = 0,
             // Win8,
-            Style_Win8 = 0, 
+            Version_Win8, 
             //  Win8.1
-            Style_Win8_1,
+            Version_Win8_1,
             // Win10
-            Style_Win10
+            Version_Win10
         };
     public: // handle zone 操作区
         // initialize 初始化
@@ -164,7 +166,7 @@ namespace LongUI {
         // config
         IUIConfigure*        const      configure = nullptr;
         // windows version
-        WindowsVersion       const      version = WindowsVersion::Style_Win8;
+        WindowsVersion       const      version = WindowsVersion::Version_Win8;
         // user context size 用户上下文大小
         size_t               const      user_context_size = 0;
     private:

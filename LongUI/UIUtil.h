@@ -243,19 +243,19 @@ namespace LongUI {
         auto LongUIInline  MovStartEnd() noexcept { m_cpuCounterStart = m_cpuCounterEnd; }
         // delta time in sec.
         template<typename T>
-        auto LongUIInline  Delta_s() {
+        auto LongUIInline  Delta_s() noexcept {
             UITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in ms.
         template<typename T>
-        auto LongUIInline  Delta_ms() {
+        auto LongUIInline  Delta_ms() noexcept {
             UITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e3) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in micro sec.
         template<typename T>
-        auto LongUIInline Delta_mcs() {
+        auto LongUIInline Delta_mcs() noexcept {
             UITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e6) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
@@ -268,7 +268,7 @@ namespace LongUI {
         LARGE_INTEGER            m_cpuCounterEnd;
     public:
         // 构造函数
-        UITimer() { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
+        UITimer() noexcept { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
 #else
         // refresh the frequency
         auto LongUIInline  RefreshFrequency() noexcept { }
@@ -278,19 +278,19 @@ namespace LongUI {
         auto LongUIInline  MovStartEnd() noexcept { m_dwStart = m_dwNow; }
         // delta time in sec.
         template<typename T>
-        auto LongUIInline  Delta_s() {
+        auto LongUIInline  Delta_s() noexcept {
             m_dwNow = ::timeGetTime();
             return static_cast<T>(m_dwNow - m_dwStart) * static_cast<T>(0.001);
         }
         // delta time in ms.
         template<typename T>
-        auto LongUIInline  Delta_ms() {
+        auto LongUIInline  Delta_ms() noexcept {
             m_dwNow = ::timeGetTime();
             return static_cast<T>(m_dwNow - m_dwStart);
         }
         // delta time in micro sec.
         template<typename T>
-        auto LongUIInline Delta_mcs() {
+        auto LongUIInline Delta_mcs() noexcept {
             m_dwNow = ::timeGetTime();
             return static_cast<T>(m_dwNow - m_dwStart) * static_cast<T>(1000);
         }
@@ -380,7 +380,7 @@ namespace LongUI {
             return newCount;
         }
         // virtual destructor
-        virtual ~ComBase() { }
+        virtual ~ComBase() noexcept { }
     protected:
         // the counter 
         CounterType     m_refValue = 0;
@@ -452,7 +452,7 @@ namespace LongUI {
     class UIColorEffect : public ComBase<QiList<IUnknown>> {
     public:
         // c
-        UIColorEffect() {}
+        UIColorEffect() noexcept {}
         // operator @delete
         void  operator delete(void* p, size_t) noexcept { LongUI::SmallFree(p); };
         // userdata
@@ -479,9 +479,9 @@ namespace LongUI {
     class FixedCommadStack {
     public:
         // constructor
-        FixedCommadStack() { ::ZeroMemory(data, sizeof(data)); };
+        FixedCommadStack() noexcept { ::ZeroMemory(data, sizeof(data)); };
         // destructor
-        ~FixedCommadStack() {
+        ~FixedCommadStack() noexcept {
             // release commnad in 2-time
             for (auto &i : data) { ::SafeRelease(i); }
         }
@@ -643,4 +643,62 @@ namespace LongUI {
 #endif
     };
 #endif
+    // RtlGetVersion func
+    typedef NTSTATUS(NTAPI* fnRtlGetVersion)(PRTL_OSVERSIONINFOW lpVersionInformation);
+    // IsWindowsVersionOrGreater
+    LongUINoinline bool IsWindowsVersionOrGreater(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor) noexcept;
+    // >= WinXP
+    static inline auto IsWindowsXPOrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 0);
+    }
+    // >= WinXP SP1
+    static inline auto IsWindowsXPSP1OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 1);
+    }
+    // >= WinXP SP2
+    static inline auto IsWindowsXPSP2OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 2);
+    }
+    // >= WinXP SP3
+    static inline auto IsWindowsXPSP3OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 3);
+    }
+    // >= Win Vista
+    static inline auto IsWindowsVistaOrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0);
+    }
+    // >= Win Vista SP1
+    static inline auto IsWindowsVistaSP1OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 1);
+    }
+    // >= Win Vista SP2
+    static inline auto IsWindowsVistaSP2OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 2);
+    }
+    // >= Win7
+    static inline auto IsWindows7OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN7), LOBYTE(_WIN32_WINNT_WIN7), 0);
+    }
+    // >= Win7 SP1
+    static inline auto IsWindows7SP1OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN7), LOBYTE(_WIN32_WINNT_WIN7), 1);
+    }
+    // >= Win8
+    static inline auto IsWindows8OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN8), LOBYTE(_WIN32_WINNT_WIN8), 0);
+    }
+    // >= Win8.1
+    static inline auto IsWindows8Point1OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINBLUE), LOBYTE(_WIN32_WINNT_WINBLUE), 0);
+    }
+    // >= Win10
+    static inline auto IsWindows10OrGreater() noexcept {
+        return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN10), LOBYTE(_WIN32_WINNT_WIN10), 0);
+    }
+    // Server?
+    static inline auto IsWindowsServer() noexcept {
+        OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0, 0, VER_NT_WORKSTATION };
+        DWORDLONG        const dwlConditionMask = VerSetConditionMask(0, VER_PRODUCT_TYPE, VER_EQUAL);
+        return !VerifyVersionInfoW(&osvi, VER_PRODUCT_TYPE, dwlConditionMask);
+    }
 }

@@ -25,16 +25,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             ::MessageBoxA(nullptr, re.description(), "<LongUI::CUIManager::Initialize>: Failed to Parse XML", MB_ICONERROR);
         }
     }
-    // 获取操作系统信息
-#if 0
-    if (IsWindows10OrGreater()) {
-        force_cast(this->version) = WindowsVersion::Style_Win10;
-    }
-    /*else*/
-#endif
-    if (IsWindows8Point1OrGreater()) {
-        force_cast(this->version) = WindowsVersion::Style_Win8_1;
-    }
     // 获取信息
     force_cast(this->configure) = config;
     //force_cast(this->script) = config->GetScript();
@@ -298,51 +288,45 @@ void LongUI::CUIManager::Run() noexcept {
     MSG msg;
     // 创建渲染线程
     std::thread thread([]() noexcept {
+        UIWindow* windows[LongUIMaxWindow]; uint32_t length = 0;
+        // 不退出?
         while (!UIManager.m_exitFlag) {
-            UIWindow* windows[LongUIMaxWindow];
-            uint32_t length = 0;
             // 复制
             UIManager.Lock();
-            {
-                length = UIManager.m_windows.size();
-                // 没有窗口
-                if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
-                for (auto i = 0u; i < length; ++i) {
-                    windows[i] = static_cast<UIWindow*>(UIManager.m_windows[i]);
+            length = UIManager.m_windows.size();
+            // 没有窗口
+            if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
+            for (auto i = 0u; i < length; ++i) {
+                windows[i] = static_cast<UIWindow*>(UIManager.m_windows[i]);
+            }
+            // 刷新窗口
+            for (auto i = 0u; i < length; ++i) {
+                windows[i]->Update();
+                if (!windows[i]->IsRendered()) {
+                    windows[i] = nullptr;
                 }
             }
-            {
-                // 刷新窗口
-                for (auto i = 0u; i < length; ++i) {
-                    windows[i]->Update();
-                    if (!windows[i]->IsRendered()) {
-                        windows[i] = nullptr;
-                    }
-                }
-            }
-            UIWindow* waitvs = nullptr;
 #ifdef LONGUI_RENDER_IN_UNSAFE_MODE
             UIManager.Unlock();
 #endif
-            // 渲染窗口 -- 不安全模式
+            UIWindow* waitvs_window = nullptr;
+            // 渲染窗口
             for (auto i = 0u; i < length; ++i) {
                 if (windows[i]) {
-                    waitvs = windows[i];
+                    waitvs_window = windows[i];
                     windows[i]->RenderWindow();
                 }
             }
 #ifdef LONGUI_RENDER_IN_UNSAFE_MODE
             UIManager.Lock();
 #endif
-            {
-                // 迭代窗口
-                for (auto ctrl : UIManager.m_windows) {
-                    static_cast<UIWindow*>(ctrl)->NextFrame();
-                }
+            // 迭代窗口
+            for (auto ctrl : UIManager.m_windows) {
+                static_cast<UIWindow*>(ctrl)->NextFrame();
             }
             UIManager.Unlock();
             // 等待垂直同步
-            UIManager.WaitVS(waitvs);
+            UIManager.WaitVS(waitvs_window);
         }
     });
     // 消息响应
@@ -384,7 +368,7 @@ auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
         DEVMODEW mode = { 0 };
         ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
         ++m_dwWaitVSCount;
-        auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency;
+        auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency + 1;
         end_time_of_sleep += m_dwWaitVSStartTime;
         do { ::Sleep(1); } while (::timeGetTime() < end_time_of_sleep);
     }
@@ -468,8 +452,11 @@ auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
     return static_cast<HICON>(data);
 }
 
+// 获取操作系统版本
+namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
+
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept : m_config(*this) {
+LongUI::CUIManager::CUIManager() noexcept : m_config(*this), version(LongUI::GetWindowsVersion()) {
 }
 
 // CUIManager 析构函数

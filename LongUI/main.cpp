@@ -40,13 +40,13 @@ public:
     //
     InitializeLibrary() {
         // < Win8 ?
-        if (!::IsWindows8OrGreater()) {
+        if (!LongUI::IsWindows8OrGreater()) {
             ::MessageBoxA(nullptr, "Windows8 at least!", "Unsupported System", MB_ICONERROR);
             ::ExitProcess(1);
             return;
         }
         // >= Win8.1 ?
-        if (::IsWindows8OrGreater()) {
+        if (LongUI::IsWindows8Point1OrGreater()) {
             m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
             assert(m_hDllShcore);
             if (m_hDllShcore) {
