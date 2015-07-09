@@ -47,18 +47,7 @@ private:
 
 
 // MRubyScript 构造函数
-MRubyScript::MRubyScript() noexcept {
-
-}
-
-// 初始化
-auto MRubyScript::Initialize(LongUI::CUIManager* manager) noexcept -> bool {
-    bool rc = false;
-    m_pUIManager = manager;
-    // 动态链接建议使用参数, 静态链接直接使用"UIManager"即可
-    // if IUIScript implemented in dll(dynamic link), use the para: @manager
-    // if not(static link), use Marco "UIManager"
-    assert(manager == &UIManager);
+MRubyScript::MRubyScript(LongUI::CUIManager& manager) noexcept : m_uiManager(manager) {
     // 打开mruby
     m_pMRuby = ::mrb_open();
     if (m_pMRuby && (m_symArgument = mrb_intern_lit(m_pMRuby, "$apparg"))) {
@@ -67,14 +56,12 @@ auto MRubyScript::Initialize(LongUI::CUIManager* manager) noexcept -> bool {
         // 载入初始化字符串
         ::mrb_load_string(m_pMRuby, ruby_script);
         // 定义API
-        rc = this->define_api();
+        this->define_api();
     }
-    return rc;
 }
 
-// 反初始化
-auto MRubyScript::UnInitialize() noexcept -> void {
-    // 关闭MRuby
+// MRubyScript 析构函数
+MRubyScript::~MRubyScript() noexcept {
     if (m_pMRuby) {
         ::mrb_close(m_pMRuby);
         m_pMRuby = nullptr;

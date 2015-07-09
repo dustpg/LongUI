@@ -9,7 +9,7 @@
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     m_szLocaleName[0] = L'\0';
-
+    // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
         config = &m_config;
@@ -17,6 +17,10 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         return E_INVALIDARG;
 #endif
     }
+    // 获取资源加载器
+    config->QueryInterface(LongUI_IID_PV_ARGS(m_pResourceLoader));
+    // 获取脚本
+    config->QueryInterface(LongUI_IID_PV_ARGS(force_cast(this->script)));
     // 解析资源脚本
     auto res_xml = config->GetResourceXML();
     if (res_xml) {
@@ -32,19 +36,19 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 初始化其他
     ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
     ZeroMemory(m_apSystemBrushes, sizeof(m_apSystemBrushes));
-    // 添加默认创建函数
-    this->AddS2CPair(L"Label", LongUI::UILabel::CreateControl);
-    this->AddS2CPair(L"Button", LongUI::UIButton::CreateControl);
-    this->AddS2CPair(L"VerticalLayout", LongUI::UIVerticalLayout::CreateControl);
-    this->AddS2CPair(L"HorizontalLayout", LongUI::UIHorizontalLayout::CreateControl);
-    this->AddS2CPair(L"Slider", LongUI::UISlider::CreateControl);
-    this->AddS2CPair(L"CheckBox", LongUI::UICheckBox::CreateControl);
-    this->AddS2CPair(L"RichEdit", LongUI::UIRichEdit::CreateControl);
-    this->AddS2CPair(L"ScrollBarA", LongUI::UIScrollBarA::CreateControl);
-    ///
-    this->AddS2CPair(L"EditBasic", LongUI::UIEditBasic::CreateControl);
-    this->AddS2CPair(L"Edit", LongUI::UIEditBasic::CreateControl);
-    ///
+    // 添加默认控件创建函数
+    {
+        this->AddS2CPair(L"Label", LongUI::UILabel::CreateControl);
+        this->AddS2CPair(L"Button", LongUI::UIButton::CreateControl);
+        this->AddS2CPair(L"VerticalLayout", LongUI::UIVerticalLayout::CreateControl);
+        this->AddS2CPair(L"HorizontalLayout", LongUI::UIHorizontalLayout::CreateControl);
+        this->AddS2CPair(L"Slider", LongUI::UISlider::CreateControl);
+        this->AddS2CPair(L"CheckBox", LongUI::UICheckBox::CreateControl);
+        this->AddS2CPair(L"RichEdit", LongUI::UIRichEdit::CreateControl);
+        this->AddS2CPair(L"ScrollBarA", LongUI::UIScrollBarA::CreateControl);
+        this->AddS2CPair(L"EditBasic", LongUI::UIEditBasic::CreateControl);
+        this->AddS2CPair(L"Edit", LongUI::UIEditBasic::CreateControl);
+    }
     // 添加自定义控件
     config->AddCustomControl();
     // 获取实例句柄
@@ -65,11 +69,55 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     wcex.hIcon = hicon;
     // 注册窗口
     ::RegisterClassExW(&wcex);
-    m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(malloc(
+    m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(LongUI::CtrlAlloc(
         sizeof(RGBQUAD)* LongUIDefaultBitmapSize * LongUIDefaultBitmapSize)
         );
     // 重建资源
     register HRESULT hr = m_pBitmap0Buffer ? S_OK : E_OUTOFMEMORY;
+    // 资源数据缓存
+    if (SUCCEEDED(hr)) {
+        // 获取缓存数据
+        auto get_buffer_length = [this]() {
+            size_t buffer_length =
+                sizeof(void*) * m_cCountBmp +
+                sizeof(void*) * m_cCountBrs +
+                sizeof(void*) * m_cCountTf +
+                sizeof(LongUI::Meta) * m_cCountMt;
+            return buffer_length;
+        };
+        // 检查资源缓存
+        if (!m_pResourceBuffer) {
+            m_cCountBmp = m_cCountBrs = m_cCountTf = m_cCountMt = 1;
+            // 缓存区
+            size_t buffer_length =
+                sizeof(void*) * m_cCountBmp +
+                sizeof(void*) * m_cCountBrs +
+                sizeof(void*) * m_cCountTf +
+                (sizeof(LongUI::Meta) + sizeof(HICON)) * m_cCountMt;
+            // 查询资源数量
+            if (m_pResourceLoader) {
+                m_cCountBmp += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Bitmap);
+                m_cCountBrs += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Brush);
+                m_cCountTf += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_TextFormat);
+                m_cCountMt += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Meta);
+            }
+            // 申请内存
+            m_pResourceBuffer = LongUI::CtrlAlloc(buffer_length);
+        }
+        // 修改资源
+        if (m_pResourceBuffer) {
+            ::memset(m_pResourceBuffer, 0, get_buffer_length());
+            m_ppBitmaps = reinterpret_cast<decltype(m_ppBitmaps)>(m_pResourceBuffer);
+            m_ppBrushes = reinterpret_cast<decltype(m_ppBrushes)>(m_ppBitmaps + m_cCountBmp);
+            m_ppTextFormats = reinterpret_cast<decltype(m_ppTextFormats)>(m_ppBrushes + m_cCountBrs);
+            m_pMetasBuffer = reinterpret_cast<decltype(m_pMetasBuffer)>(m_ppTextFormats + m_cCountTf);
+            m_phMetaIcon = reinterpret_cast<decltype(m_phMetaIcon)>(m_pMetasBuffer + m_cCountMt);
+        }
+        // 内存不足
+        else {
+            hr = E_OUTOFMEMORY;
+        }
+    }
     // 创建D2D工厂
     if (SUCCEEDED(hr)) {
         D2D1_FACTORY_OPTIONS options = { D2D1_DEBUG_LEVEL_NONE };
@@ -102,12 +150,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 准备缓冲区
     if (SUCCEEDED(hr)) {
         try {
-            m_textFormats.reserve(64);
-            m_brushes.reserve(64);
             m_windows.reserve(LongUIMaxWindow);
-            m_bitmaps.reserve(64);
-            m_metas.reserve(64);
-            m_metaicons.reserve(64);
         }
         CATCH_HRESULT(hr)
     }
@@ -118,13 +161,13 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             hr = E_FAIL;
         }
     }
-    // 初始化脚本
-    if (this->script && !(this->script->Initialize(this))) {
-        hr = E_FAIL;
-    }
     // 创建资源
     if (SUCCEEDED(hr)) {
         hr = this->RecreateResources();
+    }
+    // 检查错误
+    if (FAILED(hr)) {
+        this->ShowError(hr);
     }
     return hr;
 }
@@ -138,10 +181,6 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     for (auto& renderer : m_apTextRenderer) {
         ::SafeRelease(renderer);
     }
-    // 释放系统笔刷
-    for (auto& brush : m_apSystemBrushes) {
-        ::SafeRelease(brush);
-    }
     // 释放资源
     this->discard_resources();
     ::SafeRelease(m_pFontCollection);
@@ -149,22 +188,28 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     ::SafeRelease(m_pd2dFactory);
     // 释放内存
     if (m_pBitmap0Buffer) {
-        free(m_pBitmap0Buffer);
+        LongUI::CtrlFree(m_pBitmap0Buffer);
         m_pBitmap0Buffer = nullptr;
     }
-    // 反初始化脚本
-    if (this->script) {
-        this->script->UnInitialize();
-        this->script->Release();
-        force_cast(script) = nullptr;
+    // 释放脚本
+    ::SafeRelease(force_cast(script));
+    // 释放资源缓存
+    if (m_pResourceBuffer) {
+        LongUI::CtrlFree(m_pResourceBuffer);
+        m_pResourceBuffer = nullptr;
     }
     // 释放配置
     ::SafeRelease(force_cast(this->configure));
+    //
+    m_cCountMt = 0;
+    m_cCountTf = 0;
+    m_cCountBmp = 0;
+    m_cCountBrs = 0;
 }
 
 
 // 创建控件
-inline auto LongUI::CUIManager::create_control(pugi::xml_node node) noexcept -> UIControl* {
+auto LongUI::CUIManager::create_control(pugi::xml_node node) noexcept -> UIControl* {
     assert(node && "bad argument");
     // 获取创建指针
     auto create = this->GetCreateFunc(node.name());
@@ -231,13 +276,13 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
 auto LongUI::CUIManager::GetCreateFunc(const char* class_name) noexcept -> CreateControlFunction {
     // 缓冲区
     wchar_t buffer[LongUIStringBufferLength];
-    auto* __restrict itra = class_name;
-    auto* __restrict itrb = buffer;
+    auto* __restrict itra = class_name; auto* __restrict itrb = buffer;
     // 类名一定是英文的
     for (; *itra; ++itra, ++itrb) {
         assert(*itra >= 0 && "bad name");
         *itrb = *itra;
     }
+    // null 结尾字符串
     *itrb = L'\0';
     // 获取
     return this->GetCreateFunc(buffer, itra - class_name);
@@ -340,8 +385,8 @@ void LongUI::CUIManager::Run() noexcept {
 
 // 等待垂直同步
 auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
+    // UIManager << DL_Hint << window << endl;
     // 直接等待
-    //UIManager << DL_Hint << window << endl;
     if (window) {
         window->WaitVS();
         m_dwWaitVSCount = 0;
@@ -402,43 +447,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
     return  arg.lr;
 }
 
-// 获取Meta的图标句柄
-auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
-    // TODO DO IT
-    auto& data = m_metaicons[index];
-    // 没有就创建
-    if (!data) {
-        ID2D1Bitmap1* bitmap = this->GetBitmap(LongUIDefaultBitmapIndex);
-        Meta meta; this->GetMeta(index, meta);
-        D2D1_RECT_U rect = {
-            static_cast<uint32_t>(meta.src_rect.left),
-            static_cast<uint32_t>(meta.src_rect.top),
-            static_cast<uint32_t>(meta.src_rect.right),
-            static_cast<uint32_t>(meta.src_rect.bottom)
-        };
-        HRESULT hr = (bitmap && meta.bitmap) ? E_FAIL : S_OK;
-        // 复制数据
-        if (SUCCEEDED(hr)) {
-            hr = bitmap->CopyFromBitmap(nullptr, meta.bitmap, &rect);
-        }
-        // 映射数据
-        if (SUCCEEDED(hr)) {
-            D2D1_MAPPED_RECT mapped_rect = { 
-                LongUIDefaultBitmapSize * sizeof(RGBQUAD) ,
-                m_pBitmap0Buffer
-            };
-            hr = bitmap->Map(D2D1_MAP_OPTIONS_READ, &mapped_rect);
-        }
-        // 取消映射
-        if (SUCCEEDED(hr)) {
-            hr = bitmap->Unmap();
-        }
-        assert(SUCCEEDED(hr));
-        ::SafeRelease(bitmap);
-    }
-    assert(data && "no icon got");
-    return static_cast<HICON>(data);
-}
 
 // 获取操作系统版本
 namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
@@ -747,66 +755,59 @@ auto LongUI::CUIManager::RegisterTextRenderer(
     return count;
 }
 
-// CUIManager 获取文本格式
-auto LongUI::CUIManager::GetTextFormat(
-    uint32_t index) noexcept ->IDWriteTextFormat* {
-    IDWriteTextFormat* pTextFormat = nullptr;
-    if (index >= m_textFormats.size()) {
-        // 越界
-        UIManager << DL_Warning << L"index@" << long(index)
-            << L" is out of range\n   Now set to 0" << LongUI::endl;
-        index = 0;
-    }
-    pTextFormat = reinterpret_cast<IDWriteTextFormat*>(m_textFormats[index]);
-    // 未找到
-    if (!pTextFormat) {
-        UIManager << DL_Error << L"index@" << long(index) << L" TF is null" << LongUI::endl;
-    }
-    return ::SafeAcquire(pTextFormat);
 
-}
+// 创建0索引资源
+auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
+    assert(m_pResourceBuffer && "bad alloc");
+    HRESULT hr = S_OK;
+    // 索引0位图: 可MAP位图
+    if (SUCCEEDED(hr)) {
+        hr = m_pd2dDeviceContext->CreateBitmap(
+            D2D1::SizeU(LongUIDefaultBitmapSize, LongUIDefaultBitmapSize),
+            nullptr, LongUIDefaultBitmapSize * 4,
+            D2D1::BitmapProperties1(
+                static_cast<D2D1_BITMAP_OPTIONS>(LongUIDefaultBitmapOptions),
+                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+                ),
+            m_ppBitmaps + LongUIDefaultBitmapIndex
+            );
+    }
+    // 索引0笔刷: 全控件共享用前写纯色笔刷
+    if (SUCCEEDED(hr)) {
+        ID2D1SolidColorBrush* brush = nullptr;
+        D2D1_COLOR_F color = D2D1::ColorF(D2D1::ColorF::Black);
+        hr = m_pd2dDeviceContext->CreateSolidColorBrush(&color, nullptr, &brush);
+        m_ppBrushes[LongUICommonSolidColorBrushIndex] = ::SafeAcquire(brush);
+        ::SafeRelease(brush);
+    }
+    // 索引0文本格式: 默认格式
+    if (SUCCEEDED(hr)) {
+        hr = m_pDWriteFactory->CreateTextFormat(
+            LongUIDefaultTextFontName,
+            m_pFontCollection,
+            DWRITE_FONT_WEIGHT_NORMAL,
+            DWRITE_FONT_STYLE_NORMAL,
+            DWRITE_FONT_STRETCH_NORMAL,
+            LongUIDefaultTextFontSize,
+            m_szLocaleName,
+            m_ppTextFormats + LongUIDefaultTextFormatIndex
+            );
+    }
+    // 设置
+    if (SUCCEEDED(hr)) {
+        m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+        m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+    }
+    // 索引0META: 暂无
+    if (SUCCEEDED(hr)) {
 
-// 创建程序资源
-auto LongUI::CUIManager::create_programs_resources() throw(std::bad_alloc &)-> void {
-    // 存在二进制读取器?
+    }
+    /*// 存在二进制读取器?
     if (m_pResourceLoader) {
-        // 获取位图个数
-        register auto count = m_pResourceLoader->GetBitmapCount();
-        m_bitmaps.reserve(count);
-        // 读取位图
-        for (decltype(count) i = 0; i < count; ++i) {
-            m_bitmaps.push_back(m_pResourceLoader->LoadBitmapAt(*this, i));
-        }
-        // 获取笔刷个数
-        count = m_pResourceLoader->GetBrushCount();
-        m_brushes.reserve(count);
-        // 读取笔刷
-        for (decltype(count) i = 0; i < count; ++i) {
-            m_brushes.push_back(m_pResourceLoader->LoadBrushAt(*this, i));
-        }
-        // 获取文本格式个数
-        count = m_pResourceLoader->GetTextFormatCount();
-        m_textFormats.reserve(count);
-        // 读取文本格式
-        for (decltype(count) i = 0; i < count; ++i) {
-            m_textFormats.push_back(m_pResourceLoader->LoadTextFormatAt(*this, i));
-        }
-        // 获取Meta个数
-        count = m_pResourceLoader->GetMetaCount();
-        m_metas.reserve(count);
-        // 图标
-        m_metaicons.resize(count);
-        // 读取文本格式
-        for (decltype(count) i = 0; i < count; ++i) {
-            Meta meta; m_pResourceLoader->LoadMetaAt(*this, i, meta);
-            m_metas.push_back(meta);
-        }
+
     }
-    else {
+    else if(false) {
         // pugixml 使用的是句柄式, 所以下面的代码是安全的.
-        // 但是会稍微损失性能(估计cache命中就赚回一点了)
-        // 所以pugixml才是真正的C++代码, 自己的就偏向于
-        // C风格, 全是指针, 到处都是指针检查
         register auto now_node = m_docResource.first_child().first_child();
         while (now_node) {
             // 位图?
@@ -833,12 +834,13 @@ auto LongUI::CUIManager::create_programs_resources() throw(std::bad_alloc &)-> v
             // 推进
             now_node = now_node.next_sibling();
         }
-    }
+    }*/
+    return hr;
 }
 
 
 // UIManager 创建
-auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
+auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 检查渲染配置
     bool cpu_rendering = this->configure->IsRenderByCPU();
     // 待用适配器
@@ -1022,74 +1024,26 @@ auto LongUI::CUIManager::create_resources() noexcept ->HRESULT {
             );
     }
 #endif
-    /*// 禁止 Alt + Enter 全屏
-    if (SUCCEEDED(hr)) {
+    // 禁止 Alt + Enter 全屏
+    /*if (SUCCEEDED(hr)) {
         hr = m_pDxgiFactory->MakeWindowAssociation(m_hwnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
     }*/
-    // 创建索引0资源
-    if (SUCCEEDED(hr)) {
-        // 可Map的位图
-        if (SUCCEEDED(hr)) {
-            ID2D1Bitmap1* bitmap_index0 = nullptr;
-            hr = m_pd2dDeviceContext->CreateBitmap(
-                D2D1::SizeU(LongUIDefaultBitmapSize, LongUIDefaultBitmapSize),
-                nullptr, LongUIDefaultBitmapSize * 4,
-                D2D1::BitmapProperties1(
-                static_cast<D2D1_BITMAP_OPTIONS>(LongUIDefaultBitmapOptions),
-                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
-                ),
-                &bitmap_index0
-                );
-            m_bitmaps.push_back(bitmap_index0);
-        }
-        // 笔刷
-        if (SUCCEEDED(hr)) {
-            ID2D1SolidColorBrush* scbrush = nullptr;
-            D2D1_COLOR_F color = D2D1::ColorF(D2D1::ColorF::Black);
-            hr = m_pd2dDeviceContext->CreateSolidColorBrush(
-                &color, nullptr, &scbrush
-                );
-            m_brushes.push_back(scbrush);
-        }
-        // 文本格式
-        if (SUCCEEDED(hr)) {
-            IDWriteTextFormat* format = nullptr;
-            hr = m_pDWriteFactory->CreateTextFormat(
-                LongUIDefaultTextFontName,
-                m_pFontCollection,
-                DWRITE_FONT_WEIGHT_NORMAL,
-                DWRITE_FONT_STYLE_NORMAL,
-                DWRITE_FONT_STRETCH_NORMAL,
-                LongUIDefaultTextFontSize,
-                m_szLocaleName,
-                &format
-                );
-            if (format) {
-                format->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-                format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-                m_textFormats.push_back(format);
-            }
-        }
-        // 图元
-        Meta meta = { 0 }; m_metas.push_back(meta);
-    }
     // 创建系统笔刷
     if (SUCCEEDED(hr)) {
         hr = this->create_system_brushes();
     }
     // 创建资源描述资源
     if (SUCCEEDED(hr)) {
-        try {
-            this->create_programs_resources();
-        }
-        CATCH_HRESULT(hr);
+        hr = this->create_indexzero_resources();
     }
     ::SafeRelease(ready2use);
     // 设置文本渲染器数据
     if (SUCCEEDED(hr)) {
         for (uint32_t i = 0u; i < m_uTextRenderCount; ++i) {
             m_apTextRenderer[i]->SetNewRT(m_pd2dDeviceContext);
-            m_apTextRenderer[i]->SetNewBrush(static_cast<ID2D1SolidColorBrush*>(m_brushes[0]));
+            m_apTextRenderer[i]->SetNewBrush(
+                static_cast<ID2D1SolidColorBrush*>(m_ppBrushes[LongUICommonSolidColorBrushIndex])
+                );
         }
         // 重建所有窗口
         for (auto i : m_windows) {
@@ -1197,62 +1151,42 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     return hr;
 }
 
-#ifdef _DEBUG
-template<typename T>
-void AssertRelease(T* t) {
-    auto count = t->Release();
-    if (count) {
-        UIManager << DL_Hint << L"[IUnknown *] count :" << long(count) << LongUI::endl;
-        int breakpoint = 0;
-    }
-}
-
-#define SafeReleaseContainer(c) \
-    if (c.size()) {\
-        for (auto itr = c.begin(); itr != c.end(); ++itr) {\
-             register auto* interfacegot = static_cast<ID2D1Bitmap*>(*itr);\
-             if (interfacegot) {\
-                AssertRelease(interfacegot);\
-                 *itr = nullptr;\
-             }\
-        }\
-        c.clear();\
-    }
-#else
-#define SafeReleaseContainer(c) \
-    if (c.size()) {\
-        for (auto itr = c.begin(); itr != c.end(); ++itr) {\
-             register auto* interfacegot = static_cast<ID2D1Bitmap*>(*itr);\
-             if (interfacegot) {\
-                 interfacegot->Release();\
-                 *itr = nullptr;\
-             }\
-        }\
-        c.clear();\
-    }
-#endif
 // UIManager 丢弃
 void LongUI::CUIManager::discard_resources() noexcept {
-    // 释放 位图
-    SafeReleaseContainer(m_bitmaps);
-    // 释放 笔刷
-    SafeReleaseContainer(m_brushes);
-    // 释放文本格式
-    SafeReleaseContainer(m_textFormats);
-    // meta直接释放
-    if (m_metas.size()) {
-        m_metas.clear();
+    // 释放系统笔刷
+    for (auto& brush : m_apSystemBrushes) {
+        ::SafeRelease(brush);
     }
-    // 图标摧毁
-    if (m_metaicons.size()) {
-        for (auto itr = m_metaicons.begin(); itr != m_metaicons.end(); ++itr) {
-             register auto handle = static_cast<HICON>(*itr);
-             if (handle) {
-                 ::DestroyIcon(handle);
+    // 释放 位图
+    if (m_cCountBmp) {
+        for (auto itr = m_ppBitmaps; itr != m_ppBitmaps + m_cCountBmp; ++itr) {
+            ::SafeRelease(*itr);
+        }
+    }
+    // 释放 笔刷
+    if (m_cCountBrs) {
+        for (auto itr = m_ppBrushes; itr != m_ppBrushes + m_cCountBrs; ++itr) {
+            ::SafeRelease(*itr);
+        }
+    }
+    // 释放文本格式
+    if (m_cCountTf) {
+        for (auto itr = m_ppTextFormats; itr != m_ppTextFormats + m_cCountTf; ++itr) {
+            ::SafeRelease(*itr);
+        }
+    }
+    // META图标摧毁
+    if (m_cCountMt) {
+        for (auto itr = m_phMetaIcon; itr != m_phMetaIcon + m_cCountMt; ++itr) {
+             if (*itr) {
+                 ::DestroyIcon(*itr);
                  *itr = nullptr;
              }
         }
-        m_metaicons.clear();
+    }
+    // META
+    if (m_cCountMt) {
+
     }
     // 释放 设备
     ::SafeRelease(m_pDxgiFactory);
@@ -1275,336 +1209,166 @@ void LongUI::CUIManager::discard_resources() noexcept {
 #endif
 }
 
-
-
-// 获取笔刷
-auto LongUI::CUIManager::GetBrush(
-    uint32_t index) noexcept -> ID2D1Brush* {
-    ID2D1Brush* brush = nullptr;
-    if (index >= m_brushes.size()) {
-        // 越界
-        UIManager << DL_Warning << L"index@" << long(index)
-            << L"is out of range\n   Now set to 0" << LongUI::endl;
-        index = 0;
-    }
-    brush = reinterpret_cast<ID2D1Brush*>(m_brushes[index]);
-    // 错误
-    if (!brush) {
-        UIManager << DL_Error << L"index@" << long(index) << L"brush is null" << LongUI::endl;
-    }
-    return ::SafeAcquire(brush);
-}
-
 // 获取位图
-auto LongUI::CUIManager::GetBitmap(
-    uint32_t index) noexcept ->ID2D1Bitmap1* {
-    ID2D1Bitmap1* bitmap = nullptr;
-    if (index >= m_bitmaps.size()) {
-        // 越界
-        UIManager << DL_Warning << L"index@" << long(index)
-            << L"is out of range\n   Now set to 0" << LongUI::endl;
+auto LongUI::CUIManager::GetBitmap(size_t index) noexcept ->ID2D1Bitmap1* {
+    // 越界
+    if (index >= m_cCountBmp) {
+        UIManager << DL_Warning 
+            << L"[index @ " << long(index)
+            << L"]is out of range \t\tNow set to 0" 
+            << LongUI::endl;
         index = 0;
     }
-    bitmap = static_cast<ID2D1Bitmap1*>(m_bitmaps[index]);
-    // 错误
+    auto bitmap = m_ppBitmaps[index];
+    // 没有数据则载入
     if (!bitmap) {
-        UIManager << DL_Error << L"index@" << long(index) << L"bitmap is null" << LongUI::endl;
+        // 没有数据并且没有资源加载器则?
+        assert(m_pResourceLoader);
+        // 载入资源
+        m_ppBitmaps[index] = static_cast<ID2D1Bitmap1*>(
+            m_pResourceLoader->GetResourcePointer(m_pResourceLoader->Type_Bitmap, index - 1)
+            );
+        bitmap = m_ppBitmaps[index];
+    }
+    // 再没有数据则报错
+    if (!bitmap) {
+        UIManager << DL_Error << L"index @ " << long(index) << L"bitmap is null" << LongUI::endl;
     }
     return ::SafeAcquire(bitmap);
 }
 
-// 获取图元
-void LongUI::CUIManager::GetMeta(
-    uint32_t index, LongUI::Meta& meta) noexcept {
-    if (index >= m_metas.size()) {
-        // 越界
-        UIManager << DL_Warning << L"index@" << long(index)
-            << L"is out of range\n   Now set to 0" << LongUI::endl;
+// 获取笔刷
+auto LongUI::CUIManager::GetBrush(size_t index) noexcept -> ID2D1Brush* {
+    // 越界
+    if (index >= m_cCountBrs) {
+        UIManager << DL_Warning
+            << L"[index @ " << long(index)
+            << L"]is out of range \t\tNow set to 0"
+            << LongUI::endl;
         index = 0;
     }
-    meta = m_metas[index];
+    auto brush = m_ppBrushes[index];
+    // 没有数据则载入
+    if (!brush) {
+        // 没有数据并且没有资源加载器则?
+        assert(m_pResourceLoader);
+        // 载入资源
+        m_ppBrushes[index] = static_cast<ID2D1Brush*>(
+            m_pResourceLoader->GetResourcePointer(m_pResourceLoader->Type_Brush, index - 1)
+            );
+        brush = m_ppBrushes[index];
+    }
+    // 再没有数据则报错
+    if (!brush) {
+        UIManager << DL_Error << L"index @ " << long(index) << L"brush is null" << LongUI::endl;
+    }
+    return ::SafeAcquire(brush);
 }
 
-// 添加位图
-void LongUI::CUIManager::add_bitmap(
-    const pugi::xml_node node) noexcept {
-    assert(node && "bad argument");
-    // 获取路径
-    const char* uri = node.attribute("res").value();
-    // 载入位图
-    auto bitmap = this->configure->LoadBitmapByRI(uri);
-    // 没有
-    if (!bitmap) {
-        UIManager << DL_Error << L"Resource Identifier: [" << uri << L"], got a null pointer" << LongUI::endl;
+// CUIManager 获取文本格式
+auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextFormat* {
+    // 越界
+    if (index >= m_cCountTf) {
+        UIManager << DL_Warning
+            << L"[index @ " << long(index)
+            << L"]is out of range \t\tNow set to 0"
+            << LongUI::endl;
+        index = 0;
     }
-    m_bitmaps.push_back(bitmap);
+    auto format = m_ppTextFormats[index];
+    // 没有数据则载入
+    if (!format) {
+        // 没有数据并且没有资源加载器则?
+        assert(m_pResourceLoader);
+        // 载入资源
+        m_ppTextFormats[index] = static_cast<IDWriteTextFormat*>(
+            m_pResourceLoader->GetResourcePointer(m_pResourceLoader->Type_TextFormat, index - 1)
+            );
+        format = m_ppTextFormats[index];
+    }
+    // 再没有数据则报错
+    if (!format) {
+        UIManager << DL_Error << L"index @ " << long(index) << L"text format is null" << LongUI::endl;
+    }
+    return ::SafeAcquire(format);
 }
 
-// 添加笔刷
-void LongUI::CUIManager::add_brush(
-    const pugi::xml_node node) noexcept {
-    union {
-        ID2D1SolidColorBrush*       scb;
-        ID2D1LinearGradientBrush*   lgb;
-        ID2D1RadialGradientBrush*   rgb;
-        ID2D1BitmapBrush1*          b1b;
-        ID2D1Brush*                 brush;
-    };
-    brush = nullptr;
-    const char* str = nullptr;
-    assert(node && "bad argument");
-    // 笔刷属性
-    D2D1_BRUSH_PROPERTIES brush_prop = D2D1::BrushProperties();
-    if (str = node.attribute("opacity").value()) {
-        brush_prop.opacity = static_cast<float>(::LongUI::AtoF(str));
+// 获取图元
+void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
+    // 越界
+    if (index >= m_cCountTf) {
+        UIManager << DL_Warning
+            << L"[index @ " << long(index)
+            << L"]is out of range \t\tNow set to 0"
+            << LongUI::endl;
+        index = 0;
+        ZeroMemory(&meta, sizeof(meta));
+        return;
     }
-    if (str = node.attribute("transform").value()) {
-        UIControl::MakeFloats(str, &brush_prop.transform._11, 6);
-    }
-    // 检查类型
-    auto type = BrushType::Type_SolidColor;
-    if (str = node.attribute("type").value()) {
-        type = static_cast<decltype(type)>(::LongUI::AtoI(str));
-    }
-    switch (type)
-    {
-    case LongUI::BrushType::Type_SolidColor:
-    {
-        D2D1_COLOR_F color;
-        // 获取颜色
-        if (!UIControl::MakeColor(node.attribute( "color").value(), color)) {
-            color = D2D1::ColorF(D2D1::ColorF::Black);
+    meta = m_pMetasBuffer[index];
+    // 没有位图数据则载入
+    if (!meta.bitmap) {
+        // 没有数据并且没有资源加载器则?
+        assert(m_pResourceLoader);
+        DeviceIndependentMeta meta_raw;
+        ::ZeroMemory(&meta_raw, sizeof(meta_raw));
+        // 载入资源
+        m_pResourceLoader->GetMeta(index - 1, meta_raw);
+        meta.interpolation = meta_raw.interpolation;
+        meta.src_rect = meta_raw.src_rect;
+        meta.rule = meta_raw.rule;
+        meta.bitmap = this->GetBitmap(meta_raw.bitmap_index);
+        // 减少计数
+        if (meta.bitmap) {
+            meta.bitmap->Release();
         }
-        m_pd2dDeviceContext->CreateSolidColorBrush(&color, &brush_prop, &scb);
     }
-    break;
-    case LongUI::BrushType::Type_LinearGradient:
-        __fallthrough;
-    case LongUI::BrushType::Type_RadialGradient:
-        if (str = node.attribute("stops").value()) {
-            // 语法 [pos0, color0] [pos1, color1] ....
-            uint32_t stop_count = 0;
-            ID2D1GradientStopCollection * collection = nullptr;
-            D2D1_GRADIENT_STOP stops[LongUIMaxGradientStop];
-            D2D1_GRADIENT_STOP* now_stop = stops;
+    // 再没有数据则报错
+    if (!meta.bitmap) {
+        UIManager << DL_Error << L"index @ " << long(index) << L"meta is null" << LongUI::endl;
+    }
+}
 
-            char buffer[LongUIStringBufferLength];
-            // 复制到缓冲区
-            strcpy(buffer, str);
-            char* index = buffer;
-            const char* paragraph = nullptr;
-            register char ch = 0;
-            bool ispos = false;
-            // 遍历检查
-            while (ch = *index) {
-                // 查找第一个浮点数做为位置
-                if (ispos) {
-                    // ,表示位置段结束, 该解析了
-                    if (ch = ',') {
-                        *index = 0;
-                        now_stop->position = LongUI::AtoF(paragraph);
-                        ispos = false;
-                        paragraph = index + 1;
-                    }
-                }
-                // 查找后面的数值做为颜色
-                else {
-                    // [ 做为位置段标识开始
-                    if (ch == '[') {
-                        paragraph = index + 1;
-                        ispos = true;
-                    }
-                    // ] 做为颜色段标识结束 该解析了
-                    else if (ch == ']') {
-                        *index = 0;
-                        UIControl::MakeColor(paragraph, now_stop->color);
-                        ++now_stop;
-                        ++stop_count;
-                    }
-                }
-            }
-            // 创建StopCollection
-            m_pd2dDeviceContext->CreateGradientStopCollection(stops, stop_count, &collection);
-            if (collection) {
-                // 线性渐变?
-                if (type == LongUI::BrushType::Type_LinearGradient) {
-                    D2D1_LINEAR_GRADIENT_BRUSH_PROPERTIES lgbprop = {
-                        {0.f, 0.f}, {0.f, 0.f}
-                    };
-                    // 检查属性
-                    UIControl::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
-                    UIControl::MakeFloats(node.attribute("end").value(), &lgbprop.startPoint.x, 2);
-                    // 创建笔刷
-                    m_pd2dDeviceContext->CreateLinearGradientBrush(
-                        &lgbprop, &brush_prop, collection, &lgb
-                        );
-                }
-                // 径向渐变笔刷
-                else {
-                    D2D1_RADIAL_GRADIENT_BRUSH_PROPERTIES rgbprop = {
-                        {0.f, 0.f}, {0.f, 0.f}, 0.f, 0.f
-                    };
-                    // 检查属性
-                    UIControl::MakeFloats(node.attribute("center").value(), &rgbprop.center.x, 2);
-                    UIControl::MakeFloats(node.attribute("offset").value(), &rgbprop.gradientOriginOffset.x, 2);
-                    UIControl::MakeFloats(node.attribute("rx").value(), &rgbprop.radiusX, 1);
-                    UIControl::MakeFloats(node.attribute("ry").value(), &rgbprop.radiusY, 1);
-                    // 创建笔刷
-                    m_pd2dDeviceContext->CreateRadialGradientBrush(
-                        &rgbprop, &brush_prop, collection, &rgb
-                        );
-                }
-                collection->Release();
-                collection = nullptr;
-            }
+
+// 获取Meta的图标句柄
+auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
+    // TODO DO IT
+    /*auto& data = m_pT[index];
+    // 没有就创建
+    if (!data) {
+        ID2D1Bitmap1* bitmap = this->GetBitmap(LongUIDefaultBitmapIndex);
+        Meta meta; this->GetMeta(index, meta);
+        D2D1_RECT_U rect = {
+            static_cast<uint32_t>(meta.src_rect.left),
+            static_cast<uint32_t>(meta.src_rect.top),
+            static_cast<uint32_t>(meta.src_rect.right),
+            static_cast<uint32_t>(meta.src_rect.bottom)
+        };
+        HRESULT hr = (bitmap && meta.bitmap) ? E_FAIL : S_OK;
+        // 复制数据
+        if (SUCCEEDED(hr)) {
+            hr = bitmap->CopyFromBitmap(nullptr, meta.bitmap, &rect);
         }
-        break;
-    case LongUI::BrushType::Type_Bitmap:
-        if (str = node.attribute("bitmap").value()) {
-            auto index = LongUI::AtoI(str);
-            D2D1_BITMAP_BRUSH_PROPERTIES1 bbprop = {
-                D2D1_EXTEND_MODE_CLAMP, D2D1_EXTEND_MODE_CLAMP,D2D1_INTERPOLATION_MODE_LINEAR
+        // 映射数据
+        if (SUCCEEDED(hr)) {
+            D2D1_MAPPED_RECT mapped_rect = { 
+                LongUIDefaultBitmapSize * sizeof(RGBQUAD) ,
+                m_pBitmap0Buffer
             };
-            // 检查属性
-            if (str = node.attribute("extendx").value()) {
-                bbprop.extendModeX = static_cast<D2D1_EXTEND_MODE>(LongUI::AtoI(str));
-            }
-            if (str = node.attribute("extendy").value()) {
-                bbprop.extendModeY = static_cast<D2D1_EXTEND_MODE>(LongUI::AtoI(str));
-            }
-            if (str = node.attribute("interpolation").value()) {
-                bbprop.interpolationMode = static_cast<D2D1_INTERPOLATION_MODE>(LongUI::AtoI(str));
-            }
-            // 创建笔刷
-            m_pd2dDeviceContext->CreateBitmapBrush(
-                static_cast<ID2D1Bitmap*>(m_bitmaps[index]), 
-                &bbprop, &brush_prop, &b1b
-                );
+            hr = bitmap->Map(D2D1_MAP_OPTIONS_READ, &mapped_rect);
         }
-        break;
+        // 取消映射
+        if (SUCCEEDED(hr)) {
+            hr = bitmap->Unmap();
+        }
+        assert(SUCCEEDED(hr));
+        ::SafeRelease(bitmap);
     }
-    // 做做样子检查一下
-    assert(brush);
-    m_brushes.push_back(brush);
+    assert(data && "no icon got");
+    return static_cast<HICON>(data);*/
+    return nullptr;
 }
 
-// 添加图元
-void LongUI::CUIManager::add_meta(
-    const pugi::xml_node node) noexcept {
-    LongUI::Meta meta = {
-        { 0.f, 0.f, 1.f, 1.f },
-        nullptr, BitmapRenderRule::Rule_Scale, 
-        D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR
-    };
-    const char* str = nullptr;
-    assert(node && "bad argument");
-    // 获取位图
-    meta.bitmap = static_cast<ID2D1Bitmap1*>(m_bitmaps[LongUI::AtoI(node.attribute("bitmap").value())]);
-    // 获取渲染规则
-    if (str = node.attribute("rule").value()) {
-        meta.rule = static_cast<BitmapRenderRule>(LongUI::AtoI(str));
-    }
-    // 获取插值模式
-    if (str = node.attribute("interpolation").value()) {
-        meta.interpolation = static_cast<uint16_t>(LongUI::AtoI(str));
-    }
-    // 获取矩形
-    UIControl::MakeFloats(node.attribute("rect").value(), &meta.src_rect.left, 4);
-    // 推送
-    m_metas.push_back(meta);
-    // 图标
-    m_metaicons.push_back(nullptr);
-}
-
-
-// 添加文本格式
-void LongUI::CUIManager::add_textformat(
-    const pugi::xml_node node) noexcept {
-    register const char* str = nullptr;
-    assert(node && "bad argument");
-    CUIString fontfamilyname(L"Arial");
-    DWRITE_FONT_WEIGHT fontweight = DWRITE_FONT_WEIGHT_NORMAL;
-    DWRITE_FONT_STYLE fontstyle = DWRITE_FONT_STYLE_NORMAL;
-    DWRITE_FONT_STRETCH fontstretch = DWRITE_FONT_STRETCH_NORMAL;
-    float fontsize = 12.f ;
-    // 获取字体名称
-    UIControl::MakeString(node.attribute("family").value(), fontfamilyname);
-    // 获取字体粗细
-    if (str = node.attribute("weight").value()) {
-        fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));
-    }
-    // 获取字体风格
-    if (str = node.attribute("style").value()) {
-        fontstyle = static_cast<DWRITE_FONT_STYLE>(LongUI::AtoI(str));
-    }
-    // 获取字体拉伸
-    if (str = node.attribute("stretch").value()) {
-        fontstretch = static_cast<DWRITE_FONT_STRETCH>(LongUI::AtoI(str));
-    }
-    // 获取字体大小
-    if (str = node.attribute("size").value()) {
-        fontsize = LongUI::AtoF(str);
-    }
-    // 创建基本字体
-    IDWriteTextFormat* textformat = nullptr;
-    m_pDWriteFactory->CreateTextFormat(
-        fontfamilyname.c_str(),
-        m_pFontCollection,
-        fontweight,
-        fontstyle,
-        fontstretch,
-        fontsize,
-        m_szLocaleName,
-        &textformat
-        );
-    // 成功获取则再设置
-    if (textformat) {
-        // DWRITE_LINE_SPACING_METHOD;
-        DWRITE_FLOW_DIRECTION flowdirection = DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM;
-        float tabstop = fontsize * 4.f;
-        DWRITE_PARAGRAPH_ALIGNMENT valign = DWRITE_PARAGRAPH_ALIGNMENT_NEAR;
-        DWRITE_TEXT_ALIGNMENT halign = DWRITE_TEXT_ALIGNMENT_LEADING;
-        DWRITE_READING_DIRECTION readingdirection = DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
-        DWRITE_WORD_WRAPPING wordwrapping = DWRITE_WORD_WRAPPING_NO_WRAP;
-        // 检查段落排列方向
-        if (str = node.attribute("flowdirection").value()) {
-            flowdirection = static_cast<DWRITE_FLOW_DIRECTION>(LongUI::AtoI(str));
-        }
-        // 检查Tab宽度
-        if (str = node.attribute("tabstop").value()) {
-            tabstop = LongUI::AtoF(str);
-        }
-        // 检查段落(垂直)对齐
-        if (str = node.attribute("valign").value()) {
-            valign = static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(LongUI::AtoI(str));
-        }
-        // 检查文本(水平)对齐
-        if (str = node.attribute("halign").value()) {
-            halign = static_cast<DWRITE_TEXT_ALIGNMENT>(LongUI::AtoI(str));
-        }
-        // 检查阅读进行方向
-        if (str = node.attribute("readingdirection").value()) {
-            readingdirection = static_cast<DWRITE_READING_DIRECTION>(LongUI::AtoI(str));
-        }
-        // 检查自动换行
-        if (str = node.attribute("wordwrapping").value()) {
-            wordwrapping = static_cast<DWRITE_WORD_WRAPPING>(LongUI::AtoI(str));
-        }
-        // 设置段落排列方向
-        textformat->SetFlowDirection(flowdirection);
-        // 设置Tab宽度
-        textformat->SetIncrementalTabStop(tabstop);
-        // 设置段落(垂直)对齐
-        textformat->SetParagraphAlignment(valign);
-        // 设置文本(水平)对齐
-        textformat->SetTextAlignment(halign);
-        // 设置阅读进行方向
-        textformat->SetReadingDirection(readingdirection);
-        // 设置自动换行
-        textformat->SetWordWrapping(wordwrapping);
-    }
-    m_textFormats.push_back(textformat);
-}
 
 // 格式化文字
 /*
@@ -1660,7 +1424,6 @@ auto LongUI::CUIManager::FormatTextCore(
     va_list ap;
     va_start(ap, format);
     return CUIManager::FormatTextCore(config, format, ap);
-    
 }
 /*
  L"He%llo, World"
@@ -1669,7 +1432,7 @@ auto LongUI::CUIManager::FormatTextCore(
 
 // find next param
 template<typename T>
-const wchar_t*  __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_t token_num) {
+auto __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_t token_num) {
     register wchar_t ch;
     while (ch = *stream) {
         ++stream;
@@ -1689,7 +1452,7 @@ const wchar_t*  __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_
 
 
 // 创建格式文本
-// 本函数耗时参考:
+// 效率本函数耗时参考:
 // 包含释放数据(::SafeRelease(layout))
 // 1. L"%cHello%], world!%p#FFFF0000"
 // Debug    : 循环 1000000(一百万)次，耗时8750ms(精确到16ms)
@@ -1700,10 +1463,10 @@ const wchar_t*  __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_
 // 结论: Release版每处理一个字符(包括格式与参数)平均消耗0.12微秒, Debug版加倍
 // 假设: 60Hz每帧16ms 拿出8ms处理本函数, 可以处理6万6个字符
 //一般论: 不可能每帧调用6万字, 一般可能每帧处理数百字符(忙碌时), 可以忽略不计
+
 auto  LongUI::CUIManager::FormatTextCore(
-    FormatTextConfig& config,
-    const wchar_t* format, 
-    va_list ap) noexcept->IDWriteTextLayout* {
+    FormatTextConfig& config, const wchar_t* format, va_list ap
+    ) noexcept->IDWriteTextLayout* {
     const wchar_t* param = nullptr;
     // 检查是否带参数
     if (!ap) {
@@ -2081,103 +1844,6 @@ force_break:
     }
     return layout;
 }
-
-
-// 从文件读取位图
-/*auto LongUI::CUIManager::LoadBitmapFromFile(
-    LongUIRenderTarget *pRenderTarget,
-    IWICImagingFactory *pIWICFactory,
-    PCWSTR uri,
-    UINT destinationWidth,
-    UINT destinationHeight,
-    ID2D1Bitmap1 **ppBitmap
-    ) noexcept -> HRESULT {
-    IWICBitmapDecoder *pDecoder = nullptr;
-    IWICBitmapFrameDecode *pSource = nullptr;
-    IWICStream *pStream = nullptr;
-    IWICFormatConverter *pConverter = nullptr;
-    IWICBitmapScaler *pScaler = nullptr;
-
-    register HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
-        uri,
-        nullptr,
-        GENERIC_READ,
-        WICDecodeMetadataCacheOnLoad,
-        &pDecoder
-        );
-
-    if (SUCCEEDED(hr)) {
-        hr = pDecoder->GetFrame(0, &pSource);
-    }
-    if (SUCCEEDED(hr)) {
-        hr = pIWICFactory->CreateFormatConverter(&pConverter);
-    }
-
-
-    if (SUCCEEDED(hr)) {
-        if (destinationWidth != 0 || destinationHeight != 0)  {
-            UINT originalWidth, originalHeight;
-            hr = pSource->GetSize(&originalWidth, &originalHeight);
-            if (SUCCEEDED(hr)) {
-                if (destinationWidth == 0) {
-                    FLOAT scalar = static_cast<FLOAT>(destinationHeight) / static_cast<FLOAT>(originalHeight);
-                    destinationWidth = static_cast<UINT>(scalar * static_cast<FLOAT>(originalWidth));
-                }
-                else if (destinationHeight == 0) {
-                    FLOAT scalar = static_cast<FLOAT>(destinationWidth) / static_cast<FLOAT>(originalWidth);
-                    destinationHeight = static_cast<UINT>(scalar * static_cast<FLOAT>(originalHeight));
-                }
-
-                hr = pIWICFactory->CreateBitmapScaler(&pScaler);
-                if (SUCCEEDED(hr)) {
-                    hr = pScaler->Initialize(
-                        pSource,
-                        destinationWidth,
-                        destinationHeight,
-                        WICBitmapInterpolationModeCubic
-                        );
-                }
-                if (SUCCEEDED(hr)) {
-                    hr = pConverter->Initialize(
-                        pScaler,
-                        GUID_WICPixelFormat32bppPBGRA,
-                        WICBitmapDitherTypeNone,
-                        nullptr,
-                        0.f,
-                        WICBitmapPaletteTypeMedianCut
-                        );
-                }
-            }
-        }
-        else
-        {
-            hr = pConverter->Initialize(
-                pSource,
-                GUID_WICPixelFormat32bppPBGRA,
-                WICBitmapDitherTypeNone,
-                nullptr,
-                0.f,
-                WICBitmapPaletteTypeMedianCut
-                );
-        }
-    }
-    if (SUCCEEDED(hr))
-    {
-        hr = pRenderTarget->CreateBitmapFromWicBitmap(
-            pConverter,
-            nullptr,
-            ppBitmap
-            );
-    }
-
-    ::SafeRelease(pDecoder);
-    ::SafeRelease(pSource);
-    ::SafeRelease(pStream);
-    ::SafeRelease(pConverter);
-    ::SafeRelease(pScaler);
-
-    return hr;
-}*/
 
 
 // 添加窗口

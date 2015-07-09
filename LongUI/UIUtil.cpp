@@ -94,7 +94,11 @@ LongUI::DllControlLoader::~DllControlLoader() noexcept {
 void __fastcall LongUI::Meta_Render(
     const Meta& meta, LongUIRenderTarget* target, 
     const D2D1_RECT_F& des_rect, float opacity) noexcept {
-    assert(meta.bitmap && "bitmap -> null");
+    // 无效位图
+    if (!meta.bitmap) {
+        UIManager << DL_Warning << "bitmap->null" << LongUI::endl;
+        return;
+    }
     switch (meta.rule)
     {
     case LongUI::BitmapRenderRule::Rule_Scale:
@@ -1009,7 +1013,7 @@ namespace LongUI {
 // 查询接口信息
 auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
     // 非接口
-    if (riid == IID_LONGUI_InlineParamHandler) {
+    if (riid == LongUI::IID_InlineParamHandler) {
         if (handler) {
             *ppvObject = handler;
             return S_OK;
@@ -1019,33 +1023,25 @@ auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvOb
         }
     }
     // 接口
-    IUIInterface* uiinterface = nullptr;
-    // 配置信息
-    if (riid == IID_LONGUI_IUIConfigure) {
-        uiinterface = this;
-    }
+    IUIInterface* pUIInterface = nullptr;
     // 资源读取器
-    else if (riid == IID_LONGUI_IUIResourceLoader) {
+    if (riid == LongUI::IID_IUIResourceLoader) {
         if (m_pXMLResourceLoader) {
-            uiinterface = m_pXMLResourceLoader;
+            pUIInterface = (m_pXMLResourceLoader);
         }
         else {
-            uiinterface = LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
+            pUIInterface = m_pXMLResourceLoader = 
+                LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
         }
     }
     // 脚本
-    else if (riid == IID_LONGUI_IUIScript) {
-        uiinterface = script;
+    else if (riid == LongUI::IID_IUIScript) {
+        pUIInterface = (script);
     }
-    script->Release();
+    // 增加计数
+    *ppvObject = ::SafeAcquire(pUIInterface);
     // 检查
-    if (uiinterface) {
-        uiinterface->AddRef();
-        return S_OK;
-    }
-    else {
-        return E_NOINTERFACE;
-    }
+    return pUIInterface ? S_OK : E_NOINTERFACE;
 }
 
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t {
@@ -1085,7 +1081,7 @@ auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
 
 void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept {
     CUIConsole::Config config;
-    config.x = 5;
+    config.x = -5;
     config.y = int16_t(level) * 128;
     switch (level)
     {
@@ -1322,9 +1318,9 @@ HRESULT LongUI::CUIVideoComponent::recreate_surface() noexcept {
 
 
 // π
-#define EZ_PI 3.1415296F
+static constexpr float EZ_PI   = 3.1415296F;
 // 二分之一π
-#define EZ_PI_2 1.5707963F
+static constexpr float EZ_PI_2 = 1.5707963F;
 
 // 反弹渐出
 float inline __fastcall BounceEaseOut(float p) noexcept {

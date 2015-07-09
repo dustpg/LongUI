@@ -131,6 +131,17 @@ namespace LongUI {
         // function
         CreateControlFunction const function = nullptr;
     };
+    // Device Independent Meta
+    struct DeviceIndependentMeta {
+        // source rect
+        D2D1_RECT_F         src_rect;
+        // index for bitmap
+        uint32_t            bitmap_index;
+        // render rule
+        BitmapRenderRule    rule;
+        //  interpolation mode
+        uint16_t            interpolation;
+    };
     // Meta (Graphics Element)
     struct alignas(sizeof(void*)) Meta {
         // source rect
@@ -596,7 +607,7 @@ namespace LongUI {
         ~CUIDefaultConfigure() noexcept;
     public:
         // qi
-        virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid,void** ppvObject) noexcept ->HRESULT override final;
+        virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid,void** ppvObject) noexcept ->HRESULT override;
         // add ref count
         virtual auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return 2; }
         // release

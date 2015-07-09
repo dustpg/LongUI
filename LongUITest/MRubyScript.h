@@ -14,9 +14,9 @@ class MRubyScript final : public LongUI::IUIScript {
     };*/
 public:
     // 构造函数
-    MRubyScript() noexcept;
+    MRubyScript(LongUI::CUIManager& manager) noexcept;
     // 内联析构函数
-    ~MRubyScript() noexcept {}
+    ~MRubyScript() noexcept;
     // 基本接口
     LONGUI_BASIC_INTERFACE_IMPL;
 public:
@@ -24,10 +24,6 @@ public:
     virtual auto Evaluation(const LongUI::UIScript, const LongUI::EventArgument&) noexcept->size_t;
     // 获取配置信息
     virtual auto GetConfigInfo() noexcept->LongUI::ScriptConfigInfo { return LongUI::Info_None; };
-    // 初始化类
-    virtual auto Initialize(LongUI::CUIManager*) noexcept ->bool ;
-    // 反初始化
-    virtual auto UnInitialize() noexcept->void;
     // 申请并填写脚本空间
     virtual auto AllocScript(const char*) noexcept->LongUI::UIScript ;
     // 释放脚本空间
@@ -45,7 +41,7 @@ private:
     static auto MsgBox(mrb_state *mrb, mrb_value self) noexcept->mrb_value;
 private:
     // LongUI 管理器
-    LongUI::CUIManager*             m_pUIManager = nullptr;
+    LongUI::CUIManager&             m_uiManager ;
     // MRuby 状态(虚拟机)
     mrb_state*                      m_pMRuby = nullptr;
     // 全局参数符号

@@ -83,7 +83,7 @@ namespace LongUI {
     // pre-dec 提前声明
     class CUIManager;
     // script {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
-    static const GUID IID_LONGUI_IUIScript =
+    static const GUID IID_IUIScript =
     { 0x9b531bd, 0x2e3b, 0x4c98, { 0x98, 0x5c, 0x1f, 0xd6, 0xb4, 0x6, 0xe5, 0x3d } };
     class DECLSPEC_NOVTABLE IUIScript : public IUIInterface {
     public:
@@ -91,19 +91,15 @@ namespace LongUI {
         virtual auto Evaluation(const UIScript, const LongUI::EventArgument&) noexcept->size_t = 0;
         // get config infomation
         virtual auto GetConfigInfo() noexcept->ScriptConfigInfo = 0;
-        // initialize the object
-        virtual auto Initialize(CUIManager*) noexcept ->bool = 0;
-        // un-initialize the object
-        virtual auto UnInitialize() noexcept->void = 0;
         // alloc the script memory and copy into(may be compiled into byte code), return memory size
         virtual auto AllocScript(const char* utf8) noexcept->LongUI::UIScript = 0;
         // free the script memory
         virtual auto FreeScript(UIScript&) noexcept->void = 0;
     };
     // Meta
-    struct Meta;
+    struct Meta; struct DeviceIndependentMeta;
     // {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
-    static const GUID IID_LONGUI_IUIResourceLoader = 
+    static const GUID IID_IUIResourceLoader = 
     { 0x16222e4b, 0x9ac8, 0x4756,{ 0x8c, 0xa9, 0x75, 0xa7, 0x2d, 0x2f, 0x4f, 0x60 } };
     // UI Binary Resource Loader
     class DECLSPEC_NOVTABLE IUIResourceLoader : public IUIInterface {
@@ -115,6 +111,7 @@ namespace LongUI {
             Type_Brush,         // brush with ID2D1Brush*
             Type_TextFormat,    // text format within IDWriteTextFormat*
             Type_Meta,          // meta within LongUI::Meta
+            RESOURCE_TYPE_COUNT,// count of this
         };
     public:
         // get resouce count with type
@@ -122,13 +119,11 @@ namespace LongUI {
         // get resouce by index, index in range [0, count)
         // for Type_Bitmap, Type_Brush, Type_TextFormat
         virtual auto GetResourcePointer(ResourceType type, size_t index) noexcept ->void* = 0;
-        // get resouce by index, index in range [0, count)
-        // Type_Meta
-        virtual auto GetResourceStruct(ResourceType type, size_t index, void* data) noexcept ->void = 0;
+        // get meta by index, index in range [0, count)
+        virtual auto GetMeta(size_t index, DeviceIndependentMeta&) noexcept ->void = 0;
     };
-    // {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
-    static const GUID IID_LONGUI_IUIConfigure =
-    { 0x16222e4b, 0x9ac8, 0x4756,{ 0x8c, 0xa9, 0x75, 0xa7, 0x2d, 0x2f, 0x4f, 0x60 } };
+    // static const GUID IID_IUIConfigure =
+    // { 0x7ca331b9, 0x6500, 0x4948,{ 0xa9, 0xb4, 0xd5, 0x59, 0xc9, 0x2e, 0x65, 0xb1 } };
     // UI Configure
     // can be QI :  IID_LONGUI_InlineParamHandler(opt),
     //              IID_LONGUI_IUIResourceLoader(opt), 
@@ -162,9 +157,6 @@ namespace LongUI {
         virtual auto OutputDebugStringW(DebugStringLevel level, const wchar_t* string, bool flush) noexcept -> void = 0;
 #endif
     };
-    // {375B7749-B9F9-4F9D-BBF9-76A31CB76720}
-    static const GUID IID_LONGUI_IUICommand =
-    { 0x375b7749, 0xb9f9, 0x4f9d,{ 0xbb, 0xf9, 0x76, 0xa3, 0x1c, 0xb7, 0x67, 0x20 } };
     // UI Undo Redo Commnad
     class DECLSPEC_NOVTABLE IUICommand : public IUIInterface {
     public:

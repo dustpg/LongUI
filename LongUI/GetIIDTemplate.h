@@ -73,5 +73,9 @@ namespace LongUI {
     static const IID IID_UIWindow =
     { 0x61728aba, 0x23db, 0x4fed, { 0xb1, 0xae, 0xf9, 0x1a, 0x7b, 0x97, 0xec, 0x3b } };
     MakeGetIID(UIWindow);
+    // IUIResourceLoader {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
+    MakeGetIID(IUIResourceLoader);
+    // IUIScript {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
+    MakeGetIID(IUIScript);
 #undef MakeGetIID
 }

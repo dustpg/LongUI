@@ -88,6 +88,24 @@ namespace LongUI {
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
         // format the text into textlayout with format: 面向C/C++
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
+        // create text format
+        auto CreateTextFormat(
+            const wchar_t* fontFamilyName,
+            DWRITE_FONT_WEIGHT fontWeight,
+            DWRITE_FONT_STYLE fontStyle,
+            DWRITE_FONT_STRETCH fontStretch,
+            FLOAT fontSize,
+            IDWriteTextFormat** textFormat
+            ) noexcept {
+            return m_pDWriteFactory->CreateTextFormat(
+                fontFamilyName, 
+                m_pFontCollection, 
+                fontWeight, fontStyle, 
+                fontStretch,  fontSize,  
+                m_szLocaleName,
+                textFormat
+                );
+        }
         // create ui window via xml string 创建窗口
         template<typename T = UIWindow>
         LongUINoinline auto CreateUIWindow(const char*, void* = nullptr, UIWindow* = nullptr) noexcept->T*;
@@ -109,7 +127,7 @@ namespace LongUI {
         // eixt the app
         LongUIInline auto Exit() { m_exitFlag = true; ::PostQuitMessage(0); }
         // recreate
-        LongUIInline auto RecreateResources() { this->discard_resources(); return this->create_resources(); }
+        LongUIInline auto RecreateResources() { this->discard_resources(); return this->create_device_resources(); }
     public: // 隐形转换区
         // 转换为 LongUIRenderTarget
 #define UIManager_RenderTaget (static_cast<ID2D1DeviceContext*>(UIManager))
@@ -213,19 +231,29 @@ namespace LongUI {
         CUIInput                        m_uiInput;
         // 锁
         CUILocker                       m_uiLocker;
-        // TF 仓库
-        BasicContainer                  m_textFormats;
-        // 笔刷容器
-        BasicContainer                  m_brushes;
         // 窗口容器
         BasicContainer                  m_windows;
-        // 位图容器
-        BasicContainer                  m_bitmaps;
-        // Meta图标容器
-        BasicContainer                  m_metaicons;
-        // Meta容器
-        LongUI::Vector<Meta>            m_metas;
-        // 地区名称
+        // bitmap buffer
+        ID2D1Bitmap1**                  m_ppBitmaps = nullptr;
+        // length of it
+        size_t                          m_cCountBmp = 0;
+        // brush buffer
+        ID2D1Brush**                    m_ppBrushes = nullptr;
+        // length of it
+        size_t                          m_cCountBrs = 0;
+        // text format buffer
+        IDWriteTextFormat**             m_ppTextFormats = nullptr;
+        // length of it
+        size_t                          m_cCountTf = 0;
+        // meta buffer
+        Meta*                           m_pMetasBuffer = nullptr;
+        // meta hicon buffer
+        HICON*                          m_phMetaIcon = nullptr;
+        // length of it
+        size_t                          m_cCountMt = 0;
+        // resource buffer for all
+        void*                           m_pResourceBuffer = nullptr;
+        // local name
         wchar_t                         m_szLocaleName[LOCALE_NAME_MAX_LENGTH / 4 * 4 + 4];
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
         // 默认配置
@@ -245,18 +273,18 @@ namespace LongUI {
         // register, return -1 for error(out of renderer space), return other for index
         auto RegisterTextRenderer(UIBasicTextRenderer*) noexcept-> int32_t;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetTextFormat(uint32_t i) noexcept->IDWriteTextFormat*;
+        auto GetTextFormat(size_t i) noexcept->IDWriteTextFormat*;
         // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetBitmap(uint32_t index) noexcept->ID2D1Bitmap1*;
+        auto GetBitmap(size_t index) noexcept->ID2D1Bitmap1*;
         // get brush by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetBrush(uint32_t index) noexcept->ID2D1Brush*;
+        auto GetBrush(size_t index) noexcept->ID2D1Brush*;
         // get meta by index, "Get" method will call IUnknown::AddRef if it is a COM object
         // Meta isn't a IUnknown object, so, won't call Meta::bitmap->AddRef
-        void GetMeta(uint32_t index, LongUI::Meta&) noexcept;
+        void GetMeta(size_t index, LongUI::Meta&) noexcept;
         // get meta's icon handle by index, will do runtime-converting if first call the
         //  same index. "Get" method will call IUnknown::AddRef if it is a COM object
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
-        auto GetMetaHICON(uint32_t index) noexcept->HICON;
+        auto GetMetaHICON(size_t index) noexcept->HICON;
         // get system brush
         auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
     public:
@@ -269,22 +297,14 @@ namespace LongUI {
         // delte this method 删除移动构造函数
         CUIManager(CUIManager&&) = delete;
     private:
-        // create programs resources
-        auto create_programs_resources() throw(std::bad_alloc&) ->void;
         // create all resources
-        auto create_resources() noexcept ->HRESULT;
+        auto create_device_resources() noexcept->HRESULT;
+        // create index zero resources
+        auto create_indexzero_resources() noexcept->HRESULT;
         // create system brush
         auto create_system_brushes() noexcept->HRESULT;
         // discard resources
         void discard_resources() noexcept;
-        // create bitmap
-        void add_bitmap(const pugi::xml_node) noexcept;
-        // create brush
-        void add_brush(const pugi::xml_node) noexcept;
-        // create text format
-        void add_textformat(const pugi::xml_node) noexcept;
-        // create meta
-        void add_meta(const pugi::xml_node) noexcept;
     public:
         // get create function
         auto GetCreateFunc(const char*)noexcept->CreateControlFunction;
