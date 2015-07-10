@@ -47,20 +47,17 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Resource>
     <!-- Bitmap区域Zone -->
     <Bitmap>
-        <Resource desc="按钮1" res="btn.png"/>
+        <Item desc="按钮1" res="btn.png"/>
     </Bitmap>
     <!-- Meta区域Zone -->
     <Meta>
-        <Resource desc="按钮1无效图元" bitmap="1" rect="0,  0, 96, 24" rule="1"/>
-        <Resource desc="按钮1通常图元" bitmap="1" rect="0, 72, 96, 96" rule="1"/>
-        <Resource desc="按钮1悬浮图元" bitmap="1" rect="0, 24, 96, 48" rule="1"/>
-        <Resource desc="按钮1按下图元" bitmap="1" rect="0, 48, 96, 72" rule="1"/>
+        <Item desc="按钮1无效图元" bitmap="1" rect="0,  0, 96, 24" rule="1"/>
+        <Item desc="按钮1通常图元" bitmap="1" rect="0, 72, 96, 96" rule="1"/>
+        <Item desc="按钮1悬浮图元" bitmap="1" rect="0, 24, 96, 48" rule="1"/>
+        <Item desc="按钮1按下图元" bitmap="1" rect="0, 48, 96, 72" rule="1"/>
     </Meta>
 </Resource>
 )xml";
-
-DWORD color_a; 
-
 
 // Test UIControl
 class TestControl : public LongUI::UIControl {
@@ -103,10 +100,7 @@ public:
             D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
             m_pBrush_SetBeforeUse->SetColor(&color);
             m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-            color.a = float(reinterpret_cast<uint8_t*>(&color_a)[3]) / 255.f;
-            color.r = float(reinterpret_cast<uint8_t*>(&color_a)[2]) / 255.f;
-            color.g = float(reinterpret_cast<uint8_t*>(&color_a)[1]) / 255.f;
-            color.b = float(reinterpret_cast<uint8_t*>(&color_a)[0]) / 255.f;
+            UIManager.GetThemeColor(color);
             m_pBrush_SetBeforeUse->SetColor(&color);
             m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
             m_pRenderTarget->DrawImage(m_pEffectOut);
@@ -308,16 +302,7 @@ protected:
 
 // 应用程序入口
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
-    DWORD buffer_size = sizeof DWORD;
-    auto error_code = ::RegGetValueA(
-        HKEY_CURRENT_USER,
-        "Software\\Microsoft\\Windows\\DWM",
-        "ColorizationColor",
-        RRF_RT_DWORD,
-        nullptr,
-        &color_a,
-        &buffer_size
-        );
+    // set info
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     // configure for this demo
     class DemoConfigure final : public LongUI::CUIDefaultConfigure {
@@ -335,7 +320,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             m_manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
         };
         // 使用CPU渲染
-        auto IsRenderByCPU() noexcept ->bool override { return false; }
+        auto IsRenderByCPU() noexcept ->bool override { return true; }
     private:
         // mruby script
         MRubyScript     mruby = MRubyScript(UIManager);

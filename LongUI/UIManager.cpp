@@ -429,6 +429,39 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
     return  arg.lr;
 }
 
+// 获取主题颜色
+auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT {
+    union { DWORD color; uint8_t argb[4]; };
+    color = 0; auto hr = S_OK; DWORD buffer_size = sizeof(DWORD);
+    // 获取Colorization颜色
+    ::RegGetValueA(
+        HKEY_CURRENT_USER,
+        "Software\\Microsoft\\Windows\\DWM", "ColorizationColor",
+        RRF_RT_DWORD, nullptr, &color, &buffer_size
+        );
+    DWORD balance = 0; buffer_size = sizeof(DWORD);
+    // 获取Colorization混合标准
+    ::RegGetValueA(
+        HKEY_CURRENT_USER,
+        "Software\\Microsoft\\Windows\\DWM", "ColorizationColorBalance",
+        RRF_RT_DWORD, nullptr, &balance, &buffer_size
+        );
+    {
+        // 混合通道
+        auto blend_channel = [](float ch1, float ch2, float prec) {
+            register auto data = ch1 + (ch2 - ch1) * prec;
+            return data > 1.f ? 1.f : (data < 0.f ? 0.f : data);
+        };
+        colorf.a = 1.f; auto prec = 1.f - float(balance) / 100.f;
+        constexpr float basegrey = float(217) / 255.f;
+        colorf.r = blend_channel(float(argb[2]) / 255.f, basegrey, prec);
+        colorf.g = blend_channel(float(argb[1]) / 255.f, basegrey, prec);
+        colorf.b = blend_channel(float(argb[0]) / 255.f, basegrey, prec);
+    }
+    return hr;
+}
+
+
 
 // 获取操作系统版本
 namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
@@ -965,7 +998,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         DXGI_ADAPTER_DESC desc = { 0 }; 
         m_pDxgiAdapter->GetDesc(&desc);
-        UIManager << DL_Hint << desc << LongUI::endl;
+        UIManager << DL_Log << desc << LongUI::endl;
     }
 #endif
     // 获取Dxgi工厂
@@ -1950,7 +1983,7 @@ auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
-        L"RECT_WH(%f, %f, %f, %f)",
+        L"RECT_WH(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.width, rect.height
         );
     this->OutputNoFlush(m_lastLevel, buffer);
@@ -1961,7 +1994,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManage
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
-        L"RECT_RB(%f, %f, %f, %f)",
+        L"RECT_RB(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.right, rect.bottom
         );
     this->OutputNoFlush(m_lastLevel, buffer);
@@ -1972,7 +2005,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept->CUIManage
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
-        L"POINT(%f, %f)",
+        L"POINT(%7.2f, %7.2f)",
         pt.x, pt.y
         );
     this->OutputNoFlush(m_lastLevel, buffer);

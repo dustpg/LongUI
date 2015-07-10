@@ -88,6 +88,8 @@ namespace LongUI {
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
         // format the text into textlayout with format: 面向C/C++
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
+        // get theme colr
+        static auto __fastcall GetThemeColor(D2D1_COLOR_F& colorf) noexcept->HRESULT;
         // create text format
         auto CreateTextFormat(
             const wchar_t* fontFamilyName,

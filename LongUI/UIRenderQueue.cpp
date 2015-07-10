@@ -16,9 +16,9 @@ LongUI::CUIRenderQueue::~CUIRenderQueue() noexcept {
 // 重置
 void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     // 一样就不处理
-    if (m_dwDisplayFrequency == freq) return;
+    if (m_wDisplayFrequency == freq) return;
     // 修改
-    m_dwDisplayFrequency = freq;
+    m_wDisplayFrequency = freq;
     // 创建
     CUIRenderQueue::UNIT* data = nullptr;
     if (freq) {
@@ -57,8 +57,10 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
             register auto time = m_dwStartTime;
             m_dwStartTime = ::timeGetTime();
             time = m_dwStartTime - time;
-            UIManager << DL_Hint << "Time Deviation: "
-                << long(time) - long(LongUIPlanRenderingTotalTime * 1000)
+            int16_t dev = int16_t(int16_t(time) - int16_t(LongUIPlanRenderingTotalTime * 1000));
+            m_sTimeDeviation += dev;
+            UIManager << DL_Log << "Time Deviation: "
+                << long(dev) << " ms    Totle: " << long(m_sTimeDeviation)
                 << " ms" << endl;
             // TODO: 时间校正
         }
@@ -131,12 +133,12 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
     // 渲染队列模式
     if (m_pCurrentUnit) {
         // 时间片计算
-        auto frame_offset = long(wait * float(m_dwDisplayFrequency));
-        auto frame_count = long(render * float(m_dwDisplayFrequency)) + 1;
+        auto frame_offset = long(wait * float(m_wDisplayFrequency));
+        auto frame_count = long(render * float(m_wDisplayFrequency)) + 1;
         auto start = m_pCurrentUnit + frame_offset;
         for (long i = 0; i < frame_count; ++i) {
             if (start >= m_pUnitsDataEnd) {
-                start -= LongUIPlanRenderingTotalTime * m_dwDisplayFrequency;
+                start -= LongUIPlanRenderingTotalTime * m_wDisplayFrequency;
             }
             set_unit(start, ctrl);
             ++start;

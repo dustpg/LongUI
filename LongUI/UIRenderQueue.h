@@ -50,10 +50,12 @@ namespace LongUI {
         // get current unit
         auto GetCurrentUnit() const noexcept { return m_pCurrentUnit; }
         // get display frequency
-        auto GetDisplayFrequency() const noexcept { return m_dwDisplayFrequency; }
+        auto GetDisplayFrequency() const noexcept { return m_wDisplayFrequency; }
     private: // queue zone
         // frequency for display
-        uint32_t            m_dwDisplayFrequency = 0;
+        uint16_t            m_wDisplayFrequency = 0;
+        // time deviation total
+        int16_t             m_sTimeDeviation = 0;
         // render start time
         uint32_t            m_dwStartTime = 0;
         // current unit

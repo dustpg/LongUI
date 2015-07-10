@@ -122,14 +122,6 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     ZeroMemory(&m_rcScroll, sizeof(m_dirtyRects));
     ZeroMemory(m_dirtyRects, sizeof(m_dirtyRects));
     m_present = { 0, m_dirtyRects, nullptr, nullptr };
-    {
-        // 获取屏幕刷新率
-        DEVMODEW mode = { 0 };
-        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-        m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
-        // 强行刷新一帧
-        this->Invalidate(this);
-    }
 }
 
 // UIWindow 析构函数
@@ -878,6 +870,14 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     }
     ::SafeRelease(pDxgiBackBuffer);
     ::SafeRelease(pSwapChain);
+    {
+        // 获取屏幕刷新率
+        DEVMODEW mode = { 0 };
+        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+        m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
+        // 强行刷新一帧
+        this->Invalidate(this);
+    }
     // 重建 子控件UI
     return Super::Recreate(newRT);
 }
