@@ -989,15 +989,6 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 // --------------  CUIDefaultConfigure ------------
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
 
-// CUIDefaultConfigure::LoadBitmapByRI Impl
-auto LongUI::CUIDefaultConfigure::LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* {
-    wchar_t buffer[MAX_PATH * 4]; buffer[LongUI::UTF8toWideChar(res_iden, buffer)] = L'\0';
-    ID2D1Bitmap1* bitmap = nullptr;
-    //CUIManager::LoadBitmapFromFile(m_manager, nullptr, buffer, 0, 0, &bitmap);
-    return bitmap;
-}
-
-
 // CUIDefaultConfigure 析构函数
 LongUI::CUIDefaultConfigure::~CUIDefaultConfigure() noexcept {
     ::SafeRelease(m_pXMLResourceLoader);

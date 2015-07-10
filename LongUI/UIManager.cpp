@@ -17,21 +17,13 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         return E_INVALIDARG;
 #endif
     }
+    // 获取信息
+    force_cast(this->configure) = config;
     // 获取资源加载器
     config->QueryInterface(LongUI_IID_PV_ARGS(m_pResourceLoader));
     // 获取脚本
     config->QueryInterface(LongUI_IID_PV_ARGS(force_cast(this->script)));
-    // 解析资源脚本
-    auto res_xml = config->GetResourceXML();
-    if (res_xml) {
-        auto re = m_docResource.load_string(res_xml);
-        if (re.status) {
-            assert(!"failed");
-            ::MessageBoxA(nullptr, re.description(), "<LongUI::CUIManager::Initialize>: Failed to Parse XML", MB_ICONERROR);
-        }
-    }
-    // 获取信息
-    force_cast(this->configure) = config;
+    // 本地字符集名称
     config->GetLocaleName(m_szLocaleName);
     // 初始化其他
     ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
@@ -82,18 +74,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
                 sizeof(void*) * m_cCountBmp +
                 sizeof(void*) * m_cCountBrs +
                 sizeof(void*) * m_cCountTf +
-                sizeof(LongUI::Meta) * m_cCountMt;
+                (sizeof(HICON) + sizeof(LongUI::Meta)) * m_cCountMt;
             return buffer_length;
         };
         // 检查资源缓存
         if (!m_pResourceBuffer) {
             m_cCountBmp = m_cCountBrs = m_cCountTf = m_cCountMt = 1;
-            // 缓存区
-            size_t buffer_length =
-                sizeof(void*) * m_cCountBmp +
-                sizeof(void*) * m_cCountBrs +
-                sizeof(void*) * m_cCountTf +
-                (sizeof(LongUI::Meta) + sizeof(HICON)) * m_cCountMt;
             // 查询资源数量
             if (m_pResourceLoader) {
                 m_cCountBmp += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Bitmap);
@@ -102,7 +88,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
                 m_cCountMt += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Meta);
             }
             // 申请内存
-            m_pResourceBuffer = LongUI::CtrlAlloc(buffer_length);
+            m_pResourceBuffer = LongUI::CtrlAlloc(get_buffer_length());
         }
         // 修改资源
         if (m_pResourceBuffer) {
@@ -175,8 +161,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
 
 // CUIManager  反初始化
 void LongUI::CUIManager::UnInitialize() noexcept {
-    // 释放读取器
-    ::SafeRelease(m_pResourceLoader);
     // 释放文本渲染器
     for (auto& renderer : m_apTextRenderer) {
         ::SafeRelease(renderer);
@@ -198,13 +182,11 @@ void LongUI::CUIManager::UnInitialize() noexcept {
         LongUI::CtrlFree(m_pResourceBuffer);
         m_pResourceBuffer = nullptr;
     }
+    // 释放读取器
+    ::SafeRelease(m_pResourceLoader);
     // 释放配置
     ::SafeRelease(force_cast(this->configure));
-    //
-    m_cCountMt = 0;
-    m_cCountTf = 0;
-    m_cCountBmp = 0;
-    m_cCountBrs = 0;
+    m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
 }
 
 
@@ -1296,7 +1278,7 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
 // 获取图元
 void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
     // 越界
-    if (index >= m_cCountTf) {
+    if (index >= m_cCountMt) {
         UIManager << DL_Warning
             << L"[index @ " << long(index)
             << L"]is out of range \t\tNow set to 0"

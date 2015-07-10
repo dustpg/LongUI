@@ -261,8 +261,6 @@ namespace LongUI {
 #endif
         // 普通文本渲染器
         UINormalTextRender              m_normalTRenderer;
-        // tinyxml2 资源
-        pugi::xml_document              m_docResource;
         // tinyxml2 窗口
         pugi::xml_document              m_docWindow;
     public:

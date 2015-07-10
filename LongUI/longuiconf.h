@@ -155,7 +155,7 @@ namespace LongUI {
         // LongUI Default Slider Half Width
         LongUIDefaultCheckBoxWidth = 16,
         // max count of longui window
-        LongUIMaxWindow = 256,
+        LongUIMaxWindow = 16,
         // update message
         LongUIUpdateMessage = WM_USER + 64,
         // max count of longui text renderer

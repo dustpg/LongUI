@@ -115,9 +115,8 @@ namespace LongUI {
         };
     public:
         // get resouce count with type
-        virtual auto GetResourceCount(ResourceType type) noexcept -> size_t = 0;
-        // get resouce by index, index in range [0, count)
-        // for Type_Bitmap, Type_Brush, Type_TextFormat
+        virtual auto GetResourceCount(ResourceType type) const noexcept -> size_t = 0;
+        // get resouce by index, index in range [0, count),  for Type_Bitmap, Type_Brush, Type_TextFormat
         virtual auto GetResourcePointer(ResourceType type, size_t index) noexcept ->void* = 0;
         // get meta by index, index in range [0, count)
         virtual auto GetMeta(size_t index, DeviceIndependentMeta&) noexcept ->void = 0;
@@ -131,14 +130,10 @@ namespace LongUI {
     //              IDWriteFontCollection(opt)
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
-        // if no bin-res loader, get xml based resource(not file name), maybe nullptr(no resource)
-        virtual auto GetResourceXML() noexcept -> const char* = 0;
         // get template string for control
         virtual auto GetTemplateString() noexcept->const char* = 0;
         // get locale name of ui(for text), default is L"" (locale)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void = 0;
-        // if no bin-res loader,  create bitmap from resource identifier
-        virtual auto LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* = 0;
         // add all custom controls, just return if no custom control
         virtual auto AddCustomControl() noexcept->void = 0;
         // return true, if using cpu rendering

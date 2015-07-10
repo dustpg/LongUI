@@ -215,7 +215,7 @@ namespace LongUI {
         auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { auto old = --m_dwCounter; if (!old) { delete this; } return old; };
     public:
         // get resouce count with type
-        auto GetResourceCount(ResourceType type) noexcept->size_t override;
+        auto GetResourceCount(ResourceType type) const noexcept->size_t override;
         // get resouce by index, index in range [0, count)
         // for Type_Bitmap, Type_Brush, Type_TextFormat
         auto GetResourcePointer(ResourceType type, size_t index) noexcept ->void* override;
@@ -234,7 +234,7 @@ namespace LongUI {
         static auto find_node_with_index(pugi::xml_node node, const size_t index) noexcept {
             pugi::xml_node found_node;
             size_t i = 0;
-            for (auto itr = node.first_child(); itr != node.last_child(); itr = itr.next_sibling()) {
+            for (auto itr = node.first_child(); itr; itr = itr.next_sibling()) {
                 if (i == index) {
                     found_node = itr;
                     break;
@@ -305,7 +305,7 @@ namespace LongUI {
         ::SafeRelease(m_pWICFactory);
     }
     // get reource count
-    auto LongUI::CUIResourceLoaderXML::GetResourceCount(ResourceType type) noexcept -> size_t {
+    auto LongUI::CUIResourceLoaderXML::GetResourceCount(ResourceType type) const noexcept -> size_t {
         assert(type < this->RESOURCE_TYPE_COUNT);
         return static_cast<size_t>(m_aResourceCount[type]);
     }
@@ -407,6 +407,7 @@ namespace LongUI {
     }
     // 获取位图
     auto LongUI::CUIResourceLoaderXML::get_bitmap(pugi::xml_node node) noexcept -> ID2D1Bitmap1* {
+        assert(node && "node not found");
         // 获取路径
         const char* uri = node.attribute("res").value();
         assert(uri && uri != "" && "Error URI of Bitmap");
@@ -712,7 +713,7 @@ namespace LongUI {
     // get textformat
     auto LongUI::CUIResourceLoaderXML::get_text_format(pugi::xml_node node) noexcept -> IDWriteTextFormat* {
         const char* str = nullptr;
-        assert(node && "bad argument");
+        assert(node && "node not found");
         CUIString fontfamilyname(L"Arial");
         DWRITE_FONT_WEIGHT fontweight = DWRITE_FONT_WEIGHT_NORMAL;
         DWRITE_FONT_STYLE fontstyle = DWRITE_FONT_STYLE_NORMAL;

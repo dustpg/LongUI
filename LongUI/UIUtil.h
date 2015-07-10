@@ -613,14 +613,10 @@ namespace LongUI {
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
-        // get xml based resource(not file name)
-        virtual auto GetResourceXML() noexcept -> const char* override { return resource; };
         // get template string for control
         virtual auto GetTemplateString() noexcept->const char* override  { return nullptr; }
         // get locale name of ui(for text)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
-        // create bitmap from resource identifier
-        virtual auto LoadBitmapByRI(const char* res_iden) noexcept->ID2D1Bitmap1* override;
         // add all custom controls
         virtual auto AddCustomControl() noexcept->void override {};
         // return true, if using cpu rendering
