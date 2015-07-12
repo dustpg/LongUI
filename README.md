@@ -10,7 +10,7 @@ For this repo, you need:
     - **Windows 8 or later**
   - Tool-chain/Environment A:
     - Visual Stuidio 2015 - Express for Desktop/Community or higher
-    - Windows SDK(10.0.10158.0)/DirectX SDK(optional)
+    - Windows SDK(10.0.10166.0)/DirectX SDK(optional)
   - Tool-chain/Environment B(would support in the future):
     - Rakefile(ruby)
     - MinGW-W64

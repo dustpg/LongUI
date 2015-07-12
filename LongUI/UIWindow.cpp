@@ -102,12 +102,13 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     UIManager.AddWindow(this);
     this->clear_color.a = 0.85f;
     // 创建帮助器
-    ::CoCreateInstance(
+    auto hr = ::CoCreateInstance(
         CLSID_DragDropHelper, 
         nullptr, 
         CLSCTX_INPROC_SERVER,
         LongUI_IID_PV_ARGS(m_pDropTargetHelper)
         );
+    AssertHR(hr);
     // 注册拖拽目标
     ::RegisterDragDrop(m_hwnd, this);
     // 显示窗口
@@ -407,22 +408,27 @@ void LongUI::UIWindow::Update() noexcept {
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     m_timer.MovStartEnd();
-    auto current_unit = m_uiRenderQueue.GetCurrentUnit();
+    // 复制数据
+    {
+        auto current_unit = m_uiRenderQueue.GetCurrentUnit();
+        m_aUnitNow.length = current_unit->length;
+        ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(void*) * m_aUnitNow.length);
+    }
     // 没有就不刷新了
-    m_bRendered = !!current_unit->length;
-    if (!current_unit->length) return;
+    m_bRendered = !!m_aUnitNow.length;
+    if (!m_aUnitNow.length) return;
     // 全刷新?
-    if (current_unit->units[0] == static_cast<UIControl*>(this)) {
+    if (m_aUnitNow.units[0] == static_cast<UIControl*>(this)) {
         m_present.DirtyRectsCount = 0;
+        UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << endl;
         // 交给父类处理
         Super::Update();
     }
     // 部分刷新
     else {
-        m_present.DirtyRectsCount = current_unit->length;
         // 更新脏矩形
-        for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
-            auto ctrl = current_unit->units[i];
+        for (uint32_t i = 0ui32; i < m_aUnitNow.length; ++i) {
+            auto ctrl = m_aUnitNow.units[i];
             assert(ctrl->parent && "check it");
             // 设置转换矩阵
             ctrl->Update();
@@ -447,7 +453,6 @@ void LongUI::UIWindow::Update() noexcept {
 // UIWindow 渲染 
 void LongUI::UIWindow::Render(RenderType type)const noexcept  {
     if (type != RenderType::Type_Render) return ;
-    const auto current_unit = m_uiRenderQueue.GetCurrentUnit();
     // 全刷新: 继承父类
     if (!m_present.DirtyRectsCount) {
         Super::Render(RenderType::Type_Render);
@@ -457,22 +462,29 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
 #if 1
         // 先排序
         UIControl* units[LongUIDirtyControlSize];
-        assert(current_unit->length < LongUIDirtyControlSize);
-        auto length_for_units = current_unit->length;
-        ::memcpy(units, current_unit->units, length_for_units * sizeof(void*));
+        assert(m_aUnitNow.length < LongUIDirtyControlSize);
+        auto length_for_units = m_aUnitNow.length;
+        ::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
         std::sort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
             return a->priority > b->priority;
         });
-        if (current_unit->length >= 2) {
+        if (m_aUnitNow.length >= 2) {
             assert(units[0]->priority >= units[1]->priority);
         }
         // 再渲染
+        auto init_transfrom = D2D1::Matrix3x2F::Identity();
         for (auto unit = units; unit < units + length_for_units; ++unit) {
             auto ctrl = *unit;
+            assert(ctrl != this);
+            // 设置转换矩阵
+            m_pRenderTarget->SetTransform(&init_transfrom);
+            m_pRenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             // 设置转换矩阵
             D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
             m_pRenderTarget->SetTransform(&matrix);
             ctrl->Render(RenderType::Type_Render);
+            // 回来
+            m_pRenderTarget->PopAxisAlignedClip();
     }
 #else
         // 再渲染

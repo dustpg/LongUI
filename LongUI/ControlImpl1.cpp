@@ -485,11 +485,11 @@ void LongUI::UIButton::Render(RenderType type)const noexcept {
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
         this->GetContentRect(draw_rect);
-        /*{
+        {
             if (m_strControlName == L"1" || true) {
-                UIManager << DL_Hint << this << this->visible_rect << LongUI::endl;
+                //UIManager << DL_Hint << this << this->visible_rect << LongUI::endl;
             }
-        }*/
+        }
         // 渲染部件
         m_uiElement.Render(draw_rect);
         __fallthrough;

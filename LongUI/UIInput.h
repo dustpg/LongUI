@@ -52,7 +52,7 @@ namespace LongUI {
             m_ptMouse.x = static_cast<float>(m_ptMouseL.x);
             m_ptMouse.y = static_cast<float>(m_ptMouseL.y);
             std::swap(m_pKeyState, m_pKeyStateOld);
-            ::GetKeyboardState(m_pKeyState);
+            (void)::GetKeyboardState(m_pKeyState);
         }
     protected:
         // mouse postion

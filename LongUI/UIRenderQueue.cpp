@@ -624,7 +624,7 @@ namespace LongUI {
                     // 查找第一个浮点数做为位置
                     if (ispos) {
                         // ,表示位置段结束, 该解析了
-                        if (ch = ',') {
+                        if (ch == ',') {
                             *index = 0;
                             now_stop->position = LongUI::AtoF(paragraph);
                             ispos = false;

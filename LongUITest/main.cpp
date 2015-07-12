@@ -29,12 +29,12 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 #else
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA">
-    <VerticalLayout name="VLayout1" size="1366, 256">
+    <VerticalLayout name="VLayout1" size="1366, 512">
         <Button name="1" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="2" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
     </VerticalLayout>
-    <HorizontalLayout name="HLayout" size="0, 256">
+    <HorizontalLayout name="HLayout" size="0, 512">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>

@@ -332,7 +332,8 @@ HRESULT LongUI::UIRichEdit::TxGetScrollBars(DWORD *pdwScrollBar){
     return S_OK;
 }
 
-HRESULT LongUI::UIRichEdit::TxGetPasswordChar(TCHAR *pch){
+HRESULT LongUI::UIRichEdit::TxGetPasswordChar(TCHAR *pch) {
+    *pch = L'*';
     TRACE_FUCTION;
     return S_FALSE;
 }

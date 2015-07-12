@@ -2075,6 +2075,7 @@ void LongUI::CUIManager::a(const wchar_t* format, ...) noexcept {\
     va_list argList;\
     va_start(argList, format);\
     auto ret = ::vswprintf(buffer, LongUIStringBufferLength - 1, format, argList);\
+    assert(ret < LongUIStringBufferLength);\
     buffer[ret] = 0;\
     va_end(argList);\
     this->Output(b, buffer);\
