@@ -201,7 +201,7 @@ namespace LongUI {
     // UI Locker
     class CUILocker {
     public:
-#if 0
+#if 1
         // ctor
         CUILocker() noexcept { ::InitializeCriticalSection(&m_cs); }
         // dtor

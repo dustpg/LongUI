@@ -235,7 +235,6 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 
 // 刷新子控件前
 void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
-
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
         this->GetWorldTransform(this->world);

@@ -170,8 +170,8 @@ namespace LongUI{
         UIControl*              m_pCapturedControl = nullptr;
         // rendering queue
         CUIRenderQueue          m_uiRenderQueue;
-        // unit
-        CUIRenderQueue::UNIT    m_aUnitNow;
+        // now unit
+        //CUIRenderQueue::UNIT    m_aUnitNow;
         // blink timer id
         UINT_PTR                m_idBlinkTimer = 0;
         // normal  l-param

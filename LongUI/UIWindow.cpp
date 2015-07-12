@@ -408,27 +408,22 @@ void LongUI::UIWindow::Update() noexcept {
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     m_timer.MovStartEnd();
-    // 复制数据
-    {
-        auto current_unit = m_uiRenderQueue.GetCurrentUnit();
-        m_aUnitNow.length = current_unit->length;
-        ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(void*) * m_aUnitNow.length);
-    }
+     auto current_unit = m_uiRenderQueue.GetCurrentUnit();
     // 没有就不刷新了
-    m_bRendered = !!m_aUnitNow.length;
-    if (!m_aUnitNow.length) return;
+    m_bRendered = !!current_unit->length;
+    if (!current_unit->length) return;
     // 全刷新?
-    if (m_aUnitNow.units[0] == static_cast<UIControl*>(this)) {
+    if (current_unit->units[0] == static_cast<UIControl*>(this)) {
         m_present.DirtyRectsCount = 0;
-        UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << endl;
+        //UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << endl;
         // 交给父类处理
         Super::Update();
     }
     // 部分刷新
     else {
         // 更新脏矩形
-        for (uint32_t i = 0ui32; i < m_aUnitNow.length; ++i) {
-            auto ctrl = m_aUnitNow.units[i];
+        for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
+            auto ctrl = current_unit->units[i];
             assert(ctrl->parent && "check it");
             // 设置转换矩阵
             ctrl->Update();
@@ -462,14 +457,19 @@ void LongUI::UIWindow::Render(RenderType type)const noexcept  {
 #if 1
         // 先排序
         UIControl* units[LongUIDirtyControlSize];
-        assert(m_aUnitNow.length < LongUIDirtyControlSize);
-        auto length_for_units = m_aUnitNow.length;
-        ::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
-        std::sort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
-            return a->priority > b->priority;
-        });
-        if (m_aUnitNow.length >= 2) {
-            assert(units[0]->priority >= units[1]->priority);
+        size_t length_for_units = 0;
+        // 数据
+        {
+            auto current_unit = m_uiRenderQueue.GetLastUnit();
+            assert(current_unit->length < LongUIDirtyControlSize);
+            length_for_units = current_unit->length;
+            ::memcpy(units, current_unit->units, length_for_units * sizeof(void*));
+            std::sort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
+                return a->priority > b->priority;
+            });
+            if (current_unit->length >= 2) {
+                assert(units[0]->priority >= units[1]->priority);
+            }
         }
         // 再渲染
         auto init_transfrom = D2D1::Matrix3x2F::Identity();

@@ -49,6 +49,8 @@ namespace LongUI {
         void PlanToRender(float wait_time, float render_time, UIControl* control) noexcept;
         // get current unit
         auto GetCurrentUnit() const noexcept { return m_pCurrentUnit; }
+        // get last unit
+        auto GetLastUnit() const noexcept { return (m_pCurrentUnit == m_pUnitsDataBegin ? m_pCurrentUnit : m_pUnitsDataEnd) - 1; }
         // get display frequency
         auto GetDisplayFrequency() const noexcept { return m_wDisplayFrequency; }
     private: // queue zone

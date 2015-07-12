@@ -317,6 +317,7 @@ void LongUI::CUIManager::Run() noexcept {
             // 刷新窗口
             for (auto i = 0u; i < length; ++i) {
                 windows[i]->Update();
+                windows[i]->NextFrame();
                 if (!windows[i]->IsRendered()) {
                     windows[i] = nullptr;
                 }
@@ -335,10 +336,6 @@ void LongUI::CUIManager::Run() noexcept {
 #ifdef LONGUI_RENDER_IN_UNSAFE_MODE
             UIManager.Lock();
 #endif
-            // 迭代窗口
-            for (auto ctrl : UIManager.m_windows) {
-                static_cast<UIWindow*>(ctrl)->NextFrame();
-            }
             UIManager.Unlock();
             // 等待垂直同步
             UIManager.WaitVS(waitvs_window);
