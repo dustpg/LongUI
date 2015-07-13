@@ -61,10 +61,13 @@ namespace LongUI{
         // on needed, maybe 'need' is same in twice
         virtual void OnNeeded(bool need) noexcept = 0;
     public:
+        // on page down
+        // on page up
+        // on wheel up
+        // on wheel down
+    public:
         // how size that take up the owner's space in layout
         auto GetTakingUpSapce() const noexcept { return m_fTakeSpace; }
-        // how size that take up the owner's space in hit-test
-        auto GetHitSapce() const noexcept { return m_fHitSpace; }
         // how size that take up the owner's space
         auto GetIndex() const noexcept { return m_fIndex; }
         // before update
@@ -94,8 +97,8 @@ namespace LongUI{
     protected:
         // now take up the space of this
         float                   m_fTakeSpace = 0.f;
-        // max hit-test space of this
-        float                   m_fHitSpace = 0.f;
+        // step distance for whell up/down
+        float                   m_fWheelStep = 32.f;
         // now index of scroll bar
         float                   m_fIndex = 0.f;
         // max index of scroll bar
@@ -134,7 +137,7 @@ namespace LongUI{
         // recreate
         auto Recreate(LongUIRenderTarget* )noexcept->HRESULT override;
         // close this control 关闭控件
-        void Close() noexcept override;
+        void WindUp() noexcept override;
     public:
         // init sb
         void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept override;
@@ -162,8 +165,8 @@ namespace LongUI{
         BarElement              m_uiArrow2;
         // thumb
         BarElement              m_uiThumb;
-        // float
-        float                   m_fStep = 32.f;
+        // step for arrow clicked
+        float                   m_fArrowStep = 16.f;
         // captured this
         bool                    m_bCaptured = false;
         // arrow1 use colorrect
@@ -171,7 +174,7 @@ namespace LongUI{
         // arrow2 use colorrect
         bool                    m_bArrow2InColor = false;
         // unused
-        bool                    m_unused_sba;
+        bool                    m_bLastNeed = false;
     };
 
 }

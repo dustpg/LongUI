@@ -33,17 +33,17 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
 LongUI::UIContainer::~UIContainer() noexcept {
     // 关闭滚动条
     if (this->scrollbar_h) {
-        this->scrollbar_h->Close();
+        this->scrollbar_h->WindUp();
         this->scrollbar_h = nullptr;
     }
     if (this->scrollbar_v) {
-        this->scrollbar_v->Close();
+        this->scrollbar_v->WindUp();
         this->scrollbar_v = nullptr;
     }
     // 关闭子控件
     for (auto itr = this->begin(); itr != this->end(); ) {
         auto itr_next = itr; ++itr_next;
-        itr->Close();
+        itr->WindUp();
         itr = itr_next;
     }
 }
@@ -65,6 +65,44 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     child->DrawPosChanged();
     child->DrawSizeChanged();
     this->DrawSizeChanged();
+}
+
+// 修改后
+void LongUI::UIContainer::AfterChangeDrawPosition() noexcept {
+    auto basic_margin_right = m_oldMarginSize.width;
+    auto basic_margin_bottom = m_oldMarginSize.height;
+    //assert(!"old margin!");
+    // 更新滚动条
+    if (this->scrollbar_h) {
+        register float size = this->scrollbar_h->GetTakingUpSapce();
+        basic_margin_bottom += size;
+        this->scrollbar_h->x = -this->offset.x;
+        this->scrollbar_h->y = -this->offset.y + this->visible_size.height - size;
+        this->scrollbar_h->width = this->visible_size.width;
+        this->scrollbar_h->height = size;
+        //
+        // 修改可视区域
+        //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
+        this->scrollbar_h->visible_rect = this->visible_rect;
+        this->scrollbar_h->visible_rect.top = this->scrollbar_h->visible_rect.bottom -
+            this->world._11 * this->scrollbar_h->GetTakingUpSapce();
+        //set_draw_changed(m_bDrawPosChanged, scrollbar_h);
+    }
+    if (this->scrollbar_v) {
+        register float size = this->scrollbar_h->GetTakingUpSapce();
+        basic_margin_right += size;
+        this->scrollbar_v->x = -this->offset.x + this->visible_size.width - size;
+        this->scrollbar_v->y = -this->offset.y;
+        this->scrollbar_v->width = size;
+        this->scrollbar_v->height = this->visible_size.height;
+        // 修改可视区域
+        //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
+        this->scrollbar_v->visible_rect = this->visible_rect;
+        this->scrollbar_v->visible_rect.left = this->scrollbar_v->visible_rect.right -
+            this->world._22 * this->scrollbar_v->GetTakingUpSapce();
+        //
+        //set_draw_changed(m_bDrawPosChanged, scrollbar_v);
+    }
 }
 
 // 压入剪切区
@@ -286,40 +324,8 @@ void LongUI::UIContainer::Update() noexcept  {
             ctrl->visible_rect.right = std::min(rb.x, tmp_right);
             ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
         }
-        auto basic_margin_right = m_oldMarginSize.width;
-        auto basic_margin_bottom = m_oldMarginSize.height;
-        //assert(!"old margin!");
-        // 更新滚动条
-        if (this->scrollbar_h) {
-            register float size = this->scrollbar_h->GetTakingUpSapce();
-            basic_margin_bottom += size;
-            this->scrollbar_h->x = -this->offset.x;
-            this->scrollbar_h->y = -this->offset.y + this->visible_size.height - size;
-            this->scrollbar_h->width = this->visible_size.width;
-            this->scrollbar_h->height = size;
-            //
-            // 修改可视区域
-            //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
-            this->scrollbar_h->visible_rect = this->visible_rect;
-            this->scrollbar_h->visible_rect.top = this->scrollbar_h->visible_rect.bottom -
-                this->world._11 * this->scrollbar_h->GetHitSapce();
-            //set_draw_changed(m_bDrawPosChanged, scrollbar_h);
-        }
-        if (this->scrollbar_v) {
-            register float size = this->scrollbar_h->GetTakingUpSapce();
-            basic_margin_right += size;
-            this->scrollbar_v->x = -this->offset.x + this->visible_size.width - size;
-            this->scrollbar_v->y = -this->offset.y;
-            this->scrollbar_v->width = size;
-            this->scrollbar_v->height = this->visible_size.height;
-            // 修改可视区域
-            //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
-            this->scrollbar_v->visible_rect = this->visible_rect;
-            this->scrollbar_v->visible_rect.left = this->scrollbar_v->visible_rect.right -
-                this->world._22 * this->scrollbar_v->GetHitSapce();
-            //
-            //set_draw_changed(m_bDrawPosChanged, scrollbar_v);
-        }
+        // 修改
+        this->AfterChangeDrawPosition();
     }
     // 刷新滚动条
     if (this->scrollbar_h) {
@@ -601,7 +607,7 @@ auto LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HR
 }
 
 // UIVerticalLayout 关闭控件
-void LongUI::UIVerticalLayout::Close() noexcept {
+void LongUI::UIVerticalLayout::WindUp() noexcept {
     delete this;
 }
 
@@ -716,7 +722,7 @@ auto LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->
 }
 
 // UIHorizontalLayout 关闭控件
-void LongUI::UIHorizontalLayout::Close() noexcept {
+void LongUI::UIHorizontalLayout::WindUp() noexcept {
     delete this;
 }
 

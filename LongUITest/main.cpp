@@ -182,7 +182,7 @@ public:
         return true;
     }
     // close this control
-    virtual void Close() noexcept { delete this; };
+    virtual void WindUp() noexcept { delete this; };
 protected:
     // constructor
     TestControl(pugi::xml_node node) noexcept : Super(node), m_text(node){
@@ -283,7 +283,7 @@ public:
         return hr;
     }
     // close this control
-    virtual void Close() noexcept override { delete this; };
+    virtual void WindUp() noexcept override { delete this; };
 protected:
     // constructor
     UIVideoAlpha(pugi::xml_node node) noexcept : Super(node) {

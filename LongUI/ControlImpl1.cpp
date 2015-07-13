@@ -314,12 +314,13 @@ auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
 
 // 获取类名
 auto LongUI::UIControl::GetControlClassName() const noexcept -> const wchar_t* {
-    EventArgument arg;
+    /*EventArgument arg;
     arg.sender = const_cast<UIControl*>(this);
     arg.event = Event::Event_GetClassName_Const;
     arg.str = nullptr;
     const_cast<UIControl*>(this)->DoEvent(arg);
-    return arg.str;
+    return arg.str;*/
+    return L"[Unknown Control]";
 }
 
 // 获取占用/剪切矩形
@@ -389,11 +390,6 @@ void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexc
 // -------------------------------------------------------
 // UILabel: do event 事件处理
 bool LongUI::UILabel::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // 常量事件
-    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
-        arg.str = L"UILabel";
-        return true;
-    }
     return false;
 }
 
@@ -464,7 +460,7 @@ return Super::Recreate(newRT);
 }*/
 
 // close this control 关闭控件
-void LongUI::UILabel::Close() noexcept {
+void LongUI::UILabel::WindUp() noexcept {
     delete this;
 }
 
@@ -545,11 +541,6 @@ auto LongUI::UIButton::CreateControl(pugi::xml_node node) noexcept ->UIControl* 
 
 // do event 事件处理
 bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // 常量事件
-    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
-        arg.str = L"UIButton";
-        return true;
-    }
     //--------------------------------------------------
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
@@ -624,7 +615,7 @@ auto LongUI::UIButton::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
 }
 
 // 关闭控件
-void LongUI::UIButton::Close() noexcept {
+void LongUI::UIButton::WindUp() noexcept {
     delete this;
 }
 
@@ -670,11 +661,6 @@ void LongUI::UIEditBasic::Update() noexcept {
 
 // do event 
 bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // 常量事件
-    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
-        arg.str = L"UIEditBasic";
-        return true;
-    }
     // ---------------------------------------------
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
@@ -747,7 +733,7 @@ HRESULT    LongUI::UIEditBasic::Recreate(LongUIRenderTarget* target) noexcept {
 }
 
 // close this control 关闭控件
-void    LongUI::UIEditBasic::Close() noexcept {
+void    LongUI::UIEditBasic::WindUp() noexcept {
     delete this;
 }
 

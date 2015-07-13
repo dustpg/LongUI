@@ -21,9 +21,7 @@ bool MainWindow::OnUACButtonOn(UIControl * sender) {
 }
 
 // 关闭窗口
-void MainWindow::Close() noexcept {
-    // 析构对象
-    //operator delete(this, this);
+void MainWindow::WindUp() noexcept {
     this->~MainWindow();
     UIManager.Exit();
 }

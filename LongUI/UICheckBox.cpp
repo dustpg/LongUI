@@ -153,6 +153,6 @@ HRESULT LongUI::UICheckBox::Recreate(LongUIRenderTarget* newRT) noexcept {
 }
 
 // 关闭控件
-void LongUI::UICheckBox::Close() noexcept {
+void LongUI::UICheckBox::WindUp() noexcept {
     delete this;
 }

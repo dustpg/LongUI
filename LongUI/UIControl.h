@@ -30,9 +30,9 @@ namespace LongUI{
     // Container
     class UIContainer;
     // base control class -- 基本控件类
-    class LongUIAlignas UIControl /*: public IUIInterface*/{
+    class LongUIAlignas UIControl {
         // Super class
-        using Super = IUIInterface;
+        using Super = void;
         // friend class
         friend class CUIManager;
         // friend class
@@ -46,8 +46,9 @@ namespace LongUI{
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept = 0;
         // recreate , first call or device reset
         virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT;
-        // close this control  DO NOT call Super::Close()
-        virtual void Close() noexcept = 0;
+        // Wind up, you should call dtor in this method, if malloc(ed), you should free it
+        // easy way: delete this
+        virtual void WindUp() noexcept = 0;
     public:
         // get control name for script
         LongUIInline auto GetName_fs() const noexcept {

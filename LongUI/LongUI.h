@@ -262,10 +262,8 @@ namespace LongUI {
     };
     // LongUI Event
     enum class Event : size_t {
-        // get class name, remark: this is a const operator, do not change member
-        Event_GetClassName_Const = 0,
         // event -- finished control-tree buliding
-        Event_FinishedTreeBuliding,
+        Event_FinishedTreeBuliding = 0,
         // drag enter on this control
         Event_DragEnter,
         // drag over on this control
@@ -350,6 +348,24 @@ namespace LongUI {
         EventArgument(const EventArgument&) noexcept;
         // move ctor
         EventArgument(EventArgument&&) =delete;*/
+    };
+
+    // LongUI Information
+    enum class Information : size_t {
+        // get class name
+        Information_GetClassName = 0,
+    };
+    // longui information
+    struct EventInformation {
+        // information id
+        Information     infomation;
+        // Return Code
+        union {
+            // [out] Control for Parent
+            OUT mutable size_t          id;
+            // [out] Control for Parent
+            OUT mutable const wchar_t*  str;
+        };
     };
     // point in rect?
     inline static auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F& pt) noexcept {

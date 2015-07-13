@@ -333,10 +333,9 @@ void LongUI::CUIManager::Run() noexcept {
                     windows[i]->RenderWindow();
                 }
             }
-#ifdef LONGUI_RENDER_IN_UNSAFE_MODE
-            UIManager.Lock();
-#endif
+#ifndef LONGUI_RENDER_IN_UNSAFE_MODE
             UIManager.Unlock();
+#endif
             // 等待垂直同步
             UIManager.WaitVS(waitvs_window);
         }
@@ -358,7 +357,7 @@ void LongUI::CUIManager::Run() noexcept {
     }
     // 尝试强行关闭(使用迭代器会使迭代器失效)
     while (!m_windows.empty()) {
-        reinterpret_cast<UIWindow*>(m_windows.back())->Close();
+        reinterpret_cast<UIWindow*>(m_windows.back())->WindUp();
     }
 }
 

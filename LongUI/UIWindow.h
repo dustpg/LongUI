@@ -46,7 +46,10 @@ namespace LongUI{
         // recreate 重建
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void Close() noexcept override;
+        virtual void WindUp() noexcept override;
+    public: // some new
+        // on close event
+        virtual auto OnClose() noexcept -> bool { this->WindUp(); return true; };
     public: // IDropTarget 接口 实现
         // IDropTarget::DragEnter 实现
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
@@ -122,6 +125,8 @@ namespace LongUI{
     public: // MSG MAPPING ZONE
         // on WM_MOUSEMOVE
         bool OnMouseMove(const LongUI::EventArgument&) noexcept;
+        // on WM_MOUSEWHEEL
+        bool OnMouseWheel(const LongUI::EventArgument&) noexcept;
         // resize window
         void OnResize(bool force = false) noexcept;
     protected:

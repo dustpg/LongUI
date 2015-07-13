@@ -1,11 +1,17 @@
 ﻿#include "LongUI.h"
 
+// 获取相对数值
+#define UISB_OffsetVaule(f) ((&(f))[int(this->type)])
 
 // UIScrollBar 构造函数
 inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
     // 降低渲染优先级以保证最后渲染
     if (!this->priority) {
         force_cast(this->priority) = Priority_AfterMost;
+    }
+    // 修改
+    if (node) {
+        m_fWheelStep = LongUI::AtoF(node.attribute("wheelstep").value());
     }
 }
 
@@ -39,15 +45,9 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
     if (new_index != m_fIndex) {
         m_fIndex = new_index;
 #if 1
-        if (this->type == ScrollBarType::Type_Vertical) {
-            this->parent->offset.y = -new_index;
-            this->y = new_index;
-        }
-        else {
-            this->parent->offset.x = -new_index;
-            this->x = new_index;
-        }
+        UISB_OffsetVaule(this->parent->offset.x) = -new_index;
         this->parent->DrawPosChanged();
+        this->parent->AfterChangeDrawPosition();
         // 刷新拥有着
         m_pWindow->Invalidate(this->parent);
 #else
@@ -98,13 +98,18 @@ bool  LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
 LongUI::UIScrollBarA::UIScrollBarA(pugi::xml_node node) noexcept: Super(node), 
 m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb"){
     // 修改颜色
-    if (!node) {
+    if (node) {
+        m_fArrowStep = LongUI::AtoF(node.attribute("arrowstep").value());
+    }
+    // 修改颜色
+    else {
         D2D1_COLOR_F normal_color = D2D1::ColorF(0xF0F0F0);
         m_uiArrow1.GetByType<Element::ColorRect>().colors[Status_Normal] = normal_color;
         m_uiArrow2.GetByType<Element::ColorRect>().colors[Status_Normal] = normal_color;
         normal_color = D2D1::ColorF(0x2F2F2F);
         m_uiArrow1.GetByType<Element::ColorRect>().colors[Status_Pushed] = normal_color;
         m_uiArrow2.GetByType<Element::ColorRect>().colors[Status_Pushed] = normal_color;
+
     }
     // 初始化代码
     m_uiArrow1.GetByType<Element::Basic>().Init(node, "arrow1");
@@ -137,25 +142,21 @@ void LongUI::UIScrollBarA::Update() noexcept {
     D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
     if (this->another) {
-        if (this->type == ScrollBarType::Type_Vertical) {
-            draw_rect.bottom -= this->another->GetTakingUpSapce();
-        }
-        else {
-            draw_rect.right -= this->another->GetTakingUpSapce();
-        }
+        // 修改
+        UISB_OffsetVaule(draw_rect.right) -= this->another->GetTakingUpSapce();
     }
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
     register float length_of_thumb, start_offset;
     {
-        register float tmpsize = (&(this->width))[int(this->type)] - BASIC_SIZE*2.f;
+        register float tmpsize = UISB_OffsetVaule(this->width) - BASIC_SIZE*2.f;
         if (this->another) {
-            tmpsize -= this->another->GetHitSapce();
+            tmpsize -= this->another->GetTakingUpSapce();
         }
         start_offset = tmpsize * m_fIndex / m_fMaxRange;
         length_of_thumb = tmpsize * (1.f - m_fMaxIndex / m_fMaxRange);
     }
     // 修改数据
-
+#if 1
     // 垂直滚动条
     if (this->type == ScrollBarType::Type_Vertical) {
         m_rtArrow1.bottom = m_rtArrow1.top + BASIC_SIZE;
@@ -170,6 +171,9 @@ void LongUI::UIScrollBarA::Update() noexcept {
         m_rtThumb.left = m_rtArrow1.right + start_offset;
         m_rtThumb.right = m_rtThumb.left + length_of_thumb;
     }
+#else
+    // 这段有点长, 使用UISB_OffsetVaule效率可能反而不如if
+#endif
     // 刷新
     UIElement_Update(m_uiArrow1);
     UIElement_Update(m_uiArrow2);
@@ -186,12 +190,7 @@ void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
     D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
     if (this->another) {
-        if (this->type == ScrollBarType::Type_Vertical) {
-            draw_rect.bottom -= this->another->GetTakingUpSapce();
-        }
-        else {
-            draw_rect.right -= this->another->GetTakingUpSapce();
-        }
+        UISB_OffsetVaule(draw_rect.right) -= this->another->GetTakingUpSapce();
     }
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
@@ -239,11 +238,6 @@ void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
 
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // 常量事件
-    if (arg.sender && arg.event == Event::Event_GetClassName_Const) {
-        arg.str = L"UIScrollBarA";
-        return true;
-    }
     //--------------------------------------------------
     // 获取点击
     D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
@@ -264,17 +258,17 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             m_pWindow->SetCapture(this);
             // 记录点击点
             m_bCaptured = true; 
-            m_fOldPoint = this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x;
+            m_fOldPoint = UISB_OffsetVaule(pt4self.x);
             m_fOldIndex = m_fIndex;
             this->set_status(m_pointType, LongUI::Status_Pushed);
             // 检查
             if (m_pointType == PointType::Type_Arrow1) {
                 // 左/上移动
-                this->SetIndex(m_fIndex - m_fStep *0.25f);
+                this->SetIndex(m_fIndex - m_fArrowStep);
             }
             else if (m_pointType == PointType::Type_Arrow2) {
                 // 左/上移动
-                this->SetIndex(m_fIndex + m_fStep*0.25f);
+                this->SetIndex(m_fIndex + m_fArrowStep);
             }
             break;
         case WM_LBUTTONUP:
@@ -287,10 +281,12 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             if (m_bCaptured) {
                 // 指向thumb?
                 if (m_pointType == PointType::Type_Thumb) {
-                    auto pos = this->type == ScrollBarType::Type_Vertical ? pt4self.y : pt4self.x;
-                    auto rate = 1.f - m_fMaxIndex / m_fMaxRange;
+                    register auto pos = UISB_OffsetVaule(pt4self.x);
+                    register auto rate = 1.f - m_fMaxIndex / m_fMaxRange;
                     this->SetIndex((pos - m_fOldPoint) / rate + m_fOldIndex);
+#ifdef _DEBUG
                     rate = 0.f;
+#endif
                 }
             }
             //  检查指向类型
@@ -389,10 +385,12 @@ void LongUI::UIScrollBarA::InitScrollBar(UIContainer* owner, ScrollBarType _type
 
 // UIScrollBarA: 需要时
 void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
-    //UIManager << DL_Log << this << need << endl;
     m_fTakeSpace = need ? BASIC_SIZE : 0.f;
-    m_fHitSpace = m_fTakeSpace;
-    // 检查
+    // 修改了? changed?
+    if (m_bLastNeed != need) {
+
+    }
+    m_bLastNeed = need;
 }
 
 // UIScrollBarA 析构函数
@@ -402,7 +400,7 @@ inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
 }
 
 // UIScrollBarA 关闭控件
-void  LongUI::UIScrollBarA::Close() noexcept {
+void  LongUI::UIScrollBarA::WindUp() noexcept {
     delete this;
 }
 

@@ -31,7 +31,7 @@
 // LongUI namespace
 namespace LongUI{
     // Vertical Layout -- 垂直布局 容器
-    class UIVerticalLayout : public UIContainer{
+    class UIVerticalLayout : public UIContainer {
         // 父类申明
         using Super = UIContainer;
     public: // UIControl
@@ -44,7 +44,7 @@ namespace LongUI{
         // recreate
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void Close() noexcept override;
+        virtual void WindUp() noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;

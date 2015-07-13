@@ -83,6 +83,8 @@ namespace LongUI {
         void BeforeUpdateChildren() noexcept;
         // add a child
         void AfterInsert(UIControl* child) noexcept;
+        // after change draw position
+        void AfterChangeDrawPosition() noexcept;
         // push clip
         void PushAxisAlignedClip(D2D1_ANTIALIAS_MODE = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)const noexcept;
         // Assure the ScrollBar
@@ -97,7 +99,7 @@ namespace LongUI {
         // just remove child, : remove from list and set prev/next to null
         bool remove(Iterator) noexcept;
         // remove and close child
-        void erase(Iterator itr) noexcept { this->remove(itr); itr->Close(); }
+        void erase(Iterator itr) noexcept { this->remove(itr); itr->WindUp(); }
     public: 
         // get children count
         LongUIInline auto size() const noexcept { return m_cChildrenCount; } ;

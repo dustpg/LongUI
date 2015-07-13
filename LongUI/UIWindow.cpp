@@ -559,6 +559,9 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     case WM_MOUSEMOVE:
         handled = this->OnMouseMove(_arg);
         break;
+    case WM_MOUSEWHEEL:
+        handled = this->OnMouseWheel(_arg);
+        break;
     case WM_TIMER:
         // 闪烁?
         if (_arg.wParam_sys == 0 && m_cShowCaret) {
@@ -638,8 +641,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         break;
     case WM_CLOSE:          // 关闭窗口
         // 窗口关闭
-        this->Close();
-        handled = true;
+        handled = this->OnClose();
         break;
     }
     // 处理
@@ -895,7 +897,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
 }
 
 // UIWindow 关闭控件
-void LongUI::UIWindow::Close() noexcept {
+void LongUI::UIWindow::WindUp() noexcept {
     // 删除对象
     delete this;
     // 退出
@@ -948,6 +950,11 @@ bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
         handled = true;
     } while (false);
     return handled;
+}
+
+// 鼠标滚轮
+bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
+    return false;
 }
 
 // ----------------- IDropTarget!!!! Yooooooooooo~-----

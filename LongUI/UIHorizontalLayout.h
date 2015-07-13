@@ -40,7 +40,7 @@ namespace LongUI{
         // recreate 重建
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void Close() noexcept override;
+        virtual void WindUp() noexcept override;
     private: // UIContainer
         // update children's layout
         void refresh_child_layout() noexcept;

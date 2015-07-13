@@ -133,6 +133,6 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }*/
 
 // close this control 关闭控件
-void LongUI::UISlider::Close() noexcept {
+void LongUI::UISlider::WindUp() noexcept {
     delete this;
 }
