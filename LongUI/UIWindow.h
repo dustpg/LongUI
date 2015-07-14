@@ -103,6 +103,8 @@ namespace LongUI{
         LongUIInline auto SetCapture(UIControl* c) noexcept { ::SetCapture(m_hwnd); m_pCapturedControl = c; };
         // release mouse capture
         LongUIInline auto ReleaseCapture() noexcept { ::ReleaseCapture(); m_pCapturedControl = nullptr; };
+        // is release mouse capture
+        LongUIInline auto IsReleasedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
         // get back buffer
         LongUIInline auto GetBackBuffer() noexcept { return ::SafeAcquire(m_pTargetBimtap); }
         // is rendered

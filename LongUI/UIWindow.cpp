@@ -633,11 +633,15 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.y = 128;
         break;
     case WM_DISPLAYCHANGE:
-        // 更新分辨率
-        if (!(this->flags & Flag_Window_FullRendering)) {
-
+        UIManager << DL_Hint << "WM_DISPLAYCHANGE" << endl;
+        {
+            // 获取屏幕刷新率
+            DEVMODEW mode = { 0 };
+            ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+            m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
         }
-        // TODO: OOM处理
+        // 强行刷新一帧
+        this->Invalidate(this);
         break;
     case WM_CLOSE:          // 关闭窗口
         // 窗口关闭
@@ -663,10 +667,6 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     }
     // 还是没有处理就交给父类处理
     return Super::DoEvent(_arg);
-}
-
-LongUINoinline auto PresentTest(IDXGISwapChain2* chain, DXGI_PRESENT_PARAMETERS* param) noexcept {
-    return chain->Present1(1, 0, param);
 }
 
 // 等待重置同步
@@ -954,7 +954,61 @@ bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
 
 // 鼠标滚轮
 bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
-    return false;
+    auto loww = LOWORD(arg.wParam_sys);
+    auto delta = float(GET_WHEEL_DELTA_WPARAM(arg.wParam_sys)) / float(WHEEL_DELTA);
+    // 鼠标滚轮事件交由有滚动条的容器处理
+    if (loww & MK_CONTROL) {
+
+    }
+    // Alt + wheel?
+    else if (loww & MK_ALT) {
+
+    }
+    // 水平滚动条
+    else if (loww & MK_SHIFT) {
+        auto basic_control = this->FindControl(arg.pt);
+        if (basic_control) {
+            // 获取滚动条容器
+            while (true) {
+                if (basic_control->IsTopLevel()) {
+                    break;
+                }
+                if (basic_control->flags & Flag_UIContainer) {
+                    if (static_cast<UIContainer*>(basic_control)->scrollbar_h) {
+                        break;
+                    }
+                }
+                basic_control = basic_control->parent;
+            }
+            // 存在
+            if (static_cast<UIContainer*>(basic_control)->scrollbar_h) {
+                static_cast<UIContainer*>(basic_control)->scrollbar_h->OnWheelX(-delta);
+            }
+        }
+    }
+    // 垂直滚动条
+    else {
+        auto basic_control = this->FindControl(arg.pt);
+        if (basic_control) {
+            // 获取滚动条容器
+            while (true) {
+                if (basic_control->IsTopLevel()) {
+                    break;
+                }
+                if (basic_control->flags & Flag_UIContainer) {
+                    if (static_cast<UIContainer*>(basic_control)->scrollbar_v) {
+                        break;
+                    }
+                }
+                basic_control = basic_control->parent;
+            }
+            // 存在
+            if (static_cast<UIContainer*>(basic_control)->scrollbar_v) {
+                static_cast<UIContainer*>(basic_control)->scrollbar_v->OnWheelX(-delta);
+            }
+        }
+    }
+    return true;
 }
 
 // ----------------- IDropTarget!!!! Yooooooooooo~-----

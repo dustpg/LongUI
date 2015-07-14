@@ -27,6 +27,8 @@
 
 // LongUI namespace
 namespace LongUI{
+    // 获取相对数值
+#define UISB_OffsetVaule(f) ((&(f))[int(this->type)])
     // Scroll Bar Type
     enum class ScrollBarType : uint8_t {
         Type_Horizontal = 0,    // 水平
@@ -61,10 +63,18 @@ namespace LongUI{
         // on needed, maybe 'need' is same in twice
         virtual void OnNeeded(bool need) noexcept = 0;
     public:
-        // on page down
         // on page up
+        auto OnPageUp() noexcept { return this->SetIndex(m_fIndex - UISB_OffsetVaule(this->parent->visible_size.width)); }
+        // on page down
+        auto OnPageDown() noexcept { return this->SetIndex(m_fIndex + UISB_OffsetVaule(this->parent->visible_size.width)); }
+        // on page X
+        auto OnPageX(float rate)  noexcept{ return this->SetIndex(m_fIndex + rate * UISB_OffsetVaule(this->parent->visible_size.width)); }
         // on wheel up
+        auto OnWheelUp() noexcept { return this->SetIndex(m_fIndex - wheel_step); }
         // on wheel down
+        auto OnWheelDown() noexcept { return this->SetIndex(m_fIndex + wheel_step); }
+        // on wheel X
+        auto OnWheelX(float rate) noexcept { return this->SetIndex(m_fIndex + rate * wheel_step); }
     public:
         // how size that take up the owner's space in layout
         auto GetTakingUpSapce() const noexcept { return m_fTakeSpace; }
@@ -94,11 +104,12 @@ namespace LongUI{
         PointType               m_pointType = PointType::Type_None;
         // tpye of mouse last pointed
         PointType               m_lastPointType = PointType::Type_None;
+    public:
+        // step distance for whell up/down
+        float                   wheel_step = 32.f;
     protected:
         // now take up the space of this
         float                   m_fTakeSpace = 0.f;
-        // step distance for whell up/down
-        float                   m_fWheelStep = 32.f;
         // now index of scroll bar
         float                   m_fIndex = 0.f;
         // max index of scroll bar

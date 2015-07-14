@@ -1,7 +1,5 @@
 ﻿#include "LongUI.h"
 
-// 获取相对数值
-#define UISB_OffsetVaule(f) ((&(f))[int(this->type)])
 
 // UIScrollBar 构造函数
 inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
@@ -11,7 +9,7 @@ inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(nod
     }
     // 修改
     if (node) {
-        m_fWheelStep = LongUI::AtoF(node.attribute("wheelstep").value());
+        wheel_step = LongUI::AtoF(node.attribute("wheelstep").value());
     }
 }
 
@@ -385,6 +383,7 @@ void LongUI::UIScrollBarA::InitScrollBar(UIContainer* owner, ScrollBarType _type
 
 // UIScrollBarA: 需要时
 void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
+    UIManager << DL_Hint << this << L'[' << need << L']' << endl;
     m_fTakeSpace = need ? BASIC_SIZE : 0.f;
     // 修改了? changed?
     if (m_bLastNeed != need) {

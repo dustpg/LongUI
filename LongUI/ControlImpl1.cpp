@@ -581,24 +581,26 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
             break;
         case WM_LBUTTONUP:
-            force_cast(arg.event) = LongUI::Event::Event_ButtoClicked;
-            m_tarStatusClick = LongUI::Status_Hover;
-            // 检查脚本
-            if (m_pScript && m_script.data) {
-                m_pScript->Evaluation(m_script, arg);
+            if (m_pWindow->IsReleasedControl(this)) {
+                force_cast(arg.event) = LongUI::Event::Event_ButtoClicked;
+                m_tarStatusClick = LongUI::Status_Hover;
+                // 检查脚本
+                if (m_pScript && m_script.data) {
+                    m_pScript->Evaluation(m_script, arg);
+                }
+                // 检查是否有事件回调
+                if (m_eventClick) {
+                    rec = (m_pClickTarget->*m_eventClick)(this);
+                }
+                // 否则发送事件到窗口
+                else {
+                    rec = m_pWindow->DoEvent(arg);
+                }
+                force_cast(arg.msg) = tempmsg;
+                UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
+                m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
+                m_pWindow->ReleaseCapture();
             }
-            // 检查是否有事件回调
-            if (m_eventClick) {
-                rec = (m_pClickTarget->*m_eventClick)(this);
-            }
-            // 否则发送事件到窗口
-            else {
-                rec = m_pWindow->DoEvent(arg);
-            }
-            force_cast(arg.msg) = tempmsg;
-            UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
-            m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
-            m_pWindow->ReleaseCapture();
             break;
         }
         force_cast(arg.sender) = nullptr;

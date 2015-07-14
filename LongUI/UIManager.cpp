@@ -511,7 +511,7 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
 // 创建LongUI的字体集: 本函数会进行I/O, 所以程序开始调用一次即可
 auto LongUI::CUIManager::CreateLongUIFontCollection(
     IDWriteFactory* factory, const wchar_t * filename, const wchar_t * folder)
-    noexcept -> IDWriteFontCollection *{
+    noexcept -> IDWriteFontCollection* {
     // 字体文件枚举
     class LongUIFontFileEnumerator final : public ComStatic<QiList<IDWriteFontFileEnumerator>> {
     public:
@@ -627,6 +627,7 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
     OUT ID2D1PathGeometry** geometry
     ) noexcept -> HRESULT {
     // 参数检查
+    assert(utf32_string && string_length && format && geometry && factory && "bad arugments");
     if (!utf32_string || !string_length || !format || !geometry || !factory) return E_INVALIDARG;
     // 字体集
     IDWriteFontCollection* collection = nullptr;
@@ -660,6 +661,7 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
         }
         // 获取字体族
         if (SUCCEEDED(hr)) {
+            // 不存在也算错误
             if (exists) {
                 hr = collection->GetFontFamily(index, &family);
             }
@@ -1411,6 +1413,7 @@ control char    C-Type      Infomation                                  StringIn
 %i %I            [IDIO*]     new inline object range start                  Yes and Extensible
 
 %] %}            [none]      end of the last range                                 ---
+
 //  Unsupported
 %f %F   [UNSPT]  [IDFC*]     new font collection range start                       ---
                                 IDWriteFontCollection*
