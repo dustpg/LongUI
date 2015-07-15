@@ -34,8 +34,8 @@ namespace LongUI{
         using Super = UIVerticalLayout ;
         // 友元申明
         friend class CUIManager;
-        // Rendering 渲染队列
-        class RenderingQueue;
+        // message id for TaskbarBtnCreated
+        static const UINT s_uTaskbarBtnCreatedMsg;
     public: // UIControl 接口实现
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;
@@ -125,6 +125,8 @@ namespace LongUI{
         // set the present
         void set_present() noexcept;
     public: // MSG MAPPING ZONE
+        // on WM_CREATE
+        bool OnCreated(HWND hwnd) noexcept;
         // on WM_MOUSEMOVE
         bool OnMouseMove(const LongUI::EventArgument&) noexcept;
         // on WM_MOUSEWHEEL
@@ -149,10 +151,14 @@ namespace LongUI{
         // the real pixel size  of window(HWND)
         D2D1_SIZE_U     const   windows_size = D2D1::SizeU();
     protected:
+        // mini size
+        D2D1_SIZE_U             m_miniSize = D2D1::SizeU();
         // window handle
         HWND                    m_hwnd = nullptr;
         // 创建数据对象
         IDataObject*            m_pCurDataObject = nullptr;
+        // task bar list
+        ITaskbarList4*          m_pTaskBarList = nullptr;
         // 拖放帮助工具
         IDropTargetHelper*      m_pDropTargetHelper = nullptr;
         // wait for vsync

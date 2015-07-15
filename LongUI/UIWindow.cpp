@@ -1,18 +1,7 @@
 ﻿#include "LongUI.h"
 
-// 位图规划:
-/*
------
-|1|2|
------
-|3|4|
------
-1-2     标题相关
-3       插入符
-*/
-
-#define MakeAsUnit(a) (((a) + (LongUITargetBitmapUnitSize-1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize)
-
+// 任务按钮创建消息
+const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node,
@@ -44,6 +33,14 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
             flag |= Flag_Window_AlwaysRendering;
         }
         force_cast(this->flags) = static_cast<LongUIFlag>(flag);
+    }
+    // 其他属性
+    {
+        // 最小大小
+        float size[] = { LongUIWindowMiniSize, LongUIWindowMiniSize };
+        UIControl::MakeFloats(node.attribute("minisize").value(), size, 2);
+        m_miniSize.width = static_cast<decltype(m_miniSize.width)>(size[0]);
+        m_miniSize.height = static_cast<decltype(m_miniSize.height)>(size[1]);
     }
     // 窗口区
     {
@@ -101,14 +98,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     // 添加窗口
     UIManager.AddWindow(this);
     this->clear_color.a = 0.85f;
-    // 创建帮助器
-    auto hr = ::CoCreateInstance(
-        CLSID_DragDropHelper, 
-        nullptr, 
-        CLSCTX_INPROC_SERVER,
-        LongUI_IID_PV_ARGS(m_pDropTargetHelper)
-        );
-    AssertHR(hr);
+    // 拖放帮助器
+    m_pDropTargetHelper = UIManager.GetDropTargetHelper();
     // 注册拖拽目标
     ::RegisterDragDrop(m_hwnd, this);
     // 显示窗口
@@ -127,6 +118,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
 
 // UIWindow 析构函数
 LongUI::UIWindow::~UIWindow() noexcept {
+    // 释放接口
+    ::SafeRelease(m_pTaskBarList);
     // 取消注册
     ::RevokeDragDrop(m_hwnd);
     // 摧毁窗口
@@ -446,7 +439,7 @@ void LongUI::UIWindow::Update() noexcept {
 }
 
 // UIWindow 渲染 
-void LongUI::UIWindow::Render(RenderType type)const noexcept  {
+void LongUI::UIWindow::Render(RenderType type) const noexcept  {
     if (type != RenderType::Type_Render) return ;
     // 全刷新: 继承父类
     if (!m_present.DirtyRectsCount) {
@@ -533,6 +526,19 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     if (_arg.sender) return Super::DoEvent(_arg);
     // 其他LongUI事件
     bool handled = false; UIControl* control_got = nullptr;
+    // 特殊事件
+    if (_arg.msg == s_uTaskbarBtnCreatedMsg) {
+        ::SafeRelease(m_pTaskBarList);
+        UIManager << DL_Hint << "TaskbarButtonCreated" << endl;
+        auto hr = ::CoCreateInstance(
+            CLSID_TaskbarList,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            LongUI_IID_PV_ARGS(m_pTaskBarList)
+            );
+        AssertHR(hr);
+        return true;
+    }
     // 处理事件
     switch (_arg.msg)
     {
@@ -577,7 +583,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         // 查找子控件
         control_got = this->FindControl(_arg.pt);
         // 控件有效
-        if (control_got && control_got != m_pFocusedControl){
+        if (control_got && control_got != m_pFocusedControl) {
             new_arg = _arg;
             new_arg.sender = this;
             if (m_pFocusedControl){
@@ -629,8 +635,8 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         handled = true;
         break;
     case WM_GETMINMAXINFO:  // 获取限制大小
-        reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.x = 128;
-        reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.y = 128;
+        reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.x = m_miniSize.width;
+        reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.y = m_miniSize.height;
         break;
     case WM_DISPLAYCHANGE:
         UIManager << DL_Hint << "WM_DISPLAYCHANGE" << endl;
@@ -904,6 +910,13 @@ void LongUI::UIWindow::WindUp() noexcept {
     UIManager.Exit();
 }
 
+// 窗口创建时
+bool LongUI::UIWindow::OnCreated(HWND hwnd) noexcept {
+    // 权限提升?保证
+    CHANGEFILTERSTRUCT cfs = { sizeof(CHANGEFILTERSTRUCT) };
+    ::ChangeWindowMessageFilterEx(hwnd, s_uTaskbarBtnCreatedMsg, MSGFLT_ALLOW, &cfs);
+    return true;
+}
 
 // 鼠标移动时候
 bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {

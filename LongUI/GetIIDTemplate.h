@@ -8,6 +8,10 @@ namespace LongUI {
     MakeGetIID(IDropTarget);
     // IDataObject
     MakeGetIID(IDataObject);
+    // ITaskbarList3
+    MakeGetIID(ITaskbarList3);
+    // ITaskbarList4
+    MakeGetIID(ITaskbarList4);
     // IDropSource
     MakeGetIID(IDropSource);
     // IDXGIDevice1

@@ -156,6 +156,8 @@ namespace LongUI {
         LongUIDefaultCheckBoxWidth = 16,
         // max count of longui window in same time
         LongUIMaxWindow = 16,
+        // minimal size in pixel for window by default
+        LongUIWindowMiniSize = 128,
         // max count of contrl class
         LongUIMaxControlClass = 64,
         // update message
@@ -198,6 +200,11 @@ namespace LongUI {
         // LongUI Default Bitmap Options(CANNOT draw, Orz.....)
         LongUIDefaultBitmapOptions = (uint32_t)D2D1_BITMAP_OPTIONS_CPU_READ | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
     };
+    // make as unit
+    template<typename T>
+    static inline auto MakeAsUnit(T vaule) noexcept ->T {
+        return (((vaule)+(LongUITargetBitmapUnitSize - 1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize);
+    }
     // UI Locker
     class CUILocker {
     public:

@@ -47,25 +47,52 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     auto hInstance = ::GetModuleHandleW(nullptr);
     // 注册窗口类 | CS_DBLCLKS
     WNDCLASSEX wcex = { 0 };
-    wcex.cbSize = sizeof(WNDCLASSEX);
-    wcex.style = CS_HREDRAW | CS_VREDRAW ;
-    wcex.lpfnWndProc = CUIManager::WndProc;
-    wcex.cbClsExtra = 0;
-    wcex.cbWndExtra = sizeof(void*);
-    wcex.hInstance = hInstance;
-    wcex.hCursor = nullptr;
-    wcex.hbrBackground = nullptr;
-    wcex.lpszMenuName = nullptr;
-    wcex.lpszClassName = L"LongUIWindow"; 
-    auto hicon = LoadIconW(hInstance, MAKEINTRESOURCEW(1));
-    wcex.hIcon = hicon;
-    // 注册窗口
-    ::RegisterClassExW(&wcex);
-    m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(LongUI::CtrlAlloc(
-        sizeof(RGBQUAD)* LongUIDefaultBitmapSize * LongUIDefaultBitmapSize)
-        );
-    // 重建资源
-    register HRESULT hr = m_pBitmap0Buffer ? S_OK : E_OUTOFMEMORY;
+    {
+        wcex.cbSize = sizeof(WNDCLASSEX);
+        wcex.style = CS_HREDRAW | CS_VREDRAW;
+        wcex.lpfnWndProc = CUIManager::WndProc;
+        wcex.cbClsExtra = 0;
+        wcex.cbWndExtra = sizeof(void*);
+        wcex.hInstance = hInstance;
+        wcex.hCursor = nullptr;
+        wcex.hbrBackground = nullptr;
+        wcex.lpszMenuName = nullptr;
+        wcex.lpszClassName = L"LongUIWindow";
+        auto hicon = LoadIconW(hInstance, MAKEINTRESOURCEW(1));
+        wcex.hIcon = hicon;
+        // 注册普通窗口
+        ::RegisterClassExW(&wcex);
+    }
+   /*{
+        wcex.cbWndExtra = 0;
+        wcex.lpszClassName = L"LongUIManager";
+        wcex.hIcon = nullptr;
+        wcex.lpfnWndProc = CUIManager::InvisibleWndProc;
+        // 注册不可见窗口
+        ::RegisterClassExW(&wcex);
+        // 创建窗口
+        m_hInvisibleHosted = ::CreateWindowExW(
+            0,
+            L"LongUIManager", L"LongUI UIManager Invisible Hosted Window",
+            0,
+            0, 0, 0, 0,
+            nullptr, nullptr,
+            ::GetModuleHandleW(nullptr),
+            this
+            );
+        ::ShowWindow(m_hInvisibleHosted, SW_SHOW);
+    }*/
+    HRESULT hr = S_OK;
+    // 位图缓存
+    if (SUCCEEDED(hr)) {
+        m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(LongUI::CtrlAlloc(
+            sizeof(RGBQUAD) * LongUIDefaultBitmapSize * LongUIDefaultBitmapSize)
+            );
+        // 内存不足
+        if (!m_pBitmap0Buffer) {
+            hr = E_OUTOFMEMORY;
+        }
+    }
     // 资源数据缓存
     if (SUCCEEDED(hr)) {
         // 获取缓存数据
@@ -118,11 +145,19 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             );
     }
     // 创建 DirectWrite 工厂.
-    IDWriteFactory1;
     if (SUCCEEDED(hr)) {
         hr = LongUI::Dll::DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_SHARED,
             LongUI_IID_PV_ARGS_Ex(m_pDWriteFactory)
+            );
+    }
+    // 创建帮助器
+    if (SUCCEEDED(hr)) {
+        hr = ::CoCreateInstance(
+            CLSID_DragDropHelper,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            LongUI_IID_PV_ARGS(m_pDropTargetHelper)
             );
     }
     // 创建字体集
@@ -169,6 +204,7 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     this->discard_resources();
     ::SafeRelease(m_pFontCollection);
     ::SafeRelease(m_pDWriteFactory);
+    ::SafeRelease(m_pDropTargetHelper);
     ::SafeRelease(m_pd2dFactory);
     // 释放内存
     if (m_pBitmap0Buffer) {
@@ -339,6 +375,8 @@ void LongUI::CUIManager::Run() noexcept {
             // 等待垂直同步
             UIManager.WaitVS(waitvs_window);
         }
+        // 关闭不可见窗口
+        //::DestroyWindow(UIManager.m_hInvisibleHosted);
     });
     // 消息响应
     while (::GetMessageW(&msg, nullptr, 0, 0)) {
@@ -385,15 +423,19 @@ auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
     }
 }
 
+// 管理器持有不可见窗口回调函数
+/*LRESULT LongUI::CUIManager::InvisibleWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+    auto handled = false; LRESULT recode = 0;
+    switch (message)
+    {
+    }
+    // 返回
+    return handled ? (recode) : (::DefWindowProcW(hwnd, message, wParam, lParam));
+}*/
+
 // 窗口过程函数
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
-    // 填写参数
-    LongUI::EventArgument arg;  arg.msg = message;  arg.sender = nullptr;
-    POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
-    arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);
-    arg.wParam_sys = wParam; arg.lParam_sys = lParam;
-    // 返回
-    arg.lr = 0;
+    LRESULT recode = 0;
     // 创建窗口时设置指针
     if (message == WM_CREATE)    {
         // 获取指针
@@ -402,12 +444,24 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             );
         // 设置窗口指针
         ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, PtrToUlong(pUIWindow));
+        // 创建完毕
+        pUIWindow->OnCreated(hwnd);
         // 返回1
-        arg.lr = 1;
+        recode = 1;
     }
     else {
+        // 设置参数
+        LongUI::EventArgument arg;
+        // 系统消息
+        arg.msg = message;  arg.sender = nullptr;
+        // 世界鼠标坐标
+        POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
+        arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);
+        // 参数
+        arg.wParam_sys = wParam; arg.lParam_sys = lParam;
+        arg.lr = 0;
         // 获取储存的指针
-        LongUI::UIWindow *pUIWindow = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
+        auto* pUIWindow = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
             ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))
             );
         // 检查是否处理了
@@ -417,12 +471,10 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             AutoLocker;
             wasHandled = pUIWindow->DoEvent(arg);
         }
-        // 需要默认处理
-        if (!wasHandled) {
-            arg.lr = ::DefWindowProcW(hwnd, message, wParam, lParam);
-        }
+        // 默认处理
+        recode = wasHandled ? arg.lr : ::DefWindowProcW(hwnd, message, wParam, lParam);
     }
-    return  arg.lr;
+    return recode;
 }
 
 // 获取主题颜色
@@ -458,12 +510,13 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
 }
 
 
-
 // 获取操作系统版本
 namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
 
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept : m_config(*this), version(LongUI::GetWindowsVersion()) {
+LongUI::CUIManager::CUIManager() noexcept : 
+m_config(*this), 
+version(LongUI::GetWindowsVersion()) {
 }
 
 // CUIManager 析构函数
@@ -1345,40 +1398,117 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
 
 // 获取Meta的图标句柄
 auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
-    // TODO DO IT
-    /*auto& data = m_pT[index];
-    // 没有就创建
-    if (!data) {
-        ID2D1Bitmap1* bitmap = this->GetBitmap(LongUIDefaultBitmapIndex);
-        Meta meta; this->GetMeta(index, meta);
-        D2D1_RECT_U rect = {
-            static_cast<uint32_t>(meta.src_rect.left),
-            static_cast<uint32_t>(meta.src_rect.top),
-            static_cast<uint32_t>(meta.src_rect.right),
-            static_cast<uint32_t>(meta.src_rect.bottom)
-        };
-        HRESULT hr = (bitmap && meta.bitmap) ? E_FAIL : S_OK;
-        // 复制数据
-        if (SUCCEEDED(hr)) {
-            hr = bitmap->CopyFromBitmap(nullptr, meta.bitmap, &rect);
-        }
-        // 映射数据
-        if (SUCCEEDED(hr)) {
-            D2D1_MAPPED_RECT mapped_rect = { 
-                LongUIDefaultBitmapSize * sizeof(RGBQUAD) ,
-                m_pBitmap0Buffer
-            };
-            hr = bitmap->Map(D2D1_MAP_OPTIONS_READ, &mapped_rect);
-        }
-        // 取消映射
-        if (SUCCEEDED(hr)) {
-            hr = bitmap->Unmap();
-        }
-        assert(SUCCEEDED(hr));
-        ::SafeRelease(bitmap);
+    // 越界
+    if (index >= m_cCountMt) {
+        UIManager << DL_Warning
+            << L"[index @ " << long(index)
+            << L"]is out of range \t\tNow set to 0"
+            << LongUI::endl;
+        index = 0;
+        return;
     }
-    assert(data && "no icon got");
-    return static_cast<HICON>(data);*/
+    // 有就直接返回
+    if (m_phMetaIcon[index]) return m_phMetaIcon[index];
+    LongUI::Meta meta; this->GetMeta(index, meta);
+    assert(meta.bitmap);
+    HICON hIcon = nullptr;
+    ID2D1Bitmap1* bitmap = this->GetBitmap(LongUIDefaultBitmapIndex);
+    D2D1_RECT_U src_rect = {
+        static_cast<uint32_t>(meta.src_rect.left),
+        static_cast<uint32_t>(meta.src_rect.top),
+        static_cast<uint32_t>(meta.src_rect.right),
+        static_cast<uint32_t>(meta.src_rect.bottom)
+    };
+    HRESULT hr = S_OK;
+    // 宽度不够?
+    if (SUCCEEDED(hr)) {
+        if (src_rect.right - src_rect.left > LongUIDefaultBitmapSize ||
+            src_rect.bottom - src_rect.top > LongUIDefaultBitmapSize) {
+            assert(!"width/height is too large");
+            hr = E_FAIL;
+        }
+    }
+    // 检查错误
+    if (SUCCEEDED(hr)) {
+        if (!(bitmap && meta.bitmap)) {
+            hr = E_POINTER;
+        }
+    }
+    // 复制数据
+    if (SUCCEEDED(hr)) {
+        hr = bitmap->CopyFromBitmap(nullptr, meta.bitmap, &src_rect);
+    }
+    // 映射数据
+    if (SUCCEEDED(hr)) {
+        D2D1_MAPPED_RECT mapped_rect = {
+            LongUIDefaultBitmapSize * sizeof(RGBQUAD) ,
+            m_pBitmap0Buffer
+        };
+        hr = bitmap->Map(D2D1_MAP_OPTIONS_READ, &mapped_rect);
+    }
+    // 取消映射
+    if (SUCCEEDED(hr)) {
+        hr = bitmap->Unmap();
+    }
+    // 转换数据
+    if (SUCCEEDED(hr)) {
+        auto meta_width = src_rect.right - src_rect.left;
+        auto meta_height = src_rect.bottom - src_rect.top;
+#if 1
+        HCURSOR hAlphaCursor = nullptr;
+        BITMAPV5HEADER bi; ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
+        bi.bV5Size = sizeof(BITMAPV5HEADER);
+        bi.bV5Width = meta_width;
+        bi.bV5Height = meta_height;
+        bi.bV5Planes = 1;
+        bi.bV5BitCount = 32;
+        bi.bV5Compression = BI_BITFIELDS;
+        // 掩码填写
+        bi.bV5RedMask = 0x00FF0000;
+        bi.bV5GreenMask = 0x0000FF00;
+        bi.bV5BlueMask = 0x000000FF;
+        bi.bV5AlphaMask = 0xFF000000;
+        HDC hdc = ::GetDC(nullptr);
+        uint8_t* pTargetBuffer = nullptr;
+        // 创建带Alpha通道DIB
+        auto hBitmap = ::CreateDIBSection(
+            hdc, reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS,
+            reinterpret_cast<void **>(&pTargetBuffer), nullptr,
+            (DWORD)0
+            );
+        auto hMemDC = ::CreateCompatibleDC(hdc);
+        ::ReleaseDC(nullptr, hdc);
+        // 写入数据
+        auto hOldBitmap = static_cast<HBITMAP*>(::SelectObject(hMemDC, hBitmap));
+        ::PatBlt(hMemDC, 0, 0, meta_width, meta_height, WHITENESS);
+        ::SelectObject(hMemDC, hOldBitmap);
+        ::DeleteDC(hMemDC);
+        // 创建掩码位图
+        HBITMAP hMonoBitmap = ::CreateBitmap(meta_width, meta_height, 1, 1, nullptr);
+        // 输入
+        auto lpdwPixel = reinterpret_cast<DWORD*>(pTargetBuffer);
+        for (auto y = 0u; y < meta_height; ++y) {
+            auto src_buffer = m_pBitmap0Buffer + LongUIDefaultBitmapSize * sizeof(RGBQUAD) * y;
+            for (auto x = 0u; x < meta_width; ++x) {
+                *lpdwPixel = *src_buffer;
+                src_buffer++;
+                lpdwPixel++;
+            }
+        }
+        // 填写
+        ICONINFO ii;
+        ii.fIcon = TRUE; ii.xHotspot = 0; ii.yHotspot = 0;
+        ii.hbmMask = hMonoBitmap; ii.hbmColor = hBitmap;
+        // 创建图标
+        hAlphaCursor = ::CreateIconIndirect(&ii);
+        ::DeleteObject(hBitmap);
+        ::DeleteObject(hMonoBitmap);
+#else
+        assert(!"CreateIcon just AND & XOR, no alpha channel")
+#endif
+    }
+    AssertHR(hr);
+    ::SafeRelease(bitmap);
     return nullptr;
 }
 

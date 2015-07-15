@@ -185,6 +185,8 @@ namespace LongUI {
         // user context size 用户上下文大小
         size_t               const      user_context_size = 0;
     private:
+        // helper for drop target
+        IDropTargetHelper*              m_pDropTargetHelper = nullptr;
         // D2D 工厂
         ID2D1Factory1*                  m_pd2dFactory = nullptr;
         // DWrite工厂
@@ -287,7 +289,9 @@ namespace LongUI {
         auto GetMetaHICON(size_t index) noexcept->HICON;
         // get system brush
         auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
-    public:
+        // get drop target helper
+        auto GetDropTargetHelper() noexcept { return ::SafeAcquire(m_pDropTargetHelper); }
+ public:
         // constructor 构造函数
         CUIManager() noexcept;
         // destructor 析构函数
@@ -318,6 +322,8 @@ namespace LongUI {
         // 创建控件树
         void make_control_tree(UIWindow*, pugi::xml_node) noexcept;
     private:
+        // invisible window proc
+        //static LRESULT CALLBACK InvisibleWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
         // main window proc 窗口过程函数
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
     public:
