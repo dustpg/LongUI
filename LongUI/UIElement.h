@@ -35,6 +35,8 @@ namespace LongUI {
     using CUIAnimationColor = CUIAnimation<D2D1_COLOR_F>;
     // UI Animation for Opacity
     using CUIAnimationOpacity = CUIAnimation<FLOAT>;
+    // UI Animation for offset
+    using CUIAnimationOffset= CUIAnimation<FLOAT>;
     // UI Animation for Posotion
     using CUIAnimationPosition = CUIAnimation<D2D1_POINT_2F>;
     // UI Animation for Posotion

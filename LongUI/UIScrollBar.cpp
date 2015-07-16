@@ -2,7 +2,8 @@
 
 
 // UIScrollBar 构造函数
-inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(node) {
+inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: 
+Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
     // 降低渲染优先级以保证最后渲染
     if (!this->priority) {
         force_cast(this->priority) = Priority_AfterMost;
@@ -10,8 +11,18 @@ inline LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: Super(nod
     // 修改
     if (node) {
         wheel_step = LongUI::AtoF(node.attribute("wheelstep").value());
+        m_uiAnimation.duration = LongUI::AtoF(node.attribute("aniamtionduration").value());
+        register const char* str = nullptr;
+        if ((str = node.attribute("aniamtionduration").value())) {
+            m_uiAnimation.duration = LongUI::AtoF(str);;
+        }
+        if ((str = node.attribute("aniamtiontype").value())) {
+            m_uiAnimation.type = static_cast<AnimationType>(LongUI::AtoI(str));
+        }
     }
+    m_uiAnimation.start = m_uiAnimation.end = m_uiAnimation.value = 0.f;
 }
+
 
 
 // 刷新前
@@ -38,6 +49,17 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
 
 // 设置新的索引位置
 void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
+    // 阈值检查
+    new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
+    m_uiAnimation.start = m_uiAnimation.value = m_fIndex;
+    m_uiAnimation.end = new_index;
+    m_uiAnimation.time = m_uiAnimation.duration;
+    m_pWindow->StartRender(m_uiAnimation.time, this->parent);
+    m_bAnimation = true;
+}
+
+// 设置新的索引位置
+void LongUI::UIScrollBar::set_index(float new_index) noexcept {
     new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
     // 不同就修改
     if (new_index != m_fIndex) {
@@ -177,6 +199,14 @@ void LongUI::UIScrollBarA::Update() noexcept {
     UIElement_Update(m_uiArrow2);
     UIElement_Update(m_uiThumb);
     // 刷新
+    if (m_bAnimation) {
+        m_uiAnimation.Update(m_pWindow->GetDeltaTime());
+        this->set_index(m_uiAnimation.value);
+        if (m_uiAnimation.time <= 0.f) {
+            m_bAnimation = false;
+        }
+    }
+    // 刷新
     return Super::Update();
 }
 
@@ -262,11 +292,11 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 检查
             if (m_pointType == PointType::Type_Arrow1) {
                 // 左/上移动
-                this->SetIndex(m_fIndex - m_fArrowStep);
+                this->SetIndex(m_uiAnimation.end - m_fArrowStep);
             }
             else if (m_pointType == PointType::Type_Arrow2) {
                 // 左/上移动
-                this->SetIndex(m_fIndex + m_fArrowStep);
+                this->SetIndex(m_uiAnimation.end + m_fArrowStep);
             }
             break;
         case WM_LBUTTONUP:
@@ -281,7 +311,7 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 if (m_pointType == PointType::Type_Thumb) {
                     register auto pos = UISB_OffsetVaule(pt4self.x);
                     register auto rate = 1.f - m_fMaxIndex / m_fMaxRange;
-                    this->SetIndex((pos - m_fOldPoint) / rate + m_fOldIndex);
+                    this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
 #ifdef _DEBUG
                     rate = 0.f;
 #endif

@@ -113,9 +113,9 @@ namespace LongUI{
         // control name 控件名称
         LongUIInline auto&GetName() noexcept { return m_strControlName; }
         // change control draw size
-        LongUIInline auto DrawSizeChanged() noexcept { m_bDrawSizeChanged = true; }
+        LongUIInline auto DrawSizeChanged() noexcept { m_bDrawSizeChanged = m_bDrawSizeChanged_InUpdate = true; }
         // change control draw pos
-        LongUIInline auto DrawPosChanged() noexcept { m_bDrawPosChanged = true; }
+        LongUIInline auto DrawPosChanged() noexcept { m_bDrawPosChanged = m_bDrawPosChanged_InUpdate = true; }
         // get window of control
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
         // XXX: is top level?
@@ -174,10 +174,12 @@ namespace LongUI{
     protected:
         // the size of draw zone has been changed
         bool                    m_bDrawSizeChanged = false;
+        // the size of draw zone has been changed, safe way
+        bool                    m_bDrawSizeChanged_InUpdate = false;
         // the position of draw zone has been changed
         bool                    m_bDrawPosChanged = false;
-        // align for sizeof(void*)
-        bool                    m_unused_bool2_control;
+        // the position of draw zone has been changed
+        bool                    m_bDrawPosChanged_InUpdate = false;
     public:
         // priority for render
         int8_t       const      priority = 0;

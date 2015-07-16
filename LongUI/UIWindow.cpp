@@ -62,7 +62,7 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         else {
             window_rect.bottom = static_cast<LONG>(this->height);
         }
-        force_cast(this->windows_size.width) = window_rect.left;
+        force_cast(this->windows_size.width) = window_rect.right;
         force_cast(this->windows_size.height) = window_rect.bottom;
         visible_rect.right = this->width;
         visible_rect.bottom = this->height;
@@ -627,10 +627,19 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         break;
     case WM_SIZE:           // 改变大小
     {
-        RECT rect; ::GetClientRect(m_hwnd, &rect);
-        force_cast(this->windows_size.width) = rect.right - rect.left;
-        force_cast(this->windows_size.height) = rect.bottom - rect.top;
-        m_bNewSize = true;
+        uint32_t wwidth, wheight;
+        {
+            RECT rect; ::GetClientRect(m_hwnd, &rect);
+            wwidth = rect.right - rect.left;
+            wheight = rect.bottom - rect.top;
+        }
+        // 数据有效?
+        if (wwidth && wheight && (wwidth != this->windows_size.width ||
+            wheight != this->windows_size.height)) {
+            force_cast(this->windows_size.width) = wwidth;
+            force_cast(this->windows_size.height) = wheight;
+            m_bNewSize = true;
+        }
     }
         handled = true;
         break;
@@ -700,6 +709,7 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
+    UIManager << DL_Hint << "called" << endl;
     // 修改大小, 需要取消目标
     this->DrawSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
     // 滚动

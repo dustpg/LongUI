@@ -1395,7 +1395,6 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
     }
 }
 
-
 // 获取Meta的图标句柄
 auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
     // 越界
@@ -1405,7 +1404,6 @@ auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
             << L"]is out of range \t\tNow set to 0"
             << LongUI::endl;
         index = 0;
-        return;
     }
     // 有就直接返回
     if (m_phMetaIcon[index]) return m_phMetaIcon[index];
@@ -1451,11 +1449,11 @@ auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
         hr = bitmap->Unmap();
     }
     // 转换数据
+    HCURSOR hAlphaIcon = nullptr;
     if (SUCCEEDED(hr)) {
         auto meta_width = src_rect.right - src_rect.left;
         auto meta_height = src_rect.bottom - src_rect.top;
 #if 1
-        HCURSOR hAlphaCursor = nullptr;
         BITMAPV5HEADER bi; ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
         bi.bV5Size = sizeof(BITMAPV5HEADER);
         bi.bV5Width = meta_width;
@@ -1500,7 +1498,7 @@ auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
         ii.fIcon = TRUE; ii.xHotspot = 0; ii.yHotspot = 0;
         ii.hbmMask = hMonoBitmap; ii.hbmColor = hBitmap;
         // 创建图标
-        hAlphaCursor = ::CreateIconIndirect(&ii);
+        hAlphaIcon = ::CreateIconIndirect(&ii);
         ::DeleteObject(hBitmap);
         ::DeleteObject(hMonoBitmap);
 #else
@@ -1509,7 +1507,7 @@ auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
     }
     AssertHR(hr);
     ::SafeRelease(bitmap);
-    return nullptr;
+    return m_phMetaIcon[index] = hAlphaIcon;
 }
 
 

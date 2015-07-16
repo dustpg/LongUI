@@ -141,8 +141,10 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
 
 // UI控件: 刷新
 void LongUI::UIControl::Update() noexcept {
-    m_bDrawPosChanged = false;
-    m_bDrawSizeChanged = false;
+    m_bDrawPosChanged = m_bDrawPosChanged_InUpdate;
+    m_bDrawSizeChanged = m_bDrawSizeChanged_InUpdate;
+    m_bDrawPosChanged_InUpdate = false;
+    m_bDrawSizeChanged_InUpdate = false;
 }
 
 // UI控件: 重建

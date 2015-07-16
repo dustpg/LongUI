@@ -64,41 +64,41 @@ namespace LongUI{
         virtual void OnNeeded(bool need) noexcept = 0;
     public:
         // on page up
-        auto OnPageUp() noexcept { return this->SetIndex(m_fIndex - UISB_OffsetVaule(this->parent->visible_size.width)); }
+        auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - UISB_OffsetVaule(this->parent->visible_size.width)); }
         // on page down
-        auto OnPageDown() noexcept { return this->SetIndex(m_fIndex + UISB_OffsetVaule(this->parent->visible_size.width)); }
+        auto OnPageDown() noexcept { return this->SetIndex(m_uiAnimation.end + UISB_OffsetVaule(this->parent->visible_size.width)); }
         // on page X
-        auto OnPageX(float rate)  noexcept{ return this->SetIndex(m_fIndex + rate * UISB_OffsetVaule(this->parent->visible_size.width)); }
+        auto OnPageX(float rate)  noexcept{ return this->SetIndex(m_uiAnimation.end + rate * UISB_OffsetVaule(this->parent->visible_size.width)); }
         // on wheel up
-        auto OnWheelUp() noexcept { return this->SetIndex(m_fIndex - wheel_step); }
+        auto OnWheelUp() noexcept { return this->SetIndex(m_uiAnimation.end - wheel_step); }
         // on wheel down
-        auto OnWheelDown() noexcept { return this->SetIndex(m_fIndex + wheel_step); }
+        auto OnWheelDown() noexcept { return this->SetIndex(m_uiAnimation.end + wheel_step); }
         // on wheel X
-        auto OnWheelX(float rate) noexcept { return this->SetIndex(m_fIndex + rate * wheel_step); }
+        auto OnWheelX(float rate) noexcept { return this->SetIndex(m_uiAnimation.end + rate * wheel_step); }
     public:
         // how size that take up the owner's space in layout
         auto GetTakingUpSapce() const noexcept { return m_fTakeSpace; }
         // how size that take up the owner's space
         auto GetIndex() const noexcept { return m_fIndex; }
+        // set new index
+        void SetIndex(float new_index) noexcept;
         // before update
         void BeforeUpdate() noexcept;
     protected:
-        // destructor 析构函数
-        //~UIScrollBar() noexcept;
         // get bar length
         auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? parent->height : parent->width; }
+        // set index
+        void set_index(float index) noexcept;
     public:
         // constructor 构造函数
         UIScrollBar(pugi::xml_node) noexcept;
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
-        // set new index
-        void SetIndex(float) noexcept;
     public:
         // type of scrollbar
         ScrollBarType   const   type = ScrollBarType::Type_Vertical;
         // unused
-        bool                    unused_bool_sb = false;
+        bool                    m_bAnimation = false;
     protected:
         // tpye of mouse pointed
         PointType               m_pointType = PointType::Type_None;
@@ -120,6 +120,8 @@ namespace LongUI{
         float                   m_fOldIndex = 0.f;
         // old point of scroll bar
         float                   m_fOldPoint = 0.f;
+        // animation
+        CUIAnimationOffset      m_uiAnimation;
     public:
         // another sb
         UIScrollBar*            another = nullptr;

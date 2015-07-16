@@ -369,8 +369,9 @@ auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT
 // 获取指定控件
 auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
     // 性能警告
-    UIManager << DL_Warning << L"Performance Warning!"
-        L"random accessig is not fine for list" << LongUI::endl;
+    UIManager << DL_Warning 
+        << L"Performance Warning! random accessig is not fine for list" 
+        << LongUI::endl;
     // 检查范围
     if (i >= this->size()) {
         UIManager << DL_Error << L"out of range" << LongUI::endl;
