@@ -184,7 +184,7 @@ namespace LongUI{
         // rendering queue
         CUIRenderQueue          m_uiRenderQueue;
         // now unit
-        //CUIRenderQueue::UNIT    m_aUnitNow;
+        CUIRenderQueue::UNIT    m_aUnitNow;
         // blink timer id
         UINT_PTR                m_idBlinkTimer = 0;
         // normal  l-param

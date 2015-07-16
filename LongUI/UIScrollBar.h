@@ -110,12 +110,12 @@ namespace LongUI{
     protected:
         // now take up the space of this
         float                   m_fTakeSpace = 0.f;
-        // now index of scroll bar
-        float                   m_fIndex = 0.f;
         // max index of scroll bar
         float                   m_fMaxIndex = 0.f;
         // max range of scroll bar
         float                   m_fMaxRange = 1.f;
+        // now index of scroll bar
+        float                   m_fIndex = 0.f;
         // old index of scroll bar
         float                   m_fOldIndex = 0.f;
         // old point of scroll bar

@@ -727,7 +727,7 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         }
     }
-    return false;
+    return true;
 }
 
 // close this control 关闭控件
@@ -737,7 +737,7 @@ HRESULT    LongUI::UIEditBasic::Recreate(LongUIRenderTarget* target) noexcept {
 }
 
 // close this control 关闭控件
-void    LongUI::UIEditBasic::WindUp() noexcept {
+void LongUI::UIEditBasic::WindUp() noexcept {
     delete this;
 }
 

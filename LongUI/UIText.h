@@ -27,10 +27,10 @@
 // longui namespace
 namespace LongUI {
     // ==========================================================
-#define UIText_SetIsXML(b)  m_pTextRenderer.set_bool1(b)
-#define UIText_GetIsXML     m_pTextRenderer.bool1
-#define UIText_SetIsRich(b) m_pTextRenderer.set_bool2(b)
-#define UIText_GetIsRich    m_pTextRenderer.bool2
+#define UIText_SetIsXML(b)  m_pTextRenderer.SetBool1(b)
+#define UIText_GetIsXML     m_pTextRenderer.Bool1
+#define UIText_SetIsRich(b) m_pTextRenderer.SetBool2(b)
+#define UIText_GetIsRich    m_pTextRenderer.Bool2
     // UI Text: implemented in UIUtil.cpp file
     class UIText {
         using InfoUIBasicTextRenderer = InfomationPointer<UIBasicTextRenderer> ;
@@ -51,7 +51,7 @@ namespace LongUI {
         }
         // render it
         auto Render(float x, float y) const noexcept {
-            auto ptr = m_pTextRenderer.p();
+            auto ptr = m_pTextRenderer.Ptr();
             ptr->basic_color.color = m_basicColor;
             m_pLayout->Draw(m_buffer.data, ptr, x, y);
         }

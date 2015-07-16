@@ -443,6 +443,7 @@ namespace LongUI {
 #include "UIControl.h"
 #ifndef LongUICoreOnly // only longui core ?
 #   include "UIContainer.h"
+#   include "UIMenu.h"
 #   include "UIScrollBar.h"
 #   include "UISlider.h"
 #   include "UIVerticalLayout.h"

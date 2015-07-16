@@ -170,29 +170,36 @@ namespace LongUI {
         // group of it("0" in C99, "1" for other)
         Unit        group[0];
     };
-    // Dynamic HICON 
-    class UIIcon {
+    // Bit Array 计算机中每一字节都很宝贵
+    template<typename T>
+    class BitArray {
     public:
-        // copy constructor
-        UIIcon(const UIIcon&) noexcept;
-        // move constructor
-        UIIcon(UIIcon&&) noexcept;
-        // constructor: form meta
-        UIIcon(const Meta&) noexcept;
-        // destructor
-        ~UIIcon() noexcept { if (m_hIcon) { ::DestroyIcon(m_hIcon); m_hIcon = nullptr; } }
-        // get hicon
-        operator HICON() const noexcept { return m_hIcon; }
+        // ctor
+        BitArray() noexcept {};
+        // dtor
+        ~BitArray() noexcept {};
+        // is true or fasle
+        auto Test(uint32_t index) noexcept { return !!(m_data & (1 << index)); }
+        // set to true
+        auto SetTrue(uint32_t index) noexcept { m_data |= (1 << index); };
+        // set to false
+        auto SetFalse(uint32_t index) noexcept { m_data &= ~(1 << index); };
+        // set to NOT
+        auto SetNot(uint32_t index) noexcept { m_data ^= (1 << index); };
     private:
-        // handle to the icon
-        HICON       m_hIcon = nullptr;
+        // data for bit-array
+        T           m_data = T(0);
     };
+    // 特例化
+    using BitArray16 = BitArray<uint16_t>;
+    using BitArray32 = BitArray<uint32_t>;
+    using BitArray64 = BitArray<uint64_t>;
     // data 放肆!450交了么!
     constexpr size_t  INFOPDATA12_ZONE =  (size_t(3));
     constexpr size_t  INFOPOINTER_ZONE = ~INFOPDATA12_ZONE;
     constexpr size_t  INFOPTDATA1_ZONE = ~(size_t(2));
     constexpr size_t  INFOPTDATA2_ZONE = ~(size_t(1));
-    // Infomation-ed pointer， 计算机中每一字节都很宝贵
+    // Infomation-ed pointer  计算机中每一字节都很宝贵
     template<typename T>
     class InfomationPointer {
     public:
@@ -213,15 +220,15 @@ namespace LongUI {
         // operator [] const ver.
         const T& operator [](const int index) const noexcept { return (reinterpret_cast<T*>(data & INFOPOINTER_ZONE))[index]; }
         // pointer
-        T* p() const noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
+        T* Ptr() const noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
         // bool1
-        bool bool1() const noexcept { return (data & (1 << 0)) > 0; }
+        bool Bool1() const noexcept { return (data & (1 << 0)) > 0; }
         // bool2
-        bool bool2() const noexcept { return (data & (1 << 1)) > 0; }
+        bool Bool2() const noexcept { return (data & (1 << 1)) > 0; }
         // set bool1
-        void set_bool1(bool b) noexcept { data = (data & INFOPTDATA2_ZONE) | size_t(b); }
+        void SetBool1(bool b) noexcept { data = (data & INFOPTDATA2_ZONE) | size_t(b); }
         // bool2
-        void set_bool2(bool b) noexcept { data = (data & INFOPTDATA1_ZONE) | (size_t(b) << 1); }
+        void SetBool2(bool b) noexcept { data = (data & INFOPTDATA1_ZONE) | (size_t(b) << 1); }
         // SafeRelease if keep a Relase() interface(COM like)
         void SafeRelease() noexcept { T* t = reinterpret_cast<T*>(data & INFOPOINTER_ZONE); if (t) { t->Release(); data &= INFOPDATA12_ZONE; } }
     private:

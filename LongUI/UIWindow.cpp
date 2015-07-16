@@ -401,12 +401,16 @@ void LongUI::UIWindow::Update() noexcept {
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
     m_timer.MovStartEnd();
-     auto current_unit = m_uiRenderQueue.GetCurrentUnit();
+    {
+        auto current_unit = m_uiRenderQueue.GetCurrentUnit();
+        m_aUnitNow.length = current_unit->length;
+        ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
+    }
     // 没有就不刷新了
-    m_bRendered = !!current_unit->length;
-    if (!current_unit->length) return;
+    m_bRendered = !!m_aUnitNow.length;
+    if (!m_aUnitNow.length) return;
     // 全刷新?
-    if (current_unit->units[0] == static_cast<UIControl*>(this)) {
+    if (m_aUnitNow.units[0] == static_cast<UIControl*>(this)) {
         m_present.DirtyRectsCount = 0;
         //UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << endl;
         // 交给父类处理
@@ -414,9 +418,10 @@ void LongUI::UIWindow::Update() noexcept {
     }
     // 部分刷新
     else {
+        m_present.DirtyRectsCount = m_aUnitNow.length;
         // 更新脏矩形
-        for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
-            auto ctrl = current_unit->units[i];
+        for (uint32_t i = 0ui32; i < m_aUnitNow.length; ++i) {
+            auto ctrl = m_aUnitNow.units[i];
             assert(ctrl->parent && "check it");
             // 设置转换矩阵
             ctrl->Update();
@@ -453,14 +458,13 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
         size_t length_for_units = 0;
         // 数据
         {
-            auto current_unit = m_uiRenderQueue.GetLastUnit();
-            assert(current_unit->length < LongUIDirtyControlSize);
-            length_for_units = current_unit->length;
-            ::memcpy(units, current_unit->units, length_for_units * sizeof(void*));
+            assert(m_aUnitNow.length < LongUIDirtyControlSize);
+            length_for_units = m_aUnitNow.length;
+            ::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
             std::sort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
                 return a->priority > b->priority;
             });
-            if (current_unit->length >= 2) {
+            if (m_aUnitNow.length >= 2) {
                 assert(units[0]->priority >= units[1]->priority);
             }
         }
@@ -481,8 +485,8 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
     }
 #else
         // 再渲染
-        for (uint32_t i = 0ui32; i < current_unit->length; ++i) {
-            auto ctrl = current_unit->units[i];
+        for (uint32_t i = 0ui32; i < m_aUnitNow.length; ++i) {
+            auto ctrl = m_aUnitNow.units[i];
             // 设置转换矩阵
             D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
             m_pRenderTarget->SetTransform(&matrix);
@@ -686,14 +690,13 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
 
 // 等待重置同步
 void LongUI::UIWindow::WaitVS() const noexcept {
-    // 没渲染则强行渲染
 #ifdef _DEBUG
     static bool first_time = true;
     if (first_time && !m_bRendered) {
         assert(!"should be rendered @ first time !");
     }
     first_time = false;
-    // 渲染
+    // 渲染?
     if (m_bRendered) {
         // 等待VS
         ::WaitForSingleObject(m_hVSync, INFINITE);
@@ -704,7 +707,6 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 #else
     ::WaitForSingleObject(m_hVSync, INFINITE);
 #endif
-
 }
 
 // 重置窗口大小
@@ -758,6 +760,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
                 &bitmapProperties,
                 &m_pTargetBimtap
                 );
+            
         }
         // 重建失败?
         if (FAILED(hr)) {

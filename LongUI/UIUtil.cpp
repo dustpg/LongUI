@@ -168,29 +168,6 @@ void __fastcall LongUI::Meta_Render(
     }
 }
 
-// UIIcon 复制构造函数
-LongUI::UIIcon::UIIcon(const UIIcon & obj) noexcept {
-    if (obj.m_hIcon) {
-        this->m_hIcon = ::CopyIcon(obj.m_hIcon);
-    }
-}
-
-// UIIcon 移动构造函数
-LongUI::UIIcon::UIIcon(UIIcon && obj) noexcept {
-    if (obj.m_hIcon) {
-        this->m_hIcon = obj.m_hIcon;
-        obj.m_hIcon = nullptr;
-    }
-}
-
-
-// UIIcon 构造函数
-LongUI::UIIcon::UIIcon(const Meta &) noexcept {
-    assert(!"not compalte");
-}
-
-
-
 #define white_space(c) ((c) == ' ' || (c) == '\t')
 #define valid_digit(c) ((c) >= '0' && (c) <= '9')
 
@@ -216,8 +193,8 @@ auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
         }
         ++str;
     }
+    // 负数
     if (negative) {
-        // value *= -1;
         value = -value;
     }
     return value;

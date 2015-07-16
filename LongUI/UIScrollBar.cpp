@@ -64,15 +64,12 @@ void LongUI::UIScrollBar::set_index(float new_index) noexcept {
     // 不同就修改
     if (new_index != m_fIndex) {
         m_fIndex = new_index;
-#if 1
+        // 修改父类属性
         UISB_OffsetVaule(this->parent->offset.x) = -new_index;
         this->parent->DrawPosChanged();
         this->parent->AfterChangeDrawPosition();
         // 刷新拥有着
         m_pWindow->Invalidate(this->parent);
-#else
-        m_pWindow->Invalidate(this);
-#endif
     }
 }
 
@@ -460,3 +457,50 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(pugi::xml_node node) noexcept ->
     }
     return pControl;
 }
+
+
+
+// 
+/*auto popup_menu() {
+    auto menu = ::CreatePopupMenu();
+    if (menu) {
+        ::DestroyMenu(menu);
+    }
+}*/
+
+// popup menu
+class CUIPopupMenu {
+public:
+    // ctor
+    CUIPopupMenu() noexcept { };
+    // dtor
+    ~CUIPopupMenu() noexcept { this->Destroy(); }
+    // destroy this
+    void Destroy() noexcept {
+        if (m_hMenu) {
+            ::DestroyMenu(m_hMenu);
+            m_hMenu = nullptr;
+        }
+    }
+    // create a menu by default
+    bool Create() {
+        assert(!m_hMenu && "cannot create again!");
+        m_hMenu = ::CreatePopupMenu();
+        return !!m_hMenu;
+    }
+    // create a menu by xml string
+    bool Create(const char* xml) noexcept {
+        assert(!m_hMenu && "cannot create again!");
+        m_hMenu = ::CreatePopupMenu();
+        return !!m_hMenu;
+    }
+    // create a menu by xml node
+    bool Create(pugi::xml_node node) noexcept {
+        assert(!m_hMenu && "cannot create again!");
+        m_hMenu = ::CreatePopupMenu();
+        return !!m_hMenu;
+    }
+private:
+    // handle to popup menu
+    HMENU               m_hMenu = nullptr;
+};
