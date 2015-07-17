@@ -47,7 +47,7 @@ namespace LongUI{
         virtual void WindUp() noexcept override;
     public:
         // create 创建
-        static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
+        static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // UIVerticalLayout 构造函数
         UIVerticalLayout(pugi::xml_node node) noexcept:Super(node) { }
         // UIVerticalLayout 析构函数

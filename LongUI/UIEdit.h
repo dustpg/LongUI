@@ -44,7 +44,7 @@ namespace LongUI {
         virtual void WindUp() noexcept override;
     public:
         // create 创建
-        static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
+        static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
     public:
         // control text 控件文本
         auto GetText() const noexcept { return m_text.c_str(); }

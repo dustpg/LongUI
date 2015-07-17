@@ -56,7 +56,7 @@ namespace LongUI{
         virtual void WindUp() noexcept override;
     public:
         // create 创建
-        static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
+        static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
     protected:
         // constructor 构造函数
         UICheckBox(pugi::xml_node) noexcept;

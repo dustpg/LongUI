@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI{
     // default label control 默认标签控件
-    class UILabel : public UIControl{
+    class UILabel : public UIControl {
     private:
         // 父类申明
         using Super = UIControl ;
@@ -45,7 +45,7 @@ namespace LongUI{
         virtual void WindUp() noexcept override;
     public:
         // create 创建
-        static auto WINAPI CreateControl(pugi::xml_node) noexcept ->UIControl*;
+        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // control text 控件文本
         const auto GetText() const noexcept { return m_text.c_str(); }
         // set control text

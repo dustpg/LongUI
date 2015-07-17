@@ -174,6 +174,8 @@ namespace LongUI {
     template<typename T>
     class BitArray {
     public:
+        // bit wide
+        static constexpr size_t LENGTH = sizeof(T) * 8;
         // ctor
         BitArray() noexcept {};
         // dtor

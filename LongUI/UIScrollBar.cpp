@@ -442,65 +442,30 @@ void LongUI::UIScrollBarA::set_status(PointType type, ControlStatus state) noexc
     }
 }
 // create 创建
-auto WINAPI LongUI::UIScrollBarA::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
-    // 获取模板节点
-    if (!node) {
+auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    // 分类判断
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    default:
+        // 获取模板节点
+        if (!node) {
 
-    }
-    // 申请空间
-    auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarA>(
-        node,
-        [=](void* p) noexcept { new(p) UIScrollBarA(node); }
-    );
-    if (!pControl) {
-        UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarA>(
+            node,
+            [=](void* p) noexcept { new(p) UIScrollBarA(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
-
-
-
-// 
-/*auto popup_menu() {
-    auto menu = ::CreatePopupMenu();
-    if (menu) {
-        ::DestroyMenu(menu);
-    }
-}*/
-
-// popup menu
-class CUIPopupMenu {
-public:
-    // ctor
-    CUIPopupMenu() noexcept { };
-    // dtor
-    ~CUIPopupMenu() noexcept { this->Destroy(); }
-    // destroy this
-    void Destroy() noexcept {
-        if (m_hMenu) {
-            ::DestroyMenu(m_hMenu);
-            m_hMenu = nullptr;
-        }
-    }
-    // create a menu by default
-    bool Create() {
-        assert(!m_hMenu && "cannot create again!");
-        m_hMenu = ::CreatePopupMenu();
-        return !!m_hMenu;
-    }
-    // create a menu by xml string
-    bool Create(const char* xml) noexcept {
-        assert(!m_hMenu && "cannot create again!");
-        m_hMenu = ::CreatePopupMenu();
-        return !!m_hMenu;
-    }
-    // create a menu by xml node
-    bool Create(pugi::xml_node node) noexcept {
-        assert(!m_hMenu && "cannot create again!");
-        m_hMenu = ::CreatePopupMenu();
-        return !!m_hMenu;
-    }
-private:
-    // handle to popup menu
-    HMENU               m_hMenu = nullptr;
-};

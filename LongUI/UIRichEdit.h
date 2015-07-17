@@ -53,7 +53,7 @@ namespace LongUI {
         // get the service of RichText
         LongUIInline auto GetService() { return m_pTextServices; }
         // create 创建
-        static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
+        static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
     protected:
         // constructor 构造函数
         UIRichEdit(pugi::xml_node) noexcept;

@@ -46,7 +46,7 @@ namespace LongUI{
         void refresh_child_layout() noexcept;
     public:
         // create 创建
-        static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
+        static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // UIVerticalLayout 构造函数
         UIHorizontalLayout(pugi::xml_node node) noexcept :Super(node) { }
         // UIVerticalLayout 析构函数

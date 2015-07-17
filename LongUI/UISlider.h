@@ -44,7 +44,7 @@ namespace LongUI{
         virtual void WindUp() noexcept override;
     public:
         // create 创建
-        static UIControl* WINAPI CreateControl(pugi::xml_node) noexcept;
+        static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // register Value Changed 注册变动事件
         LongUIInline void RegisterValueChangedEvent(LongUICallBack call, UIControl* target) noexcept {
             m_eventChanged = call; m_pChangedTarget = target;

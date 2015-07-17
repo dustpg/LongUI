@@ -42,17 +42,28 @@ void LongUI::UISlider::Update() noexcept {
 inline LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node) { }
 
 // UISlider::CreateControl 函数
-LongUI::UIControl* LongUI::UISlider::CreateControl(pugi::xml_node node) noexcept {
-    if (!node) {
-        UIManager << DL_Warning << L"node null" << LongUI::endl;
-    }
-    // 申请空间
-    auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UISlider>(
-        node,
-        [=](void* p) noexcept { new(p) UISlider(node);}
-    );
-    if (!pControl) {
-        UIManager << DL_Error << L"alloc null" << LongUI::endl;
+LongUI::UIControl* LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    default:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UISlider>(
+            node,
+            [=](void* p) noexcept { new(p) UISlider(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }

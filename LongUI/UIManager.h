@@ -44,22 +44,41 @@ namespace LongUI {
             Version_Win10
         };
     public: // handle zone 操作区
-        // initialize 初始化
-        auto Initialize(IUIConfigure* =nullptr) noexcept->HRESULT;
+            // initialize 初始化
+        auto Initialize(IUIConfigure* = nullptr) noexcept->HRESULT;
         // uninitialize 反初始化
         void UnInitialize() noexcept;
         // run 运行
         void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
-        auto AddS2CPair(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
+        auto RegisterControl(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
         // ShowError with HRESULT code
-        void ShowError(HRESULT, const wchar_t* str_b =nullptr) noexcept;
-        // lock
-        auto Lock() noexcept { return m_uiLocker.Lock(); }
-        // unlock
-        auto Unlock() noexcept { return m_uiLocker.Unlock(); }
+        void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // wait for VS
         auto WaitVS(UIWindow* window) noexcept ->void;
+        // add window
+        void AddWindow(UIWindow* wnd) noexcept;
+        // remove window
+        void RemoveWindow(UIWindow* wnd) noexcept;
+        // register, return -1 for error(out of renderer space), return other for index
+        auto RegisterTextRenderer(UIBasicTextRenderer*) noexcept->int32_t;
+        // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
+        auto GetTextFormat(size_t i) noexcept->IDWriteTextFormat*;
+        // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
+        auto GetBitmap(size_t index) noexcept->ID2D1Bitmap1*;
+        // get brush by index, "Get" method will call IUnknown::AddRef if it is a COM object
+        auto GetBrush(size_t index) noexcept->ID2D1Brush*;
+        // get meta by index, "Get" method will call IUnknown::AddRef if it is a COM object
+        // Meta isn't a IUnknown object, so, won't call Meta::bitmap->AddRef
+        void GetMeta(size_t index, LongUI::Meta&) noexcept;
+        // get meta's icon handle by index, will do runtime-converting if first call the
+        //  same index. "Get" method will call IUnknown::AddRef if it is a COM object
+        // HICON isn't a IUnknown object. Meta HICON managed by this manager
+        auto GetMetaHICON(size_t index) noexcept->HICON;
+        // get system brush
+        auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
+        // get drop target helper
+        auto GetDropTargetHelper() noexcept { return ::SafeAcquire(m_pDropTargetHelper); }
     public: // 特例
         // get default LongUI imp IDWriteFontCollection
         static auto __cdecl CreateLongUIFontCollection(
@@ -122,6 +141,10 @@ namespace LongUI {
         // only can be in one instance
         static bool WINAPI TryElevateUACNow(const wchar_t* parameters = nullptr, bool exit = true) noexcept;
     public: // inline 区
+        // lock
+        LongUIInline auto Lock() noexcept { return m_uiLocker.Lock(); }
+        // unlock
+        LongUIInline auto Unlock() noexcept { return m_uiLocker.Unlock(); }
         // ShowError with string
         LongUIInline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
@@ -182,8 +205,6 @@ namespace LongUI {
         IUIConfigure*        const      configure = nullptr;
         // windows version
         WindowsVersion       const      version = WindowsVersion::Version_Win8;
-        // user context size 用户上下文大小
-        size_t               const      user_context_size = 0;
     private:
         // helper for drop target
         IDropTargetHelper*              m_pDropTargetHelper = nullptr;
@@ -268,30 +289,6 @@ namespace LongUI {
         // tinyxml2 窗口
         pugi::xml_document              m_docWindow;
     public:
-        // add window
-        void AddWindow(UIWindow* wnd) noexcept;
-        // remove window
-        void RemoveWindow(UIWindow* wnd) noexcept;
-        // register, return -1 for error(out of renderer space), return other for index
-        auto RegisterTextRenderer(UIBasicTextRenderer*) noexcept-> int32_t;
-        // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetTextFormat(size_t i) noexcept->IDWriteTextFormat*;
-        // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetBitmap(size_t index) noexcept->ID2D1Bitmap1*;
-        // get brush by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetBrush(size_t index) noexcept->ID2D1Brush*;
-        // get meta by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        // Meta isn't a IUnknown object, so, won't call Meta::bitmap->AddRef
-        void GetMeta(size_t index, LongUI::Meta&) noexcept;
-        // get meta's icon handle by index, will do runtime-converting if first call the
-        //  same index. "Get" method will call IUnknown::AddRef if it is a COM object
-        // HICON isn't a IUnknown object. Meta HICON managed by this manager
-        auto GetMetaHICON(size_t index) noexcept->HICON;
-        // get system brush
-        auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
-        // get drop target helper
-        auto GetDropTargetHelper() noexcept { return ::SafeAcquire(m_pDropTargetHelper); }
- public:
         // constructor 构造函数
         CUIManager() noexcept;
         // destructor 析构函数
@@ -317,6 +314,8 @@ namespace LongUI {
         // get create function
         auto GetCreateFunc(const wchar_t* class_name, uint32_t len=0)noexcept { CUIString name(class_name, len); return GetCreateFunc(name); }
     private:
+        // 创建事件
+        void do_creating_event(CreateEventType type) noexcept;
         // 创建控件
         auto create_control(pugi::xml_node) noexcept->UIControl*;
         // 创建控件树

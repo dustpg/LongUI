@@ -139,7 +139,7 @@ namespace LongUI{
         // ctor
         UIScrollBarA(pugi::xml_node node) noexcept;
         // create this
-        static auto WINAPI CreateControl(pugi::xml_node node) noexcept->UIControl*;
+        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;

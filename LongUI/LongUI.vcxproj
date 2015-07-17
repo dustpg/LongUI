@@ -113,6 +113,7 @@
     <ClCompile Include="UICheckBox.cpp" />
     <ClCompile Include="UIElement.cpp" />
     <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="UIMenu.cpp" />
     <ClCompile Include="UIRenderQueue.cpp" />
     <ClCompile Include="UIRichEdit.cpp" />
     <ClCompile Include="UIScrollBar.cpp" />

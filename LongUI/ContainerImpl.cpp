@@ -135,16 +135,19 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
     uint8_t need_refresh = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
 #endif
     // 水平滚动条
+    auto create_scrollbar = [](CreateControlFunction func) noexcept {
+        return static_cast<UIScrollBar*>(func(LongUI::Type_CreateControl, LongUINullXMLNode));
+    };
     auto neededh = basew > this->visible_size.width;
     if (!this->scrollbar_h && m_pCreateH && neededh &&
-        (this->scrollbar_h = static_cast<UIScrollBar*>(m_pCreateH(LongUINullXMLNode)))) {
+        (this->scrollbar_h = create_scrollbar(m_pCreateH))) {
         this->scrollbar_h->InitScrollBar(this, ScrollBarType::Type_Horizontal);
         this->AfterInsert(this->scrollbar_h);
     }
     // 垂直滚动条
     auto neededv = baseh > this->visible_size.height;
     if (!this->scrollbar_v && m_pCreateV && neededv &&
-        (this->scrollbar_v = static_cast<UIScrollBar*>(m_pCreateV(LongUINullXMLNode)))) {
+        (this->scrollbar_v = create_scrollbar(m_pCreateV))) {
         this->scrollbar_v->InitScrollBar(this, ScrollBarType::Type_Vertical);
         this->AfterInsert(this->scrollbar_v);
     }
@@ -496,17 +499,28 @@ bool LongUI::UIContainer::remove(Iterator itr) noexcept {
 
 // -------------------------- UIVerticalLayout -------------------------
 // UIVerticalLayout 创建
-auto LongUI::UIVerticalLayout::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
-    if (!node) {
-        UIManager << DL_Warning << L"node null" << LongUI::endl;
-    }
-    // 申请空间
-    auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIVerticalLayout>(
-        node,
-        [=](void* p) noexcept { new(p) UIVerticalLayout(node);}
-    );
-    if (!pControl) {
-        UIManager << DL_Error << L"alloc null" << LongUI::endl;
+auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    default:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIVerticalLayout>(
+            node,
+            [=](void* p) noexcept { new(p) UIVerticalLayout(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
@@ -614,17 +628,28 @@ void LongUI::UIVerticalLayout::WindUp() noexcept {
 
 // -------------------------- UIHorizontalLayout -------------------------
 // UIHorizontalLayout 创建
-auto LongUI::UIHorizontalLayout::CreateControl(pugi::xml_node node) noexcept ->UIControl* {
-    if (!node) {
-        UIManager << DL_Warning << L"node null" << LongUI::endl;
-    }
-    // 申请空间
-    auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIHorizontalLayout>(
-        node,
-        [=](void* p) noexcept { new(p) UIHorizontalLayout(node);}
-    );
-    if (!pControl) {
-        UIManager << DL_Error << L"alloc null" << LongUI::endl;
+auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    default:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIHorizontalLayout>(
+            node,
+            [=](void* p) noexcept { new(p) UIHorizontalLayout(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }

@@ -65,17 +65,29 @@ class TestControl : public LongUI::UIControl {
     typedef LongUI::UIControl Super;
 public:
     // create 创建
-    static UIControl* WINAPI CreateControl(pugi::xml_node node) noexcept {
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        auto pControl = LongUI::UIControl::AllocRealControl<TestControl>(
-            node,
-            [=](void* p) noexcept { new(p) TestControl(node);}
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+    static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
+        // 分类判断
+        UIControl* pControl = nullptr;
+        switch (type)
+        {
+        case LongUI::Type_Initialize:
+            break;
+        case LongUI::Type_Recreate:
+            break;
+        case LongUI::Type_Uninitialize:
+            break;
+        default:
+            if (!node) {
+                UIManager << DL_Warning << L"node null" << LongUI::endl;
+            }
+            // 申请空间
+            auto pControl = LongUI::UIControl::AllocRealControl<TestControl>(
+                node,
+                [=](void* p) noexcept { new(p) TestControl(node); }
+            );
+            if (!pControl) {
+                UIManager << DL_Error << L"alloc null" << LongUI::endl;
+            }
         }
         return pControl;
     }
@@ -216,17 +228,29 @@ class UIVideoAlpha : public LongUI::UIControl {
     typedef LongUI::UIControl Super;
 public:
     // create 创建
-    static UIControl* WINAPI CreateControl(pugi::xml_node node) noexcept {
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        auto pControl = LongUI::UIControl::AllocRealControl<UIVideoAlpha>(
-            node,
-            [=](void* p) noexcept { new(p) UIVideoAlpha(node); }
+    static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
+        // 分类判断
+        UIControl* pControl = nullptr;
+        switch (type)
+        {
+        case LongUI::Type_Initialize:
+            break;
+        case LongUI::Type_Recreate:
+            break;
+        case LongUI::Type_Uninitialize:
+            break;
+        default:
+            if (!node) {
+                UIManager << DL_Warning << L"node null" << LongUI::endl;
+            }
+            // 申请空间
+            pControl = LongUI::UIControl::AllocRealControl<UIVideoAlpha>(
+                node,
+                [=](void* p) noexcept { new(p) UIVideoAlpha(node); }
             );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+            if (!pControl) {
+                UIManager << DL_Error << L"alloc null" << LongUI::endl;
+            }
         }
         return pControl;
     }

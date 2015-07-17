@@ -77,7 +77,7 @@ namespace LongUI{
                 exsize = LongUI::AtoI(node.attribute("exdatasize").value());
             }
             T* control = reinterpret_cast<T*>(
-                LongUI::CtrlAlloc(sizeof(T) + UIManager.user_context_size + exsize)
+                LongUI::CtrlAlloc(sizeof(T) + exsize)
                     );
             // check alignof
             assert(Is2Power(alignof(T)) && "alignas(Control) must be 2powered");
@@ -87,8 +87,6 @@ namespace LongUI{
                 lam(control);
                 control->extend_data = reinterpret_cast<uint8_t*>(control) + sizeof(T);
                 control->extend_data_size = exsize;
-                control->user_context = reinterpret_cast<uint8_t*>(control->extend_data) +
-                    UIManager.user_context_size;
             }
             return control;
         }
@@ -183,9 +181,6 @@ namespace LongUI{
     public:
         // priority for render
         int8_t       const      priority = 0;
-    protected:
-        // user context
-        void*                   user_context = nullptr;
     public:
         // x position of control
         float                   x = 0.f;

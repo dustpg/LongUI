@@ -78,7 +78,7 @@ LongUI::DllControlLoader::DllControlLoader(
         // 强制转换
         const_cast<CreateControlFunction&>(this->function) = tmpfunc;
         // 添加函数映射
-        UIManager.AddS2CPair(name, this->function);
+        UIManager.RegisterControl(name, this->function);
     }
 }
 

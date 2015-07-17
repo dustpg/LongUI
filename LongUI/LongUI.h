@@ -148,11 +148,13 @@ namespace LongUI {
     using RectLTRB_L = RectLTRB<int32_t>;
     using RectLTRB_U = RectLTRB<uint32_t>;
     // --------------------------------
-    //longui callback func 控件回调
-    using LongUICallBack = bool (UIControl::*)(UIControl*);
+    // longui callback func 控件回调
+    using LongUICallBack = bool (UIControl::*)(UIControl*) ;
+    // event type
+    enum CreateEventType : size_t { Type_CreateControl = 0, Type_Initialize, Type_Recreate, Type_Uninitialize, };
     // CreateControl Function 控件创建函数
-    using CreateControlFunction = UIControl* (WINAPI*)(pugi::xml_node);
-    // {B0CC8D79-9761-46F0-8558-F93A073CA0E6}
+    using CreateControlFunction = auto (WINAPI*)(CreateEventType, pugi::xml_node) ->UIControl*;
+    // { B0CC8D79-9761-46F0-8558-F93A073CA0E6 }
     static const GUID IID_InlineParamHandler =
     { 0xb0cc8d79, 0x9761, 0x46f0,{ 0x85, 0x58, 0xf9, 0x3a, 0x7, 0x3c, 0xa0, 0xe6 } };
     // LongUI Custom Formated String Inline Param Handler
@@ -443,7 +445,6 @@ namespace LongUI {
 #include "UIControl.h"
 #ifndef LongUICoreOnly // only longui core ?
 #   include "UIContainer.h"
-#   include "UIMenu.h"
 #   include "UIScrollBar.h"
 #   include "UISlider.h"
 #   include "UIVerticalLayout.h"
@@ -454,5 +455,6 @@ namespace LongUI {
 #   include "UILabel.h"
 #   include "UICheckBox.h"
 #   include "UIButton.h"
+#   include "UIMenu.h"
 #endif
 #endif

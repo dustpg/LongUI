@@ -3,7 +3,7 @@
 // node->Attribute\((.+?)\)
 // node.attribute($1).value()
 
-#define LONGUI_D3D_DEBUG
+//#define LONGUI_D3D_DEBUG
 #define LONGUI_RENDER_IN_UNSAFE_MODE
 
 // CUIManager 初始化
@@ -28,21 +28,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 初始化其他
     ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
     ZeroMemory(m_apSystemBrushes, sizeof(m_apSystemBrushes));
-    // 添加默认控件创建函数
-    {
-        this->AddS2CPair(L"Label", LongUI::UILabel::CreateControl);
-        this->AddS2CPair(L"Button", LongUI::UIButton::CreateControl);
-        this->AddS2CPair(L"VerticalLayout", LongUI::UIVerticalLayout::CreateControl);
-        this->AddS2CPair(L"HorizontalLayout", LongUI::UIHorizontalLayout::CreateControl);
-        this->AddS2CPair(L"Slider", LongUI::UISlider::CreateControl);
-        this->AddS2CPair(L"CheckBox", LongUI::UICheckBox::CreateControl);
-        this->AddS2CPair(L"RichEdit", LongUI::UIRichEdit::CreateControl);
-        this->AddS2CPair(L"ScrollBarA", LongUI::UIScrollBarA::CreateControl);
-        this->AddS2CPair(L"EditBasic", LongUI::UIEditBasic::CreateControl);
-        this->AddS2CPair(L"Edit", LongUI::UIEditBasic::CreateControl);
-    }
-    // 添加自定义控件
-    config->AddCustomControl();
     // 获取实例句柄
     auto hInstance = ::GetModuleHandleW(nullptr);
     // 注册窗口类 | CS_DBLCLKS
@@ -182,6 +167,22 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             hr = E_FAIL;
         }
     }
+    // 添加控件
+    if (SUCCEEDED(hr)) {
+        // 添加默认控件创建函数
+        this->RegisterControl(L"Label", LongUI::UILabel::CreateControl);
+        this->RegisterControl(L"Button", LongUI::UIButton::CreateControl);
+        this->RegisterControl(L"VerticalLayout", LongUI::UIVerticalLayout::CreateControl);
+        this->RegisterControl(L"HorizontalLayout", LongUI::UIHorizontalLayout::CreateControl);
+        this->RegisterControl(L"Slider", LongUI::UISlider::CreateControl);
+        this->RegisterControl(L"CheckBox", LongUI::UICheckBox::CreateControl);
+        this->RegisterControl(L"RichEdit", LongUI::UIRichEdit::CreateControl);
+        this->RegisterControl(L"ScrollBarA", LongUI::UIScrollBarA::CreateControl);
+        this->RegisterControl(L"EditBasic", LongUI::UIEditBasic::CreateControl);
+        this->RegisterControl(L"Edit", LongUI::UIEditBasic::CreateControl);
+        // 添加自定义控件
+        config->AddCustomControl();
+    }
     // 创建资源
     if (SUCCEEDED(hr)) {
         hr = this->RecreateResources();
@@ -190,12 +191,16 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     if (FAILED(hr)) {
         this->ShowError(hr);
     }
+    else {
+        this->do_creating_event(LongUI::CreateEventType::Type_Initialize);
+    }
     return hr;
 }
 
 
 // CUIManager  反初始化
 void LongUI::CUIManager::UnInitialize() noexcept {
+    this->do_creating_event(LongUI::CreateEventType::Type_Uninitialize);
     // 释放文本渲染器
     for (auto& renderer : m_apTextRenderer) {
         ::SafeRelease(renderer);
@@ -231,8 +236,21 @@ auto LongUI::CUIManager::create_control(pugi::xml_node node) noexcept -> UIContr
     assert(node && "bad argument");
     // 获取创建指针
     auto create = this->GetCreateFunc(node.name());
-    if (create) return create(node);
+    if (create) return create(CreateEventType::Type_CreateControl, node);
     return nullptr;
+}
+
+// 创建事件
+void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
+    assert(type != LongUI::Type_CreateControl);
+    try {
+        for (const auto& pair : m_mapString2CreateFunction) {
+            reinterpret_cast<CreateControlFunction>(pair.second)(type, LongUINullXMLNode);
+        }
+    }
+    catch (...) {
+        assert(!"some error");
+    }
 }
 
 // CUIManager 创建控件树
@@ -423,16 +441,6 @@ auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
     }
 }
 
-// 管理器持有不可见窗口回调函数
-/*LRESULT LongUI::CUIManager::InvisibleWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
-    auto handled = false; LRESULT recode = 0;
-    switch (message)
-    {
-    }
-    // 返回
-    return handled ? (recode) : (::DefWindowProcW(hwnd, message, wParam, lParam));
-}*/
-
 // 窗口过程函数
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
     LRESULT recode = 0;
@@ -514,9 +522,9 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
 namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
 
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept : 
-m_config(*this), 
+LongUI::CUIManager::CUIManager() noexcept : m_config(*this), 
 version(LongUI::GetWindowsVersion()) {
+
 }
 
 // CUIManager 析构函数
@@ -525,9 +533,14 @@ LongUI::CUIManager::~CUIManager() noexcept {
 }
 
 // 获取控件 wchar_t指针
-auto LongUI::CUIManager::AddS2CPair(
+auto LongUI::CUIManager::RegisterControl(
     const wchar_t* name, CreateControlFunction func) noexcept ->HRESULT {
     if (!name || !(*name)) return S_FALSE;
+    // 超过了容器限制
+    if (m_mapString2CreateFunction.size() >= LongUIMaxControlClass) {
+        assert(!"out of sapce for control");
+        return E_ABORT;
+    }
     // 创建pair
     std::pair<LongUI::CUIString, CreateControlFunction> pair(name, func);
     HRESULT hr = S_OK;
@@ -868,39 +881,6 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
     if (SUCCEEDED(hr)) {
 
     }
-    /*// 存在二进制读取器?
-    if (m_pResourceLoader) {
-
-    }
-    else if(false) {
-        // pugixml 使用的是句柄式, 所以下面的代码是安全的.
-        register auto now_node = m_docResource.first_child().first_child();
-        while (now_node) {
-            // 位图?
-            if (!::strcmp(now_node.name(), "Bitmap")) {
-                this->add_bitmap(now_node);
-            }
-            // 笔刷?
-            else if (!::strcmp(now_node.name(), "Brush")) {
-                this->add_brush(now_node);
-            }
-            // 文本格式?
-            else if (!::strcmp(now_node.name(), "Font") ||
-                !::strcmp(now_node.name(), "TextFormat")) {
-                this->add_textformat(now_node);
-            }
-            // 图元?
-            else if (!::strcmp(now_node.name(), "Meta")) {
-                this->add_meta(now_node);
-            }
-            // 动画图元?
-            else if (!::strcmp(now_node.name(), "MetaEx")) {
-                this->add_meta(now_node);
-            }
-            // 推进
-            now_node = now_node.next_sibling();
-        }
-    }*/
     return hr;
 }
 
@@ -1103,6 +1083,10 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         hr = this->create_indexzero_resources();
     }
     ::SafeRelease(ready2use);
+    // 事件
+    if (SUCCEEDED(hr)) {
+        this->do_creating_event(LongUI::CreateEventType::Type_Recreate);
+    }
     // 设置文本渲染器数据
     if (SUCCEEDED(hr)) {
         for (uint32_t i = 0u; i < m_uTextRenderCount; ++i) {
@@ -1396,7 +1380,7 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
 }
 
 // 获取Meta的图标句柄
-auto LongUI::CUIManager::GetMetaHICON(uint32_t index) noexcept -> HICON {
+auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
     // 越界
     if (index >= m_cCountMt) {
         UIManager << DL_Warning

@@ -191,5 +191,8 @@
     <ClCompile Include="UIRenderQueue.cpp">
       <Filter>LongUI\Impl</Filter>
     </ClCompile>
+    <ClCompile Include="UIMenu.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
