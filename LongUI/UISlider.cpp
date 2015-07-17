@@ -46,13 +46,7 @@ LongUI::UIControl* LongUI::UISlider::CreateControl(CreateEventType type, pugi::x
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case LongUI::Type_Initialize:
-        break;
-    case LongUI::Type_Recreate:
-        break;
-    case LongUI::Type_Uninitialize:
-        break;
-    default:
+    case Type_CreateControl:
         if (!node) {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
@@ -64,6 +58,13 @@ LongUI::UIControl* LongUI::UISlider::CreateControl(CreateEventType type, pugi::x
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
         }
+        break;
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
     }
     return pControl;
 }

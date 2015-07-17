@@ -503,13 +503,7 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case LongUI::Type_Initialize:
-        break;
-    case LongUI::Type_Recreate:
-        break;
-    case LongUI::Type_Uninitialize:
-        break;
-    default:
+    case Type_CreateControl:
         if (!node) {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
@@ -521,6 +515,13 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
         }
+        break;
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
     }
     return pControl;
 }
@@ -632,13 +633,7 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case LongUI::Type_Initialize:
-        break;
-    case LongUI::Type_Recreate:
-        break;
-    case LongUI::Type_Uninitialize:
-        break;
-    default:
+    case Type_CreateControl:
         if (!node) {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
@@ -650,6 +645,13 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
         }
+        break;
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
     }
     return pControl;
 }

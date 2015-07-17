@@ -170,16 +170,16 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 添加控件
     if (SUCCEEDED(hr)) {
         // 添加默认控件创建函数
-        this->RegisterControl(L"Label", LongUI::UILabel::CreateControl);
-        this->RegisterControl(L"Button", LongUI::UIButton::CreateControl);
-        this->RegisterControl(L"VerticalLayout", LongUI::UIVerticalLayout::CreateControl);
-        this->RegisterControl(L"HorizontalLayout", LongUI::UIHorizontalLayout::CreateControl);
-        this->RegisterControl(L"Slider", LongUI::UISlider::CreateControl);
-        this->RegisterControl(L"CheckBox", LongUI::UICheckBox::CreateControl);
-        this->RegisterControl(L"RichEdit", LongUI::UIRichEdit::CreateControl);
-        this->RegisterControl(L"ScrollBarA", LongUI::UIScrollBarA::CreateControl);
-        this->RegisterControl(L"EditBasic", LongUI::UIEditBasic::CreateControl);
-        this->RegisterControl(L"Edit", LongUI::UIEditBasic::CreateControl);
+        this->RegisterControl(UILabel::CreateControl, L"Label");
+        this->RegisterControl(UIButton::CreateControl, L"Button");
+        this->RegisterControl(UIVerticalLayout::CreateControl, L"VerticalLayout");
+        this->RegisterControl(UIHorizontalLayout::CreateControl, L"HorizontalLayout");
+        this->RegisterControl(UISlider::CreateControl, L"Slider");
+        this->RegisterControl(UICheckBox::CreateControl, L"CheckBox");
+        this->RegisterControl(UIRichEdit::CreateControl, L"RichEdit");
+        this->RegisterControl(UIScrollBarA::CreateControl, L"ScrollBarA");
+        this->RegisterControl(UIEditBasic::CreateControl, L"EditBasic");
+        this->RegisterControl(UIEditBasic::CreateControl, L"Edit");
         // 添加自定义控件
         config->AddCustomControl();
     }
@@ -533,8 +533,8 @@ LongUI::CUIManager::~CUIManager() noexcept {
 }
 
 // 获取控件 wchar_t指针
-auto LongUI::CUIManager::RegisterControl(
-    const wchar_t* name, CreateControlFunction func) noexcept ->HRESULT {
+auto LongUI::CUIManager::
+RegisterControl(CreateControlFunction func, const wchar_t* name) noexcept ->HRESULT {
     if (!name || !(*name)) return S_FALSE;
     // 超过了容器限制
     if (m_mapString2CreateFunction.size() >= LongUIMaxControlClass) {

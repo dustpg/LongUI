@@ -51,7 +51,7 @@ namespace LongUI {
         // run 运行
         void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
-        auto RegisterControl(const wchar_t*, CreateControlFunction) noexcept->HRESULT;
+        auto RegisterControl(CreateControlFunction, const wchar_t*) noexcept->HRESULT;
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // wait for VS

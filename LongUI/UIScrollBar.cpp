@@ -447,13 +447,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case LongUI::Type_Initialize:
-        break;
-    case LongUI::Type_Recreate:
-        break;
-    case LongUI::Type_Uninitialize:
-        break;
-    default:
+    case Type_CreateControl:
         // 获取模板节点
         if (!node) {
 
@@ -466,6 +460,13 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
         }
+        break;
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
     }
     return pControl;
 }

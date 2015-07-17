@@ -70,24 +70,25 @@ public:
         UIControl* pControl = nullptr;
         switch (type)
         {
-        case LongUI::Type_Initialize:
-            break;
-        case LongUI::Type_Recreate:
-            break;
-        case LongUI::Type_Uninitialize:
-            break;
-        default:
+        case LongUI::Type_CreateControl:
             if (!node) {
                 UIManager << DL_Warning << L"node null" << LongUI::endl;
             }
             // 申请空间
-            auto pControl = LongUI::UIControl::AllocRealControl<TestControl>(
+            pControl = LongUI::UIControl::AllocRealControl<TestControl>(
                 node,
                 [=](void* p) noexcept { new(p) TestControl(node); }
             );
             if (!pControl) {
                 UIManager << DL_Error << L"alloc null" << LongUI::endl;
             }
+            break;
+        case LongUI::Type_Initialize:
+            break;
+        case LongUI::Type_Recreate:
+            break;
+        case LongUI::Type_Uninitialize:
+            break;
         }
         return pControl;
     }
@@ -233,13 +234,7 @@ public:
         UIControl* pControl = nullptr;
         switch (type)
         {
-        case LongUI::Type_Initialize:
-            break;
-        case LongUI::Type_Recreate:
-            break;
-        case LongUI::Type_Uninitialize:
-            break;
-        default:
+        case LongUI::Type_CreateControl:
             if (!node) {
                 UIManager << DL_Warning << L"node null" << LongUI::endl;
             }
@@ -251,6 +246,13 @@ public:
             if (!pControl) {
                 UIManager << DL_Error << L"alloc null" << LongUI::endl;
             }
+            break;
+        case LongUI::Type_Initialize:
+            break;
+        case LongUI::Type_Recreate:
+            break;
+        case LongUI::Type_Uninitialize:
+            break;
         }
         return pControl;
     }
@@ -339,9 +341,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             ::wcscpy(name, L"en-us");
         };
         // 添加自定义控件
-        auto AddCustomControl() noexcept->void override{
-            m_manager.AddS2CPair(L"Test", TestControl::CreateControl);
-            m_manager.AddS2CPair(L"Video", UIVideoAlpha::CreateControl);
+        auto AddCustomControl() noexcept->void override {
+            m_manager.RegisterControl(TestControl::CreateControl, L"Test");
+            m_manager.RegisterControl(UIVideoAlpha::CreateControl, L"Video");
         };
         // 使用CPU渲染
         auto IsRenderByCPU() noexcept ->bool override { return true; }

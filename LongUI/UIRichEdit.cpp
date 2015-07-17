@@ -58,24 +58,25 @@ LongUI::UIControl* LongUI::UIRichEdit::CreateControl(CreateEventType type, pugi:
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case LongUI::Type_Initialize:
-        break;
-    case LongUI::Type_Recreate:
-        break;
-    case LongUI::Type_Uninitialize:
-        break;
-    default:
+    case Type_CreateControl:
         if (!node) {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
         // 申请空间
-        auto pControl = LongUI::UIControl::AllocRealControl<LongUI::UIRichEdit>(
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIRichEdit>(
             node,
             [=](void* p) noexcept { new(p) UIRichEdit(node); }
         );
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
         }
+        break;
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
     }
     return pControl;
 }
