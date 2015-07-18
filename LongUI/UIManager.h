@@ -44,7 +44,7 @@ namespace LongUI {
             Version_Win10
         };
     public: // handle zone 操作区
-            // initialize 初始化
+        // initialize 初始化
         auto Initialize(IUIConfigure* = nullptr) noexcept->HRESULT;
         // uninitialize 反初始化
         void UnInitialize() noexcept;
@@ -79,6 +79,22 @@ namespace LongUI {
         auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
         // get drop target helper
         auto GetDropTargetHelper() noexcept { return ::SafeAcquire(m_pDropTargetHelper); }
+        // get create function width const char*
+        auto GetCreateFunc(const char*)noexcept->CreateControlFunction;
+        // get create function width CUIString
+        auto GetCreateFunc(const CUIString&)noexcept->CreateControlFunction;
+        // get create function width const wchar_t* and length
+        auto GetCreateFunc(const wchar_t* class_name, uint32_t len = 0) noexcept { CUIString name(class_name, len); return GetCreateFunc(name); }
+        // create control with xml node, node and function cannot be null in same time
+        auto CreateControl(pugi::xml_node node, CreateControlFunction function) noexcept {
+            assert((node || function) && "cannot be null in same time");
+            return this->create_control(function, node, 0);
+        }
+        // create control with template id, template and function cannot be null in same time
+        auto CreateControl(size_t templateid, CreateControlFunction function) noexcept {
+            assert((templateid || function) && "cannot be null in same time");
+            return this->create_control(function, LongUINullXMLNode, templateid);
+        }
     public: // 特例
         // get default LongUI imp IDWriteFontCollection
         static auto __cdecl CreateLongUIFontCollection(
@@ -149,7 +165,7 @@ namespace LongUI {
         LongUIInline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
         LongUIInline auto GetTextRenderer(int i) const { return ::SafeAcquire(m_apTextRenderer[i]); }
-        // eixt the app
+        // exit the app
         LongUIInline auto Exit() { m_exitFlag = true; ::PostQuitMessage(0); }
         // recreate
         LongUIInline auto RecreateResources() { this->discard_resources(); return this->create_device_resources(); }
@@ -306,18 +322,10 @@ namespace LongUI {
         auto create_system_brushes() noexcept->HRESULT;
         // discard resources
         void discard_resources() noexcept;
-    public:
-        // get create function
-        auto GetCreateFunc(const char*)noexcept->CreateControlFunction;
-        // get create function
-        auto GetCreateFunc(const CUIString&)noexcept->CreateControlFunction;
-        // get create function
-        auto GetCreateFunc(const wchar_t* class_name, uint32_t len=0)noexcept { CUIString name(class_name, len); return GetCreateFunc(name); }
-    private:
+        // create the control
+        auto create_control(CreateControlFunction function, pugi::xml_node node, size_t id) noexcept->UIControl*;
         // 创建事件
         void do_creating_event(CreateEventType type) noexcept;
-        // 创建控件
-        auto create_control(pugi::xml_node) noexcept->UIControl*;
         // 创建控件树
         void make_control_tree(UIWindow*, pugi::xml_node) noexcept;
     private:

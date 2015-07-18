@@ -41,6 +41,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         UIControl::MakeFloats(node.attribute("minisize").value(), size, 2);
         m_miniSize.width = static_cast<decltype(m_miniSize.width)>(size[0]);
         m_miniSize.height = static_cast<decltype(m_miniSize.height)>(size[1]);
+        // 清理颜色
+        UIControl::MakeColor(node.attribute("clearcolor").value(),this->clear_color);
     }
     // 窗口区
     {
@@ -66,8 +68,6 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         force_cast(this->windows_size.height) = window_rect.bottom;
         visible_rect.right = this->width;
         visible_rect.bottom = this->height;
-        visible_size.width = this->width;
-        visible_size.height = this->height;
         // 调整大小
         ::AdjustWindowRect(&window_rect, window_style, FALSE);
         // 居中
@@ -97,7 +97,6 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     m_idBlinkTimer = ::SetTimer(m_hwnd, 0, ::GetCaretBlinkTime(), nullptr);
     // 添加窗口
     UIManager.AddWindow(this);
-    this->clear_color.a = 0.85f;
     // 拖放帮助器
     m_pDropTargetHelper = UIManager.GetDropTargetHelper();
     // 注册拖拽目标
@@ -711,7 +710,7 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
-    UIManager << DL_Hint << "called" << endl;
+    UIManager << DL_Log << "called" << endl;
     // 修改大小, 需要取消目标
     this->DrawSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
     // 滚动
@@ -720,8 +719,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
 
     visible_rect.right = static_cast<float>(this->windows_size.width);
     visible_rect.bottom = static_cast<float>(this->windows_size.height);
-    visible_size.width = visible_rect.right;
-    visible_size.height = visible_rect.bottom;
+    this->width = visible_rect.right / this->zoom.width;
+    this->height = visible_rect.bottom / this->zoom.height;;
     //
 
     auto rect_right = MakeAsUnit(this->windows_size.width);

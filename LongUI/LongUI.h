@@ -177,9 +177,12 @@ namespace LongUI {
         // [default: false]control is floating
         // XML Attribute: "float"@bool
         Flag_Floating = 1 << 3,
-        // [default: false]control is not affected by ScrollBar
-        // XML Attribute: "free"@bool
-        Flag_FreeFromScrollBar = 1 << 4 ,
+        // [default: true] if true, this caontrol cann't draw out of
+        // it's cliprect, if false, it coule draw on sibling/parent.
+        // NOTE: this attribute used by parent
+        // NOTE: container should be true in this case but not mandatory
+        // XML Attribute : "strictclip"@bool
+        Flag_StrictClip = 1 << 4,
         // [default: true]control is visible
         // XML Attribute: "visible"@bool
         Flag_Visible = 1 << 5,
@@ -204,12 +207,6 @@ namespace LongUI {
         // control construct with full xml node info
         // if your impl control needed, set it to true by const_cast
         Flag_ControlNeedFullXMLNode = 1 << 9,
-        // [default: true] if true, this caontrol cann't draw out of
-        // it's cliprect, if false, it coule draw on sibling/parent.
-        // NOTE: this attribute used by parent
-        // NOTE: container should be true in this case but not mandatory
-        // XML Attribute : "strictclip"@bool
-        Flag_StrictClip = 1 << 10,
         // ------- Lv1 Control Flag ------------
         // [default: false] container 's child renderedt hrough
         // this control, not window directly, if container  hold

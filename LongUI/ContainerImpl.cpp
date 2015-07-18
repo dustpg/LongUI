@@ -6,9 +6,11 @@
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
     assert(node && "bad argument.");
-    // 保留
-    m_oldMarginSize.width = this->margin_rect.right;
-    m_oldMarginSize.height = this->margin_rect.bottom;
+    // 保留原始外间距
+    m_orgMargin = this->margin_rect;
+    ::memset(marginal_control, 0, sizeof(marginal_control));
+    ::memset(m_apCCFunctin, 0, sizeof(m_apCCFunctin));
+    ::memset(m_aidCCTemplateID, 0, sizeof(m_aidCCTemplateID));
     // 检查滚动条
     {
         register auto vscrollbar = node.attribute("vscrollbar").value();
@@ -69,16 +71,14 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 
 // 修改后
 void LongUI::UIContainer::AfterChangeDrawPosition() noexcept {
-    auto basic_margin_right = m_oldMarginSize.width;
-    auto basic_margin_bottom = m_oldMarginSize.height;
-    //assert(!"old margin!");
+    auto basic_margin = m_orgMargin;
     // 更新滚动条
-    if (this->scrollbar_h) {
+    /*if (this->scrollbar_h) {
         register float size = this->scrollbar_h->GetTakingUpSapce();
         basic_margin_bottom += size;
         this->scrollbar_h->x = -this->offset.x;
-        this->scrollbar_h->y = -this->offset.y + this->visible_size.height - size;
-        this->scrollbar_h->width = this->visible_size.width;
+        this->scrollbar_h->y = -this->offset.y + this->height - size;
+        this->scrollbar_h->width = this->width;
         this->scrollbar_h->height = size;
         //
         // 修改可视区域
@@ -91,10 +91,10 @@ void LongUI::UIContainer::AfterChangeDrawPosition() noexcept {
     if (this->scrollbar_v) {
         register float size = this->scrollbar_h->GetTakingUpSapce();
         basic_margin_right += size;
-        this->scrollbar_v->x = -this->offset.x + this->visible_size.width - size;
+        this->scrollbar_v->x = -this->offset.x + this->width - size;
         this->scrollbar_v->y = -this->offset.y;
         this->scrollbar_v->width = size;
-        this->scrollbar_v->height = this->visible_size.height;
+        this->scrollbar_v->height = this->height;
         // 修改可视区域
         //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
         this->scrollbar_v->visible_rect = this->visible_rect;
@@ -102,7 +102,7 @@ void LongUI::UIContainer::AfterChangeDrawPosition() noexcept {
             this->world._22 * this->scrollbar_v->GetTakingUpSapce();
         //
         //set_draw_changed(m_bDrawPosChanged, scrollbar_v);
-    }
+    }*/
 }
 
 // 压入剪切区
@@ -138,14 +138,14 @@ bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
     auto create_scrollbar = [](CreateControlFunction func) noexcept {
         return static_cast<UIScrollBar*>(func(LongUI::Type_CreateControl, LongUINullXMLNode));
     };
-    auto neededh = basew > this->visible_size.width;
+    auto neededh = basew > this->width;
     if (!this->scrollbar_h && m_pCreateH && neededh &&
         (this->scrollbar_h = create_scrollbar(m_pCreateH))) {
         this->scrollbar_h->InitScrollBar(this, ScrollBarType::Type_Horizontal);
         this->AfterInsert(this->scrollbar_h);
     }
     // 垂直滚动条
-    auto neededv = baseh > this->visible_size.height;
+    auto neededv = baseh > this->height;
     if (!this->scrollbar_v && m_pCreateV && neededv &&
         (this->scrollbar_v = create_scrollbar(m_pCreateV))) {
         this->scrollbar_v->InitScrollBar(this, ScrollBarType::Type_Vertical);
@@ -278,17 +278,19 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
     // 检查
     if (m_bDrawPosChanged || m_bDrawSizeChanged) {
-        this->GetWorldTransform(this->world);
         // 修改可视化区域, 顶级就是窗口大小
+        // TODO: IT
+        D2D1_SIZE_F visible_size = D2D1::SizeF();
         if (this->IsTopLevel()) {
-            this->visible_size.width = this->visible_rect.right;
-            this->visible_size.height = this->visible_rect.bottom;
+            visible_size.width = this->visible_rect.right;
+            visible_size.height = this->visible_rect.bottom;
         }
         // 然后...?
         else {
-            this->visible_size.width = std::min(this->width, this->parent->width);
-            this->visible_size.height = std::min(this->height, this->parent->height);
+            visible_size.width = std::min(this->width, this->parent->width);
+            visible_size.height = std::min(this->height, this->parent->height);
         }
+        this->GetWorldTransform(this->world);
     }
 }
 
@@ -559,6 +561,9 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         }
         // 计算
         base_width = std::max(base_width, this->width);
+        // 校正
+        base_width /= this->zoom.width;
+        base_height /= this->zoom.height;
         // 保证滚动条
 #ifdef LONGUI_RECHECK_LAYOUT
         auto need_refresh =
@@ -687,6 +692,9 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
         }
         // 计算
         base_height = std::max(base_height, this->height);
+        // 校正
+        base_width /= this->zoom.width;
+        base_height /= this->zoom.height;
         // 保证滚动条
 #ifdef LONGUI_RECHECK_LAYOUT
         auto need_refresh =

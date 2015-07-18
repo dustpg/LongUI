@@ -68,7 +68,7 @@ namespace LongUI {
         // create a menu by default
         bool Create() noexcept;
         // show the popup menu
-        void Show(HWND parent) noexcept;
+        void Show(HWND parent, POINT* OPTIONAL pos) noexcept;
         // create a menu by xml string
         bool Create(const char* xml) noexcept;
         // create a menu by xml node
@@ -79,7 +79,7 @@ namespace LongUI {
         // is top level?
         //auto IsTopLevel() noexcept { return m_pParent == nullptr; }
         // show the popup menu
-        auto Show(UIWindow* window) noexcept { return this->Show(window->GetHwnd()); }
+        auto Show(UIWindow* window, POINT* OPTIONAL pos) noexcept { return this->Show(window->GetHwnd(), pos); }
         // set item proc
         auto SetItemProc(ItemProc proc) noexcept { m_pItemProc = proc; }
     private:

@@ -89,9 +89,9 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
                 (sizeof(HICON) + sizeof(LongUI::Meta)) * m_cCountMt;
             return buffer_length;
         };
+        m_cCountBmp = m_cCountBrs = m_cCountTf = m_cCountMt = 1;
         // 检查资源缓存
         if (!m_pResourceBuffer) {
-            m_cCountBmp = m_cCountBrs = m_cCountTf = m_cCountMt = 1;
             // 查询资源数量
             if (m_pResourceLoader) {
                 m_cCountBmp += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Bitmap);
@@ -231,14 +231,6 @@ void LongUI::CUIManager::UnInitialize() noexcept {
 }
 
 
-// 创建控件
-auto LongUI::CUIManager::create_control(pugi::xml_node node) noexcept -> UIControl* {
-    assert(node && "bad argument");
-    // 获取创建指针
-    auto create = this->GetCreateFunc(node.name());
-    if (create) return create(CreateEventType::Type_CreateControl, node);
-    return nullptr;
-}
 
 // 创建事件
 void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
@@ -284,7 +276,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         node = *xml_queue.front;  xml_queue.pop();
         parent_node = *parents_queue.front; parents_queue.pop();
         // 根据名称创建控件
-        if (!(now_control = this->create_control(node))) {
+        if (!(now_control = this->CreateControl(node, nullptr))) {
             parent_node = nullptr;
 #ifdef _DEBUG
             const char* node_name = node.name();
@@ -440,6 +432,34 @@ auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
         do { ::Sleep(1); } while (::timeGetTime() < end_time_of_sleep);
     }
 }
+
+// 利用现有资源创建控件
+auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xml_node node, size_t id) noexcept -> UIControl * {
+    // 检查参数W
+    if (!function) {
+        if (node) {
+            function = this->GetCreateFunc(node.name());
+        }
+        else if (id) {
+
+        }
+        else {
+            assert(!"ERROR!!");
+            return nullptr;
+        }
+    }
+    if (node) {
+        id = static_cast<decltype(id)>(LongUI::AtoI(node.attribute("templateid").value()));
+    }
+    // 利用id查找模板控件
+    if (id) {
+
+    }
+    assert(function && "bad idea");
+    return function(CreateEventType::Type_CreateControl, node);
+}
+
+
 
 // 窗口过程函数
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {

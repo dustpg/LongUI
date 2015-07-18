@@ -67,6 +67,8 @@ namespace LongUI {
         private:
             UIControl*          m_pControl;
         };
+        // marginal control
+        enum MarginalControl { Control_Left = 0, Control_Top, Control_Right, Control_Bottom, CONTROL_SIZE };
     public:
         // render
         virtual void Render(RenderType) const noexcept override;
@@ -116,20 +118,31 @@ namespace LongUI {
         UIControl*              m_pHead = nullptr;
         // 尾控件指针
         UIControl*              m_pTail = nullptr;
-        // old margin size for sbar
-        D2D1_SIZE_F             m_oldMarginSize = D2D1::SizeF();
+        // orginal margin
+        D2D1_RECT_F             m_orgMargin = D2D1::RectF();
+    public:
+        // get width in child level 
+        auto GetChildLevelWidth() noexcept { return this->width / this->zoom.width; }
+        // get height in child level 
+        auto GetChildLevelHeight() noexcept { return this->height / this->zoom.height; }
     public:
         // offset position
         D2D1_POINT_2F           offset = D2D1::Point2F();
         // visible size
-        D2D1_SIZE_F             visible_size = D2D1::SizeF();
-        // 世界转换矩阵
+        D2D1_SIZE_F             zoom = D2D1::SizeF(1.f, 1.f);
+        // transform for world: XXX: maybe set it to UIContrl not here
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
         // 水平滚动条
         UIScrollBar*            scrollbar_h = nullptr;
         // 垂直滚动条
         UIScrollBar*            scrollbar_v = nullptr;
+        // marginal controls
+        UIControl*              marginal_control[CONTROL_SIZE];
     protected:
+        // create control function
+        CreateControlFunction   m_apCCFunctin[CONTROL_SIZE];
+        // create control
+        uint16_t                m_aidCCTemplateID[CONTROL_SIZE];
         // create h-sb
         CreateControlFunction   m_pCreateH = nullptr;
         // create v-sb

@@ -87,6 +87,9 @@ namespace LongUI {
 
 
 #ifdef LONGUI_WITH_DEFAULT_HEADER
+#ifndef _DEBUG
+#define NDEBUG
+#endif
 // Windows Header Files:
 #include <windows.h>
 #include <Shlobj.h>

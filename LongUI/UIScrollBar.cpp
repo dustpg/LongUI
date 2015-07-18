@@ -30,7 +30,7 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 垂直?
     if (this->type == ScrollBarType::Type_Vertical) {
         m_fMaxRange = this->parent->height;
-        m_fMaxIndex = m_fMaxRange - this->parent->visible_size.height;
+        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelHeight();
         // 检查上边界
 
         // 检查下边界
@@ -38,7 +38,7 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 水平?
     else {
         m_fMaxRange = this->parent->width;
-        m_fMaxIndex = m_fMaxRange - this->parent->visible_size.width;
+        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelWidth();
         // 检查左边界
 
         // 检查右边界
@@ -352,59 +352,16 @@ auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* target) noexcept -> HRES
 // UIScrollBarA: 初始化时
 void LongUI::UIScrollBarA::InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept {
     // 创建几何
-    auto create_geo = [](D2D1_POINT_2F* list, uint32_t length) {
-        auto hr = S_OK;
-        ID2D1PathGeometry* geometry = nullptr;
-        ID2D1GeometrySink* sink = nullptr;
-        // 创建几何体
-        if (SUCCEEDED(hr)) {
-            hr = UIManager_D2DFactory->CreatePathGeometry(&geometry);
-        }
-        // 打开
-        if (SUCCEEDED(hr)) {
-            hr = geometry->Open(&sink);
-        }
-        // 开始绘制
-        if (SUCCEEDED(hr)) {
-            sink->BeginFigure(list[0], D2D1_FIGURE_BEGIN_HOLLOW);
-            sink->AddLines(list + 1, length - 1);
-            sink->EndFigure(D2D1_FIGURE_END_OPEN);
-            hr = sink->Close();
-        }
-        AssertHR(hr);
-        ::SafeRelease(sink);
-        return geometry;
-    };
-    D2D1_POINT_2F point_list_1[3];
-    D2D1_POINT_2F point_list_2[3];
-    constexpr float BASIC_SIZE_MID = BASIC_SIZE * 0.5f;
-    constexpr float BASIC_SIZE_NEAR = BASIC_SIZE_MID * 0.5f;
-    constexpr float BASIC_SIZE_FAR = BASIC_SIZE - BASIC_SIZE_NEAR;
-    // 水平滚动条
-    if (_type != ScrollBarType::Type_Vertical) {
-        //
-        point_list_1[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
-        point_list_1[1] = { BASIC_SIZE_NEAR , BASIC_SIZE_MID };
-        point_list_1[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
-        //
-        point_list_2[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
-        point_list_2[1] = { BASIC_SIZE_FAR , BASIC_SIZE_MID };
-        point_list_2[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
+    if (_type == ScrollBarType::Type_Horizontal) {
+        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
+        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Right]);
     }
     // 垂直滚动条
     else {
-        //
-        point_list_1[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
-        point_list_1[1] = { BASIC_SIZE_MID, BASIC_SIZE_NEAR };
-        point_list_1[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
-        //
-        point_list_2[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
-        point_list_2[1] = { BASIC_SIZE_MID, BASIC_SIZE_FAR };
-        point_list_2[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
+        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Top]);
+        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Bottom]);
     }
-    // 创建
-    m_pArrow1Geo = create_geo(point_list_1, lengthof(point_list_1));
-    m_pArrow2Geo = create_geo(point_list_2, lengthof(point_list_2));
+    assert(m_pArrow1Geo && m_pArrow2Geo);
     return Super::InitScrollBar(owner, _type);
 }
 
@@ -430,6 +387,7 @@ void  LongUI::UIScrollBarA::WindUp() noexcept {
     delete this;
 }
 
+
 // 设置状态
 void LongUI::UIScrollBarA::set_status(PointType type, ControlStatus state) noexcept {
     BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
@@ -441,6 +399,11 @@ void LongUI::UIScrollBarA::set_status(PointType type, ControlStatus state) noexc
         UIElement_SetNewStatus(element, state);
     }
 }
+
+// 静态变量
+ID2D1PathGeometry* LongUI::UIScrollBarA::
+s_apArrowPathGeometry[LongUI::UIScrollBarA::ARROW_SIZE] = { nullptr };
+
 // create 创建
 auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
@@ -462,10 +425,77 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
         }
         break;
     case LongUI::Type_Initialize:
+    {
+        // 创建设备无关资源
+        auto create_geo = [](D2D1_POINT_2F* list, uint32_t length) {
+            auto hr = S_OK;
+            ID2D1PathGeometry* geometry = nullptr;
+            ID2D1GeometrySink* sink = nullptr;
+            // 创建几何体
+            if (SUCCEEDED(hr)) {
+                hr = UIManager_D2DFactory->CreatePathGeometry(&geometry);
+            }
+            // 打开
+            if (SUCCEEDED(hr)) {
+                hr = geometry->Open(&sink);
+            }
+            // 开始绘制
+            if (SUCCEEDED(hr)) {
+                sink->BeginFigure(list[0], D2D1_FIGURE_BEGIN_HOLLOW);
+                sink->AddLines(list + 1, length - 1);
+                sink->EndFigure(D2D1_FIGURE_END_OPEN);
+                hr = sink->Close();
+            }
+            AssertHR(hr);
+            ::SafeRelease(sink);
+            return geometry;
+        };
+        D2D1_POINT_2F point_list[3];
+        constexpr float BASIC_SIZE_MID = BASIC_SIZE * 0.5f;
+        constexpr float BASIC_SIZE_NEAR = BASIC_SIZE_MID * 0.5f;
+        constexpr float BASIC_SIZE_FAR = BASIC_SIZE - BASIC_SIZE_NEAR;
+        // LEFT 左箭头
+        {
+            point_list[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
+            point_list[1] = { BASIC_SIZE_NEAR , BASIC_SIZE_MID };
+            point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Left]);
+            s_apArrowPathGeometry[UIScrollBarA::Arrow_Left] = create_geo(point_list, lengthof(point_list));
+        }
+        // TOP 上箭头
+        {
+            point_list[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
+            point_list[1] = { BASIC_SIZE_MID, BASIC_SIZE_NEAR };
+            point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Top]);
+            s_apArrowPathGeometry[UIScrollBarA::Arrow_Top] = create_geo(point_list, lengthof(point_list));
+        }
+        // RIGHT 右箭头
+        {
+
+            point_list[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
+            point_list[1] = { BASIC_SIZE_FAR , BASIC_SIZE_MID };
+            point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Right]);
+            s_apArrowPathGeometry[UIScrollBarA::Arrow_Right] = create_geo(point_list, lengthof(point_list));
+        }
+        // BOTTOM 下箭头
+        {
+            point_list[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
+            point_list[1] = { BASIC_SIZE_MID, BASIC_SIZE_FAR };
+            point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom]);
+            s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom] = create_geo(point_list, lengthof(point_list));
+        }
+    }
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
+        // 释放资源
+        for (auto& geo : s_apArrowPathGeometry) {
+            ::SafeRelease(geo);
+        }
         break;
     }
     return pControl;

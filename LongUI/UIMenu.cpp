@@ -44,8 +44,9 @@ bool LongUI::CUIPopupMenu::AppendItem(const ItemProperties& prop) noexcept {
 }
 
 // 显示菜单
-void LongUI::CUIPopupMenu::Show(HWND parent) noexcept {
-    POINT pt = { 0,0 }; ::GetCursorPos(&pt);
+void LongUI::CUIPopupMenu::Show(HWND parent, POINT* OPTIONAL pos) noexcept {
+    // 获取坐标
+    POINT pt = { 0,0 };  if (pos) pt = *pos; else ::GetCursorPos(&pt);
     // 置前
     ::SetForegroundWindow(parent);
     // 跟踪菜单项的选择

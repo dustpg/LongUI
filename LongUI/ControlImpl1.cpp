@@ -66,10 +66,6 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if (this->height > 0.f) {
             flag |= LongUI::Flag_HeightFixed;
         }
-        // 自由
-        if (node.attribute("free").as_bool(false)) {
-            flag |= LongUI::Flag_FreeFromScrollBar;
-        }
         // 检查裁剪规则
         if (node.attribute("strictclip").as_bool(true)) {
             flag |= LongUI::Flag_StrictClip;
@@ -335,9 +331,8 @@ void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
         //rect.left -= static_cast<const UIContainer*>(this)->offset.x;
         //rect.top -= static_cast<const UIContainer*>(this)->offset.y;
         auto container = static_cast<const UIContainer*>(this);
-        container->visible_size;
-        rect.right = rect.left + static_cast<const UIContainer*>(this)->visible_size.width;
-        rect.bottom = rect.top + static_cast<const UIContainer*>(this)->visible_size.height;
+        rect.right = rect.left + static_cast<const UIContainer*>(this)->width;
+        rect.bottom = rect.top + static_cast<const UIContainer*>(this)->height;
         if (static_cast<const UIContainer*>(this)->scrollbar_h) {
             rect.bottom -= static_cast<const UIContainer*>(this)->scrollbar_h->GetTakingUpSapce();
         }
@@ -374,10 +369,8 @@ void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexc
     // 非顶级控件
     if (!this->IsTopLevel()) {
         // 检查
-        if (!(this->flags & Flag_FreeFromScrollBar)) {
-            xx += this->parent->offset.x;
-            yy += this->parent->offset.y;
-        }
+        xx += this->parent->offset.x;
+        yy += this->parent->offset.y;
         // 转换
         matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     }

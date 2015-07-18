@@ -273,6 +273,8 @@ namespace LongUI {
     // ctor for CUIResourceLoaderXML
     LongUI::CUIResourceLoaderXML::CUIResourceLoaderXML(
         CUIManager& manager, const char* xml)  noexcept : m_manager(manager) {
+        // 初始化
+        ::memset(m_aResourceCount, 0, sizeof(m_aResourceCount));
         auto hr = S_OK;
         // 创建 WIC 工厂.
         if (SUCCEEDED(hr)) {
@@ -362,7 +364,6 @@ namespace LongUI {
     // get reource count from doc
     void LongUI::CUIResourceLoaderXML::get_resource_count_from_xml() noexcept {
         // 初始化
-        ::memset(m_aResourceCount, 0, sizeof(m_aResourceCount));
         for (auto& node : m_aNodes) { node = pugi::xml_node(); }
         // pugixml 使用的是句柄式, 所以下面的代码是安全的.
         register auto now_node = m_docResource.first_child().first_child();

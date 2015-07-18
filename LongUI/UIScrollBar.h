@@ -63,12 +63,14 @@ namespace LongUI{
         // on needed, maybe 'need' is same in twice
         virtual void OnNeeded(bool need) noexcept = 0;
     public:
+        // get parent width/height
+        auto GetParentWH() noexcept { return this->type == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelWidth() : this->parent->GetChildLevelHeight(); }
         // on page up
-        auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - UISB_OffsetVaule(this->parent->visible_size.width)); }
+        auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - this->GetParentWH()); }
         // on page down
-        auto OnPageDown() noexcept { return this->SetIndex(m_uiAnimation.end + UISB_OffsetVaule(this->parent->visible_size.width)); }
+        auto OnPageDown() noexcept { return this->SetIndex(m_uiAnimation.end + this->GetParentWH()); }
         // on page X
-        auto OnPageX(float rate)  noexcept{ return this->SetIndex(m_uiAnimation.end + rate * UISB_OffsetVaule(this->parent->visible_size.width)); }
+        auto OnPageX(float rate)  noexcept{ return this->SetIndex(m_uiAnimation.end + rate * this->GetParentWH()); }
         // on wheel up
         auto OnWheelUp() noexcept { return this->SetIndex(m_uiAnimation.end - wheel_step); }
         // on wheel down
@@ -76,8 +78,6 @@ namespace LongUI{
         // on wheel X
         auto OnWheelX(float rate) noexcept { return this->SetIndex(m_uiAnimation.end + rate * wheel_step); }
     public:
-        // how size that take up the owner's space in layout
-        auto GetTakingUpSapce() const noexcept { return m_fTakeSpace; }
         // how size that take up the owner's space
         auto GetIndex() const noexcept { return m_fIndex; }
         // set new index
@@ -97,7 +97,7 @@ namespace LongUI{
     public:
         // type of scrollbar
         ScrollBarType   const   type = ScrollBarType::Type_Vertical;
-        // unused
+        // want animation?
         bool                    m_bAnimation = false;
     protected:
         // tpye of mouse pointed
@@ -108,8 +108,6 @@ namespace LongUI{
         // step distance for whell up/down
         float                   wheel_step = 32.f;
     protected:
-        // now take up the space of this
-        float                   m_fTakeSpace = 0.f;
         // max index of scroll bar
         float                   m_fMaxIndex = 0.f;
         // max range of scroll bar
@@ -128,13 +126,16 @@ namespace LongUI{
     };
     // srcoll bar - type A 型 滚动条
     class UIScrollBarA final : public UIScrollBar {
-    private:
         // basic size
         static constexpr float BASIC_SIZE = 16.f;
         // 父类申明
         using Super = UIScrollBar;
         // ui element
         using BarElement = Component::Elements<Element::Meta, Element::ColorRect, Element::Basic>;
+        // arrow for this
+        enum { Arrow_Left, Arrow_Top, Arrow_Right, Arrow_Bottom, ARROW_SIZE };
+        // path geo
+        static ID2D1PathGeometry*       s_apArrowPathGeometry[ARROW_SIZE];
     public:
         // ctor
         UIScrollBarA(pugi::xml_node node) noexcept;
