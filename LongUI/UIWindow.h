@@ -71,7 +71,7 @@ namespace LongUI{
         // unregister for calling PreRender
         void UnRegisterOffScreenRender(UIControl*) noexcept;
         // set the caret
-        void SetCaretPos(UIControl* c, float x, float y) noexcept;
+        void SetCaretPos(UIControl* c, float _x, float _y) noexcept;
         // create the caret
         void CreateCaret(float width, float height) noexcept;
         // show the caret

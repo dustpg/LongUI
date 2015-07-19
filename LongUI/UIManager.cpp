@@ -245,6 +245,7 @@ void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
     }
 }
 
+
 // CUIManager 创建控件树
 // 默认消耗 64kb+, 导致栈(默认1~2M)溢出几率较低
 void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_node node) noexcept {
@@ -650,6 +651,7 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
             UINT32 collectionKeySize,
             IDWriteFontFileEnumerator **ppFontFileEnumerator
             ) noexcept override {
+            UNREFERENCED_PARAMETER(collectionKeySize);
             if (!pFactory || !ppFontFileEnumerator) return E_INVALIDARG;
             m_enumerator.LongUIFontFileEnumerator::~LongUIFontFileEnumerator();
             m_enumerator.LongUIFontFileEnumerator::LongUIFontFileEnumerator(pFactory);
@@ -827,7 +829,9 @@ auto LongUI::CUIManager::CreateTextPathGeometry(
 }
 
 // 利用几何体创建网格
-auto LongUI::CUIManager::CreateMeshFromGeometry(ID2D1Geometry * geometry, ID2D1Mesh ** mesh) noexcept -> HRESULT {
+auto LongUI::CUIManager::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept -> HRESULT {
+    UNREFERENCED_PARAMETER(geometry);
+    UNREFERENCED_PARAMETER(mesh);
     return E_NOTIMPL;
 }
 
@@ -1413,7 +1417,6 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
     if (m_phMetaIcon[index]) return m_phMetaIcon[index];
     LongUI::Meta meta; this->GetMeta(index, meta);
     assert(meta.bitmap);
-    HICON hIcon = nullptr;
     ID2D1Bitmap1* bitmap = this->GetBitmap(LongUIDefaultBitmapIndex);
     D2D1_RECT_U src_rect = {
         static_cast<uint32_t>(meta.src_rect.left),
@@ -1453,7 +1456,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         hr = bitmap->Unmap();
     }
     // 转换数据
-    HCURSOR hAlphaIcon = nullptr;
+    HICON hAlphaIcon = nullptr;
     if (SUCCEEDED(hr)) {
         auto meta_width = src_rect.right - src_rect.left;
         auto meta_height = src_rect.bottom - src_rect.top;
@@ -1580,7 +1583,7 @@ auto LongUI::CUIManager::FormatTextCore(
 template<typename T>
 auto __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_t token_num) {
     register wchar_t ch;
-    while (ch = *stream) {
+    while ((ch = *stream)) {
         ++stream;
         if (ch == L',' && !(--token_num)) {
             break;
@@ -1632,15 +1635,7 @@ auto  LongUI::CUIManager::FormatTextCore(
         assert(param && "ap set to nullptr, but none param found.");
     }
     // Color
-    union ARGBColor {
-        struct {
-            uint8_t b;
-            uint8_t g;
-            uint8_t r;
-            uint8_t a;
-        };
-        uint32_t u32;
-    };
+    union ARGBColor { struct { uint8_t b, g, r, a; }; uint32_t u32; };
     // Range Type
     enum class R :size_t { N, W, Y, H, S, U, E, D, I };
     // Range Data
@@ -1911,7 +1906,7 @@ auto  LongUI::CUIManager::FormatTextCore(
                 break;
             case L'P': case L'p': // end of main string, then, is the param
                 goto force_break;
-            case L']': case L'}': // All Range type end
+            case L']': case L'}': // end of all range type
                 // 检查栈弹出
                 stack_check.pop();
                 // 计算长度
@@ -2147,14 +2142,14 @@ auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept->CUIManage
 void LongUI::CUIManager::Output(DebugStringLevel l, const char * s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
-    this->Output(m_lastLevel, buffer);
+    this->Output(l, buffer);
 }
 
 // 输出UTF-8字符串
 void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char * s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
-    this->OutputNoFlush(m_lastLevel, buffer);
+    this->OutputNoFlush(l, buffer);
 }
 
 // 浮点重载

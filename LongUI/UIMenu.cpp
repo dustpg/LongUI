@@ -33,6 +33,7 @@ bool LongUI::CUIPopupMenu::Create(const char * xml) noexcept {
 
 // 使用XML节点创建菜单
 bool LongUI::CUIPopupMenu::Create(pugi::xml_node node) noexcept {
+    UNREFERENCED_PARAMETER(node);
     assert(!m_hMenu && "cannot create again!");
     m_hMenu = ::CreatePopupMenu();
     return !!m_hMenu;
@@ -40,6 +41,7 @@ bool LongUI::CUIPopupMenu::Create(pugi::xml_node node) noexcept {
 
 // 添加物品
 bool LongUI::CUIPopupMenu::AppendItem(const ItemProperties& prop) noexcept {
+    UNREFERENCED_PARAMETER(prop);
     return false;
 }
 

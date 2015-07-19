@@ -52,18 +52,18 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             }
             // 检查大小
             if (UIControl::MakeFloats(node.attribute("size").value(), pos, 2)) {
-                this->width = pos[0];
-                this->height = pos[1];
+                this->cwidth = pos[0];
+                this->cheight = pos[1];
             }
         }
         // 检查外边距
         UIControl::MakeFloats(node.attribute("margin").value(), const_cast<float*>(&margin_rect.left), 4);
         // 宽度固定
-        if (this->width > 0.f) {
+        if (this->cwidth > 0.f) {
             flag |= LongUI::Flag_WidthFixed;
         }
         // 高度固定
-        if (this->height > 0.f) {
+        if (this->cheight > 0.f) {
             flag |= LongUI::Flag_HeightFixed;
         }
         // 检查裁剪规则
@@ -137,10 +137,8 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
 
 // UI控件: 刷新
 void LongUI::UIControl::Update() noexcept {
-    m_bDrawPosChanged = m_bDrawPosChanged_InUpdate;
-    m_bDrawSizeChanged = m_bDrawSizeChanged_InUpdate;
-    m_bDrawPosChanged_InUpdate = false;
-    m_bDrawSizeChanged_InUpdate = false;
+    m_bControlSizeChanged = m_bControlSizeChangedEx;
+    m_bControlSizeChangedEx = false;
 }
 
 // UI控件: 重建
@@ -282,7 +280,7 @@ void LongUI::UIControl::SetEventCallBack(
 
 // 获取占用宽度
 auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
-    return this->width 
+    return this->cwidth 
         + margin_rect.left 
         + margin_rect.right
         + m_fBorderSize * 2.f;
@@ -290,7 +288,7 @@ auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
 
 // 获取占用高度
 auto LongUI::UIControl::GetTakingUpHeight() const noexcept -> float{
-    return this->height 
+    return this->cheight 
         + margin_rect.top 
         + margin_rect.bottom
         + m_fBorderSize * 2.f;
@@ -321,11 +319,43 @@ auto LongUI::UIControl::GetControlClassName() const noexcept -> const wchar_t* {
     return L"[Unknown Control]";
 }
 
+// 设置占用宽度
+auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
+    // 设置
+    auto new_cwidth = w - this->GetNonContentWidth();
+    if (new_cwidth != this->cwidth) {
+        this->cwidth = new_cwidth;
+        this->SetControlSizeChanged();
+    }
+    // 检查
+    if (this->cwidth) {
+        UIManager << DL_Hint << this
+            << "cwidth changed less than 0: " << this->cwidth << endl;
+    }
+}
+
+// 设置占用高度
+auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinline {
+    // 设置
+    auto new_cheight = h - this->GetNonContentHeight();
+    if (new_cheight != this->cheight) {
+        this->cheight = new_cheight;
+        this->SetControlSizeChanged();
+    }
+    // 检查
+    if (this->cheight) {
+        UIManager << DL_Hint << this
+            << "cheight changed less than 0: " << this->cheight << endl;
+    }
+}
+
 // 获取占用/剪切矩形
 void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderSize);
     rect.top = -(this->margin_rect.top + m_fBorderSize);
-    // 容器
+    rect.right = this->cwidth + this->margin_rect.right + m_fBorderSize;
+    rect.bottom = this->cheight + this->margin_rect.bottom + m_fBorderSize;
+    /*// 容器
     if ((this->flags & Flag_UIContainer)) {
         // 修改裁剪区域
         //rect.left -= static_cast<const UIContainer*>(this)->offset.x;
@@ -343,23 +373,23 @@ void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     else {
         rect.right = this->width + this->margin_rect.right + m_fBorderSize;
         rect.bottom = this->height + this->margin_rect.bottom + m_fBorderSize;
-    }
+    }*/
 }
 
 // 获取边框矩形
 void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -m_fBorderSize;
     rect.top = -m_fBorderSize;
-    rect.right = this->width + m_fBorderSize;
-    rect.bottom = this->height + m_fBorderSize;
+    rect.right = this->cwidth + m_fBorderSize;
+    rect.bottom = this->cheight + m_fBorderSize;
 }
 
 // 获取刻画矩形
 void LongUI::UIControl::GetContentRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = 0.f;
     rect.top = 0.f;
-    rect.right = this->width;
-    rect.bottom = this->height;
+    rect.right = this->cwidth;
+    rect.bottom = this->cheight;
 }
 
 // 获得世界转换矩阵
@@ -385,6 +415,7 @@ void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexc
 // -------------------------------------------------------
 // UILabel: do event 事件处理
 bool LongUI::UILabel::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    UNREFERENCED_PARAMETER(arg);
     return false;
 }
 
@@ -415,10 +446,10 @@ void LongUI::UILabel::Render(RenderType type) const noexcept {
 
 // UILabel: 刷新
 void LongUI::UILabel::Update() noexcept {
-    // 文本属于前景
-    if (m_bDrawSizeChanged) {
+    // 改变了大小
+    if(this->IsControlSizeChanged()) {
         // 设置大小
-        m_text.SetNewSize(this->width, this->height);
+        m_text.SetNewSize(this->cwidth, this->cheight);
     }
     return Super::Update();
 }
@@ -674,9 +705,10 @@ void LongUI::UIEditBasic::Render(RenderType type) const noexcept {
 
 // UI基本编辑框: 刷新
 void LongUI::UIEditBasic::Update() noexcept {
-    // 更新刻画地区
-    if (m_bDrawSizeChanged) {
-        m_text.SetNewSize(this->width, this->height);
+    // 改变了大小
+    if (this->IsControlSizeChanged()) {
+        // 设置大小
+        m_text.SetNewSize(this->cwidth, this->cheight);
     }
     // 刷新
     m_text.Update();

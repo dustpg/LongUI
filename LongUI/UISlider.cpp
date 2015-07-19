@@ -32,8 +32,8 @@ void LongUI::UISlider::Update() noexcept {
     else {
         // 根据 value 计算滑块位置
         m_rcSlider.top = 0.f;
-        m_rcSlider.bottom = m_rcSlider.top + this->height;
-        m_rcSlider.left = this->width * m_fValue;
+        m_rcSlider.bottom = m_rcSlider.top + this->cheight;
+        m_rcSlider.left = this->cwidth * m_fValue;
         m_rcSlider.right = m_rcSlider.left + m_fSliderHalfWidth * 2.f;
     }
 }
@@ -100,7 +100,7 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         case WM_MOUSEMOVE:
             if (m_bMouseClickIn && arg.wParam_sys & MK_LBUTTON){
-                m_fValue = (arg.pt.x) / this->width;
+                m_fValue = (arg.pt.x) / this->cwidth;
                 if (m_fValue > 1.f) m_fValue = 1.f;
                 if (m_fValue < 0.f) m_fValue = 0.f;
 
@@ -123,7 +123,7 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
             }
             // 检查是否有事件回调
             if (m_eventChanged) {
-                (m_pChangedTarget->*m_eventChanged)(this);
+                m_eventChanged(m_pChangedTarget, this);
             }
             else {
                 // 否则发送事件到窗口

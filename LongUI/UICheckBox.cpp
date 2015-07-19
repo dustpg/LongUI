@@ -104,7 +104,7 @@ LongUI::UIControl* LongUI::UICheckBox::CreateControl(CreateEventType type, pugi:
 
 // do event 事件处理
 bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    D2D1_COLOR_F* color = nullptr;
+   // D2D1_COLOR_F* color = nullptr;
     if (arg.sender) {
         switch (arg.event)
         {
@@ -132,7 +132,7 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
         {
         case WM_LBUTTONUP:
             // 有效
-            if (arg.pt.x < this->width && arg.pt.y) {
+            if (arg.pt.x < this->cwidth && arg.pt.y) {
                 // 检查flag
                 if (this->flags & Flag_CheckBox_WithIndeterminate) {
                     if (this->state == CheckBoxState::State_UnChecked) {

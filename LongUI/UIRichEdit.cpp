@@ -174,6 +174,7 @@ HDC LongUI::UIRichEdit::TxGetDC() {
 
 // ITextHost::TxReleaseDC 实现: 释放DC
 INT LongUI::UIRichEdit::TxReleaseDC(HDC hdc){
+    UNREFERENCED_PARAMETER(hdc);
     assert(!"- GDI MODE - Not Supported");
     TRACE_FUCTION;
     return 0;
@@ -181,30 +182,44 @@ INT LongUI::UIRichEdit::TxReleaseDC(HDC hdc){
 
 // ITextHost::TxShowScrollBar 实现: 显示滚动条
 BOOL LongUI::UIRichEdit::TxShowScrollBar(INT fnBar, BOOL fShow){
+    UNREFERENCED_PARAMETER(fnBar);
+    UNREFERENCED_PARAMETER(fShow);
     TRACE_FUCTION;
     return FALSE;
 }
 
 BOOL LongUI::UIRichEdit::TxEnableScrollBar(INT fuSBFlags, INT fuArrowflags){
+    UNREFERENCED_PARAMETER(fuSBFlags);
+    UNREFERENCED_PARAMETER(fuArrowflags);
     TRACE_FUCTION;
     return FALSE;
 }
 
 BOOL LongUI::UIRichEdit::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL fRedraw){
+    UNREFERENCED_PARAMETER(fnBar);
+    UNREFERENCED_PARAMETER(nMinPos);
+    UNREFERENCED_PARAMETER(nMaxPos);
+    UNREFERENCED_PARAMETER(fRedraw);
     TRACE_FUCTION;
     return FALSE;
 }
 
 BOOL LongUI::UIRichEdit::TxSetScrollPos(INT fnBar, INT nPos, BOOL fRedraw){
+    UNREFERENCED_PARAMETER(fnBar);
+    UNREFERENCED_PARAMETER(nPos);
+    UNREFERENCED_PARAMETER(fRedraw);
     TRACE_FUCTION;
     return FALSE;
 }
 
 void LongUI::UIRichEdit::TxInvalidateRect(LPCRECT prc, BOOL fMode){
+    UNREFERENCED_PARAMETER(prc);
+    UNREFERENCED_PARAMETER(fMode);
     TRACE_FUCTION;
 }
 
 void LongUI::UIRichEdit::TxViewChange(BOOL fUpdate){
+    UNREFERENCED_PARAMETER(fUpdate);
     TRACE_FUCTION;
     //if (fUpdate) {
         m_pWindow->Invalidate(this);
@@ -213,6 +228,7 @@ void LongUI::UIRichEdit::TxViewChange(BOOL fUpdate){
 
 // ITextHost::TxCreateCaret 实现:创建光标
 BOOL LongUI::UIRichEdit::TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight){
+    UNREFERENCED_PARAMETER(hbmp);
     TRACE_FUCTION;
     m_sizeCaret = {static_cast<float>(xWidth), static_cast<float>(yHeight) };
     // 创建傀儡
@@ -223,16 +239,17 @@ BOOL LongUI::UIRichEdit::TxCreateCaret(HBITMAP hbmp, INT xWidth, INT yHeight){
 
 // ITextHost::TxShowCaret 实现:显示/隐藏光标
 BOOL LongUI::UIRichEdit::TxShowCaret(BOOL fShow){
+    UNREFERENCED_PARAMETER(fShow);
     TRACE_FUCTION;
     //m_unused[Unused_ShowCaret] = (fShow != 0);
     return TRUE;
 }
 
-BOOL LongUI::UIRichEdit::TxSetCaretPos(INT x, INT y){
+BOOL LongUI::UIRichEdit::TxSetCaretPos(INT _x, INT _y){
     TRACE_FUCTION;
-    m_ptCaret = {static_cast<float>(x), static_cast<float>(y) };
+    m_ptCaret = {static_cast<float>(_x), static_cast<float>(_y) };
     m_pWindow->Invalidate(this);
-    ::SetCaretPos(x, y);
+    ::SetCaretPos(_x, _y);
     return TRUE;
 }
 
@@ -249,15 +266,19 @@ void LongUI::UIRichEdit::TxKillTimer(UINT idTimer){
 
 void LongUI::UIRichEdit::TxScrollWindowEx(INT dx, INT dy, LPCRECT lprcScroll,
     LPCRECT lprcClip, HRGN hrgnUpdate, LPRECT lprcUpdate, UINT fuScroll){
+    UNREFERENCED_PARAMETER(dx);
+    UNREFERENCED_PARAMETER(dy);
+    UNREFERENCED_PARAMETER(lprcScroll);
+    UNREFERENCED_PARAMETER(lprcClip);
+    UNREFERENCED_PARAMETER(hrgnUpdate);
+    UNREFERENCED_PARAMETER(lprcUpdate);
+    UNREFERENCED_PARAMETER(fuScroll);
     TRACE_FUCTION;
 }
 
 void LongUI::UIRichEdit::TxSetCapture(BOOL fCapture) {
     TRACE_FUCTION;
-    if (fCapture)
-        ::SetCapture(m_hwnd);
-    else
-        ::ReleaseCapture();
+    fCapture ? void(::SetCapture(m_hwnd)) : void(::ReleaseCapture());
 }
 
 void LongUI::UIRichEdit::TxSetFocus(){
@@ -265,25 +286,31 @@ void LongUI::UIRichEdit::TxSetFocus(){
 }
 
 void LongUI::UIRichEdit::TxSetCursor(HCURSOR hcur, BOOL fText){
+    UNREFERENCED_PARAMETER(hcur);
+    UNREFERENCED_PARAMETER(fText);
     TRACE_FUCTION;
 }
 
 BOOL LongUI::UIRichEdit::TxScreenToClient(LPPOINT lppt){
+    UNREFERENCED_PARAMETER(lppt);
     TRACE_FUCTION;
     return FALSE;
 }
 
 BOOL LongUI::UIRichEdit::TxClientToScreen(LPPOINT lppt){
+    UNREFERENCED_PARAMETER(lppt);
     TRACE_FUCTION;
     return FALSE;
 }
 
 HRESULT LongUI::UIRichEdit::TxActivate(LONG* plOldState){
+    UNREFERENCED_PARAMETER(plOldState);
     TRACE_FUCTION;
     return E_FAIL;
 }
 
 HRESULT LongUI::UIRichEdit::TxDeactivate(LONG lNewState){
+    UNREFERENCED_PARAMETER(lNewState);
     TRACE_FUCTION;
     return E_FAIL;
 }
@@ -302,6 +329,7 @@ HRESULT LongUI::UIRichEdit::TxGetViewInset(LPRECT prc){
 }
 
 HRESULT LongUI::UIRichEdit::TxGetCharFormat(const CHARFORMATW **ppCF){
+    UNREFERENCED_PARAMETER(ppCF);
     /*METHOD_PROLOGUE(CRichDrawText, TextHost)
 
         // Return the default character format set up in the constructor
@@ -311,7 +339,8 @@ HRESULT LongUI::UIRichEdit::TxGetCharFormat(const CHARFORMATW **ppCF){
 }
 
 HRESULT LongUI::UIRichEdit::TxGetParaFormat(const PARAFORMAT **ppPF){
-   /* METHOD_PROLOGUE(CRichDrawText, TextHost)
+    UNREFERENCED_PARAMETER(ppPF);
+    /* METHOD_PROLOGUE(CRichDrawText, TextHost)
 
         // Return the default paragraph format set up in the constructor
         *ppPF = &(pThis->m_ParaFormat);*/
@@ -358,16 +387,19 @@ HRESULT LongUI::UIRichEdit::TxGetAcceleratorPos(LONG *pcp){
 }
 
 HRESULT LongUI::UIRichEdit::TxGetExtent(LPSIZEL lpExtent){
+    UNREFERENCED_PARAMETER(lpExtent);
     TRACE_FUCTION;
     return E_NOTIMPL;
 }
 
 HRESULT LongUI::UIRichEdit::OnTxCharFormatChange(const CHARFORMATW * pcf){
+    UNREFERENCED_PARAMETER(pcf);
     TRACE_FUCTION;
     return E_FAIL;
 }
 
 HRESULT LongUI::UIRichEdit::OnTxParaFormatChange(const PARAFORMAT * ppf){
+    UNREFERENCED_PARAMETER(ppf);
     TRACE_FUCTION;
     return E_FAIL;
 }
@@ -382,6 +414,8 @@ HRESULT LongUI::UIRichEdit::TxGetPropertyBits(DWORD dwMask, DWORD *pdwBits){
 
 HRESULT LongUI::UIRichEdit::TxNotify(DWORD iNotify, void *pv){
     // Claim to have handled the notifcation, even though we always ignore it
+    UNREFERENCED_PARAMETER(iNotify);
+    UNREFERENCED_PARAMETER(pv);
     TRACE_FUCTION;
     return S_OK;
 }
@@ -392,10 +426,12 @@ HIMC LongUI::UIRichEdit::TxImmGetContext(){
 }
 
 void LongUI::UIRichEdit::TxImmReleaseContext(HIMC himc){
+    UNREFERENCED_PARAMETER(himc);
     TRACE_FUCTION;
 }
 
 HRESULT LongUI::UIRichEdit::TxGetSelectionBarWidth(LONG *lSelBarWidth){
+    UNREFERENCED_PARAMETER(lSelBarWidth);
     // No selection bar
     *lSelBarWidth = 0;
     TRACE_FUCTION;
@@ -440,6 +476,8 @@ HRESULT LongUI::UIRichEdit::TxGetEastAsianFlags(LONG *pFlags) {
 
 //@cmember Routes the cursor change to the winhost
 HCURSOR LongUI::UIRichEdit::TxSetCursor2(HCURSOR hcur, BOOL bText) {
+    UNREFERENCED_PARAMETER(hcur);
+    UNREFERENCED_PARAMETER(bText);
     TRACE_FUCTION;
     return hcur;
 }
@@ -452,6 +490,8 @@ void    LongUI::UIRichEdit::TxFreeTextServicesNotification() {
 
 //@cmember Get Edit Style flags
 HRESULT LongUI::UIRichEdit::TxGetEditStyle(DWORD dwItem, DWORD *pdwData) {
+    UNREFERENCED_PARAMETER(dwItem);
+    UNREFERENCED_PARAMETER(pdwData);
     TRACE_FUCTION;
     return FALSE;
 }
@@ -466,6 +506,9 @@ HRESULT LongUI::UIRichEdit::TxGetWindowStyles(DWORD *pdwStyle, DWORD *pdwExStyle
 
 //@cmember Show / hide drop caret (D2D-only)
 HRESULT LongUI::UIRichEdit::TxShowDropCaret(BOOL fShow, HDC hdc, LPCRECT prc) {
+    UNREFERENCED_PARAMETER(fShow);
+    UNREFERENCED_PARAMETER(hdc);
+    UNREFERENCED_PARAMETER(prc);
     TRACE_FUCTION;
     return S_FALSE;
 }
@@ -478,6 +521,7 @@ HRESULT LongUI::UIRichEdit::TxDestroyCaret() {
 
 //@cmember Get Horizontal scroll extent
 HRESULT LongUI::UIRichEdit::TxGetHorzExtent(LONG *plHorzExtent) {
+    UNREFERENCED_PARAMETER(plHorzExtent);
     TRACE_FUCTION;
     return S_FALSE;
 }

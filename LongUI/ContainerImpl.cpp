@@ -1,30 +1,45 @@
 ﻿#include "LongUI.h"
 
-//#define LONGUI_RECHECK_LAYOUT
-
 // -------------------------- UIContainer -------------------------
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
+    ::memset(marginal_control, 0, sizeof(marginal_control));
     assert(node && "bad argument.");
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
-    ::memset(marginal_control, 0, sizeof(marginal_control));
-    ::memset(m_apCCFunctin, 0, sizeof(m_apCCFunctin));
-    ::memset(m_aidCCTemplateID, 0, sizeof(m_aidCCTemplateID));
-    // 检查滚动条
-    {
-        register auto vscrollbar = node.attribute("vscrollbar").value();
-        if (vscrollbar) {
-            m_pCreateV = UIManager.GetCreateFunc(vscrollbar);
-        }
-    }
-    {
-        register auto hscrollbar = node.attribute("hscrollbar").value();
-        if (hscrollbar) {
-            m_pCreateH = UIManager.GetCreateFunc(hscrollbar);
-        }
-    }
     uint32_t flag = this->flags | Flag_UIContainer;
+    // 检查边缘控件
+    {
+        const char* const attname[] = {
+            "leftcontrol", "topcontrol", "rightcontrol", "bottomcontrol"
+        };
+        const char* const templateid[] = {
+            "lefttemplateid", "toptemplateid", "righttemplateid", "bottomtemplateid"
+        };
+        bool exist_marginal_control = false;
+        for (auto i = 0u; i < MARGINAL_CONTROL_SIZE; ++i) {
+            const char* str = nullptr;
+            if ((str = node.attribute(attname[i]).value())) {
+                auto create_control_func = UIManager.GetCreateFunc(str);
+                assert(create_control_func && "none");
+                if (create_control_func) {
+                    // 检查模板ID
+                    auto tid = LongUI::AtoI(node.attribute(templateid[i]).value());
+                    // 创建控件
+                    this->marginal_control[i] = UIManager.CreateControl(size_t(tid), create_control_func);
+                    
+                }
+                // 优化flag
+                if (this->marginal_control[i]) {
+                    exist_marginal_control = true;
+                }
+            }
+        }
+        // 存在
+        if (exist_marginal_control) {
+            flag |= Flag_Container_ExistMarginalContrl;
+        }
+    }
     if ((this->flags & Flag_RenderParent) || node.attribute("rendercd").as_bool(false)) {
         flag |= LongUI::Flag_Container_AlwaysRenderChildrenDirectly;
     }
@@ -33,20 +48,21 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
 
 // UIContainer 析构函数
 LongUI::UIContainer::~UIContainer() noexcept {
-    // 关闭滚动条
-    if (this->scrollbar_h) {
-        this->scrollbar_h->WindUp();
-        this->scrollbar_h = nullptr;
+    // 关闭边缘控件
+    if (this->flags & Flag_Container_ExistMarginalContrl) {
+        for (auto& ctrl : this->marginal_control) {
+            if (ctrl) {
+                ctrl->WindUp();
+                ctrl = nullptr;
+            }
+        }
     }
-    if (this->scrollbar_v) {
-        this->scrollbar_v->WindUp();
-        this->scrollbar_v = nullptr;
-    }
+    // 断言
+    this->AssertMarginalControl();
     // 关闭子控件
-    for (auto itr = this->begin(); itr != this->end(); ) {
-        auto itr_next = itr; ++itr_next;
-        itr->WindUp();
-        itr = itr_next;
+    {
+        auto ctrl = m_pHead;
+        while (ctrl) { auto next_ctrl = ctrl->next; ctrl->WindUp(); ctrl = next_ctrl; }
     }
 }
 
@@ -64,118 +80,21 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     // 重建资源
     child->Recreate(m_pRenderTarget);
     // 修改
-    child->DrawPosChanged();
-    child->DrawSizeChanged();
-    this->DrawSizeChanged();
-}
-
-// 修改后
-void LongUI::UIContainer::AfterChangeDrawPosition() noexcept {
-    auto basic_margin = m_orgMargin;
-    // 更新滚动条
-    /*if (this->scrollbar_h) {
-        register float size = this->scrollbar_h->GetTakingUpSapce();
-        basic_margin_bottom += size;
-        this->scrollbar_h->x = -this->offset.x;
-        this->scrollbar_h->y = -this->offset.y + this->height - size;
-        this->scrollbar_h->width = this->width;
-        this->scrollbar_h->height = size;
-        //
-        // 修改可视区域
-        //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
-        this->scrollbar_h->visible_rect = this->visible_rect;
-        this->scrollbar_h->visible_rect.top = this->scrollbar_h->visible_rect.bottom -
-            this->world._11 * this->scrollbar_h->GetTakingUpSapce();
-        //set_draw_changed(m_bDrawPosChanged, scrollbar_h);
-    }
-    if (this->scrollbar_v) {
-        register float size = this->scrollbar_h->GetTakingUpSapce();
-        basic_margin_right += size;
-        this->scrollbar_v->x = -this->offset.x + this->width - size;
-        this->scrollbar_v->y = -this->offset.y;
-        this->scrollbar_v->width = size;
-        this->scrollbar_v->height = this->height;
-        // 修改可视区域
-        //D2D1_MATRIX_3X2_F matrix; this->scrollbar_h->GetWorldTransform(matrix);
-        this->scrollbar_v->visible_rect = this->visible_rect;
-        this->scrollbar_v->visible_rect.left = this->scrollbar_v->visible_rect.right -
-            this->world._22 * this->scrollbar_v->GetTakingUpSapce();
-        //
-        //set_draw_changed(m_bDrawPosChanged, scrollbar_v);
-    }*/
-}
-
-// 压入剪切区
-void LongUI::UIContainer::PushAxisAlignedClip(D2D1_ANTIALIAS_MODE mode) const noexcept {
-    // 排除滚动条
-    /*D2D1_RECT_F rect = {
-        this->show_zone.left,
-        this->show_zone.top ,
-        this->show_zone.left + this->show_zone.width,
-        this->show_zone.top + this->show_zone.height
-    };*/
-    D2D1_RECT_F rect = { 0.f, 0.f, this->width, this->height};
-    if (this->scrollbar_h) {
-        rect.bottom -= this->scrollbar_h->GetTakingUpSapce();
-    }
-    if (this->scrollbar_v) {
-        rect.right -= this->scrollbar_v->GetTakingUpSapce();
-    }
-    //
-    m_pRenderTarget->PushAxisAlignedClip(&rect, mode);
-}
-
-// UIContainer 保证滚动条
-bool LongUI::UIContainer::AssureScrollBar(float basew, float baseh) noexcept {
-#ifdef LONGUI_RECHECK_LAYOUT
-    auto check = [](UIScrollBar* bar) ->uint8_t {
-        return bar && bar->GetTakingUpSapce() > 0.f ? 1 : 0;
-    };
-    // 检查
-    uint8_t need_refresh = ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
-#endif
-    // 水平滚动条
-    auto create_scrollbar = [](CreateControlFunction func) noexcept {
-        return static_cast<UIScrollBar*>(func(LongUI::Type_CreateControl, LongUINullXMLNode));
-    };
-    auto neededh = basew > this->width;
-    if (!this->scrollbar_h && m_pCreateH && neededh &&
-        (this->scrollbar_h = create_scrollbar(m_pCreateH))) {
-        this->scrollbar_h->InitScrollBar(this, ScrollBarType::Type_Horizontal);
-        this->AfterInsert(this->scrollbar_h);
-    }
-    // 垂直滚动条
-    auto neededv = baseh > this->height;
-    if (!this->scrollbar_v && m_pCreateV && neededv &&
-        (this->scrollbar_v = create_scrollbar(m_pCreateV))) {
-        this->scrollbar_v->InitScrollBar(this, ScrollBarType::Type_Vertical);
-        this->AfterInsert(this->scrollbar_v);
-    }
-    // -----
-    if (this->scrollbar_h) {
-        this->scrollbar_h->another = this->scrollbar_v;
-        this->scrollbar_h->OnNeeded(neededh);
-    }
-    if (this->scrollbar_v) {
-        this->scrollbar_v->another = this->scrollbar_h;
-        this->scrollbar_v->OnNeeded(neededv);
-    }
-#ifdef LONGUI_RECHECK_LAYOUT
-    return need_refresh != ((check(this->scrollbar_h) << 1) | check(this->scrollbar_v));
-#else
-    return false;
-#endif
+    child->SetControlSizeChanged();
+    this->SetControlSizeChanged();
 }
 
 // UI容器: 查找控件
 auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIControl* {
-    // 滚动条
-    if (this->scrollbar_h && IsPointInRect(this->scrollbar_h->visible_rect, pt)) {
-        return this->scrollbar_h;
+    // 查找边缘控件
+    if (this->flags & Flag_Container_ExistMarginalContrl) {
+        for (auto ctrl : this->marginal_control) {
+            if (ctrl && IsPointInRect(ctrl->visible_rect, pt)) {
+                return ctrl;
+            }
+        }
     }
-    if (this->scrollbar_v && IsPointInRect(this->scrollbar_v->visible_rect, pt)) {
-        return this->scrollbar_v;
-    }
+    this->AssertMarginalControl();
     UIControl* control_out = nullptr;
     for (auto ctrl : (*this)) {
         /*if (m_strControlName == L"MainWindow") {
@@ -256,14 +175,13 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
             do_render(m_pRenderTarget, ctrl);
         }
         m_pRenderTarget->PopAxisAlignedClip();
-        // 渲染滚动条
-        if (this->scrollbar_h) {
-            do_render(m_pRenderTarget, this->scrollbar_h);
+        // 渲染边缘控件
+        if (this->flags & Flag_Container_ExistMarginalContrl) {
+            for (auto ctrl : this->marginal_control) {
+                do_render(m_pRenderTarget, ctrl);
+            }
         }
-        // 渲染滚动条
-        if (this->scrollbar_v) {
-            do_render(m_pRenderTarget, this->scrollbar_v);
-        }
+        this->AssertMarginalControl();
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -277,7 +195,7 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 // 刷新子控件前
 void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
     // 检查
-    if (m_bDrawPosChanged || m_bDrawSizeChanged) {
+    if (this->IsControlSizeChanged()) {
         // 修改可视化区域, 顶级就是窗口大小
         // TODO: IT
         D2D1_SIZE_F visible_size = D2D1::SizeF();
@@ -285,10 +203,11 @@ void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
             visible_size.width = this->visible_rect.right;
             visible_size.height = this->visible_rect.bottom;
         }
+        
         // 然后...?
         else {
-            visible_size.width = std::min(this->width, this->parent->width);
-            visible_size.height = std::min(this->height, this->parent->height);
+            visible_size.width = std::min(this->cwidth, this->parent->cwidth);
+            visible_size.height = std::min(this->cheight, this->parent->cheight);
         }
         this->GetWorldTransform(this->world);
     }
@@ -297,14 +216,15 @@ void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept  {
     // 修改可视化区域
-    if (m_bDrawPosChanged || m_bDrawSizeChanged) {
-        // 设置
-        auto set_draw_changed = [](bool draw, UIControl* ctrl) noexcept {
-            if (draw) ctrl->DrawPosChanged();
-        };
+    if (this->IsControlSizeChanged()) {
+        // 本容器内容限制
+        D2D1_POINT_2F limit_of_this;
+        {
+            D2D1_RECT_F rect; this->GetContentRect(rect);
+            limit_of_this = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(rect.right));
+        }
         // 更新
         for (auto ctrl : (*this)) {
-            set_draw_changed(m_bDrawPosChanged, ctrl);
             // 前向刷新
             if (ctrl->flags & Flag_UIContainer) {
                 static_cast<UIContainer*>(ctrl)->BeforeUpdateChildren();
@@ -315,30 +235,23 @@ void LongUI::UIContainer::Update() noexcept  {
             // 坐标转换
             auto lt = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
             auto rb = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-            // 修改
-            auto tmp_right = this->visible_rect.right;
-            auto tmp_bottom = this->visible_rect.bottom;
-            if (this->scrollbar_v) {
-                tmp_right -= this->scrollbar_v->GetTakingUpSapce();
-            }
-            if (this->scrollbar_h) {
-                tmp_bottom -= this->scrollbar_h->GetTakingUpSapce();
-            }
+            // 限制
             ctrl->visible_rect.left = std::max(lt.x, 0.f);
             ctrl->visible_rect.top = std::max(lt.y, 0.f);
-            ctrl->visible_rect.right = std::min(rb.x, tmp_right);
-            ctrl->visible_rect.bottom = std::min(rb.y, tmp_bottom);
+            ctrl->visible_rect.right = std::min(rb.x, limit_of_this.x);
+            ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.y);
         }
+        
         // 修改
-        this->AfterChangeDrawPosition();
+        //this->AfterChangeDrawPosition();
     }
-    // 刷新滚动条
-    if (this->scrollbar_h) {
-        this->scrollbar_h->Update();
+    // 刷新边缘控件
+    if (this->flags & Flag_Container_ExistMarginalContrl) {
+        for (auto ctrl : this->marginal_control) {
+            ctrl->Update();
+        }
     }
-    if (this->scrollbar_v) {
-        this->scrollbar_v->Update();
-    }
+    this->AssertMarginalControl();
     // 刷新
     for (auto ctrl : (*this)) ctrl->Update();
     // 刷新父类
@@ -349,21 +262,15 @@ void LongUI::UIContainer::Update() noexcept  {
 // UIContainer 重建
 auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     auto hr = S_OK;
-    // 重建水平滚动条
-    if (SUCCEEDED(hr) && this->scrollbar_h) {
-        hr = this->scrollbar_h->Recreate(newRT);
-    }
-    // 重建垂直滚动条
-    if (SUCCEEDED(hr) && this->scrollbar_v) {
-        hr = this->scrollbar_v->Recreate(newRT);
-    }
-    // 重建容器
-    if (SUCCEEDED(hr)) {
-        for (auto ctrl : (*this)) {
-            hr = ctrl->Recreate(newRT);
-            if (FAILED(hr)) break;
+    // 重建边缘控件
+    if (this->flags & Flag_Container_ExistMarginalContrl) {
+        for (auto ctrl : this->marginal_control) {
+            if (SUCCEEDED(hr)) {
+                hr = ctrl->Recreate(newRT);
+            }
         }
     }
+    this->AssertMarginalControl();
     // 重建父类
     if (SUCCEEDED(hr)) {
         hr = Super::Recreate(newRT);
@@ -406,9 +313,10 @@ auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
     }
     return control;
 }
+
 // 插入控件
-void LongUI::UIContainer::
-insert(Iterator itr, UIControl* ctrl) noexcept {
+void LongUI::UIContainer::insert(Iterator itr, UIControl* ctrl) noexcept {
+    const auto end_itr = this->end();
     assert(ctrl && "bad arguments");
     if (ctrl->prev) {
         UIManager << DL_Warning
@@ -425,7 +333,7 @@ insert(Iterator itr, UIControl* ctrl) noexcept {
             << LongUI::endl;
     }
     // 插入尾部?
-    if (itr == this->end()) {
+    if (itr == end_itr) {
         // 链接
         force_cast(ctrl->prev) = m_pTail;
         // 无尾?
@@ -436,8 +344,6 @@ insert(Iterator itr, UIControl* ctrl) noexcept {
         m_pTail = ctrl;
     }
     else {
-        // ctrl->next = itr;
-        // ctrl->prev = 前面;
         force_cast(ctrl->next) = itr.Ptr();
         force_cast(ctrl->prev) = itr->prev;
         // 前面->next = ctrl
@@ -471,30 +377,17 @@ bool LongUI::UIContainer::remove(Iterator itr) noexcept {
     }
 #endif
     // 连接前后节点
-    register auto prev = itr->prev;
-    register auto next = itr->next;
-    // 检查
-    if (prev) {
-        force_cast(prev->next) = next;
-    }
-    // 首部
-    else {
-        m_pHead = next;
-    }
-    // 检查
-    if (next) {
-        force_cast(next->prev) = prev;
-    }
-    // 尾部
-    else {
-        m_pTail = prev;
-    }
+    register auto prev_tmp = itr->prev;
+    register auto next_tmp = itr->next;
+    // 检查, 头
+    (prev_tmp ? force_cast(prev_tmp->next) : m_pHead) = next_tmp;
+    // 检查, 尾
+    (next_tmp ? force_cast(next_tmp->prev) : m_pTail) = prev_tmp;
     // 减少
-    force_cast(itr->prev) = nullptr;
-    force_cast(itr->next) = nullptr;
+    force_cast(itr->prev) = force_cast(itr->next) = nullptr;
     --m_cChildrenCount;
     // 修改
-    this->DrawSizeChanged();
+    this->SetControlSizeChanged();
     return true;
 }
 
@@ -533,8 +426,8 @@ void LongUI::UIVerticalLayout::Update() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
-    // 3. 计算实际高度/宽度, 修改show_zone, 更新滚动条, 尽量最小化改动
-    if (m_bDrawSizeChanged) {
+    // 3. 计算实际高度/宽度
+    if (this->IsControlSizeChanged()) {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
         float counter = 0.0f;
@@ -559,26 +452,13 @@ void LongUI::UIVerticalLayout::Update() noexcept {
                 }
             }
         }
-        // 计算
-        base_width = std::max(base_width, this->width);
         // 校正
         base_width /= this->zoom.width;
         base_height /= this->zoom.height;
-        // 保证滚动条
-#ifdef LONGUI_RECHECK_LAYOUT
-        auto need_refresh =
-#endif
-        this->AssureScrollBar(base_width, base_height);
-        // 垂直滚动条?
-        if (this->scrollbar_v) {
-            base_width -= this->scrollbar_v->GetTakingUpSapce();
-        }
-        // 水平滚动条?
-        if (this->scrollbar_h) {
-            base_height -= this->scrollbar_h->GetTakingUpSapce();
-        }
+        // 计算
+        base_width = std::max(base_width, this->cwidth);
         // 高度步进
-        float height_step = counter > 0.f ? (this->height - base_height) / counter : 0.f;
+        float height_step = counter > 0.f ? (this->cheight - base_height) / counter : 0.f;
         float position_y = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
@@ -586,28 +466,20 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             if (ctrl->flags & Flag_Floating) continue;
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
-                register auto old_width = ctrl->width;
-                ctrl->width = base_width - ctrl->GetNonContentWidth();
+                ctrl->SetTakingUpWidth(base_width);
+                ctrl->cwidth = base_width - ctrl->GetNonContentWidth();
             }
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
-                ctrl->height = height_step - ctrl->GetNonContentHeight();
+                ctrl->SetTakingUpHeight(height_step);
             }
             // 修改
-            ctrl->DrawSizeChanged();
-            ctrl->DrawPosChanged();
             ctrl->y = position_y;
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
-        this->width = base_width;
-        this->height = position_y;
-#ifdef LONGUI_RECHECK_LAYOUT
-    // 需要刷新?
-        if (need_refresh) {
-            return this->UIVerticalLayout::Update();
-        }
-#endif
+        this->cwidth = base_width;
+        this->cheight = position_y;
         /*if (m_strControlName == L"MainWindow") {
             int a = 0;
         }*/
@@ -667,8 +539,8 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
-    // 3. 计算实际高度/宽度, 修改show_zone, 更新滚动条, 尽量最小化改动
-    if (m_bDrawSizeChanged) {
+    // 3. 计算实际高度/宽度
+    if (this->IsControlSizeChanged()) {
     // 初始化
         float base_width = 0.f, base_height = 0.f;
         float counter = 0.0f;
@@ -690,56 +562,32 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
                 }
             }
         }
-        // 计算
-        base_height = std::max(base_height, this->height);
         // 校正
         base_width /= this->zoom.width;
         base_height /= this->zoom.height;
-        // 保证滚动条
-#ifdef LONGUI_RECHECK_LAYOUT
-        auto need_refresh =
-#endif
-        this->AssureScrollBar(base_width, base_height);
-        // 垂直滚动条?
-        if (this->scrollbar_v) {
-            base_width -= this->scrollbar_v->GetTakingUpSapce();
-        }
-        // 水平滚动条?
-        if (this->scrollbar_h) {
-            base_height -= this->scrollbar_h->GetTakingUpSapce();
-        }
+        // 计算
+        base_height = std::max(base_height, this->cheight);
         // 宽度步进
-        float width_step = counter > 0.f ? (this->width - base_width) / counter : 0.f;
+        float width_step = counter > 0.f ? (this->cwidth - base_width) / counter : 0.f;
         float position_x = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
-            // 浮点控
+            // 跳过浮动控件
             if (ctrl->flags & Flag_Floating) continue;
-            //ctrl->show_zone.top = 0.f;
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
-                register auto old_height = ctrl->height;
-                ctrl->height = base_height - ctrl->GetNonContentHeight();
+                ctrl->SetTakingUpWidth(base_height);
             }
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
-                ctrl->width = width_step - ctrl->GetNonContentWidth();
+                ctrl->SetTakingUpWidth(width_step);
             }
-            // 修改
-            ctrl->DrawSizeChanged();
-            ctrl->DrawPosChanged();
             ctrl->x = position_x;
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
-        this->width = position_x;
-        this->height = base_height;
-#ifdef LONGUI_RECHECK_LAYOUT
-    // 需要刷新?
-        if (need_refresh) {
-            return this->UIHorizontalLayout::Update();
-        }
-#endif
+        this->cwidth = position_x;
+        this->cheight = base_height;
     }
     // 父类刷新
     return Super::Update();

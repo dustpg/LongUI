@@ -29,7 +29,7 @@ Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
 void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 垂直?
     if (this->type == ScrollBarType::Type_Vertical) {
-        m_fMaxRange = this->parent->height;
+        m_fMaxRange = this->parent->cheight;
         m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelHeight();
         // 检查上边界
 
@@ -37,7 +37,7 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     }
     // 水平?
     else {
-        m_fMaxRange = this->parent->width;
+        m_fMaxRange = this->parent->cwidth;
         m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelWidth();
         // 检查左边界
 
@@ -66,8 +66,8 @@ void LongUI::UIScrollBar::set_index(float new_index) noexcept {
         m_fIndex = new_index;
         // 修改父类属性
         UISB_OffsetVaule(this->parent->offset.x) = -new_index;
-        this->parent->DrawPosChanged();
-        this->parent->AfterChangeDrawPosition();
+        //this->parent->DrawPosChanged();
+        //this->parent->AfterChangeDrawPosition();
         // 刷新拥有着
         m_pWindow->Invalidate(this->parent);
     }
@@ -165,7 +165,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
     register float length_of_thumb, start_offset;
     {
-        register float tmpsize = UISB_OffsetVaule(this->width) - BASIC_SIZE*2.f;
+        register float tmpsize = UISB_OffsetVaule(this->cwidth) - BASIC_SIZE*2.f;
         if (this->another) {
             tmpsize -= this->another->GetTakingUpSapce();
         }
@@ -208,14 +208,14 @@ void LongUI::UIScrollBarA::Update() noexcept {
 }
 
 // UIScrollBarA 渲染 
-void LongUI::UIScrollBarA::Render(RenderType type) const noexcept  {
-    if (type != RenderType::Type_Render) return;
+void LongUI::UIScrollBarA::Render(RenderType _type) const noexcept  {
+    if (_type != RenderType::Type_Render) return;
     D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
     // 更新
     D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
     // 双滚动条修正
     if (this->another) {
-        UISB_OffsetVaule(draw_rect.right) -= this->another->GetTakingUpSapce();
+        //UISB_OffsetVaule(draw_rect.right) -= this->another->GetTakingUpSapce();
     }
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
@@ -389,12 +389,12 @@ void  LongUI::UIScrollBarA::WindUp() noexcept {
 
 
 // 设置状态
-void LongUI::UIScrollBarA::set_status(PointType type, ControlStatus state) noexcept {
+void LongUI::UIScrollBarA::set_status(PointType _type, ControlStatus state) noexcept {
     BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
     // 检查
-    if (type >= PointType::Type_Arrow1 && type <= PointType::Type_Thumb) {
+    if (_type >= PointType::Type_Arrow1 && _type <= PointType::Type_Thumb) {
         auto& element = *(elements[
-            static_cast<uint32_t>(type) - static_cast<uint32_t>(PointType::Type_Arrow1)
+            static_cast<uint32_t>(_type) - static_cast<uint32_t>(PointType::Type_Arrow1)
         ]);
         UIElement_SetNewStatus(element, state);
     }

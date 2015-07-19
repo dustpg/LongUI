@@ -65,9 +65,6 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
     return pInterfaceToRelease;
 }
 
-
-
-
 #ifndef OUT
 #define OUT
 #endif
@@ -149,7 +146,7 @@ namespace LongUI {
     using RectLTRB_U = RectLTRB<uint32_t>;
     // --------------------------------
     // longui callback func 控件回调
-    using LongUICallBack = bool (UIControl::*)(UIControl*) ;
+    using LongUICallBack = bool (*)(UIControl* event_setter, UIControl* func_caller) ;
     // event type
     enum CreateEventType : size_t { Type_CreateControl = 0, Type_Initialize, Type_Recreate, Type_Uninitialize, };
     // CreateControl Function 控件创建函数
@@ -213,6 +210,10 @@ namespace LongUI {
         // this flag, will mark all children's Flag_RenderParent to true
         // XML Attribute : "rendercd"@bool
         Flag_Container_AlwaysRenderChildrenDirectly = 1 << 16,
+        // if exist marginal control, will set it to true,
+        // this is just a optimization flag
+        Flag_Container_ExistMarginalContrl = 1 << 17,
+        //
         Flag_Edit_MultipleLine = 1 << 16,
         Flag_Slider_VerticalSlider = 1 << 16,
         Flag_CheckBox_WithIndeterminate = 1 << 16,

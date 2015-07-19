@@ -86,7 +86,7 @@ namespace LongUI{
         void BeforeUpdate() noexcept;
     protected:
         // get bar length
-        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? parent->height : parent->width; }
+        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? parent->cheight : parent->cwidth; }
         // set index
         void set_index(float index) noexcept;
     public:
@@ -143,7 +143,7 @@ namespace LongUI{
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
     public:
         // Render 渲染 
-        virtual void Render(RenderType type) const noexcept override;
+        virtual void Render(RenderType _type) const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
@@ -159,7 +159,7 @@ namespace LongUI{
         void OnNeeded(bool need) noexcept override;
     private:
         // set new status
-        void set_status(PointType type, ControlStatus state) noexcept;
+        void set_status(PointType _type, ControlStatus state) noexcept;
         // dtor
         ~UIScrollBarA() noexcept;
     private:

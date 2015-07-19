@@ -114,7 +114,11 @@ namespace LongUI {
             bool __fastcall SetSelectionFromPoint(float x, float y, bool extendSelection) noexcept;
         public: // Event
             // when drop
-            bool __fastcall OnDrop(IDataObject* data, DWORD* effect) noexcept { this->PasteFromGlobal(m_recentMedium.hGlobal); return true; }
+            bool __fastcall OnDrop(IDataObject* data, DWORD* effect) noexcept { 
+                UNREFERENCED_PARAMETER(data); UNREFERENCED_PARAMETER(effect);
+                this->PasteFromGlobal(m_recentMedium.hGlobal); 
+                return true; 
+            }
             // when drag enter
             bool __fastcall OnDragLeave() noexcept { m_bDragFromThis = false; return true; }
             // when drag enter

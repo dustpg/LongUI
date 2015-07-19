@@ -87,7 +87,7 @@ namespace LongUI {
         //@cmember Show the caret
         virtual BOOL        TxShowCaret(BOOL fShow) override;
         //@cmember Set the caret position
-        virtual BOOL        TxSetCaretPos(INT x, INT y) override;
+        virtual BOOL        TxSetCaretPos(INT _x, INT _y) override;
         //@cmember Create a timer with the specified timeout
         virtual BOOL        TxSetTimer(UINT idTimer, UINT uTimeout) override;
         //@cmember Destroy a timer

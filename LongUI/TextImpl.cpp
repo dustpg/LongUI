@@ -276,7 +276,7 @@ auto LongUI::Component::EditaleText::SetSelection(
                 clusterPosition += clusterLength;
             }
         }
-        int a = 0;
+        //int a = 0;
     }
     break;
     case SelectionMode::Mode_Home:
@@ -929,7 +929,7 @@ auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> 
 // 从 剪切板 黏贴
 auto LongUI::Component::EditaleText::PasteFromClipboard() noexcept-> HRESULT {
     // 正式开始
-    HRESULT hr = S_OK;  uint32_t characterCount = 0ui32;
+    HRESULT hr = S_OK;  //uint32_t characterCount = 0ui32;
     // 打开剪切板
     if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
         // 获取富文本数据
@@ -1266,6 +1266,8 @@ HRESULT LongUI::UIBasicTextRenderer::DrawInlineObject(
     IDWriteInlineObject * inlineObject,
     BOOL isSideways, BOOL isRightToLeft,
     IUnknown * clientDrawingEffect) noexcept {
+    UNREFERENCED_PARAMETER(isSideways);
+    UNREFERENCED_PARAMETER(isRightToLeft);
     assert(inlineObject && "bad argument");
     // 内联对象必须是LongUI内联对象
     // 渲染
@@ -1288,6 +1290,8 @@ HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
     const DWRITE_GLYPH_RUN * glyphRun,
     const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
     IUnknown * effect) noexcept {
+    UNREFERENCED_PARAMETER(clientDrawingContext);
+    UNREFERENCED_PARAMETER(glyphRunDescription);
     // 获取颜色
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
@@ -1316,6 +1320,7 @@ HRESULT LongUI::UINormalTextRender::DrawUnderline(
     const DWRITE_UNDERLINE* underline,
     IUnknown* effect
     ) noexcept {
+    UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
@@ -1346,6 +1351,7 @@ HRESULT LongUI::UINormalTextRender::DrawStrikethrough(
     const DWRITE_STRIKETHROUGH* strikethrough,
     IUnknown* effect
     ) noexcept {
+    UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {

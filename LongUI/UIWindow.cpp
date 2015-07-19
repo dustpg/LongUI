@@ -51,23 +51,23 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         // 设置窗口大小
         RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
         // 默认
-        if (this->width == 0.f) {
-            this->width = static_cast<float>(LongUIDefaultWindowWidth);
+        if (this->cwidth == 0.f) {
+            this->cwidth = static_cast<float>(LongUIDefaultWindowWidth);
         }
         else {
-            window_rect.right = static_cast<LONG>(this->width);
+            window_rect.right = static_cast<LONG>(this->cwidth);
         }
         // 更新
-        if (this->height == 0.f) {
-            this->height = static_cast<float>(LongUIDefaultWindowHeight);
+        if (this->cheight == 0.f) {
+            this->cheight = static_cast<float>(LongUIDefaultWindowHeight);
         }
         else {
-            window_rect.bottom = static_cast<LONG>(this->height);
+            window_rect.bottom = static_cast<LONG>(this->cheight);
         }
         force_cast(this->windows_size.width) = window_rect.right;
         force_cast(this->windows_size.height) = window_rect.bottom;
-        visible_rect.right = this->width;
-        visible_rect.bottom = this->height;
+        visible_rect.right = this->cwidth;
+        visible_rect.bottom = this->cheight;
         // 调整大小
         ::AdjustWindowRect(&window_rect, window_style, FALSE);
         // 居中
@@ -173,10 +173,10 @@ void LongUI::UIWindow::UnRegisterOffScreenRender(UIControl* c) noexcept {
 
 
 // 设置插入符号
-void LongUI::UIWindow::SetCaretPos(UIControl* c, float x, float y) noexcept {
+void LongUI::UIWindow::SetCaretPos(UIControl* c, float _x, float _y) noexcept {
     if (!m_cShowCaret) return;
     // 转换为像素坐标
-    auto pt = D2D1::Point2F(x, y);
+    auto pt = D2D1::Point2F(_x, _y);
     if (c) {
         // FIXME
         // TODO: FIX IT
@@ -712,15 +712,15 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 void LongUI::UIWindow::OnResize(bool force) noexcept {
     UIManager << DL_Log << "called" << endl;
     // 修改大小, 需要取消目标
-    this->DrawSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
+    this->SetControlSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
     // 滚动
     m_rcScroll.right = this->windows_size.width;
     m_rcScroll.bottom = this->windows_size.height;
 
     visible_rect.right = static_cast<float>(this->windows_size.width);
     visible_rect.bottom = static_cast<float>(this->windows_size.height);
-    this->width = visible_rect.right / this->zoom.width;
-    this->height = visible_rect.bottom / this->zoom.height;;
+    this->cwidth = visible_rect.right / this->zoom.width;
+    this->cheight = visible_rect.bottom / this->zoom.height;;
     //
 
     auto rect_right = MakeAsUnit(this->windows_size.width);
@@ -980,7 +980,7 @@ bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
 // 鼠标滚轮
 bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
     auto loww = LOWORD(arg.wParam_sys);
-    auto delta = float(GET_WHEEL_DELTA_WPARAM(arg.wParam_sys)) / float(WHEEL_DELTA);
+    //auto delta = float(GET_WHEEL_DELTA_WPARAM(arg.wParam_sys)) / float(WHEEL_DELTA);
     // 鼠标滚轮事件交由有滚动条的容器处理
     if (loww & MK_CONTROL) {
 
@@ -991,7 +991,7 @@ bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
     }
     // 水平滚动条
     else if (loww & MK_SHIFT) {
-        auto basic_control = this->FindControl(arg.pt);
+        /*auto basic_control = this->FindControl(arg.pt);
         if (basic_control) {
             // 获取滚动条容器
             while (true) {
@@ -1009,11 +1009,11 @@ bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
             if (static_cast<UIContainer*>(basic_control)->scrollbar_h) {
                 static_cast<UIContainer*>(basic_control)->scrollbar_h->OnWheelX(-delta);
             }
-        }
+        }*/
     }
     // 垂直滚动条
     else {
-        auto basic_control = this->FindControl(arg.pt);
+        /*auto basic_control = this->FindControl(arg.pt);
         if (basic_control) {
             // 获取滚动条容器
             while (true) {
@@ -1031,7 +1031,7 @@ bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
             if (static_cast<UIContainer*>(basic_control)->scrollbar_v) {
                 static_cast<UIContainer*>(basic_control)->scrollbar_v->OnWheelX(-delta);
             }
-        }
+        }*/
     }
     return true;
 }
@@ -1071,8 +1071,9 @@ DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
 }
 
 // IDropTarget::DragEnter 实现
-HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
+HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
     DWORD grfKeyState, POINTL pt, DWORD * pdwEffect) noexcept {
+    UNREFERENCED_PARAMETER(grfKeyState);
     m_bInDraging = true;
     // 检查参数
     if (!pDataObj) return E_INVALIDARG;
@@ -1097,7 +1098,8 @@ HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
 
 
 // IDropTarget::DragOver 实现
-HRESULT STDMETHODCALLTYPE LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
+HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
+    UNREFERENCED_PARAMETER(grfKeyState);
     D2D1_POINT_2F pt2f = { static_cast<float>(pt.x), static_cast<float>(pt.y) };
     UIControl* control = nullptr;
     // 检查控件支持

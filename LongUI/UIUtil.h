@@ -125,6 +125,8 @@ namespace LongUI {
         DllControlLoader(const wchar_t*, const wchar_t*, const char* = "LongUICreateControl") noexcept;
         // destructor
         ~DllControlLoader() noexcept;
+        // = operator
+        auto operator=(const DllControlLoader&) = delete;
     public:
         // handle to Dynamic Link Library
         HMODULE               const dll = nullptr;
@@ -557,7 +559,7 @@ namespace LongUI {
         // config
         struct Config {
             // ctor
-            Config() noexcept { position_xy = -1; };
+            Config() noexcept { position_xy = uint32_t(-1); };
             // buffer X
             int32_t         buffer_size_x = -1;
             // buffer Y
@@ -614,6 +616,8 @@ namespace LongUI {
         CUIDefaultConfigure(CUIManager& manager) noexcept : m_manager(manager) {}
         // dtor
         ~CUIDefaultConfigure() noexcept;
+        // = operator
+        auto operator=(const CUIDefaultConfigure&) ->CUIDefaultConfigure  = delete;
     public:
         // qi
         virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid,void** ppvObject) noexcept ->HRESULT override;

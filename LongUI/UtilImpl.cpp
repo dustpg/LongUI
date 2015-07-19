@@ -121,6 +121,8 @@ HRESULT LongUI::CUIDataObject::QueryGetData(FORMATETC * pFormatetc) noexcept {
 
 // IDataObject::GetCanonicalFormatEtc 实现
 HRESULT LongUI::CUIDataObject::GetCanonicalFormatEtc(FORMATETC * pFormatetcIn, FORMATETC * pFormatetcOut) noexcept {
+    UNREFERENCED_PARAMETER(pFormatetcIn);
+    UNREFERENCED_PARAMETER(pFormatetcOut);
     return E_NOTIMPL;
 }
 

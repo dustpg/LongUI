@@ -1,5 +1,4 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
 
 // UIString 设置字符串
 void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
@@ -89,6 +88,76 @@ LongUI::DllControlLoader::~DllControlLoader() noexcept {
         const_cast<HMODULE&>(this->dll) = nullptr;
     }
 }
+
+// CUIAnimation ---------- BEGIN -------------
+
+#define UIAnimation_Template_A      \
+    register auto v = LongUI::EasingFunction(this->type, this->time / this->duration)
+#define UIAnimation_Template_B(m)   \
+    this->value.m = v * (this->start.m - this->end.m) + this->end.m;
+
+// for D2D1_POINT_2F or Float1
+template<> void LongUI::CUIAnimation<float>::Update(float t) noexcept {
+    if (this->time <= 0.f) {
+        this->value = this->end;
+        return;
+    }
+    // 计算
+    this->value = LongUI::EasingFunction(this->type, this->time / this->duration)
+        * (this->start - this->end) + this->end;
+    // 减少时间
+    this->time -= t;
+}
+
+
+// for D2D1_POINT_2F or Float2
+template<> void LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept {
+    if (this->time <= 0.f) {
+        this->value = this->end;
+        return;
+    }
+    UIAnimation_Template_A;
+    UIAnimation_Template_B(x);
+    UIAnimation_Template_B(y);
+    // 减少时间
+    this->time -= t;
+}
+
+
+// for D2D1_COLOR_F or Float4
+template<> void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept {
+    if (this->time <= 0.f) {
+        this->value = this->end;
+        return;
+    }
+    UIAnimation_Template_A;
+    UIAnimation_Template_B(r);
+    UIAnimation_Template_B(g);
+    UIAnimation_Template_B(b);
+    UIAnimation_Template_B(a);
+    // 减少时间
+    this->time -= t;
+}
+
+// for D2D1_MATRIX_3X2_F or Float6
+template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept {
+    if (this->time <= 0.f) {
+        this->value = this->end;
+        return;
+    }
+    UIAnimation_Template_A;
+    UIAnimation_Template_B(_11);
+    UIAnimation_Template_B(_12);
+    UIAnimation_Template_B(_21);
+    UIAnimation_Template_B(_22);
+    UIAnimation_Template_B(_31);
+    UIAnimation_Template_B(_32);
+    // 减少时间
+    this->time -= t;
+}
+#undef UIAnimation_Template_A
+#undef UIAnimation_Template_B
+// CUIAnimation ----------  END  -------------
 
 // Meta 渲染
 void __fastcall LongUI::Meta_Render(
@@ -315,7 +384,7 @@ static constexpr char32_t offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x0
 * (I.e., one byte sequence, two byte... etc.). Remember that sequencs
 * for *legal* UTF-8 will be 4 or fewer bytes total.
 */
-static constexpr char firstByteMark[7] = { (char)0x00, (char)0x00, (char)0xC0, (char)0xE0, (char)0xF0,(char)0xF8, (char)0xFC };
+static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i8, 0xF8i8, 0xFCi8 };
 
 
 // 编码
@@ -394,7 +463,7 @@ auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, cha
         unsigned short bytesToWrite = 0;
         const char32_t byteMask = 0xBF;
         const char32_t byteMark = 0x80;
-        const char16_t* oldSource = source; /* In case we have to back up because of target overflow. */
+       // const char16_t* oldSource = source; /* In case we have to back up because of target overflow. */
         ch = *source++;
         /* If we have a surrogate pair, convert to UTF32 first. */
         if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
@@ -1013,6 +1082,7 @@ auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvOb
 }
 
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t {
+    UNREFERENCED_PARAMETER(adapters);
     // 核显卡优先 
 #ifdef LONGUI_NUCLEAR_FIRST
     for (size_t i = 0; i < length; ++i) {
@@ -1090,6 +1160,7 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
 #ifdef LONGUI_VIDEO_IN_MF
 // CUIVideoComponent 事件通知
 HRESULT LongUI::CUIVideoComponent::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
+    UNREFERENCED_PARAMETER(param2);
     switch (event)
     {
     case MF_MEDIA_ENGINE_EVENT_LOADEDMETADATA:
@@ -1115,9 +1186,9 @@ HRESULT LongUI::CUIVideoComponent::EventNotify(DWORD event, DWORD_PTR param1, DW
         break;
     case MF_MEDIA_ENGINE_EVENT_ERROR:
     {
-        auto err = MF_MEDIA_ENGINE_ERR(param1);
-        auto hr = HRESULT(param2);
-        int a = 9;
+        //auto err = MF_MEDIA_ENGINE_ERR(param1);
+        //auto hr = HRESULT(param2);
+        //int a = 9;
     }
         break;
     }
@@ -1170,6 +1241,7 @@ HRESULT LongUI::CUIVideoComponent::Recreate(ID2D1RenderTarget* target) noexcept 
 
 // 渲染
 void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) const noexcept {
+    UNREFERENCED_PARAMETER(dst);
     /*const MFARGB bkColor = { 0,0,0,0 };
     assert(m_pMediaEngine);
     // 表面无效

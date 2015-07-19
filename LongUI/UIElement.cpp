@@ -46,22 +46,23 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
     UIElements_Prefix;
     // 禁用状态Meta ID
     UIElements_NewAttribute("disabledmeta");
-    m_aID[Status_Disabled] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
     // 通常状态Meta ID
     UIElements_NewAttribute("normalmeta");
-    m_aID[Status_Normal] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
     // 移上状态Meta ID
     UIElements_NewAttribute("hovermeta");
-    m_aID[Status_Hover] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
     // 按下状态Meta ID
     UIElements_NewAttribute("pushedmeta");
-    m_aID[Status_Pushed] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
 }
 
 
 // Elements<Meta> 重建
 auto LongUI::Component::Elements<LongUI::Element::Meta>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
+    UNREFERENCED_PARAMETER(target);
     for (auto i = 0u; i < STATUS_COUNT; ++i) {
         // 有效
         register auto id = m_aID[i];
@@ -98,16 +99,16 @@ Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) 
     UIElements_Prefix;
     // 禁用状态笔刷ID
     UIElements_NewAttribute("disabledbrush");
-    m_aID[Status_Disabled] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
     // 通常状态笔刷ID
     UIElements_NewAttribute("normalbrush");
-    m_aID[Status_Normal] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
     // 移上状态笔刷ID
     UIElements_NewAttribute("hoverbrush");
-    m_aID[Status_Hover] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
     // 按下状态笔刷ID
     UIElements_NewAttribute("pushedbrush");
-    m_aID[Status_Pushed] = LongUI::AtoI(UIElements_Attribute);
+    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
 }
 
 // 释放数据
@@ -162,6 +163,7 @@ void LongUI::Component::Elements<LongUI::Element::BrushRect>::Render(const D2D1_
 // Elements<BrushRect> 重建
 auto LongUI::Component::Elements<LongUI::Element::BrushRect>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
+    UNREFERENCED_PARAMETER(target);
     this->release_data();
     for (auto i = 0u; i < STATUS_COUNT; ++i) {
         register auto id = m_aID[i];
@@ -196,6 +198,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
 // Elements<ColorRect> 重建
 auto LongUI::Component::Elements<LongUI::Element::ColorRect>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
+    UNREFERENCED_PARAMETER(target);
     ::SafeRelease(m_pBrush);
     m_pBrush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
     return S_OK;

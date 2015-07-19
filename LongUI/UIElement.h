@@ -100,6 +100,8 @@ namespace LongUI {
             // ctor 
             Elements(pugi::xml_node node = LongUINullXMLNode, const char* prefix = nullptr)
                 noexcept : animation(AnimationType::Type_QuadraticEaseOut) {
+                UNREFERENCED_PARAMETER(node);
+                UNREFERENCED_PARAMETER(prefix);
                 animation.end = 1.f;
             }
             // init 

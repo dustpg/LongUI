@@ -122,6 +122,8 @@ namespace LongUI {
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->uint32_t override  { return 0ui32; }
         // create context from string
-        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept {};
+        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept { 
+            UNREFERENCED_PARAMETER(context); UNREFERENCED_PARAMETER(utf8_string);
+        };
     };
 }

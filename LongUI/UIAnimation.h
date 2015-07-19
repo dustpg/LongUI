@@ -71,17 +71,7 @@ namespace LongUI {
         // destructor
         ~CUIAnimation() noexcept {}
         // update
-        void __fastcall Update(float t) noexcept {
-            if (this->time <= 0.f) {
-                this->value = this->end;
-                return;
-            }
-            //
-            this->value = LongUI::EasingFunction(this->type, this->time / this->duration)
-                * (this->start - this->end) + this->end;
-            //
-            this->time -= t;
-        }
+        void __fastcall Update(float t) noexcept;
     public:
         // the type
         AnimationType       type;
@@ -96,57 +86,9 @@ namespace LongUI {
         // value
         T                   value;
     };
-
-#define UIAnimation_Template_A      \
-    register auto v = LongUI::EasingFunction(this->type, this->time / this->duration)
-#define UIAnimation_Template_B(m)   \
-    this->value.m = v * (this->start.m - this->end.m) + this->end.m;
-
-    // for D2D1_COLOR_F or Float4
-    template<> static
-    void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept {
-        if (this->time <= 0.f) {
-            this->value = this->end;
-            return;
-        }
-        UIAnimation_Template_A;
-        UIAnimation_Template_B(r);
-        UIAnimation_Template_B(g);
-        UIAnimation_Template_B(b);
-        UIAnimation_Template_B(a);
-        //
-        this->time -= t;
-    }
-
-    // for D2D1_POINT_2F or Float2
-    template<> static
-        void LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept {
-        if (this->time <= 0.f) {
-            this->value = this->end;
-            return;
-        }
-        UIAnimation_Template_A;
-        UIAnimation_Template_B(x);
-        UIAnimation_Template_B(y);
-        //
-        this->time -= t;
-    }
-
-    // for D2D1_MATRIX_3X2_F or Float6
-    template<> static
-        void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept {
-        if (this->time <= 0.f) {
-            this->value = this->end;
-            return;
-        }
-        UIAnimation_Template_A;
-        UIAnimation_Template_B(_11);
-        UIAnimation_Template_B(_12);
-        UIAnimation_Template_B(_21);
-        UIAnimation_Template_B(_22);
-        UIAnimation_Template_B(_31);
-        UIAnimation_Template_B(_32);
-        //
-        this->time -= t;
-    }
+    // spacial
+    template<> void __fastcall LongUI::CUIAnimation<float>::Update(float t) noexcept;
+    template<> void __fastcall LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept;
+    template<> void __fastcall LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept;
+    template<> void __fastcall LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept;
 }

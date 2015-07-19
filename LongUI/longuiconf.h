@@ -17,10 +17,10 @@ namespace LongUI {
     static auto SmallFree(void* address) noexcept { return ::dlfree(address); }
     // template helper
     template<typename T>
-    static auto CtrlAllocT(T* pointer, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::CtrlAlloc(length * sizeof(T))); }
+    static auto CtrlAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::CtrlAlloc(length * sizeof(T))); }
     // template helper
     template<typename T>
-    static auto SmallAllocT(T* pointer, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
+    static auto SmallAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
 }
 
 
@@ -28,6 +28,11 @@ namespace LongUI {
 // 微软蛋疼
 #pragma warning(disable: 4290)
 #pragma warning(disable: 4200)
+// 无视部分警告等级4
+#pragma warning(disable: 4505) // unused function
+#pragma warning(disable: 4201) // nameless struct/union
+#pragma warning(disable: 4706) // assignment within conditional expression
+#pragma warning(disable: 4127) // assignment within constant expression
 #endif
 
 
@@ -55,7 +60,7 @@ namespace LongUI {
 
 #ifndef LongUIInline
 #define LongUIInline __forceinline
-//#define LongUIInline __attribute__()
+//#define LongUIInline __attribute__((always))
 //#define LongUIInline __inline
 #endif
 

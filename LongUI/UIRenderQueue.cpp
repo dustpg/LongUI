@@ -18,7 +18,7 @@ void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     // 一样就不处理
     if (m_wDisplayFrequency == freq) return;
     // 修改
-    m_wDisplayFrequency = freq;
+    m_wDisplayFrequency = static_cast<decltype(m_wDisplayFrequency)>(freq);
     // 创建
     CUIRenderQueue::UNIT* data = nullptr;
     if (freq) {
@@ -210,7 +210,11 @@ namespace LongUI {
     class CUIResourceLoaderXML : public IUIResourceLoader {
     public:
         // qi
-        auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final { return E_NOINTERFACE; }
+        auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final { 
+            UNREFERENCED_PARAMETER(riid);
+            UNREFERENCED_PARAMETER(ppvObject);
+            return E_NOINTERFACE; 
+        }
         // add ref count
         auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return ++m_dwCounter; }
         // release this
@@ -368,41 +372,41 @@ namespace LongUI {
         // pugixml 使用的是句柄式, 所以下面的代码是安全的.
         register auto now_node = m_docResource.first_child().first_child();
         while (now_node) {
+            // 获取子节点数量
+            auto get_children_count = [](pugi::xml_node node) {
+                node = node.first_child();
+                auto count = 0ui32;
+                while (node) { node = node.next_sibling(); ++count; }
+                return count;
+            };
             // 位图?
             if (!::strcmp(now_node.name(), "Bitmap")) {
                 // XXX: PUGIXML 直接读取(XPATH?)
                 m_aNodes[Type_Bitmap] = now_node;
-                for (auto& i : now_node) {
-                    ++m_aResourceCount[this->Type_Bitmap];
-                }
+                m_aResourceCount[this->Type_Bitmap] = get_children_count(now_node);
             }
             // 笔刷?
             else if (!::strcmp(now_node.name(), "Brush")) {
                 // XXX: PUGIXML 直接读取
                 m_aNodes[Type_Brush] = now_node;
-                for (auto& i : now_node) {
-                    ++m_aResourceCount[this->Type_Brush];
-                }
+                m_aResourceCount[this->Type_Brush] = get_children_count(now_node);
             }
             // 文本格式?
             else if (!::strcmp(now_node.name(), "Font") ||
                 !::strcmp(now_node.name(), "TextFormat")) {
                 // XXX: PUGIXML 直接读取
                 m_aNodes[Type_TextFormat] = now_node;
-                for (auto& i : now_node) {
-                    ++m_aResourceCount[this->Type_TextFormat];
-                }
+                m_aResourceCount[this->Type_TextFormat] = get_children_count(now_node);
             }
             // 图元?
             else if (!::strcmp(now_node.name(), "Meta")) {
                 // XXX: PUGIXML 直接读取
                 m_aNodes[Type_Meta] = now_node;
-                for (auto& i : now_node) {
-                    ++m_aResourceCount[this->Type_Meta];
-                }
+                m_aResourceCount[this->Type_Meta] = get_children_count(now_node);
             }
             // 动画图元?
             else if (!::strcmp(now_node.name(), "MetaEx")) {
+                assert(!"unsupport yet");
             }
             // 推进
             now_node = now_node.next_sibling();
@@ -413,7 +417,7 @@ namespace LongUI {
         assert(node && "node not found");
         // 获取路径
         const char* uri = node.attribute("res").value();
-        assert(uri && uri != "" && "Error URI of Bitmap");
+        assert(uri && *uri && "Error URI of Bitmap");
         // 从文件载入位图
         auto load_bitmap_from_file = [](
             LongUIRenderTarget *pRenderTarget,

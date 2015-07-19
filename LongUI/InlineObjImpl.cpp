@@ -2,9 +2,9 @@
 
 
 // CUIRubyCharacter 构造函数
-LongUI::CUIRubyCharacter::CUIRubyCharacter(const CtorContext& ctx) 
-noexcept : Super(UIInlineObject::Type_Ruby) {
-
+LongUI::CUIRubyCharacter::
+CUIRubyCharacter(const CtorContext& ctx) noexcept : Super(UIInlineObject::Type_Ruby) {
+    UNREFERENCED_PARAMETER(ctx);
 }
 
 // CUIRubyCharacter 析构函数
@@ -23,6 +23,13 @@ auto LongUI::CUIRubyCharacter::Draw(
     BOOL isRightToLeft,
     IUnknown* clientDrawingEffect
     ) noexcept ->HRESULT {
+    UNREFERENCED_PARAMETER(clientDrawingContext);
+    UNREFERENCED_PARAMETER(renderer);
+    UNREFERENCED_PARAMETER(originX);
+    UNREFERENCED_PARAMETER(originY);
+    UNREFERENCED_PARAMETER(isSideways);
+    UNREFERENCED_PARAMETER(isRightToLeft);
+    UNREFERENCED_PARAMETER(clientDrawingEffect);
     return E_NOTIMPL;
 }
 

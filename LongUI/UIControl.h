@@ -92,9 +92,9 @@ namespace LongUI{
         }
     protected:
         // new operator with buffer -- placement new 
-        void* operator new(size_t s, void* buffer) noexcept { return buffer; };
+        void* operator new(size_t s, void* buffer) noexcept { UNREFERENCED_PARAMETER(s); return buffer; };
         // delete -- placement new paired operator 配对用, 无实际用途
-        void  operator delete(void* p, void* buffer) noexcept { /*nothing*/ };
+        void  operator delete(void* p, void* buffer) noexcept { UNREFERENCED_PARAMETER(p); UNREFERENCED_PARAMETER(buffer); /*nothing*/ };
         // delete new operator
         void* operator new(size_t) = delete;
         // delete new[] operator
@@ -110,10 +110,6 @@ namespace LongUI{
         LongUIInline auto&GetName() const noexcept { return m_strControlName; }
         // control name 控件名称
         LongUIInline auto&GetName() noexcept { return m_strControlName; }
-        // change control draw size
-        LongUIInline auto DrawSizeChanged() noexcept { m_bDrawSizeChanged = m_bDrawSizeChanged_InUpdate = true; }
-        // change control draw pos
-        LongUIInline auto DrawPosChanged() noexcept { m_bDrawPosChanged = m_bDrawPosChanged_InUpdate = true; }
         // get window of control
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
         // XXX: is top level?
@@ -137,6 +133,14 @@ namespace LongUI{
         auto GetNonContentHeight() const noexcept ->float;
         // get class name
         auto GetControlClassName() const noexcept ->const wchar_t*;
+        // change control draw size
+        auto SetControlSizeChanged() noexcept { m_bControlSizeChanged = m_bControlSizeChangedEx = false; }
+        // is control draw size changed?
+        auto IsControlSizeChanged() noexcept { return m_bControlSizeChanged; }
+        // set new taking up width of control
+        auto SetTakingUpWidth(float w) noexcept ->void LongUINoinline;
+        // set new taking up height of control
+        auto SetTakingUpHeight(float h) noexcept ->void LongUINoinline;
         // get taking up rect/ clip rect
         void __fastcall GetClipRect(D2D1_RECT_F&) const noexcept;
         // get border rect
@@ -170,14 +174,12 @@ namespace LongUI{
         // extend data size in byte
         uint32_t                extend_data_size = 0;
     protected:
-        // the size of draw zone has been changed
-        bool                    m_bDrawSizeChanged = false;
-        // the size of draw zone has been changed, safe way
-        bool                    m_bDrawSizeChanged_InUpdate = false;
+        // control size changed
+        bool                    m_bControlSizeChanged = false;
+        // control size changed, safe way to change in Update() method
+        bool                    m_bControlSizeChangedEx = false;
         // the position of draw zone has been changed
-        bool                    m_bDrawPosChanged = false;
-        // the position of draw zone has been changed
-        bool                    m_bDrawPosChanged_InUpdate = false;
+        bool                    unused_bool_control = false;
     public:
         // priority for render
         int8_t       const      priority = 0;
@@ -186,10 +188,10 @@ namespace LongUI{
         float                   x = 0.f;
         // y position of control
         float                   y = 0.f;
-        // width of control
-        float                   width = 0.f;
-        // height of control
-        float                   height = 0.f;
+        // content width of control
+        float                   cwidth = 0.f;
+        // content height of control
+        float                   cheight = 0.f;
     protected: // border
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
