@@ -111,7 +111,7 @@ namespace LongUI {
         // just remove child, : remove from list and set prev/next to null
         bool remove(Iterator) noexcept;
         // remove and close child
-        void erase(Iterator itr) noexcept { this->remove(itr); itr->WindUp(); }
+        void erase(Iterator itr) noexcept { this->remove(itr); itr->Cleanup(); }
     public: 
         // get children count
         LongUIInline auto size() const noexcept { return m_cChildrenCount; } ;

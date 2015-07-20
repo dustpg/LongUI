@@ -29,6 +29,8 @@
 namespace LongUI {
     // endl for longUI
     static struct EndL { } endl;
+    // create ui window call back
+    using CreateUIWindowCallBack = auto(*)(pugi::xml_node node, UIWindow* parent, void* user_data)->UIWindow*;
     // ui manager ui 管理器
     class LongUIAlignas CUIManager {
     public: 
@@ -57,9 +59,9 @@ namespace LongUI {
         // wait for VS
         auto WaitVS(UIWindow* window) noexcept ->void;
         // add window
-        void AddWindow(UIWindow* wnd) noexcept;
+        void RegisterWindow(UIWindow* wnd) noexcept;
         // remove window
-        void RemoveWindow(UIWindow* wnd) noexcept;
+        void RemoveWindow(UIWindow* wnd, bool cleanup = false) noexcept;
         // register, return -1 for error(out of renderer space), return other for index
         auto RegisterTextRenderer(UIBasicTextRenderer*) noexcept->int32_t;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
@@ -95,6 +97,21 @@ namespace LongUI {
             assert((templateid || function) && "cannot be null in same time");
             return this->create_control(function, LongUINullXMLNode, templateid);
         }
+        // create ui window with xml string, avoid to use template-lamda
+        // user_data is compensation for lamda-function
+        auto CreateUIWindow(
+            const char* xml, 
+            UIWindow* parent = nullptr, 
+            CreateUIWindowCallBack = CUIManager::CreateLongUIWIndow, 
+            void* user_data = nullptr) noexcept->UIWindow*;
+        // create ui window with xml node, avoid to use template-lamda
+        // user_data is compensation for lamda-function
+        auto CreateUIWindow(
+            const pugi::xml_node node, 
+            UIWindow* parent = nullptr, 
+            CreateUIWindowCallBack = CUIManager::CreateLongUIWIndow,
+            void* user_data = nullptr
+            )noexcept->UIWindow*;
     public: // 特例
         // get default LongUI imp IDWriteFontCollection
         static auto __cdecl CreateLongUIFontCollection(
@@ -125,6 +142,8 @@ namespace LongUI {
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
         // get theme colr
         static auto __fastcall GetThemeColor(D2D1_COLOR_F& colorf) noexcept->HRESULT;
+        // create longui window by defaultly
+        static auto CreateLongUIWIndow(pugi::xml_node node, UIWindow* parent, void* user_data) noexcept->UIWindow*;
         // create text format
         auto CreateTextFormat(
             const wchar_t* fontFamilyName,
@@ -143,12 +162,6 @@ namespace LongUI {
                 textFormat
                 );
         }
-        // create ui window via xml string 创建窗口
-        template<typename T = UIWindow>
-        LongUINoinline auto CreateUIWindow(const char*, void* = nullptr, UIWindow* = nullptr) noexcept->T*;
-        // create ui window via pugixml node 创建窗口
-        template<typename T = UIWindow>
-        LongUINoinline auto CreateUIWindow(const pugi::xml_node, void* = nullptr, UIWindow* = nullptr) noexcept->T*;
     public: // UAC About
         // is run as admin?
         static bool WINAPI IsRunAsAdministrator() noexcept;
@@ -260,50 +273,58 @@ namespace LongUI {
         StringMap                       m_mapString2CreateFunction;
         // 所创设备特性等级
         D3D_FEATURE_LEVEL               m_featureLevel;
-        // 退出信号
-        std::atomic_uint32_t            m_exitFlag = false;
-        // 渲染器数量
-        uint32_t                        m_uTextRenderCount = 0;
-        // 等待垂直同步次数
-        uint32_t                        m_dwWaitVSCount = 0;
-        // 等待垂直同步起始时间
-        uint32_t                        m_dwWaitVSStartTime = 0;
-        // 输入
+        // input class
         CUIInput                        m_uiInput;
-        // 锁
+        // locker
         CUILocker                       m_uiLocker;
-        // 窗口容器
-        BasicContainer                  m_windows;
         // bitmap buffer
         ID2D1Bitmap1**                  m_ppBitmaps = nullptr;
-        // length of it
-        size_t                          m_cCountBmp = 0;
         // brush buffer
         ID2D1Brush**                    m_ppBrushes = nullptr;
-        // length of it
-        size_t                          m_cCountBrs = 0;
         // text format buffer
         IDWriteTextFormat**             m_ppTextFormats = nullptr;
-        // length of it
-        size_t                          m_cCountTf = 0;
         // meta buffer
         Meta*                           m_pMetasBuffer = nullptr;
         // meta hicon buffer
         HICON*                          m_phMetaIcon = nullptr;
-        // length of it
-        size_t                          m_cCountMt = 0;
+        // template node
+        pugi::xml_node*                 m_pTemplateNodes = nullptr;
         // resource buffer for all
         void*                           m_pResourceBuffer = nullptr;
+        // length of bitmap*
+        uint16_t                        m_cCountBmp = 0;
+        // length of brush*
+        uint16_t                        m_cCountBrs = 0;
+        // length of textformat*
+        uint16_t                        m_cCountTf = 0;
+        // length of meta
+        uint16_t                        m_cCountMt = 0;
+        // length of template node
+        uint16_t                        m_cCountCtrlTemplate = 0;
+        // length of window*
+        uint16_t                        m_cCountWindow = 0;
+        // singal/flag for exiting
+        std::atomic_uint16_t            m_exitFlag = false;
+        // count for text renderer
+        uint16_t                        m_uTextRenderCount = 0;
+        // 等待垂直同步次数
+        uint32_t                        m_dwWaitVSCount = 0;
+        // 等待垂直同步起始时间
+        uint32_t                        m_dwWaitVSStartTime = 0;
+        // textrender: normal
+        UINormalTextRender              m_normalTRenderer;
+        // xml doc for window
+        pugi::xml_document              m_docWindow;
+        // xml doc for template
+        pugi::xml_document              m_docTemplate;
+        // windows
+        UIWindow*                       m_apWindows[LongUIMaxWindow];
         // local name
-        wchar_t                         m_szLocaleName[LOCALE_NAME_MAX_LENGTH / 4 * 4 + 4];
+        wchar_t                         m_szLocaleName[LOCALE_NAME_MAX_LENGTH / sizeof(void*) * sizeof(void*) + sizeof(void*)];
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
         // 默认配置
         CUIDefaultConfigure             m_config;
 #endif
-        // 普通文本渲染器
-        UINormalTextRender              m_normalTRenderer;
-        // tinyxml2 窗口
-        pugi::xml_document              m_docWindow;
     public:
         // constructor 构造函数
         CUIManager() noexcept;
@@ -314,6 +335,8 @@ namespace LongUI {
         // delte this method 删除移动构造函数
         CUIManager(CUIManager&&) = delete;
     private:
+        // load the template string
+        auto load_template_string(const char* str) noexcept->HRESULT;
         // create all resources
         auto create_device_resources() noexcept->HRESULT;
         // create index zero resources
@@ -410,64 +433,7 @@ namespace LongUI {
         // Output with format for Fatal
         inline void _cdecl OutputF(const wchar_t*, ...) const noexcept {  }
 #endif
-
     };
-    // 创建窗口
-    template<typename T>
-    LongUINoinline auto CUIManager::CreateUIWindow(const char* xml, void* buffer_sent, UIWindow* parent) noexcept->T* {
-        pugi::xml_node root_node(nullptr); T* wnd = nullptr; auto buffer = buffer_sent;
-        pugi::xml_parse_result result;
-        // get buffer of window
-        if (!buffer) buffer = LongUI::CtrlAlloc(sizeof(T));
-        // parse the xml and check error
-        if (buffer && (result = this->m_docWindow.load_string(xml)) &&
-            (root_node = this->m_docWindow.first_child())) {
-            // create the window
-            wnd = new(buffer) T(root_node, parent);
-            // recreate res'
-            wnd->Recreate(this->m_pd2dDeviceContext);
-            // make control tree
-            this->make_control_tree(wnd, root_node);
-            // finished
-            LongUI::EventArgument arg; arg.sender = wnd;
-            arg.event = LongUI::Event::Event_FinishedTreeBuliding;
-            wnd->DoEvent(arg);
-        }
-        else if(!buffer_sent && buffer) {
-            LongUI::CtrlFree(buffer);
-        }
-        // 错误检测
-        if (!result) {
-            UIManager << DL_Error << L"XML Parse Error: " << result.description() << LongUI::endl;
-        }
-        assert(wnd && "no window created");
-        return wnd;
-    }
-    // 创建窗口
-    template<typename T>
-    LongUINoinline auto CUIManager::CreateUIWindow(const pugi::xml_node node, void* buffer_sent, UIWindow* parent) noexcept->T* {
-        pugi::xml_node root_node(nullptr); T* wnd = nullptr; auto buffer = buffer_sent;
-        // get buffer of window
-        if (!buffer) buffer = LongUI::CtrlAlloc(sizeof(T));
-        // check no error
-        if (buffer && node) {
-            // create the window
-            wnd = new(buffer) T(root_node, parent);
-            // recreate res'
-            wnd->Recreate(this->m_pd2dDeviceContext);
-            // make control tree
-            this->make_control_tree(wnd, root_node);
-            // finished
-            LongUI::EventArgument arg; arg.sender = wnd;
-            arg.event = LongUI::Event::Event_FinishedTreeBuliding;
-            wnd->DoEvent(arg);
-        }
-        else if(!buffer_sent && buffer) {
-            LongUI::CtrlFree(buffer);
-        }
-        assert(wnd && "no window created");
-        return wnd;
-    }
     // auto locker
     class CUIAutoLocker {
     public:

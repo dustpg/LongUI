@@ -135,7 +135,7 @@ public:
         }
     }
     // update
-    void Update() noexcept override {
+    void Update() noexcept override{
         // 检查布局
         if (m_bDrawSizeChanged) {
             ::SafeRelease(m_pCmdList);
@@ -195,7 +195,7 @@ public:
         return true;
     }
     // close this control
-    virtual void WindUp() noexcept { delete this; };
+    virtual void Cleanup() noexcept { delete this; };
 protected:
     // constructor
     TestControl(pugi::xml_node node) noexcept : Super(node), m_text(node){
@@ -309,7 +309,7 @@ public:
         return hr;
     }
     // close this control
-    virtual void WindUp() noexcept override { delete this; };
+    virtual void Cleanup() noexcept override { delete this; };
 protected:
     // constructor
     UIVideoAlpha(pugi::xml_node node) noexcept : Super(node) {
@@ -351,7 +351,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         // mruby script
         MRubyScript     mruby = MRubyScript(UIManager);
     } config;
-    //
+    // 创建
+    auto create_main_window = [](pugi::xml_node node, LongUI::UIWindow* parent, void* buffer) {
+        reinterpret_cast<MainWindow*>(buffer)->MainWindow::MainWindow(node, parent);
+        return static_cast<LongUI::UIWindow*>(reinterpret_cast<MainWindow*>(buffer));
+    };
     // Buffer of MainWindow, align for 4(x86)
     alignas(sizeof(void*)) size_t buffer[sizeof(MainWindow) / sizeof(size_t) + 1];
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)
@@ -361,7 +365,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         // 作战控制连线!
         UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
         // 创建主窗口
-        UIManager.CreateUIWindow<MainWindow>(test_xml, buffer);
+        UIManager.CreateUIWindow(test_xml, nullptr, create_main_window, buffer);
         // 运行本程序
         UIManager.Run();
         // 作战控制终止!

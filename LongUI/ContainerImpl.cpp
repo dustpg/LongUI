@@ -52,7 +52,7 @@ LongUI::UIContainer::~UIContainer() noexcept {
     if (this->flags & Flag_Container_ExistMarginalContrl) {
         for (auto& ctrl : this->marginal_control) {
             if (ctrl) {
-                ctrl->WindUp();
+                ctrl->Cleanup();
                 ctrl = nullptr;
             }
         }
@@ -62,7 +62,7 @@ LongUI::UIContainer::~UIContainer() noexcept {
     // 关闭子控件
     {
         auto ctrl = m_pHead;
-        while (ctrl) { auto next_ctrl = ctrl->next; ctrl->WindUp(); ctrl = next_ctrl; }
+        while (ctrl) { auto next_ctrl = ctrl->next; ctrl->Cleanup(); ctrl = next_ctrl; }
     }
 }
 
@@ -500,7 +500,7 @@ auto LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HR
 }
 
 // UIVerticalLayout 关闭控件
-void LongUI::UIVerticalLayout::WindUp() noexcept {
+void LongUI::UIVerticalLayout::Cleanup() noexcept {
     delete this;
 }
 
@@ -606,7 +606,7 @@ auto LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->
 }
 
 // UIHorizontalLayout 关闭控件
-void LongUI::UIHorizontalLayout::WindUp() noexcept {
+void LongUI::UIHorizontalLayout::Cleanup() noexcept {
     delete this;
 }
 

@@ -281,7 +281,7 @@ namespace LongUI {
         // kill focus
         Event_KillFocus,
         // notify all children(but sender)
-        Event_NotifyChildren,
+        //Event_NotifyChildren,
         // -----control custom
         // button clicked
         Event_ButtoClicked,

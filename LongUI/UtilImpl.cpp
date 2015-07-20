@@ -1,5 +1,39 @@
-﻿
-#include "LongUI.h"
+﻿#include "LongUI.h"
+
+// 打包
+auto LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
+    constexpr uint32_t ALPHA_SHIFT = 24;
+    constexpr uint32_t RED_SHIFT = 16;
+    constexpr uint32_t GREEN_SHIFT = 8;
+    constexpr uint32_t BLUE_SHIFT = 0;
+
+    register uint32_t colorargb = 
+        ((uint32_t(color.a * 255.f) & 0xFF) << ALPHA_SHIFT) |
+        ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT) |
+        ((uint32_t(color.g * 255.f) & 0xFF) << GREEN_SHIFT) |
+        ((uint32_t(color.b * 255.f) & 0xFF) << BLUE_SHIFT);
+    return colorargb;
+}
+
+// 解包
+auto LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void {
+    // 位移量
+    constexpr uint32_t ALPHA_SHIFT = 24;
+    constexpr uint32_t RED_SHIFT = 16;
+    constexpr uint32_t GREEN_SHIFT = 8;
+    constexpr uint32_t BLUE_SHIFT = 0;
+    // 掩码
+    constexpr uint32_t ALPHA_MASK = 0xFFU << ALPHA_SHIFT;
+    constexpr uint32_t RED_MASK = 0xFFU << RED_SHIFT;
+    constexpr uint32_t GREEN_MASK = 0xFFU << GREEN_SHIFT ;
+    constexpr uint32_t BLUE_MASK = 0xFFU << BLUE_SHIFT;
+    // 计算
+    color4f.r = static_cast<float>((color32 & RED_MASK) >> RED_SHIFT) / 255.f;
+    color4f.g = static_cast<float>((color32 & GREEN_MASK) >> GREEN_SHIFT) / 255.f;
+    color4f.b = static_cast<float>((color32 & BLUE_MASK) >> BLUE_SHIFT) / 255.f;
+    color4f.a = static_cast<float>((color32 & ALPHA_MASK) >> ALPHA_SHIFT) / 255.f;
+}
+
 
 // 构造对象
 LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {

@@ -96,7 +96,7 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     // 创建闪烁计时器
     m_idBlinkTimer = ::SetTimer(m_hwnd, 0, ::GetCaretBlinkTime(), nullptr);
     // 添加窗口
-    UIManager.AddWindow(this);
+    UIManager.RegisterWindow(this);
     // 拖放帮助器
     m_pDropTargetHelper = UIManager.GetDropTargetHelper();
     // 注册拖拽目标
@@ -712,7 +712,7 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 void LongUI::UIWindow::OnResize(bool force) noexcept {
     UIManager << DL_Log << "called" << endl;
     // 修改大小, 需要取消目标
-    this->SetControlSizeChanged(); m_pRenderTarget->SetTarget(nullptr);
+    this->SetControlSizeChangedOutUpdate(); m_pRenderTarget->SetTarget(nullptr);
     // 滚动
     m_rcScroll.right = this->windows_size.width;
     m_rcScroll.bottom = this->windows_size.height;
@@ -915,7 +915,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
 }
 
 // UIWindow 关闭控件
-void LongUI::UIWindow::WindUp() noexcept {
+void LongUI::UIWindow::Cleanup() noexcept {
     // 删除对象
     delete this;
     // 退出

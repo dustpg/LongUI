@@ -29,8 +29,15 @@
 namespace LongUI {
     // popup menu
     // TODO: Add LongUI Popup Menu Support
-    class CUIPopupMenu {
+    class CUIMenu {
     public:
+        // menu type
+        enum MenuType : uint32_t {
+            // system menu
+            Type_SystemMenu = 0,
+            // longui menu
+            Type_LongUIMenu,
+        };
         // style for item
         enum ItemStyle : uint16_t {
             // default style
@@ -53,15 +60,15 @@ namespace LongUI {
             // text for item
             const wchar_t*  text;
             // menu
-            CUIPopupMenu*   menu;
+            CUIMenu*   menu;
         };
         // item proc
         using ItemProc = void(*)(uint32_t index);
     public:
         // ctor
-        CUIPopupMenu() noexcept { };
+        CUIMenu() noexcept { };
         // dtor
-        ~CUIPopupMenu() noexcept { this->Destroy(); }
+        ~CUIMenu() noexcept { this->Destroy(); }
     public:
         // destroy this
         void Destroy() noexcept;
@@ -82,9 +89,11 @@ namespace LongUI {
         auto Show(UIWindow* window, POINT* OPTIONAL pos) noexcept { return this->Show(window->GetHwnd(), pos); }
         // set item proc
         auto SetItemProc(ItemProc proc) noexcept { m_pItemProc = proc; }
+        // get type
+        auto GetType() const noexcept { return Type_SystemMenu; }
     private:
         //  parent menu
-        //CUIPopupMenu*       m_pParent = nullptr;
+        //CUIMenu*       m_pParent = nullptr;
         // handle to popup menu
         HMENU               m_hMenu = nullptr;
         // item proc

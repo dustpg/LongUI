@@ -806,12 +806,12 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
 // CUIConsole 构造函数
 LongUI::CUIConsole::CUIConsole() noexcept {
     ::InitializeCriticalSection(&m_cs); m_name[0] = L'\0';
-    { if (m_hConsole != INVALID_HANDLE_VALUE) this->WindUp(); }
+    { if (m_hConsole != INVALID_HANDLE_VALUE) this->Cleanup(); }
 }
 
 // CUIConsole 析构函数
 LongUI::CUIConsole::~CUIConsole() noexcept {
-    this->WindUp();
+    this->Cleanup();
     // 关闭
     if (m_hConsole != INVALID_HANDLE_VALUE) {
         ::CloseHandle(m_hConsole);
@@ -821,7 +821,7 @@ LongUI::CUIConsole::~CUIConsole() noexcept {
 }
 
 // CUIConsole 关闭
-long LongUI::CUIConsole::WindUp() noexcept {
+long LongUI::CUIConsole::Cleanup() noexcept {
     if (!(*this))
         return -1;
     else

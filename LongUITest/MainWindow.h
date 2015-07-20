@@ -14,7 +14,7 @@ public:
     // recreate 重建
     //virtual HRESULT Recreate(LongUIRenderTarget*) noexcept override;
     // close this control 关闭控件
-    virtual void WindUp() noexcept override;
+    virtual void Cleanup() noexcept override;
 public:
     // 构造函数
     MainWindow(pugi::xml_node , LongUI::UIWindow* );

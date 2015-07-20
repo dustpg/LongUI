@@ -9,6 +9,7 @@
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     m_szLocaleName[0] = L'\0';
+    ::memset(m_apWindows, 0, sizeof(m_apWindows));
     // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -78,6 +79,11 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             hr = E_OUTOFMEMORY;
         }
     }
+    // 加载控件模板
+    if (SUCCEEDED(hr)) {
+        m_cCountCtrlTemplate = 1;
+        hr = this->load_template_string(this->configure->GetTemplateString());
+    }
     // 资源数据缓存
     if (SUCCEEDED(hr)) {
         // 获取缓存数据
@@ -86,6 +92,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
                 sizeof(void*) * m_cCountBmp +
                 sizeof(void*) * m_cCountBrs +
                 sizeof(void*) * m_cCountTf +
+                sizeof(pugi::xml_node) * m_cCountCtrlTemplate +
                 (sizeof(HICON) + sizeof(LongUI::Meta)) * m_cCountMt;
             return buffer_length;
         };
@@ -94,10 +101,10 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         if (!m_pResourceBuffer) {
             // 查询资源数量
             if (m_pResourceLoader) {
-                m_cCountBmp += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Bitmap);
-                m_cCountBrs += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Brush);
-                m_cCountTf += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_TextFormat);
-                m_cCountMt += m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Meta);
+                m_cCountBmp += static_cast<decltype(m_cCountBmp)>(m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Bitmap));
+                m_cCountBrs += static_cast<decltype(m_cCountBrs)>(m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Brush));
+                m_cCountTf += static_cast<decltype(m_cCountTf)>(m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_TextFormat));
+                m_cCountMt += static_cast<decltype(m_cCountMt)>(m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Meta));
             }
             // 申请内存
             m_pResourceBuffer = LongUI::CtrlAlloc(get_buffer_length());
@@ -110,6 +117,11 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             m_ppTextFormats = reinterpret_cast<decltype(m_ppTextFormats)>(m_ppBrushes + m_cCountBrs);
             m_pMetasBuffer = reinterpret_cast<decltype(m_pMetasBuffer)>(m_ppTextFormats + m_cCountTf);
             m_phMetaIcon = reinterpret_cast<decltype(m_phMetaIcon)>(m_pMetasBuffer + m_cCountMt);
+            m_pTemplateNodes = reinterpret_cast<decltype(m_pTemplateNodes)>(m_phMetaIcon + m_cCountMt);
+            // 初始化
+            for (auto itr = m_pTemplateNodes; itr < m_pTemplateNodes + m_cCountCtrlTemplate; ++itr) {
+                LongUI::CreateObject(*itr);
+            }
         }
         // 内存不足
         else {
@@ -152,13 +164,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         if (!m_pFontCollection) {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
         }
-    }
-    // 准备缓冲区
-    if (SUCCEEDED(hr)) {
-        try {
-            m_windows.reserve(LongUIMaxWindow);
-        }
-        CATCH_HRESULT(hr)
     }
     // 注册渲染器
     if (SUCCEEDED(hr)) {
@@ -205,8 +210,29 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     for (auto& renderer : m_apTextRenderer) {
         ::SafeRelease(renderer);
     }
-    // 释放资源
+    // 释放公共设备无关资源
+    {
+        // 释放文本格式
+        for (auto itr = m_ppTextFormats; itr != m_ppTextFormats + m_cCountTf; ++itr) {
+            ::SafeRelease(*itr);
+        }
+        // 摧毁META图标
+        for (auto itr = m_phMetaIcon; itr != m_phMetaIcon + m_cCountMt; ++itr) {
+            if (*itr) {
+                ::DestroyIcon(*itr);
+                *itr = nullptr;
+            }
+        }
+        // 控件模板
+        for (auto itr = m_pTemplateNodes; itr != m_pTemplateNodes + m_cCountCtrlTemplate; ++itr) {
+            if (*itr) {
+                LongUI::DestoryObject(*itr);
+            }
+        }
+    }
+    // 释放设备相关资源
     this->discard_resources();
+    // 释放资源
     ::SafeRelease(m_pFontCollection);
     ::SafeRelease(m_pDWriteFactory);
     ::SafeRelease(m_pDropTargetHelper);
@@ -230,6 +256,50 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
 }
 
+// 创建UI窗口
+auto LongUI::CUIManager::CreateUIWindow(
+    const char* xml, UIWindow* parent, CreateUIWindowCallBack call, void* user_data
+    )noexcept->UIWindow* {
+    assert(xml && call && "bad arguments");
+    // 载入字符串
+    auto code = m_docWindow.load_string(xml);
+    // 检查错误
+    if (code) {
+        wchar_t buffer[LongUIStringBufferLength];
+        buffer[LongUI::UTF8toWideChar(code.description(), buffer)] = L'\0';
+        this->ShowError(buffer);
+        return nullptr;
+    }
+    // 创建
+    return this->CreateUIWindow(m_docWindow.first_child(), parent, call, user_data);
+}
+
+// 利用XML节点创建UI窗口
+auto LongUI::CUIManager::CreateUIWindow(
+    const pugi::xml_node node, UIWindow* parent, CreateUIWindowCallBack call, void* user_data
+    ) noexcept -> UIWindow* {
+    assert(node && callbak && "bad arguments");
+    // 有效情况
+    if (callbak && node) {
+        // 创建窗口
+        auto window = call(node, parent, user_data);
+        // 查错
+        assert(window); if (!window) return nullptr;
+        // 重建资源
+        auto hr = window->Recreate(m_pd2dDeviceContext);
+        AssertHR(hr);
+        // 创建控件树
+        this->make_control_tree(window, node);
+        // 完成创建
+        LongUI::EventArgument arg; ::memset(&arg, 0, sizeof(arg));
+        arg.sender = window;
+        arg.event = LongUI::Event::Event_FinishedTreeBuliding;
+        window->DoEvent(arg);
+        // 返回
+        return window;
+    }
+    return nullptr;
+}
 
 
 // 创建事件
@@ -355,11 +425,11 @@ void LongUI::CUIManager::Run() noexcept {
         while (!UIManager.m_exitFlag) {
             // 复制
             UIManager.Lock();
-            length = UIManager.m_windows.size();
+            length = UIManager.m_cCountWindow;
             // 没有窗口
             if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
             for (auto i = 0u; i < length; ++i) {
-                windows[i] = static_cast<UIWindow*>(UIManager.m_windows[i]);
+                windows[i] = static_cast<UIWindow*>(UIManager.m_apWindows[i]);
             }
             // 刷新窗口
             for (auto i = 0u; i < length; ++i) {
@@ -404,10 +474,18 @@ void LongUI::CUIManager::Run() noexcept {
     catch (...) {
 
     }
-    // 尝试强行关闭(使用迭代器会使迭代器失效)
-    while (!m_windows.empty()) {
-        reinterpret_cast<UIWindow*>(m_windows.back())->WindUp();
+    // 尝试强行关闭
+    if (m_cCountWindow) {
+        UIWindow* windows[LongUIMaxWindow];
+        ::memcpy(windows, m_apWindows, sizeof(m_apWindows));
+        auto count = m_cCountWindow;
+        // 清理窗口
+        for (auto i = 0u; i < count; ++i) {
+            windows[count - i - 1]->Cleanup();
+        }
     }
+    assert(!m_cCountWindow && "bad");
+    m_cCountWindow = 0;
 }
 
 // 等待垂直同步
@@ -536,6 +614,16 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
         colorf.b = blend_channel(float(argb[0]) / 255.f, basegrey, prec);
     }
     return hr;
+}
+
+// 默认创建窗口
+auto LongUI::CUIManager::CreateLongUIWIndow(pugi::xml_node node, UIWindow* parent, void* user_data) noexcept -> UIWindow * {
+    auto ctrl = LongUI::UIControl::AllocRealControl<LongUI::UIWindow>(
+        node, 
+        [=](void* p) noexcept { new(p) UIWindow(node, parent); }
+        );
+    assert(ctrl);
+    return static_cast<UIWindow*>(ctrl);
 }
 
 
@@ -909,7 +997,27 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
 }
 
 
-// UIManager 创建
+// 载入模板字符串
+auto LongUI::CUIManager::load_template_string(const char* str) noexcept->HRESULT {
+    // 检查参数
+    if (str && *str) {
+        // 载入字符串
+        auto code = m_docTemplate.load_string(str);
+        if (code) {
+            assert(!"load error");
+            ::MessageBoxA(nullptr, code.description(), "<LongUI::CUIManager::load_template_string>: Failed to Parse/Load XML", MB_ICONERROR);
+            return E_FAIL;
+        }
+        // 解析
+        return E_NOTIMPL;
+    }
+    else {
+        return S_FALSE;
+    }
+}
+
+
+// UIManager 创建设备相关资源
 auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 检查渲染配置
     bool cpu_rendering = this->configure->IsRenderByCPU();
@@ -1120,8 +1228,8 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 );
         }
         // 重建所有窗口
-        for (auto i : m_windows) {
-            reinterpret_cast<UIWindow*>(i)->Recreate(nullptr);
+        for (auto itr = m_apWindows; itr < m_apWindows + m_cCountWindow; ++itr) {
+            (*itr)->Recreate(m_pd2dDeviceContext);
         }
     }
     // 断言 HR
@@ -1231,36 +1339,21 @@ void LongUI::CUIManager::discard_resources() noexcept {
     for (auto& brush : m_apSystemBrushes) {
         ::SafeRelease(brush);
     }
-    // 释放 位图
-    if (m_cCountBmp) {
+    // 释放公共设备相关资源
+    {
+        // 释放 位图
         for (auto itr = m_ppBitmaps; itr != m_ppBitmaps + m_cCountBmp; ++itr) {
             ::SafeRelease(*itr);
         }
-    }
-    // 释放 笔刷
-    if (m_cCountBrs) {
+        // 释放 笔刷
         for (auto itr = m_ppBrushes; itr != m_ppBrushes + m_cCountBrs; ++itr) {
             ::SafeRelease(*itr);
         }
-    }
-    // 释放文本格式
-    if (m_cCountTf) {
-        for (auto itr = m_ppTextFormats; itr != m_ppTextFormats + m_cCountTf; ++itr) {
-            ::SafeRelease(*itr);
+        // META
+        for (auto itr = m_pMetasBuffer; itr != m_pMetasBuffer + m_cCountMt; ++itr) {
+            LongUI::DestoryObject(*itr);
+            itr->bitmap = nullptr;
         }
-    }
-    // META图标摧毁
-    if (m_cCountMt) {
-        for (auto itr = m_phMetaIcon; itr != m_phMetaIcon + m_cCountMt; ++itr) {
-             if (*itr) {
-                 ::DestroyIcon(*itr);
-                 *itr = nullptr;
-             }
-        }
-    }
-    // META
-    if (m_cCountMt) {
-
     }
     // 释放 设备
     ::SafeRelease(m_pDxgiFactory);
@@ -1574,10 +1667,6 @@ auto LongUI::CUIManager::FormatTextCore(
     va_start(ap, format);
     return CUIManager::FormatTextCore(config, format, ap);
 }
-/*
- L"He%llo, World"
-*/
-#define COLOR8TOFLOAT(a) (static_cast<float>(a)/255.f)
 
 // find next param
 template<typename T>
@@ -1634,8 +1723,6 @@ auto  LongUI::CUIManager::FormatTextCore(
         }
         assert(param && "ap set to nullptr, but none param found.");
     }
-    // Color
-    union ARGBColor { struct { uint8_t b, g, r, a; }; uint32_t u32; };
     // Range Type
     enum class R :size_t { N, W, Y, H, S, U, E, D, I };
     // Range Data
@@ -1654,7 +1741,6 @@ auto  LongUI::CUIManager::FormatTextCore(
             // ----------------------------
             D2D1_COLOR_F*       color;      // C
             uint32_t            u32;        // c
-            ARGBColor           u32color;   // c
         };
         R                       range_type;
     } range_data;
@@ -1741,10 +1827,7 @@ auto  LongUI::CUIManager::FormatTextCore(
                 tmp_color = UIColorEffect::Create();
                 assert(tmp_color && "c");
                 if (ap) {
-                    tmp_color->color.b = COLOR8TOFLOAT(range_data.u32color.b);
-                    tmp_color->color.g = COLOR8TOFLOAT(range_data.u32color.g);
-                    tmp_color->color.r = COLOR8TOFLOAT(range_data.u32color.r);
-                    tmp_color->color.a = COLOR8TOFLOAT(range_data.u32color.a);
+                    LongUI::UnpackTheColorARGB(range_data.u32, tmp_color->color);
                 }
                 else {
                     CUIManager_GetNextTokenA(1);
@@ -1988,32 +2071,69 @@ force_break:
 
 
 // 添加窗口
-void LongUI::CUIManager::AddWindow(UIWindow * wnd) noexcept {
+void LongUI::CUIManager::RegisterWindow(UIWindow * wnd) noexcept {
     assert(wnd && "bad argument");
+    // 检查剩余空间
+    if (m_cCountWindow >= LongUIMaxWindow) {
+        assert(!"ABORT! OUT OF SPACE! m_cCountWindow >= LongUIMaxWindow");
+        return;
+    }
+    // 检查是否已经存在
 #ifdef _DEBUG
-    if (std::find(m_windows.cbegin(), m_windows.cend(), wnd) != m_windows.cend()) {
-        assert(!"target window has been added.");
+    {
+        auto endwindow = m_apWindows + m_cCountWindow;
+        if (std::find(m_apWindows, endwindow, wnd) != endwindow) {
+            assert(!"target window has been registered.");
+        }
     }
 #endif
-    try {
-        m_windows.push_back(wnd);
-    }
-    catch (...) {
-    }
+    // 添加窗口
+    m_apWindows[m_cCountWindow] = wnd; ++m_cCountWindow;
 }
 
 // 移出窗口
-void LongUI::CUIManager::RemoveWindow(UIWindow * wnd) noexcept {
-    assert(wnd && "bad argument");
+void LongUI::CUIManager::RemoveWindow(UIWindow * wnd, bool cleanup) noexcept {
+    assert(m_cCountWindow); assert(wnd && "bad argument");
+    // 清理?
+    if (cleanup) {
+        wnd->Cleanup();
 #ifdef _DEBUG
-    if (std::find(m_windows.cbegin(), m_windows.cend(), wnd) == m_windows.cend()) {
-        assert(!"target window not in windows vector");
+        // 现在已经不再数组中了, 不过需要检查一下
+        auto endwindow = m_apWindows + m_cCountWindow;
+        if (std::find(m_apWindows, endwindow, wnd) != endwindow) {
+            assert(!"remove window failed!");
+        }
+#endif
+        return;
+    }
+    // 检查时是不是在本数组中
+#ifdef _DEBUG
+    {
+        auto endwindow = m_apWindows + m_cCountWindow;
+        if (std::find(m_apWindows, endwindow, wnd) == endwindow) {
+            assert(!"target window not in windows array!");
+            return;
+        }
     }
 #endif
-    try {
-        m_windows.erase(std::find(m_windows.cbegin(), m_windows.cend(), wnd));
-    }
-    catch (...) {
+    // 一次循环就搞定
+    {
+        const register auto count = m_cCountWindow;
+        bool found = false;
+        for (auto i = 0u; i < m_cCountWindow; ++i) {
+            // 找到后, 后面的元素依次前移
+            if (found) {
+                m_apWindows[i] = m_apWindows[i + 1];
+            }
+            // 没找到就尝试
+            else if(m_apWindows[i] == wnd) {
+                found = true;
+                m_apWindows[i] = m_apWindows[i + 1];
+            }
+        }
+        assert(found && "window not found");
+        --m_cCountWindow;
+        m_cCountWindow[m_apWindows] = nullptr;
     }
 }
 

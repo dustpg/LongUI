@@ -48,7 +48,7 @@ namespace LongUI{
         virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT;
         // Wind up, you should call dtor in this method, if malloc(ed), you should free it
         // easy way: delete this
-        virtual void WindUp() noexcept = 0;
+        virtual void Cleanup() noexcept = 0;
     public:
         // get control name for script
         LongUIInline auto GetName_fs() const noexcept {
@@ -63,33 +63,6 @@ namespace LongUI{
         ~UIControl() noexcept;
         // delete the copy-ator
         UIControl(const UIControl&) = delete;
-        // make color form string
-        static bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;
-        // make UIString form string
-        static bool MakeString(const char*, CUIString&) noexcept;
-        // make floats from string
-        static bool MakeFloats(const char*, float*, int) noexcept;
-        // get real control size in byte
-        template<class T, class L>
-        static LongUIInline auto AllocRealControl(pugi::xml_node node, L lam) noexcept {
-            size_t exsize = 0;
-            if (node) {
-                exsize = LongUI::AtoI(node.attribute("exdatasize").value());
-            }
-            T* control = reinterpret_cast<T*>(
-                LongUI::CtrlAlloc(sizeof(T) + exsize)
-                    );
-            // check alignof
-            assert(Is2Power(alignof(T)) && "alignas(Control) must be 2powered");
-            assert(size_t(control) % alignof(T) == 0);
-            // set align
-            if (control) {
-                lam(control);
-                control->extend_data = reinterpret_cast<uint8_t*>(control) + sizeof(T);
-                control->extend_data_size = exsize;
-            }
-            return control;
-        }
     protected:
         // new operator with buffer -- placement new 
         void* operator new(size_t s, void* buffer) noexcept { UNREFERENCED_PARAMETER(s); return buffer; };
@@ -133,8 +106,10 @@ namespace LongUI{
         auto GetNonContentHeight() const noexcept ->float;
         // get class name
         auto GetControlClassName() const noexcept ->const wchar_t*;
-        // change control draw size
-        auto SetControlSizeChanged() noexcept { m_bControlSizeChanged = m_bControlSizeChangedEx = false; }
+        // change control draw size out of Update() method
+        auto SetControlSizeChangedOutUpdate() noexcept { m_bControlSizeChanged = false; }
+        // change control draw size in the Update() method
+        auto SetControlSizeChangedInUpdate() noexcept { m_bControlSizeChangedEx = false; }
         // is control draw size changed?
         auto IsControlSizeChanged() noexcept { return m_bControlSizeChanged; }
         // set new taking up width of control
@@ -154,27 +129,31 @@ namespace LongUI{
         LongUIRenderTarget*     m_pRenderTarget = nullptr;
         // index 0 brush
         ID2D1SolidColorBrush*   m_pBrush_SetBeforeUse = nullptr;
-        // parent window        所在窗口
+        // parent window
         UIWindow*               m_pWindow = nullptr;
-        // 脚本接口
-        IUIScript*              m_pScript = nullptr;
+        // script data
+        UIScript                m_script;
     public:
+        // parent control, using const_cast to change in constructor, 
+        // do not change in other method/function
+        UIContainer*  const     parent = nullptr;
+        // [Retained]render related control, using const_cast to change in constructor, 
+        // do not change in other method/function
+        // UIControl*    const     related_retained = nullptr;
         // using for container, prev control
         UIControl*    const     prev = nullptr;
         // using for container, next control
         UIControl*    const     next = nullptr;
         // user data
-        union {
-            void*               p = nullptr;
-            size_t              i;
-            float               f;
-        } user_data;
-        // extend data
+        void*                   user_data = nullptr;
+        // extend data, if extend_data_size, will point it
+        // do not use it in UIWindow except you know it well
         void*                   extend_data = nullptr;
-        // extend data size in byte
+        // extend data size in byte, xml attribute "exdatasize"
+        // do not use it in UIWindow except you know it well
         uint32_t                extend_data_size = 0;
     protected:
-        // control size changed
+        // control size changed, for performance, this maybe changed multiple in one frame
         bool                    m_bControlSizeChanged = false;
         // control size changed, safe way to change in Update() method
         bool                    m_bControlSizeChangedEx = false;
@@ -192,36 +171,52 @@ namespace LongUI{
         float                   cwidth = 0.f;
         // content height of control
         float                   cheight = 0.f;
-    protected: // border
+        // control current visible position(relative to world)
+        D2D1_RECT_F             visible_rect = D2D1::RectF();
+        // margin rect
+        D2D1_RECT_F   const     margin_rect = D2D1::RectF();
+        // flags, using const_cast to change in constructor, 
+        // do not change in other method/function
+        LongUIFlag    const     flags = LongUIFlag::Flag_None;
+    protected:
+        // size of border
+        float                   m_fBorderSize = 0.f;
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
         // now color of border
         D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(D2D1::ColorF::Black);
-        // size of border
-        float                   m_fBorderSize = 0.f;
-        // reserved
-        uint32_t                m_uBorderReserved = 0;
         // roundsize of border
         D2D1_SIZE_F             m_fBorderRdius = D2D1::SizeF();
-    protected:
         // control name
         CUIString               m_strControlName;
-        // script
-        UIScript                m_script;
     public:
-        // flags, using const_cast to change in constructor, 
-        // do not change in other method/function
-        LongUIFlag    const flags = LongUIFlag::Flag_None;
-        // parent control, using const_cast to change in constructor, 
-        // do not change in other method/function
-        UIContainer*  const parent = nullptr;
-        // [Retained]render related control, using const_cast to change in constructor, 
-        // do not change in other method/function
-        UIControl*    const related_retained = nullptr;
-        // margin rect
-        D2D1_RECT_F   const margin_rect = D2D1::RectF();
-        // control current visible position(relative to world) , modified by parent
-        D2D1_RECT_F         visible_rect = D2D1::RectF();
+        // make color form string
+        static bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;
+        // make UIString form string
+        static bool MakeString(const char*, CUIString&) noexcept;
+        // make floats from string
+        static bool MakeFloats(const char*, float*, int) noexcept;
+        // get real control size in byte
+        template<class T, class L>
+        static LongUIInline auto AllocRealControl(pugi::xml_node node, L lam) noexcept {
+            size_t exsize = 0;
+            if (node) {
+                exsize = LongUI::AtoI(node.attribute("exdatasize").value());
+            }
+            T* control = reinterpret_cast<T*>(
+                LongUI::CtrlAlloc(sizeof(T) + exsize)
+                );
+            // check alignof
+            assert(Is2Power(alignof(T)) && "alignas(Control) must be 2powered");
+            assert(size_t(control) % alignof(T) == 0);
+            // set align
+            if (control) {
+                lam(control);
+                control->extend_data = reinterpret_cast<uint8_t*>(control) + sizeof(T);
+                control->extend_data_size = exsize;
+            }
+            return control;
+        }
     };
 }
 

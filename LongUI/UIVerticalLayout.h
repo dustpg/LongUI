@@ -44,7 +44,7 @@ namespace LongUI{
         // recreate
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void WindUp() noexcept override;
+        virtual void Cleanup() noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;

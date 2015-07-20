@@ -101,8 +101,18 @@ namespace LongUI {
 #include "GetIIDTemplate.h"
 // longui
 namespace LongUI {
+    // create object
+    template<class T> auto CreateObject(T& obj) noexcept { new(&obj) T(); }
+    // destory object
+    template<class T> auto DestoryObject(T& obj) noexcept { obj; obj.~T(); }
+    // recreate object
+    template<class T> auto RecreateObject(T& obj) noexcept { DestoryObject(obj); CreateObject(obj); }
     // is 2 power?
     static auto Is2Power(size_t i) { return i && !(i& (i - 1)); }
+    // pack the color
+    auto PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
+    // unpack the color
+    auto UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void LongUINoinline;
     // data to bool
     template<typename T> bool DataToBool(const T& t) { return !!(t); }
     // Dll Function Helper
@@ -593,7 +603,7 @@ namespace LongUI {
         // create a new console foe this app
         long Create(const wchar_t* , Config& config) noexcept;
         // close this
-        long WindUp() noexcept;
+        long Cleanup() noexcept;
         // output the string
         long Output(const wchar_t* str, bool flush, long len = -1) noexcept;
     protected:
@@ -627,7 +637,7 @@ namespace LongUI {
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
         // get template string for control
-        virtual auto GetTemplateString() noexcept->const char* override  { return nullptr; }
+        virtual auto GetTemplateString() noexcept->const char* override  { return ctemplate; }
         // get locale name of ui(for text)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
         // add all custom controls
@@ -655,6 +665,8 @@ namespace LongUI {
     public:
         // resource xml null-end-string
         const char*             resource = nullptr;
+        // control template xml null-end-string
+        const char*             ctemplate = nullptr;
         // script
         IUIScript*              script = nullptr;
         // inline param handler

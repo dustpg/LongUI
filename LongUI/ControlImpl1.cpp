@@ -23,11 +23,10 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
     int flag = LongUIFlag::Flag_None | LongUIFlag::Flag_Visible;
     // 有效?
     if (node) {
-        m_pScript = UIManager.script;
         const char* data = nullptr;
         // 检查脚本
-        if ((data = node.attribute("script").value()) && m_pScript) {
-            m_script = m_pScript->AllocScript(data);
+        if ((data = node.attribute("script").value()) && UIManager.script) {
+            m_script = UIManager.script->AllocScript(data);
         }
         // 渲染优先级
         if (data = node.attribute("priority").value()){
@@ -99,8 +98,8 @@ LongUI::UIControl::~UIControl() noexcept {
     ::SafeRelease(m_pBrush_SetBeforeUse);
     // 释放脚本占用空间
     if (m_script.data) {
-        assert(m_pScript && "no script interface but data");
-        m_pScript->FreeScript(m_script);
+        assert(UIManager.script && "no script interface but data");
+        UIManager.script->FreeScript(m_script);
     }
     // 反注册
     if (this->flags & Flag_NeedRegisterOffScreenRender) {
@@ -499,7 +498,7 @@ return Super::Recreate(newRT);
 }*/
 
 // close this control 关闭控件
-void LongUI::UILabel::WindUp() noexcept {
+void LongUI::UILabel::Cleanup() noexcept {
     delete this;
 }
 
@@ -670,7 +669,7 @@ auto LongUI::UIButton::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
 }
 
 // 关闭控件
-void LongUI::UIButton::WindUp() noexcept {
+void LongUI::UIButton::Cleanup() noexcept {
     delete this;
 }
 
@@ -789,7 +788,7 @@ HRESULT LongUI::UIEditBasic::Recreate(LongUIRenderTarget* target) noexcept {
 }
 
 // close this control 关闭控件
-void LongUI::UIEditBasic::WindUp() noexcept {
+void LongUI::UIEditBasic::Cleanup() noexcept {
     delete this;
 }
 

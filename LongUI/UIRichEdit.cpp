@@ -159,7 +159,7 @@ HRESULT LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT) noexcept {
 }
 
 // close this control 关闭控件
-void LongUI::UIRichEdit::WindUp() noexcept {
+void LongUI::UIRichEdit::Cleanup() noexcept {
     delete this;
 }
 

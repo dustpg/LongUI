@@ -46,10 +46,17 @@ namespace LongUI{
         // recreate 重建
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void WindUp() noexcept override;
+        virtual void Cleanup() noexcept override;
+    protected:
+        // constructor
+        UIWindow(pugi::xml_node node, UIWindow* parent) noexcept;
+        // destructor
+        ~UIWindow() noexcept;
+        // deleted 
+        UIWindow(const UIWindow&) = delete; UIWindow() = delete;
     public: // some new
         // on close event
-        virtual auto OnClose() noexcept -> bool { this->WindUp(); return true; };
+        virtual auto OnClose() noexcept -> bool { this->Cleanup(); return true; };
     public: // IDropTarget 接口 实现
         // IDropTarget::DragEnter 实现
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
@@ -133,13 +140,6 @@ namespace LongUI{
         bool OnMouseWheel(const LongUI::EventArgument&) noexcept;
         // resize window
         void OnResize(bool force = false) noexcept;
-    protected:
-        // constructor
-        UIWindow(pugi::xml_node node, UIWindow * parent=nullptr) noexcept;
-        // destructor
-        ~UIWindow() noexcept;
-        // deleted 
-        UIWindow(const UIWindow&) = delete; UIWindow() = delete;
     public:
         // use UIControl::visible_rect instead of this
 #if 0

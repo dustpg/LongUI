@@ -21,7 +21,7 @@ bool MainWindow::OnUACButtonOn(UIControl * sender) {
 }
 
 // 关闭窗口
-void MainWindow::WindUp() noexcept {
+void MainWindow::Cleanup() noexcept {
     this->~MainWindow();
     UIManager.Exit();
 }

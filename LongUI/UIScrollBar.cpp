@@ -383,7 +383,7 @@ inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
 }
 
 // UIScrollBarA 关闭控件
-void  LongUI::UIScrollBarA::WindUp() noexcept {
+void  LongUI::UIScrollBarA::Cleanup() noexcept {
     delete this;
 }
 

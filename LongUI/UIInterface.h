@@ -45,11 +45,9 @@ namespace LongUI {
     // Script define
     struct UIScript {
         UIScript() = default;
-        union {
-            const char*     script = nullptr;
-            const uint8_t*  scriptb;
-            void*           data;
-        };
+        // script data, maybe binary data maybe string
+        const BYTE*         script = nullptr;
+        // size of it
         size_t              size = 0;
     };
     // the script config, bit array

@@ -48,7 +48,7 @@ namespace LongUI {
         // recreate 重建
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
         // close this control 关闭控件
-        virtual void WindUp() noexcept override;
+        virtual void Cleanup() noexcept override;
     public:
         // get the service of RichText
         LongUIInline auto GetService() { return m_pTextServices; }

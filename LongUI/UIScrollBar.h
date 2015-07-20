@@ -151,7 +151,7 @@ namespace LongUI{
         // recreate
         auto Recreate(LongUIRenderTarget* )noexcept->HRESULT override;
         // close this control 关闭控件
-        void WindUp() noexcept override;
+        void Cleanup() noexcept override;
     public:
         // init sb
         void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept override;
