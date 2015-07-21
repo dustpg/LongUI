@@ -146,7 +146,7 @@ namespace LongUI {
     using RectLTRB_U = RectLTRB<uint32_t>;
     // --------------------------------
     // longui callback func 控件回调
-    using LongUICallBack = bool (*)(UIControl* event_setter, UIControl* func_caller) ;
+    using LongUIEventCallBack = bool (*)(UIControl* event_setter, UIControl* func_caller) ;
     // event type
     enum CreateEventType : size_t { Type_CreateControl = 0, Type_Initialize, Type_Recreate, Type_Uninitialize, };
     // CreateControl Function 控件创建函数
@@ -262,8 +262,8 @@ namespace LongUI {
     };
     // LongUI Event
     enum class Event : size_t {
-        // event -- finished control-tree buliding
-        Event_FinishedTreeBuliding = 0,
+        // event -- control-tree buliding finished
+        Event_TreeBulidingFinished = 0,
         // drag enter on this control
         Event_DragEnter,
         // drag over on this control

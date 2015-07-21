@@ -805,7 +805,8 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
 // --------------  CUIConsole ------------
 // CUIConsole 构造函数
 LongUI::CUIConsole::CUIConsole() noexcept {
-    ::InitializeCriticalSection(&m_cs); m_name[0] = L'\0';
+    //::InitializeCriticalSection(&m_cs);  
+    m_name[0] = L'\0';
     { if (m_hConsole != INVALID_HANDLE_VALUE) this->Cleanup(); }
 }
 
@@ -817,7 +818,7 @@ LongUI::CUIConsole::~CUIConsole() noexcept {
         ::CloseHandle(m_hConsole);
         m_hConsole = INVALID_HANDLE_VALUE;
     }
-    ::DeleteCriticalSection(&m_cs);
+    //::DeleteCriticalSection(&m_cs);
 }
 
 // CUIConsole 关闭
@@ -858,9 +859,9 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
     auto safe_write_file = [this](HANDLE hFile, LPCVOID lpBuffer,
         DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten,
         LPOVERLAPPED lpOverlapped) noexcept {
-        ::EnterCriticalSection(&m_cs);
+        //::EnterCriticalSection(&m_cs);
         BOOL bRet = ::WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped);
-        ::LeaveCriticalSection(&m_cs);
+        //::LeaveCriticalSection(&m_cs);
         return bRet;
     };
     // 先写入缓冲区
@@ -889,12 +890,16 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     ::wcsncpy(m_name, LR"(\\.\pipe\)", 9);
     wchar_t logger_name_buffer[128];
     // 未给logger?
-    if (!config.logger_name)  {
+    if (!config.logger_name) {
+        static float s_times = 1.f;
         ::swprintf(
             logger_name_buffer, lengthof(logger_name_buffer),
-            L"logger_%f", float(::rand()) / float(RAND_MAX)
+            L"logger_%7.5f", 
+            float(::GetTickCount()) / float(1000 * 60 * 60) *
+            (float(::rand()) / float(RAND_MAX)) * s_times
             );
         config.logger_name = logger_name_buffer;
+        ++s_times;
     }
     ::wcscat(m_name, config.logger_name);
     // 创建管道
@@ -1100,6 +1105,9 @@ auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t * str_a, const wchar_t
     assert(str_a && "bad argument!");
     if(!str_b) str_b = L"Error!";
     ::MessageBoxW(::GetForegroundWindow(), str_a, str_b, MB_ICONERROR);
+#ifdef _DEBUG
+    assert(!"error");
+#endif
 }
 
 #ifdef _DEBUG

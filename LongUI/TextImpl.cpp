@@ -402,6 +402,7 @@ bool LongUI::Component::EditaleText::OnDragEnter(IDataObject* data, DWORD* effec
     m_bThisFocused = true;
     m_bDragFromThis = m_pDataObject == data;
     assert(data && effect && "bad argument");
+    UNREFERENCED_PARAMETER(effect);
     m_pHost->GetWindow()->ShowCaret();
     ::ReleaseStgMedium(&m_recentMedium);
     // 检查支持格式: Unicode-Text

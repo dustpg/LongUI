@@ -51,7 +51,7 @@ namespace LongUI{
         virtual void Cleanup() noexcept = 0;
     public:
         // get control name for script
-        LongUIInline auto GetName_fs() const noexcept {
+        auto GetName_fs() const noexcept {
             static char buffer[LongUIStringBufferLength];
             buffer[LongUI::WideChartoUTF8(m_strControlName.c_str(), buffer)] = L'\0';
             return static_cast<const char*>(buffer);
@@ -89,12 +89,7 @@ namespace LongUI{
         LongUIInline auto IsTopLevel() const noexcept;
     protected: // Helper Zone
         // Set Event Call Back
-        void SetEventCallBack(const wchar_t*, LongUI::Event, LongUICallBack) noexcept;
-        // Set Event Call Back
-        template<typename T>
-        LongUIInline auto SetEventCallBackT(const wchar_t* n, LongUI::Event e, T call) noexcept {
-            return this->SetEventCallBack(n, e, static_cast<LongUICallBack>(call));
-        }
+        void SetEventCallBack(const wchar_t*, LongUI::Event, LongUIEventCallBack) noexcept;
     public:
         // get taking up width of control
         auto GetTakingUpWidth() const noexcept ->float;
@@ -107,11 +102,11 @@ namespace LongUI{
         // get class name
         auto GetControlClassName() const noexcept ->const wchar_t*;
         // change control draw size out of Update() method
-        auto SetControlSizeChangedOutUpdate() noexcept { m_bControlSizeChanged = false; }
+        auto SetControlSizeChanged() noexcept { m_bControlSizeChanged = true; }
         // change control draw size in the Update() method
-        auto SetControlSizeChangedInUpdate() noexcept { m_bControlSizeChangedEx = false; }
+        auto ControlSizeChangeHandled() noexcept { m_bControlSizeChangeHandled = true; }
         // is control draw size changed?
-        auto IsControlSizeChanged() noexcept { return m_bControlSizeChanged; }
+        auto IsControlSizeChanged() const noexcept { return m_bControlSizeChanged; }
         // set new taking up width of control
         auto SetTakingUpWidth(float w) noexcept ->void LongUINoinline;
         // set new taking up height of control
@@ -155,8 +150,8 @@ namespace LongUI{
     protected:
         // control size changed, for performance, this maybe changed multiple in one frame
         bool                    m_bControlSizeChanged = false;
-        // control size changed, safe way to change in Update() method
-        bool                    m_bControlSizeChangedEx = false;
+        // control size changed, if you have handled it
+        bool                    m_bControlSizeChangeHandled = false;
         // the position of draw zone has been changed
         bool                    unused_bool_control = false;
     public:

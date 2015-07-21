@@ -612,7 +612,7 @@ namespace LongUI {
         // current length
         size_t              m_length = 0;
         // lock
-        CRITICAL_SECTION    m_cs;
+        //CRITICAL_SECTION    m_cs;
         // name for this
         wchar_t             m_name[64];
         // buffer
@@ -647,7 +647,7 @@ namespace LongUI {
         // if using gpu render, you should choose a video card, return the index
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[], size_t const length) noexcept->size_t override;
         // SetEventCallBack for custom control
-        virtual auto SetEventCallBack(LongUI::Event, LongUICallBack, UIControl*, UIControl*) noexcept -> void override {}
+        virtual auto SetEventCallBack(LongUI::Event, LongUIEventCallBack, UIControl*, UIControl*) noexcept -> void override {}
         // show the error string
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void override;
 #ifdef _DEBUG

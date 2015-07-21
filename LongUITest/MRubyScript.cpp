@@ -71,17 +71,27 @@ MRubyScript::~MRubyScript() noexcept {
 // 申请并填写脚本空间
 auto MRubyScript::AllocScript(const char * str) noexcept-> LongUI::UIScript {
     LongUI::UIScript script;
+    // 计算空间
     script.size = ::strlen(str) + 1;
-    script.data = ::malloc(script.size);
-    ::strcpy(const_cast<char*>(script.script), str);
+    // 申请空间
+    auto script_string = reinterpret_cast<char*>(::malloc(script.size));
+    // 条件判断
+    if (script_string) {
+        // 复制数据
+        ::strcpy(script_string, str);
+        // 完成转换
+        script.script = reinterpret_cast<const BYTE*>(script_string);
+    }
+    // 一气呵成
     return script;
 }
 
 // 释放脚本空间
 auto MRubyScript::FreeScript(LongUI::UIScript& script) noexcept-> void {
-    if (script.data) {
-        ::free(script.data);
-        script.data = nullptr;
+    if (script.script) {
+        ::free(const_cast<BYTE*>(script.script));
+        script.script = nullptr;
+        script.size = 0;
     }
 }
 
@@ -103,7 +113,7 @@ auto MRubyScript::Evaluation(
     // 设置窗口
     s_hNowWnd = arg.sender->GetWindow()->GetHwnd();
     // 执行
-    ::mrb_load_string(m_pMRuby, script.script);
+    ::mrb_load_string(m_pMRuby, reinterpret_cast<const char*>(script.script));
     return 0;
 }
 

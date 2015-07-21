@@ -19,7 +19,6 @@ bool LongUI::CUIMenu::Create() noexcept {
 // 使用XML字符串创建菜单
 bool LongUI::CUIMenu::Create(const char * xml) noexcept {
     pugi::xml_document document;
-    document.load_string(xml);
     auto re = document.load_string(xml);
     // 错误
     if (re.status) {

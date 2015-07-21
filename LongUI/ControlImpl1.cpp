@@ -2,13 +2,12 @@
 
 // 系统按钮:
 /*
-Win8/8.1/10 
+Win8/8.1/10.0.10158之前
 焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
 0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
 1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
 2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
 3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
-
 */
 
 // UIControl 构造函数
@@ -49,8 +48,8 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
                 this->x = pos[0];
                 this->y = pos[1];
             }
-            // 检查大小
-            if (UIControl::MakeFloats(node.attribute("size").value(), pos, 2)) {
+            // 检查内容大小
+            if (UIControl::MakeFloats(node.attribute("csize").value(), pos, 2)) {
                 this->cwidth = pos[0];
                 this->cheight = pos[1];
             }
@@ -97,7 +96,7 @@ LongUI::UIControl::~UIControl() noexcept {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
     // 释放脚本占用空间
-    if (m_script.data) {
+    if (m_script.script) {
         assert(UIManager.script && "no script interface but data");
         UIManager.script->FreeScript(m_script);
     }
@@ -136,8 +135,11 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
 
 // UI控件: 刷新
 void LongUI::UIControl::Update() noexcept {
-    m_bControlSizeChanged = m_bControlSizeChangedEx;
-    m_bControlSizeChangedEx = false;
+    // 处理了
+    if (m_bControlSizeChangeHandled) {
+        m_bControlSizeChanged = false;
+        m_bControlSizeChangeHandled = false;
+    }
 }
 
 // UI控件: 重建
@@ -252,7 +254,7 @@ bool LongUI::UIControl::MakeColor(const char* data, D2D1_COLOR_F& color) noexcep
 
 // LongUI::UIControl 注册回调事件
 void LongUI::UIControl::SetEventCallBack(
-    const wchar_t* control_name, LongUI::Event event, LongUICallBack call) noexcept {
+    const wchar_t* control_name, LongUI::Event event, LongUIEventCallBack call) noexcept {
     assert(control_name && call&&  "bad argument");
     UIControl* control = m_pWindow->FindControl(control_name);
     assert(control && " no control found");
@@ -327,7 +329,7 @@ auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
         this->SetControlSizeChanged();
     }
     // 检查
-    if (this->cwidth) {
+    if (this->cwidth < 0.f) {
         UIManager << DL_Hint << this
             << "cwidth changed less than 0: " << this->cwidth << endl;
     }
@@ -342,7 +344,7 @@ auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinli
         this->SetControlSizeChanged();
     }
     // 检查
-    if (this->cheight) {
+    if (this->cheight < 0.f) {
         UIManager << DL_Hint << this
             << "cheight changed less than 0: " << this->cheight << endl;
     }
@@ -449,6 +451,8 @@ void LongUI::UILabel::Update() noexcept {
     if(this->IsControlSizeChanged()) {
         // 设置大小
         m_text.SetNewSize(this->cwidth, this->cheight);
+        // 已经处理
+        this->ControlSizeChangeHandled();
     }
     return Super::Update();
 }
@@ -508,7 +512,7 @@ void LongUI::UILabel::Cleanup() noexcept {
 // -------------------------------------------------------
 
 // Render 渲染 
-void LongUI::UIButton::Render(RenderType type)const noexcept {
+void LongUI::UIButton::Render(RenderType type) const noexcept {
     switch (type)
     {
         D2D1_RECT_F draw_rect;
@@ -519,11 +523,15 @@ void LongUI::UIButton::Render(RenderType type)const noexcept {
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
         this->GetContentRect(draw_rect);
-        {
-            if (m_strControlName == L"1" || true) {
-                //UIManager << DL_Hint << this << this->visible_rect << LongUI::endl;
-            }
+#ifdef _DEBUG
+        if (m_strControlName == L"3") {
+            int bk = 9;
         }
+        /*{
+            UIManager << DL_Hint << this << this->visible_rect << LongUI::endl;
+
+        }*/
+#endif
         // 渲染部件
         m_uiElement.Render(draw_rect);
         __fallthrough;
@@ -585,9 +593,6 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
         break;
     }
     return pControl;
-
-
-    return pControl;
 }
 
 
@@ -637,12 +642,12 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 force_cast(arg.event) = LongUI::Event::Event_ButtoClicked;
                 m_tarStatusClick = LongUI::Status_Hover;
                 // 检查脚本
-                if (m_pScript && m_script.data) {
-                    m_pScript->Evaluation(m_script, arg);
+                if (m_script.script) {
+                    UIManager.script->Evaluation(m_script, arg);
                 }
                 // 检查是否有事件回调
                 if (m_eventClick) {
-                    rec = (m_pClickTarget->*m_eventClick)(this);
+                    rec = m_eventClick(m_pClickTarget, this);
                 }
                 // 否则发送事件到窗口
                 else {
@@ -708,6 +713,8 @@ void LongUI::UIEditBasic::Update() noexcept {
     if (this->IsControlSizeChanged()) {
         // 设置大小
         m_text.SetNewSize(this->cwidth, this->cheight);
+        // 已经处理
+        this->ControlSizeChangeHandled();
     }
     // 刷新
     m_text.Update();
@@ -723,12 +730,7 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        /*case LongUI::Event::Event_FindControl: // 查找本控件
-            if (FindControlHelper(pt4self, this)) {
-                arg.ctrl = this;
-            }
-            return true;*/
-        case LongUI::Event::Event_FinishedTreeBuliding:
+        case LongUI::Event::Event_TreeBulidingFinished:
             return true;
         case LongUI::Event::Event_DragEnter:
             return m_text.OnDragEnter(arg.dataobj_cf, arg.outeffect_cf);

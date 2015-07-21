@@ -118,8 +118,8 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
             temparg.sender = this;
             temparg.event = LongUI::Event::Event_SliderValueChanged;
             // 检查脚本
-            if (m_pScript && m_script.data) {
-                m_pScript->Evaluation(m_script, temparg);
+            if (m_script.script) {
+                UIManager.script->Evaluation(m_script, temparg);
             }
             // 检查是否有事件回调
             if (m_eventChanged) {

@@ -46,11 +46,11 @@ namespace LongUI{
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // register Value Changed 注册变动事件
-        LongUIInline void RegisterValueChangedEvent(LongUICallBack call, UIControl* target) noexcept {
+        void RegisterValueChangedEvent(LongUIEventCallBack call, UIControl* target) noexcept {
             m_eventChanged = call; m_pChangedTarget = target;
         };
         // 获取数值
-        LongUIInline auto GetValue() { return m_fValue; }
+        auto GetValue() const noexcept { return m_fValue; }
     protected:
         // constructor 构造函数
         UISlider(pugi::xml_node) noexcept;
@@ -62,7 +62,7 @@ namespace LongUI{
         // changed event target
         UIControl*          m_pChangedTarget = nullptr;
         // changed event
-        LongUICallBack      m_eventChanged = nullptr;
+        LongUIEventCallBack m_eventChanged = nullptr;
         // slider rect
         D2D1_RECT_F         m_rcSlider = D2D1::RectF();
         // value range[0, 1]

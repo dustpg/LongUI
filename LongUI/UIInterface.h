@@ -142,7 +142,7 @@ namespace LongUI {
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[/*length*/], size_t const length /*length <=256*/) noexcept->size_t = 0;
         // SetEventCallBack for custom control
         // in normal case, you just return and say "不方便" is ok
-        virtual auto SetEventCallBack(LongUI::Event, LongUICallBack call, UIControl* target, UIControl* caller) noexcept -> void = 0;
+        virtual auto SetEventCallBack(LongUI::Event, LongUIEventCallBack call, UIControl* target, UIControl* caller) noexcept -> void = 0;
         // show the error string
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void = 0;
 #ifdef _DEBUG

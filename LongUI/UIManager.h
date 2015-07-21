@@ -415,23 +415,23 @@ namespace LongUI {
     public:
 #else
         // overload << operator 重载 << 运算符
-        template<typename T> const CUIManager& operator<< (T t) const noexcept { return *this; }
+        template<typename T> const CUIManager& operator<< (T t) const noexcept { UNREFERENCED_PARAMETER(t);  return *this; }
         // output with wide char
-        inline void Output(DebugStringLevel l, const wchar_t* s) const noexcept {  }
+        inline void Output(DebugStringLevel l, const wchar_t* s) const noexcept { UNREFERENCED_PARAMETER(l); UNREFERENCED_PARAMETER(s);}
         // output with utf-8
-        inline void Output(DebugStringLevel l, const char* s) const noexcept {  }
+        inline void Output(DebugStringLevel l, const char* s) const noexcept { UNREFERENCED_PARAMETER(l); UNREFERENCED_PARAMETER(s); }
         // Output with format for None
-        inline void _cdecl OutputN(const wchar_t*, ...) const noexcept {  }
+        inline void _cdecl OutputN(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
         // Output with format for Log
-        inline void _cdecl OutputL(const wchar_t*, ...) const noexcept {  }
+        inline void _cdecl OutputL(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
         // Output with format for Hint
-        inline void _cdecl OutputH(const wchar_t*, ...) const noexcept {  }
+        inline void _cdecl OutputH(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
         // Output with format for Warning
-        inline void _cdecl OutputW(const wchar_t*, ...) const noexcept {  }
+        inline void _cdecl OutputW(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
         // Output with format for Error
-        inline void _cdecl OutputE(const wchar_t*, ...) const noexcept {  }
+        inline void _cdecl OutputE(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
         // Output with format for Fatal
-        inline void _cdecl OutputF(const wchar_t*, ...) const noexcept {  }
+        inline void _cdecl OutputF(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
 #endif
     };
     // auto locker

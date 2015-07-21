@@ -160,14 +160,14 @@ void LongUI::UIScrollBarA::Update() noexcept {
     // 双滚动条修正
     if (this->another) {
         // 修改
-        UISB_OffsetVaule(draw_rect.right) -= this->another->GetTakingUpSapce();
+        //UISB_OffsetVaule(draw_rect.right) -= this->another->GetTakingUpSapce();
     }
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
     register float length_of_thumb, start_offset;
     {
         register float tmpsize = UISB_OffsetVaule(this->cwidth) - BASIC_SIZE*2.f;
         if (this->another) {
-            tmpsize -= this->another->GetTakingUpSapce();
+            //tmpsize -= this->another->GetTakingUpSapce();
         }
         start_offset = tmpsize * m_fIndex / m_fMaxRange;
         length_of_thumb = tmpsize * (1.f - m_fMaxIndex / m_fMaxRange);
@@ -368,7 +368,6 @@ void LongUI::UIScrollBarA::InitScrollBar(UIContainer* owner, ScrollBarType _type
 // UIScrollBarA: 需要时
 void LongUI::UIScrollBarA::OnNeeded(bool need) noexcept {
     UIManager << DL_Hint << this << L'[' << need << L']' << endl;
-    m_fTakeSpace = need ? BASIC_SIZE : 0.f;
     // 修改了? changed?
     if (m_bLastNeed != need) {
 

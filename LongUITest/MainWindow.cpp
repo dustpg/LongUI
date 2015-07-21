@@ -38,7 +38,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
             UIManager << DL_Hint << L"Button Clicked!@" << arg.sender->GetNameStr() << LongUI::endl;
             done = true;
             break;
-        //case LongUI::Event::Event_FinishedTreeBuliding:
+        //case LongUI::Event::Event_TreeBulidingFinished:
             //this->SetEventCallBackT(L"uac", LongUI::Event::Event_ButtoClicked, &MainWindow::OnUACButtonOn);
         }
 

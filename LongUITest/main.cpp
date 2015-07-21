@@ -29,12 +29,12 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 #else
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA" clearcolor="1,1,1,0.85">
-    <VerticalLayout name="VLayout1" size="1366, 512">
+    <VerticalLayout name="V" csize="1366, 512">
         <Button name="1" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="2" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
     </VerticalLayout>
-    <HorizontalLayout name="HLayout" size="0, 512">
+    <HorizontalLayout name="H" csize="0, 512">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
@@ -135,14 +135,16 @@ public:
         }
     }
     // update
-    void Update() noexcept override{
+    void Update() noexcept override {
         // 检查布局
-        if (m_bDrawSizeChanged) {
+        if (this->IsControlSizeChanged()) {
             ::SafeRelease(m_pCmdList);
             m_pRenderTarget->CreateCommandList(&m_pCmdList);
             // 设置大小
-            m_text.SetNewSize(this->width, this->height);
+            m_text.SetNewSize(this->cwidth, this->cheight);
 
+            // 已经处理
+            this->ControlSizeChangeHandled();
         }
         Super::Update();
     }
@@ -158,9 +160,13 @@ public:
                 }
                 return true;
             }
-            else*/ if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
+            else*/ if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
                 // 注册事件
-                this->SetEventCallBackT(L"6", LongUI::Event::Event_SliderValueChanged, &TestControl::OnValueChanged);
+                this->SetEventCallBack(
+                    L"6", 
+                    LongUI::Event::Event_SliderValueChanged, 
+                    [](UIControl* t, UIControl* s) noexcept { return static_cast<TestControl*>(t)->OnValueChangedConst(s); }
+                    );
             }
         }
         return false;
@@ -183,10 +189,6 @@ public:
             m_FirstRecreate = false;
         }
         return Super::Recreate(target);
-    }
-    // On Value Changed
-    bool OnValueChanged(UIControl* control) {
-        return OnValueChangedConst(control);
     }
     // On Value Changed
     bool OnValueChangedConst(UIControl* control) const {
@@ -293,7 +295,7 @@ public:
                 assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
                 arg.ctrl = this;
             }
-            else*/ if (arg.event == LongUI::Event::Event_FinishedTreeBuliding) {
+            else*/ if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
             }
         }
         return false;

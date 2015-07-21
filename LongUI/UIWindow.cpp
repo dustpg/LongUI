@@ -64,8 +64,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
         else {
             window_rect.bottom = static_cast<LONG>(this->cheight);
         }
-        force_cast(this->windows_size.width) = window_rect.right;
-        force_cast(this->windows_size.height) = window_rect.bottom;
+        force_cast(this->window_size.width) = window_rect.right;
+        force_cast(this->window_size.height) = window_rect.bottom;
         visible_rect.right = this->cwidth;
         visible_rect.bottom = this->cheight;
         // 调整大小
@@ -109,10 +109,8 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node,
     m_pWindow = this;
     // 自己的父类就是自己以保证parent不为null
     force_cast(this->parent) = this;
-    // 呈现参数
-    ZeroMemory(&m_rcScroll, sizeof(m_dirtyRects));
-    ZeroMemory(m_dirtyRects, sizeof(m_dirtyRects));
-    m_present = { 0, m_dirtyRects, nullptr, nullptr };
+    // 清0
+    ::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
 }
 
 // UIWindow 析构函数
@@ -308,33 +306,22 @@ void LongUI::UIWindow::refresh_caret() noexcept {
 }
 
 // 设置呈现
-void LongUI::UIWindow::set_present() noexcept {
-    // 显示光标?
-    if (m_cShowCaret) {
-        this->draw_caret();
-        m_dirtyRects[m_present.DirtyRectsCount].left 
-            = std::max(static_cast<LONG>(m_rcCaretPx.left), long(0));
-        m_dirtyRects[m_present.DirtyRectsCount].top 
-            = std::max(static_cast<LONG>(m_rcCaretPx.top), long(0));
-        m_dirtyRects[m_present.DirtyRectsCount].right 
-            = std::min(static_cast<LONG>(m_rcCaretPx.left + m_rcCaretPx.width), long(this->windows_size.width));
-        m_dirtyRects[m_present.DirtyRectsCount].bottom 
-            = std::min(static_cast<LONG>(m_rcCaretPx.top + m_rcCaretPx.height), long(this->windows_size.height));
-        ++m_present.DirtyRectsCount;
-    }
+void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
+    present.DirtyRectsCount = m_aUnitNow.length;
     // 存在脏矩形?
-    if (m_present.DirtyRectsCount) {
-        m_present.pScrollRect = &m_rcScroll;
+    if(!m_bFullRendering){
 #ifdef _DEBUG
         static RECT s_rects[LongUIDirtyControlSize + 2];
-        ::memcpy(s_rects, m_dirtyRects, m_present.DirtyRectsCount * sizeof(RECT));
-        m_present.pDirtyRects = s_rects;
-        s_rects[m_present.DirtyRectsCount] = { 0, 0, 128, 35 };
-        ++m_present.DirtyRectsCount;
+        ::memcpy(s_rects, m_dirtyRects, present.DirtyRectsCount * sizeof(RECT));
+        present.pDirtyRects = s_rects;
+        s_rects[present.DirtyRectsCount] = { 0, 0, 128, 35 };
+        ++present.DirtyRectsCount;
 #endif
     }
+    // 全刷新
     else {
-        m_present.pScrollRect = nullptr;
+        present.pScrollRect = nullptr;
+        present.DirtyRectsCount = 0;
     }
 }
 
@@ -363,16 +350,26 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
 void LongUI::UIWindow::EndDraw() const noexcept {
     // 结束渲染
     m_pRenderTarget->EndDraw();
-    // !!!!!!!一切小心!
-    UIWindow* pThis = const_cast<UIWindow*>(this);
-    pThis->set_present();
-    HRESULT hr = m_pSwapChain->Present1(1, 0, &m_present);
+    // 呈现参数设置
+    RECT rcScroll = { 0, 0, LONG(this->window_size.width), LONG(this->window_size.height) };
+    RECT dirtyRects[LongUIDirtyControlSize + 1]; 
+    ::memcpy(dirtyRects, m_dirtyRects, sizeof(dirtyRects));
+    DXGI_PRESENT_PARAMETERS present_parameters;
+    present_parameters.DirtyRectsCount = 0;
+    present_parameters.pDirtyRects = dirtyRects;
+    present_parameters.pScrollRect = &rcScroll;
+    present_parameters.pScrollOffset = nullptr;
+    // 设置参数
+    this->set_present_parameters(present_parameters);
+    // 呈现
+    HRESULT hr = m_pSwapChain->Present1(1, 0, &present_parameters);
     // 收到重建消息时 重建UI
 #ifdef _DEBUG
+    assert(SUCCEEDED(hr));
     if (hr == DXGI_ERROR_DEVICE_REMOVED 
         || hr == DXGI_ERROR_DEVICE_RESET 
         || test_D2DERR_RECREATE_TARGET) {
-        pThis->test_D2DERR_RECREATE_TARGET = false;
+        force_cast(test_D2DERR_RECREATE_TARGET) = false;
         UIManager << DL_Hint << L"D2DERR_RECREATE_TARGET!" << LongUI::endl;
         hr = UIManager.RecreateResources();
         if (FAILED(hr)) {
@@ -392,6 +389,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
 
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
+    m_bFullRendering = false;
     // 新窗口大小?
     if (m_bNewSize) {
         this->OnResize();
@@ -410,14 +408,14 @@ void LongUI::UIWindow::Update() noexcept {
     if (!m_aUnitNow.length) return;
     // 全刷新?
     if (m_aUnitNow.units[0] == static_cast<UIControl*>(this)) {
-        m_present.DirtyRectsCount = 0;
+        m_bFullRendering = true;
         //UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << endl;
         // 交给父类处理
         Super::Update();
     }
     // 部分刷新
     else {
-        m_present.DirtyRectsCount = m_aUnitNow.length;
+        m_bFullRendering = false;
         // 更新脏矩形
         for (uint32_t i = 0ui32; i < m_aUnitNow.length; ++i) {
             auto ctrl = m_aUnitNow.units[i];
@@ -433,7 +431,7 @@ void LongUI::UIWindow::Update() noexcept {
     }
     // 调试
 #ifdef _DEBUG
-    if (!m_present.DirtyRectsCount) {
+    if (m_bFullRendering) {
         ++full_render_counter;
     }
     else {
@@ -446,7 +444,7 @@ void LongUI::UIWindow::Update() noexcept {
 void LongUI::UIWindow::Render(RenderType type) const noexcept  {
     if (type != RenderType::Type_Render) return ;
     // 全刷新: 继承父类
-    if (!m_present.DirtyRectsCount) {
+    if (m_bFullRendering) {
         Super::Render(RenderType::Type_Render);
     }
     // 部分刷新:
@@ -505,7 +503,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             L"Full Rendering Count: %d\nDirty Rendering Count: %d\nThis DirtyRectsCount:%d",
             full_render_counter,
             dirty_render_counter,
-            m_present.DirtyRectsCount
+            m_aUnitNow.length
             );
         auto tf = UIManager.GetTextFormat(LongUIDefaultTextFormatIndex);
         auto ta = tf->GetTextAlignment();
@@ -532,7 +530,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     // 特殊事件
     if (_arg.msg == s_uTaskbarBtnCreatedMsg) {
         ::SafeRelease(m_pTaskBarList);
-        UIManager << DL_Hint << "TaskbarButtonCreated" << endl;
+        UIManager << DL_Log << "TaskbarButtonCreated" << endl;
         auto hr = ::CoCreateInstance(
             CLSID_TaskbarList,
             nullptr,
@@ -552,17 +550,8 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         break;
     /*case WM_DWMCOLORIZATIONCOLORCHANGED:
     {
-        DWORD buffer = sizeof(color_a);
-        ::RegGetValueA(
-            HKEY_CURRENT_USER,
-            "Software\\Microsoft\\Windows\\DWM",
-            "ColorizationColor",
-            RRF_RT_DWORD,
-            nullptr,
-            &color_a,
-            &buffer
-            );
-        this->Invalidate(this);
+        D2D_COLOR_F theme_color;
+        CUIManager::GetThemeColor(theme_color);
     }
     break;*/
     case WM_MOUSEMOVE:
@@ -574,10 +563,6 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     case WM_TIMER:
         // 闪烁?
         if (_arg.wParam_sys == 0 && m_cShowCaret) {
-            // 闪烁
-           /* m_present.DirtyRectsCount = 0;
-            this->set_present();
-            m_pSwapChain->Present1(0, 0, &m_present);*/
             m_bCaretIn = !m_bCaretIn;
         }
         handled = true;
@@ -637,10 +622,10 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
             wheight = rect.bottom - rect.top;
         }
         // 数据有效?
-        if (wwidth && wheight && (wwidth != this->windows_size.width ||
-            wheight != this->windows_size.height)) {
-            force_cast(this->windows_size.width) = wwidth;
-            force_cast(this->windows_size.height) = wheight;
+        if (wwidth && wheight && (wwidth != this->window_size.width ||
+            wheight != this->window_size.height)) {
+            force_cast(this->window_size.width) = wwidth;
+            force_cast(this->window_size.height) = wheight;
             m_bNewSize = true;
         }
     }
@@ -712,19 +697,15 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 void LongUI::UIWindow::OnResize(bool force) noexcept {
     UIManager << DL_Log << "called" << endl;
     // 修改大小, 需要取消目标
-    this->SetControlSizeChangedOutUpdate(); m_pRenderTarget->SetTarget(nullptr);
-    // 滚动
-    m_rcScroll.right = this->windows_size.width;
-    m_rcScroll.bottom = this->windows_size.height;
-
-    visible_rect.right = static_cast<float>(this->windows_size.width);
-    visible_rect.bottom = static_cast<float>(this->windows_size.height);
-    this->cwidth = visible_rect.right / this->zoom.width;
-    this->cheight = visible_rect.bottom / this->zoom.height;;
-    //
-
-    auto rect_right = MakeAsUnit(this->windows_size.width);
-    auto rect_bottom = MakeAsUnit(this->windows_size.height);
+    m_pRenderTarget->SetTarget(nullptr);
+    // 修改
+    visible_rect.right = static_cast<float>(this->window_size.width);
+    visible_rect.bottom = static_cast<float>(this->window_size.height);
+    this->SetTakingUpWidth(visible_rect.right / this->zoom.width);
+    this->SetTakingUpHeight(visible_rect.bottom / this->zoom.height);
+    // 设置
+    auto rect_right = MakeAsUnit(this->window_size.width);
+    auto rect_bottom = MakeAsUnit(this->window_size.height);
     auto old_size = m_pTargetBimtap->GetPixelSize();
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
@@ -800,9 +781,6 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         swapChainDesc.BufferCount = 2;
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-        // 滚动
-        m_rcScroll.right = rect.right - rect.left;
-        m_rcScroll.bottom = rect.bottom - rect.top;
         if (this->flags & Flag_Window_DComposition) {
             // DirectComposition桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;

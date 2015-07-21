@@ -11,7 +11,7 @@ constexpr char* hello_world = u8R"longui_demo_xml(<?xml version="1.0" encoding="
 int WINAPI WinMain(HINSTANCE, HINSTANCE, char*, int) {
     if (SUCCEEDED(::OleInitialize(nullptr))) {
         UIManager.Initialize();
-        UIManager.CreateUIWindow<>(hello_world);
+        UIManager.CreateUIWindow(hello_world);
         UIManager.Run();
         UIManager.UnInitialize();
         ::OleUninitialize();

@@ -130,7 +130,7 @@ namespace LongUI{
         // refresh the caret
         void refresh_caret() noexcept;
         // set the present
-        void set_present() noexcept;
+        void set_present_parameters(DXGI_PRESENT_PARAMETERS&)const noexcept;
     public: // MSG MAPPING ZONE
         // on WM_CREATE
         bool OnCreated(HWND hwnd) noexcept;
@@ -140,17 +140,21 @@ namespace LongUI{
         bool OnMouseWheel(const LongUI::EventArgument&) noexcept;
         // resize window
         void OnResize(bool force = false) noexcept;
-    public:
-        // use UIControl::visible_rect instead of this
-#if 0
-        // the real logic width  of window(HWND)
-        float           const   width = 0.f;
-        // the real logic height of window(HWND)
-        float           const   height = 0.f;
-#endif
-        // the real pixel size  of window(HWND)
-        D2D1_SIZE_U     const   windows_size = D2D1::SizeU();
     protected:
+        // will use BitArray instead of them
+        // BitArray32           m_baBool;
+        // caret in(true) or out?
+        bool                    m_bCaretIn = false;
+        // in draging?
+        bool                    m_bInDraging = false;
+        // window rendered in last time, or want to render in this time
+        bool                    m_bRendered = false;
+        // new size?
+        bool                    m_bNewSize = false;
+        // full rendering in this frame?
+        bool                    m_bFullRendering = false;
+        // unused
+        bool                    m_unused[3];
         // mini size
         D2D1_SIZE_U             m_miniSize = D2D1::SizeU();
         // window handle
@@ -181,10 +185,6 @@ namespace LongUI{
         UIControl*              m_pDragDropControl = nullptr;
         // now captured control (only one)
         UIControl*              m_pCapturedControl = nullptr;
-        // rendering queue
-        CUIRenderQueue          m_uiRenderQueue;
-        // now unit
-        CUIRenderQueue::UNIT    m_aUnitNow;
         // blink timer id
         UINT_PTR                m_idBlinkTimer = 0;
         // normal  l-param
@@ -193,44 +193,40 @@ namespace LongUI{
         float                   m_fDeltaTime = 0.f;
         // show the caret
         uint32_t                m_cShowCaret = 0;
-        // scroll rect
-        RECT                    m_rcScroll;
-        // dirty rects, + 1 for caret
-        RECT                    m_dirtyRects[LongUIDirtyControlSize + 1];
-        // present prame
-        DXGI_PRESENT_PARAMETERS m_present;
         // caret rect in px
         RectLTWH_U              m_rcCaretPx;
         // timer
         UITimer                 m_timer;
-        // track mouse event
-        TRACKMOUSEEVENT         m_csTME;
-        // current STGMEDIUM当前媒体
-        STGMEDIUM               m_curMedium;
-        // map 对象映射
-        StringMap               m_mapString2Control;
     public:
+        // the real pixel size  of window(HWND)
+        D2D1_SIZE_U     const   window_size = D2D1::SizeU();
         // default(arrow)cursor
-        HCURSOR     const       default_cursor = ::LoadCursorW(nullptr, IDC_ARROW);
+        HCURSOR         const   default_cursor = ::LoadCursorW(nullptr, IDC_ARROW);
         // now sursor
         HCURSOR                 now_cursor = default_cursor;
+        // debug info
 #ifdef _DEBUG
-        BOOL                    test_D2DERR_RECREATE_TARGET = false;
-        uint16_t                full_render_counter = 0;
-        uint16_t                dirty_render_counter = 0;
+        uint32_t                test_D2DERR_RECREATE_TARGET = false;
+        uint32_t                test_unknown = 0;
+        uint32_t                full_render_counter = 0;
+        uint32_t                dirty_render_counter = 0;
 #endif
-        // 清理颜色
+        // clear color @xml "clearcolor"
         D2D1::ColorF            clear_color = D2D1::ColorF(D2D1::ColorF::White);
-    protected:
+    protected: // huge obj
+        // rendering queue
+        CUIRenderQueue          m_uiRenderQueue;
+        // now unit
+        CUIRenderQueue::UNIT    m_aUnitNow;
+        // dirty rects : +1 for caret
+        RECT                    m_dirtyRects[LongUIDirtyControlSize + 1];
+        // track mouse event: end with DWORD
+        TRACKMOUSEEVENT         m_csTME;
+        // current STGMEDIUM: begin with DWORD
+        STGMEDIUM               m_curMedium;
         // registered control
         BasicContainer          m_vRegisteredControl;
-        // caret in(true) or out?
-        bool                    m_bCaretIn = false;
-        // in draging
-        bool                    m_bInDraging = false;
-        // window rendered in last time, or want to render in this time
-        bool                    m_bRendered = false;
-        // unused
-        bool                    m_bNewSize = false;
+        // control name ->map-> control pointer
+        StringMap               m_mapString2Control;
     };
 }

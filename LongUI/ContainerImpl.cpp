@@ -24,14 +24,13 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
                 assert(create_control_func && "none");
                 if (create_control_func) {
                     // 检查模板ID
-                    auto tid = LongUI::AtoI(node.attribute(templateid[i]).value());
+                    //auto tid = LongUI::AtoI(node.attribute(templateid[i]).value());
                     // 创建控件
-                    this->marginal_control[i] = UIManager.CreateControl(size_t(tid), create_control_func);
-                    
+                    //this->marginal_control[i] = UIManager.CreateControl(size_t(tid), create_control_func);
                 }
                 // 优化flag
                 if (this->marginal_control[i]) {
-                    exist_marginal_control = true;
+                    //exist_marginal_control = true;
                 }
             }
         }
@@ -123,7 +122,7 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_FinishedTreeBuliding:
+        case LongUI::Event::Event_TreeBulidingFinished:
             // 初次完成空间树建立
             for (auto ctrl : (*this)) {
                 ctrl->DoEvent(arg);
@@ -196,20 +195,9 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
     // 检查
     if (this->IsControlSizeChanged()) {
-        // 修改可视化区域, 顶级就是窗口大小
-        // TODO: IT
-        D2D1_SIZE_F visible_size = D2D1::SizeF();
-        if (this->IsTopLevel()) {
-            visible_size.width = this->visible_rect.right;
-            visible_size.height = this->visible_rect.bottom;
-        }
-        
-        // 然后...?
-        else {
-            visible_size.width = std::min(this->cwidth, this->parent->cwidth);
-            visible_size.height = std::min(this->cheight, this->parent->cheight);
-        }
         this->GetWorldTransform(this->world);
+        // 已经处理
+        this->ControlSizeChangeHandled();
     }
 }
 
@@ -218,11 +206,12 @@ void LongUI::UIContainer::Update() noexcept  {
     // 修改可视化区域
     if (this->IsControlSizeChanged()) {
         // 本容器内容限制
-        D2D1_POINT_2F limit_of_this;
-        {
-            D2D1_RECT_F rect; this->GetContentRect(rect);
-            limit_of_this = LongUI::TransformPoint(this->world, reinterpret_cast<D2D1_POINT_2F&>(rect.right));
-        }
+        D2D1_RECT_F limit_of_this = {
+            this->visible_rect.left + this->margin_rect.left * this->world._11,
+            this->visible_rect.top + this->margin_rect.top * this->world._22,
+            this->visible_rect.right + this->margin_rect.right * this->world._11,
+            this->visible_rect.bottom + this->margin_rect.bottom * this->world._22,
+        };
         // 更新
         for (auto ctrl : (*this)) {
             // 前向刷新
@@ -236,14 +225,19 @@ void LongUI::UIContainer::Update() noexcept  {
             auto lt = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
             auto rb = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
             // 限制
-            ctrl->visible_rect.left = std::max(lt.x, 0.f);
-            ctrl->visible_rect.top = std::max(lt.y, 0.f);
-            ctrl->visible_rect.right = std::min(rb.x, limit_of_this.x);
-            ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.y);
+            ctrl->visible_rect.left = std::max(lt.x, limit_of_this.left);
+            ctrl->visible_rect.top = std::max(lt.y, limit_of_this.top);
+            ctrl->visible_rect.right = std::min(rb.x, limit_of_this.right);
+            ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
+            // 调试信息
+            //UIManager << DL_Hint << ctrl << ctrl->visible_rect << endl;
         }
-        
-        // 修改
-        //this->AfterChangeDrawPosition();
+        // 调试信息
+        if (this->IsTopLevel()) {
+            UIManager << DL_Log << "Handle: ControlSizeChanged" << LongUI::endl;
+        }
+        // 已处理该消息
+        this->ControlSizeChangeHandled();
     }
     // 刷新边缘控件
     if (this->flags & Flag_Container_ExistMarginalContrl) {
@@ -467,12 +461,13 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
                 ctrl->SetTakingUpWidth(base_width);
-                ctrl->cwidth = base_width - ctrl->GetNonContentWidth();
             }
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
                 ctrl->SetTakingUpHeight(height_step);
             }
+            // 不管如何, 修改!
+            ctrl->SetControlSizeChanged();
             // 修改
             ctrl->y = position_y;
             position_y += ctrl->GetTakingUpHeight();
@@ -483,6 +478,8 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         /*if (m_strControlName == L"MainWindow") {
             int a = 0;
         }*/
+        // 已经处理
+        this->ControlSizeChangeHandled();
     }
     // 父类刷新
     return Super::Update();
@@ -541,7 +538,7 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
     // 3. 计算实际高度/宽度
     if (this->IsControlSizeChanged()) {
-    // 初始化
+        // 初始化
         float base_width = 0.f, base_height = 0.f;
         float counter = 0.0f;
         // 第一次
@@ -576,18 +573,22 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             if (ctrl->flags & Flag_Floating) continue;
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
-                ctrl->SetTakingUpWidth(base_height);
+                ctrl->SetTakingUpHeight(base_height);
             }
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
                 ctrl->SetTakingUpWidth(width_step);
             }
+            // 不管如何, 修改!
+            ctrl->SetControlSizeChanged();
             ctrl->x = position_x;
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
         this->cwidth = position_x;
         this->cheight = base_height;
+        // 已经处理
+        this->ControlSizeChangeHandled();
     }
     // 父类刷新
     return Super::Update();

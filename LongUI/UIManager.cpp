@@ -264,7 +264,7 @@ auto LongUI::CUIManager::CreateUIWindow(
     // 载入字符串
     auto code = m_docWindow.load_string(xml);
     // 检查错误
-    if (code) {
+    if (code.status) {
         wchar_t buffer[LongUIStringBufferLength];
         buffer[LongUI::UTF8toWideChar(code.description(), buffer)] = L'\0';
         this->ShowError(buffer);
@@ -278,9 +278,9 @@ auto LongUI::CUIManager::CreateUIWindow(
 auto LongUI::CUIManager::CreateUIWindow(
     const pugi::xml_node node, UIWindow* parent, CreateUIWindowCallBack call, void* user_data
     ) noexcept -> UIWindow* {
-    assert(node && callbak && "bad arguments");
+    assert(node && call && "bad arguments");
     // 有效情况
-    if (callbak && node) {
+    if (call && node) {
         // 创建窗口
         auto window = call(node, parent, user_data);
         // 查错
@@ -293,7 +293,7 @@ auto LongUI::CUIManager::CreateUIWindow(
         // 完成创建
         LongUI::EventArgument arg; ::memset(&arg, 0, sizeof(arg));
         arg.sender = window;
-        arg.event = LongUI::Event::Event_FinishedTreeBuliding;
+        arg.event = LongUI::Event::Event_TreeBulidingFinished;
         window->DoEvent(arg);
         // 返回
         return window;
@@ -618,6 +618,7 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
 
 // 默认创建窗口
 auto LongUI::CUIManager::CreateLongUIWIndow(pugi::xml_node node, UIWindow* parent, void* user_data) noexcept -> UIWindow * {
+    UNREFERENCED_PARAMETER(user_data);
     auto ctrl = LongUI::UIControl::AllocRealControl<LongUI::UIWindow>(
         node, 
         [=](void* p) noexcept { new(p) UIWindow(node, parent); }
@@ -1003,7 +1004,7 @@ auto LongUI::CUIManager::load_template_string(const char* str) noexcept->HRESULT
     if (str && *str) {
         // 载入字符串
         auto code = m_docTemplate.load_string(str);
-        if (code) {
+        if (code.status) {
             assert(!"load error");
             ::MessageBoxA(nullptr, code.description(), "<LongUI::CUIManager::load_template_string>: Failed to Parse/Load XML", MB_ICONERROR);
             return E_FAIL;
@@ -1724,7 +1725,7 @@ auto  LongUI::CUIManager::FormatTextCore(
         assert(param && "ap set to nullptr, but none param found.");
     }
     // Range Type
-    enum class R :size_t { N, W, Y, H, S, U, E, D, I };
+    enum class R : size_t { N, W, Y, H, S, U, E, D, I };
     // Range Data
     struct RangeData {
         DWRITE_TEXT_RANGE       range;
@@ -1744,6 +1745,7 @@ auto  LongUI::CUIManager::FormatTextCore(
         };
         R                       range_type;
     } range_data;
+    ::memset(&range_data, 0, sizeof(range_data));
     assert(format && "bad argument");
     IDWriteTextLayout* layout = nullptr;
     register UIColorEffect* tmp_color = nullptr;
@@ -2176,8 +2178,10 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
             sei.nShow = SW_NORMAL;
             // 执行
             if (!::ShellExecuteExW(&sei)) {
+#ifdef _DEBUG
                 DWORD dwError = ::GetLastError();
                 assert(dwError == ERROR_CANCELLED && "anyelse?");
+#endif
                 return false;
             }
             else if(exit) {
@@ -2284,6 +2288,7 @@ auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
 auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     if (ctrl) {
+#if 0
         ::swprintf(
             buffer, LongUIStringBufferLength,
             L"[Control:%ls@%ls@0x%p] ",
@@ -2291,6 +2296,14 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
             ctrl->GetControlClassName(),
             ctrl
             );
+#else
+        ::swprintf(
+            buffer, LongUIStringBufferLength,
+            L"[Control:%ls@0x%p] ",
+            ctrl->GetNameStr(),
+            ctrl
+            );
+#endif
     }
     else {
         ::swprintf(buffer, LongUIStringBufferLength, L"[Control:null] ");
