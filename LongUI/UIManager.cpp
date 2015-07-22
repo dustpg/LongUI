@@ -3,7 +3,7 @@
 // node->Attribute\((.+?)\)
 // node.attribute($1).value()
 
-//#define LONGUI_D3D_DEBUG
+#define LONGUI_D3D_DEBUG
 #define LONGUI_RENDER_IN_UNSAFE_MODE
 
 // CUIManager 初始化
@@ -1057,12 +1057,10 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         // 一定要有D3D11_CREATE_DEVICE_BGRA_SUPPORT
         // 否则创建D2D设备上下文会失败
         UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
-#ifdef LONGUI_D3D_DEBUG
+#if defined(_DEBUG) && defined(LONGUI_D3D_DEBUG)
         // Debug状态 有D3D DebugLayer就可以取消注释
         creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
         auto tmpflag = D3D11_CREATE_DEVICE_FLAG(creationFlags);
-#endif
 #endif
         D3D_FEATURE_LEVEL featureLevels[] = {
             D3D_FEATURE_LEVEL_11_1,

@@ -664,7 +664,6 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         processor = m_pFocusedControl;
     }
     // 有就处理
-    // 处理了就直接返回
     if (processor && processor->DoEvent(_arg)) {
         return true;
     }

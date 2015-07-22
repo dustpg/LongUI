@@ -11,7 +11,7 @@ For this repo, you need:
     - **Windows 8 or later**
   - Tool-chain/Environment A: MSC  
     - Visual Stuidio 2015 - Express for Desktop/Community or higher
-    - Windows SDK(10.0.10166.0)/DirectX SDK(optional)
+    - Windows SDK(10.0.10240.0 RTM)/DirectX SDK(optional)
   - Tool-chain/Environment B(would support in the future): GCC/Clang  
     - Rakefile(ruby)
     - MinGW-W64
@@ -29,11 +29,11 @@ For this repo, you need:
       - \[C/I/?\] UI ClassName, etc. CUIManager IUIInterface  
   - member variable:  
       - public: member_variable, etc. parent, user_data  
-      - private/protect: m_typeMemberVariable, etc, m_pWindow
+      - private/protected: m_typeMemberVariable, etc, m_pWindow
   - method/function:  
       - public: ClassMethod() except to match STL-style 
        etc GetWindow(), Update(), begin()
-      - private/protect:  class_method(), etc, refresh_this()  
+      - private/protected:  class_method(), etc, refresh_this()  
   - enum:  see it
 ```cpp
         enum class PointType : uint16_t {
