@@ -4,8 +4,8 @@
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
 // UIWindow 构造函数
-LongUI::UIWindow::UIWindow(pugi::xml_node node,
-    UIWindow* parent) noexcept : Super(node), m_uiRenderQueue(this) {
+LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent) 
+noexcept : Super(node), m_uiRenderQueue(this) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     // flag 区
     {

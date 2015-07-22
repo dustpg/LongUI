@@ -304,7 +304,9 @@ namespace LongUI {
         // length of window*
         uint16_t                        m_cCountWindow = 0;
         // singal/flag for exiting
-        std::atomic_uint16_t            m_exitFlag = false;
+        std::atomic_bool                m_exitFlag = false;
+        // ununsed
+        bool                            unused_bool = false;
         // count for text renderer
         uint16_t                        m_uTextRenderCount = 0;
         // 等待垂直同步次数

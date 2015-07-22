@@ -50,8 +50,9 @@ namespace LongUI {
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
-        // get the service of RichText
-        LongUIInline auto GetService() { return m_pTextServices; }
+        // operator ITextServices2
+        operator ITextServices2*() const noexcept { return m_pTextServices; }
+        // operator ->
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
     protected:

@@ -69,5 +69,20 @@ namespace LongUI{
         /*// effective
         bool                    m_bEffective = false;
         bool                    btnunused[3];*/
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIButton>() {
+        // {90098AB1-4C9E-4F16-BF5E-9179B2B29570}
+        static const GUID IID_LongUI_UIButton = {
+            0x90098ab1, 0x4c9e, 0x4f16,{ 0xbf, 0x5e, 0x91, 0x79, 0xb2, 0xb2, 0x95, 0x70 } 
+        };
+        return IID_LongUI_UIButton;
+    }
+#endif
 }

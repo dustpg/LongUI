@@ -26,10 +26,17 @@
 
 // LongUI namespace
 namespace LongUI {
+#if 0
+    // base container control class -- 基本容器类
+    class UIContainer : public UIMarginalControl {
+        // 父类申明
+        using Super = UIMarginalControl;
+#else
     // base container control class -- 基本容器类
     class UIContainer : public UIControl {
         // 父类申明
         using Super = UIControl;
+#endif
     public:
         // itr 迭代器
         class Iterator {
@@ -67,8 +74,6 @@ namespace LongUI {
         private:
             UIControl*          m_pControl;
         };
-        // marginal control
-        enum MarginalControl { Control_Left = 0, Control_Top, Control_Right, Control_Bottom, MARGINAL_CONTROL_SIZE };
     public:
         // render
         virtual void Render(RenderType) const noexcept override;
@@ -143,8 +148,23 @@ namespace LongUI {
         // transform for world: XXX: maybe set it to UIContrl not here
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
         // marginal controls
-        UIControl*              marginal_control[MARGINAL_CONTROL_SIZE];
+        UIMarginalControl*      marginal_control[UIMarginalControl::MARGINAL_CONTROL_SIZE];
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIContainer>() {
+        // {30523BF0-4170-4F2F-9FF6-7946A2B8BEEB}
+        static const GUID IID_LongUI_UIContainer = { 
+            0x30523bf0, 0x4170, 0x4f2f,{ 0x9f, 0xf6, 0x79, 0x46, 0xa2, 0xb8, 0xbe, 0xeb }
+        };
+        return IID_LongUI_UIContainer;
+    }
+#endif
     // XXX: top level?
     LongUIInline auto UIControl::IsTopLevel() const noexcept { return static_cast<UIControl*>(this->parent) == this; }
 }

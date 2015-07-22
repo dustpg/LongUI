@@ -1,5 +1,29 @@
 ﻿#include "LongUI.h"
 
+// Memory leak detector
+#if defined(_DEBUG) && defined(_MSC_VER)
+struct MemoryLeakDetector {
+    // ctor
+    MemoryLeakDetector() {
+        ::_CrtMemCheckpoint(memstate + 0);
+    }
+    // dtor
+    ~MemoryLeakDetector() {
+        ::_CrtMemCheckpoint(memstate + 1);
+        if (::_CrtMemDifference(memstate + 2, memstate + 0, memstate + 1)) {
+            ::_CrtDumpMemoryLeaks();
+            assert(!"OOps! Memory leak detected");
+        }
+    }
+    // mem state
+    _CrtMemState memstate[3];
+} g_detector;
+#endif
+
+
+
+
+static_assert(sizeof(std::atomic_bool) == sizeof(char), "really bad");
 #define InitStaticVar(v)  decltype(v) v = nullptr
 // 初始化静态变量
 

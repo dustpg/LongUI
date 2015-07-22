@@ -99,8 +99,6 @@ namespace LongUI{
         auto GetNonContentWidth() const noexcept ->float;
         // get taking up height of control
         auto GetNonContentHeight() const noexcept ->float;
-        // get class name
-        auto GetControlClassName() const noexcept ->const wchar_t*;
         // change control draw size out of Update() method
         auto SetControlSizeChanged() noexcept { m_bControlSizeChanged = true; }
         // change control draw size in the Update() method
@@ -174,17 +172,34 @@ namespace LongUI{
         // do not change in other method/function
         LongUIFlag    const     flags = LongUIFlag::Flag_None;
     protected:
-        // size of border
-        float                   m_fBorderSize = 0.f;
+        // width of border
+        float                   m_fBorderWidth = 0.f;
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
         // now color of border
         D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(D2D1::ColorF::Black);
         // roundsize of border
-        D2D1_SIZE_F             m_fBorderRdius = D2D1::SizeF();
+        D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
         // control name
         CUIString               m_strControlName;
     public:
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept;
+    public:
+        // get class name
+        auto GetControlClassName(bool full = false) const noexcept ->const wchar_t*;
+        // assert type casting
+        void AssertTypeCasting(IID* iid) const noexcept;
+        // assert type casting
+        template<class T> void AssertTypeCasting() const noexcept { this->AssertTypeCasting(&LongUI::GetIID<T>()); }
+#else
+        // get class name
+        auto GetControlClassName(bool full=false) const noexcept ->const wchar_t* { return L""; };
+        // assert type casting
+        template<class T> void AssertTypeCasting() const noexcept { }
+#endif
         // make color form string
         static bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;
         // make UIString form string
@@ -213,5 +228,15 @@ namespace LongUI{
             return control;
         }
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIControl>() { 
+        // {87EB711F-3B53-4B21-ABCD-C907E5C43F8D}
+        static const GUID IID_LongUI_UIControl = { 
+            0x87eb711f, 0x3b53, 0x4b21,{ 0xab, 0xcd, 0xc9, 0x7, 0xe5, 0xc4, 0x3f, 0x8d } 
+        };
+        return IID_LongUI_UIControl;
+    }
+#endif
 }
 

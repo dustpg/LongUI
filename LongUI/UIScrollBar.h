@@ -28,19 +28,16 @@
 // LongUI namespace
 namespace LongUI{
     // 获取相对数值
-#define UISB_OffsetVaule(f) ((&(f))[int(this->type)])
+#define UISB_OffsetVaule(f) ((&(f))[int(this->bartype)])
     // Scroll Bar Type
     enum class ScrollBarType : uint8_t {
         Type_Horizontal = 0,    // 水平
         Type_Vertical = 1,      // 垂直
     };
-    // UIContainer
-    class UIContainer;
     // base scroll bar 默认滚动条
-    class UIScrollBar : public UIControl {
-    private:
+    class UIScrollBar : public UIMarginalControl {
         // 父类申明
-        using Super = UIControl ;
+        using Super = UIMarginalControl;
     protected:
         // mouse point [0, 1, 2, 3, 4]
         enum class PointType : uint8_t {
@@ -54,17 +51,15 @@ namespace LongUI{
         // do event 事件处理
         bool DoEvent(const LongUI::EventArgument&) noexcept override;
     public:
-        // Render 渲染 
-        //virtual void Render(RenderType type) const noexcept override;
-        // udate 刷新
-        //virtual void Update() noexcept override;
-        // init sb
-        virtual inline void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept { force_cast(parent) = owner; force_cast(type) = _type; }
-        // on needed, maybe 'need' is same in twice
-        virtual void OnNeeded(bool need) noexcept = 0;
+        // init the control
+        virtual inline void InitMarginalControl(MarginalControl _type) noexcept override {
+            auto sbtype = (_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
+            force_cast(this->bartype) = sbtype;
+            return Super::InitMarginalControl(_type);
+        }
     public:
         // get parent width/height
-        auto GetParentWH() noexcept { return this->type == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelWidth() : this->parent->GetChildLevelHeight(); }
+        auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelWidth() : this->parent->GetChildLevelHeight(); }
         // on page up
         auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - this->GetParentWH()); }
         // on page down
@@ -86,7 +81,7 @@ namespace LongUI{
         void BeforeUpdate() noexcept;
     protected:
         // get bar length
-        auto get_length() noexcept { return type == ScrollBarType::Type_Vertical ? parent->cheight : parent->cwidth; }
+        auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->cheight : parent->cwidth; }
         // set index
         void set_index(float index) noexcept;
     public:
@@ -95,8 +90,8 @@ namespace LongUI{
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
     public:
-        // type of scrollbar
-        ScrollBarType   const   type = ScrollBarType::Type_Vertical;
+        // bartype of scrollbar
+        ScrollBarType   const   bartype = ScrollBarType::Type_Vertical;
         // want animation?
         bool                    m_bAnimation = false;
     protected:
@@ -120,11 +115,13 @@ namespace LongUI{
         float                   m_fOldPoint = 0.f;
         // animation
         CUIAnimationOffset      m_uiAnimation;
-    public:
-        // another sb
-        UIScrollBar*            another = nullptr;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
-    // srcoll bar - type A 型 滚动条
+    // srcoll bar - bartype A 型 滚动条
     class UIScrollBarA final : public UIScrollBar {
         // basic size
         static constexpr float BASIC_SIZE = 16.f;
@@ -143,7 +140,7 @@ namespace LongUI{
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
     public:
         // Render 渲染 
-        virtual void Render(RenderType _type) const noexcept override;
+        virtual void Render(RenderType _bartype) const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
@@ -154,12 +151,10 @@ namespace LongUI{
         void Cleanup() noexcept override;
     public:
         // init sb
-        void InitScrollBar(UIContainer* owner, ScrollBarType _type) noexcept override;
-        // on needed
-        void OnNeeded(bool need) noexcept override;
+        virtual void InitMarginalControl(MarginalControl _type) noexcept override;
     private:
         // set new status
-        void set_status(PointType _type, ControlStatus state) noexcept;
+        void set_status(PointType _bartype, ControlStatus state) noexcept;
         // dtor
         ~UIScrollBarA() noexcept;
     private:
@@ -188,7 +183,29 @@ namespace LongUI{
         // arrow2 use colorrect
         bool                    m_bArrow2InColor = false;
         // unused
-        bool                    m_bLastNeed = false;
+        bool                    unused_bara = false;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
-
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIScrollBar>() {
+        // {AD925DE3-636D-44DD-A01E-A2C180DEA98D}
+        static const GUID IID_LongUI_UIScrollBar = { 
+            0xad925de3, 0x636d, 0x44dd,{ 0xa0, 0x1e, 0xa2, 0xc1, 0x80, 0xde, 0xa9, 0x8d } 
+        };
+        return IID_LongUI_UIScrollBar;
+    }
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIScrollBarA>() {
+        // {AD925DE3-636D-44DD-A01E-A2C180DEA98D}
+        static const GUID IID_LongUI_UIScrollBarA = {
+            0x30af626, 0x1958, 0x4bdf,{ 0x86, 0x3e, 0x19, 0x2b, 0xdb, 0x1a, 0x49, 0x46 }
+        };
+        return IID_LongUI_UIScrollBarA;
+    }
+#endif
 }

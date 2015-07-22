@@ -1,7 +1,9 @@
 ﻿#pragma once
 
+// global iid
 namespace LongUI {
 #define MakeGetIID(c) template<> LongUIInline const IID& GetIID<c>() { return IID_##c; }
+#define MakeLongUIGetIID(c) template<> LongUIInline const IID& GetIID<LongUI::c>() { return LongUI::IID_##c; }
     // IUnknown
     MakeGetIID(IUnknown);
     // IDropTarget
@@ -52,7 +54,7 @@ namespace LongUI {
     MakeGetIID(IDWriteTextRenderer);
     // IDWriteFactory1 ("30572f99-dac6-41db-a16e-0486307e606a")
     static const IID IID_IDWriteFactory1 =
-        { 0x30572f99, 0xdac6, 0x41db,{ 0xa1, 0x6e, 0x04, 0x86, 0x30, 0x7e, 0x60, 0x6a } };
+    { 0x30572f99, 0xdac6, 0x41db,{ 0xa1, 0x6e, 0x04, 0x86, 0x30, 0x7e, 0x60, 0x6a } };
     MakeGetIID(IDWriteFactory1);
     // IDWriteFontFileEnumerator("72755049-5ff7-435d-8348-4be97cfa6c7c") 
     static const IID IID_IDWriteFontFileEnumerator = {
@@ -64,22 +66,23 @@ namespace LongUI {
         0xcca920e4, 0x52f0, 0x492b,{ 0xbf, 0xa8, 0x29, 0xc7, 0x2e, 0xe0, 0xa4, 0x68 }
     };
     MakeGetIID(IDWriteFontCollectionLoader);
-    // UIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
-    class UIBasicTextRenderer; static const IID IID_UIBasicTextRenderer =
-    { 0xedab1e53, 0xc1cf, 0x4f5a,{ 0x95, 0x33, 0x99, 0x46, 0x90, 0x4a, 0xd6, 0x3c } };
-    MakeGetIID(UIBasicTextRenderer);
     // ITextHost2 ("13E670F5-1A5A-11CF-ABEB-00AA00B65EA1")
-    class UIRichEdit;  static const IID  IID_ITextHost2 =
-    { 0x13E670F5, 0x1A5A, 0x11CF,{ 0xAB, 0xEB, 0x00, 0xAA, 0x00, 0xB6, 0x5E, 0xA1 } };
+    static const IID  IID_ITextHost2 = { 
+        0x13E670F5, 0x1A5A, 0x11CF,{ 0xAB, 0xEB, 0x00, 0xAA, 0x00, 0xB6, 0x5E, 0xA1 } 
+    };
     MakeGetIID(ITextHost2);
-    // UIWindow // {61728ABA-23DB-4FED-B1AE-F91A7B97EC3B}
-    class UIWindow;
-    static const IID IID_UIWindow =
-    { 0x61728aba, 0x23db, 0x4fed, { 0xb1, 0xae, 0xf9, 0x1a, 0x7b, 0x97, 0xec, 0x3b } };
-    MakeGetIID(UIWindow);
+}
+// longui iid
+namespace LongUI {
+    // UIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
+    class UIBasicTextRenderer; static const IID IID_UIBasicTextRenderer = { 
+        0xedab1e53, 0xc1cf, 0x4f5a,{ 0x95, 0x33, 0x99, 0x46, 0x90, 0x4a, 0xd6, 0x3c } 
+    };
+    MakeLongUIGetIID(UIBasicTextRenderer);
     // IUIResourceLoader {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
-    MakeGetIID(IUIResourceLoader);
+    MakeLongUIGetIID(IUIResourceLoader);
     // IUIScript {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
-    MakeGetIID(IUIScript);
+    MakeLongUIGetIID(IUIScript);
 #undef MakeGetIID
+#undef MakeLongUIGetIID
 }

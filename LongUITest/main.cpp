@@ -16,9 +16,9 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <EditBasic name="edit01" textmultiline="true" text="Hello, world!&#xD;&#xA;泥壕, 世界!"/>
         <VerticalLayout name="VLayout2">
             <Label name="label_test" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
-            <Button name="btn_systemlook" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
+            <Button name="btn_systemlook" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
             <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
-                margin="4,4,4,4" hovermeta="3" pushedmeta="4" bordersize="1" text="Hello, world!"/>
+                margin="4,4,4,4" hovermeta="3" pushedmeta="4" borderwidth="1" text="Hello, world!"/>
             <CheckBox name="btn_skinlook" text="Hello, world!"/>
             <!--Button name="uac" disabledmeta="1" normalmeta="2" 
                 hovermeta="3" pushedmeta="4" text="Try  Elevate UAC Now "/-->
@@ -28,16 +28,16 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 )xml";
 #else
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA" clearcolor="1,1,1,0.85">
+<Window size="1024, 768" name="MainWindow" rightcontrol="ScrollBarA" bottomcontrol="ScrollBarA" clearcolor="1,1,1,0.85">
     <VerticalLayout name="V" csize="1366, 512">
         <Button name="1" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="2" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
+        <Button name="2" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </VerticalLayout>
     <HorizontalLayout name="H" csize="0, 512">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
-        <Button name="4" margin="4,4,4,4" bordersize="1" text="Hello, world!"/>
+        <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </HorizontalLayout>
 </Window>
 )xml";

@@ -17,20 +17,22 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
             "lefttemplateid", "toptemplateid", "righttemplateid", "bottomtemplateid"
         };
         bool exist_marginal_control = false;
-        for (auto i = 0u; i < MARGINAL_CONTROL_SIZE; ++i) {
+        for (auto i = 0u; i < UIMarginalControl::MARGINAL_CONTROL_SIZE; ++i) {
             const char* str = nullptr;
             if ((str = node.attribute(attname[i]).value())) {
                 auto create_control_func = UIManager.GetCreateFunc(str);
                 assert(create_control_func && "none");
                 if (create_control_func) {
                     // 检查模板ID
-                    //auto tid = LongUI::AtoI(node.attribute(templateid[i]).value());
+                    auto tid = LongUI::AtoI(node.attribute(templateid[i]).value());
                     // 创建控件
-                    //this->marginal_control[i] = UIManager.CreateControl(size_t(tid), create_control_func);
+                    auto control = UIManager.CreateControl(size_t(tid), create_control_func);
+                    // XXX: 检查
+                    this->marginal_control[i] = static_cast<UIMarginalControl*>(control);
                 }
                 // 优化flag
                 if (this->marginal_control[i]) {
-                    //exist_marginal_control = true;
+                    exist_marginal_control = true;
                 }
             }
         }
@@ -123,6 +125,17 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
+            // 初始化边缘控件
+            if (this->flags & Flag_Container_ExistMarginalContrl) {
+                for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
+                    auto ctrl = this->marginal_control[i];
+                    if (ctrl) {
+                        this->AfterInsert(ctrl);
+                        ctrl->InitMarginalControl(static_cast<UIMarginalControl::MarginalControl>(i));
+                    }
+                }
+            }
+            this->AssertMarginalControl();
             // 初次完成空间树建立
             for (auto ctrl : (*this)) {
                 ctrl->DoEvent(arg);
@@ -177,7 +190,9 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         // 渲染边缘控件
         if (this->flags & Flag_Container_ExistMarginalContrl) {
             for (auto ctrl : this->marginal_control) {
-                do_render(m_pRenderTarget, ctrl);
+                if (ctrl) {
+                    do_render(m_pRenderTarget, ctrl);
+                }
             }
         }
         this->AssertMarginalControl();
@@ -242,7 +257,9 @@ void LongUI::UIContainer::Update() noexcept  {
     // 刷新边缘控件
     if (this->flags & Flag_Container_ExistMarginalContrl) {
         for (auto ctrl : this->marginal_control) {
-            ctrl->Update();
+            if (ctrl) {
+                ctrl->Update();
+            }
         }
     }
     this->AssertMarginalControl();
@@ -259,7 +276,7 @@ auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT
     // 重建边缘控件
     if (this->flags & Flag_Container_ExistMarginalContrl) {
         for (auto ctrl : this->marginal_control) {
-            if (SUCCEEDED(hr)) {
+            if (ctrl && SUCCEEDED(hr)) {
                 hr = ctrl->Recreate(newRT);
             }
         }

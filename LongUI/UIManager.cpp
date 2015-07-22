@@ -2288,12 +2288,12 @@ auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
 auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     if (ctrl) {
-#if 0
+#if 1
         ::swprintf(
             buffer, LongUIStringBufferLength,
             L"[Control:%ls@%ls@0x%p] ",
             ctrl->GetNameStr(),
-            ctrl->GetControlClassName(),
+            ctrl->GetControlClassName(false),
             ctrl
             );
 #else

@@ -10,7 +10,11 @@ LongUI::CUIRenderQueue::CUIRenderQueue(UIWindow* window) noexcept {
 
 // 渲染队列 析构函数
 LongUI::CUIRenderQueue::~CUIRenderQueue() noexcept {
-
+    // 释放数据
+    if (m_pUnitsDataBegin) {
+        LongUI::CtrlFree(m_pUnitsDataBegin);
+    }
+    m_pUnitsDataBegin = m_pUnitsDataEnd = m_pCurrentUnit = nullptr;
 }
 
 // 重置
@@ -31,7 +35,7 @@ void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     }
     // TODO: 完成转化
     if (m_pUnitsDataBegin && data) {
-
+        assert(!"NOTIMPL");
     }
     // 释放
     if (m_pUnitsDataBegin) LongUI::CtrlFree(m_pUnitsDataBegin);

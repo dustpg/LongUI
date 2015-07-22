@@ -59,5 +59,20 @@ namespace LongUI{
         //void change_child_layout() noexcept;
         // 获取指定位置的控件
         //auto get_child_by_position(float) noexcept ->UIControl*;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIVerticalLayout>() {
+        // {3BE5198C-B922-4C99-827E-F0D08875B045}
+        static const GUID IID_LongUI_UIVerticalLayout = {
+            0x3be5198c, 0xb922, 0x4c99,{ 0x82, 0x7e, 0xf0, 0xd0, 0x88, 0x75, 0xb0, 0x45 } 
+        };
+        return IID_LongUI_UIVerticalLayout;
+    }
+#endif
 }

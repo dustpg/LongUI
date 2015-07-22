@@ -11,10 +11,17 @@ namespace LongUI {
     static auto CtrlAlloc(size_t length) noexcept { return ::malloc(length); }
     // free for longui control
     static auto CtrlFree(void* address) noexcept { return ::free(address); }
+#if 1
     // alloc for small space
     static auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
     // free for small space
     static auto SmallFree(void* address) noexcept { return ::dlfree(address); }
+#else
+    // alloc for small space
+    static auto SmallAlloc(size_t length) noexcept { return ::malloc(length); }
+    // free for small space
+    static auto SmallFree(void* address) noexcept { return ::free(address); }
+#endif
     // template helper
     template<typename T>
     static auto CtrlAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::CtrlAlloc(length * sizeof(T))); }
@@ -36,12 +43,16 @@ namespace LongUI {
 #endif
 
 
-// 钳住
+// clamp
 #define LongUIClamp(x, i, a) { if(x < i) x = i; else if(x > a) x = a;}
 
-
+// sington
 #define UIManager (LongUI::CUIManager::s_instance)
 
+// retain debug infomation within UIControl::debug_do_event
+#ifdef _DEBUG
+#   define LongUIDebugEvent
+#endif
 
 // all longui control class' method(not inline), and callback call type
 #define __thiscall
@@ -289,4 +300,48 @@ namespace LongUI {
     using StringMap = std::map<const CUIString, void*>;
     // null for xmlnode, pugixml hold a handle for pointer
     static const pugi::xml_node null_xml_node = pugi::xml_node(nullptr);
+}
+
+// !! JUST IN PLANNING, NO VALID YET
+// TODO: DO IT
+
+// XML Node Attribute Name Setting
+namespace LongUI {
+    // attribute namespace
+    namespace XMLAttribute {
+        // name of control
+        static const char* ControlName              = "name";
+        // script
+        static const char* Script                   = "script";
+        // position of control content: float2
+        static const char* ContentPosotion          = "pos";
+        // size of control content: float2
+        static const char* ContentSize              = "csize";
+        // margin: float4
+        static const char* Margin                   = "margin";
+        // width of border: float1
+        static const char* BorderWidth              = "borderwidth";
+        // round of border: float2
+        static const char* BorderRound              = "borderround";
+        // template id for easy building: int
+        static const char* TemplateID               = "templateid";
+
+        // left control class name in "marginal control"
+        static const char* LeftMarginalControl      = "leftcontrol";
+        // left control template id in "marginal control"
+        static const char* LeftMarginalControlTid   = "lefttemplateid";
+        // top control class name in "marginal control"
+        static const char* TopMarginalControl       = "topcontrol";
+        // top control template id in "marginal control"
+        static const char* TopMarginalControlTid    = "toptemplateid";
+        // right control class name in "marginal control"
+        static const char* RightMarginalControl     = "rightcontrol";
+        // right control template id in "marginal control"
+        static const char* RightMarginalControlTid = "righttemplateid";
+        // bottom control class name in "marginal control"
+        static const char* bottomMarginalControl    = "bottomcontrol";
+        // bottom control template id in "marginal control"
+        static const char* bottomMarginalControlTid = "bottomtemplateid";
+
+    }
 }

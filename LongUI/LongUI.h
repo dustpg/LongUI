@@ -349,16 +349,25 @@ namespace LongUI {
         // move ctor
         EventArgument(EventArgument&&) =delete;*/
     };
-
-    // LongUI Information
-    enum class Information : size_t {
+#ifdef LongUIDebugEvent
+    // LongUI Debug Information
+    enum class DebugInformation : size_t {
         // get class name
         Information_GetClassName = 0,
+        // get class name with namespace
+        Information_GetFullClassName ,
+        // can be cast to(IID)
+        Information_CanbeCast
     };
-    // longui information
-    struct EventInformation {
+    // longui debug information
+    struct DebugEventInformation {
         // information id
-        Information     infomation;
+        DebugInformation    infomation;
+        // parma
+        union {
+            // IID
+            IID*            iid;
+        };
         // Return Code
         union {
             // [out] Control for Parent
@@ -367,6 +376,7 @@ namespace LongUI {
             OUT mutable const wchar_t*  str;
         };
     };
+#endif
     // point in rect?
     inline static auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F& pt) noexcept {
         return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.right && pt.y < rect.bottom);
@@ -442,6 +452,7 @@ namespace LongUI {
 
 #include "UIControl.h"
 #ifndef LongUICoreOnly // only longui core ?
+#   include "UIMarginalControl.h"
 #   include "UIContainer.h"
 #   include "UIScrollBar.h"
 #   include "UISlider.h"

@@ -69,14 +69,11 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             flag |= LongUI::Flag_StrictClip;
         }
         // 边框大小
-        if (data = node.attribute("bordersize").value()) {
-            m_fBorderSize = LongUI::AtoF(data);
+        if (data = node.attribute("borderwidth").value()) {
+            m_fBorderWidth = LongUI::AtoF(data);
         }
         // 边框圆角
-        UIControl::MakeFloats(node.attribute("borderround").value(),&m_fBorderRdius.width, 4);
-        if (data = node.attribute("borderround").value()) {
-            m_fBorderSize = LongUI::AtoF(data);
-        }
+        UIControl::MakeFloats(node.attribute("borderround").value(), &m_2fBorderRdius.width, 2);
         // 边框颜色
         UIControl::MakeColor(node.attribute("disabledbordercolor").value(), m_aBorderColor[Status_Disabled]);
         UIControl::MakeColor(node.attribute("normalbordercolor").value(), m_aBorderColor[Status_Normal]);
@@ -117,13 +114,13 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 渲染边框
-        if (m_fBorderSize > 0.f) {
+        if (m_fBorderWidth > 0.f) {
             D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
-            brect.radiusX = m_fBorderRdius.width;
-            brect.radiusY = m_fBorderRdius.height;
+            brect.radiusX = m_2fBorderRdius.width;
+            brect.radiusY = m_2fBorderRdius.height;
             m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
             //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-            m_pRenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderSize);
+            m_pRenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
             //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
         break;
@@ -284,7 +281,7 @@ auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
     return this->cwidth 
         + margin_rect.left 
         + margin_rect.right
-        + m_fBorderSize * 2.f;
+        + m_fBorderWidth * 2.f;
 }
 
 // 获取占用高度
@@ -292,33 +289,23 @@ auto LongUI::UIControl::GetTakingUpHeight() const noexcept -> float{
     return this->cheight 
         + margin_rect.top 
         + margin_rect.bottom
-        + m_fBorderSize * 2.f;
+        + m_fBorderWidth * 2.f;
 }
 
 // 获取非内容区域总宽度
 auto LongUI::UIControl::GetNonContentWidth() const noexcept -> float {
     return margin_rect.left
         + margin_rect.right
-        + m_fBorderSize * 2.f;
+        + m_fBorderWidth * 2.f;
 }
 
 // 获取非内容区域总高度
 auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
     return margin_rect.top
         + margin_rect.bottom
-        + m_fBorderSize * 2.f;
+        + m_fBorderWidth * 2.f;
 }
 
-// 获取类名
-auto LongUI::UIControl::GetControlClassName() const noexcept -> const wchar_t* {
-    /*EventArgument arg;
-    arg.sender = const_cast<UIControl*>(this);
-    arg.event = Event::Event_GetClassName_Const;
-    arg.str = nullptr;
-    const_cast<UIControl*>(this)->DoEvent(arg);
-    return arg.str;*/
-    return L"[Unknown Control]";
-}
 
 // 设置占用宽度
 auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
@@ -352,10 +339,10 @@ auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinli
 
 // 获取占用/剪切矩形
 void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
-    rect.left = -(this->margin_rect.left + m_fBorderSize);
-    rect.top = -(this->margin_rect.top + m_fBorderSize);
-    rect.right = this->cwidth + this->margin_rect.right + m_fBorderSize;
-    rect.bottom = this->cheight + this->margin_rect.bottom + m_fBorderSize;
+    rect.left = -(this->margin_rect.left + m_fBorderWidth);
+    rect.top = -(this->margin_rect.top + m_fBorderWidth);
+    rect.right = this->cwidth + this->margin_rect.right + m_fBorderWidth;
+    rect.bottom = this->cheight + this->margin_rect.bottom + m_fBorderWidth;
     /*// 容器
     if ((this->flags & Flag_UIContainer)) {
         // 修改裁剪区域
@@ -372,17 +359,17 @@ void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
         }
     }
     else {
-        rect.right = this->width + this->margin_rect.right + m_fBorderSize;
-        rect.bottom = this->height + this->margin_rect.bottom + m_fBorderSize;
+        rect.right = this->width + this->margin_rect.right + m_fBorderWidth;
+        rect.bottom = this->height + this->margin_rect.bottom + m_fBorderWidth;
     }*/
 }
 
 // 获取边框矩形
 void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
-    rect.left = -m_fBorderSize;
-    rect.top = -m_fBorderSize;
-    rect.right = this->cwidth + m_fBorderSize;
-    rect.bottom = this->cheight + m_fBorderSize;
+    rect.left = -m_fBorderWidth;
+    rect.top = -m_fBorderWidth;
+    rect.right = this->cwidth + m_fBorderWidth;
+    rect.bottom = this->cheight + m_fBorderWidth;
 }
 
 // 获取刻画矩形
@@ -395,8 +382,8 @@ void LongUI::UIControl::GetContentRect(D2D1_RECT_F& rect) const noexcept {
 
 // 获得世界转换矩阵
 void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept {
-    float xx = this->x + this->margin_rect.left + m_fBorderSize;
-    float yy = this->y + this->margin_rect.top + m_fBorderSize;
+    float xx = this->x + this->margin_rect.left + m_fBorderWidth;
+    float yy = this->y + this->margin_rect.top + m_fBorderWidth;
     // 非顶级控件
     if (!this->IsTopLevel()) {
         // 检查
@@ -832,3 +819,226 @@ LongUI::UIEditBasic::UIEditBasic(pugi::xml_node node) noexcept
 
 
 
+
+// 调试区域
+#ifdef LongUIDebugEvent
+
+// UI控件: 调试信息
+bool LongUI::UIControl::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIControl";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIControl";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIControl>();
+    default:
+        break;
+    }
+    return false;
+}
+
+// 类型转换断言
+void LongUI::UIControl::AssertTypeCasting(IID* iid) const noexcept {
+    assert(iid);
+    LongUI::DebugEventInformation info;
+    info.infomation = LongUI::DebugInformation::Information_CanbeCast;
+    info.iid = iid; info.id = 0;
+    assert(this->debug_do_event(info) && "bad casting");
+}
+
+// 获取控件类名
+auto LongUI::UIControl::GetControlClassName(bool full) const noexcept ->const wchar_t* {
+    LongUI::DebugEventInformation info;
+    info.infomation = full ? LongUI::DebugInformation::Information_GetFullClassName
+        : LongUI::DebugInformation::Information_GetClassName;
+    info.iid = nullptr; info.str = L"";
+    this->debug_do_event(info);
+    return info.str;
+}
+
+// UI标签: 调试信息
+bool LongUI::UILabel::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UILabel";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UILabel";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UILabel>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI按钮: 调试信息
+bool LongUI::UIButton::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIButton";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIButton";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIButton>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI边缘控件: 调试信息
+bool LongUI::UIMarginalControl::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIMarginalControl";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIMarginalControl";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIMarginalControl>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI滚动条: 调试信息
+bool LongUI::UIScrollBar::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIScrollBar";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIScrollBar";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIScrollBar>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI滚动条-A型: 调试信息
+bool LongUI::UIScrollBarA::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIScrollBarA";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIScrollBarA";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIScrollBarA>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI容器: 调试信息
+bool LongUI::UIContainer::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIContainer";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIContainer";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIContainer>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+
+// UI水平布局: 调试信息
+bool LongUI::UIHorizontalLayout::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIHorizontalLayout";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIHorizontalLayout";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIHorizontalLayout>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI垂直布局: 调试信息
+bool LongUI::UIVerticalLayout::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIVerticalLayout";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIVerticalLayout";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIVerticalLayout>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI窗口: 调试信息
+bool LongUI::UIWindow::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIWindow";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIWindow";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIWindow>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+#endif

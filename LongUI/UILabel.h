@@ -61,6 +61,21 @@ namespace LongUI{
         UILabel(const UILabel&) = delete;
     protected:
         // the text of control
-        UIText                  m_text;
+        UIText                          m_text;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UILabel>() {
+        // {47F83436-2D1F-413B-BBAD-9322EFF18185}
+        static const GUID IID_LongUI_UILabel = {
+            0x47f83436, 0x2d1f, 0x413b,{ 0xbb, 0xad, 0x93, 0x22, 0xef, 0xf1, 0x81, 0x85 } 
+        };
+        return IID_LongUI_UILabel;
+    }
+#endif
 }

@@ -228,5 +228,20 @@ namespace LongUI{
         BasicContainer          m_vRegisteredControl;
         // control name ->map-> control pointer
         StringMap               m_mapString2Control;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIWindow>() {
+        // {64F7B3E5-621E-4864-9535-7E6A29F670C1}
+        static const GUID IID_LongUI_UIWindow = { 
+            0x64f7b3e5, 0x621e, 0x4864,{ 0x95, 0x35, 0x7e, 0x6a, 0x29, 0xf6, 0x70, 0xc1 } 
+        };
+        return IID_LongUI_UIWindow;
+    }
+#endif
 }

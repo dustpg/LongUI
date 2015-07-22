@@ -49,7 +49,22 @@ private:
 // MRubyScript 构造函数
 MRubyScript::MRubyScript(LongUI::CUIManager& manager) noexcept : m_uiManager(manager) {
     // 打开mruby
+#ifdef _DEBUG
     m_pMRuby = ::mrb_open();
+#else
+    m_pMRuby = ::mrb_open_allocf(
+        [](mrb_state *mrb, void* ptr, size_t size, void* ud) noexcept ->void* {
+            if (ptr) {
+                if (size) return ::dlrealloc(ptr, size);
+                else ::dlfree(ptr);
+                return nullptr;
+            }
+            else {
+                return size ? ::dlmalloc(size) : nullptr;
+            }
+        }, nullptr
+        );
+#endif
     if (m_pMRuby && (m_symArgument = mrb_intern_lit(m_pMRuby, "$apparg"))) {
         // 定义全局变量做为参数
         ::mrb_gv_set(m_pMRuby, m_symArgument, mrb_fixnum_value(0));
