@@ -79,5 +79,20 @@ namespace LongUI{
         bool                m_bMouseClickIn = false;
         // unused for slider
         bool                m_bunsed_slider[3];
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UISlider>() {
+        // {3BE5198C-B922-4C99-827E-F0D08875B045}
+        static const GUID IID_LongUI_UISlider = {
+            0xcc64ee29, 0x3be1, 0x4b24,{ 0x9b, 0x27, 0x99, 0xbf, 0x98, 0xaa, 0x3c, 0x15 } 
+        };
+        return IID_LongUI_UISlider;
+    }
+#endif
 }

@@ -191,14 +191,16 @@ namespace LongUI{
         // get class name
         auto GetControlClassName(bool full = false) const noexcept ->const wchar_t*;
         // assert type casting
-        void AssertTypeCasting(IID* iid) const noexcept;
+        void AssertTypeCasting(const IID& iid) const noexcept;
         // assert type casting
-        template<class T> void AssertTypeCasting() const noexcept { this->AssertTypeCasting(&LongUI::GetIID<T>()); }
+        template<class T> void AssertTypeCastingT(T*) const noexcept { this->AssertTypeCasting(LongUI::GetIID<T>()); }
 #else
         // get class name
-        auto GetControlClassName(bool full=false) const noexcept ->const wchar_t* { return L""; };
+        auto GetControlClassName(bool full = false) const noexcept ->const wchar_t* { UNREFERENCED_PARAMETER(full); return L""; };
         // assert type casting
-        template<class T> void AssertTypeCasting() const noexcept { }
+        template<class T> void AssertTypeCastingT(T* ptr) const noexcept { UNREFERENCED_PARAMETER(ptr); }
+        // assert type casting
+        void AssertTypeCasting(IID& iid) const noexcept { UNREFERENCED_PARAMETER(iid); }
 #endif
         // make color form string
         static bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;

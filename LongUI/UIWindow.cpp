@@ -695,7 +695,7 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
-    UIManager << DL_Log << "called" << endl;
+    //UIManager << DL_Log << "called" << endl;
     // 修改大小, 需要取消目标
     m_pRenderTarget->SetTarget(nullptr);
     // 修改

@@ -264,13 +264,13 @@ void LongUI::UIControl::SetEventCallBack(
     switch (event)
     {
     case LongUI::Event::Event_ButtoClicked:
-        static_cast<UIButton*>(control)->RegisterClickEvent(call, this);
+        longui_cast<UIButton*>(control)->RegisterClickEvent(call, this);
         break;
     case LongUI::Event::Event_EditReturn:
-        //static_cast<UIEdit*>(control)->RegisterReturnEvent(call, this);
+        //longui_cast<UIEdit*>(control)->RegisterReturnEvent(call, this);
         break;
     case LongUI::Event::Event_SliderValueChanged:
-        static_cast<UISlider*>(control)->RegisterValueChangedEvent(call, this);
+        longui_cast<UISlider*>(control)->RegisterValueChangedEvent(call, this);
         break;
     }
 }
@@ -822,6 +822,8 @@ LongUI::UIEditBasic::UIEditBasic(pugi::xml_node node) noexcept
 
 // 调试区域
 #ifdef LongUIDebugEvent
+// longui 转换
+
 
 // UI控件: 调试信息
 bool LongUI::UIControl::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
@@ -843,11 +845,10 @@ bool LongUI::UIControl::debug_do_event(const LongUI::DebugEventInformation& info
 }
 
 // 类型转换断言
-void LongUI::UIControl::AssertTypeCasting(IID* iid) const noexcept {
-    assert(iid);
+void LongUI::UIControl::AssertTypeCasting(const IID& iid) const noexcept {
     LongUI::DebugEventInformation info;
     info.infomation = LongUI::DebugInformation::Information_CanbeCast;
-    info.iid = iid; info.id = 0;
+    info.iid = &iid; info.id = 0;
     assert(this->debug_do_event(info) && "bad casting");
 }
 
@@ -1035,6 +1036,28 @@ bool LongUI::UIWindow::debug_do_event(const LongUI::DebugEventInformation& info)
     case LongUI::DebugInformation::Information_CanbeCast:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIWindow>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+
+// --------------------------- 单独 ---------------------
+// UI滑动条: 调试信息
+bool LongUI::UISlider::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UISlider";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UISlider";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCast:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UISlider>()
             || Super::debug_do_event(info);
     default:
         break;

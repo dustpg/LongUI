@@ -30,7 +30,7 @@ namespace LongUI {
     // Container
     class UIContainer;
     // marginal-able control
-    // like: hamburger menu, menu bar, tab bar, scrool bar, barabara, etc
+    // like: hamburger menu, menu bar, tab bar, scroll bar, barabara, etc
     class LongUIAlignas UIMarginalControl : public UIControl {
         // 父类声明
         using Super = UIControl;
@@ -48,8 +48,8 @@ namespace LongUI {
         // other 2 contactable marginal-able controls' width
         virtual inline void OtherMarginalControls(float width1, float width2) noexcept { UNREFERENCED_PARAMETER(width1); UNREFERENCED_PARAMETER(width2); }
         // marginal width, parent's real margin(ltrb) = parent's original(ltrb) + this' marginal_width
-        // example: classic scroolbar's marginal_width = it's width/height
-        //          modern scroolbar(show when mouse pointed)'s marginal_width = 0
+        // example: classic scrollbar's marginal_width = it's width/height
+        //          modern scrollbar(show when mouse pointed)'s marginal_width = 0
         float                   marginal_width = 0.f;
         // marginal type
         MarginalControl   const marginal_type = MarginalControl::Control_Left;

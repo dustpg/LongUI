@@ -249,7 +249,7 @@ void LongUI::UIContainer::Update() noexcept  {
         }
         // 调试信息
         if (this->IsTopLevel()) {
-            UIManager << DL_Log << "Handle: ControlSizeChanged" << LongUI::endl;
+            //UIManager << DL_Log << "Handle: ControlSizeChanged" << LongUI::endl;
         }
         // 已处理该消息
         this->ControlSizeChangeHandled();
