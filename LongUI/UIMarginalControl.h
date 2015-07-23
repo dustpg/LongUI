@@ -30,7 +30,7 @@ namespace LongUI {
     // Container
     class UIContainer;
     // marginal-able control
-    // like: hamburger menu, menu bar, tab bar, scroll bar, barabara, etc
+    // like: hamburger menu, menu bar, tool bar, tab bar, scroll bar, barabara, etc
     class LongUIAlignas UIMarginalControl : public UIControl {
         // 父类声明
         using Super = UIControl;
@@ -45,8 +45,10 @@ namespace LongUI {
         };
         // init the control
         virtual inline void InitMarginalControl(MarginalControl _type) noexcept { force_cast(this->marginal_type) = _type; }
-        // other 2 contactable marginal-able controls' width
-        virtual inline void OtherMarginalControls(float width1, float width2) noexcept { UNREFERENCED_PARAMETER(width1); UNREFERENCED_PARAMETER(width2); }
+        // other 2 contactable marginal-able controls' Cross Area
+        // for scrollbar, you should do nothing, because 2 scrollbars cannot be crossed
+        virtual void CrossAreaTest(D2D1_SIZE_F& IN OUT size) noexcept { UNREFERENCED_PARAMETER(size); }
+    public:
         // marginal width, parent's real margin(ltrb) = parent's original(ltrb) + this' marginal_width
         // example: classic scrollbar's marginal_width = it's width/height
         //          modern scrollbar(show when mouse pointed)'s marginal_width = 0

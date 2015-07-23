@@ -59,7 +59,7 @@ namespace LongUI{
         }
     public:
         // get parent width/height
-        auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelWidth() : this->parent->GetChildLevelHeight(); }
+        auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelViewWidth() : this->parent->GetChildLevelViewHeight(); }
         // on page up
         auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - this->GetParentWH()); }
         // on page down

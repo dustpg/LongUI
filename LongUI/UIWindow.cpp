@@ -341,7 +341,11 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
     // 开始渲染
     m_pRenderTarget->BeginDraw();
     // 设置转换矩阵
+#if 0
     m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+#else
+    m_pRenderTarget->SetTransform(&this->world);
+#endif
     // 清空背景
     m_pRenderTarget->Clear(this->clear_color);
 }
@@ -403,6 +407,8 @@ void LongUI::UIWindow::Update() noexcept {
         m_aUnitNow.length = current_unit->length;
         ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
     }
+    // 刷新前
+    this->BeforeUpdateChildren();
     // 没有就不刷新了
     m_bRendered = !!m_aUnitNow.length;
     if (!m_aUnitNow.length) return;

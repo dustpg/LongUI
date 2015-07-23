@@ -378,6 +378,8 @@ namespace LongUI {
         // overload << operator for endl
         CUIManager& operator<< (const LongUI::EndL) noexcept;
         // overload << operator for DXGI_ADAPTER_DESC*
+        CUIManager& operator<< (const D2D1_MATRIX_3X2_F& m) noexcept;
+        // overload << operator for DXGI_ADAPTER_DESC*
         CUIManager& operator<< (const DXGI_ADAPTER_DESC& d) noexcept;
         // overload << operator for RectLTWH_F
         CUIManager& operator<< (const RectLTWH_F& r) noexcept;

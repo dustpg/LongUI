@@ -28,9 +28,10 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 )xml";
 #else
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow" rightcontrol="ScrollBarA" bottomcontrol="ScrollBarA" clearcolor="1,1,1,0.85">
+<Window size="1024, 768" name="MainWindow" margin="32,32,32,32"
+    rightcontrol="ScrollBarA" bottomcontrol="ScrollBarA" clearcolor="1,1,1,0.85">
     <VerticalLayout name="V" csize="1366, 512">
-        <Button name="1" margin="4,4,4,4" disabledmeta="1"
+        <Button name="1" margin="4,4,4,4" disabledmeta="1" csize = "1500,0"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="2" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </VerticalLayout>

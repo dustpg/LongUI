@@ -99,7 +99,7 @@ namespace LongUI {
         // assert if exist marginal control
 #ifdef _DEBUG
         void AssertMarginalControl() const noexcept {
-            if (!(this->flags & Flag_Container_ExistMarginalContrl)) {
+            if (!(this->flags & Flag_Container_ExistMarginalControl)) {
                 for (auto ctrl : this->marginal_control) {
                     assert(!ctrl && "exist marginal control");
                 }
@@ -136,14 +136,28 @@ namespace LongUI {
         // orginal margin
         D2D1_RECT_F             m_orgMargin = D2D1::RectF();
     public:
-        // get width in child level 
-        auto GetChildLevelWidth() noexcept { return this->cwidth / this->zoom.width; }
-        // get height in child level 
-        auto GetChildLevelHeight() noexcept { return this->cheight / this->zoom.height; }
+        // get content width in child level for zooming
+        // do not use parent->cwidth, use this
+        auto GetChildLevelContentWidth() const noexcept { return this->cwidth / this->zoom.width; }
+        // get content height in child level for zooming
+        // do not use parent->cheight, use this
+        auto GetChildLevelContentHeight() const noexcept { return this->cheight / this->zoom.height; }
+        // get offset.x in child level for zooming
+        // do not use parent->offset.x, use this
+        auto GetChildLevelOffsetX() const noexcept { return this->offset.x / this->zoom.width; }
+        // get offset.y in child level for zooming
+        // do not use parent->offset.y, use this
+        auto GetChildLevelOffsetY() const noexcept { return this->offset.y / this->zoom.height; }
+        // get view.width in child level for zooming
+        // do not use parent->view.height, use this
+        auto GetChildLevelViewWidth() const noexcept { return this->view.width / this->zoom.width; }
+        // get view.height in child level for zooming
+        // do not use parent->view.height, use this
+        auto GetChildLevelViewHeight() const noexcept { return this->view.height / this->zoom.height; }
     public:
         // offset position
         D2D1_POINT_2F           offset = D2D1::Point2F();
-        // visible size
+        // zoom size
         D2D1_SIZE_F             zoom = D2D1::SizeF(1.f, 1.f);
         // transform for world: XXX: maybe set it to UIContrl not here
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();

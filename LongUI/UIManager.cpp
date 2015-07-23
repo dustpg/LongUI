@@ -587,14 +587,14 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 // 获取主题颜色
 auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT {
     union { DWORD color; uint8_t argb[4]; };
-    color = 0; auto hr = S_OK; DWORD buffer_size = sizeof(DWORD);
+    color = DWORD(-1); auto hr = S_OK; DWORD buffer_size = sizeof(DWORD);
     // 获取Colorization颜色
     ::RegGetValueA(
         HKEY_CURRENT_USER,
         "Software\\Microsoft\\Windows\\DWM", "ColorizationColor",
         RRF_RT_DWORD, nullptr, &color, &buffer_size
         );
-    DWORD balance = 0; buffer_size = sizeof(DWORD);
+    DWORD balance = 50; buffer_size = sizeof(DWORD);
     // 获取Colorization混合标准
     ::RegGetValueA(
         HKEY_CURRENT_USER,
@@ -632,7 +632,8 @@ auto LongUI::CUIManager::CreateLongUIWIndow(pugi::xml_node node, UIWindow* paren
 namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
 
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept : m_config(*this), 
+LongUI::CUIManager::CUIManager() noexcept : 
+m_config(*this), 
 version(LongUI::GetWindowsVersion()) {
 
 }
@@ -1126,13 +1127,11 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 );
         }
     }
-#ifdef _DEBUG
-#ifdef LONGUI_D3D_DEBUG
+#if defined(_DEBUG) && defined(LONGUI_D3D_DEBUG)
     // 创建 ID3D11Debug
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pd3dDebug));
     }
-#endif
 #endif
     // 创建 IDXGIDevice
     if (SUCCEEDED(hr)) {
@@ -1242,10 +1241,10 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     HRESULT hr = S_OK;
     /*
     焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
-    0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
-    1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
-    2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
-    3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
+        0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
+        1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
+        2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
+        3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
     */
     // 禁用
     if (SUCCEEDED(hr)) {
@@ -1308,8 +1307,8 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     if (SUCCEEDED(hr)) {
         ID2D1GradientStopCollection* collection = nullptr;
         D2D1_GRADIENT_STOP stops[] = {
-            { 0.f, D2D1::ColorF(0xDAECFC) },
-            { 1.f, D2D1::ColorF(0xC4E0FC) }
+            { 0.f, D2D1::ColorF(0xDAECFC) } ,
+            { 1.f, D2D1::ColorF(0xC4E0FC) } ,
         };
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
@@ -2233,6 +2232,19 @@ auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager
         buffer, LongUIStringBufferLength,
         L"RECT_WH(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.width, rect.height
+        );
+    this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
+auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    ::swprintf(
+        buffer, LongUIStringBufferLength,
+        L"MATRIX(%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
+        matrix._11, matrix._12, 
+        matrix._21, matrix._22, 
+        matrix._31, matrix._32
         );
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;

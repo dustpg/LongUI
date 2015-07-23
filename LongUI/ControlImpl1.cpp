@@ -3,11 +3,11 @@
 // 系统按钮:
 /*
 Win8/8.1/10.0.10158之前
-焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
-0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
-1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
-2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
-3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
+    焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
+        0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
+        1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
+        2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
+        3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
 */
 
 // UIControl 构造函数
@@ -50,12 +50,17 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             }
             // 检查内容大小
             if (UIControl::MakeFloats(node.attribute("csize").value(), pos, 2)) {
+                force_cast(this->view) = { pos[0], pos[1] };
                 this->cwidth = pos[0];
                 this->cheight = pos[1];
             }
         }
         // 检查外边距
-        UIControl::MakeFloats(node.attribute("margin").value(), const_cast<float*>(&margin_rect.left), 4);
+        UIControl::MakeFloats(
+            node.attribute("margin").value(), 
+            const_cast<float*>(&margin_rect.left), 
+            sizeof(margin_rect) /sizeof(margin_rect.left)
+            );
         // 宽度固定
         if (this->cwidth > 0.f) {
             flag |= LongUI::Flag_WidthFixed;
@@ -338,7 +343,7 @@ auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinli
 }
 
 // 获取占用/剪切矩形
-void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
+void LongUI::UIControl::GetClipRectAll(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderWidth);
     rect.top = -(this->margin_rect.top + m_fBorderWidth);
     rect.right = this->cwidth + this->margin_rect.right + m_fBorderWidth;
@@ -362,6 +367,15 @@ void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
         rect.right = this->width + this->margin_rect.right + m_fBorderWidth;
         rect.bottom = this->height + this->margin_rect.bottom + m_fBorderWidth;
     }*/
+}
+
+
+// 获取内容剪切矩形
+void LongUI::UIControl::GetClipRectContent(D2D1_RECT_F& rect) const noexcept {
+    rect.left = 0.f;
+    rect.top = 0.f;
+    rect.right = this->view.width > 0.f ? this->view.width : this->cwidth;
+    rect.bottom = this->view.height > 0.f ? this->view.height : this->cheight;
 }
 
 // 获取边框矩形

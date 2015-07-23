@@ -110,7 +110,9 @@ namespace LongUI{
         // set new taking up height of control
         auto SetTakingUpHeight(float h) noexcept ->void LongUINoinline;
         // get taking up rect/ clip rect
-        void __fastcall GetClipRect(D2D1_RECT_F&) const noexcept;
+        void __fastcall GetClipRectAll(D2D1_RECT_F&) const noexcept;
+        // get clip rect for content
+        void __fastcall GetClipRectContent(D2D1_RECT_F&) const noexcept;
         // get border rect
         void __fastcall GetBorderRect(D2D1_RECT_F&) const noexcept;
         // get draw rect
@@ -154,7 +156,7 @@ namespace LongUI{
         bool                    unused_bool_control = false;
     public:
         // priority for render
-        int8_t       const      priority = 0;
+        int8_t          const   priority = 0;
     public:
         // x position of control
         float                   x = 0.f;
@@ -164,13 +166,15 @@ namespace LongUI{
         float                   cwidth = 0.f;
         // content height of control
         float                   cheight = 0.f;
+        // size of viewport
+        D2D1_SIZE_F     const   view = D2D1::SizeF(0.f, 0.f);
         // control current visible position(relative to world)
         D2D1_RECT_F             visible_rect = D2D1::RectF();
         // margin rect
-        D2D1_RECT_F   const     margin_rect = D2D1::RectF();
+        D2D1_RECT_F     const   margin_rect = D2D1::RectF();
         // flags, using const_cast to change in constructor, 
         // do not change in other method/function
-        LongUIFlag    const     flags = LongUIFlag::Flag_None;
+        LongUIFlag      const   flags = LongUIFlag::Flag_None;
     protected:
         // width of border
         float                   m_fBorderWidth = 0.f;

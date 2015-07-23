@@ -30,7 +30,7 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 垂直?
     if (this->bartype == ScrollBarType::Type_Vertical) {
         m_fMaxRange = this->parent->cheight;
-        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelHeight();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
         // 检查上边界
 
         // 检查下边界
@@ -38,7 +38,7 @@ void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 水平?
     else {
         m_fMaxRange = this->parent->cwidth;
-        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelWidth();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewWidth();
         // 检查左边界
 
         // 检查右边界

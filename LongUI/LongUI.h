@@ -225,7 +225,7 @@ namespace LongUI {
         Flag_Container_AlwaysRenderChildrenDirectly = 1 << 16,
         // if exist marginal control, will set it to true,
         // this is just a optimization flag
-        Flag_Container_ExistMarginalContrl = 1 << 17,
+        Flag_Container_ExistMarginalControl = 1 << 17,
         //
         Flag_Edit_MultipleLine = 1 << 16,
         Flag_Slider_VerticalSlider = 1 << 16,

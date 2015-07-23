@@ -38,7 +38,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
         }
         // 存在
         if (exist_marginal_control) {
-            flag |= Flag_Container_ExistMarginalContrl;
+            flag |= Flag_Container_ExistMarginalControl;
         }
     }
     if ((this->flags & Flag_RenderParent) || node.attribute("rendercd").as_bool(false)) {
@@ -50,16 +50,12 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
 // UIContainer 析构函数
 LongUI::UIContainer::~UIContainer() noexcept {
     // 关闭边缘控件
-    if (this->flags & Flag_Container_ExistMarginalContrl) {
-        for (auto& ctrl : this->marginal_control) {
-            if (ctrl) {
-                ctrl->Cleanup();
-                ctrl = nullptr;
-            }
+    // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
+    for (auto ctrl : this->marginal_control) {
+        if (ctrl) {
+            ctrl->Cleanup();
         }
     }
-    // 断言
-    this->AssertMarginalControl();
     // 关闭子控件
     {
         auto ctrl = m_pHead;
@@ -88,7 +84,7 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 // UI容器: 查找控件
 auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIControl* {
     // 查找边缘控件
-    if (this->flags & Flag_Container_ExistMarginalContrl) {
+    if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
             if (ctrl && IsPointInRect(ctrl->visible_rect, pt)) {
                 return ctrl;
@@ -125,17 +121,18 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
-            // 初始化边缘控件
-            if (this->flags & Flag_Container_ExistMarginalContrl) {
-                for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
-                    auto ctrl = this->marginal_control[i];
-                    if (ctrl) {
-                        this->AfterInsert(ctrl);
-                        ctrl->InitMarginalControl(static_cast<UIMarginalControl::MarginalControl>(i));
-                    }
+            // 初始化边缘控件 
+            // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
+            for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
+                auto ctrl = this->marginal_control[i];
+                if (ctrl) {
+                    this->AfterInsert(ctrl);
+                    // 初始化
+                    ctrl->InitMarginalControl(static_cast<UIMarginalControl::MarginalControl>(i));
+                    // 完成控件树
+                    ctrl->DoEvent(arg);
                 }
             }
-            this->AssertMarginalControl();
             // 初次完成空间树建立
             for (auto ctrl : (*this)) {
                 ctrl->DoEvent(arg);
@@ -156,15 +153,15 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
         target->SetTransform(&matrix);
         // 检查剪切规则
-        /*if (ctrl->flags & Flag_StrictClip) {
-            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+        if (ctrl->flags & Flag_StrictClip) {
+            D2D1_RECT_F clip_rect; ctrl->GetClipRectAll(clip_rect);
             target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        }*/
+        }
         ctrl->Render(LongUI::RenderType::Type_Render);
         // 检查剪切规则
-        /*if (ctrl->flags & Flag_StrictClip) {
+        if (ctrl->flags & Flag_StrictClip) {
             target->PopAxisAlignedClip();
-        }*/
+        }
     };
     // 查看
     switch (type)
@@ -178,20 +175,22 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         if (type == LongUI::RenderType::Type_RenderBackground) {
             break;
         }
-        // 渲染所有子部件
+        // 普通子控件仅仅允许渲染在内容区域上
         {
-            D2D1_RECT_F clip_rect; this->GetClipRect(clip_rect);
+            D2D1_RECT_F  clip_rect; this->GetClipRectContent(clip_rect);
             m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
+        // 渲染所有子部件
         for(const auto* ctrl : (*this)) {
             do_render(m_pRenderTarget, ctrl);
         }
+        // 弹出
         m_pRenderTarget->PopAxisAlignedClip();
         // 渲染边缘控件
-        if (this->flags & Flag_Container_ExistMarginalContrl) {
+        if (this->flags & Flag_Container_ExistMarginalControl) {
             for (auto ctrl : this->marginal_control) {
                 if (ctrl) {
-                    do_render(m_pRenderTarget, ctrl);
+                    //do_render(m_pRenderTarget, ctrl);
                 }
             }
         }
@@ -210,32 +209,69 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
     // 检查
     if (this->IsControlSizeChanged()) {
+        // 更新世界矩阵
         this->GetWorldTransform(this->world);
+        // 更新视口大小
+        if (this->IsTopLevel()) {
+            // 顶级视口宽度: 可视区宽度 - 非内容区宽度
+            force_cast(this->view).width = this->visible_rect.right
+                - this->visible_rect.left 
+                - this->GetNonContentWidth();
+            // 顶级视口高度: 可视区高度 - 非内容区高度
+            force_cast(this->view.height) = this->visible_rect.bottom
+                - this->visible_rect.top
+                - this->GetNonContentHeight();
+            int bk = 9;
+        }
         // 已经处理
         this->ControlSizeChangeHandled();
     }
 }
 
+// 中转路由表
+static const LongUI::UIMarginalControl::MarginalControl UICONTAINER_MARGINAL_CONTROL_ROUTER[] = {
+    // 左边缘: 顶底
+    LongUI::UIMarginalControl::Control_Top,      LongUI::UIMarginalControl::Control_Bottom,
+    // 顶边缘: 左右
+    LongUI::UIMarginalControl::Control_Left,    LongUI::UIMarginalControl::Control_Right,
+    // 右边缘: 顶底
+    LongUI::UIMarginalControl::Control_Top,      LongUI::UIMarginalControl::Control_Bottom,
+    // 底边缘: 左右
+    LongUI::UIMarginalControl::Control_Left,    LongUI::UIMarginalControl::Control_Right,
+};
+
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept  {
     // 修改可视化区域
     if (this->IsControlSizeChanged()) {
+        // 刷新边缘控件
+        if (this->flags & Flag_Container_ExistMarginalControl) {
+            for (auto ctrl : this->marginal_control) {
+                if (!ctrl) continue;
+                D2D1_SIZE_F cross = { 0.f, 0.f };
+
+                // 更新排版
+                ctrl->Update();
+                // XXX: 更新
+                if (ctrl->flags & Flag_UIContainer) {
+                    assert(!"bad idea, uncomment codeline below if you want it");
+                    //static_cast<UIContainer*>(ctrl)->BeforeUpdateChildren();
+                }
+            }
+        }
+        this->AssertMarginalControl();
         // 本容器内容限制
         D2D1_RECT_F limit_of_this = {
             this->visible_rect.left + this->margin_rect.left * this->world._11,
             this->visible_rect.top + this->margin_rect.top * this->world._22,
-            this->visible_rect.right + this->margin_rect.right * this->world._11,
-            this->visible_rect.bottom + this->margin_rect.bottom * this->world._22,
+            this->visible_rect.right - this->margin_rect.right * this->world._11,
+            this->visible_rect.bottom - this->margin_rect.bottom * this->world._22,
         };
         // 更新
         for (auto ctrl : (*this)) {
-            // 前向刷新
-            if (ctrl->flags & Flag_UIContainer) {
-                static_cast<UIContainer*>(ctrl)->BeforeUpdateChildren();
-            }
             // 更新矩阵
             D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
-            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+            D2D1_RECT_F clip_rect; ctrl->GetClipRectContent(clip_rect);
             // 坐标转换
             auto lt = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
             auto rb = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
@@ -244,6 +280,10 @@ void LongUI::UIContainer::Update() noexcept  {
             ctrl->visible_rect.top = std::max(lt.y, limit_of_this.top);
             ctrl->visible_rect.right = std::min(rb.x, limit_of_this.right);
             ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
+            // 前项刷新
+            if (ctrl->flags & Flag_UIContainer) {
+                static_cast<UIContainer*>(ctrl)->BeforeUpdateChildren();
+            }
             // 调试信息
             //UIManager << DL_Hint << ctrl << ctrl->visible_rect << endl;
         }
@@ -254,15 +294,6 @@ void LongUI::UIContainer::Update() noexcept  {
         // 已处理该消息
         this->ControlSizeChangeHandled();
     }
-    // 刷新边缘控件
-    if (this->flags & Flag_Container_ExistMarginalContrl) {
-        for (auto ctrl : this->marginal_control) {
-            if (ctrl) {
-                ctrl->Update();
-            }
-        }
-    }
-    this->AssertMarginalControl();
     // 刷新
     for (auto ctrl : (*this)) ctrl->Update();
     // 刷新父类
@@ -274,7 +305,7 @@ void LongUI::UIContainer::Update() noexcept  {
 auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     auto hr = S_OK;
     // 重建边缘控件
-    if (this->flags & Flag_Container_ExistMarginalContrl) {
+    if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
             if (ctrl && SUCCEEDED(hr)) {
                 hr = ctrl->Recreate(newRT);
