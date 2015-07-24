@@ -140,7 +140,7 @@
     <ClInclude Include="UIMenu.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="UIMarginalControl.h">
+    <ClInclude Include="UIMarginal.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
   </ItemGroup>

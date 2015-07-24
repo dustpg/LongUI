@@ -95,7 +95,7 @@
     <ClInclude Include="UIInterface.h" />
     <ClInclude Include="UILabel.h" />
     <ClInclude Include="UIManager.h" />
-    <ClInclude Include="UIMarginalControl.h" />
+    <ClInclude Include="UIMarginal.h" />
     <ClInclude Include="UIMenu.h" />
     <ClInclude Include="UIRenderQueue.h" />
     <ClInclude Include="UIRichEdit.h" />

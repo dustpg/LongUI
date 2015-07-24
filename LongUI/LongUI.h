@@ -24,11 +24,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef LONGUI_H
-#define LONGUI_H
-
 // Graphics Level
-#define LongUIGraphicsInterfaceLevel LongUI::GraphicsInterfaceLevel::Direct2D1_1
+//#define LongUIGraphicsInterfaceLevel LongUI::GraphicsInterfaceLevel::Direct2D1_1
 
 
 // LONGUI TIPS:
@@ -36,9 +33,8 @@
 
 #include "longuiconf.h"
 
-
 // longui
-namespace LongUI {
+/*namespace LongUI {
     // --- LongUI Graphics Interface Level ---
     enum class GraphicsInterfaceLevel : uint32_t {
         // [unavailable but maybe support]
@@ -46,7 +42,7 @@ namespace LongUI {
         // [available]
         Direct2D1_1 = 0x02,
     };
-}
+}*/
 
 
 template<class Interface>
@@ -130,7 +126,7 @@ using LongUIRenderTarget = ID2D1DeviceContext;
 // longui
 namespace LongUI {
     // graphics interface level
-    static const GraphicsInterfaceLevel $GraphicsInterfaceLevel = GraphicsInterfaceLevel::Direct2D1_1;
+    // static const GraphicsInterfaceLevel $GraphicsInterfaceLevel = GraphicsInterfaceLevel::Direct2D1_1;
     // force modify some (class member) variables
     template<typename T>
     inline T& force_cast(const T& a) { return const_cast<T&>(a); }
@@ -370,7 +366,7 @@ namespace LongUI {
         // get class name with namespace
         Information_GetFullClassName ,
         // can be cast to(IID)
-        Information_CanbeCast
+        Information_CanbeCasted
     };
     // longui debug information
     struct DebugEventInformation {
@@ -399,7 +395,7 @@ namespace LongUI {
         return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.left + rect.width && pt.y < rect.top + rect.height);
     }
     // get transformed pointer
-    LongUIInline static auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
+    inline static auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
         D2D1_POINT_2F result = {
             point.x * matrix._11 + point.y * matrix._21 + matrix._31,
             point.x * matrix._12 + point.y * matrix._22 + matrix._32
@@ -407,7 +403,7 @@ namespace LongUI {
         return result;
     }
     // get transformed pointer
-    LongUINoinline static auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
+    LongUINoinline static auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept  {
         D2D1_POINT_2F result;
         // x = (bn-dm)/(bc-ad)
         // y = (an-cm)/(ad-bc)
@@ -446,7 +442,7 @@ namespace LongUI {
     };
 }
 
-// 
+// Basic
 #include "UIInterface.h"
 #include "UIString.h"
 // LongUI Util Code
@@ -463,9 +459,11 @@ namespace LongUI {
 #include "UIInput.h"
 #include "UIManager.h"
 
+// LongUI Contorl
 #include "UIControl.h"
-#ifndef LongUICoreOnly // only longui core ?
-#   include "UIMarginalControl.h"
+// longui core only?
+#ifndef LongUICoreOnly
+#   include "UIMarginal.h"
 #   include "UIContainer.h"
 #   include "UIScrollBar.h"
 #   include "UISlider.h"
@@ -478,5 +476,4 @@ namespace LongUI {
 #   include "UICheckBox.h"
 #   include "UIButton.h"
 #   include "UIMenu.h"
-#endif
 #endif

@@ -190,9 +190,13 @@ namespace LongUI{
         auto GetControlClassName(bool full = false) const noexcept ->const wchar_t*;
         // assert type casting
         void AssertTypeCasting(const IID& iid) const noexcept;
+        // canbe casted to?
+        auto IsCanbeCastedTo(const IID& iid) const noexcept ->bool;
         // assert type casting
         template<class T> void AssertTypeCastingT(T*) const noexcept { this->AssertTypeCasting(LongUI::GetIID<T>()); }
 #else
+        // canbe casted to?
+        auto IsCanbeCastedTo(const IID& iid) const noexcept { UNREFERENCED_PARAMETER(iid); return false; }
         // get class name
         auto GetControlClassName(bool full = false) const noexcept ->const wchar_t* { UNREFERENCED_PARAMETER(full); return L""; };
         // assert type casting

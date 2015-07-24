@@ -86,8 +86,6 @@ namespace LongUI {
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
-        // before update child
-        void BeforeUpdateChildren() noexcept;
         // add a child
         void AfterInsert(UIControl* child) noexcept;
         // after change draw position

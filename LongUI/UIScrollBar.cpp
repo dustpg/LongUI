@@ -29,16 +29,16 @@ Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
 void LongUI::UIScrollBar::BeforeUpdate() noexcept {
     // 垂直?
     if (this->bartype == ScrollBarType::Type_Vertical) {
-        m_fMaxRange = this->parent->cheight;
-        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
+        m_fMaxRange = this->parent->content_size.height;
+        //m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
         // 检查上边界
 
         // 检查下边界
     }
     // 水平?
     else {
-        m_fMaxRange = this->parent->cwidth;
-        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewWidth();
+        m_fMaxRange = this->parent->content_size.width;
+        //m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewWidth();
         // 检查左边界
 
         // 检查右边界
@@ -156,12 +156,12 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 void LongUI::UIScrollBarA::Update() noexcept {
     // 先刷新父类
     Super::BeforeUpdate();
-    D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
+    D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
     register float length_of_thumb, start_offset;
     {
-        register float tmpsize = UISB_OffsetVaule(this->cwidth) - BASIC_SIZE*2.f;
+        register float tmpsize = UISB_OffsetVaule(this->view_size.width) - BASIC_SIZE*2.f;
         start_offset = tmpsize * m_fIndex / m_fMaxRange;
         length_of_thumb = tmpsize * (1.f - m_fMaxIndex / m_fMaxRange);
     }
@@ -199,9 +199,8 @@ void LongUI::UIScrollBarA::Update() noexcept {
 // UIScrollBarA 渲染 
 void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
     if (_bartype != RenderType::Type_Render) return;
-    D2D1_MATRIX_3X2_F matrix; this->GetWorldTransform(matrix);
     // 更新
-    D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
+    D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
@@ -249,10 +248,7 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
 
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    //--------------------------------------------------
-    // 获取点击
-    D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     // 控件消息
     if (arg.sender) {
         switch (arg.event)

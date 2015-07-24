@@ -7,6 +7,7 @@
     TODO: const anywhere
     TODO: 完成UIList
     TODO: 子控件部分刷新
+    TODO: 窗体资源(交换链)缓存
     TODO: 封装XML接口
     TODO: 分离UIWindow
     TODO: 子窗口渲染

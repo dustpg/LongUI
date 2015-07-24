@@ -74,7 +74,7 @@ namespace LongUI {
         // Meta isn't a IUnknown object, so, won't call Meta::bitmap->AddRef
         void GetMeta(size_t index, LongUI::Meta&) noexcept;
         // get meta's icon handle by index, will do runtime-converting if first call the
-        //  same index. "Get" method will call IUnknown::AddRef if it is a COM object
+        // same index. "Get" method will call IUnknown::AddRef if it is a COM object
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
         auto GetMetaHICON(size_t index) noexcept->HICON;
         // get system brush
@@ -82,7 +82,7 @@ namespace LongUI {
         // get drop target helper
         auto GetDropTargetHelper() noexcept { return ::SafeAcquire(m_pDropTargetHelper); }
         // get create function width const char*
-        auto GetCreateFunc(const char*)noexcept->CreateControlFunction;
+        auto GetCreateFunc(const char*) noexcept->CreateControlFunction;
         // get create function width CUIString
         auto GetCreateFunc(const CUIString&)noexcept->CreateControlFunction;
         // get create function width const wchar_t* and length

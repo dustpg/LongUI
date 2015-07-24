@@ -351,5 +351,10 @@ namespace LongUI {
         static constexpr char* const bottomMarginalControl  = "bottomcontrol";
         // bottom control template id in "marginal control"
         static constexpr char* const bottomMarginalCtrlTid  = "bottomtemplateid";
+    
+        // window clear color
+        static constexpr char* const WindowClearColor       = "clearcolor";
+        // window titlebar name
+        static constexpr char* const WindowTitleName        = "titlename";
     }
 }

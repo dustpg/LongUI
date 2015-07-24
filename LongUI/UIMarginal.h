@@ -48,8 +48,8 @@ namespace LongUI {
         // other 2 contactable marginal-able controls' Cross Area
         // for scrollbar, you should do nothing, because 2 scrollbars cannot be crossed
         virtual void CrossAreaTest(D2D1_SIZE_F& IN OUT size) noexcept { UNREFERENCED_PARAMETER(size); }
-        // get world transform
-        void GetWorldTransformMarginal(D2D1_MATRIX_3X2_F& matrix) const noexcept;
+        // refresh the world transform while in marginal
+        void RefreshWorldMarginal() noexcept;
     public:
         // marginal width, parent's real margin(ltrb) = parent's original(ltrb) + this' marginal_width
         // example: classic scrollbar's marginal_width = it's width/height

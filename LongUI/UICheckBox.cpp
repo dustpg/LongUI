@@ -132,7 +132,7 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
         {
         case WM_LBUTTONUP:
             // 有效
-            if (arg.pt.x < this->cwidth && arg.pt.y) {
+            if (arg.pt.x < this->view_size.width && arg.pt.y) {
                 // 检查flag
                 if (this->flags & Flag_CheckBox_WithIndeterminate) {
                     if (this->state == CheckBoxState::State_UnChecked) {

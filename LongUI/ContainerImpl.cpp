@@ -161,11 +161,10 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
     //  正确渲染控件
     auto do_render = [](ID2D1RenderTarget* const target, const UIControl* const ctrl) {
         // 修改世界转换矩阵
-        D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
-        target->SetTransform(&matrix);
+        target->SetTransform(&ctrl->world);
         // 检查剪切规则
         if (ctrl->flags & Flag_ClipStrictly) {
-            D2D1_RECT_F clip_rect; ctrl->GetClipRectAll(clip_rect);
+            D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
             target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
         ctrl->Render(LongUI::RenderType::Type_Render);
@@ -188,7 +187,7 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         }
         // 普通子控件仅仅允许渲染在内容区域上
         {
-            D2D1_RECT_F  clip_rect; this->GetClipRectContent(clip_rect);
+            D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
             m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
         // 渲染所有子部件
@@ -216,29 +215,6 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
     }
 }
 
-// 刷新子控件前
-void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
-    // 检查
-    if (this->IsControlSizeChanged()) {
-        // 更新世界矩阵
-        this->GetWorldTransform(this->world);
-        // 更新视口大小
-        if (this->IsTopLevel()) {
-            // 顶级视口宽度: 可视区宽度 - 非内容区宽度
-            force_cast(this->view).width = this->visible_rect.right
-                - this->visible_rect.left 
-                - this->GetNonContentWidth();
-            // 顶级视口高度: 可视区高度 - 非内容区高度
-            force_cast(this->view.height) = this->visible_rect.bottom
-                - this->visible_rect.top
-                - this->GetNonContentHeight();
-            int bk = 9;
-        }
-        // 已经处理
-        this->ControlSizeChangeHandled();
-    }
-}
-
 // 中转路由表
 static const LongUI::UIMarginal::MarginalControl UICONTAINER_MARGINAL_CONTROL_ROUTER[] = {
     // 左右边缘: 顶底
@@ -253,7 +229,6 @@ static const LongUI::UIMarginal::MarginalControl UICONTAINER_MARGINAL_CONTROL_RO
 
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept  {
-    GetWorldTransform;
     // 修改可视化区域
     if (this->IsControlSizeChanged()) {
         // 刷新边缘控件
@@ -266,18 +241,12 @@ void LongUI::UIContainer::Update() noexcept  {
                 {
 
                 }
+                // 更新排版
+                ctrl->Update();
                 // 修改外边距
                 const_cast<float*>(&(this->margin_rect.left))[i] = 
                     ctrl->marginal_width + (&m_orgMargin.left)[i];
-                // 修改
-                ctrl->SetTakingUpWidth();
-                // 更新排版
-                ctrl->Update();
-                // XXX: 更新
-                if (ctrl->flags & Flag_UIContainer) {
-                    assert(!"bad idea, uncomment codeline below if you want it");
-                    //static_cast<UIContainer*>(ctrl)->BeforeUpdateChildren();
-                }
+                // 修改可视区域
             }
         }
         this->AssertMarginalControl();
@@ -290,21 +259,20 @@ void LongUI::UIContainer::Update() noexcept  {
         };
         // 更新
         for (auto ctrl : (*this)) {
-            // 更新矩阵
-            D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
-            D2D1_RECT_F clip_rect; ctrl->GetClipRectContent(clip_rect);
+            // 更新世界矩阵
+            ctrl->RefreshWorld();
             // 坐标转换
-            auto lt = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-            auto rb = LongUI::TransformPoint(matrix, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+            D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
+            auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+            auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
             // 限制
+            /*if (ctrl->IsCanbeCastedTo(LongUI::GetIID<UIVerticalLayout>())) {
+                int bk = 9;
+            }*/
             ctrl->visible_rect.left = std::max(lt.x, limit_of_this.left);
             ctrl->visible_rect.top = std::max(lt.y, limit_of_this.top);
             ctrl->visible_rect.right = std::min(rb.x, limit_of_this.right);
             ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
-            // 前项刷新
-            if (ctrl->flags & Flag_UIContainer) {
-                static_cast<UIContainer*>(ctrl)->BeforeUpdateChildren();
-            }
             // 调试信息
             //UIManager << DL_Hint << ctrl << ctrl->visible_rect << endl;
         }
@@ -519,9 +487,9 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         base_width /= this->zoom.width;
         base_height /= this->zoom.height;
         // 计算
-        base_width = std::max(base_width, this->cwidth);
+        base_width = std::max(base_width, this->view_size.width);
         // 高度步进
-        float height_step = counter > 0.f ? (this->cheight - base_height) / counter : 0.f;
+        float height_step = counter > 0.f ? (this->view_size.height - base_height) / counter : 0.f;
         float position_y = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
@@ -535,15 +503,16 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             if (!(ctrl->flags & Flag_ViewHeightFixed)) {
                 ctrl->SetTakingUpHeight(height_step);
             }
+            // 容器?
             // 不管如何, 修改!
             ctrl->SetControlSizeChanged();
             // 修改
-            ctrl->y = position_y;
+            ctrl->view_pos.y = position_y;
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
-        this->cwidth = base_width;
-        this->cheight = position_y;
+        this->content_size.width = base_width;
+        this->content_size.height = position_y;
         /*if (m_strControlName == L"MainWindow") {
             int a = 0;
         }*/
@@ -632,9 +601,9 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
         base_width /= this->zoom.width;
         base_height /= this->zoom.height;
         // 计算
-        base_height = std::max(base_height, this->cheight);
+        base_height = std::max(base_height, this->view_size.height);
         // 宽度步进
-        float width_step = counter > 0.f ? (this->cwidth - base_width) / counter : 0.f;
+        float width_step = counter > 0.f ? (this->view_size.width - base_width) / counter : 0.f;
         float position_x = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
@@ -650,12 +619,12 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             }
             // 不管如何, 修改!
             ctrl->SetControlSizeChanged();
-            ctrl->x = position_x;
+            ctrl->view_pos.x = position_x;
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
-        this->cwidth = position_x;
-        this->cheight = base_height;
+        this->content_size.width = position_x;
+        this->content_size.height = base_height;
         // 已经处理
         this->ControlSizeChangeHandled();
     }

@@ -1,12 +1,10 @@
 ﻿#include "stdafx.h"
 #include "included.h"
 
-
 // 构造函数
 MainWindow::MainWindow(pugi::xml_node node, LongUI::UIWindow* p) :Super(node, p) {
 
 }
-
 
 // 析构函数
 MainWindow::~MainWindow(){

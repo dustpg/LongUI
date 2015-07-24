@@ -2,7 +2,7 @@
 
 // Render 渲染 
 void LongUI::UISlider::Render(RenderType) const noexcept {
-    D2D1_RECT_F draw_rect; this->GetContentRect(draw_rect);
+    D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
     // 垂直滑块
     if (this->flags & Flag_Slider_VerticalSlider){
@@ -32,8 +32,8 @@ void LongUI::UISlider::Update() noexcept {
     else {
         // 根据 value 计算滑块位置
         m_rcSlider.top = 0.f;
-        m_rcSlider.bottom = m_rcSlider.top + this->cheight;
-        m_rcSlider.left = this->cwidth * m_fValue;
+        m_rcSlider.bottom = m_rcSlider.top + this->view_size.height;
+        m_rcSlider.left = this->view_size.width * m_fValue;
         m_rcSlider.right = m_rcSlider.left + m_fSliderHalfWidth * 2.f;
     }
 }
@@ -100,7 +100,7 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         case WM_MOUSEMOVE:
             if (m_bMouseClickIn && arg.wParam_sys & MK_LBUTTON){
-                m_fValue = (arg.pt.x) / this->cwidth;
+                m_fValue = (arg.pt.x) / this->view_size.width;
                 if (m_fValue > 1.f) m_fValue = 1.f;
                 if (m_fValue < 0.f) m_fValue = 0.f;
 

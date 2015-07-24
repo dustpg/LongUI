@@ -378,7 +378,7 @@ auto LongUI::CUIManager::GetCreateFunc(const char* class_name) noexcept -> Creat
     auto* __restrict itra = class_name; auto* __restrict itrb = buffer;
     // 类名一定是英文的
     for (; *itra; ++itra, ++itrb) {
-        assert(*itra >= 0 && "bad name");
+        assert(*itra >= 0 && "bad name, class name must be english char");
         *itrb = *itra;
     }
     // null 结尾字符串
@@ -520,7 +520,7 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
             function = this->GetCreateFunc(node.name());
         }
         else if (id) {
-
+            assert(!"NOIMPL!!");
         }
         else {
             assert(!"ERROR!!");
@@ -542,6 +542,11 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
 
 // 窗口过程函数
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+    // 设置参数
+    LongUI::EventArgument arg;
+    // 系统消息
+    arg.msg = message;  arg.sender = nullptr;
+    // 返回值
     LRESULT recode = 0;
     // 创建窗口时设置指针
     if (message == WM_CREATE)    {
@@ -557,16 +562,11 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
         recode = 1;
     }
     else {
-        // 设置参数
-        LongUI::EventArgument arg;
-        // 系统消息
-        arg.msg = message;  arg.sender = nullptr;
         // 世界鼠标坐标
         POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
         arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);
         // 参数
-        arg.wParam_sys = wParam; arg.lParam_sys = lParam;
-        arg.lr = 0;
+        arg.wParam_sys = wParam; arg.lParam_sys = lParam; arg.lr = 0;
         // 获取储存的指针
         auto* pUIWindow = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
             ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))

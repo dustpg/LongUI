@@ -133,12 +133,17 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
         // 渲染边框
         if (m_fBorderWidth > 0.f) {
             D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
-            brect.radiusX = m_2fBorderRdius.width;
-            brect.radiusY = m_2fBorderRdius.height;
             m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-            //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-            m_pRenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-            //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
+                brect.radiusX = m_2fBorderRdius.width;
+                brect.radiusY = m_2fBorderRdius.height;
+                //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+                m_pRenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+                //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            }
+            else {
+                m_pRenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+            }
         }
         break;
     case LongUI::RenderType::Type_RenderOffScreen:
@@ -327,30 +332,30 @@ auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
 // 设置占用宽度
 auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
     // 设置
-    auto new_cwidth = w - this->GetNonContentWidth();
-    if (new_cwidth != this->view_size.width) {
-        this->view_size.width = new_cwidth;
+    auto new_vwidth = w - this->GetNonContentWidth();
+    if (new_vwidth != this->view_size.width) {
+        this->view_size.width = new_vwidth;
         this->SetControlSizeChanged();
     }
     // 检查
     if (this->view_size.width < 0.f) {
         UIManager << DL_Hint << this
-            << "viewport's size changed less than 0: " << this->view_size.width << endl;
+            << "viewport's width < 0: " << this->view_size.width << endl;
     }
 }
 
 // 设置占用高度
 auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinline {
     // 设置
-    auto new_cheight = h - this->GetNonContentHeight();
-    if (new_cheight != this->view_size.height) {
-        this->view_size.height = new_cheight;
+    auto new_vheight = h - this->GetNonContentHeight();
+    if (new_vheight != this->view_size.height) {
+        this->view_size.height = new_vheight;
         this->SetControlSizeChanged();
     }
     // 检查
     if (this->view_size.height < 0.f) {
         UIManager << DL_Hint << this
-            << "cheight changed less than 0: " << this->view_size.height << endl;
+            << "viewport's height < 0: " << this->view_size.height << endl;
     }
 }
 
@@ -383,10 +388,10 @@ void LongUI::UIControl::GetRectAll(D2D1_RECT_F& rect) const noexcept {
 
 // 获取边框矩形
 void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
-    rect.left = -m_fBorderWidth;
-    rect.top = -m_fBorderWidth;
-    rect.right = this->view_size.width + m_fBorderWidth;
-    rect.bottom = this->view_size.height + m_fBorderWidth;
+    rect.left = -m_fBorderWidth * 0.5f;
+    rect.top = -m_fBorderWidth * 0.5f;
+    rect.right = this->view_size.width + m_fBorderWidth * 0.5f;
+    rect.bottom = this->view_size.height + m_fBorderWidth * 0.5f;
 }
 
 // 获取视口刻画矩形
@@ -401,24 +406,25 @@ void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
 void LongUI::UIControl::RefreshWorld() noexcept {
     float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
     float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
+    // 顶级控件
+    if (this->IsTopLevel()) {
+        this->world = D2D1::Matrix3x2F::Translation(xx, yy);
+    }
     // 非顶级控件
-    if (!this->IsTopLevel()) {
+    else {
         // 检查
         xx += this->parent->offset.x;
         yy += this->parent->offset.y;
         // 转换
         this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     }
-    else {
-        this->world = D2D1::Matrix3x2F::Translation(xx, yy);
-    }
 }
 
 // 获得世界转换矩阵 for 边缘控件
-void LongUI::UIMarginal::GetWorldTransformMarginal(D2D1_MATRIX_3X2_F& matrix) const noexcept {
+void LongUI::UIMarginal::RefreshWorldMarginal() noexcept {
     float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
     float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
-    matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+    this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     assert(this->IsTopLevel() == false);
     constexpr int aa = sizeof(UIContainer);
 }
@@ -539,8 +545,8 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
             int bk = 9;
         }
         /*{
+            AutoLocker;
             UIManager << DL_Hint << this << this->visible_rect << LongUI::endl;
-
         }*/
 #endif
         // 渲染部件
@@ -614,32 +620,26 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        /*case LongUI::Event::Event_FindControl:
-            // 检查鼠标范围
-            if (FindControlHelper(pt4self, this)) {
-                arg.ctrl = this;
-            }
-            __fallthrough;*/
         case LongUI::Event::Event_SetFocus:
+            // 设置焦点: 要求焦点
             return true;
         case LongUI::Event::Event_KillFocus:
+            // 释放焦点:
             m_tarStatusClick = LongUI::Status_Normal;
             return true;
         case LongUI::Event::Event_MouseEnter:
-            //m_bEffective = true;
+            // 鼠标移进: 设置UI元素状态
             UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
             m_colorBorderNow = m_aBorderColor[LongUI::Status_Hover];
             break;
         case LongUI::Event::Event_MouseLeave:
-            //m_bEffective = false;
+            // 鼠标移出: 设置UI元素状态
             UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
             m_colorBorderNow = m_aBorderColor[LongUI::Status_Normal];
             break;
         }
     }
     else {
-        bool rec = false;
-        force_cast(arg.sender) = this;   auto tempmsg = arg.msg;
         switch (arg.msg)
         {
         case WM_LBUTTONDOWN:
@@ -649,6 +649,9 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         case WM_LBUTTONUP:
             if (m_pWindow->IsReleasedControl(this)) {
+                bool rec = false;
+                // 保留信息
+                force_cast(arg.sender) = this;   auto tempmsg = arg.msg;
                 force_cast(arg.event) = LongUI::Event::Event_ButtoClicked;
                 m_tarStatusClick = LongUI::Status_Hover;
                 // 检查脚本
@@ -663,14 +666,16 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 else {
                     rec = m_pWindow->DoEvent(arg);
                 }
-                force_cast(arg.msg) = tempmsg;
+                // 设置状态
                 UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
                 m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
                 m_pWindow->ReleaseCapture();
+                // 取消
+                force_cast(arg.sender) = nullptr;
+                force_cast(arg.msg) = tempmsg;
             }
             break;
         }
-        force_cast(arg.sender) = nullptr;
     }
     return Super::DoEvent(arg);
 }
@@ -693,7 +698,7 @@ void LongUI::UIButton::Cleanup() noexcept {
 // UIEdit
 // -------------------------------------------------------
 
-
+// UI基本编辑控件
 void LongUI::UIEditBasic::Render(RenderType type) const noexcept {
     switch (type)
     {
@@ -731,10 +736,10 @@ void LongUI::UIEditBasic::Update() noexcept {
     return Super::Update();
 }
 
-// do event 
+// UI基本编辑控件
 bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
-    // ui msg
+    // LongUI 消息
     if (arg.sender) {
         switch (arg.event)
         {
@@ -762,7 +767,7 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
             return true;
         }
     }
-    // sys msg
+    // 系统消息
     else {
         switch (arg.msg)
         {
@@ -856,7 +861,7 @@ bool LongUI::UIControl::debug_do_event(const LongUI::DebugEventInformation& info
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIControl";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIControl>();
     default:
@@ -868,9 +873,17 @@ bool LongUI::UIControl::debug_do_event(const LongUI::DebugEventInformation& info
 // 类型转换断言
 void LongUI::UIControl::AssertTypeCasting(const IID& iid) const noexcept {
     LongUI::DebugEventInformation info;
-    info.infomation = LongUI::DebugInformation::Information_CanbeCast;
+    info.infomation = LongUI::DebugInformation::Information_CanbeCasted;
     info.iid = &iid; info.id = 0;
     assert(this->debug_do_event(info) && "bad casting");
+}
+
+// 类型转换判断
+auto LongUI::UIControl::IsCanbeCastedTo(const IID& iid) const noexcept ->bool {
+    LongUI::DebugEventInformation info;
+    info.infomation = LongUI::DebugInformation::Information_CanbeCasted;
+    info.iid = &iid; info.id = 0;
+    return this->debug_do_event(info);
 }
 
 // 获取控件类名
@@ -893,7 +906,7 @@ bool LongUI::UILabel::debug_do_event(const LongUI::DebugEventInformation& info) 
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UILabel";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UILabel>()
             || Super::debug_do_event(info);
@@ -913,7 +926,7 @@ bool LongUI::UIButton::debug_do_event(const LongUI::DebugEventInformation& info)
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIButton";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIButton>()
             || Super::debug_do_event(info);
@@ -933,7 +946,7 @@ bool LongUI::UIMarginal::debug_do_event(const LongUI::DebugEventInformation& inf
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIMarginal";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIMarginal>()
             || Super::debug_do_event(info);
@@ -953,7 +966,7 @@ bool LongUI::UIScrollBar::debug_do_event(const LongUI::DebugEventInformation& in
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIScrollBar";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIScrollBar>()
             || Super::debug_do_event(info);
@@ -973,7 +986,7 @@ bool LongUI::UIScrollBarA::debug_do_event(const LongUI::DebugEventInformation& i
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIScrollBarA";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIScrollBarA>()
             || Super::debug_do_event(info);
@@ -993,7 +1006,7 @@ bool LongUI::UIContainer::debug_do_event(const LongUI::DebugEventInformation& in
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIContainer";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIContainer>()
             || Super::debug_do_event(info);
@@ -1014,7 +1027,7 @@ bool LongUI::UIHorizontalLayout::debug_do_event(const LongUI::DebugEventInformat
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIHorizontalLayout";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIHorizontalLayout>()
             || Super::debug_do_event(info);
@@ -1034,7 +1047,7 @@ bool LongUI::UIVerticalLayout::debug_do_event(const LongUI::DebugEventInformatio
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIVerticalLayout";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIVerticalLayout>()
             || Super::debug_do_event(info);
@@ -1054,7 +1067,7 @@ bool LongUI::UIWindow::debug_do_event(const LongUI::DebugEventInformation& info)
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UIWindow";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIWindow>()
             || Super::debug_do_event(info);
@@ -1076,7 +1089,7 @@ bool LongUI::UISlider::debug_do_event(const LongUI::DebugEventInformation& info)
     case LongUI::DebugInformation::Information_GetFullClassName:
         info.str = L"::LongUI::UISlider";
         return true;
-    case LongUI::DebugInformation::Information_CanbeCast:
+    case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UISlider>()
             || Super::debug_do_event(info);

@@ -7,6 +7,13 @@ const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent) 
 noexcept : Super(node), m_uiRenderQueue(this) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
+    CUIString titlename(m_strControlName);
+    {
+        UIControl::MakeString(
+            node.attribute(LongUI::XMLAttribute::WindowTitleName).value(),
+            titlename
+            );
+    }
     // flag 区
     {
         uint32_t flag = this->flags;
@@ -42,7 +49,10 @@ noexcept : Super(node), m_uiRenderQueue(this) {
         m_miniSize.width = static_cast<decltype(m_miniSize.width)>(size[0]);
         m_miniSize.height = static_cast<decltype(m_miniSize.height)>(size[1]);
         // 清理颜色
-        UIControl::MakeColor(node.attribute("clearcolor").value(),this->clear_color);
+        UIControl::MakeColor(
+            node.attribute(LongUI::XMLAttribute::WindowClearColor).value(),
+            this->clear_color
+            );
     }
     // 窗口区
     {
@@ -51,23 +61,24 @@ noexcept : Super(node), m_uiRenderQueue(this) {
         // 设置窗口大小
         RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
         // 默认
-        if (this->cwidth == 0.f) {
-            this->cwidth = static_cast<float>(LongUIDefaultWindowWidth);
+        if (this->view_size.width == 0.f) {
+            this->view_size.width = static_cast<float>(LongUIDefaultWindowWidth);
         }
         else {
-            window_rect.right = static_cast<LONG>(this->cwidth);
+            window_rect.right = static_cast<LONG>(this->view_size.width);
         }
         // 更新
-        if (this->cheight == 0.f) {
-            this->cheight = static_cast<float>(LongUIDefaultWindowHeight);
+        if (this->view_size.height == 0.f) {
+            this->view_size.height = static_cast<float>(LongUIDefaultWindowHeight);
         }
         else {
-            window_rect.bottom = static_cast<LONG>(this->cheight);
+            window_rect.bottom = static_cast<LONG>(this->view_size.height);
         }
         force_cast(this->window_size.width) = window_rect.right;
         force_cast(this->window_size.height) = window_rect.bottom;
-        visible_rect.right = this->cwidth;
-        visible_rect.bottom = this->cheight;
+        visible_rect.right = this->view_size.width;
+        visible_rect.bottom = this->view_size.height;
+        this->content_size = this->view_size;
         // 调整大小
         ::AdjustWindowRect(&window_rect, window_style, FALSE);
         // 居中
@@ -79,7 +90,7 @@ noexcept : Super(node), m_uiRenderQueue(this) {
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             (this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
-            L"LongUIWindow", L"Nameless",
+            L"LongUIWindow", titlename.c_str(),
             WS_OVERLAPPEDWINDOW,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
             parent ? parent->GetHwnd() : nullptr, nullptr,
@@ -115,8 +126,6 @@ noexcept : Super(node), m_uiRenderQueue(this) {
 
 // UIWindow 析构函数
 LongUI::UIWindow::~UIWindow() noexcept {
-    // 释放接口
-    ::SafeRelease(m_pTaskBarList);
     // 取消注册
     ::RevokeDragDrop(m_hwnd);
     // 摧毁窗口
@@ -128,6 +137,7 @@ LongUI::UIWindow::~UIWindow() noexcept {
     // 释放资源
     this->release_data();
     // 释放数据
+    ::SafeRelease(m_pTaskBarList);
     ::SafeRelease(m_pDropTargetHelper);
     ::SafeRelease(m_pCurDataObject);
 }
@@ -408,7 +418,11 @@ void LongUI::UIWindow::Update() noexcept {
         ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
     }
     // 刷新前
-    this->BeforeUpdateChildren();
+    if (this->IsControlSizeChanged()) {
+        this->SetTakingUpWidth(this->visible_rect.right);
+        this->SetTakingUpHeight(this->visible_rect.bottom);
+        this->RefreshWorld();
+    }
     // 没有就不刷新了
     m_bRendered = !!m_aUnitNow.length;
     if (!m_aUnitNow.length) return;
@@ -480,8 +494,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             m_pRenderTarget->SetTransform(&init_transfrom);
             m_pRenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             // 设置转换矩阵
-            D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
-            m_pRenderTarget->SetTransform(&matrix);
+            m_pRenderTarget->SetTransform(&ctrl->world);
             ctrl->Render(RenderType::Type_Render);
             // 回来
             m_pRenderTarget->PopAxisAlignedClip();

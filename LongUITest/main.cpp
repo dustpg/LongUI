@@ -1,7 +1,6 @@
 ﻿#include "stdafx.h"
 #include "included.h"
 
-
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
 #if 0
@@ -29,13 +28,13 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 #else
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" margin="32,32,32,32"
-    rightcontrol="ScrollBarA" bottomcontrol="ScrollBarA" clearcolor="1,1,1,0.85">
-    <VerticalLayout name="V" csize="1366, 512">
-        <Button name="1" margin="4,4,4,4" disabledmeta="1" csize = "1500,0"
+    rightcontrol="ScrollBarA" bottomcontrol="ScrollBarA" clearcolor="1,1,1,0.95">
+    <VerticalLayout name="V" size="1366, 512">
+        <Button name="1" margin="4,4,4,4" disabledmeta="1" size = "1500,0"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="2" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </VerticalLayout>
-    <HorizontalLayout name="H" csize="0, 512">
+    <HorizontalLayout name="H" size="0, 512">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
@@ -110,7 +109,7 @@ public:
             }
             __fallthrough;
         case LongUI::RenderType::Type_RenderForeground:
-            this->GetContentRect(draw_rect);
+            this->GetViewRect(draw_rect);
             D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
             m_pBrush_SetBeforeUse->SetColor(&color);
             m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
@@ -122,7 +121,7 @@ public:
             Super::Render(LongUI::RenderType::Type_RenderForeground);
             break;
         case LongUI::RenderType::Type_RenderOffScreen:
-            this->GetContentRect(draw_rect);
+            this->GetViewRect(draw_rect);
             // 渲染文字
             if (false) {
                 m_pRenderTarget->SetTarget(m_pCmdList);
@@ -142,8 +141,7 @@ public:
             ::SafeRelease(m_pCmdList);
             m_pRenderTarget->CreateCommandList(&m_pCmdList);
             // 设置大小
-            m_text.SetNewSize(this->cwidth, this->cheight);
-
+            m_text.SetNewSize(this->view_size.width, this->view_size.height);
             // 已经处理
             this->ControlSizeChangeHandled();
         }
@@ -151,8 +149,7 @@ public:
     }
     //do the event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept  override {
-        D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
-        D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
+        D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
         if (arg.sender) {
             /*if (arg.event == LongUI::Event::Event_FindControl) {
                 // 检查鼠标范围
@@ -223,8 +220,6 @@ protected:
     // effect output
     ID2D1Image*                 m_pEffectOut = nullptr;
 };
-
-
 
 // Test Video Control
 class UIVideoAlpha : public LongUI::UIControl {
@@ -327,7 +322,6 @@ protected:
     // video
     LongUI::CUIVideoComponent       m_video;
 };
-
 
 // 应用程序入口
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
