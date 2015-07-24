@@ -180,10 +180,10 @@ namespace LongUI {
         Flag_UIContainer = 1 << 0,
         // [default: false][auto]control's width fixed, if given a valid width value
         // XML Attribute: "pos"[2]@float
-        Flag_WidthFixed = 1 << 1,
+        Flag_ViewWidthFixed = 1 << 1,
         // [default: false][auto]control's width fixed, if given a valid height value
         // XML Attribute: "pos"[3]@float
-        Flag_HeightFixed = 1 << 2,
+        Flag_ViewHeightFixed = 1 << 2,
         // [default: false]control is floating
         // XML Attribute: "float"@bool
         Flag_Floating = 1 << 3,
@@ -192,7 +192,7 @@ namespace LongUI {
         // NOTE: this attribute used by parent
         // NOTE: container should be true in this case but not mandatory
         // XML Attribute : "strictclip"@bool
-        Flag_StrictClip = 1 << 4,
+        Flag_ClipStrictly = 1 << 4,
         // [default: true]control is visible
         // XML Attribute: "visible"@bool
         Flag_Visible = 1 << 5,
@@ -218,7 +218,7 @@ namespace LongUI {
         // if your impl control needed, set it to true by const_cast
         Flag_ControlNeedFullXMLNode = 1 << 9,
         // ------- Lv1 Control Flag ------------
-        // [default: false] container 's child renderedt hrough
+        // [default: false] container 's child rendered through
         // this control, not window directly, if container  hold
         // this flag, will mark all children's Flag_RenderParent to true
         // XML Attribute : "rendercd"@bool

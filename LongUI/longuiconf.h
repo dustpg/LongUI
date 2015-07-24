@@ -310,38 +310,46 @@ namespace LongUI {
     // attribute namespace
     namespace XMLAttribute {
         // name of control
-        static const char* ControlName              = "name";
+        static constexpr char* const ControlName            = "name";
         // script
-        static const char* Script                   = "script";
-        // position of control content: float2
-        static const char* ContentPosotion          = "pos";
-        // size of control content: float2
-        static const char* ContentSize              = "csize";
+        static constexpr char* const Script                 = "script";
+        // position of control view: float2
+        static constexpr char* const ViewPosotion           = "pos";
+        // size of control view: float2
+        static constexpr char* const ViewSize               = "size";
         // margin: float4
-        static const char* Margin                   = "margin";
+        static constexpr char* const Margin                 = "margin";
         // width of border: float1
-        static const char* BorderWidth              = "borderwidth";
+        static constexpr char* const BorderWidth            = "borderwidth";
         // round of border: float2
-        static const char* BorderRound              = "borderround";
+        static constexpr char* const BorderRound            = "borderround";
         // template id for easy building: int
-        static const char* TemplateID               = "templateid";
-
+        static constexpr char* const TemplateID             = "templateid";
+        // the priority for (dirty) rendering
+        static constexpr char* const RenderingPriority      = "priority";
+        
+        // is render parent container?              [valid] for normal control
+        static constexpr char* const IsRenderParent         = "renderparent";
+        // is clip strictly                         [invalid yet]
+        static constexpr char* const IsClipStrictly         = "strictclip";
+        // is always render children directly       [valid] for container
+        static constexpr char* const IsRenderChildrenD      = "rendercd";
+        
         // left control class name in "marginal control"
-        static const char* LeftMarginalControl      = "leftcontrol";
+        static constexpr char* const LeftMarginalControl    = "leftcontrol";
         // left control template id in "marginal control"
-        static const char* LeftMarginalControlTid   = "lefttemplateid";
+        static constexpr char* const LeftMarginalCtrlTid    = "lefttemplateid";
         // top control class name in "marginal control"
-        static const char* TopMarginalControl       = "topcontrol";
+        static constexpr char* const TopMarginalControl     = "topcontrol";
         // top control template id in "marginal control"
-        static const char* TopMarginalControlTid    = "toptemplateid";
+        static constexpr char* const TopMarginalCtrlTid     = "toptemplateid";
         // right control class name in "marginal control"
-        static const char* RightMarginalControl     = "rightcontrol";
+        static constexpr char* const RightMarginalControl   = "rightcontrol";
         // right control template id in "marginal control"
-        static const char* RightMarginalControlTid = "righttemplateid";
+        static constexpr char* const RightMarginalCtrlTid   = "righttemplateid";
         // bottom control class name in "marginal control"
-        static const char* bottomMarginalControl    = "bottomcontrol";
+        static constexpr char* const bottomMarginalControl  = "bottomcontrol";
         // bottom control template id in "marginal control"
-        static const char* bottomMarginalControlTid = "bottomtemplateid";
-
+        static constexpr char* const bottomMarginalCtrlTid  = "bottomtemplateid";
     }
 }

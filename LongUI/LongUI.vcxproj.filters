@@ -175,14 +175,8 @@
     <ClCompile Include="UIWindow.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="ControlImpl1.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
     <ClCompile Include="InlineObjImpl.cpp">
       <Filter>LongUI\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="ContainerImpl.cpp">
-      <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
     <ClCompile Include="UIElement.cpp">
       <Filter>LongUI\Component</Filter>
@@ -192,6 +186,12 @@
     </ClCompile>
     <ClCompile Include="UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlImpl1.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ContainerImpl.cpp">
+      <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

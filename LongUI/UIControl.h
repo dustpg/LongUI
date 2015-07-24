@@ -109,16 +109,14 @@ namespace LongUI{
         auto SetTakingUpWidth(float w) noexcept ->void LongUINoinline;
         // set new taking up height of control
         auto SetTakingUpHeight(float h) noexcept ->void LongUINoinline;
-        // get taking up rect/ clip rect
-        void __fastcall GetClipRectAll(D2D1_RECT_F&) const noexcept;
-        // get clip rect for content
-        void __fastcall GetClipRectContent(D2D1_RECT_F&) const noexcept;
+        // refresh the world transform
+        void RefreshWorld() noexcept;
+        // get taking up rect
+        void __fastcall GetRectAll(D2D1_RECT_F&) const noexcept;
         // get border rect
         void __fastcall GetBorderRect(D2D1_RECT_F&) const noexcept;
-        // get draw rect
-        void __fastcall GetContentRect(D2D1_RECT_F&) const noexcept;
-        // get world transform matrix
-        void __fastcall GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept;
+        // get viewport rect
+        void __fastcall GetViewRect(D2D1_RECT_F&) const noexcept;
     protected:
         // d2d render target
         LongUIRenderTarget*     m_pRenderTarget = nullptr;
@@ -158,16 +156,12 @@ namespace LongUI{
         // priority for render
         int8_t          const   priority = 0;
     public:
-        // x position of control
-        float                   x = 0.f;
-        // y position of control
-        float                   y = 0.f;
-        // content width of control
-        float                   cwidth = 0.f;
-        // content height of control
-        float                   cheight = 0.f;
+        // transform for world
+        D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
+        // position of control's view
+        D2D1_POINT_2F           view_pos = D2D1::Point2F();
         // size of viewport
-        D2D1_SIZE_F     const   view = D2D1::SizeF(0.f, 0.f);
+        D2D1_SIZE_F             view_size = D2D1::SizeF(0.f, 0.f);
         // control current visible position(relative to world)
         D2D1_RECT_F             visible_rect = D2D1::RectF();
         // margin rect

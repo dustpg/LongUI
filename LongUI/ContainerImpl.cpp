@@ -1,5 +1,6 @@
 ﻿#include "LongUI.h"
 
+
 // -------------------------- UIContainer -------------------------
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
@@ -10,14 +11,22 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
     uint32_t flag = this->flags | Flag_UIContainer;
     // 检查边缘控件
     {
+        // 属性名字
         const char* const attname[] = {
-            "leftcontrol", "topcontrol", "rightcontrol", "bottomcontrol"
+            LongUI::XMLAttribute::LeftMarginalControl,
+            LongUI::XMLAttribute::TopMarginalControl,
+            LongUI::XMLAttribute::RightMarginalControl,
+            LongUI::XMLAttribute::bottomMarginalControl,
         };
+        // 属性id
         const char* const templateid[] = {
-            "lefttemplateid", "toptemplateid", "righttemplateid", "bottomtemplateid"
+            LongUI::XMLAttribute::LeftMarginalCtrlTid,
+            LongUI::XMLAttribute::TopMarginalCtrlTid,
+            LongUI::XMLAttribute::RightMarginalCtrlTid,
+            LongUI::XMLAttribute::bottomMarginalCtrlTid,
         };
         bool exist_marginal_control = false;
-        for (auto i = 0u; i < UIMarginalControl::MARGINAL_CONTROL_SIZE; ++i) {
+        for (auto i = 0u; i < UIMarginal::MARGINAL_CONTROL_SIZE; ++i) {
             const char* str = nullptr;
             if ((str = node.attribute(attname[i]).value())) {
                 auto create_control_func = UIManager.GetCreateFunc(str);
@@ -28,7 +37,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
                     // 创建控件
                     auto control = UIManager.CreateControl(size_t(tid), create_control_func);
                     // XXX: 检查
-                    this->marginal_control[i] = static_cast<UIMarginalControl*>(control);
+                    this->marginal_control[i] = static_cast<UIMarginal*>(control);
                 }
                 // 优化flag
                 if (this->marginal_control[i]) {
@@ -41,7 +50,9 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
             flag |= Flag_Container_ExistMarginalControl;
         }
     }
-    if ((this->flags & Flag_RenderParent) || node.attribute("rendercd").as_bool(false)) {
+    // 渲染依赖属性
+    if ((this->flags & Flag_RenderParent) || 
+        node.attribute(LongUI::XMLAttribute::IsRenderChildrenD).as_bool(false)) {
         flag |= LongUI::Flag_Container_AlwaysRenderChildrenDirectly;
     }
     force_cast(this->flags) = LongUIFlag(flag);
@@ -128,7 +139,7 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 if (ctrl) {
                     this->AfterInsert(ctrl);
                     // 初始化
-                    ctrl->InitMarginalControl(static_cast<UIMarginalControl::MarginalControl>(i));
+                    ctrl->InitMarginalControl(static_cast<UIMarginal::MarginalControl>(i));
                     // 完成控件树
                     ctrl->DoEvent(arg);
                 }
@@ -153,13 +164,13 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
         target->SetTransform(&matrix);
         // 检查剪切规则
-        if (ctrl->flags & Flag_StrictClip) {
+        if (ctrl->flags & Flag_ClipStrictly) {
             D2D1_RECT_F clip_rect; ctrl->GetClipRectAll(clip_rect);
             target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
         ctrl->Render(LongUI::RenderType::Type_Render);
         // 检查剪切规则
-        if (ctrl->flags & Flag_StrictClip) {
+        if (ctrl->flags & Flag_ClipStrictly) {
             target->PopAxisAlignedClip();
         }
     };
@@ -229,27 +240,37 @@ void LongUI::UIContainer::BeforeUpdateChildren() noexcept {
 }
 
 // 中转路由表
-static const LongUI::UIMarginalControl::MarginalControl UICONTAINER_MARGINAL_CONTROL_ROUTER[] = {
-    // 左边缘: 顶底
-    LongUI::UIMarginalControl::Control_Top,      LongUI::UIMarginalControl::Control_Bottom,
-    // 顶边缘: 左右
-    LongUI::UIMarginalControl::Control_Left,    LongUI::UIMarginalControl::Control_Right,
-    // 右边缘: 顶底
-    LongUI::UIMarginalControl::Control_Top,      LongUI::UIMarginalControl::Control_Bottom,
+static const LongUI::UIMarginal::MarginalControl UICONTAINER_MARGINAL_CONTROL_ROUTER[] = {
+    // 左右边缘: 顶底
+    LongUI::UIMarginal::Control_Top,     LongUI::UIMarginal::Control_Bottom,
+    // 顶底边缘: 左右
+    LongUI::UIMarginal::Control_Left,    LongUI::UIMarginal::Control_Right,
+    /*// 右边缘: 顶底
+    LongUI::UIMarginal::Control_Top,     LongUI::UIMarginal::Control_Bottom,
     // 底边缘: 左右
-    LongUI::UIMarginalControl::Control_Left,    LongUI::UIMarginalControl::Control_Right,
+    LongUI::UIMarginal::Control_Left,    LongUI::UIMarginal::Control_Right,*/
 };
 
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept  {
+    GetWorldTransform;
     // 修改可视化区域
     if (this->IsControlSizeChanged()) {
         // 刷新边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
-            for (auto ctrl : this->marginal_control) {
+            for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
+                auto ctrl = this->marginal_control[i];
                 if (!ctrl) continue;
                 D2D1_SIZE_F cross = { 0.f, 0.f };
+                // TODO: 计算cross 大小
+                {
 
+                }
+                // 修改外边距
+                const_cast<float*>(&(this->margin_rect.left))[i] = 
+                    ctrl->marginal_width + (&m_orgMargin.left)[i];
+                // 修改
+                ctrl->SetTakingUpWidth();
                 // 更新排版
                 ctrl->Update();
                 // XXX: 更新
@@ -481,11 +502,11 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             // 非浮点控件
             if (!(ctrl->flags & Flag_Floating)) {
                 // 宽度固定?
-                if (ctrl->flags & Flag_WidthFixed) {
+                if (ctrl->flags & Flag_ViewWidthFixed) {
                     base_width = std::max(base_width, ctrl->GetTakingUpWidth());
                 }
                 // 高度固定?
-                if (ctrl->flags & Flag_HeightFixed) {
+                if (ctrl->flags & Flag_ViewHeightFixed) {
                     base_height += ctrl->GetTakingUpHeight();
                 }
                 // 未指定高度?
@@ -507,11 +528,11 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             // 浮点控
             if (ctrl->flags & Flag_Floating) continue;
             // 设置控件宽度
-            if (!(ctrl->flags & Flag_WidthFixed)) {
+            if (!(ctrl->flags & Flag_ViewWidthFixed)) {
                 ctrl->SetTakingUpWidth(base_width);
             }
             // 设置控件高度
-            if (!(ctrl->flags & Flag_HeightFixed)) {
+            if (!(ctrl->flags & Flag_ViewHeightFixed)) {
                 ctrl->SetTakingUpHeight(height_step);
             }
             // 不管如何, 修改!
@@ -594,11 +615,11 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             // 非浮点控件
             if (!(ctrl->flags & Flag_Floating)) {
                 // 高度固定?
-                if (ctrl->flags & Flag_HeightFixed) {
+                if (ctrl->flags & Flag_ViewHeightFixed) {
                     base_height = std::max(base_height, ctrl->GetTakingUpHeight());
                 }
                 // 宽度固定?
-                if (ctrl->flags & Flag_WidthFixed) {
+                if (ctrl->flags & Flag_ViewWidthFixed) {
                     base_width += ctrl->GetTakingUpWidth();
                 }
                 // 未指定宽度?
@@ -620,11 +641,11 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             // 跳过浮动控件
             if (ctrl->flags & Flag_Floating) continue;
             // 设置控件高度
-            if (!(ctrl->flags & Flag_HeightFixed)) {
+            if (!(ctrl->flags & Flag_ViewHeightFixed)) {
                 ctrl->SetTakingUpHeight(base_height);
             }
             // 设置控件宽度
-            if (!(ctrl->flags & Flag_WidthFixed)) {
+            if (!(ctrl->flags & Flag_ViewWidthFixed)) {
                 ctrl->SetTakingUpWidth(width_step);
             }
             // 不管如何, 修改!

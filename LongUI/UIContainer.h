@@ -136,12 +136,12 @@ namespace LongUI {
         // orginal margin
         D2D1_RECT_F             m_orgMargin = D2D1::RectF();
     public:
-        // get content width in child level for zooming
+        /*// get content width in child level for zooming
         // do not use parent->cwidth, use this
-        auto GetChildLevelContentWidth() const noexcept { return this->cwidth / this->zoom.width; }
+        auto GetChildLevelContentWidth() const noexcept { return this->content_size.width / this->zoom.width; }
         // get content height in child level for zooming
         // do not use parent->cheight, use this
-        auto GetChildLevelContentHeight() const noexcept { return this->cheight / this->zoom.height; }
+        auto GetChildLevelContentHeight() const noexcept { return this->content_size.height / this->zoom.height; }
         // get offset.x in child level for zooming
         // do not use parent->offset.x, use this
         auto GetChildLevelOffsetX() const noexcept { return this->offset.x / this->zoom.width; }
@@ -150,19 +150,19 @@ namespace LongUI {
         auto GetChildLevelOffsetY() const noexcept { return this->offset.y / this->zoom.height; }
         // get view.width in child level for zooming
         // do not use parent->view.height, use this
-        auto GetChildLevelViewWidth() const noexcept { return this->view.width / this->zoom.width; }
+        auto GetChildLevelViewWidth() const noexcept { return this->view_size.width / this->zoom.width; }
         // get view.height in child level for zooming
         // do not use parent->view.height, use this
-        auto GetChildLevelViewHeight() const noexcept { return this->view.height / this->zoom.height; }
+        auto GetChildLevelViewHeight() const noexcept { return this->view_size.height / this->zoom.height; }*/
     public:
         // offset position
         D2D1_POINT_2F           offset = D2D1::Point2F();
         // zoom size
         D2D1_SIZE_F             zoom = D2D1::SizeF(1.f, 1.f);
-        // transform for world: XXX: maybe set it to UIContrl not here
-        D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
+        // size of content
+        D2D1_SIZE_F             content_size = D2D1::SizeF(0.f, 0.f);
         // marginal controls
-        UIMarginalControl*      marginal_control[UIMarginalControl::MARGINAL_CONTROL_SIZE];
+        UIMarginal*             marginal_control[UIMarginal::MARGINAL_CONTROL_SIZE];
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

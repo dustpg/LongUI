@@ -31,7 +31,7 @@ namespace LongUI {
     class UIContainer;
     // marginal-able control
     // like: hamburger menu, menu bar, tool bar, tab bar, scroll bar, barabara, etc
-    class LongUIAlignas UIMarginalControl : public UIControl {
+    class LongUIAlignas UIMarginal : public UIControl {
         // 父类声明
         using Super = UIControl;
     public:
@@ -48,6 +48,8 @@ namespace LongUI {
         // other 2 contactable marginal-able controls' Cross Area
         // for scrollbar, you should do nothing, because 2 scrollbars cannot be crossed
         virtual void CrossAreaTest(D2D1_SIZE_F& IN OUT size) noexcept { UNREFERENCED_PARAMETER(size); }
+        // get world transform
+        void GetWorldTransformMarginal(D2D1_MATRIX_3X2_F& matrix) const noexcept;
     public:
         // marginal width, parent's real margin(ltrb) = parent's original(ltrb) + this' marginal_width
         // example: classic scrollbar's marginal_width = it's width/height
@@ -57,7 +59,7 @@ namespace LongUI {
         MarginalControl   const marginal_type = MarginalControl::Control_Left;
     protected:
         // ctor
-        UIMarginalControl(pugi::xml_node node) noexcept : Super(node) {}
+        UIMarginal(pugi::xml_node node) noexcept : Super(node) {}
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -66,7 +68,7 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIMarginalControl>() {
+    template<> LongUIInline const IID& GetIID<LongUI::UIMarginal>() {
         // {6CF3853D-6740-4635-AF7E-F8A42AEBA6C9}
         static const GUID IID_LongUI_UIMarginalControl = { 
             0x6cf3853d, 0x6740, 0x4635,{ 0xaf, 0x7e, 0xf8, 0xa4, 0x2a, 0xeb, 0xa6, 0xc9 } 

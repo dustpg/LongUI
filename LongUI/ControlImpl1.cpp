@@ -24,70 +24,82 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
     if (node) {
         const char* data = nullptr;
         // 检查脚本
-        if ((data = node.attribute("script").value()) && UIManager.script) {
+        if ((data = node.attribute(XMLAttribute::Script).value()) && UIManager.script) {
             m_script = UIManager.script->AllocScript(data);
         }
         // 渲染优先级
-        if (data = node.attribute("priority").value()){
+        if (data = node.attribute(LongUI::XMLAttribute::RenderingPriority).value()){
             force_cast(this->priority) = int8_t(LongUI::AtoI(data));
         }
         /*else {
             m_script.data = nullptr; m_script.size = 0;
         }*/
-        // 检查渲染父控件
-        if (node.attribute("renderparent").as_bool(false)) {
-            flag |= LongUI::Flag_RenderParent;
-        }
         // 检查名称
-        UIControl::MakeString(node.attribute("name").value(), m_strControlName);
-        // 检查位置
-        {
-            float pos[2];
-            // 检查位置
-            if (UIControl::MakeFloats(node.attribute("pos").value(), pos, 2)) {
-                this->x = pos[0];
-                this->y = pos[1];
-            }
-            // 检查内容大小
-            if (UIControl::MakeFloats(node.attribute("csize").value(), pos, 2)) {
-                force_cast(this->view) = { pos[0], pos[1] };
-                this->cwidth = pos[0];
-                this->cheight = pos[1];
-            }
-        }
+        UIControl::MakeString(
+            node.attribute(LongUI::XMLAttribute::ControlName).value(),
+            m_strControlName
+            );
+        // 检查视口位置
+        UIControl::MakeFloats(
+            node.attribute(LongUI::XMLAttribute::ViewPosotion).value(),
+            &this->view_pos.x,
+            sizeof(this->view_pos) / sizeof(this->view_pos.x)
+            );
+        // 检查视口大小
+        UIControl::MakeFloats(
+            node.attribute(LongUI::XMLAttribute::ViewSize).value(),
+            &view_size.width,
+            sizeof(this->view_pos) / sizeof(this->view_size.width)
+            );
         // 检查外边距
         UIControl::MakeFloats(
-            node.attribute("margin").value(), 
+            node.attribute(LongUI::XMLAttribute::Margin).value(),
             const_cast<float*>(&margin_rect.left), 
             sizeof(margin_rect) /sizeof(margin_rect.left)
             );
-        // 宽度固定
-        if (this->cwidth > 0.f) {
-            flag |= LongUI::Flag_WidthFixed;
+        // 视口区宽度固定?
+        if (this->view_size.width > 0.f) {
+            flag |= LongUI::Flag_ViewWidthFixed;
         }
-        // 高度固定
-        if (this->cheight > 0.f) {
-            flag |= LongUI::Flag_HeightFixed;
+        // 视口区高度固固定?
+        if (this->view_size.height > 0.f) {
+            flag |= LongUI::Flag_ViewHeightFixed;
+        }
+        // 检查渲染父控件
+        if (node.attribute(LongUI::XMLAttribute::IsRenderParent).as_bool(false)) {
+            flag |= LongUI::Flag_RenderParent;
         }
         // 检查裁剪规则
-        if (node.attribute("strictclip").as_bool(true)) {
-            flag |= LongUI::Flag_StrictClip;
+        if (node.attribute(LongUI::XMLAttribute::IsClipStrictly).as_bool(true)) {
+            flag |= LongUI::Flag_ClipStrictly;
         }
         // 边框大小
-        if (data = node.attribute("borderwidth").value()) {
+        if (data = node.attribute(LongUI::XMLAttribute::BorderWidth).value()) {
             m_fBorderWidth = LongUI::AtoF(data);
         }
         // 边框圆角
-        UIControl::MakeFloats(node.attribute("borderround").value(), &m_2fBorderRdius.width, 2);
+        UIControl::MakeFloats(
+            node.attribute(LongUI::XMLAttribute::BorderRound).value(),
+            &m_2fBorderRdius.width,
+            sizeof(m_2fBorderRdius) / sizeof(m_2fBorderRdius.width)
+            );
         // 边框颜色
-        UIControl::MakeColor(node.attribute("disabledbordercolor").value(), m_aBorderColor[Status_Disabled]);
-        UIControl::MakeColor(node.attribute("normalbordercolor").value(), m_aBorderColor[Status_Normal]);
-        UIControl::MakeColor(node.attribute("hoverbordercolor").value(), m_aBorderColor[Status_Hover]);
-        UIControl::MakeColor(node.attribute("pushedbordercolor").value(), m_aBorderColor[Status_Pushed]);
-    }
-    else  {
-        // 错误
-        //UIManager << DL_Warning << L"given a null xml node" << LongUI::endl;
+        UIControl::MakeColor(
+            node.attribute("disabledbordercolor").value(), 
+            m_aBorderColor[Status_Disabled]
+            );
+        UIControl::MakeColor(
+            node.attribute("normalbordercolor").value(), 
+            m_aBorderColor[Status_Normal]
+            );
+        UIControl::MakeColor(
+            node.attribute("hoverbordercolor").value(), 
+            m_aBorderColor[Status_Hover]
+            );
+        UIControl::MakeColor(
+            node.attribute("pushedbordercolor").value(), 
+            m_aBorderColor[Status_Pushed]
+            );
     }
     // 修改flag
     force_cast(this->flags) = static_cast<LongUIFlag>(this->flags | (flag));
@@ -283,7 +295,7 @@ void LongUI::UIControl::SetEventCallBack(
 
 // 获取占用宽度
 auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
-    return this->cwidth 
+    return this->view_size.width 
         + margin_rect.left 
         + margin_rect.right
         + m_fBorderWidth * 2.f;
@@ -291,7 +303,7 @@ auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
 
 // 获取占用高度
 auto LongUI::UIControl::GetTakingUpHeight() const noexcept -> float{
-    return this->cheight 
+    return this->view_size.height
         + margin_rect.top 
         + margin_rect.bottom
         + m_fBorderWidth * 2.f;
@@ -316,14 +328,14 @@ auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
 auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
     // 设置
     auto new_cwidth = w - this->GetNonContentWidth();
-    if (new_cwidth != this->cwidth) {
-        this->cwidth = new_cwidth;
+    if (new_cwidth != this->view_size.width) {
+        this->view_size.width = new_cwidth;
         this->SetControlSizeChanged();
     }
     // 检查
-    if (this->cwidth < 0.f) {
+    if (this->view_size.width < 0.f) {
         UIManager << DL_Hint << this
-            << "cwidth changed less than 0: " << this->cwidth << endl;
+            << "viewport's size changed less than 0: " << this->view_size.width << endl;
     }
 }
 
@@ -331,23 +343,23 @@ auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
 auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinline {
     // 设置
     auto new_cheight = h - this->GetNonContentHeight();
-    if (new_cheight != this->cheight) {
-        this->cheight = new_cheight;
+    if (new_cheight != this->view_size.height) {
+        this->view_size.height = new_cheight;
         this->SetControlSizeChanged();
     }
     // 检查
-    if (this->cheight < 0.f) {
+    if (this->view_size.height < 0.f) {
         UIManager << DL_Hint << this
-            << "cheight changed less than 0: " << this->cheight << endl;
+            << "cheight changed less than 0: " << this->view_size.height << endl;
     }
 }
 
 // 获取占用/剪切矩形
-void LongUI::UIControl::GetClipRectAll(D2D1_RECT_F& rect) const noexcept {
+void LongUI::UIControl::GetRectAll(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderWidth);
     rect.top = -(this->margin_rect.top + m_fBorderWidth);
-    rect.right = this->cwidth + this->margin_rect.right + m_fBorderWidth;
-    rect.bottom = this->cheight + this->margin_rect.bottom + m_fBorderWidth;
+    rect.right = this->view_size.width + this->margin_rect.right + m_fBorderWidth;
+    rect.bottom = this->view_size.height + this->margin_rect.bottom + m_fBorderWidth;
     /*// 容器
     if ((this->flags & Flag_UIContainer)) {
         // 修改裁剪区域
@@ -369,49 +381,47 @@ void LongUI::UIControl::GetClipRectAll(D2D1_RECT_F& rect) const noexcept {
     }*/
 }
 
-
-// 获取内容剪切矩形
-void LongUI::UIControl::GetClipRectContent(D2D1_RECT_F& rect) const noexcept {
-    rect.left = 0.f;
-    rect.top = 0.f;
-    rect.right = this->view.width > 0.f ? this->view.width : this->cwidth;
-    rect.bottom = this->view.height > 0.f ? this->view.height : this->cheight;
-}
-
 // 获取边框矩形
 void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -m_fBorderWidth;
     rect.top = -m_fBorderWidth;
-    rect.right = this->cwidth + m_fBorderWidth;
-    rect.bottom = this->cheight + m_fBorderWidth;
+    rect.right = this->view_size.width + m_fBorderWidth;
+    rect.bottom = this->view_size.height + m_fBorderWidth;
 }
 
-// 获取刻画矩形
-void LongUI::UIControl::GetContentRect(D2D1_RECT_F& rect) const noexcept {
+// 获取视口刻画矩形
+void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = 0.f;
     rect.top = 0.f;
-    rect.right = this->cwidth;
-    rect.bottom = this->cheight;
+    rect.right = this->view_size.width;
+    rect.bottom = this->view_size.height;
 }
 
 // 获得世界转换矩阵
-void LongUI::UIControl::GetWorldTransform(D2D1_MATRIX_3X2_F& matrix) const noexcept {
-    float xx = this->x + this->margin_rect.left + m_fBorderWidth;
-    float yy = this->y + this->margin_rect.top + m_fBorderWidth;
+void LongUI::UIControl::RefreshWorld() noexcept {
+    float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
+    float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
     // 非顶级控件
     if (!this->IsTopLevel()) {
         // 检查
         xx += this->parent->offset.x;
         yy += this->parent->offset.y;
         // 转换
-        matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+        this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     }
     else {
-        matrix = D2D1::Matrix3x2F::Translation(xx, yy);
+        this->world = D2D1::Matrix3x2F::Translation(xx, yy);
     }
 }
 
-
+// 获得世界转换矩阵 for 边缘控件
+void LongUI::UIMarginal::GetWorldTransformMarginal(D2D1_MATRIX_3X2_F& matrix) const noexcept {
+    float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
+    float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
+    matrix = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+    assert(this->IsTopLevel() == false);
+    constexpr int aa = sizeof(UIContainer);
+}
 // -------------------------------------------------------
 // UILabel
 // -------------------------------------------------------
@@ -451,7 +461,7 @@ void LongUI::UILabel::Update() noexcept {
     // 改变了大小
     if(this->IsControlSizeChanged()) {
         // 设置大小
-        m_text.SetNewSize(this->cwidth, this->cheight);
+        m_text.SetNewSize(this->view_size.width, this->view_size.height);
         // 已经处理
         this->ControlSizeChangeHandled();
     }
@@ -523,7 +533,7 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
         // 父类背景
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
-        this->GetContentRect(draw_rect);
+        this->GetViewRect(draw_rect);
 #ifdef _DEBUG
         if (m_strControlName == L"3") {
             int bk = 9;
@@ -600,8 +610,7 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
 // do event 事件处理
 bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
     //--------------------------------------------------
-    D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     if (arg.sender) {
         switch (arg.event)
         {
@@ -713,7 +722,7 @@ void LongUI::UIEditBasic::Update() noexcept {
     // 改变了大小
     if (this->IsControlSizeChanged()) {
         // 设置大小
-        m_text.SetNewSize(this->cwidth, this->cheight);
+        m_text.SetNewSize(this->view_size.width, this->view_size.height);
         // 已经处理
         this->ControlSizeChangeHandled();
     }
@@ -724,9 +733,7 @@ void LongUI::UIEditBasic::Update() noexcept {
 
 // do event 
 bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // ---------------------------------------------
-    D2D1_MATRIX_3X2_F world; this->GetWorldTransform(world);
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(world, arg.pt);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     // ui msg
     if (arg.sender) {
         switch (arg.event)
@@ -917,18 +924,18 @@ bool LongUI::UIButton::debug_do_event(const LongUI::DebugEventInformation& info)
 }
 
 // UI边缘控件: 调试信息
-bool LongUI::UIMarginalControl::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+bool LongUI::UIMarginal::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
     {
     case LongUI::DebugInformation::Information_GetClassName:
-        info.str = L"UIMarginalControl";
+        info.str = L"UIMarginal";
         return true;
     case LongUI::DebugInformation::Information_GetFullClassName:
-        info.str = L"::LongUI::UIMarginalControl";
+        info.str = L"::LongUI::UIMarginal";
         return true;
     case LongUI::DebugInformation::Information_CanbeCast:
         // 类型转换
-        return *info.iid == LongUI::GetIID<::LongUI::UIMarginalControl>()
+        return *info.iid == LongUI::GetIID<::LongUI::UIMarginal>()
             || Super::debug_do_event(info);
     default:
         break;

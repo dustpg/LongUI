@@ -35,9 +35,9 @@ namespace LongUI{
         Type_Vertical = 1,      // 垂直
     };
     // base scroll bar 默认滚动条
-    class UIScrollBar : public UIMarginalControl {
+    class UIScrollBar : public UIMarginal {
         // 父类申明
-        using Super = UIMarginalControl;
+        using Super = UIMarginal;
     protected:
         // mouse point [0, 1, 2, 3, 4]
         enum class PointType : uint8_t {
@@ -59,7 +59,8 @@ namespace LongUI{
         }
     public:
         // get parent width/height
-        auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelViewWidth() : this->parent->GetChildLevelViewHeight(); }
+        auto GetParentWH() noexcept { return 10.f; }
+        //auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelViewWidth() : this->parent->GetChildLevelViewHeight(); }
         // on page up
         auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - this->GetParentWH()); }
         // on page down
@@ -81,7 +82,7 @@ namespace LongUI{
         void BeforeUpdate() noexcept;
     protected:
         // get bar length
-        auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->cheight : parent->cwidth; }
+        auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->content_size.height : parent->content_size.width; }
         // set index
         void set_index(float index) noexcept;
     public:
