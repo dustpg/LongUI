@@ -98,6 +98,7 @@ namespace LongUI {
     // get IID from pointer
     template<typename T> LongUIInline const IID& GetIID(T*) { return LongUI::GetIID<T>(); }
 }
+
 #include "GetIIDTemplate.h"
 // longui
 namespace LongUI {
@@ -110,11 +111,9 @@ namespace LongUI {
     // is 2 power?
     static auto Is2Power(size_t i) { return i && !(i& (i - 1)); }
     // pack the color
-    auto PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
+    auto __fastcall PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
     // unpack the color
-    auto UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void LongUINoinline;
-    // data to bool
-    template<typename T> bool DataToBool(const T& t) { return !!(t); }
+    auto __fastcall UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void LongUINoinline;
     // Dll Function Helper
     struct Dll {
         // CreateDXGIFactory1@dxgi.dll

@@ -1,5 +1,413 @@
 ﻿#include "LongUI.h"
 
+
+/// <summary>
+///   float4 color ---> 32-bit ARGB uint color
+/// 将浮点颜色转换成32位ARGB排列整型
+/// </summary>
+/// <param name="color">The d2d color</param>
+/// <returns>32-bit ARGB 颜色</returns>
+auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
+    constexpr uint32_t ALPHA_SHIFT = 24;
+    constexpr uint32_t RED_SHIFT = 16;
+    constexpr uint32_t GREEN_SHIFT = 8;
+    constexpr uint32_t BLUE_SHIFT = 0;
+
+    register uint32_t colorargb =
+        ((uint32_t(color.a * 255.f) & 0xFF) << ALPHA_SHIFT) |
+        ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT) |
+        ((uint32_t(color.g * 255.f) & 0xFF) << GREEN_SHIFT) |
+        ((uint32_t(color.b * 255.f) & 0xFF) << BLUE_SHIFT);
+    return colorargb;
+}
+
+/// <summary>
+/// 32-bit ARGB uint color --->  float4 color
+/// 将32位ARGB排列整型转换成浮点颜色
+/// </summary>
+/// <param name="color32">The 32-bit color.</param>
+/// <param name="color4f">The float4 color.</param>
+/// <returns>void</returns>
+auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void {
+    // 位移量
+    constexpr uint32_t ALPHA_SHIFT = 24;
+    constexpr uint32_t RED_SHIFT = 16;
+    constexpr uint32_t GREEN_SHIFT = 8;
+    constexpr uint32_t BLUE_SHIFT = 0;
+    // 掩码
+    constexpr uint32_t ALPHA_MASK = 0xFFU << ALPHA_SHIFT;
+    constexpr uint32_t RED_MASK = 0xFFU << RED_SHIFT;
+    constexpr uint32_t GREEN_MASK = 0xFFU << GREEN_SHIFT;
+    constexpr uint32_t BLUE_MASK = 0xFFU << BLUE_SHIFT;
+    // 计算
+    color4f.r = static_cast<float>((color32 & RED_MASK) >> RED_SHIFT) / 255.f;
+    color4f.g = static_cast<float>((color32 & GREEN_MASK) >> GREEN_SHIFT) / 255.f;
+    color4f.b = static_cast<float>((color32 & BLUE_MASK) >> BLUE_SHIFT) / 255.f;
+    color4f.a = static_cast<float>((color32 & ALPHA_MASK) >> ALPHA_SHIFT) / 255.f;
+}
+
+
+
+// Meta 渲染
+/// <summary>
+/// render the meta 渲染Meta
+/// </summary>
+/// <param name="meta">The meta.</param>
+/// <param name="target">The render target.</param>
+/// <param name="des_rect">The des_rect.</param>
+/// <param name="opacity">The opacity.</param>
+/// <returns></returns>
+void __fastcall LongUI::Meta_Render(
+    const Meta& meta, LongUIRenderTarget* target,
+    const D2D1_RECT_F& des_rect, float opacity) noexcept {
+    // 无效位图
+    if (!meta.bitmap) {
+        UIManager << DL_Warning << "bitmap->null" << LongUI::endl;
+        return;
+    }
+    switch (meta.rule)
+    {
+    case LongUI::BitmapRenderRule::Rule_Scale:
+        target->DrawBitmap(
+            meta.bitmap,
+            des_rect, opacity,
+            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+            meta.src_rect,
+            nullptr
+            );
+        break;
+    case LongUI::BitmapRenderRule::Rule_ButtonLike:
+    {
+        constexpr float MARKER = 0.25f;
+        auto width = meta.src_rect.right - meta.src_rect.left;
+        auto bilibili = width * MARKER / (meta.src_rect.bottom - meta.src_rect.top) *
+            (des_rect.bottom - des_rect.top);
+        D2D1_RECT_F des_rects[3]; D2D1_RECT_F src_rects[3]; D2D1_RECT_F clip_rects[3];
+        // ---------------------------------------
+        des_rects[0] = {
+            des_rect.left, des_rect.top,
+            des_rect.left + bilibili, des_rect.bottom
+        };
+        des_rects[1] = {
+            des_rects[0].right, des_rect.top,
+            des_rect.right - bilibili, des_rect.bottom
+        };
+        des_rects[2] = {
+            des_rects[1].right, des_rect.top,
+            des_rect.right, des_rect.bottom
+        };
+        // ---------------------------------------
+        ::memcpy(clip_rects, des_rects, sizeof(des_rects));
+        if (clip_rects[1].left > des_rects[1].right) {
+            std::swap(clip_rects[1].right, des_rects[1].left);
+            std::swap(des_rects[1].right, des_rects[1].left);
+            clip_rects[0].right = des_rects[1].left;
+            clip_rects[2].left = des_rects[1].right;
+        }
+        // ---------------------------------------
+        src_rects[0] = {
+            meta.src_rect.left, meta.src_rect.top,
+            meta.src_rect.left + width * MARKER, meta.src_rect.bottom
+        };
+        src_rects[1] = {
+            src_rects[0].right, meta.src_rect.top,
+            meta.src_rect.right - width * MARKER, meta.src_rect.bottom
+        };
+        src_rects[2] = {
+            src_rects[1].right, meta.src_rect.top,
+            meta.src_rect.right, meta.src_rect.bottom
+        };
+        // 正式渲染
+        for (auto i = 0u; i < lengthof(src_rects); ++i) {
+            target->PushAxisAlignedClip(clip_rects + i, D2D1_ANTIALIAS_MODE_ALIASED);
+            target->DrawBitmap(
+                meta.bitmap,
+                des_rects[i], opacity,
+                static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+                src_rects[i],
+                nullptr
+                );
+            target->PopAxisAlignedClip();
+        }
+    }
+    break;
+    }
+}
+
+
+
+// 构造对象
+LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {
+    auto* pointer = reinterpret_cast<LongUI::CUIDataObject*>(LongUI::SmallAlloc(sizeof(LongUI::CUIDataObject)));
+    if (pointer) {
+        pointer->CUIDataObject::CUIDataObject();
+    }
+    return pointer;
+}
+
+
+
+// CUIDataObject 构造函数
+LongUI::CUIDataObject::CUIDataObject() noexcept {
+    ZeroMemory(&m_dataStorage, sizeof(m_dataStorage));
+}
+
+
+// CUIDataObject 析构函数
+LongUI::CUIDataObject::~CUIDataObject() noexcept {
+    // 释放数据
+    if (m_dataStorage.formatEtc.cfFormat) {
+        ::ReleaseStgMedium(&m_dataStorage.stgMedium);
+    }
+}
+
+
+// 设置Unicode
+HRESULT LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) noexcept {
+    assert(hGlobal && "hGlobal -> null");
+    // 释放数据
+    if (m_dataStorage.formatEtc.cfFormat) {
+        ::ReleaseStgMedium(&m_dataStorage.stgMedium);
+    }
+    m_dataStorage.formatEtc = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+    m_dataStorage.stgMedium = { TYMED_HGLOBAL,{ 0 }, 0 };
+    m_dataStorage.stgMedium.hGlobal = hGlobal;
+    return S_OK;
+}
+
+// 设置Unicode字符
+HRESULT LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length) noexcept {
+    HRESULT hr = S_OK;
+    if (!length) length = ::wcslen(str);
+    // 全局
+    HGLOBAL hGlobal = nullptr;
+    // 申请成功
+    auto size = sizeof(wchar_t) * (length + 1);
+    if (hGlobal = ::GlobalAlloc(GMEM_FIXED, size)) {
+        LPVOID pdest = ::GlobalLock(hGlobal);
+        if (pdest) {
+            ::memcpy(pdest, str, size);
+        }
+        else {
+            hr = E_FAIL;
+        }
+        ::GlobalUnlock(hGlobal);
+    }
+    else {
+        hr = E_OUTOFMEMORY;
+    }
+    // 设置数据
+    if (SUCCEEDED(hr)) {
+        hr = this->SetUnicodeText(hGlobal);
+    }
+    return hr;
+}
+
+
+// IDataObject::GetData 实现: 
+HRESULT LongUI::CUIDataObject::GetData(FORMATETC * pFormatetcIn, STGMEDIUM * pMedium) noexcept {
+    // 参数检查
+    if (!pFormatetcIn || !pMedium) return E_INVALIDARG;
+    // 
+    pMedium->hGlobal = nullptr;
+    // 检查数据
+    if (m_dataStorage.formatEtc.cfFormat) {
+        // 返回需要获取的格式
+        if ((pFormatetcIn->tymed & m_dataStorage.formatEtc.tymed) &&
+            (pFormatetcIn->dwAspect == m_dataStorage.formatEtc.dwAspect) &&
+            (pFormatetcIn->cfFormat == m_dataStorage.formatEtc.cfFormat))
+        {
+            return this->CopyMedium(pMedium, &m_dataStorage.stgMedium, &m_dataStorage.formatEtc);
+        }
+    }
+    return DV_E_FORMATETC;
+}
+
+// IDataObject::GetDataHere 实现
+HRESULT LongUI::CUIDataObject::GetDataHere(FORMATETC * pFormatetcIn, STGMEDIUM * pMedium) noexcept {
+    UNREFERENCED_PARAMETER(pFormatetcIn);
+    UNREFERENCED_PARAMETER(pMedium);
+    return E_NOTIMPL;
+}
+
+// IDataObject::QueryGetData 实现: 查询支持格式数据
+HRESULT LongUI::CUIDataObject::QueryGetData(FORMATETC * pFormatetc) noexcept {
+    // 检查参数
+    if (!pFormatetc) return E_INVALIDARG;
+    // 
+    if (!(DVASPECT_CONTENT & pFormatetc->dwAspect)) {
+        return DV_E_DVASPECT;
+    }
+    HRESULT hr = DV_E_TYMED;
+    // 遍历数据
+    if (m_dataStorage.formatEtc.cfFormat && m_dataStorage.formatEtc.tymed & pFormatetc->tymed) {
+        if (m_dataStorage.formatEtc.cfFormat == pFormatetc->cfFormat) {
+            hr = S_OK;
+        }
+        else {
+            hr = DV_E_CLIPFORMAT;
+        }
+    }
+    else {
+        hr = DV_E_TYMED;
+    }
+    return hr;
+}
+
+// IDataObject::GetCanonicalFormatEtc 实现
+HRESULT LongUI::CUIDataObject::GetCanonicalFormatEtc(FORMATETC * pFormatetcIn, FORMATETC * pFormatetcOut) noexcept {
+    UNREFERENCED_PARAMETER(pFormatetcIn);
+    UNREFERENCED_PARAMETER(pFormatetcOut);
+    return E_NOTIMPL;
+}
+
+// IDataObject::SetData 实现
+HRESULT LongUI::CUIDataObject::SetData(FORMATETC * pFormatetc, STGMEDIUM * pMedium, BOOL fRelease) noexcept {
+    // 检查参数
+    if (!pFormatetc || !pMedium) return E_INVALIDARG;
+    UNREFERENCED_PARAMETER(fRelease);
+    return E_NOTIMPL;
+}
+
+// IDataObject::EnumFormatEtc 实现: 枚举支持格式
+HRESULT LongUI::CUIDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC ** ppEnumFormatEtc) noexcept {
+    // 检查参数
+    if (!ppEnumFormatEtc) return E_INVALIDARG;
+    *ppEnumFormatEtc = nullptr;
+    HRESULT hr = E_NOTIMPL;
+    if (DATADIR_GET == dwDirection) {
+        // 设置支持格式
+        // 暂时仅支持 Unicode字符(UTF-16 on WindowsDO)
+        static FORMATETC rgfmtetc[] = {
+            { CF_UNICODETEXT, nullptr, DVASPECT_CONTENT, 0, TYMED_HGLOBAL },
+        };
+        hr = ::SHCreateStdEnumFmtEtc(lengthof(rgfmtetc), rgfmtetc, ppEnumFormatEtc);
+    }
+    return hr;
+}
+
+// IDataObject::DAdvise 实现
+HRESULT LongUI::CUIDataObject::DAdvise(FORMATETC * pFormatetc, DWORD advf,
+    IAdviseSink * pAdvSnk, DWORD * pdwConnection) noexcept {
+    UNREFERENCED_PARAMETER(pFormatetc);
+    UNREFERENCED_PARAMETER(advf);
+    UNREFERENCED_PARAMETER(pAdvSnk);
+    UNREFERENCED_PARAMETER(pdwConnection);
+    return E_NOTIMPL;
+}
+
+// IDataObject::DUnadvise 实现
+HRESULT LongUI::CUIDataObject::DUnadvise(DWORD dwConnection) noexcept {
+    UNREFERENCED_PARAMETER(dwConnection);
+    return E_NOTIMPL;
+}
+
+// IDataObject::EnumDAdvise 实现
+HRESULT LongUI::CUIDataObject::EnumDAdvise(IEnumSTATDATA ** ppenumAdvise) noexcept {
+    UNREFERENCED_PARAMETER(ppenumAdvise);
+    return E_NOTIMPL;
+}
+
+// 复制媒体数据
+HRESULT LongUI::CUIDataObject::CopyMedium(STGMEDIUM * pMedDest, STGMEDIUM * pMedSrc, FORMATETC * pFmtSrc) noexcept {
+    // 检查参数
+    if (!pMedDest || !pMedSrc || !pFmtSrc) return E_INVALIDARG;
+    // 按类型处理
+    switch (pMedSrc->tymed)
+    {
+    case TYMED_HGLOBAL:
+        pMedDest->hGlobal = (HGLOBAL)OleDuplicateData(pMedSrc->hGlobal, pFmtSrc->cfFormat, 0);
+        break;
+    case TYMED_GDI:
+        pMedDest->hBitmap = (HBITMAP)OleDuplicateData(pMedSrc->hBitmap, pFmtSrc->cfFormat, 0);
+        break;
+    case TYMED_MFPICT:
+        pMedDest->hMetaFilePict = (HMETAFILEPICT)OleDuplicateData(pMedSrc->hMetaFilePict, pFmtSrc->cfFormat, 0);
+        break;
+    case TYMED_ENHMF:
+        pMedDest->hEnhMetaFile = (HENHMETAFILE)OleDuplicateData(pMedSrc->hEnhMetaFile, pFmtSrc->cfFormat, 0);
+        break;
+    case TYMED_FILE:
+        pMedSrc->lpszFileName = (LPOLESTR)OleDuplicateData(pMedSrc->lpszFileName, pFmtSrc->cfFormat, 0);
+        break;
+    case TYMED_ISTREAM:
+        pMedDest->pstm = pMedSrc->pstm;
+        pMedSrc->pstm->AddRef();
+        break;
+    case TYMED_ISTORAGE:
+        pMedDest->pstg = pMedSrc->pstg;
+        pMedSrc->pstg->AddRef();
+        break;
+    case TYMED_NULL:
+        __fallthrough;
+    default:
+        break;
+    }
+    //
+    pMedDest->tymed = pMedSrc->tymed;
+    pMedDest->pUnkForRelease = nullptr;
+    if (pMedSrc->pUnkForRelease) {
+        pMedDest->pUnkForRelease = pMedSrc->pUnkForRelease;
+        pMedSrc->pUnkForRelease->AddRef();
+    }
+    return S_OK;
+}
+
+// 设置Blob
+HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void * pvBlob, UINT cbBlob) noexcept {
+    void *pv = GlobalAlloc(GPTR, cbBlob);
+    HRESULT hr = pv ? S_OK : E_OUTOFMEMORY;
+    if (SUCCEEDED(hr)) {
+        CopyMemory(pv, pvBlob, cbBlob);
+        FORMATETC fmte = { cf, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+        // The STGMEDIUM structure is used to define how to handle a global memory transfer.  
+        // This structure includes a flag, tymed, which indicates the medium  
+        // to be used, and a union comprising pointers and a handle for getting whichever  
+        // medium is specified in tymed.  
+        STGMEDIUM medium = {};
+        medium.tymed = TYMED_HGLOBAL;
+        medium.hGlobal = pv;
+        hr = this->SetData(&fmte, &medium, TRUE);
+        if (FAILED(hr)) {
+            ::GlobalFree(pv);
+        }
+    }
+    return hr;
+}
+
+
+
+// ----------------------------------------------------------------------------------
+
+
+// 构造对象
+LongUI::CUIDropSource* LongUI::CUIDropSource::New() noexcept {
+    auto* pointer = reinterpret_cast<LongUI::CUIDropSource*>(LongUI::SmallAlloc(sizeof(LongUI::CUIDropSource)));
+    if (pointer) {
+        pointer->CUIDropSource::CUIDropSource();
+    }
+    return pointer;
+}
+
+// CUIDropSource::QueryContinueDrag 实现: 
+HRESULT LongUI::CUIDropSource::QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) noexcept {
+    // Esc按下或者鼠标右键按下 : 取消拖拽
+    if (fEscapePressed || (grfKeyState & MK_RBUTTON)) {
+        return DRAGDROP_S_CANCEL;
+    }
+    // 鼠标左键弹起: 拖拽结束
+    if (!(grfKeyState & MK_LBUTTON)) {
+        return DRAGDROP_S_DROP;
+    }
+    return S_OK;
+}
+
+// CUIDropSource::GiveFeedback 实现
+HRESULT LongUI::CUIDropSource::GiveFeedback(DWORD dwEffect) noexcept {
+    UNREFERENCED_PARAMETER(dwEffect);
+    return DRAGDROP_S_USEDEFAULTCURSORS;
+}
+
 // UIString 设置字符串
 void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     assert(str && "<LongUI::CUIString::CUIString@const wchar_t*> str == null");
@@ -159,89 +567,16 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 #undef UIAnimation_Template_B
 // CUIAnimation ----------  END  -------------
 
-// Meta 渲染
-void __fastcall LongUI::Meta_Render(
-    const Meta& meta, LongUIRenderTarget* target, 
-    const D2D1_RECT_F& des_rect, float opacity) noexcept {
-    // 无效位图
-    if (!meta.bitmap) {
-        UIManager << DL_Warning << "bitmap->null" << LongUI::endl;
-        return;
-    }
-    switch (meta.rule)
-    {
-    case LongUI::BitmapRenderRule::Rule_Scale:
-        target->DrawBitmap(
-            meta.bitmap,
-            des_rect, opacity,
-            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-            meta.src_rect,
-            nullptr
-            );
-        break;
-    case LongUI::BitmapRenderRule::Rule_ButtonLike:
-    {
-        constexpr float MARKER = 0.25f;
-        auto width = meta.src_rect.right - meta.src_rect.left;
-        auto bilibili = width * MARKER / (meta.src_rect.bottom - meta.src_rect.top) *
-            (des_rect.bottom - des_rect.top);
-        D2D1_RECT_F des_rects[3]; D2D1_RECT_F src_rects[3]; D2D1_RECT_F clip_rects[3];
-        // ---------------------------------------
-        des_rects[0] = {
-            des_rect.left, des_rect.top,
-            des_rect.left + bilibili, des_rect.bottom
-        };
-        des_rects[1] = {
-            des_rects[0].right, des_rect.top,
-            des_rect.right - bilibili, des_rect.bottom
-        };
-        des_rects[2] = {
-            des_rects[1].right, des_rect.top,
-            des_rect.right, des_rect.bottom
-        };
-        // ---------------------------------------
-        ::memcpy(clip_rects, des_rects, sizeof(des_rects));
-        if (clip_rects[1].left > des_rects[1].right) {
-            std::swap(clip_rects[1].right, des_rects[1].left);
-            std::swap(des_rects[1].right, des_rects[1].left);
-            clip_rects[0].right = des_rects[1].left;
-            clip_rects[2].left = des_rects[1].right;
-        }
-        // ---------------------------------------
-        src_rects[0] = {
-            meta.src_rect.left, meta.src_rect.top,
-            meta.src_rect.left + width * MARKER, meta.src_rect.bottom
-        };
-        src_rects[1] = {
-            src_rects[0].right, meta.src_rect.top,
-            meta.src_rect.right - width * MARKER, meta.src_rect.bottom
-        };
-        src_rects[2] = {
-            src_rects[1].right, meta.src_rect.top,
-            meta.src_rect.right, meta.src_rect.bottom
-        };
-        // 正式渲染
-        for (auto i = 0u; i < lengthof(src_rects); ++i) {
-            target->PushAxisAlignedClip(clip_rects + i, D2D1_ANTIALIAS_MODE_ALIASED);
-            target->DrawBitmap(
-                meta.bitmap,
-                des_rects[i], opacity,
-                static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-                src_rects[i],
-                nullptr
-                );
-            target->PopAxisAlignedClip();
-        }
-    }
-        break;
-    }
-}
 
 #define white_space(c) ((c) == ' ' || (c) == '\t')
 #define valid_digit(c) ((c) >= '0' && (c) <= '9')
 
 
-// 自己实现LongUI::AtoI
+/// <summary>
+/// string to int, 字符串转整型, std::atoi自己实现版
+/// </summary>
+/// <param name="str">The string.</param>
+/// <returns></returns>
 auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
     if (!str) return 0;
     register bool negative = false;
@@ -270,7 +605,11 @@ auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
 }
 
 
-// 自己实现的LongUI::AtoF
+/// <summary>
+/// string to float.字符串转浮点, std::atof自己实现版
+/// </summary>
+/// <param name="p">The string.</param>
+/// <returns></returns>
 auto __fastcall LongUI::AtoF(const char* __restrict p) -> float {
     bool negative = false;
     float value, scale;
@@ -387,7 +726,13 @@ static constexpr char32_t offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x0
 static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i8, 0xF8i8, 0xFCi8 };
 
 
-// 编码
+/// <summary>
+/// Base64 : encode, 编码
+/// </summary>
+/// <param name="bindata">The source binary data.</param>
+/// <param name="binlen">The length of source binary data in byte</param>
+/// <param name="base64">The out data</param>
+/// <returns></returns>
 auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64 ) noexcept -> char * {
     register uint8_t current;
     register auto base64_index = base64;
@@ -1036,6 +1381,8 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     }
     return 0;
 }
+
+
 
 // --------------  CUIDefaultConfigure ------------
 #ifdef LONGUI_WITH_DEFAULT_CONFIG

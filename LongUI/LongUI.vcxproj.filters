@@ -148,9 +148,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UtilImpl.cpp">
-      <Filter>LongUI\Impl</Filter>
-    </ClCompile>
     <ClCompile Include="TextImpl.cpp">
       <Filter>LongUI\Impl</Filter>
     </ClCompile>

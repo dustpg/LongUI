@@ -83,6 +83,9 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
+    private:
+        // update marginal controls
+        void update_marginal_controls() noexcept;
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
@@ -160,7 +163,7 @@ namespace LongUI {
         // size of content
         D2D1_SIZE_F             content_size = D2D1::SizeF(0.f, 0.f);
         // marginal controls
-        UIMarginal*             marginal_control[UIMarginal::MARGINAL_CONTROL_SIZE];
+        UIMarginalable*         marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

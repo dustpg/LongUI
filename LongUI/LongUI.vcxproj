@@ -124,7 +124,6 @@
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="UIUtil.cpp" />
     <ClCompile Include="UIWindow.cpp" />
-    <ClCompile Include="UtilImpl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

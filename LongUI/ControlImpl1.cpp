@@ -10,7 +10,16 @@ Win8/8.1/10.0.10158之前
         3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
 */
 
-// UIControl 构造函数
+/// <summary>
+/// Initializes a new instance of the <see cref="LongUI::UIControl"/>
+/// class with xml node
+/// </summary>
+/// <param name="node" type="pugi::xml_node">The xml node</param>
+/// <remarks>
+/// For this function, param 'node' could be null node
+/// 对于本函数, 参数'node'允许为空
+/// <see cref="LongUINullXMLNode"/>
+/// </remarks>
 LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
     // 颜色
     m_aBorderColor[Status_Disabled] = D2D1::ColorF(0xD9D9D9);
@@ -121,7 +130,11 @@ LongUI::UIControl::~UIControl() noexcept {
 }
 
 
-// 渲染控件
+/// <summary>
+/// Render control via specified render-type.
+/// </summary>
+/// <param name="_type" type="enum LongUI::RenderType">The _type.</param>
+/// <returns></returns>
 void LongUI::UIControl::Render(RenderType type) const noexcept {
     switch (type)
     {
@@ -421,7 +434,7 @@ void LongUI::UIControl::RefreshWorld() noexcept {
 }
 
 // 获得世界转换矩阵 for 边缘控件
-void LongUI::UIMarginal::RefreshWorldMarginal() noexcept {
+void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
     float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
     this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
@@ -937,18 +950,18 @@ bool LongUI::UIButton::debug_do_event(const LongUI::DebugEventInformation& info)
 }
 
 // UI边缘控件: 调试信息
-bool LongUI::UIMarginal::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+bool LongUI::UIMarginalable::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
     {
     case LongUI::DebugInformation::Information_GetClassName:
-        info.str = L"UIMarginal";
+        info.str = L"UIMarginalable";
         return true;
     case LongUI::DebugInformation::Information_GetFullClassName:
-        info.str = L"::LongUI::UIMarginal";
+        info.str = L"::LongUI::UIMarginalable";
         return true;
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
-        return *info.iid == LongUI::GetIID<::LongUI::UIMarginal>()
+        return *info.iid == LongUI::GetIID<::LongUI::UIMarginalable>()
             || Super::debug_do_event(info);
     default:
         break;

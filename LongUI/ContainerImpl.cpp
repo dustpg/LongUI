@@ -26,7 +26,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
             LongUI::XMLAttribute::bottomMarginalCtrlTid,
         };
         bool exist_marginal_control = false;
-        for (auto i = 0u; i < UIMarginal::MARGINAL_CONTROL_SIZE; ++i) {
+        for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
             const char* str = nullptr;
             if ((str = node.attribute(attname[i]).value())) {
                 auto create_control_func = UIManager.GetCreateFunc(str);
@@ -37,7 +37,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
                     // 创建控件
                     auto control = UIManager.CreateControl(size_t(tid), create_control_func);
                     // XXX: 检查
-                    this->marginal_control[i] = static_cast<UIMarginal*>(control);
+                    this->marginal_control[i] = static_cast<UIMarginalable*>(control);
                 }
                 // 优化flag
                 if (this->marginal_control[i]) {
@@ -92,7 +92,11 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     this->SetControlSizeChanged();
 }
 
-// UI容器: 查找控件
+/// <summary>
+/// Find the control via mouse point
+/// </summary>
+/// <param name="pt">The wolrd mouse point.</param>
+/// <returns>the control pointer, maybe nullptr</returns>
 auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIControl* {
     // 查找边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
@@ -122,6 +126,7 @@ auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIContro
     return control_out;
 }
 
+
 // do event 事件处理
 bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // TODO: 参数EventArgument改为const
@@ -133,13 +138,12 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
         {
         case LongUI::Event::Event_TreeBulidingFinished:
             // 初始化边缘控件 
-            // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
             for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
                 auto ctrl = this->marginal_control[i];
                 if (ctrl) {
                     this->AfterInsert(ctrl);
                     // 初始化
-                    ctrl->InitMarginalControl(static_cast<UIMarginal::MarginalControl>(i));
+                    ctrl->InitMarginalControl(static_cast<UIMarginalable::MarginalControl>(i));
                     // 完成控件树
                     ctrl->DoEvent(arg);
                 }
@@ -216,16 +220,45 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 }
 
 // 中转路由表
-static const LongUI::UIMarginal::MarginalControl UICONTAINER_MARGINAL_CONTROL_ROUTER[] = {
+static const LongUI::UIMarginalable::MarginalControl UICONTAINER_MARGINAL_CONTROL_ROUTER[] = {
     // 左右边缘: 顶底
-    LongUI::UIMarginal::Control_Top,     LongUI::UIMarginal::Control_Bottom,
+    LongUI::UIMarginalable::Control_Top,     LongUI::UIMarginalable::Control_Bottom,
     // 顶底边缘: 左右
-    LongUI::UIMarginal::Control_Left,    LongUI::UIMarginal::Control_Right,
+    LongUI::UIMarginalable::Control_Left,    LongUI::UIMarginalable::Control_Right,
     /*// 右边缘: 顶底
-    LongUI::UIMarginal::Control_Top,     LongUI::UIMarginal::Control_Bottom,
+    LongUI::UIMarginalable::Control_Top,     LongUI::UIMarginalable::Control_Bottom,
     // 底边缘: 左右
-    LongUI::UIMarginal::Control_Left,    LongUI::UIMarginal::Control_Right,*/
+    LongUI::UIMarginalable::Control_Left,    LongUI::UIMarginalable::Control_Right,*/
 };
+
+// 刷新边缘控件
+void LongUI::UIContainer::UIContainer::update_marginal_controls() noexcept {
+    // 循环
+    // XXX: 优化
+    for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
+        auto ctrl = this->marginal_control[i];
+        if (!ctrl) continue;
+        D2D1_SIZE_F cross = { 0.f, 0.f };
+        // TODO: 计算cross 大小
+        {
+
+        }
+        // 交叉区域
+        //ctrl->CrossAreaTest(cross);
+        auto old_width = this->GetTakingUpWidth();
+        auto old_height = this->GetTakingUpHeight();
+        // 修改外边距
+        auto& target = const_cast<float*>(&(this->margin_rect.left))[i];
+        target = ctrl->marginal_width + (&m_orgMargin.left)[i];
+        // 修改视口
+        this->SetTakingUpWidth(old_width);
+        this->SetTakingUpHeight(old_height);
+        // 更新排版
+        ctrl->Update();
+        // 修改可视区域
+    }
+}
+
 
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept  {
@@ -233,21 +266,7 @@ void LongUI::UIContainer::Update() noexcept  {
     if (this->IsControlSizeChanged()) {
         // 刷新边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
-            for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
-                auto ctrl = this->marginal_control[i];
-                if (!ctrl) continue;
-                D2D1_SIZE_F cross = { 0.f, 0.f };
-                // TODO: 计算cross 大小
-                {
-
-                }
-                // 更新排版
-                ctrl->Update();
-                // 修改外边距
-                const_cast<float*>(&(this->margin_rect.left))[i] = 
-                    ctrl->marginal_width + (&m_orgMargin.left)[i];
-                // 修改可视区域
-            }
+            this->update_marginal_controls();
         }
         this->AssertMarginalControl();
         // 本容器内容限制

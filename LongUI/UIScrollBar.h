@@ -35,9 +35,9 @@ namespace LongUI{
         Type_Vertical = 1,      // 垂直
     };
     // base scroll bar 默认滚动条
-    class UIScrollBar : public UIMarginal {
+    class UIScrollBar : public UIMarginalable {
         // 父类申明
-        using Super = UIMarginal;
+        using Super = UIMarginalable;
     protected:
         // mouse point [0, 1, 2, 3, 4]
         enum class PointType : uint8_t {
