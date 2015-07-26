@@ -137,7 +137,7 @@ namespace LongUI {
         // orginal margin
         D2D1_RECT_F             m_orgMargin = D2D1::RectF();
     public:
-        /*// get content width in child level for zooming
+        // get content width in child level for zooming
         // do not use parent->cwidth, use this
         auto GetChildLevelContentWidth() const noexcept { return this->content_size.width / this->zoom.width; }
         // get content height in child level for zooming
@@ -154,7 +154,7 @@ namespace LongUI {
         auto GetChildLevelViewWidth() const noexcept { return this->view_size.width / this->zoom.width; }
         // get view.height in child level for zooming
         // do not use parent->view.height, use this
-        auto GetChildLevelViewHeight() const noexcept { return this->view_size.height / this->zoom.height; }*/
+        auto GetChildLevelViewHeight() const noexcept { return this->view_size.height / this->zoom.height; }
     public:
         // offset position
         D2D1_POINT_2F           offset = D2D1::Point2F();

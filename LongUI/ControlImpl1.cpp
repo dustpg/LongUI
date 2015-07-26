@@ -28,7 +28,7 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
     m_aBorderColor[Status_Pushed] = D2D1::ColorF(0x569DE5);
     m_colorBorderNow = m_aBorderColor[Status_Normal];
     // 构造默认
-    int flag = LongUIFlag::Flag_None | LongUIFlag::Flag_Visible;
+    uint32_t flag = LongUIFlag::Flag_None;
     // 有效?
     if (node) {
         const char* data = nullptr;
@@ -441,6 +441,7 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     assert(this->IsTopLevel() == false);
     constexpr int aa = sizeof(UIContainer);
 }
+
 // -------------------------------------------------------
 // UILabel
 // -------------------------------------------------------

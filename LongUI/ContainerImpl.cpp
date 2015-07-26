@@ -164,17 +164,20 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
 void LongUI::UIContainer::Render(RenderType type) const noexcept {
     //  正确渲染控件
     auto do_render = [](ID2D1RenderTarget* const target, const UIControl* const ctrl) {
-        // 修改世界转换矩阵
-        target->SetTransform(&ctrl->world);
-        // 检查剪切规则
-        if (ctrl->flags & Flag_ClipStrictly) {
-            D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
-            target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        }
-        ctrl->Render(LongUI::RenderType::Type_Render);
-        // 检查剪切规则
-        if (ctrl->flags & Flag_ClipStrictly) {
-            target->PopAxisAlignedClip();
+        // 可渲染?
+        if (ctrl->visible) {
+            // 修改世界转换矩阵
+            target->SetTransform(&ctrl->world);
+            // 检查剪切规则
+            if (ctrl->flags & Flag_ClipStrictly) {
+                D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
+                target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            }
+            ctrl->Render(LongUI::RenderType::Type_Render);
+            // 检查剪切规则
+            if (ctrl->flags & Flag_ClipStrictly) {
+                target->PopAxisAlignedClip();
+            }
         }
     };
     // 查看
@@ -238,24 +241,22 @@ void LongUI::UIContainer::UIContainer::update_marginal_controls() noexcept {
     for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
         auto ctrl = this->marginal_control[i];
         if (!ctrl) continue;
-        D2D1_SIZE_F cross = { 0.f, 0.f };
+        float cross[] = { 0.f, 0.f };
         // TODO: 计算cross 大小
-        {
-
-        }
-        // 交叉区域
-        //ctrl->CrossAreaTest(cross);
-        auto old_width = this->GetTakingUpWidth();
-        auto old_height = this->GetTakingUpHeight();
-        // 修改外边距
-        auto& target = const_cast<float*>(&(this->margin_rect.left))[i];
-        target = ctrl->marginal_width + (&m_orgMargin.left)[i];
-        // 修改视口
-        this->SetTakingUpWidth(old_width);
-        this->SetTakingUpHeight(old_height);
-        // 更新排版
-        ctrl->Update();
+        // 更新边界
+        ctrl->UpdateCrossArea(cross);
+        // 更新边界
+        // 更新世界矩阵
+        ctrl->RefreshWorld();
+        // 坐标转换
+        D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
+        auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+        auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
         // 修改可视区域
+        ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
+        ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
+        ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
+        ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
     }
 }
 
@@ -267,6 +268,10 @@ void LongUI::UIContainer::Update() noexcept  {
         // 刷新边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
             this->update_marginal_controls();
+            // 更新
+            for (auto ctrl : this->marginal_control) {
+                if(ctrl)  ctrl->Update();
+            }
         }
         this->AssertMarginalControl();
         // 本容器内容限制

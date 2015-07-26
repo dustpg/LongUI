@@ -189,9 +189,9 @@ namespace LongUI {
         // NOTE: container should be true in this case but not mandatory
         // XML Attribute : "strictclip"@bool
         Flag_ClipStrictly = 1 << 4,
-        // [default: true]control is visible
-        // XML Attribute: "visible"@bool
-        Flag_Visible = 1 << 5,
+        // control construct with full xml node info
+        // if your control need full xml node, set it to true by const_cast
+        Flag_ControlNeedFullXMLNode = 1 << 5,
         // [default: false][auto, no specified]
         // control need pre-render for content
         // call UIWindow::RegisterOffScreenRender2D or
@@ -210,9 +210,6 @@ namespace LongUI {
         // flag Flag_Container_AlwaysRenderChildrenDirectly, too,
         // and set all children
         Flag_RenderParent = 1 << 8,
-        // control construct with full xml node info
-        // if your impl control needed, set it to true by const_cast
-        Flag_ControlNeedFullXMLNode = 1 << 9,
         // ------- Lv1 Control Flag ------------
         // [default: false] container 's child rendered through
         // this control, not window directly, if container  hold
@@ -269,9 +266,11 @@ namespace LongUI {
         Type_RenderForeground,
         Type_RenderOffScreen,
     };
-    // LongUI Event
+    /// <summary>
+    /// event for longui control event
+    /// </summary>
     enum class Event : size_t {
-        // event -- control-tree buliding finished
+        // control-tree buliding finished
         Event_TreeBulidingFinished = 0,
         // drag enter on this control
         Event_DragEnter,

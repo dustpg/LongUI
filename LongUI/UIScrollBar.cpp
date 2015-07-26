@@ -24,29 +24,6 @@ Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
 }
 
 
-
-// 刷新前
-void LongUI::UIScrollBar::BeforeUpdate() noexcept {
-    // 垂直?
-    if (this->bartype == ScrollBarType::Type_Vertical) {
-        m_fMaxRange = this->parent->content_size.height;
-        //m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
-        // 检查上边界
-
-        // 检查下边界
-    }
-    // 水平?
-    else {
-        m_fMaxRange = this->parent->content_size.width;
-        //m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewWidth();
-        // 检查左边界
-
-        // 检查右边界
-    }
-    // TODO: 更新滚动条状态
-    return Super::Update();
-}
-
 // 设置新的索引位置
 void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
     // 阈值检查
@@ -73,10 +50,8 @@ void LongUI::UIScrollBar::set_index(float new_index) noexcept {
     }
 }
 
-
-
 // do event 事件处理
-bool  LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 控件消息
     if (arg.sender) {
         switch (arg.event)
@@ -109,6 +84,43 @@ bool  LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
     }
     return false;
 }
+
+/// <summary>
+/// Updates the cross area in scrollbar
+/// </summary>
+/// <param name="area">The cross area</param>
+/// <returns></returns>
+void LongUI::UIScrollBar::UpdateCrossArea(const float area[2]) noexcept {
+    this->view_pos;
+    this->view_size;
+    // 水平
+    if (this->bartype == ScrollBarType::Type_Horizontal) {
+        m_fMaxRange = this->parent->GetChildLevelContentWidth();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewWidth();
+    }
+    // 垂直
+    else {
+        m_fMaxRange = this->parent->GetChildLevelContentHeight();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
+    }
+    return Super::UpdateCrossArea(area);
+}
+
+/// <summary>
+/// Updates the cross area in scrollbar
+/// </summary>
+/// <param name="area">The cross area</param>
+/// <returns></returns>
+void LongUI::UIScrollBarA::UpdateCrossArea(const float area[2]) noexcept {
+    // 加强父类方法
+    Super::UpdateCrossArea(area);
+    // 需要?
+    if (m_fMaxIndex == 0.f) {
+        this->marginal_width = 0.f;
+        this->visible = false;
+    }
+}
+
 
 
 // UIScrollBarA 构造函数
@@ -155,7 +167,6 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 // UI滚动条(类型A): 刷新
 void LongUI::UIScrollBarA::Update() noexcept {
     // 先刷新父类
-    Super::BeforeUpdate();
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;

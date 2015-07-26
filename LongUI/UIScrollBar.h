@@ -24,21 +24,21 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// 获取相对数值
+#define UISB_OffsetVaule(f) ((&(f))[int(this->bartype)])
 
 // LongUI namespace
 namespace LongUI{
-    // 获取相对数值
-#define UISB_OffsetVaule(f) ((&(f))[int(this->bartype)])
-    // Scroll Bar Type
-    enum class ScrollBarType : uint8_t {
-        Type_Horizontal = 0,    // 水平
-        Type_Vertical = 1,      // 垂直
-    };
     // base scroll bar 默认滚动条
     class UIScrollBar : public UIMarginalable {
         // 父类申明
         using Super = UIMarginalable;
     protected:
+        // Scroll Bar Type
+        enum class ScrollBarType : uint8_t {
+            Type_Horizontal = 0,    // 水平
+            Type_Vertical = 1,      // 垂直
+        };
         // mouse point [0, 1, 2, 3, 4]
         enum class PointType : uint8_t {
             Type_None,      // None
@@ -57,6 +57,8 @@ namespace LongUI{
             force_cast(this->bartype) = sbtype;
             return Super::InitMarginalControl(_type);
         }
+        // update the cross area
+        virtual void UpdateCrossArea(const float area[2]) noexcept override;
     public:
         // get parent width/height
         auto GetParentWH() noexcept { return 10.f; }
@@ -78,8 +80,6 @@ namespace LongUI{
         auto GetIndex() const noexcept { return m_fIndex; }
         // set new index
         void SetIndex(float new_index) noexcept;
-        // before update
-        void BeforeUpdate() noexcept;
     protected:
         // get bar length
         auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->content_size.height : parent->content_size.width; }
@@ -122,8 +122,8 @@ namespace LongUI{
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif
     };
-    // srcoll bar - bartype A 型 滚动条
-    class UIScrollBarA final : public UIScrollBar {
+    // srcollbar type A
+    class UIScrollBarA : public UIScrollBar {
         // basic size
         static constexpr float BASIC_SIZE = 16.f;
         // 父类申明
@@ -153,6 +153,8 @@ namespace LongUI{
     public:
         // init sb
         virtual void InitMarginalControl(MarginalControl _type) noexcept override;
+        // update the cross area
+        virtual void UpdateCrossArea(const float area[2]) noexcept override;
     private:
         // set new status
         void set_status(PointType _bartype, ControlStatus state) noexcept;

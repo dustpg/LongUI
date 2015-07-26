@@ -100,6 +100,8 @@ namespace LongUI{
         LongUIInline auto RegisterOffScreenRender2D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, false); }
         // start render in sec.
         LongUIInline auto StartRender(float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, t, c); }
+        // plan to render in sec.
+        LongUIInline auto PlanToRender(float w, float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(w, t, c); }
         // update control later
         LongUIInline auto Invalidate(UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, 0.f, c); }
         // get delta time in second

@@ -73,28 +73,19 @@ namespace LongUI {
         /// </remarks>
         /// <returns>void</returns>
         virtual inline void InitMarginalControl(MarginalControl _type) noexcept { force_cast(this->marginal_type) = _type; }
-
-/*// <summary>
-/// Test the cross area for other 2 adjacent controls
-/// </summary>
-/// <param name="area" type="float[2]">[IN] [OUT]The 2 cross areas</param>
-/// <remarks>
-/// in this method, you should do 2 steps:
-/// 1.  you will get 2 areas from other 2 adjacent controls, get 0.f
-///     if no control in one side, you should return the areas you want
-///     to take, for example, for scrollbar, you should just return them
-///     intactly to be "generous", because 2 scrollbars cannot cross each
-///     other, for menu bar, you should return [0.f, 0.f] to be "greedy",
-/// 2.  adjust another "width" size:
-///     for example: 
-///     "LEFT" marginal control, parent sends param "area" to adjust
-///       your "height", but your "width" should be managed by yourself
-///     "TOP" marginal control, parent sends param "area"  to adjust
-///       your "width", but your "height" should be managed by yourself
-/// </remarks>
-/// <returns>void</returns>
-        virtual void CrossAreaTest(float IN OUT area[]) noexcept { UNREFERENCED_PARAMETER(area); }*/
-
+        /// <summary>
+        /// Updates the cross area
+        /// </summary>
+        /// <param name="area" type="const float[2]">The cross area from other 2 adjacent controls</param>
+        /// <remarks>
+        /// this method will called before Update if layout changed, in this method, you should:
+        ///     1. calculate and refresh your size via param "area": view_size, 
+        ///   margin_rect, and balabala
+        ///     2. refresh the "marginal_width"
+        ///     3. you may want to hide in sometimes
+        /// </remarks>
+        /// <returns></returns>
+        virtual inline void UpdateCrossArea(const float area[2]) noexcept { UNREFERENCED_PARAMETER(area); };
         // refresh the world transform while in marginal
         void RefreshWorldMarginal() noexcept;
     public:

@@ -150,9 +150,9 @@ namespace LongUI{
         bool                    m_bControlSizeChanged = false;
         // control size changed, if you have handled it
         bool                    m_bControlSizeChangeHandled = false;
-        // the position of draw zone has been changed
-        bool                    unused_bool_control = false;
     public:
+        // visible
+        bool                    visible = true;
         // priority for render
         int8_t          const   priority = 0;
     public:
