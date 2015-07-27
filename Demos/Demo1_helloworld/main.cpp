@@ -4,7 +4,7 @@
 
 constexpr char* hello_world = u8R"longui_demo_xml(<?xml version="1.0" encoding="utf-8"?>
 <Window>
-    <Label text="Hello, world!" />
+    <Text text="Hello, world!" />
 </Window>
 )longui_demo_xml";
 

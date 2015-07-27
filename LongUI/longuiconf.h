@@ -302,11 +302,10 @@ namespace LongUI {
     static const pugi::xml_node null_xml_node = pugi::xml_node(nullptr);
 }
 
-// !! JUST IN PLANNING, NO VALID YET
-// TODO: DO IT
-
 // XML Node Attribute Name Setting
 namespace LongUI {
+    // window class name: zhuangbilty
+    static constexpr wchar_t* const WindowClassName = L"Windows.UI.LongUI.NormalWindow";
     // attribute namespace
     namespace XMLAttribute {
         // name of control
@@ -356,5 +355,7 @@ namespace LongUI {
         static constexpr char* const WindowClearColor       = "clearcolor";
         // window titlebar name
         static constexpr char* const WindowTitleName        = "titlename";
+        // window titlebar name
+        static constexpr char* const WindowTextAntiMode     = "textantimode";
     }
 }

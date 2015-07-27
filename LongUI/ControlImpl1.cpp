@@ -443,16 +443,16 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
 }
 
 // -------------------------------------------------------
-// UILabel
+// UIText
 // -------------------------------------------------------
-// UILabel: do event 事件处理
-bool LongUI::UILabel::DoEvent(const LongUI::EventArgument& arg) noexcept {
+// UIText: do event 事件处理
+bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
     UNREFERENCED_PARAMETER(arg);
     return false;
 }
 
 // Render 渲染 
-void LongUI::UILabel::Render(RenderType type) const noexcept {
+void LongUI::UIText::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
@@ -476,8 +476,8 @@ void LongUI::UILabel::Render(RenderType type) const noexcept {
     }
 }
 
-// UILabel: 刷新
-void LongUI::UILabel::Update() noexcept {
+// UIText: 刷新
+void LongUI::UIText::Update() noexcept {
     // 改变了大小
     if(this->IsControlSizeChanged()) {
         // 设置大小
@@ -489,15 +489,15 @@ void LongUI::UILabel::Update() noexcept {
 }
 
 
-/*/ UILabel 构造函数
-LongUI::UILabel::UILabel(pugi::xml_node node) noexcept: Super(node), m_text(node) {
+/*/ UIText 构造函数
+LongUI::UIText::UIText(pugi::xml_node node) noexcept: Super(node), m_text(node) {
     //m_bInitZoneChanged = true;
 }
 */
 
 
-// UILabel::CreateControl 函数
-auto LongUI::UILabel::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+// UIText::CreateControl 函数
+auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
     UIControl* pControl = nullptr;
     switch (type)
@@ -507,9 +507,9 @@ auto LongUI::UILabel::CreateControl(CreateEventType type, pugi::xml_node node) n
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
         // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UILabel>(
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIText>(
             node,
-            [=](void* p) noexcept { new(p) UILabel(node); }
+            [=](void* p) noexcept { new(p) UIText(node); }
         );
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
@@ -527,13 +527,13 @@ auto LongUI::UILabel::CreateControl(CreateEventType type, pugi::xml_node node) n
 
 
 // recreate 重建
-/*HRESULT LongUI::UILabel::Recreate(LongUIRenderTarget* newRT) noexcept {
+/*HRESULT LongUI::UIText::Recreate(LongUIRenderTarget* newRT) noexcept {
 // 断言
 return Super::Recreate(newRT);
 }*/
 
 // close this control 关闭控件
-void LongUI::UILabel::Cleanup() noexcept {
+void LongUI::UIText::Cleanup() noexcept {
     delete this;
 }
 
@@ -911,18 +911,18 @@ auto LongUI::UIControl::GetControlClassName(bool full) const noexcept ->const wc
 }
 
 // UI标签: 调试信息
-bool LongUI::UILabel::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+bool LongUI::UIText::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
     {
     case LongUI::DebugInformation::Information_GetClassName:
-        info.str = L"UILabel";
+        info.str = L"UIText";
         return true;
     case LongUI::DebugInformation::Information_GetFullClassName:
-        info.str = L"::LongUI::UILabel";
+        info.str = L"::LongUI::UIText";
         return true;
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
-        return *info.iid == LongUI::GetIID<::LongUI::UILabel>()
+        return *info.iid == LongUI::GetIID<::LongUI::UIText>()
             || Super::debug_do_event(info);
     default:
         break;

@@ -39,9 +39,6 @@
     <Filter Include="LongUI\Component">
       <UniqueIdentifier>{1019e09f-9b5a-4869-ac5f-98ba1267315b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Component\Text">
-      <UniqueIdentifier>{5600ff57-eb9a-453e-a2d4-727135630307}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LongUI.h">
@@ -86,9 +83,6 @@
     <ClInclude Include="UISlider.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="UILabel.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
     <ClInclude Include="UIRichEdit.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
@@ -100,18 +94,6 @@
     </ClInclude>
     <ClInclude Include="UIHorizontalLayout.h">
       <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UITextRenderer.h">
-      <Filter>LongUI\Component\Text</Filter>
-    </ClInclude>
-    <ClInclude Include="UIText.h">
-      <Filter>LongUI\Component\Text</Filter>
-    </ClInclude>
-    <ClInclude Include="UIInlineObject.h">
-      <Filter>LongUI\Component\Text</Filter>
-    </ClInclude>
-    <ClInclude Include="UIEditaleText.h">
-      <Filter>LongUI\Component\Text</Filter>
     </ClInclude>
     <ClInclude Include="UIDataObject.h">
       <Filter>LongUI\Util</Filter>
@@ -128,9 +110,6 @@
     <ClInclude Include="DataContainer.h">
       <Filter>LongUI\Util</Filter>
     </ClInclude>
-    <ClInclude Include="UIElement.h">
-      <Filter>LongUI\Component</Filter>
-    </ClInclude>
     <ClInclude Include="UIInput.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
@@ -140,16 +119,31 @@
     <ClInclude Include="UIMenu.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="UIMarginal.h">
+    <ClInclude Include="UIInlineObject.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UITextRenderer.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\EditaleText.h">
+      <Filter>LongUI\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Text.h">
+      <Filter>LongUI\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component\Element.h">
+      <Filter>LongUI\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="UIText.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UIMarginalable.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TextImpl.cpp">
-      <Filter>LongUI\Impl</Filter>
     </ClCompile>
     <ClCompile Include="UIUtil.cpp">
       <Filter>LongUI\Source\Base</Filter>
@@ -175,9 +169,6 @@
     <ClCompile Include="InlineObjImpl.cpp">
       <Filter>LongUI\Impl</Filter>
     </ClCompile>
-    <ClCompile Include="UIElement.cpp">
-      <Filter>LongUI\Component</Filter>
-    </ClCompile>
     <ClCompile Include="UIRenderQueue.cpp">
       <Filter>LongUI\Impl</Filter>
     </ClCompile>
@@ -189,6 +180,9 @@
     </ClCompile>
     <ClCompile Include="ContainerImpl.cpp">
       <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentImpl.cpp">
+      <Filter>LongUI\Impl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

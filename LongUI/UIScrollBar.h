@@ -57,8 +57,8 @@ namespace LongUI{
             force_cast(this->bartype) = sbtype;
             return Super::InitMarginalControl(_type);
         }
-        // update the cross area
-        virtual void UpdateCrossArea(const float area[2]) noexcept override;
+        // update parent's margin.
+        virtual void UpdateParentMargin() noexcept override;
     public:
         // get parent width/height
         auto GetParentWH() noexcept { return 10.f; }
@@ -153,8 +153,8 @@ namespace LongUI{
     public:
         // init sb
         virtual void InitMarginalControl(MarginalControl _type) noexcept override;
-        // update the cross area
-        virtual void UpdateCrossArea(const float area[2]) noexcept override;
+        // update parent's margin.
+        virtual void UpdateParentMargin() noexcept override;
     private:
         // set new status
         void set_status(PointType _bartype, ControlStatus state) noexcept;

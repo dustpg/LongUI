@@ -90,7 +90,7 @@ noexcept : Super(node), m_uiRenderQueue(this) {
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             (this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
-            L"LongUIWindow", titlename.c_str(),
+            LongUI::WindowClassName, titlename.c_str(),
             WS_OVERLAPPEDWINDOW,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
             parent ? parent->GetHwnd() : nullptr, nullptr,
@@ -337,6 +337,8 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
 
 // begin draw
 void LongUI::UIWindow::BeginDraw() const noexcept {
+    // 设置文本渲染策略
+    m_pRenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 离屏渲染
     if (!m_vRegisteredControl.empty()) {
         for (auto i : m_vRegisteredControl) {

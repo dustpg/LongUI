@@ -14,7 +14,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <HorizontalLayout name="HLayout" pos="0, 0, 0, 256">
         <EditBasic name="edit01" textmultiline="true" text="Hello, world!&#xD;&#xA;泥壕, 世界!"/>
         <VerticalLayout name="VLayout2">
-            <Label name="label_test" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
+            <Text name="label_test" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
             <Button name="btn_systemlook" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
             <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
                 margin="4,4,4,4" hovermeta="3" pushedmeta="4" borderwidth="1" text="Hello, world!"/>
@@ -209,7 +209,7 @@ protected:
     }
 protected:
     // text
-    LongUI::UIText              m_text;
+    LongUI::Component::Text     m_text;
     // bool
     bool                        m_FirstRecreate = true;
     //

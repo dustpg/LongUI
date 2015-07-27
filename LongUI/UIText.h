@@ -24,61 +24,58 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// longui namespace
-namespace LongUI {
-    // ==========================================================
-#define UIText_SetIsXML(b)  m_pTextRenderer.SetBool1(b)
-#define UIText_GetIsXML     m_pTextRenderer.Bool1
-#define UIText_SetIsRich(b) m_pTextRenderer.SetBool2(b)
-#define UIText_GetIsRich    m_pTextRenderer.Bool2
-    // UI Text: implemented in UIUtil.cpp file
-    class UIText {
-        using InfoUIBasicTextRenderer = InfomationPointer<UIBasicTextRenderer> ;
-        // 重建
-        void __fastcall recreate(const char* = nullptr) noexcept;
-    public:
-        // constructor
-        UIText(pugi::xml_node, const char* prefix = "text") noexcept;
-        // set new size
-        auto SetNewSize(float w, float h) noexcept {
-            m_config.width = w; m_config.height = h;
-            m_pLayout->SetMaxWidth(w); m_pLayout->SetMaxHeight(h);
-        }
-        // set new progress
-        auto SetNewProgress(float p) {
-            m_config.progress = p;
-            this->recreate();
-        }
-        // render it
-        auto Render(float x, float y) const noexcept {
-            auto ptr = m_pTextRenderer.Ptr();
-            ptr->basic_color.color = m_basicColor;
-            m_pLayout->Draw(m_buffer.data, ptr, x, y);
-        }
-        // destructor
-        ~UIText() noexcept;
-        // operator = for wide-char(utf16 on windows), must be in core-mode
-        UIText& operator=(const wchar_t*) noexcept;
-        // operator = for utf-8, can be xml-mode or core-mode
-        UIText& operator=(const char*) noexcept;
-        // c_str for wide-char(utf16 on windows)
-        LongUIInline auto text_totallegnth() const noexcept { return m_config.text_length; }
-        // c_str for wide-char(utf16 on windows)
-        LongUIInline auto c_str() const noexcept { return m_text.c_str(); }
-        // c_str for utf-8
-        void c_str(char* b) const noexcept { b[LongUI::WideChartoUTF8(m_text.c_str(), b)] = 0; }
+
+// LongUI namespace
+namespace LongUI{
+    // default text control 默认文本控件
+    class UIText : public UIControl {
     private:
-        // layout of it
-        IDWriteTextLayout*          m_pLayout = nullptr;
-        // Text Renderer
-        InfoUIBasicTextRenderer     m_pTextRenderer;
-        // the text config
-        FormatTextConfig            m_config;
-        // basic color
-        D2D1_COLOR_F                m_basicColor;
-        // the string of text
-        CUIString                   m_text;
-        // context buffer for text renderer
-        ContextBuffer               m_buffer;
+        // 父类申明
+        using Super = UIControl ;
+    public:
+        // Render 渲染
+        virtual void Render(RenderType) const noexcept override;
+        // update 刷新
+        virtual void Update() noexcept override;
+        // do event 事件处理
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        // recreate 重建
+        //virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
+        // close this control 关闭控件
+        virtual void Cleanup() noexcept override;
+    public:
+        // create 创建
+        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        // control text 控件文本
+        const auto GetText() const noexcept { return m_text.c_str(); }
+        // set control text
+        const void SetText(const wchar_t* t) noexcept { m_text = t; }
+        // set control text
+        const void SetText(const char* t) noexcept { m_text = t;  }
+    protected:
+        // constructor 构造函数
+        UIText(pugi::xml_node node) noexcept : Super(node), m_text(node) {}
+        // destructor 析构函数
+        ~UIText() noexcept { }
+        // deleted function
+        UIText(const UIText&) = delete;
+    protected:
+        // the text of control
+        LongUI::Component::Text         m_text;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIText>() {
+        // {47F83436-2D1F-413B-BBAD-9322EFF18185}
+        static const GUID IID_LongUI_UILabel = {
+            0x47f83436, 0x2d1f, 0x413b,{ 0xbb, 0xad, 0x93, 0x22, 0xef, 0xf1, 0x81, 0x85 } 
+        };
+        return IID_LongUI_UILabel;
+    }
+#endif
 }

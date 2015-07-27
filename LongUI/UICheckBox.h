@@ -40,9 +40,9 @@ namespace LongUI{
         State_Checked = ControlStatus::Status_Pushed,
     };
     // default CheckBox control 默认复选框控件
-    class UICheckBox final : public UILabel {
+    class UICheckBox final : public UIText {
         // 父类申明
-        using Super = UILabel ;
+        using Super = UIText ;
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;

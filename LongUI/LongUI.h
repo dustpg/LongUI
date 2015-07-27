@@ -451,9 +451,10 @@ namespace LongUI {
 #include "UIDataObject.h"
 #include "UITextRenderer.h"
 #include "UIInlineObject.h"
-#include "UIElement.h"
-#include "UIEditaleText.h"
-#include "UIText.h"
+// LongUI Component
+#include "Component/Element.h"
+#include "Component/EditaleText.h"
+#include "Component/Text.h"
 // LongUI Manager
 #include "UIInput.h"
 #include "UIManager.h"
@@ -462,7 +463,7 @@ namespace LongUI {
 #include "UIControl.h"
 // longui core only?
 #ifndef LongUICoreOnly
-#   include "UIMarginal.h"
+#   include "UIMarginalable.h"
 #   include "UIContainer.h"
 #   include "UIScrollBar.h"
 #   include "UISlider.h"
@@ -471,7 +472,7 @@ namespace LongUI {
 #   include "UIWindow.h"
 #   include "UIEdit.h"
 #   include "UIRichEdit.h"
-#   include "UILabel.h"
+#   include "UIText.h"
 #   include "UICheckBox.h"
 #   include "UIButton.h"
 #   include "UIMenu.h"

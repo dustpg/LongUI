@@ -27,12 +27,6 @@
 
 // longui namespace
 namespace LongUI {
-    // the operation marco of TextType
-#define UIEditaleText_IsRiched ((this->type & Type_Riched) > 0)
-#define UIEditaleText_IsMultiLine ((this->type & Type_MultiLine) > 0)
-#define UIEditaleText_IsReadOnly ((this->type & Type_ReadOnly) > 0)
-#define EditaleTextType_SetTrue(value, type) value |= type 
-#define EditaleTextType_SetFalse(value, type) value &= ~type 
     // Component namespace
     namespace Component {
         // core editable text component
@@ -76,6 +70,16 @@ namespace LongUI {
                 // use password
                 Type_Password = 1 << 4,
             };
+            // is riched?
+            auto IsRiched() const noexcept { return (this->type & Type_Riched) != 0; }
+            // is multi-line?
+            auto IsMultiLine() const noexcept { return (this->type & Type_MultiLine) != 0; }
+            // is read-only?
+            auto IsReadOnly() const noexcept { return (this->type & Type_ReadOnly) != 0; }
+            // set attribute to true
+            auto SetAttributeTrue(EditaleTextType _type) noexcept { this->type = EditaleTextType(uint32_t(this->type) | uint32_t(_type)); };
+            // set attribute to false
+            auto SetAttributeFalse(EditaleTextType _type) noexcept { this->type = EditaleTextType(uint32_t(this->type) & (~uint32_t(_type))); };
             // copy the global properties for layout
             static void __fastcall CopyGlobalProperties(IDWriteTextLayout*, IDWriteTextLayout*) noexcept;
             // copy the single prop for range
@@ -83,11 +87,6 @@ namespace LongUI {
             // copy the range prop for layout
             static void __fastcall CopyRangedProperties(IDWriteTextLayout*, IDWriteTextLayout*, uint32_t, uint32_t, uint32_t, bool = false) noexcept;
         public: // 外部设置区
-            // set new size
-            LongUIInline auto SetNewSize(float w, float h) noexcept {
-                m_size.width = w; m_size.height = h;
-                this->layout->SetMaxWidth(w); this->layout->SetMaxHeight(h);
-            }
             // get hittest
             LongUIInline auto GetHitTestMetrics() noexcept { return m_metriceBuffer.data; }
             // get hittest's length 
@@ -96,6 +95,11 @@ namespace LongUI {
             LongUIInline auto c_str() const noexcept { return m_text.c_str(); }
             // c-style string
             LongUIInline auto assign(const wchar_t* str, size_t length) noexcept { m_text.assign(str, length); return recreate_layout(); }
+            // set width a new size
+            LongUIInline auto SetNewSize(float w, float h) noexcept {
+                m_size.width = w; m_size.height = h;
+                this->layout->SetMaxWidth(w); this->layout->SetMaxHeight(h);
+            }
         private:
             // refresh, while layout chenged, should be refreshed
             auto __fastcall refresh(bool = true)const noexcept->UIWindow*;

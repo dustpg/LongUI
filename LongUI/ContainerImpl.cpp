@@ -1,6 +1,7 @@
 ﻿#include "LongUI.h"
 
 
+
 // -------------------------- UIContainer -------------------------
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
@@ -222,30 +223,52 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
     }
 }
 
-// 中转路由表
-static const LongUI::UIMarginalable::MarginalControl UICONTAINER_MARGINAL_CONTROL_ROUTER[] = {
-    // 左右边缘: 顶底
-    LongUI::UIMarginalable::Control_Top,     LongUI::UIMarginalable::Control_Bottom,
-    // 顶底边缘: 左右
-    LongUI::UIMarginalable::Control_Left,    LongUI::UIMarginalable::Control_Right,
-    /*// 右边缘: 顶底
-    LongUI::UIMarginalable::Control_Top,     LongUI::UIMarginalable::Control_Bottom,
-    // 底边缘: 左右
-    LongUI::UIMarginalable::Control_Left,    LongUI::UIMarginalable::Control_Right,*/
-};
-
 // 刷新边缘控件
-void LongUI::UIContainer::UIContainer::update_marginal_controls() noexcept {
+void LongUI::UIContainer::update_marginal_controls() noexcept {
     // 循环
     // XXX: 优化
     for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
         auto ctrl = this->marginal_control[i];
         if (!ctrl) continue;
-        float cross[] = { 0.f, 0.f };
+        float view[] = { 0.f, 0.f, 0.f, 0.f };
+        auto width_old = this->GetTakingUpWidth();
+        auto height_old = this->GetTakingUpHeight();
         // TODO: 计算cross 大小
+        float tmp_float = 0.f;
+        switch (i)
+        {
+        case 0: // Left
+            if (this->marginal_control[UIMarginalable::Control_Top]) {
+                tmp_float = this->marginal_control[UIMarginalable::Control_Top]->marginal_width;
+            }
+            // 初稿
+            ctrl->view_pos.x = m_orgMargin.left;
+            ctrl->view_pos.y = m_orgMargin.top + tmp_float;
+            ctrl->view_size.width = ctrl->marginal_width;
+            tmp_float = this->marginal_control[UIMarginalable::Control_Top] ?
+                this->marginal_control[UIMarginalable::Control_Top]->marginal_width : 0.f;
+            ctrl->view_size.height = height_old - ctrl->view_pos.y - tmp_float;
+            break;
+        case 1: // Top
+            // 初稿
+            ctrl->view_pos.x = m_orgMargin.left;
+            ctrl->view_pos.y = m_orgMargin.top + view[0];
+            break;
+        case 2: // Right
+            // 初稿
+            ctrl->view_pos.x = m_orgMargin.left;
+            ctrl->view_pos.y = m_orgMargin.top + tmp_float;
+            ctrl->view_size.width = ctrl->marginal_width;
+            tmp_float = this->marginal_control[UIMarginalable::Control_Top] ?
+                this->marginal_control[UIMarginalable::Control_Top]->marginal_width : 0.f;
+            ctrl->view_size.height = height_old - ctrl->view_pos.y - tmp_float;
+            break;
+        case 3: // Bottom
+            // 初稿
+            break;
+        }
         // 更新边界
-        ctrl->UpdateCrossArea(cross);
-        // 更新边界
+        ctrl->UpdateParentMargin();
         // 更新世界矩阵
         ctrl->RefreshWorld();
         // 坐标转换

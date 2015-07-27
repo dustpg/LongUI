@@ -43,7 +43,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         wcex.hCursor = nullptr;
         wcex.hbrBackground = nullptr;
         wcex.lpszMenuName = nullptr;
-        wcex.lpszClassName = L"LongUIWindow";
+        wcex.lpszClassName = LongUI::WindowClassName;
         auto hicon = LoadIconW(hInstance, MAKEINTRESOURCEW(1));
         wcex.hIcon = hicon;
         // 注册普通窗口
@@ -175,7 +175,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 添加控件
     if (SUCCEEDED(hr)) {
         // 添加默认控件创建函数
-        this->RegisterControl(UILabel::CreateControl, L"Label");
+        this->RegisterControl(UIText::CreateControl, L"Text");
         this->RegisterControl(UIButton::CreateControl, L"Button");
         this->RegisterControl(UIVerticalLayout::CreateControl, L"VerticalLayout");
         this->RegisterControl(UIHorizontalLayout::CreateControl, L"HorizontalLayout");
@@ -413,7 +413,6 @@ if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
     ::DispatchMessageW(&msg);
 }
 */
-
 
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {

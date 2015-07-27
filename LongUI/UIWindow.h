@@ -156,7 +156,9 @@ namespace LongUI{
         // full rendering in this frame?
         bool                    m_bFullRendering = false;
         // unused
-        bool                    m_unused[3];
+        bool                    m_unused[1];
+        // text anti-mode
+        uint16_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
         // mini size
         D2D1_SIZE_U             m_miniSize = D2D1::SizeU();
         // window handle

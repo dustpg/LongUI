@@ -6,6 +6,7 @@ struct MemoryLeakDetector {
     // ctor
     MemoryLeakDetector() {
         ::_CrtMemCheckpoint(memstate + 0);
+        constexpr int sa = sizeof(_CrtMemState);
     }
     // dtor
     ~MemoryLeakDetector() {

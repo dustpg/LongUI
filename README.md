@@ -27,13 +27,14 @@ For this repo, you need:
   
   - class :  
       - \[C/I/?\] UI ClassName, etc. CUIManager IUIInterface  
+      - except: class under LongUI::Component
   - member variable:  
       - public: member_variable, etc. parent, user_data  
       - private/protected: m_typeMemberVariable, etc, m_pWindow
   - method/function:  
-      - public: ClassMethod() except to match STL-style 
-       etc GetWindow(), Update(), begin()
+      - public: ClassMethod(), etc GetWindow(), Update()
       - private/protected:  class_method(), etc, refresh_this()  
+      - except: match STL-Style method: begin(), end(), insert()
   - enum:  see it
 ```cpp
         enum class PointType : uint16_t {

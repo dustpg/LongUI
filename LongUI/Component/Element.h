@@ -43,11 +43,11 @@ namespace LongUI {
     using CUIAnimationTransform = CUIAnimation<D2D1_MATRIX_3X2_F>;
     // Element
     enum class Element : uint32_t {
-        Basic = 0,
-        Meta,
-        ColorRect,
-        BrushRect,
-        ColorGeometry,
+        Basic = 0,          // basic element for animation
+        Meta,               // meta element for rendering meta
+        ColorRect,          // colorrect element for rendering colored-rect
+        BrushRect,          // brushrect element for rendering brushed-rect
+        ColorGeometry,      // colorgeo element for rendering colored-geometry
     };
     // Component namespace
     namespace Component {

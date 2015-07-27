@@ -73,19 +73,17 @@ namespace LongUI {
         /// </remarks>
         /// <returns>void</returns>
         virtual inline void InitMarginalControl(MarginalControl _type) noexcept { force_cast(this->marginal_type) = _type; }
+
         /// <summary>
-        /// Updates the cross area
+        /// Updates parent's margin.
         /// </summary>
-        /// <param name="area" type="const float[2]">The cross area from other 2 adjacent controls</param>
         /// <remarks>
-        /// this method will called before Update if layout changed, in this method, you should:
-        ///     1. calculate and refresh your size via param "area": view_size, 
-        ///   margin_rect, and balabala
-        ///     2. refresh the "marginal_width"
-        ///     3. you may want to hide in sometimes
+        /// this method is designed to be helper to change parent's margin,
+        /// if changed, call parent->SetControlSizeChanged()
+        /// more detail too see <see cref="LongUI::UIContainer::update_marginal_controls"/>
         /// </remarks>
         /// <returns></returns>
-        virtual inline void UpdateCrossArea(const float area[2]) noexcept { UNREFERENCED_PARAMETER(area); };
+        virtual inline void UpdateParentMargin() noexcept { };
         // refresh the world transform while in marginal
         void RefreshWorldMarginal() noexcept;
     public:

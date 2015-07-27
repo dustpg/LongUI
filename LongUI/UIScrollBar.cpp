@@ -86,11 +86,10 @@ bool LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 /// <summary>
-/// Updates the cross area in scrollbar
+/// Updates parent's margin.
 /// </summary>
-/// <param name="area">The cross area</param>
 /// <returns></returns>
-void LongUI::UIScrollBar::UpdateCrossArea(const float area[2]) noexcept {
+void LongUI::UIScrollBar::UpdateParentMargin() noexcept {
     this->view_pos;
     this->view_size;
     // 水平
@@ -103,17 +102,16 @@ void LongUI::UIScrollBar::UpdateCrossArea(const float area[2]) noexcept {
         m_fMaxRange = this->parent->GetChildLevelContentHeight();
         m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
     }
-    return Super::UpdateCrossArea(area);
+    return Super::UpdateParentMargin();
 }
 
 /// <summary>
-/// Updates the cross area in scrollbar
+/// Updates parent's margin.
 /// </summary>
-/// <param name="area">The cross area</param>
 /// <returns></returns>
-void LongUI::UIScrollBarA::UpdateCrossArea(const float area[2]) noexcept {
+void LongUI::UIScrollBarA::UpdateParentMargin() noexcept {
     // 加强父类方法
-    Super::UpdateCrossArea(area);
+    Super::UpdateParentMargin();
     // 需要?
     if (m_fMaxIndex == 0.f) {
         this->marginal_width = 0.f;
