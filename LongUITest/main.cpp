@@ -326,14 +326,16 @@ protected:
 
 // 应用程序入口
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
-    // set info
+    // 设置堆信息
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
-    // configure for this demo
+    // 本Demo的配置信息
     class DemoConfigure final : public LongUI::CUIDefaultConfigure {
         typedef LongUI::CUIDefaultConfigure Super;
     public:
         // 构造函数
         DemoConfigure() : Super(UIManager) { this->script = &mruby; this->resource = res_xml; }
+        // 析构函数
+        ~DemoConfigure() { if (m_hDll) { ::FreeLibrary(m_hDll); m_hDll = nullptr; } }
         // 获取地区名称
         auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
             ::wcscpy(name, L"en-us");
@@ -342,37 +344,42 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         auto AddCustomControl() noexcept->void override {
             m_manager.RegisterControl(TestControl::CreateControl, L"Test");
             m_manager.RegisterControl(UIVideoAlpha::CreateControl, L"Video");
+            /*if (m_hDll) {
+                auto func = reinterpret_cast<LongUI::CreateControlFunction>(
+                    ::GetProcAddress(m_hDll, "LongUICreateControl")
+                    );
+                m_manager.RegisterControl(func, L"DllTest");
+            }*/
         };
         // 使用CPU渲染
         auto IsRenderByCPU() noexcept ->bool override { return true; }
     private:
         // mruby script
         MRubyScript     mruby = MRubyScript(UIManager);
+        // dll
+        HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
     } config;
-    // 创建
-    auto create_main_window = [](pugi::xml_node node, LongUI::UIWindow* parent, void* buffer) {
-        reinterpret_cast<MainWindow*>(buffer)->MainWindow::MainWindow(node, parent);
-        return static_cast<LongUI::UIWindow*>(reinterpret_cast<MainWindow*>(buffer));
-    };
-    // Buffer of MainWindow, align for 4(x86)
+    // MainWindow 的缓存/栈空间地址, 在x86上4字节对齐
     alignas(sizeof(void*)) size_t buffer[sizeof(MainWindow) / sizeof(size_t) + 1];
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)
     if (SUCCEEDED(::OleInitialize(nullptr))) {
         // 初始化 窗口管理器 
-        UIManager.Initialize(&config);
-        // 作战控制连线!
-        UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
-        // 创建主窗口
-        UIManager.CreateUIWindow(test_xml, nullptr, create_main_window, buffer);
-        // 运行本程序
-        UIManager.Run();
-        // 作战控制终止!
-        UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
+        if (SUCCEEDED(UIManager.Initialize(&config))) {
+            // 作战控制连线!
+            UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
+            // 创建主窗口
+            UIManager.CreateUIWindow<MainWindow>(test_xml, nullptr, buffer);
+            // 运行本程序
+            UIManager.Run();
+            // 作战控制终止!
+            UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
+        }
         // 反初始化 窗口管理器
         UIManager.UnInitialize();
         // 反初始化 COM 与 OLE
         ::OleUninitialize(); 
     }
+    // 成功退出
     return EXIT_SUCCESS;
 }
 

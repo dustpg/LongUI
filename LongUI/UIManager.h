@@ -29,10 +29,10 @@
 namespace LongUI {
     // endl for longUI
     static struct EndL { } endl;
-    // create ui window call back
-    using CreateUIWindowCallBack = auto(*)(pugi::xml_node node, UIWindow* parent, void* user_data)->UIWindow*;
     // ui manager ui 管理器
     class LongUIAlignas CUIManager {
+        // create ui window call back
+        using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* parent, void* buffer)->UIWindow*;
     public: 
         // Windows Version
         enum WindowsVersion : size_t {
@@ -97,21 +97,27 @@ namespace LongUI {
             assert((templateid || function) && "cannot be null in same time");
             return this->create_control(function, LongUINullXMLNode, templateid);
         }
-        // create ui window with xml string, avoid to use template-lamda
-        // user_data is compensation for lamda-function
-        auto CreateUIWindow(
-            const char* xml, 
-            UIWindow* parent = nullptr, 
-            CreateUIWindowCallBack = CUIManager::CreateLongUIWIndow, 
-            void* user_data = nullptr) noexcept->UIWindow*;
-        // create ui window with xml node, avoid to use template-lamda
-        // user_data is compensation for lamda-function
-        auto CreateUIWindow(
-            const pugi::xml_node node, 
-            UIWindow* parent = nullptr, 
-            CreateUIWindowCallBack = CUIManager::CreateLongUIWIndow,
-            void* user_data = nullptr
-            )noexcept->UIWindow*;
+    public: // Create UI Window Zone!!!!!!!!!
+        // create ui window with xml string
+        auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
+        // create ui window with custom window && xml string
+        template<class T>
+        auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept->UIWindow* {
+            auto code = m_docWindow.load_string(xml); assert(code); if (code.status) return nullptr;
+            auto create_func = [](pugi::xml_node node, UIWindow* parent, void*) noexcept ->UIWindow* {
+                return LongUI::UIControl::AllocRealControl<T>(node, [=](void* p) noexcept { new(p) T(node, parent); });
+            };
+            return this->create_ui_window(m_docWindow.first_child(), parent, create_func, nullptr);
+        }
+        // create ui window with custom window && xml && buffer
+        template<class T>
+        auto CreateUIWindow(const char* xml, UIWindow* parent, void* buffer) noexcept->UIWindow* {
+            auto code = m_docWindow.load_string(xml); assert(code); if (code.status) return nullptr;
+            auto create_func = [](pugi::xml_node node, UIWindow* parent, void* buffer) noexcept ->UIWindow* {
+                return new(buffer) T(node, parent);
+            };
+            return this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer);
+        }
     public: // 特例
         // get default LongUI imp IDWriteFontCollection
         static auto __cdecl CreateLongUIFontCollection(
@@ -142,8 +148,6 @@ namespace LongUI {
         static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
         // get theme colr
         static auto __fastcall GetThemeColor(D2D1_COLOR_F& colorf) noexcept->HRESULT;
-        // create longui window by defaultly
-        static auto CreateLongUIWIndow(pugi::xml_node node, UIWindow* parent, void* user_data) noexcept->UIWindow*;
         // create text format
         auto CreateTextFormat(
             const wchar_t* fontFamilyName,
@@ -349,6 +353,8 @@ namespace LongUI {
         void discard_resources() noexcept;
         // create the control
         auto create_control(CreateControlFunction function, pugi::xml_node node, size_t id) noexcept->UIControl*;
+        // create ui window
+        auto create_ui_window(const pugi::xml_node, UIWindow*, callback_for_creating_window, void*) noexcept->UIWindow*;
         // 创建事件
         void do_creating_event(CreateEventType type) noexcept;
         // 创建控件树

@@ -86,12 +86,10 @@ bool LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 /// <summary>
-/// Updates parent's margin.
+/// Updates the width of the marginal.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScrollBar::UpdateParentMargin() noexcept {
-    this->view_pos;
-    this->view_size;
+void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     // 水平
     if (this->bartype == ScrollBarType::Type_Horizontal) {
         m_fMaxRange = this->parent->GetChildLevelContentWidth();
@@ -102,20 +100,24 @@ void LongUI::UIScrollBar::UpdateParentMargin() noexcept {
         m_fMaxRange = this->parent->GetChildLevelContentHeight();
         m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
     }
-    return Super::UpdateParentMargin();
+    return Super::UpdateMarginalWidth();
 }
 
 /// <summary>
-/// Updates parent's margin.
+/// Updates the width of the marginal.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScrollBarA::UpdateParentMargin() noexcept {
+void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     // 加强父类方法
-    Super::UpdateParentMargin();
+    Super::UpdateMarginalWidth();
     // 需要?
     if (m_fMaxIndex == 0.f) {
         this->marginal_width = 0.f;
         this->visible = false;
+    }
+    else {
+        this->marginal_width = 16.f;
+        UISB_OffsetVaule(this->view_size.width) = 16.f;
     }
 }
 
@@ -481,4 +483,45 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType bartype, pugi::x
         break;
     }
     return pControl;
+}
+
+
+// UIScrollBarB 构造函数
+LongUI::UIScrollBarB::UIScrollBarB(pugi::xml_node node) noexcept: Super(node) {
+
+}
+
+// UIScrollBarB 创建函数
+auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType bartype, pugi::xml_node node) noexcept ->UIControl* {
+    // 分类判断
+    UIControl* pControl = nullptr;
+    switch (bartype)
+    {
+    case Type_CreateControl:
+        // 获取模板节点
+        if (!node) {
+
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarB>(
+            node,
+            [=](void* p) noexcept { new(p) UIScrollBarB(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+        break;
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    }
+    return pControl;
+}
+
+// UIScrollBarB 关闭控件
+void  LongUI::UIScrollBarB::Cleanup() noexcept {
+    delete this;
 }

@@ -57,8 +57,8 @@ namespace LongUI{
             force_cast(this->bartype) = sbtype;
             return Super::InitMarginalControl(_type);
         }
-        // update parent's margin.
-        virtual void UpdateParentMargin() noexcept override;
+        // update width of marginal
+        virtual void UpdateMarginalWidth() noexcept override;
     public:
         // get parent width/height
         auto GetParentWH() noexcept { return 10.f; }
@@ -153,8 +153,8 @@ namespace LongUI{
     public:
         // init sb
         virtual void InitMarginalControl(MarginalControl _type) noexcept override;
-        // update parent's margin.
-        virtual void UpdateParentMargin() noexcept override;
+        // update width of marginal
+        virtual void UpdateMarginalWidth() noexcept override;
     private:
         // set new status
         void set_status(PointType _bartype, ControlStatus state) noexcept;
@@ -193,6 +193,26 @@ namespace LongUI{
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif
     };
+    // srcollbar type B
+    class UIScrollBarB : public UIScrollBar {
+        // 父类申明
+        using Super = UIScrollBar;
+    public:
+        // close this control 关闭控件
+        void Cleanup() noexcept override;
+        // update width of marginal
+        virtual void UpdateMarginalWidth() noexcept override {}
+    public:
+        // ctor
+        UIScrollBarB(pugi::xml_node node) noexcept;
+        // create this
+        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
+    };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
     template<> LongUIInline const IID& GetIID<LongUI::UIScrollBar>() {
@@ -209,6 +229,14 @@ namespace LongUI{
             0x30af626, 0x1958, 0x4bdf,{ 0x86, 0x3e, 0x19, 0x2b, 0xdb, 0x1a, 0x49, 0x46 }
         };
         return IID_LongUI_UIScrollBarA;
+    }
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIScrollBarB>() {
+        // {820DACDF-5B99-4291-A9B2-9010BE28D12D}
+        static const GUID IID_LongUI_UIScrollBarB = { 
+            0x820dacdf, 0x5b99, 0x4291,{ 0xa9, 0xb2, 0x90, 0x10, 0xbe, 0x28, 0xd1, 0x2d } 
+        };
+        return IID_LongUI_UIScrollBarB;
     }
 #endif
 }

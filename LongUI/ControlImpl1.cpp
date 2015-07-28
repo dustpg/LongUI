@@ -1010,6 +1010,26 @@ bool LongUI::UIScrollBarA::debug_do_event(const LongUI::DebugEventInformation& i
     return false;
 }
 
+// UI滚动条-A型: 调试信息
+bool LongUI::UIScrollBarB::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIScrollBarB";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIScrollBarB";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIScrollBarB>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
 // UI容器: 调试信息
 bool LongUI::UIContainer::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)

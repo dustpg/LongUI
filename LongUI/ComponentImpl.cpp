@@ -65,25 +65,25 @@ LongUI::Component::Text::Text(pugi::xml_node node, const char * prefix) noexcept
     }
     {
         // 检查类型
-        UIText_SetIsRich(false);
+        this->SetIsRich(false);
         set_new_attribute(attribute_buffer, "type");
         if (str = node.attribute(attribute_buffer).value()) {
             switch (*pui32)
             {
             case "xml"_longui32:
             case "XML"_longui32:
-                UIText_SetIsRich(true);
-                UIText_SetIsXML(true);
+                this->SetIsRich(true);
+                this->SetIsXML(true);
                 break;
             case "core"_longui32:
             case "Core"_longui32:
             case "CORE"_longui32:
-                UIText_SetIsRich(true);
-                UIText_SetIsXML(false);
+                this->SetIsRich(true);
+                this->SetIsXML(false);
                 break;
             default:
-                UIText_SetIsRich(false);
-                UIText_SetIsXML(false);
+                this->SetIsRich(false);
+                this->SetIsXML(false);
                 break;
             }
         }
@@ -95,15 +95,15 @@ LongUI::Component::Text::Text(pugi::xml_node node, const char * prefix) noexcept
 // Text = L"***"
 LongUI::Component::Text& LongUI::Component::Text::operator=(const wchar_t* new_string) noexcept {
     // 不能是XML模式
-    assert(UIText_GetIsXML() == false && "=(const wchar_t*) must be in core-mode, can't be xml-mode");
+    assert(this->GetIsXML() == false && "=(const wchar_t*) must be in core-mode, can't be xml-mode");
     m_text.Set(new_string);
     this->recreate();
     return *this;
 }
 
 // Text = "***"
-LongUI::Component::Text & LongUI::Component::Text::operator=(const char* str) noexcept {
-    if (UIText_GetIsXML()) {
+LongUI::Component::Text& LongUI::Component::Text::operator=(const char* str) noexcept {
+    if (this->GetIsXML()) {
         this->recreate(str);
         return *this;
     }
@@ -126,7 +126,7 @@ LongUI::Component::Text::~Text() noexcept {
 void LongUI::Component::Text::recreate(const char* utf8) noexcept {
     wchar_t text_buffer[LongUIStringBufferLength];
     // 转换为核心模式
-    if (UIText_GetIsXML() && UIText_GetIsRich()) {
+    if (this->GetIsXML() && this->GetIsRich()) {
         CUIManager::XMLToCoreFormat(utf8, text_buffer);
     }
     else if (utf8) {
@@ -138,7 +138,7 @@ void LongUI::Component::Text::recreate(const char* utf8) noexcept {
     // 创建布局
     ::SafeRelease(m_pLayout);
     // 富文本
-    if (UIText_GetIsRich()) {
+    if (this->GetIsRich()) {
         m_pLayout = CUIManager::FormatTextCore(
             m_config,
             m_text.c_str(),
@@ -1194,8 +1194,6 @@ LongUI::Component::EditaleText::~EditaleText() noexcept {
 
 
 
-#define UIEditaleText_NewAttribute(a) { ::strcpy(attribute_buffer, prefix); ::strcat(attribute_buffer, a); }
-
 // 配置构造函数
 LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node,
     const char* prefix) noexcept : m_pHost(host) {
@@ -1206,31 +1204,34 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     m_pFactory = ::SafeAcquire(UIManager_DWriteFactory);
     register const char* str = nullptr;
     char attribute_buffer[256];
+    auto set_new_attribute = [prefix](char* buffer, const char* suffix) noexcept {
+        ::strcpy(buffer, prefix); ::strcat(buffer, suffix);
+    };
     // 检查类型
     {
         uint32_t tmptype = Type_None;
         // 富文本
-        UIEditaleText_NewAttribute("rich");
+        set_new_attribute(attribute_buffer, "rich");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_Riched;
         }
         // 多行显示
-        UIEditaleText_NewAttribute("multiline");
+        set_new_attribute(attribute_buffer, "multiline");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_MultiLine;
         }
         // 只读
-        UIEditaleText_NewAttribute("readonly");
+        set_new_attribute(attribute_buffer, "readonly");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_ReadOnly;
         }
         // 只读
-        UIEditaleText_NewAttribute("accelerator");
+        set_new_attribute(attribute_buffer, "accelerator");
         if (node.attribute(attribute_buffer).as_bool(false)) {
             tmptype |= Type_Accelerator;
         }
         // 密码
-        UIEditaleText_NewAttribute("password");
+        set_new_attribute(attribute_buffer, "password");
         if (str = node.attribute(attribute_buffer).value()) {
             tmptype |= Type_Password;
             // TODO: UTF8 char(s) to UTF32 char;
@@ -1241,7 +1242,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     // 获取渲染器
     {
         int renderer_index = Type_NormalTextRenderer;
-        UIEditaleText_NewAttribute("renderer");
+        set_new_attribute(attribute_buffer, "renderer");
         if ((str = node.attribute(attribute_buffer).value())) {
             renderer_index = LongUI::AtoI(str);
         }
@@ -1251,7 +1252,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         if (renderer) {
             auto length = renderer->GetContextSizeInByte();
             if (length) {
-                UIEditaleText_NewAttribute("context");
+                set_new_attribute(attribute_buffer, "context");
                 if ((str = node.attribute(attribute_buffer).value())) {
                     m_buffer.NewSize(length);
                     renderer->CreateContextFromString(m_buffer.data, str);
@@ -1262,13 +1263,13 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     // 检查基本颜色
     {
         m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
-        UIEditaleText_NewAttribute("color");
+        set_new_attribute(attribute_buffer, "color");
         UIControl::MakeColor(node.attribute(attribute_buffer).value(), m_basicColor);
     }
     // 检查格式
     {
         uint32_t format_index = LongUIDefaultTextFormatIndex;
-        UIEditaleText_NewAttribute("format");
+        set_new_attribute(attribute_buffer, "format");
         if ((str = node.attribute(attribute_buffer).value())) {
             format_index = static_cast<uint32_t>(LongUI::AtoI(str));
         }
@@ -1555,7 +1556,6 @@ HRESULT LongUI::UINormalTextRender::DrawStrikethrough(
 #define UIElements_Prefix if (!node) return; if(!prefix) prefix = ""; char buffer[256];
 #define UIElements_NewAttribute(a) { ::strcpy(buffer, prefix); ::strcat(buffer, a); }
 #define UIElements_Attribute node.attribute(buffer).value()
-
 
 // Elements<Basic> Init
 void LongUI::Component::Elements<LongUI::Element::Basic>::

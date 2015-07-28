@@ -268,7 +268,7 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
             break;
         }
         // 更新边界
-        ctrl->UpdateParentMargin();
+        ctrl->UpdateMarginalWidth();
         // 更新世界矩阵
         ctrl->RefreshWorld();
         // 坐标转换

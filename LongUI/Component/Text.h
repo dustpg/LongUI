@@ -28,16 +28,20 @@
 namespace LongUI {
     // Component namespace
     namespace Component {
-        // ==========================================================
-#define UIText_SetIsXML(b)  m_pTextRenderer.SetBool1(b)
-#define UIText_GetIsXML     m_pTextRenderer.Bool1
-#define UIText_SetIsRich(b) m_pTextRenderer.SetBool2(b)
-#define UIText_GetIsRich    m_pTextRenderer.Bool2
-        // Text: implemented in UIUtil.cpp file
+        // Component: Text
         class Text {
             using InfoUIBasicTextRenderer = InfomationPointer<UIBasicTextRenderer>;
             // 重建
             void __fastcall recreate(const char* = nullptr) noexcept;
+        public:
+            // set is xml
+            auto SetIsXML(bool b) noexcept { m_pTextRenderer.SetBool1(b); }
+            // set is rich
+            auto SetIsRich(bool b) noexcept { m_pTextRenderer.SetBool2(b); }
+            // get is xml
+            auto GetIsXML() const noexcept { return m_pTextRenderer.Bool1(); }
+            // set is rich
+            auto GetIsRich() const noexcept { return m_pTextRenderer.Bool2(); }
         public:
             // constructor
             Text(pugi::xml_node, const char* prefix = "text") noexcept;

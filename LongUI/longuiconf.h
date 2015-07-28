@@ -112,6 +112,7 @@ namespace LongUI {
 #include <Shlwapi.h>
 #include <ShObjIdl.h>
 // C++ 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <cstdint>
@@ -119,10 +120,7 @@ namespace LongUI {
 #include <string>
 #include <cwchar>
 #include <vector>
-#include <thread>
 #include <atomic>
-#include <queue>
-#include <mutex>
 #include <map>
 #include <new>
 

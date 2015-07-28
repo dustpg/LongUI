@@ -5,6 +5,7 @@
 
 #define LONGUI_D3D_DEBUG
 #define LONGUI_RENDER_IN_UNSAFE_MODE
+//#define LONGUI_RENDER_IN_STD_THREAD
 
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
@@ -176,15 +177,16 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     if (SUCCEEDED(hr)) {
         // 添加默认控件创建函数
         this->RegisterControl(UIText::CreateControl, L"Text");
-        this->RegisterControl(UIButton::CreateControl, L"Button");
-        this->RegisterControl(UIVerticalLayout::CreateControl, L"VerticalLayout");
-        this->RegisterControl(UIHorizontalLayout::CreateControl, L"HorizontalLayout");
         this->RegisterControl(UISlider::CreateControl, L"Slider");
+        this->RegisterControl(UIButton::CreateControl, L"Button");
         this->RegisterControl(UICheckBox::CreateControl, L"CheckBox");
         this->RegisterControl(UIRichEdit::CreateControl, L"RichEdit");
-        this->RegisterControl(UIScrollBarA::CreateControl, L"ScrollBarA");
         this->RegisterControl(UIEditBasic::CreateControl, L"EditBasic");
         this->RegisterControl(UIEditBasic::CreateControl, L"Edit");
+        this->RegisterControl(UIScrollBarA::CreateControl, L"ScrollBarA");
+        this->RegisterControl(UIScrollBarB::CreateControl, L"ScrollBarB");
+        this->RegisterControl(UIVerticalLayout::CreateControl, L"VerticalLayout");
+        this->RegisterControl(UIHorizontalLayout::CreateControl, L"HorizontalLayout");
         // 添加自定义控件
         config->AddCustomControl();
     }
@@ -192,12 +194,13 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     if (SUCCEEDED(hr)) {
         hr = this->RecreateResources();
     }
-    // 检查错误
-    if (FAILED(hr)) {
-        this->ShowError(hr);
-    }
-    else {
+    // 初始化事件
+    if (SUCCEEDED(hr)) {
         this->do_creating_event(LongUI::CreateEventType::Type_Initialize);
+    }
+    // 检查错误
+    else {
+        this->ShowError(hr);
     }
     return hr;
 }
@@ -255,52 +258,6 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     ::SafeRelease(force_cast(this->configure));
     m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
 }
-
-// 创建UI窗口
-auto LongUI::CUIManager::CreateUIWindow(
-    const char* xml, UIWindow* parent, CreateUIWindowCallBack call, void* user_data
-    )noexcept->UIWindow* {
-    assert(xml && call && "bad arguments");
-    // 载入字符串
-    auto code = m_docWindow.load_string(xml);
-    // 检查错误
-    if (code.status) {
-        wchar_t buffer[LongUIStringBufferLength];
-        buffer[LongUI::UTF8toWideChar(code.description(), buffer)] = L'\0';
-        this->ShowError(buffer);
-        return nullptr;
-    }
-    // 创建
-    return this->CreateUIWindow(m_docWindow.first_child(), parent, call, user_data);
-}
-
-// 利用XML节点创建UI窗口
-auto LongUI::CUIManager::CreateUIWindow(
-    const pugi::xml_node node, UIWindow* parent, CreateUIWindowCallBack call, void* user_data
-    ) noexcept -> UIWindow* {
-    assert(node && call && "bad arguments");
-    // 有效情况
-    if (call && node) {
-        // 创建窗口
-        auto window = call(node, parent, user_data);
-        // 查错
-        assert(window); if (!window) return nullptr;
-        // 重建资源
-        auto hr = window->Recreate(m_pd2dDeviceContext);
-        AssertHR(hr);
-        // 创建控件树
-        this->make_control_tree(window, node);
-        // 完成创建
-        LongUI::EventArgument arg; ::memset(&arg, 0, sizeof(arg));
-        arg.sender = window;
-        arg.event = LongUI::Event::Event_TreeBulidingFinished;
-        window->DoEvent(arg);
-        // 返回
-        return window;
-    }
-    return nullptr;
-}
-
 
 // 创建事件
 void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
@@ -414,11 +371,16 @@ if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
 }
 */
 
+#ifdef LONGUI_RENDER_IN_STD_THREAD
+#include <thread>
+#else
+#include <process.h>
+#endif
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
     MSG msg;
-    // 创建渲染线程
-    std::thread thread([]() noexcept {
+    // 渲染线程函数
+    auto render_thread_func = [](void*) noexcept ->unsigned {
         UIWindow* windows[LongUIMaxWindow]; uint32_t length = 0;
         // 不退出?
         while (!UIManager.m_exitFlag) {
@@ -455,24 +417,35 @@ void LongUI::CUIManager::Run() noexcept {
             // 等待垂直同步
             UIManager.WaitVS(waitvs_window);
         }
-        // 关闭不可见窗口
-        //::DestroyWindow(UIManager.m_hInvisibleHosted);
-    });
+        return 0;
+    };
+    // 需要std::thread?
+#ifdef LONGUI_RENDER_IN_STD_THREAD
+    std::thread thread(render_thread_func, nullptr);
+#else
+    auto thread = reinterpret_cast<HANDLE>(
+        ::_beginthreadex(nullptr, 0, render_thread_func, nullptr, 0, nullptr)
+        );
+    assert(thread && "failed to create thread");
+#endif
     // 消息响应
     while (::GetMessageW(&msg, nullptr, 0, 0)) {
         ::TranslateMessage(&msg);
         ::DispatchMessageW(&msg);
     }
+    // 退出
     m_exitFlag = true;
     // 等待线程
-    try {
-        if (thread.joinable()) {
-            thread.join();
-        }
+#ifdef LONGUI_RENDER_IN_STD_THREAD
+    try { if (thread.joinable()) { thread.join(); } }
+    catch (...) { }
+#else
+    if (thread) {
+        ::WaitForSingleObject(thread, INFINITE);
+        ::CloseHandle(thread);
+        thread = nullptr;
     }
-    catch (...) {
-
-    }
+#endif
     // 尝试强行关闭
     if (m_cCountWindow) {
         UIWindow* windows[LongUIMaxWindow];
@@ -490,6 +463,7 @@ void LongUI::CUIManager::Run() noexcept {
 // 等待垂直同步
 auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
     // UIManager << DL_Hint << window << endl;
+
     // 直接等待
     if (window) {
         window->WaitVS();
@@ -537,6 +511,34 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
     return function(CreateEventType::Type_CreateControl, node);
 }
 
+
+// 创建UI窗口
+auto LongUI::CUIManager::create_ui_window(
+    const pugi::xml_node node,
+    UIWindow * parent, 
+    callback_for_creating_window call, 
+    void * user_data) noexcept -> UIWindow* {
+    // 有效情况
+    if (call && node) {
+        // 创建窗口
+        auto window = call(node, parent, user_data);
+        // 查错
+        assert(window); if (!window) return nullptr;
+        // 重建资源
+        auto hr = window->Recreate(m_pd2dDeviceContext);
+        AssertHR(hr);
+        // 创建控件树
+        this->make_control_tree(window, node);
+        // 完成创建
+        LongUI::EventArgument arg; ::memset(&arg, 0, sizeof(arg));
+        arg.sender = window;
+        arg.event = LongUI::Event::Event_TreeBulidingFinished;
+        window->DoEvent(arg);
+        // 返回
+        return window;
+    }
+    return nullptr;
+}
 
 
 // 窗口过程函数
@@ -613,17 +615,6 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
         colorf.b = blend_channel(float(argb[0]) / 255.f, basegrey, prec);
     }
     return hr;
-}
-
-// 默认创建窗口
-auto LongUI::CUIManager::CreateLongUIWIndow(pugi::xml_node node, UIWindow* parent, void* user_data) noexcept -> UIWindow * {
-    UNREFERENCED_PARAMETER(user_data);
-    auto ctrl = LongUI::UIControl::AllocRealControl<LongUI::UIWindow>(
-        node, 
-        [=](void* p) noexcept { new(p) UIWindow(node, parent); }
-        );
-    assert(ctrl);
-    return static_cast<UIWindow*>(ctrl);
 }
 
 
