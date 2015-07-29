@@ -324,6 +324,7 @@ protected:
     LongUI::CUIVideoComponent       m_video;
 };
 
+
 // 应用程序入口
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
     // 设置堆信息

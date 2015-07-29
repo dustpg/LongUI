@@ -30,7 +30,7 @@ namespace LongUI {
     namespace Component {
         // Component: Text
         class Text {
-            using InfoUIBasicTextRenderer = InfomationPointer<UIBasicTextRenderer>;
+            using InfoUIBasicTextRenderer = Helper::InfomationPointer<CUIBasicTextRenderer>;
             // 重建
             void __fastcall recreate(const char* = nullptr) noexcept;
         public:
@@ -85,7 +85,7 @@ namespace LongUI {
             // the string of text
             CUIString                   m_text;
             // context buffer for text renderer
-            ContextBuffer               m_buffer;
+            EzContainer::ContextBuffer  m_buffer;
         };
     }
 }

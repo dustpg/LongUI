@@ -480,7 +480,8 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             assert(m_aUnitNow.length < LongUIDirtyControlSize);
             length_for_units = m_aUnitNow.length;
             ::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
-            std::sort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
+            // 一般就几个, 冒泡完爆std::sort
+            LongUI::BubbleSort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
                 return a->priority > b->priority;
             });
             if (m_aUnitNow.length >= 2) {

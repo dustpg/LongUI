@@ -72,10 +72,10 @@ namespace LongUI{
     // 重载?特例化 GetIID
     template<> LongUIInline const IID& GetIID<LongUI::UIText>() {
         // {47F83436-2D1F-413B-BBAD-9322EFF18185}
-        static const GUID IID_LongUI_UILabel = {
+        static const GUID IID_LongUI_UIText = {
             0x47f83436, 0x2d1f, 0x413b,{ 0xbb, 0xad, 0x93, 0x22, 0xef, 0xf1, 0x81, 0x85 } 
         };
-        return IID_LongUI_UILabel;
+        return IID_LongUI_UIText;
     }
 #endif
 }

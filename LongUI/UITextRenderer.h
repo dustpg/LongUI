@@ -28,7 +28,7 @@
 namespace LongUI {
     // Text Render Type
     enum TextRendererType : uint32_t {
-        // Normal: For UINormalTextRender
+        // Normal: For CUINormalTextRender
         Type_NormalTextRenderer = 0,
         // Outline: For UIOutlineTextRender
         Type_OutlineTextRenderer ,
@@ -38,13 +38,13 @@ namespace LongUI {
         Type_UserDefineFirst,
     };
     // Basic TextRenderer
-    class DECLSPEC_NOVTABLE UIBasicTextRenderer : public ComStatic<
-        QiListSelf<UIBasicTextRenderer, QiList<IDWriteTextRenderer>>> {
+    class DECLSPEC_NOVTABLE CUIBasicTextRenderer : public Helper::ComStatic<
+        Helper::QiListSelf<CUIBasicTextRenderer, Helper::QiList<IDWriteTextRenderer>>> {
     public:
         // destructor
-        ~UIBasicTextRenderer()  noexcept { ::SafeRelease(m_pRenderTarget); ::SafeRelease(m_pBrush);}
+        ~CUIBasicTextRenderer()  noexcept { ::SafeRelease(m_pRenderTarget); ::SafeRelease(m_pBrush);}
         // constructor
-        UIBasicTextRenderer(TextRendererType t) noexcept :type(t) { basic_color.userdata = 0; basic_color.color = { 0.f,0.f,0.f,1.f }; }
+        CUIBasicTextRenderer(TextRendererType t) noexcept :type(t) { basic_color.userdata = 0; basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
         void SetNewRT(LongUIRenderTarget* rt) { ::SafeRelease(m_pRenderTarget); m_pRenderTarget = ::SafeAcquire(rt); }
         // set new render brush
@@ -67,7 +67,7 @@ namespace LongUI {
             BOOL isRightToLeft,
             _In_opt_ IUnknown* clientDrawingEffect
             ) noexcept override;
-    public: // LongUI UIBasicTextRenderer 
+    public: // LongUI CUIBasicTextRenderer 
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept->uint32_t = 0;
         // create context from string
@@ -79,18 +79,17 @@ namespace LongUI {
         ID2D1SolidColorBrush*       m_pBrush = nullptr;
     public:
         // baisc color
-        UIColorEffect               basic_color;
+        CUIColorEffect              basic_color;
         // type of text renderer
         TextRendererType      const type;
     };
-    // Normal Text Render
-    // Render Context -> None
-    class  UINormalTextRender : public UIBasicTextRenderer {
+    // Normal Text Render: Render Context -> None
+    class  CUINormalTextRender : public CUIBasicTextRenderer {
         // superclass define
-        using Super = UIBasicTextRenderer ;
+        using Super = CUIBasicTextRenderer ;
     public:
-        // UINormalTextRender
-        UINormalTextRender():Super(Type_NormalTextRenderer){ }
+        // CUINormalTextRender
+        CUINormalTextRender():Super(Type_NormalTextRenderer){ }
     public:// IDWriteTextRenderer implementation
         // draw glyphrun
         LONGUICOMMETHOD DrawGlyphRun(
@@ -118,7 +117,7 @@ namespace LongUI {
             const DWRITE_STRIKETHROUGH* strikethrough,
             IUnknown* clientDrawingEffect
             ) noexcept override;
-    public:// UIBasicTextRenderer implementation
+    public:// CUIBasicTextRenderer implementation
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->uint32_t override  { return 0ui32; }
         // create context from string

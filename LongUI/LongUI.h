@@ -446,7 +446,10 @@ namespace LongUI {
 #include "UIString.h"
 // LongUI Util Code
 #include "UIAnimation.h"
-#include "UIUtil.h"
+#include "UIUtilMethod.h"
+#include "UIUtilHelper.h"
+#include "UIUtilClass.h"
+#include "UIUtilEzContainer.h"
 #include "UIDropSource.h"
 #include "UIDataObject.h"
 #include "UITextRenderer.h"

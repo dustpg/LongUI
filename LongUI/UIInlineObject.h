@@ -27,7 +27,7 @@
 // longui namespace
 namespace LongUI {
     // LongUI Inline Object
-    class UIInlineObject : public ComBase<QiList<IDWriteInlineObject>> {
+    class UIInlineObject : public Helper::ComBase<Helper::QiList<IDWriteInlineObject>> {
     public:
         // inline obj type
         enum InlineType : size_t {

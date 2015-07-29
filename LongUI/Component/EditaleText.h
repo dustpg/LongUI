@@ -34,7 +34,9 @@ namespace LongUI {
             // 简写
             using HitTestMetrics = DWRITE_HIT_TEST_METRICS;
             // 缓冲区
-            using MetricsBuffer = SimpleSmallBuffer<HitTestMetrics, 8>;
+            using MetricsBuffer = EzContainer::SimpleSmallBuffer<HitTestMetrics, 8>;
+            // 缓冲区
+            using CtxBuffer = EzContainer::ContextBuffer;
         public:
             // the mode of text selection zone 选择区模式
             enum SelectionMode : uint32_t {
@@ -200,7 +202,7 @@ namespace LongUI {
             // size of this
             D2D1_SIZE_F             m_size = D2D1::SizeF(96.f, 96.f);
             // Text Renderer
-            UIBasicTextRenderer*    m_pTextRenderer = nullptr;
+            CUIBasicTextRenderer*   m_pTextRenderer = nullptr;
             // factory
             IDWriteFactory*         m_pFactory = nullptr;
             // basic text format
@@ -230,7 +232,7 @@ namespace LongUI {
             // basic color
             D2D1_COLOR_F            m_basicColor;
             // context buffer for text renderer
-            ContextBuffer           m_buffer;
+            CtxBuffer               m_buffer;
         };
     }
     // Needed text editor backspace deletion.

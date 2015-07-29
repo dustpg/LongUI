@@ -27,7 +27,7 @@ For this repo, you need:
   
   - class :  
       - \[C/I/?\] UI ClassName, etc. CUIManager IUIInterface  
-      - except: class under LongUI::Component
+      - except: class under LongUI::XXX(Component/Helper....)
   - member variable:  
       - public: member_variable, etc. parent, user_data  
       - private/protected: m_typeMemberVariable, etc, m_pWindow

@@ -28,7 +28,8 @@
 // longui namespace
 namespace LongUI {
     // UIDropSource 类 
-    class CUIDropSource final: public ComBase<QiListSelf<IUnknown, QiList<IDropSource>>> {
+    class CUIDropSource final: public Helper::ComBase<
+        Helper::QiListSelf<IUnknown, Helper::QiList<IDropSource>>> {
     public:
         // 创建对象
         static CUIDropSource* New() noexcept;

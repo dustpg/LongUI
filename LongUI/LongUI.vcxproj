@@ -77,8 +77,8 @@
     <ClInclude Include="Component\EditaleText.h" />
     <ClInclude Include="Component\Element.h" />
     <ClInclude Include="Component\Text.h" />
-    <ClInclude Include="DataContainer.h" />
-    <ClInclude Include="GetIIDTemplate.h" />
+    <ClInclude Include="UIUtilHelper.h" />
+    <ClInclude Include="UIUtilEzContainer.h" />
     <ClInclude Include="LongUI.h" />
     <ClInclude Include="longuiconf.h" />
     <ClInclude Include="UIAnimation.h" />
@@ -88,8 +88,8 @@
     <ClInclude Include="UIControl.h" />
     <ClInclude Include="UIDataObject.h" />
     <ClInclude Include="UIDropSource.h" />
+    <ClInclude Include="UIUtilClass.h" />
     <ClInclude Include="UIEdit.h" />
-    <ClInclude Include="UIFileLoader.h" />
     <ClInclude Include="UIHorizontalLayout.h" />
     <ClInclude Include="UIInlineObject.h" />
     <ClInclude Include="UIInput.h" />
@@ -98,13 +98,12 @@
     <ClInclude Include="UIManager.h" />
     <ClInclude Include="UIMarginalable.h" />
     <ClInclude Include="UIMenu.h" />
-    <ClInclude Include="UIRenderQueue.h" />
     <ClInclude Include="UIRichEdit.h" />
     <ClInclude Include="UIScrollBar.h" />
     <ClInclude Include="UISlider.h" />
     <ClInclude Include="UIString.h" />
     <ClInclude Include="UITextRenderer.h" />
-    <ClInclude Include="UIUtil.h" />
+    <ClInclude Include="UIUtilMethod.h" />
     <ClInclude Include="UIVerticalLayout.h" />
     <ClInclude Include="UIWindow.h" />
   </ItemGroup>

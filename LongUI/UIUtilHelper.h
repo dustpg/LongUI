@@ -1,0 +1,199 @@
+﻿#pragma once
+/**
+* Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
+*
+* Permission is hereby granted, free of charge, to any person
+* obtaining a copy of this software and associated documentation
+* files (the "Software"), to deal in the Software without
+* restriction, including without limitation the rights to use,
+* copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following
+* conditions:
+*
+* The above copyright notice and this permission notice shall be
+* included in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+* OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+* NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+* HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+/// !!!!!!!!!!!!!!!!!!!
+// This Page Include Some Container, But ONLY Using in 
+// Simple Data(pointer,no-method-struct etc.)
+
+// LongUI COM Object Method
+#define LONGUICOMMETHOD virtual HRESULT STDMETHODCALLTYPE
+
+// longui namespace
+namespace LongUI {
+    // helper
+    namespace Helper {
+        // ------------------- Windows COM Interface Helper -----------------------------
+        // counter based COM Interface, 0 , wiil be deleted
+        template <typename InterfaceChain, typename CounterType = std::atomic<ULONG>>
+        class ComBase : public InterfaceChain {
+        public:
+            // constructor inline ver.
+            explicit ComBase() noexcept { }
+            // IUnknown interface
+            LONGUICOMMETHOD QueryInterface(IID const& iid, OUT void** ppObject) noexcept final override {
+                *ppObject = nullptr;
+                InterfaceChain::QueryInterfaceInternal(iid, ppObject);
+                if (*ppObject == nullptr)
+                    return E_NOINTERFACE;
+                this->ComBase::AddRef();
+                return S_OK;
+            }
+            // add ref-counter
+            ULONG STDMETHODCALLTYPE AddRef() noexcept final override { return ++m_refValue; }
+            // delete when 0
+            ULONG STDMETHODCALLTYPE Release() noexcept final override {
+                ULONG newCount = --m_refValue;
+                if (newCount == 0)  delete this;
+                return newCount;
+            }
+            // virtual destructor
+            virtual ~ComBase() noexcept { }
+        protected:
+            // the counter 
+            CounterType     m_refValue = 0;
+        public:
+            // No copy construction allowed.
+            ComBase(const ComBase& b) = delete;
+            ComBase& operator=(ComBase const&) = delete;
+        };
+        // None Counter COM(Static)
+        template <typename InterfaceChain>
+        class ComStatic : public InterfaceChain {
+        public:
+            // constructor inline ver.
+            explicit ComStatic() noexcept { }
+            // IUnknown interface
+            LONGUICOMMETHOD QueryInterface(IID const& iid, OUT void** ppObject) noexcept final override {
+                *ppObject = nullptr;
+                InterfaceChain::QueryInterfaceInternal(iid, ppObject);
+                if (*ppObject == nullptr)
+                    return E_NOINTERFACE;
+                AddRef();
+                return S_OK;
+            }
+            // allways return 2
+            virtual ULONG STDMETHODCALLTYPE AddRef() noexcept final override { return  2; }
+            // allways return 1
+            virtual ULONG STDMETHODCALLTYPE Release() noexcept final override { return 1; }
+        public:
+            // No copy construction allowed.
+            ComStatic(const ComStatic& b) = delete;
+            ComStatic& operator=(ComStatic const&) = delete;
+        };
+        // None
+        struct QiListNil { };
+        // When the QueryInterface list refers to itself as class,
+        // which hasn't fully been defined yet.
+        template <typename InterfaceName, typename InterfaceChain>
+        class QiListSelf : public InterfaceChain {
+        public:
+            inline void QueryInterfaceInternal(IID const& iid, OUT void** ppObject) noexcept {
+                if (iid != LongUI::GetIID<InterfaceName>())
+                    return InterfaceChain::QueryInterfaceInternal(iid, ppObject);
+                *ppObject = static_cast<InterfaceName*>(this);
+            }
+        };
+        // When this interface is implemented and more follow.
+        template <typename InterfaceName, typename InterfaceChain = QiListNil>
+        class QiList : public InterfaceName, public InterfaceChain {
+        public:
+            inline void QueryInterfaceInternal(IID const& iid, OUT void** ppObject) noexcept {
+                if (iid != LongUI::GetIID<InterfaceName>())
+                    return InterfaceChain::QueryInterfaceInternal(iid, ppObject);
+
+                *ppObject = static_cast<InterfaceName*>(this);
+            }
+        };
+        // When the this is the last implemented interface in the list.
+        template <typename InterfaceName>
+        class QiList<InterfaceName, QiListNil> : public InterfaceName{
+        public:
+            inline void QueryInterfaceInternal(IID const& iid, OUT void** ppObject) noexcept {
+                if (iid != LongUI::GetIID<InterfaceName>()) return;
+                *ppObject = static_cast<InterfaceName*>(this);
+            }
+        };
+        // ------------------- Save Memory Helper -----------------------------
+        // Bit Array 计算机中每一字节都很宝贵
+        template<typename T>
+        class BitArray {
+        public:
+            // bit wide
+            static constexpr size_t LENGTH = sizeof(T) * 8;
+            // ctor
+            BitArray() noexcept {};
+            // dtor
+            ~BitArray() noexcept {};
+            // is true or fasle
+            auto Test(uint32_t index) noexcept { return !!(m_data & (1 << index)); }
+            // set to true
+            auto SetTrue(uint32_t index) noexcept { m_data |= (1 << index); };
+            // set to false
+            auto SetFalse(uint32_t index) noexcept { m_data &= ~(1 << index); };
+            // set to NOT
+            auto SetNot(uint32_t index) noexcept { m_data ^= (1 << index); };
+        private:
+            // data for bit-array
+            T           m_data = T(0);
+        };
+        // 特例化
+        using BitArray16 = BitArray<uint16_t>;
+        using BitArray32 = BitArray<uint32_t>;
+        using BitArray64 = BitArray<uint64_t>;
+        // data 放肆!450交了么!
+        constexpr size_t  INFOPDATA12_ZONE = (size_t(3));
+        constexpr size_t  INFOPOINTER_ZONE = ~INFOPDATA12_ZONE;
+        constexpr size_t  INFOPTDATA1_ZONE = ~(size_t(2));
+        constexpr size_t  INFOPTDATA2_ZONE = ~(size_t(1));
+        // Infomation-ed pointer  计算机中每一字节都很宝贵
+        template<typename T>
+        class InfomationPointer {
+        public:
+            // constructor
+            InfomationPointer(T* pointer) :data(reinterpret_cast<size_t>(pointer)) { assert(!(data&INFOPDATA12_ZONE)); }
+            // copy constructor
+            InfomationPointer(const InfomationPointer&) = delete;
+            // move constructor
+            InfomationPointer(InfomationPointer&&) = delete;
+            // operator =
+            T* operator=(T* pt) { assert(!(data&INFOPDATA12_ZONE)); data = reinterpret_cast<size_t>(pt) | (data&INFOPDATA12_ZONE); return pt; }
+            // operator ->
+            T* operator->() noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
+            // operator T*
+            operator T*() const noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
+            // operator []
+            T& operator [](const int index) noexcept { return (reinterpret_cast<T*>(data & INFOPOINTER_ZONE))[index]; }
+            // operator [] const ver.
+            const T& operator [](const int index) const noexcept { return (reinterpret_cast<T*>(data & INFOPOINTER_ZONE))[index]; }
+            // pointer
+            T* Ptr() const noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
+            // bool1
+            bool Bool1() const noexcept { return (data & (1 << 0)) > 0; }
+            // bool2
+            bool Bool2() const noexcept { return (data & (1 << 1)) > 0; }
+            // set bool1
+            void SetBool1(bool b) noexcept { data = (data & INFOPTDATA2_ZONE) | size_t(b); }
+            // bool2
+            void SetBool2(bool b) noexcept { data = (data & INFOPTDATA1_ZONE) | (size_t(b) << 1); }
+            // SafeRelease if keep a Relase() interface(COM like)
+            void SafeRelease() noexcept { T* t = reinterpret_cast<T*>(data & INFOPOINTER_ZONE); if (t) { t->Release(); data &= INFOPDATA12_ZONE; } }
+        private:
+            // pointer & boolx2 data
+            size_t          data;
+        };
+    }
+}
+

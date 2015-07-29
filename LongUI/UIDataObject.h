@@ -32,7 +32,8 @@ namespace LongUI {
         STGMEDIUM stgMedium;
     };
     // UIDataObject 类: 实现IDataObject
-    class CUIDataObject final  :public ComBase<QiListSelf<IUnknown, QiList<IDataObject>>> {
+    class CUIDataObject final : public Helper::ComBase<
+        Helper::QiListSelf<IUnknown, Helper::QiList<IDataObject>>> {
     public:
         // 创建对象
         static CUIDataObject* New() noexcept;

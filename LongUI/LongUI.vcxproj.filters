@@ -59,12 +59,6 @@
     <ClInclude Include="UIInterface.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
-    <ClInclude Include="UIString.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIUtil.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
     <ClInclude Include="UIManager.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
@@ -101,20 +95,8 @@
     <ClInclude Include="UIDropSource.h">
       <Filter>LongUI\Util</Filter>
     </ClInclude>
-    <ClInclude Include="UIFileLoader.h">
-      <Filter>LongUI\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="GetIIDTemplate.h">
-      <Filter>LongUI\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="DataContainer.h">
-      <Filter>LongUI\Util</Filter>
-    </ClInclude>
     <ClInclude Include="UIInput.h">
       <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIRenderQueue.h">
-      <Filter>LongUI\Util</Filter>
     </ClInclude>
     <ClInclude Include="UIMenu.h">
       <Filter>LongUI\Header\Control</Filter>
@@ -138,6 +120,21 @@
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="UIMarginalable.h">
+      <Filter>LongUI\Header\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUtilMethod.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUtilClass.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUtilHelper.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUtilEzContainer.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="UIString.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
   </ItemGroup>

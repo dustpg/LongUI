@@ -350,7 +350,7 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_Up:
     case SelectionMode::Mode_Down:
     {
-        SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+        EzContainer::SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
         // 获取行指标
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
@@ -413,7 +413,7 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_RightWord:
     {
         // 计算所需字符串集
-        SimpleSmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
+        EzContainer::SimpleSmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
         UINT32 clusterCount;
         this->layout->GetClusterMetrics(nullptr, 0, &clusterCount);
         if (clusterCount == 0) break;
@@ -457,7 +457,7 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_End:
     {
         // 获取预知的首位置或者末位置
-        SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+        EzContainer::SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
         // 获取行指标
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
@@ -1416,13 +1416,13 @@ void LongUI::Component::EditaleText::CopyRangedProperties(
 
 
 // 返回FALSE
-HRESULT LongUI::UIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDisabled) noexcept {
+HRESULT LongUI::CUIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDisabled) noexcept {
     *isDisabled = false;
     return S_OK;
 }
 
 // 从目标渲染呈现器获取
-HRESULT LongUI::UIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
+HRESULT LongUI::CUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
     assert(m_pRenderTarget);
     // XXX: 优化 Profiler 就这1行 0.05%
     m_pRenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
@@ -1430,13 +1430,13 @@ HRESULT LongUI::UIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX *
 }
 
 // 始终如一, 方便转换
-HRESULT LongUI::UIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) noexcept {
+HRESULT LongUI::CUIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) noexcept {
     *bilibili = 1.f;
     return S_OK;
 }
 
 // 渲染内联对象
-HRESULT LongUI::UIBasicTextRenderer::DrawInlineObject(
+HRESULT LongUI::CUIBasicTextRenderer::DrawInlineObject(
     void * clientDrawingContext,
     FLOAT originX, FLOAT originY,
     IDWriteInlineObject * inlineObject,
@@ -1456,10 +1456,14 @@ HRESULT LongUI::UIBasicTextRenderer::DrawInlineObject(
         );
     return S_OK;
 }
+// v-table
+#define LONGUIVTABLE(pointer)  (*reinterpret_cast<const size_t * const>(pointer))
+// same v-table?
+#define LONGUISAMEVT(a, b) (LONGUIVTABLE(a) == LONGUIVTABLE(b))
 
-// ------------------UINormalTextRender-----------------------
+// ------------------CUINormalTextRender-----------------------
 // 刻画字形
-HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
+HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     void * clientDrawingContext,
     FLOAT baselineOriginX, FLOAT baselineOriginY,
     DWRITE_MEASURING_MODE measuringMode,
@@ -1470,8 +1474,9 @@ HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
     UNREFERENCED_PARAMETER(glyphRunDescription);
     // 获取颜色
     register D2D1_COLOR_F* color = nullptr;
+    // 检查
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
-        color = &static_cast<UIColorEffect*>(effect)->color;
+        color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
         color = &this->basic_color.color;
@@ -1489,7 +1494,7 @@ HRESULT LongUI::UINormalTextRender::DrawGlyphRun(
 }
 
 // 刻画下划线
-HRESULT LongUI::UINormalTextRender::DrawUnderline(
+HRESULT LongUI::CUINormalTextRender::DrawUnderline(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
     FLOAT baselineOriginY,
@@ -1500,7 +1505,7 @@ HRESULT LongUI::UINormalTextRender::DrawUnderline(
     // 获取颜色
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
-        color = &static_cast<UIColorEffect*>(effect)->color;
+        color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
         color = &this->basic_color.color;
@@ -1520,7 +1525,7 @@ HRESULT LongUI::UINormalTextRender::DrawUnderline(
 }
 
 // 刻画删除线
-HRESULT LongUI::UINormalTextRender::DrawStrikethrough(
+HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
     FLOAT baselineOriginY,
@@ -1531,7 +1536,7 @@ HRESULT LongUI::UINormalTextRender::DrawStrikethrough(
     // 获取颜色
     register D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
-        color = &static_cast<UIColorEffect*>(effect)->color;
+        color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
         color = &this->basic_color.color;

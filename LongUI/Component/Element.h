@@ -224,7 +224,7 @@ namespace LongUI {
     }
 #ifdef LONGUI_VIDEO_IN_MF
     // Video Component implemented in UIUtil.cpp file
-    class CUIVideoComponent : ComStatic<QiList<IMFMediaEngineNotify>> {
+    class CUIVideoComponent : Helper::ComStatic<Helper::QiList<IMFMediaEngineNotify>> {
     public: // IMFMediaEngineNotify Interface
         // Event Notify
         virtual HRESULT STDMETHODCALLTYPE EventNotify(

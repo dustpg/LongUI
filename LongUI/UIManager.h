@@ -63,7 +63,7 @@ namespace LongUI {
         // remove window
         void RemoveWindow(UIWindow* wnd, bool cleanup = false) noexcept;
         // register, return -1 for error(out of renderer space), return other for index
-        auto RegisterTextRenderer(UIBasicTextRenderer*) noexcept->int32_t;
+        auto RegisterTextRenderer(CUIBasicTextRenderer*) noexcept->int32_t;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
         auto GetTextFormat(size_t i) noexcept->IDWriteTextFormat*;
         // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
@@ -266,7 +266,7 @@ namespace LongUI {
         ID3D11Debug*                    m_pd3dDebug = nullptr;
 #endif
         // 文本渲染器
-        UIBasicTextRenderer*            m_apTextRenderer[LongUIMaxTextRenderer];
+        CUIBasicTextRenderer*            m_apTextRenderer[LongUIMaxTextRenderer];
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATUS_COUNT];
         // 二进制资源读取器
@@ -318,7 +318,7 @@ namespace LongUI {
         // 等待垂直同步起始时间
         uint32_t                        m_dwWaitVSStartTime = 0;
         // textrender: normal
-        UINormalTextRender              m_normalTRenderer;
+        CUINormalTextRender              m_normalTRenderer;
         // xml doc for window
         pugi::xml_document              m_docWindow;
         // xml doc for template

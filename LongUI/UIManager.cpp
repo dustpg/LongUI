@@ -281,8 +281,8 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
     // 添加窗口
     //add_control(window, node);
     // 队列 -- 顺序遍历树
-    LongUI::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
-    LongUI::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
+    LongUI::EzContainer::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
+    LongUI::EzContainer::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
     // 
     UIControl* now_control = nullptr;
     UIContainer* parent_node = window;
@@ -680,7 +680,8 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
     IDWriteFactory* factory, const wchar_t * filename, const wchar_t * folder)
     noexcept -> IDWriteFontCollection* {
     // 字体文件枚举
-    class LongUIFontFileEnumerator final : public ComStatic<QiList<IDWriteFontFileEnumerator>> {
+    class LongUIFontFileEnumerator final : public Helper::ComStatic<
+        Helper::QiList<IDWriteFontFileEnumerator>> {
     public:
         // 获取当前字体文件
         HRESULT STDMETHODCALLTYPE GetCurrentFontFile(IDWriteFontFile **ppFontFile) noexcept override  {
@@ -722,7 +723,8 @@ auto LongUI::CUIManager::CreateLongUIFontCollection(
         IDWriteFactory*             m_pFactory;
     };
     // 字体文件载入器
-    class LongUIFontCollectionLoader final : public ComStatic<QiList<IDWriteFontCollectionLoader>> {
+    class LongUIFontCollectionLoader final : public Helper::ComStatic<
+        Helper::QiList<IDWriteFontCollectionLoader>> {
     public:
         // 创建枚举器
         HRESULT STDMETHODCALLTYPE CreateEnumeratorFromKey(
@@ -928,7 +930,7 @@ auto LongUI::CUIManager::XMLToCoreFormat(const char* xml, wchar_t* core) noexcep
 
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
-    UIBasicTextRenderer* renderer) noexcept -> int32_t {
+    CUIBasicTextRenderer* renderer) noexcept -> int32_t {
     if (m_uTextRenderCount == lengthof(m_apTextRenderer)) {
         return -1;
     }
@@ -1735,7 +1737,7 @@ auto  LongUI::CUIManager::FormatTextCore(
     ::memset(&range_data, 0, sizeof(range_data));
     assert(format && "bad argument");
     IDWriteTextLayout* layout = nullptr;
-    register UIColorEffect* tmp_color = nullptr;
+    register CUIColorEffect* tmp_color = nullptr;
     // 缓存字符串长度
     uint32_t string_length = 0;
     // 当前字符
@@ -1750,7 +1752,7 @@ auto  LongUI::CUIManager::FormatTextCore(
     wchar_t fontname_buffer[LongUIStringBufferLength];
     auto fontname_buffer_index = fontname_buffer;
     // 使用栈
-    FixedStack<RangeData, 1024> stack_check, statck_set;
+    LongUI::EzContainer::FixedStack<RangeData, 1024> stack_check, statck_set;
     // 缓存起点
     buffer_index = buffer;
     // 便利
@@ -1791,7 +1793,7 @@ auto  LongUI::CUIManager::FormatTextCore(
                 }
                 range_data.range_type = R::D;
                 // 动态创建颜色效果
-                tmp_color = UIColorEffect::Create();
+                tmp_color = CUIColorEffect::Create();
                 assert(tmp_color && "C");
                 // 从范围数据中获取
                 if (ap) {
@@ -1813,7 +1815,7 @@ auto  LongUI::CUIManager::FormatTextCore(
                 }
                 range_data.range_type = R::D;
                 // 动态创建颜色效果
-                tmp_color = UIColorEffect::Create();
+                tmp_color = CUIColorEffect::Create();
                 assert(tmp_color && "c");
                 if (ap) {
                     LongUI::UnpackTheColorARGB(range_data.u32, tmp_color->color);

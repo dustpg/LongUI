@@ -473,30 +473,6 @@ LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
 // += 操作
 //const LongUI::CUIString& LongUI::CUIString::operator+=(const wchar_t*);
 
-// DllControlLoader 构造函数
-LongUI::DllControlLoader::DllControlLoader(
-    const wchar_t* file, const wchar_t* name, const char* proc)
-    noexcept : dll(::LoadLibraryW(file)){
-    CreateControlFunction tmpfunc = nullptr;
-    // 检查参数
-    assert(file && name && proc && "bad argument");
-    // 获取函数地址
-    if (this->dll && (tmpfunc=reinterpret_cast<CreateControlFunction>(::GetProcAddress(dll, proc)))) {
-        // 强制转换
-        const_cast<CreateControlFunction&>(this->function) = tmpfunc;
-        // 添加函数映射
-        UIManager.RegisterControl(this->function, name);
-    }
-}
-
-// DllControlLoader 析构函数
-LongUI::DllControlLoader::~DllControlLoader() noexcept {
-    if (this->dll) {
-        ::FreeLibrary(this->dll);
-        const_cast<HMODULE&>(this->dll) = nullptr;
-    }
-}
-
 // CUIAnimation ---------- BEGIN -------------
 
 #define UIAnimation_Template_A      \
