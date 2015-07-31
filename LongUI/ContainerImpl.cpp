@@ -256,7 +256,7 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
             break;
         case 2: // Right
             // 初稿
-            ctrl->view_pos.x = m_orgMargin.left;
+            ctrl->view_pos.x = width_old - ctrl->marginal_width;
             ctrl->view_pos.y = m_orgMargin.top + tmp_float;
             ctrl->view_size.width = ctrl->marginal_width;
             tmp_float = this->marginal_control[UIMarginalable::Control_Top] ?
