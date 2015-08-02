@@ -77,6 +77,7 @@
     <ClInclude Include="Component\EditaleText.h" />
     <ClInclude Include="Component\Element.h" />
     <ClInclude Include="Component\Text.h" />
+    <ClInclude Include="UIUtilDX.h" />
     <ClInclude Include="UIUtilHelper.h" />
     <ClInclude Include="UIUtilEzContainer.h" />
     <ClInclude Include="LongUI.h" />
@@ -116,11 +117,12 @@
     <ClCompile Include="UICheckBox.cpp" />
     <ClCompile Include="UIManager.cpp" />
     <ClCompile Include="UIMenu.cpp" />
-    <ClCompile Include="UIRenderQueue.cpp" />
+    <ClCompile Include="UIRenderQueue_Loader.cpp" />
     <ClCompile Include="UIRichEdit.cpp" />
     <ClCompile Include="UIScrollBar.cpp" />
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="UIUtil.cpp" />
+    <ClCompile Include="UIUtilDX.cpp" />
     <ClCompile Include="UIWindow.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

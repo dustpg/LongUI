@@ -118,55 +118,14 @@ namespace LongUI {
             };
             return this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer);
         }
-    public: // 特例
-        // get default LongUI imp IDWriteFontCollection
-        static auto __cdecl CreateLongUIFontCollection(
-            IDWriteFactory*, 
-            const wchar_t* filename=L"*.*tf", 
-            const wchar_t* folder=L"Fonts"
-            ) noexcept->IDWriteFontCollection*;
-        // create path-geometry from utf-32 char array using text format
-        // fontface: (you can see <LongUI::UIScrollBar::UIScrollBar>)
-        //          fontface == nullptr, ok but a bit slow
-        //          *fontface == nullptr, ok, a bit slow, and out a IDWriteFontFace*, you can use it in next time(same format)
-        //          *fontface != nullptr, ok
-        static auto __cdecl CreateTextPathGeometry(
-            IN const char32_t* utf32_string,  
-            IN size_t string_length, 
-            IN IDWriteTextFormat* format, 
-            IN ID2D1Factory* factory,
-            IN OUT OPTIONAL IDWriteFontFace** fontface,
-            OUT ID2D1PathGeometry** geometry
-            ) noexcept->HRESULT;
-        // create mesh from geometry
-        static auto __cdecl CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept->HRESULT;
-        // format the text into core-mode with xml string: 面向数据
-        static auto __cdecl XMLToCoreFormat(const char*, wchar_t*) noexcept->bool;
-        // format the text into textlayout with format: 面向C/C++
-        static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
-        // format the text into textlayout with format: 面向C/C++
-        static auto __cdecl FormatTextCore(FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
+    public:
+        // create text format
+        auto CreateTextFormat(const wchar_t* fn, DWRITE_FONT_WEIGHT fw, DWRITE_FONT_STYLE sy, DWRITE_FONT_STRETCH st, FLOAT fs, IDWriteTextFormat** tf) noexcept {
+            return m_pDWriteFactory->CreateTextFormat(fn, m_pFontCollection, fw, sy, st, fs, m_szLocaleName, tf);
+        }
+    public:
         // get theme colr
         static auto __fastcall GetThemeColor(D2D1_COLOR_F& colorf) noexcept->HRESULT;
-        // create text format
-        auto CreateTextFormat(
-            const wchar_t* fontFamilyName,
-            DWRITE_FONT_WEIGHT fontWeight,
-            DWRITE_FONT_STYLE fontStyle,
-            DWRITE_FONT_STRETCH fontStretch,
-            FLOAT fontSize,
-            IDWriteTextFormat** textFormat
-            ) noexcept {
-            return m_pDWriteFactory->CreateTextFormat(
-                fontFamilyName, 
-                m_pFontCollection, 
-                fontWeight, fontStyle, 
-                fontStretch,  fontSize,  
-                m_szLocaleName,
-                textFormat
-                );
-        }
-    public: // UAC About
         // is run as admin?
         static bool WINAPI IsRunAsAdministrator() noexcept;
         // try to elevate now,  will lauch a new elevated instance and

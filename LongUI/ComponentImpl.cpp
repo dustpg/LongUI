@@ -127,7 +127,7 @@ void LongUI::Component::Text::recreate(const char* utf8) noexcept {
     wchar_t text_buffer[LongUIStringBufferLength];
     // 转换为核心模式
     if (this->GetIsXML() && this->GetIsRich()) {
-        CUIManager::XMLToCoreFormat(utf8, text_buffer);
+        LongUI::DX::XMLToCoreFormat(utf8, text_buffer);
     }
     else if (utf8) {
         // 直接转码
@@ -139,7 +139,7 @@ void LongUI::Component::Text::recreate(const char* utf8) noexcept {
     ::SafeRelease(m_pLayout);
     // 富文本
     if (this->GetIsRich()) {
-        m_pLayout = CUIManager::FormatTextCore(
+        m_pLayout = LongUI::DX::FormatTextCore(
             m_config,
             m_text.c_str(),
             nullptr

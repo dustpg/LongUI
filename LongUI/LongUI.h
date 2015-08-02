@@ -450,6 +450,7 @@ namespace LongUI {
 #include "UIUtilHelper.h"
 #include "UIUtilClass.h"
 #include "UIUtilEzContainer.h"
+#include "UIUtilDX.h"
 #include "UIDropSource.h"
 #include "UIDataObject.h"
 #include "UITextRenderer.h"

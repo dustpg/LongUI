@@ -137,6 +137,9 @@
     <ClInclude Include="UIString.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
+    <ClInclude Include="UIUtilDX.h">
+      <Filter>LongUI\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -166,9 +169,6 @@
     <ClCompile Include="InlineObjImpl.cpp">
       <Filter>LongUI\Implements</Filter>
     </ClCompile>
-    <ClCompile Include="UIRenderQueue.cpp">
-      <Filter>LongUI\Implements</Filter>
-    </ClCompile>
     <ClCompile Include="UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
@@ -179,6 +179,12 @@
       <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
     <ClCompile Include="ComponentImpl.cpp">
+      <Filter>LongUI\Implements</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRenderQueue_Loader.cpp">
+      <Filter>LongUI\Implements</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUtilDX.cpp">
       <Filter>LongUI\Implements</Filter>
     </ClCompile>
   </ItemGroup>

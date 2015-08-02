@@ -54,7 +54,7 @@ LongUI::UICheckBox::UICheckBox(pugi::xml_node node) noexcept: Super(node) {
     // √ symbol
     auto format = UIManager.GetTextFormat(LongUIDefaultTextFormatIndex);
     char32_t chars = U'√';
-    CUIManager::CreateTextPathGeometry(
+    LongUI::DX::CreateTextPathGeometry(
         &chars, 1,
         format,
         UIManager_D2DFactory,
