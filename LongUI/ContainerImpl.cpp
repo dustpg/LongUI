@@ -208,7 +208,7 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         if (this->flags & Flag_Container_ExistMarginalControl) {
             for (auto ctrl : this->marginal_control) {
                 if (ctrl) {
-                    //do_render(m_pRenderTarget, ctrl);
+                    do_render(m_pRenderTarget, ctrl);
                 }
             }
         }

@@ -57,14 +57,14 @@ namespace LongUI{
     public: // some new
         // on close event
         virtual auto OnClose() noexcept -> bool { this->Cleanup(); return true; };
-    public: // IDropTarget 接口 实现
-        // IDropTarget::DragEnter 实现
+    public: // IDropTarget interface
+        // impl for IDropTarget::DragEnter
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
-        // IDropTarget::DragOver 实现
+        // impl for IDropTarget::DragOver
         HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) noexcept override;
-        // IDropTarget::DragLeave 实现
+        // impl for IDropTarget::DragLeave
         HRESULT STDMETHODCALLTYPE DragLeave(void) noexcept override;
-        // IDropTarget::Drop 实现
+        // impl for IDropTarget::Drop
         HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) noexcept override;
     public:
         // begin render
@@ -163,15 +163,15 @@ namespace LongUI{
         D2D1_SIZE_U             m_miniSize = D2D1::SizeU();
         // window handle
         HWND                    m_hwnd = nullptr;
-        // 创建数据对象
+        // current data object
         IDataObject*            m_pCurDataObject = nullptr;
         // task bar list
         ITaskbarList4*          m_pTaskBarList = nullptr;
-        // 拖放帮助工具
+        // helper for drop target
         IDropTargetHelper*      m_pDropTargetHelper = nullptr;
         // wait for vsync
         HANDLE                  m_hVSync = nullptr;
-        // swap chain 交换链
+        // swap chain
         IDXGISwapChain2*        m_pSwapChain = nullptr;
         // target bitmap
         ID2D1Bitmap1*           m_pTargetBimtap = nullptr;

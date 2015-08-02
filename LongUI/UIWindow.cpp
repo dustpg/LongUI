@@ -1086,7 +1086,7 @@ HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
     }
     // 保留数据
     ::SafeRelease(m_pCurDataObject);
-    m_pCurDataObject = SafeAcquire(pDataObj);
+    m_pCurDataObject = ::SafeAcquire(pDataObj);
     // 由帮助器处理
     POINT ppt = { pt.x, pt.y };
     if (m_pDropTargetHelper) {
@@ -1119,11 +1119,11 @@ HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffec
             }
             // 新控件发送进入
             arg.event = LongUI::Event::Event_DragEnter;
-            m_pDragDropControl = arg.ctrl;
+            m_pDragDropControl = control;
         }
         arg.dataobj_cf = m_pCurDataObject;
         arg.outeffect_cf = pdwEffect;
-        if (!arg.ctrl->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;
+        if (!control->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;
     }
     else {
         // 不支持
