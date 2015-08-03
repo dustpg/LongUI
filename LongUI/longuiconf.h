@@ -28,6 +28,10 @@ namespace LongUI {
     // template helper
     template<typename T>
     static auto SmallAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
+    // get dpi for x
+    static auto GetDpiX() noexcept { return 96.f; }
+    // get dpi for y
+    static auto GetDpiY() noexcept { return 96.f; }
 }
 
 
@@ -108,6 +112,7 @@ namespace LongUI {
 #endif
 // Windows Header Files:
 #include <windows.h>
+#include <commctrl.h>
 #include <Shlobj.h>
 #include <Shlwapi.h>
 #include <ShObjIdl.h>

@@ -753,8 +753,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
             D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
                 D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
                 D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-                96.0f,
-                96.0f
+                LongUI::GetDpiX(),
+                LongUI::GetDpiY()
                 );
             hr = m_pRenderTarget->CreateBitmapFromDxgiSurface(
                 pDxgiBackBuffer,
@@ -853,8 +853,8 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
             D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
             D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-            96.0f,
-            96.0f
+            LongUI::GetDpiX(),
+            LongUI::GetDpiY()
             );
         hr = newRT->CreateBitmapFromDxgiSurface(
             pDxgiBackBuffer,

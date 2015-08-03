@@ -1498,7 +1498,8 @@ HRESULT LongUI::CUIVideoComponent::recreate_surface() noexcept {
             // 创建D2D位图
             D2D1_BITMAP_PROPERTIES1 prop = {
                 D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-                96.f, 96.f,
+                LongUI::GetDpiX(),
+                LongUI::GetDpiY(),
                 D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET, nullptr
             };
             hr = UIManager_RenderTaget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pSharedSurface);

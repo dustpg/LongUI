@@ -384,3 +384,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     return EXIT_SUCCESS;
 }
 
+#pragma comment(lib, "user32")
+#pragma comment(lib, "Ole32")
+#pragma comment(lib, "Shell32")
+#pragma comment(lib, "Advapi32")

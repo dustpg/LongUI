@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <wincodec.h>
 
 
 // test window 测试窗口
@@ -26,11 +27,6 @@ private:
     // UAC 按钮按下
     bool OnUACButtonOn(UIControl* sender);
 private:
-    // your own data
-    void*           m_pNameless = nullptr;
-    // your own data
-    void*           m_pNameless1 = nullptr;
-    size_t          m_u1 = 123;
-    size_t          m_u2 = 456;
-    size_t          m_u3 = 789;
+    // wic factory
+    IWICImagingFactory2*    m_pWICFactory = nullptr;
 };

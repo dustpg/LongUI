@@ -710,3 +710,233 @@ force_break:
     }
     return layout;
 }
+
+// 保存图片
+auto LongUI::DX::SaveAsImageFile(
+    ID2D1Bitmap1* bitmap, IWICImagingFactory* factory, 
+    const wchar_t* file_name, const GUID* container_format
+    ) noexcept -> HRESULT {
+    // 参数检查
+    assert(bitmap && factory && file_name && file_name[0]);
+    if (!(bitmap && factory && file_name && file_name[0])) {
+        return E_INVALIDARG;
+    }
+    // 初始化
+    D2D1_MAPPED_RECT rect = { 0 };
+    HRESULT hr = S_OK;
+    ID2D1Bitmap1* readable_bitmap = nullptr;
+    auto bitmap_size = bitmap->GetPixelSize();
+    auto dxgi_format = bitmap->GetPixelFormat();
+    // 创建CPU可读位图
+    if (SUCCEEDED(hr)) {
+        // CPU 可读?
+        if (bitmap->GetOptions() & D2D1_BITMAP_OPTIONS_CPU_READ) {
+            readable_bitmap = ::SafeAcquire(bitmap);
+        }
+        else {
+            D2D1_BITMAP_PROPERTIES1 prop;
+            prop.pixelFormat = dxgi_format;
+            bitmap->GetDpi(&prop.dpiX, &prop.dpiY);
+            prop.colorContext = nullptr;
+            prop.bitmapOptions = D2D1_BITMAP_OPTIONS_CPU_READ | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+            // 创建位图
+            hr = UIManager_RenderTaget->CreateBitmap(
+                bitmap_size,
+                nullptr,
+                0,
+                &prop,
+                &readable_bitmap
+                );
+        }
+    }
+    // 复制位图
+    if (SUCCEEDED(hr)) {
+        hr = readable_bitmap->CopyFromBitmap(nullptr, bitmap, nullptr);
+    }
+    // 映射数据
+    if (SUCCEEDED(hr)) {
+        hr = readable_bitmap->Map(D2D1_MAP_OPTIONS_READ, &rect);
+    }
+    // 处理
+    if (SUCCEEDED(hr)) {
+        SaveAsImageFileProperties prop;
+        prop.bits = rect.bits;
+        prop.factory = factory;
+        prop.data_format = LongUI::DX::DXGIToWIC(dxgi_format.format);
+        prop.container_format = container_format;
+        prop.width = bitmap_size.width;
+        prop.height = bitmap_size.height;
+        prop.pitch = rect.pitch;
+        auto hr1 = LongUI::DX::SaveAsImageFile(prop, file_name);
+        auto hr2 = readable_bitmap->Unmap();
+        // 检查错误
+        if (SUCCEEDED(hr1)) {
+            hr = SUCCEEDED(hr2) ? S_OK : hr2;
+        }
+        else {
+            hr = hr1;
+        }
+    }
+    // 扫尾处理
+    ::SafeRelease(readable_bitmap);
+    // 返回结果
+    return hr;
+}
+
+#include <Wincodec.h>
+
+// longui namespace
+namespace LongUI {
+    // dx namespace
+    namespace DX {
+        // 保存数据为图片格式
+        auto SaveAsImageFile(const SaveAsImageFileProperties& prop, const wchar_t* file_name) noexcept -> HRESULT {
+            // 参数检查
+            assert(prop.bits && prop.factory && file_name && file_name[0]);
+            if (!(prop.bits && prop.factory && file_name && file_name[0])) {
+                return E_INVALIDARG;
+            }
+            DXGI_FORMAT;
+            // 初始化
+            HRESULT hr = S_OK;
+            IWICBitmapEncoder *pEncoder = nullptr;
+            IWICBitmapFrameEncode *pFrameEncode = nullptr;
+            IWICStream *pStream = nullptr;
+            IWICBitmap *pWICBitmap = nullptr;
+            // 创建WIC位图
+            if (SUCCEEDED(hr)) {
+                hr = prop.factory->CreateBitmapFromMemory(
+                    prop.width,
+                    prop.height,
+                    prop.data_format ? *prop.data_format : GUID_WICPixelFormat32bppBGRA,
+                    prop.pitch,
+                    prop.pitch * prop.height,
+                    prop.bits,
+                    &pWICBitmap
+                    );
+            }
+            // 创建流
+            if (SUCCEEDED(hr)) {
+                hr = prop.factory->CreateStream(&pStream);
+            }
+            WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
+            // 从文件初始化
+            if (SUCCEEDED(hr)) {
+                hr = pStream->InitializeFromFilename(file_name, GENERIC_WRITE);
+            }
+            // 创建编码器
+            if (SUCCEEDED(hr)) {
+                hr = prop.factory->CreateEncoder(
+                    prop.container_format ? *prop.container_format : GUID_ContainerFormatPng,
+                    nullptr,
+                    &pEncoder
+                    );
+            }
+            // 初始化编码器
+            if (SUCCEEDED(hr)) {
+                hr = pEncoder->Initialize(pStream, WICBitmapEncoderNoCache);
+            }
+            // 创建新的一帧
+            if (SUCCEEDED(hr)) {
+                hr = pEncoder->CreateNewFrame(&pFrameEncode, nullptr);
+            }
+            // 初始化帧编码器
+            if (SUCCEEDED(hr)) {
+                hr = pFrameEncode->Initialize(nullptr);
+            }
+            // 设置大小
+            if (SUCCEEDED(hr)) {
+                hr = pFrameEncode->SetSize(prop.width, prop.height);
+            }
+            // 设置格式
+            if (SUCCEEDED(hr)) {
+                hr = pFrameEncode->SetPixelFormat(&format);
+            }
+            // 写入源数据
+            if (SUCCEEDED(hr)) {
+                hr = pFrameEncode->WriteSource(pWICBitmap, nullptr);
+            }
+            // 提交帧编码器
+            if (SUCCEEDED(hr)) {
+                hr = pFrameEncode->Commit();
+            }
+            // 提交编码
+            if (SUCCEEDED(hr)) {
+                hr = pEncoder->Commit();
+            }
+            // 扫尾处理
+            ::SafeRelease(pWICBitmap);
+            ::SafeRelease(pStream);
+            ::SafeRelease(pFrameEncode);
+            ::SafeRelease(pEncoder);
+            // 返回结果
+            return hr;
+        }
+        // WIC GUID <--> DXGI_FORMAT
+        struct WICTranslate { GUID wic; DXGI_FORMAT format; };
+        // data
+        static const WICTranslate s_WICFormats[] =  {
+            { GUID_WICPixelFormat128bppRGBAFloat,       DXGI_FORMAT_R32G32B32A32_FLOAT },
+
+            { GUID_WICPixelFormat64bppRGBAHalf,         DXGI_FORMAT_R16G16B16A16_FLOAT },
+            { GUID_WICPixelFormat64bppRGBA,             DXGI_FORMAT_R16G16B16A16_UNORM },
+
+            { GUID_WICPixelFormat32bppRGBA,             DXGI_FORMAT_R8G8B8A8_UNORM },
+            { GUID_WICPixelFormat32bppBGRA,             DXGI_FORMAT_B8G8R8A8_UNORM },
+            { GUID_WICPixelFormat32bppBGR,              DXGI_FORMAT_B8G8R8X8_UNORM },
+
+            { GUID_WICPixelFormat32bppRGBA1010102XR,    DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM },
+            { GUID_WICPixelFormat32bppRGBA1010102,      DXGI_FORMAT_R10G10B10A2_UNORM },
+            { GUID_WICPixelFormat32bppRGBE,             DXGI_FORMAT_R9G9B9E5_SHAREDEXP },
+
+            { GUID_WICPixelFormat16bppBGRA5551,         DXGI_FORMAT_B5G5R5A1_UNORM },
+            { GUID_WICPixelFormat16bppBGR565,           DXGI_FORMAT_B5G6R5_UNORM },
+
+            { GUID_WICPixelFormat32bppGrayFloat,        DXGI_FORMAT_R32_FLOAT },
+            { GUID_WICPixelFormat16bppGrayHalf,         DXGI_FORMAT_R16_FLOAT },
+            { GUID_WICPixelFormat16bppGray,             DXGI_FORMAT_R16_UNORM },
+            { GUID_WICPixelFormat8bppGray,              DXGI_FORMAT_R8_UNORM },
+
+            { GUID_WICPixelFormat8bppAlpha,             DXGI_FORMAT_A8_UNORM },
+
+            { GUID_WICPixelFormatBlackWhite,            DXGI_FORMAT_R1_UNORM },
+
+            { GUID_WICPixelFormat96bppRGBFloat,         DXGI_FORMAT_R32G32B32_FLOAT },
+        };
+        // DXGI格式转换为 WIC GUID 格式
+        auto DXGIToWIC(DXGI_FORMAT format) noexcept ->const GUID*{
+            const GUID* outformat = nullptr;
+            // 检查
+            for (const auto& data : s_WICFormats) {
+                if (data.format == format) {
+                    outformat = &data.wic;
+                    break;
+                }
+            }
+            // 特殊
+            if (!outformat) {
+                switch (format)
+                {
+                case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+                    outformat = &GUID_WICPixelFormat32bppRGBA;
+                    break;
+                case DXGI_FORMAT_D32_FLOAT:
+                    outformat = &GUID_WICPixelFormat32bppGrayFloat;
+                    break;
+                case DXGI_FORMAT_D16_UNORM:
+                    outformat = &GUID_WICPixelFormat16bppGray;
+                    break;
+                case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+                    outformat = &GUID_WICPixelFormat32bppBGRA;
+                    break;
+                case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+                    outformat = &GUID_WICPixelFormat32bppBGR;
+                    break;
+                }
+            }
+            // 返回数据
+            return outformat;
+        }
+    }
+}
+

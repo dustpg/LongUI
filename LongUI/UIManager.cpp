@@ -1291,7 +1291,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
     if (SUCCEEDED(hr)) {
         auto meta_width = src_rect.right - src_rect.left;
         auto meta_height = src_rect.bottom - src_rect.top;
-#if 1
+#if 0
         BITMAPV5HEADER bi; ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
         bi.bV5Size = sizeof(BITMAPV5HEADER);
         bi.bV5Width = meta_width;
@@ -1340,7 +1340,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         ::DeleteObject(hBitmap);
         ::DeleteObject(hMonoBitmap);
 #else
-        assert(!"CreateIcon just AND & XOR, no alpha channel")
+        assert(!"CreateIcon just AND & XOR, no alpha channel");
 #endif
     }
     AssertHR(hr);

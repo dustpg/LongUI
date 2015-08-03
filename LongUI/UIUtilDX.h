@@ -28,6 +28,8 @@
 namespace LongUI {
     // Helper for DirectX
     namespace DX {
+        // DXGI_FORMAT to WIC GUID format
+        auto DXGIToWIC(DXGI_FORMAT format) noexcept ->const GUID*;
         // format the text into textlayout with format: 面向C/C++
         auto FormatTextCore(FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
         // create mesh from geometry
@@ -36,8 +38,6 @@ namespace LongUI {
         auto XMLToCoreFormat(const char*, wchar_t*) noexcept->bool;
         // format the text into textlayout with format: 面向C/C++
         auto FormatTextCore(FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
-        // save as image file
-        auto SaveAsImageFile(ID2D1Bitmap* bitmap, const wchar_t* file_name);
         // get default LongUI imp IDWriteFontCollection
         auto CreateFontCollection(
             IDWriteFactory* factory,
@@ -57,5 +57,27 @@ namespace LongUI {
             IN OUT OPTIONAL IDWriteFontFace** fontface,
             OUT ID2D1PathGeometry** geometry
             ) noexcept->HRESULT;
+
+        // save as image file
+        auto SaveAsImageFile(ID2D1Bitmap1*, IWICImagingFactory*, const wchar_t*, const GUID* = nullptr) noexcept->HRESULT;
+        // properties for save image file
+        struct SaveAsImageFileProperties {
+            // data for bitmap
+            uint8_t*                bits;
+            // factory for WIC
+            IWICImagingFactory*     factory;
+            // format for source data, default: GUID_WICPixelFormat32bppBGRA
+            const GUID*             data_format;
+            // format for container, default: GUID_ContainerFormatPng
+            const GUID*             container_format;
+            // width of image
+            uint32_t                width;
+            // height of image
+            uint32_t                height;
+            // pitch of image
+            size_t                  pitch;
+        };
+        // save as image file
+        auto SaveAsImageFile(const SaveAsImageFileProperties& prop, const wchar_t* file_name) noexcept -> HRESULT;
     }
 }
