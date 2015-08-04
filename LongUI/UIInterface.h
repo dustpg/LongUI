@@ -28,7 +28,10 @@
 
 // longui namespace
 namespace LongUI {
-    // LongUI UI Interface, IUnkown like interface
+    // LongUI UI Interface, IUnknown like interface
+#if 1
+    using IUIInterface = IUnknown;
+#else
     class DECLSPEC_NOVTABLE IUIInterface { 
     public:
         // qi
@@ -38,6 +41,7 @@ namespace LongUI {
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG = 0;
     };
+#endif
 #define LONGUI_BASIC_INTERFACE_IMPL\
     auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final { return E_NOINTERFACE; }\
     auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return 2; }\

@@ -761,7 +761,6 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
                 &bitmapProperties,
                 &m_pTargetBimtap
                 );
-            
         }
         // 重建失败?
         if (FAILED(hr)) {

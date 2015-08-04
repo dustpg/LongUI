@@ -77,9 +77,9 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
 #ifdef _DEBUG
 // show hr error
 #define ShowErrorWithHR(hr) { \
-    wchar_t buffffffffffer[LongUIStringBufferLength];\
+    wchar_t buffffffffffer[LongUI::LongUIStringBufferLength];\
     ::swprintf(\
-        buffffffffffer, LongUIStringBufferLength,\
+        buffffffffffer, LongUI::LongUIStringBufferLength,\
         L"<%ls>HR:0x%08X",\
         __FUNCTIONW__, hr\
         );\
@@ -89,9 +89,9 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
 
 // show string error
 #define ShowErrorWithStr(str) { \
-    wchar_t buffffffffffer[LongUIStringBufferLength];\
+    wchar_t buffffffffffer[LongUI::LongUIStringBufferLength];\
     ::swprintf(\
-        buffffffffffer, LongUIStringBufferLength,\
+        buffffffffffer, LongUI::LongUIStringBufferLength,\
         L"<%ls>: %ls",\
         __FUNCTIONW__, str\
         );\

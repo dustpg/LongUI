@@ -39,7 +39,7 @@ namespace LongUI {
     };
     // Basic TextRenderer
     class DECLSPEC_NOVTABLE CUIBasicTextRenderer : public Helper::ComStatic<
-        Helper::QiListSelf<CUIBasicTextRenderer, Helper::QiList<IDWriteTextRenderer>>> {
+        Helper::QiListSelf<IUnknown, Helper::QiList<IDWriteTextRenderer>>> {
     public:
         // destructor
         ~CUIBasicTextRenderer()  noexcept { ::SafeRelease(m_pRenderTarget); ::SafeRelease(m_pBrush);}

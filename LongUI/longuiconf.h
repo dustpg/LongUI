@@ -75,7 +75,7 @@ namespace LongUI {
 
 #ifndef LongUIInline
 #define LongUIInline __forceinline
-//#define LongUIInline __attribute__((always))
+//#define LongUIInline inline __attribute__((__always_inline__))
 //#define LongUIInline __inline
 #endif
 

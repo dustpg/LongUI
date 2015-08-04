@@ -9,6 +9,7 @@ MainWindow::MainWindow(pugi::xml_node node, LongUI::UIWindow* p) :Super(node, p)
         CLSCTX_INPROC_SERVER,
         LongUI_IID_PV_ARGS(m_pWICFactory)
         );
+    AssertHR(hr);
 }
 
 // 析构函数
@@ -39,7 +40,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         {
         case LongUI::Event::Event_ButtoClicked:
             UIManager << DL_Hint << L"Button Clicked!@" << arg.sender->GetNameStr() << LongUI::endl;
-            LongUI::DX::SaveAsImageFile(m_pTargetBimtap, m_pWICFactory, L"Data.png");
+            //LongUI::DX::SaveAsImageFile(m_pTargetBimtap, m_pWICFactory, L"Data.png");
             done = true;
             break;
         //case LongUI::Event::Event_TreeBulidingFinished:
