@@ -145,9 +145,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="UIUtil.cpp">
-      <Filter>LongUI\Source\Base</Filter>
-    </ClCompile>
     <ClCompile Include="UIManager.cpp">
       <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
@@ -184,8 +181,11 @@
     <ClCompile Include="UIRenderQueue_Loader.cpp">
       <Filter>LongUI\Implements</Filter>
     </ClCompile>
+    <ClCompile Include="UIUtil.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
     <ClCompile Include="UIUtilDX.cpp">
-      <Filter>LongUI\Implements</Filter>
+      <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

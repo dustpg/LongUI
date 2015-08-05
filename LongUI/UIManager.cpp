@@ -33,9 +33,9 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 获取实例句柄
     auto hInstance = ::GetModuleHandleW(nullptr);
     // 注册窗口类 | CS_DBLCLKS
-    WNDCLASSEX wcex = { 0 };
+    WNDCLASSEXW wcex = { 0 };
     {
-        wcex.cbSize = sizeof(WNDCLASSEX);
+        wcex.cbSize = sizeof(WNDCLASSEXW);
         wcex.style = CS_HREDRAW | CS_VREDRAW;
         wcex.lpfnWndProc = CUIManager::WndProc;
         wcex.cbClsExtra = 0;
@@ -1447,7 +1447,7 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
         // 获取实例句柄
         if (::GetModuleFileNameW(NULL, szPath, ARRAYSIZE(szPath))) {
             // Launch itself as admin
-            SHELLEXECUTEINFO sei = { 0 };
+            SHELLEXECUTEINFOW sei = { 0 };
             sei.cbSize = sizeof(sei);
             sei.lpVerb = L"runas";
             sei.lpFile = szPath;

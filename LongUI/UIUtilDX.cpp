@@ -82,7 +82,7 @@ auto LongUI::DX::CreateFontCollection(
     wchar_t* const buffer(new(std::nothrow) wchar_t[buffer_length]);
     if (buffer) {
         wchar_t* index = buffer; *buffer = 0;
-        WIN32_FIND_DATA fileinfo;
+        WIN32_FIND_DATAW fileinfo;
         wchar_t file_name_path[MAX_PATH]; ::swprintf(file_name_path, MAX_PATH, L"%ls\\%ls", folder, filename);
         HANDLE hFile = ::FindFirstFileW(file_name_path, &fileinfo);
         DWORD errorcode = ::GetLastError();
@@ -819,7 +819,6 @@ namespace LongUI {
             if (SUCCEEDED(hr)) {
                 hr = prop.factory->CreateStream(&pStream);
             }
-            WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
             // 从文件初始化
             if (SUCCEEDED(hr)) {
                 hr = pStream->InitializeFromFilename(file_name, GENERIC_WRITE);
@@ -849,6 +848,7 @@ namespace LongUI {
                 hr = pFrameEncode->SetSize(prop.width, prop.height);
             }
             // 设置格式
+            WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
             if (SUCCEEDED(hr)) {
                 hr = pFrameEncode->SetPixelFormat(&format);
             }

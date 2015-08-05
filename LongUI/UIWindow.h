@@ -205,7 +205,7 @@ namespace LongUI{
         // the real pixel size  of window(HWND)
         D2D1_SIZE_U     const   window_size = D2D1::SizeU();
         // default(arrow)cursor
-        HCURSOR         const   default_cursor = ::LoadCursorW(nullptr, IDC_ARROW);
+        HCURSOR         const   default_cursor = ::LoadCursor(nullptr, IDC_ARROW);
         // now sursor
         HCURSOR                 now_cursor = default_cursor;
         // debug info

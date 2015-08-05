@@ -70,7 +70,7 @@ namespace LongUI{
         // geometry for "√"
         ID2D1PathGeometry*      m_pCheckedGeometry = nullptr;
         // hand cursor
-        HCURSOR                 m_hCursorHand = ::LoadCursorW(nullptr, IDC_HAND);
+        HCURSOR                 m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
         // check box's box size
         D2D1_SIZE_F             m_szCheckBox = D2D1::SizeF(LongUIDefaultCheckBoxWidth, LongUIDefaultCheckBoxWidth);
     public:

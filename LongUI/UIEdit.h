@@ -59,6 +59,6 @@ namespace LongUI {
         // core editable text component
         Component::EditaleText  m_text;
         // 'I' cursor
-        HCURSOR                 m_hCursorI = ::LoadCursorW(nullptr, IDC_IBEAM);
+        HCURSOR                 m_hCursorI = ::LoadCursor(nullptr, IDC_IBEAM);
     };
 }

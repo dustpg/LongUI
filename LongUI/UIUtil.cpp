@@ -1082,10 +1082,8 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         return -1;
     }
     // 创建控制台
-    STARTUPINFO si;
     PROCESS_INFORMATION pi;
-    ::GetStartupInfoW(&si);
-
+    STARTUPINFOW si; ::GetStartupInfoW(&si);
     const wchar_t* DEFAULT_HELPER_EXE = L"ConsoleHelper.exe";
 
     wchar_t cmdline[MAX_PATH];;
