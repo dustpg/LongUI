@@ -463,7 +463,6 @@ void LongUI::CUIManager::Run() noexcept {
 // 等待垂直同步
 auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
     // UIManager << DL_Hint << window << endl;
-
     // 直接等待
     if (window) {
         window->WaitVS();

@@ -44,7 +44,7 @@ namespace LongUI {
         // destructor
         ~CUIBasicTextRenderer()  noexcept { ::SafeRelease(m_pRenderTarget); ::SafeRelease(m_pBrush);}
         // constructor
-        CUIBasicTextRenderer(TextRendererType t) noexcept :type(t) { basic_color.userdata = 0; basic_color.color = { 0.f,0.f,0.f,1.f }; }
+        CUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { basic_color.userdata = 0; basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
         void SetNewRT(LongUIRenderTarget* rt) { ::SafeRelease(m_pRenderTarget); m_pRenderTarget = ::SafeAcquire(rt); }
         // set new render brush

@@ -225,16 +225,42 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
 
 // 刷新边缘控件
 void LongUI::UIContainer::update_marginal_controls() noexcept {
+    // 获取宽度
+    auto get_marginal_width = [](UIMarginalable* ctrl) noexcept {
+        return ctrl ? ctrl->marginal_width : 0.f;
+    };
+    // 计算宽度
+    auto caculate_container_width = [this, get_marginal_width]() noexcept {
+        // 基本宽度
+        return this->view_size.width 
+            + m_orgMargin.left
+            + m_orgMargin.right
+            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Left])
+            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Right])
+            + m_fBorderWidth * 2.f;
+    };    
+    // 计算高度
+    auto caculate_container_height = [this, get_marginal_width]() noexcept {
+        // 基本宽度
+        return this->view_size.height 
+            + m_orgMargin.top
+            + m_orgMargin.bottom
+            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Top])
+            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom])
+            + m_fBorderWidth * 2.f;
+    };
+    // 保留信息
+    float this_container_width = caculate_container_width();
+    float this_container_height = caculate_container_height();
     // 循环
     while (true) {
-        m_bControlSizeChanged = false;
         // XXX: 优化
         for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
             auto ctrl = this->marginal_control[i];
             if (!ctrl) continue;
             float view[] = { 0.f, 0.f, 0.f, 0.f };
-            auto width_old = this->GetTakingUpWidth();
-            auto height_old = this->GetTakingUpHeight();
+            const auto width_old = this->view_size.width;
+            const auto height_old = this->view_size.height;
             // TODO: 计算cross 大小
             float tmp_float = 0.f;
             switch (i)
@@ -266,25 +292,36 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
                 ctrl->view_size.height = height_old - ctrl->view_pos.y - tmp_float;
                 break;
             case 3: // Bottom
-                    // 初稿
+                // 初稿
                 break;
             }
             // 更新边界
             ctrl->UpdateMarginalWidth();
-        }
-        // 修改完毕退出
-        if (!this->IsControlSizeChanged()) {
-            break;
+            // 退出
+            {
+                const float latest_width = caculate_container_width();
+                const float latest_height = caculate_container_height();
+                // 一样就退出
+                if (latest_width == this_container_width &&
+                    latest_height == this_container_height) {
+                    goto force_break;
+                }
+                this_container_width = latest_width;
+                this_container_height = latest_height;
+            }
         }
     }
-    this->SetControlSizeChanged();
+force_break:
+    // 修改
+    this->SetTakingUpWidth(this_container_width);
+    this->SetTakingUpHeight(this_container_height);
     // 更新
     for (auto ctrl : this->marginal_control) {
         // 刷新
         if (ctrl) {
             ctrl->Update();
             // 更新世界矩阵
-            ctrl->RefreshWorld();
+            ctrl->RefreshWorldMarginal();
             // 坐标转换
             D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
             auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));

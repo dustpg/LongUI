@@ -21,9 +21,6 @@
     <Filter Include="LongUI\Header\Control">
       <UniqueIdentifier>{a7147101-f6a6-45a8-8937-d743b5b358bb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Util">
-      <UniqueIdentifier>{8530eb64-27a6-4cb3-9985-c27e16d68d0b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="LongUI\Source">
       <UniqueIdentifier>{31fb1c29-dfad-4ad6-a04f-43e567b23084}</UniqueIdentifier>
     </Filter>
@@ -33,11 +30,11 @@
     <Filter Include="LongUI\Source\Control">
       <UniqueIdentifier>{0f0fcf6c-7edc-4fea-8988-b893192c4a9a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Component">
+    <Filter Include="LongUI\Header\Component">
       <UniqueIdentifier>{1019e09f-9b5a-4869-ac5f-98ba1267315b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Implements">
-      <UniqueIdentifier>{68565e05-2423-436a-9084-22d86a5f9454}</UniqueIdentifier>
+    <Filter Include="LongUI\Header\Util">
+      <UniqueIdentifier>{8530eb64-27a6-4cb3-9985-c27e16d68d0b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -90,10 +87,10 @@
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="UIDataObject.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="UIDropSource.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="UIInput.h">
       <Filter>LongUI\Header\Base</Filter>
@@ -102,19 +99,19 @@
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="UIInlineObject.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="UITextRenderer.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="Component\EditaleText.h">
-      <Filter>LongUI\Component</Filter>
+      <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
     <ClInclude Include="Component\Text.h">
-      <Filter>LongUI\Component</Filter>
+      <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
     <ClInclude Include="Component\Element.h">
-      <Filter>LongUI\Component</Filter>
+      <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
     <ClInclude Include="UIText.h">
       <Filter>LongUI\Header\Control</Filter>
@@ -123,22 +120,22 @@
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
     <ClInclude Include="UIUtilMethod.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="UIUtilClass.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="UIUtilHelper.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="UIUtilEzContainer.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
     <ClInclude Include="UIString.h">
       <Filter>LongUI\Header\Base</Filter>
     </ClInclude>
     <ClInclude Include="UIUtilDX.h">
-      <Filter>LongUI\Util</Filter>
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -163,9 +160,6 @@
     <ClCompile Include="UIWindow.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="InlineObjImpl.cpp">
-      <Filter>LongUI\Implements</Filter>
-    </ClCompile>
     <ClCompile Include="UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
@@ -175,17 +169,20 @@
     <ClCompile Include="ContainerImpl.cpp">
       <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentImpl.cpp">
-      <Filter>LongUI\Implements</Filter>
-    </ClCompile>
-    <ClCompile Include="UIRenderQueue_Loader.cpp">
-      <Filter>LongUI\Implements</Filter>
-    </ClCompile>
     <ClCompile Include="UIUtil.cpp">
       <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
     <ClCompile Include="UIUtilDX.cpp">
       <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentImpl.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRenderQueue_Loader.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="InlineObjImpl.cpp">
+      <Filter>LongUI\Source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

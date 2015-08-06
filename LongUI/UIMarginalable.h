@@ -75,13 +75,11 @@ namespace LongUI {
         /// <returns>void</returns>
         virtual inline void InitMarginalControl(MarginalControl _type) noexcept { force_cast(this->marginal_type) = _type; }
 
-
         /// <summary>
         /// Updates the width of the marginal.
         /// </summary>
         /// <remarks>
-        /// this method is designed to be helper to change parent's margin, just change
-        /// "marginal_width" and call parent->SetControlSizeChanged()
+        /// this method is designed to be helper to change parent's margin, just change "marginal_width"
         /// more detail too see <see cref="LongUI::UIContainer::update_marginal_controls"/>
         /// </remarks>
         /// <returns></returns>

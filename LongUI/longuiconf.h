@@ -11,7 +11,7 @@ namespace LongUI {
     static auto CtrlAlloc(size_t length) noexcept { return ::malloc(length); }
     // free for longui control
     static auto CtrlFree(void* address) noexcept { return ::free(address); }
-#if 1
+#if 0
     // alloc for small space
     static auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
     // free for small space

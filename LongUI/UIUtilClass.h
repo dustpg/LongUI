@@ -159,9 +159,12 @@ namespace LongUI {
 #define UIColorEffect_ExData(o) (reinterpret_cast<uint8_t*>(o) + (sizeof(CUIColorEffect)))
     // Color Effect
     class CUIColorEffect : public Helper::ComBase<Helper::QiList<IUnknown>> {
+        using Super = Helper::ComBase<Helper::QiList<IUnknown>>;
     public:
-        // c
-        CUIColorEffect() noexcept {}
+        // ctor
+        CUIColorEffect(ULONG count) noexcept : Super(count){}
+        // dtor
+        virtual ~CUIColorEffect() noexcept {}
         // operator @delete
         void  operator delete(void* p, size_t) noexcept { LongUI::SmallFree(p); };
         // userdata
@@ -175,8 +178,7 @@ namespace LongUI {
                 LongUI::SmallAlloc(sizeof(CUIColorEffect) + exdata_size)
                 );
             if (obj) {
-                obj->CUIColorEffect::CUIColorEffect();
-                if (addref) obj->AddRef();
+                obj->CUIColorEffect::CUIColorEffect(addref ? 1 : 0);
             }
             return obj;
         }

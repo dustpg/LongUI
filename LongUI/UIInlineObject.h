@@ -41,6 +41,8 @@ namespace LongUI {
         InlineType  const   type;
         // ctor
         UIInlineObject(InlineType _type) noexcept: type(_type) {}
+        // dtor
+        virtual ~UIInlineObject() noexcept {}
     };
     // Meta inlineobject ver.
     class  CUIInlineMeta final : public UIInlineObject {
@@ -49,7 +51,7 @@ namespace LongUI {
         // UIInlineMeta
         CUIInlineMeta(): Super(UIInlineObject::Type_Meta){}
         // ~UIInlineMeta
-        ~CUIInlineMeta() {}
+        virtual ~CUIInlineMeta() {}
     public:
         // meta to render
         Meta                meta;
@@ -76,7 +78,7 @@ namespace LongUI {
         // ctor
         CUIRubyCharacter(const CtorContext&) noexcept;
         // ~dtor
-        ~CUIRubyCharacter() noexcept;
+        virtual ~CUIRubyCharacter() noexcept;
     public: // impl for IDWriteInlineObject
         HRESULT STDMETHODCALLTYPE Draw(void*, IDWriteTextRenderer*, FLOAT, FLOAT, BOOL, BOOL, IUnknown*) noexcept override;
         // draw this

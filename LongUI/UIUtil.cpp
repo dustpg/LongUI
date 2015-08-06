@@ -389,6 +389,10 @@ LongUI::CUIDropSource* LongUI::CUIDropSource::New() noexcept {
     return pointer;
 }
 
+// 析构函数
+LongUI::CUIDropSource::~CUIDropSource() noexcept {
+};
+
 // CUIDropSource::QueryContinueDrag 实现: 
 HRESULT LongUI::CUIDropSource::QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) noexcept {
     // Esc按下或者鼠标右键按下 : 取消拖拽

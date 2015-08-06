@@ -41,7 +41,7 @@ namespace LongUI {
         class ComBase : public InterfaceChain {
         public:
             // constructor inline ver.
-            explicit ComBase() noexcept { }
+            explicit ComBase(ULONG init_count=1) noexcept : m_refValue(init_count) { }
             // IUnknown interface
             LONGUICOMMETHOD QueryInterface(IID const& iid, OUT void** ppObject) noexcept final override {
                 *ppObject = nullptr;
@@ -55,6 +55,7 @@ namespace LongUI {
             ULONG STDMETHODCALLTYPE AddRef() noexcept final override { return ++m_refValue; }
             // delete when 0
             ULONG STDMETHODCALLTYPE Release() noexcept final override {
+                assert(m_refValue != 0 && "bad idea to release zero ref-count object");
                 ULONG newCount = --m_refValue;
                 if (newCount == 0)  delete this;
                 return newCount;
@@ -63,7 +64,7 @@ namespace LongUI {
             virtual ~ComBase() noexcept { }
         protected:
             // the counter 
-            CounterType     m_refValue = 0;
+            CounterType     m_refValue ;
         public:
             // No copy construction allowed.
             ComBase(const ComBase& b) = delete;

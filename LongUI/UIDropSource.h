@@ -35,9 +35,9 @@ namespace LongUI {
         static CUIDropSource* New() noexcept;
     private:
         // 构造函数
-        CUIDropSource() noexcept {};
+        CUIDropSource() noexcept { };
         // 析构函数
-        ~CUIDropSource() noexcept {};
+        virtual ~CUIDropSource() noexcept;
         // 禁止动态构造
         void* operator new(size_t) = delete;
         // 禁止动态构造

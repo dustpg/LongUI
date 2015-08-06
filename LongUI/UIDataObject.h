@@ -53,7 +53,7 @@ namespace LongUI {
         // 删除=
         CUIDataObject& operator =(const CUIDataObject&) = delete;
         // 析构函数
-        ~CUIDataObject() noexcept;
+        virtual ~CUIDataObject() noexcept;
     public:
         // 设置Unicode
         HRESULT SetUnicodeText(const wchar_t*, size_t =0) noexcept;
