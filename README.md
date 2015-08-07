@@ -1,6 +1,6 @@
 ﻿## LongUI
   
-Lightweight Direct2D GUI Library/Framework in C++
+Lightweight Direct2D GUI Library/Framework in C++  
  C++ 轻量级 Direct2D GUI 库/框架  
 [中文说明文档](/README.zh-cn.md)
 
