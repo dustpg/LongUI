@@ -252,6 +252,8 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
     // 保留信息
     float this_container_width = caculate_container_width();
     float this_container_height = caculate_container_height();
+    const auto this_container_width_old = this_container_width;
+    const auto this_container_height_old = this_container_height;
     // 循环
     while (true) {
         // XXX: 优化
@@ -259,23 +261,18 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
             auto ctrl = this->marginal_control[i];
             if (!ctrl) continue;
             float view[] = { 0.f, 0.f, 0.f, 0.f };
-            const auto width_old = this->view_size.width;
-            const auto height_old = this->view_size.height;
             // TODO: 计算cross 大小
-            float tmp_float = 0.f;
             switch (i)
             {
             case 0: // Left
-                if (this->marginal_control[UIMarginalable::Control_Top]) {
-                    tmp_float = this->marginal_control[UIMarginalable::Control_Top]->marginal_width;
-                }
-                // 初稿
-                ctrl->view_pos.x = m_orgMargin.left;
-                ctrl->view_pos.y = m_orgMargin.top + tmp_float;
+                // 坐标
+                ctrl->view_pos.x = m_fBorderWidth - ctrl->marginal_width;
+                ctrl->view_pos.y = m_fBorderWidth - 
+                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Top]);
+                // 大小
                 ctrl->view_size.width = ctrl->marginal_width;
-                tmp_float = this->marginal_control[UIMarginalable::Control_Top] ?
-                    this->marginal_control[UIMarginalable::Control_Top]->marginal_width : 0.f;
-                ctrl->view_size.height = height_old - ctrl->view_pos.y - tmp_float;
+                ctrl->view_size.height = this_container_height_old + ctrl->view_pos.y -
+                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
                 break;
             case 1: // Top
                 // 初稿
@@ -283,13 +280,14 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
                 ctrl->view_pos.y = m_orgMargin.top + view[0];
                 break;
             case 2: // Right
-                // 初稿
-                ctrl->view_pos.x = width_old - ctrl->marginal_width;
-                ctrl->view_pos.y = m_orgMargin.top + tmp_float;
+                // 坐标
+                ctrl->view_pos.x = m_fBorderWidth + this->view_size.width;
+                ctrl->view_pos.y = m_fBorderWidth - 
+                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Top]);
+                // 大小
                 ctrl->view_size.width = ctrl->marginal_width;
-                tmp_float = this->marginal_control[UIMarginalable::Control_Top] ?
-                    this->marginal_control[UIMarginalable::Control_Top]->marginal_width : 0.f;
-                ctrl->view_size.height = height_old - ctrl->view_pos.y - tmp_float;
+                ctrl->view_size.height = this_container_height_old + ctrl->view_pos.y -
+                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
                 break;
             case 3: // Bottom
                 // 初稿
@@ -313,8 +311,8 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
     }
 force_break:
     // 修改
-    this->SetTakingUpWidth(this_container_width);
-    this->SetTakingUpHeight(this_container_height);
+    this->SetTakingUpWidth(this_container_width_old);
+    this->SetTakingUpHeight(this_container_height_old);
     // 更新
     for (auto ctrl : this->marginal_control) {
         // 刷新

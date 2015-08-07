@@ -100,14 +100,25 @@ namespace LongUI {
     /// <summary>
     /// Zip Stream for reading
     /// </summary>
-    class CUIZipReaderStream : public Helper::ComBase<Helper::QiList<IStream>> {
+    class CUIZipReaderStream : public Helper::ComStatic<Helper::QiList<IStream>> {
     public:
         // ctor
-        CUIZipReaderStream(const char* url, mz_zip_archive& zip);
+        CUIZipReaderStream(uint8_t* buffer, uint32_t length) : m_pBuffer(buffer), m_cLength(length){}
         // dtor
-        virtual ~CUIZipReaderStream() {}
+        ~CUIZipReaderStream() {}
+    public: // ISequentialStream
+        // read stream
+        HRESULT STDMETHODCALLTYPE Read(void *pv, ULONG cb, ULONG* pcbRead) noexcept override;
+        // write stream --> NO
+        HRESULT STDMETHODCALLTYPE Write(void const *pv, ULONG cb, ULONG* pcbWritten) noexcept override { return E_NOTIMPL; }
+    public: // IStream
     private:
-
+        // buffer
+        uint8_t*        const   m_pBuffer = nullptr;
+        // length
+        uint32_t        const   m_cLength = 0;
+        // offset
+        uint32_t                m_cOffset = 0;
     };
 }
 

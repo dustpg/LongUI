@@ -7,6 +7,7 @@ const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent) 
 noexcept : Super(node), m_uiRenderQueue(this) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
+    ZeroMemory(&m_curMedium, sizeof(m_curMedium));
     CUIString titlename(m_strControlName);
     {
         UIControl::MakeString(

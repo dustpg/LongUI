@@ -117,7 +117,7 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     }
     else {
         this->marginal_width = 16.f;
-        UISB_OffsetVaule(this->view_size.width) = 16.f;
+        this->visible = true;
     }
 }
 

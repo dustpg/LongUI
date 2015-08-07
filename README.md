@@ -2,6 +2,7 @@
   
 Lightweight Direct2D GUI Library/Framework in C++
  C++ 轻量级 Direct2D GUI 库/框架  
+[中文说明文档](/README.zh-cn.md)
 
 ## Requirements
   
@@ -26,14 +27,14 @@ For this repo, you need:
 ##LongUI Programming Style
   
   - class :  
-      - \[C/I/?\] UI ClassName, etc. CUIManager IUIInterface  
+      - \[C/I/?\] UI ClassName, e.g. CUIManager IUIInterface  
       - except: class under LongUI::XXX(Component/Helper....)
   - member variable:  
-      - public: member_variable, etc. parent, user_data  
-      - private/protected: m_typeMemberVariable, etc, m_pWindow
+      - public: member_variable, e.g. parent, user_data  
+      - private/protected: m_typeMemberVariable, e.g, m_pWindow
   - method/function:  
-      - public: ClassMethod(), etc GetWindow(), Update()
-      - private/protected:  class_method(), etc, refresh_this()  
+      - public: ClassMethod(), e.g GetWindow(), Update()
+      - private/protected:  class_method(), e.g, refresh_this()  
       - except: match STL-Style method: begin(), end(), insert(), but public
   - enum:  see it
 ```cpp
@@ -61,19 +62,6 @@ For this repo, you need:
            2.  ScriptInterfaceGenerator -- helper for binding script interface
   -  LongUI -- core project, designed to be a static-link framework
   -  LongUITest -- my test project, just for me for debugging
-
-## 项目列表
-  
-  - 3rdparty/*, 第三方库, 比如dlmalloc
-  - Demos/* ,示例
-  
-          1. helloworld -- 创建一个基本的LongUI程序
-  - Helper/* , helper项目
-  
-          1.  ConsoleHelper -- 日志调试小工具
-          2.  ScriptInterfaceGenerator -- 脚本接口绑定小工具
-  - LongUI -- 被设计为静态链接的核心项目
-  - LongUITest -- 测试项目, 仅仅面向于自己, 用于新特性/调试
   
  ## License
    
@@ -81,5 +69,5 @@ For this repo, you need:
    - pugixml parser - version 1.5 (MIT License)
    - dlmalloc-2.8.6 (public domain)
    - ~~Scintilla-3.5.3 (License for Scintilla)~~
-   - More detail, see License.txt
+   - More detail, see [License.txt](/License.txt)
    

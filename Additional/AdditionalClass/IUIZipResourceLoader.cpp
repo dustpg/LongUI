@@ -69,7 +69,7 @@ auto LongUI::CUIZipResourceLoader::Init(const wchar_t* file_name) noexcept -> HR
     // 打开资源XML文件
     auto index = ::mz_zip_reader_locate_file(&m_zipFile, "__resources__.xml", nullptr, 0);
     if (index < 0) {
-        assert(!"mz_zip_reader_locate_file: failed, xml file not found");
+        assert(!"mz_zip_reader_locate_file: failed\n xml file not found, file name must be '__resources__.xml'");
         return E_FAIL;
     }
     // 检查信息
@@ -88,6 +88,7 @@ auto LongUI::CUIZipResourceLoader::Init(const wchar_t* file_name) noexcept -> HR
             LongUI_IID_PV_ARGS(m_pWICFactory)
             );
     }
+    // 构建资源信息
     return hr;
 }
 // get reource count
@@ -339,9 +340,11 @@ auto LongUI::CUIZipResourceLoader::get_bitmap(pugi::xml_node node) noexcept -> I
         return hr;
     };
     ID2D1Bitmap1* bitmap = nullptr;
+
+    CUIZipReaderStream stream(nullptr, 0);
     // 载入
     auto hr = load_bitmap_from_stream(
-        m_manager, m_pWICFactory, uri, 0u, 0u, &bitmap
+        m_manager, m_pWICFactory, &stream, 0u, 0u, &bitmap
         );
     // 失败?
     if (FAILED(hr)) {
