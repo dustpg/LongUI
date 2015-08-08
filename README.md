@@ -1,7 +1,6 @@
 ﻿## LongUI
   
 Lightweight Direct2D GUI Library/Framework in C++  
- C++ 轻量级 Direct2D GUI 库/框架  
 [中文说明文档](/README.zh-cn.md)
 
 ## Requirements
@@ -12,10 +11,11 @@ For this repo, you need:
     - **Windows 8 or later**
   - Tool-chain/Environment A: MSC  
     - Visual Stuidio 2015 - Express for Desktop/Community or higher
-    - Windows SDK(10.0.10240.0 RTM)/DirectX SDK(optional)
+    - Windows SDK(10.0.10240.0 RTM)
   - Tool-chain/Environment B(would support in the future): GCC/Clang  
     - Rakefile(ruby)
     - MinGW-W64
+
     
 ##Remarks
   
@@ -26,17 +26,17 @@ For this repo, you need:
   
 ##LongUI Programming Style
   
-  - class :  
-      - \[C/I/?\] UI ClassName, e.g. CUIManager IUIInterface  
+  - **class** :  
+      - \[C/I/?\] UI ClassName, e.g. `CUIManager`, `IUIInterface`
       - except: class under LongUI::XXX(Component/Helper....)
-  - member variable:  
-      - public: member_variable, e.g. parent, user_data  
+  - **member variable**:  
+      - public: member_variable, e.g. `parent`, `user_data`
       - private/protected: m_typeMemberVariable, e.g, m_pWindow
-  - method/function:  
-      - public: ClassMethod(), e.g GetWindow(), Update()
-      - private/protected:  class_method(), e.g, refresh_this()  
-      - except: match STL-Style method: begin(), end(), insert(), but public
-  - enum:  see it
+  - **method/function**:  
+      - public: ClassMethod(), e.g. `GetWindow()`, `Update()`
+      - private/protected:  class_method(), e.g. `refresh_this()`
+      - except: match STL-Style method: `begin()`, `end()`, `insert()`, but **public**
+  - **enum**:  see it
 ```cpp
         enum class PointType : uint16_t {
             Type_None,      // None
@@ -46,8 +46,8 @@ For this repo, you need:
             Type_Shaft,     // Shaft
         };
 ```
-  - auto variable:  
-    - DEPENDS ON MY MOOD, etc, int old_x, oldX, uOldX
+  - **auto variable**:  
+    - DEPENDS ON MY MOOD, e.g. int `old_x`, `oldX`, `uOldX`
     
   
 ## PROJECTS LIST
@@ -63,11 +63,10 @@ For this repo, you need:
   -  LongUI -- core project, designed to be a static-link framework
   -  LongUITest -- my test project, just for me for debugging
   
- ## License
-   
-   - LongUI Under MIT License Basically
-   - pugixml parser - version 1.5 (MIT License)
-   - dlmalloc-2.8.6 (public domain)
-   - ~~Scintilla-3.5.3 (License for Scintilla)~~
-   - More detail, see [License.txt](/License.txt)
-   
+## License
+
+  - LongUI Under MIT License Basically
+  - pugixml parser - version 1.5 (MIT License)
+  - dlmalloc-2.8.6 (public domain)
+  - ~~Scintilla-3.5.3 (License for Scintilla)~~
+  - More detail, see [License.txt](/License.txt)
