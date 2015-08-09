@@ -801,6 +801,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         // Debug状态 有D3D DebugLayer就可以取消注释
         creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
         auto tmpflag = D3D11_CREATE_DEVICE_FLAG(creationFlags);
+        tmpflag = D3D11_CREATE_DEVICE_FLAG(0);
 #endif
         D3D_FEATURE_LEVEL featureLevels[] = {
             D3D_FEATURE_LEVEL_11_1,
@@ -959,7 +960,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 设置文本渲染器数据
     if (SUCCEEDED(hr)) {
         for (uint32_t i = 0u; i < m_uTextRenderCount; ++i) {
-            m_apTextRenderer[i]->SetNewRT(m_pd2dDeviceContext);
+            m_apTextRenderer[i]->SetNewTarget(m_pd2dDeviceContext);
             m_apTextRenderer[i]->SetNewBrush(
                 static_cast<ID2D1SolidColorBrush*>(m_ppBrushes[LongUICommonSolidColorBrushIndex])
                 );
@@ -1106,10 +1107,25 @@ void LongUI::CUIManager::discard_resources() noexcept {
     ::MFShutdown();
 #endif
 #ifdef _DEBUG
+#ifdef _MSC_VER
+    __try {
+        if (m_pd3dDebug) {
+            auto count = m_pd3dDebug->Release();
+            // ---vvvv--- Maybe Error ---vvvv---
+            m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+            // ---^^^^--- Maybe Error ---^^^^---
+            m_pd3dDebug = nullptr; count = 0;
+        }
+    }
+    __finally {
+        m_pd3dDebug = nullptr;
+    }
+#else
     if (m_pd3dDebug) {
         m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
     }
     ::SafeRelease(m_pd3dDebug);
+#endif
 #endif
 }
 
@@ -1290,7 +1306,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
     if (SUCCEEDED(hr)) {
         auto meta_width = src_rect.right - src_rect.left;
         auto meta_height = src_rect.bottom - src_rect.top;
-#if 0
+#if 1
         BITMAPV5HEADER bi; ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
         bi.bV5Size = sizeof(BITMAPV5HEADER);
         bi.bV5Width = meta_width;

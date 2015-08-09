@@ -83,14 +83,12 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate
         virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-    private:
-        // update marginal controls
-        void update_marginal_controls() noexcept;
+    public:
+        // after add a child
+        virtual void AfterInsert(UIControl* child) noexcept ;
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
-        // add a child
-        void AfterInsert(UIControl* child) noexcept;
         // after change draw position
         //void AfterChangeDrawPosition() noexcept;
         // Assure the ScrollBar
@@ -109,7 +107,7 @@ namespace LongUI {
 #else
         void AssertMarginalControl() const noexcept {};
 #endif
-    public: // STL Container Compatibled/style interface/method
+    public: // STL Container compatibled/style interface/method
         // get child at, because of list, will get warning of performance
         auto at(uint32_t) const noexcept ->UIControl*;
         // insert child,
@@ -120,11 +118,14 @@ namespace LongUI {
         void erase(Iterator itr) noexcept { this->remove(itr); itr->Cleanup(); }
     public: 
         // get children count
-        LongUIInline auto size() const noexcept { return m_cChildrenCount; } ;
+        auto size() const noexcept { return m_cChildrenCount; } ;
         // begin 
-        LongUIInline auto begin() const noexcept { return Iterator(m_pHead); };
+        auto begin() const noexcept { return Iterator(m_pHead); };
         // end
-        LongUIInline auto end() const noexcept { return Iterator(nullptr); };
+        auto end() const noexcept { return Iterator(nullptr); };
+    private:
+        // update marginal controls
+        void update_marginal_controls() noexcept;
     protected:
         // dtor 析构函数
         ~UIContainer() noexcept;

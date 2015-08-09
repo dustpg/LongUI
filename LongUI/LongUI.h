@@ -239,6 +239,14 @@ namespace LongUI {
         // XML Attribute : "alwaysrendering"@bool
         Flag_Window_AlwaysRendering = 1 << 23,
     };
+    // operator | for LongUIFlag
+    static auto operator |(LongUIFlag a, LongUIFlag b) noexcept {
+        return static_cast<LongUIFlag>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    };
+    // operator |= for LongUIFlag
+    static auto&operator |=(LongUIFlag& a, LongUIFlag b) noexcept {
+        return a = a | b;
+    };
     // Control Status
     enum ControlStatus : uint16_t {
         Status_Disabled = 0,    // 禁用状态

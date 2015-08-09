@@ -139,7 +139,7 @@ namespace LongUI {
             // dtor
             ~BitArray() noexcept {};
             // is true or fasle
-            auto Test(uint32_t index) noexcept { return !!(m_data & (1 << index)); }
+            auto Test(uint32_t index) const noexcept { return !!(m_data & (1 << index)); }
             // set to true
             auto SetTrue(uint32_t index) noexcept { m_data |= (1 << index); };
             // set to false

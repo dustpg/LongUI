@@ -100,23 +100,31 @@ namespace LongUI{
         // get taking up height of control
         auto GetNonContentHeight() const noexcept ->float;
         // change control draw size out of Update() method
-        auto SetControlSizeChanged() noexcept { m_bControlSizeChanged = true; }
+        auto SetControlSizeChanged() noexcept { m_bool16.SetTrue(Index_ChangeSize); }
         // change control draw size in the Update() method
-        auto ControlSizeChangeHandled() noexcept { m_bControlSizeChangeHandled = true; }
+        auto ControlSizeChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeSizeHandled); }
         // is control draw size changed?
-        auto IsControlSizeChanged() const noexcept { return m_bControlSizeChanged; }
-        // set new taking up width of control
-        auto SetTakingUpWidth(float w) noexcept ->void LongUINoinline;
-        // set new taking up height of control
-        auto SetTakingUpHeight(float h) noexcept ->void LongUINoinline;
+        auto IsControlSizeChanged() const noexcept { return m_bool16.Test(Index_ChangeSize); }
         // refresh the world transform
         void RefreshWorld() noexcept;
+        // refresh the world transform
+        auto IsNeedRefreshWorld() const noexcept { return m_bool16.Test(Index_ChangeSize) || m_bool16.Test(Index_ChangeWorld); }
+        // update the world transform
+        auto UpdateWorld() noexcept { if (this->IsNeedRefreshWorld()) this->RefreshWorld(); }
+        // set left of control
+        auto __fastcall SetLeft(float left) noexcept->void;
+        // set left of control
+        auto __fastcall SetTop(float top) noexcept->void;
+        // set new taking up width of control
+        auto __fastcall SetWidth(float width) noexcept ->void LongUINoinline;
+        // set new taking up height of control
+        auto __fastcall SetHeight(float height) noexcept ->void LongUINoinline;
         // get taking up rect
-        void __fastcall GetRectAll(D2D1_RECT_F&) const noexcept;
+        void __fastcall GetRectAll(D2D1_RECT_F& rect) const noexcept;
         // get border rect
-        void __fastcall GetBorderRect(D2D1_RECT_F&) const noexcept;
+        void __fastcall GetBorderRect(D2D1_RECT_F& rect) const noexcept;
         // get viewport rect
-        void __fastcall GetViewRect(D2D1_RECT_F&) const noexcept;
+        void __fastcall GetViewRect(D2D1_RECT_F& rect) const noexcept;
     protected:
         // d2d render target
         LongUIRenderTarget*     m_pRenderTarget = nullptr;
@@ -146,22 +154,31 @@ namespace LongUI{
         // do not use it in UIWindow except you know it well
         uint32_t                extend_data_size = 0;
     protected:
-        // control size changed, for performance, this maybe changed multiple in one frame
-        bool                    m_bControlSizeChanged = false;
-        // control size changed, if you have handled it
-        bool                    m_bControlSizeChangeHandled = false;
+        // bit-array-index 16
+        enum BitArrayIndex : uint32_t {
+            // control size changed, for performance, this maybe changed multiple in one frame
+            Index_ChangeSize = 0,
+            // control world changed, for performance, this maybe changed multiple in one frame
+            Index_ChangeWorld,
+            // control size changed, if you have handled it
+            Index_ChangeSizeHandled,
+            // control world changed, if you have handled it
+            Index_ChangeWorldHandled,
+        };
+        // boolx16
+        Helper::BitArray16      m_bool16;
     public:
         // visible
         bool                    visible = true;
-        // priority for render
+        // priority for rendering
         int8_t          const   priority = 0;
     public:
         // transform for world
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
         // position of control's view
-        D2D1_POINT_2F           view_pos = D2D1::Point2F();
+        D2D1_POINT_2F   const   view_pos = D2D1::Point2F();
         // size of viewport
-        D2D1_SIZE_F             view_size = D2D1::SizeF(0.f, 0.f);
+        D2D1_SIZE_F     const   view_size = D2D1::SizeF(0.f, 0.f);
         // control current visible position(relative to world)
         D2D1_RECT_F             visible_rect = D2D1::RectF();
         // margin rect

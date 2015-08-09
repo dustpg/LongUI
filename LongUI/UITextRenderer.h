@@ -46,7 +46,7 @@ namespace LongUI {
         // constructor
         CUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { basic_color.userdata = 0; basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
-        void SetNewRT(LongUIRenderTarget* rt) { ::SafeRelease(m_pRenderTarget); m_pRenderTarget = ::SafeAcquire(rt); }
+        void SetNewTarget(LongUIRenderTarget* rt) { ::SafeRelease(m_pRenderTarget); m_pRenderTarget = ::SafeAcquire(rt); }
         // set new render brush
         void SetNewBrush(ID2D1SolidColorBrush* b) { ::SafeRelease(m_pBrush); m_pBrush = ::SafeAcquire(b); }
     public: // IDWritePixelSnapping implementation

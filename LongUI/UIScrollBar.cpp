@@ -26,6 +26,7 @@ Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
 
 // 设置新的索引位置
 void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
+    return this->set_index(new_index);
     // 阈值检查
     new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
     m_uiAnimation.start = m_uiAnimation.value = m_fIndex;
@@ -198,7 +199,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
     // 刷新
     if (m_bAnimation) {
         m_uiAnimation.Update(m_pWindow->GetDeltaTime());
-        this->set_index(m_uiAnimation.value);
+        //this->set_index(m_uiAnimation.value);
         if (m_uiAnimation.time <= 0.f) {
             m_bAnimation = false;
         }

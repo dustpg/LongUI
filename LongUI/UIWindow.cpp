@@ -63,14 +63,14 @@ noexcept : Super(node), m_uiRenderQueue(this) {
         RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
         // 默认
         if (this->view_size.width == 0.f) {
-            this->view_size.width = static_cast<float>(LongUIDefaultWindowWidth);
+            force_cast(this->view_size.width) = static_cast<float>(LongUIDefaultWindowWidth);
         }
         else {
             window_rect.right = static_cast<LONG>(this->view_size.width);
         }
         // 更新
         if (this->view_size.height == 0.f) {
-            this->view_size.height = static_cast<float>(LongUIDefaultWindowHeight);
+            force_cast(this->view_size.height) = static_cast<float>(LongUIDefaultWindowHeight);
         }
         else {
             window_rect.bottom = static_cast<LONG>(this->view_size.height);
@@ -422,10 +422,10 @@ void LongUI::UIWindow::Update() noexcept {
     }
     // 刷新前
     if (this->IsControlSizeChanged()) {
-        this->SetTakingUpWidth(this->visible_rect.right);
-        this->SetTakingUpHeight(this->visible_rect.bottom);
-        this->RefreshWorld();
+        this->SetWidth(this->visible_rect.right);
+        this->SetHeight(this->visible_rect.bottom);
     }
+    this->UpdateWorld();
     // 没有就不刷新了
     m_bRendered = !!m_aUnitNow.length;
     if (!m_aUnitNow.length) return;
@@ -723,8 +723,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     // 修改
     visible_rect.right = static_cast<float>(this->window_size.width);
     visible_rect.bottom = static_cast<float>(this->window_size.height);
-    this->SetTakingUpWidth(visible_rect.right / this->zoom.width);
-    this->SetTakingUpHeight(visible_rect.bottom / this->zoom.height);
+    this->SetWidth(visible_rect.right / this->zoom.width);
+    this->SetHeight(visible_rect.bottom / this->zoom.height);
     // 设置
     auto rect_right = MakeAsUnit(this->window_size.width);
     auto rect_bottom = MakeAsUnit(this->window_size.height);

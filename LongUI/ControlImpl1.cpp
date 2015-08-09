@@ -28,7 +28,7 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
     m_aBorderColor[Status_Pushed] = D2D1::ColorF(0x569DE5);
     m_colorBorderNow = m_aBorderColor[Status_Normal];
     // 构造默认
-    uint32_t flag = LongUIFlag::Flag_None;
+    auto flag = LongUIFlag::Flag_None;
     // 有效?
     if (node) {
         const char* data = nullptr;
@@ -51,13 +51,13 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         // 检查视口位置
         UIControl::MakeFloats(
             node.attribute(LongUI::XMLAttribute::ViewPosotion).value(),
-            &this->view_pos.x,
+            &force_cast(this->view_pos.x),
             sizeof(this->view_pos) / sizeof(this->view_pos.x)
             );
         // 检查视口大小
         UIControl::MakeFloats(
             node.attribute(LongUI::XMLAttribute::ViewSize).value(),
-            &view_size.width,
+            &force_cast(view_size.width),
             sizeof(this->view_pos) / sizeof(this->view_size.width)
             );
         // 检查外边距
@@ -111,7 +111,7 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             );
     }
     // 修改flag
-    force_cast(this->flags) = static_cast<LongUIFlag>(this->flags | (flag));
+    force_cast(this->flags) |= flag;
 }
 
 // 析构函数
@@ -167,10 +167,15 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
 
 // UI控件: 刷新
 void LongUI::UIControl::Update() noexcept {
-    // 处理了
-    if (m_bControlSizeChangeHandled) {
-        m_bControlSizeChanged = false;
-        m_bControlSizeChangeHandled = false;
+    // 控件大小处理了
+    if (m_bool16.Test(Index_ChangeSizeHandled)) {
+        m_bool16.SetFalse(Index_ChangeSize);
+        m_bool16.SetFalse(Index_ChangeSizeHandled);
+    }
+    // 世界转换处理了
+    if (m_bool16.Test(Index_ChangeWorldHandled)) {
+        m_bool16.SetFalse(Index_ChangeWorld);
+        m_bool16.SetFalse(Index_ChangeWorldHandled);
     }
 }
 
@@ -341,13 +346,12 @@ auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
         + m_fBorderWidth * 2.f;
 }
 
-
 // 设置占用宽度
-auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
+auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
     // 设置
-    auto new_vwidth = w - this->GetNonContentWidth();
+    auto new_vwidth = width - this->GetNonContentWidth();
     if (new_vwidth != this->view_size.width) {
-        this->view_size.width = new_vwidth;
+        force_cast(this->view_size.width) = new_vwidth;
         this->SetControlSizeChanged();
     }
     // 检查
@@ -358,11 +362,11 @@ auto LongUI::UIControl::SetTakingUpWidth(float w) noexcept -> void {
 }
 
 // 设置占用高度
-auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinline {
+auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline {
     // 设置
-    auto new_vheight = h - this->GetNonContentHeight();
+    auto new_vheight = height - this->GetNonContentHeight();
     if (new_vheight != this->view_size.height) {
-        this->view_size.height = new_vheight;
+        force_cast(this->view_size.height) = new_vheight;
         this->SetControlSizeChanged();
     }
     // 检查
@@ -371,6 +375,27 @@ auto LongUI::UIControl::SetTakingUpHeight(float h) noexcept -> void LongUINoinli
             << "viewport's height < 0: " << this->view_size.height << endl;
     }
 }
+
+// 设置控件左坐标
+auto LongUI::UIControl::SetLeft(float left) noexcept -> void {
+    auto new_left = left + this->margin_rect.left + m_fBorderWidth;
+    // 修改了位置?
+    if (this->view_pos.x != new_left) {
+
+    }
+    force_cast(this->view_pos.x) = new_left;
+}
+
+// 设置控件顶坐标
+auto LongUI::UIControl::SetTop(float top) noexcept -> void {
+    auto new_top = top + this->margin_rect.top + m_fBorderWidth;
+    // 修改了位置?
+    if (this->view_pos.y != new_top) {
+
+    }
+    force_cast(this->view_pos.y) = new_top;
+}
+
 
 // 获取占用/剪切矩形
 void LongUI::UIControl::GetRectAll(D2D1_RECT_F& rect) const noexcept {
@@ -431,13 +456,26 @@ void LongUI::UIControl::RefreshWorld() noexcept {
         // 转换
         this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     }
+    // 修改了
+    m_bool16.SetTrue(Index_ChangeWorldHandled);
 }
 
 // 获得世界转换矩阵 for 边缘控件
 void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
     float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
-    this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+    D2D1_MATRIX_3X2_F identity;
+    D2D1_MATRIX_3X2_F* parent_parent_world = &identity;
+    // 顶级
+    if (this->parent->IsTopLevel()) {
+        identity = D2D1::Matrix3x2F::Identity();
+    }
+    else {
+        parent_parent_world = &this->parent->parent->world;
+    }
+    // 计算矩阵
+    this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_parent_world;
+    // 自己不能是顶级的
     assert(this->IsTopLevel() == false);
     constexpr int aa = sizeof(UIContainer);
 }
