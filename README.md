@@ -31,7 +31,7 @@ For this repo, you need:
       - except: class under LongUI::XXX(Component/Helper....)
   - **member variable**:  
       - public: member_variable, e.g. `parent`, `user_data`
-      - private/protected: m_typeMemberVariable, e.g, m_pWindow
+      - private/protected: m_typeMemberVariable, e.g, `m_pWindow`
   - **method/function**:  
       - public: ClassMethod(), e.g. `GetWindow()`, `Update()`
       - private/protected:  class_method(), e.g. `refresh_this()`
