@@ -1,4 +1,12 @@
-﻿LongUI License:
+﻿Overview:
+  --------------------------------------------
+  LongUI             |   MIT License
+  --------------------------------------------
+  pugixml-1.5        |   MIT License
+  dlmalloc-2.8.6     |   public domain
+  --------------------------------------------
+
+LongUI License:
 
 * Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
 *
