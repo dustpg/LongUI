@@ -1,7 +1,7 @@
 ﻿## LongUI
   
 Lightweight Direct2D GUI Library/Framework in C++  
-[中文说明文档](/README.zh-cn.md)
+[中文说明文档](./README.zh-cn.md)
 
 ## Requirements
   
@@ -69,4 +69,4 @@ For this repo, you need:
   - pugixml parser - version 1.5 (MIT License)
   - dlmalloc-2.8.6 (public domain)
   - ~~Scintilla-3.5.3 (License for Scintilla)~~
-  - More detail, see [License.txt](/License.txt)
+  - More detail, see [License.txt](./License.txt)

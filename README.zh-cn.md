@@ -66,4 +66,4 @@
    - pugixml parser - version 1.5 (MIT License)
    - dlmalloc-2.8.6 (public domain)
    - ~~Scintilla-3.5.3 (License for Scintilla)~~
-   - 更多细节请参考[License.txt](/License.txt)
+   - 更多细节请参考[License.txt](./License.txt)
