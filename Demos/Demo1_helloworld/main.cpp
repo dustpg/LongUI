@@ -19,28 +19,3 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, char*, int) {
     }
     return 0;
 }
-
-#ifdef _MSC_VER
-
-#ifdef _DEBUG
-#   pragma comment(lib, "../../Debug/longui")
-#else
-#   pragma comment(lib, "../../Release/longui")
-#endif
-
-
-#ifndef PUGIXML_HEADER_ONLY
-#ifdef _DEBUG
-#   pragma comment(lib, "../../Debug/pugixml")
-#else
-#   pragma comment(lib, "../../Release/pugixml")
-#endif
-#endif
-
-#ifdef _DEBUG
-#   pragma comment(lib, "../../Debug/dlmalloc")
-#else
-#   pragma comment(lib, "../../Release/dlmalloc")
-#endif
-
-#endif
