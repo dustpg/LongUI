@@ -244,7 +244,7 @@ namespace LongUI{
             if (control) {
                 lam(control);
                 control->extend_data = reinterpret_cast<uint8_t*>(control) + sizeof(T);
-                control->extend_data_size = exsize;
+                control->extend_data_size = static_cast<uint32_t>(exsize);
             }
             return control;
         }

@@ -312,16 +312,19 @@ public:
 protected:
     // constructor
     UIVideoAlpha(pugi::xml_node node) noexcept : Super(node) {
-        m_video.Init();
+        auto hr = m_video.Initialize();
+        assert(SUCCEEDED(hr));
         auto re = m_video.HasVideo();
-        auto hr = m_video.SetSource(L"arcv45.mp4");
+        hr = m_video.SetSource(L"arcv45.mp4");
+        assert(SUCCEEDED(hr));
+        hr = S_OK;
     }
     // destructor
     ~UIVideoAlpha() {
     }
 protected:
     // video
-    LongUI::CUIVideoComponent       m_video;
+    LongUI::Component::Video    m_video;
 };
 
 

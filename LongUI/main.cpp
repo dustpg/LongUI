@@ -144,7 +144,6 @@ private:
 
 
 // 初始化静态变量
-LongUI::CUIFileLoader       LongUI::CUIFileLoader::s_instanceForMainThread;
 LongUI::CUIManager          LongUI::CUIManager::s_instance;
 
 

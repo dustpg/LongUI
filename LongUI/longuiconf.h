@@ -62,8 +62,8 @@ namespace LongUI {
 #define __thiscall
 //#define __fastcall 
 
-// mainly prop only?
-#define LONGUI_EDITCORE_COPYMAINPROP
+// main property only?
+#define LONGUI_EDITCORE_COPYMAINPROPERTYONLY
 
 // using Media Foundation to play video file?
 #define LONGUI_VIDEO_IN_MF
@@ -224,7 +224,7 @@ namespace LongUI {
     };
     // make as unit
     template<typename T>
-    static inline auto MakeAsUnit(T vaule) noexcept ->T {
+    static inline auto LongUI::MakeAsUnit(T vaule) noexcept ->T {
         return (((vaule)+(LongUITargetBitmapUnitSize - 1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize);
     }
     // UI Locker

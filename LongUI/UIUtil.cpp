@@ -416,7 +416,7 @@ HRESULT LongUI::CUIDropSource::GiveFeedback(DWORD dwEffect) noexcept {
 void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     assert(str && "<LongUI::CUIString::CUIString@const wchar_t*> str == null");
     // 未知则计算
-    if (!length && *str) { length = ::wcslen(str); }
+    if (!length && *str) { length = static_cast<uint32_t>(::wcslen(str)); }
     // 超长的话
     if (length > m_cBufferLength) {
         m_cBufferLength = length + LongUIStringLength / 2;
@@ -943,9 +943,18 @@ auto __fastcall LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t
     return length;
 }
 
+// CUIFileLoader 构造函数
+LongUI::CUIFileLoader::CUIFileLoader() noexcept { }
 
+// CUIFileLoader 析构函数
+LongUI::CUIFileLoader::~CUIFileLoader() noexcept { 
+    if (m_pData) {
+        LongUI::CtrlFree(m_pData);
+        m_pData = nullptr;
+    }
+}
 
-// UIFileLoader 读取文件
+// CUIFileLoader 读取文件
 bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
     // 打开文件
     FILE* file = nullptr;
@@ -957,8 +966,8 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
         // 缓存不足?
         if (m_cLength > m_cLengthReal) {
             m_cLengthReal = m_cLength;
-            if (m_pData) free(m_pData);
-            m_pData = malloc(m_cLength);
+            if (m_pData) LongUI::CtrlFree(m_pData);
+            m_pData = LongUI::CtrlAlloc(m_cLength);
         }
         // 读取文件
         if (m_pData) ::fread(m_pData, 1, m_cLength, file);
@@ -998,7 +1007,7 @@ long LongUI::CUIConsole::Cleanup() noexcept {
 
 // CUIConsole 输出
 long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexcept {
-    if (len == -1) len = ::wcslen(str);
+    if (len == -1) len = static_cast<long>(::wcslen(str));
     // 过长则分批
     if (len > LongUIStringBufferLength) {
         // 直接递归
@@ -1023,24 +1032,19 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
         if(!flush) return 0;
     }
     DWORD dwWritten = DWORD(-1);
-    auto safe_write_file = [this](HANDLE hFile, LPCVOID lpBuffer,
-        DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten,
-        LPOVERLAPPED lpOverlapped) noexcept {
-        //::EnterCriticalSection(&m_cs);
-        BOOL bRet = ::WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped);
-        //::LeaveCriticalSection(&m_cs);
-        return bRet;
+    // 写入
+    auto safe_write_file = [this, &dwWritten]() {
+        return ::WriteFile(m_hConsole, m_buffer, static_cast<uint32_t>(m_length * sizeof(wchar_t)), &dwWritten, nullptr);
     };
     // 先写入缓冲区
     if (m_length) {
-        safe_write_file(m_hConsole, m_buffer, m_length * sizeof(wchar_t), &dwWritten, nullptr);
+        safe_write_file();
         m_length = 0;
     }
     // 再写入目标
     if (str) {
         len *= sizeof(wchar_t);
-        return (!safe_write_file(m_hConsole, str, len, &dwWritten, nullptr)
-            || (int)dwWritten != len) ? -1 : (int)dwWritten;
+        return (!safe_write_file() || (int)dwWritten != len) ? -1 : (int)dwWritten;
     }
     return 0;
 }
@@ -1129,7 +1133,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送标题
     if (!lpszWindowTitle) lpszWindowTitle = m_name + 9;
     ::swprintf(buffer, lengthof(buffer), L"TITLE: %ls\r\n", lpszWindowTitle);
-    auto len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
+    uint32_t len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
     ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
     if (cbWritten != len_in_byte) {
         ::MessageBoxW(nullptr, L"WriteFile failed(1)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1142,7 +1146,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送位置
     if (config.position_xy != -1) {
         ::swprintf(buffer, lengthof(buffer), L"POS: %d\r\n", config.position_xy);
-        len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
+        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(1.1)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1155,7 +1159,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送属性
     if (config.atribute) {
         ::swprintf(buffer, lengthof(buffer), L"ATTR: %d\r\n", config.atribute);
-        len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
+        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(1.2)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1169,7 +1173,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送缓存区大小
     if (config.buffer_size_x != -1 && config.buffer_size_y != -1)  {
         ::swprintf(buffer, lengthof(buffer), L"BUFFER-SIZE: %dx%d\r\n", config.buffer_size_x, config.buffer_size_y);
-        len_in_byte = ::wcslen(buffer) * sizeof(wchar_t);
+        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(2)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1329,12 +1333,10 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
 #endif
 #endif
 
-//////////////////////////////////////////
-// Video
-//////////////////////////////////////////
+// ------------------- Video -----------------------
 #ifdef LONGUI_VIDEO_IN_MF
-// CUIVideoComponent 事件通知
-HRESULT LongUI::CUIVideoComponent::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
+// Video 事件通知
+HRESULT LongUI::Component::Video::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
     UNREFERENCED_PARAMETER(param2);
     switch (event)
     {
@@ -1370,7 +1372,9 @@ HRESULT LongUI::CUIVideoComponent::EventNotify(DWORD event, DWORD_PTR param1, DW
     return S_OK;
 }
 
-HRESULT LongUI::CUIVideoComponent::Init() noexcept {
+
+// Video 初始化
+auto LongUI::Component::Video::Initialize() noexcept ->HRESULT {
     HRESULT hr = S_OK;
     IMFAttributes* attributes = nullptr;
     // 创建MF属性
@@ -1403,8 +1407,8 @@ HRESULT LongUI::CUIVideoComponent::Init() noexcept {
     return hr;
 }
 
-// 重建
-HRESULT LongUI::CUIVideoComponent::Recreate(ID2D1RenderTarget* target) noexcept {
+// Video: 重建
+auto LongUI::Component::Video::Recreate(ID2D1RenderTarget* target) noexcept ->HRESULT {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pTargetSurface);
     ::SafeRelease(m_pDrawSurface);
@@ -1414,8 +1418,8 @@ HRESULT LongUI::CUIVideoComponent::Recreate(ID2D1RenderTarget* target) noexcept 
     return this->recreate_surface();
 }
 
-// 渲染
-void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) const noexcept {
+// Video: 渲染
+void LongUI::Component::Video::Render(D2D1_RECT_F* dst) const noexcept {
     UNREFERENCED_PARAMETER(dst);
     /*const MFARGB bkColor = { 0,0,0,0 };
     assert(m_pMediaEngine);
@@ -1440,14 +1444,14 @@ void LongUI::CUIVideoComponent::Render(D2D1_RECT_F* dst) const noexcept {
 }
 
 
-// CUIVideoComponent 构造函数
-LongUI::CUIVideoComponent::CUIVideoComponent() noexcept {
+// Component::Video 构造函数
+LongUI::Component::Video::Video() noexcept {
     force_cast(dst_rect) = { 0 };
 }
 
 
-// CUIVideoComponent 析构函数
-LongUI::CUIVideoComponent::~CUIVideoComponent() noexcept {
+// Component::Video 析构函数
+LongUI::Component::Video::~Video() noexcept {
     if (m_pMediaEngine) {
         m_pMediaEngine->Shutdown();
     }
@@ -1459,18 +1463,15 @@ LongUI::CUIVideoComponent::~CUIVideoComponent() noexcept {
     ::SafeRelease(m_pRenderTarget);
 }
 
-#define MakeAsUnit(a) (((a) + (LongUITargetBitmapUnitSize-1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize)
-
-
 // 重建表面
-HRESULT LongUI::CUIVideoComponent::recreate_surface() noexcept {
+HRESULT LongUI::Component::Video::recreate_surface() noexcept {
     // 有效情况下
     DWORD w, h; HRESULT hr = S_FALSE;
     if (this->HasVideo() && SUCCEEDED(hr = m_pMediaEngine->GetNativeVideoSize(&w, &h))) {
         force_cast(dst_rect.right) = w;
         force_cast(dst_rect.bottom) = h;
         // 获取规范大小
-        w = MakeAsUnit(w); h = MakeAsUnit(h);
+        w = LongUI::MakeAsUnit(w); h = LongUI::MakeAsUnit(h);
         // 检查承载大小
         D2D1_SIZE_U size = m_pDrawSurface ? m_pDrawSurface->GetPixelSize() : D2D1::SizeU();
         // 重建表面

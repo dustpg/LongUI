@@ -375,7 +375,7 @@ namespace LongUI {
         // get display frequency
         auto GetDisplayFrequency() const noexcept { return m_wDisplayFrequency; }
     private: // queue zone
-             // frequency for display
+        // frequency for display
         uint16_t            m_wDisplayFrequency = 0;
         // time deviation total
         int16_t             m_sTimeDeviation = 0;
@@ -388,38 +388,35 @@ namespace LongUI {
         // end of data
         UNIT*               m_pUnitsDataEnd = nullptr;
     private: // easy plan
-             // UNIT like
+        // UNIT like
         struct { size_t length; UIControl* window; } m_unitLike;
     };
-    // CUIFileLoader类
+    // CUIFileLoader
     class CUIFileLoader {
-    private:
-        // 私有化构造函数
-        CUIFileLoader() noexcept {}
-        // 私有化析构函数
-        ~CUIFileLoader() noexcept {
-            if (m_pData) {
-                free(m_pData);
-                m_pData = nullptr;
-            }
-        }
     public:
-        // 读取文件
+        // ctor
+        CUIFileLoader() noexcept;
+        // dtor
+        ~CUIFileLoader() noexcept;
+        // copy ctor
+        CUIFileLoader(const CUIFileLoader&) = delete;
+        // move ctor
+        CUIFileLoader(CUIFileLoader&&) = delete;
+    public:
+        // read file, return false if error
         bool ReadFile(WCHAR* file_name) noexcept;
-        // 获取数据指针
+        // get data
         auto GetData() const  noexcept { return m_pData; }
-        // 获取数据长度
-        auto GetLength()const noexcept { return m_cLength; }
+        // get data length
+        auto GetLength() const noexcept { return m_cLength; }
     private:
-        // 数据指针
+        // point to data
         void*           m_pData = nullptr;
-        // 数据长度
+        // data length
         size_t          m_cLength = 0;
-        // 实际长度
+        // buffer length
         size_t          m_cLengthReal = 0;
-    public:
-        // 主线程线程单例
-        static CUIFileLoader s_instanceForMainThread;
+        // unused
+        size_t          unused = 0;
     };
 }
-#define UIFileLoader (LongUI::CUIFileLoader::s_instanceForMainThread)

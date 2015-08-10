@@ -51,7 +51,7 @@ namespace LongUI {
         //          *fontface != nullptr, ok
         auto CreateTextPathGeometry(
             IN const char32_t* utf32_string,
-            IN size_t string_length,
+            IN uint32_t string_length,
             IN IDWriteTextFormat* format,
             IN ID2D1Factory* factory,
             IN OUT OPTIONAL IDWriteFontFace** fontface,
@@ -75,7 +75,9 @@ namespace LongUI {
             // height of image
             uint32_t                height;
             // pitch of image
-            size_t                  pitch;
+            uint32_t                pitch;
+            // unused
+            uint32_t                unused;
         };
         // save as image file
         auto SaveAsImageFile(const SaveAsImageFileProperties& prop, const wchar_t* file_name) noexcept -> HRESULT;

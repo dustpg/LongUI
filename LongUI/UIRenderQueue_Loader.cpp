@@ -110,11 +110,32 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
             unit->units[0] = window;
             return;
         }
-#if 0
+        // 可视化区域 > 有的 且自己为容器  -> 替换
+        // 可视化区域 < 有的 且有的为容器  -> 不干
+        // 不在里面                        -> 加入
+        const auto test_container = [](const UIControl* ctrl1, const UIControl* ctrl2) noexcept {
+            return ctrl1->flags & Flag_UIContainer &&
+                ctrl1->visible_rect.left <= ctrl2->visible_rect.left &&
+                ctrl1->visible_rect.top <= ctrl2->visible_rect.top &&
+                ctrl1->visible_rect.right <= ctrl2->visible_rect.right &&
+                ctrl1->visible_rect.bottom <= ctrl2->visible_rect.bottom;
+        };
         // 检查是否在单元里面
         register bool not_in = true;
         for (auto unit_ctrl = unit->units; unit_ctrl < unit->units + unit->length; ++unit_ctrl) {
+            // 在里面了
             if (*unit_ctrl == ctrl) {
+                not_in = false;
+                break;
+            }
+            // 可视化区域 > 有的 且自己为容器  -> 替换
+            else if(test_container(ctrl, *unit_ctrl)){
+                *unit_ctrl = ctrl;
+                not_in = false;
+                break;
+            }
+            // 可视化区域 < 有的 且有的为容器  -> 不干
+            else if (test_container(*unit_ctrl, ctrl)) {
                 not_in = false;
                 break;
             }
@@ -124,15 +145,6 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
             unit->units[unit->length] = ctrl;
             ++unit->length;
         }
-#else
-        // 不在单元里面就加入
-        if (std::none_of(unit->units, unit->units + unit->length, [ctrl](UIControl* unit) {
-            return unit == ctrl;
-        })) {
-            unit->units[unit->length] = ctrl;
-            ++unit->length;
-        }
-#endif
     };
     // 渲染队列模式
     if (m_pCurrentUnit) {

@@ -341,7 +341,7 @@ auto LongUI::CUIManager::GetCreateFunc(const char* class_name) noexcept -> Creat
     // null 结尾字符串
     *itrb = L'\0';
     // 获取
-    return this->GetCreateFunc(buffer, itra - class_name);
+    return this->GetCreateFunc(buffer, static_cast<uint32_t>(itra - class_name));
 }
 
 // 获取创建控件函数指针
@@ -555,7 +555,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
             );
         // 设置窗口指针
-        ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, PtrToUlong(pUIWindow));
+        ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(pUIWindow));
         // 创建完毕
         pUIWindow->OnCreated(hwnd);
         // 返回1
@@ -770,7 +770,8 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         // 创建一个临时工程
         register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
         if (SUCCEEDED(hr)) {
-            IDXGIAdapter1* apAdapters[256]; size_t adnum;
+            uint32_t adnum = 0;
+            IDXGIAdapter1* apAdapters[256];
             // 枚举适配器
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
                 if (temp_factory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
@@ -877,18 +878,18 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pDxgiDevice));
     }
-    // 创建D2D设备
+    // 创建 D2D设备
     if (SUCCEEDED(hr)) {
         hr = m_pd2dFactory->CreateDevice(m_pDxgiDevice, &m_pd2dDevice);
     }
-    // 创建D2D设备上下文
+    // 创建 D2D设备上下文
     if (SUCCEEDED(hr)) {
         hr = m_pd2dDevice->CreateDeviceContext(
             D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
             &m_pd2dDeviceContext
             );
     }
-    // 获取Dxgi适配器 可以获取该适配器信息
+    // 获取 Dxgi适配器 可以获取该适配器信息
     if (SUCCEEDED(hr)) {
         // 顺带使用像素作为单位
         m_pd2dDeviceContext->SetUnitMode(D2D1_UNIT_MODE_PIXELS);
@@ -902,12 +903,12 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         UIManager << DL_Log << desc << LongUI::endl;
     }
 #endif
-    // 获取Dxgi工厂
+    // 获取 Dxgi工厂
     if (SUCCEEDED(hr)) {
         hr = m_pDxgiAdapter->GetParent(LongUI_IID_PV_ARGS(m_pDxgiFactory));
     }
 #ifdef LONGUI_VIDEO_IN_MF
-    uint32_t token = 0;
+    UINT token = 0;
     // 多线程
     if (SUCCEEDED(hr)) {
         ID3D10Multithread* mt = nullptr;
@@ -918,21 +919,21 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         }
         ::SafeRelease(mt);
     }
-    // 设置MF
+    // 设置 MF
     if (SUCCEEDED(hr)) {
         hr = ::MFStartup(MF_VERSION);
     }
-    // 创建MF Dxgi 设备管理器
+    // 创建 MF Dxgi 设备管理器
     if (SUCCEEDED(hr)) {
-        hr = ::MFCreateDXGIDeviceManager(&token, &m_pDXGIManager);
+        hr = ::MFCreateDXGIDeviceManager(&token, &m_pMFDXGIManager);
     }
     // 重置设备
     if (SUCCEEDED(hr)) {
-        hr = m_pDXGIManager->ResetDevice(m_pd3dDevice, token);
+        hr = m_pMFDXGIManager->ResetDevice(m_pd3dDevice, token);
     }
-    // 创建MF媒体类工厂
+    // 创建 MF媒体类工厂
     if (SUCCEEDED(hr)) {
-        hr = CoCreateInstance(
+        hr = ::CoCreateInstance(
             CLSID_MFMediaEngineClassFactory,
             nullptr,
             CLSCTX_INPROC_SERVER,
@@ -940,10 +941,6 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             );
     }
 #endif
-    // 禁止 Alt + Enter 全屏
-    /*if (SUCCEEDED(hr)) {
-        hr = m_pDxgiFactory->MakeWindowAssociation(m_hwnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
-    }*/
     // 创建系统笔刷
     if (SUCCEEDED(hr)) {
         hr = this->create_system_brushes();
@@ -1093,6 +1090,10 @@ void LongUI::CUIManager::discard_resources() noexcept {
             itr->bitmap = nullptr;
         }
     }
+    // 清除
+    if (m_pd2dDevice) {
+        m_pd2dDevice->ClearResources();
+    }
     // 释放 设备
     ::SafeRelease(m_pDxgiFactory);
     ::SafeRelease(m_pd2dDeviceContext);
@@ -1102,7 +1103,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     ::SafeRelease(m_pd3dDevice);
     ::SafeRelease(m_pd3dDeviceContext);
 #ifdef LONGUI_VIDEO_IN_MF
-    ::SafeRelease(m_pDXGIManager);
+    ::SafeRelease(m_pMFDXGIManager);
     ::SafeRelease(m_pMediaEngineFactory);
     ::MFShutdown();
 #endif
@@ -1126,6 +1127,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     }
     ::SafeRelease(m_pd3dDebug);
 #endif
+    this;
 #endif
 }
 
@@ -1631,26 +1633,5 @@ auto LongUI::CUIManager::operator<<(const bool b) noexcept ->CUIManager& {
     this->OutputNoFlush(m_lastLevel, b ? "true" : "false");
     return *this;
 }
-
-
-// 调试输出
-#define OutputDebug(a, b)\
-void LongUI::CUIManager::a(const wchar_t* format, ...) noexcept {\
-    wchar_t buffer[LongUIStringBufferLength];\
-    va_list argList;\
-    va_start(argList, format);\
-    auto ret = ::vswprintf(buffer, LongUIStringBufferLength - 1, format, argList);\
-    assert(ret < LongUIStringBufferLength);\
-    buffer[ret] = 0;\
-    va_end(argList);\
-    this->Output(b, buffer);\
-}
-
-OutputDebug(OutputN, DLevel_None)
-OutputDebug(OutputL, DLevel_Log)
-OutputDebug(OutputH, DLevel_Hint)
-OutputDebug(OutputW, DLevel_Warning)
-OutputDebug(OutputE, DLevel_Error)
-OutputDebug(OutputF, DLevel_Fatal)
 
 #endif

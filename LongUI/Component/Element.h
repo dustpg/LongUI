@@ -221,84 +221,83 @@ namespace LongUI {
             // brush
             ID2D1SolidColorBrush*   m_pBrush = nullptr;
         };
-    }
 #ifdef LONGUI_VIDEO_IN_MF
-    // Video Component implemented in UIUtil.cpp file
-    class CUIVideoComponent : Helper::ComStatic<Helper::QiList<IMFMediaEngineNotify>> {
-    public: // IMFMediaEngineNotify Interface
-        // Event Notify
-        virtual HRESULT STDMETHODCALLTYPE EventNotify(
-            /* [annotation][in] */
-            _In_  DWORD event,
-            /* [annotation][in] */
-            _In_  DWORD_PTR param1,
-            /* [annotation][in] */
-            _In_  DWORD param2) noexcept;
-    public: // INLINE ZONE
-        // has video ?
-        LongUIInline auto HasVideo() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->HasVideo(); }
-        // has audio ?
-        LongUIInline auto HasAudio() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->HasAudio(); }
-        // play
-        LongUIInline auto Play() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->Play(); }
-        // pause
-        LongUIInline auto Pause() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->Pause(); }
-        // loop?
-        LongUIInline auto SetLoop(BOOL b) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetLoop(b); }
-        // loop?
-        LongUIInline auto SetLoop(bool b) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetLoop(BOOL(b)); }
-        // set volume 
-        LongUIInline auto SetVolume(double v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetVolume(v); }
-        // set volume 
-        LongUIInline auto SetVolume(float v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetVolume(double(v)); }
-        // set playback rate 
-        LongUIInline auto SetPlaybackRate(double v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetPlaybackRate(v); }
-        // set playback rate  
-        LongUIInline auto SetPlaybackRate(float v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetPlaybackRate(double(v)); }
-        // pause
-        LongUIInline auto GetCurrentSource(BSTR* s) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->GetCurrentSource(s); }
-        // set source
-        LongUIInline auto SetSource(BSTR src) { assert(m_pMediaEngine); m_pMediaEngine->SetSource(src); this->recreate_surface(); return m_pMediaEngine->Load(); }
-        // set source path
-        LongUIInline auto SetSourcePath(const wchar_t* src) { wchar_t path[LongUIStringBufferLength]; ::wcscpy(path, src); return this->SetSource(path); }
-        // get source path
-        LongUIInline auto GetSourcePath(wchar_t* path) { BSTR url = nullptr; this->GetCurrentSource(&url); if (url) { ::wcscpy(path, url); ::SysFreeString(url); } else *path = 0; }
-    public:
-        // init: because it maybe call virtual-method, so, not in ctor
-        HRESULT Init() noexcept;
-        // recreate
-        HRESULT Recreate(ID2D1RenderTarget*) noexcept;
-        // Render
-        void Render(D2D1_RECT_F* dst) const noexcept;
-        // ctor
-        CUIVideoComponent() noexcept;
-        // dtor
-        ~CUIVideoComponent() noexcept;
-    private:
-        // recreate surface
-        HRESULT recreate_surface() noexcept;
-    public:
-        // dst rect
-        RECT                     const  dst_rect = RECT();
-    private:
-        // Render Target
-        ID2D1RenderTarget*              m_pRenderTarget = nullptr;
-        // MF Media Engine
-        IMFMediaEngine*                 m_pMediaEngine = nullptr;
-        // MF Media Engine Ex-Ver
-        //IMFMediaEngineEx*               m_pEngineEx = nullptr;
-        // D3D11 2D Texture
-        ID3D11Texture2D*                m_pTargetSurface = nullptr;
-        // D2D Bitmap
-        ID2D1Bitmap1*                   m_pSharedSurface = nullptr;
-        // D2D Bitmap
-        ID2D1Bitmap1*                   m_pDrawSurface = nullptr;
-        // is end of stream
-        bool                            m_bEOS = false;
-        // is playing
-        bool                            m_bPlaying = false;
-        // unused
-        bool                            unused[sizeof(void*) - sizeof(bool) * 2];
-    };
+        class Video : Helper::ComStatic<Helper::QiList<IMFMediaEngineNotify>> {
+        public: // IMFMediaEngineNotify Interface
+                // Event Notify
+            virtual HRESULT STDMETHODCALLTYPE EventNotify(
+                /* [annotation][in] */
+                _In_  DWORD event,
+                /* [annotation][in] */
+                _In_  DWORD_PTR param1,
+                /* [annotation][in] */
+                _In_  DWORD param2) noexcept;
+        public: // INLINE ZONE
+            // has video ?
+            auto HasVideo() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->HasVideo(); }
+            // has audio ?
+            auto HasAudio() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->HasAudio(); }
+            // play
+            auto Play() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->Play(); }
+            // pause
+            auto Pause() noexcept { assert(m_pMediaEngine); return m_pMediaEngine->Pause(); }
+            // loop?
+            auto SetLoop(BOOL b) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetLoop(b); }
+            // loop!
+            auto SetLoop(bool b) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetLoop(BOOL(b)); }
+            // set volume in double
+            auto SetVolume(double v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetVolume(v); }
+            // set volume in float
+            auto SetVolume(float v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetVolume(double(v)); }
+            // set playback rate in double
+            auto SetPlaybackRate(double v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetPlaybackRate(v); }
+            // set playback rate in float
+            auto SetPlaybackRate(float v) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->SetPlaybackRate(double(v)); }
+            // get current source from
+            auto GetCurrentSource(BSTR* s) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->GetCurrentSource(s); }
+            // set source
+            auto SetSource(BSTR src) { assert(m_pMediaEngine); m_pMediaEngine->SetSource(src); this->recreate_surface(); return m_pMediaEngine->Load(); }
+            // set source path
+            auto SetSourcePath(const wchar_t* src) { wchar_t path[LongUIStringBufferLength]; ::wcscpy(path, src); return this->SetSource(path); }
+            // get source path
+            auto GetSourcePath(wchar_t* path) { BSTR url = nullptr; this->GetCurrentSource(&url); if (url) { ::wcscpy(path, url); ::SysFreeString(url); } else *path = 0; }
+        public:
+            // init: because it maybe call virtual-method, so, not in ctor
+            auto Initialize() noexcept ->HRESULT;
+            // recreate
+            auto Recreate(ID2D1RenderTarget*) noexcept ->HRESULT;
+            // Render
+            void Render(D2D1_RECT_F* dst) const noexcept;
+            // ctor
+            Video() noexcept;
+            // dtor
+            ~Video() noexcept;
+        private:
+            // recreate surface
+            HRESULT recreate_surface() noexcept;
+        public:
+            // dst rect
+            RECT                     const  dst_rect = RECT();
+        private:
+            // Render Target
+            ID2D1RenderTarget*              m_pRenderTarget = nullptr;
+            // MF Media Engine
+            IMFMediaEngine*                 m_pMediaEngine = nullptr;
+            // MF Media Engine Ex-Version
+            //IMFMediaEngineEx*               m_pEngineEx = nullptr;
+            // D3D11 2D Texture
+            ID3D11Texture2D*                m_pTargetSurface = nullptr;
+            // D2D Bitmap
+            ID2D1Bitmap1*                   m_pSharedSurface = nullptr;
+            // D2D Bitmap
+            ID2D1Bitmap1*                   m_pDrawSurface = nullptr;
+            // is end of stream
+            bool                            m_bEOS = false;
+            // is playing
+            bool                            m_bPlaying = false;
+            // unused
+            bool                            unused[sizeof(void*) - sizeof(bool) * 2];
+        };
 #endif
+    }
 }

@@ -364,11 +364,6 @@ void LongUI::UIContainer::Update() noexcept  {
     }
     // 修改可视化区域
     if (this->IsNeedRefreshWorld()) {
-        // 刷新边缘控件
-        if (this->flags & Flag_Container_ExistMarginalControl) {
-            this->update_marginal_controls();
-        }
-        this->AssertMarginalControl();
         // 本容器内容限制
         D2D1_RECT_F limit_of_this = {
             this->visible_rect.left + this->margin_rect.left * this->world._11,
@@ -454,7 +449,7 @@ auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
     // 后半部分?
     else {
         control = m_pTail;
-        i = this->size() - i - 1;
+        i = static_cast<uint32_t>(this->size()) - i - 1;
         while (i) {
             assert(control && "null pointer");
             control = control->prev;

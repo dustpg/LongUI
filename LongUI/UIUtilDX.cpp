@@ -103,7 +103,8 @@ auto LongUI::DX::CreateFontCollection(
             factory->RegisterFontCollectionLoader(&loader);
             factory->CreateCustomFontCollection(
                 &loader,
-                buffer, reinterpret_cast<uint8_t*>(index) - reinterpret_cast<uint8_t*>(buffer),
+                buffer, 
+                static_cast<uint32_t>(reinterpret_cast<uint8_t*>(index) - reinterpret_cast<uint8_t*>(buffer)),
                 &collection
                 );
             factory->UnregisterFontCollectionLoader(&loader);
@@ -116,7 +117,7 @@ auto LongUI::DX::CreateFontCollection(
 // 从 文本格式创建几何
 auto LongUI::DX::CreateTextPathGeometry(
     IN const char32_t* utf32_string,
-    IN size_t string_length,
+    IN uint32_t string_length,
     IN IDWriteTextFormat* format,
     IN ID2D1Factory* factory,
     IN OUT OPTIONAL IDWriteFontFace** _fontface,

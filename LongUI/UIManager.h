@@ -176,12 +176,12 @@ namespace LongUI {
 #ifdef LONGUI_VIDEO_IN_MF
         // 转换为  IMFDXGIDeviceManager
 #   define UIManager_MFDXGIDeviceManager (static_cast<IMFDXGIDeviceManager*>(UIManager))
-        LongUIInline operator IMFDXGIDeviceManager*()const noexcept { return m_pDXGIManager; };
+        LongUIInline operator IMFDXGIDeviceManager*()const noexcept { return m_pMFDXGIManager; };
         // 转换为  IMFMediaEngineClassFactory
 #   define UIManager_MFMediaEngineClassFactory (static_cast<IMFMediaEngineClassFactory*>(UIManager))
         LongUIInline operator IMFMediaEngineClassFactory*()const noexcept { return m_pMediaEngineFactory; };
         // MF Dxgi设备管理器
-        IMFDXGIDeviceManager*           m_pDXGIManager = nullptr;
+        IMFDXGIDeviceManager*           m_pMFDXGIManager = nullptr;
         // MF 媒体引擎
         IMFMediaEngineClassFactory*     m_pMediaEngineFactory = nullptr;
 #endif
@@ -313,15 +313,15 @@ namespace LongUI {
         // create the control
         auto create_control(CreateControlFunction function, pugi::xml_node node, size_t id) noexcept->UIControl*;
         // create ui window
-        auto create_ui_window(const pugi::xml_node, UIWindow*, callback_for_creating_window, void*) noexcept->UIWindow*;
-        // 创建事件
+        auto create_ui_window(const pugi::xml_node node, UIWindow* wnd, callback_for_creating_window proc, void* buf) noexcept->UIWindow*;
+        // do some creating-event
         void do_creating_event(CreateEventType type) noexcept;
-        // 创建控件树
-        void make_control_tree(UIWindow*, pugi::xml_node) noexcept;
+        // create a control tree for window
+        void make_control_tree(UIWindow* window, pugi::xml_node node) noexcept;
     private:
         // invisible window proc
-        //static LRESULT CALLBACK InvisibleWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
-        // main window proc 窗口过程函数
+        // static LRESULT CALLBACK InvisibleWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
+        // main window proc
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
     public:
         // 单例 CUIRenderer
@@ -364,18 +364,6 @@ namespace LongUI {
         inline void Output(DebugStringLevel l, const wchar_t* s) noexcept { this->configure->OutputDebugStringW(l, s, true); }
         // output debug string with flush
         void Output(DebugStringLevel l, const char* s) noexcept;
-        // Output with format for None
-        void _cdecl OutputN(const wchar_t*, ...) noexcept;
-        // Output with format for Log
-        void _cdecl OutputL(const wchar_t*, ...) noexcept;
-        // Output with format for Hint
-        void _cdecl OutputH(const wchar_t*, ...) noexcept;
-        // Output with format for Warning
-        void _cdecl OutputW(const wchar_t*, ...) noexcept;
-        // Output with format for Error
-        void _cdecl OutputE(const wchar_t*, ...) noexcept;
-        // Output with format for Fatal
-        void _cdecl OutputF(const wchar_t*, ...) noexcept;
     private:
         // output debug (utf-8) string without flush
         void OutputNoFlush(DebugStringLevel l, const char* s) noexcept;
@@ -389,18 +377,6 @@ namespace LongUI {
         inline void Output(DebugStringLevel l, const wchar_t* s) const noexcept { UNREFERENCED_PARAMETER(l); UNREFERENCED_PARAMETER(s);}
         // output with utf-8
         inline void Output(DebugStringLevel l, const char* s) const noexcept { UNREFERENCED_PARAMETER(l); UNREFERENCED_PARAMETER(s); }
-        // Output with format for None
-        inline void _cdecl OutputN(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
-        // Output with format for Log
-        inline void _cdecl OutputL(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
-        // Output with format for Hint
-        inline void _cdecl OutputH(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
-        // Output with format for Warning
-        inline void _cdecl OutputW(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
-        // Output with format for Error
-        inline void _cdecl OutputE(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
-        // Output with format for Fatal
-        inline void _cdecl OutputF(const wchar_t* format, ...) const noexcept { UNREFERENCED_PARAMETER(format); }
 #endif
     };
     // auto locker

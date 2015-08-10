@@ -98,6 +98,14 @@ noexcept : Super(node), m_uiRenderQueue(this) {
             ::GetModuleHandleW(nullptr),
             this
             );
+        // 禁止 Alt + Enter 全屏
+        if (m_hwnd) {
+            UIManager_DXGIFactory->MakeWindowAssociation(m_hwnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
+        }
+        // 创建失败
+        else {
+            UIManager.ShowError(L"Error! Failed to Create Window", L"LongUI::UIWindow::UIWindow");
+        }
     }
     //SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
     // 设置Hover
@@ -121,7 +129,7 @@ noexcept : Super(node), m_uiRenderQueue(this) {
     m_pWindow = this;
     // 自己的父类就是自己以保证parent不为null
     force_cast(this->parent) = this;
-    // 清0
+    // 清零
     ::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
 }
 
@@ -318,7 +326,7 @@ void LongUI::UIWindow::refresh_caret() noexcept {
 
 // 设置呈现
 void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
-    present.DirtyRectsCount = m_aUnitNow.length;
+    present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
     if(!m_bFullRendering){
 #ifdef _DEBUG
@@ -726,8 +734,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     this->SetWidth(visible_rect.right / this->zoom.width);
     this->SetHeight(visible_rect.bottom / this->zoom.height);
     // 设置
-    auto rect_right = MakeAsUnit(this->window_size.width);
-    auto rect_bottom = MakeAsUnit(this->window_size.height);
+    auto rect_right = LongUI::MakeAsUnit(this->window_size.width);
+    auto rect_bottom = LongUI::MakeAsUnit(this->window_size.height);
     auto old_size = m_pTargetBimtap->GetPixelSize();
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
@@ -792,8 +800,8 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         RECT rect = { 0 }; ::GetClientRect(m_hwnd, &rect);
         // 交换链信息
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = { 0 };
-        swapChainDesc.Width = MakeAsUnit(rect.right - rect.left);
-        swapChainDesc.Height = MakeAsUnit(rect.bottom - rect.top);
+        swapChainDesc.Width = LongUI::MakeAsUnit(rect.right - rect.left);
+        swapChainDesc.Height = LongUI::MakeAsUnit(rect.bottom - rect.top);
         swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
         swapChainDesc.Stereo = FALSE;
         swapChainDesc.SampleDesc.Count = 1;

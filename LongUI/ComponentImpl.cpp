@@ -16,7 +16,7 @@ LongUI::Component::Text::Text(pugi::xml_node node, const char * prefix) noexcept
     register union { const char* str; const uint32_t* pui32; };
     str = nullptr;
     char attribute_buffer[256];
-    // 新的属性
+    // 设置新的属性
     auto set_new_attribute = [prefix](char* buffer, const char* suffix) noexcept {
         ::strcpy(buffer, prefix); ::strcat(buffer, suffix);
     };
@@ -213,7 +213,7 @@ void LongUI::Component::EditaleText::recreate_layout() noexcept {
     ::SafeRelease(this->layout);
     // 创建布局
     m_pFactory->CreateTextLayout(
-        m_text.c_str(), m_text.length(),
+        m_text.c_str(), static_cast<uint32_t>(m_text.length()),
         m_pBasicFormat,
         m_size.width, m_size.height,
         &this->layout
@@ -1204,6 +1204,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     m_pFactory = ::SafeAcquire(UIManager_DWriteFactory);
     register const char* str = nullptr;
     char attribute_buffer[256];
+    // 设置新的属性
     auto set_new_attribute = [prefix](char* buffer, const char* suffix) noexcept {
         ::strcpy(buffer, prefix); ::strcat(buffer, suffix);
     };
@@ -1303,12 +1304,12 @@ void LongUI::Component::EditaleText::CopyGlobalProperties(
     new_layout->SetFlowDirection(old_layout->GetFlowDirection());
     new_layout->SetIncrementalTabStop(old_layout->GetIncrementalTabStop());
     // 额外属性
-#ifndef LONGUI_EDITCORE_COPYMAINPROP
+#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
     DWRITE_TRIMMING trimmingOptions = {};
     IDWriteInlineObject* inlineObject = nullptr;
     old_layout->GetTrimming(&trimmingOptions, &inlineObject);
     new_layout->SetTrimming(&trimmingOptions, inlineObject);
-    SafeRelease(inlineObject);
+    ::SafeRelease(inlineObject);
 
     DWRITE_LINE_SPACING_METHOD lineSpacingMethod = DWRITE_LINE_SPACING_METHOD_DEFAULT;
     float lineSpacing = 0.f, baseline = 0.f;
@@ -1324,11 +1325,11 @@ void LongUI::Component::EditaleText::CopySinglePropertyRange(
     // 计算范围
     DWRITE_TEXT_RANGE range = { new_start,  std::min(length, UINT32_MAX - new_start) };
     // 字体集
-#ifndef LONGUI_EDITCORE_COPYMAINPROP
+#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
     IDWriteFontCollection* fontCollection = nullptr;
     old_layout->GetFontCollection(old_start, &fontCollection);
     new_layout->SetFontCollection(fontCollection, range);
-    SafeRelease(fontCollection);
+    ::SafeRelease(fontCollection);
 #endif
     {
         // 字体名
@@ -1356,7 +1357,7 @@ void LongUI::Component::EditaleText::CopySinglePropertyRange(
         new_layout->SetUnderline(value, range);
         old_layout->GetStrikethrough(old_start, &value);
         new_layout->SetStrikethrough(value, range);
-#ifndef LONGUI_EDITCORE_COPYMAINPROP
+#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
         // 地区名
         wchar_t localeName[LOCALE_NAME_MAX_LENGTH];
         localeName[0] = L'\0';
@@ -1368,18 +1369,18 @@ void LongUI::Component::EditaleText::CopySinglePropertyRange(
     IUnknown* drawingEffect = nullptr;
     old_layout->GetDrawingEffect(old_start, &drawingEffect);
     new_layout->SetDrawingEffect(drawingEffect, range);
-    SafeRelease(drawingEffect);
+    ::SafeRelease(drawingEffect);
     // 内联对象
     IDWriteInlineObject* inlineObject = nullptr;
     old_layout->GetInlineObject(old_start, &inlineObject);
     new_layout->SetInlineObject(inlineObject, range);
-    SafeRelease(inlineObject);
-#ifndef LONGUI_EDITCORE_COPYMAINPROP
+    ::SafeRelease(inlineObject);
+#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
     // 排版
     IDWriteTypography* typography = nullptr;
     old_layout->GetTypography(old_start, &typography);
     new_layout->SetTypography(typography, range);
-    SafeRelease(typography);
+    ::SafeRelease(typography);
 #endif
 }
 
