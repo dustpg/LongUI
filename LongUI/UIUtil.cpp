@@ -1399,9 +1399,9 @@ auto LongUI::Component::Video::Initialize() noexcept ->HRESULT {
         hr = UIManager_MFMediaEngineClassFactory->CreateInstance(flags, attributes, &m_pMediaEngine);
     }
     // 获取Ex版
-    /*if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr)) {
         hr = m_pMediaEngine->QueryInterface(LongUI_IID_PV_ARGS(m_pEngineEx));
-    }*/
+    }
     assert(SUCCEEDED(hr));
     ::SafeRelease(attributes);
     return hr;
@@ -1456,7 +1456,7 @@ LongUI::Component::Video::~Video() noexcept {
         m_pMediaEngine->Shutdown();
     }
     ::SafeRelease(m_pMediaEngine);
-    //::SafeRelease(m_pEngineEx);
+    ::SafeRelease(m_pEngineEx);
     ::SafeRelease(m_pTargetSurface);
     ::SafeRelease(m_pSharedSurface);
     ::SafeRelease(m_pDrawSurface);

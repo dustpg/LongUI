@@ -284,7 +284,7 @@ namespace LongUI {
             // MF Media Engine
             IMFMediaEngine*                 m_pMediaEngine = nullptr;
             // MF Media Engine Ex-Version
-            //IMFMediaEngineEx*               m_pEngineEx = nullptr;
+            IMFMediaEngineEx*               m_pEngineEx = nullptr;
             // D3D11 2D Texture
             ID3D11Texture2D*                m_pTargetSurface = nullptr;
             // D2D Bitmap

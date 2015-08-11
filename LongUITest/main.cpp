@@ -367,7 +367,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     alignas(sizeof(void*)) size_t buffer[sizeof(MainWindow) / sizeof(size_t) + 1];
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)
     if (SUCCEEDED(::OleInitialize(nullptr))) {
-        // 初始化 窗口管理器 
+        // 初始化 UI管理器 
         if (SUCCEEDED(UIManager.Initialize(&config))) {
             // 作战控制连线!
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
@@ -378,7 +378,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             // 作战控制终止!
             UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
         }
-        // 反初始化 窗口管理器
+        // 反初始化 UI管理器
         UIManager.UnInitialize();
         // 反初始化 COM 与 OLE
         ::OleUninitialize(); 

@@ -224,7 +224,7 @@ namespace LongUI {
     };
     // make as unit
     template<typename T>
-    static inline auto LongUI::MakeAsUnit(T vaule) noexcept ->T {
+    static inline auto MakeAsUnit(T vaule) noexcept ->T {
         return (((vaule)+(LongUITargetBitmapUnitSize - 1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize);
     }
     // UI Locker

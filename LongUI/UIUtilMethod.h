@@ -78,9 +78,13 @@ namespace LongUI {
     { 0x4D645ACE, 0x26AA, 0x4688,{ 0x9B, 0xE1, 0xDF, 0x35, 0x16, 0x99, 0x0B, 0x93 } };
     // IMFMediaEngineClassFactory
     MakeGetIID(IMFMediaEngineClassFactory);
-    // IMFMediaEngine
+    static const IID IID_IMFMediaEngine =
+    { 0x98A1B0BB, 0x03EB, 0x4935,{ 0xAE, 0x7C, 0x93, 0xC1, 0xFA, 0x0E, 0x1C, 0x93 } };
+    // IMFMediaEngine "98a1b0bb-03eb-4935-ae7c-93c1fa0e1c93"
     MakeGetIID(IMFMediaEngine);
-    // IMFMediaEngineEx
+    static const IID IID_IMFMediaEngineEx =
+    { 0x83015EAD, 0xB1E6, 0x40D0,{ 0xA9, 0x8A, 0x37, 0x14, 0x5F, 0xFE, 0x1A, 0xD1 } };
+    // IMFMediaEngineEx "83015ead-b1e6-40d0-a98a-37145ffe1ad1"
     MakeGetIID(IMFMediaEngineEx);
     // IMFMediaEngineNotify "fee7c112-e776-42b5-9bbf-0048524e2bd5"
     static const IID IID_IMFMediaEngineNotify =
