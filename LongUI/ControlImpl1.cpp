@@ -1,5 +1,4 @@
 ﻿#include "LongUI.h"
-
 // 系统按钮:
 /*
 Win8/8.1/10.0.10158之前
@@ -315,7 +314,6 @@ void LongUI::UIControl::SetEventCallBack(
     }
 }
 
-
 // 获取占用宽度
 auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
     return this->view_size.width 
@@ -396,7 +394,6 @@ auto LongUI::UIControl::SetTop(float top) noexcept -> void {
     force_cast(this->view_pos.y) = new_top;
 }
 
-
 // 获取占用/剪切矩形
 void LongUI::UIControl::GetRectAll(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderWidth);
@@ -457,7 +454,7 @@ void LongUI::UIControl::RefreshWorld() noexcept {
         this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     }
     // 修改了
-    m_bool16.SetTrue(Index_ChangeWorldHandled);
+    this->ControlWorldChangeHandled();
 }
 
 // 获得世界转换矩阵 for 边缘控件

@@ -728,8 +728,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     // 修改
     visible_rect.right = static_cast<float>(this->window_size.width);
     visible_rect.bottom = static_cast<float>(this->window_size.height);
-    this->SetWidth(visible_rect.right / this->zoom.width);
-    this->SetHeight(visible_rect.bottom / this->zoom.height);
+    this->SetWidth(visible_rect.right / m_2fZoom.width);
+    this->SetHeight(visible_rect.bottom / m_2fZoom.height);
     // 设置
     auto rect_right = LongUI::MakeAsUnit(this->window_size.width);
     auto rect_bottom = LongUI::MakeAsUnit(this->window_size.height);
@@ -778,7 +778,6 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     // 强行刷新一帧
     this->Invalidate(this);
 }
-
 
 // UIWindow 重建
 auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {

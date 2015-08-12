@@ -99,10 +99,14 @@ namespace LongUI{
         auto GetNonContentWidth() const noexcept ->float;
         // get taking up height of control
         auto GetNonContentHeight() const noexcept ->float;
-        // change control draw size out of Update() method
+        // change control draw size
         auto SetControlSizeChanged() noexcept { m_bool16.SetTrue(Index_ChangeSize); }
-        // change control draw size in the Update() method
+        // handle control draw size changed
         auto ControlSizeChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeSizeHandled); }
+        // change control world
+        auto SetControlWorldChanged() noexcept { m_bool16.SetTrue(Index_ChangeWorld); }
+        // handle control world changed
+        auto ControlWorldChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeWorldHandled); }
         // is control draw size changed?
         auto IsControlSizeChanged() const noexcept { return m_bool16.Test(Index_ChangeSize); }
         // refresh the world transform
@@ -156,9 +160,9 @@ namespace LongUI{
     protected:
         // bit-array-index 16
         enum BitArrayIndex : uint32_t {
-            // control size changed, for performance, this maybe changed multiple in one frame
+            // control size changed, for performance, this maybe changed multiple-time in one frame
             Index_ChangeSize = 0,
-            // control world changed, for performance, this maybe changed multiple in one frame
+            // control world changed, for performance, this maybe changed multiple-time in one frame
             Index_ChangeWorld,
             // control size changed, if you have handled it
             Index_ChangeSizeHandled,

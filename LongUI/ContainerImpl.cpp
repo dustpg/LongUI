@@ -4,8 +4,8 @@
 
 // -------------------------- UIContainer -------------------------
 // UIContainer 构造函数
-LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
-    ::memset(marginal_control, 0, sizeof(marginal_control));
+LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), marginal_control(){
+    ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
     assert(node && "bad argument.");
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
@@ -38,7 +38,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node) {
                     // 创建控件
                     auto control = UIManager.CreateControl(size_t(tid), create_control_func);
                     // XXX: 检查
-                    this->marginal_control[i] = static_cast<UIMarginalable*>(control);
+                    force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
                 }
                 // 优化flag
                 if (this->marginal_control[i]) {
@@ -82,6 +82,12 @@ LongUI::UIContainer::~UIContainer() noexcept {
 // 插入后处理
 void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     assert(child && "bad argument");
+    // 大小判断
+    if (this->size() >= 10'000) {
+        UIManager << DL_Warning << "the count of children must be"
+            " less than 10k because of the precision of float" << LongUI::endl;
+        assert(!"because of the precision of float, the count of children must be less than 10k");
+    }
     // 检查flag
     if (this->flags & Flag_Container_AlwaysRenderChildrenDirectly) {
         force_cast(child->flags) |= Flag_RenderParent;
@@ -425,12 +431,24 @@ auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT
 
 // 设置水平偏移值
 LongUINoinline void LongUI::UIContainer::SetOffsetXByChild(float value) noexcept {
-
+    assert(value > -1'000'000.f && value < 1'000'000.f &&
+        "maybe so many children in this container that over single float's precision");
+    register float target = value * this->GetZoomX();
+    if (target != m_2fOffset.x) {
+        m_2fOffset.x = target;
+        this->SetControlWorldChanged();
+    }
 }
 
 // 设置垂直偏移值
 LongUINoinline void LongUI::UIContainer::SetOffsetYByChild(float value) noexcept {
-
+    assert(value > (-1'000'000.f) && value < 1'000'000.f &&
+        "maybe so many children in this container that over single float's precision");
+    register float target = value * this->GetZoomY();
+    if (target != m_2fOffset.y) {
+        m_2fOffset.y = target;
+        this->SetControlWorldChanged();
+    }
 }
 // 获取指定控件
 auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
@@ -607,8 +625,8 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             }
         }
         // 校正
-        base_width /= this->zoom.width;
-        base_height /= this->zoom.height;
+        base_width /= m_2fZoom.width;
+        base_height /= m_2fZoom.height;
         // 计算
         base_width = std::max(base_width, this->view_size.width);
         // 高度步进
@@ -721,8 +739,8 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             }
         }
         // 校正
-        base_width /= this->zoom.width;
-        base_height /= this->zoom.height;
+        base_width /= m_2fZoom.width;
+        base_height /= m_2fZoom.height;
         // 计算
         base_height = std::max(base_height, this->view_size.height);
         // 宽度步进

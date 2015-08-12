@@ -168,8 +168,6 @@ namespace LongUI {
         LongUIInline auto RenderWindow() const noexcept { this->BeginDraw(); this->Render(RenderType::Type_Render); return this->EndDraw(); }
         // next frame
         LongUIInline auto NextFrame() noexcept { m_uiRenderQueue.GetCurrentUnit()->length = 0; ++m_uiRenderQueue; }
-        // post update message
-        LongUIInline auto PostUpdateMessage() noexcept { ::PostMessageW(m_hwnd, LongUIUpdateMessage, 0, 0); }
     private:
         // release data
         void release_data() noexcept;

@@ -37,7 +37,7 @@ namespace LongUI{
         ~CUIString() noexcept;
         // 复制构造函数
         CUIString(const CUIString&) noexcept;
-        // move构造函数
+        // 移动构造函数
         CUIString(CUIString&&) noexcept;
     public:
         // 设置

@@ -139,17 +139,17 @@ namespace LongUI {
         D2D1_RECT_F             m_orgMargin = D2D1::RectF();
     public: // child level operation
         // get content width in child level for zooming
-        auto GetContentWidthByChild() const noexcept { return m_2fContentSize.width / this->zoom.width; }
+        auto GetContentWidthByChild() const noexcept { return m_2fContentSize.width / m_2fZoom.width; }
         // get content height in child level for zooming
-        auto GetContentHeightByChild() const noexcept { return m_2fContentSize.height / this->zoom.height; }
+        auto GetContentHeightByChild() const noexcept { return m_2fContentSize.height / m_2fZoom.height; }
         // get offset.x in child level for zooming
-        auto GetOffsetXByChild() const noexcept { return m_2fOffset.x / this->zoom.width; }
+        auto GetOffsetXByChild() const noexcept { return m_2fOffset.x / m_2fZoom.width; }
         // get offset.y in child level for zooming
-        auto GetOffsetYByChild() const noexcept { return m_2fOffset.y / this->zoom.height; }
+        auto GetOffsetYByChild() const noexcept { return m_2fOffset.y / m_2fZoom.height; }
         // get view.width in child level for zooming
-        auto GetViewWidthByChild() const noexcept { return this->view_size.width / this->zoom.width; }
+        auto GetViewWidthByChild() const noexcept { return this->view_size.width / m_2fZoom.width; }
         // get view.height in child level for zooming
-        auto GetViewHeightByChild() const noexcept { return this->view_size.height / this->zoom.height; }
+        auto GetViewHeightByChild() const noexcept { return this->view_size.height / m_2fZoom.height; }
         // set offset.x by child
         void SetOffsetXByChild(float value) noexcept;
         // set offset.y by child
@@ -176,15 +176,19 @@ namespace LongUI {
         // set offset by other
         auto SetOffsetByOther(int xy, float value) noexcept { return xy ? SetOffsetYByOther(value) : SetOffsetXByOther(value); }
     public:
-        // zoom size
-        D2D1_SIZE_F             zoom = D2D1::SizeF(1.f, 1.f);
+        // get zoom in x
+        auto GetZoomX() const noexcept { return m_2fZoom.width; }
+        // get zoom in y
+        auto GetZoomY() const noexcept { return m_2fZoom.height; }
         // marginal controls
-        UIMarginalable*         marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
+        UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
         // offset position
         D2D1_POINT_2F           m_2fOffset = D2D1::Point2F();
         // size of content
         D2D1_SIZE_F             m_2fContentSize = D2D1::SizeF(0.f, 0.f);
+        // zoom size
+        D2D1_SIZE_F             m_2fZoom = D2D1::SizeF(1.f, 1.f);
 #ifdef LongUIDebugEvent
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;

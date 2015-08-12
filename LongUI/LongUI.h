@@ -140,8 +140,7 @@ namespace LongUI {
     // spacial
     // template<template<>, class T2> auto longui_cast<LongUI::UIControl*>(T2 ptr) noexcept ->LongUI::UIControl* { return static_cast<LongUI::UIControl*>(ptr); };
 #else
-    // longui cast
-    template<class T1, class T2> auto longui_cast(T2 ptr) noexcept { return static_cast<T1>(ptr); };
+#   define longui_cast static_cast
 #endif
     // LTWH模型矩形
     template<typename T> struct RectLTWH { RectLTWH() {} T left=T(0), top = T(0), width = T(0), height = T(0); };
@@ -200,7 +199,7 @@ namespace LongUI {
         // [default: false][auto, no specified]
         // control need Direct3D api to render,
         // call UIWindow::RegisterOffScreenRender3D to set
-        // if using Direct2D , call UIWindow::RegisterOffScreenRender2D
+        // if use Direct2D , call UIWindow::RegisterOffScreenRender2D
         Flag_3DContent = 1 << 7,
         // [default: false][auto, and XML Attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,

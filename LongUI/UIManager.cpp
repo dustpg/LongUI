@@ -390,7 +390,7 @@ void LongUI::CUIManager::Run() noexcept {
             // 没有窗口
             if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
             for (auto i = 0u; i < length; ++i) {
-                windows[i] = static_cast<UIWindow*>(UIManager.m_apWindows[i]);
+                windows[i] = UIManager.m_apWindows[i];
             }
             // 刷新窗口
             for (auto i = 0u; i < length; ++i) {

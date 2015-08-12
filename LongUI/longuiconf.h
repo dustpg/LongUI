@@ -160,12 +160,30 @@ namespace LongUI {
     constexpr static float LongUIDefaultTextFontSize = 22.f;
     // LongUI 常量
     enum EnumUIConstant : uint32_t {
-        // LongUI String Static Buffer Length(object)
+        // LongUI String Fixed Buffer Length [fixed buffer length]
         LongUIStringLength = 64,
-        // LongUI Control Tree Max Depth
+        // LongUI Control Tree Max Depth [fixed buffer length]
         LongUITreeMaxDepth = 256,
-        // LongUI String Buffer Length(temp)
+        // LongUI String Buffer Length [fixed buffer length]
         LongUIStringBufferLength = 2048,
+        // max count of control in window while init-ing [fixed buffer length]
+        LongUIMaxControlInited = (1024 * 8 - 1),
+        // default un-redo stack size [fixed buffer length]
+        LongUIDefaultUnRedoCommandSize = 13,
+        // max count of longui window in same time [fixed buffer length]
+        LongUIMaxWindow = 16,
+        // max count of contrl class [fixed buffer length]
+        LongUIMaxControlClass = 64,
+        // max count of longui text renderer [fixed buffer length]
+        LongUIMaxTextRenderer = 10,
+        // max count of gradient stop [fixed buffer length]
+        LongUIMaxGradientStop = 128,
+        // dirty control size [fixed buffer length]
+        // if dirty control number bigger than this in one frame,
+        // will do the full-rendering, not dirty-rendering
+        LongUIDirtyControlSize = 15,
+        // PlanToRender total time in sec. [fixed buffer length]
+        LongUIPlanRenderingTotalTime = 5,
         // LongUI Default Window Width 
         LongUIDefaultWindowWidth = 800,
         // LongUI Default Window Height
@@ -176,40 +194,12 @@ namespace LongUI {
         LongUIDefaultSliderHalfWidth = 10,
         // LongUI Default Slider Half Width
         LongUIDefaultCheckBoxWidth = 16,
-        // max count of longui window in same time
-        LongUIMaxWindow = 16,
         // minimal size in pixel for window by default
         LongUIWindowMiniSize = 128,
-        // max count of contrl class
-        LongUIMaxControlClass = 64,
-        // update message
-        LongUIUpdateMessage = WM_USER + 64,
-        // max count of longui text renderer
-        LongUIMaxTextRenderer = 10,
-        // max count of gradient stop
-        LongUIMaxGradientStop = 128,
-        // PlanToRender total time in sec.
-        LongUIPlanRenderingTotalTime = 5,
         // target bitmap unit size, larger than this,
         // will call IDXGISwapChain::ResizeBuffers,
         // but to large will waste some memory
         LongUITargetBitmapUnitSize = 128,
-        // dirty control size
-        // if dirty control number bigger than this in one frame,
-        // will do the full-rendering, not dirty-rendering
-        LongUIDirtyControlSize = 15,
-        // max count of control in window while creating
-        LongUIMaxControlInited = (1024 * 8 - 1),
-        // default un-redo stack size
-        LongUIDefaultUnRedoCommandSize = 13,
-        // LongUI Default Normal Color, without alpha
-        LongUIDefaultNormalColor = 0xFFFFFFFF,
-        // LongUI Default Hover Color, without alpha
-        LongUIDefaultHoverColor = 0xEEEEEEEE,
-        // LongUI Default Click Color, without alpha
-        LongUIDefaultClickedColor = 0xCCCCCCCC,
-        // LongUI Default Disabled Color, without alpha
-        LongUIDefaultDisabledColor = 0xDDDDDDDD,
         // ------- Be Careful When Modify ---------
         // LongUI Common Solid Color Brush Index
         LongUICommonSolidColorBrushIndex = 0,
