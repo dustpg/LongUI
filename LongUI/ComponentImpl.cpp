@@ -114,7 +114,6 @@ LongUI::Component::Text& LongUI::Component::Text::operator=(const char* str) noe
     }
 }
 
-
 // Text 析构
 LongUI::Component::Text::~Text() noexcept {
     m_pTextRenderer.SafeRelease();
@@ -123,12 +122,14 @@ LongUI::Component::Text::~Text() noexcept {
     ::SafeRelease(m_config.text_format);
 }
 
+// Text 重建
 void LongUI::Component::Text::recreate(const char* utf8) noexcept {
     wchar_t text_buffer[LongUIStringBufferLength];
     // 转换为核心模式
     if (this->GetIsXML() && this->GetIsRich()) {
         LongUI::DX::XMLToCoreFormat(utf8, text_buffer);
     }
+    // UTF-8?
     else if (utf8) {
         // 直接转码
         register auto length = LongUI::UTF8toWideChar(utf8, text_buffer);
@@ -683,7 +684,7 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
         // 单行 - 向窗口发送输入完毕消息
         else {
             LongUI::EventArgument arg = { 0 };
-            arg.event = LongUI::Event::Event_EditReturn;
+            arg.event = LongUI::Event::Event_EditReturned;
             arg.sender = m_pHost;
             m_pHost->GetWindow()->DoEvent(arg);
             // TODO: single line

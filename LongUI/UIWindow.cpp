@@ -5,7 +5,7 @@ const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(
 
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent) 
-noexcept : Super(node), m_uiRenderQueue(this) {
+noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     ZeroMemory(&m_curMedium, sizeof(m_curMedium));
     CUIString titlename(m_strControlName);
@@ -17,30 +17,21 @@ noexcept : Super(node), m_uiRenderQueue(this) {
     }
     // flag 区
     {
-        uint32_t flag = this->flags;
-        // 检查DComposition标记
-        if (node.attribute("dcomp").as_bool(true)) {
-            flag |= Flag_Window_DComposition;
-        }
-        // 目前不支持非Flag_Window_DComposition
-        // 可能会发生未知错误
-        assert(flag & Flag_Window_DComposition && "NOT IMPL");
+        auto flag = WindowFlag::Flag_None;
         // 检查FullRendering标记
         if (node.attribute("fullrender").as_bool(false)) {
-            flag |= Flag_Window_FullRendering;
+            flag |= WindowFlag::Flag_FullRendering;
         }
         else {
             //this->reset_renderqueue();
         }
-        // 检查RenderedOnParentWindow标记
-        if (node.attribute("renderonparent").as_bool(false)) {
-            flag |= Flag_Window_RenderedOnParentWindow;
-        }
         // 检查alwaysrendering
         if (node.attribute("alwaysrendering").as_bool(false)) {
-            flag |= Flag_Window_AlwaysRendering;
+            flag |= WindowFlag::Flag_AlwaysRendering;
         }
-        force_cast(this->flags) = static_cast<LongUIFlag>(flag);
+        force_cast(this->window_flags) = flag;
+        // XXX:
+        force_cast(this->window_type) = Type_Layered;
     }
     // 其他属性
     {
@@ -79,7 +70,7 @@ noexcept : Super(node), m_uiRenderQueue(this) {
         force_cast(this->window_size.height) = window_rect.bottom;
         visible_rect.right = this->view_size.width;
         visible_rect.bottom = this->view_size.height;
-        this->content_size = this->view_size;
+        m_2fContentSize = this->view_size;
         // 调整大小
         ::AdjustWindowRect(&window_rect, window_style, FALSE);
         // 居中
@@ -90,11 +81,13 @@ noexcept : Super(node), m_uiRenderQueue(this) {
         // 创建窗口
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
-            (this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
+            //(this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
+            WS_EX_NOREDIRECTIONBITMAP,
             LongUI::WindowClassName, titlename.c_str(),
             WS_OVERLAPPEDWINDOW,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
-            parent ? parent->GetHwnd() : nullptr, nullptr,
+            parent ? parent->GetHwnd() : nullptr, 
+            nullptr,
             ::GetModuleHandleW(nullptr),
             this
             );
@@ -114,7 +107,7 @@ noexcept : Super(node), m_uiRenderQueue(this) {
     m_csTME.hwndTrack = m_hwnd;
     m_csTME.dwHoverTime = LongUIDefaultHoverTime;
     // 创建闪烁计时器
-    m_idBlinkTimer = ::SetTimer(m_hwnd, 0, ::GetCaretBlinkTime(), nullptr);
+    m_idBlinkTimer = ::SetTimer(m_hwnd, BLINK_EVENT_ID, ::GetCaretBlinkTime(), nullptr);
     // 添加窗口
     UIManager.RegisterWindow(this);
     // 拖放帮助器
@@ -127,7 +120,7 @@ noexcept : Super(node), m_uiRenderQueue(this) {
     m_timer.Start();
     // 所在窗口就是自己
     m_pWindow = this;
-    // 自己的父类就是自己以保证parent不为null
+    // 自己的UI父类就是自己以保证parent不为null
     force_cast(this->parent) = this;
     // 清零
     ::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
@@ -137,12 +130,12 @@ noexcept : Super(node), m_uiRenderQueue(this) {
 LongUI::UIWindow::~UIWindow() noexcept {
     // 取消注册
     ::RevokeDragDrop(m_hwnd);
+    // 杀掉!
+    ::KillTimer(m_hwnd, m_idBlinkTimer);
     // 摧毁窗口
     ::DestroyWindow(m_hwnd);
     // 移除窗口
     UIManager.RemoveWindow(this);
-    // 杀掉!
-    ::KillTimer(m_hwnd, m_idBlinkTimer);
     // 释放资源
     this->release_data();
     // 释放数据
@@ -199,7 +192,7 @@ void LongUI::UIWindow::SetCaretPos(UIControl* c, float _x, float _y) noexcept {
         // TODO: FIX IT
         pt = LongUI::TransformPoint(c->parent->world, pt);
     }
-    m_bCaretIn = true;
+    m_baBoolWindow.SetTrue(Index_CaretIn);
     const register int intx = static_cast<int>(pt.x);
     const register int inty = static_cast<int>(pt.y);
     const register int oldx = static_cast<int>(m_rcCaretPx.left);
@@ -258,7 +251,9 @@ void LongUI::UIWindow::HideCaret() noexcept {
         UIManager << DL_Warning << L"m_cShowCaret alread to 0" << LongUI::endl;
     }
 #endif
-    if (!m_cShowCaret) m_bCaretIn = false;
+    if (!m_cShowCaret) {
+        m_baBoolWindow.SetFalse(Index_CaretIn);
+    }
 }
 
 // 查找控件
@@ -328,7 +323,7 @@ void LongUI::UIWindow::refresh_caret() noexcept {
 void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
     present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
-    if(!m_bFullRendering){
+    if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)){
 #ifdef _DEBUG
         static RECT s_rects[LongUIDirtyControlSize + 2];
         ::memcpy(s_rects, m_dirtyRects, present.DirtyRectsCount * sizeof(RECT));
@@ -414,11 +409,11 @@ void LongUI::UIWindow::EndDraw() const noexcept {
 
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
-    m_bFullRendering = false;
+    m_baBoolWindow.SetFalse(Index_FullRenderingThisFrame);
     // 新窗口大小?
-    if (m_bNewSize) {
+    if (m_baBoolWindow.Test(Index_NewSize)) {
         this->OnResize();
-        m_bNewSize = false;
+        m_baBoolWindow.SetFalse(Index_NewSize);
     }
     // 设置间隔时间
     m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
@@ -435,18 +430,18 @@ void LongUI::UIWindow::Update() noexcept {
     }
     this->UpdateWorld();
     // 没有就不刷新了
-    m_bRendered = !!m_aUnitNow.length;
+    m_baBoolWindow.SetTo(Index_Rendered, m_aUnitNow.length);
     if (!m_aUnitNow.length) return;
     // 全刷新?
     if (m_aUnitNow.units[0] == static_cast<UIControl*>(this)) {
-        m_bFullRendering = true;
+        m_baBoolWindow.SetTrue(Index_FullRenderingThisFrame);
         //UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << endl;
         // 交给父类处理
         Super::Update();
     }
     // 部分刷新
     else {
-        m_bFullRendering = false;
+        m_baBoolWindow.SetFalse(Index_FullRenderingThisFrame);
         // 更新脏矩形
         for (uint32_t i = 0ui32; i < m_aUnitNow.length; ++i) {
             auto ctrl = m_aUnitNow.units[i];
@@ -462,7 +457,7 @@ void LongUI::UIWindow::Update() noexcept {
     }
     // 调试
 #ifdef _DEBUG
-    if (m_bFullRendering) {
+    if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
         ++full_render_counter;
     }
     else {
@@ -475,7 +470,7 @@ void LongUI::UIWindow::Update() noexcept {
 void LongUI::UIWindow::Render(RenderType type) const noexcept  {
     if (type != RenderType::Type_Render) return ;
     // 全刷新: 继承父类
-    if (m_bFullRendering) {
+    if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
         Super::Render(RenderType::Type_Render);
     }
     // 部分刷新:
@@ -593,10 +588,12 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         break;
     case WM_TIMER:
         // 闪烁?
-        if (_arg.wParam_sys == 0 && m_cShowCaret) {
-            m_bCaretIn = !m_bCaretIn;
+        if (_arg.sys.wParam == BLINK_EVENT_ID) {
+            if (m_cShowCaret) {
+                m_baBoolWindow.SetNot(Index_CaretIn);
+            }
+            handled = true;
         }
-        handled = true;
         break;
     case WM_LBUTTONDOWN:    // 按下鼠标左键
         // 查找子控件
@@ -657,14 +654,14 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
             wheight != this->window_size.height)) {
             force_cast(this->window_size.width) = wwidth;
             force_cast(this->window_size.height) = wheight;
-            m_bNewSize = true;
+            m_baBoolWindow.SetTrue(Index_NewSize);
         }
     }
         handled = true;
         break;
     case WM_GETMINMAXINFO:  // 获取限制大小
-        reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.x = m_miniSize.width;
-        reinterpret_cast<MINMAXINFO*>(_arg.lParam_sys)->ptMinTrackSize.y = m_miniSize.height;
+        reinterpret_cast<MINMAXINFO*>(_arg.sys.lParam)->ptMinTrackSize.x = m_miniSize.width;
+        reinterpret_cast<MINMAXINFO*>(_arg.sys.lParam)->ptMinTrackSize.y = m_miniSize.height;
         break;
     case WM_DISPLAYCHANGE:
         UIManager << DL_Hint << "WM_DISPLAYCHANGE" << endl;
@@ -706,12 +703,12 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
 void LongUI::UIWindow::WaitVS() const noexcept {
 #ifdef _DEBUG
     static bool first_time = true;
-    if (first_time && !m_bRendered) {
+    if (first_time && !m_baBoolWindow.Test(Index_Rendered)) {
         assert(!"should be rendered @ first time !");
     }
     first_time = false;
     // 渲染?
-    if (m_bRendered) {
+    if (m_baBoolWindow.Test(Index_Rendered)) {
         // 等待VS
         ::WaitForSingleObject(m_hVSync, INFINITE);
     }
@@ -810,7 +807,8 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         swapChainDesc.BufferCount = 2;
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-        if (this->flags & Flag_Window_DComposition) {
+        // XXX: Fixit
+        if (this->window_type == Type_Layered) {
             // DirectComposition桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
@@ -871,7 +869,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
             );
     }
     // 使用DComp
-    if (this->flags & Flag_Window_DComposition) {
+    if (this->window_type == Type_Layered) {
         // 创建直接组合(Direct Composition)设备
         if (SUCCEEDED(hr)) {
             hr = LongUI::Dll::DCompositionCreateDevice(
@@ -942,8 +940,8 @@ bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
     bool handled = false;
     do {
         ::TrackMouseEvent(&m_csTME);
-        if (m_normalLParam != arg.lParam_sys) {
-            m_normalLParam = arg.lParam_sys;
+        if (m_normalLParam != arg.sys.lParam) {
+            m_normalLParam = arg.sys.lParam;
         }
         else {
             handled = true;
@@ -986,8 +984,8 @@ bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
 
 // 鼠标滚轮
 bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
-    auto loww = LOWORD(arg.wParam_sys);
-    //auto delta = float(GET_WHEEL_DELTA_WPARAM(arg.wParam_sys)) / float(WHEEL_DELTA);
+    auto loww = LOWORD(arg.sys.wParam);
+    //auto delta = float(GET_WHEEL_DELTA_WPARAM(arg.sys.wParam)) / float(WHEEL_DELTA);
     // 鼠标滚轮事件交由有滚动条的容器处理
     if (loww & MK_CONTROL) {
 
@@ -1081,7 +1079,7 @@ DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
 HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
     DWORD grfKeyState, POINTL pt, DWORD * pdwEffect) noexcept {
     UNREFERENCED_PARAMETER(grfKeyState);
-    m_bInDraging = true;
+    m_baBoolWindow.SetTrue(Index_InDraging);
     // 检查参数
     if (!pDataObj) return E_INVALIDARG;
     // 取消聚焦窗口
@@ -1129,8 +1127,8 @@ HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffec
             arg.event = LongUI::Event::Event_DragEnter;
             m_pDragDropControl = control;
         }
-        arg.dataobj_cf = m_pCurDataObject;
-        arg.outeffect_cf = pdwEffect;
+        arg.cf.dataobj = m_pCurDataObject;
+        arg.cf.outeffect = pdwEffect;
         if (!control->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;
     }
     else {
@@ -1168,7 +1166,7 @@ HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
     if (m_pDropTargetHelper) {
         m_pDropTargetHelper->DragLeave();
     }
-    m_bInDraging = false;
+    m_baBoolWindow.SetFalse(Index_InDraging);
     return S_OK;
 }
 
@@ -1180,8 +1178,8 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
         ::SetLongUIEventArgument(arg, m_hwnd, pt);
         arg.sender = this;
         arg.event = LongUI::Event::Event_Drop;
-        arg.dataobj_cf = m_pCurDataObject;
-        arg.outeffect_cf = pdwEffect;
+        arg.cf.dataobj = m_pCurDataObject;
+        arg.cf.outeffect = pdwEffect;
         // 发送事件
         m_pDragDropControl->DoEvent(arg);
         m_pDragDropControl = nullptr;

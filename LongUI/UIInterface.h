@@ -29,7 +29,7 @@
 // longui namespace
 namespace LongUI {
     // LongUI UI Interface, IUnknown like interface
-#if 1
+#if 0
     using IUIInterface = IUnknown;
 #else
     class DECLSPEC_NOVTABLE IUIInterface { 
@@ -48,6 +48,7 @@ namespace LongUI {
     auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { return 1; };
     // Script define
     struct UIScript {
+        // ctor
         UIScript() = default;
         // script data, maybe binary data maybe string
         const BYTE*         script = nullptr;

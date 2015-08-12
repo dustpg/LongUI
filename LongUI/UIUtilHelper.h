@@ -37,7 +37,7 @@ namespace LongUI {
     namespace Helper {
         // ------------------- Windows COM Interface Helper -----------------------------
         // counter based COM Interface, 0 , wiil be deleted
-        template <typename InterfaceChain, typename CounterType = std::atomic<ULONG>>
+        template <typename InterfaceChain, typename CounterType = std::atomic<size_t>>
         class ComBase : public InterfaceChain {
         public:
             // constructor inline ver.
@@ -52,11 +52,11 @@ namespace LongUI {
                 return S_OK;
             }
             // add ref-counter
-            ULONG STDMETHODCALLTYPE AddRef() noexcept final override { return ++m_refValue; }
+            ULONG STDMETHODCALLTYPE AddRef() noexcept final override { return static_cast<ULONG>(++m_refValue); }
             // delete when 0
             ULONG STDMETHODCALLTYPE Release() noexcept final override {
                 assert(m_refValue != 0 && "bad idea to release zero ref-count object");
-                ULONG newCount = --m_refValue;
+                ULONG newCount = static_cast<ULONG>(--m_refValue);
                 if (newCount == 0)  delete this;
                 return newCount;
             }
@@ -146,6 +146,9 @@ namespace LongUI {
             auto SetFalse(uint32_t index) noexcept { m_data &= ~(1 << index); };
             // set to NOT
             auto SetNot(uint32_t index) noexcept { m_data ^= (1 << index); };
+            // set to???
+            template<typename V>
+            auto SetTo(uint32_t index, V& value) noexcept { value ? this->SetTrue(index) : this->SetFalse(index); }
         private:
             // data for bit-array
             T           m_data = T(0);

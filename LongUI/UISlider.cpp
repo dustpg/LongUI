@@ -5,7 +5,7 @@ void LongUI::UISlider::Render(RenderType) const noexcept {
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
     // 垂直滑块
-    if (this->flags & Flag_Slider_VerticalSlider){
+    if (this->IsVerticalSlider()){
 
     }
     // 水平滑块
@@ -25,7 +25,7 @@ void LongUI::UISlider::Render(RenderType) const noexcept {
 // UI滑动条: 刷新
 void LongUI::UISlider::Update() noexcept {
     // 垂直滑块
-    if (this->flags & Flag_Slider_VerticalSlider) {
+    if (this->IsVerticalSlider()) {
 
     }
     // 水平滑块
@@ -99,7 +99,7 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
             }
             break;
         case WM_MOUSEMOVE:
-            if (m_bMouseClickIn && arg.wParam_sys & MK_LBUTTON){
+            if (m_bMouseClickIn && arg.sys.wParam & MK_LBUTTON){
                 m_fValue = (arg.pt.x) / this->view_size.width;
                 if (m_fValue > 1.f) m_fValue = 1.f;
                 if (m_fValue < 0.f) m_fValue = 0.f;

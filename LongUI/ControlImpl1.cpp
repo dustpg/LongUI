@@ -306,7 +306,7 @@ void LongUI::UIControl::SetEventCallBack(
     case LongUI::Event::Event_ButtoClicked:
         longui_cast<UIButton*>(control)->RegisterClickEvent(call, this);
         break;
-    case LongUI::Event::Event_EditReturn:
+    case LongUI::Event::Event_EditReturned:
         //longui_cast<UIEdit*>(control)->RegisterReturnEvent(call, this);
         break;
     case LongUI::Event::Event_SliderValueChanged:
@@ -451,8 +451,8 @@ void LongUI::UIControl::RefreshWorld() noexcept {
     // 非顶级控件
     else {
         // 检查
-        xx += this->parent->offset.x;
-        yy += this->parent->offset.y;
+        xx += this->parent->GetOffsetXByChild();
+        yy += this->parent->GetOffsetYByChild();
         // 转换
         this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
     }
@@ -798,13 +798,13 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_TreeBulidingFinished:
             return true;
         case LongUI::Event::Event_DragEnter:
-            return m_text.OnDragEnter(arg.dataobj_cf, arg.outeffect_cf);
+            return m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
         case LongUI::Event::Event_DragOver:
             return m_text.OnDragOver(pt4self.x, pt4self.y);
         case LongUI::Event::Event_DragLeave:
             return m_text.OnDragLeave();
         case LongUI::Event::Event_Drop:
-            return m_text.OnDrop(arg.dataobj_cf, arg.outeffect_cf);
+            return m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
         case LongUI::Event::Event_MouseEnter:
             m_pWindow->now_cursor = m_hCursorI;
             return true;
@@ -826,19 +826,19 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         default:
             return false;
         case WM_KEYDOWN:
-            m_text.OnKey(static_cast<uint32_t>(arg.wParam_sys));
+            m_text.OnKey(static_cast<uint32_t>(arg.sys.wParam));
             break;
         case WM_CHAR:
-            m_text.OnChar(static_cast<char32_t>(arg.wParam_sys));
+            m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
             break;
         case WM_MOUSEMOVE:
             // 拖拽?
-            if (arg.wParam_sys & MK_LBUTTON) {
+            if (arg.sys.wParam & MK_LBUTTON) {
                 m_text.OnLButtonHold(pt4self.x, pt4self.y);
             }
             break;
         case WM_LBUTTONDOWN:
-            m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.wParam_sys & MK_SHIFT));
+            m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.sys.wParam & MK_SHIFT));
             break;
         case WM_LBUTTONUP:
             m_text.OnLButtonUp(pt4self.x, pt4self.y);

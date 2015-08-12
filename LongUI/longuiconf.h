@@ -291,15 +291,15 @@ namespace LongUI {
     class UIScrollBar;
     // pre-declare
     class UIWindow;
-    // pre-declare, CUIString is a string class that hold a fixed buffer
+    // pre-declare, LongUI::CUIString is a string class that hold a small fixed buffer
     class CUIString;
-    // Vector, you can change to other like eastl stl lib, or you own 
-    template<typename T> using Vector = std::vector < T >;
+    // Vector, you can change to other like eastl stl lib, or you own
+    template<typename T> using Vector = std::vector<T>;
     // String, you can change to other like eastl stl lib, or you own 
     using DynamicString = std::wstring;
-    // Basic Container 基本容器
+    // Basic Container
     using BasicContainer = LongUI::Vector<void*>;
-    // map string to funtion, you can change to other like eastl stl lib, or you own 
+    // map longui string to pointer, you can change to other like eastl stl lib, or you own 
     using StringMap = std::map<const CUIString, void*>;
     // null for xmlnode, pugixml hold a handle for pointer
     static const pugi::xml_node null_xml_node = pugi::xml_node(nullptr);
@@ -353,7 +353,7 @@ namespace LongUI {
         static constexpr char* const bottomMarginalControl  = "bottomcontrol";
         // bottom control template id in "marginal control"
         static constexpr char* const bottomMarginalCtrlTid  = "bottomtemplateid";
-    
+        
         // window clear color
         static constexpr char* const WindowClearColor       = "clearcolor";
         // window titlebar name

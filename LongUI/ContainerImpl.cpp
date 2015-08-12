@@ -423,6 +423,15 @@ auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT
     return hr;
 }
 
+// 设置水平偏移值
+LongUINoinline void LongUI::UIContainer::SetOffsetXByChild(float value) noexcept {
+
+}
+
+// 设置垂直偏移值
+LongUINoinline void LongUI::UIContainer::SetOffsetYByChild(float value) noexcept {
+
+}
 // 获取指定控件
 auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
     // 性能警告
@@ -625,8 +634,8 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
-        this->content_size.width = base_width;
-        this->content_size.height = position_y;
+        m_2fContentSize.width = base_width;
+        m_2fContentSize.height = position_y;
         /*if (m_strControlName == L"MainWindow") {
             int a = 0;
         }*/
@@ -738,8 +747,8 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
-        this->content_size.width = position_x;
-        this->content_size.height = base_height;
+        m_2fContentSize.width = position_x;
+        m_2fContentSize.height = base_height;
         // 已经处理
         this->ControlSizeChangeHandled();
     }

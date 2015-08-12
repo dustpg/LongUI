@@ -51,6 +51,10 @@ namespace LongUI{
         };
         // 获取数值
         auto GetValue() const noexcept { return m_fValue; }
+        // is Vertical Slider?
+        auto IsVerticalSlider() const noexcept { return m_bVerticalSlider; }
+        // is Horizontal Slider?
+        auto IsHorizontalSlider() const noexcept { return !m_bVerticalSlider; }
     protected:
         // constructor 构造函数
         UISlider(pugi::xml_node) noexcept;
@@ -77,8 +81,10 @@ namespace LongUI{
         float               m_fSliderHalfWidth = static_cast<float>(LongUIDefaultSliderHalfWidth);
         // is mouse click in
         bool                m_bMouseClickIn = false;
+        // is mouse click in
+        bool                m_bVerticalSlider = false;
         // unused for slider
-        bool                m_bunsed_slider[3];
+        bool                m_bunsed_slider[2];
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

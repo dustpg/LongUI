@@ -171,7 +171,7 @@ namespace LongUI{
         // visible
         bool                    visible = true;
         // priority for rendering
-        int8_t          const   priority = 0;
+        uint8_t          const  priority = Priority_Normal;
     public:
         // transform for world
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();

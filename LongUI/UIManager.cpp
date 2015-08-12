@@ -566,7 +566,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
         POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
         arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);
         // 参数
-        arg.wParam_sys = wParam; arg.lParam_sys = lParam; arg.lr = 0;
+        arg.sys.wParam = wParam; arg.sys.lParam = lParam; arg.lr = 0;
         // 获取储存的指针
         auto* pUIWindow = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
             ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))

@@ -42,8 +42,8 @@ InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 LongUI::EventArgument::EventArgument(const EventArgument& arg) noexcept {
     this->event = arg.event;
     this->sender = arg.sender;
-    this->wParam_sys = arg.wParam_sys;
-    this->lParam_sys = arg.lParam_sys;
+    this->sys.wParam = arg.sys.wParam;
+    this->sys.lParam = arg.sys.lParam;
     this->pt.x = arg.pt.x;
     this->pt.y = arg.pt.y;
     this->lr = arg.lr;

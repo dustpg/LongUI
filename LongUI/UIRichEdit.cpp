@@ -119,7 +119,7 @@ bool LongUI::UIRichEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 处理系统消息
     else if(m_pTextServices) {
         // 检查
-        if (m_pTextServices->TxSendMessage(arg.msg, arg.wParam_sys, arg.lParam_sys, &arg.lr) != S_FALSE) {
+        if (m_pTextServices->TxSendMessage(arg.msg, arg.sys.wParam, arg.sys.lParam, &arg.lr) != S_FALSE) {
             // 已经处理了
             return true;
         }

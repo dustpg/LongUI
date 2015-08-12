@@ -1,5 +1,8 @@
 ﻿#include "LongUI.h"
 
+// 获取相对数值
+#define UISB_OffsetVaule(f) ((&(f))[int(this->bartype)])
+
 
 // UIScrollBar 构造函数
 LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: 
@@ -43,7 +46,7 @@ void LongUI::UIScrollBar::set_index(float new_index) noexcept {
     if (new_index != m_fIndex) {
         m_fIndex = new_index;
         // 修改父类属性
-        UISB_OffsetVaule(this->parent->offset.x) = -new_index;
+        this->parent->SetOffsetByChild(int(this->bartype), -new_index);
         //this->parent->DrawPosChanged();
         //this->parent->AfterChangeDrawPosition();
         // 刷新拥有着
@@ -93,13 +96,13 @@ bool LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
 void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     // 水平
     if (this->bartype == ScrollBarType::Type_Horizontal) {
-        m_fMaxRange = this->parent->GetChildLevelContentWidth();
-        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewWidth();
+        m_fMaxRange = this->parent->GetContentWidthByChild();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetViewWidthByChild();
     }
     // 垂直
     else {
-        m_fMaxRange = this->parent->GetChildLevelContentHeight();
-        m_fMaxIndex = m_fMaxRange - this->parent->GetChildLevelViewHeight();
+        m_fMaxRange = this->parent->GetContentHeightByChild();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightByChild();
     }
     return Super::UpdateMarginalWidth();
 }

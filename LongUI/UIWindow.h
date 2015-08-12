@@ -26,7 +26,7 @@
 
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // ui's window
     class UIWindow : public UIVerticalLayout, public Helper::ComStatic<
         Helper::QiListSelf<IUnknown, Helper::QiList<IDropTarget>>> {
@@ -36,6 +36,52 @@ namespace LongUI{
         friend class CUIManager;
         // message id for TaskbarBtnCreated
         static const UINT s_uTaskbarBtnCreatedMsg;
+        // timer id for blink
+        static constexpr UINT_PTR BLINK_EVENT_ID = 0;
+    public:
+        // flag of window
+        enum WindowFlag : uint8_t {
+            // no flag
+            Flag_None = 0,
+            // [default: false] window is always do full-rendering
+            // XML Attribute : "fullrender"@bool
+            Flag_FullRendering = 1 << 0,
+            // [default: false] window is always do full-rendering 
+            // like video game, will ingnore Flag_FullRendering
+            // XML Attribute : "alwaysrendering"@bool
+            Flag_AlwaysRendering = 1 << 1,
+        };
+        // type of window
+        enum WindowType : uint8_t {
+            // draw on parent-window, supported as parent-window
+            // longui menu only, error with system menu
+            Type_RenderOnParent = 0,
+            // normal window, supported for Win7(updated) and later
+            // both system menu and longui menu
+            Type_Normal,
+            // custom window, supported for Win7(updated) and later
+            // you should render "close buttom" by youself
+            // longui menu only, bad indea with system menu
+            Type_CustomDraw,
+            // layered window, supported for Win8.1 and later
+            // longui menu only, VERY bad indea with system menu
+            // because of DirectComposition
+            Type_Layered,
+        };
+    protected:
+        // index of BitArray
+        enum BitArrayIndex : uint32_t {
+            // caret in(true) or out?
+            Index_CaretIn = 0,
+            // in draging?
+            Index_InDraging,
+            // window rendered in last time, or want to render in this time
+            Index_Rendered,
+            // new size?
+            Index_NewSize,
+            // full rendering in this frame?
+            Index_FullRenderingThisFrame,
+        };
     public: // UIControl 接口实现
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;
@@ -117,7 +163,7 @@ namespace LongUI{
         // get back buffer
         LongUIInline auto GetBackBuffer() noexcept { return ::SafeAcquire(m_pTargetBimtap); }
         // is rendered
-        LongUIInline auto IsRendered() const noexcept { return m_bRendered; }
+        LongUIInline auto IsRendered() const noexcept { return m_baBoolWindow.Test(UIWindow::Index_Rendered); }
         // render window
         LongUIInline auto RenderWindow() const noexcept { this->BeginDraw(); this->Render(RenderType::Type_Render); return this->EndDraw(); }
         // next frame
@@ -142,21 +188,15 @@ namespace LongUI{
         bool OnMouseWheel(const LongUI::EventArgument&) noexcept;
         // resize window
         void OnResize(bool force = false) noexcept;
+        // parent window
+        UIWindow*       const   window_parent = nullptr;
+        // window flag
+        WindowFlag      const   window_flags = WindowFlag::Flag_None;
+        // window type
+        WindowType      const   window_type = WindowType::Type_Normal;
     protected:
         // will use BitArray instead of them
-        // BitArray32           m_baBool;
-        // caret in(true) or out?
-        bool                    m_bCaretIn = false;
-        // in draging?
-        bool                    m_bInDraging = false;
-        // window rendered in last time, or want to render in this time
-        bool                    m_bRendered = false;
-        // new size?
-        bool                    m_bNewSize = false;
-        // full rendering in this frame?
-        bool                    m_bFullRendering = false;
-        // unused
-        bool                    m_unused[1];
+        Helper::BitArray32      m_baBoolWindow;
         // text anti-mode
         uint16_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
         // mini size
@@ -248,4 +288,12 @@ namespace LongUI{
         return IID_LongUI_UIWindow;
     }
 #endif
+    // operator | for UIWindow::WindowFlag
+    static auto operator |(UIWindow::WindowFlag a, UIWindow::WindowFlag b) noexcept {
+        return static_cast<UIWindow::WindowFlag>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+    };
+    // operator |= for UIWindow::WindowFlag
+    static auto&operator |=(UIWindow::WindowFlag& a, UIWindow::WindowFlag b) noexcept {
+        return a = a | b;
+    };
 }

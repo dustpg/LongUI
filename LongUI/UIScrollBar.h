@@ -24,9 +24,6 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// 获取相对数值
-#define UISB_OffsetVaule(f) ((&(f))[int(this->bartype)])
-
 // LongUI namespace
 namespace LongUI{
     // base scroll bar 默认滚动条
@@ -62,7 +59,7 @@ namespace LongUI{
     public:
         // get parent width/height
         auto GetParentWH() noexcept { return 10.f; }
-        //auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetChildLevelViewWidth() : this->parent->GetChildLevelViewHeight(); }
+        //auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetViewWidthByChild() : this->parent->GetViewHeightByChild(); }
         // on page up
         auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - this->GetParentWH()); }
         // on page down
@@ -82,7 +79,7 @@ namespace LongUI{
         void SetIndex(float new_index) noexcept;
     protected:
         // get bar length
-        auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->content_size.height : parent->content_size.width; }
+        auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->GetContentHeightByChild() : parent->GetContentWidthByChild(); }
         // set index
         void set_index(float index) noexcept;
     public:

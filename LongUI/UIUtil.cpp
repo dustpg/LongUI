@@ -2,7 +2,7 @@
 
 
 /// <summary>
-///   float4 color ---> 32-bit ARGB uint color
+/// float4 color ---> 32-bit ARGB uint color
 /// 将浮点颜色转换成32位ARGB排列整型
 /// </summary>
 /// <param name="color">The d2d color</param>
@@ -22,7 +22,7 @@ auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uin
 }
 
 /// <summary>
-/// 32-bit ARGB uint color --->  float4 color
+/// 32-bit ARGB uint color ---> float4 color
 /// 将32位ARGB排列整型转换成浮点颜色
 /// </summary>
 /// <param name="color32">The 32-bit color.</param>
@@ -1464,7 +1464,7 @@ LongUI::Component::Video::~Video() noexcept {
 }
 
 // 重建表面
-HRESULT LongUI::Component::Video::recreate_surface() noexcept {
+auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
     // 有效情况下
     DWORD w, h; HRESULT hr = S_FALSE;
     if (this->HasVideo() && SUCCEEDED(hr = m_pMediaEngine->GetNativeVideoSize(&w, &h))) {

@@ -274,7 +274,7 @@ namespace LongUI {
             ~Video() noexcept;
         private:
             // recreate surface
-            HRESULT recreate_surface() noexcept;
+            auto recreate_surface() noexcept->HRESULT;
         public:
             // dst rect
             RECT                     const  dst_rect = RECT();

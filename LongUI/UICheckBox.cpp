@@ -72,7 +72,7 @@ LongUI::UICheckBox::~UICheckBox() noexcept {
 
 
 // UICheckBox::CreateControl 函数
-LongUI::UIControl* LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
+auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
     UIControl* pControl = nullptr;
     switch (type)
@@ -134,7 +134,7 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 有效
             if (arg.pt.x < this->view_size.width && arg.pt.y) {
                 // 检查flag
-                if (this->flags & Flag_CheckBox_WithIndeterminate) {
+                if (this->IsCanbeIndeterminate()) {
                     if (this->state == CheckBoxState::State_UnChecked) {
                         force_cast(this->state) = CheckBoxState::State_Checked;
                     }

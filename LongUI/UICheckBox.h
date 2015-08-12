@@ -26,23 +26,23 @@
 
 // LongUI namespace
 namespace LongUI{
-    // 复选框状态
-    // the disabled state is one lowest bit of state (state & 1)
-    // "CheckBoxState" is state right shift a bit (state>>1)
-    enum class CheckBoxState : uint32_t {
-        // 未知
-        State_Unknown = ControlStatus::Status_Disabled,
-        // 未选中
-        State_UnChecked = ControlStatus::Status_Normal,
-        // 不确定
-        State_Indeterminate = ControlStatus::Status_Hover,
-        // 选中
-        State_Checked = ControlStatus::Status_Pushed,
-    };
-    // default CheckBox control 默认复选框控件
+    // default checkBox control 默认复选框控件
     class UICheckBox final : public UIText {
         // 父类申明
         using Super = UIText ;
+    public:
+        // the disabled state is one lowest bit of state (state & 1)
+        // "CheckBoxState" is state right shift a bit (state>>1)
+        enum CheckBoxState : uint32_t {
+            // 未知
+            State_Unknown = ControlStatus::Status_Disabled,
+            // 未选中
+            State_UnChecked = ControlStatus::Status_Normal,
+            // 不确定
+            State_Indeterminate = ControlStatus::Status_Hover,
+            // 选中
+            State_Checked = ControlStatus::Status_Pushed,
+        };
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;
@@ -55,8 +55,10 @@ namespace LongUI{
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
+        // is canbe indeterminate state?
+        auto IsCanbeIndeterminate() const noexcept { return m_bCanbeIndeterminate; }
         // create 创建
-        static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
+        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
     protected:
         // constructor 构造函数
         UICheckBox(pugi::xml_node) noexcept;
@@ -77,6 +79,11 @@ namespace LongUI{
         // set new state
         void SetNewState(CheckBoxState new_result){ force_cast(state) = new_result; m_pWindow->Invalidate(this); }
         // now state
-        CheckBoxState const   state = CheckBoxState::State_UnChecked;
+        CheckBoxState   const   state = CheckBoxState::State_UnChecked;
+    protected:
+        // is canbe Indeterminate?
+        bool                    m_bCanbeIndeterminate = false;
+        // unused
+        bool                    unused[3];
     };
 }

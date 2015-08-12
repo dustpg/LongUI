@@ -167,7 +167,7 @@ namespace LongUI {
     // type:  0 for drawing effect, 1 for inline object
     // token: the string segment of this part
     using InlineParamHandler = IUnknown* (*)(uint32_t type, const wchar_t* token);
-    // LongUI Flags
+    // LongUI Flags: TODO: remove all non-common flag
     enum LongUIFlag : uint32_t {
         // no flag
         Flag_None = 0,
@@ -210,7 +210,6 @@ namespace LongUI {
         // flag Flag_Container_AlwaysRenderChildrenDirectly, too,
         // and set all children
         Flag_RenderParent = 1 << 8,
-        // ------- Lv1 Control Flag ------------
         // [default: false] container 's child rendered through
         // this control, not window directly, if container  hold
         // this flag, will mark all children's Flag_RenderParent to true
@@ -219,25 +218,6 @@ namespace LongUI {
         // if exist marginal control, will set it to true,
         // this is just a optimization flag
         Flag_Container_ExistMarginalControl = 1 << 17,
-        //
-        Flag_Edit_MultipleLine = 1 << 16,
-        Flag_Slider_VerticalSlider = 1 << 16,
-        Flag_CheckBox_WithIndeterminate = 1 << 16,
-        // ------- Lv2 Control Flag ------------
-        // [default: true] window is using DirectComposition
-        // XML Attribute : "dcomp"@bool
-        Flag_Window_DComposition = 1 << 20,
-        // [default: false] window is always do full-rendering
-        // XML Attribute : "fullrender"@bool
-        Flag_Window_FullRendering = 1 << 21,
-        // [default: false] window is renderer on parent window
-        // maybe save some memory
-        // XML Attribute : "renderonparent"@bool
-        Flag_Window_RenderedOnParentWindow = 1 << 22,
-        // [default: false] window is always do rendering with
-        // full-rendering, will ingnore Flag_Window_FullRendering
-        // XML Attribute : "alwaysrendering"@bool
-        Flag_Window_AlwaysRendering = 1 << 23,
     };
     // operator | for LongUIFlag
     static auto operator |(LongUIFlag a, LongUIFlag b) noexcept {
@@ -301,8 +281,8 @@ namespace LongUI {
         // -----control custom
         // button clicked
         Event_ButtoClicked,
-        // edit return
-        Event_EditReturn,
+        // edit returned
+        Event_EditReturned,
         // slider value changed
         Event_SliderValueChanged,
         // ----- Custom Event -----(User Defined)
@@ -316,21 +296,21 @@ namespace LongUI {
 
     };
     // priority for rendering
-    enum RenderingPriority : int8_t {
+    enum RenderingPriority : uint8_t {
         // last
-        Priority_Last = -128,
+        Priority_Last = 0,
         // after most
-        Priority_AfterMost = -100,
+        Priority_AfterMost = 20,
         // low
-        Priority_Low = -1,
+        Priority_Low = 127,
         // normal
-        Priority_Normal = 0,
+        Priority_Normal = 128,
         // high
-        Priority_High = 1,
+        Priority_High = 129,
         // before most
-        Priority_BeforeMost = 100,
+        Priority_BeforeMost = 235,
         // first
-        Priority_First = 127,
+        Priority_First = 255,
     };
     // LongUI Event Argument
     struct EventArgument {
@@ -341,11 +321,11 @@ namespace LongUI {
         // data
         union {
             // Ststem 
-            struct { WPARAM wParam_sys; LPARAM lParam_sys; };
+            struct { WPARAM wParam; LPARAM lParam; } sys;
             // clipboard format 
-            struct { IDataObject* dataobj_cf; DWORD* outeffect_cf; };
+            struct { IDataObject* dataobj; DWORD* outeffect; } cf;
             // control
-            struct { LongUI::SubEvent subevent_ui; void* pointer_ui; };
+            struct { LongUI::SubEvent subevent; void* pointer; } ui;
         };
         // world mouse position, you should transfrom it while using
         D2D1_POINT_2F   pt;
