@@ -39,25 +39,10 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if (data = node.attribute(LongUI::XMLAttribute::RenderingPriority).value()){
             force_cast(this->priority) = int8_t(LongUI::AtoI(data));
         }
-        /*else {
-            m_script.data = nullptr; m_script.size = 0;
-        }*/
         // 检查名称
         UIControl::MakeString(
             node.attribute(LongUI::XMLAttribute::ControlName).value(),
             m_strControlName
-            );
-        // 检查视口位置
-        UIControl::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::ViewPosotion).value(),
-            &force_cast(this->view_pos.x),
-            sizeof(this->view_pos) / sizeof(this->view_pos.x)
-            );
-        // 检查视口大小
-        UIControl::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::ViewSize).value(),
-            &force_cast(view_size.width),
-            sizeof(this->view_pos) / sizeof(this->view_size.width)
             );
         // 检查外边距
         UIControl::MakeFloats(
@@ -65,14 +50,6 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             const_cast<float*>(&margin_rect.left), 
             sizeof(margin_rect) /sizeof(margin_rect.left)
             );
-        // 视口区宽度固定?
-        if (this->view_size.width > 0.f) {
-            flag |= LongUI::Flag_ViewWidthFixed;
-        }
-        // 视口区高度固固定?
-        if (this->view_size.height > 0.f) {
-            flag |= LongUI::Flag_ViewHeightFixed;
-        }
         // 检查渲染父控件
         if (node.attribute(LongUI::XMLAttribute::IsRenderParent).as_bool(false)) {
             flag |= LongUI::Flag_RenderParent;
@@ -108,6 +85,42 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             node.attribute("pushedbordercolor").value(), 
             m_aBorderColor[Status_Pushed]
             );
+        // 检查控件大小
+        {
+            float size[] = { 0.f, 0.f };
+            UIControl::MakeFloats(
+                node.attribute(LongUI::XMLAttribute::AllSize).value(),
+                size, lengthof(size)
+                );
+            // 视口区宽度固定?
+            if (size[0] > 0.f) {
+                flag |= LongUI::Flag_WidthFixed;
+                this->SetWidth(size[0]);
+            }
+            // 视口区高度固固定?
+            if (size[1] > 0.f) {
+                flag |= LongUI::Flag_HeightFixed;
+                this->SetHeight(size[1]);
+            }
+        }
+        // 检查控件位置
+        {
+            float pos[] = { 0.f, 0.f };
+            UIControl::MakeFloats(
+                node.attribute(LongUI::XMLAttribute::LeftTopPosotion).value(),
+                pos, lengthof(pos)
+                );
+            // 指定X轴
+            if (pos[0] != 0.f) {
+                this->SetLeft(pos[0]);
+                flag |= Flag_Floating;
+            }
+            // 指定Y轴
+            if (pos[1] != 0.f) {
+                this->SetTop(pos[1]);
+                flag |= Flag_Floating;
+            }
+        }
     }
     // 修改flag
     force_cast(this->flags) |= flag;
@@ -379,9 +392,9 @@ auto LongUI::UIControl::SetLeft(float left) noexcept -> void {
     auto new_left = left + this->margin_rect.left + m_fBorderWidth;
     // 修改了位置?
     if (this->view_pos.x != new_left) {
-
+        force_cast(this->view_pos.x) = new_left;
+        this->SetControlWorldChanged();
     }
-    force_cast(this->view_pos.x) = new_left;
 }
 
 // 设置控件顶坐标
@@ -389,9 +402,9 @@ auto LongUI::UIControl::SetTop(float top) noexcept -> void {
     auto new_top = top + this->margin_rect.top + m_fBorderWidth;
     // 修改了位置?
     if (this->view_pos.y != new_top) {
-
+        force_cast(this->view_pos.y) = new_top;
+        this->SetControlWorldChanged();
     }
-    force_cast(this->view_pos.y) = new_top;
 }
 
 // 获取占用/剪切矩形
@@ -439,8 +452,8 @@ void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
 
 // 获得世界转换矩阵
 void LongUI::UIControl::RefreshWorld() noexcept {
-    float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
-    float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
+    float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
+    float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
     // 顶级控件
     if (this->IsTopLevel()) {
         this->world = D2D1::Matrix3x2F::Translation(xx, yy);
@@ -459,8 +472,8 @@ void LongUI::UIControl::RefreshWorld() noexcept {
 
 // 获得世界转换矩阵 for 边缘控件
 void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
-    float xx = this->view_pos.x + this->margin_rect.left + m_fBorderWidth;
-    float yy = this->view_pos.y + this->margin_rect.top + m_fBorderWidth;
+    float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
+    float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
     D2D1_MATRIX_3X2_F identity;
     D2D1_MATRIX_3X2_F* parent_parent_world = &identity;
     // 顶级

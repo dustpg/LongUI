@@ -195,7 +195,9 @@ namespace LongUI {
         // LongUI Default Slider Half Width
         LongUIDefaultCheckBoxWidth = 16,
         // minimal size in pixel for window by default
-        LongUIWindowMiniSize = 128,
+        LongUIWindowMinSize = 128,
+        // minimal size for auto-size control
+        LongUIAutoControlMinSize = 8,
         // target bitmap unit size, larger than this,
         // will call IDXGISwapChain::ResizeBuffers,
         // but to large will waste some memory
@@ -305,10 +307,10 @@ namespace LongUI {
         static constexpr char* const ControlName            = "name";
         // script
         static constexpr char* const Script                 = "script";
-        // position of control view: float2
-        static constexpr char* const ViewPosotion           = "pos";
-        // size of control view: float2
-        static constexpr char* const ViewSize               = "size";
+        // position of control left-top: float2
+        static constexpr char* const LeftTopPosotion        = "pos";
+        // size of control: float2
+        static constexpr char* const AllSize                = "size";
         // margin: float4
         static constexpr char* const Margin                 = "margin";
         // width of border: float1
@@ -327,22 +329,14 @@ namespace LongUI {
         // is always render children directly       [valid] for container
         static constexpr char* const IsRenderChildrenD      = "rendercd";
         
-        // left control class name in "marginal control"
+        // left control class name and template id in "marginal control"
         static constexpr char* const LeftMarginalControl    = "leftcontrol";
-        // left control template id in "marginal control"
-        static constexpr char* const LeftMarginalCtrlTid    = "lefttemplateid";
-        // top control class name in "marginal control"
+        // top control class name and template id in "marginal control"
         static constexpr char* const TopMarginalControl     = "topcontrol";
-        // top control template id in "marginal control"
-        static constexpr char* const TopMarginalCtrlTid     = "toptemplateid";
-        // right control class name in "marginal control"
+        // right control class name and template id in "marginal control"
         static constexpr char* const RightMarginalControl   = "rightcontrol";
-        // right control template id in "marginal control"
-        static constexpr char* const RightMarginalCtrlTid   = "righttemplateid";
-        // bottom control class name in "marginal control"
+        // bottom control class name and template id in "marginal control"
         static constexpr char* const bottomMarginalControl  = "bottomcontrol";
-        // bottom control template id in "marginal control"
-        static constexpr char* const bottomMarginalCtrlTid  = "bottomtemplateid";
         
         // window clear color
         static constexpr char* const WindowClearColor       = "clearcolor";

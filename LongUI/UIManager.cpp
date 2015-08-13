@@ -382,6 +382,7 @@ if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
 void LongUI::CUIManager::Run() noexcept {
     MSG msg;
     // 渲染线程函数
+#pragma region Rendering thread function
     auto render_thread_func = [](void*) noexcept ->unsigned {
         UIWindow* windows[LongUIMaxWindow]; uint32_t length = 0;
         // 不退出?
@@ -396,7 +397,9 @@ void LongUI::CUIManager::Run() noexcept {
             }
             // 更新计时器
             UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
-            UIManager << DL_None << "delta: " << UIManager.m_fDeltaTime << LongUI::endl;
+            UIManager.m_uiTimer.MovStartEnd();
+            //UIManager << DL_None << "delta-time: " 
+            //<< UIManager.m_fDeltaTime << " sec."<< LongUI::endl;
             // 刷新窗口
             for (auto i = 0u; i < length; ++i) {
                 windows[i]->Update();
@@ -421,9 +424,10 @@ void LongUI::CUIManager::Run() noexcept {
 #endif
             // 等待垂直同步
             UIManager.WaitVS(waitvs_window);
-        }
+                }
         return 0;
     };
+#pragma endregion
     // 需要std::thread?
 #ifdef LONGUI_RENDER_IN_STD_THREAD
     std::thread thread(render_thread_func, nullptr);
@@ -504,6 +508,7 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
             return nullptr;
         }
     }
+    // 节点有效
     if (node) {
         id = static_cast<decltype(id)>(LongUI::AtoI(node.attribute("templateid").value()));
     }

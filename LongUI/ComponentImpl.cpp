@@ -1,9 +1,9 @@
 ﻿#include "LongUI.h"
 
-// -------------------- LongUI::Component::Text --------------------
+// -------------------- LongUI::Component::ShortText --------------------
 
-// Text 构造函数
-LongUI::Component::Text::Text(pugi::xml_node node, const char * prefix) noexcept
+// ShortText 构造函数
+LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix) noexcept
     : m_pTextRenderer(nullptr) {
     m_config = {
         ::SafeAcquire(UIManager_DWriteFactory),
@@ -92,8 +92,8 @@ LongUI::Component::Text::Text(pugi::xml_node node, const char * prefix) noexcept
     this->recreate(node.attribute(prefix).value());
 }
 
-// Text = L"***"
-LongUI::Component::Text& LongUI::Component::Text::operator=(const wchar_t* new_string) noexcept {
+// ShortText = L"***"
+LongUI::Component::ShortText& LongUI::Component::ShortText::operator=(const wchar_t* new_string) noexcept {
     // 不能是XML模式
     assert(this->GetIsXML() == false && "=(const wchar_t*) must be in core-mode, can't be xml-mode");
     m_text.Set(new_string);
@@ -101,8 +101,8 @@ LongUI::Component::Text& LongUI::Component::Text::operator=(const wchar_t* new_s
     return *this;
 }
 
-// Text = "***"
-LongUI::Component::Text& LongUI::Component::Text::operator=(const char* str) noexcept {
+// ShortText = "***"
+LongUI::Component::ShortText& LongUI::Component::ShortText::operator=(const char* str) noexcept {
     if (this->GetIsXML()) {
         this->recreate(str);
         return *this;
@@ -114,16 +114,16 @@ LongUI::Component::Text& LongUI::Component::Text::operator=(const char* str) noe
     }
 }
 
-// Text 析构
-LongUI::Component::Text::~Text() noexcept {
+// ShortText 析构
+LongUI::Component::ShortText::~ShortText() noexcept {
     m_pTextRenderer.SafeRelease();
     ::SafeRelease(m_pLayout);
     ::SafeRelease(m_config.dw_factory);
     ::SafeRelease(m_config.text_format);
 }
 
-// Text 重建
-void LongUI::Component::Text::recreate(const char* utf8) noexcept {
+// ShortText 重建
+void LongUI::Component::ShortText::recreate(const char* utf8) noexcept {
     wchar_t text_buffer[LongUIStringBufferLength];
     // 转换为核心模式
     if (this->GetIsXML() && this->GetIsRich()) {
@@ -580,7 +580,7 @@ bool LongUI::Component::EditaleText::OnDragEnter(IDataObject* data, DWORD* effec
     UNREFERENCED_PARAMETER(effect);
     m_pHost->GetWindow()->ShowCaret();
     ::ReleaseStgMedium(&m_recentMedium);
-    // 检查支持格式: Unicode-Text
+    // 检查支持格式: Unicode-ShortText
     FORMATETC fmtetc = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
     if (SUCCEEDED(data->GetData(&fmtetc, &m_recentMedium))) {
         m_bDragFormatOK = true;

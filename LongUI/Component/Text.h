@@ -28,8 +28,8 @@
 namespace LongUI {
     // Component namespace
     namespace Component {
-        // Component: Text
-        class Text {
+        // Component: ShortText
+        class ShortText {
             using InfoUIBasicTextRenderer = Helper::InfomationPointer<CUIBasicTextRenderer>;
             // 重建
             void __fastcall recreate(const char* = nullptr) noexcept;
@@ -44,7 +44,7 @@ namespace LongUI {
             auto GetIsRich() const noexcept { return m_pTextRenderer.Bool2(); }
         public:
             // constructor
-            Text(pugi::xml_node, const char* prefix = "text") noexcept;
+            ShortText(pugi::xml_node, const char* prefix = "text") noexcept;
             // set new size
             auto SetNewSize(float w, float h) noexcept {
                 m_config.width = w; m_config.height = h;
@@ -62,11 +62,11 @@ namespace LongUI {
                 m_pLayout->Draw(m_buffer.data, ptr, x, y);
             }
             // destructor
-            ~Text() noexcept;
+            ~ShortText() noexcept;
             // operator = for wide-char(utf16 on windows), must be in core-mode
-            Text& operator=(const wchar_t*) noexcept;
+            ShortText& operator=(const wchar_t*) noexcept;
             // operator = for utf-8, can be xml-mode or core-mode
-            Text& operator=(const char*) noexcept;
+            ShortText& operator=(const char*) noexcept;
             // c_str for wide-char(utf16 on windows)
             LongUIInline auto text_totallegnth() const noexcept { return m_config.text_length; }
             // c_str for wide-char(utf16 on windows)

@@ -7,10 +7,6 @@
 // UIScrollBar 构造函数
 LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: 
 Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
-    // 降低渲染优先级以保证最后渲染
-    if (!this->priority) {
-        force_cast(this->priority) = Priority_AfterMost;
-    }
     // 修改
     if (node) {
         wheel_step = LongUI::AtoF(node.attribute("wheelstep").value());
@@ -102,6 +98,7 @@ void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     else {
         m_fMaxRange = this->parent->GetContentHeightByChild();
         m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightByChild();
+        UIManager << DL_Hint << this->parent->GetViewHeightByChild() << endl;
     }
     return Super::UpdateMarginalWidth();
 }
@@ -305,6 +302,7 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
                     register auto pos = UISB_OffsetVaule(pt4self.x);
                     register auto rate = 1.f - m_fMaxIndex / m_fMaxRange;
                     this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
+                    m_uiAnimation.end = m_fIndex;
 #ifdef _DEBUG
                     rate = 0.f;
 #endif

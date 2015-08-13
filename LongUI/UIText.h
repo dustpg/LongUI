@@ -61,7 +61,7 @@ namespace LongUI{
         UIText(const UIText&) = delete;
     protected:
         // the text of control
-        LongUI::Component::Text         m_text;
+        LongUI::Component::ShortText    m_text;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

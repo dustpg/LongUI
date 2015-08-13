@@ -73,7 +73,12 @@ namespace LongUI {
         /// 更多细节参考<see cref="LongUI::UIContainer::DoEvent"/>
         /// </remarks>
         /// <returns>void</returns>
-        virtual inline void InitMarginalControl(MarginalControl _type) noexcept { force_cast(this->marginal_type) = _type; }
+        virtual inline void InitMarginalControl(MarginalControl _type) noexcept {
+            if (this->priority == Priority_Normal) {
+                force_cast(this->priority) = Priority_AfterMost;
+            }
+            force_cast(this->marginal_type) = _type; 
+        }
 
         /// <summary>
         /// Updates the width of the marginal.

@@ -173,14 +173,13 @@ namespace LongUI {
         // [default: false][auto, no specified]
         // if the control is a container, will/please mark it
         Flag_UIContainer = 1 << 0,
-        // [default: false][auto]control's width fixed, if given a valid width value
-        // XML Attribute: "pos"[2]@float
-        Flag_ViewWidthFixed = 1 << 1,
-        // [default: false][auto]control's width fixed, if given a valid height value
-        // XML Attribute: "pos"[3]@float
-        Flag_ViewHeightFixed = 1 << 2,
+        // [default: false][auto]control's width fixed if given a valid width value
+        // XML Attribute: "size"[0]@float
+        Flag_WidthFixed = 1 << 1,
+        // [default: false][auto]control's height fixed if given a valid height value
+        // XML Attribute: "size"[1]@float
+        Flag_HeightFixed = 1 << 2,
         // [default: false]control is floating
-        // XML Attribute: "float"@bool
         Flag_Floating = 1 << 3,
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
@@ -319,7 +318,7 @@ namespace LongUI {
         UIControl*      sender;
         // data
         union {
-            // Ststem 
+            // System 
             struct { WPARAM wParam; LPARAM lParam; } sys;
             // clipboard format 
             struct { IDataObject* dataobj; DWORD* outeffect; } cf;

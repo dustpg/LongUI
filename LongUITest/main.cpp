@@ -5,13 +5,13 @@
 // 测试XML &#xD; --> \r &#xA; --> \n
 #if 0
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow" vscrollbar="ScrollBarA" hscrollbar="ScrollBarA">
-    <VerticalLayout name="VLayout1" pos="0, 0, 1100, 128">
+<Window size="1024, 768" name="MainWindow" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
+    <VerticalLayout name="VLayout1" size="1100, 128">
         <!--Video name="asd" /-->
         <Test name="test" texttype="core" text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
         <Slider name="6" renderparent="true"/>
     </VerticalLayout>
-    <HorizontalLayout name="HLayout" pos="0, 0, 0, 256">
+    <HorizontalLayout name="HLayout" size="0, 256">
         <EditBasic name="edit01" textmultiline="true" text="Hello, world!&#xD;&#xA;泥壕, 世界!"/>
         <VerticalLayout name="VLayout2">
             <Text name="label_test" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
@@ -26,10 +26,10 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 #else
-// bottomcontrol="ScrollBarA" 
+// bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow" margin="16,16,16,16"
-    rightcontrol="ScrollBarA" clearcolor="1,1,1,0.95" >
+<Window size="1024, 768" name="MainWindow"
+    bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" clearcolor="1,1,1,0.95" >
     <VerticalLayout name="V" size="1366, 512">
         <Button name="1" margin="4,4,4,4" disabledmeta="1" size = "1500,0"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
@@ -40,10 +40,12 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </HorizontalLayout>
+    <Slider name="6" size="0, 32"/>
+    <Button name="btn_x" size="0, 32" borderwidth="10" texttype="core"
+        text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
 </Window>
 )xml";
 #endif
-
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Resource>
     <!-- Bitmap区域Zone -->
@@ -209,7 +211,7 @@ protected:
     }
 protected:
     // text
-    LongUI::Component::Text     m_text;
+    LongUI::Component::ShortText     m_text;
     // bool
     bool                        m_FirstRecreate = true;
     //
@@ -330,9 +332,11 @@ protected:
 
 // 应用程序入口
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
+    auto a = test_xml + 0x86;
     // 设置堆信息
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     // 本Demo的配置信息
+#pragma region Configure for this demo
     class DemoConfigure final : public LongUI::CUIDefaultConfigure {
         typedef LongUI::CUIDefaultConfigure Super;
     public:
@@ -363,6 +367,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         // dll
         HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
     } config;
+#pragma endregion
     // MainWindow 的缓存/栈空间地址, 在x86上4字节对齐
     alignas(sizeof(void*)) size_t buffer[sizeof(MainWindow) / sizeof(size_t) + 1];
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)

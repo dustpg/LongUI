@@ -36,7 +36,7 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
     // 其他属性
     {
         // 最小大小
-        float size[] = { LongUIWindowMiniSize, LongUIWindowMiniSize };
+        float size[] = { LongUIWindowMinSize, LongUIWindowMinSize };
         UIControl::MakeFloats(node.attribute("minisize").value(), size, 2);
         m_miniSize.width = static_cast<decltype(m_miniSize.width)>(size[0]);
         m_miniSize.height = static_cast<decltype(m_miniSize.height)>(size[1]);

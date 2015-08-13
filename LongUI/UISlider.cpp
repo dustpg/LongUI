@@ -5,11 +5,11 @@ void LongUI::UISlider::Render(RenderType) const noexcept {
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
     // 垂直滑块
-    if (this->IsVerticalSlider()){
+    if (this->IsVerticalSlider()) {
 
     }
     // 水平滑块
-    else{
+    else {
         draw_rect.left += m_fSliderHalfWidth;
         draw_rect.right -= m_fSliderHalfWidth;
         draw_rect.top = (draw_rect.top + draw_rect.bottom)*0.5f - 2.f;

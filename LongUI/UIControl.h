@@ -91,6 +91,10 @@ namespace LongUI{
         // Set Event Call Back
         void SetEventCallBack(const wchar_t*, LongUI::Event, LongUIEventCallBack) noexcept;
     public:
+        // get width of control
+        auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
+        // get height of control
+        auto GetHeight() const noexcept { return this->GetTakingUpHeight(); }
         // get taking up width of control
         auto GetTakingUpWidth() const noexcept ->float;
         // get taking up height of control

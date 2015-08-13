@@ -10,29 +10,37 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     auto flag = this->flags | Flag_UIContainer;
     // 检查边缘控件
     {
-        // 属性名字
+        // 属性ID
         const char* const attname[] = {
             LongUI::XMLAttribute::LeftMarginalControl,
             LongUI::XMLAttribute::TopMarginalControl,
             LongUI::XMLAttribute::RightMarginalControl,
             LongUI::XMLAttribute::bottomMarginalControl,
         };
-        // 属性id
-        const char* const templateid[] = {
-            LongUI::XMLAttribute::LeftMarginalCtrlTid,
-            LongUI::XMLAttribute::TopMarginalCtrlTid,
-            LongUI::XMLAttribute::RightMarginalCtrlTid,
-            LongUI::XMLAttribute::bottomMarginalCtrlTid,
-        };
         bool exist_marginal_control = false;
+        // ONLY MY LOOPGUN
         for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
             const char* str = nullptr;
+            // 获取指定属性值
             if ((str = node.attribute(attname[i]).value())) {
-                auto create_control_func = UIManager.GetCreateFunc(str);
+                char buffer[LongUIStringLength];
+                assert(::strlen(str) < LongUIStringLength && "buffer too small");
+                // 获取逗号位置
+                auto strtempid = ::strchr(str, ',');
+                if (strtempid) {
+                    auto length = strtempid - str;
+                    ::memcpy(buffer, str, length);
+                    buffer[length] = char(0);
+                }
+                else {
+                    ::strcpy(buffer, str);
+                }
+                // 获取类ID
+                auto create_control_func = UIManager.GetCreateFunc(buffer);
                 assert(create_control_func && "none");
                 if (create_control_func) {
                     // 检查模板ID
-                    auto tid = LongUI::AtoI(node.attribute(templateid[i]).value());
+                    auto tid = strtempid ? LongUI::AtoI(strtempid + 1) : 0;
                     // 创建控件
                     auto control = UIManager.CreateControl(size_t(tid), create_control_func);
                     // XXX: 检查
@@ -241,6 +249,10 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
     auto get_marginal_width = [](UIMarginalable* ctrl) noexcept {
         return ctrl ? ctrl->marginal_width : 0.f;
     };
+    // 利用规则获取宽度
+    auto get_marginal_width_with_rule = [](UIMarginalable* a, UIMarginalable* b) noexcept {
+        return a->rule == UIMarginalable::Rule_Greedy ? 0.f : (b ? b->marginal_width : 0.f);
+    };
     // 计算宽度
     auto caculate_container_width = [this, get_marginal_width]() noexcept {
         // 基本宽度
@@ -262,10 +274,8 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
             + m_fBorderWidth * 2.f;
     };
     // 保留信息
-    float this_container_width = caculate_container_width();
-    float this_container_height = caculate_container_height();
-    const auto this_container_width_old = this_container_width;
-    const auto this_container_height_old = this_container_height;
+    const float this_container_width = caculate_container_width();
+    const float this_container_height = caculate_container_height();
     // 循环
     while (true) {
         // XXX: 优化
@@ -277,64 +287,91 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
             switch (i)
             {
             case 0: // Left
+            {
+                const auto tmptop = m_orgMargin.top +
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Top]);
                 // 坐标
                 ctrl->SetLeft(m_orgMargin.left);
-                ctrl->SetTop(
-                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Top])
-                    );
+                ctrl->SetTop(tmptop);
                 // 大小
-                force_cast(ctrl->view_size.width) = ctrl->marginal_width;
-                force_cast(ctrl->view_size.height) = this_container_height_old + ctrl->view_pos.y -
-                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
+                ctrl->SetWidth(ctrl->marginal_width);
+                ctrl->SetHeight(
+                    this_container_height - tmptop - m_orgMargin.bottom -
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Bottom])
+                    );
+            }
                 break;
             case 1: // Top
-                // 初稿
+            {
+                const float tmpleft = m_orgMargin.left +
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Left]);
+                // 坐标
+                ctrl->SetLeft(tmpleft);
+                ctrl->SetTop(m_orgMargin.top);
+                // 大小
+                ctrl->SetWidth(
+                    this_container_width - tmpleft - m_orgMargin.right -
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Right])
+                    );
+                ctrl->SetHeight(ctrl->marginal_width);
+            }
                 break;
             case 2: // Right
+            {
+                const auto tmptop = m_orgMargin.top +
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Top]);
                 // 坐标
-                ctrl->SetLeft(this_container_width_old - m_orgMargin.right - ctrl->marginal_width);
-                ctrl->SetTop(
-                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Top])
-                    );
+                ctrl->SetLeft(this_container_width - m_orgMargin.right - ctrl->marginal_width);
+                ctrl->SetTop(tmptop);
                 // 大小
-                force_cast(ctrl->view_size.width) = ctrl->marginal_width;
-                force_cast(ctrl->view_size.height) = this_container_height_old + ctrl->view_pos.y -
-                    get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
+                ctrl->SetWidth(ctrl->marginal_width);
+                ctrl->SetHeight(
+                    this_container_height - tmptop - m_orgMargin.bottom -
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Bottom])
+                    );
+            }
                 break;
             case 3: // Bottom
-                // 初稿
+            {
+                const float tmpleft = m_orgMargin.left +
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Left]);
+                // 坐标
+                ctrl->SetLeft(tmpleft);
+                ctrl->SetTop(this_container_height - m_orgMargin.bottom - ctrl->marginal_width);
+                // 大小
+                ctrl->SetWidth(
+                    this_container_width - tmpleft - m_orgMargin.right -
+                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Right])
+                    );
+                ctrl->SetHeight(ctrl->marginal_width);
+            }
                 break;
             }
             // 更新边界
             ctrl->UpdateMarginalWidth();
-            // 退出
-            {
-                const float latest_width = caculate_container_width();
-                const float latest_height = caculate_container_height();
-                // 一样就退出
-                if (latest_width == this_container_width &&
-                    latest_height == this_container_height) {
-                    goto force_break;
-                }
-                this_container_width = latest_width;
-                this_container_height = latest_height;
+        }
+        // 退出检查
+        {
+            const float latest_width = caculate_container_width();
+            const float latest_height = caculate_container_height();
+            // 一样就退出
+            if (latest_width == this_container_width && latest_height == this_container_height) {
+                break;
             }
+            // 修改外边距
+            force_cast(this->margin_rect.left) = m_orgMargin.left
+                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Left]);
+            force_cast(this->margin_rect.top) = m_orgMargin.top
+                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Top]);
+            force_cast(this->margin_rect.right) = m_orgMargin.right
+                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Right]);
+            force_cast(this->margin_rect.bottom) = m_orgMargin.bottom
+                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
+            // 修改大小
+            this->SetWidth(this_container_width);
+            this->SetHeight(this_container_height);
         }
     }
-    // FORCE BREAKING! KA KA!
-force_break:
-    // 修改外边距
-    force_cast(this->margin_rect.left) = m_orgMargin.left 
-        + get_marginal_width(this->marginal_control[UIMarginalable::Control_Left]);
-    force_cast(this->margin_rect.top) = m_orgMargin.top 
-        + get_marginal_width(this->marginal_control[UIMarginalable::Control_Top]);
-    force_cast(this->margin_rect.right) = m_orgMargin.right
-        + get_marginal_width(this->marginal_control[UIMarginalable::Control_Right]);
-    force_cast(this->margin_rect.bottom) = m_orgMargin.bottom
-        + get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
-    // 修改大小
-    this->SetWidth(this_container_width_old);
-    this->SetHeight(this_container_height_old);
 }
 
 
@@ -631,11 +668,11 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             // 非浮点控件
             if (!(ctrl->flags & Flag_Floating)) {
                 // 宽度固定?
-                if (ctrl->flags & Flag_ViewWidthFixed) {
+                if (ctrl->flags & Flag_WidthFixed) {
                     base_width = std::max(base_width, ctrl->GetTakingUpWidth());
                 }
                 // 高度固定?
-                if (ctrl->flags & Flag_ViewHeightFixed) {
+                if (ctrl->flags & Flag_HeightFixed) {
                     base_height += ctrl->GetTakingUpHeight();
                 }
                 // 未指定高度?
@@ -651,22 +688,29 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         base_width = std::max(base_width, this->view_size.width);
         // 高度步进
         float height_step = counter > 0.f ? (this->view_size.height - base_height) / counter : 0.f;
+        // 小于阈值
+        if (height_step < float(LongUIAutoControlMinSize)) {
+            height_step = float(LongUIAutoControlMinSize);
+        }
         float position_y = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
             // 浮点控
             if (ctrl->flags & Flag_Floating) continue;
             // 设置控件宽度
-            if (!(ctrl->flags & Flag_ViewWidthFixed)) {
+            if (!(ctrl->flags & Flag_WidthFixed)) {
                 ctrl->SetWidth(base_width);
             }
             // 设置控件高度
-            if (!(ctrl->flags & Flag_ViewHeightFixed)) {
+            if (!(ctrl->flags & Flag_HeightFixed)) {
                 ctrl->SetHeight(height_step);
             }
             // 容器?
             // 不管如何, 修改!
             ctrl->SetControlSizeChanged();
+            if (ctrl->GetName() == L"btn_x") {
+                int bk = 9;
+            }
             ctrl->SetLeft(0.f);
             ctrl->SetTop(position_y);
             position_y += ctrl->GetTakingUpHeight();
@@ -745,11 +789,11 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             // 非浮点控件
             if (!(ctrl->flags & Flag_Floating)) {
                 // 高度固定?
-                if (ctrl->flags & Flag_ViewHeightFixed) {
+                if (ctrl->flags & Flag_HeightFixed) {
                     base_height = std::max(base_height, ctrl->GetTakingUpHeight());
                 }
                 // 宽度固定?
-                if (ctrl->flags & Flag_ViewWidthFixed) {
+                if (ctrl->flags & Flag_WidthFixed) {
                     base_width += ctrl->GetTakingUpWidth();
                 }
                 // 未指定宽度?
@@ -765,17 +809,21 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
         base_height = std::max(base_height, this->view_size.height);
         // 宽度步进
         float width_step = counter > 0.f ? (this->view_size.width - base_width) / counter : 0.f;
+        // 小于阈值
+        if (width_step < float(LongUIAutoControlMinSize)) {
+            width_step = float(LongUIAutoControlMinSize);
+        }
         float position_x = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
             // 跳过浮动控件
             if (ctrl->flags & Flag_Floating) continue;
             // 设置控件高度
-            if (!(ctrl->flags & Flag_ViewHeightFixed)) {
+            if (!(ctrl->flags & Flag_HeightFixed)) {
                 ctrl->SetHeight(base_height);
             }
             // 设置控件宽度
-            if (!(ctrl->flags & Flag_ViewWidthFixed)) {
+            if (!(ctrl->flags & Flag_WidthFixed)) {
                 ctrl->SetWidth(width_step);
             }
             // 不管如何, 修改!
