@@ -70,8 +70,10 @@ namespace LongUI {
         CUIAnimation(AnimationType t) noexcept :type(t)  {};
         // destructor
         ~CUIAnimation() noexcept {}
-        // update
+        // update with delta time
         void __fastcall Update(float t) noexcept;
+        // update without delta time
+        auto Update() noexcept { return this->Update(UIManager.GetDeltaTime()); }
     public:
         // the type
         AnimationType       type;

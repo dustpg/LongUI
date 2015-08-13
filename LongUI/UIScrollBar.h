@@ -49,7 +49,7 @@ namespace LongUI{
         bool DoEvent(const LongUI::EventArgument&) noexcept override;
     public:
         // init the control
-        virtual inline void InitMarginalControl(MarginalControl _type) noexcept override {
+        virtual void InitMarginalControl(MarginalControl _type) noexcept override {
             auto sbtype = (_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
             force_cast(this->bartype) = sbtype;
             return Super::InitMarginalControl(_type);

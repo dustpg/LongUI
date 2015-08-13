@@ -134,17 +134,19 @@ namespace LongUI {
         static bool WINAPI TryElevateUACNow(const wchar_t* parameters = nullptr, bool exit = true) noexcept;
     public: // inline 区
         // lock
-        LongUIInline auto Lock() noexcept { return m_uiLocker.Lock(); }
+        inline auto Lock() noexcept { return m_uiLocker.Lock(); }
         // unlock
-        LongUIInline auto Unlock() noexcept { return m_uiLocker.Unlock(); }
+        inline auto Unlock() noexcept { return m_uiLocker.Unlock(); }
         // ShowError with string
-        LongUIInline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) { this->configure->ShowError(str, str_b); }
+        inline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
-        LongUIInline auto GetTextRenderer(int i) const { return ::SafeAcquire(m_apTextRenderer[i]); }
+        inline auto GetTextRenderer(int i) const noexcept { return ::SafeAcquire(m_apTextRenderer[i]); }
         // exit the app
-        LongUIInline auto Exit() { m_exitFlag = true; ::PostQuitMessage(0); }
+        inline auto Exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
         // recreate
-        LongUIInline auto RecreateResources() { this->discard_resources(); return this->create_device_resources(); }
+        inline auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
+        // get delta time for ui
+        inline auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
     public: // 隐形转换区
         // 转换为 LongUIRenderTarget
 #define UIManager_RenderTaget (static_cast<ID2D1DeviceContext*>(UIManager))
@@ -221,25 +223,27 @@ namespace LongUI {
         // DXGI 适配器
         IDXGIAdapter*                   m_pDxgiAdapter = nullptr;
 #ifdef _DEBUG
-        // 调试对象
+        // debug object
         ID3D11Debug*                    m_pd3dDebug = nullptr;
 #endif
-        // 文本渲染器
-        CUIBasicTextRenderer*            m_apTextRenderer[LongUIMaxTextRenderer];
+        // text renderer
+        CUIBasicTextRenderer*           m_apTextRenderer[LongUIMaxTextRenderer];
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATUS_COUNT];
-        // 二进制资源读取器
+        // loader
         IUIResourceLoader*              m_pResourceLoader = nullptr;
         // default bitmap buffer
         uint8_t*                        m_pBitmap0Buffer = nullptr;
-        // map 函数映射
+        // map: string<->func
         StringMap                       m_mapString2CreateFunction;
-        // 所创设备特性等级
+        // feature level
         D3D_FEATURE_LEVEL               m_featureLevel;
-        // input class
+        // input
         CUIInput                        m_uiInput;
         // locker
         CUILocker                       m_uiLocker;
+        // timer
+        CUITimer                        m_uiTimer;
         // bitmap buffer
         ID2D1Bitmap1**                  m_ppBitmaps = nullptr;
         // brush buffer
@@ -276,8 +280,12 @@ namespace LongUI {
         uint32_t                        m_dwWaitVSCount = 0;
         // 等待垂直同步起始时间
         uint32_t                        m_dwWaitVSStartTime = 0;
+        // delta time in sec.
+        float                           m_fDeltaTime = 0.f;
+        // unused float
+        float                           m_fUnused = 0.f;
         // textrender: normal
-        CUINormalTextRender              m_normalTRenderer;
+        CUINormalTextRender             m_normalTRenderer;
         // xml doc for window
         pugi::xml_document              m_docWindow;
         // xml doc for template

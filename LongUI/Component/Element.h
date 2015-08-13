@@ -29,8 +29,6 @@
 namespace LongUI {
     // set new status
 #define UIElement_SetNewStatus(e,s) m_pWindow->StartRender(e.GetByType<Element::Basic>().SetNewStatus(s), this)
-    // update the node
-#define UIElement_Update(a)         a.Update(m_pWindow->GetDeltaTime())
     // UI Animation for Color
     using CUIAnimationColor = CUIAnimation<D2D1_COLOR_F>;
     // UI Animation for Opacity
@@ -80,8 +78,10 @@ namespace LongUI {
             auto GetByType<Head>() const noexcept ->const Elements<Head>& { return static_cast<const Elements<Head>&>(*this); }
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept { this->type == Head ? SuperB::Render(rect) : SuperA::Render(rect); }
-            // update
+            // update with delta time
             auto Update(float t) noexcept { animation.Update(t); }
+            // update without delta time
+            auto Update() noexcept { animation.Update(UIManager.GetDeltaTime()); }
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept {
                 HRESULT hr = S_OK;

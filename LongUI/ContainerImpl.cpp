@@ -1,7 +1,5 @@
 ﻿#include "LongUI.h"
 
-
-
 // -------------------------- UIContainer -------------------------
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), marginal_control(){
@@ -337,24 +335,6 @@ force_break:
     // 修改大小
     this->SetWidth(this_container_width_old);
     this->SetHeight(this_container_height_old);
-    // 更新
-    for (auto ctrl : this->marginal_control) {
-        // 刷新
-        if (ctrl) {
-            ctrl->Update();
-            // 更新世界矩阵
-            ctrl->RefreshWorldMarginal();
-            // 坐标转换
-            D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
-            auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-            auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-            // 修改可视区域
-            ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
-            ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
-            ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
-            ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
-        }
-    }
 }
 
 
@@ -366,10 +346,30 @@ void LongUI::UIContainer::Update() noexcept  {
         if (this->flags & Flag_Container_ExistMarginalControl) {
             this->update_marginal_controls();
         }
-        this->AssertMarginalControl();
     }
     // 修改可视化区域
     if (this->IsNeedRefreshWorld()) {
+        // 更新边缘控件
+        if (this->flags & Flag_Container_ExistMarginalControl) {
+            for (auto ctrl : this->marginal_control) {
+                // 刷新
+                if (ctrl) {
+                    ctrl->Update();
+                    // 更新世界矩阵
+                    ctrl->SetControlWorldChanged();
+                    ctrl->RefreshWorldMarginal();
+                    // 坐标转换
+                    D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
+                    auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+                    auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+                    // 修改可视区域
+                    ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
+                    ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
+                    ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
+                    ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
+                }
+            }
+        }
         // 本容器内容限制
         D2D1_RECT_F limit_of_this = {
             this->visible_rect.left + this->margin_rect.left * this->world._11,
@@ -377,9 +377,10 @@ void LongUI::UIContainer::Update() noexcept  {
             this->visible_rect.right - this->margin_rect.right * this->world._11,
             this->visible_rect.bottom - this->margin_rect.bottom * this->world._22,
         };
-        // 更新
+        // 更新一般控件
         for (auto ctrl : (*this)) {
             // 更新世界矩阵
+            ctrl->SetControlWorldChanged();
             ctrl->RefreshWorld();
             // 坐标转换
             D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
@@ -403,7 +404,24 @@ void LongUI::UIContainer::Update() noexcept  {
         // 已处理该消息
         this->ControlSizeChangeHandled();
     }
-    // 刷新
+    // 刷新边缘控件
+    if (this->flags & Flag_Container_ExistMarginalControl) {
+#if 1
+        for (auto ctrl : this->marginal_control) {
+            if(ctrl) ctrl->Update();
+        }
+#else
+        {
+            UIMarginalable* ctrl = nullptr;
+            if ((ctrl = this->marginal_control[UIMarginalable::Control_Left])) ctrl->Update();
+            if ((ctrl = this->marginal_control[UIMarginalable::Control_Top])) ctrl->Update();
+            if ((ctrl = this->marginal_control[UIMarginalable::Control_Right])) ctrl->Update();
+            if ((ctrl = this->marginal_control[UIMarginalable::Control_Bottom])) ctrl->Update();
+        }
+#endif
+    }
+    this->AssertMarginalControl();
+    // 刷新一般子控件
     for (auto ctrl : (*this)) ctrl->Update();
     // 刷新父类
     return Super::Update();
@@ -448,8 +466,10 @@ LongUINoinline void LongUI::UIContainer::SetOffsetYByChild(float value) noexcept
     if (target != m_2fOffset.y) {
         m_2fOffset.y = target;
         this->SetControlWorldChanged();
+        //UIManager << DL_Hint << "SetControlWorldChanged" << endl;
     }
 }
+
 // 获取指定控件
 auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
     // 性能警告

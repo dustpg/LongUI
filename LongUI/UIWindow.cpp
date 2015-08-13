@@ -116,8 +116,6 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
     ::RegisterDragDrop(m_hwnd, this);
     // 显示窗口
     ::ShowWindow(m_hwnd, SW_SHOW);
-    // 开始计时
-    m_timer.Start();
     // 所在窗口就是自己
     m_pWindow = this;
     // 自己的UI父类就是自己以保证parent不为null
@@ -415,9 +413,6 @@ void LongUI::UIWindow::Update() noexcept {
         this->OnResize();
         m_baBoolWindow.SetFalse(Index_NewSize);
     }
-    // 设置间隔时间
-    m_fDeltaTime = m_timer.Delta_s<decltype(m_fDeltaTime)>();
-    m_timer.MovStartEnd();
     {
         auto current_unit = m_uiRenderQueue.GetCurrentUnit();
         m_aUnitNow.length = current_unit->length;
@@ -472,9 +467,11 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
     // 全刷新: 继承父类
     if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
         Super::Render(RenderType::Type_Render);
+        //UIManager << DL_Hint << "FULL" << endl;
     }
     // 部分刷新:
     else {
+        //UIManager << DL_Hint << "DIRT" << endl;
 #if 1
         // 先排序
         UIControl* units[LongUIDirtyControlSize];

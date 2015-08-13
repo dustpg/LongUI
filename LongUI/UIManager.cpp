@@ -11,6 +11,8 @@
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     m_szLocaleName[0] = L'\0';
     ::memset(m_apWindows, 0, sizeof(m_apWindows));
+    // 开始计时
+    m_uiTimer.Start();
     // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -392,6 +394,9 @@ void LongUI::CUIManager::Run() noexcept {
             for (auto i = 0u; i < length; ++i) {
                 windows[i] = UIManager.m_apWindows[i];
             }
+            // 更新计时器
+            UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
+            UIManager << DL_None << "delta: " << UIManager.m_fDeltaTime << LongUI::endl;
             // 刷新窗口
             for (auto i = 0u; i < length; ++i) {
                 windows[i]->Update();

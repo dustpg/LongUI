@@ -29,7 +29,7 @@ Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
 
 // 设置新的索引位置
 void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
-    return this->set_index(new_index);
+    //return this->set_index(new_index);
     // 阈值检查
     new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
     m_uiAnimation.start = m_uiAnimation.value = m_fIndex;
@@ -41,14 +41,13 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
 
 // 设置新的索引位置
 void LongUI::UIScrollBar::set_index(float new_index) noexcept {
+    //UIManager << DL_Hint << "new_index: " << new_index << endl;
     new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
     // 不同就修改
     if (new_index != m_fIndex) {
         m_fIndex = new_index;
         // 修改父类属性
         this->parent->SetOffsetByChild(int(this->bartype), -new_index);
-        //this->parent->DrawPosChanged();
-        //this->parent->AfterChangeDrawPosition();
         // 刷新拥有着
         m_pWindow->Invalidate(this->parent);
     }
@@ -165,8 +164,6 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
     m_bArrow2InColor = m_uiArrow2.GetByType<Element::Basic>().type == Element::ColorRect;
 
 }
-#define LONGUI_FLOAT_OFFSET()
-
 
 // UI滚动条(类型A): 刷新
 void LongUI::UIScrollBarA::Update() noexcept {
@@ -196,13 +193,13 @@ void LongUI::UIScrollBarA::Update() noexcept {
         m_rtThumb.right = m_rtThumb.left + length_of_thumb;
     }
     // 刷新
-    UIElement_Update(m_uiArrow1);
-    UIElement_Update(m_uiArrow2);
-    UIElement_Update(m_uiThumb);
+    m_uiArrow1.Update();
+    m_uiArrow2.Update();
+    m_uiThumb.Update();
     // 刷新
     if (m_bAnimation) {
-        m_uiAnimation.Update(m_pWindow->GetDeltaTime());
-        //this->set_index(m_uiAnimation.value);
+        m_uiAnimation.Update();
+        this->set_index(m_uiAnimation.value);
         if (m_uiAnimation.time <= 0.f) {
             m_bAnimation = false;
         }
@@ -287,10 +284,12 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             if (m_pointType == PointType::Type_Arrow1) {
                 // 左/上移动
                 this->SetIndex(m_uiAnimation.end - m_fArrowStep);
+                //this->SetIndex(m_fIndex - m_fArrowStep);
             }
             else if (m_pointType == PointType::Type_Arrow2) {
                 // 左/上移动
                 this->SetIndex(m_uiAnimation.end + m_fArrowStep);
+                //this->SetIndex(m_fIndex + m_fArrowStep);
             }
             break;
         case WM_LBUTTONUP:

@@ -613,7 +613,7 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
 // UI按钮: 刷新
 void LongUI::UIButton::Update() noexcept {
     // 更新计时器
-    UIElement_Update(m_uiElement);
+    m_uiElement.Update();
     return Super::Update();
 }
 

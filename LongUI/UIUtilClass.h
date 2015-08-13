@@ -66,7 +66,7 @@ namespace LongUI {
         Unit        group[0];
     };
     // the timer of ui in frame
-    class UITimer {
+    class CUITimer {
     public:
 #if 0
         // QueryPerformanceCounter
@@ -79,25 +79,25 @@ namespace LongUI {
         // refresh the frequency
         auto LongUIInline  RefreshFrequency() noexcept { ::QueryPerformanceFrequency(&m_cpuFrequency); }
         // start timer
-        auto LongUIInline  Start() noexcept { UITimer::QueryPerformanceCounter(&m_cpuCounterStart); }
+        auto LongUIInline  Start() noexcept { CUITimer::QueryPerformanceCounter(&m_cpuCounterStart); }
         // move end var to start var
         auto LongUIInline  MovStartEnd() noexcept { m_cpuCounterStart = m_cpuCounterEnd; }
         // delta time in sec.
         template<typename T>
         auto LongUIInline  Delta_s() noexcept {
-            UITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
+            CUITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in ms.
         template<typename T>
         auto LongUIInline  Delta_ms() noexcept {
-            UITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
+            CUITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e3) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in micro sec.
         template<typename T>
         auto LongUIInline Delta_mcs() noexcept {
-            UITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
+            CUITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e6) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
     private:
@@ -109,7 +109,7 @@ namespace LongUI {
         LARGE_INTEGER            m_cpuCounterEnd;
     public:
         // 构造函数
-        UITimer() noexcept { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
+        CUITimer() noexcept { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
 #else
         // refresh the frequency
         auto LongUIInline  RefreshFrequency() noexcept { }
@@ -142,7 +142,7 @@ namespace LongUI {
         DWORD                   m_dwNow = 0;
     public:
         // 构造函数
-        UITimer() noexcept { this->Start(); }
+        CUITimer() noexcept { this->Start(); }
 #endif
     };
     // render repeater

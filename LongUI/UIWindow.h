@@ -150,8 +150,6 @@ namespace LongUI {
         LongUIInline auto PlanToRender(float w, float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(w, t, c); }
         // update control later
         LongUIInline auto Invalidate(UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, 0.f, c); }
-        // get delta time in second
-        LongUIInline auto GetDeltaTime() const noexcept { return m_fDeltaTime > 0.04f ? 0.f : m_fDeltaTime; };
         // get window handle
         LongUIInline auto GetHwnd() const noexcept { return m_hwnd;};
         // set mouse capture
@@ -193,6 +191,10 @@ namespace LongUI {
         // window type
         WindowType      const   window_type = WindowType::Type_Normal;
     protected:
+        // unused float
+        float                   m_fUnused = 0.f;
+        // count for the caret
+        uint32_t                m_cShowCaret = 0;
         // will use BitArray instead of them
         Helper::BitArray32      m_baBoolWindow;
         // text anti-mode
@@ -231,14 +233,8 @@ namespace LongUI {
         UINT_PTR                m_idBlinkTimer = 0;
         // normal  l-param
         LPARAM                  m_normalLParam = 0;
-        // delta time [in sec.]
-        float                   m_fDeltaTime = 0.f;
-        // show the caret
-        uint32_t                m_cShowCaret = 0;
         // caret rect in px
         RectLTWH_U              m_rcCaretPx;
-        // timer
-        UITimer                 m_timer;
     public:
         // the real pixel size  of window(HWND)
         D2D1_SIZE_U     const   window_size = D2D1::SizeU();
