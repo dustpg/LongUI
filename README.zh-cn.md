@@ -51,7 +51,7 @@
   
   - 3rdparty/*, 第三方库, 比如dlmalloc
   - Demos/* ,示例
-  
+
           1. helloworld -- 创建一个基本的LongUI程序
   - Helper/* , helper项目
 
@@ -60,10 +60,13 @@
   - LongUI -- 被设计为静态链接的核心项目
   - LongUITest -- 测试项目, 仅仅面向于自己, 用于新特性/调试
   
- ## License
-   
-   - LongUI 基本基于 MIT License
-   - pugixml parser - version 1.5 (MIT License)
-   - dlmalloc-2.8.6 (public domain)
-   - ~~Scintilla-3.5.3 (License for Scintilla)~~
-   - 更多细节请参考[License.txt](./License.txt)
+## License
+  
+  - LongUI **基本基于** MIT License
+  - pugixml parser - version 1.5 (MIT License)
+  - dlmalloc-2.8.6 (public domain)
+  - ~~Scintilla-3.5.3 (License for Scintilla)~~
+  - 更多细节请参考[License.txt](./License.txt)
+  
+附加需要:
+  - 请在您的程序中的"关于"或者相关选项(如果有的话)显示或者链接License信息

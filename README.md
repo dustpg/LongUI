@@ -35,7 +35,8 @@ For this repo, you need:
   - **method/function**:  
       - public: ClassMethod(), e.g. `GetWindow()`, `Update()`
       - private/protected:  class_method(), e.g. `refresh_this()`
-      - except: match STL-Style method: `begin()`, `end()`, `insert()`, but **public**
+      - except: match STL-Style method: `begin()`, `end()`, `insert()`, 
+      but **public**
   - **enum**:  see it
 ```cpp
         enum class PointType : uint16_t {
@@ -65,8 +66,12 @@ For this repo, you need:
   
 ## License
 
-  - LongUI Under MIT License Basically
+  - LongUI under MIT License **basically**
   - pugixml parser - version 1.5 (MIT License)
   - dlmalloc-2.8.6 (public domain)
   - ~~Scintilla-3.5.3 (License for Scintilla)~~
   - More detail, see [License.txt](./License.txt)
+  
+  p.s.
+  - Please put the license/URL in "About" or other option(if exist) in your
+   longui app
