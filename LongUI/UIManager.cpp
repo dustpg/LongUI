@@ -178,12 +178,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 添加控件
     if (SUCCEEDED(hr)) {
         // 添加默认控件创建函数
+        this->RegisterControl(CreateNullControl, L"Null");
         this->RegisterControl(UIText::CreateControl, L"Text");
         this->RegisterControl(UISlider::CreateControl, L"Slider");
         this->RegisterControl(UIButton::CreateControl, L"Button");
         this->RegisterControl(UICheckBox::CreateControl, L"CheckBox");
         this->RegisterControl(UIRichEdit::CreateControl, L"RichEdit");
-        this->RegisterControl(UIEditBasic::CreateControl, L"EditBasic");
         this->RegisterControl(UIEditBasic::CreateControl, L"Edit");
         this->RegisterControl(UIScrollBarA::CreateControl, L"ScrollBarA");
         this->RegisterControl(UIScrollBarB::CreateControl, L"ScrollBarB");

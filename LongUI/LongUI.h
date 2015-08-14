@@ -140,7 +140,9 @@ namespace LongUI {
     // spacial
     // template<template<>, class T2> auto longui_cast<LongUI::UIControl*>(T2 ptr) noexcept ->LongUI::UIControl* { return static_cast<LongUI::UIControl*>(ptr); };
 #else
-#   define longui_cast static_cast
+    template<class T1, class T2> auto longui_cast(T2 ptr) noexcept->T1 {
+        return static_cast<T1>(ptr);
+    }
 #endif
     // LTWH模型矩形
     template<typename T> struct RectLTWH { RectLTWH() {} T left=T(0), top = T(0), width = T(0), height = T(0); };

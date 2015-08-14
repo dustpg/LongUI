@@ -102,7 +102,7 @@ namespace LongUI {
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
     public: // some new
         // on close event
-        virtual auto OnClose() noexcept -> bool { this->Cleanup(); return true; };
+        virtual auto OnClose() noexcept -> bool { this->Cleanup(); UIManager.Exit(); return true; };
     public: // IDropTarget interface
         // impl for IDropTarget::DragEnter
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
@@ -244,8 +244,9 @@ namespace LongUI {
         HCURSOR                 now_cursor = default_cursor;
         // debug info
 #ifdef _DEBUG
-        uint32_t                test_D2DERR_RECREATE_TARGET = false;
-        uint32_t                test_unknown = 0;
+        bool                    test_D2DERR_RECREATE_TARGET = false;
+        bool                    debug_show = false;
+        bool                    debug_unused[6];
         uint32_t                full_render_counter = 0;
         uint32_t                dirty_render_counter = 0;
 #endif

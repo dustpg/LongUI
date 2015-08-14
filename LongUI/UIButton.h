@@ -58,6 +58,8 @@ namespace LongUI{
         // deleted function
         UIButton(const UIButton&) = delete;
     protected:
+        // color of border
+        D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
         // event target 
         UIControl*              m_pClickTarget = nullptr;
         // click event

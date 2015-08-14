@@ -26,7 +26,9 @@
 
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
+    // create null control
+    auto WINAPI CreateNullControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
     // Container
     class UIContainer;
     // base control class -- 基本控件类
@@ -143,24 +145,19 @@ namespace LongUI{
         // script data
         UIScript                m_script;
     public:
+        // user ptr
+        void*                   user_ptr = nullptr;
+        // user data
+        size_t                  user_data = 0;
         // parent control, using const_cast to change in constructor, 
         // do not change in other method/function
-        UIContainer*  const     parent = nullptr;
-        // [Retained]render related control, using const_cast to change in constructor, 
-        // do not change in other method/function
-        // UIControl*    const     related_retained = nullptr;
+        UIContainer*    const   parent = nullptr;
         // using for container, prev control
-        UIControl*    const     prev = nullptr;
+        UIControl*      const   prev = nullptr;
         // using for container, next control
-        UIControl*    const     next = nullptr;
-        // user data
-        void*                   user_data = nullptr;
-        // extend data, if extend_data_size, will point it
-        // do not use it in UIWindow except you know it well
-        void*                   extend_data = nullptr;
-        // extend data size in byte, xml attribute "exdatasize"
-        // do not use it in UIWindow except you know it well
-        uint32_t                extend_data_size = 0;
+        UIControl*      const   next = nullptr;
+        // weight for layout, interpreted by container
+        float           const   weight = 1.f;
     protected:
         // bit-array-index 16
         enum BitArrayIndex : uint32_t {
@@ -197,10 +194,8 @@ namespace LongUI{
     protected:
         // width of border
         float                   m_fBorderWidth = 0.f;
-        // color of border
-        D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
         // now color of border
-        D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(D2D1::ColorF::Black);
+        D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACAC);
         // roundsize of border
         D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
         // control name
@@ -235,18 +230,19 @@ namespace LongUI{
         static bool MakeString(const char*, CUIString&) noexcept;
         // make floats from string
         static bool MakeFloats(const char*, float*, int) noexcept;
+        // make floats from string
+        static bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATUS_COUNT]) noexcept;
         // get real control size in byte
         template<class T, class L>
         static LongUIInline auto AllocRealControl(pugi::xml_node node, L lam) noexcept {
+#if 0
             size_t exsize = 0;
             if (node) {
                 exsize = LongUI::AtoI(node.attribute("exdatasize").value());
             }
-            T* control = reinterpret_cast<T*>(
-                LongUI::CtrlAlloc(sizeof(T) + exsize)
-                );
+            T* control = reinterpret_cast<T*>(LongUI::CtrlAlloc(sizeof(T) + exsize));
             // check alignof
-            assert(Is2Power(alignof(T)) && "alignas(Control) must be 2powered");
+            static_assert(Is2Power(alignof(T)), "alignas(Control) must be 2powered");
             assert(size_t(control) % alignof(T) == 0);
             // set align
             if (control) {
@@ -254,6 +250,15 @@ namespace LongUI{
                 control->extend_data = reinterpret_cast<uint8_t*>(control) + sizeof(T);
                 control->extend_data_size = static_cast<uint32_t>(exsize);
             }
+#else
+            UNREFERENCED_PARAMETER(node);
+            T* control = reinterpret_cast<T*>(LongUI::CtrlAlloc(sizeof(T)));
+            // check alignof
+            static_assert(Is2Power(alignof(T)), "alignas(Control) must be 2powered");
+            assert(size_t(control) % alignof(T) == 0);
+            // set align
+            if (control) { lam(control); }
+#endif
             return control;
         }
     };

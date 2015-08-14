@@ -49,9 +49,9 @@ namespace LongUI{
         // control text 控件文本
         const auto GetText() const noexcept { return m_text.c_str(); }
         // set control text
-        const void SetText(const wchar_t* t) noexcept { m_text = t; }
+        const void SetText(const wchar_t* t) noexcept { m_text = t; m_pWindow->Invalidate(this); }
         // set control text
-        const void SetText(const char* t) noexcept { m_text = t;  }
+        const void SetText(const char* t) noexcept { m_text = t; m_pWindow->Invalidate(this); }
     protected:
         // constructor 构造函数
         UIText(pugi::xml_node node) noexcept : Super(node), m_text(node) {}

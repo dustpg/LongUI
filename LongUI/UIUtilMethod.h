@@ -135,7 +135,7 @@ namespace LongUI {
     // recreate object
     template<class T> auto RecreateObject(T& obj) noexcept { DestoryObject(obj); CreateObject(obj); }
     // is 2 power?
-    static auto Is2Power(size_t i) { return i && !(i& (i - 1)); }
+    static constexpr auto Is2Power(const size_t i) noexcept { return i && !(i& (i - 1)); }
     // pack the color
     auto __fastcall PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
     // unpack the color
@@ -159,7 +159,7 @@ namespace LongUI {
     auto __fastcall AtoF(const char* __restrict) -> float;
     // LongUI::AtoI diy version(double ver)
     //auto __fastcall AtoLF(const char*) -> double;
-    // UTF-8 UTF-16 UTF-32
+    // UTF-8 UTF-16 UTF-32(UCS-4)
     static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
 #if 1
 #define UTF8toWideChar(a, b) UTF8toUTF16((a), reinterpret_cast<char16_t*>(b))

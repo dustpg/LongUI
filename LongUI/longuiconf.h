@@ -305,8 +305,10 @@ namespace LongUI {
     namespace XMLAttribute {
         // name of control
         static constexpr char* const ControlName            = "name";
-        // script
+        // script data
         static constexpr char* const Script                 = "script";
+        // weight for layout
+        static constexpr char* const LayoutWeight           = "weight";
         // position of control left-top: float2
         static constexpr char* const LeftTopPosotion        = "pos";
         // size of control: float2

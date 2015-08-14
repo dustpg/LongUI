@@ -93,7 +93,7 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
 }
 
 // ShortText = L"***"
-LongUI::Component::ShortText& LongUI::Component::ShortText::operator=(const wchar_t* new_string) noexcept {
+auto LongUI::Component::ShortText::operator=(const wchar_t* new_string) noexcept ->ShortText& {
     // 不能是XML模式
     assert(this->GetIsXML() == false && "=(const wchar_t*) must be in core-mode, can't be xml-mode");
     m_text.Set(new_string);
@@ -102,7 +102,7 @@ LongUI::Component::ShortText& LongUI::Component::ShortText::operator=(const wcha
 }
 
 // ShortText = "***"
-LongUI::Component::ShortText& LongUI::Component::ShortText::operator=(const char* str) noexcept {
+auto LongUI::Component::ShortText::operator=(const char* str) noexcept ->ShortText& {
     if (this->GetIsXML()) {
         this->recreate(str);
         return *this;

@@ -33,6 +33,12 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
         // XXX:
         force_cast(this->window_type) = Type_Layered;
     }
+    // Debug Zone
+#ifdef _DEBUG
+    {
+        debug_show = node.attribute("debug").as_bool(false);
+    }
+#endif
     // 其他属性
     {
         // 最小大小
@@ -516,7 +522,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
     }
 #ifdef _DEBUG
     // 调试输出
-    {
+    if (this->debug_show) {
         D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.45f, 0.45f);
         m_pRenderTarget->GetTransform(&nowMatrix);
         m_pRenderTarget->SetTransform(&iMatrix);
@@ -919,8 +925,6 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
 void LongUI::UIWindow::Cleanup() noexcept {
     // 删除对象
     delete this;
-    // 退出
-    UIManager.Exit();
 }
 
 // 窗口创建时

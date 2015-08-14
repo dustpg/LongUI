@@ -1,4 +1,6 @@
 ﻿#include "LongUI.h"
+
+
 // 系统按钮:
 /*
 Win8/8.1/10.0.10158之前
@@ -20,12 +22,6 @@ Win8/8.1/10.0.10158之前
 /// <see cref="LongUINullXMLNode"/>
 /// </remarks>
 LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
-    // 颜色
-    m_aBorderColor[Status_Disabled] = D2D1::ColorF(0xD9D9D9);
-    m_aBorderColor[Status_Normal] = D2D1::ColorF(0xACACAC);
-    m_aBorderColor[Status_Hover] = D2D1::ColorF(0x7EB4EA);
-    m_aBorderColor[Status_Pushed] = D2D1::ColorF(0x569DE5);
-    m_colorBorderNow = m_aBorderColor[Status_Normal];
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
     // 有效?
@@ -35,9 +31,13 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if ((data = node.attribute(XMLAttribute::Script).value()) && UIManager.script) {
             m_script = UIManager.script->AllocScript(data);
         }
+        // 检查权重
+        if (data = node.attribute(LongUI::XMLAttribute::LayoutWeight).value()) {
+            force_cast(this->weight) = LongUI::AtoF(data);
+        }
         // 渲染优先级
         if (data = node.attribute(LongUI::XMLAttribute::RenderingPriority).value()){
-            force_cast(this->priority) = int8_t(LongUI::AtoI(data));
+            force_cast(this->priority) = uint8_t(LongUI::AtoI(data));
         }
         // 检查名称
         UIControl::MakeString(
@@ -67,23 +67,6 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
             node.attribute(LongUI::XMLAttribute::BorderRound).value(),
             &m_2fBorderRdius.width,
             sizeof(m_2fBorderRdius) / sizeof(m_2fBorderRdius.width)
-            );
-        // 边框颜色
-        UIControl::MakeColor(
-            node.attribute("disabledbordercolor").value(), 
-            m_aBorderColor[Status_Disabled]
-            );
-        UIControl::MakeColor(
-            node.attribute("normalbordercolor").value(), 
-            m_aBorderColor[Status_Normal]
-            );
-        UIControl::MakeColor(
-            node.attribute("hoverbordercolor").value(), 
-            m_aBorderColor[Status_Hover]
-            );
-        UIControl::MakeColor(
-            node.attribute("pushedbordercolor").value(), 
-            m_aBorderColor[Status_Pushed]
             );
         // 检查控件大小
         {
@@ -211,6 +194,26 @@ bool LongUI::UIControl::MakeString(const char* data, CUIString& str) noexcept {
     buffer[length] = L'\0';
     // 设置字符串
     str.Set(buffer, length);
+    return true;
+}
+
+// 设置边框颜色
+bool LongUI::UIControl::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATUS_COUNT]) noexcept {
+    // 边框颜色
+    color[Status_Disabled] = D2D1::ColorF(0xD9D9D9);
+    color[Status_Normal] = D2D1::ColorF(0xACACAC);
+    color[Status_Hover] = D2D1::ColorF(0x7EB4EA);
+    color[Status_Pushed] = D2D1::ColorF(0x569DE5);
+    // 检查
+    if (node) {
+        const char* attr[] = {
+            "disabledbordercolor", "normalbordercolor",
+            "hoverbordercolor",  "pushedbordercolor",
+        };
+        for (auto i = 0u; i < STATUS_COUNT; ++i) {
+            UIControl::MakeColor(node.attribute(attr[i]).value(), color[i]);
+        }
+    }
     return true;
 }
 
@@ -490,9 +493,74 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     constexpr int aa = sizeof(UIContainer);
 }
 
-// -------------------------------------------------------
+// ----------------------------------------------------------------------------
+// UINull
+// ----------------------------------------------------------------------------
+
+// LongUI namespace
+namespace LongUI {
+    // null control
+    class UINull : public UIControl {
+    private:
+        // 父类申明
+        using Super = UIControl;
+    public:
+        // Render 渲染
+        virtual void Render(RenderType) const noexcept override {}
+        // update 刷新
+        virtual void Update() noexcept override {}
+        // do event 事件处理
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override { return false; }
+        // close this control 关闭控件
+        virtual void Cleanup() noexcept override { delete this; }
+    public:
+        // 创建控件
+        static auto CreateControl(pugi::xml_node node) noexcept {
+            UIControl* pControl = nullptr;
+            // 判断
+            if (!node) {
+                UIManager << DL_Warning << L"node null" << LongUI::endl;
+            }
+            // 申请空间
+            pControl = LongUI::UIControl::AllocRealControl<LongUI::UINull>(
+                node,
+                [=](void* p) noexcept { new(p) UINull(node); }
+            );
+            if (!pControl) {
+                UIManager << DL_Error << L"alloc null" << LongUI::endl;
+            }
+            return pControl;
+        }
+    public:
+        // constructor 构造函数
+        UINull(pugi::xml_node node) noexcept : Super(node) {}
+        // destructor 析构函数
+        ~UINull() noexcept { }
+    };
+}
+
+// 创建空控件
+auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node) noexcept -> UIControl * {
+    // 分类判断
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case Type_CreateControl:
+        pControl = LongUI::UINull::CreateControl(node);
+        break;
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    }
+    return pControl;
+}
+
+// ----------------------------------------------------------------------------
 // UIText
-// -------------------------------------------------------
+// ----------------------------------------------------------------------------
 // UIText: do event 事件处理
 bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
     UNREFERENCED_PARAMETER(arg);
@@ -631,7 +699,9 @@ void LongUI::UIButton::Update() noexcept {
 }
 
 // UIButton 构造函数
-LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node){
+LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node) {
+    // 初始化
+    UIControl::SetBorderColor(node, m_aBorderColor);
     // 初始化代码
     m_uiElement.GetByType<Element::Basic>().Init(node);
     if (m_uiElement.GetByType<Element::Meta>().IsOK()) {

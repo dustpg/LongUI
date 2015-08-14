@@ -98,7 +98,6 @@ void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     else {
         m_fMaxRange = this->parent->GetContentHeightByChild();
         m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightByChild();
-        UIManager << DL_Hint << this->parent->GetViewHeightByChild() << endl;
     }
     return Super::UpdateMarginalWidth();
 }
