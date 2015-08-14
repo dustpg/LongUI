@@ -57,12 +57,13 @@ For this repo, you need:
   -  Demos/* , demos
   
            1. helloworld -- how to build a basic LongUI app.
+           2. handleevent -- how to handle LongUI event
   -  Helper/* , helper projects
   
            1.  ConsoleHelper -- helper for logging for debugging
            2.  ScriptInterfaceGenerator -- helper for binding script interface
   -  LongUI -- core project, designed to be a static-link framework
-  -  LongUITest -- my test project, just for me for debugging
+  -  TestUI -- my test project, just for me for debugging
   
 ## License
 

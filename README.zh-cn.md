@@ -53,12 +53,13 @@
   - Demos/* ,示例
 
           1. helloworld -- 创建一个基本的LongUI程序
+          2. handleevent -- 怎么处理事件
   - Helper/* , helper项目
 
           1.  ConsoleHelper -- 日志调试小工具
           2.  ScriptInterfaceGenerator -- 脚本接口绑定小工具
   - LongUI -- 被设计为静态链接的核心项目
-  - LongUITest -- 测试项目, 仅仅面向于自己, 用于新特性/调试
+  - TestUI -- 测试项目, 仅仅面向于自己, 用于新特性/调试
   
 ## License
   
