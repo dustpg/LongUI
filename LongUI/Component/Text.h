@@ -64,9 +64,9 @@ namespace LongUI {
             // destructor
             ~ShortText() noexcept;
             // operator = for wide-char(utf16 on windows), must be in core-mode
-            ShortText& operator=(const wchar_t*) noexcept;
+            auto operator=(const wchar_t*) noexcept ->ShortText&;
             // operator = for utf-8, can be xml-mode or core-mode
-            ShortText& operator=(const char*) noexcept;
+            auto operator=(const char*) noexcept ->ShortText&;
             // c_str for wide-char(utf16 on windows)
             LongUIInline auto text_totallegnth() const noexcept { return m_config.text_length; }
             // c_str for wide-char(utf16 on windows)
