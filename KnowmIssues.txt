@@ -1,2 +1,0 @@
-﻿1. In 40Hz, the animation would be wrong, maybe need one more frame to render?
-2. Meta Rendering: button like Meta rendering look like in wrong way

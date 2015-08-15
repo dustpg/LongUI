@@ -14,6 +14,10 @@
     - Rakefile(ruby)
     - MinGW-W64
     
+##KnownIssues
+  
+  已知问题: (KnownIssues.md)[./KnownIssues.md]
+  
 ##Remarks
   
   Windows 7 also supported Direct2D 1.1, but DirectComposition, planned support

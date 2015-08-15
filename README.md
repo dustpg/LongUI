@@ -16,6 +16,8 @@ For this repo, you need:
     - Rakefile(ruby)
     - MinGW-W64
 
+##Known Issues  
+  in (KnownIssues.md)[./KnownIssues.md]
     
 ##Remarks
   
