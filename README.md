@@ -11,7 +11,8 @@ For this repo, you need:
     - **Windows 8 or later**
   - Tool-chain/Environment A: MSC  
     - Visual Stuidio 2015 - Express for Desktop/Community or higher
-    - Windows SDK(10.0.10240.0 RTM)
+    - Windows SDK(10.0.10240.0)
+    - or Windows SDK 8.1, but no win10 features support
   - Tool-chain/Environment B(would support in the future): GCC/Clang  
     - Rakefile(ruby)
     - MinGW-W64

@@ -855,10 +855,20 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     }
     // 获取交换链V2
     if (SUCCEEDED(hr)) {
+#ifdef LONGUI_USE_SDK_8_1
+#define DEFINE_GUID_LONGUI(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+        const GUID name  = { l, w1, w2,{ b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
+        DEFINE_GUID_LONGUI(IID_IDXGISwapChain2_Auto, 0xa8be2ac4, 0x199f, 0x4946, 0xb3, 0x31, 0x79, 0x59, 0x9f, 0xb9, 0x8d, 0xe7);
+        hr = pSwapChain->QueryInterface(
+            IID_IDXGISwapChain2_Auto,
+            reinterpret_cast<void**>(&m_pSwapChain)
+            );
+#else
         hr = pSwapChain->QueryInterface(
             IID_IDXGISwapChain2,
             reinterpret_cast<void**>(&m_pSwapChain)
             );
+#endif
     }
     // 获取垂直等待事件
     if (SUCCEEDED(hr)) {

@@ -480,8 +480,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         if (SUCCEEDED(UIManager.Initialize(&config))) {
             // my style
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
-            // mb
-            ::MessageBoxW(nullptr, L"SAD", L"OK", MB_OK);
             // create main window, return nullptr for some error
             UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML);
             // run this app
@@ -492,11 +490,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             UIManager.UnInitialize();
         }
     }
-    ;
     // cleanup ole and com
     ::OleUninitialize();
     // exit
     return EXIT_SUCCESS;
 }
 
+#endif
+
+// Common Control for MS
+#ifdef _MSC_VER
+#ifdef _M_IX86
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
 #endif

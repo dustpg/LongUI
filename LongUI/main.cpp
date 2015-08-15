@@ -20,9 +20,9 @@ struct MemoryLeakDetector {
             auto count = g_pd3dDebug_longui->Release();
             if (count) {
                 ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
-                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(1 | 2 | 4));
                 ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
-                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL);
+                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(4));
                 ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: End\r\n\r\n");
             }
             g_pd3dDebug_longui = nullptr;

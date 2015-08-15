@@ -1101,9 +1101,9 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     ::swprintf(cmdline, MAX_PATH, L"%ls %ls", config.helper_executable, config.logger_name);
     BOOL bRet = ::CreateProcessW(nullptr, cmdline, nullptr, nullptr, false, CREATE_NEW_CONSOLE, nullptr, nullptr, &si, &pi);
     if (!bRet)  {
-        char *path = ::getenv("ConsoleLoggerHelper");
+        auto path = ::_wgetenv(L"ConsoleLoggerHelper");
         if (path) {
-            ::swprintf(cmdline, MAX_PATH, L"%s %ls", path, config.logger_name);
+            ::swprintf(cmdline, MAX_PATH, L"%ls %ls", path, config.logger_name);
             bRet = ::CreateProcessW(nullptr, nullptr, nullptr, nullptr, false, CREATE_NEW_CONSOLE, nullptr, nullptr, &si, &pi);
         }
         if (!bRet) {
