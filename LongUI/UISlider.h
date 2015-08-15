@@ -31,6 +31,8 @@ namespace LongUI{
     class UISlider : public UIControl {
         // 父类申明
         using Super = UIControl ;
+        // ui element
+        using SliderElement = Component::Elements<Element_Meta, Element_BrushRect, Element_Basic>;
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;
@@ -69,6 +71,8 @@ namespace LongUI{
         LongUIEventCallBack m_eventChanged = nullptr;
         // slider rect
         D2D1_RECT_F         m_rcSlider = D2D1::RectF();
+        // ui element
+        SliderElement       m_uiElement;
         // value range[0, 1]
         float               m_fValue = 0.f;
         // value range[0, 1]
@@ -77,8 +81,12 @@ namespace LongUI{
         float               m_fStart = 0.f;
         // end
         float               m_fEnd = 100.f;
-        // slider half width
-        float               m_fSliderHalfWidth = static_cast<float>(LongUIDefaultSliderHalfWidth);
+    public:
+        // size of thumb
+        D2D1_SIZE_F const   thumb_size = D2D1::SizeF(10.f, 20.f);
+        // step, 0.0f for any
+        float       const   step = 0.f;
+    protected:
         // is mouse click in
         bool                m_bMouseClickIn = false;
         // is mouse click in

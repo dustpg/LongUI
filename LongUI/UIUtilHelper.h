@@ -198,6 +198,51 @@ namespace LongUI {
             // pointer & boolx2 data
             size_t          data;
         };
+        // ----------------------  xml helper -----------------------------
+        // XMLGetValueEnum Properties
+        struct XMLGetValueEnumProperties {
+            // attribute
+            const char*         attribute;
+            // values list of enum
+            const char* const*  values;
+            // length of 'values'
+            size_t              values_length;
+            // prefix
+            const char*         prefix;
+        };
+        // make color form string
+        bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;
+        // make UIString form string
+        bool MakeString(const char*, CUIString&) noexcept;
+        // make floats from string
+        bool MakeFloats(const char*, float*, int) noexcept;
+        // make floats from string
+        bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATUS_COUNT]) noexcept;
+        // get value string
+        auto XMLGetValue(pugi::xml_node node, const char* attribute, const char* prefix =nullptr) noexcept -> const char*;
+        // get value enum-int
+        auto XMLGetValueEnum(pugi::xml_node node, const XMLGetValueEnumProperties& prop, uint32_t bad_match = 0) noexcept->uint32_t;
+        // get d2d interpolation mode
+        auto XMLGetD2DInterpolationMode(
+            pugi::xml_node node, 
+            D2D1_INTERPOLATION_MODE bad_match,
+            const char* attribute = "interpolation",
+            const char* prefix = nullptr
+            ) noexcept ->D2D1_INTERPOLATION_MODE;
+        // get d2d extend mode
+        auto XMLGetD2DExtendMode(
+            pugi::xml_node node,
+            D2D1_EXTEND_MODE bad_match,
+            const char* attribute = "extend",
+            const char* prefix = nullptr
+            ) noexcept->D2D1_EXTEND_MODE;
+        // get longui bitmap render rule
+        auto XMLGetBitmapRenderRule(
+            pugi::xml_node node,
+            BitmapRenderRule bad_match,
+            const char* attribute = "rule",
+            const char* prefix = nullptr
+            ) noexcept->BitmapRenderRule;
     }
 }
 

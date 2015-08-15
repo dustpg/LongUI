@@ -454,7 +454,7 @@ auto  LongUI::DX::FormatTextCore(
                 // 直接设置
                 else {
                     DXHelper_GetNextTokenA(4);
-                    UIControl::MakeColor(reinterpret_cast<char*>(param_buffer), tmp_color->color);
+                    Helper::MakeColor(reinterpret_cast<char*>(param_buffer), tmp_color->color);
                 }
                 range_data.draweffect = tmp_color;
                 stack_check.push(range_data);
@@ -474,7 +474,7 @@ auto  LongUI::DX::FormatTextCore(
                 }
                 else {
                     DXHelper_GetNextTokenA(1);
-                    UIControl::MakeColor(reinterpret_cast<char*>(param_buffer), tmp_color->color);
+                    Helper::MakeColor(reinterpret_cast<char*>(param_buffer), tmp_color->color);
                 }
                 range_data.draweffect = tmp_color;
                 stack_check.push(range_data);
@@ -658,7 +658,9 @@ force_break:
     // 计算需要长度
     config.text_length = string_length;
     register auto string_length_need = static_cast<uint32_t>(static_cast<float>(string_length + 1) * config.progress);
-    LongUIClamp(string_length_need, 0, string_length);
+    // clamp it
+    if (string_length_need < 0) string_length_need = 0;
+    else if (string_length_need > string_length) string_length_need = string_length;
     // 修正
     va_end(ap);
     // 创建布局

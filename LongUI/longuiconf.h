@@ -1,17 +1,19 @@
 ﻿#pragma once
 // THIS FILE IS NONE-LICENSE
+
 // malloc
 #include <memory>
 // dlmalloc
 #define USE_DL_PREFIX
 #include "../3rdparty/dlmalloc/dlmalloc.h"
+
 // longui namespace
 namespace LongUI {
     // alloc for longui control
     static auto CtrlAlloc(size_t length) noexcept { return ::malloc(length); }
     // free for longui control
     static auto CtrlFree(void* address) noexcept { return ::free(address); }
-#if 0
+#ifndef _DEBUG
     // alloc for small space
     static auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
     // free for small space
@@ -46,11 +48,7 @@ namespace LongUI {
 #pragma warning(disable: 4127) // assignment within constant expression
 #endif
 
-
-// clamp
-#define LongUIClamp(x, i, a) { if(x < i) x = i; else if(x > a) x = a;}
-
-// sington
+// singleton for ui manager
 #define UIManager (LongUI::CUIManager::s_instance)
 
 // retain debug infomation within UIControl::debug_do_event
@@ -58,17 +56,13 @@ namespace LongUI {
 #   define LongUIDebugEvent
 #endif
 
-// all longui control class' method(not inline), and callback call type
-#define __thiscall
-//#define __fastcall 
-
 // main property only?
 #define LONGUI_EDITCORE_COPYMAINPROPERTYONLY
 
 // using Media Foundation to play video file?
 #define LONGUI_VIDEO_IN_MF
 
-
+// get length of array even class
 #ifndef lengthof
 #define lengthof(a) (sizeof(a)/sizeof(*a))
 #endif
@@ -83,7 +77,7 @@ namespace LongUI {
 // MSC
 #define LongUINoinline __declspec(noinline)
 // GCC
-//#define LongUINoinline __attribute__((noinline))
+//#define LongUINoinline __attribute__((?????))
 #endif
 
 #ifndef LongUIAlignas
@@ -94,17 +88,11 @@ namespace LongUI {
 #define __fallthrough (void)(0)
 #endif
 
-// std::floorf // 负数也看不到
-//#define LongUIFloorF(v) static_cast<float>(static_cast<int>(v))
-
-// if you impl a IUIConfigure by yourself, undef it
+// if you implement a standalone IUIConfigure by yourself, undef it
 #define LONGUI_WITH_DEFAULT_CONFIG
-
 
 // nuclear card first
 //#define LONGUI_NUCLEAR_FIRST
-
-
 
 #ifdef LONGUI_WITH_DEFAULT_HEADER
 #ifndef _DEBUG
@@ -155,9 +143,9 @@ namespace LongUI {
 // longui 
 namespace LongUI {
     // LongUI Default Text Font Family Name
-    constexpr static wchar_t* LongUIDefaultTextFontName = L"Arial";
+    static constexpr wchar_t* const LongUIDefaultTextFontName = L"Arial";
     // LongUI Default Text Font Size
-    constexpr static float LongUIDefaultTextFontSize = 22.f;
+    static constexpr float          LongUIDefaultTextFontSize = 22.f;
     // LongUI 常量
     enum EnumUIConstant : uint32_t {
         // LongUI String Fixed Buffer Length [fixed buffer length]
@@ -190,10 +178,6 @@ namespace LongUI {
         LongUIDefaultWindowHeight = 600,
         // LongUI Default Mouse Hover Time
         LongUIDefaultHoverTime = 100,
-        // LongUI Default Slider Half Width
-        LongUIDefaultSliderHalfWidth = 10,
-        // LongUI Default Slider Half Width
-        LongUIDefaultCheckBoxWidth = 16,
         // minimal size in pixel for window by default
         LongUIWindowMinSize = 128,
         // minimal size for auto-size control
@@ -297,7 +281,7 @@ namespace LongUI {
     static const pugi::xml_node null_xml_node = pugi::xml_node(nullptr);
 }
 
-// XML Node Attribute Name Setting
+// XML Node Attribute/Value constexpr char* const Setting
 namespace LongUI {
     // window class name: zhuangbilty
     static constexpr wchar_t* const WindowClassName = L"Windows.UI.LongUI.NormalWindow";
@@ -328,8 +312,8 @@ namespace LongUI {
         static constexpr char* const IsRenderParent         = "renderparent";
         // is clip strictly                         [invalid yet]
         static constexpr char* const IsClipStrictly         = "strictclip";
-        // is always render children directly       [valid] for container
-        static constexpr char* const IsRenderChildrenD      = "rendercd";
+        // is always host children rendering?       [valid] for container
+        static constexpr char* const IsHostChildrenAlways   = "hostchild";
         
         // left control class name and template id in "marginal control"
         static constexpr char* const LeftMarginalControl    = "leftcontrol";
@@ -338,7 +322,9 @@ namespace LongUI {
         // right control class name and template id in "marginal control"
         static constexpr char* const RightMarginalControl   = "rightcontrol";
         // bottom control class name and template id in "marginal control"
-        static constexpr char* const bottomMarginalControl  = "bottomcontrol";
+        static constexpr char* const BottomMarginalControl  = "bottomcontrol";
+        // marginal control will be zoomed?
+        static constexpr char* const IsZoomMarginalControl  = "zoommarginal";
         
         // window clear color
         static constexpr char* const WindowClearColor       = "clearcolor";

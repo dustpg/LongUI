@@ -1,16 +1,15 @@
 ﻿#include "LongUI.h"
-
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
 // UIWindow 构造函数
-LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent) 
-noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
+LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
+noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     ZeroMemory(&m_curMedium, sizeof(m_curMedium));
     CUIString titlename(m_strControlName);
     {
-        UIControl::MakeString(
+        Helper::MakeString(
             node.attribute(LongUI::XMLAttribute::WindowTitleName).value(),
             titlename
             );
@@ -43,11 +42,11 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
     {
         // 最小大小
         float size[] = { LongUIWindowMinSize, LongUIWindowMinSize };
-        UIControl::MakeFloats(node.attribute("minisize").value(), size, 2);
+        Helper::MakeFloats(node.attribute("minisize").value(), size, 2);
         m_miniSize.width = static_cast<decltype(m_miniSize.width)>(size[0]);
         m_miniSize.height = static_cast<decltype(m_miniSize.height)>(size[1]);
         // 清理颜色
-        UIControl::MakeColor(
+        Helper::MakeColor(
             node.attribute(LongUI::XMLAttribute::WindowClearColor).value(),
             this->clear_color
             );
@@ -92,7 +91,7 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
             LongUI::WindowClassName, titlename.c_str(),
             WS_OVERLAPPEDWINDOW,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
-            parent ? parent->GetHwnd() : nullptr, 
+            parent_window ? parent_window->GetHwnd() : nullptr,
             nullptr,
             ::GetModuleHandleW(nullptr),
             this
@@ -120,14 +119,16 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent) {
     m_pDropTargetHelper = UIManager.GetDropTargetHelper();
     // 注册拖拽目标
     ::RegisterDragDrop(m_hwnd, this);
-    // 显示窗口
-    ::ShowWindow(m_hwnd, SW_SHOW);
     // 所在窗口就是自己
     m_pWindow = this;
     // 自己的UI父类就是自己以保证parent不为null
     force_cast(this->parent) = this;
     // 清零
     ::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
+    // 自动显示窗口
+    if (node.attribute("autoshow").as_bool(true)) {
+        ::ShowWindow(m_hwnd, SW_SHOW);
+    }
 }
 
 // UIWindow 析构函数
@@ -289,6 +290,13 @@ void LongUI::UIWindow::AddControl(const std::pair<CUIString, void*>& pair) noexc
     }
 }
 
+// 设置图标
+void LongUI::UIWindow::SetIcon(HICON hIcon) noexcept {
+    ::DefWindowProcW(m_hwnd, WM_SETICON, TRUE, reinterpret_cast<LPARAM>(hIcon));
+    ::DefWindowProcW(m_hwnd, WM_SETICON, FALSE, reinterpret_cast<LPARAM>(hIcon));
+}
+
+
 // release data
 void LongUI::UIWindow::release_data() noexcept {
     if (m_hVSync) {
@@ -330,10 +338,12 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
     if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)){
 #ifdef _DEBUG
         static RECT s_rects[LongUIDirtyControlSize + 2];
-        ::memcpy(s_rects, m_dirtyRects, present.DirtyRectsCount * sizeof(RECT));
-        present.pDirtyRects = s_rects;
-        s_rects[present.DirtyRectsCount] = { 0, 0, 128, 35 };
-        ++present.DirtyRectsCount;
+        if (this->debug_show) {
+            ::memcpy(s_rects, m_dirtyRects, present.DirtyRectsCount * sizeof(RECT));
+            present.pDirtyRects = s_rects;
+            s_rects[present.DirtyRectsCount] = { 0, 0, 128, 35 };
+            ++present.DirtyRectsCount;
+        }
 #endif
     }
     // 全刷新
@@ -725,6 +735,10 @@ void LongUI::UIWindow::WaitVS() const noexcept {
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
+    assert(this->window_type != Type_RenderOnParent);
+    if (this->window_type != Type_Layered) {
+        force = true;
+    }
     //UIManager << DL_Log << "called" << endl;
     // 修改大小, 需要取消目标
     m_pRenderTarget->SetTarget(nullptr);
@@ -736,6 +750,10 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     // 设置
     auto rect_right = LongUI::MakeAsUnit(this->window_size.width);
     auto rect_bottom = LongUI::MakeAsUnit(this->window_size.height);
+    if (force) {
+        rect_right = this->window_size.width;
+        rect_bottom = this->window_size.height;
+    }
     auto old_size = m_pTargetBimtap->GetPixelSize();
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
@@ -786,13 +804,11 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
 auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     // UIWindow::Recreate参数不会为nullptr
     assert(newRT && "bad argument");
+    this->release_data();
     // DXGI Surface 后台缓冲
     IDXGISurface*                       pDxgiBackBuffer = nullptr;
     IDXGISwapChain1*                    pSwapChain = nullptr;
-    this->release_data();
     // 创建交换链
-    IDXGIFactory2* pDxgiFactory = UIManager;
-    assert(pDxgiFactory);
     HRESULT hr = S_OK;
     // 创建交换链
     if (SUCCEEDED(hr)) {
@@ -815,7 +831,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
             // 创建DirectComposition交换链
-            hr = pDxgiFactory->CreateSwapChainForComposition(
+            hr = UIManager_DXGIFactory->CreateSwapChainForComposition(
                 UIManager_DXGIDevice,
                 &swapChainDesc,
                 nullptr,
@@ -827,7 +843,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
             // 利用窗口句柄创建交换链
-            hr = pDxgiFactory->CreateSwapChainForHwnd(
+            hr = UIManager_DXGIFactory->CreateSwapChainForHwnd(
                 UIManager_D3DDevice,
                 m_hwnd,
                 &swapChainDesc,
@@ -848,10 +864,10 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         m_hVSync = m_pSwapChain->GetFrameLatencyWaitableObject();
     }
-    // 确保DXGI队列里边不会超过一帧
+    /*// 确保DXGI队列里边不会超过一帧
     if (SUCCEEDED(hr)) {
         hr = UIManager_DXGIDevice->SetMaximumFrameLatency(1);
-    }
+    }*/
     // 利用交换链获取Dxgi表面
     if (SUCCEEDED(hr)) {
         hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));

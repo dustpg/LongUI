@@ -184,5 +184,11 @@
     <ClCompile Include="InlineObjImpl.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
+    <ClCompile Include="UIUtil2.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlCore.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

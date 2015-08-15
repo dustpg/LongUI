@@ -1,573 +1,16 @@
 ﻿#include "LongUI.h"
 
-
-// 系统按钮:
-/*
-Win8/8.1/10.0.10158之前
-    焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
-        0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
-        1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
-        2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
-        3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
-*/
-
-/// <summary>
-/// Initializes a new instance of the <see cref="LongUI::UIControl"/>
-/// class with xml node
-/// </summary>
-/// <param name="node" type="pugi::xml_node">The xml node</param>
-/// <remarks>
-/// For this function, param 'node' could be null node
-/// 对于本函数, 参数'node'允许为空
-/// <see cref="LongUINullXMLNode"/>
-/// </remarks>
-LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
-    // 构造默认
-    auto flag = LongUIFlag::Flag_None;
-    // 有效?
-    if (node) {
-        const char* data = nullptr;
-        // 检查脚本
-        if ((data = node.attribute(XMLAttribute::Script).value()) && UIManager.script) {
-            m_script = UIManager.script->AllocScript(data);
-        }
-        // 检查权重
-        if (data = node.attribute(LongUI::XMLAttribute::LayoutWeight).value()) {
-            force_cast(this->weight) = LongUI::AtoF(data);
-        }
-        // 渲染优先级
-        if (data = node.attribute(LongUI::XMLAttribute::RenderingPriority).value()){
-            force_cast(this->priority) = uint8_t(LongUI::AtoI(data));
-        }
-        // 检查名称
-        UIControl::MakeString(
-            node.attribute(LongUI::XMLAttribute::ControlName).value(),
-            m_strControlName
-            );
-        // 检查外边距
-        UIControl::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::Margin).value(),
-            const_cast<float*>(&margin_rect.left), 
-            sizeof(margin_rect) /sizeof(margin_rect.left)
-            );
-        // 检查渲染父控件
-        if (node.attribute(LongUI::XMLAttribute::IsRenderParent).as_bool(false)) {
-            flag |= LongUI::Flag_RenderParent;
-        }
-        // 检查裁剪规则
-        if (node.attribute(LongUI::XMLAttribute::IsClipStrictly).as_bool(true)) {
-            flag |= LongUI::Flag_ClipStrictly;
-        }
-        // 边框大小
-        if (data = node.attribute(LongUI::XMLAttribute::BorderWidth).value()) {
-            m_fBorderWidth = LongUI::AtoF(data);
-        }
-        // 边框圆角
-        UIControl::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::BorderRound).value(),
-            &m_2fBorderRdius.width,
-            sizeof(m_2fBorderRdius) / sizeof(m_2fBorderRdius.width)
-            );
-        // 检查控件大小
-        {
-            float size[] = { 0.f, 0.f };
-            UIControl::MakeFloats(
-                node.attribute(LongUI::XMLAttribute::AllSize).value(),
-                size, lengthof(size)
-                );
-            // 视口区宽度固定?
-            if (size[0] > 0.f) {
-                flag |= LongUI::Flag_WidthFixed;
-                this->SetWidth(size[0]);
-            }
-            // 视口区高度固固定?
-            if (size[1] > 0.f) {
-                flag |= LongUI::Flag_HeightFixed;
-                this->SetHeight(size[1]);
-            }
-        }
-        // 检查控件位置
-        {
-            float pos[] = { 0.f, 0.f };
-            UIControl::MakeFloats(
-                node.attribute(LongUI::XMLAttribute::LeftTopPosotion).value(),
-                pos, lengthof(pos)
-                );
-            // 指定X轴
-            if (pos[0] != 0.f) {
-                this->SetLeft(pos[0]);
-                flag |= Flag_Floating;
-            }
-            // 指定Y轴
-            if (pos[1] != 0.f) {
-                this->SetTop(pos[1]);
-                flag |= Flag_Floating;
-            }
-        }
-    }
-    // 修改flag
-    force_cast(this->flags) |= flag;
-}
-
-// 析构函数
-LongUI::UIControl::~UIControl() noexcept {
-    ::SafeRelease(m_pRenderTarget);
-    ::SafeRelease(m_pBrush_SetBeforeUse);
-    // 释放脚本占用空间
-    if (m_script.script) {
-        assert(UIManager.script && "no script interface but data");
-        UIManager.script->FreeScript(m_script);
-    }
-    // 反注册
-    if (this->flags & Flag_NeedRegisterOffScreenRender) {
-        m_pWindow->UnRegisterOffScreenRender(this);
-    }
-}
-
-
-/// <summary>
-/// Render control via specified render-type.
-/// </summary>
-/// <param name="_type" type="enum LongUI::RenderType">The _type.</param>
-/// <returns></returns>
-void LongUI::UIControl::Render(RenderType type) const noexcept {
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        break;
-    case LongUI::RenderType::Type_Render:
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 渲染边框
-        if (m_fBorderWidth > 0.f) {
-            D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
-            m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-            if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
-                brect.radiusX = m_2fBorderRdius.width;
-                brect.radiusY = m_2fBorderRdius.height;
-                //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-                m_pRenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-                //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-            }
-            else {
-                m_pRenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-            }
-        }
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
-    }
-}
-
-
-// UI控件: 刷新
-void LongUI::UIControl::Update() noexcept {
-    // 控件大小处理了
-    if (m_bool16.Test(Index_ChangeSizeHandled)) {
-        m_bool16.SetFalse(Index_ChangeSize);
-        m_bool16.SetFalse(Index_ChangeSizeHandled);
-    }
-    // 世界转换处理了
-    if (m_bool16.Test(Index_ChangeWorldHandled)) {
-        m_bool16.SetFalse(Index_ChangeWorld);
-        m_bool16.SetFalse(Index_ChangeWorldHandled);
-    }
-}
-
-// UI控件: 重建
-auto LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
-    ::SafeRelease(m_pRenderTarget);
-    ::SafeRelease(m_pBrush_SetBeforeUse);
-    m_pRenderTarget = ::SafeAcquire(target);
-    m_pBrush_SetBeforeUse = static_cast<decltype(m_pBrush_SetBeforeUse)>(
-        UIManager.GetBrush(LongUICommonSolidColorBrushIndex)
-        );
-    return target ? S_OK : E_INVALIDARG;
-}
-
-// 创建字符串
-bool LongUI::UIControl::MakeString(const char* data, CUIString& str) noexcept {
-    if (!data || !*data) return false;
-    wchar_t buffer[LongUIStringBufferLength];
-    // 转码
-    register auto length = LongUI::UTF8toWideChar(data, buffer);
-    buffer[length] = L'\0';
-    // 设置字符串
-    str.Set(buffer, length);
-    return true;
-}
-
-// 设置边框颜色
-bool LongUI::UIControl::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATUS_COUNT]) noexcept {
-    // 边框颜色
-    color[Status_Disabled] = D2D1::ColorF(0xD9D9D9);
-    color[Status_Normal] = D2D1::ColorF(0xACACAC);
-    color[Status_Hover] = D2D1::ColorF(0x7EB4EA);
-    color[Status_Pushed] = D2D1::ColorF(0x569DE5);
-    // 检查
-    if (node) {
-        const char* attr[] = {
-            "disabledbordercolor", "normalbordercolor",
-            "hoverbordercolor",  "pushedbordercolor",
-        };
-        for (auto i = 0u; i < STATUS_COUNT; ++i) {
-            UIControl::MakeColor(node.attribute(attr[i]).value(), color[i]);
-        }
-    }
-    return true;
-}
-
-// 创建浮点
-bool LongUI::UIControl::MakeFloats(const char* sdata, float* fdata, int size) noexcept {
-    if (!sdata || !*sdata) return false;
-    // 断言
-    assert(fdata && size && "bad argument");
-    // 拷贝数据
-    char buffer[LongUIStringBufferLength];
-    ::strcpy_s(buffer, sdata);
-    char* index = buffer;
-    const char* to_parse = buffer;
-    // 遍历检查
-    bool new_float = true;
-    while (size) {
-        char ch = *index;
-        // 分段符?
-        if (ch == ',' || ch == ' ' || !ch) {
-            if (new_float) {
-                *index = 0;
-                *fdata = ::LongUI::AtoF(to_parse);
-                ++fdata;
-                --size;
-                new_float = false;
-            }
-        }
-        else if (!new_float) {
-            to_parse = index;
-            new_float = true;
-        }
-        // 退出
-        if (!ch) break;
-        ++index;
-    }
-    return true;
-}
-
-
-// 16进制
-unsigned int __fastcall Hex2Int(char c) {
-    if (c >= 'A' && c <= 'Z') {
-        return c - 'A' + 10;
-    }
-    if (c >= 'a' && c <= 'z') {
-        return c - 'a' + 10;
-    }
-    else {
-        return c - '0';
-    }
-}
-
-#define white_space(c) ((c) == ' ' || (c) == '\t')
-
-
-// 获取颜色表示
-bool LongUI::UIControl::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
-    if (!data || !*data) return false;
-    // 获取有效值
-    while (white_space(*data)) ++data;
-    // 以#开头?
-    if (*data == '#') {
-        color.a = 1.f;
-        // #RGB
-        if (data[4] == ' ' || !data[4]) {
-            color.r = static_cast<float>(::Hex2Int(*++data)) / 15.f;
-            color.g = static_cast<float>(::Hex2Int(*++data)) / 15.f;
-            color.b = static_cast<float>(::Hex2Int(*++data)) / 15.f;
-        }
-        // #RRGGBB
-        else if (data[7] == ' ' || !data[7]) {
-            color.r = static_cast<float>((::Hex2Int(*++data) << 4) | (::Hex2Int(*++data))) / 255.f;
-            color.g = static_cast<float>((::Hex2Int(*++data) << 4) | (::Hex2Int(*++data))) / 255.f;
-            color.b = static_cast<float>((::Hex2Int(*++data) << 4) | (::Hex2Int(*++data))) / 255.f;
-        }
-        // #AARRGGBB
-        else {
-            color.a = static_cast<float>((::Hex2Int(*++data) << 4) | (::Hex2Int(*++data))) / 255.f;
-            color.r = static_cast<float>((::Hex2Int(*++data) << 4) | (::Hex2Int(*++data))) / 255.f;
-            color.g = static_cast<float>((::Hex2Int(*++data) << 4) | (::Hex2Int(*++data))) / 255.f;
-            color.b = static_cast<float>((::Hex2Int(*++data) << 4) | (::Hex2Int(*++data))) / 255.f;
-        }
-        return true;
-    }
-    // 浮点数组
-    else {
-        return UIControl::MakeFloats(data, reinterpret_cast<float*>(&color), 4);
-    }
-}
-
-// LongUI::UIControl 注册回调事件
-void LongUI::UIControl::SetEventCallBack(
-    const wchar_t* control_name, LongUI::Event event, LongUIEventCallBack call) noexcept {
-    assert(control_name && call&&  "bad argument");
-    UIControl* control = m_pWindow->FindControl(control_name);
-    assert(control && " no control found");
-    if (!control) return;
-    // 自定义消息?
-    if (event >= LongUI::Event::Event_CustomEvent) {
-        UIManager.configure->SetEventCallBack(event, call, control, this);
-        return;
-    }
-    switch (event)
-    {
-    case LongUI::Event::Event_ButtoClicked:
-        longui_cast<UIButton*>(control)->RegisterClickEvent(call, this);
-        break;
-    case LongUI::Event::Event_EditReturned:
-        //longui_cast<UIEdit*>(control)->RegisterReturnEvent(call, this);
-        break;
-    case LongUI::Event::Event_SliderValueChanged:
-        longui_cast<UISlider*>(control)->RegisterValueChangedEvent(call, this);
-        break;
-    }
-}
-
-// 获取占用宽度
-auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
-    return this->view_size.width 
-        + margin_rect.left 
-        + margin_rect.right
-        + m_fBorderWidth * 2.f;
-}
-
-// 获取占用高度
-auto LongUI::UIControl::GetTakingUpHeight() const noexcept -> float{
-    return this->view_size.height
-        + margin_rect.top 
-        + margin_rect.bottom
-        + m_fBorderWidth * 2.f;
-}
-
-// 获取非内容区域总宽度
-auto LongUI::UIControl::GetNonContentWidth() const noexcept -> float {
-    return margin_rect.left
-        + margin_rect.right
-        + m_fBorderWidth * 2.f;
-}
-
-// 获取非内容区域总高度
-auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
-    return margin_rect.top
-        + margin_rect.bottom
-        + m_fBorderWidth * 2.f;
-}
-
-// 设置占用宽度
-auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
-    // 设置
-    auto new_vwidth = width - this->GetNonContentWidth();
-    if (new_vwidth != this->view_size.width) {
-        force_cast(this->view_size.width) = new_vwidth;
-        this->SetControlSizeChanged();
-    }
-    // 检查
-    if (this->view_size.width < 0.f) {
-        UIManager << DL_Hint << this
-            << "viewport's width < 0: " << this->view_size.width << endl;
-    }
-}
-
-// 设置占用高度
-auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline {
-    // 设置
-    auto new_vheight = height - this->GetNonContentHeight();
-    if (new_vheight != this->view_size.height) {
-        force_cast(this->view_size.height) = new_vheight;
-        this->SetControlSizeChanged();
-    }
-    // 检查
-    if (this->view_size.height < 0.f) {
-        UIManager << DL_Hint << this
-            << "viewport's height < 0: " << this->view_size.height << endl;
-    }
-}
-
-// 设置控件左坐标
-auto LongUI::UIControl::SetLeft(float left) noexcept -> void {
-    auto new_left = left + this->margin_rect.left + m_fBorderWidth;
-    // 修改了位置?
-    if (this->view_pos.x != new_left) {
-        force_cast(this->view_pos.x) = new_left;
-        this->SetControlWorldChanged();
-    }
-}
-
-// 设置控件顶坐标
-auto LongUI::UIControl::SetTop(float top) noexcept -> void {
-    auto new_top = top + this->margin_rect.top + m_fBorderWidth;
-    // 修改了位置?
-    if (this->view_pos.y != new_top) {
-        force_cast(this->view_pos.y) = new_top;
-        this->SetControlWorldChanged();
-    }
-}
-
-// 获取占用/剪切矩形
-void LongUI::UIControl::GetRectAll(D2D1_RECT_F& rect) const noexcept {
-    rect.left = -(this->margin_rect.left + m_fBorderWidth);
-    rect.top = -(this->margin_rect.top + m_fBorderWidth);
-    rect.right = this->view_size.width + this->margin_rect.right + m_fBorderWidth;
-    rect.bottom = this->view_size.height + this->margin_rect.bottom + m_fBorderWidth;
-    /*// 容器
-    if ((this->flags & Flag_UIContainer)) {
-        // 修改裁剪区域
-        //rect.left -= static_cast<const UIContainer*>(this)->offset.x;
-        //rect.top -= static_cast<const UIContainer*>(this)->offset.y;
-        auto container = static_cast<const UIContainer*>(this);
-        rect.right = rect.left + static_cast<const UIContainer*>(this)->width;
-        rect.bottom = rect.top + static_cast<const UIContainer*>(this)->height;
-        if (static_cast<const UIContainer*>(this)->scrollbar_h) {
-            rect.bottom -= static_cast<const UIContainer*>(this)->scrollbar_h->GetTakingUpSapce();
-        }
-        if (static_cast<const UIContainer*>(this)->scrollbar_v) {
-            rect.right -= static_cast<const UIContainer*>(this)->scrollbar_v->GetTakingUpSapce();
-        }
-    }
-    else {
-        rect.right = this->width + this->margin_rect.right + m_fBorderWidth;
-        rect.bottom = this->height + this->margin_rect.bottom + m_fBorderWidth;
-    }*/
-}
-
-// 获取边框矩形
-void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
-    rect.left = -m_fBorderWidth * 0.5f;
-    rect.top = -m_fBorderWidth * 0.5f;
-    rect.right = this->view_size.width + m_fBorderWidth * 0.5f;
-    rect.bottom = this->view_size.height + m_fBorderWidth * 0.5f;
-}
-
-// 获取视口刻画矩形
-void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
-    rect.left = 0.f;
-    rect.top = 0.f;
-    rect.right = this->view_size.width;
-    rect.bottom = this->view_size.height;
-}
-
-// 获得世界转换矩阵
-void LongUI::UIControl::RefreshWorld() noexcept {
-    float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
-    float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
-    // 顶级控件
-    if (this->IsTopLevel()) {
-        this->world = D2D1::Matrix3x2F::Translation(xx, yy);
-    }
-    // 非顶级控件
-    else {
-        // 检查
-        xx += this->parent->GetOffsetXByChild();
-        yy += this->parent->GetOffsetYByChild();
-        // 转换
-        this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
-    }
-    // 修改了
-    this->ControlWorldChangeHandled();
-}
-
-// 获得世界转换矩阵 for 边缘控件
-void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
-    float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
-    float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
-    D2D1_MATRIX_3X2_F identity;
-    D2D1_MATRIX_3X2_F* parent_parent_world = &identity;
-    // 顶级
-    if (this->parent->IsTopLevel()) {
-        identity = D2D1::Matrix3x2F::Identity();
-    }
-    else {
-        parent_parent_world = &this->parent->parent->world;
-    }
-    // 计算矩阵
-    this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_parent_world;
-    // 自己不能是顶级的
-    assert(this->IsTopLevel() == false);
-    constexpr int aa = sizeof(UIContainer);
-}
-
 // ----------------------------------------------------------------------------
-// UINull
+// **** UIText
 // ----------------------------------------------------------------------------
 
-// LongUI namespace
-namespace LongUI {
-    // null control
-    class UINull : public UIControl {
-    private:
-        // 父类申明
-        using Super = UIControl;
-    public:
-        // Render 渲染
-        virtual void Render(RenderType) const noexcept override {}
-        // update 刷新
-        virtual void Update() noexcept override {}
-        // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override { return false; }
-        // close this control 关闭控件
-        virtual void Cleanup() noexcept override { delete this; }
-    public:
-        // 创建控件
-        static auto CreateControl(pugi::xml_node node) noexcept {
-            UIControl* pControl = nullptr;
-            // 判断
-            if (!node) {
-                UIManager << DL_Warning << L"node null" << LongUI::endl;
-            }
-            // 申请空间
-            pControl = LongUI::UIControl::AllocRealControl<LongUI::UINull>(
-                node,
-                [=](void* p) noexcept { new(p) UINull(node); }
-            );
-            if (!pControl) {
-                UIManager << DL_Error << L"alloc null" << LongUI::endl;
-            }
-            return pControl;
-        }
-    public:
-        // constructor 构造函数
-        UINull(pugi::xml_node node) noexcept : Super(node) {}
-        // destructor 析构函数
-        ~UINull() noexcept { }
-    };
-}
-
-// 创建空控件
-auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node) noexcept -> UIControl * {
-    // 分类判断
-    UIControl* pControl = nullptr;
-    switch (type)
-    {
-    case Type_CreateControl:
-        pControl = LongUI::UINull::CreateControl(node);
-        break;
-    case LongUI::Type_Initialize:
-        break;
-    case LongUI::Type_Recreate:
-        break;
-    case LongUI::Type_Uninitialize:
-        break;
-    }
-    return pControl;
-}
-
-// ----------------------------------------------------------------------------
-// UIText
-// ----------------------------------------------------------------------------
-// UIText: do event 事件处理
+// UI文本: 事件处理
 bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
     UNREFERENCED_PARAMETER(arg);
     return false;
 }
 
-// Render 渲染 
+// UI文本: 渲染
 void LongUI::UIText::Render(RenderType type) const noexcept {
     switch (type)
     {
@@ -611,7 +54,6 @@ LongUI::UIText::UIText(pugi::xml_node node) noexcept: Super(node), m_text(node) 
 }
 */
 
-
 // UIText::CreateControl 函数
 auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
@@ -653,10 +95,9 @@ void LongUI::UIText::Cleanup() noexcept {
     delete this;
 }
 
-
-// -------------------------------------------------------
-// UIButton
-// -------------------------------------------------------
+// ----------------------------------------------------------------------------
+// **** UIButton
+// ----------------------------------------------------------------------------
 
 // Render 渲染 
 void LongUI::UIButton::Render(RenderType type) const noexcept {
@@ -701,18 +142,19 @@ void LongUI::UIButton::Update() noexcept {
 // UIButton 构造函数
 LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node) {
     // 初始化
-    UIControl::SetBorderColor(node, m_aBorderColor);
+    Helper::SetBorderColor(node, m_aBorderColor);
     // 初始化代码
-    m_uiElement.GetByType<Element::Basic>().Init(node);
-    if (m_uiElement.GetByType<Element::Meta>().IsOK()) {
-        m_uiElement.SetElementType(Element::Meta);
+    m_uiElement.GetByType<Element_Basic>().Init(node);
+    if (m_uiElement.GetByType<Element_Meta>().IsOK()) {
+        m_uiElement.SetElementType(Element_Meta);
     }
     else {
-        m_uiElement.SetElementType(Element::BrushRect);
+        m_uiElement.SetElementType(Element_BrushRect);
     }
-    // 特殊
-    m_uiElement.GetByType<Element::Basic>().SetNewStatus(Status_Normal);
-    m_uiElement.GetByType<Element::Basic>().SetNewStatus(Status_Normal);
+    // init
+    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+    // need twices because of aniamtion
+    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
     constexpr int azz = sizeof(m_uiElement);
 }
 
@@ -826,9 +268,9 @@ void LongUI::UIButton::Cleanup() noexcept {
 }
 
 
-// -------------------------------------------------------
-// UIEdit
-// -------------------------------------------------------
+// ----------------------------------------------------------------------------
+// **** UIEdit
+// ----------------------------------------------------------------------------
 
 // UI基本编辑控件
 void LongUI::UIEditBasic::Render(RenderType type) const noexcept {
@@ -976,12 +418,9 @@ LongUI::UIEditBasic::UIEditBasic(pugi::xml_node node) noexcept
 }
 
 
-
-
 // 调试区域
 #ifdef LongUIDebugEvent
 // longui 转换
-
 
 // UI控件: 调试信息
 bool LongUI::UIControl::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {

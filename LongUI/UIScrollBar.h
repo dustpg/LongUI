@@ -126,7 +126,7 @@ namespace LongUI{
         // 父类申明
         using Super = UIScrollBar;
         // ui element
-        using BarElement = Component::Elements<Element::Meta, Element::ColorRect, Element::Basic>;
+        using BarElement = Component::Elements<Element_Meta, Element_ColorRect, Element_Basic>;
         // arrow for this
         enum { Arrow_Left, Arrow_Top, Arrow_Right, Arrow_Bottom, ARROW_SIZE };
         // path geo

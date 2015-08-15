@@ -78,20 +78,17 @@ namespace LongUI {
         void  operator delete(void* p, size_t) { LongUI::CtrlFree(p); };
         // delete delete[] operator
         void  operator delete[](void*, size_t) = delete;
-    public: // 内联区
-        // control name 控件名称
+    public:
+        // control name in const wchar_t*
         LongUIInline auto GetNameStr() const noexcept { return m_strControlName.c_str(); }
-        // control name 控件名称
-        LongUIInline auto&GetName() const noexcept { return m_strControlName; }
-        // control name 控件名称
+        // control name in longui string
         LongUIInline auto&GetName() noexcept { return m_strControlName; }
+        // control name : overload for const
+        LongUIInline const auto&GetName() const noexcept { return m_strControlName; }
         // get window of control
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
         // XXX: is top level?
         LongUIInline auto IsTopLevel() const noexcept;
-    protected: // Helper Zone
-        // Set Event Call Back
-        void SetEventCallBack(const wchar_t*, LongUI::Event, LongUIEventCallBack) noexcept;
     public:
         // get width of control
         auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
@@ -143,14 +140,13 @@ namespace LongUI {
         // parent window
         UIWindow*               m_pWindow = nullptr;
         // script data
-        UIScript                m_script;
+        ScriptUI                m_script;
     public:
         // user ptr
         void*                   user_ptr = nullptr;
         // user data
         size_t                  user_data = 0;
-        // parent control, using const_cast to change in constructor, 
-        // do not change in other method/function
+        // parent control       [adjusting]: if is the top level, how to set it
         UIContainer*    const   parent = nullptr;
         // using for container, prev control
         UIControl*      const   prev = nullptr;
@@ -188,8 +184,7 @@ namespace LongUI {
         D2D1_RECT_F             visible_rect = D2D1::RectF();
         // margin rect
         D2D1_RECT_F     const   margin_rect = D2D1::RectF();
-        // flags, using const_cast to change in constructor, 
-        // do not change in other method/function
+        // flags, use const_cast to change in constructor function
         LongUIFlag      const   flags = LongUIFlag::Flag_None;
     protected:
         // width of border
@@ -224,14 +219,8 @@ namespace LongUI {
         // assert type casting
         void AssertTypeCasting(IID& iid) const noexcept { UNREFERENCED_PARAMETER(iid); }
 #endif
-        // make color form string
-        static bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;
-        // make UIString form string
-        static bool MakeString(const char*, CUIString&) noexcept;
-        // make floats from string
-        static bool MakeFloats(const char*, float*, int) noexcept;
-        // make floats from string
-        static bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATUS_COUNT]) noexcept;
+        // Set Event Call Back
+        void SetEventCallBack(const wchar_t*, LongUI::Event, LongUIEventCallBack) noexcept;
         // get real control size in byte
         template<class T, class L>
         static LongUIInline auto AllocRealControl(pugi::xml_node node, L lam) noexcept {

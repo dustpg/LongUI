@@ -1058,7 +1058,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         m_hConsole = INVALID_HANDLE_VALUE;
     }
     // 先复制
-    ::wcsncpy(m_name, LR"(\\.\pipe\)", 9);
+    ::wcscpy(m_name, LR"(\\.\pipe\)");
     wchar_t logger_name_buffer[128];
     // 未给logger?
     if (!config.logger_name) {
@@ -1211,12 +1211,6 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 // --------------  CUIDefaultConfigure ------------
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
 
-// CUIDefaultConfigure 析构函数
-LongUI::CUIDefaultConfigure::~CUIDefaultConfigure() noexcept {
-    ::SafeRelease(m_pXMLResourceLoader);
-    ::SafeRelease(this->script);
-}
-
 // longui
 namespace LongUI {
     // 创建XML资源读取器
@@ -1235,26 +1229,16 @@ auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvOb
             return E_NOINTERFACE;
         }
     }
-    // 接口
-    IUIInterface* pUIInterface = nullptr;
     // 资源读取器
     if (riid == LongUI::IID_IUIResourceLoader) {
-        if (m_pXMLResourceLoader) {
-            pUIInterface = (m_pXMLResourceLoader);
-        }
-        else {
-            pUIInterface = m_pXMLResourceLoader = 
-                LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
-        }
+        *ppvObject =  LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
     }
     // 脚本
     else if (riid == LongUI::IID_IUIScript) {
-        pUIInterface = (script);
+
     }
-    // 增加计数
-    *ppvObject = ::SafeAcquire(pUIInterface);
     // 检查
-    return pUIInterface ? S_OK : E_NOINTERFACE;
+    return (*ppvObject) ? S_OK : E_NOINTERFACE;
 }
 
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t {
@@ -1443,12 +1427,10 @@ void LongUI::Component::Video::Render(D2D1_RECT_F* dst) const noexcept {
     }*/
 }
 
-
 // Component::Video 构造函数
 LongUI::Component::Video::Video() noexcept {
     force_cast(dst_rect) = { 0 };
 }
-
 
 // Component::Video 析构函数
 LongUI::Component::Video::~Video() noexcept {

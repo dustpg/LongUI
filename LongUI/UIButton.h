@@ -31,7 +31,7 @@ namespace LongUI{
         // 父类申明
         using Super = UIText;
         // ui element
-        using ButtonElement = Component::Elements<Element::Meta, Element::BrushRect, Element::Basic>;
+        using ButtonElement = Component::Elements<Element_Meta, Element_BrushRect, Element_Basic>;
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;

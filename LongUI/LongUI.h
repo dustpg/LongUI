@@ -46,7 +46,7 @@
 
 
 template<class Interface>
-inline void SafeRelease(Interface *&pInterfaceToRelease) {
+inline auto SafeRelease(Interface *&pInterfaceToRelease) {
     if (pInterfaceToRelease) {
         pInterfaceToRelease->Release();
         pInterfaceToRelease = nullptr;
@@ -54,7 +54,7 @@ inline void SafeRelease(Interface *&pInterfaceToRelease) {
 }
 
 template<class Interface>
-inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
+inline auto SafeAcquire(Interface *pInterfaceToRelease) {
     if (pInterfaceToRelease) {
         pInterfaceToRelease->AddRef();
     }
@@ -74,28 +74,29 @@ inline Interface* SafeAcquire(Interface *pInterfaceToRelease) {
 #endif
 
 #define AssertHR(hr) if(FAILED(hr)) ShowErrorWithHR(hr)
+
 #ifdef _DEBUG
 // show hr error
 #define ShowErrorWithHR(hr) { \
-    wchar_t buffffffffffer[LongUI::LongUIStringBufferLength];\
+    wchar_t buffer_tmp[LongUI::LongUIStringBufferLength];\
     ::swprintf(\
-        buffffffffffer, LongUI::LongUIStringBufferLength,\
+        buffer_tmp, LongUI::LongUIStringBufferLength,\
         L"<%ls>HR:0x%08X",\
         __FUNCTIONW__, hr\
         );\
-    UIManager.ShowError(hr, buffffffffffer);\
+    UIManager.ShowError(hr, buffer_tmp);\
     assert(!"ShowErrorWithHR");\
 }
 
 // show string error
 #define ShowErrorWithStr(str) { \
-    wchar_t buffffffffffer[LongUI::LongUIStringBufferLength];\
+    wchar_t buffer_tmp[LongUI::LongUIStringBufferLength];\
     ::swprintf(\
-        buffffffffffer, LongUI::LongUIStringBufferLength,\
+        buffer_tmp, LongUI::LongUIStringBufferLength,\
         L"<%ls>: %ls",\
         __FUNCTIONW__, str\
         );\
-    UIManager.ShowError(str, buffffffffffer);\
+    UIManager.ShowError(str, buffer_tmp);\
 }
 
 // debug level
@@ -133,6 +134,7 @@ namespace LongUI {
 #ifdef LongUIDebugEvent
     // longui cast
     template<class T1, class T2> auto longui_cast(T2 ptr) noexcept->T1 {
+        if (!ptr) return nullptr;
         LongUI::UIControl* ctrl = static_cast< LongUI::UIControl*>(ptr);
         ctrl->AssertTypeCastingT(T1(nullptr));
         return static_cast<T1>(ctrl);
@@ -168,18 +170,37 @@ namespace LongUI {
     // type:  0 for drawing effect, 1 for inline object
     // token: the string segment of this part
     using InlineParamHandler = IUnknown* (*)(uint32_t type, const wchar_t* token);
-    // LongUI Flags: TODO: remove all non-common flag
+    /// <summary>
+    /// LongUI Flags for Core Control: UIControl, UIMarginalable, UIContainer
+    /// </summary>
     enum LongUIFlag : uint32_t {
-        // no flag
+        /// <summary>
+        /// none flag
+        /// </summary>
         Flag_None = 0,
-        // [default: false][auto, no specified]
-        // if the control is a container, will/please mark it
+        /// <summary>
+        /// This control is a UIContainer [default: false]
+        /// </summary>
+        /// <remarks>
+        /// [Auto] if the control is a container, will mark it
+        /// in <see cref="LongUI::UIContainer::UIContainer"/>
+        /// </remarks>
         Flag_UIContainer = 1 << 0,
-        // [default: false][auto]control's width fixed if given a valid width value
-        // XML Attribute: "size"[0]@float
+        /// <summary>
+        /// the width of control is fixed [default: false]
+        /// </summary>
+        /// <remarks>
+        /// [Auto] width fixed if given a valid width value in xml 
+        /// attribute ("size") [0], e.g. size="96, 0"
+        /// </remarks>
         Flag_WidthFixed = 1 << 1,
-        // [default: false][auto]control's height fixed if given a valid height value
-        // XML Attribute: "size"[1]@float
+        /// <summary>
+        /// the height of control is fixed [default: false]
+        /// </summary>
+        /// <remarks>
+        /// [Auto] height fixed if given a valid height value in xml 
+        /// attribute ("size") [1], e.g. size="0, 32"
+        /// </remarks>
         Flag_HeightFixed = 1 << 2,
         // [default: false]control is floating
         Flag_Floating = 1 << 3,
@@ -201,23 +222,32 @@ namespace LongUI {
         // control need Direct3D api to render,
         // call UIWindow::RegisterOffScreenRender3D to set
         // if use Direct2D , call UIWindow::RegisterOffScreenRender2D
-        Flag_3DContent = 1 << 7,
-        // [default: false][auto, and XML Attribute "renderparent"@bool]
+        Flag_OffScreen3DContent = 1 << 7,
+        // [default: false][auto, and xml attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,
-        //  must be rendering whole parent, parent call control->Render() 
-        // to render this, auto by parent's flag : Flag_Container_AlwaysRenderChildrenDirectly
-        // if a container setted this flag, it will set 
-        // flag Flag_Container_AlwaysRenderChildrenDirectly, too,
-        // and set all children
+        // must be rendering whole parent.
+        // could be setted xml-attribute("renderparent") and auto setted
+        // by parent's flag : Flag_Container_HostChildrenRenderingDirectly,
         Flag_RenderParent = 1 << 8,
-        // [default: false] container 's child rendered through
-        // this control, not window directly, if container  hold
-        // this flag, will mark all children's Flag_RenderParent to true
-        // XML Attribute : "rendercd"@bool
-        Flag_Container_AlwaysRenderChildrenDirectly = 1 << 16,
-        // if exist marginal control, will set it to true,
-        // this is just a optimization flag
+        // [default: false][xml attribute : "hostchild"@bool] 
+        // if true, container will host child rendering in anytime
+        // if the container was setted this flag, it would set 
+        // all children flag "Flag_RenderParent" to true
+        Flag_Container_HostChildrenRenderingDirectly = 1 << 16,
+        /// <summary>
+        /// if exist marginal control, will set it
+        /// </summary>
+        /// <remarks>
+        /// [Auto] this is just a optimization flag
+        /// </remarks>
         Flag_Container_ExistMarginalControl = 1 << 17,
+        /// <summary>
+        /// container will zoom marginal controls [default: true]
+        /// </summary>
+        /// <remarks>
+        /// changed by xml-attribute("zoommarginal") defaultly
+        /// </remarks>
+        Flag_Container_ZoomMarginalControl = 1 << 18,
     };
     // operator | for LongUIFlag
     static auto operator |(LongUIFlag a, LongUIFlag b) noexcept {

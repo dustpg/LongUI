@@ -30,23 +30,17 @@ namespace LongUI {
     struct DeviceIndependentMeta {
         // source rect
         D2D1_RECT_F         src_rect;
-        // index for bitmap
+        // index for bitmap, 0 for custom
         uint32_t            bitmap_index;
         // render rule
         BitmapRenderRule    rule;
         //  interpolation mode
         uint16_t            interpolation;
     };
-    // Meta (Graphics Element)
-    struct alignas(sizeof(void*)) Meta {
-        // source rect
-        D2D1_RECT_F         src_rect;
+    // Meta(Bitmap Element)
+    struct Meta : DeviceIndependentMeta {
         // bitmap
         ID2D1Bitmap1*       bitmap;
-        // render rule
-        BitmapRenderRule    rule;
-        //  interpolation mode
-        uint16_t            interpolation;
     };
     // render the meta
     void __fastcall Meta_Render(
@@ -56,7 +50,7 @@ namespace LongUI {
 #ifdef _MSC_VER
 #pragma warning(disable: 4200)
 #endif
-    // MetaEx: store a group of metas, like gif, MUST stored as pointer(or ref)
+    // MetaEx: store a group of metas, like gif, must be stored as pointer(or ref)
     struct MetaEx {
         // unit
         struct Unit { Meta meta; float delta_time; };
@@ -298,7 +292,7 @@ namespace LongUI {
         // ctor
         CUIDefaultConfigure(CUIManager& manager) noexcept : m_manager(manager) {}
         // dtor
-        ~CUIDefaultConfigure() noexcept;
+        ~CUIDefaultConfigure() noexcept { }
         // = operator
         auto operator=(const CUIDefaultConfigure&)->CUIDefaultConfigure = delete;
     public:
@@ -309,8 +303,7 @@ namespace LongUI {
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
-        // get template string for control
-        virtual auto GetTemplateString() noexcept->const char* override { return ctemplate; }
+        virtual auto GetTemplateString() noexcept->const char* override { return nullptr; }
         // get locale name of ui(for text)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
         // add all custom controls
@@ -333,15 +326,9 @@ namespace LongUI {
     protected:
         // manager
         CUIManager&             m_manager;
-        // resource loader
-        IUIResourceLoader*      m_pXMLResourceLoader = nullptr;
     public:
         // resource xml null-end-string
         const char*             resource = nullptr;
-        // control template xml null-end-string
-        const char*             ctemplate = nullptr;
-        // script
-        IUIScript*              script = nullptr;
         // inline param handler
         InlineParamHandler      handler = nullptr;
 #ifdef _DEBUG

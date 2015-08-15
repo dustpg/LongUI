@@ -74,7 +74,7 @@ namespace LongUI{
         // hand cursor
         HCURSOR                 m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
         // check box's box size
-        D2D1_SIZE_F             m_szCheckBox = D2D1::SizeF(LongUIDefaultCheckBoxWidth, LongUIDefaultCheckBoxWidth);
+        D2D1_SIZE_F             m_szCheckBox = D2D1::SizeF(16, 16);
     public:
         // set new state
         void SetNewState(CheckBoxState new_result){ force_cast(state) = new_result; m_pWindow->Invalidate(this); }

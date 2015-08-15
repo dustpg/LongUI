@@ -28,7 +28,7 @@
 // longui namespace
 namespace LongUI {
     // set new status
-#define UIElement_SetNewStatus(e,s) m_pWindow->StartRender(e.GetByType<Element::Basic>().SetNewStatus(s), this)
+#define UIElement_SetNewStatus(e,s) m_pWindow->StartRender(e.GetByType<Element_Basic>().SetNewStatus(s), this)
     // UI Animation for Color
     using CUIAnimationColor = CUIAnimation<D2D1_COLOR_F>;
     // UI Animation for Opacity
@@ -40,16 +40,18 @@ namespace LongUI {
     // UI Animation for Posotion
     using CUIAnimationTransform = CUIAnimation<D2D1_MATRIX_3X2_F>;
     // Element
-    enum class Element : uint32_t {
-        Basic = 0,          // basic element for animation
-        Meta,               // meta element for rendering meta
-        ColorRect,          // colorrect element for rendering colored-rect
-        BrushRect,          // brushrect element for rendering brushed-rect
-        ColorGeometry,      // colorgeo element for rendering colored-geometry
+    enum Element : uint32_t {
+        Element_Basic = 0,          // basic element for animation
+        Element_Meta,               // meta element for rendering meta
+        Element_ColorRect,          // color-rect element for rendering colored-rect
+        Element_BrushRect,          // brush-rect element for rendering brushed-rect
+        // ------- in planning -------
+        Element_ColorGeometry,      // color-geo element for rendering colored-geometry
+        Element_BrushGeometry,      // brush-geo element for rendering brushed-geometry
     };
     // Component namespace
     namespace Component {
-    // class decl
+        // Elements
         template<Element... > class Elements;
         // render unit
         template<Element Head, Element... Tail>
@@ -95,7 +97,7 @@ namespace LongUI {
             }
         };
         // element for all
-        template<> class Elements<Element::Basic> {
+        template<> class Elements<Element_Basic> {
         public:
             // ctor 
             Elements(pugi::xml_node node = LongUINullXMLNode, const char* prefix = nullptr)
@@ -110,10 +112,10 @@ namespace LongUI {
             void Render(const D2D1_RECT_F&) const noexcept { }
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<Element::Basic>& { return *this; }
+            auto GetByType() noexcept ->Elements<Element_Basic>& { return *this; }
             // get element: const overload
             template<Element ElementType>
-            auto GetByType()const noexcept ->const Elements<Element::Basic>& { return *this; }
+            auto GetByType()const noexcept ->const Elements<Element_Basic>& { return *this; }
             // set new status
             auto SetNewStatus(ControlStatus) noexcept ->float;
             // get status
@@ -121,7 +123,7 @@ namespace LongUI {
             // recreate
             auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
             // type of unit
-            Element                 type = Element::Basic;
+            Element                 type = Element_Basic;
         protected:
             // render target
             LongUIRenderTarget*     m_pRenderTarget = nullptr;
@@ -134,18 +136,18 @@ namespace LongUI {
             CUIAnimationOpacity     animation;
         };
         // element for bitmap
-        template<> class Elements<Element::Meta> : protected virtual Elements<Element::Basic>{
+        template<> class Elements<Element_Meta> : protected virtual Elements<Element_Basic>{
             // super class
-            using Super = Elements<Element::Basic>;
+            using Super = Elements<Element_Basic>;
         public:
             // ctor
             Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<Element::Meta>& { return *this; }
+            auto GetByType() noexcept ->Elements<Element_Meta>& { return *this; }
             // get element: const overload
             template<Element ElementType>
-            auto GetByType()const noexcept ->const Elements<Element::Meta>& { return *this; }
+            auto GetByType()const noexcept ->const Elements<Element_Meta>& { return *this; }
             // render this
             void Render(const D2D1_RECT_F&) const noexcept;
             // recreate
@@ -159,9 +161,9 @@ namespace LongUI {
             uint16_t        m_aID[STATUS_COUNT];
         };
         // element for brush rect
-        template<> class Elements<Element::BrushRect> : protected virtual Elements<Element::Basic>{
+        template<> class Elements<Element_BrushRect> : protected virtual Elements<Element_Basic>{
             // super class
-            using Super = Elements<Element::Basic>;
+            using Super = Elements<Element_Basic>;
         public:
             // ctor
             Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
@@ -169,10 +171,10 @@ namespace LongUI {
             ~Elements() noexcept { this->release_data(); }
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<Element::BrushRect>& { return *this; }
+            auto GetByType() noexcept ->Elements<Element_BrushRect>& { return *this; }
             // get element : const overload
             template<Element ElementType>
-            auto GetByType()const noexcept ->const Elements<Element::BrushRect>& { return *this; }
+            auto GetByType()const noexcept ->const Elements<Element_BrushRect>& { return *this; }
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
@@ -192,9 +194,9 @@ namespace LongUI {
             uint16_t        m_aID[STATUS_COUNT];
         };
         // element for color rect
-        template<> class Elements<Element::ColorRect> : protected virtual Elements<Element::Basic>{
+        template<> class Elements<Element_ColorRect> : protected virtual Elements<Element_Basic>{
             // super class
-            using Super = Elements<Element::Basic>;
+            using Super = Elements<Element_Basic>;
         public:
             // ctor
             Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
@@ -202,10 +204,10 @@ namespace LongUI {
             ~Elements() noexcept { ::SafeRelease(m_pBrush); }
             // get element
             template<Element ElementType>
-            auto GetByType() noexcept ->Elements<Element::ColorRect>& { return *this; }
+            auto GetByType() noexcept ->Elements<Element_ColorRect>& { return *this; }
             // get element: const overload
             template<Element ElementType>
-            auto GetByType()const noexcept ->const Elements<Element::ColorRect>& { return *this; }
+            auto GetByType()const noexcept ->const Elements<Element_ColorRect>& { return *this; }
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
@@ -272,6 +274,10 @@ namespace LongUI {
             Video() noexcept;
             // dtor
             ~Video() noexcept;
+            // copy ctor
+            Video(const Video&) = delete;
+            // move ctor
+            Video(Video&&) = delete;
         private:
             // recreate surface
             auto recreate_surface() noexcept->HRESULT;

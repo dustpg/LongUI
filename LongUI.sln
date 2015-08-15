@@ -34,6 +34,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AdditionalClass", "Additional\AdditionalClass\AdditionalClass.vcxproj", "{BDBCAF3D-2810-4660-8C80-99BB4B6BAE7C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo2_handleevent", "Demos\Demo2_handleevent\Demo2_handleevent.vcxproj", "{0F09DB99-5A2A-4F35-987F-DC0236815C59}"
+	ProjectSection(ProjectDependencies) = postProject
+		{24BA6B9D-773F-4D99-8EC5-EF060F7D4C55} = {24BA6B9D-773F-4D99-8EC5-EF060F7D4C55}
+		{08A52CC4-96C2-4BCD-8378-7F70BC54485B} = {08A52CC4-96C2-4BCD-8378-7F70BC54485B}
+		{DDF22BED-A0A3-49C3-8B05-4CC9FF3493B4} = {DDF22BED-A0A3-49C3-8B05-4CC9FF3493B4}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestUI", "TestUI\TestUI.vcxproj", "{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}"
 	ProjectSection(ProjectDependencies) = postProject

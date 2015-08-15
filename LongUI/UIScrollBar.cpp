@@ -132,32 +132,32 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
     // 修改颜色
     else {
         D2D1_COLOR_F normal_color = D2D1::ColorF(0xF0F0F0);
-        m_uiArrow1.GetByType<Element::ColorRect>().colors[Status_Normal] = normal_color;
-        m_uiArrow2.GetByType<Element::ColorRect>().colors[Status_Normal] = normal_color;
+        m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
+        m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
         normal_color = D2D1::ColorF(0x2F2F2F);
-        m_uiArrow1.GetByType<Element::ColorRect>().colors[Status_Pushed] = normal_color;
-        m_uiArrow2.GetByType<Element::ColorRect>().colors[Status_Pushed] = normal_color;
+        m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
+        m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
 
     }
     // 初始化代码
-    m_uiArrow1.GetByType<Element::Basic>().Init(node, "arrow1");
-    m_uiArrow2.GetByType<Element::Basic>().Init(node, "arrow2");
-    m_uiThumb.GetByType<Element::Basic>().Init(node, "thumb");
+    m_uiArrow1.GetByType<Element_Basic>().Init(node, "arrow1");
+    m_uiArrow2.GetByType<Element_Basic>().Init(node, "arrow2");
+    m_uiThumb.GetByType<Element_Basic>().Init(node, "thumb");
     // 检查
     BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
     for (auto element : elements) {
-        if (element->GetByType<Element::Meta>().IsOK()) {
-            element->SetElementType(Element::Meta);
+        if (element->GetByType<Element_Meta>().IsOK()) {
+            element->SetElementType(Element_Meta);
         }
         else {
-            element->SetElementType(Element::ColorRect);
+            element->SetElementType(Element_ColorRect);
         }
-        element->GetByType<Element::Basic>().SetNewStatus(Status_Normal);
-        element->GetByType<Element::Basic>().SetNewStatus(Status_Normal);
+        element->GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+        element->GetByType<Element_Basic>().SetNewStatus(Status_Normal);
     }
     // 检查属性
-    m_bArrow1InColor = m_uiArrow1.GetByType<Element::Basic>().type == Element::ColorRect;
-    m_bArrow2InColor = m_uiArrow2.GetByType<Element::Basic>().type == Element::ColorRect;
+    m_bArrow1InColor = m_uiArrow1.GetByType<Element_Basic>().type == Element_ColorRect;
+    m_bArrow2InColor = m_uiArrow2.GetByType<Element_Basic>().type == Element_ColorRect;
 
 }
 
@@ -233,8 +233,8 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
     };
     // 渲染几何体
     if (m_bArrow1InColor) {
-        D2D1_COLOR_F tcolor = m_uiArrow1.GetByType<Element::ColorRect>().colors[
-            m_uiArrow1.GetByType<Element::Basic>().GetStatus()
+        D2D1_COLOR_F tcolor = m_uiArrow1.GetByType<Element_ColorRect>().colors[
+            m_uiArrow1.GetByType<Element_Basic>().GetStatus()
         ];
         tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
         m_pBrush_SetBeforeUse->SetColor(&tcolor);
@@ -242,8 +242,8 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
     }
     // 渲染几何体
     if (m_bArrow2InColor) {
-        D2D1_COLOR_F tcolor = m_uiArrow2.GetByType<Element::ColorRect>().colors[
-            m_uiArrow2.GetByType<Element::Basic>().GetStatus()
+        D2D1_COLOR_F tcolor = m_uiArrow2.GetByType<Element_ColorRect>().colors[
+            m_uiArrow2.GetByType<Element_Basic>().GetStatus()
         ];
         tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
         m_pBrush_SetBeforeUse->SetColor(&tcolor);

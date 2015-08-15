@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="ComponentImpl.cpp" />
     <ClCompile Include="ContainerImpl.cpp" />
+    <ClCompile Include="ControlCore.cpp" />
     <ClCompile Include="ControlImpl1.cpp" />
     <ClCompile Include="InlineObjImpl.cpp" />
     <ClCompile Include="main.cpp" />
@@ -180,6 +181,7 @@
     <ClCompile Include="UIScrollBar.cpp" />
     <ClCompile Include="UISlider.cpp" />
     <ClCompile Include="UIUtil.cpp" />
+    <ClCompile Include="UIUtil2.cpp" />
     <ClCompile Include="UIUtilDX.cpp" />
     <ClCompile Include="UIWindow.cpp" />
   </ItemGroup>

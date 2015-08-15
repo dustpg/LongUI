@@ -234,7 +234,11 @@ namespace LongUI {
         // add ref count
         auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return ++m_dwCounter; }
         // release this
-        auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { auto old = --m_dwCounter; if (!old) { delete this; } return old; };
+        auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { 
+            auto old = --m_dwCounter; 
+            if (!old) { delete this; } 
+            return old; 
+        };
     public:
         // get resouce count with type
         auto GetResourceCount(ResourceType type) const noexcept->size_t override;
@@ -365,21 +369,12 @@ namespace LongUI {
         meta_raw = {
             { 0.f, 0.f, 1.f, 1.f },
             uint32_t(LongUI::AtoI(node.attribute("bitmap").value())),
-            BitmapRenderRule::Rule_Scale,
-            D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR
+            Helper::XMLGetBitmapRenderRule(node, BitmapRenderRule::Rule_Scale),
+            uint16_t(Helper::XMLGetD2DInterpolationMode(node, D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR))
         };
         assert(meta_raw.bitmap_index && "bad bitmap index");
-        const char* str = nullptr;
-        // 获取渲染规则
-        if (str = node.attribute("rule").value()) {
-            meta_raw.rule = static_cast<BitmapRenderRule>(LongUI::AtoI(str));
-        }
-        // 获取插值模式
-        if (str = node.attribute("interpolation").value()) {
-            meta_raw.interpolation = static_cast<uint16_t>(LongUI::AtoI(str));
-        }
         // 获取矩形
-        UIControl::MakeFloats(node.attribute("rect").value(), &meta_raw.src_rect.left, 4);
+        Helper::MakeFloats(node.attribute("rect").value(), &meta_raw.src_rect.left, 4);
     }
     // get reource count from doc
     void LongUI::CUIResourceLoaderXML::get_resource_count_from_xml() noexcept {
@@ -604,7 +599,7 @@ namespace LongUI {
             brush_prop.opacity = static_cast<float>(::LongUI::AtoF(str));
         }
         if (str = node.attribute("transform").value()) {
-            UIControl::MakeFloats(str, &brush_prop.transform._11, 6);
+            Helper::MakeFloats(str, &brush_prop.transform._11, 6);
         }
         // 检查类型
         auto type = BrushType::Type_SolidColor;
@@ -617,7 +612,7 @@ namespace LongUI {
         {
             D2D1_COLOR_F color;
             // 获取颜色
-            if (!UIControl::MakeColor(node.attribute("color").value(), color)) {
+            if (!Helper::MakeColor(node.attribute("color").value(), color)) {
                 color = D2D1::ColorF(D2D1::ColorF::Black);
             }
             static_cast<LongUIRenderTarget*>(m_manager)->CreateSolidColorBrush(&color, &brush_prop, &scb);
@@ -662,7 +657,7 @@ namespace LongUI {
                         // ] 做为颜色段标识结束 该解析了
                         else if (ch == ']') {
                             *index = 0;
-                            UIControl::MakeColor(paragraph, now_stop->color);
+                            Helper::MakeColor(paragraph, now_stop->color);
                             ++now_stop;
                             ++stop_count;
                         }
@@ -677,8 +672,8 @@ namespace LongUI {
                             { 0.f, 0.f },{ 0.f, 0.f }
                         };
                         // 检查属性
-                        UIControl::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
-                        UIControl::MakeFloats(node.attribute("end").value(), &lgbprop.startPoint.x, 2);
+                        Helper::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
+                        Helper::MakeFloats(node.attribute("end").value(), &lgbprop.startPoint.x, 2);
                         // 创建笔刷
                         static_cast<LongUIRenderTarget*>(m_manager)->CreateLinearGradientBrush(
                             &lgbprop, &brush_prop, collection, &lgb
@@ -690,10 +685,10 @@ namespace LongUI {
                             { 0.f, 0.f },{ 0.f, 0.f }, 0.f, 0.f
                         };
                         // 检查属性
-                        UIControl::MakeFloats(node.attribute("center").value(), &rgbprop.center.x, 2);
-                        UIControl::MakeFloats(node.attribute("offset").value(), &rgbprop.gradientOriginOffset.x, 2);
-                        UIControl::MakeFloats(node.attribute("rx").value(), &rgbprop.radiusX, 1);
-                        UIControl::MakeFloats(node.attribute("ry").value(), &rgbprop.radiusY, 1);
+                        Helper::MakeFloats(node.attribute("center").value(), &rgbprop.center.x, 2);
+                        Helper::MakeFloats(node.attribute("offset").value(), &rgbprop.gradientOriginOffset.x, 2);
+                        Helper::MakeFloats(node.attribute("rx").value(), &rgbprop.radiusX, 1);
+                        Helper::MakeFloats(node.attribute("ry").value(), &rgbprop.radiusY, 1);
                         // 创建笔刷
                         static_cast<LongUIRenderTarget*>(m_manager)->CreateRadialGradientBrush(
                             &rgbprop, &brush_prop, collection, &rgb
@@ -705,24 +700,17 @@ namespace LongUI {
             }
             break;
         case LongUI::BrushType::Type_Bitmap:
+            // 有效数据
             if (str = node.attribute("bitmap").value()) {
-                auto index = LongUI::AtoI(str);
+                // 创建笔刷
+                auto bitmap = m_manager.GetBitmap(size_t(LongUI::AtoI(str)));
                 // 基本参数
                 D2D1_BITMAP_BRUSH_PROPERTIES1 bbprop = {
-                    D2D1_EXTEND_MODE_CLAMP, D2D1_EXTEND_MODE_CLAMP,D2D1_INTERPOLATION_MODE_LINEAR
+                    Helper::XMLGetD2DExtendMode(node, D2D1_EXTEND_MODE_CLAMP, "extendx"),
+                    Helper::XMLGetD2DExtendMode(node, D2D1_EXTEND_MODE_CLAMP, "extendy"),
+                    Helper::XMLGetD2DInterpolationMode(node, D2D1_INTERPOLATION_MODE_LINEAR, "interpolation"),
                 };
-                // 检查属性
-                if (str = node.attribute("extendx").value()) {
-                    bbprop.extendModeX = static_cast<D2D1_EXTEND_MODE>(LongUI::AtoI(str));
-                }
-                if (str = node.attribute("extendy").value()) {
-                    bbprop.extendModeY = static_cast<D2D1_EXTEND_MODE>(LongUI::AtoI(str));
-                }
-                if (str = node.attribute("interpolation").value()) {
-                    bbprop.interpolationMode = static_cast<D2D1_INTERPOLATION_MODE>(LongUI::AtoI(str));
-                }
-                // 创建笔刷
-                auto bitmap = m_manager.GetBitmap(index);
+                // 创建位图笔刷
                 static_cast<LongUIRenderTarget*>(m_manager)->CreateBitmapBrush(
                     bitmap, &bbprop, &brush_prop, &b1b
                     );
@@ -743,7 +731,7 @@ namespace LongUI {
         DWRITE_FONT_STRETCH fontstretch = DWRITE_FONT_STRETCH_NORMAL;
         float fontsize = 12.f;
         // 获取字体名称
-        UIControl::MakeString(node.attribute("family").value(), fontfamilyname);
+        Helper::MakeString(node.attribute("family").value(), fontfamilyname);
         // 获取字体粗细
         if (str = node.attribute("weight").value()) {
             fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));

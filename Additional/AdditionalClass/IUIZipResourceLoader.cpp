@@ -144,7 +144,7 @@ auto LongUI::CUIZipResourceLoader::GetMeta(size_t index, DeviceIndependentMeta& 
         meta_raw.interpolation = static_cast<uint16_t>(LongUI::AtoI(str));
     }
     // 获取矩形
-    UIControl::MakeFloats(node.attribute("rect").value(), &meta_raw.src_rect.left, 4);
+    Helper::MakeFloats(node.attribute("rect").value(), &meta_raw.src_rect.left, 4);
 }
 
 // get reource count from doc
@@ -369,7 +369,7 @@ auto LongUI::CUIZipResourceLoader::get_brush(pugi::xml_node node) noexcept -> ID
         brush_prop.opacity = static_cast<float>(::LongUI::AtoF(str));
     }
     if (str = node.attribute("transform").value()) {
-        UIControl::MakeFloats(str, &brush_prop.transform._11, 6);
+        Helper::MakeFloats(str, &brush_prop.transform._11, 6);
     }
     // 检查类型
     auto type = BrushType::Type_SolidColor;
@@ -382,7 +382,7 @@ auto LongUI::CUIZipResourceLoader::get_brush(pugi::xml_node node) noexcept -> ID
     {
         D2D1_COLOR_F color;
         // 获取颜色
-        if (!UIControl::MakeColor(node.attribute("color").value(), color)) {
+        if (!Helper::MakeColor(node.attribute("color").value(), color)) {
             color = D2D1::ColorF(D2D1::ColorF::Black);
         }
         static_cast<LongUIRenderTarget*>(m_manager)->CreateSolidColorBrush(&color, &brush_prop, &scb);
@@ -427,7 +427,7 @@ auto LongUI::CUIZipResourceLoader::get_brush(pugi::xml_node node) noexcept -> ID
                     // ] 做为颜色段标识结束 该解析了
                     else if (ch == ']') {
                         *index = 0;
-                        UIControl::MakeColor(paragraph, now_stop->color);
+                        Helper::MakeColor(paragraph, now_stop->color);
                         ++now_stop;
                         ++stop_count;
                     }
@@ -442,8 +442,8 @@ auto LongUI::CUIZipResourceLoader::get_brush(pugi::xml_node node) noexcept -> ID
                         { 0.f, 0.f },{ 0.f, 0.f }
                     };
                     // 检查属性
-                    UIControl::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
-                    UIControl::MakeFloats(node.attribute("end").value(), &lgbprop.startPoint.x, 2);
+                    Helper::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
+                    Helper::MakeFloats(node.attribute("end").value(), &lgbprop.startPoint.x, 2);
                     // 创建笔刷
                     static_cast<LongUIRenderTarget*>(m_manager)->CreateLinearGradientBrush(
                         &lgbprop, &brush_prop, collection, &lgb
@@ -455,10 +455,10 @@ auto LongUI::CUIZipResourceLoader::get_brush(pugi::xml_node node) noexcept -> ID
                         { 0.f, 0.f },{ 0.f, 0.f }, 0.f, 0.f
                     };
                     // 检查属性
-                    UIControl::MakeFloats(node.attribute("center").value(), &rgbprop.center.x, 2);
-                    UIControl::MakeFloats(node.attribute("offset").value(), &rgbprop.gradientOriginOffset.x, 2);
-                    UIControl::MakeFloats(node.attribute("rx").value(), &rgbprop.radiusX, 1);
-                    UIControl::MakeFloats(node.attribute("ry").value(), &rgbprop.radiusY, 1);
+                    Helper::MakeFloats(node.attribute("center").value(), &rgbprop.center.x, 2);
+                    Helper::MakeFloats(node.attribute("offset").value(), &rgbprop.gradientOriginOffset.x, 2);
+                    Helper::MakeFloats(node.attribute("rx").value(), &rgbprop.radiusX, 1);
+                    Helper::MakeFloats(node.attribute("ry").value(), &rgbprop.radiusY, 1);
                     // 创建笔刷
                     static_cast<LongUIRenderTarget*>(m_manager)->CreateRadialGradientBrush(
                         &rgbprop, &brush_prop, collection, &rgb
@@ -509,7 +509,7 @@ auto LongUI::CUIZipResourceLoader::get_text_format(pugi::xml_node node) noexcept
     DWRITE_FONT_STRETCH fontstretch = DWRITE_FONT_STRETCH_NORMAL;
     float fontsize = 12.f;
     // 获取字体名称
-    UIControl::MakeString(node.attribute("family").value(), fontfamilyname);
+    Helper::MakeString(node.attribute("family").value(), fontfamilyname);
     // 获取字体粗细
     if (str = node.attribute("weight").value()) {
         fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));

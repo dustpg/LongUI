@@ -1,4 +1,5 @@
-﻿#define LONGUI_WITH_DEFAULT_HEADER
+﻿#if 0
+#define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
 //  animationduration="2"
@@ -54,10 +55,10 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     </Bitmap>
     <!-- Meta区域Zone -->
     <Meta>
-        <Item desc="按钮1无效图元" bitmap="1" rect="0,  0, 96, 24" rule="1"/>
-        <Item desc="按钮1通常图元" bitmap="1" rect="0, 72, 96, 96" rule="1"/>
-        <Item desc="按钮1悬浮图元" bitmap="1" rect="0, 24, 96, 48" rule="1"/>
-        <Item desc="按钮1按下图元" bitmap="1" rect="0, 48, 96, 72" rule="1"/>
+        <Item desc="按钮1无效图元" bitmap="1" rect="0,  0, 96, 24" rule="button"/>
+        <Item desc="按钮1通常图元" bitmap="1" rect="0, 72, 96, 96" rule="button"/>
+        <Item desc="按钮1悬浮图元" bitmap="1" rect="0, 24, 96, 48" rule="button"/>
+        <Item desc="按钮1按下图元" bitmap="1" rect="0, 48, 96, 72" rule="button"/>
     </Meta>
 </Resource>
 )xml";
@@ -444,3 +445,58 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         return Super::DoEvent(arg);
     }
 }
+#else
+#define LONGUI_WITH_DEFAULT_HEADER
+#define _CRT_SECURE_NO_WARNINGS
+#include "../LongUI/LongUI.h"
+#include "../Demos/Demo2_handleevent/demo.h"
+
+// longui::demo namespace
+namespace LongUI { namespace Demo {
+    // config
+    class MyConfig final : public CUIDefaultConfigure {
+        // super class
+        using Super = CUIDefaultConfigure;
+    public:
+        // ctor
+        MyConfig() : Super(UIManager) { }
+        // return true, if using cpu rendering
+        virtual auto IsRenderByCPU() noexcept->bool override { 
+            return true; 
+        }
+    };
+}}
+
+
+// Entry for App
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
+    // every windows desktop app should do this
+    ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
+    // use OleInitialize to init ole and com
+    if (SUCCEEDED(::OleInitialize(nullptr))) {
+        // my config
+        LongUI::Demo::MyConfig config;
+        // init longui manager
+        if (SUCCEEDED(UIManager.Initialize(&config))) {
+            // my style
+            UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
+            // mb
+            ::MessageBoxW(nullptr, L"SAD", L"OK", MB_OK);
+            // create main window, return nullptr for some error
+            UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML);
+            // run this app
+            UIManager.Run();
+            // my style
+            UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
+            // cleanup longui
+            UIManager.UnInitialize();
+        }
+    }
+    ;
+    // cleanup ole and com
+    ::OleUninitialize();
+    // exit
+    return EXIT_SUCCESS;
+}
+
+#endif

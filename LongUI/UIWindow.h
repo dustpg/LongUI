@@ -139,7 +139,11 @@ namespace LongUI {
         auto FindControl(const D2D1_POINT_2F pt) noexcept { return static_cast<UIContainer*>(this)->FindControl(pt); }
         // add control with name
         void AddControl(const std::pair<CUIString, void*>& pair) noexcept;
+        // set icon, bad
+        void SetIcon(HICON hIcon = nullptr) noexcept;
     public: // 内联区
+        // show window
+        LongUIInline auto ShowWindow(int show = SW_SHOW) noexcept { return ::ShowWindow(m_hwnd, show); }
         // register for calling PreRender with 3d content
         LongUIInline auto RegisterOffScreenRender3D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, true); }
         // register for calling PreRender with 2d content
@@ -184,7 +188,7 @@ namespace LongUI {
         bool OnMouseWheel(const LongUI::EventArgument&) noexcept;
         // resize window
         void OnResize(bool force = false) noexcept;
-        // parent window
+        // parent window, be careful with UIControl::parent
         UIWindow*       const   window_parent = nullptr;
         // window flag
         WindowFlag      const   window_flags = WindowFlag::Flag_None;

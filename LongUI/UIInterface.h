@@ -47,9 +47,9 @@ namespace LongUI {
     auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return 2; }\
     auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { return 1; };
     // Script define
-    struct UIScript {
+    struct ScriptUI {
         // ctor
-        UIScript() = default;
+        ScriptUI() = default;
         // script data, maybe binary data maybe string
         const BYTE*         script = nullptr;
         // size of it
@@ -91,13 +91,13 @@ namespace LongUI {
     class DECLSPEC_NOVTABLE IUIScript : public IUIInterface {
     public:
         // run a section script with event
-        virtual auto Evaluation(const UIScript, const LongUI::EventArgument&) noexcept->size_t = 0;
+        virtual auto Evaluation(const ScriptUI, const LongUI::EventArgument&) noexcept->size_t = 0;
         // get config infomation
         virtual auto GetConfigInfo() noexcept->ScriptConfigInfo = 0;
         // alloc the script memory and copy into(may be compiled into byte code), return memory size
-        virtual auto AllocScript(const char* utf8) noexcept->LongUI::UIScript = 0;
+        virtual auto AllocScript(const char* utf8) noexcept->LongUI::ScriptUI = 0;
         // free the script memory
-        virtual auto FreeScript(UIScript&) noexcept->void = 0;
+        virtual auto FreeScript(ScriptUI&) noexcept->void = 0;
     };
     // Meta
     struct Meta; struct DeviceIndependentMeta;
@@ -127,9 +127,9 @@ namespace LongUI {
     // static const GUID IID_IUIConfigure =
     // { 0x7ca331b9, 0x6500, 0x4948,{ 0xa9, 0xb4, 0xd5, 0x59, 0xc9, 0x2e, 0x65, 0xb1 } };
     // UI Configure
-    // can be QI :  IID_LONGUI_InlineParamHandler(opt),
-    //              IID_LONGUI_IUIResourceLoader(opt), 
-    //              IID_LONGUI_IUIScript(opt),
+    // can be QI :  IID_LongUI_InlineParamHandler(opt),
+    //              IID_LongUI_IUIResourceLoader(opt), 
+    //              IID_LongUI_IUIScript(opt),
     //              IDWriteFontCollection(opt)
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
@@ -139,7 +139,7 @@ namespace LongUI {
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void = 0;
         // add all custom controls, just return if no custom control
         virtual auto AddCustomControl() noexcept->void = 0;
-        // return true, if using cpu rendering
+        // return true, if using cpu rendering by WARP driver
         virtual auto IsRenderByCPU() noexcept->bool = 0;
         // if using gpu render, you should choose a video card,return the index,
         // if return code out of range, will set by default(null pointer adapter)

@@ -47,8 +47,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         wcex.hbrBackground = nullptr;
         wcex.lpszMenuName = nullptr;
         wcex.lpszClassName = LongUI::WindowClassName;
-        auto hicon = LoadIconW(hInstance, MAKEINTRESOURCEW(1));
-        wcex.hIcon = hicon;
+        wcex.hIcon = nullptr;// ::LoadIconW(hInstance, MAKEINTRESOURCEW(101));
         // 注册普通窗口
         ::RegisterClassExW(&wcex);
     }
@@ -235,29 +234,29 @@ void LongUI::CUIManager::UnInitialize() noexcept {
             }
         }
     }
-    // 释放设备相关资源
-    this->discard_resources();
     // 释放资源
     ::SafeRelease(m_pFontCollection);
     ::SafeRelease(m_pDWriteFactory);
     ::SafeRelease(m_pDropTargetHelper);
     ::SafeRelease(m_pd2dFactory);
+    // 释放脚本
+    ::SafeRelease(force_cast(script));
+    // 释放读取器
+    ::SafeRelease(m_pResourceLoader);
+    // 释放配置
+    ::SafeRelease(force_cast(this->configure));
+    // 释放设备相关资源
+    this->discard_resources();
     // 释放内存
     if (m_pBitmap0Buffer) {
         LongUI::CtrlFree(m_pBitmap0Buffer);
         m_pBitmap0Buffer = nullptr;
     }
-    // 释放脚本
-    ::SafeRelease(force_cast(script));
     // 释放资源缓存
     if (m_pResourceBuffer) {
         LongUI::CtrlFree(m_pResourceBuffer);
         m_pResourceBuffer = nullptr;
     }
-    // 释放读取器
-    ::SafeRelease(m_pResourceLoader);
-    // 释放配置
-    ::SafeRelease(force_cast(this->configure));
     m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
 }
 
@@ -315,7 +314,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             continue;
         }
         // 添加到表
-        if (UIControl::MakeString(node.attribute("name").value(), control_name.first)) {
+        if (Helper::MakeString(node.attribute("name").value(), control_name.first)) {
             control_name.second = now_control;
             window->AddControl(control_name);
         }
@@ -424,7 +423,7 @@ void LongUI::CUIManager::Run() noexcept {
 #endif
             // 等待垂直同步
             UIManager.WaitVS(waitvs_window);
-                }
+        }
         return 0;
     };
 #pragma endregion
@@ -775,7 +774,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 待用适配器
     IDXGIAdapter1* ready2use = nullptr;
     // 枚举显示适配器
-    if(!cpu_rendering) {
+    if (!cpu_rendering) {
         IDXGIFactory1* temp_factory = nullptr;
         // 创建一个临时工程
         register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
@@ -789,7 +788,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 }
             }
             // 选择适配器
-            register auto index = this->configure->ChooseAdapter(apAdapters, adnum);
+            auto index = this->configure->ChooseAdapter(apAdapters, adnum);
             if (index < adnum) {
                 ready2use = ::SafeAcquire(apAdapters[index]);
             }
@@ -878,6 +877,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 );
         }
     }
+    ::SafeRelease(ready2use);
 #if defined(_DEBUG) && defined(LONGUI_D3D_DEBUG)
     // 创建 ID3D11Debug
     if (SUCCEEDED(hr)) {
@@ -959,7 +959,6 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         hr = this->create_indexzero_resources();
     }
-    ::SafeRelease(ready2use);
     // 事件
     if (SUCCEEDED(hr)) {
         this->do_creating_event(LongUI::CreateEventType::Type_Recreate);
@@ -1078,6 +1077,10 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     return hr;
 }
 
+#if defined(_DEBUG) && defined(_MSC_VER)
+extern ID3D11Debug*    g_pd3dDebug_longui;
+#endif
+
 // UIManager 丢弃
 void LongUI::CUIManager::discard_resources() noexcept {
     // 释放系统笔刷
@@ -1121,11 +1124,9 @@ void LongUI::CUIManager::discard_resources() noexcept {
 #ifdef _MSC_VER
     __try {
         if (m_pd3dDebug) {
-            auto count = m_pd3dDebug->Release();
-            // ---vvvv--- Maybe Error ---vvvv---
-            m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-            // ---^^^^--- Maybe Error ---^^^^---
-            m_pd3dDebug = nullptr; count = 0;
+            ::SafeRelease(g_pd3dDebug_longui);
+            g_pd3dDebug_longui = m_pd3dDebug;
+            m_pd3dDebug = nullptr; 
         }
     }
     __finally {
@@ -1133,7 +1134,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     }
 #else
     if (m_pd3dDebug) {
-        m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+        m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
     }
     ::SafeRelease(m_pd3dDebug);
 #endif

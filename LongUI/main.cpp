@@ -2,6 +2,7 @@
 
 // Memory leak detector
 #if defined(_DEBUG) && defined(_MSC_VER)
+ID3D11Debug*    g_pd3dDebug_longui = nullptr;
 struct MemoryLeakDetector {
     // ctor
     MemoryLeakDetector() {
@@ -14,6 +15,17 @@ struct MemoryLeakDetector {
         if (::_CrtMemDifference(memstate + 2, memstate + 0, memstate + 1)) {
             ::_CrtDumpMemoryLeaks();
             assert(!"OOps! Memory leak detected");
+        }
+        if (g_pd3dDebug_longui) {
+            auto count = g_pd3dDebug_longui->Release();
+            if (count) {
+                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
+                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
+                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
+                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL);
+                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: End\r\n\r\n");
+            }
+            g_pd3dDebug_longui = nullptr;
         }
     }
     // mem state

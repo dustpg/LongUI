@@ -1,5 +1,7 @@
 ﻿#include "LongUI.h"
 
+#define m_fSliderHalfWidth ((this->thumb_size.width)/2.f)
+
 // Render 渲染 
 void LongUI::UISlider::Render(RenderType) const noexcept {
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
@@ -39,7 +41,20 @@ void LongUI::UISlider::Update() noexcept {
 }
 
 // UISlider 构造函数
-inline LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node) { }
+LongUI::UISlider::UISlider(pugi::xml_node node) noexcept: Super(node), m_uiElement(node) {
+    // 初始化代码
+    m_uiElement.GetByType<Element_Basic>().Init(node);
+    if (m_uiElement.GetByType<Element_Meta>().IsOK()) {
+        m_uiElement.SetElementType(Element_Meta);
+    }
+    else {
+        m_uiElement.SetElementType(Element_BrushRect);
+    }
+    // init
+    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+    // need twices because of aniamtion
+    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+}
 
 // UISlider::CreateControl 函数
 LongUI::UIControl* LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {

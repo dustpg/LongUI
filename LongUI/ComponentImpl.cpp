@@ -13,79 +13,70 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
     };
     // 检查参数
     assert(node && prefix && "bad arguments");
-    register union { const char* str; const uint32_t* pui32; };
-    str = nullptr;
-    char attribute_buffer[256];
-    // 设置新的属性
-    auto set_new_attribute = [prefix](char* buffer, const char* suffix) noexcept {
-        ::strcpy(buffer, prefix); ::strcat(buffer, suffix);
+    // 属性
+    auto attribute = [&node, prefix](const char* attr) {
+        return Helper::XMLGetValue(node, attr, prefix);
     };
+    const char*str = nullptr;
     // 获取进度
-    {
-        set_new_attribute(attribute_buffer, "progress");
-        if ((str = node.attribute(attribute_buffer).value())) {
-            m_config.progress = LongUI::AtoF(str);
-        }
+    if ((str = attribute("progress"))) {
+        m_config.progress = LongUI::AtoF(str);
     }
     // 获取渲染器
-    {
-        int renderer_index = Type_NormalTextRenderer;
-        set_new_attribute(attribute_buffer, "renderer");
-        if ((str = node.attribute(attribute_buffer).value())) {
-            renderer_index = LongUI::AtoI(str);
-        }
-        auto renderer = UIManager.GetTextRenderer(renderer_index);
-        m_pTextRenderer = renderer;
-        // 保证缓冲区
-        if (renderer) {
-            auto length = renderer->GetContextSizeInByte();
-            if (length) {
-                set_new_attribute(attribute_buffer, "context");
-                if ((str = node.attribute(attribute_buffer).value())) {
-                    m_buffer.NewSize(length);
-                    renderer->CreateContextFromString(m_buffer.data, str);
-                }
+    int renderer_index = Type_NormalTextRenderer;
+    if ((str = attribute("renderer"))) {
+        renderer_index = LongUI::AtoI(str);
+    }
+    auto renderer = UIManager.GetTextRenderer(renderer_index);
+    m_pTextRenderer = renderer;
+    // 保证缓冲区
+    if (renderer) {
+        auto length = renderer->GetContextSizeInByte();
+        if (length) {
+            if ((str = attribute("context"))) {
+                m_buffer.NewSize(length);
+                renderer->CreateContextFromString(m_buffer.data, str);
             }
         }
     }
-    {
-        // 检查基本颜色
-        m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
-        set_new_attribute(attribute_buffer, "color");
-        UIControl::MakeColor(node.attribute(attribute_buffer).value(), m_basicColor);
-    }
+    // 检查基本颜色
+    m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
+    Helper::MakeColor(attribute("color"), m_basicColor);
     {
         // 检查格式
         uint32_t format_index = 0;
-        set_new_attribute(attribute_buffer, "format");
-        if ((str = node.attribute(attribute_buffer).value())) {
+        if ((str = attribute("format"))) {
             format_index = static_cast<uint32_t>(LongUI::AtoI(str));
         }
         m_config.text_format = UIManager.GetTextFormat(format_index);
     }
     {
+        // 列表
+        const char* values_list[] = { "none", "core", "xml" };
         // 检查类型
-        this->SetIsRich(false);
-        set_new_attribute(attribute_buffer, "type");
-        if (str = node.attribute(attribute_buffer).value()) {
-            switch (*pui32)
-            {
-            case "xml"_longui32:
-            case "XML"_longui32:
-                this->SetIsRich(true);
-                this->SetIsXML(true);
-                break;
-            case "core"_longui32:
-            case "Core"_longui32:
-            case "CORE"_longui32:
-                this->SetIsRich(true);
-                this->SetIsXML(false);
-                break;
-            default:
-                this->SetIsRich(false);
-                this->SetIsXML(false);
-                break;
-            }
+        Helper::XMLGetValueEnumProperties prop;
+        prop.prefix = prefix;
+        prop.attribute = "type";
+        prop.values = values_list;
+        prop.values_length = lengthof(values_list);
+        // 获取
+        switch (Helper::XMLGetValueEnum(node, prop))
+        {
+        case 0:
+            // None
+            this->SetIsRich(false);
+            this->SetIsXML(false);
+            break;
+        case 1:
+            // Core
+            this->SetIsRich(true);
+            this->SetIsXML(false);
+            break;
+        case 2:
+            // Xml
+            this->SetIsRich(true);
+            this->SetIsXML(true);
+            break;
         }
     }
     // 重建
@@ -148,9 +139,13 @@ void LongUI::Component::ShortText::recreate(const char* utf8) noexcept {
     }
     // 平台文本
     else {
-        register auto string_length_need = static_cast<uint32_t>(static_cast<float>(m_text.length() + 1) *
-            m_config.progress);
-        LongUIClamp(string_length_need, 0, m_text.length());
+        register auto string_length_need = static_cast<uint32_t>(
+            static_cast<float>(m_text.length() + 1) * m_config.progress
+            );
+        // clamp it
+        if (string_length_need < 0) string_length_need = 0;
+        else if (string_length_need > m_text.length()) string_length_need = m_text.length();
+        // create it
         m_config.dw_factory->CreateTextLayout(
             m_text.c_str(),
             string_length_need,
@@ -1193,9 +1188,7 @@ LongUI::Component::EditaleText::~EditaleText() noexcept {
 }
 
 
-
-
-// 配置构造函数
+// 可编辑文本: 配置构造函数
 LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node,
     const char* prefix) noexcept : m_pHost(host) {
     m_dragRange = { 0, 0 };
@@ -1203,38 +1196,32 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     assert(node && prefix && "bad arguments");
     ZeroMemory(&m_recentMedium, sizeof(m_recentMedium));
     m_pFactory = ::SafeAcquire(UIManager_DWriteFactory);
-    register const char* str = nullptr;
-    char attribute_buffer[256];
-    // 设置新的属性
-    auto set_new_attribute = [prefix](char* buffer, const char* suffix) noexcept {
-        ::strcpy(buffer, prefix); ::strcat(buffer, suffix);
+    // 属性
+    auto attribute = [&node, prefix](const char* attr) {
+        return Helper::XMLGetValue(node, attr, prefix);
     };
+    const char* str = nullptr;
     // 检查类型
     {
         uint32_t tmptype = Type_None;
         // 富文本
-        set_new_attribute(attribute_buffer, "rich");
-        if (node.attribute(attribute_buffer).as_bool(false)) {
+        if (node.attribute(attribute("rich")).as_bool(false)) {
             tmptype |= Type_Riched;
         }
         // 多行显示
-        set_new_attribute(attribute_buffer, "multiline");
-        if (node.attribute(attribute_buffer).as_bool(false)) {
+        if (node.attribute(attribute("multiline")).as_bool(false)) {
             tmptype |= Type_MultiLine;
         }
         // 只读
-        set_new_attribute(attribute_buffer, "readonly");
-        if (node.attribute(attribute_buffer).as_bool(false)) {
+        if (node.attribute(attribute("readonly")).as_bool(false)) {
             tmptype |= Type_ReadOnly;
         }
-        // 只读
-        set_new_attribute(attribute_buffer, "accelerator");
-        if (node.attribute(attribute_buffer).as_bool(false)) {
+        // 加速键
+        if (node.attribute(attribute("accelerator")).as_bool(false)) {
             tmptype |= Type_Accelerator;
         }
         // 密码
-        set_new_attribute(attribute_buffer, "password");
-        if (str = node.attribute(attribute_buffer).value()) {
+        if (str = node.attribute(attribute("password")).value()) {
             tmptype |= Type_Password;
             // TODO: UTF8 char(s) to UTF32 char;
             // this->password = 
@@ -1244,8 +1231,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     // 获取渲染器
     {
         int renderer_index = Type_NormalTextRenderer;
-        set_new_attribute(attribute_buffer, "renderer");
-        if ((str = node.attribute(attribute_buffer).value())) {
+        if ((str = node.attribute(attribute("renderer")).value())) {
             renderer_index = LongUI::AtoI(str);
         }
         auto renderer = UIManager.GetTextRenderer(renderer_index);
@@ -1254,8 +1240,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         if (renderer) {
             auto length = renderer->GetContextSizeInByte();
             if (length) {
-                set_new_attribute(attribute_buffer, "context");
-                if ((str = node.attribute(attribute_buffer).value())) {
+                if ((str = node.attribute(attribute("context")).value())) {
                     m_buffer.NewSize(length);
                     renderer->CreateContextFromString(m_buffer.data, str);
                 }
@@ -1265,14 +1250,12 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     // 检查基本颜色
     {
         m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
-        set_new_attribute(attribute_buffer, "color");
-        UIControl::MakeColor(node.attribute(attribute_buffer).value(), m_basicColor);
+        Helper::MakeColor(node.attribute(attribute("color")).value(), m_basicColor);
     }
     // 检查格式
     {
         uint32_t format_index = LongUIDefaultTextFormatIndex;
-        set_new_attribute(attribute_buffer, "format");
-        if ((str = node.attribute(attribute_buffer).value())) {
+        if ((str = node.attribute(attribute("format")).value())) {
             format_index = static_cast<uint32_t>(LongUI::AtoI(str));
         }
         m_pBasicFormat = UIManager.GetTextFormat(format_index);
@@ -1558,32 +1541,25 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
 }
 
 // -------------------- LongUI::Component::Elements --------------------
-
 // 实现
-#define UIElements_Prefix if (!node) return; if(!prefix) prefix = ""; char buffer[256];
-#define UIElements_NewAttribute(a) { ::strcpy(buffer, prefix); ::strcat(buffer, a); }
-#define UIElements_Attribute node.attribute(buffer).value()
 
 // Elements<Basic> Init
-void LongUI::Component::Elements<LongUI::Element::Basic>::
+void LongUI::Component::Elements<LongUI::Element_Basic>::
 Init(pugi::xml_node node, const char* prefix) noexcept {
     // 无效?
-    UIElements_Prefix;
     const char* str = nullptr;
     // 动画类型
-    UIElements_NewAttribute("animationtype");
-    if (str = UIElements_Attribute) {
+    if ((str = Helper::XMLGetValue(node, "animationtype", prefix))) {
         animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
     }
     // 动画持续时间
-    UIElements_NewAttribute("animationduration");
-    if (str = UIElements_Attribute) {
+    if ((str = Helper::XMLGetValue(node, "animationduration", prefix))) {
         animation.duration = LongUI::AtoF(str);
     }
 }
 
 // 设置新的状态
-auto LongUI::Component::Elements<LongUI::Element::Basic>::
+auto LongUI::Component::Elements<LongUI::Element_Basic>::
 SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
     m_state = m_stateTartget;
     m_stateTartget = new_status;
@@ -1595,29 +1571,31 @@ SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
 }
 
 // Elements<Meta> 构造函数
-LongUI::Component::Elements<LongUI::Element::Meta>::
+LongUI::Component::Elements<LongUI::Element_Meta>::
 Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
     ZeroMemory(m_metas, sizeof(m_metas));
     ZeroMemory(m_aID, sizeof(m_aID));
-    // 无效?
-    UIElements_Prefix;
     // 禁用状态Meta ID
-    UIElements_NewAttribute("disabledmeta");
-    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
+    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "disabledmeta", prefix)
+        ));
     // 通常状态Meta ID
-    UIElements_NewAttribute("normalmeta");
-    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
+    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "normalmeta", prefix)
+        ));
     // 移上状态Meta ID
-    UIElements_NewAttribute("hovermeta");
-    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
-    // 按下状态Meta ID
-    UIElements_NewAttribute("pushedmeta");
-    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
+    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "hovermeta", prefix)
+        ));
+        // 按下状态Meta ID
+    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "pushedmeta", prefix)
+        ));
 }
 
 
 // Elements<Meta> 重建
-auto LongUI::Component::Elements<LongUI::Element::Meta>::
+auto LongUI::Component::Elements<LongUI::Element_Meta>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
     UNREFERENCED_PARAMETER(target);
     for (auto i = 0u; i < STATUS_COUNT; ++i) {
@@ -1631,7 +1609,7 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 }
 
 // Elements<Meta> 渲染
-void LongUI::Component::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_F& rect) const noexcept {
+void LongUI::Component::Elements<LongUI::Element_Meta>::Render(const D2D1_RECT_F& rect) const noexcept {
     assert(m_pRenderTarget);
     // 先绘制当前状态
     if (this->animation.value < this->animation.end) {
@@ -1648,35 +1626,37 @@ void LongUI::Component::Elements<LongUI::Element::Meta>::Render(const D2D1_RECT_
 
 
 // Elements<BrushRect> 构造函数
-LongUI::Component::Elements<LongUI::Element::BrushRect>::
+LongUI::Component::Elements<LongUI::Element_BrushRect>::
 Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) {
     ZeroMemory(m_apBrushes, sizeof(m_apBrushes));
     ZeroMemory(m_aID, sizeof(m_aID));
-    // 无效?
-    UIElements_Prefix;
     // 禁用状态笔刷ID
-    UIElements_NewAttribute("disabledbrush");
-    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
+    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "disabledbrush", prefix)
+        ));
     // 通常状态笔刷ID
-    UIElements_NewAttribute("normalbrush");
-    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
+    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "normalbrush", prefix)
+        ));
     // 移上状态笔刷ID
-    UIElements_NewAttribute("hoverbrush");
-    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
+    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "hoverbrush", prefix)
+        ));
     // 按下状态笔刷ID
-    UIElements_NewAttribute("pushedbrush");
-    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(UIElements_Attribute));
+    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
+        Helper::XMLGetValue(node, "pushedbrush", prefix)
+        ));
 }
 
 // 释放数据
-void LongUI::Component::Elements<LongUI::Element::BrushRect>::release_data() noexcept {
+void LongUI::Component::Elements<LongUI::Element_BrushRect>::release_data() noexcept {
     for (auto& brush : m_apBrushes) {
         ::SafeRelease(brush);
     }
 }
 
 // Elements<BrushRectta> 渲染
-void LongUI::Component::Elements<LongUI::Element::BrushRect>::Render(const D2D1_RECT_F& rect) const noexcept {
+void LongUI::Component::Elements<LongUI::Element_BrushRect>::Render(const D2D1_RECT_F& rect) const noexcept {
     assert(m_pRenderTarget);
     D2D1_MATRIX_3X2_F matrix; m_pRenderTarget->GetTransform(&matrix);
 #if 1
@@ -1718,7 +1698,7 @@ void LongUI::Component::Elements<LongUI::Element::BrushRect>::Render(const D2D1_
 #endif
 }
 // Elements<BrushRect> 重建
-auto LongUI::Component::Elements<LongUI::Element::BrushRect>::
+auto LongUI::Component::Elements<LongUI::Element_BrushRect>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
     UNREFERENCED_PARAMETER(target);
     this->release_data();
@@ -1730,30 +1710,25 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 }
 
 // Elements<ColorRect> 构造函数
-LongUI::Component::Elements<LongUI::Element::ColorRect>::
+LongUI::Component::Elements<LongUI::Element_ColorRect>::
 Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
+    // 初始值
     colors[Status_Disabled] = D2D1::ColorF(0xDEDEDEDE);
     colors[Status_Normal] = D2D1::ColorF(0xCDCDCDCD);
     colors[Status_Hover] = D2D1::ColorF(0xA9A9A9A9);
     colors[Status_Pushed] = D2D1::ColorF(0x78787878);
-    // 无效?
-    UIElements_Prefix;
     // 禁用状态颜色
-    UIElements_NewAttribute("disabledcolor");
-    UIControl::MakeColor(UIElements_Attribute, colors[Status_Disabled]);
+    Helper::MakeColor(Helper::XMLGetValue(node, "disabledcolor", prefix), colors[Status_Disabled]);
     // 通常状态颜色
-    UIElements_NewAttribute("normalcolor");
-    UIControl::MakeColor(UIElements_Attribute, colors[Status_Normal]);
+    Helper::MakeColor(Helper::XMLGetValue(node, "normalcolor", prefix), colors[Status_Normal]);
     // 移上状态颜色
-    UIElements_NewAttribute("hovercolor");
-    UIControl::MakeColor(UIElements_Attribute, colors[Status_Hover]);
+    Helper::MakeColor(Helper::XMLGetValue(node, "hovercolor", prefix), colors[Status_Hover]);
     // 按下状态颜色
-    UIElements_NewAttribute("pushedcolor");
-    UIControl::MakeColor(UIElements_Attribute, colors[Status_Pushed]);
+    Helper::MakeColor(Helper::XMLGetValue(node, "pushedcolor", prefix), colors[Status_Pushed]);
 }
 
 // Elements<ColorRect> 重建
-auto LongUI::Component::Elements<LongUI::Element::ColorRect>::
+auto LongUI::Component::Elements<LongUI::Element_ColorRect>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
     UNREFERENCED_PARAMETER(target);
     ::SafeRelease(m_pBrush);
@@ -1762,7 +1737,7 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 }
 
 // Elements<ColorRect> 渲染
-void LongUI::Component::Elements<LongUI::Element::ColorRect>::Render(const D2D1_RECT_F& rect) const noexcept {
+void LongUI::Component::Elements<LongUI::Element_ColorRect>::Render(const D2D1_RECT_F& rect) const noexcept {
     assert(m_pRenderTarget && m_pBrush);
     // 先绘制当前状态
     if (animation.value < animation.end) {
