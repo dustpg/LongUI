@@ -3,6 +3,8 @@
 Lightweight Direct2D GUI Library/Framework in C++  
 [中文说明文档](./README.zh-cn.md)
 
+##### Current Version : Alpha Stage 0.0.0.alpha32
+
 ## Requirements
   
 For this repo, you need:
@@ -59,12 +61,14 @@ For this repo, you need:
   -  3rdparty/* , 3rdparty library, like dlmalloc
   -  Demos/* , demos
   
-           1. helloworld -- how to build a basic LongUI app.
-           2. handleevent -- how to handle LongUI event
+          1. helloworld -- how to build a basic LongUI app.
+          2. handleevent -- how to handle LongUI event in one way
+          3. handleeventex -- how to handle LongUI event in other way
+          4. basiconfigure -- how to write a baisc longui configure
   -  Helper/* , helper projects
   
-           1.  ConsoleHelper -- helper for logging for debugging
-           2.  ScriptInterfaceGenerator -- helper for binding script interface
+          1.  ConsoleHelper -- helper for logging for debugging
+          2.  ScriptInterfaceGenerator -- helper for binding script interface
   -  LongUI -- core project, designed to be a static-link framework
   -  TestUI -- my test project, just for me for debugging
   

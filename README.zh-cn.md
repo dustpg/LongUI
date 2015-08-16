@@ -58,6 +58,8 @@
 
           1. helloworld -- 创建一个基本的LongUI程序
           2. handleevent -- 怎么处理事件
+          3. handleeventex -- 怎么用另一种方法处理事件
+          4. basiconfigure -- 写一个基本的 longui configure
   - Helper/* , helper项目
 
           1.  ConsoleHelper -- 日志调试小工具
