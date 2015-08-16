@@ -159,7 +159,7 @@ namespace LongUI {
         // default un-redo stack size [fixed buffer length]
         LongUIDefaultUnRedoCommandSize = 13,
         // max count of longui window in same time [fixed buffer length]
-        LongUIMaxWindow = 16,
+        LongUIMaxWindow = 32,
         // max count of contrl class [fixed buffer length]
         LongUIMaxControlClass = 64,
         // max count of longui text renderer [fixed buffer length]
@@ -293,6 +293,8 @@ namespace LongUI {
         static constexpr char* const Script                 = "script";
         // weight for layout
         static constexpr char* const LayoutWeight           = "weight";
+        // visible
+        static constexpr char* const Visible                = "visible";
         // position of control left-top: float2
         static constexpr char* const LeftTopPosotion        = "pos";
         // size of control: float2
@@ -307,14 +309,13 @@ namespace LongUI {
         static constexpr char* const TemplateID             = "templateid";
         // the priority for (dirty) rendering
         static constexpr char* const RenderingPriority      = "priority";
-        
         // is render parent container?              [valid] for normal control
         static constexpr char* const IsRenderParent         = "renderparent";
         // is clip strictly                         [invalid yet]
         static constexpr char* const IsClipStrictly         = "strictclip";
+
         // is always host children rendering?       [valid] for container
         static constexpr char* const IsHostChildrenAlways   = "hostchild";
-        
         // left control class name and template id in "marginal control"
         static constexpr char* const LeftMarginalControl    = "leftcontrol";
         // top control class name and template id in "marginal control"
@@ -330,7 +331,7 @@ namespace LongUI {
         static constexpr char* const WindowClearColor       = "clearcolor";
         // window titlebar name
         static constexpr char* const WindowTitleName        = "titlename";
-        // window titlebar name
+        // antimode for text
         static constexpr char* const WindowTextAntiMode     = "textantimode";
     }
 }

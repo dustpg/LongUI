@@ -304,7 +304,7 @@ using %p or %P to mark PARAMETERS start
 */
 
 // 创建格式文本
-auto __cdecl LongUI::DX::FormatTextCore(FormatTextConfig& config, const wchar_t* format, ...) noexcept->IDWriteTextLayout* {
+auto __cdecl LongUI::DX::FormatTextCore(const FormatTextConfig& config, const wchar_t* format, ...) noexcept->IDWriteTextLayout* {
     va_list ap;
     va_start(ap, format);
     return DX::FormatTextCore(config, format, ap);
@@ -344,9 +344,8 @@ auto __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_t token_num
 // 假设: 60Hz每帧16ms 拿出8ms处理本函数, 可以处理6万6个字符
 //一般论: 不可能每帧调用6万字, 一般可能每帧处理数百字符(忙碌时), 可以忽略不计
 
-auto  LongUI::DX::FormatTextCore(
-    FormatTextConfig& config, const wchar_t* format, va_list ap
-    ) noexcept->IDWriteTextLayout* {
+auto  LongUI::DX::FormatTextCore( const FormatTextConfig& config, 
+    const wchar_t* format, va_list ap) noexcept->IDWriteTextLayout* {
     const wchar_t* param = nullptr;
     // 检查是否带参数
     if (!ap) {
@@ -487,9 +486,7 @@ auto  LongUI::DX::FormatTextCore(
                 else {
                     DXHelper_GetNextTokenW(1);
                     IUnknown* result = nullptr;
-                    if (config.inline_handler) {
-                        result = config.inline_handler(0, param_buffer);
-                    }
+                    assert(!"noimpl");
                     range_data.draweffect = result;
                 }
                 range_data.range_type = R::D;
@@ -531,11 +528,7 @@ auto  LongUI::DX::FormatTextCore(
                 else {
                     DXHelper_GetNextTokenW(1);
                     IDWriteInlineObject* result = nullptr;
-                    if (config.inline_handler) {
-                        result = static_cast<IDWriteInlineObject*>(
-                            config.inline_handler(0, param_buffer)
-                            );
-                    }
+                    assert(!"noimpl");
                     range_data.inlineobj = result;
                 }
                 range_data.range_type = R::I;

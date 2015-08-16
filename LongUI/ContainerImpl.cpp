@@ -39,7 +39,7 @@ void LongUI::UIVerticalLayout::Update() noexcept {
     if (this->IsControlSizeChanged()) {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
-        float counter = 0.0f;
+        float basic_weight = 0.f;
         /*if (m_strControlName == L"MainWindow") {
             int a = 0;
         }*/
@@ -57,7 +57,7 @@ void LongUI::UIVerticalLayout::Update() noexcept {
                 }
                 // 未指定高度?
                 else {
-                    counter += 1.f;
+                    basic_weight += ctrl->weight;
                 }
             }
         }
@@ -66,12 +66,11 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         base_height /= m_2fZoom.height;
         // 计算
         base_width = std::max(base_width, this->view_size.width);
-        // 高度步进
-        float height_step = counter > 0.f ? (this->view_size.height - base_height) / counter : 0.f;
-        // 小于阈值
-        if (height_step < float(LongUIAutoControlMinSize)) {
-            height_step = float(LongUIAutoControlMinSize);
-        }
+        // 剩余高度富余
+        register auto height_remain = std::max(this->view_size.height - base_height, 0.f);
+        // 单位权重高度
+        auto height_in_unit_weight = basic_weight > 0.f ? height_remain / basic_weight : 0.f ;
+        // 基线Y
         float position_y = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
@@ -83,7 +82,7 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             }
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
-                ctrl->SetHeight(height_step);
+                ctrl->SetHeight(std::max(height_in_unit_weight * ctrl->weight, float(LongUIAutoControlMinSize)));
             }
             // 容器?
             // 不管如何, 修改!
@@ -163,7 +162,7 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
     if (this->IsControlSizeChanged()) {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
-        float counter = 0.0f;
+        float basic_weight = 0.f;
         // 第一次
         for (auto ctrl : (*this)) {
             // 非浮点控件
@@ -178,7 +177,7 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
                 }
                 // 未指定宽度?
                 else {
-                    counter += 1.f;
+                    basic_weight += ctrl->weight;
                 }
             }
         }
@@ -187,12 +186,11 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
         base_height /= m_2fZoom.height;
         // 计算
         base_height = std::max(base_height, this->view_size.height);
-        // 宽度步进
-        float width_step = counter > 0.f ? (this->view_size.width - base_width) / counter : 0.f;
-        // 小于阈值
-        if (width_step < float(LongUIAutoControlMinSize)) {
-            width_step = float(LongUIAutoControlMinSize);
-        }
+        // 剩余宽度富余
+        register auto width_remain = std::max(this->view_size.width - base_width, 0.f);
+        // 单位权重宽度
+        auto width_in_unit_weight = basic_weight > 0.f ? width_remain / basic_weight : 0.f;
+        // 基线X
         float position_x = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
@@ -204,7 +202,7 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
             }
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
-                ctrl->SetWidth(width_step);
+                ctrl->SetWidth(std::max(width_in_unit_weight * ctrl->weight, float(LongUIAutoControlMinSize)));
             }
             // 不管如何, 修改!
             ctrl->SetControlSizeChanged();

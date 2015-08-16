@@ -23,7 +23,7 @@ struct MemoryLeakDetector {
                 g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(1 | 2 | 4));
                 ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
                 g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(4));
-                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: End\r\n\r\n");
+                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: End. If you saw this message, check 'KnownIssues.md' please \r\n\r\n");
             }
             g_pd3dDebug_longui = nullptr;
         }
@@ -158,30 +158,10 @@ private:
 // 初始化静态变量
 LongUI::CUIManager          LongUI::CUIManager::s_instance;
 
-
+// load libraries
+#if defined(_MSC_VER)
 #pragma comment(lib, "winmm")
 #pragma comment(lib, "dxguid")
-
-
-
-
-// ------------------------------------------------------------
-// 布局上下文
-class CUILayoutContext {
-    // layout type
-    enum LayoutType : uint32_t {
-        Type_Fixed,    //   Fixed in one direction
-    };
-public:
-    // ctor
-    CUILayoutContext() noexcept = default;
-    // dtor
-    ~CUILayoutContext() noexcept = default;
-public:
-    // type of layout
-    LayoutType  type = Type_Fixed;
-    // value of layout
-    float       value = 0.f;
-};
+#endif
 
 

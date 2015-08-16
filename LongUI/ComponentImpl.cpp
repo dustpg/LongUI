@@ -114,18 +114,21 @@ LongUI::Component::ShortText::~ShortText() noexcept {
 }
 
 // ShortText 重建
-void LongUI::Component::ShortText::recreate(const char* utf8) noexcept {
-    wchar_t text_buffer[LongUIStringBufferLength];
-    // 转换为核心模式
-    if (this->GetIsXML() && this->GetIsRich()) {
-        LongUI::DX::XMLToCoreFormat(utf8, text_buffer);
-    }
-    // UTF-8?
-    else if (utf8) {
-        // 直接转码
-        register auto length = LongUI::UTF8toWideChar(utf8, text_buffer);
-        text_buffer[length] = L'\0';
-        m_text.Set(text_buffer, length);
+void LongUI::Component::ShortText::recreate(const char* u8str) noexcept {
+    // utf-8 有效
+    if (u8str) {
+        wchar_t text_buffer[LongUIStringBufferLength];
+        // 转换为核心模式
+        if (this->GetIsXML() && this->GetIsRich()) {
+            LongUI::DX::XMLToCoreFormat(u8str, text_buffer);
+        }
+        // UTF-8?
+        else {
+            // 直接转码
+            register auto length = LongUI::UTF8toWideChar(u8str, text_buffer);
+            text_buffer[length] = L'\0';
+            m_text.Set(text_buffer, length);
+        }
     }
     // 创建布局
     ::SafeRelease(m_pLayout);

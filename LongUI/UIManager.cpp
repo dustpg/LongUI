@@ -1514,12 +1514,12 @@ auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUI
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
-        L"Adapter:   { \n\t Description: %ls\n\t VendorId:0x%08X"
-        L"\t\t DeviceId:0x%08X\n\t SubSysId:0x%08X\t\t Revision:0x%08X\n"
+        L"Adapter:   { \n\t Description: %ls\n\t VendorId: 0x%08X"
+        L"\t\t DeviceId: 0x%08X\n\t SubSysId: 0x%08X\t\t Revision: 0x%08X\n"
         L"\t DedicatedVideoMemory: %.3lfMB\n"
         L"\t DedicatedSystemMemory: %.3lfMB\n"
         L"\t SharedSystemMemory: %.3lfMB\n"
-        L"\t AdapterLuid: 0x%08X--%08X\n }",
+        L"\t AdapterLuid: 0x%08X%08X\n }",
         desc.Description,
         desc.VendorId,
         desc.DeviceId,

@@ -50,6 +50,8 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
             node.attribute(LongUI::XMLAttribute::WindowClearColor).value(),
             this->clear_color
             );
+        // 文本抗锯齿
+        m_textAntiMode = uint16_t(Helper::XMLGetD2DTextAntialiasMode(node, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT));
     }
     // 窗口区
     {

@@ -228,7 +228,7 @@ LongUINoinline auto LongUI::Helper::XMLGetBitmapRenderRule(
     const char* attribute, const char* prefix
     ) noexcept->BitmapRenderRule {
     // 属性值列表
-    const char* mode_list[] = {
+    const char* rule_list[] = {
         "scale",
         "button",
     };
@@ -236,8 +236,29 @@ LongUINoinline auto LongUI::Helper::XMLGetBitmapRenderRule(
     XMLGetValueEnumProperties prop;
     prop.attribute = attribute;
     prop.prefix = prefix;
+    prop.values = rule_list;
+    prop.values_length = lengthof(rule_list);
+    // 调用
+    return static_cast<BitmapRenderRule>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
+}
+
+// 获取文本抗锯齿模式
+LongUINoinline auto LongUI::Helper::XMLGetD2DTextAntialiasMode(
+    pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match
+    ) noexcept->D2D1_TEXT_ANTIALIAS_MODE {
+    // 属性值列表
+    const char* mode_list[] = {
+        "default",
+        "cleartype",
+        "grayscale",
+        "aliased",
+    };
+    // 设置
+    XMLGetValueEnumProperties prop;
+    prop.attribute = LongUI::XMLAttribute::WindowTextAntiMode;
+    prop.prefix = nullptr;
     prop.values = mode_list;
     prop.values_length = lengthof(mode_list);
     // 调用
-    return static_cast<BitmapRenderRule>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
+    return static_cast<D2D1_TEXT_ANTIALIAS_MODE>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
 }

@@ -65,9 +65,6 @@
     <ClInclude Include="UICheckBox.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="UIWindow.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
     <ClInclude Include="UIVerticalLayout.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
@@ -137,6 +134,9 @@
     <ClInclude Include="UIUtilDX.h">
       <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
+    <ClInclude Include="UIWindow.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -157,17 +157,8 @@
     <ClCompile Include="UISlider.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="UIWindow.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
     <ClCompile Include="UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="ControlImpl1.cpp">
-      <Filter>LongUI\Source\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="ContainerImpl.cpp">
-      <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
     <ClCompile Include="UIUtil.cpp">
       <Filter>LongUI\Source\Base</Filter>
@@ -189,6 +180,15 @@
     </ClCompile>
     <ClCompile Include="ControlCore.cpp">
       <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ContainerImpl.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlImpl1.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UIWindow.cpp">
+      <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

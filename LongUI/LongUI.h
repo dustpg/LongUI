@@ -166,10 +166,6 @@ namespace LongUI {
     // { B0CC8D79-9761-46F0-8558-F93A073CA0E6 }
     static const GUID IID_InlineParamHandler =
     { 0xb0cc8d79, 0x9761, 0x46f0,{ 0x85, 0x58, 0xf9, 0x3a, 0x7, 0x3c, 0xa0, 0xe6 } };
-    // LongUI Custom Formated String Inline Param Handler
-    // type:  0 for drawing effect, 1 for inline object
-    // token: the string segment of this part
-    using InlineParamHandler = IUnknown* (*)(uint32_t type, const wchar_t* token);
     /// <summary>
     /// LongUI Flags for Core Control: UIControl, UIMarginalable, UIContainer
     /// </summary>
@@ -368,12 +364,6 @@ namespace LongUI {
             // [out] Control for Parent
             OUT mutable const wchar_t* str;
         };
-        /*/ default ctor
-        EventArgument() noexcept =default;
-        // copy ctor
-        EventArgument(const EventArgument&) noexcept;
-        // move ctor
-        EventArgument(EventArgument&&) =delete;*/
     };
 #ifdef LongUIDebugEvent
     // LongUI Debug Information
@@ -403,50 +393,27 @@ namespace LongUI {
         };
     };
 #endif
-    // point in rect?
-    inline static auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F& pt) noexcept {
-        return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.right && pt.y < rect.bottom);
-    }
-    // point in rect? overload for RectLTWH_F
-    inline static auto IsPointInRect(const RectLTWH_F& rect, const D2D1_POINT_2F& pt) noexcept {
-        return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.left + rect.width && pt.y < rect.top + rect.height);
-    }
-    // get transformed pointer
-    inline static auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
-        D2D1_POINT_2F result = {
-            point.x * matrix._11 + point.y * matrix._21 + matrix._31,
-            point.x * matrix._12 + point.y * matrix._22 + matrix._32
-        };
-        return result;
-    }
-    // get transformed pointer
-    LongUINoinline static auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept  {
-        D2D1_POINT_2F result;
-        // x = (bn-dm)/(bc-ad)
-        // y = (an-cm)/(ad-bc)
-        // a : m_matrix._11
-        // b : m_matrix._21
-        // c : m_matrix._12
-        // d : m_matrix._22
-        register auto bc_ad = matrix._21 * matrix._12 - matrix._11 * matrix._22;
-        register auto m = point.x - matrix._31;
-        register auto n = point.y - matrix._32;
-        result.x = (matrix._21*n - matrix._22 * m) / bc_ad;
-        result.y = (matrix._12*m - matrix._11 * n) / bc_ad;
-        return result;
-    }
-    // 四舍五入
-    inline auto RoundToInt(float x) { return static_cast<int>(x + .5f); }
-    // script interface
-    class IUIScript;
-    // LongUI Format Text Config
-    struct LongUIAlignas FormatTextConfig {
+    // type for rich
+    enum class RichType : uint16_t {
+        // none, you should set rich-style by youself
+        Type_None,
+        // core, use longui-core-mark-language mark it
+        Type_Core,
+        // xml, use xml-style, can use < > or { }
+        Type_Xml,
+        // user custom defined
+        Type_Custom,
+    };
+    // LongUI Format Text Config,
+    /// <summary>
+    /// config for formating text
+    /// </summary>
+    /// <remarks> if your string more than 1K, do not use this</remarks>
+    struct FormatTextConfig {
         // DWrite Factory
         IN  IDWriteFactory*         dw_factory;
         // basic text format
         IN  IDWriteTextFormat*      text_format;
-        // inline-param handler
-        IN  InlineParamHandler      inline_handler;
         // text layout width
         IN  float                   width;
         // text layout hright
@@ -454,8 +421,10 @@ namespace LongUI {
         // make the text showing progress, maybe you want
         // a "typing-effect", set 1.0f to show all, 0.0f to hide
         IN  float                   progress;
+        // format for this
+        IN  RichType                format;
         // the text real(without format) length
-        OUT uint32_t                text_length;
+        OUT mutable uint16_t        text_length;
     };
 }
 

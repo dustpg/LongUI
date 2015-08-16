@@ -147,6 +147,8 @@ namespace LongUI {
         inline auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
         // get delta time for ui
         inline auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
+        // get count of window
+        inline auto GetWindowsCount() const noexcept { return m_cCountWindow; }
     public: // 隐形转换区
         // 转换为 LongUIRenderTarget
 #define UIManager_RenderTaget (static_cast<ID2D1DeviceContext*>(UIManager))

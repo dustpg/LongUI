@@ -1,4 +1,4 @@
-﻿#if 0
+﻿#if 1
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
@@ -449,7 +449,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
-#include "../Demos/Demo2_handleevent/demo.h"
+#include "../Demos/Demo3_handleeventex/demo.h"
 
 // longui::demo namespace
 namespace LongUI { namespace Demo {
@@ -461,12 +461,11 @@ namespace LongUI { namespace Demo {
         // ctor
         MyConfig() : Super(UIManager) { }
         // return true, if using cpu rendering
-        virtual auto IsRenderByCPU() noexcept->bool override { 
-            return true; 
+        virtual auto IsRenderByCPU() noexcept->bool override {
+            return true;
         }
     };
 }}
-
 
 // Entry for App
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {

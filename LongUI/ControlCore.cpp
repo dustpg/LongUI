@@ -36,6 +36,8 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if (data = node.attribute(LongUI::XMLAttribute::LayoutWeight).value()) {
             force_cast(this->weight) = LongUI::AtoF(data);
         }
+        // 检查可视性
+        this->visible = node.attribute(LongUI::XMLAttribute::Visible).as_bool(true);
         // 渲染优先级
         if (data = node.attribute(LongUI::XMLAttribute::RenderingPriority).value()) {
             force_cast(this->priority) = uint8_t(LongUI::AtoI(data));
@@ -466,7 +468,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
             char buffer[LongUIStringLength];
             assert(::strlen(str) < LongUIStringLength && "buffer too small");
             // 获取逗号位置
-            auto strtempid = ::strchr(str, ',');
+            auto strtempid = std::strchr(str, ',');
             if (strtempid) {
                 auto length = strtempid - str;
                 ::memcpy(buffer, str, length);
@@ -475,6 +477,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
             else {
                 ::strcpy(buffer, str);
             }
+            
             // 获取类ID
             auto create_control_func = UIManager.GetCreateFunc(buffer);
             assert(create_control_func && "none");
