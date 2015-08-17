@@ -28,51 +28,42 @@
 namespace LongUI { namespace Component {
     // Component: ShortText
     class ShortText {
-        // renderer with infomation
-        using InfoUIBasicTextRenderer = Helper::InfomationPointer<CUIBasicTextRenderer>;
-        // 重建
-        void __fastcall recreate(const char* = nullptr) noexcept;
     public:
+        // recreate layout
+        void RecreateLayout() noexcept;
         // constructor
         ShortText(pugi::xml_node, const char* prefix = "text") noexcept;
         // destructor
         ~ShortText() noexcept;
-        // operator = for wide-char(utf16 on windows), must be in core-mode
-        auto operator=(const wchar_t*) noexcept ->ShortText&;
-        // operator = for utf-8, can be xml-mode or core-mode
-        auto operator=(const char*) noexcept ->ShortText&;
-        // c_str for wide-char(utf16 on windows)
-        auto text_totallegnth() const noexcept { return m_config.text_length; }
-        // c_str for wide-char(utf16 on windows)
+        // real length
+        auto GetRealLength() const noexcept { return m_config.text_length; }
+        // operator = for wide-char(utf16 on windows)
+        auto&operator=(const wchar_t* str) noexcept { m_text = str; this->RecreateLayout(); return *this; }
+        // operator = for utf-8,
+        auto&operator=(const char* str) noexcept { m_text = str; this->RecreateLayout(); return *this; }
+        // get string
+        auto&GetString() noexcept { return m_text; }
+        // c_str for stl-like
         auto c_str() const noexcept { return m_text.c_str(); }
-        // c_str for utf-8
-        void c_str(char* b) const noexcept { b[LongUI::WideChartoUTF8(m_text.c_str(), b)] = 0; }
     public:
         // get layout
         auto GetLayout() const noexcept { return ::SafeAcquire(m_pLayout); }
         // set layout
         auto SetLayout(IDWriteTextLayout* layout) noexcept {
             assert(layout);
-            assert(m_config.format == RichType::Type_None && "set layout must be Type_None mode");
+            assert(m_config.rich_type == RichType::Type_None && "set layout must be Type_None mode");
             ::SafeRelease(m_pLayout);
             m_pLayout = ::SafeAcquire(layout);
         }
-        // set layout, move
-        auto SetLayout(IDWriteTextLayout** layout) noexcept {
-            assert(layout && *layout);
-            assert(m_config.format == RichType::Type_None && "set layout must be Type_None mode");
-            ::SafeRelease(m_pLayout);
-            m_pLayout = *layout; *layout = nullptr;
-        }
         // set new size
-        auto SetNewSize(float w, float h) noexcept {
+        auto Resize(float w, float h) noexcept {
             m_config.width = w; m_config.height = h;
             m_pLayout->SetMaxWidth(w); m_pLayout->SetMaxHeight(h);
         }
         // set new progress
-        auto SetNewProgress(float p) {
-            m_config.progress = p;
-            this->recreate();
+        auto SetNewProgress(float p) noexcept { 
+            m_config.progress = p; 
+            return this->RecreateLayout();
         }
         // render it
         auto Render(float x, float y) const noexcept {

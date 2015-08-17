@@ -11,7 +11,7 @@ void LongUI::UISlider::Render(RenderType) const noexcept {
 
     }
     // 水平滑块
-    else {
+    else /*_(:3」∠)_*/ {
         draw_rect.left += m_fSliderHalfWidth;
         draw_rect.right -= m_fSliderHalfWidth;
         draw_rect.top = (draw_rect.top + draw_rect.bottom)*0.5f - 2.f;
@@ -129,21 +129,8 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
         // 检查事件
         if (m_fValueOld != m_fValue) {
             m_fValueOld = m_fValue;
-            auto temparg = arg;
-            temparg.sender = this;
-            temparg.event = LongUI::Event::Event_SliderValueChanged;
-            // 检查脚本
-            if (m_script.script) {
-                UIManager.script->Evaluation(m_script, temparg);
-            }
-            // 检查是否有事件回调
-            if (m_eventChanged) {
-                m_eventChanged(m_pChangedTarget, this);
-            }
-            else {
-                // 否则发送事件到窗口
-                m_pWindow->DoEvent(temparg);
-            }
+            // 调用
+            m_caller(this, SubEvent::Event_SliderValueChanged);
             // 刷新
             m_pWindow->Invalidate(this);
         }

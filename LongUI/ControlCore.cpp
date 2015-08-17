@@ -189,27 +189,29 @@ auto LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept ->HRESULT 
 }
 
 // LongUI::UIControl 注册回调事件
-void LongUI::UIControl::SetEventCallBack(
-    const wchar_t* control_name, LongUI::Event event, LongUIEventCallBack call) noexcept {
+void LongUI::UIControl::SetSubEventCallBack(
+    const wchar_t* control_name, LongUI::SubEvent event, SubEventCallBack call) noexcept {
     assert(control_name && call&&  "bad argument");
     UIControl* control = m_pWindow->FindControl(control_name);
     assert(control && " no control found");
     if (!control) return;
+    CUISubEventCaller caller(call, this);
     // 自定义消息?
-    if (event >= LongUI::Event::Event_CustomEvent) {
-        UIManager.configure->SetEventCallBack(event, call, control, this);
+    if (event >= LongUI::SubEvent::Event_Custom) {
+        UIManager.configure->SetSubEventCallBack(event, caller, control);
         return;
     }
+    // 检查
     switch (event)
     {
-    case LongUI::Event::Event_ButtoClicked:
-        longui_cast<UIButton*>(control)->RegisterClickEvent(call, this);
+    case LongUI::SubEvent::Event_ButtoClicked:
+        longui_cast<UIButton*>(control)->RegisterClickEvent(caller);
         break;
-    case LongUI::Event::Event_EditReturned:
-        //longui_cast<UIEdit*>(control)->RegisterReturnEvent(call, this);
+    case LongUI::SubEvent::Event_EditReturned:
+        longui_cast<UIEditBasic*>(control)->RegisterReturnEvent(caller);
         break;
-    case LongUI::Event::Event_SliderValueChanged:
-        longui_cast<UISlider*>(control)->RegisterValueChangedEvent(call, this);
+    case LongUI::SubEvent::Event_SliderValueChanged:
+        longui_cast<UISlider*>(control)->RegisterValueChangedEvent(caller);
         break;
     }
 }

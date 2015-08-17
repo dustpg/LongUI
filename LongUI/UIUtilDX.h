@@ -30,15 +30,15 @@ namespace LongUI {
     namespace DX {
         // DXGI_FORMAT to WIC GUID format
         auto DXGIToWIC(DXGI_FORMAT format) noexcept ->const GUID*;
-        // format the text into textlayout with format: 面向C/C++
-        auto FormatTextCore(const FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
         // create mesh from geometry
         auto CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept->HRESULT;
-        // format the text into core-mode with xml string: 面向数据
-        auto XMLToCoreFormat(const char*, wchar_t*) noexcept->bool;
-        // format the text into textlayout with format: 面向C/C++
-        auto FormatTextCore(const FormatTextConfig&, const wchar_t*, va_list) noexcept->IDWriteTextLayout*;
-        // get default LongUI imp IDWriteFontCollection
+        // format the text in C++ within core string
+        auto FormatTextCoreC(const FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
+        // format the text within core string
+        auto FormatTextCore(const FormatTextConfig&, const wchar_t*, va_list=nullptr) noexcept->IDWriteTextLayout*;
+        // format the text within xml string
+        auto FormatTextXML(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout*;
+        // get default LongUI imp  IDWriteFontCollection
         auto CreateFontCollection(
             IDWriteFactory* factory,
             const wchar_t* filename = L"*.*tf",

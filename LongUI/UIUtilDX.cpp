@@ -244,14 +244,14 @@ auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mes
     return E_NOTIMPL;
 }
 
-
-
-// 转换为Core-Mode格式
-auto LongUI::DX::XMLToCoreFormat(const char* xml, wchar_t* core) noexcept -> bool {
-    if (!xml || !core) return false;
-    wchar_t buffer[LongUIStringBufferLength];
-    *buffer = 0;
-    return true;
+// 直接使用
+auto LongUI::DX::FormatTextXML(
+    const FormatTextConfig& config, 
+    const wchar_t* format
+    ) noexcept->IDWriteTextLayout*{
+    UNREFERENCED_PARAMETER(config);
+    UNREFERENCED_PARAMETER(format);
+    return nullptr;
 }
 
 
@@ -304,7 +304,10 @@ using %p or %P to mark PARAMETERS start
 */
 
 // 创建格式文本
-auto __cdecl LongUI::DX::FormatTextCore(const FormatTextConfig& config, const wchar_t* format, ...) noexcept->IDWriteTextLayout* {
+auto __cdecl LongUI::DX::FormatTextCoreC(
+    const FormatTextConfig& config, 
+    const wchar_t* format, 
+    ...) noexcept->IDWriteTextLayout* {
     va_list ap;
     va_start(ap, format);
     return DX::FormatTextCore(config, format, ap);
@@ -343,9 +346,11 @@ auto __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_t token_num
 // 结论: Release版每处理一个字符(包括格式与参数)平均消耗0.12微秒, Debug版加倍
 // 假设: 60Hz每帧16ms 拿出8ms处理本函数, 可以处理6万6个字符
 //一般论: 不可能每帧调用6万字, 一般可能每帧处理数百字符(忙碌时), 可以忽略不计
-
-auto  LongUI::DX::FormatTextCore( const FormatTextConfig& config, 
-    const wchar_t* format, va_list ap) noexcept->IDWriteTextLayout* {
+auto LongUI::DX::FormatTextCore( 
+    const FormatTextConfig& config, 
+    const wchar_t* format, va_list ap
+    ) noexcept->IDWriteTextLayout* {
+    // 参数
     const wchar_t* param = nullptr;
     // 检查是否带参数
     if (!ap) {
@@ -649,17 +654,28 @@ force_break:
     // 计算长度
     assert(string_length < lengthof(buffer));
     // 计算需要长度
-    config.text_length = string_length;
+    config.text_length = static_cast<decltype(config.text_length)>(string_length);
     register auto string_length_need = static_cast<uint32_t>(static_cast<float>(string_length + 1) * config.progress);
     // clamp it
     if (string_length_need < 0) string_length_need = 0;
     else if (string_length_need > string_length) string_length_need = string_length;
     // 修正
     va_end(ap);
+    // 检查
+    assert(config.factory);
+    auto hr = config.factory ? E_POINTER : S_OK;
     // 创建布局
-    if (config.dw_factory && SUCCEEDED(config.dw_factory->CreateTextLayout(
-        buffer, string_length_need, config.text_format, config.width, config.height, &layout
-        ))) {
+    if (SUCCEEDED(hr)) {
+        hr = config.factory->CreateTextLayout(
+            buffer,
+            string_length_need,
+            config.format,
+            config.width, config.height,
+            &layout
+            );
+    }
+    // 正式创建
+    if (SUCCEEDED(hr)) {
         // 创建
         while (!statck_set.empty()) {
             statck_set.pop();
@@ -703,6 +719,10 @@ force_break:
                 break;
             }
         }
+    }
+    // 错误信息
+    if (FAILED(hr)) {
+        UIManager << DL_Warning << L"HR Code: " << long(hr) << LongUI::endl;
     }
     return layout;
 }

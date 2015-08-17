@@ -194,15 +194,6 @@ namespace LongUI {
     auto __fastcall AtoF(const char* __restrict) -> float;
     // LongUI::AtoI diy version(double ver)
     //auto __fastcall AtoLF(const char*) -> double;
-    // UTF-8 UTF-16 UTF-32(UCS-4)
-    static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
-#if 1
-#define UTF8toWideChar(a, b) UTF8toUTF16((a), reinterpret_cast<char16_t*>(b))
-#define WideChartoUTF8(a, b) UTF16toUTF8(reinterpret_cast<const char16_t*>(a), (b))
-#else
-#define UTF8toWideChar(a, b) UTF8toUTF32((a), reinterpret_cast<char32_t*>(b))
-#define WideChartoUTF8(a, b) UTF32toUTF8(reinterpret_cast<const char32_t*>(a), (b))
-#endif
     // Base64 DataChar: Map 0~63 to visible char
     static const char Base64Chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     // Base64 DataChar: Map visible char to 0~63
@@ -234,6 +225,19 @@ namespace LongUI {
     // UTF-8 to UTF-16
     // Return: UTF-16 string length, 0 maybe error
     auto __fastcall UTF8toUTF16(const char* __restrict, char16_t* __restrict) noexcept -> uint32_t;
+    // wchar to UTF-8
+    // UTF-8 to wchar
+    static auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des)noexcept {
+        // UTF-8 UTF-16 UTF-32(UCS-4)
+        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+        return UTF16toUTF8(reinterpret_cast<const char16_t*>(src), des);
+    }
+    // UTF-8 to wchar
+    static auto UTF8toWideChar(const char* __restrict src, wchar_t* __restrict des)noexcept {
+        // UTF-8 UTF-16 UTF-32(UCS-4)
+        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+        return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des));
+    }
     // bubble sort
     template<typename Itr, typename Lamda>
     void BubbleSort(const Itr begin, const Itr end, Lamda lam) noexcept {
@@ -250,7 +254,7 @@ namespace LongUI {
         }
     }
     // RtlGetVersion func
-    typedef NTSTATUS(NTAPI* fnRtlGetVersion)(PRTL_OSVERSIONINFOW lpVersionInformation);
+    using fnRtlGetVersion = NTSTATUS(NTAPI*)(PRTL_OSVERSIONINFOW lpVersionInformation);
     // IsWindowsVersionOrGreater
     LongUINoinline bool IsWindowsVersionOrGreater(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor) noexcept;
     // >= WinXP
@@ -297,6 +301,7 @@ namespace LongUI {
     static inline auto IsWindows8Point1OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINBLUE), LOBYTE(_WIN32_WINNT_WINBLUE), 0);
     }
+    // For Windows SDK 8.1
 #ifndef _WIN32_WINNT_WIN10
 // _WIN32_WINNT_WIN10
 #define _WIN32_WINNT_WIN10 0x0A00

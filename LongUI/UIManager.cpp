@@ -669,14 +669,12 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
         FORMAT_MESSAGE_FROM_SYSTEM,
         nullptr,  hr,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
-        buffer,
-        lengthof(buffer),
+        buffer, LongUIStringBufferLength,
         nullptr)) {
         // 处理
-        ::swprintf(
+        std::swprintf(
             buffer, LongUIStringBufferLength,
-            L"Error! HRESULT Code: 0x%08X",
-            hr
+            L"Error! HRESULT Code: 0x%08X", hr
             );
     }
     // 错误

@@ -26,6 +26,33 @@
 
 // longui namespace
 namespace LongUI {
+    // caller struct
+    class CUISubEventCaller {
+    public:
+        // ctor
+        explicit CUISubEventCaller(SubEventCallBack callback = nullptr, UIControl* recver = nullptr)
+            :m_pCallback(callback), m_pRecver(recver){}
+        // copy ctor
+        explicit CUISubEventCaller(const CUISubEventCaller& obj) noexcept
+            :m_pCallback(obj.m_pCallback), m_pRecver(obj.m_pRecver){}
+        // =
+        auto&operator =(const CUISubEventCaller& obj) noexcept { 
+            m_pCallback = obj.m_pCallback; m_pRecver =obj.m_pRecver; return *this;
+        }
+        // call
+        bool operator()(UIControl* sender, SubEvent subevent) noexcept;
+        // move ctor
+        explicit CUISubEventCaller(CUISubEventCaller&& obj) noexcept = delete;
+        // bool
+        operator bool() noexcept { return !!m_pCallback; }
+        // not
+        bool operator !() noexcept { return !m_pCallback; }
+    protected:
+        // callback
+        SubEventCallBack    m_pCallback;
+        // recver
+        UIControl*          m_pRecver;
+    };
     // Device Independent Meta
     struct DeviceIndependentMeta {
         // source rect
@@ -308,12 +335,14 @@ namespace LongUI {
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
         // add all custom controls
         virtual auto AddCustomControl() noexcept->void override {};
-        // return true, if using cpu rendering
+        // return true, if use cpu rendering
         virtual auto IsRenderByCPU() noexcept->bool override { return false; }
-        // if using gpu render, you should choose a video card, return the index
-        virtual auto ChooseAdapter(IDXGIAdapter1* adapters[], size_t const length) noexcept->size_t override;
-        // SetEventCallBack for custom control
-        virtual auto SetEventCallBack(LongUI::Event, LongUIEventCallBack, UIControl*, UIControl*) noexcept -> void override {}
+        // if use gpu render, you should choose a video card, return the index
+        virtual auto ChooseAdapter(IDXGIAdapter1* adapters[], const size_t length) noexcept->size_t override;
+        // SetSubEventCallBack for custom control
+        virtual auto SetSubEventCallBack(LongUI::SubEvent, const CUISubEventCaller&, UIControl*) noexcept -> void override {}
+        // if in RichType::Type_Custom, will call this, we don't implement at here
+        virtual auto CustomRichType(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
         // show the error string
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void override;
 #ifdef _DEBUG
@@ -329,8 +358,6 @@ namespace LongUI {
     public:
         // resource xml null-end-string
         const char*             resource = nullptr;
-        // inline param handler
-        InlineParamHandler      handler = nullptr;
 #ifdef _DEBUG
         // debug console
         CUIConsole              consoles[DLEVEL_SIZE];

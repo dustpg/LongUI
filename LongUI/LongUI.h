@@ -157,8 +157,8 @@ namespace LongUI {
     using RectLTRB_L = RectLTRB<int32_t>;
     using RectLTRB_U = RectLTRB<uint32_t>;
     // --------------------------------
-    // longui callback func 控件回调
-    using LongUIEventCallBack = bool (*)(UIControl* event_setter, UIControl* func_caller) ;
+    // longui callback func
+    using SubEventCallBack = bool(*)(UIControl* recver, UIControl* sender);
     // event type
     enum CreateEventType : size_t { Type_CreateControl = 0, Type_Initialize, Type_Recreate, Type_Uninitialize, };
     // CreateControl Function 控件创建函数
@@ -283,9 +283,11 @@ namespace LongUI {
     /// <summary>
     /// event for longui control event
     /// </summary>
-    enum class Event : size_t {
+    enum class Event : UINT {
         // control-tree buliding finished
         Event_TreeBulidingFinished = 0,
+        // sub event, use for event callback
+        Event_SubEvent,
         // drag enter on this control
         Event_DragEnter,
         // drag over on this control
@@ -304,22 +306,21 @@ namespace LongUI {
         Event_KillFocus,
         // notify all children(but sender)
         //Event_NotifyChildren,
-        // -----control custom
-        // button clicked
-        Event_ButtoClicked,
-        // edit returned
-        Event_EditReturned,
-        // slider value changed
-        Event_SliderValueChanged,
-        // ----- Custom Event -----(User Defined)
-        Event_CustomEvent = 0x400,
+        // ----- User Custom Defined Event -----
+        Event_Custom = 0x100,
     };
     // LongUI Sub Event
     enum class SubEvent : size_t {
         // null
         Event_Null = 0,
-        // -----control custom
-
+        // button clicked
+        Event_ButtoClicked,
+        // single-line-edit returned
+        Event_EditReturned,
+        // slider value changed
+        Event_SliderValueChanged,
+        // ----- User Custom Defined Event -----
+        Event_Custom = 0x100,
     };
     // priority for rendering
     enum RenderingPriority : uint8_t {
@@ -340,8 +341,6 @@ namespace LongUI {
     };
     // LongUI Event Argument
     struct EventArgument {
-        // event id
-        union { UINT msg; LongUI::Event event; };
         // sender, null for system
         UIControl*      sender;
         // data
@@ -364,6 +363,8 @@ namespace LongUI {
             // [out] Control for Parent
             OUT mutable const wchar_t* str;
         };
+        // event id
+        union { UINT msg; LongUI::Event event; };
     };
 #ifdef LongUIDebugEvent
     // LongUI Debug Information
@@ -401,7 +402,7 @@ namespace LongUI {
         Type_Core,
         // xml, use xml-style, can use < > or { }
         Type_Xml,
-        // user custom defined
+        // user custom defined, for IUI
         Type_Custom,
     };
     // LongUI Format Text Config,
@@ -411,9 +412,9 @@ namespace LongUI {
     /// <remarks> if your string more than 1K, do not use this</remarks>
     struct FormatTextConfig {
         // DWrite Factory
-        IN  IDWriteFactory*         dw_factory;
+        IN  IDWriteFactory*         factory;
         // basic text format
-        IN  IDWriteTextFormat*      text_format;
+        IN  IDWriteTextFormat*      format;
         // text layout width
         IN  float                   width;
         // text layout hright
@@ -422,7 +423,7 @@ namespace LongUI {
         // a "typing-effect", set 1.0f to show all, 0.0f to hide
         IN  float                   progress;
         // format for this
-        IN  RichType                format;
+        IN  RichType                rich_type;
         // the text real(without format) length
         OUT mutable uint16_t        text_length;
     };

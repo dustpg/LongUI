@@ -5,11 +5,13 @@
 // ShortText 构造函数
 LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix) noexcept
     : m_pTextRenderer(nullptr) {
+    // 设置
     m_config = {
         ::SafeAcquire(UIManager_DWriteFactory),
         nullptr,
-        UIManager.inline_handler,
-        128.f, 64.f, 1.f, 0
+        128.f, 64.f, 1.f,
+        Helper::XMLGetRichType(node, RichType::Type_None, "richtype", prefix),
+        0
     };
     // 检查参数
     assert(node && prefix && "bad arguments");
@@ -48,100 +50,31 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
         if ((str = attribute("format"))) {
             format_index = static_cast<uint32_t>(LongUI::AtoI(str));
         }
-        m_config.text_format = UIManager.GetTextFormat(format_index);
-    }
-    {
-        // 列表
-        const char* values_list[] = { "none", "core", "xml" };
-        // 检查类型
-        Helper::XMLGetValueEnumProperties prop;
-        prop.prefix = prefix;
-        prop.attribute = "type";
-        prop.values = values_list;
-        prop.values_length = lengthof(values_list);
-        // 获取
-        switch (Helper::XMLGetValueEnum(node, prop))
-        {
-        case 0:
-            // None
-            this->SetIsRich(false);
-            this->SetIsXML(false);
-            break;
-        case 1:
-            // Core
-            this->SetIsRich(true);
-            this->SetIsXML(false);
-            break;
-        case 2:
-            // Xml
-            this->SetIsRich(true);
-            this->SetIsXML(true);
-            break;
-        }
+        m_config.format = UIManager.GetTextFormat(format_index);
     }
     // 重建
-    this->recreate(node.attribute(prefix).value());
-}
-
-// ShortText = L"***"
-auto LongUI::Component::ShortText::operator=(const wchar_t* new_string) noexcept ->ShortText& {
-    // 不能是XML模式
-    assert(this->GetIsXML() == false && "=(const wchar_t*) must be in core-mode, can't be xml-mode");
-    m_text.Set(new_string);
-    this->recreate();
-    return *this;
-}
-
-// ShortText = "***"
-auto LongUI::Component::ShortText::operator=(const char* str) noexcept ->ShortText& {
-    if (this->GetIsXML()) {
-        this->recreate(str);
-        return *this;
-    }
-    else {
-        wchar_t buffer[LongUIStringBufferLength];
-        buffer[LongUI::UTF8toWideChar(str, buffer)] = L'\0';
-        return this->operator=(buffer);
-    }
+    m_text.Set(node.attribute(prefix).value());
+    this->RecreateLayout();
 }
 
 // ShortText 析构
 LongUI::Component::ShortText::~ShortText() noexcept {
-    m_pTextRenderer.SafeRelease();
     ::SafeRelease(m_pLayout);
-    ::SafeRelease(m_config.dw_factory);
-    ::SafeRelease(m_config.text_format);
+    ::SafeRelease(m_pTextRenderer);
+    ::SafeRelease(m_config.factory);
+    ::SafeRelease(m_config.format);
 }
 
-// ShortText 重建
-void LongUI::Component::ShortText::recreate(const char* u8str) noexcept {
-    // utf-8 有效
-    if (u8str) {
-        wchar_t text_buffer[LongUIStringBufferLength];
-        // 转换为核心模式
-        if (this->GetIsXML() && this->GetIsRich()) {
-            LongUI::DX::XMLToCoreFormat(u8str, text_buffer);
-        }
-        // UTF-8?
-        else {
-            // 直接转码
-            register auto length = LongUI::UTF8toWideChar(u8str, text_buffer);
-            text_buffer[length] = L'\0';
-            m_text.Set(text_buffer, length);
-        }
-    }
-    // 创建布局
-    ::SafeRelease(m_pLayout);
-    // 富文本
-    if (this->GetIsRich()) {
-        m_pLayout = LongUI::DX::FormatTextCore(
-            m_config,
-            m_text.c_str(),
-            nullptr
-            );
-    }
-    // 平台文本
-    else {
+// ShortText 重建布局
+void LongUI::Component::ShortText::RecreateLayout() noexcept {
+    // 保留数据
+    auto old_layout = m_pLayout;
+    m_pLayout = nullptr;
+    // 看情况
+    switch (m_config.rich_type)
+    {
+    case LongUI::RichType::Type_None:
+    {
         register auto string_length_need = static_cast<uint32_t>(
             static_cast<float>(m_text.length() + 1) * m_config.progress
             );
@@ -149,45 +82,52 @@ void LongUI::Component::ShortText::recreate(const char* u8str) noexcept {
         if (string_length_need < 0) string_length_need = 0;
         else if (string_length_need > m_text.length()) string_length_need = m_text.length();
         // create it
-        m_config.dw_factory->CreateTextLayout(
+        m_config.factory->CreateTextLayout(
             m_text.c_str(),
             string_length_need,
-            m_config.text_format,
+            old_layout ? old_layout : m_config.format,
             m_config.width,
             m_config.height,
             &m_pLayout
             );
-        m_config.text_length = m_text.length();
     }
+        m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
+        break;
+    case LongUI::RichType::Type_Core:
+        m_pLayout = DX::FormatTextCore(m_config, m_text.c_str());
+        break;
+    case LongUI::RichType::Type_Xml:
+        m_pLayout = DX::FormatTextXML(m_config, m_text.c_str());
+        break;
+    case LongUI::RichType::Type_Custom:
+        m_pLayout = UIManager.configure->CustomRichType(m_config, m_text.c_str());
+        break;
+    }
+    ::SafeRelease(old_layout);
+    // sad
+    assert(m_pLayout);
 }
 
 
 // -------------------- LongUI::Component::EditaleText --------------------
 
-// LongUI 命名空间
-namespace LongUI {
-    // Component 命名空间
-    namespace Component {
-        // 移除字符串
-        auto __fastcall RemoveText(
-            LongUI::DynamicString& text,
-            uint32_t pos,
-            uint32_t len,
-            bool readonly
-            ) noexcept {
-            HRESULT hr = S_OK;
-            // 只读?
-            if (readonly) {
-                hr = S_FALSE;
-                ::MessageBeep(MB_ICONERROR);
-            }
-            else {
-                try { text.erase(pos, len); } CATCH_HRESULT(hr);
-            }
-            return hr;
+// LongUI::Component 命名空间
+namespace LongUI {  namespace Component {
+    // 移除字符串
+    auto __fastcall RemoveText(LongUI::DynamicString& text, 
+        uint32_t pos, uint32_t len, bool readonly) noexcept {
+        HRESULT hr = S_OK;
+        // 只读?
+        if (readonly) {
+            hr = S_FALSE;
+            ::MessageBeep(MB_ICONERROR);
         }
+        else {
+            try { text.erase(pos, len); } CATCH_HRESULT(hr);
+        }
+        return hr;
     }
-}
+}}
 
 // DWrite部分代码参考: 
 // http://msdn.microsoft.com/zh-cn/library/windows/desktop/dd941792(v=vs.85).aspx
@@ -278,7 +218,7 @@ auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE
     caretBegin = std::min(caretBegin, textLength);
     caretEnd = std::min(caretEnd, textLength);
     // 返回范围
-    return{ caretBegin, caretEnd - caretBegin };
+    return { caretBegin, caretEnd - caretBegin };
 }
 
 // 设置选择区
@@ -681,11 +621,8 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
         }
         // 单行 - 向窗口发送输入完毕消息
         else {
-            LongUI::EventArgument arg = { 0 };
-            arg.event = LongUI::Event::Event_EditReturned;
-            arg.sender = m_pHost;
-            m_pHost->GetWindow()->DoEvent(arg);
-            // TODO: single line
+            // sb!
+            this->sbcaller.operator()(m_pHost, SubEvent::Event_EditReturned);
         }
         break;
     case VK_BACK:       // 退格键

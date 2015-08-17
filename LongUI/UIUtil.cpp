@@ -134,6 +134,28 @@ void __fastcall LongUI::Meta_Render(
     }
 }
 
+// CUISubEventCaller () operator
+LongUINoinline bool LongUI::CUISubEventCaller::operator()(UIControl* sender, SubEvent subevent) noexcept {
+    assert(sender && subevent != LongUI::SubEvent::Event_Null && "bad arguments");
+    // 事件
+    LongUI::EventArgument arg;
+    arg.event = LongUI::Event::Event_SubEvent;
+    arg.sender = sender;
+    arg.ui.subevent = subevent;
+    arg.ui.pointer = nullptr;
+    arg.pt = { 0.f, 0.f };
+    arg.ctrl = nullptr;
+    // 脚本优先
+    if (UIManager.script && sender->GetScript().script) {
+        return UIManager.script->Evaluation(sender->GetScript(), arg);
+    }
+    // 回调其次
+    if (m_pCallback) {
+        return m_pCallback(m_pRecver, sender);
+    }
+    // 事件最低
+    return sender->GetWindow()->DoEvent(arg);
+}
 
 
 // 构造对象
@@ -414,7 +436,7 @@ HRESULT LongUI::CUIDropSource::GiveFeedback(DWORD dwEffect) noexcept {
 
 // UIString 设置字符串
 void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
-    assert(str && "<LongUI::CUIString::CUIString@const wchar_t*> str == null");
+    assert(str && "bad argument");
     // 内存不足
     if (!this->m_pString) {
         this->m_pString = m_aDataStatic;
@@ -432,9 +454,53 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
         m_pString = this->alloc_bufer(m_cBufferLength);
     }
     // 复制数据
-    assert(str && "<LongUI::CUIString::CUIString@const wchar_t*> m_pString == null");
+    assert(str && "<bad");
     ::wcscpy(m_pString, str);
     m_cLength = length;
+}
+
+// UIString 设置字符串
+void LongUI::CUIString::Set(const char* str, uint32_t length) noexcept {
+    assert(str && "bad argument");
+    // 固定缓存
+    wchar_t buffer[LongUIStringBufferLength];
+    // 动态缓存
+    wchar_t* huge_buffer = nullptr;
+    uint32_t buffer_length = LongUIStringBufferLength;
+    // 内存不足
+    if (!this->m_pString) {
+        this->m_pString = m_aDataStatic;
+        m_cBufferLength = LongUIStringLength;
+        m_aDataStatic[0] = wchar_t(0);
+    }
+    // 未知则计算
+    if (!length && *str) { length = static_cast<uint32_t>(::strlen(str)); }
+    // 假设全是英文字母, 超长的话
+    if (length > LongUIStringBufferLength) {
+        buffer_length = this->nice_buffer_length(length);
+        huge_buffer = this->alloc_bufer(m_cBufferLength);
+        // OOM ?
+        if (!huge_buffer) return this->OnOOM();
+    }
+    {
+        auto real_buffer = huge_buffer ? huge_buffer : buffer;
+        auto length_got = LongUI::UTF8toWideChar(str, real_buffer);
+        real_buffer[length_got] = 0;
+        // 动态申请?
+        if (huge_buffer) {
+            this->safe_free_bufer();
+            m_pString = huge_buffer;
+            huge_buffer = nullptr;
+            m_cLength = length_got;
+            m_cBufferLength = buffer_length;
+        }
+        // 设置
+        else {
+            this->Set(real_buffer, length_got);
+        }
+    }
+    // sad
+    assert(m_pString);
 }
 
 // UIString 添加字符串
@@ -519,24 +585,30 @@ LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
 // 格式化
 void LongUI::CUIString::Format(const wchar_t* format, ...) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
+    buffer[0] = 0;
     va_list ap;
     va_start(ap, format);
-    std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
-    this->Set(buffer);
+    auto length = std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
+    // error
+    if (length == -1) {
+        UIManager << DL_Warning << "std::vswprintf return -1 for out of space" << endl;
+        length = LongUIStringBufferLength - 1;
+    }
+    this->Set(buffer, length);
 }
 
 // CUIString 内存不足
 void LongUI::CUIString::OnOOM() noexcept {
-    const auto message = L"Out of Memory";
+    constexpr auto length = 13ui32;
     // 内存
-    if (LongUIStringLength > 13) {
-        this->Set(L"Out of Memory", 13);
+    if (LongUIStringLength > length) {
+        this->Set(L"Out of Memory", length);
     }
     else if(LongUIStringLength > 3) {
         this->Set(L"OOM", 3);
     }
     // 显示错误
-    UIManager.ShowError(message, L"<LongUI::CUIString::OnOOM()>");
+    UIManager.ShowError(E_OUTOFMEMORY, L"<LongUI::CUIString::OnOOM()>");
 }
 
 
@@ -1285,16 +1357,6 @@ namespace LongUI {
 
 // 查询接口信息
 auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
-    // 非接口
-    if (riid == LongUI::IID_InlineParamHandler) {
-        if (handler) {
-            *ppvObject = handler;
-            return S_OK;
-        }
-        else {
-            return E_NOINTERFACE;
-        }
-    }
     // 资源读取器
     if (riid == LongUI::IID_IUIResourceLoader) {
         *ppvObject =  LongUI::CreateResourceLoaderForXML(m_manager, this->resource);

@@ -40,7 +40,7 @@ void LongUI::UIText::Update() noexcept {
     // 改变了大小
     if(this->IsControlSizeChanged()) {
         // 设置大小
-        m_text.SetNewSize(this->view_size.width, this->view_size.height);
+        m_text.Resize(this->view_size.width, this->view_size.height);
         // 已经处理
         this->ControlSizeChangeHandled();
     }
@@ -223,30 +223,12 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         case WM_LBUTTONUP:
             if (m_pWindow->IsReleasedControl(this)) {
-                bool rec = false;
-                // 保留信息
-                force_cast(arg.sender) = this;   auto tempmsg = arg.msg;
-                force_cast(arg.event) = LongUI::Event::Event_ButtoClicked;
-                m_tarStatusClick = LongUI::Status_Hover;
-                // 检查脚本
-                if (m_script.script) {
-                    UIManager.script->Evaluation(m_script, arg);
-                }
-                // 检查是否有事件回调
-                if (m_eventClick) {
-                    rec = m_eventClick(m_pClickTarget, this);
-                }
-                // 否则发送事件到窗口
-                else {
-                    rec = m_pWindow->DoEvent(arg);
-                }
+                bool rec = m_caller(this, SubEvent::Event_ButtoClicked);
+                rec = false;
                 // 设置状态
                 UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
                 m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
                 m_pWindow->ReleaseCapture();
-                // 取消
-                force_cast(arg.sender) = nullptr;
-                force_cast(arg.msg) = tempmsg;
             }
             break;
         }
@@ -301,7 +283,7 @@ void LongUI::UIEditBasic::Update() noexcept {
     // 改变了大小
     if (this->IsControlSizeChanged()) {
         // 设置大小
-        m_text.SetNewSize(this->view_size.width, this->view_size.height);
+        m_text.Resize(this->view_size.width, this->view_size.height);
         // 已经处理
         this->ControlSizeChangeHandled();
     }
@@ -318,6 +300,8 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
+            __fallthrough;
+        case LongUI::Event::Event_SubEvent:
             return true;
         case LongUI::Event::Event_DragEnter:
             return m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
@@ -607,6 +591,25 @@ bool LongUI::UIContainer::debug_do_event(const LongUI::DebugEventInformation& in
     return false;
 }
 
+// UI 基本编辑控件: 调试信息
+bool LongUI::UIEditBasic::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIEditBasic";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIEditBasic";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIEditBasic>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
 
 // UI水平布局: 调试信息
 bool LongUI::UIHorizontalLayout::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {

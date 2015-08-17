@@ -43,11 +43,13 @@ namespace LongUI {
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
-        // create 创建
+        // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
     public:
         // control text 控件文本
         auto GetText() const noexcept { return m_text.c_str(); }
+        // single-line text returned
+        auto RegisterReturnEvent(const CUISubEventCaller& caller) noexcept { m_text.sbcaller = caller; }
     protected:
         // constructor 构造函数
         UIEditBasic(pugi::xml_node) noexcept;
@@ -60,5 +62,20 @@ namespace LongUI {
         Component::EditaleText  m_text;
         // 'I' cursor
         HCURSOR                 m_hCursorI = ::LoadCursor(nullptr, IDC_IBEAM);
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIEditBasic>() {
+        // {D60826F0-4AF1-48F9-A63A-58117943CE66}
+        static const GUID IID_LongUI_UIEditBasic = { 
+            0xd60826f0, 0x4af1, 0x48f9, { 0xa6, 0x3a, 0x58, 0x11, 0x79, 0x43, 0xce, 0x66 } 
+        };
+        return IID_LongUI_UIEditBasic;
+    }
+#endif
 }

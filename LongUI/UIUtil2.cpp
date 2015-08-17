@@ -242,6 +242,28 @@ LongUINoinline auto LongUI::Helper::XMLGetBitmapRenderRule(
     return static_cast<BitmapRenderRule>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
 }
 
+// 获取富文本类型
+LongUINoinline auto LongUI::Helper::XMLGetRichType(
+    pugi::xml_node node, RichType bad_match,
+    const char* attribute, const char* prefix
+    ) noexcept->RichType {
+    // 属性值列表
+    const char* rule_list[] = {
+        "none",
+        "core",
+        "xml",
+        "custom",
+    };
+    // 设置
+    XMLGetValueEnumProperties prop;
+    prop.attribute = attribute;
+    prop.prefix = prefix;
+    prop.values = rule_list;
+    prop.values_length = lengthof(rule_list);
+    // 调用
+    return static_cast<RichType>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
+}
+
 // 获取文本抗锯齿模式
 LongUINoinline auto LongUI::Helper::XMLGetD2DTextAntialiasMode(
     pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match

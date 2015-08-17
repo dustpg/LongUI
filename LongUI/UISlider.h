@@ -48,9 +48,7 @@ namespace LongUI{
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // register Value Changed 注册变动事件
-        void RegisterValueChangedEvent(LongUIEventCallBack call, UIControl* target) noexcept {
-            m_eventChanged = call; m_pChangedTarget = target;
-        };
+        void RegisterValueChangedEvent(const CUISubEventCaller& caller) noexcept { m_caller = caller; }
         // 获取数值
         auto GetValue() const noexcept { return m_fValue; }
         // is Vertical Slider?
@@ -65,10 +63,8 @@ namespace LongUI{
         // deleted function
         UISlider(const UISlider&) = delete;
     protected:
-        // changed event target
-        UIControl*          m_pChangedTarget = nullptr;
-        // changed event
-        LongUIEventCallBack m_eventChanged = nullptr;
+        // event caller
+        CUISubEventCaller   m_caller;
         // slider rect
         D2D1_RECT_F         m_rcSlider = D2D1::RectF();
         // ui element

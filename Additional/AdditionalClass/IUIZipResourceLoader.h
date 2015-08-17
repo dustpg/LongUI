@@ -25,6 +25,9 @@
 */
 
 #define LONGUI_WITH_DEFAULT_HEADER
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <LongUI/LongUI.h>
 #include <wincodec.h>
 #define MINIZ_HEADER_FILE_ONLY

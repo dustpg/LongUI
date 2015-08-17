@@ -91,7 +91,7 @@ namespace LongUI {
     class DECLSPEC_NOVTABLE IUIScript : public IUIInterface {
     public:
         // run a section script with event
-        virtual auto Evaluation(const ScriptUI, const LongUI::EventArgument&) noexcept->size_t = 0;
+        virtual auto Evaluation(const ScriptUI&, const LongUI::EventArgument&) noexcept->bool = 0;
         // get config infomation
         virtual auto GetConfigInfo() noexcept->ScriptConfigInfo = 0;
         // alloc the script memory and copy into(may be compiled into byte code), return memory size
@@ -131,6 +131,7 @@ namespace LongUI {
     //              IID_LongUI_IUIResourceLoader(opt), 
     //              IID_LongUI_IUIScript(opt),
     //              IDWriteFontCollection(opt)
+    class CUISubEventCaller;
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
         // get template string for control
@@ -139,15 +140,17 @@ namespace LongUI {
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void = 0;
         // add all custom controls, just return if no custom control
         virtual auto AddCustomControl() noexcept->void = 0;
-        // return true, if using cpu rendering by WARP driver
+        // return true, if use cpu rendering by WARP driver
         virtual auto IsRenderByCPU() noexcept->bool = 0;
-        // if using gpu render, you should choose a video card,return the index,
+        // if use gpu render, you should choose a video card,return the index,
         // if return code out of range, will set by default(null pointer adapter)
-        // btw, in the adapter list, also include the SOFTWARE-adapter
-        virtual auto ChooseAdapter(IDXGIAdapter1* adapters[/*length*/], size_t const length /*length <=256*/) noexcept->size_t = 0;
-        // SetEventCallBack for custom control
+        // btw, in the adapter list, also include the WARP-adapter
+        virtual auto ChooseAdapter(IDXGIAdapter1* adapters[/*length*/], const size_t length /*<=256*/) noexcept->size_t = 0;
+        // SetSubEventCallBack for custom control
         // in normal case, you just return and say "不方便" is ok
-        virtual auto SetEventCallBack(LongUI::Event, LongUIEventCallBack call, UIControl* target, UIControl* caller) noexcept -> void = 0;
+        virtual auto SetSubEventCallBack(LongUI::SubEvent, const CUISubEventCaller& caller, UIControl* recver) noexcept -> void = 0;
+        // if in RichType::Type_Custom, will call this
+        virtual auto CustomRichType(const FormatTextConfig& config, const wchar_t* format) noexcept->IDWriteTextLayout* =0;
         // show the error string
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void = 0;
 #ifdef _DEBUG

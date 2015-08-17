@@ -89,6 +89,8 @@ namespace LongUI {
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
         // XXX: is top level?
         LongUIInline auto IsTopLevel() const noexcept;
+        // get script
+        LongUIInline const auto& GetScript() const noexcept { return m_script; }
     public:
         // get width of control
         auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
@@ -220,7 +222,7 @@ namespace LongUI {
         void AssertTypeCasting(IID& iid) const noexcept { UNREFERENCED_PARAMETER(iid); }
 #endif
         // Set Event Call Back
-        void SetEventCallBack(const wchar_t*, LongUI::Event, LongUIEventCallBack) noexcept;
+        void SetSubEventCallBack(const wchar_t*, LongUI::SubEvent, SubEventCallBack) noexcept;
         // get real control size in byte
         template<class T, class L>
         static LongUIInline auto AllocRealControl(pugi::xml_node node, L lam) noexcept {

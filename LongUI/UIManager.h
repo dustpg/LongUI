@@ -195,8 +195,6 @@ namespace LongUI {
     public:
         // script 脚本
         IUIScript*           const      script = nullptr;
-        // the handler
-        InlineParamHandler   const      inline_handler = nullptr;
         // config
         IUIConfigure*        const      configure = nullptr;
         // windows version

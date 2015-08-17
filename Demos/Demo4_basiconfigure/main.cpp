@@ -15,7 +15,7 @@ LONGUI_NAMESPACE_BEGIN2 Demo {
     public:
         // ctor
         MyConfig() : Super(UIManager) { }
-        // return true, if using cpu rendering
+        // return true, if use cpu rendering
         virtual auto IsRenderByCPU() noexcept->bool override { 
             return true; 
         }

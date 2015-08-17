@@ -26,7 +26,7 @@
 
 // LongUI namespace
 namespace LongUI{
-    // UI String -- compatible with std library string interface(part of) but static
+    // UI String -- compatible with std library string interface(part of) but host a fixed buffer
     class CUIString {
     public:
         // 默认构造函数
@@ -42,8 +42,12 @@ namespace LongUI{
     public:
         // set/assign
         void Set(const wchar_t* str, uint32_t = 0) noexcept;
+        // set/assign for utf-8
+        void Set(const char* str, uint32_t = 0) noexcept;
         // append
         void Append(const wchar_t* str, uint32_t = 0) noexcept;
+        // append for utf-8
+        //void Append(const char* str, uint32_t = 0) noexcept;
         // format
         void Format(const wchar_t* format, ...) noexcept;
         // On Out of Memory
@@ -62,12 +66,16 @@ namespace LongUI{
     public: // std::string compatibled interface/method
         // assign: overload for [const wchar_t*]
         auto assign(const wchar_t* str, uint32_t count = 0) noexcept { return this->Set(str, count); }
+        // assign: overload for [const char*]
+        auto assign(const char* str, uint32_t count = 0) noexcept { return this->Set(str, count); }
         // assign: overload for [const wchar_t]
         auto assign(const wchar_t ch) noexcept { wchar_t buf[2] = { ch, 0 }; return this->Set(buf, 1); }
         // assign: overload for [const char]
         auto assign(const char ch) noexcept { wchar_t buf[2] = { wchar_t(ch), 0 }; return this->Set(buf, 1); }
         // = 操作: overload for [const wchar_t*]
         auto&operator= (const wchar_t* s) noexcept { this->assign(s); return *this; }
+        // = 操作: overload for [const char*]
+        auto&operator= (const char* s) noexcept { this->assign(s); return *this; }
         // = 操作: overload for [const wchar_t]
         auto&operator= (const wchar_t ch) noexcept { this->assign(ch); return *this; }
         // = 操作: overload for [const char]

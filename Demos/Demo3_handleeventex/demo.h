@@ -80,9 +80,11 @@ bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_ButtoClicked:
+        case LongUI::Event::Event_SubEvent:
             // number button clicked event
-            this->number_button_clicked(arg.sender);
+            if (arg.ui.subevent == LongUI::SubEvent::Event_ButtoClicked) {
+                this->number_button_clicked(arg.sender);
+            }
             return true;
         case LongUI::Event::Event_TreeBulidingFinished:
             // Event_TreeBulidingFinished could as "init" event
@@ -104,33 +106,33 @@ void LongUI::Demo::MainWindow::init() {
     // get display control, check error?
     m_display = longui_cast<UIText*>(this->FindControl(L"display"));
     // +
-    this->SetEventCallBack(
+    this->SetSubEventCallBack(
         L"btn_plus",
-        LongUI::Event::Event_ButtoClicked,
+        LongUI::SubEvent::Event_ButtoClicked,
         [](UIControl* uithis, UIControl* btn) noexcept {
             return static_cast<MainWindow*>(uithis)->on_plus();
         }
     );
     // -
-    this->SetEventCallBack(
+    this->SetSubEventCallBack(
         L"btn_minu",
-        LongUI::Event::Event_ButtoClicked,
+        LongUI::SubEvent::Event_ButtoClicked,
         [](UIControl* uithis, UIControl* btn) noexcept {
             return static_cast<MainWindow*>(uithis)->on_minus();
         }
     );
     // =
-    this->SetEventCallBack(
+    this->SetSubEventCallBack(
         L"btn_equl",
-        LongUI::Event::Event_ButtoClicked,
+        LongUI::SubEvent::Event_ButtoClicked,
         [](UIControl* uithis, UIControl* btn) noexcept {
             return static_cast<MainWindow*>(uithis)->on_equal();
         }
     );
     // C
-    this->SetEventCallBack(
+    this->SetSubEventCallBack(
         L"btn_clear",
-        LongUI::Event::Event_ButtoClicked,
+        LongUI::SubEvent::Event_ButtoClicked,
         [](UIControl* uithis, UIControl* btn) noexcept {
             return static_cast<MainWindow*>(uithis)->on_clear();
         }

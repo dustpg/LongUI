@@ -269,6 +269,8 @@ namespace LongUI {
     class UIWindow;
     // pre-declare, LongUI::CUIString is a string class that hold a small fixed buffer
     class CUIString;
+    // pre-declare
+    class IUIScript;
     // Vector, you can change to other like eastl stl lib, or you own
     template<typename T> using Vector = std::vector<T>;
     // String, you can change to other like eastl stl lib, or you own 

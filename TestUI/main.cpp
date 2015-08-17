@@ -1,7 +1,8 @@
-﻿#if 1
+﻿#if 0
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
+
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
 #if 0
@@ -9,13 +10,13 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
     <VerticalLayout name="VLayout1" size="1100, 128">
         <!--Video name="asd" /-->
-        <Test name="test" texttype="core" text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
+        <Test name="test" textrichtype="core" text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
         <Slider name="6" renderparent="true"/>
     </VerticalLayout>
     <HorizontalLayout name="HLayout" size="0, 256">
         <Edit name="edit01" textmultiline="true" text="Hello, world!&#xD;&#xA;泥壕, 世界!"/>
         <VerticalLayout name="VLayout2">
-            <Text name="label_test" texttype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
+            <Text name="label_test" textrichtype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
             <Button name="btn_systemlook" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
             <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
                 margin="4,4,4,4" hovermeta="3" pushedmeta="4" borderwidth="1" text="Hello, world!"/>
@@ -42,7 +43,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </HorizontalLayout>
-    <Button name="btn_x" size="0, 32" borderwidth="1" texttype="core"
+    <Button name="btn_x" size="0, 32" borderwidth="1" textrichtype="core"
         text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
 </Window>
 )xml";
@@ -173,7 +174,7 @@ public:
             ::SafeRelease(m_pCmdList);
             m_pRenderTarget->CreateCommandList(&m_pCmdList);
             // 设置大小
-            m_text.SetNewSize(this->view_size.width, this->view_size.height);
+            m_text.Resize(this->view_size.width, this->view_size.height);
             // 已经处理
             this->ControlSizeChangeHandled();
         }
@@ -192,7 +193,7 @@ public:
             }
             else*/ if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
             // 注册事件
-                this->SetEventCallBack(
+                this->SetSubEventCallBack(
                     L"6",
                     LongUI::Event::Event_SliderValueChanged,
                     [](UIControl* t, UIControl* s) noexcept { return static_cast<TestControl*>(t)->OnValueChangedConst(s); }
@@ -460,7 +461,7 @@ namespace LongUI { namespace Demo {
     public:
         // ctor
         MyConfig() : Super(UIManager) { }
-        // return true, if using cpu rendering
+        // return true, if use cpu rendering
         virtual auto IsRenderByCPU() noexcept->bool override {
             return true;
         }

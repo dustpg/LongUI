@@ -243,13 +243,13 @@ namespace LongUI {
             const char* attribute = "rule",
             const char* prefix = nullptr
             ) noexcept->BitmapRenderRule;
-        // get longui bitmap render rule
-        auto XMLGetBitmapRenderRule(
+        // get longui richtype
+        auto XMLGetRichType(
             pugi::xml_node node,
-            BitmapRenderRule bad_match,
-            const char* attribute = "rule",
+            RichType bad_match,
+            const char* attribute = "richtype",
             const char* prefix = nullptr
-            ) noexcept->BitmapRenderRule;
+            ) noexcept->RichType;
         // get d2d text anti-mode
         auto XMLGetD2DTextAntialiasMode(pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match) noexcept->D2D1_TEXT_ANTIALIAS_MODE;
     }

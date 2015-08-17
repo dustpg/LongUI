@@ -98,7 +98,7 @@ namespace LongUI {
             // c-style string
             LongUIInline auto assign(const wchar_t* str, size_t length) noexcept { m_text.assign(str, length); return recreate_layout(); }
             // set width a new size
-            LongUIInline auto SetNewSize(float w, float h) noexcept {
+            LongUIInline auto Resize(float w, float h) noexcept {
                 m_size.width = w; m_size.height = h;
                 this->layout->SetMaxWidth(w); this->layout->SetMaxHeight(h);
             }
@@ -186,6 +186,8 @@ namespace LongUI {
             EditaleTextType         type = Type_None;
             // password char
             char32_t                password = U'*';
+            // caller
+            CUISubEventCaller       sbcaller;
         private:
             // render target
             ID2D1RenderTarget*      m_pRenderTarget = nullptr;

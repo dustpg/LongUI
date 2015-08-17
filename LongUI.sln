@@ -48,6 +48,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestUI", "TestUI\TestUI.vcx
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo3_handleeventex", "Demos\Demo3_handleeventex\Demo3_handleeventex.vcxproj", "{1794B85B-34AC-4FE3-978C-1E95BC52EA1C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{24BA6B9D-773F-4D99-8EC5-EF060F7D4C55} = {24BA6B9D-773F-4D99-8EC5-EF060F7D4C55}
+		{08A52CC4-96C2-4BCD-8378-7F70BC54485B} = {08A52CC4-96C2-4BCD-8378-7F70BC54485B}
+		{DDF22BED-A0A3-49C3-8B05-4CC9FF3493B4} = {DDF22BED-A0A3-49C3-8B05-4CC9FF3493B4}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Demo4_basiconfigure", "Demos\Demo4_basiconfigure\Demo4_basiconfigure.vcxproj", "{CF6CC1BB-6E8F-43EB-BFF4-9C7BA087A325}"
 	ProjectSection(ProjectDependencies) = postProject
