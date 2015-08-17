@@ -1,5 +1,7 @@
 ﻿## LongUI
  C++ 轻量级 Direct2D GUI 库/框架  
+ 
+##### Current Version : Alpha-Stage
 
 ## Requirements
   
@@ -17,6 +19,9 @@
 ##KnownIssues
   
   已知问题: (KnownIssues.md)[./KnownIssues.md]
+  
+## XML Attributes List
+  (xml-attributes.md)[./Document/xml-attributes.md]
   
 ##Remarks
   

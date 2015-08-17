@@ -3,7 +3,7 @@
 Lightweight Direct2D GUI Library/Framework in C++  
 [中文说明文档](./README.zh-cn.md)
 
-##### Current Version : Alpha Stage 0.0.0.alpha32
+##### Current Version : Alpha-Stage
 
 ## Requirements
   
@@ -21,6 +21,9 @@ For this repo, you need:
 
 ##Known Issues  
   in (KnownIssues.md)[./KnownIssues.md]
+  
+## XML Attributes List
+  (xml-attributes.md)[./Document/xml-attributes.md]
     
 ##Remarks
   
