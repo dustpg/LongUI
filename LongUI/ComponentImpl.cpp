@@ -111,28 +111,8 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
 
 // -------------------- LongUI::Component::EditaleText --------------------
 
-// LongUI::Component 命名空间
-namespace LongUI {  namespace Component {
-    // 移除字符串
-    auto __fastcall RemoveText(LongUI::DynamicString& text, 
-        uint32_t pos, uint32_t len, bool readonly) noexcept {
-        HRESULT hr = S_OK;
-        // 只读?
-        if (readonly) {
-            hr = S_FALSE;
-            ::MessageBeep(MB_ICONERROR);
-        }
-        else {
-            try { text.erase(pos, len); } CATCH_HRESULT(hr);
-        }
-        return hr;
-    }
-}}
-
 // DWrite部分代码参考: 
 // http://msdn.microsoft.com/zh-cn/library/windows/desktop/dd941792(v=vs.85).aspx
-
-
 
 // 刷新布局
 auto LongUI::Component::EditaleText::refresh(bool update) const noexcept ->UIWindow* {
@@ -152,7 +132,7 @@ void LongUI::Component::EditaleText::recreate_layout() noexcept {
     ::SafeRelease(this->layout);
     // 创建布局
     m_pFactory->CreateTextLayout(
-        m_text.c_str(), static_cast<uint32_t>(m_text.length()),
+        m_string.c_str(), static_cast<uint32_t>(m_string.length()),
         m_pBasicFormat,
         m_size.width, m_size.height,
         &this->layout
@@ -161,17 +141,16 @@ void LongUI::Component::EditaleText::recreate_layout() noexcept {
 
 // 插入字符(串)
 auto LongUI::Component::EditaleText::insert(
-    const wchar_t * str, uint32_t pos, uint32_t length) noexcept -> HRESULT {
+    uint32_t pos, const wchar_t * str,  uint32_t length) noexcept -> HRESULT {
     HRESULT hr = S_OK;
     // 只读
     if (this->IsReadOnly()) {
         ::MessageBeep(MB_ICONERROR);
         return S_FALSE;
     }
-    auto old_length = static_cast<uint32_t>(m_text.length());
     // 插入字符
-    try { m_text.insert(pos, str, length); }
-    CATCH_HRESULT(hr);
+    m_string.insert(pos, str, length); 
+    auto old_length = static_cast<uint32_t>(m_string.length());
     // 保留旧布局
     auto old_layout = ::SafeAcquire(this->layout);
     // 重新创建布局
@@ -197,7 +176,7 @@ auto LongUI::Component::EditaleText::insert(
             Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
         }
         // 末尾
-        Component::EditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_text.length()), UINT32_MAX);
+        Component::EditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_string.length()), UINT32_MAX);
     }
     ::SafeRelease(old_layout);
     return hr;
@@ -214,7 +193,7 @@ auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE
         std::swap(caretBegin, caretEnd);
     }
     // 限制范围在文本长度之内
-    auto textLength = static_cast<uint32_t>(m_text.size());
+    auto textLength = static_cast<uint32_t>(m_string.size());
     caretBegin = std::min(caretBegin, textLength);
     caretEnd = std::min(caretEnd, textLength);
     // 返回范围
@@ -241,9 +220,9 @@ auto LongUI::Component::EditaleText::SetSelection(
             // 检查换行符
             absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
             if (absolute_position >= 1
-                && absolute_position < m_text.size()
-                && m_text[absolute_position - 1] == '\r'
-                &&  m_text[absolute_position] == '\n')
+                && absolute_position < m_string.size()
+                && m_string[absolute_position - 1] == L'\r'
+                &&  m_string[absolute_position] == L'\n')
             {
                 m_u32CaretPos = absolute_position - 1;
                 this->AlignCaretToNearestCluster(false, true);
@@ -256,9 +235,9 @@ auto LongUI::Component::EditaleText::SetSelection(
         this->AlignCaretToNearestCluster(true, true);
         absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
         if (absolute_position >= 1
-            && absolute_position < m_text.size()
-            && m_text[absolute_position - 1] == '\r'
-            &&  m_text[absolute_position] == '\n')
+            && absolute_position < m_string.size()
+            && m_string[absolute_position - 1] == '\r'
+            &&  m_string[absolute_position] == '\n')
         {
             m_u32CaretPos = absolute_position + 1;
             this->AlignCaretToNearestCluster(false, true);
@@ -471,19 +450,15 @@ auto LongUI::Component::EditaleText::SetSelection(
 
 // 删除选择区文字
 auto LongUI::Component::EditaleText::DeleteSelection() noexcept-> HRESULT {
-    HRESULT hr = S_FALSE;
     DWRITE_TEXT_RANGE selection = this->GetSelectionRange();
-    if (selection.length == 0 || this->IsReadOnly()) return hr;
-    // 删除
-    hr = LongUI::Component::RemoveText(
-        m_text, selection.startPosition, selection.length,
-        this->IsReadOnly()
-        );
-    // 成功的话设置选择区
-    if (hr == S_OK) {
-        hr = this->SetSelection(Mode_Leading, selection.startPosition, false);
+    if (selection.length == 0 || this->IsReadOnly()) return S_FALSE;
+    // 删除成功的话设置选择区
+    if (this->remove_text(selection.startPosition, selection.length)) {
+        return this->SetSelection(Mode_Leading, selection.startPosition, false);
     }
-    return hr;
+    else {
+        return S_FALSE;
+    }
 }
 
 
@@ -591,7 +566,7 @@ void LongUI::Component::EditaleText::OnChar(char32_t ch) noexcept {
         }
 #endif
         // 插入
-        this->insert(chars, m_u32CaretPos + m_u32CaretPosOffset, length);
+        this->insert(m_u32CaretPos + m_u32CaretPosOffset, chars, length);
         // 设置选择区
         this->SetSelection(SelectionMode::Mode_Right, length, false, false);
         // 刷新
@@ -614,7 +589,7 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
         // 多行 - 键CRLF字符
         if (this->IsMultiLine()) {
             this->DeleteSelection();
-            this->insert(L"\r\n", absolutePosition, 2);
+            this->insert(absolutePosition, L"\r\n", 2);
             this->SetSelection(SelectionMode::Mode_Leading, absolutePosition + 2, false, false);
             // 修改
             this->refresh();
@@ -636,8 +611,8 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
         else if (absolutePosition > 0) {
             UINT32 count = 1;
             // 对于CR/LF 特别处理
-            if (absolutePosition >= 2 && absolutePosition <= m_text.size()) {
-                auto* __restrict base = m_text.data() + absolutePosition;
+            if (absolutePosition >= 2 && absolutePosition <= m_string.size()) {
+                auto* __restrict base = m_string.data() + absolutePosition;
                 if (base[-2] == L'\r' && base[-1] == L'\n') {
                     count = 2;
                 }
@@ -645,7 +620,7 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
             // 左移
             this->SetSelection(SelectionMode::Mode_LeftChar, count, false);
             // 字符串: 删除count个字符
-            if (LongUI::Component::RemoveText(m_text, m_u32CaretPos, count, this->IsReadOnly()) == S_OK) {
+            if (this->remove_text(m_u32CaretPos, count)) {
                 this->recreate_layout();
             }
         }
@@ -673,8 +648,8 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
                 &hitTestMetrics
                 );
             // CR-LF?
-            if (hitTestMetrics.textPosition + 2 < m_text.length()) {
-                auto* __restrict base = m_text.data() + hitTestMetrics.textPosition;
+            if (hitTestMetrics.textPosition + 2 < m_string.length()) {
+                auto* __restrict base = m_string.data() + hitTestMetrics.textPosition;
                 if (base[0] == L'\r' && base[1] == L'\n') {
                     ++hitTestMetrics.length;
                 }
@@ -682,10 +657,7 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
             // 修改
             this->SetSelection(SelectionMode::Mode_Leading, hitTestMetrics.textPosition, false);
             // 删除字符
-            if (LongUI::Component::RemoveText(m_text,
-                hitTestMetrics.textPosition, hitTestMetrics.length,
-                this->IsReadOnly()
-                ) == S_OK) {
+            if(this->remove_text(hitTestMetrics.textPosition, hitTestMetrics.length)) {
                 this->recreate_layout();
             }
         }
@@ -828,10 +800,7 @@ void LongUI::Component::EditaleText::OnLButtonHold(float x, float y, bool shfit_
                     m_dragRange.startPosition += m_dragRange.length;
                 }
                 // 删除
-                if (LongUI::Component::RemoveText(
-                    m_text, m_dragRange.startPosition, m_dragRange.length,
-                    this->IsReadOnly()
-                    ) == S_OK) {
+                if (this->remove_text(m_dragRange.startPosition, m_dragRange.length)) {
                     this->recreate_layout();
                     this->SetSelection(Mode_Left, 1, false);
                     this->SetSelection(Mode_Right, 1, false);
@@ -960,7 +929,7 @@ auto LongUI::Component::EditaleText::CopyToGlobal() noexcept-> HGLOBAL {
             auto* memory = reinterpret_cast<wchar_t*>(::GlobalLock(global));
             // 申请全局内存成功
             if (memory) {
-                const wchar_t* text = m_text.c_str();
+                const wchar_t* text = m_string.c_str();
                 ::memcpy(memory, text + selection.startPosition, byteSize);
                 memory[selection.length] = L'\0';
                 ::GlobalUnlock(global);
@@ -986,7 +955,7 @@ auto LongUI::Component::EditaleText::CopyToClipboard() noexcept-> HRESULT {
                     auto* memory = reinterpret_cast<wchar_t*>(::GlobalLock(hClipboardData));
                     // 申请全局内存成功
                     if (memory) {
-                        const wchar_t* text = m_text.c_str();
+                        const wchar_t* text = m_string.c_str();
                         ::memcpy(memory, text + selection.startPosition, byteSize);
                         memory[selection.length] = L'\0';
                         ::GlobalUnlock(hClipboardData);
@@ -1029,7 +998,7 @@ auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> 
         // 计算长度
         auto characterCount = static_cast<UINT32>(::wcsnlen(text, byteSize / sizeof(wchar_t)));
         // 插入
-        hr = this->insert(text, m_u32CaretPos + m_u32CaretPosOffset, characterCount);
+        hr = this->insert(m_u32CaretPos + m_u32CaretPosOffset, text, characterCount);
         ::GlobalUnlock(global);
         // 移动
         this->SetSelection(SelectionMode::Mode_RightChar, characterCount, true);
@@ -1202,14 +1171,8 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     }
     // 获取文本
     {
-        wchar_t buffer[LongUIStringBufferLength];
         if (str = node.attribute(prefix).value()) {
-            try {
-                m_text.assign(buffer, LongUI::UTF8toWideChar(str, buffer));
-            }
-            catch (...) {
-                UIManager << DL_Error << L"FAILED" << LongUI::endl;
-            }
+            m_string.assign(str);
         }
     }
     // 创建布局

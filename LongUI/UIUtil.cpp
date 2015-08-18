@@ -460,7 +460,7 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
 }
 
 // UIString 设置字符串
-void LongUI::CUIString::Set(const char* str, uint32_t length) noexcept {
+void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
     assert(str && "bad argument");
     // 固定缓存
     wchar_t buffer[LongUIStringBufferLength];
@@ -474,10 +474,10 @@ void LongUI::CUIString::Set(const char* str, uint32_t length) noexcept {
         m_aDataStatic[0] = wchar_t(0);
     }
     // 未知则计算
-    if (!length && *str) { length = static_cast<uint32_t>(::strlen(str)); }
+    if (!len && *str) { len = static_cast<uint32_t>(::strlen(str)); }
     // 假设全是英文字母, 超长的话
-    if (length > LongUIStringBufferLength) {
-        buffer_length = this->nice_buffer_length(length);
+    if (len > LongUIStringBufferLength) {
+        buffer_length = this->nice_buffer_length(len);
         huge_buffer = this->alloc_bufer(m_cBufferLength);
         // OOM ?
         if (!huge_buffer) return this->OnOOM();
@@ -504,14 +504,14 @@ void LongUI::CUIString::Set(const char* str, uint32_t length) noexcept {
 }
 
 // UIString 添加字符串
-void LongUI::CUIString::Append(const wchar_t* str, uint32_t length) noexcept {
+void LongUI::CUIString::Append(const wchar_t* str, uint32_t len) noexcept {
     assert(str && "bad argument");
     // 无需
     if (!(*str)) return;
     // 未知则计算
-    if (!length) { length = static_cast<uint32_t>(::wcslen(str)); }
+    if (!len) { len = static_cast<uint32_t>(::wcslen(str)); }
     // 超过缓存?
-    const auto target_lenth = m_cLength + length + 1;
+    const auto target_lenth = m_cLength + len + 1;
     if (target_lenth > m_cBufferLength) {
         m_cBufferLength = this->nice_buffer_length(target_lenth);
         // 申请内存
@@ -520,8 +520,8 @@ void LongUI::CUIString::Append(const wchar_t* str, uint32_t length) noexcept {
             return this->OnOOM();
         }
         // 复制数据
-        this->copy_string(alloced_buffer, m_pString, m_cLength);
-        this->copy_string(alloced_buffer + m_cLength, str, length);
+        this->copy_string_ex(alloced_buffer, m_pString, m_cLength);
+        this->copy_string(alloced_buffer + m_cLength, str, len);
         // 释放
         this->safe_free_bufer();
         m_pString = alloced_buffer;
@@ -529,11 +529,77 @@ void LongUI::CUIString::Append(const wchar_t* str, uint32_t length) noexcept {
     // 继续使用旧缓存
     else {
         // 复制数据
-        this->copy_string(m_pString + m_cLength, str, length);
+        this->copy_string(m_pString + m_cLength, str, len);
     }
     // 添加长度
-    m_cLength += length;
+    m_cLength += len;
 }
+
+
+// 设置保留缓存
+void LongUI::CUIString::Reserve(uint32_t len) noexcept {
+    assert(len && "bad argument");
+    // 小于等于就什么都不做
+    if (len > m_cBufferLength) {
+        // 换成偶数
+        auto nice_length = len + (len & 1);
+        // 申请空间
+        auto buffer = this->alloc_bufer(nice_length);
+        // OOM
+        if (!buffer) {
+            return this->OnOOM();
+        }
+        // 复制数据
+        this->copy_string(buffer, m_pString, m_cLength);
+        m_cBufferLength = nice_length;
+        this->safe_free_bufer();
+        m_pString = buffer;
+    }
+}
+
+// 插入字符串
+void LongUI::CUIString::Insert(uint32_t off, const wchar_t* str, uint32_t len) noexcept {
+    assert(str && "bad argument");
+    assert(off <= m_cLength && "out of range");
+    // 插入尾巴
+    if (off >= m_cLength) return this->Append(str, len);
+    // 无需
+    if (!(*str)) return;
+    // 未知则计算
+    if (!len) { len = static_cast<uint32_t>(::wcslen(str)); }
+    // 需要申请内存?
+    const auto target_lenth = m_cLength + len + 1;
+    if (target_lenth > m_cBufferLength) {
+        m_cBufferLength = this->nice_buffer_length(target_lenth);
+        // 申请内存
+        auto alloced_buffer = this->alloc_bufer(m_cBufferLength);
+        if (!alloced_buffer) {
+            return this->OnOOM();
+        }
+        // 复制数据
+        this->copy_string_ex(alloced_buffer, m_pString, off);
+        this->copy_string_ex(alloced_buffer + off, str, len);
+        this->copy_string(alloced_buffer + off + len, m_pString, m_cLength - off);
+        // 释放
+        this->safe_free_bufer();
+        m_pString = alloced_buffer;
+    }
+    // 继续使用旧缓存
+    else {
+        // memcpy:restrict 要求, 手动循环
+        auto src_end = m_pString + m_cLength;
+        auto des_end = src_end + len;
+        for (uint32_t i = 0; i < (m_cLength - off + 1); ++i) {
+            *des_end = *src_end;
+            --des_end; --src_end;
+        }
+        // 复制数据
+        this->copy_string_ex(m_pString + off, str, len);
+    }
+    // 添加长度
+    m_cLength += len;
+}
+
 
 // UIString 字符串析构函数
 LongUI::CUIString::~CUIString() noexcept {
@@ -580,6 +646,25 @@ LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
     obj.m_cLength = 0;
     obj.m_pString = obj.m_aDataStatic;
     obj.m_aDataStatic[0] = wchar_t(0);
+}
+
+// 删除字符串
+void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
+    assert(offset + length < m_cLength && "out of range");
+    // 有可能直接删除后面, 优化
+    if (offset + length >= m_cLength) {
+        m_cLength = std::min(m_cLength, offset);
+        return;
+    }
+    // 将后面的字符串复制过来即可
+    // memcpy:restrict 要求, 手动循环
+    auto des = m_pString + offset;
+    auto src = des + length;
+    for (uint32_t i = 0; i < (m_cLength - offset - length + 1); ++i) {
+        *des = *src;
+        ++des; ++src;
+    }
+    m_cLength -= length;
 }
 
 // 格式化

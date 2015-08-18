@@ -90,25 +90,32 @@ namespace LongUI {
             static void __fastcall CopyRangedProperties(IDWriteTextLayout*, IDWriteTextLayout*, uint32_t, uint32_t, uint32_t, bool = false) noexcept;
         public: // 外部设置区
             // get hittest
-            LongUIInline auto GetHitTestMetrics() noexcept { return m_metriceBuffer.data; }
+            auto GetHitTestMetrics() noexcept { return m_metriceBuffer.data; }
             // get hittest's length 
-            LongUIInline auto GetHitTestLength() noexcept { return m_metriceBuffer.data_length; }
+            auto GetHitTestLength() noexcept { return m_metriceBuffer.data_length; }
             // c-style string
-            LongUIInline auto c_str() const noexcept { return m_text.c_str(); }
-            // c-style string
-            LongUIInline auto assign(const wchar_t* str, size_t length) noexcept { m_text.assign(str, length); return recreate_layout(); }
-            // set width a new size
-            LongUIInline auto Resize(float w, float h) noexcept {
-                m_size.width = w; m_size.height = h;
-                this->layout->SetMaxWidth(w); this->layout->SetMaxHeight(h);
-            }
+            auto c_str() const noexcept { return m_string.c_str(); }
+            /// <summary>
+            /// Resizes the layout, use this after resize
+            /// </summary>
+            /// <param name="w">The width of layout.</param>
+            /// <param name="h">The height of layout.</param>
+            /// <returns></returns>
+            auto Resize(float w, float h) noexcept { m_size.width = w; m_size.height = h; this->layout->SetMaxWidth(w); this->layout->SetMaxHeight(h); }
+            /// <summary>
+            /// Recreates the layout. use this after change text
+            /// </summary>
+            /// <returns></returns>
+            auto RecreateLayout() noexcept { return this->recreate_layout(); }
+            // get string
+            auto&GetString() noexcept { return m_string; }
         private:
             // refresh, while layout chenged, should be refreshed
             auto __fastcall refresh(bool = true)const noexcept->UIWindow*;
             // recreate layout
             void __fastcall recreate_layout() noexcept;
             // insert text
-            auto __fastcall insert(const wchar_t* str, uint32_t pos, uint32_t length) noexcept->HRESULT;
+            auto __fastcall insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept->HRESULT;
         public: // 一般内部设置区
             // get selection range
             auto __fastcall GetSelectionRange()const noexcept->DWRITE_TEXT_RANGE;
@@ -175,6 +182,12 @@ namespace LongUI {
                 OUT uint32_t* lineOut,
                 OUT uint32_t* linePositionOut
                 ) noexcept;
+        private:
+            // remove text
+            auto remove_text(uint32_t off, uint32_t len) noexcept {
+                this->IsReadOnly() ? ::MessageBeep(MB_ICONERROR) : m_string.Remove(off, len);
+                return !this->IsReadOnly();
+            }
         public:
             // destructor
             ~EditaleText() noexcept;
@@ -230,7 +243,7 @@ namespace LongUI {
             // the pos offset of caret 光标偏移 -- 选择区大小
             uint32_t                m_u32CaretPosOffset = 0;
             // string of text
-            DynamicString           m_text;
+            CUIString               m_string;
             // basic color
             D2D1_COLOR_F            m_basicColor;
             // context buffer for text renderer

@@ -274,7 +274,7 @@ namespace LongUI {
     // Vector, you can change to other like eastl stl lib, or you own
     template<typename T> using Vector = std::vector<T>;
     // String, you can change to other like eastl stl lib, or you own 
-    using DynamicString = std::wstring;
+    //using DynamicString = std::wstring;
     // Basic Container
     using BasicContainer = LongUI::Vector<void*>;
     // map longui string to pointer, you can change to other like eastl stl lib, or you own 
