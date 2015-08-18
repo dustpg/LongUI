@@ -255,19 +255,18 @@ auto LongUI::DX::FormatTextXML(
 }
 
 
-
 // 格式化文字
 /*
 control char    C-Type      Infomation                                  StringInlineParamSupported
 
 %%               [none]      As '%' Character(like %% in ::printf)                 ---
-%a %A      [const wchar_t*] string add(like %S in ::printf)                Yes but no "," char
+%a %A      [const wchar_t*] string add(like %ls in ::printf)                Yes but no "," char
 
 %C              [float4*]    new font color range start                            Yes
 %c              [uint32_t]   new font color range start, with alpha                Yes
 !! color is also a drawing effect
 
-%d %D         [IUnknown*]    new drawing effect range start                 Yes and Extensible
+%d %D         [IUnknown*]    new drawing effect range start                 ~Yes and Extensible~
 
 %S %S            [float]     new font size range start                             Yes
 
@@ -281,9 +280,9 @@ control char    C-Type      Infomation                                  StringIn
 
 %u %U            [BOOL]      new underline range start                          Yes(0 or 1)
 
-%e %E            [BOOL]      new strikethrough range start                      Yes(0 or 1)
+%t %T            [BOOL]      new strikethrough range start                      Yes(0 or 1)
 
-%i %I            [IDIO*]     new inline object range start                  Yes and Extensible
+%i %I            [IDIO*]     new inline object range start                  ~Yes and Extensible~
 
 %] %}            [none]      end of the last range                                 ---
 
@@ -291,10 +290,10 @@ control char    C-Type      Infomation                                  StringIn
 %f %F   [UNSPT]  [IDFC*]     new font collection range start                       ---
 IDWriteFontCollection*
 
-%t %T   [UNSPT]  [IDT*]      new inline object range start                         ---
+%g %G   [UNSPT]  [IDT*]      new ypography range start                         ---
 IDWriteTypography*
 
-%t %T   [UNSPT] [char_t*]    new locale name range start                           ---
+%l %L   [UNSPT] [char_t*]    new locale name range start                           ---
 
 FORMAT IN STRING
 the va_list(ap) can be nullptr while string format
@@ -348,8 +347,10 @@ auto __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_t token_num
 //一般论: 不可能每帧调用6万字, 一般可能每帧处理数百字符(忙碌时), 可以忽略不计
 auto LongUI::DX::FormatTextCore( 
     const FormatTextConfig& config, 
-    const wchar_t* format, va_list ap
+    const wchar_t* format,
+    va_list ap
     ) noexcept->IDWriteTextLayout* {
+    
     // 参数
     const wchar_t* param = nullptr;
     // 检查是否带参数
@@ -370,7 +371,7 @@ auto LongUI::DX::FormatTextCore(
         assert(param && "ap set to nullptr, but none param found.");
     }
     // Range Type
-    enum class R : size_t { N, W, Y, H, S, U, E, D, I };
+    enum class R : size_t { N, W, Y, H, S, U, T, D, I };
     // Range Data
     struct RangeData {
         DWRITE_TEXT_RANGE       range;
@@ -381,7 +382,7 @@ auto LongUI::DX::FormatTextCore(
             DWRITE_FONT_STRETCH stretch;    // H
             float               size;       // S
             BOOL                underline;  // U
-            BOOL                strikethr;  // E
+            BOOL                strikethr;  // T
             IUnknown*           draweffect; // D
             IDWriteInlineObject*inlineobj;  // I
                                             // ----------------------------
@@ -424,7 +425,7 @@ auto LongUI::DX::FormatTextCore(
                 ++string_length;
                 break;
             case L'A': case L'a': // [A]dd string
-                                  // 复制字符串
+            // 复制字符串
             {
                 register const wchar_t* i;
                 if (ap) {
@@ -442,7 +443,7 @@ auto LongUI::DX::FormatTextCore(
             }
             break;
             case L'C': // [C]olor in float4
-                       // 浮点数组颜色开始标记: 
+                // 浮点数组颜色开始标记: 
                 range_data.range.startPosition = string_length;
                 if (ap) {
                     range_data.color = va_arg(ap, D2D1_COLOR_F*);
@@ -464,7 +465,7 @@ auto LongUI::DX::FormatTextCore(
                 stack_check.push(range_data);
                 break;
             case L'c': // [C]olor in uint32
-                       // 32位颜色开始标记: 
+                // 32位颜色开始标记: 
                 range_data.range.startPosition = string_length;
                 if (ap) {
                     range_data.u32 = va_arg(ap, uint32_t);
@@ -497,7 +498,7 @@ auto LongUI::DX::FormatTextCore(
                 range_data.range_type = R::D;
                 stack_check.push(range_data);
                 break;
-            case 'E': case 'e': // strik[E]through
+            case 'T': case 't': // strike[T]hrough
                 range_data.range.startPosition = string_length;
                 if (ap) {
                     range_data.strikethr = va_arg(ap, BOOL);
@@ -508,7 +509,7 @@ auto LongUI::DX::FormatTextCore(
                         LongUI::AtoI(reinterpret_cast<char*>(param_buffer))
                         );
                 }
-                range_data.range_type = R::E;
+                range_data.range_type = R::T;
                 stack_check.push(range_data);
                 break;
             case 'H': case 'h': // stretc[H]
@@ -661,12 +662,10 @@ force_break:
     else if (string_length_need > string_length) string_length_need = string_length;
     // 修正
     va_end(ap);
-    // 检查
-    assert(config.factory);
-    auto hr = config.factory ? E_POINTER : S_OK;
+    auto hr = S_OK;
     // 创建布局
     if (SUCCEEDED(hr)) {
-        hr = config.factory->CreateTextLayout(
+        hr = UIManager_DWriteFactory->CreateTextLayout(
             buffer,
             string_length_need,
             config.format,
@@ -708,7 +707,7 @@ force_break:
             case R::U:
                 layout->SetUnderline(statck_set.top->underline, statck_set.top->range);
                 break;
-            case R::E:
+            case R::T:
                 layout->SetStrikethrough(statck_set.top->strikethr, statck_set.top->range);
                 break;
             case R::D:

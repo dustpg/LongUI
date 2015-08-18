@@ -411,8 +411,6 @@ namespace LongUI {
     /// </summary>
     /// <remarks> if your string more than 1K, do not use this</remarks>
     struct FormatTextConfig {
-        // DWrite Factory
-        IN  IDWriteFactory*         factory;
         // basic text format
         IN  IDWriteTextFormat*      format;
         // text layout width

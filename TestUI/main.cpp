@@ -450,7 +450,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
-#include "../Demos/Demo3_handleeventex/demo.h"
+#include "../Steps/Step3_handleeventex/demo.h"
 
 // longui::demo namespace
 namespace LongUI { namespace Demo {
@@ -463,8 +463,9 @@ namespace LongUI { namespace Demo {
         MyConfig() : Super(UIManager) { }
         // return true, if use cpu rendering
         virtual auto IsRenderByCPU() noexcept->bool override {
-            return true;
+            return cpu_rendering;
         }
+        bool    cpu_rendering = true;
     };
 }}
 
@@ -476,6 +477,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     if (SUCCEEDED(::OleInitialize(nullptr))) {
         // my config
         LongUI::Demo::MyConfig config;
+        // -GPU
+        if (!std::strcmp("-GPU", lpCmdLine)) config.cpu_rendering = false;
         // init longui manager
         if (SUCCEEDED(UIManager.Initialize(&config))) {
             // my style

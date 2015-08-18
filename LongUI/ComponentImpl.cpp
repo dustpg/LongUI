@@ -7,7 +7,6 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
     : m_pTextRenderer(nullptr) {
     // 设置
     m_config = {
-        ::SafeAcquire(UIManager_DWriteFactory),
         nullptr,
         128.f, 64.f, 1.f,
         Helper::XMLGetRichType(node, RichType::Type_None, "richtype", prefix),
@@ -61,7 +60,6 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
 LongUI::Component::ShortText::~ShortText() noexcept {
     ::SafeRelease(m_pLayout);
     ::SafeRelease(m_pTextRenderer);
-    ::SafeRelease(m_config.factory);
     ::SafeRelease(m_config.format);
 }
 
@@ -82,7 +80,7 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
         if (string_length_need < 0) string_length_need = 0;
         else if (string_length_need > m_text.length()) string_length_need = m_text.length();
         // create it
-        m_config.factory->CreateTextLayout(
+        UIManager_DWriteFactory->CreateTextLayout(
             m_text.c_str(),
             string_length_need,
             old_layout ? old_layout : m_config.format,

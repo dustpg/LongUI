@@ -1,7 +1,7 @@
 ﻿#define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../../LongUI/LongUI.h"
-#include "../Demo3_handleeventex/demo.h"
+#include "../Step3_handleeventex/demo.h"
 
 #define LONGUI_NAMESPACE_BEGIN2 namespace LongUI { namespace
 #define LONGUI_NAMESPACE_END2 }
@@ -16,9 +16,10 @@ LONGUI_NAMESPACE_BEGIN2 Demo {
         // ctor
         MyConfig() : Super(UIManager) { }
         // return true, if use cpu rendering
-        virtual auto IsRenderByCPU() noexcept->bool override { 
-            return true; 
+        virtual auto IsRenderByCPU() noexcept->bool override {
+            return cpu_rendering;
         }
+        bool    cpu_rendering = true;
     };
 }
 LONGUI_NAMESPACE_END2
@@ -31,6 +32,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     if (SUCCEEDED(::OleInitialize(nullptr))) {
         // my config
         LongUI::Demo::MyConfig config;
+        // -GPU
+        if (!std::strcmp("-GPU", lpCmdLine)) config.cpu_rendering = false;
         // init longui manager
         if (SUCCEEDED(UIManager.Initialize(&config))) {
             // my style

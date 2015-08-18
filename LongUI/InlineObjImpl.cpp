@@ -3,7 +3,7 @@
 
 // CUIRubyCharacter 构造函数
 LongUI::CUIRubyCharacter::
-CUIRubyCharacter(const CtorContext& ctx) noexcept : Super(UIInlineObject::Type_Ruby) {
+CUIRubyCharacter(const CtorContext& ctx) noexcept : Super(CUIInlineObject::Type_Ruby) {
     UNREFERENCED_PARAMETER(ctx);
 }
 

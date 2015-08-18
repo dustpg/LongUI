@@ -27,7 +27,7 @@
 // longui namespace
 namespace LongUI {
     // LongUI Inline Object
-    class UIInlineObject : public Helper::ComBase<Helper::QiList<IDWriteInlineObject>> {
+    class CUIInlineObject : public Helper::ComBase<Helper::QiList<IDWriteInlineObject>> {
     public:
         // inline obj type
         enum InlineType : size_t {
@@ -40,16 +40,16 @@ namespace LongUI {
         // type: 
         InlineType  const   type;
         // ctor
-        UIInlineObject(InlineType _type) noexcept: type(_type) {}
+        CUIInlineObject(InlineType _type) noexcept: type(_type) {}
         // dtor
-        virtual ~UIInlineObject() noexcept {}
+        virtual ~CUIInlineObject() noexcept {}
     };
     // Meta inlineobject ver.
-    class  CUIInlineMeta final : public UIInlineObject {
-        using Super = UIInlineObject;
+    class  CUIInlineMeta final : public CUIInlineObject {
+        using Super = CUIInlineObject;
     public:
         // UIInlineMeta
-        CUIInlineMeta(): Super(UIInlineObject::Type_Meta){}
+        CUIInlineMeta(): Super(CUIInlineObject::Type_Meta){}
         // ~UIInlineMeta
         virtual ~CUIInlineMeta() {}
     public:
@@ -57,8 +57,8 @@ namespace LongUI {
         Meta                meta;
     };
     // Ruby Character
-    class  CUIRubyCharacter final : public UIInlineObject {
-        using Super = UIInlineObject;
+    class  CUIRubyCharacter final : public CUIInlineObject {
+        using Super = CUIInlineObject;
     public:
         // ctor's context
         struct CtorContext {

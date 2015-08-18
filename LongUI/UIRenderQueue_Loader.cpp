@@ -113,6 +113,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         // 可视化区域 > 有的 且自己为容器  -> 替换
         // 可视化区域 < 有的 且有的为容器  -> 不干
         // 不在里面                        -> 加入
+        // XXX: 有BUG
         const auto test_container = [](const UIControl* ctrl1, const UIControl* ctrl2) noexcept {
             return ctrl1->flags & Flag_UIContainer &&
                 ctrl1->visible_rect.left <= ctrl2->visible_rect.left &&
