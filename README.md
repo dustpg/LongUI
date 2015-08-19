@@ -5,8 +5,8 @@ Lightweight Direct2D GUI Library/Framework in C++
 
 #### Current Version : Alpha-Stage
 
-[Known Issues](./KnownIssues.md)
-[Document](../Document)
+[Known Issues](./KnownIssues.md)  
+[Document](./Document/)
 
 ## Requirements
   
@@ -21,11 +21,8 @@ For this repo, you need:
   - Tool-chain/Environment B(would support in the future): GCC/Clang  
     - Rakefile(ruby)
     - MinGW-W64
-
-## 
   
-## [Document]
-    
+  
 ## Remarks
   
   Windows 7 also supported Direct2D 1.1, but DirectComposition, planned support

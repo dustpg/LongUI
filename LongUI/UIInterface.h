@@ -134,7 +134,7 @@ namespace LongUI {
     class CUISubEventCaller;
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
-        // get template string for control
+        // get null-end string for template for creating control
         virtual auto GetTemplateString() noexcept->const char* = 0;
         // get locale name of ui(for text), default is L"" (locale)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void = 0;

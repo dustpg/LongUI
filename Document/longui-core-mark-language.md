@@ -8,6 +8,7 @@
 
 like `sprintf`, `LCML` use `%` as marker start but **only one** control char after `%`
 (easy to code it).  
+  
 control char|summary|c++ type|note
 :----------:|-------|--------|----
 `%%`|`%` char|\[none\]|like `%%` in `sprintf`, as a '%' char
@@ -41,8 +42,6 @@ control char|summary|c++ type|note
 `LCML` support use "inline string" as param to format text to rich.  
 like `"%cHello%], world!%p#FFFF0000"` vs `LongUI::DX::FormatTextCoreC(config, L"%cHello%], world!", uint32_t(0xFFFF0000));`  
   
-
-
 
 #### Note for `FormatTextConfig`
 ```cpp

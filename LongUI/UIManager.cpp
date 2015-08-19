@@ -84,7 +84,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 加载控件模板
     if (SUCCEEDED(hr)) {
         m_cCountCtrlTemplate = 1;
-        hr = this->load_template_string(this->configure->GetTemplateString());
+        hr = this->load_control_template_string(this->configure->GetTemplateString());
     }
     // 资源数据缓存
     if (SUCCEEDED(hr)) {
@@ -129,6 +129,10 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         else {
             hr = E_OUTOFMEMORY;
         }
+    }
+    // 设置控件模板
+    if (SUCCEEDED(hr)) {
+        hr = this->set_control_template_string();
     }
     // 创建D2D工厂
     if (SUCCEEDED(hr)) {
@@ -746,22 +750,47 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
 
 
 // 载入模板字符串
-auto LongUI::CUIManager::load_template_string(const char* str) noexcept->HRESULT {
+auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept->HRESULT {
     // 检查参数
     if (str && *str) {
         // 载入字符串
         auto code = m_docTemplate.load_string(str);
         if (code.status) {
             assert(!"load error");
-            ::MessageBoxA(nullptr, code.description(), "<LongUI::CUIManager::load_template_string>: Failed to Parse/Load XML", MB_ICONERROR);
+            ::MessageBoxA(nullptr, code.description(), "<LongUI::CUIManager::load_control_template_string>: Failed to Parse/Load XML", MB_ICONERROR);
             return E_FAIL;
         }
+        // 获取子节点数量
+        auto get_children_count = [](pugi::xml_node node) {
+            node = node.first_child();
+            auto count = 0ui16;
+            while (node) { node = node.next_sibling(); ++count; }
+            return count;
+        };
+        m_cCountCtrlTemplate = 1 + get_children_count(m_docTemplate.root().first_child());
         // 解析
-        return E_NOTIMPL;
+        return S_OK;
     }
     else {
         return S_FALSE;
     }
+}
+
+
+// 设置模板字符串
+auto LongUI::CUIManager::set_control_template_string() noexcept->HRESULT {
+    // 有效情况
+    if (m_cCountCtrlTemplate > 1) {
+        auto itr = m_pTemplateNodes + 1;
+        auto node = m_docTemplate.root().first_child().first_child();
+        // 写入索引
+        while (node) {
+            *itr = node;
+            node = node.next_sibling();
+            ++itr;
+        }
+    }
+    return S_OK;
 }
 
 

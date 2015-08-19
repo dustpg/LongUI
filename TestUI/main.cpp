@@ -30,7 +30,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 #else
 // bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow"
+<Window size="1024, 768" name="MainWindow" debug="true"
     bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" clearcolor="1,1,1,0.95" >
     <VerticalLayout name="V" size="1366, 512">
         <Button name="1" margin="4,4,4,4" disabledmeta="1" size = "1500,0"
@@ -52,6 +52,7 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Resource>
     <!-- Bitmap区域Zone -->
     <Bitmap>
+        <!-- You can use other name not limited in 'Item' -->
         <Item desc="按钮1" res="btn.png"/>
     </Bitmap>
     <!-- Meta区域Zone -->
@@ -378,6 +379,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
             ::wcscpy(name, L"en-us");
         };
+        // 获取控件模板
+        auto GetTemplateString() noexcept->const char* override {
+            return u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<!-- You can use other name not limited in 'Template' -->
+<Template>
+    <!-- You can use other name not limited in 'Control' -->
+    <!-- Index 1 -->
+    <Control desc="System look like button" margin="4,4,4,4" borderwidth="1"/>
+    <!-- Index 2 -->
+    <Control desc="btn.png look like button" margin="4,4,4,4" disabledmeta="1"
+            normalmeta="2" hovermeta="3" pushedmeta="4"/>
+</Template>
+)xml";
+        }
         // 添加自定义控件
         auto AddCustomControl() noexcept->void override {
             m_manager.RegisterControl(TestControl::CreateControl, L"Test");
@@ -429,10 +444,10 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_ButtonClicked:
+        /*case LongUI::Event::Event_ButtonClicked:
             // number button clicked event
             //this->number_button_clicked(arg.sender);
-            return true;
+            return true;*/
         case LongUI::Event::Event_TreeBulidingFinished:
             // Event_TreeBulidingFinished could as "init" event
             //this->init();

@@ -329,6 +329,7 @@ namespace LongUI {
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
+        // get null-end string for template for creating control
         virtual auto GetTemplateString() noexcept->const char* override { return nullptr; }
         // get locale name of ui(for text)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };

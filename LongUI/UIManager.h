@@ -65,7 +65,7 @@ namespace LongUI {
         // register, return -1 for error(out of renderer space), return other for index
         auto RegisterTextRenderer(CUIBasicTextRenderer*) noexcept->int32_t;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetTextFormat(size_t i) noexcept->IDWriteTextFormat*;
+        auto GetTextFormat(size_t index) noexcept->IDWriteTextFormat*;
         // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
         auto GetBitmap(size_t index) noexcept->ID2D1Bitmap1*;
         // get brush by index, "Get" method will call IUnknown::AddRef if it is a COM object
@@ -309,7 +309,9 @@ namespace LongUI {
         CUIManager(CUIManager&&) = delete;
     private:
         // load the template string
-        auto load_template_string(const char* str) noexcept->HRESULT;
+        auto load_control_template_string(const char* str) noexcept->HRESULT;
+        // set the template string
+        auto set_control_template_string() noexcept->HRESULT;
         // create all resources
         auto create_device_resources() noexcept->HRESULT;
         // create index zero resources
