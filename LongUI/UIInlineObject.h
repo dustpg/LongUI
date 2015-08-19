@@ -27,10 +27,11 @@
 // longui namespace
 namespace LongUI {
     // LongUI Inline Object
-    class CUIInlineObject : public Helper::ComBase<Helper::QiList<IDWriteInlineObject>> {
+    class CUIInlineObject : public Helper::ComBase<
+        Helper::QiList<IDWriteInlineObject>, std::atomic<ULONG>> {
     public:
         // inline obj type
-        enum InlineType : size_t {
+        enum InlineType : uint32_t {
             // CUIInlineMeta
             Type_Meta = 0,
             // CUIRubyCharacter
@@ -38,7 +39,7 @@ namespace LongUI {
             // Unknown
         };
         // type: 
-        InlineType  const   type;
+        InlineType  const       type;
         // ctor
         CUIInlineObject(InlineType _type) noexcept: type(_type) {}
         // dtor
@@ -58,6 +59,7 @@ namespace LongUI {
     };
     // Ruby Character
     class  CUIRubyCharacter final : public CUIInlineObject {
+        // super class
         using Super = CUIInlineObject;
     public:
         // ctor's context

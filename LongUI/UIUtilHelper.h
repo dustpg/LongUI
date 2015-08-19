@@ -64,7 +64,7 @@ namespace LongUI {
             virtual ~ComBase() noexcept { }
         protected:
             // the counter 
-            CounterType     m_refValue ;
+            CounterType             m_refValue;
         public:
             // No copy construction allowed.
             ComBase(const ComBase& b) = delete;

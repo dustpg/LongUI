@@ -25,6 +25,15 @@
 */
 
 
+/// <summary>
+/// Helper for SetSubEventCallBack
+/// </summary>
+/// <remarks>
+/// To use this, you should typedef or using LongUIMyType for current class
+/// </remarks>
+#define SetSubEventCallBackHelper(name, sbevent, func) \
+   this->SetSubEventCallBack(name, LongUI::SubEvent::Event_##sbevent, [](UIControl* a, UIControl* b) noexcept { return static_cast<LongUIMyType*>(a)->func(b);});
+
 // LongUI namespace
 namespace LongUI {
     // create null control

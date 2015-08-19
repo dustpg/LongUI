@@ -3,7 +3,10 @@
 Lightweight Direct2D GUI Library/Framework in C++  
 [中文说明文档](./README.zh-cn.md)
 
-##### Current Version : Alpha-Stage
+#### Current Version : Alpha-Stage
+
+[Known Issues](./KnownIssues.md)
+[Document](../Document)
 
 ## Requirements
   
@@ -19,20 +22,18 @@ For this repo, you need:
     - Rakefile(ruby)
     - MinGW-W64
 
-##Known Issues  
-  in (KnownIssues.md)[./KnownIssues.md]
+## 
   
-## XML Attributes List
-  (xml-attributes.md)[./Document/xml-attributes.md]
+## [Document]
     
-##Remarks
+## Remarks
   
   Windows 7 also supported Direct2D 1.1, but DirectComposition, planned support
   for Win7 without DirectComposition,but MS said that Win7 could upgrade to 
   Win10 for free, so just 'planned', and, maybe Win8.1/Win10 support only in 
   the next year
   
-##LongUI Programming Style
+## LongUI Programming Style
   
   - **class** :  
       - \[C/I/?\] UI ClassName, e.g. `CUIManager`, `IUIInterface`
@@ -62,16 +63,15 @@ For this repo, you need:
 ## PROJECTS LIST
   
   -  3rdparty/* , 3rdparty library, like dlmalloc
-  -  Demos/* , demos
-  
-          1. helloworld -- how to build a basic LongUI app.
-          2. handleevent -- how to handle LongUI event in one way
-          3. handleeventex -- how to handle LongUI event in other way
-          4. basiconfigure -- how to write a baisc longui configure
-  -  Helper/* , helper projects
-  
-          1.  ConsoleHelper -- helper for logging for debugging
-          2.  ScriptInterfaceGenerator -- helper for binding script interface
+  -  Demos/* , demos  
+    - Step by Step  
+      1. helloworld -- how to build a basic LongUI app.
+      2. handleevent -- how to handle LongUI event in one way
+      3. handleeventex -- how to handle LongUI event in other way
+      4. basiconfigure -- how to write a baisc longui configure
+  -  Helper/* , helper projects  
+    1.  ConsoleHelper -- helper for logging for debugging
+    2.  ScriptInterfaceGenerator -- helper for binding script interface
   -  LongUI -- core project, designed to be a static-link framework
   -  TestUI -- my test project, just for me for debugging
   

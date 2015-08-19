@@ -223,7 +223,7 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         case WM_LBUTTONUP:
             if (m_pWindow->IsReleasedControl(this)) {
-                bool rec = m_caller(this, SubEvent::Event_ButtoClicked);
+                bool rec = m_caller(this, SubEvent::Event_ButtonClicked);
                 rec = false;
                 // 设置状态
                 UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);

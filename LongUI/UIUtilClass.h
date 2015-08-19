@@ -180,6 +180,7 @@ namespace LongUI {
 #define UIColorEffect_ExData(o) (reinterpret_cast<uint8_t*>(o) + (sizeof(CUIColorEffect)))
     // Color Effect
     class CUIColorEffect : public Helper::ComBase<Helper::QiList<IUnknown>> {
+        // super class
         using Super = Helper::ComBase<Helper::QiList<IUnknown>>;
     public:
         // ctor
@@ -188,8 +189,6 @@ namespace LongUI {
         virtual ~CUIColorEffect() noexcept {}
         // operator @delete
         void  operator delete(void* p, size_t) noexcept { LongUI::SmallFree(p); };
-        // userdata
-        ULONG               userdata = 0;
         // color of effect
         D2D1_COLOR_F        color;
     public:

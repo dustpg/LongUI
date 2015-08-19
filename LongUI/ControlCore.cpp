@@ -204,7 +204,7 @@ void LongUI::UIControl::SetSubEventCallBack(
     // 检查
     switch (event)
     {
-    case LongUI::SubEvent::Event_ButtoClicked:
+    case LongUI::SubEvent::Event_ButtonClicked:
         longui_cast<UIButton*>(control)->RegisterClickEvent(caller);
         break;
     case LongUI::SubEvent::Event_EditReturned:

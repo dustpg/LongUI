@@ -38,6 +38,8 @@ namespace LongUI { namespace Demo {
     class MainWindow : public UIWindow {
         // super class
         using Super = UIWindow;
+        // LongUIMyType for SetSubEventCallBackHelper
+        using LongUIMyType = MainWindow;
     public:
         // ctor
         MainWindow(pugi::xml_node node, UIWindow* parent) : Super(node, parent) {}
@@ -51,13 +53,14 @@ namespace LongUI { namespace Demo {
         // on number button clicked
         void number_button_clicked(UIControl* btn);
         // on plus
-        bool on_plus();
+        bool on_plus(UIControl* btn);
         // on minus
-        bool on_minus();
+        bool on_minus(UIControl* btn);
         // on equal
-        bool on_equal();
+        bool on_equal(UIControl* btn);
         // on clear
-        bool on_clear() { 
+        bool on_clear(UIControl* btn) { 
+            UNREFERENCED_PARAMETER(btn);
             m_number = 0; m_string.clear(); 
             m_display->SetText(L"0"); 
             return true;
@@ -82,7 +85,7 @@ bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
         {
         case LongUI::Event::Event_SubEvent:
             // number button clicked event
-            if (arg.ui.subevent == LongUI::SubEvent::Event_ButtoClicked) {
+            if (arg.ui.subevent == LongUI::SubEvent::Event_ButtonClicked) {
                 this->number_button_clicked(arg.sender);
             }
             return true;
@@ -106,37 +109,13 @@ void LongUI::Demo::MainWindow::init() {
     // get display control, check error?
     m_display = longui_cast<UIText*>(this->FindControl(L"display"));
     // +
-    this->SetSubEventCallBack(
-        L"btn_plus",
-        LongUI::SubEvent::Event_ButtoClicked,
-        [](UIControl* uithis, UIControl* btn) noexcept {
-            return static_cast<MainWindow*>(uithis)->on_plus();
-        }
-    );
+    SetSubEventCallBackHelper(L"btn_plus", ButtonClicked, on_plus);
     // -
-    this->SetSubEventCallBack(
-        L"btn_minu",
-        LongUI::SubEvent::Event_ButtoClicked,
-        [](UIControl* uithis, UIControl* btn) noexcept {
-            return static_cast<MainWindow*>(uithis)->on_minus();
-        }
-    );
+    SetSubEventCallBackHelper(L"btn_minu", ButtonClicked, on_minus);
     // =
-    this->SetSubEventCallBack(
-        L"btn_equl",
-        LongUI::SubEvent::Event_ButtoClicked,
-        [](UIControl* uithis, UIControl* btn) noexcept {
-            return static_cast<MainWindow*>(uithis)->on_equal();
-        }
-    );
+    SetSubEventCallBackHelper(L"btn_equl", ButtonClicked, on_equal);
     // C
-    this->SetSubEventCallBack(
-        L"btn_clear",
-        LongUI::SubEvent::Event_ButtoClicked,
-        [](UIControl* uithis, UIControl* btn) noexcept {
-            return static_cast<MainWindow*>(uithis)->on_clear();
-        }
-    );
+    SetSubEventCallBackHelper(L"btn_clear", ButtonClicked, on_clear);
     // 0-9
     for (auto i = 0; i < 10; ++i) {
         constexpr int name_buffer_length = 16;
@@ -169,7 +148,8 @@ void LongUI::Demo::MainWindow::number_button_clicked(UIControl* btn) {
 }
 
 // on plus
-bool LongUI::Demo::MainWindow::on_plus() {
+bool LongUI::Demo::MainWindow::on_plus(UIControl* btn) {
+    UNREFERENCED_PARAMETER(btn);
     m_number = _wtoll(m_string.c_str());
     m_string = L'+';
     m_display->SetText(L"+");
@@ -177,7 +157,8 @@ bool LongUI::Demo::MainWindow::on_plus() {
 }
 
 // on minus
-bool LongUI::Demo::MainWindow::on_minus() {
+bool LongUI::Demo::MainWindow::on_minus(UIControl* btn) {
+    UNREFERENCED_PARAMETER(btn);
     m_number = _wtoll(m_string.c_str());
     m_string = L'-';
     m_display->SetText(L"-");
@@ -185,7 +166,8 @@ bool LongUI::Demo::MainWindow::on_minus() {
 }
 
 // on equal
-bool LongUI::Demo::MainWindow::on_equal() {
+bool LongUI::Demo::MainWindow::on_equal(UIControl* btn) {
+    UNREFERENCED_PARAMETER(btn);
     m_number += _wtoll(m_string.c_str());
     constexpr int buffer_length = 256;
     wchar_t buffer[buffer_length];

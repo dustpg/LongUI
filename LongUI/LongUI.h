@@ -314,7 +314,7 @@ namespace LongUI {
         // null
         Event_Null = 0,
         // button clicked
-        Event_ButtoClicked,
+        Event_ButtonClicked,
         // single-line-edit returned
         Event_EditReturned,
         // slider value changed

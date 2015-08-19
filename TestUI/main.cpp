@@ -1,4 +1,4 @@
-﻿#if 0
+﻿#if 1
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
@@ -195,11 +195,12 @@ public:
             // 注册事件
                 this->SetSubEventCallBack(
                     L"6",
-                    LongUI::Event::Event_SliderValueChanged,
+                    LongUI::SubEvent::Event_SliderValueChanged,
                     [](UIControl* t, UIControl* s) noexcept { return static_cast<TestControl*>(t)->OnValueChangedConst(s); }
                 );
             }
         }
+
         return false;
     }
     // recreate resource
@@ -428,7 +429,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_ButtoClicked:
+        case LongUI::Event::Event_ButtonClicked:
             // number button clicked event
             //this->number_button_clicked(arg.sender);
             return true;
@@ -450,7 +451,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
-#include "../Steps/Step3_handleeventex/demo.h"
+#include "../Demos/Step3_handleeventex/demo.h"
 
 // longui::demo namespace
 namespace LongUI { namespace Demo {
