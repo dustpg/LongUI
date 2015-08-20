@@ -498,28 +498,35 @@ auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
 
 // 利用现有资源创建控件
 auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xml_node node, size_t id) noexcept -> UIControl * {
-    // 检查参数W
+    // 检查参数 function
     if (!function) {
+        assert(node && "bad argument");
         if (node) {
             function = this->GetCreateFunc(node.name());
         }
-        else if (id) {
-            assert(!"NOIMPL!!");
-        }
-        else {
-            assert(!"ERROR!!");
-            return nullptr;
-        }
     }
     // 节点有效
-    if (node) {
-        id = static_cast<decltype(id)>(LongUI::AtoI(node.attribute("templateid").value()));
+    if (node && !id) {
+        id = static_cast<decltype(id)>(LongUI::AtoI(
+            node.attribute(LongUI::XMLAttribute::TemplateID).value())
+            );
     }
     // 利用id查找模板控件
     if (id) {
-
+        auto attribute = m_pTemplateNodes[id].first_attribute();
+        // 遍历属性
+        while (attribute) {
+            // 添加属性
+            auto name = attribute.name();
+            if (!node.attribute(name)) {
+                node.insert_attribute_after(name, node.last_attribute()).set_value(attribute.value());
+            }
+            // 推进
+            attribute = attribute.next_attribute();
+        }
     }
     assert(function && "bad idea");
+    if (!function) return nullptr;
     return function(CreateEventType::Type_CreateControl, node);
 }
 

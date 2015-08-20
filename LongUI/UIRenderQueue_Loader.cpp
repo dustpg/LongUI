@@ -393,26 +393,22 @@ namespace LongUI {
             };
             // 位图?
             if (!::strcmp(now_node.name(), "Bitmap")) {
-                // XXX: PUGIXML 直接读取(XPATH?)
                 m_aNodes[Type_Bitmap] = now_node;
                 m_aResourceCount[this->Type_Bitmap] = get_children_count(now_node);
             }
             // 笔刷?
             else if (!::strcmp(now_node.name(), "Brush")) {
-                // XXX: PUGIXML 直接读取
                 m_aNodes[Type_Brush] = now_node;
                 m_aResourceCount[this->Type_Brush] = get_children_count(now_node);
             }
             // 文本格式?
             else if (!::strcmp(now_node.name(), "Font") ||
                 !::strcmp(now_node.name(), "TextFormat")) {
-                // XXX: PUGIXML 直接读取
                 m_aNodes[Type_TextFormat] = now_node;
                 m_aResourceCount[this->Type_TextFormat] = get_children_count(now_node);
             }
             // 图元?
             else if (!::strcmp(now_node.name(), "Meta")) {
-                // XXX: PUGIXML 直接读取
                 m_aNodes[Type_Meta] = now_node;
                 m_aResourceCount[this->Type_Meta] = get_children_count(now_node);
             }
@@ -674,7 +670,7 @@ namespace LongUI {
                         };
                         // 检查属性
                         Helper::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
-                        Helper::MakeFloats(node.attribute("end").value(), &lgbprop.startPoint.x, 2);
+                        Helper::MakeFloats(node.attribute("end").value(), &lgbprop.endPoint.x, 2);
                         // 创建笔刷
                         static_cast<LongUIRenderTarget*>(m_manager)->CreateLinearGradientBrush(
                             &lgbprop, &brush_prop, collection, &lgb

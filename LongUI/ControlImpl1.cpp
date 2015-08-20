@@ -107,21 +107,16 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
     case LongUI::RenderType::Type_RenderBackground:
         __fallthrough;
     case LongUI::RenderType::Type_Render:
-        // 父类背景
+        // 父类背景 按钮需要刻画背景 所以不再渲染父类背景
         //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 本类背景, 更新刻画地区
         this->GetViewRect(draw_rect);
-#ifdef _DEBUG
-        if (m_strControlName == L"3") {
-            int bk = 9;
-        }
-        /*{
-            AutoLocker;
-            UIManager << DL_Hint << this << this->visible_rect << LongUI::endl;
-        }*/
-#endif
         // 渲染部件
         m_uiElement.Render(draw_rect);
+        // 背景中断
+        if (type == LongUI::RenderType::Type_RenderBackground) {
+            break;
+        }
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景

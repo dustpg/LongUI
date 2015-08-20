@@ -1,12 +1,30 @@
 ﻿## LongUI
   
 Lightweight Direct2D GUI Library/Framework in C++  
+Friendly with High-DPI :)  
 [中文说明文档](./README.zh-cn.md)
-
+  
 #### Current Version : Alpha-Stage
 
+## Features in LongUI
+
+#### Friendly with High-DPI
+  - No GDI/GDI+, LongUI use Direct2D as rendering api, could zoom a container into any size
+  
+#### Friendly with Game Engine
+  - LongUI was designed that could be embedded in game (that use `D2D1`, `D3D11` even `D3D12`)
+  - also, you can use it in standalone way
+  
+#### XML Layout
+  - LongUI use XML to create a window in easy way
+  - xml attributes: as few as possible
+  
+#### Light Weight
+  - LongUI was designed to be a static-link framework, `hellowork` in only 100+kb(/MD in MSC).
+
 [Known Issues](./KnownIssues.md)  
-[Document](./Document/)
+[Document](./Document/)  
+[DemosShow.md](./DemosShow.md)  
 
 ## Requirements
   
@@ -58,22 +76,16 @@ For this repo, you need:
     
   
 ## PROJECTS LIST
-  
   -  3rdparty/* , 3rdparty library, like dlmalloc
   -  Demos/* , demos  
-    - Step by Step  
-      1. helloworld -- how to build a basic LongUI app.
-      2. handleevent -- how to handle LongUI event in one way
-      3. handleeventex -- how to handle LongUI event in other way
-      4. basiconfigure -- how to write a baisc longui configure
+    - more detail in [DemosShow.md](./DemosShow.md)
   -  Helper/* , helper projects  
-    1.  ConsoleHelper -- helper for logging for debugging
-    2.  ScriptInterfaceGenerator -- helper for binding script interface
+    1. ConsoleHelper -- helper for logging for debugging
+    2. ScriptInterfaceGenerator -- helper for binding script interface
   -  LongUI -- core project, designed to be a static-link framework
   -  TestUI -- my test project, just for me for debugging
   
 ## License
-
   - LongUI under MIT License **basically**
   - pugixml parser - version 1.5 (MIT License)
   - dlmalloc-2.8.6 (public domain)

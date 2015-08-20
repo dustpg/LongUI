@@ -434,6 +434,54 @@ HRESULT LongUI::CUIDropSource::GiveFeedback(DWORD dwEffect) noexcept {
     return DRAGDROP_S_USEDEFAULTCURSORS;
 }
 
+
+// CUIConstString: 析构函数
+LongUI::CUIConstString::~CUIConstString() {
+    // 有效
+    if (m_cLength) {
+        // 计算
+        const auto buffer_length = (m_cLength + 1) * sizeof(wchar_t);
+        if (buffer_length < SMALL_THRESHOLD) {
+            LongUI::SmallFree(m_pString);
+        }
+        else {
+            LongUI::SmallFree(m_pString);
+        }
+    }
+}
+
+// UIConstString: 设置
+void LongUI::CUIConstString::set(const wchar_t* str, size_t length) noexcept {
+    assert(!m_pString && !m_cLength);
+    // 未知则计算
+    if (!length && *str) { length = static_cast<uint32_t>(::wcslen(str)); }
+    // 有效
+    if (length) {
+        // 计算长度
+        const auto buffer_length = (length + 1)*sizeof(wchar_t);
+        if (buffer_length < SMALL_THRESHOLD) {
+            m_pString = reinterpret_cast<wchar_t*>(LongUI::SmallAlloc(buffer_length));
+        }
+        else {
+            m_pString = reinterpret_cast<wchar_t*>(LongUI::CtrlAlloc(buffer_length));
+        }
+        // OK
+        if (m_pString) {
+            m_cLength = length;
+        }
+        // OOM
+        else {
+            m_pString = L"";
+            m_cLength = 0;
+        }
+    }
+    else {
+        m_pString = L"";
+        m_cLength = 0;
+    }
+}
+
+
 // UIString 设置字符串
 void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     assert(str && "bad argument");

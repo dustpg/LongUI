@@ -3,7 +3,7 @@
 // window xml layout
 static const char* const DEMO_XML =
 u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="512, 512" debug="true" name="LongUI Demo2 Window">
+<Window size="512, 512" debug="true" name="LongUI Demo Window">
     <Text name="display" text="0"/>
     <HorizontalLayout>
         <Button name="btn_num7" margin="4,4,4,4" borderwidth="1" text="7"/>

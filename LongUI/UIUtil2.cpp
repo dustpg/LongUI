@@ -284,3 +284,5 @@ LongUINoinline auto LongUI::Helper::XMLGetD2DTextAntialiasMode(
     // 调用
     return static_cast<D2D1_TEXT_ANTIALIAS_MODE>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
 }
+
+#include <windowsx.h>

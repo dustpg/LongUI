@@ -1,6 +1,8 @@
 ﻿## LongUI
  C++ 轻量级 Direct2D GUI 库/框架  
  
+ 文档总是英文是最新的, 中文文档一般是一段时间再更上
+ 
 ##### Current Version : Alpha-Stage
 
 ## Requirements

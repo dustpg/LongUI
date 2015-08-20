@@ -90,7 +90,8 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             //(this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
             WS_EX_NOREDIRECTIONBITMAP,
-            LongUI::WindowClassName, titlename.c_str(),
+            LongUI::WindowClassName, 
+            titlename.length() ? titlename.c_str() : L"LongUI",
             WS_OVERLAPPEDWINDOW,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
             parent_window ? parent_window->GetHwnd() : nullptr,
@@ -284,6 +285,16 @@ void LongUI::UIWindow::AddControl(const std::pair<CUIString, void*>& pair) noexc
     // 有效
     if (pair.first != L"") {
         try {
+#ifdef _DEBUG
+            // 先检查
+            {
+                auto itr = m_mapString2Control.find(pair.first);
+                if (itr != m_mapString2Control.end()) {
+                    UIManager << DL_Warning << "Exist: " << pair.first << LongUI::endl;
+                    assert(!"Control Has been existed!");
+                }
+            }
+#endif
             m_mapString2Control.insert(pair);
         }
         catch (...) {

@@ -137,6 +137,9 @@
     <ClInclude Include="UIWindow.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
+    <ClInclude Include="binaryattribute.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

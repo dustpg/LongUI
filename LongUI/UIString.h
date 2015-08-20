@@ -26,6 +26,41 @@
 
 // LongUI namespace
 namespace LongUI{
+    // Const String - host a unmodified string
+    class CUIConstString {
+    public:
+        // threshold for small/large
+        static constexpr size_t SMALL_THRESHOLD = 256;
+        // c-string
+        const auto*c_str() const noexcept { return m_pString; }
+        // c-string - length
+        auto length() const noexcept { return m_cLength; }
+        // c-string - size
+        auto size() const noexcept { return m_cLength; }
+        // at operation
+        const auto at(size_t i) const noexcept { assert(i < m_cLength && "out of range"); return m_pString[i]; }
+        // [] for const
+        const auto&operator[](size_t i) const noexcept { assert(i < m_cLength && "out of range"); return m_pString[i]; }
+    public:
+        // ctor
+        CUIConstString(const wchar_t* str, uint32_t l = 0) noexcept { this->set(str, l); }
+        // dtor
+        ~CUIConstString() noexcept;
+        // copy ctor
+        CUIConstString(const CUIConstString& str) noexcept { this->set(str.c_str(), str.length()); }
+        // move ctor
+        CUIConstString(CUIConstString&& str) noexcept :m_pString(str.m_pString), m_cLength(str.m_cLength) {
+            str.m_pString = L""; str.m_cLength = 0;
+        }
+    private:
+        // set
+        void set(const wchar_t* dat, size_t len = 0) noexcept;
+    private:
+        // string data
+        wchar_t*            m_pString = nullptr;
+        // length of it
+        size_t              m_cLength = 0 ;
+    };
     // UI String -- compatible with std library string interface(part of) but host a fixed buffer
     class CUIString {
     public:
@@ -33,6 +68,8 @@ namespace LongUI{
         CUIString() noexcept { *m_aDataStatic = 0; }
         // 字符串构造函数
         CUIString(const wchar_t* str, uint32_t l = 0) noexcept { this->Set(str, l); }
+        // CUIConstString 构造函数
+        CUIString(const CUIConstString& str) noexcept { this->Set(str.c_str(), str.length()); }
         // 析构函数
         ~CUIString() noexcept;
         // 复制构造函数

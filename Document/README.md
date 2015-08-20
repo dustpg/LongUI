@@ -11,7 +11,7 @@
   
 ### Index Zero Resource
   more detail to see `LongUI::CUIManager::create_indexzero_resources`
-  - bitmap: mapped `LongUIDefaultBitmapSize` x `LongUIDefaultBitmapSize` size bitmap
+  - bitmap: map-able `LongUIDefaultBitmapSize` x `LongUIDefaultBitmapSize` size bitmap
   - brush: common solid-color-brush in `ID2D1SolidColorBrush*  LongUI::UIControl::m_pBrush_SetBeforeUse`
   - text-format: default text format via `LongUI::LongUIDefaultTextFontName` and `LongUI::LongUIDefaultTextFontSize`
   - meta, none

@@ -32,6 +32,7 @@
 //- be careful to use rotation transform because of the cliping
 
 #include "longuiconf.h"
+#include "binaryattribute.h"
 
 // longui
 /*namespace LongUI {

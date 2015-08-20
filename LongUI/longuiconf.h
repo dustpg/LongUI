@@ -149,7 +149,7 @@ namespace LongUI {
     // LongUI 常量
     enum EnumUIConstant : uint32_t {
         // LongUI String Fixed Buffer Length [fixed buffer length]
-        LongUIStringLength = 64,
+        LongUIStringLength = 32,
         // LongUI Control Tree Max Depth [fixed buffer length]
         LongUITreeMaxDepth = 256,
         // LongUI String Buffer Length [fixed buffer length]
@@ -297,6 +297,10 @@ namespace LongUI {
         static constexpr char* const LayoutWeight           = "weight";
         // visible
         static constexpr char* const Visible                = "visible";
+        // user defined string
+        static constexpr char* const UserDefinedString      = "userstring";
+        // backgroud brush, 0 for null not default brush
+        static constexpr char* const BackgroudBrush         = "bkbrush";
         // position of control left-top: float2
         static constexpr char* const LeftTopPosotion        = "pos";
         // size of control: float2

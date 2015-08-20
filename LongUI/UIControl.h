@@ -148,6 +148,8 @@ namespace LongUI {
         LongUIRenderTarget*     m_pRenderTarget = nullptr;
         // index 0 brush
         ID2D1SolidColorBrush*   m_pBrush_SetBeforeUse = nullptr;
+        // backgroud bursh
+        ID2D1Brush*             m_pBackgroudBrush = nullptr;
         // parent window
         UIWindow*               m_pWindow = nullptr;
         // script data
@@ -156,7 +158,11 @@ namespace LongUI {
         // user ptr
         void*                   user_ptr = nullptr;
         // user data
-        size_t                  user_data = 0;
+        uint32_t                user_data = 0;
+    protected:
+        // backgroud bursh id
+        uint32_t                m_idBackgroudBrush = 0;
+    public:
         // parent control       [adjusting]: if is the top level, how to set it
         UIContainer*    const   parent = nullptr;
         // using for container, prev control
@@ -206,6 +212,9 @@ namespace LongUI {
         D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
         // control name
         CUIString               m_strControlName;
+    public:
+        // user definded string
+        CUIString               user_string;
     public:
 #ifdef LongUIDebugEvent
     protected:

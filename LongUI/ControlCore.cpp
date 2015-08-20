@@ -36,6 +36,14 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         if (data = node.attribute(LongUI::XMLAttribute::LayoutWeight).value()) {
             force_cast(this->weight) = LongUI::AtoF(data);
         }
+        // 检查背景笔刷
+        if (data = node.attribute(LongUI::XMLAttribute::BackgroudBrush).value()) {
+            m_idBackgroudBrush = uint32_t(LongUI::AtoI(data));
+            if (m_idBackgroudBrush) {
+                assert(!m_pBackgroudBrush);
+                m_pBackgroudBrush = UIManager.GetBrush(m_idBackgroudBrush);
+            }
+        }
         // 检查可视性
         this->visible = node.attribute(LongUI::XMLAttribute::Visible).as_bool(true);
         // 渲染优先级
@@ -116,6 +124,7 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
 LongUI::UIControl::~UIControl() noexcept {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
+    ::SafeRelease(m_pBackgroudBrush);
     // 释放脚本占用空间
     if (m_script.script) {
         assert(UIManager.script && "no script interface but data");
@@ -137,6 +146,11 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
+        // 背景
+        if (m_pBackgroudBrush) {
+            D2D1_RECT_F rect; this->GetViewRect(rect);
+            m_pRenderTarget->FillRectangle(&rect, m_pBackgroudBrush);
+        }
         break;
     case LongUI::RenderType::Type_Render:
         __fallthrough;
@@ -181,10 +195,14 @@ void LongUI::UIControl::Update() noexcept {
 auto LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
     ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
+    ::SafeRelease(m_pBackgroudBrush);
     m_pRenderTarget = ::SafeAcquire(target);
     m_pBrush_SetBeforeUse = static_cast<decltype(m_pBrush_SetBeforeUse)>(
         UIManager.GetBrush(LongUICommonSolidColorBrushIndex)
         );
+    if (m_idBackgroudBrush) {
+        m_pBackgroudBrush = UIManager.GetBrush(m_idBackgroudBrush);
+    }
     return target ? S_OK : E_INVALIDARG;
 }
 
@@ -680,10 +698,12 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
             }
         }
         this->AssertMarginalControl();
+        // 回退转变
+        m_pRenderTarget->SetTransform(&this->world);
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
-        //Super::Render(LongUI::RenderType::Type_RenderForeground);
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
         break;
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
