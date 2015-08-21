@@ -724,82 +724,57 @@ namespace LongUI {
         assert(node && "node not found");
         CUIString fontfamilyname(L"Arial");
         DWRITE_FONT_WEIGHT fontweight = DWRITE_FONT_WEIGHT_NORMAL;
-        DWRITE_FONT_STYLE fontstyle = DWRITE_FONT_STYLE_NORMAL;
-        DWRITE_FONT_STRETCH fontstretch = DWRITE_FONT_STRETCH_NORMAL;
         float fontsize = 12.f;
         // 获取字体名称
         Helper::MakeString(node.attribute("family").value(), fontfamilyname);
-        // 获取字体粗细
-        if (str = node.attribute("weight").value()) {
-            fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));
-        }
-        // 获取字体风格
-        if (str = node.attribute("style").value()) {
-            fontstyle = static_cast<DWRITE_FONT_STYLE>(LongUI::AtoI(str));
-        }
-        // 获取字体拉伸
-        if (str = node.attribute("stretch").value()) {
-            fontstretch = static_cast<DWRITE_FONT_STRETCH>(LongUI::AtoI(str));
-        }
         // 获取字体大小
         if (str = node.attribute("size").value()) {
             fontsize = LongUI::AtoF(str);
+        }
+        // 获取字体粗细
+        if (str = node.attribute("weight").value()) {
+            fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));
         }
         // 创建基本字体
         IDWriteTextFormat* textformat = nullptr;
         m_manager.CreateTextFormat(
             fontfamilyname.c_str(),
             fontweight,
-            fontstyle,
-            fontstretch,
+            Helper::XMLGetFontStyle(node, DWRITE_FONT_STYLE_NORMAL),
+            Helper::XMLGetFontStretch(node, DWRITE_FONT_STRETCH_NORMAL),
             fontsize,
             &textformat
             );
         // 成功获取则再设置
         if (textformat) {
-            // DWRITE_LINE_SPACING_METHOD;
-            DWRITE_FLOW_DIRECTION flowdirection = DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM;
+            // Tab宽度
             float tabstop = fontsize * 4.f;
-            DWRITE_PARAGRAPH_ALIGNMENT valign = DWRITE_PARAGRAPH_ALIGNMENT_NEAR;
-            DWRITE_TEXT_ALIGNMENT halign = DWRITE_TEXT_ALIGNMENT_LEADING;
-            DWRITE_READING_DIRECTION readingdirection = DWRITE_READING_DIRECTION_LEFT_TO_RIGHT;
-            DWRITE_WORD_WRAPPING wordwrapping = DWRITE_WORD_WRAPPING_NO_WRAP;
-            // 检查段落排列方向
-            if (str = node.attribute("flowdirection").value()) {
-                flowdirection = static_cast<DWRITE_FLOW_DIRECTION>(LongUI::AtoI(str));
-            }
             // 检查Tab宽度
             if (str = node.attribute("tabstop").value()) {
                 tabstop = LongUI::AtoF(str);
             }
-            // 检查段落(垂直)对齐
-            if (str = node.attribute("valign").value()) {
-                valign = static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(LongUI::AtoI(str));
-            }
-            // 检查文本(水平)对齐
-            if (str = node.attribute("halign").value()) {
-                halign = static_cast<DWRITE_TEXT_ALIGNMENT>(LongUI::AtoI(str));
-            }
-            // 检查阅读进行方向
-            if (str = node.attribute("readingdirection").value()) {
-                readingdirection = static_cast<DWRITE_READING_DIRECTION>(LongUI::AtoI(str));
-            }
-            // 检查自动换行
-            if (str = node.attribute("wordwrapping").value()) {
-                wordwrapping = static_cast<DWRITE_WORD_WRAPPING>(LongUI::AtoI(str));
-            }
             // 设置段落排列方向
-            textformat->SetFlowDirection(flowdirection);
+            textformat->SetFlowDirection(
+                Helper::XMLGetFlowDirection(node, DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM)
+                );
             // 设置Tab宽度
             textformat->SetIncrementalTabStop(tabstop);
             // 设置段落(垂直)对齐
-            textformat->SetParagraphAlignment(valign);
+            textformat->SetParagraphAlignment(
+                Helper::XMLGetVAlignment(node, DWRITE_PARAGRAPH_ALIGNMENT_NEAR)
+                );
             // 设置文本(水平)对齐
-            textformat->SetTextAlignment(halign);
+            textformat->SetTextAlignment(
+                Helper::XMLGetHAlignment(node, DWRITE_TEXT_ALIGNMENT_LEADING)
+                );
             // 设置阅读进行方向
-            textformat->SetReadingDirection(readingdirection);
+            textformat->SetReadingDirection(
+                Helper::XMLGetReadingDirection(node, DWRITE_READING_DIRECTION_LEFT_TO_RIGHT)
+                );
             // 设置自动换行
-            textformat->SetWordWrapping(wordwrapping);
+            textformat->SetWordWrapping(
+                Helper::XMLGetWordWrapping(node, DWRITE_WORD_WRAPPING_NO_WRAP)
+                );
         }
         return textformat;
     }

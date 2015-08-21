@@ -47,7 +47,7 @@ namespace LongUI {
     /// resource file name must be ascii only
     /// 资源文件名 ASCII ONLY
     /// </remarks>
-    class CUIZipResourceLoader final : public IUIResourceLoader {
+    class CUIZipXmlResourceLoader final : public IUIResourceLoader {
     public:
         // qi
         auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final {
@@ -69,9 +69,9 @@ namespace LongUI {
         auto GetMeta(size_t index, DeviceIndependentMeta&) noexcept ->void override; 
     public:
         // ctor
-        CUIZipResourceLoader(CUIManager& manager) noexcept;
+        CUIZipXmlResourceLoader(CUIManager& manager) noexcept;
         // dtor
-        ~CUIZipResourceLoader() noexcept;
+        ~CUIZipXmlResourceLoader() noexcept;
         // init
         auto Init(const wchar_t* file_name) noexcept->HRESULT;
     private:

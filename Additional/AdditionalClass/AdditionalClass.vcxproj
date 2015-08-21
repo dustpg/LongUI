@@ -138,10 +138,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="IUIZipResourceLoader.h" />
+    <ClInclude Include="IUIZipXMLResourceLoader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IUIZipResourceLoader.cpp" />
+    <ClCompile Include="IUIZipXMLResourceLoader.cpp" />
     <ClCompile Include="miniz.c" />
   </ItemGroup>
   <ItemGroup>

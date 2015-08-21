@@ -165,6 +165,7 @@
     <ClInclude Include="UIString.h" />
     <ClInclude Include="UITextRenderer.h" />
     <ClInclude Include="UIUtilMethod.h" />
+    <ClInclude Include="UIUtilSvg.h" />
     <ClInclude Include="UIVerticalLayout.h" />
     <ClInclude Include="UIWindow.h" />
   </ItemGroup>
@@ -185,6 +186,7 @@
     <ClCompile Include="UIUtil.cpp" />
     <ClCompile Include="UIUtil2.cpp" />
     <ClCompile Include="UIUtilDX.cpp" />
+    <ClCompile Include="UIUtilSvg.cpp" />
     <ClCompile Include="UIWindow.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

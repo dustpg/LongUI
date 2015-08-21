@@ -149,7 +149,7 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
         // 背景
         if (m_pBackgroudBrush) {
             D2D1_RECT_F rect; this->GetViewRect(rect);
-            m_pRenderTarget->FillRectangle(&rect, m_pBackgroudBrush);
+            LongUI::FillRectWithCommonBrush(m_pRenderTarget, m_pBackgroudBrush, rect);
         }
         break;
     case LongUI::RenderType::Type_Render:

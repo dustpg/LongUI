@@ -43,6 +43,8 @@ constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
 
 // get IID form typename, __uuidof is just impl in MSC
 namespace LongUI {
+    // Render Common Brush
+    void FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brush, const D2D1_RECT_F& rect) noexcept;
     // using template specialization  使用模板特化
     template<typename T> LongUIInline const IID& GetIID();
     // get IID from pointer

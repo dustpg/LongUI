@@ -2,29 +2,28 @@
   
 Lightweight Direct2D GUI Library/Framework in C++  
 Friendly with High-DPI :)  
-[中文说明文档](./README.zh-cn.md)
-  
-#### Current Version : Alpha-Stage
+[中文说明文档](./README.zh-cn.md)  
+Current Version : **Alpha-Stage**
 
 ## Features in LongUI
 
-#### Friendly with High-DPI
+** Friendly with High-DPI**
   - No GDI/GDI+, LongUI use Direct2D as rendering api, could zoom a container into any size
   
-#### Friendly with Game Engine
+**Friendly with Game**
   - LongUI was designed that could be embedded in game (that use `D2D1`, `D3D11` even `D3D12`)
   - also, you can use it in standalone way
   
-#### XML Layout
-  - LongUI use XML to create a window in easy way
+**XML Layout**
+  - LongUI create a window by xml in easy way
   - xml attributes: as few as possible
   
-#### Light Weight
-  - LongUI was designed to be a static-link framework, `hellowork` in only 100+kb(/MD in MSC).
+**Light Weight**
+  - LongUI was designed to be a static-link framework, `helloworld` in only 100+kb(/MD in MSC).
 
 [Known Issues](./KnownIssues.md)  
 [Document](./Document/)  
-[DemosShow.md](./DemosShow.md)  
+[DemosShow](./DemosShow.md)  
 
 ## Requirements
   

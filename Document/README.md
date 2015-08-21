@@ -1,5 +1,7 @@
 ﻿## LongUI Doc
 
+
+
 ### LongUI Common Resource
   common resource in LongUI all start-index is 1, and 0 index is default/retained data include:
   - bitmap in `ID2D1Bitmap1*`, use `LongUI::CUIManager::GetBitmap` to get, it will add ref-count
@@ -17,6 +19,23 @@
   - meta, none
   - meta-hicon, none
   - xml-node, none
+  
+### LongUI Common Brush
+to make rendering common brush in corrent way, The following stipulations applied in LongUI
+  - **use 1.0 as unit** in height, like:
+```cpp
+    // Normal Style Brush
+    if (SUCCEEDED(hr)) {
+        hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
+            D2D1::LinearGradientBrushProperties(
+                D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
+                ),
+            collection,
+            reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Normal)
+            );
+    }
+```
+  - more detail see `LongUI::FillRectWithCommonBrush`
   
   
 [xml-attributes.md](./xml-attributes.md)

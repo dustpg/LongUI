@@ -1559,45 +1559,17 @@ void LongUI::Component::Elements<LongUI::Element_BrushRect>::release_data() noex
 // Elements<BrushRectta> 渲染
 void LongUI::Component::Elements<LongUI::Element_BrushRect>::Render(const D2D1_RECT_F& rect) const noexcept {
     assert(m_pRenderTarget);
-    D2D1_MATRIX_3X2_F matrix; m_pRenderTarget->GetTransform(&matrix);
-#if 1
-    // 计算转换后的矩形
-    auto height = rect.bottom - rect.top;
-    D2D1_RECT_F rect2 = {
-        0.f, 0.f, (rect.right - rect.left) / height , 1.f
-    };
-    // 计算转换后的矩阵
-    m_pRenderTarget->SetTransform(
-        D2D1::Matrix3x2F::Scale(height, height) *
-        D2D1::Matrix3x2F::Translation(rect.left, rect.top) *
-        matrix
-        );
     // 先绘制当前状态
     if (animation.value < animation.end) {
-        m_pRenderTarget->FillRectangle(rect2, m_apBrushes[m_state]);
+        LongUI::FillRectWithCommonBrush(m_pRenderTarget, m_apBrushes[m_state], rect);
     }
     // 后绘制目标状态
     auto brush = m_apBrushes[m_stateTartget];
     brush->SetOpacity(animation.value);
-    m_pRenderTarget->FillRectangle(rect2, brush);
+    LongUI::FillRectWithCommonBrush(m_pRenderTarget, brush, rect);
     brush->SetOpacity(1.f);
-    m_pRenderTarget->SetTransform(&matrix);
-#else
-    //m_pRenderTarget->SetTransform(D2D1::IdentityMatrix());
-    // 先绘制当前状态
-    if (animation.value < animation.end) {
-        m_apBrushes[m_state]->SetTransform(&matrix);
-        m_pRenderTarget->FillRectangle(rect, m_apBrushes[m_state]);
-    }
-    // 后绘制目标状态
-    auto brush = m_apBrushes[m_stateTartget];
-    brush->SetOpacity(animation.value);
-    //brush->SetTransform(&matrix);
-    m_pRenderTarget->FillRectangle(rect, brush);
-    brush->SetOpacity(1.f);
-    //m_pRenderTarget->SetTransform(&matrix);
-#endif
 }
+
 // Elements<BrushRect> 重建
 auto LongUI::Component::Elements<LongUI::Element_BrushRect>::
 Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {

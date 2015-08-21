@@ -36,6 +36,9 @@
     <Filter Include="LongUI\Header\Util">
       <UniqueIdentifier>{8530eb64-27a6-4cb3-9985-c27e16d68d0b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LongUI\Source\Util">
+      <UniqueIdentifier>{e639d6bc-b6d1-47bc-8de6-26a135dff724}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LongUI.h">
@@ -140,6 +143,9 @@
     <ClInclude Include="binaryattribute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UIUtilSvg.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -163,12 +169,6 @@
     <ClCompile Include="UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="UIUtil.cpp">
-      <Filter>LongUI\Source\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="UIUtilDX.cpp">
-      <Filter>LongUI\Source\Base</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentImpl.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
@@ -177,9 +177,6 @@
     </ClCompile>
     <ClCompile Include="InlineObjImpl.cpp">
       <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="UIUtil2.cpp">
-      <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
     <ClCompile Include="ControlCore.cpp">
       <Filter>LongUI\Source\Base</Filter>
@@ -192,6 +189,18 @@
     </ClCompile>
     <ClCompile Include="UIWindow.cpp">
       <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUtil.cpp">
+      <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUtil2.cpp">
+      <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUtilDX.cpp">
+      <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUtilSvg.cpp">
+      <Filter>LongUI\Source\Util</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
