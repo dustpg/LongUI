@@ -382,16 +382,17 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
     float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
     D2D1_MATRIX_3X2_F identity;
-    D2D1_MATRIX_3X2_F* parent_parent_world = &identity;
+    D2D1_MATRIX_3X2_F* parent_world = &identity;
     // 顶级
+    identity = D2D1::Matrix3x2F::Identity();
     if (this->parent->IsTopLevel()) {
         identity = D2D1::Matrix3x2F::Identity();
     }
     else {
-        parent_parent_world = &this->parent->parent->world;
+        parent_world = &this->parent->world;
     }
     // 计算矩阵
-    this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_parent_world;
+    this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_world;
     // 自己不能是顶级的
     assert(this->IsTopLevel() == false);
     constexpr int aa = sizeof(UIContainer);

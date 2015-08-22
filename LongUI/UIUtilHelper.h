@@ -216,6 +216,13 @@ namespace LongUI { namespace Helper {
     auto XMLGetValue(pugi::xml_node node, const char* attribute, const char* prefix =nullptr) noexcept -> const char*;
     // get value enum-int
     auto XMLGetValueEnum(pugi::xml_node node, const XMLGetValueEnumProperties& prop, uint32_t bad_match = 0) noexcept->uint32_t;
+    // get animation type
+    auto XMLGetAnimationType(
+        pugi::xml_node node,
+        AnimationType bad_match,
+        const char* attribute = "animationtype",
+        const char* prefix = nullptr
+        ) noexcept->AnimationType;
     // get d2d interpolation mode
     auto XMLGetD2DInterpolationMode(
         pugi::xml_node node, 

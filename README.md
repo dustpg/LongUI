@@ -1,12 +1,11 @@
 ﻿## LongUI
   
 Lightweight Direct2D GUI Library/Framework in C++  
-Friendly with High-DPI :)  
 [中文说明文档](./README.zh-cn.md)  
 Current Version : **Alpha-Stage**
 
 ## Features in LongUI
-
+  
 ** Friendly with High-DPI**
   - No GDI/GDI+, LongUI use Direct2D as rendering api, could zoom a container into any size
   

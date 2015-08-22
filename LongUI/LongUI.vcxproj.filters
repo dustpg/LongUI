@@ -169,12 +169,6 @@
     <ClCompile Include="UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentImpl.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="UIRenderQueue_Loader.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
     <ClCompile Include="InlineObjImpl.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
@@ -201,6 +195,12 @@
     </ClCompile>
     <ClCompile Include="UIUtilSvg.cpp">
       <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentImpl.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRenderQueue_Loader.cpp">
+      <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -178,6 +178,57 @@ auto LongUI::Helper::XMLGetValueEnum(pugi::xml_node node,
     return bad_match;
 }
 
+// 获取动画类型
+auto LongUI::Helper::XMLGetAnimationType(
+    pugi::xml_node node,
+    AnimationType bad_match,
+    const char* attribute = "animationtype",
+    const char* prefix = nullptr
+    ) noexcept->AnimationType {
+    // 属性值列表
+    static const char* type_list[] = {
+        "linear",
+        "quadraticim",
+        "quadraticout",
+        "quadraticinout",
+        "cubicin",
+        "cubicout",
+        "cubicoinout",
+        "quarticin",
+        "quarticout",
+        "quarticinout",
+        "quinticcin",
+        "quinticcout",
+        "quinticinout",
+        "sincin",
+        "sincout",
+        "sininout",
+        "circularcin",
+        "circularcout",
+        "circularinout",
+        "exponentiacin",
+        "exponentiaout",
+        "exponentiainout",
+        "elasticin",
+        "elasticout",
+        "elasticinout",
+        "backin",
+        "backout",
+        "backinout",
+        "bouncein",
+        "bounceout",
+        "bounceinout",
+    };
+    // 设置
+    XMLGetValueEnumProperties prop;
+    prop.attribute = attribute;
+    prop.prefix = prefix;
+    prop.values = type_list;
+    prop.values_length = lengthof(type_list);
+    // 调用
+    return static_cast<AnimationType>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
+}
+
 // 获取插值模式
 auto LongUI::Helper::XMLGetD2DInterpolationMode(
     pugi::xml_node node, D2D1_INTERPOLATION_MODE bad_match, 

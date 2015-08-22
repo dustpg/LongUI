@@ -186,6 +186,7 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
 bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
     //--------------------------------------------------
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    // longui 消息
     if (arg.sender) {
         switch (arg.event)
         {

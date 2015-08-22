@@ -73,7 +73,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     HRESULT hr = S_OK;
     // 位图缓存
     if (SUCCEEDED(hr)) {
-        m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(LongUI::CtrlAlloc(
+        m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(LongUI::NormalAlloc(
             sizeof(RGBQUAD) * LongUIDefaultBitmapSize * LongUIDefaultBitmapSize)
             );
         // 内存不足
@@ -109,7 +109,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
                 m_cCountMt += static_cast<decltype(m_cCountMt)>(m_pResourceLoader->GetResourceCount(IUIResourceLoader::Type_Meta));
             }
             // 申请内存
-            m_pResourceBuffer = LongUI::CtrlAlloc(get_buffer_length());
+            m_pResourceBuffer = LongUI::NormalAlloc(get_buffer_length());
         }
         // 修改资源
         if (m_pResourceBuffer) {
@@ -253,12 +253,12 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     this->discard_resources();
     // 释放内存
     if (m_pBitmap0Buffer) {
-        LongUI::CtrlFree(m_pBitmap0Buffer);
+        LongUI::NormalFree(m_pBitmap0Buffer);
         m_pBitmap0Buffer = nullptr;
     }
     // 释放资源缓存
     if (m_pResourceBuffer) {
-        LongUI::CtrlFree(m_pResourceBuffer);
+        LongUI::NormalFree(m_pResourceBuffer);
         m_pResourceBuffer = nullptr;
     }
     m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
@@ -505,7 +505,7 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
             function = this->GetCreateFunc(node.name());
         }
     }
-    // 节点有效
+    // 节点有效并且没有指定模板ID则尝试获取
     if (node && !id) {
         id = static_cast<decltype(id)>(LongUI::AtoI(
             node.attribute(LongUI::XMLAttribute::TemplateID).value())
@@ -513,16 +513,23 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
     }
     // 利用id查找模板控件
     if (id) {
-        auto attribute = m_pTemplateNodes[id].first_attribute();
-        // 遍历属性
-        while (attribute) {
-            // 添加属性
-            auto name = attribute.name();
-            if (!node.attribute(name)) {
-                node.insert_attribute_after(name, node.last_attribute()).set_value(attribute.value());
+        // 节点有效则添加属性
+        if (node) {
+            auto attribute = m_pTemplateNodes[id].first_attribute();
+            // 遍历属性
+            while (attribute) {
+                // 添加属性
+                auto name = attribute.name();
+                if (!node.attribute(name)) {
+                    node.insert_attribute_after(name, node.last_attribute()).set_value(attribute.value());
+                }
+                // 推进
+                attribute = attribute.next_attribute();
             }
-            // 推进
-            attribute = attribute.next_attribute();
+        }
+        // 没有则直接设置
+        else {
+            node = m_pTemplateNodes[id];
         }
     }
     assert(function && "bad idea");

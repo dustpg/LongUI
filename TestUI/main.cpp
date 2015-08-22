@@ -30,13 +30,13 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 #else
 // bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="1024, 768" name="MainWindow" debug="true"
+<Window size="512, 512" name="MainWindow" debug="true"
     bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" clearcolor="1,1,1,0.95" >
-    <VerticalLayout name="V" size="1366, 512">
+    <VerticalLayout name="V" size="768, 256" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
         <Button name="1" templateid="1" text="Hello, world!"/>
-        <Button name="2" templateid="2" text="Hello, world!"/>
+        <Button name="2" size="1024, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
-    <Slider name="6" size="0, 32"/>
+    <Slider name="6" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <HorizontalLayout name="H" size="0, 512">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
@@ -224,8 +224,8 @@ public:
     }
     // On Value Changed
     bool OnValueChangedConst(UIControl* control) const {
-        register auto value = static_cast<LongUI::UISlider*>(control)->GetValue();
-        m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, value * 10.f);
+        register auto value = static_cast<LongUI::UISlider*>(control)->GetValueSE();
+        m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, value );
         return true;
     }
     // close this control

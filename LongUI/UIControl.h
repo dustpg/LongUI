@@ -61,18 +61,11 @@ namespace LongUI {
         // easy way: delete this
         virtual void Cleanup() noexcept = 0;
     public:
-        // get control name for script
-        auto GetName_fs() const noexcept {
-            static char buffer[LongUIStringBufferLength];
-            buffer[LongUI::WideChartoUTF8(m_strControlName.c_str(), buffer)] = L'\0';
-            return static_cast<const char*>(buffer);
-        }
-    public:
-        // ator
+        // ctor
         UIControl(pugi::xml_node) noexcept;
         // dtor
         ~UIControl() noexcept;
-        // delete the copy-ator
+        // delete the copy-ctor
         UIControl(const UIControl&) = delete;
     protected:
         // new operator with buffer -- placement new 
@@ -84,7 +77,7 @@ namespace LongUI {
         // delete new[] operator
         void* operator new[](size_t) = delete;
         // delete operator
-        void  operator delete(void* p, size_t) { LongUI::CtrlFree(p); };
+        void  operator delete(void* p, size_t) { LongUI::NormalFree(p); };
         // delete delete[] operator
         void  operator delete[](void*, size_t) = delete;
     public:
@@ -186,19 +179,18 @@ namespace LongUI {
         // boolx16
         Helper::BitArray16      m_bool16;
     public:
+        // priority for rendering
+        uint8_t         const   priority = Priority_Normal;
         // visible
         bool                    visible = true;
-        // priority for rendering
-        uint8_t          const  priority = Priority_Normal;
-    public:
+        // control current visible position(relative to world)
+        D2D1_RECT_F             visible_rect = D2D1::RectF();
         // transform for world
         D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
         // position of control's view
         D2D1_POINT_2F   const   view_pos = D2D1::Point2F();
         // size of viewport
         D2D1_SIZE_F     const   view_size = D2D1::SizeF(0.f, 0.f);
-        // control current visible position(relative to world)
-        D2D1_RECT_F             visible_rect = D2D1::RectF();
         // margin rect
         D2D1_RECT_F     const   margin_rect = D2D1::RectF();
         // flags, use const_cast to change in constructor function
@@ -249,7 +241,7 @@ namespace LongUI {
             if (node) {
                 exsize = LongUI::AtoI(node.attribute("exdatasize").value());
             }
-            T* control = reinterpret_cast<T*>(LongUI::CtrlAlloc(sizeof(T) + exsize));
+            T* control = reinterpret_cast<T*>(LongUI::NormalAlloc(sizeof(T) + exsize));
             // check alignof
             static_assert(Is2Power(alignof(T)), "alignas(Control) must be 2powered");
             assert(size_t(control) % alignof(T) == 0);
@@ -261,7 +253,7 @@ namespace LongUI {
             }
 #else
             UNREFERENCED_PARAMETER(node);
-            T* control = reinterpret_cast<T*>(LongUI::CtrlAlloc(sizeof(T)));
+            T* control = reinterpret_cast<T*>(LongUI::NormalAlloc(sizeof(T)));
             // check alignof
             static_assert(Is2Power(alignof(T)), "alignas(Control) must be 2powered");
             assert(size_t(control) % alignof(T) == 0);

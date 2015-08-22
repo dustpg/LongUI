@@ -68,6 +68,10 @@ void __fastcall LongUI::Meta_Render(
     switch (meta.rule)
     {
     case LongUI::BitmapRenderRule::Rule_Scale:
+        __fallthrough;
+    default:
+    case LongUI::BitmapRenderRule::Rule_ButtonLike:
+        // 直接缩放:
         target->DrawBitmap(
             meta.bitmap,
             des_rect, opacity,
@@ -76,7 +80,10 @@ void __fastcall LongUI::Meta_Render(
             nullptr
             );
         break;
-    case LongUI::BitmapRenderRule::Rule_ButtonLike:
+    /*case LongUI::BitmapRenderRule::Rule_ButtonLike:
+        // 类按钮
+        // - 原矩形, 宽 > 高 ->
+        // - 原矩形, 宽 < 高 ->
     {
         constexpr float MARKER = 0.25f;
         auto width = meta.src_rect.right - meta.src_rect.left;
@@ -130,7 +137,7 @@ void __fastcall LongUI::Meta_Render(
             target->PopAxisAlignedClip();
         }
     }
-    break;
+    break;*/
     }
 }
 
@@ -463,7 +470,7 @@ void LongUI::CUIConstString::set(const wchar_t* str, size_t length) noexcept {
             m_pString = reinterpret_cast<wchar_t*>(LongUI::SmallAlloc(buffer_length));
         }
         else {
-            m_pString = reinterpret_cast<wchar_t*>(LongUI::CtrlAlloc(buffer_length));
+            m_pString = reinterpret_cast<wchar_t*>(LongUI::NormalAlloc(buffer_length));
         }
         // OK
         if (m_pString) {
@@ -1220,7 +1227,7 @@ LongUI::CUIFileLoader::CUIFileLoader() noexcept { }
 // CUIFileLoader 析构函数
 LongUI::CUIFileLoader::~CUIFileLoader() noexcept { 
     if (m_pData) {
-        LongUI::CtrlFree(m_pData);
+        LongUI::NormalFree(m_pData);
         m_pData = nullptr;
     }
 }
@@ -1237,8 +1244,8 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
         // 缓存不足?
         if (m_cLength > m_cLengthReal) {
             m_cLengthReal = m_cLength;
-            if (m_pData) LongUI::CtrlFree(m_pData);
-            m_pData = LongUI::CtrlAlloc(m_cLength);
+            if (m_pData) LongUI::NormalFree(m_pData);
+            m_pData = LongUI::NormalAlloc(m_cLength);
         }
         // 读取文件
         if (m_pData) ::fread(m_pData, 1, m_cLength, file);

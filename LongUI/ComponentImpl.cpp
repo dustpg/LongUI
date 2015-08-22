@@ -1,7 +1,6 @@
 ﻿#include "LongUI.h"
 
 // -------------------- LongUI::Component::ShortText --------------------
-
 // ShortText 构造函数
 LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix) noexcept
     : m_pTextRenderer(nullptr) {
@@ -1450,9 +1449,12 @@ Init(pugi::xml_node node, const char* prefix) noexcept {
     // 无效?
     const char* str = nullptr;
     // 动画类型
-    if ((str = Helper::XMLGetValue(node, "animationtype", prefix))) {
-        animation.type = static_cast<AnimationType>(LongUI::AtoI(str));
-    }
+    animation.type = Helper::XMLGetAnimationType(
+        node,
+        AnimationType::Type_QuadraticEaseOut,
+        "animationtype",
+        prefix
+        );
     // 动画持续时间
     if ((str = Helper::XMLGetValue(node, "animationduration", prefix))) {
         animation.duration = LongUI::AtoF(str);

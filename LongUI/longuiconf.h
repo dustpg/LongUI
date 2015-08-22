@@ -9,10 +9,10 @@
 
 // longui namespace
 namespace LongUI {
-    // alloc for longui control
-    static auto CtrlAlloc(size_t length) noexcept { return ::malloc(length); }
-    // free for longui control
-    static auto CtrlFree(void* address) noexcept { return ::free(address); }
+    // alloc for normal space
+    static auto NormalAlloc(size_t length) noexcept { return ::malloc(length); }
+    // free for normal space
+    static auto NormalFree(void* address) noexcept { return ::free(address); }
 #ifndef _DEBUG
     // alloc for small space
     static auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
@@ -26,7 +26,7 @@ namespace LongUI {
 #endif
     // template helper
     template<typename T>
-    static auto CtrlAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::CtrlAlloc(length * sizeof(T))); }
+    static auto NormalAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); }
     // template helper
     template<typename T>
     static auto SmallAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
@@ -300,7 +300,7 @@ namespace LongUI {
         // user defined string
         static constexpr char* const UserDefinedString      = "userstring";
         // backgroud brush, 0 for null not default brush
-        static constexpr char* const BackgroudBrush         = "bkbrush";
+        static constexpr char* const BackgroudBrush         = "bgbrush";
         // position of control left-top: float2
         static constexpr char* const LeftTopPosotion        = "pos";
         // size of control: float2

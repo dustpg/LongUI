@@ -12,7 +12,7 @@ LongUI::CUIRenderQueue::CUIRenderQueue(UIWindow* window) noexcept {
 LongUI::CUIRenderQueue::~CUIRenderQueue() noexcept {
     // 释放数据
     if (m_pUnitsDataBegin) {
-        LongUI::CtrlFree(m_pUnitsDataBegin);
+        LongUI::NormalFree(m_pUnitsDataBegin);
     }
     m_pUnitsDataBegin = m_pUnitsDataEnd = m_pCurrentUnit = nullptr;
 }
@@ -26,7 +26,7 @@ void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     // 创建
     CUIRenderQueue::UNIT* data = nullptr;
     if (freq) {
-        data = LongUI::CtrlAllocT(data, LongUIPlanRenderingTotalTime * freq);
+        data = LongUI::NormalAllocT(data, LongUIPlanRenderingTotalTime * freq);
         if (data) {
             for (auto i = 0u; i < LongUIPlanRenderingTotalTime * freq; ++i) {
                 data[i].length = 0;
@@ -38,7 +38,7 @@ void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
         assert(!"NOTIMPL");
     }
     // 释放
-    if (m_pUnitsDataBegin) LongUI::CtrlFree(m_pUnitsDataBegin);
+    if (m_pUnitsDataBegin) LongUI::NormalFree(m_pUnitsDataBegin);
     // 转移
     if (data) {
         m_pUnitsDataBegin = data;

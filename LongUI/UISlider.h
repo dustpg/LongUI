@@ -41,7 +41,7 @@ namespace LongUI{
         // do event 事件处理
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate 重建
-        //virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
+        virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT override;
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
@@ -49,8 +49,10 @@ namespace LongUI{
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // register Value Changed 注册变动事件
         void RegisterValueChangedEvent(const CUISubEventCaller& caller) noexcept { m_caller = caller; }
-        // 获取数值
-        auto GetValue() const noexcept { return m_fValue; }
+        // get value in [0, 1]
+        auto GetValue01() const noexcept { return m_fValue; }
+        // get value in [start, end]
+        auto GetValueSE() const noexcept { return (m_fEnd - m_fStart) * m_fValue + m_fStart; }
         // is Vertical Slider?
         auto IsVerticalSlider() const noexcept { return m_bVerticalSlider; }
         // is Horizontal Slider?
@@ -66,7 +68,7 @@ namespace LongUI{
         // event caller
         CUISubEventCaller   m_caller;
         // slider rect
-        D2D1_RECT_F         m_rcSlider = D2D1::RectF();
+        D2D1_RECT_F         m_rcThumb = D2D1::RectF();
         // ui element
         SliderElement       m_uiElement;
         // value range[0, 1]
@@ -80,15 +82,17 @@ namespace LongUI{
     public:
         // size of thumb
         D2D1_SIZE_F const   thumb_size = D2D1::SizeF(10.f, 20.f);
-        // step, 0.0f for any
-        float       const   step = 0.f;
     protected:
+        // click posistion
+        float               m_fClickPosition = 0.f;
         // is mouse click in
         bool                m_bMouseClickIn = false;
-        // is mouse click in
+        // is mouse move in
+        bool                m_bMouseMoveIn = false;
+        // is vertical slider
         bool                m_bVerticalSlider = false;
-        // unused for slider
-        bool                m_bunsed_slider[2];
+        // default background
+        bool                m_bDefaultBK = true;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
