@@ -1,7 +1,5 @@
 ﻿## LongUI Doc
 
-
-
 ### LongUI Common Resource
   common resource in LongUI all start-index is 1, and 0 index is default/retained data include:
   - bitmap in `ID2D1Bitmap1*`, use `LongUI::CUIManager::GetBitmap` to get, it will add ref-count
@@ -9,7 +7,7 @@
   - text-format/font in `IDWriteTextFormat*`, use `LongUI::CUIManager::GetTextFormat` to get, it will add ref-count
   - meta in `LongUI::Meta`, use `LongUI::CUIManager::GetMeta` to get, it **wont't** add ref-count
   - (**unrecommended**)meta-hicon in `HICON`, use `LongUI::CUIManager::GetMetaHICON` to get
-  - xml-node in `pugi::xml_node`, you counld not get it because of it used in **CreateControl**
+  - xml-node in `pugi::xml_node`, you could not get it because of it used for "templateid"
   
 ### Index Zero Resource
   more detail to see `LongUI::CUIManager::create_indexzero_resources`

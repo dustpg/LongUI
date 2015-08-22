@@ -6,7 +6,7 @@ Current Version : **Alpha-Stage**
 
 ## Features in LongUI
   
-** Friendly with High-DPI**
+**Friendly with High-DPI**
   - No GDI/GDI+, LongUI use Direct2D as rendering api, could zoom a container into any size
   
 **Friendly with Game**

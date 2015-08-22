@@ -7,7 +7,7 @@ class|super|note
 [UIVerticalLayout](#jump_vlayout)|[UIContainer](#jump_container)|LongUI vertical-layout container
 [UIWindow](#jump_window)|[UIVerticalLayout](#jump_vlayout)|LongUI window base class
 
-## <span id="jump_control">LongUI::UIControl XML Attribute(s)</span>
+##<a name="jump_control"/>LongUI::UIControl XML Attribute(s)
   
 relevant class|note
 --------------|----
@@ -31,7 +31,7 @@ attribute name|value type|default|note
 `renderparent`|[bool](./longui-xml-value-type.md#jump_bool)|false|if render this control, must render parent (parent will render itself and **all children**)
 `borderwidth`|[float](./longui-xml-value-type.md#jump_float)|0.0|set width of border
 
-## <span id="jump_control">LongUI::UIContainer XML Attribute(s)</span>
+##<a name="jump_container"/>LongUI::UIContainer XML Attribute(s)
   
 relevant class|note
 --------------|----
@@ -48,7 +48,7 @@ attribute name|value type|default|note
 `bottomcontrol`|[CC](./longui-xml-value-type.md#jump_cc)|(empty)|bottom marginal control, like `leftcontrol`
 `zoommarginal`|[bool](./longui-xml-value-type.md#jump_bool)|true|marginal control will be zoomed as **current container**
 
-## <span id="jump_window">LongUI::UIWindow XML Attribute(s)</span>
+##<a name="jump_window"/>LongUI::UIWindow XML Attribute(s)
   
 relevant class|note
 --------------|----
