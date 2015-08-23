@@ -82,14 +82,14 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             }
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
+                /*if (m_strControlName == L"V") {
+                    int bk = 9;
+                }*/
                 ctrl->SetHeight(std::max(height_in_unit_weight * ctrl->weight, float(LongUIAutoControlMinSize)));
             }
             // 容器?
             // 不管如何, 修改!
             ctrl->SetControlSizeChanged();
-            if (ctrl->GetName() == L"btn_x") {
-                int bk = 9;
-            }
             ctrl->SetLeft(0.f);
             ctrl->SetTop(position_y);
             position_y += ctrl->GetTakingUpHeight();

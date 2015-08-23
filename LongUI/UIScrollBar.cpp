@@ -163,6 +163,13 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 
 // UI滚动条(类型A): 刷新
 void LongUI::UIScrollBarA::Update() noexcept {
+    // 索引不一致?
+    auto offset = -(this->bartype == ScrollBarType::Type_Horizontal ?
+        this->parent->GetOffsetXByChild() : this->parent->GetOffsetYByChild());
+    if (std::abs(m_fIndex - offset) > 0.5f) {
+        this->set_index(offset);
+        UIManager << DL_Hint << "diffence with offset, set new index" << LongUI::endl;
+    }
     // 先刷新父类
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正

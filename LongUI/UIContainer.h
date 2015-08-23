@@ -183,6 +183,8 @@ namespace LongUI {
         // marginal controls
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
+        // template size, store real-size if valid
+        D2D1_SIZE_F             m_2fTemplateSize = D2D1::SizeF(0.f, 0.f);
         // offset position
         D2D1_POINT_2F           m_2fOffset = D2D1::Point2F();
         // size of content

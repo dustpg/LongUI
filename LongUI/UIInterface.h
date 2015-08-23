@@ -134,27 +134,69 @@ namespace LongUI {
     class CUISubEventCaller;
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
-        // get null-end string for template for creating control
+        /// <summary>
+        /// get null-end string for template for creating control
+        /// </summary>
+        /// <returns>null-end string</returns>
         virtual auto GetTemplateString() noexcept->const char* = 0;
-        // get locale name of ui(for text), default is L"" (locale)
+        /// <summary>
+        /// Gets the locale name
+        /// </summary>
+        /// <param name="name">The locale name buffer</param>
+        /// <remarks>L"" for local locale name</remarks>
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void = 0;
-        // add all custom controls, just return if no custom control
+        /// <summary>
+        /// Adds the custom control.
+        /// </summary>
+        /// <remarks>call CUIManager::RegisterControl to add control class</remarks>
         virtual auto AddCustomControl() noexcept->void = 0;
-        // return true, if use cpu rendering by WARP driver
+        /// <summary>
+        /// is render by cpu?
+        /// </summary>
+        /// <returns>return true for WARP</returns>
         virtual auto IsRenderByCPU() noexcept->bool = 0;
-        // if use gpu render, you should choose a video card,return the index,
-        // if return code out of range, will set by default(null pointer adapter)
-        // btw, in the adapter list, also include the WARP-adapter
+        /// <summary>
+        /// Chooses the video adapter.
+        /// </summary>
+        /// <param name="adapters">The adapter array</param>
+        /// <param name="length">The length of adapters</param>
+        /// <remarks>
+        /// if "IsRenderByCPU" return false, you should choose a video card,return the index.
+        /// if return code out of range, will set by default(null pointer adapter)
+        /// btw, in the adapter list, also include the WARP-adapter
+        /// </remarks>
+        /// <returns>index of adapters</returns>
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[/*length*/], const size_t length /*<=256*/) noexcept->size_t = 0;
-        // SetSubEventCallBack for custom control
-        // in normal case, you just return and say "不方便" is ok
-        virtual auto SetSubEventCallBack(LongUI::SubEvent, const CUISubEventCaller& caller, UIControl* recver) noexcept -> void = 0;
-        // if in RichType::Type_Custom, will call this
-        virtual auto CustomRichType(const FormatTextConfig& config, const wchar_t* format) noexcept->IDWriteTextLayout* =0;
-        // show the error string
+        /// <summary>
+        /// Sets the subevent call back.
+        /// </summary>
+        /// <param name="sb">The subevent</param>
+        /// <param name="caller">The caller.</param>
+        /// <param name="recver">The recver.</param>
+        virtual auto SetSubEventCallBack(LongUI::SubEvent sb, const CUISubEventCaller& caller, UIControl* recver) noexcept -> void = 0;
+        /// <summary>
+        /// Customs the type of the rich.
+        /// </summary>
+        /// <param name="config">The configuration.</param>
+        /// <param name="format">The format.</param>
+        /// <remarks>if in RichType::Type_Custom, will call this</remarks>
+        /// <returns></returns>
+        virtual auto CustomRichType(const FormatTextConfig& config, const wchar_t* format) noexcept->IDWriteTextLayout* = 0;
+        /// <summary>
+        /// Shows the error.
+        /// </summary>
+        /// <param name="str_a">String A</param>
+        /// <param name="str_b">String B</param>
+        /// <returns></returns>
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void = 0;
 #ifdef _DEBUG
-        // output the debug string
+        /// <summary>
+        /// Outputs the debug string in debug mode
+        /// </summary>
+        /// <param name="level">The debug level.</param>
+        /// <param name="string">The debug string.</param>
+        /// <param name="flush">if set to <c>true</c> [flush].</param>
+        /// <returns></returns>
         virtual auto OutputDebugStringW(DebugStringLevel level, const wchar_t* string, bool flush) noexcept -> void = 0;
 #endif
     };

@@ -15,7 +15,6 @@ Current Version : **Alpha-Stage**
   
 **XML Layout**
   - LongUI create a window by xml in easy way
-  - xml attributes: as few as possible
   
 **Light Weight**
   - LongUI was designed to be a static-link framework, `helloworld` in only 100+kb(/MD in MSC).

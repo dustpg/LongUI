@@ -315,7 +315,7 @@ auto LongUI::UIControl::SetTop(float top) noexcept -> void {
 }
 
 // 获取占用/剪切矩形
-void LongUI::UIControl::GetRectAll(D2D1_RECT_F& rect) const noexcept {
+void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderWidth);
     rect.top = -(this->margin_rect.top + m_fBorderWidth);
     rect.right = this->view_size.width + this->margin_rect.right + m_fBorderWidth;
@@ -371,7 +371,12 @@ void LongUI::UIControl::RefreshWorld() noexcept {
         xx += this->parent->GetOffsetXByChild();
         yy += this->parent->GetOffsetYByChild();
         // 转换
-        this->world = D2D1::Matrix3x2F::Translation(xx, yy) * this->parent->world;
+        this->world = D2D1::Matrix3x2F::Translation(xx, yy) 
+            * D2D1::Matrix3x2F::Scale(
+                this->parent->GetZoomX(),
+                this->parent->GetZoomY()
+                )
+            * this->parent->world;
     }
     // 修改了
     this->ControlWorldChangeHandled();
@@ -465,11 +470,14 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 
 
 // ------------------------------ UIContainer -----------------------------
-
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), marginal_control() {
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
     assert(node && "bad argument.");
+    // LV
+    if (m_strControlName == L"V") {
+        m_2fZoom = { 2.f, 2.f };
+    }
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
@@ -657,7 +665,7 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
             target->SetTransform(&ctrl->world);
             // 检查剪切规则
             if (ctrl->flags & Flag_ClipStrictly) {
-                D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
+                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
                 target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             }
             ctrl->Render(LongUI::RenderType::Type_Render);
@@ -820,6 +828,7 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
         }
         // 退出检查
         {
+            // 计算
             const float latest_width = caculate_container_width();
             const float latest_height = caculate_container_height();
             // 一样就退出
@@ -851,6 +860,24 @@ void LongUI::UIContainer::Update() noexcept {
         if (this->flags & Flag_Container_ExistMarginalControl) {
             this->update_marginal_controls();
         }
+        // 限制区域: 由于修改控件大小而造成的视区问题
+        {
+            auto width_remain = this->view_size.width - m_2fOffset.x  - m_2fContentSize.width;
+            if (width_remain > 0.f) {
+                m_2fOffset.x += width_remain;
+            }
+        }
+        {
+            auto height_remain = this->view_size.height - m_2fOffset.y  - m_2fContentSize.height;
+            if (height_remain > 0.f) {
+                m_2fOffset.y += height_remain;
+            }
+        }
+        // 刷新
+        /*if (should_update) {
+            this->SetControlWorldChanged();
+            this->Update();
+        }*/
     }
     // 修改可视化区域
     if (this->IsNeedRefreshWorld()) {
@@ -864,7 +891,7 @@ void LongUI::UIContainer::Update() noexcept {
                     ctrl->SetControlWorldChanged();
                     ctrl->RefreshWorldMarginal();
                     // 坐标转换
-                    D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
+                    D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
                     auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
                     auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
                     // 修改可视区域
@@ -888,7 +915,7 @@ void LongUI::UIContainer::Update() noexcept {
             ctrl->SetControlWorldChanged();
             ctrl->RefreshWorld();
             // 坐标转换
-            D2D1_RECT_F clip_rect; ctrl->GetRectAll(clip_rect);
+            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
             auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
             auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
             // 限制

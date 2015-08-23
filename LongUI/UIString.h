@@ -69,7 +69,7 @@ namespace LongUI{
         // 字符串构造函数
         CUIString(const wchar_t* str, uint32_t l = 0) noexcept { this->Set(str, l); }
         // CUIConstString 构造函数
-        CUIString(const CUIConstString& str) noexcept { this->Set(str.c_str(), str.length()); }
+        CUIString(const CUIConstString& str) noexcept { this->Set(str.c_str(), static_cast<uint32_t>(str.length())); }
         // 析构函数
         ~CUIString() noexcept;
         // 复制构造函数

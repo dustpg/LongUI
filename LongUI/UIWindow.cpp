@@ -553,9 +553,9 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
         auto length = ::swprintf(
             buffer, 1024,
             L"Full Rendering Count: %d\nDirty Rendering Count: %d\nThis DirtyRectsCount:%d",
-            full_render_counter,
-            dirty_render_counter,
-            m_aUnitNow.length
+            int(full_render_counter),
+            int(dirty_render_counter),
+            int(m_aUnitNow.length)
             );
         auto tf = UIManager.GetTextFormat(LongUIDefaultTextFormatIndex);
         auto ta = tf->GetTextAlignment();

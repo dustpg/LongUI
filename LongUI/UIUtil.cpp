@@ -502,7 +502,7 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     if (!length && *str) { length = static_cast<uint32_t>(::wcslen(str)); }
     // 超长的话
     if (length > m_cBufferLength) {
-        m_cBufferLength = this->nice_buffer_length(length);
+        m_cBufferLength = static_cast<uint32_t>(this->nice_buffer_length(length));
         // 尝试释放
         this->safe_free_bufer();
         // 申请内存
@@ -532,7 +532,7 @@ void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
     if (!len && *str) { len = static_cast<uint32_t>(::strlen(str)); }
     // 假设全是英文字母, 超长的话
     if (len > LongUIStringBufferLength) {
-        buffer_length = this->nice_buffer_length(len);
+        buffer_length = static_cast<uint32_t>(this->nice_buffer_length(len));
         huge_buffer = this->alloc_bufer(m_cBufferLength);
         // OOM ?
         if (!huge_buffer) return this->OnOOM();
@@ -568,7 +568,7 @@ void LongUI::CUIString::Append(const wchar_t* str, uint32_t len) noexcept {
     // 超过缓存?
     const auto target_lenth = m_cLength + len + 1;
     if (target_lenth > m_cBufferLength) {
-        m_cBufferLength = this->nice_buffer_length(target_lenth);
+        m_cBufferLength = static_cast<uint32_t>(this->nice_buffer_length(target_lenth));
         // 申请内存
         auto alloced_buffer = this->alloc_bufer(m_cBufferLength);
         if (!alloced_buffer) {
@@ -625,7 +625,7 @@ void LongUI::CUIString::Insert(uint32_t off, const wchar_t* str, uint32_t len) n
     // 需要申请内存?
     const auto target_lenth = m_cLength + len + 1;
     if (target_lenth > m_cBufferLength) {
-        m_cBufferLength = this->nice_buffer_length(target_lenth);
+        m_cBufferLength = static_cast<uint32_t>(this->nice_buffer_length(target_lenth));
         // 申请内存
         auto alloced_buffer = this->alloc_bufer(m_cBufferLength);
         if (!alloced_buffer) {

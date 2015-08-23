@@ -182,8 +182,8 @@ auto LongUI::Helper::XMLGetValueEnum(pugi::xml_node node,
 auto LongUI::Helper::XMLGetAnimationType(
     pugi::xml_node node,
     AnimationType bad_match,
-    const char* attribute = "animationtype",
-    const char* prefix = nullptr
+    const char* attribute ,
+    const char* prefix
     ) noexcept->AnimationType {
     // 属性值列表
     static const char* type_list[] = {

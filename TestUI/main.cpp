@@ -30,9 +30,9 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 #else
 // bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="512, 512" name="MainWindow" debug="true"
-    bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" clearcolor="1,1,1,0.95" >
-    <VerticalLayout name="V" size="768, 256" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
+<Window size="800, 600" name="MainWindow" debug="true"
+    clearcolor="1,1,1,0.95" >
+    <VerticalLayout name="V" size="768, 256" bottomcontrol="ScrollBarA">
         <Button name="1" templateid="1" text="Hello, world!"/>
         <Button name="2" size="1024, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>

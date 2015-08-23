@@ -403,7 +403,7 @@ namespace LongUI {
         Type_Core,
         // xml, use xml-style, can use < > or { }
         Type_Xml,
-        // user custom defined, for IUI
+        // user custom defined, for IUIConfigure::CustomRichType
         Type_Custom,
     };
     // LongUI Format Text Config,

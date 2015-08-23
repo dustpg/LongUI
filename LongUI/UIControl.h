@@ -130,8 +130,8 @@ namespace LongUI {
         auto __fastcall SetWidth(float width) noexcept ->void LongUINoinline;
         // set new taking up height of control
         auto __fastcall SetHeight(float height) noexcept ->void LongUINoinline;
-        // get taking up rect
-        void __fastcall GetRectAll(D2D1_RECT_F& rect) const noexcept;
+        // get rect for cliping
+        void __fastcall GetClipRect(D2D1_RECT_F& rect) const noexcept;
         // get border rect
         void __fastcall GetBorderRect(D2D1_RECT_F& rect) const noexcept;
         // get viewport rect

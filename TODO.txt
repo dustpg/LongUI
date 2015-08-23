@@ -7,6 +7,7 @@
     TODO: const anywhere
     TODO: LongUI::CUIRenderQueue::PlanToRender 有BUG
     TODO: 完成UIList
+    TODO: UIPage?
     TODO: 子控件部分刷新
     TODO: 窗体资源(交换链)缓存
     TODO: 封装XML接口
