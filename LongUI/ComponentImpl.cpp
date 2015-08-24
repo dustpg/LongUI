@@ -523,14 +523,10 @@ bool LongUI::Component::EditaleText::OnDragOver(float x, float y) noexcept {
 }
 
 // 重建
-void LongUI::Component::EditaleText::Recreate(ID2D1RenderTarget* target) noexcept {
-    // 无效参数
-    assert(target); if (!target) return;
+void LongUI::Component::EditaleText::Recreate() noexcept {
     // 重新创建资源
-    ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pSelectionColor);
-    m_pRenderTarget = ::SafeAcquire(target);
-    target->CreateSolidColorBrush(
+    UIManager_RenderTarget->CreateSolidColorBrush(
         D2D1::ColorF(D2D1::ColorF::LightSkyBlue),
         &m_pSelectionColor
         );
@@ -891,9 +887,9 @@ void LongUI::Component::EditaleText::Update() noexcept {
 
 // 渲染
 void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
-    assert(m_pRenderTarget);
+    assert(UIManager_RenderTarget);
     if (m_metriceBuffer.data_length) {
-        m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+        UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
         // 遍历
         for (auto itr = m_metriceBuffer.data;
         itr != m_metriceBuffer.data + m_metriceBuffer.data_length; ++itr) {
@@ -904,9 +900,9 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
                 htm.left + htm.width + x,
                 htm.top + htm.height + y
             };
-            m_pRenderTarget->FillRectangle(highlightRect, m_pSelectionColor);
+            UIManager_RenderTarget->FillRectangle(highlightRect, m_pSelectionColor);
         }
-        m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
     // 刻画字体
     this->layout->Draw(m_buffer.data, m_pTextRenderer, x, y);
@@ -1087,7 +1083,6 @@ LongUI::Component::EditaleText::~EditaleText() noexcept {
     ::SafeRelease(this->layout);
     ::SafeRelease(m_pBasicFormat);
     ::SafeRelease(m_pTextRenderer);
-    ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pSelectionColor);
     ::SafeRelease(m_pDropSource);
     ::SafeRelease(m_pDataObject);
@@ -1308,9 +1303,9 @@ HRESULT LongUI::CUIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isD
 
 // 从目标渲染呈现器获取
 HRESULT LongUI::CUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
-    assert(m_pRenderTarget);
+    assert(UIManager_RenderTarget);
     // XXX: 优化 Profiler 就这1行 0.05%
-    m_pRenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
+    UIManager_RenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
     return S_OK;
 }
 
@@ -1369,7 +1364,7 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     // 设置颜色
     m_pBrush->SetColor(color);
     // 利用D2D接口直接渲染字形
-    m_pRenderTarget->DrawGlyphRun(
+    UIManager_RenderTarget->DrawGlyphRun(
         D2D1::Point2(baselineOriginX, baselineOriginY),
         glyphRun,
         m_pBrush,
@@ -1405,7 +1400,7 @@ HRESULT LongUI::CUINormalTextRender::DrawUnderline(
         baselineOriginY + underline->offset + underline->thickness
     };
     // 填充矩形
-    m_pRenderTarget->FillRectangle(&rectangle, m_pBrush);
+    UIManager_RenderTarget->FillRectangle(&rectangle, m_pBrush);
     return S_OK;
 }
 
@@ -1436,7 +1431,7 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
         baselineOriginY + strikethrough->offset + strikethrough->thickness
     };
     // 填充矩形
-    m_pRenderTarget->FillRectangle(&rectangle, m_pBrush);
+    UIManager_RenderTarget->FillRectangle(&rectangle, m_pBrush);
     return S_OK;
 }
 
@@ -1499,8 +1494,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
 
 // Elements<Meta> 重建
 auto LongUI::Component::Elements<LongUI::Element_Meta>::
-Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
-    UNREFERENCED_PARAMETER(target);
+Recreate() noexcept ->HRESULT {
     for (auto i = 0u; i < STATUS_COUNT; ++i) {
         // 有效
         register auto id = m_aID[i];
@@ -1513,16 +1507,16 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 
 // Elements<Meta> 渲染
 void LongUI::Component::Elements<LongUI::Element_Meta>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(m_pRenderTarget);
+    assert(UIManager_RenderTarget);
     // 先绘制当前状态
     if (this->animation.value < this->animation.end) {
         LongUI::Meta_Render(
-            m_metas[m_state], m_pRenderTarget, rect, this->animation.end
+            m_metas[m_state], UIManager_RenderTarget, rect, this->animation.end
             );
     }
     // 再绘制目标状态
     LongUI::Meta_Render(
-        m_metas[m_stateTartget], m_pRenderTarget, rect, this->animation.value
+        m_metas[m_stateTartget], UIManager_RenderTarget, rect, this->animation.value
         );
 }
 
@@ -1560,22 +1554,21 @@ void LongUI::Component::Elements<LongUI::Element_BrushRect>::release_data() noex
 
 // Elements<BrushRectta> 渲染
 void LongUI::Component::Elements<LongUI::Element_BrushRect>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(m_pRenderTarget);
+    assert(UIManager_RenderTarget);
     // 先绘制当前状态
     if (animation.value < animation.end) {
-        LongUI::FillRectWithCommonBrush(m_pRenderTarget, m_apBrushes[m_state], rect);
+        LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_apBrushes[m_state], rect);
     }
     // 后绘制目标状态
     auto brush = m_apBrushes[m_stateTartget];
     brush->SetOpacity(animation.value);
-    LongUI::FillRectWithCommonBrush(m_pRenderTarget, brush, rect);
+    LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brush, rect);
     brush->SetOpacity(1.f);
 }
 
 // Elements<BrushRect> 重建
 auto LongUI::Component::Elements<LongUI::Element_BrushRect>::
-Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
-    UNREFERENCED_PARAMETER(target);
+Recreate() noexcept ->HRESULT {
     this->release_data();
     for (auto i = 0u; i < STATUS_COUNT; ++i) {
         register auto id = m_aID[i];
@@ -1604,8 +1597,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
 
 // Elements<ColorRect> 重建
 auto LongUI::Component::Elements<LongUI::Element_ColorRect>::
-Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
-    UNREFERENCED_PARAMETER(target);
+Recreate() noexcept ->HRESULT {
     ::SafeRelease(m_pBrush);
     m_pBrush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
     return S_OK;
@@ -1613,15 +1605,15 @@ Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
 
 // Elements<ColorRect> 渲染
 void LongUI::Component::Elements<LongUI::Element_ColorRect>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(m_pRenderTarget && m_pBrush);
+    assert(UIManager_RenderTarget && m_pBrush);
     // 先绘制当前状态
     if (animation.value < animation.end) {
         m_pBrush->SetColor(colors + m_state);
-        m_pRenderTarget->FillRectangle(&rect, m_pBrush);
+        UIManager_RenderTarget->FillRectangle(&rect, m_pBrush);
     }
     // 再绘制目标状态
     m_pBrush->SetOpacity(animation.value);
     m_pBrush->SetColor(colors + m_stateTartget);
-    m_pRenderTarget->FillRectangle(&rect, m_pBrush);
+    UIManager_RenderTarget->FillRectangle(&rect, m_pBrush);
     m_pBrush->SetOpacity(1.f);
 }

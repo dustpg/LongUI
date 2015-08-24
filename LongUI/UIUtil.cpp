@@ -1660,13 +1660,9 @@ auto LongUI::Component::Video::Initialize() noexcept ->HRESULT {
 }
 
 // Video: 重建
-auto LongUI::Component::Video::Recreate(ID2D1RenderTarget* target) noexcept ->HRESULT {
-    ::SafeRelease(m_pRenderTarget);
+auto LongUI::Component::Video::Recreate() noexcept ->HRESULT {
     ::SafeRelease(m_pTargetSurface);
     ::SafeRelease(m_pDrawSurface);
-
-    assert(target && "bad argument");
-    m_pRenderTarget = ::SafeAcquire(target);
     return this->recreate_surface();
 }
 
@@ -1689,7 +1685,7 @@ void LongUI::Component::Video::Render(D2D1_RECT_F* dst) const noexcept {
             m_pDrawSurface->CopyFromBitmap(nullptr, m_pSharedSurface, nullptr);
         }
         D2D1_RECT_F src = { 0.f, 0.f,  float(dst_rect.right), float(dst_rect.bottom) };
-        m_pRenderTarget->DrawBitmap(m_pDrawSurface, dst, 1.f,
+        UIManager_RenderTarget->DrawBitmap(m_pDrawSurface, dst, 1.f,
             D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &src
             );
     }*/
@@ -1710,7 +1706,6 @@ LongUI::Component::Video::~Video() noexcept {
     ::SafeRelease(m_pTargetSurface);
     ::SafeRelease(m_pSharedSurface);
     ::SafeRelease(m_pDrawSurface);
-    ::SafeRelease(m_pRenderTarget);
 }
 
 // 重建表面
@@ -1743,7 +1738,7 @@ auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
             }
             // 从Dxgi表面创建位图
             if (SUCCEEDED(hr)) {
-                hr = UIManager_RenderTaget->CreateBitmapFromDxgiSurface(
+                hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
                     surface, nullptr, &m_pDrawSurface
                     );
             }
@@ -1755,7 +1750,7 @@ auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
                 LongUI::GetDpiY(),
                 D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET, nullptr
             };
-            hr = UIManager_RenderTaget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pSharedSurface);
+            hr = UIManager_RenderTarget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pSharedSurface);
             // 获取Dxgi表面
             if (SUCCEEDED(hr)) {
                 hr = m_pSharedSurface->GetSurface(&surface);
@@ -1767,7 +1762,7 @@ auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
             // 创建刻画位图
             if (SUCCEEDED(hr)) {
                 prop.bitmapOptions = D2D1_BITMAP_OPTIONS_NONE;
-                hr = UIManager_RenderTaget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pDrawSurface);
+                hr = UIManager_RenderTarget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pDrawSurface);
             }
 #endif
             ::SafeRelease(surface);

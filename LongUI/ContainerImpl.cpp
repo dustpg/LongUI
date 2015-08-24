@@ -40,10 +40,10 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
         float basic_weight = 0.f;
-        //
+        /*
         if (m_strControlName == L"V") {
             int bk = 0;
-        }
+        }*/
         // 第一次
         for (auto ctrl : (*this)) {
             // 非浮点控件
@@ -62,14 +62,11 @@ void LongUI::UIVerticalLayout::Update() noexcept {
                 }
             }
         }
-        if (m_strControlName == L"V") {
+        /*if (m_strControlName == L"V") {
             int bk = 9;
-        }
-        // 校正
-        base_width /= m_2fZoom.width;
-        base_height /= m_2fZoom.height;
-        // 计算
-        base_width = std::max(base_width, this->view_size.width);
+        }*/
+        // 带入控件本身宽度计算
+        base_width = std::max(base_width, this->view_size.width / m_2fZoom.width);
         // 剩余高度富余
         register auto height_remain = std::max(this->view_size.height - base_height, 0.f);
         // 单位权重高度
@@ -96,8 +93,8 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
-        m_2fContentSize.width = base_width;
-        m_2fContentSize.height = position_y;
+        m_2fContentSize.width = base_width * m_2fZoom.width;
+        m_2fContentSize.height = position_y * m_2fZoom.height;
         /*if (m_strControlName == L"MainWindow") {
             int a = 0;
         }*/
@@ -106,17 +103,6 @@ void LongUI::UIVerticalLayout::Update() noexcept {
     }
     // 父类刷新
     return Super::Update();
-}
-
-
-// UIVerticalLayout 重建
-auto LongUI::UIVerticalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    HRESULT hr = S_OK;
-    for (auto ctrl : (*this)) {
-        hr = ctrl->Recreate(newRT);
-        AssertHR(hr);
-    }
-    return Super::Recreate(newRT);
 }
 
 // UIVerticalLayout 关闭控件
@@ -182,11 +168,8 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
                 }
             }
         }
-        // 校正
-        base_width /= m_2fZoom.width;
-        base_height /= m_2fZoom.height;
         // 计算
-        base_height = std::max(base_height, this->view_size.height);
+        base_height = std::max(base_height, this->view_size.height / m_2fZoom.height);
         // 剩余宽度富余
         register auto width_remain = std::max(this->view_size.width - base_width, 0.f);
         // 单位权重宽度
@@ -221,17 +204,6 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
     return Super::Update();
 }
 
-// UIHorizontalLayout 重建
-auto LongUI::UIHorizontalLayout::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    auto hr = S_OK;
-    if (newRT) {
-        for (auto ctrl : (*this)) {
-            hr = ctrl->Recreate(newRT);
-            AssertHR(hr);
-        }
-    }
-    return Super::Recreate(newRT);
-}
 
 // UIHorizontalLayout 关闭控件
 void LongUI::UIHorizontalLayout::Cleanup() noexcept {

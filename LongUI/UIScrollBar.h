@@ -144,7 +144,7 @@ namespace LongUI{
         // do event 事件处理
         bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate
-        auto Recreate(LongUIRenderTarget* )noexcept->HRESULT override;
+        auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件
         void Cleanup() noexcept override;
     public:

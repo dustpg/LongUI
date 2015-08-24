@@ -1,6 +1,5 @@
 ﻿#include "LongUI.h"
 
-
 // 摧毁弹出菜单
 void LongUI::CUIMenu::Destroy() noexcept {
     if (m_hMenu) {

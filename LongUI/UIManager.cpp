@@ -547,7 +547,7 @@ auto LongUI::CUIManager::create_ui_window(
         // 查错
         assert(window); if (!window) return nullptr;
         // 重建资源
-        auto hr = window->Recreate(m_pd2dDeviceContext);
+        auto hr = window->Recreate();
         AssertHR(hr);
         // 创建控件树
         this->make_control_tree(window, node);
@@ -1010,7 +1010,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         }
         // 重建所有窗口
         for (auto itr = m_apWindows; itr < m_apWindows + m_cCountWindow; ++itr) {
-            (*itr)->Recreate(m_pd2dDeviceContext);
+            (*itr)->Recreate();
         }
     }
     // 断言 HR

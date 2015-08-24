@@ -755,7 +755,7 @@ auto LongUI::DX::SaveAsImageFile(
             prop.colorContext = nullptr;
             prop.bitmapOptions = D2D1_BITMAP_OPTIONS_CPU_READ | D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
             // 创建位图
-            hr = UIManager_RenderTaget->CreateBitmap(
+            hr = UIManager_RenderTarget->CreateBitmap(
                 bitmap_size,
                 nullptr,
                 0,

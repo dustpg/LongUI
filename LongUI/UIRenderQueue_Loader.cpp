@@ -4,8 +4,6 @@
 // 渲染队列 构造函数
 LongUI::CUIRenderQueue::CUIRenderQueue(UIWindow* window) noexcept {
     m_unitLike.length = 0; m_unitLike.window = window;
-    // get window
-    // static_cast<UIWindow*>(m_unitLike.window)
 }
 
 // 渲染队列 析构函数

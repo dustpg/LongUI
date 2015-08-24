@@ -38,14 +38,14 @@ void LongUI::UISlider::Render(RenderType type) const noexcept {
             }
             // 渲染滑槽边框
             m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(SLIDER_TRACK_BORDER_COLOR));
-            m_pRenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
+            UIManager_RenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
             // 渲染滑槽
             m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(SLIDER_TRACK_COLOR));
             border_rect.left += SLIDER_TRACK_BORDER_WIDTH;
             border_rect.top += SLIDER_TRACK_BORDER_WIDTH;
             border_rect.right -= SLIDER_TRACK_BORDER_WIDTH;
             border_rect.bottom -= SLIDER_TRACK_BORDER_WIDTH;
-            m_pRenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
+            UIManager_RenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
         }
         // 父类背景
         Super::Render(LongUI::RenderType::Type_RenderBackground);
@@ -66,7 +66,7 @@ void LongUI::UISlider::Render(RenderType type) const noexcept {
                 m_rcThumb.bottom - THUMB_BORDER_WIDTH * 0.5f,
             };
             m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-            m_pRenderTarget->DrawRectangle(&thumb_border, m_pBrush_SetBeforeUse);
+            UIManager_RenderTarget->DrawRectangle(&thumb_border, m_pBrush_SetBeforeUse);
         }
         // 父类前景
         Super::Render(LongUI::RenderType::Type_RenderForeground);
@@ -268,9 +268,9 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // recreate 重建
-auto LongUI::UISlider::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    m_uiElement.Recreate(newRT);
-    return Super::Recreate(newRT);
+auto LongUI::UISlider::Recreate() noexcept ->HRESULT {
+    m_uiElement.Recreate();
+    return Super::Recreate();
 }
 
 // close this control 关闭控件

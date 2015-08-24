@@ -56,7 +56,7 @@ namespace LongUI {
         // do event 
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept = 0;
         // recreate , first call or device reset
-        virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT;
+        virtual auto Recreate() noexcept->HRESULT;
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
@@ -142,8 +142,6 @@ namespace LongUI {
         // get viewport rect
         void __fastcall GetViewRect(D2D1_RECT_F& rect) const noexcept;
     protected:
-        // d2d render target
-        LongUIRenderTarget*     m_pRenderTarget = nullptr;
         // index 0 brush
         ID2D1SolidColorBrush*   m_pBrush_SetBeforeUse = nullptr;
         // backgroud bursh

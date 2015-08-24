@@ -91,13 +91,17 @@ bool LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
 void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     // 水平
     if (this->bartype == ScrollBarType::Type_Horizontal) {
-        m_fMaxRange = this->parent->GetContentWidth();
+        m_fMaxRange = this->parent->GetContentWidthZoomed();
         m_fMaxIndex = m_fMaxRange - this->parent->GetViewWidthZoomed();
     }
     // 垂直
     else {
-        m_fMaxRange = this->parent->GetContentHeight();
+        m_fMaxRange = this->parent->GetContentHeightZoomed();
         m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightZoomed();
+    }
+    // 限制
+    if (m_fIndex > m_fMaxIndex) {
+        this->set_index(m_fMaxIndex);
     }
     return Super::UpdateMarginalWidth();
 }
@@ -225,7 +229,7 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
-    m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
+    UIManager_RenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
     //
     //this->parent;
     //UIManager << DL_Hint << m_rtArrow2 << endl;
@@ -252,7 +256,7 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
         ];
         tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
         m_pBrush_SetBeforeUse->SetColor(&tcolor);
-        render_geo(m_pRenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
+        render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
     }
     // 渲染几何体
     if (m_bArrow2InColor) {
@@ -261,7 +265,7 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
         ];
         tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
         m_pBrush_SetBeforeUse->SetColor(&tcolor);
-        render_geo(m_pRenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
+        render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
     }
     // 前景
     Super::Render(RenderType::Type_RenderForeground);
@@ -313,7 +317,8 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 // 指向thumb?
                 if (m_pointType == PointType::Type_Thumb) {
                     register auto pos = UISB_OffsetVaule(pt4self.x);
-                    register auto rate = 1.f - m_fMaxIndex / m_fMaxRange;
+                    register auto rate = (1.f - m_fMaxIndex / m_fMaxRange) 
+                        * this->parent->GetZoom(int(this->bartype));
                     this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
                     m_uiAnimation.end = m_fIndex;
 #ifdef _DEBUG
@@ -349,11 +354,11 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // UIScrollBarA:: 重建
-auto LongUI::UIScrollBarA::Recreate(LongUIRenderTarget* target) noexcept -> HRESULT {
-    m_uiArrow1.Recreate(target);
-    m_uiArrow2.Recreate(target);
-    m_uiThumb.Recreate(target);
-    return Super::Recreate(target);
+auto LongUI::UIScrollBarA::Recreate() noexcept -> HRESULT {
+    m_uiArrow1.Recreate();
+    m_uiArrow2.Recreate();
+    m_uiThumb.Recreate();
+    return Super::Recreate();
 }
 
 // UIScrollBarA: 初始化时

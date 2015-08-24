@@ -82,7 +82,7 @@ namespace LongUI {
         // do event 事件处理
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // recreate
-        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
+        virtual auto Recreate() noexcept->HRESULT override;
     public:
         // after add a child
         virtual void AfterInsert(UIControl* child) noexcept ;
@@ -175,11 +175,13 @@ namespace LongUI {
         void SetOffsetY(float value) noexcept;
         // set offset - without zooming
         auto SetOffset(int xy, float value) noexcept { return xy ? SetOffsetY(value) : SetOffsetX(value); }
-    public:
         // get zoom in x
         auto GetZoomX() const noexcept { return m_2fZoom.width; }
         // get zoom in y
         auto GetZoomY() const noexcept { return m_2fZoom.height; }
+        // get zoom 
+        auto GetZoom(int xy) const noexcept { return xy ? this->GetZoomY() : this->GetZoomX(); }
+    public:
         // marginal controls
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:

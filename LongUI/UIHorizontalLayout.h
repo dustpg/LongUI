@@ -38,15 +38,15 @@ namespace LongUI{
         // do event 事件处理
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建
-        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
+        //virtual auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
-        // UIVerticalLayout 构造函数
+        // ctor
         UIHorizontalLayout(pugi::xml_node node) noexcept :Super(node) { }
-        // UIVerticalLayout 析构函数
+        // dtor
         ~UIHorizontalLayout() noexcept = default;
         // 删除
         UIHorizontalLayout(const UIHorizontalLayout&) = delete;

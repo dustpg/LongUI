@@ -35,24 +35,24 @@ namespace LongUI{
         // 父类申明
         using Super = UIContainer;
     public: // UIControl
-        // Render 渲染
+        // render this
         //virtual auto Render() noexcept ->HRESULT override;
-        // 刷新
+        // update this
         virtual void Update() noexcept override;
-        // do event 事件处理
+        // do event 
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate
-        virtual auto Recreate(LongUIRenderTarget*) noexcept ->HRESULT override;
-        // close this control 关闭控件
+        //virtual auto Recreate() noexcept->HRESULT override;
+        // clean this
         virtual void Cleanup() noexcept override;
     public:
-        // create 创建
+        // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
-        // UIVerticalLayout 构造函数
+        // ctor
         UIVerticalLayout(pugi::xml_node node) noexcept:Super(node) { }
-        // UIVerticalLayout 析构函数
+        // dtor
         ~UIVerticalLayout() noexcept = default;
-        // 删除
+        // no copy ctor
         UIVerticalLayout(const UIVerticalLayout&) = delete;
     protected:
         // 修改子布局控件布局

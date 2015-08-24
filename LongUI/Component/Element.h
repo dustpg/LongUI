@@ -85,13 +85,13 @@ namespace LongUI {
             // update without delta time
             auto Update() noexcept { animation.Update(UIManager.GetDeltaTime()); }
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept {
+            auto Recreate() noexcept {
                 HRESULT hr = S_OK;
                 if (SUCCEEDED(hr)) {
-                    hr = SuperA::Recreate(target);
+                    hr = SuperA::Recreate();
                 }
                 if (SUCCEEDED(hr)) {
-                    hr = SuperB::Recreate(target);
+                    hr = SuperB::Recreate();
                 }
                 return hr;
             }
@@ -121,12 +121,10 @@ namespace LongUI {
             // get status
             auto GetStatus() const noexcept { return m_stateTartget; }
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept { m_pRenderTarget = target; return S_OK; }
+            auto Recreate() { return S_OK; }
             // type of unit
             Element                 type = Element_Basic;
         protected:
-            // render target
-            LongUIRenderTarget*     m_pRenderTarget = nullptr;
             // state of unit
             ControlStatus           m_state = ControlStatus::Status_Disabled;
             // state of unit
@@ -151,7 +149,7 @@ namespace LongUI {
             // render this
             void Render(const D2D1_RECT_F&) const noexcept;
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+            auto Recreate() noexcept->HRESULT;
             // is OK?
             auto IsOK() noexcept { return m_aID[Status_Normal] != 0; }
         protected:
@@ -178,7 +176,7 @@ namespace LongUI {
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept->HRESULT;
+            auto Recreate() noexcept->HRESULT;
             // change brush
             void ChangeBrush(ControlStatus index, ID2D1Brush* brush) noexcept {
                 ::SafeRelease(m_apBrushes[index]);
@@ -211,7 +209,7 @@ namespace LongUI {
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
-            auto Recreate(LongUIRenderTarget* target) noexcept ->HRESULT;
+            auto Recreate() noexcept ->HRESULT;
             // change color
             void ChangeColor(ControlStatus index, D2D1_COLOR_F& color) noexcept { colors[index] = color; }
             // change color
@@ -267,7 +265,7 @@ namespace LongUI {
             // init: because it maybe call virtual-method, so, not in ctor
             auto Initialize() noexcept ->HRESULT;
             // recreate
-            auto Recreate(ID2D1RenderTarget*) noexcept ->HRESULT;
+            auto Recreate() noexcept ->HRESULT;
             // Render
             void Render(D2D1_RECT_F* dst) const noexcept;
             // ctor
@@ -285,8 +283,6 @@ namespace LongUI {
             // dst rect
             RECT                     const  dst_rect = RECT();
         private:
-            // Render Target
-            ID2D1RenderTarget*              m_pRenderTarget = nullptr;
             // MF Media Engine
             IMFMediaEngine*                 m_pMediaEngine = nullptr;
             // MF Media Engine Ex-Version

@@ -139,7 +139,7 @@ namespace LongUI {
             // when drag enter: relative postion
             bool __fastcall OnDragOver(float x, float y) noexcept;
             // recreate
-            void __fastcall Recreate(ID2D1RenderTarget*) noexcept;
+            void __fastcall Recreate() noexcept;
             // when key character
             void __fastcall OnChar(char32_t) noexcept;
             // when key pressed
@@ -203,7 +203,7 @@ namespace LongUI {
             CUISubEventCaller       sbcaller;
         private:
             // render target
-            ID2D1RenderTarget*      m_pRenderTarget = nullptr;
+            ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;
             // selection brush
             ID2D1SolidColorBrush*   m_pSelectionColor = nullptr;
             // host control

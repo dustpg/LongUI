@@ -11,7 +11,7 @@ void LongUI::UICheckBox::Render(RenderType type) const noexcept  {
     draw_rect.bottom = draw_rect.top + m_szCheckBox.height;
     draw_rect.right = draw_rect.left + m_szCheckBox.width;
     // 渲染框
-    m_pRenderTarget->DrawRectangle(
+    UIManager_RenderTarget->DrawRectangle(
         draw_rect, m_pBrush, 1.5f
         );
     // 渲染箭头
@@ -19,10 +19,10 @@ void LongUI::UICheckBox::Render(RenderType type) const noexcept  {
     {
     case CheckBoxState::State_Checked:
         D2D1_MATRIX_3X2_F matrix;
-        m_pRenderTarget->GetTransform(&matrix);
-        m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(draw_rect.left, draw_rect.bottom) * matrix);
-        m_pRenderTarget->FillGeometry(m_pCheckedGeometry, m_pBrush);
-        m_pRenderTarget->SetTransform(&matrix);
+        UIManager_RenderTarget->GetTransform(&matrix);
+        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(draw_rect.left, draw_rect.bottom) * matrix);
+        UIManager_RenderTarget->FillGeometry(m_pCheckedGeometry, m_pBrush);
+        UIManager_RenderTarget->SetTransform(&matrix);
         break;
     case CheckBoxState::State_Indeterminate:
         // 收缩范围
@@ -31,7 +31,7 @@ void LongUI::UICheckBox::Render(RenderType type) const noexcept  {
         draw_rect.top += m_szCheckBox.height * 0.2f;
         draw_rect.bottom -= m_szCheckBox.height * 0.2f;
         // 渲染框
-        m_pRenderTarget->FillRectangle(draw_rect, m_pBrush);
+        UIManager_RenderTarget->FillRectangle(draw_rect, m_pBrush);
         break;
     }
     // 调节文本范围 +
@@ -158,11 +158,12 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // recreate 重建
-HRESULT LongUI::UICheckBox::Recreate(LongUIRenderTarget* newRT) noexcept {
+HRESULT LongUI::UICheckBox::Recreate() noexcept {
+    // 有效
     ::SafeRelease(m_pBrush);
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
     // 父类处理
-    return Super::Recreate(newRT);
+    return Super::Recreate();
 }
 
 // 关闭控件

@@ -13,7 +13,7 @@ void LongUI::UIRichEdit::Render(RenderType type) const noexcept {
     RECT draw_rect = { 0, 0, 100, 100 }; //AdjustRectT(LONG);
     if (m_pTextServices) {
         hr = m_pTextServices->TxDrawD2D(
-            m_pRenderTarget,
+            UIManager_RenderTarget,
             reinterpret_cast<RECTL*>(&draw_rect),
             nullptr,
             TXTVIEW_ACTIVE
@@ -25,9 +25,9 @@ void LongUI::UIRichEdit::Render(RenderType type) const noexcept {
             m_ptCaret.x, m_ptCaret.y,
             m_ptCaret.x + m_sizeCaret.width,m_ptCaret.y + m_sizeCaret.height
         };
-        m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-        m_pRenderTarget->FillRectangle(caretRect, m_pFontBrush);
-        m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+        UIManager_RenderTarget->FillRectangle(caretRect, m_pFontBrush);
+        UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
     return S_OK;*/
     return Super::Render(type);
@@ -128,7 +128,7 @@ bool LongUI::UIRichEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // recreate 重建
-HRESULT LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT) noexcept {
+HRESULT LongUI::UIRichEdit::Recreate() noexcept {
     HRESULT hr = S_OK;
     if (m_pTextServices) {
         m_pTextServices->OnTxInPlaceDeactivate();
@@ -155,7 +155,7 @@ HRESULT LongUI::UIRichEdit::Recreate(LongUIRenderTarget* newRT) noexcept {
         hr = m_pTextServices->OnTxInPlaceActivate(nullptr);
     }
     ::SafeRelease(pUk);
-    return Super::Recreate(newRT);
+    return Super::Recreate();
 }
 
 // close this control 关闭控件

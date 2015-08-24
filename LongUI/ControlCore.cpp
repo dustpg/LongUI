@@ -122,7 +122,6 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
-    ::SafeRelease(m_pRenderTarget);
     ::SafeRelease(m_pBrush_SetBeforeUse);
     ::SafeRelease(m_pBackgroudBrush);
     // 释放脚本占用空间
@@ -151,7 +150,7 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
         // 背景
         if (m_pBackgroudBrush) {
             D2D1_RECT_F rect; this->GetViewRect(rect);
-            LongUI::FillRectWithCommonBrush(m_pRenderTarget, m_pBackgroudBrush, rect);
+            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
         }
         // 背景中断
         if (type == RenderType::Type_RenderBackground) {
@@ -166,12 +165,12 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
             if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
                 brect.radiusX = m_2fBorderRdius.width;
                 brect.radiusY = m_2fBorderRdius.height;
-                //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-                m_pRenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-                //m_pRenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+                //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+                UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+                //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             }
             else {
-                m_pRenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+                UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
             }
         }
         break;
@@ -196,18 +195,17 @@ void LongUI::UIControl::Update() noexcept {
 }
 
 // UI控件: 重建
-auto LongUI::UIControl::Recreate(LongUIRenderTarget* target) noexcept ->HRESULT {
-    ::SafeRelease(m_pRenderTarget);
+auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
+    // 设备重置再说
     ::SafeRelease(m_pBrush_SetBeforeUse);
     ::SafeRelease(m_pBackgroudBrush);
-    m_pRenderTarget = ::SafeAcquire(target);
     m_pBrush_SetBeforeUse = static_cast<decltype(m_pBrush_SetBeforeUse)>(
         UIManager.GetBrush(LongUICommonSolidColorBrushIndex)
         );
     if (m_idBackgroudBrush) {
         m_pBackgroudBrush = UIManager.GetBrush(m_idBackgroudBrush);
     }
-    return target ? S_OK : E_INVALIDARG;
+    return S_OK;
 }
 
 // LongUI::UIControl 注册回调事件
@@ -371,16 +369,28 @@ void LongUI::UIControl::RefreshWorld() noexcept {
     }
     // 非顶级控件
     else {
+#if 1
         // 检查
-        xx += this->parent->GetOffsetX();
-        yy += this->parent->GetOffsetY();
+        xx += this->parent->GetOffsetXZoomed();
+        yy += this->parent->GetOffsetYZoomed();
         // 转换
-        this->world = D2D1::Matrix3x2F::Translation(xx, yy) 
-            * D2D1::Matrix3x2F::Scale(
-                this->parent->GetZoomX(),
-                this->parent->GetZoomY()
+        this->world = 
+            D2D1::Matrix3x2F::Translation(xx, yy) 
+            *D2D1::Matrix3x2F::Scale(
+                this->parent->GetZoomX(), this->parent->GetZoomY()
                 )
             * this->parent->world;
+#else
+        this->world = 
+            D2D1::Matrix3x2F::Translation(xx, yy)
+            * D2D1::Matrix3x2F::Scale(
+                this->parent->GetZoomX(), this->parent->GetZoomY()
+                )
+            * D2D1::Matrix3x2F::Translation(
+                this->parent->GetOffsetX(), this->parent->GetOffsetY()
+                ) 
+            * this->parent->world;
+#endif
     }
     // 修改了
     this->ControlWorldChangeHandled();
@@ -581,7 +591,7 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     // 设置窗口节点
     child->m_pWindow = m_pWindow;
     // 重建资源
-    child->Recreate(m_pRenderTarget);
+    child->Recreate();
     // 修改
     child->SetControlSizeChanged();
     // 修改
@@ -661,21 +671,21 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
 // UIContainer 渲染函数
 void LongUI::UIContainer::Render(RenderType type) const noexcept {
     //  正确渲染控件
-    auto do_render = [](ID2D1RenderTarget* const target, const UIControl* const ctrl) {
+    auto do_render = [](const UIControl* const ctrl) {
         // 可渲染?
         if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
             && ctrl->visible_rect.bottom > ctrl->visible_rect.top) {
             // 修改世界转换矩阵
-            target->SetTransform(&ctrl->world);
+            UIManager_RenderTarget->SetTransform(&ctrl->world);
             // 检查剪切规则
             if (ctrl->flags & Flag_ClipStrictly) {
                 D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-                target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+                UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             }
             ctrl->Render(LongUI::RenderType::Type_Render);
             // 检查剪切规则
             if (ctrl->flags & Flag_ClipStrictly) {
-                target->PopAxisAlignedClip();
+                UIManager_RenderTarget->PopAxisAlignedClip();
             }
         }
     };
@@ -694,25 +704,25 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
         // 普通子控件仅仅允许渲染在内容区域上
         {
             D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
-            m_pRenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
         // 渲染所有子部件
         for (const auto* ctrl : (*this)) {
-            do_render(m_pRenderTarget, ctrl);
+            do_render(ctrl);
         }
         // 弹出
-        m_pRenderTarget->PopAxisAlignedClip();
+        UIManager_RenderTarget->PopAxisAlignedClip();
         // 渲染边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
             for (auto ctrl : this->marginal_control) {
                 if (ctrl) {
-                    do_render(m_pRenderTarget, ctrl);
+                    do_render(ctrl);
                 }
             }
         }
         this->AssertMarginalControl();
         // 回退转变
-        m_pRenderTarget->SetTransform(&this->world);
+        UIManager_RenderTarget->SetTransform(&this->world);
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -955,20 +965,26 @@ void LongUI::UIContainer::Update() noexcept {
 
 
 // UIContainer 重建
-auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
+auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
     auto hr = S_OK;
     // 重建边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
             if (ctrl && SUCCEEDED(hr)) {
-                hr = ctrl->Recreate(newRT);
+                hr = ctrl->Recreate();
             }
         }
     }
     this->AssertMarginalControl();
+    // 重建子类
+    for (auto ctrl : (*this)) {
+        if (SUCCEEDED(hr)) {
+            hr = ctrl->Recreate();
+        }
+    }
     // 重建父类
     if (SUCCEEDED(hr)) {
-        hr = Super::Recreate(newRT);
+        hr = Super::Recreate();
     }
     return hr;
 }
@@ -992,7 +1008,6 @@ LongUINoinline void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     if (target != m_2fOffset.y) {
         m_2fOffset.y = target;
         this->SetControlWorldChanged();
-        //UIManager << DL_Hint << "SetControlWorldChanged" << endl;
     }
 }
 

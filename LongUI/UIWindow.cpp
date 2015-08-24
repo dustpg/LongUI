@@ -369,34 +369,34 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
 // begin draw
 void LongUI::UIWindow::BeginDraw() const noexcept {
     // 设置文本渲染策略
-    m_pRenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
+    UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 离屏渲染
     if (!m_vRegisteredControl.empty()) {
         for (auto i : m_vRegisteredControl) {
             auto ctrl = reinterpret_cast<UIControl*>(i);
             assert(ctrl->parent && "check it");
-            m_pRenderTarget->SetTransform(&ctrl->parent->world);
+            UIManager_RenderTarget->SetTransform(&ctrl->parent->world);
             ctrl->Render(RenderType::Type_RenderOffScreen);
         }
     }
     // 设为当前渲染对象
-    m_pRenderTarget->SetTarget(m_pTargetBimtap);
+    UIManager_RenderTarget->SetTarget(m_pTargetBimtap);
     // 开始渲染
-    m_pRenderTarget->BeginDraw();
+    UIManager_RenderTarget->BeginDraw();
     // 设置转换矩阵
 #if 0
-    m_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+    UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 #else
-    m_pRenderTarget->SetTransform(&this->world);
+    UIManager_RenderTarget->SetTransform(&this->world);
 #endif
     // 清空背景
-    m_pRenderTarget->Clear(this->clear_color);
+    UIManager_RenderTarget->Clear(this->clear_color);
 }
 
 // 结束渲染
 void LongUI::UIWindow::EndDraw() const noexcept {
     // 结束渲染
-    m_pRenderTarget->EndDraw();
+    UIManager_RenderTarget->EndDraw();
     // 呈现参数设置
     RECT rcScroll = { 0, 0, LONG(this->window_size.width), LONG(this->window_size.height) };
     RECT dirtyRects[LongUIDirtyControlSize + 1]; 
@@ -524,13 +524,13 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             auto ctrl = *unit;
             assert(ctrl != this);
             // 设置转换矩阵
-            m_pRenderTarget->SetTransform(&init_transfrom);
-            m_pRenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            UIManager_RenderTarget->SetTransform(&init_transfrom);
+            UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             // 设置转换矩阵
-            m_pRenderTarget->SetTransform(&ctrl->world);
+            UIManager_RenderTarget->SetTransform(&ctrl->world);
             ctrl->Render(RenderType::Type_Render);
             // 回来
-            m_pRenderTarget->PopAxisAlignedClip();
+            UIManager_RenderTarget->PopAxisAlignedClip();
     }
 #else
         // 再渲染
@@ -538,7 +538,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             auto ctrl = m_aUnitNow.units[i];
             // 设置转换矩阵
             D2D1_MATRIX_3X2_F matrix; ctrl->GetWorldTransform(matrix);
-            m_pRenderTarget->SetTransform(&matrix);
+            UIManager_RenderTarget->SetTransform(&matrix);
             ctrl->Render(RenderType::Type_Render);
         }
 #endif
@@ -547,8 +547,8 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
     // 调试输出
     if (this->debug_show) {
         D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.45f, 0.45f);
-        m_pRenderTarget->GetTransform(&nowMatrix);
-        m_pRenderTarget->SetTransform(&iMatrix);
+        UIManager_RenderTarget->GetTransform(&nowMatrix);
+        UIManager_RenderTarget->SetTransform(&iMatrix);
         wchar_t buffer[1024];
         auto length = ::swprintf(
             buffer, 1024,
@@ -561,14 +561,14 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
         auto ta = tf->GetTextAlignment();
         m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
         tf->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-        m_pRenderTarget->DrawText(
+        UIManager_RenderTarget->DrawText(
             buffer, length, tf,
             D2D1::RectF(0.f, 0.f, 1000.f, 70.f),
             m_pBrush_SetBeforeUse
             );
         tf->SetTextAlignment(ta);
         ::SafeRelease(tf);
-        m_pRenderTarget->SetTransform(&nowMatrix);
+        UIManager_RenderTarget->SetTransform(&nowMatrix);
     }
 #endif
 }
@@ -754,7 +754,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     }
     //UIManager << DL_Log << "called" << endl;
     // 修改大小, 需要取消目标
-    m_pRenderTarget->SetTarget(nullptr);
+    UIManager_RenderTarget->SetTarget(nullptr);
     // 修改
     visible_rect.right = static_cast<float>(this->window_size.width);
     visible_rect.bottom = static_cast<float>(this->window_size.height);
@@ -796,7 +796,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
                 LongUI::GetDpiX(),
                 LongUI::GetDpiY()
                 );
-            hr = m_pRenderTarget->CreateBitmapFromDxgiSurface(
+            hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
                 pDxgiBackBuffer,
                 &bitmapProperties,
                 &m_pTargetBimtap
@@ -814,9 +814,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
 }
 
 // UIWindow 重建
-auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
-    // UIWindow::Recreate参数不会为nullptr
-    assert(newRT && "bad argument");
+auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     this->release_data();
     // DXGI Surface 后台缓冲
     IDXGISurface*                       pDxgiBackBuffer = nullptr;
@@ -903,7 +901,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
             LongUI::GetDpiX(),
             LongUI::GetDpiY()
             );
-        hr = newRT->CreateBitmapFromDxgiSurface(
+        hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
             pDxgiBackBuffer,
             &bitmapProperties,
             &m_pTargetBimtap
@@ -957,7 +955,7 @@ auto LongUI::UIWindow::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
         this->Invalidate(this);
     }
     // 重建 子控件UI
-    return Super::Recreate(newRT);
+    return Super::Recreate();
 }
 
 // UIWindow 关闭控件

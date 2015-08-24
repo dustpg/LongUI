@@ -34,6 +34,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     clearcolor="1,1,1,0.95" >
     <VerticalLayout name="V" size="0, 256" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
         <Button name="1" templateid="1" text="Hello, world!"/>
+        <Slider name="sb" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
         <Button name="2" size="512, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
     <Slider name="6" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
@@ -145,11 +146,11 @@ public:
             this->GetViewRect(draw_rect);
             D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
             m_pBrush_SetBeforeUse->SetColor(&color);
-            m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
+            UIManager_RenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
             UIManager.GetThemeColor(color);
             m_pBrush_SetBeforeUse->SetColor(&color);
-            m_pRenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-            m_pRenderTarget->DrawImage(m_pEffectOut);
+            UIManager_RenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
+            UIManager_RenderTarget->DrawImage(m_pEffectOut);
             // 父类前景
             Super::Render(LongUI::RenderType::Type_RenderForeground);
             break;
@@ -157,10 +158,10 @@ public:
             this->GetViewRect(draw_rect);
             // 渲染文字
             if (false) {
-                m_pRenderTarget->SetTarget(m_pCmdList);
-                m_pRenderTarget->BeginDraw();
+                UIManager_RenderTarget->SetTarget(m_pCmdList);
+                UIManager_RenderTarget->BeginDraw();
                 m_text.Render(draw_rect.left, draw_rect.top);
-                m_pRenderTarget->EndDraw();
+                UIManager_RenderTarget->EndDraw();
                 m_pCmdList->Close();
                 // 设置为输入
                 m_pEffect->SetInput(0, m_pCmdList);
@@ -172,7 +173,7 @@ public:
         // 检查布局
         if (this->IsControlSizeChanged()) {
             ::SafeRelease(m_pCmdList);
-            m_pRenderTarget->CreateCommandList(&m_pCmdList);
+            UIManager_RenderTarget->CreateCommandList(&m_pCmdList);
             // 设置大小
             m_text.Resize(this->view_size.width, this->view_size.height);
             // 已经处理
@@ -204,11 +205,11 @@ public:
         return false;
     }
     // recreate resource
-    virtual HRESULT Recreate(LongUIRenderTarget* target) noexcept override {
+    virtual HRESULT Recreate() noexcept override {
         ::SafeRelease(m_pEffectOut);
         ::SafeRelease(m_pEffect);
         // 创建特效
-        target->CreateEffect(CLSID_D2D1GaussianBlur, &m_pEffect);
+        UIManager_RenderTarget->CreateEffect(CLSID_D2D1GaussianBlur, &m_pEffect);
         assert(m_pEffect);
         // 设置模糊属性
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_QUALITY);
@@ -220,7 +221,7 @@ public:
             m_pWindow->RegisterOffScreenRender2D(this);
             m_FirstRecreate = false;
         }
-        return Super::Recreate(target);
+        return Super::Recreate();
     }
     // On Value Changed
     bool OnValueChangedConst(UIControl* control) const {
@@ -331,12 +332,12 @@ public:
         return false;
     }
     // recreate resource
-    virtual HRESULT Recreate(LongUIRenderTarget* target) noexcept override {
+    virtual HRESULT Recreate() noexcept override {
         // 重建视频
-        register auto hr = m_video.Recreate(target);
+        register auto hr = m_video.Recreate();
         // 重建父类
         if (SUCCEEDED(hr)) {
-            hr = Super::Recreate(target);
+            hr = Super::Recreate();
         }
         return hr;
     }

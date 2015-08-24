@@ -88,9 +88,9 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
 
 
 // recreate 重建
-/*HRESULT LongUI::UIText::Recreate(LongUIRenderTarget* newRT) noexcept {
+/*HRESULT LongUI::UIText::Recreate() noexcept {
 // 断言
-return Super::Recreate(newRT);
+return Super::Recreate();
 }*/
 
 // close this control 关闭控件
@@ -247,11 +247,11 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // recreate 重建
-auto LongUI::UIButton::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT {
+auto LongUI::UIButton::Recreate() noexcept ->HRESULT {
     // 重建元素
-    m_uiElement.Recreate(newRT);
+    m_uiElement.Recreate();
     // 父类处理
-    return Super::Recreate(newRT);
+    return Super::Recreate();
 }
 
 // 关闭控件
@@ -365,9 +365,9 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // close this control 关闭控件
-HRESULT LongUI::UIEditBasic::Recreate(LongUIRenderTarget* target) noexcept {
-    m_text.Recreate(target);
-    return Super::Recreate(target);
+HRESULT LongUI::UIEditBasic::Recreate() noexcept {
+    m_text.Recreate();
+    return Super::Recreate();
 }
 
 // close this control 关闭控件

@@ -151,7 +151,7 @@ namespace LongUI {
         inline auto GetWindowsCount() const noexcept { return m_cCountWindow; }
     public: // 隐形转换区
         // 转换为 LongUIRenderTarget
-#define UIManager_RenderTaget (static_cast<ID2D1DeviceContext*>(UIManager))
+#define UIManager_RenderTarget (static_cast<ID2D1DeviceContext*>(UIManager))
         LongUIInline operator ID2D1DeviceContext*()const noexcept { return m_pd2dDeviceContext; };
         // 转换为 DXGI Factory2
 #define UIManager_DXGIFactory (static_cast<IDXGIFactory2*>(UIManager))
