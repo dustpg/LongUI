@@ -411,9 +411,8 @@ void LongUI::CUIManager::Run() noexcept {
                     windows[i] = nullptr;
                 }
             }
-#ifdef LONGUI_RENDER_IN_UNSAFE_MODE
+            // 解锁
             UIManager.Unlock();
-#endif
             UIWindow* waitvs_window = nullptr;
             // 渲染窗口
             for (auto i = 0u; i < length; ++i) {
@@ -422,9 +421,6 @@ void LongUI::CUIManager::Run() noexcept {
                     windows[i]->RenderWindow();
                 }
             }
-#ifndef LONGUI_RENDER_IN_UNSAFE_MODE
-            UIManager.Unlock();
-#endif
             // 等待垂直同步
             UIManager.WaitVS(waitvs_window);
         }
@@ -1591,7 +1587,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->C
     wchar_t buffer[LongUIStringBufferLength];
     ::swprintf(
         buffer, LongUIStringBufferLength,
-        L"MATRIX(%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
+        L"MATRIX (%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
         matrix._11, matrix._12, 
         matrix._21, matrix._22, 
         matrix._31, matrix._32

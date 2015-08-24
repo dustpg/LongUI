@@ -40,9 +40,10 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
         float basic_weight = 0.f;
-        /*if (m_strControlName == L"MainWindow") {
-            int a = 0;
-        }*/
+        //
+        if (m_strControlName == L"V") {
+            int bk = 0;
+        }
         // 第一次
         for (auto ctrl : (*this)) {
             // 非浮点控件
@@ -60,6 +61,9 @@ void LongUI::UIVerticalLayout::Update() noexcept {
                     basic_weight += ctrl->weight;
                 }
             }
+        }
+        if (m_strControlName == L"V") {
+            int bk = 9;
         }
         // 校正
         base_width /= m_2fZoom.width;
@@ -82,9 +86,6 @@ void LongUI::UIVerticalLayout::Update() noexcept {
             }
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
-                /*if (m_strControlName == L"V") {
-                    int bk = 9;
-                }*/
                 ctrl->SetHeight(std::max(height_in_unit_weight * ctrl->weight, float(LongUIAutoControlMinSize)));
             }
             // 容器?

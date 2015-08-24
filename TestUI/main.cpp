@@ -32,12 +32,12 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debug="true"
     clearcolor="1,1,1,0.95" >
-    <VerticalLayout name="V" size="768, 256" bottomcontrol="ScrollBarA">
+    <VerticalLayout name="V" size="0, 256" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
         <Button name="1" templateid="1" text="Hello, world!"/>
-        <Button name="2" size="1024, 0" templateid="2" text="Hello, world!"/>
+        <Button name="2" size="512, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
     <Slider name="6" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <HorizontalLayout name="H" size="0, 512">
+    <HorizontalLayout name="H" size="0, 128">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>

@@ -146,13 +146,17 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
+        __fallthrough;
+    case LongUI::RenderType::Type_Render:
         // 背景
         if (m_pBackgroudBrush) {
             D2D1_RECT_F rect; this->GetViewRect(rect);
             LongUI::FillRectWithCommonBrush(m_pRenderTarget, m_pBackgroudBrush, rect);
         }
-        break;
-    case LongUI::RenderType::Type_Render:
+        // 背景中断
+        if (type == RenderType::Type_RenderBackground) {
+            break;
+        }
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 渲染边框
@@ -368,8 +372,8 @@ void LongUI::UIControl::RefreshWorld() noexcept {
     // 非顶级控件
     else {
         // 检查
-        xx += this->parent->GetOffsetXByChild();
-        yy += this->parent->GetOffsetYByChild();
+        xx += this->parent->GetOffsetX();
+        yy += this->parent->GetOffsetY();
         // 转换
         this->world = D2D1::Matrix3x2F::Translation(xx, yy) 
             * D2D1::Matrix3x2F::Scale(
@@ -752,9 +756,11 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
     // 保留信息
     const float this_container_width = caculate_container_width();
     const float this_container_height = caculate_container_height();
+    if (m_strControlName == L"V") {
+        int bk = 9;
+    }
     // 循环
     while (true) {
-        // XXX: 优化
         for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
             // 获取控件
             auto ctrl = this->marginal_control[i]; if (!ctrl) continue;
@@ -860,19 +866,6 @@ void LongUI::UIContainer::Update() noexcept {
         if (this->flags & Flag_Container_ExistMarginalControl) {
             this->update_marginal_controls();
         }
-        // 限制区域: 由于修改控件大小而造成的视区问题
-        {
-            auto width_remain = this->view_size.width - m_2fOffset.x  - m_2fContentSize.width;
-            if (width_remain > 0.f) {
-                m_2fOffset.x += width_remain;
-            }
-        }
-        {
-            auto height_remain = this->view_size.height - m_2fOffset.y  - m_2fContentSize.height;
-            if (height_remain > 0.f) {
-                m_2fOffset.y += height_remain;
-            }
-        }
         // 刷新
         /*if (should_update) {
             this->SetControlWorldChanged();
@@ -899,6 +892,7 @@ void LongUI::UIContainer::Update() noexcept {
                     ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
                     ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
                     ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
+                    //UIManager << DL_Hint << ctrl->visible_rect << endl;
                 }
             }
         }
@@ -980,10 +974,10 @@ auto LongUI::UIContainer::Recreate(LongUIRenderTarget* newRT) noexcept ->HRESULT
 }
 
 // 设置水平偏移值
-LongUINoinline void LongUI::UIContainer::SetOffsetXByChild(float value) noexcept {
+LongUINoinline void LongUI::UIContainer::SetOffsetX(float value) noexcept {
     assert(value > -1'000'000.f && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
-    register float target = value * this->GetZoomX();
+    register float target = value;
     if (target != m_2fOffset.x) {
         m_2fOffset.x = target;
         this->SetControlWorldChanged();
@@ -991,10 +985,10 @@ LongUINoinline void LongUI::UIContainer::SetOffsetXByChild(float value) noexcept
 }
 
 // 设置垂直偏移值
-LongUINoinline void LongUI::UIContainer::SetOffsetYByChild(float value) noexcept {
+LongUINoinline void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     assert(value > (-1'000'000.f) && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
-    register float target = value * this->GetZoomY();
+    register float target = value ;
     if (target != m_2fOffset.y) {
         m_2fOffset.y = target;
         this->SetControlWorldChanged();

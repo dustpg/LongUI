@@ -1,5 +1,8 @@
 ﻿#include "LongUI.h"
 
+#define public_member this->
+#define private_method this->
+
 // ----------------------------------------------------------------------------
 // **** UIText
 // ----------------------------------------------------------------------------
@@ -117,6 +120,17 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
         if (type == LongUI::RenderType::Type_RenderBackground) {
             break;
         }
+        if (false) {
+            AutoLocker;
+            if (m_strControlName == L"1") {
+                this->world;
+                auto ctrl = this;
+                ctrl->parent->RefreshWorld();
+                const_cast<UIButton*>(ctrl)->RefreshWorld();
+                UIManager << DL_Hint << this->visible_rect << endl;
+                int bk = 9;
+            }
+        }
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -135,7 +149,7 @@ void LongUI::UIButton::Update() noexcept {
 }
 
 // UIButton 构造函数
-LongUI::UIButton::UIButton(pugi::xml_node node)noexcept: Super(node), m_uiElement(node) {
+LongUI::UIButton::UIButton(pugi::xml_node node) noexcept: Super(node), m_uiElement(node) {
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
     // 初始化代码

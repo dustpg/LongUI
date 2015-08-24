@@ -57,8 +57,13 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept = 0;
         // recreate , first call or device reset
         virtual auto Recreate(LongUIRenderTarget*) noexcept->HRESULT;
-        // Wind up, you should call dtor in this method, if malloc(ed), you should free it
-        // easy way: delete this
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
+        /// <remarks>
+        /// you should call dtor in this method, if malloc(ed), you should free it
+        /// easy way: delete this
+        /// </remarks>
         virtual void Cleanup() noexcept = 0;
     public:
         // ctor
@@ -85,13 +90,13 @@ namespace LongUI {
         LongUIInline auto GetNameStr() const noexcept { return m_strControlName.c_str(); }
         // control name in longui string
         LongUIInline auto&GetName() noexcept { return m_strControlName; }
-        // control name : overload for const
-        LongUIInline const auto&GetName() const noexcept { return m_strControlName; }
         // get window of control
         LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
         // XXX: is top level?
         LongUIInline auto IsTopLevel() const noexcept;
-        // get script
+        // control name : overload for const
+        LongUIInline const auto&GetName() const noexcept { return m_strControlName; }
+        // get script data
         LongUIInline const auto& GetScript() const noexcept { return m_script; }
     public:
         // get width of control

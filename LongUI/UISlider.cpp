@@ -199,7 +199,7 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         }
     }
-    else{
+    else {
         switch (arg.msg)
         {
         case WM_LBUTTONDOWN:
@@ -208,6 +208,7 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 m_bMouseClickIn = true;
                 m_fClickPosition = this->IsVerticalSlider() ?
                     (pt4self.y - m_rcThumb.top) : (pt4self.x - m_rcThumb.left);
+                UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
             }
             break;
         case WM_MOUSEMOVE:
@@ -251,6 +252,7 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case WM_LBUTTONUP:
             m_bMouseClickIn = false;
             m_pWindow->ReleaseCapture();
+            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
             break;
         }
         // 检查事件

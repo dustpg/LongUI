@@ -59,7 +59,7 @@ namespace LongUI{
     public:
         // get parent width/height
         auto GetParentWH() noexcept { return 10.f; }
-        //auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetViewWidthByChild() : this->parent->GetViewHeightByChild(); }
+        //auto GetParentWH() noexcept { return this->bartype == ScrollBarType::Type_Horizontal ? this->parent->GetViewWidthByZoomed() : this->parent->GetViewHeightZoomed(); }
         // on page up
         auto OnPageUp() noexcept { return this->SetIndex(m_uiAnimation.end - this->GetParentWH()); }
         // on page down
@@ -79,7 +79,7 @@ namespace LongUI{
         void SetIndex(float new_index) noexcept;
     protected:
         // get bar length
-        auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->GetContentHeightByChild() : parent->GetContentWidthByChild(); }
+        auto get_length() noexcept { return bartype == ScrollBarType::Type_Vertical ? parent->GetContentHeightZoomed() : parent->GetContentWidthZoomed(); }
         // set index
         void set_index(float index) noexcept;
     public:

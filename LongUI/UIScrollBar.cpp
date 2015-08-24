@@ -43,7 +43,7 @@ void LongUI::UIScrollBar::set_index(float new_index) noexcept {
     if (new_index != m_fIndex) {
         m_fIndex = new_index;
         // 修改父类属性
-        this->parent->SetOffsetByChild(int(this->bartype), -new_index);
+        this->parent->SetOffsetZoomed(int(this->bartype), -new_index);
         // 刷新拥有着
         m_pWindow->Invalidate(this->parent);
     }
@@ -91,13 +91,13 @@ bool LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
 void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     // 水平
     if (this->bartype == ScrollBarType::Type_Horizontal) {
-        m_fMaxRange = this->parent->GetContentWidthByChild();
-        m_fMaxIndex = m_fMaxRange - this->parent->GetViewWidthByChild();
+        m_fMaxRange = this->parent->GetContentWidth();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetViewWidthZoomed();
     }
     // 垂直
     else {
-        m_fMaxRange = this->parent->GetContentHeightByChild();
-        m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightByChild();
+        m_fMaxRange = this->parent->GetContentHeight();
+        m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightZoomed();
     }
     return Super::UpdateMarginalWidth();
 }
@@ -164,12 +164,19 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
 // UI滚动条(类型A): 刷新
 void LongUI::UIScrollBarA::Update() noexcept {
     // 索引不一致?
+#ifdef _DEBUG
     auto offset = -(this->bartype == ScrollBarType::Type_Horizontal ?
-        this->parent->GetOffsetXByChild() : this->parent->GetOffsetYByChild());
+        this->parent->GetOffsetXZoomed() : this->parent->GetOffsetYZoomed());
     if (std::abs(m_fIndex - offset) > 0.5f) {
-        this->set_index(offset);
-        UIManager << DL_Hint << "diffence with offset, set new index" << LongUI::endl;
+        m_fIndex = offset;
+        UIManager << DL_Hint << "diffence with offset(I: " 
+            << m_fIndex << " O: " << offset 
+            << " ), set new index" << LongUI::endl;
     }
+#else
+    m_fIndex = -(this->bartype == ScrollBarType::Type_Horizontal ?
+        this->parent->GetOffsetXZoomed() : this->parent->GetOffsetYZoomed());
+#endif
     // 先刷新父类
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正

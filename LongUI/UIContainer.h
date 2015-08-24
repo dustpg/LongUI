@@ -138,43 +138,43 @@ namespace LongUI {
         // orginal margin
         D2D1_RECT_F             m_orgMargin = D2D1::RectF();
     public: // child level operation
-        // get content width in child level for zooming
-        auto GetContentWidthByChild() const noexcept { return m_2fContentSize.width / m_2fZoom.width; }
-        // get content height in child level for zooming
-        auto GetContentHeightByChild() const noexcept { return m_2fContentSize.height / m_2fZoom.height; }
-        // get offset.x in child level for zooming
-        auto GetOffsetXByChild() const noexcept { return m_2fOffset.x / m_2fZoom.width; }
-        // get offset.y in child level for zooming
-        auto GetOffsetYByChild() const noexcept { return m_2fOffset.y / m_2fZoom.height; }
-        // get view.width in child level for zooming
-        auto GetViewWidthByChild() const noexcept { return this->view_size.width / m_2fZoom.width; }
-        // get view.height in child level for zooming
-        auto GetViewHeightByChild() const noexcept { return this->view_size.height / m_2fZoom.height; }
-        // set offset.x by child
-        void SetOffsetXByChild(float value) noexcept;
-        // set offset.y by child
-        void SetOffsetYByChild(float value) noexcept;
-        // set offset by child
-        auto SetOffsetByChild(int xy, float value) noexcept { return xy ? SetOffsetYByChild(value) : SetOffsetXByChild(value); }
-    public: // other level operation
-        // get content width in other level for zooming
-        auto GetContentWidthByOther() const noexcept { return m_2fContentSize.width ; }
-        // get content height in other level for zooming
-        auto GetContentHeightByOther() const noexcept { return m_2fContentSize.height ; }
-        // get offset.x in other level for zooming
-        auto GetOffsetXByOther() const noexcept { return m_2fOffset.x ; }
-        // get offset.y in other level for zooming
-        auto GetOffsetYByOther() const noexcept { return m_2fOffset.y; }
-        // get view.width in other level for zooming
-        auto GetViewWidthByOther() const noexcept { return this->view_size.width; }
-        // get view.height in other level for zooming
-        auto GetViewHeightByOther() const noexcept { return this->view_size.height; }
-        // set offset.x by other
-        void SetOffsetXByOther(float value) noexcept;
-        // set offset.y by other
-        void SetOffsetYByOther(float value) noexcept;
-        // set offset by other
-        auto SetOffsetByOther(int xy, float value) noexcept { return xy ? SetOffsetYByOther(value) : SetOffsetXByOther(value); }
+        // get content width - zoomed
+        auto GetContentWidthZoomed() const noexcept { return m_2fContentSize.width / m_2fZoom.width; }
+        // get content height - zoomed
+        auto GetContentHeightZoomed() const noexcept { return m_2fContentSize.height / m_2fZoom.height; }
+        // get view.width - zoomed
+        auto GetViewWidthZoomed() const noexcept { return this->view_size.width / m_2fZoom.width; }
+        // get view.height - zoomed
+        auto GetViewHeightZoomed() const noexcept { return this->view_size.height / m_2fZoom.height; }
+        // get offset.x - zoomed
+        auto GetOffsetXZoomed() const noexcept { return m_2fOffset.x / m_2fZoom.width; }
+        // get offset.y - zoomed
+        auto GetOffsetYZoomed() const noexcept { return m_2fOffset.y / m_2fZoom.height; }
+        // set offset.x -zoomed
+        void SetOffsetXZoomed(float value) noexcept { return this->SetOffsetX(value * m_2fZoom.width); }
+        // set offset.y - zoomed
+        void SetOffsetYZoomed(float value) noexcept { return this->SetOffsetY(value * m_2fZoom.height); }
+        // set offset -zoomed
+        auto SetOffsetZoomed(int xy, float value) noexcept { return xy ? SetOffsetYZoomed(value) : SetOffsetXZoomed(value); }
+    public:
+        // get content width - without zooming
+        auto GetContentWidth() const noexcept { return m_2fContentSize.width ; }
+        // get content height - without zooming
+        auto GetContentHeight() const noexcept { return m_2fContentSize.height ; }
+        // get view.width - without zooming
+        auto GetViewWidth() const noexcept { return this->view_size.width; }
+        // get view.height - without zooming
+        auto GetViewHeight() const noexcept { return this->view_size.height; }
+        // get offset.x - without zooming
+        auto GetOffsetX() const noexcept { return m_2fOffset.x ; }
+        // get offset.y - without zooming
+        auto GetOffsetY() const noexcept { return m_2fOffset.y; }
+        // set offset.x - without zooming
+        void SetOffsetX(float value) noexcept;
+        // set offset.y - without zooming
+        void SetOffsetY(float value) noexcept;
+        // set offset - without zooming
+        auto SetOffset(int xy, float value) noexcept { return xy ? SetOffsetY(value) : SetOffsetX(value); }
     public:
         // get zoom in x
         auto GetZoomX() const noexcept { return m_2fZoom.width; }
