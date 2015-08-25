@@ -17,9 +17,9 @@ super |  **NONE**
 attribute name|value type|default|note
 --------------|----------|-------|----
 `pos`|[floatx2](./longui-xml-value-type.md#jump_floatx2)|(0.0, 0.0)|set left-top position if floating
-`size`|[floatx2](./longui-xml-value-type.md#jump_floatx2)|(0.0, 0.0)|set contrl size if static
+`size`|[floatx2](./longui-xml-value-type.md#jump_floatx2)|(0.0, 0.0)|set contrl size if fixed-size
 `name`|[string](./longui-xml-value-type.md#jump_string)|(empty)|name of control, uniqued in **one window**
-`weight`|[float](./longui-xml-value-type.md#jump_float)|1.0|interpreted by parent/container
+`weight`|[float](./longui-xml-value-type.md#jump_float)|1.0|layout weight, interpreted by parent/container
 `margin`|[floatx4](./longui-xml-value-type.md#jump_floatx4)|(0.0, 0.0, 0.0, 0.0)|set margin of contrl
 `script`|[string](./longui-xml-value-type.md#jump_string)|(empty)|interpreted by yourself
 `visible`|[bool](./longui-xml-value-type.md#jump_bool)|true|as you can see
@@ -28,8 +28,8 @@ attribute name|value type|default|note
 `strictclip`|[bool](./longui-xml-value-type.md#jump_bool)|??|**invalid yet**
 `templateid`|[int](./longui-xml-value-type.md#jump_int)(>=0)|0|you can set some default value as **template**, like `class`/`id` in html but int only
 `userstring`|[string](./longui-xml-value-type.md#jump_string)|(empty)|user defined string, interpreted by yourself
-`renderparent`|[bool](./longui-xml-value-type.md#jump_bool)|false|if render this control, must render parent (parent will render itself and **all children**)
 `borderwidth`|[float](./longui-xml-value-type.md#jump_float)|0.0|set width of border
+`renderparent`|[bool](./longui-xml-value-type.md#jump_bool)|false|if render this control, must render parent (parent will render itself and **all children**)
 
 ##<a name="jump_container"/>LongUI::UIContainer XML Attribute(s)
   
@@ -40,7 +40,7 @@ super | [UIControl](#jump_control)
   
 attribute name|value type|default|note
 --------------|----------|-------|----
-`hostchild`|[bool](./longui-xml-value-type.md#jump_bool)|false|like 'renderparent' in control, `renderparent` is for container.
+`hostchild`|[bool](./longui-xml-value-type.md#jump_bool)|false|like 'renderparent' in control, `hostchild` is for container.
 --|--|--|if it's child want to be rendered, it will render this container. to implement this, it will **force** mark all children `renderparent` to true
 `leftcontrol`|[CC](./longui-xml-value-type.md#jump_cc)|(empty)|left marginal control **name** and **templateid** ,btw, `CC` for `CreateControl`
 `topcontrol`|[CC](./longui-xml-value-type.md#jump_cc)|(empty)|top marginal control, like `leftcontrol`

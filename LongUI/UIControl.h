@@ -113,7 +113,7 @@ namespace LongUI {
         auto GetNonContentHeight() const noexcept ->float;
         // change control draw size
         auto SetControlSizeChanged() noexcept { m_bool16.SetTrue(Index_ChangeSize); }
-        // handle control draw size changed
+        // handleupdate_marginal_controls control draw size changed
         auto ControlSizeChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeSizeHandled); }
         // change control world
         auto SetControlWorldChanged() noexcept { m_bool16.SetTrue(Index_ChangeWorld); }

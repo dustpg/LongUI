@@ -1,21 +1,21 @@
-## LongUI XML Value Type List - Normal
-value type|implement|note|e.g.
-:--------:|---------|----|----
-<a name="jump_int"/>int|`LongUI::AtoI`|integer |`= "0"`, `= "2333"`
-<a name="jump_bool"/>bool|`pugi::xml_attribute::as_bool`| boolean |`= "true"`, `= "0"`
-<a name="jump_float"/>float|`LongUI::AtoF`|float| `= "0"`, `= "1e3"`, `= "-1.0"`
-<a name="jump_floatx2"/>floatx2|`LongUI::Helper::MakeFloats`|array for 2 floats| `="0.0, 2.33333"`
-<a name="jump_floatx4"/>floatx4|`LongUI::Helper::MakeFloats`|array for 4 floats| `="0.0, 2.33333, -123, 1e-2"`
-<a name="jump_floatx6"/>floatx6|`LongUI::Helper::MakeFloats`|array for 6 floats| ...
+## LongUI Xml值 类型列表 - 普通
+类型|实现|注|例子
+:--:|----|--|----
+<a name="jump_int"/>int|`LongUI::AtoI`|整型|`= "0"`, `= "2333"`
+<a name="jump_bool"/>bool|`pugi::xml_attribute::as_bool`| 布尔值 |`= "true"`, `= "0"`
+<a name="jump_float"/>float|`LongUI::AtoF`|浮点| `= "0"`, `= "1e3"`, `= "-1.0"`
+<a name="jump_floatx2"/>floatx2|`LongUI::Helper::MakeFloats`|2浮点数组| `="0.0, 2.33333"`
+<a name="jump_floatx4"/>floatx4|`LongUI::Helper::MakeFloats`|4浮点数组| `="0.0, 2.33333, -123, 1e-2"`
+<a name="jump_floatx6"/>floatx6|`LongUI::Helper::MakeFloats`|6浮点数组| ...
 <a name="jump_stops"/>stops|locally, `LongUI::Helper::MakeColor`|array for any stops| `[pos0, color0] [pos1, color1]`
-<a name="jump_string"/>string|`LongUI::Helper::MakeString` if to **wchar_t* **|string, utf-8 only| `="_(:3」∠)_"`
+<a name="jump_string"/>string|`LongUI::Helper::MakeString`(如果转换成宽字符串)|utf-8 数组| `="_(:3」∠)_"`
 <a name="jump_cc"/>CC|`std::strchr`,`LongUI::AtoI`|"CC" for "CreateControl", `name[, templateid]`| `="ScrollBarA"`, `="ScrollBarB, 2"`
-<a name="jump_color"/>color|`LongUI::Helper::MakeColor`|color, `#RGB`, `#RRGGBB`, `#AARRGGBB`, `floatx4 in RGBA` | `="#FFF"`, `="#ABCDEF"`, `="#88ABCDEF"`, `="0.0, 1.0, 0.0, 1.0"`
+<a name="jump_color"/>color|`LongUI::Helper::MakeColor`|颜色, `#RGB`, `#RRGGBB`, `#AARRGGBB`, `floatx4 in RGBA` | `="#FFF"`, `="#ABCDEF"`, `="#88ABCDEF"`, `="0.0, 1.0, 0.0, 1.0"`
   
-## LongUI XML Value Type List - Enum
+## LongUI Xml值 类型列表 - 枚举
   
-value type|implement|note|e.g.
-:--------:|---------|----|----
+类型|实现|注|例子
+:--:|----|--|----
 <a name="jump_enum_bmprule"/>bmprule|`Helper::XMLGetBitmapRenderRule`|int or string| `="button"`, `="1"`
 ---|---|`0` or `scale`| normal rendering rule for `BitmapRenderRule::Rule_Scale`
 ---|---|`1` or `button`| button like rendering rule for `BitmapRenderRule::Rule_ButtonLike`

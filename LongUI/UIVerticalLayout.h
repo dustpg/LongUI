@@ -54,11 +54,6 @@ namespace LongUI{
         ~UIVerticalLayout() noexcept = default;
         // no copy ctor
         UIVerticalLayout(const UIVerticalLayout&) = delete;
-    protected:
-        // 修改子布局控件布局
-        //void change_child_layout() noexcept;
-        // 获取指定位置的控件
-        //auto get_child_by_position(float) noexcept ->UIControl*;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

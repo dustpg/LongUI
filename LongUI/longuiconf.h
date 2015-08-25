@@ -322,6 +322,8 @@ namespace LongUI {
 
         // is always host children rendering?       [valid] for container
         static constexpr char* const IsHostChildrenAlways   = "hostchild";
+        // is always host children rendering?       [valid] for container
+        static constexpr char* const IsHostPosterityAlways  = "hostposterity";
         // left control class name and template id in "marginal control"
         static constexpr char* const LeftMarginalControl    = "leftcontrol";
         // top control class name and template id in "marginal control"

@@ -86,57 +86,31 @@ namespace LongUI {
     public:
         // after add a child
         virtual void AfterInsert(UIControl* child) noexcept ;
+        // after add a child
+        virtual void AfterRemove(UIControl*) noexcept {}
+        // get child at index
+        virtual auto GetAt(uint32_t) const noexcept ->UIControl*;
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
-        // after change draw position
-        //void AfterChangeDrawPosition() noexcept;
-        // Assure the ScrollBar
-        //bool AssureScrollBar(float, float) noexcept;
         // find control where mouse pointed
         auto FindControl(const D2D1_POINT_2F pt) noexcept->UIControl*;
-        // assert if exist marginal control
-#ifdef _DEBUG
-        void AssertMarginalControl() const noexcept {
-            if (!(this->flags & Flag_Container_ExistMarginalControl)) {
-                for (auto ctrl : this->marginal_control) {
-                    assert(!ctrl && "exist marginal control");
-                }
-            }
-        }
-#else
-        void AssertMarginalControl() const noexcept {};
-#endif
-    public: // STL Container compatibled/style interface/method
-        // get child at, because of list, will get warning of performance
-        auto at(uint32_t) const noexcept ->UIControl*;
+    public:
+        // get length/count of children
+        auto GetLength() const noexcept { return m_cChildrenCount; }
+        // get length/count of children
+        auto GetCount() const noexcept { return m_cChildrenCount; }
         // insert child,
-        void insert(Iterator, UIControl*) noexcept;
+        void Insert(Iterator, UIControl*) noexcept;
         // just remove child, : remove from list and set prev/next to null
-        bool remove(Iterator) noexcept;
+        bool RemoveJust(Iterator) noexcept;
         // remove and close child
-        void erase(Iterator itr) noexcept { this->remove(itr); itr->Cleanup(); }
-    public: 
-        // get children count
-        auto size() const noexcept { return m_cChildrenCount; } ;
+        void RemoveClean(Iterator itr) noexcept { this->RemoveJust(itr); itr->Cleanup(); }
+    public: // for C++ 11
         // begin 
         auto begin() const noexcept { return Iterator(m_pHead); };
         // end
         auto end() const noexcept { return Iterator(nullptr); };
-    private:
-        // update marginal controls
-        void update_marginal_controls() noexcept;
-    protected:
-        // dtor 析构函数
-        ~UIContainer() noexcept;
-        // 子控件数量
-        size_t                  m_cChildrenCount = 0;
-        // 头控件指针
-        UIControl*              m_pHead = nullptr;
-        // 尾控件指针
-        UIControl*              m_pTail = nullptr;
-        // orginal margin
-        D2D1_RECT_F             m_orgMargin = D2D1::RectF();
     public: // child level operation
         // get content width - zoomed
         auto GetContentWidthZoomed() const noexcept { return m_2fContentSize.width / m_2fZoom.width; }
@@ -181,6 +155,20 @@ namespace LongUI {
         auto GetZoomY() const noexcept { return m_2fZoom.height; }
         // get zoom 
         auto GetZoom(int xy) const noexcept { return xy ? this->GetZoomY() : this->GetZoomX(); }
+    private:
+        // refresh marginal controls
+        void refresh_marginal_controls() noexcept;
+    protected:
+        // dtor 析构函数
+        ~UIContainer() noexcept;
+        // 子控件数量
+        size_t                  m_cChildrenCount = 0;
+        // 头控件指针
+        UIControl*              m_pHead = nullptr;
+        // 尾控件指针
+        UIControl*              m_pTail = nullptr;
+        // orginal margin
+        D2D1_RECT_F             m_orgMargin = D2D1::RectF();
     public:
         // marginal controls
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
@@ -193,7 +181,21 @@ namespace LongUI {
         D2D1_SIZE_F             m_2fContentSize = D2D1::SizeF(0.f, 0.f);
         // zoom size
         D2D1_SIZE_F             m_2fZoom = D2D1::SizeF(1.f, 1.f);
+        // assert if exist marginal control
+    public:
+#ifdef _DEBUG
+        void AssertMarginalControl() const noexcept {
+            if (!(this->flags & Flag_Container_ExistMarginalControl)) {
+                for (auto ctrl : this->marginal_control) {
+                    assert(!ctrl && "exist marginal control");
+                }
+            }
+        }
+#else
+        void AssertMarginalControl() const noexcept {};
+#endif
 #ifdef LongUIDebugEvent
+    protected:
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif

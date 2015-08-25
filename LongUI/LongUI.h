@@ -231,20 +231,23 @@ namespace LongUI {
         // if the container was setted this flag, it would set 
         // all children flag "Flag_RenderParent" to true
         Flag_Container_HostChildrenRenderingDirectly = 1 << 16,
+        // [default: false][xml attribute : "hostposterity"@bool] 
+        // if true, container will host posterity rendering in anytime
+        Flag_Container_HostPosterityRenderingDirectly = 1 << 17,
         /// <summary>
         /// if exist marginal control, will set it
         /// </summary>
         /// <remarks>
         /// [Auto] this is just a optimization flag
         /// </remarks>
-        Flag_Container_ExistMarginalControl = 1 << 17,
+        Flag_Container_ExistMarginalControl = 1 << 18,
         /// <summary>
         /// container will zoom marginal controls [default: true]
         /// </summary>
         /// <remarks>
         /// changed by xml-attribute("zoommarginal") defaultly
         /// </remarks>
-        Flag_Container_ZoomMarginalControl = 1 << 18,
+        Flag_Container_ZoomMarginalControl = 1 << 19,
     };
     // operator | for LongUIFlag
     static auto operator |(LongUIFlag a, LongUIFlag b) noexcept {

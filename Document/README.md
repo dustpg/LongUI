@@ -35,5 +35,3 @@ to make rendering common brush in corrent way, The following stipulations applie
 ```
   - more detail see `LongUI::FillRectWithCommonBrush`
   
-  
-[xml-attributes.md](./xml-attributes.md)

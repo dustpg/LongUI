@@ -490,7 +490,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     assert(node && "bad argument.");
     // LV
     if (m_strControlName == L"V") {
-        m_2fZoom = { 2.f, 2.f };
+        //m_2fZoom = { 2.0f, 2.0f };
     }
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
@@ -546,6 +546,10 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
         flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
     }
+    // 渲染依赖属性
+    if (node.attribute(XMLAttribute::IsHostPosterityAlways).as_bool(false)) {
+        flag |= LongUI::Flag_Container_HostPosterityRenderingDirectly;
+    }
     // 边缘控件缩放
     if (node.attribute(XMLAttribute::IsZoomMarginalControl).as_bool(true)) {
         flag |= LongUI::Flag_Container_ZoomMarginalControl;
@@ -577,16 +581,23 @@ LongUI::UIContainer::~UIContainer() noexcept {
 void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
     assert(child && "bad argument");
     // 大小判断
-    if (this->size() >= 10'000) {
+    if (this->GetCount() >= 10'000) {
         UIManager << DL_Warning << "the count of children must be"
             " less than 10k because of the precision of float" << LongUI::endl;
         assert(!"because of the precision of float, the count of children must be less than 10k");
     }
     // 检查flag
-    if (this->flags & Flag_Container_HostChildrenRenderingDirectly) {
+    const auto host_flag = Flag_Container_HostChildrenRenderingDirectly 
+        | Flag_Container_HostPosterityRenderingDirectly;
+    if (this->flags & host_flag) {
         force_cast(child->flags) |= Flag_RenderParent;
     }
-    // 设置父类
+    // 子控件也是容器?
+    if (this->flags & Flag_Container_HostPosterityRenderingDirectly
+        && child->flags & Flag_UIContainer) {
+        force_cast(child->flags) |= Flag_Container_HostPosterityRenderingDirectly;
+    }
+    // 设置父节点
     force_cast(child->parent) = this;
     // 设置窗口节点
     child->m_pWindow = m_pWindow;
@@ -615,7 +626,7 @@ auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIContro
     this->AssertMarginalControl();
     UIControl* control_out = nullptr;
     // XXX: 优化
-    assert(this->size() < 100 && "too huge, wait for optimization please");
+    assert(this->GetCount() < 100 && "too huge, wait for optimization please");
     for (auto ctrl : (*this)) {
         /*if (m_strControlName == L"MainWindow") {
         int a = 9;
@@ -733,8 +744,8 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
     }
 }
 
-// 刷新边缘控件
-void LongUI::UIContainer::update_marginal_controls() noexcept {
+// 更新边缘控件
+void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     // 获取宽度
     auto get_marginal_width = [](UIMarginalable* ctrl) noexcept {
         return ctrl ? ctrl->marginal_width : 0.f;
@@ -769,6 +780,7 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
     if (m_strControlName == L"V") {
         int bk = 9;
     }
+    //int times = 0;
     // 循环
     while (true) {
         for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
@@ -847,10 +859,21 @@ void LongUI::UIContainer::update_marginal_controls() noexcept {
             // 计算
             const float latest_width = caculate_container_width();
             const float latest_height = caculate_container_height();
+            /*UIManager << DL_Hint
+                << " latest_width: " << latest_width
+                << " this_container_width: " << this_container_width
+                << " latest_height: " << latest_height
+                << " this_container_height: " << this_container_height
+                << endl;*/
             // 一样就退出
             if (latest_width == this_container_width && latest_height == this_container_height) {
                 break;
             }
+            /*++times;
+            // 超次数也算
+            if (times > lengthof(this->marginal_control)) {
+                break;
+            }*/
             // 修改外边距
             force_cast(this->margin_rect.left) = m_orgMargin.left
                 + get_marginal_width(this->marginal_control[UIMarginalable::Control_Left]);
@@ -874,7 +897,7 @@ void LongUI::UIContainer::Update() noexcept {
     if (this->IsControlSizeChanged()) {
         // 刷新边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
-            this->update_marginal_controls();
+            this->refresh_marginal_controls();
         }
         // 刷新
         /*if (should_update) {
@@ -1011,22 +1034,24 @@ LongUINoinline void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     }
 }
 
-// 获取指定控件
-auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
+// 随机访问控件
+auto LongUI::UIContainer::GetAt(uint32_t i) const noexcept -> UIControl * {
     // 性能警告
-    UIManager << DL_Warning
-        << L"Performance Warning! random accessig is not fine for list"
-        << LongUI::endl;
+    if (i > 8) {
+        UIManager << DL_Warning
+            << L"Performance Warning! random accessig is not fine for list"
+            << LongUI::endl;
+    }
     // 检查范围
-    if (i >= this->size()) {
+    if (i >= this->GetCount()) {
         UIManager << DL_Error << L"out of range" << LongUI::endl;
         return nullptr;
     }
     // 只有一个?
-    if (this->size() == 1) return m_pHead;
+    if (this->GetCount() == 1) return m_pHead;
     // 前半部分?
     UIControl * control;
-    if (i < this->size() / 2) {
+    if (i < this->GetCount() / 2) {
         control = m_pHead;
         while (i) {
             assert(control && "null pointer");
@@ -1037,7 +1062,7 @@ auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
     // 后半部分?
     else {
         control = m_pTail;
-        i = static_cast<uint32_t>(this->size()) - i - 1;
+        i = static_cast<uint32_t>(this->GetCount()) - i - 1;
         while (i) {
             assert(control && "null pointer");
             control = control->prev;
@@ -1048,7 +1073,7 @@ auto LongUI::UIContainer::at(uint32_t i) const noexcept -> UIControl * {
 }
 
 // 插入控件
-void LongUI::UIContainer::insert(Iterator itr, UIControl* ctrl) noexcept {
+void LongUI::UIContainer::Insert(Iterator itr, UIControl* ctrl) noexcept {
     const auto end_itr = this->end();
     assert(ctrl && "bad arguments");
     if (ctrl->prev) {
@@ -1079,8 +1104,6 @@ void LongUI::UIContainer::insert(Iterator itr, UIControl* ctrl) noexcept {
     else {
         force_cast(ctrl->next) = itr.Ptr();
         force_cast(ctrl->prev) = itr->prev;
-        // 前面->next = ctrl
-        // itr->prev = ctrl
         if (itr->prev) {
             force_cast(itr->prev) = ctrl;
         }
@@ -1092,8 +1115,8 @@ void LongUI::UIContainer::insert(Iterator itr, UIControl* ctrl) noexcept {
 }
 
 
-// 移除控件
-bool LongUI::UIContainer::remove(Iterator itr) noexcept {
+// 仅移除控件
+bool LongUI::UIContainer::RemoveJust(Iterator itr) noexcept {
     // 检查是否属于本容器
 #ifdef _DEBUG
     bool ok = false;
@@ -1109,17 +1132,21 @@ bool LongUI::UIContainer::remove(Iterator itr) noexcept {
         return false;
     }
 #endif
-    // 连接前后节点
-    register auto prev_tmp = itr->prev;
-    register auto next_tmp = itr->next;
-    // 检查, 头
-    (prev_tmp ? force_cast(prev_tmp->next) : m_pHead) = next_tmp;
-    // 检查, 尾
-    (next_tmp ? force_cast(next_tmp->prev) : m_pTail) = prev_tmp;
-    // 减少
-    force_cast(itr->prev) = force_cast(itr->next) = nullptr;
-    --m_cChildrenCount;
-    // 修改
-    this->SetControlSizeChanged();
+    UIControl* child = itr.Ptr();
+    {
+        // 连接前后节点
+        register auto prev_tmp = itr->prev;
+        register auto next_tmp = itr->next;
+        // 检查, 头
+        (prev_tmp ? force_cast(prev_tmp->next) : m_pHead) = next_tmp;
+        // 检查, 尾
+        (next_tmp ? force_cast(next_tmp->prev) : m_pTail) = prev_tmp;
+        // 减少
+        force_cast(itr->prev) = force_cast(itr->next) = nullptr;
+        --m_cChildrenCount;
+        // 修改
+        this->SetControlSizeChanged();
+    }
+    this->AfterRemove(child);
     return true;
 }

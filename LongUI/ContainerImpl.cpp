@@ -102,7 +102,7 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         this->ControlSizeChangeHandled();
     }
     // 父类刷新
-    return Super::Update();
+    Super::Update();
 }
 
 // UIVerticalLayout 关闭控件
@@ -201,7 +201,7 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
         this->ControlSizeChangeHandled();
     }
     // 父类刷新
-    return Super::Update();
+    Super::Update();
 }
 
 

@@ -85,7 +85,7 @@ namespace LongUI {
         /// </summary>
         /// <remarks>
         /// this method is designed to be helper to change parent's margin, just change "marginal_width"
-        /// more detail too see <see cref="LongUI::UIContainer::update_marginal_controls"/>
+        /// more detail too see <see cref="LongUI::UIContainer::refresh_marginal_controls"/>
         /// and, defaultly, container limits the marginal control in "marginal-control-zone", but
         /// if you want render in "view-zone", you can changed view_size, view_pos in this method,
         /// more detail too see <see cref="LongUI::UIScrollBarB::UpdateMarginalWidth"/>

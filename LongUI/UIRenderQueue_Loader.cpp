@@ -622,10 +622,10 @@ namespace LongUI {
                 ID2D1GradientStopCollection * collection = nullptr;
                 D2D1_GRADIENT_STOP stops[LongUIMaxGradientStop];
                 D2D1_GRADIENT_STOP* now_stop = stops;
-
+                // 缓冲池
                 char buffer[LongUIStringBufferLength];
                 // 复制到缓冲区
-                strcpy(buffer, str);
+                std::strcpy(buffer, str);
                 char* index = buffer;
                 const char* paragraph = nullptr;
                 register char ch = 0;
