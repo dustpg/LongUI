@@ -62,15 +62,17 @@ void LongUI::UIVerticalLayout::Update() noexcept {
                 }
             }
         }
-        /*if (m_strControlName == L"V") {
+        if (m_strControlName == L"V") {
             int bk = 9;
-        }*/
+        }
         // 带入控件本身宽度计算
         base_width = std::max(base_width, this->view_size.width / m_2fZoom.width);
         // 剩余高度富余
         register auto height_remain = std::max(this->view_size.height - base_height, 0.f);
         // 单位权重高度
         auto height_in_unit_weight = basic_weight > 0.f ? height_remain / basic_weight : 0.f ;
+        // 矫正
+        height_in_unit_weight /= m_2fZoom.height;
         // 基线Y
         float position_y = 0.f;
         // 第二次
@@ -168,12 +170,16 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
                 }
             }
         }
+        // 矫正
+        //basic_weight /= m_2fZoom.width;
         // 计算
         base_height = std::max(base_height, this->view_size.height / m_2fZoom.height);
         // 剩余宽度富余
         register auto width_remain = std::max(this->view_size.width - base_width, 0.f);
         // 单位权重宽度
         auto width_in_unit_weight = basic_weight > 0.f ? width_remain / basic_weight : 0.f;
+        // 矫正
+        width_in_unit_weight /= m_2fZoom.width;
         // 基线X
         float position_x = 0.f;
         // 第二次

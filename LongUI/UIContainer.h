@@ -84,12 +84,21 @@ namespace LongUI {
         // recreate
         virtual auto Recreate() noexcept->HRESULT override;
     public:
+#ifdef LONGUI_CONTAINER_NEED_RANDOM_ACCESSIG
+        // after add a child
+        void AfterInsert(UIControl* child) noexcept ;
+        // after add a child
+        void AfterRemove(UIControl*) noexcept {}
+        // get child at index
+        auto GetAt(uint32_t) const noexcept ->UIControl*;
+#else
         // after add a child
         virtual void AfterInsert(UIControl* child) noexcept ;
         // after add a child
         virtual void AfterRemove(UIControl*) noexcept {}
         // get child at index
         virtual auto GetAt(uint32_t) const noexcept ->UIControl*;
+#endif
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;

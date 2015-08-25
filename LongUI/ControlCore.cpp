@@ -322,25 +322,6 @@ void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.top = -(this->margin_rect.top + m_fBorderWidth);
     rect.right = this->view_size.width + this->margin_rect.right + m_fBorderWidth;
     rect.bottom = this->view_size.height + this->margin_rect.bottom + m_fBorderWidth;
-    /*// 容器
-    if ((this->flags & Flag_UIContainer)) {
-    // 修改裁剪区域
-    //rect.left -= static_cast<const UIContainer*>(this)->offset.x;
-    //rect.top -= static_cast<const UIContainer*>(this)->offset.y;
-    auto container = static_cast<const UIContainer*>(this);
-    rect.right = rect.left + static_cast<const UIContainer*>(this)->width;
-    rect.bottom = rect.top + static_cast<const UIContainer*>(this)->height;
-    if (static_cast<const UIContainer*>(this)->scrollbar_h) {
-    rect.bottom -= static_cast<const UIContainer*>(this)->scrollbar_h->GetTakingUpSapce();
-    }
-    if (static_cast<const UIContainer*>(this)->scrollbar_v) {
-    rect.right -= static_cast<const UIContainer*>(this)->scrollbar_v->GetTakingUpSapce();
-    }
-    }
-    else {
-    rect.right = this->width + this->margin_rect.right + m_fBorderWidth;
-    rect.bottom = this->height + this->margin_rect.bottom + m_fBorderWidth;
-    }*/
 }
 
 // 获取边框矩形
@@ -490,7 +471,7 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     assert(node && "bad argument.");
     // LV
     if (m_strControlName == L"V") {
-        //m_2fZoom = { 2.0f, 2.0f };
+        m_2fZoom = { 3.0f, 3.0f };
     }
     // 保留原始外间距
     m_orgMargin = this->margin_rect;

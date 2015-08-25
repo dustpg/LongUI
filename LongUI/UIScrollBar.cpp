@@ -100,6 +100,8 @@ void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
         m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightZoomed();
     }
     // 限制
+    m_fMaxRange = std::max(m_fMaxRange, 0.f);
+    m_fMaxIndex = std::max(m_fMaxIndex, 0.f);
     if (m_fIndex > m_fMaxIndex) {
         this->set_index(m_fMaxIndex);
     }
