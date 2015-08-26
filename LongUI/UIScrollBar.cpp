@@ -6,8 +6,9 @@
 
 // UIScrollBar 构造函数
 LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: 
-Super(node), m_uiAnimation(AnimationType::Type_LinearInterpolation) {
+Super(node), m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
     // 修改
+    m_uiAnimation.duration = 0.5f;
     if (node) {
         wheel_step = LongUI::AtoF(node.attribute("wheelstep").value());
         m_uiAnimation.duration = LongUI::AtoF(node.attribute("aniamtionduration").value());
@@ -116,12 +117,12 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     // 加强父类方法
     Super::UpdateMarginalWidth();
     // 需要?
-    if (m_fMaxIndex == 0.f) {
+    if (m_fMaxIndex < BASIC_SIZE * 0.5f) {
         this->marginal_width = 0.f;
         this->visible = false;
     }
     else {
-        this->marginal_width = 16.f;
+        this->marginal_width = BASIC_SIZE;
         this->visible = true;
     }
 }
@@ -291,21 +292,31 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.msg) {
         case WM_LBUTTONDOWN:
             m_pWindow->SetCapture(this);
-            // 记录点击点
             m_bCaptured = true; 
-            m_fOldPoint = UISB_OffsetVaule(pt4self.x);
-            m_fOldIndex = m_fIndex;
             this->set_status(m_pointType, LongUI::Status_Pushed);
-            // 检查
-            if (m_pointType == PointType::Type_Arrow1) {
+            switch (m_pointType)
+            {
+            case LongUI::UIScrollBar::PointType::Type_Arrow1:
                 // 左/上移动
                 this->SetIndex(m_uiAnimation.end - m_fArrowStep);
-                //this->SetIndex(m_fIndex - m_fArrowStep);
-            }
-            else if (m_pointType == PointType::Type_Arrow2) {
-                // 左/上移动
+                break;
+            case LongUI::UIScrollBar::PointType::Type_Arrow2:
+                // 右/下移动
                 this->SetIndex(m_uiAnimation.end + m_fArrowStep);
-                //this->SetIndex(m_fIndex + m_fArrowStep);
+                break;
+            case LongUI::UIScrollBar::PointType::Type_Thumb:
+                m_fOldPoint = UISB_OffsetVaule(pt4self.x);
+                m_fOldIndex = m_fIndex;
+                break;
+            case LongUI::UIScrollBar::PointType::Type_Shaft:
+                // 设置目标
+            {
+                auto rate = UISB_OffsetVaule(pt4self.x) / (this->view_size.width - BASIC_SIZE * 2.f);
+                this->SetIndex(rate * m_fMaxIndex);
+            }
+                break;
+            default:
+                break;
             }
             break;
         case WM_LBUTTONUP:
@@ -318,9 +329,11 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             if (m_bCaptured) {
                 // 指向thumb?
                 if (m_pointType == PointType::Type_Thumb) {
+                    // 计算移动距离
                     register auto pos = UISB_OffsetVaule(pt4self.x);
-                    register auto rate = (1.f - m_fMaxIndex / m_fMaxRange) 
+                    register auto rate = (1.f - m_fMaxIndex  / (m_fMaxRange - BASIC_SIZE)) 
                         * this->parent->GetZoom(int(this->bartype));
+                    //UIManager << DL_Hint << rate << endl;
                     this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
                     m_uiAnimation.end = m_fIndex;
 #ifdef _DEBUG
@@ -398,9 +411,8 @@ void LongUI::UIScrollBarA::set_status(PointType _bartype, ControlStatus state) n
     BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
     // 检查
     if (_bartype >= PointType::Type_Arrow1 && _bartype <= PointType::Type_Thumb) {
-        auto& element = *(elements[
-            static_cast<uint32_t>(_bartype) - static_cast<uint32_t>(PointType::Type_Arrow1)
-        ]);
+        auto index = static_cast<uint32_t>(_bartype) - static_cast<uint32_t>(PointType::Type_Arrow1);
+        auto& element = *(elements[index]);
         UIElement_SetNewStatus(element, state);
     }
 }

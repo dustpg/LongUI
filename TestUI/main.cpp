@@ -35,7 +35,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <VerticalLayout name="V" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
         <Button name="1" templateid="1" text="Hello, world!"/>
         <Slider name="sb" thumbsize="32,32" margin="4,4,4,4"/>
-        <Button name="2" size="0, 0" templateid="2" text="Hello, world!"/>
+        <Button name="2" size="512, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
     <Slider name="6" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <HorizontalLayout name="H" size="0, 128">
@@ -527,3 +527,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 #endif
+

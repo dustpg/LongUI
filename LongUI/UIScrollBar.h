@@ -175,7 +175,7 @@ namespace LongUI{
         // thumb
         BarElement              m_uiThumb;
         // step for arrow clicked
-        float                   m_fArrowStep = 16.f;
+        float                   m_fArrowStep = 32.f;
         // captured this
         bool                    m_bCaptured = false;
         // arrow1 use colorrect

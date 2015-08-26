@@ -46,7 +46,7 @@ attribute name|value type|default|note
 `topcontrol`|[CC](./longui-xml-value-type.md#jump_cc)|(empty)|top marginal control, like `leftcontrol`
 `rightcontrol`|[CC](./longui-xml-value-type.md#jump_cc)|(empty)|right marginal control, like `leftcontrol`
 `bottomcontrol`|[CC](./longui-xml-value-type.md#jump_cc)|(empty)|bottom marginal control, like `leftcontrol`
-`zoommarginal`|[bool](./longui-xml-value-type.md#jump_bool)|true|marginal control will be zoomed as **current container**
+`zoommarginal`|[bool](./longui-xml-value-type.md#jump_bool)|true|**invalid yet, and maybe removed** marginal control will be zoomed as **current container**
 
 ##<a name="jump_window"/>LongUI::UIWindow XML Attribute(s)
   

@@ -225,13 +225,13 @@ void LongUI::UIControl::SetSubEventCallBack(
     switch (event)
     {
     case LongUI::SubEvent::Event_ButtonClicked:
-        longui_cast<UIButton*>(control)->RegisterClickEvent(caller);
+        longui_cast<UIButton*>(control)->SetClickEvent(caller);
         break;
     case LongUI::SubEvent::Event_EditReturned:
-        longui_cast<UIEditBasic*>(control)->RegisterReturnEvent(caller);
+        longui_cast<UIEditBasic*>(control)->SetReturnEvent(caller);
         break;
     case LongUI::SubEvent::Event_SliderValueChanged:
-        longui_cast<UISlider*>(control)->RegisterValueChangedEvent(caller);
+        longui_cast<UISlider*>(control)->SetValueChangedEvent(caller);
         break;
     }
 }

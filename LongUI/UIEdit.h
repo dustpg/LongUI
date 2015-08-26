@@ -49,7 +49,7 @@ namespace LongUI {
         // control text 控件文本
         auto GetText() const noexcept { return m_text.c_str(); }
         // single-line text returned
-        auto RegisterReturnEvent(const CUISubEventCaller& caller) noexcept { m_text.sbcaller = caller; }
+        auto SetReturnEvent(const CUISubEventCaller& caller) noexcept { m_text.sbcaller = caller; }
     protected:
         // constructor 构造函数
         UIEditBasic(pugi::xml_node) noexcept;

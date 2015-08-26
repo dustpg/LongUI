@@ -46,8 +46,8 @@ namespace LongUI{
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
-        // register click event
-        void RegisterClickEvent(CUISubEventCaller& caller) noexcept { m_caller = caller; }
+        // set click event
+        void SetClickEvent(CUISubEventCaller& caller) noexcept { m_caller = caller; }
     protected:
         // constructor 构造函数
         UIButton(pugi::xml_node) noexcept;
