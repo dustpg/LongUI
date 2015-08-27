@@ -27,6 +27,10 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
     auto flag = LongUIFlag::Flag_None;
     // 有效?
     if (node) {
+        // 调试
+#ifdef _DEBUG
+        this->debug_this = node.attribute("debug").as_bool(false);
+#endif
         const char* data = nullptr;
         // 检查脚本
         if ((data = node.attribute(XMLAttribute::Script).value()) && UIManager.script) {
@@ -470,8 +474,8 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
     assert(node && "bad argument.");
     // LV
-    if (m_strControlName == L"V") {
-        m_2fZoom = { 3.0f, 3.0f };
+    if (m_strControlName == L"MainWindow") {
+        m_2fZoom = { 2.0f, 2.0f };
     }
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
@@ -758,10 +762,9 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     // 保留信息
     const float this_container_width = caculate_container_width();
     const float this_container_height = caculate_container_height();
-    if (m_strControlName == L"V") {
+    /*if (m_strControlName == L"V") {
         int bk = 9;
-    }
-    //int times = 0;
+    }*/
     // 循环
     while (true) {
         for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
@@ -850,11 +853,6 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
             if (latest_width == this_container_width && latest_height == this_container_height) {
                 break;
             }
-            /*++times;
-            // 超次数也算
-            if (times > lengthof(this->marginal_control)) {
-                break;
-            }*/
             // 修改外边距
             force_cast(this->margin_rect.left) = m_orgMargin.left
                 + get_marginal_width(this->marginal_control[UIMarginalable::Control_Left]);
@@ -885,6 +883,15 @@ void LongUI::UIContainer::Update() noexcept {
             this->SetControlWorldChanged();
             this->Update();
         }*/
+#ifdef _DEBUG
+        if (this->debug_this) {
+            UIManager << DL_Log << L"Container" << this
+                << LongUI::Formated(L"Resize(%.1f, %.1f) Zoom(%.1f, %.1f)",
+                    this->GetWidth(), this->GetHeight(),
+                    m_2fZoom.width, m_2fZoom.height
+                    ) << LongUI::endl;
+        }
+#endif
     }
     // 修改可视化区域
     if (this->IsNeedRefreshWorld()) {

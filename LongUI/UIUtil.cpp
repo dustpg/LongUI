@@ -735,6 +735,7 @@ void LongUI::CUIString::Format(const wchar_t* format, ...) noexcept {
         length = LongUIStringBufferLength - 1;
     }
     this->Set(buffer, length);
+    va_end(ap);
 }
 
 // CUIString 内存不足
@@ -1341,7 +1342,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 未给logger?
     if (!config.logger_name) {
         static float s_times = 1.f;
-        ::swprintf(
+        std::swprintf(
             logger_name_buffer, lengthof(logger_name_buffer),
             L"logger_%7.5f", 
             float(::GetTickCount()) / float(1000 * 60 * 60) *
@@ -1376,12 +1377,12 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     if (!config.helper_executable)
         config.helper_executable = DEFAULT_HELPER_EXE;
 
-    ::swprintf(cmdline, MAX_PATH, L"%ls %ls", config.helper_executable, config.logger_name);
+    std::swprintf(cmdline, MAX_PATH, L"%ls %ls", config.helper_executable, config.logger_name);
     BOOL bRet = ::CreateProcessW(nullptr, cmdline, nullptr, nullptr, false, CREATE_NEW_CONSOLE, nullptr, nullptr, &si, &pi);
     if (!bRet)  {
         auto path = ::_wgetenv(L"ConsoleLoggerHelper");
         if (path) {
-            ::swprintf(cmdline, MAX_PATH, L"%ls %ls", path, config.logger_name);
+            std::swprintf(cmdline, MAX_PATH, L"%ls %ls", path, config.logger_name);
             bRet = ::CreateProcessW(nullptr, nullptr, nullptr, nullptr, false, CREATE_NEW_CONSOLE, nullptr, nullptr, &si, &pi);
         }
         if (!bRet) {
@@ -1410,7 +1411,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     wchar_t buffer[128];
     // 传送标题
     if (!lpszWindowTitle) lpszWindowTitle = m_name + 9;
-    ::swprintf(buffer, lengthof(buffer), L"TITLE: %ls\r\n", lpszWindowTitle);
+    std::swprintf(buffer, lengthof(buffer), L"TITLE: %ls\r\n", lpszWindowTitle);
     uint32_t len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
     ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
     if (cbWritten != len_in_byte) {
@@ -1423,7 +1424,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
     // 传送位置
     if (config.position_xy != -1) {
-        ::swprintf(buffer, lengthof(buffer), L"POS: %d\r\n", config.position_xy);
+        std::swprintf(buffer, lengthof(buffer), L"POS: %d\r\n", config.position_xy);
         len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
@@ -1436,7 +1437,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     }
     // 传送属性
     if (config.atribute) {
-        ::swprintf(buffer, lengthof(buffer), L"ATTR: %d\r\n", config.atribute);
+        std::swprintf(buffer, lengthof(buffer), L"ATTR: %d\r\n", config.atribute);
         len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
@@ -1450,7 +1451,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
     // 传送缓存区大小
     if (config.buffer_size_x != -1 && config.buffer_size_y != -1)  {
-        ::swprintf(buffer, lengthof(buffer), L"BUFFER-SIZE: %dx%d\r\n", config.buffer_size_x, config.buffer_size_y);
+        std::swprintf(buffer, lengthof(buffer), L"BUFFER-SIZE: %dx%d\r\n", config.buffer_size_x, config.buffer_size_y);
         len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
@@ -1534,6 +1535,7 @@ auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t * str_a, const wchar_t
 }
 
 #ifdef _DEBUG
+#include <ctime>
 // 输出调试字符串
 auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
     DebugStringLevel level, const wchar_t * string, bool flush) noexcept -> void {
@@ -1545,6 +1547,25 @@ auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
     // 有效就输出
     if (console) {
         console.Output(string, flush);
+    }
+    // 输出到日志?
+    if (m_pLogFile && level == DebugStringLevel::DLevel_Log) {
+        // 五秒精度
+        constexpr uint32_t UNIT = 5'000;
+        auto now = ::GetTickCount();
+        if ((now / UNIT) != (static_cast<uint32_t>(m_timeTick) / UNIT)) {
+            m_timeTick = static_cast<size_t>(now);
+            // 不一样则输出时间
+            std::time_t time = std::time(nullptr);
+            wchar_t buffer[LongUIStringBufferLength];
+            std::wcsftime(
+                buffer, LongUIStringBufferLength,
+                L"[%c]\r\n", std::localtime(&time)
+                );
+            ::fwrite(buffer, sizeof(wchar_t), std::wcslen(buffer), m_pLogFile);
+        }
+        ::fwrite(string, sizeof(wchar_t), std::wcslen(string), m_pLogFile);
+
     }
 }
 

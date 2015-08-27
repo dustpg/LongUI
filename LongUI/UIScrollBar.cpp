@@ -117,7 +117,17 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     // 加强父类方法
     Super::UpdateMarginalWidth();
     // 需要?
+#ifdef _DEBUG
+    if (this->debug_this && m_fMaxIndex > 0.f) {
+        UIManager << DL_Log  << this << "m_fMaxIndex: "
+            << m_fMaxIndex << " -- scrollbar standby?"<< endl;
+    }
+#endif
+#if 0
     if (m_fMaxIndex < BASIC_SIZE * 0.5f) {
+#else
+    if (m_fMaxIndex < 0.5f) {
+#endif
         this->marginal_width = 0.f;
         this->visible = false;
     }

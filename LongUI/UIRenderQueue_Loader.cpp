@@ -76,7 +76,7 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
 // 计划渲染
 void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* ctrl) noexcept {
     // 保留刷新
-    if (render != 0.0f) render += 0.1f;
+    if (render != 0.0f) render += 0.05f;
     assert((wait + render) < float(LongUIPlanRenderingTotalTime) && "time overflow");
     // 当前窗口
     auto window = m_unitLike.window;

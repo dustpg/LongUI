@@ -83,12 +83,12 @@ auto LongUI::DX::CreateFontCollection(
     if (buffer) {
         wchar_t* index = buffer; *buffer = 0;
         WIN32_FIND_DATAW fileinfo;
-        wchar_t file_name_path[MAX_PATH]; ::swprintf(file_name_path, MAX_PATH, L"%ls\\%ls", folder, filename);
+        wchar_t file_name_path[MAX_PATH]; std::swprintf(file_name_path, MAX_PATH, L"%ls\\%ls", folder, filename);
         HANDLE hFile = ::FindFirstFileW(file_name_path, &fileinfo);
         DWORD errorcode = ::GetLastError();
         // 遍历文件
         while (hFile != INVALID_HANDLE_VALUE && errorcode != ERROR_NO_MORE_FILES) {
-            ::swprintf(index, MAX_PATH, L"%ls\\%ls", folder, fileinfo.cFileName);
+            std::swprintf(index, MAX_PATH, L"%ls\\%ls", folder, fileinfo.cFileName);
             index += ::wcslen(index) + 1; *index = 0;
             if (index + MAX_PATH >= buffer + buffer_length) {
                 break;

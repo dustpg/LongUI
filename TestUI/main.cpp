@@ -372,7 +372,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
         typedef LongUI::CUIDefaultConfigure Super;
     public:
         // 构造函数
-        DemoConfigure() : Super(UIManager) { /*this->script = &mruby;*/ this->resource = res_xml; }
+        DemoConfigure() : Super(UIManager, L"longui.log") { /*this->script = &mruby;*/ this->resource = res_xml; }
         // 析构函数
         ~DemoConfigure() { if (m_hDll) { ::FreeLibrary(m_hDll); m_hDll = nullptr; } }
         // 获取地区名称

@@ -120,7 +120,7 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
         if (type == LongUI::RenderType::Type_RenderBackground) {
             break;
         }
-        if (false) {
+        /*if (false) {
             AutoLocker;
             if (m_strControlName == L"1") {
                 this->world;
@@ -130,7 +130,7 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
                 UIManager << DL_Hint << this->visible_rect << endl;
                 int bk = 9;
             }
-        }
+        }*/
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景

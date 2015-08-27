@@ -399,4 +399,10 @@ namespace LongUI {
     private:
     };
 #define AutoLocker CUIAutoLocker locker
+    // formated buffer
+#ifdef _DEBUG
+    auto Formated(const wchar_t* format, ...) noexcept -> const wchar_t*;
+#else
+    static auto Formated(...) noexcept { return L""; }
+#endif
 }

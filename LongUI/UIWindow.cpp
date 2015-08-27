@@ -550,7 +550,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
         UIManager_RenderTarget->GetTransform(&nowMatrix);
         UIManager_RenderTarget->SetTransform(&iMatrix);
         wchar_t buffer[1024];
-        auto length = ::swprintf(
+        auto length = std::swprintf(
             buffer, 1024,
             L"Full Rendering Count: %d\nDirty Rendering Count: %d\nThis DirtyRectsCount:%d",
             int(full_render_counter),
@@ -771,7 +771,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
     if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
-        UIManager << DL_Hint << L"Window: [" << this->GetNameStr() << L"] \n\t\tTarget Bitmap Resize to " 
+        UIManager << DL_Hint << L"Window: [" << this->GetNameStr() << L"] \r\n\t\tTarget Bitmap Resize to " 
             << long(rect_right) << ", " << long(rect_bottom) << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
         ::SafeRelease(m_pTargetBimtap);

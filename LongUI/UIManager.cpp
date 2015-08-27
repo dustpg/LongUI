@@ -1540,6 +1540,16 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 
 #ifdef _DEBUG
 
+// 传递可视化东西
+auto LongUI::Formated(const wchar_t* format, ...) noexcept -> const wchar_t* {
+    static wchar_t buffer[LongUIStringBufferLength];
+    va_list ap;
+    va_start(ap, format);
+    std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
+    va_end(ap);
+    return buffer;
+}
+
 // 换行刷新重载
 auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
     wchar_t chs[3] = { L'\r',L'\n', 0 }; 
@@ -1549,14 +1559,14 @@ auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
 
 auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(
+    std::swprintf(
         buffer, LongUIStringBufferLength,
-        L"Adapter:   { \n\t Description: %ls\n\t VendorId: 0x%08X"
-        L"\t\t DeviceId: 0x%08X\n\t SubSysId: 0x%08X\t\t Revision: 0x%08X\n"
-        L"\t DedicatedVideoMemory: %.3lfMB\n"
-        L"\t DedicatedSystemMemory: %.3lfMB\n"
-        L"\t SharedSystemMemory: %.3lfMB\n"
-        L"\t AdapterLuid: 0x%08X%08X\n }",
+        L"Adapter:   { \r\n\t Description: %ls\r\n\t VendorId: 0x%08X"
+        L"\t\t DeviceId: 0x%08X\r\n\t SubSysId: 0x%08X\t\t Revision: 0x%08X\r\n"
+        L"\t DedicatedVideoMemory: %.3lfMB\r\n"
+        L"\t DedicatedSystemMemory: %.3lfMB\r\n"
+        L"\t SharedSystemMemory: %.3lfMB\r\n"
+        L"\t AdapterLuid: 0x%08X%08X\r\n }",
         desc.Description,
         desc.VendorId,
         desc.DeviceId,
@@ -1574,7 +1584,7 @@ auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUI
 
 auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(
+    std::swprintf(
         buffer, LongUIStringBufferLength,
         L"RECT_WH(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.width, rect.height
@@ -1585,7 +1595,7 @@ auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager
 
 auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(
+    std::swprintf(
         buffer, LongUIStringBufferLength,
         L"MATRIX (%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
         matrix._11, matrix._12, 
@@ -1598,7 +1608,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->C
 
 auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(
+    std::swprintf(
         buffer, LongUIStringBufferLength,
         L"RECT_RB(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.right, rect.bottom
@@ -1609,7 +1619,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManage
 
 auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(
+    std::swprintf(
         buffer, LongUIStringBufferLength,
         L"POINT(%7.2f, %7.2f)",
         pt.x, pt.y
@@ -1635,7 +1645,7 @@ void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char * s) noexc
 // 浮点重载
 auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(buffer, LongUIStringBufferLength, L"%f", f);
+    std::swprintf(buffer, LongUIStringBufferLength, L"%.2f", f);
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
@@ -1645,7 +1655,7 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
     wchar_t buffer[LongUIStringBufferLength];
     if (ctrl) {
 #if 1
-        ::swprintf(
+        std::swprintf(
             buffer, LongUIStringBufferLength,
             L"[Control:%ls@%ls@0x%p] ",
             ctrl->GetNameStr(),
@@ -1653,7 +1663,7 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
             ctrl
             );
 #else
-        ::swprintf(
+        std::swprintf(
             buffer, LongUIStringBufferLength,
             L"[Control:%ls@0x%p] ",
             ctrl->GetNameStr(),
@@ -1662,7 +1672,7 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
 #endif
     }
     else {
-        ::swprintf(buffer, LongUIStringBufferLength, L"[Control:null] ");
+        std::swprintf(buffer, LongUIStringBufferLength, L"[Control:null] ");
     }
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
@@ -1671,7 +1681,7 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
 // 整型重载
 auto LongUI::CUIManager::operator<<(const long l) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    ::swprintf(buffer, LongUIStringBufferLength, L"%d", l);
+    std::swprintf(buffer, LongUIStringBufferLength, L"%d", l);
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }

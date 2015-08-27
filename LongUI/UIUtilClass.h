@@ -316,9 +316,22 @@ namespace LongUI {
     class CUIDefaultConfigure : public IUIConfigure {
     public:
         // ctor
-        CUIDefaultConfigure(CUIManager& manager) noexcept : m_manager(manager) {}
+        CUIDefaultConfigure(CUIManager& manager, const wchar_t* log_file=nullptr) noexcept : m_manager(manager) {
+#ifdef _DEBUG
+            if (log_file) {
+                m_pLogFile = ::_wfopen(log_file, L"ab");
+            }
+#endif
+        }
         // dtor
-        ~CUIDefaultConfigure() noexcept { }
+        ~CUIDefaultConfigure() noexcept {
+#ifdef _DEBUG
+            if (m_pLogFile) {
+                ::fclose(m_pLogFile);
+                m_pLogFile = nullptr;
+            }
+#endif
+        }
         // = operator
         auto operator=(const CUIDefaultConfigure&)->CUIDefaultConfigure = delete;
     public:
@@ -355,9 +368,18 @@ namespace LongUI {
     protected:
         // manager
         CUIManager&             m_manager;
+#ifdef _DEBUG
+    private:
+        // time tick
+        size_t                  m_timeTick = 0;
+        // log file string
+        FILE*                   m_pLogFile = nullptr;
+#endif
     public:
         // resource xml null-end-string
         const char*             resource = nullptr;
+        // log file name in wchar_t*
+        const wchar_t*          log_file_name = nullptr;
 #ifdef _DEBUG
         // debug console
         CUIConsole              consoles[DLEVEL_SIZE];

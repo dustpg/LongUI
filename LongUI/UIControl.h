@@ -151,6 +151,14 @@ namespace LongUI {
         // script data
         ScriptUI                m_script;
     public:
+#ifdef _DEBUG
+        // context for debug
+        uint32_t                debug_context = 0;
+        // debug this control? will output some debug message that not too important(log)
+        bool                    debug_this = false;
+        // unused
+        bool                    debug_unused[3];
+#endif
         // user ptr
         void*                   user_ptr = nullptr;
         // user data

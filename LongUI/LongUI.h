@@ -80,7 +80,7 @@ inline auto SafeAcquire(Interface *pInterfaceToRelease) {
 // show hr error
 #define ShowErrorWithHR(hr) { \
     wchar_t buffer_tmp[LongUI::LongUIStringBufferLength];\
-    ::swprintf(\
+    std::swprintf(\
         buffer_tmp, LongUI::LongUIStringBufferLength,\
         L"<%ls>HR:0x%08X",\
         __FUNCTIONW__, hr\
@@ -92,7 +92,7 @@ inline auto SafeAcquire(Interface *pInterfaceToRelease) {
 // show string error
 #define ShowErrorWithStr(str) { \
     wchar_t buffer_tmp[LongUI::LongUIStringBufferLength];\
-    ::swprintf(\
+    std::swprintf(\
         buffer_tmp, LongUI::LongUIStringBufferLength,\
         L"<%ls>: %ls",\
         __FUNCTIONW__, str\
