@@ -24,9 +24,9 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 获取信息
     force_cast(this->configure) = config;
     // 获取资源加载器
-    config->QueryInterface(LongUI_IID_PV_ARGS(m_pResourceLoader));
+    config->CreateInterface(LongUI_IID_PV_ARGS(m_pResourceLoader));
     // 获取脚本
-    config->QueryInterface(LongUI_IID_PV_ARGS(force_cast(this->script)));
+    config->CreateInterface(LongUI_IID_PV_ARGS(force_cast(this->script)));
     // 本地字符集名称
     config->GetLocaleName(m_szLocaleName);
     // 初始化其他

@@ -1,4 +1,5 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 
 // -------------------------- UIVerticalLayout -------------------------

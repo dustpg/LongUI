@@ -188,7 +188,7 @@ namespace LongUI {
         // D2D1CreateFactory@d2d1.dll
         static HRESULT (WINAPI* D2D1CreateFactory)(D2D1_FACTORY_TYPE, REFIID, CONST D2D1_FACTORY_OPTIONS *, void **);
         // DCompositionCreateDevice, Win8 and later hold it
-        static decltype(&::DCompositionCreateDevice) DCompositionCreateDevice;
+        static HRESULT (STDAPICALLTYPE* DCompositionCreateDevice)(IDXGIDevice*, REFIID, void **);
     };
     // std::atoi diy version
     auto __fastcall AtoI(const char* __restrict) -> int;

@@ -1,4 +1,5 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 
 /// <summary>
@@ -1496,8 +1497,8 @@ namespace LongUI {
     auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept->IUIResourceLoader*;
 }
 
-// 查询接口信息
-auto LongUI::CUIDefaultConfigure::QueryInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
+// 创建接口
+auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
     // 资源读取器
     if (riid == LongUI::IID_IUIResourceLoader) {
         *ppvObject =  LongUI::CreateResourceLoaderForXML(m_manager, this->resource);

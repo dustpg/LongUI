@@ -26,10 +26,10 @@ namespace LongUI {
 #endif
     // template helper
     template<typename T>
-    static auto NormalAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); }
+    static auto NormalAllocT(T*, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); }
     // template helper
     template<typename T>
-    static auto SmallAllocT(T* p, size_t length) noexcept { p; return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
+    static auto SmallAllocT(T*, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
     // get dpi for x
     static auto GetDpiX() noexcept { return 96.f; }
     // get dpi for y
@@ -100,24 +100,21 @@ namespace LongUI {
 #endif
 // Windows Header Files:
 #include <windows.h>
-#include <commctrl.h>
+//#include <commctrl.h>
 #include <Shlobj.h>
-#include <Shlwapi.h>
+//#include <Shlwapi.h>
 #include <ShObjIdl.h>
 // C++ 
-#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <cstdint>
-#include <clocale>
-#include <string>
 #include <cwchar>
 #include <vector>
 #include <atomic>
 #include <map>
 #include <new>
 
-// RichEdit
+// RichEdit for EditEx
 #include <Richedit.h>
 #include <Textserv.h>
 
@@ -133,9 +130,10 @@ namespace LongUI {
 #include <d2d1effectauthor.h>
 #include <d2d1effecthelpers.h>
 #include <dwrite_1.h>
-// DirectComposition 
-#include <dcomp.h>
-
+// DirectComposition , less header files
+interface IDCompositionDevice;
+interface IDCompositionTarget;
+interface IDCompositionVisual;
 // pugixml
 #include "../3rdparty/pugixml/pugixml.hpp"
 #endif

@@ -34,8 +34,6 @@ namespace LongUI {
 #else
     class DECLSPEC_NOVTABLE IUIInterface { 
     public:
-        // qi
-        virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT = 0;
         // add ref count
         virtual auto STDMETHODCALLTYPE AddRef() noexcept->ULONG = 0;
         // release
@@ -43,7 +41,6 @@ namespace LongUI {
     };
 #endif
 #define LONGUI_BASIC_INTERFACE_IMPL\
-    auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final { return E_NOINTERFACE; }\
     auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return 2; }\
     auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { return 1; };
     // Script define
@@ -127,13 +124,25 @@ namespace LongUI {
     // static const GUID IID_IUIConfigure =
     // { 0x7ca331b9, 0x6500, 0x4948,{ 0xa9, 0xb4, 0xd5, 0x59, 0xc9, 0x2e, 0x65, 0xb1 } };
     // UI Configure
-    // can be QI :  IID_LongUI_InlineParamHandler(opt),
     //              IID_LongUI_IUIResourceLoader(opt), 
     //              IID_LongUI_IUIScript(opt),
-    //              IDWriteFontCollection(opt)
+    //              IID_IDWriteFontCollection(opt)
     class CUISubEventCaller;
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
+        /// <summary>
+        /// Creates the interfaces.
+        /// </summary>
+        /// <param name="iid">The interface iid.</param>
+        /// <param name="obj">The out interface pointer</param>
+        /// <returns>result in HRESULT</returns>
+        /// <remarks>
+        /// could create 
+        ///   - LongUI::IUIResourceLoader
+        ///   - LongUI::IUIScript
+        ///   - IDWriteFontCollection
+        /// </remarks>
+        virtual auto CreateInterface(const IID& iid, void** obj) noexcept->HRESULT;
         /// <summary>
         /// get null-end string for template for creating control
         /// </summary>

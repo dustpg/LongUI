@@ -321,6 +321,8 @@ namespace LongUI {
             if (log_file) {
                 m_pLogFile = ::_wfopen(log_file, L"ab");
             }
+#else
+            UNREFERENCED_PARAMETER(log_file);
 #endif
         }
         // dtor
@@ -335,13 +337,13 @@ namespace LongUI {
         // = operator
         auto operator=(const CUIDefaultConfigure&)->CUIDefaultConfigure = delete;
     public:
-        // qi
-        virtual auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override;
         // add ref count
         virtual auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return 2; }
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
+        // create interface
+        virtual auto CreateInterface(const IID& iid, void** obj)noexcept->HRESULT override;
         // get null-end string for template for creating control
         virtual auto GetTemplateString() noexcept->const char* override { return nullptr; }
         // get locale name of ui(for text)

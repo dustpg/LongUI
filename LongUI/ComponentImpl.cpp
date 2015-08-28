@@ -1,4 +1,5 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 // -------------------- LongUI::Component::ShortText --------------------
 // ShortText 构造函数
@@ -1101,28 +1102,32 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     auto attribute = [&node, prefix](const char* attr) {
         return Helper::XMLGetValue(node, attr, prefix);
     };
+    // bool属性
+    auto bool_attribute = [&node, prefix](const char* attr, bool def) {
+        return pugi::impl::get_value_bool(Helper::XMLGetValue(node, attr, prefix), def);
+    };
     const char* str = nullptr;
     // 检查类型
     {
         uint32_t tmptype = Type_None;
         // 富文本
-        if (node.attribute(attribute("rich")).as_bool(false)) {
+        if (bool_attribute("rich", false)) {
             tmptype |= Type_Riched;
         }
         // 多行显示
-        if (node.attribute(attribute("multiline")).as_bool(false)) {
+        if (bool_attribute("multiline", false)) {
             tmptype |= Type_MultiLine;
         }
         // 只读
-        if (node.attribute(attribute("readonly")).as_bool(false)) {
+        if (bool_attribute("readonly", false)) {
             tmptype |= Type_ReadOnly;
         }
         // 加速键
-        if (node.attribute(attribute("accelerator")).as_bool(false)) {
+        if (bool_attribute("accelerator", false)) {
             tmptype |= Type_Accelerator;
         }
         // 密码
-        if (str = node.attribute(attribute("password")).value()) {
+        if ((str = attribute("password"))) {
             tmptype |= Type_Password;
             // TODO: UTF8 char(s) to UTF32 char;
             // this->password = 
@@ -1132,7 +1137,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     // 获取渲染器
     {
         int renderer_index = Type_NormalTextRenderer;
-        if ((str = node.attribute(attribute("renderer")).value())) {
+        if ((str = attribute("renderer"))) {
             renderer_index = LongUI::AtoI(str);
         }
         auto renderer = UIManager.GetTextRenderer(renderer_index);
@@ -1141,7 +1146,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         if (renderer) {
             auto length = renderer->GetContextSizeInByte();
             if (length) {
-                if ((str = node.attribute(attribute("context")).value())) {
+                if ((str = attribute("context"))) {
                     m_buffer.NewSize(length);
                     renderer->CreateContextFromString(m_buffer.data, str);
                 }
@@ -1151,12 +1156,12 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     // 检查基本颜色
     {
         m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
-        Helper::MakeColor(node.attribute(attribute("color")).value(), m_basicColor);
+        Helper::MakeColor(attribute("color"), m_basicColor);
     }
     // 检查格式
     {
         uint32_t format_index = LongUIDefaultTextFormatIndex;
-        if ((str = node.attribute(attribute("format")).value())) {
+        if ((str = attribute("format"))) {
             format_index = static_cast<uint32_t>(LongUI::AtoI(str));
         }
         m_pBasicFormat = UIManager.GetTextFormat(format_index);

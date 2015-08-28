@@ -1,4 +1,7 @@
 ﻿#include "LongUI.h"
+// DirectComposition 
+#include <dcomp.h>
+
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
@@ -35,7 +38,8 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
     // Debug Zone
 #ifdef _DEBUG
     {
-        debug_show = node.attribute("debug").as_bool(false);
+        
+        debug_show = this->debug_this || node.attribute("debugshow").as_bool(false);
     }
 #endif
     // 其他属性

@@ -1,4 +1,5 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 // 获取相对数值
 #define UISB_OffsetVaule(f) ((&(f))[int(this->bartype)])
@@ -440,7 +441,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType bartype, pugi::x
     case Type_CreateControl:
         // 获取模板节点
         if (!node) {
-
+            // SB允许无节点创建
         }
         // 申请空间
         pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarA>(

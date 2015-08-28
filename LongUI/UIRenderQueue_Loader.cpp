@@ -224,12 +224,6 @@ namespace LongUI {
     // CUIResourceLoaderXML, default impl for IUIResourceLoader
     class CUIResourceLoaderXML : public IUIResourceLoader {
     public:
-        // qi
-        auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final { 
-            UNREFERENCED_PARAMETER(riid);
-            UNREFERENCED_PARAMETER(ppvObject);
-            return E_NOINTERFACE; 
-        }
         // add ref count
         auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return ++m_dwCounter; }
         // release this

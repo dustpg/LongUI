@@ -1,4 +1,5 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 // Core Contrl for UIControl, UIMarginalable, UIContainer, UINull
 
@@ -474,9 +475,9 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
     assert(node && "bad argument.");
     // LV
-    if (m_strControlName == L"MainWindow") {
-        m_2fZoom = { 2.0f, 2.0f };
-    }
+    /*if (m_strControlName == L"V") {
+        m_2fZoom = { 1.0f, 1.0f };
+    }*/
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
