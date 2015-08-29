@@ -218,8 +218,6 @@ namespace LongUI {
             D2D1_SIZE_F             m_size = D2D1::SizeF(96.f, 96.f);
             // Text Renderer
             CUIBasicTextRenderer*   m_pTextRenderer = nullptr;
-            // factory
-            IDWriteFactory*         m_pFactory = nullptr;
             // basic text format
             IDWriteTextFormat*      m_pBasicFormat = nullptr;
             // drag text range

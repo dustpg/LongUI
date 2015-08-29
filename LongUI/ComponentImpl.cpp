@@ -117,7 +117,7 @@ auto LongUI::Component::EditaleText::refresh(bool update) const noexcept ->UIWin
     if (!m_bThisFocused) return nullptr;
     RectLTWH_F rect; this->GetCaretRect(rect);
     register auto* window = m_pHost->GetWindow();
-    window->CreateCaret(rect.width, rect.height);
+    window->CreateCaret(m_pHost, rect.width, rect.height);
     window->SetCaretPos(m_pHost, rect.left, rect.top);
     if (update) {
         window->Invalidate(m_pHost);
@@ -129,7 +129,7 @@ auto LongUI::Component::EditaleText::refresh(bool update) const noexcept ->UIWin
 void LongUI::Component::EditaleText::recreate_layout() noexcept {
     ::SafeRelease(this->layout);
     // 创建布局
-    m_pFactory->CreateTextLayout(
+    UIManager_DWriteFactory->CreateTextLayout(
         m_string.c_str(), static_cast<uint32_t>(m_string.length()),
         m_pBasicFormat,
         m_size.width, m_size.height,
@@ -1097,7 +1097,6 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     // 检查参数
     assert(node && prefix && "bad arguments");
     ZeroMemory(&m_recentMedium, sizeof(m_recentMedium));
-    m_pFactory = ::SafeAcquire(UIManager_DWriteFactory);
     // 属性
     auto attribute = [&node, prefix](const char* attr) {
         return Helper::XMLGetValue(node, attr, prefix);

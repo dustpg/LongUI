@@ -1,5 +1,5 @@
 ﻿#include "LongUI.h"
-// DirectComposition 
+#include <algorithm>
 #include <dcomp.h>
 
 // 任务按钮创建消息
@@ -195,15 +195,23 @@ void LongUI::UIWindow::UnRegisterOffScreenRender(UIControl* c) noexcept {
 
 
 // 设置插入符号
-void LongUI::UIWindow::SetCaretPos(UIControl* c, float _x, float _y) noexcept {
+void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept {
     if (!m_cShowCaret) return;
+    assert(ctrl && "bad argument") ;
     // 转换为像素坐标
     auto pt = D2D1::Point2F(_x, _y);
-    if (c) {
+    if (ctrl) {
         // FIXME
         // TODO: FIX IT
-        pt = LongUI::TransformPoint(c->parent->world, pt);
+        pt = LongUI::TransformPoint(ctrl->world, pt);
     }
+#ifdef _DEBUG
+    if (this->debug_this) {
+        UIManager << DL_Log << ctrl
+            << LongUI::Formated(L"(%.1f, %.1f)", pt.x, pt.y)
+            << LongUI::endl;
+    }
+#endif
     m_baBoolWindow.SetTrue(Index_CaretIn);
     const register int intx = static_cast<int>(pt.x);
     const register int inty = static_cast<int>(pt.y);
@@ -213,35 +221,26 @@ void LongUI::UIWindow::SetCaretPos(UIControl* c, float _x, float _y) noexcept {
         this->refresh_caret();
         m_rcCaretPx.left = intx; m_rcCaretPx.top = inty;
         ::SetCaretPos(intx, inty);
-#if 0
-        if (!m_pd2dBitmapAE) return;
-        m_pTargetBimtap->CopyFromBitmap(nullptr, m_pd2dBitmapAE, nullptr);
-        this->draw_caret();
-        /*const register int intw = static_cast<int>(m_rcCaret.width) + 1;
-        const register int inth = static_cast<int>(m_rcCaret.height) + 1;
-        RECT rects[] = {
-            { oldx, oldy, oldx + intw,oldy + inth },
-            { intx, inty, intx + intw,inty + inth },
-        };*/
-        /*::(L"rects: {%d, %d, %d, %d} {%d, %d, %d, %d}\n",
-            rects[0].left, rects[0].top, rects[0].right, rects[0].bottom,
-            rects[1].left, rects[1].top, rects[1].right, rects[1].bottom
-            );*/
-        DXGI_PRESENT_PARAMETERS para = { 0, nullptr, nullptr, nullptr };
-        // 脏矩形刷新
-        m_pSwapChain->Present1(0, 0, &para);
-#endif
     }
 }
 
 // 创建插入符号
-void LongUI::UIWindow::CreateCaret(float width, float height) noexcept {
+void LongUI::UIWindow::CreateCaret(UIControl* ctrl, float width, float height) noexcept {
+    assert(ctrl && "bad argument") ;
     this->refresh_caret();
-    // TODO: 转换为像素单位
-    m_rcCaretPx.width = static_cast<decltype(m_rcCaretPx.height)>(width);
-    m_rcCaretPx.height = static_cast<decltype(m_rcCaretPx.width)>(height);
-    if (!m_rcCaretPx.width) m_rcCaretPx.width = 1;
-    if (!m_rcCaretPx.height) m_rcCaretPx.height = 1;
+    // 转换为像素单位
+    m_rcCaretPx.width = static_cast<uint32_t>(width * ctrl->world._11);
+    m_rcCaretPx.height = static_cast<uint32_t>(height * ctrl->world._22);
+#ifdef _DEBUG
+    if (this->debug_this) {
+        UIManager << DL_Log << ctrl
+            << LongUI::Formated(L"(%d, %d)", int(m_rcCaretPx.width), int(m_rcCaretPx.height))
+            << LongUI::endl;
+    }
+#endif
+    // 阈值检查
+    m_rcCaretPx.width = std::max(m_rcCaretPx.width, 1ui32);
+    m_rcCaretPx.height = std::max(m_rcCaretPx.height, 1ui32);
 }
 
 // 显示插入符号
@@ -261,6 +260,9 @@ void LongUI::UIWindow::HideCaret() noexcept {
 #ifdef _DEBUG
     else {
         UIManager << DL_Warning << L"m_cShowCaret alread to 0" << LongUI::endl;
+    }
+    if (!m_cShowCaret) {
+        UIManager << DL_Log << this << "Caret Hided" << LongUI::endl;
     }
 #endif
     if (!m_cShowCaret) {

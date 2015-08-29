@@ -38,7 +38,7 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Button name="2" size="512, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
     <Slider name="6" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <Edit name="edit_demo" size="0,64"/>
+    <Edit name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
     <HorizontalLayout name="H" size="0, 128">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
