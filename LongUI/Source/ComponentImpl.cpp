@@ -23,7 +23,7 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
     if ((str = attribute("progress"))) {
         m_config.progress = LongUI::AtoF(str);
     }
-    // 获取渲染器
+    // 获取渲染器 
     int renderer_index = Type_NormalTextRenderer;
     if ((str = attribute("renderer"))) {
         renderer_index = LongUI::AtoI(str);

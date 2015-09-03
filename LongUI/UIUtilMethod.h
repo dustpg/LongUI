@@ -43,6 +43,10 @@ constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
 
 // get IID form typename, __uuidof is just impl in MSC
 namespace LongUI {
+    // white space
+    static auto white_space(char c) noexcept { return ((c) == ' ' || (c) == '\t'); }
+    // valid digit
+    static auto valid_digit(char c) noexcept { return ((c) >= '0' && (c) <= '9'); }
     // Render Common Brush
     void FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brush, const D2D1_RECT_F& rect) noexcept;
     // using template specialization  使用模板特化
@@ -101,6 +105,10 @@ namespace LongUI {
     static const IID IID_IDWriteTextRenderer =
     { 0xef8a8135, 0x5cc6, 0x45fe,{ 0x88, 0x25, 0xc5, 0xa0, 0x72, 0x4e, 0xb8, 0x19 } };
     MakeGetIID(IDWriteTextRenderer);
+    // IID_IDWriteInlineObject 
+    static const IID IID_IDWriteInlineObject =
+    { 0x8339FDE3, 0x106F, 0x47ab,{ 0x83, 0x73, 0x1C, 0x62, 0x95, 0xEB, 0x10, 0xB3 } };
+    MakeGetIID(IDWriteInlineObject);
     // IDWriteFactory1 ("30572f99-dac6-41db-a16e-0486307e606a")
     static const IID IID_IDWriteFactory1 =
     { 0x30572f99, 0xdac6, 0x41db,{ 0xa1, 0x6e, 0x04, 0x86, 0x30, 0x7e, 0x60, 0x6a } };

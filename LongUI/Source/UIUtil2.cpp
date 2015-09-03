@@ -48,8 +48,6 @@ namespace LongUI { namespace Helper {
             return c - '0';
         }
     }
-    // white space?
-    auto __fastcall white_space(const char c) { return c == ' ' || c == '\t'; }
 }}
 
 

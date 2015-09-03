@@ -827,11 +827,6 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 #undef UIAnimation_Template_B
 // CUIAnimation ----------  END  -------------
 
-
-#define white_space(c) ((c) == ' ' || (c) == '\t')
-#define valid_digit(c) ((c) >= '0' && (c) <= '9')
-
-
 /// <summary>
 /// string to int, 字符串转整型, std::atoi自己实现版
 /// </summary>

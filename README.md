@@ -45,6 +45,11 @@ For this repo, you need:
   Win10 for free, so just 'planned', and, maybe Win8.1/Win10 support only in 
   the next year
   
+## LongUI All In One
+  LongUI source files could be grouped in one file to reduce time for compiling
+  file in [_LongUIAllInOne.cpp](./LongUI/Source/_LongUIAllInOne.cpp)
+  yeah, you can compile this manually :)
+  
 ## LongUI Programming Style
   
   - **class** :  

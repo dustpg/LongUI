@@ -1139,3 +1139,4 @@ bool LongUI::UIContainer::RemoveJust(Iterator itr) noexcept {
     this->AfterRemove(child);
     return true;
 }
+ 

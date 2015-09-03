@@ -69,7 +69,18 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)$(ProjectName)\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir)$(ProjectName)\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)$(ProjectName)\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)$(ProjectName)\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
@@ -82,6 +93,9 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)$(Configuration)\CppAllInOne.exe  $(SolutionDir)$(ProjectName)\Source _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -95,6 +109,9 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)$(Platform)\$(Configuration)\\CppAllInOne.exe  $(SolutionDir)$(ProjectName)\Source _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -113,6 +130,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)$(Configuration)\CppAllInOne.exe  $(SolutionDir)$(ProjectName)\Source _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -131,6 +151,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)$(Platform)\$(Configuration)\\CppAllInOne.exe  $(SolutionDir)$(ProjectName)\Source _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="binaryattribute.h" />
@@ -170,24 +193,30 @@
     <ClInclude Include="UIWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ComponentImpl.cpp" />
-    <ClCompile Include="ContainerImpl.cpp" />
-    <ClCompile Include="ControlCore.cpp" />
-    <ClCompile Include="ControlImpl1.cpp" />
-    <ClCompile Include="InlineObjImpl.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="UICheckBox.cpp" />
-    <ClCompile Include="UIManager.cpp" />
-    <ClCompile Include="UIMenu.cpp" />
-    <ClCompile Include="UIRenderQueue_Loader.cpp" />
-    <ClCompile Include="UIRichEdit.cpp" />
-    <ClCompile Include="UIScrollBar.cpp" />
-    <ClCompile Include="UISlider.cpp" />
-    <ClCompile Include="UIUtil.cpp" />
-    <ClCompile Include="UIUtil2.cpp" />
-    <ClCompile Include="UIUtilDX.cpp" />
-    <ClCompile Include="UIUtilSvg.cpp" />
-    <ClCompile Include="UIWindow.cpp" />
+    <ClCompile Include="Source\ComponentImpl.cpp" />
+    <ClCompile Include="Source\ContainerImpl.cpp" />
+    <ClCompile Include="Source\ControlCore.cpp" />
+    <ClCompile Include="Source\ControlImpl1.cpp" />
+    <ClCompile Include="Source\InlineObjImpl.cpp" />
+    <ClCompile Include="Source\main.cpp" />
+    <ClCompile Include="Source\UICheckBox.cpp" />
+    <ClCompile Include="Source\UIManager.cpp" />
+    <ClCompile Include="Source\UIMenu.cpp" />
+    <ClCompile Include="Source\UIRenderQueue_Loader.cpp" />
+    <ClCompile Include="Source\UIRichEdit.cpp" />
+    <ClCompile Include="Source\UIScrollBar.cpp" />
+    <ClCompile Include="Source\UISlider.cpp" />
+    <ClCompile Include="Source\UIUtil.cpp" />
+    <ClCompile Include="Source\UIUtil2.cpp" />
+    <ClCompile Include="Source\UIUtilDX.cpp" />
+    <ClCompile Include="Source\UIUtilSvg.cpp" />
+    <ClCompile Include="Source\UIWindow.cpp" />
+    <ClCompile Include="Source\_LongUIAllInOne.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

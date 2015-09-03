@@ -148,59 +148,62 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UIManager.cpp">
+    <ClCompile Include="Source\ControlCore.cpp">
       <Filter>LongUI\Source\Base</Filter>
     </ClCompile>
-    <ClCompile Include="UICheckBox.cpp">
+    <ClCompile Include="Source\UIManager.cpp">
+      <Filter>LongUI\Source\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ContainerImpl.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="UIRichEdit.cpp">
+    <ClCompile Include="Source\ControlImpl1.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="UIScrollBar.cpp">
+    <ClCompile Include="Source\UICheckBox.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="UISlider.cpp">
+    <ClCompile Include="Source\UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="UIMenu.cpp">
+    <ClCompile Include="Source\UIRichEdit.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
-    <ClCompile Include="InlineObjImpl.cpp">
+    <ClCompile Include="Source\UIScrollBar.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UISlider.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UIWindow.cpp">
+      <Filter>LongUI\Source\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UIUtilSvg.cpp">
+      <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UIUtil.cpp">
+      <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UIUtil2.cpp">
+      <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UIUtilDX.cpp">
+      <Filter>LongUI\Source\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UIRenderQueue_Loader.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
-    <ClCompile Include="ControlCore.cpp">
-      <Filter>LongUI\Source\Base</Filter>
+    <ClCompile Include="Source\main.cpp">
+      <Filter>LongUI\Source</Filter>
     </ClCompile>
-    <ClCompile Include="ContainerImpl.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="ControlImpl1.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="UIWindow.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="UIUtil.cpp">
+    <ClCompile Include="Source\ComponentImpl.cpp">
       <Filter>LongUI\Source\Util</Filter>
     </ClCompile>
-    <ClCompile Include="UIUtil2.cpp">
+    <ClCompile Include="Source\InlineObjImpl.cpp">
       <Filter>LongUI\Source\Util</Filter>
     </ClCompile>
-    <ClCompile Include="UIUtilDX.cpp">
-      <Filter>LongUI\Source\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="UIUtilSvg.cpp">
-      <Filter>LongUI\Source\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentImpl.cpp">
-      <Filter>LongUI\Source\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="UIRenderQueue_Loader.cpp">
-      <Filter>LongUI\Source\Base</Filter>
+    <ClCompile Include="Source\_LongUIAllInOne.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
