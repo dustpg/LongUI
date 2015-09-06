@@ -133,16 +133,16 @@ namespace LongUI { namespace Helper {
         // dtor
         ~BitArray() noexcept {};
         // is true or fasle
-        auto Test(uint32_t index) const noexcept { return !!(m_data & (1 << index)); }
+        auto Test(uint32_t index) const noexcept { assert(index<LENGTH); return !!(m_data & (1 << index)); }
         // set to true
-        auto SetTrue(uint32_t index) noexcept { m_data |= (1 << index); };
+        auto SetTrue(uint32_t index) noexcept { assert(index<LENGTH); m_data |= (1 << index); };
         // set to false
-        auto SetFalse(uint32_t index) noexcept { m_data &= ~(1 << index); };
+        auto SetFalse(uint32_t index) noexcept { assert(index<LENGTH); m_data &= ~(1 << index); };
         // set to NOT
-        auto SetNot(uint32_t index) noexcept { m_data ^= (1 << index); };
+        auto SetNot(uint32_t index) noexcept { assert(index<LENGTH); m_data ^= (1 << index); };
         // set to???
         template<typename V>
-        auto SetTo(uint32_t index, V& value) noexcept { value ? this->SetTrue(index) : this->SetFalse(index); }
+        auto SetTo(uint32_t index, V& value) noexcept { assert(index<LENGTH); value ? this->SetTrue(index) : this->SetFalse(index); }
     private:
         // data for bit-array
         T           m_data = T(0);

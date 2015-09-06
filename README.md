@@ -11,13 +11,15 @@ Current Version : **Alpha-Stage**
   
 **Friendly with Game**
   - LongUI was designed that could be embedded in game (that use `D2D1`, `D3D11` even `D3D12`)
-  - also, you can use it in standalone way
+  - also, you can use it in the standalone way
   
 **XML Layout**
-  - LongUI create a window by xml in easy way
+  - Easy way to create a window by xml
   
 **Light Weight**
-  - LongUI was designed to be a static-link framework, `helloworld` in only 100+kb(/MD in MSC).
+  - LongUI was designed to be a static-link framework.
+  - The `helloworld` in only 100+kb(/MD in MSC).
+  - Compiled in 5 sec.(through `LongUI All In One`).
 
 [Known Issues](./KnownIssues.md)  
 [Document](./Document/)  

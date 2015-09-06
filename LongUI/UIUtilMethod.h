@@ -199,11 +199,13 @@ namespace LongUI {
         static HRESULT (STDAPICALLTYPE* DCompositionCreateDevice)(IDXGIDevice*, REFIID, void **);
     };
     // std::atoi diy version
-    auto __fastcall AtoI(const char* __restrict) -> int;
+    auto __fastcall AtoI(const char* __restrict) noexcept -> int;
     // std::atof diy version(float ver)
-    auto __fastcall AtoF(const char* __restrict) -> float;
+    auto __fastcall AtoF(const char* __restrict) noexcept -> float;
     // LongUI::AtoI diy version(double ver)
     //auto __fastcall AtoLF(const char*) -> double;
+    // utf-32(ucs4) to utf-16(ucs2) char
+    static auto UTF32toUTF16(char32_t ch, wchar_t str[2]) ->int;
     // Base64 DataChar: Map 0~63 to visible char
     static const char Base64Chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     // Base64 DataChar: Map visible char to 0~63

@@ -763,8 +763,6 @@ void LongUI::Component::EditaleText::OnLButtonDown(float x, float y, bool shfit_
     if (!m_bClickInSelection) {
         // 选择
         this->SetSelectionFromPoint(x, y, shfit_hold);
-        // 显示插入符号
-        //Component::CUIEditaleText_ShowTheCaret
     }
 }
 
@@ -879,17 +877,21 @@ void LongUI::Component::EditaleText::Update() noexcept {
     // s
     this->refresh(false);
     // 检查选择区
-    auto range = this->GetSelectionRange();
-    // 有效
-    if (range.length > 0) {
-        this->RefreshSelectionMetrics(range);
-    }
+    this->RefreshSelectionMetrics(this->GetSelectionRange());
 }
 
 // 渲染
 void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
-    assert(UIManager_RenderTarget);
-    if (m_metriceBuffer.data_length) {
+#ifdef _DEBUG
+    if (m_pHost->debug_this) {
+        UIManager << DL_Log
+            << "m_metriceBuffer.data_length: "
+            << long(m_metriceBuffer.data_length)
+            << LongUI::endl;
+    }
+#endif
+    // 选择区域
+    if (m_metriceBuffer.data_length) { 
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
         // 遍历
         for (auto itr = m_metriceBuffer.data;
@@ -1045,6 +1047,7 @@ void LongUI::Component::EditaleText::GetLineFromPosition(
 
 // 更新选择区点击测试区块
 void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
+    //UIManager << DL_Hint << "selection.length: " << long(selection.length) << endl;
     // 有选择的情况下
     if (selection.length == 0) {
         m_metriceBuffer.data_length = 0;

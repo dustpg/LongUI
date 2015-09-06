@@ -24,32 +24,51 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+
 // LongUI namespace
-namespace LongUI{
-    // Horizontal Layout -- 水平布局 容器
-    class UIHorizontalLayout : public UIContainer {
-        // 父类申明
-        using Super = UIContainer;
-    public: // UIControl
+namespace LongUI {
+    // ui list element
+    class UIListElement : public UIHorizontalLayout {
+        // super class
+        using Super = UIHorizontalLayout;
+    public:
         // Render 渲染 
         //virtual auto Render() noexcept ->HRESULT override;
         // 刷新
-        virtual void Update() noexcept override;
+        //virtual void Update() noexcept override;
         // do event 事件处理
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
-        // close this control 关闭控件
+        // clean this control 清除控件
         virtual void Cleanup() noexcept override;
     public:
         // create 创建
-        static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
+        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIHorizontalLayout(pugi::xml_node node) noexcept :Super(node) { }
+        UIListElement(pugi::xml_node node) noexcept;
         // dtor
-        ~UIHorizontalLayout() noexcept = default;
-        // no copy ctor
-        UIHorizontalLayout(const UIHorizontalLayout&) = delete;
+        ~UIListElement() noexcept = default;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
+    };
+    // ui list, child must be UIListElement
+    class UIList : public UIVerticalLayout {
+        // super class
+        using Super = UIVerticalLayout;
+    public:
+        // clean this control 清除控件
+        virtual void Cleanup() noexcept override;
+    public:
+        // create 创建
+        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
+        // ctor
+        UIList(pugi::xml_node node) noexcept;
+        // dtor
+        ~UIList() noexcept = default;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -58,12 +77,20 @@ namespace LongUI{
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIHorizontalLayout>() {
+    template<> LongUIInline const IID& GetIID<LongUI::UIListElement>() {
         // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
-        static const GUID IID_LongUI_UIHorizontalLayout = {
+        static const GUID IID_LongUI_UIListElement = {
+         0x83b86af2, 0x6755, 0x47a8, { 0xba, 0x7d, 0x69, 0x3c, 0x2b, 0xdb, 0xf, 0xbc } 
+        };
+        return IID_LongUI_UIListElement;
+    }
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIList>() {
+        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
+        static const GUID IID_LongUI_UIList = {
             0xe5cf04fc, 0x1221, 0x4e06,{ 0xb6, 0xf3, 0x31, 0x5d, 0x45, 0xb1, 0xf2, 0xe6 } 
         };
-        return IID_LongUI_UIHorizontalLayout;
+        return IID_LongUI_UIList;
     }
 #endif
 }

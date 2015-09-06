@@ -76,6 +76,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CppAllInOne", "Helper\CppAllInOne\CppAllInOne.vcxproj", "{F17A39B2-D5BF-4B97-8749-F372B5F45625}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -117,8 +120,8 @@ Global
 		{164DAB8D-E1C9-4577-AD17-7519A9760DD2}.Release|x86.Build.0 = Release|Win32
 		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Debug|x64.ActiveCfg = Debug|x64
 		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Debug|x64.Build.0 = Debug|x64
-		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Debug|x86.ActiveCfg = Release|Win32
-		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Debug|x86.Build.0 = Release|Win32
+		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Debug|x86.ActiveCfg = Debug|Win32
+		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Debug|x86.Build.0 = Debug|Win32
 		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Release|x64.ActiveCfg = Release|x64
 		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Release|x64.Build.0 = Release|x64
 		{807529A5-64E5-4C2D-8CC9-D94F107E0BCB}.Release|x86.ActiveCfg = Release|Win32
@@ -135,7 +138,8 @@ Global
 		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Debug|x64.Build.0 = Debug|x64
 		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Debug|x86.ActiveCfg = Debug|Win32
 		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Debug|x86.Build.0 = Debug|Win32
-		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Release|x64.ActiveCfg = Release|Win32
+		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Release|x64.ActiveCfg = Release|x64
+		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Release|x64.Build.0 = Release|x64
 		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Release|x86.ActiveCfg = Release|Win32
 		{FE1AC908-FD1E-4ED7-B59C-99D198408CFA}.Release|x86.Build.0 = Release|Win32
 		{542D7BFA-F65E-47B9-A754-FAC9B732767D}.Debug|x64.ActiveCfg = Debug|x64

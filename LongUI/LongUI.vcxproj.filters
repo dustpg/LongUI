@@ -68,9 +68,6 @@
     <ClInclude Include="UICheckBox.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="UIVerticalLayout.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
     <ClInclude Include="UISlider.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
@@ -81,9 +78,6 @@
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="UIEdit.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UIHorizontalLayout.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="UIDataObject.h">
@@ -146,6 +140,12 @@
     <ClInclude Include="UIUtilSvg.h">
       <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
+    <ClInclude Include="UIList.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="UILinearLayout.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\ControlCore.cpp">
@@ -161,9 +161,6 @@
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
     <ClCompile Include="Source\UICheckBox.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIMenu.cpp">
       <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
     <ClCompile Include="Source\UIRichEdit.cpp">
@@ -204,6 +201,9 @@
     </ClCompile>
     <ClCompile Include="Source\_LongUIAllInOne.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UIList.cpp">
+      <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

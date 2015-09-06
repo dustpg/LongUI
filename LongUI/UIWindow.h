@@ -73,6 +73,8 @@ namespace LongUI {
         enum BitArrayIndex : uint32_t {
             // caret in(true) or out?
             Index_CaretIn = 0,
+            // do caret?
+            Index_DoCaret,
             // in draging?
             Index_InDraging,
             // window rendered in last time, or want to render in this time
@@ -238,7 +240,7 @@ namespace LongUI {
         // normal  l-param
         LPARAM                  m_normalLParam = 0;
         // caret rect in px
-        RectLTWH_U              m_rcCaretPx;
+        RectLTWH_L              m_rcCaretPx;
     public:
         // the real pixel size  of window(HWND)
         D2D1_SIZE_U     const   window_size = D2D1::SizeU();

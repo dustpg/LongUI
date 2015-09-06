@@ -706,7 +706,7 @@ LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
 
 // 删除字符串
 void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
-    assert(offset + length < m_cLength && "out of range");
+    assert(offset + length <= m_cLength && "out of range");
     // 有可能直接删除后面, 优化
     if (offset + length >= m_cLength) {
         m_cLength = std::min(m_cLength, offset);
@@ -832,7 +832,7 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 /// </summary>
 /// <param name="str">The string.</param>
 /// <returns></returns>
-auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
+auto __fastcall LongUI::AtoI(const char* __restrict str) noexcept -> int {
     if (!str) return 0;
     register bool negative = false;
     register int value = 0;
@@ -865,7 +865,7 @@ auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
 /// </summary>
 /// <param name="p">The string.</param>
 /// <returns></returns>
-auto __fastcall LongUI::AtoF(const char* __restrict p) -> float {
+auto __fastcall LongUI::AtoF(const char* __restrict p) noexcept -> float {
     bool negative = false;
     float value, scale;
     // 跳过空白

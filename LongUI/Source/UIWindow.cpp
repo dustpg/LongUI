@@ -5,6 +5,8 @@
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
+
+
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
 noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
@@ -213,10 +215,11 @@ void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept
     }
 #endif
     m_baBoolWindow.SetTrue(Index_CaretIn);
-    const register int intx = static_cast<int>(pt.x);
-    const register int inty = static_cast<int>(pt.y);
-    const register int oldx = static_cast<int>(m_rcCaretPx.left);
-    const register int oldy = static_cast<int>(m_rcCaretPx.top);
+    m_baBoolWindow.SetTrue(Index_DoCaret);
+    const register auto intx = static_cast<LONG>(pt.x);
+    const register auto inty = static_cast<LONG>(pt.y);
+    const register auto oldx = static_cast<LONG>(m_rcCaretPx.left);
+    const register auto oldy = static_cast<LONG>(m_rcCaretPx.top);
     if (oldx != intx || oldy != inty) {
         this->refresh_caret();
         m_rcCaretPx.left = intx; m_rcCaretPx.top = inty;
@@ -239,8 +242,8 @@ void LongUI::UIWindow::CreateCaret(UIControl* ctrl, float width, float height) n
     }
 #endif
     // 阈值检查
-    m_rcCaretPx.width = std::max(m_rcCaretPx.width, 1ui32);
-    m_rcCaretPx.height = std::max(m_rcCaretPx.height, 1ui32);
+    m_rcCaretPx.width = std::max(m_rcCaretPx.width, 1i32);
+    m_rcCaretPx.height = std::max(m_rcCaretPx.height, 1i32);
 }
 
 // 显示插入符号
@@ -267,6 +270,7 @@ void LongUI::UIWindow::HideCaret() noexcept {
 #endif
     if (!m_cShowCaret) {
         m_baBoolWindow.SetFalse(Index_CaretIn);
+        m_baBoolWindow.SetTrue(Index_DoCaret);
     }
 }
 
@@ -355,10 +359,19 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
     present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
     if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)){
+        // 插入符号?
+        if (m_baBoolWindow.Test(Index_DoCaret)) {
+            present.pDirtyRects[present.DirtyRectsCount] = { 
+                m_rcCaretPx.left, m_rcCaretPx.top,
+                m_rcCaretPx.left + m_rcCaretPx.width,
+                m_rcCaretPx.top + m_rcCaretPx.height,
+            };
+            ++present.DirtyRectsCount;
+        }
 #ifdef _DEBUG
         static RECT s_rects[LongUIDirtyControlSize + 2];
         if (this->debug_show) {
-            ::memcpy(s_rects, m_dirtyRects, present.DirtyRectsCount * sizeof(RECT));
+            ::memcpy(s_rects, present.pDirtyRects, present.DirtyRectsCount * sizeof(RECT));
             present.pDirtyRects = s_rects;
             s_rects[present.DirtyRectsCount] = { 0, 0, 128, 35 };
             ++present.DirtyRectsCount;
@@ -443,6 +456,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
     m_baBoolWindow.SetFalse(Index_FullRenderingThisFrame);
+    m_baBoolWindow.SetFalse(Index_DoCaret);
     // 新窗口大小?
     if (m_baBoolWindow.Test(Index_NewSize)) {
         this->OnResize();
@@ -534,6 +548,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             // 设置转换矩阵
             UIManager_RenderTarget->SetTransform(&ctrl->world);
+            // 正常渲染
             ctrl->Render(RenderType::Type_Render);
             // 回来
             UIManager_RenderTarget->PopAxisAlignedClip();
@@ -548,6 +563,20 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             ctrl->Render(RenderType::Type_Render);
         }
 #endif
+    }
+    // 插入符号
+    if (m_baBoolWindow.Test(Index_DoCaret) && m_baBoolWindow.Test(Index_CaretIn)) {
+        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        D2D1_RECT_F rect;
+        rect.left = static_cast<float>(m_rcCaretPx.left);
+        rect.top = static_cast<float>(m_rcCaretPx.top);
+        rect.right = rect.left + static_cast<float>(m_rcCaretPx.width);
+        rect.bottom = rect.top + static_cast<float>(m_rcCaretPx.height);
+        UIManager_RenderTarget->PushAxisAlignedClip(&rect, D2D1_ANTIALIAS_MODE_ALIASED);
+        m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
+        UIManager_RenderTarget->FillRectangle(&rect, m_pBrush_SetBeforeUse);
+        UIManager_RenderTarget->PopAxisAlignedClip();
+        UIManager_RenderTarget->SetTransform(&this->world);
     }
 #ifdef _DEBUG
     // 调试输出
@@ -623,6 +652,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         if (_arg.sys.wParam == BLINK_EVENT_ID) {
             if (m_cShowCaret) {
                 m_baBoolWindow.SetNot(Index_CaretIn);
+                m_baBoolWindow.SetTrue(Index_DoCaret);
             }
             handled = true;
         }

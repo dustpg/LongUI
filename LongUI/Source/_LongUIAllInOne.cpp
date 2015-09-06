@@ -766,8 +766,6 @@ void LongUI::Component::EditaleText::OnLButtonDown(float x, float y, bool shfit_
     if (!m_bClickInSelection) {
         // 选择
         this->SetSelectionFromPoint(x, y, shfit_hold);
-        // 显示插入符号
-        //Component::CUIEditaleText_ShowTheCaret
     }
 }
 
@@ -882,17 +880,21 @@ void LongUI::Component::EditaleText::Update() noexcept {
     // s
     this->refresh(false);
     // 检查选择区
-    auto range = this->GetSelectionRange();
-    // 有效
-    if (range.length > 0) {
-        this->RefreshSelectionMetrics(range);
-    }
+    this->RefreshSelectionMetrics(this->GetSelectionRange());
 }
 
 // 渲染
 void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
-    assert(UIManager_RenderTarget);
-    if (m_metriceBuffer.data_length) {
+#ifdef _DEBUG
+    if (m_pHost->debug_this) {
+        UIManager << DL_Log
+            << "m_metriceBuffer.data_length: "
+            << long(m_metriceBuffer.data_length)
+            << LongUI::endl;
+    }
+#endif
+    // 选择区域
+    if (m_metriceBuffer.data_length) { 
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
         // 遍历
         for (auto itr = m_metriceBuffer.data;
@@ -1048,6 +1050,7 @@ void LongUI::Component::EditaleText::GetLineFromPosition(
 
 // 更新选择区点击测试区块
 void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
+    //UIManager << DL_Hint << "selection.length: " << long(selection.length) << endl;
     // 有选择的情况下
     if (selection.length == 0) {
         m_metriceBuffer.data_length = 0;
@@ -3681,6 +3684,46 @@ bool LongUI::UISlider::debug_do_event(const LongUI::DebugEventInformation& info)
     }
     return false;
 }
+
+// UI列表: 调试信息
+bool LongUI::UIList::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIList";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIList";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIList>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI列表元素: 调试信息
+bool LongUI::UIListElement::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIListElement";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIListElement";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIListElement>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
 #endif
                    
 
@@ -5783,63 +5826,6 @@ auto LongUI::CUIManager::operator<<(const bool b) noexcept ->CUIManager& {
 }
 
 #endif
-                   
-
-// 摧毁弹出菜单
-void LongUI::CUIMenu::Destroy() noexcept {
-    if (m_hMenu) {
-        ::DestroyMenu(m_hMenu);
-        m_hMenu = nullptr;
-    }
-}
-
-// 直接创建才菜单
-bool LongUI::CUIMenu::Create() noexcept {
-    assert(!m_hMenu && "cannot create again!");
-    m_hMenu = ::CreatePopupMenu();
-    return !!m_hMenu;
-}
-
-// 使用XML字符串创建菜单
-bool LongUI::CUIMenu::Create(const char * xml) noexcept {
-    pugi::xml_document document;
-    auto re = document.load_string(xml);
-    // 错误
-    if (re.status) {
-        assert(!"failed to load string");
-        ::MessageBoxA(nullptr, re.description(), "<LongUI::CUIMenu::Create>: Failed to Parse/Load XML", MB_ICONERROR);
-        return false;
-    }
-    // 创建节点
-    return this->Create(document.first_child());
-}
-
-// 使用XML节点创建菜单
-bool LongUI::CUIMenu::Create(pugi::xml_node node) noexcept {
-    UNREFERENCED_PARAMETER(node);
-    assert(!m_hMenu && "cannot create again!");
-    m_hMenu = ::CreatePopupMenu();
-    return !!m_hMenu;
-}
-
-// 添加物品
-bool LongUI::CUIMenu::AppendItem(const ItemProperties& prop) noexcept {
-    UNREFERENCED_PARAMETER(prop);
-    return false;
-}
-
-// 显示菜单
-void LongUI::CUIMenu::Show(HWND parent, POINT* OPTIONAL pos) noexcept {
-    // 获取坐标
-    POINT pt = { 0,0 };  if (pos) pt = *pos; else ::GetCursorPos(&pt);
-    // 置前
-    ::SetForegroundWindow(parent);
-    // 跟踪菜单项的选择
-    auto index = ::TrackPopupMenu(m_hMenu, TPM_RETURNCMD, pt.x, pt.y, 0, parent, nullptr);
-    if (m_pItemProc) {
-        m_pItemProc(index);
-    }
-}
                    
 
 
@@ -8769,7 +8755,7 @@ LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
 
 // 删除字符串
 void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
-    assert(offset + length < m_cLength && "out of range");
+    assert(offset + length <= m_cLength && "out of range");
     // 有可能直接删除后面, 优化
     if (offset + length >= m_cLength) {
         m_cLength = std::min(m_cLength, offset);
@@ -8895,7 +8881,7 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 /// </summary>
 /// <param name="str">The string.</param>
 /// <returns></returns>
-auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
+auto __fastcall LongUI::AtoI(const char* __restrict str) noexcept -> int {
     if (!str) return 0;
     register bool negative = false;
     register int value = 0;
@@ -8928,7 +8914,7 @@ auto __fastcall LongUI::AtoI(const char* __restrict str) -> int {
 /// </summary>
 /// <param name="p">The string.</param>
 /// <returns></returns>
-auto __fastcall LongUI::AtoF(const char* __restrict p) -> float {
+auto __fastcall LongUI::AtoF(const char* __restrict p) noexcept -> float {
     bool negative = false;
     float value, scale;
     // 跳过空白
@@ -11592,6 +11578,8 @@ auto LongUI::SVG::ParserPath(const char* path, ID2D1PathGeometry* geometry) noex
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
+
+
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
 noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
@@ -11800,10 +11788,11 @@ void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept
     }
 #endif
     m_baBoolWindow.SetTrue(Index_CaretIn);
-    const register int intx = static_cast<int>(pt.x);
-    const register int inty = static_cast<int>(pt.y);
-    const register int oldx = static_cast<int>(m_rcCaretPx.left);
-    const register int oldy = static_cast<int>(m_rcCaretPx.top);
+    m_baBoolWindow.SetTrue(Index_DoCaret);
+    const register auto intx = static_cast<LONG>(pt.x);
+    const register auto inty = static_cast<LONG>(pt.y);
+    const register auto oldx = static_cast<LONG>(m_rcCaretPx.left);
+    const register auto oldy = static_cast<LONG>(m_rcCaretPx.top);
     if (oldx != intx || oldy != inty) {
         this->refresh_caret();
         m_rcCaretPx.left = intx; m_rcCaretPx.top = inty;
@@ -11826,8 +11815,8 @@ void LongUI::UIWindow::CreateCaret(UIControl* ctrl, float width, float height) n
     }
 #endif
     // 阈值检查
-    m_rcCaretPx.width = std::max(m_rcCaretPx.width, 1ui32);
-    m_rcCaretPx.height = std::max(m_rcCaretPx.height, 1ui32);
+    m_rcCaretPx.width = std::max(m_rcCaretPx.width, 1i32);
+    m_rcCaretPx.height = std::max(m_rcCaretPx.height, 1i32);
 }
 
 // 显示插入符号
@@ -11854,6 +11843,7 @@ void LongUI::UIWindow::HideCaret() noexcept {
 #endif
     if (!m_cShowCaret) {
         m_baBoolWindow.SetFalse(Index_CaretIn);
+        m_baBoolWindow.SetTrue(Index_DoCaret);
     }
 }
 
@@ -11942,10 +11932,19 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
     present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
     if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)){
+        // 插入符号?
+        if (m_baBoolWindow.Test(Index_DoCaret)) {
+            present.pDirtyRects[present.DirtyRectsCount] = { 
+                m_rcCaretPx.left, m_rcCaretPx.top,
+                m_rcCaretPx.left + m_rcCaretPx.width,
+                m_rcCaretPx.top + m_rcCaretPx.height,
+            };
+            ++present.DirtyRectsCount;
+        }
 #ifdef _DEBUG
         static RECT s_rects[LongUIDirtyControlSize + 2];
         if (this->debug_show) {
-            ::memcpy(s_rects, m_dirtyRects, present.DirtyRectsCount * sizeof(RECT));
+            ::memcpy(s_rects, present.pDirtyRects, present.DirtyRectsCount * sizeof(RECT));
             present.pDirtyRects = s_rects;
             s_rects[present.DirtyRectsCount] = { 0, 0, 128, 35 };
             ++present.DirtyRectsCount;
@@ -12030,6 +12029,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
 // UI窗口: 刷新
 void LongUI::UIWindow::Update() noexcept {
     m_baBoolWindow.SetFalse(Index_FullRenderingThisFrame);
+    m_baBoolWindow.SetFalse(Index_DoCaret);
     // 新窗口大小?
     if (m_baBoolWindow.Test(Index_NewSize)) {
         this->OnResize();
@@ -12121,6 +12121,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             // 设置转换矩阵
             UIManager_RenderTarget->SetTransform(&ctrl->world);
+            // 正常渲染
             ctrl->Render(RenderType::Type_Render);
             // 回来
             UIManager_RenderTarget->PopAxisAlignedClip();
@@ -12135,6 +12136,20 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             ctrl->Render(RenderType::Type_Render);
         }
 #endif
+    }
+    // 插入符号
+    if (m_baBoolWindow.Test(Index_DoCaret) && m_baBoolWindow.Test(Index_CaretIn)) {
+        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        D2D1_RECT_F rect;
+        rect.left = static_cast<float>(m_rcCaretPx.left);
+        rect.top = static_cast<float>(m_rcCaretPx.top);
+        rect.right = rect.left + static_cast<float>(m_rcCaretPx.width);
+        rect.bottom = rect.top + static_cast<float>(m_rcCaretPx.height);
+        UIManager_RenderTarget->PushAxisAlignedClip(&rect, D2D1_ANTIALIAS_MODE_ALIASED);
+        m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(D2D1::ColorF::Black));
+        UIManager_RenderTarget->FillRectangle(&rect, m_pBrush_SetBeforeUse);
+        UIManager_RenderTarget->PopAxisAlignedClip();
+        UIManager_RenderTarget->SetTransform(&this->world);
     }
 #ifdef _DEBUG
     // 调试输出
@@ -12210,6 +12225,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         if (_arg.sys.wParam == BLINK_EVENT_ID) {
             if (m_cShowCaret) {
                 m_baBoolWindow.SetNot(Index_CaretIn);
+                m_baBoolWindow.SetTrue(Index_DoCaret);
             }
             handled = true;
         }

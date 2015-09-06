@@ -24,10 +24,6 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// Vertical Layout
-
-
-
 // LongUI namespace
 namespace LongUI{
     // Vertical Layout -- 垂直布局 容器
@@ -35,9 +31,9 @@ namespace LongUI{
         // 父类申明
         using Super = UIContainer;
     public: // UIControl
-        // render this
-        //virtual auto Render() noexcept ->HRESULT override;
-        // update this
+            // render this
+            //virtual auto Render() noexcept ->HRESULT override;
+            // update this
         virtual void Update() noexcept override;
         // do event 
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
@@ -60,7 +56,45 @@ namespace LongUI{
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif
     };
+    // Horizontal Layout -- 水平布局 容器
+    class UIHorizontalLayout : public UIContainer {
+        // 父类申明
+        using Super = UIContainer;
+    public: // UIControl
+        // Render 渲染 
+        //virtual auto Render() noexcept ->HRESULT override;
+        // 刷新
+        virtual void Update() noexcept override;
+        // do event 事件处理
+        //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        // recreate 重建
+        //virtual auto Recreate() noexcept->HRESULT override;
+        // close this control 关闭控件
+        virtual void Cleanup() noexcept override;
+    public:
+        // create 创建
+        static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
+        // ctor
+        UIHorizontalLayout(pugi::xml_node node) noexcept :Super(node) { }
+        // dtor
+        ~UIHorizontalLayout() noexcept = default;
+        // no copy ctor
+        UIHorizontalLayout(const UIHorizontalLayout&) = delete;
 #ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
+    };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIHorizontalLayout>() {
+        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
+        static const GUID IID_LongUI_UIHorizontalLayout = {
+            0xe5cf04fc, 0x1221, 0x4e06,{ 0xb6, 0xf3, 0x31, 0x5d, 0x45, 0xb1, 0xf2, 0xe6 } 
+        };
+        return IID_LongUI_UIHorizontalLayout;
+    }
     // 重载?特例化 GetIID
     template<> LongUIInline const IID& GetIID<LongUI::UIVerticalLayout>() {
         // {3BE5198C-B922-4C99-827E-F0D08875B045}
