@@ -47,6 +47,8 @@ namespace LongUI {
     static auto white_space(char c) noexcept { return ((c) == ' ' || (c) == '\t'); }
     // valid digit
     static auto valid_digit(char c) noexcept { return ((c) >= '0' && (c) <= '9'); }
+    // hex -> int
+    unsigned int __fastcall Hex2Int(char c) noexcept;
     // Render Common Brush
     void FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brush, const D2D1_RECT_F& rect) noexcept;
     // using template specialization  使用模板特化
@@ -252,7 +254,7 @@ namespace LongUI {
     }
     // bubble sort
     template<typename Itr, typename Lamda>
-    void BubbleSort(const Itr begin, const Itr end, Lamda lam) noexcept {
+    static void BubbleSort(const Itr begin, const Itr end, Lamda lam) noexcept {
         if (end - begin < 2) return;
         for (auto itr_i = begin; itr_i != end; ++itr_i) {
             bool sorted = true;

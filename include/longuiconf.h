@@ -318,6 +318,8 @@ namespace LongUI {
         // is clip strictly                         [invalid yet]
         static constexpr char* const IsClipStrictly         = "strictclip";
 
+        // template size
+        static constexpr char* const TemplateSize           = "templatesize";
         // is always host children rendering?       [valid] for container
         static constexpr char* const IsHostChildrenAlways   = "hostchild";
         // is always host children rendering?       [valid] for container
@@ -332,6 +334,7 @@ namespace LongUI {
         static constexpr char* const BottomMarginalControl  = "bottomcontrol";
         // marginal control will be zoomed?
         static constexpr char* const IsZoomMarginalControl  = "zoommarginal";
+
         
         // window clear color
         static constexpr char* const WindowClearColor       = "clearcolor";

@@ -57,7 +57,7 @@ namespace LongUI {
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // wait for VS
-        auto WaitVS(UIWindow* window) noexcept ->void;
+        auto WaitVS(HANDLE events[], uint32_t length) noexcept ->void;
         // add window
         void RegisterWindow(UIWindow* wnd) noexcept;
         // remove window
@@ -143,7 +143,7 @@ namespace LongUI {
         inline auto GetTextRenderer(int i) const noexcept { return ::SafeAcquire(m_apTextRenderer[i]); }
         // exit the app
         inline auto Exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
-        // recreate
+        // recreate resources
         inline auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
         // get delta time for ui
         inline auto GetDeltaTime() const noexcept { return m_fDeltaTime; }

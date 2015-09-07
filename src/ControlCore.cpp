@@ -473,7 +473,6 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), marginal_control() {
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
-    assert(node && "bad argument.");
     // LV
     /*if (m_strControlName == L"V") {
         m_2fZoom = { 1.0f, 1.0f };
@@ -481,65 +480,73 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
-    // 检查边缘控件: 属性ID
-    const char* const attname[] = {
-        LongUI::XMLAttribute::LeftMarginalControl,
-        LongUI::XMLAttribute::TopMarginalControl,
-        LongUI::XMLAttribute::RightMarginalControl,
-        LongUI::XMLAttribute::BottomMarginalControl,
-    };
-    bool exist_marginal_control = false;
-    // ONLY MY LOOPGUN
-    for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
-        const char* str = nullptr;
-        // 获取指定属性值
-        if ((str = node.attribute(attname[i]).value())) {
-            char buffer[LongUIStringLength];
-            assert(::strlen(str) < LongUIStringLength && "buffer too small");
-            // 获取逗号位置
-            auto strtempid = std::strchr(str, ',');
-            if (strtempid) {
-                auto length = strtempid - str;
-                ::memcpy(buffer, str, length);
-                buffer[length] = char(0);
-            }
-            else {
-                ::strcpy(buffer, str);
-            }
-            
-            // 获取类ID
-            auto create_control_func = UIManager.GetCreateFunc(buffer);
-            assert(create_control_func && "none");
-            if (create_control_func) {
-                // 检查模板ID
-                auto tid = strtempid ? LongUI::AtoI(strtempid + 1) : 0;
-                // 创建控件
-                auto control = UIManager.CreateControl(size_t(tid), create_control_func);
-                // XXX: 检查
-                force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
-            }
-            // 优化flag
-            if (this->marginal_control[i]) {
-                exist_marginal_control = true;
+    // 有效
+    if (node) {
+        // 模板大小
+        Helper::MakeFloats( 
+            node.attribute(LongUI::XMLAttribute::TemplateSize).value(),
+            &m_2fTemplateSize.width, 2
+            );
+        // 检查边缘控件: 属性ID
+        const char* const attname[] = {
+            LongUI::XMLAttribute::LeftMarginalControl,
+            LongUI::XMLAttribute::TopMarginalControl,
+            LongUI::XMLAttribute::RightMarginalControl,
+            LongUI::XMLAttribute::BottomMarginalControl,
+        };
+        bool exist_marginal_control = false;
+        // ONLY MY LOOPGUN
+        for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
+            const char* str = nullptr;
+            // 获取指定属性值
+            if ((str = node.attribute(attname[i]).value())) {
+                char buffer[LongUIStringLength];
+                assert(::strlen(str) < LongUIStringLength && "buffer too small");
+                // 获取逗号位置
+                auto strtempid = std::strchr(str, ',');
+                if (strtempid) {
+                    auto length = strtempid - str;
+                    ::memcpy(buffer, str, length);
+                    buffer[length] = char(0);
+                }
+                else {
+                    ::strcpy(buffer, str);
+                }
+                // 获取类ID
+                auto create_control_func = UIManager.GetCreateFunc(buffer);
+                assert(create_control_func && "none");
+                if (create_control_func) {
+                    // 检查模板ID
+                    auto tid = strtempid ? LongUI::AtoI(strtempid + 1) : 0;
+                    // 创建控件
+                    auto control = UIManager.CreateControl(size_t(tid), create_control_func);
+                    // XXX: 检查
+                    force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
+                }
+                // 优化flag
+                if (this->marginal_control[i]) {
+                    exist_marginal_control = true;
+                }
             }
         }
+        // 存在
+        if (exist_marginal_control) {
+            flag |= Flag_Container_ExistMarginalControl;
+        }
+        // 渲染依赖属性
+        if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
+            flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
+        }
+        // 渲染依赖属性
+        if (node.attribute(XMLAttribute::IsHostPosterityAlways).as_bool(false)) {
+            flag |= LongUI::Flag_Container_HostPosterityRenderingDirectly;
+        }
+        // 边缘控件缩放
+        if (node.attribute(XMLAttribute::IsZoomMarginalControl).as_bool(true)) {
+            flag |= LongUI::Flag_Container_ZoomMarginalControl;
+        }
     }
-    // 存在
-    if (exist_marginal_control) {
-        flag |= Flag_Container_ExistMarginalControl;
-    }
-    // 渲染依赖属性
-    if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
-        flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
-    }
-    // 渲染依赖属性
-    if (node.attribute(XMLAttribute::IsHostPosterityAlways).as_bool(false)) {
-        flag |= LongUI::Flag_Container_HostPosterityRenderingDirectly;
-    }
-    // 边缘控件缩放
-    if (node.attribute(XMLAttribute::IsZoomMarginalControl).as_bool(true)) {
-        flag |= LongUI::Flag_Container_ZoomMarginalControl;
-    }
+    // 修改完毕
     force_cast(this->flags) = flag;
 }
 

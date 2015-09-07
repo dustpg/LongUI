@@ -383,46 +383,54 @@ if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
 #endif
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
-    MSG msg;
+    // 开始!
+    m_dwWaitVSStartTime = ::timeGetTime();
     // 渲染线程函数
 #pragma region Rendering thread function
     auto render_thread_func = [](void*) noexcept ->unsigned {
-        UIWindow* windows[LongUIMaxWindow]; uint32_t length = 0;
+        UIWindow* windows[LongUIMaxWindow];
+        HANDLE waitvs[LongUIMaxWindow];
         // 不退出?
         while (!UIManager.m_exitFlag) {
-            // 复制
+            uint32_t vslen = 0;
+            // 锁住
             UIManager.Lock();
-            length = UIManager.m_cCountWindow;
-            // 没有窗口
-            if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
-            for (auto i = 0u; i < length; ++i) {
+            // 有窗口
+            uint32_t wndlen = UIManager.m_cCountWindow;
+            // 复制数据
+            for (auto i = 0u; i < wndlen; ++i) {
                 windows[i] = UIManager.m_apWindows[i];
             }
             // 更新计时器
             UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
             UIManager.m_uiTimer.MovStartEnd();
-            //UIManager << DL_None << "delta-time: " 
-            //<< UIManager.m_fDeltaTime << " sec."<< LongUI::endl;
             // 刷新窗口
-            for (auto i = 0u; i < length; ++i) {
+            for (auto i = 0u; i < wndlen; ++i) {
+                // 刷新
                 windows[i]->Update();
+                // 下一帧
                 windows[i]->NextFrame();
+                // 获取等待垂直同步事件
+                waitvs[vslen] = windows[i]->GetVSyncEvent();
+                // 刷新?
                 if (!windows[i]->IsRendered()) {
                     windows[i] = nullptr;
+                }
+                // 有效
+                else if (waitvs[vslen]) {
+                    ++vslen;
                 }
             }
             // 解锁
             UIManager.Unlock();
-            UIWindow* waitvs_window = nullptr;
             // 渲染窗口
-            for (auto i = 0u; i < length; ++i) {
+            for (auto i = 0u; i < wndlen; ++i) {
                 if (windows[i]) {
-                    waitvs_window = windows[i];
                     windows[i]->RenderWindow();
                 }
             }
             // 等待垂直同步
-            UIManager.WaitVS(waitvs_window);
+            UIManager.WaitVS(waitvs, vslen);
         }
         return 0;
     };
@@ -437,6 +445,7 @@ void LongUI::CUIManager::Run() noexcept {
     assert(thread && "failed to create thread");
 #endif
     // 消息响应
+    MSG msg;
     while (::GetMessageW(&msg, nullptr, 0, 0)) {
         ::TranslateMessage(&msg);
         ::DispatchMessageW(&msg);
@@ -469,26 +478,21 @@ void LongUI::CUIManager::Run() noexcept {
 }
 
 // 等待垂直同步
-auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
-    // UIManager << DL_Hint << window << endl;
-    // 直接等待
-    if (window) {
-        window->WaitVS();
-        m_dwWaitVSCount = 0;
-        m_dwWaitVSStartTime = 0;
+auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->void {
+    // 获取屏幕刷新率
+    DEVMODEW mode = { 0 };
+    ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+    // 保留刷新
+    ++m_dwWaitVSCount;
+    auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency;
+    end_time_of_sleep += m_dwWaitVSStartTime;
+    // 等待事件
+    if (length) {
+        ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
     }
-    // 粗略等待
-    else {
-        if (!m_dwWaitVSCount) {
-            m_dwWaitVSStartTime = ::timeGetTime();
-        }
-        // 获取屏幕刷新率
-        DEVMODEW mode = { 0 };
-        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-        ++m_dwWaitVSCount;
-        auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency + 1;
-        end_time_of_sleep += m_dwWaitVSStartTime;
-        do { ::Sleep(1); } while (::timeGetTime() < end_time_of_sleep);
+    // 保证等待
+    while (::timeGetTime() < end_time_of_sleep) {
+        ::Sleep(1);
     }
 }
 

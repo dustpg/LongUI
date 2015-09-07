@@ -1,7 +1,7 @@
-## LongUI 内建控件列表
+## LongUI 内建控件列表  
   
 类|基类|注
---|----|--
+---|----|---
 [UIControl](#jump_control)|**NONE**|LongUI基本控件类
 [UIContainer](#jump_container)|[UIControl](#jump_control)|LongUI基本容器类
 [UIVerticalLayout](#jump_vlayout)|[UIContainer](#jump_container)|LongUI垂直布局类
@@ -15,7 +15,7 @@
 基 |  **NONE**
   
 属性名|值类型|默认值|注
-------|------|------|--
+------|------|------|---
 `pos`|[floatx2](./longui-xml-value-type.md#jump_floatx2)|(0.0, 0.0)|设置浮动控件的左上角坐标
 `size`|[floatx2](./longui-xml-value-type.md#jump_floatx2)|(0.0, 0.0)|设置固定大小控件的尺寸
 `name`|[string](./longui-xml-value-type.md#jump_string)|(empty)|控件名称, **o同一窗口**内必须独一无二

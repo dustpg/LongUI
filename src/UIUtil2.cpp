@@ -36,20 +36,20 @@ namespace LongUI { namespace Helper {
         }
         return true;
     }
-    // 16进制
-    unsigned int __fastcall Hex2Int(char c) {
-        if (c >= 'A' && c <= 'Z') {
-            return c - 'A' + 10;
-        }
-        if (c >= 'a' && c <= 'z') {
-            return c - 'a' + 10;
-        }
-        else {
-            return c - '0';
-        }
-    }
 }}
 
+// 16进制
+unsigned int __fastcall LongUI::Hex2Int(char c) noexcept {
+    if (c >= 'A' && c <= 'Z') {
+        return c - 'A' + 10;
+    }
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 10;
+    }
+    else {
+        return c - '0';
+    }
+}
 
 // 获取颜色表示
 bool LongUI::Helper::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {

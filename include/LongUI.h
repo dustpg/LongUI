@@ -32,7 +32,6 @@
 //- be careful to use rotation transform because of the cliping
 
 #include "longuiconf.h"
-#include "binaryattribute.h"
 
 // longui
 /*namespace LongUI {
@@ -432,43 +431,44 @@ namespace LongUI {
 }
 
 // Basic
-#include "UIInterface.h"
-#include "UIString.h"
+#include "Core/UIInterface.h"
+#include "Core/UIString.h"
 // LongUI Util Code
-#include "UIAnimation.h"
-#include "UIUtilMethod.h"
-#include "UIUtilHelper.h"
-#include "UIUtilClass.h"
-#include "UIUtilEzContainer.h"
-#include "UIUtilDX.h"
-#include "UIUtilSvg.h"
-#include "UIDropSource.h"
-#include "UIDataObject.h"
-#include "UITextRenderer.h"
-#include "UIInlineObject.h"
+#include "Util/UIAnimation.h"
+#include "Util/UIUtilMethod.h"
+#include "Util/UIUtilHelper.h"
+#include "Util/UIUtilClass.h"
+#include "Util/UIUtilEzContainer.h"
+#include "Util/UIUtilDX.h"
+#include "Util/UIUtilSvg.h"
+#include "Util/UIDropSource.h"
+#include "Util/UIDataObject.h"
+#include "Util/UITextRenderer.h"
+#include "Util/UIInlineObject.h"
 // LongUI Component
 #include "Component/Element.h"
 #include "Component/EditaleText.h"
 #include "Component/Text.h"
 // LongUI Manager
-#include "UIInput.h"
-#include "UIManager.h"
+#include "Util/UIInput.h"
+#include "Core/UIManager.h"
 
 // LongUI Contorl
-#include "UIControl.h"
+#include "Core/UIControl.h"
+#include "Core/UIMarginalable.h"
+#include "Core/UIContainer.h"
+
 // longui core only?
 #ifndef LongUICoreOnly
-#   include "UIMarginalable.h"
-#   include "UIContainer.h"
-#   include "UIScrollBar.h"
-#   include "UISlider.h"
-#   include "UILinearLayout.h"
-#   include "UIList.h"
-#   include "UIWindow.h"
-#   include "UIEdit.h"
-#   include "UIRichEdit.h"
-#   include "UIText.h"
-#   include "UICheckBox.h"
-#   include "UIButton.h"
-#   include "UIMenu.h"
+#   include "Control/UIScrollBar.h"
+#   include "Control/UISlider.h"
+#   include "Control/UILinearLayout.h"
+#   include "Control/UIList.h"
+#   include "Control/UIWindow.h"
+#   include "Control/UIEdit.h"
+#   include "Control/UIRichEdit.h"
+#   include "Control/UIText.h"
+#   include "Control/UICheckBox.h"
+#   include "Control/UIButton.h"
+#   include "Control/UIMenu.h"
 #endif

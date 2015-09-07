@@ -119,8 +119,6 @@ namespace LongUI {
         void BeginDraw() const noexcept;
         // end ender
         void EndDraw() const noexcept;
-        // wait for VS
-        void WaitVS() const noexcept;
         // register for calling PreRender
         void RegisterOffScreenRender(UIControl* c, bool is3d) noexcept;
         // unregister for calling PreRender
@@ -143,7 +141,9 @@ namespace LongUI {
         void AddControl(const std::pair<CUIString, void*>& pair) noexcept;
         // set icon, bad
         void SetIcon(HICON hIcon = nullptr) noexcept;
-    public: // 内联区
+    public:
+        // get waite-vs event handle
+        LongUIInline auto GetVSyncEvent() const noexcept { return m_hVSync; }
         // show window
         LongUIInline auto ShowWindow(int show = SW_SHOW) noexcept { return ::ShowWindow(m_hwnd, show); }
         // register for calling PreRender with 3d content

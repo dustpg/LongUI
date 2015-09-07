@@ -2313,7 +2313,6 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), marginal_control() {
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
-    assert(node && "bad argument.");
     // LV
     /*if (m_strControlName == L"V") {
         m_2fZoom = { 1.0f, 1.0f };
@@ -2321,65 +2320,73 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
-    // 检查边缘控件: 属性ID
-    const char* const attname[] = {
-        LongUI::XMLAttribute::LeftMarginalControl,
-        LongUI::XMLAttribute::TopMarginalControl,
-        LongUI::XMLAttribute::RightMarginalControl,
-        LongUI::XMLAttribute::BottomMarginalControl,
-    };
-    bool exist_marginal_control = false;
-    // ONLY MY LOOPGUN
-    for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
-        const char* str = nullptr;
-        // 获取指定属性值
-        if ((str = node.attribute(attname[i]).value())) {
-            char buffer[LongUIStringLength];
-            assert(::strlen(str) < LongUIStringLength && "buffer too small");
-            // 获取逗号位置
-            auto strtempid = std::strchr(str, ',');
-            if (strtempid) {
-                auto length = strtempid - str;
-                ::memcpy(buffer, str, length);
-                buffer[length] = char(0);
-            }
-            else {
-                ::strcpy(buffer, str);
-            }
-            
-            // 获取类ID
-            auto create_control_func = UIManager.GetCreateFunc(buffer);
-            assert(create_control_func && "none");
-            if (create_control_func) {
-                // 检查模板ID
-                auto tid = strtempid ? LongUI::AtoI(strtempid + 1) : 0;
-                // 创建控件
-                auto control = UIManager.CreateControl(size_t(tid), create_control_func);
-                // XXX: 检查
-                force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
-            }
-            // 优化flag
-            if (this->marginal_control[i]) {
-                exist_marginal_control = true;
+    // 有效
+    if (node) {
+        // 模板大小
+        Helper::MakeFloats( 
+            node.attribute(LongUI::XMLAttribute::TemplateSize).value(),
+            &m_2fTemplateSize.width, 2
+            );
+        // 检查边缘控件: 属性ID
+        const char* const attname[] = {
+            LongUI::XMLAttribute::LeftMarginalControl,
+            LongUI::XMLAttribute::TopMarginalControl,
+            LongUI::XMLAttribute::RightMarginalControl,
+            LongUI::XMLAttribute::BottomMarginalControl,
+        };
+        bool exist_marginal_control = false;
+        // ONLY MY LOOPGUN
+        for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
+            const char* str = nullptr;
+            // 获取指定属性值
+            if ((str = node.attribute(attname[i]).value())) {
+                char buffer[LongUIStringLength];
+                assert(::strlen(str) < LongUIStringLength && "buffer too small");
+                // 获取逗号位置
+                auto strtempid = std::strchr(str, ',');
+                if (strtempid) {
+                    auto length = strtempid - str;
+                    ::memcpy(buffer, str, length);
+                    buffer[length] = char(0);
+                }
+                else {
+                    ::strcpy(buffer, str);
+                }
+                // 获取类ID
+                auto create_control_func = UIManager.GetCreateFunc(buffer);
+                assert(create_control_func && "none");
+                if (create_control_func) {
+                    // 检查模板ID
+                    auto tid = strtempid ? LongUI::AtoI(strtempid + 1) : 0;
+                    // 创建控件
+                    auto control = UIManager.CreateControl(size_t(tid), create_control_func);
+                    // XXX: 检查
+                    force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
+                }
+                // 优化flag
+                if (this->marginal_control[i]) {
+                    exist_marginal_control = true;
+                }
             }
         }
+        // 存在
+        if (exist_marginal_control) {
+            flag |= Flag_Container_ExistMarginalControl;
+        }
+        // 渲染依赖属性
+        if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
+            flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
+        }
+        // 渲染依赖属性
+        if (node.attribute(XMLAttribute::IsHostPosterityAlways).as_bool(false)) {
+            flag |= LongUI::Flag_Container_HostPosterityRenderingDirectly;
+        }
+        // 边缘控件缩放
+        if (node.attribute(XMLAttribute::IsZoomMarginalControl).as_bool(true)) {
+            flag |= LongUI::Flag_Container_ZoomMarginalControl;
+        }
     }
-    // 存在
-    if (exist_marginal_control) {
-        flag |= Flag_Container_ExistMarginalControl;
-    }
-    // 渲染依赖属性
-    if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
-        flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
-    }
-    // 渲染依赖属性
-    if (node.attribute(XMLAttribute::IsHostPosterityAlways).as_bool(false)) {
-        flag |= LongUI::Flag_Container_HostPosterityRenderingDirectly;
-    }
-    // 边缘控件缩放
-    if (node.attribute(XMLAttribute::IsZoomMarginalControl).as_bool(true)) {
-        flag |= LongUI::Flag_Container_ZoomMarginalControl;
-    }
+    // 修改完毕
     force_cast(this->flags) = flag;
 }
 
@@ -4133,6 +4140,168 @@ void LongUI::UICheckBox::Cleanup() noexcept {
 }
                    
 
+// ----------------------------------------------------------------------------
+// -------------------------------- UIList ------------------------------------
+// ----------------------------------------------------------------------------
+// UI列表控件: 构造函数
+LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
+    if (node) {
+
+    }
+}
+
+
+// 清理UI列表控件
+void LongUI::UIList::Cleanup() noexcept {
+    delete this;
+}
+
+// UI列表控件: 创建控件
+auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node) 
+noexcept -> UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case Type_CreateControl:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIList>(
+            node,
+            [=](void* p) noexcept { new(p) UIList(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    }
+    return pControl;
+}
+
+
+// ----------------------------------------------------------------------------
+// ---------------------------- UIListElement! --------------------------------
+// ----------------------------------------------------------------------------
+
+// UI列表元素控件: 构造函数
+LongUI::UIListElement::UIListElement(pugi::xml_node node) noexcept:Super(node){
+    if (node) {
+
+    }
+}
+
+
+// 清理UI列表元素控件
+void LongUI::UIListElement::Cleanup() noexcept {
+    delete this;
+}
+
+// UI列表元素控件: 创建控件
+auto LongUI::UIListElement::CreateControl(CreateEventType type, pugi::xml_node node) 
+noexcept -> UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case Type_CreateControl:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListElement>(
+            node,
+            [=](void* p) noexcept { new(p) UIListElement(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    }
+    return pControl;
+}
+
+
+
+
+
+
+// ----------------------------------------------------------------------------
+// --------------------------------- Menu -------------------------------------
+// ----------------------------------------------------------------------------
+
+// 摧毁弹出菜单
+void LongUI::CUIMenu::Destroy() noexcept {
+    if (m_hMenu) {
+        ::DestroyMenu(m_hMenu);
+        m_hMenu = nullptr;
+    }
+}
+
+// 直接创建才菜单
+bool LongUI::CUIMenu::Create() noexcept {
+    assert(!m_hMenu && "cannot create again!");
+    m_hMenu = ::CreatePopupMenu();
+    return !!m_hMenu;
+}
+
+// 使用XML字符串创建菜单
+bool LongUI::CUIMenu::Create(const char * xml) noexcept {
+    pugi::xml_document document;
+    auto re = document.load_string(xml);
+    // 错误
+    if (re.status) {
+        assert(!"failed to load string");
+        ::MessageBoxA(
+            nullptr, 
+            re.description(), 
+            "<LongUI::CUIMenu::Create>: Failed to Parse/Load XML",
+            MB_ICONERROR
+            );
+        return false;
+    }
+    // 创建节点
+    return this->Create(document.first_child());
+}
+
+// 使用XML节点创建菜单
+bool LongUI::CUIMenu::Create(pugi::xml_node node) noexcept {
+    UNREFERENCED_PARAMETER(node);
+    assert(!m_hMenu && "cannot create again!");
+    m_hMenu = ::CreatePopupMenu();
+    return !!m_hMenu;
+}
+
+// 添加物品
+bool LongUI::CUIMenu::AppendItem(const ItemProperties& prop) noexcept {
+    UNREFERENCED_PARAMETER(prop);
+    return false;
+}
+
+// 显示菜单
+void LongUI::CUIMenu::Show(HWND parent, POINT* OPTIONAL pos) noexcept {
+    // 获取坐标
+    POINT pt = { 0,0 };  if (pos) pt = *pos; else ::GetCursorPos(&pt);
+    // 置前
+    ::SetForegroundWindow(parent);
+    // 跟踪菜单项的选择
+    auto index = ::TrackPopupMenu(m_hMenu, TPM_RETURNCMD, pt.x, pt.y, 0, parent, nullptr);
+    if (m_pItemProc) {
+        m_pItemProc(index);
+    }
+}
+
+                   
+
 // node->Attribute\((.+?)\)
 // node.attribute($1).value()
 
@@ -4516,46 +4685,54 @@ if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
 #endif
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
-    MSG msg;
+    // 开始!
+    m_dwWaitVSStartTime = ::timeGetTime();
     // 渲染线程函数
 #pragma region Rendering thread function
     auto render_thread_func = [](void*) noexcept ->unsigned {
-        UIWindow* windows[LongUIMaxWindow]; uint32_t length = 0;
+        UIWindow* windows[LongUIMaxWindow];
+        HANDLE waitvs[LongUIMaxWindow];
         // 不退出?
         while (!UIManager.m_exitFlag) {
-            // 复制
+            uint32_t vslen = 0;
+            // 锁住
             UIManager.Lock();
-            length = UIManager.m_cCountWindow;
-            // 没有窗口
-            if (!length) { UIManager.Unlock(); ::Sleep(20); continue; }
-            for (auto i = 0u; i < length; ++i) {
+            // 有窗口
+            uint32_t wndlen = UIManager.m_cCountWindow;
+            // 复制数据
+            for (auto i = 0u; i < wndlen; ++i) {
                 windows[i] = UIManager.m_apWindows[i];
             }
             // 更新计时器
             UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
             UIManager.m_uiTimer.MovStartEnd();
-            //UIManager << DL_None << "delta-time: " 
-            //<< UIManager.m_fDeltaTime << " sec."<< LongUI::endl;
             // 刷新窗口
-            for (auto i = 0u; i < length; ++i) {
+            for (auto i = 0u; i < wndlen; ++i) {
+                // 刷新
                 windows[i]->Update();
+                // 下一帧
                 windows[i]->NextFrame();
+                // 获取等待垂直同步事件
+                waitvs[vslen] = windows[i]->GetVSyncEvent();
+                // 刷新?
                 if (!windows[i]->IsRendered()) {
                     windows[i] = nullptr;
+                }
+                // 有效
+                else if (waitvs[vslen]) {
+                    ++vslen;
                 }
             }
             // 解锁
             UIManager.Unlock();
-            UIWindow* waitvs_window = nullptr;
             // 渲染窗口
-            for (auto i = 0u; i < length; ++i) {
+            for (auto i = 0u; i < wndlen; ++i) {
                 if (windows[i]) {
-                    waitvs_window = windows[i];
                     windows[i]->RenderWindow();
                 }
             }
             // 等待垂直同步
-            UIManager.WaitVS(waitvs_window);
+            UIManager.WaitVS(waitvs, vslen);
         }
         return 0;
     };
@@ -4570,6 +4747,7 @@ void LongUI::CUIManager::Run() noexcept {
     assert(thread && "failed to create thread");
 #endif
     // 消息响应
+    MSG msg;
     while (::GetMessageW(&msg, nullptr, 0, 0)) {
         ::TranslateMessage(&msg);
         ::DispatchMessageW(&msg);
@@ -4602,26 +4780,21 @@ void LongUI::CUIManager::Run() noexcept {
 }
 
 // 等待垂直同步
-auto LongUI::CUIManager::WaitVS(UIWindow* window) noexcept ->void {
-    // UIManager << DL_Hint << window << endl;
-    // 直接等待
-    if (window) {
-        window->WaitVS();
-        m_dwWaitVSCount = 0;
-        m_dwWaitVSStartTime = 0;
+auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->void {
+    // 获取屏幕刷新率
+    DEVMODEW mode = { 0 };
+    ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+    // 保留刷新
+    ++m_dwWaitVSCount;
+    auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency;
+    end_time_of_sleep += m_dwWaitVSStartTime;
+    // 等待事件
+    if (length) {
+        ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
     }
-    // 粗略等待
-    else {
-        if (!m_dwWaitVSCount) {
-            m_dwWaitVSStartTime = ::timeGetTime();
-        }
-        // 获取屏幕刷新率
-        DEVMODEW mode = { 0 };
-        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-        ++m_dwWaitVSCount;
-        auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency + 1;
-        end_time_of_sleep += m_dwWaitVSStartTime;
-        do { ::Sleep(1); } while (::timeGetTime() < end_time_of_sleep);
+    // 保证等待
+    while (::timeGetTime() < end_time_of_sleep) {
+        ::Sleep(1);
     }
 }
 
@@ -10085,20 +10258,20 @@ namespace LongUI { namespace Helper {
         }
         return true;
     }
-    // 16进制
-    unsigned int __fastcall Hex2Int(char c) {
-        if (c >= 'A' && c <= 'Z') {
-            return c - 'A' + 10;
-        }
-        if (c >= 'a' && c <= 'z') {
-            return c - 'a' + 10;
-        }
-        else {
-            return c - '0';
-        }
-    }
 }}
 
+// 16进制
+unsigned int __fastcall LongUI::Hex2Int(char c) noexcept {
+    if (c >= 'A' && c <= 'Z') {
+        return c - 'A' + 10;
+    }
+    if (c >= 'a' && c <= 'z') {
+        return c - 'a' + 10;
+    }
+    else {
+        return c - '0';
+    }
+}
 
 // 获取颜色表示
 bool LongUI::Helper::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
@@ -11578,8 +11751,6 @@ auto LongUI::SVG::ParserPath(const char* path, ID2D1PathGeometry* geometry) noex
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
-
-
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
 noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
@@ -11613,7 +11784,6 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
     // Debug Zone
 #ifdef _DEBUG
     {
-        
         debug_show = this->debug_this || node.attribute("debugshow").as_bool(false);
     }
 #endif
@@ -12332,27 +12502,6 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     }
     // 还是没有处理就交给父类处理
     return Super::DoEvent(_arg);
-}
-
-// 等待重置同步
-void LongUI::UIWindow::WaitVS() const noexcept {
-#ifdef _DEBUG
-    static bool first_time = true;
-    if (first_time && !m_baBoolWindow.Test(Index_Rendered)) {
-        assert(!"should be rendered @ first time !");
-    }
-    first_time = false;
-    // 渲染?
-    if (m_baBoolWindow.Test(Index_Rendered)) {
-        // 等待VS
-        ::WaitForSingleObject(m_hVSync, INFINITE);
-    }
-    else {
-        assert(!"error!");
-    }
-#else
-    ::WaitForSingleObject(m_hVSync, INFINITE);
-#endif
 }
 
 // 重置窗口大小

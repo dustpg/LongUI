@@ -1,6 +1,6 @@
 ﻿#define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
-#include "../../LongUI/LongUI.h"
+#include "LongUI.h"
 
 static const char* const hello_world = 
 u8R"(<?xml version="1.0" encoding="utf-8"?>

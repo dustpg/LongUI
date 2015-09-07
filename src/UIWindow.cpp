@@ -5,8 +5,6 @@
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
-
-
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
 noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
@@ -40,7 +38,6 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
     // Debug Zone
 #ifdef _DEBUG
     {
-        
         debug_show = this->debug_this || node.attribute("debugshow").as_bool(false);
     }
 #endif
@@ -759,27 +756,6 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     }
     // 还是没有处理就交给父类处理
     return Super::DoEvent(_arg);
-}
-
-// 等待重置同步
-void LongUI::UIWindow::WaitVS() const noexcept {
-#ifdef _DEBUG
-    static bool first_time = true;
-    if (first_time && !m_baBoolWindow.Test(Index_Rendered)) {
-        assert(!"should be rendered @ first time !");
-    }
-    first_time = false;
-    // 渲染?
-    if (m_baBoolWindow.Test(Index_Rendered)) {
-        // 等待VS
-        ::WaitForSingleObject(m_hVSync, INFINITE);
-    }
-    else {
-        assert(!"error!");
-    }
-#else
-    ::WaitForSingleObject(m_hVSync, INFINITE);
-#endif
 }
 
 // 重置窗口大小

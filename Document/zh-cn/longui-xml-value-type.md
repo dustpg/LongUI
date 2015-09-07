@@ -1,6 +1,7 @@
-## LongUI Xml值 类型列表 - 普通
+## LongUI Xml值 类型列表 - 普通  
+  
 类型|实现|注|例子
-:--:|----|--|----
+:---:|----|---|----
 <a name="jump_int"/>int|`LongUI::AtoI`|整型|`= "0"`, `= "2333"`
 <a name="jump_bool"/>bool|`pugi::xml_attribute::as_bool`| 布尔值 |`= "true"`, `= "0"`
 <a name="jump_float"/>float|`LongUI::AtoF`|浮点| `= "0"`, `= "1e3"`, `= "-1.0"`
@@ -12,10 +13,10 @@
 <a name="jump_cc"/>CC|`std::strchr`,`LongUI::AtoI`|"CC" for "CreateControl", `name[, templateid]`| `="ScrollBarA"`, `="ScrollBarB, 2"`
 <a name="jump_color"/>color|`LongUI::Helper::MakeColor`|颜色, `#RGB`, `#RRGGBB`, `#AARRGGBB`, `floatx4 in RGBA` | `="#FFF"`, `="#ABCDEF"`, `="#88ABCDEF"`, `="0.0, 1.0, 0.0, 1.0"`
   
-## LongUI Xml值 类型列表 - 枚举
+## LongUI Xml值 类型列表 - 枚举  
   
 类型|实现|注|例子
-:--:|----|--|----
+:---:|----|---|----
 <a name="jump_enum_bmprule"/>bmprule|`Helper::XMLGetBitmapRenderRule`|int or string| `="button"`, `="1"`
 ---|---|`0` or `scale`| normal rendering rule for `BitmapRenderRule::Rule_Scale`
 ---|---|`1` or `button`| button like rendering rule for `BitmapRenderRule::Rule_ButtonLike`

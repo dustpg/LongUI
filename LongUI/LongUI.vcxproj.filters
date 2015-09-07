@@ -15,20 +15,11 @@
     <Filter Include="LongUI\Header">
       <UniqueIdentifier>{3cd6f68b-2622-4956-9817-1cfad09905d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Header\Base">
-      <UniqueIdentifier>{b2b62a3b-fd2e-4f73-86f9-0520a03977e2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="LongUI\Header\Control">
       <UniqueIdentifier>{a7147101-f6a6-45a8-8937-d743b5b358bb}</UniqueIdentifier>
     </Filter>
     <Filter Include="LongUI\Source">
       <UniqueIdentifier>{31fb1c29-dfad-4ad6-a04f-43e567b23084}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="LongUI\Source\Base">
-      <UniqueIdentifier>{cebb2a47-ae2f-41ad-9af1-ebd386c36d23}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="LongUI\Source\Control">
-      <UniqueIdentifier>{0f0fcf6c-7edc-4fea-8988-b893192c4a9a}</UniqueIdentifier>
     </Filter>
     <Filter Include="LongUI\Header\Component">
       <UniqueIdentifier>{1019e09f-9b5a-4869-ac5f-98ba1267315b}</UniqueIdentifier>
@@ -36,174 +27,171 @@
     <Filter Include="LongUI\Header\Util">
       <UniqueIdentifier>{8530eb64-27a6-4cb3-9985-c27e16d68d0b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Source\Util">
-      <UniqueIdentifier>{e639d6bc-b6d1-47bc-8de6-26a135dff724}</UniqueIdentifier>
+    <Filter Include="LongUI\Header\Core">
+      <UniqueIdentifier>{b2b62a3b-fd2e-4f73-86f9-0520a03977e2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="LongUI.h">
+    <ClInclude Include="..\include\longuiconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="longuiconf.h">
+    <ClInclude Include="..\include\LongUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="UIAnimation.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIContainer.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIControl.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIInterface.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIManager.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIButton.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UICheckBox.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UISlider.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UIRichEdit.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UIScrollBar.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UIEdit.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UIDataObject.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UIDropSource.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UIInput.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIMenu.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="UIInlineObject.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UITextRenderer.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Component\EditaleText.h">
+    <ClInclude Include="..\include\Component\Text.h">
       <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
-    <ClInclude Include="Component\Text.h">
+    <ClInclude Include="..\include\Component\EditaleText.h">
       <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
-    <ClInclude Include="Component\Element.h">
+    <ClInclude Include="..\include\Component\Element.h">
       <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
-    <ClInclude Include="UIText.h">
+    <ClInclude Include="..\include\Control\UILinearLayout.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="UIMarginalable.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIUtilMethod.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UIUtilClass.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UIUtilHelper.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UIUtilEzContainer.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UIString.h">
-      <Filter>LongUI\Header\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="UIUtilDX.h">
-      <Filter>LongUI\Header\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UIWindow.h">
+    <ClInclude Include="..\include\Control\UIList.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="binaryattribute.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\include\Control\UIRichEdit.h">
+      <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="UIUtilSvg.h">
+    <ClInclude Include="..\include\Control\UIScrollBar.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UISlider.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIText.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIWindow.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIButton.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UICheckBox.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIEdit.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIMenu.h">
+      <Filter>LongUI\Header\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Core\UIInterface.h">
+      <Filter>LongUI\Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Core\UIManager.h">
+      <Filter>LongUI\Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Core\UIMarginalable.h">
+      <Filter>LongUI\Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Core\UIContainer.h">
+      <Filter>LongUI\Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Core\UIControl.h">
+      <Filter>LongUI\Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIInput.h">
       <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
-    <ClInclude Include="UIList.h">
-      <Filter>LongUI\Header\Control</Filter>
+    <ClInclude Include="..\include\Util\UITextRenderer.h">
+      <Filter>LongUI\Header\Util</Filter>
     </ClInclude>
-    <ClInclude Include="UILinearLayout.h">
-      <Filter>LongUI\Header\Control</Filter>
+    <ClInclude Include="..\include\Util\UIUtilClass.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIUtilDX.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIUtilEzContainer.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIUtilHelper.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIUtilMethod.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIUtilSvg.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIAnimation.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIDataObject.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIDropSource.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Util\UIInlineObject.h">
+      <Filter>LongUI\Header\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Core\UIString.h">
+      <Filter>LongUI\Header\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\ControlCore.cpp">
-      <Filter>LongUI\Source\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIManager.cpp">
-      <Filter>LongUI\Source\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ContainerImpl.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ControlImpl1.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UICheckBox.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIRichEdit.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIScrollBar.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UISlider.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIWindow.cpp">
-      <Filter>LongUI\Source\Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIUtilSvg.cpp">
-      <Filter>LongUI\Source\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIUtil.cpp">
-      <Filter>LongUI\Source\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIUtil2.cpp">
-      <Filter>LongUI\Source\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIUtilDX.cpp">
-      <Filter>LongUI\Source\Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\UIRenderQueue_Loader.cpp">
+    <ClCompile Include="..\src\ContainerImpl.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\main.cpp">
+    <ClCompile Include="..\src\ControlCore.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ComponentImpl.cpp">
-      <Filter>LongUI\Source\Util</Filter>
+    <ClCompile Include="..\src\ControlImpl1.cpp">
+      <Filter>LongUI\Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\InlineObjImpl.cpp">
-      <Filter>LongUI\Source\Util</Filter>
+    <ClCompile Include="..\src\InlineObjImpl.cpp">
+      <Filter>LongUI\Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\_LongUIAllInOne.cpp">
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UICheckBox.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIList.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIManager.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIRenderQueue_Loader.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIRichEdit.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIScrollBar.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UISlider.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtil.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtil2.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtilDX.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtilSvg.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIWindow.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ComponentImpl.cpp">
+      <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\_LongUIAllInOne.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UIList.cpp">
-      <Filter>LongUI\Source\Control</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

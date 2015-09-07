@@ -1,4 +1,4 @@
-﻿#if 1
+﻿#if 0
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "../LongUI/LongUI.h"
@@ -466,8 +466,40 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 #else
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
-#include "../LongUI/LongUI.h"
+#include "LongUI.h"
 #include "../Demos/Step3_handleeventex/demo.h"
+
+// window xml layout
+static const char* const DEMO_XML2 =
+u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<Window size="512, 512" templatesize="512, 0" debugshow="true" name="LongUI Demo Window">
+    <Text name="display" text="0"/>
+    <HorizontalLayout>
+        <Button name="btn_num7" margin="4,4,4,4" borderwidth="1" text="7"/>
+        <Button name="btn_num8" margin="4,4,4,4" borderwidth="1" text="8"/>
+        <Button name="btn_num9" margin="4,4,4,4" borderwidth="1" text="9"/>
+    </HorizontalLayout>
+    <HorizontalLayout>
+        <Button name="btn_num4" margin="4,4,4,4" borderwidth="1" text="4"/>
+        <Button name="btn_num5" margin="4,4,4,4" borderwidth="1" text="5"/>
+        <Button name="btn_num6" margin="4,4,4,4" borderwidth="1" text="6"/>
+    </HorizontalLayout>
+    <HorizontalLayout>
+        <Button name="btn_num1" margin="4,4,4,4" borderwidth="1" text="1"/>
+        <Button name="btn_num2" margin="4,4,4,4" borderwidth="1" text="2"/>
+        <Button name="btn_num3" margin="4,4,4,4" borderwidth="1" text="3"/>
+    </HorizontalLayout>
+    <HorizontalLayout>
+        <Button name="btn_plus" margin="4,4,4,4" borderwidth="1" text="+"/>
+        <Button name="btn_num0" margin="4,4,4,4" borderwidth="1" text="0"/>
+        <Button name="btn_minu" margin="4,4,4,4" borderwidth="1" text="-"/>
+    </HorizontalLayout>
+    <HorizontalLayout>
+        <Button name="btn_equl" weight="1" margin="4,4,4,4" borderwidth="1" text="="/>
+        <Button name="btn_clear" weight="0.5" margin="4,4,4,4" borderwidth="1" text="C"/>
+    </HorizontalLayout>
+</Window>
+)xml";
 
 // longui::demo namespace
 namespace LongUI { namespace Demo {
@@ -501,7 +533,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             // my style
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
             // create main window, return nullptr for some error
-            UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML);
+            UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML2);
             // run this app
             UIManager.Run();
             // my style

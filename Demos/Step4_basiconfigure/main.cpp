@@ -1,6 +1,6 @@
 ﻿#define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
-#include "../../LongUI/LongUI.h"
+#include "LongUI.h"
 #include "../Step3_handleeventex/demo.h"
 
 #define LONGUI_NAMESPACE_BEGIN2 namespace LongUI { namespace

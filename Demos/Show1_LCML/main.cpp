@@ -1,6 +1,6 @@
 ﻿#define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
-#include "../../LongUI/LongUI.h"
+#include "LongUI.h"
 
 // XML Layout
 constexpr char* const DEMO_XML = 
