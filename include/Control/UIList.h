@@ -27,8 +27,8 @@
 
 // LongUI namespace
 namespace LongUI {
-    // ui list element
-    class UIListElement : public UIHorizontalLayout {
+    // ui list line
+    class UIListLine : public UIHorizontalLayout {
         // super class
         using Super = UIHorizontalLayout;
     public:
@@ -46,29 +46,80 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIListElement(pugi::xml_node node) noexcept;
+        UIListLine(pugi::xml_node node) noexcept;
         // dtor
-        ~UIListElement() noexcept = default;
+        ~UIListLine() noexcept = default;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif
     };
-    // ui list, child must be UIListElement
-    class UIList : public UIVerticalLayout {
+    // ui list header, parent must be UIList
+    class UIListHeader : public UIMarginalable {
         // super class
-        using Super = UIVerticalLayout;
+        using Super = UIMarginalable;
     public:
+        // do event 事件处理
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // clean this control 清除控件
         virtual void Cleanup() noexcept override;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
+        UIListHeader(pugi::xml_node node) noexcept;
+        // dtor
+        ~UIListHeader() noexcept = default;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
+    };
+    // ui list, child must be UIListLine
+    class UIList : public UIContainer {
+        // super class
+        using Super = UIContainer;
+    public:
+        // update
+        virtual void Update() noexcept override;
+        // clean this control 清除控件
+        virtual void Cleanup() noexcept override;
+    private:
+        // after add a child
+        inline void after_insert(UIControl* child) noexcept;
+    public:
+        // after add a child
+        virtual void AfterInsert(UIControl* child) noexcept override;
+#ifdef LONGUI_UILIST_VECTOR
+        // after add a child
+        virtual void AfterRemove(UIControl* child) noexcept override;
+        // get child at index
+        virtual auto GetAt(uint32_t index) const noexcept ->UIControl* final override;
+    private:
+        // control vector
+        BasicContainer          m_controls;
+#endif
+    public:
+        // insert a line-template with inside string
+        void InsertInlineTemplate(Iterator itr) noexcept { this->InsertInlineTemplate(itr, m_pLineTemplate); }
+        // insert a line-template with outside string
+        void InsertInlineTemplate(Iterator itr, const char* line) noexcept;
+    public:
+        // create 创建
+        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
+        // ctor
         UIList(pugi::xml_node node) noexcept;
         // dtor
-        ~UIList() noexcept = default;
+        ~UIList() noexcept;
+    protected:
+        // line template
+        char*                   m_pLineTemplate = nullptr;
+        // line height
+        float                   m_fLineHeight = 32.f;
+        // elements count in each line
+        uint32_t                m_cEleCountInLine = 0;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -77,12 +128,12 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIListElement>() {
+    template<> LongUIInline const IID& GetIID<LongUI::UIListLine>() {
         // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
-        static const GUID IID_LongUI_UIListElement = {
+        static const GUID IID_LongUI_UIListLine= {
          0x83b86af2, 0x6755, 0x47a8, { 0xba, 0x7d, 0x69, 0x3c, 0x2b, 0xdb, 0xf, 0xbc } 
         };
-        return IID_LongUI_UIListElement;
+        return IID_LongUI_UIListLine;
     }
     // 重载?特例化 GetIID
     template<> LongUIInline const IID& GetIID<LongUI::UIList>() {
@@ -91,6 +142,14 @@ namespace LongUI {
             0xe5cf04fc, 0x1221, 0x4e06,{ 0xb6, 0xf3, 0x31, 0x5d, 0x45, 0xb1, 0xf2, 0xe6 } 
         };
         return IID_LongUI_UIList;
+    }
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UIListHeader>() {
+        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
+        static const GUID IID_LongUI_UIListHeader = { 
+            0x6db3aac2, 0xf4cf, 0x4301, { 0x92, 0x91, 0xa5, 0x18, 0x1b, 0x22, 0xa0, 0x39 } 
+        };
+        return IID_LongUI_UIListHeader;
     }
 #endif
 }

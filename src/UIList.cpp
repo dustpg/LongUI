@@ -5,16 +5,139 @@
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
+    // TODO: 删除预测
     if (node) {
-
+        const char* str = nullptr;
+        // 行高度
+        if ((str = node.attribute("lineheight").value())) {
+            m_fLineHeight = LongUI::AtoF(str);
+        }
+        // 行模板
+        if ((str = node.attribute("lineheight").value())) {
+            assert(m_pLineTemplate == nullptr);
+            // 申请空间
+            m_pLineTemplate = LongUI::SmallAllocT(
+                m_pLineTemplate,
+                std::strlen(str) + 1
+                );
+            // 复制行模板数据
+            if (m_pLineTemplate) {
+                std::strcpy(m_pLineTemplate, str);
+            }
+        }
     }
 }
 
+// UI列表控件: 析构函数
+LongUI::UIList::~UIList() noexcept {
+    if (m_pLineTemplate) {
+        LongUI::SmallFree(m_pLineTemplate);
+        m_pLineTemplate = nullptr;
+    }
+}
+
+// 插入后
+inline void LongUI::UIList::after_insert(UIControl* child) noexcept {
+    assert(!(child->flags & Flag_Floating) 
+        && "child of UIList cannot keep flag 'Flag_Floating'");
+    assert(!(child->flags & Flag_HeightFixed) 
+        && "child of UIList cannot keep flag 'Flag_WidthFixed'");
+}
+
+// 插入一个行模板
+void LongUI::UIList::InsertInlineTemplate(Iterator itr, const char* line) noexcept {
+    UIManager << DL_Warning << "insert inline-template: line -> null" << LongUI::endl;
+    auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(
+        Type_CreateControl, pugi::xml_node()));
+    if (ctrl) {
+        // 插入
+        this->Insert(itr, ctrl);
+    }
+}
+
+// 更新子控件布局
+void LongUI::UIList::Update() noexcept {
+    // 前向刷新
+    this->BeforeUpdate();
+    // 基本算法:
+    // 1. 去除浮动控件影响
+    // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
+    // 3. 计算实际高度/宽度
+    if (this->IsControlSizeChanged()) {
+        // 第二次
+        float index = 0.f;
+        for (auto ctrl : (*this)) {
+            // 设置控件高度
+            if (!(ctrl->flags & Flag_HeightFixed)) {
+                ctrl->SetHeight(m_fLineHeight);
+            }
+            // 不管如何, 修改!
+            ctrl->SetControlSizeChanged();
+            ctrl->SetLeft(0.f);
+            ctrl->SetTop(m_fLineHeight * index);
+            ++index;
+        }
+        // 设置
+        if (m_pHead) {
+            m_2fContentSize.width = this->GetWidth();
+        }
+        m_2fContentSize.height = m_fLineHeight * this->GetCount();
+        // 已经处理
+        this->ControlSizeChangeHandled();
+    }
+    // 父类刷新
+    Super::Update();
+}
 
 // 清理UI列表控件
 void LongUI::UIList::Cleanup() noexcept {
     delete this;
 }
+
+
+#ifdef LONGUI_UILIST_VECTOR
+// 插入后
+void LongUI::UIList::AfterInsert(UIControl* child) noexcept {
+    Super::AfterInsert(child);
+    this->after_insert(child);
+    try {
+        auto itr = m_controls.begin();
+        if (!child->next) {
+            auto itr = m_controls.end();
+        }
+        else if (child->prev) {
+            itr = std::find(m_controls.begin(), m_controls.end(), child->prev);
+        }
+        m_controls.insert(
+            std::find(m_controls.begin(), m_controls.end(), child->prev),
+            child
+            );
+    }
+    catch (...) {
+
+    }
+}
+
+// 移除后
+void LongUI::UIList::AfterRemove(UIControl* child) noexcept  {
+    Super::AfterRemove(child);
+    m_controls.erase(std::find(m_controls.begin(), m_controls.end(), child));
+}
+
+// 根据索引获取控件
+auto LongUI::UIList::GetAt(uint32_t index) const noexcept -> UIControl* {
+    assert(index < this->GetCount());
+    if (index < this->GetCount()) {
+        return static_cast<UIControl*>(m_controls.at(index));
+    }
+    return nullptr;
+}
+#else
+// 插入后
+void LongUI::UIList::AfterInsert(UIControl* child) noexcept  {
+    this->after_insert(child);
+}
+#endif
 
 // UI列表控件: 创建控件
 auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node) 
@@ -46,11 +169,11 @@ noexcept -> UIControl* {
 
 
 // ----------------------------------------------------------------------------
-// ---------------------------- UIListElement! --------------------------------
+// ---------------------------- UIListLine! --------------------------------
 // ----------------------------------------------------------------------------
 
 // UI列表元素控件: 构造函数
-LongUI::UIListElement::UIListElement(pugi::xml_node node) noexcept:Super(node){
+LongUI::UIListLine::UIListLine(pugi::xml_node node) noexcept:Super(node){
     if (node) {
 
     }
@@ -58,12 +181,12 @@ LongUI::UIListElement::UIListElement(pugi::xml_node node) noexcept:Super(node){
 
 
 // 清理UI列表元素控件
-void LongUI::UIListElement::Cleanup() noexcept {
+void LongUI::UIListLine::Cleanup() noexcept {
     delete this;
 }
 
 // UI列表元素控件: 创建控件
-auto LongUI::UIListElement::CreateControl(CreateEventType type, pugi::xml_node node) 
+auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node) 
 noexcept -> UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
@@ -73,9 +196,9 @@ noexcept -> UIControl* {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
         // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListElement>(
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListLine>(
             node,
-            [=](void* p) noexcept { new(p) UIListElement(node); }
+            [=](void* p) noexcept { new(p) UIListLine(node); }
         );
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
@@ -93,6 +216,55 @@ noexcept -> UIControl* {
 
 
 
+// ----------------------------------------------------------------------------
+// ----------------------------- UIListHeader ---------------------------------
+// ----------------------------------------------------------------------------
+
+// UI列表头控件: 构造函数
+LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
+    if (node) {
+
+    }
+}
+
+// UI列表头: 事件处理
+bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    UNREFERENCED_PARAMETER(arg);
+    return false;
+}
+
+// 清理UI列表头控件
+void LongUI::UIListHeader::Cleanup() noexcept {
+    delete this;
+}
+
+// 创建UI列表头
+auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node node) 
+noexcept -> UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case Type_CreateControl:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListHeader>(
+            node,
+            [=](void* p) noexcept { new(p) UIListHeader(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    }
+    return pControl;
+}
 
 
 // ----------------------------------------------------------------------------

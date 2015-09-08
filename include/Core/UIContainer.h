@@ -93,6 +93,8 @@ namespace LongUI {
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
+        // before update
+        void BeforeUpdate() noexcept;
         // find control where mouse pointed
         auto FindControl(const D2D1_POINT_2F pt) noexcept->UIControl*;
     public:

@@ -33,6 +33,8 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
 
 // 更新子控件布局
 void LongUI::UIVerticalLayout::Update() noexcept {
+    // 前向刷新
+    this->BeforeUpdate();
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -140,6 +142,8 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
 
 // 更新子控件布局
 void LongUI::UIHorizontalLayout::Update() noexcept {
+    // 前向刷新
+    this->BeforeUpdate();
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度

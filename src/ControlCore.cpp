@@ -380,6 +380,11 @@ void LongUI::UIControl::RefreshWorld() noexcept {
     }
     // 修改了
     this->ControlWorldChangeHandled();
+#ifdef _DEBUG
+    if (this->debug_this) {
+        UIManager << DL_Log << this << "WORLD: " << this->world << LongUI::endl;
+    }
+#endif
 }
 
 // 获得世界转换矩阵 for 边缘控件
@@ -877,6 +882,35 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     }
 }
 
+// UI容器: 刷新前
+void LongUI::UIContainer::BeforeUpdate() noexcept {
+    // 需要刷新
+    if (this->IsNeedRefreshWorld()) {
+        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) | 
+            (this->m_2fTemplateSize.height > 0.f);
+        auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
+        auto tmph = this->GetHeight() / m_2fTemplateSize.width;
+        switch (code)
+        {
+        case 0:
+            // do nothing
+            break;
+        case 1:
+            // this->m_2fTemplateSize.height > 0.f, only
+            this->m_2fZoom.width = this->m_2fZoom.height = tmph;
+            break;
+        case 2:
+            // this->m_2fTemplateSize.width > 0.f, only
+            this->m_2fZoom.height = this->m_2fZoom.width = tmpw;
+            break;
+        case 3:
+            // both
+            this->m_2fZoom.width =  tmpw;
+            this->m_2fZoom.height = tmph;
+            break;
+        }
+    }
+}
 
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept {

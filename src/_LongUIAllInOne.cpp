@@ -1662,6 +1662,8 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
 
 // 更新子控件布局
 void LongUI::UIVerticalLayout::Update() noexcept {
+    // 前向刷新
+    this->BeforeUpdate();
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -1769,6 +1771,8 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
 
 // 更新子控件布局
 void LongUI::UIHorizontalLayout::Update() noexcept {
+    // 前向刷新
+    this->BeforeUpdate();
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -2220,6 +2224,11 @@ void LongUI::UIControl::RefreshWorld() noexcept {
     }
     // 修改了
     this->ControlWorldChangeHandled();
+#ifdef _DEBUG
+    if (this->debug_this) {
+        UIManager << DL_Log << this << "WORLD: " << this->world << LongUI::endl;
+    }
+#endif
 }
 
 // 获得世界转换矩阵 for 边缘控件
@@ -2717,6 +2726,35 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     }
 }
 
+// UI容器: 刷新前
+void LongUI::UIContainer::BeforeUpdate() noexcept {
+    // 需要刷新
+    if (this->IsNeedRefreshWorld()) {
+        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) | 
+            (this->m_2fTemplateSize.height > 0.f);
+        auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
+        auto tmph = this->GetHeight() / m_2fTemplateSize.width;
+        switch (code)
+        {
+        case 0:
+            // do nothing
+            break;
+        case 1:
+            // this->m_2fTemplateSize.height > 0.f, only
+            this->m_2fZoom.width = this->m_2fZoom.height = tmph;
+            break;
+        case 2:
+            // this->m_2fTemplateSize.width > 0.f, only
+            this->m_2fZoom.height = this->m_2fZoom.width = tmpw;
+            break;
+        case 3:
+            // both
+            this->m_2fZoom.width =  tmpw;
+            this->m_2fZoom.height = tmph;
+            break;
+        }
+    }
+}
 
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept {
@@ -3713,18 +3751,38 @@ bool LongUI::UIList::debug_do_event(const LongUI::DebugEventInformation& info) c
 }
 
 // UI列表元素: 调试信息
-bool LongUI::UIListElement::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+bool LongUI::UIListLine::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
     {
     case LongUI::DebugInformation::Information_GetClassName:
-        info.str = L"UIListElement";
+        info.str = L"UIListLine";
         return true;
     case LongUI::DebugInformation::Information_GetFullClassName:
-        info.str = L"::LongUI::UIListElement";
+        info.str = L"::LongUI::UIListLine";
         return true;
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
-        return *info.iid == LongUI::GetIID<::LongUI::UIListElement>()
+        return *info.iid == LongUI::GetIID<::LongUI::UIListLine>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI列表头: 调试信息
+bool LongUI::UIListHeader::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIListHeader";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIListHeader";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIListHeader>()
             || Super::debug_do_event(info);
     default:
         break;
@@ -4186,11 +4244,11 @@ noexcept -> UIControl* {
 
 
 // ----------------------------------------------------------------------------
-// ---------------------------- UIListElement! --------------------------------
+// ---------------------------- UIListLine! --------------------------------
 // ----------------------------------------------------------------------------
 
 // UI列表元素控件: 构造函数
-LongUI::UIListElement::UIListElement(pugi::xml_node node) noexcept:Super(node){
+LongUI::UIListLine::UIListLine(pugi::xml_node node) noexcept:Super(node){
     if (node) {
 
     }
@@ -4198,12 +4256,12 @@ LongUI::UIListElement::UIListElement(pugi::xml_node node) noexcept:Super(node){
 
 
 // 清理UI列表元素控件
-void LongUI::UIListElement::Cleanup() noexcept {
+void LongUI::UIListLine::Cleanup() noexcept {
     delete this;
 }
 
 // UI列表元素控件: 创建控件
-auto LongUI::UIListElement::CreateControl(CreateEventType type, pugi::xml_node node) 
+auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node) 
 noexcept -> UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
@@ -4213,9 +4271,9 @@ noexcept -> UIControl* {
             UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
         // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListElement>(
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListLine>(
             node,
-            [=](void* p) noexcept { new(p) UIListElement(node); }
+            [=](void* p) noexcept { new(p) UIListLine(node); }
         );
         if (!pControl) {
             UIManager << DL_Error << L"alloc null" << LongUI::endl;
@@ -4233,6 +4291,55 @@ noexcept -> UIControl* {
 
 
 
+// ----------------------------------------------------------------------------
+// ----------------------------- UIListHeader ---------------------------------
+// ----------------------------------------------------------------------------
+
+// UI列表头控件: 构造函数
+LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
+    if (node) {
+
+    }
+}
+
+// UI列表头: 事件处理
+bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    UNREFERENCED_PARAMETER(arg);
+    return false;
+}
+
+// 清理UI列表头控件
+void LongUI::UIListHeader::Cleanup() noexcept {
+    delete this;
+}
+
+// 创建UI列表头
+auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node node) 
+noexcept -> UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case Type_CreateControl:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListHeader>(
+            node,
+            [=](void* p) noexcept { new(p) UIListHeader(node); }
+        );
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    }
+    return pControl;
+}
 
 
 // ----------------------------------------------------------------------------

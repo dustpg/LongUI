@@ -724,18 +724,38 @@ bool LongUI::UIList::debug_do_event(const LongUI::DebugEventInformation& info) c
 }
 
 // UI列表元素: 调试信息
-bool LongUI::UIListElement::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+bool LongUI::UIListLine::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
     {
     case LongUI::DebugInformation::Information_GetClassName:
-        info.str = L"UIListElement";
+        info.str = L"UIListLine";
         return true;
     case LongUI::DebugInformation::Information_GetFullClassName:
-        info.str = L"::LongUI::UIListElement";
+        info.str = L"::LongUI::UIListLine";
         return true;
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
-        return *info.iid == LongUI::GetIID<::LongUI::UIListElement>()
+        return *info.iid == LongUI::GetIID<::LongUI::UIListLine>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI列表头: 调试信息
+bool LongUI::UIListHeader::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIListHeader";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIListHeader";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIListHeader>()
             || Super::debug_do_event(info);
     default:
         break;

@@ -34,12 +34,12 @@
 ##<a name="jump_container"/>LongUI::UIContainer Xml属性
   
 相关类|注
-------|----
+-----|----
 类 | `LongUI::UIContainer`
 基 |  [UIControl](#jump_control)
   
 属性名|值类型|默认值|注
-------|------|------|--
+-----|------|-----|---
 `hostchild`|[bool](./longui-xml-value-type.md#jump_bool)|false|类似于基本控件的"renderparent", "hostchild"是针对容器的
 --|--|--|如果该容器的一个子控件需要渲染, 那么就需要渲染自己. 为了实现这个功能, 会**强行标记**子控件"renderparent"属性为true
 `leftcontrol`|[CC](./longui-xml-value-type.md#jump_cc)|(empty)|left marginal control **name** and **templateid** ,btw, `CC` for `CreateControl`

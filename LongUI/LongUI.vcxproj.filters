@@ -30,6 +30,12 @@
     <Filter Include="LongUI\Header\Core">
       <UniqueIdentifier>{b2b62a3b-fd2e-4f73-86f9-0520a03977e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LongUI\Source\XImpl">
+      <UniqueIdentifier>{37daa815-be43-4dff-9355-722b87cdc6e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Source\XUtil">
+      <UniqueIdentifier>{8c40abff-de0b-4b67-ae06-09ca642d82a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\longuiconf.h">
@@ -136,16 +142,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\ContainerImpl.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\ControlCore.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ControlImpl1.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\InlineObjImpl.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\main.cpp">
@@ -172,26 +169,35 @@
     <ClCompile Include="..\src\UISlider.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\UIUtil.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\UIUtil2.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\UIUtilDX.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\UIUtilSvg.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\UIWindow.cpp">
-      <Filter>LongUI\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ComponentImpl.cpp">
       <Filter>LongUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\_LongUIAllInOne.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ComponentImpl.cpp">
+      <Filter>LongUI\Source\XImpl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ContainerImpl.cpp">
+      <Filter>LongUI\Source\XImpl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ControlImpl1.cpp">
+      <Filter>LongUI\Source\XImpl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\InlineObjImpl.cpp">
+      <Filter>LongUI\Source\XImpl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtil.cpp">
+      <Filter>LongUI\Source\XUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtil2.cpp">
+      <Filter>LongUI\Source\XUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtilDX.cpp">
+      <Filter>LongUI\Source\XUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtilSvg.cpp">
+      <Filter>LongUI\Source\XUtil</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
