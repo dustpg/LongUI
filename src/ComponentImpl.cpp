@@ -36,7 +36,7 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
         if (length) {
             if ((str = attribute("context"))) {
                 m_buffer.NewSize(length);
-                renderer->CreateContextFromString(m_buffer.data, str);
+                renderer->CreateContextFromString(m_buffer.GetData(), str);
             }
         }
     }
@@ -266,20 +266,20 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_Up:
     case SelectionMode::Mode_Down:
     {
-        EzContainer::SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+        EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
         // 获取行指标
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
         this->layout->GetLineMetrics(
-            metrice_buffer.data,
+            metrice_buffer.GetData(),
             textMetrics.lineCount,
             &textMetrics.lineCount
             );
         // 获取行
         uint32_t line, linePosition;
         Component::EditaleText::GetLineFromPosition(
-            metrice_buffer.data,
-            metrice_buffer.data_length,
+            metrice_buffer.GetData(),
+            metrice_buffer.GetCount(),
             m_u32CaretPos,
             &line,
             &linePosition
@@ -288,12 +288,12 @@ auto LongUI::Component::EditaleText::SetSelection(
         if (mode == SelectionMode::Mode_Up) {
             if (line <= 0) break;
             line--;
-            linePosition -= metrice_buffer.data[line].length;
+            linePosition -= metrice_buffer[line].length;
         }
         else {
-            linePosition += metrice_buffer.data[line].length;
+            linePosition += metrice_buffer[line].length;
             line++;
-            if (line >= metrice_buffer.data_length)  break;
+            if (line >= metrice_buffer.GetCount())  break;
         }
         DWRITE_HIT_TEST_METRICS hitTestMetrics;
         float caretX, caretY, dummyX;
@@ -329,13 +329,13 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_RightWord:
     {
         // 计算所需字符串集
-        EzContainer::SimpleSmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
+        EzContainer::SmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
         UINT32 clusterCount;
         this->layout->GetClusterMetrics(nullptr, 0, &clusterCount);
         if (clusterCount == 0) break;
         // 重置大小
         metrice_buffer.NewSize(clusterCount);
-        this->layout->GetClusterMetrics(metrice_buffer.data, clusterCount, &clusterCount);
+        this->layout->GetClusterMetrics(metrice_buffer.GetData(), clusterCount, &clusterCount);
         m_u32CaretPos = absolute_position;
         UINT32 clusterPosition = 0;
         UINT32 oldCaretPosition = m_u32CaretPos;
@@ -344,8 +344,8 @@ auto LongUI::Component::EditaleText::SetSelection(
             m_u32CaretPos = 0;
             m_u32CaretPosOffset = 0; // leading edge
             for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
-                clusterPosition += metrice_buffer.data[cluster].length;
-                if (metrice_buffer.data[cluster].canWrapLineAfter) {
+                clusterPosition += metrice_buffer[cluster].length;
+                if (metrice_buffer[cluster].canWrapLineAfter) {
                     if (clusterPosition >= oldCaretPosition)
                         break;
                     // 刷新.
@@ -356,11 +356,11 @@ auto LongUI::Component::EditaleText::SetSelection(
         else {
             // 之后
             for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
-                UINT32 clusterLength = metrice_buffer.data[cluster].length;
+                UINT32 clusterLength = metrice_buffer[cluster].length;
                 m_u32CaretPos = clusterPosition;
                 m_u32CaretPosOffset = clusterLength; // trailing edge
                 if (clusterPosition >= oldCaretPosition &&
-                    metrice_buffer.data[cluster].canWrapLineAfter) {
+                    metrice_buffer[cluster].canWrapLineAfter) {
                     break;
                 }
                 clusterPosition += clusterLength;
@@ -373,19 +373,19 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_End:
     {
         // 获取预知的首位置或者末位置
-        EzContainer::SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+        EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
         // 获取行指标
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
         this->layout->GetLineMetrics(
-            metrice_buffer.data,
+            metrice_buffer.GetData(),
             textMetrics.lineCount,
             &textMetrics.lineCount
             );
         uint32_t line;
         Component::EditaleText::GetLineFromPosition(
-            metrice_buffer.data,
-            metrice_buffer.data_length,
+            metrice_buffer.GetData(),
+            metrice_buffer.GetCount(),
             m_u32CaretPos,
             &line,
             &m_u32CaretPos
@@ -393,8 +393,8 @@ auto LongUI::Component::EditaleText::SetSelection(
         m_u32CaretPosOffset = 0;
         if (mode == SelectionMode::Mode_End) {
             // 放置插入符号
-            UINT32 lineLength = metrice_buffer.data[line].length -
-                metrice_buffer.data[line].newlineLength;
+            UINT32 lineLength = metrice_buffer[line].length -
+                metrice_buffer[line].newlineLength;
             m_u32CaretPosOffset = std::min(lineLength, 1u);
             m_u32CaretPos += lineLength - m_u32CaretPosOffset;
             this->AlignCaretToNearestCluster(true);
@@ -747,7 +747,7 @@ void LongUI::Component::EditaleText::OnLButtonDown(float x, float y, bool shfit_
     // 记录点击位置
     m_ptStart = { x, y };
     // 选择区中?
-    if (m_metriceBuffer.data_length) {
+    if (m_bufMetrice.GetCount()) {
         // 计算
         BOOL trailin, inside;
         DWRITE_HIT_TEST_METRICS caret_metrics;
@@ -885,18 +885,16 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
 #ifdef _DEBUG
     if (m_pHost->debug_this) {
         UIManager << DL_Log
-            << "m_metriceBuffer.data_length: "
-            << long(m_metriceBuffer.data_length)
+            << "m_bufMetrice.data_length: "
+            << long(m_bufMetrice.GetCount())
             << LongUI::endl;
     }
 #endif
     // 选择区域
-    if (m_metriceBuffer.data_length) { 
+    if (m_bufMetrice.GetCount()) { 
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
         // 遍历
-        for (auto itr = m_metriceBuffer.data;
-        itr != m_metriceBuffer.data + m_metriceBuffer.data_length; ++itr) {
-            const DWRITE_HIT_TEST_METRICS& htm = *itr;
+        for (const auto& htm : m_bufMetrice) {
             D2D1_RECT_F highlightRect = {
                 htm.left + x,
                 htm.top + y,
@@ -908,7 +906,7 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
     // 刻画字体
-    this->layout->Draw(m_buffer.data, m_pTextRenderer, x, y);
+    this->layout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
 }
 
 // 复制到 目标全局句柄
@@ -1050,7 +1048,7 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
     //UIManager << DL_Hint << "selection.length: " << long(selection.length) << endl;
     // 有选择的情况下
     if (selection.length == 0) {
-        m_metriceBuffer.data_length = 0;
+        m_bufMetrice.NewSize(0);
         return;
     };
     // 检查选择的区块数量
@@ -1065,7 +1063,7 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
         &actualHitTestCount
         );
     // 保证数据正确
-    m_metriceBuffer.NewSize(actualHitTestCount);
+    m_bufMetrice.NewSize(actualHitTestCount);
     if (!actualHitTestCount) return;
     // 正式获取
     this->layout->HitTestTextRange(
@@ -1073,8 +1071,8 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
         selection.length,
         0.f, // x
         0.f, // y
-        m_metriceBuffer.data,
-        m_metriceBuffer.data_length,
+        m_bufMetrice.GetData(),
+        m_bufMetrice.GetCount(),
         &actualHitTestCount
         );
 }
@@ -1150,7 +1148,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
             if (length) {
                 if ((str = attribute("context"))) {
                     m_buffer.NewSize(length);
-                    renderer->CreateContextFromString(m_buffer.data, str);
+                    renderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
                 }
             }
         }

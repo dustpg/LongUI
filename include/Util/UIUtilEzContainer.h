@@ -86,35 +86,63 @@ namespace LongUI {
         };
         // simple small buffer, use in dlmalloc
         template<typename T, uint32_t InitBufferSize>
-        struct SimpleSmallBuffer {
+        struct SmallBuffer {
             // constructor
-            SimpleSmallBuffer() noexcept {}
-            // data pointer
-            T*          data = this->buffer;
-            // data length
-            uint32_t    data_length = 0;
-            // buffer length
-            uint32_t    buffer_length = InitBufferSize;
-            // buffer array
-            T           buffer[InitBufferSize];
+            SmallBuffer() noexcept {}
+            // [] operator
+            template<typename T2>
+            auto& operator[](T2 index) noexcept { assert(index < m_cDataLength); return m_pData[index]; }
+            // get count
+            auto GetCount() const noexcept { return m_cDataLength; }
+            // get data
+            auto GetData() noexcept { return m_pData; }
+            // get data
+            auto GetData() const noexcept -> const T* { return m_pData; }
+            // get void* data
+            auto GetDataVoid() const noexcept { return reinterpret_cast<void*>(m_pData); }
+            // begin
+            auto begin() noexcept { return m_pData; }
+            // end
+            auto end() noexcept { return m_pData + m_cDataLength; }
+            // begin
+            auto begin() const noexcept -> const T* { return m_pData; }
+            // end
+            auto end() const noexcept -> const T* { return m_pData + m_cDataLength; }
+        public:
             // destructor 
-            ~SimpleSmallBuffer() noexcept {
-                if (data != buffer) {
-                    ::dlfree(data);
+            ~SmallBuffer() noexcept {
+                // release
+                if (m_pData && m_pData != m_buffer) {
+                    LongUI::SmallFree(m_pData);
+                    m_pData = nullptr;
                 }
             }
             // New Size
-            void __fastcall NewSize(uint32_t new_length) noexcept {
-                data_length = new_length;
-                if (new_length > buffer_length) {
-                    buffer_length = new_length + InitBufferSize / 2;
-                    if (data != buffer) {
-                        ::dlfree(data);
+            LongUINoinline void __fastcall NewSize(uint32_t new_length) noexcept {
+                m_cDataLength = new_length;
+                if (new_length > m_cBufferLength) {
+                    m_cBufferLength = new_length + InitBufferSize / 2;
+                    if (m_pData != m_buffer) {
+                        LongUI::SmallFree(m_pData);
                     }
-                    data = reinterpret_cast<T*>(::dlmalloc(sizeof(T)*buffer_length));
+                    m_pData = reinterpret_cast<T*>(LongUI::SmallAlloc(sizeof(T)*m_cBufferLength));
+                    if (!m_pData) {
+                        m_pData = m_buffer;
+                        m_cDataLength = InitBufferSize;
+                    }
                 }
             }
+        private:
+            // data pointer
+            T*          m_pData = m_buffer;
+            // data length
+            uint32_t    m_cDataLength = 0;
+            // buffer length
+            uint32_t    m_cBufferLength = InitBufferSize;
+            // buffer array
+            T           m_buffer[InitBufferSize];
         };
-        using ContextBuffer = SimpleSmallBuffer<size_t, 4>;
+        // buffer for context
+        using ContextBuffer = SmallBuffer<char, 4*4>;
     }
 }

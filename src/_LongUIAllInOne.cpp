@@ -39,7 +39,7 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
         if (length) {
             if ((str = attribute("context"))) {
                 m_buffer.NewSize(length);
-                renderer->CreateContextFromString(m_buffer.data, str);
+                renderer->CreateContextFromString(m_buffer.GetData(), str);
             }
         }
     }
@@ -269,20 +269,20 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_Up:
     case SelectionMode::Mode_Down:
     {
-        EzContainer::SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+        EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
         // 获取行指标
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
         this->layout->GetLineMetrics(
-            metrice_buffer.data,
+            metrice_buffer.GetData(),
             textMetrics.lineCount,
             &textMetrics.lineCount
             );
         // 获取行
         uint32_t line, linePosition;
         Component::EditaleText::GetLineFromPosition(
-            metrice_buffer.data,
-            metrice_buffer.data_length,
+            metrice_buffer.GetData(),
+            metrice_buffer.GetCount(),
             m_u32CaretPos,
             &line,
             &linePosition
@@ -291,12 +291,12 @@ auto LongUI::Component::EditaleText::SetSelection(
         if (mode == SelectionMode::Mode_Up) {
             if (line <= 0) break;
             line--;
-            linePosition -= metrice_buffer.data[line].length;
+            linePosition -= metrice_buffer[line].length;
         }
         else {
-            linePosition += metrice_buffer.data[line].length;
+            linePosition += metrice_buffer[line].length;
             line++;
-            if (line >= metrice_buffer.data_length)  break;
+            if (line >= metrice_buffer.GetCount())  break;
         }
         DWRITE_HIT_TEST_METRICS hitTestMetrics;
         float caretX, caretY, dummyX;
@@ -332,13 +332,13 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_RightWord:
     {
         // 计算所需字符串集
-        EzContainer::SimpleSmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
+        EzContainer::SmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
         UINT32 clusterCount;
         this->layout->GetClusterMetrics(nullptr, 0, &clusterCount);
         if (clusterCount == 0) break;
         // 重置大小
         metrice_buffer.NewSize(clusterCount);
-        this->layout->GetClusterMetrics(metrice_buffer.data, clusterCount, &clusterCount);
+        this->layout->GetClusterMetrics(metrice_buffer.GetData(), clusterCount, &clusterCount);
         m_u32CaretPos = absolute_position;
         UINT32 clusterPosition = 0;
         UINT32 oldCaretPosition = m_u32CaretPos;
@@ -347,8 +347,8 @@ auto LongUI::Component::EditaleText::SetSelection(
             m_u32CaretPos = 0;
             m_u32CaretPosOffset = 0; // leading edge
             for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
-                clusterPosition += metrice_buffer.data[cluster].length;
-                if (metrice_buffer.data[cluster].canWrapLineAfter) {
+                clusterPosition += metrice_buffer[cluster].length;
+                if (metrice_buffer[cluster].canWrapLineAfter) {
                     if (clusterPosition >= oldCaretPosition)
                         break;
                     // 刷新.
@@ -359,11 +359,11 @@ auto LongUI::Component::EditaleText::SetSelection(
         else {
             // 之后
             for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
-                UINT32 clusterLength = metrice_buffer.data[cluster].length;
+                UINT32 clusterLength = metrice_buffer[cluster].length;
                 m_u32CaretPos = clusterPosition;
                 m_u32CaretPosOffset = clusterLength; // trailing edge
                 if (clusterPosition >= oldCaretPosition &&
-                    metrice_buffer.data[cluster].canWrapLineAfter) {
+                    metrice_buffer[cluster].canWrapLineAfter) {
                     break;
                 }
                 clusterPosition += clusterLength;
@@ -376,19 +376,19 @@ auto LongUI::Component::EditaleText::SetSelection(
     case SelectionMode::Mode_End:
     {
         // 获取预知的首位置或者末位置
-        EzContainer::SimpleSmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+        EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
         // 获取行指标
         this->layout->GetMetrics(&textMetrics);
         metrice_buffer.NewSize(textMetrics.lineCount);
         this->layout->GetLineMetrics(
-            metrice_buffer.data,
+            metrice_buffer.GetData(),
             textMetrics.lineCount,
             &textMetrics.lineCount
             );
         uint32_t line;
         Component::EditaleText::GetLineFromPosition(
-            metrice_buffer.data,
-            metrice_buffer.data_length,
+            metrice_buffer.GetData(),
+            metrice_buffer.GetCount(),
             m_u32CaretPos,
             &line,
             &m_u32CaretPos
@@ -396,8 +396,8 @@ auto LongUI::Component::EditaleText::SetSelection(
         m_u32CaretPosOffset = 0;
         if (mode == SelectionMode::Mode_End) {
             // 放置插入符号
-            UINT32 lineLength = metrice_buffer.data[line].length -
-                metrice_buffer.data[line].newlineLength;
+            UINT32 lineLength = metrice_buffer[line].length -
+                metrice_buffer[line].newlineLength;
             m_u32CaretPosOffset = std::min(lineLength, 1u);
             m_u32CaretPos += lineLength - m_u32CaretPosOffset;
             this->AlignCaretToNearestCluster(true);
@@ -750,7 +750,7 @@ void LongUI::Component::EditaleText::OnLButtonDown(float x, float y, bool shfit_
     // 记录点击位置
     m_ptStart = { x, y };
     // 选择区中?
-    if (m_metriceBuffer.data_length) {
+    if (m_bufMetrice.GetCount()) {
         // 计算
         BOOL trailin, inside;
         DWRITE_HIT_TEST_METRICS caret_metrics;
@@ -888,18 +888,16 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
 #ifdef _DEBUG
     if (m_pHost->debug_this) {
         UIManager << DL_Log
-            << "m_metriceBuffer.data_length: "
-            << long(m_metriceBuffer.data_length)
+            << "m_bufMetrice.data_length: "
+            << long(m_bufMetrice.GetCount())
             << LongUI::endl;
     }
 #endif
     // 选择区域
-    if (m_metriceBuffer.data_length) { 
+    if (m_bufMetrice.GetCount()) { 
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
         // 遍历
-        for (auto itr = m_metriceBuffer.data;
-        itr != m_metriceBuffer.data + m_metriceBuffer.data_length; ++itr) {
-            const DWRITE_HIT_TEST_METRICS& htm = *itr;
+        for (const auto& htm : m_bufMetrice) {
             D2D1_RECT_F highlightRect = {
                 htm.left + x,
                 htm.top + y,
@@ -911,7 +909,7 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
     // 刻画字体
-    this->layout->Draw(m_buffer.data, m_pTextRenderer, x, y);
+    this->layout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
 }
 
 // 复制到 目标全局句柄
@@ -1053,7 +1051,7 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
     //UIManager << DL_Hint << "selection.length: " << long(selection.length) << endl;
     // 有选择的情况下
     if (selection.length == 0) {
-        m_metriceBuffer.data_length = 0;
+        m_bufMetrice.NewSize(0);
         return;
     };
     // 检查选择的区块数量
@@ -1068,7 +1066,7 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
         &actualHitTestCount
         );
     // 保证数据正确
-    m_metriceBuffer.NewSize(actualHitTestCount);
+    m_bufMetrice.NewSize(actualHitTestCount);
     if (!actualHitTestCount) return;
     // 正式获取
     this->layout->HitTestTextRange(
@@ -1076,8 +1074,8 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
         selection.length,
         0.f, // x
         0.f, // y
-        m_metriceBuffer.data,
-        m_metriceBuffer.data_length,
+        m_bufMetrice.GetData(),
+        m_bufMetrice.GetCount(),
         &actualHitTestCount
         );
 }
@@ -1153,7 +1151,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
             if (length) {
                 if ((str = attribute("context"))) {
                     m_buffer.NewSize(length);
-                    renderer->CreateContextFromString(m_buffer.data, str);
+                    renderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
                 }
             }
         }
@@ -4203,16 +4201,176 @@ void LongUI::UICheckBox::Cleanup() noexcept {
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
+    // TODO: 删除预测
     if (node) {
-
+        const char* str = nullptr;
+        // 行高度
+        if ((str = node.attribute("lineheight").value())) {
+            m_fLineHeight = LongUI::AtoF(str);
+        }
+        // 行模板
+        if ((str = node.attribute("lineheight").value())) {
+            assert(m_pLineTemplate == nullptr);
+            // 申请空间
+            m_pLineTemplate = LongUI::SmallAllocT(
+                m_pLineTemplate,
+                std::strlen(str) + 1
+                );
+            // 复制行模板数据
+            if (m_pLineTemplate) {
+                std::strcpy(m_pLineTemplate, str);
+            }
+        }
     }
 }
 
+// UI列表控件: 析构函数
+LongUI::UIList::~UIList() noexcept {
+    if (m_pLineTemplate) {
+        LongUI::SmallFree(m_pLineTemplate);
+        m_pLineTemplate = nullptr;
+    }
+}
+
+// 插入后
+inline void LongUI::UIList::after_insert(UIControl* child) noexcept {
+    UNREFERENCED_PARAMETER(child);
+
+    assert(!(child->flags & Flag_Floating) 
+        && "child of UIList cannot keep flag 'Flag_Floating'");
+    assert(!(child->flags & Flag_HeightFixed) 
+        && "child of UIList cannot keep flag 'Flag_WidthFixed'");
+}
+
+// 插入一个行模板
+void LongUI::UIList::InsertInlineTemplate(Iterator itr) noexcept {
+    // 模板无效却插入
+    if (!m_pLineTemplate) {
+        UIManager << DL_Warning << "insert inline-template: line -> null" << LongUI::endl;
+    }
+    auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(
+        Type_CreateControl, pugi::xml_node()));
+    if (ctrl) {
+        // 添加子控件
+        for (const auto& data : m_bufLineTemplate) {
+            ctrl->Insert(ctrl->end(), UIManager.CreateControl(data.id, data.func));
+        }
+        // 插入
+        this->Insert(itr, ctrl);
+    }
+    constexpr int a = sizeof(*this);
+}
+
+// 修改元素权重
+void LongUI::UIList::ChangeElementWights(float weights[]) noexcept {
+    for (auto cline : (*this)) {
+        auto line = longui_cast<UIListLine*>(cline);
+        auto index = 0u;
+        for (auto ele : (*line)) {
+            if (weights[index] >= 0.f) {
+                force_cast(ele->weight) = weights[index];
+            }
+            ++index;
+        }
+    }
+}
+
+// 设置元素数量
+void LongUI::UIList::SetElementCount(uint32_t length) noexcept {
+    auto old = m_bufLineTemplate.GetCount();
+    m_bufLineTemplate.NewSize(length);
+    // 变长了
+    if (old < m_bufLineTemplate.GetCount()) {
+        for (auto i = old; i < m_bufLineTemplate.GetCount(); ++i) {
+            m_bufLineTemplate[i].id = 0;
+            m_bufLineTemplate[i].func = UIText::CreateControl;
+        }
+    }
+}
+
+// 更新子控件布局
+void LongUI::UIList::Update() noexcept {
+    // 前向刷新
+    this->BeforeUpdate();
+    // 基本算法:
+    // 1. 去除浮动控件影响
+    // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
+    // 3. 计算实际高度/宽度
+    if (this->IsControlSizeChanged()) {
+        // 第二次
+        float index = 0.f;
+        for (auto ctrl : (*this)) {
+            // 设置控件高度
+            if (!(ctrl->flags & Flag_HeightFixed)) {
+                ctrl->SetHeight(m_fLineHeight);
+            }
+            // 不管如何, 修改!
+            ctrl->SetControlSizeChanged();
+            ctrl->SetLeft(0.f);
+            ctrl->SetTop(m_fLineHeight * index);
+            ++index;
+        }
+        // 设置
+        if (m_pHead) {
+            m_2fContentSize.width = this->GetWidth();
+        }
+        m_2fContentSize.height = m_fLineHeight * this->GetCount();
+        // 已经处理
+        this->ControlSizeChangeHandled();
+    }
+    // 父类刷新
+    Super::Update();
+}
 
 // 清理UI列表控件
 void LongUI::UIList::Cleanup() noexcept {
     delete this;
 }
+
+
+#ifdef LONGUI_UILIST_VECTOR
+// 插入后
+void LongUI::UIList::AfterInsert(UIControl* child) noexcept {
+    Super::AfterInsert(child);
+    this->after_insert(child);
+    try {
+        auto itr = m_controls.begin();
+        if (!child->next) {
+            auto itr = m_controls.end();
+        }
+        else if (child->prev) {
+            itr = std::find(m_controls.begin(), m_controls.end(), child->prev);
+        }
+        m_controls.insert(
+            std::find(m_controls.begin(), m_controls.end(), child->prev),
+            child
+            );
+    }
+    catch (...) {
+
+    }
+}
+
+// 移除后
+void LongUI::UIList::AfterRemove(UIControl* child) noexcept  {
+    Super::AfterRemove(child);
+    m_controls.erase(std::find(m_controls.begin(), m_controls.end(), child));
+}
+
+// 根据索引获取控件
+auto LongUI::UIList::GetAt(uint32_t index) const noexcept -> UIControl* {
+    assert(index < this->GetCount());
+    if (index < this->GetCount()) {
+        return static_cast<UIControl*>(m_controls.at(index));
+    }
+    return nullptr;
+}
+#else
+// 插入后
+void LongUI::UIList::AfterInsert(UIControl* child) noexcept  {
+    this->after_insert(child);
+}
+#endif
 
 // UI列表控件: 创建控件
 auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node) 
@@ -4592,11 +4750,14 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         // 添加默认控件创建函数
         this->RegisterControl(CreateNullControl, L"Null");
         this->RegisterControl(UIText::CreateControl, L"Text");
+        this->RegisterControl(UIList::CreateControl, L"List");
         this->RegisterControl(UISlider::CreateControl, L"Slider");
         this->RegisterControl(UIButton::CreateControl, L"Button");
+        this->RegisterControl(UIListLine::CreateControl, L"ListLine");
         this->RegisterControl(UICheckBox::CreateControl, L"CheckBox");
         this->RegisterControl(UIRichEdit::CreateControl, L"RichEdit");
         this->RegisterControl(UIEditBasic::CreateControl, L"Edit");
+        this->RegisterControl(UIListHeader::CreateControl, L"ListHeader");
         this->RegisterControl(UIScrollBarA::CreateControl, L"ScrollBarA");
         this->RegisterControl(UIScrollBarB::CreateControl, L"ScrollBarB");
         this->RegisterControl(UIVerticalLayout::CreateControl, L"VerticalLayout");

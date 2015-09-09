@@ -81,6 +81,12 @@ namespace LongUI {
     class UIList : public UIContainer {
         // super class
         using Super = UIContainer;
+        // weights buffer
+        //using WeightBuffer = EzContainer::SmallBuffer<float, 16>;
+        // linetemplate data
+        struct LINETEMPLATEDATA { CreateControlFunction func; size_t id; };
+        // line template buffer
+        using LineTemplateBuffer = EzContainer::SmallBuffer<LINETEMPLATEDATA, 16>;
     public:
         // update
         virtual void Update() noexcept override;
@@ -103,9 +109,11 @@ namespace LongUI {
 #endif
     public:
         // insert a line-template with inside string
-        void InsertInlineTemplate(Iterator itr) noexcept { this->InsertInlineTemplate(itr, m_pLineTemplate); }
-        // insert a line-template with outside string
-        void InsertInlineTemplate(Iterator itr, const char* line) noexcept;
+        void InsertInlineTemplate(Iterator itr) noexcept;
+        // change element weightw, less than 0.f means do not change
+        void ChangeElementWights(float weights[/*element count*/]) noexcept;
+        // set new elements count
+        void SetElementCount(uint32_t length)noexcept;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -120,6 +128,10 @@ namespace LongUI {
         float                   m_fLineHeight = 32.f;
         // elements count in each line
         uint32_t                m_cEleCountInLine = 0;
+        // element weights
+        //WeightBuffer            m_bufEleWeights;
+        // line template
+        LineTemplateBuffer      m_bufLineTemplate;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

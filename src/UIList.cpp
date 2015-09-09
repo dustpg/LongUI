@@ -38,6 +38,8 @@ LongUI::UIList::~UIList() noexcept {
 
 // 插入后
 inline void LongUI::UIList::after_insert(UIControl* child) noexcept {
+    UNREFERENCED_PARAMETER(child);
+
     assert(!(child->flags & Flag_Floating) 
         && "child of UIList cannot keep flag 'Flag_Floating'");
     assert(!(child->flags & Flag_HeightFixed) 
@@ -45,13 +47,48 @@ inline void LongUI::UIList::after_insert(UIControl* child) noexcept {
 }
 
 // 插入一个行模板
-void LongUI::UIList::InsertInlineTemplate(Iterator itr, const char* line) noexcept {
-    UIManager << DL_Warning << "insert inline-template: line -> null" << LongUI::endl;
+void LongUI::UIList::InsertInlineTemplate(Iterator itr) noexcept {
+    // 模板无效却插入
+    if (!m_pLineTemplate) {
+        UIManager << DL_Warning << "insert inline-template: line -> null" << LongUI::endl;
+    }
     auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(
         Type_CreateControl, pugi::xml_node()));
     if (ctrl) {
+        // 添加子控件
+        for (const auto& data : m_bufLineTemplate) {
+            ctrl->Insert(ctrl->end(), UIManager.CreateControl(data.id, data.func));
+        }
         // 插入
         this->Insert(itr, ctrl);
+    }
+    constexpr int a = sizeof(*this);
+}
+
+// 修改元素权重
+void LongUI::UIList::ChangeElementWights(float weights[]) noexcept {
+    for (auto cline : (*this)) {
+        auto line = longui_cast<UIListLine*>(cline);
+        auto index = 0u;
+        for (auto ele : (*line)) {
+            if (weights[index] >= 0.f) {
+                force_cast(ele->weight) = weights[index];
+            }
+            ++index;
+        }
+    }
+}
+
+// 设置元素数量
+void LongUI::UIList::SetElementCount(uint32_t length) noexcept {
+    auto old = m_bufLineTemplate.GetCount();
+    m_bufLineTemplate.NewSize(length);
+    // 变长了
+    if (old < m_bufLineTemplate.GetCount()) {
+        for (auto i = old; i < m_bufLineTemplate.GetCount(); ++i) {
+            m_bufLineTemplate[i].id = 0;
+            m_bufLineTemplate[i].func = UIText::CreateControl;
+        }
     }
 }
 

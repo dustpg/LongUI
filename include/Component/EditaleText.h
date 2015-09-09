@@ -34,7 +34,7 @@ namespace LongUI {
             // 简写
             using HitTestMetrics = DWRITE_HIT_TEST_METRICS;
             // 缓冲区
-            using MetricsBuffer = EzContainer::SimpleSmallBuffer<HitTestMetrics, 8>;
+            using MetricsBuffer = EzContainer::SmallBuffer<HitTestMetrics, 8>;
             // 缓冲区
             using CtxBuffer = EzContainer::ContextBuffer;
         public:
@@ -90,9 +90,9 @@ namespace LongUI {
             static void __fastcall CopyRangedProperties(IDWriteTextLayout*, IDWriteTextLayout*, uint32_t, uint32_t, uint32_t, bool = false) noexcept;
         public: // 外部设置区
             // get hittest
-            auto GetHitTestMetrics() noexcept { return m_metriceBuffer.data; }
+            auto GetHitTestMetrics() noexcept { return m_bufMetrice.GetData(); }
             // get hittest's length 
-            auto GetHitTestLength() noexcept { return m_metriceBuffer.data_length; }
+            auto GetHitTestLength() noexcept { return m_bufMetrice.GetCount(); }
             // c-style string
             auto c_str() const noexcept { return m_string.c_str(); }
             /// <summary>
@@ -233,7 +233,7 @@ namespace LongUI {
             // stg medium
             STGMEDIUM               m_recentMedium;
             // hit test metrics
-            MetricsBuffer           m_metriceBuffer;
+            MetricsBuffer           m_bufMetrice;
             // the anchor of caret 光标锚位 -- 当前位置
             uint32_t                m_u32CaretAnchor = 0;
             // the position of caret 光标位置 -- 起始位置

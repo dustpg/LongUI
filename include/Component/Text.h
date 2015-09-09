@@ -68,7 +68,7 @@ namespace LongUI { namespace Component {
         // render it
         auto Render(float x, float y) const noexcept {
             m_pTextRenderer->basic_color.color = m_basicColor;
-            m_pLayout->Draw(m_buffer.data, m_pTextRenderer, x, y);
+            m_pLayout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
         }
     private:
         // layout of it
