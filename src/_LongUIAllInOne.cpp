@@ -2347,8 +2347,8 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
             const char* str = nullptr;
             // 获取指定属性值
             if ((str = node.attribute(attname[i]).value())) {
-                char buffer[LongUIStringLength];
-                assert(::strlen(str) < LongUIStringLength && "buffer too small");
+                char buffer[LongUIStringFixedLength];
+                assert(::strlen(str) < LongUIStringFixedLength && "buffer too small");
                 // 获取逗号位置
                 auto strtempid = std::strchr(str, ',');
                 if (strtempid) {
@@ -3024,9 +3024,6 @@ bool LongUI::UIContainer::RemoveJust(Iterator itr) noexcept {
 }
  
                    
-
-#define public_member this->
-#define private_method this->
 
 // ----------------------------------------------------------------------------
 // **** UIText
@@ -4571,7 +4568,6 @@ void LongUI::CUIMenu::Show(HWND parent, POINT* OPTIONAL pos) noexcept {
 // node.attribute($1).value()
 
 #define LONGUI_D3D_DEBUG
-#define LONGUI_RENDER_IN_UNSAFE_MODE
 //#define LONGUI_RENDER_IN_STD_THREAD
 
 // CUIManager 初始化
@@ -4590,6 +4586,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     }
     // 获取信息
     force_cast(this->configure) = config;
+    // 获取flag
+    this->flag = this->configure->GetConfigureFlag();
     // 获取资源加载器
     config->CreateInterface(LongUI_IID_PV_ARGS(m_pResourceLoader));
     // 获取脚本
@@ -5380,12 +5378,10 @@ auto LongUI::CUIManager::set_control_template_string() noexcept->HRESULT {
 
 // UIManager 创建设备相关资源
 auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
-    // 检查渲染配置
-    bool cpu_rendering = this->configure->IsRenderByCPU();
     // 待用适配器
     IDXGIAdapter1* ready2use = nullptr;
     // 枚举显示适配器
-    if (!cpu_rendering) {
+    if (!(this->flag & IUIConfigure::Flag_RenderByCPU)) {
         IDXGIFactory1* temp_factory = nullptr;
         // 创建一个临时工程
         register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
@@ -5438,7 +5434,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             // 设置为渲染
             ready2use,
             // 根据情况选择类型
-            cpu_rendering ? D3D_DRIVER_TYPE_WARP : 
+            (this->flag & IUIConfigure::Flag_RenderByCPU) ? D3D_DRIVER_TYPE_WARP : 
                 (ready2use ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE),
             // 没有软件接口
             nullptr,
@@ -8986,7 +8982,7 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     // 内存不足
     if (!this->m_pString) {
         this->m_pString = m_aDataStatic;
-        m_cBufferLength = LongUIStringLength;
+        m_cBufferLength = LongUIStringFixedLength;
         m_aDataStatic[0] = wchar_t(0);
     }
     // 未知则计算
@@ -9016,7 +9012,7 @@ void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
     // 内存不足
     if (!this->m_pString) {
         this->m_pString = m_aDataStatic;
-        m_cBufferLength = LongUIStringLength;
+        m_cBufferLength = LongUIStringFixedLength;
         m_aDataStatic[0] = wchar_t(0);
     }
     // 未知则计算
@@ -9233,10 +9229,10 @@ void LongUI::CUIString::Format(const wchar_t* format, ...) noexcept {
 void LongUI::CUIString::OnOOM() noexcept {
     constexpr auto length = 13ui32;
     // 内存
-    if (LongUIStringLength > length) {
+    if (LongUIStringFixedLength > length) {
         this->Set(L"Out of Memory", length);
     }
-    else if(LongUIStringLength > 3) {
+    else if(LongUIStringFixedLength > 3) {
         this->Set(L"OOM", 3);
     }
     // 显示错误
@@ -10489,6 +10485,66 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
 }
 
                    
+
+// 创建 CC
+auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint32_t {
+    assert(str && "bad argument");
+    uint32_t count = 0;
+    // 缓存
+    char temp_buffer[LongUIStringFixedLength * 2];
+    // 正式解析
+    const char* word_begin = nullptr;
+    for (auto itr = str;; ++itr) {
+        // 获取
+        register char ch = *itr;
+        // 段结束?
+        if (ch == ',' || !ch) {
+            assert(word_begin && "bad string");
+            // 有效
+            if (word_begin && data) {
+                CC& cc = data[count - 1];
+                size_t length = size_t(itr - word_begin);
+                assert(length < lengthof(temp_buffer));
+                ::memcpy(temp_buffer, word_begin, length);
+                temp_buffer[length] = 0;
+                // 数字?
+                if (word_begin[0] >= '0' && word_begin[0] <= '9') {
+                    assert(!cc.id && "'cc.id' had been set, maybe more than 1 consecutive-id");
+                    cc.id = size_t(LongUI::AtoI(temp_buffer));
+                }
+                // 英文
+                else {
+                    assert(!cc.func && "'cc.func' had been set");
+                    cc.func = UIManager.GetCreateFunc(temp_buffer);
+                    assert(cc.func && "bad func address");
+                }
+            }
+            // 清零
+            word_begin = nullptr;
+            // 看看
+            if(ch) continue;
+            else break;
+        }
+        // 空白
+        else if (white_space(ch)) {
+            continue;
+        }
+        // 无效字段起始?
+        if (!word_begin) {
+            word_begin = itr;
+            // 查看
+            if ((word_begin[0] >= 'A' && word_begin[0] <= 'Z') ||
+                word_begin[0] >= 'a' && word_begin[0] <= 'z') {
+                if (data) {
+                    data[count].func = nullptr;
+                    data[count].id = 0;
+                }
+                ++count;
+            }
+        }
+    }
+    return count;
+}
 
 // 命名空间
 namespace LongUI { namespace Helper {

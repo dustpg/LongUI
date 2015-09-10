@@ -505,8 +505,8 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
             const char* str = nullptr;
             // 获取指定属性值
             if ((str = node.attribute(attname[i]).value())) {
-                char buffer[LongUIStringLength];
-                assert(::strlen(str) < LongUIStringLength && "buffer too small");
+                char buffer[LongUIStringFixedLength];
+                assert(::strlen(str) < LongUIStringFixedLength && "buffer too small");
                 // 获取逗号位置
                 auto strtempid = std::strchr(str, ',');
                 if (strtempid) {

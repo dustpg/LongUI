@@ -196,9 +196,9 @@ namespace LongUI{
         // 字符串长度
         uint32_t            m_cLength = 0;
         // 缓冲区长度
-        uint32_t            m_cBufferLength = LongUIStringLength;
+        uint32_t            m_cBufferLength = LongUIStringFixedLength;
         // 静态数据
-        wchar_t             m_aDataStatic[LongUIStringLength];
+        wchar_t             m_aDataStatic[LongUIStringFixedLength];
     private:
         // alloc buffer in safe way
         static inline auto alloc_bufer(uint32_t buffer_length) {
@@ -216,7 +216,7 @@ namespace LongUI{
         // choose a nice length for buffer
         static auto nice_buffer_length(uint32_t target) {
             auto sizex2 = sizeof(void*) * 2;
-            auto temp = target + (target + LongUIStringLength) / 2 + sizex2;
+            auto temp = target + (target + LongUIStringFixedLength) / 2 + sizex2;
             return temp - temp % sizex2;
         }
         // free buffer in safe way

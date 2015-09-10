@@ -35,7 +35,7 @@ namespace LongUI {
         using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* parent, void* buffer)->UIWindow*;
     public: 
         // Windows Version
-        enum WindowsVersion : size_t {
+        enum WindowsVersion : uint32_t {
             // win7 sp1
             Version_Win7SP1 = 0,
             // Win8,
@@ -199,6 +199,8 @@ namespace LongUI {
         IUIConfigure*        const      configure = nullptr;
         // windows version
         WindowsVersion       const      version = WindowsVersion::Version_Win8;
+        // flag for configure
+        IUIConfigure::ConfigureFlag     flag = IUIConfigure::Flag_None;
     private:
         // helper for drop target
         IDropTargetHelper*              m_pDropTargetHelper = nullptr;
@@ -371,7 +373,7 @@ namespace LongUI {
         // overload << operator for wchar_t
         CUIManager& operator<< (const wchar_t ch) noexcept { wchar_t chs[2] = { ch, 0 }; this->OutputNoFlush(m_lastLevel, chs); return *this; }
         // output debug string with flush
-        inline void Output(DebugStringLevel l, const wchar_t* s) noexcept { this->configure->OutputDebugStringW(l, s, true); }
+        inline void Output(DebugStringLevel l, const wchar_t* s) noexcept { if(this->flag & IUIConfigure::Flag_OutputDebugString) this->configure->OutputDebugStringW(l, s, true); }
         // output debug string with flush
         void Output(DebugStringLevel l, const char* s) noexcept;
     private:

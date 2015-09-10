@@ -289,12 +289,6 @@ namespace LongUI {
         return IID_LongUI_UIWindow;
     }
 #endif
-    // operator | for UIWindow::WindowFlag
-    static auto operator |(UIWindow::WindowFlag a, UIWindow::WindowFlag b) noexcept {
-        return static_cast<UIWindow::WindowFlag>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-    };
-    // operator |= for UIWindow::WindowFlag
-    static auto&operator |=(UIWindow::WindowFlag& a, UIWindow::WindowFlag b) noexcept {
-        return a = a | b;
-    };
+    // operator for UIWindow::WindowFlag
+    LONGUI_DEFINE_ENUM_FLAG_OPERATORS(UIWindow::WindowFlag, uint8_t);
 }

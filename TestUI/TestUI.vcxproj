@@ -91,7 +91,8 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <AdditionalDependencies>longui.lib;dlmalloc.lib;pugixml.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -105,7 +106,9 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
+      <OmitFramePointers>false</OmitFramePointers>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <AdditionalDependencies>longui.lib;dlmalloc.lib;pugixml.lib;%(AdditionalDependencies)</AdditionalDependencies>

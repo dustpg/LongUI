@@ -29,6 +29,10 @@
 
 // longui::helper namespace
 namespace LongUI { namespace Helper {
+    // CC for CreateControl
+    struct CC { CreateControlFunction func; size_t id; };
+    // make cc, if data -> null, just return count
+    auto MakeCC(const char* str, CC* OPTIONAL data = nullptr) noexcept->uint32_t;
     // ------------------- Windows COM Interface Helper -----------------------------
     // counter based COM Interface, 0 , wiil be deleted
     template <typename InterfaceChain, typename CounterType = std::atomic<size_t>>

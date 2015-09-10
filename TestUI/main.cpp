@@ -501,6 +501,7 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
+
 // longui::demo namespace
 namespace LongUI { namespace Demo {
     // config
@@ -511,8 +512,10 @@ namespace LongUI { namespace Demo {
         // ctor
         MyConfig() : Super(UIManager) { }
         // return true, if use cpu rendering
-        virtual auto IsRenderByCPU() noexcept->bool override {
-            return cpu_rendering;
+        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
+            auto base = IUIConfigure::Flag_OutputDebugString;
+            //auto base = IUIConfigure::Flag_None;
+            return base | (cpu_rendering ? IUIConfigure::Flag_RenderByCPU : IUIConfigure::Flag_None); ;
         }
         bool    cpu_rendering = true;
     };

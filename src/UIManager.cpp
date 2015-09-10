@@ -4,7 +4,6 @@
 // node.attribute($1).value()
 
 #define LONGUI_D3D_DEBUG
-#define LONGUI_RENDER_IN_UNSAFE_MODE
 //#define LONGUI_RENDER_IN_STD_THREAD
 
 // CUIManager 初始化
@@ -23,6 +22,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     }
     // 获取信息
     force_cast(this->configure) = config;
+    // 获取flag
+    this->flag = this->configure->GetConfigureFlag();
     // 获取资源加载器
     config->CreateInterface(LongUI_IID_PV_ARGS(m_pResourceLoader));
     // 获取脚本
@@ -813,12 +814,10 @@ auto LongUI::CUIManager::set_control_template_string() noexcept->HRESULT {
 
 // UIManager 创建设备相关资源
 auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
-    // 检查渲染配置
-    bool cpu_rendering = this->configure->IsRenderByCPU();
     // 待用适配器
     IDXGIAdapter1* ready2use = nullptr;
     // 枚举显示适配器
-    if (!cpu_rendering) {
+    if (!(this->flag & IUIConfigure::Flag_RenderByCPU)) {
         IDXGIFactory1* temp_factory = nullptr;
         // 创建一个临时工程
         register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
@@ -871,7 +870,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             // 设置为渲染
             ready2use,
             // 根据情况选择类型
-            cpu_rendering ? D3D_DRIVER_TYPE_WARP : 
+            (this->flag & IUIConfigure::Flag_RenderByCPU) ? D3D_DRIVER_TYPE_WARP : 
                 (ready2use ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE),
             // 没有软件接口
             nullptr,

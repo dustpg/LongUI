@@ -6,7 +6,6 @@
 // dlmalloc
 #define USE_DL_PREFIX
 #include "../3rdparty/dlmalloc/dlmalloc.h"
-
 // longui namespace
 namespace LongUI {
     // alloc for normal space
@@ -146,8 +145,8 @@ namespace LongUI {
     static constexpr float          LongUIDefaultTextFontSize = 22.f;
     // LongUI 常量
     enum EnumUIConstant : uint32_t {
-        // LongUI String Fixed Buffer Length [fixed buffer length]
-        LongUIStringLength = 32,
+        // LongUI CUIString Fixed Buffer Length [fixed buffer length]
+        LongUIStringFixedLength = 64,
         // LongUI Control Tree Max Depth [fixed buffer length]
         LongUITreeMaxDepth = 256,
         // LongUI String Buffer Length [fixed buffer length]

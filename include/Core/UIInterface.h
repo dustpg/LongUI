@@ -130,6 +130,23 @@ namespace LongUI {
     class CUISubEventCaller;
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
+        // flag
+        enum ConfigureFlag : uint32_t {
+            // no flag
+            Flag_None = 0,
+            // all flags
+            Flag_All = uint32_t(-1),
+            // flag for CPU rendering, if not, will call IUIInterface::ChooseAdapter
+            Flag_RenderByCPU = 0 << 1,
+            // output debug string?
+            Flag_OutputDebugString = 1 << 1,
+        };
+    public:
+        /// <summary>
+        /// Get flags for configure
+        /// </summary>
+        /// <returns>flags for configure</returns>
+        virtual auto GetConfigureFlag() noexcept->ConfigureFlag;
         /// <summary>
         /// Creates the interfaces.
         /// </summary>
@@ -160,17 +177,12 @@ namespace LongUI {
         /// <remarks>call CUIManager::RegisterControl to add control class</remarks>
         virtual auto AddCustomControl() noexcept->void = 0;
         /// <summary>
-        /// is render by cpu?
-        /// </summary>
-        /// <returns>return true for WARP</returns>
-        virtual auto IsRenderByCPU() noexcept->bool = 0;
-        /// <summary>
         /// Chooses the video adapter.
         /// </summary>
         /// <param name="adapters">The adapter array</param>
         /// <param name="length">The length of adapters</param>
         /// <remarks>
-        /// if "IsRenderByCPU" return false, you should choose a video card,return the index.
+        /// if set "Flag_RenderByCPU", you should choose a video card,return the index.
         /// if return code out of range, will set by default(null pointer adapter)
         /// btw, in the adapter list, also include the WARP-adapter
         /// </remarks>
@@ -217,5 +229,7 @@ namespace LongUI {
         // redo
         virtual void Redo() noexcept = 0;
     };
+    // operator for UIWindow::WindowFlag
+    LONGUI_DEFINE_ENUM_FLAG_OPERATORS(IUIConfigure::ConfigureFlag, uint32_t);
 }
 

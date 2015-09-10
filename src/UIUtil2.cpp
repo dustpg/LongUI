@@ -1,5 +1,65 @@
 ﻿#include "LongUI.h"
 
+// 创建 CC
+auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint32_t {
+    assert(str && "bad argument");
+    uint32_t count = 0;
+    // 缓存
+    char temp_buffer[LongUIStringFixedLength * 2];
+    // 正式解析
+    const char* word_begin = nullptr;
+    for (auto itr = str;; ++itr) {
+        // 获取
+        register char ch = *itr;
+        // 段结束?
+        if (ch == ',' || !ch) {
+            assert(word_begin && "bad string");
+            // 有效
+            if (word_begin && data) {
+                CC& cc = data[count - 1];
+                size_t length = size_t(itr - word_begin);
+                assert(length < lengthof(temp_buffer));
+                ::memcpy(temp_buffer, word_begin, length);
+                temp_buffer[length] = 0;
+                // 数字?
+                if (word_begin[0] >= '0' && word_begin[0] <= '9') {
+                    assert(!cc.id && "'cc.id' had been set, maybe more than 1 consecutive-id");
+                    cc.id = size_t(LongUI::AtoI(temp_buffer));
+                }
+                // 英文
+                else {
+                    assert(!cc.func && "'cc.func' had been set");
+                    cc.func = UIManager.GetCreateFunc(temp_buffer);
+                    assert(cc.func && "bad func address");
+                }
+            }
+            // 清零
+            word_begin = nullptr;
+            // 看看
+            if(ch) continue;
+            else break;
+        }
+        // 空白
+        else if (white_space(ch)) {
+            continue;
+        }
+        // 无效字段起始?
+        if (!word_begin) {
+            word_begin = itr;
+            // 查看
+            if ((word_begin[0] >= 'A' && word_begin[0] <= 'Z') ||
+                word_begin[0] >= 'a' && word_begin[0] <= 'z') {
+                if (data) {
+                    data[count].func = nullptr;
+                    data[count].id = 0;
+                }
+                ++count;
+            }
+        }
+    }
+    return count;
+}
+
 // 命名空间
 namespace LongUI { namespace Helper {
     // 创建浮点

@@ -496,7 +496,7 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     // 内存不足
     if (!this->m_pString) {
         this->m_pString = m_aDataStatic;
-        m_cBufferLength = LongUIStringLength;
+        m_cBufferLength = LongUIStringFixedLength;
         m_aDataStatic[0] = wchar_t(0);
     }
     // 未知则计算
@@ -526,7 +526,7 @@ void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
     // 内存不足
     if (!this->m_pString) {
         this->m_pString = m_aDataStatic;
-        m_cBufferLength = LongUIStringLength;
+        m_cBufferLength = LongUIStringFixedLength;
         m_aDataStatic[0] = wchar_t(0);
     }
     // 未知则计算
@@ -743,10 +743,10 @@ void LongUI::CUIString::Format(const wchar_t* format, ...) noexcept {
 void LongUI::CUIString::OnOOM() noexcept {
     constexpr auto length = 13ui32;
     // 内存
-    if (LongUIStringLength > length) {
+    if (LongUIStringFixedLength > length) {
         this->Set(L"Out of Memory", length);
     }
-    else if(LongUIStringLength > 3) {
+    else if(LongUIStringFixedLength > 3) {
         this->Set(L"OOM", 3);
     }
     // 显示错误

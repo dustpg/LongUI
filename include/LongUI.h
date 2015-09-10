@@ -46,7 +46,7 @@
 
 
 template<class Interface>
-inline auto SafeRelease(Interface *&pInterfaceToRelease) {
+static inline auto SafeRelease(Interface *&pInterfaceToRelease) {
     if (pInterfaceToRelease) {
         pInterfaceToRelease->Release();
         pInterfaceToRelease = nullptr;
@@ -54,12 +54,16 @@ inline auto SafeRelease(Interface *&pInterfaceToRelease) {
 }
 
 template<class Interface>
-inline auto SafeAcquire(Interface *pInterfaceToRelease) {
+static inline auto SafeAcquire(Interface *pInterfaceToRelease) {
     if (pInterfaceToRelease) {
         pInterfaceToRelease->AddRef();
     }
     return pInterfaceToRelease;
 }
+
+#define LONGUI_DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE, INTTYPE) \
+    static auto operator |(ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b)); };\
+    static auto&operator |=(ENUMTYPE& a, ENUMTYPE b) noexcept { return a = a | b; };
 
 #ifndef OUT
 #define OUT
@@ -248,14 +252,8 @@ namespace LongUI {
         /// </remarks>
         Flag_Container_ZoomMarginalControl = 1 << 19,
     };
-    // operator | for LongUIFlag
-    static auto operator |(LongUIFlag a, LongUIFlag b) noexcept {
-        return static_cast<LongUIFlag>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-    };
-    // operator |= for LongUIFlag
-    static auto&operator |=(LongUIFlag& a, LongUIFlag b) noexcept {
-        return a = a | b;
-    };
+    // operator float LongUIFlag
+    LONGUI_DEFINE_ENUM_FLAG_OPERATORS(LongUIFlag, uint32_t);
     // Control Status
     enum ControlStatus : uint16_t {
         Status_Disabled = 0,    // 禁用状态

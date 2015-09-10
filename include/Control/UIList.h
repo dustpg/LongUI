@@ -83,10 +83,8 @@ namespace LongUI {
         using Super = UIContainer;
         // weights buffer
         //using WeightBuffer = EzContainer::SmallBuffer<float, 16>;
-        // linetemplate data
-        struct LINETEMPLATEDATA { CreateControlFunction func; size_t id; };
         // line template buffer
-        using LineTemplateBuffer = EzContainer::SmallBuffer<LINETEMPLATEDATA, 16>;
+        using LineTemplateBuffer = EzContainer::SmallBuffer<Helper::CC, 16>;
     public:
         // update
         virtual void Update() noexcept override;

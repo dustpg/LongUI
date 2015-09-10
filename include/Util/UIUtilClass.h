@@ -342,6 +342,8 @@ namespace LongUI {
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
+        // get flags for configure
+        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { return IUIConfigure::Flag_OutputDebugString; }
         // create interface
         virtual auto CreateInterface(const IID& iid, void** obj)noexcept->HRESULT override;
         // get null-end string for template for creating control
@@ -350,8 +352,6 @@ namespace LongUI {
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
         // add all custom controls
         virtual auto AddCustomControl() noexcept->void override {};
-        // return true, if use cpu rendering
-        virtual auto IsRenderByCPU() noexcept->bool override { return false; }
         // if use gpu render, you should choose a video card, return the index
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[], const size_t length) noexcept->size_t override;
         // SetSubEventCallBack for custom control
