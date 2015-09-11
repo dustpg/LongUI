@@ -9,7 +9,8 @@ value type|implement|note|e.g.
 <a name="jump_floatx6"/>floatx6|`LongUI::Helper::MakeFloats`|array for 6 floats| ...
 <a name="jump_stops"/>stops|locally, `LongUI::Helper::MakeColor`|array for any stops| `[pos0, color0] [pos1, color1]`
 <a name="jump_string"/>string|`LongUI::Helper::MakeString` if to **wchar_t* **|string, utf-8 only| `="_(:3」∠)_"`
-<a name="jump_cc"/>CC|`std::strchr`,`LongUI::AtoI`|"CC" for "CreateControl", `name[, templateid]`| `="ScrollBarA"`, `="ScrollBarB, 2"`
+<a name="jump_cc"/>CC x1|`LongUI::Helper::MakeCC`|`name[, templateid]`| `="ScrollBarA"`, `="ScrollBarB, 2"`
+<a name="jump_cc"/>CC xN|`LongUI::Helper::MakeCC`|`name[, templateid] ...`| `="Text, Text, 2, Text, 2"`,
 <a name="jump_color"/>color|`LongUI::Helper::MakeColor`|color, `#RGB`, `#RRGGBB`, `#AARRGGBB`, `floatx4 in RGBA` | `="#FFF"`, `="#ABCDEF"`, `="#88ABCDEF"`, `="0.0, 1.0, 0.0, 1.0"`
   
 ## LongUI XML Value Type List - Enum

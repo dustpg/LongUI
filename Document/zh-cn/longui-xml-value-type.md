@@ -10,7 +10,8 @@
 <a name="jump_floatx6"/>floatx6|`LongUI::Helper::MakeFloats`|6浮点数组| ...
 <a name="jump_stops"/>stops|locally, `LongUI::Helper::MakeColor`|array for any stops| `[pos0, color0] [pos1, color1]`
 <a name="jump_string"/>string|`LongUI::Helper::MakeString`(如果转换成宽字符串)|utf-8 数组| `="_(:3」∠)_"`
-<a name="jump_cc"/>CC|`std::strchr`,`LongUI::AtoI`|"CC" for "CreateControl", `name[, templateid]`| `="ScrollBarA"`, `="ScrollBarB, 2"`
+<a name="jump_cc"/>CC x1|`LongUI::Helper::MakeCC`|`name[, templateid]`| `="ScrollBarA"`, `="ScrollBarB, 2"`
+<a name="jump_cc"/>CC xN|`LongUI::Helper::MakeCC`|`name[, templateid] ...`| `="Text, Text, 2, Text, 2"`,
 <a name="jump_color"/>color|`LongUI::Helper::MakeColor`|颜色, `#RGB`, `#RRGGBB`, `#AARRGGBB`, `floatx4 in RGBA` | `="#FFF"`, `="#ABCDEF"`, `="#88ABCDEF"`, `="0.0, 1.0, 0.0, 1.0"`
   
 ## LongUI Xml值 类型列表 - 枚举  

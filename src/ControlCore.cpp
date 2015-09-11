@@ -505,28 +505,18 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
             const char* str = nullptr;
             // 获取指定属性值
             if ((str = node.attribute(attname[i]).value())) {
-                char buffer[LongUIStringFixedLength];
-                assert(::strlen(str) < LongUIStringFixedLength && "buffer too small");
-                // 获取逗号位置
-                auto strtempid = std::strchr(str, ',');
-                if (strtempid) {
-                    auto length = strtempid - str;
-                    ::memcpy(buffer, str, length);
-                    buffer[length] = char(0);
-                }
-                else {
-                    ::strcpy(buffer, str);
-                }
-                // 获取类ID
-                auto create_control_func = UIManager.GetCreateFunc(buffer);
-                assert(create_control_func && "none");
-                if (create_control_func) {
-                    // 检查模板ID
-                    auto tid = strtempid ? LongUI::AtoI(strtempid + 1) : 0;
+                Helper::CC cc = { 0 };
+                auto cccount = Helper::MakeCC(str, &cc);
+                assert(cccount == 1);
+                // 有效
+                if (cc.func) {
                     // 创建控件
-                    auto control = UIManager.CreateControl(size_t(tid), create_control_func);
+                    auto control = UIManager.CreateControl(cc.id, cc.func);
                     // XXX: 检查
                     force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
+                }
+                else {
+                    assert(!"cc.func -> null");
                 }
                 // 优化flag
                 if (this->marginal_control[i]) {
