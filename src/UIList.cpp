@@ -13,16 +13,13 @@ LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
             m_fLineHeight = LongUI::AtoF(str);
         }
         // 行模板
-        if ((str = node.attribute("lineheight").value())) {
-            assert(m_pLineTemplate == nullptr);
-            // 申请空间
-            m_pLineTemplate = LongUI::SmallAllocT(
-                m_pLineTemplate,
-                std::strlen(str) + 1
-                );
-            // 复制行模板数据
-            if (m_pLineTemplate) {
-                std::strcpy(m_pLineTemplate, str);
+        if ((str = node.attribute("linetemplate").value())) {
+            // 检查长度
+            register auto len = Helper::MakeCC(str);
+            // 有效
+            if (len) {
+                m_bufLineTemplate.NewSize(len);
+                Helper::MakeCC(str, m_bufLineTemplate.GetData());
             }
         }
     }
@@ -30,10 +27,7 @@ LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
 
 // UI列表控件: 析构函数
 LongUI::UIList::~UIList() noexcept {
-    if (m_pLineTemplate) {
-        LongUI::SmallFree(m_pLineTemplate);
-        m_pLineTemplate = nullptr;
-    }
+
 }
 
 // 插入后
@@ -48,10 +42,6 @@ inline void LongUI::UIList::after_insert(UIControl* child) noexcept {
 
 // 插入一个行模板
 void LongUI::UIList::InsertInlineTemplate(Iterator itr) noexcept {
-    // 模板无效却插入
-    if (!m_pLineTemplate) {
-        UIManager << DL_Warning << "insert inline-template: line -> null" << LongUI::endl;
-    }
     auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(
         Type_CreateControl, pugi::xml_node()));
     if (ctrl) {
@@ -62,7 +52,6 @@ void LongUI::UIList::InsertInlineTemplate(Iterator itr) noexcept {
         // 插入
         this->Insert(itr, ctrl);
     }
-    constexpr int a = sizeof(*this);
 }
 
 // 修改元素权重
@@ -92,6 +81,12 @@ void LongUI::UIList::SetElementCount(uint32_t length) noexcept {
     }
 }
 
+
+// Render 渲染 
+void LongUI::UIList::Render(RenderType t) const noexcept {
+    return Super::Render(t);
+}
+
 // 更新子控件布局
 void LongUI::UIList::Update() noexcept {
     // 前向刷新
@@ -104,10 +99,12 @@ void LongUI::UIList::Update() noexcept {
         // 第二次
         float index = 0.f;
         for (auto ctrl : (*this)) {
-            // 设置控件高度
-            if (!(ctrl->flags & Flag_HeightFixed)) {
-                ctrl->SetHeight(m_fLineHeight);
+            // 宽度无效?
+            if (ctrl->view_size.width == 0.f) {
+                ctrl->SetWidth(this->GetViewWidthZoomed());
             }
+            // 设置控件高度
+            ctrl->SetHeight(m_fLineHeight);
             // 不管如何, 修改!
             ctrl->SetControlSizeChanged();
             ctrl->SetLeft(0.f);
@@ -115,8 +112,9 @@ void LongUI::UIList::Update() noexcept {
             ++index;
         }
         // 设置
-        if (m_pHead) {
-            m_2fContentSize.width = this->GetWidth();
+        auto tmp = this->get_referent_control();
+        if (tmp) {
+            m_2fContentSize.width = tmp->GetWidth();
         }
         m_2fContentSize.height = m_fLineHeight * this->GetCount();
         // 已经处理
@@ -172,6 +170,7 @@ auto LongUI::UIList::GetAt(uint32_t index) const noexcept -> UIControl* {
 #else
 // 插入后
 void LongUI::UIList::AfterInsert(UIControl* child) noexcept  {
+    Super::AfterInsert(child);
     this->after_insert(child);
 }
 #endif
@@ -211,11 +210,18 @@ noexcept -> UIControl* {
 
 // UI列表元素控件: 构造函数
 LongUI::UIListLine::UIListLine(pugi::xml_node node) noexcept:Super(node){
+    // listline 特性: 宽度必须固定
+    auto flag = this->flags | Flag_WidthFixed;
     if (node) {
 
     }
+    force_cast(this->flags) = flag;
 }
 
+// 刷新UI列表元素控件
+void LongUI::UIListLine::Update() noexcept {
+    return Super::Update();
+}
 
 // 清理UI列表元素控件
 void LongUI::UIListLine::Cleanup() noexcept {
@@ -266,7 +272,18 @@ LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
 
 // UI列表头: 事件处理
 bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    UNREFERENCED_PARAMETER(arg);
+    // LongUI 事件
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_TreeBulidingFinished:
+            // 设置列表头
+            longui_cast<UIList*>(this->parent)->SetHeader(this);
+            return true;
+        default:
+            break;
+        }
+    }
     return false;
 }
 

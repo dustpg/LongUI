@@ -175,7 +175,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 注册渲染器
     if (SUCCEEDED(hr)) {
         // 普通渲染器
-        if (this->RegisterTextRenderer(&m_normalTRenderer) != Type_NormalTextRenderer) {
+        if (this->RegisterTextRenderer(&m_normalTRenderer, "normal") != Type_NormalTextRenderer) {
+            assert(!"Type_NormalTextRenderer");
             hr = E_FAIL;
         }
     }
@@ -706,11 +707,17 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
 
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
-    CUIBasicTextRenderer* renderer) noexcept -> int32_t {
+    CUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
+    ) noexcept -> int32_t {
+    assert(m_uTextRenderCount < lengthof(m_apTextRenderer) && "buffer too small");
+    assert(!white_space(name[0]) && "name cannot begin with white space");
+    // 满了
     if (m_uTextRenderCount == lengthof(m_apTextRenderer)) {
         return -1;
     }
     register const auto count = m_uTextRenderCount;
+    assert((std::strlen(name) + 1) < LongUITextRendererNameMaxLength && "buffer too small");
+    std::strcpy(m_aszTextRendererName[count].name, name);
     m_apTextRenderer[count] = ::SafeAcquire(renderer);
     ++m_uTextRenderCount;
     return count;
@@ -1267,6 +1274,29 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
         UIManager << DL_Error << L"index @ " << long(index) << L"text format is null" << LongUI::endl;
     }
     return ::SafeAcquire(format);
+}
+
+// 利用名称获取
+auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> CUIBasicTextRenderer* {
+    int index = 0;
+    if (name && name[0]) {
+        // 跳过空白
+        while (white_space(*name)) ++name;
+        // 检查数字
+        if (*name >= '0' && *name <= '9') {
+            index = LongUI::AtoI(name);
+        }
+        // 线性查找
+        else {
+            for (int i = 0; i < int(m_uTextRenderCount); ++i) {
+                if (!std::strcmp(m_aszTextRendererName[i].name, name)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+    }
+    return this->GetTextRenderer(index);
 }
 
 // 获取图元

@@ -23,20 +23,15 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
     if ((str = attribute("progress"))) {
         m_config.progress = LongUI::AtoF(str);
     }
-    // 获取渲染器 
-    int renderer_index = Type_NormalTextRenderer;
-    if ((str = attribute("renderer"))) {
-        renderer_index = LongUI::AtoI(str);
-    }
-    auto renderer = UIManager.GetTextRenderer(renderer_index);
-    m_pTextRenderer = renderer;
+    // 获取渲染器
+    m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
     // 保证缓冲区
-    if (renderer) {
-        auto length = renderer->GetContextSizeInByte();
+    if (m_pTextRenderer) {
+        auto length = m_pTextRenderer->GetContextSizeInByte();
         if (length) {
             if ((str = attribute("context"))) {
                 m_buffer.NewSize(length);
-                renderer->CreateContextFromString(m_buffer.GetData(), str);
+                m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
             }
         }
     }
@@ -1136,19 +1131,14 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     }
     // 获取渲染器
     {
-        int renderer_index = Type_NormalTextRenderer;
-        if ((str = attribute("renderer"))) {
-            renderer_index = LongUI::AtoI(str);
-        }
-        auto renderer = UIManager.GetTextRenderer(renderer_index);
-        m_pTextRenderer = renderer;
+        m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
         // 保证缓冲区
-        if (renderer) {
-            auto length = renderer->GetContextSizeInByte();
+        if (m_pTextRenderer) {
+            auto length = m_pTextRenderer->GetContextSizeInByte();
             if (length) {
                 if ((str = attribute("context"))) {
                     m_buffer.NewSize(length);
-                    renderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
+                    m_pTextRenderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
                 }
             }
         }

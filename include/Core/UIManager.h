@@ -63,7 +63,9 @@ namespace LongUI {
         // remove window
         void RemoveWindow(UIWindow* wnd, bool cleanup = false) noexcept;
         // register, return -1 for error(out of renderer space), return other for index
-        auto RegisterTextRenderer(CUIBasicTextRenderer*) noexcept->int32_t;
+        auto RegisterTextRenderer(CUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept->int32_t;
+        // get text renderer by name 
+        auto GetTextRenderer(const char* name) const noexcept ->CUIBasicTextRenderer*;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
         auto GetTextFormat(size_t index) noexcept->IDWriteTextFormat*;
         // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
@@ -140,7 +142,7 @@ namespace LongUI {
         // ShowError with string
         inline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
-        inline auto GetTextRenderer(int i) const noexcept { return ::SafeAcquire(m_apTextRenderer[i]); }
+        inline auto GetTextRenderer(int i) const noexcept { assert(i < m_uTextRenderCount && "out of range"); return ::SafeAcquire(m_apTextRenderer[i]); }
         // exit the app
         inline auto Exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
         // recreate resources
@@ -229,7 +231,7 @@ namespace LongUI {
         ID3D11Debug*                    m_pd3dDebug = nullptr;
 #endif
         // text renderer
-        CUIBasicTextRenderer*           m_apTextRenderer[LongUIMaxTextRenderer];
+        CUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATUS_COUNT];
         // loader
@@ -296,6 +298,8 @@ namespace LongUI {
         UIWindow*                       m_apWindows[LongUIMaxWindow];
         // local name
         wchar_t                         m_szLocaleName[LOCALE_NAME_MAX_LENGTH / sizeof(void*) * sizeof(void*) + sizeof(void*)];
+        // name of text renderers
+        NameTR                          m_aszTextRendererName[LongUITextRendererCountMax];
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
         // 默认配置
         CUIDefaultConfigure             m_config;

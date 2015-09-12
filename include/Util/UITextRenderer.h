@@ -28,9 +28,9 @@
 namespace LongUI {
     // Text Render Type
     enum TextRendererType : uint32_t {
-        // Normal: For CUINormalTextRender
+        // normal: For CUINormalTextRender
         Type_NormalTextRenderer = 0,
-        // Outline: For UIOutlineTextRender
+        // outline: For UIOutlineTextRender
         Type_OutlineTextRenderer ,
         // Path: For UIPathTextRender
         Type_PathTextRenderer,

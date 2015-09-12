@@ -160,7 +160,9 @@ namespace LongUI {
         // max count of contrl class [fixed buffer length]
         LongUIMaxControlClass = 64,
         // max count of longui text renderer [fixed buffer length]
-        LongUIMaxTextRenderer = 10,
+        LongUITextRendererCountMax = 10,
+        // max length of longui text renderer length [fixed buffer length]
+        LongUITextRendererNameMaxLength = 32,
         // max count of gradient stop [fixed buffer length]
         LongUIMaxGradientStop = 128,
         // dirty control size [fixed buffer length]
@@ -200,6 +202,8 @@ namespace LongUI {
     static inline auto MakeAsUnit(T vaule) noexcept ->T {
         return (((vaule)+(LongUITargetBitmapUnitSize - 1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize);
     }
+    // text renderer name
+    struct NameTR { char name[LongUITextRendererNameMaxLength]; };
     // UI Locker
     class CUILocker {
     public:

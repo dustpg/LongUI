@@ -26,20 +26,15 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
     if ((str = attribute("progress"))) {
         m_config.progress = LongUI::AtoF(str);
     }
-    // 获取渲染器 
-    int renderer_index = Type_NormalTextRenderer;
-    if ((str = attribute("renderer"))) {
-        renderer_index = LongUI::AtoI(str);
-    }
-    auto renderer = UIManager.GetTextRenderer(renderer_index);
-    m_pTextRenderer = renderer;
+    // 获取渲染器
+    m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
     // 保证缓冲区
-    if (renderer) {
-        auto length = renderer->GetContextSizeInByte();
+    if (m_pTextRenderer) {
+        auto length = m_pTextRenderer->GetContextSizeInByte();
         if (length) {
             if ((str = attribute("context"))) {
                 m_buffer.NewSize(length);
-                renderer->CreateContextFromString(m_buffer.GetData(), str);
+                m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
             }
         }
     }
@@ -1139,19 +1134,14 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     }
     // 获取渲染器
     {
-        int renderer_index = Type_NormalTextRenderer;
-        if ((str = attribute("renderer"))) {
-            renderer_index = LongUI::AtoI(str);
-        }
-        auto renderer = UIManager.GetTextRenderer(renderer_index);
-        m_pTextRenderer = renderer;
+        m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
         // 保证缓冲区
-        if (renderer) {
-            auto length = renderer->GetContextSizeInByte();
+        if (m_pTextRenderer) {
+            auto length = m_pTextRenderer->GetContextSizeInByte();
             if (length) {
                 if ((str = attribute("context"))) {
                     m_buffer.NewSize(length);
-                    renderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
+                    m_pTextRenderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
                 }
             }
         }
@@ -4196,16 +4186,13 @@ LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
             m_fLineHeight = LongUI::AtoF(str);
         }
         // 行模板
-        if ((str = node.attribute("lineheight").value())) {
-            assert(m_pLineTemplate == nullptr);
-            // 申请空间
-            m_pLineTemplate = LongUI::SmallAllocT(
-                m_pLineTemplate,
-                std::strlen(str) + 1
-                );
-            // 复制行模板数据
-            if (m_pLineTemplate) {
-                std::strcpy(m_pLineTemplate, str);
+        if ((str = node.attribute("linetemplate").value())) {
+            // 检查长度
+            register auto len = Helper::MakeCC(str);
+            // 有效
+            if (len) {
+                m_bufLineTemplate.NewSize(len);
+                Helper::MakeCC(str, m_bufLineTemplate.GetData());
             }
         }
     }
@@ -4213,10 +4200,7 @@ LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
 
 // UI列表控件: 析构函数
 LongUI::UIList::~UIList() noexcept {
-    if (m_pLineTemplate) {
-        LongUI::SmallFree(m_pLineTemplate);
-        m_pLineTemplate = nullptr;
-    }
+
 }
 
 // 插入后
@@ -4231,10 +4215,6 @@ inline void LongUI::UIList::after_insert(UIControl* child) noexcept {
 
 // 插入一个行模板
 void LongUI::UIList::InsertInlineTemplate(Iterator itr) noexcept {
-    // 模板无效却插入
-    if (!m_pLineTemplate) {
-        UIManager << DL_Warning << "insert inline-template: line -> null" << LongUI::endl;
-    }
     auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(
         Type_CreateControl, pugi::xml_node()));
     if (ctrl) {
@@ -4245,7 +4225,6 @@ void LongUI::UIList::InsertInlineTemplate(Iterator itr) noexcept {
         // 插入
         this->Insert(itr, ctrl);
     }
-    constexpr int a = sizeof(*this);
 }
 
 // 修改元素权重
@@ -4275,6 +4254,12 @@ void LongUI::UIList::SetElementCount(uint32_t length) noexcept {
     }
 }
 
+
+// Render 渲染 
+void LongUI::UIList::Render(RenderType t) const noexcept {
+    return Super::Render(t);
+}
+
 // 更新子控件布局
 void LongUI::UIList::Update() noexcept {
     // 前向刷新
@@ -4287,10 +4272,12 @@ void LongUI::UIList::Update() noexcept {
         // 第二次
         float index = 0.f;
         for (auto ctrl : (*this)) {
-            // 设置控件高度
-            if (!(ctrl->flags & Flag_HeightFixed)) {
-                ctrl->SetHeight(m_fLineHeight);
+            // 宽度无效?
+            if (ctrl->view_size.width == 0.f) {
+                ctrl->SetWidth(this->GetViewWidthZoomed());
             }
+            // 设置控件高度
+            ctrl->SetHeight(m_fLineHeight);
             // 不管如何, 修改!
             ctrl->SetControlSizeChanged();
             ctrl->SetLeft(0.f);
@@ -4298,8 +4285,9 @@ void LongUI::UIList::Update() noexcept {
             ++index;
         }
         // 设置
-        if (m_pHead) {
-            m_2fContentSize.width = this->GetWidth();
+        auto tmp = this->get_referent_control();
+        if (tmp) {
+            m_2fContentSize.width = tmp->GetWidth();
         }
         m_2fContentSize.height = m_fLineHeight * this->GetCount();
         // 已经处理
@@ -4355,6 +4343,7 @@ auto LongUI::UIList::GetAt(uint32_t index) const noexcept -> UIControl* {
 #else
 // 插入后
 void LongUI::UIList::AfterInsert(UIControl* child) noexcept  {
+    Super::AfterInsert(child);
     this->after_insert(child);
 }
 #endif
@@ -4394,11 +4383,18 @@ noexcept -> UIControl* {
 
 // UI列表元素控件: 构造函数
 LongUI::UIListLine::UIListLine(pugi::xml_node node) noexcept:Super(node){
+    // listline 特性: 宽度必须固定
+    auto flag = this->flags | Flag_WidthFixed;
     if (node) {
 
     }
+    force_cast(this->flags) = flag;
 }
 
+// 刷新UI列表元素控件
+void LongUI::UIListLine::Update() noexcept {
+    return Super::Update();
+}
 
 // 清理UI列表元素控件
 void LongUI::UIListLine::Cleanup() noexcept {
@@ -4449,7 +4445,18 @@ LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
 
 // UI列表头: 事件处理
 bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    UNREFERENCED_PARAMETER(arg);
+    // LongUI 事件
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_TreeBulidingFinished:
+            // 设置列表头
+            longui_cast<UIList*>(this->parent)->SetHeader(this);
+            return true;
+        default:
+            break;
+        }
+    }
     return false;
 }
 
@@ -4729,7 +4736,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 注册渲染器
     if (SUCCEEDED(hr)) {
         // 普通渲染器
-        if (this->RegisterTextRenderer(&m_normalTRenderer) != Type_NormalTextRenderer) {
+        if (this->RegisterTextRenderer(&m_normalTRenderer, "normal") != Type_NormalTextRenderer) {
+            assert(!"Type_NormalTextRenderer");
             hr = E_FAIL;
         }
     }
@@ -5260,11 +5268,17 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
 
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
-    CUIBasicTextRenderer* renderer) noexcept -> int32_t {
+    CUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
+    ) noexcept -> int32_t {
+    assert(m_uTextRenderCount < lengthof(m_apTextRenderer) && "buffer too small");
+    assert(!white_space(name[0]) && "name cannot begin with white space");
+    // 满了
     if (m_uTextRenderCount == lengthof(m_apTextRenderer)) {
         return -1;
     }
     register const auto count = m_uTextRenderCount;
+    assert((std::strlen(name) + 1) < LongUITextRendererNameMaxLength && "buffer too small");
+    std::strcpy(m_aszTextRendererName[count].name, name);
     m_apTextRenderer[count] = ::SafeAcquire(renderer);
     ++m_uTextRenderCount;
     return count;
@@ -5821,6 +5835,29 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
         UIManager << DL_Error << L"index @ " << long(index) << L"text format is null" << LongUI::endl;
     }
     return ::SafeAcquire(format);
+}
+
+// 利用名称获取
+auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> CUIBasicTextRenderer* {
+    int index = 0;
+    if (name && name[0]) {
+        // 跳过空白
+        while (white_space(*name)) ++name;
+        // 检查数字
+        if (*name >= '0' && *name <= '9') {
+            index = LongUI::AtoI(name);
+        }
+        // 线性查找
+        else {
+            for (int i = 0; i < int(m_uTextRenderCount); ++i) {
+                if (!std::strcmp(m_aszTextRendererName[i].name, name)) {
+                    index = i;
+                    break;
+                }
+            }
+        }
+    }
+    return this->GetTextRenderer(index);
 }
 
 // 获取图元
@@ -10553,7 +10590,7 @@ namespace LongUI { namespace Helper {
         while (size) {
             char ch = *index;
             // 分段符?
-            if (ch == ',' || ch == ' ' || !ch) {
+            if (ch == ',' || white_space(ch) || !ch) {
                 if (new_float) {
                     *index = 0;
                     *fdata = ::LongUI::AtoF(to_parse);
@@ -10596,13 +10633,13 @@ bool LongUI::Helper::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
     if (*data == '#') {
         color.a = 1.f;
         // #RGB
-        if (data[4] == ' ' || !data[4]) {
+        if (white_space(data[4]) || !data[4]) {
             color.r = static_cast<float>(Hex2Int(*++data)) / 15.f;
             color.g = static_cast<float>(Hex2Int(*++data)) / 15.f;
             color.b = static_cast<float>(Hex2Int(*++data)) / 15.f;
         }
         // #RRGGBB
-        else if (data[7] == ' ' || !data[7]) {
+        else if (white_space(data[7]) || !data[7]) {
             color.r = static_cast<float>((Hex2Int(*++data) << 4) | (Hex2Int(*++data))) / 255.f;
             color.g = static_cast<float>((Hex2Int(*++data) << 4) | (Hex2Int(*++data))) / 255.f;
             color.b = static_cast<float>((Hex2Int(*++data) << 4) | (Hex2Int(*++data))) / 255.f;
@@ -12008,7 +12045,6 @@ namespace LongUI {
         }
     }
 }
-
 
                    
 

@@ -1,12 +1,11 @@
-﻿#if 0
+﻿#if 1
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
-#include "../LongUI/LongUI.h"
+#include "LongUI.h"
 
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
-#if 0
-const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+const char* test_xml_01 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
     <VerticalLayout name="VLayout1" size="1100, 128">
         <!--Video name="asd" /-->
@@ -27,11 +26,9 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     </HorizontalLayout>
 </Window>
 )xml";
-#else
 // bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
-const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="800, 600" name="MainWindow" debug="true"
-    clearcolor="1,1,1,0.95" >
+const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<Window size="800, 600" name="MainWindow" debug="true" clearcolor="1,1,1,0.95" >
     <VerticalLayout name="V" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
         <Button name="1" templateid="1" text="Hello, world!"/>
         <Slider name="sb" thumbsize="32,32" margin="4,4,4,4"/>
@@ -48,7 +45,27 @@ const char* test_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
 </Window>
 )xml";
-#endif
+const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<Window size="800, 600" name="MainWindow" debugshow="true"
+  clearcolor="1,1,1,0.95" >
+    <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
+    <List name="lst_01" bottomcontrol="ScrollBarA">
+        <ListLine>
+            <Text text="1" borderwidth="1"/>
+            <Text text="2" borderwidth="1"/>
+        </ListLine>
+        <ListLine>
+            <Text text="3" borderwidth="1"/>
+            <Text text="4" borderwidth="1"/>
+        </ListLine>
+    </List>
+    <Text name="txt_01" textrichtype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
+</Window>
+)xml";
+
+const char* test_xml = test_xml_03;
+
+
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Resource>
     <!-- Bitmap区域Zone -->
@@ -292,7 +309,7 @@ public:
     }
 public:
     // Render This Control
-    virtual void Render(LongUI::RenderType type) const noexcept override {
+    virtual void Render(LongUI::RenderType /*type*/) const noexcept override {
         /*switch (type)
         {
         case LongUI::RenderType::Type_RenderBackground:
@@ -349,7 +366,7 @@ protected:
     UIVideoAlpha(pugi::xml_node node) noexcept : Super(node) {
         auto hr = m_video.Initialize();
         assert(SUCCEEDED(hr));
-        auto re = m_video.HasVideo();
+        /*auto re =*/ m_video.HasVideo();
         hr = m_video.SetSource(L"arcv45.mp4");
         assert(SUCCEEDED(hr));
         hr = S_OK;
@@ -364,7 +381,7 @@ protected:
 
 
 // 应用程序入口
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, char* /*lpCmdLine*/, int /*nCmdShow*/) {
     // 设置堆信息
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     // 本Demo的配置信息
@@ -405,8 +422,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             m_manager.RegisterControl(func, L"DllTest");
             }*/
         };
-        // 使用CPU渲染
-        auto IsRenderByCPU() noexcept ->bool override { return true; }
+        // return true, if use cpu rendering
+        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
+            return Flag_OutputDebugString | Flag_RenderByCPU;
+        }
     private:
         // mruby script
         //MRubyScript     mruby = MRubyScript(UIManager);

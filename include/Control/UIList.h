@@ -34,12 +34,12 @@ namespace LongUI {
     public:
         // Render 渲染 
         //virtual auto Render() noexcept ->HRESULT override;
-        // 刷新
-        //virtual void Update() noexcept override;
         // do event 事件处理
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
+        // 刷新
+        virtual void Update() noexcept override;
         // clean this control 清除控件
         virtual void Cleanup() noexcept override;
     public:
@@ -86,6 +86,8 @@ namespace LongUI {
         // line template buffer
         using LineTemplateBuffer = EzContainer::SmallBuffer<Helper::CC, 16>;
     public:
+        // Render 渲染 
+        virtual void Render(RenderType) const noexcept override;
         // update
         virtual void Update() noexcept override;
         // clean this control 清除控件
@@ -110,8 +112,13 @@ namespace LongUI {
         void InsertInlineTemplate(Iterator itr) noexcept;
         // change element weightw, less than 0.f means do not change
         void ChangeElementWights(float weights[/*element count*/]) noexcept;
+        // set header
+        void SetHeader(UIListHeader* header) noexcept { assert(header); m_pHeader = header; }
+    private:
         // set new elements count
         void SetElementCount(uint32_t length)noexcept;
+        // referent ctrl
+        auto get_referent_control() const noexcept ->UIControl* { return m_pHeader ? m_pHeader : m_pHead; }
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -120,8 +127,8 @@ namespace LongUI {
         // dtor
         ~UIList() noexcept;
     protected:
-        // line template
-        char*                   m_pLineTemplate = nullptr;
+        // list header
+        UIListHeader*           m_pHeader = nullptr;
         // line height
         float                   m_fLineHeight = 32.f;
         // elements count in each line

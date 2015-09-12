@@ -13,6 +13,14 @@ value type|implement|note|e.g.
 <a name="jump_cc"/>CC xN|`LongUI::Helper::MakeCC`|`name[, templateid] ...`| `="Text, Text, 2, Text, 2"`,
 <a name="jump_color"/>color|`LongUI::Helper::MakeColor`|color, `#RGB`, `#RRGGBB`, `#AARRGGBB`, `floatx4 in RGBA` | `="#FFF"`, `="#ABCDEF"`, `="#88ABCDEF"`, `="0.0, 1.0, 0.0, 1.0"`
   
+## LongUI XML Value Type List - Text Renderer
+  
+value type|implement|note|e.g.|context
+:--------:|---------|----|----|-------
+<a name="jump_textrender"/>textrender|`CUIManager::GetTextRenderer`|int or string| `="normal"`, `="1"`|---
+---|---|`0` or `normal`| normal text renderer for `TextRendererType::Type_NormalTextRenderer`| **NONE**
+
+
 ## LongUI XML Value Type List - Enum
   
 value type|implement|note|e.g.

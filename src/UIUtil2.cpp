@@ -77,7 +77,7 @@ namespace LongUI { namespace Helper {
         while (size) {
             char ch = *index;
             // 分段符?
-            if (ch == ',' || ch == ' ' || !ch) {
+            if (ch == ',' || white_space(ch) || !ch) {
                 if (new_float) {
                     *index = 0;
                     *fdata = ::LongUI::AtoF(to_parse);
@@ -120,13 +120,13 @@ bool LongUI::Helper::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
     if (*data == '#') {
         color.a = 1.f;
         // #RGB
-        if (data[4] == ' ' || !data[4]) {
+        if (white_space(data[4]) || !data[4]) {
             color.r = static_cast<float>(Hex2Int(*++data)) / 15.f;
             color.g = static_cast<float>(Hex2Int(*++data)) / 15.f;
             color.b = static_cast<float>(Hex2Int(*++data)) / 15.f;
         }
         // #RRGGBB
-        else if (data[7] == ' ' || !data[7]) {
+        else if (white_space(data[7]) || !data[7]) {
             color.r = static_cast<float>((Hex2Int(*++data) << 4) | (Hex2Int(*++data))) / 255.f;
             color.g = static_cast<float>((Hex2Int(*++data) << 4) | (Hex2Int(*++data))) / 255.f;
             color.b = static_cast<float>((Hex2Int(*++data) << 4) | (Hex2Int(*++data))) / 255.f;

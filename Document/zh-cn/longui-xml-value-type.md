@@ -14,6 +14,14 @@
 <a name="jump_cc"/>CC xN|`LongUI::Helper::MakeCC`|`name[, templateid] ...`| `="Text, Text, 2, Text, 2"`,
 <a name="jump_color"/>color|`LongUI::Helper::MakeColor`|颜色, `#RGB`, `#RRGGBB`, `#AARRGGBB`, `floatx4 in RGBA` | `="#FFF"`, `="#ABCDEF"`, `="#88ABCDEF"`, `="0.0, 1.0, 0.0, 1.0"`
   
+  
+## LongUI XML Value Type List - Text Renderer
+  
+value type|implement|note|e.g.|context
+:--------:|---------|----|----|-------
+<a name="jump_textrender"/>textrender|`CUIManager::GetTextRenderer`|int or string| `="normal"`, `="1"`|---
+---|---|`0` or `normal`| normal text renderer for `TextRendererType::Type_NormalTextRenderer`| **NONE**
+  
 ## LongUI Xml值 类型列表 - 枚举  
   
 类型|实现|注|例子
