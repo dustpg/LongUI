@@ -35,7 +35,7 @@
     <Filter Include="LongUI\Source\XCtrl">
       <UniqueIdentifier>{5148d48e-6645-4283-84ab-94ef29cb7ed7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Source\XCtrl\Source Files">
+    <Filter Include="LongUI\Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
@@ -161,7 +161,7 @@
       <Filter>LongUI\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\src\_LongUIAllInOne.cpp">
-      <Filter>LongUI\Source\XCtrl\Source Files</Filter>
+      <Filter>LongUI\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ComponentImpl.cpp">
       <Filter>LongUI\Source\XImpl</Filter>

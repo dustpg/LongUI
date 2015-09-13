@@ -602,35 +602,45 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F pt) noexcept->UIControl* {
+auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+    // 查找
+    auto find_child = [&pt](UIControl* ctrl) noexcept {
+        // 内建容器
+        if (ctrl->flags & Flag_CustomFindControl) {
+            return ctrl->CustomFindControl(pt);
+        }
+        else if (ctrl->flags & Flag_UIContainer) {
+            return static_cast<UIContainer*>(ctrl)->FindControl(pt);
+        }
+        else {
+            return ctrl;
+        }
+    };
     // 查找边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
             if (ctrl && IsPointInRect(ctrl->visible_rect, pt)) {
-                return ctrl;
+                return find_child(ctrl);
             }
         }
     }
     this->AssertMarginalControl();
-    UIControl* control_out = nullptr;
     // XXX: 优化
-    assert(this->GetCount() < 100 && "too huge, wait for optimization please");
+#ifdef _DEBUG
+    if (this->GetCount() > 100) {
+        UIManager << DL_Warning 
+            << "Performance Warning: O(n) algorithm"
+            << " is not fine for container that over 100 children" 
+            << LongUI::endl;
+    }
+#endif
     for (auto ctrl : (*this)) {
-        /*if (m_strControlName == L"MainWindow") {
-        int a = 9;
-        }*/
         // 区域内判断
         if (IsPointInRect(ctrl->visible_rect, pt)) {
-            if (ctrl->flags & Flag_UIContainer) {
-                control_out = static_cast<UIContainer*>(ctrl)->FindControl(pt);
-            }
-            else {
-                control_out = ctrl;
-            }
-            break;
+            return find_child(ctrl);
         }
     }
-    return control_out;
+    return nullptr;
 }
 
 
@@ -1013,17 +1023,17 @@ auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
     // 重建边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
-            if (ctrl && SUCCEEDED(hr)) {
+            if (ctrl) {
                 hr = ctrl->Recreate();
+                assert(SUCCEEDED(hr));
             }
         }
     }
     this->AssertMarginalControl();
     // 重建子类
     for (auto ctrl : (*this)) {
-        if (SUCCEEDED(hr)) {
-            hr = ctrl->Recreate();
-        }
+        hr = ctrl->Recreate();
+        assert(SUCCEEDED(hr));
     }
     // 重建父类
     if (SUCCEEDED(hr)) {

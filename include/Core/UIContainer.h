@@ -28,9 +28,9 @@
 namespace LongUI {
 #if 0
     // base container control class -- 基本容器类
-    class UIContainer : public UIMarginalControl {
+    class UIContainer : public UIMarginalable {
         // 父类申明
-        using Super = UIMarginalControl;
+        using Super = UIMarginalable;
 #else
     // base container control class -- 基本容器类
     class UIContainer : public UIControl {
@@ -96,7 +96,7 @@ namespace LongUI {
         // before update
         void BeforeUpdate() noexcept;
         // find control where mouse pointed
-        auto FindControl(const D2D1_POINT_2F pt) noexcept->UIControl*;
+        auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl*;
     public:
         // get length/count of children
         auto GetLength() const noexcept { return m_cChildrenCount; }

@@ -27,7 +27,7 @@
 
 // LongUI namespace
 namespace LongUI {
-    // ui list line
+    // ui list line, the width child must be fixed
     class UIListLine : public UIHorizontalLayout {
         // super class
         using Super = UIHorizontalLayout;
@@ -43,12 +43,20 @@ namespace LongUI {
         // clean this control 清除控件
         virtual void Cleanup() noexcept override;
     public:
+        // after add a child
+        virtual void AfterInsert(UIControl* child) noexcept override;
+    public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
         UIListLine(pugi::xml_node node) noexcept;
         // dtor
         ~UIListLine() noexcept = default;
+    protected:
+        // first update
+        bool                m_bFirstUpdate = true;
+        // unused for line
+        bool                m_lineunsed[sizeof(void*) - 1];
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -64,6 +72,9 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // clean this control 清除控件
         virtual void Cleanup() noexcept override;
+    public:
+        // update width in marginal
+        virtual void UpdateMarginalWidth() noexcept override;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -86,6 +97,8 @@ namespace LongUI {
         // line template buffer
         using LineTemplateBuffer = EzContainer::SmallBuffer<Helper::CC, 16>;
     public:
+        // do event 事件处理
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // Render 渲染 
         virtual void Render(RenderType) const noexcept override;
         // update
@@ -108,15 +121,19 @@ namespace LongUI {
         BasicContainer          m_controls;
 #endif
     public:
+        // get height in line
+        auto GetLineHeight() const noexcept { return m_fLineHeight; }
         // insert a line-template with inside string
         void InsertInlineTemplate(Iterator itr) noexcept;
-        // change element weightw, less than 0.f means do not change
-        void ChangeElementWights(float weights[/*element count*/]) noexcept;
+        // change element width, less than 0.f means do not change
+        void ChangeElementWidth(float widthv[]) noexcept;
         // set header
         void SetHeader(UIListHeader* header) noexcept { assert(header); m_pHeader = header; }
     private:
+        // init
+        void init_layout() noexcept;
         // set new elements count
-        void SetElementCount(uint32_t length)noexcept;
+        void set_element_count(uint32_t length) noexcept;
         // referent ctrl
         auto get_referent_control() const noexcept ->UIControl* { return m_pHeader ? m_pHeader : m_pHead; }
     public:

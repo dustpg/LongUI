@@ -62,8 +62,13 @@ static inline auto SafeAcquire(Interface *pInterfaceToRelease) {
 }
 
 #define LONGUI_DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE, INTTYPE) \
-    static auto operator |(ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b)); };\
-    static auto&operator |=(ENUMTYPE& a, ENUMTYPE b) noexcept { return a = a | b; };
+    static auto operator | (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) | static_cast<INTTYPE>(b)); };\
+    static auto&operator |=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a | b; };\
+    static auto operator & (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) & static_cast<INTTYPE>(b)); };\
+    static auto&operator &=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a & b; };\
+    static auto operator ^ (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) ^ static_cast<INTTYPE>(b)); };\
+    static auto&operator ^=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a ^ b; };\
+    static auto operator ~ (ENUMTYPE a) noexcept { return static_cast<ENUMTYPE>(~static_cast<INTTYPE>(a)); };
 
 #ifndef OUT
 #define OUT
@@ -137,7 +142,8 @@ namespace LongUI {
     inline T& force_cast(const T& a) { return const_cast<T&>(a); }
 #ifdef LongUIDebugEvent
     // longui cast
-    template<class T1, class T2> auto longui_cast(T2 ptr) noexcept->T1 {
+    template<class T1, class T2> 
+    inline auto longui_cast(T2 ptr) noexcept->T1 {
         if (!ptr) return nullptr;
         LongUI::UIControl* ctrl = static_cast< LongUI::UIControl*>(ptr);
         ctrl->AssertTypeCastingT(T1(nullptr));
@@ -146,7 +152,8 @@ namespace LongUI {
     // spacial
     // template<template<>, class T2> auto longui_cast<LongUI::UIControl*>(T2 ptr) noexcept ->LongUI::UIControl* { return static_cast<LongUI::UIControl*>(ptr); };
 #else
-    template<class T1, class T2> auto longui_cast(T2 ptr) noexcept->T1 {
+    template<class T1, class T2> 
+    inline auto longui_cast(T2 ptr) noexcept->T1 {
         return static_cast<T1>(ptr);
     }
 #endif
@@ -187,13 +194,22 @@ namespace LongUI {
         /// </remarks>
         Flag_UIContainer = 1 << 0,
         /// <summary>
+        /// call UIControl::CustomFindControl when 'FindControl' [default: false]
+        /// </summary>
+        /// <remarks>
+        /// if it is a container but UIContainer, or you want to make 
+        /// UIContainer::FindControl to faster(O(n) -> O(1)) you should implement
+        /// UIControl::CustomFindControl
+        /// </remarks>
+        Flag_CustomFindControl = 1 << 1,
+        /// <summary>
         /// the width of control is fixed [default: false]
         /// </summary>
         /// <remarks>
         /// [Auto] width fixed if given a valid width value in xml 
         /// attribute ("size") [0], e.g. size="96, 0"
         /// </remarks>
-        Flag_WidthFixed = 1 << 1,
+        Flag_WidthFixed = 1 << 2,
         /// <summary>
         /// the height of control is fixed [default: false]
         /// </summary>
@@ -201,34 +217,34 @@ namespace LongUI {
         /// [Auto] height fixed if given a valid height value in xml 
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
-        Flag_HeightFixed = 1 << 2,
+        Flag_HeightFixed = 1 << 3,
         // [default: false]control is floating
-        Flag_Floating = 1 << 3,
+        Flag_Floating = 1 << 4,
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
         // NOTE: this attribute used by parent
         // NOTE: container should be true in this case but not mandatory
         // XML Attribute : "strictclip"@bool
-        Flag_ClipStrictly = 1 << 4,
+        Flag_ClipStrictly = 1 << 5,
         // control construct with full xml node info
         // if your control need full xml node, set it to true by const_cast
-        Flag_ControlNeedFullXMLNode = 1 << 5,
+        Flag_ControlNeedFullXMLNode = 1 << 6,
         // [default: false][auto, no specified]
         // control need pre-render for content
         // call UIWindow::RegisterOffScreenRender2D or
         // call UIWindow::RegisterOffScreenRender3D to set
-        Flag_NeedRegisterOffScreenRender = 1 << 6,
+        Flag_NeedRegisterOffScreenRender = 1 << 7,
         // [default: false][auto, no specified]
         // control need Direct3D api to render,
         // call UIWindow::RegisterOffScreenRender3D to set
         // if use Direct2D , call UIWindow::RegisterOffScreenRender2D
-        Flag_OffScreen3DContent = 1 << 7,
+        Flag_OffScreen3DContent = 1 << 8,
         // [default: false][auto, and xml attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,
         // must be rendering whole parent.
         // could be setted xml-attribute("renderparent") and auto setted
         // by parent's flag : Flag_Container_HostChildrenRenderingDirectly,
-        Flag_RenderParent = 1 << 8,
+        Flag_RenderParent = 1 << 9,
         // [default: false][xml attribute : "hostchild"@bool] 
         // if true, container will host child rendering in anytime
         // if the container was setted this flag, it would set 

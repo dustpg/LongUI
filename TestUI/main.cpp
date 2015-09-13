@@ -59,7 +59,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             <Text text="4" borderwidth="1"/>
         </ListLine>
     </List>
-    <Text name="txt_01" textrichtype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
+    <Text name="txt_01" textrichtype="core" text="%cHello%], world!%u泥壕!世界!%]%p#F00"/>
 </Window>
 )xml";
 
@@ -381,7 +381,8 @@ protected:
 
 
 // 应用程序入口
-int WINAPI WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, char* /*lpCmdLine*/, int /*nCmdShow*/) {
+int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int /*nCmdShow*/) {
+    UNREFERENCED_PARAMETER(lpCmdLine);
     // 设置堆信息
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     // 本Demo的配置信息
@@ -408,6 +409,11 @@ int WINAPI WinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, char* /
     <!-- Index 2 -->
     <Control desc="btn.png look like button" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4"/>
+    <!-- Index 3 -->
+    <Control desc="list header test">
+        <UIText text="header1"/>
+        <UIText text="header2"/>
+    </Control>
 </Template>
 )xml";
         }

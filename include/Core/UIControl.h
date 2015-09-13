@@ -65,6 +65,10 @@ namespace LongUI {
         /// easy way: delete this
         /// </remarks>
         virtual void Cleanup() noexcept = 0;
+        // FindControl in Custom way
+        virtual auto CustomFindControl(const D2D1_POINT_2F& world_pt) noexcept->UIControl* { 
+            UNREFERENCED_PARAMETER(world_pt); return nullptr; 
+        }
     public:
         // ctor
         UIControl(pugi::xml_node) noexcept;

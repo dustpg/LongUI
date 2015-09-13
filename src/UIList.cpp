@@ -54,22 +54,62 @@ void LongUI::UIList::InsertInlineTemplate(Iterator itr) noexcept {
     }
 }
 
-// 修改元素权重
-void LongUI::UIList::ChangeElementWights(float weights[]) noexcept {
+// UI列表: 事件处理
+bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // LongUI 事件
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_TreeBulidingFinished:
+            // 父类分发事件
+            Super::DoEvent(arg);
+            // 处理一下
+            this->init_layout();
+            return true;
+        default:
+            break;
+        }
+    }
+    return Super::DoEvent(arg);
+}
+
+// 修改元素权重/宽度
+void LongUI::UIList::ChangeElementWidth(float widthv[]) noexcept {
+    assert(widthv && "bad arguemnt");
+    // 遍历LINE
     for (auto cline : (*this)) {
         auto line = longui_cast<UIListLine*>(cline);
         auto index = 0u;
+        // 变量元素
         for (auto ele : (*line)) {
-            if (weights[index] >= 0.f) {
-                force_cast(ele->weight) = weights[index];
+            if (widthv[index] >= 0.f) {
+                ele->SetWidth(widthv[index]);
             }
             ++index;
         }
     }
 }
 
+// UIList: 初始化布局
+void LongUI::UIList::init_layout() noexcept {
+    auto rctrl = this->get_referent_control();
+    if (rctrl) {
+        // 缓存
+        /*EzContainer::SmallBuffer<float, 32> buffer;
+        buffer.NewSize(rctrl->GetCount());
+        this->set_element_count(rctrl->GetCount());
+        // 宽度
+        int index = 0;
+        for (auto ctrl : (*rctrl)) {
+            buffer[index] = ctrl->GetWidth();
+            ++index;
+        }
+        this->ChangeElementWidth(buffer.GetData());*/
+    }
+}
+
 // 设置元素数量
-void LongUI::UIList::SetElementCount(uint32_t length) noexcept {
+void LongUI::UIList::set_element_count(uint32_t length) noexcept {
     auto old = m_bufLineTemplate.GetCount();
     m_bufLineTemplate.NewSize(length);
     // 变长了
@@ -220,6 +260,22 @@ LongUI::UIListLine::UIListLine(pugi::xml_node node) noexcept:Super(node){
 
 // 刷新UI列表元素控件
 void LongUI::UIListLine::Update() noexcept {
+    // 检查宽度
+    if (m_bFirstUpdate) {
+        m_bFirstUpdate = false;
+        // 取消属性
+        for (auto ctrl : (*this)) {
+            if (ctrl->view_size.width <= 0.f) {
+                force_cast(ctrl->flags) &= (~Flag_WidthFixed);
+            }
+        }
+        Super::Update();
+        // 添加属性
+        for (auto ctrl : (*this)) {
+            force_cast(ctrl->flags) |= Flag_WidthFixed;
+        }
+        return;
+    }
     return Super::Update();
 }
 
@@ -227,6 +283,14 @@ void LongUI::UIListLine::Update() noexcept {
 void LongUI::UIListLine::Cleanup() noexcept {
     delete this;
 }
+
+// 插入后
+void LongUI::UIListLine::AfterInsert(UIControl* child) noexcept {
+    assert(child && "bad argument");
+    force_cast(child->flags) |= Flag_WidthFixed;
+    return Super::AfterInsert(child);
+}
+
 
 // UI列表元素控件: 创建控件
 auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node) 
@@ -279,17 +343,23 @@ bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_TreeBulidingFinished:
             // 设置列表头
             longui_cast<UIList*>(this->parent)->SetHeader(this);
-            return true;
+            __fallthrough;
         default:
             break;
         }
     }
+    //return Super::DoEvent(arg);
     return false;
 }
 
 // 清理UI列表头控件
 void LongUI::UIListHeader::Cleanup() noexcept {
     delete this;
+}
+
+// 刷新UI列表头控件边界宽度
+void LongUI::UIListHeader::UpdateMarginalWidth() noexcept {
+    this->marginal_width = longui_cast<UIList*>(this->parent)->GetLineHeight();
 }
 
 // 创建UI列表头

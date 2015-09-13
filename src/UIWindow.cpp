@@ -91,7 +91,6 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
         // 创建窗口
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
-            //(this->flags & Flag_Window_DComposition) ? WS_EX_NOREDIRECTIONBITMAP : 0,
             WS_EX_NOREDIRECTIONBITMAP,
             LongUI::WindowClassName, 
             titlename.length() ? titlename.c_str() : L"LongUI",
