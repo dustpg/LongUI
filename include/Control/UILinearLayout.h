@@ -27,13 +27,13 @@
 // LongUI namespace
 namespace LongUI{
     // Vertical Layout -- 垂直布局 容器
-    class UIVerticalLayout : public UIContainer {
+    class UIVerticalLayout : public UIContainerBuiltIn {
         // 父类申明
-        using Super = UIContainer;
+        using Super = UIContainerBuiltIn;
     public: // UIControl
-            // render this
-            //virtual auto Render() noexcept ->HRESULT override;
-            // update this
+        // render this
+        //virtual auto Render() noexcept ->HRESULT override;
+        // update this
         virtual void Update() noexcept override;
         // do event 
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
@@ -57,9 +57,9 @@ namespace LongUI{
 #endif
     };
     // Horizontal Layout -- 水平布局 容器
-    class UIHorizontalLayout : public UIContainer {
+    class UIHorizontalLayout : public UIContainerBuiltIn {
         // 父类申明
-        using Super = UIContainer;
+        using Super = UIContainerBuiltIn;
     public: // UIControl
         // Render 渲染 
         //virtual auto Render() noexcept ->HRESULT override;

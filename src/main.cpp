@@ -62,8 +62,6 @@ LongUI::EventArgument::EventArgument(const EventArgument& arg) noexcept {
 }*/
 
 
-#define LoadFunction(a, b, c) { if(c) a = reinterpret_cast<decltype(a)>(::GetProcAddress(c, #b)); }
-
 // 初始化库
 class InitializeLibrary {
     typedef enum PROCESS_DPI_AWARENESS {
@@ -97,14 +95,14 @@ public:
                 }
             }
         }
-        LoadFunction(LongUI::UIRichEdit::IID_ITextServices2, IID_ITextServices2, m_hDllMsftedit);
-        LoadFunction(LongUI::UIRichEdit::CreateTextServices, CreateTextServices, m_hDllMsftedit);
-        LoadFunction(LongUI::UIRichEdit::ShutdownTextServices, ShutdownTextServices, m_hDllMsftedit);
-        LoadFunction(LongUI::Dll::DCompositionCreateDevice, DCompositionCreateDevice, m_hDlldcomp);
-        LoadFunction(LongUI::Dll::D2D1CreateFactory, D2D1CreateFactory, m_hDlld2d1);
-        LoadFunction(LongUI::Dll::D3D11CreateDevice, D3D11CreateDevice, m_hDlld3d11);
-        LoadFunction(LongUI::Dll::DWriteCreateFactory, DWriteCreateFactory, m_hDlldwrite);
-        LoadFunction(LongUI::Dll::CreateDXGIFactory1, CreateDXGIFactory1, m_hDlldxgi);
+        LongUI::LoadProc(LongUI::UIRichEdit::IID_ITextServices2, m_hDllMsftedit, "IID_ITextServices2");
+        LongUI::LoadProc(LongUI::UIRichEdit::CreateTextServices, m_hDllMsftedit, "CreateTextServices");
+        LongUI::LoadProc(LongUI::UIRichEdit::ShutdownTextServices, m_hDllMsftedit, "ShutdownTextServices");
+        LongUI::LoadProc(LongUI::Dll::DCompositionCreateDevice, m_hDlldcomp, "DCompositionCreateDevice");
+        LongUI::LoadProc(LongUI::Dll::D2D1CreateFactory, m_hDlld2d1, "D2D1CreateFactory");
+        LongUI::LoadProc(LongUI::Dll::D3D11CreateDevice, m_hDlld3d11, "D3D11CreateDevice");
+        LongUI::LoadProc(LongUI::Dll::DWriteCreateFactory, m_hDlldwrite, "DWriteCreateFactory");
+        LongUI::LoadProc(LongUI::Dll::CreateDXGIFactory1, m_hDlldxgi, "CreateDXGIFactory1");
     };
     //
     ~InitializeLibrary() {

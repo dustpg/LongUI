@@ -186,7 +186,7 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
 
 
 // UI控件: 刷新
-void LongUI::UIControl::Update() noexcept {
+void LongUI::UIControl::AfterUpdate() noexcept {
     // 控件大小处理了
     if (m_bool16.Test(Index_ChangeSizeHandled)) {
         m_bool16.SetFalse(Index_ChangeSize);
@@ -280,7 +280,7 @@ auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
         this->SetControlSizeChanged();
     }
     // 检查
-    if (this->view_size.width < 0.f) {
+    if (this->view_size.width < 0.f && this->parent->view_size.width > 0.f) {
         UIManager << DL_Hint << this
             << "viewport's width < 0: " << this->view_size.width << endl;
     }
@@ -295,7 +295,7 @@ auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline 
         this->SetControlSizeChanged();
     }
     // 检查
-    if (this->view_size.height < 0.f) {
+    if (this->view_size.height < 0.f && this->parent->view_size.height > 0.f) {
         UIManager << DL_Hint << this
             << "viewport's height < 0: " << this->view_size.height << endl;
     }
@@ -399,7 +399,11 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
         identity = D2D1::Matrix3x2F::Identity();
     }
     else {
-        parent_world = &this->parent->world;
+        auto pp = this->parent->parent;
+        // 检查
+        xx += pp->GetOffsetXZoomed();
+        yy += pp->GetOffsetYZoomed();
+        parent_world = &pp->world;
     }
     // 计算矩阵
     this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_world;
@@ -506,8 +510,11 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
             // 获取指定属性值
             if ((str = node.attribute(attname[i]).value())) {
                 Helper::CC cc = { 0 };
-                auto cccount = Helper::MakeCC(str, &cc);
-                assert(cccount == 1);
+#ifdef _DEBUG
+                assert(Helper::MakeCC(str, &cc) == 1);
+#else
+                Helper::MakeCC(str, &cc);
+#endif
                 // 有效
                 if (cc.func) {
                     // 创建控件
@@ -554,19 +561,10 @@ LongUI::UIContainer::~UIContainer() noexcept {
             ctrl->Cleanup();
         }
     }
-    // 关闭子控件
-    {
-        auto ctrl = m_pHead;
-        while (ctrl) {
-            auto next_ctrl = ctrl->next;
-            ctrl->Cleanup();
-            ctrl = next_ctrl;
-        }
-    }
 }
 
 // 插入后处理
-void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
+void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     assert(child && "bad argument");
     // 大小判断
     if (this->GetCount() >= 10'000) {
@@ -603,50 +601,21 @@ void LongUI::UIContainer::AfterInsert(UIControl* child) noexcept {
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
 auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* {
-    // 查找
-    auto find_child = [&pt](UIControl* ctrl) noexcept {
-        // 内建容器
-        if (ctrl->flags & Flag_CustomFindControl) {
-            return ctrl->CustomFindControl(pt);
-        }
-        else if (ctrl->flags & Flag_UIContainer) {
-            return static_cast<UIContainer*>(ctrl)->FindControl(pt);
-        }
-        else {
-            return ctrl;
-        }
-    };
     // 查找边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
             if (ctrl && IsPointInRect(ctrl->visible_rect, pt)) {
-                return find_child(ctrl);
+                return ctrl->FindControl(pt);
             }
         }
     }
     this->AssertMarginalControl();
-    // XXX: 优化
-#ifdef _DEBUG
-    if (this->GetCount() > 100) {
-        UIManager << DL_Warning 
-            << "Performance Warning: O(n) algorithm"
-            << " is not fine for container that over 100 children" 
-            << LongUI::endl;
-    }
-#endif
-    for (auto ctrl : (*this)) {
-        // 区域内判断
-        if (IsPointInRect(ctrl->visible_rect, pt)) {
-            return find_child(ctrl);
-        }
-    }
     return nullptr;
 }
 
 
 // do event 事件处理
 bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // TODO: 参数EventArgument改为const
     bool done = false;
     // 转换坐标
     // 处理窗口事件
@@ -658,16 +627,12 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
             for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
                 auto ctrl = this->marginal_control[i];
                 if (ctrl) {
-                    this->AfterInsert(ctrl);
+                    this->after_insert(ctrl);
                     // 初始化
                     ctrl->InitMarginalControl(static_cast<UIMarginalable::MarginalControl>(i));
                     // 完成控件树
                     ctrl->DoEvent(arg);
                 }
-            }
-            // 初次完成空间树建立
-            for (auto ctrl : (*this)) {
-                ctrl->DoEvent(arg);
             }
             done = true;
             break;
@@ -677,41 +642,40 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return done;
 }
 
+// 渲染子控件
+void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
+    // 可渲染?
+    if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
+        && ctrl->visible_rect.bottom > ctrl->visible_rect.top) {
+        // 修改世界转换矩阵
+        UIManager_RenderTarget->SetTransform(&ctrl->world);
+        // 检查剪切规则
+        if (ctrl->flags & Flag_ClipStrictly) {
+            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+            UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        }
+        ctrl->Render(LongUI::RenderType::Type_Render);
+        // 检查剪切规则
+        if (ctrl->flags & Flag_ClipStrictly) {
+            UIManager_RenderTarget->PopAxisAlignedClip();
+        }
+    }
+}
+
 // UIContainer 渲染函数
 void LongUI::UIContainer::Render(RenderType type) const noexcept {
-    //  正确渲染控件
-    auto do_render = [](const UIControl* const ctrl) {
-        // 可渲染?
-        if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
-            && ctrl->visible_rect.bottom > ctrl->visible_rect.top) {
-            // 修改世界转换矩阵
-            UIManager_RenderTarget->SetTransform(&ctrl->world);
-            // 检查剪切规则
-            if (ctrl->flags & Flag_ClipStrictly) {
-                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-                UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-            }
-            ctrl->Render(LongUI::RenderType::Type_Render);
-            // 检查剪切规则
-            if (ctrl->flags & Flag_ClipStrictly) {
-                UIManager_RenderTarget->PopAxisAlignedClip();
-            }
-        }
-    };
     // 查看
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        break;
     case LongUI::RenderType::Type_Render:
         // 父类背景
         Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 背景中断
-        if (type == LongUI::RenderType::Type_RenderBackground) {
-            break;
-        }
         // 普通子控件仅仅允许渲染在内容区域上
-        {
+        /*{
             D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
             UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
@@ -720,12 +684,12 @@ void LongUI::UIContainer::Render(RenderType type) const noexcept {
             do_render(ctrl);
         }
         // 弹出
-        UIManager_RenderTarget->PopAxisAlignedClip();
+        UIManager_RenderTarget->PopAxisAlignedClip();*/
         // 渲染边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
             for (auto ctrl : this->marginal_control) {
                 if (ctrl) {
-                    do_render(ctrl);
+                    this->child_do_render(ctrl);
                 }
             }
         }
@@ -883,7 +847,7 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
 }
 
 // UI容器: 刷新前
-void LongUI::UIContainer::BeforeUpdate() noexcept {
+void LongUI::UIContainer::BeforeUpdateContainer() noexcept {
     // 需要刷新
     if (this->IsNeedRefreshWorld()) {
         auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) | 
@@ -922,8 +886,8 @@ void LongUI::UIContainer::Update() noexcept {
         }
         // 刷新
         /*if (should_update) {
-            this->SetControlWorldChanged();
-            this->Update();
+        this->SetControlWorldChanged();
+        this->Update();
         }*/
 #ifdef _DEBUG
         if (this->debug_this) {
@@ -935,6 +899,16 @@ void LongUI::UIContainer::Update() noexcept {
         }
 #endif
     }
+    // 更新边缘控件
+    if (this->flags & Flag_Container_ExistMarginalControl) {
+        for (auto ctrl : this->marginal_control) {
+            // 刷新
+            if (ctrl) {
+                ctrl->Update();
+                ctrl->AfterUpdate();
+            }
+        }
+    }
     // 修改可视化区域
     if (this->IsNeedRefreshWorld()) {
         // 更新边缘控件
@@ -942,7 +916,6 @@ void LongUI::UIContainer::Update() noexcept {
             for (auto ctrl : this->marginal_control) {
                 // 刷新
                 if (ctrl) {
-                    ctrl->Update();
                     // 更新世界矩阵
                     ctrl->SetControlWorldChanged();
                     ctrl->RefreshWorldMarginal();
@@ -959,59 +932,10 @@ void LongUI::UIContainer::Update() noexcept {
                 }
             }
         }
-        // 本容器内容限制
-        D2D1_RECT_F limit_of_this = {
-            this->visible_rect.left + this->margin_rect.left * this->world._11,
-            this->visible_rect.top + this->margin_rect.top * this->world._22,
-            this->visible_rect.right - this->margin_rect.right * this->world._11,
-            this->visible_rect.bottom - this->margin_rect.bottom * this->world._22,
-        };
-        // 更新一般控件
-        for (auto ctrl : (*this)) {
-            // 更新世界矩阵
-            ctrl->SetControlWorldChanged();
-            ctrl->RefreshWorld();
-            // 坐标转换
-            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-            auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-            auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-            // 限制
-            /*if (ctrl->IsCanbeCastedTo(LongUI::GetIID<UIVerticalLayout>())) {
-            int bk = 9;
-            }*/
-            ctrl->visible_rect.left = std::max(lt.x, limit_of_this.left);
-            ctrl->visible_rect.top = std::max(lt.y, limit_of_this.top);
-            ctrl->visible_rect.right = std::min(rb.x, limit_of_this.right);
-            ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
-            // 调试信息
-            //UIManager << DL_Hint << ctrl << ctrl->visible_rect << endl;
-        }
-        // 调试信息
-        if (this->IsTopLevel()) {
-            //UIManager << DL_Log << "Handle: ControlSizeChanged" << LongUI::endl;
-        }
         // 已处理该消息
         this->ControlSizeChangeHandled();
     }
-    // 刷新边缘控件
-    if (this->flags & Flag_Container_ExistMarginalControl) {
-#if 1
-        for (auto ctrl : this->marginal_control) {
-            if (ctrl) ctrl->Update();
-        }
-#else
-    {
-        UIMarginalable* ctrl = nullptr;
-        if ((ctrl = this->marginal_control[UIMarginalable::Control_Left])) ctrl->Update();
-        if ((ctrl = this->marginal_control[UIMarginalable::Control_Top])) ctrl->Update();
-        if ((ctrl = this->marginal_control[UIMarginalable::Control_Right])) ctrl->Update();
-        if ((ctrl = this->marginal_control[UIMarginalable::Control_Bottom])) ctrl->Update();
-    }
-#endif
-    }
     this->AssertMarginalControl();
-    // 刷新一般子控件
-    for (auto ctrl : (*this)) ctrl->Update();
     // 刷新父类
     return Super::Update();
 }
@@ -1030,11 +954,6 @@ auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
         }
     }
     this->AssertMarginalControl();
-    // 重建子类
-    for (auto ctrl : (*this)) {
-        hr = ctrl->Recreate();
-        assert(SUCCEEDED(hr));
-    }
     // 重建父类
     if (SUCCEEDED(hr)) {
         hr = Super::Recreate();
@@ -1063,121 +982,3 @@ LongUINoinline void LongUI::UIContainer::SetOffsetY(float value) noexcept {
         this->SetControlWorldChanged();
     }
 }
-
-// 随机访问控件
-auto LongUI::UIContainer::GetAt(uint32_t i) const noexcept -> UIControl * {
-    // 性能警告
-    if (i > 8) {
-        UIManager << DL_Warning
-            << L"Performance Warning! random accessig is not fine for list"
-            << LongUI::endl;
-    }
-    // 检查范围
-    if (i >= this->GetCount()) {
-        UIManager << DL_Error << L"out of range" << LongUI::endl;
-        return nullptr;
-    }
-    // 只有一个?
-    if (this->GetCount() == 1) return m_pHead;
-    // 前半部分?
-    UIControl * control;
-    if (i < this->GetCount() / 2) {
-        control = m_pHead;
-        while (i) {
-            assert(control && "null pointer");
-            control = control->next;
-            --i;
-        }
-    }
-    // 后半部分?
-    else {
-        control = m_pTail;
-        i = static_cast<uint32_t>(this->GetCount()) - i - 1;
-        while (i) {
-            assert(control && "null pointer");
-            control = control->prev;
-            --i;
-        }
-    }
-    return control;
-}
-
-// 插入控件
-void LongUI::UIContainer::Insert(Iterator itr, UIControl* ctrl) noexcept {
-    const auto end_itr = this->end();
-    assert(ctrl && "bad arguments");
-    if (ctrl->prev) {
-        UIManager << DL_Warning
-            << L"the 'prev' attr of the control: ["
-            << ctrl->GetNameStr()
-            << "] that to insert is not null"
-            << LongUI::endl;
-    }
-    if (ctrl->next) {
-        UIManager << DL_Warning
-            << L"the 'next' attr of the control: ["
-            << ctrl->GetNameStr()
-            << "] that to insert is not null"
-            << LongUI::endl;
-    }
-    // 插入尾部?
-    if (itr == end_itr) {
-        // 链接
-        force_cast(ctrl->prev) = m_pTail;
-        // 无尾?
-        if (m_pTail) force_cast(m_pTail->next) = ctrl;
-        // 无头?
-        if (!m_pHead) m_pHead = ctrl;
-        // 设置尾
-        m_pTail = ctrl;
-    }
-    else {
-        force_cast(ctrl->next) = itr.Ptr();
-        force_cast(ctrl->prev) = itr->prev;
-        if (itr->prev) {
-            force_cast(itr->prev) = ctrl;
-        }
-        force_cast(itr->prev) = ctrl;
-    }
-    ++m_cChildrenCount;
-    // 添加之后的处理
-    this->AfterInsert(ctrl);
-}
-
-
-// 仅移除控件
-bool LongUI::UIContainer::RemoveJust(Iterator itr) noexcept {
-    // 检查是否属于本容器
-#ifdef _DEBUG
-    bool ok = false;
-    for (auto i : (*this)) {
-        if (itr == i) {
-            ok = true;
-            break;
-        }
-    }
-    if (!ok) {
-        UIManager << DL_Error << "control:[" << itr->GetNameStr()
-            << "] not in this container: " << this->GetNameStr() << LongUI::endl;
-        return false;
-    }
-#endif
-    UIControl* child = itr.Ptr();
-    {
-        // 连接前后节点
-        register auto prev_tmp = itr->prev;
-        register auto next_tmp = itr->next;
-        // 检查, 头
-        (prev_tmp ? force_cast(prev_tmp->next) : m_pHead) = next_tmp;
-        // 检查, 尾
-        (next_tmp ? force_cast(next_tmp->prev) : m_pTail) = prev_tmp;
-        // 减少
-        force_cast(itr->prev) = force_cast(itr->next) = nullptr;
-        --m_cChildrenCount;
-        // 修改
-        this->SetControlSizeChanged();
-    }
-    this->AfterRemove(child);
-    return true;
-}
- 

@@ -131,12 +131,12 @@ namespace LongUI {
         void ShowCaret() noexcept;
         // hide the caret
         void HideCaret() noexcept;
-        // get control by CUIString
-        auto FindControl(const CUIString&) noexcept->UIControl*;
-        // get control by wchar_t pointer
+        // find control by CUIString
+        auto FindControl(const CUIString& name) noexcept->UIControl*;
+        // find control by wchar_t pointer
         auto FindControl(const wchar_t* name) noexcept { CUIString n(name); return this->FindControl(n); }
-        // find control where mouse pointed
-        auto FindControl(const D2D1_POINT_2F pt) noexcept { return static_cast<UIContainer*>(this)->FindControl(pt); }
+        // find control by mouse point
+        virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept ->UIControl* final override { return Super::FindControl(pt); }
         // add control with name
         void AddControl(const std::pair<CUIString, void*>& pair) noexcept;
         // set icon, bad

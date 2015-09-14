@@ -43,9 +43,6 @@ namespace LongUI {
         // clean this control 清除控件
         virtual void Cleanup() noexcept override;
     public:
-        // after add a child
-        virtual void AfterInsert(UIControl* child) noexcept override;
-    public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
@@ -68,6 +65,8 @@ namespace LongUI {
         // super class
         using Super = UIMarginalable;
     public:
+        // update
+        virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
         // clean this control 清除控件
@@ -97,34 +96,34 @@ namespace LongUI {
         // line template buffer
         using LineTemplateBuffer = EzContainer::SmallBuffer<Helper::CC, 16>;
     public:
-        // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
-        // Render 渲染 
+        // render this
         virtual void Render(RenderType) const noexcept override;
-        // update
+        // update this
         virtual void Update() noexcept override;
-        // clean this control 清除控件
+        // do event
+        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        // recreate this
+        virtual auto Recreate() noexcept->HRESULT override;
+        // clean up
         virtual void Cleanup() noexcept override;
-    private:
-        // after add a child
-        inline void after_insert(UIControl* child) noexcept;
+        // find control by mouse point
+        virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* override;
     public:
-        // after add a child
-        virtual void AfterInsert(UIControl* child) noexcept override;
-#ifdef LONGUI_UILIST_VECTOR
-        // after add a child
-        virtual void AfterRemove(UIControl* child) noexcept override;
+        // refresh layout
+        //virtual void RefreshLayout() noexcept override final {};
+        // push back
+        virtual void PushBack(UIControl* child) noexcept;
+        // just remove 
+        virtual void RemoveJust(UIControl* child) noexcept;
+        // insert
+        auto Insert(uint32_t index, UIControl*) noexcept;
         // get child at index
-        virtual auto GetAt(uint32_t index) const noexcept ->UIControl* final override;
-    private:
-        // control vector
-        BasicContainer          m_controls;
-#endif
+        auto GetAt(uint32_t index) const noexcept { assert(index < m_cChildrenCount); return m_controls.at(index); }
     public:
         // get height in line
         auto GetLineHeight() const noexcept { return m_fLineHeight; }
         // insert a line-template with inside string
-        void InsertInlineTemplate(Iterator itr) noexcept;
+        void InsertInlineTemplate(uint32_t index) noexcept;
         // change element width, less than 0.f means do not change
         void ChangeElementWidth(float widthv[]) noexcept;
         // set header
@@ -135,7 +134,7 @@ namespace LongUI {
         // set new elements count
         void set_element_count(uint32_t length) noexcept;
         // referent ctrl
-        auto get_referent_control() const noexcept ->UIControl* { return m_pHeader ? m_pHeader : m_pHead; }
+        auto get_referent_control() const noexcept ->UIControl* { return m_pHeader; }
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -144,6 +143,8 @@ namespace LongUI {
         // dtor
         ~UIList() noexcept;
     protected:
+        // control vector
+        BasicContainer          m_controls;
         // list header
         UIListHeader*           m_pHeader = nullptr;
         // line height

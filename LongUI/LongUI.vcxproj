@@ -94,7 +94,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)$(Configuration)\CppAllInOne.exe  $(SolutionDir)src\ _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -111,7 +112,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)$(Configuration)\CppAllInOne.exe  $(SolutionDir)src\ _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -162,6 +164,7 @@
     <ClInclude Include="..\include\Component\Text.h" />
     <ClInclude Include="..\include\Control\UIButton.h" />
     <ClInclude Include="..\include\Control\UICheckBox.h" />
+    <ClInclude Include="..\include\Control\UIContainerBuiltIn.h" />
     <ClInclude Include="..\include\Control\UIEdit.h" />
     <ClInclude Include="..\include\Control\UILinearLayout.h" />
     <ClInclude Include="..\include\Control\UIList.h" />

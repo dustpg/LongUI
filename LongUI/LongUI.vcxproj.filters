@@ -39,6 +39,9 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="LongUI\Header\Control\Container">
+      <UniqueIdentifier>{7027308b-fcde-4621-8620-715dec020f1d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\longuiconf.h">
@@ -56,12 +59,6 @@
     <ClInclude Include="..\include\Component\Element.h">
       <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\UILinearLayout.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\UIList.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Control\UIRichEdit.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
@@ -74,9 +71,6 @@
     <ClInclude Include="..\include\Control\UIText.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\UIWindow.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Control\UIButton.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
@@ -84,9 +78,6 @@
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Control\UIEdit.h">
-      <Filter>LongUI\Header\Control</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\UIMenu.h">
       <Filter>LongUI\Header\Control</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Core\UIInterface.h">
@@ -142,6 +133,21 @@
     </ClInclude>
     <ClInclude Include="..\include\Core\UIString.h">
       <Filter>LongUI\Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIContainerBuiltIn.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UILinearLayout.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIList.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIWindow.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\UIMenu.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

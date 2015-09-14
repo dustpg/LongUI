@@ -26,94 +26,48 @@
 
 // LongUI namespace
 namespace LongUI {
-#if 0
+#if 1
     // base container control class -- 基本容器类
     class UIContainer : public UIMarginalable {
         // 父类申明
         using Super = UIMarginalable;
 #else
-    // base container control class -- 基本容器类
+    // base container control class
     class UIContainer : public UIControl {
         // 父类申明
         using Super = UIControl;
 #endif
     public:
-        // itr 迭代器
-        class Iterator {
-        public:
-            // operator =
-            auto& operator=(const Iterator& itr) noexcept { m_pControl = itr.m_pControl; return *this; }
-            // ctor
-            Iterator(UIControl* c) noexcept :m_pControl(c) { }
-            // ctor cpy
-            Iterator(const Iterator& itr) noexcept : m_pControl(itr.m_pControl) { }
-            // ctor mov
-            Iterator(Iterator&& itr) noexcept : m_pControl(itr.m_pControl) { itr.m_pControl = nullptr; }
-            //  ++itr
-            auto operator++() noexcept { assert(m_pControl); m_pControl = m_pControl->next; return *this; }
-            // itr++
-            auto operator++(int) const noexcept { assert(m_pControl); Iterator itr(m_pControl); return ++itr; }
-            //  --itr
-            auto operator--() noexcept { assert(m_pControl); m_pControl = m_pControl->prev; return *this; }
-            // itr--
-            auto operator--(int) const noexcept { assert(m_pControl); Iterator itr(m_pControl); return --itr; }
-            // operator ==
-            auto operator==(const UIControl* c) const noexcept { return m_pControl == c; }
-            // operator ==
-            auto operator==(const Iterator& itr) const noexcept { return m_pControl == itr.m_pControl; }
-            // operator !=
-            auto operator!=(const UIControl* c) const noexcept { return m_pControl != c; }
-            // operator !=
-            auto operator!=(const Iterator& itr) const noexcept { return m_pControl != itr.m_pControl; }
-            // pointer
-            auto Ptr() const noexcept { return m_pControl; }
-            // operator ->
-            auto operator->() const noexcept { return m_pControl; }
-            // operator *
-            auto operator*() const noexcept { return m_pControl; }
-        private:
-            UIControl*          m_pControl;
-        };
-    public:
-        // render
+        // render this
         virtual void Render(RenderType) const noexcept override;
-        // update
+        // update this
         virtual void Update() noexcept override;
-        // do event 事件处理
+        // do event
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
-        // recreate
+        // recreate this
         virtual auto Recreate() noexcept->HRESULT override;
+        // find control by mouse point
+        virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* override;
     public:
-        // after add a child
-        virtual void AfterInsert(UIControl* child) noexcept ;
-        // after add a child
-        virtual void AfterRemove(UIControl*) noexcept {}
-        // get child at index
-        virtual auto GetAt(uint32_t) const noexcept ->UIControl*;
+        // refresh layout
+        //virtual void RefreshLayout() noexcept {};
+        // push back
+        virtual void PushBack(UIControl* child) noexcept = 0;
+        // just remove 
+        virtual void RemoveJust(UIControl* child) noexcept = 0;
+        // remove and clean child
+        void RemoveClean(UIControl* child) noexcept { this->RemoveJust(child); child->Cleanup(); }
     public:
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
         // before update
-        void BeforeUpdate() noexcept;
-        // find control where mouse pointed
-        auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl*;
+        void BeforeUpdateContainer() noexcept;
     public:
         // get length/count of children
         auto GetLength() const noexcept { return m_cChildrenCount; }
         // get length/count of children
         auto GetCount() const noexcept { return m_cChildrenCount; }
-        // insert child,
-        void Insert(Iterator, UIControl*) noexcept;
-        // just remove child, : remove from list and set prev/next to null
-        bool RemoveJust(Iterator) noexcept;
-        // remove and close child
-        void RemoveClean(Iterator itr) noexcept { this->RemoveJust(itr); itr->Cleanup(); }
-    public: // for C++ 11
-        // begin 
-        auto begin() const noexcept { return Iterator(m_pHead); };
-        // end
-        auto end() const noexcept { return Iterator(nullptr); };
-    public: // child level operation
+    public: 
         // get content width - zoomed
         auto GetContentWidthZoomed() const noexcept { return m_2fContentSize.width / m_2fZoom.width; }
         // get content height - zoomed
@@ -158,23 +112,23 @@ namespace LongUI {
         // get zoom 
         auto GetZoom(int xy) const noexcept { return xy ? this->GetZoomY() : this->GetZoomX(); }
     private:
+    protected:
+        // dtor
+        ~UIContainer() noexcept;
         // refresh marginal controls
         void refresh_marginal_controls() noexcept;
-    protected:
-        // dtor 析构函数
-        ~UIContainer() noexcept;
-        // 子控件数量
-        size_t                  m_cChildrenCount = 0;
-        // 头控件指针
-        UIControl*              m_pHead = nullptr;
-        // 尾控件指针
-        UIControl*              m_pTail = nullptr;
-        // orginal margin
-        D2D1_RECT_F             m_orgMargin = D2D1::RectF();
+        // do render for child
+        static void child_do_render(const UIControl* ctrl) noexcept;
+        // after insert
+        void after_insert(UIControl* child) noexcept;
     public:
         // marginal controls
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
+        // count of children, just make "GetLength/Count" to faster
+        size_t                  m_cChildrenCount = 0;
+        // orginal margin
+        D2D1_RECT_F             m_orgMargin = D2D1::RectF();
         // template size
         D2D1_SIZE_F             m_2fTemplateSize = D2D1::SizeF(0.f, 0.f);
         // offset position
@@ -200,9 +154,7 @@ namespace LongUI {
     protected:
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
-#endif
     };
-#ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
     template<> LongUIInline const IID& GetIID<LongUI::UIContainer>() {
         // {30523BF0-4170-4F2F-9FF6-7946A2B8BEEB}
@@ -211,6 +163,8 @@ namespace LongUI {
         };
         return IID_LongUI_UIContainer;
     }
+#else
+    };
 #endif
     // XXX: top level?
     LongUIInline auto UIControl::IsTopLevel() const noexcept { return static_cast<UIControl*>(this->parent) == this; }

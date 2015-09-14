@@ -328,7 +328,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             window->AddControl(control_name);
         }
         // 添加子节点
-        parent_node->Insert(parent_node->end(), now_control);
+        parent_node->PushBack(now_control);
         // 设置节点为下次父节点
         parent_node = static_cast<decltype(parent_node)>(now_control);
         // 检查本控件是否需要XML子节点信息

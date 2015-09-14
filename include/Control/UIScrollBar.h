@@ -195,6 +195,8 @@ namespace LongUI{
         // 父类申明
         using Super = UIScrollBar;
     public:
+        // update
+        void Update() noexcept override;
         // close this control 关闭控件
         void Cleanup() noexcept override;
         // update width of marginal

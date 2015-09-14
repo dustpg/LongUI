@@ -193,15 +193,8 @@ namespace LongUI {
         /// in <see cref="LongUI::UIContainer::UIContainer"/>
         /// </remarks>
         Flag_UIContainer = 1 << 0,
-        /// <summary>
-        /// call UIControl::CustomFindControl when 'FindControl' [default: false]
-        /// </summary>
-        /// <remarks>
-        /// if it is a container but UIContainer, or you want to make 
-        /// UIContainer::FindControl to faster(O(n) -> O(1)) you should implement
-        /// UIControl::CustomFindControl
-        /// </remarks>
-        Flag_CustomFindControl = 1 << 1,
+
+        //Flag_CustomContainer = 1 << 1,
         /// <summary>
         /// the width of control is fixed [default: false]
         /// </summary>
@@ -474,6 +467,7 @@ namespace LongUI {
 
 // longui core only?
 #ifndef LongUICoreOnly
+#   include "Control/UIContainerBuiltIn.h"
 #   include "Control/UIScrollBar.h"
 #   include "Control/UISlider.h"
 #   include "Control/UILinearLayout.h"

@@ -259,7 +259,7 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
         target->SetTransform(
             D2D1::Matrix3x2F::Translation(rect.left, rect.top) * matrix
             );
-        target->DrawGeometry(geo, bush, 2.33f);
+        target->DrawGeometry(geo, bush, 2.33333f);
         // 修改
         target->SetTransform(&matrix);
     };
@@ -564,6 +564,12 @@ auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType bartype, pugi::x
     }
     return pControl;
 }
+
+// UIScrollBarB: 刷新
+void  LongUI::UIScrollBarB::Update() noexcept {
+
+}
+
 
 // UIScrollBarB 关闭控件
 void  LongUI::UIScrollBarB::Cleanup() noexcept {

@@ -488,6 +488,7 @@ void LongUI::UIWindow::Update() noexcept {
             assert(ctrl->parent && "check it");
             // 设置转换矩阵
             ctrl->Update();
+            ctrl->AfterUpdate();
             // 限制转换
             m_dirtyRects[i].left = static_cast<LONG>(ctrl->visible_rect.left);
             m_dirtyRects[i].top = static_cast<LONG>(ctrl->visible_rect.top);
@@ -504,6 +505,7 @@ void LongUI::UIWindow::Update() noexcept {
         ++dirty_render_counter;
     }
 #endif
+    this->AfterUpdate();
 }
 
 // UIWindow 渲染 

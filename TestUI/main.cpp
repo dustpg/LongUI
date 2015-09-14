@@ -28,23 +28,33 @@ const char* test_xml_01 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 )xml";
 // bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
 const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="800, 600" name="MainWindow" debug="true" clearcolor="1,1,1,0.95" >
-    <VerticalLayout name="V" bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA">
-        <Button name="1" templateid="1" text="Hello, world!"/>
+<Window size="800, 600" name="MainWindow" debugshow="true" clearcolor="1,1,1,0.95" >
+    <VerticalLayout name="V" topcontrol="ScrollBarA" rightcontrol="ScrollBarA">
+        <VerticalLayout name="V2" topcontrol="ScrollBarA">
+            <Button size="2048, 0" templateid="1" text="Hello, world!"/>
+        </VerticalLayout>
         <Slider name="sb" thumbsize="32,32" margin="4,4,4,4"/>
-        <Button name="2" size="512, 0" templateid="2" text="Hello, world!"/>
+        <Button name="2" size="1024, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
     <Slider name="6" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <Edit debug="true" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
+    <Button name="btn_x" size="0, 32" borderwidth="1" textrichtype="core"
+        text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
+    <VerticalLayout topcontrol="ScrollBarA" rightcontrol="ScrollBarA">
+        <Button templateid="1" text="Hello, world!"/>
+        <Slider thumbsize="32,32" margin="4,4,4,4"/>
+        <Button size="1024, 0" templateid="2" text="Hello, world!"/>
+    </VerticalLayout>
+</Window>
+)xml";
+
+/*
     <HorizontalLayout name="H" size="0, 128">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
-    </HorizontalLayout>
-    <Button name="btn_x" size="0, 32" borderwidth="1" textrichtype="core"
-        text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
-</Window>
-)xml";
+    </HorizontalLayout>*/
+
 const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
   clearcolor="1,1,1,0.95" >
@@ -63,7 +73,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_03;
+const char* test_xml = test_xml_02;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -336,7 +346,7 @@ public:
         }
         return S_OK;*/
     }
-    //do the event
+    // do the event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override {
         if (arg.sender) {
             /*if (arg.event == LongUI::Event::Event_FindControl) {
@@ -410,10 +420,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
     <Control desc="btn.png look like button" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4"/>
     <!-- Index 3 -->
-    <Control desc="list header test">
-        <UIText text="header1"/>
-        <UIText text="header2"/>
-    </Control>
+    <Control desc="list header test"/>
 </Template>
 )xml";
         }

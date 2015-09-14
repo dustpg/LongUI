@@ -15,14 +15,12 @@ void LongUI::UIText::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        break;
     case LongUI::RenderType::Type_Render:
         // 父类背景
         Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 背景中断
-        if (type == LongUI::RenderType::Type_RenderBackground) {
-            break;
-        }
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 渲染文字
@@ -266,15 +264,12 @@ void LongUI::UIEditBasic::Render(RenderType type) const noexcept {
     switch (type)
     {
     case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        break;
     case LongUI::RenderType::Type_Render:
         // 父类背景
         Super::Render(LongUI::RenderType::Type_RenderBackground);
         __fallthrough;
-        // 背景中断
-        if (type == LongUI::RenderType::Type_RenderBackground) {
-            break;
-        }
     case LongUI::RenderType::Type_RenderForeground:
         m_text.Render(0.f, 0.f);
         // 父类前景
@@ -597,6 +592,27 @@ bool LongUI::UIContainer::debug_do_event(const LongUI::DebugEventInformation& in
     }
     return false;
 }
+
+// LongUI内建容器: 调试信息
+bool LongUI::UIContainerBuiltIn::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIContainerBuiltIn";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIContainerBuiltIn";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIContainerBuiltIn>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
 
 // UI 基本编辑控件: 调试信息
 bool LongUI::UIEditBasic::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {

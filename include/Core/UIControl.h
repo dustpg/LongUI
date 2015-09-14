@@ -52,11 +52,13 @@ namespace LongUI {
         // Render 
         virtual void Render(RenderType) const noexcept;
         // update
-        virtual void Update() noexcept;
+        virtual void Update() noexcept {};
         // do event 
         virtual bool DoEvent(const LongUI::EventArgument&) noexcept = 0;
         // recreate , first call or device reset
         virtual auto Recreate() noexcept->HRESULT;
+        // find control by mouse point
+        virtual auto FindControl(const D2D1_POINT_2F&) noexcept->UIControl* { return this; };
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
@@ -65,10 +67,6 @@ namespace LongUI {
         /// easy way: delete this
         /// </remarks>
         virtual void Cleanup() noexcept = 0;
-        // FindControl in Custom way
-        virtual auto CustomFindControl(const D2D1_POINT_2F& world_pt) noexcept->UIControl* { 
-            UNREFERENCED_PARAMETER(world_pt); return nullptr; 
-        }
     public:
         // ctor
         UIControl(pugi::xml_node) noexcept;
@@ -76,6 +74,8 @@ namespace LongUI {
         ~UIControl() noexcept;
         // delete the copy-ctor
         UIControl(const UIControl&) = delete;
+        // after update
+        void AfterUpdate() noexcept;
     protected:
         // new operator with buffer -- placement new 
         void* operator new(size_t s, void* buffer) noexcept { UNREFERENCED_PARAMETER(s); return buffer; };

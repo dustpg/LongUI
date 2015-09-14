@@ -59,6 +59,10 @@ namespace LongUI {
     auto __fastcall BKDRHash(const char* str, uint32_t size) noexcept->uint32_t;
     // BKDR Hash
     auto __fastcall BKDRHash(const wchar_t* str, uint32_t size) noexcept->uint32_t;
+    // load proc
+    template<typename T> static inline auto LoadProc(T& pointer, HMODULE dll, const char* name) noexcept {
+        pointer = reinterpret_cast<T>(::GetProcAddress(dll, name));
+    }
     // create object
     template<class T> auto CreateObject(T& obj) noexcept { new(&obj) T(); }
     // destory object
