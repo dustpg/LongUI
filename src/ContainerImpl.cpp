@@ -262,9 +262,7 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
 }
 
 // 更新子控件布局
-void LongUI::UIVerticalLayout::Update() noexcept {
-    // 前向刷新
-    this->BeforeUpdateContainer();
+void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -274,8 +272,6 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         float base_width = 0.f, base_height = 0.f, basic_weight = 0.f;
         // 第一次遍历
         for (auto ctrl : (*this)) {
-            // 前向
-            ctrl->Update();
             // 非浮点控件
             if (!(ctrl->flags & Flag_Floating)) {
                 // 宽度固定?
@@ -323,8 +319,7 @@ void LongUI::UIVerticalLayout::Update() noexcept {
         m_2fContentSize.width = base_width * m_2fZoom.width;
         m_2fContentSize.height = position_y * m_2fZoom.height;
     }
-    // 父类刷新
-    Super::Update();
+    this->RefreshWorld();
 }
 
 // UIVerticalLayout 关闭控件
@@ -363,9 +358,7 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
 
 
 // 更新子控件布局
-void LongUI::UIHorizontalLayout::Update() noexcept {
-    // 前向刷新
-    this->BeforeUpdateContainer();
+void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
     // 基本算法:
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
@@ -426,8 +419,6 @@ void LongUI::UIHorizontalLayout::Update() noexcept {
         // 已经处理
         this->ControlSizeChangeHandled();
     }
-    // 父类刷新
-    Super::Update();
 }
 
 

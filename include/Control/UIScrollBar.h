@@ -25,7 +25,7 @@
 */
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // base scroll bar 默认滚动条
     class UIScrollBar : public UIMarginalable {
         // 父类申明

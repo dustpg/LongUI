@@ -29,10 +29,8 @@ const char* test_xml_01 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 // bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
 const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true" clearcolor="1,1,1,0.95" >
-    <VerticalLayout name="V" topcontrol="ScrollBarA" rightcontrol="ScrollBarA">
-        <VerticalLayout name="V2" topcontrol="ScrollBarA">
-            <Button size="2048, 0" templateid="1" text="Hello, world!"/>
-        </VerticalLayout>
+    <VerticalLayout name="V" topcontrol="ScrollBarA" >
+        <Button templateid="1" text="Hello, world!"/>
         <Slider name="sb" thumbsize="32,32" margin="4,4,4,4"/>
         <Button name="2" size="1024, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
@@ -40,15 +38,20 @@ const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <Edit debug="true" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
     <Button name="btn_x" size="0, 32" borderwidth="1" textrichtype="core"
         text="%cHello%], %cworld!%]%c泥壕!%]世界!%p#0F0, #F00, #00F"/>
-    <VerticalLayout topcontrol="ScrollBarA" rightcontrol="ScrollBarA">
+    <VerticalLayout name="V2" topcontrol="ScrollBarA" >
         <Button templateid="1" text="Hello, world!"/>
         <Slider thumbsize="32,32" margin="4,4,4,4"/>
-        <Button size="1024, 0" templateid="2" text="Hello, world!"/>
+        <Button size="2048, 0" templateid="2" text="Hello, world!"/>
     </VerticalLayout>
 </Window>
 )xml";
 
 /*
+
+        <VerticalLayout name="V2" topcontrol="ScrollBarA">
+            <Button size="2048, 0" templateid="1" text="Hello, world!"/>
+        </VerticalLayout>
+
     <HorizontalLayout name="H" size="0, 128">
         <Button name="3" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>

@@ -168,42 +168,36 @@ void LongUI::UIList::Render(RenderType t) const noexcept {
     return Super::Render(t);
 }
 
-// 更新子控件布局
+// 刷新
 void LongUI::UIList::Update() noexcept {
-    // 前向刷新
-    this->BeforeUpdateContainer();
     // 父类刷新
     Super::Update();
-    // 基本算法:
-    // 1. 去除浮动控件影响
-    // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
-    // 3. 计算实际高度/宽度
-    if (this->IsControlSizeChanged()) {
-        // 第二次
-        float index = 0.f;
-        for (auto voidctrl : m_controls) {
-            auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
-            // 宽度无效?
-            if (ctrl->view_size.width == 0.f) {
-                ctrl->SetWidth(this->GetViewWidthZoomed());
-            }
-            // 设置控件高度
-            ctrl->SetHeight(m_fLineHeight);
-            // 不管如何, 修改!
-            ctrl->SetControlSizeChanged();
-            ctrl->SetLeft(0.f);
-            ctrl->SetTop(m_fLineHeight * index);
-            ++index;
+}
+
+// 更新子控件布局
+void LongUI::UIList::RefreshLayout() noexcept {
+    // 第二次
+    float index = 0.f;
+    for (auto voidctrl : m_controls) {
+        auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
+        // 宽度无效?
+        if (ctrl->view_size.width == 0.f) {
+            ctrl->SetWidth(this->GetViewWidthZoomed());
         }
-        // 设置
-        auto tmp = this->get_referent_control();
-        if (tmp) {
-            m_2fContentSize.width = tmp->GetWidth();
-        }
-        m_2fContentSize.height = m_fLineHeight * this->GetCount();
-        // 已经处理
-        this->ControlSizeChangeHandled();
+        // 设置控件高度
+        ctrl->SetHeight(m_fLineHeight);
+        // 不管如何, 修改!
+        ctrl->SetControlSizeChanged();
+        ctrl->SetLeft(0.f);
+        ctrl->SetTop(m_fLineHeight * index);
+        ++index;
     }
+    // 设置
+    auto tmp = this->get_referent_control();
+    if (tmp) {
+        m_2fContentSize.width = tmp->GetWidth();
+    }
+    m_2fContentSize.height = m_fLineHeight * this->GetCount();
 }
 
 // 清理UI列表控件

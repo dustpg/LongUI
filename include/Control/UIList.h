@@ -110,7 +110,7 @@ namespace LongUI {
         virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* override;
     public:
         // refresh layout
-        //virtual void RefreshLayout() noexcept override final {};
+        virtual void RefreshLayout() noexcept override final;
         // push back
         virtual void PushBack(UIControl* child) noexcept;
         // just remove 

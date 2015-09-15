@@ -50,7 +50,7 @@ namespace LongUI {
         virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* override;
     public:
         // refresh layout
-        //virtual void RefreshLayout() noexcept {};
+        virtual void RefreshLayout() noexcept = 0;
         // push back
         virtual void PushBack(UIControl* child) noexcept = 0;
         // just remove 
@@ -61,7 +61,7 @@ namespace LongUI {
         // ctor
         UIContainer(pugi::xml_node node) noexcept;
         // before update
-        void BeforeUpdateContainer() noexcept;
+        //void BeforeUpdateContainer() noexcept;
     public:
         // get length/count of children
         auto GetLength() const noexcept { return m_cChildrenCount; }
@@ -111,12 +111,18 @@ namespace LongUI {
         auto GetZoomY() const noexcept { return m_2fZoom.height; }
         // get zoom 
         auto GetZoom(int xy) const noexcept { return xy ? this->GetZoomY() : this->GetZoomX(); }
+        // get top margin offset
+        auto GetTopMarginOffset() const noexcept { return this->margin_rect.top - m_orgMargin.top; }
+        // get left margin offset
+        auto GetLeftMarginOffset() const noexcept { return this->margin_rect.left - m_orgMargin.left; }
     private:
+        // refresh marginal controls
+        void refresh_marginal_controls() noexcept;
+        // auto template size
+        void refresh_auto_template_size();
     protected:
         // dtor
         ~UIContainer() noexcept;
-        // refresh marginal controls
-        void refresh_marginal_controls() noexcept;
         // do render for child
         static void child_do_render(const UIControl* ctrl) noexcept;
         // after insert

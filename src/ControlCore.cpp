@@ -282,7 +282,8 @@ auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
     // 检查
     if (this->view_size.width < 0.f && this->parent->view_size.width > 0.f) {
         UIManager << DL_Hint << this
-            << "viewport's width < 0: " << this->view_size.width << endl;
+            << "viewport's width < 0: " << this->view_size.width 
+            << endl;
     }
 }
 
@@ -297,7 +298,8 @@ auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline 
     // 检查
     if (this->view_size.height < 0.f && this->parent->view_size.height > 0.f) {
         UIManager << DL_Hint << this
-            << "viewport's height < 0: " << this->view_size.height << endl;
+            << "viewport's height < 0: " << this->view_size.height 
+            << endl;
     }
 }
 
@@ -399,10 +401,10 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
         identity = D2D1::Matrix3x2F::Identity();
     }
     else {
-        auto pp = this->parent->parent;
+        auto pp = this->parent;
+        xx -= pp->GetLeftMarginOffset();
+        yy -= pp->GetTopMarginOffset();
         // 检查
-        xx += pp->GetOffsetXZoomed();
-        yy += pp->GetOffsetYZoomed();
         parent_world = &pp->world;
     }
     // 计算矩阵
@@ -739,6 +741,9 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     // 保留信息
     const float this_container_width = caculate_container_width();
     const float this_container_height = caculate_container_height();
+    const float this_container_left = this->view_pos.x - this->GetLeftMarginOffset();
+    const float this_container_top = this->view_pos.y - this->GetTopMarginOffset();
+
     /*if (m_strControlName == L"V") {
         int bk = 9;
     }*/
@@ -840,13 +845,17 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
             force_cast(this->margin_rect.bottom) = m_orgMargin.bottom
                 + get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
             // 修改大小
+            this->SetLeft(this_container_left);
+            this->SetTop(this_container_top);
             this->SetWidth(this_container_width);
             this->SetHeight(this_container_height);
+            this->RefreshWorld();
+            this->RefreshLayout();
         }
     }
 }
 
-// UI容器: 刷新前
+/*// UI容器: 刷新前
 void LongUI::UIContainer::BeforeUpdateContainer() noexcept {
     // 需要刷新
     if (this->IsNeedRefreshWorld()) {
@@ -874,12 +883,39 @@ void LongUI::UIContainer::BeforeUpdateContainer() noexcept {
             break;
         }
     }
-}
+}*/
 
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept {
+    // 修改自动缩放控件
+    if (this->IsNeedRefreshWorld()) {
+        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) | 
+            (this->m_2fTemplateSize.height > 0.f);
+        auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
+        auto tmph = this->GetHeight() / m_2fTemplateSize.width;
+        switch (code)
+        {
+        case 0:
+            // do nothing
+            break;
+        case 1:
+            // this->m_2fTemplateSize.height > 0.f, only
+            this->m_2fZoom.width = this->m_2fZoom.height = tmph;
+            break;
+        case 2:
+            // this->m_2fTemplateSize.width > 0.f, only
+            this->m_2fZoom.height = this->m_2fZoom.width = tmpw;
+            break;
+        case 3:
+            // both
+            this->m_2fZoom.width =  tmpw;
+            this->m_2fZoom.height = tmph;
+            break;
+        }
+    }
     // 修改边界
     if (this->IsControlSizeChanged()) {
+        this->RefreshLayout();
         // 刷新边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
             this->refresh_marginal_controls();

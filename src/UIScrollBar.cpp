@@ -322,7 +322,7 @@ bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
             case LongUI::UIScrollBar::PointType::Type_Shaft:
                 // 设置目标
             {
-                auto rate = UISB_OffsetVaule(pt4self.x) / (this->view_size.width - BASIC_SIZE * 2.f);
+                auto rate = (UISB_OffsetVaule(pt4self.x) - BASIC_SIZE) / (this->view_size.width - BASIC_SIZE * 2.f);
                 this->SetIndex(rate * m_fMaxIndex);
             }
                 break;

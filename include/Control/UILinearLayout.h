@@ -34,13 +34,16 @@ namespace LongUI{
         // render this
         //virtual auto Render() noexcept ->HRESULT override;
         // update this
-        virtual void Update() noexcept override;
+        //virtual void Update() noexcept override;
         // do event 
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate
         //virtual auto Recreate() noexcept->HRESULT override;
         // clean this
         virtual void Cleanup() noexcept override;
+    public:
+        // refresh layout
+        virtual void RefreshLayout() noexcept override final;
     public:
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
@@ -64,13 +67,16 @@ namespace LongUI{
         // Render 渲染 
         //virtual auto Render() noexcept ->HRESULT override;
         // 刷新
-        virtual void Update() noexcept override;
+        //virtual void Update() noexcept override;
         // do event 事件处理
         //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
+    public:
+        // refresh layout
+        virtual void RefreshLayout() noexcept override final;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
