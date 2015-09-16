@@ -1,11 +1,17 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 // ----------------------------------------------------------------------------
 // -------------------------------- UIList ------------------------------------
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
-    // TODO: 删除预测
+    try {
+        m_controls.reserve(100);
+    }
+    catch (...) {
+        assert(!"oom just less 1kb!");
+    }
     if (node) {
         const char* str = nullptr;
         // 行高度
@@ -22,6 +28,17 @@ LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
                 Helper::MakeCC(str, m_bufLineTemplate.GetData());
             }
         }
+    }
+}
+
+// 获取参考控件
+auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
+    if (m_pHeader) {
+        return m_pHeader;
+    }
+    else {
+        if (m_controls.empty()) return nullptr;
+        return longui_cast<UIListLine*>(static_cast<UIControl*>(m_controls.front()));
     }
 }
 
@@ -68,7 +85,11 @@ auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
 
 // UI列表控件: 析构函数
 LongUI::UIList::~UIList() noexcept {
-
+    // 线性容器就是不用考虑next指针
+    for (auto voidctrl : m_controls) {
+        auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
+        ctrl->Cleanup();
+    }
 }
 
 // 移除
@@ -162,17 +183,18 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
     }
 }
 
-
-// Render 渲染 
-void LongUI::UIList::Render(RenderType t) const noexcept {
-    return Super::Render(t);
+// UIList: 渲染函数
+void LongUI::UIList::Render(RenderType type) const noexcept {
+    // 帮助器
+    Super::RenderHelper<Super>(m_controls.begin(), m_controls.end(), type);
 }
 
-// 刷新
+// UIList: 刷新
 void LongUI::UIList::Update() noexcept {
-    // 父类刷新
-    Super::Update();
+    // 帮助器
+    Super::UpdateHelper<Super>(m_controls.begin(), m_controls.end());
 }
+
 
 // 更新子控件布局
 void LongUI::UIList::RefreshLayout() noexcept {
@@ -193,9 +215,8 @@ void LongUI::UIList::RefreshLayout() noexcept {
         ++index;
     }
     // 设置
-    auto tmp = this->get_referent_control();
-    if (tmp) {
-        m_2fContentSize.width = tmp->GetWidth();
+    if (m_controls.size()) {
+        m_2fContentSize.width = static_cast<UIControl*>(this->m_controls.front())->GetWidth();
     }
     m_2fContentSize.height = m_fLineHeight * this->GetCount();
 }
@@ -305,22 +326,27 @@ noexcept -> UIControl* {
 }
 
 
-
-
 // ----------------------------------------------------------------------------
 // ----------------------------- UIListHeader ---------------------------------
 // ----------------------------------------------------------------------------
 
 // UI列表头控件: 构造函数
 LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
+    // 支持模板子节点
+    auto flag = this->flags | Flag_InsertTemplateChild;
     if (node) {
-
+        const char* str = nullptr;
+        // 行高度
+        if ((str = node.attribute("lineheight").value())) {
+            m_fLineHeight = LongUI::AtoF(str);
+        }
     }
+    force_cast(this->flags) = flag;
 }
 
 // UI列表头: 事件处理
 void LongUI::UIListHeader::Update() noexcept {
-
+    Super::Update();
 }
 
 // UI列表头: 事件处理
@@ -337,8 +363,7 @@ bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
             break;
         }
     }
-    //return Super::DoEvent(arg);
-    return false;
+    return Super::DoEvent(arg);
 }
 
 // 清理UI列表头控件
@@ -348,7 +373,7 @@ void LongUI::UIListHeader::Cleanup() noexcept {
 
 // 刷新UI列表头控件边界宽度
 void LongUI::UIListHeader::UpdateMarginalWidth() noexcept {
-    this->marginal_width = longui_cast<UIList*>(this->parent)->GetLineHeight();
+    this->marginal_width = m_fLineHeight;
 }
 
 // 创建UI列表头
@@ -359,7 +384,7 @@ noexcept -> UIControl* {
     {
     case Type_CreateControl:
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+           // UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListHeader>(

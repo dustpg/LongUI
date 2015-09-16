@@ -61,9 +61,9 @@ namespace LongUI {
 #endif
     };
     // ui list header, parent must be UIList
-    class UIListHeader : public UIMarginalable {
+    class UIListHeader : public UIListLine {
         // super class
-        using Super = UIMarginalable;
+        using Super = UIListLine;
     public:
         // update
         virtual void Update() noexcept override;
@@ -81,6 +81,11 @@ namespace LongUI {
         UIListHeader(pugi::xml_node node) noexcept;
         // dtor
         ~UIListHeader() noexcept = default;
+    private:
+        // line height
+        float                   m_fLineHeight = 32.f;
+        // line height
+        float                   m_llhunused = 0.f;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -134,7 +139,7 @@ namespace LongUI {
         // set new elements count
         void set_element_count(uint32_t length) noexcept;
         // referent ctrl
-        auto get_referent_control() const noexcept ->UIControl* { return m_pHeader; }
+        auto get_referent_control() const noexcept->UIListLine*;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;

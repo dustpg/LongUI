@@ -137,9 +137,12 @@ namespace LongUI {
             // all flags
             Flag_All = uint32_t(-1),
             // flag for CPU rendering, if not, will call IUIInterface::ChooseAdapter
-            Flag_RenderByCPU = 0 << 1,
+            Flag_RenderByCPU = 1 << 0,
             // output debug string?
             Flag_OutputDebugString = 1 << 1,
+            // render in anytime, if you keep a window that rendered in anytime(like game)
+            // you should set this to skip ::Sleep(1) in CUIManager::WaitVS
+            Flag_RenderInAnytime = 1 << 2,
         };
     public:
         /// <summary>

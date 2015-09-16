@@ -23,79 +23,14 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
 
 // UIContainerBuiltIn: 渲染函数
 void LongUI::UIContainerBuiltIn::Render(RenderType type) const noexcept {
-    // 查看
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        break;
-    case LongUI::RenderType::Type_Render:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 普通子控件仅仅允许渲染在内容区域上
-        {
-            D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
-            UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        }
-        // 渲染所有子部件
-        for (const auto* ctrl : (*this)) {
-            this->child_do_render(ctrl);
-        }
-        // 弹出
-        UIManager_RenderTarget->PopAxisAlignedClip();
-        Super::Render(LongUI::RenderType::Type_Render);
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
-    }
+    // 帮助器
+    Super::RenderHelper<Super>(this->begin(), this->end(), type);
 }
 
 // LongUI内建容器: 刷新
 void LongUI::UIContainerBuiltIn::Update() noexcept {
-    // 父类刷新呢
-    Super::Update();
-    // 修改可视化区域
-    if (this->IsNeedRefreshWorld()) {
-        // 本容器内容限制
-        D2D1_RECT_F limit_of_this = {
-            this->visible_rect.left + this->margin_rect.left * this->world._11,
-            this->visible_rect.top + this->margin_rect.top * this->world._22,
-            this->visible_rect.right - this->margin_rect.right * this->world._11,
-            this->visible_rect.bottom - this->margin_rect.bottom * this->world._22,
-        };
-        // 更新一般控件
-        for (auto ctrl : (*this)) {
-            // 更新世界矩阵
-            ctrl->SetControlWorldChanged();
-            ctrl->RefreshWorld();
-            // 坐标转换
-            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-            auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-            auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-            ctrl->visible_rect.left = std::max(lt.x, limit_of_this.left);
-            ctrl->visible_rect.top = std::max(lt.y, limit_of_this.top);
-            ctrl->visible_rect.right = std::min(rb.x, limit_of_this.right);
-            ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
-            // 调试信息
-            //UIManager << DL_Hint << ctrl << ctrl->visible_rect << endl;
-        }
-        // 调试信息
-        if (this->IsTopLevel()) {
-            //UIManager << DL_Log << "Handle: ControlSizeChanged" << LongUI::endl;
-        }
-        // 已处理该消息
-        this->ControlSizeChangeHandled();
-    }
-    // 刷新一般子控件
-    for (auto ctrl : (*this)) {
-        ctrl->Update();
-        ctrl->AfterUpdate();
-    }
+    // 帮助器
+    Super::UpdateHelper<Super>(this->begin(), this->end());
 }
 
 

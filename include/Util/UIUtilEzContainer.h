@@ -9,40 +9,43 @@ namespace LongUI {
         struct FixedCirQueue {
             // constructor
             LongUIInline FixedCirQueue() noexcept {}
+            // front
+            auto& Front() noexcept { return *m_pFront; }
             // is queque empty
-            LongUIInline bool empty() const { return front == rear; }
-            // push
-            LongUIInline T& push(T& d) noexcept {
-                *rear = d;
-                ++rear;
-                if (rear > data + (MaxSize + 1)) {
-                    rear -= (MaxSize + 1);
+            LongUIInline bool IsEmpty() const { return m_pFront == m_pRear; }
+            // Push
+            LongUIInline T& Push(T& d) noexcept {
+                *m_pRear = d;
+                ++m_pRear;
+                if (m_pRear > m_data + (MaxSize + 1)) {
+                    m_pRear -= (MaxSize + 1);
                 }
 #ifdef _DEBUG
-                if (front == rear) {
+                if (m_pFront == m_pRear) {
                     assert(!"queque overflow!");
                 }
 #endif
                 return d;
             }
             // pop
-            LongUIInline void pop() noexcept {
-                ++front;
-                if (front > data + (MaxSize + 1)) {
-                    front -= (MaxSize + 1);
+            LongUIInline void Pop() noexcept {
+                ++m_pFront;
+                if (m_pFront > m_data + (MaxSize + 1)) {
+                    m_pFront -= (MaxSize + 1);
                 }
 #ifdef _DEBUG
-                if (rear == front - 1) {
+                if (m_pRear == m_pFront - 1) {
                     assert(!"queque pop too much!");
                 }
 #endif
             }
+        private:
             // front of queque
-            T*              front = data;
+            T*              m_pFront = m_data;
             // rear of queque
-            T*              rear = data;
-            // data(more 1 for storing real count of data)
-            T               data[MaxSize + 1];
+            T*              m_pRear = m_data;
+            // data(more 1 for storing real count of m_data)
+            T               m_data[MaxSize + 1];
         };
         // Static Stack, store data only(simple struct)
         template<typename T, size_t MaxSize>
@@ -50,16 +53,16 @@ namespace LongUI {
             // constructor
             LongUIInline FixedStack() noexcept {}
             // tail
-            LongUIInline auto tail() noexcept {
+            LongUIInline auto Tail() noexcept {
 #ifdef _DEBUG
-                if (this->empty()) {
-                    assert(!"stack empty!");
+                if (this->IsEmpty()) {
+                    assert(!"stack IsEmpty!");
                 }
 #endif
                 return top - 1;
             }
-            // push
-            LongUIInline T& push(T& d) noexcept {
+            // Push
+            LongUIInline T& Push(T& d) noexcept {
                 *top = d;  ++top;
 #ifdef _DEBUG
                 if (top > data + MaxSize) {
@@ -69,7 +72,7 @@ namespace LongUI {
                 return d;
             }
             // pop
-            LongUIInline void pop() noexcept {
+            LongUIInline void Pop() noexcept {
                 --top;
 #ifdef _DEBUG
                 if (top < data) {
@@ -78,7 +81,7 @@ namespace LongUI {
 #endif
             }
             // is stack empty
-            LongUIInline bool empty() const { return top == data; }
+            LongUIInline bool IsEmpty() const { return top == data; }
             // the top of stack
             T*          top = this->data;
             // data

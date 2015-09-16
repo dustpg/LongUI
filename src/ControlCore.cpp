@@ -572,7 +572,6 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     if (this->GetCount() >= 10'000) {
         UIManager << DL_Warning << "the count of children must be"
             " less than 10k because of the precision of float" << LongUI::endl;
-        assert(!"because of the precision of float, the count of children must be less than 10k");
     }
     // 检查flag
     const auto host_flag = Flag_Container_HostChildrenRenderingDirectly 
@@ -825,12 +824,6 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
             // 计算
             const float latest_width = caculate_container_width();
             const float latest_height = caculate_container_height();
-            /*UIManager << DL_Hint
-                << " latest_width: " << latest_width
-                << " this_container_width: " << this_container_width
-                << " latest_height: " << latest_height
-                << " this_container_height: " << this_container_height
-                << endl;*/
             // 一样就退出
             if (latest_width == this_container_width && latest_height == this_container_height) {
                 break;
@@ -850,9 +843,9 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
             this->SetWidth(this_container_width);
             this->SetHeight(this_container_height);
             this->RefreshWorld();
-            this->RefreshLayout();
         }
     }
+    this->RefreshLayout();
 }
 
 /*// UI容器: 刷新前
@@ -915,11 +908,14 @@ void LongUI::UIContainer::Update() noexcept {
     }
     // 修改边界
     if (this->IsControlSizeChanged()) {
+        // 更新布局
         this->RefreshLayout();
         // 刷新边缘控件
         if (this->flags & Flag_Container_ExistMarginalControl) {
             this->refresh_marginal_controls();
         }
+        // 处理
+        this->ControlSizeChangeHandled();
         // 刷新
         /*if (should_update) {
         this->SetControlWorldChanged();
@@ -934,16 +930,6 @@ void LongUI::UIContainer::Update() noexcept {
                     ) << LongUI::endl;
         }
 #endif
-    }
-    // 更新边缘控件
-    if (this->flags & Flag_Container_ExistMarginalControl) {
-        for (auto ctrl : this->marginal_control) {
-            // 刷新
-            if (ctrl) {
-                ctrl->Update();
-                ctrl->AfterUpdate();
-            }
-        }
     }
     // 修改可视化区域
     if (this->IsNeedRefreshWorld()) {
@@ -964,12 +950,28 @@ void LongUI::UIContainer::Update() noexcept {
                     ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
                     ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
                     ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
-                    //UIManager << DL_Hint << ctrl->visible_rect << endl;
+#ifdef _DEBUG
+                    if (ctrl->debug_this) {
+                        UIManager << DL_Log << ctrl
+                            << " visible rect changed to: "
+                            << ctrl->visible_rect << endl;
+                    }
+#endif
                 }
             }
         }
         // 已处理该消息
         this->ControlSizeChangeHandled();
+    }
+    // 更新边缘控件
+    if (this->flags & Flag_Container_ExistMarginalControl) {
+        for (auto ctrl : this->marginal_control) {
+            // 刷新
+            if (ctrl) {
+                ctrl->Update();
+                ctrl->AfterUpdate();
+            }
+        }
     }
     this->AssertMarginalControl();
     // 刷新父类

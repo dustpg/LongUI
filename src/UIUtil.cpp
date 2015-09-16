@@ -2001,18 +2001,18 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
 // longui namespace
 namespace LongUI {
     // BKDR 哈希
-    auto __fastcall BKDRHash(const char* str, uint32_t size) noexcept -> uint32_t {
+    auto __fastcall BKDRHash(const char* str) noexcept -> uint32_t {
         constexpr uint32_t seed = 131;
         uint32_t code = 0;
         auto p = reinterpret_cast<const unsigned char*>(str);
         while (*p) code = code * seed + (*p++);
-        return code % size;
+        return code;
     }
     // BKDR 哈希
-    auto __fastcall BKDRHash(const wchar_t* str, uint32_t size) noexcept -> uint32_t {
+    auto __fastcall BKDRHash(const wchar_t* str) noexcept -> uint32_t {
         constexpr uint32_t seed = 131;
         uint32_t code = 0;
         while (*str) code = code * seed + (*str++);
-        return code % size;
+        return code;
     }
 }

@@ -193,8 +193,10 @@ namespace LongUI {
         /// in <see cref="LongUI::UIContainer::UIContainer"/>
         /// </remarks>
         Flag_UIContainer = 1 << 0,
-
-        //Flag_CustomContainer = 1 << 1,
+        /// <summary>
+        /// it will insert children from template? [default: false]
+        /// </summary>
+        Flag_InsertTemplateChild = 1 << 1,
         /// <summary>
         /// the width of control is fixed [default: false]
         /// </summary>

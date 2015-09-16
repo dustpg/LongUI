@@ -49,9 +49,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             // cleanup longui
             UIManager.UnInitialize();
         }
+        // cleanup ole and com
+        ::OleUninitialize();
     }
-    // cleanup ole and com
-    ::OleUninitialize();
     // exit
     return EXIT_SUCCESS;
 }

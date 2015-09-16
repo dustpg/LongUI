@@ -56,9 +56,13 @@ namespace LongUI {
     // get IID from pointer
     template<typename T> LongUIInline const IID& GetIID(T*) { return LongUI::GetIID<T>(); }
     // BKDR Hash
-    auto __fastcall BKDRHash(const char* str, uint32_t size) noexcept->uint32_t;
+    auto __fastcall BKDRHash(const char* str) noexcept->uint32_t;
     // BKDR Hash
-    auto __fastcall BKDRHash(const wchar_t* str, uint32_t size) noexcept->uint32_t;
+    auto __fastcall BKDRHash(const wchar_t* str) noexcept->uint32_t;
+    // BKDR Hash
+    static inline auto BKDRHash(const char* str, uint32_t size) noexcept { return BKDRHash(str) & size; }
+    // BKDR Hash
+    static inline auto BKDRHash(const wchar_t* str, uint32_t size) noexcept { return BKDRHash(str) & size; }
     // load proc
     template<typename T> static inline auto LoadProc(T& pointer, HMODULE dll, const char* name) noexcept {
         pointer = reinterpret_cast<T>(::GetProcAddress(dll, name));

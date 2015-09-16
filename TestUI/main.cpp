@@ -62,7 +62,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
   clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <List name="lst_01" bottomcontrol="ScrollBarA">
+    <List name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine>
             <Text text="1" borderwidth="1"/>
             <Text text="2" borderwidth="1"/>
@@ -76,7 +76,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_02;
+const char* test_xml = test_xml_03;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -423,7 +423,10 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
     <Control desc="btn.png look like button" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4"/>
     <!-- Index 3 -->
-    <Control desc="list header test"/>
+    <Control desc="list header test">
+        <Text text="name"/>
+        <Text text="desc"/>
+    </Control>
 </Template>
 )xml";
         }
@@ -438,9 +441,19 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
             m_manager.RegisterControl(func, L"DllTest");
             }*/
         };
-        // return true, if use cpu rendering
+        // return flags
         virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
-            return Flag_OutputDebugString | Flag_RenderByCPU;
+            return Flag_OutputDebugString /*| Flag_RenderByCPU*/;
+        }
+        virtual auto ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t override {
+            // 核显卡优先 
+            for (size_t i = 0; i < length; ++i) {
+                DXGI_ADAPTER_DESC1 desc;
+                adapters[i]->GetDesc1(&desc);
+                if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
+                    return i;
+            }
+            return length;
         }
     private:
         // mruby script
@@ -586,16 +599,5 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
     return EXIT_SUCCESS;
 }
 
-#endif
-
-// Common Control for MS
-#ifdef _MSC_VER
-#ifdef _M_IX86
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#elif defined _M_X64
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#else
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#endif
 #endif
 

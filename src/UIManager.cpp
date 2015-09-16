@@ -284,7 +284,6 @@ void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
 
 
 // CUIManager 创建控件树
-// 默认消耗 64kb+, 导致栈(默认1~2M)溢出几率较低
 void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_node node) noexcept {
     // 断言
     assert(window && node && "bad argument");
@@ -303,16 +302,16 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         // 压入/入队 所有子节点
         node = node.first_child();
         while (node) {
-            xml_queue.push(node);
-            parents_queue.push(parent_node);
+            xml_queue.Push(node);
+            parents_queue.Push(parent_node);
             node = node.next_sibling();
         }
     recheck:
         // 为空则退出
-        if (xml_queue.empty()) break;
+        if (xml_queue.IsEmpty()) break;
         // 弹出/出队 第一个节点
-        node = *xml_queue.front;  xml_queue.pop();
-        parent_node = *parents_queue.front; parents_queue.pop();
+        node = xml_queue.Front();  xml_queue.Pop();
+        parent_node = parents_queue.Front(); parents_queue.Pop();
         // 根据名称创建控件
         if (!(now_control = this->CreateControl(node, nullptr))) {
             parent_node = nullptr;
@@ -484,6 +483,11 @@ void LongUI::CUIManager::Run() noexcept {
 
 // 等待垂直同步
 auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->void {
+    // 一直刷新
+    if (this->flag & IUIConfigure::Flag_RenderInAnytime) {
+        ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
+        return;
+    }
     // 获取屏幕刷新率
     DEVMODEW mode = { 0 };
     ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
@@ -502,7 +506,7 @@ auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->voi
 }
 
 // 利用现有资源创建控件
-auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xml_node node, size_t id) noexcept -> UIControl * {
+auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xml_node node, size_t tid) noexcept -> UIControl * {
     // 检查参数 function
     if (!function) {
         assert(node && "bad argument");
@@ -511,16 +515,16 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
         }
     }
     // 节点有效并且没有指定模板ID则尝试获取
-    if (node && !id) {
-        id = static_cast<decltype(id)>(LongUI::AtoI(
+    if (node && !tid) {
+        tid = static_cast<decltype(tid)>(LongUI::AtoI(
             node.attribute(LongUI::XMLAttribute::TemplateID).value())
             );
     }
     // 利用id查找模板控件
-    if (id) {
+    if (tid) {
         // 节点有效则添加属性
         if (node) {
-            auto attribute = m_pTemplateNodes[id].first_attribute();
+            auto attribute = m_pTemplateNodes[tid].first_attribute();
             // 遍历属性
             while (attribute) {
                 // 添加属性
@@ -534,12 +538,27 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
         }
         // 没有则直接设置
         else {
-            node = m_pTemplateNodes[id];
+            node = m_pTemplateNodes[tid];
         }
     }
     assert(function && "bad idea");
     if (!function) return nullptr;
-    return function(CreateEventType::Type_CreateControl, node);
+    auto ctrl = function(CreateEventType::Type_CreateControl, node);
+    // 插入模板节点
+    if (ctrl && tid) {
+        if (ctrl->flags & (Flag_InsertTemplateChild | Flag_UIContainer)) {
+            auto child = m_pTemplateNodes[tid].first_child();
+            while (child) {
+                auto created = this->create_control(nullptr, child, 0);
+                assert(created);
+                if (created) {
+                    static_cast<UIContainer*>(ctrl)->PushBack(created);
+                }
+                child = child.next_sibling();
+            }
+        }
+    }
+    return ctrl;
 }
 
 

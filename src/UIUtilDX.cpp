@@ -462,7 +462,7 @@ auto LongUI::DX::FormatTextCore(
                     Helper::MakeColor(reinterpret_cast<char*>(param_buffer), tmp_color->color);
                 }
                 range_data.draweffect = tmp_color;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case L'c': // [C]olor in uint32
                 // 32位颜色开始标记: 
@@ -482,7 +482,7 @@ auto LongUI::DX::FormatTextCore(
                     Helper::MakeColor(reinterpret_cast<char*>(param_buffer), tmp_color->color);
                 }
                 range_data.draweffect = tmp_color;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'D': case 'd': // [D]rawing effect
                 range_data.range.startPosition = string_length;
@@ -496,7 +496,7 @@ auto LongUI::DX::FormatTextCore(
                     range_data.draweffect = result;
                 }
                 range_data.range_type = R::D;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'T': case 't': // strike[T]hrough
                 range_data.range.startPosition = string_length;
@@ -510,7 +510,7 @@ auto LongUI::DX::FormatTextCore(
                         );
                 }
                 range_data.range_type = R::T;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'H': case 'h': // stretc[H]
                 range_data.range.startPosition = string_length;
@@ -524,7 +524,7 @@ auto LongUI::DX::FormatTextCore(
                         );
                 }
                 range_data.range_type = R::H;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'I': case 'i': // [I]nline object
                 range_data.range.startPosition = string_length;
@@ -538,7 +538,7 @@ auto LongUI::DX::FormatTextCore(
                     range_data.inlineobj = result;
                 }
                 range_data.range_type = R::I;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'N': case 'n': // family [N]ame
                 range_data.range.startPosition = string_length;
@@ -571,7 +571,7 @@ auto LongUI::DX::FormatTextCore(
                     range_data.name = firststart_notwhile;
                 }
                 range_data.range_type = R::N;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'S': case 's': // [S]ize
                 range_data.range.startPosition = string_length;
@@ -585,7 +585,7 @@ auto LongUI::DX::FormatTextCore(
                         );
                 }
                 range_data.range_type = R::S;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'U': case 'u': // [U]nderline
                 range_data.range.startPosition = string_length;
@@ -599,7 +599,7 @@ auto LongUI::DX::FormatTextCore(
                         );
                 }
                 range_data.range_type = R::U;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case 'W': case 'w': // [W]eight
                 range_data.range.startPosition = string_length;
@@ -613,7 +613,7 @@ auto LongUI::DX::FormatTextCore(
                         );
                 }
                 range_data.range_type = R::W;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case L'Y': case L'y': // st[Y]le
                 range_data.range.startPosition = string_length;
@@ -627,17 +627,17 @@ auto LongUI::DX::FormatTextCore(
                         );
                 }
                 range_data.range_type = R::Y;
-                stack_check.push(range_data);
+                stack_check.Push(range_data);
                 break;
             case L'P': case L'p': // end of main string, then, is the param
                 goto force_break;
             case L']': case L'}': // end of all range type
-                                  // 检查栈弹出
-                stack_check.pop();
+                // 检查栈弹出
+                stack_check.Pop();
                 // 计算长度
                 stack_check.top->range.length = string_length - stack_check.top->range.startPosition;
                 // 压入设置栈
-                statck_set.push(*stack_check.top);
+                statck_set.Push(*stack_check.top);
                 break;
             }
         }
@@ -676,8 +676,8 @@ force_break:
     // 正式创建
     if (SUCCEEDED(hr)) {
         // 创建
-        while (!statck_set.empty()) {
-            statck_set.pop();
+        while (!statck_set.IsEmpty()) {
+            statck_set.Pop();
             // 检查进度(progress)范围 释放数据
             if (statck_set.top->range.startPosition
                 + statck_set.top->range.length > string_length_need) {

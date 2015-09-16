@@ -151,8 +151,8 @@ namespace LongUI {
         LongUITreeMaxDepth = 256,
         // LongUI String Buffer Length [fixed buffer length]
         LongUIStringBufferLength = 2048,
-        // max count of control in window while init-ing [fixed buffer length]
-        LongUIMaxControlInited = (1024 * 8 - 1),
+        // max count of control in window while in init [fixed buffer length]
+        LongUIMaxControlInited = (1024 * 1 - 1),
         // default un-redo stack size [fixed buffer length]
         LongUIDefaultUnRedoCommandSize = 13,
         // max count of longui window in same time [fixed buffer length]
