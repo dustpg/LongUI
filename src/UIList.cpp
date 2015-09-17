@@ -346,6 +346,9 @@ LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
 
 // UI列表头: 事件处理
 void LongUI::UIListHeader::Update() noexcept {
+    // 与父对象保持一样的X偏移量, 会延迟一帧, 被上的故事
+    this->SetOffsetX(this->parent->GetOffsetX());
+    // 父类刷新
     Super::Update();
 }
 
@@ -373,18 +376,17 @@ void LongUI::UIListHeader::Cleanup() noexcept {
 
 // 刷新UI列表头控件边界宽度
 void LongUI::UIListHeader::UpdateMarginalWidth() noexcept {
-    this->marginal_width = m_fLineHeight;
+    this->marginal_width = m_fLineHeight + this->margin_rect.top + this->margin_rect.bottom;
 }
 
 // 创建UI列表头
-auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node node) 
-noexcept -> UIControl* {
+auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node node) noexcept -> UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
     {
     case Type_CreateControl:
         if (!node) {
-           // UIManager << DL_Warning << L"node null" << LongUI::endl;
+           UIManager << DL_Warning << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListHeader>(

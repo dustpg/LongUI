@@ -89,12 +89,19 @@ namespace LongUI {
         // just remove 
         virtual void RemoveJust(UIControl* child) noexcept override final;
     public:
+        // move to
+        void MoveTo(UIControl* ctrl, Iterator itr) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(itr, ctrl); }
+        // move to
+        void MoveTo(UIControl* ctrl, UIControl* pos) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(Iterator(pos), ctrl); }
         // insert child, UIContainerBuiltIn support insert
-        void Insert(Iterator, UIControl*) noexcept;
+        void Insert(Iterator itr, UIControl* ctrl) noexcept { this->insert_only(itr, ctrl); this->after_insert(ctrl);}
         // just remove child, : remove from list and set prev/next to null
         void RemoveJust(Iterator itr) noexcept { this->RemoveJust(*itr); }
         // remove and close child
         void RemoveClean(Iterator itr) noexcept { this->RemoveJust(itr); itr->Cleanup(); }
+    protected:
+        // insert only
+        void insert_only(Iterator itr, UIControl* ctrl) noexcept;
     public: // for C++ 11
         // begin 
         auto begin() const noexcept { return Iterator(m_pHead); };

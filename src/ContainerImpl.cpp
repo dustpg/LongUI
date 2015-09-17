@@ -79,8 +79,8 @@ void LongUI::UIContainerBuiltIn::PushBack(UIControl* child) noexcept {
     this->Insert(this->end(), child);
 }
 
-// UIContainerBuiltIn: 插入控件
-void LongUI::UIContainerBuiltIn::Insert(Iterator itr, UIControl* ctrl) noexcept {
+// UIContainerBuiltIn: 仅插入控件
+void LongUI::UIContainerBuiltIn::insert_only(Iterator itr, UIControl* ctrl) noexcept {
     const auto end_itr = this->end();
     assert(ctrl && "bad arguments");
     if (ctrl->prev) {
@@ -117,8 +117,6 @@ void LongUI::UIContainerBuiltIn::Insert(Iterator itr, UIControl* ctrl) noexcept 
         force_cast(itr->prev) = ctrl;
     }
     ++m_cChildrenCount;
-    // 添加之后的处理
-    this->after_insert(ctrl);
 }
 
 

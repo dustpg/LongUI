@@ -1736,7 +1736,7 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
 // 整型重载
 auto LongUI::CUIManager::operator<<(const long l) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(buffer, LongUIStringBufferLength, L"%d", l);
+    std::swprintf(buffer, LongUIStringBufferLength, L"%ld", l);
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }

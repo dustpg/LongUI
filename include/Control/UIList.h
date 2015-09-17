@@ -82,6 +82,8 @@ namespace LongUI {
         // dtor
         ~UIListHeader() noexcept = default;
     private:
+        // cross cursor
+        HCURSOR                 m_hCursor = ::LoadCursor(nullptr, IDC_CROSS);
         // line height
         float                   m_fLineHeight = 32.f;
         // line height
@@ -100,6 +102,18 @@ namespace LongUI {
         //using WeightBuffer = EzContainer::SmallBuffer<float, 16>;
         // line template buffer
         using LineTemplateBuffer = EzContainer::SmallBuffer<Helper::CC, 16>;
+    public:
+        // flag for UIList
+        enum UIListFlag : uint32_t {
+            // element width could be changed by mouse drag if header exsit
+            Flag_DraggableHeaderWidth = 1 << 0,
+            // the sequence of element could be changed by mouse drag if header exsit
+            Flag_DraggableHeaderSequence = 1 << 1,
+            // sortable list line in UIControl::user_data
+            Flag_SortableLineWithUserData = 1 << 2,
+            // default flag
+            Flag_Default = Flag_DraggableHeaderWidth,
+        };
     public:
         // render this
         virtual void Render(RenderType) const noexcept override;
@@ -123,7 +137,7 @@ namespace LongUI {
         // insert
         auto Insert(uint32_t index, UIControl*) noexcept;
         // get child at index
-        auto GetAt(uint32_t index) const noexcept { assert(index < m_cChildrenCount); return m_controls.at(index); }
+        auto GetAt(uint32_t index) const noexcept { assert(index < m_cChildrenCount); return static_cast<UIControl*>(m_controls[index]); }
     public:
         // get height in line
         auto GetLineHeight() const noexcept { return m_fLineHeight; }
@@ -147,19 +161,22 @@ namespace LongUI {
         UIList(pugi::xml_node node) noexcept;
         // dtor
         ~UIList() noexcept;
+    public:
+        // flag for list
+        UIListFlag              list_flag = Flag_Default;
     protected:
-        // control vector
-        BasicContainer          m_controls;
+        // threshold for fast-sort
+        uint32_t                m_cFastSortThreshold = 32;
         // list header
         UIListHeader*           m_pHeader = nullptr;
         // line height
         float                   m_fLineHeight = 32.f;
         // elements count in each line
         uint32_t                m_cEleCountInLine = 0;
-        // element weights
-        //WeightBuffer            m_bufEleWeights;
         // line template
         LineTemplateBuffer      m_bufLineTemplate;
+        // control vector
+        BasicContainer          m_controls;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -192,4 +209,6 @@ namespace LongUI {
         return IID_LongUI_UIListHeader;
     }
 #endif
+    // operator for UIList::UIListFlag
+    LONGUI_DEFINE_ENUM_FLAG_OPERATORS(UIList::UIListFlag, uint32_t);
 }

@@ -206,21 +206,21 @@ namespace LongUI{
             return reinterpret_cast<wchar_t*>(LongUI::SmallAlloc(length));
         }
         // copy string
-        static auto copy_string(wchar_t* des, const wchar_t* src, uint32_t length) {
+        static inline auto copy_string(wchar_t* des, const wchar_t* src, uint32_t length) {
             ::memcpy(des, src, sizeof(wchar_t) * (length + 1));
         }
         // copy string without null-end char
-        static auto copy_string_ex(wchar_t* des, const wchar_t* src, uint32_t length) {
+        static inline auto copy_string_ex(wchar_t* des, const wchar_t* src, uint32_t length) {
             ::memcpy(des, src, sizeof(wchar_t) * (length));
         }
         // choose a nice length for buffer
-        static auto nice_buffer_length(uint32_t target) {
+        static inline auto nice_buffer_length(uint32_t target) {
             auto sizex2 = sizeof(void*) * 2;
             auto temp = target + (target + LongUIStringFixedLength) / 2 + sizex2;
             return temp - temp % sizex2;
         }
         // free buffer in safe way
-        auto safe_free_bufer() {
+        auto inline safe_free_bufer() {
             if (m_pString && m_pString != m_aDataStatic) {
                 LongUI::SmallFree(m_pString);
             }

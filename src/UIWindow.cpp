@@ -784,8 +784,10 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
     if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
-        UIManager << DL_Hint << L"Window: [" << this->GetNameStr() << L"] \r\n\t\tTarget Bitmap Resize to " 
-            << long(rect_right) << ", " << long(rect_bottom) << LongUI::endl;
+        UIManager << DL_Hint << L"Window: [" << this->GetNameStr() 
+            << L"]\tTarget Bitmap Resize to " 
+            << LongUI::Formated(L"(%d, %d)", int(rect_right), int(rect_bottom)) 
+            << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
         ::SafeRelease(m_pTargetBimtap);
         hr = m_pSwapChain->ResizeBuffers(

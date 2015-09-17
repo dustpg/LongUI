@@ -64,12 +64,12 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <List name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine>
-            <Text text="1" borderwidth="1"/>
-            <Text text="2" borderwidth="1"/>
+            <Text text="1" templateid="4"/>
+            <Text text="2" templateid="4"/>
         </ListLine>
         <ListLine>
-            <Text text="3" borderwidth="1"/>
-            <Text text="4" borderwidth="1"/>
+            <Text text="3" templateid="4"/>
+            <Text text="4" templateid="4"/>
         </ListLine>
     </List>
     <Text name="txt_01" textrichtype="core" text="%cHello%], world!%u泥壕!世界!%]%p#F00"/>
@@ -427,6 +427,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
         <Text text="name"/>
         <Text text="desc"/>
     </Control>
+    <!-- Index 4 -->
+    <Control margin="1,1,1,1" borderwidth="1"/>
 </Template>
 )xml";
         }
@@ -443,7 +445,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
         };
         // return flags
         virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
-            return Flag_OutputDebugString /*| Flag_RenderByCPU*/;
+            return Flag_OutputDebugString | Flag_RenderByCPU;
         }
         virtual auto ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t override {
             // 核显卡优先 
