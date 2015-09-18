@@ -49,7 +49,13 @@ namespace LongUI {
         UIListLine(pugi::xml_node node) noexcept;
         // dtor
         ~UIListLine() noexcept = default;
+        // get sorted data
+        auto GetToBeSortedData() const noexcept ->uint32_t { return m_pToBeSorted ? m_pToBeSorted->user_data : 0ui32 ; }
+        // set to be sorted control
+        auto SetToBeSorted(uint32_t index) noexcept { m_pToBeSorted = this->GetAt(index); }
     protected:
+        // to be sorted control
+        UIControl*          m_pToBeSorted = nullptr;
         // first update
         bool                m_bFirstUpdate = true;
         // unused for line

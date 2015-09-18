@@ -349,8 +349,9 @@ void LongUI::UIListHeader::Update() noexcept {
     // 与父对象保持一样的X偏移量, 会延迟一帧, 被上的故事
     this->SetOffsetX(this->parent->GetOffsetX());
     // 父类刷新
-    Super::Update();
+    return Super::Update();
 }
+
 
 // UI列表头: 事件处理
 bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {

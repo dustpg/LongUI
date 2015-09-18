@@ -963,17 +963,6 @@ void LongUI::UIContainer::Update() noexcept {
         // 已处理该消息
         this->ControlSizeChangeHandled();
     }
-    // 更新边缘控件
-    if (this->flags & Flag_Container_ExistMarginalControl) {
-        for (auto ctrl : this->marginal_control) {
-            // 刷新
-            if (ctrl) {
-                ctrl->Update();
-                ctrl->AfterUpdate();
-            }
-        }
-    }
-    this->AssertMarginalControl();
     // 刷新父类
     return Super::Update();
 }
@@ -1000,7 +989,7 @@ auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
 }
 
 // 设置水平偏移值
-LongUINoinline void LongUI::UIContainer::SetOffsetX(float value) noexcept {
+void LongUI::UIContainer::SetOffsetX(float value) noexcept {
     assert(value > -1'000'000.f && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
     register float target = value;
@@ -1011,7 +1000,7 @@ LongUINoinline void LongUI::UIContainer::SetOffsetX(float value) noexcept {
 }
 
 // 设置垂直偏移值
-LongUINoinline void LongUI::UIContainer::SetOffsetY(float value) noexcept {
+void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     assert(value > (-1'000'000.f) && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
     register float target = value ;

@@ -210,6 +210,17 @@ namespace LongUI {
                 // handed it
                 this->ControlSizeChangeHandled();
             }
+            // update marginal control
+            if (this->flags & Flag_Container_ExistMarginalControl) {
+                for (auto ctrl : this->marginal_control) {
+                    if (ctrl) {
+                        ctrl->Update();
+                        ctrl->AfterUpdate();
+                    }
+                }
+            }
+            // assert if bug
+            this->AssertMarginalControl();
             // update children
             for (auto itr = itrbegin; itr != itrend; ++itr) {
                 auto ctrl = static_cast<UIControl*>(*itr);

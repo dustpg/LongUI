@@ -89,6 +89,8 @@ namespace LongUI {
         // just remove 
         virtual void RemoveJust(UIControl* child) noexcept override final;
     public:
+        // get control at index
+        auto GetAt(uint32_t i) const noexcept ->UIControl*;
         // move to
         void MoveTo(UIControl* ctrl, Iterator itr) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(itr, ctrl); }
         // move to

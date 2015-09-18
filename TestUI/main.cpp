@@ -60,7 +60,7 @@ const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
-  clearcolor="1,1,1,0.95" >
+    autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <List name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine>
@@ -394,7 +394,7 @@ protected:
 
 
 // 应用程序入口
-int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int /*nCmdShow*/) {
+int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
     UNREFERENCED_PARAMETER(lpCmdLine);
     // 设置堆信息
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
@@ -473,7 +473,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
             // 作战控制连线!
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
             // 创建主窗口
-            UIManager.CreateUIWindow<MainWindow>(test_xml, nullptr, buffer);
+            UIManager.CreateUIWindow<MainWindow>(test_xml, nullptr, buffer)->ShowWindow(nCmdShow);
             // 运行本程序
             UIManager.Run();
             // 作战控制终止!
@@ -602,4 +602,3 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 }
 
 #endif
-

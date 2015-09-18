@@ -220,9 +220,6 @@ namespace LongUI {
         // control name
         CUIString               m_strControlName;
     public:
-        // user definded string
-        CUIString               user_string;
-    public:
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

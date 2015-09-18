@@ -165,6 +165,44 @@ LongUI::UIContainerBuiltIn::~UIContainerBuiltIn() noexcept {
     }
 }
 
+// 随机访问控件
+auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl * {
+    // 性能警告
+    if (i > 8) {
+        UIManager << DL_Warning
+            << L"Performance Warning! random accessig is not fine for list"
+            << LongUI::endl;
+    }
+    // 检查范围
+    if (i >= this->GetCount()) {
+        UIManager << DL_Error << L"out of range" << LongUI::endl;
+        return nullptr;
+    }
+    // 只有一个?
+    if (this->GetCount() == 1) return m_pHead;
+    // 前半部分?
+    UIControl * control;
+    if (i < this->GetCount() / 2) {
+        control = m_pHead;
+        while (i) {
+            assert(control && "null pointer");
+            control = control->next;
+            --i;
+        }
+    }
+    // 后半部分?
+    else {
+        control = m_pTail;
+        i = static_cast<uint32_t>(this->GetCount()) - i - 1;
+        while (i) {
+            assert(control && "null pointer");
+            control = control->prev;
+            --i;
+        }
+    }
+    return control;
+ }
+
 // -------------------------- UIVerticalLayout -------------------------
 // UIVerticalLayout 创建
 auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
