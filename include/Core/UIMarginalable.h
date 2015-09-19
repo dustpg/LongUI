@@ -33,7 +33,7 @@ namespace LongUI {
     /// <remarks>
     /// like: hamburger menu, menu bar, tool bar, tab bar, scroll bar, barabara, etc
     /// </remarks>
-    class LongUIAlignas UIMarginalable : public UIControl {
+    class UIMarginalable : public UIControl {
         // 父类声明
         using Super = UIControl;
     public:

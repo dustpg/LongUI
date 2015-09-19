@@ -4,12 +4,6 @@
 // **** UIText
 // ----------------------------------------------------------------------------
 
-// UI文本: 事件处理
-bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    UNREFERENCED_PARAMETER(arg);
-    return false;
-}
-
 // UI文本: 渲染
 void LongUI::UIText::Render(RenderType type) const noexcept {
     switch (type)
@@ -193,8 +187,6 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
 
 // do event 事件处理
 bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    //--------------------------------------------------
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     // longui 消息
     if (arg.sender) {
         switch (arg.event)
@@ -206,39 +198,44 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 释放焦点:
             m_tarStatusClick = LongUI::Status_Normal;
             return true;
-        case LongUI::Event::Event_MouseEnter:
-            // 鼠标移进: 设置UI元素状态
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
-            m_colorBorderNow = m_aBorderColor[LongUI::Status_Hover];
-            break;
-        case LongUI::Event::Event_MouseLeave:
-            // 鼠标移出: 设置UI元素状态
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
-            m_colorBorderNow = m_aBorderColor[LongUI::Status_Normal];
-            break;
-        }
-    }
-    else {
-        switch (arg.msg)
-        {
-        case WM_LBUTTONDOWN:
-            m_pWindow->SetCapture(this);
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
-            m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
-            break;
-        case WM_LBUTTONUP:
-            if (m_pWindow->IsReleasedControl(this)) {
-                bool rec = m_caller(this, SubEvent::Event_ButtonClicked);
-                rec = false;
-                // 设置状态
-                UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
-                m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
-                m_pWindow->ReleaseCapture();
-            }
-            break;
         }
     }
     return Super::DoEvent(arg);
+}
+
+// 鼠标事件处理
+bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    // longui 消息
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_MouseEnter:
+        // 鼠标移进: 设置UI元素状态
+        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+        m_colorBorderNow = m_aBorderColor[LongUI::Status_Hover];
+        return true;
+    case LongUI::MouseEvent::Event_MouseLeave:
+        // 鼠标移出: 设置UI元素状态
+        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+        m_colorBorderNow = m_aBorderColor[LongUI::Status_Normal];
+        return true;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        m_pWindow->SetCapture(this);
+        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
+        m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
+        return true;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        if (m_pWindow->IsReleasedControl(this)) {
+            bool rec = m_caller(this, SubEvent::Event_ButtonClicked);
+            rec = false;
+            // 设置状态
+            UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
+            m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
+            m_pWindow->ReleaseCapture();
+        }
+        return true;
+    }
+    return false;
 }
 
 // recreate 重建
@@ -296,7 +293,6 @@ void LongUI::UIEditBasic::Update() noexcept {
 
 // UI基本编辑控件
 bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     // LongUI 消息
     if (arg.sender) {
         switch (arg.event)
@@ -304,20 +300,6 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_TreeBulidingFinished:
             __fallthrough;
         case LongUI::Event::Event_SubEvent:
-            return true;
-        case LongUI::Event::Event_DragEnter:
-            return m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
-        case LongUI::Event::Event_DragOver:
-            return m_text.OnDragOver(pt4self.x, pt4self.y);
-        case LongUI::Event::Event_DragLeave:
-            return m_text.OnDragLeave();
-        case LongUI::Event::Event_Drop:
-            return m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
-        case LongUI::Event::Event_MouseEnter:
-            m_pWindow->now_cursor = m_hCursorI;
-            return true;
-        case LongUI::Event::Event_MouseLeave:
-            m_pWindow->now_cursor = m_pWindow->default_cursor;
             return true;
         case LongUI::Event::Event_SetFocus:
             m_text.OnSetFocus();
@@ -339,21 +321,45 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case WM_CHAR:
             m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
             break;
-        case WM_MOUSEMOVE:
-            // 拖拽?
-            if (arg.sys.wParam & MK_LBUTTON) {
-                m_text.OnLButtonHold(pt4self.x, pt4self.y);
-            }
-            break;
-        case WM_LBUTTONDOWN:
-            m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.sys.wParam & MK_SHIFT));
-            break;
-        case WM_LBUTTONUP:
-            m_text.OnLButtonUp(pt4self.x, pt4self.y);
-            break;
         }
     }
     return true;
+}
+
+// UI基本编辑控件: 鼠标事件
+bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    // LongUI 消息
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_DragEnter:
+        return m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
+    case LongUI::MouseEvent::Event_DragOver:
+        return m_text.OnDragOver(pt4self.x, pt4self.y);
+    case LongUI::MouseEvent::Event_DragLeave:
+        return m_text.OnDragLeave();
+    case LongUI::MouseEvent::Event_Drop:
+        return m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
+    case LongUI::MouseEvent::Event_MouseEnter:
+        m_pWindow->now_cursor = m_hCursorI;
+        return true;
+    case LongUI::MouseEvent::Event_MouseLeave:
+        m_pWindow->now_cursor = m_pWindow->default_cursor;
+        return true;
+    case LongUI::MouseEvent::Event_MouseMove:
+        // 拖拽?
+        if (arg.sys.wParam & MK_LBUTTON) {
+            m_text.OnLButtonHold(pt4self.x, pt4self.y);
+        }
+        return true;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.sys.wParam & MK_SHIFT));
+        return true;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        m_text.OnLButtonUp(pt4self.x, pt4self.y);
+        return true;
+    }
+    return false;
 }
 
 // close this control 关闭控件

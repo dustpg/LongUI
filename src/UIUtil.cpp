@@ -151,7 +151,6 @@ LongUINoinline bool LongUI::CUISubEventCaller::operator()(UIControl* sender, Sub
     arg.sender = sender;
     arg.ui.subevent = subevent;
     arg.ui.pointer = nullptr;
-    arg.pt = { 0.f, 0.f };
     arg.ctrl = nullptr;
     // 脚本优先
     if (UIManager.script && sender->GetScript().script) {
@@ -975,7 +974,7 @@ static constexpr char32_t offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x0
 * Once the bits are split out into bytes of UTF-8, this is a mask OR-ed
 * into the first byte, depending on how many bytes follow.  There are
 * as many entries in this table as there are UTF-8 sequence types.
-* (I.e., one byte sequence, two byte... etc.). Remember that sequencs
+* (I.event., one byte sequence, two byte... etc.). Remember that sequencs
 * for *legal* UTF-8 will be 4 or fewer bytes total.
 */
 static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i8, 0xF8i8, 0xFCi8 };

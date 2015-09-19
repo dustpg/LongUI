@@ -107,7 +107,7 @@ public:
     // ctor
     MainWindow(pugi::xml_node node, LongUI::UIWindow* parent) : Super(node, parent) {}
     // do some event
-    virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+    virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
     // clean up
     virtual void Cleanup() noexcept override { this->~MainWindow(); }
 private:
@@ -214,7 +214,6 @@ public:
     }
     //do the event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept  override {
-        D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
         if (arg.sender) {
             /*if (arg.event == LongUI::Event::Event_FindControl) {
             // 检查鼠标范围

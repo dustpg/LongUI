@@ -51,9 +51,9 @@ auto LongUI::UIContainerBuiltIn::Recreate() noexcept -> HRESULT {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIContainerBuiltIn::FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
     // 父类(边缘控件)
-    auto mctrl = Super::FindControl(pt);
+    auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;
     // 性能警告
 #ifdef _DEBUG
@@ -67,7 +67,7 @@ auto LongUI::UIContainerBuiltIn::FindControl(const D2D1_POINT_2F& pt) noexcept->
     for (auto ctrl : (*this)) {
         // 区域内判断
         if (IsPointInRect(ctrl->visible_rect, pt)) {
-            return ctrl->FindControl(pt);
+            return ctrl;
         }
     }
     return nullptr;

@@ -30,7 +30,7 @@ namespace LongUI {
     // Component namespace
     namespace Component {
         // core editable text component
-        class LongUIAlignas EditaleText {
+        class EditaleText {
             // 简写
             using HitTestMetrics = DWRITE_HIT_TEST_METRICS;
             // 缓冲区

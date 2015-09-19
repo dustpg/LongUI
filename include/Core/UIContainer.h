@@ -43,12 +43,14 @@ namespace LongUI {
         // update this
         virtual void Update() noexcept override;
         // do event
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        // do mouse event 
+        virtual bool DoMouseEvent(const LongUI::MouseEventArgument& arg) noexcept override;
         // recreate this
         virtual auto Recreate() noexcept->HRESULT override;
-        // find control by mouse point
-        virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* override;
     public:
+        // find child control by mouse point
+        virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* ;
         // refresh layout
         virtual void RefreshLayout() noexcept = 0;
         // push back
@@ -131,6 +133,8 @@ namespace LongUI {
         // marginal controls
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
+        // mouse pointed control
+        UIControl*              m_pMousePointed = nullptr;
         // count of children, just make "GetLength/Count" to faster
         size_t                  m_cChildrenCount = 0;
         // orginal margin

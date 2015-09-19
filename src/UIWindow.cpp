@@ -607,13 +607,13 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
 }
 
 // UIWindow 事件处理
-bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
-    // 自己一般不处理LongUI事件
-    if (_arg.sender) return Super::DoEvent(_arg);
+bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 这里就不处理LongUI事件了 交给父类吧
+    if (arg.sender) return Super::DoEvent(arg);
     // 其他LongUI事件
-    bool handled = false; UIControl* control_got = nullptr;
+    bool handled = false;
     // 特殊事件
-    if (_arg.msg == s_uTaskbarBtnCreatedMsg) {
+    if (arg.msg == s_uTaskbarBtnCreatedMsg) {
         ::SafeRelease(m_pTaskBarList);
         UIManager << DL_Log << "TaskbarButtonCreated" << endl;
         auto hr = ::CoCreateInstance(
@@ -626,9 +626,8 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         return true;
     }
     // 处理事件
-    switch (_arg.msg)
+    switch (arg.msg)
     {
-        LongUI::EventArgument new_arg;
     case WM_SETCURSOR:
         // 设置光标
         ::SetCursor(now_cursor);
@@ -639,15 +638,9 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         CUIManager::GetThemeColor(theme_color);
     }
     break;*/
-    case WM_MOUSEMOVE:
-        handled = this->OnMouseMove(_arg);
-        break;
-    case WM_MOUSEWHEEL:
-        handled = this->OnMouseWheel(_arg);
-        break;
     case WM_TIMER:
         // 闪烁?
-        if (_arg.sys.wParam == BLINK_EVENT_ID) {
+        if (arg.sys.wParam == BLINK_EVENT_ID) {
             if (m_cShowCaret) {
                 m_baBoolWindow.SetNot(Index_CaretIn);
                 m_baBoolWindow.SetTrue(Index_DoCaret);
@@ -655,24 +648,8 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
             handled = true;
         }
         break;
-    case WM_LBUTTONDOWN:    // 按下鼠标左键
-        // 查找子控件
-        control_got = this->FindControl(_arg.pt);
-        // 控件有效
-        if (control_got && control_got != m_pFocusedControl) {
-            new_arg = _arg;
-            new_arg.sender = this;
-            if (m_pFocusedControl){
-                new_arg.event = LongUI::Event::Event_KillFocus;
-                m_pFocusedControl->DoEvent(new_arg);
-            }
-            new_arg.event = LongUI::Event::Event_SetFocus;
-            // 控件响应了?
-            m_pFocusedControl = control_got->DoEvent(new_arg) ? control_got : nullptr;
-        }
-        break;
     /*case WM_NCHITTEST:
-        _arg.lr = HTCAPTION;
+        arg.lr = HTCAPTION;
         handled = true;
         break;*/
     case WM_SETFOCUS:
@@ -682,23 +659,14 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     case WM_KILLFOCUS:
         // 存在焦点控件
         if (m_pFocusedControl){
-            new_arg = _arg;
-            new_arg.sender = this;
-            new_arg.event = LongUI::Event::Event_KillFocus;
-            m_pFocusedControl->DoEvent(new_arg);
+            force_cast(arg.sender) = this;
+            force_cast(arg.event) = LongUI::Event::Event_KillFocus;
+            m_pFocusedControl->DoEvent(arg);
             m_pFocusedControl = nullptr;
+            force_cast(arg.sender) = nullptr;
+            force_cast(arg.msg) = WM_KILLFOCUS;
         }
         ::DestroyCaret();
-        handled = true;
-        break;
-    case WM_MOUSELEAVE:     // 鼠标移出窗口
-        if (m_pPointedControl){
-            new_arg = _arg;
-            new_arg.sender = this;
-            new_arg.event = LongUI::Event::Event_MouseLeave;
-            m_pPointedControl->DoEvent(new_arg);
-            m_pPointedControl = nullptr;
-        }
         handled = true;
         break;
     case WM_SIZE:           // 改变大小
@@ -720,8 +688,8 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
         handled = true;
         break;
     case WM_GETMINMAXINFO:  // 获取限制大小
-        reinterpret_cast<MINMAXINFO*>(_arg.sys.lParam)->ptMinTrackSize.x = m_miniSize.width;
-        reinterpret_cast<MINMAXINFO*>(_arg.sys.lParam)->ptMinTrackSize.y = m_miniSize.height;
+        reinterpret_cast<MINMAXINFO*>(arg.sys.lParam)->ptMinTrackSize.x = m_miniSize.width;
+        reinterpret_cast<MINMAXINFO*>(arg.sys.lParam)->ptMinTrackSize.y = m_miniSize.height;
         break;
     case WM_DISPLAYCHANGE:
         UIManager << DL_Hint << "WM_DISPLAYCHANGE" << endl;
@@ -741,23 +709,22 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& _arg) noexcept {
     }
     // 处理
     if (handled) return true;
-    // 处理控件
-    register UIControl* processor = nullptr;
-    // 鼠标事件交由捕获控件(优先)或者鼠标指向控件处理
-    if (_arg.msg >= WM_MOUSEFIRST && _arg.msg <= WM_MOUSELAST) {
-        processor = m_pCapturedControl ? m_pCapturedControl : m_pPointedControl;
-    }
-    // 其他事件交由焦点控件处理
-    else {
-        processor = m_pFocusedControl;
-    }
     // 有就处理
-    if (processor && processor->DoEvent(_arg)) {
+    if (m_pFocusedControl && m_pFocusedControl->DoEvent(arg)) {
         return true;
     }
     // 还是没有处理就交给父类处理
-    return Super::DoEvent(_arg);
+    return Super::DoEvent(arg);
 }
+
+bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // 存在捕获控件
+    if (m_pCapturedControl) {
+        return m_pCapturedControl->DoMouseEvent(arg);
+    }
+    return Super::DoMouseEvent(arg);
+}
+
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
@@ -988,125 +955,14 @@ bool LongUI::UIWindow::OnCreated(HWND hwnd) noexcept {
 }
 
 // 鼠标移动时候
-bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
-    bool handled = false;
-    do {
-        ::TrackMouseEvent(&m_csTME);
-        if (m_normalLParam != arg.sys.lParam) {
-            m_normalLParam = arg.sys.lParam;
-        }
-        else {
-            handled = true;
-            break;
-        }
-        // 有待捕获控件
-        if (m_pCapturedControl) {
-            m_pCapturedControl->DoEvent(arg);
-            handled = true;
-            break;
-        }
-        // 查找子控件
-        auto control_got = this->FindControl(arg.pt);
-        if (control_got) {
-            //UIManager << DL_Hint << "FIND: " << control_got << endl;
-        }
-        // 不同
-        if (control_got != m_pPointedControl) {
-            auto new_arg = arg;
-            new_arg.sender = this;
-            // 有效
-            if (m_pPointedControl) {
-                new_arg.event = LongUI::Event::Event_MouseLeave;
-                m_pPointedControl->DoEvent(new_arg);
-            }
-            // 有效
-            if ((m_pPointedControl = control_got)) {
-                new_arg.event = LongUI::Event::Event_MouseEnter;
-                m_pPointedControl->DoEvent(new_arg);
-            }
-        }
-        // 相同
-        else if (control_got) {
-            control_got->DoEvent(arg);
-        }
-        handled = true;
-    } while (false);
-    return handled;
+/*bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
 }
 
 // 鼠标滚轮
 bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
-    auto loww = LOWORD(arg.sys.wParam);
-    //auto delta = float(GET_WHEEL_DELTA_WPARAM(arg.sys.wParam)) / float(WHEEL_DELTA);
-    // 鼠标滚轮事件交由有滚动条的容器处理
-    if (loww & MK_CONTROL) {
-
-    }
-    // Alt + wheel?
-    else if (loww & MK_ALT) {
-
-    }
-    // 水平滚动条
-    else if (loww & MK_SHIFT) {
-        /*auto basic_control = this->FindControl(arg.pt);
-        if (basic_control) {
-            // 获取滚动条容器
-            while (true) {
-                if (basic_control->IsTopLevel()) {
-                    break;
-                }
-                if (basic_control->flags & Flag_UIContainer) {
-                    if (static_cast<UIContainer*>(basic_control)->scrollbar_h) {
-                        break;
-                    }
-                }
-                basic_control = basic_control->parent;
-            }
-            // 存在
-            if (static_cast<UIContainer*>(basic_control)->scrollbar_h) {
-                static_cast<UIContainer*>(basic_control)->scrollbar_h->OnWheelX(-delta);
-            }
-        }*/
-    }
-    // 垂直滚动条
-    else {
-        /*auto basic_control = this->FindControl(arg.pt);
-        if (basic_control) {
-            // 获取滚动条容器
-            while (true) {
-                if (basic_control->IsTopLevel()) {
-                    break;
-                }
-                if (basic_control->flags & Flag_UIContainer) {
-                    if (static_cast<UIContainer*>(basic_control)->scrollbar_v) {
-                        break;
-                    }
-                }
-                basic_control = basic_control->parent;
-            }
-            // 存在
-            if (static_cast<UIContainer*>(basic_control)->scrollbar_v) {
-                static_cast<UIContainer*>(basic_control)->scrollbar_v->OnWheelX(-delta);
-            }
-        }*/
-    }
-    return true;
-}
+}*/
 
 // ----------------- IDropTarget!!!! Yooooooooooo~-----
-
-// 设置参数
-void __fastcall SetLongUIEventArgument(LongUI::EventArgument& arg, HWND hwnd, POINTL pt) {
-    // 获取窗口位置
-    RECT rc = { 0 }; ::GetWindowRect(hwnd, &rc);
-    // 映射到窗口坐标
-    POINT ppt = { pt.x, pt.y };  ::ScreenToClient(hwnd, &ppt);
-    // 查找对应控件
-    arg = { 0 };
-    arg.pt.x = static_cast<float>(ppt.x);
-    arg.pt.y = static_cast<float>(ppt.y);
-
-}
 
 // 获取拖放效果
 DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
@@ -1160,8 +1016,8 @@ HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffec
     D2D1_POINT_2F pt2f = { static_cast<float>(pt.x), static_cast<float>(pt.y) };
     UIControl* control = nullptr;
     // 检查控件支持
-    if ((control = this->FindControl(pt2f))) {
-        LongUI::EventArgument arg;
+    if ((control = nullptr)) {
+        /*LongUI::EventArgument arg;
         ::SetLongUIEventArgument(arg, m_hwnd, pt);
         arg.sender = this;
         // 第一个控件?
@@ -1181,7 +1037,7 @@ HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffec
         }
         arg.cf.dataobj = m_pCurDataObject;
         arg.cf.outeffect = pdwEffect;
-        if (!control->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;
+        if (!control->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;*/
     }
     else {
         // 不支持
@@ -1199,7 +1055,7 @@ HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffec
 HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
     // 发送事件
     if (m_pDragDropControl) {
-        LongUI::EventArgument arg = { 0 };
+        /*LongUI::EventArgument arg = { 0 };
         arg.sender = this;
         arg.event = LongUI::Event::Event_DragLeave;
         m_pDragDropControl->DoEvent(arg);
@@ -1226,7 +1082,7 @@ HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
 HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
     // 发送事件
     if (m_pDragDropControl) {
-        LongUI::EventArgument arg;
+        /*LongUI::EventArgument arg;
         ::SetLongUIEventArgument(arg, m_hwnd, pt);
         arg.sender = this;
         arg.event = LongUI::Event::Event_Drop;
@@ -1234,7 +1090,7 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
         arg.cf.outeffect = pdwEffect;
         // 发送事件
         m_pDragDropControl->DoEvent(arg);
-        m_pDragDropControl = nullptr;
+        m_pDragDropControl = nullptr;*/
         
     }
     // 检查参数

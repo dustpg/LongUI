@@ -78,11 +78,13 @@ namespace LongUI {
         // update this
         virtual void Update() noexcept override;
         // do event
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        // do mouse event
+        //virtual bool DoMouseEvent(const LongUI::MouseEventArgument& arg) noexcept override;
         // recreate this
         virtual auto Recreate() noexcept->HRESULT override;
-        // find control by mouse point
-        virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* override;
+        // find child control by mouse point
+        virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* override final;
     public:
         // push back
         virtual void PushBack(UIControl* child) noexcept override final;

@@ -54,9 +54,9 @@ auto LongUI::UIList::Recreate() noexcept -> HRESULT {
     return Super::Recreate();
 }
 
-// 查找控件
-auto LongUI::UIList::FindControl(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
-    auto ctrl = Super::FindControl(pt);
+// 查找子控件
+auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
+    auto ctrl = Super::FindChild(pt);
     if (ctrl) return ctrl;
     return nullptr;
 }

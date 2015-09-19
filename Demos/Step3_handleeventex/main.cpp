@@ -5,10 +5,10 @@
 
 // Entry for App
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
-    const wchar_t* message = L"There are 3 ways to handle event:\r\n"
+    const wchar_t* message = L"There are 3 ways to handle e:\r\n"
         L"  1. script   - High  Priority\r\n"
         L"  2. callback - Normal Priority\r\n"
-        L"  3. event    - Low   Priority\r\n"
+        L"  3. e    - Low   Priority\r\n"
         L"see comment for more detail";
     ::MessageBoxW(nullptr, message, L"Hint", MB_OK);
     /*

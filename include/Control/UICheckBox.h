@@ -49,7 +49,9 @@ namespace LongUI{
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const EventArgument& arg) noexcept override;
+        // do mouse event 鼠标事件处理
+        virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件

@@ -30,7 +30,7 @@ namespace LongUI {
     // endl for longUI
     static struct EndL { } endl;
     // ui manager ui 管理器
-    class LongUIAlignas CUIManager {
+    class alignas(sizeof(void*)) CUIManager {
         // create ui window call back
         using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* parent, void* buffer)->UIWindow*;
     public: 
@@ -334,11 +334,13 @@ namespace LongUI {
         void do_creating_event(CreateEventType type) noexcept;
         // create a control tree for window
         void make_control_tree(UIWindow* window, pugi::xml_node node) noexcept;
-    private:
+    public:
         // invisible window proc
         // static LRESULT CALLBACK InvisibleWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
         // main window proc
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
+        // windows message to longui mouse event
+        static void WindowsMsgToMouseEvent(MouseEventArgument& event, UINT message, WPARAM wParam, LPARAM lParam)noexcept;
     public:
         // 单例 CUIRenderer
         static      CUIManager      s_instance;

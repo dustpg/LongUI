@@ -51,41 +51,6 @@ void LongUI::UIScrollBar::set_index(float new_index) noexcept {
     }
 }
 
-// do event 事件处理
-bool LongUI::UIScrollBar::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // 控件消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        /*case LongUI::Event::Event_FindControl:
-            if (arg.event == LongUI::Event::Event_FindControl) {
-                // 检查鼠标范围
-                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
-                arg.ctrl = this;
-            }
-            __fallthrough;*/
-            /*case LongUI::Event::Event_SetFocus:
-            __fallthrough;
-        case LongUI::Event::Event_KillFocus:
-            return true;
-        case LongUI::Event::Event_MouseEnter:
-            (L"<%S>: MouseEnter\n", __FUNCTION__);
-            break;*/
-            break;
-        case LongUI::Event::Event_MouseLeave:
-            m_pointType = PointType::Type_None;
-            m_lastPointType = PointType::Type_None;
-            return true;
-        }
-    }
-    // 系统消息
-    else {
-        // 鼠标移上
-
-    }
-    return false;
-}
-
 /// <summary>
 /// Updates the width of the marginal.
 /// </summary>
@@ -287,96 +252,107 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
 
 
 // UIScrollBarA::do event 事件处理
-bool  LongUI::UIScrollBarA::DoEvent(const LongUI::EventArgument& arg) noexcept {
+bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
-    // 控件消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_MouseLeave:
-            this->set_status(m_lastPointType, LongUI::Status_Normal);
-            break;
-        }
-    }
-    // 系统消息
-    else {
-        switch (arg.msg) {
-        case WM_LBUTTONDOWN:
-            m_pWindow->SetCapture(this);
-            m_bCaptured = true; 
-            this->set_status(m_pointType, LongUI::Status_Pushed);
-            switch (m_pointType)
-            {
-            case LongUI::UIScrollBar::PointType::Type_Arrow1:
-                // 左/上移动
-                this->SetIndex(m_uiAnimation.end - m_fArrowStep);
-                break;
-            case LongUI::UIScrollBar::PointType::Type_Arrow2:
-                // 右/下移动
-                this->SetIndex(m_uiAnimation.end + m_fArrowStep);
-                break;
-            case LongUI::UIScrollBar::PointType::Type_Thumb:
-                m_fOldPoint = UISB_OffsetVaule(pt4self.x);
-                m_fOldIndex = m_fIndex;
-                break;
-            case LongUI::UIScrollBar::PointType::Type_Shaft:
-                // 设置目标
-            {
-                auto rate = (UISB_OffsetVaule(pt4self.x) - BASIC_SIZE) / (this->view_size.width - BASIC_SIZE * 2.f);
-                this->SetIndex(rate * m_fMaxIndex);
-            }
-                break;
-            default:
-                break;
-            }
-            break;
-        case WM_LBUTTONUP:
-            this->set_status(m_pointType, LongUI::Status_Hover);
-            m_bCaptured = false;
-            m_pWindow->ReleaseCapture();
-            break;
-        case WM_MOUSEMOVE:
-            // Captured状态
-            if (m_bCaptured) {
-                // 指向thumb?
-                if (m_pointType == PointType::Type_Thumb) {
-                    // 计算移动距离
-                    register auto pos = UISB_OffsetVaule(pt4self.x);
-                    register auto rate = (1.f - m_fMaxIndex  / (m_fMaxRange - BASIC_SIZE)) 
-                        * this->parent->GetZoom(int(this->bartype));
-                    //UIManager << DL_Hint << rate << endl;
-                    this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
-                    m_uiAnimation.end = m_fIndex;
+    // -------------------- on mouse move --------------------
+    auto on_mouse_move = [this, &pt4self]() {
+        // Captured状态
+        if (m_bCaptured) {
+            // 指向thumb?
+            if (m_pointType == PointType::Type_Thumb) {
+                // 计算移动距离
+                register auto pos = UISB_OffsetVaule(pt4self.x);
+                register auto rate = (1.f - m_fMaxIndex  / (m_fMaxRange - BASIC_SIZE)) 
+                    * this->parent->GetZoom(int(this->bartype));
+                //UIManager << DL_Hint << rate << endl;
+                this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
+                m_uiAnimation.end = m_fIndex;
 #ifdef _DEBUG
-                    rate = 0.f;
+                rate = 0.f;
 #endif
-                }
             }
-            //  检查指向类型
-            else {
-                if (IsPointInRect(m_rtArrow1, pt4self)) {
-                    m_pointType = PointType::Type_Arrow1;
-                }
-                else if (IsPointInRect(m_rtArrow2, pt4self)) {
-                    m_pointType = PointType::Type_Arrow2;
-                }
-                else if (IsPointInRect(m_rtThumb, pt4self)) {
-                    m_pointType = PointType::Type_Thumb;
-                }
-                else {
-                    m_pointType = PointType::Type_Shaft;
-                }
-                // 修改
-                if (m_lastPointType != m_pointType) {
-                    this->set_status(m_lastPointType, LongUI::Status_Normal);
-                    this->set_status(m_pointType, LongUI::Status_Hover);
-                    m_lastPointType = m_pointType;
-                }
-            }
-            return true;
         }
+        //  检查指向类型
+        else {
+            if (IsPointInRect(m_rtArrow1, pt4self)) {
+                m_pointType = PointType::Type_Arrow1;
+            }
+            else if (IsPointInRect(m_rtArrow2, pt4self)) {
+                m_pointType = PointType::Type_Arrow2;
+            }
+            else if (IsPointInRect(m_rtThumb, pt4self)) {
+                m_pointType = PointType::Type_Thumb;
+            }
+            else {
+                m_pointType = PointType::Type_Shaft;
+            }
+            // 修改
+            if (m_lastPointType != m_pointType) {
+                this->set_status(m_lastPointType, LongUI::Status_Normal);
+                this->set_status(m_pointType, LongUI::Status_Hover);
+                m_lastPointType = m_pointType;
+            }
+        }
+    };
+    // -------------------- on l-button down --------------------
+    auto on_lbutton_down = [this, &pt4self]() {
+        m_pWindow->SetCapture(this);
+        m_bCaptured = true;
+        this->set_status(m_pointType, LongUI::Status_Pushed);
+        switch (m_pointType)
+        {
+        case LongUI::UIScrollBar::PointType::Type_Arrow1:
+            // 左/上移动
+            this->SetIndex(m_uiAnimation.end - m_fArrowStep);
+            break;
+        case LongUI::UIScrollBar::PointType::Type_Arrow2:
+            // 右/下移动
+            this->SetIndex(m_uiAnimation.end + m_fArrowStep);
+            break;
+        case LongUI::UIScrollBar::PointType::Type_Thumb:
+            m_fOldPoint = UISB_OffsetVaule(pt4self.x);
+            m_fOldIndex = m_fIndex;
+            break;
+        case LongUI::UIScrollBar::PointType::Type_Shaft:
+            // 设置目标
+            this->SetIndex(
+                (UISB_OffsetVaule(pt4self.x) - BASIC_SIZE) / (this->view_size.width - BASIC_SIZE * 2.f)
+                * m_fMaxIndex
+                );
+            break;
+        }
+    };
+    // --------------------     main proc    --------------------
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_MouseLeave:
+        this->set_status(m_lastPointType, LongUI::Status_Normal);
+        m_pointType = PointType::Type_None;
+        m_lastPointType = PointType::Type_None;
+        return true;
+    case LongUI::MouseEvent::Event_MouseMove:
+        on_mouse_move();
+        return true;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        on_lbutton_down();
+        return true;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        this->set_status(m_pointType, LongUI::Status_Hover);
+        m_bCaptured = false;
+        m_pWindow->ReleaseCapture();
+        return true;
+    case LongUI::MouseEvent::Event_RButtonDown:
+        break;
+    case LongUI::MouseEvent::Event_RButtonUp:
+        break;
+    case LongUI::MouseEvent::Event_MButtonDown:
+        break;
+    case LongUI::MouseEvent::Event_MButtonUp:
+        break;
+    default:
+        break;
     }
-    return Super::DoEvent(arg);
+    return false;
 }
 
 // UIScrollBarA:: 重建

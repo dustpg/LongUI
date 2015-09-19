@@ -431,7 +431,7 @@ namespace LongUI {
         // update 刷新
         virtual void Update() noexcept override {}
         // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override { return false; }
+        //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override { return false; }
         // close this control 关闭控件
         virtual void Cleanup() noexcept override { delete this; }
     public:
@@ -601,12 +601,12 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIContainer::FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
     // 查找边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
             if (ctrl && IsPointInRect(ctrl->visible_rect, pt)) {
-                return ctrl->FindControl(pt);
+                return ctrl;
             }
         }
     }
@@ -641,6 +641,43 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     }
     // 扳回来
     return done;
+}
+
+bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) noexcept {
+    // 查找子控件
+    auto control_got = this->FindChild(arg.pt);
+    // 有效
+    if (control_got) {
+        // 不同
+        if (control_got != m_pMousePointed) {
+            auto newarg = arg;
+            // 有效
+            if (m_pMousePointed) {
+                newarg.event = LongUI::MouseEvent::Event_MouseLeave;
+                m_pMousePointed->DoMouseEvent(newarg);
+            }
+            // 有效
+            if ((m_pMousePointed = control_got)) {
+                newarg.event = LongUI::MouseEvent::Event_MouseEnter;
+                m_pMousePointed->DoMouseEvent(newarg);
+            }
+        }
+        // 相同
+        if (control_got->DoMouseEvent(arg)) {
+            return true;
+        }
+    }
+    // 滚轮事件允许边缘控件后处理
+    if (arg.event == MouseEvent::Event_MouseWheel && this->flags & Flag_Container_ExistMarginalControl) {
+        // 优化
+        for (auto ctrl : this->marginal_control) {
+            if (ctrl && ctrl->DoMouseEvent(arg)) {
+                return true;
+            }
+        }
+        this->AssertMarginalControl();
+    }
+    return false;
 }
 
 // 渲染子控件

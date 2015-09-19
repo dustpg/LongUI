@@ -79,9 +79,6 @@ namespace LongUI {
 //#define LongUINoinline __attribute__((?????))
 #endif
 
-#ifndef LongUIAlignas
-#define LongUIAlignas alignas(sizeof(void*)) 
-#endif
 
 #ifndef __fallthrough
 #define __fallthrough (void)(0)

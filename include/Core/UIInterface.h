@@ -88,7 +88,7 @@ namespace LongUI {
     class DECLSPEC_NOVTABLE IUIScript : public IUIInterface {
     public:
         // run a section script with event
-        virtual auto Evaluation(const ScriptUI&, const LongUI::EventArgument&) noexcept->bool = 0;
+        virtual auto Evaluation(const ScriptUI&, const LongUI::EventArgument& arg) noexcept->bool = 0;
         // get config infomation
         virtual auto GetConfigInfo() noexcept->ScriptConfigInfo = 0;
         // alloc the script memory and copy into(may be compiled into byte code), return memory size

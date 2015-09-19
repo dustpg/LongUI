@@ -35,7 +35,7 @@ namespace LongUI {
         // Render 渲染 
         //virtual auto Render() noexcept ->HRESULT override;
         // do event 事件处理
-        //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
         // 刷新
@@ -74,7 +74,7 @@ namespace LongUI {
         // update
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // clean this control 清除控件
         virtual void Cleanup() noexcept override;
     public:
@@ -126,13 +126,13 @@ namespace LongUI {
         // update this
         virtual void Update() noexcept override;
         // do event
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate this
         virtual auto Recreate() noexcept->HRESULT override;
         // clean up
         virtual void Cleanup() noexcept override;
-        // find control by mouse point
-        virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept->UIControl* override;
+        // find child control by mouse point
+        virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* override final;
     public:
         // refresh layout
         virtual void RefreshLayout() noexcept override final;

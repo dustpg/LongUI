@@ -45,9 +45,6 @@ namespace LongUI {
             Type_Shaft,     // Shaft
         };
     public:
-        // do event 事件处理
-        bool DoEvent(const LongUI::EventArgument&) noexcept override;
-    public:
         // init the control
         virtual void InitMarginalControl(MarginalControl _type) noexcept override {
             auto sbtype = (_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
@@ -142,7 +139,9 @@ namespace LongUI {
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        //bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        // do mouse event 鼠标事件处理
+        bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate
         auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件

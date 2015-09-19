@@ -104,61 +104,58 @@ auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node
 
 // do event 事件处理
 bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
-   // D2D1_COLOR_F* color = nullptr;
-    if (arg.sender) {
+    // LongUI消息
+    /*if (arg.sender) {
         switch (arg.event)
         {
-        /*case LongUI::Event::Event_FindControl:
-            if (arg.event == LongUI::Event::Event_FindControl) {
-                // 检查鼠标范围
-                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
-                arg.ctrl = this;
-            }
-            __fallthrough;*/
         case LongUI::Event::Event_SetFocus:
             __fallthrough;
         case LongUI::Event::Event_KillFocus:
             return true;
-        case LongUI::Event::Event_MouseEnter:
-            m_pWindow->now_cursor = m_hCursorHand;
-            break;
-        case LongUI::Event::Event_MouseLeave:
-            m_pWindow->now_cursor = m_pWindow->default_cursor;
-            break;
         }
-    }
-    else {
-        switch (arg.msg)
-        {
-        case WM_LBUTTONUP:
-            // 有效
-            if (arg.pt.x < this->view_size.width && arg.pt.y) {
-                // 检查flag
-                if (this->IsCanbeIndeterminate()) {
-                    if (this->state == CheckBoxState::State_UnChecked) {
-                        force_cast(this->state) = CheckBoxState::State_Checked;
-                    }
-                    else if (this->state == CheckBoxState::State_Checked) {
-                        force_cast(this->state) = CheckBoxState::State_Indeterminate;
-                    }
-                    else {
-                        force_cast(this->state) = CheckBoxState::State_UnChecked;
-                    }
-                }
-                else {
-                    force_cast(this->state) = static_cast<decltype(this->state)>
-                        (!static_cast<uint32_t>(this->state));
-                }
-                m_pWindow->Invalidate(this);
-            }
-            break;
-        }
-    }
+    }*/
     return Super::DoEvent(arg);
 }
 
+
+// do mouse event 鼠标事件处理
+bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_MouseEnter:
+        m_pWindow->now_cursor = m_hCursorHand;
+        break;
+    case LongUI::MouseEvent::Event_MouseLeave:
+        m_pWindow->now_cursor = m_pWindow->default_cursor;
+        break;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        // 有效
+        if (arg.pt.x < this->view_size.width && arg.pt.y) {
+            // 检查flag
+            if (this->IsCanbeIndeterminate()) {
+                if (this->state == CheckBoxState::State_UnChecked) {
+                    force_cast(this->state) = CheckBoxState::State_Checked;
+                }
+                else if (this->state == CheckBoxState::State_Checked) {
+                    force_cast(this->state) = CheckBoxState::State_Indeterminate;
+                }
+                else {
+                    force_cast(this->state) = CheckBoxState::State_UnChecked;
+                }
+            }
+            else {
+                force_cast(this->state) = static_cast<decltype(this->state)>
+                    (!static_cast<uint32_t>(this->state));
+            }
+            m_pWindow->Invalidate(this);
+        }
+        break;
+    }
+    return true;
+}
+
 // recreate 重建
-HRESULT LongUI::UICheckBox::Recreate() noexcept {
+auto LongUI::UICheckBox::Recreate() noexcept ->HRESULT {
     // 有效
     ::SafeRelease(m_pBrush);
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);

@@ -36,7 +36,7 @@ namespace LongUI{
         // update this
         //virtual void Update() noexcept override;
         // do event 
-        //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate
         //virtual auto Recreate() noexcept->HRESULT override;
         // clean this
@@ -69,7 +69,7 @@ namespace LongUI{
         // 刷新
         //virtual void Update() noexcept override;
         // do event 事件处理
-        //virtual bool DoEvent(LongUI::EventArgument&) noexcept override;
+        //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件

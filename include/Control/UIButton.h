@@ -27,7 +27,7 @@
 // LongUI namespace
 namespace LongUI{
     // default button control 默认按钮控件
-    class UIButton final : public UIText {
+    class UIButton : public UIText {
         // 父类申明
         using Super = UIText;
         // ui element
@@ -37,8 +37,10 @@ namespace LongUI{
         virtual void Render(RenderType type) const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
-        // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        // do event
+        virtual bool DoEvent(const EventArgument& arg) noexcept override;
+        // do mouse event
+        virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件

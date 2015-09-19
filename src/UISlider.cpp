@@ -170,101 +170,87 @@ LongUI::UIControl* LongUI::UISlider::CreateControl(CreateEventType type, pugi::x
 }
 
 
-
-// do event 事件处理
-bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
+// 鼠标事件
+bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
-    //--------------------------------------------------
-    if (arg.sender){
-        switch (arg.event)
-        {
-        /*case LongUI::Event::Event_FindControl:
-            if (arg.event == LongUI::Event::Event_FindControl) {
-                // 检查鼠标范围
-                assert(pt4self.x < this->width && pt4self.y < this->width && "check it");
-                arg.ctrl = this;
-            }
-            __fallthrough;*/
-        case LongUI::Event::Event_SetFocus:
-            __fallthrough;
-        case LongUI::Event::Event_KillFocus:
-            return true;
-        case LongUI::Event::Event_MouseEnter:
-            break;
-        case LongUI::Event::Event_MouseLeave:
-            // 鼠标移出: 设置UI元素状态
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
-            m_bMouseClickIn = false;
-            m_bMouseMoveIn = false;
-            break;
-        }
-    }
-    else {
-        switch (arg.msg)
-        {
-        case WM_LBUTTONDOWN:
-            m_pWindow->SetCapture(this);
-            if (IsPointInRect(m_rcThumb, pt4self)){
-                m_bMouseClickIn = true;
-                m_fClickPosition = this->IsVerticalSlider() ?
-                    (pt4self.y - m_rcThumb.top) : (pt4self.x - m_rcThumb.left);
-                UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
-            }
-            break;
-        case WM_MOUSEMOVE:
-            // 点中并且移动
-            if (arg.sys.wParam & MK_LBUTTON) {
-                if (m_bMouseClickIn) {
-                    // 获取基本值
-                    if (this->IsVerticalSlider()) {
-                        auto slider_height = this->view_size.height - this->thumb_size.height;
-                        m_fValue = (pt4self.y - m_fClickPosition) / slider_height;
-                    }
-                    else {
-                        auto slider_width = this->view_size.width - this->thumb_size.width;
-                        m_fValue = (pt4self.x - m_fClickPosition) / slider_width;
-                    }
-                    // 阈值检查
-                    if (m_fValue > 1.f) m_fValue = 1.f;
-                    else if (m_fValue < 0.f) m_fValue = 0.f;
-                }
-            }
-            // 移动
-            else {
-                if (IsPointInRect(m_rcThumb, pt4self)){
-                    // 鼠标移进:
-                    if (!m_bMouseMoveIn) {
-                        // 设置UI元素状态
-                        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
-                        m_bMouseMoveIn = true;
-                    }
+    bool nocontinued = false;
+    // 分类
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_MouseLeave:
+        // 鼠标移出: 设置UI元素状态
+        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+        m_bMouseClickIn = false;
+        m_bMouseMoveIn = false;
+        nocontinued = true;
+        break;
+    case  LongUI::MouseEvent::Event_MouseMove:
+        // 点中并且移动
+        if (arg.sys.wParam & MK_LBUTTON) {
+            if (m_bMouseClickIn) {
+                // 获取基本值
+                if (this->IsVerticalSlider()) {
+                    auto slider_height = this->view_size.height - this->thumb_size.height;
+                    m_fValue = (pt4self.y - m_fClickPosition) / slider_height;
                 }
                 else {
-                    // 鼠标移出:
-                    if (m_bMouseMoveIn) {
-                        // 设置UI元素状态
-                        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
-                        m_bMouseMoveIn = false;
-                    }
+                    auto slider_width = this->view_size.width - this->thumb_size.width;
+                    m_fValue = (pt4self.x - m_fClickPosition) / slider_width;
+                }
+                // 阈值检查
+                if (m_fValue > 1.f) m_fValue = 1.f;
+                else if (m_fValue < 0.f) m_fValue = 0.f;
+            }
+        }
+        // 移动
+        else {
+            if (IsPointInRect(m_rcThumb, pt4self)){
+                // 鼠标移进:
+                if (!m_bMouseMoveIn) {
+                    // 设置UI元素状态
+                    UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+                    m_bMouseMoveIn = true;
                 }
             }
-            break;
-        case WM_LBUTTONUP:
-            m_bMouseClickIn = false;
-            m_pWindow->ReleaseCapture();
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
-            break;
+            else {
+                // 鼠标移出:
+                if (m_bMouseMoveIn) {
+                    // 设置UI元素状态
+                    UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+                    m_bMouseMoveIn = false;
+                }
+            }
         }
-        // 检查事件
-        if (m_fValueOld != m_fValue) {
-            m_fValueOld = m_fValue;
-            // 调用
-            m_caller(this, SubEvent::Event_SliderValueChanged);
-            // 刷新
-            m_pWindow->Invalidate(this);
+        nocontinued = true;
+        break;
+    case  LongUI::MouseEvent::Event_LButtonDown:
+        // 左键按下
+        m_pWindow->SetCapture(this);
+        if (IsPointInRect(m_rcThumb, pt4self)){
+            m_bMouseClickIn = true;
+            m_fClickPosition = this->IsVerticalSlider() ?
+                (pt4self.y - m_rcThumb.top) : (pt4self.x - m_rcThumb.left);
+            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
         }
+        nocontinued = true;
+        break;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        // 右键按下
+        m_bMouseClickIn = false;
+        m_pWindow->ReleaseCapture();
+        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+        nocontinued = true;
+        break;
     }
-    return false;
+    // 检查事件
+    if (m_fValueOld != m_fValue) {
+        m_fValueOld = m_fValue;
+        // 调用
+        m_caller(this, SubEvent::Event_SliderValueChanged);
+        // 刷新
+        m_pWindow->Invalidate(this);
+    }
+    return nocontinued;
 }
 
 // recreate 重建

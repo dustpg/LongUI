@@ -590,47 +590,112 @@ auto LongUI::CUIManager::create_ui_window(
     return nullptr;
 }
 
+// 消息转换
+void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& event, 
+    UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+    assert((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || 
+        message == WM_MOUSELEAVE || message == WM_MOUSEHOVER);
+    auto get_x = [lParam]() { return float(int16_t(LOWORD(lParam))); };
+    auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
+    event.sys.wParam = wParam;
+    event.sys.lParam = lParam;
+    event.pt.x = get_x();
+    event.pt.y = get_y();
+    event.last = nullptr;
+    register MouseEvent me;
+    switch (message)
+    {
+    case WM_MOUSEMOVE:
+        me = MouseEvent::Event_MouseMove;
+        break;
+    case WM_LBUTTONDOWN:
+        me = MouseEvent::Event_LButtonDown;
+        break;
+    case WM_LBUTTONUP:
+        me = MouseEvent::Event_LButtonUp;
+        break;
+    case WM_RBUTTONDOWN:
+        me = MouseEvent::Event_RButtonDown;
+        break;
+    case WM_RBUTTONUP:
+        me = MouseEvent::Event_RButtonUp;
+        break;
+    case WM_MBUTTONDOWN:
+        me = MouseEvent::Event_MButtonDown;
+        break;
+    case WM_MBUTTONUP:
+        me = MouseEvent::Event_MButtonUp;
+        break;
+    case WM_MOUSEWHEEL:
+        me = MouseEvent::Event_MouseWheel;
+        break;
+    case WM_MOUSEHOVER:
+        me = MouseEvent::Event_MouseHover;
+        break;
+    case WM_MOUSELEAVE:
+        me = MouseEvent::Event_MouseLeave;
+        break;
+    default:
+        me = MouseEvent::Event_None;
+        break;
+    }
+    event.event = me;
+}
 
 // 窗口过程函数
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
-    // 设置参数
-    LongUI::EventArgument arg;
-    // 系统消息
-    arg.msg = message;  arg.sender = nullptr;
+    /*POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
+    arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);*/
     // 返回值
     LRESULT recode = 0;
     // 创建窗口时设置指针
     if (message == WM_CREATE)    {
         // 获取指针
-        LongUI::UIWindow *pUIWindow = reinterpret_cast<LongUI::UIWindow*>(
+        LongUI::UIWindow *window = reinterpret_cast<LongUI::UIWindow*>(
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
             );
         // 设置窗口指针
-        ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(pUIWindow));
+        ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
         // 创建完毕
-        pUIWindow->OnCreated(hwnd);
+        window->OnCreated(hwnd);
         // 返回1
         recode = 1;
     }
     else {
-        // 世界鼠标坐标
-        POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
-        arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);
-        // 参数
-        arg.sys.wParam = wParam; arg.sys.lParam = lParam; arg.lr = 0;
         // 获取储存的指针
-        auto* pUIWindow = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
+        auto* window = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
             ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))
             );
-        // 检查是否处理了
-        bool wasHandled = false;
-        //指针有效的情况
-        if (pUIWindow) {
-            AutoLocker;
-            wasHandled = pUIWindow->DoEvent(arg);
+        // 无效
+        if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
+        // 鼠标事件?
+        if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) ||
+            message == WM_MOUSELEAVE || message == WM_MOUSEHOVER) {
+            MouseEventArgument arg;
+            CUIManager::WindowsMsgToMouseEvent(arg, message, wParam, lParam);
+            // 有效
+            if (arg.event != MouseEvent::Event_None) {
+                AutoLocker;
+                // 位置有效->修改
+                if (arg.event >= MouseEvent::Event_MouseMove) {
+                    window->last_point = arg.pt;
+                }
+                window->DoMouseEvent(arg);
+            }
         }
-        // 默认处理
-        recode = wasHandled ? arg.lr : ::DefWindowProcW(hwnd, message, wParam, lParam);
+        // 一般事件
+        else {
+            // 设置参数
+            LongUI::EventArgument arg;
+            // 系统消息
+            arg.msg = message;  arg.sender = nullptr;
+            arg.sys.wParam = wParam; arg.sys.lParam = lParam; 
+            arg.lr = 0;
+            // 上锁
+            AutoLocker;
+            // 默认处理
+            recode = window->DoEvent(arg) ? arg.lr : ::DefWindowProcW(hwnd, message, wParam, lParam);
+        }
     }
     return recode;
 }

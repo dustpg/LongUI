@@ -32,7 +32,8 @@
 /// To use this, you should typedef or using LongUIMyType for current class
 /// </remarks>
 #define SetSubEventCallBackHelper(name, sbevent, func) \
-   this->SetSubEventCallBack(name, LongUI::SubEvent::Event_##sbevent, [](UIControl* a, UIControl* b) noexcept { return static_cast<LongUIMyType*>(a)->func(b);});
+   this->SetSubEventCallBack(name, LongUI::SubEvent::Event_##sbevent, \
+[](UIControl* a, UIControl* b) noexcept { return static_cast<LongUIMyType*>(a)->func(b);});
 
 // LongUI namespace
 namespace LongUI {
@@ -41,7 +42,7 @@ namespace LongUI {
     // Container
     class UIContainer;
     // base control class -- 基本控件类
-    class LongUIAlignas UIControl {
+    class alignas(sizeof(void*)) UIControl {
         // Super class
         using Super = void;
         // friend class
@@ -54,11 +55,11 @@ namespace LongUI {
         // update
         virtual void Update() noexcept {};
         // do event 
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept = 0;
+        virtual bool DoEvent(const EventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
+        // do mouse event 
+        virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
         // recreate , first call or device reset
         virtual auto Recreate() noexcept->HRESULT;
-        // find control by mouse point
-        virtual auto FindControl(const D2D1_POINT_2F&) noexcept->UIControl* { return this; };
         /// <summary>
         /// Cleanups this instance.
         /// </summary>

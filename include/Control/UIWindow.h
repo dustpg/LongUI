@@ -90,7 +90,9 @@ namespace LongUI {
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument&) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        // do mouse event 鼠标事件处理
+        virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件
@@ -135,8 +137,6 @@ namespace LongUI {
         auto FindControl(const CUIString& name) noexcept->UIControl*;
         // find control by wchar_t pointer
         auto FindControl(const wchar_t* name) noexcept { CUIString n(name); return this->FindControl(n); }
-        // find control by mouse point
-        virtual auto FindControl(const D2D1_POINT_2F& pt) noexcept ->UIControl* final override { return Super::FindControl(pt); }
         // add control with name
         void AddControl(const std::pair<CUIString, void*>& pair) noexcept;
         // set icon, bad
@@ -185,9 +185,9 @@ namespace LongUI {
         // on WM_CREATE
         bool OnCreated(HWND hwnd) noexcept;
         // on WM_MOUSEMOVE
-        bool OnMouseMove(const LongUI::EventArgument&) noexcept;
+        bool OnMouseMove(const LongUI::EventArgument& arg) noexcept;
         // on WM_MOUSEWHEEL
-        bool OnMouseWheel(const LongUI::EventArgument&) noexcept;
+        bool OnMouseWheel(const LongUI::EventArgument& arg) noexcept;
         // resize window
         void OnResize(bool force = false) noexcept;
         // parent window, be careful with UIControl::parent
@@ -196,6 +196,8 @@ namespace LongUI {
         WindowFlag      const   window_flags = WindowFlag::Flag_None;
         // window type
         WindowType      const   window_type = WindowType::Type_Normal;
+        // last mouse point
+        D2D1_POINT_2F           last_point = D2D1::Point2F(-1.f, -1.f);
     protected:
         // unused float
         float                   m_fUnused = 0.f;
@@ -226,9 +228,7 @@ namespace LongUI {
         // Direct Composition Target
         IDCompositionTarget*    m_pDcompTarget = nullptr;
         // Direct Composition Visual
-        IDCompositionVisual*    m_pDcompVisual = nullptr;
-        // mouse point control (only one)
-        UIControl*              m_pPointedControl = nullptr;
+        IDCompositionVisual*    m_pDcompVisual = nullptr;;
         // now focused control (only one)
         UIControl*              m_pFocusedControl = nullptr;
         // now dragdrop control (only one)

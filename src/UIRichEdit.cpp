@@ -95,12 +95,12 @@ bool LongUI::UIRichEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 arg.ctrl = this;
             }
             return true;*/
-        case LongUI::Event::Event_MouseEnter:
+        /*case LongUI::Event::Event_MouseEnter:
             m_pWindow->now_cursor = m_hCursorI;
             break;
         case LongUI::Event::Event_MouseLeave:
             m_pWindow->now_cursor = m_pWindow->default_cursor;
-            break;
+            break;*/
         case LongUI::Event::Event_SetFocus:
             if (m_pTextServices) {
                 m_pTextServices->OnTxUIActivate();
@@ -109,8 +109,8 @@ bool LongUI::UIRichEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
             return true;
         case LongUI::Event::Event_KillFocus:
             if (m_pTextServices) {
-                m_pTextServices->OnTxUIDeactivate();
                 m_pTextServices->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
+                m_pTextServices->OnTxUIDeactivate();
                 this->TxShowCaret(FALSE);
             }
             return true;

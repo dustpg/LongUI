@@ -240,6 +240,8 @@ namespace LongUI {
         // could be setted xml-attribute("renderparent") and auto setted
         // by parent's flag : Flag_Container_HostChildrenRenderingDirectly,
         Flag_RenderParent = 1 << 9,
+        // [default: false] focusable, could be set mouse or keyboard focus
+        Flag_Focusable = 1 << 10,
         // [default: false][xml attribute : "hostchild"@bool] 
         // if true, container will host child rendering in anytime
         // if the container was setted this flag, it would set 
@@ -296,25 +298,17 @@ namespace LongUI {
     /// event for longui control event
     /// </summary>
     enum class Event : UINT {
-        // control-tree buliding finished
+        /// <summary>
+        /// The event to signal that control-tree buliding finished
+        /// </summary>
         Event_TreeBulidingFinished = 0,
         // sub event, use for event callback
         Event_SubEvent,
-        // drag enter on this control
-        Event_DragEnter,
-        // drag over on this control
-        Event_DragOver,
-        // drag leave on this control
-        Event_DragLeave,
-        // drop data
-        Event_Drop,
-        // mouse enter
-        Event_MouseEnter,
-        // mouse leave
-        Event_MouseLeave,
-        // set focus
+        // command, keyboard direct-access(like type 'Eenter')
+        Event_Command,
+        // set (mouse?) focus
         Event_SetFocus,
-        // kill focus
+        // kill (mouse?) focus
         Event_KillFocus,
         // notify all children(but sender)
         //Event_NotifyChildren,
@@ -364,8 +358,6 @@ namespace LongUI {
             // control
             struct { LongUI::SubEvent subevent; void* pointer; } ui;
         };
-        // world mouse position, you should transfrom it while using
-        D2D1_POINT_2F   pt;
         // Return Code
         union {
             // [out] LRESULT for System
@@ -377,6 +369,59 @@ namespace LongUI {
         };
         // event id
         union { UINT msg; LongUI::Event event; };
+    };
+    /// <summary>
+    /// event for longui control event
+    /// </summary>
+    enum class MouseEvent : UINT {
+        // none, never got
+        Event_None,
+        // mouse wheel, if no child handle this, will send it to marginal control
+        Event_MouseWheel,
+        // drag enter on this control
+        Event_DragEnter,
+        // drag over on this control
+        Event_DragOver,
+        // drag leave on this control
+        Event_DragLeave,
+        // drop data
+        Event_Drop,
+        // mouse enter
+        Event_MouseEnter,
+        // mouse leave
+        Event_MouseLeave,
+        // mouse hover
+        Event_MouseHover,
+        // mouse move
+        Event_MouseMove,
+        // left-button down
+        Event_LButtonDown,
+        // left-button up
+        Event_LButtonUp,
+        // right-button down
+        Event_RButtonDown,
+        // right-button up
+        Event_RButtonUp,
+        // middle-button down
+        Event_MButtonDown,
+        // middle-button up
+        Event_MButtonUp,
+    };
+    // LongUI Mouse Event Argument
+    struct MouseEventArgument {
+        // data
+        union {
+            // System 
+            struct { WPARAM wParam; LPARAM lParam; } sys;
+            // clipboard format 
+            struct { IDataObject* dataobj; DWORD* outeffect; } cf;
+        };
+        // world mouse position, you should transfrom it while using
+        D2D1_POINT_2F       pt;
+        // last control
+        mutable UIControl*  last;
+        // event id
+        LongUI::MouseEvent  event;
     };
 #ifdef LongUIDebugEvent
     // LongUI Debug Information
