@@ -591,17 +591,17 @@ auto LongUI::CUIManager::create_ui_window(
 }
 
 // 消息转换
-void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& event, 
+void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg, 
     UINT message, WPARAM wParam, LPARAM lParam) noexcept {
     assert((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || 
         message == WM_MOUSELEAVE || message == WM_MOUSEHOVER);
     auto get_x = [lParam]() { return float(int16_t(LOWORD(lParam))); };
     auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
-    event.sys.wParam = wParam;
-    event.sys.lParam = lParam;
-    event.pt.x = get_x();
-    event.pt.y = get_y();
-    event.last = nullptr;
+    arg.sys.wParam = wParam;
+    arg.sys.lParam = lParam;
+    arg.pt.x = get_x();
+    arg.pt.y = get_y();
+    arg.last = nullptr;
     register MouseEvent me;
     switch (message)
     {
@@ -627,7 +627,10 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& event,
         me = MouseEvent::Event_MButtonUp;
         break;
     case WM_MOUSEWHEEL:
-        me = MouseEvent::Event_MouseWheel;
+        me = MouseEvent::Event_MouseWheelV;
+        break;
+    case WM_MOUSEHWHEEL:
+        me = MouseEvent::Event_MouseWheelH;
         break;
     case WM_MOUSEHOVER:
         me = MouseEvent::Event_MouseHover;
@@ -639,7 +642,7 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& event,
         me = MouseEvent::Event_None;
         break;
     }
-    event.event = me;
+    arg.event = me;
 }
 
 // 窗口过程函数
@@ -676,6 +679,10 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             // 有效
             if (arg.event != MouseEvent::Event_None) {
                 AutoLocker;
+                // 需要修正坐标
+                if (arg.event <= MouseEvent::Event_MouseWheelH) {
+                    arg.pt = window->last_point;
+                }
                 // 位置有效->修改
                 if (arg.event >= MouseEvent::Event_MouseMove) {
                     window->last_point = arg.pt;

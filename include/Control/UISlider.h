@@ -49,8 +49,6 @@ namespace LongUI{
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
-        // register Value Changed 注册变动事件
-        void SetValueChangedEvent(const CUISubEventCaller& caller) noexcept { m_caller = caller; }
         // get value in [0, 1]
         auto GetValue01() const noexcept { return m_fValue; }
         // get value in [start, end]
@@ -67,8 +65,6 @@ namespace LongUI{
         // deleted function
         UISlider(const UISlider&) = delete;
     protected:
-        // event caller
-        CUISubEventCaller   m_caller;
         // slider rect
         D2D1_RECT_F         m_rcThumb = D2D1::RectF();
         // ui element

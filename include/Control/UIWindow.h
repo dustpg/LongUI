@@ -133,6 +133,8 @@ namespace LongUI {
         void ShowCaret() noexcept;
         // hide the caret
         void HideCaret() noexcept;
+        // set focus control
+        void SetFocus(UIControl* ctrl) noexcept;
         // find control by CUIString
         auto FindControl(const CUIString& name) noexcept->UIControl*;
         // find control by wchar_t pointer

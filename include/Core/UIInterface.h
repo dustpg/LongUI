@@ -127,7 +127,6 @@ namespace LongUI {
     //              IID_LongUI_IUIResourceLoader(opt), 
     //              IID_LongUI_IUIScript(opt),
     //              IID_IDWriteFontCollection(opt)
-    class CUISubEventCaller;
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
         // flag
@@ -191,13 +190,6 @@ namespace LongUI {
         /// </remarks>
         /// <returns>index of adapters</returns>
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[/*length*/], const size_t length /*<=256*/) noexcept->size_t = 0;
-        /// <summary>
-        /// Sets the subevent call back.
-        /// </summary>
-        /// <param name="sb">The subevent</param>
-        /// <param name="caller">The caller.</param>
-        /// <param name="recver">The recver.</param>
-        virtual auto SetSubEventCallBack(LongUI::SubEvent sb, const CUISubEventCaller& caller, UIControl* recver) noexcept -> void = 0;
         /// <summary>
         /// Customs the type of the rich.
         /// </summary>

@@ -221,6 +221,8 @@ namespace LongUI {
         // control name
         CUIString               m_strControlName;
     public:
+        // SubEvent Call Helper
+        bool SubEventCallHelper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -244,8 +246,6 @@ namespace LongUI {
         // assert type casting
         void AssertTypeCasting(IID& iid) const noexcept { UNREFERENCED_PARAMETER(iid); }
 #endif
-        // Set Event Call Back
-        void SetSubEventCallBack(const wchar_t*, LongUI::SubEvent, SubEventCallBack) noexcept;
         // get real control size in byte
         template<class T, class L>
         static LongUIInline auto AllocRealControl(pugi::xml_node node, L lam) noexcept {

@@ -586,11 +586,11 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
         // 单行 - 向窗口发送输入完毕消息
         else {
             // sb!
-            this->sbcaller.operator()(m_pHost, SubEvent::Event_EditReturned);
+            //this->sbcaller.operator()(m_pHost, SubEvent::Event_EditReturned);
         }
         break;
     case VK_BACK:       // 退格键
-                        // 有选择的话
+        // 有选择的话
         if (absolutePosition != m_u32CaretAnchor) {
             // 删除选择区
             this->DeleteSelection();

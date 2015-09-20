@@ -48,8 +48,6 @@ namespace LongUI{
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
-        // set click event
-        void SetClickEvent(CUISubEventCaller& caller) noexcept { m_caller = caller; }
     protected:
         // constructor 构造函数
         UIButton(pugi::xml_node) noexcept;
@@ -60,8 +58,6 @@ namespace LongUI{
     protected:
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
-        // caller
-        CUISubEventCaller       m_caller;
         // element
         ButtonElement           m_uiElement;
         // target status when clicked

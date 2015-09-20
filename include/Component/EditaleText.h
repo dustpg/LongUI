@@ -199,8 +199,6 @@ namespace LongUI {
             EditaleTextType         type = Type_None;
             // password char
             char32_t                password = U'*';
-            // caller
-            CUISubEventCaller       sbcaller;
         private:
             // render target
             ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;

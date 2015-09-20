@@ -142,28 +142,6 @@ void __fastcall LongUI::Meta_Render(
     }
 }
 
-// CUISubEventCaller () operator
-LongUINoinline bool LongUI::CUISubEventCaller::operator()(UIControl* sender, SubEvent subevent) noexcept {
-    assert(sender && subevent != LongUI::SubEvent::Event_Null && "bad arguments");
-    // 事件
-    LongUI::EventArgument arg;
-    arg.event = LongUI::Event::Event_SubEvent;
-    arg.sender = sender;
-    arg.ui.subevent = subevent;
-    arg.ui.pointer = nullptr;
-    arg.ctrl = nullptr;
-    // 脚本优先
-    if (UIManager.script && sender->GetScript().script) {
-        return UIManager.script->Evaluation(sender->GetScript(), arg);
-    }
-    // 回调其次
-    if (m_pCallback) {
-        return m_pCallback(m_pRecver, sender);
-    }
-    // 事件最低
-    return sender->GetWindow()->DoEvent(arg);
-}
-
 
 // 构造对象
 LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {

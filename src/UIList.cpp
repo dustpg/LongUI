@@ -58,6 +58,14 @@ auto LongUI::UIList::Recreate() noexcept -> HRESULT {
 auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
     auto ctrl = Super::FindChild(pt);
     if (ctrl) return ctrl;
+    // TODO: 利用list特性优化
+    for (auto vctrl : m_controls) {
+        ctrl = static_cast<UIControl*>(vctrl);
+        // 区域内判断
+        if (IsPointInRect(ctrl->visible_rect, pt)) {
+            return ctrl;
+        }
+    }
     return nullptr;
 }
 

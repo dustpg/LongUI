@@ -215,20 +215,8 @@ public:
     //do the event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept  override {
         if (arg.sender) {
-            /*if (arg.event == LongUI::Event::Event_FindControl) {
-            // 检查鼠标范围
-            if (FindControlHelper(pt4self, this)) {
-            arg.ctrl = this;
-            }
-            return true;
-            }
-            else*/ if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
             // 注册事件
-                this->SetSubEventCallBack(
-                    L"6",
-                    LongUI::SubEvent::Event_SliderValueChanged,
-                    [](UIControl* t, UIControl* s) noexcept { return static_cast<TestControl*>(t)->OnValueChangedConst(s); }
-                );
+            if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
             }
         }
 

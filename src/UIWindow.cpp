@@ -717,6 +717,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
+// 鼠标事件
 bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // 存在捕获控件
     if (m_pCapturedControl) {
@@ -725,6 +726,28 @@ bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     return Super::DoMouseEvent(arg);
 }
 
+
+// 设置鼠标焦点
+void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
+    // 无效
+    assert(ctrl && "bad argument");
+    // 可聚焦的
+    if (ctrl->flags & Flag_Focusable) {
+        EventArgument arg;
+        ::memset(&arg, 0, sizeof(sizeof(arg)));
+        arg.sender = this;
+        // 有效
+        if (m_pFocusedControl) {
+            arg.event = LongUI::Event::Event_KillFocus;
+            m_pFocusedControl->DoEvent(arg);
+        }
+        // 有效
+        if ((m_pFocusedControl = ctrl)) {
+            arg.event = LongUI::Event::Event_SetFocus;
+            m_pFocusedControl->DoEvent(arg);
+        }
+    }
+}
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {

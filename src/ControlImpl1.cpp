@@ -226,7 +226,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         if (m_pWindow->IsReleasedControl(this)) {
-            bool rec = m_caller(this, SubEvent::Event_ButtonClicked);
+            bool /*rec = m_caller(this, SubEvent::Event_ButtonClicked);*/
             rec = false;
             // 设置状态
             UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);

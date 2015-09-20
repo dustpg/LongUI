@@ -325,6 +325,18 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
     // --------------------     main proc    --------------------
     switch (arg.event)
     {
+    case LongUI::MouseEvent::Event_MouseWheelV:
+    case LongUI::MouseEvent::Event_MouseWheelH:
+    {
+        // 滚动条
+        auto test1 = arg.event == LongUI::MouseEvent::Event_MouseWheelV;
+        auto test2 = !!(arg.sys.wParam & MK_SHIFT);
+        if ((test1 && test2) == (this->bartype == ScrollBarType::Type_Horizontal)) {
+            auto wheel = (float(GET_WHEEL_DELTA_WPARAM(arg.sys.wParam))) / float(WHEEL_DELTA);
+            this->SetIndex(m_uiAnimation.end - wheel_step * wheel);
+        }
+    }
+        return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         this->set_status(m_lastPointType, LongUI::Status_Normal);
         m_pointType = PointType::Type_None;

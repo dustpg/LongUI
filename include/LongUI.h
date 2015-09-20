@@ -168,8 +168,10 @@ namespace LongUI {
     using RectLTRB_L = RectLTRB<int32_t>;
     using RectLTRB_U = RectLTRB<uint32_t>;
     // --------------------------------
-    // longui callback func
-    using SubEventCallBack = bool(*)(UIControl* recver, UIControl* sender);
+    // signature
+    template<typename signature> class CUIFunction;
+    // longui callback
+    using UICallBack = CUIFunction<bool(UIControl*)>;
     // event type
     enum CreateEventType : size_t { Type_CreateControl = 0, Type_Initialize, Type_Recreate, Type_Uninitialize, };
     // CreateControl Function 控件创建函数
@@ -240,7 +242,7 @@ namespace LongUI {
         // could be setted xml-attribute("renderparent") and auto setted
         // by parent's flag : Flag_Container_HostChildrenRenderingDirectly,
         Flag_RenderParent = 1 << 9,
-        // [default: false] focusable, could be set mouse or keyboard focus
+        // [default: false] focusable, could be set keyboard focus
         Flag_Focusable = 1 << 10,
         // [default: false][xml attribute : "hostchild"@bool] 
         // if true, container will host child rendering in anytime
@@ -306,9 +308,9 @@ namespace LongUI {
         Event_SubEvent,
         // command, keyboard direct-access(like type 'Eenter')
         Event_Command,
-        // set (mouse?) focus
+        // set keyboard focus
         Event_SetFocus,
-        // kill (mouse?) focus
+        // kill keyboard focus
         Event_KillFocus,
         // notify all children(but sender)
         //Event_NotifyChildren,
@@ -317,8 +319,6 @@ namespace LongUI {
     };
     // LongUI Sub Event
     enum class SubEvent : size_t {
-        // null
-        Event_Null = 0,
         // button clicked
         Event_ButtonClicked,
         // single-line-edit returned
@@ -326,7 +326,7 @@ namespace LongUI {
         // slider value changed
         Event_SliderValueChanged,
         // ----- User Custom Defined Event -----
-        Event_Custom = 0x100,
+        Event_Custom,
     };
     // priority for rendering
     enum RenderingPriority : uint8_t {
@@ -353,8 +353,6 @@ namespace LongUI {
         union {
             // System 
             struct { WPARAM wParam; LPARAM lParam; } sys;
-            // clipboard format 
-            struct { IDataObject* dataobj; DWORD* outeffect; } cf;
             // control
             struct { LongUI::SubEvent subevent; void* pointer; } ui;
         };
@@ -376,8 +374,10 @@ namespace LongUI {
     enum class MouseEvent : UINT {
         // none, never got
         Event_None,
-        // mouse wheel, if no child handle this, will send it to marginal control
-        Event_MouseWheel,
+        // mouse wheel in v, if no child handle this, will send it to marginal control
+        Event_MouseWheelV,
+        // mouse wheel in h, if no child handle this, will send it to marginal control
+        Event_MouseWheelH,
         // drag enter on this control
         Event_DragEnter,
         // drag over on this control

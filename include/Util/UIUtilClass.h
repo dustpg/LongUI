@@ -26,32 +26,104 @@
 
 // longui namespace
 namespace LongUI {
-    // caller struct
-    class CUISubEventCaller {
+#define LONGUI_FUNCTION_NOEXCEPT noexcept
+    // small single object
+    struct CUISingleSmallObject {
+        // nothrow new 
+        auto operator new(size_t size, std::nothrow_t) noexcept ->void*{ return LongUI::SmallAlloc(size); };
+        // delete
+        auto operator delete(void* address) noexcept ->void { return LongUI::SmallFree(address); }
+        // throw new []
+        auto operator new(size_t size) ->void* = delete;
+        // throw new []
+        auto operator new[](size_t size) ->void* = delete;
+        // delete []
+        void operator delete[](void*, size_t size) noexcept = delete;
+        // nothrow new []
+        auto operator new[](size_t size, std::nothrow_t) noexcept ->void* = delete;
+    };
+    // BaseFunc
+    template<typename Result, typename ...Args>
+    class XUIBaseFunc : public CUISingleSmallObject {
+    public:
+        // call
+        virtual auto Call(Args... args) LONGUI_FUNCTION_NOEXCEPT ->Result = 0;
+        // dtor
+        virtual ~XUIBaseFunc() noexcept { if (this->chain) delete this->chain; this->chain = nullptr; };
+        // call chain
+        XUIBaseFunc*        chain = nullptr;
+    };
+    // RealFunc
+    template<typename Func, typename Result, typename ...Args>
+    class CUIRealFunc final : public XUIBaseFunc<Result, Args...> {
+        // func data
+        Func                m_func;
     public:
         // ctor
-        explicit CUISubEventCaller(SubEventCallBack callback = nullptr, UIControl* recver = nullptr)
-            :m_pCallback(callback), m_pRecver(recver){}
-        // copy ctor
-        explicit CUISubEventCaller(const CUISubEventCaller& obj) noexcept
-            :m_pCallback(obj.m_pCallback), m_pRecver(obj.m_pRecver){}
-        // =
-        auto&operator =(const CUISubEventCaller& obj) noexcept { 
-            m_pCallback = obj.m_pCallback; m_pRecver =obj.m_pRecver; return *this;
-        }
+        CUIRealFunc(const Func &x) noexcept : m_func(x) {}
         // call
-        bool operator()(UIControl* sender, SubEvent subevent) noexcept;
+        auto Call(Args... args) LONGUI_FUNCTION_NOEXCEPT ->Result override { 
+            if (this->chain) this->chain->Call(args...);
+            return m_func(args...);
+        }
+        // dtor
+        virtual ~CUIRealFunc() noexcept = default;
+    };
+    // type helper
+    template<typename Func> struct type_helper { using type = Func; };
+    // type helper
+    template<typename Result, typename ...Args> struct type_helper<Result(Args...)> { 
+        using type = Result (*)(Args...);
+    };
+    // UI Function, wrapped for lambda!
+    template<typename Result, typename ...Args>
+    class CUIFunction<Result(Args...)> {
+        // this type
+        using MyType = CUIFunction<Result(Args...)>;
+        // RealFunc pointer
+        XUIBaseFunc<Result, Args...>*   m_pFunction = nullptr;
+        // release
+        void release() noexcept { if (m_pFunction) delete m_pFunction; m_pFunction = nullptr; }
+    public:
+        // Ok
+        auto IsOK() const noexcept { return !!m_pFunction; }
+        // dtor
+        ~CUIFunction() noexcept { this->release(); }
+        // ctor
+        CUIFunction() noexcept = default;
         // move ctor
-        explicit CUISubEventCaller(CUISubEventCaller&& obj) noexcept = delete;
-        // bool
-        operator bool() noexcept { return !!m_pCallback; }
-        // not
-        bool operator !() noexcept { return !m_pCallback; }
-    protected:
-        // callback
-        SubEventCallBack    m_pCallback;
-        // recver
-        UIControl*          m_pRecver;
+        CUIFunction(MyType&& obj) :m_pFunction(obj.m_pFunction) noexcept { obj.m_pFunction = nullptr; };
+        // no copy ctor
+        CUIFunction(const MyType&) = delete;
+        // and call chain
+        auto AddCallChain(MyType&& chain) { 
+            if (chain.IsOK()) {
+                chain.m_pFunction->chain = m_pFunction;
+                m_pFunction = chain.m_pFunction;
+                chain.m_pFunction = nullptr;
+            }
+            else {
+                assert(!"error");
+            }
+        }
+        // and call chain
+        template<typename Func> 
+        auto& operator += (const Func &x) { this->AddCallChain(std::move(CUIFunction(x))); return *this; }
+        // and call chain
+        auto& operator += (CUIFunction&& chain) { this->AddCallChain(chain); return *this; }
+        // opeator =
+        template<typename Func> auto& operator=(const Func &x) noexcept {
+            this->release();
+            m_pFunction = new(std::nothrow) CUIRealFunc<type_helper<Func>::type, Result, Args...>(x);
+            return *this;
+        }
+        // opeator =
+        MyType& operator=(const MyType &x) noexcept = delete;
+        // ctor with func
+        template<typename Func> CUIFunction(const Func& f) noexcept : 
+        m_pFunction(new(std::nothrow) CUIRealFunc<type_helper<Func>::type, Result, Args...>(f))  {}
+        // () operator
+        Result operator()(Args... args) const LONGUI_FUNCTION_NOEXCEPT { assert(m_pFunction && "bad call or oom"); return m_pFunction ? m_pFunction->Call(args...) : Result(); }
     };
     // Device Independent Meta
     struct DeviceIndependentMeta {
@@ -354,8 +426,6 @@ namespace LongUI {
         virtual auto AddCustomControl() noexcept->void override {};
         // if use gpu render, you should choose a video card, return the index
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[], const size_t length) noexcept->size_t override;
-        // SetSubEventCallBack for custom control
-        virtual auto SetSubEventCallBack(LongUI::SubEvent, const CUISubEventCaller&, UIControl*) noexcept -> void override {}
         // if in RichType::Type_Custom, will call this, we don't implement at here
         virtual auto CustomRichType(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
         // show the error string

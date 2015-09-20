@@ -213,34 +213,6 @@ auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
     return S_OK;
 }
 
-// LongUI::UIControl 注册回调事件
-void LongUI::UIControl::SetSubEventCallBack(
-    const wchar_t* control_name, LongUI::SubEvent event, SubEventCallBack call) noexcept {
-    assert(control_name && call&&  "bad argument");
-    UIControl* control = m_pWindow->FindControl(control_name);
-    assert(control && " no control found");
-    if (!control) return;
-    CUISubEventCaller caller(call, this);
-    // 自定义消息?
-    if (event >= LongUI::SubEvent::Event_Custom) {
-        UIManager.configure->SetSubEventCallBack(event, caller, control);
-        return;
-    }
-    // 检查
-    switch (event)
-    {
-    case LongUI::SubEvent::Event_ButtonClicked:
-        longui_cast<UIButton*>(control)->SetClickEvent(caller);
-        break;
-    case LongUI::SubEvent::Event_EditReturned:
-        longui_cast<UIEditBasic*>(control)->SetReturnEvent(caller);
-        break;
-    case LongUI::SubEvent::Event_SliderValueChanged:
-        longui_cast<UISlider*>(control)->SetValueChangedEvent(caller);
-        break;
-    }
-}
-
 // 获取占用宽度
 auto LongUI::UIControl::GetTakingUpWidth() const noexcept -> float {
     return this->view_size.width
@@ -644,23 +616,35 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) noexcept {
+    // 离开
+    if (arg.event == LongUI::MouseEvent::Event_MouseLeave) {
+        if (m_pMousePointed) {
+            m_pMousePointed->DoMouseEvent(arg);
+            m_pMousePointed = nullptr;
+        }
+        return true;
+    }
     // 查找子控件
     auto control_got = this->FindChild(arg.pt);
+    // 不同
+    if (control_got != m_pMousePointed && arg.event == LongUI::MouseEvent::Event_MouseMove) {
+        auto newarg = arg;
+        // 有效
+        if (m_pMousePointed) {
+            newarg.event = LongUI::MouseEvent::Event_MouseLeave;
+            m_pMousePointed->DoMouseEvent(newarg);
+        }
+        // 有效
+        if ((m_pMousePointed = control_got)) {
+            newarg.event = LongUI::MouseEvent::Event_MouseEnter;
+            m_pMousePointed->DoMouseEvent(newarg);
+        }
+    }
     // 有效
     if (control_got) {
-        // 不同
-        if (control_got != m_pMousePointed) {
-            auto newarg = arg;
-            // 有效
-            if (m_pMousePointed) {
-                newarg.event = LongUI::MouseEvent::Event_MouseLeave;
-                m_pMousePointed->DoMouseEvent(newarg);
-            }
-            // 有效
-            if ((m_pMousePointed = control_got)) {
-                newarg.event = LongUI::MouseEvent::Event_MouseEnter;
-                m_pMousePointed->DoMouseEvent(newarg);
-            }
+        // 左键点击设置键盘焦点
+        if (arg.event == LongUI::MouseEvent::Event_LButtonDown) {
+            m_pWindow->SetFocus(control_got);
         }
         // 相同
         if (control_got->DoMouseEvent(arg)) {
@@ -668,7 +652,7 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
         }
     }
     // 滚轮事件允许边缘控件后处理
-    if (arg.event == MouseEvent::Event_MouseWheel && this->flags & Flag_Container_ExistMarginalControl) {
+    if (arg.event <= MouseEvent::Event_MouseWheelH && this->flags & Flag_Container_ExistMarginalControl) {
         // 优化
         for (auto ctrl : this->marginal_control) {
             if (ctrl && ctrl->DoMouseEvent(arg)) {
@@ -1004,7 +988,6 @@ void LongUI::UIContainer::Update() noexcept {
     return Super::Update();
 }
 
-
 // UIContainer 重建
 auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
     auto hr = S_OK;
@@ -1045,4 +1028,27 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
         m_2fOffset.y = target;
         this->SetControlWorldChanged();
     }
+}
+
+
+// ------------------------ HELPER ---------------------------
+
+bool LongUI::UIControl::SubEventCallHelper(const UICallBack& call, SubEvent sb) {
+    // 事件
+    LongUI::EventArgument arg;
+    arg.event = LongUI::Event::Event_SubEvent;
+    arg.sender = this;
+    arg.ui.subevent = sb;
+    arg.ui.pointer = nullptr;
+    arg.ctrl = nullptr;
+    // 脚本优先
+    if (UIManager.script && sender->GetScript().script) {
+        return UIManager.script->Evaluation(sender->GetScript(), arg);
+    }
+    // 回调其次
+    if (call.IsOK()) {
+        return call(sender);
+    }
+    // 事件最低
+    return sender->GetWindow()->DoEvent(arg);
 }
