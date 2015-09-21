@@ -385,9 +385,8 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         D2D1_POINT_2F pt = { 
             arg.pt.x + m_fSepwidth, arg.pt.y
         };
+        return false;
     };
-    StringMap a;
-    a.find(L"asd");
     // 有效
     if (m_fSepwidth != 0.f) {
         bool handled = false;
