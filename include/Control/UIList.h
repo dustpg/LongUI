@@ -75,6 +75,8 @@ namespace LongUI {
         virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        // do mouse event 
+        virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // clean this control 清除控件
         virtual void Cleanup() noexcept override;
     public:
@@ -92,8 +94,8 @@ namespace LongUI {
         HCURSOR                 m_hCursor = ::LoadCursor(nullptr, IDC_CROSS);
         // line height
         float                   m_fLineHeight = 32.f;
-        // line height
-        float                   m_llhunused = 0.f;
+        // separator with, > 0.f is left, < 0.f is right, == 0.f is no
+        float                   m_fSepwidth = 0.f;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -111,14 +113,12 @@ namespace LongUI {
     public:
         // flag for UIList
         enum UIListFlag : uint32_t {
-            // element width could be changed by mouse drag if header exsit
-            Flag_DraggableHeaderWidth = 1 << 0,
+            // sortable list line in UIControl::user_data
+            Flag_SortableLineWithUserData = 1 << 0,
             // the sequence of element could be changed by mouse drag if header exsit
             Flag_DraggableHeaderSequence = 1 << 1,
-            // sortable list line in UIControl::user_data
-            Flag_SortableLineWithUserData = 1 << 2,
             // default flag
-            Flag_Default = Flag_DraggableHeaderWidth,
+            Flag_Default = 0,
         };
     public:
         // render this

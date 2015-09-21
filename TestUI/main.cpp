@@ -379,28 +379,21 @@ protected:
     LongUI::Component::Video    m_video;
 };
 
-
-// 应用程序入口
-int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
-    UNREFERENCED_PARAMETER(lpCmdLine);
-    // 设置堆信息
-    ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
-    // 本Demo的配置信息
-#pragma region Configure for this demo
-    class DemoConfigure final : public LongUI::CUIDefaultConfigure {
-        typedef LongUI::CUIDefaultConfigure Super;
-    public:
-        // 构造函数
-        DemoConfigure() : Super(UIManager, L"longui.log") { /*this->script = &mruby;*/ this->resource = res_xml; }
-        // 析构函数
-        ~DemoConfigure() { if (m_hDll) { ::FreeLibrary(m_hDll); m_hDll = nullptr; } }
-        // 获取地区名称
-        auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
-            ::wcscpy(name, L"en-us");
-        };
-        // 获取控件模板
-        auto GetTemplateString() noexcept->const char* override {
-            return u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+// 本Demo的配置信息
+class DemoConfigure final : public LongUI::CUIDefaultConfigure {
+    typedef LongUI::CUIDefaultConfigure Super;
+public:
+    // 构造函数
+    DemoConfigure() : Super(UIManager, L"longui.log") { /*this->script = &mruby;*/ this->resource = res_xml; }
+    // 析构函数
+    ~DemoConfigure() { if (m_hDll) { ::FreeLibrary(m_hDll); m_hDll = nullptr; } }
+    // 获取地区名称
+    auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
+        ::wcscpy(name, L"en-us");
+    };
+    // 获取控件模板
+    auto GetTemplateString() noexcept->const char* override {
+        return u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <!-- You can use other name not limited in 'Template' -->
 <Template>
     <!-- You can use other name not limited in 'Control' -->
@@ -418,39 +411,46 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
     <Control margin="1,1,1,1" borderwidth="1"/>
 </Template>
 )xml";
+    }
+    // 添加自定义控件
+    auto AddCustomControl() noexcept->void override {
+        m_manager.RegisterControl(TestControl::CreateControl, L"Test");
+        m_manager.RegisterControl(UIVideoAlpha::CreateControl, L"Video");
+        /*if (m_hDll) {
+        auto func = reinterpret_cast<LongUI::CreateControlFunction>(
+        ::GetProcAddress(m_hDll, "LongUICreateControl")
+        );
+        m_manager.RegisterControl(func, L"DllTest");
+        }*/
+    };
+    // return flags
+    virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
+        return Flag_OutputDebugString | Flag_RenderByCPU;
+    }
+    virtual auto ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t override {
+        // 核显卡优先 
+        for (size_t i = 0; i < length; ++i) {
+            DXGI_ADAPTER_DESC1 desc;
+            adapters[i]->GetDesc1(&desc);
+            if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
+                return i;
         }
-        // 添加自定义控件
-        auto AddCustomControl() noexcept->void override {
-            m_manager.RegisterControl(TestControl::CreateControl, L"Test");
-            m_manager.RegisterControl(UIVideoAlpha::CreateControl, L"Video");
-            /*if (m_hDll) {
-            auto func = reinterpret_cast<LongUI::CreateControlFunction>(
-            ::GetProcAddress(m_hDll, "LongUICreateControl")
-            );
-            m_manager.RegisterControl(func, L"DllTest");
-            }*/
-        };
-        // return flags
-        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
-            return Flag_OutputDebugString | Flag_RenderByCPU;
-        }
-        virtual auto ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t override {
-            // 核显卡优先 
-            for (size_t i = 0; i < length; ++i) {
-                DXGI_ADAPTER_DESC1 desc;
-                adapters[i]->GetDesc1(&desc);
-                if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
-                    return i;
-            }
-            return length;
-        }
-    private:
-        // mruby script
-        //MRubyScript     mruby = MRubyScript(UIManager);
-        // dll
-        HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
-    } config;
-#pragma endregion
+        return length;
+    }
+private:
+    // mruby script
+    //MRubyScript     mruby = MRubyScript(UIManager);
+    // dll
+    HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
+};
+
+// 应用程序入口
+int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
+    UNREFERENCED_PARAMETER(lpCmdLine);
+    // 设置堆信息
+    ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
+    // 本Demo的配置信息
+    class DemoConfigure config;
     // MainWindow 的缓存/栈空间地址, 在x86上4字节对齐
     alignas(sizeof(void*)) size_t buffer[sizeof(MainWindow) / sizeof(size_t) + 1];
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)

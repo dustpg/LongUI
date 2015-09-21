@@ -398,6 +398,7 @@ void LongUI::CUIManager::Run() noexcept {
         while (!UIManager.m_exitFlag) {
             uint32_t vslen = 0;
             // 锁住
+            //UIManager << DL_Log << "Try3" << endl;
             UIManager.Lock();
             // 有窗口
             uint32_t wndlen = UIManager.m_cCountWindow;
@@ -427,6 +428,7 @@ void LongUI::CUIManager::Run() noexcept {
             }
             // 解锁
             UIManager.Unlock();
+            //UIManager << DL_Log << "End3" << endl;
             // 渲染窗口
             for (auto i = 0u; i < wndlen; ++i) {
                 if (windows[i]) {
@@ -671,6 +673,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             );
         // 无效
         if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
+        auto handled = false;
         // 鼠标事件?
         if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) ||
             message == WM_MOUSELEAVE || message == WM_MOUSEHOVER) {
@@ -678,16 +681,22 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             CUIManager::WindowsMsgToMouseEvent(arg, message, wParam, lParam);
             // 有效
             if (arg.event != MouseEvent::Event_None) {
-                AutoLocker;
-                // 需要修正坐标
-                if (arg.event <= MouseEvent::Event_MouseWheelH) {
-                    arg.pt = window->last_point;
+                //UIManager << DL_Log << "Try2" << endl;
+                {
+                    AutoLocker;
+                    // 需要修正坐标
+                    if (arg.event <= MouseEvent::Event_MouseWheelH) {
+                        arg.pt = window->last_point;
+                    }
+                    // 位置有效->修改
+                    if (arg.event >= MouseEvent::Event_MouseMove) {
+                        window->last_point = arg.pt;
+                    }
+                    window->DoMouseEvent(arg);
+                    // 总是处理了鼠标事件
+                    handled = true;
                 }
-                // 位置有效->修改
-                if (arg.event >= MouseEvent::Event_MouseMove) {
-                    window->last_point = arg.pt;
-                }
-                window->DoMouseEvent(arg);
+                //UIManager << DL_Log << "End2" << endl;
             }
         }
         // 一般事件
@@ -698,10 +707,31 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             arg.msg = message;  arg.sender = nullptr;
             arg.sys.wParam = wParam; arg.sys.lParam = lParam; 
             arg.lr = 0;
+#ifdef _DEBUG
+            static std::atomic_int s_times = 0;
+            if (s_times) {
+                UIManager << DL_Warning << "recursive locked" << endl;
+                long bk_recursive_locked = 9;
+            }
+            ++s_times;
+#endif
             // 上锁
-            AutoLocker;
-            // 默认处理
-            recode = window->DoEvent(arg) ? arg.lr : ::DefWindowProcW(hwnd, message, wParam, lParam);
+            //UIManager << DL_Log << "Try1" << endl;
+            {
+                AutoLocker;
+                // 默认处理
+                if ((handled = window->DoEvent(arg))) {
+                    recode = arg.lr;
+                }
+            }
+#ifdef _DEBUG
+            --s_times;
+#endif
+            //UIManager << DL_Log << "End1" << endl;
+        }
+        // 未处理
+        if (!handled) {
+            recode = ::DefWindowProcW(hwnd, message, wParam, lParam);
         }
     }
     return recode;

@@ -44,6 +44,8 @@ namespace LongUI{
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
+        // register ui call
+        virtual bool AddEventCall(SubEvent sb, UICallBack& call) noexcept override;
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
@@ -91,6 +93,8 @@ namespace LongUI{
         bool                m_bVerticalSlider = false;
         // default background
         bool                m_bDefaultBK = true;
+        // callback
+        UICallBack          m_event;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

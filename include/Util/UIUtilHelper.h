@@ -29,6 +29,25 @@
 
 // longui::helper namespace
 namespace LongUI { namespace Helper {
+    // double click helper
+    /*
+        Helper::DoubleClick leftdb(500);
+        auto a = leftdb.Click(); // false
+        ::Sleep(1000);
+        auto b = leftdb.Click(); // false
+        ::Sleep(50);
+        auto c = leftdb.Click(); // true
+    */
+    struct DoubleClick {
+        // ctor
+        DoubleClick(uint32_t t = ::GetDoubleClickTime()) noexcept : time(t) {};
+        // click, return true if double clicked
+        bool Click() noexcept;
+        // time
+        uint32_t        time;
+        // last click time
+        uint32_t        last = 0;
+    };
     // CC for CreateControl
     struct CC { CreateControlFunction func; size_t id; };
     // make cc, if data -> null, just return count

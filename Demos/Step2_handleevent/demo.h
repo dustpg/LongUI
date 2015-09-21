@@ -68,22 +68,19 @@ bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
 
 // init window
 void LongUI::Demo::MainWindow::init() {
+    UIControl* control = nullptr;
     // OK
-    this->SetSubEventCallBack(
-        L"ok",
-        LongUI::SubEvent::Event_ButtonClicked,
-        [](UIControl* uithis, UIControl* btn) noexcept {
+    if ((control = this->FindControl(L"ok"))) {
+        control->AddEventCall([](UIControl* btn) noexcept ->bool {
             UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML);
             return true;
-        }
-    );
+        }, SubEvent::Event_ButtonClicked);
+    }
     // Exit
-    this->SetSubEventCallBack(
-        L"exit",
-        LongUI::SubEvent::Event_ButtonClicked,
-        [](UIControl* uithis, UIControl* btn) noexcept {
+    if ((control = this->FindControl(L"exit"))) {
+        control->AddEventCall([](UIControl* btn) noexcept ->bool {
             UIManager.Exit();
             return true;
-        }
-    );
+        }, SubEvent::Event_ButtonClicked);
+    }
 }

@@ -172,8 +172,6 @@ namespace LongUI {
         LongUIDefaultWindowWidth = 800,
         // LongUI Default Window Height
         LongUIDefaultWindowHeight = 600,
-        // LongUI Default Mouse Hover Time
-        LongUIDefaultHoverTime = 100,
         // minimal size in pixel for window by default
         LongUIWindowMinSize = 128,
         // minimal size for auto-size control

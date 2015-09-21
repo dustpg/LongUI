@@ -75,7 +75,7 @@ namespace LongUI {
     template<typename Result, typename ...Args> struct type_helper<Result(Args...)> { 
         using type = Result (*)(Args...);
     };
-    // UI Function, wrapped for lambda!
+    // UI Function, lightweight and chain-call-able version std::function
     template<typename Result, typename ...Args>
     class CUIFunction<Result(Args...)> {
         // this type
@@ -107,10 +107,10 @@ namespace LongUI {
             }
         }
         // and call chain
+        auto& operator += (MyType& chain) { this->AddCallChain(std::move(chain)); return *this; }
+        // and call chain
         template<typename Func> 
         auto& operator += (const Func &x) { this->AddCallChain(std::move(CUIFunction(x))); return *this; }
-        // and call chain
-        auto& operator += (CUIFunction&& chain) { this->AddCallChain(chain); return *this; }
         // opeator =
         template<typename Func> auto& operator=(const Func &x) noexcept {
             this->release();

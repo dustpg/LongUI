@@ -43,7 +43,7 @@ LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
         }
         // 检查背景笔刷
         if (data = node.attribute(LongUI::XMLAttribute::BackgroudBrush).value()) {
-            m_idBackgroudBrush = uint32_t(LongUI::AtoI(data));
+            m_idBackgroudBrush = uint16_t(LongUI::AtoI(data));
             if (m_idBackgroudBrush) {
                 assert(!m_pBackgroudBrush);
                 m_pBackgroudBrush = UIManager.GetBrush(m_idBackgroudBrush);
@@ -646,6 +646,10 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
         if (arg.event == LongUI::MouseEvent::Event_LButtonDown) {
             m_pWindow->SetFocus(control_got);
         }
+        // 鼠标移动设置hover跟踪
+        else if (arg.event == LongUI::MouseEvent::Event_MouseMove) {
+            m_pWindow->SetHoverTrack(control_got);
+        }
         // 相同
         if (control_got->DoMouseEvent(arg)) {
             return true;
@@ -1033,7 +1037,7 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
 
 // ------------------------ HELPER ---------------------------
 
-bool LongUI::UIControl::SubEventCallHelper(const UICallBack& call, SubEvent sb) {
+bool LongUI::UIControl::subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
     // 事件
     LongUI::EventArgument arg;
     arg.event = LongUI::Event::Event_SubEvent;
@@ -1042,13 +1046,13 @@ bool LongUI::UIControl::SubEventCallHelper(const UICallBack& call, SubEvent sb) 
     arg.ui.pointer = nullptr;
     arg.ctrl = nullptr;
     // 脚本优先
-    if (UIManager.script && sender->GetScript().script) {
-        return UIManager.script->Evaluation(sender->GetScript(), arg);
+    if (UIManager.script && m_script.script) {
+        return UIManager.script->Evaluation(this->GetScript(), arg);
     }
     // 回调其次
     if (call.IsOK()) {
-        return call(sender);
+        return call(this);
     }
     // 事件最低
-    return sender->GetWindow()->DoEvent(arg);
+    return m_pWindow->DoEvent(arg);
 }

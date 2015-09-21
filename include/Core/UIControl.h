@@ -25,16 +25,6 @@
 */
 
 
-/// <summary>
-/// Helper for SetSubEventCallBack
-/// </summary>
-/// <remarks>
-/// To use this, you should typedef or using LongUIMyType for current class
-/// </remarks>
-#define SetSubEventCallBackHelper(name, sbevent, func) \
-   this->SetSubEventCallBack(name, LongUI::SubEvent::Event_##sbevent, \
-[](UIControl* a, UIControl* b) noexcept { return static_cast<LongUIMyType*>(a)->func(b);});
-
 // LongUI namespace
 namespace LongUI {
     // create null control
@@ -60,6 +50,8 @@ namespace LongUI {
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
         // recreate , first call or device reset
         virtual auto Recreate() noexcept->HRESULT;
+        // register ui call
+        virtual bool AddEventCall(SubEvent sb, UICallBack& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
@@ -68,6 +60,13 @@ namespace LongUI {
         /// easy way: delete this
         /// </remarks>
         virtual void Cleanup() noexcept = 0;
+        // register ui call from lambda/functor/function pointer
+        template<typename T>
+        auto AddEventCall(T& call, SubEvent sb) noexcept {
+            auto ok = this->AddEventCall(sb, UICallBack(call));
+            assert(ok && "this control do not support this event!");
+            return ok;
+        }
     public:
         // ctor
         UIControl(pugi::xml_node) noexcept;
@@ -78,6 +77,8 @@ namespace LongUI {
         // after update
         void AfterUpdate() noexcept;
     protected:
+        // SubEvent Call Helper
+        bool subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
         // new operator with buffer -- placement new 
         void* operator new(size_t s, void* buffer) noexcept { UNREFERENCED_PARAMETER(s); return buffer; };
         // delete -- placement new paired operator 配对用, 无实际用途
@@ -132,6 +133,8 @@ namespace LongUI {
         auto IsNeedRefreshWorld() const noexcept { return m_bool16.Test(Index_ChangeSize) || m_bool16.Test(Index_ChangeWorld); }
         // update the world transform
         auto UpdateWorld() noexcept { if (this->IsNeedRefreshWorld()) this->RefreshWorld(); }
+        // get HoverTrackTime
+        auto GetHoverTrackTime() const noexcept { return m_cHoverTrackTime; }
         // set left of control
         auto __fastcall SetLeft(float left) noexcept->void;
         // set left of control
@@ -170,7 +173,9 @@ namespace LongUI {
         uint32_t                user_data = 0;
     protected:
         // backgroud bursh id
-        uint32_t                m_idBackgroudBrush = 0;
+        uint16_t                m_idBackgroudBrush = 0;
+        // hover track time, valid while > 0
+        uint16_t                m_cHoverTrackTime = 0;
     public:
         // parent control       [adjusting]: if is the top level, how to set it
         UIContainer*    const   parent = nullptr;
@@ -221,8 +226,6 @@ namespace LongUI {
         // control name
         CUIString               m_strControlName;
     public:
-        // SubEvent Call Helper
-        bool SubEventCallHelper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

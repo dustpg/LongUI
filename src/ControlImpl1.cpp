@@ -226,7 +226,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         if (m_pWindow->IsReleasedControl(this)) {
-            bool /*rec = m_caller(this, SubEvent::Event_ButtonClicked);*/
+            bool rec = this->subevent_call_helper(m_event, SubEvent::Event_ItemClicked);
             rec = false;
             // 设置状态
             UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
@@ -244,6 +244,16 @@ auto LongUI::UIButton::Recreate() noexcept ->HRESULT {
     m_uiElement.Recreate();
     // 父类处理
     return Super::Recreate();
+}
+
+// 添加事件监听器(雾)
+bool LongUI::UIButton::AddEventCall(SubEvent sb, UICallBack& call) noexcept {
+    if (sb == SubEvent::Event_ItemClicked) {
+        m_event += call;
+        return true;
+    }
+
+    return false;
 }
 
 // 关闭控件

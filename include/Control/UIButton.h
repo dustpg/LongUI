@@ -43,6 +43,8 @@ namespace LongUI{
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
+        // register ui call
+        virtual bool AddEventCall(SubEvent sb, UICallBack& call) noexcept override;
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
@@ -56,6 +58,8 @@ namespace LongUI{
         // deleted function
         UIButton(const UIButton&) = delete;
     protected:
+        // callback
+        UICallBack              m_event;
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
         // element

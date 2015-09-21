@@ -94,7 +94,7 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
             WS_EX_NOREDIRECTIONBITMAP,
             LongUI::WindowClassName, 
             titlename.length() ? titlename.c_str() : L"LongUI",
-            WS_OVERLAPPEDWINDOW,
+            window_style,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
             parent_window ? parent_window->GetHwnd() : nullptr,
             nullptr,
@@ -115,7 +115,7 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
     m_csTME.cbSize = sizeof(m_csTME);
     m_csTME.dwFlags = TME_HOVER | TME_LEAVE;
     m_csTME.hwndTrack = m_hwnd;
-    m_csTME.dwHoverTime = LongUIDefaultHoverTime;
+    m_csTME.dwHoverTime = 0;
     // 创建闪烁计时器
     m_idBlinkTimer = ::SetTimer(m_hwnd, BLINK_EVENT_ID, ::GetCaretBlinkTime(), nullptr);
     // 添加窗口
@@ -143,7 +143,8 @@ LongUI::UIWindow::~UIWindow() noexcept {
     // 杀掉!
     ::KillTimer(m_hwnd, m_idBlinkTimer);
     // 摧毁窗口
-    ::DestroyWindow(m_hwnd);
+    //::DestroyWindow(m_hwnd);
+    ::PostMessageW(m_hwnd, WM_DESTROY, 0, 0);
     // 移除窗口
     UIManager.RemoveWindow(this);
     // 释放资源
@@ -719,11 +720,22 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // 鼠标事件
 bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // hover跟踪
+    if (arg.event == MouseEvent::Event_MouseHover && m_pHoverTracked) {
+        return m_pHoverTracked->DoMouseEvent(arg);
+    }
     // 存在捕获控件
     if (m_pCapturedControl) {
         return m_pCapturedControl->DoMouseEvent(arg);
     }
-    return Super::DoMouseEvent(arg);
+    // 父类
+    auto code = Super::DoMouseEvent(arg);
+    // 设置跟踪
+    if (arg.event == MouseEvent::Event_MouseMove) {
+        m_csTME.dwHoverTime = m_pHoverTracked ? DWORD(m_pHoverTracked->GetHoverTrackTime()) : DWORD(0);
+        ::TrackMouseEvent(&m_csTME);
+    }
+    return code;
 }
 
 
@@ -732,7 +744,7 @@ void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
     // 无效
     assert(ctrl && "bad argument");
     // 可聚焦的
-    if (ctrl->flags & Flag_Focusable) {
+    if (ctrl && ctrl->flags & Flag_Focusable) {
         EventArgument arg;
         ::memset(&arg, 0, sizeof(sizeof(arg)));
         arg.sender = this;

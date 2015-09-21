@@ -319,12 +319,14 @@ namespace LongUI {
     };
     // LongUI Sub Event
     enum class SubEvent : size_t {
-        // button clicked
-        Event_ButtonClicked,
+        // control item clicked(like button)
+        Event_ItemClicked,
+        // control item double-clicked
+        Event_ItemDbClicked,
         // single-line-edit returned
         Event_EditReturned,
-        // slider value changed
-        Event_SliderValueChanged,
+        // value changed(like slider or scrollbar)
+        Event_ValueChanged,
         // ----- User Custom Defined Event -----
         Event_Custom,
     };

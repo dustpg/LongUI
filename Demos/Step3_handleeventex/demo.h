@@ -38,8 +38,6 @@ namespace LongUI { namespace Demo {
     class MainWindow : public UIWindow {
         // super class
         using Super = UIWindow;
-        // LongUIMyType for SetSubEventCallBackHelper
-        using LongUIMyType = MainWindow;
     public:
         // ctor
         MainWindow(pugi::xml_node node, UIWindow* parent) : Super(node, parent) {}
@@ -58,13 +56,6 @@ namespace LongUI { namespace Demo {
         bool on_minus(UIControl* btn);
         // on equal
         bool on_equal(UIControl* btn);
-        // on clear
-        bool on_clear(UIControl* btn) { 
-            UNREFERENCED_PARAMETER(btn);
-            m_number = 0; m_string.clear(); 
-            m_display->SetText(L"0"); 
-            return true;
-        }
     private:
         // display
         UIText*                 m_display = nullptr;
@@ -106,16 +97,54 @@ bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
 
 // init window
 void LongUI::Demo::MainWindow::init() {
+    UIControl* control = nullptr;
     // get display control, check error?
     m_display = longui_cast<UIText*>(this->FindControl(L"display"));
     // +
-    SetSubEventCallBackHelper(L"btn_plus", ButtonClicked, on_plus);
+    if ((control = this->FindControl(L"btn_plus"))) {
+        control->AddEventCall([this, control](UIControl* btn)->bool {
+            auto test = control == btn;
+            try {
+                return this->on_plus(btn);
+            }
+            catch (...) {
+                assert(!"oh no");
+                return true;
+            }
+        }, SubEvent::Event_ButtonClicked);
+    }
     // -
-    SetSubEventCallBackHelper(L"btn_minu", ButtonClicked, on_minus);
+    if ((control = this->FindControl(L"btn_minu"))) {
+        control->AddEventCall([this](UIControl* btn) noexcept ->bool {
+            try {
+                return this->on_minus(btn);
+            }
+            catch (...) {
+                assert(!"oh no");
+                return true;
+            }
+        }, SubEvent::Event_ButtonClicked);
+    }
     // =
-    SetSubEventCallBackHelper(L"btn_equl", ButtonClicked, on_equal);
+    if ((control = this->FindControl(L"btn_equl"))) {
+        control->AddEventCall([this](UIControl* btn) noexcept ->bool {
+            try {
+                return this->on_equal(btn);
+            }
+            catch (...) {
+                assert(!"oh no");
+                return true;
+            }
+        }, SubEvent::Event_ButtonClicked);
+    }
     // C
-    SetSubEventCallBackHelper(L"btn_clear", ButtonClicked, on_clear);
+    if ((control = this->FindControl(L"btn_clear"))) {
+        control->AddEventCall([this](UIControl* btn) noexcept ->bool {
+            m_number = 0; m_string.clear(); 
+            m_display->SetText(L"0"); 
+            return true;
+        }, SubEvent::Event_ButtonClicked);
+    }
     // 0-9
     for (auto i = 0; i < 10; ++i) {
         constexpr int name_buffer_length = 16;

@@ -1,5 +1,14 @@
 ﻿#include "LongUI.h"
 
+// 双击
+LongUINoinline bool LongUI::Helper::DoubleClick::Click() noexcept {
+    // 懒得解释了
+    auto now = ::timeGetTime();
+    bool result = ((now - last) <= time);
+    last = result ? 0ui32 : now;
+    return result;
+}
+
 // 创建 CC
 auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint32_t {
     assert(str && "bad argument");

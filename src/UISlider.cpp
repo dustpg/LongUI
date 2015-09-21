@@ -1,6 +1,5 @@
 ﻿#include "LongUI.h"
 
-
 // Render 渲染 
 void LongUI::UISlider::Render(RenderType type) const noexcept {
     //D2D1_RECT_F draw_rect;
@@ -246,7 +245,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     if (m_fValueOld != m_fValue) {
         m_fValueOld = m_fValue;
         // 调用
-        //m_caller(this, SubEvent::Event_SliderValueChanged);
+        this->subevent_call_helper(m_event, SubEvent::Event_ValueChanged);
         // 刷新
         m_pWindow->Invalidate(this);
     }
@@ -257,6 +256,15 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
 auto LongUI::UISlider::Recreate() noexcept ->HRESULT {
     m_uiElement.Recreate();
     return Super::Recreate();
+}
+
+// 添加事件监听器(雾)
+bool LongUI::UISlider::AddEventCall(SubEvent sb, UICallBack& call) noexcept {
+    if (sb == SubEvent::Event_ValueChanged) {
+        m_event += call;
+        return true;
+    }
+    return false;
 }
 
 // close this control 关闭控件

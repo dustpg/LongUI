@@ -378,6 +378,48 @@ bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
+// UI列表头: 鼠标事件处理
+bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // hover it?
+    auto is_hover_sep = [this, &arg]() noexcept ->bool {
+        D2D1_POINT_2F pt = { 
+            arg.pt.x + m_fSepwidth, arg.pt.y
+        };
+    };
+    StringMap a;
+    a.find(L"asd");
+    // 有效
+    if (m_fSepwidth != 0.f) {
+        bool handled = false;
+        // 分类处理
+        switch (arg.event)
+        {
+        case LongUI::MouseEvent::Event_MouseLeave:
+            m_pWindow->ResetCursor();
+            break;
+        case LongUI::MouseEvent::Event_MouseMove:
+            break;
+        case LongUI::MouseEvent::Event_LButtonDown:
+            break;
+        case LongUI::MouseEvent::Event_LButtonUp:
+            break;
+        case LongUI::MouseEvent::Event_RButtonDown:
+            break;
+        case LongUI::MouseEvent::Event_RButtonUp:
+            break;
+        case LongUI::MouseEvent::Event_MButtonDown:
+            break;
+        case LongUI::MouseEvent::Event_MButtonUp:
+            break;
+        default:
+            break;
+        }
+        // 处理了
+        if (handled) return true;
+    }
+    return Super::DoMouseEvent(arg);
+}
+
 // 清理UI列表头控件
 void LongUI::UIListHeader::Cleanup() noexcept {
     delete this;

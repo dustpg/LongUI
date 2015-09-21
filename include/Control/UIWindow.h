@@ -135,6 +135,8 @@ namespace LongUI {
         void HideCaret() noexcept;
         // set focus control
         void SetFocus(UIControl* ctrl) noexcept;
+        // set hover track control
+        void SetHoverTrack(UIControl* ctrl) noexcept { assert(ctrl); if (ctrl && ctrl->GetHoverTrackTime()) m_pHoverTracked = ctrl; }
         // find control by CUIString
         auto FindControl(const CUIString& name) noexcept->UIControl*;
         // find control by wchar_t pointer
@@ -230,7 +232,9 @@ namespace LongUI {
         // Direct Composition Target
         IDCompositionTarget*    m_pDcompTarget = nullptr;
         // Direct Composition Visual
-        IDCompositionVisual*    m_pDcompVisual = nullptr;;
+        IDCompositionVisual*    m_pDcompVisual = nullptr;
+        // now hover track control(1)
+        UIControl*              m_pHoverTracked = nullptr;
         // now focused control (only one)
         UIControl*              m_pFocusedControl = nullptr;
         // now dragdrop control (only one)
@@ -244,6 +248,8 @@ namespace LongUI {
         // caret rect in px
         RectLTWH_L              m_rcCaretPx;
     public:
+        // reset
+        auto ResetCursor() noexcept { this->now_cursor = this->default_cursor; }
         // the real pixel size  of window(HWND)
         D2D1_SIZE_U     const   window_size = D2D1::SizeU();
         // default(arrow)cursor
