@@ -105,7 +105,7 @@ namespace LongUI {
         MarginalControl   const marginal_type = MarginalControl::Control_Unknown;
     protected:
         // ctor
-        UIMarginalable(pugi::xml_node node) noexcept : Super(node) {}
+        UIMarginalable(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

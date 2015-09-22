@@ -32,9 +32,9 @@ namespace LongUI {
     // Container
     class UIContainer;
     // base control class -- 基本控件类
-    class alignas(sizeof(void*)) UIControl {
+    class alignas(sizeof(void*)) UIControl : public CUISingleNormalObject {
         // Super class
-        using Super = void;
+        using Super = void;// CUISingleNormalObject;
         // friend class
         friend class CUIManager;
         // friend class
@@ -69,41 +69,26 @@ namespace LongUI {
         }
     public:
         // ctor
-        UIControl(pugi::xml_node) noexcept;
+        UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept;
         // dtor
         ~UIControl() noexcept;
         // delete the copy-ctor
         UIControl(const UIControl&) = delete;
         // after update
         void AfterUpdate() noexcept;
-    protected:
-        // SubEvent Call Helper
-        bool subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
-        // new operator with buffer -- placement new 
-        void* operator new(size_t s, void* buffer) noexcept { UNREFERENCED_PARAMETER(s); return buffer; };
-        // delete -- placement new paired operator 配对用, 无实际用途
-        void  operator delete(void* p, void* buffer) noexcept { UNREFERENCED_PARAMETER(p); UNREFERENCED_PARAMETER(buffer); /*nothing*/ };
-        // delete new operator
-        void* operator new(size_t) = delete;
-        // delete new[] operator
-        void* operator new[](size_t) = delete;
-        // delete operator
-        void  operator delete(void* p, size_t) { LongUI::NormalFree(p); };
-        // delete delete[] operator
-        void  operator delete[](void*, size_t) = delete;
     public:
         // control name in const wchar_t*
-        LongUIInline auto GetNameStr() const noexcept { return m_strControlName.c_str(); }
+        auto GetNameStr() const noexcept { return m_strControlName.c_str(); }
         // control name in longui string
-        LongUIInline auto&GetName() noexcept { return m_strControlName; }
+        auto&GetName() noexcept { return m_strControlName; }
         // get window of control
-        LongUIInline auto GetWindow() const noexcept { return m_pWindow; }
-        // XXX: is top level?
-        LongUIInline auto IsTopLevel() const noexcept;
+        auto GetWindow() const noexcept { return m_pWindow; }
+        // XXX: is top level? 
+        auto IsTopLevel() const noexcept { return !this->parent; }
         // control name : overload for const
-        LongUIInline const auto&GetName() const noexcept { return m_strControlName; }
+        const auto&GetName() const noexcept { return m_strControlName; }
         // get script data
-        LongUIInline const auto& GetScript() const noexcept { return m_script; }
+        const auto& GetScript() const noexcept { return m_script; }
     public:
         // get width of control
         auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
@@ -225,6 +210,9 @@ namespace LongUI {
         D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
         // control name
         CUIString               m_strControlName;
+    protected:
+        // SubEvent Call Helper
+        bool subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
     public:
 #ifdef LongUIDebugEvent
     protected:
@@ -249,35 +237,6 @@ namespace LongUI {
         // assert type casting
         void AssertTypeCasting(IID& iid) const noexcept { UNREFERENCED_PARAMETER(iid); }
 #endif
-        // get real control size in byte
-        template<class T, class L>
-        static LongUIInline auto AllocRealControl(pugi::xml_node node, L lam) noexcept {
-#if 0
-            size_t exsize = 0;
-            if (node) {
-                exsize = LongUI::AtoI(node.attribute("exdatasize").value());
-            }
-            T* control = reinterpret_cast<T*>(LongUI::NormalAlloc(sizeof(T) + exsize));
-            // check alignof
-            static_assert(Is2Power(alignof(T)), "alignas(Control) must be 2powered");
-            assert(size_t(control) % alignof(T) == 0);
-            // set align
-            if (control) {
-                lam(control);
-                control->extend_data = reinterpret_cast<uint8_t*>(control) + sizeof(T);
-                control->extend_data_size = static_cast<uint32_t>(exsize);
-            }
-#else
-            UNREFERENCED_PARAMETER(node);
-            T* control = reinterpret_cast<T*>(LongUI::NormalAlloc(sizeof(T)));
-            // check alignof
-            static_assert(Is2Power(alignof(T)), "alignas(Control) must be 2powered");
-            assert(size_t(control) % alignof(T) == 0);
-            // set align
-            if (control) { lam(control); }
-#endif
-            return control;
-        }
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID

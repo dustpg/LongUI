@@ -32,7 +32,7 @@ namespace LongUI {
     // ui manager ui 管理器
     class alignas(sizeof(void*)) CUIManager {
         // create ui window call back
-        using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* parent, void* buffer)->UIWindow*;
+        using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* wndparent, void* buffer)->UIWindow*;
     public: 
         // Windows Version
         enum WindowsVersion : uint32_t {
@@ -90,24 +90,24 @@ namespace LongUI {
         // get create function width const wchar_t* and length
         auto GetCreateFunc(const wchar_t* class_name, uint32_t len = 0) noexcept { CUIString name(class_name, len); return GetCreateFunc(name); }
         // create control with xml node, node and function cannot be null in same time
-        auto CreateControl(pugi::xml_node node, CreateControlFunction function) noexcept {
+        auto CreateControl(UIContainer* cp, pugi::xml_node node, CreateControlFunction function) noexcept {
             assert((node || function) && "cannot be null in same time");
-            return this->create_control(function, node, 0);
+            return this->create_control(cp, function, node, 0);
         }
         // create control with template id, template and function cannot be null in same time
-        auto CreateControl(size_t templateid, CreateControlFunction function) noexcept {
+        auto CreateControl(UIContainer* cp, size_t templateid, CreateControlFunction function) noexcept {
             assert((templateid || function) && "cannot be null in same time");
-            return this->create_control(function, LongUINullXMLNode, templateid);
+            return this->create_control(cp, function, LongUINullXMLNode, templateid);
         }
     public: // Create UI Window Zone!!!!!!!!!
         // create ui window with xml string
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
         // create ui window with custom window && xml string
         template<class T>
-        auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept->UIWindow* {
+        auto CreateUIWindow(const char* xml, UIWindow* parent) noexcept->UIWindow* {
             auto code = m_docWindow.load_string(xml); assert(code); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void*) noexcept ->UIWindow* {
-                return LongUI::UIControl::AllocRealControl<T>(node, [=](void* p) noexcept { new(p) T(node, parent); });
+                return new(std::nothrow) T(node, parent);
             };
             return this->create_ui_window(m_docWindow.first_child(), parent, create_func, nullptr);
         }
@@ -327,9 +327,9 @@ namespace LongUI {
         // discard resources
         void discard_resources() noexcept;
         // create the control
-        auto create_control(CreateControlFunction function, pugi::xml_node node, size_t id) noexcept->UIControl*;
+        auto create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t id) noexcept->UIControl*;
         // create ui window
-        auto create_ui_window(const pugi::xml_node node, UIWindow* wnd, callback_for_creating_window proc, void* buf) noexcept->UIWindow*;
+        auto create_ui_window(pugi::xml_node node, UIWindow* parent, callback_for_creating_window func, void* buffer) noexcept->UIWindow*;
         // do some creating-event
         void do_creating_event(CreateEventType type) noexcept;
         // create a control tree for window

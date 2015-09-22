@@ -52,25 +52,23 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIText>(
-            node,
-            [=](void* p) noexcept { new(p) UIText(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIText>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
@@ -138,7 +136,8 @@ void LongUI::UIButton::Update() noexcept {
 }
 
 // UIButton 构造函数
-LongUI::UIButton::UIButton(pugi::xml_node node) noexcept: Super(node), m_uiElement(node) {
+LongUI::UIButton::UIButton(UIContainer* cp, pugi::xml_node node) 
+noexcept: Super(cp, node), m_uiElement(node) {
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
     // 初始化代码
@@ -162,24 +161,23 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIButton>(
-            node,
-            [=](void* p) noexcept { new(p) UIButton(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIButton>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
@@ -383,6 +381,10 @@ void LongUI::UIEditBasic::Cleanup() noexcept {
     delete this;
 }
 
+// 构造函数
+LongUI::UIEditBasic::UIEditBasic(UIContainer* cp, pugi::xml_node node)
+noexcept : Super(cp, node), m_text(this, node) {
+}
 
 // UIEditBasic::CreateControl 函数
 LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type,pugi::xml_node node) noexcept {
@@ -390,33 +392,25 @@ LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type,pugi:
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIEditBasic>(
-            node,
-            [=](void* p) noexcept { new(p) UIEditBasic(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIEditBasic>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
-}
-
-
-// 构造函数
-LongUI::UIEditBasic::UIEditBasic(pugi::xml_node node) noexcept
-    :  Super(node), m_text(this, node) {
 }
 
 

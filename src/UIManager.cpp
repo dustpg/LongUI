@@ -271,7 +271,8 @@ void LongUI::CUIManager::UnInitialize() noexcept {
 
 // 创建事件
 void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
-    assert(type != LongUI::Type_CreateControl);
+    assert(type < LongUI::TypeGreater_CreateControl_ReinterpretParentPointer &&
+        type > Type_CreateControl_NullParentPointer);
     try {
         for (const auto& pair : m_mapString2CreateFunction) {
             reinterpret_cast<CreateControlFunction>(pair.second)(type, LongUINullXMLNode);
@@ -313,7 +314,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         node = xml_queue.Front();  xml_queue.Pop();
         parent_node = parents_queue.Front(); parents_queue.Pop();
         // 根据名称创建控件
-        if (!(now_control = this->CreateControl(node, nullptr))) {
+        if (!(now_control = this->CreateControl(parent_node, node, nullptr))) {
             parent_node = nullptr;
 #ifdef _DEBUG
             const char* node_name = node.name();
@@ -508,7 +509,7 @@ auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->voi
 }
 
 // 利用现有资源创建控件
-auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xml_node node, size_t tid) noexcept -> UIControl * {
+auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t tid) noexcept -> UIControl * {
     // 检查参数 function
     if (!function) {
         assert(node && "bad argument");
@@ -545,13 +546,13 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
     }
     assert(function && "bad idea");
     if (!function) return nullptr;
-    auto ctrl = function(CreateEventType::Type_CreateControl, node);
+    auto ctrl = function(cp->CET(), node);
     // 插入模板节点
     if (ctrl && tid) {
         if (ctrl->flags & (Flag_InsertTemplateChild | Flag_UIContainer)) {
             auto child = m_pTemplateNodes[tid].first_child();
             while (child) {
-                auto created = this->create_control(nullptr, child, 0);
+                auto created = this->create_control(static_cast<UIContainer*>(ctrl), nullptr, child, 0);
                 assert(created);
                 if (created) {
                     static_cast<UIContainer*>(ctrl)->PushBack(created);
@@ -565,15 +566,13 @@ auto LongUI::CUIManager::create_control(CreateControlFunction function, pugi::xm
 
 
 // 创建UI窗口
-auto LongUI::CUIManager::create_ui_window(
-    const pugi::xml_node node,
-    UIWindow * parent, 
-    callback_for_creating_window call, 
-    void * user_data) noexcept -> UIWindow* {
+auto LongUI::CUIManager::create_ui_window(pugi::xml_node node, 
+    UIWindow* pat, callback_for_creating_window func, void* buf) noexcept -> UIWindow* {
+    assert(node && "bad argument");
     // 有效情况
-    if (call && node) {
+    if (func && node) {
         // 创建窗口
-        auto window = call(node, parent, user_data);
+        auto window = func(node, pat, buf);
         // 查错
         assert(window); if (!window) return nullptr;
         // 重建资源

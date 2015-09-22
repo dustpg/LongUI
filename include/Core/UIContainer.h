@@ -61,7 +61,12 @@ namespace LongUI {
         void RemoveClean(UIControl* child) noexcept { this->RemoveJust(child); child->Cleanup(); }
     public:
         // ctor
-        UIContainer(pugi::xml_node node) noexcept;
+        UIContainer(UIContainer* cp, pugi::xml_node node) noexcept;
+        // cast to CreateEventType
+        auto CET() const noexcept { 
+            static_assert(sizeof(CreateEventType) == sizeof(this), "bad cast");
+            return static_cast<CreateEventType>(reinterpret_cast<size_t>(this)); 
+        }
         // before update
         //void BeforeUpdateContainer() noexcept;
     public:
@@ -262,6 +267,4 @@ namespace LongUI {
 #else
     };
 #endif
-    // XXX: top level?
-    LongUIInline auto UIControl::IsTopLevel() const noexcept { return static_cast<UIControl*>(this->parent) == this; }
 }

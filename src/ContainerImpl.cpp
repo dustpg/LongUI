@@ -203,31 +203,28 @@ auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl *
     return control;
  }
 
+
 // -------------------------- UIVerticalLayout -------------------------
 // UIVerticalLayout 创建
 auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIVerticalLayout>(
-            node,
-            [=](void* p) noexcept { new(p) UIVerticalLayout(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIVerticalLayout>(type, node);
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
@@ -304,25 +301,23 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIHorizontalLayout>(
-            node,
-            [=](void* p) noexcept { new(p) UIHorizontalLayout(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIHorizontalLayout>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }

@@ -23,7 +23,8 @@ Win8/8.1/10.0.10158之前
 /// 对于本函数, 参数'node'允许为空
 /// <see cref="LongUINullXMLNode"/>
 /// </remarks>
-LongUI::UIControl::UIControl(pugi::xml_node node) noexcept {
+LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node) 
+noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
     // 有效?
@@ -408,17 +409,14 @@ namespace LongUI {
         virtual void Cleanup() noexcept override { delete this; }
     public:
         // 创建控件
-        static auto CreateControl(pugi::xml_node node) noexcept {
+        static auto CreateControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept {
             UIControl* pControl = nullptr;
             // 判断
             if (!node) {
                 UIManager << DL_Warning << L"node null" << LongUI::endl;
             }
             // 申请空间
-            pControl = LongUI::UIControl::AllocRealControl<LongUI::UINull>(
-                node,
-                [=](void* p) noexcept { new(p) UINull(node); }
-            );
+            pControl = new(std::nothrow) UINull(ctrlparent, node);
             if (!pControl) {
                 UIManager << DL_Error << L"alloc null" << LongUI::endl;
             }
@@ -426,7 +424,7 @@ namespace LongUI {
         }
     public:
         // constructor 构造函数
-        UINull(pugi::xml_node node) noexcept : Super(node) {}
+        UINull(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
         // destructor 析构函数
         ~UINull() noexcept { }
     };
@@ -438,15 +436,14 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        pControl = LongUI::UINull::CreateControl(node);
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        pControl = UINull::CreateControl(reinterpret_cast<UIContainer*>(type), node);
     }
     return pControl;
 }
@@ -454,7 +451,7 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 
 // ------------------------------ UIContainer -----------------------------
 // UIContainer 构造函数
-LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), marginal_control() {
+LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), marginal_control() {
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
     // LV
     /*if (m_strControlName == L"V") {
@@ -492,15 +489,21 @@ LongUI::UIContainer::UIContainer(pugi::xml_node node) noexcept : Super(node), ma
                 // 有效
                 if (cc.func) {
                     // 创建控件
-                    auto control = UIManager.CreateControl(cc.id, cc.func);
+                    auto control = UIManager.CreateControl(this, cc.id, cc.func);
                     // XXX: 检查
                     force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
+
                 }
                 else {
                     assert(!"cc.func -> null");
                 }
                 // 优化flag
                 if (this->marginal_control[i]) {
+                    // 插入后
+                    this->after_insert(this->marginal_control[i]);
+                    // 初始化
+                    this->marginal_control[i]->InitMarginalControl(static_cast<UIMarginalable::MarginalControl>(i));
+                    // 优化flag
                     exist_marginal_control = true;
                 }
             }
@@ -557,9 +560,9 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
         force_cast(child->flags) |= Flag_Container_HostPosterityRenderingDirectly;
     }
     // 设置父节点
-    force_cast(child->parent) = this;
+    assert(child->parent == this);
     // 设置窗口节点
-    child->m_pWindow = m_pWindow;
+    assert(child->m_pWindow == m_pWindow);
     // 重建资源
     child->Recreate();
     // 修改
@@ -600,9 +603,6 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
             for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
                 auto ctrl = this->marginal_control[i];
                 if (ctrl) {
-                    this->after_insert(ctrl);
-                    // 初始化
-                    ctrl->InitMarginalControl(static_cast<UIMarginalable::MarginalControl>(i));
                     // 完成控件树
                     ctrl->DoEvent(arg);
                 }
@@ -615,6 +615,7 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return done;
 }
 
+// 处理鼠标事件
 bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) noexcept {
     // 离开
     if (arg.event == LongUI::MouseEvent::Event_MouseLeave) {
@@ -626,6 +627,8 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
     }
     // 查找子控件
     auto control_got = this->FindChild(arg.pt);
+    // 不可视算没有
+    if (control_got && !control_got->visible) control_got = nullptr;
     // 不同
     if (control_got != m_pMousePointed && arg.event == LongUI::MouseEvent::Event_MouseMove) {
         auto newarg = arg;

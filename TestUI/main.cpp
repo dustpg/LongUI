@@ -104,6 +104,10 @@ private:
     // dtor
     ~MainWindow() = default;
 public:
+    // placement new
+    auto operator new(size_t size, void* ptr) noexcept -> void*{ return ::operator new(size, ptr); };
+    // placement delete
+    void operator delete(void* mem, void *ptr) noexcept { return ::operator delete(mem, ptr); };
     // ctor
     MainWindow(pugi::xml_node node, LongUI::UIWindow* parent) : Super(node, parent) {}
     // do some event
@@ -135,25 +139,23 @@ public:
         UIControl* pControl = nullptr;
         switch (type)
         {
-        case LongUI::Type_CreateControl:
-            if (!node) {
-                UIManager << DL_Warning << L"node null" << LongUI::endl;
-            }
-            // 申请空间
-            pControl = LongUI::UIControl::AllocRealControl<TestControl>(
-                node,
-                [=](void* p) noexcept { new(p) TestControl(node); }
-            );
-            if (!pControl) {
-                UIManager << DL_Error << L"alloc null" << LongUI::endl;
-            }
-            break;
         case LongUI::Type_Initialize:
             break;
         case LongUI::Type_Recreate:
             break;
         case LongUI::Type_Uninitialize:
             break;
+        case_LongUI__Type_CreateControl:
+            // 警告
+            if (!node) {
+                UIManager << DL_Warning << L"node null" << LongUI::endl;
+            }
+            // 申请空间
+            pControl = LongUI::CreateWidthCET<TestControl>(type, node);
+            // OOM
+            if (!pControl) {
+                UIManager << DL_Error << L"alloc null" << LongUI::endl;
+            }
         }
         return pControl;
     }
@@ -249,10 +251,11 @@ public:
     }
     // close this control
     virtual void Cleanup() noexcept { delete this; };
-protected:
     // constructor
-    TestControl(pugi::xml_node node) noexcept : Super(node), m_text(node) {
+    TestControl(LongUI::UIContainer* cp, pugi::xml_node node) 
+        noexcept : Super(cp, node), m_text(node) {
     }
+protected:
     // destructor
     ~TestControl() {
         ::SafeRelease(m_pCmdList);
@@ -285,25 +288,23 @@ public:
         UIControl* pControl = nullptr;
         switch (type)
         {
-        case LongUI::Type_CreateControl:
-            if (!node) {
-                UIManager << DL_Warning << L"node null" << LongUI::endl;
-            }
-            // 申请空间
-            pControl = LongUI::UIControl::AllocRealControl<UIVideoAlpha>(
-                node,
-                [=](void* p) noexcept { new(p) UIVideoAlpha(node); }
-            );
-            if (!pControl) {
-                UIManager << DL_Error << L"alloc null" << LongUI::endl;
-            }
-            break;
         case LongUI::Type_Initialize:
             break;
         case LongUI::Type_Recreate:
             break;
         case LongUI::Type_Uninitialize:
             break;
+        case_LongUI__Type_CreateControl:
+            // 警告
+            if (!node) {
+                UIManager << DL_Warning << L"node null" << LongUI::endl;
+            }
+            // 申请空间
+            pControl = LongUI::CreateWidthCET<UIVideoAlpha>(type, node);
+            // OOM
+            if (!pControl) {
+                UIManager << DL_Error << L"alloc null" << LongUI::endl;
+            }
         }
         return pControl;
     }
@@ -361,9 +362,9 @@ public:
     }
     // close this control
     virtual void Cleanup() noexcept override { delete this; };
-protected:
     // constructor
-    UIVideoAlpha(pugi::xml_node node) noexcept : Super(node) {
+    UIVideoAlpha(LongUI::UIContainer* cp, pugi::xml_node node) 
+        noexcept : Super(cp, node) {
         auto hr = m_video.Initialize();
         assert(SUCCEEDED(hr));
         /*auto re =*/ m_video.HasVideo();
@@ -371,6 +372,7 @@ protected:
         assert(SUCCEEDED(hr));
         hr = S_OK;
     }
+protected:
     // destructor
     ~UIVideoAlpha() {
     }
@@ -403,9 +405,9 @@ public:
     <Control desc="btn.png look like button" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4"/>
     <!-- Index 3 -->
-    <Control desc="list header test">
-        <Text text="name"/>
-        <Text text="desc"/>
+    <Control desc="list header test" sepwidth="-8" >
+        <Button borderwidth="1" text="name" name="lst_header0"/>
+        <Button borderwidth="1" text="desc" name="lst_header1"/>
     </Control>
     <!-- Index 4 -->
     <Control margin="1,1,1,1" borderwidth="1"/>

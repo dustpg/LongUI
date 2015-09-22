@@ -7,7 +7,7 @@ const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(
 
 // UIWindow 构造函数
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
-noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
+noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_window) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     ZeroMemory(&m_curMedium, sizeof(m_curMedium));
     CUIString titlename(m_strControlName);
@@ -126,8 +126,6 @@ noexcept : Super(node), m_uiRenderQueue(this), window_parent(parent_window) {
     ::RegisterDragDrop(m_hwnd, this);
     // 所在窗口就是自己
     m_pWindow = this;
-    // 自己的UI父类就是自己以保证parent不为null
-    force_cast(this->parent) = this;
     // 清零
     ::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
     // 自动显示窗口

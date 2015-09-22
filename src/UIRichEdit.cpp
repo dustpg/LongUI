@@ -39,7 +39,8 @@ void LongUI::UIRichEdit::Update() noexcept {
 }
 
 // UIRichEdit 构造函数
-inline LongUI::UIRichEdit::UIRichEdit(pugi::xml_node node) noexcept: Super(node){ }
+inline LongUI::UIRichEdit::UIRichEdit(UIContainer* cp, pugi::xml_node node) 
+noexcept: Super(cp, node){ }
 
 // UIRichEdit 析构函数
 LongUI::UIRichEdit::~UIRichEdit() noexcept {
@@ -58,25 +59,23 @@ LongUI::UIControl* LongUI::UIRichEdit::CreateControl(CreateEventType type, pugi:
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIRichEdit>(
-            node,
-            [=](void* p) noexcept { new(p) UIRichEdit(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIRichEdit>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }

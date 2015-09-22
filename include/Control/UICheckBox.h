@@ -61,9 +61,9 @@ namespace LongUI{
         auto IsCanbeIndeterminate() const noexcept { return m_bCanbeIndeterminate; }
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
-    protected:
         // constructor 构造函数
-        UICheckBox(pugi::xml_node) noexcept;
+        UICheckBox(UIContainer* cp, pugi::xml_node) noexcept;
+    protected:
         // destructor 析构函数
         ~UICheckBox() noexcept;
         // deleted function

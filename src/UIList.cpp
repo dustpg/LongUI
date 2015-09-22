@@ -5,7 +5,7 @@
 // -------------------------------- UIList ------------------------------------
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
-LongUI::UIList::UIList(pugi::xml_node node) noexcept :Super(node) {
+LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
     try {
         m_controls.reserve(100);
     }
@@ -112,12 +112,13 @@ void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
 
 // 插入一个行模板
 void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
-    auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(
-        Type_CreateControl, pugi::xml_node()));
+    auto ctrl = static_cast<UIListLine*>(
+        UIListLine::CreateControl(this->CET(), pugi::xml_node())
+        );
     if (ctrl) {
         // 添加子控件
         for (const auto& data : m_bufLineTemplate) {
-            ctrl->Insert(ctrl->end(), UIManager.CreateControl(data.id, data.func));
+            ctrl->Insert(ctrl->end(), UIManager.CreateControl(ctrl, data.id, data.func));
         }
         // 插入
         this->Insert(index, ctrl);
@@ -141,23 +142,6 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
         }
     }
     return Super::DoEvent(arg);
-}
-
-// 修改元素权重/宽度
-void LongUI::UIList::ChangeElementWidth(float widthv[]) noexcept {
-    assert(widthv && "bad arguemnt");
-    // 遍历LINE
-    for (auto cline : m_controls) {
-        auto line = longui_cast<UIListLine*>(cline);
-        auto index = 0u;
-        // 变量元素
-        for (auto ele : (*line)) {
-            if (widthv[index] >= 0.f) {
-                ele->SetWidth(widthv[index]);
-            }
-            ++index;
-        }
-    }
 }
 
 // UIList: 初始化布局
@@ -241,24 +225,23 @@ noexcept -> UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIList>(
-            node,
-            [=](void* p) noexcept { new(p) UIList(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIList>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
@@ -269,7 +252,8 @@ noexcept -> UIControl* {
 // ----------------------------------------------------------------------------
 
 // UI列表元素控件: 构造函数
-LongUI::UIListLine::UIListLine(pugi::xml_node node) noexcept:Super(node){
+LongUI::UIListLine::UIListLine(UIContainer* cp, pugi::xml_node node) 
+noexcept : Super(cp, node) {
     // listline 特性: 宽度必须固定
     auto flag = this->flags | Flag_WidthFixed;
     if (node) {
@@ -311,24 +295,23 @@ noexcept -> UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListLine>(
-            node,
-            [=](void* p) noexcept { new(p) UIListLine(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIListLine>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
@@ -339,7 +322,8 @@ noexcept -> UIControl* {
 // ----------------------------------------------------------------------------
 
 // UI列表头控件: 构造函数
-LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
+LongUI::UIListHeader::UIListHeader(UIContainer* cp, pugi::xml_node node) 
+noexcept: Super(cp, node) {
     // 支持模板子节点
     auto flag = this->flags | Flag_InsertTemplateChild;
     if (node) {
@@ -347,6 +331,10 @@ LongUI::UIListHeader::UIListHeader(pugi::xml_node node) noexcept: Super(node) {
         // 行高度
         if ((str = node.attribute("lineheight").value())) {
             m_fLineHeight = LongUI::AtoF(str);
+        }
+        // 分隔符宽度
+        if ((str = node.attribute("sepwidth").value())) {
+            m_fSepwidth = LongUI::AtoF(str);
         }
     }
     force_cast(this->flags) = flag;
@@ -381,14 +369,29 @@ bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
 // UI列表头: 鼠标事件处理
 bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // hover it?
-    auto is_hover_sep = [this, &arg]() noexcept ->bool {
-        D2D1_POINT_2F pt = { 
-            arg.pt.x + m_fSepwidth, arg.pt.y
-        };
-        return false;
+    auto get_sep_hovered_control = [this, &arg]() noexcept {
+        auto realsep = m_fSepwidth * this->world._11 * this->GetZoomX();
+        // 区间修正
+        float data[2] = { arg.pt.x, arg.pt.x };
+        data[realsep < 0.f] -= realsep;
+        UIControl* hover = nullptr;
+        // 循环查找
+        for (auto itr = this->begin(); itr != this->end(); ++itr) {
+            auto ctrl = *itr;
+            if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
+                && ctrl->visible_rect.right >= data[0]
+                && ctrl->visible_rect.right < data[1]) {
+                hover = *(m_fSepwidth < 0.f ? itr : (++itr));
+                break;
+            }
+        }
+        return hover;
     };
     // 有效
     if (m_fSepwidth != 0.f) {
+        // 查找控件
+        auto hover_sep = m_pSepHovered;
+        if(!hover_sep) hover_sep = get_sep_hovered_control();
         bool handled = false;
         // 分类处理
         switch (arg.event)
@@ -397,10 +400,25 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
             m_pWindow->ResetCursor();
             break;
         case LongUI::MouseEvent::Event_MouseMove:
+            if (hover_sep) {
+                m_pWindow->now_cursor = m_hCursor;
+               // UIManager << DL_Hint << "CURSOR!" << endl;
+            }
+            else {
+                m_pWindow->ResetCursor();
+            }
             break;
         case LongUI::MouseEvent::Event_LButtonDown:
+            if (hover_sep) {
+                m_pSepHovered = hover_sep;
+                m_pWindow->SetCapture(this);
+            }
             break;
         case LongUI::MouseEvent::Event_LButtonUp:
+            if (m_pSepHovered) {
+                m_pWindow->ReleaseCapture();
+                m_pSepHovered = nullptr;
+            }
             break;
         case LongUI::MouseEvent::Event_RButtonDown:
             break;
@@ -434,24 +452,23 @@ auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node no
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-           UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIListHeader>(
-            node,
-            [=](void* p) noexcept { new(p) UIListHeader(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 允许
+        if (!node) {
+            UIManager << DL_Log<< L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIListHeader>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }

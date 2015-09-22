@@ -28,19 +28,27 @@
 namespace LongUI {
 #define LONGUI_FUNCTION_NOEXCEPT noexcept
     // small single object
-    struct CUISingleSmallObject {
-        // nothrow new 
-        auto operator new(size_t size, std::nothrow_t) noexcept ->void*{ return LongUI::SmallAlloc(size); };
-        // delete
-        auto operator delete(void* address) noexcept ->void { return LongUI::SmallFree(address); }
+    struct CUISingleObject {
         // throw new []
         auto operator new(size_t size) ->void* = delete;
         // throw new []
         auto operator new[](size_t size) ->void* = delete;
         // delete []
         void operator delete[](void*, size_t size) noexcept = delete;
-        // nothrow new []
-        auto operator new[](size_t size, std::nothrow_t) noexcept ->void* = delete;
+    };
+    // small single object
+    struct CUISingleNormalObject : CUISingleObject {
+        // nothrow new 
+        auto operator new(size_t size, const std::nothrow_t) noexcept ->void*{ return LongUI::NormalAlloc(size); };
+        // delete
+        auto operator delete(void* address) noexcept ->void { return LongUI::NormalFree(address); }
+    };
+    // small single object
+    struct CUISingleSmallObject : CUISingleObject {
+        // nothrow new 
+        auto operator new(size_t size, const std::nothrow_t) noexcept ->void*{ return LongUI::SmallAlloc(size); };
+        // delete
+        auto operator delete(void* address) noexcept ->void { return LongUI::SmallFree(address); }
     };
     // BaseFunc
     template<typename Result, typename ...Args>

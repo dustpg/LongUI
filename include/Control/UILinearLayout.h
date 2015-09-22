@@ -48,7 +48,7 @@ namespace LongUI{
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // ctor
-        UIVerticalLayout(pugi::xml_node node) noexcept:Super(node) { }
+        UIVerticalLayout(UIContainer* cp, pugi::xml_node node) noexcept:Super(cp, node) { }
         // dtor
         ~UIVerticalLayout() noexcept = default;
         // no copy ctor
@@ -81,7 +81,7 @@ namespace LongUI{
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // ctor
-        UIHorizontalLayout(pugi::xml_node node) noexcept :Super(node) { }
+        UIHorizontalLayout(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) { }
         // dtor
         ~UIHorizontalLayout() noexcept = default;
         // no copy ctor

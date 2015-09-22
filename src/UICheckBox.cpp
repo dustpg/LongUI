@@ -50,7 +50,8 @@ void LongUI::UICheckBox::Update() noexcept {
 }
 
 // UICheckBox 构造函数
-LongUI::UICheckBox::UICheckBox(pugi::xml_node node) noexcept: Super(node) {
+LongUI::UICheckBox::UICheckBox(UIContainer* cp, pugi::xml_node node) 
+    noexcept: Super(cp, node) {
     // √ symbol
     auto format = UIManager.GetTextFormat(LongUIDefaultTextFormatIndex);
     char32_t chars = U'√';
@@ -77,25 +78,23 @@ auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node
     UIControl* pControl = nullptr;
     switch (type)
     {
-    case Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UICheckBox>(
-            node,
-            [=](void* p) noexcept { new(p) UICheckBox(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Warning << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UICheckBox>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }

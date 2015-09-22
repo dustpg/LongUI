@@ -51,6 +51,9 @@ namespace LongUI{
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
+        // constructor 构造函数
+        UISlider(UIContainer* cp, pugi::xml_node node) noexcept;
+    public:
         // get value in [0, 1]
         auto GetValue01() const noexcept { return m_fValue; }
         // get value in [start, end]
@@ -60,8 +63,6 @@ namespace LongUI{
         // is Horizontal Slider?
         auto IsHorizontalSlider() const noexcept { return !m_bVerticalSlider; }
     protected:
-        // constructor 构造函数
-        UISlider(pugi::xml_node) noexcept;
         // destructor 析构函数
         ~UISlider() noexcept { }
         // deleted function

@@ -44,8 +44,6 @@ namespace LongUI{
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
     public:
-        // create 创建
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // get text controller
         auto& GetTextController() noexcept { return m_text; }
         // control text 控件文本
@@ -54,9 +52,12 @@ namespace LongUI{
         const void SetText(const wchar_t* t) noexcept { m_text = t; m_pWindow->Invalidate(this); }
         // set control text
         const void SetText(const char* t) noexcept { m_text = t; m_pWindow->Invalidate(this); }
-    protected:
+    public:
+        // create 创建
+        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIText(pugi::xml_node node) noexcept : Super(node), m_text(node) {}
+        UIText(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), m_text(node) {}
+    protected:
         // dtor
         ~UIText() noexcept { }
         // copy ctor = delete

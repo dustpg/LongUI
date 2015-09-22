@@ -47,12 +47,11 @@ namespace LongUI {
     public:
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
-    public:
+        // constructor 构造函数
+        UIEditBasic(UIContainer* cp, pugi::xml_node node) noexcept;
         // control text 控件文本
         auto GetText() const noexcept { return m_text.c_str(); }
     protected:
-        // constructor 构造函数
-        UIEditBasic(pugi::xml_node) noexcept;
         // destructor 析构函数
         ~UIEditBasic() noexcept {};
         // deleted function

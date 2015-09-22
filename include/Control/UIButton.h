@@ -50,9 +50,9 @@ namespace LongUI{
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
-    protected:
         // constructor 构造函数
-        UIButton(pugi::xml_node) noexcept;
+        UIButton(UIContainer* cp, pugi::xml_node) noexcept;
+    protected:
         // destructor 析构函数
         ~UIButton() noexcept {};
         // deleted function

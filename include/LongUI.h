@@ -173,7 +173,24 @@ namespace LongUI {
     // longui callback
     using UICallBack = CUIFunction<bool(UIControl*)>;
     // event type
-    enum CreateEventType : size_t { Type_CreateControl = 0, Type_Initialize, Type_Recreate, Type_Uninitialize, };
+    enum CreateEventType : size_t { 
+        // create this control, type if parent pointer
+        Type_CreateControl_NullParentPointer,
+        // init, you can create some class-shared resource
+        Type_Initialize, 
+        // recreate, you should create some device-resource
+        Type_Recreate, 
+        // un-init, release shared resource
+        Type_Uninitialize, 
+        // create this control, type if parent pointer
+        TypeGreater_CreateControl_ReinterpretParentPointer,
+    };
+    // create
+    template<typename T, typename XMLNODE> T* CreateWidthCET(CreateEventType ty, XMLNODE node) noexcept {
+        return new(std::nothrow) T(reinterpret_cast<UIContainer*>(ty), node);
+    }
+    // use this
+#define case_LongUI__Type_CreateControl default
     // CreateControl Function 控件创建函数
     using CreateControlFunction = auto (WINAPI*)(CreateEventType, pugi::xml_node) ->UIControl*;
     // { B0CC8D79-9761-46F0-8558-F93A073CA0E6 }

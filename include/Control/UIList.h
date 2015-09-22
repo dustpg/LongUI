@@ -46,13 +46,14 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIListLine(pugi::xml_node node) noexcept;
-        // dtor
-        ~UIListLine() noexcept = default;
+        UIListLine(UIContainer* cp, pugi::xml_node node) noexcept;
         // get sorted data
         auto GetToBeSortedData() const noexcept ->uint32_t { return m_pToBeSorted ? m_pToBeSorted->user_data : 0ui32 ; }
         // set to be sorted control
         auto SetToBeSorted(uint32_t index) noexcept { m_pToBeSorted = this->GetAt(index); }
+    protected:
+        // dtor
+        ~UIListLine() noexcept = default;
     protected:
         // to be sorted control
         UIControl*          m_pToBeSorted = nullptr;
@@ -86,12 +87,14 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIListHeader(pugi::xml_node node) noexcept;
+        UIListHeader(UIContainer* cp, pugi::xml_node node) noexcept;
         // dtor
         ~UIListHeader() noexcept = default;
     private:
+        // sep hovered control
+        UIControl*              m_pSepHovered = nullptr;
         // cross cursor
-        HCURSOR                 m_hCursor = ::LoadCursor(nullptr, IDC_CROSS);
+        HCURSOR                 m_hCursor = ::LoadCursor(nullptr, IDC_SIZEWE);
         // line height
         float                   m_fLineHeight = 32.f;
         // separator with, > 0.f is left, < 0.f is right, == 0.f is no
@@ -149,8 +152,6 @@ namespace LongUI {
         auto GetLineHeight() const noexcept { return m_fLineHeight; }
         // insert a line-template with inside string
         void InsertInlineTemplate(uint32_t index) noexcept;
-        // change element width, less than 0.f means do not change
-        void ChangeElementWidth(float widthv[]) noexcept;
         // set header
         void SetHeader(UIListHeader* header) noexcept { assert(header); m_pHeader = header; }
     private:
@@ -164,7 +165,8 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIList(pugi::xml_node node) noexcept;
+        UIList(UIContainer* cp, pugi::xml_node node) noexcept;
+    protected:
         // dtor
         ~UIList() noexcept;
     public:

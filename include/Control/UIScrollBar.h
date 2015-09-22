@@ -81,7 +81,7 @@ namespace LongUI {
         void set_index(float index) noexcept;
     public:
         // constructor 构造函数
-        UIScrollBar(pugi::xml_node) noexcept;
+        UIScrollBar(UIContainer* cp, pugi::xml_node) noexcept;
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
     public:
@@ -130,7 +130,7 @@ namespace LongUI {
         static ID2D1PathGeometry*       s_apArrowPathGeometry[ARROW_SIZE];
     public:
         // ctor
-        UIScrollBarA(pugi::xml_node node) noexcept;
+        UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcept;
         // create this
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
     public:
@@ -154,6 +154,7 @@ namespace LongUI {
     private:
         // set new status
         void set_status(PointType _bartype, ControlStatus state) noexcept;
+    protected:
         // dtor
         ~UIScrollBarA() noexcept;
     private:
@@ -202,7 +203,7 @@ namespace LongUI {
         virtual void UpdateMarginalWidth() noexcept override {}
     public:
         // ctor
-        UIScrollBarB(pugi::xml_node node) noexcept;
+        UIScrollBarB(UIContainer* cp, pugi::xml_node node) noexcept;
         // create this
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
 #ifdef LongUIDebugEvent

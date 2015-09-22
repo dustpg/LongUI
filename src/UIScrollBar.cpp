@@ -6,8 +6,8 @@
 
 
 // UIScrollBar 构造函数
-LongUI::UIScrollBar::UIScrollBar(pugi::xml_node node) noexcept: 
-Super(node), m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) 
+noexcept: Super(cp, node), m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
     // 修改
     m_uiAnimation.duration = 0.5f;
     if (node) {
@@ -106,7 +106,8 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 
 
 // UIScrollBarA 构造函数
-LongUI::UIScrollBarA::UIScrollBarA(pugi::xml_node node) noexcept: Super(node), 
+LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) 
+noexcept: Super(cp, node), 
 m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb"){
     // 修改颜色
     if (node) {
@@ -421,25 +422,11 @@ ID2D1PathGeometry* LongUI::UIScrollBarA::
 s_apArrowPathGeometry[LongUI::UIScrollBarA::ARROW_SIZE] = { nullptr };
 
 // create 创建
-auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType bartype, pugi::xml_node node) noexcept ->UIControl* {
+auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
     UIControl* pControl = nullptr;
-    switch (bartype)
+    switch (type)
     {
-    case Type_CreateControl:
-        // 获取模板节点
-        if (!node) {
-            // SB允许无节点创建
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarA>(
-            node,
-            [=](void* p) noexcept { new(p) UIScrollBarA(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
     {
         // 创建设备无关资源
@@ -513,42 +500,51 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType bartype, pugi::x
             ::SafeRelease(geo);
         }
         break;
+    case_LongUI__Type_CreateControl:
+        // 允许
+        if (!node) {
+            UIManager << DL_Log << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIScrollBarA>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }
 
 
 // UIScrollBarB 构造函数
-LongUI::UIScrollBarB::UIScrollBarB(pugi::xml_node node) noexcept: Super(node) {
+LongUI::UIScrollBarB::UIScrollBarB(UIContainer* cp, pugi::xml_node node) 
+noexcept: Super(cp, node) {
 
 }
 
 // UIScrollBarB 创建函数
-auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType bartype, pugi::xml_node node) noexcept ->UIControl* {
+auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
     UIControl* pControl = nullptr;
-    switch (bartype)
+    switch (type)
     {
-    case Type_CreateControl:
-        // 获取模板节点
-        if (!node) {
-
-        }
-        // 申请空间
-        pControl = LongUI::UIControl::AllocRealControl<LongUI::UIScrollBarB>(
-            node,
-            [=](void* p) noexcept { new(p) UIScrollBarB(node); }
-        );
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
-        break;
     case LongUI::Type_Initialize:
         break;
     case LongUI::Type_Recreate:
         break;
     case LongUI::Type_Uninitialize:
         break;
+    case_LongUI__Type_CreateControl:
+        // 允许
+        if (!node) {
+            UIManager << DL_Log << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIScrollBarB>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
     }
     return pControl;
 }

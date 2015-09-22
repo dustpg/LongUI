@@ -97,9 +97,10 @@ namespace LongUI {
         virtual auto Recreate() noexcept->HRESULT override;
         // close this control 关闭控件
         virtual void Cleanup() noexcept override;
-    protected:
+    public:
         // constructor
         UIWindow(pugi::xml_node node, UIWindow* parent) noexcept;
+    protected:
         // destructor
         ~UIWindow() noexcept;
         // deleted 

@@ -52,12 +52,11 @@ namespace LongUI {
     public:
         // operator ITextServices2
         operator ITextServices2*() const noexcept { return m_pTextServices; }
-        // operator ->
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
-    protected:
         // constructor 构造函数
-        UIRichEdit(pugi::xml_node) noexcept;
+        UIRichEdit(UIContainer* cp, pugi::xml_node) noexcept;
+    protected:
         // destructor 析构函数
         ~UIRichEdit() noexcept;
         // deleted function
