@@ -932,9 +932,11 @@ auto LongUI::Component::EditaleText::CopyToGlobal() noexcept-> HGLOBAL {
 auto LongUI::Component::EditaleText::CopyToClipboard() noexcept-> HRESULT {
     HRESULT hr = E_FAIL;
     auto selection = this->GetSelectionRange();
+    // 有效
     if (selection.length) {
         // 打开剪切板
         if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
+            // 清空
             if (::EmptyClipboard()) {
                 // 获取旋转字符长度
                 size_t byteSize = sizeof(wchar_t) * (selection.length + 1);

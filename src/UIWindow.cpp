@@ -203,7 +203,7 @@ void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept
         pt = LongUI::TransformPoint(ctrl->world, pt);
     }
 #ifdef _DEBUG
-    if (this->debug_this) {
+    if (this->debug_this || ctrl->debug_this) {
         UIManager << DL_Log << ctrl
             << LongUI::Formated(L"(%.1f, %.1f)", pt.x, pt.y)
             << LongUI::endl;

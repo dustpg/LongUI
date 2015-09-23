@@ -138,6 +138,8 @@ void LongUI::UIButton::Update() noexcept {
 // UIButton 构造函数
 LongUI::UIButton::UIButton(UIContainer* cp, pugi::xml_node node) 
 noexcept: Super(cp, node), m_uiElement(node) {
+    // 允许键盘焦点
+    auto flag = this->flags | Flag_Focusable;
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
     // 初始化代码
@@ -153,6 +155,8 @@ noexcept: Super(cp, node), m_uiElement(node) {
     // need twices because of aniamtion
     m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
     constexpr int azz = sizeof(m_uiElement);
+    // 修改
+    force_cast(this->flags) = flag;
 }
 
 
@@ -250,7 +254,6 @@ bool LongUI::UIButton::AddEventCall(SubEvent sb, UICallBack& call) noexcept {
         m_event += call;
         return true;
     }
-
     return false;
 }
 
@@ -341,33 +344,37 @@ bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept 
     switch (arg.event)
     {
     case LongUI::MouseEvent::Event_DragEnter:
-        return m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
+        m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
+        break;
     case LongUI::MouseEvent::Event_DragOver:
-        return m_text.OnDragOver(pt4self.x, pt4self.y);
+        m_text.OnDragOver(pt4self.x, pt4self.y);
+        break;
     case LongUI::MouseEvent::Event_DragLeave:
-        return m_text.OnDragLeave();
+        m_text.OnDragLeave();
+        break;
     case LongUI::MouseEvent::Event_Drop:
-        return m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
+        m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
+        break;
     case LongUI::MouseEvent::Event_MouseEnter:
         m_pWindow->now_cursor = m_hCursorI;
-        return true;
+        break;
     case LongUI::MouseEvent::Event_MouseLeave:
         m_pWindow->now_cursor = m_pWindow->default_cursor;
-        return true;
+        break;
     case LongUI::MouseEvent::Event_MouseMove:
         // 拖拽?
         if (arg.sys.wParam & MK_LBUTTON) {
             m_text.OnLButtonHold(pt4self.x, pt4self.y);
         }
-        return true;
+        break;
     case LongUI::MouseEvent::Event_LButtonDown:
         m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.sys.wParam & MK_SHIFT));
-        return true;
+        break;
     case LongUI::MouseEvent::Event_LButtonUp:
         m_text.OnLButtonUp(pt4self.x, pt4self.y);
-        return true;
+        break;
     }
-    return false;
+    return true;
 }
 
 // close this control 关闭控件
@@ -384,6 +391,13 @@ void LongUI::UIEditBasic::Cleanup() noexcept {
 // 构造函数
 LongUI::UIEditBasic::UIEditBasic(UIContainer* cp, pugi::xml_node node)
 noexcept : Super(cp, node), m_text(this, node) {
+    // 允许键盘焦点
+    auto flag = this->flags | Flag_Focusable;
+    if (node) {
+
+    }
+    // 修改
+    force_cast(this->flags) = flag;
 }
 
 // UIEditBasic::CreateControl 函数

@@ -340,6 +340,8 @@ namespace LongUI {
         Event_ItemClicked,
         // control item double-clicked
         Event_ItemDbClicked,
+        // Context Menu, just one event-call recommend
+        Event_ContextMenu,
         // single-line-edit returned
         Event_EditReturned,
         // value changed(like slider or scrollbar)

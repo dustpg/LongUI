@@ -74,13 +74,13 @@ void LongUI::Demo::MainWindow::init() {
         control->AddEventCall([](UIControl* btn) noexcept ->bool {
             UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML);
             return true;
-        }, SubEvent::Event_ButtonClicked);
+        }, SubEvent::Event_ItemClicked);
     }
     // Exit
     if ((control = this->FindControl(L"exit"))) {
         control->AddEventCall([](UIControl* btn) noexcept ->bool {
             UIManager.Exit();
             return true;
-        }, SubEvent::Event_ButtonClicked);
+        }, SubEvent::Event_ItemClicked);
     }
 }

@@ -104,7 +104,7 @@ namespace LongUI {
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
         // create ui window with custom window && xml string
         template<class T>
-        auto CreateUIWindow(const char* xml, UIWindow* parent) noexcept->UIWindow* {
+        auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept->UIWindow* {
             auto code = m_docWindow.load_string(xml); assert(code); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void*) noexcept ->UIWindow* {
                 return new(std::nothrow) T(node, parent);

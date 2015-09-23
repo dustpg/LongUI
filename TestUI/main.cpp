@@ -72,7 +72,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             <Text text="4" templateid="4"/>
         </ListLine>
     </List>
-    <Text name="txt_01" textrichtype="core" text="%cHello%], world!%u泥壕!世界!%]%p#F00"/>
+    <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
 </Window>
 )xml";
 
@@ -484,7 +484,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        /*case LongUI::Event::Event_ButtonClicked:
+        /*case LongUI::Event::Event_ItemClicked:
             // number button clicked event
             //this->number_button_clicked(arg.sender);
             return true;*/

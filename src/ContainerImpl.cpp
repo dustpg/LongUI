@@ -380,6 +380,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
+        //UIManager << DL_Hint << this << position_x << endl;
         m_2fContentSize.width = position_x;
         m_2fContentSize.height = base_height;
         // 已经处理

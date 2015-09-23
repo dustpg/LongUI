@@ -125,6 +125,22 @@ void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
     }
 }
 
+// 设置元素宽度
+void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
+    // 循环
+    for (auto vctrl : m_controls) {
+        auto line = longui_cast<LongUI::UIListLine*>(vctrl);
+        assert(line && "bad");
+        assert(index < line->GetCount()  && "out of range");
+        if (index < line->GetCount()) {
+            auto ele = line->GetAt(index);
+            ele->SetWidth(width);
+            line->SetControlSizeChanged();
+        }
+    }
+    this->SetControlSizeChanged();
+}
+
 // UI列表: 事件处理
 bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI 事件
@@ -185,20 +201,28 @@ void LongUI::UIList::Render(RenderType type) const noexcept {
 void LongUI::UIList::Update() noexcept {
     // 帮助器
     Super::UpdateHelper<Super>(m_controls.begin(), m_controls.end());
+#ifdef _DEBUG
+    // 必须一致
+    if (this->IsNeedRefreshWorld() && m_pHeader && m_controls.size() && m_controls[0]) {
+        auto line = longui_cast<LongUI::UIListLine*>(m_controls[0]);
+        assert(m_pHeader->GetCount() == line->GetCount() && "out of sync for child number");
+    }
+#endif
 }
 
 
 // 更新子控件布局
 void LongUI::UIList::RefreshLayout() noexcept {
+    if (m_controls.empty()) return;
     // 第二次
     float index = 0.f;
+    auto first = longui_cast<LongUI::UIListLine*>(m_controls[0]);
+    float widthtt = first->GetContentWidthZoomed();
+    if (widthtt == 0.f) widthtt = this->GetViewWidthZoomed();
     for (auto voidctrl : m_controls) {
         auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
-        // 宽度无效?
-        if (ctrl->view_size.width == 0.f) {
-            ctrl->SetWidth(this->GetViewWidthZoomed());
-        }
         // 设置控件高度
+        ctrl->SetWidth(widthtt);
         ctrl->SetHeight(m_fLineHeight);
         // 不管如何, 修改!
         ctrl->SetControlSizeChanged();
@@ -207,9 +231,7 @@ void LongUI::UIList::RefreshLayout() noexcept {
         ++index;
     }
     // 设置
-    if (m_controls.size()) {
-        m_2fContentSize.width = static_cast<UIControl*>(this->m_controls.front())->GetWidth();
-    }
+    m_2fContentSize.width = widthtt;
     m_2fContentSize.height = m_fLineHeight * this->GetCount();
 }
 
@@ -255,11 +277,11 @@ noexcept -> UIControl* {
 LongUI::UIListLine::UIListLine(UIContainer* cp, pugi::xml_node node) 
 noexcept : Super(cp, node) {
     // listline 特性: 宽度必须固定
-    auto flag = this->flags | Flag_WidthFixed;
+    //auto flag = this->flags | Flag_WidthFixed;
     if (node) {
 
     }
-    force_cast(this->flags) = flag;
+    //force_cast(this->flags) = flag;
 }
 
 // 刷新UI列表元素控件
@@ -342,7 +364,7 @@ noexcept: Super(cp, node) {
 
 // UI列表头: 事件处理
 void LongUI::UIListHeader::Update() noexcept {
-    // 与父对象保持一样的X偏移量, 会延迟一帧, 被上的故事
+    // 与父对象保持一样的X偏移量
     this->SetOffsetX(this->parent->GetOffsetX());
     // 父类刷新
     return Super::Update();
@@ -368,67 +390,83 @@ bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // UI列表头: 鼠标事件处理
 bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept {
-    // hover it?
+    // -------------------------- hover it?
     auto get_sep_hovered_control = [this, &arg]() noexcept {
         auto realsep = m_fSepwidth * this->world._11 * this->GetZoomX();
         // 区间修正
         float data[2] = { arg.pt.x, arg.pt.x };
         data[realsep < 0.f] -= realsep;
-        UIControl* hover = nullptr;
         // 循环查找
-        for (auto itr = this->begin(); itr != this->end(); ++itr) {
-            auto ctrl = *itr;
+        auto index = 0ui32;
+        for (auto ctrl : (*this)) {
             if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
                 && ctrl->visible_rect.right >= data[0]
                 && ctrl->visible_rect.right < data[1]) {
-                hover = *(m_fSepwidth < 0.f ? itr : (++itr));
-                break;
+                m_indexSepHovered = index;
+                return ctrl;
+            }
+            ++index;
+        }
+        return static_cast<UIControl*>(nullptr);
+    };
+    // -------------------------- on mouse move
+    auto on_mouse_move = [this, &arg](UIControl* hovered) noexcept {
+        if (hovered) {
+            m_pWindow->now_cursor = m_hCursor;
+            // 拖拽刷新
+            if (m_pSepHovered && (arg.sys.wParam & MK_LBUTTON)) {
+                auto distance = arg.pt.x - m_fLastMousePosX;
+                distance *= m_pSepHovered->world._11;
+                auto tarwidth = m_pSepHovered->GetWidth() + distance;
+                // 有效
+                if (tarwidth > m_fLineHeight) {
+                    m_fLastMousePosX = arg.pt.x;
+                    m_pSepHovered->SetWidth(m_pSepHovered->GetWidth() + distance);
+                    longui_cast<LongUI::UIList*>(this->parent)->SetElementWidth(m_indexSepHovered, tarwidth);
+                    m_pWindow->Invalidate(this->parent);
+                    this->SetControlSizeChanged();
+                }
             }
         }
-        return hover;
+        else {
+            m_pWindow->ResetCursor();
+        }
     };
+    // -------------------------- real method
     // 有效
     if (m_fSepwidth != 0.f) {
         // 查找控件
         auto hover_sep = m_pSepHovered;
         if(!hover_sep) hover_sep = get_sep_hovered_control();
-        bool handled = false;
+        // XXX: 逻辑
+        bool handled = !!hover_sep;
         // 分类处理
         switch (arg.event)
         {
         case LongUI::MouseEvent::Event_MouseLeave:
             m_pWindow->ResetCursor();
+            m_indexSepHovered = 0;
             break;
         case LongUI::MouseEvent::Event_MouseMove:
+            on_mouse_move(hover_sep);
             if (hover_sep) {
-                m_pWindow->now_cursor = m_hCursor;
-               // UIManager << DL_Hint << "CURSOR!" << endl;
-            }
-            else {
-                m_pWindow->ResetCursor();
             }
             break;
         case LongUI::MouseEvent::Event_LButtonDown:
             if (hover_sep) {
                 m_pSepHovered = hover_sep;
                 m_pWindow->SetCapture(this);
+                m_fLastMousePosX = arg.pt.x;
             }
             break;
         case LongUI::MouseEvent::Event_LButtonUp:
             if (m_pSepHovered) {
                 m_pWindow->ReleaseCapture();
                 m_pSepHovered = nullptr;
+                m_indexSepHovered = 0;
             }
             break;
-        case LongUI::MouseEvent::Event_RButtonDown:
-            break;
         case LongUI::MouseEvent::Event_RButtonUp:
-            break;
-        case LongUI::MouseEvent::Event_MButtonDown:
-            break;
-        case LongUI::MouseEvent::Event_MButtonUp:
-            break;
-        default:
             break;
         }
         // 处理了

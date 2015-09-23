@@ -1810,25 +1810,16 @@ auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
 auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     if (ctrl) {
-#if 1
         std::swprintf(
             buffer, LongUIStringBufferLength,
-            L"[Control:%ls@%ls@0x%p] ",
+            L"[0x%p{%ls}%ls] ",
+            ctrl,
             ctrl->GetNameStr(),
-            ctrl->GetControlClassName(false),
-            ctrl
+            ctrl->GetControlClassName(false)
             );
-#else
-        std::swprintf(
-            buffer, LongUIStringBufferLength,
-            L"[Control:%ls@0x%p] ",
-            ctrl->GetNameStr(),
-            ctrl
-            );
-#endif
     }
     else {
-        std::swprintf(buffer, LongUIStringBufferLength, L"[Control:null] ");
+        std::swprintf(buffer, LongUIStringBufferLength, L"[null] ");
     }
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;

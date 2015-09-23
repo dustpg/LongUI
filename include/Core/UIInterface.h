@@ -123,10 +123,7 @@ namespace LongUI {
     };
     // static const GUID IID_IUIConfigure =
     // { 0x7ca331b9, 0x6500, 0x4948,{ 0xa9, 0xb4, 0xd5, 0x59, 0xc9, 0x2e, 0x65, 0xb1 } };
-    // UI Configure
-    //              IID_LongUI_IUIResourceLoader(opt), 
-    //              IID_LongUI_IUIScript(opt),
-    //              IID_IDWriteFontCollection(opt)
+    // UI Configure Interface
     class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
     public:
         // flag
@@ -148,7 +145,7 @@ namespace LongUI {
         /// Get flags for configure
         /// </summary>
         /// <returns>flags for configure</returns>
-        virtual auto GetConfigureFlag() noexcept->ConfigureFlag;
+        virtual auto GetConfigureFlag() noexcept->ConfigureFlag = 0;
         /// <summary>
         /// Creates the interfaces.
         /// </summary>
@@ -156,12 +153,12 @@ namespace LongUI {
         /// <param name="obj">The out interface pointer</param>
         /// <returns>result in HRESULT</returns>
         /// <remarks>
-        /// could create 
-        ///   - LongUI::IUIResourceLoader
-        ///   - LongUI::IUIScript
-        ///   - IDWriteFontCollection
+        /// could create:
+        ///   - LongUI::IUIResourceLoader*
+        ///   - LongUI::IUIScript*
+        ///   - IDWriteFontCollection*
         /// </remarks>
-        virtual auto CreateInterface(const IID& iid, void** obj) noexcept->HRESULT;
+        virtual auto CreateInterface(const IID& iid, void** obj) noexcept->HRESULT= 0;
         /// <summary>
         /// get null-end string for template for creating control
         /// </summary>

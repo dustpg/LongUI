@@ -76,7 +76,7 @@ bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
         {
         case LongUI::Event::Event_SubEvent:
             // number button clicked event
-            if (arg.ui.subevent == LongUI::SubEvent::Event_ButtonClicked) {
+            if (arg.ui.subevent == LongUI::SubEvent::Event_ItemClicked) {
                 this->number_button_clicked(arg.sender);
             }
             return true;
@@ -111,7 +111,7 @@ void LongUI::Demo::MainWindow::init() {
                 assert(!"oh no");
                 return true;
             }
-        }, SubEvent::Event_ButtonClicked);
+        }, SubEvent::Event_ItemClicked);
     }
     // -
     if ((control = this->FindControl(L"btn_minu"))) {
@@ -123,7 +123,7 @@ void LongUI::Demo::MainWindow::init() {
                 assert(!"oh no");
                 return true;
             }
-        }, SubEvent::Event_ButtonClicked);
+        }, SubEvent::Event_ItemClicked);
     }
     // =
     if ((control = this->FindControl(L"btn_equl"))) {
@@ -135,7 +135,7 @@ void LongUI::Demo::MainWindow::init() {
                 assert(!"oh no");
                 return true;
             }
-        }, SubEvent::Event_ButtonClicked);
+        }, SubEvent::Event_ItemClicked);
     }
     // C
     if ((control = this->FindControl(L"btn_clear"))) {
@@ -143,7 +143,7 @@ void LongUI::Demo::MainWindow::init() {
             m_number = 0; m_string.clear(); 
             m_display->SetText(L"0"); 
             return true;
-        }, SubEvent::Event_ButtonClicked);
+        }, SubEvent::Event_ItemClicked);
     }
     // 0-9
     for (auto i = 0; i < 10; ++i) {

@@ -99,6 +99,10 @@ namespace LongUI {
         float                   m_fLineHeight = 32.f;
         // separator with, > 0.f is left, < 0.f is right, == 0.f is no
         float                   m_fSepwidth = 0.f;
+        // last mouse position for mouse distance
+        float                   m_fLastMousePosX = 0.f;
+        // sep hovered control index
+        uint32_t                m_indexSepHovered = 0;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -154,6 +158,8 @@ namespace LongUI {
         void InsertInlineTemplate(uint32_t index) noexcept;
         // set header
         void SetHeader(UIListHeader* header) noexcept { assert(header); m_pHeader = header; }
+        // set element width
+        void SetElementWidth(uint32_t index, float width) noexcept;
     private:
         // init
         void init_layout() noexcept;

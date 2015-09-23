@@ -39,14 +39,16 @@ namespace LongUI {
     // small single object
     struct CUISingleNormalObject : CUISingleObject {
         // nothrow new 
-        auto operator new(size_t size, const std::nothrow_t) noexcept ->void*{ return LongUI::NormalAlloc(size); };
+        auto operator new(size_t size, const std::nothrow_t&) noexcept ->void*{ return LongUI::NormalAlloc(size); };
+        // nothrow delete 
+        auto operator delete(void* address, const std::nothrow_t&) ->void { return LongUI::NormalFree(address); }
         // delete
         auto operator delete(void* address) noexcept ->void { return LongUI::NormalFree(address); }
     };
     // small single object
     struct CUISingleSmallObject : CUISingleObject {
         // nothrow new 
-        auto operator new(size_t size, const std::nothrow_t) noexcept ->void*{ return LongUI::SmallAlloc(size); };
+        auto operator new(size_t size, const std::nothrow_t&) noexcept ->void*{ return LongUI::SmallAlloc(size); };
         // delete
         auto operator delete(void* address) noexcept ->void { return LongUI::SmallFree(address); }
     };
@@ -131,7 +133,7 @@ namespace LongUI {
         template<typename Func> CUIFunction(const Func& f) noexcept : 
         m_pFunction(new(std::nothrow) CUIRealFunc<type_helper<Func>::type, Result, Args...>(f))  {}
         // () operator
-        Result operator()(Args... args) const LONGUI_FUNCTION_NOEXCEPT { assert(m_pFunction && "bad call or oom"); return m_pFunction ? m_pFunction->Call(args...) : Result(); }
+        auto operator()(Args... args) const LONGUI_FUNCTION_NOEXCEPT { assert(m_pFunction && "bad call or oom"); return m_pFunction ? m_pFunction->Call(args...) : Result(); }
     };
     // Device Independent Meta
     struct DeviceIndependentMeta {
