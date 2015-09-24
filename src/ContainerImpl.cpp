@@ -58,9 +58,9 @@ auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept->UI
     // 性能警告
 #ifdef _DEBUG
     if (this->GetCount() > 100) {
-        UIManager << DL_Warning 
+        UIManager << DL_Warning
             << "Performance Warning: O(n) algorithm"
-            << " is not fine for container that over 100 children" 
+            << " is not fine for container that over 100 children"
             << LongUI::endl;
     }
 #endif
@@ -151,6 +151,7 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
         // 修改
         this->SetControlSizeChanged();
     }
+    Super::RemoveJust(ctrl);
 }
 
 
@@ -160,7 +161,7 @@ LongUI::UIContainerBuiltIn::~UIContainerBuiltIn() noexcept {
     auto ctrl = m_pHead;
     while (ctrl) {
         auto next_ctrl = ctrl->next;
-        ctrl->Cleanup();
+        this->cleanup_child(ctrl);
         ctrl = next_ctrl;
     }
 }
@@ -201,7 +202,7 @@ auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl *
         }
     }
     return control;
- }
+}
 
 
 // -------------------------- UIVerticalLayout -------------------------
@@ -291,7 +292,7 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
 }
 
 // UIVerticalLayout 关闭控件
-void LongUI::UIVerticalLayout::Cleanup() noexcept {
+void LongUI::UIVerticalLayout::cleanup() noexcept {
     delete this;
 }
 
@@ -390,7 +391,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
 
 
 // UIHorizontalLayout 关闭控件
-void LongUI::UIHorizontalLayout::Cleanup() noexcept {
+void LongUI::UIHorizontalLayout::cleanup() noexcept {
     delete this;
 }
 

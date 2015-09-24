@@ -42,8 +42,9 @@ namespace LongUI {
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
+    private:
         // close this control 关闭控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;

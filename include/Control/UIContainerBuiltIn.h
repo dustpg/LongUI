@@ -70,6 +70,7 @@ namespace LongUI {
             // operator *
             auto operator*() const noexcept { return m_pControl; }
         private:
+            // control pointer
             UIControl*          m_pControl;
         };
     public:
@@ -101,8 +102,6 @@ namespace LongUI {
         void Insert(Iterator itr, UIControl* ctrl) noexcept { this->insert_only(itr, ctrl); this->after_insert(ctrl);}
         // just remove child, : remove from list and set prev/next to null
         void RemoveJust(Iterator itr) noexcept { this->RemoveJust(*itr); }
-        // remove and close child
-        void RemoveClean(Iterator itr) noexcept { this->RemoveJust(itr); itr->Cleanup(); }
     protected:
         // insert only
         void insert_only(Iterator itr, UIControl* ctrl) noexcept;

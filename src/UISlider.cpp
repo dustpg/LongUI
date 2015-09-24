@@ -267,6 +267,6 @@ bool LongUI::UISlider::AddEventCall(SubEvent sb, UICallBack& call) noexcept {
 }
 
 // close this control 关闭控件
-void LongUI::UISlider::Cleanup() noexcept {
+void LongUI::UISlider::cleanup() noexcept {
     delete this;
 }

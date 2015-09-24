@@ -153,6 +153,18 @@ LongUI::UIWindow::~UIWindow() noexcept {
     ::SafeRelease(m_pCurDataObject);
 }
 
+// 移除控件引用
+void LongUI::UIWindow::RemoveControlReference(UIControl * ctrl) noexcept {
+    auto remove_reference = [ctrl](UIControl* & cref) { 
+        if (cref == ctrl) cref = nullptr; 
+    };
+    // 移除引用
+    remove_reference(m_pHoverTracked);
+    remove_reference(m_pFocusedControl);
+    remove_reference(m_pDragDropControl);
+    remove_reference(m_pCapturedControl);
+}
+
 
 // 注册
 void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept {
@@ -243,6 +255,7 @@ void LongUI::UIWindow::CreateCaret(UIControl* ctrl, float width, float height) n
 
 // 显示插入符号
 void LongUI::UIWindow::ShowCaret() noexcept {
+    //::ShowCaret(m_hwnd);
     ++m_cShowCaret;
     // 创建AE位图
     //if (!m_pd2dBitmapAE) {
@@ -252,6 +265,7 @@ void LongUI::UIWindow::ShowCaret() noexcept {
 
 // 异常插入符号
 void LongUI::UIWindow::HideCaret() noexcept { 
+    //::HideCaret(m_hwnd);
     if (m_cShowCaret) {
         --m_cShowCaret;
     }
@@ -974,7 +988,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
 }
 
 // UIWindow 关闭控件
-void LongUI::UIWindow::Cleanup() noexcept {
+void LongUI::UIWindow::cleanup() noexcept {
     // 删除对象
     delete this;
 }

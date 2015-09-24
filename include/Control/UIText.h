@@ -41,8 +41,9 @@ namespace LongUI{
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
+    private:
         // close this control 关闭控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // get text controller
         auto& GetTextController() noexcept { return m_text; }

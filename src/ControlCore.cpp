@@ -23,7 +23,7 @@ Win8/8.1/10.0.10158之前
 /// 对于本函数, 参数'node'允许为空
 /// <see cref="LongUINullXMLNode"/>
 /// </remarks>
-LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node) 
+LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node)
 noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
@@ -128,6 +128,10 @@ noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : n
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
+    if (this->parent) {
+        this->parent->RemoveChildReference(this);
+    }
+    m_pWindow->RemoveControlReference(this);
     ::SafeRelease(m_pBrush_SetBeforeUse);
     ::SafeRelease(m_pBackgroudBrush);
     // 释放脚本占用空间
@@ -202,6 +206,22 @@ void LongUI::UIControl::AfterUpdate() noexcept {
 
 // UI控件: 重建
 auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
+    // 增加计数
+#ifdef _DEBUG
+    ++this->recreate_count;
+    if (this->debug_this) {
+        UIManager << DL_Log
+            << "create count: "
+            << long(this->recreate_count)
+            << LongUI::endl;
+    }
+    if (recreate_count > 1 && this->debug_this) {
+        UIManager << DL_Hint
+            << "create count: "
+            << long(this->recreate_count)
+            << LongUI::endl;
+    }
+#endif
     // 设备重置再说
     ::SafeRelease(m_pBrush_SetBeforeUse);
     ::SafeRelease(m_pBackgroudBrush);
@@ -255,7 +275,7 @@ auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
     // 检查
     if (this->view_size.width < 0.f && this->parent->view_size.width > 0.f) {
         UIManager << DL_Hint << this
-            << "viewport's width < 0: " << this->view_size.width 
+            << "viewport's width < 0: " << this->view_size.width
             << endl;
     }
 }
@@ -271,7 +291,7 @@ auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline 
     // 检查
     if (this->view_size.height < 0.f && this->parent->view_size.height > 0.f) {
         UIManager << DL_Hint << this
-            << "viewport's height < 0: " << this->view_size.height 
+            << "viewport's height < 0: " << this->view_size.height
             << endl;
     }
 }
@@ -335,21 +355,21 @@ void LongUI::UIControl::RefreshWorld() noexcept {
         xx += this->parent->GetOffsetXZoomed();
         yy += this->parent->GetOffsetYZoomed();
         // 转换
-        this->world = 
-            D2D1::Matrix3x2F::Translation(xx, yy) 
+        this->world =
+            D2D1::Matrix3x2F::Translation(xx, yy)
             *D2D1::Matrix3x2F::Scale(
                 this->parent->GetZoomX(), this->parent->GetZoomY()
                 )
             * this->parent->world;
 #else
-        this->world = 
+        this->world =
             D2D1::Matrix3x2F::Translation(xx, yy)
             * D2D1::Matrix3x2F::Scale(
                 this->parent->GetZoomX(), this->parent->GetZoomY()
                 )
             * D2D1::Matrix3x2F::Translation(
                 this->parent->GetOffsetX(), this->parent->GetOffsetY()
-                ) 
+                )
             * this->parent->world;
 #endif
     }
@@ -405,8 +425,9 @@ namespace LongUI {
         virtual void Update() noexcept override {}
         // do event 事件处理
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override { return false; }
+    private:
         // close this control 关闭控件
-        virtual void Cleanup() noexcept override { delete this; }
+        virtual void cleanup() noexcept override { delete this; }
     public:
         // 创建控件
         static auto CreateControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept {
@@ -453,6 +474,7 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), marginal_control() {
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
+    ::memset(force_cast(m_aMCTid), 0, sizeof(m_aMCTid));
     // LV
     /*if (m_strControlName == L"V") {
         m_2fZoom = { 1.0f, 1.0f };
@@ -463,7 +485,7 @@ LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept 
     // 有效
     if (node) {
         // 模板大小
-        Helper::MakeFloats( 
+        Helper::MakeFloats(
             node.attribute(LongUI::XMLAttribute::TemplateSize).value(),
             &m_2fTemplateSize.width, 2
             );
@@ -474,7 +496,6 @@ LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept 
             LongUI::XMLAttribute::RightMarginalControl,
             LongUI::XMLAttribute::BottomMarginalControl,
         };
-        bool exist_marginal_control = false;
         // ONLY MY LOOPGUN
         for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
             const char* str = nullptr;
@@ -488,29 +509,14 @@ LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept 
 #endif
                 // 有效
                 if (cc.func) {
-                    // 创建控件
-                    auto control = UIManager.CreateControl(this, cc.id, cc.func);
-                    // XXX: 检查
-                    force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(control);
-
+                    // 修改
+                    force_cast(this->marginal_control[i]) = reinterpret_cast<UIMarginalable*>(cc.func);
+                    m_aMCTid[i] = static_cast<uint16_t>(cc.id);
                 }
                 else {
                     assert(!"cc.func -> null");
                 }
-                // 优化flag
-                if (this->marginal_control[i]) {
-                    // 插入后
-                    this->after_insert(this->marginal_control[i]);
-                    // 初始化
-                    this->marginal_control[i]->InitMarginalControl(static_cast<UIMarginalable::MarginalControl>(i));
-                    // 优化flag
-                    exist_marginal_control = true;
-                }
             }
-        }
-        // 存在
-        if (exist_marginal_control) {
-            flag |= Flag_Container_ExistMarginalControl;
         }
         // 渲染依赖属性
         if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
@@ -535,7 +541,7 @@ LongUI::UIContainer::~UIContainer() noexcept {
     // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
     for (auto ctrl : this->marginal_control) {
         if (ctrl) {
-            ctrl->Cleanup();
+            ctrl->cleanup();
         }
     }
 }
@@ -543,13 +549,18 @@ LongUI::UIContainer::~UIContainer() noexcept {
 // 插入后处理
 void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     assert(child && "bad argument");
+    // 添加到窗口速查表
+    if (child->GetName().length()) {
+        std::pair<LongUI::CUIString, void*> pair{ child->GetName(), this };
+        m_pWindow->AddControl(pair);
+    };
     // 大小判断
     if (this->GetCount() >= 10'000) {
         UIManager << DL_Warning << "the count of children must be"
             " less than 10k because of the precision of float" << LongUI::endl;
     }
     // 检查flag
-    const auto host_flag = Flag_Container_HostChildrenRenderingDirectly 
+    const auto host_flag = Flag_Container_HostChildrenRenderingDirectly
         | Flag_Container_HostPosterityRenderingDirectly;
     if (this->flags & host_flag) {
         force_cast(child->flags) |= Flag_RenderParent;
@@ -592,21 +603,48 @@ auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl
 
 // do event 事件处理
 bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // ------------------------------------ 初始化
+    auto init_this = [this](const LongUI::EventArgument& arg) noexcept {
+        auto flag = this->flags;
+        // 初始化边缘控件 
+        for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
+            auto func = this->marginal_control[i];
+            if (!func) continue;
+            // 创建
+            auto ctrl = UIManager.CreateControl(
+                this,
+                static_cast<size_t>(m_aMCTid[i]),
+                reinterpret_cast<CreateControlFunction>(func)
+                );
+            assert(ctrl && "OOM or bad action");
+            if (ctrl) {
+                // 插入后
+                this->after_insert(ctrl);
+                // 设置
+                force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(ctrl);
+                // 初始化
+                this->marginal_control[i]->InitMarginalControl(static_cast<UIMarginalable::MarginalControl>(i));
+                // 完成控件树
+                ctrl->DoEvent(arg);
+                // 存在
+                flag |= Flag_Container_ExistMarginalControl;
+            }
+            else {
+                force_cast(this->marginal_control[i]) = nullptr;
+            }
+        }
+        // 强制修改
+        force_cast(this->flags) = flag;
+    };
+    // ------------------------------------ 主函数
     bool done = false;
-    // 转换坐标
     // 处理窗口事件
     if (arg.sender) {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
-            // 初始化边缘控件 
-            for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
-                auto ctrl = this->marginal_control[i];
-                if (ctrl) {
-                    // 完成控件树
-                    ctrl->DoEvent(arg);
-                }
-            }
+            // 检查
+            init_this(arg);
             done = true;
             break;
         }
@@ -880,7 +918,7 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
 void LongUI::UIContainer::BeforeUpdateContainer() noexcept {
     // 需要刷新
     if (this->IsNeedRefreshWorld()) {
-        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) | 
+        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) |
             (this->m_2fTemplateSize.height > 0.f);
         auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
         auto tmph = this->GetHeight() / m_2fTemplateSize.width;
@@ -910,7 +948,7 @@ void LongUI::UIContainer::BeforeUpdateContainer() noexcept {
 void LongUI::UIContainer::Update() noexcept {
     // 修改自动缩放控件
     if (this->IsNeedRefreshWorld()) {
-        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) | 
+        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) |
             (this->m_2fTemplateSize.height > 0.f);
         auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
         auto tmph = this->GetHeight() / m_2fTemplateSize.width;
@@ -929,7 +967,7 @@ void LongUI::UIContainer::Update() noexcept {
             break;
         case 3:
             // both
-            this->m_2fZoom.width =  tmpw;
+            this->m_2fZoom.width = tmpw;
             this->m_2fZoom.height = tmph;
             break;
         }
@@ -1007,7 +1045,8 @@ auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
             }
         }
     }
-    this->AssertMarginalControl();
+    // skip if before 'control-tree-finshed'
+    // this->AssertMarginalControl();
     // 重建父类
     if (SUCCEEDED(hr)) {
         hr = Super::Recreate();
@@ -1030,7 +1069,7 @@ void LongUI::UIContainer::SetOffsetX(float value) noexcept {
 void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     assert(value > (-1'000'000.f) && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
-    register float target = value ;
+    register float target = value;
     if (target != m_2fOffset.y) {
         m_2fOffset.y = target;
         this->SetControlWorldChanged();

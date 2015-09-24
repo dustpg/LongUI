@@ -95,8 +95,7 @@ auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
 LongUI::UIList::~UIList() noexcept {
     // 线性容器就是不用考虑next指针
     for (auto voidctrl : m_controls) {
-        auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
-        ctrl->Cleanup();
+        this->cleanup_child(static_cast<UIControl*>(voidctrl));
     }
 }
 
@@ -108,6 +107,7 @@ void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
         return;
     }
     m_controls.erase(itr);
+    Super::RemoveJust(child);
 }
 
 // 插入一个行模板
@@ -131,7 +131,7 @@ void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
     for (auto vctrl : m_controls) {
         auto line = longui_cast<LongUI::UIListLine*>(vctrl);
         assert(line && "bad");
-        assert(index < line->GetCount()  && "out of range");
+        assert(index < line->GetCount() && "out of range");
         if (index < line->GetCount()) {
             auto ele = line->GetAt(index);
             ele->SetWidth(width);
@@ -158,6 +158,42 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
         }
     }
     return Super::DoEvent(arg);
+}
+
+// 小于, 行排序
+auto LongUI::UIList::sort_line_less() noexcept {
+    // 小于
+    auto cmp = [](void* a, void* b) noexcept {
+        assert(a && b && "bad arguments");
+        auto linea = longui_cast<UIListLine*>(a);
+        auto lineb = longui_cast<UIListLine*>(b);
+        return linea->GetToBeSortedData() < lineb->GetToBeSortedData();
+    };
+    // 快速排序
+    if (this->GetCount() >= m_cFastSortThreshold) {
+        std::sort(m_controls.begin(), m_controls.end(), cmp);
+    }
+    else {
+        LongUI::BubbleSort(m_controls.begin(), m_controls.end(), cmp);
+    }
+}
+
+// 大于, 行排序
+auto LongUI::UIList::sort_line_greater() noexcept {
+    // 大于
+    auto cmp = [](void* a, void* b) noexcept {
+        assert(a && b && "bad arguments");
+        auto linea = longui_cast<UIListLine*>(a);
+        auto lineb = longui_cast<UIListLine*>(b);
+        return linea->GetToBeSortedData() > lineb->GetToBeSortedData();
+    };
+    // 快速排序
+    if (this->GetCount() >= m_cFastSortThreshold) {
+        std::sort(m_controls.begin(), m_controls.end(), cmp);
+    }
+    else {
+        LongUI::BubbleSort(m_controls.begin(), m_controls.end(), cmp);
+    }
 }
 
 // UIList: 初始化布局
@@ -236,13 +272,13 @@ void LongUI::UIList::RefreshLayout() noexcept {
 }
 
 // 清理UI列表控件
-void LongUI::UIList::Cleanup() noexcept {
+void LongUI::UIList::cleanup() noexcept {
     delete this;
 }
 
 
 // UI列表控件: 创建控件
-auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node) 
+auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
@@ -274,7 +310,7 @@ noexcept -> UIControl* {
 // ----------------------------------------------------------------------------
 
 // UI列表元素控件: 构造函数
-LongUI::UIListLine::UIListLine(UIContainer* cp, pugi::xml_node node) 
+LongUI::UIListLine::UIListLine(UIContainer* cp, pugi::xml_node node)
 noexcept : Super(cp, node) {
     // listline 特性: 宽度必须固定
     //auto flag = this->flags | Flag_WidthFixed;
@@ -306,13 +342,13 @@ void LongUI::UIListLine::Update() noexcept {
 }
 
 // 清理UI列表元素控件
-void LongUI::UIListLine::Cleanup() noexcept {
+void LongUI::UIListLine::cleanup() noexcept {
     delete this;
 }
 
 
 // UI列表元素控件: 创建控件
-auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node) 
+auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
     UIControl* pControl = nullptr;
     switch (type)
@@ -344,8 +380,9 @@ noexcept -> UIControl* {
 // ----------------------------------------------------------------------------
 
 // UI列表头控件: 构造函数
-LongUI::UIListHeader::UIListHeader(UIContainer* cp, pugi::xml_node node) 
+LongUI::UIListHeader::UIListHeader(UIContainer* cp, pugi::xml_node node)
 noexcept: Super(cp, node) {
+    assert(cp && "bad argument");
     // 支持模板子节点
     auto flag = this->flags | Flag_InsertTemplateChild;
     if (node) {
@@ -370,23 +407,6 @@ void LongUI::UIListHeader::Update() noexcept {
     return Super::Update();
 }
 
-
-// UI列表头: 事件处理
-bool LongUI::UIListHeader::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // LongUI 事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // 设置列表头
-            longui_cast<UIList*>(this->parent)->SetHeader(this);
-            __fallthrough;
-        default:
-            break;
-        }
-    }
-    return Super::DoEvent(arg);
-}
 
 // UI列表头: 鼠标事件处理
 bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept {
@@ -437,7 +457,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
     if (m_fSepwidth != 0.f) {
         // 查找控件
         auto hover_sep = m_pSepHovered;
-        if(!hover_sep) hover_sep = get_sep_hovered_control();
+        if (!hover_sep) hover_sep = get_sep_hovered_control();
         // XXX: 逻辑
         bool handled = !!hover_sep;
         // 分类处理
@@ -476,9 +496,24 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 }
 
 // 清理UI列表头控件
-void LongUI::UIListHeader::Cleanup() noexcept {
+void LongUI::UIListHeader::cleanup() noexcept {
     delete this;
 }
+
+// 初始化边界控件
+void LongUI::UIListHeader::InitMarginalControl(MarginalControl _type) noexcept {
+    // 初始化
+    Super::InitMarginalControl(_type);
+    // 父类是控件
+    auto list = longui_cast<UIList*>(this->parent);
+    // 设置列表头
+    longui_cast<UIList*>(this->parent)->SetHeader(this);
+    // 检查是否可以排序
+    if (list->list_flag & UIList::Flag_SortableLineWithUserData) {
+
+    }
+}
+
 
 // 刷新UI列表头控件边界宽度
 void LongUI::UIListHeader::UpdateMarginalWidth() noexcept {
@@ -499,7 +534,7 @@ auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node no
     case_LongUI__Type_CreateControl:
         // 允许
         if (!node) {
-            UIManager << DL_Log<< L"node null" << LongUI::endl;
+            UIManager << DL_Log << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIListHeader>(type, node);
@@ -539,8 +574,8 @@ bool LongUI::CUIMenu::Create(const char * xml) noexcept {
     if (re.status) {
         assert(!"failed to load string");
         ::MessageBoxA(
-            nullptr, 
-            re.description(), 
+            nullptr,
+            re.description(),
             "<LongUI::CUIMenu::Create>: Failed to Parse/Load XML",
             MB_ICONERROR
             );

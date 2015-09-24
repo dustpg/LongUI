@@ -471,6 +471,13 @@ namespace LongUI {
             OUT mutable const wchar_t*  str;
         };
     };
+    // get full class name
+    static auto&DebugGetFullClassName() noexcept {
+        static DebugEventInformation s_dbgInfomation;
+        ::memset(&s_dbgInfomation, 0, sizeof(s_dbgInfomation));
+        s_dbgInfomation.infomation = DebugInformation::Information_GetFullClassName;
+        return s_dbgInfomation;
+    }
 #endif
     // type for rich
     enum class RichType : uint16_t {

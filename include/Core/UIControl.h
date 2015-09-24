@@ -40,6 +40,13 @@ namespace LongUI {
         // friend class
         friend class UIContainer;
     public:
+        // register ui call from lambda/functor/function pointer
+        template<typename T> auto AddEventCall(T& call, SubEvent sb) noexcept {
+            auto ok = this->AddEventCall(sb, UICallBack(call));
+            assert(ok && "this control do not support this event!");
+            return ok;
+        }
+    public:
         // Render 
         virtual void Render(RenderType) const noexcept;
         // update
@@ -52,6 +59,7 @@ namespace LongUI {
         virtual auto Recreate() noexcept->HRESULT;
         // register ui call
         virtual bool AddEventCall(SubEvent sb, UICallBack& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
+    private:
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
@@ -59,21 +67,14 @@ namespace LongUI {
         /// you should call dtor in this method, if malloc(ed), you should free it
         /// easy way: delete this
         /// </remarks>
-        virtual void Cleanup() noexcept = 0;
-        // register ui call from lambda/functor/function pointer
-        template<typename T>
-        auto AddEventCall(T& call, SubEvent sb) noexcept {
-            auto ok = this->AddEventCall(sb, UICallBack(call));
-            assert(ok && "this control do not support this event!");
-            return ok;
-        }
+        virtual void cleanup() noexcept = 0;
     public:
         // ctor
         UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept;
-        // dtor
-        ~UIControl() noexcept;
         // delete the copy-ctor
         UIControl(const UIControl&) = delete;
+        // dtor
+        ~UIControl() noexcept;
         // after update
         void AfterUpdate() noexcept;
     public:
@@ -150,7 +151,9 @@ namespace LongUI {
         // debug this control? will output some debug message that not too important(log)
         bool                    debug_this = false;
         // unused
-        bool                    debug_unused[3];
+        bool                    debug_unused[2];
+        // recreate count
+        uint8_t                 recreate_count = 0;
 #endif
         // user ptr
         void*                   user_ptr = nullptr;

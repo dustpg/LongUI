@@ -401,7 +401,7 @@ inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
 }
 
 // UIScrollBarA 关闭控件
-void  LongUI::UIScrollBarA::Cleanup() noexcept {
+void  LongUI::UIScrollBarA::cleanup() noexcept {
     delete this;
 }
 
@@ -556,6 +556,6 @@ void  LongUI::UIScrollBarB::Update() noexcept {
 
 
 // UIScrollBarB 关闭控件
-void  LongUI::UIScrollBarB::Cleanup() noexcept {
+void  LongUI::UIScrollBarB::cleanup() noexcept {
     delete this;
 }

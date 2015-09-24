@@ -6,9 +6,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="miniz.c">
-      <Filter>IUIZipXMLResourceLoader</Filter>
-    </ClCompile>
     <ClCompile Include="IUIZipXMLResourceLoader.cpp">
       <Filter>IUIZipXMLResourceLoader</Filter>
     </ClCompile>

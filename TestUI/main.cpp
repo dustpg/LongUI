@@ -62,7 +62,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <List name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
+    <List debug="true" name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine>
             <Text text="1" templateid="4"/>
             <Text text="2" templateid="4"/>
@@ -112,9 +112,9 @@ public:
     MainWindow(pugi::xml_node node, LongUI::UIWindow* parent) : Super(node, parent) {}
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
-    // clean up
-    virtual void Cleanup() noexcept override { this->~MainWindow(); }
 private:
+    // clean up
+    virtual void cleanup() noexcept override { this->~MainWindow(); }
     // init
     void init();
     // on number button clicked
@@ -132,6 +132,8 @@ private:
 class TestControl : public LongUI::UIControl {
     // super class define
     typedef LongUI::UIControl Super;
+    // close this control
+    virtual void cleanup() noexcept { delete this; };
 public:
     // create 创建
     static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
@@ -249,8 +251,6 @@ public:
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, value );
         return true;
     }
-    // close this control
-    virtual void Cleanup() noexcept { delete this; };
     // constructor
     TestControl(LongUI::UIContainer* cp, pugi::xml_node node) 
         noexcept : Super(cp, node), m_text(node) {
@@ -281,6 +281,8 @@ protected:
 class UIVideoAlpha : public LongUI::UIControl {
     // super class define
     typedef LongUI::UIControl Super;
+    // close this control
+    virtual void cleanup() noexcept override { delete this; };
 public:
     // create 创建
     static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
@@ -360,8 +362,6 @@ public:
         }
         return hr;
     }
-    // close this control
-    virtual void Cleanup() noexcept override { delete this; };
     // constructor
     UIVideoAlpha(LongUI::UIContainer* cp, pugi::xml_node node) 
         noexcept : Super(cp, node) {

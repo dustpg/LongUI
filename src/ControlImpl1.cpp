@@ -81,7 +81,7 @@ return Super::Recreate();
 }*/
 
 // close this control 关闭控件
-void LongUI::UIText::Cleanup() noexcept {
+void LongUI::UIText::cleanup() noexcept {
     delete this;
 }
 
@@ -258,7 +258,7 @@ bool LongUI::UIButton::AddEventCall(SubEvent sb, UICallBack& call) noexcept {
 }
 
 // 关闭控件
-void LongUI::UIButton::Cleanup() noexcept {
+void LongUI::UIButton::cleanup() noexcept {
     delete this;
 }
 
@@ -329,7 +329,7 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case WM_KEYDOWN:
             m_text.OnKey(static_cast<uint32_t>(arg.sys.wParam));
             break;
-        case WM_CHAR:
+        case WM_UNICHAR:
             m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
             break;
         }
@@ -384,7 +384,7 @@ HRESULT LongUI::UIEditBasic::Recreate() noexcept {
 }
 
 // close this control 关闭控件
-void LongUI::UIEditBasic::Cleanup() noexcept {
+void LongUI::UIEditBasic::cleanup() noexcept {
     delete this;
 }
 

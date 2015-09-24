@@ -282,6 +282,8 @@ namespace LongUI {
     // ID3D11Debug
     MakeGetIID(ID3D11Debug);
 #endif
+    // ITfThreadMgr
+    MakeGetIID(ITfThreadMgr);
 #ifdef LONGUI_VIDEO_IN_MF
     static const IID IID_IMFMediaEngineClassFactory =
     { 0x4D645ACE, 0x26AA, 0x4688,{ 0x9B, 0xE1, 0xDF, 0x35, 0x16, 0x99, 0x0B, 0x93 } };

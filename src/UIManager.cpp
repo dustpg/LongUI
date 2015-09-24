@@ -148,6 +148,19 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             reinterpret_cast<void**>(&m_pd2dFactory)
             );
     }
+    // 创建TSF线程管理器
+    if (SUCCEEDED(hr)) {
+        hr = ::CoCreateInstance(
+            CLSID_TF_ThreadMgr,
+            nullptr,
+            CLSCTX_INPROC_SERVER,
+            LongUI_IID_PV_ARGS(m_pTsfThreadManager)
+            );
+    }
+    // 激活客户ID
+    if (SUCCEEDED(hr)) {
+        hr = m_pTsfThreadManager->Activate(&m_idTsfClient);
+    }
     // 创建 DirectWrite 工厂.
     if (SUCCEEDED(hr)) {
         hr = LongUI::Dll::DWriteCreateFactory(
@@ -248,6 +261,7 @@ void LongUI::CUIManager::UnInitialize() noexcept {
     ::SafeRelease(m_pDWriteFactory);
     ::SafeRelease(m_pDropTargetHelper);
     ::SafeRelease(m_pd2dFactory);
+    ::SafeRelease(m_pTsfThreadManager);
     // 释放脚本
     ::SafeRelease(force_cast(script));
     // 释放读取器
@@ -296,8 +310,6 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
     // 
     UIControl* now_control = nullptr;
     UIContainer* parent_node = window;
-    // 唯一名称
-    std::pair<CUIString, void*> control_name;
     // 遍历算法: 1.压入所有子节点 2.依次弹出 3.重复1
     while (true) {
         // 压入/入队 所有子节点
@@ -321,11 +333,6 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             UIManager << DL_Error << L" Control Class Not Found: " << node_name << LongUI::endl;
 #endif
             continue;
-        }
-        // 添加到表
-        if (Helper::MakeString(node.attribute("name").value(), control_name.first)) {
-            control_name.second = now_control;
-            window->AddControl(control_name);
         }
         // 添加子节点
         parent_node->PushBack(now_control);
@@ -477,7 +484,7 @@ void LongUI::CUIManager::Run() noexcept {
         auto count = m_cCountWindow;
         // 清理窗口
         for (auto i = 0u; i < count; ++i) {
-            windows[count - i - 1]->Cleanup();
+            windows[count - i - 1]->cleanup();
         }
     }
     assert(!m_cCountWindow && "bad");
@@ -1597,7 +1604,7 @@ void LongUI::CUIManager::RemoveWindow(UIWindow * wnd, bool cleanup) noexcept {
     assert(m_cCountWindow); assert(wnd && "bad argument");
     // 清理?
     if (cleanup) {
-        wnd->Cleanup();
+        wnd->cleanup();
 #ifdef _DEBUG
         // 现在已经不再数组中了, 不过需要检查一下
         auto endwindow = m_apWindows + m_cCountWindow;

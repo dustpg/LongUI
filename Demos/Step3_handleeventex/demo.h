@@ -35,16 +35,16 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 // longui::demo namespace
 namespace LongUI { namespace Demo {
     // MainWindow class
-    class MainWindow : public UIWindow {
+    class MainWindow final : public UIWindow {
         // super class
         using Super = UIWindow;
+        // clean up
+        virtual void cleanup() noexcept override { delete this; }
     public:
         // ctor
         MainWindow(pugi::xml_node node, UIWindow* parent) : Super(node, parent) {}
         // do some event
         virtual bool DoEvent(const EventArgument& arg) noexcept override;
-        // clean up
-        virtual void Cleanup() noexcept override { delete this; }
     private:
         // init
         void init();

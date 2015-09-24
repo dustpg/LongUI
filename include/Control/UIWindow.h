@@ -95,8 +95,9 @@ namespace LongUI {
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
+    private:
         // close this control 关闭控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // constructor
         UIWindow(pugi::xml_node node, UIWindow* parent) noexcept;
@@ -107,7 +108,7 @@ namespace LongUI {
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
     public: // some new
         // on close event
-        virtual auto OnClose() noexcept -> bool { this->Cleanup(); UIManager.Exit(); return true; };
+        virtual auto OnClose() noexcept -> bool { this->cleanup(); UIManager.Exit(); return true; };
     public: // IDropTarget interface
         // impl for IDropTarget::DragEnter
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
@@ -118,6 +119,8 @@ namespace LongUI {
         // impl for IDropTarget::Drop
         HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) noexcept override;
     public:
+        // remove control reference
+        void RemoveControlReference(UIControl* ctrl) noexcept;
         // begin render
         void BeginDraw() const noexcept;
         // end ender
@@ -234,7 +237,7 @@ namespace LongUI {
         IDCompositionTarget*    m_pDcompTarget = nullptr;
         // Direct Composition Visual
         IDCompositionVisual*    m_pDcompVisual = nullptr;
-        // now hover track control(1)
+        // now hover track control(only one)
         UIControl*              m_pHoverTracked = nullptr;
         // now focused control (only one)
         UIControl*              m_pFocusedControl = nullptr;

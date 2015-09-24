@@ -81,64 +81,64 @@ void __fastcall LongUI::Meta_Render(
             nullptr
             );
         break;
-    /*case LongUI::BitmapRenderRule::Rule_ButtonLike:
-        // 类按钮
-        // - 原矩形, 宽 > 高 ->
-        // - 原矩形, 宽 < 高 ->
-    {
-        constexpr float MARKER = 0.25f;
-        auto width = meta.src_rect.right - meta.src_rect.left;
-        auto bilibili = width * MARKER / (meta.src_rect.bottom - meta.src_rect.top) *
-            (des_rect.bottom - des_rect.top);
-        D2D1_RECT_F des_rects[3]; D2D1_RECT_F src_rects[3]; D2D1_RECT_F clip_rects[3];
-        // ---------------------------------------
-        des_rects[0] = {
-            des_rect.left, des_rect.top,
-            des_rect.left + bilibili, des_rect.bottom
-        };
-        des_rects[1] = {
-            des_rects[0].right, des_rect.top,
-            des_rect.right - bilibili, des_rect.bottom
-        };
-        des_rects[2] = {
-            des_rects[1].right, des_rect.top,
-            des_rect.right, des_rect.bottom
-        };
-        // ---------------------------------------
-        ::memcpy(clip_rects, des_rects, sizeof(des_rects));
-        if (clip_rects[1].left > des_rects[1].right) {
-            std::swap(clip_rects[1].right, des_rects[1].left);
-            std::swap(des_rects[1].right, des_rects[1].left);
-            clip_rects[0].right = des_rects[1].left;
-            clip_rects[2].left = des_rects[1].right;
+        /*case LongUI::BitmapRenderRule::Rule_ButtonLike:
+            // 类按钮
+            // - 原矩形, 宽 > 高 ->
+            // - 原矩形, 宽 < 高 ->
+        {
+            constexpr float MARKER = 0.25f;
+            auto width = meta.src_rect.right - meta.src_rect.left;
+            auto bilibili = width * MARKER / (meta.src_rect.bottom - meta.src_rect.top) *
+                (des_rect.bottom - des_rect.top);
+            D2D1_RECT_F des_rects[3]; D2D1_RECT_F src_rects[3]; D2D1_RECT_F clip_rects[3];
+            // ---------------------------------------
+            des_rects[0] = {
+                des_rect.left, des_rect.top,
+                des_rect.left + bilibili, des_rect.bottom
+            };
+            des_rects[1] = {
+                des_rects[0].right, des_rect.top,
+                des_rect.right - bilibili, des_rect.bottom
+            };
+            des_rects[2] = {
+                des_rects[1].right, des_rect.top,
+                des_rect.right, des_rect.bottom
+            };
+            // ---------------------------------------
+            ::memcpy(clip_rects, des_rects, sizeof(des_rects));
+            if (clip_rects[1].left > des_rects[1].right) {
+                std::swap(clip_rects[1].right, des_rects[1].left);
+                std::swap(des_rects[1].right, des_rects[1].left);
+                clip_rects[0].right = des_rects[1].left;
+                clip_rects[2].left = des_rects[1].right;
+            }
+            // ---------------------------------------
+            src_rects[0] = {
+                meta.src_rect.left, meta.src_rect.top,
+                meta.src_rect.left + width * MARKER, meta.src_rect.bottom
+            };
+            src_rects[1] = {
+                src_rects[0].right, meta.src_rect.top,
+                meta.src_rect.right - width * MARKER, meta.src_rect.bottom
+            };
+            src_rects[2] = {
+                src_rects[1].right, meta.src_rect.top,
+                meta.src_rect.right, meta.src_rect.bottom
+            };
+            // 正式渲染
+            for (auto i = 0u; i < lengthof(src_rects); ++i) {
+                target->PushAxisAlignedClip(clip_rects + i, D2D1_ANTIALIAS_MODE_ALIASED);
+                target->DrawBitmap(
+                    meta.bitmap,
+                    des_rects[i], opacity,
+                    static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
+                    src_rects[i],
+                    nullptr
+                    );
+                target->PopAxisAlignedClip();
+            }
         }
-        // ---------------------------------------
-        src_rects[0] = {
-            meta.src_rect.left, meta.src_rect.top,
-            meta.src_rect.left + width * MARKER, meta.src_rect.bottom
-        };
-        src_rects[1] = {
-            src_rects[0].right, meta.src_rect.top,
-            meta.src_rect.right - width * MARKER, meta.src_rect.bottom
-        };
-        src_rects[2] = {
-            src_rects[1].right, meta.src_rect.top,
-            meta.src_rect.right, meta.src_rect.bottom
-        };
-        // 正式渲染
-        for (auto i = 0u; i < lengthof(src_rects); ++i) {
-            target->PushAxisAlignedClip(clip_rects + i, D2D1_ANTIALIAS_MODE_ALIASED);
-            target->DrawBitmap(
-                meta.bitmap,
-                des_rects[i], opacity,
-                static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-                src_rects[i],
-                nullptr
-                );
-            target->PopAxisAlignedClip();
-        }
-    }
-    break;*/
+        break;*/
     }
 }
 
@@ -723,7 +723,7 @@ void LongUI::CUIString::OnOOM() noexcept {
     if (LongUIStringFixedLength > length) {
         this->Set(L"Out of Memory", length);
     }
-    else if(LongUIStringFixedLength > 3) {
+    else if (LongUIStringFixedLength > 3) {
         this->Set(L"OOM", 3);
     }
     // 显示错误
@@ -965,7 +965,7 @@ static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i
 /// <param name="binlen">The length of source binary data in byte</param>
 /// <param name="base64">The out data</param>
 /// <returns></returns>
-auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64 ) noexcept -> char * {
+auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64) noexcept -> char * {
     register uint8_t current;
     register auto base64_index = base64;
     // 
@@ -1001,7 +1001,7 @@ auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN si
 }
 
 // 解码
-auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t{
+auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
     // 二进制长度
     register union { uint8_t temp[4]; uint32_t temp_u32; };
     register uint8_t* bindata_index = bindata;
@@ -1040,7 +1040,7 @@ auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, cha
         unsigned short bytesToWrite = 0;
         const char32_t byteMask = 0xBF;
         const char32_t byteMark = 0x80;
-       // const char16_t* oldSource = source; /* In case we have to back up because of target overflow. */
+        // const char16_t* oldSource = source; /* In case we have to back up because of target overflow. */
         ch = *source++;
         /* If we have a surrogate pair, convert to UTF32 first. */
         if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
@@ -1199,7 +1199,7 @@ auto __fastcall LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t
 LongUI::CUIFileLoader::CUIFileLoader() noexcept { }
 
 // CUIFileLoader 析构函数
-LongUI::CUIFileLoader::~CUIFileLoader() noexcept { 
+LongUI::CUIFileLoader::~CUIFileLoader() noexcept {
     if (m_pData) {
         LongUI::NormalFree(m_pData);
         m_pData = nullptr;
@@ -1235,12 +1235,12 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
 LongUI::CUIConsole::CUIConsole() noexcept {
     //::InitializeCriticalSection(&m_cs);  
     m_name[0] = L'\0';
-    { if (m_hConsole != INVALID_HANDLE_VALUE) this->Cleanup(); }
+    { if (m_hConsole != INVALID_HANDLE_VALUE) this->Close(); }
 }
 
 // CUIConsole 析构函数
 LongUI::CUIConsole::~CUIConsole() noexcept {
-    this->Cleanup();
+    this->Close();
     // 关闭
     if (m_hConsole != INVALID_HANDLE_VALUE) {
         ::CloseHandle(m_hConsole);
@@ -1250,7 +1250,7 @@ LongUI::CUIConsole::~CUIConsole() noexcept {
 }
 
 // CUIConsole 关闭
-long LongUI::CUIConsole::Cleanup() noexcept {
+long LongUI::CUIConsole::Close() noexcept {
     if (!(*this))
         return -1;
     else
@@ -1281,7 +1281,7 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
         m_length += len;
         str = nullptr;
         // 不flush
-        if(!flush) return 0;
+        if (!flush) return 0;
     }
     DWORD dwWritten = DWORD(-1);
     // 写入
@@ -1317,7 +1317,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         static float s_times = 1.f;
         std::swprintf(
             logger_name_buffer, lengthof(logger_name_buffer),
-            L"logger_%7.5f", 
+            L"logger_%7.5f",
             float(::GetTickCount()) / float(1000 * 60 * 60) *
             (float(::rand()) / float(RAND_MAX)) * s_times
             );
@@ -1335,7 +1335,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         0,      // 输入缓存
         1,
         nullptr
-    );
+        );
     // 无效
     if (m_hConsole == INVALID_HANDLE_VALUE) {
         ::MessageBoxW(nullptr, L"CreateNamedPipe failed", L"CUIConsole::Create failed", MB_ICONERROR);
@@ -1352,7 +1352,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
     std::swprintf(cmdline, MAX_PATH, L"%ls %ls", config.helper_executable, config.logger_name);
     BOOL bRet = ::CreateProcessW(nullptr, cmdline, nullptr, nullptr, false, CREATE_NEW_CONSOLE, nullptr, nullptr, &si, &pi);
-    if (!bRet)  {
+    if (!bRet) {
         auto path = ::_wgetenv(L"ConsoleLoggerHelper");
         if (path) {
             std::swprintf(cmdline, MAX_PATH, L"%ls %ls", path, config.logger_name);
@@ -1423,7 +1423,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     }
 
     // 传送缓存区大小
-    if (config.buffer_size_x != -1 && config.buffer_size_y != -1)  {
+    if (config.buffer_size_x != -1 && config.buffer_size_y != -1) {
         std::swprintf(buffer, lengthof(buffer), L"BUFFER-SIZE: %dx%d\r\n", config.buffer_size_x, config.buffer_size_y);
         len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
@@ -1437,7 +1437,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     }
 
     // 添加头
-    if (false)  {
+    if (false) {
         ::DisconnectNamedPipe(m_hConsole);
         ::CloseHandle(m_hConsole);
         m_hConsole = INVALID_HANDLE_VALUE;
@@ -1473,7 +1473,7 @@ namespace LongUI {
 auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
     // 资源读取器
     if (riid == LongUI::IID_IUIResourceLoader) {
-        *ppvObject =  LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
+        *ppvObject = LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
     }
     // 脚本
     else if (riid == LongUI::IID_IUIScript) {
@@ -1500,7 +1500,7 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size
 // CUIDefaultConfigure 显示错误信息
 auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t * str_a, const wchar_t* str_b) noexcept -> void {
     assert(str_a && "bad argument!");
-    if(!str_b) str_b = L"Error!";
+    if (!str_b) str_b = L"Error!";
     ::MessageBoxW(::GetForegroundWindow(), str_a, str_b, MB_ICONERROR);
 #ifdef _DEBUG
     assert(!"error");
@@ -1565,11 +1565,11 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
     assert(level < LongUI::DLEVEL_SIZE);
     // 名称
     const wchar_t* strings[LongUI::DLEVEL_SIZE] = {
-        L"None      Console", 
-        L"Log       Console", 
-        L"Hint      Console", 
-        L"Warning   Console", 
-        L"Error     Console", 
+        L"None      Console",
+        L"Log       Console",
+        L"Hint      Console",
+        L"Warning   Console",
+        L"Error     Console",
         L"Fatal     Console"
     };
 
@@ -1613,7 +1613,7 @@ HRESULT LongUI::Component::Video::EventNotify(DWORD event, DWORD_PTR param1, DWO
         //auto hr = HRESULT(param2);
         //int a = 9;
     }
-        break;
+    break;
     }
     return S_OK;
 }
@@ -1722,7 +1722,7 @@ auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
             IDXGISurface* surface = nullptr;
 #if 0
             D3D11_TEXTURE2D_DESC desc = {
-                w, h, 1, 1, DXGI_FORMAT_B8G8R8A8_UNORM, {1, 0}, D3D11_USAGE_DEFAULT, 
+                w, h, 1, 1, DXGI_FORMAT_B8G8R8A8_UNORM, {1, 0}, D3D11_USAGE_DEFAULT,
                 D3D11_BIND_RENDER_TARGET, 0, 0
             };
             hr = UIManager_D3DDevice->CreateTexture2D(&desc, nullptr, &m_pTargetSurface);
@@ -1774,7 +1774,7 @@ auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
 
 
 // π
-static constexpr float EZ_PI   = 3.1415296F;
+static constexpr float EZ_PI = 3.1415296F;
 // 二分之一π
 static constexpr float EZ_PI_2 = 1.5707963F;
 

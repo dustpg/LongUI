@@ -40,8 +40,9 @@ namespace LongUI {
         //virtual auto Recreate() noexcept->HRESULT override;
         // 刷新
         virtual void Update() noexcept override;
+    private:
         // clean this control 清除控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -75,12 +76,15 @@ namespace LongUI {
         // update
         virtual void Update() noexcept override;
         // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // do mouse event 
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
+    private:
         // clean this control 清除控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
+        // init
+        virtual void InitMarginalControl(MarginalControl _type) noexcept;
         // update width in marginal
         virtual void UpdateMarginalWidth() noexcept override;
     public:
@@ -127,6 +131,9 @@ namespace LongUI {
             // default flag
             Flag_Default = 0,
         };
+    private:
+        // clean up
+        virtual void cleanup() noexcept override;
     public:
         // render this
         virtual void Render(RenderType) const noexcept override;
@@ -136,8 +143,6 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate this
         virtual auto Recreate() noexcept->HRESULT override;
-        // clean up
-        virtual void Cleanup() noexcept override;
         // find child control by mouse point
         virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* override final;
     public:
@@ -161,6 +166,10 @@ namespace LongUI {
         // set element width
         void SetElementWidth(uint32_t index, float width) noexcept;
     private:
+        // sort line <
+        auto sort_line_less() noexcept;
+        // sort line >
+        auto sort_line_greater() noexcept;
         // init
         void init_layout() noexcept;
         // set new elements count
@@ -195,9 +204,7 @@ namespace LongUI {
     protected:
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
-#endif
     };
-#ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
     template<> LongUIInline const IID& GetIID<LongUI::UIListLine>() {
         // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
@@ -222,6 +229,8 @@ namespace LongUI {
         };
         return IID_LongUI_UIListHeader;
     }
+#else
+    };
 #endif
     // operator for UIList::UIListFlag
     LONGUI_DEFINE_ENUM_FLAG_OPERATORS(UIList::UIListFlag, uint32_t);

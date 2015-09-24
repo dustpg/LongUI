@@ -17,13 +17,13 @@ namespace LongUI { namespace Demo {
     class MainWindow final : public UIWindow {
         // super class
         using Super = UIWindow;
+        // clean up
+        virtual void cleanup() noexcept override { delete this; }
     public:
         // ctor
         MainWindow(pugi::xml_node node, UIWindow* parent) : Super(node, parent) {}
         // do some event
         virtual bool DoEvent(const EventArgument& arg) noexcept override;
-        // clean up
-        virtual void Cleanup() noexcept override { delete this; }
         // clean up
         virtual bool OnClose() noexcept override {
             // only one window remain ?
@@ -32,7 +32,7 @@ namespace LongUI { namespace Demo {
             }
             // delete this
             else {
-                this->Cleanup();
+                this->cleanup();
             }
             return true;
         }

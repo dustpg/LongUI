@@ -154,38 +154,41 @@ namespace LongUI {
     public: // 隐形转换区
         // 转换为 LongUIRenderTarget
 #define UIManager_RenderTarget (static_cast<ID2D1DeviceContext*>(UIManager))
-        LongUIInline operator ID2D1DeviceContext*()const noexcept { return m_pd2dDeviceContext; };
+        inline operator ID2D1DeviceContext*() const noexcept { return m_pd2dDeviceContext; };
         // 转换为 DXGI Factory2
 #define UIManager_DXGIFactory (static_cast<IDXGIFactory2*>(UIManager))
-        LongUIInline operator IDXGIFactory2*()const noexcept { return m_pDxgiFactory; };
+        inline operator IDXGIFactory2*()const noexcept { return m_pDxgiFactory; };
         // 转换为 D3D11 Device
 #define UIManager_D3DDevice  (static_cast<ID3D11Device*>(UIManager))
-        LongUIInline operator ID3D11Device*()const noexcept { return m_pd3dDevice; };
+        inline operator ID3D11Device*()const noexcept { return m_pd3dDevice; };
         // 转换为 D3D11 Device Context
 #define UIManager_D3DContext (static_cast<ID3D11DeviceContext*>(UIManager))
-        LongUIInline operator ID3D11DeviceContext*()const noexcept { return m_pd3dDeviceContext; };
+        inline operator ID3D11DeviceContext*()const noexcept { return m_pd3dDeviceContext; };
         // 转换为 D2D1 Device
 #define UIManager_D2DDevice  (static_cast<ID2D1Device*>(UIManager))
-        LongUIInline operator ID2D1Device*()const noexcept { return m_pd2dDevice; };
+        inline operator ID2D1Device*()const noexcept { return m_pd2dDevice; };
         // 转换为 DXGI Device1
 #define UIManager_DXGIDevice (static_cast<IDXGIDevice1*>(UIManager))
-        LongUIInline operator IDXGIDevice1*()const noexcept { return m_pDxgiDevice; };
+        inline operator IDXGIDevice1*()const noexcept { return m_pDxgiDevice; };
         // 转换为 DXGI Adapter
 #define UIManager_DXGIAdapter (static_cast<IDXGIAdapter*>(UIManager))
-        LongUIInline operator IDXGIAdapter*()const noexcept { return m_pDxgiAdapter; };
+        inline operator IDXGIAdapter*()const noexcept { return m_pDxgiAdapter; };
         // 转换为 DWrite Factory1
 #define UIManager_DWriteFactory (static_cast<IDWriteFactory1*>(UIManager))
-        LongUIInline operator IDWriteFactory1*()const noexcept { return m_pDWriteFactory; };
+        inline operator IDWriteFactory1*()const noexcept { return m_pDWriteFactory; };
         // 转换为 D2D Factory1
 #define UIManager_D2DFactory (static_cast<ID2D1Factory1*>(UIManager))
-        LongUIInline operator ID2D1Factory1*()const noexcept { return m_pd2dFactory; };
+        inline operator ID2D1Factory1*()const noexcept { return m_pd2dFactory; };
+        // 转换为 Tf Thread Mgr
+#define UIManager_TfThreadMgr (static_cast<ITfThreadMgr*>(UIManager))
+        inline operator ITfThreadMgr*()const noexcept { return m_pTsfThreadManager; };
 #ifdef LONGUI_VIDEO_IN_MF
         // 转换为  IMFDXGIDeviceManager
 #   define UIManager_MFDXGIDeviceManager (static_cast<IMFDXGIDeviceManager*>(UIManager))
-        LongUIInline operator IMFDXGIDeviceManager*()const noexcept { return m_pMFDXGIManager; };
+        inline operator IMFDXGIDeviceManager*()const noexcept { return m_pMFDXGIManager; };
         // 转换为  IMFMediaEngineClassFactory
 #   define UIManager_MFMediaEngineClassFactory (static_cast<IMFMediaEngineClassFactory*>(UIManager))
-        LongUIInline operator IMFMediaEngineClassFactory*()const noexcept { return m_pMediaEngineFactory; };
+        inline operator IMFMediaEngineClassFactory*()const noexcept { return m_pMediaEngineFactory; };
         // MF Dxgi设备管理器
         IMFDXGIDeviceManager*           m_pMFDXGIManager = nullptr;
         // MF 媒体引擎
@@ -230,6 +233,8 @@ namespace LongUI {
         // debug object
         ID3D11Debug*                    m_pd3dDebug = nullptr;
 #endif
+        // thread manager for TSF
+        ITfThreadMgr*                   m_pTsfThreadManager = nullptr;
         // text renderer
         CUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
         // system brush
@@ -286,8 +291,8 @@ namespace LongUI {
         uint32_t                        m_dwWaitVSStartTime = 0;
         // delta time in sec.
         float                           m_fDeltaTime = 0.f;
-        // unused float
-        float                           m_fUnused = 0.f;
+        // id for client
+        TfClientId                      m_idTsfClient = 0;
         // textrender: normal
         CUINormalTextRender             m_normalTRenderer;
         // xml doc for window

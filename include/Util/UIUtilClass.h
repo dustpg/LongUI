@@ -378,7 +378,7 @@ namespace LongUI {
         // create a new console foe this app
         long Create(const wchar_t*, Config& config) noexcept;
         // close this
-        long Cleanup() noexcept;
+        long Close() noexcept;
         // output the string
         long Output(const wchar_t* str, bool flush, long len = -1) noexcept;
     protected:

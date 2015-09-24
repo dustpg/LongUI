@@ -144,8 +144,9 @@ namespace LongUI {
         bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate
         auto Recreate() noexcept->HRESULT override;
+    private:
         // close this control 关闭控件
-        void Cleanup() noexcept override;
+        void cleanup() noexcept override;
     public:
         // init sb
         virtual void InitMarginalControl(MarginalControl _type) noexcept override;
@@ -194,11 +195,11 @@ namespace LongUI {
     class UIScrollBarB : public UIScrollBar {
         // 父类申明
         using Super = UIScrollBar;
+        // close this control 关闭控件
+        void cleanup() noexcept override;
     public:
         // update
         void Update() noexcept override;
-        // close this control 关闭控件
-        void Cleanup() noexcept override;
         // update width of marginal
         virtual void UpdateMarginalWidth() noexcept override {}
     public:

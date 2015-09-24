@@ -46,8 +46,9 @@ namespace LongUI{
         virtual auto Recreate() noexcept->HRESULT override;
         // register ui call
         virtual bool AddEventCall(SubEvent sb, UICallBack& call) noexcept override;
+    private:
         // close this control 关闭控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;

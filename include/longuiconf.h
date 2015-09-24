@@ -110,6 +110,9 @@ namespace LongUI {
 #include <map>
 #include <new>
 
+// TSF
+#include <Msctf.h>
+
 // RichEdit for EditEx
 #include <Richedit.h>
 #include <Textserv.h>

@@ -84,8 +84,8 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
             &m_pLayout
             );
     }
-        m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
-        break;
+    m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
+    break;
     case LongUI::RichType::Type_Core:
         m_pLayout = DX::FormatTextCore(m_config, m_text.c_str());
         break;
@@ -134,7 +134,7 @@ void LongUI::Component::EditaleText::recreate_layout() noexcept {
 
 // 插入字符(串)
 auto LongUI::Component::EditaleText::insert(
-    uint32_t pos, const wchar_t * str,  uint32_t length) noexcept -> HRESULT {
+    uint32_t pos, const wchar_t * str, uint32_t length) noexcept -> HRESULT {
     HRESULT hr = S_OK;
     // 只读
     if (this->IsReadOnly()) {
@@ -142,7 +142,7 @@ auto LongUI::Component::EditaleText::insert(
         return S_FALSE;
     }
     // 插入字符
-    m_string.insert(pos, str, length); 
+    m_string.insert(pos, str, length);
     auto old_length = static_cast<uint32_t>(m_string.length());
     // 保留旧布局
     auto old_layout = ::SafeAcquire(this->layout);
@@ -190,7 +190,7 @@ auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE
     caretBegin = std::min(caretBegin, textLength);
     caretEnd = std::min(caretEnd, textLength);
     // 返回范围
-    return { caretBegin, caretEnd - caretBegin };
+    return{ caretBegin, caretEnd - caretBegin };
 }
 
 // 设置选择区
@@ -646,7 +646,7 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
             // 修改
             this->SetSelection(SelectionMode::Mode_Leading, hitTestMetrics.textPosition, false);
             // 删除字符
-            if(this->remove_text(hitTestMetrics.textPosition, hitTestMetrics.length)) {
+            if (this->remove_text(hitTestMetrics.textPosition, hitTestMetrics.length)) {
                 this->recreate_layout();
             }
         }
@@ -886,7 +886,7 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
     }
 #endif
     // 选择区域
-    if (m_bufMetrice.GetCount()) { 
+    if (m_bufMetrice.GetCount()) {
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
         // 遍历
         for (const auto& htm : m_bufMetrice) {
@@ -1482,7 +1482,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
     m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
         Helper::XMLGetValue(node, "hovermeta", prefix)
         ));
-        // 按下状态Meta ID
+    // 按下状态Meta ID
     m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
         Helper::XMLGetValue(node, "pushedmeta", prefix)
         ));

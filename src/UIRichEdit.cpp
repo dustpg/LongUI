@@ -158,7 +158,7 @@ HRESULT LongUI::UIRichEdit::Recreate() noexcept {
 }
 
 // close this control 关闭控件
-void LongUI::UIRichEdit::Cleanup() noexcept {
+void LongUI::UIRichEdit::cleanup() noexcept {
     delete this;
 }
 

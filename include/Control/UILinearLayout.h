@@ -39,8 +39,9 @@ namespace LongUI{
         //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate
         //virtual auto Recreate() noexcept->HRESULT override;
+    private:
         // clean this
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // refresh layout
         virtual void RefreshLayout() noexcept override final;
@@ -72,8 +73,9 @@ namespace LongUI{
         //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
+    private:
         // close this control 关闭控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // refresh layout
         virtual void RefreshLayout() noexcept override final;

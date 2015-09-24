@@ -56,10 +56,12 @@ namespace LongUI {
         // push back
         virtual void PushBack(UIControl* child) noexcept = 0;
         // just remove 
-        virtual void RemoveJust(UIControl* child) noexcept = 0;
+        virtual void RemoveJust(UIControl* child) noexcept { this->RemoveChildReference(child); }
         // remove and clean child
-        void RemoveClean(UIControl* child) noexcept { this->RemoveJust(child); child->Cleanup(); }
+        void RemoveClean(UIControl* child) noexcept { this->RemoveJust(child); child->cleanup(); }
     public:
+        // remove child reference
+        void RemoveChildReference(UIControl* child) noexcept { if (m_pMousePointed == child) m_pMousePointed = nullptr; }
         // ctor
         UIContainer(UIContainer* cp, pugi::xml_node node) noexcept;
         // cast to CreateEventType
@@ -126,18 +128,22 @@ namespace LongUI {
         // refresh marginal controls
         void refresh_marginal_controls() noexcept;
         // auto template size
-        void refresh_auto_template_size();
+        ///void refresh_auto_template_size();
     protected:
-        // dtor
-        ~UIContainer() noexcept;
         // do render for child
         static void child_do_render(const UIControl* ctrl) noexcept;
+        // cleanup child
+        void cleanup_child(UIControl* ctrl) noexcept { assert(ctrl && ctrl->parent == this); ctrl->cleanup(); }
+        // dtor
+        ~UIContainer() noexcept;
         // after insert
         void after_insert(UIControl* child) noexcept;
     public:
-        // marginal controls
+        // marginal controls, store 'CreateControlFunction' before control-tree finished to save memory
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
+        // marginal controls template id array
+        uint16_t                m_aMCTid[UIMarginalable::MARGINAL_CONTROL_SIZE];
         // mouse pointed control
         UIControl*              m_pMousePointed = nullptr;
         // count of children, just make "GetLength/Count" to faster

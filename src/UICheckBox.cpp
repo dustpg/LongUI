@@ -163,6 +163,6 @@ auto LongUI::UICheckBox::Recreate() noexcept ->HRESULT {
 }
 
 // 关闭控件
-void LongUI::UICheckBox::Cleanup() noexcept {
+void LongUI::UICheckBox::cleanup() noexcept {
     delete this;
 }

@@ -54,8 +54,9 @@ namespace LongUI{
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
+    private:
         // close this control 关闭控件
-        virtual void Cleanup() noexcept override;
+        virtual void cleanup() noexcept override;
     public:
         // is canbe indeterminate state?
         auto IsCanbeIndeterminate() const noexcept { return m_bCanbeIndeterminate; }
