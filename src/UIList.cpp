@@ -160,22 +160,49 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
+// 排序算法
+void LongUI::UIList::sort_line(bool(*cmp)(void* a, void* b) ) noexcept {
+#ifdef _DEBUG
+    // cmp 会比较复杂, 模板带来的性能提升还不如用函数指针来节约代码大小
+    auto timest = ::timeGetTime();
+#endif
+    // 快速排序
+    if (this->GetCount() >= m_cFastSortThreshold) {
+        std::sort(m_controls.begin(), m_controls.end(), cmp);
+    }
+    // 冒泡排序
+    else {
+        LongUI::BubbleSort(m_controls.begin(), m_controls.end(), cmp);
+    }
+#ifdef _DEBUG
+    timest = ::timeGetTime() - timest;
+    if (timest) {
+        UIManager << DL_Hint
+            << "sort take time: "
+            << long(timest)
+            << " ms"
+            << LongUI::endl;
+    }
+    if (this->debug_this) {
+        UIManager << DL_Log
+            << "sort take time: "
+            << long(timest)
+            << " ms"
+            << LongUI::endl;
+    }
+#endif
+}
+
 // 小于, 行排序
 auto LongUI::UIList::sort_line_less() noexcept {
     // 小于
     auto cmp = [](void* a, void* b) noexcept {
         assert(a && b && "bad arguments");
-        auto linea = longui_cast<UIListLine*>(a);
-        auto lineb = longui_cast<UIListLine*>(b);
-        return linea->GetToBeSortedData() < lineb->GetToBeSortedData();
+        auto ctrla = longui_cast<UIListLine*>(a)->GetToBeSorted();
+        auto ctrlb = longui_cast<UIListLine*>(b)->GetToBeSorted();
+        assert(ctrla && ctrlb && "bad action");
+        return ctrla->user_data < ctrla->user_data;
     };
-    // 快速排序
-    if (this->GetCount() >= m_cFastSortThreshold) {
-        std::sort(m_controls.begin(), m_controls.end(), cmp);
-    }
-    else {
-        LongUI::BubbleSort(m_controls.begin(), m_controls.end(), cmp);
-    }
 }
 
 // 大于, 行排序
@@ -183,9 +210,10 @@ auto LongUI::UIList::sort_line_greater() noexcept {
     // 大于
     auto cmp = [](void* a, void* b) noexcept {
         assert(a && b && "bad arguments");
-        auto linea = longui_cast<UIListLine*>(a);
-        auto lineb = longui_cast<UIListLine*>(b);
-        return linea->GetToBeSortedData() > lineb->GetToBeSortedData();
+        auto ctrla = longui_cast<UIListLine*>(a)->GetToBeSorted();
+        auto ctrlb = longui_cast<UIListLine*>(b)->GetToBeSorted();
+        assert(ctrla && ctrlb && "bad action");
+        return ctrla->user_data > ctrla->user_data;
     };
     // 快速排序
     if (this->GetCount() >= m_cFastSortThreshold) {
@@ -509,7 +537,7 @@ void LongUI::UIListHeader::InitMarginalControl(MarginalControl _type) noexcept {
     // 设置列表头
     longui_cast<UIList*>(this->parent)->SetHeader(this);
     // 检查是否可以排序
-    if (list->list_flag & UIList::Flag_SortableLineWithUserData) {
+    if (list->list_flag & UIList::Flag_SortableLineWithUserDataPtr) {
 
     }
 }

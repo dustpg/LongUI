@@ -49,7 +49,7 @@ namespace LongUI {
         // ctor
         UIListLine(UIContainer* cp, pugi::xml_node node) noexcept;
         // get sorted data
-        auto GetToBeSortedData() const noexcept ->uint32_t { return m_pToBeSorted ? m_pToBeSorted->user_data : 0ui32 ; }
+        auto GetToBeSorted() const noexcept { return m_pToBeSorted; }
         // set to be sorted control
         auto SetToBeSorted(uint32_t index) noexcept { m_pToBeSorted = this->GetAt(index); }
     protected:
@@ -124,8 +124,8 @@ namespace LongUI {
     public:
         // flag for UIList
         enum UIListFlag : uint32_t {
-            // sortable list line in UIControl::user_data
-            Flag_SortableLineWithUserData = 1 << 0,
+            // sortable list line in UIControl::user_data(Integer) or user_ptr(const wchar_t*)
+            Flag_SortableLineWithUserDataPtr = 1 << 0,
             // the sequence of element could be changed by mouse drag if header exsit
             Flag_DraggableHeaderSequence = 1 << 1,
             // default flag
@@ -166,6 +166,8 @@ namespace LongUI {
         // set element width
         void SetElementWidth(uint32_t index, float width) noexcept;
     private:
+        // sort line
+        void sort_line(bool(*)(void* a, void* b)) noexcept;
         // sort line <
         auto sort_line_less() noexcept;
         // sort line >
@@ -181,6 +183,8 @@ namespace LongUI {
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
         UIList(UIContainer* cp, pugi::xml_node node) noexcept;
+        // get conttrols
+        const auto&GetContainer() const noexcept { return m_controls; }
     protected:
         // dtor
         ~UIList() noexcept;
