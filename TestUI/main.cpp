@@ -468,7 +468,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
             // 作战控制终止!
             UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
             // 反初始化 UI管理器
-            UIManager.UnInitialize();
+            UIManager.Uninitialize();
         }
         // 反初始化 COM 与 OLE
         ::OleUninitialize();
@@ -581,7 +581,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             // my style
             UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
             // cleanup longui
-            UIManager.UnInitialize();
+            UIManager.Uninitialize();
         }
     }
     // cleanup ole and com

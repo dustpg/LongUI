@@ -15,7 +15,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, char*, int) {
     UIManager.Initialize();
     UIManager.CreateUIWindow(hello_world);
     UIManager.Run();
-    UIManager.UnInitialize();
+    UIManager.Uninitialize();
     ::OleUninitialize();
     return 0;
 }

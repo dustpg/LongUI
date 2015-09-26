@@ -230,7 +230,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
 
 
 // CUIManager  反初始化
-void LongUI::CUIManager::UnInitialize() noexcept {
+void LongUI::CUIManager::Uninitialize() noexcept {
     this->do_creating_event(LongUI::CreateEventType::Type_Uninitialize);
     // 释放文本渲染器
     for (auto& renderer : m_apTextRenderer) {

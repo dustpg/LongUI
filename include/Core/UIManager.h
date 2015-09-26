@@ -49,7 +49,7 @@ namespace LongUI {
         // initialize 初始化
         auto Initialize(IUIConfigure* = nullptr) noexcept->HRESULT;
         // uninitialize 反初始化
-        void UnInitialize() noexcept;
+        void Uninitialize() noexcept;
         // run 运行
         void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系

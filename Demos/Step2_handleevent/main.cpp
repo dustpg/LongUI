@@ -21,7 +21,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             UIManager << DL_Hint << L"Battle Control Terminated!" << LongUI::endl;
         }
         // cleanup longui
-        UIManager.UnInitialize();
+        UIManager.Uninitialize();
     }
     // cleanup ole and com
     ::OleUninitialize();
