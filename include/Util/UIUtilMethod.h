@@ -43,6 +43,8 @@ constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
 
 // get IID form typename, __uuidof is just impl in MSC
 namespace LongUI {
+    // lengthof
+    template<typename T> constexpr auto lengthof(T& t) { UNREFERENCED_PARAMETER(t); return sizeof(t) / sizeof(*t); }
     // white space
     static auto white_space(char c) noexcept { return ((c) == ' ' || (c) == '\t'); }
     // valid digit

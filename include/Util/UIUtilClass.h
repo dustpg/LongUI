@@ -537,4 +537,34 @@ namespace LongUI {
         // unused
         size_t          unused = 0;
     };
+    // singleton
+    /*template<typename T>
+    struct CUISingleton {
+        // ptr
+        auto Ptr() noexcept { return reinterpret_cast<T*>(this->buffer); }
+        // create
+        template<typename ...Args> auto Create(Args... args) {
+#ifdef _DEBUG
+            assert(state == 0 && "create this after destory!");
+            state++;
+#endif
+            return new(this->buffer) T(args);
+        }
+        // destory
+        auto Destory() noexcept {
+#ifdef _DEBUG
+            assert(state != 0 && "destory this after create!");
+            --state;
+#endif
+            this->Ptr()->~T();
+        }
+        // buffer for  singleton
+        alignas(T)  char    buffer[sizeof(T)];
+#ifdef _DEBUG
+        // state
+        size_t              state = 0;
+#endif
+        // singleton
+        static CGMSingleton<T>      s_instance;
+    };*/
 }

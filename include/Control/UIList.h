@@ -183,8 +183,13 @@ namespace LongUI {
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
         UIList(UIContainer* cp, pugi::xml_node node) noexcept;
+        // sort as element[index]
+        void Sort(uint32_t index) noexcept;
         // get conttrols
         const auto&GetContainer() const noexcept { return m_controls; }
+        // add before sort callback
+        template<typename T>
+        auto AddBeforSortVallBack(T lam) noexcept { m_callBeforSort += lam; }
     protected:
         // dtor
         ~UIList() noexcept;
@@ -196,6 +201,8 @@ namespace LongUI {
         uint32_t                m_cFastSortThreshold = 32;
         // list header
         UIListHeader*           m_pHeader = nullptr;
+        // befor sort
+        UICallBack              m_callBeforSort;
         // line height
         float                   m_fLineHeight = 32.f;
         // elements count in each line

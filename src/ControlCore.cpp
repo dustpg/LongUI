@@ -551,7 +551,7 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     assert(child && "bad argument");
     // 添加到窗口速查表
     if (child->GetName().length()) {
-        std::pair<LongUI::CUIString, void*> pair{ child->GetName(), this };
+        std::pair<LongUI::CUIString, void*> pair{ child->GetName(), child };
         m_pWindow->AddControl(pair);
     };
     // 大小判断
@@ -607,7 +607,7 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     auto init_this = [this](const LongUI::EventArgument& arg) noexcept {
         auto flag = this->flags;
         // 初始化边缘控件 
-        for (auto i = 0; i < lengthof(this->marginal_control); ++i) {
+        for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
             auto func = this->marginal_control[i];
             if (!func) continue;
             // 创建
@@ -1087,9 +1087,9 @@ bool LongUI::UIControl::subevent_call_helper(const UICallBack& call, SubEvent sb
     arg.ui.subevent = sb;
     arg.ui.pointer = nullptr;
     arg.ctrl = nullptr;
-    // 脚本优先
+    // 脚本总会
     if (UIManager.script && m_script.script) {
-        return UIManager.script->Evaluation(this->GetScript(), arg);
+        UIManager.script->Evaluation(this->GetScript(), arg);
     }
     // 回调其次
     if (call.IsOK()) {

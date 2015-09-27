@@ -61,10 +61,6 @@ namespace LongUI {
 // using Media Foundation to play video file?
 #define LONGUI_VIDEO_IN_MF
 
-// get length of array even class
-#ifndef lengthof
-#define lengthof(a) (sizeof(a)/sizeof(*a))
-#endif
 
 #ifndef LongUIInline
 #define LongUIInline __forceinline

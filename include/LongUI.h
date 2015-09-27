@@ -153,9 +153,7 @@ namespace LongUI {
     // template<template<>, class T2> auto longui_cast<LongUI::UIControl*>(T2 ptr) noexcept ->LongUI::UIControl* { return static_cast<LongUI::UIControl*>(ptr); };
 #else
     template<class T1, class T2> 
-    inline auto longui_cast(T2 ptr) noexcept->T1 {
-        return static_cast<T1>(ptr);
-    }
+    inline auto longui_cast(T2 ptr) noexcept { return static_cast<T1>(ptr); }
 #endif
     // LTWH模型矩形
     template<typename T> struct RectLTWH { RectLTWH() {} T left=T(0), top = T(0), width = T(0), height = T(0); };
@@ -320,19 +318,22 @@ namespace LongUI {
         /// <summary>
         /// The event to signal that control-tree buliding finished
         /// </summary>
+        /// <remarks> no ex-information</remarks>
         Event_TreeBulidingFinished = 0,
-        // sub event, use for event callback
+        // [ui-exdata]sub event, use for event callback
         Event_SubEvent,
-        // command, keyboard direct-access(like type 'Eenter')
+        // [none-exdata]command, keyboard direct-access(like type 'Eenter')
         Event_Command,
-        // set keyboard focus
+        // [none-exdata]set keyboard focus
         Event_SetFocus,
-        // kill keyboard focus
+        // [none-exdata]kill keyboard focus
         Event_KillFocus,
+        // [none-exdata]timer when SetTime
+        Event_Timer,
         // notify all children(but sender)
         //Event_NotifyChildren,
         // ----- User Custom Defined Event -----
-        Event_Custom = 0x100,
+        Event_UserDefined = 0x100,
     };
     // LongUI Sub Event
     enum class SubEvent : size_t {

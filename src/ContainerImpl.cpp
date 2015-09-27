@@ -166,6 +166,14 @@ LongUI::UIContainerBuiltIn::~UIContainerBuiltIn() noexcept {
     }
 }
 
+// 获取控件索引
+auto LongUI::UIContainerBuiltIn::GetIndexOf(UIControl* child) const noexcept ->uint32_t {
+    assert(this == child->parent && "不是亲生的");
+    uint32_t index = 0;
+    for (auto ctrl : (*this)) if (ctrl == child) break;
+    return index;
+}
+
 // 随机访问控件
 auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl * {
     // 性能警告

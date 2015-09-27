@@ -119,6 +119,10 @@ namespace LongUI {
         // impl for IDropTarget::Drop
         HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) noexcept override;
     public:
+        // set/update timer, must call killtimer it when control deleted
+        void SetTimer(UIControl* ctrl, uint32_t time) noexcept { assert(ctrl); ::SetTimer(m_hwnd, UINT_PTR(ctrl), time, nullptr); }
+        // kill timer
+        void KillTimer(UIControl* ctrl) noexcept { assert(ctrl); ::KillTimer(m_hwnd, UINT_PTR(ctrl)); }
         // remove control reference
         void RemoveControlReference(UIControl* ctrl) noexcept;
         // begin render

@@ -62,7 +62,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <List debug="true" name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
+    <List sort="true" name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine>
             <Text text="1" templateid="4"/>
             <Text text="2" templateid="4"/>
@@ -116,7 +116,14 @@ private:
     // clean up
     virtual void cleanup() noexcept override { this->~MainWindow(); }
     // init
-    void init();
+    void init() {
+        auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl(L"lst_01"));
+        if (list) {
+            list->AddBeforSortVallBack([](LongUI::UIControl* list) {
+                return true;
+            });
+        }
+    }
     // on number button clicked
     void number_button_clicked(LongUI::UIControl* btn);
     // on plus
@@ -490,7 +497,7 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
             return true;*/
         case LongUI::Event::Event_TreeBulidingFinished:
             // Event_TreeBulidingFinished could as "init" event
-            //this->init();
+            this->init();
             // super will send this event to children
             __fallthrough;
         default:

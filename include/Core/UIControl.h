@@ -41,7 +41,7 @@ namespace LongUI {
         friend class UIContainer;
     public:
         // register ui call from lambda/functor/function pointer
-        template<typename T> auto AddEventCall(T& call, SubEvent sb) noexcept {
+        template<typename T> auto AddEventCall(T call, SubEvent sb) noexcept {
             auto ok = this->AddEventCall(sb, UICallBack(call));
             assert(ok && "this control do not support this event!");
             return ok;
@@ -184,9 +184,28 @@ namespace LongUI {
             Index_ChangeSizeHandled,
             // control world changed, if you have handled it
             Index_ChangeWorldHandled,
+            // state for user
+            Index_StateUser,
+            // state for parent
+            Index_StateParent,
+            // state for window
+            Index_StateWindow,
         };
         // boolx16
         Helper::BitArray16      m_bool16;
+    public:
+        // set state
+        auto SetUserState(bool b) noexcept { m_bool16.SetTo(Index_StateUser, b); }
+        // test state
+        auto TestUserState() noexcept { return m_bool16.Test(Index_StateUser); }
+        // set state
+        auto SetParentState(bool b) noexcept { m_bool16.SetTo(Index_StateParent, b); }
+        // test state
+        auto TestParentState() noexcept { return m_bool16.Test(Index_StateParent); }
+        // set state
+        auto SetWindowState(bool b) noexcept { m_bool16.SetTo(Index_StateWindow, b); }
+        // test state
+        auto TestWindowState() noexcept { return m_bool16.Test(Index_StateWindow); }
     public:
         // priority for rendering
         uint8_t         const   priority = Priority_Normal;

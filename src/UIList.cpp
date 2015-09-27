@@ -12,6 +12,7 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
     catch (...) {
         assert(!"oom just less 1kb!");
     }
+    auto listflag = this->list_flag;
     if (node) {
         const char* str = nullptr;
         // 行高度
@@ -28,7 +29,13 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
                 Helper::MakeCC(str, m_bufLineTemplate.GetData());
             }
         }
+        // 允许排序
+        if (node.attribute("sort").as_bool(false)) {
+            listflag |= this->Flag_SortableLineWithUserDataPtr;
+        }
+
     }
+    this->list_flag = listflag;
 }
 
 // 获取参考控件
@@ -88,6 +95,23 @@ auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
     }
     catch (...) {
         assert(!"exp!");
+    }
+}
+
+// 排序
+void LongUI::UIList::Sort(uint32_t index) noexcept {
+    // 有必要再说
+    if ((this->list_flag & Flag_SortableLineWithUserDataPtr) 
+        && m_controls.size() > 1 
+        && index < static_cast<UIContainer*>(m_controls[0])->GetCount()) {
+        assert(static_cast<UIControl*>(m_controls[0])->flags & Flag_UIContainer);
+        // 设置待排序控件
+        for (auto vctrl : m_controls) {
+            auto line = static_cast<UIListLine*>(vctrl);
+            line->SetToBeSorted(index);
+        }
+        // 排序前
+        m_callBeforSort(this);
     }
 }
 
@@ -457,6 +481,26 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         }
         return static_cast<UIControl*>(nullptr);
     };
+    // -------------------------- set sort data
+    auto set_sort_data = [this, &arg]() noexcept {
+        // 遍历子控件
+        for (auto ctrl : (*this)) {
+            // 悬浮在鼠标处
+            if (IsPointInRect(ctrl->visible_rect, arg.pt)) {
+                // 没有设置
+                if (!ctrl->TestParentState()) {
+                    // 设置点击事件
+                    ctrl->AddEventCall([this](UIControl* child) noexcept {
+                        longui_cast<UIList*>(this->parent)->Sort(this->GetIndexOf(child));
+                        return true;
+                    }, SubEvent::Event_ItemClicked);
+                    // 设置了
+                    ctrl->SetParentState(true);
+                }
+                break;
+            }
+        }
+    };
     // -------------------------- on mouse move
     auto on_mouse_move = [this, &arg](UIControl* hovered) noexcept {
         if (hovered) {
@@ -501,13 +545,22 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
             }
             break;
         case LongUI::MouseEvent::Event_LButtonDown:
+            // 边界拖拽
             if (hover_sep) {
                 m_pSepHovered = hover_sep;
                 m_pWindow->SetCapture(this);
                 m_fLastMousePosX = arg.pt.x;
             }
+            else {
+                // 设置排序
+                if ((static_cast<UIList*>(this->parent)->list_flag
+                    & UIList::Flag_SortableLineWithUserDataPtr)) {
+                    set_sort_data();
+                }
+            }
             break;
         case LongUI::MouseEvent::Event_LButtonUp:
+            // 边界拖拽
             if (m_pSepHovered) {
                 m_pWindow->ReleaseCapture();
                 m_pSepHovered = nullptr;
@@ -536,10 +589,6 @@ void LongUI::UIListHeader::InitMarginalControl(MarginalControl _type) noexcept {
     auto list = longui_cast<UIList*>(this->parent);
     // 设置列表头
     longui_cast<UIList*>(this->parent)->SetHeader(this);
-    // 检查是否可以排序
-    if (list->list_flag & UIList::Flag_SortableLineWithUserDataPtr) {
-
-    }
 }
 
 

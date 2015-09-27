@@ -92,6 +92,8 @@ namespace LongUI {
         // just remove 
         virtual void RemoveJust(UIControl* child) noexcept override final;
     public:
+        // get index of ctrl in [0, length), return OOR value if not found
+        auto GetIndexOf(UIControl*) const noexcept ->uint32_t;
         // get control at index
         auto GetAt(uint32_t i) const noexcept ->UIControl*;
         // move to

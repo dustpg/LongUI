@@ -621,6 +621,32 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
 
 // UIWindow 事件处理
 bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 有了匿名函数妈妈再也不用担心一条函数有N行了
+    // -------------------- On  Timer   ------------
+    auto on_timer = [this](WPARAM wParam) {
+        // 小于1K认为是常量数据
+        if (static_cast<UINT_PTR>(wParam) < 1024) {
+            // 闪烁?
+            if (wParam == BLINK_EVENT_ID) {
+                if (m_cShowCaret) {
+                    m_baBoolWindow.SetNot(Index_CaretIn);
+                    m_baBoolWindow.SetTrue(Index_DoCaret);
+                }
+                return true;
+            }
+            return false;
+        }
+        // 大于1K认为是指针
+        else {
+            assert((wParam & 3) == 0 && "bad action");
+            LongUI::EventArgument timer_event;
+            ::memset(&timer_event, 0, sizeof(timer_event));
+            timer_event.sender = this;
+            timer_event.event = LongUI::Event::Event_Timer;
+            return reinterpret_cast<UIControl*>(wParam)->DoEvent(timer_event);
+        }
+    };
+    // -------------------- Main DoEvent------------
     // 这里就不处理LongUI事件了 交给父类吧
     if (arg.sender) return Super::DoEvent(arg);
     // 其他LongUI事件
@@ -652,14 +678,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     }
     break;*/
     case WM_TIMER:
-        // 闪烁?
-        if (arg.sys.wParam == BLINK_EVENT_ID) {
-            if (m_cShowCaret) {
-                m_baBoolWindow.SetNot(Index_CaretIn);
-                m_baBoolWindow.SetTrue(Index_DoCaret);
-            }
-            handled = true;
-        }
+        handled = on_timer(arg.sys.wParam);
         break;
     /*case WM_NCHITTEST:
         arg.lr = HTCAPTION;
