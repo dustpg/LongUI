@@ -80,7 +80,9 @@ namespace LongUI {
         virtual ~CUIRealFunc() noexcept = default;
     };
     // type helper
-    template<typename Func> struct type_helper { using type = Func; };
+    template<typename Func> struct type_helper { 
+        using type = Func; 
+    };
     // type helper
     template<typename Result, typename ...Args> struct type_helper<Result(Args...)> { 
         using type = Result (*)(Args...);
@@ -117,7 +119,7 @@ namespace LongUI {
             }
         }
         // and call chain
-        auto& operator += (MyType& chain) { this->AddCallChain(std::move(chain)); return *this; }
+        auto& operator += (MyType&& chain) { this->AddCallChain(std::move(chain)); return *this; }
         // and call chain
         template<typename Func> 
         auto& operator += (const Func &x) { this->AddCallChain(std::move(CUIFunction(x))); return *this; }

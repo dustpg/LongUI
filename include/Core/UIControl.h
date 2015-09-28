@@ -42,7 +42,7 @@ namespace LongUI {
     public:
         // register ui call from lambda/functor/function pointer
         template<typename T> auto AddEventCall(T call, SubEvent sb) noexcept {
-            auto ok = this->AddEventCall(sb, UICallBack(call));
+            auto ok = this->AddEventCall(sb, std::move(UICallBack(call)));
             assert(ok && "this control do not support this event!");
             return ok;
         }
@@ -58,7 +58,7 @@ namespace LongUI {
         // recreate , first call or device reset
         virtual auto Recreate() noexcept->HRESULT;
         // register ui call
-        virtual bool AddEventCall(SubEvent sb, UICallBack& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
+        virtual bool AddEventCall(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
     private:
         /// <summary>
         /// Cleanups this instance.

@@ -24,11 +24,21 @@ namespace LongUI {
     static auto SmallFree(void* address) noexcept { return ::free(address); }
 #endif
     // template helper
-    template<typename T>
-    static auto NormalAllocT(T*, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); }
+    template<typename T> static auto NormalAllocT(T*, size_t length) noexcept {
+        return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); 
+    }
     // template helper
-    template<typename T>
-    static auto SmallAllocT(T*, size_t length) noexcept { return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); }
+    template<typename T> static auto SmallAllocT(T*, size_t length) noexcept { 
+        return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); 
+    }
+    // template helper
+    template<typename T> static auto NormalAllocT(size_t length) noexcept {
+        return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); 
+    }
+    // template helper
+    template<typename T> static auto SmallAllocT(size_t length) noexcept { 
+        return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); 
+    }
     // get dpi for x
     static auto GetDpiX() noexcept { return 96.f; }
     // get dpi for y

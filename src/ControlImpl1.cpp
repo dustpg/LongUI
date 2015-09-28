@@ -249,9 +249,9 @@ auto LongUI::UIButton::Recreate() noexcept ->HRESULT {
 }
 
 // 添加事件监听器(雾)
-bool LongUI::UIButton::AddEventCall(SubEvent sb, UICallBack& call) noexcept {
+bool LongUI::UIButton::AddEventCall(SubEvent sb, UICallBack&& call) noexcept {
     if (sb == SubEvent::Event_ItemClicked) {
-        m_event += call;
+        m_event += std::move(call);
         return true;
     }
     return false;

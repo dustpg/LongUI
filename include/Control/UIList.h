@@ -184,12 +184,14 @@ namespace LongUI {
         // ctor
         UIList(UIContainer* cp, pugi::xml_node node) noexcept;
         // sort as element[index]
-        void Sort(uint32_t index) noexcept;
+        void Sort(uint32_t index, UIControl* child) noexcept;
         // get conttrols
         const auto&GetContainer() const noexcept { return m_controls; }
+        // get ToBeSortedHeaderChild, used during (AddBeforSortCallBack)
+        auto GetToBeSortedHeaderChild() const noexcept { return m_pToBeSortedHeaderChild; }
         // add before sort callback
         template<typename T>
-        auto AddBeforSortVallBack(T lam) noexcept { m_callBeforSort += lam; }
+        auto AddBeforSortCallBack(T lam) noexcept { m_callBeforSort += lam; }
     protected:
         // dtor
         ~UIList() noexcept;
@@ -201,6 +203,8 @@ namespace LongUI {
         uint32_t                m_cFastSortThreshold = 32;
         // list header
         UIListHeader*           m_pHeader = nullptr;
+        // to be sorted header child
+        UIControl*              m_pToBeSortedHeaderChild = nullptr;
         // befor sort
         UICallBack              m_callBeforSort;
         // line height

@@ -99,11 +99,14 @@ auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
 }
 
 // 排序
-void LongUI::UIList::Sort(uint32_t index) noexcept {
+void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
+    // 修改
+    m_pToBeSortedHeaderChild = child;
     // 有必要再说
     if ((this->list_flag & Flag_SortableLineWithUserDataPtr) 
         && m_controls.size() > 1 
         && index < static_cast<UIContainer*>(m_controls[0])->GetCount()) {
+        assert(child && "bad argument");
         assert(static_cast<UIControl*>(m_controls[0])->flags & Flag_UIContainer);
         // 设置待排序控件
         for (auto vctrl : m_controls) {
@@ -113,6 +116,7 @@ void LongUI::UIList::Sort(uint32_t index) noexcept {
         // 排序前
         m_callBeforSort(this);
     }
+    m_pToBeSortedHeaderChild = nullptr;
 }
 
 // UI列表控件: 析构函数
@@ -491,7 +495,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
                 if (!ctrl->TestParentState()) {
                     // 设置点击事件
                     ctrl->AddEventCall([this](UIControl* child) noexcept {
-                        longui_cast<UIList*>(this->parent)->Sort(this->GetIndexOf(child));
+                        longui_cast<UIList*>(this->parent)->Sort(this->GetIndexOf(child), child);
                         return true;
                     }, SubEvent::Event_ItemClicked);
                     // 设置了
@@ -588,7 +592,7 @@ void LongUI::UIListHeader::InitMarginalControl(MarginalControl _type) noexcept {
     // 父类是控件
     auto list = longui_cast<UIList*>(this->parent);
     // 设置列表头
-    longui_cast<UIList*>(this->parent)->SetHeader(this);
+    list->SetHeader(this);
 }
 
 

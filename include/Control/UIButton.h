@@ -44,7 +44,7 @@ namespace LongUI{
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
         // register ui call
-        virtual bool AddEventCall(SubEvent sb, UICallBack& call) noexcept override;
+        virtual bool AddEventCall(SubEvent sb, UICallBack&& call) noexcept override;
     private:
         // close this control 关闭控件
         virtual void cleanup() noexcept override;

@@ -258,9 +258,9 @@ auto LongUI::UISlider::Recreate() noexcept ->HRESULT {
 }
 
 // 添加事件监听器(雾)
-bool LongUI::UISlider::AddEventCall(SubEvent sb, UICallBack& call) noexcept {
+bool LongUI::UISlider::AddEventCall(SubEvent sb, UICallBack&& call) noexcept {
     if (sb == SubEvent::Event_ValueChanged) {
-        m_event += call;
+        m_event += std::move(call);
         return true;
     }
     return false;

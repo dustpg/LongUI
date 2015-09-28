@@ -1078,7 +1078,7 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
 
 
 // ------------------------ HELPER ---------------------------
-
+// sb调用帮助器
 bool LongUI::UIControl::subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
     // 事件
     LongUI::EventArgument arg;
