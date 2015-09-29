@@ -148,16 +148,26 @@ namespace LongUI {
                 }
             }
         }
-        // buffer for context
-        using ContextBuffer = SmallBuffer<char, 4*4>;
         // Easy Vector
-        template<typename T>
-        class EzVector {
+        template<typename T> class EzVector {
         public:
             // iterator
             template<typename TT=T> struct Iterator {
                 // on no
                 static_assert(sizeof(TT) == sizeof(T), "bad action");
+                // IntType
+                using IntType = ptrdiff_t;
+            public: // traits
+                // random access support
+                using iterator_category = std::random_access_iterator_tag;
+                // reference
+                using reference = T&;
+                // pointer
+                using pointer = T*;
+                // value_type
+                using value_type = T;
+                // difference_type
+                using difference_type = ptrdiff_t;
             public:
                 // ctor
                 Iterator(TT* d) noexcept : data(d) { assert(data); }
@@ -172,19 +182,29 @@ namespace LongUI {
                 // itr--
                 auto operator--(int) const noexcept { assert(data); Iterator itr(this->data); return --itr; }
                 // operator ==
-                auto operator==(const EzVector<TT>& itr) const noexcept { return this->data == itr.data; }
+                auto operator==(const Iterator<TT>& itr) const noexcept { return this->data == itr.data; }
                 // operator !=
-                auto operator!=(const EzVector<TT>& itr) const noexcept { return this->data != itr.data; }
+                auto operator!=(const Iterator<TT>& itr) const noexcept { return this->data != itr.data; }
+                // operator <
+                auto operator<(const Iterator<TT>& itr) const noexcept { return this->data < itr.data; }
+                // operator >
+                auto operator>(const Iterator<TT>& itr) const noexcept { return this->data > itr.data; }
+                // operator <=
+                auto operator<=(const Iterator<TT>& itr) const noexcept { return this->data <= itr.data; }
+                // operator >=
+                auto operator>=(const Iterator<TT>& itr) const noexcept { return this->data >= itr.data; }
                 // operator =
-                auto& operator=(const EzVector<TT>& itr) noexcept { data = itr.data; return *this; }
+                auto& operator=(const Iterator<TT>& itr) noexcept { data = itr.data; return *this; }
                 // random acc +=
-                template<typename IntType> auto&operator+=(IntType i) noexcept { data += i; return *this; }
+                auto&operator+=(IntType i) noexcept { data += i; return *this; }
                 // random acc -=
-                template<typename IntType> auto&operator-=(IntType i) noexcept { data -= i; return *this; }
+                auto&operator-=(IntType i) noexcept { data -= i; return *this; }
                 // random acc +
-                template<typename IntType> auto operator+(IntType i) const noexcept { Iterator itr(this->data); itr += i; return itr; }
+                auto operator+(IntType i) const noexcept { Iterator itr(this->data); itr += i; return itr; }
                 // random acc -
-                template<typename IntType> auto operator-(IntType i) const noexcept { Iterator itr(this->data); itr -= i; return itr; }
+                auto operator-(IntType i) const noexcept { Iterator itr(this->data); itr -= i; return itr; }
+                // distance
+                auto operator-(const Iterator<TT>& itr) const noexcept { return this->data - itr.data; }
                 // operator *
                 auto&operator*() const noexcept { return *this->data; }
             private:
@@ -207,39 +227,64 @@ namespace LongUI {
         public:
             // begin
             auto begin() noexcept { return Iterator<T>(m_pData); }
-            // const begin
-            auto begin() const noexcept { return Iterator<const T>(m_pData); }
             // end
             auto end() noexcept { return Iterator<T>(m_pData + m_cLength); }
+            // const begin
+            auto begin() const noexcept { return Iterator<const T>(m_pData); }
             // const end
             auto end() const noexcept { return Iterator<const T>(m_pData + m_cLength); }
+            // const begin
+            auto cbegin() const noexcept { return Iterator<const T>(m_pData); }
+            // const end
+            auto cend() const noexcept { return Iterator<const T>(m_pData + m_cLength); }
         public:
             // isok?
             auto isok() const noexcept { return !!m_pData; }
+            // front
+            auto&front() const noexcept { assert(m_cLength && "no elements"); return m_pData[0]; }
+            // back
+            auto&back() const noexcept { assert(m_cLength && "no elements"); return m_pData[m_cLength - 1]; }
             // insert
             auto insert(uint32_t pos,const T& data) noexcept { this->do_insert(pos, data); }
+            // insert
+            template<typename TT>
+            auto insert(const Iterator<TT>& itr,const T& data) noexcept { this->do_insert(uint32_t(&(*itr)-m_pData), data); }
             // push back with data
-            auto push_back(const T& data) noexcept { this->do_insert(this->length(), data); }
+            auto push_back(const T& data) noexcept { this->do_insert(this->size(), data); }
             // push back
-            auto push_back() noexcept { this->do_insert(this->length(), T()); }
+            auto push_back() noexcept { this->do_insert(this->size(), T()); }
             // pop back
             auto pop_back() noexcept { assert(m_cLength > 0 && "no element to pop"); --m_cLength; }
-            // reset
-            auto reset() noexcept { m_cLength = 0; }
             // clear
             auto clear() noexcept { m_cLength = 0; }
+            // empty
+            auto empty() const noexcept { return !m_cLength; }
             // erase
             auto erase(uint32_t pos) noexcept { return this->erase(pos, 1); }
             // erase with length
             auto erase(uint32_t pos, uint32_t len) noexcept;
+            // erase
+            template<typename TT>
+            auto erase(const Iterator<TT>& itr) noexcept { return this->erase(uint32_t(&(*itr)-m_pData), 1); }
+            // erase with length
+            template<typename TT>
+            auto erase(const Iterator<TT>& itrben, const Iterator<TT>& itrend) noexcept { 
+                auto a = uint32_t(&(*itrben) - m_pData);
+                auto b = uint32_t(itrend - itrben);
+                return this->erase(a, b);
+            }
             // get data
             auto data() const noexcept { return m_pData; }
             // get length
-            auto length() const noexcept { return m_cLength; }
+            auto size() const noexcept { return m_cLength; }
             // get capacity
             auto capacity() const noexcept { return m_cCapacity; }
             // reserve length
             void reserve(uint32_t len) noexcept;
+            // operator[]
+            auto operator[](uint32_t index) noexcept -> T& { assert(index < this->size() && "out of range"); return m_pData[index]; }
+            // operator[] const
+            auto operator[](uint32_t index) const noexcept ->const T& { assert(index < this->size() && "out of range"); return m_pData[index]; }
         private:
             // data
             T*          m_pData = nullptr;
@@ -249,13 +294,13 @@ namespace LongUI {
             uint32_t    m_cCapacity = 0;
         private:
             // safe free
-            inline auto safe_free() noexcept { if (m_pData) LongUI::NormalFree(m_pData); m_pData = nullptr; }
+            inline auto safe_free() noexcept { if (m_pData) ::free(m_pData); m_pData = nullptr; }
             // alloc
-            static inline auto alloc(uint32_t len) noexcept { return LongUI::NormalAllocT<T>(len); }
+            static inline auto alloc(uint32_t len) noexcept { return reinterpret_cast<T*>(::malloc(len * sizeof(T))); }
             // copy data
             static inline auto copy_data(T* des, T* src, uint32_t len) noexcept {  if (des && len) ::memcpy(des, src, sizeof(T) * len); }
             // nice length
-            static inline auto nice_length(uint32_t len) noexcept { return len + (len + 3) / 2 };
+            static inline auto nice_length(uint32_t len) noexcept { return (len + (len + 9) / 2) & (~3); };
             // do insert
             void do_insert(uint32_t pos, const T& data) noexcept;
         };
@@ -279,7 +324,7 @@ namespace LongUI {
             if (len <= this->capacity()) return;
             auto nice_len = this->nice_length(len);
             auto data = this->alloc(nice_len);
-            this->copy_data(data, m_pData, this->length());
+            this->copy_data(data, m_pData, this->size());
             this->safe_free();
             if (data) {
                 m_pData = data;
@@ -292,10 +337,11 @@ namespace LongUI {
         }
         // Vector::erase
         template<typename T> auto EzVector<T>::erase(uint32_t pos, uint32_t len) noexcept {
-            assert(pos < this->length() && pos + len < this->length() && "out of range");
-            if (!this->isok()) return;
+            assert(pos < this->size() && pos + len <= this->size() && "out of range");
+            if (!(len && this->isok())) return;
+            register auto endofthis = this->size() - len;
             m_cLength -= len;
-            for (auto i = pos; i < pos + len; ++i) {
+            for (auto i = pos; i < endofthis; ++i) {
                 m_pData[i] = m_pData[i + len];
             }
         }
@@ -303,60 +349,94 @@ namespace LongUI {
         template<typename T> void EzVector<T>::do_insert(uint32_t pos, const T& data) noexcept {
             auto old = m_cLength;
             assert(pos <= old && "out of range");
-            ++m_cLength; this->reserve(this->length());
+            this->reserve(this->size() + 1);
             if (this->isok()) {
+                ++m_cLength;
                 if (pos != old) {
                     for (auto i = old; i != pos; --i) {
-                        m_pDdata[i + 1] = m_pDdata[i];
+                        m_pData[i] = m_pData[i-1];
                     }
                 }
-                m_pDdata[pos] = data;
+                m_pData[pos] = data;
             }
         }
         // Pointer Vector
         template<typename T>
         class PointerVector {
+            // using 
+            using P = T*;
             // using
             using VectorType = EzVector<void*>;
+            // using
+            static auto TPP(void** data) noexcept { return reinterpret_cast<T**>(data); }
         public:
             // begin
-            auto begin() noexcept { return VectorType::Iterator<T>(m_vector.data()); }
-            // const begin
-            auto begin() const noexcept { return VectorType::Iterator<const T>(m_vector.data()); }
+            auto begin() noexcept { return VectorType::Iterator<T*>(TPP(m_vector.data())); }
             // end
-            auto end() noexcept { return VectorType::Iterator<T>(m_vector.data() + m_vector.length()); }
+            auto end() noexcept { return VectorType::Iterator<T*>(TPP(m_vector.data() + m_vector.size())); }
+            // const begin
+            auto begin() const noexcept { return VectorType::Iterator<const P>(TPP(m_vector.data())); }
             // const end
-            auto end() const noexcept { return VectorType::Iterator<const T>(m_vector.data() + m_vector.length()); }
+            auto end() const noexcept { return VectorType::Iterator<const P>(TPP(m_vector.data() + m_vector.size())); }
+            // const begin
+            auto cbegin() const noexcept { return VectorType::Iterator<const P>(TPP(m_vector.data())); }
+            // const end
+            auto cend() const noexcept { return VectorType::Iterator<const P>(TPP(m_vector.data() + m_vector.size())); }
         public:
             // isok?
-            auto isok() const noexcept { return !!m_pData; }
+            auto isok() const noexcept { return m_vector.isok(); }
+            // front
+            auto&front() const noexcept { return reinterpret_cast<T*&>(m_vector.front()); }
+            // back
+            auto&back() const noexcept {  return reinterpret_cast<T*&>(m_vector.back()); }
             // insert
-            auto insert(uint32_t pos,const T& data) noexcept { this->do_insert(pos, data); }
+            auto insert(uint32_t pos, T* dat) noexcept { return m_vector.insert(pos, dat); }
+            // insert
+            template<typename TT>
+            auto insert(const VectorType::Iterator<TT>& itr, T* dat) noexcept { return m_vector.insert(uint32_t(&(*itr) - this->data()), dat); }
             // push back with data
-            auto push_back(const T& data) noexcept { this->do_insert(this->length(), data); }
+            auto push_back(T* data) noexcept { return m_vector.push_back(data); }
             // push back
-            auto push_back() noexcept { this->do_insert(this->length(), T()); }
+            auto push_back() noexcept { return m_vector.push_back(nullptr); }
             // pop back
-            auto pop_back() noexcept { assert(m_cLength > 0 && "no element to pop"); --m_cLength; }
-            // reset
-            auto reset() noexcept { m_cLength = 0; }
+            auto pop_back() noexcept { return m_vector.pop_back(); }
             // clear
-            auto clear() noexcept { m_cLength = 0; }
+            auto clear() noexcept { return m_vector.clear(); }
             // erase
-            auto erase(uint32_t pos) noexcept { return this->erase(pos, 1); }
+            auto erase(uint32_t pos) noexcept { return m_vector.erase(pos); }
             // erase with length
-            auto erase(uint32_t pos, uint32_t len) noexcept;
+            auto erase(uint32_t pos, uint32_t len) noexcept { return m_vector.erase(pos, len); }
+            // erase
+            template<typename TT>
+            auto erase(const VectorType::Iterator<TT>& itr) noexcept { return this->erase(uint32_t(&(*itr)-this->data()), 1); }
+            // erase with length
+            template<typename TT>
+            auto erase(const VectorType::Iterator<TT>& itrben, const VectorType::Iterator<TT>& itrend) noexcept { 
+                auto a = uint32_t(&(*itrben) - this->data());
+                auto b = uint32_t(itrend - itrben);
+                return this->erase(a, b);
+            }
             // get data
-            auto data() const noexcept { return m_pData; }
+            auto data() const noexcept { return reinterpret_cast<T**>(m_vector.data()); }
             // get length
-            auto length() const noexcept { return m_cLength; }
+            auto size() const noexcept { return m_vector.size(); }
+            // empty
+            auto empty() const noexcept { return m_vector.empty(); }
             // get capacity
-            auto capacity() const noexcept { return m_cCapacity; }
+            auto capacity() const noexcept { return m_vector.capacity(); }
             // reserve length
-            void reserve(uint32_t len) noexcept;
+            auto reserve(uint32_t len) noexcept { return m_vector.reserve(len); }
+            // operator[]
+            auto operator[](uint32_t index) noexcept ->P& { return reinterpret_cast<P&>(m_vector[index]); }
+            // operator[] const
+            auto operator[](uint32_t index) const noexcept ->const P& { return reinterpret_cast<const P&>(m_vector[index]); }
         private:
             // vector data
             VectorType          m_vector;
         };
     }
+    // control vector
+    using ControlVector = EzContainer::PointerVector<UIControl>;
+    // Context Buffer
+    using ContextBuffer = EzContainer::SmallBuffer<char, 4 * 4>;
 }

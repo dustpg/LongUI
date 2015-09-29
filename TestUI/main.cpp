@@ -119,10 +119,15 @@ private:
     void init() {
         auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl(L"lst_01"));
         if (list) {
-            list->AddBeforSortVallBack([](LongUI::UIControl* list) {
+            list->AddBeforSortCallBack([](LongUI::UIControl* list) {
+                for (auto ctrl : static_cast<LongUI::UIList*>(list)->GetContainer()) {
+                    auto line = LongUI::longui_cast<LongUI::UIListLine*>(ctrl);
+                    line->GetToBeSorted()->user_data = uint32_t(::rand() % 100);
+                }
                 return true;
             });
         }
+
     }
     // on number button clicked
     void number_button_clicked(LongUI::UIControl* btn);
@@ -452,6 +457,7 @@ private:
     // dll
     HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
 };
+
 
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {

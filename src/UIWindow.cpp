@@ -176,15 +176,14 @@ void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept
         return;
     }
 #endif
-    try {
-        if (is3d) {
-            m_vRegisteredControl.insert(m_vRegisteredControl.begin(), c);
-        }
-        else {
-            m_vRegisteredControl.push_back(c);
-        }
+    if (is3d) {
+        m_vRegisteredControl.insert(m_vRegisteredControl.begin(), c);
     }
-    catch (...) {
+    else {
+        m_vRegisteredControl.push_back(c);
+    }
+    // some error
+    if (!m_vRegisteredControl.isok()) {
         UIManager << DL_Warning << L"insert failed" << LongUI::endl;
     }
 }
@@ -400,8 +399,7 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
     UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 离屏渲染
     if (!m_vRegisteredControl.empty()) {
-        for (auto i : m_vRegisteredControl) {
-            auto ctrl = reinterpret_cast<UIControl*>(i);
+        for (auto ctrl : m_vRegisteredControl) {
             assert(ctrl->parent && "check it");
             UIManager_RenderTarget->SetTransform(&ctrl->parent->world);
             ctrl->Render(RenderType::Type_RenderOffScreen);

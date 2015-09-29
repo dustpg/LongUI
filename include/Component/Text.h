@@ -82,6 +82,6 @@ namespace LongUI { namespace Component {
         // the string of text
         CUIString                   m_text;
         // context buffer for text renderer
-        EzContainer::ContextBuffer  m_buffer;
+        ContextBuffer               m_buffer;
     };
 }}

@@ -286,7 +286,7 @@ namespace LongUI {
         // current STGMEDIUM: begin with DWORD
         STGMEDIUM               m_curMedium;
         // registered control
-        BasicContainer          m_vRegisteredControl;
+        ControlVector           m_vRegisteredControl;
         // control name ->map-> control pointer
         StringMap               m_mapString2Control;
 #ifdef LongUIDebugEvent

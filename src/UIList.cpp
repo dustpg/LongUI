@@ -6,11 +6,10 @@
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
-    try {
-        m_controls.reserve(100);
-    }
-    catch (...) {
-        assert(!"oom just less 1kb!");
+    m_controls.reserve(100);
+    // OOM or BAD ACTION
+    if(!m_controls.isok()) {
+        UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
     }
     auto listflag = this->list_flag;
     if (node) {
@@ -45,7 +44,7 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
     }
     else {
         if (m_controls.empty()) return nullptr;
-        return longui_cast<UIListLine*>(static_cast<UIControl*>(m_controls.front()));
+        return longui_cast<UIListLine*>(m_controls.front());
     }
 }
 
@@ -53,8 +52,7 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
 auto LongUI::UIList::Recreate() noexcept -> HRESULT {
     HRESULT hr = S_OK;
     // 重建子控件
-    for (auto voidctrl : m_controls) {
-        auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
+    for (auto ctrl : m_controls) {
         hr = ctrl->Recreate();
         assert(SUCCEEDED(hr));
     }
@@ -63,11 +61,12 @@ auto LongUI::UIList::Recreate() noexcept -> HRESULT {
 
 // 查找子控件
 auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
-    auto ctrl = Super::FindChild(pt);
-    if (ctrl) return ctrl;
+    {
+        auto ctrl = Super::FindChild(pt);
+        if (ctrl) return ctrl;
+    }
     // TODO: 利用list特性优化
-    for (auto vctrl : m_controls) {
-        ctrl = static_cast<UIControl*>(vctrl);
+    for (auto ctrl : m_controls) {
         // 区域内判断
         if (IsPointInRect(ctrl->visible_rect, pt)) {
             return ctrl;
@@ -78,24 +77,16 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
 
 // push!
 void LongUI::UIList::PushBack(UIControl* child) noexcept {
-    try {
-        m_controls.push_back(child);
-        this->after_insert(child);
-    }
-    catch (...) {
-        assert(!"exp!");
-    }
+    m_controls.push_back(child);
+    this->after_insert(child);
+    assert(m_controls.isok());
 }
 
 // 插入
 auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
-    try {
-        m_controls.insert(m_controls.begin() + index, child);
-        this->after_insert(child);
-    }
-    catch (...) {
-        assert(!"exp!");
-    }
+    m_controls.insert(index, child);
+    this->after_insert(child);
+    assert(m_controls.isok());
 }
 
 // 排序
@@ -107,14 +98,30 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
         && m_controls.size() > 1 
         && index < static_cast<UIContainer*>(m_controls[0])->GetCount()) {
         assert(child && "bad argument");
-        assert(static_cast<UIControl*>(m_controls[0])->flags & Flag_UIContainer);
+        assert(m_controls[0]->flags & Flag_UIContainer);
         // 设置待排序控件
-        for (auto vctrl : m_controls) {
-            auto line = static_cast<UIListLine*>(vctrl);
+        for (auto ctrl : m_controls) {
+            auto line = static_cast<UIListLine*>(ctrl);
             line->SetToBeSorted(index);
         }
         // 排序前
         m_callBeforSort(this);
+        // 字符串排序?
+        bool sorted_by_ptr = !!m_controls[0]->user_ptr;
+        // 逆序排列
+        bool reverse_sorted;
+        if (sorted_by_ptr) {
+            reverse_sorted = std::wcscmp(
+                reinterpret_cast<wchar_t*>(m_controls.front()->user_ptr),
+                reinterpret_cast<wchar_t*>(m_controls.back()->user_ptr)
+                ) > 0;
+        }
+        else {
+            reverse_sorted = m_controls.front()->user_data > m_controls.back()->user_data;
+        }
+        if (reverse_sorted) {
+            int bk = 9;
+        }
     }
     m_pToBeSortedHeaderChild = nullptr;
 }
@@ -122,12 +129,12 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
 // UI列表控件: 析构函数
 LongUI::UIList::~UIList() noexcept {
     // 线性容器就是不用考虑next指针
-    for (auto voidctrl : m_controls) {
-        this->cleanup_child(static_cast<UIControl*>(voidctrl));
+    for (auto ctrl : m_controls) {
+        this->cleanup_child(ctrl);
     }
 }
 
-// 移除
+// [UNTESTED]移除
 void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
     auto itr = std::find(m_controls.cbegin(), m_controls.cend(), child);
     if (itr == m_controls.cend()) {
@@ -156,8 +163,8 @@ void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
 // 设置元素宽度
 void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
     // 循环
-    for (auto vctrl : m_controls) {
-        auto line = longui_cast<LongUI::UIListLine*>(vctrl);
+    for (auto ctrl : m_controls) {
+        auto line = longui_cast<LongUI::UIListLine*>(ctrl);
         assert(line && "bad");
         assert(index < line->GetCount() && "out of range");
         if (index < line->GetCount()) {
@@ -189,14 +196,16 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // 排序算法
-void LongUI::UIList::sort_line(bool(*cmp)(void* a, void* b) ) noexcept {
+void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept {
 #ifdef _DEBUG
     // cmp 会比较复杂, 模板带来的性能提升还不如用函数指针来节约代码大小
     auto timest = ::timeGetTime();
 #endif
     // 快速排序
     if (this->GetCount() >= m_cFastSortThreshold) {
-        std::sort(m_controls.begin(), m_controls.end(), cmp);
+        auto b = &*m_controls.begin();
+        auto e = &*m_controls.end();
+        std::sort(b, e, cmp);
     }
     // 冒泡排序
     else {
@@ -219,10 +228,7 @@ void LongUI::UIList::sort_line(bool(*cmp)(void* a, void* b) ) noexcept {
             << LongUI::endl;
     }
 #endif
-}
-
-// 小于, 行排序
-auto LongUI::UIList::sort_line_less() noexcept {
+    /*
     // 小于
     auto cmp = [](void* a, void* b) noexcept {
         assert(a && b && "bad arguments");
@@ -231,25 +237,7 @@ auto LongUI::UIList::sort_line_less() noexcept {
         assert(ctrla && ctrlb && "bad action");
         return ctrla->user_data < ctrla->user_data;
     };
-}
-
-// 大于, 行排序
-auto LongUI::UIList::sort_line_greater() noexcept {
-    // 大于
-    auto cmp = [](void* a, void* b) noexcept {
-        assert(a && b && "bad arguments");
-        auto ctrla = longui_cast<UIListLine*>(a)->GetToBeSorted();
-        auto ctrlb = longui_cast<UIListLine*>(b)->GetToBeSorted();
-        assert(ctrla && ctrlb && "bad action");
-        return ctrla->user_data > ctrla->user_data;
-    };
-    // 快速排序
-    if (this->GetCount() >= m_cFastSortThreshold) {
-        std::sort(m_controls.begin(), m_controls.end(), cmp);
-    }
-    else {
-        LongUI::BubbleSort(m_controls.begin(), m_controls.end(), cmp);
-    }
+    */
 }
 
 // UIList: 初始化布局
@@ -332,7 +320,6 @@ void LongUI::UIList::cleanup() noexcept {
     delete this;
 }
 
-
 // UI列表控件: 创建控件
 auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
@@ -402,7 +389,6 @@ void LongUI::UIListLine::cleanup() noexcept {
     delete this;
 }
 
-
 // UI列表元素控件: 创建控件
 auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
@@ -462,7 +448,6 @@ void LongUI::UIListHeader::Update() noexcept {
     // 父类刷新
     return Super::Update();
 }
-
 
 // UI列表头: 鼠标事件处理
 bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept {
@@ -541,6 +526,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         {
         case LongUI::MouseEvent::Event_MouseLeave:
             m_pWindow->ResetCursor();
+            handled = false;
             m_indexSepHovered = 0;
             break;
         case LongUI::MouseEvent::Event_MouseMove:

@@ -650,6 +650,7 @@ LongUI::CUIString::CUIString(const LongUI::CUIString& obj) noexcept {
     }
     // 构造
     if (obj.m_pString != obj.m_aDataStatic) {
+        UIManager << DL_Warning << "copy ctor is not suit for CUIString" << LongUI::endl;
         m_pString = this->alloc_bufer(obj.m_cBufferLength);
         m_cBufferLength = obj.m_cBufferLength;
     }
@@ -672,6 +673,8 @@ LongUI::CUIString::CUIString(LongUI::CUIString&& obj) noexcept {
         m_pString = obj.m_pString;
     }
     else {
+        // 警告
+        UIManager << DL_Warning << "move ctor is not suit for CUIString" << LongUI::endl;
         // 复制数据
         this->copy_string(m_aDataStatic, obj.m_aDataStatic, obj.m_cLength);
     }

@@ -179,7 +179,7 @@ namespace LongUI {
                 }
                 // render children
                 for (auto itr = itrbegin; itr != itrend; ++itr) {
-                    this->child_do_render(static_cast<UIControl*>(*itr));
+                    this->child_do_render(*itr);
                 }
                 // pop
                 UIManager_RenderTarget->PopAxisAlignedClip();
@@ -209,7 +209,7 @@ namespace LongUI {
                 };
                 // refresh children
                 for (auto itr = itrbegin; itr != itrend; ++itr) {
-                    auto ctrl = static_cast<UIControl*>(*itr);
+                    auto ctrl = (*itr);
                     // set change
                     ctrl->SetControlWorldChanged();
                     ctrl->RefreshWorld();

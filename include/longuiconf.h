@@ -111,7 +111,6 @@ namespace LongUI {
 #include <cstdlib>
 #include <cstdint>
 #include <cwchar>
-#include <vector>
 #include <atomic>
 #include <map>
 #include <new>
@@ -276,12 +275,6 @@ namespace LongUI {
     class CUIString;
     // pre-declare
     class IUIScript;
-    // Vector, you can change to other like eastl stl lib, or you own
-    template<typename T> using Vector = std::vector<T>;
-    // String, you can change to other like eastl stl lib, or you own 
-    //using DynamicString = std::wstring;
-    // Basic Container
-    using BasicContainer = LongUI::Vector<void*>;
     // map longui string to pointer, you can change to other like eastl stl lib, or you own 
     using StringMap = std::map<const CUIString, void*>;
     // null for xmlnode, pugixml hold a handle for pointer

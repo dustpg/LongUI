@@ -29,15 +29,15 @@ namespace LongUI{
     // UI String -- compatible with std library string interface(part of) but host a fixed buffer
     class CUIString {
     public:
-        // 默认构造函数
+        // ctor
         CUIString() noexcept { *m_aDataStatic = 0; }
-        // 字符串构造函数
+        // ctor with data
         CUIString(const wchar_t* str, uint32_t l = 0) noexcept { this->Set(str, l); }
-        // 析构函数
+        // dtor
         ~CUIString() noexcept;
-        // 复制构造函数
+        // copy ctor, will set performance warning
         CUIString(const CUIString&) noexcept;
-        // 移动构造函数
+        // move ctor, will set performance warning
         CUIString(CUIString&&) noexcept;
     public: // LongUI Style
         // set/assign

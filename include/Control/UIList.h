@@ -155,7 +155,7 @@ namespace LongUI {
         // insert
         auto Insert(uint32_t index, UIControl*) noexcept;
         // get child at index
-        auto GetAt(uint32_t index) const noexcept { assert(index < m_cChildrenCount); return static_cast<UIControl*>(m_controls[index]); }
+        auto GetAt(uint32_t index) const noexcept { return m_controls[index]; }
     public:
         // get height in line
         auto GetLineHeight() const noexcept { return m_fLineHeight; }
@@ -167,11 +167,7 @@ namespace LongUI {
         void SetElementWidth(uint32_t index, float width) noexcept;
     private:
         // sort line
-        void sort_line(bool(*)(void* a, void* b)) noexcept;
-        // sort line <
-        auto sort_line_less() noexcept;
-        // sort line >
-        auto sort_line_greater() noexcept;
+        void sort_line(bool(*cmp)(UIControl* a, UIControl* b)) noexcept;
         // init
         void init_layout() noexcept;
         // set new elements count
@@ -214,7 +210,7 @@ namespace LongUI {
         // line template
         LineTemplateBuffer      m_bufLineTemplate;
         // control vector
-        BasicContainer          m_controls;
+        ControlVector           m_controls;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
