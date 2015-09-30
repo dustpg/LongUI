@@ -112,6 +112,13 @@ namespace LongUI {
         auto begin() const noexcept { return Iterator(m_pHead); };
         // end
         auto end() const noexcept { return Iterator(nullptr); };
+#ifdef _DEBUG
+    private:
+        // debug for_each
+        virtual void debug_for_each(const CUIFunction<void(UIControl*)>& call) noexcept override {
+            for (auto ctrl : (*this)) { call(ctrl); }
+        }
+#endif
     protected:
         // head of list
         UIControl*              m_pHead = nullptr;

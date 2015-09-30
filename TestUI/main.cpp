@@ -63,13 +63,25 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <List sort="true" name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
-        <ListLine>
-            <Text text="1" templateid="4"/>
-            <Text text="2" templateid="4"/>
+        <ListLine name="lin1">
+            <Text text="1" templateid="4" name="listline1-1"/>
+            <Text text="1+" templateid="4"/>
         </ListLine>
-        <ListLine>
-            <Text text="3" templateid="4"/>
-            <Text text="4" templateid="4"/>
+        <ListLine name="lin2">
+            <Text text="2" templateid="4" name="listline2-1"/>
+            <Text text="2+" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin3">
+            <Text text="3" templateid="4" name="listline3-1"/>
+            <Text text="3+" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin4">
+            <Text text="5" templateid="4" name="listline4-1"/>
+            <Text text="5+" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin5">
+            <Text text="4" templateid="4" name="listline5-1"/>
+            <Text text="4+" templateid="4"/>
         </ListLine>
     </List>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
@@ -122,7 +134,8 @@ private:
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
                 for (auto ctrl : static_cast<LongUI::UIList*>(list)->GetContainer()) {
                     auto line = LongUI::longui_cast<LongUI::UIListLine*>(ctrl);
-                    line->GetToBeSorted()->user_data = uint32_t(::rand() % 100);
+                    auto tobesorted =  LongUI::longui_cast<LongUI::UIText*>(line->GetToBeSorted());
+                    tobesorted->user_ptr = const_cast<wchar_t*>(tobesorted->GetText());
                 }
                 return true;
             });
@@ -224,7 +237,7 @@ public:
             // 设置大小
             m_text.Resize(this->view_size.width, this->view_size.height);
             // 已经处理
-            this->ControlSizeChangeHandled();
+            this->ControlLayoutChangeHandled();
         }
         Super::Update();
     }
@@ -398,7 +411,7 @@ class DemoConfigure final : public LongUI::CUIDefaultConfigure {
     typedef LongUI::CUIDefaultConfigure Super;
 public:
     // 构造函数
-    DemoConfigure() : Super(UIManager, L"longui.log") { /*this->script = &mruby;*/ this->resource = res_xml; }
+    DemoConfigure() : Super(UIManager, "longui.log") { /*this->script = &mruby;*/ this->resource = res_xml; }
     // 析构函数
     ~DemoConfigure() { if (m_hDll) { ::FreeLibrary(m_hDll); m_hDll = nullptr; } }
     // 获取地区名称

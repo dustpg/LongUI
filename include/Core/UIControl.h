@@ -50,7 +50,14 @@ namespace LongUI {
         // Render 
         virtual void Render(RenderType) const noexcept;
         // update
-        virtual void Update() noexcept {};
+        virtual void Update() noexcept {
+#ifdef _DEBUG
+            void dbg_update(UIControl* c);
+            dbg_update(this);
+            assert(debug_updated == false && "cannot call this more than once");
+            debug_updated = true;
+#endif
+        };
         // do event 
         virtual bool DoEvent(const EventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
         // do mouse event 
@@ -103,20 +110,20 @@ namespace LongUI {
         auto GetNonContentWidth() const noexcept ->float;
         // get taking up height of control
         auto GetNonContentHeight() const noexcept ->float;
-        // change control draw size
-        auto SetControlSizeChanged() noexcept { m_bool16.SetTrue(Index_ChangeSize); }
+        // change control layout
+        auto SetControlLayoutChanged() noexcept { m_bool16.SetTrue(Index_ChangeLayout); }
         // handleupdate_marginal_controls control draw size changed
-        auto ControlSizeChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeSizeHandled); }
+        auto ControlLayoutChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeSizeHandled); }
         // change control world
         auto SetControlWorldChanged() noexcept { m_bool16.SetTrue(Index_ChangeWorld); }
         // handle control world changed
         auto ControlWorldChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeWorldHandled); }
         // is control draw size changed?
-        auto IsControlSizeChanged() const noexcept { return m_bool16.Test(Index_ChangeSize); }
+        auto IsControlSizeChanged() const noexcept { return m_bool16.Test(Index_ChangeLayout); }
         // refresh the world transform
         void RefreshWorld() noexcept;
         // refresh the world transform
-        auto IsNeedRefreshWorld() const noexcept { return m_bool16.Test(Index_ChangeSize) || m_bool16.Test(Index_ChangeWorld); }
+        auto IsNeedRefreshWorld() const noexcept { return m_bool16.Test(Index_ChangeLayout) || m_bool16.Test(Index_ChangeWorld); }
         // update the world transform
         auto UpdateWorld() noexcept { if (this->IsNeedRefreshWorld()) this->RefreshWorld(); }
         // get HoverTrackTime
@@ -150,10 +157,12 @@ namespace LongUI {
         uint32_t                debug_context = 0;
         // debug this control? will output some debug message that not too important(log)
         bool                    debug_this = false;
+        // updated
+        bool                    debug_updated = false;
         // unused
-        bool                    debug_unused[2];
+        bool                    debug_unused[1];
         // recreate count
-        uint8_t                 recreate_count = 0;
+        uint8_t                 debug_recreate_count = 0;
 #endif
         // user ptr
         void*                   user_ptr = nullptr;
@@ -177,7 +186,7 @@ namespace LongUI {
         // bit-array-index 16
         enum BitArrayIndex : uint32_t {
             // control size changed, for performance, this maybe changed multiple-time in one frame
-            Index_ChangeSize = 0,
+            Index_ChangeLayout = 0,
             // control world changed, for performance, this maybe changed multiple-time in one frame
             Index_ChangeWorld,
             // control size changed, if you have handled it

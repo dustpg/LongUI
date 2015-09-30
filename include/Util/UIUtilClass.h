@@ -400,10 +400,10 @@ namespace LongUI {
     class CUIDefaultConfigure : public IUIConfigure {
     public:
         // ctor
-        CUIDefaultConfigure(CUIManager& manager, const wchar_t* log_file=nullptr) noexcept : m_manager(manager) {
+        CUIDefaultConfigure(CUIManager& manager, const char* log_file=nullptr) noexcept : m_manager(manager) {
 #ifdef _DEBUG
             if (log_file) {
-                m_pLogFile = ::_wfopen(log_file, L"ab");
+                m_pLogFile = std::fopen(log_file, "ab");
             }
 #else
             UNREFERENCED_PARAMETER(log_file);

@@ -150,7 +150,7 @@ namespace LongUI { namespace Helper {
     class BitArray {
     public:
         // bit wide
-        static constexpr size_t LENGTH = sizeof(T) * 8;
+        static constexpr size_t LENGTH = sizeof(T) * CHAR_BIT;
         // ctor
         BitArray() noexcept {};
         // dtor

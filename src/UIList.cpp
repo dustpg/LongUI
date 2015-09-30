@@ -79,6 +79,7 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
 void LongUI::UIList::PushBack(UIControl* child) noexcept {
     m_controls.push_back(child);
     this->after_insert(child);
+    ++m_cChildrenCount;
     assert(m_controls.isok());
 }
 
@@ -86,6 +87,7 @@ void LongUI::UIList::PushBack(UIControl* child) noexcept {
 auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
     m_controls.insert(index, child);
     this->after_insert(child);
+    ++m_cChildrenCount;
     assert(m_controls.isok());
 }
 
@@ -99,29 +101,43 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
         && index < static_cast<UIContainer*>(m_controls[0])->GetCount()) {
         assert(child && "bad argument");
         assert(m_controls[0]->flags & Flag_UIContainer);
+        UIListLine* last_line = nullptr;
         // 设置待排序控件
         for (auto ctrl : m_controls) {
-            auto line = static_cast<UIListLine*>(ctrl);
-            line->SetToBeSorted(index);
+            last_line = static_cast<UIListLine*>(ctrl);
+            last_line->SetToBeSorted(index);
         }
         // 排序前
         m_callBeforSort(this);
+        // 普通排序
+        auto cmp_user_data = [](UIControl* a, UIControl* b) noexcept {
+            assert(a && b && "bad arguments");
+            auto ctrla = longui_cast<UIListLine*>(a)->GetToBeSorted();
+            auto ctrlb = longui_cast<UIListLine*>(b)->GetToBeSorted();
+            assert(ctrla && ctrlb && "bad action");
+            return ctrla->user_data < ctrlb->user_data;
+        };
+        // 字符串排序
+        auto cmp_user_ptr = [](UIControl* a, UIControl* b) noexcept {
+            assert(a && b && "bad arguments");
+            auto ctrla = longui_cast<UIListLine*>(a)->GetToBeSorted();
+            auto ctrlb = longui_cast<UIListLine*>(b)->GetToBeSorted();
+            assert(ctrla && ctrlb && "bad action");
+            auto stra = static_cast<const wchar_t*>(ctrla->user_ptr);
+            auto strb = static_cast<const wchar_t*>(ctrlb->user_ptr);
+            assert(stra && strb && "bad action");
+            return std::wcscmp(stra, strb) < 0;
+        };
+        // 普通排序
+        bool(*cmp_alg)(UIControl*, UIControl*) = cmp_user_data;
         // 字符串排序?
-        bool sorted_by_ptr = !!m_controls[0]->user_ptr;
-        // 逆序排列
-        bool reverse_sorted;
-        if (sorted_by_ptr) {
-            reverse_sorted = std::wcscmp(
-                reinterpret_cast<wchar_t*>(m_controls.front()->user_ptr),
-                reinterpret_cast<wchar_t*>(m_controls.back()->user_ptr)
-                ) > 0;
+        if (last_line->GetToBeSorted()->user_ptr) {
+            cmp_alg = cmp_user_ptr;
         }
-        else {
-            reverse_sorted = m_controls.front()->user_data > m_controls.back()->user_data;
-        }
-        if (reverse_sorted) {
-            int bk = 9;
-        }
+        // 进行排序
+        this->sort_line(cmp_alg);
+        // 刷新
+        m_pWindow->Invalidate(this);
     }
     m_pToBeSortedHeaderChild = nullptr;
 }
@@ -142,6 +158,7 @@ void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
         return;
     }
     m_controls.erase(itr);
+    --m_cChildrenCount;
     Super::RemoveJust(child);
 }
 
@@ -170,10 +187,10 @@ void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
         if (index < line->GetCount()) {
             auto ele = line->GetAt(index);
             ele->SetWidth(width);
-            line->SetControlSizeChanged();
+            line->SetControlLayoutChanged();
         }
     }
-    this->SetControlSizeChanged();
+    this->SetControlLayoutChanged();
 }
 
 // UI列表: 事件处理
@@ -197,28 +214,47 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // 排序算法
 void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept {
+    // 无需排列
+    if (this->GetCount() <= 1) return;
 #ifdef _DEBUG
     // cmp 会比较复杂, 模板带来的性能提升还不如用函数指针来节约代码大小
     auto timest = ::timeGetTime();
 #endif
-    // 快速排序
-    if (this->GetCount() >= m_cFastSortThreshold) {
-        auto b = &*m_controls.begin();
-        auto e = &*m_controls.end();
-        std::sort(b, e, cmp);
+    const auto bn = &*m_controls.begin();
+    const auto ed = &*m_controls.end();
+    bool just_reverse = true;
+    // 检查逆序状态
+    for (auto itr = bn; itr < (ed -1); ++itr) {
+        if (!cmp(*itr, *(itr + 1))) {
+            just_reverse = false;
+            break;
+        }
     }
-    // 冒泡排序
+    // 直接逆序
+    if (just_reverse) {
+        std::reverse(bn, ed);
+    }
+    // 排序
     else {
-        LongUI::BubbleSort(m_controls.begin(), m_controls.end(), cmp);
+        // 快速排序
+        if (this->GetCount() >= m_cFastSortThreshold) {
+            std::sort(bn, ed, cmp);
+        }
+        // 冒泡排序
+        else {
+            LongUI::BubbleSort(bn, ed, cmp);
+        }
     }
 #ifdef _DEBUG
     timest = ::timeGetTime() - timest;
     if (timest) {
+        int bk = 9;
         UIManager << DL_Hint
             << "sort take time: "
             << long(timest)
             << " ms"
             << LongUI::endl;
+        bk = 0;
     }
     if (this->debug_this) {
         UIManager << DL_Log
@@ -228,16 +264,7 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
             << LongUI::endl;
     }
 #endif
-    /*
-    // 小于
-    auto cmp = [](void* a, void* b) noexcept {
-        assert(a && b && "bad arguments");
-        auto ctrla = longui_cast<UIListLine*>(a)->GetToBeSorted();
-        auto ctrlb = longui_cast<UIListLine*>(b)->GetToBeSorted();
-        assert(ctrla && ctrlb && "bad action");
-        return ctrla->user_data < ctrla->user_data;
-    };
-    */
+    this->SetControlLayoutChanged();
 }
 
 // UIList: 初始化布局
@@ -305,7 +332,7 @@ void LongUI::UIList::RefreshLayout() noexcept {
         ctrl->SetWidth(widthtt);
         ctrl->SetHeight(m_fLineHeight);
         // 不管如何, 修改!
-        ctrl->SetControlSizeChanged();
+        ctrl->SetControlLayoutChanged();
         ctrl->SetLeft(0.f);
         ctrl->SetTop(m_fLineHeight * index);
         ++index;
@@ -505,7 +532,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
                     m_pSepHovered->SetWidth(m_pSepHovered->GetWidth() + distance);
                     longui_cast<LongUI::UIList*>(this->parent)->SetElementWidth(m_indexSepHovered, tarwidth);
                     m_pWindow->Invalidate(this->parent);
-                    this->SetControlSizeChanged();
+                    this->SetControlLayoutChanged();
                 }
             }
         }

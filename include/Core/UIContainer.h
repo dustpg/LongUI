@@ -49,6 +49,17 @@ namespace LongUI {
         // recreate this
         virtual auto Recreate() noexcept->HRESULT override;
     public:
+#ifdef _DEBUG
+    private:
+        // debug for_each
+        virtual void debug_for_each(const CUIFunction<void(UIControl*)>& call) noexcept = 0;
+    public:
+        // debug for_each helper
+        template<typename T> void DebugForEach(T call) noexcept {
+            CUIFunction<void(UIControl*)> func(call);
+            this->debug_for_each(func);
+        }
+#endif
         // find child control by mouse point
         virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* ;
         // refresh layout
@@ -223,7 +234,7 @@ namespace LongUI {
                     ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
                 }
                 // handed it
-                this->ControlSizeChangeHandled();
+                this->ControlLayoutChangeHandled();
             }
             // update marginal control
             if (this->flags & Flag_Container_ExistMarginalControl) {
@@ -238,7 +249,7 @@ namespace LongUI {
             this->AssertMarginalControl();
             // update children
             for (auto itr = itrbegin; itr != itrend; ++itr) {
-                auto ctrl = static_cast<UIControl*>(*itr);
+                auto ctrl = (*itr);
                 ctrl->Update();
                 ctrl->AfterUpdate();
             }

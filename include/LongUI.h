@@ -513,6 +513,10 @@ namespace LongUI {
     };
 }
 
+#ifndef CHAR_BIT
+#define CHAR_BIT 8
+#endif
+
 // Basic
 #include "Core/UIInterface.h"
 #include "Core/UIString.h"

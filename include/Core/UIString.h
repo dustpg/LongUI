@@ -24,6 +24,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+//#include <tuple>
+
 // LongUI namespace
 namespace LongUI{
     // UI String -- compatible with std library string interface(part of) but host a fixed buffer
@@ -225,4 +227,95 @@ namespace LongUI{
         // length of it
         size_t              m_cLength = 0 ;
     };
+    // namespace helper
+    namespace Helper {
+#if 0
+        // to match ruby-style, use low-case char
+        // type helper with c++ tuple
+        template <typename T> struct type_helper : public type_helper<decltype(&T::operator())> {};
+        // type helper
+        template <typename ClassType, typename ReturnType, typename... Args>
+        struct type_helper<ReturnType(ClassType::*)(Args...) const> {
+            // number of arguments
+            enum : size_t { arity = sizeof...(Args) };
+            // return type
+            using result_type = ReturnType;
+            // arg type
+            template <size_t i> struct arg { using type = typename std::tuple_element<i, std::tuple<Args...>>::type; };
+        };
+#endif
+        // buffer helper
+        template<typename char_type, size_t LEN> struct buffer_helper {
+            // copy ctor
+            buffer_helper(const buffer_helper<char_type, LEN>&) = delete;
+            // ctor
+            buffer_helper() noexcept = default;
+            // reserve
+            auto reserve(size_t len) {
+#ifdef _DEBUG
+                assert(this->state == 0 && "this func could be called only in once");
+                this->state = 1;
+#endif
+                if (len > LEN) {
+                    data = LongUI::NormalAllocT<char_type>(len); 
+                }
+            }
+            // dtor
+            ~buffer_helper() {
+                if (this->data != this->buffer) {
+                    LongUI::NormalFree(this->data);
+                    this->data = nullptr;
+                }
+            }
+#ifdef _DEBUG
+            size_t      state = 0;
+#endif
+            // data for string
+            char_type*  data = buffer;
+            // buffer for string
+            char_type   buffer[LEN];
+        };
+        // snprintf helper
+        template<typename char_type> struct snprintf_helper { };
+        // snprintf helper for char
+        template<> struct snprintf_helper<char> {
+            // call
+            template<typename ...Args>
+            static int call(char* buf, size_t len, Args...args) noexcept {
+                return std::snprintf(buf, len, args...);
+            }
+        };
+        // snprintf helper for wchar_t
+        template<> struct snprintf_helper<wchar_t> {
+            // call
+            template<typename ...Args>
+            static int call(wchar_t* buf, size_t len, Args...args) noexcept {
+                return std::snwprintf(buf, len, args...);
+            }
+        };
+    }
+    // longui buffer-safe sprintf
+    template<size_t BUFFER_LENGTH, typename Lambda, typename T, typename ...Args>
+    void SPrintF(Lambda lam, const T* format, Args...args) noexcept(noexcept(lam.operator())) {
+        Helper::buffer_helper<T, BUFFER_LENGTH> buffer;
+        int code = Helper::snprintf_helper<T>::call(buffer.data, BUFFER_LENGTH, format, args...);
+        if (code < 0) {
+            assert(!"RUNTIME ERROR, CHECK FORMAT");
+            return;
+        }
+        if (code >= BUFFER_LENGTH) {
+            buffer.reserve(size_t(code + 1));
+            if (buffer.data) {
+                Helper::snprintf_helper<T>::call(buffer.data, code + 1, format, args...);
+            }
+        }
+        if (buffer.data) {
+            lam(buffer.data, code);
+        }
+    }
+    // longui buffer-safe sprintf
+    template<typename Lambda, typename T, typename ...Args>
+    void SPrintF(Lambda lam, const T* format, Args...args) noexcept(noexcept(lam.operator())) {
+        return SPrintF<LongUIStringBufferLength>(lam, format, args...);
+    }
 }

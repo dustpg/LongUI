@@ -149,7 +149,7 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
         force_cast(ctrl->prev) = force_cast(ctrl->next) = nullptr;
         --m_cChildrenCount;
         // 修改
-        this->SetControlSizeChanged();
+        this->SetControlLayoutChanged();
     }
     Super::RemoveJust(ctrl);
 }
@@ -287,7 +287,7 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
             }
             // 容器?
             // 不管如何, 修改!
-            ctrl->SetControlSizeChanged();
+            ctrl->SetControlLayoutChanged();
             ctrl->SetLeft(0.f);
             ctrl->SetTop(position_y);
             position_y += ctrl->GetTakingUpHeight();
@@ -344,8 +344,6 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
         float basic_weight = 0.f;
         // 第一次
         for (auto ctrl : (*this)) {
-            // 前向
-            ctrl->Update();
             // 非浮点控件
             if (!(ctrl->flags & Flag_Floating)) {
                 // 高度固定?
@@ -383,7 +381,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
                 ctrl->SetWidth(std::max(width_in_unit_weight * ctrl->weight, float(LongUIAutoControlMinSize)));
             }
             // 不管如何, 修改!
-            ctrl->SetControlSizeChanged();
+            ctrl->SetControlLayoutChanged();
             ctrl->SetLeft(position_x);
             ctrl->SetTop(0.f);
             position_x += ctrl->GetTakingUpWidth();
@@ -393,7 +391,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
         m_2fContentSize.width = position_x;
         m_2fContentSize.height = base_height;
         // 已经处理
-        this->ControlSizeChangeHandled();
+        this->ControlLayoutChangeHandled();
     }
 }
 

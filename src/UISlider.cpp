@@ -102,6 +102,8 @@ void LongUI::UISlider::Update() noexcept {
         }
         m_rcThumb.right = m_rcThumb.left + this->thumb_size.width;
     }
+    // 父类刷新
+    return Super::Update();
 }
 
 // UISlider 构造函数

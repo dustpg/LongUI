@@ -369,6 +369,7 @@ auto LongUI::CUIManager::GetCreateFunc(const CUIString& name) noexcept -> Create
         if (itr != m_mapString2CreateFunction.end()) {
             return reinterpret_cast<CreateControlFunction>(itr->second);
         }
+        assert(!"404 not found");
     }
     catch (...)  {
 
@@ -1626,6 +1627,7 @@ void LongUI::CUIManager::RemoveWindow(UIWindow * wnd, bool cleanup) noexcept {
 #endif
     // 一次循环就搞定
     {
+        
         const register auto count = m_cCountWindow;
         bool found = false;
         for (auto i = 0u; i < m_cCountWindow; ++i) {

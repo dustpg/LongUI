@@ -506,6 +506,8 @@ void LongUI::UIWindow::Update() noexcept {
             m_dirtyRects[i].right = static_cast<LONG>(std::ceil(ctrl->visible_rect.right));
             m_dirtyRects[i].bottom = static_cast<LONG>(std::ceil(ctrl->visible_rect.bottom));
         }
+        // control update
+        UIControl::Update();
     }
     // 调试
 #ifdef _DEBUG

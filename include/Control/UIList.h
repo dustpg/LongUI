@@ -146,6 +146,14 @@ namespace LongUI {
         // find child control by mouse point
         virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* override final;
     public:
+#ifdef _DEBUG
+    private:
+        // debug for_each
+        virtual void debug_for_each(const CUIFunction<void(UIControl*)>& call) noexcept override {
+            for (auto ctrl : (m_controls)) { call(ctrl); }
+        }
+    public:
+#endif
         // refresh layout
         virtual void RefreshLayout() noexcept override final;
         // push back

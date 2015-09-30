@@ -180,19 +180,21 @@ namespace LongUI {
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
         return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des));
     }
-    // bubble sort
+    // bubble sort for vector or list
     template<typename Itr, typename Lamda>
-    static void BubbleSort(const Itr begin, const Itr end, Lamda lam) noexcept {
-        if (end - begin < 2) return;
-        for (auto itr_i = begin; itr_i != end; ++itr_i) {
-            bool sorted = true;
-            for (auto itr_j = itr_i; itr_j != end; ++itr_j) {
-                if (lam(*itr_j, *itr_i)) {
-                    std::swap(*itr_i, *itr_j);
-                    sorted = false;
+    static void BubbleSort(Itr begin, Itr end, Lamda lam) noexcept {
+        --end;
+        bool flag = true;
+        while (flag) {
+            flag = false;
+            for (auto i = begin; i != end; ++i) {
+                auto j = i; ++j;
+                if (lam(*j, *i)) {
+                    std::swap(*j, *i);
+                    flag = true;
                 }
             }
-            if (sorted) return;
+            --end;
         }
     }
     // RtlGetVersion func

@@ -34,7 +34,7 @@ void LongUI::UIText::Update() noexcept {
         // 设置大小
         m_text.Resize(this->view_size.width, this->view_size.height);
         // 已经处理
-        this->ControlSizeChangeHandled();
+        this->ControlLayoutChangeHandled();
     }
     return Super::Update();
 }
@@ -295,7 +295,7 @@ void LongUI::UIEditBasic::Update() noexcept {
         // 设置大小
         m_text.Resize(this->view_size.width, this->view_size.height);
         // 已经处理
-        this->ControlSizeChangeHandled();
+        this->ControlLayoutChangeHandled();
     }
     // 刷新
     m_text.Update();

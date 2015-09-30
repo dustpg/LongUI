@@ -1,6 +1,16 @@
 ﻿#include "LongUI.h"
 #include <algorithm>
 
+#ifdef _DEBUG
+void dbg_update(LongUI::UIControl* control) noexcept {
+    assert(control && "bad argments");
+    if (control->debug_updated) {
+        auto& name = control->GetName();
+        auto bk = 9;
+    }
+}
+#endif
+
 // Core Contrl for UIControl, UIMarginalable, UIContainer, UINull
 
 // 系统按钮:
@@ -194,7 +204,7 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
 void LongUI::UIControl::AfterUpdate() noexcept {
     // 控件大小处理了
     if (m_bool16.Test(Index_ChangeSizeHandled)) {
-        m_bool16.SetFalse(Index_ChangeSize);
+        m_bool16.SetFalse(Index_ChangeLayout);
         m_bool16.SetFalse(Index_ChangeSizeHandled);
     }
     // 世界转换处理了
@@ -202,23 +212,27 @@ void LongUI::UIControl::AfterUpdate() noexcept {
         m_bool16.SetFalse(Index_ChangeWorld);
         m_bool16.SetFalse(Index_ChangeWorldHandled);
     }
+#ifdef _DEBUG
+    assert(debug_updated && "must call Update() before this");
+    debug_updated = false;
+#endif
 }
 
 // UI控件: 重建
 auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
     // 增加计数
 #ifdef _DEBUG
-    ++this->recreate_count;
+    ++this->debug_recreate_count;
     if (this->debug_this) {
         UIManager << DL_Log
             << "create count: "
-            << long(this->recreate_count)
+            << long(this->debug_recreate_count)
             << LongUI::endl;
     }
-    if (recreate_count > 1 && this->debug_this) {
+    if (debug_recreate_count > 1 && this->debug_this) {
         UIManager << DL_Hint
             << "create count: "
-            << long(this->recreate_count)
+            << long(this->debug_recreate_count)
             << LongUI::endl;
     }
 #endif
@@ -270,7 +284,7 @@ auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
     auto new_vwidth = width - this->GetNonContentWidth();
     if (new_vwidth != this->view_size.width) {
         force_cast(this->view_size.width) = new_vwidth;
-        this->SetControlSizeChanged();
+        this->SetControlLayoutChanged();
     }
     // 检查
     if (this->view_size.width < 0.f && this->parent->view_size.width > 0.f) {
@@ -286,7 +300,7 @@ auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline 
     auto new_vheight = height - this->GetNonContentHeight();
     if (new_vheight != this->view_size.height) {
         force_cast(this->view_size.height) = new_vheight;
-        this->SetControlSizeChanged();
+        this->SetControlLayoutChanged();
     }
     // 检查
     if (this->view_size.height < 0.f && this->parent->view_size.height > 0.f) {
@@ -577,9 +591,9 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     // 重建资源
     child->Recreate();
     // 修改
-    child->SetControlSizeChanged();
+    child->SetControlLayoutChanged();
     // 修改
-    this->SetControlSizeChanged();
+    this->SetControlLayoutChanged();
 }
 
 /// <summary>
@@ -981,7 +995,7 @@ void LongUI::UIContainer::Update() noexcept {
             this->refresh_marginal_controls();
         }
         // 处理
-        this->ControlSizeChangeHandled();
+        this->ControlLayoutChangeHandled();
         // 刷新
         /*if (should_update) {
         this->SetControlWorldChanged();
@@ -1027,7 +1041,7 @@ void LongUI::UIContainer::Update() noexcept {
             }
         }
         // 已处理该消息
-        this->ControlSizeChangeHandled();
+        this->ControlLayoutChangeHandled();
     }
     // 刷新父类
     return Super::Update();
