@@ -30,6 +30,8 @@ namespace LongUI{
     class UIVerticalLayout : public UIContainerBuiltIn {
         // 父类申明
         using Super = UIContainerBuiltIn;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public: // UIControl
         // render this
         //virtual auto Render() noexcept ->HRESULT override;
@@ -39,9 +41,6 @@ namespace LongUI{
         //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate
         //virtual auto Recreate() noexcept->HRESULT override;
-    private:
-        // clean this
-        virtual void cleanup() noexcept override;
     public:
         // refresh layout
         virtual void RefreshLayout() noexcept override final;
@@ -64,6 +63,8 @@ namespace LongUI{
     class UIHorizontalLayout : public UIContainerBuiltIn {
         // 父类申明
         using Super = UIContainerBuiltIn;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public: // UIControl
         // Render 渲染 
         //virtual auto Render() noexcept ->HRESULT override;
@@ -73,9 +74,6 @@ namespace LongUI{
         //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override;
     public:
         // refresh layout
         virtual void RefreshLayout() noexcept override final;

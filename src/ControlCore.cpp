@@ -4,10 +4,10 @@
 #ifdef _DEBUG
 void dbg_update(LongUI::UIControl* control) noexcept {
     assert(control && "bad argments");
-    if (control->debug_updated) {
+    /*if (control->debug_updated) {
         auto& name = control->GetName();
         auto bk = 9;
-    }
+    }*/
 }
 #endif
 
@@ -428,10 +428,12 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
 // LongUI namespace
 namespace LongUI {
     // null control
-    class UINull : public UIControl {
+    class UINull final: public UIControl {
     private:
         // 父类申明
         using Super = UIControl;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override { delete this; }
     public:
         // Render 渲染
         virtual void Render(RenderType) const noexcept override {}
@@ -439,9 +441,6 @@ namespace LongUI {
         virtual void Update() noexcept override {}
         // do event 事件处理
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override { return false; }
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override { delete this; }
     public:
         // 创建控件
         static auto CreateControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept {
@@ -1093,7 +1092,7 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
 
 // ------------------------ HELPER ---------------------------
 // sb调用帮助器
-bool LongUI::UIControl::subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
+bool LongUI::UIControl::call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
     // 事件
     LongUI::EventArgument arg;
     arg.event = LongUI::Event::Event_SubEvent;

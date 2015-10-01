@@ -30,6 +30,8 @@ namespace LongUI{
     class UICheckBox final : public UIText {
         // 父类申明
         using Super = UIText ;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // the disabled state is one lowest bit of state (state & 1)
         // "CheckBoxState" is state right shift a bit (state>>1)
@@ -54,9 +56,6 @@ namespace LongUI{
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override;
     public:
         // is canbe indeterminate state?
         auto IsCanbeIndeterminate() const noexcept { return m_bCanbeIndeterminate; }

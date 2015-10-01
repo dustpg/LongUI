@@ -31,6 +31,8 @@ namespace LongUI {
     class UIEditBasic : public UIControl {
         // 父类申明
         using Super = UIControl;
+        // close this control 关闭控件
+        virtual void cleanup() noexcept override;
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;
@@ -42,16 +44,14 @@ namespace LongUI {
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override;
+    protected:
+        // [uniform interface]get/set text interface
+        virtual auto uniface_text(const wchar_t* OPTIONAL txt) noexcept ->const wchar_t* override final;
     public:
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // constructor 构造函数
         UIEditBasic(UIContainer* cp, pugi::xml_node node) noexcept;
-        // control text 控件文本
-        auto GetText() const noexcept { return m_text.c_str(); }
     protected:
         // destructor 析构函数
         ~UIEditBasic() noexcept {};

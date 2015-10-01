@@ -38,6 +38,8 @@ namespace LongUI {
         static const UINT s_uTaskbarBtnCreatedMsg;
         // timer id for blink
         static constexpr UINT_PTR BLINK_EVENT_ID = 0;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // flag of window
         enum WindowFlag : uint8_t {
@@ -95,9 +97,6 @@ namespace LongUI {
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override;
     public:
         // constructor
         UIWindow(pugi::xml_node node, UIWindow* parent) noexcept;

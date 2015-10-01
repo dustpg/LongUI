@@ -32,6 +32,8 @@ namespace LongUI{
         using Super = UIText;
         // ui element
         using ButtonElement = Component::Elements<Element_Meta, Element_BrushRect, Element_Basic>;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // Render 渲染 
         virtual void Render(RenderType type) const noexcept override;
@@ -43,11 +45,9 @@ namespace LongUI{
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
+    protected:
         // register ui call
-        virtual bool AddEventCall(SubEvent sb, UICallBack&& call) noexcept override;
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override;
+        virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;

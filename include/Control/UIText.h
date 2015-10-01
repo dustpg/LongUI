@@ -29,9 +29,10 @@
 namespace LongUI{
     // default text control 默认文本控件
     class UIText : public UIControl {
-    private:
         // 父类申明
         using Super = UIControl ;
+        // clean this
+        virtual void cleanup() noexcept override;
     public:
         // Render 渲染
         virtual void Render(RenderType) const noexcept override;
@@ -41,21 +42,14 @@ namespace LongUI{
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override;
-    public:
-        // get text controller
-        auto& GetTextController() noexcept { return m_text; }
-        // control text 控件文本
-        const auto GetText() const noexcept { return m_text.c_str(); }
-        // set control text
-        const void SetText(const wchar_t* t) noexcept { m_text = t; m_pWindow->Invalidate(this); }
-        // set control text
-        const void SetText(const char* t) noexcept { m_text = t; m_pWindow->Invalidate(this); }
+    protected:
+        // [uniform interface]get/set text interface
+        virtual auto uniface_text(const wchar_t* OPTIONAL txt) noexcept ->const wchar_t* override final;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        // get text controller
+        auto&GetTextController() noexcept { return m_text; }
         // ctor
         UIText(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), m_text(node) {}
     protected:

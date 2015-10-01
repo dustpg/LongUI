@@ -31,6 +31,8 @@ namespace LongUI {
     class UIListLine : public UIHorizontalLayout {
         // super class
         using Super = UIHorizontalLayout;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // Render 渲染 
         //virtual auto Render() noexcept ->HRESULT override;
@@ -40,9 +42,6 @@ namespace LongUI {
         //virtual auto Recreate() noexcept->HRESULT override;
         // 刷新
         virtual void Update() noexcept override;
-    private:
-        // clean this control 清除控件
-        virtual void cleanup() noexcept override;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -72,6 +71,8 @@ namespace LongUI {
     class UIListHeader : public UIListLine {
         // super class
         using Super = UIListLine;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // update
         virtual void Update() noexcept override;
@@ -79,9 +80,6 @@ namespace LongUI {
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // do mouse event 
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
-    private:
-        // clean this control 清除控件
-        virtual void cleanup() noexcept override;
     public:
         // init
         virtual void InitMarginalControl(MarginalControl _type) noexcept;
@@ -121,6 +119,8 @@ namespace LongUI {
         //using WeightBuffer = EzContainer::SmallBuffer<float, 16>;
         // line template buffer
         using LineTemplateBuffer = EzContainer::SmallBuffer<Helper::CC, 16>;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // flag for UIList
         enum UIListFlag : uint32_t {
@@ -131,9 +131,6 @@ namespace LongUI {
             // default flag
             Flag_Default = 0,
         };
-    private:
-        // clean up
-        virtual void cleanup() noexcept override;
     public:
         // render this
         virtual void Render(RenderType) const noexcept override;

@@ -65,23 +65,23 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <List sort="true" name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine name="lin1">
             <Text text="1" templateid="4" name="listline1-1"/>
-            <Text text="1+" templateid="4"/>
+            <Text text="五湖" templateid="4"/>
         </ListLine>
         <ListLine name="lin2">
             <Text text="2" templateid="4" name="listline2-1"/>
-            <Text text="2+" templateid="4"/>
+            <Text text="亖死" templateid="4"/>
         </ListLine>
         <ListLine name="lin3">
             <Text text="3" templateid="4" name="listline3-1"/>
-            <Text text="3+" templateid="4"/>
+            <Text text="三妻" templateid="4"/>
         </ListLine>
         <ListLine name="lin4">
             <Text text="5" templateid="4" name="listline4-1"/>
-            <Text text="5+" templateid="4"/>
+            <Text text="二连" templateid="4"/>
         </ListLine>
         <ListLine name="lin5">
             <Text text="4" templateid="4" name="listline5-1"/>
-            <Text text="4+" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
@@ -134,8 +134,9 @@ private:
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
                 for (auto ctrl : static_cast<LongUI::UIList*>(list)->GetContainer()) {
                     auto line = LongUI::longui_cast<LongUI::UIListLine*>(ctrl);
-                    auto tobesorted =  LongUI::longui_cast<LongUI::UIText*>(line->GetToBeSorted());
-                    tobesorted->user_ptr = const_cast<wchar_t*>(tobesorted->GetText());
+                    auto tobesorted =  line->GetToBeSorted();
+                    auto ptr = const_cast<wchar_t*>(tobesorted->GetText());
+                    tobesorted->user_ptr = ptr;
                 }
                 return true;
             });
@@ -470,6 +471,7 @@ private:
     // dll
     HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
 };
+
 
 
 // 应用程序入口

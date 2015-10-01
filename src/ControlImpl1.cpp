@@ -80,6 +80,17 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
 return Super::Recreate();
 }*/
 
+// UIText: 统一文本接口
+auto LongUI::UIText::uniface_text(const wchar_t* OPTIONAL txt) noexcept -> const wchar_t* {
+    // 设置
+    if (txt) {
+        m_text = txt;
+        m_pWindow->Invalidate(this);
+    }
+    // 获取
+    return m_text.c_str();
+}
+
 // close this control 关闭控件
 void LongUI::UIText::cleanup() noexcept {
     delete this;
@@ -228,7 +239,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         if (m_pWindow->IsReleasedControl(this)) {
-            bool rec = this->subevent_call_helper(m_event, SubEvent::Event_ItemClicked);
+            bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
             rec = false;
             // 设置状态
             UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
@@ -249,7 +260,7 @@ auto LongUI::UIButton::Recreate() noexcept ->HRESULT {
 }
 
 // 添加事件监听器(雾)
-bool LongUI::UIButton::AddEventCall(SubEvent sb, UICallBack&& call) noexcept {
+bool LongUI::UIButton::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
     if (sb == SubEvent::Event_ItemClicked) {
         m_event += std::move(call);
         return true;
@@ -381,6 +392,15 @@ bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 HRESULT LongUI::UIEditBasic::Recreate() noexcept {
     m_text.Recreate();
     return Super::Recreate();
+}
+
+// UIEditBasic: 统一文本接口
+auto LongUI::UIEditBasic::uniface_text(const wchar_t* OPTIONAL txt) noexcept -> const wchar_t* {
+    // 有效
+    if (txt) {
+        assert(!"NOIMPL");
+    }
+    return m_text.c_str();;
 }
 
 // close this control 关闭控件

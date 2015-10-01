@@ -288,7 +288,7 @@ auto LongUI::UIWindow::FindControl(const CUIString& str) noexcept -> UIControl *
     const auto itr = m_mapString2Control.find(str);
     // 未找到返回空
     if (itr == m_mapString2Control.cend()) {
-        // 警告
+        // 给予警告
         UIManager << DL_Warning << L"Control Not Found:\n  " << str << LongUI::endl;
         return nullptr;
     }

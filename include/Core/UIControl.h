@@ -39,13 +39,25 @@ namespace LongUI {
         friend class CUIManager;
         // friend class
         friend class UIContainer;
+        /// <summary>
+        /// Cleanups this instance.
+        /// </summary>
+        /// <remarks>
+        /// you should call dtor in this method, if malloc(ed), you should free it
+        /// easy way: delete this
+        /// </remarks>
+        virtual void cleanup() noexcept = 0;
     public:
         // register ui call from lambda/functor/function pointer
         template<typename T> auto AddEventCall(T call, SubEvent sb) noexcept {
-            auto ok = this->AddEventCall(sb, std::move(UICallBack(call)));
+            auto ok = this->uniface_addevent(sb, std::move(UICallBack(call)));
             assert(ok && "this control do not support this event!");
             return ok;
         }
+        // get text
+        auto GetText() noexcept { return this->uniface_text(nullptr); }
+        // set text
+        auto SetText(const wchar_t* txt) noexcept { this->uniface_text(txt); }
     public:
         // Render 
         virtual void Render(RenderType) const noexcept;
@@ -64,17 +76,13 @@ namespace LongUI {
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
         // recreate , first call or device reset
         virtual auto Recreate() noexcept->HRESULT;
-        // register ui call
-        virtual bool AddEventCall(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
-    private:
-        /// <summary>
-        /// Cleanups this instance.
-        /// </summary>
-        /// <remarks>
-        /// you should call dtor in this method, if malloc(ed), you should free it
-        /// easy way: delete this
-        /// </remarks>
-        virtual void cleanup() noexcept = 0;
+    protected:
+        // [uniform interface]register ui call
+        virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
+        // [uniform interface]set/get text
+        virtual auto uniface_text(const wchar_t* OPTIONAL txt) noexcept ->const wchar_t* { UNREFERENCED_PARAMETER(txt); assert(!"can not get/set text from this control!"); return L""; };
+        // UIEvent
+        bool call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
     public:
         // ctor
         UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept;
@@ -241,10 +249,6 @@ namespace LongUI {
         D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
         // control name
         CUIString               m_strControlName;
-    protected:
-        // SubEvent Call Helper
-        bool subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
-    public:
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -259,6 +263,7 @@ namespace LongUI {
         // assert type casting
         template<class T> void AssertTypeCastingT(T*) const noexcept { this->AssertTypeCasting(LongUI::GetIID<T>()); }
 #else
+    public:
         // canbe casted to?
         auto IsCanbeCastedTo(const IID& iid) const noexcept { UNREFERENCED_PARAMETER(iid); return false; }
         // get class name

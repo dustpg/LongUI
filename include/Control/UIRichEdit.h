@@ -31,6 +31,8 @@ namespace LongUI {
     class  UIRichEdit :  public UIControl, public Helper::ComStatic<Helper::QiList<ITextHost2>> {
         // 父类申明
         using Super = UIControl;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // Text Services 2 IID指针
         static IID*                                IID_ITextServices2;
@@ -47,9 +49,6 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept->HRESULT override;
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override;
     public:
         // operator ITextServices2
         operator ITextServices2*() const noexcept { return m_pTextServices; }

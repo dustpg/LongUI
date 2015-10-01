@@ -246,7 +246,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     if (m_fValueOld != m_fValue) {
         m_fValueOld = m_fValue;
         // 调用
-        this->subevent_call_helper(m_event, SubEvent::Event_ValueChanged);
+        this->call_uievent(m_event, SubEvent::Event_ValueChanged);
         // 刷新
         m_pWindow->Invalidate(this);
     }
@@ -260,7 +260,7 @@ auto LongUI::UISlider::Recreate() noexcept ->HRESULT {
 }
 
 // 添加事件监听器(雾)
-bool LongUI::UISlider::AddEventCall(SubEvent sb, UICallBack&& call) noexcept {
+bool LongUI::UISlider::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
     if (sb == SubEvent::Event_ValueChanged) {
         m_event += std::move(call);
         return true;

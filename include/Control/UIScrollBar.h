@@ -128,6 +128,8 @@ namespace LongUI {
         enum { Arrow_Left, Arrow_Top, Arrow_Right, Arrow_Bottom, ARROW_SIZE };
         // path geo
         static ID2D1PathGeometry*       s_apArrowPathGeometry[ARROW_SIZE];
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override;
     public:
         // ctor
         UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcept;
@@ -144,9 +146,6 @@ namespace LongUI {
         bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate
         auto Recreate() noexcept->HRESULT override;
-    private:
-        // close this control 关闭控件
-        void cleanup() noexcept override;
     public:
         // init sb
         virtual void InitMarginalControl(MarginalControl _type) noexcept override;

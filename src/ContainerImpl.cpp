@@ -170,7 +170,10 @@ LongUI::UIContainerBuiltIn::~UIContainerBuiltIn() noexcept {
 auto LongUI::UIContainerBuiltIn::GetIndexOf(UIControl* child) const noexcept ->uint32_t {
     assert(this == child->parent && "不是亲生的");
     uint32_t index = 0;
-    for (auto ctrl : (*this)) if (ctrl == child) break;
+    for (auto ctrl : (*this)) {
+        if (ctrl == child) break;
+        ++index;
+    }
     return index;
 }
 
