@@ -67,10 +67,13 @@ noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : n
             force_cast(this->priority) = uint8_t(LongUI::AtoI(data));
         }
         // 检查名称
-        Helper::MakeString(
-            node.attribute(LongUI::XMLAttribute::ControlName).value(),
-            m_strControlName
-            );
+        if (m_pWindow) {
+            auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
+            if (basestr) {
+                auto namestr = m_pWindow->CopyStringSafe(basestr);
+                force_cast(this->name) = namestr;
+            }
+        }
         // 检查外边距
         Helper::MakeFloats(
             node.attribute(LongUI::XMLAttribute::Margin).value(),
@@ -563,9 +566,8 @@ LongUI::UIContainer::~UIContainer() noexcept {
 void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     assert(child && "bad argument");
     // 添加到窗口速查表
-    if (child->GetName().length()) {
-        std::pair<LongUI::CUIString, void*> pair{ child->GetName(), child };
-        m_pWindow->AddControl(pair);
+    if (child->name[0]) {
+        m_pWindow->AddNamedControl(child);
     };
     // 大小判断
     if (this->GetCount() >= 10'000) {

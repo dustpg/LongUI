@@ -1,5 +1,6 @@
 ﻿TODOLIST
     DONE: 完成UIEditCore, 删除沉余代码, 并嵌到UIEdit: DoDragDrop
+    DONE: 移除STL容器要求
     PRPR: 完成窗口渲染队列
     PRPR: 基本二进制资源工具框架
     PRPR: 完成滚动条与容器的匹配
@@ -16,7 +17,6 @@
     TODO: 完成UITab
     TODO: 规范化消息架构
     TODO: 可以正式发表了 ~yooooooooo~
-    TODO: 移除STL容器要求
     TODO: 完成脚本对接框架
     TODO: UIRichEdit的整理
     TODO: 完成文本内联对象

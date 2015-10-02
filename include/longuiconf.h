@@ -112,7 +112,6 @@ namespace LongUI {
 #include <cstdint>
 #include <cwchar>
 #include <atomic>
-#include <map>
 #include <new>
 
 // TSF
@@ -162,8 +161,6 @@ namespace LongUI {
         LongUIDefaultUnRedoCommandSize = 13,
         // max count of longui window in same time [fixed buffer length]
         LongUIMaxWindow = 32,
-        // max count of contrl class [fixed buffer length]
-        LongUIMaxControlClass = 64,
         // max count of longui text renderer [fixed buffer length]
         LongUITextRendererCountMax = 10,
         // max length of longui text renderer length [fixed buffer length]
@@ -275,8 +272,6 @@ namespace LongUI {
     class CUIString;
     // pre-declare
     class IUIScript;
-    // map longui string to pointer, you can change to other like eastl stl lib, or you own 
-    using StringMap = std::map<const CUIString, void*>;
     // null for xmlnode, pugixml hold a handle for pointer
     static const pugi::xml_node null_xml_node = pugi::xml_node(nullptr);
 }

@@ -435,7 +435,7 @@ namespace LongUI {
         // get locale name of ui(for text)
         virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
         // add all custom controls
-        virtual auto AddCustomControl() noexcept->void override {};
+        virtual auto RegisterSome() noexcept->void override {};
         // if use gpu render, you should choose a video card, return the index
         virtual auto ChooseAdapter(IDXGIAdapter1* adapters[], const size_t length) noexcept->size_t override;
         // if in RichType::Type_Custom, will call this, we don't implement at here
@@ -539,6 +539,92 @@ namespace LongUI {
         // unused
         size_t          unused = 0;
     };
+    // short allocator, memory created with allocator, destroyed with allocator
+    template<size_t CHAIN_SIZE=2048>
+    class CUIShortStringAllocator {
+        // CHAIN
+        struct CHAIN { CHAIN* next; size_t used; char buffer[0]; };
+        // buffer length
+        enum : size_t { BUFFER_SIZE = CHAIN_SIZE - sizeof(void*) * 2 };
+        // memory chain
+        CHAIN*              m_pHeader = nullptr;
+    public:
+        // ctor
+        CUIShortStringAllocator() noexcept = default;
+        // cpoy ctor
+        CUIShortStringAllocator(const CUIShortStringAllocator<CHAIN_SIZE>&) noexcept = default;
+        // dtor
+        ~CUIShortStringAllocator() noexcept {
+            auto node = m_pHeader;
+            while (node) {
+                auto tmp = node;
+                node = node->next;
+                LongUI::NormalFree(tmp);
+            }
+            m_pHeader = nullptr;
+        }
+    public:
+        // free
+        auto Free(void* address) noexcept { UNREFERENCED_PARAMETER(address); }
+        // alloc for normal buffer
+        auto Alloc(size_t len) noexcept { return this->alloc(len); }
+        // alloc string with length
+        template<typename T>
+        const T* Alloc(const T* str, size_t len) noexcept {
+            assert(str);
+            // align operation
+            auto buffer = reinterpret_cast<T*>(this->alloc(sizeof(T)*(len + 1)));
+            if (!buffer) return nullptr;
+            ::memcpy(buffer, str, sizeof(T) * len);
+            buffer[len] = 0;
+            return buffer;
+        }
+        // alloc string
+        auto CopyString(const char* str) noexcept { return this->Alloc(str, std::strlen(str)); }
+        // alloc w-string
+        auto CopyString(const wchar_t* str) noexcept { return this->Alloc(str, std::wcslen(str)); }
+    private:
+        // reserve
+        auto reserve(size_t len) noexcept ->CHAIN* {
+            assert(len < BUFFER_SIZE && "out of range");
+            // check
+            if (!m_pHeader || (m_pHeader->used + len) > BUFFER_SIZE) {
+                auto new_header = reinterpret_cast<CHAIN*>(LongUI::NormalAlloc(CHAIN_SIZE));
+                if (!new_header) return nullptr;
+                new_header->next = m_pHeader;
+                new_header->used = 0;
+                m_pHeader = new_header;
+            }
+            return m_pHeader;
+        }
+        // alloc buffer
+        LongUINoinline auto alloc(size_t len) noexcept ->void* {
+#ifdef _DEBUG
+            if (len >= BUFFER_SIZE) {
+                UIManager << DL_Error 
+                    << "cannot alloc this size("
+                    << long(len)
+                    << L')'
+                    << LongUI::endl;
+                assert(!"bad action");
+            }
+            if (len > (BUFFER_SIZE / 10)) {
+                UIManager << DL_Warning << "To large for 'short'" << LongUI::endl;
+            }
+#endif
+            if (len >= BUFFER_SIZE) {
+                return nullptr;
+            }
+            void* address = nullptr;
+            auto chian = this->reserve(len);
+            if (chian) {
+                address = chian->buffer + chian->used;
+                chian->used += len;
+            }
+            return address;
+        };
+    };
+
     // singleton
     /*template<typename T>
     struct CUISingleton {

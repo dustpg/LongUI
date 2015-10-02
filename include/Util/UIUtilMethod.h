@@ -62,9 +62,9 @@ namespace LongUI {
     // BKDR Hash
     auto __fastcall BKDRHash(const wchar_t* str) noexcept->uint32_t;
     // BKDR Hash
-    static inline auto BKDRHash(const char* str, uint32_t size) noexcept { return BKDRHash(str) & size; }
+    static inline auto BKDRHash(const char* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
     // BKDR Hash
-    static inline auto BKDRHash(const wchar_t* str, uint32_t size) noexcept { return BKDRHash(str) & size; }
+    static inline auto BKDRHash(const wchar_t* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
     // load proc
     template<typename T> static inline auto LoadProc(T& pointer, HMODULE dll, const char* name) noexcept {
         pointer = reinterpret_cast<T>(::GetProcAddress(dll, name));
@@ -160,7 +160,7 @@ namespace LongUI {
     // Base64 Encode 编码
     auto __fastcall Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* const __restrict base64) noexcept -> char *;
     // Base64 Decode 解码
-    auto __fastcall Base64Decode(IN const char* __restrict  base64, OUT uint8_t* __restrict bindata) noexcept->size_t;
+    auto __fastcall Base64Decode(IN const char* __restrict base64, OUT uint8_t* __restrict bindata) noexcept->size_t;
     // UTF-16 to UTF-8
     // Return: UTF-8 string length, 0 maybe error
     auto __fastcall UTF16toUTF8(const char16_t* __restrict, char* __restrict) noexcept -> uint32_t;

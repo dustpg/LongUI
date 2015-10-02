@@ -6,9 +6,9 @@
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
-    m_controls.reserve(100);
+    m_vLines.reserve(100);
     // OOM or BAD ACTION
-    if(!m_controls.isok()) {
+    if(!m_vLines.isok()) {
         UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
     }
     auto listflag = this->list_flag;
@@ -43,8 +43,8 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
         return m_pHeader;
     }
     else {
-        if (m_controls.empty()) return nullptr;
-        return longui_cast<UIListLine*>(m_controls.front());
+        if (m_vLines.empty()) return nullptr;
+        return m_vLines.front();
     }
 }
 
@@ -52,7 +52,7 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
 auto LongUI::UIList::Recreate() noexcept -> HRESULT {
     HRESULT hr = S_OK;
     // 重建子控件
-    for (auto ctrl : m_controls) {
+    for (auto ctrl : m_vLines) {
         hr = ctrl->Recreate();
         assert(SUCCEEDED(hr));
     }
@@ -66,7 +66,7 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
         if (ctrl) return ctrl;
     }
     // TODO: 利用list特性优化
-    for (auto ctrl : m_controls) {
+    for (auto ctrl : m_vLines) {
         // 区域内判断
         if (IsPointInRect(ctrl->visible_rect, pt)) {
             return ctrl;
@@ -76,19 +76,21 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
 }
 
 // push!
-void LongUI::UIList::PushBack(UIControl* child) noexcept {
-    m_controls.push_back(child);
+LongUINoinline void LongUI::UIList::PushBack(UIControl* child) noexcept {
+    m_vLines.push_back(longui_cast<UIListLine*>(child));
     this->after_insert(child);
     ++m_cChildrenCount;
-    assert(m_controls.isok());
+    this->childvector_changed();
+    assert(m_vLines.isok());
 }
 
 // 插入
-auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
-    m_controls.insert(index, child);
+LongUINoinline auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
+    m_vLines.insert(index, longui_cast<UIListLine*>(child));
     this->after_insert(child);
     ++m_cChildrenCount;
-    assert(m_controls.isok());
+    this->childvector_changed();
+    assert(m_vLines.isok());
 }
 
 // 排序
@@ -97,15 +99,13 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
     m_pToBeSortedHeaderChild = child;
     // 有必要再说
     if ((this->list_flag & Flag_SortableLineWithUserDataPtr) 
-        && m_controls.size() > 1 
-        && index < static_cast<UIContainer*>(m_controls[0])->GetCount()) {
+        && m_vLines.size() > 1 
+        && index < m_vLines.front()->GetCount()) {
         assert(child && "bad argument");
-        assert(m_controls[0]->flags & Flag_UIContainer);
-        UIListLine* last_line = nullptr;
+        assert(m_vLines.front()->flags & Flag_UIContainer);
         // 设置待排序控件
-        for (auto ctrl : m_controls) {
-            last_line = static_cast<UIListLine*>(ctrl);
-            last_line->SetToBeSorted(index);
+        for (auto ctrl : m_vLines) {
+            ctrl->SetToBeSorted(index);
         }
         // 排序前
         m_callBeforSort(this);
@@ -131,7 +131,7 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
         // 普通排序
         bool(*cmp_alg)(UIControl*, UIControl*) = cmp_user_data;
         // 字符串排序?
-        if (last_line->GetToBeSorted()->user_ptr) {
+        if (m_vLines.front()->GetToBeSorted()->user_ptr) {
             cmp_alg = cmp_user_ptr;
         }
         // 进行排序
@@ -145,19 +145,20 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
 // UI列表控件: 析构函数
 LongUI::UIList::~UIList() noexcept {
     // 线性容器就是不用考虑next指针
-    for (auto ctrl : m_controls) {
+    for (auto ctrl : m_vLines) {
         this->cleanup_child(ctrl);
     }
 }
 
 // [UNTESTED]移除
 void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
-    auto itr = std::find(m_controls.cbegin(), m_controls.cend(), child);
-    if (itr == m_controls.cend()) {
+    auto itr = std::find(m_vLines.cbegin(), m_vLines.cend(), child);
+    if (itr == m_vLines.cend()) {
         assert("control not found");
         return;
     }
-    m_controls.erase(itr);
+    this->childvector_changed();
+    m_vLines.erase(itr);
     --m_cChildrenCount;
     Super::RemoveJust(child);
 }
@@ -180,14 +181,13 @@ void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
 // 设置元素宽度
 void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
     // 循环
-    for (auto ctrl : m_controls) {
-        auto line = longui_cast<LongUI::UIListLine*>(ctrl);
-        assert(line && "bad");
-        assert(index < line->GetCount() && "out of range");
-        if (index < line->GetCount()) {
-            auto ele = line->GetAt(index);
+    for (auto ctrl : m_vLines) {
+        assert(ctrl && "bad");
+        assert(index < ctrl->GetCount() && "out of range");
+        if (index < ctrl->GetCount()) {
+            auto ele = ctrl->GetAt(index);
             ele->SetWidth(width);
-            line->SetControlLayoutChanged();
+            ctrl->SetControlLayoutChanged();
         }
     }
     this->SetControlLayoutChanged();
@@ -220,8 +220,8 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
     // cmp 会比较复杂, 模板带来的性能提升还不如用函数指针来节约代码大小
     auto timest = ::timeGetTime();
 #endif
-    const auto bn = &*m_controls.begin();
-    const auto ed = &*m_controls.end();
+    const auto bn = &*m_vLines.begin();
+    const auto ed = &*m_vLines.end();
     bool just_reverse = true;
     // 检查逆序状态
     for (auto itr = bn; itr < (ed -1); ++itr) {
@@ -267,6 +267,53 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
     this->SetControlLayoutChanged();
 }
 
+
+// 选择子控件(对外)
+void LongUI::UIList::SelectChild(uint32_t index, bool new_select) noexcept {
+    this->select_child(index, new_select);
+    m_pWindow->Invalidate(this);
+}
+
+
+// 选择子控件
+LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select) noexcept {
+    // 检查是否多选
+    if (!new_select && !(this->list_flag & this->Flag_MultiSelection)) {
+        UIManager << DL_Hint
+            << "cannot do multi-selection"
+            << LongUI::endl;
+        new_select = true;
+    }
+    // 新的
+    if (new_select) {
+        m_vSelected.clear();
+    }
+    // 选择
+    auto line = m_vLines[index];
+    if (line->IsSelected()) {
+        line->SetSelected(false);
+        auto itr = std::find(m_vSelected.cbegin(), m_vSelected.cend(), line);
+        if (itr == m_vSelected.cend()) {
+            assert(!"NOT FOUND");
+        }
+        else {
+            m_vSelected.erase(itr);
+        }
+    }
+    else {
+        line->SetSelected(true);
+        m_vSelected.push_back(line);
+    }
+}
+
+// UIList: 子控件向量修改了
+void LongUI::UIList::childvector_changed() noexcept {
+    for(auto line : m_vSelected) {
+        line->SetSelected(false);
+    }
+    m_vSelected.clear();
+}
+
 // UIList: 初始化布局
 void LongUI::UIList::init_layout() noexcept {
     auto rctrl = this->get_referent_control();
@@ -301,18 +348,17 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
 // UIList: 渲染函数
 void LongUI::UIList::Render(RenderType type) const noexcept {
     // 帮助器
-    Super::RenderHelper<Super>(m_controls.begin(), m_controls.end(), type);
+    Super::RenderHelper<Super>(m_vLines.begin(), m_vLines.end(), type);
 }
 
 // UIList: 刷新
 void LongUI::UIList::Update() noexcept {
     // 帮助器
-    Super::UpdateHelper<Super>(m_controls.begin(), m_controls.end());
+    Super::UpdateHelper<Super>(m_vLines.begin(), m_vLines.end());
 #ifdef _DEBUG
     // 必须一致
-    if (this->IsNeedRefreshWorld() && m_pHeader && m_controls.size() && m_controls[0]) {
-        auto line = longui_cast<LongUI::UIListLine*>(m_controls[0]);
-        assert(m_pHeader->GetCount() == line->GetCount() && "out of sync for child number");
+    if (this->IsNeedRefreshWorld() && m_pHeader && m_vLines.size() && m_vLines.front()) {
+        assert(m_pHeader->GetCount() == m_vLines.front()->GetCount() && "out of sync for child number");
     }
 #endif
 }
@@ -320,14 +366,12 @@ void LongUI::UIList::Update() noexcept {
 
 // 更新子控件布局
 void LongUI::UIList::RefreshLayout() noexcept {
-    if (m_controls.empty()) return;
+    if (m_vLines.empty()) return;
     // 第二次
     float index = 0.f;
-    auto first = longui_cast<LongUI::UIListLine*>(m_controls[0]);
-    float widthtt = first->GetContentWidthZoomed();
+    float widthtt = m_vLines.front()->GetContentWidthZoomed();
     if (widthtt == 0.f) widthtt = this->GetViewWidthZoomed();
-    for (auto voidctrl : m_controls) {
-        auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
+    for (auto ctrl : m_vLines) {
         // 设置控件高度
         ctrl->SetWidth(widthtt);
         ctrl->SetHeight(m_fLineHeight);

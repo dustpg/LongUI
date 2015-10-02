@@ -174,7 +174,7 @@ namespace LongUI {
         /// Adds the custom control.
         /// </summary>
         /// <remarks>call CUIManager::RegisterControl to add control class</remarks>
-        virtual auto AddCustomControl() noexcept->void = 0;
+        virtual auto RegisterSome() noexcept->void = 0;
         /// <summary>
         /// Chooses the video adapter.
         /// </summary>

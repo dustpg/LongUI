@@ -148,6 +148,191 @@ namespace LongUI {
                 }
             }
         }
+        // primes list
+        static const uint32_t PRIMES_LIST[] = {
+            19, 79, 149, 263, 457, 787, 1031, 2333,
+            5167, 11369, 24989, 32491, 42257, 54941,
+        };
+        // string hash map
+        template<typename K, typename V>
+        class EzStringHash {
+        public:
+            // pair
+            using Pair = std::pair<const K*, V>;
+            // unit
+            struct Unit { Unit* next; const K* key; V value; };
+            // UnitAllocator
+            using UnitAllocator = LongUI::CUIShortStringAllocator<>;
+        private:
+            // alignceil
+            static auto alignceil(uint32_t a, uint32_t b) noexcept { return (a + (b - 1)) / b*b; }
+#ifdef _DEBUG
+            // alloc unit
+            static auto alloc_unit() noexcept { return LongUI::SmallAllocT<Unit>(1); }
+            // free unit
+            static auto free_unit(Unit* unit) noexcept { return LongUI::SmallFree(unit); }
+#else
+            // alloc unit
+            auto alloc_unit() noexcept { return reinterpret_cast<Unit*>(m_oUnitAllocator.Alloc(alignceil(sizeof(Unit), sizeof(void*)))); }
+            // free unit
+            auto free_unit(Unit* unit) noexcept { return m_oUnitAllocator.Free(unit); }
+#endif
+            // strcmphelper
+            static auto strcmphelper(const char* a, const char* b) noexcept { return std::strcmp(a, b); }
+            // strcmphelper
+            static auto strcmphelper(const wchar_t* a, const wchar_t* b) noexcept { return std::wcscmp(a, b); }
+            // new table
+            static auto new_table(uint32_t cap) noexcept {
+                auto table = LongUI::SmallAllocT<Unit*>(cap);
+                if (table) {
+                    ::memset(table, 0, sizeof(void*) * cap);
+                }
+                return table;
+            };
+            // free table
+            static auto free_table(Unit** table)noexcept { return LongUI::SmallFree(table); }
+        private:
+            // for each
+            template<typename T> 
+            static void for_each(Unit** table, uint32_t cap, T lam) noexcept {
+                if (!table) return;
+                // outside
+                for (auto itr = table; itr != table + cap; ++itr) {
+                    // inside
+                    auto unit = *itr;
+                    while (unit) {
+                        auto unext = unit->next;
+                        lam(unit);
+                        unit = unext;
+                    }
+                }
+            }
+        public:
+            // ctor
+            EzStringHash() noexcept = default;
+            // cpoy ctor
+            EzStringHash(const EzStringHash&) = delete;
+            // dtor
+            LongUINoinline ~EzStringHash() noexcept { 
+                if (m_ppUnitTable) {
+                    this->for_each(m_ppUnitTable, m_cCapacity, [this](Unit* unit) noexcept {
+                        this->free_unit(unit);
+                    });
+                    this->free_table(m_ppUnitTable); 
+                    m_ppUnitTable = nullptr;
+                }
+            }
+            // for each
+            template<typename T> void ForEach(T lam) noexcept { this->for_each(m_ppUnitTable, m_cCapacity, lam); }
+            // size
+            auto GetCount() const noexcept { return m_cCount; }
+            // isok
+            auto IsOk() const noexcept { return !!m_ppUnitTable; }
+            // find
+            auto Find(const K* str) const noexcept ->V* {
+                if (!m_cCapacity) return false;
+                assert(m_ppUnitTable && "no table but count");
+                auto index = LongUI::BKDRHash(str, m_cCapacity);
+                auto unit = m_ppUnitTable[index];
+                while (unit) {
+                    if (!strcmphelper(str, unit->key)) {
+                        return &unit->value;
+                    }
+                    unit = unit->next;
+                }
+                return nullptr;
+            }
+            // remove
+            bool Remove(const K* str) noexcept {
+                if (!m_cCapacity) return false;
+                assert(m_ppUnitTable && "no table but count");
+                auto index = LongUI::BKDRHash(str, m_cCapacity);
+                auto unit = m_ppUnitTable[index];
+                decltype(unit) last = nullptr;
+                while (unit) {
+                    if (!strcmphelper(str, unit->key)) {
+                        auto unext = unit->next;
+                        if (last) {
+                            last->next = unext;
+                        }
+                        else {
+                            m_ppUnitTable[index] = unext;
+                        }
+                        --m_cCount;
+                        return true;
+                    }
+                    last = unit;
+                    unit = unit->next;
+                }
+                assert(!"not found");
+                return false;
+            }
+            // insert
+            bool Insert(const K* key, const V& v) noexcept {
+#ifdef _DEBUG
+                assert(this->Find(key) == nullptr && "exsited!");
+#endif
+                if (m_cCount + 1 > m_cCapacity) {
+                    this->Reserve(this->next_prime(m_cCapacity));
+                }
+                if (!m_ppUnitTable) return false;
+                auto unit = this->alloc_unit();
+                if (!unit) return false;
+                unit->key = key;
+                unit->value = v;
+                this->insert(std::move(*unit));
+                return true;
+            }
+            // reserve
+            bool Reserve(size_t newc) noexcept {
+                if (newc <= m_cCapacity) return false;
+                auto newtable = this->new_table(newc);
+                if (!newtable) return false;
+                auto oldtable = m_ppUnitTable;
+                auto oldcap = m_cCapacity;
+                auto oldcount = m_cCount;
+                m_ppUnitTable = newtable;
+                m_cCapacity = newc;
+                m_cCount = 0;
+                if (oldtable) {
+                    this->for_each(oldtable, oldcap, [this](Unit* unit) noexcept {
+                        this->insert(std::move(*unit));
+                    });
+                    this->free_table(oldtable);
+                }
+                assert(oldcount == m_cCount && "bad action");
+                oldcount = 0;
+                return true;
+            }
+        private:
+            // insert
+            void insert(Unit&& unit) noexcept {
+                assert(m_ppUnitTable && "bad action");
+                unit.next = nullptr;
+                auto index = LongUI::BKDRHash(unit.key, m_cCapacity);
+                Unit** unitlist = m_ppUnitTable + index;
+                while (*unitlist) unitlist = &(*unitlist)->next;
+                *unitlist = &unit;
+                ++m_cCount;
+            }
+            // next prime number
+            static auto next_prime(uint32_t i) {
+                assert(i <= PRIMES_LIST[LongUI::lengthof(PRIMES_LIST) - 1] && "to huge");
+                for (auto num : PRIMES_LIST) {
+                    if (num > i) return num;
+                }
+                return i;
+            }
+        private:
+            // size
+            uint32_t                m_cCount = 0;
+            // capacity
+            uint32_t                m_cCapacity = 0;
+            // Unit table
+            Unit**                  m_ppUnitTable = nullptr;
+            // Unit Allocator
+            UnitAllocator           m_oUnitAllocator;
+        };
         // Easy Vector
         template<typename T> class EzVector {
         public:
@@ -170,17 +355,17 @@ namespace LongUI {
                 using difference_type = ptrdiff_t;
             public:
                 // ctor
-                Iterator(TT* d) noexcept : data(d) { assert(data); }
+                Iterator(TT* d) noexcept : data(d) { }
                 // copy ctor
-                Iterator(const Iterator<TT>& itr) noexcept : data(itr.data) { assert(data); }
+                Iterator(const Iterator<TT>& itr) noexcept : data(itr.data) {  }
                 //  ++itr
-                auto operator++() noexcept { assert(data); ++this->data; return *this; }
+                auto operator++() noexcept { ++this->data; return *this; }
                 // itr++
-                auto operator++(int) const noexcept { assert(data); Iterator itr(this->data); return ++itr; }
+                auto operator++(int) const noexcept {  Iterator itr(this->data); return ++itr; }
                 //  --itr
-                auto operator--() noexcept { assert(data); --this->data; return *this; }
+                auto operator--() noexcept { --this->data; return *this; }
                 // itr--
-                auto operator--(int) const noexcept { assert(data); Iterator itr(this->data); return --itr; }
+                auto operator--(int) const noexcept { Iterator itr(this->data); return --itr; }
                 // operator ==
                 auto operator==(const Iterator<TT>& itr) const noexcept { return this->data == itr.data; }
                 // operator !=
@@ -206,7 +391,7 @@ namespace LongUI {
                 // distance
                 auto operator-(const Iterator<TT>& itr) const noexcept { return this->data - itr.data; }
                 // operator *
-                auto&operator*() const noexcept { return *this->data; }
+                auto&operator*() const noexcept { assert(data && "null pointer"); return *this->data; }
             private:
                 // data
                 TT*             data = nullptr;
@@ -439,4 +624,6 @@ namespace LongUI {
     using ControlVector = EzContainer::PointerVector<UIControl>;
     // Context Buffer
     using ContextBuffer = EzContainer::SmallBuffer<char, 4 * 4>;
+    // String Hash Table
+    using StringTable = EzContainer::EzStringHash<char, void*>;
 }

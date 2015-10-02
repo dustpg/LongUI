@@ -31,7 +31,7 @@ namespace LongUI {
     class UIWindow : public UIVerticalLayout, public Helper::ComStatic<
         Helper::QiListSelf<IUnknown, Helper::QiList<IDropTarget>>> {
         // 父类申明
-        using Super = UIVerticalLayout ;
+        using Super = UIVerticalLayout;
         // 友元申明
         friend class CUIManager;
         // message id for TaskbarBtnCreated
@@ -70,6 +70,8 @@ namespace LongUI {
             // because of DirectComposition
             Type_Layered,
         };
+        // string allocator
+        using StringAllocator = CUIShortStringAllocator<>;
     protected:
         // index of BitArray
         enum BitArrayIndex : uint32_t {
@@ -144,14 +146,16 @@ namespace LongUI {
         void SetFocus(UIControl* ctrl) noexcept;
         // set hover track control
         void SetHoverTrack(UIControl* ctrl) noexcept { assert(ctrl); if (ctrl && ctrl->GetHoverTrackTime()) m_pHoverTracked = ctrl; }
-        // find control by CUIString
-        auto FindControl(const CUIString& name) noexcept->UIControl*;
-        // find control by wchar_t pointer
-        auto FindControl(const wchar_t* name) noexcept { CUIString n(name); return this->FindControl(n); }
+        // find control 
+        auto FindControl(const char* name) noexcept->UIControl*;
         // add control with name
-        void AddControl(const std::pair<CUIString, void*>& pair) noexcept;
+        void AddNamedControl(UIControl* ctrl) noexcept;
         // set icon, bad
         void SetIcon(HICON hIcon = nullptr) noexcept;
+        // copystring for control in this winddow
+        auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
+        // copystring for control in this winddow in safe way
+        auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
     public:
         // get waite-vs event handle
         LongUIInline auto GetVSyncEvent() const noexcept { return m_hVSync; }
@@ -210,6 +214,8 @@ namespace LongUI {
         // last mouse point
         D2D1_POINT_2F           last_point = D2D1::Point2F(-1.f, -1.f);
     protected:
+        // string allocator
+        StringAllocator         m_oStringAllocator;
         // unused float
         float                   m_fUnused = 0.f;
         // count for the caret
@@ -287,7 +293,7 @@ namespace LongUI {
         // registered control
         ControlVector           m_vRegisteredControl;
         // control name ->map-> control pointer
-        StringMap               m_mapString2Control;
+        StringTable             m_hashStr2Ctrl;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

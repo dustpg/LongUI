@@ -86,14 +86,14 @@ void LongUI::UIContainerBuiltIn::insert_only(Iterator itr, UIControl* ctrl) noex
     if (ctrl->prev) {
         UIManager << DL_Warning
             << L"the 'prev' attr of the control: ["
-            << ctrl->GetNameStr()
+            << ctrl->name
             << "] that to insert is not null"
             << LongUI::endl;
     }
     if (ctrl->next) {
         UIManager << DL_Warning
             << L"the 'next' attr of the control: ["
-            << ctrl->GetNameStr()
+            << ctrl->name
             << "] that to insert is not null"
             << LongUI::endl;
     }
@@ -132,8 +132,12 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
         }
     }
     if (!ok) {
-        UIManager << DL_Error << "control:[" << ctrl->GetNameStr()
-            << "] not in this container: " << this->GetNameStr() << LongUI::endl;
+        UIManager << DL_Error 
+            << "control:[" 
+            << ctrl->name
+            << "] not in this container: " 
+            << this->name 
+            << LongUI::endl;
         return;
     }
 #endif

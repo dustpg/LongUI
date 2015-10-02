@@ -10,7 +10,16 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window)
 noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_window) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     ZeroMemory(&m_curMedium, sizeof(m_curMedium));
-    CUIString titlename(m_strControlName);
+    // 检查名称
+    {
+        auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
+        if (basestr) {
+            auto namestr = this->CopyStringSafe(basestr);
+            force_cast(this->name) = namestr;
+        }
+    }
+    CUIString titlename;
+    titlename.Set(this->name.c_str());
     {
         Helper::MakeString(
             node.attribute(LongUI::XMLAttribute::WindowTitleName).value(),
@@ -136,6 +145,8 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
 
 // UIWindow 析构函数
 LongUI::UIWindow::~UIWindow() noexcept {
+    // 解锁
+    UIManager.Unlock();
     // 取消注册
     ::RevokeDragDrop(m_hwnd);
     // 杀掉!
@@ -143,14 +154,16 @@ LongUI::UIWindow::~UIWindow() noexcept {
     // 摧毁窗口
     //::DestroyWindow(m_hwnd);
     ::PostMessageW(m_hwnd, WM_DESTROY, 0, 0);
-    // 移除窗口
-    UIManager.RemoveWindow(this);
     // 释放资源
     this->release_data();
     // 释放数据
     ::SafeRelease(m_pTaskBarList);
     ::SafeRelease(m_pDropTargetHelper);
     ::SafeRelease(m_pCurDataObject);
+    // 加锁
+    UIManager.Lock();
+    // 移除窗口
+    UIManager.RemoveWindow(this);
 }
 
 // 移除控件引用
@@ -172,7 +185,7 @@ void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept
 #ifdef _DEBUG
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
     if (itr != m_vRegisteredControl.end()) {
-        UIManager << DL_Warning << L"control: [" << c->GetNameStr() << L"] existed" << LongUI::endl;
+        UIManager << DL_Warning << L"control: [" << c->name << L"] existed" << LongUI::endl;
         return;
     }
 #endif
@@ -196,7 +209,7 @@ void LongUI::UIWindow::UnRegisterOffScreenRender(UIControl* c) noexcept {
     }
 #ifdef _DEBUG
     else {
-        UIManager << DL_Warning << L"control: [" << c->GetNameStr() << L"] not found" << LongUI::endl;
+        UIManager << DL_Warning << L"control: [" << c->name << L"] not found" << LongUI::endl;
     }
 #endif
 }
@@ -283,39 +296,28 @@ void LongUI::UIWindow::HideCaret() noexcept {
 }
 
 // 查找控件
-auto LongUI::UIWindow::FindControl(const CUIString& str) noexcept -> UIControl * {
+auto LongUI::UIWindow::FindControl(const char* cname) noexcept -> UIControl * {
     // 查找控件
-    const auto itr = m_mapString2Control.find(str);
+    auto result = m_hashStr2Ctrl.Find(cname);
     // 未找到返回空
-    if (itr == m_mapString2Control.cend()) {
+    if (!result) {
         // 给予警告
-        UIManager << DL_Warning << L"Control Not Found:\n  " << str << LongUI::endl;
+        UIManager << DL_Warning << L"Control Not Found:\n  " << cname << LongUI::endl;
         return nullptr;
     }
-    // 找到就返回指针
     else {
-        return reinterpret_cast<LongUI::UIControl*>(itr->second);
+        return reinterpret_cast<LongUI::UIControl*>(*result);
     }
 }
 
-// 添加控件
-void LongUI::UIWindow::AddControl(const std::pair<CUIString, void*>& pair) noexcept {
+// 添加命名控件
+void LongUI::UIWindow::AddNamedControl(UIControl* ctrl) noexcept {
+    assert(ctrl && "bad argumrnt");
+    const auto cname = ctrl->name.c_str();
     // 有效
-    if (pair.first != L"") {
-        try {
-#ifdef _DEBUG
-            // 先检查
-            {
-                auto itr = m_mapString2Control.find(pair.first);
-                if (itr != m_mapString2Control.end()) {
-                    UIManager << DL_Warning << "Exist: " << pair.first << LongUI::endl;
-                    assert(!"Control Has been existed!");
-                }
-            }
-#endif
-            m_mapString2Control.insert(pair);
-        }
-        catch (...) {
+    if (cname[0]) {
+        // 插入
+        if(!m_hashStr2Ctrl.Insert(cname, ctrl)) {
             ShowErrorWithStr(L"Failed to add control");
         }
     }
@@ -817,7 +819,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
     if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
-        UIManager << DL_Hint << L"Window: [" << this->GetNameStr() 
+        UIManager << DL_Hint << L"Window: [" 
+            << this->name 
             << L"]\tTarget Bitmap Resize to " 
             << LongUI::Formated(L"(%d, %d)", int(rect_right), int(rect_bottom)) 
             << LongUI::endl;

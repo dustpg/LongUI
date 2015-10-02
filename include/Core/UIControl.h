@@ -93,16 +93,10 @@ namespace LongUI {
         // after update
         void AfterUpdate() noexcept;
     public:
-        // control name in const wchar_t*
-        auto GetNameStr() const noexcept { return m_strControlName.c_str(); }
-        // control name in longui string
-        auto&GetName() noexcept { return m_strControlName; }
         // get window of control
         auto GetWindow() const noexcept { return m_pWindow; }
         // XXX: is top level? 
         auto IsTopLevel() const noexcept { return !this->parent; }
-        // control name : overload for const
-        const auto&GetName() const noexcept { return m_strControlName; }
         // get script data
         const auto& GetScript() const noexcept { return m_script; }
     public:
@@ -172,6 +166,8 @@ namespace LongUI {
         // recreate count
         uint8_t                 debug_recreate_count = 0;
 #endif
+        // control name
+        CUIWrappedCCP   const   name;
         // user ptr
         void*                   user_ptr = nullptr;
         // user data
@@ -193,8 +189,10 @@ namespace LongUI {
     protected:
         // bit-array-index 16
         enum BitArrayIndex : uint32_t {
+            // unknown
+            Index_Unknown,
             // control size changed, for performance, this maybe changed multiple-time in one frame
-            Index_ChangeLayout = 0,
+            Index_ChangeLayout,
             // control world changed, for performance, this maybe changed multiple-time in one frame
             Index_ChangeWorld,
             // control size changed, if you have handled it
@@ -207,6 +205,24 @@ namespace LongUI {
             Index_StateParent,
             // state for window
             Index_StateWindow,
+            // state for self no.1
+            Index_StateSelf_1,
+            // state for self no.2
+            Index_StateSelf_2,
+            // state for self no.3
+            Index_StateSelf_3,
+            // state for self no.4
+            Index_StateSelf_4,
+            // state for self no.5
+            Index_StateSelf_5,
+            // state for self no.6
+            Index_StateSelf_6,
+            // state for self no.7
+            Index_StateSelf_7,
+            // state for self no.8
+            Index_StateSelf_8,
+            // count of this
+            BITARRAYINDEX_COUNT,
         };
         // boolx16
         Helper::BitArray16      m_bool16;
@@ -214,15 +230,15 @@ namespace LongUI {
         // set state
         auto SetUserState(bool b) noexcept { m_bool16.SetTo(Index_StateUser, b); }
         // test state
-        auto TestUserState() noexcept { return m_bool16.Test(Index_StateUser); }
+        auto TestUserState() const noexcept { return m_bool16.Test(Index_StateUser); }
         // set state
         auto SetParentState(bool b) noexcept { m_bool16.SetTo(Index_StateParent, b); }
         // test state
-        auto TestParentState() noexcept { return m_bool16.Test(Index_StateParent); }
+        auto TestParentState() const noexcept { return m_bool16.Test(Index_StateParent); }
         // set state
         auto SetWindowState(bool b) noexcept { m_bool16.SetTo(Index_StateWindow, b); }
         // test state
-        auto TestWindowState() noexcept { return m_bool16.Test(Index_StateWindow); }
+        auto TestWindowState() const noexcept { return m_bool16.Test(Index_StateWindow); }
     public:
         // priority for rendering
         uint8_t         const   priority = Priority_Normal;
@@ -247,8 +263,6 @@ namespace LongUI {
         D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACAC);
         // roundsize of border
         D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
-        // control name
-        CUIString               m_strControlName;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

@@ -51,6 +51,10 @@ namespace LongUI {
         auto GetToBeSorted() const noexcept { return m_pToBeSorted; }
         // set to be sorted control
         auto SetToBeSorted(uint32_t index) noexcept { m_pToBeSorted = this->GetAt(index); }
+        // selected!
+        auto SetSelected(bool b) noexcept { m_bool16.SetTo(Index_StateSelf_1, b); }
+        // selected?
+        auto IsSelected() const noexcept { return m_bool16.Test(Index_StateSelf_1); }
     protected:
         // dtor
         ~UIListLine() noexcept = default;
@@ -115,6 +119,8 @@ namespace LongUI {
     class UIList : public UIContainer {
         // super class
         using Super = UIContainer;
+        // using
+        using LinesVector = EzContainer::PointerVector<UIListLine>;
         // weights buffer
         //using WeightBuffer = EzContainer::SmallBuffer<float, 16>;
         // line template buffer
@@ -128,6 +134,8 @@ namespace LongUI {
             Flag_SortableLineWithUserDataPtr = 1 << 0,
             // the sequence of element could be changed by mouse drag if header exsit
             Flag_DraggableHeaderSequence = 1 << 1,
+            // multi-selection
+            Flag_MultiSelection = 1 << 2,
             // default flag
             Flag_Default = 0,
         };
@@ -147,7 +155,7 @@ namespace LongUI {
     private:
         // debug for_each
         virtual void debug_for_each(const CUIFunction<void(UIControl*)>& call) noexcept override {
-            for (auto ctrl : (m_controls)) { call(ctrl); }
+            for (auto ctrl : (m_vLines)) { call(ctrl); }
         }
     public:
 #endif
@@ -160,17 +168,27 @@ namespace LongUI {
         // insert
         auto Insert(uint32_t index, UIControl*) noexcept;
         // get child at index
-        auto GetAt(uint32_t index) const noexcept { return m_controls[index]; }
+        auto GetAt(uint32_t index) const noexcept { return m_vLines[index]; }
     public:
+        // get conttrols
+        const auto&GetContainer() const noexcept { return m_vLines; }
         // get height in line
         auto GetLineHeight() const noexcept { return m_fLineHeight; }
-        // insert a line-template with inside string
-        void InsertInlineTemplate(uint32_t index) noexcept;
+        // get ToBeSortedHeaderChild, used during (AddBeforSortCallBack)
+        auto GetToBeSortedHeaderChild() const noexcept { return m_pToBeSortedHeaderChild; }
         // set header
         void SetHeader(UIListHeader* header) noexcept { assert(header); m_pHeader = header; }
+        // insert a line-template with inside string
+        void InsertInlineTemplate(uint32_t index) noexcept;
         // set element width
         void SetElementWidth(uint32_t index, float width) noexcept;
+        // select child
+        void SelectChild(uint32_t index, bool new_select = true) noexcept;
     private:
+        // childvector changed
+        void childvector_changed() noexcept;
+        // select child
+        void select_child(uint32_t index, bool new_select) noexcept;
         // sort line
         void sort_line(bool(*cmp)(UIControl* a, UIControl* b)) noexcept;
         // init
@@ -186,10 +204,6 @@ namespace LongUI {
         UIList(UIContainer* cp, pugi::xml_node node) noexcept;
         // sort as element[index]
         void Sort(uint32_t index, UIControl* child) noexcept;
-        // get conttrols
-        const auto&GetContainer() const noexcept { return m_controls; }
-        // get ToBeSortedHeaderChild, used during (AddBeforSortCallBack)
-        auto GetToBeSortedHeaderChild() const noexcept { return m_pToBeSortedHeaderChild; }
         // add before sort callback
         template<typename T>
         auto AddBeforSortCallBack(T lam) noexcept { m_callBeforSort += lam; }
@@ -214,8 +228,10 @@ namespace LongUI {
         uint32_t                m_cEleCountInLine = 0;
         // line template
         LineTemplateBuffer      m_bufLineTemplate;
-        // control vector
-        ControlVector           m_controls;
+        // list lines vector
+        LinesVector             m_vLines;
+        // selected lines
+        LinesVector             m_vSelected;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

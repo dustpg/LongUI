@@ -31,6 +31,8 @@ namespace LongUI {
     static struct EndL { } endl;
     // ui manager ui 管理器
     class alignas(sizeof(void*)) CUIManager {
+        // string allocator
+        using StringAllocator = CUIShortStringAllocator<>;
         // create ui window call back
         using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* wndparent, void* buffer)->UIWindow*;
     public: 
@@ -53,7 +55,7 @@ namespace LongUI {
         // run 运行
         void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
-        auto RegisterControl(CreateControlFunction, const wchar_t*) noexcept->HRESULT;
+        auto RegisterControlClass(CreateControlFunction func, const char* clname) noexcept->HRESULT;
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // wait for VS
@@ -83,12 +85,8 @@ namespace LongUI {
         auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
         // get drop target helper
         auto GetDropTargetHelper() noexcept { return ::SafeAcquire(m_pDropTargetHelper); }
-        // get create function width const char*
-        auto GetCreateFunc(const char*) noexcept->CreateControlFunction;
-        // get create function width CUIString
-        auto GetCreateFunc(const CUIString&)noexcept->CreateControlFunction;
-        // get create function width const wchar_t* and length
-        auto GetCreateFunc(const wchar_t* class_name, uint32_t len = 0) noexcept { CUIString name(class_name, len); return GetCreateFunc(name); }
+        // get create function via control-class name
+        auto GetCreateFunc(const char* clname) noexcept->CreateControlFunction;
         // create control with xml node, node and function cannot be null in same time
         auto CreateControl(UIContainer* cp, pugi::xml_node node, CreateControlFunction function) noexcept {
             assert((node || function) && "cannot be null in same time");
@@ -207,6 +205,8 @@ namespace LongUI {
         // flag for configure
         IUIConfigure::ConfigureFlag     flag = IUIConfigure::Flag_None;
     private:
+        // string al
+        StringAllocator                 m_oStringAllocator;
         // helper for drop target
         IDropTargetHelper*              m_pDropTargetHelper = nullptr;
         // D2D 工厂
@@ -244,7 +244,7 @@ namespace LongUI {
         // default bitmap buffer
         uint8_t*                        m_pBitmap0Buffer = nullptr;
         // map: string<->func
-        StringMap                       m_mapString2CreateFunction;
+        StringTable                     m_hashStr2CreateFunc;
         // feature level
         D3D_FEATURE_LEVEL               m_featureLevel;
         // input
@@ -381,6 +381,8 @@ namespace LongUI {
         CUIManager& operator<< (const wchar_t* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
         // overload << operator for const char*
         CUIManager& operator<< (const char* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
+        // overload << operator for const char*
+        CUIManager& operator<< (const CUIWrappedCCP& str) noexcept { this->OutputNoFlush(m_lastLevel, str.c_str()); return *this; }
         // overload << operator for wchar_t
         CUIManager& operator<< (const wchar_t ch) noexcept { wchar_t chs[2] = { ch, 0 }; this->OutputNoFlush(m_lastLevel, chs); return *this; }
         // output debug string with flush

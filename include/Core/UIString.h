@@ -192,40 +192,47 @@ namespace LongUI{
             m_pString = nullptr;
         }
     };
-    // Const String - host a unmodified string
-    class CUIConstString {
+    // Wrapped const char*
+    class CUIWrappedCCP {
     public:
-        // threshold for small/large
-        static constexpr size_t SMALL_THRESHOLD = 256;
+        // length
+        auto length() const noexcept { return std::strlen(m_pString); }
         // c-string
-        const auto*c_str() const noexcept { return m_pString; }
-        // c-string - length
-        auto length() const noexcept { return m_cLength; }
-        // c-string - size
-        auto size() const noexcept { return m_cLength; }
-        // at operation
-        const auto at(size_t i) const noexcept { assert(i < m_cLength && "out of range"); return m_pString[i]; }
+        auto c_str() const noexcept { return m_pString; }
         // [] for const
-        const auto&operator[](size_t i) const noexcept { assert(i < m_cLength && "out of range"); return m_pString[i]; }
+        auto&operator[](size_t i) const noexcept { return m_pString[i]; }
+        // = 
+        auto&operator=(const char* str) noexcept { m_pString = str; return *this; }
     public:
         // ctor
-        CUIConstString(const wchar_t* str, uint32_t l = 0) noexcept { this->set(str, l); }
-        // dtor
-        ~CUIConstString() noexcept;
-        // copy ctor
-        CUIConstString(const CUIConstString& str) noexcept { this->set(str.c_str(), str.length()); }
-        // move ctor
-        CUIConstString(CUIConstString&& str) noexcept :m_pString(str.m_pString), m_cLength(str.m_cLength) {
-            str.m_pString = L""; str.m_cLength = 0;
-        }
-    private:
-        // set
-        void set(const wchar_t* dat, size_t len = 0) noexcept;
+        CUIWrappedCCP(const char* str="") noexcept : m_pString(str) {}
+        // == 操作
+        bool operator==(const char* str) const noexcept { return (std::strcmp(m_pString, str) == 0); };
+        // != 操作
+        bool operator!=(const char* str) const noexcept { return (std::strcmp(m_pString, str) != 0); };
+        // <= 操作
+        bool operator<=(const char* str) const noexcept { return (std::strcmp(m_pString, str) <= 0); };
+        // < 操作
+        bool operator< (const char* str) const noexcept { return (std::strcmp(m_pString, str) < 0); };
+        // >= 操作
+        bool operator>=(const char* str) const noexcept { return (std::strcmp(m_pString, str) >= 0); };
+        // > 操作
+        bool operator> (const char* str) const noexcept { return (std::strcmp(m_pString, str) > 0); };
+        // == 操作 for CUIWrappedCCP
+        bool operator==(const CUIWrappedCCP& str) const noexcept { return (std::strcmp(m_pString, str.m_pString) == 0); };
+        // != 操作 for CUIWrappedCCP
+        bool operator!=(const CUIWrappedCCP& str) const noexcept { return (std::strcmp(m_pString, str.m_pString) != 0); };
+        // <= 操作 for CUIWrappedCCP
+        bool operator<=(const CUIWrappedCCP& str) const noexcept { return (std::strcmp(m_pString, str.m_pString) <= 0); };
+        // < 操作 for CUIWrappedCCP
+        bool operator< (const CUIWrappedCCP& str) const noexcept { return (std::strcmp(m_pString, str.m_pString) < 0); };
+        // >= 操作 for CUIWrappedCCP
+        bool operator>=(const CUIWrappedCCP& str) const noexcept { return (std::strcmp(m_pString, str.m_pString) >= 0); };
+        // > 操作 for CUIWrappedCCP
+        bool operator> (const CUIWrappedCCP& str) const noexcept { return (std::strcmp(m_pString, str.m_pString) > 0); };
     private:
         // string data
-        wchar_t*            m_pString = nullptr;
-        // length of it
-        size_t              m_cLength = 0 ;
+        const char*         m_pString = nullptr;
     };
     // namespace helper
     namespace Helper {

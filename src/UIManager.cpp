@@ -196,22 +196,22 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 添加控件
     if (SUCCEEDED(hr)) {
         // 添加默认控件创建函数
-        this->RegisterControl(CreateNullControl, L"Null");
-        this->RegisterControl(UIText::CreateControl, L"Text");
-        this->RegisterControl(UIList::CreateControl, L"List");
-        this->RegisterControl(UISlider::CreateControl, L"Slider");
-        this->RegisterControl(UIButton::CreateControl, L"Button");
-        this->RegisterControl(UIListLine::CreateControl, L"ListLine");
-        this->RegisterControl(UICheckBox::CreateControl, L"CheckBox");
-        this->RegisterControl(UIRichEdit::CreateControl, L"RichEdit");
-        this->RegisterControl(UIEditBasic::CreateControl, L"Edit");
-        this->RegisterControl(UIListHeader::CreateControl, L"ListHeader");
-        this->RegisterControl(UIScrollBarA::CreateControl, L"ScrollBarA");
-        this->RegisterControl(UIScrollBarB::CreateControl, L"ScrollBarB");
-        this->RegisterControl(UIVerticalLayout::CreateControl, L"VerticalLayout");
-        this->RegisterControl(UIHorizontalLayout::CreateControl, L"HorizontalLayout");
+        this->RegisterControlClass(CreateNullControl, "Null");
+        this->RegisterControlClass(UIText::CreateControl, "Text");
+        this->RegisterControlClass(UIList::CreateControl, "List");
+        this->RegisterControlClass(UISlider::CreateControl, "Slider");
+        this->RegisterControlClass(UIButton::CreateControl, "Button");
+        this->RegisterControlClass(UIListLine::CreateControl, "ListLine");
+        this->RegisterControlClass(UICheckBox::CreateControl, "CheckBox");
+        this->RegisterControlClass(UIRichEdit::CreateControl, "RichEdit");
+        this->RegisterControlClass(UIEditBasic::CreateControl, "Edit");
+        this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
+        this->RegisterControlClass(UIScrollBarA::CreateControl, "ScrollBarA");
+        this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
+        this->RegisterControlClass(UIVerticalLayout::CreateControl, "VerticalLayout");
+        this->RegisterControlClass(UIHorizontalLayout::CreateControl, "HorizontalLayout");
         // 添加自定义控件
-        config->AddCustomControl();
+        config->RegisterSome();
     }
     // 创建资源
     if (SUCCEEDED(hr)) {
@@ -287,14 +287,11 @@ void LongUI::CUIManager::Uninitialize() noexcept {
 void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
     assert(type < LongUI::TypeGreater_CreateControl_ReinterpretParentPointer &&
         type > Type_CreateControl_NullParentPointer);
-    try {
-        for (const auto& pair : m_mapString2CreateFunction) {
-            reinterpret_cast<CreateControlFunction>(pair.second)(type, LongUINullXMLNode);
-        }
-    }
-    catch (...) {
-        assert(!"some error");
-    }
+    m_hashStr2CreateFunc.ForEach([type](StringTable::Unit* unit) noexcept {
+        assert(unit);
+        auto func = reinterpret_cast<CreateControlFunction>(unit->value);
+        func(type, LongUINullXMLNode);
+    });
 }
 
 
@@ -346,34 +343,13 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
 }
 
 // 获取创建控件函数指针
-auto LongUI::CUIManager::GetCreateFunc(const char* class_name) noexcept -> CreateControlFunction {
-    // 缓冲区
-    wchar_t buffer[LongUIStringBufferLength];
-    auto* __restrict itra = class_name; auto* __restrict itrb = buffer;
-    // 类名一定是英文的
-    for (; *itra; ++itra, ++itrb) {
-        assert(*itra >= 0 && "bad name, class name must be english char");
-        *itrb = *itra;
-    }
-    // null 结尾字符串
-    *itrb = L'\0';
-    // 获取
-    return this->GetCreateFunc(buffer, static_cast<uint32_t>(itra - class_name));
-}
-
-// 获取创建控件函数指针
-auto LongUI::CUIManager::GetCreateFunc(const CUIString& name) noexcept -> CreateControlFunction {
+auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlFunction {
     // 查找
-    try {
-        const auto itr = m_mapString2CreateFunction.find(name);
-        if (itr != m_mapString2CreateFunction.end()) {
-            return reinterpret_cast<CreateControlFunction>(itr->second);
-        }
-        assert(!"404 not found");
+    auto result = m_hashStr2CreateFunc.Find(clname);
+    if (result) {
+        return reinterpret_cast<CreateControlFunction>(*result);
     }
-    catch (...)  {
-
-    }
+    assert(!"404 not found");
     return nullptr;
 }
 
@@ -793,24 +769,16 @@ LongUI::CUIManager::~CUIManager() noexcept {
 }
 
 // 获取控件 wchar_t指针
-auto LongUI::CUIManager::
-RegisterControl(CreateControlFunction func, const wchar_t* name) noexcept ->HRESULT {
-    if (!name || !(*name)) return S_FALSE;
-    // 超过了容器限制
-    if (m_mapString2CreateFunction.size() >= LongUIMaxControlClass) {
-        assert(!"out of sapce for control");
-        return E_ABORT;
+auto LongUI::CUIManager::RegisterControlClass(
+    CreateControlFunction func, const char* clname) noexcept ->HRESULT {
+    if (!clname || !(*clname)) {
+        assert(!"bad argument");
+        return S_FALSE;
     }
-    // 创建pair
-    std::pair<LongUI::CUIString, CreateControlFunction> pair(name, func);
-    HRESULT hr = S_OK;
     // 插入
-    try {
-        m_mapString2CreateFunction.insert(pair);
-    }
-    // 创建失败
-    CATCH_HRESULT(hr);
-    return hr;
+    auto result = m_hashStr2CreateFunc.Insert(m_oStringAllocator.CopyString(clname), func);
+    // 插入失败的原因只有一个->OOM
+    return result ? S_OK : E_OUTOFMEMORY;
 }
 
 // 显示错误代码
@@ -1821,9 +1789,9 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
     if (ctrl) {
         std::swprintf(
             buffer, LongUIStringBufferLength,
-            L"[0x%p{%ls}%ls] ",
+            L"[0x%p{%S}%ls] ",
             ctrl,
-            ctrl->GetNameStr(),
+            ctrl->name.c_str(),
             ctrl->GetControlClassName(false)
             );
     }

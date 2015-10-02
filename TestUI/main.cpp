@@ -129,11 +129,10 @@ private:
     virtual void cleanup() noexcept override { this->~MainWindow(); }
     // init
     void init() {
-        auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl(L"lst_01"));
+        auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl("lst_01"));
         if (list) {
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
-                for (auto ctrl : static_cast<LongUI::UIList*>(list)->GetContainer()) {
-                    auto line = LongUI::longui_cast<LongUI::UIListLine*>(ctrl);
+                for (auto line : static_cast<LongUI::UIList*>(list)->GetContainer()) {
                     auto tobesorted =  line->GetToBeSorted();
                     auto ptr = const_cast<wchar_t*>(tobesorted->GetText());
                     tobesorted->user_ptr = ptr;
@@ -141,7 +140,6 @@ private:
                 return true;
             });
         }
-
     }
     // on number button clicked
     void number_button_clicked(LongUI::UIControl* btn);
@@ -441,9 +439,9 @@ public:
 )xml";
     }
     // 添加自定义控件
-    auto AddCustomControl() noexcept->void override {
-        m_manager.RegisterControl(TestControl::CreateControl, L"Test");
-        m_manager.RegisterControl(UIVideoAlpha::CreateControl, L"Video");
+    auto RegisterSome() noexcept->void override {
+        m_manager.RegisterControlClass(TestControl::CreateControl, "Test");
+        m_manager.RegisterControlClass(UIVideoAlpha::CreateControl, "Video");
         /*if (m_hDll) {
         auto func = reinterpret_cast<LongUI::CreateControlFunction>(
         ::GetProcAddress(m_hDll, "LongUICreateControl")
@@ -473,12 +471,12 @@ private:
 };
 
 
-
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
-    UNREFERENCED_PARAMETER(lpCmdLine);
+//int wmain(int argc, wchar_t* argv[]) {
     // 设置堆信息
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
+    //int nCmdShow = SW_SHOW;
     // 本Demo的配置信息
     class DemoConfigure config;
     // MainWindow 的缓存/栈空间地址, 在x86上4字节对齐
