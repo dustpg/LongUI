@@ -22,8 +22,8 @@ control char|summary|c++ type|note
 `%h`, `%H`|font stretc`h`|`DWRITE_FONT_STRETCH`|set font stretch to this range
 `%y`, `%Y`|font st`y`le|`DWRITE_FONT_STYLE`|set font style to this range
 `%w`, `%W`|font `w`eight|`DWRITE_FONT_WEIGHT`|set font weight to this range
-`%u`, `%U`|`u`nderline|`BOOL`|32-bit`BOOL`, not `bool`, set underline to this range
-`%t`, `%T`|strike`t`hrough|`BOOL`|32-bit`BOOL`, not `bool`, set strikethrough to this range
+`%u`, `%U`|`u`nderline|`BOOL`|NONE, just add underline
+`%t`, `%T`|strike`t`hrough|NONE, just add strikethrough line
 `%i`, `%I`|`i`nline object|`IDWriteInlineObject*`, `CUIInlineObject*`|set inline object to this range
 `%d`, `%D`|`d`raw effect|`IUnknown*`|set drawing effect to this range
 

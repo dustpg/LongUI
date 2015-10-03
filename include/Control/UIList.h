@@ -222,6 +222,14 @@ namespace LongUI {
         UIControl*              m_pToBeSortedHeaderChild = nullptr;
         // befor sort
         UICallBack              m_callBeforSort;
+        // line back-color normal1
+        D2D1_COLOR_F            m_colorLineNormal1 = D2D1::ColorF(0ui32, 0.f);
+        // line back-color normal2
+        D2D1_COLOR_F            m_colorLineNormal2 = D2D1::ColorF(0ui32, 0.f);
+        // line back-color hover
+        D2D1_COLOR_F            m_colorLineHover = D2D1::ColorF(0ui32, 0.f);
+        // line back-color selected 
+        D2D1_COLOR_F            m_colorLineSelected = D2D1::ColorF(0ui32, 0.f);
         // line height
         float                   m_fLineHeight = 32.f;
         // elements count in each line

@@ -85,6 +85,8 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </ListLine>
     </List>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
+    <Button name="btn_x" size="0, 64" borderwidth="1" textrichtype="core"
+        margin="4,4,4,4" text="%cHello%], %uworld!%]%p#0F0"/>
 </Window>
 )xml";
 
@@ -402,7 +404,7 @@ protected:
     }
 protected:
     // video
-    LongUI::Component::Video    m_video;
+    LongUI::Component::MMFVideo    m_video;
 };
 
 // 本Demo的配置信息

@@ -149,6 +149,9 @@
     <ClInclude Include="..\include\Control\UIMenu.h">
       <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Component\Video.h">
+      <Filter>LongUI\Header\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ControlCore.cpp">

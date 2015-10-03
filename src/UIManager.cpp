@@ -1063,7 +1063,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         hr = m_pDxgiAdapter->GetParent(LongUI_IID_PV_ARGS(m_pDxgiFactory));
     }
-#ifdef LONGUI_VIDEO_IN_MF
+#ifdef LONGUI_WITH_MMFVIDEO
     UINT token = 0;
     // 多线程
     if (SUCCEEDED(hr)) {
@@ -1261,7 +1261,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     ::SafeRelease(m_pDxgiDevice);
     ::SafeRelease(m_pd3dDevice);
     ::SafeRelease(m_pd3dDeviceContext);
-#ifdef LONGUI_VIDEO_IN_MF
+#ifdef LONGUI_WITH_MMFVIDEO
     ::SafeRelease(m_pMFDXGIManager);
     ::SafeRelease(m_pMediaEngineFactory);
     ::MFShutdown();

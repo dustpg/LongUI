@@ -500,15 +500,7 @@ auto LongUI::DX::FormatTextCore(
                 break;
             case 'T': case 't': // strike[T]hrough
                 range_data.range.startPosition = string_length;
-                if (ap) {
-                    range_data.strikethr = va_arg(ap, BOOL);
-                }
-                else {
-                    DXHelper_GetNextTokenA(1);
-                    range_data.strikethr = static_cast<BOOL>(
-                        LongUI::AtoI(reinterpret_cast<char*>(param_buffer))
-                        );
-                }
+                range_data.strikethr = TRUE;
                 range_data.range_type = R::T;
                 stack_check.Push(range_data);
                 break;
@@ -589,15 +581,7 @@ auto LongUI::DX::FormatTextCore(
                 break;
             case 'U': case 'u': // [U]nderline
                 range_data.range.startPosition = string_length;
-                if (ap) {
-                    range_data.underline = va_arg(ap, BOOL);
-                }
-                else {
-                    DXHelper_GetNextTokenA(1);
-                    range_data.underline = static_cast<BOOL>(
-                        LongUI::AtoI(reinterpret_cast<char*>(param_buffer))
-                        );
-                }
+                range_data.underline = TRUE;
                 range_data.range_type = R::U;
                 stack_check.Push(range_data);
                 break;

@@ -162,6 +162,7 @@
     <ClInclude Include="..\include\Component\EditaleText.h" />
     <ClInclude Include="..\include\Component\Element.h" />
     <ClInclude Include="..\include\Component\Text.h" />
+    <ClInclude Include="..\include\Component\Video.h" />
     <ClInclude Include="..\include\Control\UIButton.h" />
     <ClInclude Include="..\include\Control\UICheckBox.h" />
     <ClInclude Include="..\include\Control\UIContainerBuiltIn.h" />

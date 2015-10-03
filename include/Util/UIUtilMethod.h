@@ -288,7 +288,7 @@ namespace LongUI {
 #endif
     // ITfThreadMgr
     MakeGetIID(ITfThreadMgr);
-#ifdef LONGUI_VIDEO_IN_MF
+#ifdef LONGUI_WITH_MMFVIDEO
     static const IID IID_IMFMediaEngineClassFactory =
     { 0x4D645ACE, 0x26AA, 0x4688,{ 0x9B, 0xE1, 0xDF, 0x35, 0x16, 0x99, 0x0B, 0x93 } };
     // IMFMediaEngineClassFactory

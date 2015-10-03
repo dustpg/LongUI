@@ -180,7 +180,7 @@ namespace LongUI {
         // 转换为 Tf Thread Mgr
 #define UIManager_TfThreadMgr (static_cast<ITfThreadMgr*>(UIManager))
         inline operator ITfThreadMgr*()const noexcept { return m_pTsfThreadManager; };
-#ifdef LONGUI_VIDEO_IN_MF
+#ifdef LONGUI_WITH_MMFVIDEO
         // 转换为  IMFDXGIDeviceManager
 #   define UIManager_MFDXGIDeviceManager (static_cast<IMFDXGIDeviceManager*>(UIManager))
         inline operator IMFDXGIDeviceManager*()const noexcept { return m_pMFDXGIManager; };

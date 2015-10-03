@@ -32,7 +32,14 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         if (node.attribute("sort").as_bool(false)) {
             listflag |= this->Flag_SortableLineWithUserDataPtr;
         }
-
+        // 普通背景颜色
+        Helper::MakeColor(node.attribute("linebkcolor").value(), m_colorLineNormal1);
+        // 普通背景颜色2
+        Helper::MakeColor(node.attribute("linebkcolor2").value(), m_colorLineNormal2);
+        // 悬浮颜色
+        Helper::MakeColor(node.attribute("linebkcolorhover").value(), m_colorLineHover);
+        // 选中颜色
+        Helper::MakeColor(node.attribute("linebkcolorselected").value(), m_colorLineSelected);
     }
     this->list_flag = listflag;
 }

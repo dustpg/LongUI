@@ -1535,10 +1535,10 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
 #endif
 #endif
 
-// ------------------- Video -----------------------
-#ifdef LONGUI_VIDEO_IN_MF
-// Video 事件通知
-HRESULT LongUI::Component::Video::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
+// ------------------- MMFVideo -----------------------
+#ifdef LONGUI_WITH_MMFVIDEO
+// MMFVideo 事件通知
+HRESULT LongUI::Component::MMFVideo::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
     UNREFERENCED_PARAMETER(param2);
     switch (event)
     {
@@ -1575,8 +1575,8 @@ HRESULT LongUI::Component::Video::EventNotify(DWORD event, DWORD_PTR param1, DWO
 }
 
 
-// Video 初始化
-auto LongUI::Component::Video::Initialize() noexcept ->HRESULT {
+// MMFVideo 初始化
+auto LongUI::Component::MMFVideo::Initialize() noexcept ->HRESULT {
     HRESULT hr = S_OK;
     IMFAttributes* attributes = nullptr;
     // 创建MF属性
@@ -1609,15 +1609,15 @@ auto LongUI::Component::Video::Initialize() noexcept ->HRESULT {
     return hr;
 }
 
-// Video: 重建
-auto LongUI::Component::Video::Recreate() noexcept ->HRESULT {
+// MMFVideo: 重建
+auto LongUI::Component::MMFVideo::Recreate() noexcept ->HRESULT {
     ::SafeRelease(m_pTargetSurface);
     ::SafeRelease(m_pDrawSurface);
     return this->recreate_surface();
 }
 
-// Video: 渲染
-void LongUI::Component::Video::Render(D2D1_RECT_F* dst) const noexcept {
+// MMFVideo: 渲染
+void LongUI::Component::MMFVideo::Render(D2D1_RECT_F* dst) const noexcept {
     UNREFERENCED_PARAMETER(dst);
     /*const MFARGB bkColor = { 0,0,0,0 };
     assert(m_pMediaEngine);
@@ -1641,13 +1641,13 @@ void LongUI::Component::Video::Render(D2D1_RECT_F* dst) const noexcept {
     }*/
 }
 
-// Component::Video 构造函数
-LongUI::Component::Video::Video() noexcept {
+// Component::MMFVideo 构造函数
+LongUI::Component::MMFVideo::MMFVideo() noexcept {
     force_cast(dst_rect) = { 0 };
 }
 
-// Component::Video 析构函数
-LongUI::Component::Video::~Video() noexcept {
+// Component::MMFVideo 析构函数
+LongUI::Component::MMFVideo::~MMFVideo() noexcept {
     if (m_pMediaEngine) {
         m_pMediaEngine->Shutdown();
     }
@@ -1659,7 +1659,7 @@ LongUI::Component::Video::~Video() noexcept {
 }
 
 // 重建表面
-auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
+auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
     // 有效情况下
     DWORD w, h; HRESULT hr = S_FALSE;
     if (this->HasVideo() && SUCCEEDED(hr = m_pMediaEngine->GetNativeVideoSize(&w, &h))) {

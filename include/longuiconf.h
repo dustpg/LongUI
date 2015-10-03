@@ -69,7 +69,7 @@ namespace LongUI {
 #define LONGUI_EDITCORE_COPYMAINPROPERTYONLY
 
 // using Media Foundation to play video file?
-#define LONGUI_VIDEO_IN_MF
+#define LONGUI_WITH_MMFVIDEO
 
 
 #ifndef LongUIInline
@@ -240,7 +240,7 @@ namespace LongUI {
 #undef max
 #endif
 
-#ifdef LONGUI_VIDEO_IN_MF
+#ifdef LONGUI_WITH_MMFVIDEO
 #include <mfapi.h>
 #include <Mfmediaengine.h>
 #pragma comment(lib, "mfplat")

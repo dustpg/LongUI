@@ -534,6 +534,7 @@ namespace LongUI {
 #include "Util/UIInlineObject.h"
 // LongUI Component
 #include "Component/Element.h"
+#include "Component/Video.h"
 #include "Component/EditaleText.h"
 #include "Component/Text.h"
 // LongUI Manager
