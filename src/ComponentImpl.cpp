@@ -83,9 +83,9 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
             m_config.height,
             &m_pLayout
             );
+        m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
+        break;
     }
-    m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
-    break;
     case LongUI::RichType::Type_Core:
         m_pLayout = DX::FormatTextCore(m_config, m_text.c_str());
         break;

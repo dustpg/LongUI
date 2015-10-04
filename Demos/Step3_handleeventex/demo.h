@@ -32,6 +32,8 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
+#include <string>
+
 // longui::demo namespace
 namespace LongUI { namespace Demo {
     // MainWindow class
@@ -99,9 +101,9 @@ bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
 void LongUI::Demo::MainWindow::init() {
     UIControl* control = nullptr;
     // get display control, check error?
-    m_display = longui_cast<UIText*>(this->FindControl(L"display"));
+    m_display = longui_cast<UIText*>(this->FindControl("display"));
     // +
-    if ((control = this->FindControl(L"btn_plus"))) {
+    if ((control = this->FindControl("btn_plus"))) {
         control->AddEventCall([this, control](UIControl* btn)->bool {
             auto test = control == btn;
             try {
@@ -114,7 +116,7 @@ void LongUI::Demo::MainWindow::init() {
         }, SubEvent::Event_ItemClicked);
     }
     // -
-    if ((control = this->FindControl(L"btn_minu"))) {
+    if ((control = this->FindControl("btn_minu"))) {
         control->AddEventCall([this](UIControl* btn) noexcept ->bool {
             try {
                 return this->on_minus(btn);
@@ -126,7 +128,7 @@ void LongUI::Demo::MainWindow::init() {
         }, SubEvent::Event_ItemClicked);
     }
     // =
-    if ((control = this->FindControl(L"btn_equl"))) {
+    if ((control = this->FindControl("btn_equl"))) {
         control->AddEventCall([this](UIControl* btn) noexcept ->bool {
             try {
                 return this->on_equal(btn);
@@ -138,7 +140,7 @@ void LongUI::Demo::MainWindow::init() {
         }, SubEvent::Event_ItemClicked);
     }
     // C
-    if ((control = this->FindControl(L"btn_clear"))) {
+    if ((control = this->FindControl("btn_clear"))) {
         control->AddEventCall([this](UIControl* btn) noexcept ->bool {
             m_number = 0; m_string.clear(); 
             m_display->SetText(L"0"); 
@@ -148,8 +150,8 @@ void LongUI::Demo::MainWindow::init() {
     // 0-9
     for (auto i = 0; i < 10; ++i) {
         constexpr int name_buffer_length = 16;
-        wchar_t buffer[name_buffer_length];
-        std::swprintf(buffer, name_buffer_length, L"btn_num%d", i);
+        char buffer[name_buffer_length];
+        std::snprintf(buffer, name_buffer_length, "btn_num%d", i);
         auto btn = this->FindControl(buffer);
         // use user_data
         if (btn) {

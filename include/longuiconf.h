@@ -213,7 +213,17 @@ namespace LongUI {
         // dtor
         ~CUILocker() noexcept { ::DeleteCriticalSection(&m_cs); }
         // lock
-        auto Lock() noexcept { ::EnterCriticalSection(&m_cs); }
+        auto Lock() noexcept { 
+#ifdef _DEBUG
+            if (!::TryEnterCriticalSection(&m_cs)) {
+                void dbg_locked(const LongUI::CUILocker&);
+                dbg_locked(*this);
+                ::EnterCriticalSection(&m_cs);
+            }
+#else
+            ::EnterCriticalSection(&m_cs);
+#endif
+        }
         // unlock
         auto Unlock() noexcept { ::LeaveCriticalSection(&m_cs); }
     private:

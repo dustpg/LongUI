@@ -585,3 +585,4 @@ void LongUI::FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brus
     // 恢复
     target->SetTransform(&matrix);
 }
+

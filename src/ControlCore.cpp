@@ -9,6 +9,20 @@ void dbg_update(LongUI::UIControl* control) noexcept {
         auto bk = 9;
     }*/
 }
+
+extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
+extern std::atomic<UINT> g_dbg_last_proc_message;
+void dbg_locked(const LongUI::CUILocker&) noexcept {
+    std::uintptr_t ptr = g_dbg_last_proc_window_pointer;
+    UINT msg = g_dbg_last_proc_message;
+    auto window = reinterpret_cast<LongUI::UIWindow*>(ptr);
+    UIManager << DL_Hint
+        << L"main locker locked @" 
+        << window
+        << L" on message id: " 
+        << long(msg)
+        << LongUI::endl;
+}
 #endif
 
 // Core Contrl for UIControl, UIMarginalable, UIContainer, UINull
@@ -1102,14 +1116,19 @@ bool LongUI::UIControl::call_uievent(const UICallBack& call, SubEvent sb) noexce
     arg.ui.subevent = sb;
     arg.ui.pointer = nullptr;
     arg.ctrl = nullptr;
-    // 脚本总会
+    // 返回值
+    auto code = false;
+    // 脚本最先
     if (UIManager.script && m_script.script) {
-        UIManager.script->Evaluation(this->GetScript(), arg);
+        auto rc = UIManager.script->Evaluation(this->GetScript(), arg);
+        code = rc || code;
     }
     // 回调其次
     if (call.IsOK()) {
-        return call(this);
+        auto rc = call(this);
+        code = rc || code;
     }
     // 事件最低
-    return m_pWindow->DoEvent(arg);
+    auto rc  = m_pWindow->DoEvent(arg);
+    return rc || code;
 }

@@ -18,6 +18,10 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         if ((str = node.attribute("lineheight").value())) {
             m_fLineHeight = LongUI::AtoF(str);
         }
+        // 双击时间
+        if ((str = node.attribute("dbclicktime").value())) {
+            m_hlpDbClick.time = uint32_t(LongUI::AtoI(str));
+        }
         // 行模板
         if ((str = node.attribute("linetemplate").value())) {
             // 检查长度
@@ -44,6 +48,31 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
     this->list_flag = listflag;
 }
 
+// 添加事件监听器(雾)
+bool LongUI::UIList::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
+    switch (sb)
+    {
+    case LongUI::SubEvent::Event_ItemClicked:
+        m_callLineClicked += std::move(call);
+        return true;
+    case LongUI::SubEvent::Event_ItemDbClicked:
+        m_callLineDBClicked += std::move(call);
+        return true;
+    case LongUI::SubEvent::Event_ContextMenu:
+        break;
+    case LongUI::SubEvent::Event_EditReturned:
+        break;
+    case LongUI::SubEvent::Event_ValueChanged:
+        break;
+    case LongUI::SubEvent::Event_Custom:
+        break;
+    default:
+        break;
+    }
+    return Super::uniface_addevent(sb, std::move(call));
+}
+
+
 // 获取参考控件
 auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
     if (m_pHeader) {
@@ -54,6 +83,19 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
         return m_vLines.front();
     }
 }
+
+// 依靠鼠标位置获取列表行
+auto LongUI::UIList::find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine* {
+    // XXX: 利用list特性优化
+    for (auto ctrl : m_vLines) {
+        // 区域内判断
+        if (IsPointInRect(ctrl->visible_rect, pt)) {
+            return ctrl;
+        }
+    }
+    return nullptr;
+}
+
 
 // UIList: 重建
 auto LongUI::UIList::Recreate() noexcept -> HRESULT {
@@ -68,18 +110,9 @@ auto LongUI::UIList::Recreate() noexcept -> HRESULT {
 
 // 查找子控件
 auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
-    {
-        auto ctrl = Super::FindChild(pt);
-        if (ctrl) return ctrl;
-    }
-    // TODO: 利用list特性优化
-    for (auto ctrl : m_vLines) {
-        // 区域内判断
-        if (IsPointInRect(ctrl->visible_rect, pt)) {
-            return ctrl;
-        }
-    }
-    return nullptr;
+    auto ctrl = Super::FindChild(pt);
+    if (ctrl) return ctrl;
+    return this->find_line(pt);
 }
 
 // push!
@@ -207,16 +240,58 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
-            // 父类分发事件
-            Super::DoEvent(arg);
             // 处理一下
             this->init_layout();
-            return true;
         default:
             break;
         }
     }
     return Super::DoEvent(arg);
+}
+
+// UI列表: 鼠标事件处理
+bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // 分类
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_None:
+        break;
+    case LongUI::MouseEvent::Event_MouseWheelV:
+        break;
+    case LongUI::MouseEvent::Event_MouseWheelH:
+        break;
+    case LongUI::MouseEvent::Event_DragEnter:
+        break;
+    case LongUI::MouseEvent::Event_DragOver:
+        break;
+    case LongUI::MouseEvent::Event_DragLeave:
+        break;
+    case LongUI::MouseEvent::Event_Drop:
+        break;
+    case LongUI::MouseEvent::Event_MouseEnter:
+        break;
+    case LongUI::MouseEvent::Event_MouseLeave:
+        break;
+    case LongUI::MouseEvent::Event_MouseHover:
+        break;
+    case LongUI::MouseEvent::Event_MouseMove:
+        break;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        break;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        break;
+    case LongUI::MouseEvent::Event_RButtonDown:
+        break;
+    case LongUI::MouseEvent::Event_RButtonUp:
+        break;
+    case LongUI::MouseEvent::Event_MButtonDown:
+        break;
+    case LongUI::MouseEvent::Event_MButtonUp:
+        break;
+    default:
+        break;
+    }
+    return Super::DoMouseEvent(arg);
 }
 
 // 排序算法

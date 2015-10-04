@@ -265,7 +265,7 @@ bool LongUI::UIButton::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept
         m_event += std::move(call);
         return true;
     }
-    return false;
+    return Super::uniface_addevent(sb, std::move(call));
 }
 
 // 关闭控件

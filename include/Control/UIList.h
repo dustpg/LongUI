@@ -146,10 +146,15 @@ namespace LongUI {
         virtual void Update() noexcept override;
         // do event
         virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        // do mouse event
+        virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate this
         virtual auto Recreate() noexcept->HRESULT override;
         // find child control by mouse point
         virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* override final;
+    protected:
+        // register ui call
+        virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
     public:
 #ifdef _DEBUG
     private:
@@ -197,6 +202,8 @@ namespace LongUI {
         void set_element_count(uint32_t length) noexcept;
         // referent ctrl
         auto get_referent_control() const noexcept->UIListLine*;
+        // find line via mouse point
+        auto find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine*;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -216,12 +223,8 @@ namespace LongUI {
     protected:
         // threshold for fast-sort
         uint32_t                m_cFastSortThreshold = 32;
-        // list header
-        UIListHeader*           m_pHeader = nullptr;
-        // to be sorted header child
-        UIControl*              m_pToBeSortedHeaderChild = nullptr;
-        // befor sort
-        UICallBack              m_callBeforSort;
+        // double-click helper
+        Helper::DoubleClick     m_hlpDbClick;
         // line back-color normal1
         D2D1_COLOR_F            m_colorLineNormal1 = D2D1::ColorF(0ui32, 0.f);
         // line back-color normal2
@@ -230,6 +233,16 @@ namespace LongUI {
         D2D1_COLOR_F            m_colorLineHover = D2D1::ColorF(0ui32, 0.f);
         // line back-color selected 
         D2D1_COLOR_F            m_colorLineSelected = D2D1::ColorF(0ui32, 0.f);
+        // list header
+        UIListHeader*           m_pHeader = nullptr;
+        // to be sorted header child
+        UIControl*              m_pToBeSortedHeaderChild = nullptr;
+        // befor sort event
+        UICallBack              m_callBeforSort;
+        // line clicked event
+        UICallBack              m_callLineClicked;
+        // line db-clicked
+        UICallBack              m_callLineDBClicked;
         // line height
         float                   m_fLineHeight = 32.f;
         // elements count in each line

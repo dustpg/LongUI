@@ -130,6 +130,9 @@ static inline auto SafeAcquire(Interface *pInterfaceToRelease) {
 #define DL_Fatal LongUI::DebugStringLevel::DLevel_Fatal
 #endif
 
+#define LONGUI_NAMESPACE_BEGIN namespace LongUI {
+#define LONGUI_NAMESPACE_END }
+
 // LongUI render target 目标渲染呈现器
 using LongUIRenderTarget = ID2D1DeviceContext;
 

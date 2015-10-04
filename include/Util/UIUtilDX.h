@@ -28,8 +28,10 @@
 namespace LongUI {
     // Helper for DirectX
     namespace DX {
+        // using
+        using CPGUID = const GUID*;
         // DXGI_FORMAT to WIC GUID format
-        auto DXGIToWIC(DXGI_FORMAT format) noexcept ->const GUID*;
+        auto DXGIToWIC(DXGI_FORMAT format) noexcept ->CPGUID;
         // create mesh from geometry
         auto CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept->HRESULT;
         // format the text in C++ within core string
@@ -57,9 +59,6 @@ namespace LongUI {
             IN OUT OPTIONAL IDWriteFontFace** fontface,
             OUT ID2D1PathGeometry** geometry
             ) noexcept->HRESULT;
-
-        // save as image file
-        auto SaveAsImageFile(ID2D1Bitmap1*, IWICImagingFactory*, const wchar_t*, const GUID* = nullptr) noexcept->HRESULT;
         // properties for save image file
         struct SaveAsImageFileProperties {
             // data for bitmap
@@ -79,7 +78,9 @@ namespace LongUI {
             // unused
             uint32_t                unused;
         };
-        // save as image file
-        auto SaveAsImageFile(const SaveAsImageFileProperties& prop, const wchar_t* file_name) noexcept -> HRESULT;
+        // save as image file with d2d-bitmap
+        auto SaveAsImageFile(ID2D1Bitmap1*, IWICImagingFactory*, const wchar_t* file_name, const GUID* = nullptr) noexcept->HRESULT;
+        // save as image file in raw data
+        auto SaveAsImageFile(const SaveAsImageFileProperties& , const wchar_t* file_name) noexcept -> HRESULT;
     }
 }

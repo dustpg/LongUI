@@ -147,23 +147,26 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
 LongUI::UIWindow::~UIWindow() noexcept {
     // 解锁
     UIManager.Unlock();
-    // 取消注册
-    ::RevokeDragDrop(m_hwnd);
-    // 杀掉!
-    ::KillTimer(m_hwnd, m_idBlinkTimer);
-    // 摧毁窗口
-    //::DestroyWindow(m_hwnd);
-    ::PostMessageW(m_hwnd, WM_DESTROY, 0, 0);
-    // 释放资源
-    this->release_data();
-    // 释放数据
-    ::SafeRelease(m_pTaskBarList);
-    ::SafeRelease(m_pDropTargetHelper);
-    ::SafeRelease(m_pCurDataObject);
+    {
+        // 取消注册
+        ::RevokeDragDrop(m_hwnd);
+        // 杀掉!
+        ::KillTimer(m_hwnd, m_idBlinkTimer);
+        // 摧毁窗口
+        ::DestroyWindow(m_hwnd);
+        // 释放资源
+        this->release_data();
+        // 释放数据
+        ::SafeRelease(m_pTaskBarList);
+        ::SafeRelease(m_pDropTargetHelper);
+        ::SafeRelease(m_pCurDataObject);
+    }
     // 加锁
     UIManager.Lock();
     // 移除窗口
     UIManager.RemoveWindow(this);
+    // 设置窗口指针
+    ::SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, LONG_PTR(0));
 }
 
 // 移除控件引用

@@ -630,8 +630,16 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg,
     arg.event = me;
 }
 
+#ifdef _DEBUG
+std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
+std::atomic<UINT> g_dbg_last_proc_message = 0;
+#endif
+
 // 窗口过程函数
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+#ifdef _DEBUG
+    g_dbg_last_proc_message = message;
+#endif
     /*POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
     arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);*/
     // 返回值
@@ -656,6 +664,9 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             );
         // 无效
         if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
+#ifdef _DEBUG
+        g_dbg_last_proc_window_pointer = reinterpret_cast<std::uintptr_t>(window);
+#endif
         auto handled = false;
         // 鼠标事件?
         if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) ||
@@ -692,9 +703,11 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             arg.lr = 0;
 #ifdef _DEBUG
             static std::atomic_int s_times = 0;
+            // 不用推荐递归调用
             if (s_times) {
-                UIManager << DL_Warning << "recursive locked" << endl;
-                long bk_recursive_locked = 9;
+                UIManager << DL_Warning 
+                    << L"recursive called. [UNRECOMMENDED]: depending on locker implementation." 
+                    << endl;
             }
             ++s_times;
 #endif
