@@ -23,8 +23,28 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
 
 // UIContainerBuiltIn: 渲染函数
 void LongUI::UIContainerBuiltIn::Render(RenderType type) const noexcept {
-    // 帮助器
-    Super::RenderHelper<Super>(this->begin(), this->end(), type);
+    // 分情况
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        break;
+    case LongUI::RenderType::Type_Render:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        // 渲染帮助
+        Super::RenderHelper(this->begin(), this->end());
+        // 父类渲染
+        Super::Render(LongUI::RenderType::Type_Render);
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
+    }
 }
 
 // LongUI内建容器: 刷新

@@ -190,6 +190,8 @@ namespace LongUI {
         // select child
         void SelectChild(uint32_t index, bool new_select = true) noexcept;
     private:
+        // render background
+        void render_background() const noexcept;
         // childvector changed
         void childvector_changed() noexcept;
         // select child
@@ -243,6 +245,8 @@ namespace LongUI {
         UICallBack              m_callLineClicked;
         // line db-clicked
         UICallBack              m_callLineDBClicked;
+        // hovered line
+        UIListLine*             m_pHoveredLine = nullptr;
         // line height
         float                   m_fLineHeight = 32.f;
         // elements count in each line

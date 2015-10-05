@@ -12,6 +12,7 @@ void dbg_update(LongUI::UIControl* control) noexcept {
 
 extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
 extern std::atomic<UINT> g_dbg_last_proc_message;
+
 void dbg_locked(const LongUI::CUILocker&) noexcept {
     std::uintptr_t ptr = g_dbg_last_proc_window_pointer;
     UINT msg = g_dbg_last_proc_message;
@@ -179,20 +180,22 @@ LongUI::UIControl::~UIControl() noexcept {
 /// <param name="_type" type="enum LongUI::RenderType">The _type.</param>
 /// <returns></returns>
 void LongUI::UIControl::Render(RenderType type) const noexcept {
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
-    case LongUI::RenderType::Type_Render:
-        // 背景
+    // 背景渲染
+    auto render_background = [this]() {
         if (m_pBackgroudBrush) {
             D2D1_RECT_F rect; this->GetViewRect(rect);
             LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
         }
-        // 背景中断
-        if (type == RenderType::Type_RenderBackground) {
-            break;
-        }
+    };
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        // 渲染背景
+        render_background();
+        break;
+    case LongUI::RenderType::Type_Render:
+        // 渲染背景
+        render_background();
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 渲染边框
@@ -370,6 +373,19 @@ void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
     rect.right = this->view_size.width;
     rect.bottom = this->view_size.height;
 }
+
+// 父控件视角: 获取占用/剪切矩形
+void LongUI::UIControl::GetClipRectFP(D2D1_RECT_F& rect) const noexcept {
+    rect.left = -(this->margin_rect.left + m_fBorderWidth);
+    rect.top = -(this->margin_rect.top + m_fBorderWidth);
+    rect.right = this->view_size.width + this->margin_rect.right + m_fBorderWidth;
+    rect.bottom = this->view_size.height + this->margin_rect.bottom + m_fBorderWidth;
+    rect.left += this->view_pos.x;
+    rect.top += this->view_pos.y;
+    rect.right += this->view_pos.x;
+    rect.bottom += this->view_pos.y;
+}
+
 
 // 获得世界转换矩阵
 void LongUI::UIControl::RefreshWorld() noexcept {

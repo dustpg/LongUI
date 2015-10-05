@@ -145,6 +145,8 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
 
 // UIWindow 析构函数
 LongUI::UIWindow::~UIWindow() noexcept {
+    // 设置窗口指针
+    ::SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, LONG_PTR(0));
     // 解锁
     UIManager.Unlock();
     {
@@ -165,8 +167,6 @@ LongUI::UIWindow::~UIWindow() noexcept {
     UIManager.Lock();
     // 移除窗口
     UIManager.RemoveWindow(this);
-    // 设置窗口指针
-    ::SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, LONG_PTR(0));
 }
 
 // 移除控件引用
@@ -557,12 +557,10 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
         // 再渲染
         auto init_transfrom = D2D1::Matrix3x2F::Identity();
         for (auto unit = units; unit < units + length_for_units; ++unit) {
-            auto ctrl = *unit;
-            assert(ctrl != this);
-            // 设置转换矩阵
+            auto ctrl = *unit; assert(ctrl != this);
+            // XXX: 优化为仅调用PushAxisAlignedClip
             UIManager_RenderTarget->SetTransform(&init_transfrom);
             UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-            // 设置转换矩阵
             UIManager_RenderTarget->SetTransform(&ctrl->world);
             // 正常渲染
             ctrl->Render(RenderType::Type_Render);

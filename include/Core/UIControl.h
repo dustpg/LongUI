@@ -144,6 +144,8 @@ namespace LongUI {
         void __fastcall GetBorderRect(D2D1_RECT_F& rect) const noexcept;
         // get viewport rect
         void __fastcall GetViewRect(D2D1_RECT_F& rect) const noexcept;
+        // get rect for cliping for parent
+        void __fastcall GetClipRectFP(D2D1_RECT_F& rect) const noexcept;
     protected:
         // index 0 brush
         ID2D1SolidColorBrush*   m_pBrush_SetBeforeUse = nullptr;

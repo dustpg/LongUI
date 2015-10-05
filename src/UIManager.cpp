@@ -645,7 +645,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
     // 返回值
     LRESULT recode = 0;
     // 创建窗口时设置指针
-    if (message == WM_CREATE)    {
+    if (message == WM_CREATE) {
         // 获取指针
         LongUI::UIWindow *window = reinterpret_cast<LongUI::UIWindow*>(
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
@@ -705,7 +705,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             static std::atomic_int s_times = 0;
             // 不用推荐递归调用
             if (s_times) {
-                UIManager << DL_Warning 
+                UIManager << DL_Hint 
                     << L"recursive called. [UNRECOMMENDED]: depending on locker implementation." 
                     << endl;
             }

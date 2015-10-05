@@ -170,104 +170,14 @@ namespace LongUI {
         // zoom size
         D2D1_SIZE_F             m_2fZoom = D2D1::SizeF(1.f, 1.f);
     public:
-        // helper for render
-        template<typename TSuperClass, typename TIterator>
-        LongUIInline void RenderHelper(TIterator itrbegin, TIterator itrend, RenderType type) const noexcept {
-            // switch for type
-            switch (type)
-            {
-            case LongUI::RenderType::Type_RenderBackground:
-                // super BG
-                TSuperClass::Render(LongUI::RenderType::Type_RenderBackground);
-                break;
-            case LongUI::RenderType::Type_Render:
-                // super BG
-                TSuperClass::Render(LongUI::RenderType::Type_RenderBackground);
-                // push clip for children
-                {
-                    D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
-                    UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-                }
-                // render children
-                for (auto itr = itrbegin; itr != itrend; ++itr) {
-                    this->child_do_render(*itr);
-                }
-                // pop
-                UIManager_RenderTarget->PopAxisAlignedClip();
-                TSuperClass::Render(LongUI::RenderType::Type_Render);
-                __fallthrough;
-            case LongUI::RenderType::Type_RenderForeground:
-                // super FG
-                TSuperClass::Render(LongUI::RenderType::Type_RenderForeground);
-                break;
-            case LongUI::RenderType::Type_RenderOffScreen:
-                break;
-            }
-        }
+        // assert if exist marginal control
+        inline void AssertMarginalControl() const noexcept;
         // helper for update
         template<typename TSuperClass, typename TIterator>
-        LongUIInline void UpdateHelper(TIterator itrbegin, TIterator itrend) noexcept {
-            // update for super
-            TSuperClass::Update();
-            // change if need refresh
-            if (this->IsNeedRefreshWorld()) {
-                // limit
-                D2D1_RECT_F limit_of_this = {
-                    this->visible_rect.left + this->margin_rect.left * this->world._11,
-                    this->visible_rect.top + this->margin_rect.top * this->world._22,
-                    this->visible_rect.right - this->margin_rect.right * this->world._11,
-                    this->visible_rect.bottom - this->margin_rect.bottom * this->world._22,
-                };
-                // refresh children
-                for (auto itr = itrbegin; itr != itrend; ++itr) {
-                    auto ctrl = (*itr);
-                    // set change
-                    ctrl->SetControlWorldChanged();
-                    ctrl->RefreshWorld();
-                    // world change visible-rect
-                    D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-                    auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-                    auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-                    ctrl->visible_rect.left = std::max(lt.x, limit_of_this.left);
-                    ctrl->visible_rect.top = std::max(lt.y, limit_of_this.top);
-                    ctrl->visible_rect.right = std::min(rb.x, limit_of_this.right);
-                    ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
-                }
-                // handed it
-                this->ControlLayoutChangeHandled();
-            }
-            // update marginal control
-            if (this->flags & Flag_Container_ExistMarginalControl) {
-                for (auto ctrl : this->marginal_control) {
-                    if (ctrl) {
-                        ctrl->Update();
-                        ctrl->AfterUpdate();
-                    }
-                }
-            }
-            // assert if bug
-            this->AssertMarginalControl();
-            // update children
-            for (auto itr = itrbegin; itr != itrend; ++itr) {
-                auto ctrl = (*itr);
-                ctrl->Update();
-                ctrl->AfterUpdate();
-            }
-        }
-    public:
-#ifdef _DEBUG
-        // assert if exist marginal control
-        void AssertMarginalControl() const noexcept {
-            if (!(this->flags & Flag_Container_ExistMarginalControl)) {
-                for (auto ctrl : this->marginal_control) {
-                    assert(!ctrl && "exist marginal control");
-                }
-            }
-        }
-#else
-        // assert if exist marginal control
-        void AssertMarginalControl() const noexcept {};
-#endif
+        void UpdateHelper(TIterator itrbegin, TIterator itrend) noexcept;
+        // helper for render
+        template<typename TIterator>
+        void RenderHelper(TIterator itrbegin, TIterator itrend) const noexcept;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -283,5 +193,83 @@ namespace LongUI {
     }
 #else
     };
+#endif
+    // ------------------------------ INLINE IMPLEMENT -------------------------------
+    // helper for update
+    template<typename TSuperClass, typename TIterator>
+    LongUIInline void UIContainer::UpdateHelper(TIterator itrbegin, TIterator itrend) noexcept {
+        // update for super
+        TSuperClass::Update();
+        // change if need refresh
+        if (this->IsNeedRefreshWorld()) {
+            // limit
+            D2D1_RECT_F limit_of_this = {
+                this->visible_rect.left + this->margin_rect.left * this->world._11,
+                this->visible_rect.top + this->margin_rect.top * this->world._22,
+                this->visible_rect.right - this->margin_rect.right * this->world._11,
+                this->visible_rect.bottom - this->margin_rect.bottom * this->world._22,
+            };
+            // refresh children
+            for (auto itr = itrbegin; itr != itrend; ++itr) {
+                auto ctrl = (*itr);
+                // set change
+                ctrl->SetControlWorldChanged();
+                ctrl->RefreshWorld();
+                // world change visible-rect
+                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+                auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+                auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+                ctrl->visible_rect.left = std::max(lt.x, limit_of_this.left);
+                ctrl->visible_rect.top = std::max(lt.y, limit_of_this.top);
+                ctrl->visible_rect.right = std::min(rb.x, limit_of_this.right);
+                ctrl->visible_rect.bottom = std::min(rb.y, limit_of_this.bottom);
+            }
+            // handed it
+            this->ControlLayoutChangeHandled();
+        }
+        // update marginal control
+        if (this->flags & Flag_Container_ExistMarginalControl) {
+            for (auto ctrl : this->marginal_control) {
+                if (ctrl) {
+                    ctrl->Update();
+                    ctrl->AfterUpdate();
+                }
+            }
+        }
+        // assert if bug
+        this->AssertMarginalControl();
+        // update children
+        for (auto itr = itrbegin; itr != itrend; ++itr) {
+            auto ctrl = (*itr);
+            ctrl->Update();
+            ctrl->AfterUpdate();
+        }
+    }
+    // helper for render
+    template<typename TIterator>
+    LongUIInline void UIContainer::RenderHelper(TIterator itrbegin, TIterator itrend) const noexcept {
+        // push clip for children
+        {
+            D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
+            UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        }
+        // render children
+        for (auto itr = itrbegin; itr != itrend; ++itr) {
+            this->child_do_render(*itr);
+        }
+        // pop
+        UIManager_RenderTarget->PopAxisAlignedClip();
+    }
+    // AssertMarginalControl
+#ifdef _DEBUG
+    inline void UIContainer::AssertMarginalControl() const noexcept {
+        if (!(this->flags & Flag_Container_ExistMarginalControl)) {
+            for (auto ctrl : this->marginal_control) {
+                assert(!ctrl && "exist marginal control");
+            }
+        }
+    }
+#else
+    inline void UIContainer::AssertMarginalControl() const noexcept {}
 #endif
 }

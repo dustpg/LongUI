@@ -11,6 +11,9 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
     if(!m_vLines.isok()) {
         UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
     }
+    // INIT COLOR DATA
+    m_colorLineHover = D2D1::ColorF(0xe5f3ff);
+    // MAIN PROC
     auto listflag = this->list_flag;
     if (node) {
         const char* str = nullptr;
@@ -251,6 +254,7 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // UI列表: 鼠标事件处理
 bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    auto old_hover_line = m_pHoveredLine;
     // 分类
     switch (arg.event)
     {
@@ -271,10 +275,12 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case LongUI::MouseEvent::Event_MouseEnter:
         break;
     case LongUI::MouseEvent::Event_MouseLeave:
+        m_pHoveredLine = nullptr;
         break;
     case LongUI::MouseEvent::Event_MouseHover:
         break;
     case LongUI::MouseEvent::Event_MouseMove:
+        m_pHoveredLine = this->find_line(arg.pt);
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
         break;
@@ -290,6 +296,10 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         break;
     default:
         break;
+    }
+    // 不同就渲染
+    if (old_hover_line != m_pHoveredLine) {
+        m_pWindow->Invalidate(this);
     }
     return Super::DoMouseEvent(arg);
 }
@@ -429,8 +439,62 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
 
 // UIList: 渲染函数
 void LongUI::UIList::Render(RenderType type) const noexcept {
-    // 帮助器
-    Super::RenderHelper<Super>(m_vLines.begin(), m_vLines.end(), type);
+    // 分情况
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        // 渲染背景
+        this->render_background();
+        break;
+    case LongUI::RenderType::Type_Render:
+        // 渲染背景
+        this->render_background();
+        // 渲染帮助
+        Super::RenderHelper(m_vLines.begin(), m_vLines.end());
+        // 父类渲染
+        Super::Render(LongUI::RenderType::Type_Render);
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
+    }
+}
+
+// UIList 背景渲染
+LongUINoinline void LongUI::UIList::render_background() const noexcept {
+    // 父类背景+-?
+    Super::Render(LongUI::RenderType::Type_RenderBackground);
+    // 独立背景- - 可视优化
+    if (!this->GetCount()) return;
+    // 保留转变
+    D2D1_MATRIX_3X2_F matrix;
+    UIManager_RenderTarget->GetTransform(&matrix);
+    UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+    // 鼠标指向
+    if (m_pHoveredLine) {
+        m_pBrush_SetBeforeUse->SetColor(m_colorLineHover);
+        UIManager_RenderTarget->FillRectangle(
+            &m_pHoveredLine->visible_rect, m_pBrush_SetBeforeUse
+            );
+    }
+    // 第一个可视列表行 = (-Y偏移) / 行高
+    int first_visible = static_cast<int>((-m_2fOffset.y) / m_fLineHeight);
+    first_visible = std::max(first_visible, int(0));
+    // 最后一个可视列表行 = 第一个可视列表行 + 1 + 可视区域高度 / 行高
+    int last_visible = static_cast<int>(this->view_size.height / m_fLineHeight);
+    last_visible = last_visible + first_visible + 1;
+    last_visible = std::min(last_visible, int(this->GetCount()));
+    // 循环
+    const auto first_itr = m_vLines.data() + first_visible;
+    const auto last_itr = m_vLines.data() + last_visible;
+    for (auto itr = first_itr; itr <= last_itr; ++itr) {
+        auto line = *itr;
+    }
+    // 还原
+    UIManager_RenderTarget->SetTransform(&matrix);
 }
 
 // UIList: 刷新

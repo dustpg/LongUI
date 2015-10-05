@@ -1,4 +1,4 @@
-﻿#if 0
+﻿#if 1
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
@@ -65,7 +65,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <List sort="true" name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine name="lin1">
             <Text text="1" templateid="4" name="listline1-1"/>
-            <Text text="五湖" templateid="4"/>
+            <Text text="伍湖" templateid="4"/>
         </ListLine>
         <ListLine name="lin2">
             <Text text="2" templateid="4" name="listline2-1"/>
@@ -81,6 +81,22 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </ListLine>
         <ListLine name="lin5">
             <Text text="4" templateid="4" name="listline5-1"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
             <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
