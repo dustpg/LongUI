@@ -42,11 +42,15 @@ namespace LongUI { namespace Helper {
         // ctor
         DoubleClick(uint32_t t = ::GetDoubleClickTime()) noexcept : time(t) {};
         // click, return true if double clicked
-        bool Click() noexcept;
+        bool Click(const D2D1_POINT_2F& pt) noexcept;
         // time
         uint32_t        time;
         // last click time
         uint32_t        last = 0;
+        // mouse point x
+        float           ptx = -1.f;
+        // mouse point y
+        float           pty = -1.f;
     };
     // CC for CreateControl
     struct CC { CreateControlFunction func; size_t id; };

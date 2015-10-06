@@ -186,7 +186,7 @@ namespace LongUI {
         /// btw, in the adapter list, also include the WARP-adapter
         /// </remarks>
         /// <returns>index of adapters</returns>
-        virtual auto ChooseAdapter(IDXGIAdapter1* adapters[/*length*/], const size_t length /*<=256*/) noexcept->size_t = 0;
+        virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[/*length*/], const size_t length /*<=64*/) noexcept->size_t = 0;
         /// <summary>
         /// Customs the type of the rich.
         /// </summary>

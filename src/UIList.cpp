@@ -11,10 +11,13 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
     if(!m_vLines.isok()) {
         UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
     }
-    // INIT COLOR DATA
-    m_colorLineHover = D2D1::ColorF(0xe5f3ff);
+    // TEST: INIT COLOR DATA
+    m_colorLineNormal1 = D2D1::ColorF(0xffffff, 0.5f);
+    m_colorLineNormal2 = D2D1::ColorF(0xeeeeee, 0.5f);
+    m_colorLineHover = D2D1::ColorF(0xcde8ff, 0.5f);
+    m_colorLineSelected = D2D1::ColorF(0x9cd2ff, 0.5f);
     // MAIN PROC
-    auto listflag = this->list_flag;
+    auto listflag = this->list_flag | Flag_MultiSelection;
     if (node) {
         const char* str = nullptr;
         // 行高度
@@ -34,6 +37,19 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
                 m_bufLineTemplate.NewSize(len);
                 Helper::MakeCC(str, m_bufLineTemplate.GetData());
             }
+            else {
+                UIManager << DL_Hint
+                    << L"BAD TEMPLATE:   "
+                    << str
+                    << endl;
+            }
+        }
+        // 给予提示
+        else {
+            UIManager << DL_Hint
+                << L"recommended to set 'linetemplate'. "
+                /*<<*/ L"now, set 'UIText, 0' as template"
+                << endl;
         }
         // 允许排序
         if (node.attribute("sort").as_bool(false)) {
@@ -87,6 +103,20 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
     }
 }
 
+// 依靠鼠标位置获取列表行索引
+auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t {
+    uint32_t index = 0;
+    // XXX: 利用list特性优化
+    for (auto ctrl : m_vLines) {
+        // 区域内判断
+        if (IsPointInRect(ctrl->visible_rect, pt)) {
+            break;
+        }
+        ++index;
+    }
+    return index;
+}
+
 // 依靠鼠标位置获取列表行
 auto LongUI::UIList::find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine* {
     // XXX: 利用list特性优化
@@ -123,16 +153,16 @@ LongUINoinline void LongUI::UIList::PushBack(UIControl* child) noexcept {
     m_vLines.push_back(longui_cast<UIListLine*>(child));
     this->after_insert(child);
     ++m_cChildrenCount;
-    this->childvector_changed();
+    this->reset_select();
     assert(m_vLines.isok());
 }
 
 // 插入
-LongUINoinline auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
-    m_vLines.insert(index, longui_cast<UIListLine*>(child));
+LongUINoinline auto LongUI::UIList::Insert(uint32_t index, UIListLine* child) noexcept {
+    m_vLines.insert(index, child);
     this->after_insert(child);
     ++m_cChildrenCount;
-    this->childvector_changed();
+    this->reset_select();
     assert(m_vLines.isok());
 }
 
@@ -200,17 +230,15 @@ void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
         assert("control not found");
         return;
     }
-    this->childvector_changed();
+    this->reset_select();
     m_vLines.erase(itr);
     --m_cChildrenCount;
     Super::RemoveJust(child);
 }
 
-// 插入一个行模板
-void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
-    auto ctrl = static_cast<UIListLine*>(
-        UIListLine::CreateControl(this->CET(), pugi::xml_node())
-        );
+// 对列表插入一个行模板至指定位置
+void LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept {
+    auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(this->CET(), pugi::xml_node()));
     if (ctrl) {
         // 添加子控件
         for (const auto& data : m_bufLineTemplate) {
@@ -220,6 +248,45 @@ void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
         this->Insert(index, ctrl);
     }
 }
+
+// 利用索引移除行模板中一个元素
+void LongUI::UIList::RemoveLineElementInEachLine(uint32_t index) noexcept {
+    assert(index < m_bufLineTemplate.GetCount() && "out of range");
+    // TODO: 完成
+
+}
+
+// 交换行模板中元素
+void LongUI::UIList::SwapLineElementsInEachLine(uint32_t index1, uint32_t index2) noexcept {
+    assert(index1 < m_bufLineTemplate.GetCount() && index2 < m_bufLineTemplate.GetCount() && "out of range");
+    assert(index1 != index2 && "bad arguments");
+    if (!(index1 < m_bufLineTemplate.GetCount() && index2 < m_bufLineTemplate.GetCount())) return;
+    if (index1 == index2) return;
+    // TODO: 交换列表
+    // 交换模板
+    std::swap(m_bufLineTemplate[index1], m_bufLineTemplate[index2]);
+}
+
+// 插入一个新的行元素
+void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid ) noexcept {
+    assert(index <= m_bufLineTemplate.GetCount() && "out of range");
+    assert(func && "bad argument");
+    // TODO: 完成
+    if (index <= m_bufLineTemplate.GetCount() && func) {
+
+    }
+}
+
+// 设置
+void LongUI::UIList::SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid ) noexcept {
+    assert(index < m_bufLineTemplate.GetCount() && "out of range");
+    assert(func && "bad argument");
+    if (index < m_bufLineTemplate.GetCount() && func) {
+        m_bufLineTemplate[index].func = func;
+        m_bufLineTemplate[index].id = tid;
+    }
+}
+
 
 // 设置元素宽度
 void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
@@ -243,8 +310,10 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
-            // 处理一下
+            // 由父类创建边缘控件
+            Super::DoEvent(arg);
             this->init_layout();
+            return true;
         default:
             break;
         }
@@ -254,6 +323,30 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // UI列表: 鼠标事件处理
 bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // -------------------  L-Button Down  ---------------
+    auto lbutton_down = [this, &arg]() noexcept {
+        auto index = this->find_line_index(arg.pt);
+        // SHIFT优先
+        if (arg.sys.wParam & MK_SHIFT) {
+            this->SelectTo(m_ixLastClickedLine, index);
+            return;
+        }
+        // 修改
+        m_ixLastClickedLine = index;
+        // UNCTRLed
+        bool unctrled = !(arg.sys.wParam & MK_CONTROL);
+        // 双击?
+        if (m_hlpDbClick.Click(arg.pt)) {
+            UIManager << DL_Log << "DB Clicked" << endl;
+            this->call_uievent(m_callLineDBClicked, SubEvent::Event_ItemDbClicked);
+        }
+        // 单击?
+        else {
+            this->SelectChild(m_ixLastClickedLine, unctrled);
+            this->call_uievent(m_callLineClicked, SubEvent::Event_ItemClicked);
+        }
+    };
+    // ---------------------------------------------------
     auto old_hover_line = m_pHoveredLine;
     // 分类
     switch (arg.event)
@@ -283,6 +376,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         m_pHoveredLine = this->find_line(arg.pt);
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
+        lbutton_down();
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
         break;
@@ -317,7 +411,7 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
     bool just_reverse = true;
     // 检查逆序状态
     for (auto itr = bn; itr < (ed -1); ++itr) {
-        if (!cmp(*itr, *(itr + 1))) {
+        if (cmp(*(itr + 1), *itr)) {
             just_reverse = false;
             break;
         }
@@ -356,19 +450,36 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
             << LongUI::endl;
     }
 #endif
+    // 修改了
+    this->reset_select();
     this->SetControlLayoutChanged();
 }
 
 
 // 选择子控件(对外)
 void LongUI::UIList::SelectChild(uint32_t index, bool new_select) noexcept {
-    this->select_child(index, new_select);
-    m_pWindow->Invalidate(this);
+    if (index < m_cChildrenCount) {
+        this->select_child(index, new_select);
+        m_pWindow->Invalidate(this);
+    }
 }
 
+// 选择子控件到(对外)
+void LongUI::UIList::SelectTo(uint32_t index1, uint32_t index2) noexcept {
+    // 交换
+    if (index1 > index2) std::swap(index1, index2);
+    // 限制
+    index2 = std::min(index2, m_cChildrenCount - 1);
+    // 有效
+    if (index1 < index2) {
+        this->select_to(index1, index2);
+        m_pWindow->Invalidate(this);
+    }
+}
 
 // 选择子控件
 LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select) noexcept {
+    assert(index < m_cChildrenCount && "out of range for selection");
     // 检查是否多选
     if (!new_select && !(this->list_flag & this->Flag_MultiSelection)) {
         UIManager << DL_Hint
@@ -376,9 +487,9 @@ LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select
             << LongUI::endl;
         new_select = true;
     }
-    // 新的
+    // 新的重置
     if (new_select) {
-        m_vSelected.clear();
+        this->reset_select();
     }
     // 选择
     auto line = m_vLines[index];
@@ -398,9 +509,42 @@ LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select
     }
 }
 
+// 选择子控件到
+LongUINoinline void LongUI::UIList::select_to(uint32_t index1, uint32_t index2) noexcept {
+    assert(index1 < m_cChildrenCount && index2 < m_cChildrenCount && "out of range for selection");
+    // 检查是否多选
+    if (!(this->list_flag & this->Flag_MultiSelection)) {
+        UIManager << DL_Hint
+            << "cannot do multi-selection"
+            << LongUI::endl;
+        index1 = index2;
+    }
+    // 交换
+    if (index1 > index2) std::swap(index1, index2);
+    this->reset_select();
+    // 选择
+    auto itr_1st = m_vLines.data() + index1;
+    auto itr_lst = m_vLines.data() + index2;
+    for (auto itr = itr_1st; itr <= itr_lst; ++itr) {
+        auto line = *itr;
+        line->SetSelected(true);
+        m_vSelected.push_back(line);
+    }
+#ifdef _DEBUG
+    if (this->debug_this) {
+        UIManager << DL_Log
+            << L"m_vSelected: "
+            << reinterpret_cast<const ControlVector&>(m_vSelected)
+            << endl;
+    }
+#endif
+}
+
 // UIList: 子控件向量修改了
-void LongUI::UIList::childvector_changed() noexcept {
-    for(auto line : m_vSelected) {
+void LongUI::UIList::reset_select() noexcept {
+    //m_pHoveredLine = nullptr;
+    //m_ixLastClickedLine = uint32_t(-1);
+    for (auto line : m_vSelected) {
         line->SetSelected(false);
     }
     m_vSelected.clear();
@@ -408,20 +552,31 @@ void LongUI::UIList::childvector_changed() noexcept {
 
 // UIList: 初始化布局
 void LongUI::UIList::init_layout() noexcept {
+    uint32_t element_count_init = 1;
     auto rctrl = this->get_referent_control();
     if (rctrl) {
-        // 缓存
-        /*EzContainer::SmallBuffer<float, 32> buffer;
-        buffer.NewSize(rctrl->GetCount());
-        this->set_element_count(rctrl->GetCount());
-        // 宽度
-        int index = 0;
-        for (auto ctrl : (*rctrl)) {
-            buffer[index] = ctrl->GetWidth();
-            ++index;
+        // 检查不和谐的地方
+#ifdef _DEBUG
+        if (rctrl->GetCount() != m_bufLineTemplate.GetCount()) {
+            if (m_bufLineTemplate.GetCount()) {
+                UIManager << DL_Warning
+                    << L"Inconsistent count of line-element: SET "
+                    << long(m_bufLineTemplate.GetCount())
+                    << L", BUT "
+                    << long(rctrl->GetCount())
+                    << LongUI::endl;
+            }
         }
-        this->ChangeElementWidth(buffer.GetData());*/
+#endif
+        element_count_init = rctrl->GetCount();
     }
+    // 没有就给予警告
+    else {
+        UIManager << DL_Warning
+            << L"NO CHILD FOUND. line-element set to 1"
+            << LongUI::endl;
+    }
+    this->set_element_count(element_count_init);
 }
 
 // 设置元素数量
@@ -473,13 +628,6 @@ LongUINoinline void LongUI::UIList::render_background() const noexcept {
     D2D1_MATRIX_3X2_F matrix;
     UIManager_RenderTarget->GetTransform(&matrix);
     UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-    // 鼠标指向
-    if (m_pHoveredLine) {
-        m_pBrush_SetBeforeUse->SetColor(m_colorLineHover);
-        UIManager_RenderTarget->FillRectangle(
-            &m_pHoveredLine->visible_rect, m_pBrush_SetBeforeUse
-            );
-    }
     // 第一个可视列表行 = (-Y偏移) / 行高
     int first_visible = static_cast<int>((-m_2fOffset.y) / m_fLineHeight);
     first_visible = std::max(first_visible, int(0));
@@ -487,11 +635,35 @@ LongUINoinline void LongUI::UIList::render_background() const noexcept {
     int last_visible = static_cast<int>(this->view_size.height / m_fLineHeight);
     last_visible = last_visible + first_visible + 1;
     last_visible = std::min(last_visible, int(this->GetCount()));
+    // 背景索引
+    int bkindex1 = !(first_visible & 1);
     // 循环
     const auto first_itr = m_vLines.data() + first_visible;
     const auto last_itr = m_vLines.data() + last_visible;
-    for (auto itr = first_itr; itr <= last_itr; ++itr) {
+    for (auto itr = first_itr; itr < last_itr; ++itr) {
         auto line = *itr;
+        // REMOVE THIS LINE?
+        const D2D1_COLOR_F* color;
+        // 选择色优先
+        if (line->IsSelected()) {
+            color = &m_colorLineSelected;
+        }
+        // 悬浮色其次
+        else if (line == m_pHoveredLine) {
+            color = &m_colorLineHover;
+        }
+        // 背景色最后
+        else {
+            color = &m_colorLineNormal1 + bkindex1;
+        }
+        // 设置
+        if (color->a > 0.f) {
+            m_pBrush_SetBeforeUse->SetColor(color);
+            UIManager_RenderTarget->FillRectangle(
+                &line->visible_rect, m_pBrush_SetBeforeUse
+                );
+        }
+        bkindex1 = !bkindex1;
     }
     // 还原
     UIManager_RenderTarget->SetTransform(&matrix);

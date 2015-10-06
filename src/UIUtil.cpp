@@ -1439,13 +1439,12 @@ auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvO
     return (*ppvObject) ? S_OK : E_NOINTERFACE;
 }
 
-auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t {
+auto LongUI::CUIDefaultConfigure::ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], size_t const length) noexcept -> size_t {
     UNREFERENCED_PARAMETER(adapters);
     // 核显卡优先 
 #ifdef LONGUI_NUCLEAR_FIRST
     for (size_t i = 0; i < length; ++i) {
-        DXGI_ADAPTER_DESC1 desc;
-        adapters[i]->GetDesc1(&desc);
+        DXGI_ADAPTER_DESC1& desc = adapters[i];
         if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
             return i;
     }

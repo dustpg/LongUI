@@ -471,12 +471,15 @@ public:
     virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
         return Flag_OutputDebugString | Flag_RenderByCPU;
     }
-    virtual auto ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t override {
+    virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], size_t const length) noexcept -> size_t override {
+        // Intel 测试
+        for (size_t i = 0; i < length; ++i) {
+            if (!::wcsncmp(L"Intel", adapters[i].Description, 5))
+                return i;
+        }
         // 核显卡优先 
         for (size_t i = 0; i < length; ++i) {
-            DXGI_ADAPTER_DESC1 desc;
-            adapters[i]->GetDesc1(&desc);
-            if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
+            if (!::wcsncmp(L"NVIDIA", adapters[i].Description, 6))
                 return i;
         }
         return length;

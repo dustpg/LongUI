@@ -171,31 +171,50 @@ namespace LongUI {
         // just remove 
         virtual void RemoveJust(UIControl* child) noexcept;
         // insert
-        auto Insert(uint32_t index, UIControl*) noexcept;
+        auto Insert(uint32_t index, UIListLine* line) noexcept;
         // get child at index
         auto GetAt(uint32_t index) const noexcept { return m_vLines[index]; }
+    public:
+        // get line-element count
+        auto GetLineElementCount() const noexcept { return m_bufLineTemplate.GetCount(); }
+        // insert a line to list with line-template
+        void InsertLineTemplateToList(uint32_t index) noexcept;
+        // remove line-element with index
+        void RemoveLineElementInEachLine(uint32_t index) noexcept;
+        // swap 2 line-elements
+        void SwapLineElementsInEachLine(uint32_t index1, uint32_t index2) noexcept;
+        // inser new line-element to each line
+        void InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid = 0) noexcept;
+        // set cc-element in line-template
+        void SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid = 0) noexcept;
     public:
         // get conttrols
         const auto&GetContainer() const noexcept { return m_vLines; }
         // get height in line
         auto GetLineHeight() const noexcept { return m_fLineHeight; }
+        // get last clicked line index
+        auto GetLastClickedLineIndex() const noexcept { return m_ixLastClickedLine; }
+        // get last clicked line
+        auto GetLastClickedLine() const noexcept ->UIListLine* { return m_ixLastClickedLine < m_cChildrenCount ? m_vLines[m_ixLastClickedLine] : nullptr; }
         // get ToBeSortedHeaderChild, used during (AddBeforSortCallBack)
         auto GetToBeSortedHeaderChild() const noexcept { return m_pToBeSortedHeaderChild; }
         // set header
         void SetHeader(UIListHeader* header) noexcept { assert(header); m_pHeader = header; }
-        // insert a line-template with inside string
-        void InsertInlineTemplate(uint32_t index) noexcept;
         // set element width
         void SetElementWidth(uint32_t index, float width) noexcept;
         // select child
         void SelectChild(uint32_t index, bool new_select = true) noexcept;
+        // select to
+        void SelectTo(uint32_t index1, uint32_t index2) noexcept;
     private:
         // render background
         void render_background() const noexcept;
-        // childvector changed
-        void childvector_changed() noexcept;
+        // reset select
+        void reset_select() noexcept;
         // select child
         void select_child(uint32_t index, bool new_select) noexcept;
+        // select child
+        void select_to(uint32_t index1, uint32_t index2) noexcept;
         // sort line
         void sort_line(bool(*cmp)(UIControl* a, UIControl* b)) noexcept;
         // init
@@ -206,6 +225,8 @@ namespace LongUI {
         auto get_referent_control() const noexcept->UIListLine*;
         // find line via mouse point
         auto find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine*;
+        // find line via mouse point
+        auto find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -247,10 +268,10 @@ namespace LongUI {
         UICallBack              m_callLineDBClicked;
         // hovered line
         UIListLine*             m_pHoveredLine = nullptr;
+        // last clicked line index
+        uint32_t                m_ixLastClickedLine = uint32_t(-1);
         // line height
         float                   m_fLineHeight = 32.f;
-        // elements count in each line
-        uint32_t                m_cEleCountInLine = 0;
         // line template
         LineTemplateBuffer      m_bufLineTemplate;
         // list lines vector

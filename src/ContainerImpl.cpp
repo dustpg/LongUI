@@ -129,6 +129,7 @@ void LongUI::UIContainerBuiltIn::insert_only(Iterator itr, UIControl* ctrl) noex
         m_pTail = ctrl;
     }
     else {
+        // 一般般
         force_cast(ctrl->next) = itr.Ptr();
         force_cast(ctrl->prev) = itr->prev;
         if (itr->prev) {
@@ -239,6 +240,16 @@ auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl *
     return control;
 }
 
+// 交换
+void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcept {
+    auto ctrl1 = *itr1; auto ctrl2 = *itr2;
+    assert(ctrl1->parent == this && ctrl2->parent == this && L"隔壁老王!");
+    assert(ctrl1 != ctrl2 && "bad arguments");
+    // 不一致时
+    if (ctrl1 != ctrl2) {
+        // TODO: 完成
+    }
+}
 
 // -------------------------- UIVerticalLayout -------------------------
 // UIVerticalLayout 创建

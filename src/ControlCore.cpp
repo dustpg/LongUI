@@ -17,7 +17,7 @@ void dbg_locked(const LongUI::CUILocker&) noexcept {
     std::uintptr_t ptr = g_dbg_last_proc_window_pointer;
     UINT msg = g_dbg_last_proc_message;
     auto window = reinterpret_cast<LongUI::UIWindow*>(ptr);
-    UIManager << DL_Hint
+    UIManager << DL_Log
         << L"main locker locked @" 
         << window
         << L" on message id: " 

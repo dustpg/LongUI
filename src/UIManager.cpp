@@ -938,16 +938,19 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         // 创建一个临时工程
         register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
         if (SUCCEEDED(hr)) {
+            constexpr int ADAPTERS_MAX_NUM = 64;
             uint32_t adnum = 0;
-            IDXGIAdapter1* apAdapters[256];
+            IDXGIAdapter1* apAdapters[ADAPTERS_MAX_NUM];
+            DXGI_ADAPTER_DESC1 descs[ADAPTERS_MAX_NUM];
             // 枚举适配器
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
                 if (temp_factory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
                     break;
                 }
+                apAdapters[adnum]->GetDesc1(descs + adnum);
             }
             // 选择适配器
-            auto index = this->configure->ChooseAdapter(apAdapters, adnum);
+            auto index = this->configure->ChooseAdapter(descs, adnum);
             if (index < adnum) {
                 ready2use = ::SafeAcquire(apAdapters[index]);
             }
@@ -1812,6 +1815,25 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
         std::swprintf(buffer, LongUIStringBufferLength, L"[null] ");
     }
     this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
+// 控件
+auto LongUI::CUIManager::operator<<(const ControlVector& ctrls) noexcept ->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    int index = 0;
+    for (auto ctrl : ctrls) {
+        std::swprintf(
+            buffer, lengthof(buffer),
+            L"\r\n\t\t[%4d][0x%p{%S}%ls] ",
+            index,
+            ctrl,
+            ctrl->name.c_str(),
+            ctrl->GetControlClassName(false)
+            );
+        this->OutputNoFlush(m_lastLevel, buffer);
+        ++index;
+    }
     return *this;
 }
 

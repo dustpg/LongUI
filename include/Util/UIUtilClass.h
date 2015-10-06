@@ -437,7 +437,7 @@ namespace LongUI {
         // add all custom controls
         virtual auto RegisterSome() noexcept->void override {};
         // if use gpu render, you should choose a video card, return the index
-        virtual auto ChooseAdapter(IDXGIAdapter1* adapters[], const size_t length) noexcept->size_t override;
+        virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept->size_t override;
         // if in RichType::Type_Custom, will call this, we don't implement at here
         virtual auto CustomRichType(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
         // show the error string

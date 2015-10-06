@@ -359,10 +359,12 @@ namespace LongUI {
         CUIManager& operator<< (const float f) noexcept;
         // overload << operator for long
         CUIManager& operator<< (const long l) noexcept;
-        // overload << operator for long
+        // overload << operator for bool
         CUIManager& operator<< (const bool b) noexcept;
-        // overload << operator for long
+        // overload << operator for control
         CUIManager& operator<< (const UIControl*) noexcept;
+        // overload << operator for controls
+        CUIManager& operator<< (const ControlVector&) noexcept;
         // overload << operator for endl
         CUIManager& operator<< (const LongUI::EndL) noexcept;
         // overload << operator for DXGI_ADAPTER_DESC*

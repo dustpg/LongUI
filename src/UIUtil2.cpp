@@ -1,11 +1,13 @@
 ﻿#include "LongUI.h"
 
 // 双击
-LongUINoinline bool LongUI::Helper::DoubleClick::Click() noexcept {
+LongUINoinline bool LongUI::Helper::DoubleClick::Click(const D2D1_POINT_2F& pt) noexcept {
     // 懒得解释了
     auto now = ::timeGetTime();
-    bool result = ((now - last) <= time);
+    bool result = ((now - last) <= time) && pt.x == this->ptx && pt.y == this->pty ;
     last = result ? 0ui32 : now;
+    this->ptx = pt.x;
+    this->pty = pt.y;
     return result;
 }
 

@@ -96,6 +96,8 @@ namespace LongUI {
         auto GetIndexOf(UIControl*) const noexcept ->uint32_t;
         // get control at index
         auto GetAt(uint32_t i) const noexcept ->UIControl*;
+        // swap child
+        void SwapChild(Iterator itr1, Iterator itr2) noexcept;
         // move to
         void MoveTo(UIControl* ctrl, Iterator itr) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(itr, ctrl); }
         // move to
