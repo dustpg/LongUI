@@ -444,6 +444,10 @@ namespace LongUI {
             auto clear() noexcept { m_cLength = 0; }
             // empty
             auto empty() const noexcept { return !m_cLength; }
+            // newsize
+            auto newsize(uint32_t len) noexcept { this->reserve(len); m_cLength = len; }
+            // resize
+            void resize(uint32_t len) noexcept;
             // erase
             auto erase(uint32_t pos) noexcept { return this->erase(pos, 1); }
             // erase with length
@@ -479,9 +483,9 @@ namespace LongUI {
             uint32_t    m_cCapacity = 0;
         private:
             // safe free
-            inline auto safe_free() noexcept { if (m_pData) ::free(m_pData); m_pData = nullptr; }
+            inline auto safe_free() noexcept { if (m_pData) LongUI::SmallFree(m_pData); m_pData = nullptr; }
             // alloc
-            static inline auto alloc(uint32_t len) noexcept { return reinterpret_cast<T*>(::malloc(len * sizeof(T))); }
+            static inline auto alloc(uint32_t len) noexcept { return reinterpret_cast<T*>(LongUI::SmallAlloc(len * sizeof(T))); }
             // copy data
             static inline auto copy_data(T* des, T* src, uint32_t len) noexcept {  if (des && len) ::memcpy(des, src, sizeof(T) * len); }
             // nice length
@@ -524,10 +528,30 @@ namespace LongUI {
         template<typename T> auto EzVector<T>::erase(uint32_t pos, uint32_t len) noexcept {
             assert(pos < this->size() && pos + len <= this->size() && "out of range");
             if (!(len && this->isok())) return;
+#ifdef _DEBUG
+            auto debug_begin = m_pData + this->size() - len;
+#endif
             register auto endofthis = this->size() - len;
             m_cLength -= len;
             for (auto i = pos; i < endofthis; ++i) {
                 m_pData[i] = m_pData[i + len];
+            }
+#ifdef _DEBUG
+            std::memset(debug_begin, 0xcd, len);
+#endif
+        }
+        // Vector::resize
+        template<typename T> void EzVector<T>::resize(uint32_t len) noexcept {
+            if (len == m_cLength) return;
+            this->reserve(len);
+            if (!this->isok()) return;
+            auto old = m_cLength;
+            m_cLength = len;
+            if (len < old) {
+                m_cLength = len;
+            }
+            else {
+                std::memset(m_pData + old, 0, sizeof(T)* (len - old));
             }
         }
         // Vector::do_insert

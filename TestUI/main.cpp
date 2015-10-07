@@ -62,7 +62,8 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <List sort="true" name="lst_01" topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
+    <List sort="true" name="lst_01" linetemplate="Text, Text"
+        topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
         <ListLine name="lin1">
             <Text text="1" templateid="4" name="listline1-1"/>
             <Text text="伍湖" templateid="4"/>
@@ -101,7 +102,9 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </ListLine>
     </List>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
-    <Button name="btn_x" size="0, 64" borderwidth="1" textrichtype="core"
+    <Button name="btn_x0" size="0, 48" borderwidth="1"
+        margin="4,4,4,4" text="TEST BUTTON"/>
+    <Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="core"
         margin="4,4,4,4" text="%cHello%], %uworld!%]%p#0F0"/>
 </Window>
 )xml";
@@ -157,6 +160,26 @@ private:
                 }
                 return true;
             });
+        }
+        auto btn = this->FindControl("btn_x1");
+        if (btn) {
+            auto ctrl1 = btn;
+            auto ctrl2 = btn->prev->prev;
+            btn->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
+                // 交换
+                this->SwapChild(LongUI::MakeIteratorBI(ctrl1), LongUI::MakeIteratorBI(ctrl2));
+                return true;
+            }, LongUI::SubEvent::Event_ItemClicked);
+        }
+        btn = this->FindControl("btn_x0");
+        if (btn) {
+            auto ctrl1 = btn;
+            auto ctrl2 = btn->prev;
+            btn->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
+                // 交换
+                this->SwapChild(LongUI::MakeIteratorBI(ctrl1), LongUI::MakeIteratorBI(ctrl2));
+                return true;
+            }, LongUI::SubEvent::Event_ItemClicked);
         }
     }
     // on number button clicked
@@ -433,7 +456,7 @@ public:
     ~DemoConfigure() { if (m_hDll) { ::FreeLibrary(m_hDll); m_hDll = nullptr; } }
     // 获取地区名称
     auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
-        ::wcscpy(name, L"en-us");
+        std::wcscpy(name, L"en-us");
     };
     // 获取控件模板
     auto GetTemplateString() noexcept->const char* override {

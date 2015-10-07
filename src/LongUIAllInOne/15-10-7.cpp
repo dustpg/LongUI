@@ -86,9 +86,9 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
             m_config.height,
             &m_pLayout
             );
+        m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
+        break;
     }
-    m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
-    break;
     case LongUI::RichType::Type_Core:
         m_pLayout = DX::FormatTextCore(m_config, m_text.c_str());
         break;
@@ -1642,8 +1642,28 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
 
 // UIContainerBuiltIn: 渲染函数
 void LongUI::UIContainerBuiltIn::Render(RenderType type) const noexcept {
-    // 帮助器
-    Super::RenderHelper<Super>(this->begin(), this->end(), type);
+    // 分情况
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        break;
+    case LongUI::RenderType::Type_Render:
+        // 父类背景
+        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        // 渲染帮助
+        Super::RenderHelper(this->begin(), this->end());
+        // 父类渲染
+        Super::Render(LongUI::RenderType::Type_Render);
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
+    }
 }
 
 // LongUI内建容器: 刷新
@@ -1705,14 +1725,14 @@ void LongUI::UIContainerBuiltIn::insert_only(Iterator itr, UIControl* ctrl) noex
     if (ctrl->prev) {
         UIManager << DL_Warning
             << L"the 'prev' attr of the control: ["
-            << ctrl->GetNameStr()
+            << ctrl->name
             << "] that to insert is not null"
             << LongUI::endl;
     }
     if (ctrl->next) {
         UIManager << DL_Warning
             << L"the 'next' attr of the control: ["
-            << ctrl->GetNameStr()
+            << ctrl->name
             << "] that to insert is not null"
             << LongUI::endl;
     }
@@ -1728,6 +1748,7 @@ void LongUI::UIContainerBuiltIn::insert_only(Iterator itr, UIControl* ctrl) noex
         m_pTail = ctrl;
     }
     else {
+        // 一般般
         force_cast(ctrl->next) = itr.Ptr();
         force_cast(ctrl->prev) = itr->prev;
         if (itr->prev) {
@@ -1751,8 +1772,12 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
         }
     }
     if (!ok) {
-        UIManager << DL_Error << "control:[" << ctrl->GetNameStr()
-            << "] not in this container: " << this->GetNameStr() << LongUI::endl;
+        UIManager << DL_Error 
+            << "control:[" 
+            << ctrl->name
+            << "] not in this container: " 
+            << this->name 
+            << LongUI::endl;
         return;
     }
 #endif
@@ -1789,7 +1814,10 @@ LongUI::UIContainerBuiltIn::~UIContainerBuiltIn() noexcept {
 auto LongUI::UIContainerBuiltIn::GetIndexOf(UIControl* child) const noexcept ->uint32_t {
     assert(this == child->parent && "不是亲生的");
     uint32_t index = 0;
-    for (auto ctrl : (*this)) if (ctrl == child) break;
+    for (auto ctrl : (*this)) {
+        if (ctrl == child) break;
+        ++index;
+    }
     return index;
 }
 
@@ -1831,6 +1859,104 @@ auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl *
     return control;
 }
 
+// 交换
+void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcept {
+    auto ctrl1 = *itr1; auto ctrl2 = *itr2;
+    assert(ctrl1 && ctrl2 && "bad arguments");
+    assert(ctrl1->parent == this && ctrl2->parent == this && L"隔壁老王!");
+    // 不一致时
+    if (ctrl1 != ctrl2) {
+        // A link B
+        const bool a___b = ctrl1->next == ctrl2;
+        // B link A
+        const bool b___a = ctrl2->next == ctrl1;
+        // A存在前驱
+        if (ctrl1->prev) {
+            if(!b___a) force_cast(ctrl1->prev->next) = ctrl2;
+        }
+        // A为头节点
+        else {
+            m_pHead = ctrl2;
+        }
+        // A存在后驱
+        if (ctrl1->next) {
+            if(!a___b) force_cast(ctrl1->next->prev) = ctrl2;
+        }
+        // A为尾节点
+        else {
+            m_pTail = ctrl2;
+        }
+        // B存在前驱
+        if (ctrl2->prev) {
+            if(!a___b) force_cast(ctrl2->prev->next) = ctrl1;
+        }
+        // B为头节点
+        else {
+            m_pHead = ctrl1;
+        }
+        // B存在后驱
+        if (ctrl2->next) {
+            if(!b___a) force_cast(ctrl2->next->prev) = ctrl1;
+        }
+        // B为尾节点
+        else {
+            m_pTail = ctrl1;
+        }
+        // 相邻交换
+        auto swap_neibergs = [](UIControl* a, UIControl* b) noexcept {
+            assert(a->next == b && "bad neibergs");
+            force_cast(a->next) = b->next;
+            force_cast(b->next) = a;
+            force_cast(b->prev) = a->prev;
+            force_cast(a->prev) = b;
+        };
+        // 相邻则节点?
+        if (a___b) {
+            swap_neibergs(ctrl1, ctrl2);
+        }
+        // 相邻则节点?
+        else if (b___a) {
+            swap_neibergs(ctrl2, ctrl1);
+        }
+        // 不相邻:交换前驱后驱
+        else {
+            std::swap(force_cast(ctrl1->prev), force_cast(ctrl2->prev));
+            std::swap(force_cast(ctrl1->next), force_cast(ctrl2->next));
+        }
+#ifdef _DEBUG
+        // 检查链表是否成环
+        {
+            auto count = m_cChildrenCount;
+            auto debug_ctrl = m_pHead;
+            while (debug_ctrl) {
+                debug_ctrl = debug_ctrl->next;
+                assert(count && "bad action 0 in swaping children");
+                count--;
+            }
+            assert(!count && "bad action 1 in swaping children");
+        }
+        {
+            auto count = m_cChildrenCount;
+            auto debug_ctrl = m_pTail;
+            while (debug_ctrl) {
+                debug_ctrl = debug_ctrl->prev;
+                assert(count && "bad action 2 in swaping children");
+                count--;
+            }
+            assert(!count && "bad action 3 in swaping children");
+        }
+#endif
+        // 刷新
+        this->SetControlLayoutChanged();
+        m_pWindow->Invalidate(this);
+    }
+    // 给予警告
+    else {
+        UIManager << DL_Warning
+            << L"wanna to swap 2 children but just one"
+            << LongUI::endl;
+    }
+}
 
 // -------------------------- UIVerticalLayout -------------------------
 // UIVerticalLayout 创建
@@ -2027,10 +2153,25 @@ void LongUI::UIHorizontalLayout::cleanup() noexcept {
 #ifdef _DEBUG
 void dbg_update(LongUI::UIControl* control) noexcept {
     assert(control && "bad argments");
-    if (control->debug_updated) {
+    /*if (control->debug_updated) {
         auto& name = control->GetName();
         auto bk = 9;
-    }
+    }*/
+}
+
+extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
+extern std::atomic<UINT> g_dbg_last_proc_message;
+
+void dbg_locked(const LongUI::CUILocker&) noexcept {
+    std::uintptr_t ptr = g_dbg_last_proc_window_pointer;
+    UINT msg = g_dbg_last_proc_message;
+    auto window = reinterpret_cast<LongUI::UIWindow*>(ptr);
+    UIManager << DL_Log
+        << L"main locker locked @" 
+        << window
+        << L" on message id: " 
+        << long(msg)
+        << LongUI::endl;
 }
 #endif
 
@@ -2090,10 +2231,13 @@ noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : n
             force_cast(this->priority) = uint8_t(LongUI::AtoI(data));
         }
         // 检查名称
-        Helper::MakeString(
-            node.attribute(LongUI::XMLAttribute::ControlName).value(),
-            m_strControlName
-            );
+        if (m_pWindow) {
+            auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
+            if (basestr) {
+                auto namestr = m_pWindow->CopyStringSafe(basestr);
+                force_cast(this->name) = namestr;
+            }
+        }
         // 检查外边距
         Helper::MakeFloats(
             node.attribute(LongUI::XMLAttribute::Margin).value(),
@@ -2185,20 +2329,22 @@ LongUI::UIControl::~UIControl() noexcept {
 /// <param name="_type" type="enum LongUI::RenderType">The _type.</param>
 /// <returns></returns>
 void LongUI::UIControl::Render(RenderType type) const noexcept {
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
-    case LongUI::RenderType::Type_Render:
-        // 背景
+    // 背景渲染
+    auto render_background = [this]() {
         if (m_pBackgroudBrush) {
             D2D1_RECT_F rect; this->GetViewRect(rect);
             LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
         }
-        // 背景中断
-        if (type == RenderType::Type_RenderBackground) {
-            break;
-        }
+    };
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        // 渲染背景
+        render_background();
+        break;
+    case LongUI::RenderType::Type_Render:
+        // 渲染背景
+        render_background();
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 渲染边框
@@ -2377,6 +2523,19 @@ void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
     rect.bottom = this->view_size.height;
 }
 
+// 父控件视角: 获取占用/剪切矩形
+void LongUI::UIControl::GetClipRectFP(D2D1_RECT_F& rect) const noexcept {
+    rect.left = -(this->margin_rect.left + m_fBorderWidth);
+    rect.top = -(this->margin_rect.top + m_fBorderWidth);
+    rect.right = this->view_size.width + this->margin_rect.right + m_fBorderWidth;
+    rect.bottom = this->view_size.height + this->margin_rect.bottom + m_fBorderWidth;
+    rect.left += this->view_pos.x;
+    rect.top += this->view_pos.y;
+    rect.right += this->view_pos.x;
+    rect.bottom += this->view_pos.y;
+}
+
+
 // 获得世界转换矩阵
 void LongUI::UIControl::RefreshWorld() noexcept {
     float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
@@ -2451,10 +2610,12 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
 // LongUI namespace
 namespace LongUI {
     // null control
-    class UINull : public UIControl {
+    class UINull final: public UIControl {
     private:
         // 父类申明
         using Super = UIControl;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override { delete this; }
     public:
         // Render 渲染
         virtual void Render(RenderType) const noexcept override {}
@@ -2462,9 +2623,6 @@ namespace LongUI {
         virtual void Update() noexcept override {}
         // do event 事件处理
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override { return false; }
-    private:
-        // close this control 关闭控件
-        virtual void cleanup() noexcept override { delete this; }
     public:
         // 创建控件
         static auto CreateControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept {
@@ -2587,9 +2745,8 @@ LongUI::UIContainer::~UIContainer() noexcept {
 void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     assert(child && "bad argument");
     // 添加到窗口速查表
-    if (child->GetName().length()) {
-        std::pair<LongUI::CUIString, void*> pair{ child->GetName(), child };
-        m_pWindow->AddControl(pair);
+    if (child->name[0]) {
+        m_pWindow->AddNamedControl(child);
     };
     // 大小判断
     if (this->GetCount() >= 10'000) {
@@ -3116,7 +3273,7 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
 
 // ------------------------ HELPER ---------------------------
 // sb调用帮助器
-bool LongUI::UIControl::subevent_call_helper(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
+bool LongUI::UIControl::call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
     // 事件
     LongUI::EventArgument arg;
     arg.event = LongUI::Event::Event_SubEvent;
@@ -3124,17 +3281,23 @@ bool LongUI::UIControl::subevent_call_helper(const UICallBack& call, SubEvent sb
     arg.ui.subevent = sb;
     arg.ui.pointer = nullptr;
     arg.ctrl = nullptr;
-    // 脚本总会
+    // 返回值
+    auto code = false;
+    // 脚本最先
     if (UIManager.script && m_script.script) {
-        UIManager.script->Evaluation(this->GetScript(), arg);
+        auto rc = UIManager.script->Evaluation(this->GetScript(), arg);
+        code = rc || code;
     }
     // 回调其次
     if (call.IsOK()) {
-        return call(this);
+        auto rc = call(this);
+        code = rc || code;
     }
     // 事件最低
-    return m_pWindow->DoEvent(arg);
+    auto rc  = m_pWindow->DoEvent(arg);
+    return rc || code;
 }
+
                    
 
 // ----------------------------------------------------------------------------
@@ -3216,6 +3379,17 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
 // 断言
 return Super::Recreate();
 }*/
+
+// UIText: 统一文本接口
+auto LongUI::UIText::uniface_text(const wchar_t* OPTIONAL txt) noexcept -> const wchar_t* {
+    // 设置
+    if (txt) {
+        m_text = txt;
+        m_pWindow->Invalidate(this);
+    }
+    // 获取
+    return m_text.c_str();
+}
 
 // close this control 关闭控件
 void LongUI::UIText::cleanup() noexcept {
@@ -3365,7 +3539,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         if (m_pWindow->IsReleasedControl(this)) {
-            bool rec = this->subevent_call_helper(m_event, SubEvent::Event_ItemClicked);
+            bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
             rec = false;
             // 设置状态
             UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
@@ -3386,12 +3560,12 @@ auto LongUI::UIButton::Recreate() noexcept ->HRESULT {
 }
 
 // 添加事件监听器(雾)
-bool LongUI::UIButton::AddEventCall(SubEvent sb, UICallBack&& call) noexcept {
+bool LongUI::UIButton::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
     if (sb == SubEvent::Event_ItemClicked) {
         m_event += std::move(call);
         return true;
     }
-    return false;
+    return Super::uniface_addevent(sb, std::move(call));
 }
 
 // 关闭控件
@@ -3518,6 +3692,15 @@ bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 HRESULT LongUI::UIEditBasic::Recreate() noexcept {
     m_text.Recreate();
     return Super::Recreate();
+}
+
+// UIEditBasic: 统一文本接口
+auto LongUI::UIEditBasic::uniface_text(const wchar_t* OPTIONAL txt) noexcept -> const wchar_t* {
+    // 有效
+    if (txt) {
+        assert(!"NOIMPL");
+    }
+    return m_text.c_str();;
 }
 
 // close this control 关闭控件
@@ -4345,17 +4528,27 @@ void LongUI::UICheckBox::cleanup() noexcept {
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
-    m_controls.reserve(100);
+    m_vLines.reserve(100);
     // OOM or BAD ACTION
-    if(!m_controls.isok()) {
+    if(!m_vLines.isok()) {
         UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
     }
-    auto listflag = this->list_flag;
+    // TEST: INIT COLOR DATA
+    m_colorLineNormal1 = D2D1::ColorF(0xffffff, 0.5f);
+    m_colorLineNormal2 = D2D1::ColorF(0xeeeeee, 0.5f);
+    m_colorLineHover = D2D1::ColorF(0xcde8ff, 0.5f);
+    m_colorLineSelected = D2D1::ColorF(0x9cd2ff, 0.5f);
+    // MAIN PROC
+    auto listflag = this->list_flag | Flag_MultiSelection;
     if (node) {
         const char* str = nullptr;
         // 行高度
         if ((str = node.attribute("lineheight").value())) {
             m_fLineHeight = LongUI::AtoF(str);
+        }
+        // 双击时间
+        if ((str = node.attribute("dbclicktime").value())) {
+            m_hlpDbClick.time = uint32_t(LongUI::AtoI(str));
         }
         // 行模板
         if ((str = node.attribute("linetemplate").value())) {
@@ -4366,15 +4559,60 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
                 m_bufLineTemplate.NewSize(len);
                 Helper::MakeCC(str, m_bufLineTemplate.GetData());
             }
+            else {
+                UIManager << DL_Hint
+                    << L"BAD TEMPLATE:   "
+                    << str
+                    << endl;
+            }
+        }
+        // 给予提示
+        else {
+            UIManager << DL_Hint
+                << L"recommended to set 'linetemplate'. "
+                /*<<*/ L"now, set 'UIText, 0' as template"
+                << endl;
         }
         // 允许排序
         if (node.attribute("sort").as_bool(false)) {
             listflag |= this->Flag_SortableLineWithUserDataPtr;
         }
-
+        // 普通背景颜色
+        Helper::MakeColor(node.attribute("linebkcolor").value(), m_colorLineNormal1);
+        // 普通背景颜色2
+        Helper::MakeColor(node.attribute("linebkcolor2").value(), m_colorLineNormal2);
+        // 悬浮颜色
+        Helper::MakeColor(node.attribute("linebkcolorhover").value(), m_colorLineHover);
+        // 选中颜色
+        Helper::MakeColor(node.attribute("linebkcolorselected").value(), m_colorLineSelected);
     }
     this->list_flag = listflag;
 }
+
+// 添加事件监听器(雾)
+bool LongUI::UIList::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
+    switch (sb)
+    {
+    case LongUI::SubEvent::Event_ItemClicked:
+        m_callLineClicked += std::move(call);
+        return true;
+    case LongUI::SubEvent::Event_ItemDbClicked:
+        m_callLineDBClicked += std::move(call);
+        return true;
+    case LongUI::SubEvent::Event_ContextMenu:
+        break;
+    case LongUI::SubEvent::Event_EditReturned:
+        break;
+    case LongUI::SubEvent::Event_ValueChanged:
+        break;
+    case LongUI::SubEvent::Event_Custom:
+        break;
+    default:
+        break;
+    }
+    return Super::uniface_addevent(sb, std::move(call));
+}
+
 
 // 获取参考控件
 auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
@@ -4382,30 +4620,29 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
         return m_pHeader;
     }
     else {
-        if (m_controls.empty()) return nullptr;
-        return longui_cast<UIListLine*>(m_controls.front());
+        if (m_vLines.empty()) return nullptr;
+        return m_vLines.front();
     }
 }
 
-// UIList: 重建
-auto LongUI::UIList::Recreate() noexcept -> HRESULT {
-    HRESULT hr = S_OK;
-    // 重建子控件
-    for (auto ctrl : m_controls) {
-        hr = ctrl->Recreate();
-        assert(SUCCEEDED(hr));
+// 依靠鼠标位置获取列表行索引
+auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t {
+    uint32_t index = 0;
+    // XXX: 利用list特性优化
+    for (auto ctrl : m_vLines) {
+        // 区域内判断
+        if (IsPointInRect(ctrl->visible_rect, pt)) {
+            break;
+        }
+        ++index;
     }
-    return Super::Recreate();
+    return index;
 }
 
-// 查找子控件
-auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
-    {
-        auto ctrl = Super::FindChild(pt);
-        if (ctrl) return ctrl;
-    }
-    // TODO: 利用list特性优化
-    for (auto ctrl : m_controls) {
+// 依靠鼠标位置获取列表行
+auto LongUI::UIList::find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine* {
+    // XXX: 利用list特性优化
+    for (auto ctrl : m_vLines) {
         // 区域内判断
         if (IsPointInRect(ctrl->visible_rect, pt)) {
             return ctrl;
@@ -4414,18 +4651,41 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
     return nullptr;
 }
 
+
+// UIList: 重建
+auto LongUI::UIList::Recreate() noexcept -> HRESULT {
+    HRESULT hr = S_OK;
+    // 重建子控件
+    for (auto ctrl : m_vLines) {
+        hr = ctrl->Recreate();
+        assert(SUCCEEDED(hr));
+    }
+    return Super::Recreate();
+}
+
+// 查找子控件
+auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
+    auto ctrl = Super::FindChild(pt);
+    if (ctrl) return ctrl;
+    return this->find_line(pt);
+}
+
 // push!
-void LongUI::UIList::PushBack(UIControl* child) noexcept {
-    m_controls.push_back(child);
+LongUINoinline void LongUI::UIList::PushBack(UIControl* child) noexcept {
+    m_vLines.push_back(longui_cast<UIListLine*>(child));
     this->after_insert(child);
-    assert(m_controls.isok());
+    ++m_cChildrenCount;
+    this->reset_select();
+    assert(m_vLines.isok());
 }
 
 // 插入
-auto LongUI::UIList::Insert(uint32_t index, UIControl* child) noexcept {
-    m_controls.insert(index, child);
+LongUINoinline auto LongUI::UIList::Insert(uint32_t index, UIListLine* child) noexcept {
+    m_vLines.insert(index, child);
     this->after_insert(child);
-    assert(m_controls.isok());
+    ++m_cChildrenCount;
+    this->reset_select();
+    assert(m_vLines.isok());
 }
 
 // 排序
@@ -4434,15 +4694,13 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
     m_pToBeSortedHeaderChild = child;
     // 有必要再说
     if ((this->list_flag & Flag_SortableLineWithUserDataPtr) 
-        && m_controls.size() > 1 
-        && index < static_cast<UIContainer*>(m_controls[0])->GetCount()) {
+        && m_vLines.size() > 1 
+        && index < m_vLines.front()->GetCount()) {
         assert(child && "bad argument");
-        assert(m_controls[0]->flags & Flag_UIContainer);
-        UIListLine* last_line = nullptr;
+        assert(m_vLines.front()->flags & Flag_UIContainer);
         // 设置待排序控件
-        for (auto ctrl : m_controls) {
-            last_line = static_cast<UIListLine*>(ctrl);
-            last_line->SetToBeSorted(index);
+        for (auto ctrl : m_vLines) {
+            ctrl->SetToBeSorted(index);
         }
         // 排序前
         m_callBeforSort(this);
@@ -4468,7 +4726,7 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
         // 普通排序
         bool(*cmp_alg)(UIControl*, UIControl*) = cmp_user_data;
         // 字符串排序?
-        if (last_line->GetToBeSorted()->user_ptr) {
+        if (m_vLines.front()->GetToBeSorted()->user_ptr) {
             cmp_alg = cmp_user_ptr;
         }
         // 进行排序
@@ -4482,27 +4740,27 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
 // UI列表控件: 析构函数
 LongUI::UIList::~UIList() noexcept {
     // 线性容器就是不用考虑next指针
-    for (auto ctrl : m_controls) {
+    for (auto ctrl : m_vLines) {
         this->cleanup_child(ctrl);
     }
 }
 
 // [UNTESTED]移除
 void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
-    auto itr = std::find(m_controls.cbegin(), m_controls.cend(), child);
-    if (itr == m_controls.cend()) {
+    auto itr = std::find(m_vLines.cbegin(), m_vLines.cend(), child);
+    if (itr == m_vLines.cend()) {
         assert("control not found");
         return;
     }
-    m_controls.erase(itr);
+    this->reset_select();
+    m_vLines.erase(itr);
+    --m_cChildrenCount;
     Super::RemoveJust(child);
 }
 
-// 插入一个行模板
-void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
-    auto ctrl = static_cast<UIListLine*>(
-        UIListLine::CreateControl(this->CET(), pugi::xml_node())
-        );
+// 对列表插入一个行模板至指定位置
+void LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept {
+    auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(this->CET(), pugi::xml_node()));
     if (ctrl) {
         // 添加子控件
         for (const auto& data : m_bufLineTemplate) {
@@ -4513,17 +4771,55 @@ void LongUI::UIList::InsertInlineTemplate(uint32_t index) noexcept {
     }
 }
 
+// 利用索引移除行模板中一个元素
+void LongUI::UIList::RemoveLineElementInEachLine(uint32_t index) noexcept {
+    assert(index < m_bufLineTemplate.GetCount() && "out of range");
+    // TODO: 完成
+
+}
+
+// 交换行模板中元素
+void LongUI::UIList::SwapLineElementsInEachLine(uint32_t index1, uint32_t index2) noexcept {
+    assert(index1 < m_bufLineTemplate.GetCount() && index2 < m_bufLineTemplate.GetCount() && "out of range");
+    assert(index1 != index2 && "bad arguments");
+    if (!(index1 < m_bufLineTemplate.GetCount() && index2 < m_bufLineTemplate.GetCount())) return;
+    if (index1 == index2) return;
+    // TODO: 交换列表
+    // 交换模板
+    std::swap(m_bufLineTemplate[index1], m_bufLineTemplate[index2]);
+}
+
+// 插入一个新的行元素
+void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid) noexcept {
+    assert(index <= m_bufLineTemplate.GetCount() && "out of range");
+    assert(func && "bad argument");
+    // TODO: 完成
+    if (index <= m_bufLineTemplate.GetCount() && func) {
+
+    }
+}
+
+// 设置
+void LongUI::UIList::SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid ) noexcept {
+    assert(index < m_bufLineTemplate.GetCount() && "out of range");
+    assert(func && "bad argument");
+    if (index < m_bufLineTemplate.GetCount() && func) {
+        m_bufLineTemplate[index].func = func;
+        m_bufLineTemplate[index].id = tid;
+    }
+}
+
+
 // 设置元素宽度
 void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
     // 循环
-    for (auto ctrl : m_controls) {
-        auto line = longui_cast<LongUI::UIListLine*>(ctrl);
-        assert(line && "bad");
-        assert(index < line->GetCount() && "out of range");
-        if (index < line->GetCount()) {
-            auto ele = line->GetAt(index);
+    for (auto ctrl : m_vLines) {
+        assert(ctrl && "bad");
+        assert(index < ctrl->GetCount() && "out of range");
+        if (index < ctrl->GetCount()) {
+            auto ele = ctrl->GetAt(index);
             ele->SetWidth(width);
-            line->SetControlLayoutChanged();
+            ctrl->SetControlLayoutChanged();
         }
     }
     this->SetControlLayoutChanged();
@@ -4536,9 +4832,8 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
-            // 父类分发事件
+            // 由父类创建边缘控件
             Super::DoEvent(arg);
-            // 处理一下
             this->init_layout();
             return true;
         default:
@@ -4548,26 +4843,115 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
+// UI列表: 鼠标事件处理
+bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // -------------------  L-Button Down  ---------------
+    auto lbutton_down = [this, &arg]() noexcept {
+        auto index = this->find_line_index(arg.pt);
+        // SHIFT优先
+        if (arg.sys.wParam & MK_SHIFT) {
+            this->SelectTo(m_ixLastClickedLine, index);
+            return;
+        }
+        // 修改
+        m_ixLastClickedLine = index;
+        // UNCTRLed
+        bool unctrled = !(arg.sys.wParam & MK_CONTROL);
+        // 双击?
+        if (m_hlpDbClick.Click(arg.pt)) {
+            UIManager << DL_Log << "DB Clicked" << endl;
+            this->call_uievent(m_callLineDBClicked, SubEvent::Event_ItemDbClicked);
+        }
+        // 单击?
+        else {
+            this->SelectChild(m_ixLastClickedLine, unctrled);
+            this->call_uievent(m_callLineClicked, SubEvent::Event_ItemClicked);
+        }
+    };
+    // ---------------------------------------------------
+    auto old_hover_line = m_pHoveredLine;
+    // 分类
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_None:
+        break;
+    case LongUI::MouseEvent::Event_MouseWheelV:
+        break;
+    case LongUI::MouseEvent::Event_MouseWheelH:
+        break;
+    case LongUI::MouseEvent::Event_DragEnter:
+        break;
+    case LongUI::MouseEvent::Event_DragOver:
+        break;
+    case LongUI::MouseEvent::Event_DragLeave:
+        break;
+    case LongUI::MouseEvent::Event_Drop:
+        break;
+    case LongUI::MouseEvent::Event_MouseEnter:
+        break;
+    case LongUI::MouseEvent::Event_MouseLeave:
+        m_pHoveredLine = nullptr;
+        break;
+    case LongUI::MouseEvent::Event_MouseHover:
+        break;
+    case LongUI::MouseEvent::Event_MouseMove:
+        m_pHoveredLine = this->find_line(arg.pt);
+        break;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        lbutton_down();
+        break;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        break;
+    case LongUI::MouseEvent::Event_RButtonDown:
+        break;
+    case LongUI::MouseEvent::Event_RButtonUp:
+        break;
+    case LongUI::MouseEvent::Event_MButtonDown:
+        break;
+    case LongUI::MouseEvent::Event_MButtonUp:
+        break;
+    default:
+        break;
+    }
+    // 不同就渲染
+    if (old_hover_line != m_pHoveredLine) {
+        m_pWindow->Invalidate(this);
+    }
+    return Super::DoMouseEvent(arg);
+}
+
 // 排序算法
 void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept {
+    // 无需排列
+    if (this->GetCount() <= 1) return;
 #ifdef _DEBUG
     // cmp 会比较复杂, 模板带来的性能提升还不如用函数指针来节约代码大小
     auto timest = ::timeGetTime();
-    /*auto show = [](UIControl* ctrl) {
-        auto tobesorted = static_cast<UIListLine*>(ctrl)->GetToBeSorted();
-        UIManager << DL_Hint << tobesorted << "   " << long(tobesorted->user_data) << endl;
-    };
-    this->DebugForEach(show);*/
 #endif
-    auto bn = &*m_controls.begin();
-    auto ed = &*m_controls.end();
-    // 快速排序
-    if (this->GetCount() >= m_cFastSortThreshold) {
-        std::sort(bn, ed, cmp);
+    const auto bn = &*m_vLines.begin();
+    const auto ed = &*m_vLines.end();
+    bool just_reverse = true;
+    // 检查逆序状态
+    for (auto itr = bn; itr < (ed -1); ++itr) {
+        if (cmp(*(itr + 1), *itr)) {
+            just_reverse = false;
+            break;
+        }
     }
-    // 冒泡排序
+    // 直接逆序
+    if (just_reverse) {
+        std::reverse(bn, ed);
+    }
+    // 排序
     else {
-        LongUI::BubbleSort(bn, ed, cmp);
+        // 快速排序
+        if (this->GetCount() >= m_cFastSortThreshold) {
+            std::sort(bn, ed, cmp);
+        }
+        // 冒泡排序
+        else {
+            LongUI::BubbleSort(bn, ed, cmp);
+        }
     }
 #ifdef _DEBUG
     timest = ::timeGetTime() - timest;
@@ -4588,25 +4972,133 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
             << LongUI::endl;
     }
 #endif
+    // 修改了
+    this->reset_select();
     this->SetControlLayoutChanged();
+}
+
+
+// 选择子控件(对外)
+void LongUI::UIList::SelectChild(uint32_t index, bool new_select) noexcept {
+    if (index < m_cChildrenCount) {
+        this->select_child(index, new_select);
+        m_pWindow->Invalidate(this);
+    }
+}
+
+// 选择子控件到(对外)
+void LongUI::UIList::SelectTo(uint32_t index1, uint32_t index2) noexcept {
+    // 交换
+    if (index1 > index2) std::swap(index1, index2);
+    // 限制
+    index2 = std::min(index2, m_cChildrenCount - 1);
+    // 有效
+    if (index1 < index2) {
+        this->select_to(index1, index2);
+        m_pWindow->Invalidate(this);
+    }
+}
+
+// 选择子控件
+LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select) noexcept {
+    assert(index < m_cChildrenCount && "out of range for selection");
+    // 检查是否多选
+    if (!new_select && !(this->list_flag & this->Flag_MultiSelection)) {
+        UIManager << DL_Hint
+            << "cannot do multi-selection"
+            << LongUI::endl;
+        new_select = true;
+    }
+    // 新的重置
+    if (new_select) {
+        this->reset_select();
+    }
+    // 选择
+    auto line = m_vLines[index];
+    if (line->IsSelected()) {
+        line->SetSelected(false);
+        auto itr = std::find(m_vSelected.cbegin(), m_vSelected.cend(), line);
+        if (itr == m_vSelected.cend()) {
+            assert(!"NOT FOUND");
+        }
+        else {
+            m_vSelected.erase(itr);
+        }
+    }
+    else {
+        line->SetSelected(true);
+        m_vSelected.push_back(line);
+    }
+}
+
+// 选择子控件到
+LongUINoinline void LongUI::UIList::select_to(uint32_t index1, uint32_t index2) noexcept {
+    assert(index1 < m_cChildrenCount && index2 < m_cChildrenCount && "out of range for selection");
+    // 检查是否多选
+    if (!(this->list_flag & this->Flag_MultiSelection)) {
+        UIManager << DL_Hint
+            << "cannot do multi-selection"
+            << LongUI::endl;
+        index1 = index2;
+    }
+    // 交换
+    if (index1 > index2) std::swap(index1, index2);
+    this->reset_select();
+    // 选择
+    auto itr_1st = m_vLines.data() + index1;
+    auto itr_lst = m_vLines.data() + index2;
+    for (auto itr = itr_1st; itr <= itr_lst; ++itr) {
+        auto line = *itr;
+        line->SetSelected(true);
+        m_vSelected.push_back(line);
+    }
+#ifdef _DEBUG
+    if (this->debug_this) {
+        UIManager << DL_Log
+            << L"m_vSelected: "
+            << reinterpret_cast<const ControlVector&>(m_vSelected)
+            << endl;
+    }
+#endif
+}
+
+// UIList: 子控件向量修改了
+void LongUI::UIList::reset_select() noexcept {
+    //m_pHoveredLine = nullptr;
+    //m_ixLastClickedLine = uint32_t(-1);
+    for (auto line : m_vSelected) {
+        line->SetSelected(false);
+    }
+    m_vSelected.clear();
 }
 
 // UIList: 初始化布局
 void LongUI::UIList::init_layout() noexcept {
+    uint32_t element_count_init = 1;
     auto rctrl = this->get_referent_control();
     if (rctrl) {
-        // 缓存
-        /*EzContainer::SmallBuffer<float, 32> buffer;
-        buffer.NewSize(rctrl->GetCount());
-        this->set_element_count(rctrl->GetCount());
-        // 宽度
-        int index = 0;
-        for (auto ctrl : (*rctrl)) {
-            buffer[index] = ctrl->GetWidth();
-            ++index;
+        // 检查不和谐的地方
+#ifdef _DEBUG
+        if (rctrl->GetCount() != m_bufLineTemplate.GetCount()) {
+            if (m_bufLineTemplate.GetCount()) {
+                UIManager << DL_Warning
+                    << L"Inconsistent count of line-element: SET "
+                    << long(m_bufLineTemplate.GetCount())
+                    << L", BUT "
+                    << long(rctrl->GetCount())
+                    << LongUI::endl;
+            }
         }
-        this->ChangeElementWidth(buffer.GetData());*/
+#endif
+        element_count_init = rctrl->GetCount();
     }
+    // 没有就给予警告
+    else {
+        UIManager << DL_Warning
+            << L"NO CHILD FOUND. line-element set to 1"
+            << LongUI::endl;
+    }
+    this->set_element_count(element_count_init);
 }
 
 // 设置元素数量
@@ -4624,19 +5116,89 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
 
 // UIList: 渲染函数
 void LongUI::UIList::Render(RenderType type) const noexcept {
-    // 帮助器
-    Super::RenderHelper<Super>(m_controls.begin(), m_controls.end(), type);
+    // 分情况
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        // 渲染背景
+        this->render_background();
+        break;
+    case LongUI::RenderType::Type_Render:
+        // 渲染背景
+        this->render_background();
+        // 渲染帮助
+        Super::RenderHelper(m_vLines.begin(), m_vLines.end());
+        // 父类渲染
+        Super::Render(LongUI::RenderType::Type_Render);
+        __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+        // 父类前景
+        Super::Render(LongUI::RenderType::Type_RenderForeground);
+        break;
+    case LongUI::RenderType::Type_RenderOffScreen:
+        break;
+    }
+}
+
+// UIList 背景渲染
+LongUINoinline void LongUI::UIList::render_background() const noexcept {
+    // 父类背景+-?
+    Super::Render(LongUI::RenderType::Type_RenderBackground);
+    // 独立背景- - 可视优化
+    if (!this->GetCount()) return;
+    // 保留转变
+    D2D1_MATRIX_3X2_F matrix;
+    UIManager_RenderTarget->GetTransform(&matrix);
+    UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+    // 第一个可视列表行 = (-Y偏移) / 行高
+    int first_visible = static_cast<int>((-m_2fOffset.y) / m_fLineHeight);
+    first_visible = std::max(first_visible, int(0));
+    // 最后一个可视列表行 = 第一个可视列表行 + 1 + 可视区域高度 / 行高
+    int last_visible = static_cast<int>(this->view_size.height / m_fLineHeight);
+    last_visible = last_visible + first_visible + 1;
+    last_visible = std::min(last_visible, int(this->GetCount()));
+    // 背景索引
+    int bkindex1 = !(first_visible & 1);
+    // 循环
+    const auto first_itr = m_vLines.data() + first_visible;
+    const auto last_itr = m_vLines.data() + last_visible;
+    for (auto itr = first_itr; itr < last_itr; ++itr) {
+        auto line = *itr;
+        // REMOVE THIS LINE?
+        const D2D1_COLOR_F* color;
+        // 选择色优先
+        if (line->IsSelected()) {
+            color = &m_colorLineSelected;
+        }
+        // 悬浮色其次
+        else if (line == m_pHoveredLine) {
+            color = &m_colorLineHover;
+        }
+        // 背景色最后
+        else {
+            color = &m_colorLineNormal1 + bkindex1;
+        }
+        // 设置
+        if (color->a > 0.f) {
+            m_pBrush_SetBeforeUse->SetColor(color);
+            UIManager_RenderTarget->FillRectangle(
+                &line->visible_rect, m_pBrush_SetBeforeUse
+                );
+        }
+        bkindex1 = !bkindex1;
+    }
+    // 还原
+    UIManager_RenderTarget->SetTransform(&matrix);
 }
 
 // UIList: 刷新
 void LongUI::UIList::Update() noexcept {
     // 帮助器
-    Super::UpdateHelper<Super>(m_controls.begin(), m_controls.end());
+    Super::UpdateHelper<Super>(m_vLines.begin(), m_vLines.end());
 #ifdef _DEBUG
     // 必须一致
-    if (this->IsNeedRefreshWorld() && m_pHeader && m_controls.size() && m_controls[0]) {
-        auto line = longui_cast<LongUI::UIListLine*>(m_controls[0]);
-        assert(m_pHeader->GetCount() == line->GetCount() && "out of sync for child number");
+    if (this->IsNeedRefreshWorld() && m_pHeader && m_vLines.size() && m_vLines.front()) {
+        assert(m_pHeader->GetCount() == m_vLines.front()->GetCount() && "out of sync for child number");
     }
 #endif
 }
@@ -4644,14 +5206,12 @@ void LongUI::UIList::Update() noexcept {
 
 // 更新子控件布局
 void LongUI::UIList::RefreshLayout() noexcept {
-    if (m_controls.empty()) return;
+    if (m_vLines.empty()) return;
     // 第二次
     float index = 0.f;
-    auto first = longui_cast<LongUI::UIListLine*>(m_controls[0]);
-    float widthtt = first->GetContentWidthZoomed();
+    float widthtt = m_vLines.front()->GetContentWidthZoomed();
     if (widthtt == 0.f) widthtt = this->GetViewWidthZoomed();
-    for (auto voidctrl : m_controls) {
-        auto ctrl = reinterpret_cast<UIControl*>(voidctrl);
+    for (auto ctrl : m_vLines) {
         // 设置控件高度
         ctrl->SetWidth(widthtt);
         ctrl->SetHeight(m_fLineHeight);
@@ -5228,22 +5788,22 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 添加控件
     if (SUCCEEDED(hr)) {
         // 添加默认控件创建函数
-        this->RegisterControl(CreateNullControl, L"Null");
-        this->RegisterControl(UIText::CreateControl, L"Text");
-        this->RegisterControl(UIList::CreateControl, L"List");
-        this->RegisterControl(UISlider::CreateControl, L"Slider");
-        this->RegisterControl(UIButton::CreateControl, L"Button");
-        this->RegisterControl(UIListLine::CreateControl, L"ListLine");
-        this->RegisterControl(UICheckBox::CreateControl, L"CheckBox");
-        this->RegisterControl(UIRichEdit::CreateControl, L"RichEdit");
-        this->RegisterControl(UIEditBasic::CreateControl, L"Edit");
-        this->RegisterControl(UIListHeader::CreateControl, L"ListHeader");
-        this->RegisterControl(UIScrollBarA::CreateControl, L"ScrollBarA");
-        this->RegisterControl(UIScrollBarB::CreateControl, L"ScrollBarB");
-        this->RegisterControl(UIVerticalLayout::CreateControl, L"VerticalLayout");
-        this->RegisterControl(UIHorizontalLayout::CreateControl, L"HorizontalLayout");
+        this->RegisterControlClass(CreateNullControl, "Null");
+        this->RegisterControlClass(UIText::CreateControl, "Text");
+        this->RegisterControlClass(UIList::CreateControl, "List");
+        this->RegisterControlClass(UISlider::CreateControl, "Slider");
+        this->RegisterControlClass(UIButton::CreateControl, "Button");
+        this->RegisterControlClass(UIListLine::CreateControl, "ListLine");
+        this->RegisterControlClass(UICheckBox::CreateControl, "CheckBox");
+        this->RegisterControlClass(UIRichEdit::CreateControl, "RichEdit");
+        this->RegisterControlClass(UIEditBasic::CreateControl, "Edit");
+        this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
+        this->RegisterControlClass(UIScrollBarA::CreateControl, "ScrollBarA");
+        this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
+        this->RegisterControlClass(UIVerticalLayout::CreateControl, "VerticalLayout");
+        this->RegisterControlClass(UIHorizontalLayout::CreateControl, "HorizontalLayout");
         // 添加自定义控件
-        config->AddCustomControl();
+        config->RegisterSome();
     }
     // 创建资源
     if (SUCCEEDED(hr)) {
@@ -5319,14 +5879,11 @@ void LongUI::CUIManager::Uninitialize() noexcept {
 void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
     assert(type < LongUI::TypeGreater_CreateControl_ReinterpretParentPointer &&
         type > Type_CreateControl_NullParentPointer);
-    try {
-        for (const auto& pair : m_mapString2CreateFunction) {
-            reinterpret_cast<CreateControlFunction>(pair.second)(type, LongUINullXMLNode);
-        }
-    }
-    catch (...) {
-        assert(!"some error");
-    }
+    m_hashStr2CreateFunc.ForEach([type](StringTable::Unit* unit) noexcept {
+        assert(unit);
+        auto func = reinterpret_cast<CreateControlFunction>(unit->value);
+        func(type, LongUINullXMLNode);
+    });
 }
 
 
@@ -5378,34 +5935,13 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
 }
 
 // 获取创建控件函数指针
-auto LongUI::CUIManager::GetCreateFunc(const char* class_name) noexcept -> CreateControlFunction {
-    // 缓冲区
-    wchar_t buffer[LongUIStringBufferLength];
-    auto* __restrict itra = class_name; auto* __restrict itrb = buffer;
-    // 类名一定是英文的
-    for (; *itra; ++itra, ++itrb) {
-        assert(*itra >= 0 && "bad name, class name must be english char");
-        *itrb = *itra;
-    }
-    // null 结尾字符串
-    *itrb = L'\0';
-    // 获取
-    return this->GetCreateFunc(buffer, static_cast<uint32_t>(itra - class_name));
-}
-
-// 获取创建控件函数指针
-auto LongUI::CUIManager::GetCreateFunc(const CUIString& name) noexcept -> CreateControlFunction {
+auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlFunction {
     // 查找
-    try {
-        const auto itr = m_mapString2CreateFunction.find(name);
-        if (itr != m_mapString2CreateFunction.end()) {
-            return reinterpret_cast<CreateControlFunction>(itr->second);
-        }
-        assert(!"404 not found");
+    auto result = m_hashStr2CreateFunc.Find(clname);
+    if (result) {
+        return reinterpret_cast<CreateControlFunction>(*result);
     }
-    catch (...)  {
-
-    }
+    assert(!"404 not found");
     return nullptr;
 }
 
@@ -5686,14 +6222,22 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg,
     arg.event = me;
 }
 
+#ifdef _DEBUG
+std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
+std::atomic<UINT> g_dbg_last_proc_message = 0;
+#endif
+
 // 窗口过程函数
 LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+#ifdef _DEBUG
+    g_dbg_last_proc_message = message;
+#endif
     /*POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
     arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);*/
     // 返回值
     LRESULT recode = 0;
     // 创建窗口时设置指针
-    if (message == WM_CREATE)    {
+    if (message == WM_CREATE) {
         // 获取指针
         LongUI::UIWindow *window = reinterpret_cast<LongUI::UIWindow*>(
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
@@ -5712,6 +6256,9 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             );
         // 无效
         if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
+#ifdef _DEBUG
+        g_dbg_last_proc_window_pointer = reinterpret_cast<std::uintptr_t>(window);
+#endif
         auto handled = false;
         // 鼠标事件?
         if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) ||
@@ -5748,9 +6295,11 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             arg.lr = 0;
 #ifdef _DEBUG
             static std::atomic_int s_times = 0;
+            // 不用推荐递归调用
             if (s_times) {
-                UIManager << DL_Warning << "recursive locked" << endl;
-                long bk_recursive_locked = 9;
+                UIManager << DL_Hint 
+                    << L"recursive called. [UNRECOMMENDED]: depending on locker implementation." 
+                    << endl;
             }
             ++s_times;
 #endif
@@ -5825,24 +6374,16 @@ LongUI::CUIManager::~CUIManager() noexcept {
 }
 
 // 获取控件 wchar_t指针
-auto LongUI::CUIManager::
-RegisterControl(CreateControlFunction func, const wchar_t* name) noexcept ->HRESULT {
-    if (!name || !(*name)) return S_FALSE;
-    // 超过了容器限制
-    if (m_mapString2CreateFunction.size() >= LongUIMaxControlClass) {
-        assert(!"out of sapce for control");
-        return E_ABORT;
+auto LongUI::CUIManager::RegisterControlClass(
+    CreateControlFunction func, const char* clname) noexcept ->HRESULT {
+    if (!clname || !(*clname)) {
+        assert(!"bad argument");
+        return S_FALSE;
     }
-    // 创建pair
-    std::pair<LongUI::CUIString, CreateControlFunction> pair(name, func);
-    HRESULT hr = S_OK;
     // 插入
-    try {
-        m_mapString2CreateFunction.insert(pair);
-    }
-    // 创建失败
-    CATCH_HRESULT(hr);
-    return hr;
+    auto result = m_hashStr2CreateFunc.Insert(m_oStringAllocator.CopyString(clname), func);
+    // 插入失败的原因只有一个->OOM
+    return result ? S_OK : E_OUTOFMEMORY;
 }
 
 // 显示错误代码
@@ -5989,16 +6530,19 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         // 创建一个临时工程
         register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
         if (SUCCEEDED(hr)) {
+            constexpr int ADAPTERS_MAX_NUM = 64;
             uint32_t adnum = 0;
-            IDXGIAdapter1* apAdapters[256];
+            IDXGIAdapter1* apAdapters[ADAPTERS_MAX_NUM];
+            DXGI_ADAPTER_DESC1 descs[ADAPTERS_MAX_NUM];
             // 枚举适配器
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
                 if (temp_factory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
                     break;
                 }
+                apAdapters[adnum]->GetDesc1(descs + adnum);
             }
             // 选择适配器
-            auto index = this->configure->ChooseAdapter(apAdapters, adnum);
+            auto index = this->configure->ChooseAdapter(descs, adnum);
             if (index < adnum) {
                 ready2use = ::SafeAcquire(apAdapters[index]);
             }
@@ -6127,7 +6671,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         hr = m_pDxgiAdapter->GetParent(LongUI_IID_PV_ARGS(m_pDxgiFactory));
     }
-#ifdef LONGUI_VIDEO_IN_MF
+#ifdef LONGUI_WITH_MMFVIDEO
     UINT token = 0;
     // 多线程
     if (SUCCEEDED(hr)) {
@@ -6325,7 +6869,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     ::SafeRelease(m_pDxgiDevice);
     ::SafeRelease(m_pd3dDevice);
     ::SafeRelease(m_pd3dDeviceContext);
-#ifdef LONGUI_VIDEO_IN_MF
+#ifdef LONGUI_WITH_MMFVIDEO
     ::SafeRelease(m_pMFDXGIManager);
     ::SafeRelease(m_pMediaEngineFactory);
     ::MFShutdown();
@@ -6853,9 +7397,9 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
     if (ctrl) {
         std::swprintf(
             buffer, LongUIStringBufferLength,
-            L"[0x%p{%ls}%ls] ",
+            L"[0x%p{%S}%ls] ",
             ctrl,
-            ctrl->GetNameStr(),
+            ctrl->name.c_str(),
             ctrl->GetControlClassName(false)
             );
     }
@@ -6863,6 +7407,25 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
         std::swprintf(buffer, LongUIStringBufferLength, L"[null] ");
     }
     this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
+// 控件
+auto LongUI::CUIManager::operator<<(const ControlVector& ctrls) noexcept ->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    int index = 0;
+    for (auto ctrl : ctrls) {
+        std::swprintf(
+            buffer, lengthof(buffer),
+            L"\r\n\t\t[%4d][0x%p{%S}%ls] ",
+            index,
+            ctrl,
+            ctrl->name.c_str(),
+            ctrl->GetControlClassName(false)
+            );
+        this->OutputNoFlush(m_lastLevel, buffer);
+        ++index;
+    }
     return *this;
 }
 
@@ -9060,7 +9623,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     if (m_fValueOld != m_fValue) {
         m_fValueOld = m_fValue;
         // 调用
-        this->subevent_call_helper(m_event, SubEvent::Event_ValueChanged);
+        this->call_uievent(m_event, SubEvent::Event_ValueChanged);
         // 刷新
         m_pWindow->Invalidate(this);
     }
@@ -9074,12 +9637,12 @@ auto LongUI::UISlider::Recreate() noexcept ->HRESULT {
 }
 
 // 添加事件监听器(雾)
-bool LongUI::UISlider::AddEventCall(SubEvent sb, UICallBack&& call) noexcept {
+bool LongUI::UISlider::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
     if (sb == SubEvent::Event_ValueChanged) {
         m_event += std::move(call);
         return true;
     }
-    return false;
+    return Super::uniface_addevent(sb, std::move(call));
 }
 
 // close this control 关闭控件
@@ -9509,53 +10072,6 @@ HRESULT LongUI::CUIDropSource::GiveFeedback(DWORD dwEffect) noexcept {
 }
 
 
-// CUIConstString: 析构函数
-LongUI::CUIConstString::~CUIConstString() {
-    // 有效
-    if (m_cLength) {
-        // 计算
-        const auto buffer_length = (m_cLength + 1) * sizeof(wchar_t);
-        if (buffer_length < SMALL_THRESHOLD) {
-            LongUI::SmallFree(m_pString);
-        }
-        else {
-            LongUI::SmallFree(m_pString);
-        }
-    }
-}
-
-// UIConstString: 设置
-void LongUI::CUIConstString::set(const wchar_t* str, size_t length) noexcept {
-    assert(!m_pString && !m_cLength);
-    // 未知则计算
-    if (!length && *str) { length = static_cast<uint32_t>(::wcslen(str)); }
-    // 有效
-    if (length) {
-        // 计算长度
-        const auto buffer_length = (length + 1)*sizeof(wchar_t);
-        if (buffer_length < SMALL_THRESHOLD) {
-            m_pString = reinterpret_cast<wchar_t*>(LongUI::SmallAlloc(buffer_length));
-        }
-        else {
-            m_pString = reinterpret_cast<wchar_t*>(LongUI::NormalAlloc(buffer_length));
-        }
-        // OK
-        if (m_pString) {
-            m_cLength = length;
-        }
-        // OOM
-        else {
-            m_pString = L"";
-            m_cLength = 0;
-        }
-    }
-    else {
-        m_pString = L"";
-        m_cLength = 0;
-    }
-}
-
-
 // UIString 设置字符串
 void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     assert(str && "bad argument");
@@ -9708,7 +10224,7 @@ void LongUI::CUIString::Insert(uint32_t off, const wchar_t* str, uint32_t len) n
     }
     // 继续使用旧缓存
     else {
-        // memcpy:restrict 要求, 手动循环
+        // memcpy:__restrict 要求, 手动循环
         auto src_end = m_pString + m_cLength;
         auto des_end = src_end + len;
         for (uint32_t i = 0; i < (m_cLength - off + 1); ++i) {
@@ -9782,7 +10298,7 @@ void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
         return;
     }
     // 将后面的字符串复制过来即可
-    // memcpy:restrict 要求, 手动循环
+    // memcpy:__restrict 要求, 手动循环
     auto des = m_pString + offset;
     auto src = des + length;
     for (uint32_t i = 0; i < (m_cLength - offset - length + 1); ++i) {
@@ -10575,13 +11091,12 @@ auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvO
     return (*ppvObject) ? S_OK : E_NOINTERFACE;
 }
 
-auto LongUI::CUIDefaultConfigure::ChooseAdapter(IDXGIAdapter1 * adapters[], size_t const length) noexcept -> size_t {
+auto LongUI::CUIDefaultConfigure::ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], size_t const length) noexcept -> size_t {
     UNREFERENCED_PARAMETER(adapters);
     // 核显卡优先 
 #ifdef LONGUI_NUCLEAR_FIRST
     for (size_t i = 0; i < length; ++i) {
-        DXGI_ADAPTER_DESC1 desc;
-        adapters[i]->GetDesc1(&desc);
+        DXGI_ADAPTER_DESC1& desc = adapters[i];
         if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
             return i;
     }
@@ -10671,10 +11186,10 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
 #endif
 #endif
 
-// ------------------- Video -----------------------
-#ifdef LONGUI_VIDEO_IN_MF
-// Video 事件通知
-HRESULT LongUI::Component::Video::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
+// ------------------- MMFVideo -----------------------
+#ifdef LONGUI_WITH_MMFVIDEO
+// MMFVideo 事件通知
+HRESULT LongUI::Component::MMFVideo::EventNotify(DWORD event, DWORD_PTR param1, DWORD param2) noexcept {
     UNREFERENCED_PARAMETER(param2);
     switch (event)
     {
@@ -10711,8 +11226,8 @@ HRESULT LongUI::Component::Video::EventNotify(DWORD event, DWORD_PTR param1, DWO
 }
 
 
-// Video 初始化
-auto LongUI::Component::Video::Initialize() noexcept ->HRESULT {
+// MMFVideo 初始化
+auto LongUI::Component::MMFVideo::Initialize() noexcept ->HRESULT {
     HRESULT hr = S_OK;
     IMFAttributes* attributes = nullptr;
     // 创建MF属性
@@ -10745,15 +11260,15 @@ auto LongUI::Component::Video::Initialize() noexcept ->HRESULT {
     return hr;
 }
 
-// Video: 重建
-auto LongUI::Component::Video::Recreate() noexcept ->HRESULT {
+// MMFVideo: 重建
+auto LongUI::Component::MMFVideo::Recreate() noexcept ->HRESULT {
     ::SafeRelease(m_pTargetSurface);
     ::SafeRelease(m_pDrawSurface);
     return this->recreate_surface();
 }
 
-// Video: 渲染
-void LongUI::Component::Video::Render(D2D1_RECT_F* dst) const noexcept {
+// MMFVideo: 渲染
+void LongUI::Component::MMFVideo::Render(D2D1_RECT_F* dst) const noexcept {
     UNREFERENCED_PARAMETER(dst);
     /*const MFARGB bkColor = { 0,0,0,0 };
     assert(m_pMediaEngine);
@@ -10777,13 +11292,13 @@ void LongUI::Component::Video::Render(D2D1_RECT_F* dst) const noexcept {
     }*/
 }
 
-// Component::Video 构造函数
-LongUI::Component::Video::Video() noexcept {
+// Component::MMFVideo 构造函数
+LongUI::Component::MMFVideo::MMFVideo() noexcept {
     force_cast(dst_rect) = { 0 };
 }
 
-// Component::Video 析构函数
-LongUI::Component::Video::~Video() noexcept {
+// Component::MMFVideo 析构函数
+LongUI::Component::MMFVideo::~MMFVideo() noexcept {
     if (m_pMediaEngine) {
         m_pMediaEngine->Shutdown();
     }
@@ -10795,7 +11310,7 @@ LongUI::Component::Video::~Video() noexcept {
 }
 
 // 重建表面
-auto LongUI::Component::Video::recreate_surface() noexcept ->HRESULT {
+auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
     // 有效情况下
     DWORD w, h; HRESULT hr = S_FALSE;
     if (this->HasVideo() && SUCCEEDED(hr = m_pMediaEngine->GetNativeVideoSize(&w, &h))) {
@@ -11088,11 +11603,13 @@ namespace LongUI {
                    
 
 // 双击
-LongUINoinline bool LongUI::Helper::DoubleClick::Click() noexcept {
+LongUINoinline bool LongUI::Helper::DoubleClick::Click(const D2D1_POINT_2F& pt) noexcept {
     // 懒得解释了
     auto now = ::timeGetTime();
-    bool result = ((now - last) <= time);
+    bool result = ((now - last) <= time) && pt.x == this->ptx && pt.y == this->pty ;
     last = result ? 0ui32 : now;
+    this->ptx = pt.x;
+    this->pty = pt.y;
     return result;
 }
 
@@ -11672,6 +12189,8 @@ void LongUI::FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brus
     // 恢复
     target->SetTransform(&matrix);
 }
+
+
                    
 
 
@@ -12024,7 +12543,7 @@ auto LongUI::DX::FormatTextCore(
     const wchar_t* format,
     va_list ap
     ) noexcept->IDWriteTextLayout* {
-    
+    UIManager << DL_Log << L"<CALLED>" << LongUI::endl;
     // 参数
     const wchar_t* param = nullptr;
     // 检查是否带参数
@@ -12174,15 +12693,7 @@ auto LongUI::DX::FormatTextCore(
                 break;
             case 'T': case 't': // strike[T]hrough
                 range_data.range.startPosition = string_length;
-                if (ap) {
-                    range_data.strikethr = va_arg(ap, BOOL);
-                }
-                else {
-                    DXHelper_GetNextTokenA(1);
-                    range_data.strikethr = static_cast<BOOL>(
-                        LongUI::AtoI(reinterpret_cast<char*>(param_buffer))
-                        );
-                }
+                range_data.strikethr = TRUE;
                 range_data.range_type = R::T;
                 stack_check.Push(range_data);
                 break;
@@ -12263,15 +12774,7 @@ auto LongUI::DX::FormatTextCore(
                 break;
             case 'U': case 'u': // [U]nderline
                 range_data.range.startPosition = string_length;
-                if (ap) {
-                    range_data.underline = va_arg(ap, BOOL);
-                }
-                else {
-                    DXHelper_GetNextTokenA(1);
-                    range_data.underline = static_cast<BOOL>(
-                        LongUI::AtoI(reinterpret_cast<char*>(param_buffer))
-                        );
-                }
+                range_data.underline = TRUE;
                 range_data.range_type = R::U;
                 stack_check.Push(range_data);
                 break;
@@ -12303,7 +12806,7 @@ auto LongUI::DX::FormatTextCore(
                 range_data.range_type = R::Y;
                 stack_check.Push(range_data);
                 break;
-            case L'P': case L'p': // end of main string, then, is the param
+            case L'P': case L'p': // end of main string, then, the param
                 goto force_break;
             case L']': case L'}': // end of all range type
                 // 检查栈弹出
@@ -12474,160 +12977,161 @@ auto LongUI::DX::SaveAsImageFile(
 
 #include <Wincodec.h>
 
-// longui namespace
-namespace LongUI {
-    // dx namespace
-    namespace DX {
-        // 保存数据为图片格式
-        auto SaveAsImageFile(const SaveAsImageFileProperties& prop, const wchar_t* file_name) noexcept -> HRESULT {
-            // 参数检查
-            assert(prop.bits && prop.factory && file_name && file_name[0]);
-            if (!(prop.bits && prop.factory && file_name && file_name[0])) {
-                return E_INVALIDARG;
-            }
-            DXGI_FORMAT;
-            // 初始化
-            HRESULT hr = S_OK;
-            IWICBitmapEncoder *pEncoder = nullptr;
-            IWICBitmapFrameEncode *pFrameEncode = nullptr;
-            IWICStream *pStream = nullptr;
-            IWICBitmap *pWICBitmap = nullptr;
-            // 创建WIC位图
-            if (SUCCEEDED(hr)) {
-                hr = prop.factory->CreateBitmapFromMemory(
-                    prop.width,
-                    prop.height,
-                    prop.data_format ? *prop.data_format : GUID_WICPixelFormat32bppBGRA,
-                    prop.pitch,
-                    prop.pitch * prop.height,
-                    prop.bits,
-                    &pWICBitmap
-                    );
-            }
-            // 创建流
-            if (SUCCEEDED(hr)) {
-                hr = prop.factory->CreateStream(&pStream);
-            }
-            // 从文件初始化
-            if (SUCCEEDED(hr)) {
-                hr = pStream->InitializeFromFilename(file_name, GENERIC_WRITE);
-            }
-            // 创建编码器
-            if (SUCCEEDED(hr)) {
-                hr = prop.factory->CreateEncoder(
-                    prop.container_format ? *prop.container_format : GUID_ContainerFormatPng,
-                    nullptr,
-                    &pEncoder
-                    );
-            }
-            // 初始化编码器
-            if (SUCCEEDED(hr)) {
-                hr = pEncoder->Initialize(pStream, WICBitmapEncoderNoCache);
-            }
-            // 创建新的一帧
-            if (SUCCEEDED(hr)) {
-                hr = pEncoder->CreateNewFrame(&pFrameEncode, nullptr);
-            }
-            // 初始化帧编码器
-            if (SUCCEEDED(hr)) {
-                hr = pFrameEncode->Initialize(nullptr);
-            }
-            // 设置大小
-            if (SUCCEEDED(hr)) {
-                hr = pFrameEncode->SetSize(prop.width, prop.height);
-            }
-            // 设置格式
-            WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
-            if (SUCCEEDED(hr)) {
-                hr = pFrameEncode->SetPixelFormat(&format);
-            }
-            // 写入源数据
-            if (SUCCEEDED(hr)) {
-                hr = pFrameEncode->WriteSource(pWICBitmap, nullptr);
-            }
-            // 提交帧编码器
-            if (SUCCEEDED(hr)) {
-                hr = pFrameEncode->Commit();
-            }
-            // 提交编码
-            if (SUCCEEDED(hr)) {
-                hr = pEncoder->Commit();
-            }
-            // 扫尾处理
-            ::SafeRelease(pWICBitmap);
-            ::SafeRelease(pStream);
-            ::SafeRelease(pFrameEncode);
-            ::SafeRelease(pEncoder);
-            // 返回结果
-            return hr;
+// longui::dx namespace
+LONGUI_NAMESPACE_BEGIN namespace DX {
+    // 保存数据为图片格式
+    auto SaveAsImageFile(const SaveAsImageFileProperties& prop, const wchar_t* file_name) noexcept -> HRESULT {
+        // 参数检查
+        assert(prop.bits && prop.factory && file_name && file_name[0]);
+        if (!(prop.bits && prop.factory && file_name && file_name[0])) {
+            return E_INVALIDARG;
         }
-        // WIC GUID <--> DXGI_FORMAT
-        struct WICTranslate { GUID wic; DXGI_FORMAT format; };
-        // data
-        static const WICTranslate s_WICFormats[] =  {
-            { GUID_WICPixelFormat128bppRGBAFloat,       DXGI_FORMAT_R32G32B32A32_FLOAT },
-
-            { GUID_WICPixelFormat64bppRGBAHalf,         DXGI_FORMAT_R16G16B16A16_FLOAT },
-            { GUID_WICPixelFormat64bppRGBA,             DXGI_FORMAT_R16G16B16A16_UNORM },
-
-            { GUID_WICPixelFormat32bppRGBA,             DXGI_FORMAT_R8G8B8A8_UNORM },
-            { GUID_WICPixelFormat32bppBGRA,             DXGI_FORMAT_B8G8R8A8_UNORM },
-            { GUID_WICPixelFormat32bppBGR,              DXGI_FORMAT_B8G8R8X8_UNORM },
-
-            { GUID_WICPixelFormat32bppRGBA1010102XR,    DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM },
-            { GUID_WICPixelFormat32bppRGBA1010102,      DXGI_FORMAT_R10G10B10A2_UNORM },
-            { GUID_WICPixelFormat32bppRGBE,             DXGI_FORMAT_R9G9B9E5_SHAREDEXP },
-
-            { GUID_WICPixelFormat16bppBGRA5551,         DXGI_FORMAT_B5G5R5A1_UNORM },
-            { GUID_WICPixelFormat16bppBGR565,           DXGI_FORMAT_B5G6R5_UNORM },
-
-            { GUID_WICPixelFormat32bppGrayFloat,        DXGI_FORMAT_R32_FLOAT },
-            { GUID_WICPixelFormat16bppGrayHalf,         DXGI_FORMAT_R16_FLOAT },
-            { GUID_WICPixelFormat16bppGray,             DXGI_FORMAT_R16_UNORM },
-            { GUID_WICPixelFormat8bppGray,              DXGI_FORMAT_R8_UNORM },
-
-            { GUID_WICPixelFormat8bppAlpha,             DXGI_FORMAT_A8_UNORM },
-
-            { GUID_WICPixelFormatBlackWhite,            DXGI_FORMAT_R1_UNORM },
-
-            { GUID_WICPixelFormat96bppRGBFloat,         DXGI_FORMAT_R32G32B32_FLOAT },
-        };
-        // DXGI格式转换为 WIC GUID 格式
-        auto DXGIToWIC(DXGI_FORMAT format) noexcept ->const GUID*{
-            const GUID* outformat = nullptr;
-            // 检查
-            for (const auto& data : s_WICFormats) {
-                if (data.format == format) {
-                    outformat = &data.wic;
-                    break;
-                }
-            }
-            // 特殊
-            if (!outformat) {
-                switch (format)
-                {
-                case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-                    outformat = &GUID_WICPixelFormat32bppRGBA;
-                    break;
-                case DXGI_FORMAT_D32_FLOAT:
-                    outformat = &GUID_WICPixelFormat32bppGrayFloat;
-                    break;
-                case DXGI_FORMAT_D16_UNORM:
-                    outformat = &GUID_WICPixelFormat16bppGray;
-                    break;
-                case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-                    outformat = &GUID_WICPixelFormat32bppBGRA;
-                    break;
-                case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-                    outformat = &GUID_WICPixelFormat32bppBGR;
-                    break;
-                }
-            }
-            // 返回数据
-            return outformat;
+        // 初始化
+        HRESULT hr = S_OK;
+        IWICBitmapEncoder *pEncoder = nullptr;
+        IWICBitmapFrameEncode *pFrameEncode = nullptr;
+        IWICStream *pStream = nullptr;
+        IWICBitmap *pWICBitmap = nullptr;
+        // 创建WIC位图
+        if (SUCCEEDED(hr)) {
+            hr = prop.factory->CreateBitmapFromMemory(
+                prop.width,
+                prop.height,
+                prop.data_format ? *prop.data_format : GUID_WICPixelFormat32bppBGRA,
+                prop.pitch,
+                prop.pitch * prop.height,
+                prop.bits,
+                &pWICBitmap
+                );
         }
+        // 创建流
+        if (SUCCEEDED(hr)) {
+            hr = prop.factory->CreateStream(&pStream);
+        }
+        // 从文件初始化
+        if (SUCCEEDED(hr)) {
+            hr = pStream->InitializeFromFilename(file_name, GENERIC_WRITE);
+        }
+        // 创建编码器
+        if (SUCCEEDED(hr)) {
+            hr = prop.factory->CreateEncoder(
+                prop.container_format ? *prop.container_format : GUID_ContainerFormatPng,
+                nullptr,
+                &pEncoder
+                );
+        }
+        // 初始化编码器
+        if (SUCCEEDED(hr)) {
+            hr = pEncoder->Initialize(pStream, WICBitmapEncoderNoCache);
+        }
+        // 创建新的一帧
+        if (SUCCEEDED(hr)) {
+            hr = pEncoder->CreateNewFrame(&pFrameEncode, nullptr);
+        }
+        // 初始化帧编码器
+        if (SUCCEEDED(hr)) {
+            hr = pFrameEncode->Initialize(nullptr);
+        }
+        // 设置大小
+        if (SUCCEEDED(hr)) {
+            hr = pFrameEncode->SetSize(prop.width, prop.height);
+        }
+        // 设置格式
+        WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
+        if (SUCCEEDED(hr)) {
+            hr = pFrameEncode->SetPixelFormat(&format);
+        }
+        // 写入源数据
+        if (SUCCEEDED(hr)) {
+            hr = pFrameEncode->WriteSource(pWICBitmap, nullptr);
+        }
+        // 提交帧编码器
+        if (SUCCEEDED(hr)) {
+            hr = pFrameEncode->Commit();
+        }
+        // 提交编码
+        if (SUCCEEDED(hr)) {
+            hr = pEncoder->Commit();
+        }
+        // 扫尾处理
+        ::SafeRelease(pWICBitmap);
+        ::SafeRelease(pStream);
+        ::SafeRelease(pFrameEncode);
+        ::SafeRelease(pEncoder);
+        // 返回结果
+        return hr;
     }
+    // WIC GUID <--> DXGI_FORMAT
+    struct WICTranslate { GUID wic; DXGI_FORMAT format; };
+    // data
+    static const WICTranslate s_WICFormats[] = {
+        { GUID_WICPixelFormat128bppRGBAFloat,       DXGI_FORMAT_R32G32B32A32_FLOAT },
+
+        { GUID_WICPixelFormat64bppRGBAHalf,         DXGI_FORMAT_R16G16B16A16_FLOAT },
+        { GUID_WICPixelFormat64bppRGBA,             DXGI_FORMAT_R16G16B16A16_UNORM },
+
+        { GUID_WICPixelFormat32bppRGBA,             DXGI_FORMAT_R8G8B8A8_UNORM },
+        { GUID_WICPixelFormat32bppBGRA,             DXGI_FORMAT_B8G8R8A8_UNORM },
+        { GUID_WICPixelFormat32bppBGR,              DXGI_FORMAT_B8G8R8X8_UNORM },
+
+        { GUID_WICPixelFormat32bppRGBA1010102XR,    DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM },
+        { GUID_WICPixelFormat32bppRGBA1010102,      DXGI_FORMAT_R10G10B10A2_UNORM },
+        { GUID_WICPixelFormat32bppRGBE,             DXGI_FORMAT_R9G9B9E5_SHAREDEXP },
+
+        { GUID_WICPixelFormat16bppBGRA5551,         DXGI_FORMAT_B5G5R5A1_UNORM },
+        { GUID_WICPixelFormat16bppBGR565,           DXGI_FORMAT_B5G6R5_UNORM },
+
+        { GUID_WICPixelFormat32bppGrayFloat,        DXGI_FORMAT_R32_FLOAT },
+        { GUID_WICPixelFormat16bppGrayHalf,         DXGI_FORMAT_R16_FLOAT },
+        { GUID_WICPixelFormat16bppGray,             DXGI_FORMAT_R16_UNORM },
+        { GUID_WICPixelFormat8bppGray,              DXGI_FORMAT_R8_UNORM },
+
+        { GUID_WICPixelFormat8bppAlpha,             DXGI_FORMAT_A8_UNORM },
+
+        { GUID_WICPixelFormatBlackWhite,            DXGI_FORMAT_R1_UNORM },
+
+        { GUID_WICPixelFormat96bppRGBFloat,         DXGI_FORMAT_R32G32B32_FLOAT },
+    };
+    // DXGI格式转换为 WIC GUID 格式
+    auto DXGIToWIC(DXGI_FORMAT format) noexcept ->CPGUID {
+        const GUID* outformat = nullptr;
+        // 检查
+        for (const auto& data : s_WICFormats) {
+            if (data.format == format) {
+                outformat = &data.wic;
+                break;
+            }
+        }
+        // 特殊
+        if (!outformat) {
+            switch (format)
+            {
+            case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+                outformat = &GUID_WICPixelFormat32bppRGBA;
+                break;
+            case DXGI_FORMAT_D32_FLOAT:
+                outformat = &GUID_WICPixelFormat32bppGrayFloat;
+                break;
+            case DXGI_FORMAT_D16_UNORM:
+                outformat = &GUID_WICPixelFormat16bppGray;
+                break;
+            case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+                outformat = &GUID_WICPixelFormat32bppBGRA;
+                break;
+            case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+                outformat = &GUID_WICPixelFormat32bppBGR;
+                break;
+            }
+        }
+        // 返回数据
+        return outformat;
+    }
+    // LCML
+    /*auto LCML(const FormatTextConfig& config, const wchar_t* format, va_list ap) noexcept {
+
+    }*/
 }
+LONGUI_NAMESPACE_END
 
                    
 
@@ -12677,6 +13181,3018 @@ auto LongUI::SVG::ParserPath(const char* path, ID2D1PathGeometry* geometry) noex
     ::SafeRelease(sink);
     return hr;
 }
+
+/*
+0000
+0
+WM_NULL
+0001
+1
+WM_CREATE
+0002
+2
+WM_DESTROY
+0003
+3
+WM_MOVE
+0005
+5
+WM_SIZE
+0006
+6
+WM_ACTIVATE
+0007
+7
+WM_SETFOCUS
+0008
+8
+WM_KILLFOCUS
+000a
+10
+WM_ENABLE
+000b
+11
+WM_SETREDRAW
+000c
+12
+WM_SETTEXT
+000d
+13
+WM_GETTEXT
+000e
+14
+WM_GETTEXTLENGTH
+000f
+15
+WM_PAINT
+0010
+16
+WM_CLOSE
+0011
+17
+WM_QUERYENDSESSION
+0012
+18
+WM_QUIT
+0013
+19
+WM_QUERYOPEN
+0014
+20
+WM_ERASEBKGND
+0015
+21
+WM_SYSCOLORCHANGE
+0016
+22
+WM_ENDSESSION
+0018
+24
+WM_SHOWWINDOW
+0019
+25
+WM_CTLCOLOR
+001a
+26
+WM_WININICHANGE
+001b
+27
+WM_DEVMODECHANGE
+001c
+28
+WM_ACTIVATEAPP
+001d
+29
+WM_FONTCHANGE
+001e
+30
+WM_TIMECHANGE
+001f
+31
+WM_CANCELMODE
+0020
+32
+WM_SETCURSOR
+0021
+33
+WM_MOUSEACTIVATE
+0022
+34
+WM_CHILDACTIVATE
+0023
+35
+WM_QUEUESYNC
+0024
+36
+WM_GETMINMAXINFO
+0026
+38
+WM_PAINTICON
+0027
+39
+WM_ICONERASEBKGND
+0028
+40
+WM_NEXTDLGCTL
+002a
+42
+WM_SPOOLERSTATUS
+002b
+43
+WM_DRAWITEM
+002c
+44
+WM_MEASUREITEM
+002d
+45
+WM_DELETEITEM
+002e
+46
+WM_VKEYTOITEM
+002f
+47
+WM_CHARTOITEM
+0030
+48
+WM_SETFONT
+0031
+49
+WM_GETFONT
+0032
+50
+WM_SETHOTKEY
+0033
+51
+WM_GETHOTKEY
+0037
+55
+WM_QUERYDRAGICON
+0039
+57
+WM_COMPAREITEM
+003d
+61
+WM_GETOBJECT
+0041
+65
+WM_COMPACTING
+0044
+68
+WM_COMMNOTIFY
+0046
+70
+WM_WINDOWPOSCHANGING
+0047
+71
+WM_WINDOWPOSCHANGED
+0048
+72
+WM_POWER
+0049
+73
+WM_COPYGLOBALDATA
+004a
+74
+WM_COPYDATA
+004b
+75
+WM_CANCELJOURNAL
+004e
+78
+WM_NOTIFY
+0050
+80
+WM_INPUTLANGCHANGEREQUEST
+0051
+81
+WM_INPUTLANGCHANGE
+0052
+82
+WM_TCARD
+0053
+83
+WM_HELP
+0054
+84
+WM_USERCHANGED
+0055
+85
+WM_NOTIFYFORMAT
+007b
+123
+WM_CONTEXTMENU
+007c
+124
+WM_STYLECHANGING
+007d
+125
+WM_STYLECHANGED
+007e
+126
+WM_DISPLAYCHANGE
+007f
+127
+WM_GETICON
+0080
+128
+WM_SETICON
+0081
+129
+WM_NCCREATE
+0082
+130
+WM_NCDESTROY
+0083
+131
+WM_NCCALCSIZE
+0084
+132
+WM_NCHITTEST
+0085
+133
+WM_NCPAINT
+0086
+134
+WM_NCACTIVATE
+0087
+135
+WM_GETDLGCODE
+0088
+136
+WM_SYNCPAINT
+00a0
+160
+WM_NCMOUSEMOVE
+00a1
+161
+WM_NCLBUTTONDOWN
+00a2
+162
+WM_NCLBUTTONUP
+00a3
+163
+WM_NCLBUTTONDBLCLK
+00a4
+164
+WM_NCRBUTTONDOWN
+00a5
+165
+WM_NCRBUTTONUP
+00a6
+166
+WM_NCRBUTTONDBLCLK
+00a7
+167
+WM_NCMBUTTONDOWN
+00a8
+168
+WM_NCMBUTTONUP
+00a9
+169
+WM_NCMBUTTONDBLCLK
+00ab
+171
+WM_NCXBUTTONDOWN
+00ac
+172
+WM_NCXBUTTONUP
+00ad
+173
+WM_NCXBUTTONDBLCLK
+00b0
+176
+EM_GETSEL
+00b1
+177
+EM_SETSEL
+00b2
+178
+EM_GETRECT
+00b3
+179
+EM_SETRECT
+00b4
+180
+EM_SETRECTNP
+00b5
+181
+EM_SCROLL
+00b6
+182
+EM_LINESCROLL
+00b7
+183
+EM_SCROLLCARET
+00b8
+185
+EM_GETMODIFY
+00b9
+187
+EM_SETMODIFY
+00ba
+188
+EM_GETLINECOUNT
+00bb
+189
+EM_LINEINDEX
+00bc
+190
+EM_SETHANDLE
+00bd
+191
+EM_GETHANDLE
+00be
+192
+EM_GETTHUMB
+00c1
+193
+EM_LINELENGTH
+00c2
+194
+EM_REPLACESEL
+00c3
+195
+EM_SETFONT
+00c4
+196
+EM_GETLINE
+00c5
+197
+EM_LIMITTEXT
+00c5
+197
+EM_SETLIMITTEXT
+00c6
+198
+EM_CANUNDO
+00c7
+199
+EM_UNDO
+00c8
+200
+EM_FMTLINES
+00c9
+201
+EM_LINEFROMCHAR
+00ca
+202
+EM_SETWORDBREAK
+00cb
+203
+EM_SETTABSTOPS
+00cc
+204
+EM_SETPASSWORDCHAR
+00cd
+205
+EM_EMPTYUNDOBUFFER
+00ce
+206
+EM_GETFIRSTVISIBLELINE
+00cf
+207
+EM_SETREADONLY
+00d0
+209
+EM_SETWORDBREAKPROC
+00d1
+209
+EM_GETWORDBREAKPROC
+00d2
+210
+EM_GETPASSWORDCHAR
+00d3
+211
+EM_SETMARGINS
+00d4
+212
+EM_GETMARGINS
+00d5
+213
+EM_GETLIMITTEXT
+00d6
+214
+EM_POSFROMCHAR
+00d7
+215
+EM_CHARFROMPOS
+00d8
+216
+EM_SETIMESTATUS
+00d9
+217
+EM_GETIMESTATUS
+00e0
+224
+SBM_SETPOS
+00e1
+225
+SBM_GETPOS
+00e2
+226
+SBM_SETRANGE
+00e3
+227
+SBM_GETRANGE
+00e4
+228
+SBM_ENABLE_ARROWS
+00e6
+230
+SBM_SETRANGEREDRAW
+00e9
+233
+SBM_SETSCROLLINFO
+00ea
+234
+SBM_GETSCROLLINFO
+00eb
+235
+SBM_GETSCROLLBARINFO
+00f0
+240
+BM_GETCHECK
+00f1
+241
+BM_SETCHECK
+00f2
+242
+BM_GETSTATE
+00f3
+243
+BM_SETSTATE
+00f4
+244
+BM_SETSTYLE
+00f5
+245
+BM_CLICK
+00f6
+246
+BM_GETIMAGE
+00f7
+247
+BM_SETIMAGE
+00f8
+248
+BM_SETDONTCLICK
+00ff
+255
+WM_INPUT
+0100
+256
+WM_KEYDOWN
+0100
+256
+WM_KEYFIRST
+0101
+257
+WM_KEYUP
+0102
+258
+WM_CHAR
+0103
+259
+WM_DEADCHAR
+0104
+260
+WM_SYSKEYDOWN
+0105
+261
+WM_SYSKEYUP
+0106
+262
+WM_SYSCHAR
+0107
+263
+WM_SYSDEADCHAR
+0108
+264
+WM_KEYLAST
+0109
+265
+WM_UNICHAR
+0109
+265
+WM_WNT_CONVERTREQUESTEX
+010a
+266
+WM_CONVERTREQUEST
+010b
+267
+WM_CONVERTRESULT
+010c
+268
+WM_INTERIM
+010d
+269
+WM_IME_STARTCOMPOSITION
+010e
+270
+WM_IME_ENDCOMPOSITION
+010f
+271
+WM_IME_COMPOSITION
+010f
+271
+WM_IME_KEYLAST
+0110
+272
+WM_INITDIALOG
+0111
+273
+WM_COMMAND
+0112
+274
+WM_SYSCOMMAND
+0113
+275
+WM_TIMER
+0114
+276
+WM_HSCROLL
+0115
+277
+WM_VSCROLL
+0116
+278
+WM_INITMENU
+0117
+279
+WM_INITMENUPOPUP
+0118
+280
+WM_SYSTIMER
+011f
+287
+WM_MENUSELECT
+0120
+288
+WM_MENUCHAR
+0121
+289
+WM_ENTERIDLE
+0122
+290
+WM_MENURBUTTONUP
+0123
+291
+WM_MENUDRAG
+0124
+292
+WM_MENUGETOBJECT
+0125
+293
+WM_UNINITMENUPOPUP
+0126
+294
+WM_MENUCOMMAND
+0127
+295
+WM_CHANGEUISTATE
+0128
+296
+WM_UPDATEUISTATE
+0129
+297
+WM_QUERYUISTATE
+0132
+306
+WM_CTLCOLORMSGBOX
+0133
+307
+WM_CTLCOLOREDIT
+0134
+308
+WM_CTLCOLORLISTBOX
+0135
+309
+WM_CTLCOLORBTN
+0136
+310
+WM_CTLCOLORDLG
+0137
+311
+WM_CTLCOLORSCROLLBAR
+0138
+312
+WM_CTLCOLORSTATIC
+0200
+512
+WM_MOUSEFIRST
+0200
+512
+WM_MOUSEMOVE
+0201
+513
+WM_LBUTTONDOWN
+0202
+514
+WM_LBUTTONUP
+0203
+515
+WM_LBUTTONDBLCLK
+0204
+516
+WM_RBUTTONDOWN
+0205
+517
+WM_RBUTTONUP
+0206
+518
+WM_RBUTTONDBLCLK
+0207
+519
+WM_MBUTTONDOWN
+0208
+520
+WM_MBUTTONUP
+0209
+521
+WM_MBUTTONDBLCLK
+0209
+521
+WM_MOUSELAST
+020a
+522
+WM_MOUSEWHEEL
+020b
+523
+WM_XBUTTONDOWN
+020c
+524
+WM_XBUTTONUP
+020d
+525
+WM_XBUTTONDBLCLK
+0210
+528
+WM_PARENTNOTIFY
+0211
+529
+WM_ENTERMENULOOP
+0212
+530
+WM_EXITMENULOOP
+0213
+531
+WM_NEXTMENU
+0214
+532
+WM_SIZING
+0215
+533
+WM_CAPTURECHANGED
+0216
+534
+WM_MOVING
+0218
+536
+WM_POWERBROADCAST
+0219
+537
+WM_DEVICECHANGE
+0220
+544
+WM_MDICREATE
+0221
+545
+WM_MDIDESTROY
+0222
+546
+WM_MDIACTIVATE
+0223
+547
+WM_MDIRESTORE
+0224
+548
+WM_MDINEXT
+0225
+549
+WM_MDIMAXIMIZE
+0226
+550
+WM_MDITILE
+0227
+551
+WM_MDICASCADE
+0228
+552
+WM_MDIICONARRANGE
+0229
+553
+WM_MDIGETACTIVE
+0230
+560
+WM_MDISETMENU
+0231
+561
+WM_ENTERSIZEMOVE
+0232
+562
+WM_EXITSIZEMOVE
+0233
+563
+WM_DROPFILES
+0234
+564
+WM_MDIREFRESHMENU
+0280
+640
+WM_IME_REPORT
+0281
+641
+WM_IME_SETCONTEXT
+0282
+642
+WM_IME_NOTIFY
+0283
+643
+WM_IME_CONTROL
+0284
+644
+WM_IME_COMPOSITIONFULL
+0285
+645
+WM_IME_SELECT
+0286
+646
+WM_IME_CHAR
+0288
+648
+WM_IME_REQUEST
+0290
+656
+WM_IMEKEYDOWN
+0290
+656
+WM_IME_KEYDOWN
+0291
+657
+WM_IMEKEYUP
+0291
+657
+WM_IME_KEYUP
+02a0
+672
+WM_NCMOUSEHOVER
+02a1
+673
+WM_MOUSEHOVER
+02a2
+674
+WM_NCMOUSELEAVE
+02a3
+675
+WM_MOUSELEAVE
+0300
+768
+WM_CUT
+0301
+769
+WM_COPY
+0302
+770
+WM_PASTE
+0303
+771
+WM_CLEAR
+0304
+772
+WM_UNDO
+0305
+773
+WM_RENDERFORMAT
+0306
+774
+WM_RENDERALLFORMATS
+0307
+775
+WM_DESTROYCLIPBOARD
+0308
+776
+WM_DRAWCLIPBOARD
+0309
+777
+WM_PAINTCLIPBOARD
+030a
+778
+WM_VSCROLLCLIPBOARD
+030b
+779
+WM_SIZECLIPBOARD
+030c
+780
+WM_ASKCBFORMATNAME
+030d
+781
+WM_CHANGECBCHAIN
+030e
+782
+WM_HSCROLLCLIPBOARD
+030f
+783
+WM_QUERYNEWPALETTE
+0310
+784
+WM_PALETTEISCHANGING
+0311
+785
+WM_PALETTECHANGED
+0312
+786
+WM_HOTKEY
+0317
+791
+WM_PRINT
+0318
+792
+WM_PRINTCLIENT
+0319
+793
+WM_APPCOMMAND
+0358
+856
+WM_HANDHELDFIRST
+035f
+863
+WM_HANDHELDLAST
+0360
+864
+WM_AFXFIRST
+037f
+895
+WM_AFXLAST
+0380
+896
+WM_PENWINFIRST
+0381
+897
+WM_RCRESULT
+0382
+898
+WM_HOOKRCRESULT
+0383
+899
+WM_GLOBALRCCHANGE
+0383
+899
+WM_PENMISCINFO
+0384
+900
+WM_SKB
+0385
+901
+WM_HEDITCTL
+0385
+901
+WM_PENCTL
+0386
+902
+WM_PENMISC
+0387
+903
+WM_CTLINIT
+0388
+904
+WM_PENEVENT
+038f
+911
+WM_PENWINLAST
+0400
+1024
+DDM_SETFMT
+0400
+1024
+DM_GETDEFID
+0400
+1024
+NIN_SELECT
+0400
+1024
+TBM_GETPOS
+0400
+1024
+WM_PSD_PAGESETUPDLG
+0400
+1024
+WM_USER
+0401
+1025
+CBEM_INSERTITEMA
+0401
+1025
+DDM_DRAW
+0401
+1025
+DM_SETDEFID
+0401
+1025
+HKM_SETHOTKEY
+0401
+1025
+PBM_SETRANGE
+0401
+1025
+RB_INSERTBANDA
+0401
+1025
+SB_SETTEXTA
+0401
+1025
+TB_ENABLEBUTTON
+0401
+1025
+TBM_GETRANGEMIN
+0401
+1025
+TTM_ACTIVATE
+0401
+1025
+WM_CHOOSEFONT_GETLOGFONT
+0401
+1025
+WM_PSD_FULLPAGERECT
+0402
+1026
+CBEM_SETIMAGELIST
+0402
+1026
+DDM_CLOSE
+0402
+1026
+DM_REPOSITION
+0402
+1026
+HKM_GETHOTKEY
+0402
+1026
+PBM_SETPOS
+0402
+1026
+RB_DELETEBAND
+0402
+1026
+SB_GETTEXTA
+0402
+1026
+TB_CHECKBUTTON
+0402
+1026
+TBM_GETRANGEMAX
+0402
+1026
+WM_PSD_MINMARGINRECT
+0403
+1027
+CBEM_GETIMAGELIST
+0403
+1027
+DDM_BEGIN
+0403
+1027
+HKM_SETRULES
+0403
+1027
+PBM_DELTAPOS
+0403
+1027
+RB_GETBARINFO
+0403
+1027
+SB_GETTEXTLENGTHA
+0403
+1027
+TBM_GETTIC
+0403
+1027
+TB_PRESSBUTTON
+0403
+1027
+TTM_SETDELAYTIME
+0403
+1027
+WM_PSD_MARGINRECT
+0404
+1028
+CBEM_GETITEMA
+0404
+1028
+DDM_END
+0404
+1028
+PBM_SETSTEP
+0404
+1028
+RB_SETBARINFO
+0404
+1028
+SB_SETPARTS
+0404
+1028
+TB_HIDEBUTTON
+0404
+1028
+TBM_SETTIC
+0404
+1028
+TTM_ADDTOOLA
+0404
+1028
+WM_PSD_GREEKTEXTRECT
+0405
+1029
+CBEM_SETITEMA
+0405
+1029
+PBM_STEPIT
+0405
+1029
+TB_INDETERMINATE
+0405
+1029
+TBM_SETPOS
+0405
+1029
+TTM_DELTOOLA
+0405
+1029
+WM_PSD_ENVSTAMPRECT
+0406
+1030
+CBEM_GETCOMBOCONTROL
+0406
+1030
+PBM_SETRANGE32
+0406
+1030
+RB_SETBANDINFOA
+0406
+1030
+SB_GETPARTS
+0406
+1030
+TB_MARKBUTTON
+0406
+1030
+TBM_SETRANGE
+0406
+1030
+TTM_NEWTOOLRECTA
+0406
+1030
+WM_PSD_YAFULLPAGERECT
+0407
+1031
+CBEM_GETEDITCONTROL
+0407
+1031
+PBM_GETRANGE
+0407
+1031
+RB_SETPARENT
+0407
+1031
+SB_GETBORDERS
+0407
+1031
+TBM_SETRANGEMIN
+0407
+1031
+TTM_RELAYEVENT
+0408
+1032
+CBEM_SETEXSTYLE
+0408
+1032
+PBM_GETPOS
+0408
+1032
+RB_HITTEST
+0408
+1032
+SB_SETMINHEIGHT
+0408
+1032
+TBM_SETRANGEMAX
+0408
+1032
+TTM_GETTOOLINFOA
+0409
+1033
+CBEM_GETEXSTYLE
+0409
+1033
+CBEM_GETEXTENDEDSTYLE
+0409
+1033
+PBM_SETBARCOLOR
+0409
+1033
+RB_GETRECT
+0409
+1033
+SB_SIMPLE
+0409
+1033
+TB_ISBUTTONENABLED
+0409
+1033
+TBM_CLEARTICS
+0409
+1033
+TTM_SETTOOLINFOA
+040a
+1034
+CBEM_HASEDITCHANGED
+040a
+1034
+RB_INSERTBANDW
+040a
+1034
+SB_GETRECT
+040a
+1034
+TB_ISBUTTONCHECKED
+040a
+1034
+TBM_SETSEL
+040a
+1034
+TTM_HITTESTA
+040a
+1034
+WIZ_QUERYNUMPAGES
+040b
+1035
+CBEM_INSERTITEMW
+040b
+1035
+RB_SETBANDINFOW
+040b
+1035
+SB_SETTEXTW
+040b
+1035
+TB_ISBUTTONPRESSED
+040b
+1035
+TBM_SETSELSTART
+040b
+1035
+TTM_GETTEXTA
+040b
+1035
+WIZ_NEXT
+040c
+1036
+CBEM_SETITEMW
+040c
+1036
+RB_GETBANDCOUNT
+040c
+1036
+SB_GETTEXTLENGTHW
+040c
+1036
+TB_ISBUTTONHIDDEN
+040c
+1036
+TBM_SETSELEND
+040c
+1036
+TTM_UPDATETIPTEXTA
+040c
+1036
+WIZ_PREV
+040d
+1037
+CBEM_GETITEMW
+040d
+1037
+RB_GETROWCOUNT
+040d
+1037
+SB_GETTEXTW
+040d
+1037
+TB_ISBUTTONINDETERMINATE
+040d
+1037
+TTM_GETTOOLCOUNT
+040e
+1038
+CBEM_SETEXTENDEDSTYLE
+040e
+1038
+RB_GETROWHEIGHT
+040e
+1038
+SB_ISSIMPLE
+040e
+1038
+TB_ISBUTTONHIGHLIGHTED
+040e
+1038
+TBM_GETPTICS
+040e
+1038
+TTM_ENUMTOOLSA
+040f
+1039
+SB_SETICON
+040f
+1039
+TBM_GETTICPOS
+040f
+1039
+TTM_GETCURRENTTOOLA
+0410
+1040
+RB_IDTOINDEX
+0410
+1040
+SB_SETTIPTEXTA
+0410
+1040
+TBM_GETNUMTICS
+0410
+1040
+TTM_WINDOWFROMPOINT
+0411
+1041
+RB_GETTOOLTIPS
+0411
+1041
+SB_SETTIPTEXTW
+0411
+1041
+TBM_GETSELSTART
+0411
+1041
+TB_SETSTATE
+0411
+1041
+TTM_TRACKACTIVATE
+0412
+1042
+RB_SETTOOLTIPS
+0412
+1042
+SB_GETTIPTEXTA
+0412
+1042
+TB_GETSTATE
+0412
+1042
+TBM_GETSELEND
+0412
+1042
+TTM_TRACKPOSITION
+0413
+1043
+RB_SETBKCOLOR
+0413
+1043
+SB_GETTIPTEXTW
+0413
+1043
+TB_ADDBITMAP
+0413
+1043
+TBM_CLEARSEL
+0413
+1043
+TTM_SETTIPBKCOLOR
+0414
+1044
+RB_GETBKCOLOR
+0414
+1044
+SB_GETICON
+0414
+1044
+TB_ADDBUTTONSA
+0414
+1044
+TBM_SETTICFREQ
+0414
+1044
+TTM_SETTIPTEXTCOLOR
+0415
+1045
+RB_SETTEXTCOLOR
+0415
+1045
+TB_INSERTBUTTONA
+0415
+1045
+TBM_SETPAGESIZE
+0415
+1045
+TTM_GETDELAYTIME
+0416
+1046
+RB_GETTEXTCOLOR
+0416
+1046
+TB_DELETEBUTTON
+0416
+1046
+TBM_GETPAGESIZE
+0416
+1046
+TTM_GETTIPBKCOLOR
+0417
+1047
+RB_SIZETORECT
+0417
+1047
+TB_GETBUTTON
+0417
+1047
+TBM_SETLINESIZE
+0417
+1047
+TTM_GETTIPTEXTCOLOR
+0418
+1048
+RB_BEGINDRAG
+0418
+1048
+TB_BUTTONCOUNT
+0418
+1048
+TBM_GETLINESIZE
+0418
+1048
+TTM_SETMAXTIPWIDTH
+0419
+1049
+RB_ENDDRAG
+0419
+1049
+TB_COMMANDTOINDEX
+0419
+1049
+TBM_GETTHUMBRECT
+0419
+1049
+TTM_GETMAXTIPWIDTH
+041a
+1050
+RB_DRAGMOVE
+041a
+1050
+TBM_GETCHANNELRECT
+041a
+1050
+TB_SAVERESTOREA
+041a
+1050
+TTM_SETMARGIN
+041b
+1051
+RB_GETBARHEIGHT
+041b
+1051
+TB_CUSTOMIZE
+041b
+1051
+TBM_SETTHUMBLENGTH
+041b
+1051
+TTM_GETMARGIN
+041c
+1052
+RB_GETBANDINFOW
+041c
+1052
+TB_ADDSTRINGA
+041c
+1052
+TBM_GETTHUMBLENGTH
+041c
+1052
+TTM_POP
+041d
+1053
+RB_GETBANDINFOA
+041d
+1053
+TB_GETITEMRECT
+041d
+1053
+TBM_SETTOOLTIPS
+041d
+1053
+TTM_UPDATE
+041e
+1054
+RB_MINIMIZEBAND
+041e
+1054
+TB_BUTTONSTRUCTSIZE
+041e
+1054
+TBM_GETTOOLTIPS
+041e
+1054
+TTM_GETBUBBLESIZE
+041f
+1055
+RB_MAXIMIZEBAND
+041f
+1055
+TBM_SETTIPSIDE
+041f
+1055
+TB_SETBUTTONSIZE
+041f
+1055
+TTM_ADJUSTRECT
+0420
+1056
+TBM_SETBUDDY
+0420
+1056
+TB_SETBITMAPSIZE
+0420
+1056
+TTM_SETTITLEA
+0421
+1057
+MSG_FTS_JUMP_VA
+0421
+1057
+TB_AUTOSIZE
+0421
+1057
+TBM_GETBUDDY
+0421
+1057
+TTM_SETTITLEW
+0422
+1058
+RB_GETBANDBORDERS
+0423
+1059
+MSG_FTS_JUMP_QWORD
+0423
+1059
+RB_SHOWBAND
+0423
+1059
+TB_GETTOOLTIPS
+0424
+1060
+MSG_REINDEX_REQUEST
+0424
+1060
+TB_SETTOOLTIPS
+0425
+1061
+MSG_FTS_WHERE_IS_IT
+0425
+1061
+RB_SETPALETTE
+0425
+1061
+TB_SETPARENT
+0426
+1062
+RB_GETPALETTE
+0427
+1063
+RB_MOVEBAND
+0427
+1063
+TB_SETROWS
+0428
+1064
+TB_GETROWS
+0429
+1065
+TB_GETBITMAPFLAGS
+042a
+1066
+TB_SETCMDID
+042b
+1067
+RB_PUSHCHEVRON
+042b
+1067
+TB_CHANGEBITMAP
+042c
+1068
+TB_GETBITMAP
+042d
+1069
+MSG_GET_DEFFONT
+042d
+1069
+TB_GETBUTTONTEXTA
+042e
+1070
+TB_REPLACEBITMAP
+042f
+1071
+TB_SETINDENT
+0430
+1072
+TB_SETIMAGELIST
+0431
+1073
+TB_GETIMAGELIST
+0432
+1074
+TB_LOADIMAGES
+0432
+1074
+EM_CANPASTE
+0432
+1074
+TTM_ADDTOOLW
+0433
+1075
+EM_DISPLAYBAND
+0433
+1075
+TB_GETRECT
+0433
+1075
+TTM_DELTOOLW
+0434
+1076
+EM_EXGETSEL
+0434
+1076
+TB_SETHOTIMAGELIST
+0434
+1076
+TTM_NEWTOOLRECTW
+0435
+1077
+EM_EXLIMITTEXT
+0435
+1077
+TB_GETHOTIMAGELIST
+0435
+1077
+TTM_GETTOOLINFOW
+0436
+1078
+EM_EXLINEFROMCHAR
+0436
+1078
+TB_SETDISABLEDIMAGELIST
+0436
+1078
+TTM_SETTOOLINFOW
+0437
+1079
+EM_EXSETSEL
+0437
+1079
+TB_GETDISABLEDIMAGELIST
+0437
+1079
+TTM_HITTESTW
+0438
+1080
+EM_FINDTEXT
+0438
+1080
+TB_SETSTYLE
+0438
+1080
+TTM_GETTEXTW
+0439
+1081
+EM_FORMATRANGE
+0439
+1081
+TB_GETSTYLE
+0439
+1081
+TTM_UPDATETIPTEXTW
+043a
+1082
+EM_GETCHARFORMAT
+043a
+1082
+TB_GETBUTTONSIZE
+043a
+1082
+TTM_ENUMTOOLSW
+043b
+1083
+EM_GETEVENTMASK
+043b
+1083
+TB_SETBUTTONWIDTH
+043b
+1083
+TTM_GETCURRENTTOOLW
+043c
+1084
+EM_GETOLEINTERFACE
+043c
+1084
+TB_SETMAXTEXTROWS
+043d
+1085
+EM_GETPARAFORMAT
+043d
+1085
+TB_GETTEXTROWS
+043e
+1086
+EM_GETSELTEXT
+043e
+1086
+TB_GETOBJECT
+043f
+1087
+EM_HIDESELECTION
+043f
+1087
+TB_GETBUTTONINFOW
+0440
+1088
+EM_PASTESPECIAL
+0440
+1088
+TB_SETBUTTONINFOW
+0441
+1089
+EM_REQUESTRESIZE
+0441
+1089
+TB_GETBUTTONINFOA
+0442
+1090
+EM_SELECTIONTYPE
+0442
+1090
+TB_SETBUTTONINFOA
+0443
+1091
+EM_SETBKGNDCOLOR
+0443
+1091
+TB_INSERTBUTTONW
+0444
+1092
+EM_SETCHARFORMAT
+0444
+1092
+TB_ADDBUTTONSW
+0445
+1093
+EM_SETEVENTMASK
+0445
+1093
+TB_HITTEST
+0446
+1094
+EM_SETOLECALLBACK
+0446
+1094
+TB_SETDRAWTEXTFLAGS
+0447
+1095
+EM_SETPARAFORMAT
+0447
+1095
+TB_GETHOTITEM
+0448
+1096
+EM_SETTARGETDEVICE
+0448
+1096
+TB_SETHOTITEM
+0449
+1097
+EM_STREAMIN
+0449
+1097
+TB_SETANCHORHIGHLIGHT
+044a
+1098
+EM_STREAMOUT
+044a
+1098
+TB_GETANCHORHIGHLIGHT
+044b
+1099
+EM_GETTEXTRANGE
+044b
+1099
+TB_GETBUTTONTEXTW
+044c
+1100
+EM_FINDWORDBREAK
+044c
+1100
+TB_SAVERESTOREW
+044d
+1101
+EM_SETOPTIONS
+044d
+1101
+TB_ADDSTRINGW
+044e
+1102
+EM_GETOPTIONS
+044e
+1102
+TB_MAPACCELERATORA
+044f
+1103
+EM_FINDTEXTEX
+044f
+1103
+TB_GETINSERTMARK
+0450
+1104
+EM_GETWORDBREAKPROCEX
+0450
+1104
+TB_SETINSERTMARK
+0451
+1105
+EM_SETWORDBREAKPROCEX
+0451
+1105
+TB_INSERTMARKHITTEST
+0452
+1106
+EM_SETUNDOLIMIT
+0452
+1106
+TB_MOVEBUTTON
+0453
+1107
+TB_GETMAXSIZE
+0454
+1108
+EM_REDO
+0454
+1108
+TB_SETEXTENDEDSTYLE
+0455
+1109
+EM_CANREDO
+0455
+1109
+TB_GETEXTENDEDSTYLE
+0456
+1110
+EM_GETUNDONAME
+0456
+1110
+TB_GETPADDING
+0457
+1111
+EM_GETREDONAME
+0457
+1111
+TB_SETPADDING
+0458
+1112
+EM_STOPGROUPTYPING
+0458
+1112
+TB_SETINSERTMARKCOLOR
+0459
+1113
+EM_SETTEXTMODE
+0459
+1113
+TB_GETINSERTMARKCOLOR
+045a
+1114
+EM_GETTEXTMODE
+045a
+1114
+TB_MAPACCELERATORW
+045b
+1115
+EM_AUTOURLDETECT
+045b
+1115
+TB_GETSTRINGW
+045c
+1116
+EM_GETAUTOURLDETECT
+045c
+1116
+TB_GETSTRINGA
+045d
+1117
+EM_SETPALETTE
+045e
+1118
+EM_GETTEXTEX
+045f
+1119
+EM_GETTEXTLENGTHEX
+0460
+1120
+EM_SHOWSCROLLBAR
+0461
+1121
+EM_SETTEXTEX
+0463
+1123
+TAPI_REPLY
+0464
+1124
+ACM_OPENA
+0464
+1124
+BFFM_SETSTATUSTEXTA
+0464
+1124
+CDM_FIRST
+0464
+1124
+CDM_GETSPEC
+0464
+1124
+EM_SETPUNCTUATION
+0464
+1124
+IPM_CLEARADDRESS
+0464
+1124
+WM_CAP_UNICODE_START
+0465
+1125
+ACM_PLAY
+0465
+1125
+BFFM_ENABLEOK
+0465
+1125
+CDM_GETFILEPATH
+0465
+1125
+EM_GETPUNCTUATION
+0465
+1125
+IPM_SETADDRESS
+0465
+1125
+PSM_SETCURSEL
+0465
+1125
+UDM_SETRANGE
+0465
+1125
+WM_CHOOSEFONT_SETLOGFONT
+0466
+1126
+ACM_STOP
+0466
+1126
+BFFM_SETSELECTIONA
+0466
+1126
+CDM_GETFOLDERPATH
+0466
+1126
+EM_SETWORDWRAPMODE
+0466
+1126
+IPM_GETADDRESS
+0466
+1126
+PSM_REMOVEPAGE
+0466
+1126
+UDM_GETRANGE
+0466
+1126
+WM_CAP_SET_CALLBACK_ERRORW
+0466
+1126
+WM_CHOOSEFONT_SETFLAGS
+0467
+1127
+ACM_OPENW
+0467
+1127
+BFFM_SETSELECTIONW
+0467
+1127
+CDM_GETFOLDERIDLIST
+0467
+1127
+EM_GETWORDWRAPMODE
+0467
+1127
+IPM_SETRANGE
+0467
+1127
+PSM_ADDPAGE
+0467
+1127
+UDM_SETPOS
+0467
+1127
+WM_CAP_SET_CALLBACK_STATUSW
+0468
+1128
+BFFM_SETSTATUSTEXTW
+0468
+1128
+CDM_SETCONTROLTEXT
+0468
+1128
+EM_SETIMECOLOR
+0468
+1128
+IPM_SETFOCUS
+0468
+1128
+PSM_CHANGED
+0468
+1128
+UDM_GETPOS
+0469
+1129
+CDM_HIDECONTROL
+0469
+1129
+EM_GETIMECOLOR
+0469
+1129
+IPM_ISBLANK
+0469
+1129
+PSM_RESTARTWINDOWS
+0469
+1129
+UDM_SETBUDDY
+046a
+1130
+CDM_SETDEFEXT
+046a
+1130
+EM_SETIMEOPTIONS
+046a
+1130
+PSM_REBOOTSYSTEM
+046a
+1130
+UDM_GETBUDDY
+046b
+1131
+EM_GETIMEOPTIONS
+046b
+1131
+PSM_CANCELTOCLOSE
+046b
+1131
+UDM_SETACCEL
+046c
+1132
+EM_CONVPOSITION
+046c
+1132
+EM_CONVPOSITION
+046c
+1132
+PSM_QUERYSIBLINGS
+046c
+1132
+UDM_GETACCEL
+046d
+1133
+MCIWNDM_GETZOOM
+046d
+1133
+PSM_UNCHANGED
+046d
+1133
+UDM_SETBASE
+046e
+1134
+PSM_APPLY
+046e
+1134
+UDM_GETBASE
+046f
+1135
+PSM_SETTITLEA
+046f
+1135
+UDM_SETRANGE32
+0470
+1136
+PSM_SETWIZBUTTONS
+0470
+1136
+UDM_GETRANGE32
+0470
+1136
+WM_CAP_DRIVER_GET_NAMEW
+0471
+1137
+PSM_PRESSBUTTON
+0471
+1137
+UDM_SETPOS32
+0471
+1137
+WM_CAP_DRIVER_GET_VERSIONW
+0472
+1138
+PSM_SETCURSELID
+0472
+1138
+UDM_GETPOS32
+0473
+1139
+PSM_SETFINISHTEXTA
+0474
+1140
+PSM_GETTABCONTROL
+0475
+1141
+PSM_ISDIALOGMESSAGE
+0476
+1142
+MCIWNDM_REALIZE
+0476
+1142
+PSM_GETCURRENTPAGEHWND
+0477
+1143
+MCIWNDM_SETTIMEFORMATA
+0477
+1143
+PSM_INSERTPAGE
+0478
+1144
+EM_SETLANGOPTIONS
+0478
+1144
+MCIWNDM_GETTIMEFORMATA
+0478
+1144
+PSM_SETTITLEW
+0478
+1144
+WM_CAP_FILE_SET_CAPTURE_FILEW
+0479
+1145
+EM_GETLANGOPTIONS
+0479
+1145
+MCIWNDM_VALIDATEMEDIA
+0479
+1145
+PSM_SETFINISHTEXTW
+0479
+1145
+WM_CAP_FILE_GET_CAPTURE_FILEW
+047a
+1146
+EM_GETIMECOMPMODE
+047b
+1147
+EM_FINDTEXTW
+047b
+1147
+MCIWNDM_PLAYTO
+047b
+1147
+WM_CAP_FILE_SAVEASW
+047c
+1148
+EM_FINDTEXTEXW
+047c
+1148
+MCIWNDM_GETFILENAMEA
+047d
+1149
+EM_RECONVERSION
+047d
+1149
+MCIWNDM_GETDEVICEA
+047d
+1149
+PSM_SETHEADERTITLEA
+047d
+1149
+WM_CAP_FILE_SAVEDIBW
+047e
+1150
+EM_SETIMEMODEBIAS
+047e
+1150
+MCIWNDM_GETPALETTE
+047e
+1150
+PSM_SETHEADERTITLEW
+047f
+1151
+EM_GETIMEMODEBIAS
+047f
+1151
+MCIWNDM_SETPALETTE
+047f
+1151
+PSM_SETHEADERSUBTITLEA
+0480
+1152
+MCIWNDM_GETERRORA
+0480
+1152
+PSM_SETHEADERSUBTITLEW
+0481
+1153
+PSM_HWNDTOINDEX
+0482
+1154
+PSM_INDEXTOHWND
+0483
+1155
+MCIWNDM_SETINACTIVETIMER
+0483
+1155
+PSM_PAGETOINDEX
+0484
+1156
+PSM_INDEXTOPAGE
+0485
+1157
+DL_BEGINDRAG
+0485
+1157
+MCIWNDM_GETINACTIVETIMER
+0485
+1157
+PSM_IDTOINDEX
+0486
+1158
+DL_DRAGGING
+0486
+1158
+PSM_INDEXTOID
+0487
+1159
+DL_DROPPED
+0487
+1159
+PSM_GETRESULT
+0488
+1160
+DL_CANCELDRAG
+0488
+1160
+PSM_RECALCPAGESIZES
+048c
+1164
+MCIWNDM_GET_SOURCE
+048d
+1165
+MCIWNDM_PUT_SOURCE
+048e
+1166
+MCIWNDM_GET_DEST
+048f
+1167
+MCIWNDM_PUT_DEST
+0490
+1168
+MCIWNDM_CAN_PLAY
+0491
+1169
+MCIWNDM_CAN_WINDOW
+0492
+1170
+MCIWNDM_CAN_RECORD
+0493
+1171
+MCIWNDM_CAN_SAVE
+0494
+1172
+MCIWNDM_CAN_EJECT
+0495
+1173
+MCIWNDM_CAN_CONFIG
+0496
+1174
+IE_GETINK
+0496
+1174
+IE_MSGFIRST
+0496
+1174
+MCIWNDM_PALETTEKICK
+0497
+1175
+IE_SETINK
+0498
+1176
+IE_GETPENTIP
+0499
+1177
+IE_SETPENTIP
+049a
+1178
+IE_GETERASERTIP
+049b
+1179
+IE_SETERASERTIP
+049c
+1180
+IE_GETBKGND
+049d
+1181
+IE_SETBKGND
+049e
+1182
+IE_GETGRIDORIGIN
+049f
+1183
+IE_SETGRIDORIGIN
+04a0
+1184
+IE_GETGRIDPEN
+04a1
+1185
+IE_SETGRIDPEN
+04a2
+1186
+IE_GETGRIDSIZE
+04a3
+1187
+IE_SETGRIDSIZE
+04a4
+1188
+IE_GETMODE
+04a5
+1189
+IE_SETMODE
+04a6
+1190
+IE_GETINKRECT
+04a6
+1190
+WM_CAP_SET_MCI_DEVICEW
+04a7
+1191
+WM_CAP_GET_MCI_DEVICEW
+04b4
+1204
+WM_CAP_PAL_OPENW
+04b5
+1205
+WM_CAP_PAL_SAVEW
+04b8
+1208
+IE_GETAPPDATA
+04b9
+1209
+IE_SETAPPDATA
+04ba
+1210
+IE_GETDRAWOPTS
+04bb
+1211
+IE_SETDRAWOPTS
+04bc
+1212
+IE_GETFORMAT
+04bd
+1213
+IE_SETFORMAT
+04be
+1214
+IE_GETINKINPUT
+04bf
+1215
+IE_SETINKINPUT
+04c0
+1216
+IE_GETNOTIFY
+04c1
+1217
+IE_SETNOTIFY
+04c2
+1218
+IE_GETRECOG
+04c3
+1219
+IE_SETRECOG
+04c4
+1220
+IE_GETSECURITY
+04c5
+1221
+IE_SETSECURITY
+04c6
+1222
+IE_GETSEL
+04c7
+1223
+IE_SETSEL
+04c8
+1224
+CDM_LAST
+04c8
+1224
+EM_SETBIDIOPTIONS
+04c8
+1224
+IE_DOCOMMAND
+04c8
+1224
+MCIWNDM_NOTIFYMODE
+04c9
+1225
+EM_GETBIDIOPTIONS
+04c9
+1225
+IE_GETCOMMAND
+04ca
+1226
+EM_SETTYPOGRAPHYOPTIONS
+04ca
+1226
+IE_GETCOUNT
+04cb
+1227
+EM_GETTYPOGRAPHYOPTIONS
+04cb
+1227
+IE_GETGESTURE
+04cb
+1227
+MCIWNDM_NOTIFYMEDIA
+04cc
+1228
+EM_SETEDITSTYLE
+04cc
+1228
+IE_GETMENU
+04cd
+1229
+EM_GETEDITSTYLE
+04cd
+1229
+IE_GETPAINTDC
+04cd
+1229
+MCIWNDM_NOTIFYERROR
+04ce
+1230
+IE_GETPDEVENT
+04cf
+1231
+IE_GETSELCOUNT
+04d0
+1232
+IE_GETSELITEMS
+04d1
+1233
+IE_GETSTYLE
+04db
+1243
+MCIWNDM_SETTIMEFORMATW
+04dc
+1244
+EM_OUTLINE
+04dc
+1244
+EM_OUTLINE
+04dc
+1244
+MCIWNDM_GETTIMEFORMATW
+04dd
+1245
+EM_GETSCROLLPOS
+04dd
+1245
+EM_GETSCROLLPOS
+04de
+1246
+EM_SETSCROLLPOS
+04de
+1246
+EM_SETSCROLLPOS
+04df
+1247
+EM_SETFONTSIZE
+04df
+1247
+EM_SETFONTSIZE
+04e0
+1248
+EM_GETZOOM
+04e0
+1248
+MCIWNDM_GETFILENAMEW
+04e1
+1249
+EM_SETZOOM
+04e1
+1249
+MCIWNDM_GETDEVICEW
+04e2
+1250
+EM_GETVIEWKIND
+04e3
+1251
+EM_SETVIEWKIND
+04e4
+1252
+EM_GETPAGE
+04e4
+1252
+MCIWNDM_GETERRORW
+04e5
+1253
+EM_SETPAGE
+04e6
+1254
+EM_GETHYPHENATEINFO
+04e7
+1255
+EM_SETHYPHENATEINFO
+04eb
+1259
+EM_GETPAGEROTATE
+04ec
+1260
+EM_SETPAGEROTATE
+04ed
+1261
+EM_GETCTFMODEBIAS
+04ee
+1262
+EM_SETCTFMODEBIAS
+04f0
+1264
+EM_GETCTFOPENSTATUS
+04f1
+1265
+EM_SETCTFOPENSTATUS
+04f2
+1266
+EM_GETIMECOMPTEXT
+04f3
+1267
+EM_ISIME
+04f4
+1268
+EM_GETIMEPROPERTY
+050d
+1293
+EM_GETQUERYRTFOBJ
+050e
+1294
+EM_SETQUERYRTFOBJ
+0600
+1536
+FM_GETFOCUS
+0601
+1537
+FM_GETDRIVEINFOA
+0602
+1538
+FM_GETSELCOUNT
+0603
+1539
+FM_GETSELCOUNTLFN
+0604
+1540
+FM_GETFILESELA
+0605
+1541
+FM_GETFILESELLFNA
+0606
+1542
+FM_REFRESH_WINDOWS
+0607
+1543
+FM_RELOAD_EXTENSIONS
+0611
+1553
+FM_GETDRIVEINFOW
+0614
+1556
+FM_GETFILESELW
+0615
+1557
+FM_GETFILESELLFNW
+0659
+1625
+WLX_WM_SAS
+07e8
+2024
+SM_GETSELCOUNT
+07e8
+2024
+UM_GETSELCOUNT
+07e8
+2024
+WM_CPL_LAUNCH
+07e9
+2025
+SM_GETSERVERSELA
+07e9
+2025
+UM_GETUSERSELA
+07e9
+2025
+WM_CPL_LAUNCHED
+07ea
+2026
+SM_GETSERVERSELW
+07ea
+2026
+UM_GETUSERSELW
+07eb
+2027
+SM_GETCURFOCUSA
+07eb
+2027
+UM_GETGROUPSELA
+07ec
+2028
+SM_GETCURFOCUSW
+07ec
+2028
+UM_GETGROUPSELW
+07ed
+2029
+SM_GETOPTIONS
+07ed
+2029
+UM_GETCURFOCUSA
+07ee
+2030
+UM_GETCURFOCUSW
+07ef
+2031
+UM_GETOPTIONS
+07f0
+2032
+UM_GETOPTIONS2
+1000
+4096
+LVM_FIRST
+1000
+4096
+LVM_GETBKCOLOR
+1001
+4097
+LVM_SETBKCOLOR
+1002
+4098
+LVM_GETIMAGELIST
+1003
+4099
+LVM_SETIMAGELIST
+1004
+4100
+LVM_GETITEMCOUNT
+1005
+4101
+LVM_GETITEMA
+1006
+4102
+LVM_SETITEMA
+1007
+4103
+LVM_INSERTITEMA
+1008
+4104
+LVM_DELETEITEM
+1009
+4105
+LVM_DELETEALLITEMS
+100a
+4106
+LVM_GETCALLBACKMASK
+100b
+4107
+LVM_SETCALLBACKMASK
+100c
+4108
+LVM_GETNEXTITEM
+100d
+4109
+LVM_FINDITEMA
+100e
+4110
+LVM_GETITEMRECT
+100f
+4111
+LVM_SETITEMPOSITION
+1010
+4112
+LVM_GETITEMPOSITION
+1011
+4113
+LVM_GETSTRINGWIDTHA
+1012
+4114
+LVM_HITTEST
+1013
+4115
+LVM_ENSUREVISIBLE
+1014
+4116
+LVM_SCROLL
+1015
+4117
+LVM_REDRAWITEMS
+1016
+4118
+LVM_ARRANGE
+1017
+4119
+LVM_EDITLABELA
+1018
+4120
+LVM_GETEDITCONTROL
+1019
+4121
+LVM_GETCOLUMNA
+101a
+4122
+LVM_SETCOLUMNA
+101b
+4123
+LVM_INSERTCOLUMNA
+101c
+4124
+LVM_DELETECOLUMN
+101d
+4125
+LVM_GETCOLUMNWIDTH
+101e
+4126
+LVM_SETCOLUMNWIDTH
+101f
+4127
+LVM_GETHEADER
+1021
+4129
+LVM_CREATEDRAGIMAGE
+1022
+4130
+LVM_GETVIEWRECT
+1023
+4131
+LVM_GETTEXTCOLOR
+1024
+4132
+LVM_SETTEXTCOLOR
+1025
+4133
+LVM_GETTEXTBKCOLOR
+1026
+4134
+LVM_SETTEXTBKCOLOR
+1027
+4135
+LVM_GETTOPINDEX
+1028
+4136
+LVM_GETCOUNTPERPAGE
+1029
+4137
+LVM_GETORIGIN
+102a
+4138
+LVM_UPDATE
+102b
+4139
+LVM_SETITEMSTATE
+102c
+4140
+LVM_GETITEMSTATE
+102d
+4141
+LVM_GETITEMTEXTA
+102e
+4142
+LVM_SETITEMTEXTA
+102f
+4143
+LVM_SETITEMCOUNT
+1030
+4144
+LVM_SORTITEMS
+1031
+4145
+LVM_SETITEMPOSITION32
+1032
+4146
+LVM_GETSELECTEDCOUNT
+1033
+4147
+LVM_GETITEMSPACING
+1034
+4148
+LVM_GETISEARCHSTRINGA
+1035
+4149
+LVM_SETICONSPACING
+1036
+4150
+LVM_SETEXTENDEDLISTVIEWSTYLE
+1037
+4151
+LVM_GETEXTENDEDLISTVIEWSTYLE
+1038
+4152
+LVM_GETSUBITEMRECT
+1039
+4153
+LVM_SUBITEMHITTEST
+103a
+4154
+LVM_SETCOLUMNORDERARRAY
+103b
+4155
+LVM_GETCOLUMNORDERARRAY
+103c
+4156
+LVM_SETHOTITEM
+103d
+4157
+LVM_GETHOTITEM
+103e
+4158
+LVM_SETHOTCURSOR
+103f
+4159
+LVM_GETHOTCURSOR
+1040
+4160
+LVM_APPROXIMATEVIEWRECT
+1041
+4161
+LVM_SETWORKAREAS
+1042
+4162
+LVM_GETSELECTIONMARK
+1043
+4163
+LVM_SETSELECTIONMARK
+1044
+4164
+LVM_SETBKIMAGEA
+1045
+4165
+LVM_GETBKIMAGEA
+1046
+4166
+LVM_GETWORKAREAS
+1047
+4167
+LVM_SETHOVERTIME
+1048
+4168
+LVM_GETHOVERTIME
+1049
+4169
+LVM_GETNUMBEROFWORKAREAS
+104a
+4170
+LVM_SETTOOLTIPS
+104b
+4171
+LVM_GETITEMW
+104c
+4172
+LVM_SETITEMW
+104d
+4173
+LVM_INSERTITEMW
+104e
+4174
+LVM_GETTOOLTIPS
+1053
+4179
+LVM_FINDITEMW
+1057
+4183
+LVM_GETSTRINGWIDTHW
+105f
+4191
+LVM_GETCOLUMNW
+1060
+4192
+LVM_SETCOLUMNW
+1061
+4193
+LVM_INSERTCOLUMNW
+1073
+4211
+LVM_GETITEMTEXTW
+1074
+4212
+LVM_SETITEMTEXTW
+1075
+4213
+LVM_GETISEARCHSTRINGW
+1076
+4214
+LVM_EDITLABELW
+108b
+4235
+LVM_GETBKIMAGEW
+108c
+4236
+LVM_SETSELECTEDCOLUMN
+108d
+4237
+LVM_SETTILEWIDTH
+108e
+4238
+LVM_SETVIEW
+108f
+4239
+LVM_GETVIEW
+1091
+4241
+LVM_INSERTGROUP
+1093
+4243
+LVM_SETGROUPINFO
+1095
+4245
+LVM_GETGROUPINFO
+1096
+4246
+LVM_REMOVEGROUP
+1097
+4247
+LVM_MOVEGROUP
+109a
+4250
+LVM_MOVEITEMTOGROUP
+109b
+4251
+LVM_SETGROUPMETRICS
+109c
+4252
+LVM_GETGROUPMETRICS
+109d
+4253
+LVM_ENABLEGROUPVIEW
+109e
+4254
+LVM_SORTGROUPS
+109f
+4255
+LVM_INSERTGROUPSORTED
+10a0
+4256
+LVM_REMOVEALLGROUPS
+10a1
+4257
+LVM_HASGROUP
+10a2
+4258
+LVM_SETTILEVIEWINFO
+10a3
+4259
+LVM_GETTILEVIEWINFO
+10a4
+4260
+LVM_SETTILEINFO
+10a5
+4261
+LVM_GETTILEINFO
+10a6
+4262
+LVM_SETINSERTMARK
+10a7
+4263
+LVM_GETINSERTMARK
+10a8
+4264
+LVM_INSERTMARKHITTEST
+10a9
+4265
+LVM_GETINSERTMARKRECT
+10aa
+4266
+LVM_SETINSERTMARKCOLOR
+10ab
+4267
+LVM_GETINSERTMARKCOLOR
+10ad
+4269
+LVM_SETINFOTIP
+10ae
+4270
+LVM_GETSELECTEDCOLUMN
+10af
+4271
+LVM_ISGROUPVIEWENABLED
+10b0
+4272
+LVM_GETOUTLINECOLOR
+10b1
+4273
+LVM_SETOUTLINECOLOR
+10b3
+4275
+LVM_CANCELEDITLABEL
+10b4
+4276
+LVM_MAPINDEXTOID
+10b5
+4277
+LVM_MAPIDTOINDEX
+10b6
+4278
+LVM_ISITEMVISIBLE
+2000
+8192
+OCM__BASE
+2005
+8197
+LVM_SETUNICODEFORMAT
+2006
+8198
+LVM_GETUNICODEFORMAT
+2019
+8217
+OCM_CTLCOLOR
+202b
+8235
+OCM_DRAWITEM
+202c
+8236
+OCM_MEASUREITEM
+202d
+8237
+OCM_DELETEITEM
+202e
+8238
+OCM_VKEYTOITEM
+202f
+8239
+OCM_CHARTOITEM
+2039
+8249
+OCM_COMPAREITEM
+204e
+8270
+OCM_NOTIFY
+2111
+8465
+OCM_COMMAND
+2114
+8468
+OCM_HSCROLL
+2115
+8469
+OCM_VSCROLL
+2132
+8498
+OCM_CTLCOLORMSGBOX
+2133
+8499
+OCM_CTLCOLOREDIT
+2134
+8500
+OCM_CTLCOLORLISTBOX
+2135
+8501
+OCM_CTLCOLORBTN
+2136
+8502
+OCM_CTLCOLORDLG
+2137
+8503
+OCM_CTLCOLORSCROLLBAR
+2138
+8504
+OCM_CTLCOLORSTATIC
+2210
+8720
+OCM_PARENTNOTIFY
+8000
+32768
+WM_APP
+cccd
+52429
+WM_RASDIALEVENT
+*/
                    
                     
                   
@@ -12689,7 +16205,16 @@ LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window)
 noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_window) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
     ZeroMemory(&m_curMedium, sizeof(m_curMedium));
-    CUIString titlename(m_strControlName);
+    // 检查名称
+    {
+        auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
+        if (basestr) {
+            auto namestr = this->CopyStringSafe(basestr);
+            force_cast(this->name) = namestr;
+        }
+    }
+    CUIString titlename;
+    titlename.Set(this->name.c_str());
     {
         Helper::MakeString(
             node.attribute(LongUI::XMLAttribute::WindowTitleName).value(),
@@ -12815,21 +16340,28 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
 
 // UIWindow 析构函数
 LongUI::UIWindow::~UIWindow() noexcept {
-    // 取消注册
-    ::RevokeDragDrop(m_hwnd);
-    // 杀掉!
-    ::KillTimer(m_hwnd, m_idBlinkTimer);
-    // 摧毁窗口
-    //::DestroyWindow(m_hwnd);
-    ::PostMessageW(m_hwnd, WM_DESTROY, 0, 0);
+    // 设置窗口指针
+    ::SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, LONG_PTR(0));
+    // 解锁
+    UIManager.Unlock();
+    {
+        // 取消注册
+        ::RevokeDragDrop(m_hwnd);
+        // 杀掉!
+        ::KillTimer(m_hwnd, m_idBlinkTimer);
+        // 摧毁窗口
+        ::DestroyWindow(m_hwnd);
+        // 释放资源
+        this->release_data();
+        // 释放数据
+        ::SafeRelease(m_pTaskBarList);
+        ::SafeRelease(m_pDropTargetHelper);
+        ::SafeRelease(m_pCurDataObject);
+    }
+    // 加锁
+    UIManager.Lock();
     // 移除窗口
     UIManager.RemoveWindow(this);
-    // 释放资源
-    this->release_data();
-    // 释放数据
-    ::SafeRelease(m_pTaskBarList);
-    ::SafeRelease(m_pDropTargetHelper);
-    ::SafeRelease(m_pCurDataObject);
 }
 
 // 移除控件引用
@@ -12851,7 +16383,7 @@ void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept
 #ifdef _DEBUG
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
     if (itr != m_vRegisteredControl.end()) {
-        UIManager << DL_Warning << L"control: [" << c->GetNameStr() << L"] existed" << LongUI::endl;
+        UIManager << DL_Warning << L"control: [" << c->name << L"] existed" << LongUI::endl;
         return;
     }
 #endif
@@ -12875,7 +16407,7 @@ void LongUI::UIWindow::UnRegisterOffScreenRender(UIControl* c) noexcept {
     }
 #ifdef _DEBUG
     else {
-        UIManager << DL_Warning << L"control: [" << c->GetNameStr() << L"] not found" << LongUI::endl;
+        UIManager << DL_Warning << L"control: [" << c->name << L"] not found" << LongUI::endl;
     }
 #endif
 }
@@ -12962,39 +16494,28 @@ void LongUI::UIWindow::HideCaret() noexcept {
 }
 
 // 查找控件
-auto LongUI::UIWindow::FindControl(const CUIString& str) noexcept -> UIControl * {
+auto LongUI::UIWindow::FindControl(const char* cname) noexcept -> UIControl * {
     // 查找控件
-    const auto itr = m_mapString2Control.find(str);
+    auto result = m_hashStr2Ctrl.Find(cname);
     // 未找到返回空
-    if (itr == m_mapString2Control.cend()) {
-        // 警告
-        UIManager << DL_Warning << L"Control Not Found:\n  " << str << LongUI::endl;
+    if (!result) {
+        // 给予警告
+        UIManager << DL_Warning << L"Control Not Found:\n  " << cname << LongUI::endl;
         return nullptr;
     }
-    // 找到就返回指针
     else {
-        return reinterpret_cast<LongUI::UIControl*>(itr->second);
+        return reinterpret_cast<LongUI::UIControl*>(*result);
     }
 }
 
-// 添加控件
-void LongUI::UIWindow::AddControl(const std::pair<CUIString, void*>& pair) noexcept {
+// 添加命名控件
+void LongUI::UIWindow::AddNamedControl(UIControl* ctrl) noexcept {
+    assert(ctrl && "bad argumrnt");
+    const auto cname = ctrl->name.c_str();
     // 有效
-    if (pair.first != L"") {
-        try {
-#ifdef _DEBUG
-            // 先检查
-            {
-                auto itr = m_mapString2Control.find(pair.first);
-                if (itr != m_mapString2Control.end()) {
-                    UIManager << DL_Warning << "Exist: " << pair.first << LongUI::endl;
-                    assert(!"Control Has been existed!");
-                }
-            }
-#endif
-            m_mapString2Control.insert(pair);
-        }
-        catch (...) {
+    if (cname[0]) {
+        // 插入
+        if(!m_hashStr2Ctrl.Insert(cname, ctrl)) {
             ShowErrorWithStr(L"Failed to add control");
         }
     }
@@ -13231,12 +16752,10 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
         // 再渲染
         auto init_transfrom = D2D1::Matrix3x2F::Identity();
         for (auto unit = units; unit < units + length_for_units; ++unit) {
-            auto ctrl = *unit;
-            assert(ctrl != this);
-            // 设置转换矩阵
+            auto ctrl = *unit; assert(ctrl != this);
+            // XXX: 优化为仅调用PushAxisAlignedClip
             UIManager_RenderTarget->SetTransform(&init_transfrom);
             UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-            // 设置转换矩阵
             UIManager_RenderTarget->SetTransform(&ctrl->world);
             // 正常渲染
             ctrl->Render(RenderType::Type_Render);
@@ -13496,7 +17015,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     register HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
     if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
-        UIManager << DL_Hint << L"Window: [" << this->GetNameStr() 
+        UIManager << DL_Hint << L"Window: [" 
+            << this->name 
             << L"]\tTarget Bitmap Resize to " 
             << LongUI::Formated(L"(%d, %d)", int(rect_right), int(rect_bottom)) 
             << LongUI::endl;

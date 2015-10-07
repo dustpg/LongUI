@@ -204,6 +204,8 @@ auto LongUI::UIContainerBuiltIn::GetIndexOf(UIControl* child) const noexcept ->u
 
 // 随机访问控件
 auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl * {
+   // 超出
+    if (i >= m_cChildrenCount) return nullptr;
     // 性能警告
     if (i > 8) {
         UIManager << DL_Warning
@@ -243,11 +245,99 @@ auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl *
 // 交换
 void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcept {
     auto ctrl1 = *itr1; auto ctrl2 = *itr2;
+    assert(ctrl1 && ctrl2 && "bad arguments");
     assert(ctrl1->parent == this && ctrl2->parent == this && L"隔壁老王!");
-    assert(ctrl1 != ctrl2 && "bad arguments");
     // 不一致时
     if (ctrl1 != ctrl2) {
-        // TODO: 完成
+        // A link B
+        const bool a___b = ctrl1->next == ctrl2;
+        // B link A
+        const bool b___a = ctrl2->next == ctrl1;
+        // A存在前驱
+        if (ctrl1->prev) {
+            if(!b___a) force_cast(ctrl1->prev->next) = ctrl2;
+        }
+        // A为头节点
+        else {
+            m_pHead = ctrl2;
+        }
+        // A存在后驱
+        if (ctrl1->next) {
+            if(!a___b) force_cast(ctrl1->next->prev) = ctrl2;
+        }
+        // A为尾节点
+        else {
+            m_pTail = ctrl2;
+        }
+        // B存在前驱
+        if (ctrl2->prev) {
+            if(!a___b) force_cast(ctrl2->prev->next) = ctrl1;
+        }
+        // B为头节点
+        else {
+            m_pHead = ctrl1;
+        }
+        // B存在后驱
+        if (ctrl2->next) {
+            if(!b___a) force_cast(ctrl2->next->prev) = ctrl1;
+        }
+        // B为尾节点
+        else {
+            m_pTail = ctrl1;
+        }
+        // 相邻交换
+        auto swap_neibergs = [](UIControl* a, UIControl* b) noexcept {
+            assert(a->next == b && "bad neibergs");
+            force_cast(a->next) = b->next;
+            force_cast(b->next) = a;
+            force_cast(b->prev) = a->prev;
+            force_cast(a->prev) = b;
+        };
+        // 相邻则节点?
+        if (a___b) {
+            swap_neibergs(ctrl1, ctrl2);
+        }
+        // 相邻则节点?
+        else if (b___a) {
+            swap_neibergs(ctrl2, ctrl1);
+        }
+        // 不相邻:交换前驱后驱
+        else {
+            std::swap(force_cast(ctrl1->prev), force_cast(ctrl2->prev));
+            std::swap(force_cast(ctrl1->next), force_cast(ctrl2->next));
+        }
+#ifdef _DEBUG
+        // 检查链表是否成环
+        {
+            auto count = m_cChildrenCount;
+            auto debug_ctrl = m_pHead;
+            while (debug_ctrl) {
+                debug_ctrl = debug_ctrl->next;
+                assert(count && "bad action 0 in swaping children");
+                count--;
+            }
+            assert(!count && "bad action 1 in swaping children");
+        }
+        {
+            auto count = m_cChildrenCount;
+            auto debug_ctrl = m_pTail;
+            while (debug_ctrl) {
+                debug_ctrl = debug_ctrl->prev;
+                assert(count && "bad action 2 in swaping children");
+                count--;
+            }
+            assert(!count && "bad action 3 in swaping children");
+        }
+#endif
+        // 刷新
+        this->SetControlLayoutChanged();
+        m_pWindow->Invalidate(this);
+    }
+    // 给予警告
+    else {
+        UIManager << DL_Warning
+            << L"wanna to swap 2 children but just one"
+            << LongUI::endl;
     }
 }
 

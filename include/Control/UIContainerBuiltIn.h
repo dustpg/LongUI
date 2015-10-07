@@ -142,4 +142,6 @@ namespace LongUI {
 #else
     };
 #endif
+    // make built-in iterator
+    static inline auto MakeIteratorBI(UIControl* ctrl) noexcept { return UIContainerBuiltIn::Iterator(ctrl); }
 }

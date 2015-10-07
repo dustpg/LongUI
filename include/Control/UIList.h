@@ -121,10 +121,8 @@ namespace LongUI {
         using Super = UIContainer;
         // using
         using LinesVector = EzContainer::PointerVector<UIListLine>;
-        // weights buffer
-        //using WeightBuffer = EzContainer::SmallBuffer<float, 16>;
-        // line template buffer
-        using LineTemplateBuffer = EzContainer::SmallBuffer<Helper::CC, 16>;
+        // line template vector
+        using LineTemplateVector = EzContainer::EzVector<Helper::CC>;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public:
@@ -176,7 +174,7 @@ namespace LongUI {
         auto GetAt(uint32_t index) const noexcept { return m_vLines[index]; }
     public:
         // get line-element count
-        auto GetLineElementCount() const noexcept { return m_bufLineTemplate.GetCount(); }
+        auto GetLineElementCount() const noexcept { return m_vLineTemplate.size(); }
         // insert a line to list with line-template
         void InsertLineTemplateToList(uint32_t index) noexcept;
         // remove line-element with index
@@ -273,7 +271,7 @@ namespace LongUI {
         // line height
         float                   m_fLineHeight = 32.f;
         // line template
-        LineTemplateBuffer      m_bufLineTemplate;
+        LineTemplateVector      m_vLineTemplate;
         // list lines vector
         LinesVector             m_vLines;
         // selected lines

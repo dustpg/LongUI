@@ -7,8 +7,9 @@
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
     m_vLines.reserve(100);
+    m_vLineTemplate.reserve(16);
     // OOM or BAD ACTION
-    if(!m_vLines.isok()) {
+    if(!m_vLines.isok() && !m_vLineTemplate.isok()) {
         UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
     }
     // TEST: INIT COLOR DATA
@@ -32,23 +33,23 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         if ((str = node.attribute("linetemplate").value())) {
             // 检查长度
             register auto len = Helper::MakeCC(str);
+            m_vLineTemplate.resize(len);
             // 有效
-            if (len) {
-                m_bufLineTemplate.NewSize(len);
-                Helper::MakeCC(str, m_bufLineTemplate.GetData());
+            if (len && m_vLineTemplate.isok()) {
+                Helper::MakeCC(str, m_vLineTemplate.data());
             }
+            // 没有则给予警告
             else {
-                UIManager << DL_Hint
-                    << L"BAD TEMPLATE:   "
-                    << str
+                UIManager << DL_Warning
+                    << L"BAD TEMPLATE: {"
+                    << str << L'} or OOM'
                     << endl;
             }
         }
         // 给予提示
         else {
             UIManager << DL_Hint
-                << L"recommended to set 'linetemplate'. "
-                /*<<*/ L"now, set 'UIText, 0' as template"
+                << L"recommended to set 'linetemplate'. Now, set 'Text, 0' as template"
                 << endl;
         }
         // 允许排序
@@ -241,7 +242,7 @@ void LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept {
     auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(this->CET(), pugi::xml_node()));
     if (ctrl) {
         // 添加子控件
-        for (const auto& data : m_bufLineTemplate) {
+        for (const auto& data : m_vLineTemplate) {
             ctrl->Insert(ctrl->end(), UIManager.CreateControl(ctrl, data.id, data.func));
         }
         // 插入
@@ -249,41 +250,74 @@ void LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept {
     }
 }
 
-// 利用索引移除行模板中一个元素
+// [UNTESTED] 利用索引移除行模板中一个元素
 void LongUI::UIList::RemoveLineElementInEachLine(uint32_t index) noexcept {
-    assert(index < m_bufLineTemplate.GetCount() && "out of range");
-    // TODO: 完成
-
+    assert(index < m_vLineTemplate.size() && "out of range");
+    if (index < m_vLineTemplate.size()) {
+        // 刷新
+        m_pWindow->Invalidate(this);
+        // 交换列表
+        for (auto line : m_vLines) {
+            auto child = line->GetAt(index);
+            line->RemoveClean(child);
+        }
+        // 模板
+        m_vLineTemplate.erase(index);
+    }
 }
 
-// 交换行模板中元素
+// [UNTESTED] 交换行模板中元素
 void LongUI::UIList::SwapLineElementsInEachLine(uint32_t index1, uint32_t index2) noexcept {
-    assert(index1 < m_bufLineTemplate.GetCount() && index2 < m_bufLineTemplate.GetCount() && "out of range");
+    assert(index1 < m_vLineTemplate.size() && index2 < m_vLineTemplate.size() && "out of range");
     assert(index1 != index2 && "bad arguments");
-    if (!(index1 < m_bufLineTemplate.GetCount() && index2 < m_bufLineTemplate.GetCount())) return;
+    if (!(index1 < m_vLineTemplate.size() && index2 < m_vLineTemplate.size())) return;
     if (index1 == index2) return;
-    // TODO: 交换列表
+    // 刷新
+    m_pWindow->Invalidate(this);
+    // 交换列表
+    for (auto line : m_vLines) {
+        auto child1 = line->GetAt(index1);
+        auto child2 = line->GetAt(index2);
+        line->SwapChild(child1, child2);
+    }
     // 交换模板
-    std::swap(m_bufLineTemplate[index1], m_bufLineTemplate[index2]);
+    std::swap(m_vLineTemplate[index1], m_vLineTemplate[index2]);
 }
 
-// 插入一个新的行元素
-void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid ) noexcept {
-    assert(index <= m_bufLineTemplate.GetCount() && "out of range");
+// [UNTESTED]插入一个新的行元素
+void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid) noexcept {
+    assert(index <= m_vLineTemplate.size() && "out of range");
     assert(func && "bad argument");
-    // TODO: 完成
-    if (index <= m_bufLineTemplate.GetCount() && func) {
-
+    // 有效
+    if (index <= m_vLineTemplate.size() && func) {
+        // 刷新
+        m_pWindow->Invalidate(this);
+        // 交换列表
+        for (auto line : m_vLines) {
+            auto ctrl = UIManager.CreateControl(line, tid, func);
+            if (ctrl) {
+                auto itr = MakeIteratorBI(line->GetAt(index));
+                line->Insert(itr, ctrl);
+            }
+            else {
+                UIManager << DL_Error
+                    << "CreateControl failed. OOM or BAD ACTION"
+                    << LongUI::endl;
+            }
+        }
+        // 插入模板
+        Helper::CC cc = { func, tid };
+        m_vLineTemplate.insert(index, cc);
     }
 }
 
 // 设置
 void LongUI::UIList::SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid ) noexcept {
-    assert(index < m_bufLineTemplate.GetCount() && "out of range");
+    assert(index < m_vLineTemplate.size() && "out of range");
     assert(func && "bad argument");
-    if (index < m_bufLineTemplate.GetCount() && func) {
-        m_bufLineTemplate[index].func = func;
-        m_bufLineTemplate[index].id = tid;
+    if (index < m_vLineTemplate.size() && func) {
+        m_vLineTemplate[index].func = func;
+        m_vLineTemplate[index].id = tid;
     }
 }
 
@@ -540,7 +574,7 @@ LongUINoinline void LongUI::UIList::select_to(uint32_t index1, uint32_t index2) 
 #endif
 }
 
-// UIList: 子控件向量修改了
+// UIList: 重置选择
 void LongUI::UIList::reset_select() noexcept {
     //m_pHoveredLine = nullptr;
     //m_ixLastClickedLine = uint32_t(-1);
@@ -557,11 +591,11 @@ void LongUI::UIList::init_layout() noexcept {
     if (rctrl) {
         // 检查不和谐的地方
 #ifdef _DEBUG
-        if (rctrl->GetCount() != m_bufLineTemplate.GetCount()) {
-            if (m_bufLineTemplate.GetCount()) {
+        if (rctrl->GetCount() != m_vLineTemplate.size()) {
+            if (m_vLineTemplate.size()) {
                 UIManager << DL_Warning
-                    << L"Inconsistent count of line-element: SET "
-                    << long(m_bufLineTemplate.GetCount())
+                    << L"inconsistent line-element count: SET "
+                    << long(m_vLineTemplate.size())
                     << L", BUT "
                     << long(rctrl->GetCount())
                     << LongUI::endl;
@@ -581,13 +615,13 @@ void LongUI::UIList::init_layout() noexcept {
 
 // 设置元素数量
 void LongUI::UIList::set_element_count(uint32_t length) noexcept {
-    auto old = m_bufLineTemplate.GetCount();
-    m_bufLineTemplate.NewSize(length);
+    auto old = m_vLineTemplate.size();
+    m_vLineTemplate.newsize(length);
     // 变长了
-    if (old < m_bufLineTemplate.GetCount()) {
-        for (auto i = old; i < m_bufLineTemplate.GetCount(); ++i) {
-            m_bufLineTemplate[i].id = 0;
-            m_bufLineTemplate[i].func = UIText::CreateControl;
+    if (old < m_vLineTemplate.size()) {
+        for (auto i = old; i < m_vLineTemplate.size(); ++i) {
+            m_vLineTemplate[i].id = 0;
+            m_vLineTemplate[i].func = UIText::CreateControl;
         }
     }
 }
