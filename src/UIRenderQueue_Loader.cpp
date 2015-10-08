@@ -61,9 +61,13 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
             time = m_dwStartTime - time;
             int16_t dev = int16_t(int16_t(time) - int16_t(LongUIPlanRenderingTotalTime * 1000));
             m_sTimeDeviation += dev;
-            UIManager << DL_Log << "Time Deviation: "
-                << long(dev) << " ms    Totle: " << long(m_sTimeDeviation)
-                << " ms" << endl;
+#ifdef _DEBUG
+            long a = long(dev);
+            long b = long(m_sTimeDeviation);
+            UIManager << DL_Log 
+                << Formated(L"Time Deviation: %4ldms    Totle: %4ldms", a, b)
+                << endl;
+#endif
             // TODO: 时间校正
         }
     }

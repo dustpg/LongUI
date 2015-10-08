@@ -646,6 +646,8 @@ namespace LongUI {
     }
     // control vector
     using ControlVector = EzContainer::PointerVector<UIControl>;
+    // index vector
+    using IndexVector = EzContainer::EzVector<uint32_t>;
     // Context Buffer
     using ContextBuffer = EzContainer::SmallBuffer<char, 4 * 4>;
     // String Hash Table

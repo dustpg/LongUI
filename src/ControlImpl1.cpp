@@ -261,6 +261,7 @@ auto LongUI::UIButton::Recreate() noexcept ->HRESULT {
 
 // 添加事件监听器(雾)
 bool LongUI::UIButton::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
+    // 点击
     if (sb == SubEvent::Event_ItemClicked) {
         m_event += std::move(call);
         return true;

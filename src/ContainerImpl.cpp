@@ -206,6 +206,8 @@ auto LongUI::UIContainerBuiltIn::GetIndexOf(UIControl* child) const noexcept ->u
 auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl * {
    // 超出
     if (i >= m_cChildrenCount) return nullptr;
+    // 第一个
+    if (!i) return m_pHead;
     // 性能警告
     if (i > 8) {
         UIManager << DL_Warning

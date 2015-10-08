@@ -3,7 +3,7 @@
 
 // -------------------- LongUI::Component::ShortText --------------------
 // ShortText 构造函数
-LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix) noexcept
+LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix) noexcept
     : m_pTextRenderer(nullptr) {
     // 设置
     m_config = {
@@ -12,42 +12,50 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char * prefix
         Helper::XMLGetRichType(node, RichType::Type_None, "richtype", prefix),
         0
     };
-    // 检查参数
-    assert(node && prefix && "bad arguments");
-    // 属性
-    auto attribute = [&node, prefix](const char* attr) {
-        return Helper::XMLGetValue(node, attr, prefix);
-    };
-    const char*str = nullptr;
-    // 获取进度
-    if ((str = attribute("progress"))) {
-        m_config.progress = LongUI::AtoF(str);
-    }
-    // 获取渲染器
-    m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
-    // 保证缓冲区
-    if (m_pTextRenderer) {
-        auto length = m_pTextRenderer->GetContextSizeInByte();
-        if (length) {
-            if ((str = attribute("context"))) {
-                m_buffer.NewSize(length);
-                m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
+    // 有效节点
+    if (node) {
+        // 检查参数
+        assert(prefix && "bad arguments");
+        // 属性
+        auto attribute = [&node, prefix](const char* attr) {
+            return Helper::XMLGetValue(node, attr, prefix);
+        };
+        const char*str = nullptr;
+        // 获取进度
+        if ((str = attribute("progress"))) {
+            m_config.progress = LongUI::AtoF(str);
+        }
+        // 获取渲染器
+        m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
+        // 保证缓冲区
+        if (m_pTextRenderer) {
+            auto length = m_pTextRenderer->GetContextSizeInByte();
+            if (length) {
+                if ((str = attribute("context"))) {
+                    m_buffer.NewSize(length);
+                    m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
+                }
             }
         }
-    }
-    // 检查基本颜色
-    m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
-    Helper::MakeColor(attribute("color"), m_basicColor);
-    {
-        // 检查格式
-        uint32_t format_index = 0;
-        if ((str = attribute("format"))) {
-            format_index = static_cast<uint32_t>(LongUI::AtoI(str));
+        // 检查基本颜色
+        Helper::MakeColor(attribute("color"), m_basicColor);
+        {
+            // 检查格式
+            uint32_t format_index = 0;
+            if ((str = attribute("format"))) {
+                format_index = static_cast<uint32_t>(LongUI::AtoI(str));
+            }
+            m_config.format = UIManager.GetTextFormat(format_index);
         }
-        m_config.format = UIManager.GetTextFormat(format_index);
+        // 重建
+        m_text.Set(node.attribute(prefix).value());
     }
-    // 重建
-    m_text.Set(node.attribute(prefix).value());
+    // 没有?
+    else {
+        char name[2]; name[0] = '0'; name[1] = 0;
+        m_pTextRenderer = UIManager.GetTextRenderer(name);
+        m_config.format = UIManager.GetTextFormat(0);
+    }
     this->RecreateLayout();
 }
 
@@ -75,7 +83,7 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
         if (string_length_need < 0) string_length_need = 0;
         else if (string_length_need > m_text.length()) string_length_need = m_text.length();
         // create it
-        UIManager_DWriteFactory->CreateTextLayout(
+        auto hr = UIManager_DWriteFactory->CreateTextLayout(
             m_text.c_str(),
             string_length_need,
             old_layout ? old_layout : m_config.format,
@@ -83,6 +91,7 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
             m_config.height,
             &m_pLayout
             );
+        assert(SUCCEEDED(hr) && m_pLayout);
         m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
         break;
     }

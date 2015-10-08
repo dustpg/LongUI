@@ -1,24 +1,22 @@
 ﻿#include "LongUI.h"
 #include <algorithm>
 
+constexpr float LONGUI_LINE_ELEMENT_INIT_WIDTH = 32.f;
+
 // ----------------------------------------------------------------------------
 // -------------------------------- UIList ------------------------------------
 // ----------------------------------------------------------------------------
 // UI列表控件: 构造函数
 LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
     m_vLines.reserve(100);
+    m_vSelectedIndex.reserve(16);
     m_vLineTemplate.reserve(16);
     // OOM or BAD ACTION
     if(!m_vLines.isok() && !m_vLineTemplate.isok()) {
         UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
     }
-    // TEST: INIT COLOR DATA
-    m_colorLineNormal1 = D2D1::ColorF(0xffffff, 0.5f);
-    m_colorLineNormal2 = D2D1::ColorF(0xeeeeee, 0.5f);
-    m_colorLineHover = D2D1::ColorF(0xcde8ff, 0.5f);
-    m_colorLineSelected = D2D1::ColorF(0x9cd2ff, 0.5f);
     // MAIN PROC
-    auto listflag = this->list_flag | Flag_MultiSelection;
+    auto listflag = this->list_flag | Flag_MultiSelect;
     if (node) {
         const char* str = nullptr;
         // 行高度
@@ -33,16 +31,25 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         if ((str = node.attribute("linetemplate").value())) {
             // 检查长度
             register auto len = Helper::MakeCC(str);
-            m_vLineTemplate.resize(len);
+            m_vLineTemplate.reserve(len);
+            EzContainer::SmallBuffer<Helper::CC, 16> buf;
+            buf.NewSize(len);
             // 有效
-            if (len && m_vLineTemplate.isok()) {
-                Helper::MakeCC(str, m_vLineTemplate.data());
+            if (len && m_vLineTemplate.isok() && buf.GetCount() == len) {
+                Helper::MakeCC(str, buf.GetData());
+                for (auto& cc : buf) {
+                    LINEELEDATA data;
+                    data.func = cc.func;
+                    data.id = static_cast<uint32_t>(cc.id);
+                    data.width = LONGUI_LINE_ELEMENT_INIT_WIDTH;
+                    m_vLineTemplate.push_back(data);
+                }
             }
             // 没有则给予警告
             else {
                 UIManager << DL_Warning
                     << L"BAD TEMPLATE: {"
-                    << str << L'} or OOM'
+                    << str << L"} or OOM"
                     << endl;
             }
         }
@@ -58,14 +65,21 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         }
         // 普通背景颜色
         Helper::MakeColor(node.attribute("linebkcolor").value(), m_colorLineNormal1);
-        // 普通背景颜色2
+        // 普通背景颜色2 - step 1
+        m_colorLineNormal2 = m_colorLineNormal1;
+        // 普通背景颜色2 - step 2
         Helper::MakeColor(node.attribute("linebkcolor2").value(), m_colorLineNormal2);
         // 悬浮颜色
         Helper::MakeColor(node.attribute("linebkcolorhover").value(), m_colorLineHover);
         // 选中颜色
         Helper::MakeColor(node.attribute("linebkcolorselected").value(), m_colorLineSelected);
     }
+    // 修改
     this->list_flag = listflag;
+
+    // TEST: INIT COLOR DATA
+    m_colorLineNormal1 = D2D1::ColorF(0xffffff, 0.5f);
+    m_colorLineNormal2 = D2D1::ColorF(0xeeeeee, 0.5f);
 }
 
 // 添加事件监听器(雾)
@@ -151,15 +165,11 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
 
 // push!
 LongUINoinline void LongUI::UIList::PushBack(UIControl* child) noexcept {
-    m_vLines.push_back(longui_cast<UIListLine*>(child));
-    this->after_insert(child);
-    ++m_cChildrenCount;
-    this->reset_select();
-    assert(m_vLines.isok());
+    return this->Insert(m_cChildrenCount, longui_cast<UIListLine*>(child));
 }
 
 // 插入
-LongUINoinline auto LongUI::UIList::Insert(uint32_t index, UIListLine* child) noexcept {
+LongUINoinline void LongUI::UIList::Insert(uint32_t index, UIListLine* child) noexcept {
     m_vLines.insert(index, child);
     this->after_insert(child);
     ++m_cChildrenCount;
@@ -238,16 +248,26 @@ void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
 }
 
 // 对列表插入一个行模板至指定位置
-void LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept {
+auto LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept ->UIListLine* {
     auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(this->CET(), pugi::xml_node()));
     if (ctrl) {
         // 添加子控件
         for (const auto& data : m_vLineTemplate) {
-            ctrl->Insert(ctrl->end(), UIManager.CreateControl(ctrl, data.id, data.func));
+            auto child = UIManager.CreateControl(ctrl, data.id, data.func);
+            if (child) {
+                child->SetWidthFixed();
+                child->SetWidth(data.width);
+                child->SetControlLayoutChanged();
+                ctrl->Insert(ctrl->end(), child);
+            }
+            else {
+                UIManager << DL_Error << "OOM or BAD ACTION" << LongUI::endl;
+            }
         }
         // 插入
         this->Insert(index, ctrl);
     }
+    return ctrl;
 }
 
 // [UNTESTED] 利用索引移除行模板中一个元素
@@ -306,8 +326,11 @@ void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFun
             }
         }
         // 插入模板
-        Helper::CC cc = { func, tid };
-        m_vLineTemplate.insert(index, cc);
+        LINEELEDATA cclike = { 
+            func, static_cast<uint32_t>(tid), 
+            LONGUI_LINE_ELEMENT_INIT_WIDTH
+        };
+        m_vLineTemplate.insert(index, cclike);
     }
 }
 
@@ -515,7 +538,7 @@ void LongUI::UIList::SelectTo(uint32_t index1, uint32_t index2) noexcept {
 LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select) noexcept {
     assert(index < m_cChildrenCount && "out of range for selection");
     // 检查是否多选
-    if (!new_select && !(this->list_flag & this->Flag_MultiSelection)) {
+    if (!new_select && !(this->list_flag & this->Flag_MultiSelect)) {
         UIManager << DL_Hint
             << "cannot do multi-selection"
             << LongUI::endl;
@@ -529,17 +552,18 @@ LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select
     auto line = m_vLines[index];
     if (line->IsSelected()) {
         line->SetSelected(false);
-        auto itr = std::find(m_vSelected.cbegin(), m_vSelected.cend(), line);
-        if (itr == m_vSelected.cend()) {
+        // 移除
+        auto itr = std::find(m_vSelectedIndex.cbegin(), m_vSelectedIndex.cend(), index);
+        if (itr == m_vSelectedIndex.cend()) {
             assert(!"NOT FOUND");
         }
         else {
-            m_vSelected.erase(itr);
+            m_vSelectedIndex.erase(itr);
         }
     }
     else {
         line->SetSelected(true);
-        m_vSelected.push_back(line);
+        m_vSelectedIndex.push_back(index);
     }
 }
 
@@ -547,7 +571,7 @@ LongUINoinline void LongUI::UIList::select_child(uint32_t index, bool new_select
 LongUINoinline void LongUI::UIList::select_to(uint32_t index1, uint32_t index2) noexcept {
     assert(index1 < m_cChildrenCount && index2 < m_cChildrenCount && "out of range for selection");
     // 检查是否多选
-    if (!(this->list_flag & this->Flag_MultiSelection)) {
+    if (!(this->list_flag & this->Flag_MultiSelect)) {
         UIManager << DL_Hint
             << "cannot do multi-selection"
             << LongUI::endl;
@@ -555,33 +579,26 @@ LongUINoinline void LongUI::UIList::select_to(uint32_t index1, uint32_t index2) 
     }
     // 交换
     if (index1 > index2) std::swap(index1, index2);
-    this->reset_select();
     // 选择
     auto itr_1st = m_vLines.data() + index1;
     auto itr_lst = m_vLines.data() + index2;
+    auto i = index1;
     for (auto itr = itr_1st; itr <= itr_lst; ++itr) {
         auto line = *itr;
         line->SetSelected(true);
-        m_vSelected.push_back(line);
+        m_vSelectedIndex.push_back(i);
+        ++i;
     }
-#ifdef _DEBUG
-    if (this->debug_this) {
-        UIManager << DL_Log
-            << L"m_vSelected: "
-            << reinterpret_cast<const ControlVector&>(m_vSelected)
-            << endl;
-    }
-#endif
 }
 
 // UIList: 重置选择
 void LongUI::UIList::reset_select() noexcept {
     //m_pHoveredLine = nullptr;
     //m_ixLastClickedLine = uint32_t(-1);
-    for (auto line : m_vSelected) {
-        line->SetSelected(false);
+    for (auto i : m_vSelectedIndex) {
+        m_vLines[i]->SetSelected(false);
     }
-    m_vSelected.clear();
+    m_vSelectedIndex.clear();
 }
 
 // UIList: 初始化布局
@@ -622,6 +639,7 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
         for (auto i = old; i < m_vLineTemplate.size(); ++i) {
             m_vLineTemplate[i].id = 0;
             m_vLineTemplate[i].func = UIText::CreateControl;
+            m_vLineTemplate[i].width = LONGUI_LINE_ELEMENT_INIT_WIDTH;
         }
     }
 }

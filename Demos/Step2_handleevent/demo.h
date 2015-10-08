@@ -32,7 +32,7 @@ namespace LongUI { namespace Demo {
             }
             // delete this
             else {
-                this->cleanup();
+                this->delay_cleanup();
             }
             return true;
         }

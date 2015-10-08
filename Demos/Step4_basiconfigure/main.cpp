@@ -3,11 +3,8 @@
 #include "LongUI.h"
 #include "../Step3_handleeventex/demo.h"
 
-#define LONGUI_NAMESPACE_BEGIN2 namespace LongUI { namespace
-#define LONGUI_NAMESPACE_END2 }
-
 // longui::demo namespace
-LONGUI_NAMESPACE_BEGIN2 Demo {
+LONGUI_NAMESPACE_BEGIN namespace Demo {
     // config
     class MyConfig final : public CUIDefaultConfigure {
         // super class
@@ -24,7 +21,7 @@ LONGUI_NAMESPACE_BEGIN2 Demo {
         bool    cpu_rendering = true;
     };
 }
-LONGUI_NAMESPACE_END2
+LONGUI_NAMESPACE_END
 
 // Entry for App
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {

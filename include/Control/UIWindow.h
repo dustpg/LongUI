@@ -109,7 +109,7 @@ namespace LongUI {
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
     public: // some new
         // on close event
-        virtual auto OnClose() noexcept -> bool { this->cleanup(); UIManager.Exit(); return true; };
+        virtual auto OnClose() noexcept -> bool { this->delay_cleanup(); UIManager.Exit(); return true; };
     public: // IDropTarget interface
         // impl for IDropTarget::DragEnter
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
@@ -124,6 +124,8 @@ namespace LongUI {
         void SetTimer(UIControl* ctrl, uint32_t time) noexcept { assert(ctrl); ::SetTimer(m_hwnd, UINT_PTR(ctrl), time, nullptr); }
         // kill timer
         void KillTimer(UIControl* ctrl) noexcept { assert(ctrl); ::KillTimer(m_hwnd, UINT_PTR(ctrl)); }
+        // close window later
+        void CloseWindowLater() const noexcept { ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0); };
         // remove control reference
         void RemoveControlReference(UIControl* ctrl) noexcept;
         // begin render

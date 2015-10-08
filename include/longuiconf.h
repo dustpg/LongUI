@@ -290,6 +290,8 @@ namespace LongUI {
 namespace LongUI {
     // window class name: zhuangbilty
     static constexpr wchar_t* const WindowClassName = L"Windows.UI.LongUI.NormalWindow";
+    // if (xml node name == MarginalXMLNode), will create marginal control for current container
+    static constexpr char* const MarginalXMLNode = "M";
     // attribute namespace
     namespace XMLAttribute {
         // name of control

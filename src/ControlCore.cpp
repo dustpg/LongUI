@@ -471,7 +471,11 @@ namespace LongUI {
         // Render 渲染
         virtual void Render(RenderType) const noexcept override {}
         // update 刷新
-        virtual void Update() noexcept override {}
+        virtual void Update() noexcept override {
+#ifdef _DEBUG
+            Super::Update();
+#endif
+        }
         // do event 事件处理
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override { return false; }
     public:
@@ -1147,4 +1151,9 @@ bool LongUI::UIControl::call_uievent(const UICallBack& call, SubEvent sb) noexce
     // 事件最低
     auto rc  = m_pWindow->DoEvent(arg);
     return rc || code;
+}
+
+// 延迟清理
+void LongUI::UIControl::delay_cleanup() noexcept {
+    UIManager.PushDelayCleanup(this);
 }

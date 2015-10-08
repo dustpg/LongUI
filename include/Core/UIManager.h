@@ -101,22 +101,22 @@ namespace LongUI {
         // create ui window with xml string
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
         // create ui window with custom window && xml string
-        template<class T>
-        auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept->UIWindow* {
-            auto code = m_docWindow.load_string(xml); assert(code); if (code.status) return nullptr;
+        template<class TTT>
+        TTT* CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept {
+            auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void*) noexcept ->UIWindow* {
-                return new(std::nothrow) T(node, parent);
+                return new(std::nothrow) TTT(node, parent);
             };
-            return this->create_ui_window(m_docWindow.first_child(), parent, create_func, nullptr);
+            return static_cast<TTT*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, nullptr));
         }
         // create ui window with custom window && xml && buffer
-        template<class T>
-        auto CreateUIWindow(const char* xml, UIWindow* parent, void* buffer) noexcept->UIWindow* {
-            auto code = m_docWindow.load_string(xml); assert(code); if (code.status) return nullptr;
+        template<class TTT>
+        TTT* CreateUIWindow(const char* xml, UIWindow* parent, void* buffer) noexcept {
+            auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void* buffer) noexcept ->UIWindow* {
-                return new(buffer) T(node, parent);
+                return new(buffer) TTT(node, parent);
             };
-            return this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer);
+            return static_cast<TTT*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer));
         }
     public:
         // create text format
@@ -137,6 +137,8 @@ namespace LongUI {
         inline auto Lock() noexcept { return m_uiLocker.Lock(); }
         // unlock
         inline auto Unlock() noexcept { return m_uiLocker.Unlock(); }
+        // push delay cleanup
+        inline auto PushDelayCleanup(UIControl* c) noexcept { m_vDelayCleanup.push_back(c); }
         // ShowError with string
         inline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
@@ -245,6 +247,8 @@ namespace LongUI {
         uint8_t*                        m_pBitmap0Buffer = nullptr;
         // map: string<->func
         StringTable                     m_hashStr2CreateFunc;
+        // delay cleanup vector
+        ControlVector                   m_vDelayCleanup;
         // feature level
         D3D_FEATURE_LEVEL               m_featureLevel;
         // input
@@ -319,6 +323,8 @@ namespace LongUI {
         // delte this method 删除移动构造函数
         CUIManager(CUIManager&&) = delete;
     private:
+        // cleanup delay-cleanup-chain
+        void cleanup_delay_cleanup_chain() noexcept;
         // load the template string
         auto load_control_template_string(const char* str) noexcept->HRESULT;
         // set the template string

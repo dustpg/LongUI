@@ -78,7 +78,7 @@ namespace LongUI { namespace Component {
         // the text config
         FormatTextConfig            m_config;
         // basic color
-        D2D1_COLOR_F                m_basicColor;
+        D2D1_COLOR_F                m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
         // the string of text
         CUIString                   m_text;
         // context buffer for text renderer

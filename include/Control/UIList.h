@@ -119,10 +119,12 @@ namespace LongUI {
     class UIList : public UIContainer {
         // super class
         using Super = UIContainer;
+        // line-element data
+        struct LINEELEDATA { CreateControlFunction func; uint32_t id; float width; };
         // using
         using LinesVector = EzContainer::PointerVector<UIListLine>;
         // line template vector
-        using LineTemplateVector = EzContainer::EzVector<Helper::CC>;
+        using LineTemplateVector = EzContainer::EzVector<LINEELEDATA>;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public:
@@ -132,8 +134,8 @@ namespace LongUI {
             Flag_SortableLineWithUserDataPtr = 1 << 0,
             // the sequence of element could be changed by mouse drag if header exsit
             Flag_DraggableHeaderSequence = 1 << 1,
-            // multi-selection
-            Flag_MultiSelection = 1 << 2,
+            // multi-select
+            Flag_MultiSelect = 1 << 2,
             // default flag
             Flag_Default = 0,
         };
@@ -169,14 +171,14 @@ namespace LongUI {
         // just remove 
         virtual void RemoveJust(UIControl* child) noexcept;
         // insert
-        auto Insert(uint32_t index, UIListLine* line) noexcept;
+        void Insert(uint32_t index, UIListLine* line) noexcept;
         // get child at index
         auto GetAt(uint32_t index) const noexcept { return m_vLines[index]; }
     public:
         // get line-element count
         auto GetLineElementCount() const noexcept { return m_vLineTemplate.size(); }
         // insert a line to list with line-template
-        void InsertLineTemplateToList(uint32_t index) noexcept;
+        auto InsertLineTemplateToList(uint32_t index) noexcept ->UIListLine*;
         // remove line-element with index
         void RemoveLineElementInEachLine(uint32_t index) noexcept;
         // swap 2 line-elements
@@ -185,9 +187,13 @@ namespace LongUI {
         void InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid = 0) noexcept;
         // set cc-element in line-template
         void SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid = 0) noexcept;
+        // push line-elemnet
+        template<typename ...Args> void PushLineElement(Args...) noexcept;
     public:
         // get conttrols
         const auto&GetContainer() const noexcept { return m_vLines; }
+        // get selected lines index
+        const auto&GetSelectedIndices() const noexcept { return m_vSelectedIndex; }
         // get height in line
         auto GetLineHeight() const noexcept { return m_fLineHeight; }
         // get last clicked line index
@@ -225,7 +231,15 @@ namespace LongUI {
         auto find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine*;
         // find line via mouse point
         auto find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t;
+        // push line-elemnet
+        template<typename ...Args> void push_back_helper(UIListLine* line, const wchar_t* p, Args...) noexcept;
+        // push line-elemnet
+        void push_back_helper(UIListLine*) noexcept {}
     public:
+        // begin itr
+        auto begin() noexcept { return m_vLines.begin(); }
+        // end itr
+        auto end() noexcept { return m_vLines.end(); }
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
@@ -251,9 +265,9 @@ namespace LongUI {
         // line back-color normal2
         D2D1_COLOR_F            m_colorLineNormal2 = D2D1::ColorF(0ui32, 0.f);
         // line back-color hover
-        D2D1_COLOR_F            m_colorLineHover = D2D1::ColorF(0ui32, 0.f);
+        D2D1_COLOR_F            m_colorLineHover = D2D1::ColorF(0xcde8ff, 0.5f);
         // line back-color selected 
-        D2D1_COLOR_F            m_colorLineSelected = D2D1::ColorF(0ui32, 0.f);
+        D2D1_COLOR_F            m_colorLineSelected = D2D1::ColorF(0x9cd2ff, 0.5f);
         // list header
         UIListHeader*           m_pHeader = nullptr;
         // to be sorted header child
@@ -274,8 +288,8 @@ namespace LongUI {
         LineTemplateVector      m_vLineTemplate;
         // list lines vector
         LinesVector             m_vLines;
-        // selected lines
-        LinesVector             m_vSelected;
+        // selected line index vector
+        IndexVector             m_vSelectedIndex;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -310,4 +324,8 @@ namespace LongUI {
 #endif
     // operator for UIList::UIListFlag
     LONGUI_DEFINE_ENUM_FLAG_OPERATORS(UIList::UIListFlag, uint32_t);
+    // -------------------------------------------------------------
+    template<typename ...Args> void UIList::PushLineElement(Args... args) noexcept {
+
+    }
 }

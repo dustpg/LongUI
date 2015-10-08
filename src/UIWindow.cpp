@@ -154,14 +154,14 @@ LongUI::UIWindow::~UIWindow() noexcept {
         ::RevokeDragDrop(m_hwnd);
         // 杀掉!
         ::KillTimer(m_hwnd, m_idBlinkTimer);
-        // 摧毁窗口
-        ::DestroyWindow(m_hwnd);
         // 释放资源
         this->release_data();
         // 释放数据
         ::SafeRelease(m_pTaskBarList);
         ::SafeRelease(m_pDropTargetHelper);
         ::SafeRelease(m_pCurDataObject);
+        // 关闭
+        this->CloseWindowLater();
     }
     // 加锁
     UIManager.Lock();
@@ -336,6 +336,7 @@ void LongUI::UIWindow::SetIcon(HICON hIcon) noexcept {
 // release data
 void LongUI::UIWindow::release_data() noexcept {
     if (m_hVSync) {
+        ::SetEvent(m_hVSync);
         ::CloseHandle(m_hVSync);
         m_hVSync = nullptr;
     }

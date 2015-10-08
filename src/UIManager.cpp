@@ -9,6 +9,7 @@
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     m_szLocaleName[0] = L'\0';
+    m_vDelayCleanup.reserve(100);
     ::memset(m_apWindows, 0, sizeof(m_apWindows));
     // 开始计时
     m_uiTimer.Start();
@@ -385,6 +386,8 @@ void LongUI::CUIManager::Run() noexcept {
             // 锁住
             //UIManager << DL_Log << "Try3" << endl;
             UIManager.Lock();
+            // 延迟清理
+            UIManager.cleanup_delay_cleanup_chain();
             // 有窗口
             uint32_t wndlen = UIManager.m_cCountWindow;
             // 复制数据
@@ -413,7 +416,6 @@ void LongUI::CUIManager::Run() noexcept {
             }
             // 解锁
             UIManager.Unlock();
-            //UIManager << DL_Log << "End3" << endl;
             // 渲染窗口
             for (auto i = 0u; i < wndlen; ++i) {
                 if (windows[i]) {
@@ -454,6 +456,8 @@ void LongUI::CUIManager::Run() noexcept {
         thread = nullptr;
     }
 #endif
+    // 再次清理
+    this->cleanup_delay_cleanup_chain();
     // 尝试强行关闭
     if (m_cCountWindow) {
         UIWindow* windows[LongUIMaxWindow];
@@ -509,6 +513,8 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     }
     // 利用id查找模板控件
     if (tid) {
+        assert(tid < m_cCountCtrlTemplate && "out of range");
+        if (tid >= m_cCountCtrlTemplate) tid = 0;
         // 节点有效则添加属性
         if (node) {
             auto attribute = m_pTemplateNodes[tid].first_attribute();
@@ -650,6 +656,8 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
         LongUI::UIWindow *window = reinterpret_cast<LongUI::UIWindow*>(
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
             );
+        // create message
+        UIManager << DL_Log << window << ": On WM_CREATE" << endl;
         // 设置窗口指针
         ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
         // 创建完毕
@@ -882,6 +890,13 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
     return hr;
 }
 
+// 清理延迟清理链
+void LongUI::CUIManager::cleanup_delay_cleanup_chain() noexcept {
+    for (auto ctrl : m_vDelayCleanup) {
+        ctrl->cleanup();
+    }
+    m_vDelayCleanup.clear();
+}
 
 // 载入模板字符串
 auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept->HRESULT {
@@ -930,6 +945,8 @@ auto LongUI::CUIManager::set_control_template_string() noexcept->HRESULT {
 
 // UIManager 创建设备相关资源
 auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
+    // 重新获取flag
+    this->flag = this->configure->GetConfigureFlag();
     // 待用适配器
     IDXGIAdapter1* ready2use = nullptr;
     // 枚举显示适配器
@@ -1133,9 +1150,12 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 static_cast<ID2D1SolidColorBrush*>(m_ppBrushes[LongUICommonSolidColorBrushIndex])
                 );
         }
-        // 重建所有窗口
-        for (auto itr = m_apWindows; itr < m_apWindows + m_cCountWindow; ++itr) {
-            (*itr)->Recreate();
+    }
+    // 重建所有窗口
+    for (auto itr = m_apWindows; itr < m_apWindows + m_cCountWindow; ++itr) {
+        auto wnd = *itr;
+        if (SUCCEEDED(hr)) {
+            hr = wnd->Recreate();
         }
     }
     // 断言 HR
@@ -1585,7 +1605,7 @@ void LongUI::CUIManager::RegisterWindow(UIWindow * wnd) noexcept {
 }
 
 // 移出窗口
-void LongUI::CUIManager::RemoveWindow(UIWindow * wnd, bool cleanup) noexcept {
+void LongUI::CUIManager::RemoveWindow(UIWindow* wnd, bool cleanup) noexcept {
     assert(m_cCountWindow); assert(wnd && "bad argument");
     // 清理?
     if (cleanup) {
@@ -1609,26 +1629,26 @@ void LongUI::CUIManager::RemoveWindow(UIWindow * wnd, bool cleanup) noexcept {
         }
     }
 #endif
-    // 一次循环就搞定
+    // 正式移除
     {
-        
-        const register auto count = m_cCountWindow;
-        bool found = false;
-        for (auto i = 0u; i < m_cCountWindow; ++i) {
-            // 找到后, 后面的元素依次前移
-            if (found) {
-                m_apWindows[i] = m_apWindows[i + 1];
-            }
-            // 没找到就尝试
-            else if(m_apWindows[i] == wnd) {
-                found = true;
-                m_apWindows[i] = m_apWindows[i + 1];
-            }
+        auto endwindow = m_apWindows + m_cCountWindow;
+        auto itr = std::find(m_apWindows, endwindow, wnd);
+        if (itr != endwindow) {
+            std::memmove(itr, itr + 1, sizeof(void*));
+            --m_cCountWindow;
+            m_apWindows[m_cCountWindow] = nullptr;
         }
-        assert(found && "window not found");
-        --m_cCountWindow;
-        m_cCountWindow[m_apWindows] = nullptr;
     }
+    // 检查时是不是在本数组中
+#ifdef _DEBUG
+    {
+        auto endwindow = m_apWindows + m_cCountWindow;
+        if (std::find(m_apWindows, endwindow, wnd) != endwindow) {
+            assert(!"target window in windows array!");
+            return;
+        }
+    }
+#endif
 }
 
 // 是否以管理员权限运行

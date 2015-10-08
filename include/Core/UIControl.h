@@ -83,6 +83,8 @@ namespace LongUI {
         virtual auto uniface_text(const wchar_t* OPTIONAL txt) noexcept ->const wchar_t* { UNREFERENCED_PARAMETER(txt); assert(!"can not get/set text from this control!"); return L""; };
         // UIEvent
         bool call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
+        // delay_cleanup
+        void delay_cleanup() noexcept;
     public:
         // ctor
         UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept;
@@ -100,6 +102,12 @@ namespace LongUI {
         // get script data
         const auto& GetScript() const noexcept { return m_script; }
     public:
+        // set width fixed
+        auto SetWidthFixed() noexcept { force_cast(this->flags) & Flag_WidthFixed; }
+        // set height fixed
+        auto SetHeightFixed() noexcept { force_cast(this->flags) & Flag_HeightFixed; }
+        // set floating
+        auto SetFloating() noexcept { force_cast(this->flags) & Flag_Floating; }
         // get width of control
         auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
         // get height of control
