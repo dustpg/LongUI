@@ -32,7 +32,7 @@ void LongUI::UIContainerBuiltIn::Render(RenderType type) const noexcept {
         break;
     case LongUI::RenderType::Type_Render:
         // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
+        //Super::Render(LongUI::RenderType::Type_RenderBackground);
         // 渲染帮助
         Super::RenderHelper(this->begin(), this->end());
         // 父类渲染
@@ -96,7 +96,14 @@ auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept->UI
 
 // UIContainerBuiltIn: 推入♂最后
 void LongUI::UIContainerBuiltIn::PushBack(UIControl* child) noexcept {
-    this->Insert(this->end(), child);
+    // 边界控件交给父类处理
+    if (child && (child->flags & Flag_MarginalControl)) {
+        Super::PushBack(child);
+    }
+    // 一般的就自己处理
+    else {
+        this->Insert(this->end(), child);
+    }
 }
 
 // UIContainerBuiltIn: 仅插入控件
@@ -374,7 +381,7 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
     // 3. 计算实际高度/宽度
-    if (this->IsControlSizeChanged()) {
+    if (this->IsControlLayoutChanged()) {
         // 初始化
         float base_width = 0.f, base_height = 0.f, basic_weight = 0.f;
         // 第一次遍历
@@ -468,7 +475,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
     // 3. 计算实际高度/宽度
-    if (this->IsControlSizeChanged()) {
+    if (this->IsControlLayoutChanged()) {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
         float basic_weight = 0.f;

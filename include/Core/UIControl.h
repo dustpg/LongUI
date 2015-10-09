@@ -85,6 +85,10 @@ namespace LongUI {
         bool call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
         // delay_cleanup
         void delay_cleanup() noexcept;
+        // render chain -> background
+        void render_chain_background() const noexcept;
+        // render chain -> background
+        void render_chain_foreground() const noexcept;
     public:
         // ctor
         UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept;
@@ -103,11 +107,11 @@ namespace LongUI {
         const auto& GetScript() const noexcept { return m_script; }
     public:
         // set width fixed
-        auto SetWidthFixed() noexcept { force_cast(this->flags) & Flag_WidthFixed; }
+        auto SetWidthFixed() noexcept { force_cast(this->flags) |= Flag_WidthFixed; }
         // set height fixed
-        auto SetHeightFixed() noexcept { force_cast(this->flags) & Flag_HeightFixed; }
+        auto SetHeightFixed() noexcept { force_cast(this->flags) |= Flag_HeightFixed; }
         // set floating
-        auto SetFloating() noexcept { force_cast(this->flags) & Flag_Floating; }
+        auto SetFloating() noexcept { force_cast(this->flags) |= Flag_Floating; }
         // get width of control
         auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
         // get height of control
@@ -129,7 +133,7 @@ namespace LongUI {
         // handle control world changed
         auto ControlWorldChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeWorldHandled); }
         // is control draw size changed?
-        auto IsControlSizeChanged() const noexcept { return m_bool16.Test(Index_ChangeLayout); }
+        auto IsControlLayoutChanged() const noexcept { return m_bool16.Test(Index_ChangeLayout); }
         // refresh the world transform
         void RefreshWorld() noexcept;
         // refresh the world transform
@@ -171,8 +175,8 @@ namespace LongUI {
         bool                    debug_this = false;
         // updated
         bool                    debug_updated = false;
-        // unused
-        bool                    debug_unused[1];
+        // render_checker
+        Helper::BitArray_8      debug_render_checker;
         // recreate count
         uint8_t                 debug_recreate_count = 0;
 #endif

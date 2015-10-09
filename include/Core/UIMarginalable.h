@@ -61,29 +61,6 @@ namespace LongUI {
         };
 
         /// <summary>
-        /// Initializes the marginal control.
-        /// </summary>
-        /// <param name="_type" type="enum LongUI::UIMarginalable::MarginalControl">
-        /// The type of MarginalControl.
-        /// </param>
-        /// <remarks>
-        /// if a 'marginal-able' control as a 'marginal' control, this method 
-        /// called before Event::Event_TreeBulidingFinished message.
-        /// more detail to see <see cref="LongUI::UIContainer::DoEvent"/>
-        /// 
-        /// 如果一个可边缘化的控件作为边缘控件时, 这个方法在收到
-        /// Event::Event_TreeBulidingFinished 消息前被调用, 
-        /// 更多细节参考<see cref="LongUI::UIContainer::DoEvent"/>
-        /// </remarks>
-        /// <returns>void</returns>
-        virtual inline void InitMarginalControl(MarginalControl _type) noexcept {
-            if (this->priority == Priority_Normal) {
-                force_cast(this->priority) = Priority_AfterMost;
-            }
-            force_cast(this->marginal_type) = _type; 
-        }
-
-        /// <summary>
         /// Updates the width of the marginal.
         /// </summary>
         /// <remarks>
@@ -108,7 +85,7 @@ namespace LongUI {
         MarginalControl   const marginal_type = MarginalControl::Control_Unknown;
     protected:
         // ctor
-        UIMarginalable(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
+        UIMarginalable(UIContainer* cp, pugi::xml_node node) noexcept;// : Super(cp, node) {}
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

@@ -64,7 +64,7 @@ namespace LongUI {
         virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* ;
         // refresh layout
         virtual void RefreshLayout() noexcept = 0;
-        // push back
+        // push back, do push marginalal-control for UIContainer
         virtual void PushBack(UIControl* child) noexcept = 0;
         // just remove 
         virtual void RemoveJust(UIControl* child) noexcept { this->RemoveChildReference(child); }
@@ -153,8 +153,6 @@ namespace LongUI {
         // marginal controls, store 'CreateControlFunction' before control-tree finished to save memory
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
-        // marginal controls template id array
-        uint16_t                m_aMCTid[UIMarginalable::MARGINAL_CONTROL_SIZE];
         // mouse pointed control
         UIControl*              m_pMousePointed = nullptr;
         // count of children, just make "GetLength/Count" to faster

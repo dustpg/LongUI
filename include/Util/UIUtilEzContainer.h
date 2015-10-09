@@ -270,7 +270,7 @@ namespace LongUI {
             // insert
             bool Insert(const K* key, const V& v) noexcept {
 #ifdef _DEBUG
-                assert(this->Find(key) == nullptr && "exsited!");
+                assert(this->Find(key) == nullptr && "existed!");
 #endif
                 if (m_cCount + 1 > m_cCapacity) {
                     this->Reserve(this->next_prime(m_cCapacity));
@@ -392,6 +392,8 @@ namespace LongUI {
                 auto operator-(const Iterator<TT>& itr) const noexcept { return this->data - itr.data; }
                 // operator *
                 auto&operator*() const noexcept { assert(data && "null pointer"); return *this->data; }
+                // operator *
+                auto operator->() const noexcept { assert(data && "null pointer"); return this->data; }
             private:
                 // data
                 TT*             data = nullptr;

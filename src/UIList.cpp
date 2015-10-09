@@ -1,8 +1,6 @@
 ﻿#include "LongUI.h"
 #include <algorithm>
 
-constexpr float LONGUI_LINE_ELEMENT_INIT_WIDTH = 32.f;
-
 // ----------------------------------------------------------------------------
 // -------------------------------- UIList ------------------------------------
 // ----------------------------------------------------------------------------
@@ -31,19 +29,10 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         if ((str = node.attribute("linetemplate").value())) {
             // 检查长度
             register auto len = Helper::MakeCC(str);
-            m_vLineTemplate.reserve(len);
-            EzContainer::SmallBuffer<Helper::CC, 16> buf;
-            buf.NewSize(len);
+            m_vLineTemplate.newsize(len);
             // 有效
-            if (len && m_vLineTemplate.isok() && buf.GetCount() == len) {
-                Helper::MakeCC(str, buf.GetData());
-                for (auto& cc : buf) {
-                    LINEELEDATA data;
-                    data.func = cc.func;
-                    data.id = static_cast<uint32_t>(cc.id);
-                    data.width = LONGUI_LINE_ELEMENT_INIT_WIDTH;
-                    m_vLineTemplate.push_back(data);
-                }
+            if (len && m_vLineTemplate.isok()) {
+                Helper::MakeCC(str, m_vLineTemplate.data());
             }
             // 没有则给予警告
             else {
@@ -164,17 +153,38 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
 }
 
 // push!
-LongUINoinline void LongUI::UIList::PushBack(UIControl* child) noexcept {
-    return this->Insert(m_cChildrenCount, longui_cast<UIListLine*>(child));
+void LongUI::UIList::PushBack(UIControl* child) noexcept {
+    // 边界控件交给父类处理
+    if (child && (child->flags & Flag_MarginalControl)) {
+        Super::PushBack(child);
+    }
+    // 一般的就自己处理
+    else {
+        return this->Insert(m_cChildrenCount, longui_cast<UIListLine*>(child));
+    }
 }
 
 // 插入
 LongUINoinline void LongUI::UIList::Insert(uint32_t index, UIListLine* child) noexcept {
-    m_vLines.insert(index, child);
-    this->after_insert(child);
-    ++m_cChildrenCount;
-    this->reset_select();
-    assert(m_vLines.isok());
+    assert(child && "bad argument");
+    if (child) {
+        // 对齐操作
+        auto line = this->get_referent_control();
+        if (line) {
+            auto itr1 = child->begin();
+            for (auto itr2 = line->begin(); itr2 != line->end(); ++itr1, ++itr2) {
+                auto ctrl_new = *itr1, ctrl_ref = *itr2;
+                force_cast(ctrl_new->flags) = ctrl_ref->flags;
+                force_cast(ctrl_new->weight) = ctrl_ref->weight;
+                ctrl_new->SetWidth(ctrl_ref->GetWidth());
+            }
+        }
+        m_vLines.insert(index, child);
+        this->after_insert(child);
+        ++m_cChildrenCount;
+        this->reset_select();
+        assert(m_vLines.isok());
+    }
 }
 
 // 排序
@@ -253,16 +263,7 @@ auto LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept ->UIListL
     if (ctrl) {
         // 添加子控件
         for (const auto& data : m_vLineTemplate) {
-            auto child = UIManager.CreateControl(ctrl, data.id, data.func);
-            if (child) {
-                child->SetWidthFixed();
-                child->SetWidth(data.width);
-                child->SetControlLayoutChanged();
-                ctrl->Insert(ctrl->end(), child);
-            }
-            else {
-                UIManager << DL_Error << "OOM or BAD ACTION" << LongUI::endl;
-            }
+            ctrl->Insert(ctrl->end(), UIManager.CreateControl(ctrl, data.id, data.func));
         }
         // 插入
         this->Insert(index, ctrl);
@@ -326,11 +327,8 @@ void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFun
             }
         }
         // 插入模板
-        LINEELEDATA cclike = { 
-            func, static_cast<uint32_t>(tid), 
-            LONGUI_LINE_ELEMENT_INIT_WIDTH
-        };
-        m_vLineTemplate.insert(index, cclike);
+        Helper::CC cc = { func, tid };
+        m_vLineTemplate.insert(index, cc);
     }
 }
 
@@ -639,7 +637,6 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
         for (auto i = old; i < m_vLineTemplate.size(); ++i) {
             m_vLineTemplate[i].id = 0;
             m_vLineTemplate[i].func = UIText::CreateControl;
-            m_vLineTemplate[i].width = LONGUI_LINE_ELEMENT_INIT_WIDTH;
         }
     }
 }
@@ -660,7 +657,8 @@ void LongUI::UIList::Render(RenderType type) const noexcept {
         Super::RenderHelper(m_vLines.begin(), m_vLines.end());
         // 父类渲染
         Super::Render(LongUI::RenderType::Type_Render);
-        __fallthrough;
+        // RECHECK: 逻辑检查
+        break;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
         Super::Render(LongUI::RenderType::Type_RenderForeground);
@@ -866,8 +864,10 @@ noexcept -> UIControl* {
 LongUI::UIListHeader::UIListHeader(UIContainer* cp, pugi::xml_node node)
 noexcept: Super(cp, node) {
     assert(cp && "bad argument");
+    // 设置表头
+    longui_cast<UIList*>(cp)->SetHeader(this);
     // 支持模板子节点
-    auto flag = this->flags | Flag_InsertTemplateChild;
+    //auto flag = this->flags;
     if (node) {
         const char* str = nullptr;
         // 行高度
@@ -879,7 +879,7 @@ noexcept: Super(cp, node) {
             m_fSepwidth = LongUI::AtoF(str);
         }
     }
-    force_cast(this->flags) = flag;
+    //force_cast(this->flags) = flag;
 }
 
 // UI列表头: 事件处理
@@ -1010,16 +1010,6 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 // 清理UI列表头控件
 void LongUI::UIListHeader::cleanup() noexcept {
     delete this;
-}
-
-// 初始化边界控件
-void LongUI::UIListHeader::InitMarginalControl(MarginalControl _type) noexcept {
-    // 初始化
-    Super::InitMarginalControl(_type);
-    // 父类是控件
-    auto list = longui_cast<UIList*>(this->parent);
-    // 设置列表头
-    list->SetHeader(this);
 }
 
 

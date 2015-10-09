@@ -48,7 +48,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         wcex.hCursor = nullptr;
         wcex.hbrBackground = nullptr;
         wcex.lpszMenuName = nullptr;
-        wcex.lpszClassName = LongUI::WindowClassName;
+        wcex.lpszClassName = LongUI::WindowClassNameA;
         wcex.hIcon = nullptr;// ::LoadIconW(hInstance, MAKEINTRESOURCEW(101));
         // 注册普通窗口
         ::RegisterClassExW(&wcex);
@@ -317,7 +317,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             parents_queue.Push(parent_node);
             node = node.next_sibling();
         }
-    recheck:
+        //recheck:
         // 为空则退出
         if (xml_queue.IsEmpty()) break;
         // 弹出/出队 第一个节点
@@ -325,21 +325,25 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         parent_node = parents_queue.Front(); parents_queue.Pop();
         // 根据名称创建控件
         if (!(now_control = this->CreateControl(parent_node, node, nullptr))) {
+            // 错误
             parent_node = nullptr;
-#ifdef _DEBUG
-            const char* node_name = node.name();
-            UIManager << DL_Error << L" Control Class Not Found: " << node_name << LongUI::endl;
-#endif
+            UIManager << DL_Error
+                << L" Control Class Not Found: "
+                << node.name()
+                << L".or OOM"
+                << LongUI::endl;
             continue;
         }
         // 添加子节点
         parent_node->PushBack(now_control);
         // 设置节点为下次父节点
         parent_node = static_cast<decltype(parent_node)>(now_control);
+#if 0
         // 检查本控件是否需要XML子节点信息
         if (now_control->flags & Flag_ControlNeedFullXMLNode) {
             goto recheck;
         }
+#endif
     }
 }
 
@@ -537,6 +541,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     assert(function && "bad idea");
     if (!function) return nullptr;
     auto ctrl = function(cp->CET(), node);
+#if 0
     // 插入模板节点
     if (ctrl && tid) {
         if (ctrl->flags & (Flag_InsertTemplateChild | Flag_UIContainer)) {
@@ -551,6 +556,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
             }
         }
     }
+#endif
     return ctrl;
 }
 

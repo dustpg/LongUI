@@ -214,9 +214,12 @@ namespace LongUI {
         /// </remarks>
         Flag_UIContainer = 1 << 0,
         /// <summary>
-        /// it will insert children from template? [default: false]
+        /// This control is a marginal-control of one container [default: false]
         /// </summary>
-        Flag_InsertTemplateChild = 1 << 1,
+        /// <remarks>
+        /// [xml-attribute "marginal"] <see cref="LongUI::UIMarginalable::UIMarginalable"/>
+        /// </remarks>
+        Flag_MarginalControl = 1 << 1,
         /// <summary>
         /// the width of control is fixed [default: false]
         /// </summary>
@@ -224,7 +227,7 @@ namespace LongUI {
         /// [Auto] width fixed if given a valid width value in xml 
         /// attribute ("size") [0], e.g. size="96, 0"
         /// </remarks>
-        Flag_WidthFixed = 1 << 2,
+        Flag_WidthFixed = 1 << 3,
         /// <summary>
         /// the height of control is fixed [default: false]
         /// </summary>
@@ -232,18 +235,15 @@ namespace LongUI {
         /// [Auto] height fixed if given a valid height value in xml 
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
-        Flag_HeightFixed = 1 << 3,
+        Flag_HeightFixed = 1 << 4,
         // [default: false]control is floating
-        Flag_Floating = 1 << 4,
+        Flag_Floating = 1 << 5,
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
         // NOTE: this attribute used by parent
         // NOTE: container should be true in this case but not mandatory
         // XML Attribute : "strictclip"@bool
-        Flag_ClipStrictly = 1 << 5,
-        // control construct with full xml node info
-        // if your control need full xml node, set it to true by const_cast
-        Flag_ControlNeedFullXMLNode = 1 << 6,
+        Flag_ClipStrictly = 1 << 6,
         // [default: false][auto, no specified]
         // control need pre-render for content
         // call UIWindow::RegisterOffScreenRender2D or

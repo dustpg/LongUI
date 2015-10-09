@@ -377,7 +377,7 @@ auto LongUI::UIScrollBarA::Recreate() noexcept -> HRESULT {
 }
 
 // UIScrollBarA: 初始化时
-void LongUI::UIScrollBarA::InitMarginalControl(MarginalControl _type) noexcept {
+/*void LongUI::UIScrollBarA::InitMarginalControl(MarginalControl _type) noexcept {
     // 初始化
     Super::InitMarginalControl(_type);
     // 创建几何
@@ -392,7 +392,7 @@ void LongUI::UIScrollBarA::InitMarginalControl(MarginalControl _type) noexcept {
     }
     assert(m_pArrow1Geo && m_pArrow2Geo);
 }
-
+*/
 
 // UIScrollBarA 析构函数
 inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {

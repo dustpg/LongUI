@@ -45,12 +45,6 @@ namespace LongUI {
             Type_Shaft,     // Shaft
         };
     public:
-        // init the control
-        virtual void InitMarginalControl(MarginalControl _type) noexcept override {
-            auto sbtype = (_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
-            force_cast(this->bartype) = sbtype;
-            return Super::InitMarginalControl(_type);
-        }
         // update width of marginal
         virtual void UpdateMarginalWidth() noexcept override;
     public:
@@ -148,7 +142,7 @@ namespace LongUI {
         auto Recreate() noexcept->HRESULT override;
     public:
         // init sb
-        virtual void InitMarginalControl(MarginalControl _type) noexcept override;
+        //virtual void InitMarginalControl(MarginalControl _type) noexcept override;
         // update width of marginal
         virtual void UpdateMarginalWidth() noexcept override;
     private:

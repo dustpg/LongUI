@@ -271,7 +271,7 @@ public:
     // update
     void Update() noexcept override {
         // 检查布局
-        if (this->IsControlSizeChanged()) {
+        if (this->IsControlLayoutChanged()) {
             ::SafeRelease(m_pCmdList);
             UIManager_RenderTarget->CreateCommandList(&m_pCmdList);
             // 设置大小

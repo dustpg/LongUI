@@ -175,6 +175,7 @@ namespace LongUI { namespace Helper {
         T           m_data = T(0);
     };
     // 特例化
+    using BitArray_8 = BitArray<uint8_t>;
     using BitArray16 = BitArray<uint16_t>;
     using BitArray32 = BitArray<uint32_t>;
     using BitArray64 = BitArray<uint64_t>;

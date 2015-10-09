@@ -87,6 +87,8 @@ namespace LongUI {
             Index_NewSize,
             // full rendering in this frame?
             Index_FullRenderingThisFrame,
+            // skip render
+            Index_SkipRender,
         };
     public: // UIControl 接口实现
         // Render 渲染 
@@ -125,7 +127,7 @@ namespace LongUI {
         // kill timer
         void KillTimer(UIControl* ctrl) noexcept { assert(ctrl); ::KillTimer(m_hwnd, UINT_PTR(ctrl)); }
         // close window later
-        void CloseWindowLater() const noexcept { ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0); };
+        void CloseWindowLater() noexcept { m_baBoolWindow.SetTrue(Index_SkipRender); ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0); };
         // remove control reference
         void RemoveControlReference(UIControl* ctrl) noexcept;
         // begin render
@@ -186,7 +188,7 @@ namespace LongUI {
         // is rendered
         LongUIInline auto IsRendered() const noexcept { return m_baBoolWindow.Test(UIWindow::Index_Rendered); }
         // render window
-        LongUIInline auto RenderWindow() const noexcept { this->BeginDraw(); this->Render(RenderType::Type_Render); return this->EndDraw(); }
+        LongUIInline auto RenderWindow() const noexcept { if (m_baBoolWindow.Test(Index_SkipRender)) return; this->BeginDraw(); this->Render(RenderType::Type_Render); return this->EndDraw(); }
         // next frame
         LongUIInline auto NextFrame() noexcept { m_uiRenderQueue.GetCurrentUnit()->length = 0; ++m_uiRenderQueue; }
     private:

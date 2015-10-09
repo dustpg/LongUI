@@ -101,7 +101,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             WS_EX_NOREDIRECTIONBITMAP,
-            LongUI::WindowClassName, 
+            LongUI::WindowClassNameA, 
             titlename.length() ? titlename.c_str() : L"LongUI",
             window_style,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
@@ -481,7 +481,7 @@ void LongUI::UIWindow::Update() noexcept {
         ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
     }
     // 刷新前
-    if (this->IsControlSizeChanged()) {
+    if (this->IsControlLayoutChanged()) {
         this->SetWidth(this->visible_rect.right);
         this->SetHeight(this->visible_rect.bottom);
     }
@@ -868,6 +868,9 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
 
 // UIWindow 重建
 auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
+    // 跳过
+    if (m_baBoolWindow.Test(Index_SkipRender)) return S_OK;
+    // 释放数据
     this->release_data();
     // DXGI Surface 后台缓冲
     IDXGISurface*                       pDxgiBackBuffer = nullptr;

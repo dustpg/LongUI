@@ -173,6 +173,51 @@ LongUI::UIControl::~UIControl() noexcept {
     }
 }
 
+//#pragma push_macro("_DEBUG")
+//#undef _DEBUG
+// UIControl:: 渲染调用链: 背景
+void LongUI::UIControl::render_chain_background() const noexcept {
+#ifdef _DEBUG
+    // 重复调用检查
+    constexpr auto index = uint32_t(0);
+    auto e = this->debug_render_checker.Test(index) == false;
+    assert(e && "check logic: called twice in one time @ render_background");
+    force_cast(this->debug_render_checker).SetTrue(index);
+#endif
+    if (m_pBackgroudBrush) {
+        D2D1_RECT_F rect; this->GetViewRect(rect);
+        LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
+    }
+}
+
+// UIControl:: 渲染调用链: 前景
+void LongUI::UIControl::render_chain_foreground() const noexcept {
+#ifdef _DEBUG
+    // 重复调用检查
+    constexpr auto index = uint32_t(2);
+    auto c = this->debug_render_checker.Test(index) == false;
+    assert(c && "check logic: called twice in one time @ Type_RenderForeground");
+    force_cast(this->debug_render_checker).SetTrue(index);
+#endif
+    // 渲染边框
+    if (m_fBorderWidth > 0.f) {
+        if (this->name == "lst_vc") {
+            long bk = 9;
+        }
+        D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
+        m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
+        if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
+            brect.radiusX = m_2fBorderRdius.width;
+            brect.radiusY = m_2fBorderRdius.height;
+            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+            UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        }
+        else {
+            UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+        }
+    }
+}
 
 /// <summary>
 /// Render control via specified render-type.
@@ -182,6 +227,15 @@ LongUI::UIControl::~UIControl() noexcept {
 void LongUI::UIControl::Render(RenderType type) const noexcept {
     // 背景渲染
     auto render_background = [this]() {
+#ifdef _DEBUG
+    {
+        // 重复调用检查
+        constexpr auto index = uint32_t(sizeof(debug_render_checker) * CHAR_BIT - 1);
+        auto e = this->debug_render_checker.Test(index) == false;
+        assert(e && "check logic: called twice in one time @ render_background");
+        force_cast(this->debug_render_checker).SetTrue(index);
+    }
+#endif
         if (m_pBackgroudBrush) {
             D2D1_RECT_F rect; this->GetViewRect(rect);
             LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
@@ -194,12 +248,33 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
         render_background();
         break;
     case LongUI::RenderType::Type_Render:
+#ifdef _DEBUG
+    {
+        // 重复调用检查
+        constexpr auto index = uint32_t(1);
+        auto b = this->debug_render_checker.Test(index) == false;
+        assert(b && "check logic: called twice in one time @ Type_Render");
+        force_cast(this->debug_render_checker).SetTrue(index);
+    }
+#endif
         // 渲染背景
         render_background();
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
+#ifdef _DEBUG
+    {
+        // 重复调用检查
+        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderForeground);
+        auto c = this->debug_render_checker.Test(index) == false;
+        assert(c && "check logic: called twice in one time @ Type_RenderForeground");
+        force_cast(this->debug_render_checker).SetTrue(index);
+    }
+#endif
         // 渲染边框
         if (m_fBorderWidth > 0.f) {
+            if (this->name == "lst_vc") {
+                long bk = 9;
+            }
             D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
             m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
             if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
@@ -215,10 +290,20 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
         }
         break;
     case LongUI::RenderType::Type_RenderOffScreen:
+#ifdef _DEBUG
+    {
+        // 重复调用检查
+        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderOffScreen);
+        auto d = this->debug_render_checker.Test(index) == false;
+        assert(d && "check logic: called twice in one time @ Type_RenderOffScreen");
+        force_cast(this->debug_render_checker).SetTrue(index);
+    }
+#endif
         break;
     }
 }
 
+//#pragma pop_macro("_DEBUG")
 
 // UI控件: 刷新
 void LongUI::UIControl::AfterUpdate() noexcept {
@@ -235,6 +320,7 @@ void LongUI::UIControl::AfterUpdate() noexcept {
 #ifdef _DEBUG
     assert(debug_updated && "must call Update() before this");
     debug_updated = false;
+    std::memset(&debug_render_checker, 0, sizeof(debug_render_checker));
 #endif
 }
 
@@ -429,6 +515,39 @@ void LongUI::UIControl::RefreshWorld() noexcept {
 #endif
 }
 
+// UIMarginalable 构造函数
+LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {
+    // 有效节点
+    if (node) {
+        // 获取类型
+        auto get_type = [](pugi::xml_node node, MarginalControl bad_match) noexcept {
+            // 属性值列表
+            const char* mode_list[] = {
+                "left",
+                "top",
+                "right",
+                "bottom",
+            };
+            // 设置
+            Helper::XMLGetValueEnumProperties prop;
+            prop.attribute = LongUI::XMLAttribute::MarginalDirection;
+            prop.prefix = nullptr;
+            prop.values = mode_list;
+            prop.values_length = lengthof(mode_list);
+            // 调用
+            return static_cast<MarginalControl>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
+        };
+        // 获取类型
+        force_cast(this->marginal_type) = get_type(node, Control_Unknown);
+    }
+    // 检查类型
+    if (this->marginal_type != Control_Unknown) {
+        assert(this->marginal_type < MARGINAL_CONTROL_SIZE && "bad marginal_type");
+        force_cast(this->flags) |= Flag_MarginalControl;
+    }
+}
+
+
 // 获得世界转换矩阵 for 边缘控件
 void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
@@ -451,7 +570,7 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_world;
     // 自己不能是顶级的
     assert(this->IsTopLevel() == false);
-    constexpr int aa = sizeof(UIContainer);
+    constexpr long aa = sizeof(UIContainer);
 }
 
 // ----------------------------------------------------------------------------
@@ -524,11 +643,6 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), marginal_control() {
     ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
-    ::memset(force_cast(m_aMCTid), 0, sizeof(m_aMCTid));
-    // LV
-    /*if (m_strControlName == L"V") {
-        m_2fZoom = { 1.0f, 1.0f };
-    }*/
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
@@ -539,35 +653,6 @@ LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept 
             node.attribute(LongUI::XMLAttribute::TemplateSize).value(),
             &m_2fTemplateSize.width, 2
             );
-        // 检查边缘控件: 属性ID
-        const char* const attname[] = {
-            LongUI::XMLAttribute::LeftMarginalControl,
-            LongUI::XMLAttribute::TopMarginalControl,
-            LongUI::XMLAttribute::RightMarginalControl,
-            LongUI::XMLAttribute::BottomMarginalControl,
-        };
-        // ONLY MY LOOPGUN
-        for (auto i = 0u; i < UIMarginalable::MARGINAL_CONTROL_SIZE; ++i) {
-            const char* str = nullptr;
-            // 获取指定属性值
-            if ((str = node.attribute(attname[i]).value())) {
-                Helper::CC cc = { 0 };
-#ifdef _DEBUG
-                assert(Helper::MakeCC(str, &cc) == 1);
-#else
-                Helper::MakeCC(str, &cc);
-#endif
-                // 有效
-                if (cc.func) {
-                    // 修改
-                    force_cast(this->marginal_control[i]) = reinterpret_cast<UIMarginalable*>(cc.func);
-                    m_aMCTid[i] = static_cast<uint16_t>(cc.id);
-                }
-                else {
-                    assert(!"cc.func -> null");
-                }
-            }
-        }
         // 渲染依赖属性
         if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
             flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
@@ -652,39 +737,6 @@ auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl
 
 // do event 事件处理
 bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // ------------------------------------ 初始化
-    auto init_this = [this](const LongUI::EventArgument& arg) noexcept {
-        auto flag = this->flags;
-        // 初始化边缘控件 
-        for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
-            auto func = this->marginal_control[i];
-            if (!func) continue;
-            // 创建
-            auto ctrl = UIManager.CreateControl(
-                this,
-                static_cast<size_t>(m_aMCTid[i]),
-                reinterpret_cast<CreateControlFunction>(func)
-                );
-            assert(ctrl && "OOM or bad action");
-            if (ctrl) {
-                // 插入后
-                this->after_insert(ctrl);
-                // 设置
-                force_cast(this->marginal_control[i]) = longui_cast<UIMarginalable*>(ctrl);
-                // 初始化
-                this->marginal_control[i]->InitMarginalControl(static_cast<UIMarginalable::MarginalControl>(i));
-                // 完成控件树
-                ctrl->DoEvent(arg);
-                // 存在
-                flag |= Flag_Container_ExistMarginalControl;
-            }
-            else {
-                force_cast(this->marginal_control[i]) = nullptr;
-            }
-        }
-        // 强制修改
-        force_cast(this->flags) = flag;
-    };
     // ------------------------------------ 主函数
     bool done = false;
     // 处理窗口事件
@@ -692,8 +744,10 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
         switch (arg.event)
         {
         case LongUI::Event::Event_TreeBulidingFinished:
-            // 检查
-            init_this(arg);
+            // 边界控件
+            for (auto mctrl : marginal_control) {
+                if(mctrl) mctrl->DoEvent(arg);
+            }
             done = true;
             break;
         }
@@ -777,6 +831,28 @@ void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
         }
     }
 }
+// 添加边界控件
+void LongUI::UIContainer::PushBack(UIControl* child) noexcept {
+    assert(child && "bad argment");
+    assert((child->flags & Flag_MarginalControl) && "bad argment");
+    if (child && (child->flags & Flag_MarginalControl)) {
+        auto mctrl = longui_cast<UIMarginalable*>(child);
+        assert(mctrl->marginal_type != UIMarginalable::Control_Unknown && "bad marginal control");
+        assert(mctrl->parent == this && "bad child");
+        // 错误
+        if (this->marginal_control[mctrl->marginal_type]) {
+            UIManager << DL_Error
+                << "target marginal control has been existd, check xml-layout"
+                << LongUI::endl;
+            this->cleanup_child(this->marginal_control[mctrl->marginal_type]);
+        }
+        // 写入
+        force_cast(this->marginal_control[mctrl->marginal_type]) = mctrl;
+        // 推入flag
+        force_cast(this->flags) |= Flag_Container_ExistMarginalControl;
+    }
+}
+
 
 // UIContainer 渲染函数
 void LongUI::UIContainer::Render(RenderType type) const noexcept {
@@ -857,10 +933,6 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     const float this_container_height = caculate_container_height();
     const float this_container_left = this->view_pos.x - this->GetLeftMarginOffset();
     const float this_container_top = this->view_pos.y - this->GetTopMarginOffset();
-
-    /*if (m_strControlName == L"V") {
-        int bk = 9;
-    }*/
     // 循环
     while (true) {
         for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
@@ -1022,7 +1094,7 @@ void LongUI::UIContainer::Update() noexcept {
         }
     }
     // 修改边界
-    if (this->IsControlSizeChanged()) {
+    if (this->IsControlLayoutChanged()) {
         // 更新布局
         this->RefreshLayout();
         // 刷新边缘控件

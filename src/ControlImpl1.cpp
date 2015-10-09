@@ -30,7 +30,7 @@ void LongUI::UIText::Render(RenderType type) const noexcept {
 // UIText: 刷新
 void LongUI::UIText::Update() noexcept {
     // 改变了大小
-    if(this->IsControlSizeChanged()) {
+    if(this->IsControlLayoutChanged()) {
         // 设置大小
         m_text.Resize(this->view_size.width, this->view_size.height);
         // 已经处理
@@ -118,17 +118,6 @@ void LongUI::UIButton::Render(RenderType type) const noexcept {
         if (type == LongUI::RenderType::Type_RenderBackground) {
             break;
         }
-        /*if (false) {
-            AutoLocker;
-            if (m_strControlName == L"1") {
-                this->world;
-                auto ctrl = this;
-                ctrl->parent->RefreshWorld();
-                const_cast<UIButton*>(ctrl)->RefreshWorld();
-                UIManager << DL_Hint << this->visible_rect << endl;
-                int bk = 9;
-            }
-        }*/
         __fallthrough;
     case LongUI::RenderType::Type_RenderForeground:
         // 父类前景
@@ -303,7 +292,7 @@ void LongUI::UIEditBasic::Render(RenderType type) const noexcept {
 // UI基本编辑框: 刷新
 void LongUI::UIEditBasic::Update() noexcept {
     // 改变了大小
-    if (this->IsControlSizeChanged()) {
+    if (this->IsControlLayoutChanged()) {
         // 设置大小
         m_text.Resize(this->view_size.width, this->view_size.height);
         // 已经处理

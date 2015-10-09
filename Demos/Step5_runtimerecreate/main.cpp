@@ -7,17 +7,25 @@
 
 const wchar_t* const CPU_ADAPTER = L"Microsoft Basic Render Driver";
 
+// <M><Text text="HW"/></M>
 const char* const VIDEO_CARD_XML = 
 u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window autoshow="false" size="1024, 512" clearcolor="1,1,1,0.9" name="Choose Video Card">
     <HorizontalLayout>
-        <List weight="3" borderwidth="1" name="lst_vc" linetemplate="Text, Text" rightcontrol="ScrollBarA"
-            margin="4,4,4,4" topcontrol="ListHeader, 1" bottomcontrol="ScrollBarA">
+        <List weight="3" borderwidth="1" name="lst_vc" linetemplate="Text, Text" margin="4,4,4,4" >
+            <ScrollBarA marginal="right"/>
+            <ScrollBarA marginal="bottom"/>
+            <ListHeader marginal="top">
+                <Button weight="0.2" borderwidth="1" margin="1,1,1,1" text="type" name="lst_header0"/>
+                <Button borderwidth="1" margin="1,1,1,1" text="name" name="lst_header1"/>
+            </ListHeader>
         </List>
         <VerticalLayout weight="1">
-            <Null weight="4"/>
-            <Button borderwidth="1" margin="4,4,4,4" name="btn_ok" text="OK! Choose It!"/>
-            <Null weight="4"/>
+            <Null weight="2"/>
+            <Button borderwidth="1" margin="16,4,4,16" name="btn_ok" text="OK! Choose It!"/>
+            <Null weight="2"/>
+            <Button borderwidth="1" margin="16,4,4,16" name="btn_re" text="Test Recreate!"/>
+            <Null weight="2"/>
         </VerticalLayout>
     </HorizontalLayout>
 </Window>
@@ -78,18 +86,8 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
 }
 LONGUI_NAMESPACE_END
 
-template<typename... Args>
-void ssss(char buf[], Args... arg) {
-    std::sprintf(buf, "%d%d", arg...);
-}
-
 // Entry for App
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {
-    {
-        char buf[1024];
-        ssss(buf, 0, 5);
-        int bk = 9;
-    }
     // every windows desktop app should do this
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     // use OleInitialize to init ole and com
@@ -160,30 +158,18 @@ void LongUI::Demo::WindowChooseAdapter::SetMyConfig(MyConfig& config) noexcept {
     if (list) {
         // add infomation to list via 'adapter_vector'
         for (auto i = 0u; i < config.adapter_vector.size(); ++i) {
-            // insert line-template to the list
-            auto line = list->InsertLineTemplateToList(i);
-            // succeeded
-            if (line) {
-                // assert if line children count doesn't equal
-                // because we just keep "TYPE" and "NAME" in the list
-                assert(line->GetCount() == 2);
-                // set "TYPE" in 1st line slot
-                auto text = config.adapter_vector[i].Description;
-                if (std::wcscmp(text, CPU_ADAPTER)) {
-                    line->GetAt(0)->SetText(L"GPU");
-                }
-                else {
-                    line->GetAt(0)->SetText(L"CPU");
-                }
-                // set "NAME" in 2nd line slot
-                line->GetAt(1)->SetText(text);
-            }
+            // set "TYPE"
+            auto aname = config.adapter_vector[i].Description;
+            // set "NAME"
+            auto atype = std::wcscmp(aname, CPU_ADAPTER) ? L"GPU" : L"CPU";
+            // push it
+            list->PushLineElement(atype, aname);
         }
         // find button that named "btn_ok"
         auto btn = this->FindControl("btn_ok");
         // if found
         if (btn) {
-            // I wanna to capture 'adapter_vector'
+            // I wanna capture 'adapter_vector'
             auto& vec = config.adapter_vector;
             // add event callback
             btn->AddEventCall([&vec, list, this](UIControl*) noexcept ->bool {
@@ -206,6 +192,17 @@ void LongUI::Demo::WindowChooseAdapter::SetMyConfig(MyConfig& config) noexcept {
                 return true;
             }, SubEvent::Event_ItemClicked);
         }
+    }
+    // find button that named "btn_re"
+    auto btn = this->FindControl("btn_re");
+    // if found
+    if (btn) {
+        // add event callback
+        btn->AddEventCall([](UIControl*) noexcept ->bool {
+            // recreate
+            UIManager.RecreateResources();
+            return true;
+        }, SubEvent::Event_ItemClicked);
     }
     // show the window
     this->ShowWindow(SW_SHOW);

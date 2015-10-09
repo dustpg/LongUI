@@ -8,12 +8,13 @@
 /// </summary>
 /// <param name="color">The d2d color</param>
 /// <returns>32-bit ARGB 颜色</returns>
-auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
-    constexpr uint32_t ALPHA_SHIFT = 24;
-    constexpr uint32_t RED_SHIFT = 16;
-    constexpr uint32_t GREEN_SHIFT = 8;
-    constexpr uint32_t BLUE_SHIFT = 0;
-
+LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
+    // 常量
+    constexpr uint32_t ALPHA_SHIFT = CHAR_BIT * 3;
+    constexpr uint32_t RED_SHIFT = CHAR_BIT * 2;
+    constexpr uint32_t GREEN_SHIFT = CHAR_BIT * 1;
+    constexpr uint32_t BLUE_SHIFT = CHAR_BIT * 0;
+    // 写入
     register uint32_t colorargb =
         ((uint32_t(color.a * 255.f) & 0xFF) << ALPHA_SHIFT) |
         ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT) |
@@ -29,12 +30,12 @@ auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uin
 /// <param name="color32">The 32-bit color.</param>
 /// <param name="color4f">The float4 color.</param>
 /// <returns>void</returns>
-auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void {
+LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void {
     // 位移量
-    constexpr uint32_t ALPHA_SHIFT = 24;
-    constexpr uint32_t RED_SHIFT = 16;
-    constexpr uint32_t GREEN_SHIFT = 8;
-    constexpr uint32_t BLUE_SHIFT = 0;
+    constexpr uint32_t ALPHA_SHIFT = CHAR_BIT * 3;
+    constexpr uint32_t RED_SHIFT = CHAR_BIT * 2;
+    constexpr uint32_t GREEN_SHIFT = CHAR_BIT * 1;
+    constexpr uint32_t BLUE_SHIFT = CHAR_BIT * 0;
     // 掩码
     constexpr uint32_t ALPHA_MASK = 0xFFU << ALPHA_SHIFT;
     constexpr uint32_t RED_MASK = 0xFFU << RED_SHIFT;
@@ -799,6 +800,7 @@ auto __fastcall LongUI::AtoI(const char* __restrict str) noexcept -> int {
 /// <param name="p">The string.</param>
 /// <returns></returns>
 auto __fastcall LongUI::AtoF(const char* __restrict p) noexcept -> float {
+    if (!p) return 0.0f;
     bool negative = false;
     float value, scale;
     // 跳过空白

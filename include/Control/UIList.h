@@ -85,8 +85,6 @@ namespace LongUI {
         // do mouse event 
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
     public:
-        // init
-        virtual void InitMarginalControl(MarginalControl _type) noexcept;
         // update width in marginal
         virtual void UpdateMarginalWidth() noexcept override;
     public:
@@ -119,12 +117,10 @@ namespace LongUI {
     class UIList : public UIContainer {
         // super class
         using Super = UIContainer;
-        // line-element data
-        struct LINEELEDATA { CreateControlFunction func; uint32_t id; float width; };
         // using
         using LinesVector = EzContainer::PointerVector<UIListLine>;
         // line template vector
-        using LineTemplateVector = EzContainer::EzVector<LINEELEDATA>;
+        using LineTemplateVector = EzContainer::EzVector<Helper::CC>;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public:
@@ -132,7 +128,7 @@ namespace LongUI {
         enum UIListFlag : uint32_t {
             // sortable list line in UIControl::user_data(Integer) or user_ptr(const wchar_t*)
             Flag_SortableLineWithUserDataPtr = 1 << 0,
-            // the sequence of element could be changed by mouse drag if header exsit
+            // the sequence of element could be changed by mouse drag if header exist
             Flag_DraggableHeaderSequence = 1 << 1,
             // multi-select
             Flag_MultiSelect = 1 << 2,
@@ -188,7 +184,9 @@ namespace LongUI {
         // set cc-element in line-template
         void SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid = 0) noexcept;
         // push line-elemnet
-        template<typename ...Args> void PushLineElement(Args...) noexcept;
+        template<typename ...Args> bool PushLineElement(Args... args) noexcept { return this->InsertLineElement(m_cChildrenCount, args...); }
+        // insert line-elemnet
+        template<typename ...Args> bool InsertLineElement(uint32_t index, Args...) noexcept;
     public:
         // get conttrols
         const auto&GetContainer() const noexcept { return m_vLines; }
@@ -232,9 +230,9 @@ namespace LongUI {
         // find line via mouse point
         auto find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t;
         // push line-elemnet
-        template<typename ...Args> void push_back_helper(UIListLine* line, const wchar_t* p, Args...) noexcept;
+        template<typename Itr> void push_back_le_helper(Itr) noexcept {}
         // push line-elemnet
-        void push_back_helper(UIListLine*) noexcept {}
+        template<typename Itr, typename ...Args> void push_back_le_helper(Itr, const wchar_t*, Args...) noexcept;
     public:
         // begin itr
         auto begin() noexcept { return m_vLines.begin(); }
@@ -325,7 +323,16 @@ namespace LongUI {
     // operator for UIList::UIListFlag
     LONGUI_DEFINE_ENUM_FLAG_OPERATORS(UIList::UIListFlag, uint32_t);
     // -------------------------------------------------------------
-    template<typename ...Args> void UIList::PushLineElement(Args... args) noexcept {
-
+    // template for inser-line-element
+    template<typename ...Args> bool UIList::InsertLineElement(uint32_t index, Args... args) noexcept {
+        auto line = this->InsertLineTemplateToList(index);
+        if (line) this->push_back_le_helper(line->begin(), args...);
+        else return false;
+        return true;
+    }
+    // helper for push-back line-element
+    template<typename Itr, typename ...Args> void UIList::push_back_le_helper(Itr itr, const wchar_t* p, Args... args) noexcept {
+        auto ctrl = *itr; ctrl->SetText(p); ++itr;
+        this->push_back_le_helper(itr, args...);
     }
 }

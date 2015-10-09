@@ -545,6 +545,8 @@ auto LongUI::Helper::XMLGetHAlignment(
     return static_cast<DWRITE_TEXT_ALIGNMENT>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
 }
 
+
+
 // 获取文本抗锯齿模式
 auto LongUI::Helper::XMLGetD2DTextAntialiasMode(
     pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match

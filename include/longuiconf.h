@@ -288,10 +288,10 @@ namespace LongUI {
 
 // XML Node Attribute/Value constexpr char* const Setting
 namespace LongUI {
-    // window class name: zhuangbilty
-    static constexpr wchar_t* const WindowClassName = L"Windows.UI.LongUI.NormalWindow";
-    // if (xml node name == MarginalXMLNode), will create marginal control for current container
-    static constexpr char* const MarginalXMLNode = "M";
+    // window class name type A: zhuangbilty
+    static constexpr wchar_t* const WindowClassNameA = L"Windows.UI.LongUI.DirectWindow";
+    // window class name type B: zhuangbilty
+    static constexpr wchar_t* const WindowClassNameB = L"Windows.UI.LongUI.NormalWindow";
     // attribute namespace
     namespace XMLAttribute {
         // name of control
@@ -325,20 +325,15 @@ namespace LongUI {
         // is clip strictly                         [invalid yet]
         static constexpr char* const IsClipStrictly         = "strictclip";
 
+        // marginal control direction
+        static constexpr char* const MarginalDirection       = "marginal";
+
         // template size
         static constexpr char* const TemplateSize           = "templatesize";
         // is always host children rendering?       [valid] for container
         static constexpr char* const IsHostChildrenAlways   = "hostchild";
         // is always host children rendering?       [valid] for container
         static constexpr char* const IsHostPosterityAlways  = "hostposterity";
-        // left control class name and template id in "marginal control"
-        static constexpr char* const LeftMarginalControl    = "leftcontrol";
-        // top control class name and template id in "marginal control"
-        static constexpr char* const TopMarginalControl     = "topcontrol";
-        // right control class name and template id in "marginal control"
-        static constexpr char* const RightMarginalControl   = "rightcontrol";
-        // bottom control class name and template id in "marginal control"
-        static constexpr char* const BottomMarginalControl  = "bottomcontrol";
         // marginal control will be zoomed?
         static constexpr char* const IsZoomMarginalControl  = "zoommarginal";
 
