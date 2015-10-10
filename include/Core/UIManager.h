@@ -234,6 +234,10 @@ namespace LongUI {
 #ifdef _DEBUG
         // debug object
         ID3D11Debug*                    m_pd3dDebug = nullptr;
+    public:
+        // frame id
+        size_t                          frame_id = 0;
+    private:
 #endif
         // thread manager for TSF
         ITfThreadMgr*                   m_pTsfThreadManager = nullptr;

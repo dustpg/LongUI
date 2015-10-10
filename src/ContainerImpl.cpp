@@ -21,30 +21,22 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
     return Super::DoEvent(arg);
 }
 
+// UIContainerBuiltIn: 主景渲染
+void LongUI::UIContainerBuiltIn::render_chain_main() const noexcept {
+    // 渲染帮助器
+    Super::RenderHelper(this->begin(), this->end());
+    // 父类主景
+    Super::render_chain_main();
+}
+
 // UIContainerBuiltIn: 渲染函数
-void LongUI::UIContainerBuiltIn::Render(RenderType type) const noexcept {
-    // 分情况
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        break;
-    case LongUI::RenderType::Type_Render:
-        // 父类背景
-        //Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 渲染帮助
-        Super::RenderHelper(this->begin(), this->end());
-        // 父类渲染
-        Super::Render(LongUI::RenderType::Type_Render);
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
-    }
+void LongUI::UIContainerBuiltIn::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
 }
 
 // LongUI内建容器: 刷新

@@ -39,7 +39,7 @@ namespace LongUI {
 #endif
     public:
         // render this
-        virtual void Render(RenderType) const noexcept override;
+        virtual void Render() const noexcept override = 0;
         // update this
         virtual void Update() noexcept override;
         // do event
@@ -143,6 +143,12 @@ namespace LongUI {
     protected:
         // do render for child
         static void child_do_render(const UIControl* ctrl) noexcept;
+        // render chain -> background
+        void render_chain_background() const noexcept { return Super::render_chain_background(); }
+        // render chain -> mainground
+        void render_chain_main() const noexcept;
+        // render chain -> foreground
+        void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
         // cleanup child
         void cleanup_child(UIControl* ctrl) noexcept { assert(ctrl && ctrl->parent == this); ctrl->cleanup(); }
         // dtor

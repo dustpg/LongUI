@@ -1,7 +1,8 @@
 ﻿#include "LongUI.h"
 
 // Render 渲染 
-void LongUI::UISlider::Render(RenderType type) const noexcept {
+void LongUI::UISlider::Render() const noexcept {
+#if 0
     //D2D1_RECT_F draw_rect;
     switch (type)
     {
@@ -73,6 +74,7 @@ void LongUI::UISlider::Render(RenderType type) const noexcept {
     case LongUI::RenderType::Type_RenderOffScreen:
         break;
     }
+#endif
 }
 
 

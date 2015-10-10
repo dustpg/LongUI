@@ -331,7 +331,7 @@ namespace LongUI {
         // template size
         static constexpr char* const TemplateSize           = "templatesize";
         // is always host children rendering?       [valid] for container
-        static constexpr char* const IsHostChildrenAlways   = "hostchild";
+        //static constexpr char* const IsHostChildrenAlways   = "hostchild";
         // is always host children rendering?       [valid] for container
         static constexpr char* const IsHostPosterityAlways  = "hostposterity";
         // marginal control will be zoomed?

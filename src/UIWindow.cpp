@@ -404,12 +404,11 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
     // 设置文本渲染策略
     UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 离屏渲染
-    if (!m_vRegisteredControl.empty()) {
-        for (auto ctrl : m_vRegisteredControl) {
-            assert(ctrl->parent && "check it");
-            UIManager_RenderTarget->SetTransform(&ctrl->parent->world);
-            ctrl->Render(RenderType::Type_RenderOffScreen);
-        }
+    for (auto ctrl : m_vRegisteredControl) {
+        assert(!"NOIMPL");
+        assert(ctrl->parent && "check it");
+        //UIManager_RenderTarget->SetTransform(&ctrl->parent->world);
+        //ctrl->Render(RenderType::Type_RenderOffScreen);
     }
     // 设为当前渲染对象
     UIManager_RenderTarget->SetTarget(m_pTargetBimtap);
@@ -528,11 +527,10 @@ void LongUI::UIWindow::Update() noexcept {
 }
 
 // UIWindow 渲染 
-void LongUI::UIWindow::Render(RenderType type) const noexcept  {
-    if (type != RenderType::Type_Render) return ;
+void LongUI::UIWindow::Render() const noexcept  {
     // 全刷新: 继承父类
     if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
-        Super::Render(RenderType::Type_Render);
+        Super::Render();
         //UIManager << DL_Hint << "FULL" << endl;
     }
     // 部分刷新:
@@ -547,6 +545,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             assert(m_aUnitNow.length < LongUIDirtyControlSize);
             length_for_units = m_aUnitNow.length;
             ::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
+#if 0
             // 一般就几个, 冒泡完爆std::sort
             LongUI::BubbleSort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
                 return a->priority > b->priority;
@@ -554,6 +553,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             if (m_aUnitNow.length >= 2) {
                 assert(units[0]->priority >= units[1]->priority);
             }
+#endif
         }
         // 再渲染
         auto init_transfrom = D2D1::Matrix3x2F::Identity();
@@ -564,7 +564,7 @@ void LongUI::UIWindow::Render(RenderType type) const noexcept  {
             UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
             // 正常渲染
-            ctrl->Render(RenderType::Type_Render);
+            ctrl->Render();
             // 回来
             UIManager_RenderTarget->PopAxisAlignedClip();
     }

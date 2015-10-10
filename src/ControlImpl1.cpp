@@ -4,27 +4,22 @@
 // **** UIText
 // ----------------------------------------------------------------------------
 
+// 前景渲染
+void LongUI::UIText::render_chain_foreground() const noexcept {
+    // 文本算前景
+    m_text.Render(0.f, 0.f);
+    // 父类
+    Super::render_chain_foreground();
+}
+
 // UI文本: 渲染
-void LongUI::UIText::Render(RenderType type) const noexcept {
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        break;
-    case LongUI::RenderType::Type_Render:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 渲染文字
-        m_text.Render(0.f, 0.f);
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
-    }
+void LongUI::UIText::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
 }
 
 // UIText: 刷新
@@ -100,32 +95,24 @@ void LongUI::UIText::cleanup() noexcept {
 // **** UIButton
 // ----------------------------------------------------------------------------
 
+// UIButton: 前景渲染
+void LongUI::UIButton::render_chain_background() const noexcept {
+    // UI部分算作前景
+    D2D1_RECT_F draw_rect;
+    this->GetViewRect(draw_rect);
+    m_uiElement.Render(draw_rect);
+    // 父类前景
+    Super::render_chain_background();
+}
+
 // Render 渲染 
-void LongUI::UIButton::Render(RenderType type) const noexcept {
-    switch (type)
-    {
-        D2D1_RECT_F draw_rect;
-    case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
-    case LongUI::RenderType::Type_Render:
-        // 父类背景 按钮需要刻画背景 所以不再渲染父类背景
-        //Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 本类背景, 更新刻画地区
-        this->GetViewRect(draw_rect);
-        // 渲染部件
-        m_uiElement.Render(draw_rect);
-        // 背景中断
-        if (type == LongUI::RenderType::Type_RenderBackground) {
-            break;
-        }
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
-    }
+void LongUI::UIButton::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
 }
 
 // UI按钮: 刷新
@@ -268,25 +255,22 @@ void LongUI::UIButton::cleanup() noexcept {
 // **** UIEdit
 // ----------------------------------------------------------------------------
 
-// UI基本编辑控件
-void LongUI::UIEditBasic::Render(RenderType type) const noexcept {
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        break;
-    case LongUI::RenderType::Type_Render:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        m_text.Render(0.f, 0.f);
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
-    }
+// UI基本编辑控件: 前景渲染
+void LongUI::UIEditBasic::render_chain_foreground() const noexcept {
+    // 文本算前景
+    m_text.Render(0.f, 0.f);
+    // 父类
+    Super::render_chain_foreground();
+}
+
+// UI基本编辑控件: 渲染
+void LongUI::UIEditBasic::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
 }
 
 // UI基本编辑框: 刷新

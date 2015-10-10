@@ -17,12 +17,19 @@ void dbg_locked(const LongUI::CUILocker&) noexcept {
     std::uintptr_t ptr = g_dbg_last_proc_window_pointer;
     UINT msg = g_dbg_last_proc_message;
     auto window = reinterpret_cast<LongUI::UIWindow*>(ptr);
+#if 0
     UIManager << DL_Log
         << L"main locker locked @" 
         << window
         << L" on message id: " 
         << long(msg)
         << LongUI::endl;
+#else
+    ::OutputDebugStringW(LongUI::Formated(
+        L"Main Locker Locked On Msg: %4u @ Window[0x%p - %S]\r\n", 
+        msg, window, window->name.c_str()
+        ));
+#endif
 }
 #endif
 
@@ -48,8 +55,16 @@ Win8/8.1/10.0.10158之前
 /// 对于本函数, 参数'node'允许为空
 /// <see cref="LongUINullXMLNode"/>
 /// </remarks>
-LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node)
-noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
+LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node)noexcept :
+parent(ctrlparent),
+level(ctrlparent ? (ctrlparent->level + 1ui8) : 0ui8),
+m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
+    // 溢出错误
+    if (this->level == 255) {
+        UIManager << DL_Error
+            << L"too deep for this tree"
+            << LongUI::endl;
+    }
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
     // 有效?
@@ -77,10 +92,6 @@ noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : n
         }
         // 检查可视性
         this->visible = node.attribute(LongUI::XMLAttribute::Visible).as_bool(true);
-        // 渲染优先级
-        if (data = node.attribute(LongUI::XMLAttribute::RenderingPriority).value()) {
-            force_cast(this->priority) = uint8_t(LongUI::AtoI(data));
-        }
         // 检查名称
         if (m_pWindow) {
             auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
@@ -97,7 +108,8 @@ noexcept :parent(ctrlparent), m_pWindow(ctrlparent ? ctrlparent->GetWindow() : n
             );
         // 检查渲染父控件
         if (node.attribute(LongUI::XMLAttribute::IsRenderParent).as_bool(false)) {
-            flag |= LongUI::Flag_RenderParent;
+            assert(this->parent && "RenderParent but no parent");
+            force_cast(this->prerender) = this->parent->prerender;
         }
         // 检查裁剪规则
         if (node.attribute(LongUI::XMLAttribute::IsClipStrictly).as_bool(true)) {
@@ -179,9 +191,16 @@ LongUI::UIControl::~UIControl() noexcept {
 void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
+    auto b = this->debug_updated;
+    auto address = &b;
     constexpr auto index = uint32_t(0);
-    auto e = this->debug_render_checker.Test(index) == false;
-    assert(e && "check logic: called twice in one time @ render_background");
+    if (this->debug_render_checker.Test(index)) {
+        AutoLocker;
+        UIManager << DL_Error
+            << L"check logic: called twice in one time"
+            << this
+            << endl;
+    }
     force_cast(this->debug_render_checker).SetTrue(index);
 #endif
     if (m_pBackgroudBrush) {
@@ -195,9 +214,98 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
     constexpr auto index = uint32_t(2);
-    auto c = this->debug_render_checker.Test(index) == false;
-    assert(c && "check logic: called twice in one time @ Type_RenderForeground");
+    if (this->debug_render_checker.Test(index)) {
+        AutoLocker;
+        UIManager << DL_Error
+            << L"check logic: called twice in one time"
+            << this
+            << endl;
+    }
     force_cast(this->debug_render_checker).SetTrue(index);
+#endif
+    // 后继节点判断, B控件深度必须比A深
+    auto is_successor = [](const UIControl* const a, const UIControl* b) noexcept {
+        const register auto target = a->level;
+        while (b->level > target) b = b->parent;
+        return a == b;
+    };
+    // 渲染边框
+    if (m_fBorderWidth > 0.f) {
+        if (this->name == "lst_vc") {
+            auto& self = *this;
+        }
+        UIManager_RenderTarget->SetTransform(&this->world);
+        D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
+        m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
+        if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
+            brect.radiusX = m_2fBorderRdius.width;
+            brect.radiusY = m_2fBorderRdius.height;
+            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+            UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        }
+        else {
+            UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+        }
+    }
+}
+
+#if 0
+/// <summary>
+/// do rendering this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
+    // 背景渲染
+    auto render_background = [this]() {
+#ifdef _DEBUG
+    {
+        // 重复调用检查
+        constexpr auto index = uint32_t(sizeof(debug_render_checker) * CHAR_BIT - 1);
+        auto e = this->debug_render_checker.Test(index) == false;
+        assert(e && "check logic: called twice in one time @ render_background");
+        force_cast(this->debug_render_checker).SetTrue(index);
+    }
+#endif
+    if (m_pBackgroudBrush) {
+        D2D1_RECT_F rect; this->GetViewRect(rect);
+        LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
+    }
+    };
+    switch (type)
+    {
+    case LongUI::RenderType::Type_RenderBackground:
+        // 渲染背景
+        render_background();
+        break;
+    case LongUI::RenderType::Type_Render:
+#ifdef _DEBUG
+    {
+        // 重复调用检查
+        constexpr auto index = uint32_t(1);
+        auto b = this->debug_render_checker.Test(index) == false;
+        assert(b && "check logic: called twice in one time @ Type_Render");
+        force_cast(this->debug_render_checker).SetTrue(index);
+    }
+#endif
+    // 渲染背景
+    render_background();
+    __fallthrough;
+    case LongUI::RenderType::Type_RenderForeground:
+#ifdef _DEBUG
+    {
+        // 重复调用检查
+        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderForeground);
+        auto c = this->debug_render_checker.Test(index) == false;
+        assert(c && "check logic: called twice in one time @ Type_RenderForeground");
+        force_cast(this->debug_render_checker).SetTrue(index);
+    }
 #endif
     // 渲染边框
     if (m_fBorderWidth > 0.f) {
@@ -217,78 +325,7 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
             UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
         }
     }
-}
-
-/// <summary>
-/// Render control via specified render-type.
-/// </summary>
-/// <param name="_type" type="enum LongUI::RenderType">The _type.</param>
-/// <returns></returns>
-void LongUI::UIControl::Render(RenderType type) const noexcept {
-    // 背景渲染
-    auto render_background = [this]() {
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(sizeof(debug_render_checker) * CHAR_BIT - 1);
-        auto e = this->debug_render_checker.Test(index) == false;
-        assert(e && "check logic: called twice in one time @ render_background");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-        if (m_pBackgroudBrush) {
-            D2D1_RECT_F rect; this->GetViewRect(rect);
-            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
-        }
-    };
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 渲染背景
-        render_background();
-        break;
-    case LongUI::RenderType::Type_Render:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(1);
-        auto b = this->debug_render_checker.Test(index) == false;
-        assert(b && "check logic: called twice in one time @ Type_Render");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-        // 渲染背景
-        render_background();
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderForeground);
-        auto c = this->debug_render_checker.Test(index) == false;
-        assert(c && "check logic: called twice in one time @ Type_RenderForeground");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-        // 渲染边框
-        if (m_fBorderWidth > 0.f) {
-            if (this->name == "lst_vc") {
-                long bk = 9;
-            }
-            D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
-            m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-            if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
-                brect.radiusX = m_2fBorderRdius.width;
-                brect.radiusY = m_2fBorderRdius.height;
-                //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-                UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-                //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-            }
-            else {
-                UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-            }
-        }
-        break;
+    break;
     case LongUI::RenderType::Type_RenderOffScreen:
 #ifdef _DEBUG
     {
@@ -299,9 +336,11 @@ void LongUI::UIControl::Render(RenderType type) const noexcept {
         force_cast(this->debug_render_checker).SetTrue(index);
     }
 #endif
-        break;
+    break;
     }
 }
+#endif
+
 
 //#pragma pop_macro("_DEBUG")
 
@@ -352,6 +391,13 @@ auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
         m_pBackgroudBrush = UIManager.GetBrush(m_idBackgroudBrush);
     }
     return S_OK;
+}
+
+// 测试是否为子孙节点
+bool LongUI::UIControl::IsPosterityForSelf(const UIControl* test) const noexcept {
+    const register auto target = this->level;
+    while (test->level > target) test = test->parent;
+    return this == test;
 }
 
 // 获取占用宽度
@@ -588,7 +634,7 @@ namespace LongUI {
         virtual void cleanup() noexcept override { delete this; }
     public:
         // Render 渲染
-        virtual void Render(RenderType) const noexcept override {}
+        virtual void Render() const noexcept override {}
         // update 刷新
         virtual void Update() noexcept override {
 #ifdef _DEBUG
@@ -654,9 +700,9 @@ LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept 
             &m_2fTemplateSize.width, 2
             );
         // 渲染依赖属性
-        if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
+        /*if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
             flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
-        }
+        }*/
         // 渲染依赖属性
         if (node.attribute(XMLAttribute::IsHostPosterityAlways).as_bool(false)) {
             flag |= LongUI::Flag_Container_HostPosterityRenderingDirectly;
@@ -694,14 +740,9 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
             " less than 10k because of the precision of float" << LongUI::endl;
     }
     // 检查flag
-    const auto host_flag = Flag_Container_HostChildrenRenderingDirectly
-        | Flag_Container_HostPosterityRenderingDirectly;
-    if (this->flags & host_flag) {
-        force_cast(child->flags) |= Flag_RenderParent;
-    }
-    // 子控件也是容器?
-    if (this->flags & Flag_Container_HostPosterityRenderingDirectly
-        && child->flags & Flag_UIContainer) {
+    if (this->flags & Flag_Container_HostPosterityRenderingDirectly) {
+        force_cast(child->prerender) = this->prerender;
+        // 子控件也是容器?(不是也无所谓了)
         force_cast(child->flags) |= Flag_Container_HostPosterityRenderingDirectly;
     }
     // 设置父节点
@@ -824,13 +865,32 @@ void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
             D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
             UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
-        ctrl->Render(LongUI::RenderType::Type_Render);
+        // 渲染
+        ctrl->Render();
         // 检查剪切规则
         if (ctrl->flags & Flag_ClipStrictly) {
             UIManager_RenderTarget->PopAxisAlignedClip();
         }
     }
 }
+
+// UIContainer: 主景渲染
+void LongUI::UIContainer::UIContainer::render_chain_main() const noexcept {
+    // 渲染边缘控件
+    if (this->flags & Flag_Container_ExistMarginalControl) {
+        for (auto ctrl : this->marginal_control) {
+            if (ctrl) {
+                this->child_do_render(ctrl);
+            }
+        }
+    }
+    this->AssertMarginalControl();
+    // 回退转变
+    UIManager_RenderTarget->SetTransform(&this->world);
+    // 父类
+    Super::render_chain_main();
+}
+
 // 添加边界控件
 void LongUI::UIContainer::PushBack(UIControl* child) noexcept {
     assert(child && "bad argment");
@@ -848,53 +908,10 @@ void LongUI::UIContainer::PushBack(UIControl* child) noexcept {
         }
         // 写入
         force_cast(this->marginal_control[mctrl->marginal_type]) = mctrl;
+        // 插♂入后
+        this->after_insert(mctrl);
         // 推入flag
         force_cast(this->flags) |= Flag_Container_ExistMarginalControl;
-    }
-}
-
-
-// UIContainer 渲染函数
-void LongUI::UIContainer::Render(RenderType type) const noexcept {
-    // 查看
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        break;
-    case LongUI::RenderType::Type_Render:
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        // 普通子控件仅仅允许渲染在内容区域上
-        /*{
-            D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
-            UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        }
-        // 渲染所有子部件
-        for (const auto* ctrl : (*this)) {
-            do_render(ctrl);
-        }
-        // 弹出
-        UIManager_RenderTarget->PopAxisAlignedClip();*/
-        // 渲染边缘控件
-        if (this->flags & Flag_Container_ExistMarginalControl) {
-            for (auto ctrl : this->marginal_control) {
-                if (ctrl) {
-                    this->child_do_render(ctrl);
-                }
-            }
-        }
-        this->AssertMarginalControl();
-        // 回退转变
-        UIManager_RenderTarget->SetTransform(&this->world);
-        __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
     }
 }
 

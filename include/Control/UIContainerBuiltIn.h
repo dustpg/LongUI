@@ -75,7 +75,7 @@ namespace LongUI {
         };
     public:
         // render this
-        virtual void Render(RenderType) const noexcept override;
+        virtual void Render() const noexcept override;
         // update this
         virtual void Update() noexcept override;
         // do event
@@ -109,6 +109,12 @@ namespace LongUI {
     protected:
         // insert only
         void insert_only(Iterator itr, UIControl* ctrl) noexcept;
+        // render chain -> background
+        void render_chain_background() const noexcept { return Super::render_chain_background(); }
+        // render chain -> mainground
+        void render_chain_main() const noexcept;
+        // render chain -> foreground
+        void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
     public: // for C++ 11
         // begin 
         auto begin() const noexcept { return Iterator(m_pHead); };

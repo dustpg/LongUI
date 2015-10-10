@@ -36,7 +36,7 @@ namespace LongUI{
         virtual void cleanup() noexcept override;
     public:
         // Render 渲染 
-        virtual void Render(RenderType type) const noexcept override;
+        virtual void Render() const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
         // do event
@@ -48,6 +48,12 @@ namespace LongUI{
     protected:
         // register ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
+        // render chain -> background
+        void render_chain_background() const noexcept;
+        // render chain -> mainground
+        void render_chain_main() const noexcept { return Super::render_chain_main(); }
+        // render chain -> foreground
+        void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;

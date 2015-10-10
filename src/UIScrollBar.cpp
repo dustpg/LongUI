@@ -6,8 +6,13 @@
 
 
 // UIScrollBar 构造函数
-LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept: 
+    Super(cp, node), 
+    m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+    // 边界相关
+    assert((this->flags & Flag_MarginalControl) && "'UIScrollBar' must be marginal-control");
+    auto sbtype = (this->marginal_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
+    force_cast(this->bartype) = sbtype;
     // 修改
     m_uiAnimation.duration = 0.5f;
     if (node) {
@@ -109,6 +114,17 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) 
 noexcept: Super(cp, node), 
 m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb"){
+    // 创建几何
+    if (this->bartype == ScrollBarType::Type_Horizontal) {
+        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
+        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Right]);
+    }
+    // 垂直滚动条
+    else {
+        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Top]);
+        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Bottom]);
+    }
+    assert(m_pArrow1Geo && m_pArrow2Geo);
     // 修改颜色
     if (node) {
         m_fArrowStep = LongUI::AtoF(node.attribute("arrowstep").value());
@@ -203,8 +219,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
 }
 
 // UIScrollBarA 渲染 
-void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
-    if (_bartype != RenderType::Type_Render) return;
+void LongUI::UIScrollBarA::Render() const noexcept {
     // 更新
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正
@@ -247,8 +262,6 @@ void LongUI::UIScrollBarA::Render(RenderType _bartype) const noexcept  {
         m_pBrush_SetBeforeUse->SetColor(&tcolor);
         render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
     }
-    // 前景
-    Super::Render(RenderType::Type_RenderForeground);
 }
 
 

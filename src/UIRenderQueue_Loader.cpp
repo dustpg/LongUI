@@ -1,6 +1,5 @@
 ﻿#include "LongUI.h"
 
-
 // 渲染队列 构造函数
 LongUI::CUIRenderQueue::CUIRenderQueue(UIWindow* window) noexcept {
     m_unitLike.length = 0; m_unitLike.window = window;
@@ -62,11 +61,12 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
             int16_t dev = int16_t(int16_t(time) - int16_t(LongUIPlanRenderingTotalTime * 1000));
             m_sTimeDeviation += dev;
 #ifdef _DEBUG
-            long a = long(dev);
-            long b = long(m_sTimeDeviation);
-            UIManager << DL_Log 
-                << Formated(L"Time Deviation: %4ldms    Totle: %4ldms", a, b)
-                << endl;
+            if (m_unitLike.window->debug_this) {
+                UIManager << DL_Log
+                    << Formated(L"Time Deviation: %4ldms    Totle: %4ldms", 
+                        long(dev), long(m_sTimeDeviation))
+                    << endl;
+            }
 #endif
             // TODO: 时间校正
         }
@@ -79,89 +79,115 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
 
 // 计划渲染
 void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* ctrl) noexcept {
+    // XXX: 待优化
+    // 当前窗口
+    auto window = m_unitLike.window;
+#ifdef _DEBUG
+    if (window->debug_this) {
+        UIManager << DL_Log
+            << L"INDEX:[" << long(m_pCurrentUnit - m_pUnitsDataBegin) << L']'
+            << ctrl << ctrl->visible_rect
+            << L"from " << wait << L" to " << render
+            << endl;
+    }
+#endif
     // 保留刷新
     if (render != 0.0f) render += 0.05f;
     assert((wait + render) < float(LongUIPlanRenderingTotalTime) && "time overflow");
-    // 当前窗口
-    auto window = m_unitLike.window;
     // 设置单元
-    auto set_unit = [window](UNIT* unit, UIControl* ctrl) noexcept {
+    auto set_unit = [window](UNIT& unit, UIControl* ctrl) noexcept {
         // 已经全渲染了就不干
-        if (unit->length && unit->units[0] == window) {
+        if (unit.length && unit.units[0] == window) {
             return;
         }
-        // 单元满了就设置为全渲染
-        if (unit->length == LongUIDirtyControlSize) {
-            unit->length = 1;
-            unit->units[0] = window;
+        // 单元满了/直接渲染窗口 就设置为全渲染
+        if (unit.length == LongUIDirtyControlSize || ctrl == window) {
+            unit.length = 1;
+            unit.units[0] = window;
             return;
         }
-        // 获取真正窗口
-        auto get_real_render_control = [window](UIControl* control) noexcept {
-            // 获取真正
-            while (control != window) {
-                if (control->flags & Flag_RenderParent) control = control->parent;
-                else break;
+        // 保存
+        auto old_length = unit.length;
+        bool changed = false;
+        UNIT tmp; std::memset(&tmp, 0, sizeof(tmp));
+        std::memcpy(tmp.units, unit.units, sizeof(tmp.units[0]) * old_length);
+        // 一次检查
+        for (auto itr = tmp.units; itr < tmp.units + old_length; ++itr) {
+            // 已存在的空间
+            auto existd = *itr;
+            // 一样? --> 不干
+            if (existd == ctrl) return;
+            // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙节点
+            if (existd->level < ctrl->level) {
+                // 是 -> 什么不干
+                if (existd->IsPosterityForSelf(ctrl)) {
+                    return;
+                }
+                // 否 -> 继续
+                else {
+
+                }
             }
-            return control;
-        };
-        // 渲染窗口也设置为全渲染
-        ctrl = get_real_render_control(ctrl);
-        if (ctrl == window) {
-            unit->length = 1;
-            unit->units[0] = window;
-            return;
-        }
-        // 可视化区域 > 有的 且自己为容器  -> 替换
-        // 可视化区域 < 有的 且有的为容器  -> 不干
-        // 不在里面                        -> 加入
-        // XXX: 有BUG
-        const auto test_container = [](const UIControl* ctrl1, const UIControl* ctrl2) noexcept {
-            return ctrl1->flags & Flag_UIContainer &&
-                ctrl1->visible_rect.left <= ctrl2->visible_rect.left &&
-                ctrl1->visible_rect.top <= ctrl2->visible_rect.top &&
-                ctrl1->visible_rect.right <= ctrl2->visible_rect.right &&
-                ctrl1->visible_rect.bottom <= ctrl2->visible_rect.bottom;
-        };
-        // 检查是否在单元里面
-        register bool not_in = true;
-        for (auto unit_ctrl = unit->units; unit_ctrl < unit->units + unit->length; ++unit_ctrl) {
-            // 在里面了
-            if (*unit_ctrl == ctrl) {
-                not_in = false;
-                break;
+            // 存在深度 > 插入深度 -> 检查存在的是否为插入的子孙节点
+            else if(existd->level > ctrl->level) {
+                // 是 -> 替换所有
+                if (ctrl->IsPosterityForSelf(existd)) {
+                    *itr = nullptr;
+                    changed = true;
+                }
+                // 否 -> 继续
+                else {
+
+                }
             }
-            // 可视化区域 > 有的 且自己为容器  -> 替换
-            else if(test_container(ctrl, *unit_ctrl)){
-                *unit_ctrl = ctrl;
-                not_in = false;
-                break;
-            }
-            // 可视化区域 < 有的 且有的为容器  -> 不干
-            else if (test_container(*unit_ctrl, ctrl)) {
-                not_in = false;
-                break;
+            // 深度一致 -> 继续
+            else {
+
             }
         }
-        // 不在单元里面就加入
-        if (not_in) {
-            unit->units[unit->length] = ctrl;
-            ++unit->length;
+#ifdef _DEBUG
+        if (window->debug_this) {
+            UIManager << DLevel_Log << L"\r\n [INSERT]: " << ctrl << endl;
         }
+#endif
+        // 二次插入
+        if (changed) {
+            unit.length = 0; auto witr = unit.units;
+            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr) {
+                if (*ritr) {
+                    *witr = *ritr;
+                    ++unit.length;
+                }
+            }
+        }
+        // 添加到最后
+        unit.units[unit.length++] = ctrl;
     };
     // 渲染队列模式
     if (m_pCurrentUnit) {
+        // 该控件渲染
+        auto rerendered = ctrl->prerender;
         // 时间片计算
-        auto frame_offset = long(wait * float(m_wDisplayFrequency));
-        auto frame_count = long(render * float(m_wDisplayFrequency)) + 1;
+        auto frame_offset = uint32_t(wait * float(m_wDisplayFrequency));
+        auto frame_count = uint32_t(render * float(m_wDisplayFrequency)) + 1;
         auto start = m_pCurrentUnit + frame_offset;
-        for (long i = 0; i < frame_count; ++i) {
-            if (start >= m_pUnitsDataEnd) {
-                start -= LongUIPlanRenderingTotalTime * m_wDisplayFrequency;
+        for (uint32_t i = 0; i < frame_count; ++i) {
+            if (start == m_pUnitsDataEnd) {
+                start = m_pUnitsDataBegin;
             }
-            set_unit(start, ctrl);
+#ifdef _DEBUG
+            if (window->debug_this) {
+                UIManager << DLevel_Log << L" [TRY] ";
+            }
+#endif
+            set_unit(*start, rerendered);
             ++start;
         }
+#ifdef _DEBUG
+        if (window->debug_this) {
+            UIManager << DLevel_Log << L"\r\n";
+        }
+#endif
     }
     // 简单模式
     else {

@@ -35,7 +35,7 @@ namespace LongUI {
         virtual void cleanup() noexcept override;
     public:
         // Render 渲染 
-        virtual void Render(RenderType type) const noexcept override;
+        virtual void Render() const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
@@ -47,6 +47,12 @@ namespace LongUI {
     protected:
         // [uniform interface]get/set text interface
         virtual auto uniface_text(const wchar_t* OPTIONAL txt) noexcept ->const wchar_t* override final;
+        // render chain -> background
+        void render_chain_background() const noexcept { return Super::render_chain_background(); }
+        // render chain -> mainground
+        void render_chain_main() const noexcept { return Super::render_chain_main(); }
+        // render chain -> foreground
+        void render_chain_foreground() const noexcept;
     public:
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;

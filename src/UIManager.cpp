@@ -390,6 +390,9 @@ void LongUI::CUIManager::Run() noexcept {
             // 锁住
             //UIManager << DL_Log << "Try3" << endl;
             UIManager.Lock();
+#ifdef _DEBUG
+            ++UIManager.frame_id;
+#endif
             // 延迟清理
             UIManager.cleanup_delay_cleanup_chain();
             // 有窗口
@@ -1711,13 +1714,11 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
     return true;
 }
 
-//#include <valarray>
-
 #ifdef _DEBUG
 
 // 传递可视化东西
 auto LongUI::Formated(const wchar_t* format, ...) noexcept -> const wchar_t* {
-    static wchar_t buffer[LongUIStringBufferLength];
+    static thread_local wchar_t buffer[LongUIStringBufferLength];
     va_list ap;
     va_start(ap, format);
     std::vswprintf(buffer, LongUIStringBufferLength, format, ap);

@@ -108,13 +108,14 @@ static inline auto SafeAcquire(Interface *pInterfaceToRelease) {
     UIManager.ShowError(str, buffer_tmp);\
 }
 
+
 // debug level
-#define DL_None LongUI::DebugStringLevel::DLevel_None << L'<' << __FUNCTION__ << L">: "
-#define DL_Log LongUI::DebugStringLevel::DLevel_Log << L'<' << __FUNCTION__ << L">: "
-#define DL_Hint LongUI::DebugStringLevel::DLevel_Hint << L'<' << __FUNCTION__ << L">: "
-#define DL_Warning LongUI::DebugStringLevel::DLevel_Warning << L'<' << __FUNCTION__ << L">: "
-#define DL_Error LongUI::DebugStringLevel::DLevel_Error << L'<' << __FUNCTION__ << L">: "
-#define DL_Fatal LongUI::DebugStringLevel::DLevel_Fatal << L'<' << __FUNCTION__ << L">: "
+#define DL_None     LongUI::DebugStringLevel::DLevel_None    << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Log      LongUI::DebugStringLevel::DLevel_Log     << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Hint     LongUI::DebugStringLevel::DLevel_Hint    << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Warning  LongUI::DebugStringLevel::DLevel_Warning << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Error    LongUI::DebugStringLevel::DLevel_Error   << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Fatal    LongUI::DebugStringLevel::DLevel_Fatal   << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
 #else
 // show hr error
 #define ShowErrorWithHR(hr) UIManager.ShowError(hr)
@@ -221,6 +222,13 @@ namespace LongUI {
         /// </remarks>
         Flag_MarginalControl = 1 << 1,
         /// <summary>
+        /// focusable could be set keyboard focus
+        /// </summary>
+        /// <remarks>
+        /// set it by your code
+        /// </remarks>
+        Flag_Focusable = 1 << 2,
+        /// <summary>
         /// the width of control is fixed [default: false]
         /// </summary>
         /// <remarks>
@@ -236,7 +244,9 @@ namespace LongUI {
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
         Flag_HeightFixed = 1 << 4,
-        // [default: false]control is floating
+        /// <summary>
+        /// control is floating
+        /// </summary>
         Flag_Floating = 1 << 5,
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
@@ -254,21 +264,23 @@ namespace LongUI {
         // call UIWindow::RegisterOffScreenRender3D to set
         // if use Direct2D , call UIWindow::RegisterOffScreenRender2D
         Flag_OffScreen3DContent = 1 << 8,
+#if 0
         // [default: false][auto, and xml attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,
         // must be rendering whole parent.
         // could be setted xml-attribute("renderparent") and auto setted
         // by parent's flag : Flag_Container_HostChildrenRenderingDirectly,
-        Flag_RenderParent = 1 << 9,
-        // [default: false] focusable, could be set keyboard focus
-        Flag_Focusable = 1 << 10,
+        //Flag_RenderParent = 1 << 9,
         // [default: false][xml attribute : "hostchild"@bool] 
         // if true, container will host child rendering in anytime
         // if the container was setted this flag, it would set 
         // all children flag "Flag_RenderParent" to true
-        Flag_Container_HostChildrenRenderingDirectly = 1 << 16,
+        //Flag_Container_HostChildrenRenderingDirectly = 1 << 16,
+#endif
         // [default: false][xml attribute : "hostposterity"@bool] 
-        // if true, container will host posterity rendering in anytime
+        // if true, the container will host posterity rendering in anytime
+        // to set posterity's UIControl::prerender to the container's
+        // to see "LongUI::UIContainer::after_insert"
         Flag_Container_HostPosterityRenderingDirectly = 1 << 17,
         /// <summary>
         /// if exist marginal control, will set it
@@ -306,13 +318,6 @@ namespace LongUI {
         Type_LinearGradient,    // 线性渐变
         Type_RadialGradient,    // 径向渐变
         Type_Bitmap,            // 位图笔刷
-    };
-    // LongUI Render Type
-    enum class RenderType : uint32_t {
-        Type_RenderBackground = 0,
-        Type_Render,
-        Type_RenderForeground,
-        Type_RenderOffScreen,
     };
     /// <summary>
     /// event for longui control event
@@ -352,23 +357,6 @@ namespace LongUI {
         Event_ValueChanged,
         // ----- User Custom Defined Event -----
         Event_Custom,
-    };
-    // priority for rendering
-    enum RenderingPriority : uint8_t {
-        // last
-        Priority_Last = 0,
-        // after most
-        Priority_AfterMost = 20,
-        // low
-        Priority_Low = 127,
-        // normal
-        Priority_Normal = 128,
-        // high
-        Priority_High = 129,
-        // before most
-        Priority_BeforeMost = 235,
-        // first
-        Priority_First = 255,
     };
     // LongUI Event Argument
     struct EventArgument {

@@ -47,7 +47,7 @@ namespace LongUI{
         };
     public:
         // Render 渲染 
-        virtual void Render(RenderType type) const noexcept override;
+        virtual void Render() const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理

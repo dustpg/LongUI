@@ -8,7 +8,7 @@
 
 
 // UI富文本编辑框: Render 渲染 
-void LongUI::UIRichEdit::Render(RenderType type) const noexcept {
+void LongUI::UIRichEdit::Render() const noexcept {
     /*HRESULT hr = S_OK;
     RECT draw_rect = { 0, 0, 100, 100 }; //AdjustRectT(LONG);
     if (m_pTextServices) {
@@ -30,7 +30,6 @@ void LongUI::UIRichEdit::Render(RenderType type) const noexcept {
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
     return S_OK;*/
-    return Super::Render(type);
 }
 
 // UI富文本编辑框: Render 刷新

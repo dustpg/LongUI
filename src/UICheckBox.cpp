@@ -3,7 +3,7 @@
 
 
 // Render 渲染 
-void LongUI::UICheckBox::Render(RenderType type) const noexcept  {
+void LongUI::UICheckBox::Render() const noexcept  {
     /*D2D1_RECT_F draw_rect = this->GetDrawRect();;
     draw_rect.left += 1.f;
     // 计算渲染区
@@ -41,7 +41,7 @@ void LongUI::UICheckBox::Render(RenderType type) const noexcept  {
     // 调节文本范围 -
     //this->show_zone.left -= m_szCheckBox.width;
     return S_OK;*/
-    return Super::Render(type);
+    return Super::Render();
 }
 
 // UI检查框: 刷新

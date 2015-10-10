@@ -131,7 +131,7 @@ namespace LongUI {
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
     public:
         // Render 渲染 
-        virtual void Render(RenderType _bartype) const noexcept override;
+        virtual void Render() const noexcept override;
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
@@ -191,6 +191,8 @@ namespace LongUI {
         // close this control 关闭控件
         void cleanup() noexcept override;
     public:
+        // render
+        void Render() const noexcept override {};
         // update
         void Update() noexcept override;
         // update width of marginal

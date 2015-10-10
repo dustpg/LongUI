@@ -448,6 +448,10 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     }
     // 不同就渲染
     if (old_hover_line != m_pHoveredLine) {
+        UIManager << DL_Hint 
+            << L"OLD: " << old_hover_line 
+            << L"NEW: " << m_pHoveredLine 
+            << endl;
         m_pWindow->Invalidate(this);
     }
     return Super::DoMouseEvent(arg);
@@ -641,82 +645,74 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
     }
 }
 
-// UIList: 渲染函数
-void LongUI::UIList::Render(RenderType type) const noexcept {
-    // 分情况
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 渲染背景
-        this->render_background();
-        break;
-    case LongUI::RenderType::Type_Render:
-        // 渲染背景
-        this->render_background();
-        // 渲染帮助
-        Super::RenderHelper(m_vLines.begin(), m_vLines.end());
-        // 父类渲染
-        Super::Render(LongUI::RenderType::Type_Render);
-        // RECHECK: 逻辑检查
-        break;
-    case LongUI::RenderType::Type_RenderForeground:
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
+// UIList: 前景渲染
+void LongUI::UIList::render_chain_background() const noexcept {
+    // 独立背景- - 可视优化
+    if (this->GetCount()) {
+        // 保留转变
+        D2D1_MATRIX_3X2_F matrix;
+        UIManager_RenderTarget->GetTransform(&matrix);
+        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        // 第一个可视列表行 = (-Y偏移) / 行高
+        int first_visible = static_cast<int>((-m_2fOffset.y) / m_fLineHeight);
+        first_visible = std::max(first_visible, int(0));
+        // 最后一个可视列表行 = 第一个可视列表行 + 1 + 可视区域高度 / 行高
+        int last_visible = static_cast<int>(this->view_size.height / m_fLineHeight);
+        last_visible = last_visible + first_visible + 1;
+        last_visible = std::min(last_visible, int(this->GetCount()));
+        // 背景索引
+        int bkindex1 = !(first_visible & 1);
+        // 循环
+        const auto first_itr = m_vLines.data() + first_visible;
+        const auto last_itr = m_vLines.data() + last_visible;
+        for (auto itr = first_itr; itr < last_itr; ++itr) {
+            auto line = *itr;
+            // REMOVE THIS LINE?
+            const D2D1_COLOR_F* color;
+            // 选择色优先
+            if (line->IsSelected()) {
+                color = &m_colorLineSelected;
+            }
+            // 悬浮色其次
+            else if (line == m_pHoveredLine) {
+                color = &m_colorLineHover;
+            }
+            // 背景色最后
+            else {
+                color = &m_colorLineNormal1 + bkindex1;
+            }
+            // 设置
+            if (color->a > 0.f) {
+                m_pBrush_SetBeforeUse->SetColor(color);
+                UIManager_RenderTarget->FillRectangle(
+                    &line->visible_rect, m_pBrush_SetBeforeUse
+                    );
+            }
+            bkindex1 = !bkindex1;
+        }
+        // 还原
+        UIManager_RenderTarget->SetTransform(&matrix);
     }
+    // 父类主景
+    Super::render_chain_background();
 }
 
-// UIList 背景渲染
-LongUINoinline void LongUI::UIList::render_background() const noexcept {
-    // 父类背景+-?
-    Super::Render(LongUI::RenderType::Type_RenderBackground);
-    // 独立背景- - 可视优化
-    if (!this->GetCount()) return;
-    // 保留转变
-    D2D1_MATRIX_3X2_F matrix;
-    UIManager_RenderTarget->GetTransform(&matrix);
-    UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-    // 第一个可视列表行 = (-Y偏移) / 行高
-    int first_visible = static_cast<int>((-m_2fOffset.y) / m_fLineHeight);
-    first_visible = std::max(first_visible, int(0));
-    // 最后一个可视列表行 = 第一个可视列表行 + 1 + 可视区域高度 / 行高
-    int last_visible = static_cast<int>(this->view_size.height / m_fLineHeight);
-    last_visible = last_visible + first_visible + 1;
-    last_visible = std::min(last_visible, int(this->GetCount()));
-    // 背景索引
-    int bkindex1 = !(first_visible & 1);
-    // 循环
-    const auto first_itr = m_vLines.data() + first_visible;
-    const auto last_itr = m_vLines.data() + last_visible;
-    for (auto itr = first_itr; itr < last_itr; ++itr) {
-        auto line = *itr;
-        // REMOVE THIS LINE?
-        const D2D1_COLOR_F* color;
-        // 选择色优先
-        if (line->IsSelected()) {
-            color = &m_colorLineSelected;
-        }
-        // 悬浮色其次
-        else if (line == m_pHoveredLine) {
-            color = &m_colorLineHover;
-        }
-        // 背景色最后
-        else {
-            color = &m_colorLineNormal1 + bkindex1;
-        }
-        // 设置
-        if (color->a > 0.f) {
-            m_pBrush_SetBeforeUse->SetColor(color);
-            UIManager_RenderTarget->FillRectangle(
-                &line->visible_rect, m_pBrush_SetBeforeUse
-                );
-        }
-        bkindex1 = !bkindex1;
-    }
-    // 还原
-    UIManager_RenderTarget->SetTransform(&matrix);
+// UIList: 主景渲染
+void LongUI::UIList::render_chain_main() const noexcept {
+    // 渲染帮助器
+    Super::RenderHelper(this->begin(), this->end());
+    // 父类主景
+    Super::render_chain_main();
+}
+
+// UIList: 渲染函数
+void LongUI::UIList::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
 }
 
 // UIList: 刷新
@@ -864,6 +860,8 @@ noexcept -> UIControl* {
 LongUI::UIListHeader::UIListHeader(UIContainer* cp, pugi::xml_node node)
 noexcept: Super(cp, node) {
     assert(cp && "bad argument");
+    // 本类必须为边界控件
+    assert((this->flags & Flag_MarginalControl) && "'UIListHeader' must be marginal-control");
     // 设置表头
     longui_cast<UIList*>(cp)->SetHeader(this);
     // 支持模板子节点

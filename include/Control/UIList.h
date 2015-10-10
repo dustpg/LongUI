@@ -137,7 +137,7 @@ namespace LongUI {
         };
     public:
         // render this
-        virtual void Render(RenderType) const noexcept override;
+        virtual void Render() const noexcept override;
         // update this
         virtual void Update() noexcept override;
         // do event
@@ -151,6 +151,12 @@ namespace LongUI {
     protected:
         // register ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
+        // render chain -> background
+        void render_chain_background() const noexcept;
+        // render chain -> mainground
+        void render_chain_main() const noexcept;
+        // render chain -> foreground
+        void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
     public:
 #ifdef _DEBUG
     private:
@@ -209,8 +215,6 @@ namespace LongUI {
         // select to
         void SelectTo(uint32_t index1, uint32_t index2) noexcept;
     private:
-        // render background
-        void render_background() const noexcept;
         // reset select
         void reset_select() noexcept;
         // select child
@@ -238,6 +242,10 @@ namespace LongUI {
         auto begin() noexcept { return m_vLines.begin(); }
         // end itr
         auto end() noexcept { return m_vLines.end(); }
+        // begin itr for const
+        auto begin() const noexcept { return m_vLines.begin(); }
+        // end itr for const
+        auto end() const noexcept { return m_vLines.end(); }
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor

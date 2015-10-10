@@ -60,7 +60,7 @@ namespace LongUI {
         auto SetText(const wchar_t* txt) noexcept { this->uniface_text(txt); }
     public:
         // Render 
-        virtual void Render(RenderType) const noexcept;
+        virtual void Render() const noexcept = 0;
         // update
         virtual void Update() noexcept {
 #ifdef _DEBUG
@@ -87,6 +87,8 @@ namespace LongUI {
         void delay_cleanup() noexcept;
         // render chain -> background
         void render_chain_background() const noexcept;
+        // render chain -> background
+        void render_chain_main() const noexcept {}
         // render chain -> background
         void render_chain_foreground() const noexcept;
     public:
@@ -116,6 +118,10 @@ namespace LongUI {
         auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
         // get height of control
         auto GetHeight() const noexcept { return this->GetTakingUpHeight(); }
+        // is posterity for self?  
+        bool IsPosterityForSelf(const UIControl*) const noexcept;
+        // is successor for self?  
+        bool IsSuccessorForSelf(const UIControl* test) const noexcept { return this->IsPosterityForSelf(test); }
         // get taking up width of control
         auto GetTakingUpWidth() const noexcept ->float;
         // get taking up height of control
@@ -192,15 +198,56 @@ namespace LongUI {
         // hover track time, valid while > 0
         uint16_t                m_cHoverTrackTime = 0;
     public:
-        // parent control       [adjusting]: if is the top level, how to set it
+        // parent control
         UIContainer*    const   parent = nullptr;
-        // using for container, prev control
+        // render ancestry control, self or presuccessor/ancestry
+        UIControl*      const   prerender = this;
+        // using for linked-list container, prev control
         UIControl*      const   prev = nullptr;
-        // using for container, next control
+        // using for linked-list container, next control
         UIControl*      const   next = nullptr;
         // weight for layout, interpreted by container
         float           const   weight = 1.f;
+        // tree level
+        uint8_t         const   level = 0ui8;
+        // visible
+        bool                    visible = true;
     protected:
+        // boolx16
+        Helper::BitArray16      m_bool16;
+    public:
+        // set state
+        auto SetUserState(bool b) noexcept { m_bool16.SetTo(Index_StateUser, b); }
+        // test state
+        auto TestUserState() const noexcept { return m_bool16.Test(Index_StateUser); }
+        // set state
+        auto SetParentState(bool b) noexcept { m_bool16.SetTo(Index_StateParent, b); }
+        // test state
+        auto TestParentState() const noexcept { return m_bool16.Test(Index_StateParent); }
+        // set state
+        auto SetWindowState(bool b) noexcept { m_bool16.SetTo(Index_StateWindow, b); }
+        // test state
+        auto TestWindowState() const noexcept { return m_bool16.Test(Index_StateWindow); }
+    public:
+        // control current visible position(relative to world)
+        D2D1_RECT_F             visible_rect = D2D1::RectF();
+        // transform for world
+        D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
+        // position of control's view
+        D2D1_POINT_2F   const   view_pos = D2D1::Point2F();
+        // size of viewport
+        D2D1_SIZE_F     const   view_size = D2D1::SizeF(0.f, 0.f);
+        // margin rect
+        D2D1_RECT_F     const   margin_rect = D2D1::RectF();
+        // flags, use const_cast to change in constructor function
+        LongUIFlag      const   flags = LongUIFlag::Flag_None;
+    protected:
+        // width of border
+        float                   m_fBorderWidth = 0.f;
+        // now color of border
+        D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACAC);
+        // roundsize of border
+        D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
         // bit-array-index 16
         enum BitArrayIndex : uint32_t {
             // unknown
@@ -238,45 +285,6 @@ namespace LongUI {
             // count of this
             BITARRAYINDEX_COUNT,
         };
-        // boolx16
-        Helper::BitArray16      m_bool16;
-    public:
-        // set state
-        auto SetUserState(bool b) noexcept { m_bool16.SetTo(Index_StateUser, b); }
-        // test state
-        auto TestUserState() const noexcept { return m_bool16.Test(Index_StateUser); }
-        // set state
-        auto SetParentState(bool b) noexcept { m_bool16.SetTo(Index_StateParent, b); }
-        // test state
-        auto TestParentState() const noexcept { return m_bool16.Test(Index_StateParent); }
-        // set state
-        auto SetWindowState(bool b) noexcept { m_bool16.SetTo(Index_StateWindow, b); }
-        // test state
-        auto TestWindowState() const noexcept { return m_bool16.Test(Index_StateWindow); }
-    public:
-        // priority for rendering
-        uint8_t         const   priority = Priority_Normal;
-        // visible
-        bool                    visible = true;
-        // control current visible position(relative to world)
-        D2D1_RECT_F             visible_rect = D2D1::RectF();
-        // transform for world
-        D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
-        // position of control's view
-        D2D1_POINT_2F   const   view_pos = D2D1::Point2F();
-        // size of viewport
-        D2D1_SIZE_F     const   view_size = D2D1::SizeF(0.f, 0.f);
-        // margin rect
-        D2D1_RECT_F     const   margin_rect = D2D1::RectF();
-        // flags, use const_cast to change in constructor function
-        LongUIFlag      const   flags = LongUIFlag::Flag_None;
-    protected:
-        // width of border
-        float                   m_fBorderWidth = 0.f;
-        // now color of border
-        D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACAC);
-        // roundsize of border
-        D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

@@ -10,13 +10,13 @@ const wchar_t* const CPU_ADAPTER = L"Microsoft Basic Render Driver";
 // <M><Text text="HW"/></M>
 const char* const VIDEO_CARD_XML = 
 u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window autoshow="false" size="1024, 512" clearcolor="1,1,1,0.9" name="Choose Video Card">
+<Window debugshow="true" autoshow="false" size="1024, 512" clearcolor="1,1,1,0.9" name="Choose Video Card">
     <HorizontalLayout>
         <List weight="3" borderwidth="1" name="lst_vc" linetemplate="Text, Text" margin="4,4,4,4" >
             <ScrollBarA marginal="right"/>
             <ScrollBarA marginal="bottom"/>
             <ListHeader marginal="top">
-                <Button weight="0.2" borderwidth="1" margin="1,1,1,1" text="type" name="lst_header0"/>
+                <Button borderwidth="1" margin="1,1,1,1" text="type" name="lst_header0" weight="0.2"/>
                 <Button borderwidth="1" margin="1,1,1,1" text="name" name="lst_header1"/>
             </ListHeader>
         </List>
@@ -31,18 +31,6 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
-const char* const TEMPLATE_XML = 
-u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<!-- You can use other name not limited in 'Template' -->
-<Template>
-    <Control desc="list header test" sepwidth="-8" >
-        <Button weight="0.2" borderwidth="1" margin="1,1,1,1" text="type" name="lst_header0"/>
-        <Button borderwidth="1" margin="1,1,1,1" text="name" name="lst_header1"/>
-    </Control>
-</Template>
-)xml";
-
-
 // longui::demo namespace
 LONGUI_NAMESPACE_BEGIN namespace Demo {
     // config
@@ -51,9 +39,9 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
         using Super = CUIDefaultConfigure;
     public:
         // ctor
-        MyConfig() : Super(UIManager) { }
+        MyConfig() : Super(UIManager, "log.log") { }
         // 获取控件模板
-        auto GetTemplateString() noexcept->const char* override { return TEMPLATE_XML; }
+        //auto GetTemplateString() noexcept->const char* override { return TEMPLATE_XML; }
         // return true, if use cpu rendering
         virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { return Flag_OutputDebugString; }
         // choose it
