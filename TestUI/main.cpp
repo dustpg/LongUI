@@ -215,7 +215,7 @@ public:
         case_LongUI__Type_CreateControl:
             // 警告
             if (!node) {
-                UIManager << DL_Warning << L"node null" << LongUI::endl;
+                UIManager << DL_Hint << L"node null" << LongUI::endl;
             }
             // 申请空间
             pControl = LongUI::CreateWidthCET<TestControl>(type, node);
@@ -364,7 +364,7 @@ public:
         case_LongUI__Type_CreateControl:
             // 警告
             if (!node) {
-                UIManager << DL_Warning << L"node null" << LongUI::endl;
+                UIManager << DL_Hint << L"node null" << LongUI::endl;
             }
             // 申请空间
             pControl = LongUI::CreateWidthCET<UIVideoAlpha>(type, node);

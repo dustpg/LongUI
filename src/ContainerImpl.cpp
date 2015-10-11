@@ -356,7 +356,7 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
         break;
     case_LongUI__Type_CreateControl:
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIVerticalLayout>(type, node);
@@ -448,7 +448,7 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
     case_LongUI__Type_CreateControl:
         // 警告
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIHorizontalLayout>(type, node);

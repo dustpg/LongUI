@@ -56,7 +56,7 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
     case_LongUI__Type_CreateControl:
         // 警告
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIText>(type, node);
@@ -161,7 +161,7 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
     case_LongUI__Type_CreateControl:
         // 警告
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIButton>(type, node);
@@ -409,7 +409,7 @@ LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type,pugi:
     case_LongUI__Type_CreateControl:
         // 警告
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIEditBasic>(type, node);

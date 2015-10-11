@@ -14,18 +14,24 @@ LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept:
     auto sbtype = (this->marginal_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
     force_cast(this->bartype) = sbtype;
     // 修改
-    m_uiAnimation.duration = 0.5f;
+    m_uiAnimation.duration = 0.4f;
+    // 节点有效
     if (node) {
-        wheel_step = LongUI::AtoF(node.attribute("wheelstep").value());
-        m_uiAnimation.duration = LongUI::AtoF(node.attribute("aniamtionduration").value());
         register const char* str = nullptr;
+        // 滚轮步长
+        if ((str = node.attribute("wheelstep").value())) {
+            this->wheel_step = LongUI::AtoF(str);
+        }
+        // 动画时间
         if ((str = node.attribute("aniamtionduration").value())) {
             m_uiAnimation.duration = LongUI::AtoF(str);;
         }
+        // 动画类型
         if ((str = node.attribute("aniamtionbartype").value())) {
             m_uiAnimation.type = static_cast<AnimationType>(LongUI::AtoI(str));
         }
     }
+    // 初始化
     m_uiAnimation.start = m_uiAnimation.end = m_uiAnimation.value = 0.f;
 }
 
@@ -324,6 +330,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             this->SetIndex(m_uiAnimation.end + m_fArrowStep);
             break;
         case LongUI::UIScrollBar::PointType::Type_Thumb:
+            // 拖拽
             m_fOldPoint = UISB_OffsetVaule(pt4self.x);
             m_fOldIndex = m_fIndex;
             break;

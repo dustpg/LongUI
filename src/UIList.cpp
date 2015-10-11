@@ -770,7 +770,7 @@ noexcept -> UIControl* {
     case_LongUI__Type_CreateControl:
         // 警告
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIList>(type, node);
@@ -839,7 +839,7 @@ noexcept -> UIControl* {
     case_LongUI__Type_CreateControl:
         // 警告
         if (!node) {
-            UIManager << DL_Warning << L"node null" << LongUI::endl;
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
         }
         // 申请空间
         pControl = CreateWidthCET<LongUI::UIListLine>(type, node);

@@ -15,7 +15,7 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <List weight="3" borderwidth="1" name="lst_vc" linetemplate="Text, Text" margin="4,4,4,4" >
             <ScrollBarA marginal="right"/>
             <ScrollBarA marginal="bottom"/>
-            <ListHeader marginal="top">
+            <ListHeader marginal="top" sepwidth="-8">
                 <Button borderwidth="1" margin="1,1,1,1" text="type" name="lst_header0" weight="0.2"/>
                 <Button borderwidth="1" margin="1,1,1,1" text="name" name="lst_header1"/>
             </ListHeader>

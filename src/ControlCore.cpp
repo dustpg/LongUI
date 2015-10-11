@@ -636,11 +636,7 @@ namespace LongUI {
         // Render 渲染
         virtual void Render() const noexcept override {}
         // update 刷新
-        virtual void Update() noexcept override {
-#ifdef _DEBUG
-            Super::Update();
-#endif
-        }
+        virtual void Update() noexcept override { Super::Update(); }
         // do event 事件处理
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override { return false; }
     public:
@@ -649,7 +645,7 @@ namespace LongUI {
             UIControl* pControl = nullptr;
             // 判断
             if (!node) {
-                UIManager << DL_Warning << L"node null" << LongUI::endl;
+                UIManager << DL_Hint << L"node null" << LongUI::endl;
             }
             // 申请空间
             pControl = new(std::nothrow) UINull(ctrlparent, node);

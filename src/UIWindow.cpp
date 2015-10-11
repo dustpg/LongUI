@@ -563,6 +563,11 @@ void LongUI::UIWindow::Render() const noexcept  {
             UIManager_RenderTarget->SetTransform(&init_transfrom);
             UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
+#ifdef _DEBUG
+            if (this->debug_this) {
+                UIManager << DL_Log << "RENDER: " << ctrl << LongUI::endl;
+            }
+#endif
             // 正常渲染
             ctrl->Render();
             // 回来
