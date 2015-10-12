@@ -62,8 +62,12 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <List sort="true" name="lst_01" linetemplate="Text, Text"
-        topcontrol="ListHeader, 3" bottomcontrol="ScrollBarA">
+    <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
+        <ListHeader marginal="top" sepwidth="-8">
+            <Button borderwidth="1" text="name" name="lst_header0"/>
+            <Button borderwidth="1" text="desc" name="lst_header1"/>
+        </ListHeader>
+        <ScrollBarA marginal="bottom"/>
         <ListLine name="lin1">
             <Text text="1" templateid="4" name="listline1-1"/>
             <Text text="伍湖" templateid="4"/>
@@ -71,34 +75,6 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <ListLine name="lin2">
             <Text text="2" templateid="4" name="listline2-1"/>
             <Text text="亖死" templateid="4"/>
-        </ListLine>
-        <ListLine name="lin3">
-            <Text text="3" templateid="4" name="listline3-1"/>
-            <Text text="三妻" templateid="4"/>
-        </ListLine>
-        <ListLine name="lin4">
-            <Text text="5" templateid="4" name="listline4-1"/>
-            <Text text="二连" templateid="4"/>
-        </ListLine>
-        <ListLine name="lin5">
-            <Text text="4" templateid="4" name="listline5-1"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
@@ -228,8 +204,8 @@ public:
     }
 public:
     // Render This Control
-    virtual void Render(LongUI::RenderType type) const noexcept override {
-        D2D1_RECT_F draw_rect;
+    virtual void Render() const noexcept override {
+        /*D2D1_RECT_F draw_rect;
         switch (type)
         {
         case LongUI::RenderType::Type_RenderBackground:
@@ -266,7 +242,7 @@ public:
                 // 设置为输入
                 m_pEffect->SetInput(0, m_pCmdList);
             }
-        }
+        }*/
     }
     // update
     void Update() noexcept override {
@@ -377,7 +353,7 @@ public:
     }
 public:
     // Render This Control
-    virtual void Render(LongUI::RenderType /*type*/) const noexcept override {
+    virtual void Render() const noexcept override {
         /*switch (type)
         {
         case LongUI::RenderType::Type_RenderBackground:
@@ -470,10 +446,7 @@ public:
     <Control desc="btn.png look like button" margin="4,4,4,4" disabledmeta="1"
             normalmeta="2" hovermeta="3" pushedmeta="4"/>
     <!-- Index 3 -->
-    <Control desc="list header test" sepwidth="-8" >
-        <Button borderwidth="1" text="name" name="lst_header0"/>
-        <Button borderwidth="1" text="desc" name="lst_header1"/>
-    </Control>
+    <Control margin="4,4,4,4" borderwidth="1"/>
     <!-- Index 4 -->
     <Control margin="1,1,1,1" borderwidth="1"/>
 </Template>
@@ -661,3 +634,34 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 }
 
 #endif
+/*
+
+        <ListLine name="lin3">
+            <Text text="3" templateid="4" name="listline3-1"/>
+            <Text text="三妻" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin4">
+            <Text text="5" templateid="4" name="listline4-1"/>
+            <Text text="二连" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin5">
+            <Text text="4" templateid="4" name="listline5-1"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+*/

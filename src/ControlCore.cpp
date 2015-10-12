@@ -231,9 +231,6 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     };
     // 渲染边框
     if (m_fBorderWidth > 0.f) {
-        if (this->name == "lst_vc") {
-            auto& self = *this;
-        }
         UIManager_RenderTarget->SetTransform(&this->world);
         D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
         m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
@@ -309,9 +306,6 @@ void LongUI::UIControl::Render() const noexcept {
 #endif
     // 渲染边框
     if (m_fBorderWidth > 0.f) {
-        if (this->name == "lst_vc") {
-            long bk = 9;
-        }
         D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
         m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
         if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
@@ -944,8 +938,10 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     // 保留信息
     const float this_container_width = caculate_container_width();
     const float this_container_height = caculate_container_height();
-    const float this_container_left = this->view_pos.x - this->GetLeftMarginOffset();
-    const float this_container_top = this->view_pos.y - this->GetTopMarginOffset();
+    const float this_container_left = this->GetLeft();
+    const float this_container_top = this->GetTop();
+    assert(this_container_width == this->GetWidth());
+    assert(this_container_height == this->GetHeight());
     // 循环
     while (true) {
         for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {

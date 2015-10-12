@@ -148,6 +148,10 @@ namespace LongUI {
         auto UpdateWorld() noexcept { if (this->IsNeedRefreshWorld()) this->RefreshWorld(); }
         // get HoverTrackTime
         auto GetHoverTrackTime() const noexcept { return m_cHoverTrackTime; }
+        // get left of control
+        auto __fastcall GetLeft() noexcept { return this->margin_rect.left + m_fBorderWidth - this->view_pos.x; };
+        // get left of control
+        auto __fastcall GetTop() noexcept { return this->margin_rect.top + m_fBorderWidth - this->view_pos.y; };
         // set left of control
         auto __fastcall SetLeft(float left) noexcept->void;
         // set left of control

@@ -448,10 +448,15 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     }
     // 不同就渲染
     if (old_hover_line != m_pHoveredLine) {
-        UIManager << DL_Hint 
-            << L"OLD: " << old_hover_line 
-            << L"NEW: " << m_pHoveredLine 
-            << endl;
+#ifdef _DEBUG
+        // 调试输出
+        if (this->debug_this) {
+            UIManager << DL_Hint
+                << L"OLD: " << old_hover_line
+                << L"NEW: " << m_pHoveredLine
+                << endl;
+        }
+#endif
         m_pWindow->Invalidate(this);
     }
     return Super::DoMouseEvent(arg);

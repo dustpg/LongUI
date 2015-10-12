@@ -133,17 +133,19 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
     assert(m_pArrow1Geo && m_pArrow2Geo);
     // 修改颜色
     if (node) {
-        m_fArrowStep = LongUI::AtoF(node.attribute("arrowstep").value());
+        auto str = node.attribute("arrowstep").value();
+        if (str) {
+            m_fArrowStep = LongUI::AtoF(str);
+        }
     }
     // 修改颜色
-    else {
+    /*else*/ {
         D2D1_COLOR_F normal_color = D2D1::ColorF(0xF0F0F0);
         m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
         m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
         normal_color = D2D1::ColorF(0x2F2F2F);
         m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
         m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
-
     }
     // 初始化代码
     m_uiArrow1.GetByType<Element_Basic>().Init(node, "arrow1");
@@ -355,9 +357,10 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
         if ((test1 && test2) == (this->bartype == ScrollBarType::Type_Horizontal)) {
             auto wheel = (float(GET_WHEEL_DELTA_WPARAM(arg.sys.wParam))) / float(WHEEL_DELTA);
             this->SetIndex(m_uiAnimation.end - wheel_step * wheel);
+            return true;
         }
+        return false;
     }
-        return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         this->set_status(m_lastPointType, LongUI::Status_Normal);
         m_pointType = PointType::Type_None;
