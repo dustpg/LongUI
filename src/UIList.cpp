@@ -730,6 +730,8 @@ void LongUI::UIList::Update() noexcept {
         assert(m_pHeader->GetCount() == m_vLines.front()->GetCount() && "out of sync for child number");
     }
 #endif
+    //this->world;
+    //this->RefreshWorld();
 }
 
 
@@ -748,6 +750,8 @@ void LongUI::UIList::RefreshLayout() noexcept {
         ctrl->SetControlLayoutChanged();
         ctrl->SetLeft(0.f);
         ctrl->SetTop(m_fLineHeight * index);
+        ctrl->visible_rect;
+        ctrl->world;
         ++index;
     }
     // 设置

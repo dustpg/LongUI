@@ -419,6 +419,8 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
             ctrl->SetControlLayoutChanged();
             ctrl->SetLeft(0.f);
             ctrl->SetTop(position_y);
+            ctrl->world;
+            //ctrl->RefreshWorld();
             position_y += ctrl->GetTakingUpHeight();
         }
         // 修改
@@ -513,6 +515,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
             ctrl->SetControlLayoutChanged();
             ctrl->SetLeft(position_x);
             ctrl->SetTop(0.f);
+            //ctrl->RefreshWorld();
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改

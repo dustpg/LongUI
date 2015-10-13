@@ -95,6 +95,15 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
         // 检查名称
         if (m_pWindow) {
             auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
+#ifdef _DEBUG
+            char buffer[128];
+            if (!basestr) {
+                static long s_dbg_longui_index = 0;
+                ++s_dbg_longui_index;
+                std::snprintf(buffer, 128, "dbg_longui_contol_id_%ld", s_dbg_longui_index);
+                basestr = buffer;
+            }
+#endif
             if (basestr) {
                 auto namestr = m_pWindow->CopyStringSafe(basestr);
                 force_cast(this->name) = namestr;
@@ -1038,9 +1047,9 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
             this->SetTop(this_container_top);
             this->SetWidth(this_container_width);
             this->SetHeight(this_container_height);
-            this->RefreshWorld();
         }
     }
+    this->RefreshWorld();
     this->RefreshLayout();
 }
 

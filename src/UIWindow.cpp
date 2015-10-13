@@ -565,6 +565,7 @@ void LongUI::UIWindow::Render() const noexcept  {
             UIManager_RenderTarget->SetTransform(&ctrl->world);
 #ifdef _DEBUG
             if (this->debug_this) {
+                AutoLocker;
                 UIManager << DL_Log << "RENDER: " << ctrl << LongUI::endl;
             }
 #endif

@@ -26,9 +26,6 @@
     <Filter Include="LongUI\Header\Core">
       <UniqueIdentifier>{b2b62a3b-fd2e-4f73-86f9-0520a03977e2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LongUI\Source\XImpl">
-      <UniqueIdentifier>{37daa815-be43-4dff-9355-722b87cdc6e5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="LongUI\Source\XUtil">
       <UniqueIdentifier>{8c40abff-de0b-4b67-ae06-09ca642d82a3}</UniqueIdentifier>
     </Filter>
@@ -41,6 +38,9 @@
     </Filter>
     <Filter Include="LongUI\Header\Control\Container">
       <UniqueIdentifier>{7027308b-fcde-4621-8620-715dec020f1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LongUI\Source\XImpl">
+      <UniqueIdentifier>{37daa815-be43-4dff-9355-722b87cdc6e5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

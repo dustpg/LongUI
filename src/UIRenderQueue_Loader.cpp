@@ -116,7 +116,8 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
             // 已存在的空间
             auto existd = *itr;
             // 一样? --> 不干
-            if (existd == ctrl) return;
+            if (existd == ctrl) 
+                return;
             // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙节点
             if (existd->level < ctrl->level) {
                 // 是 -> 什么不干
@@ -153,15 +154,20 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         // 二次插入
         if (changed) {
             unit.length = 0; auto witr = unit.units;
-            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr) {
+            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr, ++witr) {
                 if (*ritr) {
                     *witr = *ritr;
                     ++unit.length;
                 }
             }
         }
+#ifdef _DEBUG
+        auto endt = unit.units + unit.length;
+        assert(std::find(unit.units, endt, ctrl) == endt);
+#endif
         // 添加到最后
         unit.units[unit.length++] = ctrl;
+
     };
     // 渲染队列模式
     if (m_pCurrentUnit) {
