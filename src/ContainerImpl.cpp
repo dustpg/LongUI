@@ -373,7 +373,7 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
     // 3. 计算实际高度/宽度
-    if (this->IsControlLayoutChanged()) {
+    {
         // 初始化
         float base_width = 0.f, base_height = 0.f, basic_weight = 0.f;
         // 第一次遍历
@@ -469,7 +469,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
     // 1. 去除浮动控件影响
     // 2. 一次遍历, 检查指定高度的控件, 计算基本高度/宽度
     // 3. 计算实际高度/宽度
-    if (this->IsControlLayoutChanged()) {
+    {
         // 初始化
         float base_width = 0.f, base_height = 0.f;
         float basic_weight = 0.f;
@@ -533,3 +533,169 @@ void LongUI::UIHorizontalLayout::cleanup() noexcept {
     delete this;
 }
 
+// --------------------- Single Layout ---------------
+// UISingle 析构函数
+LongUI::UISingle::~UISingle() noexcept {
+    assert(m_pChild && "UISingle must host a child");
+    this->cleanup_child(m_pChild);
+}
+
+// UISingle: 事件处理
+bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 处理窗口事件
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_TreeBulidingFinished:
+            // 初始化边缘控件 
+            Super::DoEvent(arg);
+            // 初次完成空间树建立
+            assert(m_pChild && "UISingle must host a child");
+            m_pChild->DoEvent(arg);
+            return true;
+        }
+    }
+    return Super::DoEvent(arg);
+}
+
+// UISingle 重建
+auto LongUI::UISingle::Recreate() noexcept -> HRESULT {
+    HRESULT hr = S_OK;
+    // 重建子控件
+    assert(m_pChild && "UISingle must host a child");
+    hr = m_pChild->Recreate();
+    // 检查
+    assert(SUCCEEDED(hr));
+    return Super::Recreate();
+}
+
+// UISingle: 主景渲染
+void LongUI::UISingle::render_chain_main() const noexcept {
+    // 渲染帮助器
+    Super::RenderHelper(this->begin(), this->end());
+    // 父类主景
+    Super::render_chain_main();
+}
+
+// UISingle: 渲染函数
+void LongUI::UISingle::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
+}
+
+// UISingle: 刷新
+void LongUI::UISingle::Update() noexcept {
+    // 帮助器
+    Super::UpdateHelper<Super>(this->begin(), this->end());
+}
+
+/// <summary>
+/// Find the control via mouse point
+/// </summary>
+/// <param name="pt">The wolrd mouse point.</param>
+/// <returns>the control pointer, maybe nullptr</returns>
+auto LongUI::UISingle::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+    // 父类(边缘控件)
+    auto mctrl = Super::FindChild(pt);
+    if (mctrl) return mctrl;
+    assert(m_pChild && "UISingle must host a child");
+    // 检查
+    if (IsPointInRect(m_pChild->visible_rect, pt)) {
+        return m_pChild;
+    }
+    return nullptr;
+}
+
+
+// UISingle: 推入最后
+void LongUI::UISingle::PushBack(UIControl* child) noexcept {
+    // 边界控件交给父类处理
+    if (child && (child->flags & Flag_MarginalControl)) {
+        Super::PushBack(child);
+    }
+    // 一般的就自己处理
+    else {
+        // 检查
+#ifdef _DEBUG
+        auto old = UIControl::GetPlaceholder();
+        this->cleanup_child(old);
+        if (old != m_pChild) {
+            UIManager << DL_Warning
+                << L"m_pChild exist:"
+                << m_pChild
+                << LongUI::endl;
+        }
+#endif
+        // 移除之前的
+        this->cleanup_child(m_pChild);
+        this->after_insert(m_pChild = child);
+    }
+}
+
+// UISingle: 仅移除
+void LongUI::UISingle::RemoveJust(UIControl* child) noexcept {
+    assert(m_pChild == child && "bad argment");
+    this->cleanup_child(child);
+    m_pChild = UIControl::GetPlaceholder();
+    Super::RemoveJust(child);
+}
+
+// UISingle: 更新布局
+void LongUI::UISingle::RefreshLayout() noexcept {
+    // 浮动控件?
+    if (m_pChild->flags & Flag_Floating) {
+        // 更新
+        m_2fContentSize.width = m_pChild->GetWidth() * m_2fZoom.width;
+        m_2fContentSize.height = m_pChild->GetHeight() * m_2fZoom.height;
+    }
+    // 一般控件
+    else {
+        // 设置控件宽度
+        if (!(m_pChild->flags & Flag_WidthFixed)) {
+            m_pChild->SetWidth(this->GetViewWidthZoomed());
+        }
+        // 设置控件高度
+        if (!(m_pChild->flags & Flag_HeightFixed)) {
+            m_pChild->SetWidth(this->GetViewHeightZoomed());
+        }
+        // 不管如何, 修改!
+        m_pChild->SetControlLayoutChanged();
+        m_pChild->SetLeft(0.f);
+        m_pChild->SetTop(0.f);
+    }
+}
+
+// UISingle 清理
+void LongUI::UISingle::cleanup() noexcept {
+    delete this;
+}
+
+// UISingle 创建空间
+auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UISingle>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+    }
+    return pControl;
+}

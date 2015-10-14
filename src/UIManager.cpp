@@ -202,6 +202,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         this->RegisterControlClass(UIList::CreateControl, "List");
         this->RegisterControlClass(UISlider::CreateControl, "Slider");
         this->RegisterControlClass(UIButton::CreateControl, "Button");
+        this->RegisterControlClass(UISingle::CreateControl, "Single");
         this->RegisterControlClass(UIListLine::CreateControl, "ListLine");
         this->RegisterControlClass(UICheckBox::CreateControl, "CheckBox");
         this->RegisterControlClass(UIRichEdit::CreateControl, "RichEdit");
@@ -576,7 +577,7 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
         assert(window); if (!window) return nullptr;
         // 重建资源
         auto hr = window->Recreate();
-        AssertHR(hr);
+        ShowHR(hr);
         // 创建控件树
         this->make_control_tree(window, node);
         // 完成创建
@@ -1168,7 +1169,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         }
     }
     // 断言 HR
-    AssertHR(hr);
+    ShowHR(hr);
     return hr;
 }
 
@@ -1585,7 +1586,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         assert(!"CreateIcon just AND & XOR, no alpha channel");
 #endif
     }
-    AssertHR(hr);
+    ShowHR(hr);
     ::SafeRelease(bitmap);
     return m_phMetaIcon[index] = hAlphaIcon;
 }

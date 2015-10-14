@@ -171,7 +171,7 @@ LongUI::UIWindow::~UIWindow() noexcept {
 
 // 移除控件引用
 void LongUI::UIWindow::RemoveControlReference(UIControl * ctrl) noexcept {
-    auto remove_reference = [ctrl](UIControl* & cref) { 
+    auto remove_reference = [ctrl](UIControl*& cref) { 
         if (cref == ctrl) cref = nullptr; 
     };
     // 移除引用
@@ -461,7 +461,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
     }
 #endif
     // 检查
-    AssertHR(hr);
+    ShowHR(hr);
 }
 
 
@@ -563,7 +563,7 @@ void LongUI::UIWindow::Render() const noexcept  {
             UIManager_RenderTarget->SetTransform(&init_transfrom);
             UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
-#ifdef _DEBUG
+#if 0 // def _DEBUG
             if (this->debug_this) {
                 AutoLocker;
                 UIManager << DL_Log << "RENDER: " << ctrl << LongUI::endl;
@@ -599,8 +599,8 @@ void LongUI::UIWindow::Render() const noexcept  {
         UIManager_RenderTarget->PopAxisAlignedClip();
         UIManager_RenderTarget->SetTransform(&this->world);
     }
-#ifdef _DEBUG
     // 调试输出
+#ifdef _DEBUG
     if (this->debug_show) {
         D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.45f, 0.45f);
         UIManager_RenderTarget->GetTransform(&nowMatrix);
@@ -671,7 +671,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pTaskBarList)
             );
-        AssertHR(hr);
+        ShowHR(hr);
         return true;
     }
     // 处理事件
@@ -864,7 +864,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
         // 重建失败?
         if (FAILED(hr)) {
             UIManager << DL_Error << L" Recreate FAILED!" << LongUI::endl;
-            AssertHR(hr);
+            ShowHR(hr);
         }
         ::SafeRelease(pDxgiBackBuffer);
     }
@@ -1004,7 +1004,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     // 错误
     if (FAILED(hr)){
         UIManager << L"Recreate Failed!" << LongUI::endl;
-        AssertHR(hr);
+        ShowHR(hr);
     }
     ::SafeRelease(pDxgiBackBuffer);
     ::SafeRelease(pSwapChain);

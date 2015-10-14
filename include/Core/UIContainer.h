@@ -150,7 +150,7 @@ namespace LongUI {
         // render chain -> foreground
         void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
         // cleanup child
-        void cleanup_child(UIControl* ctrl) noexcept { assert(ctrl && ctrl->parent == this); ctrl->cleanup(); }
+        void cleanup_child(UIControl* ctrl) noexcept { assert(ctrl && (ctrl->parent == this || !ctrl->parent)); ctrl->cleanup(); }
         // dtor
         ~UIContainer() noexcept;
         // after insert

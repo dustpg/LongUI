@@ -55,9 +55,15 @@ namespace LongUI {
             return ok;
         }
         // get text
-        auto GetText() noexcept { return this->uniface_text(nullptr); }
+        auto GetText() noexcept ->const wchar_t* {
+            EventArgument arg; arg.sender = this; arg.event = Event::Event_GetText;
+            this->DoEvent(arg); return arg.str;
+        }
         // set text
-        auto SetText(const wchar_t* txt) noexcept { this->uniface_text(txt); }
+        void SetText(const wchar_t* txt) noexcept {
+            EventArgument arg; arg.sender = this; arg.event = Event::Event_SetText;
+            arg.stt.text = txt; this->DoEvent(arg);
+        }
     public:
         // Render 
         virtual void Render() const noexcept = 0;
@@ -79,8 +85,6 @@ namespace LongUI {
     protected:
         // [uniform interface]register ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
-        // [uniform interface]set/get text
-        virtual auto uniface_text(const wchar_t* OPTIONAL txt) noexcept ->const wchar_t* { UNREFERENCED_PARAMETER(txt); assert(!"can not get/set text from this control!"); return L""; };
         // UIEvent
         bool call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
         // delay_cleanup
@@ -107,6 +111,8 @@ namespace LongUI {
         auto IsTopLevel() const noexcept { return !this->parent; }
         // get script data
         const auto& GetScript() const noexcept { return m_script; }
+        // get space holder control to aviod nullptr if you do not want a nullptr
+        static auto GetPlaceholder() noexcept->UIControl*;
     public:
         // set width fixed
         auto SetWidthFixed() noexcept { force_cast(this->flags) |= Flag_WidthFixed; }

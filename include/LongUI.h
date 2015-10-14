@@ -82,7 +82,8 @@ static inline auto SafeAcquire(Interface *pInterfaceToRelease) {
 #define OPTIONAL
 #endif
 
-#define AssertHR(hr) if(FAILED(hr)) ShowErrorWithHR(hr)
+// show error if error with hr code
+#define ShowHR(hr) if(FAILED(hr)) ShowErrorWithHR(hr)
 
 #ifdef _DEBUG
 // show hr error
@@ -338,6 +339,10 @@ namespace LongUI {
         Event_KillFocus,
         // [none-exdata]timer when SetTime
         Event_Timer,
+        // [stt] set control text
+        Event_SetText,
+        // [none-exdata]get control text
+        Event_GetText,
         // notify all children(but sender)
         //Event_NotifyChildren,
         // ----- User Custom Defined Event -----
@@ -368,6 +373,8 @@ namespace LongUI {
             struct { WPARAM wParam; LPARAM lParam; } sys;
             // control
             struct { LongUI::SubEvent subevent; void* pointer; } ui;
+            // set text
+            struct { const wchar_t* text; void* unused; } stt;
         };
         // Return Code
         union {
@@ -539,16 +546,17 @@ namespace LongUI {
 
 // longui core only?
 #ifndef LongUICoreOnly
-#   include "Control/UIContainerBuiltIn.h"
+#   include "Control/Container/UISingle.h"
+#   include "Control/Container/UIContainerBuiltIn.h"
+#   include "Control/Container/UILinearLayout.h"
+#   include "Control/Container/UIList.h"
+#   include "Control/Container/UIWindow.h"
+#   include "Control/Container/UIMenu.h"
 #   include "Control/UIScrollBar.h"
 #   include "Control/UISlider.h"
-#   include "Control/UILinearLayout.h"
-#   include "Control/UIList.h"
-#   include "Control/UIWindow.h"
 #   include "Control/UIEdit.h"
 #   include "Control/UIRichEdit.h"
 #   include "Control/UIText.h"
 #   include "Control/UICheckBox.h"
 #   include "Control/UIButton.h"
-#   include "Control/UIMenu.h"
 #endif

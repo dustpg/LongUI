@@ -134,23 +134,26 @@
     <ClInclude Include="..\include\Core\UIString.h">
       <Filter>LongUI\Header\Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\UIContainerBuiltIn.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\UILinearLayout.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\UIList.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\UIWindow.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\UIMenu.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Component\Video.h">
       <Filter>LongUI\Header\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UIMenu.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UISingle.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UIWindow.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UIContainerBuiltIn.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UILinearLayout.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UIList.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

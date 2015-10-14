@@ -64,14 +64,13 @@ const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
-    <Button margin="4,4,4,4" borderwidth="1" text="0123"/>
-    <Button margin="4,4,4,4" borderwidth="1" text="core"/>
     <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
         <ListHeader marginal="top" sepwidth="-8">
             <Button borderwidth="1" text="name" name="lst_header0"/>
             <Button borderwidth="1" text="desc" name="lst_header1"/>
         </ListHeader>
         <ScrollBarA marginal="bottom"/>
+        <ScrollBarA marginal="right"/>
         <ListLine name="lin1">
             <Text text="1" templateid="4" name="listline1-1"/>
             <Text text="伍湖" templateid="4"/>
@@ -79,6 +78,34 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <ListLine name="lin2">
             <Text text="2" templateid="4" name="listline2-1"/>
             <Text text="亖死" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin3">
+            <Text text="3" templateid="4" name="listline3-1"/>
+            <Text text="三妻" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin4">
+            <Text text="5" templateid="4" name="listline4-1"/>
+            <Text text="二连" templateid="4"/>
+        </ListLine>
+        <ListLine name="lin5">
+            <Text text="4" templateid="4" name="listline5-1"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
+        </ListLine>
+        <ListLine>
+            <Text text="4" templateid="4"/>
+            <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
@@ -638,34 +665,3 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 }
 
 #endif
-/*
-
-        <ListLine name="lin3">
-            <Text text="3" templateid="4" name="listline3-1"/>
-            <Text text="三妻" templateid="4"/>
-        </ListLine>
-        <ListLine name="lin4">
-            <Text text="5" templateid="4" name="listline4-1"/>
-            <Text text="二连" templateid="4"/>
-        </ListLine>
-        <ListLine name="lin5">
-            <Text text="4" templateid="4" name="listline5-1"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-        <ListLine>
-            <Text text="4" templateid="4"/>
-            <Text text="一瞬" templateid="4"/>
-        </ListLine>
-*/

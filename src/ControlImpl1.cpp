@@ -34,6 +34,24 @@ void LongUI::UIText::Update() noexcept {
     return Super::Update();
 }
 
+// UIText: 事件响应
+bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // LONGUI 事件
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_SetText:
+            m_text = arg.stt.text;
+            m_pWindow->Invalidate(this);
+            __fallthrough;
+        case LongUI::Event::Event_GetText:
+            arg.str = m_text.c_str();
+            return true;
+        }
+    }
+    return Super::DoEvent(arg);
+}
+
 
 /*/ UIText 构造函数
 LongUI::UIText::UIText(pugi::xml_node node) noexcept: Super(node), m_text(node) {
@@ -75,16 +93,6 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
 return Super::Recreate();
 }*/
 
-// UIText: 统一文本接口
-auto LongUI::UIText::uniface_text(const wchar_t* OPTIONAL txt) noexcept -> const wchar_t* {
-    // 设置
-    if (txt) {
-        m_text = txt;
-        m_pWindow->Invalidate(this);
-    }
-    // 获取
-    return m_text.c_str();
-}
 
 // close this control 关闭控件
 void LongUI::UIText::cleanup() noexcept {
@@ -303,6 +311,12 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_KillFocus:
             m_text.OnKillFocus();
             return true;
+        case LongUI::Event::Event_SetText:
+            assert(!"NOIMPL");
+            __fallthrough;
+        case LongUI::Event::Event_GetText:
+            arg.str = m_text.c_str();
+            return true;
         }
     }
     // 系统消息
@@ -366,15 +380,6 @@ bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 HRESULT LongUI::UIEditBasic::Recreate() noexcept {
     m_text.Recreate();
     return Super::Recreate();
-}
-
-// UIEditBasic: 统一文本接口
-auto LongUI::UIEditBasic::uniface_text(const wchar_t* OPTIONAL txt) noexcept -> const wchar_t* {
-    // 有效
-    if (txt) {
-        assert(!"NOIMPL");
-    }
-    return m_text.c_str();;
 }
 
 // close this control 关闭控件
@@ -631,6 +636,25 @@ bool LongUI::UIContainerBuiltIn::debug_do_event(const LongUI::DebugEventInformat
     return false;
 }
 
+// LongUI单独容器: 调试信息
+bool LongUI::UISingle::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UISingle";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UISingle";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UISingle>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
 
 // UI 基本编辑控件: 调试信息
 bool LongUI::UIEditBasic::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {

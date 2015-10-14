@@ -39,12 +39,10 @@ namespace LongUI{
         // update 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept->HRESULT override;
     protected:
-        // [uniform interface]get/set text interface
-        virtual auto uniface_text(const wchar_t* OPTIONAL txt) noexcept ->const wchar_t* override final;
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
         // render chain -> mainground

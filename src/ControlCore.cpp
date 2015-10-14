@@ -629,8 +629,7 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
 // LongUI namespace
 namespace LongUI {
     // null control
-    class UINull final: public UIControl {
-    private:
+    class UINull : public UIControl {
         // 父类申明
         using Super = UIControl;
         // clean this control 清除控件
@@ -663,6 +662,29 @@ namespace LongUI {
         // destructor 析构函数
         ~UINull() noexcept { }
     };
+    // space holder
+    class UISpaceHolder final : public UINull {
+        // 父类申明
+        using Super = UINull;
+        // clean this control 清除控件
+        virtual void cleanup() noexcept override { }
+    public:
+        // create
+        virtual auto Recreate() noexcept ->HRESULT override { return S_OK; }
+    public:
+        // constructor 构造函数
+        UISpaceHolder() noexcept : Super(nullptr, LongUINullXMLNode) {}
+        // destructor 析构函数
+        ~UISpaceHolder() noexcept { }
+    };
+    // 占位控件
+    static char g_control[sizeof(UISpaceHolder)];
+    // 占位控件初始化
+    struct CUISpaceHolderInit { CUISpaceHolderInit() noexcept { reinterpret_cast<UISpaceHolder*>(g_control)->UISpaceHolder::UISpaceHolder(); } } g_init_holder;
+    // 获取占位控件
+    auto LongUI::UIControl::GetPlaceholder() noexcept -> UIControl* {
+        return reinterpret_cast<UIControl*>(&g_control);
+    }
 }
 
 // 创建空控件

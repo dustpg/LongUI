@@ -4,9 +4,9 @@
     PRPR: 完成窗口渲染队列
     PRPR: 基本二进制资源工具框架
     PRPR: 完成滚动条与容器的匹配
+    PRPR: LongUI::CUIRenderQueue::PlanToRender 有BUG
+    PRPR: 完成UIList
     TODO: 完成特效框架
-    TODO: LongUI::CUIRenderQueue::PlanToRender 有BUG
-    TODO: 完成UIList
     TODO: 完成UIPage
     TODO: 窗体资源(交换链)缓存
     TODO: 完成UIComboBox

@@ -276,6 +276,7 @@ void LongUI::UIScrollBarA::Render() const noexcept {
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    
     // -------------------- on mouse move --------------------
     auto on_mouse_move = [this, &pt4self]() {
         // Captured状态
@@ -284,8 +285,8 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             if (m_pointType == PointType::Type_Thumb) {
                 // 计算移动距离
                 register auto pos = UISB_OffsetVaule(pt4self.x);
-                register auto rate = (1.f - m_fMaxIndex  / (m_fMaxRange - BASIC_SIZE)) 
-                    * this->parent->GetZoom(int(this->bartype));
+                register auto zoom = this->parent->GetZoom(int(this->bartype));
+                register auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE)) * zoom;
                 //UIManager << DL_Hint << rate << endl;
                 this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
                 m_uiAnimation.end = m_fIndex;
@@ -337,11 +338,12 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             m_fOldIndex = m_fIndex;
             break;
         case LongUI::UIScrollBar::PointType::Type_Shaft:
+        {
+            auto tmpx = (UISB_OffsetVaule(pt4self.x) - BASIC_SIZE);
+            auto tmpl = (UISB_OffsetVaule(this->view_size.width) - BASIC_SIZE * 2.f);
             // 设置目标
-            this->SetIndex(
-                (UISB_OffsetVaule(pt4self.x) - BASIC_SIZE) / (this->view_size.width - BASIC_SIZE * 2.f)
-                * m_fMaxIndex
-                );
+            this->SetIndex(tmpx / tmpl * m_fMaxIndex);
+        }
             break;
         }
     };
@@ -472,7 +474,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
                 sink->EndFigure(D2D1_FIGURE_END_OPEN);
                 hr = sink->Close();
             }
-            AssertHR(hr);
+            ShowHR(hr);
             ::SafeRelease(sink);
             return geometry;
         };
