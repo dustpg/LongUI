@@ -162,7 +162,7 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
     }
 #endif
     {
-        // 连接前后节点
+        // 连接前后结点
         register auto prev_tmp = ctrl->prev;
         register auto next_tmp = ctrl->next;
         // 检查, 头
@@ -258,7 +258,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         if (ctrl1->prev) {
             if(!b___a) force_cast(ctrl1->prev->next) = ctrl2;
         }
-        // A为头节点
+        // A为头结点
         else {
             m_pHead = ctrl2;
         }
@@ -266,7 +266,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         if (ctrl1->next) {
             if(!a___b) force_cast(ctrl1->next->prev) = ctrl2;
         }
-        // A为尾节点
+        // A为尾结点
         else {
             m_pTail = ctrl2;
         }
@@ -274,7 +274,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         if (ctrl2->prev) {
             if(!a___b) force_cast(ctrl2->prev->next) = ctrl1;
         }
-        // B为头节点
+        // B为头结点
         else {
             m_pHead = ctrl1;
         }
@@ -282,7 +282,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         if (ctrl2->next) {
             if(!b___a) force_cast(ctrl2->next->prev) = ctrl1;
         }
-        // B为尾节点
+        // B为尾结点
         else {
             m_pTail = ctrl1;
         }
@@ -294,11 +294,11 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
             force_cast(b->prev) = a->prev;
             force_cast(a->prev) = b;
         };
-        // 相邻则节点?
+        // 相邻则结点?
         if (a___b) {
             swap_neibergs(ctrl1, ctrl2);
         }
-        // 相邻则节点?
+        // 相邻则结点?
         else if (b___a) {
             swap_neibergs(ctrl2, ctrl1);
         }
@@ -660,7 +660,7 @@ void LongUI::UISingle::RefreshLayout() noexcept {
         }
         // 设置控件高度
         if (!(m_pChild->flags & Flag_HeightFixed)) {
-            m_pChild->SetWidth(this->GetViewHeightZoomed());
+            m_pChild->SetHeight(this->GetViewHeightZoomed());
         }
         // 不管如何, 修改!
         m_pChild->SetControlLayoutChanged();

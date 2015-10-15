@@ -99,8 +99,22 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
             char buffer[128];
             if (!basestr) {
                 static long s_dbg_longui_index = 0;
+                buffer[0] = 0;
                 ++s_dbg_longui_index;
-                std::snprintf(buffer, 128, "dbg_longui_contol_id_%ld", s_dbg_longui_index);
+                std::snprintf(
+                    buffer, 128, 
+                    "dbg_longui_%s_id_%ld", 
+                    node.name(),
+                    s_dbg_longui_index
+                    );
+                // 小写
+                auto mystrlow = [](char* str) noexcept {
+                    while (*str) {
+                        if (*str >= 'A' && *str <= 'Z') *str += 'a' - 'A';
+                        ++str;
+                    }
+                };
+                mystrlow(buffer);
                 basestr = buffer;
             }
 #endif
@@ -200,8 +214,6 @@ LongUI::UIControl::~UIControl() noexcept {
 void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
-    auto b = this->debug_updated;
-    auto address = &b;
     constexpr auto index = uint32_t(0);
     if (this->debug_render_checker.Test(index)) {
         AutoLocker;
@@ -232,7 +244,7 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     }
     force_cast(this->debug_render_checker).SetTrue(index);
 #endif
-    // 后继节点判断, B控件深度必须比A深
+    // 后继结点判断, B控件深度必须比A深
     auto is_successor = [](const UIControl* const a, const UIControl* b) noexcept {
         const register auto target = a->level;
         while (b->level > target) b = b->parent;
@@ -396,7 +408,7 @@ auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
     return S_OK;
 }
 
-// 测试是否为子孙节点
+// 测试是否为子孙结点
 bool LongUI::UIControl::IsPosterityForSelf(const UIControl* test) const noexcept {
     const register auto target = this->level;
     while (test->level > target) test = test->parent;
@@ -566,7 +578,7 @@ void LongUI::UIControl::RefreshWorld() noexcept {
 
 // UIMarginalable 构造函数
 LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {
-    // 有效节点
+    // 有效结点
     if (node) {
         // 获取类型
         auto get_type = [](pugi::xml_node node, MarginalControl bad_match) noexcept {
@@ -766,9 +778,9 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
         // 子控件也是容器?(不是也无所谓了)
         force_cast(child->flags) |= Flag_Container_HostPosterityRenderingDirectly;
     }
-    // 设置父节点
+    // 设置父结点
     assert(child->parent == this);
-    // 设置窗口节点
+    // 设置窗口结点
     assert(child->m_pWindow == m_pWindow);
     // 重建资源
     child->Recreate();

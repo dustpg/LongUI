@@ -118,7 +118,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
             // 一样? --> 不干
             if (existd == ctrl) 
                 return;
-            // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙节点
+            // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙结点
             if (existd->level < ctrl->level) {
                 // 是 -> 什么不干
                 if (existd->IsPosterityForSelf(ctrl)) {
@@ -129,7 +129,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
 
                 }
             }
-            // 存在深度 > 插入深度 -> 检查存在的是否为插入的子孙节点
+            // 存在深度 > 插入深度 -> 检查存在的是否为插入的子孙结点
             else if(existd->level > ctrl->level) {
                 // 是 -> 替换所有
                 if (ctrl->IsPosterityForSelf(existd)) {
@@ -412,7 +412,7 @@ namespace LongUI {
         // pugixml 使用的是句柄式, 所以下面的代码是安全的.
         register auto now_node = m_docResource.first_child().first_child();
         while (now_node) {
-            // 获取子节点数量
+            // 获取子结点数量
             auto get_children_count = [](pugi::xml_node node) {
                 node = node.first_child();
                 auto count = 0ui32;

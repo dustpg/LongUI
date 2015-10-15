@@ -26,7 +26,7 @@
 
 // LongUI namespace
 namespace LongUI {
-    // single control class, UISingle MUST host one child
+    // single control class, UISingle always hosts a child
     class UISingle : public UIContainer {
         // super class
         using Super = UIContainer;

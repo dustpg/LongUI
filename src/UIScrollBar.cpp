@@ -15,7 +15,7 @@ LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept:
     force_cast(this->bartype) = sbtype;
     // 修改
     m_uiAnimation.duration = 0.4f;
-    // 节点有效
+    // 结点有效
     if (node) {
         register const char* str = nullptr;
         // 滚轮步长

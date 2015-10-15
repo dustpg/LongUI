@@ -873,7 +873,7 @@ noexcept: Super(cp, node) {
     assert((this->flags & Flag_MarginalControl) && "'UIListHeader' must be marginal-control");
     // 设置表头
     longui_cast<UIList*>(cp)->SetHeader(this);
-    // 支持模板子节点
+    // 支持模板子结点
     //auto flag = this->flags;
     if (node) {
         const char* str = nullptr;
@@ -1086,11 +1086,11 @@ bool LongUI::CUIMenu::Create(const char * xml) noexcept {
             );
         return false;
     }
-    // 创建节点
+    // 创建结点
     return this->Create(document.first_child());
 }
 
-// 使用XML节点创建菜单
+// 使用XML结点创建菜单
 bool LongUI::CUIMenu::Create(pugi::xml_node node) noexcept {
     UNREFERENCED_PARAMETER(node);
     assert(!m_hMenu && "cannot create again!");

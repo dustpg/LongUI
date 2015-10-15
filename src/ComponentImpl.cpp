@@ -12,7 +12,7 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix)
         Helper::XMLGetRichType(node, RichType::Type_None, "richtype", prefix),
         0
     };
-    // 有效节点
+    // 有效结点
     if (node) {
         // 检查参数
         assert(prefix && "bad arguments");

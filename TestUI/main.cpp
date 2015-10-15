@@ -108,6 +108,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
+    <Single><Button text="XYZ" borderwidth="1" margin="4,4,4,4"/></Single>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
     <Button name="btn_x0" size="0, 48" borderwidth="1"
         margin="4,4,4,4" text="TEST BUTTON"/>
@@ -145,7 +146,7 @@ private:
     ~MainWindow() = default;
 public:
     // placement new
-    auto operator new(size_t size, void* ptr) noexcept -> void*{ return ::operator new(size, ptr); };
+    auto operator new(size_t size, void* ptr) noexcept -> void* { return ::operator new(size, ptr); };
     // placement delete
     void operator delete(void* mem, void *ptr) noexcept { return ::operator delete(mem, ptr); };
     // ctor

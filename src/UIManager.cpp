@@ -309,9 +309,9 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
     // 
     UIControl* now_control = nullptr;
     UIContainer* parent_node = window;
-    // 遍历算法: 1.压入所有子节点 2.依次弹出 3.重复1
+    // 遍历算法: 1.压入所有子结点 2.依次弹出 3.重复1
     while (true) {
-        // 压入/入队 所有子节点
+        // 压入/入队 所有子结点
         node = node.first_child();
         while (node) {
             xml_queue.Push(node);
@@ -321,7 +321,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         //recheck:
         // 为空则退出
         if (xml_queue.IsEmpty()) break;
-        // 弹出/出队 第一个节点
+        // 弹出/出队 第一个结点
         node = xml_queue.Front();  xml_queue.Pop();
         parent_node = parents_queue.Front(); parents_queue.Pop();
         // 根据名称创建控件
@@ -335,12 +335,12 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
                 << LongUI::endl;
             continue;
         }
-        // 添加子节点
+        // 添加子结点
         parent_node->PushBack(now_control);
-        // 设置节点为下次父节点
+        // 设置结点为下次父结点
         parent_node = static_cast<decltype(parent_node)>(now_control);
 #if 0
-        // 检查本控件是否需要XML子节点信息
+        // 检查本控件是否需要XML子结点信息
         if (now_control->flags & Flag_ControlNeedFullXMLNode) {
             goto recheck;
         }
@@ -513,7 +513,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
             function = this->GetCreateFunc(node.name());
         }
     }
-    // 节点有效并且没有指定模板ID则尝试获取
+    // 结点有效并且没有指定模板ID则尝试获取
     if (node && !tid) {
         tid = static_cast<decltype(tid)>(LongUI::AtoI(
             node.attribute(LongUI::XMLAttribute::TemplateID).value())
@@ -523,7 +523,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     if (tid) {
         assert(tid < m_cCountCtrlTemplate && "out of range");
         if (tid >= m_cCountCtrlTemplate) tid = 0;
-        // 节点有效则添加属性
+        // 结点有效则添加属性
         if (node) {
             auto attribute = m_pTemplateNodes[tid].first_attribute();
             // 遍历属性
@@ -546,7 +546,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     if (!function) return nullptr;
     auto ctrl = function(cp->CET(), node);
 #if 0
-    // 插入模板节点
+    // 插入模板结点
     if (ctrl && tid) {
         if (ctrl->flags & (Flag_InsertTemplateChild | Flag_UIContainer)) {
             auto child = m_pTemplateNodes[tid].first_child();
@@ -919,7 +919,7 @@ auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept-
             ::MessageBoxA(nullptr, code.description(), "<LongUI::CUIManager::load_control_template_string>: Failed to Parse/Load XML", MB_ICONERROR);
             return E_FAIL;
         }
-        // 获取子节点数量
+        // 获取子结点数量
         auto get_children_count = [](pugi::xml_node node) {
             node = node.first_child();
             auto count = 0ui16;
