@@ -699,3 +699,5 @@ auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) 
     }
     return pControl;
 }
+
+// --------------------- Page Layout ---------------

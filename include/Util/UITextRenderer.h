@@ -38,7 +38,7 @@ namespace LongUI {
         Type_UserDefineFirst,
     };
     // Basic TextRenderer
-    class DECLSPEC_NOVTABLE CUIBasicTextRenderer : public Helper::ComStatic<
+    class LONGUI_NOVTABLE CUIBasicTextRenderer : public Helper::ComStatic<
         Helper::QiListSelf<IUnknown, Helper::QiList<IDWriteTextRenderer>>> {
     public:
         // destructor

@@ -76,11 +76,8 @@
   
 ## License
   
-  - LongUI **基本基于** MIT License
+  - LongUI MIT License
   - pugixml parser - version 1.5 (MIT License)
   - dlmalloc-2.8.6 (public domain)
   - ~~Scintilla-3.5.3 (License for Scintilla)~~
   - 更多细节请参考[License.txt](./License.txt)
-  
-附加需要:
-  - 请在您的程序中的"关于"或者相关选项(如果有的话)显示或者链接License信息

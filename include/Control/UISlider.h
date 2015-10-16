@@ -49,6 +49,12 @@ namespace LongUI{
     protected:
         // register ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
+        // render chain -> background
+        void render_chain_background() const noexcept;
+        // render chain -> mainground
+        void render_chain_main() const noexcept { return Super::render_chain_main(); }
+        // render chain -> foreground
+        void render_chain_foreground() const noexcept;
     public:
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;

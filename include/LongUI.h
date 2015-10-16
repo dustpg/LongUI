@@ -530,11 +530,15 @@ namespace LongUI {
 #include "Util/UIDataObject.h"
 #include "Util/UITextRenderer.h"
 #include "Util/UIInlineObject.h"
+
 // LongUI Component
-#include "Component/Element.h"
-#include "Component/Video.h"
-#include "Component/EditaleText.h"
-#include "Component/Text.h"
+#ifndef LongUICoreOnly
+#   include "Component/Element.h"
+#   include "Component/Video.h"
+#   include "Component/EditaleText.h"
+#   include "Component/Text.h"
+#endif
+
 // LongUI Manager
 #include "Util/UIInput.h"
 #include "Core/UIManager.h"
@@ -550,6 +554,7 @@ namespace LongUI {
 #   include "Control/Container/UIContainerBuiltIn.h"
 #   include "Control/Container/UILinearLayout.h"
 #   include "Control/Container/UIList.h"
+#   include "Control/Container/UIPage.h"
 #   include "Control/Container/UIWindow.h"
 #   include "Control/Container/UIMenu.h"
 #   include "Control/UIScrollBar.h"

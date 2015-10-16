@@ -272,11 +272,9 @@ void LongUI::UIScrollBarA::Render() const noexcept {
     }
 }
 
-
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
-    
     // -------------------- on mouse move --------------------
     auto on_mouse_move = [this, &pt4self]() {
         // Captured状态
@@ -286,13 +284,8 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
                 // 计算移动距离
                 register auto pos = UISB_OffsetVaule(pt4self.x);
                 register auto zoom = this->parent->GetZoom(int(this->bartype));
-                register auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE)) * zoom;
-                //UIManager << DL_Hint << rate << endl;
+                register auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE*2.f)) * zoom;
                 this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
-                m_uiAnimation.end = m_fIndex;
-#ifdef _DEBUG
-                rate = 0.f;
-#endif
             }
         }
         //  检查指向类型

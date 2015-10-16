@@ -1,80 +1,76 @@
 ﻿#include "LongUI.h"
 
+// UISlider 背景渲染
+void LongUI::UISlider::render_chain_background() const noexcept {
+    Super::render_chain_background();
+    // 默认背景?
+    if(m_bDefaultBK) {
+        constexpr float SLIDER_TRACK_BORDER_WIDTH = 1.f;
+        constexpr float SLIDER_TRACK_WIDTH = 3.f;
+        constexpr UINT SLIDER_TRACK_BORDER_COLOR = 0xD6D6D6;
+        constexpr UINT SLIDER_TRACK_COLOR = 0xE7EAEA;
+        D2D1_RECT_F border_rect; this->GetViewRect(border_rect);
+        // 垂直滑块
+        if (this->IsVerticalSlider()) {
+            auto half = this->thumb_size.height * 0.5f;
+            border_rect.left = (border_rect.left + border_rect.right) * 0.5f -
+                SLIDER_TRACK_BORDER_WIDTH - SLIDER_TRACK_WIDTH * 0.5f;
+            border_rect.right = border_rect.left + 
+                SLIDER_TRACK_BORDER_WIDTH * 2.f + SLIDER_TRACK_WIDTH;
+            border_rect.top += half;
+            border_rect.bottom -= half;
+        }
+        // 水平滑块
+        else {
+            auto half = this->thumb_size.width * 0.5f;
+            border_rect.left += half;
+            border_rect.right -= half;
+            border_rect.top = (border_rect.top + border_rect.bottom) * 0.5f -
+                SLIDER_TRACK_BORDER_WIDTH - SLIDER_TRACK_WIDTH * 0.5f;
+            border_rect.bottom = border_rect.top + 
+                SLIDER_TRACK_BORDER_WIDTH * 2.f + SLIDER_TRACK_WIDTH;
+        }
+        // 渲染滑槽边框
+        m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(SLIDER_TRACK_BORDER_COLOR));
+        UIManager_RenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
+        // 渲染滑槽
+        m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(SLIDER_TRACK_COLOR));
+        border_rect.left += SLIDER_TRACK_BORDER_WIDTH;
+        border_rect.top += SLIDER_TRACK_BORDER_WIDTH;
+        border_rect.right -= SLIDER_TRACK_BORDER_WIDTH;
+        border_rect.bottom -= SLIDER_TRACK_BORDER_WIDTH;
+        UIManager_RenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
+    }
+}
+
+// UISlider 前景
+void LongUI::UISlider::render_chain_foreground() const noexcept {
+    // 边框
+    m_uiElement.Render(m_rcThumb);
+    {
+        constexpr float THUMB_BORDER_WIDTH = 1.f;
+        D2D1_RECT_F thumb_border = {
+            m_rcThumb.left + THUMB_BORDER_WIDTH * 0.5f,
+            m_rcThumb.top + THUMB_BORDER_WIDTH * 0.5f,
+            m_rcThumb.right - THUMB_BORDER_WIDTH * 0.5f,
+            m_rcThumb.bottom - THUMB_BORDER_WIDTH * 0.5f,
+        };
+        m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
+        UIManager_RenderTarget->DrawRectangle(&thumb_border, m_pBrush_SetBeforeUse);
+    }
+    // 父类
+    Super::render_chain_foreground();
+}
+
+
 // Render 渲染 
 void LongUI::UISlider::Render() const noexcept {
-#if 0
-    //D2D1_RECT_F draw_rect;
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        __fallthrough;
-    case LongUI::RenderType::Type_Render:
-        // 默认背景?
-        if(m_bDefaultBK) {
-            constexpr float SLIDER_TRACK_BORDER_WIDTH = 1.f;
-            constexpr float SLIDER_TRACK_WIDTH = 3.f;
-            constexpr UINT SLIDER_TRACK_BORDER_COLOR = 0xD6D6D6;
-            constexpr UINT SLIDER_TRACK_COLOR = 0xE7EAEA;
-            D2D1_RECT_F border_rect; this->GetViewRect(border_rect);
-            // 垂直滑块
-            if (this->IsVerticalSlider()) {
-                auto half = this->thumb_size.height * 0.5f;
-                border_rect.left = (border_rect.left + border_rect.right) * 0.5f -
-                    SLIDER_TRACK_BORDER_WIDTH - SLIDER_TRACK_WIDTH * 0.5f;
-                border_rect.right = border_rect.left + 
-                    SLIDER_TRACK_BORDER_WIDTH * 2.f + SLIDER_TRACK_WIDTH;
-                border_rect.top += half;
-                border_rect.bottom -= half;
-            }
-            // 水平滑块
-            else {
-                auto half = this->thumb_size.width * 0.5f;
-                border_rect.left += half;
-                border_rect.right -= half;
-                border_rect.top = (border_rect.top + border_rect.bottom) * 0.5f -
-                    SLIDER_TRACK_BORDER_WIDTH - SLIDER_TRACK_WIDTH * 0.5f;
-                border_rect.bottom = border_rect.top + 
-                    SLIDER_TRACK_BORDER_WIDTH * 2.f + SLIDER_TRACK_WIDTH;
-            }
-            // 渲染滑槽边框
-            m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(SLIDER_TRACK_BORDER_COLOR));
-            UIManager_RenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
-            // 渲染滑槽
-            m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(SLIDER_TRACK_COLOR));
-            border_rect.left += SLIDER_TRACK_BORDER_WIDTH;
-            border_rect.top += SLIDER_TRACK_BORDER_WIDTH;
-            border_rect.right -= SLIDER_TRACK_BORDER_WIDTH;
-            border_rect.bottom -= SLIDER_TRACK_BORDER_WIDTH;
-            UIManager_RenderTarget->FillRectangle(&border_rect, m_pBrush_SetBeforeUse);
-        }
-        // 父类背景
-        Super::Render(LongUI::RenderType::Type_RenderBackground);
-        __fallthrough;
-        // 背景中断
-        if (type == LongUI::RenderType::Type_RenderBackground) {
-            break;
-        }
-    case LongUI::RenderType::Type_RenderForeground:
-        m_uiElement.Render(m_rcThumb);
-        // 边框
-        {
-            constexpr float THUMB_BORDER_WIDTH = 1.f;
-            D2D1_RECT_F thumb_border = {
-                m_rcThumb.left + THUMB_BORDER_WIDTH * 0.5f,
-                m_rcThumb.top + THUMB_BORDER_WIDTH * 0.5f,
-                m_rcThumb.right - THUMB_BORDER_WIDTH * 0.5f,
-                m_rcThumb.bottom - THUMB_BORDER_WIDTH * 0.5f,
-            };
-            m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-            UIManager_RenderTarget->DrawRectangle(&thumb_border, m_pBrush_SetBeforeUse);
-        }
-        // 父类前景
-        Super::Render(LongUI::RenderType::Type_RenderForeground);
-        break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-        break;
-    }
-#endif
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
 }
 
 

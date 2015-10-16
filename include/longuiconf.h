@@ -257,8 +257,10 @@ namespace LongUI {
 #endif
 
 
-#ifndef DECLSPEC_NOVTABLE
-#define DECLSPEC_NOVTABLE
+#ifdef _MSC_VER
+#define LONGUI_NOVTABLE __declspec(novtable)
+#else
+#define LONGUI_NOVTABLE
 #endif
 
 

@@ -28,21 +28,17 @@
 
 // longui namespace
 namespace LongUI {
-    // LongUI UI Interface, IUnknown like interface
-#if 0
-    using IUIInterface = IUnknown;
-#else
-    class DECLSPEC_NOVTABLE IUIInterface { 
+    // LongUI UI Interface
+    class LONGUI_NOVTABLE IUIInterface { 
     public:
         // add ref count
         virtual auto STDMETHODCALLTYPE AddRef() noexcept->ULONG = 0;
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG = 0;
     };
-#endif
 #define LONGUI_BASIC_INTERFACE_IMPL\
-    auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return 2; }\
-    auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { return 1; };
+    auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return 2; }\
+    auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; };
     // Script define
     struct ScriptUI {
         // ctor
@@ -85,7 +81,7 @@ namespace LongUI {
     // script {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
     static const GUID IID_IUIScript =
     { 0x9b531bd, 0x2e3b, 0x4c98, { 0x98, 0x5c, 0x1f, 0xd6, 0xb4, 0x6, 0xe5, 0x3d } };
-    class DECLSPEC_NOVTABLE IUIScript : public IUIInterface {
+    class LONGUI_NOVTABLE IUIScript : public IUIInterface {
     public:
         // run a section script with event
         virtual auto Evaluation(const ScriptUI&, const LongUI::EventArgument& arg) noexcept->bool = 0;
@@ -102,7 +98,7 @@ namespace LongUI {
     static const GUID IID_IUIResourceLoader = 
     { 0x16222e4b, 0x9ac8, 0x4756,{ 0x8c, 0xa9, 0x75, 0xa7, 0x2d, 0x2f, 0x4f, 0x60 } };
     // UI Binary Resource Loader
-    class DECLSPEC_NOVTABLE IUIResourceLoader : public IUIInterface {
+    class LONGUI_NOVTABLE IUIResourceLoader : public IUIInterface {
     public:
         // resource type
         enum ResourceType : uint32_t {
@@ -124,7 +120,7 @@ namespace LongUI {
     // static const GUID IID_IUIConfigure =
     // { 0x7ca331b9, 0x6500, 0x4948,{ 0xa9, 0xb4, 0xd5, 0x59, 0xc9, 0x2e, 0x65, 0xb1 } };
     // UI Configure Interface
-    class DECLSPEC_NOVTABLE IUIConfigure : public IUIInterface {
+    class LONGUI_NOVTABLE IUIConfigure : public IUIInterface {
     public:
         // flag
         enum ConfigureFlag : uint32_t {
@@ -213,8 +209,13 @@ namespace LongUI {
         virtual auto OutputDebugStringW(DebugStringLevel level, const wchar_t* string, bool flush) noexcept -> void = 0;
 #endif
     };
+    // window host
+    class LONGUI_NOVTABLE IUIWindowHost : public IUIInterface {
+    public:
+
+    };
     // UI Undo Redo Commnad
-    class DECLSPEC_NOVTABLE IUICommand : public IUIInterface {
+    class LONGUI_NOVTABLE IUICommand : public IUIInterface {
     public:
         // undo
         virtual void Undo() noexcept = 0;

@@ -90,12 +90,8 @@ For this repo, you need:
   -  TestUI -- my test project, just for me for debugging
   
 ## License
-  - LongUI under MIT License **basically**
+  - LongUI under MIT License
   - pugixml parser - version 1.5 (MIT License)
   - dlmalloc-2.8.6 (public domain)
   - ~~Scintilla-3.5.3 (License for Scintilla)~~
   - More detail, see [License.txt](./License.txt)
-  
-  p.s.
-  - Please put the license/URL in "About" or other option(if exist) in your
-   longui app

@@ -155,6 +155,9 @@
     <ClInclude Include="..\include\Control\Container\UIList.h">
       <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UIPage.h">
+      <Filter>LongUI\Header\Control\Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ControlCore.cpp">

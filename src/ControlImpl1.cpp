@@ -656,6 +656,26 @@ bool LongUI::UISingle::debug_do_event(const LongUI::DebugEventInformation& info)
     return false;
 }
 
+// LongUI页面容器: 调试信息
+bool LongUI::UIPage::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIPage";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIPage";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIPage>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
 // UI 基本编辑控件: 调试信息
 bool LongUI::UIEditBasic::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)

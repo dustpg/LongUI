@@ -64,6 +64,7 @@ const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
+    <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
         <ListHeader marginal="top" sepwidth="-8">
             <Button borderwidth="1" text="name" name="lst_header0"/>
