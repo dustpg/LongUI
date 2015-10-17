@@ -26,7 +26,7 @@
 
 // LongUI namespace
 namespace LongUI {
-    // page-like container
+    // page-like container, child cannot be fixed width/height
     class UIPage : public UIContainer {
         // super class
         using Super = UIContainer;
@@ -56,8 +56,11 @@ namespace LongUI {
         // just remove 
         virtual void RemoveJust(UIControl* child) noexcept override final;
     public:
+        void Insert(uint32_t index, UIControl* child) noexcept;
+        // display next page
+        void DisplayNextPage(uint32_t page) noexcept;
         // ctor
-        UIPage(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
+        UIPage(UIContainer* cp, pugi::xml_node node) noexcept;
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
     protected:
@@ -68,14 +71,28 @@ namespace LongUI {
         // render chain -> foreground
         void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
     public: // for C++ 11;
+        // begin itr
+        auto begin() noexcept { return m_vChildren.begin(); }
+        // end itr
+        auto end() noexcept { return m_vChildren.end(); }
+        // const begin itr
+        auto begin() const noexcept { return m_vChildren.begin(); }
+        // const end itr
+        auto end() const noexcept { return m_vChildren.end(); }
 #ifdef _DEBUG
     private:
         // debug for_each
         virtual void debug_for_each(const CUIFunction<void(UIControl*)>& call) noexcept override {
+            for (auto ctrl : m_vChildren) call(ctrl);
         }
 #endif
     protected:
+        // now display
+        UIControl*                  m_pNowDisplay = nullptr;
         // vector
+        ControlVector               m_vChildren;
+        // animation
+        CUIAnimation<float>         m_animation;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

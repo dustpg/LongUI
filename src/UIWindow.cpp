@@ -305,7 +305,7 @@ auto LongUI::UIWindow::FindControl(const char* cname) noexcept -> UIControl * {
     // 未找到返回空
     if (!result) {
         // 给予警告
-        UIManager << DL_Warning << L"Control Not Found:\n  " << cname << LongUI::endl;
+        UIManager << DL_Warning << L" Control Not Found: " << cname << LongUI::endl;
         return nullptr;
     }
     else {

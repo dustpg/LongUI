@@ -626,7 +626,7 @@ void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
         this->refresh();
         break;
     case VK_DELETE:     // 删除键
-                        // 有选择的话
+        // 有选择的话
         if (absolutePosition != m_u32CaretAnchor) {
             // 删除选择区
             this->DeleteSelection();

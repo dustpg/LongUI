@@ -153,42 +153,39 @@ namespace LongUI {
         inline auto GetWindowsCount() const noexcept { return m_cCountWindow; }
     public: // 隐形转换区
         // 转换为 LongUIRenderTarget
-#define UIManager_RenderTarget (static_cast<ID2D1DeviceContext*>(UIManager))
-        inline operator ID2D1DeviceContext*() const noexcept { return m_pd2dDeviceContext; };
+#define UIManager_RenderTarget (UIManager.GetRenderTargetNoAddRef())
+        inline auto GetRenderTargetNoAddRef() const noexcept { return m_pd2dDeviceContext; };
         // 转换为 DXGI Factory2
-#define UIManager_DXGIFactory (static_cast<IDXGIFactory2*>(UIManager))
-        inline operator IDXGIFactory2*()const noexcept { return m_pDxgiFactory; };
+#define UIManager_DXGIFactory (UIManager.GetDXGIFactoryNoAddRef())
+        inline auto GetDXGIFactoryNoAddRef() const noexcept { return m_pDxgiFactory; };
         // 转换为 D3D11 Device
-#define UIManager_D3DDevice  (static_cast<ID3D11Device*>(UIManager))
-        inline operator ID3D11Device*()const noexcept { return m_pd3dDevice; };
+#define UIManager_D3DDevice  (UIManager.GetD3DDeviceNoAddRef())
+        inline auto GetD3DDeviceNoAddRef() const noexcept { return m_pd3dDevice; };
         // 转换为 D3D11 Device Context
-#define UIManager_D3DContext (static_cast<ID3D11DeviceContext*>(UIManager))
-        inline operator ID3D11DeviceContext*()const noexcept { return m_pd3dDeviceContext; };
+#define UIManager_D3DContext (UIManager.GetD3DContextNoAddRef())
+        inline auto GetD3DContextNoAddRef() const noexcept { return m_pd3dDeviceContext; };
         // 转换为 D2D1 Device
-#define UIManager_D2DDevice  (static_cast<ID2D1Device*>(UIManager))
-        inline operator ID2D1Device*()const noexcept { return m_pd2dDevice; };
+#define UIManager_D2DDevice  (UIManager.GetD2DDeviceNoAddRef())
+        inline auto GetD2DDeviceNoAddRef() const noexcept { return m_pd2dDevice; };
         // 转换为 DXGI Device1
-#define UIManager_DXGIDevice (static_cast<IDXGIDevice1*>(UIManager))
-        inline operator IDXGIDevice1*()const noexcept { return m_pDxgiDevice; };
+#define UIManager_DXGIDevice (UIManager.GetDXGIDeviceNoAddRef())
+        inline auto GetDXGIDeviceNoAddRef() const noexcept { return m_pDxgiDevice; };
         // 转换为 DXGI Adapter
-#define UIManager_DXGIAdapter (static_cast<IDXGIAdapter*>(UIManager))
-        inline operator IDXGIAdapter*()const noexcept { return m_pDxgiAdapter; };
+#define UIManager_DXGIAdapter (UIManager.GetDXGIAdapterNoAddRef())
+        inline auto GetDXGIAdapterNoAddRef() const noexcept { return m_pDxgiAdapter; };
         // 转换为 DWrite Factory1
-#define UIManager_DWriteFactory (static_cast<IDWriteFactory1*>(UIManager))
-        inline operator IDWriteFactory1*()const noexcept { return m_pDWriteFactory; };
+#define UIManager_DWriteFactory (UIManager.GetDWriteFactoryNoAddRef())
+        inline auto GetDWriteFactoryNoAddRef() const noexcept { return m_pDWriteFactory; };
         // 转换为 D2D Factory1
-#define UIManager_D2DFactory (static_cast<ID2D1Factory1*>(UIManager))
-        inline operator ID2D1Factory1*()const noexcept { return m_pd2dFactory; };
-        // 转换为 Tf Thread Mgr
-#define UIManager_TfThreadMgr (static_cast<ITfThreadMgr*>(UIManager))
-        inline operator ITfThreadMgr*()const noexcept { return m_pTsfThreadManager; };
+#define UIManager_D2DFactory (UIManager.GetD2DFactoryNoAddRef())
+        inline auto GetD2DFactoryNoAddRef() const noexcept { return m_pd2dFactory; };
 #ifdef LONGUI_WITH_MMFVIDEO
         // 转换为  IMFDXGIDeviceManager
-#   define UIManager_MFDXGIDeviceManager (static_cast<IMFDXGIDeviceManager*>(UIManager))
-        inline operator IMFDXGIDeviceManager*()const noexcept { return m_pMFDXGIManager; };
+#   define UIManager_MFDXGIDeviceManager (UIManager.GetMFDXGIDeviceManagerNoAddRef())
+        inline auto GetMFDXGIDeviceManagerNoAddRef() const noexcept { return m_pMFDXGIManager; };
         // 转换为  IMFMediaEngineClassFactory
-#   define UIManager_MFMediaEngineClassFactory (static_cast<IMFMediaEngineClassFactory*>(UIManager))
-        inline operator IMFMediaEngineClassFactory*()const noexcept { return m_pMediaEngineFactory; };
+#   define UIManager_MFMediaEngineClassFactory (UIManager.GetMFMediaEngineClassFactoryNoAddRef())
+        inline auto GetMFMediaEngineClassFactoryNoAddRef()const noexcept { return m_pMediaEngineFactory; };
         // MF Dxgi设备管理器
         IMFDXGIDeviceManager*           m_pMFDXGIManager = nullptr;
         // MF 媒体引擎

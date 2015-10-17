@@ -212,9 +212,9 @@ namespace LongUI {
         UIContainer*    const   parent = nullptr;
         // render ancestry control, self or presuccessor/ancestry
         UIControl*      const   prerender = this;
-        // using for linked-list container, prev control
+        // using for UIContainerBuiltIn, prev control
         UIControl*      const   prev = nullptr;
-        // using for linked-list container, next control
+        // using for UIContainerBuiltIn, next control
         UIControl*      const   next = nullptr;
         // weight for layout, interpreted by container
         float           const   weight = 1.f;

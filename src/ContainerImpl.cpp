@@ -701,3 +701,187 @@ auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) 
 }
 
 // --------------------- Page Layout ---------------
+// UIPage 构造函数
+LongUI::UIPage::UIPage(UIContainer* cp, pugi::xml_node node) noexcept :
+Super(cp, node), 
+m_animation(AnimationType::Type_QuadraticEaseIn) {
+    
+}
+
+// UIPage 析构函数
+LongUI::UIPage::~UIPage() noexcept {
+    for (auto ctrl : m_vChildren) {
+        this->cleanup_child(ctrl);
+    }
+}
+
+// UIPage: 事件处理
+bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // 处理窗口事件
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_TreeBulidingFinished:
+            // 初始化边缘控件 
+            Super::DoEvent(arg);
+            // 子控件
+            for (auto ctrl : m_vChildren) {
+                ctrl->DoEvent(arg);
+            }
+            return true;
+        }
+    }
+    return Super::DoEvent(arg);
+}
+
+// UIPage 重建
+auto LongUI::UIPage::Recreate() noexcept -> HRESULT {
+    HRESULT hr = S_OK;
+    // 重建子控件
+    for (auto ctrl : (*this)) {
+        hr = ctrl->Recreate();
+        // 稍微检查一下
+        assert(SUCCEEDED(hr));
+    }
+    return Super::Recreate();
+}
+
+// UIPage: 主景渲染
+void LongUI::UIPage::render_chain_main() const noexcept {
+    // 渲染帮助器
+    Super::RenderHelper(&m_pNowDisplay, &m_pNowDisplay + 1);
+    // 父类主景
+    Super::render_chain_main();
+}
+
+// UIPage: 渲染函数
+void LongUI::UIPage::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
+}
+
+// UIPage: 刷新
+void LongUI::UIPage::Update() noexcept {
+    // 帮助器
+    Super::UpdateHelper<Super>(this->begin(), this->end());
+}
+
+/// <summary>
+/// Find the control via mouse point
+/// </summary>
+/// <param name="pt">The wolrd mouse point.</param>
+/// <returns>the control pointer, maybe nullptr</returns>
+auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+    // 父类(边缘控件)
+    auto mctrl = Super::FindChild(pt);
+    if (mctrl) return mctrl;
+    // 检查
+    if (m_pNowDisplay && IsPointInRect(m_pNowDisplay->visible_rect, pt)) {
+        return m_pNowDisplay;
+    }
+    return nullptr;
+}
+
+
+// UIPage: 推入最后
+void LongUI::UIPage::PushBack(UIControl* child) noexcept {
+    // 边界控件交给父类处理
+    if (child && (child->flags & Flag_MarginalControl)) {
+        Super::PushBack(child);
+    }
+    // 一般的就自己处理
+    else {
+        this->Insert(m_cChildrenCount, child);
+    }
+}
+
+// UIPage: 插入
+LongUINoinline void LongUI::UIPage::Insert(uint32_t index, UIControl* child) noexcept {
+    assert(child && "bad argument");
+    if (child) {
+        m_pNowDisplay = child;
+#ifdef _DEBUG
+        auto dgb_result = false;
+        dgb_result = (child->flags & Flag_HeightFixed) == 0;
+        assert(dgb_result && "child of UIPage can not keep flag: Flag_HeightFixed");
+        dgb_result = (child->flags & Flag_WidthFixed) == 0;
+        assert(dgb_result && "child of UIPage can not keep flag: Flag_WidthFixed");
+#endif
+        m_vChildren.insert(index, child);
+        this->after_insert(child);
+        ++m_cChildrenCount;
+        assert(m_vChildren.isok());
+    }
+}
+
+// UIPage: 仅移除
+void LongUI::UIPage::RemoveJust(UIControl* child) noexcept {
+    auto itr = std::find(this->begin(), this->end(), child);
+    // 没找到
+    if (itr == this->end()) {
+        UIManager << DL_Error
+            << L"CHILD: " << child
+            << L", NOT FOUND"
+            << LongUI::endl;
+    }
+    // 找到了
+    else {
+        // 修改
+        m_vChildren.erase(itr);
+        --m_cChildrenCount;
+        this->SetControlLayoutChanged();
+        Super::RemoveJust(child);
+    }
+}
+
+// UIPage: 更新布局
+void LongUI::UIPage::RefreshLayout() noexcept {
+    // 遍历
+    for (auto ctrl : m_vChildren) {
+        // 设置控件左边坐标
+        ctrl->SetLeft(0.f);
+        // 设置控件顶部坐标
+        ctrl->SetTop(0.f);
+        // 设置控件宽度
+        ctrl->SetWidth(this->GetViewWidthZoomed());
+        // 设置控件高度
+        ctrl->SetHeight(this->GetViewHeightZoomed());
+        // 不管如何, 修改!
+        ctrl->SetControlLayoutChanged();
+    }
+}
+
+// UIPage 清理
+void LongUI::UIPage::cleanup() noexcept {
+    delete this;
+}
+
+// UIPage 创建空间
+auto LongUI::UIPage::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIPage>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+    }
+    return pControl;
+}

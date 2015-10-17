@@ -328,7 +328,7 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case WM_KEYDOWN:
             m_text.OnKey(static_cast<uint32_t>(arg.sys.wParam));
             break;
-        case WM_UNICHAR:
+        case WM_CHAR:
             m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
             break;
         }

@@ -26,6 +26,7 @@ const char* test_xml_01 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     </HorizontalLayout>
 </Window>
 )xml";
+
 // bottomcontrol="ScrollBarA" rightcontrol="ScrollBarA" margin="16,16,16,16"
 const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true" clearcolor="1,1,1,0.95" >
@@ -118,7 +119,26 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_03;
+
+
+const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<Window size="800, 600" name="MainWindow" debugshow="true"
+    autoshow="false" clearcolor="1,1,1,0.95" >
+    <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
+    <Page>
+        <Button borderwidth="1" margin="4,4,4,4" text="如果"/>
+        <Button borderwidth="1" margin="4,4,4,4" text="但是"/>
+        <Slider thumbsize="32,32" margin="4,4,4,4"/>
+    </Page>
+    <Page>
+        <Button borderwidth="1" margin="4,4,4,4" text="虽然"/>
+        <Button borderwidth="1" margin="4,4,4,4" text="不过"/>
+    </Page>
+    <Edit text="这个"/>
+</Window>
+)xml";
+
+const char* test_xml = test_xml_04;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -159,7 +179,7 @@ private:
     virtual void cleanup() noexcept override { this->~MainWindow(); }
     // init
     void init() {
-        auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl("lst_01"));
+        /*auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl("lst_01"));
         if (list) {
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
                 for (auto line : static_cast<LongUI::UIList*>(list)->GetContainer()) {
@@ -189,7 +209,7 @@ private:
                 this->SwapChild(LongUI::MakeIteratorBI(ctrl1), LongUI::MakeIteratorBI(ctrl2));
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
-        }
+        }*/
     }
     // on number button clicked
     void number_button_clicked(LongUI::UIControl* btn);

@@ -200,6 +200,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         this->RegisterControlClass(CreateNullControl, "Null");
         this->RegisterControlClass(UIText::CreateControl, "Text");
         this->RegisterControlClass(UIList::CreateControl, "List");
+        this->RegisterControlClass(UIPage::CreateControl, "Page");
         this->RegisterControlClass(UISlider::CreateControl, "Slider");
         this->RegisterControlClass(UIButton::CreateControl, "Button");
         this->RegisterControlClass(UISingle::CreateControl, "Single");
