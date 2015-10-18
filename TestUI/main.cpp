@@ -122,23 +122,25 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 
 const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="800, 600" name="MainWindow" debugshow="true"
+<Window textantimode="cleartype" size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <Page>
         <Button borderwidth="1" margin="4,4,4,4" text="如果"/>
         <Button borderwidth="1" margin="4,4,4,4" text="但是"/>
-        <Slider thumbsize="32,32" margin="4,4,4,4"/>
     </Page>
     <Page>
         <Button borderwidth="1" margin="4,4,4,4" text="虽然"/>
         <Button borderwidth="1" margin="4,4,4,4" text="不过"/>
     </Page>
-    <Edit text="这个"/>
+    <Single templatesize="256, 0"><Edit text="这个"/></Single>
+    <Single templatesize="256, 0">
+        <Slider thumbsize="32,32" margin="4,4,4,4"/>
+    </Single>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_04;
+const char* test_xml = test_xml_03;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -539,7 +541,6 @@ private:
     // dll
     HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
 };
-
 
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {

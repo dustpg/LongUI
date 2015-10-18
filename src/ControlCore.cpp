@@ -153,7 +153,7 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
             float size[] = { 0.f, 0.f };
             Helper::MakeFloats(
                 node.attribute(LongUI::XMLAttribute::AllSize).value(),
-                size, lengthof(size)
+                size, static_cast<uint32_t>(lengthof(size))
                 );
             // 视口区宽度固定?
             if (size[0] > 0.f) {
@@ -171,7 +171,7 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
             float pos[] = { 0.f, 0.f };
             Helper::MakeFloats(
                 node.attribute(LongUI::XMLAttribute::LeftTopPosotion).value(),
-                pos, lengthof(pos)
+                pos, static_cast<uint32_t>(lengthof(pos))
                 );
             // 指定X轴
             if (pos[0] != 0.f) {

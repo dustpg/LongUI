@@ -111,7 +111,9 @@ namespace LongUI {
             // refresh, while layout chenged, should be refreshed
             auto __fastcall refresh(bool = true)const noexcept->UIWindow*;
             // recreate layout
-            void __fastcall recreate_layout() noexcept;
+            void __fastcall recreate_layout(IDWriteTextFormat* fmt) noexcept;
+            // recreate layout without format
+            void __fastcall recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); ::SafeRelease(fmt); }
             // insert text
             auto __fastcall insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept->HRESULT;
         public: // 一般内部设置区
@@ -214,8 +216,6 @@ namespace LongUI {
             D2D1_SIZE_F             m_size = D2D1::SizeF(96.f, 96.f);
             // Text Renderer
             CUIBasicTextRenderer*   m_pTextRenderer = nullptr;
-            // basic text format
-            IDWriteTextFormat*      m_pBasicFormat = nullptr;
             // drag text range
             DWRITE_TEXT_RANGE       m_dragRange;
             // click in selection

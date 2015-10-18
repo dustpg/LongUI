@@ -242,6 +242,11 @@ auto LongUI::Helper::XMLGetValueEnum(pugi::xml_node node,
                 return uint32_t(i);
             }
         }
+        // 失败!
+        UIManager << DL_Warning
+            << L"Bad matched for: "
+            << value
+            << LongUI::endl;
     }
     // 匹配无效
     return bad_match;

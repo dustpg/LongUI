@@ -162,7 +162,9 @@ namespace LongUI {
         // mouse pointed control
         UIControl*              m_pMousePointed = nullptr;
         // count of children, just make "GetLength/Count" to faster
-        size_t                  m_cChildrenCount = 0;
+        uint32_t                m_cChildrenCount = 0;
+        // unused float
+        float                   m_fUnusedCnr = 0.f;
         // orginal margin
         D2D1_RECT_F             m_orgMargin = D2D1::RectF();
         // template size

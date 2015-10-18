@@ -289,7 +289,7 @@ HRESULT LongUI::CUIDataObject::EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC *
         static FORMATETC rgfmtetc[] = {
             { CF_UNICODETEXT, nullptr, DVASPECT_CONTENT, 0, TYMED_HGLOBAL },
         };
-        hr = ::SHCreateStdEnumFmtEtc(lengthof(rgfmtetc), rgfmtetc, ppEnumFormatEtc);
+        hr = ::SHCreateStdEnumFmtEtc(static_cast<UINT>(lengthof(rgfmtetc)), rgfmtetc, ppEnumFormatEtc);
     }
     return hr;
 }
@@ -760,6 +760,24 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 #undef UIAnimation_Template_A
 #undef UIAnimation_Template_B
 // CUIAnimation ----------  END  -------------
+
+
+// get transformed pointer
+LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept->D2D1_POINT_2F {
+    D2D1_POINT_2F result;
+    // x = (bn-dm)/(bc-ad)
+    // y = (an-cm)/(ad-bc)
+    // a : m_matrix._11
+    // b : m_matrix._21
+    // c : m_matrix._12
+    // d : m_matrix._22
+    register auto bc_ad = matrix._21 * matrix._12 - matrix._11 * matrix._22;
+    register auto m = point.x - matrix._31;
+    register auto n = point.y - matrix._32;
+    result.x = (matrix._21*n - matrix._22 * m) / bc_ad;
+    result.y = (matrix._12*m - matrix._11 * n) / bc_ad;
+    return result;
+}
 
 /// <summary>
 /// string to int, 字符串转整型, std::atoi自己实现版

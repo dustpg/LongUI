@@ -94,21 +94,7 @@ namespace LongUI {
         return result;
     }
     // get transformed pointer
-    LongUINoinline static auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
-        D2D1_POINT_2F result;
-        // x = (bn-dm)/(bc-ad)
-        // y = (an-cm)/(ad-bc)
-        // a : m_matrix._11
-        // b : m_matrix._21
-        // c : m_matrix._12
-        // d : m_matrix._22
-        register auto bc_ad = matrix._21 * matrix._12 - matrix._11 * matrix._22;
-        register auto m = point.x - matrix._31;
-        register auto n = point.y - matrix._32;
-        result.x = (matrix._21*n - matrix._22 * m) / bc_ad;
-        result.y = (matrix._12*m - matrix._11 * n) / bc_ad;
-        return result;
-    }
+    auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept->D2D1_POINT_2F;
     // 四舍五入
     static inline auto RoundToInt(float x) { return static_cast<int>(x + .5f); }
     // pack the color
@@ -182,7 +168,7 @@ namespace LongUI {
     }
     // bubble sort for vector or list
     template<typename Itr, typename Lamda>
-    static void BubbleSort(Itr begin, Itr end, Lamda lam) noexcept {
+    void BubbleSort(Itr begin, Itr end, Lamda lam) noexcept {
         --end;
         bool flag = true;
         while (flag) {

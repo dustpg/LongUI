@@ -182,7 +182,7 @@ namespace LongUI {
             // strcmphelper
             static auto strcmphelper(const wchar_t* a, const wchar_t* b) noexcept { return std::wcscmp(a, b); }
             // new table
-            static auto new_table(uint32_t cap) noexcept {
+            static auto new_table(size_t cap) noexcept {
                 auto table = LongUI::SmallAllocT<Unit*>(cap);
                 if (table) {
                     ::memset(table, 0, sizeof(void*) * cap);
@@ -292,7 +292,7 @@ namespace LongUI {
                 auto oldcap = m_cCapacity;
                 auto oldcount = m_cCount;
                 m_ppUnitTable = newtable;
-                m_cCapacity = newc;
+                m_cCapacity = static_cast<uint32_t>(newc);
                 m_cCount = 0;
                 if (oldtable) {
                     this->for_each(oldtable, oldcap, [this](Unit* unit) noexcept {

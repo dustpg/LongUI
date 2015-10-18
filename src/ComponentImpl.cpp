@@ -130,15 +130,23 @@ auto LongUI::Component::EditaleText::refresh(bool update) const noexcept ->UIWin
 }
 
 // 重新创建布局
-void LongUI::Component::EditaleText::recreate_layout() noexcept {
-    ::SafeRelease(this->layout);
+void LongUI::Component::EditaleText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
+    assert(fmt && "bad argument");
+    assert(this->layout == nullptr && "bad action");
     // 创建布局
-    UIManager_DWriteFactory->CreateTextLayout(
+    auto hr = UIManager_DWriteFactory->CreateTextLayout(
         m_string.c_str(), static_cast<uint32_t>(m_string.length()),
-        m_pBasicFormat,
+        fmt,
         m_size.width, m_size.height,
         &this->layout
         );
+#ifdef _DEBUG
+    if (m_pHost->debug_this) {
+        UIManager << DL_Hint << L"CODE: " << long(hr) << LongUI::endl;
+        assert(hr == S_OK);
+    }
+#endif
+    ShowHR(hr);
 }
 
 // 插入字符(串)
@@ -199,7 +207,7 @@ auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE
     caretBegin = std::min(caretBegin, textLength);
     caretEnd = std::min(caretEnd, textLength);
     // 返回范围
-    return{ caretBegin, caretEnd - caretBegin };
+    return { caretBegin, caretEnd - caretBegin };
 }
 
 // 设置选择区
@@ -910,6 +918,7 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
         UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
     // 刻画字体
+    assert(this->layout && "bad action");
     this->layout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
 }
 
@@ -1089,7 +1098,6 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
 LongUI::Component::EditaleText::~EditaleText() noexcept {
     ::ReleaseStgMedium(&m_recentMedium);
     ::SafeRelease(this->layout);
-    ::SafeRelease(m_pBasicFormat);
     ::SafeRelease(m_pTextRenderer);
     ::SafeRelease(m_pSelectionColor);
     ::SafeRelease(m_pDropSource);
@@ -1160,12 +1168,17 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         Helper::MakeColor(attribute("color"), m_basicColor);
     }
     // 检查格式
+    IDWriteTextFormat* tmpfmt = nullptr;
     {
         uint32_t format_index = LongUIDefaultTextFormatIndex;
         if ((str = attribute("format"))) {
             format_index = static_cast<uint32_t>(LongUI::AtoI(str));
         }
-        m_pBasicFormat = UIManager.GetTextFormat(format_index);
+        tmpfmt = UIManager.GetTextFormat(format_index);
+    }
+    // 格式特化: 字体名称
+    {
+        assert(tmpfmt && "bad action");
     }
     // 获取文本
     {
@@ -1174,7 +1187,8 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         }
     }
     // 创建布局
-    this->recreate_layout();
+    this->recreate_layout(tmpfmt);
+    ::SafeRelease(tmpfmt);
 }
 
 // 复制全局属性

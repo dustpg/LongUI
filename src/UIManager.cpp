@@ -165,7 +165,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 创建 DirectWrite 工厂.
     if (SUCCEEDED(hr)) {
         hr = LongUI::Dll::DWriteCreateFactory(
-            DWRITE_FACTORY_TYPE_SHARED,
+            DWRITE_FACTORY_TYPE_ISOLATED,
             LongUI_IID_PV_ARGS_Ex(m_pDWriteFactory)
             );
     }
@@ -180,7 +180,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     }
     // 创建字体集
     if (SUCCEEDED(hr)) {
-       // m_pFontCollection = config->CreateFontCollection();
         // 失败获取系统字体集
         if (!m_pFontCollection) {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
@@ -880,11 +879,13 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
     if (SUCCEEDED(hr)) {
         hr = m_pDWriteFactory->CreateTextFormat(
             LongUIDefaultTextFontName,
+            //L"Microsoft YaHei",
             m_pFontCollection,
             DWRITE_FONT_WEIGHT_NORMAL,
             DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL,
             LongUIDefaultTextFontSize,
+            //12.f,
             m_szLocaleName,
             m_ppTextFormats + LongUIDefaultTextFormatIndex
             );
@@ -1026,7 +1027,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             // 欲使用的特性等级列表
             featureLevels,
             // 特性等级列表长度
-            lengthof(featureLevels),
+            static_cast<UINT>(lengthof(featureLevels)),
             // SDK 版本
             D3D11_SDK_VERSION,
             // 返回的D3D11设备指针
@@ -1055,7 +1056,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 // 欲使用的特性等级列表
                 featureLevels,
                 // 特性等级列表长度
-                lengthof(featureLevels),
+                static_cast<UINT>(lengthof(featureLevels)),
                 // SDK 版本
                 D3D11_SDK_VERSION,
                 // 返回的D3D11设备指针
@@ -1202,7 +1203,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, lengthof(stops), &collection
+                stops, static_cast<uint32_t>(lengthof(stops)), &collection
                 );
         }
         // 创建笔刷
@@ -1227,7 +1228,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, lengthof(stops), &collection
+                stops, static_cast<uint32_t>(lengthof(stops)), &collection
                 );
         }
         // 创建笔刷
@@ -1252,7 +1253,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, lengthof(stops), &collection
+                stops, static_cast<uint32_t>(lengthof(stops)), &collection
                 );
         }
         // 创建笔刷
