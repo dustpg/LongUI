@@ -114,6 +114,184 @@ auto LongUI::DX::CreateFontCollection(
     return collection;
 }
 
+// 创建文本格式
+auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextFormat** OUT fmt) noexcept -> HRESULT {
+    // 参数检查
+    assert(fmt && "bad argment"); if (!fmt) return E_INVALIDARG;
+    // 创建
+    auto hr = UIManager.CreateTextFormat(
+        prop.name,
+        static_cast<DWRITE_FONT_WEIGHT>(prop.weight),
+        static_cast<DWRITE_FONT_STYLE>(prop.style),
+        static_cast<DWRITE_FONT_STRETCH>(prop.stretch),
+        prop.size,
+        fmt
+        );
+    // 成功
+    if (SUCCEEDED(hr)) {
+        register auto format = *fmt;
+#ifdef _DEBUG
+        HRESULT thr = S_OK;
+        // 设置 Tab宽度
+        thr = 
+        format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
+        assert(thr == S_OK && "bad SetIncrementalTabStop");
+        // 设置段落排列方向
+        thr = 
+        format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
+        assert(thr == S_OK && "bad SetFlowDirection");
+        // 设置段落(垂直)对齐
+        thr = 
+        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
+        assert(thr == S_OK && "bad SetParagraphAlignment");
+        // 设置文本(水平)对齐
+        thr = 
+        format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
+        assert(thr == S_OK && "bad SetTextAlignment");
+        // 设置阅读进行方向
+        thr = 
+        format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
+        assert(thr == S_OK && "bad SetReadingDirection");
+        // 设置自动换行
+        thr = 
+        format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
+        assert(thr == S_OK && "bad SetWordWrapping");
+#else
+        // 设置 Tab宽度
+        format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
+        // 设置段落排列方向
+        format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
+        // 设置段落(垂直)对齐
+        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign)));
+        // 设置文本(水平)对齐
+        format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
+        // 设置阅读进行方向
+        format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
+        // 设置自动换行
+        format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
+#endif
+    }
+    return hr;
+}
+
+
+// 初始化TextFormatProperties
+LongUINoinline void LongUI::DX::InitTextFormatProperties(TextFormatProperties& prop, size_t name_buf_len) noexcept {
+    UNREFERENCED_PARAMETER(name_buf_len);
+#ifdef _DEBUG
+    auto length = std::wcslen(LongUI::LongUIDefaultTextFontName) + 1;
+    assert(name_buf_len >= length && "buffer too small");
+#endif
+    // 复制数据
+    prop.size = LongUIDefaultTextFontSize;
+    prop.tab = 0.f;
+    prop.weight = static_cast<uint16_t>(DWRITE_FONT_WEIGHT_NORMAL);
+    prop.style = static_cast<uint8_t>(DWRITE_FONT_STYLE_NORMAL);
+    prop.stretch = static_cast<uint8_t>(DWRITE_FONT_STRETCH_NORMAL);
+    prop.valign = static_cast<uint8_t>(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    prop.halign = static_cast<uint8_t>(DWRITE_TEXT_ALIGNMENT_LEADING);
+    prop.flow = static_cast<uint8_t>(DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM);
+    prop.reading = static_cast<uint8_t>(DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+    prop.wrapping = static_cast<uint32_t>(DWRITE_WORD_WRAPPING_NO_WRAP);
+    std::wcscpy(prop.name, LongUIDefaultTextFontName);
+}
+
+// 做一个文本格式
+auto LongUI::DX::MakeTextFormat(
+    IN pugi::xml_node node, 
+    OUT IDWriteTextFormat** fmt, 
+    IN OPTIONAL IDWriteTextFormat* template_fmt, 
+    IN OPTIONAL const char* prefix) noexcept -> HRESULT {
+    // 参数检查
+    assert(fmt && "bad argment"); if (!fmt) return E_INVALIDARG;
+    // 数据
+    struct { TextFormatProperties prop; wchar_t buffer[MAX_PATH]; } data;
+    // 创建新的?
+    bool create_a_new_one = false;
+    // 存在模板?
+    if (template_fmt) {
+        // 模板初始化
+        auto len = template_fmt->GetFontFamilyNameLength();
+        assert(len < MAX_PATH && "buffer too small");
+        template_fmt->GetFontFamilyName(data.prop.name, len);
+        data.prop.size = template_fmt->GetFontSize();
+        data.prop.tab = template_fmt->GetIncrementalTabStop();
+        data.prop.weight = static_cast<uint16_t>(template_fmt->GetFontWeight());
+        data.prop.style = static_cast<uint8_t>(template_fmt->GetFontStyle());
+        data.prop.stretch = static_cast<uint8_t>(template_fmt->GetFontStretch());
+        data.prop.valign = static_cast<uint8_t>(template_fmt->GetParagraphAlignment());
+        data.prop.halign = static_cast<uint8_t>(template_fmt->GetTextAlignment());
+        data.prop.flow = static_cast<uint8_t>(template_fmt->GetFlowDirection());
+        data.prop.reading = static_cast<uint8_t>(template_fmt->GetReadingDirection());
+        data.prop.wrapping = static_cast<uint32_t>(template_fmt->GetWordWrapping());
+    }
+    else {
+        // 默认初始化
+        DX::InitTextFormatProperties(data.prop, MAX_PATH);
+        create_a_new_one = true;
+    }
+    // xml 节点
+    {
+        auto get_attribute = [=](const char* name) noexcept {
+            return Helper::XMLGetValue(node, name, prefix);
+        };
+        // 字体名称
+        auto str = get_attribute("family");
+        if (str) {
+            LongUI::UTF8toWideChar(str, data.prop.name);
+            create_a_new_one = true;
+        }
+        // 字体大小
+        if (str = get_attribute("size")) {
+            create_a_new_one = true;
+            data.prop.size = LongUI::AtoF(str);
+        }
+        // 获取字体粗细
+        if (str = get_attribute("weight")) {
+            create_a_new_one = true;
+            data.prop.weight = static_cast<uint16_t>(LongUI::AtoI(str));
+        }
+        // 字体风格
+        auto style = Helper::XMLGetFontStyle(node, DWRITE_FONT_STYLE_NORMAL, "style", prefix);
+        // 检查
+        changed = style != DWRITE_FONT_STYLE_NORMAL || changed;
+        // 字体拉伸
+        auto stretch = Helper::XMLGetFontStretch(node, DWRITE_FONT_STRETCH_NORMAL, "stretch", prefix);
+        // 检查
+        changed = stretch != DWRITE_FONT_STRETCH_NORMAL || changed;
+        // Tab宽度
+        float tabstop = fontsize * 4.f;
+        // 检查Tab宽度
+        if (str = attribute("tabstop")) {
+            tabstop = LongUI::AtoF(str);
+            changed = true;
+        }
+        // 段落排列方向
+        auto direction = Helper::XMLGetFlowDirection(node, DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM, "flowdirection", prefix);
+        // 段落(垂直)对齐
+        auto valign = Helper::XMLGetVAlignment(node, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+        // 文本(水平)对齐
+        auto halign = Helper::XMLGetHAlignment(node, DWRITE_TEXT_ALIGNMENT_LEADING);
+        // 阅读进行方向
+        textformat->SetReadingDirection(
+            Helper::XMLGetReadingDirection(node, DWRITE_READING_DIRECTION_LEFT_TO_RIGHT)
+            );
+        // 设置自动换行
+        textformat->SetWordWrapping(
+            Helper::XMLGetWordWrapping(node, DWRITE_WORD_WRAPPING_NO_WRAP)
+            );
+    }
+    // 创建新的
+    if (create_a_new_one) {
+        return DX::CreateTextFormat(data.prop, fmt);
+    }
+    // 使用旧的, 检查逻辑
+    assert(template_fmt && "check logic");
+    template_fmt->AddRef();
+    *fmt = template_fmt;
+    return S_FALSE;
+}
+
 // 从 文本格式创建几何
 auto LongUI::DX::CreateTextPathGeometry(
     IN const char32_t* utf32_string,

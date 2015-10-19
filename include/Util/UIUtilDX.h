@@ -59,7 +59,43 @@ namespace LongUI {
             IN OUT OPTIONAL IDWriteFontFace** fontface,
             OUT ID2D1PathGeometry** geometry
             ) noexcept->HRESULT;
-        // properties for save image file
+        // properties for creating text format, file data friendly
+        struct TextFormatProperties {
+            // text size
+            float           size;
+            // tab width, 0.f for default(size x 4)
+            float           tab;
+            // weight 0~1000 in uint16_t
+            uint16_t        weight;
+            // style 0~x in uint8_t
+            uint8_t         style;
+            // stretch 0~x in uint8_t
+            uint8_t         stretch;
+            // valign 0~x in uint8_t
+            uint8_t         valign;
+            // halign 0~x in uint8_t
+            uint8_t         halign;
+            // flow direction 0~x in uint8_t
+            uint8_t         flow;
+            // reading direction 0~x in uint8_t
+            uint8_t         reading;
+            // word wrapping
+            uint32_t        wrapping;
+            // font name, maybe use 0 instead of 4
+            wchar_t         name[4];
+        };
+        // init TextFormatProperties
+        void InitTextFormatProperties(TextFormatProperties& prop, size_t name_buffer_length) noexcept;
+        // create text format with properties
+        auto CreateTextFormat(const TextFormatProperties&, IDWriteTextFormat** OUT fmt) noexcept->HRESULT;
+        // make text format with xml node, out "*fmt" maybe SAME as template_fmt if no changes
+        auto MakeTextFormat(
+            IN pugi::xml_node node, 
+            OUT IDWriteTextFormat** fmt, 
+            IN OPTIONAL IDWriteTextFormat* template_fmt = nullptr, 
+            IN OPTIONAL const char* prefix=nullptr
+            ) noexcept->HRESULT;
+        // properties for saving image file
         struct SaveAsImageFileProperties {
             // data for bitmap
             uint8_t*                bits;

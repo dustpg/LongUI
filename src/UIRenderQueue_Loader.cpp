@@ -751,9 +751,9 @@ namespace LongUI {
     auto LongUI::CUIResourceLoaderXML::get_text_format(pugi::xml_node node) noexcept -> IDWriteTextFormat* {
         const char* str = nullptr;
         assert(node && "node not found");
-        CUIString fontfamilyname(L"Arial");
+        CUIString fontfamilyname(LongUIDefaultTextFontName);
         DWRITE_FONT_WEIGHT fontweight = DWRITE_FONT_WEIGHT_NORMAL;
-        float fontsize = 12.f;
+        float fontsize = LongUIDefaultTextFontSize;
         // 获取字体名称
         Helper::MakeString(node.attribute("family").value(), fontfamilyname);
         // 获取字体大小
