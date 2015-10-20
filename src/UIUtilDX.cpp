@@ -118,6 +118,13 @@ auto LongUI::DX::CreateFontCollection(
 auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextFormat** OUT fmt) noexcept -> HRESULT {
     // 参数检查
     assert(fmt && "bad argment"); if (!fmt) return E_INVALIDARG;
+#ifdef _DEBUG
+    if (*fmt) {
+        UIManager << DL_Warning
+            << L"pointer 'fmt' pointed a non-nullptr, check it please."
+            << endl;
+    }
+#endif
     // 创建
     auto hr = UIManager.CreateTextFormat(
         prop.name,
@@ -204,6 +211,13 @@ auto LongUI::DX::MakeTextFormat(
     IN OPTIONAL const char* prefix) noexcept -> HRESULT {
     // 参数检查
     assert(fmt && "bad argment"); if (!fmt) return E_INVALIDARG;
+#ifdef _DEBUG
+    if (*fmt) {
+        UIManager << DL_Warning
+            << L"pointer 'fmt' pointed a non-nullptr, check it please."
+            << endl;
+    }
+#endif
     // 数据
     struct { TextFormatProperties prop; wchar_t buffer[MAX_PATH]; } data;
     // 创建新的?
@@ -238,48 +252,72 @@ auto LongUI::DX::MakeTextFormat(
         // 字体名称
         auto str = get_attribute("family");
         if (str) {
+            // 假设设置字体名称就是修改了
             LongUI::UTF8toWideChar(str, data.prop.name);
             create_a_new_one = true;
         }
         // 字体大小
         if (str = get_attribute("size")) {
-            create_a_new_one = true;
-            data.prop.size = LongUI::AtoF(str);
+            auto tmp = LongUI::AtoF(str);
+            create_a_new_one = tmp != data.prop.size || create_a_new_one;
+            data.prop.size = tmp;
         }
         // 获取字体粗细
         if (str = get_attribute("weight")) {
-            create_a_new_one = true;
-            data.prop.weight = static_cast<uint16_t>(LongUI::AtoI(str));
+            auto tmp = static_cast<uint16_t>(LongUI::AtoI(str));
+            create_a_new_one = tmp != data.prop.weight || create_a_new_one;
+            data.prop.weight = tmp;
         }
         // 字体风格
-        auto style = Helper::XMLGetFontStyle(node, DWRITE_FONT_STYLE_NORMAL, "style", prefix);
-        // 检查
-        changed = style != DWRITE_FONT_STYLE_NORMAL || changed;
+        {
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetFontStyle(node, DWRITE_FONT_STYLE_NORMAL, "style", prefix));
+            create_a_new_one = tmp != data.prop.style || create_a_new_one;
+            data.prop.style = tmp;
+        }
         // 字体拉伸
-        auto stretch = Helper::XMLGetFontStretch(node, DWRITE_FONT_STRETCH_NORMAL, "stretch", prefix);
-        // 检查
-        changed = stretch != DWRITE_FONT_STRETCH_NORMAL || changed;
+        {
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetFontStretch(node, DWRITE_FONT_STRETCH_NORMAL, "stretch", prefix));
+            create_a_new_one = tmp != data.prop.stretch || create_a_new_one;
+            data.prop.stretch = tmp;
+        }
         // Tab宽度
-        float tabstop = fontsize * 4.f;
+        float tabstop = data.prop.size * 4.f;
         // 检查Tab宽度
-        if (str = attribute("tabstop")) {
+        if (str = get_attribute("tabstop")) {
+            // 假设设置字体名称就是修改了
             tabstop = LongUI::AtoF(str);
-            changed = true;
+            create_a_new_one = true;
         }
         // 段落排列方向
-        auto direction = Helper::XMLGetFlowDirection(node, DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM, "flowdirection", prefix);
+        {
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetFlowDirection(node, DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM, "flowdirection", prefix));
+            create_a_new_one = tmp != data.prop.flow || create_a_new_one;
+            data.prop.flow = tmp;
+        }
         // 段落(垂直)对齐
-        auto valign = Helper::XMLGetVAlignment(node, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+        {
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetVAlignment(node, DWRITE_PARAGRAPH_ALIGNMENT_NEAR, "valign", prefix));
+            create_a_new_one = tmp != data.prop.valign || create_a_new_one;
+            data.prop.flow = tmp;
+        }
         // 文本(水平)对齐
-        auto halign = Helper::XMLGetHAlignment(node, DWRITE_TEXT_ALIGNMENT_LEADING);
+        {
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetHAlignment(node, DWRITE_TEXT_ALIGNMENT_LEADING, "align", prefix));
+            create_a_new_one = tmp != data.prop.halign || create_a_new_one;
+            data.prop.halign = tmp;
+        }
         // 阅读进行方向
-        textformat->SetReadingDirection(
-            Helper::XMLGetReadingDirection(node, DWRITE_READING_DIRECTION_LEFT_TO_RIGHT)
-            );
+        {
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetReadingDirection(node, DWRITE_READING_DIRECTION_LEFT_TO_RIGHT, "readingdirection", prefix));
+            create_a_new_one = tmp != data.prop.reading || create_a_new_one;
+            data.prop.reading = tmp;
+        }
         // 设置自动换行
-        textformat->SetWordWrapping(
-            Helper::XMLGetWordWrapping(node, DWRITE_WORD_WRAPPING_NO_WRAP)
-            );
+        {
+            auto tmp = static_cast<uint32_t>(Helper::XMLGetWordWrapping(node, DWRITE_WORD_WRAPPING_NO_WRAP, "wordwrapping", prefix));
+            create_a_new_one = tmp != data.prop.wrapping || create_a_new_one;
+            data.prop.wrapping = tmp;
+        }
     }
     // 创建新的
     if (create_a_new_one) {
@@ -418,7 +456,14 @@ auto LongUI::DX::CreateTextPathGeometry(
 // 利用几何体创建网格
 auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept -> HRESULT {
     UNREFERENCED_PARAMETER(geometry);
-    UNREFERENCED_PARAMETER(mesh);
+    assert(mesh && "bad arguemnt"); if (!mesh) return E_INVALIDARG;
+#ifdef _DEBUG
+    if (*mesh) {
+        UIManager << DL_Warning
+            << L"pointer 'mesh' pointed a non-nullptr, check it please."
+            << endl;
+    }
+#endif
     return E_NOTIMPL;
 }
 

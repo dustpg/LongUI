@@ -85,7 +85,7 @@ namespace LongUI {
             wchar_t         name[4];
         };
         // init TextFormatProperties
-        void InitTextFormatProperties(TextFormatProperties& prop, size_t name_buffer_length) noexcept;
+        void InitTextFormatProperties(TextFormatProperties& prop, size_t name_buf_len) noexcept;
         // create text format with properties
         auto CreateTextFormat(const TextFormatProperties&, IDWriteTextFormat** OUT fmt) noexcept->HRESULT;
         // make text format with xml node, out "*fmt" maybe SAME as template_fmt if no changes

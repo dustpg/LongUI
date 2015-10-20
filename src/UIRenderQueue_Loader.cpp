@@ -379,7 +379,7 @@ namespace LongUI {
             data = this->get_brush(node);
             break;
         case LongUI::IUIResourceLoader::Type_TextFormat:
-            data = this->get_bitmap(node);
+            data = this->get_text_format(node);
             break;
         case LongUI::IUIResourceLoader::Type_Meta:
             __fallthrough;
@@ -751,61 +751,10 @@ namespace LongUI {
     auto LongUI::CUIResourceLoaderXML::get_text_format(pugi::xml_node node) noexcept -> IDWriteTextFormat* {
         const char* str = nullptr;
         assert(node && "node not found");
-        CUIString fontfamilyname(LongUIDefaultTextFontName);
-        DWRITE_FONT_WEIGHT fontweight = DWRITE_FONT_WEIGHT_NORMAL;
-        float fontsize = LongUIDefaultTextFontSize;
-        // 获取字体名称
-        Helper::MakeString(node.attribute("family").value(), fontfamilyname);
-        // 获取字体大小
-        if (str = node.attribute("size").value()) {
-            fontsize = LongUI::AtoF(str);
-        }
-        // 获取字体粗细
-        if (str = node.attribute("weight").value()) {
-            fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));
-        }
-        // 创建基本字体
-        IDWriteTextFormat* textformat = nullptr;
-        m_manager.CreateTextFormat(
-            fontfamilyname.c_str(),
-            fontweight,
-            Helper::XMLGetFontStyle(node, DWRITE_FONT_STYLE_NORMAL),
-            Helper::XMLGetFontStretch(node, DWRITE_FONT_STRETCH_NORMAL),
-            fontsize,
-            &textformat
-            );
-        // 成功获取则再设置
-        if (textformat) {
-            // Tab宽度
-            float tabstop = fontsize * 4.f;
-            // 检查Tab宽度
-            if (str = node.attribute("tabstop").value()) {
-                tabstop = LongUI::AtoF(str);
-            }
-            // 设置段落排列方向
-            textformat->SetFlowDirection(
-                Helper::XMLGetFlowDirection(node, DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM)
-                );
-            // 设置Tab宽度
-            textformat->SetIncrementalTabStop(tabstop);
-            // 设置段落(垂直)对齐
-            textformat->SetParagraphAlignment(
-                Helper::XMLGetVAlignment(node, DWRITE_PARAGRAPH_ALIGNMENT_NEAR)
-                );
-            // 设置文本(水平)对齐
-            textformat->SetTextAlignment(
-                Helper::XMLGetHAlignment(node, DWRITE_TEXT_ALIGNMENT_LEADING)
-                );
-            // 设置阅读进行方向
-            textformat->SetReadingDirection(
-                Helper::XMLGetReadingDirection(node, DWRITE_READING_DIRECTION_LEFT_TO_RIGHT)
-                );
-            // 设置自动换行
-            textformat->SetWordWrapping(
-                Helper::XMLGetWordWrapping(node, DWRITE_WORD_WRAPPING_NO_WRAP)
-                );
-        }
-        return textformat;
+        IDWriteTextFormat* fmt = nullptr;
+        auto hr = DX::MakeTextFormat(node, &fmt);
+        assert(SUCCEEDED(hr));
+        return fmt;
     }
 }
 #endif

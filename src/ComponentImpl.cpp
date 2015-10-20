@@ -45,7 +45,11 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix)
             if ((str = attribute("format"))) {
                 format_index = static_cast<uint32_t>(LongUI::AtoI(str));
             }
-            m_config.format = UIManager.GetTextFormat(format_index);
+            // 模板
+            auto fmt = UIManager.GetTextFormat(format_index);
+            auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
+            assert(SUCCEEDED(hr));
+            ::SafeRelease(fmt);
         }
         // 重建
         m_text.Set(node.attribute(prefix).value());
@@ -1168,69 +1172,20 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         Helper::MakeColor(attribute("color"), m_basicColor);
     }
     // 检查格式
-    IDWriteTextFormat* tmpfmt = nullptr;
+    IDWriteTextFormat* fmt = nullptr;
     {
         uint32_t format_index = LongUIDefaultTextFormatIndex;
         if ((str = attribute("format"))) {
             format_index = static_cast<uint32_t>(LongUI::AtoI(str));
         }
-        tmpfmt = UIManager.GetTextFormat(format_index);
+        auto template_format = UIManager.GetTextFormat(format_index);
+        auto hr = DX::MakeTextFormat(node, &fmt, template_format, prefix);
+        assert(SUCCEEDED(hr));
+        ::SafeRelease(template_format);
     }
     // 格式特化
     {
-        assert(tmpfmt && "bad action");
-        /*IDWriteTextLayout* tmplayout = nullptr;
-        auto hr = UIManager_DWriteFactory->CreateTextLayout(
-            L"", 0,
-            tmpfmt,
-            1.f, 1.f, &tmplayout
-            );
-        ::SafeRelease(tmplayout);*/
-        // 1. 字体名称
-        CUIString fontfamilyname(LongUIDefaultTextFontName);
-        DWRITE_FONT_WEIGHT fontweight = DWRITE_FONT_WEIGHT_NORMAL;
-        float fontsize = LongUIDefaultTextFontSize;
-        // 获取字体名称
-        auto changed = Helper::MakeString(attribute("family"), fontfamilyname);
-        // 获取字体大小
-        if (str = attribute("size")) {
-            changed = true;
-            fontsize = LongUI::AtoF(str);
-        }
-        // 获取字体粗细
-        if (str = attribute("weight")) {
-            changed = true;
-            fontweight = static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(str));
-        }
-        // 字体风格
-        auto style = Helper::XMLGetFontStyle(node, DWRITE_FONT_STYLE_NORMAL, "style", prefix);
-        // 检查
-        changed = style != DWRITE_FONT_STYLE_NORMAL || changed;
-        // 字体拉伸
-        auto stretch = Helper::XMLGetFontStretch(node, DWRITE_FONT_STRETCH_NORMAL, "stretch", prefix);
-        // 检查
-        changed = stretch != DWRITE_FONT_STRETCH_NORMAL || changed;
-        // Tab宽度
-        float tabstop = fontsize * 4.f;
-        // 检查Tab宽度
-        if (str = attribute("tabstop")) {
-            tabstop = LongUI::AtoF(str);
-            changed = true;
-        }
-        // 段落排列方向
-        auto direction = Helper::XMLGetFlowDirection(node, DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM, "flowdirection", prefix);
-        // 段落(垂直)对齐
-        auto valign = Helper::XMLGetVAlignment(node, DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-        // 文本(水平)对齐
-        auto halign = Helper::XMLGetHAlignment(node, DWRITE_TEXT_ALIGNMENT_LEADING);
-        // 阅读进行方向
-        textformat->SetReadingDirection(
-            Helper::XMLGetReadingDirection(node, DWRITE_READING_DIRECTION_LEFT_TO_RIGHT)
-            );
-        // 设置自动换行
-        textformat->SetWordWrapping(
-            Helper::XMLGetWordWrapping(node, DWRITE_WORD_WRAPPING_NO_WRAP)
-            );
+        assert(fmt && "bad action");
     }
     // 获取文本
     {
@@ -1239,8 +1194,8 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         }
     }
     // 创建布局
-    this->recreate_layout(tmpfmt);
-    ::SafeRelease(tmpfmt);
+    this->recreate_layout(fmt);
+    ::SafeRelease(fmt);
 }
 
 // 复制全局属性
