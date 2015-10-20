@@ -877,16 +877,14 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
     }
     // 索引0文本格式: 默认格式
     if (SUCCEEDED(hr)) {
-        hr = m_pDWriteFactory->CreateTextFormat(
+        hr = this->CreateTextFormat(
             LongUIDefaultTextFontName,
             //L"Microsoft YaHei",
-            m_pFontCollection,
             DWRITE_FONT_WEIGHT_NORMAL,
             DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL,
             LongUIDefaultTextFontSize,
             //12.f,
-            m_szLocaleName,
             m_ppTextFormats + LongUIDefaultTextFormatIndex
             );
     }

@@ -270,13 +270,13 @@ auto LongUI::DX::MakeTextFormat(
         }
         // 字体风格
         {
-            auto tmp = static_cast<uint8_t>(Helper::XMLGetFontStyle(node, DWRITE_FONT_STYLE_NORMAL, "style", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetFontStyle(node, static_cast<DWRITE_FONT_STYLE>(data.prop.style), "style", prefix));
             create_a_new_one = tmp != data.prop.style || create_a_new_one;
             data.prop.style = tmp;
         }
         // 字体拉伸
         {
-            auto tmp = static_cast<uint8_t>(Helper::XMLGetFontStretch(node, DWRITE_FONT_STRETCH_NORMAL, "stretch", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetFontStretch(node, static_cast<DWRITE_FONT_STRETCH>(data.prop.stretch), "stretch", prefix));
             create_a_new_one = tmp != data.prop.stretch || create_a_new_one;
             data.prop.stretch = tmp;
         }
@@ -290,31 +290,31 @@ auto LongUI::DX::MakeTextFormat(
         }
         // 段落排列方向
         {
-            auto tmp = static_cast<uint8_t>(Helper::XMLGetFlowDirection(node, DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM, "flowdirection", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetFlowDirection(node, static_cast<DWRITE_FLOW_DIRECTION>(data.prop.flow), "flowdirection", prefix));
             create_a_new_one = tmp != data.prop.flow || create_a_new_one;
             data.prop.flow = tmp;
         }
         // 段落(垂直)对齐
         {
-            auto tmp = static_cast<uint8_t>(Helper::XMLGetVAlignment(node, DWRITE_PARAGRAPH_ALIGNMENT_NEAR, "valign", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetVAlignment(node, static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(data.prop.valign), "valign", prefix));
             create_a_new_one = tmp != data.prop.valign || create_a_new_one;
-            data.prop.flow = tmp;
+            data.prop.valign = tmp;
         }
         // 文本(水平)对齐
         {
-            auto tmp = static_cast<uint8_t>(Helper::XMLGetHAlignment(node, DWRITE_TEXT_ALIGNMENT_LEADING, "align", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetHAlignment(node, static_cast<DWRITE_TEXT_ALIGNMENT>(data.prop.halign), "align", prefix));
             create_a_new_one = tmp != data.prop.halign || create_a_new_one;
             data.prop.halign = tmp;
         }
         // 阅读进行方向
         {
-            auto tmp = static_cast<uint8_t>(Helper::XMLGetReadingDirection(node, DWRITE_READING_DIRECTION_LEFT_TO_RIGHT, "readingdirection", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::XMLGetReadingDirection(node, static_cast<DWRITE_READING_DIRECTION>(data.prop.reading), "readingdirection", prefix));
             create_a_new_one = tmp != data.prop.reading || create_a_new_one;
             data.prop.reading = tmp;
         }
         // 设置自动换行
         {
-            auto tmp = static_cast<uint32_t>(Helper::XMLGetWordWrapping(node, DWRITE_WORD_WRAPPING_NO_WRAP, "wordwrapping", prefix));
+            auto tmp = static_cast<uint32_t>(Helper::XMLGetWordWrapping(node, static_cast<DWRITE_WORD_WRAPPING>(data.prop.wrapping), "wordwrapping", prefix));
             create_a_new_one = tmp != data.prop.wrapping || create_a_new_one;
             data.prop.wrapping = tmp;
         }
