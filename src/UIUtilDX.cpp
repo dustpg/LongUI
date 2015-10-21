@@ -169,7 +169,7 @@ auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextF
         // 设置段落排列方向
         format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
         // 设置段落(垂直)对齐
-        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign)));
+        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
         // 设置文本(水平)对齐
         format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
         // 设置阅读进行方向
@@ -227,7 +227,7 @@ auto LongUI::DX::MakeTextFormat(
         // 模板初始化
         auto len = template_fmt->GetFontFamilyNameLength();
         assert(len < MAX_PATH && "buffer too small");
-        template_fmt->GetFontFamilyName(data.prop.name, len);
+        template_fmt->GetFontFamilyName(data.prop.name, len + 1);
         data.prop.size = template_fmt->GetFontSize();
         data.prop.tab = template_fmt->GetIncrementalTabStop();
         data.prop.weight = static_cast<uint16_t>(template_fmt->GetFontWeight());
@@ -483,27 +483,25 @@ auto LongUI::DX::FormatTextXML(
 control char    C-Type      Infomation                                  StringInlineParamSupported
 
 %%               [none]      As '%' Character(like %% in ::printf)                 ---
-%a %A      [const wchar_t*] string add(like %ls in ::printf)                Yes but no "," char
+%a         [const wchar_t*] string add(like %ls in ::printf)                Yes but no "," char
 
-%C              [float4*]    new font color range start                            Yes
-%c              [uint32_t]   new font color range start, with alpha                Yes
-!! color is also a drawing effect
+%c              [float4*]   new font color range start, with alpha                Yes
 
-%d %D         [IUnknown*]    new drawing effect range start                 ~Yes and Extensible~
+%e            [IUnknown*]    new drawing effect range start                 ~Yes and Extensible~
 
-%S %S            [float]     new font size range start                             Yes
+%S               [float]     new font size range start                             Yes
 
-%n %N       [const wchar_t*] new font family name range start               Yes but No "," char
+%n          [const wchar_t*] new font family name range start               Yes but No "," char
 
-%h %H            [enum]      new font stretch range start                          Yes
+%h               [enum]      new font stretch range start                          Yes
 
-%y %Y            [enum]      new font style range start                            Yes
+%y               [enum]      new font style range start                            Yes
 
-%w %W            [enum]      new font weight range start                           Yes
+%w               [enum]      new font weight range start                           Yes
 
-%u %U            [BOOL]      new underline range start                          Yes(0 or 1)
+%u               [BOOL]      new underline range start                          Yes(0 or 1)
 
-%t %T            [BOOL]      new strikethrough range start                      Yes(0 or 1)
+%d               [BOOL]      new strikethrough(delete line) range start                      Yes(0 or 1)
 
 %i %I            [IDIO*]     new inline object range start                  ~Yes and Extensible~
 
@@ -525,15 +523,269 @@ using %p or %P to mark PARAMETERS start
 
 */
 
-// 创建格式文本
-auto __cdecl LongUI::DX::FormatTextCoreC(
-    const FormatTextConfig& config, 
-    const wchar_t* format, 
-    ...) noexcept->IDWriteTextLayout* {
-    va_list ap;
-    va_start(ap, format);
-    return DX::FormatTextCore(config, format, ap);
-}
+// longui::dx namespace
+namespace LongUI { namespace DX {
+    // 范围类型
+    enum class RANGE_TYPE : size_t { N, W, Y, H, S, U, D, E, I };
+    // 范围数据
+    struct RANGE_DATA {
+        // 范围
+        DWRITE_TEXT_RANGE           range;
+        // 类型
+        RANGE_TYPE                  type;
+        // 具体数据
+        union {
+            const wchar_t*          name;       // N
+            IUnknown*               effect; // D
+            IDWriteInlineObject*    inlineobj;  // I
+            DWRITE_FONT_WEIGHT      weight;     // W
+            DWRITE_FONT_STYLE       style;      // Y
+            DWRITE_FONT_STRETCH     stretch;    // H
+            float                   size;       // S
+            //BOOL                    underline;  // U
+            //BOOL                    strikethr;  // T
+        };
+    };
+    // 内联参数
+    struct CoreMLInlineParam {
+        // 获取刻画效果
+        auto GetEffect() noexcept -> IUnknown*;
+        // 获取内联对象
+        auto GetInlineObject() noexcept -> IDWriteInlineObject*;
+        // 获取字符串
+        auto GetString() noexcept -> const wchar_t*;
+        // 获取字体名称
+        auto GetFontName() noexcept -> const wchar_t*;
+        // 获取颜色
+        void GetColor(D2D1_COLOR_F& color) noexcept;
+        // 获取浮点
+        auto GetFloat() noexcept ->float;
+        // 获取字体粗细
+        auto GetFontWeight() noexcept ->DWRITE_FONT_WEIGHT;
+        // 获取字体风格
+        auto GetFontStyle() noexcept ->DWRITE_FONT_STYLE;
+        // 获取字体伸缩
+        auto GetFontStretch() noexcept ->DWRITE_FONT_STRETCH;
+    };
+    // 创建格式文本
+    auto FormatTextText(const FormatTextConfig& cfg, const wchar_t* fmt) noexcept {
+        using cctype = wchar_t;
+        CoreMLInlineParam param;
+        register cctype ch = 0;
+        cctype text[LongUIStringBufferLength]; auto text_itr = text;
+        EzContainer::FixedStack<RANGE_DATA, 1024> stack_check, stack_set;
+        // 遍历字符串
+        while ((ch = *fmt)) {
+            // 出现%标记
+            if (ch == '%') {
+                ++fmt; ch == *fmt;
+                switch (ch)
+                {
+                case '%':
+                    // %% --> 添加字符"%"
+                    *text_itr = '%';
+                    ++text_itr;
+                    break;
+                case 'p':
+                    // %p --> 内联参数起始标记
+                    goto force_break;
+                case ']':
+                    // %] --> 结束一个范围
+                    // 检查栈弹出
+                    stack_check.pop();
+                    // 计算长度
+                    stack_check.top->range.length = static_cast<UINT32>(text_itr - text) - stack_check.top->range.startPosition;
+                    // 压入设置栈
+                    stack_set.push_back(*stack_check.top);
+                    break;
+                case 'a':
+                    // %a --> 添加字符串
+                    // 直接写入字符串
+                    for (auto str = param.GetString(); *str; ++str, ++text_itr) {
+                        *text_itr = *str;
+                    }
+                    break;
+                case 'c': case 'e':
+                    // %c --> 添加颜色
+                    // %e --> 添加效果
+                {
+                    RANGE_DATA range;
+                    if (ch == 'c') {
+                        D2D1_COLOR_F color; param.GetColor(color);
+                        range.effect = CUIColorEffect::Create(color);
+                    }
+                    else {
+                        range.effect = param.GetEffect();
+                    }
+                    assert(range.effect && "OOM or bad action");
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::E;
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 'i':
+                    // %i --> 添加内联对象
+                {
+                    RANGE_DATA range;
+                    range.effect = param.GetInlineObject();
+                    assert(range.effect && "OOM or bad action");
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::I;
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 'n':
+                    // %n --> 字体名称
+                {
+                    RANGE_DATA range;
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::N;
+                    range.name = param.GetFontName();
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 's':
+                    // %s --> 字体大小
+                {
+                    RANGE_DATA range;
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::S;
+                    range.size = param.GetFloat();
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 'w':
+                    // %w --> 字体粗细
+                {
+                    RANGE_DATA range;
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::W;
+                    range.weight = param.GetFontWeight();
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 'y':
+                    // %y --> 字体风格
+                {
+                    RANGE_DATA range;
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::Y;
+                    range.style = param.GetFontStyle();
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 'h':
+                    // %h --> 字体伸缩
+                {
+                    RANGE_DATA range;
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::H;
+                    range.stretch = param.GetFontStretch();
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 'u':
+                    // %u --> 设置下划线
+                {
+                    RANGE_DATA range;
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::U;
+                    stack_check.push_back(range);
+                    break;
+                }
+                case 'd':
+                    // %d --> 设置删除线
+                {
+                    RANGE_DATA range;
+                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                    range.type = RANGE_TYPE::D;
+                    stack_check.push_back(range);
+                    break;
+                }
+                }
+            }
+        }
+        // 强行退出
+    force_break:
+        auto hr = S_OK;
+        // 计算
+        IDWriteTextLayout* layout = nullptr;
+        auto length = static_cast<UINT32>(text_itr - text);
+        auto needed = static_cast<uint32_t>(static_cast<float>(length + 1) * cfg.progress);
+        if (needed > length) needed = length;
+        // 创建布局
+        if (SUCCEEDED(hr)) {
+            hr = UIManager_DWriteFactory->CreateTextLayout(
+                text,
+                length,
+                cfg.format,
+                cfg.width, cfg.height,
+                &layout
+                );
+        }
+        // 数据末尾
+        auto setend = stack_set.top;
+        // 正式创建
+        if (SUCCEEDED(hr)) {
+            // 创建
+            while (!stack_set.empty()) {
+                stack_set.pop();
+                // 检查进度(progress)范围 释放数据
+                auto end = stack_set.top->range.startPosition + stack_set.top->range.length;
+                if (end > needed) continue;
+                // 检查类型
+                switch (stack_set.top->type)
+                {
+                case RANGE_TYPE::N:
+                    layout->SetFontFamilyName(stack_set.top->name, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::W:
+                    layout->SetFontWeight(stack_set.top->weight, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::Y:
+                    layout->SetFontStyle(stack_set.top->style, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::H:
+                    layout->SetFontStretch(stack_set.top->stretch, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::S:
+                    layout->SetFontSize(stack_set.top->size, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::U:
+                    layout->SetUnderline(TRUE, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::D:
+                    layout->SetStrikethrough(TRUE, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::E:
+                    layout->SetDrawingEffect(stack_set.top->effect, stack_set.top->range);
+                    break;
+                case RANGE_TYPE::I:
+                    layout->SetInlineObject(stack_set.top->inlineobj, stack_set.top->range);
+                    break;
+                }
+            }
+        }
+        // 错误信息
+        if (FAILED(hr)) {
+            UIManager << DL_Error << L"HR Code: " << long(hr) << LongUI::endl;
+        }
+        // 释放数据
+        for (auto itr = stack_set.data; itr != setend; ++itr) {
+            if (itr->type == RANGE_TYPE::E || itr->type == RANGE_TYPE::I) {
+                ::SafeRelease(itr->effect);
+            }
+        }
+        return layout;
+    }
+    // 创建格式文本
+    auto FormatTextCoreC(const FormatTextConfig& cfg, const wchar_t* fmt, ...) noexcept->IDWriteTextLayout* {
+        va_list ap;
+        va_start(ap, fmt);
+        return DX::FormatTextCore(cfg, fmt, ap);
+    }
+}}
+
 
 // find next param
 template<typename T>
@@ -568,11 +820,11 @@ auto __fastcall FindNextToken(T* buffer, const wchar_t* stream, size_t token_num
 // 结论: Release版每处理一个字符(包括格式与参数)平均消耗0.12微秒, Debug版加倍
 // 假设: 60Hz每帧16ms 拿出8ms处理本函数, 可以处理6万6个字符
 //一般论: 不可能每帧调用6万字, 一般可能每帧处理数百字符(忙碌时), 可以忽略不计
-auto LongUI::DX::FormatTextCore( 
+#if 0
+auto LongUI_DX_FormatTextCore( 
     const FormatTextConfig& config, 
-    const wchar_t* format,
-    va_list ap
-    ) noexcept->IDWriteTextLayout* {
+    const wchar_t* format, 
+    va_list ap) noexcept ->IDWriteTextLayout* {
     UIManager << DL_Log << L"<CALLED>" << LongUI::endl;
     // 参数
     const wchar_t* param = nullptr;
@@ -593,8 +845,6 @@ auto LongUI::DX::FormatTextCore(
         }
         assert(param && "ap set to nullptr, but none param found.");
     }
-    // Range Type
-    enum class R : size_t { N, W, Y, H, S, U, T, D, I };
     // Range Data
     struct RangeData {
         DWRITE_TEXT_RANGE       range;
@@ -632,7 +882,7 @@ auto LongUI::DX::FormatTextCore(
     wchar_t fontname_buffer[LongUIStringBufferLength];
     auto fontname_buffer_index = fontname_buffer;
     // 使用栈
-    LongUI::EzContainer::FixedStack<RangeData, 1024> stack_check, statck_set;
+    LongUI::EzContainer::FixedStack<RangeData, 1024> stack_check, stack_set;
     // 缓存起点
     buffer_index = buffer;
     // 便利
@@ -844,7 +1094,7 @@ auto LongUI::DX::FormatTextCore(
                 // 计算长度
                 stack_check.top->range.length = string_length - stack_check.top->range.startPosition;
                 // 压入设置栈
-                statck_set.Push(*stack_check.top);
+                stack_set.Push(*stack_check.top);
                 break;
             }
         }
@@ -883,45 +1133,45 @@ force_break:
     // 正式创建
     if (SUCCEEDED(hr)) {
         // 创建
-        while (!statck_set.IsEmpty()) {
-            statck_set.Pop();
+        while (!stack_set.IsEmpty()) {
+            stack_set.Pop();
             // 检查进度(progress)范围 释放数据
-            if (statck_set.top->range.startPosition
-                + statck_set.top->range.length > string_length_need) {
-                if (statck_set.top->range_type == R::D || statck_set.top->range_type == R::I) {
-                    ::SafeRelease(statck_set.top->draweffect);
+            if (stack_set.top->range.startPosition
+                + stack_set.top->range.length > string_length_need) {
+                if (stack_set.top->range_type == R::D || stack_set.top->range_type == R::I) {
+                    ::SafeRelease(stack_set.top->draweffect);
                 }
                 continue;
             };
             // enum class R :size_t { N, W, Y, H, S, U, E, D, I };
-            switch (statck_set.top->range_type)
+            switch (stack_set.top->range_type)
             {
             case R::N:
-                layout->SetFontFamilyName(statck_set.top->name, statck_set.top->range);
+                layout->SetFontFamilyName(stack_set.top->name, stack_set.top->range);
                 break;
             case R::W:
-                layout->SetFontWeight(statck_set.top->weight, statck_set.top->range);
+                layout->SetFontWeight(stack_set.top->weight, stack_set.top->range);
                 break;
             case R::Y:
-                layout->SetFontStyle(statck_set.top->style, statck_set.top->range);
+                layout->SetFontStyle(stack_set.top->style, stack_set.top->range);
                 break;
             case R::H:
-                layout->SetFontStretch(statck_set.top->stretch, statck_set.top->range);
+                layout->SetFontStretch(stack_set.top->stretch, stack_set.top->range);
                 break;
             case R::S:
-                layout->SetFontSize(statck_set.top->size, statck_set.top->range);
+                layout->SetFontSize(stack_set.top->size, stack_set.top->range);
                 break;
             case R::U:
-                layout->SetUnderline(statck_set.top->underline, statck_set.top->range);
+                layout->SetUnderline(stack_set.top->underline, stack_set.top->range);
                 break;
             case R::T:
-                layout->SetStrikethrough(statck_set.top->strikethr, statck_set.top->range);
+                layout->SetStrikethrough(stack_set.top->strikethr, stack_set.top->range);
                 break;
             case R::D:
-                layout->SetDrawingEffect(statck_set.top->draweffect, statck_set.top->range);
+                layout->SetDrawingEffect(stack_set.top->draweffect, stack_set.top->range);
                 break;
             case R::I:
-                layout->SetInlineObject(statck_set.top->inlineobj, statck_set.top->range);
+                layout->SetInlineObject(stack_set.top->inlineobj, stack_set.top->range);
                 break;
             }
         }
@@ -932,6 +1182,7 @@ force_break:
     }
     return layout;
 }
+#endif
 
 // 保存图片
 auto LongUI::DX::SaveAsImageFile(

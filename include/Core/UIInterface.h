@@ -135,6 +135,9 @@ namespace LongUI {
             // render in anytime, if you keep a window that rendered in anytime(like game)
             // you should set this to skip ::Sleep(1) in CUIManager::WaitVS
             Flag_RenderInAnytime = 1 << 2,
+
+            // [debug flag in _DEBUG] output font family infomation
+            Flag_DbgOutputFontFamily = 1 << 10,
         };
     public:
         /// <summary>

@@ -185,6 +185,42 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
         }
     }
+#ifdef _DEBUG
+    // 枚举字体
+    if (SUCCEEDED(hr) && (this->flag & IUIConfigure::Flag_DbgOutputFontFamily)) {
+        auto count = m_pFontCollection->GetFontFamilyCount();
+        UIManager << DL_Log << "Font found: " << long(count) << L"\r\n";
+        // 遍历所有字体
+        for (auto i = 0u; i < count; ++i) {
+            IDWriteFontFamily* family = nullptr;
+            // 获取字体信息
+            if (SUCCEEDED(m_pFontCollection->GetFontFamily(i, &family))) {
+                IDWriteLocalizedStrings* string = nullptr;
+                // 获取字体名称
+                if (SUCCEEDED(family->GetFamilyNames(&string))) {
+                    wchar_t buffer[LongUIStringBufferLength];
+                    auto tc = string->GetCount();
+                    UIManager << DLevel_Log << Formated(L"%4d[%d]: ", int(i), int(tc));
+                    // 遍历所有字体名称
+                    for (auto j = 0u; j < 1u; j++) {
+                        string->GetLocaleName(j, buffer, LongUIStringBufferLength);
+                        UIManager << DLevel_Log << buffer << " => ";
+                        // 有些语言在我的机器上显示不了(比如韩语), 会出现bug略过不少东西, 就显示第一个了
+                        /*if (std::wcscmp(buffer, L"ko-kr")) */{
+                            string->GetString(j, buffer, LongUIStringBufferLength);
+                            UIManager << DLevel_Log << buffer << "; ";
+                        }
+                    }
+                    UIManager << DLevel_Log << L"\r\n";
+                }
+                ::SafeRelease(string);
+            }
+            ::SafeRelease(family);
+        }
+        // 刷新
+        UIManager << DL_Log << LongUI::endl;
+    }
+#endif
     // 注册渲染器
     if (SUCCEEDED(hr)) {
         // 普通渲染器
@@ -578,8 +614,19 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
         // 重建资源
         auto hr = window->Recreate();
         ShowHR(hr);
+#ifndef _DEBUG12
+        auto dbg_time = ::timeGetTime();
+#endif
         // 创建控件树
         this->make_control_tree(window, node);
+#ifndef _DEBUG12
+        dbg_time = ::timeGetTime() - dbg_time;
+        UIManager << DL_Log
+            << L"make control tree takes time in "
+            << long(dbg_time)
+            << L" ms for " << window
+            << LongUI::endl;
+#endif
         // 完成创建
         LongUI::EventArgument arg; ::memset(&arg, 0, sizeof(arg));
         arg.sender = window;

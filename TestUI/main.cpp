@@ -113,9 +113,9 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <Single><Button text="XYZ" borderwidth="1" margin="4,4,4,4"/></Single>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
     <Button name="btn_x0" size="0, 48" borderwidth="1"
-        margin="4,4,4,4" text="TEST BUTTON"/>
+        margin="4,4,4,4" text="这是楷体字  這是楷體字" textfamily="KaiTi"/>
     <Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="core"
-        margin="4,4,4,4" text="%cHello%], %uworld!%]%p#0F0"/>
+        margin="4,4,4,4" text="%cHello%], %uworld!%]%n黑体字%]%n楷体字%]%p#0F0, SimHei, KaiTi"/>
 </Window>
 )xml";
 
@@ -520,7 +520,7 @@ public:
     };
     // return flags
     virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
-        return Flag_OutputDebugString | Flag_RenderByCPU;
+        return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
     virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], size_t const length) noexcept -> size_t override {
         // Intel 测试

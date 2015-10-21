@@ -735,8 +735,8 @@ void LongUI::Component::EditaleText::OnSetFocus() noexcept {
 
 // 当失去焦点时
 void LongUI::Component::EditaleText::OnKillFocus() noexcept {
-    register auto* window = m_pHost->GetWindow();
-    window->HideCaret();
+    //auto window = m_pHost->GetWindow();
+    m_pHost->GetWindow()->HideCaret();
     m_bThisFocused = false;
 }
 

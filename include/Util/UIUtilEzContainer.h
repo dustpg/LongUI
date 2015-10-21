@@ -53,16 +53,16 @@ namespace LongUI {
             // constructor
             LongUIInline FixedStack() noexcept {}
             // tail
-            LongUIInline auto Tail() noexcept {
+            LongUIInline auto tail() noexcept {
 #ifdef _DEBUG
-                if (this->IsEmpty()) {
+                if (this->empty()) {
                     assert(!"stack IsEmpty!");
                 }
 #endif
                 return top - 1;
             }
             // Push
-            LongUIInline T& Push(T& d) noexcept {
+            LongUIInline T& push_back(T& d) noexcept {
                 *top = d;  ++top;
 #ifdef _DEBUG
                 if (top > data + MaxSize) {
@@ -72,7 +72,7 @@ namespace LongUI {
                 return d;
             }
             // pop
-            LongUIInline void Pop() noexcept {
+            LongUIInline void pop() noexcept {
                 --top;
 #ifdef _DEBUG
                 if (top < data) {
@@ -81,7 +81,7 @@ namespace LongUI {
 #endif
             }
             // is stack empty
-            LongUIInline bool IsEmpty() const { return top == data; }
+            LongUIInline bool empty() const { return top == data; }
             // the top of stack
             T*          top = this->data;
             // data
