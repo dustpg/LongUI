@@ -1,7 +1,7 @@
-## LongUI Core Mark Langeuage v0.1
+## LongUI Core Mark Langeuage v0.2
 
 `LCML` is a easy to use but you may need a doc.
-`LCML` could be used in `C++ Function` or `Inline Paramters` mode.
+`LCML` could be used on `C++ Function` or `Inline Paramters` mode.
 
 ## C++ Function
 `LCML` like `sprintf` in C, that could be use `va_list` to format text to rich.  
@@ -12,20 +12,20 @@ like `sprintf`, `LCML` use `%` as marker start but **only one** control char aft
 control char|summary|c++ type|note
 :----------:|-------|--------|----
 `%%`|`%` char|\[none\]|like `%%` in `sprintf`, as a '%' char
-`%a`, `%A`|`a`dd string|`const wchar_t *`|like `%ls` in `sprintf`, Add a `const wchar_t *` string to source
-`%]`, `%}`|marker-end|\[none\]|mark end of a "rich marker"
+`%a`|`a`dd string|`const wchar_t *`|like `%ls` in `sprintf`, Add a `const wchar_t *` string to source
+`%]`|marker-end|\[none\]|mark end of a "rich marker"
 ----------|Rich Maker|-------|---
-`%c`|`c`olor|`uint32_t`|set color(`uint32_t` in ARGB) to this range, see `LongUI::UnpackTheColorARGB`
-`%C`|`c`olor|`D2D1_COLOR_F*`|set color(`D2D1_COLOR_F`) to this range
-`%s`, `%S`|font `s`ize|`float`|set font size to this tange
-`%n`, `%N`|family `n`ame|`const wchar_t *`|set family name to this range
-`%h`, `%H`|font stretc`h`|`DWRITE_FONT_STRETCH`|set font stretch to this range
-`%y`, `%Y`|font st`y`le|`DWRITE_FONT_STYLE`|set font style to this range
-`%w`, `%W`|font `w`eight|`DWRITE_FONT_WEIGHT`|set font weight to this range
-`%u`, `%U`|`u`nderline|`BOOL`|NONE, just add underline
-`%t`, `%T`|strike`t`hrough|NONE, just add strikethrough line
-`%i`, `%I`|`i`nline object|`IDWriteInlineObject*`, `CUIInlineObject*`|set inline object to this range
-`%d`, `%D`|`d`raw effect|`IUnknown*`|set drawing effect to this range
+`%c`|`c`olor|`D2D1_COLOR_F*`|set color(`uint32_t` in ARGB) to this range, see `LongUI::UnpackTheColorARGB`
+`%s`|font `s`ize|`float`|set font size to this tange
+`%n`|font `f`amily|`const wchar_t *`|set family name to this range
+`%h`|font stretc`h`|`DWRITE_FONT_STRETCH`|set font stretch to this range
+`%y`|font st`y`le|`DWRITE_FONT_STYLE`|set font style to this range
+`%w`|font `w`eight|`DWRITE_FONT_WEIGHT`|set font weight to this range
+`%u`|`u`nderline|**NONE**|NONE, just add underline
+`%t`|`t`ypography|`IDWriteTypography*`|set typography for this range
+`%d`|strikethrough(`d`elete line)|**NONE**|NONE, just add strikethrough/delete line
+`%i`|`i`nline object|`IDWriteInlineObject*`, `CUIInlineObject*`|set inline object to this range
+`%e`|drawing `e`ffect|`IUnknown*`|set drawing effect to this range
 
 
 ## Demo in [Show1_LCML](../demos/Show1_LCML)
@@ -40,7 +40,8 @@ control char|summary|c++ type|note
 
 ## Inline Paramters
 `LCML` support use "inline string" as param to format text to rich.  
-like `"%cHello%], world!%p#FFFF0000"` vs `LongUI::DX::FormatTextCoreC(config, L"%cHello%], world!", uint32_t(0xFFFF0000));`  
+like `"%cHello%], world!%p#FFFF0000"` vs 
+`auto color = D2D1::ColorF(0xFFFF0000);LongUI::DX::FormatTextCoreC(config, L"%cHello%], world!", &color);`  
   
 
 #### Note for `FormatTextConfig`

@@ -63,7 +63,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
             this->clear_color
             );
         // 文本抗锯齿
-        m_textAntiMode = uint16_t(Helper::XMLGetD2DTextAntialiasMode(node, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT));
+        m_textAntiMode = uint16_t(Helper::GetEnumFromXml(node, D2D1_TEXT_ANTIALIAS_MODE_DEFAULT));
     }
     // 窗口区
     {

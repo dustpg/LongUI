@@ -9,7 +9,7 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix)
     m_config = {
         nullptr,
         128.f, 64.f, 1.f,
-        Helper::XMLGetRichType(node, RichType::Type_None, "richtype", prefix),
+        Helper::GetEnumFromXml(node, RichType::Type_None, "richtype", prefix),
         0
     };
     // 有效结点
@@ -1471,7 +1471,7 @@ Init(pugi::xml_node node, const char* prefix) noexcept {
     // 无效?
     const char* str = nullptr;
     // 动画类型
-    animation.type = Helper::XMLGetAnimationType(
+    animation.type = Helper::GetEnumFromXml(
         node,
         AnimationType::Type_QuadraticEaseOut,
         "animationtype",

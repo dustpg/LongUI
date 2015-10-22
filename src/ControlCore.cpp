@@ -583,20 +583,15 @@ LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noe
         // 获取类型
         auto get_type = [](pugi::xml_node node, MarginalControl bad_match) noexcept {
             // 属性值列表
-            const char* mode_list[] = {
-                "left",
-                "top",
-                "right",
-                "bottom",
-            };
+            const char* mode_list[] = { "left", "top", "right", "bottom", };
             // 设置
-            Helper::XMLGetValueEnumProperties prop;
-            prop.attribute = LongUI::XMLAttribute::MarginalDirection;
-            prop.prefix = nullptr;
-            prop.values = mode_list;
+            Helper::GetEnumProperties prop;
+            prop.values_list = mode_list;
             prop.values_length = lengthof(mode_list);
+            prop.bad_match = uint32_t(bad_match);
+            auto value = node.attribute(XMLAttribute::MarginalDirection).value();
             // 调用
-            return static_cast<MarginalControl>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
+            return static_cast<MarginalControl>(GetEnumFromString(value, prop));
         };
         // 获取类型
         force_cast(this->marginal_type) = get_type(node, Control_Unknown);

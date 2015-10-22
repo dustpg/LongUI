@@ -193,386 +193,197 @@ bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STAT
 
 
 // --------------------------------------------------------------------------------------------------------
-
-// 获取XML值
-auto LongUI::Helper::XMLGetValue(
-    pugi::xml_node node, const char* attribute, const char* prefix
-    ) noexcept -> const char* {
-    if (!node) return nullptr;
-    assert(attribute && "bad argument");
-    char buffer[LongUIStringBufferLength];
-    // 前缀有效?
-    if (prefix) {
-        ::strcpy(buffer, prefix); 
-        ::strcat(buffer, attribute);
-        attribute = buffer;
+// longui::helper name space
+namespace LongUI { namespace Helper {
+    // 获取XML值
+    auto XMLGetValue(pugi::xml_node node, const char* att, const char* pfx) noexcept -> const char* {
+        if (!node) return nullptr;
+        assert(att && "bad argument");
+        char buffer[LongUIStringBufferLength];
+        // 前缀有效?
+        if (pfx) {
+            ::strcpy(buffer, pfx);
+            ::strcat(buffer, att);
+            att = buffer;
+        }
+        return node.attribute(att).value();
     }
-    return node.attribute(attribute).value();
-}
-
-// 获取XML值作为枚举值
-auto LongUI::Helper::XMLGetValueEnum(pugi::xml_node node, 
-    const XMLGetValueEnumProperties& prop, uint32_t bad_match) noexcept->uint32_t {
-    // 获取属性值
-    auto value = Helper::XMLGetValue(node, prop.attribute, prop.prefix);
-    // 有效
-    if (value && *value) {
-        auto first_digital = [](const char* str) {
-            register char ch = 0;
-            while ((ch = *str)) {
-                if (white_space(ch)) {
+    // 解析字符串数据作为枚举值
+    auto GetEnumFromString(const char* value, const GetEnumProperties& prop) noexcept->uint32_t {
+        // 首个为数字?
+        auto first_digital = [](const char* str) noexcept {
+            // 遍历
+            while (*str) {
+                // 空白: 跳过
+                if (white_space(*str)) {
                     ++str;
                 }
-                else if (ch >= '0' && ch <= '9') {
+                // 数字: true
+                else if (valid_digit(*str)) {
                     return true;
                 }
+                // 其他: false
                 else {
                     break;
                 }
             }
             return false;
         };
-        // 数字?
-        if (first_digital(value)) {
-            return uint32_t(LongUI::AtoI(value));
-        }
-        // 遍历
-        for (size_t i = 0; i < prop.values_length; ++i) {
-            if (!::strcmp(value, prop.values[i])) {
-                return uint32_t(i);
+        // 有效
+        if (value && *value) {
+            // 数字?
+            if (first_digital(value)) {
+                return uint32_t(LongUI::AtoI(value));
             }
+            // 遍历
+            for (size_t i = 0; i < prop.values_length; ++i) {
+                if (!::strcmp(value, prop.values_list[i])) {
+                    return uint32_t(i);
+                }
+            }
+            // 失败: 给予警告
+            UIManager << DL_Warning
+                << L"Bad matched for: "
+                << value
+                << LongUI::endl;
         }
-        // 失败!
-        UIManager << DL_Warning
-            << L"Bad matched for: "
-            << value
-            << LongUI::endl;
+        // 匹配无效
+        return prop.bad_match;
     }
-    // 匹配无效
-    return bad_match;
-}
-
-// 获取动画类型
-auto LongUI::Helper::XMLGetAnimationType(
-    pugi::xml_node node,
-    AnimationType bad_match,
-    const char* attribute ,
-    const char* prefix
-    ) noexcept->AnimationType {
-    // 属性值列表
-    static const char* type_list[] = {
+    // 帮助器 GetEnumFromString
+    template<typename T, typename Ary> 
+    LongUIInline auto GetEnumFromStringHelper(const char* value, T bad_match, const Ary& ary) noexcept {
+        // 设置
+        GetEnumProperties prop;
+        prop.values_list = ary;
+        prop.values_length = lengthof(ary);
+        prop.bad_match = static_cast<uint32_t>(bad_match);
+        // 调用
+        return static_cast<T>(GetEnumFromString(value, prop));
+    }
+    // 动画类型属性值列表
+    const char* const cg_listAnimationType[] = {
         "linear",
-        "quadraticim",
-        "quadraticout",
-        "quadraticinout",
-        "cubicin",
-        "cubicout",
-        "cubicoinout",
-        "quarticin",
-        "quarticout",
-        "quarticinout",
-        "quinticcin",
-        "quinticcout",
-        "quinticinout",
-        "sincin",
-        "sincout",
-        "sininout",
-        "circularcin",
-        "circularcout",
-        "circularinout",
-        "exponentiacin",
-        "exponentiaout",
-        "exponentiainout",
-        "elasticin",
-        "elasticout",
-        "elasticinout",
-        "backin",
-        "backout",
-        "backinout",
-        "bouncein",
-        "bounceout",
-        "bounceinout",
+        "quadraticim",    "quadraticout",   "quadraticinout",
+        "cubicin",        "cubicout",       "cubicoinout",
+        "quarticin",      "quarticout",     "quarticinout",
+        "quinticcin",     "quinticcout",    "quinticinout",
+        "sincin",         "sincout",        "sininout",
+        "circularcin",    "circularcout",   "circularinout",
+        "exponentiacin",  "exponentiaout",  "exponentiainout",
+        "elasticin",      "elasticout",     "elasticinout",
+        "backin",         "backout",        "backinout",
+        "bouncein",       "bounceout",      "bounceinout",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = type_list;
-    prop.values_length = lengthof(type_list);
-    // 调用
-    return static_cast<AnimationType>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取插值模式
-auto LongUI::Helper::XMLGetD2DInterpolationMode(
-    pugi::xml_node node, D2D1_INTERPOLATION_MODE bad_match, 
-    const char* attribute, const char* prefix
-    ) noexcept->D2D1_INTERPOLATION_MODE {
-    // 属性值列表
-    const char* mode_list[] = {
-        "neighbor",
-        "linear",
-        "cubic",
-        "mslinear",
-        "anisotropic",
-        "highcubic",
+    // 位图渲染模式 属性值列表
+    const char* const cg_listBitmapRenderRule[] = {
+        "scale", "button",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = mode_list;
-    prop.values_length = lengthof(mode_list);
-    // 调用
-    return static_cast<D2D1_INTERPOLATION_MODE>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取扩展模式
-auto LongUI::Helper::XMLGetD2DExtendMode(
-    pugi::xml_node node, D2D1_EXTEND_MODE bad_match, 
-    const char* attribute, const char* prefix
-    ) noexcept->D2D1_EXTEND_MODE {
-    // 属性值列表
-    const char* mode_list[] = {
-        "clamp",
-        "wrap",
-        "mirror",
+    // 渲染模式 属性值列表
+    const char* const cg_listRenderRule[] = {
+        "scale", "button",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = mode_list;
-    prop.values_length = lengthof(mode_list);
-    // 调用
-    return static_cast<D2D1_EXTEND_MODE>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取位图渲染规则
-auto LongUI::Helper::XMLGetBitmapRenderRule(
-    pugi::xml_node node, BitmapRenderRule bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->BitmapRenderRule {
-    // 属性值列表
-    const char* rule_list[] = {
-        "scale",
-        "button",
+    // 富文本类型 属性值列表
+    const char* const cg_listRichType[] = {
+        "none", "core", "xml", "custom",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<BitmapRenderRule>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取富文本类型
-auto LongUI::Helper::XMLGetRichType(
-    pugi::xml_node node, RichType bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->RichType {
-    // 属性值列表
-    const char* rule_list[] = {
-        "none",
-        "core",
-        "xml",
-        "custom",
+    // D2D 插值模式 属性值列表
+    const char* const cg_listInterpolationMode[] = {
+        "neighbor", "linear",       "cubic",
+        "mslinear", "anisotropic",  "highcubic",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<RichType>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取字体类型
-auto LongUI::Helper::XMLGetFontStyle(
-    pugi::xml_node node, DWRITE_FONT_STYLE bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->DWRITE_FONT_STYLE {
-    // 属性值列表
-    const char* rule_list[] = {
-        "normal",
-        "oblique",
-        "italic",
+    // D2D 扩展模式 属性值列表
+    const char* const cg_listExtendMode[] = {
+        "clamp", "wrap", "mirror",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<DWRITE_FONT_STYLE>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取字体拉伸
-auto LongUI::Helper::XMLGetFontStretch(
-    pugi::xml_node node, DWRITE_FONT_STRETCH bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->DWRITE_FONT_STRETCH {
-    // 属性值列表
-    const char* rule_list[] = {
+    // D2D 文本抗锯齿模式 属性值列表
+    const char* const cg_listTextAntialiasMode[] = {
+        "default",  "cleartype",  "grayscale", "aliased",
+    };
+    // DWrite 字体风格 属性值列表
+    const char* const cg_listFontStyle[] = {
+        "normal", "oblique", "italic",
+    };
+    // DWrite 字体拉伸 属性值列表
+    const char* const cg_listFontStretch[] = {
         "undefined",
-        "ultracondensed",
-        "extracondensed",
-        "condensed",
-        "semicondensed",
-        "normal",
-        "semiexpanded",
-        "expanded",
-        "extraexpanded",
-        "ultraexpanded",
+        "ultracondensed",  "extracondensed",  "condensed",
+        "semicondensed",   "normal",          "semiexpanded",
+        "expanded",        "extraexpanded",   "ultraexpanded",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<DWRITE_FONT_STRETCH>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取
-auto LongUI::Helper::XMLGetFlowDirection(
-    pugi::xml_node node, DWRITE_FLOW_DIRECTION bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->DWRITE_FLOW_DIRECTION {
-    // 属性值列表
-    const char* rule_list[] = {
-        "top2bottom",
-        "bottom2top",
-        "left2right",
-        "right2left",
+    // DWrite 排列方向 属性值列表
+    const char* const cg_listFlowDirection[] = {
+        "top2bottom",  "bottom2top",  "left2right",  "right2left",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<DWRITE_FLOW_DIRECTION>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取阅读方向
-auto LongUI::Helper::XMLGetReadingDirection(
-    pugi::xml_node node, DWRITE_READING_DIRECTION bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->DWRITE_READING_DIRECTION {
-    // 属性值列表
-    const char* rule_list[] = {
-        "left2right",
-        "right2left",
-        "top2bottom",
-        "bottom2top",
+    // DWrite 阅读方向 属性值列表
+    const char* const cg_listReadingDirection[] = {
+        "left2right",  "right2left",  "top2bottom",  "bottom2top",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<DWRITE_READING_DIRECTION>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取换行标志
-auto LongUI::Helper::XMLGetWordWrapping(
-    pugi::xml_node node, DWRITE_WORD_WRAPPING bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->DWRITE_WORD_WRAPPING {
-    // 属性值列表
-    const char* rule_list[] = {
-        "wrap",
-        "nowrap",
-        "break",
-        "word",
-        "character",
+    // DWrite 换行方式 属性值列表
+    const char* const cg_listWordWrapping[] = {
+        "wrap", "nowrap",  "break",  "word",  "character",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<DWRITE_WORD_WRAPPING>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-// 获取段落对齐方式
-auto LongUI::Helper::XMLGetVAlignment(
-    pugi::xml_node node, DWRITE_PARAGRAPH_ALIGNMENT bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->DWRITE_PARAGRAPH_ALIGNMENT {
-    // 属性值列表
-    const char* rule_list[] = {
-        "top",
-        "bottom",
-        "middle",
+    // DWrite 段落对齐 属性值列表
+    const char* const cg_listParagraphAlignment[] = {
+        "top",  "bottom",  "middle",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-
-// 获取段落对齐方式
-auto LongUI::Helper::XMLGetHAlignment(
-    pugi::xml_node node, DWRITE_TEXT_ALIGNMENT bad_match,
-    const char* attribute, const char* prefix
-    ) noexcept->DWRITE_TEXT_ALIGNMENT {
-    // 属性值列表
-    const char* rule_list[] = {
-        "left",
-        "right",
-        "center",
-        "justify",
+    // DWrite 文本对齐 属性值列表
+    const char* const cg_listTextAlignment[] = {
+        "left",  "right",  "center",  "justify",
     };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = attribute;
-    prop.prefix = prefix;
-    prop.values = rule_list;
-    prop.values_length = lengthof(rule_list);
-    // 调用
-    return static_cast<DWRITE_TEXT_ALIGNMENT>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
-
-
-// 获取文本抗锯齿模式
-auto LongUI::Helper::XMLGetD2DTextAntialiasMode(
-    pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match
-    ) noexcept->D2D1_TEXT_ANTIALIAS_MODE {
-    // 属性值列表
-    const char* mode_list[] = {
-        "default",
-        "cleartype",
-        "grayscale",
-        "aliased",
-    };
-    // 设置
-    XMLGetValueEnumProperties prop;
-    prop.attribute = LongUI::XMLAttribute::WindowTextAntiMode;
-    prop.prefix = nullptr;
-    prop.values = mode_list;
-    prop.values_length = lengthof(mode_list);
-    // 调用
-    return static_cast<D2D1_TEXT_ANTIALIAS_MODE>(XMLGetValueEnum(node, prop, uint32_t(bad_match)));
-}
-
+    // 获取动画类型
+    LongUINoinline auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept->AnimationType {
+        return GetEnumFromStringHelper(value, bad_match, cg_listAnimationType);
+    }
+    // 获取插值模式
+    LongUINoinline auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept->D2D1_INTERPOLATION_MODE {
+        return GetEnumFromStringHelper(value, bad_match, cg_listInterpolationMode);
+    }
+    // 获取扩展模式
+    LongUINoinline auto GetEnumFromString(const char* value, D2D1_EXTEND_MODE bad_match) noexcept->D2D1_EXTEND_MODE {
+        return GetEnumFromStringHelper(value, bad_match, cg_listExtendMode);
+    }
+    // 获取位图渲染规则
+    LongUINoinline auto GetEnumFromString(const char* value, BitmapRenderRule bad_match) noexcept->BitmapRenderRule {
+        return GetEnumFromStringHelper(value, bad_match, cg_listBitmapRenderRule);
+    }
+    // 获取富文本类型
+    LongUINoinline auto GetEnumFromString(const char* value, RichType bad_match) noexcept->RichType {
+        return GetEnumFromStringHelper(value, bad_match, cg_listRichType);
+    }
+    // 获取字体风格
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_FONT_STYLE bad_match) noexcept->DWRITE_FONT_STYLE {
+        return GetEnumFromStringHelper(value, bad_match, cg_listFontStyle);
+    }
+    // 获取字体拉伸
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_FONT_STRETCH bad_match) noexcept ->DWRITE_FONT_STRETCH {
+        return GetEnumFromStringHelper(value, bad_match, cg_listFontStretch);
+    }
+    // 获取排列方向
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_FLOW_DIRECTION bad_match) noexcept ->DWRITE_FLOW_DIRECTION {
+        return GetEnumFromStringHelper(value, bad_match, cg_listFlowDirection);
+    }
+    // 获取阅读方向
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_READING_DIRECTION bad_match) noexcept ->DWRITE_READING_DIRECTION {
+        return GetEnumFromStringHelper(value, bad_match, cg_listReadingDirection);
+    }
+    // 获取换行方式
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_WORD_WRAPPING bad_match) noexcept ->DWRITE_WORD_WRAPPING {
+        return GetEnumFromStringHelper(value, bad_match, cg_listWordWrapping);
+    }
+    // 获取段落对齐方式
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_PARAGRAPH_ALIGNMENT bad_match) noexcept ->DWRITE_PARAGRAPH_ALIGNMENT {
+        return GetEnumFromStringHelper(value, bad_match, cg_listParagraphAlignment);
+    }
+    // 获取文本对齐方式
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_TEXT_ALIGNMENT bad_match) noexcept ->DWRITE_TEXT_ALIGNMENT {
+        return GetEnumFromStringHelper(value, bad_match, cg_listTextAlignment);
+    }
+    // 获取文本抗锯齿模式
+    LongUINoinline auto GetEnumFromString(const char* value, D2D1_TEXT_ANTIALIAS_MODE bad_match) noexcept ->D2D1_TEXT_ANTIALIAS_MODE {
+        return GetEnumFromStringHelper(value, bad_match, cg_listTextAntialiasMode);
+    }
+}}
 
 // Render Common Brush
 void LongUI::FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brush, const D2D1_RECT_F& rect) noexcept {

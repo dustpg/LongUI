@@ -55,7 +55,7 @@ namespace LongUI { namespace Helper {
     // CC for CreateControl
     struct CC { CreateControlFunction func; size_t id; };
     // make cc, if data -> null, just return count
-    auto MakeCC(const char* str, CC* OPTIONAL data = nullptr) noexcept->uint32_t;
+    auto MakeCC(const char* str, CC* OPTIONAL data = nullptr) noexcept ->uint32_t;
     // ------------------- Windows COM Interface Helper -----------------------------
     // counter based COM Interface, 0 , wiil be deleted
     template <typename InterfaceChain, typename CounterType = std::atomic<size_t>>
@@ -222,15 +222,13 @@ namespace LongUI { namespace Helper {
     };
     // ----------------------  xml helper -----------------------------
     // XMLGetValueEnum Properties
-    struct XMLGetValueEnumProperties {
-        // attribute
-        const char*         attribute;
+    struct GetEnumProperties {
         // values list of enum
-        const char* const*  values;
+        const char* const*  values_list;
         // length of 'values'
-        size_t              values_length;
-        // prefix
-        const char*         prefix;
+        uint32_t            values_length;
+        // length of 'values'
+        uint32_t            bad_match;
     };
     // make color form string
     bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;
@@ -243,92 +241,100 @@ namespace LongUI { namespace Helper {
     // get value string
     auto XMLGetValue(pugi::xml_node node, const char* attribute, const char* prefix =nullptr) noexcept -> const char*;
     // get value enum-int
-    auto XMLGetValueEnum(pugi::xml_node node, const XMLGetValueEnumProperties& prop, uint32_t bad_match = 0) noexcept->uint32_t;
-    // get animation type
-    auto XMLGetAnimationType(
-        pugi::xml_node node,
-        AnimationType bad_match,
-        const char* attribute = "animationtype",
-        const char* prefix = nullptr
-        ) noexcept->AnimationType;
-    // get d2d interpolation mode
-    auto XMLGetD2DInterpolationMode(
-        pugi::xml_node node, 
-        D2D1_INTERPOLATION_MODE bad_match,
-        const char* attribute = "interpolation",
-        const char* prefix = nullptr
-        ) noexcept ->D2D1_INTERPOLATION_MODE;
-    // get d2d extend mode
-    auto XMLGetD2DExtendMode(
-        pugi::xml_node node,
-        D2D1_EXTEND_MODE bad_match,
-        const char* attribute = "extend",
-        const char* prefix = nullptr
-        ) noexcept->D2D1_EXTEND_MODE;
-    // get longui bitmap render rule
-    auto XMLGetBitmapRenderRule(
-        pugi::xml_node node,
-        BitmapRenderRule bad_match,
-        const char* attribute = "rule",
-        const char* prefix = nullptr
-        ) noexcept->BitmapRenderRule;
+    auto GetEnumFromString(const char* value, const GetEnumProperties& prop) noexcept ->uint32_t;
     // get longui richtype
-    auto XMLGetRichType(
-        pugi::xml_node node,
-        RichType bad_match,
-        const char* attribute = "richtype",
-        const char* prefix = nullptr
-        ) noexcept->RichType;
+    auto GetEnumFromString(const char* value, RichType bad_match) noexcept ->RichType;
+    // get animation type
+    auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept ->AnimationType;
+    // get longui bitmap render rule
+    auto GetEnumFromString(const char* value, BitmapRenderRule bad_match) noexcept ->BitmapRenderRule;
     // get DWRITE_FONT_STYLE
-    auto XMLGetFontStyle(
-        pugi::xml_node node,
-        DWRITE_FONT_STYLE bad_match,
-        const char* attribute = "style",
-        const char* prefix = nullptr
-        ) noexcept->DWRITE_FONT_STYLE;
+    auto GetEnumFromString(const char* value, DWRITE_FONT_STYLE bad_match) noexcept ->DWRITE_FONT_STYLE;
     // get DWRITE_FONT_STRETCH
-    auto XMLGetFontStretch(
-        pugi::xml_node node,
-        DWRITE_FONT_STRETCH bad_match,
-        const char* attribute = "stretch",
-        const char* prefix = nullptr
-        ) noexcept->DWRITE_FONT_STRETCH;
+    auto GetEnumFromString(const char* value, DWRITE_FONT_STRETCH bad_match) noexcept ->DWRITE_FONT_STRETCH;
     // get DWRITE_FLOW_DIRECTION
-    auto XMLGetFlowDirection(
-        pugi::xml_node node,
-        DWRITE_FLOW_DIRECTION bad_match,
-        const char* attribute = "flowdirection",
-        const char* prefix = nullptr
-        ) noexcept->DWRITE_FLOW_DIRECTION;
+    auto GetEnumFromString(const char* value, DWRITE_FLOW_DIRECTION bad_match) noexcept ->DWRITE_FLOW_DIRECTION;
     // get DWRITE_READING_DIRECTION
-    auto XMLGetReadingDirection(
-        pugi::xml_node node,
-        DWRITE_READING_DIRECTION bad_match,
-        const char* attribute = "readingdirection",
-        const char* prefix = nullptr
-        ) noexcept->DWRITE_READING_DIRECTION;
+    auto GetEnumFromString(const char* value, DWRITE_READING_DIRECTION bad_match) noexcept ->DWRITE_READING_DIRECTION;
+    // get DWRITE_WORD_WRAPPING
+    auto GetEnumFromString(const char* value, DWRITE_WORD_WRAPPING bad_match) noexcept ->DWRITE_WORD_WRAPPING;
+    // get DWRITE_PARAGRAPH_ALIGNMENT
+    auto GetEnumFromString(const char* value, DWRITE_PARAGRAPH_ALIGNMENT bad_match) noexcept ->DWRITE_PARAGRAPH_ALIGNMENT;
+    // get DWRITE_TEXT_ALIGNMENT
+    auto GetEnumFromString(const char* value, DWRITE_TEXT_ALIGNMENT bad_match) noexcept ->DWRITE_TEXT_ALIGNMENT;
+    // get d2d extend mode
+    auto GetEnumFromString(const char* value, D2D1_EXTEND_MODE bad_match) noexcept ->D2D1_EXTEND_MODE;
+    // get D2D1_TEXT_ANTIALIAS_MODE
+    auto GetEnumFromString(const char* value, D2D1_TEXT_ANTIALIAS_MODE bad_match) noexcept ->D2D1_TEXT_ANTIALIAS_MODE;
+    // get d2d interpolation mode
+    auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept ->D2D1_INTERPOLATION_MODE;
+    //    ------------------------------------------------------
+    //    ------------------ INLINE OVERLOAD -------------------
+    //    ------------------------------------------------------
+    // get animation type
+    inline auto GetEnumFromXml(pugi::xml_node node, AnimationType bad_match,
+        const char* attribute = "animationtype", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get d2d interpolation mode
+    inline auto GetEnumFromXml(pugi::xml_node node, D2D1_INTERPOLATION_MODE bad_match,
+        const char* attribute = "interpolation", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get d2d extend mode
+    inline auto GetEnumFromXml(pugi::xml_node node, D2D1_EXTEND_MODE bad_match,
+        const char* attribute = "extend", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get longui bitmap render rule
+    inline auto GetEnumFromXml(pugi::xml_node node, BitmapRenderRule bad_match,
+        const char* attribute = "rule", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get longui richtype
+    inline auto GetEnumFromXml(pugi::xml_node node, RichType bad_match,
+        const char* attribute = "richtype", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get DWRITE_FONT_STYLE
+    inline auto GetEnumFromXml(pugi::xml_node node,  DWRITE_FONT_STYLE bad_match,
+        const char* attribute = "style", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get DWRITE_FONT_STRETCH
+    inline auto GetEnumFromXml(pugi::xml_node node, DWRITE_FONT_STRETCH bad_match,
+        const char* attribute = "stretch", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get DWRITE_FLOW_DIRECTION
+    inline auto GetEnumFromXml(pugi::xml_node node, DWRITE_FLOW_DIRECTION bad_match,
+        const char* attribute = "flowdirection", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
     // get DWRITE_READING_DIRECTION
-    auto XMLGetWordWrapping(
-        pugi::xml_node node,
-        DWRITE_WORD_WRAPPING bad_match,
-        const char* attribute = "wordwrapping",
-        const char* prefix = nullptr
-        ) noexcept->DWRITE_WORD_WRAPPING;
+    inline auto GetEnumFromXml(pugi::xml_node node, DWRITE_READING_DIRECTION bad_match,
+        const char* attribute = "readingdirection", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get DWRITE_READING_DIRECTION
+    inline auto GetEnumFromXml(pugi::xml_node node, DWRITE_WORD_WRAPPING bad_match,
+        const char* attribute = "wordwrapping", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
     // get DWRITE_PARAGRAPH_ALIGNMENT
-    auto XMLGetVAlignment(
-        pugi::xml_node node,
-        DWRITE_PARAGRAPH_ALIGNMENT bad_match,
-        const char* attribute = "valign",
-        const char* prefix = nullptr
-        ) noexcept->DWRITE_PARAGRAPH_ALIGNMENT;
+    inline auto GetEnumFromXml(pugi::xml_node node, DWRITE_PARAGRAPH_ALIGNMENT bad_match,
+        const char* attribute = "valign", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
     // get DWRITE_PARAGRAPH_ALIGNMENT
-    auto XMLGetHAlignment(
-        pugi::xml_node node,
-        DWRITE_TEXT_ALIGNMENT bad_match,
-        const char* attribute = "align",
-        const char* prefix = nullptr
-        ) noexcept->DWRITE_TEXT_ALIGNMENT;
+    inline auto GetEnumFromXml(pugi::xml_node node, DWRITE_TEXT_ALIGNMENT bad_match,
+        const char* attribute = "align", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
     // get d2d text anti-mode
-    auto XMLGetD2DTextAntialiasMode(pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match) noexcept->D2D1_TEXT_ANTIALIAS_MODE;
+    inline auto GetEnumFromXml(pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match,
+        const char* attribute = LongUI::XMLAttribute::WindowTextAntiMode, const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
 }}
 

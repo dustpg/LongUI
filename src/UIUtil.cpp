@@ -779,105 +779,138 @@ LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matri
     return result;
 }
 
-/// <summary>
-/// string to int, 字符串转整型, std::atoi自己实现版
-/// </summary>
-/// <param name="str">The string.</param>
-/// <returns></returns>
-auto __fastcall LongUI::AtoI(const char* __restrict str) noexcept -> int {
-    if (!str) return 0;
-    register bool negative = false;
-    register int value = 0;
-    register char ch = 0;
-    while (ch = *str) {
-        if (!white_space(ch)) {
-            if (ch == '-') {
-                negative = true;
+// longui::impl 命名空间
+namespace LongUI { namespace impl {
+    // 字符串转数字
+    template<typename T> LongUINoinline auto atoi(const T* str) noexcept ->int {
+        assert(str && "bad argument");
+        // 初始化
+        bool negative = false; int value = 0; register T ch = 0;
+        // 遍历
+        while (ch = *str) {
+            // 空白?
+            if (!white_space(ch)) {
+                if (ch == '-') {
+                    negative = true;
+                }
+                else if (valid_digit(ch)) {
+                    value *= 10;
+                    value += ch - static_cast<T>('0');
+                }
+                else {
+                    break;
+                }
             }
-            else if (valid_digit(ch)) {
-                value *= 10;
-                value += ch - '0';
-            }
-            else {
-                break;
+            ++str;
+        }
+        // 负数
+        if (negative) {
+            value = -value;
+        }
+        return value;
+    }
+    // 字符串转浮点
+    template<typename T> LongUINoinline auto atof(const T* p) noexcept ->float {
+        assert(p && "bad argument");
+        bool negative = false;
+        float value, scale;
+        // 跳过空白
+        while (white_space(*p)) ++p;
+        // 检查符号
+        if (*p == '-') {
+            negative = true;
+            ++p;
+        }
+        else if (*p == '+') {
+            ++p;
+        }
+        // 获取小数点或者指数之前的数字(有的话)
+        for (value = 0.0f; valid_digit(*p); ++p) {
+            value = value * 10.0f + static_cast<float>(*p - static_cast<T>('0'));
+        }
+        // 获取小数点或者指数之后的数字(有的话)
+        if (*p == '.') {
+            float pow10 = 10.0f; ++p;
+            while (valid_digit(*p)) {
+                value += (*p - static_cast<T>('0')) / pow10;
+                pow10 *= 10.0f;
+                ++p;
             }
         }
-        ++str;
+        // 处理指数(有的话)
+        bool frac = false;
+        scale = 1.0f;
+        if ((*p == 'e') || (*p == 'E')) {
+            // 获取指数的符号(有的话)
+            ++p;
+            if (*p == '-') {
+                frac = true;
+                ++p;
+            }
+            else if (*p == '+') {
+                ++p;
+            }
+            unsigned int expon;
+            // 获取指数的数字(有的话)
+            for (expon = 0; valid_digit(*p); ++p) {
+                expon = expon * 10 + (*p - static_cast<T>('0'));
+            }
+            // float 最大38 double 最大308
+            if (expon > 38) expon = 38;
+            // 计算比例因数
+            while (expon >= 8) { scale *= 1E8f;  expon -= 8; }
+            while (expon) { scale *= 10.0f; --expon; }
+        }
+        // 返回
+        register float returncoude = (frac ? (value / scale) : (value * scale));
+        if (negative) {
+            // float
+            returncoude = -returncoude;
+        }
+        return returncoude;
     }
-    // 负数
-    if (negative) {
-        value = -value;
-    }
-    return value;
+}}
+
+/// <summary>
+/// string to float.字符串转浮点, std::atof自己实现版
+/// </summary>
+/// <param name="p">The string. in const char*</param>
+/// <returns></returns>
+auto LongUI::AtoF(const char* __restrict p) noexcept -> float {
+    if (!p) return 0.0f;
+    return impl::atof(p);
 }
 
 
 /// <summary>
 /// string to float.字符串转浮点, std::atof自己实现版
 /// </summary>
-/// <param name="p">The string.</param>
+/// <param name="p">The string.in const wchar_t*</param>
 /// <returns></returns>
-auto __fastcall LongUI::AtoF(const char* __restrict p) noexcept -> float {
+auto LongUI::AtoF(const wchar_t* __restrict p) noexcept -> float {
     if (!p) return 0.0f;
-    bool negative = false;
-    float value, scale;
-    // 跳过空白
-    while (white_space(*p)) ++p;
-    // 检查符号
-    if (*p == '-') {
-        negative = true;
-        ++p;
-    }
-    else if (*p == '+') {
-        ++p;
-    }
-    // 获取小数点或者指数之前的数字(有的话)
-    for (value = 0.0f; valid_digit(*p); ++p) {
-        value = value * 10.0f + static_cast<float>(*p - '0');
-    }
-    // 获取小数点或者指数之后的数字(有的话)
-    if (*p == '.') {
-        float pow10 = 10.0f;
-        ++p;
-        while (valid_digit(*p)) {
-            value += (*p - '0') / pow10;
-            pow10 *= 10.0f;
-            ++p;
-        }
-    }
-    // 处理指数(有的话)
-    bool frac = false;
-    scale = 1.0f;
-    if ((*p == 'e') || (*p == 'E')) {
-        // 获取指数的符号(有的话)
-        ++p;
-        if (*p == '-') {
-            frac = true;
-            ++p;
-        }
-        else if (*p == '+') {
-            ++p;
-        }
-        unsigned int expon;
-        // 获取指数的数字(有的话)
-        for (expon = 0; valid_digit(*p); ++p) {
-            expon = expon * 10 + (*p - '0');
-        }
-        // float 最大38 double 最大308
-        if (expon > 38) expon = 38;
-        // 计算比例因数
-        while (expon >= 8) { scale *= 1E8f;  expon -= 8; }
-        while (expon) { scale *= 10.0f; --expon; }
-    }
-    // 返回
-    register float returncoude = (frac ? (value / scale) : (value * scale));
-    if (negative) {
-        // float
-        returncoude = -returncoude;
-    }
-    return returncoude;
+    return impl::atof(p);
 }
 
+/// <summary>
+/// string to int, 字符串转整型, std::atoi自己实现版
+/// </summary>
+/// <param name="str">The string.</param>
+/// <returns></returns>
+auto LongUI::AtoI(const char* __restrict str) noexcept -> int {
+    if (!str) return 0;
+    return impl::atoi(str);
+}
+
+/// <summary>
+/// string to int, 字符串转整型, std::atoi自己实现版
+/// </summary>
+/// <param name="str">The string.</param>
+/// <returns></returns>
+auto LongUI::AtoI(const wchar_t* __restrict str) noexcept -> int {
+    if (!str) return 0;
+    return impl::atoi(str);
+}
 
 
 // 源: http://llvm.org/svn/llvm-project/llvm/trunk/lib/Support/ConvertUTF.c

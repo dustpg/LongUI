@@ -46,9 +46,9 @@ namespace LongUI {
     // lengthof
     template<typename T> constexpr auto lengthof(T& t) { UNREFERENCED_PARAMETER(t); return sizeof(t) / sizeof(*t); }
     // white space
-    static auto white_space(char c) noexcept { return ((c) == ' ' || (c) == '\t'); }
+    template<typename T> static auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
     // valid digit
-    static auto valid_digit(char c) noexcept { return ((c) >= '0' && (c) <= '9'); }
+    template<typename T> static auto valid_digit(T c) noexcept { return ((c) >= '0' && (c) <= '9'); }
     // hex -> int
     unsigned int __fastcall Hex2Int(char c) noexcept;
     // Render Common Brush
@@ -115,9 +115,13 @@ namespace LongUI {
         static HRESULT (STDAPICALLTYPE* DCompositionCreateDevice)(IDXGIDevice*, REFIID, void **);
     };
     // std::atoi diy version
-    auto __fastcall AtoI(const char* __restrict) noexcept -> int;
+    auto AtoI(const char* __restrict) noexcept -> int;
+    // std::atoi diy version overload for wchar_t
+    auto AtoI(const wchar_t* __restrict) noexcept -> int;
     // std::atof diy version(float ver)
-    auto __fastcall AtoF(const char* __restrict) noexcept -> float;
+    auto AtoF(const char* __restrict) noexcept -> float;
+    // std::atof diy version(float ver) overload for wchar_t
+    auto AtoF(const wchar_t* __restrict) noexcept -> float;
     // LongUI::AtoI diy version(double ver)
     //auto __fastcall AtoLF(const char*) -> double;
     // utf-32(ucs4) to utf-16(ucs2) char

@@ -398,8 +398,8 @@ namespace LongUI {
         meta_raw = {
             { 0.f, 0.f, 1.f, 1.f },
             uint32_t(LongUI::AtoI(node.attribute("bitmap").value())),
-            Helper::XMLGetBitmapRenderRule(node, BitmapRenderRule::Rule_Scale),
-            uint16_t(Helper::XMLGetD2DInterpolationMode(node, D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR))
+            Helper::GetEnumFromXml(node, BitmapRenderRule::Rule_Scale),
+            uint16_t(Helper::GetEnumFromXml(node, D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR))
         };
         assert(meta_raw.bitmap_index && "bad bitmap index");
         // 获取矩形
@@ -732,9 +732,9 @@ namespace LongUI {
                 auto bitmap = m_manager.GetBitmap(size_t(LongUI::AtoI(str)));
                 // 基本参数
                 D2D1_BITMAP_BRUSH_PROPERTIES1 bbprop = {
-                    Helper::XMLGetD2DExtendMode(node, D2D1_EXTEND_MODE_CLAMP, "extendx"),
-                    Helper::XMLGetD2DExtendMode(node, D2D1_EXTEND_MODE_CLAMP, "extendy"),
-                    Helper::XMLGetD2DInterpolationMode(node, D2D1_INTERPOLATION_MODE_LINEAR, "interpolation"),
+                    Helper::GetEnumFromXml(node, D2D1_EXTEND_MODE_CLAMP, "extendx"),
+                    Helper::GetEnumFromXml(node, D2D1_EXTEND_MODE_CLAMP, "extendy"),
+                    Helper::GetEnumFromXml(node, D2D1_INTERPOLATION_MODE_LINEAR, "interpolation"),
                 };
                 // 创建位图笔刷
                 m_manager.GetRenderTargetNoAddRef()->CreateBitmapBrush(
