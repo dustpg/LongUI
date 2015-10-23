@@ -11,6 +11,55 @@ LongUINoinline bool LongUI::Helper::DoubleClick::Click(const D2D1_POINT_2F& pt) 
     return result;
 }
 
+// longui::impl 命名空间
+namespace LongUI { namespace impl { 
+    // 申请全局字符串
+    template<typename T> 
+    inline auto alloc_global_string(const T* src, size_t len) noexcept {
+        // 申请
+        auto global = ::GlobalAlloc(GMEM_MOVEABLE, sizeof(T)*(len + 1));
+        // 有效?
+        if (global) {
+            auto* des = reinterpret_cast<T*>(::GlobalLock(global));
+            // 申请全局内存成功
+            if (des) {
+                // 复制
+                ::memcpy(des, src, sizeof(T)*(len));
+                // null结尾
+                des[len] = 0;
+                // 解锁
+                ::GlobalUnlock(global);
+            }
+#ifdef _DEBUG
+            else {
+                UIManager << DL_Error
+                    << L" GlobalLock --> Failed"
+                    << LongUI::endl;
+            }
+#endif
+        }
+#ifdef _DEBUG
+        else {
+            UIManager << DL_Error
+                << L" GlobalAlloc --> Failed, try alloc from"
+                << Formated(L"%p in %zu bytes", src, len)
+                << LongUI::endl;
+        }
+#endif
+        return global;
+    }
+}}
+
+// 申请全局字符串
+LongUINoinline auto LongUI::Helper::GlobalAllocString(const wchar_t* src, size_t len) noexcept ->HGLOBAL {
+    return impl::alloc_global_string(src, len);
+}
+
+// 申请全局字符串
+LongUINoinline auto LongUI::Helper::GlobalAllocString(const char* src, size_t len) noexcept ->HGLOBAL {
+    return impl::alloc_global_string(src, len);
+}
+
 // 创建 CC
 auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint32_t {
     assert(str && "bad argument");

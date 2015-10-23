@@ -220,6 +220,23 @@ namespace LongUI { namespace Helper {
         // pointer & boolx2 data
         size_t          data;
     };
+    // ----------------------  api helper -----------------------------
+    // GlobalAlloc a string data: char overload
+    auto GlobalAllocString(const char* str, size_t len) noexcept ->HGLOBAL;
+    // GlobalAlloc a string data: wchar_t overload
+    auto GlobalAllocString(const wchar_t* str, size_t len) noexcept ->HGLOBAL;
+    // GlobalAlloc a string data: inline const wchar_t* overload
+    inline auto GlobalAllocString(const wchar_t* str) noexcept {
+        return GlobalAllocString(str, static_cast<size_t>(std::wcslen(str)));
+    }
+    // GlobalAlloc a string data: inline const char* overload
+    inline auto GlobalAllocString(const char* str) noexcept {
+        return GlobalAllocString(str, static_cast<size_t>(std::strlen(str)));
+    }
+    // GlobalAlloc a string data: inline LongUI::CUIString overload
+    inline auto GlobalAllocString(const CUIString& str) noexcept {
+        return GlobalAllocString(str.c_str(), static_cast<size_t>(str.length()));
+    }
     // ----------------------  xml helper -----------------------------
     // XMLGetValueEnum Properties
     struct GetEnumProperties {

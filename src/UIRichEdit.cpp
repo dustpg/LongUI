@@ -43,13 +43,13 @@ noexcept: Super(cp, node){ }
 
 // UIRichEdit 析构函数
 LongUI::UIRichEdit::~UIRichEdit() noexcept {
-    ::SafeRelease(m_pFontBrush);
+    LongUI::SafeRelease(m_pFontBrush);
     if (m_pTextServices) {
         m_pTextServices->OnTxInPlaceDeactivate();
     }
     // 关闭服务
     UIRichEdit::ShutdownTextServices(m_pTextServices);
-    //::SafeRelease(m_pTextServices);
+    //LongUI::SafeRelease(m_pTextServices);
 }
 
 // UIRichEdit::CreateControl 函数
@@ -131,8 +131,8 @@ HRESULT LongUI::UIRichEdit::Recreate() noexcept {
     if (m_pTextServices) {
         m_pTextServices->OnTxInPlaceDeactivate();
     }
-    ::SafeRelease(m_pTextServices);
-    ::SafeRelease(m_pFontBrush);
+    LongUI::SafeRelease(m_pTextServices);
+    LongUI::SafeRelease(m_pFontBrush);
     // 设置新的笔刷
     m_pFontBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
     // 获取窗口句柄
@@ -152,7 +152,7 @@ HRESULT LongUI::UIRichEdit::Recreate() noexcept {
     if (SUCCEEDED(hr)) {
         hr = m_pTextServices->OnTxInPlaceActivate(nullptr);
     }
-    ::SafeRelease(pUk);
+    LongUI::SafeRelease(pUk);
     return Super::Recreate();
 }
 

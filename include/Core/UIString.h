@@ -30,11 +30,17 @@
 namespace LongUI{
     // UI String -- compatible with std library string interface(part of) but host a fixed buffer
     class CUIString {
+        // my version strlen
+        static inline auto uistrlen(const char* str) noexcept { return static_cast<uint32_t>(std::strlen(str)); }
+        // my version wcslen
+        static inline auto uistrlen(const wchar_t* str) noexcept { return static_cast<uint32_t>(std::wcslen(str)); }
     public:
         // ctor
         CUIString() noexcept { *m_aDataStatic = 0; }
+        // ctor with data+len
+        CUIString(const wchar_t* str, uint32_t len) noexcept { this->Set(str, len); }
         // ctor with data
-        CUIString(const wchar_t* str, uint32_t l = 0) noexcept { this->Set(str, l); }
+        CUIString(const wchar_t* str) noexcept { this->Set(str); }
         // dtor
         ~CUIString() noexcept;
         // copy ctor, will set performance warning
@@ -43,17 +49,25 @@ namespace LongUI{
         CUIString(CUIString&&) noexcept;
     public: // LongUI Style
         // set/assign
-        void Set(const wchar_t* str, uint32_t = 0) noexcept;
+        void Set(const wchar_t* str, uint32_t len) noexcept;
+        // set/assign inline overload
+        void Set(const wchar_t* str) noexcept { return this->Set(str, this->uistrlen(str)); }
         // set/assign for utf-8
-        void Set(const char* str, uint32_t = 0) noexcept;
+        void Set(const char* str, uint32_t len) noexcept;
+        // set/assign for utf-8 inline overload
+        void Set(const char* str) noexcept { return this->Set(str, this->uistrlen(str)); }
         // append
-        void Append(const wchar_t* str, uint32_t = 0) noexcept;
+        void Append(const wchar_t* str, uint32_t len) noexcept;
+        // set/assign for utf-8 inline overload
+        void Append(const wchar_t* str) noexcept { return this->Append(str, this->uistrlen(str)); }
         // append for utf-8
-        //void Append(const char* str, uint32_t = 0) noexcept;
+        //void Append(const char* str, uint32_t len) noexcept;
         // reserve
         void Reserve(uint32_t len) noexcept;
         // insert
-        void Insert(uint32_t offset, const wchar_t* str, uint32_t = 0) noexcept;
+        void Insert(uint32_t offset, const wchar_t* str, uint32_t len) noexcept;
+        // insert for inline overload
+        void Insert(uint32_t offset, const wchar_t* str) noexcept { return this->Insert(offset, str, this->uistrlen(str)); }
         // remove
         void Remove(uint32_t offset, uint32_t length) noexcept;
         // format
@@ -77,7 +91,9 @@ namespace LongUI{
         const auto* c_str() const noexcept { return m_pString; }
     public: // std::string compatibled interface/method
         // insert for string
-        auto&insert(uint32_t off, const wchar_t* str, uint32_t len = 0) noexcept { this->Insert(off, str, len); return *this; }
+        auto&insert(uint32_t off, const wchar_t* str, uint32_t len) noexcept { this->Insert(off, str, len); return *this; }
+        // insert for string
+        auto&insert(uint32_t off, const wchar_t* str) noexcept { this->Insert(off, str); return *this; }
         // insert for wchar
         auto&insert(uint32_t off, const wchar_t ch) noexcept { wchar_t str[2] = { ch, 0 }; return this->insert(off, str, 1); }
         // insert for char
@@ -85,7 +101,7 @@ namespace LongUI{
         // insert for CUIString
         auto&insert(uint32_t off, const CUIString& str) noexcept { return this->insert(off, str.c_str(), str.length()); }
         // erase
-        auto&erase(uint32_t off, uint32_t len ) noexcept { this->Remove(off, len); return *this; }
+        auto&erase(uint32_t off, uint32_t len) noexcept { this->Remove(off, len); return *this; }
         // at
         auto at(uint32_t off) const noexcept { assert(off < m_cLength && "out of range"); return m_pString[off]; }
         // [] operator
@@ -93,10 +109,14 @@ namespace LongUI{
         // [] for const
         const auto&operator[](uint32_t off) const noexcept { assert(off < m_cLength && "out of range"); return m_pString[off]; }
     public: // std::string compatibled interface/method
+        // assign: overload for [const wchar_t* + len]
+        auto&assign(const wchar_t* str, uint32_t count) noexcept { this->Set(str, count); return *this; }
+        // assign: overload for [const char* + len]
+        auto&assign(const char* str, uint32_t count) noexcept { this->Set(str, count); return *this;}
         // assign: overload for [const wchar_t*]
-        auto&assign(const wchar_t* str, uint32_t count = 0) noexcept { this->Set(str, count); return *this; }
+        auto&assign(const wchar_t* str) noexcept { this->Set(str); return *this; }
         // assign: overload for [const char*]
-        auto&assign(const char* str, uint32_t count = 0) noexcept { this->Set(str, count); return *this;}
+        auto&assign(const char* str) noexcept { this->Set(str); return *this;}
         // assign: overload for [const wchar_t]
         auto&assign(const wchar_t ch) noexcept { wchar_t buf[2] = { ch, 0 }; this->Set(buf, 1); return *this; }
         // assign: overload for [const char]
@@ -113,7 +133,9 @@ namespace LongUI{
         auto&operator= (const CUIString& str) noexcept { this->assign(str.c_str(), str.length()); return *this; }
     public: // std::string compatibled interface/method
         // append overload for [const wchar_t*]
-        auto&append(const wchar_t* str, uint32_t count = 0) noexcept { this->Append(str, count); return *this; }
+        auto&append(const wchar_t* str, uint32_t count) noexcept { this->Append(str, count); return *this; }
+        // append overload for [const wchar_t*]
+        auto&append(const wchar_t* str) noexcept { this->Append(str); return *this; }
         // append overload for [const wchar_t]
         auto&append(const wchar_t ch) noexcept { wchar_t buf[2] = { ch, 0 }; this->Append(buf, 1); return *this; }
         // append overload for [const char]
@@ -171,11 +193,11 @@ namespace LongUI{
             return reinterpret_cast<wchar_t*>(LongUI::SmallAlloc(length));
         }
         // copy string
-        static inline auto copy_string(wchar_t* des, const wchar_t* src, uint32_t length) {
+        static inline auto copy_string(wchar_t* __restrict des, const wchar_t* __restrict src, uint32_t length) {
             ::memcpy(des, src, sizeof(wchar_t) * (length + 1));
         }
         // copy string without null-end char
-        static inline auto copy_string_ex(wchar_t* des, const wchar_t* src, uint32_t length) {
+        static inline auto copy_string_ex(wchar_t* __restrict des, const wchar_t* __restrict src, uint32_t length) {
             ::memcpy(des, src, sizeof(wchar_t) * (length));
         }
         // choose a nice length for buffer

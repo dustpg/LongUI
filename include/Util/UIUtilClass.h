@@ -155,7 +155,7 @@ namespace LongUI {
     };
     // render the meta
     void __fastcall Meta_Render(
-        const Meta&, LongUIRenderTarget*,
+        const Meta&, ID2D1DeviceContext*,
         const D2D1_RECT_F& des_rect, float opacity = 1.f
         ) noexcept;
 #ifdef _MSC_VER
@@ -299,16 +299,16 @@ namespace LongUI {
         // destructor
         ~FixedCommadStack() noexcept {
             // release commnad in 2-time
-            for (auto &i : data) { ::SafeRelease(i); }
+            for (auto &i : data) { LongUI::SafeRelease(i); }
         }
         // add command
         LongUINoinline void AddCommand(IUICommand* cmd) noexcept {
             assert(cmd && "bad argument");
-            ::SafeRelease(data[now]);
+            LongUI::SafeRelease(data[now]);
             data[now] = cmd;
             if (++now > StackSize) now = 0;
             if (now == base) {
-                ::SafeRelease(data[base]);
+                LongUI::SafeRelease(data[base]);
                 if (++base > StackSize) base = 0;
             }
         }
@@ -438,7 +438,7 @@ namespace LongUI {
         // add all custom controls
         virtual auto RegisterSome() noexcept->void override {};
         // if use gpu render, you should choose a video card, return the index
-        virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept->size_t override;
+        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept->size_t override;
         // if in RichType::Type_Custom, will call this, we don't implement at here
         virtual auto CustomRichType(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
         // show the error string

@@ -45,22 +45,6 @@
 }*/
 
 
-template<class Interface>
-static inline auto SafeRelease(Interface *&pInterfaceToRelease) {
-    if (pInterfaceToRelease) {
-        pInterfaceToRelease->Release();
-        pInterfaceToRelease = nullptr;
-    }
-}
-
-template<class Interface>
-static inline auto SafeAcquire(Interface *pInterfaceToRelease) {
-    if (pInterfaceToRelease) {
-        pInterfaceToRelease->AddRef();
-    }
-    return pInterfaceToRelease;
-}
-
 #define LONGUI_DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE, INTTYPE) \
     static auto operator | (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) | static_cast<INTTYPE>(b)); };\
     static auto&operator |=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a | b; };\
@@ -135,16 +119,24 @@ static inline auto SafeAcquire(Interface *pInterfaceToRelease) {
 #define LONGUI_NAMESPACE_BEGIN namespace LongUI {
 #define LONGUI_NAMESPACE_END }
 
-// LongUI render target 目标渲染呈现器
-using LongUIRenderTarget = ID2D1DeviceContext;
-
-// longui
+// longui namespace
 namespace LongUI {
-    // graphics interface level
-    // static const GraphicsInterfaceLevel $GraphicsInterfaceLevel = GraphicsInterfaceLevel::Direct2D1_1;
     // force modify some (class member) variables
-    template<typename T>
-    inline T& force_cast(const T& a) { return const_cast<T&>(a); }
+    template<typename T> inline T& force_cast(const T& a) { return const_cast<T&>(a); }
+    // call release in safe way
+    template<class T> inline auto SafeRelease(T *&pInterfaceToRelease) {
+        if (pInterfaceToRelease) {
+            pInterfaceToRelease->Release();
+            pInterfaceToRelease = nullptr;
+        }
+    }
+    // call addref in safe way
+    template<class T> inline auto SafeAcquire(T* pInterfaceToRelease) {
+        if (pInterfaceToRelease) {
+            pInterfaceToRelease->AddRef();
+        }
+        return pInterfaceToRelease;
+    }
 #ifdef LongUIDebugEvent
     // longui cast
     template<class T1, class T2> 

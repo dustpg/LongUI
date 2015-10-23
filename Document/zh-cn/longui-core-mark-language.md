@@ -1,4 +1,4 @@
-## LongUI Core Mark Langeuage v0.2
+## LongUI Core Mark Langeuage v0.2.1
 
 `LCML` is a easy to use but you may need a doc.
 `LCML` could be used on `C++ Function` or `Inline Paramters` mode.
@@ -23,6 +23,7 @@ control char|summary|c++ type|note
 `%w`|font `w`eight|`DWRITE_FONT_WEIGHT`|set font weight to this range
 `%u`|`u`nderline|**NONE**|NONE, just add underline
 `%t`|`t`ypography|`IDWriteTypography*`|set typography for this range
+`%l`|`l`ocal name|`const wchar_t*`|set local name for this range
 `%d`|strikethrough(`d`elete line)|**NONE**|NONE, just add strikethrough/delete line
 `%i`|`i`nline object|`IDWriteInlineObject*`, `CUIInlineObject*`|set inline object to this range
 `%e`|drawing `e`ffect|`IUnknown*`|set drawing effect to this range

@@ -15,7 +15,7 @@ auto LongUI::SVG::ParserPath(const char* path, ID2D1PathGeometry1** out) noexcep
     if (SUCCEEDED(hr)) {
         hr = ParserPath(path, path_geometry);
     }
-    ::SafeRelease(path_geometry);
+    LongUI::SafeRelease(path_geometry);
     return hr;
 }
 
@@ -43,7 +43,7 @@ auto LongUI::SVG::ParserPath(const char* path, ID2D1PathGeometry* geometry) noex
     if (SUCCEEDED(hr)) {
         hr = sink->Close();
     }
-    ::SafeRelease(sink);
+    LongUI::SafeRelease(sink);
     return hr;
 }
 

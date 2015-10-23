@@ -25,7 +25,7 @@ extern "C" HRESULT CreateZipResourceLoader(
         *outdata = loader;
         loader = nullptr;
     }
-    ::SafeRelease(loader);
+    LongUI::SafeRelease(loader);
     return hr;
 }
 
@@ -39,7 +39,7 @@ LongUI::CUIZipXmlResourceLoader::CUIZipXmlResourceLoader(
 // CUIZipXmlResourceLoader 析构函数
 LongUI::CUIZipXmlResourceLoader::~CUIZipXmlResourceLoader() noexcept {
     ::mz_zip_reader_end(&m_zipFile);
-    ::SafeRelease(m_pWICFactory);
+    LongUI::SafeRelease(m_pWICFactory);
 }
 
 
@@ -184,7 +184,7 @@ auto LongUI::CUIZipXmlResourceLoader::get_bitmap(pugi::xml_node node) noexcept -
     assert(uri && *uri && "Error URI of Bitmap");
     // 从文件载入位图
     auto load_bitmap_from_stream = [](
-        LongUIRenderTarget *pRenderTarget,
+        ID2D1DeviceContext *pRenderTarget,
         IWICImagingFactory *pIWICFactory,
         IStream* pStream,
         UINT destinationWidth,
@@ -309,15 +309,15 @@ auto LongUI::CUIZipXmlResourceLoader::get_bitmap(pugi::xml_node node) noexcept -
                 *ppBitmap = tar_bitmap;
                 tar_bitmap = nullptr;
             }
-            ::SafeRelease(tmp_bitmap);
-            ::SafeRelease(tar_bitmap);
+            LongUI::SafeRelease(tmp_bitmap);
+            LongUI::SafeRelease(tar_bitmap);
         }
 #endif
-        ::SafeRelease(pDecoder);
-        ::SafeRelease(pSource);
-        ::SafeRelease(pStream);
-        ::SafeRelease(pConverter);
-        ::SafeRelease(pScaler);
+        LongUI::SafeRelease(pDecoder);
+        LongUI::SafeRelease(pSource);
+        LongUI::SafeRelease(pStream);
+        LongUI::SafeRelease(pConverter);
+        LongUI::SafeRelease(pScaler);
         return hr;
     };
     ID2D1Bitmap1* bitmap = nullptr;

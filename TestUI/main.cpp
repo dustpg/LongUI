@@ -307,7 +307,7 @@ public:
     void Update() noexcept override {
         // 检查布局
         if (this->IsControlLayoutChanged()) {
-            ::SafeRelease(m_pCmdList);
+            LongUI::SafeRelease(m_pCmdList);
             UIManager_RenderTarget->CreateCommandList(&m_pCmdList);
             // 设置大小
             m_text.Resize(this->view_size.width, this->view_size.height);
@@ -328,8 +328,8 @@ public:
     }
     // recreate resource
     virtual HRESULT Recreate() noexcept override {
-        ::SafeRelease(m_pEffectOut);
-        ::SafeRelease(m_pEffect);
+        LongUI::SafeRelease(m_pEffectOut);
+        LongUI::SafeRelease(m_pEffect);
         // 创建特效
         UIManager_RenderTarget->CreateEffect(CLSID_D2D1GaussianBlur, &m_pEffect);
         assert(m_pEffect);
@@ -358,9 +358,9 @@ public:
 protected:
     // destructor
     ~TestControl() {
-        ::SafeRelease(m_pCmdList);
-        ::SafeRelease(m_pEffectOut);
-        ::SafeRelease(m_pEffect);
+        LongUI::SafeRelease(m_pCmdList);
+        LongUI::SafeRelease(m_pEffectOut);
+        LongUI::SafeRelease(m_pEffect);
     }
 protected:
     // text
@@ -526,7 +526,7 @@ public:
     virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
         return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
-    virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], size_t const length) noexcept -> size_t override {
+    virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t override {
         // Intel 测试
         for (size_t i = 0; i < length; ++i) {
             if (!::wcsncmp(L"Intel", adapters[i].Description, 5))

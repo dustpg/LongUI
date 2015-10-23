@@ -47,13 +47,13 @@ namespace LongUI { namespace Component {
         auto c_str() const noexcept { return m_text.c_str(); }
     public:
         // get layout
-        auto GetLayout() const noexcept { return ::SafeAcquire(m_pLayout); }
+        auto GetLayout() const noexcept { return LongUI::SafeAcquire(m_pLayout); }
         // set layout
         auto SetLayout(IDWriteTextLayout* layout) noexcept {
             assert(layout);
             assert(m_config.rich_type == RichType::Type_None && "set layout must be Type_None mode");
-            ::SafeRelease(m_pLayout);
-            m_pLayout = ::SafeAcquire(layout);
+            LongUI::SafeRelease(m_pLayout);
+            m_pLayout = LongUI::SafeAcquire(layout);
         }
         // set new size
         auto Resize(float w, float h) noexcept {

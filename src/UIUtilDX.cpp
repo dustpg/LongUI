@@ -13,7 +13,7 @@ auto LongUI::DX::CreateFontCollection(
         HRESULT STDMETHODCALLTYPE GetCurrentFontFile(IDWriteFontFile **ppFontFile) noexcept override {
             if (!ppFontFile) return E_INVALIDARG;
             if (!m_pFilePath || !m_pFactory)  return E_FAIL;
-            *ppFontFile = ::SafeAcquire(m_pCurFontFie);
+            *ppFontFile = LongUI::SafeAcquire(m_pCurFontFie);
             return m_pCurFontFie ? S_OK : E_FAIL;
         }
         // 移动到下一个文件
@@ -22,7 +22,7 @@ auto LongUI::DX::CreateFontCollection(
             if (!m_pFilePath || !m_pFactory) return E_FAIL;
             HRESULT hr = S_OK;
             if (*pHasCurrentFile = *m_pFilePathNow) {
-                ::SafeRelease(m_pCurFontFie);
+                LongUI::SafeRelease(m_pCurFontFie);
                 hr = m_pFactory->CreateFontFileReference(m_pFilePathNow, nullptr, &m_pCurFontFie);
                 if (*pHasCurrentFile = SUCCEEDED(hr)) {
                     m_pFilePathNow += ::wcslen(m_pFilePathNow);
@@ -33,9 +33,9 @@ auto LongUI::DX::CreateFontCollection(
         }
     public:
         // 构造函数
-        LongUIFontFileEnumerator(IDWriteFactory* f) :m_pFactory(::SafeAcquire(f)) {}
+        LongUIFontFileEnumerator(IDWriteFactory* f) :m_pFactory(LongUI::SafeAcquire(f)) {}
         // 析构函数
-        ~LongUIFontFileEnumerator() { ::SafeRelease(m_pCurFontFie); ::SafeRelease(m_pFactory); }
+        ~LongUIFontFileEnumerator() { LongUI::SafeRelease(m_pCurFontFie); LongUI::SafeRelease(m_pFactory); }
         // 初始化
         auto Initialize(const wchar_t* path) { m_pFilePathNow = m_pFilePath = path; };
     private:
@@ -348,7 +348,7 @@ auto LongUI::DX::CreateTextPathGeometry(
     IDWriteFont* font = nullptr;
     IDWriteFontFace* fontface = nullptr;
     ID2D1PathGeometry* pathgeometry = nullptr;
-    if (_fontface) fontface = ::SafeAcquire(*_fontface);
+    if (_fontface) fontface = LongUI::SafeAcquire(*_fontface);
     // 字体名称缓存
     wchar_t fontname_buffer[MAX_PATH]; *fontname_buffer = 0;
     // 必要缓存
@@ -425,17 +425,17 @@ auto LongUI::DX::CreateTextPathGeometry(
         if (SUCCEEDED(hr)) {
             sink->Close();
         }
-        ::SafeRelease(sink);
+        LongUI::SafeRelease(sink);
     }
     // 扫尾
-    ::SafeRelease(collection);
-    ::SafeRelease(family);
-    ::SafeRelease(font);
+    LongUI::SafeRelease(collection);
+    LongUI::SafeRelease(family);
+    LongUI::SafeRelease(font);
     if (_fontface && !(*_fontface)) {
         *_fontface = fontface;
     }
     else {
-        ::SafeRelease(fontface);
+        LongUI::SafeRelease(fontface);
     }
     if (glyph_indices && glyph_indices != glyph_indices_buffer) {
         delete[] glyph_indices;
@@ -510,11 +510,11 @@ control char    C-Type      Infomation                                   StringP
 
 %t            [IDWT*]      new typography range start                            ---
 
+%l       [const wchar_t*]    new locale name range start                         YES
+
 //  Unsupported
 %f %F   [UNSPT]  [IDFC*]     new font collection range start                     ---
 IDWriteFontCollection*
-
-%l %L   [UNSPT] [char_t*]    new locale name range start                         ---
 
 FORMAT IN STRING
 the va_list(ap) can be nullptr while string format include the PARAMETERS, 
@@ -525,12 +525,12 @@ use %p to mark PARAMETERS start
 // longui::dx namespace
 namespace LongUI { namespace DX {
     // 范围类型
-    enum class RANGE_TYPE : size_t { F, W, Y, H, S, U, D, E, I, T };
+    enum class RANGE_TYPE : size_t { F, W, Y, H, S, U, D, E, I, T, L };
     // 范围数据
     struct RANGE_DATA {
         // 具体数据
         union {
-            const wchar_t*          family;       // F
+            const wchar_t*          wstr;       // FL
             IUnknown*               effect;     // E
             IDWriteInlineObject*    inlineobj;  // I
             IDWriteTypography*      typography; // T
@@ -559,7 +559,7 @@ namespace LongUI { namespace DX {
         // 获取字符串
         auto GetString() noexcept { return va_arg(list, const wchar_t*); }
         // 获取字体名称
-        auto GetFontFamilyName() noexcept { return va_arg(list, const wchar_t*); }
+        auto GetStringEx() noexcept { return va_arg(list, const wchar_t*); }
         // 获取颜色
         void GetColor(D2D1_COLOR_F& color) noexcept { color = *(va_arg(list, D2D1_COLOR_F*)); }
         // 获取浮点, float 经过可变参数会提升至double
@@ -585,8 +585,8 @@ namespace LongUI { namespace DX {
         auto GetTypography() noexcept -> IDWriteTypography*;
         // 获取字符串
         auto GetString() noexcept -> const wchar_t* { assert(!"unsupported for string param!"); return nullptr; }
-        // 获取字体名称
-        auto GetFontFamilyName() noexcept -> const wchar_t*;
+        // 获取字符串Ex
+        auto GetStringEx() noexcept -> const wchar_t*;
         // 获取颜色
         void GetColor(D2D1_COLOR_F& color) noexcept;
         // 获取浮点
@@ -675,7 +675,7 @@ namespace LongUI { namespace DX {
         Helper::MakeColor(buffer, color);
     }
     // 获取字体名称
-    auto CoreMLParamString::GetFontFamilyName() noexcept -> const wchar_t* {
+    auto CoreMLParamString::GetStringEx() noexcept -> const wchar_t* {
         auto old = this->family_itr;
         auto end = this->copy_string_sp(old); end[0] = 0;
         this->family_itr = end + 1;
@@ -792,13 +792,14 @@ namespace LongUI { namespace DX {
                     stack_check.push_back(range);
                     break;
                 }
-                case 'f':
+                case 'f': case 'l':
                     // %f --> 字体名称
+                    // %l --> 本地名称
                 {
                     RANGE_DATA range;
                     range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::F;
-                    range.family = param.GetFontFamilyName();
+                    range.type = ch == 'f' ? RANGE_TYPE::F : RANGE_TYPE::L;
+                    range.wstr = param.GetStringEx();
                     stack_check.push_back(range);
                     break;
                 }
@@ -904,7 +905,7 @@ namespace LongUI { namespace DX {
                 switch (stack_set.top->type)
                 {
                 case RANGE_TYPE::F:
-                    layout->SetFontFamilyName(stack_set.top->family, stack_set.top->range);
+                    layout->SetFontFamilyName(stack_set.top->wstr, stack_set.top->range);
                     break;
                 case RANGE_TYPE::W:
                     layout->SetFontWeight(stack_set.top->weight, stack_set.top->range);
@@ -933,6 +934,9 @@ namespace LongUI { namespace DX {
                 case RANGE_TYPE::T:
                     layout->SetTypography(stack_set.top->typography, stack_set.top->range);
                     break;
+                case RANGE_TYPE::L:
+                    layout->SetLocaleName(stack_set.top->wstr, stack_set.top->range);
+                    break;
                 }
             }
         }
@@ -944,7 +948,7 @@ namespace LongUI { namespace DX {
         for (auto itr = stack_set.data; itr != setend; ++itr) {
             if (itr->type == RANGE_TYPE::E || itr->type == RANGE_TYPE::I ||
                 itr->type == RANGE_TYPE::T) {
-                ::SafeRelease(itr->effect);
+                LongUI::SafeRelease(itr->effect);
             }
         }
         return layout;
@@ -985,7 +989,7 @@ auto LongUI::DX::SaveAsImageFile(
     if (SUCCEEDED(hr)) {
         // CPU 可读?
         if (bitmap->GetOptions() & D2D1_BITMAP_OPTIONS_CPU_READ) {
-            readable_bitmap = ::SafeAcquire(bitmap);
+            readable_bitmap = LongUI::SafeAcquire(bitmap);
         }
         else {
             D2D1_BITMAP_PROPERTIES1 prop;
@@ -1032,7 +1036,7 @@ auto LongUI::DX::SaveAsImageFile(
         }
     }
     // 扫尾处理
-    ::SafeRelease(readable_bitmap);
+    LongUI::SafeRelease(readable_bitmap);
     // 返回结果
     return hr;
 }
@@ -1116,10 +1120,10 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
             hr = pEncoder->Commit();
         }
         // 扫尾处理
-        ::SafeRelease(pWICBitmap);
-        ::SafeRelease(pStream);
-        ::SafeRelease(pFrameEncode);
-        ::SafeRelease(pEncoder);
+        LongUI::SafeRelease(pWICBitmap);
+        LongUI::SafeRelease(pStream);
+        LongUI::SafeRelease(pFrameEncode);
+        LongUI::SafeRelease(pEncoder);
         // 返回结果
         return hr;
     }

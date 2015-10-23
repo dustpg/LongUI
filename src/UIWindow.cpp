@@ -157,9 +157,9 @@ LongUI::UIWindow::~UIWindow() noexcept {
         // 释放资源
         this->release_data();
         // 释放数据
-        ::SafeRelease(m_pTaskBarList);
-        ::SafeRelease(m_pDropTargetHelper);
-        ::SafeRelease(m_pCurDataObject);
+        LongUI::SafeRelease(m_pTaskBarList);
+        LongUI::SafeRelease(m_pDropTargetHelper);
+        LongUI::SafeRelease(m_pCurDataObject);
         // 关闭
         this->CloseWindowLater();
     }
@@ -341,11 +341,11 @@ void LongUI::UIWindow::release_data() noexcept {
         m_hVSync = nullptr;
     }
     // 释放资源
-    ::SafeRelease(m_pTargetBimtap);
-    ::SafeRelease(m_pSwapChain);
-    ::SafeRelease(m_pDcompDevice);
-    ::SafeRelease(m_pDcompTarget);
-    ::SafeRelease(m_pDcompVisual);
+    LongUI::SafeRelease(m_pTargetBimtap);
+    LongUI::SafeRelease(m_pSwapChain);
+    LongUI::SafeRelease(m_pDcompDevice);
+    LongUI::SafeRelease(m_pDcompTarget);
+    LongUI::SafeRelease(m_pDcompVisual);
 }
 
 // 刻画插入符号
@@ -623,7 +623,7 @@ void LongUI::UIWindow::Render() const noexcept  {
             m_pBrush_SetBeforeUse
             );
         tf->SetTextAlignment(ta);
-        ::SafeRelease(tf);
+        LongUI::SafeRelease(tf);
         UIManager_RenderTarget->SetTransform(&nowMatrix);
     }
 #endif
@@ -663,7 +663,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     bool handled = false;
     // 特殊事件
     if (arg.msg == s_uTaskbarBtnCreatedMsg) {
-        ::SafeRelease(m_pTaskBarList);
+        LongUI::SafeRelease(m_pTaskBarList);
         UIManager << DL_Log << "TaskbarButtonCreated" << endl;
         auto hr = ::CoCreateInstance(
             CLSID_TaskbarList,
@@ -833,7 +833,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
             << LongUI::Formated(L"(%d, %d)", int(rect_right), int(rect_bottom)) 
             << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
-        ::SafeRelease(m_pTargetBimtap);
+        LongUI::SafeRelease(m_pTargetBimtap);
         hr = m_pSwapChain->ResizeBuffers(
             2, rect_right, rect_bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 
             DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
@@ -866,7 +866,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
             UIManager << DL_Error << L" Recreate FAILED!" << LongUI::endl;
             ShowHR(hr);
         }
-        ::SafeRelease(pDxgiBackBuffer);
+        LongUI::SafeRelease(pDxgiBackBuffer);
     }
     // 强行刷新一帧
     this->Invalidate(this);
@@ -1006,8 +1006,8 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
         UIManager << L"Recreate Failed!" << LongUI::endl;
         ShowHR(hr);
     }
-    ::SafeRelease(pDxgiBackBuffer);
-    ::SafeRelease(pSwapChain);
+    LongUI::SafeRelease(pDxgiBackBuffer);
+    LongUI::SafeRelease(pSwapChain);
     {
         // 获取屏幕刷新率
         DEVMODEW mode = { 0 };
@@ -1079,8 +1079,8 @@ HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
         m_pFocusedControl = nullptr;
     }
     // 保留数据
-    ::SafeRelease(m_pCurDataObject);
-    m_pCurDataObject = ::SafeAcquire(pDataObj);
+    LongUI::SafeRelease(m_pCurDataObject);
+    m_pCurDataObject = LongUI::SafeAcquire(pDataObj);
     // 由帮助器处理
     POINT ppt = { pt.x, pt.y };
     if (m_pDropTargetHelper) {

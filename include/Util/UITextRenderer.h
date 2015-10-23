@@ -42,13 +42,13 @@ namespace LongUI {
         Helper::QiListSelf<IUnknown, Helper::QiList<IDWriteTextRenderer>>> {
     public:
         // destructor
-        ~CUIBasicTextRenderer()  noexcept { ::SafeRelease(UIManager_RenderTarget); ::SafeRelease(m_pBrush);}
+        ~CUIBasicTextRenderer()  noexcept { LongUI::SafeRelease(UIManager_RenderTarget); LongUI::SafeRelease(m_pBrush);}
         // constructor
         CUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { /*basic_color.userdata = 0;*/ basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
-        void SetNewTarget(LongUIRenderTarget* rt) { ::SafeRelease(UIManager_RenderTarget); UIManager_RenderTarget = ::SafeAcquire(rt); }
+        void SetNewTarget(ID2D1DeviceContext* rt) { LongUI::SafeRelease(UIManager_RenderTarget); UIManager_RenderTarget = LongUI::SafeAcquire(rt); }
         // set new render brush
-        void SetNewBrush(ID2D1SolidColorBrush* b) { ::SafeRelease(m_pBrush); m_pBrush = ::SafeAcquire(b); }
+        void SetNewBrush(ID2D1SolidColorBrush* b) { LongUI::SafeRelease(m_pBrush); m_pBrush = LongUI::SafeAcquire(b); }
     public: // IDWritePixelSnapping implementation
         // is pixel snapping disabled?
         LONGUICOMMETHOD IsPixelSnappingDisabled(void*, BOOL*) noexcept final override;
@@ -74,7 +74,7 @@ namespace LongUI {
         virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept = 0;
     protected:
         // render target of d2d
-        LongUIRenderTarget*         UIManager_RenderTarget = nullptr;
+        ID2D1DeviceContext*         UIManager_RenderTarget = nullptr;
         // solid color brush
         ID2D1SolidColorBrush*       m_pBrush = nullptr;
     public:

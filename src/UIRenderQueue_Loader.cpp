@@ -359,7 +359,7 @@ namespace LongUI {
     }
     // dtor for CUIResourceLoaderXML
     LongUI::CUIResourceLoaderXML::~CUIResourceLoaderXML() noexcept {
-        ::SafeRelease(m_pWICFactory);
+        LongUI::SafeRelease(m_pWICFactory);
     }
     // get reource count
     auto LongUI::CUIResourceLoaderXML::GetResourceCount(ResourceType type) const noexcept -> size_t {
@@ -456,7 +456,7 @@ namespace LongUI {
         assert(uri && *uri && "Error URI of Bitmap");
         // 从文件载入位图
         auto load_bitmap_from_file = [](
-            LongUIRenderTarget *pRenderTarget,
+            ID2D1DeviceContext *pRenderTarget,
             IWICImagingFactory *pIWICFactory,
             PCWSTR uri,
             UINT destinationWidth,
@@ -582,15 +582,15 @@ namespace LongUI {
                     *ppBitmap = tar_bitmap;
                     tar_bitmap = nullptr;
                 }
-                ::SafeRelease(tmp_bitmap);
-                ::SafeRelease(tar_bitmap);
+                LongUI::SafeRelease(tmp_bitmap);
+                LongUI::SafeRelease(tar_bitmap);
             }
 #endif
-            ::SafeRelease(pDecoder);
-            ::SafeRelease(pSource);
-            ::SafeRelease(pStream);
-            ::SafeRelease(pConverter);
-            ::SafeRelease(pScaler);
+            LongUI::SafeRelease(pDecoder);
+            LongUI::SafeRelease(pSource);
+            LongUI::SafeRelease(pStream);
+            LongUI::SafeRelease(pConverter);
+            LongUI::SafeRelease(pScaler);
             return hr;
         };
         ID2D1Bitmap1* bitmap = nullptr;
@@ -740,7 +740,7 @@ namespace LongUI {
                 m_manager.GetRenderTargetNoAddRef()->CreateBitmapBrush(
                     bitmap, &bbprop, &brush_prop, &b1b
                     );
-                ::SafeRelease(bitmap);
+                LongUI::SafeRelease(bitmap);
             }
             break;
         }
@@ -749,7 +749,6 @@ namespace LongUI {
     }
     // get textformat
     auto LongUI::CUIResourceLoaderXML::get_text_format(pugi::xml_node node) noexcept -> IDWriteTextFormat* {
-        const char* str = nullptr;
         assert(node && "node not found");
         IDWriteTextFormat* fmt = nullptr;
         auto hr = DX::MakeTextFormat(node, &fmt);

@@ -213,9 +213,9 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
                     }
                     UIManager << DLevel_Log << L"\r\n";
                 }
-                ::SafeRelease(string);
+                LongUI::SafeRelease(string);
             }
-            ::SafeRelease(family);
+            LongUI::SafeRelease(family);
         }
         // 刷新
         UIManager << DL_Log << LongUI::endl;
@@ -272,13 +272,13 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     this->do_creating_event(LongUI::CreateEventType::Type_Uninitialize);
     // 释放文本渲染器
     for (auto& renderer : m_apTextRenderer) {
-        ::SafeRelease(renderer);
+        LongUI::SafeRelease(renderer);
     }
     // 释放公共设备无关资源
     {
         // 释放文本格式
         for (auto itr = m_ppTextFormats; itr != m_ppTextFormats + m_cCountTf; ++itr) {
-            ::SafeRelease(*itr);
+            LongUI::SafeRelease(*itr);
         }
         // 摧毁META图标
         for (auto itr = m_phMetaIcon; itr != m_phMetaIcon + m_cCountMt; ++itr) {
@@ -295,17 +295,17 @@ void LongUI::CUIManager::Uninitialize() noexcept {
         }
     }
     // 释放资源
-    ::SafeRelease(m_pFontCollection);
-    ::SafeRelease(m_pDWriteFactory);
-    ::SafeRelease(m_pDropTargetHelper);
-    ::SafeRelease(m_pd2dFactory);
-    ::SafeRelease(m_pTsfThreadManager);
+    LongUI::SafeRelease(m_pFontCollection);
+    LongUI::SafeRelease(m_pDWriteFactory);
+    LongUI::SafeRelease(m_pDropTargetHelper);
+    LongUI::SafeRelease(m_pd2dFactory);
+    LongUI::SafeRelease(m_pTsfThreadManager);
     // 释放脚本
-    ::SafeRelease(force_cast(script));
+    LongUI::SafeRelease(force_cast(script));
     // 释放读取器
-    ::SafeRelease(m_pResourceLoader);
+    LongUI::SafeRelease(m_pResourceLoader);
     // 释放配置
-    ::SafeRelease(force_cast(this->configure));
+    LongUI::SafeRelease(force_cast(this->configure));
     // 释放设备相关资源
     this->discard_resources();
     // 释放内存
@@ -892,7 +892,7 @@ auto LongUI::CUIManager::RegisterTextRenderer(
     register const auto count = m_uTextRenderCount;
     assert((std::strlen(name) + 1) < LongUITextRendererNameMaxLength && "buffer too small");
     std::strcpy(m_aszTextRendererName[count].name, name);
-    m_apTextRenderer[count] = ::SafeAcquire(renderer);
+    m_apTextRenderer[count] = LongUI::SafeAcquire(renderer);
     ++m_uTextRenderCount;
     return count;
 }
@@ -919,8 +919,8 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
         ID2D1SolidColorBrush* brush = nullptr;
         D2D1_COLOR_F color = D2D1::ColorF(D2D1::ColorF::Black);
         hr = m_pd2dDeviceContext->CreateSolidColorBrush(&color, nullptr, &brush);
-        m_ppBrushes[LongUICommonSolidColorBrushIndex] = ::SafeAcquire(brush);
-        ::SafeRelease(brush);
+        m_ppBrushes[LongUICommonSolidColorBrushIndex] = LongUI::SafeAcquire(brush);
+        LongUI::SafeRelease(brush);
     }
     // 索引0文本格式: 默认格式
     if (SUCCEEDED(hr)) {
@@ -940,7 +940,7 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
         m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
         m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
     }
-    // 索引0META: 暂无
+    // 索引0图元: 暂无
     if (SUCCEEDED(hr)) {
 
     }
@@ -1026,14 +1026,14 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             // 选择适配器
             auto index = this->configure->ChooseAdapter(descs, adnum);
             if (index < adnum) {
-                ready2use = ::SafeAcquire(apAdapters[index]);
+                ready2use = LongUI::SafeAcquire(apAdapters[index]);
             }
             // 释放适配器
             for (size_t i = 0; i < adnum; ++i) {
-                ::SafeRelease(apAdapters[i]);
+                LongUI::SafeRelease(apAdapters[i]);
             }
         }
-        ::SafeRelease(temp_factory);
+        LongUI::SafeRelease(temp_factory);
     }
     // 创建设备资源
     register HRESULT hr /*= m_docResource.Error() ? E_FAIL :*/ S_OK;
@@ -1113,7 +1113,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 );
         }
     }
-    ::SafeRelease(ready2use);
+    LongUI::SafeRelease(ready2use);
 #if defined(_DEBUG) && defined(LONGUI_D3D_DEBUG)
     // 创建 ID3D11Debug
     if (SUCCEEDED(hr)) {
@@ -1163,7 +1163,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         if (SUCCEEDED(hr)) {
             mt->SetMultithreadProtected(TRUE);
         }
-        ::SafeRelease(mt);
+        LongUI::SafeRelease(mt);
     }
     // 设置 MF
     if (SUCCEEDED(hr)) {
@@ -1261,7 +1261,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Normal)
                 );
         }
-        ::SafeRelease(collection);
+        LongUI::SafeRelease(collection);
     }
     // 移上
     if (SUCCEEDED(hr)) {
@@ -1286,7 +1286,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Hover)
                 );
         }
-        ::SafeRelease(collection);
+        LongUI::SafeRelease(collection);
     }
     // 按下
     if (SUCCEEDED(hr)) {
@@ -1311,7 +1311,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Pushed)
                 );
         }
-        ::SafeRelease(collection);
+        LongUI::SafeRelease(collection);
     }
     return hr;
 }
@@ -1324,17 +1324,17 @@ extern ID3D11Debug*    g_pd3dDebug_longui;
 void LongUI::CUIManager::discard_resources() noexcept {
     // 释放系统笔刷
     for (auto& brush : m_apSystemBrushes) {
-        ::SafeRelease(brush);
+        LongUI::SafeRelease(brush);
     }
     // 释放公共设备相关资源
     {
         // 释放 位图
         for (auto itr = m_ppBitmaps; itr != m_ppBitmaps + m_cCountBmp; ++itr) {
-            ::SafeRelease(*itr);
+            LongUI::SafeRelease(*itr);
         }
         // 释放 笔刷
         for (auto itr = m_ppBrushes; itr != m_ppBrushes + m_cCountBrs; ++itr) {
-            ::SafeRelease(*itr);
+            LongUI::SafeRelease(*itr);
         }
         // META
         for (auto itr = m_pMetasBuffer; itr != m_pMetasBuffer + m_cCountMt; ++itr) {
@@ -1347,23 +1347,23 @@ void LongUI::CUIManager::discard_resources() noexcept {
         m_pd2dDevice->ClearResources();
     }
     // 释放 设备
-    ::SafeRelease(m_pDxgiFactory);
-    ::SafeRelease(m_pd2dDeviceContext);
-    ::SafeRelease(m_pd2dDevice);
-    ::SafeRelease(m_pDxgiAdapter);
-    ::SafeRelease(m_pDxgiDevice);
-    ::SafeRelease(m_pd3dDevice);
-    ::SafeRelease(m_pd3dDeviceContext);
+    LongUI::SafeRelease(m_pDxgiFactory);
+    LongUI::SafeRelease(m_pd2dDeviceContext);
+    LongUI::SafeRelease(m_pd2dDevice);
+    LongUI::SafeRelease(m_pDxgiAdapter);
+    LongUI::SafeRelease(m_pDxgiDevice);
+    LongUI::SafeRelease(m_pd3dDevice);
+    LongUI::SafeRelease(m_pd3dDeviceContext);
 #ifdef LONGUI_WITH_MMFVIDEO
-    ::SafeRelease(m_pMFDXGIManager);
-    ::SafeRelease(m_pMediaEngineFactory);
+    LongUI::SafeRelease(m_pMFDXGIManager);
+    LongUI::SafeRelease(m_pMediaEngineFactory);
     ::MFShutdown();
 #endif
 #ifdef _DEBUG
 #ifdef _MSC_VER
     __try {
         if (m_pd3dDebug) {
-            ::SafeRelease(g_pd3dDebug_longui);
+            LongUI::SafeRelease(g_pd3dDebug_longui);
             g_pd3dDebug_longui = m_pd3dDebug;
             m_pd3dDebug = nullptr; 
         }
@@ -1375,7 +1375,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     if (m_pd3dDebug) {
         m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
     }
-    ::SafeRelease(m_pd3dDebug);
+    LongUI::SafeRelease(m_pd3dDebug);
 #endif
     this;
 #endif
@@ -1406,7 +1406,7 @@ auto LongUI::CUIManager::GetBitmap(size_t index) noexcept ->ID2D1Bitmap1* {
     if (!bitmap) {
         UIManager << DL_Error << L"index @ " << long(index) << L"bitmap is null" << LongUI::endl;
     }
-    return ::SafeAcquire(bitmap);
+    return LongUI::SafeAcquire(bitmap);
 }
 
 // 获取笔刷
@@ -1434,7 +1434,7 @@ auto LongUI::CUIManager::GetBrush(size_t index) noexcept -> ID2D1Brush* {
     if (!brush) {
         UIManager << DL_Error << L"index @ " << long(index) << L"brush is null" << LongUI::endl;
     }
-    return ::SafeAcquire(brush);
+    return LongUI::SafeAcquire(brush);
 }
 
 // CUIManager 获取文本格式
@@ -1462,7 +1462,7 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
     if (!format) {
         UIManager << DL_Error << L"index @ " << long(index) << L"text format is null" << LongUI::endl;
     }
-    return ::SafeAcquire(format);
+    return LongUI::SafeAcquire(format);
 }
 
 // 利用名称获取
@@ -1634,7 +1634,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
 #endif
     }
     ShowHR(hr);
-    ::SafeRelease(bitmap);
+    LongUI::SafeRelease(bitmap);
     return m_phMetaIcon[index] = hAlphaIcon;
 }
 

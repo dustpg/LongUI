@@ -60,7 +60,7 @@ LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D
 /// <param name="opacity">The opacity.</param>
 /// <returns></returns>
 void __fastcall LongUI::Meta_Render(
-    const Meta& meta, LongUIRenderTarget* target,
+    const Meta& meta, ID2D1DeviceContext* target,
     const D2D1_RECT_F& des_rect, float opacity) noexcept {
     // 无效位图
     if (!meta.bitmap) {
@@ -430,8 +430,6 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
         m_cBufferLength = LongUIStringFixedLength;
         m_aDataStatic[0] = wchar_t(0);
     }
-    // 未知则计算
-    if (!length && *str) { length = static_cast<uint32_t>(::wcslen(str)); }
     // 超长的话
     if (length > m_cBufferLength) {
         m_cBufferLength = static_cast<uint32_t>(this->nice_buffer_length(length));
@@ -442,7 +440,7 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     }
     // 复制数据
     assert(str && "<bad");
-    ::wcscpy(m_pString, str);
+    this->copy_string(m_pString, str, length);
     m_cLength = length;
 }
 
@@ -460,8 +458,6 @@ void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
         m_cBufferLength = LongUIStringFixedLength;
         m_aDataStatic[0] = wchar_t(0);
     }
-    // 未知则计算
-    if (!len && *str) { len = static_cast<uint32_t>(::strlen(str)); }
     // 假设全是英文字母, 超长的话
     if (len > LongUIStringBufferLength) {
         buffer_length = static_cast<uint32_t>(this->nice_buffer_length(len));
@@ -495,8 +491,6 @@ void LongUI::CUIString::Append(const wchar_t* str, uint32_t len) noexcept {
     assert(str && "bad argument");
     // 无需
     if (!(*str)) return;
-    // 未知则计算
-    if (!len) { len = static_cast<uint32_t>(::wcslen(str)); }
     // 超过缓存?
     const auto target_lenth = m_cLength + len + 1;
     if (target_lenth > m_cBufferLength) {
@@ -552,8 +546,6 @@ void LongUI::CUIString::Insert(uint32_t off, const wchar_t* str, uint32_t len) n
     if (off >= m_cLength) return this->Append(str, len);
     // 无需
     if (!(*str)) return;
-    // 未知则计算
-    if (!len) { len = static_cast<uint32_t>(::wcslen(str)); }
     // 需要申请内存?
     const auto target_lenth = m_cLength + len + 1;
     if (target_lenth > m_cBufferLength) {
@@ -659,17 +651,22 @@ void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
 
 // 格式化
 void LongUI::CUIString::Format(const wchar_t* format, ...) noexcept {
-    wchar_t buffer[LongUIStringBufferLength];
-    buffer[0] = 0;
-    va_list ap;
-    va_start(ap, format);
+    // 初始化数据
+    wchar_t buffer[LongUIStringBufferLength]; buffer[0] = 0;
+    va_list ap; va_start(ap, format);
+    // 格式化字符串
     auto length = std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
-    // error
-    if (length == -1) {
-        UIManager << DL_Warning << "std::vswprintf return -1 for out of space" << endl;
+    // 发生错误
+    if (length < 0) {
+        UIManager << DL_Warning 
+            << L"std::vswprintf return " << long(length) 
+            << L" for out of space or some another error" 
+            << LongUI::endl;
         length = LongUIStringBufferLength - 1;
     }
+    // 设置
     this->Set(buffer, length);
+    // 收尾
     va_end(ap);
 }
 
@@ -1492,7 +1489,7 @@ auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvO
     return (*ppvObject) ? S_OK : E_NOINTERFACE;
 }
 
-auto LongUI::CUIDefaultConfigure::ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], size_t const length) noexcept -> size_t {
+auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t {
     UNREFERENCED_PARAMETER(adapters);
     // 核显卡优先 
 #ifdef LONGUI_NUCLEAR_FIRST
@@ -1657,14 +1654,14 @@ auto LongUI::Component::MMFVideo::Initialize() noexcept ->HRESULT {
         hr = m_pMediaEngine->QueryInterface(LongUI_IID_PV_ARGS(m_pEngineEx));
     }
     assert(SUCCEEDED(hr));
-    ::SafeRelease(attributes);
+    LongUI::SafeRelease(attributes);
     return hr;
 }
 
 // MMFVideo: 重建
 auto LongUI::Component::MMFVideo::Recreate() noexcept ->HRESULT {
-    ::SafeRelease(m_pTargetSurface);
-    ::SafeRelease(m_pDrawSurface);
+    LongUI::SafeRelease(m_pTargetSurface);
+    LongUI::SafeRelease(m_pDrawSurface);
     return this->recreate_surface();
 }
 
@@ -1703,11 +1700,11 @@ LongUI::Component::MMFVideo::~MMFVideo() noexcept {
     if (m_pMediaEngine) {
         m_pMediaEngine->Shutdown();
     }
-    ::SafeRelease(m_pMediaEngine);
-    ::SafeRelease(m_pEngineEx);
-    ::SafeRelease(m_pTargetSurface);
-    ::SafeRelease(m_pSharedSurface);
-    ::SafeRelease(m_pDrawSurface);
+    LongUI::SafeRelease(m_pMediaEngine);
+    LongUI::SafeRelease(m_pEngineEx);
+    LongUI::SafeRelease(m_pTargetSurface);
+    LongUI::SafeRelease(m_pSharedSurface);
+    LongUI::SafeRelease(m_pDrawSurface);
 }
 
 // 重建表面
@@ -1724,9 +1721,9 @@ auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
         // 重建表面
         if (w > size.width || h > size.height) {
             size = { w, h };
-            ::SafeRelease(m_pTargetSurface);
-            ::SafeRelease(m_pSharedSurface);
-            ::SafeRelease(m_pDrawSurface);
+            LongUI::SafeRelease(m_pTargetSurface);
+            LongUI::SafeRelease(m_pSharedSurface);
+            LongUI::SafeRelease(m_pDrawSurface);
             IDXGISurface* surface = nullptr;
 #if 0
             D3D11_TEXTURE2D_DESC desc = {
@@ -1767,7 +1764,7 @@ auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
                 hr = UIManager_RenderTarget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pDrawSurface);
             }
 #endif
-            ::SafeRelease(surface);
+            LongUI::SafeRelease(surface);
         }
     }
     return hr;

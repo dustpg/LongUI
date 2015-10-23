@@ -122,13 +122,13 @@ noexcept: Super(cp, node),
 m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb"){
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
-        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
-        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Right]);
+        m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
+        m_pArrow2Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Right]);
     }
     // 垂直滚动条
     else {
-        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Top]);
-        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Bottom]);
+        m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Top]);
+        m_pArrow2Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Bottom]);
     }
     assert(m_pArrow1Geo && m_pArrow2Geo);
     // 修改颜色
@@ -400,13 +400,13 @@ auto LongUI::UIScrollBarA::Recreate() noexcept -> HRESULT {
     Super::InitMarginalControl(_type);
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
-        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
-        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Right]);
+        m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
+        m_pArrow2Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Right]);
     }
     // 垂直滚动条
     else {
-        m_pArrow1Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Top]);
-        m_pArrow2Geo = ::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Bottom]);
+        m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Top]);
+        m_pArrow2Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Bottom]);
     }
     assert(m_pArrow1Geo && m_pArrow2Geo);
 }
@@ -414,8 +414,8 @@ auto LongUI::UIScrollBarA::Recreate() noexcept -> HRESULT {
 
 // UIScrollBarA 析构函数
 inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
-    ::SafeRelease(m_pArrow1Geo);
-    ::SafeRelease(m_pArrow2Geo);
+    LongUI::SafeRelease(m_pArrow1Geo);
+    LongUI::SafeRelease(m_pArrow2Geo);
 }
 
 // UIScrollBarA 关闭控件
@@ -468,7 +468,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
                 hr = sink->Close();
             }
             ShowHR(hr);
-            ::SafeRelease(sink);
+            LongUI::SafeRelease(sink);
             return geometry;
         };
         D2D1_POINT_2F point_list[3];
@@ -519,7 +519,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
     case LongUI::Type_Uninitialize:
         // 释放资源
         for (auto& geo : s_apArrowPathGeometry) {
-            ::SafeRelease(geo);
+            LongUI::SafeRelease(geo);
         }
         break;
     case_LongUI__Type_CreateControl:

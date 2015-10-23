@@ -49,7 +49,7 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix)
             auto fmt = UIManager.GetTextFormat(format_index);
             auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
             assert(SUCCEEDED(hr));
-            ::SafeRelease(fmt);
+            LongUI::SafeRelease(fmt);
         }
         // 重建
         m_text.Set(node.attribute(prefix).value());
@@ -65,9 +65,9 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix)
 
 // ShortText 析构
 LongUI::Component::ShortText::~ShortText() noexcept {
-    ::SafeRelease(m_pLayout);
-    ::SafeRelease(m_pTextRenderer);
-    ::SafeRelease(m_config.format);
+    LongUI::SafeRelease(m_pLayout);
+    LongUI::SafeRelease(m_pTextRenderer);
+    LongUI::SafeRelease(m_config.format);
 }
 
 // ShortText 重建布局
@@ -109,7 +109,7 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
         m_pLayout = UIManager.configure->CustomRichType(m_config, m_text.c_str());
         break;
     }
-    ::SafeRelease(old_layout);
+    LongUI::SafeRelease(old_layout);
     // sad
     assert(m_pLayout);
 }
@@ -166,7 +166,7 @@ auto LongUI::Component::EditaleText::insert(
     m_string.insert(pos, str, length);
     auto old_length = static_cast<uint32_t>(m_string.length());
     // 保留旧布局
-    auto old_layout = ::SafeAcquire(this->layout);
+    auto old_layout = LongUI::SafeAcquire(this->layout);
     // 重新创建布局
     this->recreate_layout();
     // 富文本情况下?
@@ -192,7 +192,7 @@ auto LongUI::Component::EditaleText::insert(
         // 末尾
         Component::EditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_string.length()), UINT32_MAX);
     }
-    ::SafeRelease(old_layout);
+    LongUI::SafeRelease(old_layout);
     return hr;
 }
 
@@ -542,7 +542,7 @@ bool LongUI::Component::EditaleText::OnDragOver(float x, float y) noexcept {
 // 重建
 void LongUI::Component::EditaleText::Recreate() noexcept {
     // 重新创建资源
-    ::SafeRelease(m_pSelectionColor);
+    LongUI::SafeRelease(m_pSelectionColor);
     UIManager_RenderTarget->CreateSolidColorBrush(
         D2D1::ColorF(D2D1::ColorF::LightSkyBlue),
         &m_pSelectionColor
@@ -928,68 +928,50 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
 
 // 复制到 目标全局句柄
 auto LongUI::Component::EditaleText::CopyToGlobal() noexcept-> HGLOBAL {
-    HGLOBAL global = nullptr;
+    // 获取选择区
     auto selection = this->GetSelectionRange();
-    // 有效
+    // 有选择区域
     if (selection.length) {
-        // 获取选择字符长度
-        size_t byteSize = sizeof(wchar_t) * (selection.length + 1);
-        global = ::GlobalAlloc(GMEM_DDESHARE | GMEM_ZEROINIT, byteSize);
-        // 有效?
-        if (global) {
-            auto* memory = reinterpret_cast<wchar_t*>(::GlobalLock(global));
-            // 申请全局内存成功
-            if (memory) {
-                const wchar_t* text = m_string.c_str();
-                ::memcpy(memory, text + selection.startPosition, byteSize);
-                memory[selection.length] = L'\0';
-                ::GlobalUnlock(global);
-            }
+        // 断言检查
+        assert(selection.startPosition < m_string.length() && "bad selection range");
+        assert((selection.startPosition + selection.length) < m_string.length() && "bad selection range");
+        // 获取富文本数据
+        if (this->IsRiched()) {
+            assert(!"Unsupported Now");
+            // TODO: 富文本
         }
+        // 全局申请
+        auto str = m_string.c_str() + selection.startPosition;
+        auto len = static_cast<size_t>(selection.length);
+        return Helper::GlobalAllocString(str, len);
     }
-    return global;
+    // TODO: 复制选中行
+    return nullptr;
 }
 
 // 复制到 剪切板
 auto LongUI::Component::EditaleText::CopyToClipboard() noexcept-> HRESULT {
     HRESULT hr = E_FAIL;
-    auto selection = this->GetSelectionRange();
-    // 有效
-    if (selection.length) {
-        // 打开剪切板
-        if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
-            // 清空
-            if (::EmptyClipboard()) {
-                // 获取旋转字符长度
-                size_t byteSize = sizeof(wchar_t) * (selection.length + 1);
-                HGLOBAL hClipboardData = GlobalAlloc(GMEM_DDESHARE | GMEM_ZEROINIT, byteSize);
-                // 有效?
-                if (hClipboardData) {
-                    auto* memory = reinterpret_cast<wchar_t*>(::GlobalLock(hClipboardData));
-                    // 申请全局内存成功
-                    if (memory) {
-                        const wchar_t* text = m_string.c_str();
-                        ::memcpy(memory, text + selection.startPosition, byteSize);
-                        memory[selection.length] = L'\0';
-                        ::GlobalUnlock(hClipboardData);
-                        // 获取富文本数据
-                        if (this->IsRiched()) {
-                            assert(!"Unsupported Now");
-                            // TODO: 富文本
-                        }
-                        if (::SetClipboardData(CF_UNICODETEXT, hClipboardData) != nullptr) {
-                            hClipboardData = nullptr;
-                            hr = S_OK;
-                        }
-                    }
+    // 打开剪切板
+    if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
+        // 清空
+        if (::EmptyClipboard()) {
+            // 全局申请
+            auto hClipboardData = this->CopyToGlobal();
+            // 申请成功
+            if (hClipboardData) {
+                // 成功
+                if (::SetClipboardData(CF_UNICODETEXT, hClipboardData) != nullptr) {
+                    hr = S_OK;
                 }
-                if (hClipboardData) {
+                // 失败
+                else {
                     ::GlobalFree(hClipboardData);
                 }
             }
-            //  关闭剪切板
-            ::CloseClipboard();
         }
+        //  关闭剪切板
+        ::CloseClipboard();
     }
     return hr;
 }
@@ -1101,11 +1083,11 @@ void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE s
 // EditaleText 析构函数
 LongUI::Component::EditaleText::~EditaleText() noexcept {
     ::ReleaseStgMedium(&m_recentMedium);
-    ::SafeRelease(this->layout);
-    ::SafeRelease(m_pTextRenderer);
-    ::SafeRelease(m_pSelectionColor);
-    ::SafeRelease(m_pDropSource);
-    ::SafeRelease(m_pDataObject);
+    LongUI::SafeRelease(this->layout);
+    LongUI::SafeRelease(m_pTextRenderer);
+    LongUI::SafeRelease(m_pSelectionColor);
+    LongUI::SafeRelease(m_pDropSource);
+    LongUI::SafeRelease(m_pDataObject);
 }
 
 
@@ -1181,7 +1163,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
         auto template_format = UIManager.GetTextFormat(format_index);
         auto hr = DX::MakeTextFormat(node, &fmt, template_format, prefix);
         assert(SUCCEEDED(hr));
-        ::SafeRelease(template_format);
+        LongUI::SafeRelease(template_format);
     }
     // 格式特化
     {
@@ -1195,7 +1177,7 @@ LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node
     }
     // 创建布局
     this->recreate_layout(fmt);
-    ::SafeRelease(fmt);
+    LongUI::SafeRelease(fmt);
 }
 
 // 复制全局属性
@@ -1215,7 +1197,7 @@ void LongUI::Component::EditaleText::CopyGlobalProperties(
     IDWriteInlineObject* inlineObject = nullptr;
     old_layout->GetTrimming(&trimmingOptions, &inlineObject);
     new_layout->SetTrimming(&trimmingOptions, inlineObject);
-    ::SafeRelease(inlineObject);
+    LongUI::SafeRelease(inlineObject);
 
     DWRITE_LINE_SPACING_METHOD lineSpacingMethod = DWRITE_LINE_SPACING_METHOD_DEFAULT;
     float lineSpacing = 0.f, baseline = 0.f;
@@ -1235,7 +1217,7 @@ void LongUI::Component::EditaleText::CopySinglePropertyRange(
     IDWriteFontCollection* fontCollection = nullptr;
     old_layout->GetFontCollection(old_start, &fontCollection);
     new_layout->SetFontCollection(fontCollection, range);
-    ::SafeRelease(fontCollection);
+    LongUI::SafeRelease(fontCollection);
 #endif
     {
         // 字体名
@@ -1275,18 +1257,18 @@ void LongUI::Component::EditaleText::CopySinglePropertyRange(
     IUnknown* drawingEffect = nullptr;
     old_layout->GetDrawingEffect(old_start, &drawingEffect);
     new_layout->SetDrawingEffect(drawingEffect, range);
-    ::SafeRelease(drawingEffect);
+    LongUI::SafeRelease(drawingEffect);
     // 内联对象
     IDWriteInlineObject* inlineObject = nullptr;
     old_layout->GetInlineObject(old_start, &inlineObject);
     new_layout->SetInlineObject(inlineObject, range);
-    ::SafeRelease(inlineObject);
+    LongUI::SafeRelease(inlineObject);
 #ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
     // 排版
     IDWriteTypography* typography = nullptr;
     old_layout->GetTypography(old_start, &typography);
     new_layout->SetTypography(typography, range);
-    ::SafeRelease(typography);
+    LongUI::SafeRelease(typography);
 #endif
 }
 
@@ -1575,7 +1557,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) 
 // 释放数据
 void LongUI::Component::Elements<LongUI::Element_BrushRect>::release_data() noexcept {
     for (auto& brush : m_apBrushes) {
-        ::SafeRelease(brush);
+        LongUI::SafeRelease(brush);
     }
 }
 
@@ -1625,7 +1607,7 @@ Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) 
 // Elements<ColorRect> 重建
 auto LongUI::Component::Elements<LongUI::Element_ColorRect>::
 Recreate() noexcept ->HRESULT {
-    ::SafeRelease(m_pBrush);
+    LongUI::SafeRelease(m_pBrush);
     m_pBrush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
     return S_OK;
 }

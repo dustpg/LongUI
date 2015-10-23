@@ -9,8 +9,8 @@ CUIRubyCharacter(const CtorContext& ctx) noexcept : Super(CUIInlineObject::Type_
 
 // CUIRubyCharacter 析构函数
 LongUI::CUIRubyCharacter::~CUIRubyCharacter() noexcept {
-    ::SafeRelease(m_pBaseLayout);
-    ::SafeRelease(m_pRubyLayout);
+    LongUI::SafeRelease(m_pBaseLayout);
+    LongUI::SafeRelease(m_pRubyLayout);
 }
 
 // CUIRubyCharacter 刻画

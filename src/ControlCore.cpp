@@ -195,8 +195,8 @@ LongUI::UIControl::~UIControl() noexcept {
         this->parent->RemoveChildReference(this);
     }
     m_pWindow->RemoveControlReference(this);
-    ::SafeRelease(m_pBrush_SetBeforeUse);
-    ::SafeRelease(m_pBackgroudBrush);
+    LongUI::SafeRelease(m_pBrush_SetBeforeUse);
+    LongUI::SafeRelease(m_pBackgroudBrush);
     // 释放脚本占用空间
     if (m_script.script) {
         assert(UIManager.script && "no script interface but data");
@@ -397,8 +397,8 @@ auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
     }
 #endif
     // 设备重置再说
-    ::SafeRelease(m_pBrush_SetBeforeUse);
-    ::SafeRelease(m_pBackgroudBrush);
+    LongUI::SafeRelease(m_pBrush_SetBeforeUse);
+    LongUI::SafeRelease(m_pBackgroudBrush);
     m_pBrush_SetBeforeUse = static_cast<decltype(m_pBrush_SetBeforeUse)>(
         UIManager.GetBrush(LongUICommonSolidColorBrushIndex)
         );

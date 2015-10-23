@@ -62,13 +62,13 @@ LongUI::UICheckBox::UICheckBox(UIContainer* cp, pugi::xml_node node)
         nullptr,
         &m_pCheckedGeometry
         );
-    ::SafeRelease(format);
+    LongUI::SafeRelease(format);
 }
 
 // UICheckBox 析构函数
 LongUI::UICheckBox::~UICheckBox() noexcept {
-    ::SafeRelease(m_pCheckedGeometry);
-    ::SafeRelease(m_pBrush);
+    LongUI::SafeRelease(m_pCheckedGeometry);
+    LongUI::SafeRelease(m_pBrush);
 }
 
 
@@ -156,7 +156,7 @@ bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
 // recreate 重建
 auto LongUI::UICheckBox::Recreate() noexcept ->HRESULT {
     // 有效
-    ::SafeRelease(m_pBrush);
+    LongUI::SafeRelease(m_pBrush);
     m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
     // 父类处理
     return Super::Recreate();

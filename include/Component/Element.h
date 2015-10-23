@@ -179,8 +179,8 @@ namespace LongUI {
             auto Recreate() noexcept->HRESULT;
             // change brush
             void ChangeBrush(ControlStatus index, ID2D1Brush* brush) noexcept {
-                ::SafeRelease(m_apBrushes[index]);
-                m_apBrushes[index] = ::SafeAcquire(brush);
+                LongUI::SafeRelease(m_apBrushes[index]);
+                m_apBrushes[index] = LongUI::SafeAcquire(brush);
             }
         private:
             // relase data
@@ -199,7 +199,7 @@ namespace LongUI {
             // ctor
             Elements(pugi::xml_node node, const char* prefix = nullptr) noexcept;
             // dtor
-            ~Elements() noexcept { ::SafeRelease(m_pBrush); }
+            ~Elements() noexcept { LongUI::SafeRelease(m_pBrush); }
             // get element
             template<Element ElementType>
             auto GetByType() noexcept ->Elements<Element_ColorRect>& { return *this; }

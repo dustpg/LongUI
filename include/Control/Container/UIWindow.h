@@ -184,7 +184,7 @@ namespace LongUI {
         // is release mouse capture
         LongUIInline auto IsReleasedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
         // get back buffer
-        LongUIInline auto GetBackBuffer() noexcept { return ::SafeAcquire(m_pTargetBimtap); }
+        LongUIInline auto GetBackBuffer() noexcept { return LongUI::SafeAcquire(m_pTargetBimtap); }
         // is rendered
         LongUIInline auto IsRendered() const noexcept { return m_baBoolWindow.Test(UIWindow::Index_Rendered); }
         // render window

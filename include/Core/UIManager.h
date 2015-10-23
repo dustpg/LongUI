@@ -82,9 +82,9 @@ namespace LongUI {
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
         auto GetMetaHICON(size_t index) noexcept->HICON;
         // get system brush
-        auto GetSystemBrush(uint32_t index) noexcept { return ::SafeAcquire(m_apSystemBrushes[index]); }
+        auto GetSystemBrush(uint32_t index) noexcept { return LongUI::SafeAcquire(m_apSystemBrushes[index]); }
         // get drop target helper
-        auto GetDropTargetHelper() noexcept { return ::SafeAcquire(m_pDropTargetHelper); }
+        auto GetDropTargetHelper() noexcept { return LongUI::SafeAcquire(m_pDropTargetHelper); }
         // get create function via control-class name
         auto GetCreateFunc(const char* clname) noexcept->CreateControlFunction;
         // create control with xml node, node and function cannot be null in same time
@@ -142,7 +142,7 @@ namespace LongUI {
         // ShowError with string
         inline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
-        inline auto GetTextRenderer(int i) const noexcept { assert(i < m_uTextRenderCount && "out of range"); return ::SafeAcquire(m_apTextRenderer[i]); }
+        inline auto GetTextRenderer(int i) const noexcept { assert(i < m_uTextRenderCount && "out of range"); return LongUI::SafeAcquire(m_apTextRenderer[i]); }
         // exit the app
         inline auto Exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
         // recreate resources
@@ -152,7 +152,7 @@ namespace LongUI {
         // get count of window
         inline auto GetWindowsCount() const noexcept { return m_cCountWindow; }
     public: // 隐形转换区
-        // 转换为 LongUIRenderTarget
+        // 转换为 ID2D1DeviceContext
 #define UIManager_RenderTarget (UIManager.GetRenderTargetNoAddRef())
         inline auto GetRenderTargetNoAddRef() const noexcept { return m_pd2dDeviceContext; };
         // 转换为 DXGI Factory2

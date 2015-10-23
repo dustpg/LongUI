@@ -113,7 +113,7 @@ namespace LongUI {
             // recreate layout
             void __fastcall recreate_layout(IDWriteTextFormat* fmt) noexcept;
             // recreate layout without format
-            void __fastcall recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); ::SafeRelease(fmt); }
+            void __fastcall recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); LongUI::SafeRelease(fmt); }
             // insert text
             auto __fastcall insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept->HRESULT;
         public: // 一般内部设置区
