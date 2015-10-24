@@ -649,11 +649,8 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         // 大于1K认为是指针
         else {
             assert((wParam & 3) == 0 && "bad action");
-            LongUI::EventArgument timer_event;
-            ::memset(&timer_event, 0, sizeof(timer_event));
-            timer_event.sender = this;
-            timer_event.event = LongUI::Event::Event_Timer;
-            return reinterpret_cast<UIControl*>(wParam)->DoEvent(timer_event);
+            auto ctrl = reinterpret_cast<UIControl*>(wParam);
+            return ctrl->DoLongUIEvent(Event::Event_Timer);
         }
     };
     // -------------------- Main DoEvent------------
@@ -786,18 +783,13 @@ void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
     assert(ctrl && "bad argument");
     // 可聚焦的
     if (ctrl && ctrl->flags & Flag_Focusable) {
-        EventArgument arg;
-        ::memset(&arg, 0, sizeof(sizeof(arg)));
-        arg.sender = this;
         // 有效
         if (m_pFocusedControl) {
-            arg.event = LongUI::Event::Event_KillFocus;
-            m_pFocusedControl->DoEvent(arg);
+            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
         }
         // 有效
         if ((m_pFocusedControl = ctrl)) {
-            arg.event = LongUI::Event::Event_SetFocus;
-            m_pFocusedControl->DoEvent(arg);
+            m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus);
         }
     }
 }
@@ -1072,10 +1064,7 @@ HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
     if (!pDataObj) return E_INVALIDARG;
     // 取消聚焦窗口
     if(m_pFocusedControl){
-        LongUI::EventArgument arg = { 0 };
-        arg.sender = this;
-        arg.event = LongUI::Event::Event_KillFocus;
-        m_pFocusedControl->DoEvent(arg);
+        m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
         m_pFocusedControl = nullptr;
     }
     // 保留数据

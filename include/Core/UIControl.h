@@ -96,6 +96,11 @@ namespace LongUI {
         // render chain -> background
         void render_chain_foreground() const noexcept;
     public:
+        // do event helper
+        bool DoLongUIEvent(LongUI::Event e) noexcept {
+            EventArgument arg; arg.sender = this; arg.event = e;
+            return this->DoEvent(arg);
+        };
         // ctor
         UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept;
         // delete the copy-ctor

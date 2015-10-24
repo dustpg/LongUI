@@ -248,11 +248,11 @@ namespace LongUI { namespace Helper {
         uint32_t            bad_match;
     };
     // make color form string
-    bool MakeColor(const char*, D2D1_COLOR_F&) noexcept;
+    bool MakeColor(const char* str, D2D1_COLOR_F& colot) noexcept;
     // make UIString form string
-    bool MakeString(const char*, CUIString&) noexcept;
+    bool MakeString(const char* str, CUIString& uistr) noexcept;
     // make floats from string
-    bool MakeFloats(const char*, float*, int) noexcept;
+    bool MakeFloats(const char* str, float fary[], uint32_t count) noexcept;
     // make floats from string
     bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATUS_COUNT]) noexcept;
     // get value string

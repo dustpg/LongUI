@@ -120,40 +120,85 @@ auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint
     return count;
 }
 
+// longui::impl 命名空间
+namespace LongUI { namespace impl {
+    template<size_t C> struct make_units_helper { };
+    // 创建单元帮助器
+    template<> struct make_units_helper<2> { 
+        // 创建单元
+        template<char32_t SEPARATOR, typename CHAR_TYPE, typename OUT_TYPE, typename Lam>
+        static LongUIInline void make_units(Lam caster, const CHAR_TYPE* str, OUT_TYPE* units, uint32_t size) noexcept {
+            // 参数检查
+            assert(str && units && size && "bad arguments");
+            // 数据
+            CHAR_TYPE buf[LongUIStringBufferLength]; auto itr = buf;
+            // 遍历
+            while (size) {
+                register auto ch = (*str);
+                // 获取到了分隔符号
+                if (ch == static_cast<CHAR_TYPE>(SEPARATOR) || ch == 0) {
+                    *itr = 0;
+                    caster(units++, buf);
+                    itr = buf; --size;
+                    if (ch == 0) {
+                        assert(size == 0 && "bad string given!");
+                        break;
+                    }
+                }
+                // 继续复制
+                else {
+                    *itr = ch;
+                    ++itr;
+                }
+                ++str;
+            }
+        }
+    };
+    // 创建单元帮助器
+    template<> struct make_units_helper<3> { 
+        // 创建单元
+        template<char32_t SEPARATOR, typename CHAR_TYPE, typename OUT_TYPE, typename Lam>
+        static LongUIInline void make_units(Lam caster, const CHAR_TYPE* str, OUT_TYPE* units, uint32_t size) noexcept {
+            // 参数检查
+            assert(str && units && size && "bad arguments");
+            // 数据
+            auto old = str;
+            // 遍历
+            while (size) {
+                // 获取到了分隔符号
+                register auto ch = (*str);
+                if (ch == static_cast<CHAR_TYPE>(SEPARATOR) || ch == 0) {
+                    caster(units++, old, str);
+                    old = str + 1; --size;
+                    if (ch == 0) {
+                        assert(size == 0 && "bad string given!");
+                        break;
+                    }
+                }
+                ++str;
+            }
+        }
+    };
+    // 创建单元
+    template<char32_t SEPARATOR, typename CHAR_TYPE, typename OUT_TYPE, typename Lam>
+    inline void make_units(Lam caster, const CHAR_TYPE* str, OUT_TYPE units[], uint32_t size) noexcept {
+        using caster_type = Helper::type_helper<Lam>;
+        return make_units_helper<caster_type::arity>::make_units<SEPARATOR>(caster, str, units, size);
+    }
+}}
+
 // 命名空间
 namespace LongUI { namespace Helper {
     // 创建浮点
-    bool MakeFloats(const char* sdata, float* fdata, int size) noexcept {
-        if (!sdata || !*sdata) return false;
-        // 断言
-        assert(fdata && size && "bad argument");
-        // 拷贝数据
-        char buffer[LongUIStringBufferLength];
-        ::strcpy_s(buffer, sdata);
-        char* index = buffer;
-        const char* to_parse = buffer;
-        // 遍历检查
-        bool new_float = true;
-        while (size) {
-            char ch = *index;
-            // 分段符?
-            if (ch == ',' || white_space(ch) || !ch) {
-                if (new_float) {
-                    *index = 0;
-                    *fdata = ::LongUI::AtoF(to_parse);
-                    ++fdata;
-                    --size;
-                    new_float = false;
-                }
-            }
-            else if (!new_float) {
-                to_parse = index;
-                new_float = true;
-            }
-            // 退出
-            if (!ch) break;
-            ++index;
-        }
+    LongUINoinline bool MakeFloats(const char* str, float fary[], uint32_t size) noexcept {
+        // 检查字符串
+        if (!str || !*str) return false;
+        impl::make_units<','>([](float* out, const char* begin, const char* end) noexcept {
+            auto len = static_cast<size_t>(end - begin);
+            char buf[128]; assert(len < lengthof(buf));
+            std::memcpy(buf, begin, len); len[buf] = 0;
+            *out = LongUI::AtoF(buf);
+        }, str, fary, size);
         return true;
     }
 }}

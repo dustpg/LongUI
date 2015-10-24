@@ -24,21 +24,20 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 // longui namespace
 namespace LongUI {
     // set new status
 #define UIElement_SetNewStatus(e,s) m_pWindow->StartRender(e.GetByType<Element_Basic>().SetNewStatus(s), this)
+    // UI Animation for Posotion
+    using CUIAnimationTransform = CUIAnimation<D2D1_MATRIX_3X2_F>;
+    // UI Animation for Posotion
+    using CUIAnimationPosition = CUIAnimation<D2D1_POINT_2F>;
     // UI Animation for Color
     using CUIAnimationColor = CUIAnimation<D2D1_COLOR_F>;
     // UI Animation for Opacity
     using CUIAnimationOpacity = CUIAnimation<FLOAT>;
     // UI Animation for offset
     using CUIAnimationOffset= CUIAnimation<FLOAT>;
-    // UI Animation for Posotion
-    using CUIAnimationPosition = CUIAnimation<D2D1_POINT_2F>;
-    // UI Animation for Posotion
-    using CUIAnimationTransform = CUIAnimation<D2D1_MATRIX_3X2_F>;
     // Element
     enum Element : uint32_t {
         Element_Basic = 0,          // basic element for animation

@@ -2,6 +2,18 @@
 #include <algorithm>
 
 
+// 忙等
+LongUINoinline void LongUI::usleep(long usec) noexcept {
+    LARGE_INTEGER lFrequency;
+    LARGE_INTEGER lEndTime;
+    LARGE_INTEGER lCurTime;
+    ::QueryPerformanceFrequency(&lFrequency);
+    ::QueryPerformanceCounter(&lEndTime);
+    lEndTime.QuadPart += (LONGLONG)usec * lFrequency.QuadPart / 1000000;
+    do { ::QueryPerformanceCounter(&lCurTime); } while (lCurTime.QuadPart < lEndTime.QuadPart);
+}
+
+
 /// <summary>
 /// float4 color ---> 32-bit ARGB uint color
 /// 将浮点颜色转换成32位ARGB排列整型
@@ -10,14 +22,14 @@
 /// <returns>32-bit ARGB 颜色</returns>
 LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
     // 常量
-    constexpr uint32_t ALPHA_SHIFT = CHAR_BIT * 3;
-    constexpr uint32_t RED_SHIFT = CHAR_BIT * 2;
-    constexpr uint32_t GREEN_SHIFT = CHAR_BIT * 1;
-    constexpr uint32_t BLUE_SHIFT = CHAR_BIT * 0;
+    constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
+    constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
+    constexpr uint32_t GREEN_SHIFT  = CHAR_BIT * 1;
+    constexpr uint32_t BLUE_SHIFT   = CHAR_BIT * 0;
     // 写入
     register uint32_t colorargb =
         ((uint32_t(color.a * 255.f) & 0xFF) << ALPHA_SHIFT) |
-        ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT) |
+        ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT)   |
         ((uint32_t(color.g * 255.f) & 0xFF) << GREEN_SHIFT) |
         ((uint32_t(color.b * 255.f) & 0xFF) << BLUE_SHIFT);
     return colorargb;
@@ -32,19 +44,19 @@ LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) 
 /// <returns>void</returns>
 LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void {
     // 位移量
-    constexpr uint32_t ALPHA_SHIFT = CHAR_BIT * 3;
-    constexpr uint32_t RED_SHIFT = CHAR_BIT * 2;
-    constexpr uint32_t GREEN_SHIFT = CHAR_BIT * 1;
-    constexpr uint32_t BLUE_SHIFT = CHAR_BIT * 0;
+    constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
+    constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
+    constexpr uint32_t GREEN_SHIFT  = CHAR_BIT * 1;
+    constexpr uint32_t BLUE_SHIFT   = CHAR_BIT * 0;
     // 掩码
-    constexpr uint32_t ALPHA_MASK = 0xFFU << ALPHA_SHIFT;
-    constexpr uint32_t RED_MASK = 0xFFU << RED_SHIFT;
-    constexpr uint32_t GREEN_MASK = 0xFFU << GREEN_SHIFT;
-    constexpr uint32_t BLUE_MASK = 0xFFU << BLUE_SHIFT;
+    constexpr uint32_t ALPHA_MASK   = 0xFFU << ALPHA_SHIFT;
+    constexpr uint32_t RED_MASK     = 0xFFU << RED_SHIFT;
+    constexpr uint32_t GREEN_MASK   = 0xFFU << GREEN_SHIFT;
+    constexpr uint32_t BLUE_MASK    = 0xFFU << BLUE_SHIFT;
     // 计算
-    color4f.r = static_cast<float>((color32 & RED_MASK) >> RED_SHIFT) / 255.f;
+    color4f.r = static_cast<float>((color32 & RED_MASK)   >> RED_SHIFT)   / 255.f;
     color4f.g = static_cast<float>((color32 & GREEN_MASK) >> GREEN_SHIFT) / 255.f;
-    color4f.b = static_cast<float>((color32 & BLUE_MASK) >> BLUE_SHIFT) / 255.f;
+    color4f.b = static_cast<float>((color32 & BLUE_MASK)  >> BLUE_SHIFT)  / 255.f;
     color4f.a = static_cast<float>((color32 & ALPHA_MASK) >> ALPHA_SHIFT) / 255.f;
 }
 
@@ -762,8 +774,8 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 // get transformed pointer
 LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept->D2D1_POINT_2F {
     D2D1_POINT_2F result;
-    // x = (bn-dm)/(bc-ad)
-    // y = (an-cm)/(ad-bc)
+    // x = (bn-dm) / (bc-ad)
+    // y = (an-cm) / (ad-bc)
     // a : m_matrix._11
     // b : m_matrix._21
     // c : m_matrix._12
@@ -1779,9 +1791,9 @@ auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
 
 
 // π
-static constexpr float EZ_PI = 3.1415296F;
+constexpr float EZ_PI = 3.1415296F;
 // 二分之一π
-static constexpr float EZ_PI_2 = 1.5707963F;
+constexpr float EZ_PI_2 = 1.5707963F;
 
 // 反弹渐出
 float inline __fastcall BounceEaseOut(float p) noexcept {

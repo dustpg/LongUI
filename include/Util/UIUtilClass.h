@@ -170,10 +170,9 @@ namespace LongUI {
         // group of it("0" in C99, "1" for other)
         Unit        group[0];
     };
-    // the timer of ui in frame
-    class CUITimer {
+    // the timer - high
+    class CUITimerH {
     public:
-#if 0
         // QueryPerformanceCounter
         static inline auto QueryPerformanceCounter(LARGE_INTEGER* ll) noexcept {
             auto old = ::SetThreadAffinityMask(::GetCurrentThread(), 0);
@@ -182,74 +181,72 @@ namespace LongUI {
             return r;
         }
         // refresh the frequency
-        auto LongUIInline  RefreshFrequency() noexcept { ::QueryPerformanceFrequency(&m_cpuFrequency); }
+        auto inline RefreshFrequency() noexcept { ::QueryPerformanceFrequency(&m_cpuFrequency); }
         // start timer
-        auto LongUIInline  Start() noexcept { CUITimer::QueryPerformanceCounter(&m_cpuCounterStart); }
+        auto inline Start() noexcept { CUITimerH::QueryPerformanceCounter(&m_cpuCounterStart); }
         // move end var to start var
-        auto LongUIInline  MovStartEnd() noexcept { m_cpuCounterStart = m_cpuCounterEnd; }
+        auto inline MovStartEnd() noexcept { m_cpuCounterStart = m_cpuCounterEnd; }
         // delta time in sec.
-        template<typename T>
-        auto LongUIInline  Delta_s() noexcept {
-            CUITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
+        template<typename T> auto inline Delta_s() noexcept {
+            CUITimerH::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in ms.
-        template<typename T>
-        auto LongUIInline  Delta_ms() noexcept {
-            CUITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
+        template<typename T> auto inline Delta_ms() noexcept {
+            CUITimerH::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e3) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in micro sec.
-        template<typename T>
-        auto LongUIInline Delta_mcs() noexcept {
-            CUITimer::QueryPerformanceCounter(&m_cpuCounterEnd);
+        template<typename T> auto inline Delta_mcs() noexcept {
+            CUITimerH::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e6) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
     private:
-        // CPU 当前频率
+        // CPU freq
         LARGE_INTEGER            m_cpuFrequency;
-        // CPU 开始计时时间
+        // CPU start counter
         LARGE_INTEGER            m_cpuCounterStart;
-        // CPU 结束计时时间
+        // CPU end counter
         LARGE_INTEGER            m_cpuCounterEnd;
     public:
-        // 构造函数
-        CUITimer() noexcept { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
-#else
+        // ctor
+        CUITimerH() noexcept { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
+    };
+    // the timer : medium
+    class CUITimerM {
+    public:
         // refresh the frequency
-        auto LongUIInline  RefreshFrequency() noexcept { }
+        auto inline RefreshFrequency() noexcept { }
         // start timer
-        auto LongUIInline  Start() noexcept { m_dwStart = ::timeGetTime(); }
+        auto inline Start() noexcept { m_dwStart = ::timeGetTime(); }
         // move end var to start var
-        auto LongUIInline  MovStartEnd() noexcept { m_dwStart = m_dwNow; }
+        auto inline MovStartEnd() noexcept { m_dwStart = m_dwNow; }
         // delta time in sec.
-        template<typename T>
-        auto LongUIInline  Delta_s() noexcept {
+        template<typename T> auto inline Delta_s() noexcept {
             m_dwNow = ::timeGetTime();
             return static_cast<T>(m_dwNow - m_dwStart) * static_cast<T>(0.001);
         }
         // delta time in ms.
-        template<typename T>
-        auto LongUIInline  Delta_ms() noexcept {
+        template<typename T> auto inline Delta_ms() noexcept {
             m_dwNow = ::timeGetTime();
             return static_cast<T>(m_dwNow - m_dwStart);
         }
         // delta time in micro sec.
-        template<typename T>
-        auto LongUIInline Delta_mcs() noexcept {
+        template<typename T> auto inline Delta_mcs() noexcept {
             m_dwNow = ::timeGetTime();
             return static_cast<T>(m_dwNow - m_dwStart) * static_cast<T>(1000);
         }
     private:
-        // 开始时间
+        // start time
         DWORD                   m_dwStart = 0;
-        // 当前时间
+        // now time
         DWORD                   m_dwNow = 0;
     public:
-        // 构造函数
-        CUITimer() noexcept { this->Start(); }
-#endif
+        // ctor
+        CUITimerM() noexcept { this->Start(); }
     };
+    // CUITimer
+    using CUITimer = CUITimerM;
     // render repeater
     class CUIRenderRepeater {
     public:

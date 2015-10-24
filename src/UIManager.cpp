@@ -600,7 +600,6 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     return ctrl;
 }
 
-
 // 创建UI窗口
 auto LongUI::CUIManager::create_ui_window(pugi::xml_node node, 
     UIWindow* pat, callback_for_creating_window func, void* buf) noexcept -> UIWindow* {
@@ -614,24 +613,20 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
         // 重建资源
         auto hr = window->Recreate();
         ShowHR(hr);
-#ifndef _DEBUG12
-        auto dbg_time = ::timeGetTime();
+#ifdef _DEBUG
+        CUITimerH dbg_timer; dbg_timer.Start();
 #endif
         // 创建控件树
         this->make_control_tree(window, node);
-#ifndef _DEBUG12
-        dbg_time = ::timeGetTime() - dbg_time;
+#ifdef _DEBUG
+        auto time = dbg_timer.Delta_ms<double>();
         UIManager << DL_Log
-            << L"make control tree takes time in "
-            << long(dbg_time)
-            << L" ms for " << window
+            << Formated(L" took time %.3lf ms for making tree ", time)
+            << window
             << LongUI::endl;
 #endif
         // 完成创建
-        LongUI::EventArgument arg; ::memset(&arg, 0, sizeof(arg));
-        arg.sender = window;
-        arg.event = LongUI::Event::Event_TreeBulidingFinished;
-        window->DoEvent(arg);
+        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
         // 返回
         return window;
     }
@@ -1766,6 +1761,16 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 
 // 传递可视化东西
 auto LongUI::Formated(const wchar_t* format, ...) noexcept -> const wchar_t* {
+    static thread_local wchar_t buffer[LongUIStringBufferLength];
+    va_list ap;
+    va_start(ap, format);
+    std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
+    va_end(ap);
+    return buffer;
+}
+
+// 传递可视化东西
+auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
     static thread_local wchar_t buffer[LongUIStringBufferLength];
     va_list ap;
     va_start(ap, format);

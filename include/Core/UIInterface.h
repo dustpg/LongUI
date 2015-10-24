@@ -76,11 +76,9 @@ namespace LongUI {
         // level's size
         DLEVEL_SIZE
     };
-    // pre-dec 提前声明
+    // uimanager
     class CUIManager;
-    // script {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
-    static const GUID IID_IUIScript =
-    { 0x9b531bd, 0x2e3b, 0x4c98, { 0x98, 0x5c, 0x1f, 0xd6, 0xb4, 0x6, 0xe5, 0x3d } };
+    // script interface
     class LONGUI_NOVTABLE IUIScript : public IUIInterface {
     public:
         // run a section script with event
@@ -94,10 +92,7 @@ namespace LongUI {
     };
     // Meta
     struct Meta; struct DeviceIndependentMeta;
-    // {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
-    static const GUID IID_IUIResourceLoader = 
-    { 0x16222e4b, 0x9ac8, 0x4756,{ 0x8c, 0xa9, 0x75, 0xa7, 0x2d, 0x2f, 0x4f, 0x60 } };
-    // UI Binary Resource Loader
+    // ui res loader
     class LONGUI_NOVTABLE IUIResourceLoader : public IUIInterface {
     public:
         // resource type
@@ -117,8 +112,6 @@ namespace LongUI {
         // get meta by index, index in range [0, count)
         virtual auto GetMeta(size_t index, DeviceIndependentMeta&) noexcept ->void = 0;
     };
-    // static const GUID IID_IUIConfigure =
-    // { 0x7ca331b9, 0x6500, 0x4948,{ 0xa9, 0xb4, 0xd5, 0x59, 0xc9, 0x2e, 0x65, 0xb1 } };
     // UI Configure Interface
     class LONGUI_NOVTABLE IUIConfigure : public IUIInterface {
     public:

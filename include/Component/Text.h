@@ -26,7 +26,7 @@
 
 // longui::component namespace
 namespace LongUI { namespace Component {
-    // Component: ShortText
+    // component: short text
     class ShortText {
     public:
         // recreate layout

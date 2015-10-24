@@ -46,13 +46,13 @@
 
 
 #define LONGUI_DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE, INTTYPE) \
-    static auto operator | (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) | static_cast<INTTYPE>(b)); };\
-    static auto&operator |=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a | b; };\
-    static auto operator & (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) & static_cast<INTTYPE>(b)); };\
-    static auto&operator &=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a & b; };\
-    static auto operator ^ (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) ^ static_cast<INTTYPE>(b)); };\
-    static auto&operator ^=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a ^ b; };\
-    static auto operator ~ (ENUMTYPE a) noexcept { return static_cast<ENUMTYPE>(~static_cast<INTTYPE>(a)); };
+    inline auto operator | (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) | static_cast<INTTYPE>(b)); };\
+    inline auto&operator |=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a | b; };\
+    inline auto operator & (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) & static_cast<INTTYPE>(b)); };\
+    inline auto&operator &=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a & b; };\
+    inline auto operator ^ (ENUMTYPE a, ENUMTYPE b) noexcept { return static_cast<ENUMTYPE>(static_cast<INTTYPE>(a) ^ static_cast<INTTYPE>(b)); };\
+    inline auto&operator ^=(ENUMTYPE&a, ENUMTYPE b) noexcept { return a = a ^ b; };\
+    inline auto operator ~ (ENUMTYPE a) noexcept { return static_cast<ENUMTYPE>(~static_cast<INTTYPE>(a)); };
 
 #ifndef OUT
 #define OUT
@@ -95,12 +95,12 @@
 
 
 // debug level
-#define DL_None     LongUI::DebugStringLevel::DLevel_None    << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Log      LongUI::DebugStringLevel::DLevel_Log     << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Hint     LongUI::DebugStringLevel::DLevel_Hint    << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Warning  LongUI::DebugStringLevel::DLevel_Warning << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Error    LongUI::DebugStringLevel::DLevel_Error   << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Fatal    LongUI::DebugStringLevel::DLevel_Fatal   << LongUI::Formated(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_None     LongUI::DebugStringLevel::DLevel_None    << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Log      LongUI::DebugStringLevel::DLevel_Log     << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Hint     LongUI::DebugStringLevel::DLevel_Hint    << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Warning  LongUI::DebugStringLevel::DLevel_Warning << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Error    LongUI::DebugStringLevel::DLevel_Error   << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_Fatal    LongUI::DebugStringLevel::DLevel_Fatal   << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
 #else
 // show hr error
 #define ShowErrorWithHR(hr) UIManager.ShowError(hr)
@@ -188,9 +188,6 @@ namespace LongUI {
 #define case_LongUI__Type_CreateControl default
     // CreateControl Function 控件创建函数
     using CreateControlFunction = auto (WINAPI*)(CreateEventType, pugi::xml_node) ->UIControl*;
-    // { B0CC8D79-9761-46F0-8558-F93A073CA0E6 }
-    static const GUID IID_InlineParamHandler =
-    { 0xb0cc8d79, 0x9761, 0x46f0,{ 0x85, 0x58, 0xf9, 0x3a, 0x7, 0x3c, 0xa0, 0xe6 } };
     /// <summary>
     /// LongUI Flags for Core Control: UIControl, UIMarginalable, UIContainer
     /// </summary>

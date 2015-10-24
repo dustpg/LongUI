@@ -59,6 +59,8 @@ namespace LongUI {
         void Insert(uint32_t index, UIControl* child) noexcept;
         // display next page
         void DisplayNextPage(uint32_t page) noexcept;
+        // render page
+        void RenderPage(uint32_t page) noexcept { m_vChildren[page]->Render(); }
         // ctor
         UIPage(UIContainer* cp, pugi::xml_node node) noexcept;
         // create 创建

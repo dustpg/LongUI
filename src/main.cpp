@@ -50,6 +50,93 @@ InitStaticVar(LongUI::Dll::DWriteCreateFactory);
 InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
 
+// longui namespace
+namespace LongUI {
+    // primes list
+    const uint32_t EzContainer::PRIMES_LIST[14] = {
+        19, 79, 149, 263, 457, 787, 1031, 2333,
+        5167, 11369, 24989, 32491, 42257, 54941,
+    };
+    // Base64 DataChar: Map 0~63 to visible char
+    const char Base64Chars[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    // Base64 DataChar: Map visible char to 0~63
+    const uint8_t Base64Datas[128] = {
+        // [  0, 16)
+        0, 0, 0, 0,   0, 0 ,0, 0,       0, 0, 0, 0, 0, 0, 0, 0,
+        // [ 16, 32)
+        0, 0, 0, 0,   0, 0 ,0, 0,       0, 0, 0, 0, 0, 0, 0, 0,
+        // [ 32, 48)                            43 44 45 46 47
+        0, 0, 0, 0,   0, 0 ,0, 0,       0, 0, 0,62, 0, 0, 0,64,
+        // [ 48, 64)
+        52,53,54,55, 56,57,58,59,      60,61, 0, 0, 0, 0, 0, 0,
+        // [ 64, 80)
+        0, 0, 1, 2,   3, 4, 5, 6,       7, 8, 9,10,11,12,13,14,
+        // [ 80, 96)
+        15,16,17,18, 19,20,21,22,      23,24,25, 0, 0, 0, 0, 0,
+        // [ 96,112)
+        0,26,27,28,  29,30,31,32,      33,34,35,36,37,38,39,40,
+        // [112,128)
+        41,42,43,44, 45,46,47,48,      49,50,51, 0, 0, 0, 0, 0,
+    };
+    // IUIScript: {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
+    const GUID IID_IUIScript = { 
+        0x9b531bd, 0x2e3b, 0x4c98, { 0x98, 0x5c, 0x1f, 0xd6, 0xb4, 0x6, 0xe5, 0x3d }
+    };
+    // IUIResourceLoader: {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
+    const GUID IID_IUIResourceLoader = { 
+        0x16222e4b, 0x9ac8, 0x4756,{ 0x8c, 0xa9, 0x75, 0xa7, 0x2d, 0x2f, 0x4f, 0x60 } 
+    };
+    // IMFMediaEngineClassFactor: uuid
+    const GUID IID_IMFMediaEngineClassFactory = { 
+        0x4D645ACE, 0x26AA, 0x4688,{ 0x9B, 0xE1, 0xDF, 0x35, 0x16, 0x99, 0x0B, 0x93 } 
+    };
+    // IMFMediaEngine: "98a1b0bb-03eb-4935-ae7c-93c1fa0e1c93"
+    const GUID IID_IMFMediaEngine = {
+        0x98A1B0BB, 0x03EB, 0x4935,{ 0xAE, 0x7C, 0x93, 0xC1, 0xFA, 0x0E, 0x1C, 0x93 } 
+    };
+    // IMFMediaEngineEx "83015ead-b1e6-40d0-a98a-37145ffe1ad1"
+    const GUID IID_IMFMediaEngineEx = {
+        0x83015EAD, 0xB1E6, 0x40D0,{ 0xA9, 0x8A, 0x37, 0x14, 0x5F, 0xFE, 0x1A, 0xD1 } 
+    };
+    // IMFMediaEngineNotify "fee7c112-e776-42b5-9bbf-0048524e2bd5"
+    const GUID IID_IMFMediaEngineNotify = {
+        0xfee7c112, 0xe776, 0x42b5,{ 0x9B, 0xBF, 0x00, 0x48, 0x52, 0x4E, 0x2B, 0xD5 } 
+    };
+    // IDCompositionDevice "C37EA93A-E7AA-450D-B16F-9746CB0407F3"
+    const GUID IID_IDCompositionDevice = {
+        0xC37EA93A, 0xE7AA, 0x450D,{ 0xB1, 0x6F, 0x97, 0x46, 0xCB, 0x04, 0x07, 0xF3 } 
+    };
+    // IDWriteTextRenderer
+    const GUID IID_IDWriteTextRenderer = {
+        0xef8a8135, 0x5cc6, 0x45fe,{ 0x88, 0x25, 0xc5, 0xa0, 0x72, 0x4e, 0xb8, 0x19 } 
+    };
+    // IID_IDWriteInlineObject 
+    const GUID IID_IDWriteInlineObject = {
+        0x8339FDE3, 0x106F, 0x47ab,{ 0x83, 0x73, 0x1C, 0x62, 0x95, 0xEB, 0x10, 0xB3 } 
+    };
+    // IDWriteFactory1 ("30572f99-dac6-41db-a16e-0486307e606a")
+    const GUID IID_IDWriteFactory1 = {
+        0x30572f99, 0xdac6, 0x41db,{ 0xa1, 0x6e, 0x04, 0x86, 0x30, 0x7e, 0x60, 0x6a } 
+    };
+    // IDWriteFontFileEnumerator("72755049-5ff7-435d-8348-4be97cfa6c7c") 
+    const GUID IID_IDWriteFontFileEnumerator = {
+        0x72755049, 0x5ff7, 0x435d,{ 0x83, 0x48, 0x4b, 0xe9, 0x7c, 0xfa, 0x6c, 0x7c }
+    };
+    // IDWriteFontCollectionLoader("cca920e4-52f0-492b-bfa8-29c72ee0a468") 
+    const GUID IID_IDWriteFontCollectionLoader = {
+        0xcca920e4, 0x52f0, 0x492b,{ 0xbf, 0xa8, 0x29, 0xc7, 0x2e, 0xe0, 0xa4, 0x68 }
+    };
+    // ITextHost2 ("13E670F5-1A5A-11CF-ABEB-00AA00B65EA1")
+    const GUID IID_ITextHost2 = {
+        0x13E670F5, 0x1A5A, 0x11CF,{ 0xAB, 0xEB, 0x00, 0xAA, 0x00, 0xB6, 0x5E, 0xA1 }
+    };
+    // CUIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
+    const GUID IID_CUIBasicTextRenderer = {
+        0xedab1e53, 0xc1cf, 0x4f5a,{ 0x95, 0x33, 0x99, 0x46, 0x90, 0x4a, 0xd6, 0x3c }
+    };
+}
+
+
 /*// 复制构造
 LongUI::EventArgument::EventArgument(const EventArgument& arg) noexcept {
     this->event = arg.event;

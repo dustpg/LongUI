@@ -24,8 +24,6 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-//#include <tuple>
-
 // LongUI namespace
 namespace LongUI{
     // UI String -- compatible with std library string interface(part of) but host a fixed buffer
@@ -258,7 +256,6 @@ namespace LongUI{
     };
     // namespace helper
     namespace Helper {
-#if 0
         // to match ruby-style, use low-case char
         // type helper with c++ tuple
         template <typename T> struct type_helper : public type_helper<decltype(&T::operator())> {};
@@ -272,7 +269,6 @@ namespace LongUI{
             // arg type
             template <size_t i> struct arg { using type = typename std::tuple_element<i, std::tuple<Args...>>::type; };
         };
-#endif
         // buffer helper
         template<typename char_type, size_t LEN> struct buffer_helper {
             // copy ctor

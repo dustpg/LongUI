@@ -252,8 +252,9 @@ namespace LongUI {
 //  ---------- Resource Loader for XML -----------------
 namespace LongUI {
     // IWICImagingFactory2 "7B816B45-1996-4476-B132-DE9E247C8AF0"
-    static const IID IID_IWICImagingFactory2 =
-    { 0x7B816B45, 0x1996, 0x4476,{ 0xB1, 0x32, 0xDE, 0x9E, 0x24, 0x7C, 0x8A, 0xF0 } };
+    static const IID IID_IWICImagingFactory2 = {
+        0x7B816B45, 0x1996, 0x4476,{ 0xB1, 0x32, 0xDE, 0x9E, 0x24, 0x7C, 0x8A, 0xF0 }
+    };
     template<> LongUIInline const IID& GetIID<IWICImagingFactory2>() {
         return LongUI::IID_IWICImagingFactory2;
     }
