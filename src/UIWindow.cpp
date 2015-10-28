@@ -116,7 +116,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
         }
         // 创建失败
         else {
-            UIManager.ShowError(L"Error! Failed to Create Window", L"LongUI::UIWindow::UIWindow");
+            UIManager.ShowError(L"Error! Failed to Create Window", __FUNCTIONW__);
         }
     }
     //SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);

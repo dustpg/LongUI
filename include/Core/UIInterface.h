@@ -76,8 +76,6 @@ namespace LongUI {
         // level's size
         DLEVEL_SIZE
     };
-    // uimanager
-    class CUIManager;
     // script interface
     class LONGUI_NOVTABLE IUIScript : public IUIInterface {
     public:
@@ -208,7 +206,12 @@ namespace LongUI {
     // window host
     class LONGUI_NOVTABLE IUIWindowHost : public IUIInterface {
     public:
-
+        // create child window
+        virtual auto CreateChildWindow() noexcept ->IUIWindowHost* = 0;
+        // begin render
+        virtual void BeginRender() noexcept = 0;
+        // end render
+        virtual void EndRender() noexcept = 0;
     };
     // UI Undo Redo Commnad
     class LONGUI_NOVTABLE IUICommand : public IUIInterface {

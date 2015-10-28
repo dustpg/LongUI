@@ -279,6 +279,8 @@ namespace LongUI {
     // pre-declare
     class UIScrollBar;
     // pre-declare
+    class CUIManager;
+    // pre-declare
     class UIWindow;
     // pre-declare, LongUI::CUIString is a string class that hold a small fixed buffer
     class CUIString;

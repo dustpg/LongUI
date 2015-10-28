@@ -112,7 +112,7 @@ namespace LongUI {
     public:
         // get window of control
         auto GetWindow() const noexcept { return m_pWindow; }
-        // XXX: is top level? 
+        // is top level? 
         auto IsTopLevel() const noexcept { return !this->parent; }
         // get script data
         const auto& GetScript() const noexcept { return m_script; }
