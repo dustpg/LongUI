@@ -1,8 +1,5 @@
 ﻿#include "LongUI.h"
 
-// node->Attribute\((.+?)\)
-// node.attribute($1).value()
-
 #define LONGUI_D3D_DEBUG
 //#define LONGUI_RENDER_IN_STD_THREAD
 
@@ -705,11 +702,9 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
     // 创建窗口时设置指针
     if (message == WM_CREATE) {
         // 获取指针
-        LongUI::UIWindow *window = reinterpret_cast<LongUI::UIWindow*>(
+        auto* window = reinterpret_cast<LongUI::UIWindow*>(
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
             );
-        // create message
-        UIManager << DL_Log << window << ": On WM_CREATE" << endl;
         // 设置窗口指针
         ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
         // 创建完毕
@@ -1000,20 +995,21 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 重新获取flag
     this->flag = this->configure->GetConfigureFlag();
     // 待用适配器
-    IDXGIAdapter1* ready2use = nullptr;
+    IDXGIAdapter1* adapter = nullptr;
     // 枚举显示适配器
     if (!(this->flag & IUIConfigure::Flag_RenderByCPU)) {
-        IDXGIFactory1* temp_factory = nullptr;
+        IDXGIFactory1* dxgifactory = nullptr;
         // 创建一个临时工程
-        register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
-        if (SUCCEEDED(hr)) {
+        if (SUCCEEDED(LongUI::Dll::CreateDXGIFactory1(
+            IID_IDXGIFactory1, reinterpret_cast<void**>(&dxgifactory)
+            ))) {
             constexpr int ADAPTERS_MAX_NUM = 64;
             uint32_t adnum = 0;
             IDXGIAdapter1* apAdapters[ADAPTERS_MAX_NUM];
             DXGI_ADAPTER_DESC1 descs[ADAPTERS_MAX_NUM];
             // 枚举适配器
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
-                if (temp_factory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
+                if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
                     break;
                 }
                 apAdapters[adnum]->GetDesc1(descs + adnum);
@@ -1021,14 +1017,14 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             // 选择适配器
             auto index = this->configure->ChooseAdapter(descs, adnum);
             if (index < adnum) {
-                ready2use = LongUI::SafeAcquire(apAdapters[index]);
+                adapter = LongUI::SafeAcquire(apAdapters[index]);
             }
             // 释放适配器
             for (size_t i = 0; i < adnum; ++i) {
                 LongUI::SafeRelease(apAdapters[i]);
             }
         }
-        LongUI::SafeRelease(temp_factory);
+        LongUI::SafeRelease(dxgifactory);
     }
     // 创建设备资源
     register HRESULT hr /*= m_docResource.Error() ? E_FAIL :*/ S_OK;
@@ -1053,13 +1049,15 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             D3D_FEATURE_LEVEL_9_2,
             D3D_FEATURE_LEVEL_9_1
         };
+        // 根据情况检查驱动类型
+        D3D_DRIVER_TYPE dtype = (this->flag & IUIConfigure::Flag_RenderByCPU) ? D3D_DRIVER_TYPE_WARP :
+            (adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE);
         // 创建设备
         hr = LongUI::Dll::D3D11CreateDevice(
             // 设置为渲染
-            ready2use,
-            // 根据情况选择类型
-            (this->flag & IUIConfigure::Flag_RenderByCPU) ? D3D_DRIVER_TYPE_WARP : 
-                (ready2use ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE),
+            adapter,
+            // 驱动类型
+            dtype,
             // 没有软件接口
             nullptr,
             // 创建flag
@@ -1079,8 +1077,9 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             );
         // 检查
         if (FAILED(hr)) {
-            UIManager << DL_Hint << L"Create D3D11 Device Failed,"
-                L" Now, Try to Create In WARP Mode" << LongUI::endl;
+            UIManager << DL_Warning 
+                << L"create d3d11 device failed, now, try to create in warp mode" 
+                << LongUI::endl;
         }
         // 创建失败则尝试使用软件
         if (FAILED(hr)) {
@@ -1107,10 +1106,17 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 &m_pd3dDeviceContext
                 );
         }
+        // 再次检查错误
+        if (FAILED(hr)) {
+            UIManager << DL_Error
+                << L" create d3d11-device in warp modd, but failed."
+                << LongUI::endl;
+            this->ShowError(hr);
+        }
     }
-    LongUI::SafeRelease(ready2use);
+    LongUI::SafeRelease(adapter);
+    // 创建 ID3D11Debug对象
 #if defined(_DEBUG) && defined(LONGUI_D3D_DEBUG)
-    // 创建 ID3D11Debug
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pd3dDebug));
     }
@@ -1153,7 +1159,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 多线程
     if (SUCCEEDED(hr)) {
         ID3D10Multithread* mt = nullptr;
-        hr = m_pd3dDevice->QueryInterface(IID_ID3D10Multithread, (void**)&mt);
+        hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(mt));
         // 保护
         if (SUCCEEDED(hr)) {
             mt->SetMultithreadProtected(TRUE);

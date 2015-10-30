@@ -43,8 +43,6 @@ constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
 
 // get IID form type, __uuidof is just impl in MSC
 namespace LongUI {
-    // longui basic text render
-    class CUIBasicTextRenderer;
     // lengthof
     template<typename T> constexpr auto lengthof(T& t) { UNREFERENCED_PARAMETER(t); return sizeof(t) / sizeof(*t); }
     // white space
@@ -236,8 +234,6 @@ namespace LongUI {
         return !VerifyVersionInfoW(&osvi, VER_PRODUCT_TYPE, dwlConditionMask);
     }
     // IIDs
-    extern const GUID IID_IUIScript;
-    extern const GUID IID_IUIResourceLoader;
     extern const GUID IID_IMFMediaEngineClassFactory;
     extern const GUID IID_IMFMediaEngine;
     extern const GUID IID_IMFMediaEngineEx;
@@ -248,8 +244,10 @@ namespace LongUI {
     extern const GUID IID_IDWriteFactory1;
     extern const GUID IID_IDWriteFontFileEnumerator;
     extern const GUID IID_IDWriteFontCollectionLoader;
+    extern const GUID IID_IDXGISwapChain2;
     extern const GUID IID_ITextHost2;
-    extern const GUID IID_CUIBasicTextRenderer;
+    extern const GUID IID_IUIScript;
+    extern const GUID IID_IUIResourceLoader;
     // IUnknown
     MakeGetIID(IUnknown);
     // IDropTarget
@@ -272,13 +270,12 @@ namespace LongUI {
     MakeGetIID(IDXGISurface);
     // ID3D11Texture2D
     MakeGetIID(ID3D11Texture2D);
-#ifdef _DEBUG
     // ID3D11Debug
     MakeGetIID(ID3D11Debug);
-#endif
+    // ID3D10Multithread
+    MakeGetIID(ID3D10Multithread);
     // ITfThreadMgr
     MakeGetIID(ITfThreadMgr);
-#ifdef LONGUI_WITH_MMFVIDEO
     // IMFMediaEngineClassFactory
     MakeGetIID(IMFMediaEngineClassFactory);
     // IMFMediaEngine "98a1b0bb-03eb-4935-ae7c-93c1fa0e1c93"
@@ -287,7 +284,6 @@ namespace LongUI {
     MakeGetIID(IMFMediaEngineEx);
     // IMFMediaEngineNotify "fee7c112-e776-42b5-9bbf-0048524e2bd5"
     MakeGetIID(IMFMediaEngineNotify);
-#endif
     // IDCompositionDevice "C37EA93A-E7AA-450D-B16F-9746CB0407F3"
     MakeGetIID(IDCompositionDevice);
     // IDWriteTextRenderer
@@ -302,8 +298,6 @@ namespace LongUI {
     MakeGetIID(IDWriteFontCollectionLoader);
     // ITextHost2 ("13E670F5-1A5A-11CF-ABEB-00AA00B65EA1")
     MakeGetIID(ITextHost2);
-    // CUIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
-    MakeLongUIGetIID(CUIBasicTextRenderer);
     // IUIResourceLoader {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
     MakeLongUIGetIID(IUIResourceLoader);
     // IUIScript {09B531BD-2E3B-4C98-985C-1FD6B406E53D}

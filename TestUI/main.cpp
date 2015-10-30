@@ -578,6 +578,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
     return EXIT_SUCCESS;
 }
 
+
 // ------------------------------- IMPL -----------------------------------
 // do event for ui
 bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {

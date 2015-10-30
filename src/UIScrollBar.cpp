@@ -38,9 +38,11 @@ LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept:
 
 // 设置新的索引位置
 void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
-    //return this->set_index(new_index);
     // 阈值检查
     new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
+    // 无需设定
+    if (new_index == m_uiAnimation.end) return;
+    // 设定位置
     m_uiAnimation.start = m_uiAnimation.value = m_fIndex;
     m_uiAnimation.end = new_index;
     m_uiAnimation.time = m_uiAnimation.duration;
