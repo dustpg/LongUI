@@ -1383,10 +1383,8 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
             return -1;
         }
     }
-
-
-    BOOL bConnected = ::ConnectNamedPipe(m_hConsole, nullptr) ?
-        TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
+    // 连接
+    BOOL bConnected = ::ConnectNamedPipe(m_hConsole, nullptr) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
     // 连接失败
     if (!bConnected) {
         ::MessageBoxW(nullptr, L"ConnectNamedPipe failed", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1473,6 +1471,11 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         m_hConsole = INVALID_HANDLE_VALUE;
         return -1;
     }
+    // 关闭进程句柄
+    if(bRet) {
+        ::CloseHandle(pi.hProcess);
+        ::CloseHandle(pi.hThread);
+    }
     return 0;
 }
 
@@ -1490,11 +1493,15 @@ namespace LongUI {
 // 创建接口
 auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
     // 资源读取器
-    if (riid == LongUI::IID_IUIResourceLoader) {
+    if (riid == LongUI::GetIID<LongUI::IUIResourceLoader>()) {
         *ppvObject = LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
     }
     // 脚本
-    else if (riid == LongUI::IID_IUIScript) {
+    else if (riid == LongUI::GetIID<LongUI::IUIScript>()) {
+
+    }
+    // 字体集
+    else if (riid == LongUI::GetIID<IDWriteFontCollection>()) {
 
     }
     // 检查

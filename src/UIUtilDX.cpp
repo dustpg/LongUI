@@ -1,10 +1,7 @@
 ﻿#include "LongUI.h"
 
-
-// 创建LongUI的字体集: 本函数会进行I/O, 所以程序开始调用一次即可
-auto LongUI::DX::CreateFontCollection(
-    IDWriteFactory* factory, const wchar_t * filename, const wchar_t * folder)
-    noexcept -> IDWriteFontCollection* {
+// longui::impl 命名空间
+namespace LongUI { namespace impl {
     // 字体文件枚举
     class LongUIFontFileEnumerator final : public Helper::ComStatic<
         Helper::QiList<IDWriteFontFileEnumerator >> {
@@ -24,6 +21,7 @@ auto LongUI::DX::CreateFontCollection(
             if (*pHasCurrentFile = *m_pFilePathNow) {
                 LongUI::SafeRelease(m_pCurFontFie);
                 hr = m_pFactory->CreateFontFileReference(m_pFilePathNow, nullptr, &m_pCurFontFie);
+                assert(SUCCEEDED(hr) && "CreateFontFileReference failed");
                 if (*pHasCurrentFile = SUCCEEDED(hr)) {
                     m_pFilePathNow += ::wcslen(m_pFilePathNow);
                     ++m_pFilePathNow;
@@ -76,41 +74,53 @@ auto LongUI::DX::CreateFontCollection(
         // 枚举器
         LongUIFontFileEnumerator        m_enumerator;
     };
+}}
+
+// 创建LongUI的字体集: 本函数会进行I/O, 所以程序开始调用一次即可
+auto LongUI::DX::CreateFontCollection(
+    const wchar_t * filename, 
+    const wchar_t * folder,
+    bool include_system
+    ) noexcept -> IDWriteFontCollection* {
     IDWriteFontCollection* collection = nullptr;
-    constexpr size_t buffer_length = 256 * 256;
+    constexpr size_t buffer_length = 256 * 256 * 16;
     // 申请足够的空间
-    wchar_t* const buffer(new(std::nothrow) wchar_t[buffer_length]);
-    if (buffer) {
-        wchar_t* index = buffer; *buffer = 0;
-        WIN32_FIND_DATAW fileinfo;
-        wchar_t file_name_path[MAX_PATH]; std::swprintf(file_name_path, MAX_PATH, L"%ls\\%ls", folder, filename);
-        HANDLE hFile = ::FindFirstFileW(file_name_path, &fileinfo);
-        DWORD errorcode = ::GetLastError();
-        // 遍历文件
-        while (hFile != INVALID_HANDLE_VALUE && errorcode != ERROR_NO_MORE_FILES) {
-            std::swprintf(index, MAX_PATH, L"%ls\\%ls", folder, fileinfo.cFileName);
-            index += ::wcslen(index) + 1; *index = 0;
-            if (index + MAX_PATH >= buffer + buffer_length) {
-                break;
-            }
-            ::FindNextFileW(hFile, &fileinfo);
-            errorcode = ::GetLastError();
-        }
-        ::FindClose(hFile);
-        // 当存在符合标准的文件时
-        if (index != buffer) {
-            LongUIFontCollectionLoader loader;
-            factory->RegisterFontCollectionLoader(&loader);
-            factory->CreateCustomFontCollection(
-                &loader,
-                buffer, 
-                static_cast<uint32_t>(reinterpret_cast<uint8_t*>(index) - reinterpret_cast<uint8_t*>(buffer)),
-                &collection
-                );
-            factory->UnregisterFontCollectionLoader(&loader);
-        }
-        delete[] buffer;
+    wchar_t* const buffer = LongUI::NormalAllocT<wchar_t>(buffer_length);
+    // 内存不足
+    if (!buffer) return collection;
+    // 初始化
+    buffer[0] = 0; auto itr = buffer;
+    // 本地路径
+    {
+        itr = Helper::FindFilesToBuffer(itr, buffer_length, folder, filename);
     }
+    // 系统路径
+    if (include_system && itr != buffer) {
+        wchar_t winpath[MAX_PATH];
+        winpath[0] = 0;
+        auto len = ::GetWindowsDirectoryW(winpath, static_cast<uint32_t>(lengthof(winpath)));
+        assert(len && len < lengthof(winpath) && "buffer to small");
+        std::wcscpy(winpath + len, L"\\Fonts");
+        itr = Helper::FindFilesToBuffer(itr, buffer_length - size_t(itr - buffer), winpath, L"*.*tf");
+        itr = Helper::FindFilesToBuffer(itr, buffer_length - size_t(itr - buffer), winpath, L"*.fon");
+    }
+    // 当存在符合标准的文件时
+    if (itr != buffer) {
+        auto hr = S_OK;
+        impl::LongUIFontCollectionLoader loader;
+        hr = UIManager_DWriteFactory->RegisterFontCollectionLoader(&loader);
+        assert(SUCCEEDED(hr));
+        hr = UIManager_DWriteFactory->CreateCustomFontCollection(
+            &loader,
+            buffer,
+            static_cast<uint32_t>(reinterpret_cast<uint8_t*>(itr + 1) - reinterpret_cast<uint8_t*>(buffer)),
+            &collection
+            );
+        assert(SUCCEEDED(hr));
+        hr = UIManager_DWriteFactory->UnregisterFontCollectionLoader(&loader);
+        assert(SUCCEEDED(hr));
+    }
+    LongUI::NormalFree(buffer);
     return collection;
 }
 
@@ -187,7 +197,7 @@ LongUINoinline void LongUI::DX::InitTextFormatProperties(TextFormatProperties& p
     UNREFERENCED_PARAMETER(name_buf_len);
 #ifdef _DEBUG
     auto length = std::wcslen(LongUI::LongUIDefaultTextFontName) + 1;
-    assert(name_buf_len >= length && "buffer too small");
+    assert(name_buf_len > length && "buffer too small");
 #endif
     // 复制数据
     prop.size = LongUIDefaultTextFontSize;
@@ -253,7 +263,7 @@ auto LongUI::DX::MakeTextFormat(
         auto str = get_attribute("family");
         if (str) {
             // 假设设置字体名称就是修改了
-            LongUI::UTF8toWideChar(str, data.prop.name);
+            data.prop.name[LongUI::UTF8toWideChar(str, data.prop.name)] = 0;
             create_a_new_one = true;
         }
         // 字体大小
@@ -352,11 +362,10 @@ auto LongUI::DX::CreateTextPathGeometry(
     // 字体名称缓存
     wchar_t fontname_buffer[MAX_PATH]; *fontname_buffer = 0;
     // 必要缓存
-    uint16_t glyph_indices_buffer[1024];
-    // 保证空间
-    uint16_t* glyph_indices = string_length > lengthof(glyph_indices_buffer) ?
-        new(std::nothrow) uint16_t[string_length * sizeof(uint16_t)] : glyph_indices_buffer;
-    HRESULT hr = glyph_indices ? S_OK : E_OUTOFMEMORY;
+    EzContainer::SmallBuffer<uint16_t, 1024> glyph_indices_buffer;
+    glyph_indices_buffer.NewSize(string_length);
+    // 内存不足?
+    HRESULT hr = glyph_indices_buffer.GetCount() < string_length ? S_OK : E_OUTOFMEMORY;
     // 创建字形
     if (!fontface) {
         // 获取字体名称
@@ -408,14 +417,16 @@ auto LongUI::DX::CreateTextPathGeometry(
         if (SUCCEEDED(hr)) {
             static_assert(sizeof(uint32_t) == sizeof(char32_t), "32 != 32 ?!");
             hr = fontface->GetGlyphIndices(
-                reinterpret_cast<const uint32_t*>(utf32_string), string_length, glyph_indices
+                reinterpret_cast<const uint32_t*>(utf32_string), 
+                string_length, 
+                glyph_indices_buffer.GetData()
                 );
         }
         // 创建轮廓路径几何
         if (SUCCEEDED(hr)) {
             hr = fontface->GetGlyphRunOutline(
                 format->GetFontSize(),
-                glyph_indices,
+                glyph_indices_buffer.GetData(),
                 nullptr, nullptr,
                 string_length,
                 true, true, sink
@@ -436,10 +447,6 @@ auto LongUI::DX::CreateTextPathGeometry(
     }
     else {
         LongUI::SafeRelease(fontface);
-    }
-    if (glyph_indices && glyph_indices != glyph_indices_buffer) {
-        delete[] glyph_indices;
-        glyph_indices = nullptr;
     }
     *geometry = pathgeometry;
 #ifdef _DEBUG

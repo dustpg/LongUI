@@ -185,6 +185,8 @@ namespace LongUI {
         // will call IDXGISwapChain::ResizeBuffers,
         // but to large will waste some memory
         LongUITargetBitmapUnitSize = 128,
+        // max number of video adapters
+        LongUIMaxAdaptersSize = 32,
         // ------- Be Careful When Modify ---------
         // LongUI Common Solid Color Brush Index
         LongUICommonSolidColorBrushIndex = 0,

@@ -104,7 +104,7 @@ namespace LongUI {
         // ctor
         CUIFunction() noexcept = default;
         // move ctor
-        CUIFunction(MyType&& obj) noexcept : m_pFunction(obj.m_pFunction) { obj.m_pFunction = nullptr; };
+        CUIFunction(MyType&& obj) noexcept : m_pFunction(obj.m_pFunction) { assert(&obj != this && "bad move"); obj.m_pFunction = nullptr; };
         // no copy ctor
         CUIFunction(const MyType&) = delete;
         // and call chain

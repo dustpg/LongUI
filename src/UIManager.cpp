@@ -5,6 +5,18 @@
 
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
+    // 检查GUID
+#if defined(_DEBUG) && defined(_MSC_VER)
+#define CHECK_GUID(x)  assert(LongUI::IID_##x == __uuidof(x) && "bad guid")
+    CHECK_GUID(IDWriteTextRenderer);
+    CHECK_GUID(IDWriteInlineObject);
+    CHECK_GUID(IDWriteFactory1);
+    CHECK_GUID(IDWriteFontCollection);
+    CHECK_GUID(IDWriteFontFileEnumerator);
+    CHECK_GUID(IDWriteFontCollectionLoader);
+    CHECK_GUID(IDXGISwapChain2);
+#undef CHECK_GUID
+#endif
     m_szLocaleName[0] = L'\0';
     m_vDelayCleanup.reserve(100);
     ::memset(m_apWindows, 0, sizeof(m_apWindows));
@@ -177,6 +189,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     }
     // 创建字体集
     if (SUCCEEDED(hr)) {
+        // 获取脚本
+        config->CreateInterface(LongUI_IID_PV_ARGS(m_pFontCollection));
         // 失败获取系统字体集
         if (!m_pFontCollection) {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
@@ -260,6 +274,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     else {
         this->ShowError(hr);
     }
+    // 检查当前路径
+#ifdef _DEBUG
+    wchar_t buffer[MAX_PATH * 4]; buffer[0] = 0;
+    ::GetCurrentDirectoryW(static_cast<uint32_t>(lengthof(buffer)), buffer);
+    UIManager << DL_Log << L" Current Directory: " << buffer << LongUI::endl;
+#endif
     return hr;
 }
 
@@ -339,7 +359,6 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
     // 队列 -- 顺序遍历树
     LongUI::EzContainer::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
     LongUI::EzContainer::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
-    // 
     UIControl* now_control = nullptr;
     UIContainer* parent_node = window;
     // 遍历算法: 1.压入所有子结点 2.依次弹出 3.重复1
@@ -351,12 +370,12 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             parents_queue.Push(parent_node);
             node = node.next_sibling();
         }
-        //recheck:
         // 为空则退出
         if (xml_queue.IsEmpty()) break;
         // 弹出/出队 第一个结点
         node = xml_queue.Front();  xml_queue.Pop();
         parent_node = parents_queue.Front(); parents_queue.Pop();
+        assert(node && "bad xml node");
         // 根据名称创建控件
         if (!(now_control = this->CreateControl(parent_node, node, nullptr))) {
             // 错误
@@ -383,13 +402,51 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
 
 // 获取创建控件函数指针
 auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlFunction {
+    // 检查
+    assert(clname && clname[0] && "bad argment");
     // 查找
     auto result = m_hashStr2CreateFunc.Find(clname);
-    if (result) {
-        return reinterpret_cast<CreateControlFunction>(*result);
+    // 检查
+    assert(result && "404 not found");
+    // 返回
+    return reinterpret_cast<CreateControlFunction>(*result);
+}
+
+// 创建文本格式
+auto LongUI::CUIManager::CreateTextFormat(
+    WCHAR const * fontFamilyName, 
+    DWRITE_FONT_WEIGHT fontWeight, 
+    DWRITE_FONT_STYLE fontStyle,
+    DWRITE_FONT_STRETCH fontStretch, 
+    FLOAT fontSize, 
+    IDWriteTextFormat ** textFormat) noexcept -> HRESULT {
+    // 检查字体名称
+#ifdef _DEBUG
+    UINT32 index = 0; BOOL exist = FALSE;
+    auto hr = m_pFontCollection->FindFamilyName(fontFamilyName, &index, &exist);
+    if (SUCCEEDED(hr)) {
+        // 字体不存在, 则给予警告
+        if (!exist) {
+            UIManager << DL_Hint
+                << Formated(L"font family(%ls) not found", fontFamilyName)
+                << LongUI::endl;
+            int bk; bk = 9;
+        }
     }
-    assert(!"404 not found");
-    return nullptr;
+    else {
+        UIManager << DL_Warning << L"FindFamilyName: failed" << LongUI::endl;
+    }
+#endif
+    return m_pDWriteFactory->CreateTextFormat(
+        fontFamilyName,
+        m_pFontCollection,
+        fontWeight,
+        fontStyle,
+        fontStretch,
+        fontSize,
+        m_szLocaleName,
+        textFormat
+        );
 }
 
 /*
@@ -1003,10 +1060,9 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         if (SUCCEEDED(LongUI::Dll::CreateDXGIFactory1(
             IID_IDXGIFactory1, reinterpret_cast<void**>(&dxgifactory)
             ))) {
-            constexpr int ADAPTERS_MAX_NUM = 64;
             uint32_t adnum = 0;
-            IDXGIAdapter1* apAdapters[ADAPTERS_MAX_NUM];
-            DXGI_ADAPTER_DESC1 descs[ADAPTERS_MAX_NUM];
+            IDXGIAdapter1* apAdapters[LongUIMaxAdaptersSize];
+            DXGI_ADAPTER_DESC1 descs[LongUIMaxAdaptersSize];
             // 枚举适配器
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
                 if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
@@ -1603,36 +1659,43 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
             reinterpret_cast<void **>(&pTargetBuffer), nullptr,
             (DWORD)0
             );
-        auto hMemDC = ::CreateCompatibleDC(hdc);
-        ::ReleaseDC(nullptr, hdc);
-        // 写入数据
-        auto hOldBitmap = static_cast<HBITMAP*>(::SelectObject(hMemDC, hBitmap));
-        ::PatBlt(hMemDC, 0, 0, meta_width, meta_height, WHITENESS);
-        ::SelectObject(hMemDC, hOldBitmap);
-        ::DeleteDC(hMemDC);
-        // 创建掩码位图
-        HBITMAP hMonoBitmap = ::CreateBitmap(meta_width, meta_height, 1, 1, nullptr);
-        // 输入
-        auto lpdwPixel = reinterpret_cast<DWORD*>(pTargetBuffer);
-        for (auto y = 0u; y < meta_height; ++y) {
-            auto src_buffer = m_pBitmap0Buffer + LongUIDefaultBitmapSize * sizeof(RGBQUAD) * y;
-            for (auto x = 0u; x < meta_width; ++x) {
-                *lpdwPixel = *src_buffer;
-                src_buffer++;
-                lpdwPixel++;
-            }
+        // 错误
+        if (!hBitmap) {
+            hr = LongUI::WinCode2HRESULT(::GetLastError());
         }
-        // 填写
-        ICONINFO ii;
-        ii.fIcon = TRUE; ii.xHotspot = 0; ii.yHotspot = 0;
-        ii.hbmMask = hMonoBitmap; ii.hbmColor = hBitmap;
-        // 创建图标
-        hAlphaIcon = ::CreateIconIndirect(&ii);
-        ::DeleteObject(hBitmap);
-        ::DeleteObject(hMonoBitmap);
+        // 成功
+        else {
+            auto hMemDC = ::CreateCompatibleDC(hdc);
+            ::ReleaseDC(nullptr, hdc);
+            // 写入数据
+            auto hOldBitmap = static_cast<HBITMAP*>(::SelectObject(hMemDC, hBitmap));
+            ::PatBlt(hMemDC, 0, 0, meta_width, meta_height, WHITENESS);
+            ::SelectObject(hMemDC, hOldBitmap);
+            ::DeleteDC(hMemDC);
+            // 创建掩码位图
+            HBITMAP hMonoBitmap = ::CreateBitmap(meta_width, meta_height, 1, 1, nullptr);
+            // 输入
+            auto lpdwPixel = reinterpret_cast<DWORD*>(pTargetBuffer);
+            for (auto y = 0u; y < meta_height; ++y) {
+                auto src_buffer = m_pBitmap0Buffer + LongUIDefaultBitmapSize * sizeof(RGBQUAD) * y;
+                for (auto x = 0u; x < meta_width; ++x) {
+                    *lpdwPixel = *src_buffer;
+                    src_buffer++;
+                    lpdwPixel++;
+                }
+            }
+            // 填写
+            ICONINFO ii;
+            ii.fIcon = TRUE; ii.xHotspot = 0; ii.yHotspot = 0;
+            ii.hbmMask = hMonoBitmap; ii.hbmColor = hBitmap;
+            // 创建图标
+            hAlphaIcon = ::CreateIconIndirect(&ii);
+            ::DeleteObject(hBitmap);
+            ::DeleteObject(hMonoBitmap);
 #else
         assert(!"CreateIcon just AND & XOR, no alpha channel");
 #endif
+        }
     }
     ShowHR(hr);
     LongUI::SafeRelease(bitmap);

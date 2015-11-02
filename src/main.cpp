@@ -118,6 +118,10 @@ namespace LongUI {
     const GUID IID_IDWriteFactory1 = {
         0x30572f99, 0xdac6, 0x41db,{ 0xa1, 0x6e, 0x04, 0x86, 0x30, 0x7e, 0x60, 0x6a } 
     };
+    // IID_IDWriteFontCollection(a84cee02-3eea-4eee-a827-87c1a02a0fcc)
+    const GUID IID_IDWriteFontCollection = {
+        0xa84cee02, 0x3eea, 0x4eee,{ 0xa8, 0x27, 0x87, 0xc1, 0xa0, 0x2a, 0x0f, 0xcc }
+    };
     // IDWriteFontFileEnumerator("72755049-5ff7-435d-8348-4be97cfa6c7c") 
     const GUID IID_IDWriteFontFileEnumerator = {
         0x72755049, 0x5ff7, 0x435d,{ 0x83, 0x48, 0x4b, 0xe9, 0x7c, 0xfa, 0x6c, 0x7c }
@@ -152,96 +156,84 @@ LongUI::EventArgument::EventArgument(const EventArgument& arg) noexcept {
     this->lr = arg.lr;
 }*/
 
-
-// 初始化库
-class InitializeLibrary {
-    typedef enum PROCESS_DPI_AWARENESS {
-        PROCESS_DPI_UNAWARE = 0,
-        PROCESS_SYSTEM_DPI_AWARE = 1,
-        PROCESS_PER_MONITOR_DPI_AWARE = 2
-    } PROCESS_DPI_AWARENESS;
-    // SetProcessDpiAwareness
-    static HRESULT STDAPICALLTYPE SetProcessDpiAwarenessF(PROCESS_DPI_AWARENESS);
-public:
-    //
-    InitializeLibrary() {
-        // < Win8 ?
-        if (!LongUI::IsWindows8OrGreater()) {
-            ::MessageBoxA(nullptr, "Windows8 at least!", "Unsupported System", MB_ICONERROR);
-            ::ExitProcess(1);
-            return;
+// longui
+namespace LongUI {
+    // 安全释放
+    auto SafeFreeLibrary(HMODULE& dll) noexcept { if (dll) ::FreeLibrary(dll);  dll = nullptr; }
+    // 初始化库
+    class InitializeLibrary {
+        typedef enum PROCESS_DPI_AWARENESS {
+            PROCESS_DPI_UNAWARE = 0,
+            PROCESS_SYSTEM_DPI_AWARE = 1,
+            PROCESS_PER_MONITOR_DPI_AWARE = 2
+        } PROCESS_DPI_AWARENESS;
+        // SetProcessDpiAwareness
+        static HRESULT STDAPICALLTYPE SetProcessDpiAwarenessF(PROCESS_DPI_AWARENESS);
+    public:
+        // ctor
+        InitializeLibrary() noexcept {
+            this->load_shcore();
+            LongUI::LoadProc(LongUI::UIRichEdit::IID_ITextServices2, m_hDllMsftedit, "IID_ITextServices2");
+            LongUI::LoadProc(LongUI::UIRichEdit::CreateTextServices, m_hDllMsftedit, "CreateTextServices");
+            LongUI::LoadProc(LongUI::UIRichEdit::ShutdownTextServices, m_hDllMsftedit, "ShutdownTextServices");
+            LongUI::LoadProc(LongUI::Dll::DCompositionCreateDevice, m_hDlldcomp, "DCompositionCreateDevice");
+            LongUI::LoadProc(LongUI::Dll::D2D1CreateFactory, m_hDlld2d1, "D2D1CreateFactory");
+            LongUI::LoadProc(LongUI::Dll::D3D11CreateDevice, m_hDlld3d11, "D3D11CreateDevice");
+            LongUI::LoadProc(LongUI::Dll::DWriteCreateFactory, m_hDlldwrite, "DWriteCreateFactory");
+            LongUI::LoadProc(LongUI::Dll::CreateDXGIFactory1, m_hDlldxgi, "CreateDXGIFactory1");
+        };
+        //
+        ~InitializeLibrary() noexcept {
+            LongUI::SafeFreeLibrary(m_hDllMsftedit);
+            LongUI::SafeFreeLibrary(m_hDlldcomp);
+            LongUI::SafeFreeLibrary(m_hDlld2d1);
+            LongUI::SafeFreeLibrary(m_hDlld3d11);
+            LongUI::SafeFreeLibrary(m_hDlldwrite);
+            LongUI::SafeFreeLibrary(m_hDlldxgi);
+            LongUI::SafeFreeLibrary(m_hDllShcore);
         }
-        // >= Win8.1 ?
-        if (LongUI::IsWindows8Point1OrGreater()) {
-            m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
-            assert(m_hDllShcore);
-            if (m_hDllShcore) {
-                auto setProcessDpiAwareness =
-                    reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
-                        ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
-                        );
-                assert(setProcessDpiAwareness);
-                if (setProcessDpiAwareness) {
-                    setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
+    private:
+        // load for Shcore
+        void load_shcore() noexcept {
+            // < Win8 ?
+            if (!LongUI::IsWindows8OrGreater()) {
+                ::MessageBoxA(nullptr, "Windows8 at least!", "Unsupported System", MB_ICONERROR);
+                ::ExitProcess(1);
+                return;
+            }
+            // >= Win8.1 ?
+            if (LongUI::IsWindows8Point1OrGreater()) {
+                m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
+                assert(m_hDllShcore);
+                if (m_hDllShcore) {
+                    auto setProcessDpiAwareness =
+                        reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
+                            ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
+                            );
+                    assert(setProcessDpiAwareness);
+                    if (setProcessDpiAwareness) {
+                        setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
+                    }
                 }
             }
         }
-        LongUI::LoadProc(LongUI::UIRichEdit::IID_ITextServices2, m_hDllMsftedit, "IID_ITextServices2");
-        LongUI::LoadProc(LongUI::UIRichEdit::CreateTextServices, m_hDllMsftedit, "CreateTextServices");
-        LongUI::LoadProc(LongUI::UIRichEdit::ShutdownTextServices, m_hDllMsftedit, "ShutdownTextServices");
-        LongUI::LoadProc(LongUI::Dll::DCompositionCreateDevice, m_hDlldcomp, "DCompositionCreateDevice");
-        LongUI::LoadProc(LongUI::Dll::D2D1CreateFactory, m_hDlld2d1, "D2D1CreateFactory");
-        LongUI::LoadProc(LongUI::Dll::D3D11CreateDevice, m_hDlld3d11, "D3D11CreateDevice");
-        LongUI::LoadProc(LongUI::Dll::DWriteCreateFactory, m_hDlldwrite, "DWriteCreateFactory");
-        LongUI::LoadProc(LongUI::Dll::CreateDXGIFactory1, m_hDlldxgi, "CreateDXGIFactory1");
-    };
-    //
-    ~InitializeLibrary() {
-        if (m_hDllMsftedit) {
-            ::FreeLibrary(m_hDllMsftedit);
-            m_hDllMsftedit = nullptr;
-        }
-        if (m_hDlldcomp) {
-            ::FreeLibrary(m_hDlldcomp);
-            m_hDlldcomp = nullptr;
-        }
-        if (m_hDlld2d1) {
-            ::FreeLibrary(m_hDlld2d1);
-            m_hDlld2d1 = nullptr;
-        }
-        if (m_hDlld3d11) {
-            ::FreeLibrary(m_hDlld3d11);
-            m_hDlld3d11 = nullptr;
-        }
-        if (m_hDlldwrite) {
-            ::FreeLibrary(m_hDlldwrite);
-            m_hDlldwrite = nullptr;
-        }
-        if (m_hDlldxgi) {
-            ::FreeLibrary(m_hDlldxgi);
-            m_hDlldxgi = nullptr;
-        }
-        if (m_hDllShcore) {
-            ::FreeLibrary(m_hDllShcore);
-            m_hDllShcore = nullptr;
-        }
-    }
-private:
-    // Msftedit
-    HMODULE     m_hDllMsftedit = ::LoadLibraryW(L"Msftedit.dll");
-    // dcomp
-    HMODULE     m_hDlldcomp = ::LoadLibraryW(L"dcomp.dll");
-    // d2d1
-    HMODULE     m_hDlld2d1 = ::LoadLibraryW(L"d2d1.dll");
-    // d3d11
-    HMODULE     m_hDlld3d11 = ::LoadLibraryW(L"d3d11.dll");
-    // dwrite
-    HMODULE     m_hDlldwrite = ::LoadLibraryW(L"dwrite.dll");
-    // dxgi
-    HMODULE     m_hDlldxgi = ::LoadLibraryW(L"dxgi.dll");
-    // Shcore
-    HMODULE     m_hDllShcore = nullptr;
-} instance;
+    private:
+        // Msftedit
+        HMODULE     m_hDllMsftedit  = ::LoadLibraryW(L"Msftedit.dll");
+        // dcomp
+        HMODULE     m_hDlldcomp     = ::LoadLibraryW(L"dcomp.dll");
+        // d2d1
+        HMODULE     m_hDlld2d1      = ::LoadLibraryW(L"d2d1.dll");
+        // d3d11
+        HMODULE     m_hDlld3d11     = ::LoadLibraryW(L"d3d11.dll");
+        // dwrite
+        HMODULE     m_hDlldwrite    = ::LoadLibraryW(L"dwrite.dll");
+        // dxgi
+        HMODULE     m_hDlldxgi      = ::LoadLibraryW(L"dxgi.dll");
+        // Shcore
+        HMODULE     m_hDllShcore    = nullptr;
+    } instance;
+}
 
 
 // 初始化静态变量
@@ -252,4 +244,3 @@ LongUI::CUIManager          LongUI::CUIManager::s_instance;
 #pragma comment(lib, "winmm")
 #pragma comment(lib, "dxguid")
 #endif
-

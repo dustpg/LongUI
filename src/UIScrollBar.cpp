@@ -88,6 +88,7 @@ void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     return Super::UpdateMarginalWidth();
 }
 
+
 /// <summary>
 /// Updates the width of the marginal.
 /// </summary>
@@ -98,8 +99,8 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     // 需要?
 #ifdef _DEBUG
     if (this->debug_this && m_fMaxIndex > 0.f) {
-        UIManager << DL_Log  << this << "m_fMaxIndex: "
-            << m_fMaxIndex << " -- scrollbar standby?"<< endl;
+        UIManager << DL_Log  << this << L"m_fMaxIndex: "
+            << m_fMaxIndex << L" -- scrollbar standby?"<< endl;
     }
 #endif
 #if 0

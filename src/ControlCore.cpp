@@ -101,12 +101,13 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
                 static long s_dbg_longui_index = 0;
                 buffer[0] = 0;
                 ++s_dbg_longui_index;
-                std::snprintf(
+                auto c = std::snprintf(
                     buffer, 128, 
                     "dbg_longui_%s_id_%ld", 
                     node.name(),
                     s_dbg_longui_index
                     );
+                assert(c > 0 && "bad std::snprintf call");
                 // 小写
                 auto mystrlow = [](char* str) noexcept {
                     while (*str) {
@@ -587,8 +588,8 @@ LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noe
             // 设置
             Helper::GetEnumProperties prop;
             prop.values_list = mode_list;
-            prop.values_length = lengthof(mode_list);
-            prop.bad_match = uint32_t(bad_match);
+            prop.values_length = static_cast<uint32_t>(lengthof(mode_list));
+            prop.bad_match = static_cast<uint32_t>(bad_match);
             auto value = node.attribute(XMLAttribute::MarginalDirection).value();
             // 调用
             return static_cast<MarginalControl>(GetEnumFromString(value, prop));

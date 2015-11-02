@@ -40,9 +40,9 @@ namespace LongUI { namespace DX {
     auto FormatTextXML(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout*;
     // get default LongUI imp  IDWriteFontCollection
     auto CreateFontCollection(
-        IDWriteFactory* factory,
         const wchar_t* filename = L"*.*tf",
-        const wchar_t* folder = L"Fonts"
+        const wchar_t* folder = L"Fonts",
+        bool include_system = true
         ) noexcept->IDWriteFontCollection*;
     // create path-geometry from utf-32 char array using text format
     // fontface: (you can see <LongUI::UIScrollBar::UIScrollBar>)

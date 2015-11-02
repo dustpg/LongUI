@@ -237,6 +237,8 @@ namespace LongUI { namespace Helper {
     inline auto GlobalAllocString(const CUIString& str) noexcept {
         return GlobalAllocString(str.c_str(), static_cast<size_t>(str.length()));
     }
+    // find files to buffer
+    auto FindFilesToBuffer(wchar_t* buf, size_t buf_len, const wchar_t* folder, const wchar_t* name = L"*.*") noexcept -> wchar_t*;
     // ----------------------  xml helper -----------------------------
     // XMLGetValueEnum Properties
     struct GetEnumProperties {

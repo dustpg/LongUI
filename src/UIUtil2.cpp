@@ -60,6 +60,50 @@ LongUINoinline auto LongUI::Helper::GlobalAllocString(const char* src, size_t le
     return impl::alloc_global_string(src, len);
 }
 
+// 查找多个文件
+LongUINoinline auto LongUI::Helper::FindFilesToBuffer(
+    wchar_t* buf, size_t buf_len, 
+    const wchar_t* folder,
+    const wchar_t* name
+    ) noexcept ->wchar_t* {
+    // 初始化
+    WIN32_FIND_DATAW fileinfo;
+#ifdef _DEBUG
+    std::memset(&fileinfo, 0, sizeof(fileinfo));
+#endif
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    ::SetLastError(0);
+    {
+        wchar_t path[MAX_PATH * 2]; path[0] = 0;
+        std::swprintf(path, lengthof(path), L"%ls\\%ls", folder, name);
+        hFile = ::FindFirstFileW(path, &fileinfo);
+    }
+    // 有效
+    if (hFile != INVALID_HANDLE_VALUE) {
+        // 清空
+        DWORD errorcode = ::GetLastError();
+        // 遍历文件
+        while (errorcode != ERROR_NO_MORE_FILES) {
+            // 跳过.开头
+            if (fileinfo.cFileName[0] != '.') {
+                // 写入
+                auto code = std::swprintf(buf, buf_len - 1, L"%ls\\%ls", folder, fileinfo.cFileName);
+                // 缓存不足
+                if (code < 0) break;
+                // 写入
+                buf += code + 1; buf[0] = 0; buf_len -= code + 1;
+            }
+            // 推进
+            ::FindNextFileW(hFile, &fileinfo);
+            // 检查
+            errorcode = ::GetLastError();
+        }
+    }
+    ::FindClose(hFile);
+    return buf;
+}
+
+
 // 创建 CC
 auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint32_t {
     assert(str && "bad argument");
@@ -350,7 +394,7 @@ namespace LongUI { namespace Helper {
         // 设置
         GetEnumProperties prop;
         prop.values_list = ary;
-        prop.values_length = lengthof(ary);
+        prop.values_length = static_cast<uint32_t>(lengthof(ary));
         prop.bad_match = static_cast<uint32_t>(bad_match);
         // 调用
         return static_cast<T>(GetEnumFromString(value, prop));

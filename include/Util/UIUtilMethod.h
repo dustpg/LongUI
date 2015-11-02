@@ -43,6 +43,10 @@ constexpr uint32_t operator"" _longui32(const char* src, size_t len) {
 
 // get IID form type, __uuidof is just impl in MSC
 namespace LongUI {
+    // windows error code to HRESULT
+    inline auto WinCode2HRESULT(UINT x) noexcept ->HRESULT {
+        return ((HRESULT)(x) <= 0 ? ((HRESULT)(x)) : ((HRESULT)(((x)& 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000)));
+    }
     // lengthof
     template<typename T> constexpr auto lengthof(T& t) { UNREFERENCED_PARAMETER(t); return sizeof(t) / sizeof(*t); }
     // white space
@@ -242,6 +246,7 @@ namespace LongUI {
     extern const GUID IID_IDWriteTextRenderer;
     extern const GUID IID_IDWriteInlineObject;
     extern const GUID IID_IDWriteFactory1;
+    extern const GUID IID_IDWriteFontCollection;
     extern const GUID IID_IDWriteFontFileEnumerator;
     extern const GUID IID_IDWriteFontCollectionLoader;
     extern const GUID IID_IDXGISwapChain2;
@@ -296,6 +301,8 @@ namespace LongUI {
     MakeGetIID(IDWriteFontFileEnumerator);
     // IDWriteFontCollectionLoader("cca920e4-52f0-492b-bfa8-29c72ee0a468") 
     MakeGetIID(IDWriteFontCollectionLoader);
+    // IDWriteFontCollectionLoader("cca920e4-52f0-492b-bfa8-29c72ee0a468") 
+    MakeGetIID(IDWriteFontCollection);
     // ITextHost2 ("13E670F5-1A5A-11CF-ABEB-00AA00B65EA1")
     MakeGetIID(ITextHost2);
     // IUIResourceLoader {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}

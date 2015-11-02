@@ -1326,11 +1326,11 @@ HRESULT LongUI::CUIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) 
 
 // 渲染内联对象
 HRESULT LongUI::CUIBasicTextRenderer::DrawInlineObject(
-    void * clientDrawingContext,
+    _In_opt_ void * clientDrawingContext,
     FLOAT originX, FLOAT originY,
-    IDWriteInlineObject * inlineObject,
+    _In_ IDWriteInlineObject * inlineObject,
     BOOL isSideways, BOOL isRightToLeft,
-    IUnknown * clientDrawingEffect) noexcept {
+    _In_opt_ IUnknown * clientDrawingEffect) noexcept {
     UNREFERENCED_PARAMETER(isSideways);
     UNREFERENCED_PARAMETER(isRightToLeft);
     assert(inlineObject && "bad argument");

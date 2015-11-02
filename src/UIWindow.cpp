@@ -117,6 +117,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
         // 创建失败
         else {
             UIManager.ShowError(L"Error! Failed to Create Window", __FUNCTIONW__);
+            return;
         }
     }
     //SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
@@ -1073,9 +1074,10 @@ HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
 HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
     UNREFERENCED_PARAMETER(grfKeyState);
     D2D1_POINT_2F pt2f = { static_cast<float>(pt.x), static_cast<float>(pt.y) };
-    UIControl* control = nullptr;
+    UIControl* control; control = nullptr;
+    // TODO:
     // 检查控件支持
-    if ((control = nullptr)) {
+    if (false) {
         /*LongUI::EventArgument arg;
         ::SetLongUIEventArgument(arg, m_hwnd, pt);
         arg.sender = this;

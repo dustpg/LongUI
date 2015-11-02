@@ -97,6 +97,15 @@ namespace LongUI {
             assert((templateid || function) && "cannot be null in same time");
             return this->create_control(cp, function, LongUINullXMLNode, templateid);
         }
+        // create text format
+        auto CreateTextFormat(
+            _In_z_ WCHAR const* fontFamilyName,
+            DWRITE_FONT_WEIGHT fontWeight,
+            DWRITE_FONT_STYLE fontStyle,
+            DWRITE_FONT_STRETCH fontStretch,
+            FLOAT fontSize,
+            _COM_Outptr_ IDWriteTextFormat** textFormat
+            ) noexcept->HRESULT;
     public: // Create UI Window Zone!!!!!!!!!
         // create ui window with xml string
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
@@ -117,11 +126,6 @@ namespace LongUI {
                 return new(buffer) TTT(node, parent);
             };
             return static_cast<TTT*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer));
-        }
-    public:
-        // create text format
-        auto CreateTextFormat(const wchar_t* fn, DWRITE_FONT_WEIGHT fw, DWRITE_FONT_STYLE sy, DWRITE_FONT_STRETCH st, FLOAT fs, IDWriteTextFormat** tf) noexcept {
-            return m_pDWriteFactory->CreateTextFormat(fn, m_pFontCollection, fw, sy, st, fs, m_szLocaleName, tf);
         }
     public:
         // get theme colr
