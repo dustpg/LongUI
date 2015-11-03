@@ -118,7 +118,7 @@ void __fastcall LongUI::Meta_Render(
                 des_rect.right, des_rect.bottom
             };
             // ---------------------------------------
-            ::memcpy(clip_rects, des_rects, sizeof(des_rects));
+            std::memcpy(clip_rects, des_rects, sizeof(des_rects));
             if (clip_rects[1].left > des_rects[1].right) {
                 std::swap(clip_rects[1].right, des_rects[1].left);
                 std::swap(des_rects[1].right, des_rects[1].left);
@@ -198,7 +198,7 @@ HRESULT LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) noexcept {
 // 设置Unicode字符
 HRESULT LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length) noexcept {
     HRESULT hr = S_OK;
-    if (!length) length = ::wcslen(str);
+    if (!length) length = std::wcslen(str);
     // 全局
     HGLOBAL hGlobal = nullptr;
     // 申请成功
@@ -206,7 +206,7 @@ HRESULT LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length)
     if (hGlobal = ::GlobalAlloc(GMEM_FIXED, size)) {
         LPVOID pdest = ::GlobalLock(hGlobal);
         if (pdest) {
-            ::memcpy(pdest, str, size);
+            std::memcpy(pdest, str, size);
         }
         else {
             hr = E_FAIL;
@@ -1230,9 +1230,9 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
     FILE* file = nullptr;
     if (file = ::_wfopen(file_name, L"rb")) {
         // 获取文件大小
-        ::fseek(file, 0L, SEEK_END);
-        m_cLength = ::ftell(file);
-        ::fseek(file, 0L, SEEK_SET);
+        std::fseek(file, 0L, SEEK_END);
+        m_cLength = std::ftell(file);
+        std::fseek(file, 0L, SEEK_SET);
         // 缓存不足?
         if (m_cLength > m_cLengthReal) {
             m_cLengthReal = m_cLength;
@@ -1240,10 +1240,10 @@ bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
             m_pData = LongUI::NormalAlloc(m_cLength);
         }
         // 读取文件
-        if (m_pData) ::fread(m_pData, 1, m_cLength, file);
+        if (m_pData) std::fread(m_pData, 1, m_cLength, file);
     }
     // 关闭文件
-    if (file) ::fclose(file);
+    if (file) std::fclose(file);
     return file && m_pData;
 }
 
@@ -1295,7 +1295,7 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
     }
     // 写入
     if (m_length + len < LongUIStringBufferLength) {
-        ::memcpy(m_buffer + m_length, str, len * sizeof(wchar_t));
+        std::memcpy(m_buffer + m_length, str, len * sizeof(wchar_t));
         m_length += len;
         str = nullptr;
         // 不flush
@@ -1328,7 +1328,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         m_hConsole = INVALID_HANDLE_VALUE;
     }
     // 先复制
-    ::wcscpy(m_name, LR"(\\.\pipe\)");
+    std::wcscpy(m_name, LR"(\\.\pipe\)");
     wchar_t logger_name_buffer[128];
     // 未给logger?
     if (!config.logger_name) {
@@ -1342,7 +1342,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         config.logger_name = logger_name_buffer;
         ++s_times;
     }
-    ::wcscat(m_name, config.logger_name);
+    std::wcscat(m_name, config.logger_name);
     // 创建管道
     m_hConsole = ::CreateNamedPipeW(
         m_name,
@@ -1559,9 +1559,9 @@ auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
                 buffer, LongUIStringBufferLength,
                 L"[%c]\r\n", std::localtime(&time)
                 );
-            ::fwrite(buffer, sizeof(wchar_t), std::wcslen(buffer), m_pLogFile);
+            std::fwrite(buffer, sizeof(wchar_t), std::wcslen(buffer), m_pLogFile);
         }
-        ::fwrite(string, sizeof(wchar_t), std::wcslen(string), m_pLogFile);
+        std::fwrite(string, sizeof(wchar_t), std::wcslen(string), m_pLogFile);
 
     }
 }
@@ -1911,23 +1911,23 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
         }
     case LongUI::AnimationType::Type_SineEaseIn:
         // 正弦渐入     
-        return ::sin((p - 1.f) * EZ_PI_2) + 1.f;
+        return std::sin((p - 1.f) * EZ_PI_2) + 1.f;
     case LongUI::AnimationType::Type_SineEaseOut:
         // 正弦渐出     
-        return ::sin(p * EZ_PI_2);
+        return std::sin(p * EZ_PI_2);
     case LongUI::AnimationType::Type_SineEaseInOut:
         // 正弦出入     
-        return 0.5f * (1.f - ::cos(p * EZ_PI));
+        return 0.5f * (1.f - std::cos(p * EZ_PI));
     case LongUI::AnimationType::Type_CircularEaseIn:
         // 四象圆弧
-        return 1.f - ::sqrt(1.f - (p * p));
+        return 1.f - std::sqrt(1.f - (p * p));
     case LongUI::AnimationType::Type_CircularEaseOut:
         // 二象圆弧
-        return ::sqrt((2.f - p) * p);
+        return std::sqrt((2.f - p) * p);
     case LongUI::AnimationType::Type_CircularEaseInOut:
         // 圆弧出入
         if (p < 0.5f) {
-            return 0.5f * (1.f - ::sqrt(1.f - 4.f * (p * p)));
+            return 0.5f * (1.f - std::sqrt(1.f - 4.f * (p * p)));
         }
         else {
             return 0.5f * (::sqrt(-((2.f * p) - 3.f) * ((2.f * p) - 1.f)) + 1.f);
@@ -1937,50 +1937,50 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
         return (p == 0.f) ? (p) : (::pow(2.f, 10.f * (p - 1.f)));
     case LongUI::AnimationType::Type_ExponentialEaseOut:
         // 指数渐出     f(x) =  -2^(-10x) + 1
-        return (p == 1.f) ? (p) : (1.f - ::powf(2.f, -10.f * p));
+        return (p == 1.f) ? (p) : (1.f - std::powf(2.f, -10.f * p));
     case LongUI::AnimationType::Type_ExponentialEaseInOut:
         // 指数出入
         // [0,0.5)      f(x) = (1/2)2^(10(2x - 1)) 
         // [0.5,1.f]    f(x) = -(1/2)*2^(-10(2x - 1))) + 1 
         if (p == 0.0f || p == 1.0f) return p;
         if (p < 0.5f) {
-            return 0.5f * ::powf(2.f, (20.f * p) - 10.f);
+            return 0.5f * std::powf(2.f, (20.f * p) - 10.f);
         }
         else {
-            return -0.5f * ::powf(2.f, (-20.f * p) + 1.f) + 1.f;
+            return -0.5f * std::powf(2.f, (-20.f * p) + 1.f) + 1.f;
         }
     case LongUI::AnimationType::Type_ElasticEaseIn:
         // 弹性渐入
-        return ::sin(13.f * EZ_PI_2 * p) * ::pow(2.f, 10.f * (p - 1.f));
+        return std::sin(13.f * EZ_PI_2 * p) * std::pow(2.f, 10.f * (p - 1.f));
     case LongUI::AnimationType::Type_ElasticEaseOut:
         // 弹性渐出
-        return ::sin(-13.f * EZ_PI_2 * (p + 1.f)) * ::powf(2.f, -10.f * p) + 1.f;
+        return std::sin(-13.f * EZ_PI_2 * (p + 1.f)) * std::powf(2.f, -10.f * p) + 1.f;
     case LongUI::AnimationType::Type_ElasticEaseInOut:
         // 弹性出入
         if (p < 0.5f) {
-            return 0.5f * ::sin(13.f * EZ_PI_2 * (2.f * p)) * ::pow(2.f, 10.f * ((2.f * p) - 1.f));
+            return 0.5f * std::sin(13.f * EZ_PI_2 * (2.f * p)) * std::pow(2.f, 10.f * ((2.f * p) - 1.f));
         }
         else {
-            return 0.5f * (::sin(-13.f * EZ_PI_2 * ((2.f * p - 1.f) + 1.f)) * ::pow(2.f, -10.f * (2.f * p - 1.f)) + 2.f);
+            return 0.5f * (::sin(-13.f * EZ_PI_2 * ((2.f * p - 1.f) + 1.f)) * std::pow(2.f, -10.f * (2.f * p - 1.f)) + 2.f);
         }
     case LongUI::AnimationType::Type_BackEaseIn:
         // 回退渐入
-        return  p * p * p - p * ::sin(p * EZ_PI);
+        return  p * p * p - p * std::sin(p * EZ_PI);
     case LongUI::AnimationType::Type_BackEaseOut:
         // 回退渐出
     {
         register float f = (1.f - p);
-        return 1.f - (f * f * f - f * ::sin(f * EZ_PI));
+        return 1.f - (f * f * f - f * std::sin(f * EZ_PI));
     }
     case LongUI::AnimationType::Type_BackEaseInOut:
         // 回退出入
         if (p < 0.5f) {
             register float f = 2.f * p;
-            return 0.5f * (f * f * f - f * ::sin(f * EZ_PI));
+            return 0.5f * (f * f * f - f * std::sin(f * EZ_PI));
         }
         else {
             register float f = (1.f - (2 * p - 1.f));
-            return 0.5f * (1.f - (f * f * f - f * ::sin(f * EZ_PI))) + 0.5f;
+            return 0.5f * (1.f - (f * f * f - f * std::sin(f * EZ_PI))) + 0.5f;
         }
     case LongUI::AnimationType::Type_BounceEaseIn:
         // 反弹渐入

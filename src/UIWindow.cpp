@@ -137,7 +137,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
     // 所在窗口就是自己
     m_pWindow = this;
     // 清零
-    ::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
+    std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
     // 自动显示窗口
     if (node.attribute("autoshow").as_bool(true)) {
         ::ShowWindow(m_hwnd, SW_SHOW);
@@ -386,7 +386,7 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
 #ifdef _DEBUG
         static RECT s_rects[LongUIDirtyControlSize + 2];
         if (this->debug_show) {
-            ::memcpy(s_rects, present.pDirtyRects, present.DirtyRectsCount * sizeof(RECT));
+            std::memcpy(s_rects, present.pDirtyRects, present.DirtyRectsCount * sizeof(RECT));
             present.pDirtyRects = s_rects;
             s_rects[present.DirtyRectsCount] = { 0, 0, 128, 35 };
             ++present.DirtyRectsCount;
@@ -432,7 +432,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
     // 呈现参数设置
     RECT rcScroll = { 0, 0, LONG(this->window_size.width), LONG(this->window_size.height) };
     RECT dirtyRects[LongUIDirtyControlSize + 1]; 
-    ::memcpy(dirtyRects, m_dirtyRects, sizeof(dirtyRects));
+    std::memcpy(dirtyRects, m_dirtyRects, sizeof(dirtyRects));
     DXGI_PRESENT_PARAMETERS present_parameters;
     present_parameters.DirtyRectsCount = 0;
     present_parameters.pDirtyRects = dirtyRects;
@@ -442,6 +442,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
     this->set_present_parameters(present_parameters);
     // 呈现
     HRESULT hr = m_pSwapChain->Present1(1, 0, &present_parameters);
+    longui_debug_hr(hr, L"m_pSwapChain->Present1 faild");
     // 收到重建消息时 重建UI
 #ifdef _DEBUG
     assert(SUCCEEDED(hr));
@@ -478,7 +479,7 @@ void LongUI::UIWindow::Update() noexcept {
     {
         auto current_unit = m_uiRenderQueue.GetCurrentUnit();
         m_aUnitNow.length = current_unit->length;
-        ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
+        std::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
     }
     // 刷新前
     if (this->IsControlLayoutChanged()) {
@@ -545,7 +546,7 @@ void LongUI::UIWindow::Render() const noexcept  {
         {
             assert(m_aUnitNow.length < LongUIDirtyControlSize);
             length_for_units = m_aUnitNow.length;
-            ::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
+            std::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
 #if 0
             // 一般就几个, 冒泡完爆std::sort
             LongUI::BubbleSort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
@@ -831,6 +832,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
             2, rect_right, rect_bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 
             DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
             );
+        longui_debug_hr(hr, L"m_pSwapChain->ResizeBuffers faild");
         // 检查
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
             UIManager.RecreateResources();
@@ -839,6 +841,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
         // 利用交换链获取Dxgi表面
         if (SUCCEEDED(hr)) {
             hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));
+            longui_debug_hr(hr, L"m_pSwapChain->GetBuffer faild");
         }
         // 利用Dxgi表面创建位图
         if (SUCCEEDED(hr)) {
@@ -853,6 +856,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
                 &bitmapProperties,
                 &m_pTargetBimtap
                 );
+            longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
         }
         // 重建失败?
         if (FAILED(hr)) {
@@ -903,6 +907,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
                 nullptr,
                 &pSwapChain
                 );
+            longui_debug_hr(hr, L"UIManager_DXGIFactory->CreateSwapChainForComposition faild");
         }
         else {
             // 一般桌面应用程序
@@ -917,6 +922,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
                 nullptr,
                 &pSwapChain
                 );
+            longui_debug_hr(hr, L"UIManager_DXGIFactory->CreateSwapChainForHwnd faild");
         }
     }
     // 获取交换链V2
@@ -925,6 +931,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
             LongUI::IID_IDXGISwapChain2,
             reinterpret_cast<void**>(&m_pSwapChain)
             );
+        longui_debug_hr(hr, L"pSwapChain->QueryInterface LongUI::IID_IDXGISwapChain2 faild");
     }
     // 获取垂直等待事件
     if (SUCCEEDED(hr)) {
@@ -933,10 +940,12 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     /*// 确保DXGI队列里边不会超过一帧
     if (SUCCEEDED(hr)) {
         hr = UIManager_DXGIDevice->SetMaximumFrameLatency(1);
+        longui_debug_hr(hr, L"UIManager_DXGIDevice->SetMaximumFrameLatency faild");
     }*/
     // 利用交换链获取Dxgi表面
     if (SUCCEEDED(hr)) {
         hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));
+        longui_debug_hr(hr, L"m_pSwapChain->GetBuffer faild");
     }
     // 利用Dxgi表面创建位图
     if (SUCCEEDED(hr)) {
@@ -951,6 +960,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
             &bitmapProperties,
             &m_pTargetBimtap
             );
+        longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
     }
     // 使用DComp
     if (this->window_type == Type_Layered) {
@@ -960,28 +970,34 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
                 UIManager_DXGIDevice,
                 LongUI_IID_PV_ARGS(m_pDcompDevice)
                 );
+            longui_debug_hr(hr, L"DCompositionCreateDevice faild");
         }
         // 创建直接组合(Direct Composition)目标
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->CreateTargetForHwnd(
                 m_hwnd, true, &m_pDcompTarget
                 );
+            longui_debug_hr(hr, L"m_pDcompDevice->CreateTargetForHwnd faild");
         }
         // 创建直接组合(Direct Composition)视觉
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->CreateVisual(&m_pDcompVisual);
+            longui_debug_hr(hr, L"m_pDcompDevice->CreateVisual faild");
         }
         // 设置当前交换链为视觉内容
         if (SUCCEEDED(hr)) {
             hr = m_pDcompVisual->SetContent(m_pSwapChain);
+            longui_debug_hr(hr, L"m_pDcompVisual->SetContent faild");
         }
         // 设置当前视觉为窗口目标
         if (SUCCEEDED(hr)) {
             hr = m_pDcompTarget->SetRoot(m_pDcompVisual);
+            longui_debug_hr(hr, L"m_pDcompTarget->SetRoot faild");
         }
         // 向系统提交
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->Commit();
+            longui_debug_hr(hr, L"m_pDcompDevice->Commit faild");
         }
     }
     // 错误

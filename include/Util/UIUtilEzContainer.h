@@ -204,7 +204,7 @@ namespace LongUI { namespace EzContainer {
         static auto new_table(size_t cap) noexcept {
             auto table = LongUI::SmallAllocT<Unit*>(cap);
             if (table) {
-                ::memset(table, 0, sizeof(void*) * cap);
+                std::memset(table, 0, sizeof(void*) * cap);
             }
             return table;
         };
@@ -508,7 +508,7 @@ namespace LongUI { namespace EzContainer {
         // alloc
         static inline auto alloc(uint32_t len) noexcept { return reinterpret_cast<T*>(LongUI::SmallAlloc(len * sizeof(T))); }
         // copy data
-        static inline auto copy_data(T* des, T* src, uint32_t len) noexcept {  if (des && len) ::memcpy(des, src, sizeof(T) * len); }
+        static inline auto copy_data(T* des, T* src, uint32_t len) noexcept {  if (des && len) std::memcpy(des, src, sizeof(T) * len); }
         // nice length
         static inline auto nice_length(uint32_t len) noexcept { return (len + (len + 9) / 2) & (~3); };
         // do insert

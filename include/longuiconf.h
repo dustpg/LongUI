@@ -9,9 +9,9 @@
 // longui namespace
 namespace LongUI {
     // alloc for normal space
-    static auto NormalAlloc(size_t length) noexcept { return ::malloc(length); }
+    static auto NormalAlloc(size_t length) noexcept { return std::malloc(length); }
     // free for normal space
-    static auto NormalFree(void* address) noexcept { return ::free(address); }
+    static auto NormalFree(void* address) noexcept { return std::free(address); }
 #ifndef _DEBUG
     // alloc for small space
     static auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
@@ -19,18 +19,10 @@ namespace LongUI {
     static auto SmallFree(void* address) noexcept { return ::dlfree(address); }
 #else
     // alloc for small space
-    static auto SmallAlloc(size_t length) noexcept { return ::malloc(length); }
+    static auto SmallAlloc(size_t length) noexcept { return std::malloc(length); }
     // free for small space
-    static auto SmallFree(void* address) noexcept { return ::free(address); }
+    static auto SmallFree(void* address) noexcept { return std::free(address); }
 #endif
-    // template helper
-    template<typename T> static auto NormalAllocT(T*, size_t length) noexcept {
-        return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); 
-    }
-    // template helper
-    template<typename T> static auto SmallAllocT(T*, size_t length) noexcept { 
-        return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); 
-    }
     // template helper
     template<typename T> static auto NormalAllocT(size_t length) noexcept {
         return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); 

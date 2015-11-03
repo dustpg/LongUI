@@ -21,9 +21,9 @@ namespace LongUI { namespace impl {
             if (*pHasCurrentFile = *m_pFilePathNow) {
                 LongUI::SafeRelease(m_pCurFontFie);
                 hr = m_pFactory->CreateFontFileReference(m_pFilePathNow, nullptr, &m_pCurFontFie);
-                assert(SUCCEEDED(hr) && "CreateFontFileReference failed");
+                longui_debug_hr(hr, L" m_pFactory->CreateFontFileReference faild");
                 if (*pHasCurrentFile = SUCCEEDED(hr)) {
-                    m_pFilePathNow += ::wcslen(m_pFilePathNow);
+                    m_pFilePathNow += std::wcslen(m_pFilePathNow);
                     ++m_pFilePathNow;
                 }
             }
@@ -109,16 +109,16 @@ auto LongUI::DX::CreateFontCollection(
         auto hr = S_OK;
         impl::LongUIFontCollectionLoader loader;
         hr = UIManager_DWriteFactory->RegisterFontCollectionLoader(&loader);
-        assert(SUCCEEDED(hr));
+        longui_debug_hr(hr, L"UIManager_DWriteFactory->RegisterFontCollectionLoader faild");
         hr = UIManager_DWriteFactory->CreateCustomFontCollection(
             &loader,
             buffer,
             static_cast<uint32_t>(reinterpret_cast<uint8_t*>(itr + 1) - reinterpret_cast<uint8_t*>(buffer)),
             &collection
             );
-        assert(SUCCEEDED(hr));
+        longui_debug_hr(hr, L" UIManager_DWriteFactory->CreateCustomFontCollection faild");
         hr = UIManager_DWriteFactory->UnregisterFontCollectionLoader(&loader);
-        assert(SUCCEEDED(hr));
+        longui_debug_hr(hr, L" UIManager_DWriteFactory->UnregisterFontCollectionLoader faild");
     }
     LongUI::NormalFree(buffer);
     return collection;
@@ -147,46 +147,26 @@ auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextF
     // 成功
     if (SUCCEEDED(hr)) {
         register auto format = *fmt;
-#ifdef _DEBUG
-        HRESULT thr = S_OK;
         // 设置 Tab宽度
-        thr = 
-        format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
-        assert(thr == S_OK && "bad SetIncrementalTabStop");
+        hr = format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
+        longui_debug_hr(hr, L"failed format->SetIncrementalTabStop  " << ((prop.tab == 0.f ? prop.size * 4.f : prop.tab)));
         // 设置段落排列方向
-        thr = 
-        format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
-        assert(thr == S_OK && "bad SetFlowDirection");
+        hr = format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
+        longui_debug_hr(hr, L"failed format->SetFlowDirection  " << long(prop.flow));
         // 设置段落(垂直)对齐
-        thr = 
-        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
-        assert(thr == S_OK && "bad SetParagraphAlignment");
+        hr = format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
+        longui_debug_hr(hr, L"failed format->SetParagraphAlignment  " << long(prop.valign));
         // 设置文本(水平)对齐
-        thr = 
-        format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
-        assert(thr == S_OK && "bad SetTextAlignment");
+        hr = format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
+        longui_debug_hr(hr, L"failed format->SetTextAlignmen  t" << long(prop.halign));
         // 设置阅读进行方向
-        thr = 
-        format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
-        assert(thr == S_OK && "bad SetReadingDirection");
+        hr = format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
+        longui_debug_hr(hr, L"failed format->SetReadingDirection  " << long(prop.reading));
         // 设置自动换行
-        thr = 
-        format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
-        assert(thr == S_OK && "bad SetWordWrapping");
-#else
-        // 设置 Tab宽度
-        format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
-        // 设置段落排列方向
-        format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
-        // 设置段落(垂直)对齐
-        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
-        // 设置文本(水平)对齐
-        format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
-        // 设置阅读进行方向
-        format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
-        // 设置自动换行
-        format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
-#endif
+        hr = format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
+        longui_debug_hr(hr, L"failed format->SetWordWrapping  " << long(prop.wrapping));
+        // 设置
+        hr = S_OK;
     }
     return hr;
 }
@@ -371,21 +351,25 @@ auto LongUI::DX::CreateTextPathGeometry(
         // 获取字体名称
         if (SUCCEEDED(hr)) {
             hr = format->GetFontFamilyName(fontname_buffer, MAX_PATH);
+            longui_debug_hr(hr, L"failed: format->GetFontFamilyName " << fontname_buffer);
         }
         // 获取字体集
         if (SUCCEEDED(hr)) {
             hr = format->GetFontCollection(&collection);
+            longui_debug_hr(hr, L"failed: format->GetFontCollection ");
         }
         // 查找索引
         uint32_t index = 0; BOOL exists = FALSE;
         if (SUCCEEDED(hr)) {
             hr = collection->FindFamilyName(fontname_buffer, &index, &exists);
+            longui_debug_hr(hr, L"failed: collection->FindFamilyName " << fontname_buffer);
         }
         // 获取字体族
         if (SUCCEEDED(hr)) {
             // 不存在也算错误
             if (exists) {
                 hr = collection->GetFontFamily(index, &family);
+                longui_debug_hr(hr, L"failed: collection->GetFontFamily " << long(index));
             }
             else {
                 hr = E_FAIL;
@@ -399,19 +383,24 @@ auto LongUI::DX::CreateTextPathGeometry(
                 format->GetFontStyle(),
                 &font
                 );
+            longui_debug_hr(hr, L"failed: family->GetFirstMatchingFont ");
+
         }
         // 创建字形
         if (SUCCEEDED(hr)) {
             hr = font->CreateFontFace(&fontface);
+            longui_debug_hr(hr, L"failed: font->CreateFontFace ");
         }
     }
     // 创建几何
     if (SUCCEEDED(hr)) {
         hr = factory->CreatePathGeometry(&pathgeometry);
+        longui_debug_hr(hr, L"failed: factory->CreatePathGeometry ");
         ID2D1GeometrySink* sink = nullptr;
         // 打开Sink
         if (SUCCEEDED(hr)) {
             hr = pathgeometry->Open(&sink);
+            longui_debug_hr(hr, L"failed: pathgeometry->Open ");
         }
         // 创建索引编号
         if (SUCCEEDED(hr)) {
@@ -421,6 +410,7 @@ auto LongUI::DX::CreateTextPathGeometry(
                 string_length, 
                 glyph_indices_buffer.GetData()
                 );
+            longui_debug_hr(hr, L"failed: fontface->GetGlyphIndices ");
         }
         // 创建轮廓路径几何
         if (SUCCEEDED(hr)) {
@@ -431,10 +421,12 @@ auto LongUI::DX::CreateTextPathGeometry(
                 string_length,
                 true, true, sink
                 );
+            longui_debug_hr(hr, L"failed: fontface->GetGlyphRunOutline ");
         }
         // 关闭路径
         if (SUCCEEDED(hr)) {
-            sink->Close();
+            hr = sink->Close();
+            longui_debug_hr(hr, L"failed: sink->Close ");
         }
         LongUI::SafeRelease(sink);
     }
@@ -699,7 +691,7 @@ namespace LongUI { namespace DX {
         assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
         // 创建 Typography
         auto hr = UIManager_DWriteFactory->CreateTypography(&typography);
-        assert(SUCCEEDED(hr));
+        longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTypography ");
         assert(std::strlen(buffer) % 5 == 0 && "bad font feature tag");
         // CPU 大小端检查
         static_assert(uint32_t(DWRITE_FONT_FEATURE_TAG_CASE_SENSITIVE_FORMS) == uint32_t("case"_longui32), "check cpu type");
@@ -717,7 +709,7 @@ namespace LongUI { namespace DX {
                 feature.nameTag = static_cast<DWRITE_FONT_FEATURE_TAG>(tmp);
                 auto thr = typography->AddFontFeature(feature);
                 UNREFERENCED_PARAMETER(thr);
-                assert(thr == S_OK);
+                longui_debug_hr(thr, L"failed: typography->AddFontFeature " << long(feature.nameTag));
             }
         }
         return typography;
@@ -897,6 +889,10 @@ namespace LongUI { namespace DX {
                 cfg.width, cfg.height,
                 &layout
                 );
+#ifdef _DEBUG
+            text[length] = 0;
+            longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTextLayout('" << text << L"') with format " << static_cast<void*>(cfg.format));
+#endif
         }
         // 数据末尾
         auto setend = stack_set.top;
@@ -1012,15 +1008,23 @@ auto LongUI::DX::SaveAsImageFile(
                 &prop,
                 &readable_bitmap
                 );
+#ifdef _DEBUG
+            D2D1_POINT_2F ppppt;
+            ppppt.x = float(bitmap_size.width);
+            ppppt.y = float(bitmap_size.height);
+            longui_debug_hr(hr, L"failed: UIManager_RenderTarget->CreateBitmap " << ppppt);
+#endif
         }
     }
     // 复制位图
     if (SUCCEEDED(hr)) {
         hr = readable_bitmap->CopyFromBitmap(nullptr, bitmap, nullptr);
+        longui_debug_hr(hr, L"failed: readable_bitmap->CopyFromBitmap");
     }
     // 映射数据
     if (SUCCEEDED(hr)) {
         hr = readable_bitmap->Map(D2D1_MAP_OPTIONS_READ, &rect);
+        longui_debug_hr(hr, L"failed: readable_bitmap->Map");
     }
     // 处理
     if (SUCCEEDED(hr)) {
@@ -1033,7 +1037,9 @@ auto LongUI::DX::SaveAsImageFile(
         prop.height = bitmap_size.height;
         prop.pitch = rect.pitch;
         auto hr1 = LongUI::DX::SaveAsImageFile(prop, file_name);
+        longui_debug_hr(hr1, L"failed: DX::SaveAsImageFile");
         auto hr2 = readable_bitmap->Unmap();
+        longui_debug_hr(hr2, L"failed: readable_bitmap->Unmap");
         // 检查错误
         if (SUCCEEDED(hr1)) {
             hr = SUCCEEDED(hr2) ? S_OK : hr2;
@@ -1076,14 +1082,17 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
                 prop.bits,
                 &pWICBitmap
                 );
+            longui_debug_hr(hr, L"failed: prop.factory->CreateBitmapFromMemory");
         }
         // 创建流
         if (SUCCEEDED(hr)) {
             hr = prop.factory->CreateStream(&pStream);
+            longui_debug_hr(hr, L"failed: prop.factory->CreateStream");
         }
         // 从文件初始化
         if (SUCCEEDED(hr)) {
             hr = pStream->InitializeFromFilename(file_name, GENERIC_WRITE);
+            longui_debug_hr(hr, L"failed: pStream->InitializeFromFilename  " << file_name);
         }
         // 创建编码器
         if (SUCCEEDED(hr)) {
@@ -1092,39 +1101,48 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
                 nullptr,
                 &pEncoder
                 );
+            longui_debug_hr(hr, L"failed: prop.factory->CreateEncoder");
         }
         // 初始化编码器
         if (SUCCEEDED(hr)) {
             hr = pEncoder->Initialize(pStream, WICBitmapEncoderNoCache);
+            longui_debug_hr(hr, L"failed: pEncoder->Initialize");
         }
         // 创建新的一帧
         if (SUCCEEDED(hr)) {
             hr = pEncoder->CreateNewFrame(&pFrameEncode, nullptr);
+            longui_debug_hr(hr, L"failed: pEncoder->CreateNewFrame");
         }
         // 初始化帧编码器
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->Initialize(nullptr);
+            longui_debug_hr(hr, L"failed: pFrameEncode->Initialize");
         }
         // 设置大小
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->SetSize(prop.width, prop.height);
+            longui_debug_hr(hr, L"failed: pFrameEncode->SetSize " << long(prop.width) << L", " << long(prop.height));
         }
         // 设置格式
         WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->SetPixelFormat(&format);
+            longui_debug_hr(hr, L"failed: pFrameEncode->SetPixelFormat");
         }
         // 写入源数据
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->WriteSource(pWICBitmap, nullptr);
+            longui_debug_hr(hr, L"failed: pFrameEncode->WriteSource");
         }
         // 提交帧编码器
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->Commit();
+            longui_debug_hr(hr, L"failed: pFrameEncode->Commit");
         }
         // 提交编码
         if (SUCCEEDED(hr)) {
             hr = pEncoder->Commit();
+            longui_debug_hr(hr, L"failed: pEncoder->Commit");
         }
         // 扫尾处理
         LongUI::SafeRelease(pWICBitmap);

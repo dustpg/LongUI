@@ -18,7 +18,7 @@ int wmain(int argc, wchar_t* argv[]) {
     auto writefile = ::_wfopen(path, L"wb");
     if (!writefile) return -1;
     char bom[] = { char(0xEF), char(0xBB), char(0xBF) };
-    ::fwrite(bom, 1, 3, writefile);
+    std::fwrite(bom, 1, 3, writefile);
     for (auto i = 3; i < argc; ++i) {
         auto headerfile = argv[i];
         char maker[2];
@@ -46,7 +46,7 @@ int wmain(int argc, wchar_t* argv[]) {
                 char buf[FILE_BUFFER_LENGTH +1];
                 size_t read_count = 0;
                 bool first = true;
-                while ((read_count = ::fread(buf, 1, FILE_BUFFER_LENGTH, file))) {
+                while ((read_count = std::fread(buf, 1, FILE_BUFFER_LENGTH, file))) {
                     auto eos = buf + read_count;
                     *eos = 0;
                     auto realdata = buf;
@@ -66,10 +66,10 @@ int wmain(int argc, wchar_t* argv[]) {
                         }
                     }
                     first = false;
-                    ::fwrite(realdata, 1, read_count, writefile);
+                    std::fwrite(realdata, 1, read_count, writefile);
                 }
-                ::fwrite("\r\n", 1, 2, writefile);
-                ::fclose(file);
+                std::fwrite("\r\n", 1, 2, writefile);
+                std::fclose(file);
             }
             else {
                 return -1;
@@ -78,7 +78,7 @@ int wmain(int argc, wchar_t* argv[]) {
         _findclose(handle);
         handle = -1;
     }
-    ::fclose(writefile);
+    std::fclose(writefile);
     std::wprintf(L"%ls: write finished\r\n", argv[2]);
     return 0;
 }

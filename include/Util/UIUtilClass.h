@@ -411,7 +411,7 @@ namespace LongUI {
         ~CUIDefaultConfigure() noexcept {
 #ifdef _DEBUG
             if (m_pLogFile) {
-                ::fclose(m_pLogFile);
+                std::fclose(m_pLogFile);
                 m_pLogFile = nullptr;
             }
 #endif
@@ -573,7 +573,7 @@ namespace LongUI {
             // align operation
             auto buffer = reinterpret_cast<T*>(this->alloc(sizeof(T)*(len + 1)));
             if (!buffer) return nullptr;
-            ::memcpy(buffer, str, sizeof(T) * len);
+            std::memcpy(buffer, str, sizeof(T) * len);
             buffer[len] = 0;
             return buffer;
         }

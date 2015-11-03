@@ -717,7 +717,7 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 // ------------------------------ UIContainer -----------------------------
 // UIContainer 构造函数
 LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), marginal_control() {
-    ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
+    std::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;

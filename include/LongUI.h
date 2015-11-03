@@ -70,6 +70,8 @@
 #define ShowHR(hr) if(FAILED(hr)) ShowErrorWithHR(hr)
 
 #ifdef _DEBUG
+// show hr error in debug
+#define longui_debug_hr(hr, msg) if (FAILED(hr)) UIManager << DL_Error << msg << LongUI::endl
 // show hr error
 #define ShowErrorWithHR(hr) { \
     wchar_t buffer_tmp[LongUI::LongUIStringBufferLength];\
@@ -93,15 +95,16 @@
     UIManager.ShowError(str, buffer_tmp);\
 }
 
-
 // debug level
-#define DL_None     LongUI::DebugStringLevel::DLevel_None    << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Log      LongUI::DebugStringLevel::DLevel_Log     << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Hint     LongUI::DebugStringLevel::DLevel_Hint    << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Warning  LongUI::DebugStringLevel::DLevel_Warning << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Error    LongUI::DebugStringLevel::DLevel_Error   << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
-#define DL_Fatal    LongUI::DebugStringLevel::DLevel_Fatal   << LongUI::Interfmt(L"<%5zu@%ls>", UIManager.frame_id, __FUNCTIONW__)
+#define DL_None     LongUI::DebugStringLevel::DLevel_None    << LongUI::Interfmt(L"<%5zuf@%4dl@%ls>", UIManager.frame_id, int(__LINE__), __FUNCTIONW__)
+#define DL_Log      LongUI::DebugStringLevel::DLevel_Log     << LongUI::Interfmt(L"<%5zuf@%4dl@%ls>", UIManager.frame_id, int(__LINE__), __FUNCTIONW__)
+#define DL_Hint     LongUI::DebugStringLevel::DLevel_Hint    << LongUI::Interfmt(L"<%5zuf@%4dl@%ls>", UIManager.frame_id, int(__LINE__), __FUNCTIONW__)
+#define DL_Warning  LongUI::DebugStringLevel::DLevel_Warning << LongUI::Interfmt(L"<%5zuf@%4dl@%ls>", UIManager.frame_id, int(__LINE__), __FUNCTIONW__)
+#define DL_Error    LongUI::DebugStringLevel::DLevel_Error   << LongUI::Interfmt(L"<%5zuf@%4dl@%ls>", UIManager.frame_id, int(__LINE__), __FUNCTIONW__)
+#define DL_Fatal    LongUI::DebugStringLevel::DLevel_Fatal   << LongUI::Interfmt(L"<%5zuf@%4dl@%ls>", UIManager.frame_id, int(__LINE__), __FUNCTIONW__)
 #else
+// show hr error in debug
+#define longui_debug_hr(hr, msg) (void)0;
 // show hr error
 #define ShowErrorWithHR(hr) UIManager.ShowError(hr)
 // show string error
@@ -462,7 +465,7 @@ namespace LongUI {
     // get full class name
     static auto&DebugGetFullClassName() noexcept {
         static DebugEventInformation s_dbgInfomation;
-        ::memset(&s_dbgInfomation, 0, sizeof(s_dbgInfomation));
+        std::memset(&s_dbgInfomation, 0, sizeof(s_dbgInfomation));
         s_dbgInfomation.infomation = DebugInformation::Information_GetFullClassName;
         return s_dbgInfomation;
     }

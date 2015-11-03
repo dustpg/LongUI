@@ -66,7 +66,7 @@ long ConsoleLoop(void) {
         if (!bSuccess && ::GetLastError() != ERROR_MORE_DATA) break;
         // 写入到STDOUT
         chBuf[cbRead / sizeof(wchar_t)] = 0;
-        ::wprintf(chBuf);
+        std::wprintf(chBuf);
         /*if (!WriteFile(g_hConsole, chBuf, cbRead, &cbWritten, nullptr)) {
             break;
         }*/
@@ -202,7 +202,7 @@ int wmain(int argc, wchar_t* argv[]){
     }
 
     wchar_t szPipename[64];
-    ::swprintf(szPipename, lengthof(szPipename), L"\\\\.\\pipe\\%s", argv[1]);
+    std::swprintf(szPipename, lengthof(szPipename), L"\\\\.\\pipe\\%s", argv[1]);
     // 主循环
     while (true) {
         g_hPipe = ::CreateFileW(
@@ -224,7 +224,7 @@ int wmain(int argc, wchar_t* argv[]){
             return 0;
         }
         // 忙时等待
-        ::wprintf(L"Wait for pipe...");
+        std::wprintf(L"Wait for pipe...");
         if (!::WaitNamedPipeW(szPipename, 20000)) {
             ::MessageBoxW(nullptr, L"Could not open pipe(2)", L"FAILED", MB_ICONERROR);
             (void)::getchar();
@@ -268,7 +268,7 @@ int wmain(int argc, wchar_t* argv[]){
         header[len] = 0;
         // 设置标题
         {
-            if ((p1 = ::wcsstr(header, L"TITLE:"))) {
+            if ((p1 = std::wcsstr(header, L"TITLE:"))) {
                 p1 += 6;
                 while (*p1 == L' ' || *p1 == L'\t')
                     p1++;
@@ -285,7 +285,7 @@ int wmain(int argc, wchar_t* argv[]){
         }
         {
             // 设置位置
-            if ((p1 = ::wcsstr(header, L"POS:"))) {
+            if ((p1 = std::wcsstr(header, L"POS:"))) {
                 p1 += 4;
                 while (*p1 == L' ' || *p1 == L'\t')
                     p1++;
@@ -307,7 +307,7 @@ int wmain(int argc, wchar_t* argv[]){
         }
         {
             // 设置属性
-            if ((p1 = ::wcsstr(header, L"ATTR:"))) {
+            if ((p1 = std::wcsstr(header, L"ATTR:"))) {
                 p1 += 5;
                 while (*p1 == L' ' || *p1 == L'\t')
                     p1++;
@@ -331,7 +331,7 @@ int wmain(int argc, wchar_t* argv[]){
         {
             COORD coord;
             coord.X = coord.Y = 0;
-            if (p1 = ::wcsstr(header, L"BUFFER-SIZE:")) {
+            if (p1 = std::wcsstr(header, L"BUFFER-SIZE:")) {
                 p1 += 12;
                 while (*p1 == L' ' || *p1 == L'\t') ++p1;
 
@@ -361,7 +361,7 @@ int wmain(int argc, wchar_t* argv[]){
 
 
     }
-    ::setlocale(LC_ALL, "");
+    std::setlocale(LC_ALL, "");
     //////////////////////////////////////////////////////////////////////////
     // 获取静态信息
     //////////////////////////////////////////////////////////////////////////
@@ -387,7 +387,7 @@ int wmain(int argc, wchar_t* argv[]){
 
     //::wprintf(L"\r\nPress any key to end...\r\n");
     //::getchar();
-    ::wprintf(L"\r\nConsoleHelper Ended\r\n");
+    std::wprintf(L"\r\nConsoleHelper Ended\r\n");
     return 0;
 }
 

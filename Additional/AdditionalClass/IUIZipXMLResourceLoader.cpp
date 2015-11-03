@@ -33,7 +33,7 @@ extern "C" HRESULT CreateZipResourceLoader(
 // CUIZipXmlResourceLoader 构造函数
 LongUI::CUIZipXmlResourceLoader::CUIZipXmlResourceLoader(
     CUIManager& manager) noexcept : m_manager(manager) {
-    ::memset(&m_zipFile, 0, sizeof(m_zipFile));
+    std::memset(&m_zipFile, 0, sizeof(m_zipFile));
 }
 
 // CUIZipXmlResourceLoader 析构函数

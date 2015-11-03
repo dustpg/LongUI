@@ -192,11 +192,11 @@ namespace LongUI{
         }
         // copy string
         static inline auto copy_string(wchar_t* __restrict des, const wchar_t* __restrict src, uint32_t length) {
-            ::memcpy(des, src, sizeof(wchar_t) * (length + 1));
+            std::memcpy(des, src, sizeof(wchar_t) * (length + 1));
         }
         // copy string without null-end char
         static inline auto copy_string_ex(wchar_t* __restrict des, const wchar_t* __restrict src, uint32_t length) {
-            ::memcpy(des, src, sizeof(wchar_t) * (length));
+            std::memcpy(des, src, sizeof(wchar_t) * (length));
         }
         // choose a nice length for buffer
         static inline auto nice_buffer_length(uint32_t target) {

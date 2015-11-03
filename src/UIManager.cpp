@@ -19,7 +19,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
 #endif
     m_szLocaleName[0] = L'\0';
     m_vDelayCleanup.reserve(100);
-    ::memset(m_apWindows, 0, sizeof(m_apWindows));
+    std::memset(m_apWindows, 0, sizeof(m_apWindows));
     // 开始计时
     m_uiTimer.Start();
     // 检查
@@ -96,6 +96,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     if (SUCCEEDED(hr)) {
         m_cCountCtrlTemplate = 1;
         hr = this->load_control_template_string(this->configure->GetTemplateString());
+        longui_debug_hr(hr, L"load_control_template_string faild");
     }
     // 资源数据缓存
     if (SUCCEEDED(hr)) {
@@ -124,7 +125,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         }
         // 修改资源
         if (m_pResourceBuffer) {
-            ::memset(m_pResourceBuffer, 0, get_buffer_length());
+            std::memset(m_pResourceBuffer, 0, get_buffer_length());
             m_ppBitmaps = reinterpret_cast<decltype(m_ppBitmaps)>(m_pResourceBuffer);
             m_ppBrushes = reinterpret_cast<decltype(m_ppBrushes)>(m_ppBitmaps + m_cCountBmp);
             m_ppTextFormats = reinterpret_cast<decltype(m_ppTextFormats)>(m_ppBrushes + m_cCountBrs);
@@ -144,6 +145,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 设置控件模板
     if (SUCCEEDED(hr)) {
         hr = this->set_control_template_string();
+        longui_debug_hr(hr, L"set_control_template_string faild");
     }
     // 创建D2D工厂
     if (SUCCEEDED(hr)) {
@@ -157,6 +159,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             &options,
             reinterpret_cast<void**>(&m_pd2dFactory)
             );
+        longui_debug_hr(hr, L"D2D1CreateFactory faild");
     }
     // 创建TSF线程管理器
     if (SUCCEEDED(hr)) {
@@ -166,10 +169,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pTsfThreadManager)
             );
+        longui_debug_hr(hr, L"CoCreateInstance CLSID_TF_ThreadMgr faild");
     }
     // 激活客户ID
     if (SUCCEEDED(hr)) {
         hr = m_pTsfThreadManager->Activate(&m_idTsfClient);
+        longui_debug_hr(hr, L"m_pTsfThreadManager->Activate faild");
     }
     // 创建 DirectWrite 工厂.
     if (SUCCEEDED(hr)) {
@@ -177,6 +182,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             DWRITE_FACTORY_TYPE_ISOLATED,
             LongUI_IID_PV_ARGS_Ex(m_pDWriteFactory)
             );
+        longui_debug_hr(hr, L"DWriteCreateFactory faild");
     }
     // 创建帮助器
     if (SUCCEEDED(hr)) {
@@ -186,6 +192,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pDropTargetHelper)
             );
+        longui_debug_hr(hr, L"CoCreateInstance CLSID_DragDropHelper faild");
     }
     // 创建字体集
     if (SUCCEEDED(hr)) {
@@ -194,6 +201,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         // 失败获取系统字体集
         if (!m_pFontCollection) {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
+            longui_debug_hr(hr, L"m_pDWriteFactory->GetSystemFontCollection faild");
         }
     }
 #ifdef _DEBUG
@@ -265,10 +273,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 创建资源
     if (SUCCEEDED(hr)) {
         hr = this->RecreateResources();
+        longui_debug_hr(hr, L"RecreateResources faild");
     }
     // 初始化事件
     if (SUCCEEDED(hr)) {
         this->do_creating_event(LongUI::CreateEventType::Type_Initialize);
+        longui_debug_hr(hr, L"do_creating_event(init) faild");
     }
     // 检查错误
     else {
@@ -381,7 +391,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             // 错误
             parent_node = nullptr;
             UIManager << DL_Error
-                << L" Control Class Not Found: "
+                << L" control class not found: "
                 << node.name()
                 << L".or OOM"
                 << LongUI::endl;
@@ -391,12 +401,6 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         parent_node->PushBack(now_control);
         // 设置结点为下次父结点
         parent_node = static_cast<decltype(parent_node)>(now_control);
-#if 0
-        // 检查本控件是否需要XML子结点信息
-        if (now_control->flags & Flag_ControlNeedFullXMLNode) {
-            goto recheck;
-        }
-#endif
     }
 }
 
@@ -420,10 +424,11 @@ auto LongUI::CUIManager::CreateTextFormat(
     DWRITE_FONT_STRETCH fontStretch, 
     FLOAT fontSize, 
     IDWriteTextFormat ** textFormat) noexcept -> HRESULT {
-    // 检查字体名称
+    auto hr = S_OK;
 #ifdef _DEBUG
+    // 检查字体名称
     UINT32 index = 0; BOOL exist = FALSE;
-    auto hr = m_pFontCollection->FindFamilyName(fontFamilyName, &index, &exist);
+    hr = m_pFontCollection->FindFamilyName(fontFamilyName, &index, &exist);
     if (SUCCEEDED(hr)) {
         // 字体不存在, 则给予警告
         if (!exist) {
@@ -433,11 +438,10 @@ auto LongUI::CUIManager::CreateTextFormat(
             int bk; bk = 9;
         }
     }
-    else {
-        UIManager << DL_Warning << L"FindFamilyName: failed" << LongUI::endl;
-    }
+    longui_debug_hr(hr, L"m_pFontCollection->FindFamilyName failed");
 #endif
-    return m_pDWriteFactory->CreateTextFormat(
+    // 创建文本格式
+    hr = m_pDWriteFactory->CreateTextFormat(
         fontFamilyName,
         m_pFontCollection,
         fontWeight,
@@ -447,6 +451,9 @@ auto LongUI::CUIManager::CreateTextFormat(
         m_szLocaleName,
         textFormat
         );
+    // 检查错误
+    longui_debug_hr(hr, Formated(L"CreateTextFormat(%ls) faild", fontFamilyName));
+    return hr;
 }
 
 /*
@@ -559,7 +566,7 @@ void LongUI::CUIManager::Run() noexcept {
     // 尝试强行关闭
     if (m_cCountWindow) {
         UIWindow* windows[LongUIMaxWindow];
-        ::memcpy(windows, m_apWindows, sizeof(m_apWindows));
+        std::memcpy(windows, m_apWindows, sizeof(m_apWindows));
         auto count = m_cCountWindow;
         // 清理窗口
         for (auto i = 0u; i < count; ++i) {
@@ -571,12 +578,10 @@ void LongUI::CUIManager::Run() noexcept {
 }
 
 // 等待垂直同步
-auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->void {
+void LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept {
     // 一直刷新
-    if (this->flag & IUIConfigure::Flag_RenderInAnytime) {
-        ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
-        return;
-    }
+    if (this->flag & IUIConfigure::Flag_RenderInAnytime) 
+        return static_cast<void>(::WaitForMultipleObjects(length, events, TRUE, INFINITE));
     // 获取屏幕刷新率
     DEVMODEW mode = { 0 };
     ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
@@ -585,13 +590,9 @@ auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->voi
     auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency;
     end_time_of_sleep += m_dwWaitVSStartTime;
     // 等待事件
-    if (length) {
-        ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
-    }
+    if (length) ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
     // 保证等待
-    while (::timeGetTime() < end_time_of_sleep) {
-        ::Sleep(1);
-    }
+    while (::timeGetTime() < end_time_of_sleep) ::Sleep(1);
 }
 
 // 利用现有资源创建控件
@@ -1175,15 +1176,18 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
 #if defined(_DEBUG) && defined(LONGUI_D3D_DEBUG)
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pd3dDebug));
+        longui_debug_hr(hr, L"m_pd3dDevice->QueryInterface(m_pd3dDebug) faild");
     }
 #endif
     // 创建 IDXGIDevice
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pDxgiDevice));
+        longui_debug_hr(hr, L"m_pd3dDevice->QueryInterface(m_pd3dDebug) faild");
     }
     // 创建 D2D设备
     if (SUCCEEDED(hr)) {
         hr = m_pd2dFactory->CreateDevice(m_pDxgiDevice, &m_pd2dDevice);
+        longui_debug_hr(hr, L"m_pd2dFactory->CreateDevice faild");
     }
     // 创建 D2D设备上下文
     if (SUCCEEDED(hr)) {
@@ -1191,12 +1195,15 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
             &m_pd2dDeviceContext
             );
+        longui_debug_hr(hr, L"m_pd2dDevice->CreateDeviceContext faild");
     }
     // 获取 Dxgi适配器 可以获取该适配器信息
     if (SUCCEEDED(hr)) {
         // 顺带使用像素作为单位
         m_pd2dDeviceContext->SetUnitMode(D2D1_UNIT_MODE_PIXELS);
+        // 获取
         hr = m_pDxgiDevice->GetAdapter(&m_pDxgiAdapter);
+        longui_debug_hr(hr, L"m_pDxgiDevice->GetAdapter faild");
     }
 #ifdef _DEBUG
     // 输出显卡信息
@@ -1216,6 +1223,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         ID3D10Multithread* mt = nullptr;
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(mt));
+        longui_debug_hr(hr, L"m_pd3dDevice->QueryInterface ID3D10Multithread faild");
         // 保护
         if (SUCCEEDED(hr)) {
             mt->SetMultithreadProtected(TRUE);
@@ -1225,14 +1233,17 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 设置 MF
     if (SUCCEEDED(hr)) {
         hr = ::MFStartup(MF_VERSION);
+        longui_debug_hr(hr, L"MFStartup faild");
     }
     // 创建 MF Dxgi 设备管理器
     if (SUCCEEDED(hr)) {
         hr = ::MFCreateDXGIDeviceManager(&token, &m_pMFDXGIManager);
+        longui_debug_hr(hr, L"MFCreateDXGIDeviceManager faild");
     }
     // 重置设备
     if (SUCCEEDED(hr)) {
         hr = m_pMFDXGIManager->ResetDevice(m_pd3dDevice, token);
+        longui_debug_hr(hr, L"m_pMFDXGIManager->ResetDevice faild");
     }
     // 创建 MF媒体类工厂
     if (SUCCEEDED(hr)) {
@@ -1242,19 +1253,23 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pMediaEngineFactory)
             );
+        longui_debug_hr(hr, L"CoCreateInstance CLSID_MFMediaEngineClassFactory faild");
     }
 #endif
     // 创建系统笔刷
     if (SUCCEEDED(hr)) {
         hr = this->create_system_brushes();
+        longui_debug_hr(hr, L"create_system_brushes faild");
     }
     // 创建资源描述资源
     if (SUCCEEDED(hr)) {
         hr = this->create_indexzero_resources();
+        longui_debug_hr(hr, L"create_indexzero_resources faild");
     }
     // 事件
     if (SUCCEEDED(hr)) {
         this->do_creating_event(LongUI::CreateEventType::Type_Recreate);
+        longui_debug_hr(hr, L"do_creating_event(recreate) faild");
     }
     // 设置文本渲染器数据
     if (SUCCEEDED(hr)) {
@@ -1270,6 +1285,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         auto wnd = *itr;
         if (SUCCEEDED(hr)) {
             hr = wnd->Recreate();
+            longui_debug_hr(hr, wnd << L"wnd->Recreate");
         }
     }
     // 断言 HR

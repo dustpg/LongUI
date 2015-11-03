@@ -53,6 +53,8 @@ namespace LongUI {
     template<typename T> static auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
     // valid digit
     template<typename T> static auto valid_digit(T c) noexcept { return ((c) >= '0' && (c) <= '9'); }
+    // byte distance
+    template<typename T, typename Y> auto bdistance(T* a, T* b) noexcept { reinterpret_cast<const char*>(b) - reinterpret_cast<const char*>(a); };
     // busy waiting in micro seconds
     void usleep(long usec) noexcept;
     // hex -> int

@@ -59,7 +59,7 @@ namespace LongUI {
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // wait for VS
-        auto WaitVS(HANDLE events[], uint32_t length) noexcept ->void;
+        void WaitVS(HANDLE events[], uint32_t length) noexcept;
         // add window
         void RegisterWindow(UIWindow* wnd) noexcept;
         // remove window

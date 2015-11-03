@@ -139,7 +139,7 @@ bool InterfaceScriptReader::read(const char* script_) {
             register auto tmp_type_size = tmp_method.param_number * sizeof(ISType);
             buffer.resize(tmp_type_size + buffer.size());
             // 复制数据
-            ::memcpy(tmp_method.params, tmptype, sizeof(ISType) * tmp_method.param_number);
+            std::memcpy(tmp_method.params, tmptype, sizeof(ISType) * tmp_method.param_number);
             // 增加大小
             tmp_class.size += sizeof(ISMethod) - sizeof(ISMethod::params) + tmp_type_size;
         }
@@ -181,7 +181,7 @@ bool InterfaceScriptReader::output(FILE * file, OutputType type) {
         switch (type)
         {
         case OutputType::Bin:
-            ::fwrite(this->info, 1, this->info->size, file);
+            std::fwrite(this->info, 1, this->info->size, file);
             return true;
         case OutputType::XML:
         {

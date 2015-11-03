@@ -20,11 +20,12 @@ namespace LongUI { namespace impl {
         auto global = ::GlobalAlloc(GMEM_MOVEABLE, sizeof(T)*(len + 1));
         // 有效?
         if (global) {
+            // 锁住!
             auto* des = reinterpret_cast<T*>(::GlobalLock(global));
             // 申请全局内存成功
             if (des) {
                 // 复制
-                ::memcpy(des, src, sizeof(T)*(len));
+                std::memcpy(des, src, sizeof(T)*(len));
                 // null结尾
                 des[len] = 0;
                 // 解锁
@@ -123,7 +124,7 @@ auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint
                 CC& cc = data[count - 1];
                 size_t length = size_t(itr - word_begin);
                 assert(length < lengthof(temp_buffer));
-                ::memcpy(temp_buffer, word_begin, length);
+                std::memcpy(temp_buffer, word_begin, length);
                 temp_buffer[length] = 0;
                 // 数字?
                 if (word_begin[0] >= '0' && word_begin[0] <= '9') {
@@ -340,8 +341,8 @@ namespace LongUI { namespace Helper {
         char buffer[LongUIStringBufferLength];
         // 前缀有效?
         if (pfx) {
-            ::strcpy(buffer, pfx);
-            ::strcat(buffer, att);
+            std::strcpy(buffer, pfx);
+            std::strcat(buffer, att);
             att = buffer;
         }
         return node.attribute(att).value();

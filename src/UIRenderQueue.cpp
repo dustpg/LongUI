@@ -1,4 +1,6 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
+#include <WinError.h>
 
 // 渲染队列 构造函数
 LongUI::CUIRenderQueue::CUIRenderQueue(UIWindow* window) noexcept {
@@ -18,21 +20,24 @@ LongUI::CUIRenderQueue::~CUIRenderQueue() noexcept {
 void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     // 一样就不处理
     if (m_wDisplayFrequency == freq) return;
+    // 之前的
+    auto oldf = m_wDisplayFrequency;
     // 修改
     m_wDisplayFrequency = static_cast<decltype(m_wDisplayFrequency)>(freq);
     // 创建
     CUIRenderQueue::UNIT* data = nullptr;
-    if (freq) {
-        data = LongUI::NormalAllocT(data, LongUIPlanRenderingTotalTime * freq);
-        if (data) {
-            for (auto i = 0u; i < LongUIPlanRenderingTotalTime * freq; ++i) {
-                data[i].length = 0;
-            }
+    if (freq && (data = LongUI::NormalAllocT<UNIT>(LongUIPlanRenderingTotalTime * freq))) {
+        for (auto i = 0u; i < LongUIPlanRenderingTotalTime * freq; ++i) {
+            data[i].length = 0;
         }
     }
-    // TODO: 完成转化
+    // XXX: 完成转化
     if (m_pUnitsDataBegin && data) {
-        assert(!"NOTIMPL");
+        // 偷懒直接不管
+        oldf = oldf;
+        UIManager << DL_Hint
+            << L"hard to code it, unfinished yet, empty the rendering queue now"
+            << LongUI::endl;
     }
     // 释放
     if (m_pUnitsDataBegin) LongUI::NormalFree(m_pUnitsDataBegin);
@@ -40,7 +45,6 @@ void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     if (data) {
         m_pUnitsDataBegin = data;
         m_pUnitsDataEnd = data + LongUIPlanRenderingTotalTime * freq;
-        // XXX
         m_pCurrentUnit = data;
     }
     // 开始渲染
@@ -79,7 +83,7 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
 
 // 计划渲染
 void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* ctrl) noexcept {
-    // XXX: 待优化
+    // XXX: 待优化。
     // 当前窗口
     auto window = m_unitLike.window;
 #ifdef _DEBUG
@@ -95,7 +99,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
     if (render != 0.0f) render += 0.05f;
     assert((wait + render) < float(LongUIPlanRenderingTotalTime) && "time overflow");
     // 设置单元
-    auto set_unit = [window](UNIT& unit, UIControl* ctrl) noexcept {
+    auto set_unit = [window](CUIRenderQueue::UNIT& unit, UIControl* ctrl) noexcept {
         // 已经全渲染了就不干
         if (unit.length && unit.units[0] == window) {
             return;
@@ -109,21 +113,28 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         // 保存
         auto old_length = unit.length;
         bool changed = false;
-        UNIT tmp; std::memset(&tmp, 0, sizeof(tmp));
+        CUIRenderQueue::UNIT tmp; std::memset(&tmp, 0, sizeof(tmp));
         std::memcpy(tmp.units, unit.units, sizeof(tmp.units[0]) * old_length);
+#ifdef _DEBUG
+        // 调试信息
+        CUIRenderQueue::UNIT debug_backup;
+        std::memcpy(&debug_backup, &tmp, sizeof(debug_backup));
+        debug_backup.length = unit.length;
+        bool jmp = true;
+        if ((jmp = false)) {
+            std::memcpy(&tmp, &debug_backup, sizeof(tmp));
+        }
+#endif
         // 一次检查
         for (auto itr = tmp.units; itr < tmp.units + old_length; ++itr) {
             // 已存在的空间
             auto existd = *itr;
             // 一样? --> 不干
-            if (existd == ctrl) 
-                return;
+            if (existd == ctrl) return;
             // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙结点
             if (existd->level < ctrl->level) {
                 // 是 -> 什么不干
-                if (existd->IsPosterityForSelf(ctrl)) {
-                    return;
-                }
+                if (existd->IsPosterityForSelf(ctrl)) return;
                 // 否 -> 继续
                 else {
 
@@ -154,20 +165,25 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         // 二次插入
         if (changed) {
             unit.length = 0; auto witr = unit.units;
-            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr, ++witr) {
+            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr) {
                 if (*ritr) {
                     *witr = *ritr;
+                    ++witr;
                     ++unit.length;
                 }
             }
         }
 #ifdef _DEBUG
+        // 断言调试
         auto endt = unit.units + unit.length;
         assert(std::find(unit.units, endt, ctrl) == endt);
+        std::for_each(unit.units, endt, [ctrl](UIControl* tmpc) noexcept {
+            assert(tmpc->IsPosterityForSelf(ctrl) == false && "bad ship");
+            assert(ctrl->IsPosterityForSelf(tmpc) == false && "bad ship");
+        });
 #endif
         // 添加到最后
         unit.units[unit.length++] = ctrl;
-
     };
     // 渲染队列模式
     if (m_pCurrentUnit) {
@@ -328,7 +344,7 @@ namespace LongUI {
     LongUI::CUIResourceLoaderXML::CUIResourceLoaderXML(
         CUIManager& manager, const char* xml)  noexcept : m_manager(manager) {
         // 初始化
-        ::memset(m_aResourceCount, 0, sizeof(m_aResourceCount));
+        std::memset(m_aResourceCount, 0, sizeof(m_aResourceCount));
         auto hr = S_OK;
         // 创建 WIC 工厂.
         if (SUCCEEDED(hr)) {

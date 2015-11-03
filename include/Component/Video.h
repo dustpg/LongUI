@@ -70,9 +70,9 @@ namespace LongUI { namespace Component {
         // set source
         auto SetSource(BSTR src) { assert(m_pMediaEngine); m_pMediaEngine->SetSource(src); this->recreate_surface(); return m_pMediaEngine->Load(); }
         // set source path
-        auto SetSourcePath(const wchar_t* src) { wchar_t path[LongUIStringBufferLength]; ::wcscpy(path, src); return this->SetSource(path); }
+        auto SetSourcePath(const wchar_t* src) { wchar_t path[LongUIStringBufferLength]; std::wcscpy(path, src); return this->SetSource(path); }
         // get source path
-        auto GetSourcePath(wchar_t* path) { BSTR url = nullptr; this->GetCurrentSource(&url); if (url) { ::wcscpy(path, url); ::SysFreeString(url); } else *path = 0; }
+        auto GetSourcePath(wchar_t* path) { BSTR url = nullptr; this->GetCurrentSource(&url); if (url) { std::wcscpy(path, url); ::SysFreeString(url); } else *path = 0; }
     public:
         // init: because it maybe call virtual-method, so, not in ctor
         auto Initialize() noexcept->HRESULT;
