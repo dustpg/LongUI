@@ -107,20 +107,20 @@ namespace LongUI { namespace Component {
         auto&GetString() noexcept { return m_string; }
     private:
         // refresh, while layout chenged, should be refreshed
-        auto __fastcall refresh(bool = true)const noexcept->UIWindow*;
+        auto __fastcall refresh(bool = true)const noexcept ->UIWindow*;
         // recreate layout
         void __fastcall recreate_layout(IDWriteTextFormat* fmt) noexcept;
         // recreate layout without format
         void __fastcall recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); LongUI::SafeRelease(fmt); }
         // insert text
-        auto __fastcall insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept->HRESULT;
+        auto __fastcall insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept ->HRESULT;
     public: // 一般内部设置区
         // get selection range
-        auto __fastcall GetSelectionRange()const noexcept->DWRITE_TEXT_RANGE;
+        auto __fastcall GetSelectionRange()const noexcept ->DWRITE_TEXT_RANGE;
         // set selection zone
-        auto __fastcall SetSelection(SelectionMode, uint32_t, bool, bool = true) noexcept->HRESULT;
+        auto __fastcall SetSelection(SelectionMode, uint32_t, bool, bool = true) noexcept ->HRESULT;
         // delete the selection text
-        auto __fastcall DeleteSelection() noexcept->HRESULT;
+        auto __fastcall DeleteSelection() noexcept ->HRESULT;
         // set selection
         bool __fastcall SetSelectionFromPoint(float x, float y, bool extendSelection) noexcept;
     public: // Event
@@ -164,13 +164,13 @@ namespace LongUI { namespace Component {
         // refresh the selection HitTestMetrics
         void __fastcall RefreshSelectionMetrics(DWRITE_TEXT_RANGE) noexcept;
         // copy to HGLOBAL
-        auto __fastcall CopyToGlobal() noexcept->HGLOBAL;
+        auto __fastcall CopyToGlobal() noexcept ->HGLOBAL;
         // copy to clipboard
-        auto __fastcall CopyToClipboard() noexcept->HRESULT;
+        auto __fastcall CopyToClipboard() noexcept ->HRESULT;
         // paste form HGlobal
-        auto __fastcall PasteFromGlobal(HGLOBAL) noexcept->HRESULT;
+        auto __fastcall PasteFromGlobal(HGLOBAL) noexcept ->HRESULT;
         // paste form HGlobal
-        auto __fastcall PasteFromClipboard() noexcept->HRESULT;
+        auto __fastcall PasteFromClipboard() noexcept ->HRESULT;
     public:
         // get line no.
         static void GetLineFromPosition(

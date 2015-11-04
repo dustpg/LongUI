@@ -245,7 +245,7 @@ namespace LongUI {
         return false;
     }
     // 获取Windows版本
-    auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion {
+    auto GetWindowsVersion() noexcept ->CUIManager::WindowsVersion {
         CUIManager::WindowsVersion version = CUIManager::WindowsVersion::Version_Win7SP1;
         // >= Win10 ?
         if (LongUI::IsWindows10OrGreater()) {
@@ -278,16 +278,16 @@ namespace LongUI {
     class CUIResourceLoaderXML : public IUIResourceLoader {
     public:
         // add ref count
-        auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return ++m_dwCounter; }
+        auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return ++m_dwCounter; }
         // release this
-        auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { 
+        auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { 
             auto old = --m_dwCounter; 
             if (!old) { delete this; } 
             return old; 
         };
     public:
         // get resouce count with type
-        auto GetResourceCount(ResourceType type) const noexcept->size_t override;
+        auto GetResourceCount(ResourceType type) const noexcept ->size_t override;
         // get resouce by index, index in range [0, count)
         // for Type_Bitmap, Type_Brush, Type_TextFormat
         auto GetResourcePointer(ResourceType type, size_t index) noexcept ->void* override;
@@ -297,11 +297,11 @@ namespace LongUI {
         // get resouce count from doc
         void get_resource_count_from_xml() noexcept;
         // get bitmap
-        auto get_bitmap(pugi::xml_node node) noexcept->ID2D1Bitmap1*;
+        auto get_bitmap(pugi::xml_node node) noexcept ->ID2D1Bitmap1*;
         // get brush
-        auto get_brush(pugi::xml_node node) noexcept->ID2D1Brush*;
+        auto get_brush(pugi::xml_node node) noexcept ->ID2D1Brush*;
         // get text format
-        auto get_text_format(pugi::xml_node node) noexcept->IDWriteTextFormat*;
+        auto get_text_format(pugi::xml_node node) noexcept ->IDWriteTextFormat*;
         // find node with index
         static auto find_node_with_index(pugi::xml_node node, const size_t index) noexcept {
             pugi::xml_node found_node;
@@ -437,28 +437,28 @@ namespace LongUI {
                 return count;
             };
             // 位图?
-            if (!::strcmp(now_node.name(), "Bitmap")) {
+            if (!std::strcmp(now_node.name(), "Bitmap")) {
                 m_aNodes[Type_Bitmap] = now_node;
                 m_aResourceCount[this->Type_Bitmap] = get_children_count(now_node);
             }
             // 笔刷?
-            else if (!::strcmp(now_node.name(), "Brush")) {
+            else if (!std::strcmp(now_node.name(), "Brush")) {
                 m_aNodes[Type_Brush] = now_node;
                 m_aResourceCount[this->Type_Brush] = get_children_count(now_node);
             }
             // 文本格式?
-            else if (!::strcmp(now_node.name(), "Font") ||
-                !::strcmp(now_node.name(), "TextFormat")) {
+            else if (!std::strcmp(now_node.name(), "Font") ||
+                !std::strcmp(now_node.name(), "TextFormat")) {
                 m_aNodes[Type_TextFormat] = now_node;
                 m_aResourceCount[this->Type_TextFormat] = get_children_count(now_node);
             }
             // 图元?
-            else if (!::strcmp(now_node.name(), "Meta")) {
+            else if (!std::strcmp(now_node.name(), "Meta")) {
                 m_aNodes[Type_Meta] = now_node;
                 m_aResourceCount[this->Type_Meta] = get_children_count(now_node);
             }
             // 动画图元?
-            else if (!::strcmp(now_node.name(), "MetaEx")) {
+            else if (!std::strcmp(now_node.name(), "MetaEx")) {
                 assert(!"unsupport yet");
             }
             // 推进

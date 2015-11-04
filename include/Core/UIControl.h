@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI {
     // create null control
-    auto WINAPI CreateNullControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
+    auto WINAPI CreateNullControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     // Container
     class UIContainer;
     // base control class -- 基本控件类
@@ -81,7 +81,7 @@ namespace LongUI {
         // do mouse event 
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
         // recreate , first call or device reset
-        virtual auto Recreate() noexcept->HRESULT;
+        virtual auto Recreate() noexcept ->HRESULT;
     protected:
         // [uniform interface]register ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
@@ -117,14 +117,12 @@ namespace LongUI {
         // get script data
         const auto& GetScript() const noexcept { return m_script; }
         // get space holder control to aviod nullptr if you do not want a nullptr
-        static auto GetPlaceholder() noexcept->UIControl*;
+        static auto GetPlaceholder() noexcept ->UIControl*;
     public:
         // set width fixed
         auto SetWidthFixed() noexcept { force_cast(this->flags) |= Flag_WidthFixed; }
         // set height fixed
         auto SetHeightFixed() noexcept { force_cast(this->flags) |= Flag_HeightFixed; }
-        // set floating
-        auto SetFloating() noexcept { force_cast(this->flags) |= Flag_Floating; }
         // get width of control
         auto GetWidth() const noexcept { return this->GetTakingUpWidth(); }
         // get height of control
@@ -164,9 +162,9 @@ namespace LongUI {
         // get left of control
         auto __fastcall GetTop() noexcept { return this->view_pos.y - this->margin_rect.top + m_fBorderWidth; };
         // set left of control
-        auto __fastcall SetLeft(float left) noexcept->void;
+        auto __fastcall SetLeft(float left) noexcept ->void;
         // set left of control
-        auto __fastcall SetTop(float top) noexcept->void;
+        auto __fastcall SetTop(float top) noexcept ->void;
         // set new taking up width of control
         auto __fastcall SetWidth(float width) noexcept ->void LongUINoinline;
         // set new taking up height of control
@@ -223,6 +221,8 @@ namespace LongUI {
         UIControl*      const   next = nullptr;
         // weight for layout, interpreted by container
         float           const   weight = 1.f;
+        // context for layout, interpreted by container
+        float           const   context[2];
         // tree level
         uint8_t         const   level = 0ui8;
         // visible

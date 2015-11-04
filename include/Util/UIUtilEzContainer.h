@@ -209,7 +209,7 @@ namespace LongUI { namespace EzContainer {
             return table;
         };
         // free table
-        static auto free_table(Unit** table)noexcept { return LongUI::SmallFree(table); }
+        static auto free_table(Unit** table) noexcept { return LongUI::SmallFree(table); }
     private:
         // for each
         template<typename T> 

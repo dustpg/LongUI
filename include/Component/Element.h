@@ -148,7 +148,7 @@ namespace LongUI {
             // render this
             void Render(const D2D1_RECT_F&) const noexcept;
             // recreate
-            auto Recreate() noexcept->HRESULT;
+            auto Recreate() noexcept ->HRESULT;
             // is OK?
             auto IsOK() noexcept { return m_aID[Status_Normal] != 0; }
         protected:
@@ -175,7 +175,7 @@ namespace LongUI {
             // render this
             void Render(const D2D1_RECT_F& rect) const noexcept;
             // recreate
-            auto Recreate() noexcept->HRESULT;
+            auto Recreate() noexcept ->HRESULT;
             // change brush
             void ChangeBrush(ControlStatus index, ID2D1Brush* brush) noexcept {
                 LongUI::SafeRelease(m_apBrushes[index]);

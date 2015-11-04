@@ -490,11 +490,11 @@ public:
     // 析构函数
     ~DemoConfigure() { if (m_hDll) { ::FreeLibrary(m_hDll); m_hDll = nullptr; } }
     // 获取地区名称
-    auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
+    auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept ->void override {
         std::wcscpy(name, L"en-us");
     };
     // 获取控件模板
-    auto GetTemplateString() noexcept->const char* override {
+    auto GetTemplateString() noexcept ->const char* override {
         return u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <!-- You can use other name not limited in 'Template' -->
 <Template>
@@ -512,7 +512,7 @@ public:
 )xml";
     }
     // 添加自定义控件
-    auto RegisterSome() noexcept->void override {
+    auto RegisterSome() noexcept ->void override {
         m_manager.RegisterControlClass(TestControl::CreateControl, "Test");
         m_manager.RegisterControlClass(UIVideoAlpha::CreateControl, "Video");
         /*if (m_hDll) {
@@ -523,18 +523,18 @@ public:
         }*/
     };
     // return flags
-    virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
+    virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
         return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
     virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t override {
         // Intel 测试
         for (size_t i = 0; i < length; ++i) {
-            if (!::wcsncmp(L"Intel", adapters[i].Description, 5))
+            if (!std::wcsncmp(L"Intel", adapters[i].Description, 5))
                 return i;
         }
         // 核显卡优先 
         for (size_t i = 0; i < length; ++i) {
-            if (!::wcsncmp(L"NVIDIA", adapters[i].Description, 6))
+            if (!std::wcsncmp(L"NVIDIA", adapters[i].Description, 6))
                 return i;
         }
         return length;
@@ -653,7 +653,7 @@ namespace LongUI { namespace Demo {
         // ctor
         MyConfig() : Super(UIManager) { }
         // return true, if use cpu rendering
-        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
+        virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
             auto base = IUIConfigure::Flag_OutputDebugString;
             //auto base = IUIConfigure::Flag_None;
             return base | (cpu_rendering ? IUIConfigure::Flag_RenderByCPU : IUIConfigure::Flag_None); ;

@@ -108,7 +108,7 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
 }
 
 // 依靠鼠标位置获取列表行索引
-auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t {
+auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept ->uint32_t {
     uint32_t index = 0;
     // XXX: 利用list特性优化
     for (auto ctrl : m_vLines) {
@@ -122,7 +122,7 @@ auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept->ui
 }
 
 // 依靠鼠标位置获取列表行
-auto LongUI::UIList::find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine* {
+auto LongUI::UIList::find_line(const D2D1_POINT_2F& pt) const noexcept ->UIListLine* {
     // XXX: 利用list特性优化
     for (auto ctrl : m_vLines) {
         // 区域内判断

@@ -128,7 +128,7 @@ namespace LongUI {
         // ctor
         UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcept;
         // create this
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
+        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     public:
         // Render 渲染 
         virtual void Render() const noexcept override;
@@ -139,7 +139,7 @@ namespace LongUI {
         // do mouse event 鼠标事件处理
         bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate
-        auto Recreate() noexcept->HRESULT override;
+        auto Recreate() noexcept ->HRESULT override;
     public:
         // init sb
         //virtual void InitMarginalControl(MarginalControl _type) noexcept override;
@@ -201,7 +201,7 @@ namespace LongUI {
         // ctor
         UIScrollBarB(UIContainer* cp, pugi::xml_node node) noexcept;
         // create this
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept->UIControl*;
+        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

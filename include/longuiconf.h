@@ -298,14 +298,14 @@ namespace LongUI {
         static constexpr char* const Script                 = "script";
         // weight for layout
         static constexpr char* const LayoutWeight           = "weight";
+        // context for layout
+        static constexpr char* const LayoutContext          = "context";
         // visible
         static constexpr char* const Visible                = "visible";
         // user defined string
         static constexpr char* const UserDefinedString      = "userstring";
         // backgroud brush, 0 for null not default brush
         static constexpr char* const BackgroudBrush         = "bgbrush";
-        // position of control left-top: float2
-        static constexpr char* const LeftTopPosotion        = "pos";
         // size of control: float2
         static constexpr char* const AllSize                = "size";
         // margin: float4

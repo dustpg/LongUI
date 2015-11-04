@@ -547,24 +547,16 @@ void LongUI::UIWindow::Render() const noexcept  {
             assert(m_aUnitNow.length < LongUIDirtyControlSize);
             length_for_units = m_aUnitNow.length;
             std::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
-#if 0
-            // 一般就几个, 冒泡完爆std::sort
-            LongUI::BubbleSort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
-                return a->priority > b->priority;
-            });
-            if (m_aUnitNow.length >= 2) {
-                assert(units[0]->priority >= units[1]->priority);
-            }
-#endif
         }
         // 再渲染
         auto init_transfrom = D2D1::Matrix3x2F::Identity();
         for (auto unit = units; unit < units + length_for_units; ++unit) {
             auto ctrl = *unit; assert(ctrl != this);
-            // XXX: 优化为仅调用PushAxisAlignedClip
-            UIManager_RenderTarget->SetTransform(&init_transfrom);
-            UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
+            D2D1_POINT_2F clipr[2];
+            clipr[0] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.left));
+            clipr[1] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.right));
+            UIManager_RenderTarget->PushAxisAlignedClip(reinterpret_cast<D2D1_RECT_F*>(clipr), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 #if 0 // def _DEBUG
             if (this->debug_this) {
                 AutoLocker;
@@ -736,14 +728,17 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         UIManager << DL_Hint << "WM_DISPLAYCHANGE" << endl;
         {
             // 获取屏幕刷新率
-            DEVMODEW mode = { 0 };
-            ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-            m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
+            auto old = UIManager.GetDisplayFrequency();
+            UIManager.RefreshDisplayFrequency();
+            auto now = UIManager.GetDisplayFrequency();
+            if (old != now) {
+                m_uiRenderQueue.Reset(static_cast<uint32_t>(now));
+            }
         }
         // 强行刷新一帧
         this->Invalidate(this);
         break;
-    case WM_CLOSE:          // 关闭窗口
+    case WM_CLOSE:
         // 窗口关闭
         handled = this->OnClose();
         break;
@@ -1009,9 +1004,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     LongUI::SafeRelease(pSwapChain);
     {
         // 获取屏幕刷新率
-        DEVMODEW mode = { 0 };
-        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-        m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
+        m_uiRenderQueue.Reset(UIManager.GetDisplayFrequency());
         // 强行刷新一帧
         this->Invalidate(this);
     }

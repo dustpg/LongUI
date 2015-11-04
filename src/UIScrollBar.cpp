@@ -485,7 +485,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Left]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Left] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
         // TOP 上箭头
         {
@@ -494,7 +494,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Top]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Top] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
         // RIGHT 右箭头
         {
@@ -504,7 +504,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Right]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Right] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
         // BOTTOM 下箭头
         {
@@ -513,7 +513,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
     }
         break;

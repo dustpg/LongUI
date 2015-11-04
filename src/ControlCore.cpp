@@ -45,6 +45,9 @@ Win8/8.1/10.0.10158之前
 3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
 */
 
+// longui::impl namespace
+namespace LongUI { namespace impl { static float const floatx2[] = { 0.f, 0.f }; } }
+
 /// <summary>
 /// Initializes a new instance of the <see cref="LongUI::UIControl"/>
 /// class with xml node
@@ -55,10 +58,11 @@ Win8/8.1/10.0.10158之前
 /// 对于本函数, 参数'node'允许为空
 /// <see cref="LongUINullXMLNode"/>
 /// </remarks>
-LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node)noexcept :
-parent(ctrlparent),
-level(ctrlparent ? (ctrlparent->level + 1ui8) : 0ui8),
-m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
+LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept :
+    parent(ctrlparent),
+    context(),
+    level(ctrlparent ? (ctrlparent->level + 1ui8) : 0ui8),
+    m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
     // 溢出错误
     if (this->level == 255) {
         UIManager << DL_Error
@@ -82,6 +86,12 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
         if (data = node.attribute(LongUI::XMLAttribute::LayoutWeight).value()) {
             force_cast(this->weight) = LongUI::AtoF(data);
         }
+        // 检查布局上下文
+        Helper::MakeFloats(
+            node.attribute(LongUI::XMLAttribute::LayoutContext).value(),
+            force_cast(this->context), 
+            lengthof<uint32_t>(this->context)
+            );
         // 检查背景笔刷
         if (data = node.attribute(LongUI::XMLAttribute::BackgroudBrush).value()) {
             m_idBackgroudBrush = uint16_t(LongUI::AtoI(data));
@@ -154,7 +164,7 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
             float size[] = { 0.f, 0.f };
             Helper::MakeFloats(
                 node.attribute(LongUI::XMLAttribute::AllSize).value(),
-                size, static_cast<uint32_t>(lengthof(size))
+                size, lengthof<uint32_t>(size)
                 );
             // 视口区宽度固定?
             if (size[0] > 0.f) {
@@ -165,24 +175,6 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
             if (size[1] > 0.f) {
                 flag |= LongUI::Flag_HeightFixed;
                 this->SetHeight(size[1]);
-            }
-        }
-        // 检查控件位置
-        {
-            float pos[] = { 0.f, 0.f };
-            Helper::MakeFloats(
-                node.attribute(LongUI::XMLAttribute::LeftTopPosotion).value(),
-                pos, static_cast<uint32_t>(lengthof(pos))
-                );
-            // 指定X轴
-            if (pos[0] != 0.f) {
-                this->SetLeft(pos[0]);
-                flag |= Flag_Floating;
-            }
-            // 指定Y轴
-            if (pos[1] != 0.f) {
-                this->SetTop(pos[1]);
-                flag |= Flag_Floating;
             }
         }
     }
@@ -588,7 +580,7 @@ LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noe
             // 设置
             Helper::GetEnumProperties prop;
             prop.values_list = mode_list;
-            prop.values_length = static_cast<uint32_t>(lengthof(mode_list));
+            prop.values_length = lengthof<uint32_t>(mode_list);
             prop.bad_match = static_cast<uint32_t>(bad_match);
             auto value = node.attribute(XMLAttribute::MarginalDirection).value();
             // 调用
@@ -791,7 +783,7 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 查找边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {

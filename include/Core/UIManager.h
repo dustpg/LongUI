@@ -49,44 +49,48 @@ namespace LongUI {
         };
     public: // handle zone 操作区
         // initialize 初始化
-        auto Initialize(IUIConfigure* = nullptr) noexcept->HRESULT;
+        auto Initialize(IUIConfigure* = nullptr) noexcept ->HRESULT;
         // uninitialize 反初始化
         void Uninitialize() noexcept;
         // run 运行
         void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
-        auto RegisterControlClass(CreateControlFunction func, const char* clname) noexcept->HRESULT;
+        auto RegisterControlClass(CreateControlFunction func, const char* clname) noexcept ->HRESULT;
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // wait for VS
         void WaitVS(HANDLE events[], uint32_t length) noexcept;
         // add window
         void RegisterWindow(UIWindow* wnd) noexcept;
+        // refresh display frequency
+        void RefreshDisplayFrequency() noexcept;
+        // get display frequency
+        auto GetDisplayFrequency() const noexcept { return m_dDisplayFrequency; };
         // remove window
         void RemoveWindow(UIWindow* wnd, bool cleanup = false) noexcept;
         // register, return -1 for error(out of renderer space), return other for index
-        auto RegisterTextRenderer(CUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept->int32_t;
+        auto RegisterTextRenderer(CUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept ->int32_t;
         // get text renderer by name 
         auto GetTextRenderer(const char* name) const noexcept ->CUIBasicTextRenderer*;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetTextFormat(size_t index) noexcept->IDWriteTextFormat*;
+        auto GetTextFormat(size_t index) noexcept ->IDWriteTextFormat*;
         // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetBitmap(size_t index) noexcept->ID2D1Bitmap1*;
+        auto GetBitmap(size_t index) noexcept ->ID2D1Bitmap1*;
         // get brush by index, "Get" method will call IUnknown::AddRef if it is a COM object
-        auto GetBrush(size_t index) noexcept->ID2D1Brush*;
+        auto GetBrush(size_t index) noexcept ->ID2D1Brush*;
         // get meta by index, "Get" method will call IUnknown::AddRef if it is a COM object
         // Meta isn't a IUnknown object, so, won't call Meta::bitmap->AddRef
         void GetMeta(size_t index, LongUI::Meta&) noexcept;
         // get meta's icon handle by index, will do runtime-converting if first call the
         // same index. "Get" method will call IUnknown::AddRef if it is a COM object
         // HICON isn't a IUnknown object. Meta HICON managed by this manager
-        auto GetMetaHICON(size_t index) noexcept->HICON;
+        auto GetMetaHICON(size_t index) noexcept ->HICON;
         // get system brush
         auto GetSystemBrush(uint32_t index) noexcept { return LongUI::SafeAcquire(m_apSystemBrushes[index]); }
         // get drop target helper
         auto GetDropTargetHelper() noexcept { return LongUI::SafeAcquire(m_pDropTargetHelper); }
         // get create function via control-class name
-        auto GetCreateFunc(const char* clname) noexcept->CreateControlFunction;
+        auto GetCreateFunc(const char* clname) noexcept ->CreateControlFunction;
         // create control with xml node, node and function cannot be null in same time
         auto CreateControl(UIContainer* cp, pugi::xml_node node, CreateControlFunction function) noexcept {
             assert((node || function) && "cannot be null in same time");
@@ -105,7 +109,7 @@ namespace LongUI {
             DWRITE_FONT_STRETCH fontStretch,
             FLOAT fontSize,
             _COM_Outptr_ IDWriteTextFormat** textFormat
-            ) noexcept->HRESULT;
+            ) noexcept ->HRESULT;
     public: // Create UI Window Zone!!!!!!!!!
         // create ui window with xml string
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
@@ -129,7 +133,7 @@ namespace LongUI {
         }
     public:
         // get theme colr
-        static auto __fastcall GetThemeColor(D2D1_COLOR_F& colorf) noexcept->HRESULT;
+        static auto __fastcall GetThemeColor(D2D1_COLOR_F& colorf) noexcept ->HRESULT;
         // is run as admin?
         static bool WINAPI IsRunAsAdministrator() noexcept;
         // try to elevate now,  will lauch a new elevated instance and
@@ -290,13 +294,13 @@ namespace LongUI {
         uint16_t                        m_cCountWindow = 0;
         // singal/flag for exiting
         std::atomic_bool                m_exitFlag = false;
-        // ununsed
-        bool                            unused_bool = false;
         // count for text renderer
-        uint16_t                        m_uTextRenderCount = 0;
-        // 等待垂直同步次数
+        uint8_t                         m_uTextRenderCount = 0;
+        // ununsed
+        uint16_t                        m_dDisplayFrequency = 0;
+        // vsync count
         uint32_t                        m_dwWaitVSCount = 0;
-        // 等待垂直同步起始时间
+        // vsync start time
         uint32_t                        m_dwWaitVSStartTime = 0;
         // delta time in sec.
         float                           m_fDeltaTime = 0.f;
@@ -331,21 +335,21 @@ namespace LongUI {
         // cleanup delay-cleanup-chain
         void cleanup_delay_cleanup_chain() noexcept;
         // load the template string
-        auto load_control_template_string(const char* str) noexcept->HRESULT;
+        auto load_control_template_string(const char* str) noexcept ->HRESULT;
         // set the template string
-        auto set_control_template_string() noexcept->HRESULT;
+        auto set_control_template_string() noexcept ->HRESULT;
         // create all resources
-        auto create_device_resources() noexcept->HRESULT;
+        auto create_device_resources() noexcept ->HRESULT;
         // create index zero resources
-        auto create_indexzero_resources() noexcept->HRESULT;
+        auto create_indexzero_resources() noexcept ->HRESULT;
         // create system brush
-        auto create_system_brushes() noexcept->HRESULT;
+        auto create_system_brushes() noexcept ->HRESULT;
         // discard resources
         void discard_resources() noexcept;
         // create the control
-        auto create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t id) noexcept->UIControl*;
+        auto create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
         // create ui window
-        auto create_ui_window(pugi::xml_node node, UIWindow* parent, callback_for_creating_window func, void* buffer) noexcept->UIWindow*;
+        auto create_ui_window(pugi::xml_node node, UIWindow* parent, callback_for_creating_window func, void* buffer) noexcept ->UIWindow*;
         // do some creating-event
         void do_creating_event(CreateEventType type) noexcept;
         // create a control tree for window
@@ -356,7 +360,7 @@ namespace LongUI {
         // main window proc
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
         // windows message to longui mouse event
-        static void WindowsMsgToMouseEvent(MouseEventArgument& event, UINT message, WPARAM wParam, LPARAM lParam)noexcept;
+        static void WindowsMsgToMouseEvent(MouseEventArgument& event, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
     public:
         // 单例 CUIRenderer
         static      CUIManager      s_instance;

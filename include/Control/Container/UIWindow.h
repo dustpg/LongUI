@@ -100,7 +100,7 @@ namespace LongUI {
         // do mouse event 鼠标事件处理
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
-        virtual auto Recreate() noexcept->HRESULT override;
+        virtual auto Recreate() noexcept ->HRESULT override;
     public:
         // constructor
         UIWindow(pugi::xml_node node, UIWindow* parent) noexcept;
@@ -151,7 +151,7 @@ namespace LongUI {
         // set hover track control
         void SetHoverTrack(UIControl* ctrl) noexcept { assert(ctrl); if (ctrl && ctrl->GetHoverTrackTime()) m_pHoverTracked = ctrl; }
         // find control 
-        auto FindControl(const char* name) noexcept->UIControl*;
+        auto FindControl(const char* name) noexcept ->UIControl*;
         // add control with name
         void AddNamedControl(UIControl* ctrl) noexcept;
         // set icon, bad

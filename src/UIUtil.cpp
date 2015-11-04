@@ -42,7 +42,7 @@ LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) 
 /// <param name="color32">The 32-bit color.</param>
 /// <param name="color4f">The float4 color.</param>
 /// <returns>void</returns>
-LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void {
+LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void {
     // 位移量
     constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
     constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
@@ -772,7 +772,7 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 
 
 // get transformed pointer
-LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept->D2D1_POINT_2F {
+LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept ->D2D1_POINT_2F {
     D2D1_POINT_2F result;
     // x = (bn-dm) / (bc-ad)
     // y = (an-cm) / (ad-bc)
@@ -1047,7 +1047,7 @@ auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint
 
 // UTF-16 to UTF-8
 // Return: UTF-8 string length, 0 maybe error
-auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept->uint32_t {
+auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept ->uint32_t {
     UINT32 length = 0;
     const char16_t* source = pUTF16String;
     char* target = pUTF8String;
@@ -1213,41 +1213,6 @@ auto __fastcall LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t
     return length;
 }
 
-// CUIFileLoader 构造函数
-LongUI::CUIFileLoader::CUIFileLoader() noexcept { }
-
-// CUIFileLoader 析构函数
-LongUI::CUIFileLoader::~CUIFileLoader() noexcept {
-    if (m_pData) {
-        LongUI::NormalFree(m_pData);
-        m_pData = nullptr;
-    }
-}
-
-// CUIFileLoader 读取文件
-bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
-    // 打开文件
-    FILE* file = nullptr;
-    if (file = ::_wfopen(file_name, L"rb")) {
-        // 获取文件大小
-        std::fseek(file, 0L, SEEK_END);
-        m_cLength = std::ftell(file);
-        std::fseek(file, 0L, SEEK_SET);
-        // 缓存不足?
-        if (m_cLength > m_cLengthReal) {
-            m_cLengthReal = m_cLength;
-            if (m_pData) LongUI::NormalFree(m_pData);
-            m_pData = LongUI::NormalAlloc(m_cLength);
-        }
-        // 读取文件
-        if (m_pData) std::fread(m_pData, 1, m_cLength, file);
-    }
-    // 关闭文件
-    if (file) std::fclose(file);
-    return file && m_pData;
-}
-
-
 // --------------  CUIConsole ------------
 // CUIConsole 构造函数
 LongUI::CUIConsole::CUIConsole() noexcept {
@@ -1276,8 +1241,7 @@ long LongUI::CUIConsole::Close() noexcept {
 }
 
 // CUIConsole 输出
-long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexcept {
-    if (len == -1) len = static_cast<long>(::wcslen(str));
+long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, size_t len) noexcept {
     // 过长则分批
     if (len > LongUIStringBufferLength) {
         // 直接递归
@@ -1298,13 +1262,17 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
         std::memcpy(m_buffer + m_length, str, len * sizeof(wchar_t));
         m_length += len;
         str = nullptr;
-        // 不flush
+        // 不用flush
         if (!flush) return 0;
     }
     DWORD dwWritten = DWORD(-1);
     // 写入
     auto safe_write_file = [this, &dwWritten]() {
-        return ::WriteFile(m_hConsole, m_buffer, static_cast<uint32_t>(m_length * sizeof(wchar_t)), &dwWritten, nullptr);
+        return ::WriteFile(
+            m_hConsole, m_buffer, 
+            static_cast<uint32_t>(m_length * sizeof(wchar_t)), 
+            &dwWritten, nullptr
+            );
     };
     // 先写入缓冲区
     if (m_length) {
@@ -1337,7 +1305,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
             logger_name_buffer, lengthof(logger_name_buffer),
             L"logger_%7.5f",
             float(::GetTickCount()) / float(1000 * 60 * 60) *
-            (float(::rand()) / float(RAND_MAX)) * s_times
+            (float(std::rand()) / float(RAND_MAX)) * s_times
             );
         config.logger_name = logger_name_buffer;
         ++s_times;
@@ -1401,7 +1369,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送标题
     if (!lpszWindowTitle) lpszWindowTitle = m_name + 9;
     std::swprintf(buffer, lengthof(buffer), L"TITLE: %ls\r\n", lpszWindowTitle);
-    uint32_t len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+    uint32_t len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
     ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
     if (cbWritten != len_in_byte) {
         ::MessageBoxW(nullptr, L"WriteFile failed(1)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1414,7 +1382,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送位置
     if (config.position_xy != -1) {
         std::swprintf(buffer, lengthof(buffer), L"POS: %d\r\n", config.position_xy);
-        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+        len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(1.1)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1427,7 +1395,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送属性
     if (config.atribute) {
         std::swprintf(buffer, lengthof(buffer), L"ATTR: %d\r\n", config.atribute);
-        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+        len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(1.2)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1441,7 +1409,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送缓存区大小
     if (config.buffer_size_x != -1 && config.buffer_size_y != -1) {
         std::swprintf(buffer, lengthof(buffer), L"BUFFER-SIZE: %dx%d\r\n", config.buffer_size_x, config.buffer_size_y);
-        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+        len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(2)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -1487,7 +1455,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 // longui
 namespace LongUI {
     // 创建XML资源读取器
-    auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept->IUIResourceLoader*;
+    auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept ->IUIResourceLoader*;
 }
 
 // 创建接口
@@ -1514,7 +1482,7 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapter
 #ifdef LONGUI_NUCLEAR_FIRST
     for (size_t i = 0; i < length; ++i) {
         DXGI_ADAPTER_DESC1& desc = adapters[i];
-        if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
+        if (!std::wcsncmp(L"NVIDIA", desc.Description, 6))
             return i;
     }
 #endif
@@ -1930,11 +1898,11 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return 0.5f * (1.f - std::sqrt(1.f - 4.f * (p * p)));
         }
         else {
-            return 0.5f * (::sqrt(-((2.f * p) - 3.f) * ((2.f * p) - 1.f)) + 1.f);
+            return 0.5f * (std::sqrt(-((2.f * p) - 3.f) * ((2.f * p) - 1.f)) + 1.f);
         }
     case LongUI::AnimationType::Type_ExponentialEaseIn:
         // 指数渐入     f(x) = 2^(10(x - 1))
-        return (p == 0.f) ? (p) : (::pow(2.f, 10.f * (p - 1.f)));
+        return (p == 0.f) ? (p) : (std::pow(2.f, 10.f * (p - 1.f)));
     case LongUI::AnimationType::Type_ExponentialEaseOut:
         // 指数渐出     f(x) =  -2^(-10x) + 1
         return (p == 1.f) ? (p) : (1.f - std::powf(2.f, -10.f * p));
@@ -1961,7 +1929,7 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return 0.5f * std::sin(13.f * EZ_PI_2 * (2.f * p)) * std::pow(2.f, 10.f * ((2.f * p) - 1.f));
         }
         else {
-            return 0.5f * (::sin(-13.f * EZ_PI_2 * ((2.f * p - 1.f) + 1.f)) * std::pow(2.f, -10.f * (2.f * p - 1.f)) + 2.f);
+            return 0.5f * (std::sin(-13.f * EZ_PI_2 * ((2.f * p - 1.f) + 1.f)) * std::pow(2.f, -10.f * (2.f * p - 1.f)) + 2.f);
         }
     case LongUI::AnimationType::Type_BackEaseIn:
         // 回退渐入

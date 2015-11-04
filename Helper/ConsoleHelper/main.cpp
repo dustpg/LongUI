@@ -355,7 +355,7 @@ int wmain(int argc, wchar_t* argv[]){
         }
         // 检查是否为"extended"控制台
         {
-            if (::wcsstr(header, L"Extended-Console: TRUE"))
+            if (std::wcsstr(header, L"Extended-Console: TRUE"))
                 g_bExtendedConsole = TRUE;
         }
 

@@ -45,7 +45,7 @@ namespace LongUI{
         // do mouse event
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
-        virtual auto Recreate() noexcept->HRESULT override;
+        virtual auto Recreate() noexcept ->HRESULT override;
     protected:
         // register ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;

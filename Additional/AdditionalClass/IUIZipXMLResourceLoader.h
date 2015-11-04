@@ -30,8 +30,6 @@
 #endif
 #include <LongUI/LongUI.h>
 #include <wincodec.h>
-#define MINIZ_HEADER_FILE_ONLY
-#include "miniz.c"
 // create loader
 extern "C" HRESULT CreateZipResourceLoader(
     LongUI::CUIManager& manager,
@@ -50,18 +48,18 @@ namespace LongUI {
     class CUIZipXmlResourceLoader final : public IUIResourceLoader {
     public:
         // qi
-        auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept->HRESULT override final {
+        auto STDMETHODCALLTYPE QueryInterface(const IID& riid, void** ppvObject) noexcept ->HRESULT override final {
             UNREFERENCED_PARAMETER(riid);
             UNREFERENCED_PARAMETER(ppvObject);
             return E_NOINTERFACE;
         }
         // add ref count
-        auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return ++m_dwCounter; }
+        auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return ++m_dwCounter; }
         // release this
-        auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { auto old = --m_dwCounter; if (!old) { delete this; } return old; };
+        auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { auto old = --m_dwCounter; if (!old) { delete this; } return old; };
     public:
         // get resouce count with type
-        auto GetResourceCount(ResourceType type) const noexcept->size_t override;
+        auto GetResourceCount(ResourceType type) const noexcept ->size_t override;
         // get resouce by index, index in range [0, count)
         // for Type_Bitmap, Type_Brush, Type_TextFormat
         auto GetResourcePointer(ResourceType type, size_t index) noexcept ->void* override;
@@ -73,18 +71,18 @@ namespace LongUI {
         // dtor
         ~CUIZipXmlResourceLoader() noexcept;
         // init
-        auto Init(const wchar_t* file_name) noexcept->HRESULT;
+        auto Init(const wchar_t* file_name) noexcept ->HRESULT;
     private:
         // get resouce count from doc
         void get_resource_count_from_xml() noexcept;
         // get bitmap
-        auto get_bitmap(pugi::xml_node node) noexcept->ID2D1Bitmap1*;
+        auto get_bitmap(pugi::xml_node node) noexcept ->ID2D1Bitmap1*;
         // get brush
-        auto get_brush(pugi::xml_node node) noexcept->ID2D1Brush*;
+        auto get_brush(pugi::xml_node node) noexcept ->ID2D1Brush*;
         // get text format
-        auto get_text_format(pugi::xml_node node) noexcept->IDWriteTextFormat*;
+        auto get_text_format(pugi::xml_node node) noexcept ->IDWriteTextFormat*;
         // find node with index
-        static auto find_node_with_index(pugi::xml_node node, const size_t index) noexcept->pugi::xml_node;
+        static auto find_node_with_index(pugi::xml_node node, const size_t index) noexcept ->pugi::xml_node;
         // manager for longui
         CUIManager&             m_manager;
         // zip archive file

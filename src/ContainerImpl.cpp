@@ -63,7 +63,7 @@ auto LongUI::UIContainerBuiltIn::Recreate() noexcept -> HRESULT {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 父类(边缘控件)
     auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;
@@ -378,20 +378,17 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
         float base_width = 0.f, base_height = 0.f, basic_weight = 0.f;
         // 第一次遍历
         for (auto ctrl : (*this)) {
-            // 非浮点控件
-            if (!(ctrl->flags & Flag_Floating)) {
-                // 宽度固定?
-                if (ctrl->flags & Flag_WidthFixed) {
-                    base_width = std::max(base_width, ctrl->GetTakingUpWidth());
-                }
-                // 高度固定?
-                if (ctrl->flags & Flag_HeightFixed) {
-                    base_height += ctrl->GetTakingUpHeight();
-                }
-                // 未指定高度?
-                else {
-                    basic_weight += ctrl->weight;
-                }
+            // 宽度固定?
+            if (ctrl->flags & Flag_WidthFixed) {
+                base_width = std::max(base_width, ctrl->GetTakingUpWidth());
+            }
+            // 高度固定?
+            if (ctrl->flags & Flag_HeightFixed) {
+                base_height += ctrl->GetTakingUpHeight();
+            }
+            // 未指定高度?
+            else {
+                basic_weight += ctrl->weight;
             }
         }
         // 带入控件本身宽度计算
@@ -404,8 +401,6 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
         float position_y = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
-            // 浮点控
-            if (ctrl->flags & Flag_Floating) continue;
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
                 ctrl->SetWidth(base_width);
@@ -475,20 +470,17 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
         float basic_weight = 0.f;
         // 第一次
         for (auto ctrl : (*this)) {
-            // 非浮点控件
-            if (!(ctrl->flags & Flag_Floating)) {
-                // 高度固定?
-                if (ctrl->flags & Flag_HeightFixed) {
-                    base_height = std::max(base_height, ctrl->GetTakingUpHeight());
-                }
-                // 宽度固定?
-                if (ctrl->flags & Flag_WidthFixed) {
-                    base_width += ctrl->GetTakingUpWidth();
-                }
-                // 未指定宽度?
-                else {
-                    basic_weight += ctrl->weight;
-                }
+            // 高度固定?
+            if (ctrl->flags & Flag_HeightFixed) {
+                base_height = std::max(base_height, ctrl->GetTakingUpHeight());
+            }
+            // 宽度固定?
+            if (ctrl->flags & Flag_WidthFixed) {
+                base_width += ctrl->GetTakingUpWidth();
+            }
+            // 未指定宽度?
+            else {
+                basic_weight += ctrl->weight;
             }
         }
         // 计算
@@ -501,8 +493,6 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
         float position_x = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
-            // 跳过浮动控件
-            if (ctrl->flags & Flag_Floating) continue;
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
                 ctrl->SetHeight(base_height);
@@ -598,7 +588,7 @@ void LongUI::UISingle::Update() noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UISingle::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UISingle::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 父类(边缘控件)
     auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;
@@ -646,27 +636,18 @@ void LongUI::UISingle::RemoveJust(UIControl* child) noexcept {
 
 // UISingle: 更新布局
 void LongUI::UISingle::RefreshLayout() noexcept {
-    // 浮动控件?
-    if (m_pChild->flags & Flag_Floating) {
-        // 更新
-        m_2fContentSize.width = m_pChild->GetWidth() * m_2fZoom.width;
-        m_2fContentSize.height = m_pChild->GetHeight() * m_2fZoom.height;
+    // 设置控件宽度
+    if (!(m_pChild->flags & Flag_WidthFixed)) {
+        m_pChild->SetWidth(this->GetViewWidthZoomed());
     }
-    // 一般控件
-    else {
-        // 设置控件宽度
-        if (!(m_pChild->flags & Flag_WidthFixed)) {
-            m_pChild->SetWidth(this->GetViewWidthZoomed());
-        }
-        // 设置控件高度
-        if (!(m_pChild->flags & Flag_HeightFixed)) {
-            m_pChild->SetHeight(this->GetViewHeightZoomed());
-        }
-        // 不管如何, 修改!
-        m_pChild->SetControlLayoutChanged();
-        m_pChild->SetLeft(0.f);
-        m_pChild->SetTop(0.f);
+    // 设置控件高度
+    if (!(m_pChild->flags & Flag_HeightFixed)) {
+        m_pChild->SetHeight(this->GetViewHeightZoomed());
     }
+    // 不管如何, 修改!
+    m_pChild->SetControlLayoutChanged();
+    m_pChild->SetLeft(0.f);
+    m_pChild->SetTop(0.f);
 }
 
 // UISingle 清理
@@ -775,7 +756,7 @@ void LongUI::UIPage::Update() noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 父类(边缘控件)
     auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;

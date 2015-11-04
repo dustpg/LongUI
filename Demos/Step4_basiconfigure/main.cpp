@@ -13,7 +13,7 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
         // ctor
         MyConfig() : Super(UIManager) { }
         // return true, if use cpu rendering
-        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { 
+        virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
             auto base = IUIConfigure::Flag_OutputDebugString;
             //auto base = IUIConfigure::Flag_None;
             return base | (cpu_rendering ? IUIConfigure::Flag_RenderByCPU : IUIConfigure::Flag_None); ;

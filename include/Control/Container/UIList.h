@@ -39,7 +39,7 @@ namespace LongUI {
         // do event 事件处理
         //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
-        //virtual auto Recreate() noexcept->HRESULT override;
+        //virtual auto Recreate() noexcept ->HRESULT override;
         // 刷新
         virtual void Update() noexcept override;
     public:
@@ -145,9 +145,9 @@ namespace LongUI {
         // do mouse event
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate this
-        virtual auto Recreate() noexcept->HRESULT override;
+        virtual auto Recreate() noexcept ->HRESULT override;
         // find child control by mouse point
-        virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* override final;
+        virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* override final;
     protected:
         // register ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
@@ -228,11 +228,11 @@ namespace LongUI {
         // set new elements count
         void set_element_count(uint32_t length) noexcept;
         // referent ctrl
-        auto get_referent_control() const noexcept->UIListLine*;
+        auto get_referent_control() const noexcept ->UIListLine*;
         // find line via mouse point
-        auto find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine*;
+        auto find_line(const D2D1_POINT_2F& pt) const noexcept ->UIListLine*;
         // find line via mouse point
-        auto find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t;
+        auto find_line_index(const D2D1_POINT_2F& pt) const noexcept ->uint32_t;
         // push line-elemnet
         template<typename Itr> void push_back_le_helper(Itr) noexcept {}
         // push line-elemnet

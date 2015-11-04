@@ -348,7 +348,7 @@ namespace LongUI { namespace Helper {
         return node.attribute(att).value();
     }
     // 解析字符串数据作为枚举值
-    auto GetEnumFromString(const char* value, const GetEnumProperties& prop) noexcept->uint32_t {
+    auto GetEnumFromString(const char* value, const GetEnumProperties& prop) noexcept ->uint32_t {
         // 首个为数字?
         auto first_digital = [](const char* str) noexcept {
             // 遍历
@@ -376,7 +376,7 @@ namespace LongUI { namespace Helper {
             }
             // 遍历
             for (size_t i = 0; i < prop.values_length; ++i) {
-                if (!::strcmp(value, prop.values_list[i])) {
+                if (!std::strcmp(value, prop.values_list[i])) {
                     return uint32_t(i);
                 }
             }
@@ -395,7 +395,7 @@ namespace LongUI { namespace Helper {
         // 设置
         GetEnumProperties prop;
         prop.values_list = ary;
-        prop.values_length = static_cast<uint32_t>(lengthof(ary));
+        prop.values_length = lengthof<uint32_t>(ary);
         prop.bad_match = static_cast<uint32_t>(bad_match);
         // 调用
         return static_cast<T>(GetEnumFromString(value, prop));
@@ -471,27 +471,27 @@ namespace LongUI { namespace Helper {
         "left",  "right",  "center",  "justify",
     };
     // 获取动画类型
-    LongUINoinline auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept->AnimationType {
+    LongUINoinline auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept ->AnimationType {
         return GetEnumFromStringHelper(value, bad_match, cg_listAnimationType);
     }
     // 获取插值模式
-    LongUINoinline auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept->D2D1_INTERPOLATION_MODE {
+    LongUINoinline auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept ->D2D1_INTERPOLATION_MODE {
         return GetEnumFromStringHelper(value, bad_match, cg_listInterpolationMode);
     }
     // 获取扩展模式
-    LongUINoinline auto GetEnumFromString(const char* value, D2D1_EXTEND_MODE bad_match) noexcept->D2D1_EXTEND_MODE {
+    LongUINoinline auto GetEnumFromString(const char* value, D2D1_EXTEND_MODE bad_match) noexcept ->D2D1_EXTEND_MODE {
         return GetEnumFromStringHelper(value, bad_match, cg_listExtendMode);
     }
     // 获取位图渲染规则
-    LongUINoinline auto GetEnumFromString(const char* value, BitmapRenderRule bad_match) noexcept->BitmapRenderRule {
+    LongUINoinline auto GetEnumFromString(const char* value, BitmapRenderRule bad_match) noexcept ->BitmapRenderRule {
         return GetEnumFromStringHelper(value, bad_match, cg_listBitmapRenderRule);
     }
     // 获取富文本类型
-    LongUINoinline auto GetEnumFromString(const char* value, RichType bad_match) noexcept->RichType {
+    LongUINoinline auto GetEnumFromString(const char* value, RichType bad_match) noexcept ->RichType {
         return GetEnumFromStringHelper(value, bad_match, cg_listRichType);
     }
     // 获取字体风格
-    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_FONT_STYLE bad_match) noexcept->DWRITE_FONT_STYLE {
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_FONT_STYLE bad_match) noexcept ->DWRITE_FONT_STYLE {
         return GetEnumFromStringHelper(value, bad_match, cg_listFontStyle);
     }
     // 获取字体拉伸

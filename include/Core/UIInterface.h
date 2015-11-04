@@ -32,7 +32,7 @@ namespace LongUI {
     class LONGUI_NOVTABLE IUIInterface { 
     public:
         // add ref count
-        virtual auto STDMETHODCALLTYPE AddRef() noexcept->ULONG = 0;
+        virtual auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG = 0;
         // release
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG = 0;
     };
@@ -80,13 +80,13 @@ namespace LongUI {
     class LONGUI_NOVTABLE IUIScript : public IUIInterface {
     public:
         // run a section script with event
-        virtual auto Evaluation(const ScriptUI&, const LongUI::EventArgument& arg) noexcept->bool = 0;
+        virtual auto Evaluation(const ScriptUI&, const LongUI::EventArgument& arg) noexcept ->bool = 0;
         // get config infomation
-        virtual auto GetConfigInfo() noexcept->ScriptConfigInfo = 0;
+        virtual auto GetConfigInfo() noexcept ->ScriptConfigInfo = 0;
         // alloc the script memory and copy into(may be compiled into byte code), return memory size
-        virtual auto AllocScript(const char* utf8) noexcept->LongUI::ScriptUI = 0;
+        virtual auto AllocScript(const char* utf8) noexcept ->LongUI::ScriptUI = 0;
         // free the script memory
-        virtual auto FreeScript(ScriptUI&) noexcept->void = 0;
+        virtual auto FreeScript(ScriptUI&) noexcept ->void = 0;
     };
     // Meta
     struct Meta; struct DeviceIndependentMeta;
@@ -135,7 +135,7 @@ namespace LongUI {
         /// Get flags for configure
         /// </summary>
         /// <returns>flags for configure</returns>
-        virtual auto GetConfigureFlag() noexcept->ConfigureFlag = 0;
+        virtual auto GetConfigureFlag() noexcept ->ConfigureFlag = 0;
         /// <summary>
         /// Creates the interfaces.
         /// </summary>
@@ -148,23 +148,23 @@ namespace LongUI {
         ///   - LongUI::IUIScript*
         ///   - IDWriteFontCollection*
         /// </remarks>
-        virtual auto CreateInterface(const IID& iid, void** obj) noexcept->HRESULT= 0;
+        virtual auto CreateInterface(const IID& iid, void** obj) noexcept ->HRESULT= 0;
         /// <summary>
         /// get null-end string for template for creating control
         /// </summary>
         /// <returns>null-end string</returns>
-        virtual auto GetTemplateString() noexcept->const char* = 0;
+        virtual auto GetTemplateString() noexcept ->const char* = 0;
         /// <summary>
         /// Gets the locale name
         /// </summary>
         /// <param name="name">The locale name buffer</param>
         /// <remarks>L"" for local locale name</remarks>
-        virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void = 0;
+        virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept ->void = 0;
         /// <summary>
         /// Adds the custom control.
         /// </summary>
         /// <remarks>call CUIManager::RegisterControl to add control class</remarks>
-        virtual auto RegisterSome() noexcept->void = 0;
+        virtual auto RegisterSome() noexcept ->void = 0;
         /// <summary>
         /// Chooses the video adapter.
         /// </summary>
@@ -176,7 +176,7 @@ namespace LongUI {
         /// btw, in the adapter list, also include the WARP-adapter
         /// </remarks>
         /// <returns>index of adapters</returns>
-        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[/*length*/], const size_t length /*<=64*/) noexcept->size_t = 0;
+        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[/*length*/], const size_t length /*<=64*/) noexcept ->size_t = 0;
         /// <summary>
         /// Customs the type of the rich.
         /// </summary>
@@ -184,7 +184,7 @@ namespace LongUI {
         /// <param name="format">The format.</param>
         /// <remarks>if in RichType::Type_Custom, will call this</remarks>
         /// <returns></returns>
-        virtual auto CustomRichType(const FormatTextConfig& config, const wchar_t* format) noexcept->IDWriteTextLayout* = 0;
+        virtual auto CustomRichType(const FormatTextConfig& config, const wchar_t* format) noexcept ->IDWriteTextLayout* = 0;
         /// <summary>
         /// Shows the error.
         /// </summary>

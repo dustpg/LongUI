@@ -380,7 +380,9 @@ namespace LongUI {
         // close this
         long Close() noexcept;
         // output the string
-        long Output(const wchar_t* str, bool flush, long len = -1) noexcept;
+        long Output(const wchar_t* str, bool flush, size_t len) noexcept;
+        // output the string
+        long Output(const wchar_t* str, bool flush) noexcept { return this->Output(str, flush, std::wcslen(str)); }
     protected:
         // handle for console
         HANDLE              m_hConsole = INVALID_HANDLE_VALUE;
@@ -425,19 +427,19 @@ namespace LongUI {
         virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
     public:
         // get flags for configure
-        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { return IUIConfigure::Flag_OutputDebugString; }
+        virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { return IUIConfigure::Flag_OutputDebugString; }
         // create interface
-        virtual auto CreateInterface(const IID& iid, void** obj)noexcept->HRESULT override;
+        virtual auto CreateInterface(const IID& iid, void** obj) noexcept ->HRESULT override;
         // get null-end string for template for creating control
-        virtual auto GetTemplateString() noexcept->const char* override { return nullptr; }
+        virtual auto GetTemplateString() noexcept ->const char* override { return nullptr; }
         // get locale name of ui(for text)
-        virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override { name[0] = L'\0'; };
+        virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept ->void override { name[0] = L'\0'; };
         // add all custom controls
-        virtual auto RegisterSome() noexcept->void override {};
+        virtual auto RegisterSome() noexcept ->void override {};
         // if use gpu render, you should choose a video card, return the index
-        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept->size_t override;
+        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
         // if in RichType::Type_Custom, will call this, we don't implement at here
-        virtual auto CustomRichType(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
+        virtual auto CustomRichType(const FormatTextConfig&, const wchar_t*) noexcept ->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
         // show the error string
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void override;
 #ifdef _DEBUG
@@ -508,34 +510,6 @@ namespace LongUI {
     private: // easy plan
         // UNIT like
         struct { size_t length; UIControl* window; } m_unitLike;
-    };
-    // CUIFileLoader
-    class CUIFileLoader {
-    public:
-        // ctor
-        CUIFileLoader() noexcept;
-        // dtor
-        ~CUIFileLoader() noexcept;
-        // copy ctor
-        CUIFileLoader(const CUIFileLoader&) = delete;
-        // move ctor
-        CUIFileLoader(CUIFileLoader&&) = delete;
-    public:
-        // read file, return false if error
-        bool ReadFile(WCHAR* file_name) noexcept;
-        // get data
-        auto GetData() const  noexcept { return m_pData; }
-        // get data length
-        auto GetLength() const noexcept { return m_cLength; }
-    private:
-        // point to data
-        void*           m_pData = nullptr;
-        // data length
-        size_t          m_cLength = 0;
-        // buffer length
-        size_t          m_cLengthReal = 0;
-        // unused
-        size_t          unused = 0;
     };
     // short allocator, memory created with allocator, destroyed with allocator
     template<size_t CHAIN_SIZE=2048>

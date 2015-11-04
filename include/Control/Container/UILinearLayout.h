@@ -40,7 +40,7 @@ namespace LongUI{
         // do event 
         //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate
-        //virtual auto Recreate() noexcept->HRESULT override;
+        //virtual auto Recreate() noexcept ->HRESULT override;
     public:
         // refresh layout
         virtual void RefreshLayout() noexcept override final;
@@ -73,7 +73,7 @@ namespace LongUI{
         // do event 事件处理
         //virtual bool DoEvent(LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
-        //virtual auto Recreate() noexcept->HRESULT override;
+        //virtual auto Recreate() noexcept ->HRESULT override;
     public:
         // refresh layout
         virtual void RefreshLayout() noexcept override final;

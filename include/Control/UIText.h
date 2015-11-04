@@ -41,7 +41,7 @@ namespace LongUI{
         // do event 事件处理
         virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
-        //virtual auto Recreate() noexcept->HRESULT override;
+        //virtual auto Recreate() noexcept ->HRESULT override;
     protected:
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }

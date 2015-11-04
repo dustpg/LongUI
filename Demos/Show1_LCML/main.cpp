@@ -12,15 +12,15 @@ LONGUI_NAMESPACE_BEGIN namespace Show {
         // ctor
         MyConfig() : Super(UIManager) { }
         // locale name
-        auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept->void override {
+        auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept ->void override {
             std::wcscpy(name, L"en-us");
         };
         // return flags
-        auto GetConfigureFlag() noexcept->ConfigureFlag override { 
+        auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
             return Flag_OutputDebugString | Flag_RenderByCPU | Flag_DbgOutputFontFamily;
         }
         // create interface
-        auto CreateInterface(const IID& iid, void** obj) noexcept->HRESULT override {
+        auto CreateInterface(const IID& iid, void** obj) noexcept ->HRESULT override {
             // bind it
             auto create_fc = [](const wchar_t* fl) noexcept {
                 return LongUI::DX::CreateFontCollection(L"*.*tf", fl); 

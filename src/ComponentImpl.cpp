@@ -198,7 +198,7 @@ auto LongUI::Component::EditaleText::insert(
 
 
 // 返回当前选择区域
-auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE_TEXT_RANGE {
+auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept -> DWRITE_TEXT_RANGE {
     // 返回当前选择返回
     auto caretBegin = m_u32CaretAnchor;
     auto caretEnd = m_u32CaretPos + m_u32CaretPosOffset;
@@ -216,7 +216,7 @@ auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE
 
 // 设置选择区
 auto LongUI::Component::EditaleText::SetSelection(
-    SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept-> HRESULT {
+    SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept -> HRESULT {
     //uint32_t line = uint32_t(-1);
     uint32_t absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
     uint32_t oldabsolute_position = absolute_position;
@@ -463,7 +463,7 @@ auto LongUI::Component::EditaleText::SetSelection(
 }
 
 // 删除选择区文字
-auto LongUI::Component::EditaleText::DeleteSelection() noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::DeleteSelection() noexcept -> HRESULT {
     DWRITE_TEXT_RANGE selection = this->GetSelectionRange();
     if (selection.length == 0 || this->IsReadOnly()) return S_FALSE;
     // 删除成功的话设置选择区
@@ -927,7 +927,7 @@ void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
 }
 
 // 复制到 目标全局句柄
-auto LongUI::Component::EditaleText::CopyToGlobal() noexcept-> HGLOBAL {
+auto LongUI::Component::EditaleText::CopyToGlobal() noexcept -> HGLOBAL {
     // 获取选择区
     auto selection = this->GetSelectionRange();
     // 有选择区域
@@ -950,7 +950,7 @@ auto LongUI::Component::EditaleText::CopyToGlobal() noexcept-> HGLOBAL {
 }
 
 // 复制到 剪切板
-auto LongUI::Component::EditaleText::CopyToClipboard() noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::CopyToClipboard() noexcept -> HRESULT {
     HRESULT hr = E_FAIL;
     // 打开剪切板
     if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
@@ -979,7 +979,7 @@ auto LongUI::Component::EditaleText::CopyToClipboard() noexcept-> HRESULT {
 
 
 // 从 目标全局句柄 黏贴
-auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept -> HRESULT {
     // 正式开始
     size_t byteSize = ::GlobalSize(global);
     // 获取数据
@@ -991,7 +991,7 @@ auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> 
         this->DeleteSelection();
         const wchar_t* text = reinterpret_cast<const wchar_t*>(memory);
         // 计算长度
-        auto characterCount = static_cast<UINT32>(::wcsnlen(text, byteSize / sizeof(wchar_t)));
+        auto characterCount = static_cast<UINT32>(std::min(std::wcslen(text), byteSize / sizeof(wchar_t)));
         // 插入
         hr = this->insert(m_u32CaretPos + m_u32CaretPosOffset, text, characterCount);
         ::GlobalUnlock(global);
@@ -1002,7 +1002,7 @@ auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> 
 }
 
 // 从 剪切板 黏贴
-auto LongUI::Component::EditaleText::PasteFromClipboard() noexcept-> HRESULT {
+auto LongUI::Component::EditaleText::PasteFromClipboard() noexcept -> HRESULT {
     // 正式开始
     HRESULT hr = S_OK;  //uint32_t characterCount = 0ui32;
                         // 打开剪切板

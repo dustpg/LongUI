@@ -143,7 +143,7 @@ namespace LongUI {
 #ifdef LongUIDebugEvent
     // longui cast
     template<class T1, class T2> 
-    inline auto longui_cast(T2 ptr) noexcept->T1 {
+    inline auto longui_cast(T2 ptr) noexcept ->T1 {
         if (!ptr) return nullptr;
         LongUI::UIControl* ctrl = static_cast< LongUI::UIControl*>(ptr);
         ctrl->AssertTypeCastingT(T1(nullptr));
@@ -237,10 +237,6 @@ namespace LongUI {
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
         Flag_HeightFixed = 1 << 4,
-        /// <summary>
-        /// control is floating
-        /// </summary>
-        Flag_Floating = 1 << 5,
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
         // NOTE: this attribute used by parent

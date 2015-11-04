@@ -143,32 +143,31 @@ void LongUI::CUIZipXmlResourceLoader::get_resource_count_from_xml() noexcept {
             return count;
         };
         // 位图?
-        if (!::strcmp(now_node.name(), "Bitmap")) {
+        if (!std::strcmp(now_node.name(), "Bitmap")) {
             // XXX: PUGIXML 直接读取(XPATH?)
             m_aNodes[Type_Bitmap] = now_node;
             m_aResourceCount[this->Type_Bitmap] = get_children_count(now_node);
         }
         // 笔刷?
-        else if (!::strcmp(now_node.name(), "Brush")) {
+        else if (!std::strcmp(now_node.name(), "Brush")) {
             // XXX: PUGIXML 直接读取
             m_aNodes[Type_Brush] = now_node;
             m_aResourceCount[this->Type_Brush] = get_children_count(now_node);
         }
         // 文本格式?
-        else if (!::strcmp(now_node.name(), "Font") ||
-            !::strcmp(now_node.name(), "TextFormat")) {
+        else if (!std::strcmp(now_node.name(), "Font") || !std::strcmp(now_node.name(), "TextFormat")) {
             // XXX: PUGIXML 直接读取
             m_aNodes[Type_TextFormat] = now_node;
             m_aResourceCount[this->Type_TextFormat] = get_children_count(now_node);
         }
         // 图元?
-        else if (!::strcmp(now_node.name(), "Meta")) {
+        else if (!std::strcmp(now_node.name(), "Meta")) {
             // XXX: PUGIXML 直接读取
             m_aNodes[Type_Meta] = now_node;
             m_aResourceCount[this->Type_Meta] = get_children_count(now_node);
         }
         // 动画图元?
-        else if (!::strcmp(now_node.name(), "MetaEx")) {
+        else if (!std::strcmp(now_node.name(), "MetaEx")) {
             assert(!"unsupport yet");
         }
         // 推进

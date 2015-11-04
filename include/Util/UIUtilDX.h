@@ -31,19 +31,19 @@ namespace LongUI { namespace DX {
     // DXGI_FORMAT to WIC GUID format
     auto DXGIToWIC(DXGI_FORMAT format) noexcept ->CPGUID;
     // create mesh from geometry
-    auto CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept->HRESULT;
+    auto CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept ->HRESULT;
     // format the text in C++ within core string
-    auto FormatTextCoreC(const FormatTextConfig&, const wchar_t*, ...) noexcept->IDWriteTextLayout*;
+    auto FormatTextCoreC(const FormatTextConfig&, const wchar_t*, ...) noexcept ->IDWriteTextLayout*;
     // format the text within core string
-    auto FormatTextCore(const FormatTextConfig&, const wchar_t*, va_list=nullptr) noexcept->IDWriteTextLayout*;
+    auto FormatTextCore(const FormatTextConfig&, const wchar_t*, va_list=nullptr) noexcept ->IDWriteTextLayout*;
     // format the text within xml string
-    auto FormatTextXML(const FormatTextConfig&, const wchar_t*) noexcept->IDWriteTextLayout*;
+    auto FormatTextXML(const FormatTextConfig&, const wchar_t*) noexcept ->IDWriteTextLayout*;
     // get default LongUI imp  IDWriteFontCollection
     auto CreateFontCollection(
         const wchar_t* filename = L"*.*tf",
         const wchar_t* folder = L"Fonts",
         bool include_system = true
-        ) noexcept->IDWriteFontCollection*;
+        ) noexcept ->IDWriteFontCollection*;
     // create path-geometry from utf-32 char array using text format
     // fontface: (you can see <LongUI::UIScrollBar::UIScrollBar>)
     //          fontface == nullptr, ok but a bit slow
@@ -56,7 +56,7 @@ namespace LongUI { namespace DX {
         IN ID2D1Factory* factory,
         IN OUT OPTIONAL IDWriteFontFace** fontface,
         OUT ID2D1PathGeometry** geometry
-        ) noexcept->HRESULT;
+        ) noexcept ->HRESULT;
     // properties for creating text format, file data friendly
     struct TextFormatProperties {
         // text size
@@ -85,14 +85,14 @@ namespace LongUI { namespace DX {
     // init TextFormatProperties
     void InitTextFormatProperties(TextFormatProperties& prop, size_t name_buf_len) noexcept;
     // create text format with properties
-    auto CreateTextFormat(const TextFormatProperties&, IDWriteTextFormat** OUT fmt) noexcept->HRESULT;
+    auto CreateTextFormat(const TextFormatProperties&, IDWriteTextFormat** OUT fmt) noexcept ->HRESULT;
     // make text format with xml node, out "*fmt" maybe SAME as template_fmt if no changes
     auto MakeTextFormat(
         IN pugi::xml_node node, 
         OUT IDWriteTextFormat** fmt, 
         IN OPTIONAL IDWriteTextFormat* template_fmt = nullptr, 
         IN OPTIONAL const char* prefix=nullptr
-        ) noexcept->HRESULT;
+        ) noexcept ->HRESULT;
     // properties for saving image file
     struct SaveAsImageFileProperties {
         // data for bitmap
@@ -113,7 +113,7 @@ namespace LongUI { namespace DX {
         uint32_t                unused;
     };
     // save as image file with d2d-bitmap
-    auto SaveAsImageFile(ID2D1Bitmap1*, IWICImagingFactory*, const wchar_t* file_name, const GUID* = nullptr) noexcept->HRESULT;
+    auto SaveAsImageFile(ID2D1Bitmap1*, IWICImagingFactory*, const wchar_t* file_name, const GUID* = nullptr) noexcept ->HRESULT;
     // save as image file in raw data
     auto SaveAsImageFile(const SaveAsImageFileProperties& , const wchar_t* file_name) noexcept -> HRESULT;
 }}

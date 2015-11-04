@@ -47,7 +47,7 @@ namespace LongUI {
         // do mouse event 
         virtual bool DoMouseEvent(const LongUI::MouseEventArgument& arg) noexcept override;
         // recreate this
-        virtual auto Recreate() noexcept->HRESULT override;
+        virtual auto Recreate() noexcept ->HRESULT override;
     public:
 #ifdef _DEBUG
     private:
@@ -61,7 +61,7 @@ namespace LongUI {
         }
 #endif
         // find child control by mouse point
-        virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* ;
+        virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* ;
         // refresh layout
         virtual void RefreshLayout() noexcept = 0;
         // push back, do push marginalal-control for UIContainer

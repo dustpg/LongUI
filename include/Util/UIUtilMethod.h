@@ -48,6 +48,8 @@ namespace LongUI {
         return ((HRESULT)(x) <= 0 ? ((HRESULT)(x)) : ((HRESULT)(((x)& 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000)));
     }
     // lengthof
+    template<typename R, typename T> constexpr auto lengthof(T& t) { UNREFERENCED_PARAMETER(t); return static_cast<R>(sizeof(t) / sizeof(*t)); }
+    // lengthof
     template<typename T> constexpr auto lengthof(T& t) { UNREFERENCED_PARAMETER(t); return sizeof(t) / sizeof(*t); }
     // white space
     template<typename T> static auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
@@ -66,9 +68,9 @@ namespace LongUI {
     // get IID from pointer
     template<typename T> LongUIInline const IID& GetIID(T*) { return LongUI::GetIID<T>(); }
     // BKDR Hash
-    auto __fastcall BKDRHash(const char* str) noexcept->uint32_t;
+    auto __fastcall BKDRHash(const char* str) noexcept ->uint32_t;
     // BKDR Hash
-    auto __fastcall BKDRHash(const wchar_t* str) noexcept->uint32_t;
+    auto __fastcall BKDRHash(const wchar_t* str) noexcept ->uint32_t;
     // BKDR Hash
     static inline auto BKDRHash(const char* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
     // BKDR Hash
@@ -102,13 +104,13 @@ namespace LongUI {
         return result;
     }
     // get transformed pointer
-    auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept->D2D1_POINT_2F;
+    auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept ->D2D1_POINT_2F;
     // round
     static inline auto RoundToInt(float x) { return static_cast<int>(x + .5f); }
     // pack the color
     auto __fastcall PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
     // unpack the color
-    auto __fastcall UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void LongUINoinline;
+    auto __fastcall UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void LongUINoinline;
     // Dll Function Helper
     struct Dll {
         // CreateDXGIFactory1@dxgi.dll
@@ -139,7 +141,7 @@ namespace LongUI {
     // Base64 Encode 编码
     auto __fastcall Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* const __restrict base64) noexcept -> char *;
     // Base64 Decode 解码
-    auto __fastcall Base64Decode(IN const char* __restrict base64, OUT uint8_t* __restrict bindata) noexcept->size_t;
+    auto __fastcall Base64Decode(IN const char* __restrict base64, OUT uint8_t* __restrict bindata) noexcept ->size_t;
     // UTF-16 to UTF-8
     // Return: UTF-8 string length, 0 maybe error
     auto __fastcall UTF16toUTF8(const char16_t* __restrict, char* __restrict) noexcept -> uint32_t;
@@ -148,13 +150,13 @@ namespace LongUI {
     auto __fastcall UTF8toUTF16(const char* __restrict, char16_t* __restrict) noexcept -> uint32_t;
     // wchar to UTF-8
     // UTF-8 to wchar
-    inline auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des)noexcept {
+    inline auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des) noexcept {
         // UTF-8 UTF-16 UTF-32(UCS-4)
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
         return UTF16toUTF8(reinterpret_cast<const char16_t*>(src), des);
     }
     // UTF-8 to wchar
-    inline auto UTF8toWideChar(const char* __restrict src, wchar_t* __restrict des)noexcept {
+    inline auto UTF8toWideChar(const char* __restrict src, wchar_t* __restrict des) noexcept {
         // UTF-8 UTF-16 UTF-32(UCS-4)
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
         return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des));

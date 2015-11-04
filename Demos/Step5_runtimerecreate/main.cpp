@@ -41,11 +41,11 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
         // ctor
         MyConfig() : Super(UIManager, "log.log") { }
         // 获取控件模板
-        //auto GetTemplateString() noexcept->const char* override { return TEMPLATE_XML; }
+        //auto GetTemplateString() noexcept ->const char* override { return TEMPLATE_XML; }
         // return true, if use cpu rendering
-        virtual auto GetConfigureFlag() noexcept->ConfigureFlag override { return Flag_OutputDebugString; }
+        virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { return Flag_OutputDebugString; }
         // choose it
-        virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept->size_t override;
+        virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
         // adapters
         std::vector<DXGI_ADAPTER_DESC1>     adapter_vector;
     };
@@ -124,14 +124,14 @@ auto LongUI::Demo::MyConfig::ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], const 
         }
         // CPU renderer first
         for (size_t i = 0; i < length; ++i) {
-            if (!::wcscmp(CPU_ADAPTER, adapters[i].Description))
+            if (!std::wcscmp(CPU_ADAPTER, adapters[i].Description))
                 return i;
         }
     }
     // stored infomation
     else {
         for (size_t i = 0; i < length; ++i) {
-            if (!::wcscmp(adapter_vector.back().Description, adapters[i].Description))
+            if (!std::wcscmp(adapter_vector.back().Description, adapters[i].Description))
                 return i;
         }
     }

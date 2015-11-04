@@ -69,7 +69,7 @@ namespace LongUI {
             ) noexcept override;
     public: // LongUI CUIBasicTextRenderer 
         // get the render context size in byte
-        virtual auto GetContextSizeInByte() noexcept->uint32_t = 0;
+        virtual auto GetContextSizeInByte() noexcept ->uint32_t = 0;
         // create context from string
         virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept = 0;
     protected:

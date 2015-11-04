@@ -98,7 +98,7 @@ auto LongUI::DX::CreateFontCollection(
     if (include_system && itr != buffer) {
         wchar_t winpath[MAX_PATH];
         winpath[0] = 0;
-        auto len = ::GetWindowsDirectoryW(winpath, static_cast<uint32_t>(lengthof(winpath)));
+        auto len = ::GetWindowsDirectoryW(winpath, lengthof<uint32_t>(winpath));
         assert(len && len < lengthof(winpath) && "buffer to small");
         std::wcscpy(winpath + len, L"\\Fonts");
         itr = Helper::FindFilesToBuffer(itr, buffer_length - size_t(itr - buffer), winpath, L"*.*tf");
@@ -470,7 +470,7 @@ auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mes
 auto LongUI::DX::FormatTextXML(
     const FormatTextConfig& config, 
     const wchar_t* format
-    ) noexcept->IDWriteTextLayout*{
+    ) noexcept ->IDWriteTextLayout*{
     UNREFERENCED_PARAMETER(config);
     UNREFERENCED_PARAMETER(format);
     return nullptr;
@@ -891,7 +891,7 @@ namespace LongUI { namespace DX {
                 );
 #ifdef _DEBUG
             text[length] = 0;
-            longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTextLayout('" << text << L"') with format " << static_cast<void*>(cfg.format));
+            longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTextLayout  " << text);
 #endif
         }
         // 数据末尾
@@ -957,7 +957,7 @@ namespace LongUI { namespace DX {
         return layout;
     }
     // 创建格式文本
-    auto FormatTextCoreC(const FormatTextConfig& cfg, const wchar_t* fmt, ...) noexcept->IDWriteTextLayout* {
+    auto FormatTextCoreC(const FormatTextConfig& cfg, const wchar_t* fmt, ...) noexcept ->IDWriteTextLayout* {
         va_list ap;
         va_start(ap, fmt);
         CoreMLParamC param(ap);
@@ -966,7 +966,7 @@ namespace LongUI { namespace DX {
         return lyt;
     }
     // 创建格式文本
-    auto FormatTextCore(const FormatTextConfig& cfg, const wchar_t* fmt, va_list) noexcept->IDWriteTextLayout* {
+    auto FormatTextCore(const FormatTextConfig& cfg, const wchar_t* fmt, va_list) noexcept ->IDWriteTextLayout* {
         CoreMLParamString param(fmt);
         return DX::FormatTextViaCoreML(cfg, fmt, param);
     }

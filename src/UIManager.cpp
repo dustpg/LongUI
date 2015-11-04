@@ -4,7 +4,7 @@
 //#define LONGUI_RENDER_IN_STD_THREAD
 
 // CUIManager 初始化
-auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
+auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 检查GUID
 #if defined(_DEBUG) && defined(_MSC_VER)
 #define CHECK_GUID(x)  assert(LongUI::IID_##x == __uuidof(x) && "bad guid")
@@ -22,6 +22,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     std::memset(m_apWindows, 0, sizeof(m_apWindows));
     // 开始计时
     m_uiTimer.Start();
+    this->RefreshDisplayFrequency();
     // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -287,7 +288,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 检查当前路径
 #ifdef _DEBUG
     wchar_t buffer[MAX_PATH * 4]; buffer[0] = 0;
-    ::GetCurrentDirectoryW(static_cast<uint32_t>(lengthof(buffer)), buffer);
+    ::GetCurrentDirectoryW(lengthof<uint32_t>(buffer), buffer);
     UIManager << DL_Log << L" Current Directory: " << buffer << LongUI::endl;
 #endif
     return hr;
@@ -582,13 +583,9 @@ void LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept {
     // 一直刷新
     if (this->flag & IUIConfigure::Flag_RenderInAnytime) 
         return static_cast<void>(::WaitForMultipleObjects(length, events, TRUE, INFINITE));
-    // 获取屏幕刷新率
-    DEVMODEW mode = { 0 };
-    ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-    // 保留刷新
-    ++m_dwWaitVSCount;
-    auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency;
-    end_time_of_sleep += m_dwWaitVSStartTime;
+    // 保留刷新时间点
+    auto end_time_of_sleep = m_dwWaitVSStartTime + 
+        ((++m_dwWaitVSCount) * 1000ui32) / static_cast<uint16_t>(m_dDisplayFrequency);
     // 等待事件
     if (length) ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
     // 保证等待
@@ -880,7 +877,7 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
 
 
 // 获取操作系统版本
-namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
+namespace LongUI { auto GetWindowsVersion() noexcept ->CUIManager::WindowsVersion; }
 
 // CUIManager 构造函数
 LongUI::CUIManager::CUIManager() noexcept : 
@@ -947,7 +944,7 @@ auto LongUI::CUIManager::RegisterTextRenderer(
 
 
 // 创建0索引资源
-auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
+auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     assert(m_pResourceBuffer && "bad alloc");
     HRESULT hr = S_OK;
     // 索引0位图: 可MAP位图
@@ -1004,7 +1001,7 @@ void LongUI::CUIManager::cleanup_delay_cleanup_chain() noexcept {
 }
 
 // 载入模板字符串
-auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept->HRESULT {
+auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept ->HRESULT {
     // 检查参数
     if (str && *str) {
         // 载入字符串
@@ -1032,7 +1029,7 @@ auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept-
 
 
 // 设置模板字符串
-auto LongUI::CUIManager::set_control_template_string() noexcept->HRESULT {
+auto LongUI::CUIManager::set_control_template_string() noexcept ->HRESULT {
     // 有效情况
     if (m_cCountCtrlTemplate > 1) {
         auto itr = m_pTemplateNodes + 1;
@@ -1321,7 +1318,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, static_cast<uint32_t>(lengthof(stops)), &collection
+                stops, lengthof<uint32_t>(stops), &collection
                 );
         }
         // 创建笔刷
@@ -1346,7 +1343,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, static_cast<uint32_t>(lengthof(stops)), &collection
+                stops, lengthof<uint32_t>(stops), &collection
                 );
         }
         // 创建笔刷
@@ -1371,7 +1368,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, static_cast<uint32_t>(lengthof(stops)), &collection
+                stops, lengthof<uint32_t>(stops), &collection
                 );
         }
         // 创建笔刷
@@ -1741,6 +1738,22 @@ void LongUI::CUIManager::RegisterWindow(UIWindow * wnd) noexcept {
     m_apWindows[m_cCountWindow] = wnd; ++m_cCountWindow;
 }
 
+// 刷新屏幕刷新率
+void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
+    // 获取屏幕刷新率
+    DEVMODEW mode; std::memset(&mode, 0, sizeof(mode));
+    ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+    m_dDisplayFrequency = static_cast<uint16_t>(mode.dmDisplayFrequency);
+    // 稍微检查
+    if (!m_dDisplayFrequency) {
+        UIManager << DL_Error
+            << L"EnumDisplaySettingsW failed: got zero for DEVMODEW::dmDisplayFrequency"
+            << L", now assume as 60Hz"
+            << LongUI::endl;
+        m_dDisplayFrequency = 60;
+    }
+}
+
 // 移出窗口
 void LongUI::CUIManager::RemoveWindow(UIWindow* wnd, bool cleanup) noexcept {
     assert(m_cCountWindow); assert(wnd && "bad argument");
@@ -1871,7 +1884,7 @@ auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -1896,7 +1909,7 @@ auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUI
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -1907,7 +1920,7 @@ auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -1920,7 +1933,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->C
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -1931,7 +1944,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManage
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
