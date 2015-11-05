@@ -866,3 +866,46 @@ auto LongUI::UIPage::CreateControl(CreateEventType type, pugi::xml_node node) no
     }
     return pControl;
 }
+
+// --------------------- Floating Layout ---------------
+// UIFloatLayout 创建
+auto LongUI::UIFloatLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    UIControl* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    case_LongUI__Type_CreateControl:
+        // 警告
+        if (!node) {
+            UIManager << DL_Hint << L"node null" << LongUI::endl;
+        }
+        // 申请空间
+        pControl = CreateWidthCET<LongUI::UIFloatLayout>(type, node);
+        // OOM
+        if (!pControl) {
+            UIManager << DL_Error << L"alloc null" << LongUI::endl;
+        }
+    }
+    return pControl;
+}
+
+// 更新子控件布局
+void LongUI::UIFloatLayout::RefreshLayout() noexcept {
+    // 布局上下文: 做为left-top坐标
+    // 布局权重:   暂时无用
+    for (auto ctrl : (*this)) {
+        ctrl->SetLeft(ctrl->context[0]);
+        ctrl->SetTop(ctrl->context[1]);
+        ctrl->SetControlLayoutChanged();
+    }
+}
+
+// UIFloatLayout 关闭控件
+void LongUI::UIFloatLayout::cleanup() noexcept {
+    delete this;
+}

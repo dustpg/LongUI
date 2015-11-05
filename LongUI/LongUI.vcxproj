@@ -170,6 +170,7 @@
     <ClInclude Include="..\include\Control\Container\UIPage.h" />
     <ClInclude Include="..\include\Control\Container\UISingle.h" />
     <ClInclude Include="..\include\Control\Container\UIWindow.h" />
+    <ClInclude Include="..\include\Control\Layout\UIFloatLayout.h" />
     <ClInclude Include="..\include\Control\UIButton.h" />
     <ClInclude Include="..\include\Control\UICheckBox.h" />
     <ClInclude Include="..\include\Control\UIEdit.h" />

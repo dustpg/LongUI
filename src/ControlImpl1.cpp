@@ -736,6 +736,27 @@ bool LongUI::UIVerticalLayout::debug_do_event(const LongUI::DebugEventInformatio
     return false;
 }
 
+// UI浮动布局: 调试信息
+bool LongUI::UIFloatLayout::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIFloatLayout";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIFloatLayout";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIFloatLayout>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+
 // UI窗口: 调试信息
 bool LongUI::UIWindow::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)

@@ -232,7 +232,9 @@ namespace LongUI { namespace EzContainer {
         // cpoy ctor
         EzStringHash(const EzStringHash&) = delete;
         // dtor
-        LongUINoinline ~EzStringHash() noexcept { 
+        ~EzStringHash() noexcept { this->Clear(); }
+        // clear
+        LongUINoinline void Clear() noexcept { 
             if (m_ppUnitTable) {
                 this->for_each(m_ppUnitTable, m_cCapacity, [this](Unit* unit) noexcept {
                     this->free_unit(unit);

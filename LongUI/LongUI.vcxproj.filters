@@ -42,6 +42,9 @@
     <Filter Include="LongUI\Source\XImpl">
       <UniqueIdentifier>{37daa815-be43-4dff-9355-722b87cdc6e5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LongUI\Header\Control\Layout">
+      <UniqueIdentifier>{586fa883-3321-4ea3-897b-82d2012d334e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\longuiconf.h">
@@ -140,23 +143,26 @@
     <ClInclude Include="..\include\Control\Container\UIMenu.h">
       <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UISingle.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Control\Container\UIWindow.h">
       <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Control\Container\UIContainerBuiltIn.h">
       <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UILinearLayout.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UIList.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
+    <ClInclude Include="..\include\Control\Container\UISingle.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Control\Container\UIPage.h">
-      <Filter>LongUI\Header\Control\Container</Filter>
+      <Filter>LongUI\Header\Control\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UIList.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UILinearLayout.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Layout\UIFloatLayout.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -266,6 +266,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
         this->RegisterControlClass(UIScrollBarA::CreateControl, "ScrollBarA");
         this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
+        this->RegisterControlClass(UIFloatLayout::CreateControl, "FloatLayout");
         this->RegisterControlClass(UIVerticalLayout::CreateControl, "VerticalLayout");
         this->RegisterControlClass(UIHorizontalLayout::CreateControl, "HorizontalLayout");
         // 添加自定义控件
@@ -347,6 +348,8 @@ void LongUI::CUIManager::Uninitialize() noexcept {
         m_pResourceBuffer = nullptr;
     }
     m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
+    // 清理
+    m_hashStr2CreateFunc.Clear();
 }
 
 // 创建事件
@@ -359,7 +362,6 @@ void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
         func(type, LongUINullXMLNode);
     });
 }
-
 
 // CUIManager 创建控件树
 void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_node node) noexcept {

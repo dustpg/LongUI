@@ -538,11 +538,12 @@ namespace LongUI {
 
 // longui core only?
 #ifndef LongUICoreOnly
-#   include "Control/Container/UISingle.h"
 #   include "Control/Container/UIContainerBuiltIn.h"
-#   include "Control/Container/UILinearLayout.h"
-#   include "Control/Container/UIList.h"
-#   include "Control/Container/UIPage.h"
+#   include "Control/Layout/UISingle.h"
+#   include "Control/Layout/UIFloatLayout.h"
+#   include "Control/Layout/UILinearLayout.h"
+#   include "Control/Layout/UIList.h"
+#   include "Control/Layout/UIPage.h"
 #   include "Control/Container/UIWindow.h"
 #   include "Control/Container/UIMenu.h"
 #   include "Control/UIScrollBar.h"
