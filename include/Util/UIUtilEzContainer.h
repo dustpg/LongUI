@@ -554,7 +554,7 @@ namespace LongUI { namespace EzContainer {
 #ifdef _DEBUG
         auto debug_begin = m_pData + this->size() - len;
 #endif
-        register auto endofthis = this->size() - len;
+        auto endofthis = this->size() - len;
         m_cLength -= len;
         for (auto i = pos; i < endofthis; ++i) {
             m_pData[i] = m_pData[i + len];

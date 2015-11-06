@@ -115,7 +115,7 @@ auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint
     const char* word_begin = nullptr;
     for (auto itr = str;; ++itr) {
         // 获取
-        register char ch = *itr;
+        char ch = *itr;
         // 段结束?
         if (ch == ',' || !ch) {
             assert(word_begin && "bad string");
@@ -179,7 +179,7 @@ namespace LongUI { namespace impl {
             CHAR_TYPE buf[LongUIStringBufferLength]; auto itr = buf;
             // 遍历
             while (size) {
-                register auto ch = (*str);
+                auto ch = (*str);
                 // 获取到了分隔符号
                 if (ch == static_cast<CHAR_TYPE>(SEPARATOR) || ch == 0) {
                     *itr = 0;
@@ -211,7 +211,7 @@ namespace LongUI { namespace impl {
             // 遍历
             while (size) {
                 // 获取到了分隔符号
-                register auto ch = (*str);
+                auto ch = (*str);
                 if (ch == static_cast<CHAR_TYPE>(SEPARATOR) || ch == 0) {
                     caster(units++, old, str);
                     old = str + 1; --size;
@@ -302,7 +302,7 @@ bool LongUI::Helper::MakeString(const char* data, CUIString& str) noexcept {
     if (!data || !*data) return false;
     wchar_t buffer[LongUIStringBufferLength];
     // 转码
-    register auto length = LongUI::UTF8toWideChar(data, buffer);
+    auto length = LongUI::UTF8toWideChar(data, buffer);
     buffer[length] = L'\0';
     // 设置字符串
     str.Set(buffer, length);

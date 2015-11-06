@@ -134,7 +134,7 @@ namespace LongUI {
         void BeginDraw() const noexcept;
         // end ender
         void EndDraw() const noexcept;
-        // register for calling PreRender
+        // for calling PreRender
         void RegisterOffScreenRender(UIControl* c, bool is3d) noexcept;
         // unregister for calling PreRender
         void UnRegisterOffScreenRender(UIControl*) noexcept;
@@ -165,9 +165,9 @@ namespace LongUI {
         LongUIInline auto GetVSyncEvent() const noexcept { return m_hVSync; }
         // show window
         LongUIInline auto ShowWindow(int show = SW_SHOW) noexcept { return ::ShowWindow(m_hwnd, show); }
-        // register for calling PreRender with 3d content
+        // for calling PreRender with 3d content
         LongUIInline auto RegisterOffScreenRender3D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, true); }
-        // register for calling PreRender with 2d content
+        // for calling PreRender with 2d content
         LongUIInline auto RegisterOffScreenRender2D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, false); }
         // start render in sec.
         LongUIInline auto StartRender(float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, t, c); }

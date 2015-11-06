@@ -163,8 +163,8 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
 #endif
     {
         // 连接前后结点
-        register auto prev_tmp = ctrl->prev;
-        register auto next_tmp = ctrl->next;
+        auto prev_tmp = ctrl->prev;
+        auto next_tmp = ctrl->next;
         // 检查, 头
         (prev_tmp ? force_cast(prev_tmp->next) : m_pHead) = next_tmp;
         // 检查, 尾
@@ -394,7 +394,7 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
         // 带入控件本身宽度计算
         base_width = std::max(base_width, this->GetViewWidthZoomed());
         // 剩余高度富余
-        register auto height_remain = std::max(this->GetViewHeightZoomed() - base_height, 0.f);
+        auto height_remain = std::max(this->GetViewHeightZoomed() - base_height, 0.f);
         // 单位权重高度
         auto height_in_unit_weight = basic_weight > 0.f ? height_remain / basic_weight : 0.f;
         // 基线Y
@@ -486,7 +486,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
         // 计算
         base_height = std::max(base_height, this->GetViewHeightZoomed());
         // 剩余宽度富余
-        register auto width_remain = std::max(this->GetViewWidthZoomed() - base_width, 0.f);
+        auto width_remain = std::max(this->GetViewWidthZoomed() - base_width, 0.f);
         // 单位权重宽度
         auto width_in_unit_weight = basic_weight > 0.f ? width_remain / basic_weight : 0.f;
         // 基线X

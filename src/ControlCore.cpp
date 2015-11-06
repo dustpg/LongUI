@@ -239,7 +239,7 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
 #endif
     // 后继结点判断, B控件深度必须比A深
     auto is_successor = [](const UIControl* const a, const UIControl* b) noexcept {
-        const register auto target = a->level;
+        const auto target = a->level;
         while (b->level > target) b = b->parent;
         return a == b;
     };
@@ -403,7 +403,7 @@ auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
 
 // 测试是否为子孙结点
 bool LongUI::UIControl::IsPosterityForSelf(const UIControl* test) const noexcept {
-    const register auto target = this->level;
+    const auto target = this->level;
     while (test->level > target) test = test->parent;
     return this == test;
 }
@@ -1219,7 +1219,7 @@ auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
 void LongUI::UIContainer::SetOffsetX(float value) noexcept {
     assert(value > -1'000'000.f && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
-    register float target = value;
+    float target = value;
     if (target != m_2fOffset.x) {
         m_2fOffset.x = target;
         this->SetControlWorldChanged();
@@ -1230,7 +1230,7 @@ void LongUI::UIContainer::SetOffsetX(float value) noexcept {
 void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     assert(value > (-1'000'000.f) && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
-    register float target = value;
+    float target = value;
     if (target != m_2fOffset.y) {
         m_2fOffset.y = target;
         this->SetControlWorldChanged();

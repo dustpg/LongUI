@@ -133,7 +133,7 @@ void LongUI::CUIZipXmlResourceLoader::get_resource_count_from_xml() noexcept {
     // 初始化
     for (auto& node : m_aNodes) { node = pugi::xml_node(); }
     // pugixml 使用的是句柄式, 所以下面的代码是安全的.
-    register auto now_node = m_docResource.first_child().first_child();
+    auto now_node = m_docResource.first_child().first_child();
     while (now_node) {
         // 获取子结点数量
         auto get_children_count = [](pugi::xml_node node) {
@@ -196,7 +196,7 @@ auto LongUI::CUIZipXmlResourceLoader::get_bitmap(pugi::xml_node node) noexcept -
         IWICFormatConverter *pConverter = nullptr;
         IWICBitmapScaler *pScaler = nullptr;
         // 创建解码器
-        register HRESULT hr = pIWICFactory->CreateDecoderFromStream(
+        HRESULT hr = pIWICFactory->CreateDecoderFromStream(
             pStream,
             nullptr,
             WICDecodeMetadataCacheOnLoad,

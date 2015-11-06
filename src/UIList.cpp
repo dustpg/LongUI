@@ -28,7 +28,7 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         // 行模板
         if ((str = node.attribute("linetemplate").value())) {
             // 检查长度
-            register auto len = Helper::MakeCC(str);
+            auto len = Helper::MakeCC(str);
             m_vLineTemplate.newsize(len);
             // 有效
             if (len && m_vLineTemplate.isok()) {

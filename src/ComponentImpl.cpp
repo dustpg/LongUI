@@ -80,7 +80,7 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
     {
     case LongUI::RichType::Type_None:
     {
-        register auto string_length_need = static_cast<uint32_t>(
+        auto string_length_need = static_cast<uint32_t>(
             static_cast<float>(m_text.length() + 1) * m_config.progress
             );
         // clamp it
@@ -124,7 +124,7 @@ void LongUI::Component::ShortText::RecreateLayout() noexcept {
 auto LongUI::Component::EditaleText::refresh(bool update) const noexcept ->UIWindow* {
     if (!m_bThisFocused) return nullptr;
     RectLTWH_F rect; this->GetCaretRect(rect);
-    register auto* window = m_pHost->GetWindow();
+    auto* window = m_pHost->GetWindow();
     window->CreateCaret(m_pHost, rect.width, rect.height);
     window->SetCaretPos(m_pHost, rect.left, rect.top);
     if (update) {
@@ -520,12 +520,12 @@ bool LongUI::Component::EditaleText::OnDragEnter(IDataObject* data, DWORD* effec
 bool LongUI::Component::EditaleText::OnDragOver(float x, float y) noexcept {
     // 自己的?并且在选择范围内?
     if (m_bDragFromThis) {
-        register auto range = m_dragRange;
+        auto range = m_dragRange;
         BOOL trailin, inside;
         DWRITE_HIT_TEST_METRICS caret_metrics;
         // 获取当前点击位置
         this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
-        register bool inzone = caret_metrics.textPosition >= range.startPosition &&
+        bool inzone = caret_metrics.textPosition >= range.startPosition &&
             caret_metrics.textPosition < range.startPosition + range.length;
         if (inzone) return false;
     }
@@ -797,7 +797,7 @@ void LongUI::Component::EditaleText::OnLButtonHold(float x, float y, bool shfit_
             // 开始拖拽
             DWORD effect = DROPEFFECT_COPY;
             if (!(this->IsReadOnly())) effect |= DROPEFFECT_MOVE;
-            const register HRESULT hr = ::SHDoDragDrop(
+            const HRESULT hr = ::SHDoDragDrop(
                 m_pHost->GetWindow()->GetHwnd(),
                 m_pDataObject, m_pDropSource, effect, &effect
                 );
@@ -878,7 +878,7 @@ void LongUI::Component::EditaleText::GetCaretRect(RectLTWH_F& rect)const noexcep
         // 获取插入符号宽度
         DWORD caretIntThickness = 2;
         ::SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretIntThickness, FALSE);
-        register float caretThickness = static_cast<float>(caretIntThickness);
+        float caretThickness = static_cast<float>(caretIntThickness);
         // 计算相对位置
         // XXX: 检查draw_zone
         rect.left = caretX - caretThickness * 0.5f;
@@ -1362,7 +1362,7 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     UNREFERENCED_PARAMETER(clientDrawingContext);
     UNREFERENCED_PARAMETER(glyphRunDescription);
     // 获取颜色
-    register D2D1_COLOR_F* color = nullptr;
+    D2D1_COLOR_F* color = nullptr;
     // 检查
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
@@ -1392,7 +1392,7 @@ HRESULT LongUI::CUINormalTextRender::DrawUnderline(
     ) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
-    register D2D1_COLOR_F* color = nullptr;
+    D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
@@ -1423,7 +1423,7 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
     ) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
-    register D2D1_COLOR_F* color = nullptr;
+    D2D1_COLOR_F* color = nullptr;
     if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
@@ -1506,7 +1506,7 @@ auto LongUI::Component::Elements<LongUI::Element_Meta>::
 Recreate() noexcept ->HRESULT {
     for (auto i = 0u; i < STATUS_COUNT; ++i) {
         // 有效
-        register auto id = m_aID[i];
+        auto id = m_aID[i];
         if (id) {
             UIManager.GetMeta(id, m_metas[i]);
         }
@@ -1580,7 +1580,7 @@ auto LongUI::Component::Elements<LongUI::Element_BrushRect>::
 Recreate() noexcept ->HRESULT {
     this->release_data();
     for (auto i = 0u; i < STATUS_COUNT; ++i) {
-        register auto id = m_aID[i];
+        auto id = m_aID[i];
         m_apBrushes[i] = id ? UIManager.GetBrush(id) : UIManager.GetSystemBrush(i);
     }
     return S_OK;

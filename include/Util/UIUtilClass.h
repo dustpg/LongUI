@@ -318,7 +318,7 @@ namespace LongUI {
         }
         // redo, return false if cannot redo
         LongUINoinline bool Redo() noexcept {
-            register auto tmp_now = now == StackSize ? 0 : now + 1;
+            auto tmp_now = now == StackSize ? 0 : now + 1;
             if (tmp_now != base && data[now]) {
                 data[now]->Redo();
                 now = tmp_now;

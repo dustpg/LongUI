@@ -17,7 +17,7 @@ LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept:
     m_uiAnimation.duration = 0.4f;
     // 结点有效
     if (node) {
-        register const char* str = nullptr;
+        const char* str = nullptr;
         // 滚轮步长
         if ((str = node.attribute("wheelstep").value())) {
             this->wheel_step = LongUI::AtoF(str);
@@ -192,9 +192,9 @@ void LongUI::UIScrollBarA::Update() noexcept {
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
-    register float length_of_thumb, start_offset;
+    float length_of_thumb, start_offset;
     {
-        register float tmpsize = UISB_OffsetVaule(this->view_size.width) - BASIC_SIZE*2.f;
+        float tmpsize = UISB_OffsetVaule(this->view_size.width) - BASIC_SIZE*2.f;
         start_offset = tmpsize * m_fIndex / m_fMaxRange;
         length_of_thumb = tmpsize * (1.f - m_fMaxIndex / m_fMaxRange);
     }
@@ -285,9 +285,9 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             // 指向thumb?
             if (m_pointType == PointType::Type_Thumb) {
                 // 计算移动距离
-                register auto pos = UISB_OffsetVaule(pt4self.x);
-                register auto zoom = this->parent->GetZoom(int(this->bartype));
-                register auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE*2.f)) * zoom;
+                auto pos = UISB_OffsetVaule(pt4self.x);
+                auto zoom = this->parent->GetZoom(int(this->bartype));
+                auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE*2.f)) * zoom;
                 this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
             }
         }

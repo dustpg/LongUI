@@ -75,7 +75,7 @@ bool InterfaceScriptReader::read(const char* script_) {
         tmp_class.size = sizeof(ISClass) - sizeof(ISClass::method);
         tmp_class.method_number = 0;
         // 复制注释
-        register auto length = resultc[IndexC_Comment].second - resultc[IndexC_Comment].first;
+        auto length = resultc[IndexC_Comment].second - resultc[IndexC_Comment].first;
         tmp_class.comment[length] = 0;
         std::strncpy(tmp_class.comment, resultc[IndexC_Comment].first, length);
         // 复制类名
@@ -136,7 +136,7 @@ bool InterfaceScriptReader::read(const char* script_) {
                 tmptype
                 );
             // 扩张
-            register auto tmp_type_size = tmp_method.param_number * sizeof(ISType);
+            auto tmp_type_size = tmp_method.param_number * sizeof(ISType);
             buffer.resize(tmp_type_size + buffer.size());
             // 复制数据
             std::memcpy(tmp_method.params, tmptype, sizeof(ISType) * tmp_method.param_number);
@@ -145,7 +145,7 @@ bool InterfaceScriptReader::read(const char* script_) {
         }
     }
     // 生成数据
-    register auto total_size = buffer.size() + sizeof(ISInfo);
+    auto total_size = buffer.size() + sizeof(ISInfo);
     if (this->info = reinterpret_cast<ISInfo*>(std::malloc(total_size))) {
         this->info->size = total_size;
         this->info->class_number = class_number;

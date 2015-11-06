@@ -59,7 +59,7 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
         if (m_pCurrentUnit == m_pUnitsDataEnd) {
             m_pCurrentUnit = m_pUnitsDataBegin;
             // 检查误差
-            register auto time = m_dwStartTime;
+            auto time = m_dwStartTime;
             m_dwStartTime = ::timeGetTime();
             time = m_dwStartTime - time;
             int16_t dev = int16_t(int16_t(time) - int16_t(LongUIPlanRenderingTotalTime * 1000));
@@ -427,7 +427,7 @@ namespace LongUI {
         // 初始化
         for (auto& node : m_aNodes) { node = pugi::xml_node(); }
         // pugixml 使用的是句柄式, 所以下面的代码是安全的.
-        register auto now_node = m_docResource.first_child().first_child();
+        auto now_node = m_docResource.first_child().first_child();
         while (now_node) {
             // 获取子结点数量
             auto get_children_count = [](pugi::xml_node node) {
@@ -486,7 +486,7 @@ namespace LongUI {
             IWICFormatConverter *pConverter = nullptr;
             IWICBitmapScaler *pScaler = nullptr;
             // 创建解码器
-            register HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
+            HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
                 uri,
                 nullptr,
                 GENERIC_READ,
@@ -676,7 +676,7 @@ namespace LongUI {
                 std::strcpy(buffer, str);
                 char* index = buffer;
                 const char* paragraph = nullptr;
-                register char ch = 0;
+                char ch = 0;
                 bool ispos = false;
                 // 遍历检查
                 while (ch = *index) {

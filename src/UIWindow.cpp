@@ -239,10 +239,10 @@ void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept
 #endif
     m_baBoolWindow.SetTrue(Index_CaretIn);
     m_baBoolWindow.SetTrue(Index_DoCaret);
-    const register auto intx = static_cast<LONG>(pt.x);
-    const register auto inty = static_cast<LONG>(pt.y);
-    const register auto oldx = static_cast<LONG>(m_rcCaretPx.left);
-    const register auto oldy = static_cast<LONG>(m_rcCaretPx.top);
+    const auto intx = static_cast<LONG>(pt.x);
+    const auto inty = static_cast<LONG>(pt.y);
+    const auto oldx = static_cast<LONG>(m_rcCaretPx.left);
+    const auto oldy = static_cast<LONG>(m_rcCaretPx.top);
     if (oldx != intx || oldy != inty) {
         this->refresh_caret();
         m_rcCaretPx.left = intx; m_rcCaretPx.top = inty;
@@ -813,7 +813,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
         rect_bottom = this->window_size.height;
     }
     auto old_size = m_pTargetBimtap->GetPixelSize();
-    register HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
     if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
         UIManager << DL_Hint << L"Window: [" 
@@ -1038,7 +1038,7 @@ bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
 
 // 获取拖放效果
 DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
-    register DWORD dwEffect = 0;
+    DWORD dwEffect = 0;
     // 1. 检查pt来看是否允许drop操作在某个位置
     // 2. 计算出基于grfKeyState的drop效果
     if (grfKeyState & MK_CONTROL) {

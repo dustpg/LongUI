@@ -27,7 +27,7 @@ LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) 
     constexpr uint32_t GREEN_SHIFT  = CHAR_BIT * 1;
     constexpr uint32_t BLUE_SHIFT   = CHAR_BIT * 0;
     // 写入
-    register uint32_t colorargb =
+    uint32_t colorargb =
         ((uint32_t(color.a * 255.f) & 0xFF) << ALPHA_SHIFT) |
         ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT)   |
         ((uint32_t(color.g * 255.f) & 0xFF) << GREEN_SHIFT) |
@@ -703,7 +703,7 @@ void LongUI::CUIString::OnOOM() noexcept {
 // CUIAnimation ---------- BEGIN -------------
 
 #define UIAnimation_Template_A      \
-    register auto v = LongUI::EasingFunction(this->type, this->time / this->duration)
+    auto v = LongUI::EasingFunction(this->type, this->time / this->duration)
 #define UIAnimation_Template_B(m)   \
     this->value.m = v * (this->start.m - this->end.m) + this->end.m;
 
@@ -780,9 +780,9 @@ LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matri
     // b : m_matrix._21
     // c : m_matrix._12
     // d : m_matrix._22
-    register auto bc_ad = matrix._21 * matrix._12 - matrix._11 * matrix._22;
-    register auto m = point.x - matrix._31;
-    register auto n = point.y - matrix._32;
+    auto bc_ad = matrix._21 * matrix._12 - matrix._11 * matrix._22;
+    auto m = point.x - matrix._31;
+    auto n = point.y - matrix._32;
     result.x = (matrix._21*n - matrix._22 * m) / bc_ad;
     result.y = (matrix._12*m - matrix._11 * n) / bc_ad;
     return result;
@@ -794,7 +794,7 @@ namespace LongUI { namespace impl {
     template<typename T> LongUINoinline auto atoi(const T* str) noexcept ->int {
         assert(str && "bad argument");
         // 初始化
-        bool negative = false; int value = 0; register T ch = 0;
+        bool negative = false; int value = 0; T ch = 0;
         // 遍历
         while (ch = *str) {
             // 空白?
@@ -871,7 +871,7 @@ namespace LongUI { namespace impl {
             while (expon) { scale *= 10.0f; --expon; }
         }
         // 返回
-        register float returncoude = (frac ? (value / scale) : (value * scale));
+        float returncoude = (frac ? (value / scale) : (value * scale));
         if (negative) {
             // float
             returncoude = -returncoude;
@@ -984,8 +984,8 @@ static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i
 /// <param name="base64">The out data</param>
 /// <returns></returns>
 auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64) noexcept -> char * {
-    register uint8_t current;
-    register auto base64_index = base64;
+    uint8_t current;
+    auto base64_index = base64;
     // 
     for (size_t i = 0; i < binlen; i += 3) {
         current = (bindata[i] >> 2);
@@ -1021,8 +1021,8 @@ auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN si
 // 解码
 auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
     // 二进制长度
-    register union { uint8_t temp[4]; uint32_t temp_u32; };
-    register uint8_t* bindata_index = bindata;
+    union { uint8_t temp[4]; uint32_t temp_u32; };
+    uint8_t* bindata_index = bindata;
     // 主循环
     while (*base64) {
         temp_u32 = uint32_t(-1);
@@ -1815,7 +1815,7 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
     case LongUI::AnimationType::Type_CubicEaseOut:
         // 立次渐出     f(x) = (x - 1)^3 + 1
     {
-        register float f = p - 1.f;
+        float f = p - 1.f;
         return f * f * f + 1.f;
     }
     case LongUI::AnimationType::Type_CubicEaseInOut:
@@ -1826,19 +1826,19 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return p * p * p * 2.f;
         }
         else {
-            register float f = (2.f * p) - 2.f;
+            float f = (2.f * p) - 2.f;
             return 0.5f * f * f * f + 1.f;
         }
     case LongUI::AnimationType::Type_QuarticEaseIn:
         // 四次渐入     f(x) = x^4
     {
-        register float f = p * p;
+        float f = p * p;
         return f * f;
     }
     case LongUI::AnimationType::Type_QuarticEaseOut:
         // 四次渐出     f(x) = 1 - (x - 1)^4
     {
-        register float f = (p - 1.f); f *= f;
+        float f = (p - 1.f); f *= f;
         return 1.f - f * f;
     }
     case LongUI::AnimationType::Type_QuarticEaseInOut:
@@ -1846,23 +1846,23 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
         // [0, 0.5)     f(x) = (1/2)((2x)^4)
         // [0.5, 1.f]   f(x) = -(1/2)((2x-2)^4 - 2)
         if (p < 0.5f) {
-            register float f = p * p;
+            float f = p * p;
             return 8.f * f * f;
         }
         else {
-            register float f = (p - 1.f); f *= f;
+            float f = (p - 1.f); f *= f;
             return 1.f - 8.f * f * f;
         }
     case LongUI::AnimationType::Type_QuinticEaseIn:
         // 五次渐入     f(x) = x^5
     {
-        register float f = p * p;
+        float f = p * p;
         return f * f * p;
     }
     case LongUI::AnimationType::Type_QuinticEaseOut:
         // 五次渐出     f(x) = (x - 1)^5 + 1
     {
-        register float f = (p - 1.f);
+        float f = (p - 1.f);
         return f * f * f * f * f + 1.f;
     }
     case LongUI::AnimationType::Type_QuinticEaseInOut:
@@ -1870,11 +1870,11 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
         // [0, 0.5)     f(x) = (1/2)((2x)^5) 
         // [0.5, 1.f]   f(x) = (1/2)((2x-2)^5 + 2)
         if (p < 0.5) {
-            register float f = p * p;
+            float f = p * p;
             return 16.f * f * f * p;
         }
         else {
-            register float f = ((2.f * p) - 2.f);
+            float f = ((2.f * p) - 2.f);
             return  f * f * f * f * f * 0.5f + 1.f;
         }
     case LongUI::AnimationType::Type_SineEaseIn:
@@ -1937,17 +1937,17 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
     case LongUI::AnimationType::Type_BackEaseOut:
         // 回退渐出
     {
-        register float f = (1.f - p);
+        float f = (1.f - p);
         return 1.f - (f * f * f - f * std::sin(f * EZ_PI));
     }
     case LongUI::AnimationType::Type_BackEaseInOut:
         // 回退出入
         if (p < 0.5f) {
-            register float f = 2.f * p;
+            float f = 2.f * p;
             return 0.5f * (f * f * f - f * std::sin(f * EZ_PI));
         }
         else {
-            register float f = (1.f - (2 * p - 1.f));
+            float f = (1.f - (2 * p - 1.f));
             return 0.5f * (1.f - (f * f * f - f * std::sin(f * EZ_PI))) + 0.5f;
         }
     case LongUI::AnimationType::Type_BounceEaseIn:

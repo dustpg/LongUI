@@ -699,7 +699,7 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg,
     arg.pt.x = get_x();
     arg.pt.y = get_y();
     arg.last = nullptr;
-    register MouseEvent me;
+    MouseEvent me;
     switch (message)
     {
     case WM_MOUSEMOVE:
@@ -865,7 +865,7 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
     {
         // 混合通道
         auto blend_channel = [](float ch1, float ch2, float prec) {
-            register auto data = ch1 + (ch2 - ch1) * prec;
+            auto data = ch1 + (ch2 - ch1) * prec;
             return data > 1.f ? 1.f : (data < 0.f ? 0.f : data);
         };
         colorf.a = 1.f; auto prec = 1.f - float(balance) / 100.f;
@@ -926,6 +926,35 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
 }
 
 
+// 需求指定大小
+/*auto LongUI::CUIManager::RequireIndexZeroBitmapSize(D2D1_SIZE_U size) noexcept -> HRESULT {
+    auto hr = S_OK;
+    assert(m_ppBitmaps[LongUIDefaultBitmapIndex] && "bad action");
+    auto old = m_ppBitmaps[LongUIDefaultBitmapIndex]->GetPixelSize();
+    // 大小不足则进行重置
+    if (old.width < size.width || old.height < size.height) {
+        ID2D1Bitmap1* bmp = nullptr;
+        hr = m_pd2dDeviceContext->CreateBitmap(
+            size,
+            nullptr, 0,
+            D2D1::BitmapProperties1(
+                static_cast<D2D1_BITMAP_OPTIONS>(LongUIDefaultBitmapOptions),
+                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+                ),
+            &bmp
+            );
+        // 创建成功
+        if (SUCCEEDED(hr)) {
+            m_ppBitmaps[LongUIDefaultBitmapIndex]->Release();
+            m_ppBitmaps[LongUIDefaultBitmapIndex] = bmp;
+            bmp = nullptr;
+        }
+        // 释放数据
+        LongUI::SafeRelease(bmp);
+    }
+    return hr;
+}*/
+
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
     CUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
@@ -936,7 +965,7 @@ auto LongUI::CUIManager::RegisterTextRenderer(
     if (m_uTextRenderCount == lengthof(m_apTextRenderer)) {
         return -1;
     }
-    register const auto count = m_uTextRenderCount;
+    const auto count = m_uTextRenderCount;
     assert((std::strlen(name) + 1) < LongUITextRendererNameMaxLength && "buffer too small");
     std::strcpy(m_aszTextRendererName[count].name, name);
     m_apTextRenderer[count] = LongUI::SafeAcquire(renderer);
@@ -1083,7 +1112,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         LongUI::SafeRelease(dxgifactory);
     }
     // 创建设备资源
-    register HRESULT hr /*= m_docResource.Error() ? E_FAIL :*/ S_OK;
+    HRESULT hr /*= m_docResource.Error() ? E_FAIL :*/ S_OK;
     // 创建 D3D11设备与设备上下文 
     if (SUCCEEDED(hr)) {
         // D3D11 创建flag 
@@ -1618,7 +1647,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         static_cast<uint32_t>(meta.src_rect.bottom)
     };
     HRESULT hr = S_OK;
-    // 宽度不够?
+    // 大小保证
     if (SUCCEEDED(hr)) {
         if (src_rect.right - src_rect.left > LongUIDefaultBitmapSize ||
             src_rect.bottom - src_rect.top > LongUIDefaultBitmapSize) {

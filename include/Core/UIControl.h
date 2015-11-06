@@ -48,7 +48,7 @@ namespace LongUI {
         /// </remarks>
         virtual void cleanup() noexcept = 0;
     public:
-        // register ui call from lambda/functor/function pointer
+        // ui call from lambda/functor/function pointer
         template<typename T> auto AddEventCall(T call, SubEvent sb) noexcept {
             auto ok = this->uniface_addevent(sb, std::move(UICallBack(call)));
             assert(ok && "this control do not support this event!");
@@ -83,7 +83,7 @@ namespace LongUI {
         // recreate , first call or device reset
         virtual auto Recreate() noexcept ->HRESULT;
     protected:
-        // [uniform interface]register ui call
+        // [uniform interface]ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
         // UIEvent
         bool call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));

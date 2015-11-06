@@ -187,7 +187,7 @@ namespace LongUI{
     private:
         // alloc buffer in safe way
         static inline auto alloc_bufer(uint32_t buffer_length) {
-            register size_t length = sizeof(wchar_t) * size_t(buffer_length);
+            size_t length = sizeof(wchar_t) * size_t(buffer_length);
             return reinterpret_cast<wchar_t*>(LongUI::SmallAlloc(length));
         }
         // copy string

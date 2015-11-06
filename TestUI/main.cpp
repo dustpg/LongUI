@@ -347,7 +347,7 @@ public:
     }
     // On Value Changed
     bool OnValueChangedConst(UIControl* control) const {
-        register auto value = static_cast<LongUI::UISlider*>(control)->GetValueSE();
+        auto value = static_cast<LongUI::UISlider*>(control)->GetValueSE();
         m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, value );
         return true;
     }
@@ -455,7 +455,7 @@ public:
     // recreate resource
     virtual HRESULT Recreate() noexcept override {
         // 重建视频
-        register auto hr = m_video.Recreate();
+        auto hr = m_video.Recreate();
         // 重建父类
         if (SUCCEEDED(hr)) {
             hr = Super::Recreate();
@@ -543,7 +543,7 @@ private:
     // mruby script
     //MRubyScript     mruby = MRubyScript(UIManager);
     // dll
-    HMODULE         m_hDll = ::LoadLibraryW(L"test.dll");
+    HMODULE         m_hDll = nullptr; // ::LoadLibraryW(L"test.dll");
 };
 
 // 应用程序入口

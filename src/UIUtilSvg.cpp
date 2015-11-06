@@ -34,7 +34,7 @@ auto LongUI::SVG::ParserPath(const char* path, ID2D1PathGeometry* geometry) noex
     }
     // 正式解析
     if (SUCCEEDED(hr)) {
-        register char ch = 0;
+        char ch = 0;
         while ((ch = *path)) {
             ++path;
         }

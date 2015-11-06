@@ -68,8 +68,10 @@ namespace LongUI {
         auto GetDisplayFrequency() const noexcept { return m_dDisplayFrequency; };
         // remove window
         void RemoveWindow(UIWindow* wnd, bool cleanup = false) noexcept;
-        // register, return -1 for error(out of renderer space), return other for index
+        // return -1 for error(out of renderer space), return other for index
         auto RegisterTextRenderer(CUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept ->int32_t;
+        // require size for bitmap index zero, real size will >= size if success
+        //auto RequireIndexZeroBitmapSize(D2D1_SIZE_U size) noexcept ->HRESULT;
         // get text renderer by name 
         auto GetTextRenderer(const char* name) const noexcept ->CUIBasicTextRenderer*;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object

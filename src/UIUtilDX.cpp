@@ -146,7 +146,7 @@ auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextF
         );
     // 成功
     if (SUCCEEDED(hr)) {
-        register auto format = *fmt;
+        auto format = *fmt;
         // 设置 Tab宽度
         hr = format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
         longui_debug_hr(hr, L"failed format->SetIncrementalTabStop  " << ((prop.tab == 0.f ? prop.size * 4.f : prop.tab)));
@@ -705,7 +705,7 @@ namespace LongUI { namespace DX {
                 // 稍微检查一下
                 assert(itr[0] && itr[1] && itr[2] && itr[3] && itr[4] == ' ' && "bad argments");
                 // 一般视为二进制数据
-                register auto tmp = *reinterpret_cast<int32_t*>(itr);
+                auto tmp = *reinterpret_cast<int32_t*>(itr);
                 feature.nameTag = static_cast<DWRITE_FONT_FEATURE_TAG>(tmp);
                 auto thr = typography->AddFontFeature(feature);
                 UNREFERENCED_PARAMETER(thr);
@@ -718,7 +718,7 @@ namespace LongUI { namespace DX {
     template<typename T>
     auto FormatTextViaCoreML(const FormatTextConfig& cfg, const wchar_t* fmt, T& param) noexcept {
         using cctype = wchar_t;
-        register cctype ch = 0;
+        cctype ch = 0;
         cctype text[LongUIStringBufferLength]; auto text_itr = text;
         EzContainer::FixedStack<RANGE_DATA, 1024> stack_check, stack_set;
         // 遍历字符串

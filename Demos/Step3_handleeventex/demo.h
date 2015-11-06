@@ -164,7 +164,7 @@ void LongUI::Demo::MainWindow::init() {
 void LongUI::Demo::MainWindow::number_button_clicked(UIControl* btn) {
     if (btn->user_data) {
         try {
-            register wchar_t ch = L'0' + wchar_t(btn->user_data) - 1;
+            wchar_t ch = L'0' + wchar_t(btn->user_data) - 1;
             m_string += ch;
         }
         catch (std::bad_alloc& exp) {
