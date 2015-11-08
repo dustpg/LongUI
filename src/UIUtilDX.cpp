@@ -1222,4 +1222,21 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
 
     }*/
 }
+
+// d2d1 ------------------------
+void LongUINoinline D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept {
+    constexpr float pi = 3.141592654f;
+    float theta = angle * (pi / 180.0f);
+    float sin_theta = std::sin(theta);
+    float cos_theta = std::cos(theta);
+    matrix._11 = cos_theta;
+    matrix._12 = sin_theta;
+    matrix._21 = -sin_theta;
+    matrix._22 = cos_theta;
+    matrix._31 = center.x - center.x * cos_theta + center.y * sin_theta;
+    matrix._32 = center.y - center.x * sin_theta - center.y * cos_theta;
+
+    D2D1::Matrix3x2F::Skew
+}
+
 LONGUI_NAMESPACE_END

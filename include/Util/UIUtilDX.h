@@ -116,4 +116,141 @@ namespace LongUI { namespace DX {
     auto SaveAsImageFile(ID2D1Bitmap1*, IWICImagingFactory*, const wchar_t* file_name, const GUID* = nullptr) noexcept ->HRESULT;
     // save as image file in raw data
     auto SaveAsImageFile(const SaveAsImageFileProperties& , const wchar_t* file_name) noexcept -> HRESULT;
+    // d2d matrix helper : rotate
+    void D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept;
+    // Matrix3x2F
+    struct Matrix3x2F : D2D1_MATRIX_3X2_F {
+        // ctor
+        inline Matrix3x2F(FLOAT m11, FLOAT m12, FLOAT m21, FLOAT m22, FLOAT m31, FLOAT m32) noexcept {
+            this->_11 = m11; this->_12 = m12; this->_21 = m21;
+            this->_22 = m22; this->_31 = m31; this->_32 = m32;
+        }
+        // ctor
+        inline Matrix3x2F() noexcept {};
+        // make a identity matrix
+        static inline auto Identity() noexcept {
+            Matrix3x2F identity;
+            identity._11 = 1.f; identity._12 = 0.f;
+            identity._21 = 0.f; identity._22 = 1.f;
+            identity._31 = 0.f; identity._32 = 0.f;
+            return identity;
+        }
+        // make a translation matrix
+        static inline auto Translation(D2D1_SIZE_F size) noexcept {
+            Matrix3x2F translation;
+            translation._11 = 1.0; translation._12 = 0.0;
+            translation._21 = 0.0; translation._22 = 1.0;
+            translation._31 = size.width; translation._32 = size.height;
+            return translation;
+        }
+        // make a translation matrix - overload
+        static inline auto Translation(float x, float y) noexcept {
+            return Translation(D2D1::SizeF(x, y));
+        }
+        // make a scale matrix 
+        static inline auto Scale(D2D1_SIZE_F size, D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
+            Matrix3x2F scale;
+            scale._11 = size.width; scale._12 = 0.0;
+            scale._21 = 0.0; scale._22 = size.height;
+            scale._31 = center.x - size.width * center.x;
+            scale._32 = center.y - size.height * center.y;
+            return scale;
+        }
+        // make a scale matrix - overload
+        static inline auto Scale(FLOAT x, FLOAT y, D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
+            return Scale(D2D1::SizeF(x, y), center);
+        }
+        // make a rotation matrix
+        static inline auto Rotation(FLOAT angle, D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
+            Matrix3x2F rotation;
+            DX::D2D1MakeRotateMatrix(angle, center, rotation);
+            return rotation;
+        }
+        // make a skew matrix
+        static inline auto Skew(FLOAT angleX, FLOAT angleY,D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
+            assert(!"NO IMPL!");
+            Matrix3x2F skew;
+            //DX::D2D1MakeSkewMatrix(angleX, angleY, center, skew);
+            return skew;
+        }
+        // force cast - const overload
+        static inline auto ReinterpretBaseType(const D2D1_MATRIX_3X2_F* pMatrix) noexcept  {
+            return static_cast<const Matrix3x2F*>(pMatrix);
+        }
+        // force cast
+        static inline auto ReinterpretBaseType(D2D1_MATRIX_3X2_F* pMatrix) noexcept {
+            return static_cast<Matrix3x2F*>(pMatrix);
+        }
+        // Determinant
+        inline auto Determinant() const noexcept ->FLOAT {
+            return (this->_11 * this->_22) - (this->_12 * this->_21);
+        }
+        // is invertible?
+        inline bool IsInvertible() const noexcept {
+            assert(!"NO IMPL!");
+            return false;
+            //return !!DX::D2D1IsMatrixInvertible(this);
+        }
+        // Invert
+        inline bool Invert() noexcept {
+            assert(!"NO IMPL!");
+            return false;
+            //return !!D2D1InvertMatrix(this);
+        }
+
+        COM_DECLSPEC_NOTHROW
+            inline
+            bool
+            IsIdentity() const
+        {
+            return     _11 == 1.f && _12 == 0.f
+                && _21 == 0.f && _22 == 1.f
+                && _31 == 0.f && _32 == 0.f;
+        }
+
+        COM_DECLSPEC_NOTHROW
+            inline
+            void SetProduct(
+                const Matrix3x2F &a,
+                const Matrix3x2F &b
+                )
+        {
+            _11 = a._11 * b._11 + a._12 * b._21;
+            _12 = a._11 * b._12 + a._12 * b._22;
+            _21 = a._21 * b._11 + a._22 * b._21;
+            _22 = a._21 * b._12 + a._22 * b._22;
+            _31 = a._31 * b._11 + a._32 * b._21 + b._31;
+            _32 = a._31 * b._12 + a._32 * b._22 + b._32;
+        }
+
+        COM_DECLSPEC_NOTHROW
+            D2D1FORCEINLINE
+            Matrix3x2F
+            operator*(
+                const Matrix3x2F &matrix
+                ) const
+        {
+            Matrix3x2F result;
+
+            result.SetProduct(*this, matrix);
+
+            return result;
+        }
+
+        COM_DECLSPEC_NOTHROW
+            D2D1FORCEINLINE
+            D2D1_POINT_2F
+            TransformPoint(
+                D2D1_POINT_2F point
+                ) const
+        {
+            D2D1_POINT_2F result =
+            {
+                point.x * _11 + point.y * _21 + _31,
+                point.x * _12 + point.y * _22 + _32
+            };
+
+            return result;
+        }
+    };
 }}
