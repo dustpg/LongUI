@@ -980,6 +980,7 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     HRESULT hr = S_OK;
     // 索引0位图: 可MAP位图
     if (SUCCEEDED(hr)) {
+        assert(m_ppBitmaps[LongUIDefaultBitmapIndex] == nullptr && "bad action");
         hr = m_pd2dDeviceContext->CreateBitmap(
             D2D1::SizeU(LongUIDefaultBitmapSize, LongUIDefaultBitmapSize),
             nullptr, LongUIDefaultBitmapSize * 4,
@@ -989,17 +990,21 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
                 ),
             m_ppBitmaps + LongUIDefaultBitmapIndex
             );
+        longui_debug_hr(hr, L"_pd2dDeviceContext->CreateBitmap failed");
     }
     // 索引0笔刷: 全控件共享用前写纯色笔刷
     if (SUCCEEDED(hr)) {
+        assert(m_ppBrushes[LongUICommonSolidColorBrushIndex] == nullptr && "bad action");
         ID2D1SolidColorBrush* brush = nullptr;
         D2D1_COLOR_F color = D2D1::ColorF(D2D1::ColorF::Black);
         hr = m_pd2dDeviceContext->CreateSolidColorBrush(&color, nullptr, &brush);
         m_ppBrushes[LongUICommonSolidColorBrushIndex] = LongUI::SafeAcquire(brush);
         LongUI::SafeRelease(brush);
+        longui_debug_hr(hr, L"_pd2dDeviceContext->CreateSolidColorBrush failed");
     }
     // 索引0文本格式: 默认格式
     if (SUCCEEDED(hr)) {
+        assert(m_ppTextFormats[LongUIDefaultTextFormatIndex] == nullptr && "bad action");
         hr = this->CreateTextFormat(
             LongUIDefaultTextFontName,
             //L"Microsoft YaHei",
@@ -1010,6 +1015,7 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
             //12.f,
             m_ppTextFormats + LongUIDefaultTextFormatIndex
             );
+        longui_debug_hr(hr, L"this->CreateTextFormat failed");
     }
     // 设置
     if (SUCCEEDED(hr)) {
@@ -1664,6 +1670,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
     // 复制数据
     if (SUCCEEDED(hr)) {
         hr = bitmap->CopyFromBitmap(nullptr, meta.bitmap, &src_rect);
+        longui_debug_hr(hr, L"bitmap->CopyFromBitmap failed");
     }
     // 映射数据
     if (SUCCEEDED(hr)) {
@@ -1672,10 +1679,12 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
             m_pBitmap0Buffer
         };
         hr = bitmap->Map(D2D1_MAP_OPTIONS_READ, &mapped_rect);
+        longui_debug_hr(hr, L"bitmap->Map failed");
     }
     // 取消映射
     if (SUCCEEDED(hr)) {
         hr = bitmap->Unmap();
+        longui_debug_hr(hr, L"bitmap->Unmap failed");
     }
     // 转换数据
     HICON hAlphaIcon = nullptr;
@@ -1706,6 +1715,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         // 错误
         if (!hBitmap) {
             hr = LongUI::WinCode2HRESULT(::GetLastError());
+            longui_debug_hr(hr, L"CreateDIBSection failed");
         }
         // 成功
         else {
