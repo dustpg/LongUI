@@ -249,7 +249,7 @@ void LongUI::UIScrollBarA::Render() const noexcept {
         ID2D1Geometry* const geo, const D2D1_RECT_F& rect) noexcept {
         D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
         target->SetTransform(
-            D2D1::Matrix3x2F::Translation(rect.left, rect.top) * matrix
+            DX::Matrix3x2F::Translation(rect.left, rect.top) * matrix
             );
         target->DrawGeometry(geo, bush, 2.33333f);
         // 修改

@@ -247,7 +247,7 @@ namespace LongUI {
         // control current visible position(relative to world)
         D2D1_RECT_F             visible_rect = D2D1::RectF();
         // transform for world
-        D2D1_MATRIX_3X2_F       world = D2D1::Matrix3x2F::Identity();
+        D2D1_MATRIX_3X2_F       world = DX::Matrix3x2F::Identity();
         // position of control's view
         D2D1_POINT_2F   const   view_pos = D2D1::Point2F();
         // size of viewport

@@ -535,8 +535,8 @@ void LongUI::FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brus
     };
     // 新的
     target->SetTransform(
-        D2D1::Matrix3x2F::Scale(height, height) *
-        D2D1::Matrix3x2F::Translation(rect.left, rect.top) *
+        DX::Matrix3x2F::Scale(height, height) *
+        DX::Matrix3x2F::Translation(rect.left, rect.top) *
         matrix
         );
     // 填写

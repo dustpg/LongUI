@@ -1344,7 +1344,6 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
             D2D1::ColorF(0xEFEFEF),
             reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + Status_Disabled)
             );
-        D2D1::Matrix3x2F::Rotation
     }
     // 普通
     if (SUCCEEDED(hr)) {

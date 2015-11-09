@@ -417,7 +417,7 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
     UIManager_RenderTarget->BeginDraw();
     // 设置转换矩阵
 #if 0
-    UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+    UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
 #else
     UIManager_RenderTarget->SetTransform(&this->world);
 #endif
@@ -549,7 +549,7 @@ void LongUI::UIWindow::Render() const noexcept  {
             std::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
         }
         // 再渲染
-        auto init_transfrom = D2D1::Matrix3x2F::Identity();
+        auto init_transfrom = DX::Matrix3x2F::Identity();
         for (auto unit = units; unit < units + length_for_units; ++unit) {
             auto ctrl = *unit; assert(ctrl != this);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
@@ -581,7 +581,7 @@ void LongUI::UIWindow::Render() const noexcept  {
     }
     // 插入符号
     if (m_baBoolWindow.Test(Index_DoCaret) && m_baBoolWindow.Test(Index_CaretIn)) {
-        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
         D2D1_RECT_F rect;
         rect.left = static_cast<float>(m_rcCaretPx.left);
         rect.top = static_cast<float>(m_rcCaretPx.top);
@@ -596,7 +596,7 @@ void LongUI::UIWindow::Render() const noexcept  {
     // 调试输出
 #ifdef _DEBUG
     if (this->debug_show) {
-        D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.45f, 0.45f);
+        D2D1_MATRIX_3X2_F nowMatrix, iMatrix = DX::Matrix3x2F::Scale(0.45f, 0.45f);
         UIManager_RenderTarget->GetTransform(&nowMatrix);
         UIManager_RenderTarget->SetTransform(&iMatrix);
         wchar_t buffer[1024];

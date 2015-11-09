@@ -657,7 +657,7 @@ void LongUI::UIList::render_chain_background() const noexcept {
         // 保留转变
         D2D1_MATRIX_3X2_F matrix;
         UIManager_RenderTarget->GetTransform(&matrix);
-        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
         // 第一个可视列表行 = (-Y偏移) / 行高
         int first_visible = static_cast<int>((-m_2fOffset.y) / m_fLineHeight);
         first_visible = std::max(first_visible, int(0));

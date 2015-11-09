@@ -1235,8 +1235,6 @@ void LongUINoinline D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1
     matrix._22 = cos_theta;
     matrix._31 = center.x - center.x * cos_theta + center.y * sin_theta;
     matrix._32 = center.y - center.x * sin_theta - center.y * cos_theta;
-
-    D2D1::Matrix3x2F::Skew
 }
 
 LONGUI_NAMESPACE_END

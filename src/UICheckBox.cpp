@@ -20,7 +20,7 @@ void LongUI::UICheckBox::Render() const noexcept  {
     case CheckBoxState::State_Checked:
         D2D1_MATRIX_3X2_F matrix;
         UIManager_RenderTarget->GetTransform(&matrix);
-        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(draw_rect.left, draw_rect.bottom) * matrix);
+        UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Translation(draw_rect.left, draw_rect.bottom) * matrix);
         UIManager_RenderTarget->FillGeometry(m_pCheckedGeometry, m_pBrush);
         UIManager_RenderTarget->SetTransform(&matrix);
         break;

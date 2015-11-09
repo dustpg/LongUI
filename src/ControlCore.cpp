@@ -533,7 +533,7 @@ void LongUI::UIControl::RefreshWorld() noexcept {
     float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
     // 顶级控件
     if (this->IsTopLevel()) {
-        this->world = D2D1::Matrix3x2F::Translation(xx, yy);
+        this->world = DX::Matrix3x2F::Translation(xx, yy);
     }
     // 非顶级控件
     else {
@@ -543,18 +543,18 @@ void LongUI::UIControl::RefreshWorld() noexcept {
         yy += this->parent->GetOffsetYZoomed();
         // 转换
         this->world =
-            D2D1::Matrix3x2F::Translation(xx, yy)
-            *D2D1::Matrix3x2F::Scale(
+            DX::Matrix3x2F::Translation(xx, yy)
+            *DX::Matrix3x2F::Scale(
                 this->parent->GetZoomX(), this->parent->GetZoomY()
                 )
             * this->parent->world;
 #else
         this->world =
-            D2D1::Matrix3x2F::Translation(xx, yy)
-            * D2D1::Matrix3x2F::Scale(
+            DX::Matrix3x2F::Translation(xx, yy)
+            * DX::Matrix3x2F::Scale(
                 this->parent->GetZoomX(), this->parent->GetZoomY()
                 )
-            * D2D1::Matrix3x2F::Translation(
+            * DX::Matrix3x2F::Translation(
                 this->parent->GetOffsetX(), this->parent->GetOffsetY()
                 )
             * this->parent->world;
@@ -604,9 +604,9 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     D2D1_MATRIX_3X2_F identity;
     D2D1_MATRIX_3X2_F* parent_world = &identity;
     // 顶级
-    identity = D2D1::Matrix3x2F::Identity();
+    identity = DX::Matrix3x2F::Identity();
     if (this->parent->IsTopLevel()) {
-        identity = D2D1::Matrix3x2F::Identity();
+        identity = DX::Matrix3x2F::Identity();
     }
     else {
         auto pp = this->parent;
@@ -616,7 +616,7 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
         parent_world = &pp->world;
     }
     // 计算矩阵
-    this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_world;
+    this->world = DX::Matrix3x2F::Translation(xx, yy) ** parent_world;
     // 自己不能是顶级的
     assert(this->IsTopLevel() == false);
     constexpr long aa = sizeof(UIContainer);

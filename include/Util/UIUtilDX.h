@@ -169,6 +169,9 @@ namespace LongUI { namespace DX {
         // make a skew matrix
         static inline auto Skew(FLOAT angleX, FLOAT angleY,D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
             assert(!"NO IMPL!");
+            UNREFERENCED_PARAMETER(angleX);
+            UNREFERENCED_PARAMETER(angleY);
+            UNREFERENCED_PARAMETER(center);
             Matrix3x2F skew;
             //DX::D2D1MakeSkewMatrix(angleX, angleY, center, skew);
             return skew;
@@ -197,24 +200,14 @@ namespace LongUI { namespace DX {
             return false;
             //return !!D2D1InvertMatrix(this);
         }
-
-        COM_DECLSPEC_NOTHROW
-            inline
-            bool
-            IsIdentity() const
-        {
-            return     _11 == 1.f && _12 == 0.f
-                && _21 == 0.f && _22 == 1.f
-                && _31 == 0.f && _32 == 0.f;
+        // is Identity?
+        inline bool IsIdentity() const noexcept {
+            return this->_11 == 1.f && this->_12 == 0.f
+                && this->_21 == 0.f && this->_22 == 1.f
+                && this->_31 == 0.f && this->_32 == 0.f;
         }
-
-        COM_DECLSPEC_NOTHROW
-            inline
-            void SetProduct(
-                const Matrix3x2F &a,
-                const Matrix3x2F &b
-                )
-        {
+        // set the product
+        inline void SetProduct(const Matrix3x2F& a, const Matrix3x2F& b) noexcept {
             _11 = a._11 * b._11 + a._12 * b._21;
             _12 = a._11 * b._12 + a._12 * b._22;
             _21 = a._21 * b._11 + a._22 * b._21;
@@ -222,34 +215,18 @@ namespace LongUI { namespace DX {
             _31 = a._31 * b._11 + a._32 * b._21 + b._31;
             _32 = a._31 * b._12 + a._32 * b._22 + b._32;
         }
-
-        COM_DECLSPEC_NOTHROW
-            D2D1FORCEINLINE
-            Matrix3x2F
-            operator*(
-                const Matrix3x2F &matrix
-                ) const
-        {
+        // operator a*b
+        inline auto operator*(const Matrix3x2F &matrix) const noexcept {
             Matrix3x2F result;
-
             result.SetProduct(*this, matrix);
-
             return result;
         }
-
-        COM_DECLSPEC_NOTHROW
-            D2D1FORCEINLINE
-            D2D1_POINT_2F
-            TransformPoint(
-                D2D1_POINT_2F point
-                ) const
-        {
-            D2D1_POINT_2F result =
-            {
+        // Transform Point
+        inline auto TransformPoint(D2D1_POINT_2F point) const noexcept {
+            D2D1_POINT_2F result = {
                 point.x * _11 + point.y * _21 + _31,
                 point.x * _12 + point.y * _22 + _32
             };
-
             return result;
         }
     };
