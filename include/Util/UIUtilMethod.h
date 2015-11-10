@@ -119,6 +119,12 @@ namespace LongUI {
         static decltype(&::DWriteCreateFactory) DWriteCreateFactory;
         // D3D11CreateDevice@d3d11.dll
         static decltype(&::D3D11CreateDevice) D3D11CreateDevice;
+        // D2D1InvertMatrix@d2d1.dll
+        static decltype(&::D2D1InvertMatrix) D2D1InvertMatrix;
+        // D2D1MakeSkewMatrix@d2d1.dll
+        static decltype(&::D2D1MakeSkewMatrix) D2D1MakeSkewMatrix;
+        // D2D1IsMatrixInvertible@d2d1.dll
+        static decltype(&::D2D1IsMatrixInvertible) D2D1IsMatrixInvertible;
         // D2D1CreateFactory@d2d1.dll
         static HRESULT (WINAPI* D2D1CreateFactory)(D2D1_FACTORY_TYPE, REFIID, CONST D2D1_FACTORY_OPTIONS *, void **);
         // DCompositionCreateDevice, Win8 and later hold it

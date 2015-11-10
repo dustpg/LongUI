@@ -168,12 +168,8 @@ namespace LongUI { namespace DX {
         }
         // make a skew matrix
         static inline auto Skew(FLOAT angleX, FLOAT angleY,D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
-            assert(!"NO IMPL!");
-            UNREFERENCED_PARAMETER(angleX);
-            UNREFERENCED_PARAMETER(angleY);
-            UNREFERENCED_PARAMETER(center);
             Matrix3x2F skew;
-            //DX::D2D1MakeSkewMatrix(angleX, angleY, center, skew);
+            Dll::D2D1MakeSkewMatrix(angleX, angleY, center, &skew);
             return skew;
         }
         // force cast - const overload
@@ -190,15 +186,13 @@ namespace LongUI { namespace DX {
         }
         // is invertible?
         inline bool IsInvertible() const noexcept {
-            assert(!"NO IMPL!");
-            return false;
+            return !!Dll::D2D1IsMatrixInvertible(this);
             //return !!DX::D2D1IsMatrixInvertible(this);
         }
         // Invert
         inline bool Invert() noexcept {
-            assert(!"NO IMPL!");
-            return false;
-            //return !!D2D1InvertMatrix(this);
+            return !!Dll::D2D1InvertMatrix(this);
+            //return !!DX::D2D1InvertMatrix(this);
         }
         // is Identity?
         inline bool IsIdentity() const noexcept {

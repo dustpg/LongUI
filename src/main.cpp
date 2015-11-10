@@ -46,6 +46,9 @@ InitStaticVar(LongUI::UIRichEdit::ShutdownTextServices);
 InitStaticVar(LongUI::Dll::D3D11CreateDevice);
 InitStaticVar(LongUI::Dll::D2D1CreateFactory);
 InitStaticVar(LongUI::Dll::DCompositionCreateDevice);
+InitStaticVar(LongUI::Dll::D2D1InvertMatrix);
+InitStaticVar(LongUI::Dll::D2D1MakeSkewMatrix);
+InitStaticVar(LongUI::Dll::D2D1IsMatrixInvertible);
 InitStaticVar(LongUI::Dll::DWriteCreateFactory);
 InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
@@ -178,6 +181,9 @@ namespace LongUI {
             LongUI::LoadProc(LongUI::UIRichEdit::ShutdownTextServices, m_hDllMsftedit, "ShutdownTextServices");
             LongUI::LoadProc(LongUI::Dll::DCompositionCreateDevice, m_hDlldcomp, "DCompositionCreateDevice");
             LongUI::LoadProc(LongUI::Dll::D2D1CreateFactory, m_hDlld2d1, "D2D1CreateFactory");
+            LongUI::LoadProc(LongUI::Dll::D2D1MakeSkewMatrix, m_hDlld2d1, "D2D1MakeSkewMatrix");
+            LongUI::LoadProc(LongUI::Dll::D2D1InvertMatrix, m_hDlld2d1, "D2D1InvertMatrix");
+            LongUI::LoadProc(LongUI::Dll::D2D1IsMatrixInvertible, m_hDlld2d1, "D2D1IsMatrixInvertible");
             LongUI::LoadProc(LongUI::Dll::D3D11CreateDevice, m_hDlld3d11, "D3D11CreateDevice");
             LongUI::LoadProc(LongUI::Dll::DWriteCreateFactory, m_hDlldwrite, "DWriteCreateFactory");
             LongUI::LoadProc(LongUI::Dll::CreateDXGIFactory1, m_hDlldxgi, "CreateDXGIFactory1");
