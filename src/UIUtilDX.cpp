@@ -1221,21 +1221,33 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
     /*auto LCML(const FormatTextConfig& config, const wchar_t* format, va_list ap) noexcept {
 
     }*/
+    // d2d1 ------------------------
+    void LongUINoinline D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept {
+        constexpr float pi = 3.141592654f;
+        float theta = angle * (pi / 180.0f);
+        float sin_theta = std::sin(theta);
+        float cos_theta = std::cos(theta);
+        matrix._11 = cos_theta;
+        matrix._12 = sin_theta;
+        matrix._21 = -sin_theta;
+        matrix._22 = cos_theta;
+        matrix._31 = center.x - center.x * cos_theta + center.y * sin_theta;
+        matrix._32 = center.y - center.x * sin_theta - center.y * cos_theta;
+    }
+#ifdef _DEBUG
+    long g_dbg_product_counter = 0;
+#endif
+    // 设置乘
+    void Matrix3x2F::SetProduct(const D2D1_MATRIX_3X2_F& a, const D2D1_MATRIX_3X2_F& b) noexcept {
+#ifdef _DEBUG
+        ++g_dbg_product_counter;
+#endif
+        this->_11 = a._11 * b._11 + a._12 * b._21;
+        this->_12 = a._11 * b._12 + a._12 * b._22;
+        this->_21 = a._21 * b._11 + a._22 * b._21;
+        this->_22 = a._21 * b._12 + a._22 * b._22;
+        this->_31 = a._31 * b._11 + a._32 * b._21 + b._31;
+        this->_32 = a._31 * b._12 + a._32 * b._22 + b._32;
+    }
 }
-
-// d2d1 ------------------------
-void LongUINoinline D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept {
-    constexpr float pi = 3.141592654f;
-    float theta = angle * (pi / 180.0f);
-    float sin_theta = std::sin(theta);
-    float cos_theta = std::cos(theta);
-    matrix._11 = cos_theta;
-    matrix._12 = sin_theta;
-    matrix._21 = -sin_theta;
-    matrix._22 = cos_theta;
-    matrix._31 = center.x - center.x * cos_theta + center.y * sin_theta;
-    matrix._32 = center.y - center.x * sin_theta - center.y * cos_theta;
-    
-}
-
 LONGUI_NAMESPACE_END
