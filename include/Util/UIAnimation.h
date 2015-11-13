@@ -61,7 +61,7 @@ namespace LongUI {
         Type_BounceEaseInOut,           // 反弹渐入渐出插值
     };
     // easing func
-    float __fastcall EasingFunction(AnimationType, float) noexcept;
+    float EasingFunction(AnimationType, float) noexcept;
     // UI Animation
     template<typename T>
     class CUIAnimation {
@@ -71,7 +71,7 @@ namespace LongUI {
         // destructor
         ~CUIAnimation() noexcept {}
         // update with delta time
-        void __fastcall Update(float t) noexcept;
+        void Update(float t) noexcept;
         // update without delta time
         auto Update() noexcept { return this->Update(UIManager.GetDeltaTime()); }
     public:
@@ -89,8 +89,8 @@ namespace LongUI {
         T                   value;
     };
     // spacial
-    template<> void __fastcall LongUI::CUIAnimation<float>::Update(float t) noexcept;
-    template<> void __fastcall LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept;
-    template<> void __fastcall LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept;
-    template<> void __fastcall LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept;
+    template<> void LongUI::CUIAnimation<float>::Update(float t) noexcept;
+    template<> void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept;
+    template<> void LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept;
+    template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept;
 }

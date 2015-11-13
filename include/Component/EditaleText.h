@@ -79,11 +79,11 @@ namespace LongUI { namespace Component {
         // set attribute to false
         auto SetAttributeFalse(EditaleTextType _type) noexcept { this->type = EditaleTextType(uint32_t(this->type) & (~uint32_t(_type))); };
         // copy the global properties for layout
-        static void __fastcall CopyGlobalProperties(IDWriteTextLayout*, IDWriteTextLayout*) noexcept;
+        static void CopyGlobalProperties(IDWriteTextLayout*, IDWriteTextLayout*) noexcept;
         // copy the single prop for range
-        static void __fastcall CopySinglePropertyRange(IDWriteTextLayout*, uint32_t, IDWriteTextLayout*, uint32_t, uint32_t) noexcept;
+        static void CopySinglePropertyRange(IDWriteTextLayout*, uint32_t, IDWriteTextLayout*, uint32_t, uint32_t) noexcept;
         // copy the range prop for layout
-        static void __fastcall CopyRangedProperties(IDWriteTextLayout*, IDWriteTextLayout*, uint32_t, uint32_t, uint32_t, bool = false) noexcept;
+        static void CopyRangedProperties(IDWriteTextLayout*, IDWriteTextLayout*, uint32_t, uint32_t, uint32_t, bool = false) noexcept;
     public: // 外部设置区
         // get hittest
         auto GetHitTestMetrics() noexcept { return m_bufMetrice.GetData(); }
@@ -107,70 +107,70 @@ namespace LongUI { namespace Component {
         auto&GetString() noexcept { return m_string; }
     private:
         // refresh, while layout chenged, should be refreshed
-        auto __fastcall refresh(bool = true)const noexcept ->UIWindow*;
+        auto refresh(bool = true)const noexcept ->UIWindow*;
         // recreate layout
-        void __fastcall recreate_layout(IDWriteTextFormat* fmt) noexcept;
+        void recreate_layout(IDWriteTextFormat* fmt) noexcept;
         // recreate layout without format
-        void __fastcall recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); LongUI::SafeRelease(fmt); }
+        void recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); LongUI::SafeRelease(fmt); }
         // insert text
-        auto __fastcall insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept ->HRESULT;
+        auto insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept ->HRESULT;
     public: // 一般内部设置区
         // get selection range
-        auto __fastcall GetSelectionRange()const noexcept ->DWRITE_TEXT_RANGE;
+        auto GetSelectionRange()const noexcept ->DWRITE_TEXT_RANGE;
         // set selection zone
-        auto __fastcall SetSelection(SelectionMode, uint32_t, bool, bool = true) noexcept ->HRESULT;
+        auto SetSelection(SelectionMode, uint32_t, bool, bool = true) noexcept ->HRESULT;
         // delete the selection text
-        auto __fastcall DeleteSelection() noexcept ->HRESULT;
+        auto DeleteSelection() noexcept ->HRESULT;
         // set selection
-        bool __fastcall SetSelectionFromPoint(float x, float y, bool extendSelection) noexcept;
+        bool SetSelectionFromPoint(float x, float y, bool extendSelection) noexcept;
     public: // Event
         // when drop
-        bool __fastcall OnDrop(IDataObject* data, DWORD* effect) noexcept {
+        bool OnDrop(IDataObject* data, DWORD* effect) noexcept {
             UNREFERENCED_PARAMETER(data); UNREFERENCED_PARAMETER(effect);
             this->PasteFromGlobal(m_recentMedium.hGlobal);
             return true;
         }
         // when drag enter
-        bool __fastcall OnDragLeave() noexcept { m_bDragFromThis = false; return true; }
+        bool OnDragLeave() noexcept { m_bDragFromThis = false; return true; }
         // when drag enter
-        bool __fastcall OnDragEnter(IDataObject* data, DWORD* effect) noexcept;
+        bool OnDragEnter(IDataObject* data, DWORD* effect) noexcept;
         // when drag enter: relative postion
-        bool __fastcall OnDragOver(float x, float y) noexcept;
+        bool OnDragOver(float x, float y) noexcept;
         // recreate
-        void __fastcall Recreate() noexcept;
+        void Recreate() noexcept;
         // when key character
-        void __fastcall OnChar(char32_t) noexcept;
+        void OnChar(char32_t) noexcept;
         // when key pressed
-        void __fastcall OnKey(uint32_t) noexcept;
+        void OnKey(uint32_t) noexcept;
         // when get focus
-        void __fastcall OnSetFocus() noexcept;
+        void OnSetFocus() noexcept;
         // when kill focus
-        void __fastcall OnKillFocus() noexcept;
+        void OnKillFocus() noexcept;
         // on L button up: relative postion
-        void __fastcall OnLButtonUp(float x, float y) noexcept;
+        void OnLButtonUp(float x, float y) noexcept;
         // on L button down: relative postion
-        void __fastcall OnLButtonDown(float x, float y, bool = false) noexcept;
+        void OnLButtonDown(float x, float y, bool = false) noexcept;
         // on L button hold && move: relative postion
-        void __fastcall OnLButtonHold(float x, float y, bool = false) noexcept;
+        void OnLButtonHold(float x, float y, bool = false) noexcept;
     public: // 一般外部设置区
         // align caret
-        void __fastcall AlignCaretToNearestCluster(bool, bool = false) noexcept;
+        void AlignCaretToNearestCluster(bool, bool = false) noexcept;
         // get the caret rect
-        void __fastcall GetCaretRect(RectLTWH_F&)const noexcept;
+        void GetCaretRect(RectLTWH_F&)const noexcept;
         // update this
-        void __fastcall Update() noexcept;
+        void Update() noexcept;
         // render this: absolute postion
-        void __fastcall Render(float x, float y)const noexcept;
+        void Render(float x, float y)const noexcept;
         // refresh the selection HitTestMetrics
-        void __fastcall RefreshSelectionMetrics(DWRITE_TEXT_RANGE) noexcept;
+        void RefreshSelectionMetrics(DWRITE_TEXT_RANGE) noexcept;
         // copy to HGLOBAL
-        auto __fastcall CopyToGlobal() noexcept ->HGLOBAL;
+        auto CopyToGlobal() noexcept ->HGLOBAL;
         // copy to clipboard
-        auto __fastcall CopyToClipboard() noexcept ->HRESULT;
+        auto CopyToClipboard() noexcept ->HRESULT;
         // paste form HGlobal
-        auto __fastcall PasteFromGlobal(HGLOBAL) noexcept ->HRESULT;
+        auto PasteFromGlobal(HGLOBAL) noexcept ->HRESULT;
         // paste form HGlobal
-        auto __fastcall PasteFromClipboard() noexcept ->HRESULT;
+        auto PasteFromClipboard() noexcept ->HRESULT;
     public:
         // get line no.
         static void GetLineFromPosition(

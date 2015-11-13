@@ -158,25 +158,25 @@ namespace LongUI {
         // get HoverTrackTime
         auto GetHoverTrackTime() const noexcept { return m_cHoverTrackTime; }
         // get left of control
-        auto __fastcall GetLeft() noexcept { return this->view_pos.x - this->margin_rect.left + m_fBorderWidth; };
+        auto GetLeft() noexcept { return this->view_pos.x - this->margin_rect.left + m_fBorderWidth; };
         // get left of control
-        auto __fastcall GetTop() noexcept { return this->view_pos.y - this->margin_rect.top + m_fBorderWidth; };
+        auto GetTop() noexcept { return this->view_pos.y - this->margin_rect.top + m_fBorderWidth; };
         // set left of control
-        auto __fastcall SetLeft(float left) noexcept ->void;
+        auto SetLeft(float left) noexcept ->void;
         // set left of control
-        auto __fastcall SetTop(float top) noexcept ->void;
+        auto SetTop(float top) noexcept ->void;
         // set new taking up width of control
-        auto __fastcall SetWidth(float width) noexcept ->void LongUINoinline;
+        auto SetWidth(float width) noexcept ->void LongUINoinline;
         // set new taking up height of control
-        auto __fastcall SetHeight(float height) noexcept ->void LongUINoinline;
+        auto SetHeight(float height) noexcept ->void LongUINoinline;
         // get rect for cliping
-        void __fastcall GetClipRect(D2D1_RECT_F& rect) const noexcept;
+        void GetClipRect(D2D1_RECT_F& rect) const noexcept;
         // get border rect
-        void __fastcall GetBorderRect(D2D1_RECT_F& rect) const noexcept;
+        void GetBorderRect(D2D1_RECT_F& rect) const noexcept;
         // get viewport rect
-        void __fastcall GetViewRect(D2D1_RECT_F& rect) const noexcept;
+        void GetViewRect(D2D1_RECT_F& rect) const noexcept;
         // get rect for cliping for parent
-        void __fastcall GetClipRectFP(D2D1_RECT_F& rect) const noexcept;
+        void GetClipRectFP(D2D1_RECT_F& rect) const noexcept;
     protected:
         // index 0 brush
         ID2D1SolidColorBrush*   m_pBrush_SetBeforeUse = nullptr;

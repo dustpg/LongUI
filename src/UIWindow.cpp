@@ -1037,7 +1037,7 @@ bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
 // ----------------- IDropTarget!!!! Yooooooooooo~-----
 
 // 获取拖放效果
-DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
+DWORD GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
     DWORD dwEffect = 0;
     // 1. 检查pt来看是否允许drop操作在某个位置
     // 2. 计算出基于grfKeyState的drop效果

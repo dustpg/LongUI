@@ -70,8 +70,6 @@ namespace LongUI {
         void RemoveWindow(UIWindow* wnd, bool cleanup = false) noexcept;
         // return -1 for error(out of renderer space), return other for index
         auto RegisterTextRenderer(CUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept ->int32_t;
-        // require size for bitmap index zero, real size will >= size if success
-        //auto RequireIndexZeroBitmapSize(D2D1_SIZE_U size) noexcept ->HRESULT;
         // get text renderer by name 
         auto GetTextRenderer(const char* name) const noexcept ->CUIBasicTextRenderer*;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
@@ -83,9 +81,7 @@ namespace LongUI {
         // get meta by index, "Get" method will call IUnknown::AddRef if it is a COM object
         // Meta isn't a IUnknown object, so, won't call Meta::bitmap->AddRef
         void GetMeta(size_t index, LongUI::Meta&) noexcept;
-        // get meta's icon handle by index, will do runtime-converting if first call the
-        // same index. "Get" method will call IUnknown::AddRef if it is a COM object
-        // HICON isn't a IUnknown object. Meta HICON managed by this manager
+        // get meta's icon handle by index, Meta HICON managed by this manager
         auto GetMetaHICON(size_t index) noexcept ->HICON;
         // get system brush
         auto GetSystemBrush(uint32_t index) noexcept { return LongUI::SafeAcquire(m_apSystemBrushes[index]); }
@@ -116,26 +112,24 @@ namespace LongUI {
         // create ui window with xml string
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
         // create ui window with custom window && xml string
-        template<class TTT>
-        TTT* CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept {
+        template<class T> auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept ->T* {
             auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void*) noexcept ->UIWindow* {
-                return new(std::nothrow) TTT(node, parent);
+                return new(std::nothrow) T(node, parent);
             };
-            return static_cast<TTT*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, nullptr));
+            return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, nullptr));
         }
         // create ui window with custom window && xml && buffer
-        template<class TTT>
-        TTT* CreateUIWindow(const char* xml, UIWindow* parent, void* buffer) noexcept {
+        template<class T> auto CreateUIWindow(const char* xml, UIWindow* parent, void* buffer) noexcept ->T* {
             auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void* buffer) noexcept ->UIWindow* {
-                return new(buffer) TTT(node, parent);
+                return new(buffer) T(node, parent);
             };
-            return static_cast<TTT*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer));
+            return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer));
         }
     public:
         // get theme colr
-        static auto __fastcall GetThemeColor(D2D1_COLOR_F& colorf) noexcept ->HRESULT;
+        static auto GetThemeColor(D2D1_COLOR_F& colorf) noexcept ->HRESULT;
         // is run as admin?
         static bool WINAPI IsRunAsAdministrator() noexcept;
         // try to elevate now,  will lauch a new elevated instance and

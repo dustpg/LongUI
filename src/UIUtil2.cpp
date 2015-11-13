@@ -249,7 +249,7 @@ namespace LongUI { namespace Helper {
 }}
 
 // 16进制
-unsigned int __fastcall LongUI::Hex2Int(char c) noexcept {
+unsigned int LongUI::Hex2Int(char c) noexcept {
     if (c >= 'A' && c <= 'Z') {
         return c - 'A' + 10;
     }

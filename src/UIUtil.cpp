@@ -20,7 +20,7 @@ LongUINoinline void LongUI::usleep(long usec) noexcept {
 /// </summary>
 /// <param name="color">The d2d color</param>
 /// <returns>32-bit ARGB 颜色</returns>
-LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
+LongUINoinline auto LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
     // 常量
     constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
     constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
@@ -42,7 +42,7 @@ LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) 
 /// <param name="color32">The 32-bit color.</param>
 /// <param name="color4f">The float4 color.</param>
 /// <returns>void</returns>
-LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void {
+LongUINoinline auto LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void {
     // 位移量
     constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
     constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
@@ -71,7 +71,7 @@ LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D
 /// <param name="des_rect">The des_rect.</param>
 /// <param name="opacity">The opacity.</param>
 /// <returns></returns>
-void __fastcall LongUI::Meta_Render(
+void LongUI::Meta_Render(
     const Meta& meta, ID2D1DeviceContext* target,
     const D2D1_RECT_F& des_rect, float opacity) noexcept {
     // 无效位图
@@ -983,7 +983,7 @@ static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i
 /// <param name="binlen">The length of source binary data in byte</param>
 /// <param name="base64">The out data</param>
 /// <returns></returns>
-auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64) noexcept -> char * {
+auto LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64) noexcept -> char * {
     uint8_t current;
     auto base64_index = base64;
     // 
@@ -1019,7 +1019,7 @@ auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN si
 }
 
 // 解码
-auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
+auto LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
     // 二进制长度
     union { uint8_t temp[4]; uint32_t temp_u32; };
     uint8_t* bindata_index = bindata;
@@ -1047,7 +1047,7 @@ auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint
 
 // UTF-16 to UTF-8
 // Return: UTF-8 string length, 0 maybe error
-auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept ->uint32_t {
+auto LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept ->uint32_t {
     UINT32 length = 0;
     const char16_t* source = pUTF16String;
     char* target = pUTF8String;
@@ -1136,7 +1136,7 @@ auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, cha
 
 // UTF-8 to UTF-16
 // Return: UTF-16 string length, 0 maybe error
-auto __fastcall LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t* __restrict pUTF16String) noexcept -> uint32_t {
+auto LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t* __restrict pUTF16String) noexcept -> uint32_t {
     UINT32 length = 0;
     auto source = reinterpret_cast<const unsigned char*>(pUTF8String);
     char16_t* target = pUTF16String;
@@ -1771,7 +1771,7 @@ constexpr float EZ_PI = 3.1415296F;
 constexpr float EZ_PI_2 = 1.5707963F;
 
 // 反弹渐出
-float inline __fastcall BounceEaseOut(float p) noexcept {
+float inline BounceEaseOut(float p) noexcept {
     if (p < 4.f / 11.f) {
         return (121.f * p * p) / 16.f;
     }
@@ -1788,7 +1788,7 @@ float inline __fastcall BounceEaseOut(float p) noexcept {
 
 
 // CUIAnimation 缓动函数
-float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
+float LongUI::EasingFunction(AnimationType type, float p) noexcept {
     assert((p >= 0.f && p <= 1.f) && "bad argument");
     switch (type)
     {
@@ -1970,7 +1970,7 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
 // longui namespace
 namespace LongUI {
     // BKDR 哈希
-    auto __fastcall BKDRHash(const char* str) noexcept -> uint32_t {
+    auto BKDRHash(const char* str) noexcept -> uint32_t {
         constexpr uint32_t seed = 131;
         uint32_t code = 0;
         auto p = reinterpret_cast<const unsigned char*>(str);
@@ -1978,7 +1978,7 @@ namespace LongUI {
         return code;
     }
     // BKDR 哈希
-    auto __fastcall BKDRHash(const wchar_t* str) noexcept -> uint32_t {
+    auto BKDRHash(const wchar_t* str) noexcept -> uint32_t {
         constexpr uint32_t seed = 131;
         uint32_t code = 0;
         while (*str) code = code * seed + (*str++);

@@ -154,7 +154,7 @@ namespace LongUI {
         ID2D1Bitmap1*       bitmap;
     };
     // render the meta
-    void __fastcall Meta_Render(
+    void Meta_Render(
         const Meta&, ID2D1DeviceContext*,
         const D2D1_RECT_F& des_rect, float opacity = 1.f
         ) noexcept;

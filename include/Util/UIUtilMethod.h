@@ -60,7 +60,7 @@ namespace LongUI {
     // busy waiting in micro seconds
     void usleep(long usec) noexcept;
     // hex -> int
-    unsigned int __fastcall Hex2Int(char c) noexcept;
+    unsigned int Hex2Int(char c) noexcept;
     // Render Common Brush
     void FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brush, const D2D1_RECT_F& rect) noexcept;
     // using template specialization
@@ -68,9 +68,9 @@ namespace LongUI {
     // get IID from pointer
     template<typename T> LongUIInline const IID& GetIID(T*) { return LongUI::GetIID<T>(); }
     // BKDR Hash
-    auto __fastcall BKDRHash(const char* str) noexcept ->uint32_t;
+    auto BKDRHash(const char* str) noexcept ->uint32_t;
     // BKDR Hash
-    auto __fastcall BKDRHash(const wchar_t* str) noexcept ->uint32_t;
+    auto BKDRHash(const wchar_t* str) noexcept ->uint32_t;
     // BKDR Hash
     static inline auto BKDRHash(const char* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
     // BKDR Hash
@@ -108,9 +108,9 @@ namespace LongUI {
     // round
     static inline auto RoundToInt(float x) { return static_cast<int>(x + .5f); }
     // pack the color
-    auto __fastcall PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
+    auto PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
     // unpack the color
-    auto __fastcall UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void LongUINoinline;
+    auto UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void LongUINoinline;
     // Dll Function Helper
     struct Dll {
         // CreateDXGIFactory1@dxgi.dll
@@ -145,15 +145,15 @@ namespace LongUI {
     // Base64 DataChar: Map visible char to 0~63
     extern const uint8_t Base64Datas[128];
     // Base64 Encode 编码
-    auto __fastcall Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* const __restrict base64) noexcept -> char *;
+    auto Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* const __restrict base64) noexcept -> char *;
     // Base64 Decode 解码
-    auto __fastcall Base64Decode(IN const char* __restrict base64, OUT uint8_t* __restrict bindata) noexcept ->size_t;
+    auto Base64Decode(IN const char* __restrict base64, OUT uint8_t* __restrict bindata) noexcept ->size_t;
     // UTF-16 to UTF-8
     // Return: UTF-8 string length, 0 maybe error
-    auto __fastcall UTF16toUTF8(const char16_t* __restrict, char* __restrict) noexcept -> uint32_t;
+    auto UTF16toUTF8(const char16_t* __restrict, char* __restrict) noexcept -> uint32_t;
     // UTF-8 to UTF-16
     // Return: UTF-16 string length, 0 maybe error
-    auto __fastcall UTF8toUTF16(const char* __restrict, char16_t* __restrict) noexcept -> uint32_t;
+    auto UTF8toUTF16(const char* __restrict, char16_t* __restrict) noexcept -> uint32_t;
     // wchar to UTF-8
     // UTF-8 to wchar
     inline auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des) noexcept {
