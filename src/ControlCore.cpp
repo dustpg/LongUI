@@ -261,95 +261,6 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     }
 }
 
-#if 0
-/// <summary>
-/// do rendering this instance.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::Render() const noexcept {
-    // 背景渲染
-    this->render_chain_background();
-    // 主景渲染
-    this->render_chain_main();
-    // 前景渲染
-    this->render_chain_foreground();
-    // 背景渲染
-    auto render_background = [this]() {
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(sizeof(debug_render_checker) * CHAR_BIT - 1);
-        auto e = this->debug_render_checker.Test(index) == false;
-        assert(e && "check logic: called twice in one time @ render_background");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    if (m_pBackgroudBrush) {
-        D2D1_RECT_F rect; this->GetViewRect(rect);
-        LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
-    }
-    };
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 渲染背景
-        render_background();
-        break;
-    case LongUI::RenderType::Type_Render:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(1);
-        auto b = this->debug_render_checker.Test(index) == false;
-        assert(b && "check logic: called twice in one time @ Type_Render");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    // 渲染背景
-    render_background();
-    __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderForeground);
-        auto c = this->debug_render_checker.Test(index) == false;
-        assert(c && "check logic: called twice in one time @ Type_RenderForeground");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    // 渲染边框
-    if (m_fBorderWidth > 0.f) {
-        D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
-        m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-        if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
-            brect.radiusX = m_2fBorderRdius.width;
-            brect.radiusY = m_2fBorderRdius.height;
-            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-            UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        }
-        else {
-            UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-        }
-    }
-    break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderOffScreen);
-        auto d = this->debug_render_checker.Test(index) == false;
-        assert(d && "check logic: called twice in one time @ Type_RenderOffScreen");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    break;
-    }
-}
-#endif
-
-
 //#pragma pop_macro("_DEBUG")
 
 // UI控件: 刷新
@@ -529,8 +440,8 @@ void LongUI::UIControl::GetClipRectFP(D2D1_RECT_F& rect) const noexcept {
 
 // 获得世界转换矩阵
 void LongUI::UIControl::RefreshWorld() noexcept {
-    float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
-    float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
+    float xx = this->view_pos.x;
+    float yy = this->view_pos.y;
     // 顶级控件
     if (this->IsTopLevel()) {
         this->world = DX::Matrix3x2F::Translation(xx, yy);
@@ -1074,36 +985,6 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     this->RefreshWorld();
     this->RefreshLayout();
 }
-
-/*// UI容器: 刷新前
-void LongUI::UIContainer::BeforeUpdateContainer() noexcept {
-    // 需要刷新
-    if (this->IsNeedRefreshWorld()) {
-        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) |
-            (this->m_2fTemplateSize.height > 0.f);
-        auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
-        auto tmph = this->GetHeight() / m_2fTemplateSize.width;
-        switch (code)
-        {
-        case 0:
-            // do nothing
-            break;
-        case 1:
-            // this->m_2fTemplateSize.height > 0.f, only
-            this->m_2fZoom.width = this->m_2fZoom.height = tmph;
-            break;
-        case 2:
-            // this->m_2fTemplateSize.width > 0.f, only
-            this->m_2fZoom.height = this->m_2fZoom.width = tmpw;
-            break;
-        case 3:
-            // both
-            this->m_2fZoom.width =  tmpw;
-            this->m_2fZoom.height = tmph;
-            break;
-        }
-    }
-}*/
 
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept {

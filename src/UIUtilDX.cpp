@@ -1217,10 +1217,6 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
         // 返回数据
         return outformat;
     }
-    // LCML
-    /*auto LCML(const FormatTextConfig& config, const wchar_t* format, va_list ap) noexcept {
-
-    }*/
     // d2d1 ------------------------
     void LongUINoinline D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept {
         constexpr float pi = 3.141592654f;

@@ -34,8 +34,6 @@ struct MemoryLeakDetector {
 #endif
 
 
-
-
 static_assert(sizeof(std::atomic_bool) == sizeof(char), "really bad");
 #define InitStaticVar(v)  decltype(v) v = nullptr
 // 初始化静态变量
@@ -146,18 +144,6 @@ namespace LongUI {
         0xa8be2ac4, 0x199f, 0x4946,{ 0xb3, 0x31, 0x79, 0x59, 0x9f, 0xb9, 0x8d, 0xe7 }
     };
 }
-
-
-/*// 复制构造
-LongUI::EventArgument::EventArgument(const EventArgument& arg) noexcept {
-    this->event = arg.event;
-    this->sender = arg.sender;
-    this->sys.wParam = arg.sys.wParam;
-    this->sys.lParam = arg.sys.lParam;
-    this->pt.x = arg.pt.x;
-    this->pt.y = arg.pt.y;
-    this->lr = arg.lr;
-}*/
 
 // longui
 namespace LongUI {
