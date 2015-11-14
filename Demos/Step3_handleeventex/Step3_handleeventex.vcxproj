@@ -27,7 +27,6 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1794B85B-34AC-4FE3-978C-1E95BC52EA1C}</ProjectGuid>
     <RootNamespace>Step3_handleeventex</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
