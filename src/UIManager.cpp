@@ -635,22 +635,6 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     assert(function && "bad idea");
     if (!function) return nullptr;
     auto ctrl = function(cp->CET(), node);
-#if 0
-    // 插入模板结点
-    if (ctrl && tid) {
-        if (ctrl->flags & (Flag_InsertTemplateChild | Flag_UIContainer)) {
-            auto child = m_pTemplateNodes[tid].first_child();
-            while (child) {
-                auto created = this->create_control(static_cast<UIContainer*>(ctrl), nullptr, child, 0);
-                assert(created);
-                if (created) {
-                    static_cast<UIContainer*>(ctrl)->PushBack(created);
-                }
-                child = child.next_sibling();
-            }
-        }
-    }
-#endif
     return ctrl;
 }
 
@@ -690,16 +674,21 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
 // 消息转换
 void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg, 
     UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+    // 范围检查
     assert((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || 
         message == WM_MOUSELEAVE || message == WM_MOUSEHOVER);
+    // 获取X
     auto get_x = [lParam]() { return float(int16_t(LOWORD(lParam))); };
+    // 获取Y
     auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
+    // 设置
     arg.sys.wParam = wParam;
     arg.sys.lParam = lParam;
     arg.pt.x = get_x();
     arg.pt.y = get_y();
     arg.last = nullptr;
     MouseEvent me;
+    // 检查信息
     switch (message)
     {
     case WM_MOUSEMOVE:
@@ -743,8 +732,10 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg,
 }
 
 #ifdef _DEBUG
-std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
-std::atomic<UINT> g_dbg_last_proc_message = 0;
+namespace LongUI {
+    std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
+    std::atomic<UINT> g_dbg_last_proc_message = 0;
+}
 #endif
 
 // 窗口过程函数

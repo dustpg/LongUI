@@ -10,27 +10,32 @@ void dbg_update(LongUI::UIControl* control) noexcept {
     }*/
 }
 
-extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
-extern std::atomic<UINT> g_dbg_last_proc_message;
-
-void dbg_locked(const LongUI::CUILocker&) noexcept {
-    std::uintptr_t ptr = g_dbg_last_proc_window_pointer;
-    UINT msg = g_dbg_last_proc_message;
+// longui naemspace
+namespace LongUI {
+    // debug var
+    extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
+    extern std::atomic<UINT> g_dbg_last_proc_message;
+}
+// debug functin -- 
+void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
+    std::uintptr_t ptr = LongUI::g_dbg_last_proc_window_pointer;
+    UINT msg = LongUI::g_dbg_last_proc_message;
     auto window = reinterpret_cast<LongUI::UIWindow*>(ptr);
 #if 0
     UIManager << DL_Log
-        << L"main locker locked @" 
+        << L"main locker locked @"
         << window
-        << L" on message id: " 
+        << L" on message id: "
         << long(msg)
         << LongUI::endl;
 #else
     ::OutputDebugStringW(LongUI::Formated(
-        L"Main Locker Locked On Msg: %4u @ Window[0x%p - %S]\r\n", 
+        L"Main Locker Locked On Msg: %4u @ Window[0x%p - %S]\r\n",
         msg, window, window->name.c_str()
         ));
 #endif
 }
+
 #endif
 
 // Core Contrl for UIControl, UIMarginalable, UIContainer, UINull

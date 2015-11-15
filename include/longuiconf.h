@@ -210,8 +210,8 @@ namespace LongUI {
         auto Lock() noexcept { 
 #ifdef _DEBUG
             if (!::TryEnterCriticalSection(&m_cs)) {
-                void dbg_locked(const LongUI::CUILocker&);
-                dbg_locked(*this);
+                void longui_dbg_locked(const LongUI::CUILocker&);
+                longui_dbg_locked(*this);
                 ::EnterCriticalSection(&m_cs);
             }
 #else
