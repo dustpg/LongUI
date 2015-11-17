@@ -2,12 +2,12 @@
 #include <algorithm>
 
 #ifdef _DEBUG
-void dbg_update(LongUI::UIControl* control) noexcept {
+void longui_dbg_update(LongUI::UIControl* control) noexcept {
     assert(control && "bad argments");
-    /*if (control->debug_updated) {
-        auto& name = control->GetName();
-        auto bk = 9;
-    }*/
+    if (control->debug_updated) {
+        auto name = control->name;
+        name = nullptr;
+    }
 }
 
 // longui naemspace
@@ -16,6 +16,7 @@ namespace LongUI {
     extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
     extern std::atomic<UINT> g_dbg_last_proc_message;
 }
+
 // debug functin -- 
 void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
     std::uintptr_t ptr = LongUI::g_dbg_last_proc_window_pointer;

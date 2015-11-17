@@ -35,18 +35,6 @@ namespace LongUI {
         using StringAllocator = CUIShortStringAllocator<>;
         // create ui window call back
         using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* wndparent, void* buffer)->UIWindow*;
-    public: 
-        // Windows Version
-        enum WindowsVersion : uint32_t {
-            // win7 sp1
-            Version_Win7SP1 = 0,
-            // Win8,
-            Version_Win8, 
-            //  Win8.1
-            Version_Win8_1,
-            // Win10
-            Version_Win10
-        };
     public: // handle zone 操作区
         // initialize 初始化
         auto Initialize(IUIConfigure* = nullptr) noexcept ->HRESULT;
@@ -203,11 +191,11 @@ namespace LongUI {
         IUIScript*           const      script = nullptr;
         // config
         IUIConfigure*        const      configure = nullptr;
-        // windows version
-        WindowsVersion       const      version = WindowsVersion::Version_Win8;
         // flag for configure
         IUIConfigure::ConfigureFlag     flag = IUIConfigure::Flag_None;
     private:
+        // asd
+        uint32_t                        m_u32unused = 0;
         // string al
         StringAllocator                 m_oStringAllocator;
         // helper for drop target

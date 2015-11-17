@@ -869,13 +869,8 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
 }
 
 
-// 获取操作系统版本
-namespace LongUI { auto GetWindowsVersion() noexcept ->CUIManager::WindowsVersion; }
-
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept : 
-m_config(*this), 
-version(LongUI::GetWindowsVersion()) {
+LongUI::CUIManager::CUIManager() noexcept : m_config(*this) {
 
 }
 

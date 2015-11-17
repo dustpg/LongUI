@@ -244,23 +244,6 @@ namespace LongUI {
         }
         return false;
     }
-    // 获取Windows版本
-    auto GetWindowsVersion() noexcept ->CUIManager::WindowsVersion {
-        CUIManager::WindowsVersion version = CUIManager::WindowsVersion::Version_Win7SP1;
-        // >= Win10 ?
-        if (LongUI::IsWindows10OrGreater()) {
-            version = CUIManager::WindowsVersion::Version_Win10;
-        }
-        // >= Win8.1 ?
-        else if (LongUI::IsWindows8Point1OrGreater()) {
-            version = CUIManager::WindowsVersion::Version_Win8_1;
-        }
-        // >= Win8 ?
-        else if (LongUI::IsWindows8OrGreater()) {
-            version = CUIManager::WindowsVersion::Version_Win8;
-        }
-        return version;
-    }
 }
 
 #ifdef LONGUI_WITH_DEFAULT_CONFIG

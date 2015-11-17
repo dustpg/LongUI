@@ -70,8 +70,8 @@ namespace LongUI {
         // update
         virtual void Update() noexcept {
 #ifdef _DEBUG
-            void dbg_update(UIControl* c);
-            dbg_update(this);
+            void longui_dbg_update(UIControl* c);
+            longui_dbg_update(this);
             assert(debug_updated == false && "cannot call this more than once");
             debug_updated = true;
 #endif
