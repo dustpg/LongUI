@@ -459,23 +459,13 @@ auto LongUI::CUIManager::CreateTextFormat(
     return hr;
 }
 
-/*
-if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
-    // 两种方式退出 
-    if (msg.message == WM_QUIT) {
-        m_exitFlag = true;
-        break;
-    }
-    ::TranslateMessage(&msg);
-    ::DispatchMessageW(&msg);
-}
-*/
 
 #ifdef LONGUI_RENDER_IN_STD_THREAD
 #include <thread>
 #else
 #include <process.h>
 #endif
+
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
     // 开始!
@@ -489,7 +479,6 @@ void LongUI::CUIManager::Run() noexcept {
         while (!UIManager.m_exitFlag) {
             uint32_t vslen = 0;
             // 锁住
-            //UIManager << DL_Log << "Try3" << endl;
             UIManager.Lock();
 #ifdef _DEBUG
             ++UIManager.frame_id;
@@ -632,6 +621,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
             node = m_pTemplateNodes[tid];
         }
     }
+    // 检查
     assert(function && "bad idea");
     if (!function) return nullptr;
     auto ctrl = function(cp->CET(), node);
@@ -743,8 +733,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 #ifdef _DEBUG
     g_dbg_last_proc_message = message;
 #endif
-    /*POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
-    arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);*/
     // 返回值
     LRESULT recode = 0;
     // 创建窗口时设置指针
@@ -778,7 +766,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             CUIManager::WindowsMsgToMouseEvent(arg, message, wParam, lParam);
             // 有效
             if (arg.event != MouseEvent::Event_None) {
-                //UIManager << DL_Log << "Try2" << endl;
                 {
                     AutoLocker;
                     // 需要修正坐标
@@ -793,7 +780,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
                     // 总是处理了鼠标事件
                     handled = true;
                 }
-                //UIManager << DL_Log << "End2" << endl;
             }
         }
         // 一般事件
@@ -814,8 +800,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             }
             ++s_times;
 #endif
-            // 上锁
-            //UIManager << DL_Log << "Try1" << endl;
             {
                 AutoLocker;
                 // 默认处理
@@ -826,7 +810,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 #ifdef _DEBUG
             --s_times;
 #endif
-            //UIManager << DL_Log << "End1" << endl;
         }
         // 未处理
         if (!handled) {
@@ -867,7 +850,6 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
     }
     return hr;
 }
-
 
 // CUIManager 构造函数
 LongUI::CUIManager::CUIManager() noexcept : m_config(*this) {
