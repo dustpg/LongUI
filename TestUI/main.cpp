@@ -185,7 +185,7 @@ private:
     virtual void cleanup() noexcept override { this->~MainWindow(); }
     // init
     void init() {
-        /*auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl("lst_01"));
+        auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl("lst_01"));
         if (list) {
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
                 for (auto line : static_cast<LongUI::UIList*>(list)->GetContainer()) {
@@ -215,7 +215,7 @@ private:
                 this->SwapChild(LongUI::MakeIteratorBI(ctrl1), LongUI::MakeIteratorBI(ctrl2));
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
-        }*/
+        }
     }
     // on number button clicked
     void number_button_clicked(LongUI::UIControl* btn);
