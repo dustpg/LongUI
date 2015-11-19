@@ -222,16 +222,21 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
                     auto tc = string->GetCount();
                     UIManager << DLevel_Log << Formated(L"%4d[%d]: ", int(i), int(tc));
                     // 遍历所有字体名称
+#if 0
                     for (auto j = 0u; j < 1u; j++) {
                         string->GetLocaleName(j, buffer, LongUIStringBufferLength);
                         UIManager << DLevel_Log << buffer << " => ";
                         // 有些语言在我的机器上显示不了(比如韩语), 会出现bug略过不少东西, 就显示第一个了
-                        /*if (std::wcscmp(buffer, L"ko-kr")) */{
-                            string->GetString(j, buffer, LongUIStringBufferLength);
-                            UIManager << DLevel_Log << buffer << "; ";
-                        }
+                        string->GetString(j, buffer, LongUIStringBufferLength);
+                        UIManager << DLevel_Log << buffer << "; ";
                     }
-                    UIManager << DLevel_Log << L"\r\n";
+#else
+                    // 显示第一个
+                    string->GetLocaleName(0, buffer, LongUIStringBufferLength);
+                    UIManager << DLevel_Log << buffer << " => ";
+                    string->GetString(0, buffer, LongUIStringBufferLength);
+                    UIManager << DLevel_Log << buffer << ";\r\n";
+#endif
                 }
                 LongUI::SafeRelease(string);
             }
