@@ -74,7 +74,7 @@ namespace LongUI { namespace Component {
         // layout of it
         IDWriteTextLayout*          m_pLayout = nullptr;
         // Text Renderer
-        CUIBasicTextRenderer*       m_pTextRenderer;
+        XUIBasicTextRenderer*       m_pTextRenderer;
         // the text config
         FormatTextConfig            m_config;
         // basic color

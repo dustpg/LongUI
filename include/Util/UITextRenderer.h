@@ -38,13 +38,13 @@ namespace LongUI {
         Type_UserDefineFirst,
     };
     // Basic TextRenderer
-    class LONGUI_NOVTABLE CUIBasicTextRenderer : public Helper::ComStatic<
+    class LONGUI_NOVTABLE XUIBasicTextRenderer : public Helper::ComStatic<
         Helper::QiListSelf<IUnknown, Helper::QiList<IDWriteTextRenderer>>> {
     public:
         // destructor
-        ~CUIBasicTextRenderer()  noexcept { LongUI::SafeRelease(UIManager_RenderTarget); LongUI::SafeRelease(m_pBrush);}
+        ~XUIBasicTextRenderer()  noexcept { LongUI::SafeRelease(UIManager_RenderTarget); LongUI::SafeRelease(m_pBrush);}
         // constructor
-        CUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { /*basic_color.userdata = 0;*/ basic_color.color = { 0.f,0.f,0.f,1.f }; }
+        XUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { /*basic_color.userdata = 0;*/ basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
         void SetNewTarget(ID2D1DeviceContext* rt) { LongUI::SafeRelease(UIManager_RenderTarget); UIManager_RenderTarget = LongUI::SafeAcquire(rt); }
         // set new render brush
@@ -67,7 +67,7 @@ namespace LongUI {
             BOOL isRightToLeft,
             _In_opt_ IUnknown* clientDrawingEffect
             ) noexcept override;
-    public: // LongUI CUIBasicTextRenderer 
+    public: // LongUI XUIBasicTextRenderer 
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->uint32_t = 0;
         // create context from string
@@ -84,9 +84,9 @@ namespace LongUI {
         TextRendererType      const type;
     };
     // Normal Text Render: Render Context -> None
-    class  CUINormalTextRender : public CUIBasicTextRenderer {
+    class  CUINormalTextRender : public XUIBasicTextRenderer {
         // superclass define
-        using Super = CUIBasicTextRenderer ;
+        using Super = XUIBasicTextRenderer ;
     public:
         // CUINormalTextRender
         CUINormalTextRender():Super(Type_NormalTextRenderer){ }
@@ -117,7 +117,7 @@ namespace LongUI {
             const DWRITE_STRIKETHROUGH* strikethrough,
             IUnknown* clientDrawingEffect
             ) noexcept override;
-    public:// CUIBasicTextRenderer implementation
+    public:// XUIBasicTextRenderer implementation
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->uint32_t override  { return 0ui32; }
         // create context from string

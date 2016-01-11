@@ -135,7 +135,7 @@ namespace LongUI {
     const GUID IID_ITextHost2 = {
         0x13E670F5, 0x1A5A, 0x11CF,{ 0xAB, 0xEB, 0x00, 0xAA, 0x00, 0xB6, 0x5E, 0xA1 }
     };
-    // CUIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
+    // XUIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
     const GUID IID_CUIBasicTextRenderer = {
         0xedab1e53, 0xc1cf, 0x4f5a,{ 0x95, 0x33, 0x99, 0x46, 0x90, 0x4a, 0xd6, 0x3c }
     };

@@ -1305,13 +1305,13 @@ void LongUI::Component::EditaleText::CopyRangedProperties(
 
 
 // 返回FALSE
-HRESULT LongUI::CUIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDisabled) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDisabled) noexcept {
     *isDisabled = false;
     return S_OK;
 }
 
 // 从目标渲染呈现器获取
-HRESULT LongUI::CUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
     assert(UIManager_RenderTarget);
     // XXX: 优化 Profiler 就这1行 0.05%
     UIManager_RenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
@@ -1319,13 +1319,13 @@ HRESULT LongUI::CUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX 
 }
 
 // 始终如一, 方便转换
-HRESULT LongUI::CUIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) noexcept {
     *bilibili = 1.f;
     return S_OK;
 }
 
 // 渲染内联对象
-HRESULT LongUI::CUIBasicTextRenderer::DrawInlineObject(
+HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
     _In_opt_ void * clientDrawingContext,
     FLOAT originX, FLOAT originY,
     _In_ IDWriteInlineObject * inlineObject,
@@ -1625,4 +1625,17 @@ void LongUI::Component::Elements<LongUI::Element_ColorRect>::Render(const D2D1_R
     m_pBrush->SetColor(colors + m_stateTartget);
     UIManager_RenderTarget->FillRectangle(&rect, m_pBrush);
     m_pBrush->SetOpacity(1.f);
+}
+
+
+// 基本动画状态机 - 构造函数
+LongUINoinline LongUI::Component::AnimationStateMachine::
+AnimationStateMachine(pugi::xml_node node, const char* prefix) noexcept 
+    : m_aniBasic(AnimationType::Type_QuadraticEaseOut),
+      m_aniExtra(AnimationType::Type_QuadraticEaseOut) {
+    // TODO: 动画
+    UNREFERENCED_PARAMETER(node);
+    UNREFERENCED_PARAMETER(prefix);
+    m_aniBasic.end = 1.f;
+    m_aniExtra.end = 1.f;
 }

@@ -57,9 +57,9 @@ namespace LongUI {
         // remove window
         void RemoveWindow(UIWindow* wnd, bool cleanup = false) noexcept;
         // return -1 for error(out of renderer space), return other for index
-        auto RegisterTextRenderer(CUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept ->int32_t;
+        auto RegisterTextRenderer(XUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept ->int32_t;
         // get text renderer by name 
-        auto GetTextRenderer(const char* name) const noexcept ->CUIBasicTextRenderer*;
+        auto GetTextRenderer(const char* name) const noexcept ->XUIBasicTextRenderer*;
         // get text format, "Get" method will call IUnknown::AddRef if it is a COM object
         auto GetTextFormat(size_t index) noexcept ->IDWriteTextFormat*;
         // get bitmap by index, "Get" method will call IUnknown::AddRef if it is a COM object
@@ -231,7 +231,7 @@ namespace LongUI {
         // thread manager for TSF
         ITfThreadMgr*                   m_pTsfThreadManager = nullptr;
         // text renderer
-        CUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
+        XUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATUS_COUNT];
         // loader

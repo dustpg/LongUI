@@ -900,7 +900,7 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
 
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
-    CUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
+    XUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
     ) noexcept -> int32_t {
     assert(m_uTextRenderCount < lengthof(m_apTextRenderer) && "buffer too small");
     assert(!white_space(name[0]) && "name cannot begin with white space");
@@ -1516,7 +1516,7 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
 }
 
 // 利用名称获取
-auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> CUIBasicTextRenderer* {
+auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> XUIBasicTextRenderer* {
     int index = 0;
     if (name && name[0]) {
         // 跳过空白

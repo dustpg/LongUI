@@ -220,5 +220,68 @@ namespace LongUI {
             // brush
             ID2D1SolidColorBrush*   m_pBrush = nullptr;
         };
+        /// <summary>
+        /// Basic Animation State Machine
+        /// </summary>
+        class AnimationStateMachine {
+        public:
+            // ctor
+            AnimationStateMachine(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            // dtor
+            ~AnimationStateMachine() noexcept {}
+        public:
+            // get now baisc state
+            auto GetNowBaiscState() const noexcept { return m_uBasicStateNow; }
+            // get old baisc state
+            auto GetOldBaiscState() const noexcept { return m_uBasicStateOld; }
+            // get now extra state
+            auto GetNowExtraState() const noexcept { return m_uExtraStateNow; }
+            // get old extra state
+            auto GetOldExtraState() const noexcept { return m_uExtraStateOld; }
+        private:
+            // basic state animation
+            CUIAnimation<FLOAT>     m_aniBasic;
+            // extra state animation
+            CUIAnimation<FLOAT>     m_aniExtra;
+            // basic state - old
+            uint16_t                m_uBasicStateOld = 0;
+            // basic state - now
+            uint16_t                m_uBasicStateNow = 0;
+            // basic state - old
+            uint16_t                m_uExtraStateOld = 0;
+            // basic state - now
+            uint16_t                m_uExtraStateNow = 0;
+        };
+        /// <summary>
+        /// Extra Animation State Machine
+        /// </summary>
+        /// <!--template<class GIBasic, class GIExtra, typename StateBasic=uint16_t, typename StateExtra=uint16_t>-->
+        class AnimationStateMachineEx {
+            // debug
+            using GIBasic = int; using GIExtra = int;
+            // debug
+            using StateBasic = uint16_t; using StateExtra = uint16_t;
+            // assert test
+            static_assert(sizeof(StateBasic) <= sizeof(uint16_t), "bad action");
+            // assert test
+            static_assert(sizeof(StateExtra) <= sizeof(uint16_t), "bad action");
+        public:
+            // get now baisc state
+            auto GetNowBaiscState() const noexcept { return static_cast<StateBasic>(m_machine.GetNowBaiscState()); }
+            // get old baisc state
+            auto GetOldBaiscState() const noexcept { return static_cast<StateBasic>(m_machine.GetOldBaiscState()); }
+            // get now extra state
+            auto GetNowExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetNowBaiscState()); }
+            // get old extra state
+            auto GetOldExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetOldBaiscState()); }
+        public:
+            // set basic state
+            void SetBasicState(StateBasic) noexcept;
+            // set basic state
+            void SetExtraState(StateExtra) noexcept;
+        private:
+            // baisc machine
+            AnimationStateMachine           m_machine;
+        };
     }
 }

@@ -213,7 +213,7 @@ namespace LongUI { namespace Component {
         // size of this
         D2D1_SIZE_F             m_size = D2D1::SizeF(96.f, 96.f);
         // Text Renderer
-        CUIBasicTextRenderer*   m_pTextRenderer = nullptr;
+        XUIBasicTextRenderer*   m_pTextRenderer = nullptr;
         // drag text range
         DWRITE_TEXT_RANGE       m_dragRange;
         // click in selection
