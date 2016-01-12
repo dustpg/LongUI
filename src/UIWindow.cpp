@@ -9,7 +9,7 @@ const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(
 LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
 noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_window) {
     assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
-    ZeroMemory(&m_curMedium, sizeof(m_curMedium));
+    std::memset(&m_curMedium, 0, sizeof(m_curMedium));
     // 检查名称
     {
         auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();

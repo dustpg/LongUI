@@ -292,7 +292,7 @@ namespace LongUI {
     class FixedCommadStack {
     public:
         // constructor
-        FixedCommadStack() noexcept { ::ZeroMemory(data, sizeof(data)); };
+        FixedCommadStack() noexcept { ::std::memset(data, sizeof(data)); };
         // destructor
         ~FixedCommadStack() noexcept {
             // release commnad in 2-time

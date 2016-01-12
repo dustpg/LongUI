@@ -193,8 +193,8 @@ namespace LongUI {
     };
     // make as unit
     template<typename T>
-    static inline auto MakeAsUnit(T vaule) noexcept ->T {
-        return (((vaule)+(LongUITargetBitmapUnitSize - 1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize);
+    static inline auto MakeAsUnit(T value) noexcept ->T {
+        return (((value)+(LongUITargetBitmapUnitSize - 1)) / LongUITargetBitmapUnitSize * LongUITargetBitmapUnitSize);
     }
     // text renderer name
     struct NameTR { char name[LongUITextRendererNameMaxLength]; };

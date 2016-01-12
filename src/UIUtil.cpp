@@ -169,7 +169,7 @@ LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {
 
 // CUIDataObject 构造函数
 LongUI::CUIDataObject::CUIDataObject() noexcept {
-    ZeroMemory(&m_dataStorage, sizeof(m_dataStorage));
+    std::memset(&m_dataStorage, 0, sizeof(m_dataStorage));
 }
 
 
@@ -733,7 +733,6 @@ template<> void LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept {
     // 减少时间
     this->time -= t;
 }
-
 
 // for D2D1_COLOR_F or Float4
 template<> void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept {

@@ -225,46 +225,65 @@ namespace LongUI {
         /// </summary>
         class AnimationStateMachine {
         public:
+            // State
+            using State = uint16_t;
             // ctor
             AnimationStateMachine(pugi::xml_node node, const char* prefix = nullptr) noexcept;
             // dtor
             ~AnimationStateMachine() noexcept {}
         public:
             // get now baisc state
-            auto GetNowBaiscState() const noexcept { return m_uBasicStateNow; }
+            auto GetNowBaiscState() const noexcept { return m_sttBasicNow; }
             // get old baisc state
-            auto GetOldBaiscState() const noexcept { return m_uBasicStateOld; }
+            auto GetOldBaiscState() const noexcept { return m_sttBasicOld; }
             // get now extra state
-            auto GetNowExtraState() const noexcept { return m_uExtraStateNow; }
+            auto GetNowExtraState() const noexcept { return m_sttExtraNow; }
             // get old extra state
-            auto GetOldExtraState() const noexcept { return m_uExtraStateOld; }
+            auto GetOldExtraState() const noexcept { return m_sttExtraOld; }
+            // get value of baisc state
+            auto GetBaiscVaule() const noexcept { return m_aniBasic.value; }
+            // get value of extra state
+            auto GetExtraVaule() const noexcept { return m_aniExtra.value; }
+        public:
+            // set basic state
+            void SetBasicState(State) noexcept;
+            // set basic state
+            void SetExtraState(State) noexcept;
+            // update with delta time
+            auto Update(float t) noexcept { m_aniBasic.Update(t); m_aniExtra.Update(t); }
+            // update without delta time
+            //auto Update() noexcept { this->Update(UIManager.GetDeltaTime()); }
         private:
             // basic state animation
             CUIAnimation<FLOAT>     m_aniBasic;
             // extra state animation
             CUIAnimation<FLOAT>     m_aniExtra;
             // basic state - old
-            uint16_t                m_uBasicStateOld = 0;
+            State                   m_sttBasicOld = 0;
             // basic state - now
-            uint16_t                m_uBasicStateNow = 0;
+            State                   m_sttBasicNow = 0;
             // basic state - old
-            uint16_t                m_uExtraStateOld = 0;
+            State                   m_sttExtraOld = 0;
             // basic state - now
-            uint16_t                m_uExtraStateNow = 0;
+            State                   m_sttExtraNow = 0;
         };
         /// <summary>
         /// Extra Animation State Machine
         /// </summary>
-        /// <!--template<class GIBasic, class GIExtra, typename StateBasic=uint16_t, typename StateExtra=uint16_t>-->
+        template<class GIBasic, class GIExtra, typename StateBasic, typename StateExtra=uint16_t>
         class AnimationStateMachineEx {
-            // debug
-            using GIBasic = int; using GIExtra = int;
-            // debug
-            using StateBasic = uint16_t; using StateExtra = uint16_t;
+            // sort name
+            using StateTarget = AnimationStateMachine::State;
             // assert test
-            static_assert(sizeof(StateBasic) <= sizeof(uint16_t), "bad action");
+            static_assert(sizeof(StateBasic) <= sizeof(StateTarget), "bad action");
             // assert test
-            static_assert(sizeof(StateExtra) <= sizeof(uint16_t), "bad action");
+            static_assert(sizeof(StateExtra) <= sizeof(StateTarget), "bad action");
+        public:
+            // ctor
+            AnimationStateMachineEx(pugi::xml_node node, const char* prefix = nullptr) noexcept
+            : m_machine(node, prefix),  m_ifBasic(node, prefix), m_ifExtra(node, prefix) { }
+            // dtor
+            ~AnimationStateMachineEx() noexcept = default;
         public:
             // get now baisc state
             auto GetNowBaiscState() const noexcept { return static_cast<StateBasic>(m_machine.GetNowBaiscState()); }
@@ -274,14 +293,134 @@ namespace LongUI {
             auto GetNowExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetNowBaiscState()); }
             // get old extra state
             auto GetOldExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetOldBaiscState()); }
+            // get value of baisc state
+            auto GetBaiscVaule() const noexcept { return m_machine.GetBaiscVaule(); }
+            // get value of extra state
+            auto GetExtraVaule() const noexcept { return m_machine.GetExtraVaule(); }
         public:
             // set basic state
-            void SetBasicState(StateBasic) noexcept;
+            void SetBasicState(StateBasic s) noexcept { m_machine.SetBasicState(static_cast<StateTarget>(s)); }
             // set basic state
-            void SetExtraState(StateExtra) noexcept;
+            void SetExtraState(StateBasic s) noexcept { m_machine.SetExtraState(static_cast<StateTarget>(s)); }
+            // update with delta time
+            auto Update(float t) noexcept { m_machine.Update(t); }
+            // update without delta time
+            auto Update() noexcept { this->Update(UIManager.GetDeltaTime()); }
+            // render
+            void Render(const D2D1_RECT_F& rect) const noexcept {
+                if (m_ifExtra.IsValid()) {
+                    m_ifExtra.Render(rect, static_cast<const AnimationStateMachine&>(m_machine));
+                }
+                else {
+                    m_ifBasic.Render(rect, static_cast<const AnimationStateMachine&>(m_machine));
+                }
+            }
+            // recreate
+            auto Recreate() noexcept { 
+                HRESULT hr = S_OK;
+                if (SUCCEEDED(hr)) {
+                    hr = m_ifBasic.Recreate();
+                }
+                if (SUCCEEDED(hr)) {
+                    hr = m_ifExtra.Recreate();
+                }
+                return hr;
+            }
         private:
             // baisc machine
             AnimationStateMachine           m_machine;
+            // basic interface, must be valid
+            GIBasic                         m_ifBasic;
+            // extra interface, change to basic if invalid
+            GIExtra                         m_ifExtra;
         };
+        /// <summary>
+        /// Helper for Graphics Interface
+        /// </summary>
+        class GIHelper {
+        public:
+            // clean interface
+            static void Clean(IUnknown** brushes, size_t size) noexcept;
+            // clean interface
+            template<class T> static void Clean(T** itfs, size_t size) noexcept { GIHelper::Clean(reinterpret_cast<IUnknown**>(itfs),size); }
+            // recreate for meta
+            static auto Recreate(Meta metas[], const uint16_t ids[], size_t size) noexcept->HRESULT;
+            // recreate for brush
+            static auto Recreate(ID2D1Brush* brushes[], const uint16_t ids[], size_t size) noexcept->HRESULT;
+        };
+        /// <summary>
+        /// Graphics Interface for Opacity-Based Meta
+        /// </summary>
+        template<class GIConfig> class GIMeta {
+            // constant
+            enum : size_t {
+                // count of basic state
+                BASIC_COUNT = GIConfig::GetBasicCount(),
+                // count of extra state
+                EXTRA_COUNT = GIConfig::GetBasicCount(),
+            };
+        public:
+            // ctor
+            GIMeta(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitMeta(node, prefix, m_metas, m_aID); }
+            // dtor 
+            ~GIMeta() noexcept = default;
+            // recreate
+            auto Recreate() noexcept { return GIHelper::Recreate(m_metas, m_aID, BASIC_COUNT * EXTRA_COUNT); }
+            // render this
+            void Render(const D2D1_RECT_F& rect, const AnimationStateMachine& sm) const noexcept;
+            // check if valid
+            bool IsValid() const noexcept { return m_aID[BASIC_COUNT - 1] != 0; }
+        private:
+            // metas
+            Meta            m_metas[BASIC_COUNT * EXTRA_COUNT];
+            // metas id
+            uint16_t        m_aID[BASIC_COUNT * EXTRA_COUNT];
+        };
+        /// <summary>
+        /// Graphics Interface for brush in rectangle
+        /// </summary>
+        template<class GIConfig> class GIBurshRect {
+            // constant
+            enum : size_t {
+                // count of basic state
+                BASIC_COUNT = GIConfig::GetBasicCount(),
+                // count of extra state
+                EXTRA_COUNT = GIConfig::GetBasicCount(),
+            };
+        public:
+            // ctor
+            GIBurshRect(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitBrush(node, prefix, m_apBrushes, m_aID); }
+            // dtor 
+            ~GIBurshRect() noexcept { GIHelper::Clean(m_apBrushes, lengthof(m_apBrushes)); }
+            // check if valid (must be valid)
+            bool IsValid() const noexcept { return true; }
+            // recreate
+            auto Recreate() noexcept { return GIHelper::Recreate(m_apBrushes, m_aID, BASIC_COUNT * EXTRA_COUNT); }
+            // render this
+            void Render(const D2D1_RECT_F& rect, const AnimationStateMachine& sm) const noexcept;
+        private:
+            // brush
+            ID2D1Brush*     m_apBrushes[STATUS_COUNT];
+            // brush id
+            uint16_t        m_aID[STATUS_COUNT];
+        };
+        /// <summary>
+        /// Graphics Interface Config for button
+        /// </summary>
+        class GIConfigButton {
+        public:
+            // get count of basic state
+            static constexpr auto GetBasicCount() noexcept { return size_t(STATUS_COUNT); }
+            // get count of extra state
+            static constexpr auto GetExtraCount() noexcept { return size_t(1); }
+            // meta initialize
+            static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept;
+            // meta initialize
+            static void InitBrush(pugi::xml_node node, const char* prefix, ID2D1Brush* brushes[], uint16_t ids[]) noexcept;
+        };
+        /// <summary>
+        /// Element for Button
+        /// </summary>
+        using Element4Button = AnimationStateMachineEx<GIBurshRect<GIConfigButton>, GIMeta<GIConfigButton>, ControlStatus>;
     }
 }

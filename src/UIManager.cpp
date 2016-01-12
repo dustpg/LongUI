@@ -42,8 +42,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 本地字符集名称
     config->GetLocaleName(m_szLocaleName);
     // 初始化其他
-    ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
-    ZeroMemory(m_apSystemBrushes, sizeof(m_apSystemBrushes));
+    std::memset(m_apTextRenderer, 0, sizeof(m_apTextRenderer));
+    std::memset(m_apSystemBrushes, 0, sizeof(m_apSystemBrushes));
     // 获取实例句柄
     auto hInstance = ::GetModuleHandleW(nullptr);
     // 注册窗口类 | CS_DBLCLKS
@@ -1547,7 +1547,7 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
             << L"]is out of range \t\tNow set to 0"
             << LongUI::endl;
         index = 0;
-        ZeroMemory(&meta, sizeof(meta));
+        std::memset(&meta, 0, sizeof(meta));
         return;
     }
     meta = m_pMetasBuffer[index];
@@ -1556,7 +1556,7 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
         // 没有数据并且没有资源加载器则?
         assert(m_pResourceLoader);
         DeviceIndependentMeta meta_raw;
-        ::ZeroMemory(&meta_raw, sizeof(meta_raw));
+        ::std::memset(&meta_raw, 0, sizeof(meta_raw));
         // 载入资源
         m_pResourceLoader->GetMeta(index - 1, meta_raw);
         meta.interpolation = meta_raw.interpolation;
@@ -1635,7 +1635,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         auto meta_width = src_rect.right - src_rect.left;
         auto meta_height = src_rect.bottom - src_rect.top;
 #if 1
-        BITMAPV5HEADER bi; ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
+        BITMAPV5HEADER bi; std::memset(&bi, 0, sizeof(BITMAPV5HEADER));
         bi.bV5Size = sizeof(BITMAPV5HEADER);
         bi.bV5Width = meta_width;
         bi.bV5Height = meta_height;

@@ -31,10 +31,10 @@ namespace LongUI {
     class CUIInput final {
     public:
         // the buffer size of kerboard
-        enum : DWORD {  KEYBOARD_BUFFER_SIZE = 256 };    
+        enum : DWORD {  KEYBOARD_BUFFER_SIZE = 256 } ;
     public:
         // ctor
-        CUIInput() noexcept { m_ptMouseL = { 0,0 }; ZeroMemory(m_abKeyStateBuffer, sizeof(m_abKeyStateBuffer)); };
+        CUIInput() noexcept { m_ptMouseL = { 0, 0 }; std::memset(m_abKeyStateBuffer, 0, sizeof(m_abKeyStateBuffer)); };
         // get mouse position
         auto GetMousePosition() const noexcept { return m_ptMouse; };
         // get mouse position/long

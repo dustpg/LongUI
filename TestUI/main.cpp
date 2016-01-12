@@ -177,7 +177,11 @@ public:
     // placement delete
     void operator delete(void* mem, void *ptr) noexcept { return ::operator delete(mem, ptr); };
     // ctor
-    MainWindow(pugi::xml_node node, LongUI::UIWindow* parent) : Super(node, parent) {}
+    MainWindow(pugi::xml_node node, LongUI::UIWindow* parent) : Super(node, parent) { 
+        /*{
+            LongUI::Component::Element4Button btnele(node);
+        }*/
+    }
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
 private:
@@ -413,6 +417,9 @@ public:
 public:
     // Render This Control
     virtual void Render() const noexcept override {
+        D2D1_RECT_F draw_rect; 
+        this->GetBorderRect(draw_rect);
+        //m_btn.Render(draw_rect);
         /*switch (type)
         {
         case LongUI::RenderType::Type_RenderBackground:
@@ -456,6 +463,10 @@ public:
     virtual HRESULT Recreate() noexcept override {
         // 重建视频
         auto hr = m_video.Recreate();
+
+        if (SUCCEEDED(hr)) {
+            hr = m_btn.Recreate();
+        }
         // 重建父类
         if (SUCCEEDED(hr)) {
             hr = Super::Recreate();
@@ -464,7 +475,7 @@ public:
     }
     // constructor
     UIVideoAlpha(LongUI::UIContainer* cp, pugi::xml_node node) 
-        noexcept : Super(cp, node) {
+        noexcept : Super(cp, node), m_btn(node) {
         auto hr = m_video.Initialize();
         assert(SUCCEEDED(hr));
         /*auto re =*/ m_video.HasVideo();
@@ -474,11 +485,12 @@ public:
     }
 protected:
     // destructor
-    ~UIVideoAlpha() {
-    }
+    ~UIVideoAlpha() { }
 protected:
     // video
-    LongUI::Component::MMFVideo    m_video;
+    LongUI::Component::MMFVideo         m_video;
+    // video
+    LongUI::Component::Element4Button    m_btn;
 };
 
 // 本Demo的配置信息
