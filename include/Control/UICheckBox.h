@@ -25,26 +25,61 @@
 */
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
+    // CheckBoxState
+    enum class CheckBoxState : uint16_t {
+        // 选中
+        State_Checked = 0,
+        // 未选中
+        State_Unchecked,
+        // 不确定
+        State_Indeterminate,
+        // count
+        STATE_COUNT,
+    };
+    /// <summary>
+    /// Graphics Interface Config for Checkbox
+    /// </summary>
+    class GIConfigCheckbox {
+    public:
+        // get count of basic state
+        static constexpr size_t GetBasicCount() noexcept { return size_t(ControlState::STATE_COUNT); }
+        // get count of extra state
+        static constexpr size_t GetExtraCount() noexcept { return size_t(CheckBoxState::STATE_COUNT); }
+        // meta initialize
+        static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept;
+    };
     // default checkBox control 默认复选框控件
     class UICheckBox final : public UIText {
-        // 父类申明
+        // super class
         using Super = UIText ;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public:
-        // the disabled state is one lowest bit of state (state & 1)
-        // "CheckBoxState" is state right shift a bit (state>>1)
-        enum CheckBoxState : uint32_t {
-            // 未知
-            State_Unknown = ControlStatus::Status_Disabled,
-            // 未选中
-            State_UnChecked = ControlStatus::Status_Normal,
-            // 不确定
-            State_Indeterminate = ControlStatus::Status_Hover,
-            // 选中
-            State_Checked = ControlStatus::Status_Pushed,
+        // box size
+        static constexpr float BOX_SIZE = 16.f;
+        /// <summary>
+        /// Graphics Interface for check box
+        /// </summary>
+        class GICheckBox {
+        public:
+            // ctor
+            GICheckBox(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            // dtor 
+            ~GICheckBox() noexcept;
+            // recreate
+            auto Recreate() noexcept { return S_OK; }
+            // check if valid
+            bool IsValid() const noexcept { return true; }
+            // render this
+            void Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept;
+        public:
+            // color s
+            D2D1_COLOR_F            colors[ControlState::STATE_COUNT];
         };
+        // Box
+        using Element4Checkbox = Component::AnimationStateMachineEx<GICheckBox,
+            Component::GIMeta<GIConfigCheckbox>, ControlState, CheckBoxState>;
     public:
         // Render 渲染 
         virtual void Render() const noexcept override;
@@ -57,8 +92,15 @@ namespace LongUI{
         // recreate 重建
         virtual auto Recreate() noexcept ->HRESULT override;
     public:
-        // is canbe indeterminate state?
-        auto IsCanbeIndeterminate() const noexcept { return m_bCanbeIndeterminate; }
+        // set control state
+        void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
+        // get control state
+        auto GetControlState() const noexcept { return m_uiElement.GetNowBaiscState(); }
+        // set checkbox state
+        void SetCheckBoxState(CheckBoxState state) noexcept { m_pWindow->StartRender(m_uiElement.SetExtraState(state), this); }
+        // get checkbox state
+        auto GetCheckBoxState() const noexcept { return m_uiElement.GetNowExtraState(); }
+    public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
@@ -69,23 +111,11 @@ namespace LongUI{
         // deleted function
         UICheckBox(const UICheckBox&) = delete;
     protected:
-        // default brush
-        ID2D1Brush*             m_pBrush = nullptr;
-        // geometry for "√"
-        ID2D1PathGeometry*      m_pCheckedGeometry = nullptr;
         // hand cursor
         HCURSOR                 m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
         // check box's box size
         D2D1_SIZE_F             m_szCheckBox = D2D1::SizeF(16, 16);
-    public:
-        // set new state
-        void SetNewState(CheckBoxState new_result){ force_cast(state) = new_result; m_pWindow->Invalidate(this); }
-        // now state
-        CheckBoxState   const   state = CheckBoxState::State_UnChecked;
-    protected:
-        // is canbe Indeterminate?
-        bool                    m_bCanbeIndeterminate = false;
-        // unused
-        bool                    unused[3];
+        // element
+        Element4Checkbox        m_uiElement;
     };
 }

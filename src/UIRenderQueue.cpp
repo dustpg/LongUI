@@ -96,7 +96,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
     }
 #endif
     // 保留刷新
-    if (render != 0.0f) render += 0.05f;
+    if (render != 0.0f) render += 0.02f;
     assert((wait + render) < float(LongUIPlanRenderingTotalTime) && "time overflow");
     // 设置单元
     auto set_unit = [window](CUIRenderQueue::UNIT& unit, UIControl* ctrl) noexcept {
@@ -342,7 +342,7 @@ namespace LongUI {
         if (SUCCEEDED(hr) && xml) {
             auto re = m_docResource.load_string(xml);
             // 错误
-            if (re.status) {
+            if (re.state) {
                 assert(!"failed to load string");
                 ::MessageBoxA(nullptr, re.description(), "<LongUI::CUIResourceLoaderXML::CUIResourceLoaderXML>: Failed to Parse/Load XML", MB_ICONERROR);
                 hr = E_FAIL;

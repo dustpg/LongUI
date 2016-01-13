@@ -137,18 +137,10 @@ noexcept: Super(cp, node), m_uiElement(node) {
     auto flag = this->flags | Flag_Focusable;
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
-    // 初始化代码
-    m_uiElement.GetByType<Element_Basic>().Init(node);
-    if (m_uiElement.GetByType<Element_Meta>().IsOK()) {
-        m_uiElement.SetElementType(Element_Meta);
-    }
-    else {
-        m_uiElement.SetElementType(Element_BrushRect);
-    }
     // init
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
-    // need twices because of aniamtion
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+    m_uiElement.SetBasicState(State_Normal);
+    // need twices because of the aniamtion
+    m_uiElement.SetBasicState(State_Normal);
     constexpr int azz = sizeof(m_uiElement);
     // 修改
     force_cast(this->flags) = flag;
@@ -193,7 +185,7 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             return true;
         case LongUI::Event::Event_KillFocus:
             // 释放焦点:
-            m_tarStatusClick = LongUI::Status_Normal;
+            m_tarStateClick = LongUI::State_Normal;
             return true;
         }
     }
@@ -208,26 +200,26 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     {
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进: 设置UI元素状态
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
-        m_colorBorderNow = m_aBorderColor[LongUI::Status_Hover];
+        this->SetControlState(LongUI::State_Hover);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
-        m_colorBorderNow = m_aBorderColor[LongUI::Status_Normal];
+        this->SetControlState(LongUI::State_Normal);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
         m_pWindow->SetCapture(this);
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
-        m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
+        this->SetControlState(LongUI::State_Pushed);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         if (m_pWindow->IsReleasedControl(this)) {
             bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
             rec = false;
             // 设置状态
-            UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
-            m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
+            this->SetControlState(m_tarStateClick);
+            m_colorBorderNow = m_aBorderColor[m_tarStateClick];
             m_pWindow->ReleaseCapture();
         }
         return true;

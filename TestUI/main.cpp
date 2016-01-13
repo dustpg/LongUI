@@ -110,7 +110,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
-    <Single><Button text="XYZ" borderwidth="1" margin="4,4,4,4"/></Single>
+    <Single><Button text="XYZ" templateid="2"/></Single>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
     <Button name="btn_x0" size="0, 48" borderwidth="1"
         margin="4,4,4,4" text="这是楷体字  這是楷體字" textfamily="KaiTi"/>

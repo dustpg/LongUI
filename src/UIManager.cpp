@@ -1285,7 +1285,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     if (SUCCEEDED(hr)) {
         hr = m_pd2dDeviceContext->CreateSolidColorBrush(
             D2D1::ColorF(0xEFEFEF),
-            reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + Status_Disabled)
+            reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + State_Disabled)
             );
     }
     // 普通
@@ -1308,7 +1308,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
                     ),
                 collection,
-                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Normal)
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Normal)
                 );
         }
         LongUI::SafeRelease(collection);
@@ -1333,7 +1333,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
                     ),
                 collection,
-                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Hover)
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Hover)
                 );
         }
         LongUI::SafeRelease(collection);
@@ -1358,7 +1358,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
                     ),
                 collection,
-                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Pushed)
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Pushed)
                 );
         }
         LongUI::SafeRelease(collection);

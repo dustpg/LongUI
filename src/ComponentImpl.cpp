@@ -1345,6 +1345,7 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
         );
     return S_OK;
 }
+
 // v-table
 #define LONGUIVTABLE(pointer)  (*reinterpret_cast<const size_t * const>(pointer))
 // same v-table?
@@ -1445,262 +1446,46 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
 }
 
 // -------------------- LongUI::Component::Elements --------------------
-// 实现
-
-/*// Elements<ColorRect> 构造函数
-LongUI::Component::Elements<LongUI::Element_ColorRect>::
-Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
-    // 初始值
-    colors[Status_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-    colors[Status_Normal] = D2D1::ColorF(0xCDCDCDCD);
-    colors[Status_Hover] = D2D1::ColorF(0xA9A9A9A9);
-    colors[Status_Pushed] = D2D1::ColorF(0x78787878);
-    // 禁用状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "disabledcolor", prefix), colors[Status_Disabled]);
-    // 通常状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "normalcolor", prefix), colors[Status_Normal]);
-    // 移上状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "hovercolor", prefix), colors[Status_Hover]);
-    // 按下状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "pushedcolor", prefix), colors[Status_Pushed]);
-}
-
-// Elements<BrushRect> 构造函数
-LongUI::Component::Elements<LongUI::Element_BrushRect>::
-Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) {
-    std::memset(m_apBrushes, 0,  sizeof(m_apBrushes));
-    std::memset(m_aID,  0, sizeof(m_aID));
-    // 禁用状态笔刷ID
-    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "disabledbrush", prefix)
-        ));
-    // 通常状态笔刷ID
-    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "normalbrush", prefix)
-        ));
-    // 移上状态笔刷ID
-    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "hoverbrush", prefix)
-        ));
-    // 按下状态笔刷ID
-    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "pushedbrush", prefix)
-        ));
-}
-
-*/
-
-// Elements<Basic> Init
-void LongUI::Component::Elements<LongUI::Element_Basic>::
-Init(pugi::xml_node node, const char* prefix) noexcept {
-    // 无效?
-    const char* str = nullptr;
-    // 动画类型
-    animation.type = Helper::GetEnumFromXml(
-        node,
-        AnimationType::Type_QuadraticEaseOut,
-        "animationtype",
-        prefix
-        );
-    // 动画持续时间
-    if ((str = Helper::XMLGetValue(node, "animationduration", prefix))) {
-        animation.duration = LongUI::AtoF(str);
-    }
-}
-
-// 设置新的状态
-auto LongUI::Component::Elements<LongUI::Element_Basic>::
-SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
-    m_state = m_stateTartget;
-    m_stateTartget = new_status;
-    // 剩余值
-    animation.start = 0.f;
-    animation.value = 0.f;
-    // 剩余时间
-    return animation.time = animation.duration;
-}
-
-// Elements<Meta> 构造函数
-LongUI::Component::Elements<LongUI::Element_Meta>::
-Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
-    std::memset(m_metas, 0, sizeof(m_metas));
-    std::memset(m_aID, 0,  sizeof(m_aID));
-    // 禁用状态Meta ID
-    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "disabledmeta", prefix)
-        ));
-    // 通常状态Meta ID
-    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "normalmeta", prefix)
-        ));
-    // 移上状态Meta ID
-    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "hovermeta", prefix)
-        ));
-    // 按下状态Meta ID
-    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "pushedmeta", prefix)
-        ));
-}
-
-
-// Elements<Meta> 重建
-auto LongUI::Component::Elements<LongUI::Element_Meta>::
-Recreate() noexcept ->HRESULT {
-    for (auto i = 0u; i < STATUS_COUNT; ++i) {
-        // 有效
-        auto id = m_aID[i];
-        if (id) {
-            UIManager.GetMeta(id, m_metas[i]);
-        }
-    }
-    return S_OK;
-}
-
-// Elements<Meta> 渲染
-void LongUI::Component::Elements<LongUI::Element_Meta>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(UIManager_RenderTarget);
-    // 先绘制当前状态
-    if (this->animation.value < this->animation.end) {
-        LongUI::Meta_Render(
-            m_metas[m_state], UIManager_RenderTarget, rect, this->animation.end
-            );
-    }
-    // 再绘制目标状态
-    LongUI::Meta_Render(
-        m_metas[m_stateTartget], UIManager_RenderTarget, rect, this->animation.value
-        );
-}
-
-// Elements<BrushRect> 构造函数
-LongUI::Component::Elements<LongUI::Element_BrushRect>::
-Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) {
-    std::memset(m_apBrushes, 0,  sizeof(m_apBrushes));
-    std::memset(m_aID,  0, sizeof(m_aID));
-    // 禁用状态笔刷ID
-    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "disabledbrush", prefix)
-        ));
-    // 通常状态笔刷ID
-    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "normalbrush", prefix)
-        ));
-    // 移上状态笔刷ID
-    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "hoverbrush", prefix)
-        ));
-    // 按下状态笔刷ID
-    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "pushedbrush", prefix)
-        ));
-}
-
-// 释放数据
-void LongUI::Component::Elements<LongUI::Element_BrushRect>::release_data() noexcept {
-    for (auto& brush : m_apBrushes) {
-        LongUI::SafeRelease(brush);
-    }
-}
-
-// Elements<BrushRectta> 渲染
-void LongUI::Component::Elements<LongUI::Element_BrushRect>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(UIManager_RenderTarget);
-    // 先绘制当前状态
-    if (animation.value < animation.end) {
-        LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_apBrushes[m_state], rect);
-    }
-    // 后绘制目标状态
-    auto brush = m_apBrushes[m_stateTartget];
-    brush->SetOpacity(animation.value);
-    LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brush, rect);
-    brush->SetOpacity(1.f);
-}
-
-// Elements<BrushRect> 重建
-auto LongUI::Component::Elements<LongUI::Element_BrushRect>::
-Recreate() noexcept ->HRESULT {
-    this->release_data();
-    for (auto i = 0u; i < STATUS_COUNT; ++i) {
-        auto id = m_aID[i];
-        m_apBrushes[i] = id ? UIManager.GetBrush(id) : UIManager.GetSystemBrush(i);
-    }
-    return S_OK;
-}
-
-// Elements<ColorRect> 构造函数
-LongUI::Component::Elements<LongUI::Element_ColorRect>::
-Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
-    // 初始值
-    colors[Status_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-    colors[Status_Normal] = D2D1::ColorF(0xCDCDCDCD);
-    colors[Status_Hover] = D2D1::ColorF(0xA9A9A9A9);
-    colors[Status_Pushed] = D2D1::ColorF(0x78787878);
-    // 禁用状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "disabledcolor", prefix), colors[Status_Disabled]);
-    // 通常状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "normalcolor", prefix), colors[Status_Normal]);
-    // 移上状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "hovercolor", prefix), colors[Status_Hover]);
-    // 按下状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "pushedcolor", prefix), colors[Status_Pushed]);
-}
-
-// Elements<ColorRect> 重建
-auto LongUI::Component::Elements<LongUI::Element_ColorRect>::
-Recreate() noexcept ->HRESULT {
-    LongUI::SafeRelease(m_pBrush);
-    m_pBrush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
-    return S_OK;
-}
-
-// Elements<ColorRect> 渲染
-void LongUI::Component::Elements<LongUI::Element_ColorRect>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(UIManager_RenderTarget && m_pBrush);
-    // 先绘制当前状态
-    if (animation.value < animation.end) {
-        m_pBrush->SetColor(colors + m_state);
-        UIManager_RenderTarget->FillRectangle(&rect, m_pBrush);
-    }
-    // 再绘制目标状态
-    m_pBrush->SetOpacity(animation.value);
-    m_pBrush->SetColor(colors + m_stateTartget);
-    UIManager_RenderTarget->FillRectangle(&rect, m_pBrush);
-    m_pBrush->SetOpacity(1.f);
-}
-
 
 // longui::component
 LONGUI_NAMESPACE_BEGIN namespace Component {
+    // 动画
+    constexpr float ANIMATION_END = 1.f;
     // 基本动画状态机 - 构造函数
     LongUINoinline AnimationStateMachine::
         AnimationStateMachine(pugi::xml_node node, const char* prefix) noexcept
         : m_aniBasic(AnimationType::Type_QuadraticEaseOut),
         m_aniExtra(AnimationType::Type_QuadraticEaseOut) {
-        // TODO: 动画
-        UNREFERENCED_PARAMETER(node);
-        UNREFERENCED_PARAMETER(prefix);
-        m_aniBasic.end = 1.f;
-        m_aniExtra.end = 1.f;
+        m_aniBasic.end = ANIMATION_END;
+        m_aniExtra.end = ANIMATION_END;
+        // 动画类型
+        auto atype = Helper::GetEnumFromXml(node, AnimationType::Type_QuadraticEaseOut, "animationtype", prefix);
+        m_aniBasic.type = m_aniExtra.type = atype;
+        // 动画持续时间
+        const char* str = nullptr;
+        if ((str = Helper::XMLGetValue(node, "animationduration", prefix))) {
+            m_aniBasic.duration = m_aniExtra.duration = LongUI::AtoF(str);
+        }
     }
     // 基本动画状态机 - 设置新的基本状态
-    LongUINoinline void AnimationStateMachine::SetBasicState(State state) noexcept {
+    LongUINoinline auto AnimationStateMachine::SetBasicState(State state) noexcept ->float {
         m_sttBasicOld = m_sttBasicNow;
         m_sttBasicNow = state;
         // 剩余值
         m_aniBasic.start = 0.f;
         m_aniBasic.value = 0.f;
         // 剩余时间
-        /*return*/ m_aniBasic.time = m_aniBasic.duration;
+        return m_aniBasic.time = m_aniBasic.duration;
     }
     // 基本动画状态机 - 设置新的额外状态
-    LongUINoinline void AnimationStateMachine::SetExtraState(State state) noexcept {
+    LongUINoinline auto AnimationStateMachine::SetExtraState(State state) noexcept ->float {
         m_sttExtraOld = m_sttExtraNow;
         m_sttExtraNow = state;
         // 剩余值
         m_aniExtra.start = 0.f;
         m_aniExtra.value = 0.f;
         // 剩余时间
-        /*return*/ m_aniExtra.time = m_aniExtra.duration;
+        return m_aniExtra.time = m_aniExtra.duration;
     }
     // GIMetaBasic 帮助器 -- META重建
     LongUINoinline auto LongUI::Component::GIHelper::Recreate(
@@ -1731,34 +1516,152 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     LongUINoinline void GIHelper::Clean(IUnknown** itfs, size_t size) noexcept {
         for (size_t i = 0; i < size; ++i) LongUI::SafeRelease(itfs[i]);
     }
+    // GIMetaBasic 帮助器 -- META 渲染
+    LongUINoinline void GIHelper::Render(
+        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, const Meta metas[], uint16_t basic) noexcept {
+        assert(UIManager_RenderTarget);
+        // 检查动画
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBaiscState();
+        auto bastt2 = sm.GetNowBaiscState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            // 渲染下层
+            metas[exstt1 * basic + bastt2].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+            // 渲染上层
+            metas[exstt2 * basic + bastt2].Render(UIManager_RenderTarget, rect, exani.value);
+        }
+        // 基本动画状态
+        else {
+            // 绘制旧的状态
+            if (baani.value < ANIMATION_END) {
+                metas[exstt2 * basic + bastt1].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+            }
+            // 再绘制目标状态
+            metas[exstt2 * basic + bastt2].Render(UIManager_RenderTarget, rect, baani.value);
+        }
+    }
+    // GIMetaBasic 帮助器 -- 矩形笔刷渲染
+    void LongUI::Component::GIHelper::Render(
+        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, ID2D1Brush* const brushes[], uint16_t basic) noexcept{
+        assert(UIManager_RenderTarget);
+        // 检查动画
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBaiscState();
+        auto bastt2 = sm.GetNowBaiscState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            // 渲染下层
+            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brushes[exstt1*basic+bastt2], rect);
+            // 渲染上层
+            auto brush = brushes[exstt2*basic + bastt2];
+            brush->SetOpacity(exani.value);
+            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brush, rect);
+            brush->SetOpacity(1.f);
+        }
+        // 基本动画状态
+        else {
+            // 绘制旧的状态
+            if (baani.value < ANIMATION_END) {
+                LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brushes[exstt2*basic+bastt1], rect);
+            }
+            // 再绘制目标状态
+            auto brush = brushes[exstt2 * basic + bastt2];
+            brush->SetOpacity(baani.value);
+            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brush, rect);
+            brush->SetOpacity(1.f);
+        }
+    }
+    // GIMetaBasic 帮助器 -- META 渲染
+    LongUINoinline void GIHelper::Render(
+        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, const D2D1_COLOR_F colors[], uint16_t basic) noexcept {
+        auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
+        assert(UIManager_RenderTarget && brush && "bad action");
+        // 检查动画
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBaiscState();
+        auto bastt2 = sm.GetNowBaiscState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        D2D1_COLOR_F color;
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            float exalpha = ANIMATION_END - exani.value;
+            // Alpha混合
+            color.a = colors[exstt2*basic + bastt2].a * exani.value
+                + colors[exstt1*basic + bastt2].a * exalpha;
+            color.r = colors[exstt2*basic + bastt2].r * exani.value
+                + colors[exstt1*basic + bastt2].r * exalpha;
+            color.g = colors[exstt2*basic + bastt2].g * exani.value
+                + colors[exstt1*basic + bastt2].g * exalpha;
+            color.b = colors[exstt2*basic + bastt2].b * exani.value
+                + colors[exstt1*basic + bastt2].b * exalpha;
+        }
+        // 基本动画状态
+        else {
+            float baalpha = ANIMATION_END - baani.value;
+            // Alpha混合
+            color.a = colors[exstt2*basic + bastt2].a * baani.value
+                + colors[exstt2*basic + bastt1].a * baalpha;
+            color.r = colors[exstt2*basic + bastt2].r * baani.value
+                + colors[exstt2*basic + bastt1].r * baalpha;
+            color.g = colors[exstt2*basic + bastt2].g * baani.value
+                + colors[exstt2*basic + bastt1].g * baalpha;
+            color.b = colors[exstt2*basic + bastt2].b * baani.value
+                + colors[exstt2*basic + bastt1].b * baalpha;
+        }
+        // 渲染
+        brush->SetColor(&color);
+        UIManager_RenderTarget->FillRectangle(rect, brush);
+        LongUI::SafeRelease(brush);
+    }
+    // META字符串集
+    const char* const META_BUTTON[] = {
+        "disabledmeta", "normalmeta", "hovermeta", "pushedmeta"
+    };
     // 按钮配置 -- Meta初始化
-    LongUINoinline void GIConfigButton::InitMeta(pugi::xml_node node, 
-        const char * prefix, Meta metas[], uint16_t ids[]) noexcept {
-        static_assert(GIConfigButton::GetBasicCount() == STATUS_COUNT, "must be same");
+    void GIConfigButton::InitMeta(pugi::xml_node node,
+        const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
+        UNREFERENCED_PARAMETER(metas);
+        static_assert(GIConfigButton::GetBasicCount() == STATE_COUNT, "must be same");
         static_assert(GIConfigButton::GetExtraCount() == 1, "must be 1");
-        // 禁用状态Meta ID
-        ids[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
-            Helper::XMLGetValue(node, "disabledmeta", prefix)
-            ));
-        // 通常状态Meta ID
-        ids[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
-            Helper::XMLGetValue(node, "normalmeta", prefix)
-            ));
-        // 移上状态Meta ID
-        ids[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
-            Helper::XMLGetValue(node, "hovermeta", prefix)
-            ));
-        // 按下状态Meta ID
-        ids[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
-            Helper::XMLGetValue(node, "pushedmeta", prefix)
-            ));
+        // 循环设置
+        for (int i = 0; i < STATE_COUNT; ++i) {
+            ids[i] = static_cast<uint16_t>(LongUI::AtoI(Helper::XMLGetValue(node, META_BUTTON[i], prefix)));
+        }
     }
     // 按钮配置 -- 笔刷初始化(只支持系统笔刷)
-    LongUINoinline void GIConfigButton::InitBrush(pugi::xml_node node, 
+    void GIConfigButton::InitBrush(pugi::xml_node node, 
         const char* prefix, ID2D1Brush* brushes[], uint16_t ids[]) noexcept {
-        static_assert(GIConfigButton::GetBasicCount() == STATUS_COUNT, "must be same");
+        UNREFERENCED_PARAMETER(node);
+        UNREFERENCED_PARAMETER(prefix);
+        static_assert(GIConfigButton::GetBasicCount() == STATE_COUNT, "must be same");
         static_assert(GIConfigButton::GetExtraCount() == 1, "must be 1");
+        std::memset(brushes, 0, sizeof(brushes[0]) * GIConfigButton::GetBasicCount() * GIConfigButton::GetExtraCount());
         std::memset(ids, 0, sizeof(ids[0]) * GIConfigButton::GetBasicCount() * GIConfigButton::GetExtraCount());
+    }
+    // META字符串集
+    const char* const COLOR_BUTTON[] = {
+        "disabledcolor", "normalcolor", "hovercolor", "pushedcolor"
+    };
+    // 按钮配置 -- 颜色初始化
+    void GIConfigButton::InitColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F colors[]) noexcept {
+        // 初始值
+        colors[State_Disabled] = D2D1::ColorF(0xDEDEDEDE);
+        colors[State_Normal]   = D2D1::ColorF(0xCDCDCDCD);
+        colors[State_Hover]    = D2D1::ColorF(0xA9A9A9A9);
+        colors[State_Pushed]   = D2D1::ColorF(0x78787878);
+        // 循环设置
+        for (int i = 0; i < STATE_COUNT; ++i) {
+            Helper::MakeColor(Helper::XMLGetValue(node, COLOR_BUTTON[i], prefix), colors[i]);
+        }
     }
 }
 LONGUI_NAMESPACE_END

@@ -78,7 +78,7 @@ namespace LongUI {
         // solid color brush
         ID2D1SolidColorBrush*       m_pBrush = nullptr;
     public:
-        // baisc color
+        // basic color
         CUIColorEffect              basic_color;
         // type of text renderer
         TextRendererType      const type;

@@ -288,13 +288,13 @@ namespace LongUI {
     };
     // operator float LongUIFlag
     LONGUI_DEFINE_ENUM_FLAG_OPERATORS(LongUIFlag, uint32_t);
-    // Control Status
-    enum ControlStatus : uint16_t {
-        Status_Disabled = 0,    // 禁用状态
-        Status_Normal,          // 通常状态
-        Status_Hover,           // 鼠标移上
-        Status_Pushed,          // 鼠标按下
-        STATUS_COUNT,           // 状态数量
+    // Control State
+    enum ControlState : uint16_t {
+        State_Disabled = 0,    // 禁用状态
+        State_Normal,          // 通常状态
+        State_Hover,           // 鼠标移上
+        State_Pushed,          // 鼠标按下
+        STATE_COUNT,           // 状态数量
     };
     // bitmap render rule
     enum class BitmapRenderRule : uint16_t {
@@ -496,6 +496,31 @@ namespace LongUI {
         IN  RichType                rich_type;
         // the text real(without format) length
         OUT mutable uint16_t        text_length;
+    };
+    // cursor id
+    using Cursor = size_t;
+    // system cursor enum
+    enum class SystemCursor : Cursor {
+        // normal Arrow
+        Cursor_Arrow = 0,
+        // "I" beam
+        Cursor_Ibeam,
+        // wait
+        Cursor_Wait,
+        // cross
+        Cursor_Cross,
+        // up arrow
+        Cursor_UpArrow,
+        // size NW-SE
+        Cursor_SizeNWSE,
+        // size NE-SW 
+        Cursor_SizeNESW,
+        // size all
+        Cursor_SizeAll,
+        // hand
+        Cursor_Hand,
+        // help
+        Cursor_Help,
     };
 }
 

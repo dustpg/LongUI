@@ -256,7 +256,7 @@ namespace LongUI { namespace Helper {
     // make floats from string
     bool MakeFloats(const char* str, float fary[], uint32_t count) noexcept;
     // make floats from string
-    bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATUS_COUNT]) noexcept;
+    bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATE_COUNT]) noexcept;
     // get value string
     auto XMLGetValue(pugi::xml_node node, const char* attribute, const char* prefix =nullptr) noexcept -> const char*;
     // get value enum-int

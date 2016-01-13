@@ -152,12 +152,9 @@ namespace LongUI {
     struct Meta : DeviceIndependentMeta {
         // bitmap
         ID2D1Bitmap1*       bitmap;
+        // render this
+        void Render(ID2D1DeviceContext*, const D2D1_RECT_F& des_rect, float opacity = 1.f) const noexcept;
     };
-    // render the meta
-    void Meta_Render(
-        const Meta&, ID2D1DeviceContext*,
-        const D2D1_RECT_F& des_rect, float opacity = 1.f
-        ) noexcept;
 #ifdef _MSC_VER
 #pragma warning(disable: 4200)
 #endif

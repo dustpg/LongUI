@@ -30,9 +30,7 @@ namespace LongUI{
     // default slider control 默认滑块控件
     class UISlider : public UIControl {
         // 父类申明
-        using Super = UIControl ;
-        // ui element
-        using SliderElement = Component::Elements<Element_Meta, Element_BrushRect, Element_Basic>;
+        using Super = UIControl;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public:
@@ -61,6 +59,10 @@ namespace LongUI{
         // constructor 构造函数
         UISlider(UIContainer* cp, pugi::xml_node node) noexcept;
     public:
+        // set state
+        void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
+        // get state
+        auto GetControlState() const noexcept { m_uiElement.GetNowBaiscState(); }
         // get value in [0, 1]
         auto GetValue01() const noexcept { return m_fValue; }
         // get value in [start, end]
@@ -76,33 +78,33 @@ namespace LongUI{
         UISlider(const UISlider&) = delete;
     protected:
         // slider rect
-        D2D1_RECT_F         m_rcThumb = D2D1::RectF();
+        D2D1_RECT_F                 m_rcThumb = D2D1::RectF();
         // ui element
-        SliderElement       m_uiElement;
+        Component::Element4Button   m_uiElement;
         // value range[0, 1]
-        float               m_fValue = 0.f;
+        float                       m_fValue = 0.f;
         // value range[0, 1]
-        float               m_fValueOld = 0.f;
+        float                       m_fValueOld = 0.f;
         // start
-        float               m_fStart = 0.f;
+        float                       m_fStart = 0.f;
         // end
-        float               m_fEnd = 100.f;
+        float                       m_fEnd = 100.f;
     public:
         // size of thumb
-        D2D1_SIZE_F const   thumb_size = D2D1::SizeF(10.f, 20.f);
+        D2D1_SIZE_F const           thumb_size = D2D1::SizeF(10.f, 20.f);
     protected:
         // click posistion
-        float               m_fClickPosition = 0.f;
+        float                       m_fClickPosition = 0.f;
         // is mouse click in
-        bool                m_bMouseClickIn = false;
+        bool                        m_bMouseClickIn = false;
         // is mouse move in
-        bool                m_bMouseMoveIn = false;
+        bool                        m_bMouseMoveIn = false;
         // is vertical slider
-        bool                m_bVerticalSlider = false;
+        bool                        m_bVerticalSlider = false;
         // default background
-        bool                m_bDefaultBK = true;
+        bool                        m_bDefaultBK = true;
         // callback
-        UICallBack          m_event;
+        UICallBack                  m_event;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

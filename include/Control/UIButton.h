@@ -30,8 +30,6 @@ namespace LongUI{
     class UIButton : public UIText {
         // 父类申明
         using Super = UIText;
-        // ui element
-        using ButtonElement = Component::Elements<Element_Meta, Element_BrushRect, Element_Basic>;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public:
@@ -59,6 +57,10 @@ namespace LongUI{
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
         UIButton(UIContainer* cp, pugi::xml_node) noexcept;
+        // set state
+        void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
+        // get state
+        auto GetControlState() const noexcept { return m_uiElement.GetNowBaiscState(); }
     protected:
         // destructor 析构函数
         ~UIButton() noexcept {};
@@ -66,16 +68,16 @@ namespace LongUI{
         UIButton(const UIButton&) = delete;
     protected:
         // callback
-        UICallBack              m_event;
+        UICallBack                  m_event;
         // color of border
-        D2D1_COLOR_F            m_aBorderColor[STATUS_COUNT];
+        D2D1_COLOR_F                m_aBorderColor[STATE_COUNT];
         // element
-        ButtonElement           m_uiElement;
-        // target status when clicked
-        ControlStatus           m_tarStatusClick = LongUI::Status_Hover;
+        Component::Element4Button   m_uiElement;
+        // target state when clicked
+        ControlState               m_tarStateClick = LongUI::State_Hover;
         /*// effective
-        bool                    m_bEffective = false;
-        bool                    btnunused[3];*/
+        bool                        m_bEffective = false;
+        bool                        btnunused[3];*/
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

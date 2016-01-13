@@ -120,9 +120,11 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 
 
 // UIScrollBarA 构造函数
-LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), 
-m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb"){
+LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcept: 
+    Super(cp, node), 
+    m_uiArrow1(node, "arrow1"),
+    m_uiArrow2(node, "arrow2"), 
+    m_uiThumb(node, "thumb") {
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
         m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
@@ -143,33 +145,23 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
     }
     // 修改颜色
     /*else*/ {
-        D2D1_COLOR_F normal_color = D2D1::ColorF(0xF0F0F0);
-        m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
-        m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
-        normal_color = D2D1::ColorF(0x2F2F2F);
-        m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
-        m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
+        D2D1_COLOR_F color;
+        color = D2D1::ColorF(0xF0F0F0);
+        m_uiArrow1.GetBasicInterface().colors[State_Normal] = color;
+        m_uiArrow2.GetBasicInterface().colors[State_Normal] = color;
+        color = D2D1::ColorF(0x2F2F2F);
+        m_uiArrow1.GetBasicInterface().colors[State_Pushed] = color;
+        m_uiArrow2.GetBasicInterface().colors[State_Pushed] = color;
     }
-    // 初始化代码
-    m_uiArrow1.GetByType<Element_Basic>().Init(node, "arrow1");
-    m_uiArrow2.GetByType<Element_Basic>().Init(node, "arrow2");
-    m_uiThumb.GetByType<Element_Basic>().Init(node, "thumb");
     // 检查
-    BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
+    Component::Element4Bar* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
     for (auto element : elements) {
-        if (element->GetByType<Element_Meta>().IsOK()) {
-            element->SetElementType(Element_Meta);
-        }
-        else {
-            element->SetElementType(Element_ColorRect);
-        }
-        element->GetByType<Element_Basic>().SetNewStatus(Status_Normal);
-        element->GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+        element->SetBasicState(State_Normal);
+        element->SetBasicState(State_Normal);
     }
     // 检查属性
-    m_bArrow1InColor = m_uiArrow1.GetByType<Element_Basic>().type == Element_ColorRect;
-    m_bArrow2InColor = m_uiArrow2.GetByType<Element_Basic>().type == Element_ColorRect;
-
+    m_bArrow1InColor = !m_uiArrow1.IsExtraInterfaceValid();
+    m_bArrow2InColor = !m_uiArrow2.IsExtraInterfaceValid();
 }
 
 // UI滚动条(类型A): 刷新
@@ -236,14 +228,10 @@ void LongUI::UIScrollBarA::Render() const noexcept {
     // 双滚动条修正
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     UIManager_RenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-    //
-    //this->parent;
-    //UIManager << DL_Hint << m_rtArrow2 << endl;
-
     // 渲染部件
     m_uiArrow1.Render(m_rtArrow1);
-    m_uiArrow2.Render(m_rtArrow2);
     m_uiThumb.Render(m_rtThumb);
+    m_uiArrow2.Render(m_rtArrow2);
     // 前景
     auto render_geo = [](ID2D1RenderTarget* const target, ID2D1Brush* const bush,
         ID2D1Geometry* const geo, const D2D1_RECT_F& rect) noexcept {
@@ -256,22 +244,21 @@ void LongUI::UIScrollBarA::Render() const noexcept {
         target->SetTransform(&matrix);
     };
     // 渲染几何体
-    if (m_bArrow1InColor) {
-        D2D1_COLOR_F tcolor = m_uiArrow1.GetByType<Element_ColorRect>().colors[
-            m_uiArrow1.GetByType<Element_Basic>().GetStatus()
-        ];
-        tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
-        m_pBrush_SetBeforeUse->SetColor(&tcolor);
-        render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
-    }
-    // 渲染几何体
-    if (m_bArrow2InColor) {
-        D2D1_COLOR_F tcolor = m_uiArrow2.GetByType<Element_ColorRect>().colors[
-            m_uiArrow2.GetByType<Element_Basic>().GetStatus()
-        ];
-        tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
-        m_pBrush_SetBeforeUse->SetColor(&tcolor);
-        render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
+    {
+        D2D1_COLOR_F color;
+        if (m_bArrow1InColor) {
+            color = m_uiArrow1.GetBasicInterface().colors[m_uiArrow1.GetNowBaiscState()];
+            color.r = 1.f - color.r; color.g = 1.f - color.g; color.b = 1.f - color.b;
+            m_pBrush_SetBeforeUse->SetColor(&color);
+            render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
+        }
+        // 渲染几何体
+        if (m_bArrow2InColor) {
+            color = m_uiArrow2.GetBasicInterface().colors[m_uiArrow2.GetNowBaiscState()];
+            color.r = 1.f - color.r; color.g = 1.f - color.g; color.b = 1.f - color.b;
+            m_pBrush_SetBeforeUse->SetColor(&color);
+            render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
+        }
     }
 }
 
@@ -307,8 +294,8 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             }
             // 修改
             if (m_lastPointType != m_pointType) {
-                this->set_status(m_lastPointType, LongUI::Status_Normal);
-                this->set_status(m_pointType, LongUI::Status_Hover);
+                this->set_state(m_lastPointType, LongUI::State_Normal);
+                this->set_state(m_pointType, LongUI::State_Hover);
                 m_lastPointType = m_pointType;
             }
         }
@@ -317,7 +304,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
     auto on_lbutton_down = [this, &pt4self]() {
         m_pWindow->SetCapture(this);
         m_bCaptured = true;
-        this->set_status(m_pointType, LongUI::Status_Pushed);
+        this->set_state(m_pointType, LongUI::State_Pushed);
         switch (m_pointType)
         {
         case LongUI::UIScrollBar::PointType::Type_Arrow1:
@@ -360,7 +347,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
         return false;
     }
     case LongUI::MouseEvent::Event_MouseLeave:
-        this->set_status(m_lastPointType, LongUI::Status_Normal);
+        this->set_state(m_lastPointType, LongUI::State_Normal);
         m_pointType = PointType::Type_None;
         m_lastPointType = PointType::Type_None;
         return true;
@@ -371,7 +358,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
         on_lbutton_down();
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
-        this->set_status(m_pointType, LongUI::Status_Hover);
+        this->set_state(m_pointType, LongUI::State_Hover);
         m_bCaptured = false;
         m_pWindow->ReleaseCapture();
         return true;
@@ -426,15 +413,14 @@ void  LongUI::UIScrollBarA::cleanup() noexcept {
     delete this;
 }
 
-
 // 设置状态
-void LongUI::UIScrollBarA::set_status(PointType _bartype, ControlStatus state) noexcept {
-    BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
+void LongUI::UIScrollBarA::set_state(PointType _bartype, ControlState state) noexcept {
+    // 检查
+    Component::Element4Bar* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
     // 检查
     if (_bartype >= PointType::Type_Arrow1 && _bartype <= PointType::Type_Thumb) {
         auto index = static_cast<uint32_t>(_bartype) - static_cast<uint32_t>(PointType::Type_Arrow1);
-        auto& element = *(elements[index]);
-        UIElement_SetNewStatus(element, state);
+        m_pWindow->StartRender(elements[index]->SetBasicState(state), this);
     }
 }
 

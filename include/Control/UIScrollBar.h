@@ -116,8 +116,6 @@ namespace LongUI {
         static constexpr float BASIC_SIZE = 16.f;
         // 父类申明
         using Super = UIScrollBar;
-        // ui element
-        using BarElement = Component::Elements<Element_Meta, Element_ColorRect, Element_Basic>;
         // arrow for this
         enum { Arrow_Left, Arrow_Top, Arrow_Right, Arrow_Bottom, ARROW_SIZE };
         // path geo
@@ -146,8 +144,8 @@ namespace LongUI {
         // update width of marginal
         virtual void UpdateMarginalWidth() noexcept override;
     private:
-        // set new status
-        void set_status(PointType _bartype, ControlStatus state) noexcept;
+        // set new state
+        void set_state(PointType _bartype, ControlState state) noexcept;
     protected:
         // dtor
         ~UIScrollBarA() noexcept;
@@ -163,11 +161,11 @@ namespace LongUI {
         // arrow 2 text path geo
         ID2D1PathGeometry*      m_pArrow2Geo = nullptr;
         // arrow1
-        BarElement              m_uiArrow1;
+        Component::Element4Bar  m_uiArrow1;
         // arrow2
-        BarElement              m_uiArrow2;
+        Component::Element4Bar  m_uiArrow2;
         // thumb
-        BarElement              m_uiThumb;
+        Component::Element4Bar  m_uiThumb;
         // step for arrow clicked
         float                   m_fArrowStep = 32.f;
         // captured this

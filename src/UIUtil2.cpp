@@ -310,19 +310,19 @@ bool LongUI::Helper::MakeString(const char* data, CUIString& str) noexcept {
 }
 
 // 设置边框颜色
-bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATUS_COUNT]) noexcept {
+bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATE_COUNT]) noexcept {
     // 边框颜色
-    color[Status_Disabled] = D2D1::ColorF(0xD9D9D9);
-    color[Status_Normal] = D2D1::ColorF(0xACACAC);
-    color[Status_Hover] = D2D1::ColorF(0x7EB4EA);
-    color[Status_Pushed] = D2D1::ColorF(0x569DE5);
+    color[State_Disabled] = D2D1::ColorF(0xD9D9D9);
+    color[State_Normal] = D2D1::ColorF(0xACACAC);
+    color[State_Hover] = D2D1::ColorF(0x7EB4EA);
+    color[State_Pushed] = D2D1::ColorF(0x569DE5);
     // 检查
     if (node) {
         const char* attr[] = {
             "disabledbordercolor", "normalbordercolor",
             "hoverbordercolor",  "pushedbordercolor",
         };
-        for (auto i = 0u; i < STATUS_COUNT; ++i) {
+        for (auto i = 0u; i < STATE_COUNT; ++i) {
             Helper::MakeColor(node.attribute(attr[i]).value(), color[i]);
         }
     }

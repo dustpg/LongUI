@@ -66,20 +66,19 @@ LongUINoinline auto LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F
 /// <summary>
 /// render the meta 渲染Meta
 /// </summary>
-/// <param name="meta">The meta.</param>
 /// <param name="target">The render target.</param>
 /// <param name="des_rect">The des_rect.</param>
 /// <param name="opacity">The opacity.</param>
 /// <returns></returns>
-void LongUI::Meta_Render(
-    const Meta& meta, ID2D1DeviceContext* target,
-    const D2D1_RECT_F& des_rect, float opacity) noexcept {
+void LongUI::Meta::Render(ID2D1DeviceContext* target, const D2D1_RECT_F& des_rect, float opacity) const noexcept {
+    // 无需渲染
+    if (opacity < 0.001f) return;
     // 无效位图
-    if (!meta.bitmap) {
+    if (!this->bitmap) {
         UIManager << DL_Warning << "bitmap->null" << LongUI::endl;
         return;
     }
-    switch (meta.rule)
+    switch (this->rule)
     {
     case LongUI::BitmapRenderRule::Rule_Scale:
         __fallthrough;
@@ -87,10 +86,10 @@ void LongUI::Meta_Render(
     case LongUI::BitmapRenderRule::Rule_ButtonLike:
         // 直接缩放:
         target->DrawBitmap(
-            meta.bitmap,
+            this->bitmap,
             des_rect, opacity,
-            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-            meta.src_rect,
+            static_cast<D2D1_INTERPOLATION_MODE>(this->interpolation),
+            this->src_rect,
             nullptr
             );
         break;

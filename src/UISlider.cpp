@@ -1,5 +1,7 @@
 ﻿#include "LongUI.h"
 
+#define UIElement_SetNewState(e,s) m_pWindow->StartRender(e.GetByType<Element_Basic>().SetNewState(s), this)
+
 // UISlider 背景渲染
 void LongUI::UISlider::render_chain_background() const noexcept {
     Super::render_chain_background();
@@ -127,18 +129,10 @@ noexcept: Super(cp, node), m_uiElement(node) {
         // 默认背景
         m_bDefaultBK = node.attribute("defaultbk").as_bool(true);
     }
-    // 初始化代码
-    m_uiElement.GetByType<Element_Basic>().Init(node);
-    if (m_uiElement.GetByType<Element_Meta>().IsOK()) {
-        m_uiElement.SetElementType(Element_Meta);
-    }
-    else {
-        m_uiElement.SetElementType(Element_BrushRect);
-    }
     // init
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+    m_uiElement.SetBasicState(State_Normal);
     // need twices because of aniamtion
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+    m_uiElement.SetBasicState(State_Normal);
 }
 
 // UISlider::CreateControl 函数
@@ -177,7 +171,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     {
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+        this->SetControlState(LongUI::State_Normal);
         m_bMouseClickIn = false;
         m_bMouseMoveIn = false;
         nocontinued = true;
@@ -206,7 +200,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
                 // 鼠标移进:
                 if (!m_bMouseMoveIn) {
                     // 设置UI元素状态
-                    UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+                    this->SetControlState(LongUI::State_Hover);
                     m_bMouseMoveIn = true;
                 }
             }
@@ -214,7 +208,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
                 // 鼠标移出:
                 if (m_bMouseMoveIn) {
                     // 设置UI元素状态
-                    UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+                    this->SetControlState(LongUI::State_Normal);
                     m_bMouseMoveIn = false;
                 }
             }
@@ -228,7 +222,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
             m_bMouseClickIn = true;
             m_fClickPosition = this->IsVerticalSlider() ?
                 (pt4self.y - m_rcThumb.top) : (pt4self.x - m_rcThumb.left);
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
+            this->SetControlState(LongUI::State_Pushed);
         }
         nocontinued = true;
         break;
@@ -236,7 +230,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         // 右键按下
         m_bMouseClickIn = false;
         m_pWindow->ReleaseCapture();
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+        this->SetControlState(LongUI::State_Hover);
         nocontinued = true;
         break;
     }
