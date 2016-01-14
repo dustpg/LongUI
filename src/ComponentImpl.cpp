@@ -52,7 +52,10 @@ LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix)
             LongUI::SafeRelease(fmt);
         }
         // 重建
-        m_text.Set(node.attribute(prefix).value());
+        {
+            auto text = node.attribute(prefix).value();
+            m_text.Set(text ? text : "");
+        }
     }
     // 没有?
     else {
@@ -1452,9 +1455,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // 动画
     constexpr float ANIMATION_END = 1.f;
     // 基本动画状态机 - 构造函数
-    LongUINoinline AnimationStateMachine::
-        AnimationStateMachine(pugi::xml_node node, const char* prefix) noexcept
-        : m_aniBasic(AnimationType::Type_QuadraticEaseOut),
+    LongUINoinline AnimationStateMachine::AnimationStateMachine(
+        pugi::xml_node node, State basic, State extra, const char* prefix) noexcept
+        : m_sttBasicOld(basic), m_sttBasicNow(basic), 
+        m_sttExtraOld(extra), m_sttExtraNow(extra), 
+        m_aniBasic(AnimationType::Type_QuadraticEaseOut),
         m_aniExtra(AnimationType::Type_QuadraticEaseOut) {
         m_aniBasic.end = ANIMATION_END;
         m_aniExtra.end = ANIMATION_END;

@@ -342,7 +342,7 @@ namespace LongUI {
         if (SUCCEEDED(hr) && xml) {
             auto re = m_docResource.load_string(xml);
             // 错误
-            if (re.state) {
+            if (re.status) {
                 assert(!"failed to load string");
                 ::MessageBoxA(nullptr, re.description(), "<LongUI::CUIResourceLoaderXML::CUIResourceLoaderXML>: Failed to Parse/Load XML", MB_ICONERROR);
                 hr = E_FAIL;

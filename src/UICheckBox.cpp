@@ -1,9 +1,31 @@
 ﻿#include "LongUI.h"
 
+// 主要景渲染
+void LongUI::UICheckBox::render_chain_main() const noexcept {
+    D2D1_RECT_F rect;
+    rect.left = 0.f; rect.right = BOX_SIZE;
+    rect.top = (this->view_size.height - BOX_SIZE) * 0.5f;
+    rect.bottom = rect.top + BOX_SIZE;
+    m_uiElement.Render(rect);
+}
 
+// 背景渲染
+void LongUI::UICheckBox::render_chain_foreground() const noexcept {
+    // 文本算前景
+    m_text.Render(BOX_SIZE, 0.f);
+    // 父类-父类
+    UIControl::render_chain_foreground();
+}
 
 // Render 渲染 
-void LongUI::UICheckBox::Render() const noexcept  {
+void LongUI::UICheckBox::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
+
     /*D2D1_RECT_F draw_rect = this->GetDrawRect();;
     draw_rect.left += 1.f;
     // 计算渲染区
@@ -41,17 +63,18 @@ void LongUI::UICheckBox::Render() const noexcept  {
     // 调节文本范围 -
     //this->show_zone.left -= m_szCheckBox.width;
     return S_OK;*/
-    return Super::Render();
 }
 
 // UI检查框: 刷新
 void LongUI::UICheckBox::Update() noexcept {
+    m_uiElement.Update();
     return Super::Update();
 }
 
 // UICheckBox 构造函数
-LongUI::UICheckBox::UICheckBox(UIContainer* cp, pugi::xml_node node) 
-    noexcept: Super(cp, node), m_uiElement(node) {
+LongUI::UICheckBox::UICheckBox(UIContainer* cp, pugi::xml_node node) noexcept:
+Super(cp, node),
+m_uiElement(node, State_Normal, Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked)) {
 }
 
 // UICheckBox 析构函数
@@ -149,11 +172,39 @@ LongUI::UICheckBox::GICheckBox::GICheckBox(pugi::xml_node node, const char* pref
     Component::GIConfigButton::InitColor(node, prefix, colors);
 }
 
-
 // 复选框图像接口 -- 渲染
 void LongUI::UICheckBox::GICheckBox::Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept {
     assert(UIManager_RenderTarget);
     auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
+    brush->SetColor(colors + sm.GetNowBaiscState());
     UIManager_RenderTarget->FillRectangle(rect, brush);
     LongUI::SafeRelease(brush);
+}
+
+// longui 命名空间
+namespace LongUI { 
+    // 字符
+    const char* const META_CHECKBOX[] = {
+        "disabledcheckedmeta", "normalcheckedmeta", 
+        "hovercheckedmeta", "pushedcheckedmeta",
+
+        "disabledindeterminatemeta", "normalindeterminatemeta", 
+        "hoverindeterminatemeta", "pushedindeterminatemeta",
+
+        "disableduncheckedmeta", "normaluncheckedmeta", 
+        "hoveruncheckedmeta", "pusheduncheckedmeta",
+    }; 
+}
+
+// 复选框图像接口 -- 初始化META
+void LongUI::GIConfigCheckbox::InitMeta(
+    pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
+    UNREFERENCED_PARAMETER(metas);
+    // 检查
+    constexpr size_t end = GIConfigCheckbox::GetBasicCount() * GIConfigCheckbox::GetExtraCount();
+    static_assert(end == lengthof(META_CHECKBOX), "bad action");
+    // 循环设置
+    for (size_t i = 0; i < end; ++i) {
+        ids[i] = static_cast<uint16_t>(LongUI::AtoI(Helper::XMLGetValue(node, META_CHECKBOX[i], prefix)));
+    }
 }

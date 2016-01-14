@@ -647,10 +647,13 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
         auto hr = window->Recreate();
         ShowHR(hr);
 #ifdef _DEBUG
+        //::Sleep(5000);
         CUITimerH dbg_timer; dbg_timer.Start();
 #endif
         // 创建控件树
         this->make_control_tree(window, node);
+        // 完成创建
+        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
 #ifdef _DEBUG
         auto time = dbg_timer.Delta_ms<double>();
         UIManager << DL_Log
@@ -658,8 +661,7 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
             << window
             << LongUI::endl;
 #endif
-        // 完成创建
-        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+        //::Sleep(5000);
         // 返回
         return window;
     }

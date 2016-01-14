@@ -470,6 +470,10 @@ namespace LongUI { namespace Helper {
     const char* const cg_listTextAlignment[] = {
         "left",  "right",  "center",  "justify",
     };
+    // 复选框状态
+    const char* const cg_listCheckBoxState[] = {
+        "checked", "indeterminate", "unchecked"
+    };
     // 获取动画类型
     LongUINoinline auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept ->AnimationType {
         return GetEnumFromStringHelper(value, bad_match, cg_listAnimationType);
@@ -521,6 +525,10 @@ namespace LongUI { namespace Helper {
     // 获取文本抗锯齿模式
     LongUINoinline auto GetEnumFromString(const char* value, D2D1_TEXT_ANTIALIAS_MODE bad_match) noexcept ->D2D1_TEXT_ANTIALIAS_MODE {
         return GetEnumFromStringHelper(value, bad_match, cg_listTextAntialiasMode);
+    }
+    // 获取复选框状态
+    LongUINoinline auto GetEnumFromString(const char* value, CheckBoxState bad_match) noexcept ->CheckBoxState {
+        return GetEnumFromStringHelper(value, bad_match, cg_listCheckBoxState);
     }
 }}
 

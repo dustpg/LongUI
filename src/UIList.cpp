@@ -1076,7 +1076,7 @@ bool LongUI::CUIMenu::Create(const char * xml) noexcept {
     pugi::xml_document document;
     auto re = document.load_string(xml);
     // 错误
-    if (re.state) {
+    if (re.status) {
         assert(!"failed to load string");
         ::MessageBoxA(
             nullptr,

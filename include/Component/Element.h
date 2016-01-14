@@ -46,7 +46,7 @@ namespace LongUI {
             // State
             using State = uint16_t;
             // ctor
-            AnimationStateMachine(pugi::xml_node node, const char* prefix = nullptr) noexcept;
+            AnimationStateMachine(pugi::xml_node node, State basic, State extra, const char* prefix = nullptr) noexcept;
             // dtor
             ~AnimationStateMachine() noexcept {}
         public:
@@ -98,8 +98,8 @@ namespace LongUI {
             static_assert(sizeof(StateExtra) <= sizeof(StateTarget), "bad action");
         public:
             // ctor
-            AnimationStateMachineEx(pugi::xml_node node, const char* prefix = nullptr) noexcept
-            : m_machine(node, prefix),  m_ifBasic(node, prefix), m_ifExtra(node, prefix) { }
+            AnimationStateMachineEx(pugi::xml_node node, StateBasic basic, StateExtra extra /*= StateExtra(0)*/, const char* prefix = nullptr) noexcept
+            : m_machine(node, static_cast<StateTarget>(basic), static_cast<StateTarget>(extra), prefix),  m_ifBasic(node, prefix), m_ifExtra(node, prefix) { }
             // dtor
             ~AnimationStateMachineEx() noexcept = default;
         public:

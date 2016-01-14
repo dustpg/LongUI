@@ -132,15 +132,11 @@ void LongUI::UIButton::Update() noexcept {
 
 // UIButton 构造函数
 LongUI::UIButton::UIButton(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), m_uiElement(node) {
+noexcept: Super(cp, node), m_uiElement(node, State_Normal, 0) {
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
-    // init
-    m_uiElement.SetBasicState(State_Normal);
-    // need twices because of the aniamtion
-    m_uiElement.SetBasicState(State_Normal);
     constexpr int azz = sizeof(m_uiElement);
     // 修改
     force_cast(this->flags) = flag;

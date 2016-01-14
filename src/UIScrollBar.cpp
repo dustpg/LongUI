@@ -122,9 +122,9 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 // UIScrollBarA 构造函数
 LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcept: 
     Super(cp, node), 
-    m_uiArrow1(node, "arrow1"),
-    m_uiArrow2(node, "arrow2"), 
-    m_uiThumb(node, "thumb") {
+    m_uiArrow1(node, State_Normal, 0, "arrow1"),
+    m_uiArrow2(node, State_Normal, 0, "arrow2"), 
+    m_uiThumb(node, State_Normal, 0, "thumb") {
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
         m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
@@ -152,12 +152,6 @@ LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcep
         color = D2D1::ColorF(0x2F2F2F);
         m_uiArrow1.GetBasicInterface().colors[State_Pushed] = color;
         m_uiArrow2.GetBasicInterface().colors[State_Pushed] = color;
-    }
-    // 检查
-    Component::Element4Bar* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
-    for (auto element : elements) {
-        element->SetBasicState(State_Normal);
-        element->SetBasicState(State_Normal);
     }
     // 检查属性
     m_bArrow1InColor = !m_uiArrow1.IsExtraInterfaceValid();

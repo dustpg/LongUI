@@ -109,7 +109,7 @@ namespace LongUI {
         }
         // create ui window with custom window && xml && buffer
         template<class T> auto CreateUIWindow(const char* xml, UIWindow* parent, void* buffer) noexcept ->T* {
-            auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.state) return nullptr;
+            auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void* buffer) noexcept ->UIWindow* {
                 return new(buffer) T(node, parent);
             };

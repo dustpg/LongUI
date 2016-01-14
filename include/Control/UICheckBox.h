@@ -30,13 +30,23 @@ namespace LongUI {
     enum class CheckBoxState : uint16_t {
         // 选中
         State_Checked = 0,
-        // 未选中
-        State_Unchecked,
         // 不确定
         State_Indeterminate,
+        // 未选中
+        State_Unchecked,
         // count
         STATE_COUNT,
     };
+    // helper namespace
+    namespace Helper {
+        // get CheckBoxState
+        auto GetEnumFromString(const char* value, CheckBoxState bad_match) noexcept->CheckBoxState;
+        // get animation type
+        inline auto GetEnumFromXml(pugi::xml_node node, CheckBoxState bad_match,
+            const char* attribute = "checkstate", const char* prefix = nullptr) noexcept {
+            return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+        }
+    }
     /// <summary>
     /// Graphics Interface Config for Checkbox
     /// </summary>
@@ -66,7 +76,7 @@ namespace LongUI {
             // ctor
             GICheckBox(pugi::xml_node node, const char* prefix = nullptr) noexcept;
             // dtor 
-            ~GICheckBox() noexcept;
+            ~GICheckBox() noexcept = default;
             // recreate
             auto Recreate() noexcept { return S_OK; }
             // check if valid
@@ -91,6 +101,13 @@ namespace LongUI {
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
         virtual auto Recreate() noexcept ->HRESULT override;
+    protected:
+        // render chain -> background
+        void render_chain_background() const noexcept { return Super::render_chain_background(); }
+        // render chain -> mainground
+        void render_chain_main() const noexcept;
+        // render chain -> foreground
+        void render_chain_foreground() const noexcept;
     public:
         // set control state
         void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }

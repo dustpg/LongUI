@@ -66,6 +66,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
+    <CheckBox name="chb01" margin="4,4,4,4" borderwidth="1" text="复选框例子" size="0,64"/>
     <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
         <ListHeader marginal="top" sepwidth="-8">
             <Button borderwidth="1" text="name" name="lst_header0"/>
@@ -463,10 +464,6 @@ public:
     virtual HRESULT Recreate() noexcept override {
         // 重建视频
         auto hr = m_video.Recreate();
-
-        if (SUCCEEDED(hr)) {
-            hr = m_btn.Recreate();
-        }
         // 重建父类
         if (SUCCEEDED(hr)) {
             hr = Super::Recreate();
@@ -475,7 +472,7 @@ public:
     }
     // constructor
     UIVideoAlpha(LongUI::UIContainer* cp, pugi::xml_node node) 
-        noexcept : Super(cp, node), m_btn(node) {
+        noexcept : Super(cp, node) {
         auto hr = m_video.Initialize();
         assert(SUCCEEDED(hr));
         /*auto re =*/ m_video.HasVideo();
@@ -489,8 +486,6 @@ protected:
 protected:
     // video
     LongUI::Component::MMFVideo         m_video;
-    // video
-    LongUI::Component::Element4Button    m_btn;
 };
 
 // 本Demo的配置信息

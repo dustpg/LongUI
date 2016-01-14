@@ -107,8 +107,8 @@ void LongUI::UISlider::Update() noexcept {
 }
 
 // UISlider 构造函数
-LongUI::UISlider::UISlider(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), m_uiElement(node) {
+LongUI::UISlider::UISlider(UIContainer* cp, pugi::xml_node node) noexcept: 
+    Super(cp, node), m_uiElement(node, State_Normal, 0) {
     // 设置
     if (node) {
         const char* str = nullptr;
