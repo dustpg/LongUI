@@ -181,30 +181,3 @@ void LongUI::UICheckBox::GICheckBox::Render(const D2D1_RECT_F& rect, const Compo
     LongUI::SafeRelease(brush);
 }
 
-// longui 命名空间
-namespace LongUI { 
-    // 字符
-    const char* const META_CHECKBOX[] = {
-        "disabledcheckedmeta", "normalcheckedmeta", 
-        "hovercheckedmeta", "pushedcheckedmeta",
-
-        "disabledindeterminatemeta", "normalindeterminatemeta", 
-        "hoverindeterminatemeta", "pushedindeterminatemeta",
-
-        "disableduncheckedmeta", "normaluncheckedmeta", 
-        "hoveruncheckedmeta", "pusheduncheckedmeta",
-    }; 
-}
-
-// 复选框图像接口 -- 初始化META
-void LongUI::GIConfigCheckbox::InitMeta(
-    pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
-    UNREFERENCED_PARAMETER(metas);
-    // 检查
-    constexpr size_t end = GIConfigCheckbox::GetBasicCount() * GIConfigCheckbox::GetExtraCount();
-    static_assert(end == lengthof(META_CHECKBOX), "bad action");
-    // 循环设置
-    for (size_t i = 0; i < end; ++i) {
-        ids[i] = static_cast<uint16_t>(LongUI::AtoI(Helper::XMLGetValue(node, META_CHECKBOX[i], prefix)));
-    }
-}

@@ -273,9 +273,21 @@ namespace LongUI {
             // get count of extra state
             static constexpr auto GetExtraCount() noexcept { return size_t(1); }
             // meta initialize
-            static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept;
+            static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
+                UNREFERENCED_PARAMETER(metas);
+                static_assert(GetBasicCount() == STATE_COUNT, "must be same");
+                static_assert(GetExtraCount() == 1, "must be 1");
+                Helper::MakeMetaGroup(node, prefix, ids, static_cast<uint32_t>(GetBasicCount() * GetExtraCount()));
+            }
             // brush initialize
-            static void InitBrush(pugi::xml_node node, const char* prefix, ID2D1Brush* brushes[], uint16_t ids[]) noexcept;
+            static void InitBrush(pugi::xml_node node, const char* prefix, ID2D1Brush* brushes[], uint16_t ids[]) noexcept {
+                UNREFERENCED_PARAMETER(node);
+                UNREFERENCED_PARAMETER(prefix);
+                static_assert(GetBasicCount() == STATE_COUNT, "must be same");
+                static_assert(GetExtraCount() == 1, "must be 1");
+                std::memset(brushes, 0, sizeof(brushes[0]) * GetBasicCount() * GetExtraCount());
+                std::memset(ids, 0, sizeof(ids[0]) * GetBasicCount() * GetExtraCount());
+            }
             // color initialize
             static void InitColor(pugi::xml_node node, const char* prefix, D2D1_COLOR_F color[]) noexcept;
         };

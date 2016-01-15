@@ -1019,24 +1019,24 @@ auto LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen
 // 解码
 auto LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
     // 二进制长度
-    union { uint8_t temp[4]; uint32_t temp_u32; };
     uint8_t* bindata_index = bindata;
     // 主循环
     while (*base64) {
-        temp_u32 = uint32_t(-1);
         // 基本转换
-        temp[0] = Base64Datas[base64[0]];  temp[1] = Base64Datas[base64[1]];
-        temp[2] = Base64Datas[base64[2]];  temp[3] = Base64Datas[base64[3]];
+        uint8_t a = Base64Datas[base64[0]];  
+        uint8_t b = Base64Datas[base64[1]];
+        uint8_t c = Base64Datas[base64[2]];  
+        uint8_t d = Base64Datas[base64[3]];
         // 第一个二进制数据
-        *bindata_index = ((temp[0] << 2) & uint8_t(0xFC)) | ((temp[1] >> 4) & uint8_t(0x03));
+        *bindata_index = ((a << 2) & 0xFCui8) | ((b >> 4) & 0x03ui8);
         ++bindata_index;
         if (base64[2] == '=') break;
         // 第三个二进制数据
-        *bindata_index = ((temp[1] << 4) & uint8_t(0xF0)) | ((temp[2] >> 2) & uint8_t(0x0F));
+        *bindata_index = ((b << 4) & 0xF0ui8) | ((c >> 2) & 0x0Fui8);
         ++bindata_index;
         if (base64[3] == '=') break;
         // 第三个二进制数据
-        *bindata_index = ((temp[2] << 6) & uint8_t(0xF0)) | ((temp[2] >> 0) & uint8_t(0x3F));
+        *bindata_index = ((c << 6) & 0xF0ui8) | ((d >> 0) & 0x3Fui8);
         ++bindata_index;
         base64 += 4;
     }

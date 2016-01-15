@@ -255,6 +255,10 @@ namespace LongUI { namespace Helper {
     bool MakeString(const char* str, CUIString& uistr) noexcept;
     // make floats from string
     bool MakeFloats(const char* str, float fary[], uint32_t count) noexcept;
+    // make ints from string
+    bool MakeInts(const char* str, int fary[], uint32_t count) noexcept;
+    // make meta group
+    bool MakeMetaGroup(pugi::xml_node node, const char* prefix, uint16_t fary[], uint32_t count) noexcept;
     // make floats from string
     bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATE_COUNT]) noexcept;
     // get value string

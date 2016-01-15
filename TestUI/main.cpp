@@ -17,11 +17,10 @@ const char* test_xml_01 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <VerticalLayout name="VLayout2">
             <Text name="label_test" textrichtype="core" text="%cHello%], world!泥壕!世界!%p#F00"/>
             <Button name="btn_systemlook" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
-            <Button name="4" disabledmeta="1" normalmeta="2" script="App.click_button1($apparg)"
-                margin="4,4,4,4" hovermeta="3" pushedmeta="4" borderwidth="1" text="Hello, world!"/>
+            <Button name="4" metagroup="1,2,3,4" script="App.click_button1($apparg)"
+                margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
             <CheckBox name="btn_skinlook" text="Hello, world!"/>
-            <!--Button name="uac" disabledmeta="1" normalmeta="2" 
-                hovermeta="3" pushedmeta="4" text="Try  Elevate UAC Now "/-->
+            <!--Button name="uac" metagroup="1,2,3,4" text="Try  Elevate UAC Now "/-->
         </VerticalLayout>
     </HorizontalLayout>
 </Window>
@@ -54,8 +53,7 @@ const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </VerticalLayout>
 
     <HorizontalLayout name="H" size="0, 128">
-        <Button name="3" margin="4,4,4,4" disabledmeta="1"
-            normalmeta="2" hovermeta="3" pushedmeta="4" text="Hello, world!"/>
+        <Button name="3" margin="4,4,4,4" metagroup="1,2,3,4" text="Hello, world!"/>
         <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </HorizontalLayout>*/
 
@@ -509,8 +507,7 @@ public:
     <!-- Index 1 -->
     <Control desc="System look like button" margin="4,4,4,4" borderwidth="1"/>
     <!-- Index 2 -->
-    <Control desc="btn.png look like button" margin="4,4,4,4" disabledmeta="1"
-            normalmeta="2" hovermeta="3" pushedmeta="4"/>
+    <Control desc="btn.png look like button" margin="4,4,4,4" metagroup="1,2,3,4"/>
     <!-- Index 3 -->
     <Control margin="4,4,4,4" borderwidth="1"/>
     <!-- Index 4 -->
@@ -556,8 +553,6 @@ private:
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
 //int wmain(int argc, wchar_t* argv[]) {
-    // 设置堆信息
-    ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     //int nCmdShow = SW_SHOW;
     // 本Demo的配置信息
     class DemoConfigure config;

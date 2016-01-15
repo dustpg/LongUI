@@ -57,7 +57,10 @@ namespace LongUI {
         // get count of extra state
         static constexpr size_t GetExtraCount() noexcept { return size_t(CheckBoxState::STATE_COUNT); }
         // meta initialize
-        static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept;
+        static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
+            UNREFERENCED_PARAMETER(metas);
+            Helper::MakeMetaGroup(node, prefix, ids, static_cast<uint32_t>(GetBasicCount() * GetExtraCount()));
+        }
     };
     // default checkBox control 默认复选框控件
     class UICheckBox final : public UIText {

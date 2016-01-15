@@ -1628,31 +1628,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         LongUI::SafeRelease(brush);
     }
     // META字符串集
-    const char* const META_BUTTON[] = {
-        "disabledmeta", "normalmeta", "hovermeta", "pushedmeta"
-    };
-    // 按钮配置 -- Meta初始化
-    void GIConfigButton::InitMeta(pugi::xml_node node,
-        const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
-        UNREFERENCED_PARAMETER(metas);
-        static_assert(GIConfigButton::GetBasicCount() == STATE_COUNT, "must be same");
-        static_assert(GIConfigButton::GetExtraCount() == 1, "must be 1");
-        // 循环设置
-        for (int i = 0; i < STATE_COUNT; ++i) {
-            ids[i] = static_cast<uint16_t>(LongUI::AtoI(Helper::XMLGetValue(node, META_BUTTON[i], prefix)));
-        }
-    }
-    // 按钮配置 -- 笔刷初始化(只支持系统笔刷)
-    void GIConfigButton::InitBrush(pugi::xml_node node, 
-        const char* prefix, ID2D1Brush* brushes[], uint16_t ids[]) noexcept {
-        UNREFERENCED_PARAMETER(node);
-        UNREFERENCED_PARAMETER(prefix);
-        static_assert(GIConfigButton::GetBasicCount() == STATE_COUNT, "must be same");
-        static_assert(GIConfigButton::GetExtraCount() == 1, "must be 1");
-        std::memset(brushes, 0, sizeof(brushes[0]) * GIConfigButton::GetBasicCount() * GIConfigButton::GetExtraCount());
-        std::memset(ids, 0, sizeof(ids[0]) * GIConfigButton::GetBasicCount() * GIConfigButton::GetExtraCount());
-    }
-    // META字符串集
     const char* const COLOR_BUTTON[] = {
         "disabledcolor", "normalcolor", "hovercolor", "pushedcolor"
     };

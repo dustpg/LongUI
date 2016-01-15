@@ -196,9 +196,6 @@
     <ClCompile Include="..\src\UIUtil.cpp">
       <Filter>LongUI\Source\XUtil</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\UIUtil2.cpp">
-      <Filter>LongUI\Source\XUtil</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\UIUtilDX.cpp">
       <Filter>LongUI\Source\XUtil</Filter>
     </ClCompile>
@@ -222,6 +219,9 @@
     </ClCompile>
     <ClCompile Include="..\src\UIRenderQueue.cpp">
       <Filter>LongUI\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIUtil2.cpp">
+      <Filter>LongUI\Source\XUtil</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

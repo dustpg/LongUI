@@ -246,6 +246,32 @@ namespace LongUI { namespace Helper {
         }, str, fary, size);
         return true;
     }
+    // 创建整数
+    LongUINoinline bool MakeInts(const char* str, int iary[], uint32_t size) noexcept {
+        // 检查字符串
+        if (!str || !*str) return false;
+        impl::make_units<','>([](int* out, const char* begin, const char* end) noexcept {
+            auto len = static_cast<size_t>(end - begin);
+            char buf[128]; assert(len < lengthof(buf));
+            std::memcpy(buf, begin, len); len[buf] = 0;
+            *out = LongUI::AtoI(buf);
+        }, str, iary, size);
+        return true;
+    }
+    // 创建meta组
+    bool MakeMetaGroup(pugi::xml_node node, const char* prefix, uint16_t fary[], uint32_t count) noexcept {
+        // 检查
+        constexpr int BUFFER_COUNT = 64; float tmp[BUFFER_COUNT];
+        assert(count < BUFFER_COUNT && "out of buffer length");
+        // 初始化
+        std::memset(tmp, 0, sizeof(tmp));
+        // 计算结果
+        auto result = Helper::MakeFloats(Helper::XMLGetValue(node, "metagroup", prefix), tmp, count);
+        // 转换数据
+        for (uint32_t i = 0; i < count; ++i) fary[i] = static_cast<uint16_t>(tmp[i]);
+        // 返回结果
+        return result;
+    }
 }}
 
 // 16进制
