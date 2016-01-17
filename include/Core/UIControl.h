@@ -64,6 +64,11 @@ namespace LongUI {
             EventArgument arg; arg.sender = this; arg.event = Event::Event_SetText;
             arg.stt.text = txt; this->DoEvent(arg);
         }
+        // set enable state
+        void SetEnabled(bool enabled) noexcept {
+            EventArgument arg; arg.sender = this; arg.event = Event::Event_SetEnabled;
+            arg.ste.enabled = enabled; this->DoEvent(arg);
+        }
     public:
         // Render 
         virtual void Render() const noexcept = 0;

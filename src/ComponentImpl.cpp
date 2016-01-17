@@ -1627,21 +1627,5 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         UIManager_RenderTarget->FillRectangle(rect, brush);
         LongUI::SafeRelease(brush);
     }
-    // META字符串集
-    const char* const COLOR_BUTTON[] = {
-        "disabledcolor", "normalcolor", "hovercolor", "pushedcolor"
-    };
-    // 按钮配置 -- 颜色初始化
-    void GIConfigButton::InitColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F colors[]) noexcept {
-        // 初始值
-        colors[State_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-        colors[State_Normal]   = D2D1::ColorF(0xCDCDCDCD);
-        colors[State_Hover]    = D2D1::ColorF(0xA9A9A9A9);
-        colors[State_Pushed]   = D2D1::ColorF(0x78787878);
-        // 循环设置
-        for (int i = 0; i < STATE_COUNT; ++i) {
-            Helper::MakeColor(Helper::XMLGetValue(node, COLOR_BUTTON[i], prefix), colors[i]);
-        }
-    }
 }
 LONGUI_NAMESPACE_END

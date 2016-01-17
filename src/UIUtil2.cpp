@@ -258,7 +258,38 @@ namespace LongUI { namespace Helper {
         }, str, iary, size);
         return true;
     }
-    // 创建meta组
+    // 颜色属性名字符串集
+    const char* const COLOR_BUTTON[] = {
+        "disabledcolor", "normalcolor", "hovercolor", "pushedcolor"
+    };
+    /// <summary>
+    ///  创建基于状态的颜色数组
+    /// </summary>
+    /// <param name="node">pugixml 节点</param>
+    /// <param name="prefix">颜色属性前缀</param>
+    /// <param name="color">颜色数组</param>
+    /// <returns></returns>
+    LongUINoinline bool MakeStateBasedColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F color[4]) noexcept {
+        // 初始值
+        color[State_Disabled] = D2D1::ColorF(0xDEDEDEDE);
+        color[State_Normal]   = D2D1::ColorF(0xCDCDCDCD);
+        color[State_Hover]    = D2D1::ColorF(0xA9A9A9A9);
+        color[State_Pushed]   = D2D1::ColorF(0x78787878);
+        bool rc = false;
+        // 循环设置
+        for (int i = 0; i < STATE_COUNT; ++i) {
+            rc = rc | Helper::MakeColor(Helper::XMLGetValue(node, COLOR_BUTTON[i], prefix), color[i]);
+        }
+        return rc;
+    }
+    /// <summary>
+    /// 创建meta组
+    /// </summary>
+    /// <param name="node">xml node</param>
+    /// <param name="prefix">属性名前缀</param>
+    /// <param name="fary">float array of meta id</param>
+    /// <param name="count">count of it</param>
+    /// <returns>成功设置则返回true, 没有或者错误返回false</returns>
     bool MakeMetaGroup(pugi::xml_node node, const char* prefix, uint16_t fary[], uint32_t count) noexcept {
         // 检查
         constexpr int BUFFER_COUNT = 64; float tmp[BUFFER_COUNT];
@@ -276,15 +307,9 @@ namespace LongUI { namespace Helper {
 
 // 16进制
 unsigned int LongUI::Hex2Int(char c) noexcept {
-    if (c >= 'A' && c <= 'Z') {
-        return c - 'A' + 10;
-    }
-    if (c >= 'a' && c <= 'z') {
-        return c - 'a' + 10;
-    }
-    else {
-        return c - '0';
-    }
+    if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
+    if (c >= 'a' && c <= 'z') return c - 'a' + 10;
+    else return c - '0';
 }
 
 // 获取颜色表示

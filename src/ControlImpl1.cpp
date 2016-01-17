@@ -183,6 +183,9 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 释放焦点:
             m_tarStateClick = LongUI::State_Normal;
             return true;
+        case LongUI::Event::Event_SetEnabled:
+            // 修改状态
+            return Super::DoEvent(arg);
         }
     }
     return Super::DoEvent(arg);

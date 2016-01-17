@@ -289,7 +289,10 @@ namespace LongUI {
                 std::memset(ids, 0, sizeof(ids[0]) * GetBasicCount() * GetExtraCount());
             }
             // color initialize
-            static void InitColor(pugi::xml_node node, const char* prefix, D2D1_COLOR_F color[]) noexcept;
+            static void InitColor(pugi::xml_node node, const char* prefix, D2D1_COLOR_F color[]) noexcept {
+                static_assert(GetBasicCount() == STATE_COUNT, "must be same");
+                Helper::MakeStateBasedColor(node, prefix, color);
+            }
         };
         /// <summary>
         /// Element for Button

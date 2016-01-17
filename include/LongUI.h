@@ -331,6 +331,8 @@ namespace LongUI {
         Event_SetText,
         // [none-exdata]get control text
         Event_GetText,
+        // [ste] set control basic state
+        Event_SetEnabled,
         // notify all children(but sender)
         //Event_NotifyChildren,
         // ----- User Custom Defined Event -----
@@ -363,6 +365,8 @@ namespace LongUI {
             struct { LongUI::SubEvent subevent; void* pointer; } ui;
             // set text
             struct { const wchar_t* text; void* unused; } stt;
+            // set enabled
+            struct { bool enabled; } ste;
         };
         // Return Code
         union {
