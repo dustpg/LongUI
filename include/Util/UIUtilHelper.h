@@ -169,7 +169,7 @@ namespace LongUI { namespace Helper {
         auto SetNot(uint32_t index) noexcept { assert(index<LENGTH); m_data ^= (1 << index); };
         // set to???
         template<typename V>
-        auto SetTo(uint32_t index, V& value) noexcept { assert(index<LENGTH); value ? this->SetTrue(index) : this->SetFalse(index); }
+        auto SetTo(uint32_t index, V value) noexcept { assert(index<LENGTH); value ? this->SetTrue(index) : this->SetFalse(index); }
     private:
         // data for bit-array
         T           m_data = T(0);
@@ -257,7 +257,7 @@ namespace LongUI { namespace Helper {
     bool MakeFloats(const char* str, float fary[], uint32_t count) noexcept;
     // make ints from string
     bool MakeInts(const char* str, int fary[], uint32_t count) noexcept;
-    // make state-based color
+    // make state-based color, first alpha in 0.0 - 1.0 will not be set default color
     bool MakeStateBasedColor(pugi::xml_node node, const char* prefix, D2D1_COLOR_F color[4]) noexcept;
     // make meta group
     bool MakeMetaGroup(pugi::xml_node node, const char* prefix, uint16_t fary[], uint32_t count) noexcept;
@@ -293,6 +293,8 @@ namespace LongUI { namespace Helper {
     auto GetEnumFromString(const char* value, D2D1_TEXT_ANTIALIAS_MODE bad_match) noexcept ->D2D1_TEXT_ANTIALIAS_MODE;
     // get d2d interpolation mode
     auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept ->D2D1_INTERPOLATION_MODE;
+    // get CheckBoxState
+    auto GetEnumFromString(const char* value, CheckBoxState bad_match) noexcept->CheckBoxState;
     //    ------------------------------------------------------
     //    ------------------ INLINE OVERLOAD -------------------
     //    ------------------------------------------------------
@@ -359,6 +361,11 @@ namespace LongUI { namespace Helper {
     // get d2d text anti-mode
     inline auto GetEnumFromXml(pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match,
         const char* attribute = LongUI::XMLAttribute::WindowTextAntiMode, const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+    // get animation type
+    inline auto GetEnumFromXml(pugi::xml_node node, CheckBoxState bad_match,
+        const char* attribute = "checkstate", const char* prefix = nullptr) noexcept {
         return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
     }
 }}

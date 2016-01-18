@@ -103,8 +103,10 @@ namespace LongUI {
         virtual auto Recreate() noexcept ->HRESULT override;
     public:
         // constructor
-        UIWindow(pugi::xml_node node, UIWindow* parent) noexcept;
+        UIWindow(UIWindow* parent) noexcept;
     protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
         // destructor
         ~UIWindow() noexcept;
         // deleted 
@@ -210,11 +212,11 @@ namespace LongUI {
         // resize window
         void OnResize(bool force = false) noexcept;
         // parent window, be careful with UIControl::parent
-        UIWindow*       const   window_parent = nullptr;
+        UIWindow*       const   wndparent = nullptr;
         // window flag
-        WindowFlag      const   window_flags = WindowFlag::Flag_None;
+        WindowFlag      const   wndflags = WindowFlag::Flag_None;
         // window type
-        WindowType      const   window_type = WindowType::Type_Normal;
+        WindowType      const   wnd_type = WindowType::Type_Normal;
         // last mouse point
         D2D1_POINT_2F           last_point = D2D1::Point2F(-1.f, -1.f);
     protected:

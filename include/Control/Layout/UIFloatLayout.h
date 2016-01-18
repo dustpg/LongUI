@@ -48,13 +48,15 @@ namespace LongUI{
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // ctor
-        UIFloatLayout(UIContainer* cp, pugi::xml_node node) noexcept:Super(cp, node) { }
+        UIFloatLayout(UIContainer* cp) noexcept : Super (cp) { }
         // dtor
         ~UIFloatLayout() noexcept = default;
         // no copy ctor
         UIFloatLayout(const UIFloatLayout&) = delete;
-#ifdef LongUIDebugEvent
     protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+#ifdef LongUIDebugEvent
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif

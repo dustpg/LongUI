@@ -160,7 +160,7 @@ namespace LongUI { namespace Component {
         // update this
         void Update() noexcept;
         // render this: absolute postion
-        void Render(float x, float y)const noexcept;
+        void Render(float x, float y) const noexcept;
         // refresh the selection HitTestMetrics
         void RefreshSelectionMetrics(DWRITE_TEXT_RANGE) noexcept;
         // copy to HGLOBAL
@@ -187,10 +187,16 @@ namespace LongUI { namespace Component {
             return !this->IsReadOnly();
         }
     public:
+        // set color
+        void SetState(ControlState state) noexcept { m_pColor = this->color + state; };
         // destructor
         ~EditaleText() noexcept;
         // constructor
-        EditaleText(UIControl*, pugi::xml_node, const char* prefix = "text") noexcept;
+        EditaleText(UIControl* host) noexcept;
+        // initizlize
+        void Init(pugi::xml_node node, const char* prefix = "text") noexcept;
+        // initizlize without xml-node
+        void Init() noexcept;
         // type of text
         IDWriteTextLayout*      layout = nullptr;
         // type of text
@@ -204,6 +210,8 @@ namespace LongUI { namespace Component {
         ID2D1SolidColorBrush*   m_pSelectionColor = nullptr;
         // host control
         UIControl*              m_pHost = nullptr;
+        // color state
+        D2D1_COLOR_F*           m_pColor = this->color + State_Normal;
         // drop source
         CUIDropSource*          m_pDropSource = CUIDropSource::New();
         // drop source
@@ -236,10 +244,11 @@ namespace LongUI { namespace Component {
         uint32_t                m_u32CaretPosOffset = 0;
         // string of text
         CUIString               m_string;
-        // basic color
-        D2D1_COLOR_F            m_basicColor;
         // context buffer for text renderer
         ContextBuffer           m_buffer;
+    public:
+        // basic color
+        D2D1_COLOR_F            color[STATE_COUNT];
     };
 }}
 

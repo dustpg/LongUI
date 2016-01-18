@@ -71,10 +71,15 @@ void LongUI::UICheckBox::Update() noexcept {
     return Super::Update();
 }
 
-// UICheckBox 构造函数
-LongUI::UICheckBox::UICheckBox(UIContainer* cp, pugi::xml_node node) noexcept:
-Super(cp, node),
-m_uiElement(node, State_Normal, Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked)) {
+// UICheckBox 初始化
+void LongUI::UICheckBox::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    m_uiElement.Init(
+        State_Normal,
+        Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked),
+        node
+        );
 }
 
 // UICheckBox 析构函数
@@ -86,7 +91,7 @@ LongUI::UICheckBox::~UICheckBox() noexcept {
 // UICheckBox::CreateControl 函数
 auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UICheckBox* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -96,16 +101,7 @@ auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UICheckBox>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UICheckBox, pControl, type, node);
     }
     return pControl;
 }
@@ -166,18 +162,14 @@ void LongUI::UICheckBox::cleanup() noexcept {
     delete this;
 }
 
+
 // -------------------------------------------------------
-// 复选框图像接口 -- 构造函数
-LongUI::UICheckBox::GICheckBox::GICheckBox(pugi::xml_node node, const char* prefix) noexcept {
-    Component::GIConfigButton::InitColor(node, prefix, colors);
-}
 
 // 复选框图像接口 -- 渲染
-void LongUI::UICheckBox::GICheckBox::Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept {
+void LongUI::Component::GICheckBox::Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept {
     assert(UIManager_RenderTarget);
     auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
     brush->SetColor(colors + sm.GetNowBaiscState());
     UIManager_RenderTarget->FillRectangle(rect, brush);
     LongUI::SafeRelease(brush);
 }
-

@@ -103,7 +103,8 @@ namespace LongUI {
         template<class T> auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept ->T* {
             auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void*) noexcept ->UIWindow* {
-                return new(std::nothrow) T(node, parent);
+                auto c = new(std::nothrow) T(parent); if (c) c->T::initialize(node);
+                return c;
             };
             return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, nullptr));
         }
@@ -111,7 +112,8 @@ namespace LongUI {
         template<class T> auto CreateUIWindow(const char* xml, UIWindow* parent, void* buffer) noexcept ->T* {
             auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); if (code.status) return nullptr;
             auto create_func = [](pugi::xml_node node, UIWindow* parent, void* buffer) noexcept ->UIWindow* {
-                return new(buffer) T(node, parent);
+                auto c = new(buffer) T(parent); if (c) c->T::initialize(node);
+                return c;
             };
             return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer));
         }

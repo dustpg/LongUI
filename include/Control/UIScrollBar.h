@@ -75,9 +75,12 @@ namespace LongUI {
         void set_index(float index) noexcept;
     public:
         // constructor 构造函数
-        UIScrollBar(UIContainer* cp, pugi::xml_node) noexcept;
+        UIScrollBar(UIContainer* cp) noexcept;
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
+    protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
     public:
         // bartype of scrollbar
         ScrollBarType   const   bartype = ScrollBarType::Type_Vertical;
@@ -124,9 +127,12 @@ namespace LongUI {
         virtual void cleanup() noexcept override;
     public:
         // ctor
-        UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIScrollBarA(UIContainer* cp) noexcept : Super(cp) { }
         // create this
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+    protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
     public:
         // Render 渲染 
         virtual void Render() const noexcept override;
@@ -195,11 +201,13 @@ namespace LongUI {
         void Update() noexcept override;
         // update width of marginal
         virtual void UpdateMarginalWidth() noexcept override {}
-    public:
         // ctor
-        UIScrollBarB(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIScrollBarB(UIContainer* cp) noexcept : Super(cp) { }
         // create this
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+    protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

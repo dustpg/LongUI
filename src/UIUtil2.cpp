@@ -271,10 +271,12 @@ namespace LongUI { namespace Helper {
     /// <returns></returns>
     LongUINoinline bool MakeStateBasedColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F color[4]) noexcept {
         // 初始值
-        color[State_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-        color[State_Normal]   = D2D1::ColorF(0xCDCDCDCD);
-        color[State_Hover]    = D2D1::ColorF(0xA9A9A9A9);
-        color[State_Pushed]   = D2D1::ColorF(0x78787878);
+        if (color->a < 0.0f || color->a > 1.f) {
+            color[State_Disabled] = D2D1::ColorF(0xDEDEDEDE);
+            color[State_Normal] = D2D1::ColorF(0xCDCDCDCD);
+            color[State_Hover] = D2D1::ColorF(0xA9A9A9A9);
+            color[State_Pushed] = D2D1::ColorF(0x78787878);
+        }
         bool rc = false;
         // 循环设置
         for (int i = 0; i < STATE_COUNT; ++i) {

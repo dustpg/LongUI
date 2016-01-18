@@ -57,7 +57,10 @@ namespace LongUI{
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // constructor 构造函数
-        UISlider(UIContainer* cp, pugi::xml_node node) noexcept;
+        UISlider(UIContainer* cp) noexcept : Super(cp) { }
+    private:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
     public:
         // set state
         void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }

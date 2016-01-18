@@ -109,7 +109,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
-    <Single><Button text="XYZ" templateid="2"/></Single>
+    <Single><Button text="XYZ" templateid="2" enabled="false"/></Single>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
     <Button name="btn_x0" size="0, 48" borderwidth="1"
         margin="4,4,4,4" text="这是楷体字  這是楷體字" textfamily="KaiTi"/>
@@ -167,6 +167,8 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 class MainWindow final : public LongUI::UIWindow {
     // super class
     using Super = LongUI::UIWindow;
+    // frend class
+    friend class LongUI::CUIManager;
 private:
     // dtor
     ~MainWindow() = default;
@@ -176,13 +178,12 @@ public:
     // placement delete
     void operator delete(void* mem, void *ptr) noexcept { return ::operator delete(mem, ptr); };
     // ctor
-    MainWindow(pugi::xml_node node, LongUI::UIWindow* parent) : Super(node, parent) { 
-        /*{
-            LongUI::Component::Element4Button btnele(node);
-        }*/
-    }
+    MainWindow(LongUI::UIWindow* parent) : Super(parent) { }
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+protected:
+    // init
+    void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
 private:
     // clean up
     virtual void cleanup() noexcept override { this->~MainWindow(); }
@@ -241,7 +242,7 @@ public:
     // create 创建
     static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
         // 分类判断
-        UIControl* pControl = nullptr;
+        TestControl* pControl = nullptr;
         switch (type)
         {
         case LongUI::Type_Initialize:
@@ -251,16 +252,7 @@ public:
         case LongUI::Type_Uninitialize:
             break;
         case_LongUI__Type_CreateControl:
-            // 警告
-            if (!node) {
-                UIManager << DL_Hint << L"node null" << LongUI::endl;
-            }
-            // 申请空间
-            pControl = LongUI::CreateWidthCET<TestControl>(type, node);
-            // OOM
-            if (!pControl) {
-                UIManager << DL_Error << L"alloc null" << LongUI::endl;
-            }
+            LongUI__CreateWidthCET(TestControl, pControl, type, node);
         }
         return pControl;
     }
@@ -355,9 +347,7 @@ public:
         return true;
     }
     // constructor
-    TestControl(LongUI::UIContainer* cp, pugi::xml_node node) 
-        noexcept : Super(cp, node), m_text(node) {
-    }
+    TestControl(LongUI::UIContainer* cp) noexcept : Super(cp), m_text() { }
 protected:
     // destructor
     ~TestControl() {
@@ -390,7 +380,7 @@ public:
     // create 创建
     static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
         // 分类判断
-        UIControl* pControl = nullptr;
+        UIVideoAlpha* pControl = nullptr;
         switch (type)
         {
         case LongUI::Type_Initialize:
@@ -400,16 +390,7 @@ public:
         case LongUI::Type_Uninitialize:
             break;
         case_LongUI__Type_CreateControl:
-            // 警告
-            if (!node) {
-                UIManager << DL_Hint << L"node null" << LongUI::endl;
-            }
-            // 申请空间
-            pControl = LongUI::CreateWidthCET<UIVideoAlpha>(type, node);
-            // OOM
-            if (!pControl) {
-                UIManager << DL_Error << L"alloc null" << LongUI::endl;
-            }
+            LongUI__CreateWidthCET(UIVideoAlpha, pControl, type, node);
         }
         return pControl;
     }
@@ -469,9 +450,9 @@ public:
         return hr;
     }
     // constructor
-    UIVideoAlpha(LongUI::UIContainer* cp, pugi::xml_node node) 
-        noexcept : Super(cp, node) {
-        auto hr = m_video.Initialize();
+    UIVideoAlpha(LongUI::UIContainer* cp) 
+        noexcept : Super(cp) {
+        auto hr = m_video.Init();
         assert(SUCCEEDED(hr));
         /*auto re =*/ m_video.HasVideo();
         hr = m_video.SetSource(L"arcv45.mp4");

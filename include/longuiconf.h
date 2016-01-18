@@ -322,6 +322,8 @@ namespace LongUI {
         static constexpr char* const IsRenderParent         = "renderparent";
         // is clip strictly                         [invalid yet]
         static constexpr char* const IsClipStrictly         = "strictclip";
+        // enabled
+        static constexpr char* const Enabled                = "enabled";
 
         // marginal control direction
         static constexpr char* const MarginalDirection       = "marginal";

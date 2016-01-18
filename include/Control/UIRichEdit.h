@@ -55,8 +55,10 @@ namespace LongUI {
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // constructor 构造函数
-        UIRichEdit(UIContainer* cp, pugi::xml_node) noexcept;
+        UIRichEdit(UIContainer* cp) noexcept;
     protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
         // destructor 析构函数
         ~UIRichEdit() noexcept;
         // deleted function

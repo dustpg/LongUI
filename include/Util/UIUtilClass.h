@@ -254,8 +254,6 @@ namespace LongUI {
     private:
 
     };
-    // get ex-data
-#define UIColorEffect_ExData(o) (reinterpret_cast<uint8_t*>(o) + (sizeof(CUIColorEffect)))
     // Color Effect
     class CUIColorEffect : public Helper::ComBase<Helper::QiList<IUnknown>> {
         // super class

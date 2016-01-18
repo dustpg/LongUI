@@ -55,8 +55,10 @@ namespace LongUI {
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // constructor 构造函数
-        UIEditBasic(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIEditBasic(UIContainer* cp) noexcept : Super(cp), m_text(this) { }
     protected:
+        // initialize, maybe you want call v-method
+        void initialize(pugi::xml_node node) noexcept;
         // destructor 析构函数
         ~UIEditBasic() noexcept {};
         // deleted function

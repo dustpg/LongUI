@@ -74,7 +74,7 @@ namespace LongUI {
         // remove child reference
         void RemoveChildReference(UIControl* child) noexcept { if (m_pMousePointed == child) m_pMousePointed = nullptr; }
         // ctor
-        UIContainer(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIContainer(UIContainer* cp) noexcept;
         // cast to CreateEventType
         auto CET() const noexcept { 
             static_assert(sizeof(CreateEventType) == sizeof(this), "bad cast");
@@ -82,6 +82,11 @@ namespace LongUI {
         }
         // before update
         //void BeforeUpdateContainer() noexcept;
+    protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
+        // dtor
+        ~UIContainer() noexcept;
     public:
         // get length/count of children
         auto GetLength() const noexcept { return m_cChildrenCount; }
@@ -151,8 +156,6 @@ namespace LongUI {
         void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
         // cleanup child
         void cleanup_child(UIControl* ctrl) noexcept { assert(ctrl && (ctrl->parent == this || !ctrl->parent)); ctrl->cleanup(); }
-        // dtor
-        ~UIContainer() noexcept;
         // after insert
         void after_insert(UIControl* child) noexcept;
     public:

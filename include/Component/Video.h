@@ -74,12 +74,6 @@ namespace LongUI { namespace Component {
         // get source path
         auto GetSourcePath(wchar_t* path) { BSTR url = nullptr; this->GetCurrentSource(&url); if (url) { std::wcscpy(path, url); ::SysFreeString(url); } else *path = 0; }
     public:
-        // init: because it maybe call virtual-method, so, not in ctor
-        auto Initialize() noexcept ->HRESULT;
-        // recreate
-        auto Recreate() noexcept ->HRESULT;
-        // Render
-        void Render(D2D1_RECT_F* dst) const noexcept;
         // ctor
         MMFVideo() noexcept;
         // dtor
@@ -88,6 +82,12 @@ namespace LongUI { namespace Component {
         MMFVideo(const MMFVideo&) = delete;
         // move ctor
         MMFVideo(MMFVideo&&) = delete;
+        // init:  maybe call virtual-method
+        auto Init() noexcept ->HRESULT;
+        // recreate
+        auto Recreate() noexcept ->HRESULT;
+        // Render
+        void Render(D2D1_RECT_F* dst) const noexcept;
     private:
         // recreate surface
         auto recreate_surface() noexcept ->HRESULT;

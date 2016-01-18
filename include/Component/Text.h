@@ -32,9 +32,13 @@ namespace LongUI { namespace Component {
         // recreate layout
         void RecreateLayout() noexcept;
         // constructor
-        ShortText(pugi::xml_node, const char* prefix = "text") noexcept;
+        ShortText() noexcept {}
+        // initizlize
+        void Init(pugi::xml_node, const char* prefix = "text") noexcept;
         // destructor
         ~ShortText() noexcept;
+        // set color
+        void SetState(ControlState state) noexcept { m_pColor = this->color + state; };
         // real length
         auto GetRealLength() const noexcept { return m_config.text_length; }
         // operator = for wide-char(utf16 on windows)
@@ -67,18 +71,21 @@ namespace LongUI { namespace Component {
         }
         // render it
         auto Render(float x, float y) const noexcept {
-            m_pTextRenderer->basic_color.color = m_basicColor;
+            m_pTextRenderer->basic_color.color = *m_pColor;
             m_pLayout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
         }
+    public:
+        // state color
+        D2D1_COLOR_F                color[STATE_COUNT];
     private:
         // layout of it
         IDWriteTextLayout*          m_pLayout = nullptr;
         // Text Renderer
-        XUIBasicTextRenderer*       m_pTextRenderer;
+        XUIBasicTextRenderer*       m_pTextRenderer = nullptr;
+        // basic color
+        D2D1_COLOR_F*               m_pColor = this->color + State_Normal;
         // the text config
         FormatTextConfig            m_config;
-        // basic color
-        D2D1_COLOR_F                m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
         // the string of text
         CUIString                   m_text;
         // context buffer for text renderer

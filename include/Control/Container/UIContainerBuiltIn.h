@@ -32,7 +32,9 @@ namespace LongUI {
         using Super = UIContainer;
     protected:
         // ctor
-        UIContainerBuiltIn(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
+        UIContainerBuiltIn(UIContainer* cp) noexcept : Super(cp) {}
+        // ctor
+        void initialize(pugi::xml_node node) noexcept { Super::initialize(node); }
         // dtor
         ~UIContainerBuiltIn() noexcept;
     public:

@@ -1610,7 +1610,7 @@ HRESULT LongUI::Component::MMFVideo::EventNotify(DWORD event, DWORD_PTR param1, 
 
 
 // MMFVideo 初始化
-auto LongUI::Component::MMFVideo::Initialize() noexcept ->HRESULT {
+auto LongUI::Component::MMFVideo::Init() noexcept ->HRESULT {
     HRESULT hr = S_OK;
     IMFAttributes* attributes = nullptr;
     // 创建MF属性

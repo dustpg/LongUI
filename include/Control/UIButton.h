@@ -56,12 +56,14 @@ namespace LongUI{
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
-        UIButton(UIContainer* cp, pugi::xml_node) noexcept;
+        UIButton(UIContainer* cp) noexcept : Super(cp) {}
         // set state
         void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
         // get state
         auto GetControlState() const noexcept { return m_uiElement.GetNowBaiscState(); }
     protected:
+        // initialize, maybe you want call v-method
+        void initialize(pugi::xml_node node) noexcept;
         // destructor 析构函数
         ~UIButton() noexcept {};
         // deleted function
@@ -74,10 +76,9 @@ namespace LongUI{
         // element
         Component::Element4Button   m_uiElement;
         // target state when clicked
-        ControlState               m_tarStateClick = LongUI::State_Hover;
-        /*// effective
-        bool                        m_bEffective = false;
-        bool                        btnunused[3];*/
+        ControlState                m_tarStateClick = LongUI::State_Hover;
+        // unused var
+        char                        btnunused[sizeof(void*)-sizeof(ControlState)];
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

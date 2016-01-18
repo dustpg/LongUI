@@ -345,7 +345,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
 // -------------------------- UIVerticalLayout -------------------------
 // UIVerticalLayout 创建
 auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIVerticalLayout* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -355,14 +355,7 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIVerticalLayout>(type, node);
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIVerticalLayout, pControl, type, node);
     }
     return pControl;
 }
@@ -433,7 +426,7 @@ void LongUI::UIVerticalLayout::cleanup() noexcept {
 // -------------------------- UIHorizontalLayout -------------------------
 // UIHorizontalLayout 创建
 auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIHorizontalLayout* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -443,16 +436,7 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIHorizontalLayout>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIHorizontalLayout, pControl, type, node);
     }
     return pControl;
 }
@@ -657,7 +641,7 @@ void LongUI::UISingle::cleanup() noexcept {
 
 // UISingle 创建空间
 auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UISingle* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -667,25 +651,15 @@ auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) 
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UISingle>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UISingle, pControl, type, node);
     }
     return pControl;
 }
 
 // --------------------- Page Layout ---------------
 // UIPage 构造函数
-LongUI::UIPage::UIPage(UIContainer* cp, pugi::xml_node node) noexcept :
-Super(cp, node), 
-m_animation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp), 
+    m_animation(AnimationType::Type_QuadraticEaseIn) {
     
 }
 
@@ -843,7 +817,7 @@ void LongUI::UIPage::cleanup() noexcept {
 
 // UIPage 创建空间
 auto LongUI::UIPage::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIPage* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -853,16 +827,7 @@ auto LongUI::UIPage::CreateControl(CreateEventType type, pugi::xml_node node) no
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIPage>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIPage, pControl, type, node);
     }
     return pControl;
 }
@@ -870,7 +835,7 @@ auto LongUI::UIPage::CreateControl(CreateEventType type, pugi::xml_node node) no
 // --------------------- Floating Layout ---------------
 // UIFloatLayout 创建
 auto LongUI::UIFloatLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIFloatLayout* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -880,16 +845,7 @@ auto LongUI::UIFloatLayout::CreateControl(CreateEventType type, pugi::xml_node n
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIFloatLayout>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIFloatLayout, pControl, type, node);
     }
     return pControl;
 }

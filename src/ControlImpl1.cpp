@@ -47,6 +47,9 @@ bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_GetText:
             arg.str = m_text.c_str();
             return true;
+        case LongUI::Event::Event_SetEnabled:
+            // 修改状态
+            m_text.SetState(arg.ste.enabled ? State_Normal : State_Disabled);
         }
     }
     return Super::DoEvent(arg);
@@ -62,7 +65,7 @@ LongUI::UIText::UIText(pugi::xml_node node) noexcept: Super(node), m_text(node) 
 // UIText::CreateControl 函数
 auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIText* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -72,16 +75,7 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIText>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIText, pControl, type, node);
     }
     return pControl;
 }
@@ -131,8 +125,10 @@ void LongUI::UIButton::Update() noexcept {
 }
 
 // UIButton 构造函数
-LongUI::UIButton::UIButton(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), m_uiElement(node, State_Normal, 0) {
+void LongUI::UIButton::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    m_uiElement.Init(State_Normal, 0, node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
     // 初始化
@@ -145,7 +141,7 @@ noexcept: Super(cp, node), m_uiElement(node, State_Normal, 0) {
 
 // UIButton::CreateControl 函数
 auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIButton* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -155,16 +151,7 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIButton>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIButton, pControl, type, node);
     }
     return pControl;
 }
@@ -379,8 +366,10 @@ void LongUI::UIEditBasic::cleanup() noexcept {
 }
 
 // 构造函数
-LongUI::UIEditBasic::UIEditBasic(UIContainer* cp, pugi::xml_node node)
-noexcept : Super(cp, node), m_text(this, node) {
+void LongUI::UIEditBasic::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    m_text.Init(node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
     if (node) {
@@ -393,7 +382,7 @@ noexcept : Super(cp, node), m_text(this, node) {
 // UIEditBasic::CreateControl 函数
 LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type,pugi::xml_node node) noexcept {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIEditBasic* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -403,16 +392,7 @@ LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type,pugi:
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIEditBasic>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIEditBasic, pControl, type, node);
     }
     return pControl;
 }

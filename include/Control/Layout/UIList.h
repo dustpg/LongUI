@@ -46,7 +46,7 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIListLine(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIListLine(UIContainer* cp) noexcept : Super(cp) { }
         // get sorted data
         auto GetToBeSorted() const noexcept { return m_pToBeSorted; }
         // set to be sorted control
@@ -56,6 +56,8 @@ namespace LongUI {
         // selected?
         auto IsSelected() const noexcept { return m_bool16.Test(Index_StateSelf_1); }
     protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
         // dtor
         ~UIListLine() noexcept = default;
     protected:
@@ -91,9 +93,12 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIListHeader(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIListHeader(UIContainer* cp) noexcept : Super(cp) { }
         // dtor
         ~UIListHeader() noexcept = default;
+    protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
     private:
         // sep hovered control
         UIControl*              m_pSepHovered = nullptr;
@@ -249,13 +254,15 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // ctor
-        UIList(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIList(UIContainer* cp) noexcept : Super(cp) { }
         // sort as element[index]
         void Sort(uint32_t index, UIControl* child) noexcept;
         // add before sort callback
         template<typename T>
         auto AddBeforSortCallBack(T lam) noexcept { m_callBeforSort += lam; }
     protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
         // dtor
         ~UIList() noexcept;
     public:

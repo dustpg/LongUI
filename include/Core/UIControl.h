@@ -64,12 +64,16 @@ namespace LongUI {
             EventArgument arg; arg.sender = this; arg.event = Event::Event_SetText;
             arg.stt.text = txt; this->DoEvent(arg);
         }
-        // set enable state
-        void SetEnabled(bool enabled) noexcept {
-            EventArgument arg; arg.sender = this; arg.event = Event::Event_SetEnabled;
-            arg.ste.enabled = enabled; this->DoEvent(arg);
-        }
     public:
+#ifdef _DEBUG
+        // debug checker
+        enum : uint32_t {
+            DEBUG_CHECK_BACK = 0,
+            DEBUG_CHECK_MAIN,
+            DEBUG_CHECK_FORE,
+            DEBUG_CHECK_INIT,
+        };
+#endif
         // Render 
         virtual void Render() const noexcept = 0;
         // update
@@ -77,6 +81,7 @@ namespace LongUI {
 #ifdef _DEBUG
             void longui_dbg_update(UIControl* c);
             longui_dbg_update(this);
+            assert(debug_checker.Test(DEBUG_CHECK_INIT) == true && "not be initialized yet");
             assert(debug_updated == false && "cannot call this more than once");
             debug_updated = true;
 #endif
@@ -107,13 +112,16 @@ namespace LongUI {
             return this->DoEvent(arg);
         };
         // ctor
-        UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept;
-        // delete the copy-ctor
-        UIControl(const UIControl&) = delete;
+        UIControl(UIContainer* parent) noexcept;
         // dtor
         ~UIControl() noexcept;
         // after update
         void AfterUpdate() noexcept;
+        // delete the copy-ctor
+        UIControl(const UIControl&) = delete;
+    protected:
+        // initialize, maybe you want call v-method
+        void initialize(pugi::xml_node node) noexcept;
     public:
         // get window of control
         auto GetWindow() const noexcept { return m_pWindow; }
@@ -200,7 +208,7 @@ namespace LongUI {
         // updated
         bool                    debug_updated = false;
         // render_checker
-        Helper::BitArray_8      debug_render_checker;
+        Helper::BitArray_8      debug_checker;
         // recreate count
         uint8_t                 debug_recreate_count = 0;
 #endif
@@ -230,11 +238,31 @@ namespace LongUI {
         float           const   context[2];
         // tree level
         uint8_t         const   level = 0ui8;
-        // visible
-        bool                    visible = true;
     protected:
+        // basic state attribute
+        enum BasicStateAttribute : uint32_t {
+            // visible
+            Attribute_Visible =0,
+            // enabled
+            Attribute_Enabled,
+        };
+        // basic state
+        Helper::BitArray_8      m_stateBasic;
         // boolx16
         Helper::BitArray16      m_bool16;
+    public:
+        // set visible
+        void SetVisible(bool visible) noexcept { m_stateBasic.SetTo(Attribute_Visible, visible); }
+        // get visible
+        auto GetVisible() const noexcept { return m_stateBasic.Test(Attribute_Visible); }
+        // get visible
+        auto GetEnabled() const noexcept { return m_stateBasic.Test(Attribute_Enabled); }
+        // set enable state
+        void SetEnabled(bool enabled) noexcept {
+            EventArgument arg; arg.sender = this; arg.event = Event::Event_SetEnabled;
+            arg.ste.enabled = enabled; this->DoEvent(arg);
+            m_stateBasic.SetTo(Attribute_Enabled, enabled);
+        }
     public:
         // set state
         auto SetUserState(bool b) noexcept { m_bool16.SetTo(Index_StateUser, b); }

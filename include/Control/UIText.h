@@ -54,9 +54,11 @@ namespace LongUI{
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // get text controller
         auto&GetTextController() noexcept { return m_text; }
-        // ctor
-        UIText(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), m_text(node) {}
+        // ctor: cp- parent in contorl-level
+        UIText(UIContainer* cp) noexcept : Super(cp) {}
     protected:
+        // initialize, maybe you want call v-method
+        void initialize(pugi::xml_node node) noexcept { Super::initialize(node); m_text.Init(node); }
         // dtor
         ~UIText() noexcept { }
         // copy ctor = delete

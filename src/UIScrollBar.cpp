@@ -6,9 +6,18 @@
 
 
 // UIScrollBar 构造函数
-LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept: 
-    Super(cp, node), 
-    m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIScrollBar::UIScrollBar(UIContainer* cp) noexcept : Super(cp),
+m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+}
+
+/// <summary>
+/// Initalizes with specified xml-node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIScrollBar::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // 边界相关
     assert((this->flags & Flag_MarginalControl) && "'UIScrollBar' must be marginal-control");
     auto sbtype = (this->marginal_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
@@ -109,22 +118,21 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     if (m_fMaxIndex < 0.5f) {
 #endif
         this->marginal_width = 0.f;
-        this->visible = false;
+        this->SetVisible(false);
     }
     else {
         this->marginal_width = BASIC_SIZE;
-        this->visible = true;
+        this->SetVisible(true);
     }
 }
 
-
-
-// UIScrollBarA 构造函数
-LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) noexcept: 
-    Super(cp, node), 
-    m_uiArrow1(node, State_Normal, 0, "arrow1"),
-    m_uiArrow2(node, State_Normal, 0, "arrow2"), 
-    m_uiThumb(node, State_Normal, 0, "thumb") {
+// UIScrollBarA 初始化
+void LongUI::UIScrollBarA::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    m_uiArrow1.Init( State_Normal, 0, node,"arrow1");
+    m_uiArrow2.Init(State_Normal, 0, node, "arrow2");
+    m_uiThumb.Init(State_Normal, 0, node, "thumb");
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
         m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
@@ -425,7 +433,7 @@ s_apArrowPathGeometry[LongUI::UIScrollBarA::ARROW_SIZE] = { nullptr };
 // create 创建
 auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIScrollBarA* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -506,31 +514,21 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
         }
         break;
     case_LongUI__Type_CreateControl:
-        // 允许
-        if (!node) {
-            UIManager << DL_Log << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIScrollBarA>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIScrollBarA, pControl, type, node);
     }
     return pControl;
 }
 
 
-// UIScrollBarB 构造函数
-LongUI::UIScrollBarB::UIScrollBarB(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node) {
+/*// UIScrollBarB 构造函数
+LongUI::UIScrollBarB::UIScrollBarB(UIContainer* cp) noexcept : Super(cp) {
 
-}
+}*/
 
 // UIScrollBarB 创建函数
 auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIScrollBarB* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -540,16 +538,7 @@ auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType type, pugi::xml_
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 允许
-        if (!node) {
-            UIManager << DL_Log << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIScrollBarB>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIScrollBarB, pControl, type, node);
     }
     return pControl;
 }

@@ -4,8 +4,11 @@
 // ----------------------------------------------------------------------------
 // -------------------------------- UIList ------------------------------------
 // ----------------------------------------------------------------------------
-// UI列表控件: 构造函数
-LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
+// UI列表控件: 初始化
+void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    // 初始
     m_vLines.reserve(100);
     m_vSelectedIndex.reserve(16);
     m_vLineTemplate.reserve(16);
@@ -767,7 +770,7 @@ void LongUI::UIList::cleanup() noexcept {
 // UI列表控件: 创建控件
 auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
-    UIControl* pControl = nullptr;
+    UIList* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -777,16 +780,7 @@ noexcept -> UIControl* {
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIList>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIList, pControl, type, node);
     }
     return pControl;
 }
@@ -796,9 +790,10 @@ noexcept -> UIControl* {
 // ---------------------------- UIListLine! --------------------------------
 // ----------------------------------------------------------------------------
 
-// UI列表元素控件: 构造函数
-LongUI::UIListLine::UIListLine(UIContainer* cp, pugi::xml_node node)
-noexcept : Super(cp, node) {
+// UI列表元素控件: 初始化
+void LongUI::UIListLine::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // listline 特性: 宽度必须固定
     //auto flag = this->flags | Flag_WidthFixed;
     if (node) {
@@ -836,7 +831,7 @@ void LongUI::UIListLine::cleanup() noexcept {
 // UI列表元素控件: 创建控件
 auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
-    UIControl* pControl = nullptr;
+    UIListLine* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -846,16 +841,7 @@ noexcept -> UIControl* {
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIListLine>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIListLine, pControl, type, node);
     }
     return pControl;
 }
@@ -866,13 +852,13 @@ noexcept -> UIControl* {
 // ----------------------------------------------------------------------------
 
 // UI列表头控件: 构造函数
-LongUI::UIListHeader::UIListHeader(UIContainer* cp, pugi::xml_node node)
-noexcept: Super(cp, node) {
-    assert(cp && "bad argument");
+void LongUI::UIListHeader::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // 本类必须为边界控件
     assert((this->flags & Flag_MarginalControl) && "'UIListHeader' must be marginal-control");
     // 设置表头
-    longui_cast<UIList*>(cp)->SetHeader(this);
+    longui_cast<UIList*>(this->parent)->SetHeader(this);
     // 支持模板子结点
     //auto flag = this->flags;
     if (node) {
@@ -908,7 +894,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         // 循环查找
         auto index = 0ui32;
         for (auto ctrl : (*this)) {
-            if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
+            if (ctrl->GetVisible() && ctrl->visible_rect.right > ctrl->visible_rect.left
                 && ctrl->visible_rect.right >= data[0]
                 && ctrl->visible_rect.right < data[1]) {
                 m_indexSepHovered = index;
@@ -1027,7 +1013,7 @@ void LongUI::UIListHeader::UpdateMarginalWidth() noexcept {
 
 // 创建UI列表头
 auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node node) noexcept -> UIControl* {
-    UIControl* pControl = nullptr;
+    UIListHeader* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -1037,16 +1023,7 @@ auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node no
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 允许
-        if (!node) {
-            UIManager << DL_Log << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIListHeader>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIListHeader, pControl, type, node);
     }
     return pControl;
 }

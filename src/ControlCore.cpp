@@ -55,26 +55,44 @@ Win8/8.1/10.0.10158之前
 namespace LongUI { namespace impl { static float const floatx2[] = { 0.f, 0.f }; } }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="LongUI::UIControl"/>
+/// Initializes a new instance of the <see cref="LongUI::UIControl" />
 /// class with xml node
 /// </summary>
-/// <param name="node" type="pugi::xml_node">The xml node</param>
+/// <param name="parent">The parent for self in control-level</param>
+/// <returns></returns>
 /// <remarks>
 /// For this function, param 'node' could be null node
 /// 对于本函数, 参数'node'允许为空
-/// <see cref="LongUINullXMLNode"/>
+/// <see cref="LongUINullXMLNode" />
 /// </remarks>
-LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept :
-    parent(ctrlparent),
+LongUI::UIControl::UIControl(UIContainer* parent) noexcept :
+    parent(parent), 
     context(),
-    level(ctrlparent ? (ctrlparent->level + 1ui8) : 0ui8),
-    m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
+    level(parent ? (parent->level + 1ui8) : 0ui8),
+    m_pWindow(parent ? parent->GetWindow() : nullptr) {
     // 溢出错误
     if (this->level == 255) {
         UIManager << DL_Error
             << L"too deep for this tree"
             << LongUI::endl;
     }
+}
+
+/// <summary>
+/// Initializes with specified xml-node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+/// <remarks>
+/// For this function, param 'node' could be null node
+/// 对于本函数, 参数'node'允许为空
+/// <see cref="LongUINullXMLNode" />
+/// </remarks>
+void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
+#ifdef _DEBUG
+    // 没有被初始化
+    assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
+#endif
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
     // 有效?
@@ -107,7 +125,7 @@ LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexc
             }
         }
         // 检查可视性
-        this->visible = node.attribute(LongUI::XMLAttribute::Visible).as_bool(true);
+        this->SetVisible(node.attribute(LongUI::XMLAttribute::Visible).as_bool(true));
         // 检查名称
         if (m_pWindow) {
             auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
@@ -183,9 +201,17 @@ LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node) noexc
                 this->SetHeight(size[1]);
             }
         }
+        // 禁止
+        if (!node.attribute(LongUI::XMLAttribute::Enabled).as_bool(true)) {
+            this->SetEnabled(false);
+        }
     }
     // 修改flag
     force_cast(this->flags) |= flag;
+#ifdef _DEBUG
+    // 被初始化
+    this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
+#endif
 }
 
 // 析构函数
@@ -213,15 +239,14 @@ LongUI::UIControl::~UIControl() noexcept {
 void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
-    constexpr auto index = uint32_t(0);
-    if (this->debug_render_checker.Test(index)) {
+    if (this->debug_checker.Test(DEBUG_CHECK_BACK)) {
         AutoLocker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
             << endl;
     }
-    force_cast(this->debug_render_checker).SetTrue(index);
+    force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_BACK);
 #endif
     if (m_pBackgroudBrush) {
         D2D1_RECT_F rect; this->GetViewRect(rect);
@@ -233,15 +258,14 @@ void LongUI::UIControl::render_chain_background() const noexcept {
 void LongUI::UIControl::render_chain_foreground() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
-    constexpr auto index = uint32_t(2);
-    if (this->debug_render_checker.Test(index)) {
+    if (this->debug_checker.Test(DEBUG_CHECK_FORE)) {
         AutoLocker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
             << endl;
     }
-    force_cast(this->debug_render_checker).SetTrue(index);
+    force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_FORE);
 #endif
     // 后继结点判断, B控件深度必须比A深
     auto is_successor = [](const UIControl* const a, const UIControl* b) noexcept {
@@ -284,7 +308,9 @@ void LongUI::UIControl::AfterUpdate() noexcept {
 #ifdef _DEBUG
     assert(debug_updated && "must call Update() before this");
     debug_updated = false;
-    std::memset(&debug_render_checker, 0, sizeof(debug_render_checker));
+    this->debug_checker.SetFalse(DEBUG_CHECK_BACK);
+    this->debug_checker.SetFalse(DEBUG_CHECK_MAIN);
+    this->debug_checker.SetFalse(DEBUG_CHECK_FORE);
 #endif
 }
 
@@ -486,8 +512,14 @@ void LongUI::UIControl::RefreshWorld() noexcept {
 #endif
 }
 
-// UIMarginalable 构造函数
-LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {
+/// <summary>
+/// Initializes with specified xml-node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIMarginalable::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // 有效结点
     if (node) {
         // 获取类型
@@ -511,6 +543,9 @@ LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noe
         assert(this->marginal_type < MARGINAL_CONTROL_SIZE && "bad marginal_type");
         force_cast(this->flags) |= Flag_MarginalControl;
     }
+    // 本类已被初始化
+#ifdef _DEBUG
+#endif
 }
 
 
@@ -567,7 +602,7 @@ namespace LongUI {
                 UIManager << DL_Hint << L"node null" << LongUI::endl;
             }
             // 申请空间
-            pControl = new(std::nothrow) UINull(ctrlparent, node);
+            pControl = new(std::nothrow) UINull(ctrlparent);
             if (!pControl) {
                 UIManager << DL_Error << L"alloc null" << LongUI::endl;
             }
@@ -575,9 +610,12 @@ namespace LongUI {
         }
     public:
         // constructor 构造函数
-        UINull(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
+        UINull(UIContainer* cp) noexcept : Super(cp) {}
         // destructor 析构函数
         ~UINull() noexcept { }
+    protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept { Super::initialize(node); }
     };
     // space holder
     class UISpaceHolder final : public UINull {
@@ -590,7 +628,7 @@ namespace LongUI {
         virtual auto Recreate() noexcept ->HRESULT override { return S_OK; }
     public:
         // constructor 构造函数
-        UISpaceHolder() noexcept : Super(nullptr, LongUINullXMLNode) {}
+        UISpaceHolder() noexcept : Super(nullptr) { Super::initialize(LongUINullXMLNode); }
         // destructor 析构函数
         ~UISpaceHolder() noexcept { }
     };
@@ -624,9 +662,29 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 
 
 // ------------------------------ UIContainer -----------------------------
-// UIContainer 构造函数
-LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), marginal_control() {
+/// <summary>
+/// UIs the container.
+/// </summary>
+/// <param name="cp">The parent for self in control-level</param>
+/// <returns></returns>
+LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal_control() {
     std::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
+}
+
+/// <summary>
+/// Initializes with specified cxml-node
+/// </summary>
+/// <param name="cp">The cp.</param>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
+#ifdef _DEBUG
+    for (auto ctrl : marginal_control) {
+        assert(ctrl == nullptr && "bad action");
+    }
+#endif
+    // 链式调用
+    Super::initialize(node);
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
@@ -748,7 +806,7 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
     // 查找子控件
     auto control_got = this->FindChild(arg.pt);
     // 不可视算没有
-    if (control_got && !control_got->visible) control_got = nullptr;
+    if (control_got && !control_got->GetVisible()) control_got = nullptr;
     // 不同
     if (control_got != m_pMousePointed && arg.event == LongUI::MouseEvent::Event_MouseMove) {
         auto newarg = arg;
@@ -794,7 +852,7 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
 // 渲染子控件
 void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
     // 可渲染?
-    if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
+    if (ctrl->GetVisible() && ctrl->visible_rect.right > ctrl->visible_rect.left
         && ctrl->visible_rect.bottom > ctrl->visible_rect.top) {
         // 修改世界转换矩阵
         UIManager_RenderTarget->SetTransform(&ctrl->world);
@@ -1046,32 +1104,29 @@ void LongUI::UIContainer::Update() noexcept {
 #endif
     }
     // 修改可视化区域
-    if (this->IsNeedRefreshWorld()) {
-        // 更新边缘控件
-        if (this->flags & Flag_Container_ExistMarginalControl) {
-            for (auto ctrl : this->marginal_control) {
-                // 刷新
-                if (ctrl) {
-                    // 更新世界矩阵
-                    ctrl->SetControlWorldChanged();
-                    ctrl->RefreshWorldMarginal();
-                    // 坐标转换
-                    D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-                    auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-                    auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-                    // 修改可视区域
-                    ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
-                    ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
-                    ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
-                    ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
+    if (this->IsNeedRefreshWorld() && (this->flags & Flag_Container_ExistMarginalControl)) {
+        for (auto ctrl : this->marginal_control) {
+            // 刷新
+            if (ctrl) {
+                // 更新世界矩阵
+                ctrl->SetControlWorldChanged();
+                ctrl->RefreshWorldMarginal();
+                // 坐标转换
+                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+                auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+                auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+                // 修改可视区域
+                ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
+                ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
+                ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
+                ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
 #ifdef _DEBUG
-                    if (ctrl->debug_this) {
-                        UIManager << DL_Log << ctrl
-                            << " visible rect changed to: "
-                            << ctrl->visible_rect << endl;
-                    }
-#endif
+                if (ctrl->debug_this) {
+                    UIManager << DL_Log << ctrl
+                        << " visible rect changed to: "
+                        << ctrl->visible_rect << endl;
                 }
+#endif
             }
         }
         // 已处理该消息

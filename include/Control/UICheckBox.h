@@ -26,42 +26,6 @@
 
 // LongUI namespace
 namespace LongUI {
-    // CheckBoxState
-    enum class CheckBoxState : uint16_t {
-        // 选中
-        State_Checked = 0,
-        // 不确定
-        State_Indeterminate,
-        // 未选中
-        State_Unchecked,
-        // count
-        STATE_COUNT,
-    };
-    // helper namespace
-    namespace Helper {
-        // get CheckBoxState
-        auto GetEnumFromString(const char* value, CheckBoxState bad_match) noexcept->CheckBoxState;
-        // get animation type
-        inline auto GetEnumFromXml(pugi::xml_node node, CheckBoxState bad_match,
-            const char* attribute = "checkstate", const char* prefix = nullptr) noexcept {
-            return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
-        }
-    }
-    /// <summary>
-    /// Graphics Interface Config for Checkbox
-    /// </summary>
-    class GIConfigCheckbox {
-    public:
-        // get count of basic state
-        static constexpr size_t GetBasicCount() noexcept { return size_t(ControlState::STATE_COUNT); }
-        // get count of extra state
-        static constexpr size_t GetExtraCount() noexcept { return size_t(CheckBoxState::STATE_COUNT); }
-        // meta initialize
-        static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
-            UNREFERENCED_PARAMETER(metas);
-            Helper::MakeMetaGroup(node, prefix, ids, static_cast<uint32_t>(GetBasicCount() * GetExtraCount()));
-        }
-    };
     // default checkBox control 默认复选框控件
     class UICheckBox final : public UIText {
         // super class
@@ -71,28 +35,6 @@ namespace LongUI {
     public:
         // box size
         static constexpr float BOX_SIZE = 16.f;
-        /// <summary>
-        /// Graphics Interface for check box
-        /// </summary>
-        class GICheckBox {
-        public:
-            // ctor
-            GICheckBox(pugi::xml_node node, const char* prefix = nullptr) noexcept;
-            // dtor 
-            ~GICheckBox() noexcept = default;
-            // recreate
-            auto Recreate() noexcept { return S_OK; }
-            // check if valid
-            bool IsValid() const noexcept { return true; }
-            // render this
-            void Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept;
-        public:
-            // color s
-            D2D1_COLOR_F            colors[ControlState::STATE_COUNT];
-        };
-        // Box
-        using Element4Checkbox = Component::AnimationStateMachineEx<GICheckBox,
-            Component::GIMeta<GIConfigCheckbox>, ControlState, CheckBoxState>;
     public:
         // Render 渲染 
         virtual void Render() const noexcept override;
@@ -124,18 +66,20 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
-        UICheckBox(UIContainer* cp, pugi::xml_node) noexcept;
+        UICheckBox(UIContainer* cp) noexcept : Super(cp) {}
     protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept;
         // destructor 析构函数
         ~UICheckBox() noexcept;
         // deleted function
         UICheckBox(const UICheckBox&) = delete;
     protected:
         // hand cursor
-        HCURSOR                 m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
+        HCURSOR                     m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
         // check box's box size
-        D2D1_SIZE_F             m_szCheckBox = D2D1::SizeF(16, 16);
+        D2D1_SIZE_F                 m_szCheckBox = D2D1::SizeF(16, 16);
         // element
-        Element4Checkbox        m_uiElement;
+        Component::Element4Checkbox m_uiElement;
     };
 }

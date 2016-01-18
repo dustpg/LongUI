@@ -33,6 +33,8 @@ namespace LongUI {
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     protected:
+        // init
+        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
         // dtor
         ~UIPage() noexcept;
     public:
@@ -62,7 +64,7 @@ namespace LongUI {
         // render page
         void RenderPage(uint32_t page) noexcept { m_vChildren[page]->Render(); }
         // ctor
-        UIPage(UIContainer* cp, pugi::xml_node node) noexcept;
+        UIPage(UIContainer* cp) noexcept;
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
     protected:

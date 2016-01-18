@@ -48,13 +48,15 @@ namespace LongUI{
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // ctor
-        UIVerticalLayout(UIContainer* cp, pugi::xml_node node) noexcept:Super(cp, node) { }
+        UIVerticalLayout(UIContainer* cp) noexcept:Super(cp) { }
         // dtor
         ~UIVerticalLayout() noexcept = default;
         // no copy ctor
         UIVerticalLayout(const UIVerticalLayout&) = delete;
-#ifdef LongUIDebugEvent
     protected:
+        // init
+        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+#ifdef LongUIDebugEvent
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif
@@ -81,13 +83,15 @@ namespace LongUI{
         // create 创建
         static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
         // ctor
-        UIHorizontalLayout(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) { }
+        UIHorizontalLayout(UIContainer* cp) noexcept :Super(cp) { }
         // dtor
         ~UIHorizontalLayout() noexcept = default;
         // no copy ctor
         UIHorizontalLayout(const UIHorizontalLayout&) = delete;
-#ifdef LongUIDebugEvent
     protected:
+        // init
+        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+#ifdef LongUIDebugEvent
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif

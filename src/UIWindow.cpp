@@ -5,10 +5,24 @@
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
-// UIWindow 构造函数
-LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
-noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_window) {
-    assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
+/// <summary>
+/// Initializes a new instance of the <see cref="UIWindow"/> class.
+/// </summary>
+/// <param name="parent">The parent for self in window-level</param>
+LongUI::UIWindow::UIWindow(UIWindow* parent) noexcept : Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {
+    std::memset(&m_curMedium, 0, sizeof(m_curMedium));
+}
+
+/// <summary>
+/// Initializes with specified xml-node.
+/// </summary>
+/// <param name="node">The xml node.</param>
+/// <returns></returns>
+void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    // 初始化
+    assert(node && "<LongUI::UIWindow::initialize> window_node null");
     std::memset(&m_curMedium, 0, sizeof(m_curMedium));
     // 检查名称
     {
@@ -40,9 +54,9 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
         if (node.attribute("alwaysrendering").as_bool(false)) {
             flag |= WindowFlag::Flag_AlwaysRendering;
         }
-        force_cast(this->window_flags) = flag;
+        force_cast(this->wndflags) = flag;
         // XXX:
-        force_cast(this->window_type) = Type_Layered;
+        force_cast(this->wnd_type) = Type_Layered;
     }
     // Debug Zone
 #ifdef _DEBUG
@@ -105,7 +119,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
             titlename.length() ? titlename.c_str() : L"LongUI",
             window_style,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
-            parent_window ? parent_window->GetHwnd() : nullptr,
+            this->wndparent ? this->wndparent->GetHwnd() : nullptr,
             nullptr,
             ::GetModuleHandleW(nullptr),
             this
@@ -793,8 +807,8 @@ void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
-    assert(this->window_type != Type_RenderOnParent);
-    if (this->window_type != Type_Layered) {
+    assert(this->wnd_type != Type_RenderOnParent);
+    if (this->wnd_type != Type_Layered) {
         force = true;
     }
     //UIManager << DL_Log << "called" << endl;
@@ -891,7 +905,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         // XXX: Fixit
-        if (this->window_type == Type_Layered) {
+        if (this->wnd_type == Type_Layered) {
             // DirectComposition桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
@@ -958,7 +972,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
         longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
     }
     // 使用DComp
-    if (this->window_type == Type_Layered) {
+    if (this->wnd_type == Type_Layered) {
         // 创建直接组合(Direct Composition)设备
         if (SUCCEEDED(hr)) {
             hr = LongUI::Dll::DCompositionCreateDevice(

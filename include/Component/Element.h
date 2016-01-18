@@ -46,7 +46,9 @@ namespace LongUI {
             // State
             using State = uint16_t;
             // ctor
-            AnimationStateMachine(pugi::xml_node node, State basic, State extra, const char* prefix = nullptr) noexcept;
+            AnimationStateMachine() noexcept;
+            // initialize
+            void Init(State basic, State extra, pugi::xml_node node, const char* prefix = nullptr) noexcept;
             // dtor
             ~AnimationStateMachine() noexcept {}
         public:
@@ -98,8 +100,13 @@ namespace LongUI {
             static_assert(sizeof(StateExtra) <= sizeof(StateTarget), "bad action");
         public:
             // ctor
-            AnimationStateMachineEx(pugi::xml_node node, StateBasic basic, StateExtra extra /*= StateExtra(0)*/, const char* prefix = nullptr) noexcept
-            : m_machine(node, static_cast<StateTarget>(basic), static_cast<StateTarget>(extra), prefix),  m_ifBasic(node, prefix), m_ifExtra(node, prefix) { }
+            AnimationStateMachineEx() noexcept { }
+            // init
+            void Init(StateBasic basic, StateExtra extra, pugi::xml_node node, const char* prefix = nullptr) noexcept {
+                m_machine.Init(static_cast<StateTarget>(basic), static_cast<StateTarget>(extra), node, prefix);
+                m_ifBasic.Init(node, prefix);
+                m_ifExtra.Init(node, prefix);
+            }
             // dtor
             ~AnimationStateMachineEx() noexcept = default;
         public:
@@ -188,7 +195,9 @@ namespace LongUI {
             };
         public:
             // ctor
-            GIMeta(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitMeta(node, prefix, m_metas, m_aID); }
+            GIMeta() noexcept = default;
+            // init
+            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitMeta(node, prefix, m_metas, m_aID); }
             // dtor 
             ~GIMeta() noexcept = default;
             // recreate
@@ -218,7 +227,9 @@ namespace LongUI {
             };
         public:
             // ctor
-            GIBurshRect(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitBrush(node, prefix, m_apBrushes, m_aID); }
+            GIBurshRect() noexcept = default;
+            // init
+            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitBrush(node, prefix, m_apBrushes, m_aID); }
             // dtor 
             ~GIBurshRect() noexcept { GIHelper::Clean(m_apBrushes, lengthof(m_apBrushes)); }
             // check if valid (must be valid)
@@ -248,7 +259,9 @@ namespace LongUI {
             };
         public:
             // ctor
-            GIColorRect(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitColor(node, prefix, colors); }
+            GIColorRect() noexcept = default;
+            // init
+            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept { GIConfig::InitColor(node, prefix, colors); }
             // dtor 
             ~GIColorRect() noexcept = default;
             // recreate
@@ -291,16 +304,74 @@ namespace LongUI {
             // color initialize
             static void InitColor(pugi::xml_node node, const char* prefix, D2D1_COLOR_F color[]) noexcept {
                 static_assert(GetBasicCount() == STATE_COUNT, "must be same");
+                color->a = -1.f;
                 Helper::MakeStateBasedColor(node, prefix, color);
             }
         };
         /// <summary>
+        /// Graphics Interface Config for Checkbox
+        /// </summary>
+        class GIConfigCheckbox {
+        public:
+            // get count of basic state
+            static constexpr size_t GetBasicCount() noexcept { return size_t(ControlState::STATE_COUNT); }
+            // get count of extra state
+            static constexpr size_t GetExtraCount() noexcept { return size_t(CheckBoxState::STATE_COUNT); }
+            // meta initialize
+            static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
+                UNREFERENCED_PARAMETER(metas);
+                Helper::MakeMetaGroup(node, prefix, ids, static_cast<uint32_t>(GetBasicCount() * GetExtraCount()));
+            }
+        };
+
+        /// <summary>
+        /// Graphics Interface for check box
+        /// </summary>
+        class GICheckBox {
+        public:
+            // ctor
+            GICheckBox() noexcept = default;
+            // dtor 
+            ~GICheckBox() noexcept = default;
+            // init
+            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept {
+                GIConfigButton::InitColor(node, prefix, colors);
+            }
+            // recreate
+            auto Recreate() noexcept { return S_OK; }
+            // check if valid
+            bool IsValid() const noexcept { return true; }
+            // render this
+            void Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept;
+        public:
+            // color s
+            D2D1_COLOR_F            colors[ControlState::STATE_COUNT];
+        };
+        /// <summary>
         /// Element for Button
         /// </summary>
-        using Element4Button = AnimationStateMachineEx<GIBurshRect<GIConfigButton>, GIMeta<GIConfigButton>, ControlState>;
+        using Element4Button = AnimationStateMachineEx<
+            GIBurshRect<GIConfigButton>, 
+            GIMeta<GIConfigButton>, 
+            ControlState
+        >;
         /// <summary>
         /// Element for Bar
         /// </summary>
-        using Element4Bar = AnimationStateMachineEx<GIColorRect<GIConfigButton>, GIMeta<GIConfigButton>, ControlState>;
+        using Element4Bar = AnimationStateMachineEx<
+            GIColorRect<GIConfigButton>, 
+            GIMeta<GIConfigButton>, 
+            ControlState
+        >;
+        /// <summary>
+        /// Element for checkbox
+        /// </summary>
+        using Element4Checkbox = Component::AnimationStateMachineEx<
+            GICheckBox,
+            Component::GIMeta<GIConfigCheckbox>, 
+            ControlState, 
+            CheckBoxState
+        >;
+
     }
 }

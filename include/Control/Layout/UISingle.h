@@ -59,10 +59,12 @@ namespace LongUI {
         // get single child
         auto GetSingleChild() const noexcept { return m_pChild; }
         // ctor
-        UISingle(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
+        UISingle(UIContainer* cp) noexcept : Super(cp) {}
         // create 创建
-        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
+        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept->UIControl*;
     protected:
+        // init
+        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
         // render chain -> mainground

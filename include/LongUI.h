@@ -183,10 +183,11 @@ namespace LongUI {
         // create this control, type if parent pointer
         TypeGreater_CreateControl_ReinterpretParentPointer,
     };
-    // create
-    template<typename T, typename XMLNODE> T* CreateWidthCET(CreateEventType ty, XMLNODE node) noexcept {
-        return new(std::nothrow) T(reinterpret_cast<UIContainer*>(ty), node);
-    }
+    // create control with "CET"
+#define LongUI__CreateWidthCET(CLASS, CONTROL, CET, NODE) \
+if (!NODE) UIManager << DL_Hint << L"node null" << LongUI::endl;\
+if((CONTROL = new(std::nothrow) CLASS(reinterpret_cast<LongUI::UIContainer*>(CET)))) CONTROL->CLASS::initialize(NODE);\
+else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     // use this
 #define case_LongUI__Type_CreateControl default
     // CreateControl Function 控件创建函数
@@ -295,6 +296,13 @@ namespace LongUI {
         State_Hover,           // 鼠标移上
         State_Pushed,          // 鼠标按下
         STATE_COUNT,           // 状态数量
+    };
+    // CheckBoxState
+    enum class CheckBoxState : uint16_t {
+        State_Checked = 0,      // 选中
+        State_Indeterminate,    // 不确定
+        State_Unchecked,        // 未选中
+        STATE_COUNT,            // count
     };
     // bitmap render rule
     enum class BitmapRenderRule : uint16_t {

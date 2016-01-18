@@ -107,8 +107,10 @@ void LongUI::UISlider::Update() noexcept {
 }
 
 // UISlider 构造函数
-LongUI::UISlider::UISlider(UIContainer* cp, pugi::xml_node node) noexcept: 
-    Super(cp, node), m_uiElement(node, State_Normal, 0) {
+void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    m_uiElement.Init(State_Normal, 0, node);
     // 设置
     if (node) {
         const char* str = nullptr;
@@ -135,9 +137,10 @@ LongUI::UISlider::UISlider(UIContainer* cp, pugi::xml_node node) noexcept:
     m_uiElement.SetBasicState(State_Normal);
 }
 
+
 // UISlider::CreateControl 函数
 auto LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UISlider* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -147,16 +150,7 @@ auto LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) 
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UISlider>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UISlider, pControl, type, node);
     }
     return pControl;
 }
