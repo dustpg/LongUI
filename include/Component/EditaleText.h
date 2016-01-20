@@ -183,7 +183,7 @@ namespace LongUI { namespace Component {
     private:
         // remove text
         auto remove_text(uint32_t off, uint32_t len) noexcept {
-            this->IsReadOnly() ? ::MessageBeep(MB_ICONERROR) : m_string.Remove(off, len);
+            this->IsReadOnly() ? LongUI::BeepError() : m_string.Remove(off, len);
             return !this->IsReadOnly();
         }
     public:

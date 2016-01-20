@@ -111,12 +111,12 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     </List>
     <Single><Button text="XYZ" templateid="2" enabled="false"/></Single>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
-    <Button name="btn_x0" size="0, 48" borderwidth="1"
+    <Button name="btn_x0" size="0, 48" borderwidth="1" enabled="false"
         margin="4,4,4,4" text="这是楷体字  這是楷體字" textfamily="KaiTi"/>
     <!--Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="core" margin="4,4,4,4" 
         text="%cHello%], %uworld!%]%f黑体字%]%f楷体字%]%p#0F0, SimHei, KaiTi"/-->
     <Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="core" margin="4,4,4,4" 
-        text="%t水的化学式: H%t2%]O%t繁体%]%]%tdòng动%]%pss06,sups ,trad, ruby"/>
+        text="%t水的化学式: H%t2%]O%t繁体而不是简体%]%]%tdòng动%]%pss06,sups ,trad, ruby"/>
 </Window>
 )xml";
 

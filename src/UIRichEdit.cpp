@@ -400,7 +400,7 @@ HRESULT LongUI::UIRichEdit::TxGetPropertyBits(DWORD dwMask, DWORD *pdwBits){
     return S_OK;
 }
 
-HRESULT LongUI::UIRichEdit::TxNotify(DWORD iNotify, void *pv){
+HRESULT LongUI::UIRichEdit::TxNotify(DWORD iNotify, void*pv){
     // Claim to have handled the notifcation, even though we always ignore it
     UNREFERENCED_PARAMETER(iNotify);
     UNREFERENCED_PARAMETER(pv);

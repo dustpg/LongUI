@@ -68,6 +68,7 @@ namespace LongUI { namespace impl { static float const floatx2[] = { 0.f, 0.f };
 LongUI::UIControl::UIControl(UIContainer* parent) noexcept :
     parent(parent), 
     context(),
+    m_stateBasic(uint8_t(-1)),
     level(parent ? (parent->level + 1ui8) : 0ui8),
     m_pWindow(parent ? parent->GetWindow() : nullptr) {
     // 溢出错误
@@ -75,6 +76,7 @@ LongUI::UIControl::UIControl(UIContainer* parent) noexcept :
         UIManager << DL_Error
             << L"too deep for this tree"
             << LongUI::endl;
+        assert(!"too deep");
     }
 }
 
@@ -216,9 +218,8 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
-    if (this->parent) {
+    if (this->parent) 
         this->parent->RemoveChildReference(this);
-    }
     m_pWindow->RemoveControlReference(this);
     LongUI::SafeRelease(m_pBrush_SetBeforeUse);
     LongUI::SafeRelease(m_pBackgroudBrush);
@@ -233,8 +234,6 @@ LongUI::UIControl::~UIControl() noexcept {
     }
 }
 
-//#pragma push_macro("_DEBUG")
-//#undef _DEBUG
 // UIControl:: 渲染调用链: 背景
 void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
@@ -291,7 +290,6 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     }
 }
 
-//#pragma pop_macro("_DEBUG")
 
 // UI控件: 刷新
 void LongUI::UIControl::AfterUpdate() noexcept {

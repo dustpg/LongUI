@@ -70,8 +70,8 @@ void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
     this->list_flag = listflag;
 
     // TEST: INIT COLOR DATA
-    m_colorLineNormal1 = D2D1::ColorF(0xffffff, 0.5f);
-    m_colorLineNormal2 = D2D1::ColorF(0xeeeeee, 0.5f);
+    m_colorLineNormal1 = D2D1::ColorF(0xffffffui32, 0.5f);
+    m_colorLineNormal2 = D2D1::ColorF(0xeeeeeeui32, 0.5f);
 }
 
 // 添加事件监听器(雾)

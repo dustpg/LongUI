@@ -171,7 +171,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         HRESULT hr = S_OK;
         // 只读
         if (this->IsReadOnly()) {
-            ::MessageBeep(MB_ICONERROR);
+            LongUI::BeepError();
             return S_FALSE;
         }
         // 插入字符
@@ -207,8 +207,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         LongUI::SafeRelease(old_layout);
         return hr;
     }
-
-
     // 返回当前选择区域
     auto EditaleText::GetSelectionRange() const noexcept -> DWRITE_TEXT_RANGE {
         // 返回当前选择返回
@@ -225,7 +223,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 返回范围
         return { caretBegin, caretEnd - caretBegin };
     }
-
     // 设置选择区
     auto EditaleText::SetSelection(
         SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept -> HRESULT {
@@ -566,7 +563,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 字符有效
         if ((ch >= 0x20 || ch == 9)) {
             if (this->IsReadOnly()) {
-                ::MessageBeep(MB_ICONERROR);
+                LongUI::BeepError();
                 return;
             }
             // 删除选择区字符串
@@ -595,7 +592,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             this->refresh(true);
         }
     }
-
 
     // 按键时
     void EditaleText::OnKey(uint32_t keycode) noexcept {
@@ -1490,9 +1486,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             brush->SetOpacity(1.f);
         }
     }
-    // GIMetaBasic 帮助器 -- META 渲染
+    // GIMetaBasic 帮助器 -- 颜色 渲染
     LongUINoinline void GIHelper::Render(
-        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, const D2D1_COLOR_F colors[], uint16_t basic) noexcept {
+        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, 
+        const D2D1_COLOR_F colors[], uint16_t basic
+        ) noexcept {
         auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
         assert(UIManager_RenderTarget && brush && "bad action");
         // 检查动画
@@ -1543,13 +1541,13 @@ LONGUI_NAMESPACE_END
 
 
 // 返回FALSE
-HRESULT LongUI::XUIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDisabled) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::IsPixelSnappingDisabled(void*, BOOL * isDisabled) noexcept {
     *isDisabled = false;
     return S_OK;
 }
 
 // 从目标渲染呈现器获取
-HRESULT LongUI::XUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::GetCurrentTransform(void*, DWRITE_MATRIX * mat) noexcept {
     assert(UIManager_RenderTarget);
     // XXX: 优化 Profiler 就这1行 0.05%
     UIManager_RenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
@@ -1557,14 +1555,14 @@ HRESULT LongUI::XUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX 
 }
 
 // 始终如一, 方便转换
-HRESULT LongUI::XUIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::GetPixelsPerDip(void*, FLOAT * bilibili) noexcept {
     *bilibili = 1.f;
     return S_OK;
 }
 
 // 渲染内联对象
 HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
-    _In_opt_ void * clientDrawingContext,
+    _In_opt_ void* clientDrawingContext,
     FLOAT originX, FLOAT originY,
     _In_ IDWriteInlineObject * inlineObject,
     BOOL isSideways, BOOL isRightToLeft,
@@ -1584,15 +1582,20 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
     return S_OK;
 }
 
-// v-table
-#define LONGUIVTABLE(pointer)  (*reinterpret_cast<const size_t * const>(pointer))
-// same v-table?
-#define LONGUISAMEVT(a, b) (LONGUIVTABLE(a) == LONGUIVTABLE(b))
+// longui 
+namespace LongUI {
+    // same v-table?
+    template<class A, class B> auto same_vtable(const A* a, const B* b) noexcept {
+        auto table1 = (*reinterpret_cast<const size_t * const>(a));
+        auto table2 = (*reinterpret_cast<const size_t * const>(b));
+        return table1 == table2;
+    }
+}
 
 // ------------------CUINormalTextRender-----------------------
 // 刻画字形
 HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
-    void * clientDrawingContext,
+    void* clientDrawingContext,
     FLOAT baselineOriginX, FLOAT baselineOriginY,
     DWRITE_MEASURING_MODE measuringMode,
     const DWRITE_GLYPH_RUN * glyphRun,
@@ -1603,7 +1606,7 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
     // 检查
-    if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
+    if (effect && same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
@@ -1632,7 +1635,7 @@ HRESULT LongUI::CUINormalTextRender::DrawUnderline(
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
-    if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
+    if (effect && same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
@@ -1663,7 +1666,7 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
-    if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
+    if (effect && same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {

@@ -263,6 +263,9 @@ namespace LongUI {
             arg.ste.enabled = enabled; this->DoEvent(arg);
             m_stateBasic.SetTo(Attribute_Enabled, enabled);
         }
+    protected:
+        // check control state based on basic state
+        auto check_state() const noexcept { return this->GetEnabled() ? State_Normal : State_Disabled; }
     public:
         // set state
         auto SetUserState(bool b) noexcept { m_bool16.SetTo(Index_StateUser, b); }
@@ -293,7 +296,7 @@ namespace LongUI {
         // width of border
         float                   m_fBorderWidth = 0.f;
         // now color of border
-        D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACAC);
+        D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACACui32);
         // roundsize of border
         D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
         // bit-array-index 16

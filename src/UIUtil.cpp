@@ -373,8 +373,8 @@ HRESULT LongUI::CUIDataObject::CopyMedium(STGMEDIUM * pMedDest, STGMEDIUM * pMed
 }
 
 // 设置Blob
-HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void * pvBlob, UINT cbBlob) noexcept {
-    void *pv = GlobalAlloc(GPTR, cbBlob);
+HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void* pvBlob, UINT cbBlob) noexcept {
+    void*pv = GlobalAlloc(GPTR, cbBlob);
     HRESULT hr = pv ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr)) {
         CopyMemory(pv, pvBlob, cbBlob);
@@ -1457,7 +1457,7 @@ namespace LongUI {
 }
 
 // 创建接口
-auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
+auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void** ppvObject) noexcept -> HRESULT {
     // 资源读取器
     if (riid == LongUI::GetIID<LongUI::IUIResourceLoader>()) {
         *ppvObject = LongUI::CreateResourceLoaderForXML(m_manager, this->resource);

@@ -1,7 +1,5 @@
 ﻿#include "LongUI.h"
 
-#define UIElement_SetNewState(e,s) m_pWindow->StartRender(e.GetByType<Element_Basic>().SetNewState(s), this)
-
 // UISlider 背景渲染
 void LongUI::UISlider::render_chain_background() const noexcept {
     Super::render_chain_background();
@@ -110,7 +108,7 @@ void LongUI::UISlider::Update() noexcept {
 void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
-    m_uiElement.Init(State_Normal, 0, node);
+    m_uiElement.Init(this->check_state(), 0, node);
     // 设置
     if (node) {
         const char* str = nullptr;

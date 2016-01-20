@@ -367,7 +367,7 @@ namespace LongUI {
         return static_cast<size_t>(m_aResourceCount[type]);
     }
     // get reource
-    auto LongUI::CUIResourceLoaderXML::GetResourcePointer(ResourceType type, size_t index) noexcept -> void * {
+    auto LongUI::CUIResourceLoaderXML::GetResourcePointer(ResourceType type, size_t index) noexcept -> void* {
         void* data = nullptr;
         auto node = this->find_node_with_index(m_aNodes[type], index);
         switch (type)

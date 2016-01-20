@@ -82,7 +82,7 @@ namespace LongUI {
         // 复制媒体数据
         HRESULT CopyMedium(STGMEDIUM* pMedDest, STGMEDIUM* pMedSrc, FORMATETC* pFmtSrc) noexcept;
         // 设置Blob
-        HRESULT SetBlob(CLIPFORMAT cf, const void *pvBlob, UINT cbBlob) noexcept;
+        HRESULT SetBlob(CLIPFORMAT cf, const void*pvBlob, UINT cbBlob) noexcept;
     private:
         // 当前数据
         DATASTORAGE             m_dataStorage;

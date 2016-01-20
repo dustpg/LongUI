@@ -126,9 +126,9 @@ namespace LongUI {
         // D2D1IsMatrixInvertible@d2d1.dll
         static decltype(&::D2D1IsMatrixInvertible) D2D1IsMatrixInvertible;
         // D2D1CreateFactory@d2d1.dll
-        static HRESULT (WINAPI* D2D1CreateFactory)(D2D1_FACTORY_TYPE, REFIID, CONST D2D1_FACTORY_OPTIONS *, void **);
+        static HRESULT (WINAPI* D2D1CreateFactory)(D2D1_FACTORY_TYPE, REFIID, CONST D2D1_FACTORY_OPTIONS *, void**);
         // DCompositionCreateDevice, Win8 and later hold it
-        static HRESULT (STDAPICALLTYPE* DCompositionCreateDevice)(IDXGIDevice*, REFIID, void **);
+        static HRESULT (STDAPICALLTYPE* DCompositionCreateDevice)(IDXGIDevice*, REFIID, void**);
     };
     // std::atoi diy version
     auto AtoI(const char* __restrict) noexcept -> int;

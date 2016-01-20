@@ -128,7 +128,7 @@ void LongUI::UIButton::Update() noexcept {
 void LongUI::UIButton::initialize(pugi::xml_node node) noexcept {
     // 链式初始化
     Super::initialize(node);
-    m_uiElement.Init(State_Normal, 0, node);
+    m_uiElement.Init(this->check_state(), 0, node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
     // 初始化
@@ -172,6 +172,7 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             return true;
         case LongUI::Event::Event_SetEnabled:
             // 修改状态
+            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
             return Super::DoEvent(arg);
         }
     }
@@ -180,6 +181,9 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // 鼠标事件处理
 bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // 禁用状态禁用鼠标消息
+    if (!this->GetEnabled()) return true;
+    // 转换坐标
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     // longui 消息
     switch (arg.event)
@@ -195,11 +199,13 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
+        // 左键按下:
         m_pWindow->SetCapture(this);
         this->SetControlState(LongUI::State_Pushed);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
+        // 左键弹起:
         if (m_pWindow->IsReleasedControl(this)) {
             bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
             rec = false;

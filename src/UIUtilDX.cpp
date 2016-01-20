@@ -53,7 +53,7 @@ namespace LongUI { namespace impl {
         // 创建枚举器
         HRESULT STDMETHODCALLTYPE CreateEnumeratorFromKey(
             IDWriteFactory *pFactory,
-            const void *collectionKey,
+            const void*collectionKey,
             UINT32 collectionKeySize,
             IDWriteFontFileEnumerator **ppFontFileEnumerator
             ) noexcept override {

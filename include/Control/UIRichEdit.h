@@ -146,7 +146,7 @@ namespace LongUI {
         //@cmember Bulk access to bit properties
         virtual HRESULT     TxGetPropertyBits(DWORD dwMask, DWORD *pdwBits) override;
         //@cmember Notify host of events
-        virtual HRESULT     TxNotify(DWORD iNotify, void *pv) override;
+        virtual HRESULT     TxNotify(DWORD iNotify, void*pv) override;
         // East Asia Methods for getting the Input Context
         virtual HIMC        TxImmGetContext() override;
         // East Asia Methods for release the Input Context

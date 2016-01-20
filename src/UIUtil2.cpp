@@ -272,10 +272,10 @@ namespace LongUI { namespace Helper {
     LongUINoinline bool MakeStateBasedColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F color[4]) noexcept {
         // 初始值
         if (color->a < 0.0f || color->a > 1.f) {
-            color[State_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-            color[State_Normal] = D2D1::ColorF(0xCDCDCDCD);
-            color[State_Hover] = D2D1::ColorF(0xA9A9A9A9);
-            color[State_Pushed] = D2D1::ColorF(0x78787878);
+            color[State_Disabled] = D2D1::ColorF(0xDEDEDEDEui32);
+            color[State_Normal] = D2D1::ColorF(0xCDCDCDCDui32);
+            color[State_Hover] = D2D1::ColorF(0xA9A9A9A9ui32);
+            color[State_Pushed] = D2D1::ColorF(0x78787878ui32);
         }
         bool rc = false;
         // 循环设置
@@ -365,10 +365,10 @@ bool LongUI::Helper::MakeString(const char* data, CUIString& str) noexcept {
 // 设置边框颜色
 bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATE_COUNT]) noexcept {
     // 边框颜色
-    color[State_Disabled] = D2D1::ColorF(0xD9D9D9);
-    color[State_Normal] = D2D1::ColorF(0xACACAC);
-    color[State_Hover] = D2D1::ColorF(0x7EB4EA);
-    color[State_Pushed] = D2D1::ColorF(0x569DE5);
+    color[State_Disabled] = D2D1::ColorF(0xBFBFBFui32);
+    color[State_Normal] = D2D1::ColorF(0xACACACui32);
+    color[State_Hover] = D2D1::ColorF(0x7EB4EAui32);
+    color[State_Pushed] = D2D1::ColorF(0x569DE5ui32);
     // 检查
     if (node) {
         const char* attr[] = {

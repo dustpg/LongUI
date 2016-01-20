@@ -150,13 +150,14 @@ namespace LongUI { namespace Helper {
     };
     // ------------------- Save Memory Helper -----------------------------
     // Bit Array 计算机中每一字节都很宝贵
-    template<typename T>
-    class BitArray {
+    template<typename T> class BitArray {
     public:
         // bit wide
         static constexpr size_t LENGTH = sizeof(T) * CHAR_BIT;
         // ctor
         BitArray() noexcept {};
+        // ctor
+        BitArray(T v) noexcept : m_data(v) {};
         // dtor
         ~BitArray() noexcept {};
         // is true or fasle

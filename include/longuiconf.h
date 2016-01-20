@@ -6,6 +6,9 @@
 // dlmalloc
 #define USE_DL_PREFIX
 #include "../3rdparty/dlmalloc/dlmalloc.h"
+// Windows Header Files:
+#include <windows.h>
+
 // longui namespace
 namespace LongUI {
     // alloc for normal space
@@ -31,10 +34,12 @@ namespace LongUI {
     template<typename T> static auto SmallAllocT(size_t length) noexcept { 
         return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); 
     }
+    // error beep
+    inline void BeepError() noexcept { ::MessageBeep(MB_ICONERROR); }
     // get dpi for x
-    static auto GetDpiX() noexcept { return 96.f; }
+    inline auto GetDpiX() noexcept { return 96.f; }
     // get dpi for y
-    static auto GetDpiY() noexcept { return 96.f; }
+    inline auto GetDpiY() noexcept { return 96.f; }
 }
 
 
@@ -92,8 +97,6 @@ namespace LongUI {
 #ifndef _DEBUG
 #define NDEBUG
 #endif
-// Windows Header Files:
-#include <windows.h>
 //#include <commctrl.h>
 #include <Shlobj.h>
 //#include <Shlwapi.h>

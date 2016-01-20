@@ -1278,7 +1278,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     HRESULT hr = S_OK;
     /*
     焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
-        0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
+        0. 禁用: 0xBF灰度 矩形描边; 中心 0xCC灰色
         1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
         2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
         3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
@@ -1286,7 +1286,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     // 禁用
     if (SUCCEEDED(hr)) {
         hr = m_pd2dDeviceContext->CreateSolidColorBrush(
-            D2D1::ColorF(0xEFEFEF),
+            D2D1::ColorF(0xCCCCCC),
             reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + State_Disabled)
             );
     }

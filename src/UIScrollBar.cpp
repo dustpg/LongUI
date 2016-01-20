@@ -130,9 +130,10 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 void LongUI::UIScrollBarA::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
-    m_uiArrow1.Init( State_Normal, 0, node,"arrow1");
-    m_uiArrow2.Init(State_Normal, 0, node, "arrow2");
-    m_uiThumb.Init(State_Normal, 0, node, "thumb");
+    auto s = this->check_state();
+    m_uiArrow1.Init( s, 0, node,"arrow1");
+    m_uiArrow2.Init(s, 0, node, "arrow2");
+    m_uiThumb.Init(s, 0, node, "thumb");
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
         m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
