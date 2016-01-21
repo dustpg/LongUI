@@ -1488,13 +1488,8 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapter
 }
 
 // CUIDefaultConfigure 显示错误信息
-auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t * str_a, const wchar_t* str_b) noexcept -> void {
-    assert(str_a && "bad argument!");
-    if (!str_b) str_b = L"Error!";
-    ::MessageBoxW(::GetForegroundWindow(), str_a, str_b, MB_ICONERROR);
-#ifdef _DEBUG
-    assert(!"error");
-#endif
+auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t* str_a, const wchar_t* str_b) noexcept -> void {
+    ::MessageBoxW(::GetForegroundWindow(), str_a, str_b, MB_ICONERROR); assert(!"error");
 }
 
 #ifdef _DEBUG
@@ -1552,7 +1547,7 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
         config.atribute = FOREGROUND_RED;
         break;
     }
-    assert(level < LongUI::DLEVEL_SIZE);
+    assert(level < LongUI::DLEVEL_SIZE && "out of range");
     // 名称
     const wchar_t* strings[LongUI::DLEVEL_SIZE] = {
         L"None      Console",

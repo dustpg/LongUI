@@ -64,6 +64,14 @@ namespace LongUI {
         void SetControlState(ControlState state) noexcept;
         // set checkbox state
         void SetCheckBoxState(CheckBoxState state) noexcept;
+        // set control state in safe way
+        void SafeSetControlState(ControlState state) noexcept {
+            if (this->GetEnabled()) this->SetControlState(state);
+        }
+        // set checkbox state in safe way
+        void SafeSetCheckBoxState(CheckBoxState state) noexcept {
+            if (this->GetEnabled()) this->SetCheckBoxState(state);
+        }
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;

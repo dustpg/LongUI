@@ -8,77 +8,82 @@
 LONGUI_NAMESPACE_BEGIN namespace Component {
     // --------------------- LongUI::Component::ShortText ---------------------
     /// <summary>
+    /// Initializes a new instance of the <see cref="ShortText"/> class.
+    /// </summary>
+    ShortText::ShortText() noexcept {
+        // 设置
+        m_config = { nullptr, 128.f, 64.f, 1.f, RichType::Type_None, 0 };
+        // 初始化
+        this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
+        this->color[State_Normal] = D2D1::ColorF(D2D1::ColorF::Black);
+        this->color[State_Hover] = D2D1::ColorF(D2D1::ColorF::Black);
+        this->color[State_Pushed] = D2D1::ColorF(D2D1::ColorF::Black);
+    }
+    /// /// <summary>
     /// ShortText 初始化
     /// </summary>
     /// <param name="node">The xml node.</param>
     /// <param name="prefix">The prefix.</param>
     /// <returns></returns>
     void ShortText::Init(pugi::xml_node node, const char* prefix) noexcept {
+        assert(node && "call ShortText::Init() if no xml-node");
         LongUI::SafeRelease(m_pTextRenderer);
         // 设置
-        m_config = {
-            nullptr,
-            128.f, 64.f, 1.f,
-            Helper::GetEnumFromXml(node, RichType::Type_None, "richtype", prefix),
-            0
+        m_config.rich_type = Helper::GetEnumFromXml(node, RichType::Type_None, "richtype", prefix);
+        // 颜色
+        Helper::MakeStateBasedColor(node, prefix, this->color);
+        // 检查参数
+        assert(prefix && "bad arguments");
+        // 属性
+        auto attribute = [&node, prefix](const char* attr) {
+            return Helper::XMLGetValue(node, attr, prefix);
         };
-        // 初始化
-        this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
-        this->color[State_Normal] = D2D1::ColorF(D2D1::ColorF::Black);
-        this->color[State_Hover] = D2D1::ColorF(0xA9A9A9A9);
-        this->color[State_Pushed] = D2D1::ColorF(0x78787878);
-        // 有效结点
-        if (node) {
-            // 颜色
-            Helper::MakeStateBasedColor(node, prefix, this->color);
-            // 检查参数
-            assert(prefix && "bad arguments");
-            // 属性
-            auto attribute = [&node, prefix](const char* attr) {
-                return Helper::XMLGetValue(node, attr, prefix);
-            };
-            const char*str = nullptr;
-            // 获取进度
-            if ((str = attribute("progress"))) {
-                m_config.progress = LongUI::AtoF(str);
-            }
-            // 获取渲染器
-            m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
-            // 保证缓冲区
-            if (m_pTextRenderer) {
-                auto length = m_pTextRenderer->GetContextSizeInByte();
-                if (length) {
-                    if ((str = attribute("context"))) {
-                        m_buffer.NewSize(length);
-                        m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
-                    }
+        const char*str = nullptr;
+        // 获取进度
+        if ((str = attribute("progress"))) {
+            m_config.progress = LongUI::AtoF(str);
+        }
+        // 获取渲染器
+        m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
+        // 保证缓冲区
+        if (m_pTextRenderer) {
+            auto length = m_pTextRenderer->GetContextSizeInByte();
+            if (length) {
+                if ((str = attribute("context"))) {
+                    m_buffer.NewSize(length);
+                    m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
                 }
-            }
-            {
-                // 检查格式
-                uint32_t format_index = 0;
-                if ((str = attribute("format"))) {
-                    format_index = static_cast<uint32_t>(LongUI::AtoI(str));
-                }
-                // 模板
-                auto fmt = UIManager.GetTextFormat(format_index);
-                auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
-                UNREFERENCED_PARAMETER(hr);
-                assert(SUCCEEDED(hr));
-                LongUI::SafeRelease(fmt);
-            }
-            // 重建
-            {
-                auto text = node.attribute(prefix).value();
-                m_text.Set(text ? text : "");
             }
         }
+        {
+            // 检查格式
+            uint32_t format_index = 0;
+            if ((str = attribute("format"))) {
+                format_index = static_cast<uint32_t>(LongUI::AtoI(str));
+            }
+            // 模板
+            auto fmt = UIManager.GetTextFormat(format_index);
+            auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
+            UNREFERENCED_PARAMETER(hr);
+            assert(SUCCEEDED(hr));
+            LongUI::SafeRelease(fmt);
+        }
+        // 没有文本
+        auto text = node.attribute(prefix).value();
+        m_text.Set(text ? text : "");
+        // 重建
+        this->RecreateLayout();
+    }
+    /// <summary>
+    /// ShortText 初始化
+    /// </summary>
+    /// <returns></returns>
+    void ShortText::Init() noexcept {
+        LongUI::SafeRelease(m_pTextRenderer);
         // 没有?
-        else {
-            char name[2]; name[0] = '0'; name[1] = 0;
-            m_pTextRenderer = UIManager.GetTextRenderer(name);
-            m_config.format = UIManager.GetTextFormat(0);
-        }
+        char name[2]; name[0] = '0'; name[1] = 0;
+        m_pTextRenderer = UIManager.GetTextRenderer(name);
+        m_config.format = UIManager.GetTextFormat(0);
         this->RecreateLayout();
     }
     // ShortText 析构
@@ -1567,32 +1572,22 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 检查动画
         constexpr uint16_t basic = ControlState::STATE_COUNT;
         const auto& baani = sm.GetBasicAnimation();
-        const auto& exani = sm.GetExtraAnimation();
         auto bastt1 = sm.GetOldBasicState();
         auto bastt2 = sm.GetNowBasicState();
         auto exstt1 = sm.GetOldExtraState();
         auto exstt2 = sm.GetNowExtraState();
-        D2D1_COLOR_F color;
-        auto* clrs = this->colors;
-        // 额外状态动画中
-        if (exani.value > 0.f && exani.value < ANIMATION_END) {
-            float exalpha = ANIMATION_END - exani.value;
-            // Alpha混合
-            color.a = clrs[bastt2].a * exani.value + clrs[bastt2].a * exalpha;
-            color.r = clrs[bastt2].r * exani.value + clrs[bastt2].r * exalpha;
-            color.g = clrs[bastt2].g * exani.value + clrs[bastt2].g * exalpha;
-            color.b = clrs[bastt2].b * exani.value + clrs[bastt2].b * exalpha;
-        }
         // 基本动画状态
-        else {
+        {
+            auto* clrs = this->colors;
             float baalpha = ANIMATION_END - baani.value;
+            D2D1_COLOR_F color;
             // Alpha混合
             color.a = clrs[bastt2].a * baani.value + clrs[bastt1].a * baalpha;
             color.r = clrs[bastt2].r * baani.value + clrs[bastt1].r * baalpha;
             color.g = clrs[bastt2].g * baani.value + clrs[bastt1].g * baalpha;
             color.b = clrs[bastt2].b * baani.value + clrs[bastt1].b * baalpha;
+            brush->SetColor(&color);
         }
-        brush->SetColor(&color);
         // 渲染 边框
         {
             auto tprc = rect;
@@ -1602,6 +1597,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             tprc.bottom -= 0.5f;
             UIManager_RenderTarget->DrawRectangle(tprc, brush);
         }
+        // 渲染背景
+
+        // 渲染中图案
         {
             float rate = sm.GetExtraAnimation().value;
             // 解开?
@@ -1649,7 +1647,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 float cx = (rect.left + rect.right) * 0.5f;
                 float cy = (rect.bottom + rect.top) * 0.5f;
                 D2D1_RECT_F dwrc;
-                float sz = cx + UICheckBox::BOX_SIZE * 0.4f * rate;
+                float sz = UICheckBox::BOX_SIZE * 0.33f * rate;
                 dwrc.left   = cx - sz;
                 dwrc.top    = cy - sz;
                 dwrc.right  = cx + sz;
@@ -4067,10 +4065,15 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_SetEnabled:
             // 修改状态
             m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
-            return Super::DoEvent(arg);
         }
     }
     return Super::DoEvent(arg);
+}
+
+// 设置控件状态
+LongUINoinline void LongUI::UIButton::SetControlState(ControlState state) noexcept {
+    m_text.SetState(state); 
+    m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
 }
 
 // 鼠标事件处理
@@ -4084,19 +4087,19 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     {
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进: 设置UI元素状态
-        this->SetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
+        this->SetControlState(LongUI::State_Hover);
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        this->SetControlState(LongUI::State_Normal);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
+        this->SetControlState(LongUI::State_Normal);
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下:
         m_pWindow->SetCapture(this);
-        this->SetControlState(LongUI::State_Pushed);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
+        this->SetControlState(LongUI::State_Pushed);
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         // 左键弹起:
@@ -5091,8 +5094,28 @@ void LongUI::UICheckBox::Update() noexcept {
     return Super::Update();
 }
 
-// 设置状态
+// 设置控件状态
+LongUINoinline void LongUI::UICheckBox::SetControlState(ControlState state) noexcept {
+#ifdef _DEBUG
+    if (!this->GetEnabled()) {
+        UIManager << DL_Hint << this
+            << L" disabled, maybe you want call 'UICheckBox::SafeSetControlState'"
+            << LongUI::endl;
+    }
+#endif
+    m_text.SetState(state); 
+    m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
+}
+
+// 设置复选框状态
 void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
+#ifdef _DEBUG
+    if (!this->GetEnabled()) {
+        UIManager << DL_Hint << this
+            << L" disabled, maybe you want call 'UICheckBox::SafeSetCheckBoxState'"
+            << LongUI::endl;
+    }
+#endif
     // 修改状态
     if (state != this->GetCheckBoxState()) {
         m_pWindow->StartRender(m_uiElement.SetExtraState(state), this);
@@ -5100,10 +5123,12 @@ void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
         rec = false;
 #ifdef _DEBUG
         const wchar_t* const list[] = {
-            L"checked", L"indeterminate", L"unchecked"
+            L"checked", 
+            L"indeterminate",
+            L"unchecked"
         };
         UIManager << DL_Log << this
-            << L"Checkbox change to ["
+            << L"change to ["
             << list[size_t(state)]
             << L']' 
             << LongUI::endl;
@@ -5154,15 +5179,18 @@ auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node
 // do event 事件处理
 bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI消息
-    /*if (arg.sender) {
+    if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_SetFocus:
+        /*case LongUI::Event::Event_SetFocus:
             __fallthrough;
         case LongUI::Event::Event_KillFocus:
-            return true;
+            return true;*/
+        case LongUI::Event::Event_SetEnabled:
+            // 修改状态
+            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
         }
-    }*/
+    }
     return Super::DoEvent(arg);
 }
 
@@ -8953,7 +8981,7 @@ namespace LongUI {
         };
         ID2D1Bitmap1* bitmap = nullptr;
         // 转换路径
-        wchar_t path_buffer[LongUIStringBufferLength];
+        wchar_t path_buffer[MAX_PATH];
         path_buffer[LongUI::UTF8toWideChar(uri, path_buffer)] = 0;
         // 载入
         auto hr = load_bitmap_from_file(
@@ -8961,9 +8989,18 @@ namespace LongUI {
             m_pWICFactory, path_buffer, 0u, 0u, &bitmap
             );
         // 失败?
+#ifdef _DEBUG
         if (FAILED(hr)) {
-            m_manager.ShowError(hr);
+            wchar_t tmp[MAX_PATH * 2];
+            std::memset(tmp, 0, sizeof(tmp));
+            std::swprintf(
+                tmp, LongUIStringBufferLength,
+                L"File Path -- '%ls'",
+                path_buffer
+                );
+            m_manager.ShowError(hr, tmp);
         }
+#endif
         return bitmap;
     }
     // 获取笔刷
@@ -12007,13 +12044,8 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapter
 }
 
 // CUIDefaultConfigure 显示错误信息
-auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t * str_a, const wchar_t* str_b) noexcept -> void {
-    assert(str_a && "bad argument!");
-    if (!str_b) str_b = L"Error!";
-    ::MessageBoxW(::GetForegroundWindow(), str_a, str_b, MB_ICONERROR);
-#ifdef _DEBUG
-    assert(!"error");
-#endif
+auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t* str_a, const wchar_t* str_b) noexcept -> void {
+    ::MessageBoxW(::GetForegroundWindow(), str_a, str_b, MB_ICONERROR); assert(!"error");
 }
 
 #ifdef _DEBUG
@@ -12071,7 +12103,7 @@ void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept
         config.atribute = FOREGROUND_RED;
         break;
     }
-    assert(level < LongUI::DLEVEL_SIZE);
+    assert(level < LongUI::DLEVEL_SIZE && "out of range");
     // 名称
     const wchar_t* strings[LongUI::DLEVEL_SIZE] = {
         L"None      Console",

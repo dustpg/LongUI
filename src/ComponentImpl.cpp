@@ -1569,32 +1569,22 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 检查动画
         constexpr uint16_t basic = ControlState::STATE_COUNT;
         const auto& baani = sm.GetBasicAnimation();
-        const auto& exani = sm.GetExtraAnimation();
         auto bastt1 = sm.GetOldBasicState();
         auto bastt2 = sm.GetNowBasicState();
         auto exstt1 = sm.GetOldExtraState();
         auto exstt2 = sm.GetNowExtraState();
-        D2D1_COLOR_F color;
-        auto* clrs = this->colors;
-        // 额外状态动画中
-        if (exani.value > 0.f && exani.value < ANIMATION_END) {
-            float exalpha = ANIMATION_END - exani.value;
-            // Alpha混合
-            color.a = clrs[bastt2].a * exani.value + clrs[bastt2].a * exalpha;
-            color.r = clrs[bastt2].r * exani.value + clrs[bastt2].r * exalpha;
-            color.g = clrs[bastt2].g * exani.value + clrs[bastt2].g * exalpha;
-            color.b = clrs[bastt2].b * exani.value + clrs[bastt2].b * exalpha;
-        }
         // 基本动画状态
-        else {
+        {
+            auto* clrs = this->colors;
             float baalpha = ANIMATION_END - baani.value;
+            D2D1_COLOR_F color;
             // Alpha混合
             color.a = clrs[bastt2].a * baani.value + clrs[bastt1].a * baalpha;
             color.r = clrs[bastt2].r * baani.value + clrs[bastt1].r * baalpha;
             color.g = clrs[bastt2].g * baani.value + clrs[bastt1].g * baalpha;
             color.b = clrs[bastt2].b * baani.value + clrs[bastt1].b * baalpha;
+            brush->SetColor(&color);
         }
-        brush->SetColor(&color);
         // 渲染 边框
         {
             auto tprc = rect;
@@ -1604,6 +1594,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             tprc.bottom -= 0.5f;
             UIManager_RenderTarget->DrawRectangle(tprc, brush);
         }
+        // 渲染背景
+
+        // 渲染中图案
         {
             float rate = sm.GetExtraAnimation().value;
             // 解开?

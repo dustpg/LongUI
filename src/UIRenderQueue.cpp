@@ -595,7 +595,7 @@ namespace LongUI {
         };
         ID2D1Bitmap1* bitmap = nullptr;
         // 转换路径
-        wchar_t path_buffer[LongUIStringBufferLength];
+        wchar_t path_buffer[MAX_PATH];
         path_buffer[LongUI::UTF8toWideChar(uri, path_buffer)] = 0;
         // 载入
         auto hr = load_bitmap_from_file(
@@ -603,9 +603,18 @@ namespace LongUI {
             m_pWICFactory, path_buffer, 0u, 0u, &bitmap
             );
         // 失败?
+#ifdef _DEBUG
         if (FAILED(hr)) {
-            m_manager.ShowError(hr);
+            wchar_t tmp[MAX_PATH * 2];
+            std::memset(tmp, 0, sizeof(tmp));
+            std::swprintf(
+                tmp, LongUIStringBufferLength,
+                L"File Path -- '%ls'",
+                path_buffer
+                );
+            m_manager.ShowError(hr, tmp);
         }
+#endif
         return bitmap;
     }
     // 获取笔刷

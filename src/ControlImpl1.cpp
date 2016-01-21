@@ -173,7 +173,6 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_SetEnabled:
             // 修改状态
             m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
-            return Super::DoEvent(arg);
         }
     }
     return Super::DoEvent(arg);

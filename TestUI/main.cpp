@@ -222,7 +222,11 @@ private:
         if ((btn = this->FindControl("btn_ind"))) {
             auto cbx = LongUI::longui_cast<LongUI::UICheckBox*>(this->FindControl("cbx_0"));
             btn->AddEventCall([cbx, this](UIControl*) noexcept {
-                cbx->SetCheckBoxState(LongUI::CheckBoxState::State_Indeterminate);
+                auto stt = LongUI::CheckBoxState::State_Indeterminate;
+                if (cbx->GetCheckBoxState() == LongUI::CheckBoxState::State_Indeterminate) {
+                    stt = LongUI::CheckBoxState::State_Unchecked;
+                }
+                cbx->SetCheckBoxState(stt);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }

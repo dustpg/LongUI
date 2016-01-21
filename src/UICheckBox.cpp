@@ -35,12 +35,26 @@ void LongUI::UICheckBox::Update() noexcept {
 
 // 设置控件状态
 LongUINoinline void LongUI::UICheckBox::SetControlState(ControlState state) noexcept {
+#ifdef _DEBUG
+    if (!this->GetEnabled()) {
+        UIManager << DL_Hint << this
+            << L" disabled, maybe you want call 'UICheckBox::SafeSetControlState'"
+            << LongUI::endl;
+    }
+#endif
     m_text.SetState(state); 
     m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
 }
 
 // 设置复选框状态
 void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
+#ifdef _DEBUG
+    if (!this->GetEnabled()) {
+        UIManager << DL_Hint << this
+            << L" disabled, maybe you want call 'UICheckBox::SafeSetCheckBoxState'"
+            << LongUI::endl;
+    }
+#endif
     // 修改状态
     if (state != this->GetCheckBoxState()) {
         m_pWindow->StartRender(m_uiElement.SetExtraState(state), this);
@@ -48,10 +62,12 @@ void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
         rec = false;
 #ifdef _DEBUG
         const wchar_t* const list[] = {
-            L"checked", L"indeterminate", L"unchecked"
+            L"checked", 
+            L"indeterminate",
+            L"unchecked"
         };
         UIManager << DL_Log << this
-            << L"Checkbox change to ["
+            << L"change to ["
             << list[size_t(state)]
             << L']' 
             << LongUI::endl;
@@ -102,15 +118,18 @@ auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node
 // do event 事件处理
 bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI消息
-    /*if (arg.sender) {
+    if (arg.sender) {
         switch (arg.event)
         {
-        case LongUI::Event::Event_SetFocus:
+        /*case LongUI::Event::Event_SetFocus:
             __fallthrough;
         case LongUI::Event::Event_KillFocus:
-            return true;
+            return true;*/
+        case LongUI::Event::Event_SetEnabled:
+            // 修改状态
+            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
         }
-    }*/
+    }
     return Super::DoEvent(arg);
 }
 

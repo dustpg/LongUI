@@ -154,7 +154,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)$(Configuration)\CppAllInOne.exe  $(SolutionDir)src\ _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+      <Command>$(SolutionDir)$(Platform)\$(Configuration)\CppAllInOne.exe  $(SolutionDir)src\ _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
