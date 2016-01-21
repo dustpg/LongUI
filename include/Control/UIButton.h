@@ -57,10 +57,10 @@ namespace LongUI{
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
         UIButton(UIContainer* cp) noexcept : Super(cp) {}
-        // set state
-        void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
         // get state
-        auto GetControlState() const noexcept { return m_uiElement.GetNowBaiscState(); }
+        auto GetControlState() const noexcept { return m_uiElement.GetNowBasicState(); }
+        // set state
+        void SetControlState(ControlState state) noexcept;
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;

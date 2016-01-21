@@ -32,9 +32,11 @@ namespace LongUI { namespace Component {
         // recreate layout
         void RecreateLayout() noexcept;
         // constructor
-        ShortText() noexcept {}
-        // initizlize
+        ShortText() noexcept;
+        // initizlize with xml-node
         void Init(pugi::xml_node, const char* prefix = "text") noexcept;
+        // initizlize without xml-node
+        void Init() noexcept;
         // destructor
         ~ShortText() noexcept;
         // set color

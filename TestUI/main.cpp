@@ -64,7 +64,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <CheckBox name="chb01" margin="4,4,4,4" borderwidth="1" text="复选框例子" size="0,64"/>
+    <CheckBox name="cbx_0" margin="4,4,4,4" borderwidth="1" text="复选框例子" size="0,64"/>
     <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
         <ListHeader marginal="top" sepwidth="-8">
             <Button borderwidth="1" text="name" name="lst_header0"/>
@@ -109,7 +109,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             <Text text="一瞬" templateid="4"/>
         </ListLine>
     </List>
-    <Single><Button text="XYZ" templateid="2" enabled="false"/></Single>
+    <Single><Button name="btn_ind" text="XYZ" templateid="2" enabled="true"/></Single>
     <Edit debug="false" name="edit_demo" size="0,64" text="ABC甲乙丙123"/>
     <Button name="btn_x0" size="0, 48" borderwidth="1" enabled="false"
         margin="4,4,4,4" text="这是楷体字  這是楷體字" textfamily="KaiTi"/>
@@ -210,13 +210,19 @@ private:
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        btn = this->FindControl("btn_x0");
-        if (btn) {
+        if ((btn = this->FindControl("btn_x0"))) {
             auto ctrl1 = btn;
             auto ctrl2 = btn->prev;
             btn->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
                 // 交换
                 this->SwapChild(LongUI::MakeIteratorBI(ctrl1), LongUI::MakeIteratorBI(ctrl2));
+                return true;
+            }, LongUI::SubEvent::Event_ItemClicked);
+        }
+        if ((btn = this->FindControl("btn_ind"))) {
+            auto cbx = LongUI::longui_cast<LongUI::UICheckBox*>(this->FindControl("cbx_0"));
+            btn->AddEventCall([cbx, this](UIControl*) noexcept {
+                cbx->SetCheckBoxState(LongUI::CheckBoxState::State_Indeterminate);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }

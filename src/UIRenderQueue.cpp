@@ -752,6 +752,7 @@ namespace LongUI {
         assert(node && "node not found");
         IDWriteTextFormat* fmt = nullptr;
         auto hr = DX::MakeTextFormat(node, &fmt);
+        UNREFERENCED_PARAMETER(hr);
         assert(SUCCEEDED(hr));
         return fmt;
     }

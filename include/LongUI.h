@@ -356,7 +356,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_ContextMenu,
         // single-line-edit returned
         Event_EditReturned,
-        // value changed(like slider or scrollbar)
+        // value changed(like slider, scrollbar, checkbox and ect.)
         Event_ValueChanged,
         // ----- User Custom Defined Event -----
         Event_Custom,

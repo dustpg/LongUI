@@ -272,10 +272,10 @@ namespace LongUI { namespace Helper {
     LongUINoinline bool MakeStateBasedColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F color[4]) noexcept {
         // 初始值
         if (color->a < 0.0f || color->a > 1.f) {
-            color[State_Disabled] = D2D1::ColorF(0xDEDEDEDEui32);
-            color[State_Normal] = D2D1::ColorF(0xCDCDCDCDui32);
-            color[State_Hover] = D2D1::ColorF(0xA9A9A9A9ui32);
-            color[State_Pushed] = D2D1::ColorF(0x78787878ui32);
+            color[State_Disabled]   = D2D1::ColorF(0xDEDEDEDEui32);
+            color[State_Normal]     = D2D1::ColorF(0xCDCDCDCDui32);
+            color[State_Hover]      = D2D1::ColorF(0xA9A9A9A9ui32);
+            color[State_Pushed]     = D2D1::ColorF(0x78787878ui32);
         }
         bool rc = false;
         // 循环设置
@@ -362,21 +362,28 @@ bool LongUI::Helper::MakeString(const char* data, CUIString& str) noexcept {
     return true;
 }
 
+
+// longui::helper
+LONGUI_NAMESPACE_BEGIN namespace Helper {
+    // 边框
+    const char* const BORDER_COLOR_ATTR[] = {
+        "disabledbordercolor", "normalbordercolor",
+        "hoverbordercolor",  "pushedbordercolor",
+    };
+}
+LONGUI_NAMESPACE_END
+
 // 设置边框颜色
 bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATE_COUNT]) noexcept {
     // 边框颜色
-    color[State_Disabled] = D2D1::ColorF(0xBFBFBFui32);
-    color[State_Normal] = D2D1::ColorF(0xACACACui32);
-    color[State_Hover] = D2D1::ColorF(0x7EB4EAui32);
-    color[State_Pushed] = D2D1::ColorF(0x569DE5ui32);
+    color[State_Disabled]   = D2D1::ColorF(0xBFBFBFui32);
+    color[State_Normal]     = D2D1::ColorF(0xACACACui32);
+    color[State_Hover]      = D2D1::ColorF(0x7EB4EAui32);
+    color[State_Pushed]     = D2D1::ColorF(0x569DE5ui32);
     // 检查
     if (node) {
-        const char* attr[] = {
-            "disabledbordercolor", "normalbordercolor",
-            "hoverbordercolor",  "pushedbordercolor",
-        };
         for (auto i = 0u; i < STATE_COUNT; ++i) {
-            Helper::MakeColor(node.attribute(attr[i]).value(), color[i]);
+            Helper::MakeColor(node.attribute(BORDER_COLOR_ATTR[i]).value(), color[i]);
         }
     }
     return true;
@@ -407,17 +414,11 @@ namespace LongUI { namespace Helper {
             // 遍历
             while (*str) {
                 // 空白: 跳过
-                if (white_space(*str)) {
-                    ++str;
-                }
+                if (white_space(*str))  ++str;
                 // 数字: true
-                else if (valid_digit(*str)) {
-                    return true;
-                }
+                else if (valid_digit(*str))  return true;
                 // 其他: false
-                else {
-                    break;
-                }
+                else  break;
             }
             return false;
         };

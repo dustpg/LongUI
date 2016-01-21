@@ -25,50 +25,38 @@ void LongUI::UICheckBox::Render() const noexcept {
     this->render_chain_main();
     // 前景渲染
     this->render_chain_foreground();
-
-    /*D2D1_RECT_F draw_rect = this->GetDrawRect();;
-    draw_rect.left += 1.f;
-    // 计算渲染区
-    draw_rect.top = (draw_rect.bottom + draw_rect.top - m_szCheckBox.height) * 0.5f;
-    draw_rect.bottom = draw_rect.top + m_szCheckBox.height;
-    draw_rect.right = draw_rect.left + m_szCheckBox.width;
-    // 渲染框
-    UIManager_RenderTarget->DrawRectangle(
-        draw_rect, m_pBrush, 1.5f
-        );
-    // 渲染箭头
-    switch (this->state)
-    {
-    case CheckboxState::State_Checked:
-        D2D1_MATRIX_3X2_F matrix;
-        UIManager_RenderTarget->GetTransform(&matrix);
-        UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Translation(draw_rect.left, draw_rect.bottom) * matrix);
-        UIManager_RenderTarget->FillGeometry(m_pCheckedGeometry, m_pBrush);
-        UIManager_RenderTarget->SetTransform(&matrix);
-        break;
-    case CheckboxState::State_Indeterminate:
-        // 收缩范围
-        draw_rect.left += m_szCheckBox.width * 0.2f;
-        draw_rect.right -= m_szCheckBox.width * 0.2f;
-        draw_rect.top += m_szCheckBox.height * 0.2f;
-        draw_rect.bottom -= m_szCheckBox.height * 0.2f;
-        // 渲染框
-        UIManager_RenderTarget->FillRectangle(draw_rect, m_pBrush);
-        break;
-    }
-    // 调节文本范围 +
-    //this->show_zone.left += m_szCheckBox.width;
-    // 刻画文本
-    Super::Render(RenderType::Type_Render);
-    // 调节文本范围 -
-    //this->show_zone.left -= m_szCheckBox.width;
-    return S_OK;*/
 }
 
 // UI检查框: 刷新
 void LongUI::UICheckBox::Update() noexcept {
     m_uiElement.Update();
     return Super::Update();
+}
+
+// 设置控件状态
+LongUINoinline void LongUI::UICheckBox::SetControlState(ControlState state) noexcept {
+    m_text.SetState(state); 
+    m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
+}
+
+// 设置复选框状态
+void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
+    // 修改状态
+    if (state != this->GetCheckBoxState()) {
+        m_pWindow->StartRender(m_uiElement.SetExtraState(state), this);
+        bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
+        rec = false;
+#ifdef _DEBUG
+        const wchar_t* const list[] = {
+            L"checked", L"indeterminate", L"unchecked"
+        };
+        UIManager << DL_Log << this
+            << L"Checkbox change to ["
+            << list[size_t(state)]
+            << L']' 
+            << LongUI::endl;
+#endif
+    }
 }
 
 // UICheckBox 初始化
@@ -80,6 +68,9 @@ void LongUI::UICheckBox::initialize(pugi::xml_node node) noexcept {
         Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked),
         node
         );
+    // 初始化
+    Helper::SetBorderColor(node, m_aBorderColor);
+    constexpr int azz = sizeof(m_uiElement);
 }
 
 // UICheckBox 析构函数
@@ -126,27 +117,63 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // do mouse event 鼠标事件处理
 bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    //UIManager << DL_Hint << this << this->GetEnabled() << endl;
+    // 禁用状态禁用鼠标消息
+    if (!this->GetEnabled()) return true;
+    // 转换坐标
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    // 鼠标 消息
     switch (arg.event)
     {
     case LongUI::MouseEvent::Event_MouseEnter:
+        // 鼠标移进: 设置UI元素状态
+        this->SetControlState(LongUI::State_Hover);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         m_pWindow->now_cursor = m_hCursorHand;
-        break;
+        return true;
     case LongUI::MouseEvent::Event_MouseLeave:
+        // 鼠标移出: 设置UI元素状态
+        this->SetControlState(LongUI::State_Normal);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
         m_pWindow->now_cursor = m_pWindow->default_cursor;
-        break;
+        return true;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        // 左键按下:
+        m_pWindow->SetCapture(this);
+        this->SetControlState(LongUI::State_Pushed);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
+        return true;
     case LongUI::MouseEvent::Event_LButtonUp:
-        // 有效
-        if (arg.pt.x < this->view_size.width && arg.pt.y) {
+        // 左键弹起:
+        this->SetControlState(LongUI::State_Hover);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
+        // 检查的是本控件
+        if (m_pWindow->IsReleasedControl(this)) {
             // 检查flag
             auto target = CheckBoxState::State_Checked;
             if (this->GetCheckBoxState() == CheckBoxState::State_Checked) {
                 target = CheckBoxState::State_Unchecked;
             }
+            // 修改复选框状态
             this->SetCheckBoxState(target);
+            // 释放
+            m_pWindow->ReleaseCapture();
         }
-        break;
+        return true;
     }
-    return true;
+    // 未处理的消息
+    return false;
+}
+
+
+// 添加事件监听器
+bool LongUI::UICheckBox::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
+    // 点击
+    if (sb == SubEvent::Event_ValueChanged) {
+        m_event += std::move(call);
+        return true;
+    }
+    return Super::uniface_addevent(sb, std::move(call));
 }
 
 // recreate 重建
@@ -162,14 +189,3 @@ void LongUI::UICheckBox::cleanup() noexcept {
     delete this;
 }
 
-
-// -------------------------------------------------------
-
-// 复选框图像接口 -- 渲染
-void LongUI::Component::GICheckBox::Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept {
-    assert(UIManager_RenderTarget);
-    auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
-    brush->SetColor(colors + sm.GetNowBaiscState());
-    UIManager_RenderTarget->FillRectangle(rect, brush);
-    LongUI::SafeRelease(brush);
-}

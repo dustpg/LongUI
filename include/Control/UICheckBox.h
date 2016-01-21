@@ -47,6 +47,8 @@ namespace LongUI {
         // recreate 重建
         virtual auto Recreate() noexcept ->HRESULT override;
     protected:
+        // ui call
+        virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
         // render chain -> mainground
@@ -54,14 +56,14 @@ namespace LongUI {
         // render chain -> foreground
         void render_chain_foreground() const noexcept;
     public:
-        // set control state
-        void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
         // get control state
-        auto GetControlState() const noexcept { return m_uiElement.GetNowBaiscState(); }
-        // set checkbox state
-        void SetCheckBoxState(CheckBoxState state) noexcept { m_pWindow->StartRender(m_uiElement.SetExtraState(state), this); }
+        auto GetControlState() const noexcept { return m_uiElement.GetNowBasicState(); }
         // get checkbox state
         auto GetCheckBoxState() const noexcept { return m_uiElement.GetNowExtraState(); }
+        // set control state
+        void SetControlState(ControlState state) noexcept;
+        // set checkbox state
+        void SetCheckBoxState(CheckBoxState state) noexcept;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -77,9 +79,26 @@ namespace LongUI {
     protected:
         // hand cursor
         HCURSOR                     m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
-        // check box's box size
-        D2D1_SIZE_F                 m_szCheckBox = D2D1::SizeF(16, 16);
+        // callback
+        UICallBack                  m_event;
+        // color of border
+        D2D1_COLOR_F                m_aBorderColor[STATE_COUNT];
         // element
         Component::Element4Checkbox m_uiElement;
+#ifdef LongUIDebugEvent
+    protected:
+        // debug infomation
+        virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
+#endif
     };
+#ifdef LongUIDebugEvent
+    // 重载?特例化 GetIID
+    template<> LongUIInline const IID& GetIID<LongUI::UICheckBox>() {
+        // {B5B59701-F9CB-4B12-9FCB-8AA4780B4061}
+        static const GUID IID_LongUI_UICheckBox = {
+            0xb5b59701, 0xf9cb, 0x4b12, { 0x9f, 0xcb, 0x8a, 0xa4, 0x78, 0xb, 0x40, 0x61 } 
+        };
+        return IID_LongUI_UICheckBox;
+    }
+#endif
 }

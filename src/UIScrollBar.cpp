@@ -6,8 +6,9 @@
 
 
 // UIScrollBar 构造函数
-LongUI::UIScrollBar::UIScrollBar(UIContainer* cp) noexcept : Super(cp),
-m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIScrollBar::UIScrollBar(UIContainer* cp) noexcept : 
+    Super(cp),m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+
 }
 
 /// <summary>
@@ -130,10 +131,10 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 void LongUI::UIScrollBarA::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
-    auto s = this->check_state();
-    m_uiArrow1.Init( s, 0, node,"arrow1");
-    m_uiArrow2.Init(s, 0, node, "arrow2");
-    m_uiThumb.Init(s, 0, node, "thumb");
+    auto stt = this->check_state();
+    m_uiArrow1.Init(stt, 0, node,"arrow1");
+    m_uiArrow2.Init(stt, 0, node, "arrow2");
+    m_uiThumb.Init(stt, 0, node, "thumb");
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
         m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
@@ -250,14 +251,14 @@ void LongUI::UIScrollBarA::Render() const noexcept {
     {
         D2D1_COLOR_F color;
         if (m_bArrow1InColor) {
-            color = m_uiArrow1.GetBasicInterface().colors[m_uiArrow1.GetNowBaiscState()];
+            color = m_uiArrow1.GetBasicInterface().colors[m_uiArrow1.GetNowBasicState()];
             color.r = 1.f - color.r; color.g = 1.f - color.g; color.b = 1.f - color.b;
             m_pBrush_SetBeforeUse->SetColor(&color);
             render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
         }
         // 渲染几何体
         if (m_bArrow2InColor) {
-            color = m_uiArrow2.GetBasicInterface().colors[m_uiArrow2.GetNowBaiscState()];
+            color = m_uiArrow2.GetBasicInterface().colors[m_uiArrow2.GetNowBasicState()];
             color.r = 1.f - color.r; color.g = 1.f - color.g; color.b = 1.f - color.b;
             m_pBrush_SetBeforeUse->SetColor(&color);
             render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);

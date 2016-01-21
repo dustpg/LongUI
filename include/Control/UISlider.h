@@ -65,7 +65,7 @@ namespace LongUI{
         // set state
         void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
         // get state
-        auto GetControlState() const noexcept { m_uiElement.GetNowBaiscState(); }
+        auto GetControlState() const noexcept { m_uiElement.GetNowBasicState(); }
         // get value in [0, 1]
         auto GetValue01() const noexcept { return m_fValue; }
         // get value in [start, end]

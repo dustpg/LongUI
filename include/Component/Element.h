@@ -53,9 +53,9 @@ namespace LongUI {
             ~AnimationStateMachine() noexcept {}
         public:
             // get now basic state
-            auto GetNowBaiscState() const noexcept { return m_sttBasicNow; }
+            auto GetNowBasicState() const noexcept { return m_sttBasicNow; }
             // get old basic state
-            auto GetOldBaiscState() const noexcept { return m_sttBasicOld; }
+            auto GetOldBasicState() const noexcept { return m_sttBasicOld; }
             // get now extra state
             auto GetNowExtraState() const noexcept { return m_sttExtraNow; }
             // get old extra state
@@ -111,15 +111,15 @@ namespace LongUI {
             ~AnimationStateMachineEx() noexcept = default;
         public:
             // get now basic state
-            auto GetNowBaiscState() const noexcept { return static_cast<StateBasic>(m_machine.GetNowBaiscState()); }
+            auto GetNowBasicState() const noexcept { return static_cast<StateBasic>(m_machine.GetNowBasicState()); }
             // get old basic state
-            auto GetOldBaiscState() const noexcept { return static_cast<StateBasic>(m_machine.GetOldBaiscState()); }
+            auto GetOldBasicState() const noexcept { return static_cast<StateBasic>(m_machine.GetOldBasicState()); }
             // get now extra state
-            auto GetNowExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetNowBaiscState()); }
+            auto GetNowExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetNowExtraState()); }
             // get old extra state
-            auto GetOldExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetOldBaiscState()); }
+            auto GetOldExtraState() const noexcept { return static_cast<StateExtra>(m_machine.GetOldExtraState()); }
             // get value of basic state
-            auto GetBaiscVaule() const noexcept { return m_machine.GetBaiscVaule(); }
+            auto GetBasicVaule() const noexcept { return m_machine.GetBasicVaule(); }
             // get value of extra state
             auto GetExtraVaule() const noexcept { return m_machine.GetExtraVaule(); }
             // get basic interface
@@ -323,7 +323,6 @@ namespace LongUI {
                 Helper::MakeMetaGroup(node, prefix, ids, static_cast<uint32_t>(GetBasicCount() * GetExtraCount()));
             }
         };
-
         /// <summary>
         /// Graphics Interface for check box
         /// </summary>
@@ -334,9 +333,7 @@ namespace LongUI {
             // dtor 
             ~GICheckBox() noexcept = default;
             // init
-            void Init(pugi::xml_node node, const char* prefix = nullptr) noexcept {
-                GIConfigButton::InitColor(node, prefix, colors);
-            }
+            void Init(pugi::xml_node /*node*/, const char* /*prefix*/) noexcept;
             // recreate
             auto Recreate() noexcept { return S_OK; }
             // check if valid
@@ -372,6 +369,5 @@ namespace LongUI {
             ControlState, 
             CheckBoxState
         >;
-
     }
 }

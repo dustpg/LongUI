@@ -179,30 +179,36 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
+// 设置控件状态
+LongUINoinline void LongUI::UIButton::SetControlState(ControlState state) noexcept {
+    m_text.SetState(state); 
+    m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
+}
+
 // 鼠标事件处理
 bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // 禁用状态禁用鼠标消息
     if (!this->GetEnabled()) return true;
     // 转换坐标
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
-    // longui 消息
+    // 鼠标 消息
     switch (arg.event)
     {
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进: 设置UI元素状态
-        this->SetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
+        this->SetControlState(LongUI::State_Hover);
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        this->SetControlState(LongUI::State_Normal);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
+        this->SetControlState(LongUI::State_Normal);
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下:
         m_pWindow->SetCapture(this);
-        this->SetControlState(LongUI::State_Pushed);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
+        this->SetControlState(LongUI::State_Pushed);
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         // 左键弹起:
@@ -216,6 +222,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         }
         return true;
     }
+    // 未处理的消息
     return false;
 }
 
@@ -486,6 +493,26 @@ bool LongUI::UIButton::debug_do_event(const LongUI::DebugEventInformation& info)
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIButton>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI复选框: 调试信息
+bool LongUI::UICheckBox::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UICheckBox";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UICheckBox";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UICheckBox>()
             || Super::debug_do_event(info);
     default:
         break;

@@ -4,1303 +4,1664 @@
                    
                     
 
-// -------------------- LongUI::Component::ShortText --------------------
-// ShortText 构造函数
-LongUI::Component::ShortText::ShortText(pugi::xml_node node, const char* prefix) noexcept
-    : m_pTextRenderer(nullptr) {
-    // 设置
-    m_config = {
-        nullptr,
-        128.f, 64.f, 1.f,
-        Helper::GetEnumFromXml(node, RichType::Type_None, "richtype", prefix),
-        0
-    };
-    // 有效结点
-    if (node) {
+// longui::component
+LONGUI_NAMESPACE_BEGIN namespace Component {
+    // --------------------- LongUI::Component::ShortText ---------------------
+    /// <summary>
+    /// ShortText 初始化
+    /// </summary>
+    /// <param name="node">The xml node.</param>
+    /// <param name="prefix">The prefix.</param>
+    /// <returns></returns>
+    void ShortText::Init(pugi::xml_node node, const char* prefix) noexcept {
+        LongUI::SafeRelease(m_pTextRenderer);
+        // 设置
+        m_config = {
+            nullptr,
+            128.f, 64.f, 1.f,
+            Helper::GetEnumFromXml(node, RichType::Type_None, "richtype", prefix),
+            0
+        };
+        // 初始化
+        this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
+        this->color[State_Normal] = D2D1::ColorF(D2D1::ColorF::Black);
+        this->color[State_Hover] = D2D1::ColorF(0xA9A9A9A9);
+        this->color[State_Pushed] = D2D1::ColorF(0x78787878);
+        // 有效结点
+        if (node) {
+            // 颜色
+            Helper::MakeStateBasedColor(node, prefix, this->color);
+            // 检查参数
+            assert(prefix && "bad arguments");
+            // 属性
+            auto attribute = [&node, prefix](const char* attr) {
+                return Helper::XMLGetValue(node, attr, prefix);
+            };
+            const char*str = nullptr;
+            // 获取进度
+            if ((str = attribute("progress"))) {
+                m_config.progress = LongUI::AtoF(str);
+            }
+            // 获取渲染器
+            m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
+            // 保证缓冲区
+            if (m_pTextRenderer) {
+                auto length = m_pTextRenderer->GetContextSizeInByte();
+                if (length) {
+                    if ((str = attribute("context"))) {
+                        m_buffer.NewSize(length);
+                        m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
+                    }
+                }
+            }
+            {
+                // 检查格式
+                uint32_t format_index = 0;
+                if ((str = attribute("format"))) {
+                    format_index = static_cast<uint32_t>(LongUI::AtoI(str));
+                }
+                // 模板
+                auto fmt = UIManager.GetTextFormat(format_index);
+                auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
+                UNREFERENCED_PARAMETER(hr);
+                assert(SUCCEEDED(hr));
+                LongUI::SafeRelease(fmt);
+            }
+            // 重建
+            {
+                auto text = node.attribute(prefix).value();
+                m_text.Set(text ? text : "");
+            }
+        }
+        // 没有?
+        else {
+            char name[2]; name[0] = '0'; name[1] = 0;
+            m_pTextRenderer = UIManager.GetTextRenderer(name);
+            m_config.format = UIManager.GetTextFormat(0);
+        }
+        this->RecreateLayout();
+    }
+    // ShortText 析构
+    ShortText::~ShortText() noexcept {
+        LongUI::SafeRelease(m_pLayout);
+        LongUI::SafeRelease(m_pTextRenderer);
+        LongUI::SafeRelease(m_config.format);
+    }
+    // ShortText 重建布局
+    void ShortText::RecreateLayout() noexcept {
+        // 保留数据
+        auto old_layout = m_pLayout;
+        m_pLayout = nullptr;
+        // 看情况
+        switch (m_config.rich_type)
+        {
+        case LongUI::RichType::Type_None:
+        {
+            auto string_length_need = static_cast<uint32_t>(
+                static_cast<float>(m_text.length() + 1) * m_config.progress
+                );
+            // clamp it
+            if (string_length_need < 0) string_length_need = 0;
+            else if (string_length_need > m_text.length()) string_length_need = m_text.length();
+            // create it
+            auto hr = UIManager_DWriteFactory->CreateTextLayout(
+                m_text.c_str(),
+                string_length_need,
+                old_layout ? old_layout : m_config.format,
+                m_config.width,
+                m_config.height,
+                &m_pLayout
+                );
+            UNREFERENCED_PARAMETER(hr);
+            assert(SUCCEEDED(hr) && m_pLayout);
+            m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
+            break;
+        }
+        case LongUI::RichType::Type_Core:
+            m_pLayout = DX::FormatTextCore(m_config, m_text.c_str());
+            break;
+        case LongUI::RichType::Type_Xml:
+            m_pLayout = DX::FormatTextXML(m_config, m_text.c_str());
+            break;
+        case LongUI::RichType::Type_Custom:
+            m_pLayout = UIManager.configure->CustomRichType(m_config, m_text.c_str());
+            break;
+        }
+        LongUI::SafeRelease(old_layout);
+        // sad
+        assert(m_pLayout);
+    }
+    // -------------------- LongUI::Component::EditaleText --------------------
+    // DWrite部分代码参考: 
+    // http://msdn.microsoft.com/zh-cn/library/windows/desktop/dd941792(v=vs.85).aspx
+    /// <summary>
+    /// 刷新文本布局
+    /// </summary>
+    /// <param name="update">if set to <c>true</c> [update].</param>
+    /// <returns></returns>
+    auto EditaleText::refresh(bool update) const noexcept ->UIWindow* {
+        if (!m_bThisFocused) return nullptr;
+        RectLTWH_F rect; this->GetCaretRect(rect);
+        auto* window = m_pHost->GetWindow();
+        window->CreateCaret(m_pHost, rect.width, rect.height);
+        window->SetCaretPos(m_pHost, rect.left, rect.top);
+        if (update) {
+            window->Invalidate(m_pHost);
+        }
+        return window;
+    }
+    // 重新创建布局
+    void EditaleText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
+        assert(fmt && "bad argument");
+        assert(this->layout == nullptr && "bad action");
+        // 创建布局
+        auto hr = UIManager_DWriteFactory->CreateTextLayout(
+            m_string.c_str(), static_cast<uint32_t>(m_string.length()),
+            fmt,
+            m_size.width, m_size.height,
+            &this->layout
+            );
+    #ifdef _DEBUG
+        if (m_pHost->debug_this) {
+            UIManager << DL_Hint << L"CODE: " << long(hr) << LongUI::endl;
+            assert(hr == S_OK);
+        }
+    #endif
+        ShowHR(hr);
+    }
+
+    // 插入字符(串)
+    auto EditaleText::insert(
+        uint32_t pos, const wchar_t * str, uint32_t length) noexcept -> HRESULT {
+        HRESULT hr = S_OK;
+        // 只读
+        if (this->IsReadOnly()) {
+            LongUI::BeepError();
+            return S_FALSE;
+        }
+        // 插入字符
+        m_string.insert(pos, str, length);
+        auto old_length = static_cast<uint32_t>(m_string.length());
+        // 保留旧布局
+        auto old_layout = LongUI::SafeAcquire(this->layout);
+        // 重新创建布局
+        this->recreate_layout();
+        // 富文本情况下?
+        if (old_layout && this->IsRiched() && SUCCEEDED(hr)) {
+            // 复制全局属性
+            Component::EditaleText::CopyGlobalProperties(old_layout, this->layout);
+            // 对于每种属性, 获取并应用到新布局
+            // 在首位?
+            if (pos) {
+                // 第一块
+                Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
+                // 插入块
+                Component::EditaleText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
+                // 结束块
+                Component::EditaleText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
+            }
+            else {
+                // 插入块
+                Component::EditaleText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
+                // 结束块
+                Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
+            }
+            // 末尾
+            Component::EditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_string.length()), UINT32_MAX);
+        }
+        LongUI::SafeRelease(old_layout);
+        return hr;
+    }
+    // 返回当前选择区域
+    auto EditaleText::GetSelectionRange() const noexcept -> DWRITE_TEXT_RANGE {
+        // 返回当前选择返回
+        auto caretBegin = m_u32CaretAnchor;
+        auto caretEnd = m_u32CaretPos + m_u32CaretPosOffset;
+        // 相反则交换
+        if (caretBegin > caretEnd) {
+            std::swap(caretBegin, caretEnd);
+        }
+        // 限制范围在文本长度之内
+        auto textLength = static_cast<uint32_t>(m_string.size());
+        caretBegin = std::min(caretBegin, textLength);
+        caretEnd = std::min(caretEnd, textLength);
+        // 返回范围
+        return { caretBegin, caretEnd - caretBegin };
+    }
+    // 设置选择区
+    auto EditaleText::SetSelection(
+        SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept -> HRESULT {
+        //uint32_t line = uint32_t(-1);
+        uint32_t absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
+        uint32_t oldabsolute_position = absolute_position;
+        uint32_t old_caret_anchor = m_u32CaretAnchor;
+        DWRITE_TEXT_METRICS textMetrics;
+        // CASE
+        switch (mode)
+        {
+        case SelectionMode::Mode_Left:
+            m_u32CaretPos += m_u32CaretPosOffset;
+            if (m_u32CaretPos > 0) {
+                --m_u32CaretPos;
+                this->AlignCaretToNearestCluster(false, true);
+                absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
+                // 检查换行符
+                absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
+                if (absolute_position >= 1
+                    && absolute_position < m_string.size()
+                    && m_string[absolute_position - 1] == L'\r'
+                    &&  m_string[absolute_position] == L'\n')
+                {
+                    m_u32CaretPos = absolute_position - 1;
+                    this->AlignCaretToNearestCluster(false, true);
+                }
+            }
+            break;
+
+        case SelectionMode::Mode_Right:
+            m_u32CaretPos = absolute_position;
+            this->AlignCaretToNearestCluster(true, true);
+            absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
+            if (absolute_position >= 1
+                && absolute_position < m_string.size()
+                && m_string[absolute_position - 1] == '\r'
+                &&  m_string[absolute_position] == '\n')
+            {
+                m_u32CaretPos = absolute_position + 1;
+                this->AlignCaretToNearestCluster(false, true);
+            }
+            break;
+        case SelectionMode::Mode_LeftChar:
+            m_u32CaretPos = absolute_position;
+            m_u32CaretPos -= std::min(advance, absolute_position);
+            m_u32CaretPosOffset = 0;
+            break;
+        case SelectionMode::Mode_RightChar:
+            m_u32CaretPos = absolute_position + advance;
+            m_u32CaretPosOffset = 0;
+            {
+                // Use hit-testing to limit text position.
+                DWRITE_HIT_TEST_METRICS hitTestMetrics;
+                float caretX, caretY;
+                this->layout->HitTestTextPosition(
+                    m_u32CaretPos,
+                    false,
+                    &caretX,
+                    &caretY,
+                    &hitTestMetrics
+                    );
+                m_u32CaretPos = std::min(m_u32CaretPos, hitTestMetrics.textPosition + hitTestMetrics.length);
+            }
+            break;
+        case SelectionMode::Mode_Up:
+        case SelectionMode::Mode_Down:
+        {
+            EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+            // 获取行指标
+            this->layout->GetMetrics(&textMetrics);
+            metrice_buffer.NewSize(textMetrics.lineCount);
+            this->layout->GetLineMetrics(
+                metrice_buffer.GetData(),
+                textMetrics.lineCount,
+                &textMetrics.lineCount
+                );
+            // 获取行
+            uint32_t line, linePosition;
+            Component::EditaleText::GetLineFromPosition(
+                metrice_buffer.GetData(),
+                metrice_buffer.GetCount(),
+                m_u32CaretPos,
+                &line,
+                &linePosition
+                );
+            // 下移或上移
+            if (mode == SelectionMode::Mode_Up) {
+                if (line <= 0) break;
+                line--;
+                linePosition -= metrice_buffer[line].length;
+            }
+            else {
+                linePosition += metrice_buffer[line].length;
+                line++;
+                if (line >= metrice_buffer.GetCount())  break;
+            }
+            DWRITE_HIT_TEST_METRICS hitTestMetrics;
+            float caretX, caretY, dummyX;
+            // 获取当前文本X位置
+            this->layout->HitTestTextPosition(
+                m_u32CaretPos,
+                m_u32CaretPosOffset > 0, // trailing if nonzero, else leading edge
+                &caretX,
+                &caretY,
+                &hitTestMetrics
+                );
+            // 获取新位置Y坐标
+            this->layout->HitTestTextPosition(
+                linePosition,
+                false, // leading edge
+                &dummyX,
+                &caretY,
+                &hitTestMetrics
+                );
+            // 获取新x, y 的文本位置
+            BOOL isInside, isTrailingHit;
+            this->layout->HitTestPoint(
+                caretX, caretY,
+                &isTrailingHit,
+                &isInside,
+                &hitTestMetrics
+                );
+            m_u32CaretPos = hitTestMetrics.textPosition;
+            m_u32CaretPosOffset = isTrailingHit ? (hitTestMetrics.length > 0) : 0;
+        }
+        break;
+        case SelectionMode::Mode_LeftWord:
+        case SelectionMode::Mode_RightWord:
+        {
+            // 计算所需字符串集
+            EzContainer::SmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
+            UINT32 clusterCount;
+            this->layout->GetClusterMetrics(nullptr, 0, &clusterCount);
+            if (clusterCount == 0) break;
+            // 重置大小
+            metrice_buffer.NewSize(clusterCount);
+            this->layout->GetClusterMetrics(metrice_buffer.GetData(), clusterCount, &clusterCount);
+            m_u32CaretPos = absolute_position;
+            UINT32 clusterPosition = 0;
+            UINT32 oldCaretPosition = m_u32CaretPos;
+            // 左移
+            if (mode == SelectionMode::Mode_LeftWord) {
+                m_u32CaretPos = 0;
+                m_u32CaretPosOffset = 0; // leading edge
+                for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
+                    clusterPosition += metrice_buffer[cluster].length;
+                    if (metrice_buffer[cluster].canWrapLineAfter) {
+                        if (clusterPosition >= oldCaretPosition)
+                            break;
+                        // 刷新.
+                        m_u32CaretPos = clusterPosition;
+                    }
+                }
+            }
+            else {
+                // 之后
+                for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
+                    UINT32 clusterLength = metrice_buffer[cluster].length;
+                    m_u32CaretPos = clusterPosition;
+                    m_u32CaretPosOffset = clusterLength; // trailing edge
+                    if (clusterPosition >= oldCaretPosition &&
+                        metrice_buffer[cluster].canWrapLineAfter) {
+                        break;
+                    }
+                    clusterPosition += clusterLength;
+                }
+            }
+            //int a = 0;
+        }
+        break;
+        case SelectionMode::Mode_Home:
+        case SelectionMode::Mode_End:
+        {
+            // 获取预知的首位置或者末位置
+            EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+            // 获取行指标
+            this->layout->GetMetrics(&textMetrics);
+            metrice_buffer.NewSize(textMetrics.lineCount);
+            this->layout->GetLineMetrics(
+                metrice_buffer.GetData(),
+                textMetrics.lineCount,
+                &textMetrics.lineCount
+                );
+            uint32_t line;
+            Component::EditaleText::GetLineFromPosition(
+                metrice_buffer.GetData(),
+                metrice_buffer.GetCount(),
+                m_u32CaretPos,
+                &line,
+                &m_u32CaretPos
+                );
+            m_u32CaretPosOffset = 0;
+            if (mode == SelectionMode::Mode_End) {
+                // 放置插入符号
+                UINT32 lineLength = metrice_buffer[line].length -
+                    metrice_buffer[line].newlineLength;
+                m_u32CaretPosOffset = std::min(lineLength, 1u);
+                m_u32CaretPos += lineLength - m_u32CaretPosOffset;
+                this->AlignCaretToNearestCluster(true);
+            }
+        }
+        break;
+        case SelectionMode::Mode_First:
+            m_u32CaretPos = 0;
+            m_u32CaretPosOffset = 0;
+            break;
+
+        case SelectionMode::Mode_SelectAll:
+            m_u32CaretAnchor = 0;
+            exsel = true;
+            __fallthrough;
+        case SelectionMode::Mode_Last:
+            m_u32CaretPos = UINT32_MAX;
+            m_u32CaretPosOffset = 0;
+            this->AlignCaretToNearestCluster(true);
+            break;
+        case SelectionMode::Mode_Leading:
+            m_u32CaretPos = advance;
+            m_u32CaretPosOffset = 0;
+            break;
+        case SelectionMode::Mode_Trailing:
+            m_u32CaretPos = advance;
+            this->AlignCaretToNearestCluster(true);
+            break;
+        }
+        absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
+        // 附加选择
+        if (!exsel) {
+            m_u32CaretAnchor = absolute_position;
+        }
+        // 检查移动
+        bool caretMoved = (absolute_position != oldabsolute_position)
+            || (m_u32CaretAnchor != old_caret_anchor);
+        // 移动了?
+        if (caretMoved) {
+            // 更新格式
+            if (update) {
+
+            }
+            // 刷新插入符号
+            this->refresh(true);
+        }
+
+        return caretMoved ? S_OK : S_FALSE;
+        //return S_OK;
+    }
+
+    // 删除选择区文字
+    auto EditaleText::DeleteSelection() noexcept -> HRESULT {
+        DWRITE_TEXT_RANGE selection = this->GetSelectionRange();
+        if (selection.length == 0 || this->IsReadOnly()) return S_FALSE;
+        // 删除成功的话设置选择区
+        if (this->remove_text(selection.startPosition, selection.length)) {
+            return this->SetSelection(Mode_Leading, selection.startPosition, false);
+        }
+        else {
+            return S_FALSE;
+        }
+    }
+
+
+    // 设置选择区
+    bool EditaleText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
+        BOOL isTrailingHit;
+        BOOL isInside;
+        DWRITE_HIT_TEST_METRICS caret_metrics;
+        // 获取当前点击位置
+        this->layout->HitTestPoint(
+            x, y,
+            &isTrailingHit,
+            &isInside,
+            &caret_metrics
+            );
+        // 更新当前选择区
+        this->SetSelection(
+            isTrailingHit ? SelectionMode::Mode_Trailing : SelectionMode::Mode_Leading,
+            caret_metrics.textPosition,
+            exsel
+            );
+        return true;
+    }
+
+
+    // 拖入
+    bool EditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
+        m_bDragFormatOK = false;
+        m_bThisFocused = true;
+        m_bDragFromThis = m_pDataObject == data;
+        assert(data && effect && "bad argument");
+        UNREFERENCED_PARAMETER(effect);
+        m_pHost->GetWindow()->ShowCaret();
+        ::ReleaseStgMedium(&m_recentMedium);
+        // 检查支持格式: Unicode-ShortText
+        FORMATETC fmtetc = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+        if (SUCCEEDED(data->GetData(&fmtetc, &m_recentMedium))) {
+            m_bDragFormatOK = true;
+        }
+        return m_bDragFromThis ? false : m_bDragFormatOK;
+    }
+
+
+    // 拖上
+    bool EditaleText::OnDragOver(float x, float y) noexcept {
+        // 自己的?并且在选择范围内?
+        if (m_bDragFromThis) {
+            auto range = m_dragRange;
+            BOOL trailin, inside;
+            DWRITE_HIT_TEST_METRICS caret_metrics;
+            // 获取当前点击位置
+            this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
+            bool inzone = caret_metrics.textPosition >= range.startPosition &&
+                caret_metrics.textPosition < range.startPosition + range.length;
+            if (inzone) return false;
+        }
+        // 选择位置
+        if (m_bDragFormatOK) {
+            this->SetSelectionFromPoint(x, y, false);
+            // 显示插入符号
+            this->refresh(false);
+            return true;
+        }
+        return false;
+    }
+
+    // 重建
+    void EditaleText::Recreate() noexcept {
+        // 重新创建资源
+        LongUI::SafeRelease(m_pSelectionColor);
+        UIManager_RenderTarget->CreateSolidColorBrush(
+            D2D1::ColorF(D2D1::ColorF::LightSkyBlue),
+            &m_pSelectionColor
+            );
+    }
+
+    // 键入一个字符时
+    void EditaleText::OnChar(char32_t ch) noexcept {
+        // 字符有效
+        if ((ch >= 0x20 || ch == 9)) {
+            if (this->IsReadOnly()) {
+                LongUI::BeepError();
+                return;
+            }
+            // 删除选择区字符串
+            this->DeleteSelection();
+            //
+            uint32_t length = 1;
+            wchar_t chars[] = { static_cast<wchar_t>(ch), 0, 0 };
+            // sizeof(wchar_t) == sizeof(char32_t) 情况下
+            static_assert(sizeof(wchar_t) == sizeof(char16_t), "change it");
+    #if 0 // sizeof(wchar_t) == sizeof(char32_t)
+
+    #else
+            // 检查是否需要转换
+            if (ch > 0xFFFF) {
+                // From http://unicode.org/faq/utf_bom.html#35
+                chars[0] = wchar_t(0xD800 + (ch >> 10) - (0x10000 >> 10));
+                chars[1] = wchar_t(0xDC00 + (ch & 0x3FF));
+                length++;
+            }
+    #endif
+            // 插入
+            this->insert(m_u32CaretPos + m_u32CaretPosOffset, chars, length);
+            // 设置选择区
+            this->SetSelection(SelectionMode::Mode_Right, length, false, false);
+            // 刷新
+            this->refresh(true);
+        }
+    }
+
+    // 按键时
+    void EditaleText::OnKey(uint32_t keycode) noexcept {
+        // 检查按键 maybe IUIInput
+        bool heldShift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
+        bool heldControl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
+        // 绝对位置
+        UINT32 absolutePosition = m_u32CaretPos + m_u32CaretPosOffset;
+
+        switch (keycode)
+        {
+        case VK_RETURN:     // 回车键
+            // 多行 - 键CRLF字符
+            if (this->IsMultiLine()) {
+                this->DeleteSelection();
+                this->insert(absolutePosition, L"\r\n", 2);
+                this->SetSelection(SelectionMode::Mode_Leading, absolutePosition + 2, false, false);
+                // 修改
+                this->refresh();
+            }
+            // 单行 - 向窗口发送输入完毕消息
+            else {
+                // sb!
+                //this->sbcaller.operator()(m_pHost, SubEvent::Event_EditReturned);
+            }
+            break;
+        case VK_BACK:       // 退格键
+            // 有选择的话
+            if (absolutePosition != m_u32CaretAnchor) {
+                // 删除选择区
+                this->DeleteSelection();
+                // 重建布局
+                this->recreate_layout();
+            }
+            else if (absolutePosition > 0) {
+                UINT32 count = 1;
+                // 对于CR/LF 特别处理
+                if (absolutePosition >= 2 && absolutePosition <= m_string.size()) {
+                    auto* __restrict base = m_string.data() + absolutePosition;
+                    if (base[-2] == L'\r' && base[-1] == L'\n') {
+                        count = 2;
+                    }
+                }
+                // 左移
+                this->SetSelection(SelectionMode::Mode_LeftChar, count, false);
+                // 字符串: 删除count个字符
+                if (this->remove_text(m_u32CaretPos, count)) {
+                    this->recreate_layout();
+                }
+            }
+            // 修改
+            this->refresh();
+            break;
+        case VK_DELETE:     // 删除键
+            // 有选择的话
+            if (absolutePosition != m_u32CaretAnchor) {
+                // 删除选择区
+                this->DeleteSelection();
+                // 重建布局
+                this->recreate_layout();
+            }
+            // 删除下一个的字符
+            else {
+                DWRITE_HIT_TEST_METRICS hitTestMetrics;
+                float caretX, caretY;
+                // 获取集群大小
+                this->layout->HitTestTextPosition(
+                    absolutePosition,
+                    false,
+                    &caretX,
+                    &caretY,
+                    &hitTestMetrics
+                    );
+                // CR-LF?
+                if (hitTestMetrics.textPosition + 2 < m_string.length()) {
+                    auto* __restrict base = m_string.data() + hitTestMetrics.textPosition;
+                    if (base[0] == L'\r' && base[1] == L'\n') {
+                        ++hitTestMetrics.length;
+                    }
+                }
+                // 修改
+                this->SetSelection(SelectionMode::Mode_Leading, hitTestMetrics.textPosition, false);
+                // 删除字符
+                if (this->remove_text(hitTestMetrics.textPosition, hitTestMetrics.length)) {
+                    this->recreate_layout();
+                }
+            }
+            // 修改
+            this->refresh();
+            break;
+        case VK_TAB:        // Tab键
+            break;
+        case VK_LEFT:       // 光标左移一个字符/集群
+            this->SetSelection(heldControl ? SelectionMode::Mode_LeftWord : SelectionMode::Mode_Left, 1, heldShift);
+            break;
+        case VK_RIGHT:      // 光标右移一个字符/集群
+            this->SetSelection(heldControl ? SelectionMode::Mode_RightWord : SelectionMode::Mode_Right, 1, heldShift);
+            break;
+        case VK_UP:         // 多行模式: 上移一行
+            if (this->IsMultiLine())
+                this->SetSelection(SelectionMode::Mode_Up, 1, heldShift);
+            break;
+        case VK_DOWN:       // 多行模式: 下移一行
+            if (this->IsMultiLine())
+                this->SetSelection(SelectionMode::Mode_Down, 1, heldShift);
+            break;
+        case VK_HOME:       // HOME键
+            this->SetSelection(heldControl ? SelectionMode::Mode_First : SelectionMode::Mode_Home, 0, heldShift);
+            break;
+        case VK_END:        // END键
+            this->SetSelection(heldControl ? SelectionMode::Mode_Last : SelectionMode::Mode_End, 0, heldShift);
+            break;
+        case 'C':           // 'C'键 Ctrl+C 复制
+            if (heldControl) this->CopyToClipboard();
+            break;
+        case VK_INSERT:     // Insert键
+            if (heldControl)    this->CopyToClipboard();
+            else if (heldShift) this->PasteFromClipboard();
+            break;
+        case 'V':           // 'V'键 Ctrl+V 粘贴
+            if (heldControl)   this->PasteFromClipboard();
+            break;
+        case 'X':           // 'X'键 Ctrl+X 剪切
+            if (heldControl) {
+                this->CopyToClipboard();
+                this->DeleteSelection();
+                this->recreate_layout();
+                this->refresh();
+            }
+            break;
+        case 'A':           // 'A'键 Ctrl+A 全选
+            if (heldControl)
+                this->SetSelection(SelectionMode::Mode_SelectAll, 0, true);
+            break;
+        case 'Z':
+            break;
+        case 'Y':
+            break;
+        default:
+            break;
+        }
+    }
+
+    // 当设置焦点时
+    void EditaleText::OnSetFocus() noexcept {
+        m_bThisFocused = true;
+        this->refresh()->ShowCaret();
+    }
+
+    // 当失去焦点时
+    void EditaleText::OnKillFocus() noexcept {
+        //auto window = m_pHost->GetWindow();
+        m_pHost->GetWindow()->HideCaret();
+        m_bThisFocused = false;
+    }
+
+    // 左键弹起时
+    void EditaleText::OnLButtonUp(float x, float y) noexcept {
+        // 检查
+        if (m_bClickInSelection && m_ptStart.x == x && m_ptStart.y == y) {
+            // 选择
+            this->SetSelectionFromPoint(x, y, false);
+            // 显示插入符号
+            this->refresh(false);
+        }
+        m_pHost->GetWindow()->ReleaseCapture();
+
+    }
+
+    // 左键按下时
+    void EditaleText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
+        // 设置鼠标捕获
+        m_pHost->GetWindow()->SetCapture(m_pHost);
+        // 刷新
+        auto range = this->GetSelectionRange();
+        this->RefreshSelectionMetrics(range);
+        // 记录点击位置
+        m_ptStart = { x, y };
+        // 选择区中?
+        if (m_bufMetrice.GetCount()) {
+            // 计算
+            BOOL trailin, inside;
+            DWRITE_HIT_TEST_METRICS caret_metrics;
+            // 获取当前点击位置
+            this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
+            m_bClickInSelection = caret_metrics.textPosition >= range.startPosition &&
+                caret_metrics.textPosition < range.startPosition + range.length;
+        }
+        else {
+            m_bClickInSelection = false;
+        }
+        // 插入
+        if (!m_bClickInSelection) {
+            // 选择
+            this->SetSelectionFromPoint(x, y, shfit_hold);
+        }
+    }
+
+    // 左键按住时
+    void EditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
+        // 起点在选择区
+        if (!shfit_hold && m_bClickInSelection) {
+            // 开始拖拽
+            if (m_ptStart.x != x || m_ptStart.y != y) {
+                // 检查范围
+                m_dragRange = this->GetSelectionRange();
+                // 去除鼠标捕获
+                m_pHost->GetWindow()->ReleaseCapture();
+                // 设置
+                m_pDataObject->SetUnicodeText(this->CopyToGlobal());
+                // 开始拖拽
+                DWORD effect = DROPEFFECT_COPY;
+                if (!(this->IsReadOnly())) effect |= DROPEFFECT_MOVE;
+                const HRESULT hr = ::SHDoDragDrop(
+                    m_pHost->GetWindow()->GetHwnd(),
+                    m_pDataObject, m_pDropSource, effect, &effect
+                    );
+                // 拖放成功 且为移动
+                if (hr == DRAGDROP_S_DROP && effect == DROPEFFECT_MOVE) {
+                    //自己的？
+                    if (m_bDragFromThis) {
+                        m_dragRange.startPosition += m_dragRange.length;
+                    }
+                    // 删除
+                    if (this->remove_text(m_dragRange.startPosition, m_dragRange.length)) {
+                        this->recreate_layout();
+                        this->SetSelection(Mode_Left, 1, false);
+                        this->SetSelection(Mode_Right, 1, false);
+                    }
+
+                }
+                // 回归?
+                //m_pHost->GetWindow()->SetCapture(m_pHost);
+            }
+        }
+        else {
+            this->SetSelectionFromPoint(x, y, true);
+        }
+    }
+
+    // 对齐最近字符集
+    void EditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
+        DWRITE_HIT_TEST_METRICS hitTestMetrics;
+        float caretX, caretY;
+        // 对齐最近字符集
+        this->layout->HitTestTextPosition(
+            m_u32CaretPos,
+            false,
+            &caretX,
+            &caretY,
+            &hitTestMetrics
+            );
+        // 跳过0
+        m_u32CaretPos = hitTestMetrics.textPosition;
+        m_u32CaretPosOffset = (hit) ? hitTestMetrics.length : 0;
+        // 对于不可视的
+        if (skip && hitTestMetrics.width == 0) {
+            m_u32CaretPos += m_u32CaretPosOffset;
+            m_u32CaretPosOffset = 0;
+        }
+    }
+    // 获取插入符号矩形
+    void EditaleText::GetCaretRect(RectLTWH_F& rect)const noexcept {
+        // 检查布局
+        if (this->layout) {
+            // 获取 f(文本偏移) -> 坐标
+            DWRITE_HIT_TEST_METRICS caretMetrics;
+            float caretX, caretY;
+            this->layout->HitTestTextPosition(
+                m_u32CaretPos,
+                m_u32CaretPosOffset > 0,
+                &caretX,
+                &caretY,
+                &caretMetrics
+                );
+            // 获取当前选择范围
+            DWRITE_TEXT_RANGE selectionRange = this->GetSelectionRange();
+            if (selectionRange.length > 0) {
+                UINT32 actualHitTestCount = 1;
+                this->layout->HitTestTextRange(
+                    m_u32CaretPos,
+                    0, // length
+                    0, // x
+                    0, // y
+                    &caretMetrics,
+                    1,
+                    &actualHitTestCount
+                    );
+                caretY = caretMetrics.top;
+            }
+            // 获取插入符号宽度
+            DWORD caretIntThickness = 2;
+            ::SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretIntThickness, FALSE);
+            float caretThickness = static_cast<float>(caretIntThickness);
+            // 计算相对位置
+            // XXX: 检查draw_zone
+            rect.left = caretX - caretThickness * 0.5f;
+            rect.width = caretThickness;
+            rect.top = caretY;
+            rect.height = caretMetrics.height;
+        }
+    }
+    // 刷新
+    void EditaleText::Update() noexcept {
+        // s
+        this->refresh(false);
+        // 检查选择区
+        this->RefreshSelectionMetrics(this->GetSelectionRange());
+    }
+    // 渲染
+    void EditaleText::Render(float x, float y)const noexcept {
+    #ifdef _DEBUG
+        if (m_pHost->debug_this) {
+            UIManager << DL_Log
+                << "m_bufMetrice.data_length: "
+                << long(m_bufMetrice.GetCount())
+                << LongUI::endl;
+        }
+    #endif
+        // 选择区域
+        if (m_bufMetrice.GetCount()) {
+            UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+            // 遍历
+            for (const auto& htm : m_bufMetrice) {
+                D2D1_RECT_F highlightRect = {
+                    htm.left + x,
+                    htm.top + y,
+                    htm.left + htm.width + x,
+                    htm.top + htm.height + y
+                };
+                UIManager_RenderTarget->FillRectangle(highlightRect, m_pSelectionColor);
+            }
+            UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+        }
+        // 刻画字体
+        assert(this->layout && "bad action");
+        m_pTextRenderer->basic_color.color = *m_pColor;
+        this->layout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
+    }
+    // 复制到 目标全局句柄
+    auto EditaleText::CopyToGlobal() noexcept -> HGLOBAL {
+        // 获取选择区
+        auto selection = this->GetSelectionRange();
+        // 有选择区域
+        if (selection.length) {
+            // 断言检查
+            assert(selection.startPosition < m_string.length() && "bad selection range");
+            assert((selection.startPosition + selection.length) < m_string.length() && "bad selection range");
+            // 获取富文本数据
+            if (this->IsRiched()) {
+                assert(!"Unsupported Now");
+                // TODO: 富文本
+            }
+            // 全局申请
+            auto str = m_string.c_str() + selection.startPosition;
+            auto len = static_cast<size_t>(selection.length);
+            return Helper::GlobalAllocString(str, len);
+        }
+        // TODO: 复制选中行
+        return nullptr;
+    }
+
+    // 复制到 剪切板
+    auto EditaleText::CopyToClipboard() noexcept -> HRESULT {
+        HRESULT hr = E_FAIL;
+        // 打开剪切板
+        if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
+            // 清空
+            if (::EmptyClipboard()) {
+                // 全局申请
+                auto hClipboardData = this->CopyToGlobal();
+                // 申请成功
+                if (hClipboardData) {
+                    // 成功
+                    if (::SetClipboardData(CF_UNICODETEXT, hClipboardData) != nullptr) {
+                        hr = S_OK;
+                    }
+                    // 失败
+                    else {
+                        ::GlobalFree(hClipboardData);
+                    }
+                }
+            }
+            //  关闭剪切板
+            ::CloseClipboard();
+        }
+        return hr;
+    }
+
+
+
+    // 从 目标全局句柄 黏贴
+    auto EditaleText::PasteFromGlobal(HGLOBAL global) noexcept -> HRESULT {
+        // 正式开始
+        size_t byteSize = ::GlobalSize(global);
+        // 获取数据
+        void* memory = ::GlobalLock(global);
+        HRESULT hr = E_INVALIDARG;
+        // 数据有效?
+        if (memory) {
+            // 替换选择区
+            this->DeleteSelection();
+            const wchar_t* text = reinterpret_cast<const wchar_t*>(memory);
+            // 计算长度
+            auto characterCount = static_cast<UINT32>(std::min(std::wcslen(text), byteSize / sizeof(wchar_t)));
+            // 插入
+            hr = this->insert(m_u32CaretPos + m_u32CaretPosOffset, text, characterCount);
+            ::GlobalUnlock(global);
+            // 移动
+            this->SetSelection(SelectionMode::Mode_RightChar, characterCount, true);
+        }
+        return hr;
+    }
+
+    // 从 剪切板 黏贴
+    auto EditaleText::PasteFromClipboard() noexcept -> HRESULT {
+        // 正式开始
+        HRESULT hr = S_OK;  //uint32_t characterCount = 0ui32;
+                            // 打开剪切板
+        if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
+            // 获取富文本数据
+            if (this->IsRiched()) {
+                assert(!"Unsupported Now");
+                // TODO
+            }
+            // 获取Unicode数据
+            else {
+                auto data = ::GetClipboardData(CF_UNICODETEXT);
+                hr = this->PasteFromGlobal(data);
+            }
+            // 关闭剪切板
+            ::CloseClipboard();
+        }
+        return hr;
+    }
+
+    // 获取行编号
+    void EditaleText::GetLineFromPosition(
+        const DWRITE_LINE_METRICS * lineMetrics,
+        uint32_t lineCount, uint32_t textPosition,
+        OUT uint32_t * lineOut,
+        OUT uint32_t * linePositionOut) noexcept {
+        // 检查
+        uint32_t line = 0;
+        uint32_t linePosition = 0;
+        uint32_t nextLinePosition = 0;
+        // 遍历数据
+        for (; line < lineCount; ++line) {
+            // 更新数据
+            linePosition = nextLinePosition;
+            nextLinePosition = linePosition + lineMetrics[line].length;
+            // 超过?
+            if (nextLinePosition > textPosition) {
+                // 不需要.
+                break;
+            }
+        }
+        *linePositionOut = linePosition;
+        *lineOut = std::min(line, lineCount - 1);
+    }
+    /// <summary>
+    /// 更新选择区点击测试区块
+    /// </summary>
+    /// <param name="selection">The selection.</param>
+    /// <returns></returns>
+    void EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
+        //UIManager << DL_Hint << "selection.length: " << long(selection.length) << endl;
+        // 有选择的情况下
+        if (selection.length == 0) {
+            m_bufMetrice.NewSize(0);
+            return;
+        };
+        // 检查选择的区块数量
+        uint32_t actualHitTestCount = 0;
+        this->layout->HitTestTextRange(
+            selection.startPosition,
+            selection.length,
+            0.f, // x
+            0.f, // y
+            nullptr,
+            0, // metrics count
+            &actualHitTestCount
+            );
+        // 保证数据正确
+        m_bufMetrice.NewSize(actualHitTestCount);
+        if (!actualHitTestCount) return;
+        // 正式获取
+        this->layout->HitTestTextRange(
+            selection.startPosition,
+            selection.length,
+            0.f, // x
+            0.f, // y
+            m_bufMetrice.GetData(),
+            m_bufMetrice.GetCount(),
+            &actualHitTestCount
+            );
+    }
+    /// <summary>
+    /// Finalizes an instance of the <see cref="EditaleText"/> class.
+    /// </summary>
+    /// <returns></returns>
+    EditaleText::~EditaleText() noexcept {
+        ::ReleaseStgMedium(&m_recentMedium);
+        LongUI::SafeRelease(this->layout);
+        LongUI::SafeRelease(m_pTextRenderer);
+        LongUI::SafeRelease(m_pSelectionColor);
+        LongUI::SafeRelease(m_pDropSource);
+        LongUI::SafeRelease(m_pDataObject);
+    }
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EditaleText"/> class.
+    /// </summary>
+    /// <param name="host">The host control</param>
+    EditaleText::EditaleText(UIControl* host) noexcept : m_pHost(host) {
+
+    }
+    /// <summary>
+    /// Initializes without specified xml node.
+    /// </summary>
+    /// <param name="node">The node.</param>
+    /// <param name="prefix">The prefix.</param>
+    /// <returns></returns>
+    void EditaleText::Init() noexcept {
+        m_dragRange = { 0, 0 };
+        // 颜色
+        this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
+        this->color[State_Normal] = D2D1::ColorF(D2D1::ColorF::Black);
+        this->color[State_Hover] = D2D1::ColorF(0xA9A9A9A9);
+        this->color[State_Pushed] = D2D1::ColorF(0x78787878);
+        std::memset(&m_recentMedium, 0, sizeof(m_recentMedium));
+        // 设置类型
+        this->type = Type_None;
+        // 设置渲染器
+        m_pTextRenderer = UIManager.GetTextRenderer(0);
+        // 检查格式
+        IDWriteTextFormat* fmt = UIManager.GetTextFormat(LongUIDefaultTextFormatIndex);
+        // 创建布局
+        this->recreate_layout(fmt);
+        // 释放数据
+        LongUI::SafeRelease(fmt);
+    }
+    /// <summary>
+    /// Initializes with specified xml node.
+    /// </summary>
+    /// <param name="node">The node.</param>
+    /// <param name="prefix">The prefix.</param>
+    /// <returns></returns>
+    void EditaleText::Init(pugi::xml_node node, const char* prefix) noexcept {
+        m_dragRange = { 0, 0 };
+        // 初始化
+        this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
+        this->color[State_Normal] = D2D1::ColorF(D2D1::ColorF::Black);
+        this->color[State_Hover] = D2D1::ColorF(0xA9A9A9A9);
+        this->color[State_Pushed] = D2D1::ColorF(0x78787878);
         // 检查参数
-        assert(prefix && "bad arguments");
+        assert(node && prefix && "bad arguments");
+        // 颜色
+        Helper::MakeStateBasedColor(node, prefix, this->color);
+        std::memset(&m_recentMedium, 0, sizeof(m_recentMedium));
         // 属性
         auto attribute = [&node, prefix](const char* attr) {
             return Helper::XMLGetValue(node, attr, prefix);
         };
-        const char*str = nullptr;
-        // 获取进度
-        if ((str = attribute("progress"))) {
-            m_config.progress = LongUI::AtoF(str);
+        // bool属性
+        auto bool_attribute = [&node, prefix](const char* attr, bool def) {
+            return pugi::impl::get_value_bool(Helper::XMLGetValue(node, attr, prefix), def);
+        };
+        const char* str = nullptr;
+        // 检查类型
+        {
+            uint32_t tmptype = Type_None;
+            // 富文本
+            if (bool_attribute("rich", false)) {
+                tmptype |= Type_Riched;
+            }
+            // 多行显示
+            if (bool_attribute("multiline", false)) {
+                tmptype |= Type_MultiLine;
+            }
+            // 只读
+            if (bool_attribute("readonly", false)) {
+                tmptype |= Type_ReadOnly;
+            }
+            // 加速键
+            if (bool_attribute("accelerator", false)) {
+                tmptype |= Type_Accelerator;
+            }
+            // 密码
+            if ((str = attribute("password"))) {
+                tmptype |= Type_Password;
+                // TODO: UTF8 char(s) to UTF32 char;
+                // this->password = 
+            }
+            this->type = static_cast<EditaleTextType>(tmptype);
         }
         // 获取渲染器
-        m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
-        // 保证缓冲区
-        if (m_pTextRenderer) {
-            auto length = m_pTextRenderer->GetContextSizeInByte();
-            if (length) {
-                if ((str = attribute("context"))) {
-                    m_buffer.NewSize(length);
-                    m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
+        {
+            m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
+            // 保证缓冲区
+            if (m_pTextRenderer) {
+                auto length = m_pTextRenderer->GetContextSizeInByte();
+                if (length) {
+                    if ((str = attribute("context"))) {
+                        m_buffer.NewSize(length);
+                        m_pTextRenderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
+                    }
                 }
             }
         }
-        // 检查基本颜色
-        Helper::MakeColor(attribute("color"), m_basicColor);
+        // 检查格式
+        IDWriteTextFormat* fmt = nullptr;
         {
-            // 检查格式
-            uint32_t format_index = 0;
+            uint32_t format_index = LongUIDefaultTextFormatIndex;
             if ((str = attribute("format"))) {
                 format_index = static_cast<uint32_t>(LongUI::AtoI(str));
             }
-            // 模板
-            auto fmt = UIManager.GetTextFormat(format_index);
-            auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
+            auto template_format = UIManager.GetTextFormat(format_index);
+            auto hr = DX::MakeTextFormat(node, &fmt, template_format, prefix);
+            UNREFERENCED_PARAMETER(hr);
             assert(SUCCEEDED(hr));
-            LongUI::SafeRelease(fmt);
+            LongUI::SafeRelease(template_format);
         }
-        // 重建
-        m_text.Set(node.attribute(prefix).value());
-    }
-    // 没有?
-    else {
-        char name[2]; name[0] = '0'; name[1] = 0;
-        m_pTextRenderer = UIManager.GetTextRenderer(name);
-        m_config.format = UIManager.GetTextFormat(0);
-    }
-    this->RecreateLayout();
-}
-
-// ShortText 析构
-LongUI::Component::ShortText::~ShortText() noexcept {
-    LongUI::SafeRelease(m_pLayout);
-    LongUI::SafeRelease(m_pTextRenderer);
-    LongUI::SafeRelease(m_config.format);
-}
-
-// ShortText 重建布局
-void LongUI::Component::ShortText::RecreateLayout() noexcept {
-    // 保留数据
-    auto old_layout = m_pLayout;
-    m_pLayout = nullptr;
-    // 看情况
-    switch (m_config.rich_type)
-    {
-    case LongUI::RichType::Type_None:
-    {
-        register auto string_length_need = static_cast<uint32_t>(
-            static_cast<float>(m_text.length() + 1) * m_config.progress
-            );
-        // clamp it
-        if (string_length_need < 0) string_length_need = 0;
-        else if (string_length_need > m_text.length()) string_length_need = m_text.length();
-        // create it
-        auto hr = UIManager_DWriteFactory->CreateTextLayout(
-            m_text.c_str(),
-            string_length_need,
-            old_layout ? old_layout : m_config.format,
-            m_config.width,
-            m_config.height,
-            &m_pLayout
-            );
-        assert(SUCCEEDED(hr) && m_pLayout);
-        m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
-        break;
-    }
-    case LongUI::RichType::Type_Core:
-        m_pLayout = DX::FormatTextCore(m_config, m_text.c_str());
-        break;
-    case LongUI::RichType::Type_Xml:
-        m_pLayout = DX::FormatTextXML(m_config, m_text.c_str());
-        break;
-    case LongUI::RichType::Type_Custom:
-        m_pLayout = UIManager.configure->CustomRichType(m_config, m_text.c_str());
-        break;
-    }
-    LongUI::SafeRelease(old_layout);
-    // sad
-    assert(m_pLayout);
-}
-
-
-// -------------------- LongUI::Component::EditaleText --------------------
-
-// DWrite部分代码参考: 
-// http://msdn.microsoft.com/zh-cn/library/windows/desktop/dd941792(v=vs.85).aspx
-
-// 刷新布局
-auto LongUI::Component::EditaleText::refresh(bool update) const noexcept ->UIWindow* {
-    if (!m_bThisFocused) return nullptr;
-    RectLTWH_F rect; this->GetCaretRect(rect);
-    register auto* window = m_pHost->GetWindow();
-    window->CreateCaret(m_pHost, rect.width, rect.height);
-    window->SetCaretPos(m_pHost, rect.left, rect.top);
-    if (update) {
-        window->Invalidate(m_pHost);
-    }
-    return window;
-}
-
-// 重新创建布局
-void LongUI::Component::EditaleText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
-    assert(fmt && "bad argument");
-    assert(this->layout == nullptr && "bad action");
-    // 创建布局
-    auto hr = UIManager_DWriteFactory->CreateTextLayout(
-        m_string.c_str(), static_cast<uint32_t>(m_string.length()),
-        fmt,
-        m_size.width, m_size.height,
-        &this->layout
-        );
-#ifdef _DEBUG
-    if (m_pHost->debug_this) {
-        UIManager << DL_Hint << L"CODE: " << long(hr) << LongUI::endl;
-        assert(hr == S_OK);
-    }
-#endif
-    ShowHR(hr);
-}
-
-// 插入字符(串)
-auto LongUI::Component::EditaleText::insert(
-    uint32_t pos, const wchar_t * str, uint32_t length) noexcept -> HRESULT {
-    HRESULT hr = S_OK;
-    // 只读
-    if (this->IsReadOnly()) {
-        ::MessageBeep(MB_ICONERROR);
-        return S_FALSE;
-    }
-    // 插入字符
-    m_string.insert(pos, str, length);
-    auto old_length = static_cast<uint32_t>(m_string.length());
-    // 保留旧布局
-    auto old_layout = LongUI::SafeAcquire(this->layout);
-    // 重新创建布局
-    this->recreate_layout();
-    // 富文本情况下?
-    if (old_layout && this->IsRiched() && SUCCEEDED(hr)) {
-        // 复制全局属性
-        Component::EditaleText::CopyGlobalProperties(old_layout, this->layout);
-        // 对于每种属性, 获取并应用到新布局
-        // 在首位?
-        if (pos) {
-            // 第一块
-            Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
-            // 插入块
-            Component::EditaleText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
-            // 结束块
-            Component::EditaleText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
-        }
-        else {
-            // 插入块
-            Component::EditaleText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
-            // 结束块
-            Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
-        }
-        // 末尾
-        Component::EditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_string.length()), UINT32_MAX);
-    }
-    LongUI::SafeRelease(old_layout);
-    return hr;
-}
-
-
-// 返回当前选择区域
-auto LongUI::Component::EditaleText::GetSelectionRange() const noexcept-> DWRITE_TEXT_RANGE {
-    // 返回当前选择返回
-    auto caretBegin = m_u32CaretAnchor;
-    auto caretEnd = m_u32CaretPos + m_u32CaretPosOffset;
-    // 相反则交换
-    if (caretBegin > caretEnd) {
-        std::swap(caretBegin, caretEnd);
-    }
-    // 限制范围在文本长度之内
-    auto textLength = static_cast<uint32_t>(m_string.size());
-    caretBegin = std::min(caretBegin, textLength);
-    caretEnd = std::min(caretEnd, textLength);
-    // 返回范围
-    return { caretBegin, caretEnd - caretBegin };
-}
-
-// 设置选择区
-auto LongUI::Component::EditaleText::SetSelection(
-    SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept-> HRESULT {
-    //uint32_t line = uint32_t(-1);
-    uint32_t absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
-    uint32_t oldabsolute_position = absolute_position;
-    uint32_t old_caret_anchor = m_u32CaretAnchor;
-    DWRITE_TEXT_METRICS textMetrics;
-    // CASE
-    switch (mode)
-    {
-    case SelectionMode::Mode_Left:
-        m_u32CaretPos += m_u32CaretPosOffset;
-        if (m_u32CaretPos > 0) {
-            --m_u32CaretPos;
-            this->AlignCaretToNearestCluster(false, true);
-            absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
-            // 检查换行符
-            absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
-            if (absolute_position >= 1
-                && absolute_position < m_string.size()
-                && m_string[absolute_position - 1] == L'\r'
-                &&  m_string[absolute_position] == L'\n')
-            {
-                m_u32CaretPos = absolute_position - 1;
-                this->AlignCaretToNearestCluster(false, true);
-            }
-        }
-        break;
-
-    case SelectionMode::Mode_Right:
-        m_u32CaretPos = absolute_position;
-        this->AlignCaretToNearestCluster(true, true);
-        absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
-        if (absolute_position >= 1
-            && absolute_position < m_string.size()
-            && m_string[absolute_position - 1] == '\r'
-            &&  m_string[absolute_position] == '\n')
+        // 格式特化
         {
-            m_u32CaretPos = absolute_position + 1;
-            this->AlignCaretToNearestCluster(false, true);
+            assert(fmt && "bad action");
         }
-        break;
-    case SelectionMode::Mode_LeftChar:
-        m_u32CaretPos = absolute_position;
-        m_u32CaretPos -= std::min(advance, absolute_position);
-        m_u32CaretPosOffset = 0;
-        break;
-    case SelectionMode::Mode_RightChar:
-        m_u32CaretPos = absolute_position + advance;
-        m_u32CaretPosOffset = 0;
+        // 获取文本
         {
-            // Use hit-testing to limit text position.
-            DWRITE_HIT_TEST_METRICS hitTestMetrics;
-            float caretX, caretY;
-            this->layout->HitTestTextPosition(
-                m_u32CaretPos,
-                false,
-                &caretX,
-                &caretY,
-                &hitTestMetrics
-                );
-            m_u32CaretPos = std::min(m_u32CaretPos, hitTestMetrics.textPosition + hitTestMetrics.length);
-        }
-        break;
-    case SelectionMode::Mode_Up:
-    case SelectionMode::Mode_Down:
-    {
-        EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
-        // 获取行指标
-        this->layout->GetMetrics(&textMetrics);
-        metrice_buffer.NewSize(textMetrics.lineCount);
-        this->layout->GetLineMetrics(
-            metrice_buffer.GetData(),
-            textMetrics.lineCount,
-            &textMetrics.lineCount
-            );
-        // 获取行
-        uint32_t line, linePosition;
-        Component::EditaleText::GetLineFromPosition(
-            metrice_buffer.GetData(),
-            metrice_buffer.GetCount(),
-            m_u32CaretPos,
-            &line,
-            &linePosition
-            );
-        // 下移或上移
-        if (mode == SelectionMode::Mode_Up) {
-            if (line <= 0) break;
-            line--;
-            linePosition -= metrice_buffer[line].length;
-        }
-        else {
-            linePosition += metrice_buffer[line].length;
-            line++;
-            if (line >= metrice_buffer.GetCount())  break;
-        }
-        DWRITE_HIT_TEST_METRICS hitTestMetrics;
-        float caretX, caretY, dummyX;
-        // 获取当前文本X位置
-        this->layout->HitTestTextPosition(
-            m_u32CaretPos,
-            m_u32CaretPosOffset > 0, // trailing if nonzero, else leading edge
-            &caretX,
-            &caretY,
-            &hitTestMetrics
-            );
-        // 获取新位置Y坐标
-        this->layout->HitTestTextPosition(
-            linePosition,
-            false, // leading edge
-            &dummyX,
-            &caretY,
-            &hitTestMetrics
-            );
-        // 获取新x, y 的文本位置
-        BOOL isInside, isTrailingHit;
-        this->layout->HitTestPoint(
-            caretX, caretY,
-            &isTrailingHit,
-            &isInside,
-            &hitTestMetrics
-            );
-        m_u32CaretPos = hitTestMetrics.textPosition;
-        m_u32CaretPosOffset = isTrailingHit ? (hitTestMetrics.length > 0) : 0;
-    }
-    break;
-    case SelectionMode::Mode_LeftWord:
-    case SelectionMode::Mode_RightWord:
-    {
-        // 计算所需字符串集
-        EzContainer::SmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
-        UINT32 clusterCount;
-        this->layout->GetClusterMetrics(nullptr, 0, &clusterCount);
-        if (clusterCount == 0) break;
-        // 重置大小
-        metrice_buffer.NewSize(clusterCount);
-        this->layout->GetClusterMetrics(metrice_buffer.GetData(), clusterCount, &clusterCount);
-        m_u32CaretPos = absolute_position;
-        UINT32 clusterPosition = 0;
-        UINT32 oldCaretPosition = m_u32CaretPos;
-        // 左移
-        if (mode == SelectionMode::Mode_LeftWord) {
-            m_u32CaretPos = 0;
-            m_u32CaretPosOffset = 0; // leading edge
-            for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
-                clusterPosition += metrice_buffer[cluster].length;
-                if (metrice_buffer[cluster].canWrapLineAfter) {
-                    if (clusterPosition >= oldCaretPosition)
-                        break;
-                    // 刷新.
-                    m_u32CaretPos = clusterPosition;
-                }
+            if (str = node.attribute(prefix).value()) {
+                m_string.assign(str);
             }
         }
-        else {
-            // 之后
-            for (UINT32 cluster = 0; cluster < clusterCount; ++cluster) {
-                UINT32 clusterLength = metrice_buffer[cluster].length;
-                m_u32CaretPos = clusterPosition;
-                m_u32CaretPosOffset = clusterLength; // trailing edge
-                if (clusterPosition >= oldCaretPosition &&
-                    metrice_buffer[cluster].canWrapLineAfter) {
-                    break;
-                }
-                clusterPosition += clusterLength;
-            }
+        // 创建布局
+        this->recreate_layout(fmt);
+        LongUI::SafeRelease(fmt);
+    }
+    /// <summary>
+    /// Copies the global properties. 复制全局属性
+    /// </summary>
+    /// <param name="old_layout">The old_layout.</param>
+    /// <param name="new_layout">The new_layout.</param>
+    /// <returns></returns>
+    void EditaleText::CopyGlobalProperties(
+        IDWriteTextLayout* old_layout,
+        IDWriteTextLayout* new_layout) noexcept {
+        // 基本属性
+        new_layout->SetTextAlignment(old_layout->GetTextAlignment());
+        new_layout->SetParagraphAlignment(old_layout->GetParagraphAlignment());
+        new_layout->SetWordWrapping(old_layout->GetWordWrapping());
+        new_layout->SetReadingDirection(old_layout->GetReadingDirection());
+        new_layout->SetFlowDirection(old_layout->GetFlowDirection());
+        new_layout->SetIncrementalTabStop(old_layout->GetIncrementalTabStop());
+        // 额外属性
+#   ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
+        DWRITE_TRIMMING trimmingOptions = {};
+        IDWriteInlineObject* inlineObject = nullptr;
+        old_layout->GetTrimming(&trimmingOptions, &inlineObject);
+        new_layout->SetTrimming(&trimmingOptions, inlineObject);
+        LongUI::SafeRelease(inlineObject);
+
+        DWRITE_LINE_SPACING_METHOD lineSpacingMethod = DWRITE_LINE_SPACING_METHOD_DEFAULT;
+        float lineSpacing = 0.f, baseline = 0.f;
+        old_layout->GetLineSpacing(&lineSpacingMethod, &lineSpacing, &baseline);
+        new_layout->SetLineSpacing(lineSpacingMethod, lineSpacing, baseline);
+#   endif
+    }
+
+    // 对范围复制单个属性
+    void EditaleText::CopySinglePropertyRange(
+        IDWriteTextLayout* old_layout, uint32_t old_start,
+        IDWriteTextLayout* new_layout, uint32_t new_start, uint32_t length) noexcept {
+        // 计算范围
+        DWRITE_TEXT_RANGE range = { new_start,  std::min(length, UINT32_MAX - new_start) };
+        // 字体集
+#   ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
+        IDWriteFontCollection* fontCollection = nullptr;
+        old_layout->GetFontCollection(old_start, &fontCollection);
+        new_layout->SetFontCollection(fontCollection, range);
+        LongUI::SafeRelease(fontCollection);
+#   endif
+        {
+            // 字体名
+            wchar_t fontFamilyName[100];
+            fontFamilyName[0] = L'\0';
+            old_layout->GetFontFamilyName(old_start, &fontFamilyName[0], ARRAYSIZE(fontFamilyName));
+            new_layout->SetFontFamilyName(fontFamilyName, range);
+            // 一般属性
+            DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
+            DWRITE_FONT_STYLE style = DWRITE_FONT_STYLE_NORMAL;
+            DWRITE_FONT_STRETCH stretch = DWRITE_FONT_STRETCH_NORMAL;
+            old_layout->GetFontWeight(old_start, &weight);
+            old_layout->GetFontStyle(old_start, &style);
+            old_layout->GetFontStretch(old_start, &stretch);
+            new_layout->SetFontWeight(weight, range);
+            new_layout->SetFontStyle(style, range);
+            new_layout->SetFontStretch(stretch, range);
+            // 字体大小
+            FLOAT fontSize = 12.0f;
+            old_layout->GetFontSize(old_start, &fontSize);
+            new_layout->SetFontSize(fontSize, range);
+            // 下划线. 删除线
+            BOOL value = FALSE;
+            old_layout->GetUnderline(old_start, &value);
+            new_layout->SetUnderline(value, range);
+            old_layout->GetStrikethrough(old_start, &value);
+            new_layout->SetStrikethrough(value, range);
+#   ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
+            // 地区名
+            wchar_t localeName[LOCALE_NAME_MAX_LENGTH];
+            localeName[0] = L'\0';
+            old_layout->GetLocaleName(old_start, &localeName[0], ARRAYSIZE(localeName));
+            new_layout->SetLocaleName(localeName, range);
+#   endif
         }
-        //int a = 0;
-    }
-    break;
-    case SelectionMode::Mode_Home:
-    case SelectionMode::Mode_End:
-    {
-        // 获取预知的首位置或者末位置
-        EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
-        // 获取行指标
-        this->layout->GetMetrics(&textMetrics);
-        metrice_buffer.NewSize(textMetrics.lineCount);
-        this->layout->GetLineMetrics(
-            metrice_buffer.GetData(),
-            textMetrics.lineCount,
-            &textMetrics.lineCount
-            );
-        uint32_t line;
-        Component::EditaleText::GetLineFromPosition(
-            metrice_buffer.GetData(),
-            metrice_buffer.GetCount(),
-            m_u32CaretPos,
-            &line,
-            &m_u32CaretPos
-            );
-        m_u32CaretPosOffset = 0;
-        if (mode == SelectionMode::Mode_End) {
-            // 放置插入符号
-            UINT32 lineLength = metrice_buffer[line].length -
-                metrice_buffer[line].newlineLength;
-            m_u32CaretPosOffset = std::min(lineLength, 1u);
-            m_u32CaretPos += lineLength - m_u32CaretPosOffset;
-            this->AlignCaretToNearestCluster(true);
-        }
-    }
-    break;
-    case SelectionMode::Mode_First:
-        m_u32CaretPos = 0;
-        m_u32CaretPosOffset = 0;
-        break;
-
-    case SelectionMode::Mode_SelectAll:
-        m_u32CaretAnchor = 0;
-        exsel = true;
-        __fallthrough;
-    case SelectionMode::Mode_Last:
-        m_u32CaretPos = UINT32_MAX;
-        m_u32CaretPosOffset = 0;
-        this->AlignCaretToNearestCluster(true);
-        break;
-    case SelectionMode::Mode_Leading:
-        m_u32CaretPos = advance;
-        m_u32CaretPosOffset = 0;
-        break;
-    case SelectionMode::Mode_Trailing:
-        m_u32CaretPos = advance;
-        this->AlignCaretToNearestCluster(true);
-        break;
-    }
-    absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
-    // 附加选择
-    if (!exsel) {
-        m_u32CaretAnchor = absolute_position;
-    }
-    // 检查移动
-    bool caretMoved = (absolute_position != oldabsolute_position)
-        || (m_u32CaretAnchor != old_caret_anchor);
-    // 移动了?
-    if (caretMoved) {
-        // 更新格式
-        if (update) {
-
-        }
-        // 刷新插入符号
-        this->refresh(true);
+        // 刻画效果
+        IUnknown* drawingEffect = nullptr;
+        old_layout->GetDrawingEffect(old_start, &drawingEffect);
+        new_layout->SetDrawingEffect(drawingEffect, range);
+        LongUI::SafeRelease(drawingEffect);
+        // 内联对象
+        IDWriteInlineObject* inlineObject = nullptr;
+        old_layout->GetInlineObject(old_start, &inlineObject);
+        new_layout->SetInlineObject(inlineObject, range);
+        LongUI::SafeRelease(inlineObject);
+#   ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
+        // 排版
+        IDWriteTypography* typography = nullptr;
+        old_layout->GetTypography(old_start, &typography);
+        new_layout->SetTypography(typography, range);
+        LongUI::SafeRelease(typography);
+#   endif
     }
 
-    return caretMoved ? S_OK : S_FALSE;
-    //return S_OK;
-}
-
-// 删除选择区文字
-auto LongUI::Component::EditaleText::DeleteSelection() noexcept-> HRESULT {
-    DWRITE_TEXT_RANGE selection = this->GetSelectionRange();
-    if (selection.length == 0 || this->IsReadOnly()) return S_FALSE;
-    // 删除成功的话设置选择区
-    if (this->remove_text(selection.startPosition, selection.length)) {
-        return this->SetSelection(Mode_Leading, selection.startPosition, false);
-    }
-    else {
-        return S_FALSE;
-    }
-}
-
-
-// 设置选择区
-bool LongUI::Component::EditaleText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
-    BOOL isTrailingHit;
-    BOOL isInside;
-    DWRITE_HIT_TEST_METRICS caret_metrics;
-    // 获取当前点击位置
-    this->layout->HitTestPoint(
-        x, y,
-        &isTrailingHit,
-        &isInside,
-        &caret_metrics
-        );
-    // 更新当前选择区
-    this->SetSelection(
-        isTrailingHit ? SelectionMode::Mode_Trailing : SelectionMode::Mode_Leading,
-        caret_metrics.textPosition,
-        exsel
-        );
-    return true;
-}
-
-
-// 拖入
-bool LongUI::Component::EditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
-    m_bDragFormatOK = false;
-    m_bThisFocused = true;
-    m_bDragFromThis = m_pDataObject == data;
-    assert(data && effect && "bad argument");
-    UNREFERENCED_PARAMETER(effect);
-    m_pHost->GetWindow()->ShowCaret();
-    ::ReleaseStgMedium(&m_recentMedium);
-    // 检查支持格式: Unicode-ShortText
-    FORMATETC fmtetc = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
-    if (SUCCEEDED(data->GetData(&fmtetc, &m_recentMedium))) {
-        m_bDragFormatOK = true;
-    }
-    return m_bDragFromThis ? false : m_bDragFormatOK;
-}
-
-
-// 拖上
-bool LongUI::Component::EditaleText::OnDragOver(float x, float y) noexcept {
-    // 自己的?并且在选择范围内?
-    if (m_bDragFromThis) {
-        register auto range = m_dragRange;
-        BOOL trailin, inside;
-        DWRITE_HIT_TEST_METRICS caret_metrics;
-        // 获取当前点击位置
-        this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
-        register bool inzone = caret_metrics.textPosition >= range.startPosition &&
-            caret_metrics.textPosition < range.startPosition + range.length;
-        if (inzone) return false;
-    }
-    // 选择位置
-    if (m_bDragFormatOK) {
-        this->SetSelectionFromPoint(x, y, false);
-        // 显示插入符号
-        this->refresh(false);
-        return true;
-    }
-    return false;
-}
-
-// 重建
-void LongUI::Component::EditaleText::Recreate() noexcept {
-    // 重新创建资源
-    LongUI::SafeRelease(m_pSelectionColor);
-    UIManager_RenderTarget->CreateSolidColorBrush(
-        D2D1::ColorF(D2D1::ColorF::LightSkyBlue),
-        &m_pSelectionColor
-        );
-}
-
-// 键入一个字符时
-void LongUI::Component::EditaleText::OnChar(char32_t ch) noexcept {
-    // 字符有效
-    if ((ch >= 0x20 || ch == 9)) {
-        if (this->IsReadOnly()) {
-            ::MessageBeep(MB_ICONERROR);
-            return;
-        }
-        // 删除选择区字符串
-        this->DeleteSelection();
-        //
-        uint32_t length = 1;
-        wchar_t chars[] = { static_cast<wchar_t>(ch), 0, 0 };
-        // sizeof(wchar_t) == sizeof(char32_t) 情况下
-        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change it");
-#if 0 // sizeof(wchar_t) == sizeof(char32_t)
-
-#else
-        // 检查是否需要转换
-        if (ch > 0xFFFF) {
-            // From http://unicode.org/faq/utf_bom.html#35
-            chars[0] = wchar_t(0xD800 + (ch >> 10) - (0x10000 >> 10));
-            chars[1] = wchar_t(0xDC00 + (ch & 0x3FF));
-            length++;
-        }
-#endif
-        // 插入
-        this->insert(m_u32CaretPos + m_u32CaretPosOffset, chars, length);
-        // 设置选择区
-        this->SetSelection(SelectionMode::Mode_Right, length, false, false);
-        // 刷新
-        this->refresh(true);
-    }
-}
-
-
-// 按键时
-void LongUI::Component::EditaleText::OnKey(uint32_t keycode) noexcept {
-    // 检查按键 maybe IUIInput
-    bool heldShift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
-    bool heldControl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
-    // 绝对位置
-    UINT32 absolutePosition = m_u32CaretPos + m_u32CaretPosOffset;
-
-    switch (keycode)
-    {
-    case VK_RETURN:     // 回车键
-        // 多行 - 键CRLF字符
-        if (this->IsMultiLine()) {
-            this->DeleteSelection();
-            this->insert(absolutePosition, L"\r\n", 2);
-            this->SetSelection(SelectionMode::Mode_Leading, absolutePosition + 2, false, false);
-            // 修改
-            this->refresh();
-        }
-        // 单行 - 向窗口发送输入完毕消息
-        else {
-            // sb!
-            //this->sbcaller.operator()(m_pHost, SubEvent::Event_EditReturned);
-        }
-        break;
-    case VK_BACK:       // 退格键
-        // 有选择的话
-        if (absolutePosition != m_u32CaretAnchor) {
-            // 删除选择区
-            this->DeleteSelection();
-            // 重建布局
-            this->recreate_layout();
-        }
-        else if (absolutePosition > 0) {
-            UINT32 count = 1;
-            // 对于CR/LF 特别处理
-            if (absolutePosition >= 2 && absolutePosition <= m_string.size()) {
-                auto* __restrict base = m_string.data() + absolutePosition;
-                if (base[-2] == L'\r' && base[-1] == L'\n') {
-                    count = 2;
-                }
-            }
-            // 左移
-            this->SetSelection(SelectionMode::Mode_LeftChar, count, false);
-            // 字符串: 删除count个字符
-            if (this->remove_text(m_u32CaretPos, count)) {
-                this->recreate_layout();
-            }
-        }
-        // 修改
-        this->refresh();
-        break;
-    case VK_DELETE:     // 删除键
-        // 有选择的话
-        if (absolutePosition != m_u32CaretAnchor) {
-            // 删除选择区
-            this->DeleteSelection();
-            // 重建布局
-            this->recreate_layout();
-        }
-        // 删除下一个的字符
-        else {
-            DWRITE_HIT_TEST_METRICS hitTestMetrics;
-            float caretX, caretY;
-            // 获取集群大小
-            this->layout->HitTestTextPosition(
-                absolutePosition,
-                false,
-                &caretX,
-                &caretY,
-                &hitTestMetrics
-                );
-            // CR-LF?
-            if (hitTestMetrics.textPosition + 2 < m_string.length()) {
-                auto* __restrict base = m_string.data() + hitTestMetrics.textPosition;
-                if (base[0] == L'\r' && base[1] == L'\n') {
-                    ++hitTestMetrics.length;
-                }
-            }
-            // 修改
-            this->SetSelection(SelectionMode::Mode_Leading, hitTestMetrics.textPosition, false);
-            // 删除字符
-            if (this->remove_text(hitTestMetrics.textPosition, hitTestMetrics.length)) {
-                this->recreate_layout();
-            }
-        }
-        // 修改
-        this->refresh();
-        break;
-    case VK_TAB:        // Tab键
-        break;
-    case VK_LEFT:       // 光标左移一个字符/集群
-        this->SetSelection(heldControl ? SelectionMode::Mode_LeftWord : SelectionMode::Mode_Left, 1, heldShift);
-        break;
-    case VK_RIGHT:      // 光标右移一个字符/集群
-        this->SetSelection(heldControl ? SelectionMode::Mode_RightWord : SelectionMode::Mode_Right, 1, heldShift);
-        break;
-    case VK_UP:         // 多行模式: 上移一行
-        if (this->IsMultiLine())
-            this->SetSelection(SelectionMode::Mode_Up, 1, heldShift);
-        break;
-    case VK_DOWN:       // 多行模式: 下移一行
-        if (this->IsMultiLine())
-            this->SetSelection(SelectionMode::Mode_Down, 1, heldShift);
-        break;
-    case VK_HOME:       // HOME键
-        this->SetSelection(heldControl ? SelectionMode::Mode_First : SelectionMode::Mode_Home, 0, heldShift);
-        break;
-    case VK_END:        // END键
-        this->SetSelection(heldControl ? SelectionMode::Mode_Last : SelectionMode::Mode_End, 0, heldShift);
-        break;
-    case 'C':           // 'C'键 Ctrl+C 复制
-        if (heldControl) this->CopyToClipboard();
-        break;
-    case VK_INSERT:     // Insert键
-        if (heldControl)    this->CopyToClipboard();
-        else if (heldShift) this->PasteFromClipboard();
-        break;
-    case 'V':           // 'V'键 Ctrl+V 粘贴
-        if (heldControl)   this->PasteFromClipboard();
-        break;
-    case 'X':           // 'X'键 Ctrl+X 剪切
-        if (heldControl) {
-            this->CopyToClipboard();
-            this->DeleteSelection();
-            this->recreate_layout();
-            this->refresh();
-        }
-        break;
-    case 'A':           // 'A'键 Ctrl+A 全选
-        if (heldControl)
-            this->SetSelection(SelectionMode::Mode_SelectAll, 0, true);
-        break;
-    case 'Z':
-        break;
-    case 'Y':
-        break;
-    default:
-        break;
-    }
-}
-
-// 当设置焦点时
-void LongUI::Component::EditaleText::OnSetFocus() noexcept {
-    m_bThisFocused = true;
-    this->refresh()->ShowCaret();
-}
-
-// 当失去焦点时
-void LongUI::Component::EditaleText::OnKillFocus() noexcept {
-    //auto window = m_pHost->GetWindow();
-    m_pHost->GetWindow()->HideCaret();
-    m_bThisFocused = false;
-}
-
-// 左键弹起时
-void LongUI::Component::EditaleText::OnLButtonUp(float x, float y) noexcept {
-    // 检查
-    if (m_bClickInSelection && m_ptStart.x == x && m_ptStart.y == y) {
-        // 选择
-        this->SetSelectionFromPoint(x, y, false);
-        // 显示插入符号
-        this->refresh(false);
-    }
-    m_pHost->GetWindow()->ReleaseCapture();
-
-}
-
-// 左键按下时
-void LongUI::Component::EditaleText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
-    // 设置鼠标捕获
-    m_pHost->GetWindow()->SetCapture(m_pHost);
-    // 刷新
-    auto range = this->GetSelectionRange();
-    this->RefreshSelectionMetrics(range);
-    // 记录点击位置
-    m_ptStart = { x, y };
-    // 选择区中?
-    if (m_bufMetrice.GetCount()) {
-        // 计算
-        BOOL trailin, inside;
-        DWRITE_HIT_TEST_METRICS caret_metrics;
-        // 获取当前点击位置
-        this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
-        m_bClickInSelection = caret_metrics.textPosition >= range.startPosition &&
-            caret_metrics.textPosition < range.startPosition + range.length;
-    }
-    else {
-        m_bClickInSelection = false;
-    }
-    // 插入
-    if (!m_bClickInSelection) {
-        // 选择
-        this->SetSelectionFromPoint(x, y, shfit_hold);
-    }
-}
-
-// 左键按住时
-void LongUI::Component::EditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
-    // 起点在选择区
-    if (!shfit_hold && m_bClickInSelection) {
-        // 开始拖拽
-        if (m_ptStart.x != x || m_ptStart.y != y) {
-            // 检查范围
-            m_dragRange = this->GetSelectionRange();
-            // 去除鼠标捕获
-            m_pHost->GetWindow()->ReleaseCapture();
-            // 设置
-            m_pDataObject->SetUnicodeText(this->CopyToGlobal());
-            // 开始拖拽
-            DWORD effect = DROPEFFECT_COPY;
-            if (!(this->IsReadOnly())) effect |= DROPEFFECT_MOVE;
-            const register HRESULT hr = ::SHDoDragDrop(
-                m_pHost->GetWindow()->GetHwnd(),
-                m_pDataObject, m_pDropSource, effect, &effect
-                );
-            // 拖放成功 且为移动
-            if (hr == DRAGDROP_S_DROP && effect == DROPEFFECT_MOVE) {
-                //自己的？
-                if (m_bDragFromThis) {
-                    m_dragRange.startPosition += m_dragRange.length;
-                }
-                // 删除
-                if (this->remove_text(m_dragRange.startPosition, m_dragRange.length)) {
-                    this->recreate_layout();
-                    this->SetSelection(Mode_Left, 1, false);
-                    this->SetSelection(Mode_Right, 1, false);
-                }
-
-            }
-            // 回归?
-            //m_pHost->GetWindow()->SetCapture(m_pHost);
-        }
-    }
-    else {
-        this->SetSelectionFromPoint(x, y, true);
-    }
-}
-
-// 对齐最近字符集
-void LongUI::Component::EditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
-    DWRITE_HIT_TEST_METRICS hitTestMetrics;
-    float caretX, caretY;
-    // 对齐最近字符集
-    this->layout->HitTestTextPosition(
-        m_u32CaretPos,
-        false,
-        &caretX,
-        &caretY,
-        &hitTestMetrics
-        );
-    // 跳过0
-    m_u32CaretPos = hitTestMetrics.textPosition;
-    m_u32CaretPosOffset = (hit) ? hitTestMetrics.length : 0;
-    // 对于不可视的
-    if (skip && hitTestMetrics.width == 0) {
-        m_u32CaretPos += m_u32CaretPosOffset;
-        m_u32CaretPosOffset = 0;
-    }
-}
-
-// 获取插入符号矩形
-void LongUI::Component::EditaleText::GetCaretRect(RectLTWH_F& rect)const noexcept {
-    // 检查布局
-    if (this->layout) {
-        // 获取 f(文本偏移) -> 坐标
-        DWRITE_HIT_TEST_METRICS caretMetrics;
-        float caretX, caretY;
-        this->layout->HitTestTextPosition(
-            m_u32CaretPos,
-            m_u32CaretPosOffset > 0,
-            &caretX,
-            &caretY,
-            &caretMetrics
-            );
-        // 获取当前选择范围
-        DWRITE_TEXT_RANGE selectionRange = this->GetSelectionRange();
-        if (selectionRange.length > 0) {
-            UINT32 actualHitTestCount = 1;
-            this->layout->HitTestTextRange(
-                m_u32CaretPos,
-                0, // length
-                0, // x
-                0, // y
-                &caretMetrics,
-                1,
-                &actualHitTestCount
-                );
-            caretY = caretMetrics.top;
-        }
-        // 获取插入符号宽度
-        DWORD caretIntThickness = 2;
-        ::SystemParametersInfoW(SPI_GETCARETWIDTH, 0, &caretIntThickness, FALSE);
-        register float caretThickness = static_cast<float>(caretIntThickness);
-        // 计算相对位置
-        // XXX: 检查draw_zone
-        rect.left = caretX - caretThickness * 0.5f;
-        rect.width = caretThickness;
-        rect.top = caretY;
-        rect.height = caretMetrics.height;
-    }
-}
-
-// 刷新
-void LongUI::Component::EditaleText::Update() noexcept {
-    // s
-    this->refresh(false);
-    // 检查选择区
-    this->RefreshSelectionMetrics(this->GetSelectionRange());
-}
-
-// 渲染
-void LongUI::Component::EditaleText::Render(float x, float y)const noexcept {
-#ifdef _DEBUG
-    if (m_pHost->debug_this) {
-        UIManager << DL_Log
-            << "m_bufMetrice.data_length: "
-            << long(m_bufMetrice.GetCount())
-            << LongUI::endl;
-    }
-#endif
-    // 选择区域
-    if (m_bufMetrice.GetCount()) {
-        UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    // 范围复制AoE!
+    void EditaleText::CopyRangedProperties(
+        IDWriteTextLayout* old_layout, IDWriteTextLayout* new_layout,
+        uint32_t begin, uint32_t end, uint32_t new_offset, bool negative) noexcept {
+        auto current = begin;
         // 遍历
-        for (const auto& htm : m_bufMetrice) {
-            D2D1_RECT_F highlightRect = {
-                htm.left + x,
-                htm.top + y,
-                htm.left + htm.width + x,
-                htm.top + htm.height + y
-            };
-            UIManager_RenderTarget->FillRectangle(highlightRect, m_pSelectionColor);
+        while (current < end) {
+            // 计算范围长度
+            DWRITE_TEXT_RANGE increment = { current, 1 };
+            DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
+            old_layout->GetFontWeight(current, &weight, &increment);
+            UINT32 rangeLength = increment.length - (current - increment.startPosition);
+            // 检查有效性
+            rangeLength = std::min(rangeLength, end - current);
+            // 复制单个
+            Component::EditaleText::CopySinglePropertyRange(
+                old_layout,
+                current,
+                new_layout,
+                negative ? (current - new_offset) : (current + new_offset),
+                rangeLength
+                );
+            // 推进
+            current += rangeLength;
         }
-        UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
-    // 刻画字体
-    assert(this->layout && "bad action");
-    this->layout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
-}
-
-// 复制到 目标全局句柄
-auto LongUI::Component::EditaleText::CopyToGlobal() noexcept-> HGLOBAL {
-    // 获取选择区
-    auto selection = this->GetSelectionRange();
-    // 有选择区域
-    if (selection.length) {
-        // 断言检查
-        assert(selection.startPosition < m_string.length() && "bad selection range");
-        assert((selection.startPosition + selection.length) < m_string.length() && "bad selection range");
-        // 获取富文本数据
-        if (this->IsRiched()) {
-            assert(!"Unsupported Now");
-            // TODO: 富文本
+    // --------------------- LongUI::Component::Elements ---------------------
+    // 动画
+    constexpr float ANIMATION_END = 1.f;
+    // 基本动画状态机 - 构造函数
+    LongUINoinline AnimationStateMachine::AnimationStateMachine() noexcept
+        : m_aniBasic(AnimationType::Type_QuadraticEaseOut),
+        m_aniExtra(AnimationType::Type_QuadraticEaseOut) {
+        m_aniBasic.end = ANIMATION_END;
+        m_aniExtra.end = ANIMATION_END;
+    }
+    // 基本动画状态机 - 初始化
+    LongUINoinline void AnimationStateMachine::Init(
+        State basic, State extra, pugi::xml_node node, const char* prefix) noexcept {
+        // 初始化状态
+        m_sttBasicNow = m_sttBasicOld = basic;
+        m_sttExtraNow = m_sttExtraOld = extra;
+        // 动画类型
+        auto atype = Helper::GetEnumFromXml(node, AnimationType::Type_QuadraticEaseOut, "animationtype", prefix);
+        m_aniBasic.type = m_aniExtra.type = atype;
+        // 动画持续时间
+        const char* str = nullptr;
+        if ((str = Helper::XMLGetValue(node, "animationduration", prefix))) {
+            m_aniBasic.duration = m_aniExtra.duration = LongUI::AtoF(str);
         }
-        // 全局申请
-        auto str = m_string.c_str() + selection.startPosition;
-        auto len = static_cast<size_t>(selection.length);
-        return Helper::GlobalAllocString(str, len);
     }
-    // TODO: 复制选中行
-    return nullptr;
-}
-
-// 复制到 剪切板
-auto LongUI::Component::EditaleText::CopyToClipboard() noexcept-> HRESULT {
-    HRESULT hr = E_FAIL;
-    // 打开剪切板
-    if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
-        // 清空
-        if (::EmptyClipboard()) {
-            // 全局申请
-            auto hClipboardData = this->CopyToGlobal();
-            // 申请成功
-            if (hClipboardData) {
-                // 成功
-                if (::SetClipboardData(CF_UNICODETEXT, hClipboardData) != nullptr) {
-                    hr = S_OK;
-                }
-                // 失败
-                else {
-                    ::GlobalFree(hClipboardData);
-                }
+    // 基本动画状态机 - 设置新的基本状态
+    LongUINoinline auto AnimationStateMachine::SetBasicState(State state) noexcept ->float {
+        m_sttBasicOld = m_sttBasicNow;
+        m_sttBasicNow = state;
+        // 剩余值
+        m_aniBasic.start = 0.f;
+        m_aniBasic.value = 0.f;
+        // 剩余时间
+        return m_aniBasic.time = m_aniBasic.duration;
+    }
+    // 基本动画状态机 - 设置新的额外状态
+    LongUINoinline auto AnimationStateMachine::SetExtraState(State state) noexcept ->float {
+        m_sttExtraOld = m_sttExtraNow;
+        m_sttExtraNow = state;
+        // 剩余值
+        m_aniExtra.start = 0.f;
+        m_aniExtra.value = 0.f;
+        // 剩余时间
+        return m_aniExtra.time = m_aniExtra.duration;
+    }
+    // GIMetaBasic 帮助器 -- META重建
+    LongUINoinline auto GIHelper::Recreate(
+        Meta metas[], const uint16_t ids[], size_t count) noexcept -> HRESULT {
+        // 遍历
+        for (size_t i = 0; i < count; ++i) {
+            // 有效
+            if (ids[i]) {
+                LongUI::DestoryObject(metas[i]);
+                UIManager.GetMeta(ids[i], metas[i]);
             }
         }
-        //  关闭剪切板
-        ::CloseClipboard();
+        return S_OK;
     }
-    return hr;
-}
-
-
-
-// 从 目标全局句柄 黏贴
-auto LongUI::Component::EditaleText::PasteFromGlobal(HGLOBAL global) noexcept-> HRESULT {
-    // 正式开始
-    size_t byteSize = ::GlobalSize(global);
-    // 获取数据
-    void* memory = ::GlobalLock(global);
-    HRESULT hr = E_INVALIDARG;
-    // 数据有效?
-    if (memory) {
-        // 替换选择区
-        this->DeleteSelection();
-        const wchar_t* text = reinterpret_cast<const wchar_t*>(memory);
-        // 计算长度
-        auto characterCount = static_cast<UINT32>(::wcsnlen(text, byteSize / sizeof(wchar_t)));
-        // 插入
-        hr = this->insert(m_u32CaretPos + m_u32CaretPosOffset, text, characterCount);
-        ::GlobalUnlock(global);
-        // 移动
-        this->SetSelection(SelectionMode::Mode_RightChar, characterCount, true);
-    }
-    return hr;
-}
-
-// 从 剪切板 黏贴
-auto LongUI::Component::EditaleText::PasteFromClipboard() noexcept-> HRESULT {
-    // 正式开始
-    HRESULT hr = S_OK;  //uint32_t characterCount = 0ui32;
-                        // 打开剪切板
-    if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
-        // 获取富文本数据
-        if (this->IsRiched()) {
-            assert(!"Unsupported Now");
-            // TODO
+    // GIMetaBasic 帮助器 -- 笔刷重建
+    LongUINoinline auto GIHelper::Recreate(
+        ID2D1Brush* brushes[], const uint16_t ids[], size_t count) noexcept -> HRESULT {
+        // 遍历
+        for (size_t i = 0; i < count; ++i) {
+            // 重建笔刷
+            LongUI::SafeRelease(brushes[i]);
+            auto id = ids[i];
+            brushes[i] = id ? UIManager.GetBrush(id) : UIManager.GetSystemBrush(static_cast<uint32_t>(i));
         }
-        // 获取Unicode数据
+        return S_OK;
+    }
+    // GIMetaBasic 帮助器 -- 接口清理
+    LongUINoinline void GIHelper::Clean(IUnknown** itfs, size_t size) noexcept {
+        for (size_t i = 0; i < size; ++i) LongUI::SafeRelease(itfs[i]);
+    }
+    // GIMetaBasic 帮助器 -- META 渲染
+    LongUINoinline void GIHelper::Render(
+        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, const Meta metas[], uint16_t basic) noexcept {
+        assert(UIManager_RenderTarget);
+        // 检查动画
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            // 渲染下层
+            metas[exstt1 * basic + bastt2].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+            // 渲染上层
+            metas[exstt2 * basic + bastt2].Render(UIManager_RenderTarget, rect, exani.value);
+        }
+        // 基本动画状态
         else {
-            auto data = ::GetClipboardData(CF_UNICODETEXT);
-            hr = this->PasteFromGlobal(data);
-        }
-        // 关闭剪切板
-        ::CloseClipboard();
-    }
-    return hr;
-}
-
-// 获取行编号
-void LongUI::Component::EditaleText::GetLineFromPosition(
-    const DWRITE_LINE_METRICS * lineMetrics,
-    uint32_t lineCount, uint32_t textPosition,
-    OUT uint32_t * lineOut,
-    OUT uint32_t * linePositionOut) noexcept {
-    uint32_t line = 0;
-    uint32_t linePosition = 0;
-    uint32_t nextLinePosition = 0;
-    for (; line < lineCount; ++line) {
-        linePosition = nextLinePosition;
-        nextLinePosition = linePosition + lineMetrics[line].length;
-        if (nextLinePosition > textPosition) {
-            // 不需要.
-            break;
+            // 绘制旧的状态
+            if (baani.value < ANIMATION_END) {
+                metas[exstt2 * basic + bastt1].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+            }
+            // 再绘制目标状态
+            metas[exstt2 * basic + bastt2].Render(UIManager_RenderTarget, rect, baani.value);
         }
     }
-    *linePositionOut = linePosition;
-    *lineOut = std::min(line, lineCount - 1);
-}
-
-// 更新选择区点击测试区块
-void LongUI::Component::EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
-    //UIManager << DL_Hint << "selection.length: " << long(selection.length) << endl;
-    // 有选择的情况下
-    if (selection.length == 0) {
-        m_bufMetrice.NewSize(0);
-        return;
-    };
-    // 检查选择的区块数量
-    uint32_t actualHitTestCount = 0;
-    this->layout->HitTestTextRange(
-        selection.startPosition,
-        selection.length,
-        0.f, // x
-        0.f, // y
-        nullptr,
-        0, // metrics count
-        &actualHitTestCount
-        );
-    // 保证数据正确
-    m_bufMetrice.NewSize(actualHitTestCount);
-    if (!actualHitTestCount) return;
-    // 正式获取
-    this->layout->HitTestTextRange(
-        selection.startPosition,
-        selection.length,
-        0.f, // x
-        0.f, // y
-        m_bufMetrice.GetData(),
-        m_bufMetrice.GetCount(),
-        &actualHitTestCount
-        );
-}
-
-
-
-// EditaleText 析构函数
-LongUI::Component::EditaleText::~EditaleText() noexcept {
-    ::ReleaseStgMedium(&m_recentMedium);
-    LongUI::SafeRelease(this->layout);
-    LongUI::SafeRelease(m_pTextRenderer);
-    LongUI::SafeRelease(m_pSelectionColor);
-    LongUI::SafeRelease(m_pDropSource);
-    LongUI::SafeRelease(m_pDataObject);
-}
-
-
-// 可编辑文本: 配置构造函数
-LongUI::Component::EditaleText::EditaleText(UIControl* host, pugi::xml_node node,
-    const char* prefix) noexcept : m_pHost(host) {
-    m_dragRange = { 0, 0 };
-    // 检查参数
-    assert(node && prefix && "bad arguments");
-    ZeroMemory(&m_recentMedium, sizeof(m_recentMedium));
-    // 属性
-    auto attribute = [&node, prefix](const char* attr) {
-        return Helper::XMLGetValue(node, attr, prefix);
-    };
-    // bool属性
-    auto bool_attribute = [&node, prefix](const char* attr, bool def) {
-        return pugi::impl::get_value_bool(Helper::XMLGetValue(node, attr, prefix), def);
-    };
-    const char* str = nullptr;
-    // 检查类型
-    {
-        uint32_t tmptype = Type_None;
-        // 富文本
-        if (bool_attribute("rich", false)) {
-            tmptype |= Type_Riched;
+    // GIMetaBasic 帮助器 -- 矩形笔刷渲染
+    void GIHelper::Render(
+        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, ID2D1Brush* const brushes[], uint16_t basic) noexcept{
+        assert(UIManager_RenderTarget);
+        // 检查动画
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            // 渲染下层
+            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brushes[exstt1*basic+bastt2], rect);
+            // 渲染上层
+            auto brush = brushes[exstt2*basic + bastt2];
+            brush->SetOpacity(exani.value);
+            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brush, rect);
+            brush->SetOpacity(1.f);
         }
-        // 多行显示
-        if (bool_attribute("multiline", false)) {
-            tmptype |= Type_MultiLine;
+        // 基本动画状态
+        else {
+            // 绘制旧的状态
+            if (baani.value < ANIMATION_END) {
+                LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brushes[exstt2*basic+bastt1], rect);
+            }
+            // 再绘制目标状态
+            auto brush = brushes[exstt2 * basic + bastt2];
+            brush->SetOpacity(baani.value);
+            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brush, rect);
+            brush->SetOpacity(1.f);
         }
-        // 只读
-        if (bool_attribute("readonly", false)) {
-            tmptype |= Type_ReadOnly;
-        }
-        // 加速键
-        if (bool_attribute("accelerator", false)) {
-            tmptype |= Type_Accelerator;
-        }
-        // 密码
-        if ((str = attribute("password"))) {
-            tmptype |= Type_Password;
-            // TODO: UTF8 char(s) to UTF32 char;
-            // this->password = 
-        }
-        this->type = static_cast<EditaleTextType>(tmptype);
     }
-    // 获取渲染器
-    {
-        m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
-        // 保证缓冲区
-        if (m_pTextRenderer) {
-            auto length = m_pTextRenderer->GetContextSizeInByte();
-            if (length) {
-                if ((str = attribute("context"))) {
-                    m_buffer.NewSize(length);
-                    m_pTextRenderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
+    // GIMetaBasic 帮助器 -- 颜色 渲染
+    LongUINoinline void GIHelper::Render(
+        const D2D1_RECT_F& rect, const AnimationStateMachine& sm, 
+        const D2D1_COLOR_F clrs[], uint16_t basic
+        ) noexcept {
+        auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
+        assert(UIManager_RenderTarget && brush && "bad action");
+        // 检查动画
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        D2D1_COLOR_F color;
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            float exalpha = ANIMATION_END - exani.value;
+            // Alpha混合
+            color.a = clrs[exstt2*basic + bastt2].a * exani.value
+                + clrs[exstt1*basic + bastt2].a * exalpha;
+            color.r = clrs[exstt2*basic + bastt2].r * exani.value
+                + clrs[exstt1*basic + bastt2].r * exalpha;
+            color.g = clrs[exstt2*basic + bastt2].g * exani.value
+                + clrs[exstt1*basic + bastt2].g * exalpha;
+            color.b = clrs[exstt2*basic + bastt2].b * exani.value
+                + clrs[exstt1*basic + bastt2].b * exalpha;
+        }
+        // 基本动画状态
+        else {
+            float baalpha = ANIMATION_END - baani.value;
+            // Alpha混合
+            color.a = clrs[exstt2*basic + bastt2].a * baani.value
+                + clrs[exstt2*basic + bastt1].a * baalpha;
+            color.r = clrs[exstt2*basic + bastt2].r * baani.value
+                + clrs[exstt2*basic + bastt1].r * baalpha;
+            color.g = clrs[exstt2*basic + bastt2].g * baani.value
+                + clrs[exstt2*basic + bastt1].g * baalpha;
+            color.b = clrs[exstt2*basic + bastt2].b * baani.value
+                + clrs[exstt2*basic + bastt1].b * baalpha;
+        }
+        // 渲染
+        brush->SetColor(&color);
+        UIManager_RenderTarget->FillRectangle(rect, brush);
+        LongUI::SafeRelease(brush);
+    }
+    // 复选框图像接口 -- 渲染
+    void GICheckBox::Init(pugi::xml_node /*node*/, const char* /*prefix*/) noexcept {
+        colors[State_Disabled]  = D2D1::ColorF(0xBFBFBFui32);
+        colors[State_Normal]    = D2D1::ColorF(0x000000ui32);
+        colors[State_Hover]     = D2D1::ColorF(0x7EB4EAui32);
+        colors[State_Pushed]    = D2D1::ColorF(0xACACACui32);
+    }
+    // 复选框图像接口 -- 渲染
+    void GICheckBox::Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept {
+        assert(UIManager_RenderTarget);
+        auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
+        assert(UIManager_RenderTarget && brush && "bad action");
+#ifdef _DEBUG
+        auto width = rect.right - rect.left;
+        auto height = rect.bottom - rect.top;
+        if ((width - UICheckBox::BOX_SIZE) <= -1.f || (width - UICheckBox::BOX_SIZE) >= 1.f) {
+            UIManager << DL_Error
+                << L"width of box for checkbox must be same as 'UICheckBox::BOX_SIZE'"
+                << LongUI::endl;
+        }
+        if ((height - UICheckBox::BOX_SIZE) <= -1.f || (height - UICheckBox::BOX_SIZE) >= 1.f) {
+            UIManager << DL_Error
+                << L"height of box for checkbox must be same as 'UICheckBox::BOX_SIZE'"
+                << LongUI::endl;
+        }
+#endif
+        // 检查动画
+        constexpr uint16_t basic = ControlState::STATE_COUNT;
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        D2D1_COLOR_F color;
+        auto* clrs = this->colors;
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            float exalpha = ANIMATION_END - exani.value;
+            // Alpha混合
+            color.a = clrs[bastt2].a * exani.value + clrs[bastt2].a * exalpha;
+            color.r = clrs[bastt2].r * exani.value + clrs[bastt2].r * exalpha;
+            color.g = clrs[bastt2].g * exani.value + clrs[bastt2].g * exalpha;
+            color.b = clrs[bastt2].b * exani.value + clrs[bastt2].b * exalpha;
+        }
+        // 基本动画状态
+        else {
+            float baalpha = ANIMATION_END - baani.value;
+            // Alpha混合
+            color.a = clrs[bastt2].a * baani.value + clrs[bastt1].a * baalpha;
+            color.r = clrs[bastt2].r * baani.value + clrs[bastt1].r * baalpha;
+            color.g = clrs[bastt2].g * baani.value + clrs[bastt1].g * baalpha;
+            color.b = clrs[bastt2].b * baani.value + clrs[bastt1].b * baalpha;
+        }
+        brush->SetColor(&color);
+        // 渲染 边框
+        {
+            auto tprc = rect;
+            tprc.left += 0.5f;
+            tprc.top += 0.5f;
+            tprc.right -= 0.5f;
+            tprc.bottom -= 0.5f;
+            UIManager_RenderTarget->DrawRectangle(tprc, brush);
+        }
+        {
+            float rate = sm.GetExtraAnimation().value;
+            // 解开?
+            if (CheckBoxState(exstt2) == CheckBoxState::State_Unchecked) {
+                rate = 1.f - rate;
+                exstt2 = exstt1;
+            }
+            // 打勾
+            if (CheckBoxState(exstt2) == CheckBoxState::State_Checked) {
+                // 坐标定义
+                constexpr float P1X = UICheckBox::BOX_SIZE * 0.15f;
+                constexpr float P1Y = UICheckBox::BOX_SIZE * 0.50f;
+                constexpr float P2X = UICheckBox::BOX_SIZE * 0.33f;
+                constexpr float P2Y = UICheckBox::BOX_SIZE * 0.85f;
+                constexpr float P3X = UICheckBox::BOX_SIZE * 0.85f;
+                constexpr float P3Y = UICheckBox::BOX_SIZE * 0.33f;
+                // 笔触宽度
+                constexpr float STROKE_WIDTH = UICheckBox::BOX_SIZE * 0.1f;
+                // 仅动画第一阶段
+                if (rate < 0.5f) {
+                    auto temp = rate * 2.f;
+                    D2D1_POINT_2F pt1 = D2D1::Point2F(rect.left + P1X, rect.top + P1Y);
+                    D2D1_POINT_2F pt2 = D2D1::Point2F(pt1.x + (P2X - P1X)*temp, pt1.y + (P2Y - P1Y)*temp);
+                    UIManager_RenderTarget->DrawLine(pt1, pt2, brush, STROKE_WIDTH);
+                }
+                // 仅动画第二阶段
+                else {
+                    // 第一阶段
+                    D2D1_POINT_2F pt1 = D2D1::Point2F(rect.left + P1X, rect.top + P1Y);
+                    D2D1_POINT_2F pt2 = D2D1::Point2F(rect.left + P2X, rect.top + P2Y);
+                    UIManager_RenderTarget->DrawLine(pt1, pt2, brush, STROKE_WIDTH);
+                    // 第二阶段
+                    auto temp = (rate - 0.5f) * 2.f;
+                    UIManager_RenderTarget->DrawLine(
+                        pt2,
+                        D2D1::Point2F(pt2.x + (P3X - P2X)*temp, pt2.y + (P3Y - P2Y)*temp),
+                        brush,
+                        STROKE_WIDTH
+                        );
                 }
             }
+            // 中间情况
+            else if (CheckBoxState(exstt2) == CheckBoxState::State_Indeterminate) {
+                // 矩形填充
+                float cx = (rect.left + rect.right) * 0.5f;
+                float cy = (rect.bottom + rect.top) * 0.5f;
+                D2D1_RECT_F dwrc;
+                float sz = cx + UICheckBox::BOX_SIZE * 0.4f * rate;
+                dwrc.left   = cx - sz;
+                dwrc.top    = cy - sz;
+                dwrc.right  = cx + sz;
+                dwrc.bottom = cy + sz;
+                UIManager_RenderTarget->FillRectangle(dwrc, brush);
+            }
         }
-    }
-    // 检查基本颜色
-    {
-        m_basicColor = D2D1::ColorF(D2D1::ColorF::Black);
-        Helper::MakeColor(attribute("color"), m_basicColor);
-    }
-    // 检查格式
-    IDWriteTextFormat* fmt = nullptr;
-    {
-        uint32_t format_index = LongUIDefaultTextFormatIndex;
-        if ((str = attribute("format"))) {
-            format_index = static_cast<uint32_t>(LongUI::AtoI(str));
-        }
-        auto template_format = UIManager.GetTextFormat(format_index);
-        auto hr = DX::MakeTextFormat(node, &fmt, template_format, prefix);
-        assert(SUCCEEDED(hr));
-        LongUI::SafeRelease(template_format);
-    }
-    // 格式特化
-    {
-        assert(fmt && "bad action");
-    }
-    // 获取文本
-    {
-        if (str = node.attribute(prefix).value()) {
-            m_string.assign(str);
-        }
-    }
-    // 创建布局
-    this->recreate_layout(fmt);
-    LongUI::SafeRelease(fmt);
-}
-
-// 复制全局属性
-void LongUI::Component::EditaleText::CopyGlobalProperties(
-    IDWriteTextLayout* old_layout,
-    IDWriteTextLayout* new_layout) noexcept {
-    // 基本属性
-    new_layout->SetTextAlignment(old_layout->GetTextAlignment());
-    new_layout->SetParagraphAlignment(old_layout->GetParagraphAlignment());
-    new_layout->SetWordWrapping(old_layout->GetWordWrapping());
-    new_layout->SetReadingDirection(old_layout->GetReadingDirection());
-    new_layout->SetFlowDirection(old_layout->GetFlowDirection());
-    new_layout->SetIncrementalTabStop(old_layout->GetIncrementalTabStop());
-    // 额外属性
-#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
-    DWRITE_TRIMMING trimmingOptions = {};
-    IDWriteInlineObject* inlineObject = nullptr;
-    old_layout->GetTrimming(&trimmingOptions, &inlineObject);
-    new_layout->SetTrimming(&trimmingOptions, inlineObject);
-    LongUI::SafeRelease(inlineObject);
-
-    DWRITE_LINE_SPACING_METHOD lineSpacingMethod = DWRITE_LINE_SPACING_METHOD_DEFAULT;
-    float lineSpacing = 0.f, baseline = 0.f;
-    old_layout->GetLineSpacing(&lineSpacingMethod, &lineSpacing, &baseline);
-    new_layout->SetLineSpacing(lineSpacingMethod, lineSpacing, baseline);
-#endif
-}
-
-// 对范围复制单个属性
-void LongUI::Component::EditaleText::CopySinglePropertyRange(
-    IDWriteTextLayout* old_layout, uint32_t old_start,
-    IDWriteTextLayout* new_layout, uint32_t new_start, uint32_t length) noexcept {
-    // 计算范围
-    DWRITE_TEXT_RANGE range = { new_start,  std::min(length, UINT32_MAX - new_start) };
-    // 字体集
-#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
-    IDWriteFontCollection* fontCollection = nullptr;
-    old_layout->GetFontCollection(old_start, &fontCollection);
-    new_layout->SetFontCollection(fontCollection, range);
-    LongUI::SafeRelease(fontCollection);
-#endif
-    {
-        // 字体名
-        wchar_t fontFamilyName[100];
-        fontFamilyName[0] = L'\0';
-        old_layout->GetFontFamilyName(old_start, &fontFamilyName[0], ARRAYSIZE(fontFamilyName));
-        new_layout->SetFontFamilyName(fontFamilyName, range);
-        // 一般属性
-        DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
-        DWRITE_FONT_STYLE style = DWRITE_FONT_STYLE_NORMAL;
-        DWRITE_FONT_STRETCH stretch = DWRITE_FONT_STRETCH_NORMAL;
-        old_layout->GetFontWeight(old_start, &weight);
-        old_layout->GetFontStyle(old_start, &style);
-        old_layout->GetFontStretch(old_start, &stretch);
-        new_layout->SetFontWeight(weight, range);
-        new_layout->SetFontStyle(style, range);
-        new_layout->SetFontStretch(stretch, range);
-        // 字体大小
-        FLOAT fontSize = 12.0f;
-        old_layout->GetFontSize(old_start, &fontSize);
-        new_layout->SetFontSize(fontSize, range);
-        // 下划线. 删除线
-        BOOL value = FALSE;
-        old_layout->GetUnderline(old_start, &value);
-        new_layout->SetUnderline(value, range);
-        old_layout->GetStrikethrough(old_start, &value);
-        new_layout->SetStrikethrough(value, range);
-#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
-        // 地区名
-        wchar_t localeName[LOCALE_NAME_MAX_LENGTH];
-        localeName[0] = L'\0';
-        old_layout->GetLocaleName(old_start, &localeName[0], ARRAYSIZE(localeName));
-        new_layout->SetLocaleName(localeName, range);
-#endif
-    }
-    // 刻画效果
-    IUnknown* drawingEffect = nullptr;
-    old_layout->GetDrawingEffect(old_start, &drawingEffect);
-    new_layout->SetDrawingEffect(drawingEffect, range);
-    LongUI::SafeRelease(drawingEffect);
-    // 内联对象
-    IDWriteInlineObject* inlineObject = nullptr;
-    old_layout->GetInlineObject(old_start, &inlineObject);
-    new_layout->SetInlineObject(inlineObject, range);
-    LongUI::SafeRelease(inlineObject);
-#ifndef LONGUI_EDITCORE_COPYMAINPROPERTYONLY
-    // 排版
-    IDWriteTypography* typography = nullptr;
-    old_layout->GetTypography(old_start, &typography);
-    new_layout->SetTypography(typography, range);
-    LongUI::SafeRelease(typography);
-#endif
-}
-
-// 范围复制AoE!
-void LongUI::Component::EditaleText::CopyRangedProperties(
-    IDWriteTextLayout* old_layout, IDWriteTextLayout* new_layout,
-    uint32_t begin, uint32_t end, uint32_t new_offset, bool negative) noexcept {
-    auto current = begin;
-    // 遍历
-    while (current < end) {
-        // 计算范围长度
-        DWRITE_TEXT_RANGE increment = { current, 1 };
-        DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
-        old_layout->GetFontWeight(current, &weight, &increment);
-        UINT32 rangeLength = increment.length - (current - increment.startPosition);
-        // 检查有效性
-        rangeLength = std::min(rangeLength, end - current);
-        // 复制单个
-        Component::EditaleText::CopySinglePropertyRange(
-            old_layout,
-            current,
-            new_layout,
-            negative ? (current - new_offset) : (current + new_offset),
-            rangeLength
-            );
-        // 推进
-        current += rangeLength;
+        // 扫尾处理
+        LongUI::SafeRelease(brush);
     }
 }
+LONGUI_NAMESPACE_END
 
 
 
@@ -1308,13 +1669,13 @@ void LongUI::Component::EditaleText::CopyRangedProperties(
 
 
 // 返回FALSE
-HRESULT LongUI::CUIBasicTextRenderer::IsPixelSnappingDisabled(void *, BOOL * isDisabled) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::IsPixelSnappingDisabled(void*, BOOL * isDisabled) noexcept {
     *isDisabled = false;
     return S_OK;
 }
 
 // 从目标渲染呈现器获取
-HRESULT LongUI::CUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX * mat) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::GetCurrentTransform(void*, DWRITE_MATRIX * mat) noexcept {
     assert(UIManager_RenderTarget);
     // XXX: 优化 Profiler 就这1行 0.05%
     UIManager_RenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
@@ -1322,18 +1683,18 @@ HRESULT LongUI::CUIBasicTextRenderer::GetCurrentTransform(void *, DWRITE_MATRIX 
 }
 
 // 始终如一, 方便转换
-HRESULT LongUI::CUIBasicTextRenderer::GetPixelsPerDip(void *, FLOAT * bilibili) noexcept {
+HRESULT LongUI::XUIBasicTextRenderer::GetPixelsPerDip(void*, FLOAT * bilibili) noexcept {
     *bilibili = 1.f;
     return S_OK;
 }
 
 // 渲染内联对象
-HRESULT LongUI::CUIBasicTextRenderer::DrawInlineObject(
-    void * clientDrawingContext,
+HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
+    _In_opt_ void* clientDrawingContext,
     FLOAT originX, FLOAT originY,
-    IDWriteInlineObject * inlineObject,
+    _In_ IDWriteInlineObject * inlineObject,
     BOOL isSideways, BOOL isRightToLeft,
-    IUnknown * clientDrawingEffect) noexcept {
+    _In_opt_ IUnknown * clientDrawingEffect) noexcept {
     UNREFERENCED_PARAMETER(isSideways);
     UNREFERENCED_PARAMETER(isRightToLeft);
     assert(inlineObject && "bad argument");
@@ -1348,15 +1709,21 @@ HRESULT LongUI::CUIBasicTextRenderer::DrawInlineObject(
         );
     return S_OK;
 }
-// v-table
-#define LONGUIVTABLE(pointer)  (*reinterpret_cast<const size_t * const>(pointer))
-// same v-table?
-#define LONGUISAMEVT(a, b) (LONGUIVTABLE(a) == LONGUIVTABLE(b))
+
+// longui 
+namespace LongUI {
+    // same v-table?
+    template<class A, class B> auto same_vtable(const A* a, const B* b) noexcept {
+        auto table1 = (*reinterpret_cast<const size_t * const>(a));
+        auto table2 = (*reinterpret_cast<const size_t * const>(b));
+        return table1 == table2;
+    }
+}
 
 // ------------------CUINormalTextRender-----------------------
 // 刻画字形
 HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
-    void * clientDrawingContext,
+    void* clientDrawingContext,
     FLOAT baselineOriginX, FLOAT baselineOriginY,
     DWRITE_MEASURING_MODE measuringMode,
     const DWRITE_GLYPH_RUN * glyphRun,
@@ -1365,9 +1732,9 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     UNREFERENCED_PARAMETER(clientDrawingContext);
     UNREFERENCED_PARAMETER(glyphRunDescription);
     // 获取颜色
-    register D2D1_COLOR_F* color = nullptr;
+    D2D1_COLOR_F* color = nullptr;
     // 检查
-    if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
+    if (effect && same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
@@ -1395,8 +1762,8 @@ HRESULT LongUI::CUINormalTextRender::DrawUnderline(
     ) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
-    register D2D1_COLOR_F* color = nullptr;
-    if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
+    D2D1_COLOR_F* color = nullptr;
+    if (effect && same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
@@ -1426,8 +1793,8 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
     ) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
-    register D2D1_COLOR_F* color = nullptr;
-    if (effect && LONGUISAMEVT(effect, &this->basic_color)) {
+    D2D1_COLOR_F* color = nullptr;
+    if (effect && same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
@@ -1447,188 +1814,6 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
     return S_OK;
 }
 
-// -------------------- LongUI::Component::Elements --------------------
-// 实现
-
-// Elements<Basic> Init
-void LongUI::Component::Elements<LongUI::Element_Basic>::
-Init(pugi::xml_node node, const char* prefix) noexcept {
-    // 无效?
-    const char* str = nullptr;
-    // 动画类型
-    animation.type = Helper::GetEnumFromXml(
-        node,
-        AnimationType::Type_QuadraticEaseOut,
-        "animationtype",
-        prefix
-        );
-    // 动画持续时间
-    if ((str = Helper::XMLGetValue(node, "animationduration", prefix))) {
-        animation.duration = LongUI::AtoF(str);
-    }
-}
-
-// 设置新的状态
-auto LongUI::Component::Elements<LongUI::Element_Basic>::
-SetNewStatus(LongUI::ControlStatus new_status) noexcept ->float {
-    m_state = m_stateTartget;
-    m_stateTartget = new_status;
-    // 剩余值
-    animation.start = 0.f;
-    animation.value = 0.f;
-    // 剩余时间
-    return animation.time = animation.duration;
-}
-
-// Elements<Meta> 构造函数
-LongUI::Component::Elements<LongUI::Element_Meta>::
-Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
-    ZeroMemory(m_metas, sizeof(m_metas));
-    ZeroMemory(m_aID, sizeof(m_aID));
-    // 禁用状态Meta ID
-    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "disabledmeta", prefix)
-        ));
-    // 通常状态Meta ID
-    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "normalmeta", prefix)
-        ));
-    // 移上状态Meta ID
-    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "hovermeta", prefix)
-        ));
-    // 按下状态Meta ID
-    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "pushedmeta", prefix)
-        ));
-}
-
-
-// Elements<Meta> 重建
-auto LongUI::Component::Elements<LongUI::Element_Meta>::
-Recreate() noexcept ->HRESULT {
-    for (auto i = 0u; i < STATUS_COUNT; ++i) {
-        // 有效
-        register auto id = m_aID[i];
-        if (id) {
-            UIManager.GetMeta(id, m_metas[i]);
-        }
-    }
-    return S_OK;
-}
-
-// Elements<Meta> 渲染
-void LongUI::Component::Elements<LongUI::Element_Meta>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(UIManager_RenderTarget);
-    // 先绘制当前状态
-    if (this->animation.value < this->animation.end) {
-        LongUI::Meta_Render(
-            m_metas[m_state], UIManager_RenderTarget, rect, this->animation.end
-            );
-    }
-    // 再绘制目标状态
-    LongUI::Meta_Render(
-        m_metas[m_stateTartget], UIManager_RenderTarget, rect, this->animation.value
-        );
-}
-
-
-
-// Elements<BrushRect> 构造函数
-LongUI::Component::Elements<LongUI::Element_BrushRect>::
-Elements(pugi::xml_node node, const char* prefix) noexcept :Super(node, prefix) {
-    ZeroMemory(m_apBrushes, sizeof(m_apBrushes));
-    ZeroMemory(m_aID, sizeof(m_aID));
-    // 禁用状态笔刷ID
-    m_aID[Status_Disabled] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "disabledbrush", prefix)
-        ));
-    // 通常状态笔刷ID
-    m_aID[Status_Normal] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "normalbrush", prefix)
-        ));
-    // 移上状态笔刷ID
-    m_aID[Status_Hover] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "hoverbrush", prefix)
-        ));
-    // 按下状态笔刷ID
-    m_aID[Status_Pushed] = static_cast<uint16_t>(LongUI::AtoI(
-        Helper::XMLGetValue(node, "pushedbrush", prefix)
-        ));
-}
-
-// 释放数据
-void LongUI::Component::Elements<LongUI::Element_BrushRect>::release_data() noexcept {
-    for (auto& brush : m_apBrushes) {
-        LongUI::SafeRelease(brush);
-    }
-}
-
-// Elements<BrushRectta> 渲染
-void LongUI::Component::Elements<LongUI::Element_BrushRect>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(UIManager_RenderTarget);
-    // 先绘制当前状态
-    if (animation.value < animation.end) {
-        LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_apBrushes[m_state], rect);
-    }
-    // 后绘制目标状态
-    auto brush = m_apBrushes[m_stateTartget];
-    brush->SetOpacity(animation.value);
-    LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brush, rect);
-    brush->SetOpacity(1.f);
-}
-
-// Elements<BrushRect> 重建
-auto LongUI::Component::Elements<LongUI::Element_BrushRect>::
-Recreate() noexcept ->HRESULT {
-    this->release_data();
-    for (auto i = 0u; i < STATUS_COUNT; ++i) {
-        register auto id = m_aID[i];
-        m_apBrushes[i] = id ? UIManager.GetBrush(id) : UIManager.GetSystemBrush(i);
-    }
-    return S_OK;
-}
-
-// Elements<ColorRect> 构造函数
-LongUI::Component::Elements<LongUI::Element_ColorRect>::
-Elements(pugi::xml_node node, const char* prefix) noexcept: Super(node, prefix) {
-    // 初始值
-    colors[Status_Disabled] = D2D1::ColorF(0xDEDEDEDE);
-    colors[Status_Normal] = D2D1::ColorF(0xCDCDCDCD);
-    colors[Status_Hover] = D2D1::ColorF(0xA9A9A9A9);
-    colors[Status_Pushed] = D2D1::ColorF(0x78787878);
-    // 禁用状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "disabledcolor", prefix), colors[Status_Disabled]);
-    // 通常状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "normalcolor", prefix), colors[Status_Normal]);
-    // 移上状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "hovercolor", prefix), colors[Status_Hover]);
-    // 按下状态颜色
-    Helper::MakeColor(Helper::XMLGetValue(node, "pushedcolor", prefix), colors[Status_Pushed]);
-}
-
-// Elements<ColorRect> 重建
-auto LongUI::Component::Elements<LongUI::Element_ColorRect>::
-Recreate() noexcept ->HRESULT {
-    LongUI::SafeRelease(m_pBrush);
-    m_pBrush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
-    return S_OK;
-}
-
-// Elements<ColorRect> 渲染
-void LongUI::Component::Elements<LongUI::Element_ColorRect>::Render(const D2D1_RECT_F& rect) const noexcept {
-    assert(UIManager_RenderTarget && m_pBrush);
-    // 先绘制当前状态
-    if (animation.value < animation.end) {
-        m_pBrush->SetColor(colors + m_state);
-        UIManager_RenderTarget->FillRectangle(&rect, m_pBrush);
-    }
-    // 再绘制目标状态
-    m_pBrush->SetOpacity(animation.value);
-    m_pBrush->SetColor(colors + m_stateTartget);
-    UIManager_RenderTarget->FillRectangle(&rect, m_pBrush);
-    m_pBrush->SetOpacity(1.f);
-}
                    
                     
 
@@ -1694,7 +1879,7 @@ auto LongUI::UIContainerBuiltIn::Recreate() noexcept -> HRESULT {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 父类(边缘控件)
     auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;
@@ -1794,8 +1979,8 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
 #endif
     {
         // 连接前后结点
-        register auto prev_tmp = ctrl->prev;
-        register auto next_tmp = ctrl->next;
+        auto prev_tmp = ctrl->prev;
+        auto next_tmp = ctrl->next;
         // 检查, 头
         (prev_tmp ? force_cast(prev_tmp->next) : m_pHead) = next_tmp;
         // 检查, 尾
@@ -1976,7 +2161,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
 // -------------------------- UIVerticalLayout -------------------------
 // UIVerticalLayout 创建
 auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIVerticalLayout* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -1986,14 +2171,7 @@ auto LongUI::UIVerticalLayout::CreateControl(CreateEventType type, pugi::xml_nod
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIVerticalLayout>(type, node);
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIVerticalLayout, pControl, type, node);
     }
     return pControl;
 }
@@ -2009,34 +2187,29 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
         float base_width = 0.f, base_height = 0.f, basic_weight = 0.f;
         // 第一次遍历
         for (auto ctrl : (*this)) {
-            // 非浮点控件
-            if (!(ctrl->flags & Flag_Floating)) {
-                // 宽度固定?
-                if (ctrl->flags & Flag_WidthFixed) {
-                    base_width = std::max(base_width, ctrl->GetTakingUpWidth());
-                }
-                // 高度固定?
-                if (ctrl->flags & Flag_HeightFixed) {
-                    base_height += ctrl->GetTakingUpHeight();
-                }
-                // 未指定高度?
-                else {
-                    basic_weight += ctrl->weight;
-                }
+            // 宽度固定?
+            if (ctrl->flags & Flag_WidthFixed) {
+                base_width = std::max(base_width, ctrl->GetTakingUpWidth());
+            }
+            // 高度固定?
+            if (ctrl->flags & Flag_HeightFixed) {
+                base_height += ctrl->GetTakingUpHeight();
+            }
+            // 未指定高度?
+            else {
+                basic_weight += ctrl->weight;
             }
         }
         // 带入控件本身宽度计算
         base_width = std::max(base_width, this->GetViewWidthZoomed());
         // 剩余高度富余
-        register auto height_remain = std::max(this->GetViewHeightZoomed() - base_height, 0.f);
+        auto height_remain = std::max(this->GetViewHeightZoomed() - base_height, 0.f);
         // 单位权重高度
         auto height_in_unit_weight = basic_weight > 0.f ? height_remain / basic_weight : 0.f;
         // 基线Y
         float position_y = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
-            // 浮点控
-            if (ctrl->flags & Flag_Floating) continue;
             // 设置控件宽度
             if (!(ctrl->flags & Flag_WidthFixed)) {
                 ctrl->SetWidth(base_width);
@@ -2069,7 +2242,7 @@ void LongUI::UIVerticalLayout::cleanup() noexcept {
 // -------------------------- UIHorizontalLayout -------------------------
 // UIHorizontalLayout 创建
 auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIHorizontalLayout* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -2079,16 +2252,7 @@ auto LongUI::UIHorizontalLayout::CreateControl(CreateEventType type, pugi::xml_n
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIHorizontalLayout>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIHorizontalLayout, pControl, type, node);
     }
     return pControl;
 }
@@ -2106,34 +2270,29 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
         float basic_weight = 0.f;
         // 第一次
         for (auto ctrl : (*this)) {
-            // 非浮点控件
-            if (!(ctrl->flags & Flag_Floating)) {
-                // 高度固定?
-                if (ctrl->flags & Flag_HeightFixed) {
-                    base_height = std::max(base_height, ctrl->GetTakingUpHeight());
-                }
-                // 宽度固定?
-                if (ctrl->flags & Flag_WidthFixed) {
-                    base_width += ctrl->GetTakingUpWidth();
-                }
-                // 未指定宽度?
-                else {
-                    basic_weight += ctrl->weight;
-                }
+            // 高度固定?
+            if (ctrl->flags & Flag_HeightFixed) {
+                base_height = std::max(base_height, ctrl->GetTakingUpHeight());
+            }
+            // 宽度固定?
+            if (ctrl->flags & Flag_WidthFixed) {
+                base_width += ctrl->GetTakingUpWidth();
+            }
+            // 未指定宽度?
+            else {
+                basic_weight += ctrl->weight;
             }
         }
         // 计算
         base_height = std::max(base_height, this->GetViewHeightZoomed());
         // 剩余宽度富余
-        register auto width_remain = std::max(this->GetViewWidthZoomed() - base_width, 0.f);
+        auto width_remain = std::max(this->GetViewWidthZoomed() - base_width, 0.f);
         // 单位权重宽度
         auto width_in_unit_weight = basic_weight > 0.f ? width_remain / basic_weight : 0.f;
         // 基线X
         float position_x = 0.f;
         // 第二次
         for (auto ctrl : (*this)) {
-            // 跳过浮动控件
-            if (ctrl->flags & Flag_Floating) continue;
             // 设置控件高度
             if (!(ctrl->flags & Flag_HeightFixed)) {
                 ctrl->SetHeight(base_height);
@@ -2229,7 +2388,7 @@ void LongUI::UISingle::Update() noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UISingle::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UISingle::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 父类(边缘控件)
     auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;
@@ -2277,27 +2436,18 @@ void LongUI::UISingle::RemoveJust(UIControl* child) noexcept {
 
 // UISingle: 更新布局
 void LongUI::UISingle::RefreshLayout() noexcept {
-    // 浮动控件?
-    if (m_pChild->flags & Flag_Floating) {
-        // 更新
-        m_2fContentSize.width = m_pChild->GetWidth() * m_2fZoom.width;
-        m_2fContentSize.height = m_pChild->GetHeight() * m_2fZoom.height;
+    // 设置控件宽度
+    if (!(m_pChild->flags & Flag_WidthFixed)) {
+        m_pChild->SetWidth(this->GetViewWidthZoomed());
     }
-    // 一般控件
-    else {
-        // 设置控件宽度
-        if (!(m_pChild->flags & Flag_WidthFixed)) {
-            m_pChild->SetWidth(this->GetViewWidthZoomed());
-        }
-        // 设置控件高度
-        if (!(m_pChild->flags & Flag_HeightFixed)) {
-            m_pChild->SetHeight(this->GetViewHeightZoomed());
-        }
-        // 不管如何, 修改!
-        m_pChild->SetControlLayoutChanged();
-        m_pChild->SetLeft(0.f);
-        m_pChild->SetTop(0.f);
+    // 设置控件高度
+    if (!(m_pChild->flags & Flag_HeightFixed)) {
+        m_pChild->SetHeight(this->GetViewHeightZoomed());
     }
+    // 不管如何, 修改!
+    m_pChild->SetControlLayoutChanged();
+    m_pChild->SetLeft(0.f);
+    m_pChild->SetTop(0.f);
 }
 
 // UISingle 清理
@@ -2307,7 +2457,7 @@ void LongUI::UISingle::cleanup() noexcept {
 
 // UISingle 创建空间
 auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UISingle* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -2317,25 +2467,15 @@ auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) 
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UISingle>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UISingle, pControl, type, node);
     }
     return pControl;
 }
 
 // --------------------- Page Layout ---------------
 // UIPage 构造函数
-LongUI::UIPage::UIPage(UIContainer* cp, pugi::xml_node node) noexcept :
-Super(cp, node), 
-m_animation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp), 
+    m_animation(AnimationType::Type_QuadraticEaseIn) {
     
 }
 
@@ -2406,7 +2546,7 @@ void LongUI::UIPage::Update() noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 父类(边缘控件)
     auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;
@@ -2493,7 +2633,7 @@ void LongUI::UIPage::cleanup() noexcept {
 
 // UIPage 创建空间
 auto LongUI::UIPage::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIPage* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -2503,52 +2643,83 @@ auto LongUI::UIPage::CreateControl(CreateEventType type, pugi::xml_node node) no
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIPage>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIPage, pControl, type, node);
     }
     return pControl;
+}
+
+// --------------------- Floating Layout ---------------
+// UIFloatLayout 创建
+auto LongUI::UIFloatLayout::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    UIFloatLayout* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    case_LongUI__Type_CreateControl:
+        LongUI__CreateWidthCET(UIFloatLayout, pControl, type, node);
+    }
+    return pControl;
+}
+
+// 更新子控件布局
+void LongUI::UIFloatLayout::RefreshLayout() noexcept {
+    // 布局上下文: 做为left-top坐标
+    // 布局权重:   暂时无用
+    for (auto ctrl : (*this)) {
+        ctrl->SetLeft(ctrl->context[0]);
+        ctrl->SetTop(ctrl->context[1]);
+        ctrl->SetControlLayoutChanged();
+    }
+}
+
+// UIFloatLayout 关闭控件
+void LongUI::UIFloatLayout::cleanup() noexcept {
+    delete this;
 }
                    
                     
 
 #ifdef _DEBUG
-void dbg_update(LongUI::UIControl* control) noexcept {
+void longui_dbg_update(LongUI::UIControl* control) noexcept {
     assert(control && "bad argments");
-    /*if (control->debug_updated) {
-        auto& name = control->GetName();
-        auto bk = 9;
-    }*/
+    if (control->debug_updated) {
+        auto name = control->name;
+        name = nullptr;
+    }
 }
 
-extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
-extern std::atomic<UINT> g_dbg_last_proc_message;
+// longui naemspace
+namespace LongUI {
+    // debug var
+    extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
+    extern std::atomic<UINT> g_dbg_last_proc_message;
+}
 
-void dbg_locked(const LongUI::CUILocker&) noexcept {
-    std::uintptr_t ptr = g_dbg_last_proc_window_pointer;
-    UINT msg = g_dbg_last_proc_message;
+// debug functin -- 
+void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
+    std::uintptr_t ptr = LongUI::g_dbg_last_proc_window_pointer;
+    UINT msg = LongUI::g_dbg_last_proc_message;
     auto window = reinterpret_cast<LongUI::UIWindow*>(ptr);
 #if 0
     UIManager << DL_Log
-        << L"main locker locked @" 
+        << L"main locker locked @"
         << window
-        << L" on message id: " 
+        << L" on message id: "
         << long(msg)
         << LongUI::endl;
 #else
     ::OutputDebugStringW(LongUI::Formated(
-        L"Main Locker Locked On Msg: %4u @ Window[0x%p - %S]\r\n", 
+        L"Main Locker Locked On Msg: %4u @ Window[0x%p - %S]\r\n",
         msg, window, window->name.c_str()
         ));
 #endif
 }
+
 #endif
 
 // Core Contrl for UIControl, UIMarginalable, UIContainer, UINull
@@ -2563,26 +2734,50 @@ Win8/8.1/10.0.10158之前
 3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
 */
 
+// longui::impl namespace
+namespace LongUI { namespace impl { static float const floatx2[] = { 0.f, 0.f }; } }
+
 /// <summary>
-/// Initializes a new instance of the <see cref="LongUI::UIControl"/>
+/// Initializes a new instance of the <see cref="LongUI::UIControl" />
 /// class with xml node
 /// </summary>
-/// <param name="node" type="pugi::xml_node">The xml node</param>
+/// <param name="parent">The parent for self in control-level</param>
+/// <returns></returns>
 /// <remarks>
 /// For this function, param 'node' could be null node
 /// 对于本函数, 参数'node'允许为空
-/// <see cref="LongUINullXMLNode"/>
+/// <see cref="LongUINullXMLNode" />
 /// </remarks>
-LongUI::UIControl::UIControl(UIContainer* ctrlparent, pugi::xml_node node)noexcept :
-parent(ctrlparent),
-level(ctrlparent ? (ctrlparent->level + 1ui8) : 0ui8),
-m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
+LongUI::UIControl::UIControl(UIContainer* parent) noexcept :
+    parent(parent), 
+    context(),
+    m_stateBasic(uint8_t(-1)),
+    level(parent ? (parent->level + 1ui8) : 0ui8),
+    m_pWindow(parent ? parent->GetWindow() : nullptr) {
     // 溢出错误
     if (this->level == 255) {
         UIManager << DL_Error
             << L"too deep for this tree"
             << LongUI::endl;
+        assert(!"too deep");
     }
+}
+
+/// <summary>
+/// Initializes with specified xml-node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+/// <remarks>
+/// For this function, param 'node' could be null node
+/// 对于本函数, 参数'node'允许为空
+/// <see cref="LongUINullXMLNode" />
+/// </remarks>
+void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
+#ifdef _DEBUG
+    // 没有被初始化
+    assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
+#endif
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
     // 有效?
@@ -2600,6 +2795,12 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
         if (data = node.attribute(LongUI::XMLAttribute::LayoutWeight).value()) {
             force_cast(this->weight) = LongUI::AtoF(data);
         }
+        // 检查布局上下文
+        Helper::MakeFloats(
+            node.attribute(LongUI::XMLAttribute::LayoutContext).value(),
+            force_cast(this->context), 
+            lengthof<uint32_t>(this->context)
+            );
         // 检查背景笔刷
         if (data = node.attribute(LongUI::XMLAttribute::BackgroudBrush).value()) {
             m_idBackgroudBrush = uint16_t(LongUI::AtoI(data));
@@ -2609,7 +2810,7 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
             }
         }
         // 检查可视性
-        this->visible = node.attribute(LongUI::XMLAttribute::Visible).as_bool(true);
+        this->SetVisible(node.attribute(LongUI::XMLAttribute::Visible).as_bool(true));
         // 检查名称
         if (m_pWindow) {
             auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
@@ -2619,12 +2820,13 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
                 static long s_dbg_longui_index = 0;
                 buffer[0] = 0;
                 ++s_dbg_longui_index;
-                std::snprintf(
+                auto c = std::snprintf(
                     buffer, 128, 
                     "dbg_longui_%s_id_%ld", 
                     node.name(),
                     s_dbg_longui_index
                     );
+                assert(c > 0 && "bad std::snprintf call");
                 // 小写
                 auto mystrlow = [](char* str) noexcept {
                     while (*str) {
@@ -2671,7 +2873,7 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
             float size[] = { 0.f, 0.f };
             Helper::MakeFloats(
                 node.attribute(LongUI::XMLAttribute::AllSize).value(),
-                size, static_cast<uint32_t>(lengthof(size))
+                size, lengthof<uint32_t>(size)
                 );
             // 视口区宽度固定?
             if (size[0] > 0.f) {
@@ -2684,34 +2886,23 @@ m_pWindow(ctrlparent ? ctrlparent->GetWindow() : nullptr) {
                 this->SetHeight(size[1]);
             }
         }
-        // 检查控件位置
-        {
-            float pos[] = { 0.f, 0.f };
-            Helper::MakeFloats(
-                node.attribute(LongUI::XMLAttribute::LeftTopPosotion).value(),
-                pos, static_cast<uint32_t>(lengthof(pos))
-                );
-            // 指定X轴
-            if (pos[0] != 0.f) {
-                this->SetLeft(pos[0]);
-                flag |= Flag_Floating;
-            }
-            // 指定Y轴
-            if (pos[1] != 0.f) {
-                this->SetTop(pos[1]);
-                flag |= Flag_Floating;
-            }
+        // 禁止
+        if (!node.attribute(LongUI::XMLAttribute::Enabled).as_bool(true)) {
+            this->SetEnabled(false);
         }
     }
     // 修改flag
     force_cast(this->flags) |= flag;
+#ifdef _DEBUG
+    // 被初始化
+    this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
+#endif
 }
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
-    if (this->parent) {
+    if (this->parent) 
         this->parent->RemoveChildReference(this);
-    }
     m_pWindow->RemoveControlReference(this);
     LongUI::SafeRelease(m_pBrush_SetBeforeUse);
     LongUI::SafeRelease(m_pBackgroudBrush);
@@ -2726,21 +2917,18 @@ LongUI::UIControl::~UIControl() noexcept {
     }
 }
 
-//#pragma push_macro("_DEBUG")
-//#undef _DEBUG
 // UIControl:: 渲染调用链: 背景
 void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
-    constexpr auto index = uint32_t(0);
-    if (this->debug_render_checker.Test(index)) {
+    if (this->debug_checker.Test(DEBUG_CHECK_BACK)) {
         AutoLocker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
             << endl;
     }
-    force_cast(this->debug_render_checker).SetTrue(index);
+    force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_BACK);
 #endif
     if (m_pBackgroudBrush) {
         D2D1_RECT_F rect; this->GetViewRect(rect);
@@ -2752,19 +2940,18 @@ void LongUI::UIControl::render_chain_background() const noexcept {
 void LongUI::UIControl::render_chain_foreground() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
-    constexpr auto index = uint32_t(2);
-    if (this->debug_render_checker.Test(index)) {
+    if (this->debug_checker.Test(DEBUG_CHECK_FORE)) {
         AutoLocker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
             << endl;
     }
-    force_cast(this->debug_render_checker).SetTrue(index);
+    force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_FORE);
 #endif
     // 后继结点判断, B控件深度必须比A深
     auto is_successor = [](const UIControl* const a, const UIControl* b) noexcept {
-        const register auto target = a->level;
+        const auto target = a->level;
         while (b->level > target) b = b->parent;
         return a == b;
     };
@@ -2786,96 +2973,6 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     }
 }
 
-#if 0
-/// <summary>
-/// do rendering this instance.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::Render() const noexcept {
-    // 背景渲染
-    this->render_chain_background();
-    // 主景渲染
-    this->render_chain_main();
-    // 前景渲染
-    this->render_chain_foreground();
-    // 背景渲染
-    auto render_background = [this]() {
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(sizeof(debug_render_checker) * CHAR_BIT - 1);
-        auto e = this->debug_render_checker.Test(index) == false;
-        assert(e && "check logic: called twice in one time @ render_background");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    if (m_pBackgroudBrush) {
-        D2D1_RECT_F rect; this->GetViewRect(rect);
-        LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
-    }
-    };
-    switch (type)
-    {
-    case LongUI::RenderType::Type_RenderBackground:
-        // 渲染背景
-        render_background();
-        break;
-    case LongUI::RenderType::Type_Render:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(1);
-        auto b = this->debug_render_checker.Test(index) == false;
-        assert(b && "check logic: called twice in one time @ Type_Render");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    // 渲染背景
-    render_background();
-    __fallthrough;
-    case LongUI::RenderType::Type_RenderForeground:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderForeground);
-        auto c = this->debug_render_checker.Test(index) == false;
-        assert(c && "check logic: called twice in one time @ Type_RenderForeground");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    // 渲染边框
-    if (m_fBorderWidth > 0.f) {
-        D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
-        m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-        if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
-            brect.radiusX = m_2fBorderRdius.width;
-            brect.radiusY = m_2fBorderRdius.height;
-            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
-            UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        }
-        else {
-            UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-        }
-    }
-    break;
-    case LongUI::RenderType::Type_RenderOffScreen:
-#ifdef _DEBUG
-    {
-        // 重复调用检查
-        constexpr auto index = uint32_t(LongUI::RenderType::Type_RenderOffScreen);
-        auto d = this->debug_render_checker.Test(index) == false;
-        assert(d && "check logic: called twice in one time @ Type_RenderOffScreen");
-        force_cast(this->debug_render_checker).SetTrue(index);
-    }
-#endif
-    break;
-    }
-}
-#endif
-
-
-//#pragma pop_macro("_DEBUG")
 
 // UI控件: 刷新
 void LongUI::UIControl::AfterUpdate() noexcept {
@@ -2892,7 +2989,9 @@ void LongUI::UIControl::AfterUpdate() noexcept {
 #ifdef _DEBUG
     assert(debug_updated && "must call Update() before this");
     debug_updated = false;
-    std::memset(&debug_render_checker, 0, sizeof(debug_render_checker));
+    this->debug_checker.SetFalse(DEBUG_CHECK_BACK);
+    this->debug_checker.SetFalse(DEBUG_CHECK_MAIN);
+    this->debug_checker.SetFalse(DEBUG_CHECK_FORE);
 #endif
 }
 
@@ -2928,7 +3027,7 @@ auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
 
 // 测试是否为子孙结点
 bool LongUI::UIControl::IsPosterityForSelf(const UIControl* test) const noexcept {
-    const register auto target = this->level;
+    const auto target = this->level;
     while (test->level > target) test = test->parent;
     return this == test;
 }
@@ -3054,11 +3153,11 @@ void LongUI::UIControl::GetClipRectFP(D2D1_RECT_F& rect) const noexcept {
 
 // 获得世界转换矩阵
 void LongUI::UIControl::RefreshWorld() noexcept {
-    float xx = this->view_pos.x /*+ this->margin_rect.left + m_fBorderWidth*/;
-    float yy = this->view_pos.y /*+ this->margin_rect.top + m_fBorderWidth*/;
+    float xx = this->view_pos.x;
+    float yy = this->view_pos.y;
     // 顶级控件
     if (this->IsTopLevel()) {
-        this->world = D2D1::Matrix3x2F::Translation(xx, yy);
+        this->world = DX::Matrix3x2F::Translation(xx, yy);
     }
     // 非顶级控件
     else {
@@ -3068,18 +3167,18 @@ void LongUI::UIControl::RefreshWorld() noexcept {
         yy += this->parent->GetOffsetYZoomed();
         // 转换
         this->world =
-            D2D1::Matrix3x2F::Translation(xx, yy)
-            *D2D1::Matrix3x2F::Scale(
+            DX::Matrix3x2F::Translation(xx, yy)
+            *DX::Matrix3x2F::Scale(
                 this->parent->GetZoomX(), this->parent->GetZoomY()
                 )
             * this->parent->world;
 #else
         this->world =
-            D2D1::Matrix3x2F::Translation(xx, yy)
-            * D2D1::Matrix3x2F::Scale(
+            DX::Matrix3x2F::Translation(xx, yy)
+            * DX::Matrix3x2F::Scale(
                 this->parent->GetZoomX(), this->parent->GetZoomY()
                 )
-            * D2D1::Matrix3x2F::Translation(
+            * DX::Matrix3x2F::Translation(
                 this->parent->GetOffsetX(), this->parent->GetOffsetY()
                 )
             * this->parent->world;
@@ -3094,8 +3193,14 @@ void LongUI::UIControl::RefreshWorld() noexcept {
 #endif
 }
 
-// UIMarginalable 构造函数
-LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {
+/// <summary>
+/// Initializes with specified xml-node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIMarginalable::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // 有效结点
     if (node) {
         // 获取类型
@@ -3105,8 +3210,8 @@ LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noe
             // 设置
             Helper::GetEnumProperties prop;
             prop.values_list = mode_list;
-            prop.values_length = lengthof(mode_list);
-            prop.bad_match = uint32_t(bad_match);
+            prop.values_length = lengthof<uint32_t>(mode_list);
+            prop.bad_match = static_cast<uint32_t>(bad_match);
             auto value = node.attribute(XMLAttribute::MarginalDirection).value();
             // 调用
             return static_cast<MarginalControl>(GetEnumFromString(value, prop));
@@ -3119,6 +3224,9 @@ LongUI::UIMarginalable::UIMarginalable(UIContainer* cp, pugi::xml_node node) noe
         assert(this->marginal_type < MARGINAL_CONTROL_SIZE && "bad marginal_type");
         force_cast(this->flags) |= Flag_MarginalControl;
     }
+    // 本类已被初始化
+#ifdef _DEBUG
+#endif
 }
 
 
@@ -3129,9 +3237,9 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
     D2D1_MATRIX_3X2_F identity;
     D2D1_MATRIX_3X2_F* parent_world = &identity;
     // 顶级
-    identity = D2D1::Matrix3x2F::Identity();
+    identity = DX::Matrix3x2F::Identity();
     if (this->parent->IsTopLevel()) {
-        identity = D2D1::Matrix3x2F::Identity();
+        identity = DX::Matrix3x2F::Identity();
     }
     else {
         auto pp = this->parent;
@@ -3141,7 +3249,7 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
         parent_world = &pp->world;
     }
     // 计算矩阵
-    this->world = D2D1::Matrix3x2F::Translation(xx, yy) ** parent_world;
+    this->world = DX::Matrix3x2F::Translation(xx, yy) ** parent_world;
     // 自己不能是顶级的
     assert(this->IsTopLevel() == false);
     constexpr long aa = sizeof(UIContainer);
@@ -3175,7 +3283,7 @@ namespace LongUI {
                 UIManager << DL_Hint << L"node null" << LongUI::endl;
             }
             // 申请空间
-            pControl = new(std::nothrow) UINull(ctrlparent, node);
+            pControl = new(std::nothrow) UINull(ctrlparent);
             if (!pControl) {
                 UIManager << DL_Error << L"alloc null" << LongUI::endl;
             }
@@ -3183,9 +3291,12 @@ namespace LongUI {
         }
     public:
         // constructor 构造函数
-        UINull(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node) {}
+        UINull(UIContainer* cp) noexcept : Super(cp) {}
         // destructor 析构函数
         ~UINull() noexcept { }
+    protected:
+        // init
+        void initialize(pugi::xml_node node) noexcept { Super::initialize(node); }
     };
     // space holder
     class UISpaceHolder final : public UINull {
@@ -3198,7 +3309,7 @@ namespace LongUI {
         virtual auto Recreate() noexcept ->HRESULT override { return S_OK; }
     public:
         // constructor 构造函数
-        UISpaceHolder() noexcept : Super(nullptr, LongUINullXMLNode) {}
+        UISpaceHolder() noexcept : Super(nullptr) { Super::initialize(LongUINullXMLNode); }
         // destructor 析构函数
         ~UISpaceHolder() noexcept { }
     };
@@ -3232,9 +3343,29 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 
 
 // ------------------------------ UIContainer -----------------------------
-// UIContainer 构造函数
-LongUI::UIContainer::UIContainer(UIContainer* cp, pugi::xml_node node) noexcept : Super(cp, node), marginal_control() {
-    ::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
+/// <summary>
+/// UIs the container.
+/// </summary>
+/// <param name="cp">The parent for self in control-level</param>
+/// <returns></returns>
+LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal_control() {
+    std::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
+}
+
+/// <summary>
+/// Initializes with specified cxml-node
+/// </summary>
+/// <param name="cp">The cp.</param>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
+#ifdef _DEBUG
+    for (auto ctrl : marginal_control) {
+        assert(ctrl == nullptr && "bad action");
+    }
+#endif
+    // 链式调用
+    Super::initialize(node);
     // 保留原始外间距
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
@@ -3308,7 +3439,7 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
 /// </summary>
 /// <param name="pt">The wolrd mouse point.</param>
 /// <returns>the control pointer, maybe nullptr</returns>
-auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept->UIControl* {
+auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 查找边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
@@ -3356,7 +3487,7 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
     // 查找子控件
     auto control_got = this->FindChild(arg.pt);
     // 不可视算没有
-    if (control_got && !control_got->visible) control_got = nullptr;
+    if (control_got && !control_got->GetVisible()) control_got = nullptr;
     // 不同
     if (control_got != m_pMousePointed && arg.event == LongUI::MouseEvent::Event_MouseMove) {
         auto newarg = arg;
@@ -3402,7 +3533,7 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
 // 渲染子控件
 void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
     // 可渲染?
-    if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
+    if (ctrl->GetVisible() && ctrl->visible_rect.right > ctrl->visible_rect.left
         && ctrl->visible_rect.bottom > ctrl->visible_rect.top) {
         // 修改世界转换矩阵
         UIManager_RenderTarget->SetTransform(&ctrl->world);
@@ -3600,36 +3731,6 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     this->RefreshLayout();
 }
 
-/*// UI容器: 刷新前
-void LongUI::UIContainer::BeforeUpdateContainer() noexcept {
-    // 需要刷新
-    if (this->IsNeedRefreshWorld()) {
-        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) |
-            (this->m_2fTemplateSize.height > 0.f);
-        auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
-        auto tmph = this->GetHeight() / m_2fTemplateSize.width;
-        switch (code)
-        {
-        case 0:
-            // do nothing
-            break;
-        case 1:
-            // this->m_2fTemplateSize.height > 0.f, only
-            this->m_2fZoom.width = this->m_2fZoom.height = tmph;
-            break;
-        case 2:
-            // this->m_2fTemplateSize.width > 0.f, only
-            this->m_2fZoom.height = this->m_2fZoom.width = tmpw;
-            break;
-        case 3:
-            // both
-            this->m_2fZoom.width =  tmpw;
-            this->m_2fZoom.height = tmph;
-            break;
-        }
-    }
-}*/
-
 // UI容器: 刷新
 void LongUI::UIContainer::Update() noexcept {
     // 修改自动缩放控件
@@ -3684,32 +3785,29 @@ void LongUI::UIContainer::Update() noexcept {
 #endif
     }
     // 修改可视化区域
-    if (this->IsNeedRefreshWorld()) {
-        // 更新边缘控件
-        if (this->flags & Flag_Container_ExistMarginalControl) {
-            for (auto ctrl : this->marginal_control) {
-                // 刷新
-                if (ctrl) {
-                    // 更新世界矩阵
-                    ctrl->SetControlWorldChanged();
-                    ctrl->RefreshWorldMarginal();
-                    // 坐标转换
-                    D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-                    auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-                    auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-                    // 修改可视区域
-                    ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
-                    ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
-                    ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
-                    ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
+    if (this->IsNeedRefreshWorld() && (this->flags & Flag_Container_ExistMarginalControl)) {
+        for (auto ctrl : this->marginal_control) {
+            // 刷新
+            if (ctrl) {
+                // 更新世界矩阵
+                ctrl->SetControlWorldChanged();
+                ctrl->RefreshWorldMarginal();
+                // 坐标转换
+                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+                auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+                auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+                // 修改可视区域
+                ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
+                ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
+                ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
+                ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
 #ifdef _DEBUG
-                    if (ctrl->debug_this) {
-                        UIManager << DL_Log << ctrl
-                            << " visible rect changed to: "
-                            << ctrl->visible_rect << endl;
-                    }
-#endif
+                if (ctrl->debug_this) {
+                    UIManager << DL_Log << ctrl
+                        << " visible rect changed to: "
+                        << ctrl->visible_rect << endl;
                 }
+#endif
             }
         }
         // 已处理该消息
@@ -3744,7 +3842,7 @@ auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
 void LongUI::UIContainer::SetOffsetX(float value) noexcept {
     assert(value > -1'000'000.f && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
-    register float target = value;
+    float target = value;
     if (target != m_2fOffset.x) {
         m_2fOffset.x = target;
         this->SetControlWorldChanged();
@@ -3755,7 +3853,7 @@ void LongUI::UIContainer::SetOffsetX(float value) noexcept {
 void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     assert(value > (-1'000'000.f) && value < 1'000'000.f &&
         "maybe so many children in this container that over single float's precision");
-    register float target = value;
+    float target = value;
     if (target != m_2fOffset.y) {
         m_2fOffset.y = target;
         this->SetControlWorldChanged();
@@ -3843,6 +3941,9 @@ bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_GetText:
             arg.str = m_text.c_str();
             return true;
+        case LongUI::Event::Event_SetEnabled:
+            // 修改状态
+            m_text.SetState(arg.ste.enabled ? State_Normal : State_Disabled);
         }
     }
     return Super::DoEvent(arg);
@@ -3858,7 +3959,7 @@ LongUI::UIText::UIText(pugi::xml_node node) noexcept: Super(node), m_text(node) 
 // UIText::CreateControl 函数
 auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIText* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -3868,16 +3969,7 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIText>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIText, pControl, type, node);
     }
     return pControl;
 }
@@ -3927,24 +4019,14 @@ void LongUI::UIButton::Update() noexcept {
 }
 
 // UIButton 构造函数
-LongUI::UIButton::UIButton(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), m_uiElement(node) {
+void LongUI::UIButton::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    m_uiElement.Init(this->check_state(), 0, node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
-    // 初始化代码
-    m_uiElement.GetByType<Element_Basic>().Init(node);
-    if (m_uiElement.GetByType<Element_Meta>().IsOK()) {
-        m_uiElement.SetElementType(Element_Meta);
-    }
-    else {
-        m_uiElement.SetElementType(Element_BrushRect);
-    }
-    // init
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
-    // need twices because of aniamtion
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
     constexpr int azz = sizeof(m_uiElement);
     // 修改
     force_cast(this->flags) = flag;
@@ -3953,7 +4035,7 @@ noexcept: Super(cp, node), m_uiElement(node) {
 
 // UIButton::CreateControl 函数
 auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UIButton* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -3963,16 +4045,7 @@ auto LongUI::UIButton::CreateControl(CreateEventType type,pugi::xml_node node) n
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIButton>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIButton, pControl, type, node);
     }
     return pControl;
 }
@@ -3989,8 +4062,12 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
             return true;
         case LongUI::Event::Event_KillFocus:
             // 释放焦点:
-            m_tarStatusClick = LongUI::Status_Normal;
+            m_tarStateClick = LongUI::State_Normal;
             return true;
+        case LongUI::Event::Event_SetEnabled:
+            // 修改状态
+            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
+            return Super::DoEvent(arg);
         }
     }
     return Super::DoEvent(arg);
@@ -3998,36 +4075,42 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // 鼠标事件处理
 bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // 禁用状态禁用鼠标消息
+    if (!this->GetEnabled()) return true;
+    // 转换坐标
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
-    // longui 消息
+    // 鼠标 消息
     switch (arg.event)
     {
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进: 设置UI元素状态
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
-        m_colorBorderNow = m_aBorderColor[LongUI::Status_Hover];
+        this->SetControlState(LongUI::State_Hover);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
-        m_colorBorderNow = m_aBorderColor[LongUI::Status_Normal];
+        this->SetControlState(LongUI::State_Normal);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
+        // 左键按下:
         m_pWindow->SetCapture(this);
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
-        m_colorBorderNow = m_aBorderColor[LongUI::Status_Pushed];
+        this->SetControlState(LongUI::State_Pushed);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
+        // 左键弹起:
         if (m_pWindow->IsReleasedControl(this)) {
             bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
             rec = false;
             // 设置状态
-            UIElement_SetNewStatus(m_uiElement, m_tarStatusClick);
-            m_colorBorderNow = m_aBorderColor[m_tarStatusClick];
+            this->SetControlState(m_tarStateClick);
+            m_colorBorderNow = m_aBorderColor[m_tarStateClick];
             m_pWindow->ReleaseCapture();
         }
         return true;
     }
+    // 未处理的消息
     return false;
 }
 
@@ -4184,8 +4267,10 @@ void LongUI::UIEditBasic::cleanup() noexcept {
 }
 
 // 构造函数
-LongUI::UIEditBasic::UIEditBasic(UIContainer* cp, pugi::xml_node node)
-noexcept : Super(cp, node), m_text(this, node) {
+void LongUI::UIEditBasic::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    m_text.Init(node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
     if (node) {
@@ -4198,7 +4283,7 @@ noexcept : Super(cp, node), m_text(this, node) {
 // UIEditBasic::CreateControl 函数
 LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type,pugi::xml_node node) noexcept {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIEditBasic* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -4208,16 +4293,7 @@ LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type,pugi:
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIEditBasic>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIEditBasic, pControl, type, node);
     }
     return pControl;
 }
@@ -4305,6 +4381,26 @@ bool LongUI::UIButton::debug_do_event(const LongUI::DebugEventInformation& info)
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIButton>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI复选框: 调试信息
+bool LongUI::UICheckBox::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UICheckBox";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UICheckBox";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UICheckBox>()
             || Super::debug_do_event(info);
     default:
         break;
@@ -4532,6 +4628,27 @@ bool LongUI::UIVerticalLayout::debug_do_event(const LongUI::DebugEventInformatio
     return false;
 }
 
+// UI浮动布局: 调试信息
+bool LongUI::UIFloatLayout::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIFloatLayout";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIFloatLayout";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIFloatLayout>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+
 // UI窗口: 调试信息
 bool LongUI::UIWindow::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
@@ -4736,8 +4853,6 @@ struct MemoryLeakDetector {
 #endif
 
 
-
-
 static_assert(sizeof(std::atomic_bool) == sizeof(char), "really bad");
 #define InitStaticVar(v)  decltype(v) v = nullptr
 // 初始化静态变量
@@ -4748,6 +4863,9 @@ InitStaticVar(LongUI::UIRichEdit::ShutdownTextServices);
 InitStaticVar(LongUI::Dll::D3D11CreateDevice);
 InitStaticVar(LongUI::Dll::D2D1CreateFactory);
 InitStaticVar(LongUI::Dll::DCompositionCreateDevice);
+InitStaticVar(LongUI::Dll::D2D1InvertMatrix);
+InitStaticVar(LongUI::Dll::D2D1MakeSkewMatrix);
+InitStaticVar(LongUI::Dll::D2D1IsMatrixInvertible);
 InitStaticVar(LongUI::Dll::DWriteCreateFactory);
 InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
@@ -4820,6 +4938,10 @@ namespace LongUI {
     const GUID IID_IDWriteFactory1 = {
         0x30572f99, 0xdac6, 0x41db,{ 0xa1, 0x6e, 0x04, 0x86, 0x30, 0x7e, 0x60, 0x6a } 
     };
+    // IID_IDWriteFontCollection(a84cee02-3eea-4eee-a827-87c1a02a0fcc)
+    const GUID IID_IDWriteFontCollection = {
+        0xa84cee02, 0x3eea, 0x4eee,{ 0xa8, 0x27, 0x87, 0xc1, 0xa0, 0x2a, 0x0f, 0xcc }
+    };
     // IDWriteFontFileEnumerator("72755049-5ff7-435d-8348-4be97cfa6c7c") 
     const GUID IID_IDWriteFontFileEnumerator = {
         0x72755049, 0x5ff7, 0x435d,{ 0x83, 0x48, 0x4b, 0xe9, 0x7c, 0xfa, 0x6c, 0x7c }
@@ -4832,114 +4954,97 @@ namespace LongUI {
     const GUID IID_ITextHost2 = {
         0x13E670F5, 0x1A5A, 0x11CF,{ 0xAB, 0xEB, 0x00, 0xAA, 0x00, 0xB6, 0x5E, 0xA1 }
     };
-    // CUIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
+    // XUIBasicTextRenderer {EDAB1E53-C1CF-4F5A-9533-9946904AD63C}
     const GUID IID_CUIBasicTextRenderer = {
         0xedab1e53, 0xc1cf, 0x4f5a,{ 0x95, 0x33, 0x99, 0x46, 0x90, 0x4a, 0xd6, 0x3c }
     };
+    // IID_IDXGISwapChain2 0xa8be2ac4, 0x199f, 0x4946, 0xb3, 0x31, 0x79, 0x59, 0x9f, 0xb9, 0x8d, 0xe7
+    const GUID IID_IDXGISwapChain2 = {
+        0xa8be2ac4, 0x199f, 0x4946,{ 0xb3, 0x31, 0x79, 0x59, 0x9f, 0xb9, 0x8d, 0xe7 }
+    };
 }
 
-
-/*// 复制构造
-LongUI::EventArgument::EventArgument(const EventArgument& arg) noexcept {
-    this->event = arg.event;
-    this->sender = arg.sender;
-    this->sys.wParam = arg.sys.wParam;
-    this->sys.lParam = arg.sys.lParam;
-    this->pt.x = arg.pt.x;
-    this->pt.y = arg.pt.y;
-    this->lr = arg.lr;
-}*/
-
-
-// 初始化库
-class InitializeLibrary {
-    typedef enum PROCESS_DPI_AWARENESS {
-        PROCESS_DPI_UNAWARE = 0,
-        PROCESS_SYSTEM_DPI_AWARE = 1,
-        PROCESS_PER_MONITOR_DPI_AWARE = 2
-    } PROCESS_DPI_AWARENESS;
-    // SetProcessDpiAwareness
-    static HRESULT STDAPICALLTYPE SetProcessDpiAwarenessF(PROCESS_DPI_AWARENESS);
-public:
-    //
-    InitializeLibrary() {
-        // < Win8 ?
-        if (!LongUI::IsWindows8OrGreater()) {
-            ::MessageBoxA(nullptr, "Windows8 at least!", "Unsupported System", MB_ICONERROR);
-            ::ExitProcess(1);
-            return;
+// longui
+namespace LongUI {
+    // 安全释放
+    auto SafeFreeLibrary(HMODULE& dll) noexcept { if (dll) ::FreeLibrary(dll);  dll = nullptr; }
+    // 初始化库
+    class InitializeLibrary {
+        typedef enum PROCESS_DPI_AWARENESS {
+            PROCESS_DPI_UNAWARE = 0,
+            PROCESS_SYSTEM_DPI_AWARE = 1,
+            PROCESS_PER_MONITOR_DPI_AWARE = 2
+        } PROCESS_DPI_AWARENESS;
+        // SetProcessDpiAwareness
+        static HRESULT STDAPICALLTYPE SetProcessDpiAwarenessF(PROCESS_DPI_AWARENESS);
+    public:
+        // ctor
+        InitializeLibrary() noexcept {
+            this->load_shcore();
+            LongUI::LoadProc(LongUI::UIRichEdit::IID_ITextServices2, m_hDllMsftedit, "IID_ITextServices2");
+            LongUI::LoadProc(LongUI::UIRichEdit::CreateTextServices, m_hDllMsftedit, "CreateTextServices");
+            LongUI::LoadProc(LongUI::UIRichEdit::ShutdownTextServices, m_hDllMsftedit, "ShutdownTextServices");
+            LongUI::LoadProc(LongUI::Dll::DCompositionCreateDevice, m_hDlldcomp, "DCompositionCreateDevice");
+            LongUI::LoadProc(LongUI::Dll::D2D1CreateFactory, m_hDlld2d1, "D2D1CreateFactory");
+            LongUI::LoadProc(LongUI::Dll::D2D1MakeSkewMatrix, m_hDlld2d1, "D2D1MakeSkewMatrix");
+            LongUI::LoadProc(LongUI::Dll::D2D1InvertMatrix, m_hDlld2d1, "D2D1InvertMatrix");
+            LongUI::LoadProc(LongUI::Dll::D2D1IsMatrixInvertible, m_hDlld2d1, "D2D1IsMatrixInvertible");
+            LongUI::LoadProc(LongUI::Dll::D3D11CreateDevice, m_hDlld3d11, "D3D11CreateDevice");
+            LongUI::LoadProc(LongUI::Dll::DWriteCreateFactory, m_hDlldwrite, "DWriteCreateFactory");
+            LongUI::LoadProc(LongUI::Dll::CreateDXGIFactory1, m_hDlldxgi, "CreateDXGIFactory1");
+        };
+        //
+        ~InitializeLibrary() noexcept {
+            LongUI::SafeFreeLibrary(m_hDllMsftedit);
+            LongUI::SafeFreeLibrary(m_hDlldcomp);
+            LongUI::SafeFreeLibrary(m_hDlld2d1);
+            LongUI::SafeFreeLibrary(m_hDlld3d11);
+            LongUI::SafeFreeLibrary(m_hDlldwrite);
+            LongUI::SafeFreeLibrary(m_hDlldxgi);
+            LongUI::SafeFreeLibrary(m_hDllShcore);
         }
-        // >= Win8.1 ?
-        if (LongUI::IsWindows8Point1OrGreater()) {
-            m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
-            assert(m_hDllShcore);
-            if (m_hDllShcore) {
-                auto setProcessDpiAwareness =
-                    reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
-                        ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
-                        );
-                assert(setProcessDpiAwareness);
-                if (setProcessDpiAwareness) {
-                    setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
+    private:
+        // load for Shcore
+        void load_shcore() noexcept {
+            // < Win8 ?
+            if (!LongUI::IsWindows8OrGreater()) {
+                ::MessageBoxA(nullptr, "Windows8 at least!", "Unsupported System", MB_ICONERROR);
+                ::ExitProcess(1);
+                return;
+            }
+            // >= Win8.1 ?
+            if (LongUI::IsWindows8Point1OrGreater()) {
+                m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
+                assert(m_hDllShcore);
+                if (m_hDllShcore) {
+                    auto setProcessDpiAwareness =
+                        reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
+                            ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
+                            );
+                    assert(setProcessDpiAwareness);
+                    if (setProcessDpiAwareness) {
+                        setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
+                    }
                 }
             }
         }
-        LongUI::LoadProc(LongUI::UIRichEdit::IID_ITextServices2, m_hDllMsftedit, "IID_ITextServices2");
-        LongUI::LoadProc(LongUI::UIRichEdit::CreateTextServices, m_hDllMsftedit, "CreateTextServices");
-        LongUI::LoadProc(LongUI::UIRichEdit::ShutdownTextServices, m_hDllMsftedit, "ShutdownTextServices");
-        LongUI::LoadProc(LongUI::Dll::DCompositionCreateDevice, m_hDlldcomp, "DCompositionCreateDevice");
-        LongUI::LoadProc(LongUI::Dll::D2D1CreateFactory, m_hDlld2d1, "D2D1CreateFactory");
-        LongUI::LoadProc(LongUI::Dll::D3D11CreateDevice, m_hDlld3d11, "D3D11CreateDevice");
-        LongUI::LoadProc(LongUI::Dll::DWriteCreateFactory, m_hDlldwrite, "DWriteCreateFactory");
-        LongUI::LoadProc(LongUI::Dll::CreateDXGIFactory1, m_hDlldxgi, "CreateDXGIFactory1");
-    };
-    //
-    ~InitializeLibrary() {
-        if (m_hDllMsftedit) {
-            ::FreeLibrary(m_hDllMsftedit);
-            m_hDllMsftedit = nullptr;
-        }
-        if (m_hDlldcomp) {
-            ::FreeLibrary(m_hDlldcomp);
-            m_hDlldcomp = nullptr;
-        }
-        if (m_hDlld2d1) {
-            ::FreeLibrary(m_hDlld2d1);
-            m_hDlld2d1 = nullptr;
-        }
-        if (m_hDlld3d11) {
-            ::FreeLibrary(m_hDlld3d11);
-            m_hDlld3d11 = nullptr;
-        }
-        if (m_hDlldwrite) {
-            ::FreeLibrary(m_hDlldwrite);
-            m_hDlldwrite = nullptr;
-        }
-        if (m_hDlldxgi) {
-            ::FreeLibrary(m_hDlldxgi);
-            m_hDlldxgi = nullptr;
-        }
-        if (m_hDllShcore) {
-            ::FreeLibrary(m_hDllShcore);
-            m_hDllShcore = nullptr;
-        }
-    }
-private:
-    // Msftedit
-    HMODULE     m_hDllMsftedit = ::LoadLibraryW(L"Msftedit.dll");
-    // dcomp
-    HMODULE     m_hDlldcomp = ::LoadLibraryW(L"dcomp.dll");
-    // d2d1
-    HMODULE     m_hDlld2d1 = ::LoadLibraryW(L"d2d1.dll");
-    // d3d11
-    HMODULE     m_hDlld3d11 = ::LoadLibraryW(L"d3d11.dll");
-    // dwrite
-    HMODULE     m_hDlldwrite = ::LoadLibraryW(L"dwrite.dll");
-    // dxgi
-    HMODULE     m_hDlldxgi = ::LoadLibraryW(L"dxgi.dll");
-    // Shcore
-    HMODULE     m_hDllShcore = nullptr;
-} instance;
+    private:
+        // Msftedit
+        HMODULE     m_hDllMsftedit  = ::LoadLibraryW(L"Msftedit.dll");
+        // dcomp
+        HMODULE     m_hDlldcomp     = ::LoadLibraryW(L"dcomp.dll");
+        // d2d1
+        HMODULE     m_hDlld2d1      = ::LoadLibraryW(L"d2d1.dll");
+        // d3d11
+        HMODULE     m_hDlld3d11     = ::LoadLibraryW(L"d3d11.dll");
+        // dwrite
+        HMODULE     m_hDlldwrite    = ::LoadLibraryW(L"dwrite.dll");
+        // dxgi
+        HMODULE     m_hDlldxgi      = ::LoadLibraryW(L"dxgi.dll");
+        // Shcore
+        HMODULE     m_hDllShcore    = nullptr;
+    } instance;
+}
 
 
 // 初始化静态变量
@@ -4951,86 +5056,85 @@ LongUI::CUIManager          LongUI::CUIManager::s_instance;
 #pragma comment(lib, "dxguid")
 #endif
 
-
-
                    
 
+// 主要景渲染
+void LongUI::UICheckBox::render_chain_main() const noexcept {
+    D2D1_RECT_F rect;
+    rect.left = 0.f; rect.right = BOX_SIZE;
+    rect.top = (this->view_size.height - BOX_SIZE) * 0.5f;
+    rect.bottom = rect.top + BOX_SIZE;
+    m_uiElement.Render(rect);
+}
 
+// 背景渲染
+void LongUI::UICheckBox::render_chain_foreground() const noexcept {
+    // 文本算前景
+    m_text.Render(BOX_SIZE, 0.f);
+    // 父类-父类
+    UIControl::render_chain_foreground();
+}
 
 // Render 渲染 
-void LongUI::UICheckBox::Render() const noexcept  {
-    /*D2D1_RECT_F draw_rect = this->GetDrawRect();;
-    draw_rect.left += 1.f;
-    // 计算渲染区
-    draw_rect.top = (draw_rect.bottom + draw_rect.top - m_szCheckBox.height) * 0.5f;
-    draw_rect.bottom = draw_rect.top + m_szCheckBox.height;
-    draw_rect.right = draw_rect.left + m_szCheckBox.width;
-    // 渲染框
-    UIManager_RenderTarget->DrawRectangle(
-        draw_rect, m_pBrush, 1.5f
-        );
-    // 渲染箭头
-    switch (this->state)
-    {
-    case CheckBoxState::State_Checked:
-        D2D1_MATRIX_3X2_F matrix;
-        UIManager_RenderTarget->GetTransform(&matrix);
-        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Translation(draw_rect.left, draw_rect.bottom) * matrix);
-        UIManager_RenderTarget->FillGeometry(m_pCheckedGeometry, m_pBrush);
-        UIManager_RenderTarget->SetTransform(&matrix);
-        break;
-    case CheckBoxState::State_Indeterminate:
-        // 收缩范围
-        draw_rect.left += m_szCheckBox.width * 0.2f;
-        draw_rect.right -= m_szCheckBox.width * 0.2f;
-        draw_rect.top += m_szCheckBox.height * 0.2f;
-        draw_rect.bottom -= m_szCheckBox.height * 0.2f;
-        // 渲染框
-        UIManager_RenderTarget->FillRectangle(draw_rect, m_pBrush);
-        break;
-    }
-    // 调节文本范围 +
-    //this->show_zone.left += m_szCheckBox.width;
-    // 刻画文本
-    Super::Render(RenderType::Type_Render);
-    // 调节文本范围 -
-    //this->show_zone.left -= m_szCheckBox.width;
-    return S_OK;*/
-    return Super::Render();
+void LongUI::UICheckBox::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
 }
 
 // UI检查框: 刷新
 void LongUI::UICheckBox::Update() noexcept {
+    m_uiElement.Update();
     return Super::Update();
 }
 
-// UICheckBox 构造函数
-LongUI::UICheckBox::UICheckBox(UIContainer* cp, pugi::xml_node node) 
-    noexcept: Super(cp, node) {
-    // √ symbol
-    auto format = UIManager.GetTextFormat(LongUIDefaultTextFormatIndex);
-    char32_t chars = U'√';
-    LongUI::DX::CreateTextPathGeometry(
-        &chars, 1,
-        format,
-        UIManager_D2DFactory,
-        nullptr,
-        &m_pCheckedGeometry
+// 设置状态
+void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
+    // 修改状态
+    if (state != this->GetCheckBoxState()) {
+        m_pWindow->StartRender(m_uiElement.SetExtraState(state), this);
+        bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
+        rec = false;
+#ifdef _DEBUG
+        const wchar_t* const list[] = {
+            L"checked", L"indeterminate", L"unchecked"
+        };
+        UIManager << DL_Log << this
+            << L"Checkbox change to ["
+            << list[size_t(state)]
+            << L']' 
+            << LongUI::endl;
+#endif
+    }
+}
+
+// UICheckBox 初始化
+void LongUI::UICheckBox::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    m_uiElement.Init(
+        State_Normal,
+        Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked),
+        node
         );
-    LongUI::SafeRelease(format);
+    // 初始化
+    Helper::SetBorderColor(node, m_aBorderColor);
+    constexpr int azz = sizeof(m_uiElement);
 }
 
 // UICheckBox 析构函数
 LongUI::UICheckBox::~UICheckBox() noexcept {
-    LongUI::SafeRelease(m_pCheckedGeometry);
-    LongUI::SafeRelease(m_pBrush);
+
 }
 
 
 // UICheckBox::CreateControl 函数
 auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UICheckBox* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -5040,16 +5144,7 @@ auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UICheckBox>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UICheckBox, pControl, type, node);
     }
     return pControl;
 }
@@ -5074,45 +5169,69 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // do mouse event 鼠标事件处理
 bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    //UIManager << DL_Hint << this << this->GetEnabled() << endl;
+    // 禁用状态禁用鼠标消息
+    if (!this->GetEnabled()) return true;
+    // 转换坐标
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    // 鼠标 消息
     switch (arg.event)
     {
     case LongUI::MouseEvent::Event_MouseEnter:
+        // 鼠标移进: 设置UI元素状态
+        this->SetControlState(LongUI::State_Hover);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         m_pWindow->now_cursor = m_hCursorHand;
-        break;
+        return true;
     case LongUI::MouseEvent::Event_MouseLeave:
+        // 鼠标移出: 设置UI元素状态
+        this->SetControlState(LongUI::State_Normal);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
         m_pWindow->now_cursor = m_pWindow->default_cursor;
-        break;
+        return true;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        // 左键按下:
+        m_pWindow->SetCapture(this);
+        this->SetControlState(LongUI::State_Pushed);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
+        return true;
     case LongUI::MouseEvent::Event_LButtonUp:
-        // 有效
-        if (arg.pt.x < this->view_size.width && arg.pt.y) {
+        // 左键弹起:
+        this->SetControlState(LongUI::State_Hover);
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
+        // 检查的是本控件
+        if (m_pWindow->IsReleasedControl(this)) {
             // 检查flag
-            if (this->IsCanbeIndeterminate()) {
-                if (this->state == CheckBoxState::State_UnChecked) {
-                    force_cast(this->state) = CheckBoxState::State_Checked;
-                }
-                else if (this->state == CheckBoxState::State_Checked) {
-                    force_cast(this->state) = CheckBoxState::State_Indeterminate;
-                }
-                else {
-                    force_cast(this->state) = CheckBoxState::State_UnChecked;
-                }
+            auto target = CheckBoxState::State_Checked;
+            if (this->GetCheckBoxState() == CheckBoxState::State_Checked) {
+                target = CheckBoxState::State_Unchecked;
             }
-            else {
-                force_cast(this->state) = static_cast<decltype(this->state)>
-                    (!static_cast<uint32_t>(this->state));
-            }
-            m_pWindow->Invalidate(this);
+            // 修改复选框状态
+            this->SetCheckBoxState(target);
+            // 释放
+            m_pWindow->ReleaseCapture();
         }
-        break;
+        return true;
     }
-    return true;
+    // 未处理的消息
+    return false;
+}
+
+
+// 添加事件监听器
+bool LongUI::UICheckBox::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
+    // 点击
+    if (sb == SubEvent::Event_ValueChanged) {
+        m_event += std::move(call);
+        return true;
+    }
+    return Super::uniface_addevent(sb, std::move(call));
 }
 
 // recreate 重建
 auto LongUI::UICheckBox::Recreate() noexcept ->HRESULT {
     // 有效
-    LongUI::SafeRelease(m_pBrush);
-    m_pBrush = UIManager.GetBrush(LongUIDefaultTextFormatIndex);
+    m_uiElement.Recreate();
     // 父类处理
     return Super::Recreate();
 }
@@ -5121,14 +5240,19 @@ auto LongUI::UICheckBox::Recreate() noexcept ->HRESULT {
 void LongUI::UICheckBox::cleanup() noexcept {
     delete this;
 }
+
+
                    
                     
 
 // ----------------------------------------------------------------------------
 // -------------------------------- UIList ------------------------------------
 // ----------------------------------------------------------------------------
-// UI列表控件: 构造函数
-LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp, node) {
+// UI列表控件: 初始化
+void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    // 初始
     m_vLines.reserve(100);
     m_vSelectedIndex.reserve(16);
     m_vLineTemplate.reserve(16);
@@ -5151,7 +5275,7 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
         // 行模板
         if ((str = node.attribute("linetemplate").value())) {
             // 检查长度
-            register auto len = Helper::MakeCC(str);
+            auto len = Helper::MakeCC(str);
             m_vLineTemplate.newsize(len);
             // 有效
             if (len && m_vLineTemplate.isok()) {
@@ -5190,8 +5314,8 @@ LongUI::UIList::UIList(UIContainer* cp, pugi::xml_node node) noexcept :Super(cp,
     this->list_flag = listflag;
 
     // TEST: INIT COLOR DATA
-    m_colorLineNormal1 = D2D1::ColorF(0xffffff, 0.5f);
-    m_colorLineNormal2 = D2D1::ColorF(0xeeeeee, 0.5f);
+    m_colorLineNormal1 = D2D1::ColorF(0xffffffui32, 0.5f);
+    m_colorLineNormal2 = D2D1::ColorF(0xeeeeeeui32, 0.5f);
 }
 
 // 添加事件监听器(雾)
@@ -5231,7 +5355,7 @@ auto LongUI::UIList::get_referent_control() const noexcept -> UIListLine* {
 }
 
 // 依靠鼠标位置获取列表行索引
-auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept->uint32_t {
+auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept ->uint32_t {
     uint32_t index = 0;
     // XXX: 利用list特性优化
     for (auto ctrl : m_vLines) {
@@ -5245,7 +5369,7 @@ auto LongUI::UIList::find_line_index(const D2D1_POINT_2F& pt) const noexcept->ui
 }
 
 // 依靠鼠标位置获取列表行
-auto LongUI::UIList::find_line(const D2D1_POINT_2F& pt) const noexcept->UIListLine* {
+auto LongUI::UIList::find_line(const D2D1_POINT_2F& pt) const noexcept ->UIListLine* {
     // XXX: 利用list特性优化
     for (auto ctrl : m_vLines) {
         // 区域内判断
@@ -5780,7 +5904,7 @@ void LongUI::UIList::render_chain_background() const noexcept {
         // 保留转变
         D2D1_MATRIX_3X2_F matrix;
         UIManager_RenderTarget->GetTransform(&matrix);
-        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
         // 第一个可视列表行 = (-Y偏移) / 行高
         int first_visible = static_cast<int>((-m_2fOffset.y) / m_fLineHeight);
         first_visible = std::max(first_visible, int(0));
@@ -5890,7 +6014,7 @@ void LongUI::UIList::cleanup() noexcept {
 // UI列表控件: 创建控件
 auto LongUI::UIList::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
-    UIControl* pControl = nullptr;
+    UIList* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -5900,16 +6024,7 @@ noexcept -> UIControl* {
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIList>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIList, pControl, type, node);
     }
     return pControl;
 }
@@ -5919,9 +6034,10 @@ noexcept -> UIControl* {
 // ---------------------------- UIListLine! --------------------------------
 // ----------------------------------------------------------------------------
 
-// UI列表元素控件: 构造函数
-LongUI::UIListLine::UIListLine(UIContainer* cp, pugi::xml_node node)
-noexcept : Super(cp, node) {
+// UI列表元素控件: 初始化
+void LongUI::UIListLine::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // listline 特性: 宽度必须固定
     //auto flag = this->flags | Flag_WidthFixed;
     if (node) {
@@ -5959,7 +6075,7 @@ void LongUI::UIListLine::cleanup() noexcept {
 // UI列表元素控件: 创建控件
 auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node)
 noexcept -> UIControl* {
-    UIControl* pControl = nullptr;
+    UIListLine* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -5969,16 +6085,7 @@ noexcept -> UIControl* {
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIListLine>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIListLine, pControl, type, node);
     }
     return pControl;
 }
@@ -5989,13 +6096,13 @@ noexcept -> UIControl* {
 // ----------------------------------------------------------------------------
 
 // UI列表头控件: 构造函数
-LongUI::UIListHeader::UIListHeader(UIContainer* cp, pugi::xml_node node)
-noexcept: Super(cp, node) {
-    assert(cp && "bad argument");
+void LongUI::UIListHeader::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // 本类必须为边界控件
     assert((this->flags & Flag_MarginalControl) && "'UIListHeader' must be marginal-control");
     // 设置表头
-    longui_cast<UIList*>(cp)->SetHeader(this);
+    longui_cast<UIList*>(this->parent)->SetHeader(this);
     // 支持模板子结点
     //auto flag = this->flags;
     if (node) {
@@ -6031,7 +6138,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         // 循环查找
         auto index = 0ui32;
         for (auto ctrl : (*this)) {
-            if (ctrl->visible && ctrl->visible_rect.right > ctrl->visible_rect.left
+            if (ctrl->GetVisible() && ctrl->visible_rect.right > ctrl->visible_rect.left
                 && ctrl->visible_rect.right >= data[0]
                 && ctrl->visible_rect.right < data[1]) {
                 m_indexSepHovered = index;
@@ -6150,7 +6257,7 @@ void LongUI::UIListHeader::UpdateMarginalWidth() noexcept {
 
 // 创建UI列表头
 auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node node) noexcept -> UIControl* {
-    UIControl* pControl = nullptr;
+    UIListHeader* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -6160,16 +6267,7 @@ auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node no
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 允许
-        if (!node) {
-            UIManager << DL_Log << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIListHeader>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIListHeader, pControl, type, node);
     }
     return pControl;
 }
@@ -6242,19 +6340,29 @@ void LongUI::CUIMenu::Show(HWND parent, POINT* OPTIONAL pos) noexcept {
 
                    
 
-// node->Attribute\((.+?)\)
-// node.attribute($1).value()
-
 #define LONGUI_D3D_DEBUG
 //#define LONGUI_RENDER_IN_STD_THREAD
 
 // CUIManager 初始化
-auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
+auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
+    // 检查GUID
+#if defined(_DEBUG) && defined(_MSC_VER)
+#define CHECK_GUID(x)  assert(LongUI::IID_##x == __uuidof(x) && "bad guid")
+    CHECK_GUID(IDWriteTextRenderer);
+    CHECK_GUID(IDWriteInlineObject);
+    CHECK_GUID(IDWriteFactory1);
+    CHECK_GUID(IDWriteFontCollection);
+    CHECK_GUID(IDWriteFontFileEnumerator);
+    CHECK_GUID(IDWriteFontCollectionLoader);
+    CHECK_GUID(IDXGISwapChain2);
+#undef CHECK_GUID
+#endif
     m_szLocaleName[0] = L'\0';
     m_vDelayCleanup.reserve(100);
-    ::memset(m_apWindows, 0, sizeof(m_apWindows));
+    std::memset(m_apWindows, 0, sizeof(m_apWindows));
     // 开始计时
     m_uiTimer.Start();
+    this->RefreshDisplayFrequency();
     // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -6274,8 +6382,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 本地字符集名称
     config->GetLocaleName(m_szLocaleName);
     // 初始化其他
-    ZeroMemory(m_apTextRenderer, sizeof(m_apTextRenderer));
-    ZeroMemory(m_apSystemBrushes, sizeof(m_apSystemBrushes));
+    std::memset(m_apTextRenderer, 0, sizeof(m_apTextRenderer));
+    std::memset(m_apSystemBrushes, 0, sizeof(m_apSystemBrushes));
     // 获取实例句柄
     auto hInstance = ::GetModuleHandleW(nullptr);
     // 注册窗口类 | CS_DBLCLKS
@@ -6329,6 +6437,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     if (SUCCEEDED(hr)) {
         m_cCountCtrlTemplate = 1;
         hr = this->load_control_template_string(this->configure->GetTemplateString());
+        longui_debug_hr(hr, L"load_control_template_string faild");
     }
     // 资源数据缓存
     if (SUCCEEDED(hr)) {
@@ -6357,7 +6466,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         }
         // 修改资源
         if (m_pResourceBuffer) {
-            ::memset(m_pResourceBuffer, 0, get_buffer_length());
+            std::memset(m_pResourceBuffer, 0, get_buffer_length());
             m_ppBitmaps = reinterpret_cast<decltype(m_ppBitmaps)>(m_pResourceBuffer);
             m_ppBrushes = reinterpret_cast<decltype(m_ppBrushes)>(m_ppBitmaps + m_cCountBmp);
             m_ppTextFormats = reinterpret_cast<decltype(m_ppTextFormats)>(m_ppBrushes + m_cCountBrs);
@@ -6377,6 +6486,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 设置控件模板
     if (SUCCEEDED(hr)) {
         hr = this->set_control_template_string();
+        longui_debug_hr(hr, L"set_control_template_string faild");
     }
     // 创建D2D工厂
     if (SUCCEEDED(hr)) {
@@ -6390,6 +6500,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             &options,
             reinterpret_cast<void**>(&m_pd2dFactory)
             );
+        longui_debug_hr(hr, L"D2D1CreateFactory faild");
     }
     // 创建TSF线程管理器
     if (SUCCEEDED(hr)) {
@@ -6399,10 +6510,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pTsfThreadManager)
             );
+        longui_debug_hr(hr, L"CoCreateInstance CLSID_TF_ThreadMgr faild");
     }
     // 激活客户ID
     if (SUCCEEDED(hr)) {
         hr = m_pTsfThreadManager->Activate(&m_idTsfClient);
+        longui_debug_hr(hr, L"m_pTsfThreadManager->Activate faild");
     }
     // 创建 DirectWrite 工厂.
     if (SUCCEEDED(hr)) {
@@ -6410,6 +6523,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             DWRITE_FACTORY_TYPE_ISOLATED,
             LongUI_IID_PV_ARGS_Ex(m_pDWriteFactory)
             );
+        longui_debug_hr(hr, L"DWriteCreateFactory faild");
     }
     // 创建帮助器
     if (SUCCEEDED(hr)) {
@@ -6419,12 +6533,16 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pDropTargetHelper)
             );
+        longui_debug_hr(hr, L"CoCreateInstance CLSID_DragDropHelper faild");
     }
     // 创建字体集
     if (SUCCEEDED(hr)) {
+        // 获取脚本
+        config->CreateInterface(LongUI_IID_PV_ARGS(m_pFontCollection));
         // 失败获取系统字体集
         if (!m_pFontCollection) {
             hr = m_pDWriteFactory->GetSystemFontCollection(&m_pFontCollection);
+            longui_debug_hr(hr, L"m_pDWriteFactory->GetSystemFontCollection faild");
         }
     }
 #ifdef _DEBUG
@@ -6444,16 +6562,21 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
                     auto tc = string->GetCount();
                     UIManager << DLevel_Log << Formated(L"%4d[%d]: ", int(i), int(tc));
                     // 遍历所有字体名称
+#if 0
                     for (auto j = 0u; j < 1u; j++) {
                         string->GetLocaleName(j, buffer, LongUIStringBufferLength);
                         UIManager << DLevel_Log << buffer << " => ";
                         // 有些语言在我的机器上显示不了(比如韩语), 会出现bug略过不少东西, 就显示第一个了
-                        /*if (std::wcscmp(buffer, L"ko-kr")) */{
-                            string->GetString(j, buffer, LongUIStringBufferLength);
-                            UIManager << DLevel_Log << buffer << "; ";
-                        }
+                        string->GetString(j, buffer, LongUIStringBufferLength);
+                        UIManager << DLevel_Log << buffer << "; ";
                     }
-                    UIManager << DLevel_Log << L"\r\n";
+#else
+                    // 显示第一个
+                    string->GetLocaleName(0, buffer, LongUIStringBufferLength);
+                    UIManager << DLevel_Log << buffer << " => ";
+                    string->GetString(0, buffer, LongUIStringBufferLength);
+                    UIManager << DLevel_Log << buffer << ";\r\n";
+#endif
                 }
                 LongUI::SafeRelease(string);
             }
@@ -6488,6 +6611,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
         this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
         this->RegisterControlClass(UIScrollBarA::CreateControl, "ScrollBarA");
         this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
+        this->RegisterControlClass(UIFloatLayout::CreateControl, "FloatLayout");
         this->RegisterControlClass(UIVerticalLayout::CreateControl, "VerticalLayout");
         this->RegisterControlClass(UIHorizontalLayout::CreateControl, "HorizontalLayout");
         // 添加自定义控件
@@ -6496,15 +6620,23 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept->HRESULT {
     // 创建资源
     if (SUCCEEDED(hr)) {
         hr = this->RecreateResources();
+        longui_debug_hr(hr, L"RecreateResources faild");
     }
     // 初始化事件
     if (SUCCEEDED(hr)) {
         this->do_creating_event(LongUI::CreateEventType::Type_Initialize);
+        longui_debug_hr(hr, L"do_creating_event(init) faild");
     }
     // 检查错误
     else {
         this->ShowError(hr);
     }
+    // 检查当前路径
+#ifdef _DEBUG
+    wchar_t buffer[MAX_PATH * 4]; buffer[0] = 0;
+    ::GetCurrentDirectoryW(lengthof<uint32_t>(buffer), buffer);
+    UIManager << DL_Log << L" Current Directory: " << buffer << LongUI::endl;
+#endif
     return hr;
 }
 
@@ -6561,6 +6693,8 @@ void LongUI::CUIManager::Uninitialize() noexcept {
         m_pResourceBuffer = nullptr;
     }
     m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
+    // 清理
+    m_hashStr2CreateFunc.Clear();
 }
 
 // 创建事件
@@ -6574,7 +6708,6 @@ void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
     });
 }
 
-
 // CUIManager 创建控件树
 void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_node node) noexcept {
     // 断言
@@ -6584,7 +6717,6 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
     // 队列 -- 顺序遍历树
     LongUI::EzContainer::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
     LongUI::EzContainer::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
-    // 
     UIControl* now_control = nullptr;
     UIContainer* parent_node = window;
     // 遍历算法: 1.压入所有子结点 2.依次弹出 3.重复1
@@ -6596,18 +6728,18 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             parents_queue.Push(parent_node);
             node = node.next_sibling();
         }
-        //recheck:
         // 为空则退出
         if (xml_queue.IsEmpty()) break;
         // 弹出/出队 第一个结点
         node = xml_queue.Front();  xml_queue.Pop();
         parent_node = parents_queue.Front(); parents_queue.Pop();
+        assert(node && "bad xml node");
         // 根据名称创建控件
         if (!(now_control = this->CreateControl(parent_node, node, nullptr))) {
             // 错误
             parent_node = nullptr;
             UIManager << DL_Error
-                << L" Control Class Not Found: "
+                << L" control class not found: "
                 << node.name()
                 << L".or OOM"
                 << LongUI::endl;
@@ -6617,43 +6749,68 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         parent_node->PushBack(now_control);
         // 设置结点为下次父结点
         parent_node = static_cast<decltype(parent_node)>(now_control);
-#if 0
-        // 检查本控件是否需要XML子结点信息
-        if (now_control->flags & Flag_ControlNeedFullXMLNode) {
-            goto recheck;
-        }
-#endif
     }
 }
 
 // 获取创建控件函数指针
 auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlFunction {
+    // 检查
+    assert(clname && clname[0] && "bad argment");
     // 查找
     auto result = m_hashStr2CreateFunc.Find(clname);
-    if (result) {
-        return reinterpret_cast<CreateControlFunction>(*result);
-    }
-    assert(!"404 not found");
-    return nullptr;
+    // 检查
+    assert(result && "404 not found");
+    // 返回
+    return reinterpret_cast<CreateControlFunction>(*result);
 }
 
-/*
-if (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
-    // 两种方式退出 
-    if (msg.message == WM_QUIT) {
-        m_exitFlag = true;
-        break;
+// 创建文本格式
+auto LongUI::CUIManager::CreateTextFormat(
+    WCHAR const * fontFamilyName, 
+    DWRITE_FONT_WEIGHT fontWeight, 
+    DWRITE_FONT_STYLE fontStyle,
+    DWRITE_FONT_STRETCH fontStretch, 
+    FLOAT fontSize, 
+    IDWriteTextFormat ** textFormat) noexcept -> HRESULT {
+    auto hr = S_OK;
+#ifdef _DEBUG
+    // 检查字体名称
+    UINT32 index = 0; BOOL exist = FALSE;
+    hr = m_pFontCollection->FindFamilyName(fontFamilyName, &index, &exist);
+    if (SUCCEEDED(hr)) {
+        // 字体不存在, 则给予警告
+        if (!exist) {
+            UIManager << DL_Hint
+                << Formated(L"font family(%ls) not found", fontFamilyName)
+                << LongUI::endl;
+            int bk; bk = 9;
+        }
     }
-    ::TranslateMessage(&msg);
-    ::DispatchMessageW(&msg);
+    longui_debug_hr(hr, L"m_pFontCollection->FindFamilyName failed");
+#endif
+    // 创建文本格式
+    hr = m_pDWriteFactory->CreateTextFormat(
+        fontFamilyName,
+        m_pFontCollection,
+        fontWeight,
+        fontStyle,
+        fontStretch,
+        fontSize,
+        m_szLocaleName,
+        textFormat
+        );
+    // 检查错误
+    longui_debug_hr(hr, Formated(L"CreateTextFormat(%ls) faild", fontFamilyName));
+    return hr;
 }
-*/
+
 
 #ifdef LONGUI_RENDER_IN_STD_THREAD
 #include <thread>
 #else
 #include <process.h>
 #endif
+
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
     // 开始!
@@ -6667,7 +6824,6 @@ void LongUI::CUIManager::Run() noexcept {
         while (!UIManager.m_exitFlag) {
             uint32_t vslen = 0;
             // 锁住
-            //UIManager << DL_Log << "Try3" << endl;
             UIManager.Lock();
 #ifdef _DEBUG
             ++UIManager.frame_id;
@@ -6747,7 +6903,7 @@ void LongUI::CUIManager::Run() noexcept {
     // 尝试强行关闭
     if (m_cCountWindow) {
         UIWindow* windows[LongUIMaxWindow];
-        ::memcpy(windows, m_apWindows, sizeof(m_apWindows));
+        std::memcpy(windows, m_apWindows, sizeof(m_apWindows));
         auto count = m_cCountWindow;
         // 清理窗口
         for (auto i = 0u; i < count; ++i) {
@@ -6759,27 +6915,17 @@ void LongUI::CUIManager::Run() noexcept {
 }
 
 // 等待垂直同步
-auto LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept ->void {
+void LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept {
     // 一直刷新
-    if (this->flag & IUIConfigure::Flag_RenderInAnytime) {
-        ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
-        return;
-    }
-    // 获取屏幕刷新率
-    DEVMODEW mode = { 0 };
-    ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-    // 保留刷新
-    ++m_dwWaitVSCount;
-    auto end_time_of_sleep = m_dwWaitVSCount * 1000 / mode.dmDisplayFrequency;
-    end_time_of_sleep += m_dwWaitVSStartTime;
+    if (this->flag & IUIConfigure::Flag_RenderInAnytime) 
+        return static_cast<void>(::WaitForMultipleObjects(length, events, TRUE, INFINITE));
+    // 保留刷新时间点
+    auto end_time_of_sleep = m_dwWaitVSStartTime + 
+        ((++m_dwWaitVSCount) * 1000ui32) / static_cast<uint16_t>(m_dDisplayFrequency);
     // 等待事件
-    if (length) {
-        ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
-    }
+    if (length) ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
     // 保证等待
-    while (::timeGetTime() < end_time_of_sleep) {
-        ::Sleep(1);
-    }
+    while (::timeGetTime() < end_time_of_sleep) ::Sleep(1);
 }
 
 // 利用现有资源创建控件
@@ -6820,25 +6966,10 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
             node = m_pTemplateNodes[tid];
         }
     }
+    // 检查
     assert(function && "bad idea");
     if (!function) return nullptr;
     auto ctrl = function(cp->CET(), node);
-#if 0
-    // 插入模板结点
-    if (ctrl && tid) {
-        if (ctrl->flags & (Flag_InsertTemplateChild | Flag_UIContainer)) {
-            auto child = m_pTemplateNodes[tid].first_child();
-            while (child) {
-                auto created = this->create_control(static_cast<UIContainer*>(ctrl), nullptr, child, 0);
-                assert(created);
-                if (created) {
-                    static_cast<UIContainer*>(ctrl)->PushBack(created);
-                }
-                child = child.next_sibling();
-            }
-        }
-    }
-#endif
     return ctrl;
 }
 
@@ -6856,10 +6987,13 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
         auto hr = window->Recreate();
         ShowHR(hr);
 #ifdef _DEBUG
+        //::Sleep(5000);
         CUITimerH dbg_timer; dbg_timer.Start();
 #endif
         // 创建控件树
         this->make_control_tree(window, node);
+        // 完成创建
+        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
 #ifdef _DEBUG
         auto time = dbg_timer.Delta_ms<double>();
         UIManager << DL_Log
@@ -6867,8 +7001,7 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
             << window
             << LongUI::endl;
 #endif
-        // 完成创建
-        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+        //::Sleep(5000);
         // 返回
         return window;
     }
@@ -6878,16 +7011,21 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
 // 消息转换
 void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg, 
     UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+    // 范围检查
     assert((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || 
         message == WM_MOUSELEAVE || message == WM_MOUSEHOVER);
+    // 获取X
     auto get_x = [lParam]() { return float(int16_t(LOWORD(lParam))); };
+    // 获取Y
     auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
+    // 设置
     arg.sys.wParam = wParam;
     arg.sys.lParam = lParam;
     arg.pt.x = get_x();
     arg.pt.y = get_y();
     arg.last = nullptr;
-    register MouseEvent me;
+    MouseEvent me;
+    // 检查信息
     switch (message)
     {
     case WM_MOUSEMOVE:
@@ -6931,8 +7069,10 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg,
 }
 
 #ifdef _DEBUG
-std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
-std::atomic<UINT> g_dbg_last_proc_message = 0;
+namespace LongUI {
+    std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
+    std::atomic<UINT> g_dbg_last_proc_message = 0;
+}
 #endif
 
 // 窗口过程函数
@@ -6940,18 +7080,14 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 #ifdef _DEBUG
     g_dbg_last_proc_message = message;
 #endif
-    /*POINT pt; ::GetCursorPos(&pt); ::ScreenToClient(hwnd, &pt);
-    arg.pt.x = static_cast<float>(pt.x); arg.pt.y = static_cast<float>(pt.y);*/
     // 返回值
     LRESULT recode = 0;
     // 创建窗口时设置指针
     if (message == WM_CREATE) {
         // 获取指针
-        LongUI::UIWindow *window = reinterpret_cast<LongUI::UIWindow*>(
+        auto* window = reinterpret_cast<LongUI::UIWindow*>(
             (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
             );
-        // create message
-        UIManager << DL_Log << window << ": On WM_CREATE" << endl;
         // 设置窗口指针
         ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
         // 创建完毕
@@ -6977,7 +7113,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             CUIManager::WindowsMsgToMouseEvent(arg, message, wParam, lParam);
             // 有效
             if (arg.event != MouseEvent::Event_None) {
-                //UIManager << DL_Log << "Try2" << endl;
                 {
                     AutoLocker;
                     // 需要修正坐标
@@ -6992,7 +7127,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
                     // 总是处理了鼠标事件
                     handled = true;
                 }
-                //UIManager << DL_Log << "End2" << endl;
             }
         }
         // 一般事件
@@ -7013,8 +7147,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             }
             ++s_times;
 #endif
-            // 上锁
-            //UIManager << DL_Log << "Try1" << endl;
             {
                 AutoLocker;
                 // 默认处理
@@ -7025,7 +7157,6 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
 #ifdef _DEBUG
             --s_times;
 #endif
-            //UIManager << DL_Log << "End1" << endl;
         }
         // 未处理
         if (!handled) {
@@ -7055,7 +7186,7 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
     {
         // 混合通道
         auto blend_channel = [](float ch1, float ch2, float prec) {
-            register auto data = ch1 + (ch2 - ch1) * prec;
+            auto data = ch1 + (ch2 - ch1) * prec;
             return data > 1.f ? 1.f : (data < 0.f ? 0.f : data);
         };
         colorf.a = 1.f; auto prec = 1.f - float(balance) / 100.f;
@@ -7067,14 +7198,8 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
     return hr;
 }
 
-
-// 获取操作系统版本
-namespace LongUI { auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion; }
-
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept : 
-m_config(*this), 
-version(LongUI::GetWindowsVersion()) {
+LongUI::CUIManager::CUIManager() noexcept : m_config(*this) {
 
 }
 
@@ -7115,10 +7240,9 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
     this->ShowError(buffer, str_b);
 }
 
-
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
-    CUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
+    XUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
     ) noexcept -> int32_t {
     assert(m_uTextRenderCount < lengthof(m_apTextRenderer) && "buffer too small");
     assert(!white_space(name[0]) && "name cannot begin with white space");
@@ -7126,7 +7250,7 @@ auto LongUI::CUIManager::RegisterTextRenderer(
     if (m_uTextRenderCount == lengthof(m_apTextRenderer)) {
         return -1;
     }
-    register const auto count = m_uTextRenderCount;
+    const auto count = m_uTextRenderCount;
     assert((std::strlen(name) + 1) < LongUITextRendererNameMaxLength && "buffer too small");
     std::strcpy(m_aszTextRendererName[count].name, name);
     m_apTextRenderer[count] = LongUI::SafeAcquire(renderer);
@@ -7136,11 +7260,12 @@ auto LongUI::CUIManager::RegisterTextRenderer(
 
 
 // 创建0索引资源
-auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
+auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     assert(m_pResourceBuffer && "bad alloc");
     HRESULT hr = S_OK;
     // 索引0位图: 可MAP位图
     if (SUCCEEDED(hr)) {
+        assert(m_ppBitmaps[LongUIDefaultBitmapIndex] == nullptr && "bad action");
         hr = m_pd2dDeviceContext->CreateBitmap(
             D2D1::SizeU(LongUIDefaultBitmapSize, LongUIDefaultBitmapSize),
             nullptr, LongUIDefaultBitmapSize * 4,
@@ -7150,17 +7275,21 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
                 ),
             m_ppBitmaps + LongUIDefaultBitmapIndex
             );
+        longui_debug_hr(hr, L"_pd2dDeviceContext->CreateBitmap failed");
     }
     // 索引0笔刷: 全控件共享用前写纯色笔刷
     if (SUCCEEDED(hr)) {
+        assert(m_ppBrushes[LongUICommonSolidColorBrushIndex] == nullptr && "bad action");
         ID2D1SolidColorBrush* brush = nullptr;
         D2D1_COLOR_F color = D2D1::ColorF(D2D1::ColorF::Black);
         hr = m_pd2dDeviceContext->CreateSolidColorBrush(&color, nullptr, &brush);
         m_ppBrushes[LongUICommonSolidColorBrushIndex] = LongUI::SafeAcquire(brush);
         LongUI::SafeRelease(brush);
+        longui_debug_hr(hr, L"_pd2dDeviceContext->CreateSolidColorBrush failed");
     }
     // 索引0文本格式: 默认格式
     if (SUCCEEDED(hr)) {
+        assert(m_ppTextFormats[LongUIDefaultTextFormatIndex] == nullptr && "bad action");
         hr = this->CreateTextFormat(
             LongUIDefaultTextFontName,
             //L"Microsoft YaHei",
@@ -7171,6 +7300,7 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept->HRESULT {
             //12.f,
             m_ppTextFormats + LongUIDefaultTextFormatIndex
             );
+        longui_debug_hr(hr, L"this->CreateTextFormat failed");
     }
     // 设置
     if (SUCCEEDED(hr)) {
@@ -7193,7 +7323,7 @@ void LongUI::CUIManager::cleanup_delay_cleanup_chain() noexcept {
 }
 
 // 载入模板字符串
-auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept->HRESULT {
+auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept ->HRESULT {
     // 检查参数
     if (str && *str) {
         // 载入字符串
@@ -7221,7 +7351,7 @@ auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept-
 
 
 // 设置模板字符串
-auto LongUI::CUIManager::set_control_template_string() noexcept->HRESULT {
+auto LongUI::CUIManager::set_control_template_string() noexcept ->HRESULT {
     // 有效情况
     if (m_cCountCtrlTemplate > 1) {
         auto itr = m_pTemplateNodes + 1;
@@ -7242,20 +7372,20 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 重新获取flag
     this->flag = this->configure->GetConfigureFlag();
     // 待用适配器
-    IDXGIAdapter1* ready2use = nullptr;
+    IDXGIAdapter1* adapter = nullptr;
     // 枚举显示适配器
     if (!(this->flag & IUIConfigure::Flag_RenderByCPU)) {
-        IDXGIFactory1* temp_factory = nullptr;
+        IDXGIFactory1* dxgifactory = nullptr;
         // 创建一个临时工程
-        register auto hr = LongUI::Dll::CreateDXGIFactory1(IID_IDXGIFactory1, reinterpret_cast<void**>(&temp_factory));
-        if (SUCCEEDED(hr)) {
-            constexpr int ADAPTERS_MAX_NUM = 64;
+        if (SUCCEEDED(LongUI::Dll::CreateDXGIFactory1(
+            IID_IDXGIFactory1, reinterpret_cast<void**>(&dxgifactory)
+            ))) {
             uint32_t adnum = 0;
-            IDXGIAdapter1* apAdapters[ADAPTERS_MAX_NUM];
-            DXGI_ADAPTER_DESC1 descs[ADAPTERS_MAX_NUM];
+            IDXGIAdapter1* apAdapters[LongUIMaxAdaptersSize];
+            DXGI_ADAPTER_DESC1 descs[LongUIMaxAdaptersSize];
             // 枚举适配器
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
-                if (temp_factory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
+                if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
                     break;
                 }
                 apAdapters[adnum]->GetDesc1(descs + adnum);
@@ -7263,17 +7393,17 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             // 选择适配器
             auto index = this->configure->ChooseAdapter(descs, adnum);
             if (index < adnum) {
-                ready2use = LongUI::SafeAcquire(apAdapters[index]);
+                adapter = LongUI::SafeAcquire(apAdapters[index]);
             }
             // 释放适配器
             for (size_t i = 0; i < adnum; ++i) {
                 LongUI::SafeRelease(apAdapters[i]);
             }
         }
-        LongUI::SafeRelease(temp_factory);
+        LongUI::SafeRelease(dxgifactory);
     }
     // 创建设备资源
-    register HRESULT hr /*= m_docResource.Error() ? E_FAIL :*/ S_OK;
+    HRESULT hr /*= m_docResource.Error() ? E_FAIL :*/ S_OK;
     // 创建 D3D11设备与设备上下文 
     if (SUCCEEDED(hr)) {
         // D3D11 创建flag 
@@ -7295,13 +7425,15 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             D3D_FEATURE_LEVEL_9_2,
             D3D_FEATURE_LEVEL_9_1
         };
+        // 根据情况检查驱动类型
+        D3D_DRIVER_TYPE dtype = (this->flag & IUIConfigure::Flag_RenderByCPU) ? D3D_DRIVER_TYPE_WARP :
+            (adapter ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE);
         // 创建设备
         hr = LongUI::Dll::D3D11CreateDevice(
             // 设置为渲染
-            ready2use,
-            // 根据情况选择类型
-            (this->flag & IUIConfigure::Flag_RenderByCPU) ? D3D_DRIVER_TYPE_WARP : 
-                (ready2use ? D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE),
+            adapter,
+            // 驱动类型
+            dtype,
             // 没有软件接口
             nullptr,
             // 创建flag
@@ -7321,8 +7453,9 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             );
         // 检查
         if (FAILED(hr)) {
-            UIManager << DL_Hint << L"Create D3D11 Device Failed,"
-                L" Now, Try to Create In WARP Mode" << LongUI::endl;
+            UIManager << DL_Warning 
+                << L"create d3d11 device failed, now, try to create in warp mode" 
+                << LongUI::endl;
         }
         // 创建失败则尝试使用软件
         if (FAILED(hr)) {
@@ -7349,21 +7482,31 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 &m_pd3dDeviceContext
                 );
         }
+        // 再次检查错误
+        if (FAILED(hr)) {
+            UIManager << DL_Error
+                << L" create d3d11-device in warp modd, but failed."
+                << LongUI::endl;
+            this->ShowError(hr);
+        }
     }
-    LongUI::SafeRelease(ready2use);
+    LongUI::SafeRelease(adapter);
+    // 创建 ID3D11Debug对象
 #if defined(_DEBUG) && defined(LONGUI_D3D_DEBUG)
-    // 创建 ID3D11Debug
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pd3dDebug));
+        longui_debug_hr(hr, L"m_pd3dDevice->QueryInterface(m_pd3dDebug) faild");
     }
 #endif
     // 创建 IDXGIDevice
     if (SUCCEEDED(hr)) {
         hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(m_pDxgiDevice));
+        longui_debug_hr(hr, L"m_pd3dDevice->QueryInterface(m_pd3dDebug) faild");
     }
     // 创建 D2D设备
     if (SUCCEEDED(hr)) {
         hr = m_pd2dFactory->CreateDevice(m_pDxgiDevice, &m_pd2dDevice);
+        longui_debug_hr(hr, L"m_pd2dFactory->CreateDevice faild");
     }
     // 创建 D2D设备上下文
     if (SUCCEEDED(hr)) {
@@ -7371,12 +7514,15 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
             &m_pd2dDeviceContext
             );
+        longui_debug_hr(hr, L"m_pd2dDevice->CreateDeviceContext faild");
     }
     // 获取 Dxgi适配器 可以获取该适配器信息
     if (SUCCEEDED(hr)) {
         // 顺带使用像素作为单位
         m_pd2dDeviceContext->SetUnitMode(D2D1_UNIT_MODE_PIXELS);
+        // 获取
         hr = m_pDxgiDevice->GetAdapter(&m_pDxgiAdapter);
+        longui_debug_hr(hr, L"m_pDxgiDevice->GetAdapter faild");
     }
 #ifdef _DEBUG
     // 输出显卡信息
@@ -7395,7 +7541,8 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 多线程
     if (SUCCEEDED(hr)) {
         ID3D10Multithread* mt = nullptr;
-        hr = m_pd3dDevice->QueryInterface(IID_ID3D10Multithread, (void**)&mt);
+        hr = m_pd3dDevice->QueryInterface(LongUI_IID_PV_ARGS(mt));
+        longui_debug_hr(hr, L"m_pd3dDevice->QueryInterface ID3D10Multithread faild");
         // 保护
         if (SUCCEEDED(hr)) {
             mt->SetMultithreadProtected(TRUE);
@@ -7405,14 +7552,17 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 设置 MF
     if (SUCCEEDED(hr)) {
         hr = ::MFStartup(MF_VERSION);
+        longui_debug_hr(hr, L"MFStartup faild");
     }
     // 创建 MF Dxgi 设备管理器
     if (SUCCEEDED(hr)) {
         hr = ::MFCreateDXGIDeviceManager(&token, &m_pMFDXGIManager);
+        longui_debug_hr(hr, L"MFCreateDXGIDeviceManager faild");
     }
     // 重置设备
     if (SUCCEEDED(hr)) {
         hr = m_pMFDXGIManager->ResetDevice(m_pd3dDevice, token);
+        longui_debug_hr(hr, L"m_pMFDXGIManager->ResetDevice faild");
     }
     // 创建 MF媒体类工厂
     if (SUCCEEDED(hr)) {
@@ -7422,19 +7572,23 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pMediaEngineFactory)
             );
+        longui_debug_hr(hr, L"CoCreateInstance CLSID_MFMediaEngineClassFactory faild");
     }
 #endif
     // 创建系统笔刷
     if (SUCCEEDED(hr)) {
         hr = this->create_system_brushes();
+        longui_debug_hr(hr, L"create_system_brushes faild");
     }
     // 创建资源描述资源
     if (SUCCEEDED(hr)) {
         hr = this->create_indexzero_resources();
+        longui_debug_hr(hr, L"create_indexzero_resources faild");
     }
     // 事件
     if (SUCCEEDED(hr)) {
         this->do_creating_event(LongUI::CreateEventType::Type_Recreate);
+        longui_debug_hr(hr, L"do_creating_event(recreate) faild");
     }
     // 设置文本渲染器数据
     if (SUCCEEDED(hr)) {
@@ -7450,6 +7604,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         auto wnd = *itr;
         if (SUCCEEDED(hr)) {
             hr = wnd->Recreate();
+            longui_debug_hr(hr, wnd << L"wnd->Recreate");
         }
     }
     // 断言 HR
@@ -7463,7 +7618,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     HRESULT hr = S_OK;
     /*
     焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
-        0. 禁用: 0xD9灰度 矩形描边; 中心 0xEF灰色
+        0. 禁用: 0xBF灰度 矩形描边; 中心 0xCC灰色
         1. 普通: 0xAC灰度 矩形描边; 中心 从上到下0xF0灰色到0xE5灰色渐变
         2. 移上: 0x7EB4EA 矩形描边; 中心 从上到下0xECF4FC到0xDCECFC渐变
         3. 按下: 0x569DE5 矩形描边; 中心 从上到下0xDAECFC到0xC4E0FC渐变
@@ -7471,8 +7626,8 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     // 禁用
     if (SUCCEEDED(hr)) {
         hr = m_pd2dDeviceContext->CreateSolidColorBrush(
-            D2D1::ColorF(0xEFEFEF),
-            reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + Status_Disabled)
+            D2D1::ColorF(0xCCCCCC),
+            reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + State_Disabled)
             );
     }
     // 普通
@@ -7485,7 +7640,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, static_cast<uint32_t>(lengthof(stops)), &collection
+                stops, lengthof<uint32_t>(stops), &collection
                 );
         }
         // 创建笔刷
@@ -7495,7 +7650,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
                     ),
                 collection,
-                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Normal)
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Normal)
                 );
         }
         LongUI::SafeRelease(collection);
@@ -7510,7 +7665,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, static_cast<uint32_t>(lengthof(stops)), &collection
+                stops, lengthof<uint32_t>(stops), &collection
                 );
         }
         // 创建笔刷
@@ -7520,7 +7675,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
                     ),
                 collection,
-                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Hover)
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Hover)
                 );
         }
         LongUI::SafeRelease(collection);
@@ -7535,7 +7690,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         // 渐变关键点集
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
-                stops, static_cast<uint32_t>(lengthof(stops)), &collection
+                stops, lengthof<uint32_t>(stops), &collection
                 );
         }
         // 创建笔刷
@@ -7545,7 +7700,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
                     ),
                 collection,
-                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + Status_Pushed)
+                reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Pushed)
                 );
         }
         LongUI::SafeRelease(collection);
@@ -7703,7 +7858,7 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
 }
 
 // 利用名称获取
-auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> CUIBasicTextRenderer* {
+auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> XUIBasicTextRenderer* {
     int index = 0;
     if (name && name[0]) {
         // 跳过空白
@@ -7734,7 +7889,7 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
             << L"]is out of range \t\tNow set to 0"
             << LongUI::endl;
         index = 0;
-        ZeroMemory(&meta, sizeof(meta));
+        std::memset(&meta, 0, sizeof(meta));
         return;
     }
     meta = m_pMetasBuffer[index];
@@ -7743,7 +7898,7 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
         // 没有数据并且没有资源加载器则?
         assert(m_pResourceLoader);
         DeviceIndependentMeta meta_raw;
-        ::ZeroMemory(&meta_raw, sizeof(meta_raw));
+        ::std::memset(&meta_raw, 0, sizeof(meta_raw));
         // 载入资源
         m_pResourceLoader->GetMeta(index - 1, meta_raw);
         meta.interpolation = meta_raw.interpolation;
@@ -7783,7 +7938,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         static_cast<uint32_t>(meta.src_rect.bottom)
     };
     HRESULT hr = S_OK;
-    // 宽度不够?
+    // 大小保证
     if (SUCCEEDED(hr)) {
         if (src_rect.right - src_rect.left > LongUIDefaultBitmapSize ||
             src_rect.bottom - src_rect.top > LongUIDefaultBitmapSize) {
@@ -7800,6 +7955,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
     // 复制数据
     if (SUCCEEDED(hr)) {
         hr = bitmap->CopyFromBitmap(nullptr, meta.bitmap, &src_rect);
+        longui_debug_hr(hr, L"bitmap->CopyFromBitmap failed");
     }
     // 映射数据
     if (SUCCEEDED(hr)) {
@@ -7808,10 +7964,12 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
             m_pBitmap0Buffer
         };
         hr = bitmap->Map(D2D1_MAP_OPTIONS_READ, &mapped_rect);
+        longui_debug_hr(hr, L"bitmap->Map failed");
     }
     // 取消映射
     if (SUCCEEDED(hr)) {
         hr = bitmap->Unmap();
+        longui_debug_hr(hr, L"bitmap->Unmap failed");
     }
     // 转换数据
     HICON hAlphaIcon = nullptr;
@@ -7819,7 +7977,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
         auto meta_width = src_rect.right - src_rect.left;
         auto meta_height = src_rect.bottom - src_rect.top;
 #if 1
-        BITMAPV5HEADER bi; ZeroMemory(&bi, sizeof(BITMAPV5HEADER));
+        BITMAPV5HEADER bi; std::memset(&bi, 0, sizeof(BITMAPV5HEADER));
         bi.bV5Size = sizeof(BITMAPV5HEADER);
         bi.bV5Width = meta_width;
         bi.bV5Height = meta_height;
@@ -7839,36 +7997,44 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
             reinterpret_cast<void **>(&pTargetBuffer), nullptr,
             (DWORD)0
             );
-        auto hMemDC = ::CreateCompatibleDC(hdc);
-        ::ReleaseDC(nullptr, hdc);
-        // 写入数据
-        auto hOldBitmap = static_cast<HBITMAP*>(::SelectObject(hMemDC, hBitmap));
-        ::PatBlt(hMemDC, 0, 0, meta_width, meta_height, WHITENESS);
-        ::SelectObject(hMemDC, hOldBitmap);
-        ::DeleteDC(hMemDC);
-        // 创建掩码位图
-        HBITMAP hMonoBitmap = ::CreateBitmap(meta_width, meta_height, 1, 1, nullptr);
-        // 输入
-        auto lpdwPixel = reinterpret_cast<DWORD*>(pTargetBuffer);
-        for (auto y = 0u; y < meta_height; ++y) {
-            auto src_buffer = m_pBitmap0Buffer + LongUIDefaultBitmapSize * sizeof(RGBQUAD) * y;
-            for (auto x = 0u; x < meta_width; ++x) {
-                *lpdwPixel = *src_buffer;
-                src_buffer++;
-                lpdwPixel++;
-            }
+        // 错误
+        if (!hBitmap) {
+            hr = LongUI::WinCode2HRESULT(::GetLastError());
+            longui_debug_hr(hr, L"CreateDIBSection failed");
         }
-        // 填写
-        ICONINFO ii;
-        ii.fIcon = TRUE; ii.xHotspot = 0; ii.yHotspot = 0;
-        ii.hbmMask = hMonoBitmap; ii.hbmColor = hBitmap;
-        // 创建图标
-        hAlphaIcon = ::CreateIconIndirect(&ii);
-        ::DeleteObject(hBitmap);
-        ::DeleteObject(hMonoBitmap);
+        // 成功
+        else {
+            auto hMemDC = ::CreateCompatibleDC(hdc);
+            ::ReleaseDC(nullptr, hdc);
+            // 写入数据
+            auto hOldBitmap = static_cast<HBITMAP*>(::SelectObject(hMemDC, hBitmap));
+            ::PatBlt(hMemDC, 0, 0, meta_width, meta_height, WHITENESS);
+            ::SelectObject(hMemDC, hOldBitmap);
+            ::DeleteDC(hMemDC);
+            // 创建掩码位图
+            HBITMAP hMonoBitmap = ::CreateBitmap(meta_width, meta_height, 1, 1, nullptr);
+            // 输入
+            auto lpdwPixel = reinterpret_cast<DWORD*>(pTargetBuffer);
+            for (auto y = 0u; y < meta_height; ++y) {
+                auto src_buffer = m_pBitmap0Buffer + LongUIDefaultBitmapSize * sizeof(RGBQUAD) * y;
+                for (auto x = 0u; x < meta_width; ++x) {
+                    *lpdwPixel = *src_buffer;
+                    src_buffer++;
+                    lpdwPixel++;
+                }
+            }
+            // 填写
+            ICONINFO ii;
+            ii.fIcon = TRUE; ii.xHotspot = 0; ii.yHotspot = 0;
+            ii.hbmMask = hMonoBitmap; ii.hbmColor = hBitmap;
+            // 创建图标
+            hAlphaIcon = ::CreateIconIndirect(&ii);
+            ::DeleteObject(hBitmap);
+            ::DeleteObject(hMonoBitmap);
 #else
         assert(!"CreateIcon just AND & XOR, no alpha channel");
 #endif
+        }
     }
     ShowHR(hr);
     LongUI::SafeRelease(bitmap);
@@ -7896,6 +8062,22 @@ void LongUI::CUIManager::RegisterWindow(UIWindow * wnd) noexcept {
 #endif
     // 添加窗口
     m_apWindows[m_cCountWindow] = wnd; ++m_cCountWindow;
+}
+
+// 刷新屏幕刷新率
+void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
+    // 获取屏幕刷新率
+    DEVMODEW mode; std::memset(&mode, 0, sizeof(mode));
+    ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
+    m_dDisplayFrequency = static_cast<uint16_t>(mode.dmDisplayFrequency);
+    // 稍微检查
+    if (!m_dDisplayFrequency) {
+        UIManager << DL_Error
+            << L"EnumDisplaySettingsW failed: got zero for DEVMODEW::dmDisplayFrequency"
+            << L", now assume as 60Hz"
+            << LongUI::endl;
+        m_dDisplayFrequency = 60;
+    }
 }
 
 // 移出窗口
@@ -8028,7 +8210,7 @@ auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -8053,7 +8235,7 @@ auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept->CUI
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -8064,7 +8246,7 @@ auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept->CUIManager
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -8077,7 +8259,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept->C
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -8088,7 +8270,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept->CUIManage
     return *this;
 }
 
-auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept->CUIManager& {
+auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(
         buffer, LongUIStringBufferLength,
@@ -8175,6 +8357,8 @@ auto LongUI::CUIManager::operator<<(const bool b) noexcept ->CUIManager& {
 
 #endif
                    
+                    
+                     
 
 // 渲染队列 构造函数
 LongUI::CUIRenderQueue::CUIRenderQueue(UIWindow* window) noexcept {
@@ -8194,21 +8378,24 @@ LongUI::CUIRenderQueue::~CUIRenderQueue() noexcept {
 void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     // 一样就不处理
     if (m_wDisplayFrequency == freq) return;
+    // 之前的
+    auto oldf = m_wDisplayFrequency;
     // 修改
     m_wDisplayFrequency = static_cast<decltype(m_wDisplayFrequency)>(freq);
     // 创建
     CUIRenderQueue::UNIT* data = nullptr;
-    if (freq) {
-        data = LongUI::NormalAllocT(data, LongUIPlanRenderingTotalTime * freq);
-        if (data) {
-            for (auto i = 0u; i < LongUIPlanRenderingTotalTime * freq; ++i) {
-                data[i].length = 0;
-            }
+    if (freq && (data = LongUI::NormalAllocT<UNIT>(LongUIPlanRenderingTotalTime * freq))) {
+        for (auto i = 0u; i < LongUIPlanRenderingTotalTime * freq; ++i) {
+            data[i].length = 0;
         }
     }
-    // TODO: 完成转化
+    // XXX: 完成转化
     if (m_pUnitsDataBegin && data) {
-        assert(!"NOTIMPL");
+        // 偷懒直接不管
+        oldf = oldf;
+        UIManager << DL_Hint
+            << L"hard to code it, unfinished yet, empty the rendering queue now"
+            << LongUI::endl;
     }
     // 释放
     if (m_pUnitsDataBegin) LongUI::NormalFree(m_pUnitsDataBegin);
@@ -8216,7 +8403,6 @@ void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
     if (data) {
         m_pUnitsDataBegin = data;
         m_pUnitsDataEnd = data + LongUIPlanRenderingTotalTime * freq;
-        // XXX
         m_pCurrentUnit = data;
     }
     // 开始渲染
@@ -8231,7 +8417,7 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
         if (m_pCurrentUnit == m_pUnitsDataEnd) {
             m_pCurrentUnit = m_pUnitsDataBegin;
             // 检查误差
-            register auto time = m_dwStartTime;
+            auto time = m_dwStartTime;
             m_dwStartTime = ::timeGetTime();
             time = m_dwStartTime - time;
             int16_t dev = int16_t(int16_t(time) - int16_t(LongUIPlanRenderingTotalTime * 1000));
@@ -8255,7 +8441,7 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
 
 // 计划渲染
 void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* ctrl) noexcept {
-    // XXX: 待优化
+    // XXX: 待优化。
     // 当前窗口
     auto window = m_unitLike.window;
 #ifdef _DEBUG
@@ -8268,10 +8454,10 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
     }
 #endif
     // 保留刷新
-    if (render != 0.0f) render += 0.05f;
+    if (render != 0.0f) render += 0.02f;
     assert((wait + render) < float(LongUIPlanRenderingTotalTime) && "time overflow");
     // 设置单元
-    auto set_unit = [window](UNIT& unit, UIControl* ctrl) noexcept {
+    auto set_unit = [window](CUIRenderQueue::UNIT& unit, UIControl* ctrl) noexcept {
         // 已经全渲染了就不干
         if (unit.length && unit.units[0] == window) {
             return;
@@ -8285,21 +8471,28 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         // 保存
         auto old_length = unit.length;
         bool changed = false;
-        UNIT tmp; std::memset(&tmp, 0, sizeof(tmp));
+        CUIRenderQueue::UNIT tmp; std::memset(&tmp, 0, sizeof(tmp));
         std::memcpy(tmp.units, unit.units, sizeof(tmp.units[0]) * old_length);
+#ifdef _DEBUG
+        // 调试信息
+        CUIRenderQueue::UNIT debug_backup;
+        std::memcpy(&debug_backup, &tmp, sizeof(debug_backup));
+        debug_backup.length = unit.length;
+        bool jmp = true;
+        if ((jmp = false)) {
+            std::memcpy(&tmp, &debug_backup, sizeof(tmp));
+        }
+#endif
         // 一次检查
         for (auto itr = tmp.units; itr < tmp.units + old_length; ++itr) {
             // 已存在的空间
             auto existd = *itr;
             // 一样? --> 不干
-            if (existd == ctrl) 
-                return;
+            if (existd == ctrl) return;
             // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙结点
             if (existd->level < ctrl->level) {
                 // 是 -> 什么不干
-                if (existd->IsPosterityForSelf(ctrl)) {
-                    return;
-                }
+                if (existd->IsPosterityForSelf(ctrl)) return;
                 // 否 -> 继续
                 else {
 
@@ -8330,20 +8523,25 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         // 二次插入
         if (changed) {
             unit.length = 0; auto witr = unit.units;
-            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr, ++witr) {
+            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr) {
                 if (*ritr) {
                     *witr = *ritr;
+                    ++witr;
                     ++unit.length;
                 }
             }
         }
 #ifdef _DEBUG
+        // 断言调试
         auto endt = unit.units + unit.length;
         assert(std::find(unit.units, endt, ctrl) == endt);
+        std::for_each(unit.units, endt, [ctrl](UIControl* tmpc) noexcept {
+            assert(tmpc->IsPosterityForSelf(ctrl) == false && "bad ship");
+            assert(ctrl->IsPosterityForSelf(tmpc) == false && "bad ship");
+        });
 #endif
         // 添加到最后
         unit.units[unit.length++] = ctrl;
-
     };
     // 渲染队列模式
     if (m_pCurrentUnit) {
@@ -8404,23 +8602,6 @@ namespace LongUI {
         }
         return false;
     }
-    // 获取Windows版本
-    auto GetWindowsVersion() noexcept->CUIManager::WindowsVersion {
-        CUIManager::WindowsVersion version = CUIManager::WindowsVersion::Version_Win7SP1;
-        // >= Win10 ?
-        if (LongUI::IsWindows10OrGreater()) {
-            version = CUIManager::WindowsVersion::Version_Win10;
-        }
-        // >= Win8.1 ?
-        else if (LongUI::IsWindows8Point1OrGreater()) {
-            version = CUIManager::WindowsVersion::Version_Win8_1;
-        }
-        // >= Win8 ?
-        else if (LongUI::IsWindows8OrGreater()) {
-            version = CUIManager::WindowsVersion::Version_Win8;
-        }
-        return version;
-    }
 }
 
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -8438,16 +8619,16 @@ namespace LongUI {
     class CUIResourceLoaderXML : public IUIResourceLoader {
     public:
         // add ref count
-        auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override final { return ++m_dwCounter; }
+        auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return ++m_dwCounter; }
         // release this
-        auto STDMETHODCALLTYPE Release() noexcept->ULONG override final { 
+        auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { 
             auto old = --m_dwCounter; 
             if (!old) { delete this; } 
             return old; 
         };
     public:
         // get resouce count with type
-        auto GetResourceCount(ResourceType type) const noexcept->size_t override;
+        auto GetResourceCount(ResourceType type) const noexcept ->size_t override;
         // get resouce by index, index in range [0, count)
         // for Type_Bitmap, Type_Brush, Type_TextFormat
         auto GetResourcePointer(ResourceType type, size_t index) noexcept ->void* override;
@@ -8457,11 +8638,11 @@ namespace LongUI {
         // get resouce count from doc
         void get_resource_count_from_xml() noexcept;
         // get bitmap
-        auto get_bitmap(pugi::xml_node node) noexcept->ID2D1Bitmap1*;
+        auto get_bitmap(pugi::xml_node node) noexcept ->ID2D1Bitmap1*;
         // get brush
-        auto get_brush(pugi::xml_node node) noexcept->ID2D1Brush*;
+        auto get_brush(pugi::xml_node node) noexcept ->ID2D1Brush*;
         // get text format
-        auto get_text_format(pugi::xml_node node) noexcept->IDWriteTextFormat*;
+        auto get_text_format(pugi::xml_node node) noexcept ->IDWriteTextFormat*;
         // find node with index
         static auto find_node_with_index(pugi::xml_node node, const size_t index) noexcept {
             pugi::xml_node found_node;
@@ -8504,7 +8685,7 @@ namespace LongUI {
     LongUI::CUIResourceLoaderXML::CUIResourceLoaderXML(
         CUIManager& manager, const char* xml)  noexcept : m_manager(manager) {
         // 初始化
-        ::memset(m_aResourceCount, 0, sizeof(m_aResourceCount));
+        std::memset(m_aResourceCount, 0, sizeof(m_aResourceCount));
         auto hr = S_OK;
         // 创建 WIC 工厂.
         if (SUCCEEDED(hr)) {
@@ -8544,7 +8725,7 @@ namespace LongUI {
         return static_cast<size_t>(m_aResourceCount[type]);
     }
     // get reource
-    auto LongUI::CUIResourceLoaderXML::GetResourcePointer(ResourceType type, size_t index) noexcept -> void * {
+    auto LongUI::CUIResourceLoaderXML::GetResourcePointer(ResourceType type, size_t index) noexcept -> void* {
         void* data = nullptr;
         auto node = this->find_node_with_index(m_aNodes[type], index);
         switch (type)
@@ -8587,7 +8768,7 @@ namespace LongUI {
         // 初始化
         for (auto& node : m_aNodes) { node = pugi::xml_node(); }
         // pugixml 使用的是句柄式, 所以下面的代码是安全的.
-        register auto now_node = m_docResource.first_child().first_child();
+        auto now_node = m_docResource.first_child().first_child();
         while (now_node) {
             // 获取子结点数量
             auto get_children_count = [](pugi::xml_node node) {
@@ -8597,28 +8778,28 @@ namespace LongUI {
                 return count;
             };
             // 位图?
-            if (!::strcmp(now_node.name(), "Bitmap")) {
+            if (!std::strcmp(now_node.name(), "Bitmap")) {
                 m_aNodes[Type_Bitmap] = now_node;
                 m_aResourceCount[this->Type_Bitmap] = get_children_count(now_node);
             }
             // 笔刷?
-            else if (!::strcmp(now_node.name(), "Brush")) {
+            else if (!std::strcmp(now_node.name(), "Brush")) {
                 m_aNodes[Type_Brush] = now_node;
                 m_aResourceCount[this->Type_Brush] = get_children_count(now_node);
             }
             // 文本格式?
-            else if (!::strcmp(now_node.name(), "Font") ||
-                !::strcmp(now_node.name(), "TextFormat")) {
+            else if (!std::strcmp(now_node.name(), "Font") ||
+                !std::strcmp(now_node.name(), "TextFormat")) {
                 m_aNodes[Type_TextFormat] = now_node;
                 m_aResourceCount[this->Type_TextFormat] = get_children_count(now_node);
             }
             // 图元?
-            else if (!::strcmp(now_node.name(), "Meta")) {
+            else if (!std::strcmp(now_node.name(), "Meta")) {
                 m_aNodes[Type_Meta] = now_node;
                 m_aResourceCount[this->Type_Meta] = get_children_count(now_node);
             }
             // 动画图元?
-            else if (!::strcmp(now_node.name(), "MetaEx")) {
+            else if (!std::strcmp(now_node.name(), "MetaEx")) {
                 assert(!"unsupport yet");
             }
             // 推进
@@ -8646,7 +8827,7 @@ namespace LongUI {
             IWICFormatConverter *pConverter = nullptr;
             IWICBitmapScaler *pScaler = nullptr;
             // 创建解码器
-            register HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
+            HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
                 uri,
                 nullptr,
                 GENERIC_READ,
@@ -8836,7 +9017,7 @@ namespace LongUI {
                 std::strcpy(buffer, str);
                 char* index = buffer;
                 const char* paragraph = nullptr;
-                register char ch = 0;
+                char ch = 0;
                 bool ispos = false;
                 // 遍历检查
                 while (ch = *index) {
@@ -8929,6 +9110,7 @@ namespace LongUI {
         assert(node && "node not found");
         IDWriteTextFormat* fmt = nullptr;
         auto hr = DX::MakeTextFormat(node, &fmt);
+        UNREFERENCED_PARAMETER(hr);
         assert(SUCCEEDED(hr));
         return fmt;
     }
@@ -8975,8 +9157,7 @@ void LongUI::UIRichEdit::Update() noexcept {
 }
 
 // UIRichEdit 构造函数
-inline LongUI::UIRichEdit::UIRichEdit(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node){ }
+inline LongUI::UIRichEdit::UIRichEdit(UIContainer* cp) noexcept: Super(cp){ }
 
 // UIRichEdit 析构函数
 LongUI::UIRichEdit::~UIRichEdit() noexcept {
@@ -8992,7 +9173,7 @@ LongUI::UIRichEdit::~UIRichEdit() noexcept {
 // UIRichEdit::CreateControl 函数
 LongUI::UIControl* LongUI::UIRichEdit::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIRichEdit* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -9002,16 +9183,7 @@ LongUI::UIControl* LongUI::UIRichEdit::CreateControl(CreateEventType type, pugi:
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIRichEdit>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIRichEdit, pControl, type, node);
     }
     return pControl;
 }
@@ -9347,7 +9519,7 @@ HRESULT LongUI::UIRichEdit::TxGetPropertyBits(DWORD dwMask, DWORD *pdwBits){
     return S_OK;
 }
 
-HRESULT LongUI::UIRichEdit::TxNotify(DWORD iNotify, void *pv){
+HRESULT LongUI::UIRichEdit::TxNotify(DWORD iNotify, void*pv){
     // Claim to have handled the notifcation, even though we always ignore it
     UNREFERENCED_PARAMETER(iNotify);
     UNREFERENCED_PARAMETER(pv);
@@ -9536,9 +9708,19 @@ Trace:<TxShowCaret> called
 
 
 // UIScrollBar 构造函数
-LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept: 
-    Super(cp, node), 
-    m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIScrollBar::UIScrollBar(UIContainer* cp) noexcept : 
+    Super(cp),m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+
+}
+
+/// <summary>
+/// Initalizes with specified xml-node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIScrollBar::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // 边界相关
     assert((this->flags & Flag_MarginalControl) && "'UIScrollBar' must be marginal-control");
     auto sbtype = (this->marginal_type & 1U) ? ScrollBarType::Type_Horizontal : ScrollBarType::Type_Vertical;
@@ -9547,7 +9729,7 @@ LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept:
     m_uiAnimation.duration = 0.4f;
     // 结点有效
     if (node) {
-        register const char* str = nullptr;
+        const char* str = nullptr;
         // 滚轮步长
         if ((str = node.attribute("wheelstep").value())) {
             this->wheel_step = LongUI::AtoF(str);
@@ -9568,9 +9750,11 @@ LongUI::UIScrollBar::UIScrollBar(UIContainer* cp, pugi::xml_node node) noexcept:
 
 // 设置新的索引位置
 void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
-    //return this->set_index(new_index);
     // 阈值检查
     new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
+    // 无需设定
+    if (new_index == m_uiAnimation.end) return;
+    // 设定位置
     m_uiAnimation.start = m_uiAnimation.value = m_fIndex;
     m_uiAnimation.end = new_index;
     m_uiAnimation.time = m_uiAnimation.duration;
@@ -9616,6 +9800,7 @@ void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     return Super::UpdateMarginalWidth();
 }
 
+
 /// <summary>
 /// Updates the width of the marginal.
 /// </summary>
@@ -9626,8 +9811,8 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     // 需要?
 #ifdef _DEBUG
     if (this->debug_this && m_fMaxIndex > 0.f) {
-        UIManager << DL_Log  << this << "m_fMaxIndex: "
-            << m_fMaxIndex << " -- scrollbar standby?"<< endl;
+        UIManager << DL_Log  << this << L"m_fMaxIndex: "
+            << m_fMaxIndex << L" -- scrollbar standby?"<< endl;
     }
 #endif
 #if 0
@@ -9636,20 +9821,22 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
     if (m_fMaxIndex < 0.5f) {
 #endif
         this->marginal_width = 0.f;
-        this->visible = false;
+        this->SetVisible(false);
     }
     else {
         this->marginal_width = BASIC_SIZE;
-        this->visible = true;
+        this->SetVisible(true);
     }
 }
 
-
-
-// UIScrollBarA 构造函数
-LongUI::UIScrollBarA::UIScrollBarA(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), 
-m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb"){
+// UIScrollBarA 初始化
+void LongUI::UIScrollBarA::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    auto stt = this->check_state();
+    m_uiArrow1.Init(stt, 0, node,"arrow1");
+    m_uiArrow2.Init(stt, 0, node, "arrow2");
+    m_uiThumb.Init(stt, 0, node, "thumb");
     // 创建几何
     if (this->bartype == ScrollBarType::Type_Horizontal) {
         m_pArrow1Geo = LongUI::SafeAcquire(s_apArrowPathGeometry[this->Arrow_Left]);
@@ -9670,33 +9857,17 @@ m_uiArrow1(node, "arrow1"), m_uiArrow2(node, "arrow2"), m_uiThumb(node, "thumb")
     }
     // 修改颜色
     /*else*/ {
-        D2D1_COLOR_F normal_color = D2D1::ColorF(0xF0F0F0);
-        m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
-        m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Normal] = normal_color;
-        normal_color = D2D1::ColorF(0x2F2F2F);
-        m_uiArrow1.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
-        m_uiArrow2.GetByType<Element_ColorRect>().colors[Status_Pushed] = normal_color;
-    }
-    // 初始化代码
-    m_uiArrow1.GetByType<Element_Basic>().Init(node, "arrow1");
-    m_uiArrow2.GetByType<Element_Basic>().Init(node, "arrow2");
-    m_uiThumb.GetByType<Element_Basic>().Init(node, "thumb");
-    // 检查
-    BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
-    for (auto element : elements) {
-        if (element->GetByType<Element_Meta>().IsOK()) {
-            element->SetElementType(Element_Meta);
-        }
-        else {
-            element->SetElementType(Element_ColorRect);
-        }
-        element->GetByType<Element_Basic>().SetNewStatus(Status_Normal);
-        element->GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+        D2D1_COLOR_F color;
+        color = D2D1::ColorF(0xF0F0F0);
+        m_uiArrow1.GetBasicInterface().colors[State_Normal] = color;
+        m_uiArrow2.GetBasicInterface().colors[State_Normal] = color;
+        color = D2D1::ColorF(0x2F2F2F);
+        m_uiArrow1.GetBasicInterface().colors[State_Pushed] = color;
+        m_uiArrow2.GetBasicInterface().colors[State_Pushed] = color;
     }
     // 检查属性
-    m_bArrow1InColor = m_uiArrow1.GetByType<Element_Basic>().type == Element_ColorRect;
-    m_bArrow2InColor = m_uiArrow2.GetByType<Element_Basic>().type == Element_ColorRect;
-
+    m_bArrow1InColor = !m_uiArrow1.IsExtraInterfaceValid();
+    m_bArrow2InColor = !m_uiArrow2.IsExtraInterfaceValid();
 }
 
 // UI滚动条(类型A): 刷新
@@ -9719,9 +9890,9 @@ void LongUI::UIScrollBarA::Update() noexcept {
     D2D1_RECT_F draw_rect; this->GetViewRect(draw_rect);
     // 双滚动条修正
     m_rtThumb = m_rtArrow2 = m_rtArrow1 = draw_rect;
-    register float length_of_thumb, start_offset;
+    float length_of_thumb, start_offset;
     {
-        register float tmpsize = UISB_OffsetVaule(this->view_size.width) - BASIC_SIZE*2.f;
+        float tmpsize = UISB_OffsetVaule(this->view_size.width) - BASIC_SIZE*2.f;
         start_offset = tmpsize * m_fIndex / m_fMaxRange;
         length_of_thumb = tmpsize * (1.f - m_fMaxIndex / m_fMaxRange);
     }
@@ -9763,42 +9934,37 @@ void LongUI::UIScrollBarA::Render() const noexcept {
     // 双滚动条修正
     m_pBrush_SetBeforeUse->SetColor(D2D1::ColorF(0xF0F0F0));
     UIManager_RenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-    //
-    //this->parent;
-    //UIManager << DL_Hint << m_rtArrow2 << endl;
-
     // 渲染部件
     m_uiArrow1.Render(m_rtArrow1);
-    m_uiArrow2.Render(m_rtArrow2);
     m_uiThumb.Render(m_rtThumb);
+    m_uiArrow2.Render(m_rtArrow2);
     // 前景
     auto render_geo = [](ID2D1RenderTarget* const target, ID2D1Brush* const bush,
         ID2D1Geometry* const geo, const D2D1_RECT_F& rect) noexcept {
         D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
         target->SetTransform(
-            D2D1::Matrix3x2F::Translation(rect.left, rect.top) * matrix
+            DX::Matrix3x2F::Translation(rect.left, rect.top) * matrix
             );
         target->DrawGeometry(geo, bush, 2.33333f);
         // 修改
         target->SetTransform(&matrix);
     };
     // 渲染几何体
-    if (m_bArrow1InColor) {
-        D2D1_COLOR_F tcolor = m_uiArrow1.GetByType<Element_ColorRect>().colors[
-            m_uiArrow1.GetByType<Element_Basic>().GetStatus()
-        ];
-        tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
-        m_pBrush_SetBeforeUse->SetColor(&tcolor);
-        render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
-    }
-    // 渲染几何体
-    if (m_bArrow2InColor) {
-        D2D1_COLOR_F tcolor = m_uiArrow2.GetByType<Element_ColorRect>().colors[
-            m_uiArrow2.GetByType<Element_Basic>().GetStatus()
-        ];
-        tcolor.r = 1.f - tcolor.r; tcolor.g = 1.f - tcolor.g; tcolor.b = 1.f - tcolor.b;
-        m_pBrush_SetBeforeUse->SetColor(&tcolor);
-        render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
+    {
+        D2D1_COLOR_F color;
+        if (m_bArrow1InColor) {
+            color = m_uiArrow1.GetBasicInterface().colors[m_uiArrow1.GetNowBasicState()];
+            color.r = 1.f - color.r; color.g = 1.f - color.g; color.b = 1.f - color.b;
+            m_pBrush_SetBeforeUse->SetColor(&color);
+            render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow1Geo, m_rtArrow1);
+        }
+        // 渲染几何体
+        if (m_bArrow2InColor) {
+            color = m_uiArrow2.GetBasicInterface().colors[m_uiArrow2.GetNowBasicState()];
+            color.r = 1.f - color.r; color.g = 1.f - color.g; color.b = 1.f - color.b;
+            m_pBrush_SetBeforeUse->SetColor(&color);
+            render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, m_pArrow2Geo, m_rtArrow2);
+        }
     }
 }
 
@@ -9812,9 +9978,9 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             // 指向thumb?
             if (m_pointType == PointType::Type_Thumb) {
                 // 计算移动距离
-                register auto pos = UISB_OffsetVaule(pt4self.x);
-                register auto zoom = this->parent->GetZoom(int(this->bartype));
-                register auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE*2.f)) * zoom;
+                auto pos = UISB_OffsetVaule(pt4self.x);
+                auto zoom = this->parent->GetZoom(int(this->bartype));
+                auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE*2.f)) * zoom;
                 this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
             }
         }
@@ -9834,8 +10000,8 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             }
             // 修改
             if (m_lastPointType != m_pointType) {
-                this->set_status(m_lastPointType, LongUI::Status_Normal);
-                this->set_status(m_pointType, LongUI::Status_Hover);
+                this->set_state(m_lastPointType, LongUI::State_Normal);
+                this->set_state(m_pointType, LongUI::State_Hover);
                 m_lastPointType = m_pointType;
             }
         }
@@ -9844,7 +10010,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
     auto on_lbutton_down = [this, &pt4self]() {
         m_pWindow->SetCapture(this);
         m_bCaptured = true;
-        this->set_status(m_pointType, LongUI::Status_Pushed);
+        this->set_state(m_pointType, LongUI::State_Pushed);
         switch (m_pointType)
         {
         case LongUI::UIScrollBar::PointType::Type_Arrow1:
@@ -9887,7 +10053,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
         return false;
     }
     case LongUI::MouseEvent::Event_MouseLeave:
-        this->set_status(m_lastPointType, LongUI::Status_Normal);
+        this->set_state(m_lastPointType, LongUI::State_Normal);
         m_pointType = PointType::Type_None;
         m_lastPointType = PointType::Type_None;
         return true;
@@ -9898,7 +10064,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
         on_lbutton_down();
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
-        this->set_status(m_pointType, LongUI::Status_Hover);
+        this->set_state(m_pointType, LongUI::State_Hover);
         m_bCaptured = false;
         m_pWindow->ReleaseCapture();
         return true;
@@ -9953,15 +10119,14 @@ void  LongUI::UIScrollBarA::cleanup() noexcept {
     delete this;
 }
 
-
 // 设置状态
-void LongUI::UIScrollBarA::set_status(PointType _bartype, ControlStatus state) noexcept {
-    BarElement* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
+void LongUI::UIScrollBarA::set_state(PointType _bartype, ControlState state) noexcept {
+    // 检查
+    Component::Element4Bar* elements[] = { &m_uiArrow1, &m_uiArrow2, &m_uiThumb };
     // 检查
     if (_bartype >= PointType::Type_Arrow1 && _bartype <= PointType::Type_Thumb) {
         auto index = static_cast<uint32_t>(_bartype) - static_cast<uint32_t>(PointType::Type_Arrow1);
-        auto& element = *(elements[index]);
-        UIElement_SetNewStatus(element, state);
+        m_pWindow->StartRender(elements[index]->SetBasicState(state), this);
     }
 }
 
@@ -9972,7 +10137,7 @@ s_apArrowPathGeometry[LongUI::UIScrollBarA::ARROW_SIZE] = { nullptr };
 // create 创建
 auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIScrollBarA* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -10012,7 +10177,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Left]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Left] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
         // TOP 上箭头
         {
@@ -10021,7 +10186,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Top]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Top] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
         // RIGHT 右箭头
         {
@@ -10031,7 +10196,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Right]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Right] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
         // BOTTOM 下箭头
         {
@@ -10040,7 +10205,7 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
             point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
             assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom]);
             s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom] = 
-                create_geo(point_list, static_cast<uint32_t>(lengthof(point_list)));
+                create_geo(point_list, lengthof<uint32_t>(point_list));
         }
     }
         break;
@@ -10053,31 +10218,21 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
         }
         break;
     case_LongUI__Type_CreateControl:
-        // 允许
-        if (!node) {
-            UIManager << DL_Log << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIScrollBarA>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIScrollBarA, pControl, type, node);
     }
     return pControl;
 }
 
 
-// UIScrollBarB 构造函数
-LongUI::UIScrollBarB::UIScrollBarB(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node) {
+/*// UIScrollBarB 构造函数
+LongUI::UIScrollBarB::UIScrollBarB(UIContainer* cp) noexcept : Super(cp) {
 
-}
+}*/
 
 // UIScrollBarB 创建函数
 auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIControl* pControl = nullptr;
+    UIScrollBarB* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -10087,16 +10242,7 @@ auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType type, pugi::xml_
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 允许
-        if (!node) {
-            UIManager << DL_Log << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UIScrollBarB>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UIScrollBarB, pControl, type, node);
     }
     return pControl;
 }
@@ -10219,8 +10365,10 @@ void LongUI::UISlider::Update() noexcept {
 }
 
 // UISlider 构造函数
-LongUI::UISlider::UISlider(UIContainer* cp, pugi::xml_node node) 
-noexcept: Super(cp, node), m_uiElement(node) {
+void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    m_uiElement.Init(this->check_state(), 0, node);
     // 设置
     if (node) {
         const char* str = nullptr;
@@ -10241,23 +10389,16 @@ noexcept: Super(cp, node), m_uiElement(node) {
         // 默认背景
         m_bDefaultBK = node.attribute("defaultbk").as_bool(true);
     }
-    // 初始化代码
-    m_uiElement.GetByType<Element_Basic>().Init(node);
-    if (m_uiElement.GetByType<Element_Meta>().IsOK()) {
-        m_uiElement.SetElementType(Element_Meta);
-    }
-    else {
-        m_uiElement.SetElementType(Element_BrushRect);
-    }
     // init
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+    m_uiElement.SetBasicState(State_Normal);
     // need twices because of aniamtion
-    m_uiElement.GetByType<Element_Basic>().SetNewStatus(Status_Normal);
+    m_uiElement.SetBasicState(State_Normal);
 }
+
 
 // UISlider::CreateControl 函数
 auto LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
-    UIControl* pControl = nullptr;
+    UISlider* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -10267,16 +10408,7 @@ auto LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) 
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        // 警告
-        if (!node) {
-            UIManager << DL_Hint << L"node null" << LongUI::endl;
-        }
-        // 申请空间
-        pControl = CreateWidthCET<LongUI::UISlider>(type, node);
-        // OOM
-        if (!pControl) {
-            UIManager << DL_Error << L"alloc null" << LongUI::endl;
-        }
+        LongUI__CreateWidthCET(UISlider, pControl, type, node);
     }
     return pControl;
 }
@@ -10291,7 +10423,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     {
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+        this->SetControlState(LongUI::State_Normal);
         m_bMouseClickIn = false;
         m_bMouseMoveIn = false;
         nocontinued = true;
@@ -10320,7 +10452,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
                 // 鼠标移进:
                 if (!m_bMouseMoveIn) {
                     // 设置UI元素状态
-                    UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+                    this->SetControlState(LongUI::State_Hover);
                     m_bMouseMoveIn = true;
                 }
             }
@@ -10328,7 +10460,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
                 // 鼠标移出:
                 if (m_bMouseMoveIn) {
                     // 设置UI元素状态
-                    UIElement_SetNewStatus(m_uiElement, LongUI::Status_Normal);
+                    this->SetControlState(LongUI::State_Normal);
                     m_bMouseMoveIn = false;
                 }
             }
@@ -10342,7 +10474,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
             m_bMouseClickIn = true;
             m_fClickPosition = this->IsVerticalSlider() ?
                 (pt4self.y - m_rcThumb.top) : (pt4self.x - m_rcThumb.left);
-            UIElement_SetNewStatus(m_uiElement, LongUI::Status_Pushed);
+            this->SetControlState(LongUI::State_Pushed);
         }
         nocontinued = true;
         break;
@@ -10350,7 +10482,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         // 右键按下
         m_bMouseClickIn = false;
         m_pWindow->ReleaseCapture();
-        UIElement_SetNewStatus(m_uiElement, LongUI::Status_Hover);
+        this->SetControlState(LongUI::State_Hover);
         nocontinued = true;
         break;
     }
@@ -10407,14 +10539,14 @@ LongUINoinline void LongUI::usleep(long usec) noexcept {
 /// </summary>
 /// <param name="color">The d2d color</param>
 /// <returns>32-bit ARGB 颜色</returns>
-LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
+LongUINoinline auto LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
     // 常量
     constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
     constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
     constexpr uint32_t GREEN_SHIFT  = CHAR_BIT * 1;
     constexpr uint32_t BLUE_SHIFT   = CHAR_BIT * 0;
     // 写入
-    register uint32_t colorargb =
+    uint32_t colorargb =
         ((uint32_t(color.a * 255.f) & 0xFF) << ALPHA_SHIFT) |
         ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT)   |
         ((uint32_t(color.g * 255.f) & 0xFF) << GREEN_SHIFT) |
@@ -10429,7 +10561,7 @@ LongUINoinline auto __fastcall LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) 
 /// <param name="color32">The 32-bit color.</param>
 /// <param name="color4f">The float4 color.</param>
 /// <returns>void</returns>
-LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept->void {
+LongUINoinline auto LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void {
     // 位移量
     constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
     constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
@@ -10453,20 +10585,19 @@ LongUINoinline auto __fastcall LongUI::UnpackTheColorARGB(uint32_t IN color32, D
 /// <summary>
 /// render the meta 渲染Meta
 /// </summary>
-/// <param name="meta">The meta.</param>
 /// <param name="target">The render target.</param>
 /// <param name="des_rect">The des_rect.</param>
 /// <param name="opacity">The opacity.</param>
 /// <returns></returns>
-void __fastcall LongUI::Meta_Render(
-    const Meta& meta, ID2D1DeviceContext* target,
-    const D2D1_RECT_F& des_rect, float opacity) noexcept {
+void LongUI::Meta::Render(ID2D1DeviceContext* target, const D2D1_RECT_F& des_rect, float opacity) const noexcept {
+    // 无需渲染
+    if (opacity < 0.001f) return;
     // 无效位图
-    if (!meta.bitmap) {
+    if (!this->bitmap) {
         UIManager << DL_Warning << "bitmap->null" << LongUI::endl;
         return;
     }
-    switch (meta.rule)
+    switch (this->rule)
     {
     case LongUI::BitmapRenderRule::Rule_Scale:
         __fallthrough;
@@ -10474,10 +10605,10 @@ void __fastcall LongUI::Meta_Render(
     case LongUI::BitmapRenderRule::Rule_ButtonLike:
         // 直接缩放:
         target->DrawBitmap(
-            meta.bitmap,
+            this->bitmap,
             des_rect, opacity,
-            static_cast<D2D1_INTERPOLATION_MODE>(meta.interpolation),
-            meta.src_rect,
+            static_cast<D2D1_INTERPOLATION_MODE>(this->interpolation),
+            this->src_rect,
             nullptr
             );
         break;
@@ -10505,7 +10636,7 @@ void __fastcall LongUI::Meta_Render(
                 des_rect.right, des_rect.bottom
             };
             // ---------------------------------------
-            ::memcpy(clip_rects, des_rects, sizeof(des_rects));
+            std::memcpy(clip_rects, des_rects, sizeof(des_rects));
             if (clip_rects[1].left > des_rects[1].right) {
                 std::swap(clip_rects[1].right, des_rects[1].left);
                 std::swap(des_rects[1].right, des_rects[1].left);
@@ -10556,7 +10687,7 @@ LongUI::CUIDataObject* LongUI::CUIDataObject::New() noexcept {
 
 // CUIDataObject 构造函数
 LongUI::CUIDataObject::CUIDataObject() noexcept {
-    ZeroMemory(&m_dataStorage, sizeof(m_dataStorage));
+    std::memset(&m_dataStorage, 0, sizeof(m_dataStorage));
 }
 
 
@@ -10585,7 +10716,7 @@ HRESULT LongUI::CUIDataObject::SetUnicodeText(HGLOBAL hGlobal) noexcept {
 // 设置Unicode字符
 HRESULT LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length) noexcept {
     HRESULT hr = S_OK;
-    if (!length) length = ::wcslen(str);
+    if (!length) length = std::wcslen(str);
     // 全局
     HGLOBAL hGlobal = nullptr;
     // 申请成功
@@ -10593,7 +10724,7 @@ HRESULT LongUI::CUIDataObject::SetUnicodeText(const wchar_t* str, size_t length)
     if (hGlobal = ::GlobalAlloc(GMEM_FIXED, size)) {
         LPVOID pdest = ::GlobalLock(hGlobal);
         if (pdest) {
-            ::memcpy(pdest, str, size);
+            std::memcpy(pdest, str, size);
         }
         else {
             hr = E_FAIL;
@@ -10761,8 +10892,8 @@ HRESULT LongUI::CUIDataObject::CopyMedium(STGMEDIUM * pMedDest, STGMEDIUM * pMed
 }
 
 // 设置Blob
-HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void * pvBlob, UINT cbBlob) noexcept {
-    void *pv = GlobalAlloc(GPTR, cbBlob);
+HRESULT LongUI::CUIDataObject::SetBlob(CLIPFORMAT cf, const void* pvBlob, UINT cbBlob) noexcept {
+    void*pv = GlobalAlloc(GPTR, cbBlob);
     HRESULT hr = pv ? S_OK : E_OUTOFMEMORY;
     if (SUCCEEDED(hr)) {
         CopyMemory(pv, pvBlob, cbBlob);
@@ -11090,7 +11221,7 @@ void LongUI::CUIString::OnOOM() noexcept {
 // CUIAnimation ---------- BEGIN -------------
 
 #define UIAnimation_Template_A      \
-    register auto v = LongUI::EasingFunction(this->type, this->time / this->duration)
+    auto v = LongUI::EasingFunction(this->type, this->time / this->duration)
 #define UIAnimation_Template_B(m)   \
     this->value.m = v * (this->start.m - this->end.m) + this->end.m;
 
@@ -11120,7 +11251,6 @@ template<> void LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept {
     // 减少时间
     this->time -= t;
 }
-
 
 // for D2D1_COLOR_F or Float4
 template<> void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept {
@@ -11159,7 +11289,7 @@ template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcep
 
 
 // get transformed pointer
-LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept->D2D1_POINT_2F {
+LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept ->D2D1_POINT_2F {
     D2D1_POINT_2F result;
     // x = (bn-dm) / (bc-ad)
     // y = (an-cm) / (ad-bc)
@@ -11167,9 +11297,9 @@ LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matri
     // b : m_matrix._21
     // c : m_matrix._12
     // d : m_matrix._22
-    register auto bc_ad = matrix._21 * matrix._12 - matrix._11 * matrix._22;
-    register auto m = point.x - matrix._31;
-    register auto n = point.y - matrix._32;
+    auto bc_ad = matrix._21 * matrix._12 - matrix._11 * matrix._22;
+    auto m = point.x - matrix._31;
+    auto n = point.y - matrix._32;
     result.x = (matrix._21*n - matrix._22 * m) / bc_ad;
     result.y = (matrix._12*m - matrix._11 * n) / bc_ad;
     return result;
@@ -11181,7 +11311,7 @@ namespace LongUI { namespace impl {
     template<typename T> LongUINoinline auto atoi(const T* str) noexcept ->int {
         assert(str && "bad argument");
         // 初始化
-        bool negative = false; int value = 0; register T ch = 0;
+        bool negative = false; int value = 0; T ch = 0;
         // 遍历
         while (ch = *str) {
             // 空白?
@@ -11258,7 +11388,7 @@ namespace LongUI { namespace impl {
             while (expon) { scale *= 10.0f; --expon; }
         }
         // 返回
-        register float returncoude = (frac ? (value / scale) : (value * scale));
+        float returncoude = (frac ? (value / scale) : (value * scale));
         if (negative) {
             // float
             returncoude = -returncoude;
@@ -11370,9 +11500,9 @@ static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i
 /// <param name="binlen">The length of source binary data in byte</param>
 /// <param name="base64">The out data</param>
 /// <returns></returns>
-auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64) noexcept -> char * {
-    register uint8_t current;
-    register auto base64_index = base64;
+auto LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64) noexcept -> char * {
+    uint8_t current;
+    auto base64_index = base64;
     // 
     for (size_t i = 0; i < binlen; i += 3) {
         current = (bindata[i] >> 2);
@@ -11406,26 +11536,26 @@ auto __fastcall LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN si
 }
 
 // 解码
-auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
+auto LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
     // 二进制长度
-    register union { uint8_t temp[4]; uint32_t temp_u32; };
-    register uint8_t* bindata_index = bindata;
+    uint8_t* bindata_index = bindata;
     // 主循环
     while (*base64) {
-        temp_u32 = uint32_t(-1);
         // 基本转换
-        temp[0] = Base64Datas[base64[0]];  temp[1] = Base64Datas[base64[1]];
-        temp[2] = Base64Datas[base64[2]];  temp[3] = Base64Datas[base64[3]];
+        uint8_t a = Base64Datas[base64[0]];  
+        uint8_t b = Base64Datas[base64[1]];
+        uint8_t c = Base64Datas[base64[2]];  
+        uint8_t d = Base64Datas[base64[3]];
         // 第一个二进制数据
-        *bindata_index = ((temp[0] << 2) & uint8_t(0xFC)) | ((temp[1] >> 4) & uint8_t(0x03));
+        *bindata_index = ((a << 2) & 0xFCui8) | ((b >> 4) & 0x03ui8);
         ++bindata_index;
         if (base64[2] == '=') break;
         // 第三个二进制数据
-        *bindata_index = ((temp[1] << 4) & uint8_t(0xF0)) | ((temp[2] >> 2) & uint8_t(0x0F));
+        *bindata_index = ((b << 4) & 0xF0ui8) | ((c >> 2) & 0x0Fui8);
         ++bindata_index;
         if (base64[3] == '=') break;
         // 第三个二进制数据
-        *bindata_index = ((temp[2] << 6) & uint8_t(0xF0)) | ((temp[2] >> 0) & uint8_t(0x3F));
+        *bindata_index = ((c << 6) & 0xF0ui8) | ((d >> 0) & 0x3Fui8);
         ++bindata_index;
         base64 += 4;
     }
@@ -11434,7 +11564,7 @@ auto __fastcall LongUI::Base64Decode(IN const char * __restrict base64, OUT uint
 
 // UTF-16 to UTF-8
 // Return: UTF-8 string length, 0 maybe error
-auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept->uint32_t {
+auto LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept ->uint32_t {
     UINT32 length = 0;
     const char16_t* source = pUTF16String;
     char* target = pUTF8String;
@@ -11523,7 +11653,7 @@ auto __fastcall LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, cha
 
 // UTF-8 to UTF-16
 // Return: UTF-16 string length, 0 maybe error
-auto __fastcall LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t* __restrict pUTF16String) noexcept -> uint32_t {
+auto LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t* __restrict pUTF16String) noexcept -> uint32_t {
     UINT32 length = 0;
     auto source = reinterpret_cast<const unsigned char*>(pUTF8String);
     char16_t* target = pUTF16String;
@@ -11600,41 +11730,6 @@ auto __fastcall LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t
     return length;
 }
 
-// CUIFileLoader 构造函数
-LongUI::CUIFileLoader::CUIFileLoader() noexcept { }
-
-// CUIFileLoader 析构函数
-LongUI::CUIFileLoader::~CUIFileLoader() noexcept {
-    if (m_pData) {
-        LongUI::NormalFree(m_pData);
-        m_pData = nullptr;
-    }
-}
-
-// CUIFileLoader 读取文件
-bool LongUI::CUIFileLoader::ReadFile(WCHAR* file_name) noexcept {
-    // 打开文件
-    FILE* file = nullptr;
-    if (file = ::_wfopen(file_name, L"rb")) {
-        // 获取文件大小
-        ::fseek(file, 0L, SEEK_END);
-        m_cLength = ::ftell(file);
-        ::fseek(file, 0L, SEEK_SET);
-        // 缓存不足?
-        if (m_cLength > m_cLengthReal) {
-            m_cLengthReal = m_cLength;
-            if (m_pData) LongUI::NormalFree(m_pData);
-            m_pData = LongUI::NormalAlloc(m_cLength);
-        }
-        // 读取文件
-        if (m_pData) ::fread(m_pData, 1, m_cLength, file);
-    }
-    // 关闭文件
-    if (file) ::fclose(file);
-    return file && m_pData;
-}
-
-
 // --------------  CUIConsole ------------
 // CUIConsole 构造函数
 LongUI::CUIConsole::CUIConsole() noexcept {
@@ -11663,8 +11758,7 @@ long LongUI::CUIConsole::Close() noexcept {
 }
 
 // CUIConsole 输出
-long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexcept {
-    if (len == -1) len = static_cast<long>(::wcslen(str));
+long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, size_t len) noexcept {
     // 过长则分批
     if (len > LongUIStringBufferLength) {
         // 直接递归
@@ -11682,16 +11776,20 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, long len) noexc
     }
     // 写入
     if (m_length + len < LongUIStringBufferLength) {
-        ::memcpy(m_buffer + m_length, str, len * sizeof(wchar_t));
+        std::memcpy(m_buffer + m_length, str, len * sizeof(wchar_t));
         m_length += len;
         str = nullptr;
-        // 不flush
+        // 不用flush
         if (!flush) return 0;
     }
     DWORD dwWritten = DWORD(-1);
     // 写入
     auto safe_write_file = [this, &dwWritten]() {
-        return ::WriteFile(m_hConsole, m_buffer, static_cast<uint32_t>(m_length * sizeof(wchar_t)), &dwWritten, nullptr);
+        return ::WriteFile(
+            m_hConsole, m_buffer, 
+            static_cast<uint32_t>(m_length * sizeof(wchar_t)), 
+            &dwWritten, nullptr
+            );
     };
     // 先写入缓冲区
     if (m_length) {
@@ -11715,7 +11813,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         m_hConsole = INVALID_HANDLE_VALUE;
     }
     // 先复制
-    ::wcscpy(m_name, LR"(\\.\pipe\)");
+    std::wcscpy(m_name, LR"(\\.\pipe\)");
     wchar_t logger_name_buffer[128];
     // 未给logger?
     if (!config.logger_name) {
@@ -11724,12 +11822,12 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
             logger_name_buffer, lengthof(logger_name_buffer),
             L"logger_%7.5f",
             float(::GetTickCount()) / float(1000 * 60 * 60) *
-            (float(::rand()) / float(RAND_MAX)) * s_times
+            (float(std::rand()) / float(RAND_MAX)) * s_times
             );
         config.logger_name = logger_name_buffer;
         ++s_times;
     }
-    ::wcscat(m_name, config.logger_name);
+    std::wcscat(m_name, config.logger_name);
     // 创建管道
     m_hConsole = ::CreateNamedPipeW(
         m_name,
@@ -11770,10 +11868,8 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
             return -1;
         }
     }
-
-
-    BOOL bConnected = ::ConnectNamedPipe(m_hConsole, nullptr) ?
-        TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
+    // 连接
+    BOOL bConnected = ::ConnectNamedPipe(m_hConsole, nullptr) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
     // 连接失败
     if (!bConnected) {
         ::MessageBoxW(nullptr, L"ConnectNamedPipe failed", L"ConsoleLogger failed", MB_ICONERROR);
@@ -11790,7 +11886,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送标题
     if (!lpszWindowTitle) lpszWindowTitle = m_name + 9;
     std::swprintf(buffer, lengthof(buffer), L"TITLE: %ls\r\n", lpszWindowTitle);
-    uint32_t len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+    uint32_t len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
     ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
     if (cbWritten != len_in_byte) {
         ::MessageBoxW(nullptr, L"WriteFile failed(1)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -11803,7 +11899,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送位置
     if (config.position_xy != -1) {
         std::swprintf(buffer, lengthof(buffer), L"POS: %d\r\n", config.position_xy);
-        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+        len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(1.1)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -11816,7 +11912,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送属性
     if (config.atribute) {
         std::swprintf(buffer, lengthof(buffer), L"ATTR: %d\r\n", config.atribute);
-        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+        len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(1.2)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -11830,7 +11926,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     // 传送缓存区大小
     if (config.buffer_size_x != -1 && config.buffer_size_y != -1) {
         std::swprintf(buffer, lengthof(buffer), L"BUFFER-SIZE: %dx%d\r\n", config.buffer_size_x, config.buffer_size_y);
-        len_in_byte = static_cast<uint32_t>(::wcslen(buffer) * sizeof(wchar_t));
+        len_in_byte = static_cast<uint32_t>(std::wcslen(buffer) * sizeof(wchar_t));
         ::WriteFile(m_hConsole, buffer, len_in_byte, &cbWritten, nullptr);
         if (cbWritten != len_in_byte) {
             ::MessageBoxW(nullptr, L"WriteFile failed(2)", L"ConsoleLogger failed", MB_ICONERROR);
@@ -11860,6 +11956,11 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         m_hConsole = INVALID_HANDLE_VALUE;
         return -1;
     }
+    // 关闭进程句柄
+    if(bRet) {
+        ::CloseHandle(pi.hProcess);
+        ::CloseHandle(pi.hThread);
+    }
     return 0;
 }
 
@@ -11871,17 +11972,21 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 // longui
 namespace LongUI {
     // 创建XML资源读取器
-    auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept->IUIResourceLoader*;
+    auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept ->IUIResourceLoader*;
 }
 
 // 创建接口
-auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void ** ppvObject) noexcept -> HRESULT {
+auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void** ppvObject) noexcept -> HRESULT {
     // 资源读取器
-    if (riid == LongUI::IID_IUIResourceLoader) {
+    if (riid == LongUI::GetIID<LongUI::IUIResourceLoader>()) {
         *ppvObject = LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
     }
     // 脚本
-    else if (riid == LongUI::IID_IUIScript) {
+    else if (riid == LongUI::GetIID<LongUI::IUIScript>()) {
+
+    }
+    // 字体集
+    else if (riid == LongUI::GetIID<IDWriteFontCollection>()) {
 
     }
     // 检查
@@ -11894,7 +11999,7 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapter
 #ifdef LONGUI_NUCLEAR_FIRST
     for (size_t i = 0; i < length; ++i) {
         DXGI_ADAPTER_DESC1& desc = adapters[i];
-        if (!::wcsncmp(L"NVIDIA", desc.Description, 6))
+        if (!std::wcsncmp(L"NVIDIA", desc.Description, 6))
             return i;
     }
 #endif
@@ -11939,9 +12044,9 @@ auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
                 buffer, LongUIStringBufferLength,
                 L"[%c]\r\n", std::localtime(&time)
                 );
-            ::fwrite(buffer, sizeof(wchar_t), std::wcslen(buffer), m_pLogFile);
+            std::fwrite(buffer, sizeof(wchar_t), std::wcslen(buffer), m_pLogFile);
         }
-        ::fwrite(string, sizeof(wchar_t), std::wcslen(string), m_pLogFile);
+        std::fwrite(string, sizeof(wchar_t), std::wcslen(string), m_pLogFile);
 
     }
 }
@@ -12024,7 +12129,7 @@ HRESULT LongUI::Component::MMFVideo::EventNotify(DWORD event, DWORD_PTR param1, 
 
 
 // MMFVideo 初始化
-auto LongUI::Component::MMFVideo::Initialize() noexcept ->HRESULT {
+auto LongUI::Component::MMFVideo::Init() noexcept ->HRESULT {
     HRESULT hr = S_OK;
     IMFAttributes* attributes = nullptr;
     // 创建MF属性
@@ -12183,7 +12288,7 @@ constexpr float EZ_PI = 3.1415296F;
 constexpr float EZ_PI_2 = 1.5707963F;
 
 // 反弹渐出
-float inline __fastcall BounceEaseOut(float p) noexcept {
+float inline BounceEaseOut(float p) noexcept {
     if (p < 4.f / 11.f) {
         return (121.f * p * p) / 16.f;
     }
@@ -12200,7 +12305,7 @@ float inline __fastcall BounceEaseOut(float p) noexcept {
 
 
 // CUIAnimation 缓动函数
-float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
+float LongUI::EasingFunction(AnimationType type, float p) noexcept {
     assert((p >= 0.f && p <= 1.f) && "bad argument");
     switch (type)
     {
@@ -12227,7 +12332,7 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
     case LongUI::AnimationType::Type_CubicEaseOut:
         // 立次渐出     f(x) = (x - 1)^3 + 1
     {
-        register float f = p - 1.f;
+        float f = p - 1.f;
         return f * f * f + 1.f;
     }
     case LongUI::AnimationType::Type_CubicEaseInOut:
@@ -12238,19 +12343,19 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
             return p * p * p * 2.f;
         }
         else {
-            register float f = (2.f * p) - 2.f;
+            float f = (2.f * p) - 2.f;
             return 0.5f * f * f * f + 1.f;
         }
     case LongUI::AnimationType::Type_QuarticEaseIn:
         // 四次渐入     f(x) = x^4
     {
-        register float f = p * p;
+        float f = p * p;
         return f * f;
     }
     case LongUI::AnimationType::Type_QuarticEaseOut:
         // 四次渐出     f(x) = 1 - (x - 1)^4
     {
-        register float f = (p - 1.f); f *= f;
+        float f = (p - 1.f); f *= f;
         return 1.f - f * f;
     }
     case LongUI::AnimationType::Type_QuarticEaseInOut:
@@ -12258,23 +12363,23 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
         // [0, 0.5)     f(x) = (1/2)((2x)^4)
         // [0.5, 1.f]   f(x) = -(1/2)((2x-2)^4 - 2)
         if (p < 0.5f) {
-            register float f = p * p;
+            float f = p * p;
             return 8.f * f * f;
         }
         else {
-            register float f = (p - 1.f); f *= f;
+            float f = (p - 1.f); f *= f;
             return 1.f - 8.f * f * f;
         }
     case LongUI::AnimationType::Type_QuinticEaseIn:
         // 五次渐入     f(x) = x^5
     {
-        register float f = p * p;
+        float f = p * p;
         return f * f * p;
     }
     case LongUI::AnimationType::Type_QuinticEaseOut:
         // 五次渐出     f(x) = (x - 1)^5 + 1
     {
-        register float f = (p - 1.f);
+        float f = (p - 1.f);
         return f * f * f * f * f + 1.f;
     }
     case LongUI::AnimationType::Type_QuinticEaseInOut:
@@ -12282,85 +12387,85 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
         // [0, 0.5)     f(x) = (1/2)((2x)^5) 
         // [0.5, 1.f]   f(x) = (1/2)((2x-2)^5 + 2)
         if (p < 0.5) {
-            register float f = p * p;
+            float f = p * p;
             return 16.f * f * f * p;
         }
         else {
-            register float f = ((2.f * p) - 2.f);
+            float f = ((2.f * p) - 2.f);
             return  f * f * f * f * f * 0.5f + 1.f;
         }
     case LongUI::AnimationType::Type_SineEaseIn:
         // 正弦渐入     
-        return ::sin((p - 1.f) * EZ_PI_2) + 1.f;
+        return std::sin((p - 1.f) * EZ_PI_2) + 1.f;
     case LongUI::AnimationType::Type_SineEaseOut:
         // 正弦渐出     
-        return ::sin(p * EZ_PI_2);
+        return std::sin(p * EZ_PI_2);
     case LongUI::AnimationType::Type_SineEaseInOut:
         // 正弦出入     
-        return 0.5f * (1.f - ::cos(p * EZ_PI));
+        return 0.5f * (1.f - std::cos(p * EZ_PI));
     case LongUI::AnimationType::Type_CircularEaseIn:
         // 四象圆弧
-        return 1.f - ::sqrt(1.f - (p * p));
+        return 1.f - std::sqrt(1.f - (p * p));
     case LongUI::AnimationType::Type_CircularEaseOut:
         // 二象圆弧
-        return ::sqrt((2.f - p) * p);
+        return std::sqrt((2.f - p) * p);
     case LongUI::AnimationType::Type_CircularEaseInOut:
         // 圆弧出入
         if (p < 0.5f) {
-            return 0.5f * (1.f - ::sqrt(1.f - 4.f * (p * p)));
+            return 0.5f * (1.f - std::sqrt(1.f - 4.f * (p * p)));
         }
         else {
-            return 0.5f * (::sqrt(-((2.f * p) - 3.f) * ((2.f * p) - 1.f)) + 1.f);
+            return 0.5f * (std::sqrt(-((2.f * p) - 3.f) * ((2.f * p) - 1.f)) + 1.f);
         }
     case LongUI::AnimationType::Type_ExponentialEaseIn:
         // 指数渐入     f(x) = 2^(10(x - 1))
-        return (p == 0.f) ? (p) : (::pow(2.f, 10.f * (p - 1.f)));
+        return (p == 0.f) ? (p) : (std::pow(2.f, 10.f * (p - 1.f)));
     case LongUI::AnimationType::Type_ExponentialEaseOut:
         // 指数渐出     f(x) =  -2^(-10x) + 1
-        return (p == 1.f) ? (p) : (1.f - ::powf(2.f, -10.f * p));
+        return (p == 1.f) ? (p) : (1.f - std::powf(2.f, -10.f * p));
     case LongUI::AnimationType::Type_ExponentialEaseInOut:
         // 指数出入
         // [0,0.5)      f(x) = (1/2)2^(10(2x - 1)) 
         // [0.5,1.f]    f(x) = -(1/2)*2^(-10(2x - 1))) + 1 
         if (p == 0.0f || p == 1.0f) return p;
         if (p < 0.5f) {
-            return 0.5f * ::powf(2.f, (20.f * p) - 10.f);
+            return 0.5f * std::powf(2.f, (20.f * p) - 10.f);
         }
         else {
-            return -0.5f * ::powf(2.f, (-20.f * p) + 1.f) + 1.f;
+            return -0.5f * std::powf(2.f, (-20.f * p) + 1.f) + 1.f;
         }
     case LongUI::AnimationType::Type_ElasticEaseIn:
         // 弹性渐入
-        return ::sin(13.f * EZ_PI_2 * p) * ::pow(2.f, 10.f * (p - 1.f));
+        return std::sin(13.f * EZ_PI_2 * p) * std::pow(2.f, 10.f * (p - 1.f));
     case LongUI::AnimationType::Type_ElasticEaseOut:
         // 弹性渐出
-        return ::sin(-13.f * EZ_PI_2 * (p + 1.f)) * ::powf(2.f, -10.f * p) + 1.f;
+        return std::sin(-13.f * EZ_PI_2 * (p + 1.f)) * std::powf(2.f, -10.f * p) + 1.f;
     case LongUI::AnimationType::Type_ElasticEaseInOut:
         // 弹性出入
         if (p < 0.5f) {
-            return 0.5f * ::sin(13.f * EZ_PI_2 * (2.f * p)) * ::pow(2.f, 10.f * ((2.f * p) - 1.f));
+            return 0.5f * std::sin(13.f * EZ_PI_2 * (2.f * p)) * std::pow(2.f, 10.f * ((2.f * p) - 1.f));
         }
         else {
-            return 0.5f * (::sin(-13.f * EZ_PI_2 * ((2.f * p - 1.f) + 1.f)) * ::pow(2.f, -10.f * (2.f * p - 1.f)) + 2.f);
+            return 0.5f * (std::sin(-13.f * EZ_PI_2 * ((2.f * p - 1.f) + 1.f)) * std::pow(2.f, -10.f * (2.f * p - 1.f)) + 2.f);
         }
     case LongUI::AnimationType::Type_BackEaseIn:
         // 回退渐入
-        return  p * p * p - p * ::sin(p * EZ_PI);
+        return  p * p * p - p * std::sin(p * EZ_PI);
     case LongUI::AnimationType::Type_BackEaseOut:
         // 回退渐出
     {
-        register float f = (1.f - p);
-        return 1.f - (f * f * f - f * ::sin(f * EZ_PI));
+        float f = (1.f - p);
+        return 1.f - (f * f * f - f * std::sin(f * EZ_PI));
     }
     case LongUI::AnimationType::Type_BackEaseInOut:
         // 回退出入
         if (p < 0.5f) {
-            register float f = 2.f * p;
-            return 0.5f * (f * f * f - f * ::sin(f * EZ_PI));
+            float f = 2.f * p;
+            return 0.5f * (f * f * f - f * std::sin(f * EZ_PI));
         }
         else {
-            register float f = (1.f - (2 * p - 1.f));
-            return 0.5f * (1.f - (f * f * f - f * ::sin(f * EZ_PI))) + 0.5f;
+            float f = (1.f - (2 * p - 1.f));
+            return 0.5f * (1.f - (f * f * f - f * std::sin(f * EZ_PI))) + 0.5f;
         }
     case LongUI::AnimationType::Type_BounceEaseIn:
         // 反弹渐入
@@ -12382,7 +12487,7 @@ float __fastcall LongUI::EasingFunction(AnimationType type, float p) noexcept {
 // longui namespace
 namespace LongUI {
     // BKDR 哈希
-    auto __fastcall BKDRHash(const char* str) noexcept -> uint32_t {
+    auto BKDRHash(const char* str) noexcept -> uint32_t {
         constexpr uint32_t seed = 131;
         uint32_t code = 0;
         auto p = reinterpret_cast<const unsigned char*>(str);
@@ -12390,7 +12495,7 @@ namespace LongUI {
         return code;
     }
     // BKDR 哈希
-    auto __fastcall BKDRHash(const wchar_t* str) noexcept -> uint32_t {
+    auto BKDRHash(const wchar_t* str) noexcept -> uint32_t {
         constexpr uint32_t seed = 131;
         uint32_t code = 0;
         while (*str) code = code * seed + (*str++);
@@ -12419,11 +12524,12 @@ namespace LongUI { namespace impl {
         auto global = ::GlobalAlloc(GMEM_MOVEABLE, sizeof(T)*(len + 1));
         // 有效?
         if (global) {
+            // 锁住!
             auto* des = reinterpret_cast<T*>(::GlobalLock(global));
             // 申请全局内存成功
             if (des) {
                 // 复制
-                ::memcpy(des, src, sizeof(T)*(len));
+                std::memcpy(des, src, sizeof(T)*(len));
                 // null结尾
                 des[len] = 0;
                 // 解锁
@@ -12459,6 +12565,50 @@ LongUINoinline auto LongUI::Helper::GlobalAllocString(const char* src, size_t le
     return impl::alloc_global_string(src, len);
 }
 
+// 查找多个文件
+LongUINoinline auto LongUI::Helper::FindFilesToBuffer(
+    wchar_t* buf, size_t buf_len, 
+    const wchar_t* folder,
+    const wchar_t* name
+    ) noexcept ->wchar_t* {
+    // 初始化
+    WIN32_FIND_DATAW fileinfo;
+#ifdef _DEBUG
+    std::memset(&fileinfo, 0, sizeof(fileinfo));
+#endif
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    ::SetLastError(0);
+    {
+        wchar_t path[MAX_PATH * 2]; path[0] = 0;
+        std::swprintf(path, lengthof(path), L"%ls\\%ls", folder, name);
+        hFile = ::FindFirstFileW(path, &fileinfo);
+    }
+    // 有效
+    if (hFile != INVALID_HANDLE_VALUE) {
+        // 清空
+        DWORD errorcode = ::GetLastError();
+        // 遍历文件
+        while (errorcode != ERROR_NO_MORE_FILES) {
+            // 跳过.开头
+            if (fileinfo.cFileName[0] != '.') {
+                // 写入
+                auto code = std::swprintf(buf, buf_len - 1, L"%ls\\%ls", folder, fileinfo.cFileName);
+                // 缓存不足
+                if (code < 0) break;
+                // 写入
+                buf += code + 1; buf[0] = 0; buf_len -= code + 1;
+            }
+            // 推进
+            ::FindNextFileW(hFile, &fileinfo);
+            // 检查
+            errorcode = ::GetLastError();
+        }
+    }
+    ::FindClose(hFile);
+    return buf;
+}
+
+
 // 创建 CC
 auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint32_t {
     assert(str && "bad argument");
@@ -12469,7 +12619,7 @@ auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint
     const char* word_begin = nullptr;
     for (auto itr = str;; ++itr) {
         // 获取
-        register char ch = *itr;
+        char ch = *itr;
         // 段结束?
         if (ch == ',' || !ch) {
             assert(word_begin && "bad string");
@@ -12478,7 +12628,7 @@ auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint
                 CC& cc = data[count - 1];
                 size_t length = size_t(itr - word_begin);
                 assert(length < lengthof(temp_buffer));
-                ::memcpy(temp_buffer, word_begin, length);
+                std::memcpy(temp_buffer, word_begin, length);
                 temp_buffer[length] = 0;
                 // 数字?
                 if (word_begin[0] >= '0' && word_begin[0] <= '9') {
@@ -12533,7 +12683,7 @@ namespace LongUI { namespace impl {
             CHAR_TYPE buf[LongUIStringBufferLength]; auto itr = buf;
             // 遍历
             while (size) {
-                register auto ch = (*str);
+                auto ch = (*str);
                 // 获取到了分隔符号
                 if (ch == static_cast<CHAR_TYPE>(SEPARATOR) || ch == 0) {
                     *itr = 0;
@@ -12565,7 +12715,7 @@ namespace LongUI { namespace impl {
             // 遍历
             while (size) {
                 // 获取到了分隔符号
-                register auto ch = (*str);
+                auto ch = (*str);
                 if (ch == static_cast<CHAR_TYPE>(SEPARATOR) || ch == 0) {
                     caster(units++, old, str);
                     old = str + 1; --size;
@@ -12600,19 +12750,72 @@ namespace LongUI { namespace Helper {
         }, str, fary, size);
         return true;
     }
+    // 创建整数
+    LongUINoinline bool MakeInts(const char* str, int iary[], uint32_t size) noexcept {
+        // 检查字符串
+        if (!str || !*str) return false;
+        impl::make_units<','>([](int* out, const char* begin, const char* end) noexcept {
+            auto len = static_cast<size_t>(end - begin);
+            char buf[128]; assert(len < lengthof(buf));
+            std::memcpy(buf, begin, len); len[buf] = 0;
+            *out = LongUI::AtoI(buf);
+        }, str, iary, size);
+        return true;
+    }
+    // 颜色属性名字符串集
+    const char* const COLOR_BUTTON[] = {
+        "disabledcolor", "normalcolor", "hovercolor", "pushedcolor"
+    };
+    /// <summary>
+    ///  创建基于状态的颜色数组
+    /// </summary>
+    /// <param name="node">pugixml 节点</param>
+    /// <param name="prefix">颜色属性前缀</param>
+    /// <param name="color">颜色数组</param>
+    /// <returns></returns>
+    LongUINoinline bool MakeStateBasedColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F color[4]) noexcept {
+        // 初始值
+        if (color->a < 0.0f || color->a > 1.f) {
+            color[State_Disabled]   = D2D1::ColorF(0xDEDEDEDEui32);
+            color[State_Normal]     = D2D1::ColorF(0xCDCDCDCDui32);
+            color[State_Hover]      = D2D1::ColorF(0xA9A9A9A9ui32);
+            color[State_Pushed]     = D2D1::ColorF(0x78787878ui32);
+        }
+        bool rc = false;
+        // 循环设置
+        for (int i = 0; i < STATE_COUNT; ++i) {
+            rc = rc | Helper::MakeColor(Helper::XMLGetValue(node, COLOR_BUTTON[i], prefix), color[i]);
+        }
+        return rc;
+    }
+    /// <summary>
+    /// 创建meta组
+    /// </summary>
+    /// <param name="node">xml node</param>
+    /// <param name="prefix">属性名前缀</param>
+    /// <param name="fary">float array of meta id</param>
+    /// <param name="count">count of it</param>
+    /// <returns>成功设置则返回true, 没有或者错误返回false</returns>
+    bool MakeMetaGroup(pugi::xml_node node, const char* prefix, uint16_t fary[], uint32_t count) noexcept {
+        // 检查
+        constexpr int BUFFER_COUNT = 64; float tmp[BUFFER_COUNT];
+        assert(count < BUFFER_COUNT && "out of buffer length");
+        // 初始化
+        std::memset(tmp, 0, sizeof(tmp));
+        // 计算结果
+        auto result = Helper::MakeFloats(Helper::XMLGetValue(node, "metagroup", prefix), tmp, count);
+        // 转换数据
+        for (uint32_t i = 0; i < count; ++i) fary[i] = static_cast<uint16_t>(tmp[i]);
+        // 返回结果
+        return result;
+    }
 }}
 
 // 16进制
-unsigned int __fastcall LongUI::Hex2Int(char c) noexcept {
-    if (c >= 'A' && c <= 'Z') {
-        return c - 'A' + 10;
-    }
-    if (c >= 'a' && c <= 'z') {
-        return c - 'a' + 10;
-    }
-    else {
-        return c - '0';
-    }
+unsigned int LongUI::Hex2Int(char c) noexcept {
+    if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
+    if (c >= 'a' && c <= 'z') return c - 'a' + 10;
+    else return c - '0';
 }
 
 // 获取颜色表示
@@ -12656,28 +12859,35 @@ bool LongUI::Helper::MakeString(const char* data, CUIString& str) noexcept {
     if (!data || !*data) return false;
     wchar_t buffer[LongUIStringBufferLength];
     // 转码
-    register auto length = LongUI::UTF8toWideChar(data, buffer);
+    auto length = LongUI::UTF8toWideChar(data, buffer);
     buffer[length] = L'\0';
     // 设置字符串
     str.Set(buffer, length);
     return true;
 }
 
+
+// longui::helper
+LONGUI_NAMESPACE_BEGIN namespace Helper {
+    // 边框
+    const char* const BORDER_COLOR_ATTR[] = {
+        "disabledbordercolor", "normalbordercolor",
+        "hoverbordercolor",  "pushedbordercolor",
+    };
+}
+LONGUI_NAMESPACE_END
+
 // 设置边框颜色
-bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATUS_COUNT]) noexcept {
+bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATE_COUNT]) noexcept {
     // 边框颜色
-    color[Status_Disabled] = D2D1::ColorF(0xD9D9D9);
-    color[Status_Normal] = D2D1::ColorF(0xACACAC);
-    color[Status_Hover] = D2D1::ColorF(0x7EB4EA);
-    color[Status_Pushed] = D2D1::ColorF(0x569DE5);
+    color[State_Disabled]   = D2D1::ColorF(0xBFBFBFui32);
+    color[State_Normal]     = D2D1::ColorF(0xACACACui32);
+    color[State_Hover]      = D2D1::ColorF(0x7EB4EAui32);
+    color[State_Pushed]     = D2D1::ColorF(0x569DE5ui32);
     // 检查
     if (node) {
-        const char* attr[] = {
-            "disabledbordercolor", "normalbordercolor",
-            "hoverbordercolor",  "pushedbordercolor",
-        };
-        for (auto i = 0u; i < STATUS_COUNT; ++i) {
-            Helper::MakeColor(node.attribute(attr[i]).value(), color[i]);
+        for (auto i = 0u; i < STATE_COUNT; ++i) {
+            Helper::MakeColor(node.attribute(BORDER_COLOR_ATTR[i]).value(), color[i]);
         }
     }
     return true;
@@ -12695,30 +12905,24 @@ namespace LongUI { namespace Helper {
         char buffer[LongUIStringBufferLength];
         // 前缀有效?
         if (pfx) {
-            ::strcpy(buffer, pfx);
-            ::strcat(buffer, att);
+            std::strcpy(buffer, pfx);
+            std::strcat(buffer, att);
             att = buffer;
         }
         return node.attribute(att).value();
     }
     // 解析字符串数据作为枚举值
-    auto GetEnumFromString(const char* value, const GetEnumProperties& prop) noexcept->uint32_t {
+    auto GetEnumFromString(const char* value, const GetEnumProperties& prop) noexcept ->uint32_t {
         // 首个为数字?
         auto first_digital = [](const char* str) noexcept {
             // 遍历
             while (*str) {
                 // 空白: 跳过
-                if (white_space(*str)) {
-                    ++str;
-                }
+                if (white_space(*str))  ++str;
                 // 数字: true
-                else if (valid_digit(*str)) {
-                    return true;
-                }
+                else if (valid_digit(*str))  return true;
                 // 其他: false
-                else {
-                    break;
-                }
+                else  break;
             }
             return false;
         };
@@ -12730,7 +12934,7 @@ namespace LongUI { namespace Helper {
             }
             // 遍历
             for (size_t i = 0; i < prop.values_length; ++i) {
-                if (!::strcmp(value, prop.values_list[i])) {
+                if (!std::strcmp(value, prop.values_list[i])) {
                     return uint32_t(i);
                 }
             }
@@ -12749,7 +12953,7 @@ namespace LongUI { namespace Helper {
         // 设置
         GetEnumProperties prop;
         prop.values_list = ary;
-        prop.values_length = lengthof(ary);
+        prop.values_length = lengthof<uint32_t>(ary);
         prop.bad_match = static_cast<uint32_t>(bad_match);
         // 调用
         return static_cast<T>(GetEnumFromString(value, prop));
@@ -12824,28 +13028,32 @@ namespace LongUI { namespace Helper {
     const char* const cg_listTextAlignment[] = {
         "left",  "right",  "center",  "justify",
     };
+    // 复选框状态
+    const char* const cg_listCheckBoxState[] = {
+        "checked", "indeterminate", "unchecked"
+    };
     // 获取动画类型
-    LongUINoinline auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept->AnimationType {
+    LongUINoinline auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept ->AnimationType {
         return GetEnumFromStringHelper(value, bad_match, cg_listAnimationType);
     }
     // 获取插值模式
-    LongUINoinline auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept->D2D1_INTERPOLATION_MODE {
+    LongUINoinline auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept ->D2D1_INTERPOLATION_MODE {
         return GetEnumFromStringHelper(value, bad_match, cg_listInterpolationMode);
     }
     // 获取扩展模式
-    LongUINoinline auto GetEnumFromString(const char* value, D2D1_EXTEND_MODE bad_match) noexcept->D2D1_EXTEND_MODE {
+    LongUINoinline auto GetEnumFromString(const char* value, D2D1_EXTEND_MODE bad_match) noexcept ->D2D1_EXTEND_MODE {
         return GetEnumFromStringHelper(value, bad_match, cg_listExtendMode);
     }
     // 获取位图渲染规则
-    LongUINoinline auto GetEnumFromString(const char* value, BitmapRenderRule bad_match) noexcept->BitmapRenderRule {
+    LongUINoinline auto GetEnumFromString(const char* value, BitmapRenderRule bad_match) noexcept ->BitmapRenderRule {
         return GetEnumFromStringHelper(value, bad_match, cg_listBitmapRenderRule);
     }
     // 获取富文本类型
-    LongUINoinline auto GetEnumFromString(const char* value, RichType bad_match) noexcept->RichType {
+    LongUINoinline auto GetEnumFromString(const char* value, RichType bad_match) noexcept ->RichType {
         return GetEnumFromStringHelper(value, bad_match, cg_listRichType);
     }
     // 获取字体风格
-    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_FONT_STYLE bad_match) noexcept->DWRITE_FONT_STYLE {
+    LongUINoinline auto GetEnumFromString(const char* value, DWRITE_FONT_STYLE bad_match) noexcept ->DWRITE_FONT_STYLE {
         return GetEnumFromStringHelper(value, bad_match, cg_listFontStyle);
     }
     // 获取字体拉伸
@@ -12876,6 +13084,10 @@ namespace LongUI { namespace Helper {
     LongUINoinline auto GetEnumFromString(const char* value, D2D1_TEXT_ANTIALIAS_MODE bad_match) noexcept ->D2D1_TEXT_ANTIALIAS_MODE {
         return GetEnumFromStringHelper(value, bad_match, cg_listTextAntialiasMode);
     }
+    // 获取复选框状态
+    LongUINoinline auto GetEnumFromString(const char* value, CheckBoxState bad_match) noexcept ->CheckBoxState {
+        return GetEnumFromStringHelper(value, bad_match, cg_listCheckBoxState);
+    }
 }}
 
 // Render Common Brush
@@ -12889,8 +13101,8 @@ void LongUI::FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brus
     };
     // 新的
     target->SetTransform(
-        D2D1::Matrix3x2F::Scale(height, height) *
-        D2D1::Matrix3x2F::Translation(rect.left, rect.top) *
+        DX::Matrix3x2F::Scale(height, height) *
+        DX::Matrix3x2F::Translation(rect.left, rect.top) *
         matrix
         );
     // 填写
@@ -12902,11 +13114,8 @@ void LongUI::FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brus
 
                    
 
-
-// 创建LongUI的字体集: 本函数会进行I/O, 所以程序开始调用一次即可
-auto LongUI::DX::CreateFontCollection(
-    IDWriteFactory* factory, const wchar_t * filename, const wchar_t * folder)
-    noexcept -> IDWriteFontCollection* {
+// longui::impl 命名空间
+namespace LongUI { namespace impl {
     // 字体文件枚举
     class LongUIFontFileEnumerator final : public Helper::ComStatic<
         Helper::QiList<IDWriteFontFileEnumerator >> {
@@ -12926,8 +13135,9 @@ auto LongUI::DX::CreateFontCollection(
             if (*pHasCurrentFile = *m_pFilePathNow) {
                 LongUI::SafeRelease(m_pCurFontFie);
                 hr = m_pFactory->CreateFontFileReference(m_pFilePathNow, nullptr, &m_pCurFontFie);
+                longui_debug_hr(hr, L" m_pFactory->CreateFontFileReference faild");
                 if (*pHasCurrentFile = SUCCEEDED(hr)) {
-                    m_pFilePathNow += ::wcslen(m_pFilePathNow);
+                    m_pFilePathNow += std::wcslen(m_pFilePathNow);
                     ++m_pFilePathNow;
                 }
             }
@@ -12957,7 +13167,7 @@ auto LongUI::DX::CreateFontCollection(
         // 创建枚举器
         HRESULT STDMETHODCALLTYPE CreateEnumeratorFromKey(
             IDWriteFactory *pFactory,
-            const void *collectionKey,
+            const void*collectionKey,
             UINT32 collectionKeySize,
             IDWriteFontFileEnumerator **ppFontFileEnumerator
             ) noexcept override {
@@ -12978,41 +13188,53 @@ auto LongUI::DX::CreateFontCollection(
         // 枚举器
         LongUIFontFileEnumerator        m_enumerator;
     };
+}}
+
+// 创建LongUI的字体集: 本函数会进行I/O, 所以程序开始调用一次即可
+auto LongUI::DX::CreateFontCollection(
+    const wchar_t * filename, 
+    const wchar_t * folder,
+    bool include_system
+    ) noexcept -> IDWriteFontCollection* {
     IDWriteFontCollection* collection = nullptr;
-    constexpr size_t buffer_length = 256 * 256;
+    constexpr size_t buffer_length = 256 * 256 * 16;
     // 申请足够的空间
-    wchar_t* const buffer(new(std::nothrow) wchar_t[buffer_length]);
-    if (buffer) {
-        wchar_t* index = buffer; *buffer = 0;
-        WIN32_FIND_DATAW fileinfo;
-        wchar_t file_name_path[MAX_PATH]; std::swprintf(file_name_path, MAX_PATH, L"%ls\\%ls", folder, filename);
-        HANDLE hFile = ::FindFirstFileW(file_name_path, &fileinfo);
-        DWORD errorcode = ::GetLastError();
-        // 遍历文件
-        while (hFile != INVALID_HANDLE_VALUE && errorcode != ERROR_NO_MORE_FILES) {
-            std::swprintf(index, MAX_PATH, L"%ls\\%ls", folder, fileinfo.cFileName);
-            index += ::wcslen(index) + 1; *index = 0;
-            if (index + MAX_PATH >= buffer + buffer_length) {
-                break;
-            }
-            ::FindNextFileW(hFile, &fileinfo);
-            errorcode = ::GetLastError();
-        }
-        ::FindClose(hFile);
-        // 当存在符合标准的文件时
-        if (index != buffer) {
-            LongUIFontCollectionLoader loader;
-            factory->RegisterFontCollectionLoader(&loader);
-            factory->CreateCustomFontCollection(
-                &loader,
-                buffer, 
-                static_cast<uint32_t>(reinterpret_cast<uint8_t*>(index) - reinterpret_cast<uint8_t*>(buffer)),
-                &collection
-                );
-            factory->UnregisterFontCollectionLoader(&loader);
-        }
-        delete[] buffer;
+    wchar_t* const buffer = LongUI::NormalAllocT<wchar_t>(buffer_length);
+    // 内存不足
+    if (!buffer) return collection;
+    // 初始化
+    buffer[0] = 0; auto itr = buffer;
+    // 本地路径
+    {
+        itr = Helper::FindFilesToBuffer(itr, buffer_length, folder, filename);
     }
+    // 系统路径
+    if (include_system && itr != buffer) {
+        wchar_t winpath[MAX_PATH];
+        winpath[0] = 0;
+        auto len = ::GetWindowsDirectoryW(winpath, lengthof<uint32_t>(winpath));
+        assert(len && len < lengthof(winpath) && "buffer to small");
+        std::wcscpy(winpath + len, L"\\Fonts");
+        itr = Helper::FindFilesToBuffer(itr, buffer_length - size_t(itr - buffer), winpath, L"*.*tf");
+        itr = Helper::FindFilesToBuffer(itr, buffer_length - size_t(itr - buffer), winpath, L"*.fon");
+    }
+    // 当存在符合标准的文件时
+    if (itr != buffer) {
+        auto hr = S_OK;
+        impl::LongUIFontCollectionLoader loader;
+        hr = UIManager_DWriteFactory->RegisterFontCollectionLoader(&loader);
+        longui_debug_hr(hr, L"UIManager_DWriteFactory->RegisterFontCollectionLoader faild");
+        hr = UIManager_DWriteFactory->CreateCustomFontCollection(
+            &loader,
+            buffer,
+            static_cast<uint32_t>(reinterpret_cast<uint8_t*>(itr + 1) - reinterpret_cast<uint8_t*>(buffer)),
+            &collection
+            );
+        longui_debug_hr(hr, L" UIManager_DWriteFactory->CreateCustomFontCollection faild");
+        hr = UIManager_DWriteFactory->UnregisterFontCollectionLoader(&loader);
+        longui_debug_hr(hr, L" UIManager_DWriteFactory->UnregisterFontCollectionLoader faild");
+    }
+    LongUI::NormalFree(buffer);
     return collection;
 }
 
@@ -13038,47 +13260,27 @@ auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextF
         );
     // 成功
     if (SUCCEEDED(hr)) {
-        register auto format = *fmt;
-#ifdef _DEBUG
-        HRESULT thr = S_OK;
+        auto format = *fmt;
         // 设置 Tab宽度
-        thr = 
-        format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
-        assert(thr == S_OK && "bad SetIncrementalTabStop");
+        hr = format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
+        longui_debug_hr(hr, L"failed format->SetIncrementalTabStop  " << ((prop.tab == 0.f ? prop.size * 4.f : prop.tab)));
         // 设置段落排列方向
-        thr = 
-        format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
-        assert(thr == S_OK && "bad SetFlowDirection");
+        hr = format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
+        longui_debug_hr(hr, L"failed format->SetFlowDirection  " << long(prop.flow));
         // 设置段落(垂直)对齐
-        thr = 
-        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
-        assert(thr == S_OK && "bad SetParagraphAlignment");
+        hr = format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
+        longui_debug_hr(hr, L"failed format->SetParagraphAlignment  " << long(prop.valign));
         // 设置文本(水平)对齐
-        thr = 
-        format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
-        assert(thr == S_OK && "bad SetTextAlignment");
+        hr = format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
+        longui_debug_hr(hr, L"failed format->SetTextAlignmen  t" << long(prop.halign));
         // 设置阅读进行方向
-        thr = 
-        format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
-        assert(thr == S_OK && "bad SetReadingDirection");
+        hr = format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
+        longui_debug_hr(hr, L"failed format->SetReadingDirection  " << long(prop.reading));
         // 设置自动换行
-        thr = 
-        format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
-        assert(thr == S_OK && "bad SetWordWrapping");
-#else
-        // 设置 Tab宽度
-        format->SetIncrementalTabStop(prop.tab == 0.f ? prop.size * 4.f : prop.tab);
-        // 设置段落排列方向
-        format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(prop.flow));
-        // 设置段落(垂直)对齐
-        format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(prop.valign));
-        // 设置文本(水平)对齐
-        format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(prop.halign));
-        // 设置阅读进行方向
-        format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(prop.reading));
-        // 设置自动换行
-        format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
-#endif
+        hr = format->SetWordWrapping(static_cast<DWRITE_WORD_WRAPPING>(prop.wrapping));
+        longui_debug_hr(hr, L"failed format->SetWordWrapping  " << long(prop.wrapping));
+        // 设置
+        hr = S_OK;
     }
     return hr;
 }
@@ -13089,7 +13291,7 @@ LongUINoinline void LongUI::DX::InitTextFormatProperties(TextFormatProperties& p
     UNREFERENCED_PARAMETER(name_buf_len);
 #ifdef _DEBUG
     auto length = std::wcslen(LongUI::LongUIDefaultTextFontName) + 1;
-    assert(name_buf_len >= length && "buffer too small");
+    assert(name_buf_len > length && "buffer too small");
 #endif
     // 复制数据
     prop.size = LongUIDefaultTextFontSize;
@@ -13155,7 +13357,7 @@ auto LongUI::DX::MakeTextFormat(
         auto str = get_attribute("family");
         if (str) {
             // 假设设置字体名称就是修改了
-            LongUI::UTF8toWideChar(str, data.prop.name);
+            data.prop.name[LongUI::UTF8toWideChar(str, data.prop.name)] = 0;
             create_a_new_one = true;
         }
         // 字体大小
@@ -13254,31 +13456,34 @@ auto LongUI::DX::CreateTextPathGeometry(
     // 字体名称缓存
     wchar_t fontname_buffer[MAX_PATH]; *fontname_buffer = 0;
     // 必要缓存
-    uint16_t glyph_indices_buffer[1024];
-    // 保证空间
-    uint16_t* glyph_indices = string_length > lengthof(glyph_indices_buffer) ?
-        new(std::nothrow) uint16_t[string_length * sizeof(uint16_t)] : glyph_indices_buffer;
-    HRESULT hr = glyph_indices ? S_OK : E_OUTOFMEMORY;
+    EzContainer::SmallBuffer<uint16_t, 1024> glyph_indices_buffer;
+    glyph_indices_buffer.NewSize(string_length);
+    // 内存不足?
+    HRESULT hr = glyph_indices_buffer.GetCount() < string_length ? S_OK : E_OUTOFMEMORY;
     // 创建字形
     if (!fontface) {
         // 获取字体名称
         if (SUCCEEDED(hr)) {
             hr = format->GetFontFamilyName(fontname_buffer, MAX_PATH);
+            longui_debug_hr(hr, L"failed: format->GetFontFamilyName " << fontname_buffer);
         }
         // 获取字体集
         if (SUCCEEDED(hr)) {
             hr = format->GetFontCollection(&collection);
+            longui_debug_hr(hr, L"failed: format->GetFontCollection ");
         }
         // 查找索引
         uint32_t index = 0; BOOL exists = FALSE;
         if (SUCCEEDED(hr)) {
             hr = collection->FindFamilyName(fontname_buffer, &index, &exists);
+            longui_debug_hr(hr, L"failed: collection->FindFamilyName " << fontname_buffer);
         }
         // 获取字体族
         if (SUCCEEDED(hr)) {
             // 不存在也算错误
             if (exists) {
                 hr = collection->GetFontFamily(index, &family);
+                longui_debug_hr(hr, L"failed: collection->GetFontFamily " << long(index));
             }
             else {
                 hr = E_FAIL;
@@ -13292,40 +13497,50 @@ auto LongUI::DX::CreateTextPathGeometry(
                 format->GetFontStyle(),
                 &font
                 );
+            longui_debug_hr(hr, L"failed: family->GetFirstMatchingFont ");
+
         }
         // 创建字形
         if (SUCCEEDED(hr)) {
             hr = font->CreateFontFace(&fontface);
+            longui_debug_hr(hr, L"failed: font->CreateFontFace ");
         }
     }
     // 创建几何
     if (SUCCEEDED(hr)) {
         hr = factory->CreatePathGeometry(&pathgeometry);
+        longui_debug_hr(hr, L"failed: factory->CreatePathGeometry ");
         ID2D1GeometrySink* sink = nullptr;
         // 打开Sink
         if (SUCCEEDED(hr)) {
             hr = pathgeometry->Open(&sink);
+            longui_debug_hr(hr, L"failed: pathgeometry->Open ");
         }
         // 创建索引编号
         if (SUCCEEDED(hr)) {
             static_assert(sizeof(uint32_t) == sizeof(char32_t), "32 != 32 ?!");
             hr = fontface->GetGlyphIndices(
-                reinterpret_cast<const uint32_t*>(utf32_string), string_length, glyph_indices
+                reinterpret_cast<const uint32_t*>(utf32_string), 
+                string_length, 
+                glyph_indices_buffer.GetData()
                 );
+            longui_debug_hr(hr, L"failed: fontface->GetGlyphIndices ");
         }
         // 创建轮廓路径几何
         if (SUCCEEDED(hr)) {
             hr = fontface->GetGlyphRunOutline(
                 format->GetFontSize(),
-                glyph_indices,
+                glyph_indices_buffer.GetData(),
                 nullptr, nullptr,
                 string_length,
                 true, true, sink
                 );
+            longui_debug_hr(hr, L"failed: fontface->GetGlyphRunOutline ");
         }
         // 关闭路径
         if (SUCCEEDED(hr)) {
-            sink->Close();
+            hr = sink->Close();
+            longui_debug_hr(hr, L"failed: sink->Close ");
         }
         LongUI::SafeRelease(sink);
     }
@@ -13338,10 +13553,6 @@ auto LongUI::DX::CreateTextPathGeometry(
     }
     else {
         LongUI::SafeRelease(fontface);
-    }
-    if (glyph_indices && glyph_indices != glyph_indices_buffer) {
-        delete[] glyph_indices;
-        glyph_indices = nullptr;
     }
     *geometry = pathgeometry;
 #ifdef _DEBUG
@@ -13373,7 +13584,7 @@ auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mes
 auto LongUI::DX::FormatTextXML(
     const FormatTextConfig& config, 
     const wchar_t* format
-    ) noexcept->IDWriteTextLayout*{
+    ) noexcept ->IDWriteTextLayout*{
     UNREFERENCED_PARAMETER(config);
     UNREFERENCED_PARAMETER(format);
     return nullptr;
@@ -13594,7 +13805,7 @@ namespace LongUI { namespace DX {
         assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
         // 创建 Typography
         auto hr = UIManager_DWriteFactory->CreateTypography(&typography);
-        assert(SUCCEEDED(hr));
+        longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTypography ");
         assert(std::strlen(buffer) % 5 == 0 && "bad font feature tag");
         // CPU 大小端检查
         static_assert(uint32_t(DWRITE_FONT_FEATURE_TAG_CASE_SENSITIVE_FORMS) == uint32_t("case"_longui32), "check cpu type");
@@ -13608,11 +13819,11 @@ namespace LongUI { namespace DX {
                 // 稍微检查一下
                 assert(itr[0] && itr[1] && itr[2] && itr[3] && itr[4] == ' ' && "bad argments");
                 // 一般视为二进制数据
-                register auto tmp = *reinterpret_cast<int32_t*>(itr);
+                auto tmp = *reinterpret_cast<int32_t*>(itr);
                 feature.nameTag = static_cast<DWRITE_FONT_FEATURE_TAG>(tmp);
                 auto thr = typography->AddFontFeature(feature);
                 UNREFERENCED_PARAMETER(thr);
-                assert(thr == S_OK);
+                longui_debug_hr(thr, L"failed: typography->AddFontFeature " << long(feature.nameTag));
             }
         }
         return typography;
@@ -13621,7 +13832,7 @@ namespace LongUI { namespace DX {
     template<typename T>
     auto FormatTextViaCoreML(const FormatTextConfig& cfg, const wchar_t* fmt, T& param) noexcept {
         using cctype = wchar_t;
-        register cctype ch = 0;
+        cctype ch = 0;
         cctype text[LongUIStringBufferLength]; auto text_itr = text;
         EzContainer::FixedStack<RANGE_DATA, 1024> stack_check, stack_set;
         // 遍历字符串
@@ -13792,6 +14003,10 @@ namespace LongUI { namespace DX {
                 cfg.width, cfg.height,
                 &layout
                 );
+#ifdef _DEBUG
+            text[length] = 0;
+            longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTextLayout  " << text);
+#endif
         }
         // 数据末尾
         auto setend = stack_set.top;
@@ -13856,7 +14071,7 @@ namespace LongUI { namespace DX {
         return layout;
     }
     // 创建格式文本
-    auto FormatTextCoreC(const FormatTextConfig& cfg, const wchar_t* fmt, ...) noexcept->IDWriteTextLayout* {
+    auto FormatTextCoreC(const FormatTextConfig& cfg, const wchar_t* fmt, ...) noexcept ->IDWriteTextLayout* {
         va_list ap;
         va_start(ap, fmt);
         CoreMLParamC param(ap);
@@ -13865,7 +14080,7 @@ namespace LongUI { namespace DX {
         return lyt;
     }
     // 创建格式文本
-    auto FormatTextCore(const FormatTextConfig& cfg, const wchar_t* fmt, va_list) noexcept->IDWriteTextLayout* {
+    auto FormatTextCore(const FormatTextConfig& cfg, const wchar_t* fmt, va_list) noexcept ->IDWriteTextLayout* {
         CoreMLParamString param(fmt);
         return DX::FormatTextViaCoreML(cfg, fmt, param);
     }
@@ -13907,15 +14122,23 @@ auto LongUI::DX::SaveAsImageFile(
                 &prop,
                 &readable_bitmap
                 );
+#ifdef _DEBUG
+            D2D1_POINT_2F ppppt;
+            ppppt.x = float(bitmap_size.width);
+            ppppt.y = float(bitmap_size.height);
+            longui_debug_hr(hr, L"failed: UIManager_RenderTarget->CreateBitmap " << ppppt);
+#endif
         }
     }
     // 复制位图
     if (SUCCEEDED(hr)) {
         hr = readable_bitmap->CopyFromBitmap(nullptr, bitmap, nullptr);
+        longui_debug_hr(hr, L"failed: readable_bitmap->CopyFromBitmap");
     }
     // 映射数据
     if (SUCCEEDED(hr)) {
         hr = readable_bitmap->Map(D2D1_MAP_OPTIONS_READ, &rect);
+        longui_debug_hr(hr, L"failed: readable_bitmap->Map");
     }
     // 处理
     if (SUCCEEDED(hr)) {
@@ -13928,7 +14151,9 @@ auto LongUI::DX::SaveAsImageFile(
         prop.height = bitmap_size.height;
         prop.pitch = rect.pitch;
         auto hr1 = LongUI::DX::SaveAsImageFile(prop, file_name);
+        longui_debug_hr(hr1, L"failed: DX::SaveAsImageFile");
         auto hr2 = readable_bitmap->Unmap();
+        longui_debug_hr(hr2, L"failed: readable_bitmap->Unmap");
         // 检查错误
         if (SUCCEEDED(hr1)) {
             hr = SUCCEEDED(hr2) ? S_OK : hr2;
@@ -13971,14 +14196,17 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
                 prop.bits,
                 &pWICBitmap
                 );
+            longui_debug_hr(hr, L"failed: prop.factory->CreateBitmapFromMemory");
         }
         // 创建流
         if (SUCCEEDED(hr)) {
             hr = prop.factory->CreateStream(&pStream);
+            longui_debug_hr(hr, L"failed: prop.factory->CreateStream");
         }
         // 从文件初始化
         if (SUCCEEDED(hr)) {
             hr = pStream->InitializeFromFilename(file_name, GENERIC_WRITE);
+            longui_debug_hr(hr, L"failed: pStream->InitializeFromFilename  " << file_name);
         }
         // 创建编码器
         if (SUCCEEDED(hr)) {
@@ -13987,39 +14215,48 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
                 nullptr,
                 &pEncoder
                 );
+            longui_debug_hr(hr, L"failed: prop.factory->CreateEncoder");
         }
         // 初始化编码器
         if (SUCCEEDED(hr)) {
             hr = pEncoder->Initialize(pStream, WICBitmapEncoderNoCache);
+            longui_debug_hr(hr, L"failed: pEncoder->Initialize");
         }
         // 创建新的一帧
         if (SUCCEEDED(hr)) {
             hr = pEncoder->CreateNewFrame(&pFrameEncode, nullptr);
+            longui_debug_hr(hr, L"failed: pEncoder->CreateNewFrame");
         }
         // 初始化帧编码器
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->Initialize(nullptr);
+            longui_debug_hr(hr, L"failed: pFrameEncode->Initialize");
         }
         // 设置大小
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->SetSize(prop.width, prop.height);
+            longui_debug_hr(hr, L"failed: pFrameEncode->SetSize " << long(prop.width) << L", " << long(prop.height));
         }
         // 设置格式
         WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->SetPixelFormat(&format);
+            longui_debug_hr(hr, L"failed: pFrameEncode->SetPixelFormat");
         }
         // 写入源数据
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->WriteSource(pWICBitmap, nullptr);
+            longui_debug_hr(hr, L"failed: pFrameEncode->WriteSource");
         }
         // 提交帧编码器
         if (SUCCEEDED(hr)) {
             hr = pFrameEncode->Commit();
+            longui_debug_hr(hr, L"failed: pFrameEncode->Commit");
         }
         // 提交编码
         if (SUCCEEDED(hr)) {
             hr = pEncoder->Commit();
+            longui_debug_hr(hr, L"failed: pEncoder->Commit");
         }
         // 扫尾处理
         LongUI::SafeRelease(pWICBitmap);
@@ -14094,10 +14331,34 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
         // 返回数据
         return outformat;
     }
-    // LCML
-    /*auto LCML(const FormatTextConfig& config, const wchar_t* format, va_list ap) noexcept {
-
-    }*/
+    // d2d1 ------------------------
+    void LongUINoinline D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept {
+        constexpr float pi = 3.141592654f;
+        float theta = angle * (pi / 180.0f);
+        float sin_theta = std::sin(theta);
+        float cos_theta = std::cos(theta);
+        matrix._11 = cos_theta;
+        matrix._12 = sin_theta;
+        matrix._21 = -sin_theta;
+        matrix._22 = cos_theta;
+        matrix._31 = center.x - center.x * cos_theta + center.y * sin_theta;
+        matrix._32 = center.y - center.x * sin_theta - center.y * cos_theta;
+    }
+#ifdef _DEBUG
+    long g_dbg_product_counter = 0;
+#endif
+    // 设置乘
+    void Matrix3x2F::SetProduct(const D2D1_MATRIX_3X2_F& a, const D2D1_MATRIX_3X2_F& b) noexcept {
+#ifdef _DEBUG
+        ++g_dbg_product_counter;
+#endif
+        this->_11 = a._11 * b._11 + a._12 * b._21;
+        this->_12 = a._11 * b._12 + a._12 * b._22;
+        this->_21 = a._21 * b._11 + a._22 * b._21;
+        this->_22 = a._21 * b._12 + a._22 * b._22;
+        this->_31 = a._31 * b._11 + a._32 * b._21 + b._31;
+        this->_32 = a._31 * b._12 + a._32 * b._22 + b._32;
+    }
 }
 LONGUI_NAMESPACE_END
 
@@ -14137,7 +14398,7 @@ auto LongUI::SVG::ParserPath(const char* path, ID2D1PathGeometry* geometry) noex
     }
     // 正式解析
     if (SUCCEEDED(hr)) {
-        register char ch = 0;
+        char ch = 0;
         while ((ch = *path)) {
             ++path;
         }
@@ -14264,7 +14525,7 @@ WM_ICONERASEBKGND
 WM_NEXTDLGCTL
 002a
 42
-WM_SPOOLERSTATUS
+WM_SPOOLERSTATE
 002b
 43
 WM_DRAWITEM
@@ -14546,10 +14807,10 @@ EM_POSFROMCHAR
 EM_CHARFROMPOS
 00d8
 216
-EM_SETIMESTATUS
+EM_SETIMESTATE
 00d9
 217
-EM_GETIMESTATUS
+EM_GETIMESTATE
 00e0
 224
 SBM_SETPOS
@@ -15980,7 +16241,7 @@ TAPI_REPLY
 ACM_OPENA
 0464
 1124
-BFFM_SETSTATUSTEXTA
+BFFM_SETSTATETEXTA
 0464
 1124
 CDM_FIRST
@@ -16070,10 +16331,10 @@ PSM_ADDPAGE
 UDM_SETPOS
 0467
 1127
-WM_CAP_SET_CALLBACK_STATUSW
+WM_CAP_SET_CALLBACK_STATEW
 0468
 1128
-BFFM_SETSTATUSTEXTW
+BFFM_SETSTATETEXTW
 0468
 1128
 CDM_SETCONTROLTEXT
@@ -16607,10 +16868,10 @@ EM_GETCTFMODEBIAS
 EM_SETCTFMODEBIAS
 04f0
 1264
-EM_GETCTFOPENSTATUS
+EM_GETCTFOPENSTATE
 04f1
 1265
-EM_SETCTFOPENSTATUS
+EM_SETCTFOPENSTATE
 04f2
 1266
 EM_GETIMECOMPTEXT
@@ -17168,11 +17429,25 @@ WM_RASDIALEVENT
 // 任务按钮创建消息
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
-// UIWindow 构造函数
-LongUI::UIWindow::UIWindow(pugi::xml_node node, UIWindow* parent_window) 
-noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_window) {
-    assert(node && "<LongUI::UIWindow::UIWindow> window_node null");
-    ZeroMemory(&m_curMedium, sizeof(m_curMedium));
+/// <summary>
+/// Initializes a new instance of the <see cref="UIWindow"/> class.
+/// </summary>
+/// <param name="parent">The parent for self in window-level</param>
+LongUI::UIWindow::UIWindow(UIWindow* parent) noexcept : Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {
+    std::memset(&m_curMedium, 0, sizeof(m_curMedium));
+}
+
+/// <summary>
+/// Initializes with specified xml-node.
+/// </summary>
+/// <param name="node">The xml node.</param>
+/// <returns></returns>
+void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
+    // 初始化
+    assert(node && "<LongUI::UIWindow::initialize> window_node null");
+    std::memset(&m_curMedium, 0, sizeof(m_curMedium));
     // 检查名称
     {
         auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
@@ -17203,9 +17478,9 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
         if (node.attribute("alwaysrendering").as_bool(false)) {
             flag |= WindowFlag::Flag_AlwaysRendering;
         }
-        force_cast(this->window_flags) = flag;
+        force_cast(this->wndflags) = flag;
         // XXX:
-        force_cast(this->window_type) = Type_Layered;
+        force_cast(this->wnd_type) = Type_Layered;
     }
     // Debug Zone
 #ifdef _DEBUG
@@ -17268,7 +17543,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
             titlename.length() ? titlename.c_str() : L"LongUI",
             window_style,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
-            parent_window ? parent_window->GetHwnd() : nullptr,
+            this->wndparent ? this->wndparent->GetHwnd() : nullptr,
             nullptr,
             ::GetModuleHandleW(nullptr),
             this
@@ -17279,7 +17554,8 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
         }
         // 创建失败
         else {
-            UIManager.ShowError(L"Error! Failed to Create Window", L"LongUI::UIWindow::UIWindow");
+            UIManager.ShowError(L"Error! Failed to Create Window", __FUNCTIONW__);
+            return;
         }
     }
     //SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
@@ -17299,7 +17575,7 @@ noexcept : Super(nullptr, node), m_uiRenderQueue(this), window_parent(parent_win
     // 所在窗口就是自己
     m_pWindow = this;
     // 清零
-    ::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
+    std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
     // 自动显示窗口
     if (node.attribute("autoshow").as_bool(true)) {
         ::ShowWindow(m_hwnd, SW_SHOW);
@@ -17401,10 +17677,10 @@ void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept
 #endif
     m_baBoolWindow.SetTrue(Index_CaretIn);
     m_baBoolWindow.SetTrue(Index_DoCaret);
-    const register auto intx = static_cast<LONG>(pt.x);
-    const register auto inty = static_cast<LONG>(pt.y);
-    const register auto oldx = static_cast<LONG>(m_rcCaretPx.left);
-    const register auto oldy = static_cast<LONG>(m_rcCaretPx.top);
+    const auto intx = static_cast<LONG>(pt.x);
+    const auto inty = static_cast<LONG>(pt.y);
+    const auto oldx = static_cast<LONG>(m_rcCaretPx.left);
+    const auto oldy = static_cast<LONG>(m_rcCaretPx.top);
     if (oldx != intx || oldy != inty) {
         this->refresh_caret();
         m_rcCaretPx.left = intx; m_rcCaretPx.top = inty;
@@ -17548,7 +17824,7 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
 #ifdef _DEBUG
         static RECT s_rects[LongUIDirtyControlSize + 2];
         if (this->debug_show) {
-            ::memcpy(s_rects, present.pDirtyRects, present.DirtyRectsCount * sizeof(RECT));
+            std::memcpy(s_rects, present.pDirtyRects, present.DirtyRectsCount * sizeof(RECT));
             present.pDirtyRects = s_rects;
             s_rects[present.DirtyRectsCount] = { 0, 0, 128, 35 };
             ++present.DirtyRectsCount;
@@ -17579,7 +17855,7 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
     UIManager_RenderTarget->BeginDraw();
     // 设置转换矩阵
 #if 0
-    UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+    UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
 #else
     UIManager_RenderTarget->SetTransform(&this->world);
 #endif
@@ -17594,7 +17870,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
     // 呈现参数设置
     RECT rcScroll = { 0, 0, LONG(this->window_size.width), LONG(this->window_size.height) };
     RECT dirtyRects[LongUIDirtyControlSize + 1]; 
-    ::memcpy(dirtyRects, m_dirtyRects, sizeof(dirtyRects));
+    std::memcpy(dirtyRects, m_dirtyRects, sizeof(dirtyRects));
     DXGI_PRESENT_PARAMETERS present_parameters;
     present_parameters.DirtyRectsCount = 0;
     present_parameters.pDirtyRects = dirtyRects;
@@ -17604,6 +17880,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
     this->set_present_parameters(present_parameters);
     // 呈现
     HRESULT hr = m_pSwapChain->Present1(1, 0, &present_parameters);
+    longui_debug_hr(hr, L"m_pSwapChain->Present1 faild");
     // 收到重建消息时 重建UI
 #ifdef _DEBUG
     assert(SUCCEEDED(hr));
@@ -17640,7 +17917,7 @@ void LongUI::UIWindow::Update() noexcept {
     {
         auto current_unit = m_uiRenderQueue.GetCurrentUnit();
         m_aUnitNow.length = current_unit->length;
-        ::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
+        std::memcpy(m_aUnitNow.units, current_unit->units, sizeof(*m_aUnitNow.units) * m_aUnitNow.length);
     }
     // 刷新前
     if (this->IsControlLayoutChanged()) {
@@ -17707,25 +17984,17 @@ void LongUI::UIWindow::Render() const noexcept  {
         {
             assert(m_aUnitNow.length < LongUIDirtyControlSize);
             length_for_units = m_aUnitNow.length;
-            ::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
-#if 0
-            // 一般就几个, 冒泡完爆std::sort
-            LongUI::BubbleSort(units, units + length_for_units, [](UIControl* a, UIControl* b) noexcept {
-                return a->priority > b->priority;
-            });
-            if (m_aUnitNow.length >= 2) {
-                assert(units[0]->priority >= units[1]->priority);
-            }
-#endif
+            std::memcpy(units, m_aUnitNow.units, length_for_units * sizeof(void*));
         }
         // 再渲染
-        auto init_transfrom = D2D1::Matrix3x2F::Identity();
+        auto init_transfrom = DX::Matrix3x2F::Identity();
         for (auto unit = units; unit < units + length_for_units; ++unit) {
             auto ctrl = *unit; assert(ctrl != this);
-            // XXX: 优化为仅调用PushAxisAlignedClip
-            UIManager_RenderTarget->SetTransform(&init_transfrom);
-            UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
+            D2D1_POINT_2F clipr[2];
+            clipr[0] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.left));
+            clipr[1] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.right));
+            UIManager_RenderTarget->PushAxisAlignedClip(reinterpret_cast<D2D1_RECT_F*>(clipr), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 #if 0 // def _DEBUG
             if (this->debug_this) {
                 AutoLocker;
@@ -17750,7 +18019,7 @@ void LongUI::UIWindow::Render() const noexcept  {
     }
     // 插入符号
     if (m_baBoolWindow.Test(Index_DoCaret) && m_baBoolWindow.Test(Index_CaretIn)) {
-        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
         D2D1_RECT_F rect;
         rect.left = static_cast<float>(m_rcCaretPx.left);
         rect.top = static_cast<float>(m_rcCaretPx.top);
@@ -17765,7 +18034,7 @@ void LongUI::UIWindow::Render() const noexcept  {
     // 调试输出
 #ifdef _DEBUG
     if (this->debug_show) {
-        D2D1_MATRIX_3X2_F nowMatrix, iMatrix = D2D1::Matrix3x2F::Scale(0.45f, 0.45f);
+        D2D1_MATRIX_3X2_F nowMatrix, iMatrix = DX::Matrix3x2F::Scale(0.45f, 0.45f);
         UIManager_RenderTarget->GetTransform(&nowMatrix);
         UIManager_RenderTarget->SetTransform(&iMatrix);
         wchar_t buffer[1024];
@@ -17897,14 +18166,17 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         UIManager << DL_Hint << "WM_DISPLAYCHANGE" << endl;
         {
             // 获取屏幕刷新率
-            DEVMODEW mode = { 0 };
-            ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-            m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
+            auto old = UIManager.GetDisplayFrequency();
+            UIManager.RefreshDisplayFrequency();
+            auto now = UIManager.GetDisplayFrequency();
+            if (old != now) {
+                m_uiRenderQueue.Reset(static_cast<uint32_t>(now));
+            }
         }
         // 强行刷新一帧
         this->Invalidate(this);
         break;
-    case WM_CLOSE:          // 关闭窗口
+    case WM_CLOSE:
         // 窗口关闭
         handled = this->OnClose();
         break;
@@ -17959,8 +18231,8 @@ void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
 
 // 重置窗口大小
 void LongUI::UIWindow::OnResize(bool force) noexcept {
-    assert(this->window_type != Type_RenderOnParent);
-    if (this->window_type != Type_Layered) {
+    assert(this->wnd_type != Type_RenderOnParent);
+    if (this->wnd_type != Type_Layered) {
         force = true;
     }
     //UIManager << DL_Log << "called" << endl;
@@ -17979,7 +18251,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
         rect_bottom = this->window_size.height;
     }
     auto old_size = m_pTargetBimtap->GetPixelSize();
-    register HRESULT hr = S_OK;
+    HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
     if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
         UIManager << DL_Hint << L"Window: [" 
@@ -17993,6 +18265,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
             2, rect_right, rect_bottom, DXGI_FORMAT_B8G8R8A8_UNORM, 
             DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
             );
+        longui_debug_hr(hr, L"m_pSwapChain->ResizeBuffers faild");
         // 检查
         if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
             UIManager.RecreateResources();
@@ -18001,6 +18274,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
         // 利用交换链获取Dxgi表面
         if (SUCCEEDED(hr)) {
             hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));
+            longui_debug_hr(hr, L"m_pSwapChain->GetBuffer faild");
         }
         // 利用Dxgi表面创建位图
         if (SUCCEEDED(hr)) {
@@ -18015,6 +18289,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
                 &bitmapProperties,
                 &m_pTargetBimtap
                 );
+            longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
         }
         // 重建失败?
         if (FAILED(hr)) {
@@ -18054,7 +18329,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         // XXX: Fixit
-        if (this->window_type == Type_Layered) {
+        if (this->wnd_type == Type_Layered) {
             // DirectComposition桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
@@ -18065,6 +18340,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
                 nullptr,
                 &pSwapChain
                 );
+            longui_debug_hr(hr, L"UIManager_DXGIFactory->CreateSwapChainForComposition faild");
         }
         else {
             // 一般桌面应用程序
@@ -18079,24 +18355,16 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
                 nullptr,
                 &pSwapChain
                 );
+            longui_debug_hr(hr, L"UIManager_DXGIFactory->CreateSwapChainForHwnd faild");
         }
     }
     // 获取交换链V2
     if (SUCCEEDED(hr)) {
-#ifdef LONGUI_USE_SDK_8_1
-#define DEFINE_GUID_LONGUI(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-        const GUID name  = { l, w1, w2,{ b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
-        DEFINE_GUID_LONGUI(IID_IDXGISwapChain2_Auto, 0xa8be2ac4, 0x199f, 0x4946, 0xb3, 0x31, 0x79, 0x59, 0x9f, 0xb9, 0x8d, 0xe7);
         hr = pSwapChain->QueryInterface(
-            IID_IDXGISwapChain2_Auto,
+            LongUI::IID_IDXGISwapChain2,
             reinterpret_cast<void**>(&m_pSwapChain)
             );
-#else
-        hr = pSwapChain->QueryInterface(
-            IID_IDXGISwapChain2,
-            reinterpret_cast<void**>(&m_pSwapChain)
-            );
-#endif
+        longui_debug_hr(hr, L"pSwapChain->QueryInterface LongUI::IID_IDXGISwapChain2 faild");
     }
     // 获取垂直等待事件
     if (SUCCEEDED(hr)) {
@@ -18105,10 +18373,12 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     /*// 确保DXGI队列里边不会超过一帧
     if (SUCCEEDED(hr)) {
         hr = UIManager_DXGIDevice->SetMaximumFrameLatency(1);
+        longui_debug_hr(hr, L"UIManager_DXGIDevice->SetMaximumFrameLatency faild");
     }*/
     // 利用交换链获取Dxgi表面
     if (SUCCEEDED(hr)) {
         hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));
+        longui_debug_hr(hr, L"m_pSwapChain->GetBuffer faild");
     }
     // 利用Dxgi表面创建位图
     if (SUCCEEDED(hr)) {
@@ -18123,37 +18393,44 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
             &bitmapProperties,
             &m_pTargetBimtap
             );
+        longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
     }
     // 使用DComp
-    if (this->window_type == Type_Layered) {
+    if (this->wnd_type == Type_Layered) {
         // 创建直接组合(Direct Composition)设备
         if (SUCCEEDED(hr)) {
             hr = LongUI::Dll::DCompositionCreateDevice(
                 UIManager_DXGIDevice,
                 LongUI_IID_PV_ARGS(m_pDcompDevice)
                 );
+            longui_debug_hr(hr, L"DCompositionCreateDevice faild");
         }
         // 创建直接组合(Direct Composition)目标
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->CreateTargetForHwnd(
                 m_hwnd, true, &m_pDcompTarget
                 );
+            longui_debug_hr(hr, L"m_pDcompDevice->CreateTargetForHwnd faild");
         }
         // 创建直接组合(Direct Composition)视觉
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->CreateVisual(&m_pDcompVisual);
+            longui_debug_hr(hr, L"m_pDcompDevice->CreateVisual faild");
         }
         // 设置当前交换链为视觉内容
         if (SUCCEEDED(hr)) {
             hr = m_pDcompVisual->SetContent(m_pSwapChain);
+            longui_debug_hr(hr, L"m_pDcompVisual->SetContent faild");
         }
         // 设置当前视觉为窗口目标
         if (SUCCEEDED(hr)) {
             hr = m_pDcompTarget->SetRoot(m_pDcompVisual);
+            longui_debug_hr(hr, L"m_pDcompTarget->SetRoot faild");
         }
         // 向系统提交
         if (SUCCEEDED(hr)) {
             hr = m_pDcompDevice->Commit();
+            longui_debug_hr(hr, L"m_pDcompDevice->Commit faild");
         }
     }
     // 错误
@@ -18165,9 +18442,7 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     LongUI::SafeRelease(pSwapChain);
     {
         // 获取屏幕刷新率
-        DEVMODEW mode = { 0 };
-        ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
-        m_uiRenderQueue.Reset(mode.dmDisplayFrequency);
+        m_uiRenderQueue.Reset(UIManager.GetDisplayFrequency());
         // 强行刷新一帧
         this->Invalidate(this);
     }
@@ -18200,8 +18475,8 @@ bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
 // ----------------- IDropTarget!!!! Yooooooooooo~-----
 
 // 获取拖放效果
-DWORD __fastcall GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
-    register DWORD dwEffect = 0;
+DWORD GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
+    DWORD dwEffect = 0;
     // 1. 检查pt来看是否允许drop操作在某个位置
     // 2. 计算出基于grfKeyState的drop效果
     if (grfKeyState & MK_CONTROL) {
@@ -18246,9 +18521,10 @@ HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
 HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
     UNREFERENCED_PARAMETER(grfKeyState);
     D2D1_POINT_2F pt2f = { static_cast<float>(pt.x), static_cast<float>(pt.y) };
-    UIControl* control = nullptr;
+    UIControl* control; control = nullptr;
+    // TODO:
     // 检查控件支持
-    if ((control = nullptr)) {
+    if (false) {
         /*LongUI::EventArgument arg;
         ::SetLongUIEventArgument(arg, m_hwnd, pt);
         arg.sender = this;

@@ -5,76 +5,82 @@
 LONGUI_NAMESPACE_BEGIN namespace Component {
     // --------------------- LongUI::Component::ShortText ---------------------
     /// <summary>
+    /// Initializes a new instance of the <see cref="ShortText"/> class.
+    /// </summary>
+    ShortText::ShortText() noexcept {
+        // 设置
+        m_config = { nullptr, 128.f, 64.f, 1.f, RichType::Type_None, 0 };
+        // 初始化
+        this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
+        this->color[State_Normal] = D2D1::ColorF(D2D1::ColorF::Black);
+        this->color[State_Hover] = D2D1::ColorF(D2D1::ColorF::Black);
+        this->color[State_Pushed] = D2D1::ColorF(D2D1::ColorF::Black);
+    }
+    /// /// <summary>
     /// ShortText 初始化
     /// </summary>
     /// <param name="node">The xml node.</param>
     /// <param name="prefix">The prefix.</param>
     /// <returns></returns>
     void ShortText::Init(pugi::xml_node node, const char* prefix) noexcept {
+        assert(node && "call ShortText::Init() if no xml-node");
         LongUI::SafeRelease(m_pTextRenderer);
         // 设置
-        m_config = {
-            nullptr,
-            128.f, 64.f, 1.f,
-            Helper::GetEnumFromXml(node, RichType::Type_None, "richtype", prefix),
-            0
+        m_config.rich_type = Helper::GetEnumFromXml(node, RichType::Type_None, "richtype", prefix);
+        // 颜色
+        Helper::MakeStateBasedColor(node, prefix, this->color);
+        // 检查参数
+        assert(prefix && "bad arguments");
+        // 属性
+        auto attribute = [&node, prefix](const char* attr) {
+            return Helper::XMLGetValue(node, attr, prefix);
         };
-        // 初始化
-        this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
-        this->color[State_Normal] = D2D1::ColorF(D2D1::ColorF::Black);
-        this->color[State_Hover] = D2D1::ColorF(0xA9A9A9A9);
-        this->color[State_Pushed] = D2D1::ColorF(0x78787878);
-        // 有效结点
-        if (node) {
-            // 颜色
-            Helper::MakeStateBasedColor(node, prefix, this->color);
-            // 检查参数
-            assert(prefix && "bad arguments");
-            // 属性
-            auto attribute = [&node, prefix](const char* attr) {
-                return Helper::XMLGetValue(node, attr, prefix);
-            };
-            const char*str = nullptr;
-            // 获取进度
-            if ((str = attribute("progress"))) {
-                m_config.progress = LongUI::AtoF(str);
-            }
-            // 获取渲染器
-            m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
-            // 保证缓冲区
-            if (m_pTextRenderer) {
-                auto length = m_pTextRenderer->GetContextSizeInByte();
-                if (length) {
-                    if ((str = attribute("context"))) {
-                        m_buffer.NewSize(length);
-                        m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
-                    }
+        const char*str = nullptr;
+        // 获取进度
+        if ((str = attribute("progress"))) {
+            m_config.progress = LongUI::AtoF(str);
+        }
+        // 获取渲染器
+        m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
+        // 保证缓冲区
+        if (m_pTextRenderer) {
+            auto length = m_pTextRenderer->GetContextSizeInByte();
+            if (length) {
+                if ((str = attribute("context"))) {
+                    m_buffer.NewSize(length);
+                    m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
                 }
-            }
-            {
-                // 检查格式
-                uint32_t format_index = 0;
-                if ((str = attribute("format"))) {
-                    format_index = static_cast<uint32_t>(LongUI::AtoI(str));
-                }
-                // 模板
-                auto fmt = UIManager.GetTextFormat(format_index);
-                auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
-                assert(SUCCEEDED(hr));
-                LongUI::SafeRelease(fmt);
-            }
-            // 重建
-            {
-                auto text = node.attribute(prefix).value();
-                m_text.Set(text ? text : "");
             }
         }
+        {
+            // 检查格式
+            uint32_t format_index = 0;
+            if ((str = attribute("format"))) {
+                format_index = static_cast<uint32_t>(LongUI::AtoI(str));
+            }
+            // 模板
+            auto fmt = UIManager.GetTextFormat(format_index);
+            auto hr = DX::MakeTextFormat(node, &m_config.format, fmt, prefix);
+            UNREFERENCED_PARAMETER(hr);
+            assert(SUCCEEDED(hr));
+            LongUI::SafeRelease(fmt);
+        }
+        // 没有文本
+        auto text = node.attribute(prefix).value();
+        m_text.Set(text ? text : "");
+        // 重建
+        this->RecreateLayout();
+    }
+    /// <summary>
+    /// ShortText 初始化
+    /// </summary>
+    /// <returns></returns>
+    void ShortText::Init() noexcept {
+        LongUI::SafeRelease(m_pTextRenderer);
         // 没有?
-        else {
-            char name[2]; name[0] = '0'; name[1] = 0;
-            m_pTextRenderer = UIManager.GetTextRenderer(name);
-            m_config.format = UIManager.GetTextFormat(0);
-        }
+        char name[2]; name[0] = '0'; name[1] = 0;
+        m_pTextRenderer = UIManager.GetTextRenderer(name);
+        m_config.format = UIManager.GetTextFormat(0);
         this->RecreateLayout();
     }
     // ShortText 析构
@@ -108,6 +114,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 m_config.height,
                 &m_pLayout
                 );
+            UNREFERENCED_PARAMETER(hr);
             assert(SUCCEEDED(hr) && m_pLayout);
             m_config.text_length = static_cast<decltype(m_config.text_length)>(m_text.length());
             break;
@@ -1210,6 +1217,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
             auto template_format = UIManager.GetTextFormat(format_index);
             auto hr = DX::MakeTextFormat(node, &fmt, template_format, prefix);
+            UNREFERENCED_PARAMETER(hr);
             assert(SUCCEEDED(hr));
             LongUI::SafeRelease(template_format);
         }
@@ -1431,8 +1439,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 检查动画
         const auto& baani = sm.GetBasicAnimation();
         const auto& exani = sm.GetExtraAnimation();
-        auto bastt1 = sm.GetOldBaiscState();
-        auto bastt2 = sm.GetNowBaiscState();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
         auto exstt1 = sm.GetOldExtraState();
         auto exstt2 = sm.GetNowExtraState();
         // 额外状态动画中
@@ -1459,8 +1467,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 检查动画
         const auto& baani = sm.GetBasicAnimation();
         const auto& exani = sm.GetExtraAnimation();
-        auto bastt1 = sm.GetOldBaiscState();
-        auto bastt2 = sm.GetNowBaiscState();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
         auto exstt1 = sm.GetOldExtraState();
         auto exstt2 = sm.GetNowExtraState();
         // 额外状态动画中
@@ -1489,15 +1497,15 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // GIMetaBasic 帮助器 -- 颜色 渲染
     LongUINoinline void GIHelper::Render(
         const D2D1_RECT_F& rect, const AnimationStateMachine& sm, 
-        const D2D1_COLOR_F colors[], uint16_t basic
+        const D2D1_COLOR_F clrs[], uint16_t basic
         ) noexcept {
         auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
         assert(UIManager_RenderTarget && brush && "bad action");
         // 检查动画
         const auto& baani = sm.GetBasicAnimation();
         const auto& exani = sm.GetExtraAnimation();
-        auto bastt1 = sm.GetOldBaiscState();
-        auto bastt2 = sm.GetNowBaiscState();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
         auto exstt1 = sm.GetOldExtraState();
         auto exstt2 = sm.GetNowExtraState();
         D2D1_COLOR_F color;
@@ -1505,31 +1513,153 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         if (exani.value > 0.f && exani.value < ANIMATION_END) {
             float exalpha = ANIMATION_END - exani.value;
             // Alpha混合
-            color.a = colors[exstt2*basic + bastt2].a * exani.value
-                + colors[exstt1*basic + bastt2].a * exalpha;
-            color.r = colors[exstt2*basic + bastt2].r * exani.value
-                + colors[exstt1*basic + bastt2].r * exalpha;
-            color.g = colors[exstt2*basic + bastt2].g * exani.value
-                + colors[exstt1*basic + bastt2].g * exalpha;
-            color.b = colors[exstt2*basic + bastt2].b * exani.value
-                + colors[exstt1*basic + bastt2].b * exalpha;
+            color.a = clrs[exstt2*basic + bastt2].a * exani.value
+                + clrs[exstt1*basic + bastt2].a * exalpha;
+            color.r = clrs[exstt2*basic + bastt2].r * exani.value
+                + clrs[exstt1*basic + bastt2].r * exalpha;
+            color.g = clrs[exstt2*basic + bastt2].g * exani.value
+                + clrs[exstt1*basic + bastt2].g * exalpha;
+            color.b = clrs[exstt2*basic + bastt2].b * exani.value
+                + clrs[exstt1*basic + bastt2].b * exalpha;
         }
         // 基本动画状态
         else {
             float baalpha = ANIMATION_END - baani.value;
             // Alpha混合
-            color.a = colors[exstt2*basic + bastt2].a * baani.value
-                + colors[exstt2*basic + bastt1].a * baalpha;
-            color.r = colors[exstt2*basic + bastt2].r * baani.value
-                + colors[exstt2*basic + bastt1].r * baalpha;
-            color.g = colors[exstt2*basic + bastt2].g * baani.value
-                + colors[exstt2*basic + bastt1].g * baalpha;
-            color.b = colors[exstt2*basic + bastt2].b * baani.value
-                + colors[exstt2*basic + bastt1].b * baalpha;
+            color.a = clrs[exstt2*basic + bastt2].a * baani.value
+                + clrs[exstt2*basic + bastt1].a * baalpha;
+            color.r = clrs[exstt2*basic + bastt2].r * baani.value
+                + clrs[exstt2*basic + bastt1].r * baalpha;
+            color.g = clrs[exstt2*basic + bastt2].g * baani.value
+                + clrs[exstt2*basic + bastt1].g * baalpha;
+            color.b = clrs[exstt2*basic + bastt2].b * baani.value
+                + clrs[exstt2*basic + bastt1].b * baalpha;
         }
         // 渲染
         brush->SetColor(&color);
         UIManager_RenderTarget->FillRectangle(rect, brush);
+        LongUI::SafeRelease(brush);
+    }
+    // 复选框图像接口 -- 渲染
+    void GICheckBox::Init(pugi::xml_node /*node*/, const char* /*prefix*/) noexcept {
+        colors[State_Disabled]  = D2D1::ColorF(0xBFBFBFui32);
+        colors[State_Normal]    = D2D1::ColorF(0x000000ui32);
+        colors[State_Hover]     = D2D1::ColorF(0x7EB4EAui32);
+        colors[State_Pushed]    = D2D1::ColorF(0xACACACui32);
+    }
+    // 复选框图像接口 -- 渲染
+    void GICheckBox::Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept {
+        assert(UIManager_RenderTarget);
+        auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
+        assert(UIManager_RenderTarget && brush && "bad action");
+#ifdef _DEBUG
+        auto width = rect.right - rect.left;
+        auto height = rect.bottom - rect.top;
+        if ((width - UICheckBox::BOX_SIZE) <= -1.f || (width - UICheckBox::BOX_SIZE) >= 1.f) {
+            UIManager << DL_Error
+                << L"width of box for checkbox must be same as 'UICheckBox::BOX_SIZE'"
+                << LongUI::endl;
+        }
+        if ((height - UICheckBox::BOX_SIZE) <= -1.f || (height - UICheckBox::BOX_SIZE) >= 1.f) {
+            UIManager << DL_Error
+                << L"height of box for checkbox must be same as 'UICheckBox::BOX_SIZE'"
+                << LongUI::endl;
+        }
+#endif
+        // 检查动画
+        constexpr uint16_t basic = ControlState::STATE_COUNT;
+        const auto& baani = sm.GetBasicAnimation();
+        const auto& exani = sm.GetExtraAnimation();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        D2D1_COLOR_F color;
+        auto* clrs = this->colors;
+        // 额外状态动画中
+        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+            float exalpha = ANIMATION_END - exani.value;
+            // Alpha混合
+            color.a = clrs[bastt2].a * exani.value + clrs[bastt2].a * exalpha;
+            color.r = clrs[bastt2].r * exani.value + clrs[bastt2].r * exalpha;
+            color.g = clrs[bastt2].g * exani.value + clrs[bastt2].g * exalpha;
+            color.b = clrs[bastt2].b * exani.value + clrs[bastt2].b * exalpha;
+        }
+        // 基本动画状态
+        else {
+            float baalpha = ANIMATION_END - baani.value;
+            // Alpha混合
+            color.a = clrs[bastt2].a * baani.value + clrs[bastt1].a * baalpha;
+            color.r = clrs[bastt2].r * baani.value + clrs[bastt1].r * baalpha;
+            color.g = clrs[bastt2].g * baani.value + clrs[bastt1].g * baalpha;
+            color.b = clrs[bastt2].b * baani.value + clrs[bastt1].b * baalpha;
+        }
+        brush->SetColor(&color);
+        // 渲染 边框
+        {
+            auto tprc = rect;
+            tprc.left += 0.5f;
+            tprc.top += 0.5f;
+            tprc.right -= 0.5f;
+            tprc.bottom -= 0.5f;
+            UIManager_RenderTarget->DrawRectangle(tprc, brush);
+        }
+        {
+            float rate = sm.GetExtraAnimation().value;
+            // 解开?
+            if (CheckBoxState(exstt2) == CheckBoxState::State_Unchecked) {
+                rate = 1.f - rate;
+                exstt2 = exstt1;
+            }
+            // 打勾
+            if (CheckBoxState(exstt2) == CheckBoxState::State_Checked) {
+                // 坐标定义
+                constexpr float P1X = UICheckBox::BOX_SIZE * 0.15f;
+                constexpr float P1Y = UICheckBox::BOX_SIZE * 0.50f;
+                constexpr float P2X = UICheckBox::BOX_SIZE * 0.33f;
+                constexpr float P2Y = UICheckBox::BOX_SIZE * 0.85f;
+                constexpr float P3X = UICheckBox::BOX_SIZE * 0.85f;
+                constexpr float P3Y = UICheckBox::BOX_SIZE * 0.33f;
+                // 笔触宽度
+                constexpr float STROKE_WIDTH = UICheckBox::BOX_SIZE * 0.1f;
+                // 仅动画第一阶段
+                if (rate < 0.5f) {
+                    auto temp = rate * 2.f;
+                    D2D1_POINT_2F pt1 = D2D1::Point2F(rect.left + P1X, rect.top + P1Y);
+                    D2D1_POINT_2F pt2 = D2D1::Point2F(pt1.x + (P2X - P1X)*temp, pt1.y + (P2Y - P1Y)*temp);
+                    UIManager_RenderTarget->DrawLine(pt1, pt2, brush, STROKE_WIDTH);
+                }
+                // 仅动画第二阶段
+                else {
+                    // 第一阶段
+                    D2D1_POINT_2F pt1 = D2D1::Point2F(rect.left + P1X, rect.top + P1Y);
+                    D2D1_POINT_2F pt2 = D2D1::Point2F(rect.left + P2X, rect.top + P2Y);
+                    UIManager_RenderTarget->DrawLine(pt1, pt2, brush, STROKE_WIDTH);
+                    // 第二阶段
+                    auto temp = (rate - 0.5f) * 2.f;
+                    UIManager_RenderTarget->DrawLine(
+                        pt2,
+                        D2D1::Point2F(pt2.x + (P3X - P2X)*temp, pt2.y + (P3Y - P2Y)*temp),
+                        brush,
+                        STROKE_WIDTH
+                        );
+                }
+            }
+            // 中间情况
+            else if (CheckBoxState(exstt2) == CheckBoxState::State_Indeterminate) {
+                // 矩形填充
+                float cx = (rect.left + rect.right) * 0.5f;
+                float cy = (rect.bottom + rect.top) * 0.5f;
+                D2D1_RECT_F dwrc;
+                float sz = UICheckBox::BOX_SIZE * 0.33f * rate;
+                dwrc.left   = cx - sz;
+                dwrc.top    = cy - sz;
+                dwrc.right  = cx + sz;
+                dwrc.bottom = cy + sz;
+                UIManager_RenderTarget->FillRectangle(dwrc, brush);
+            }
+        }
+        // 扫尾处理
         LongUI::SafeRelease(brush);
     }
 }
