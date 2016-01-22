@@ -1427,7 +1427,6 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
     }
 
     // 传送完毕
-
     buffer[0] = 0;
     ::WriteFile(m_hConsole, buffer, 2, &cbWritten, nullptr);
     if (cbWritten != 2) {
@@ -1474,6 +1473,12 @@ auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void** ppvOb
     return (*ppvObject) ? S_OK : E_NOINTERFACE;
 }
 
+/// <summary>
+/// Chooses the adapter.
+/// </summary>
+/// <param name="adapters">The adapters.</param>
+/// <param name="length">The length.</param>
+/// <returns></returns>
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t {
     UNREFERENCED_PARAMETER(adapters);
     // 核显卡优先 
@@ -1527,6 +1532,11 @@ auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
     }
 }
 
+/// <summary>
+/// Creates the console.
+/// </summary>
+/// <param name="level">The level.</param>
+/// <returns></returns>
 void LongUI::CUIDefaultConfigure::CreateConsole(DebugStringLevel level) noexcept {
     CUIConsole::Config config;
     config.x = -5;

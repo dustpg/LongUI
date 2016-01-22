@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2016 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -199,6 +199,8 @@ namespace LongUI { namespace Helper {
         T* operator=(T* pt) { assert(!(data&INFOPDATA12_ZONE)); data = reinterpret_cast<size_t>(pt) | (data&INFOPDATA12_ZONE); return pt; }
         // operator ->
         T* operator->() noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
+        // operator *
+        T& operator*() noexcept { return *reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
         // operator T*
         operator T*() const noexcept { return reinterpret_cast<T*>(data & INFOPOINTER_ZONE); }
         // operator []

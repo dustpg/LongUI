@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2016 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -89,6 +89,8 @@ namespace LongUI {
             Index_FullRenderingThisFrame,
             // skip render
             Index_SkipRender,
+            // prerender(for off screen render)
+            Index_Prerender,
         };
     public: // UIControl 接口实现
         // Render 渲染 
@@ -164,35 +166,37 @@ namespace LongUI {
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
     public:
         // get waite-vs event handle
-        LongUIInline auto GetVSyncEvent() const noexcept { return m_hVSync; }
+        inline auto GetVSyncEvent() const noexcept { return m_hVSync; }
         // show window
-        LongUIInline auto ShowWindow(int show = SW_SHOW) noexcept { return ::ShowWindow(m_hwnd, show); }
+        inline auto ShowWindow(int show = SW_SHOW) noexcept { return ::ShowWindow(m_hwnd, show); }
         // for calling PreRender with 3d content
-        LongUIInline auto RegisterOffScreenRender3D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, true); }
+        inline auto RegisterOffScreenRender3D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, true); }
         // for calling PreRender with 2d content
-        LongUIInline auto RegisterOffScreenRender2D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, false); }
+        inline auto RegisterOffScreenRender2D(UIControl* c) noexcept { return this->RegisterOffScreenRender(c, false); }
         // start render in sec.
-        LongUIInline auto StartRender(float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, t, c); }
+        inline auto StartRender(float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, t, c); }
         // plan to render in sec.
-        LongUIInline auto PlanToRender(float w, float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(w, t, c); }
+        inline auto PlanToRender(float w, float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(w, t, c); }
         // update control later
-        LongUIInline auto Invalidate(UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, 0.f, c); }
+        inline auto Invalidate(UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, 0.f, c); }
         // get window handle
-        LongUIInline auto GetHwnd() const noexcept { return m_hwnd;};
+        inline auto GetHwnd() const noexcept { return m_hwnd;};
         // set mouse capture
-        LongUIInline auto SetCapture(UIControl* c) noexcept { ::SetCapture(m_hwnd); m_pCapturedControl = c; };
+        inline auto SetCapture(UIControl* c) noexcept { ::SetCapture(m_hwnd); m_pCapturedControl = c; };
         // release mouse capture
-        LongUIInline auto ReleaseCapture() noexcept { ::ReleaseCapture(); m_pCapturedControl = nullptr; };
+        inline auto ReleaseCapture() noexcept { ::ReleaseCapture(); m_pCapturedControl = nullptr; };
         // is release mouse capture
-        LongUIInline auto IsReleasedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
+        inline auto IsReleasedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
         // get back buffer
-        LongUIInline auto GetBackBuffer() noexcept { return LongUI::SafeAcquire(m_pTargetBimtap); }
+        inline auto GetBackBuffer() noexcept { return LongUI::SafeAcquire(m_pTargetBimtap); }
         // is rendered
-        LongUIInline auto IsRendered() const noexcept { return m_baBoolWindow.Test(UIWindow::Index_Rendered); }
+        inline auto IsRendered() const noexcept { return m_baBoolWindow.Test(UIWindow::Index_Rendered); }
+        // is prerender, THIS METHOD COULD BE CALLED IN RENDER-THREAD ONLY
+        inline auto IsPrerender() const noexcept { return m_baBoolWindow.Test(UIWindow::Index_Prerender); }
         // render window
-        LongUIInline auto RenderWindow() const noexcept { if (m_baBoolWindow.Test(Index_SkipRender)) return; this->BeginDraw(); this->Render(); return this->EndDraw(); }
+        inline auto RenderWindow() const noexcept { if (m_baBoolWindow.Test(Index_SkipRender)) return; this->BeginDraw(); this->Render(); return this->EndDraw(); }
         // next frame
-        LongUIInline auto NextFrame() noexcept { m_uiRenderQueue.GetCurrentUnit()->length = 0; ++m_uiRenderQueue; }
+        inline auto NextFrame() noexcept { m_uiRenderQueue.GetCurrentUnit()->length = 0; ++m_uiRenderQueue; }
     private:
         // release data
         void release_data() noexcept;

@@ -164,6 +164,9 @@
     <ClInclude Include="..\include\Control\Layout\UIFloatLayout.h">
       <Filter>LongUI\Header\Control\Layout</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Component\Effect.h">
+      <Filter>LongUI\Header\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ControlCore.cpp">

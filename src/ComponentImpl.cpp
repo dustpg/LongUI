@@ -5,6 +5,46 @@
 LONGUI_NAMESPACE_BEGIN namespace Component {
     // --------------------- LongUI::Component::ShortText ---------------------
     /// <summary>
+    /// Initializes a new instance of the <see cref="Effect"/> class.
+    /// </summary>
+    /// <param name="effectid">The effect uuid.</param>
+    Effect::Effect(const IID& effectid) noexcept :m_pEffectID(&effectid) {
+
+    }
+    /// <summary>
+    /// Renders this instance.
+    /// </summary>
+    /// <returns></returns>
+    void Effect::Render() const noexcept {
+        UIManager_RenderTarget->DrawImage(m_pOutput);
+    }
+    /// <summary>
+    /// Recreates this instance.
+    /// </summary>
+    /// <returns>HRESULT</returns>
+    auto Effect::Recreate() noexcept ->HRESULT {
+        // 先释放数据
+        this->release();
+        // 重建特效
+        auto hr = UIManager_RenderTarget->CreateEffect(
+            *m_pEffectID, &m_pEffect
+            );
+        // 获取输出接口
+        if (SUCCEEDED(hr)) {
+            m_pEffect->GetOutput(&m_pOutput);
+        }
+        return hr;
+    }
+    /// <summary>
+    /// Releases resource in this instance.
+    /// </summary>
+    /// <returns></returns>
+    LongUINoinline void Effect::release() noexcept {
+        LongUI::SafeRelease(m_pCmdList);
+        LongUI::SafeRelease(m_pEffect);
+        LongUI::SafeRelease(m_pOutput);
+    }
+    /// <summary>
     /// Initializes a new instance of the <see cref="ShortText"/> class.
     /// </summary>
     ShortText::ShortText() noexcept {

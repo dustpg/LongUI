@@ -4,7 +4,9 @@
 void LongUI::UISlider::render_chain_background() const noexcept {
     Super::render_chain_background();
     // 默认背景?
-    if(m_bDefaultBK) {
+    if (!m_bDefaultBK) return;
+    // 默认背景?
+    {
         constexpr float SLIDER_TRACK_BORDER_WIDTH = 1.f;
         constexpr float SLIDER_TRACK_WIDTH = 3.f;
         constexpr UINT SLIDER_TRACK_BORDER_COLOR = 0xD6D6D6;
@@ -104,13 +106,20 @@ void LongUI::UISlider::Update() noexcept {
     return Super::Update();
 }
 
+
 // UISlider 构造函数
+void LongUI::UISlider::initialize() noexcept {
+    assert(!"noimpl");
+}
+
+// UISlider 初始化
 void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
+    assert(node && "call UISlider::initialize() if no xml");
     // 链式调用
     Super::initialize(node);
     m_uiElement.Init(this->check_state(), 0, node);
     // 设置
-    if (node) {
+    {
         const char* str = nullptr;
         // 起始值
         if ((str = node.attribute("start").value())) {
@@ -119,6 +128,10 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         // 终止值
         if ((str = node.attribute("end").value())) {
             m_fEnd = LongUI::AtoF(str);
+        }
+        // 当前值
+        if ((str = node.attribute("value").value())) {
+            m_fValue = LongUI::AtoF(str);
         }
         // 滑块大小
         Helper::MakeFloats(
@@ -129,10 +142,6 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         // 默认背景
         m_bDefaultBK = node.attribute("defaultbk").as_bool(true);
     }
-    // init
-    m_uiElement.SetBasicState(State_Normal);
-    // need twices because of aniamtion
-    m_uiElement.SetBasicState(State_Normal);
 }
 
 
@@ -154,8 +163,27 @@ auto LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) 
 }
 
 
+// do event 事件处理
+bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // longui 消息
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_SetEnabled:
+            // 修改状态
+            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
+            return true;
+        }
+    }
+    return Super::DoEvent(arg);
+}
+
+
 // 鼠标事件
 bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    // 禁用状态禁用鼠标消息
+    if (!this->GetEnabled()) return true;
+    // 坐标转换
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     bool nocontinued = false;
     // 分类

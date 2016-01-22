@@ -340,12 +340,12 @@ namespace LongUI {
         // marginal control will be zoomed?
         static constexpr char* const IsZoomMarginalControl  = "zoommarginal";
 
-        
         // window clear color
         static constexpr char* const WindowClearColor       = "clearcolor";
         // window titlebar name
         static constexpr char* const WindowTitleName        = "titlename";
         // antimode for text
         static constexpr char* const WindowTextAntiMode     = "textantimode";
+
     }
 }

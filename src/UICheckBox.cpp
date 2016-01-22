@@ -79,14 +79,14 @@ void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
 void LongUI::UICheckBox::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
+    // 先初始化复选框状态
     m_uiElement.Init(
-        State_Normal,
+        this->check_state(),
         Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked),
         node
         );
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
-    constexpr int azz = sizeof(m_uiElement);
 }
 
 // UICheckBox 析构函数

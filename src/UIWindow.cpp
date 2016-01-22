@@ -419,12 +419,13 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
     // 设置文本渲染策略
     UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 离屏渲染
+    UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
+    force_cast(m_baBoolWindow).SetTrue(Index_Prerender);
     for (auto ctrl : m_vRegisteredControl) {
-        assert(!"NOIMPL");
         assert(ctrl->parent && "check it");
-        //UIManager_RenderTarget->SetTransform(&ctrl->parent->world);
-        //ctrl->Render(RenderType::Type_RenderOffScreen);
+        ctrl->Render();
     }
+    force_cast(m_baBoolWindow).SetFalse(Index_Prerender);
     // 设为当前渲染对象
     UIManager_RenderTarget->SetTarget(m_pTargetBimtap);
     // 开始渲染

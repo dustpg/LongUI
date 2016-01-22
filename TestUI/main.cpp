@@ -61,10 +61,16 @@ const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 // 
 
 const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="800, 600" name="MainWindow" debugshow="true"
+<Window size="1024, 768" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
-    <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <CheckBox name="cbx_0" margin="4,4,4,4" borderwidth="1" text="复选框例子" size="0,64"/>
+    <HorizontalLayout name="H" size="0, 128">
+        <Text  text="Hello, world!"/>
+        <BlurText  text="Hello, world!"/>
+        <Single><BlurText  text="Hello, world!" blur="2"/></Single>
+        <Text  text="Hello, world!"/>
+    </HorizontalLayout>
+    <Slider value="0.5" enabled="true" name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
+    <CheckBox checkstate="checked" enabled="false" name="cbx_0" margin="4,4,4,4" borderwidth="1" text="复选框例子" size="0,64"/>
     <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
         <ListHeader marginal="top" sepwidth="-8">
             <Button borderwidth="1" text="name" name="lst_header0"/>

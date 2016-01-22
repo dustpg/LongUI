@@ -159,6 +159,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Component\EditaleText.h" />
+    <ClInclude Include="..\include\Component\Effect.h" />
     <ClInclude Include="..\include\Component\Element.h" />
     <ClInclude Include="..\include\Component\Text.h" />
     <ClInclude Include="..\include\Component\Video.h" />

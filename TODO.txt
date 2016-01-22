@@ -6,12 +6,10 @@
     PRPR: 完成滚动条与容器的匹配
     PRPR: LongUI::CUIRenderQueue::PlanToRender 有BUG
     PRPR: 完成UIList
-    TODO: 组件复数状态
+    PRPR: 组件复数状态
     TODO: 完成特效框架
     TODO: 完成UIPage
-    TODO: 窗体资源(交换链)缓存
     TODO: 完成UIComboBox
-    TODO: 封装XML接口
     TODO: 分离UIWindow
     TODO: 子窗口渲染
     TODO: 规范化拖拽

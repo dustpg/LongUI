@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2015 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2016 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -39,7 +39,7 @@ namespace LongUI{
         // udate 刷新
         virtual void Update() noexcept override;
         // do event 事件处理
-        //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // do mouse event
         virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
@@ -59,8 +59,10 @@ namespace LongUI{
         // constructor 构造函数
         UISlider(UIContainer* cp) noexcept : Super(cp) { }
     private:
-        // init
+        // init with xml-node
         void initialize(pugi::xml_node node) noexcept;
+        // init without xml-node
+        void initialize() noexcept;
     public:
         // set state
         void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
@@ -91,7 +93,7 @@ namespace LongUI{
         // start
         float                       m_fStart = 0.f;
         // end
-        float                       m_fEnd = 100.f;
+        float                       m_fEnd = 1.f;
     public:
         // size of thumb
         D2D1_SIZE_F const           thumb_size = D2D1::SizeF(10.f, 20.f);
