@@ -5,10 +5,11 @@
 LONGUI_NAMESPACE_BEGIN namespace Component {
     // --------------------- LongUI::Component::ShortText ---------------------
     /// <summary>
-    /// Initializes a new instance of the <see cref="Effect"/> class.
+    /// Initializes a new instance of the 
+    /// <see cref="LongUI::Component::Effect"/> class.
     /// </summary>
-    /// <param name="effectid">The effect uuid.</param>
-    Effect::Effect(const IID& effectid) noexcept :m_pEffectID(&effectid) {
+    /// <param name="eid">The effect uuid.</param>
+    Effect::Effect(const IID& eid) noexcept : m_pEffectID(&eid) {
 
     }
     /// <summary>
@@ -45,7 +46,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         LongUI::SafeRelease(m_pOutput);
     }
     /// <summary>
-    /// Initializes a new instance of the <see cref="ShortText"/> class.
+    /// Initializes a new instance of the 
+    /// <see cref="LongUI::Component::ShortText"/> class.
     /// </summary>
     ShortText::ShortText() noexcept {
         // 设置
@@ -1137,7 +1139,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             );
     }
     /// <summary>
-    /// Finalizes an instance of the <see cref="EditaleText"/> class.
+    /// Finalizes an instance of the 
+    /// <see cref="LongUI::Component::EditaleText"/> class.
     /// </summary>
     /// <returns></returns>
     EditaleText::~EditaleText() noexcept {
@@ -1149,7 +1152,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         LongUI::SafeRelease(m_pDataObject);
     }
     /// <summary>
-    /// Initializes a new instance of the <see cref="EditaleText"/> class.
+    /// Initializes a new instance of the 
+    /// <see cref=LongUI::Component::"EditaleText"/> class.
     /// </summary>
     /// <param name="host">The host control</param>
     EditaleText::EditaleText(UIControl* host) noexcept : m_pHost(host) {

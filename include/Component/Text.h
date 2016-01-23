@@ -27,7 +27,7 @@
 // longui::component namespace
 namespace LongUI { namespace Component {
     // component: short text
-    class ShortText {
+    class LongUIAPI ShortText {
     public:
         // recreate layout
         void RecreateLayout() noexcept;

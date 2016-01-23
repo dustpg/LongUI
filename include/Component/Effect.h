@@ -28,7 +28,7 @@
 // longui::component namespace
 namespace LongUI { namespace Component {
     // Effect
-    class Effect {
+    class LongUIAPI Effect {
         // using
         using EffectID = Helper::InfomationPointer<const IID>;
     public:
@@ -62,21 +62,8 @@ namespace LongUI { namespace Component {
             return m_pEffect->GetValue<T>(index);
         }
         // record
-        template<typename T> void Record(ID2D1DeviceContext* target, T lam) noexcept {
-            if (CheckInvalidate()) {
-                LongUI::SafeRelease(m_pCmdList);
-                target->CreateCommandList(&m_pCmdList);
-                if (m_pCmdList) {
-                    target->SetTarget(m_pCmdList);
-                    target->BeginDraw();
-                    lam();
-                    target->EndDraw();
-                    m_pCmdList->Close();
-                    m_pEffect->SetInput(0, m_pCmdList);
-                    this->SetValidate();
-                }
-            }
-        }
+        template<typename T> 
+        void Record(ID2D1DeviceContext* target, T lam) noexcept;
     private:
         // release
         void release() noexcept;
@@ -90,4 +77,26 @@ namespace LongUI { namespace Component {
         // effect output
         ID2D1Image*                 m_pOutput = nullptr;
     };
+    // record
+    template<typename T> 
+    void Effect::Record(ID2D1DeviceContext* target, T draw_record) noexcept {
+        // if invalidate
+        if (CheckInvalidate()) {
+            // recreate cmd list
+            LongUI::SafeRelease(m_pCmdList);
+            target->CreateCommandList(&m_pCmdList);
+            // created
+            if (m_pCmdList) {
+                // draw
+                target->SetTarget(m_pCmdList);
+                target->BeginDraw();
+                draw_record();
+                target->EndDraw();
+                m_pCmdList->Close();
+                m_pEffect->SetInput(0, m_pCmdList);
+                // validate
+                this->SetValidate();
+            }
+        }
+    }
 }}

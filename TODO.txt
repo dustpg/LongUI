@@ -7,7 +7,7 @@
     PRPR: LongUI::CUIRenderQueue::PlanToRender 有BUG
     PRPR: 完成UIList
     PRPR: 组件复数状态
-    TODO: 完成特效框架
+    PRPR: 完成特效框架
     TODO: 完成UIPage
     TODO: 完成UIComboBox
     TODO: 分离UIWindow

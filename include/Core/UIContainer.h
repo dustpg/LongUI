@@ -28,12 +28,12 @@
 namespace LongUI {
 #if 1
     // base container control class -- 基本容器类
-    class UIContainer : public UIMarginalable {
+    class LongUIAPI UIContainer : public UIMarginalable {
         // 父类申明
         using Super = UIMarginalable;
 #else
     // base container control class
-    class UIContainer : public UIControl {
+    class LongUIAPI UIContainer : public UIControl {
         // 父类申明
         using Super = UIControl;
 #endif

@@ -1,3 +1,5 @@
 LIBRARY     AdditionalClass.dll
 EXPORTS
-            CreateZipResourceLoader         PRIVATE
+            LongUIAddInitialize         PRIVATE
+            LongUIAddRegisterControl    PRIVATE
+            LongUIAddUninitialize       PRIVATE

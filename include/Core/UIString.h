@@ -27,7 +27,7 @@
 // LongUI namespace
 namespace LongUI{
     // UI String -- compatible with std library string interface(part of) but host a fixed buffer
-    class CUIString {
+    class LongUIAPI CUIString {
         // my version strlen
         static inline auto uistrlen(const char* str) noexcept { return static_cast<uint32_t>(std::strlen(str)); }
         // my version wcslen

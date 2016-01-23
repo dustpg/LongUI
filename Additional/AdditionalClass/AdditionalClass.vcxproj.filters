@@ -1,21 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="IUIZipXMLResourceLoader">
-      <UniqueIdentifier>{d13ce529-c5e2-4e46-b4b9-150d6770b794}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="IUIZipXMLResourceLoader.cpp">
-      <Filter>IUIZipXMLResourceLoader</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="out.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="IUIZipXMLResourceLoader.h">
-      <Filter>IUIZipXMLResourceLoader</Filter>
+    <Filter Include="Control">
+      <UniqueIdentifier>{b8d52ef7-10a7-4aaf-b683-6ca810e591b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Control\Normal">
+      <UniqueIdentifier>{6454fb07-35a1-4bec-86ca-6feff1b32833}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BlurText\UIBlurText.h">
+      <Filter>Control\Normal</Filter>
     </ClInclude>
+    <ClInclude Include="common.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BlurText\UIBlurText.cpp">
+      <Filter>Control\Normal</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
 </Project>

@@ -72,7 +72,7 @@ LongUINoinline auto LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F
 /// <returns></returns>
 void LongUI::Meta::Render(ID2D1DeviceContext* target, const D2D1_RECT_F& des_rect, float opacity) const noexcept {
     // 无需渲染
-    if (opacity < 0.001f) return;
+    //if (opacity < 0.001f) return;
     // 无效位图
     if (!this->bitmap) {
         UIManager << DL_Warning << "bitmap->null" << LongUI::endl;

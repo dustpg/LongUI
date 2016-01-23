@@ -149,23 +149,23 @@
     <ClInclude Include="..\include\Control\Container\UIContainerBuiltIn.h">
       <Filter>LongUI\Header\Control\Container</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UISingle.h">
-      <Filter>LongUI\Header\Control\Layout</Filter>
+    <ClInclude Include="..\include\Component\Effect.h">
+      <Filter>LongUI\Header\Component</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UIPage.h">
-      <Filter>LongUI\Header\Control\Layout</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UIList.h">
-      <Filter>LongUI\Header\Control\Layout</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UILinearLayout.h">
+    <ClInclude Include="..\include\Control\Layout\UISingle.h">
       <Filter>LongUI\Header\Control\Layout</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Control\Layout\UIFloatLayout.h">
       <Filter>LongUI\Header\Control\Layout</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Component\Effect.h">
-      <Filter>LongUI\Header\Component</Filter>
+    <ClInclude Include="..\include\Control\Layout\UILinearLayout.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Layout\UIList.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Control\Layout\UIPage.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

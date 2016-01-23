@@ -173,6 +173,14 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 修改状态
             m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
             return true;
+        case LongUI::Event::Event_SetFloat:
+            // 修改浮点数据
+            this->SetValueSE(arg.stf.value);
+            return true;
+        case LongUI::Event::Event_GetFloat:
+            // 获取浮点数据
+            arg.fvalue = this->GetValueSE();
+            return true;
         }
     }
     return Super::DoEvent(arg);

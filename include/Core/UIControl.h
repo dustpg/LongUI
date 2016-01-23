@@ -32,7 +32,7 @@ namespace LongUI {
     // Container
     class UIContainer;
     // base control class -- 基本控件类
-    class alignas(sizeof(void*)) UIControl : public CUISingleNormalObject {
+    class LongUIAPI alignas(sizeof(void*)) UIControl : public CUISingleNormalObject {
         // Super class
         using Super = void;// CUISingleNormalObject;
         // friend class
@@ -63,6 +63,16 @@ namespace LongUI {
         void SetText(const wchar_t* txt) noexcept {
             EventArgument arg; arg.sender = this; arg.event = Event::Event_SetText;
             arg.stt.text = txt; this->DoEvent(arg);
+        }
+        // get float
+        auto GetFloatt() noexcept ->float {
+            EventArgument arg; arg.sender = this; arg.event = Event::Event_GetFloat;
+            this->DoEvent(arg); return arg.fvalue;
+        }
+        // set float
+        void SetFloat(float value) noexcept {
+            EventArgument arg; arg.sender = this; arg.event = Event::Event_SetFloat;
+            arg.stf.value = value; this->DoEvent(arg);
         }
     public:
 #ifdef _DEBUG

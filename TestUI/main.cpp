@@ -65,8 +65,8 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     autoshow="false" clearcolor="1,1,1,0.95" >
     <HorizontalLayout name="H" size="0, 128">
         <Text  text="Hello, world!"/>
-        <BlurText  text="Hello, world!"/>
-        <Single><BlurText  text="Hello, world!" blur="2"/></Single>
+        <!--BlurText  text="Hello, world!"/>
+        <Single><BlurText  text="Hello, world!" blur="2"/></Single-->
         <Text  text="Hello, world!"/>
     </HorizontalLayout>
     <Slider value="0.5" enabled="true" name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
@@ -248,143 +248,6 @@ private:
 private:
 };
 
-// Test UIControl
-class TestControl : public LongUI::UIControl {
-    // super class define
-    typedef LongUI::UIControl Super;
-    // close this control
-    virtual void cleanup() noexcept { delete this; };
-public:
-    // create 创建
-    static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
-        // 分类判断
-        TestControl* pControl = nullptr;
-        switch (type)
-        {
-        case LongUI::Type_Initialize:
-            break;
-        case LongUI::Type_Recreate:
-            break;
-        case LongUI::Type_Uninitialize:
-            break;
-        case_LongUI__Type_CreateControl:
-            LongUI__CreateWidthCET(TestControl, pControl, type, node);
-        }
-        return pControl;
-    }
-public:
-    // Render This Control
-    virtual void Render() const noexcept override {
-        /*D2D1_RECT_F draw_rect;
-        switch (type)
-        {
-        case LongUI::RenderType::Type_RenderBackground:
-            __fallthrough;
-        case LongUI::RenderType::Type_Render:
-            // 父类背景
-            Super::Render(LongUI::RenderType::Type_RenderBackground);
-            // 背景中断
-            if (type == LongUI::RenderType::Type_RenderBackground) {
-                break;
-            }
-            __fallthrough;
-        case LongUI::RenderType::Type_RenderForeground:
-            this->GetViewRect(draw_rect);
-            D2D1_COLOR_F color = D2D1::ColorF(0xfcf7f4);
-            m_pBrush_SetBeforeUse->SetColor(&color);
-            UIManager_RenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-            UIManager.GetThemeColor(color);
-            m_pBrush_SetBeforeUse->SetColor(&color);
-            UIManager_RenderTarget->FillRectangle(&draw_rect, m_pBrush_SetBeforeUse);
-            UIManager_RenderTarget->DrawImage(m_pEffectOut);
-            // 父类前景
-            Super::Render(LongUI::RenderType::Type_RenderForeground);
-            break;
-        case LongUI::RenderType::Type_RenderOffScreen:
-            this->GetViewRect(draw_rect);
-            // 渲染文字
-            if (false) {
-                UIManager_RenderTarget->SetTarget(m_pCmdList);
-                UIManager_RenderTarget->BeginDraw();
-                m_text.Render(draw_rect.left, draw_rect.top);
-                UIManager_RenderTarget->EndDraw();
-                m_pCmdList->Close();
-                // 设置为输入
-                m_pEffect->SetInput(0, m_pCmdList);
-            }
-        }*/
-    }
-    // update
-    void Update() noexcept override {
-        // 检查布局
-        if (this->IsControlLayoutChanged()) {
-            LongUI::SafeRelease(m_pCmdList);
-            UIManager_RenderTarget->CreateCommandList(&m_pCmdList);
-            // 设置大小
-            m_text.Resize(this->view_size.width, this->view_size.height);
-            // 已经处理
-            this->ControlLayoutChangeHandled();
-        }
-        Super::Update();
-    }
-    //do the event
-    virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept  override {
-        if (arg.sender) {
-            // 注册事件
-            if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
-            }
-        }
-
-        return false;
-    }
-    // recreate resource
-    virtual HRESULT Recreate() noexcept override {
-        LongUI::SafeRelease(m_pEffectOut);
-        LongUI::SafeRelease(m_pEffect);
-        // 创建特效
-        UIManager_RenderTarget->CreateEffect(CLSID_D2D1GaussianBlur, &m_pEffect);
-        assert(m_pEffect);
-        // 设置模糊属性
-        m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_QUALITY);
-        m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, 0.f);
-        // 获取输出
-        m_pEffect->GetOutput(&m_pEffectOut);
-        // 首次就注册
-        if (m_FirstRecreate) {
-            m_pWindow->RegisterOffScreenRender2D(this);
-            m_FirstRecreate = false;
-        }
-        return Super::Recreate();
-    }
-    // On Value Changed
-    bool OnValueChangedConst(UIControl* control) const {
-        auto value = static_cast<LongUI::UISlider*>(control)->GetValueSE();
-        m_pEffect->SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, value );
-        return true;
-    }
-    // constructor
-    TestControl(LongUI::UIContainer* cp) noexcept : Super(cp), m_text() { }
-protected:
-    // destructor
-    ~TestControl() {
-        LongUI::SafeRelease(m_pCmdList);
-        LongUI::SafeRelease(m_pEffectOut);
-        LongUI::SafeRelease(m_pEffect);
-    }
-protected:
-    // text
-    LongUI::Component::ShortText     m_text;
-    // bool
-    bool                        m_FirstRecreate = true;
-    //
-    bool                test_unused[sizeof(void*) / sizeof(bool) - 2];
-    // command list
-    ID2D1CommandList*           m_pCmdList = nullptr;
-    // effect
-    ID2D1Effect*                m_pEffect = nullptr;
-    // effect output
-    ID2D1Image*                 m_pEffectOut = nullptr;
-};
 
 // Test Video Control
 class UIVideoAlpha : public LongUI::UIControl {
@@ -514,7 +377,6 @@ public:
     }
     // 添加自定义控件
     auto RegisterSome() noexcept ->void override {
-        m_manager.RegisterControlClass(TestControl::CreateControl, "Test");
         m_manager.RegisterControlClass(UIVideoAlpha::CreateControl, "Video");
         /*if (m_hDll) {
         auto func = reinterpret_cast<LongUI::CreateControlFunction>(

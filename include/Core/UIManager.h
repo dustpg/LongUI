@@ -30,7 +30,7 @@ namespace LongUI {
     // endl for longUI
     static struct EndL { } endl;
     // ui manager ui 管理器
-    class alignas(sizeof(void*)) CUIManager {
+    class LongUIAPI alignas(sizeof(void*)) CUIManager {
         // string allocator
         using StringAllocator = CUIShortStringAllocator<>;
         // create ui window call back

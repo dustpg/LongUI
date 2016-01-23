@@ -6,7 +6,8 @@
 const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
 /// <summary>
-/// Initializes a new instance of the <see cref="UIWindow"/> class.
+/// Initializes a new instance of the 
+/// <see cref="LongUI::UIWindow"/> class.
 /// </summary>
 /// <param name="parent">The parent for self in window-level</param>
 LongUI::UIWindow::UIWindow(UIWindow* parent) noexcept : Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {

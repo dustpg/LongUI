@@ -36,7 +36,7 @@ namespace LongUI {
     /// 'marginal' control created by parent in 'Event_TreeBulidingFinished'
     /// normal control created by ui-manager in 'CreateUIWindow'
     /// </remarks>
-    class UIMarginalable : public UIControl {
+    class LongUIAPI UIMarginalable : public UIControl {
         // 父类声明
         using Super = UIControl;
     public:

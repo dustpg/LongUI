@@ -1,5 +1,8 @@
 ﻿#pragma once
 // THIS FILE IS NONE-LICENSE
+#ifndef LongUIAPI
+#define LongUIAPI 
+#endif
 
 // malloc
 #include <memory>

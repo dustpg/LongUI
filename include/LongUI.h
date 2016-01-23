@@ -341,6 +341,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_GetText,
         // [ste] set control basic state
         Event_SetEnabled,
+        // [stf] set control float value
+        Event_SetFloat,
+        // [none-exdata] get control float value
+        Event_GetFloat,
         // notify all children(but sender)
         //Event_NotifyChildren,
         // ----- User Custom Defined Event -----
@@ -375,6 +379,8 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
             struct { const wchar_t* text; void* unused; } stt;
             // set enabled
             struct { bool enabled; } ste;
+            // set float
+            struct { float value; } stf;
         };
         // Return Code
         union {
@@ -382,8 +388,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
             OUT mutable  LRESULT       lr;
             // [out] Control for Parent
             OUT mutable  UIControl*    ctrl;
-            // [out] Control for Parent
+            // [out] string for result
             OUT mutable const wchar_t* str;
+            // [out] float for result
+            OUT mutable float          fvalue;
         };
         // event id
         union { UINT msg; LongUI::Event event; };
