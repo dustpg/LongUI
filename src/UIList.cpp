@@ -197,7 +197,7 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
     // 有必要再说
     if ((this->list_flag & Flag_SortableLineWithUserDataPtr) 
         && m_vLines.size() > 1 
-        && index < m_vLines.front()->GetCount()) {
+        && index < m_vLines.front()->GetChildrenCount()) {
         assert(child && "bad argument");
         assert(m_vLines.front()->flags & Flag_UIContainer);
         // 设置待排序控件
@@ -351,8 +351,8 @@ void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
     // 循环
     for (auto ctrl : m_vLines) {
         assert(ctrl && "bad");
-        assert(index < ctrl->GetCount() && "out of range");
-        if (index < ctrl->GetCount()) {
+        assert(index < ctrl->GetChildrenCount() && "out of range");
+        if (index < ctrl->GetChildrenCount()) {
             auto ele = ctrl->GetAt(index);
             ele->SetWidth(width);
             ctrl->SetControlLayoutChanged();
@@ -468,7 +468,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
 // 排序算法
 void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept {
     // 无需排列
-    if (this->GetCount() <= 1) return;
+    if (this->GetChildrenCount() <= 1) return;
 #ifdef _DEBUG
     // cmp 会比较复杂, 模板带来的性能提升还不如用函数指针来节约代码大小
     auto timest = ::timeGetTime();
@@ -490,7 +490,7 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
     // 排序
     else {
         // 快速排序
-        if (this->GetCount() >= m_cFastSortThreshold) {
+        if (this->GetChildrenCount() >= m_cFastSortThreshold) {
             std::sort(bn, ed, cmp);
         }
         // 冒泡排序
@@ -618,18 +618,18 @@ void LongUI::UIList::init_layout() noexcept {
     if (rctrl) {
         // 检查不和谐的地方
 #ifdef _DEBUG
-        if (rctrl->GetCount() != m_vLineTemplate.size()) {
+        if (rctrl->GetChildrenCount() != m_vLineTemplate.size()) {
             if (m_vLineTemplate.size()) {
                 UIManager << DL_Warning
                     << L"inconsistent line-element count: SET "
                     << long(m_vLineTemplate.size())
                     << L", BUT "
-                    << long(rctrl->GetCount())
+                    << long(rctrl->GetChildrenCount())
                     << LongUI::endl;
             }
         }
 #endif
-        element_count_init = rctrl->GetCount();
+        element_count_init = rctrl->GetChildrenCount();
     }
     // 没有就给予警告
     else {
@@ -656,7 +656,7 @@ void LongUI::UIList::set_element_count(uint32_t length) noexcept {
 // UIList: 前景渲染
 void LongUI::UIList::render_chain_background() const noexcept {
     // 独立背景- - 可视优化
-    if (this->GetCount()) {
+    if (this->GetChildrenCount()) {
         // 保留转变
         D2D1_MATRIX_3X2_F matrix;
         UIManager_RenderTarget->GetTransform(&matrix);
@@ -667,7 +667,7 @@ void LongUI::UIList::render_chain_background() const noexcept {
         // 最后一个可视列表行 = 第一个可视列表行 + 1 + 可视区域高度 / 行高
         int last_visible = static_cast<int>(this->view_size.height / m_fLineHeight);
         last_visible = last_visible + first_visible + 1;
-        last_visible = std::min(last_visible, int(this->GetCount()));
+        last_visible = std::min(last_visible, int(this->GetChildrenCount()));
         // 背景索引
         int bkindex1 = !(first_visible & 1);
         // 循环
@@ -730,7 +730,7 @@ void LongUI::UIList::Update() noexcept {
 #ifdef _DEBUG
     // 必须一致
     if (this->IsNeedRefreshWorld() && m_pHeader && m_vLines.size() && m_vLines.front()) {
-        assert(m_pHeader->GetCount() == m_vLines.front()->GetCount() && "out of sync for child number");
+        assert(m_pHeader->GetChildrenCount() == m_vLines.front()->GetChildrenCount() && "out of sync for child number");
     }
 #endif
     //this->world;
@@ -759,7 +759,7 @@ void LongUI::UIList::RefreshLayout() noexcept {
     }
     // 设置
     m_2fContentSize.width = widthtt;
-    m_2fContentSize.height = m_fLineHeight * this->GetCount();
+    m_2fContentSize.height = m_fLineHeight * this->GetChildrenCount();
 }
 
 // 清理UI列表控件

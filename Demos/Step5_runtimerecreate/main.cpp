@@ -45,7 +45,7 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
         // return true, if use cpu rendering
         virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { return Flag_OutputDebugString; }
         // choose it
-        virtual auto ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
+        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
         // adapters
         std::vector<DXGI_ADAPTER_DESC1>     adapter_vector;
     };
@@ -64,7 +64,7 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
             return true; 
         };
         // ctor
-        WindowChooseAdapter(pugi::xml_node node, UIWindow* parent) : Super(node, parent) {}
+        WindowChooseAdapter(UIWindow* parent) : Super(parent) {}
     public:
         // set config
         void SetMyConfig(MyConfig& config) noexcept;
@@ -112,7 +112,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 
 
 // ChooseAdapter
-auto LongUI::Demo::MyConfig::ChooseAdapter(DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t {
+auto LongUI::Demo::MyConfig::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t {
     // first call
     if (adapter_vector.empty()) {
         try {

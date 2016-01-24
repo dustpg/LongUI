@@ -27,6 +27,7 @@
 // LongUI namespace
 namespace LongUI {
     // page-like container, child cannot be fixed width/height
+    // Index_StateSelf_1 : Animation Direction
     class UIPage : public UIContainer {
         // super class
         using Super = UIContainer;
@@ -34,7 +35,9 @@ namespace LongUI {
         virtual void cleanup() noexcept override;
     protected:
         // init
-        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+        void initalize(pugi::xml_node node) noexcept;
+        // ctor
+        UIPage(UIContainer* cp) noexcept;
         // dtor
         ~UIPage() noexcept;
     public:
@@ -61,12 +64,19 @@ namespace LongUI {
         void Insert(uint32_t index, UIControl* child) noexcept;
         // display next page
         void DisplayNextPage(uint32_t page) noexcept;
-        // render page
-        void RenderPage(uint32_t page) noexcept { m_vChildren[page]->Render(); }
-        // ctor
-        UIPage(UIContainer* cp) noexcept;
+        // display next page
+        void DisplayNextPage(UIControl* page) noexcept;
+        // get index of display page
+        auto GetDisplayPage() const noexcept { m_pNowDisplay; }
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
+    private:
+        // slide to ->
+        auto set_slider_to_left() noexcept { m_bool16.SetFalse(Index_StateSelf_1); }
+        // slide to <-
+        auto set_slider_to_right() noexcept { m_bool16.SetTrue(Index_StateSelf_1); }
+        // -->?
+        auto is_slide_to_right() const noexcept { return m_bool16.Test(Index_StateSelf_1); }
     protected:
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
@@ -93,6 +103,8 @@ namespace LongUI {
     protected:
         // now display
         UIControl*                  m_pNowDisplay = nullptr;
+        // next display
+        UIControl*                  m_pNextDisplay = nullptr;
         // vector
         ControlVector               m_vChildren;
         // animation

@@ -1733,12 +1733,10 @@ auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
             }
 #else
             // 创建D2D位图
-            D2D1_BITMAP_PROPERTIES1 prop = {
-                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-                LongUI::GetDpiX(),
-                LongUI::GetDpiY(),
-                D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET, nullptr
-            };
+            D2D1_BITMAP_PROPERTIES1 prop = D2D1::BitmapProperties1(
+                D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET,
+                D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+                );
             hr = UIManager_RenderTarget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pSharedSurface);
             // 获取Dxgi表面
             if (SUCCEEDED(hr)) {

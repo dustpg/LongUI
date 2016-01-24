@@ -70,7 +70,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Text  text="Hello, world!"/>
     </HorizontalLayout>
     <Slider value="0.5" enabled="true" name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <CheckBox checkstate="checked" enabled="false" name="cbx_0" margin="4,4,4,4" borderwidth="1" text="复选框例子" size="0,64"/>
+    <CheckBox checkstate="checked" name="cbx_0" margin="4,4,4,4" text="复选框例子" size="0,64"/>
     <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
         <ListHeader marginal="top" sepwidth="-8">
             <Button borderwidth="1" text="name" name="lst_header0"/>
@@ -131,12 +131,12 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 
 const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window textantimode="cleartype" size="800, 600" name="MainWindow" debugshow="true"
+<Window textantimode="cleartype" size="800, 800" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1,1,1,0.95" >
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <Page>
-        <Button borderwidth="1" margin="4,4,4,4" text="如果"/>
-        <Button borderwidth="1" margin="4,4,4,4" text="但是"/>
+    <Page name="pg_1">
+        <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2"/>
+        <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
     <Page>
         <Button borderwidth="1" margin="4,4,4,4" text="虽然"/>
@@ -146,10 +146,13 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <Single templatesize="256, 0">
         <Slider thumbsize="32,32" margin="4,4,4,4"/>
     </Single>
+    <Single templatesize="256, 0">
+        <CheckBox text="卧槽" margin="4,4,4,4"/>
+    </Single>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_03;
+const char* test_xml = test_xml_04;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -158,6 +161,7 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <Bitmap>
         <!-- You can use other name not limited in 'Item' -->
         <Item desc="按钮1" res="btn.png"/>
+        <Item desc="复选框1" res="cbx.png"/>
     </Bitmap>
     <!-- Meta区域Zone -->
     <Meta>
@@ -165,6 +169,19 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Item desc="按钮1通常图元" bitmap="1" rect="0, 72, 96, 96" rule="button"/>
         <Item desc="按钮1悬浮图元" bitmap="1" rect="0, 24, 96, 48" rule="button"/>
         <Item desc="按钮1按下图元" bitmap="1" rect="0, 48, 96, 72" rule="button"/>
+
+        <Item bitmap="2" rect="  0,  0, 32, 32" rule="button"/>
+        <Item bitmap="2" rect=" 32,  0, 64, 32" rule="button"/>
+        <Item bitmap="2" rect=" 64,  0, 96, 32" rule="button"/>
+        <Item bitmap="2" rect=" 96,  0,128, 32" rule="button"/>
+        <Item bitmap="2" rect="  0, 32, 32, 64" rule="button"/>
+        <Item bitmap="2" rect=" 32, 32, 64, 64" rule="button"/>
+        <Item bitmap="2" rect=" 64, 32, 96, 64" rule="button"/>
+        <Item bitmap="2" rect=" 96, 32,128, 64" rule="button"/>
+        <Item bitmap="2" rect="  0, 64, 32, 96" rule="button"/>
+        <Item bitmap="2" rect=" 32, 64, 64, 96" rule="button"/>
+        <Item bitmap="2" rect=" 64, 64, 96, 96" rule="button"/>
+        <Item bitmap="2" rect=" 96, 64,128, 96" rule="button"/>
     </Meta>
 </Resource>
 )xml";
@@ -233,6 +250,20 @@ private:
                     stt = LongUI::CheckBoxState::State_Unchecked;
                 }
                 cbx->SetCheckBoxState(stt);
+                return true;
+            }, LongUI::SubEvent::Event_ItemClicked);
+        }
+        if ((btn = this->FindControl("btn_p1"))) {
+            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(this->FindControl("pg_1"));
+            btn->AddEventCall([page1](UIControl*) noexcept {
+                page1->DisplayNextPage(1ui32);
+                return true;
+            }, LongUI::SubEvent::Event_ItemClicked);
+        }
+        if ((btn = this->FindControl("btn_p2"))) {
+            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(this->FindControl("pg_1"));
+            btn->AddEventCall([page1](UIControl*) noexcept {
+                page1->DisplayNextPage(0ui32);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
@@ -372,6 +403,8 @@ public:
     <Control margin="4,4,4,4" borderwidth="1"/>
     <!-- Index 4 -->
     <Control margin="1,1,1,1" borderwidth="1"/>
+    <!-- Index 5 -->
+    <Control margin="1,1,1,1" metagroup="5,6,7,8,9,10,11,12,13,14,15,16"/>
 </Template>
 )xml";
     }

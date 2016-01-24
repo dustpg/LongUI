@@ -28,6 +28,7 @@
 // LongUI namespace
 namespace LongUI {
     // ui list line, the width child must be fixed
+    // Index_StateSelf_1 : Selected
     class UIListLine : public UIHorizontalLayout {
         // super class
         using Super = UIHorizontalLayout;

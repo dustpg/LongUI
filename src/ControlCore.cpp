@@ -274,7 +274,7 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     };
     // 渲染边框
     if (m_fBorderWidth > 0.f) {
-        UIManager_RenderTarget->SetTransform(&this->world);
+        //UIManager_RenderTarget->SetTransform(&this->world);
         D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
         m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
         if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
@@ -729,7 +729,7 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
         m_pWindow->AddNamedControl(child);
     };
     // 大小判断
-    if (this->GetCount() >= 10'000) {
+    if (this->GetChildrenCount() >= 10'000) {
         UIManager << DL_Warning << "the count of children must be"
             " less than 10k because of the precision of float" << LongUI::endl;
     }

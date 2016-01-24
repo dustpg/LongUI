@@ -44,7 +44,7 @@ namespace LongUI { namespace Demo {
         virtual void cleanup() noexcept override { delete this; }
     public:
         // ctor
-        MainWindow(pugi::xml_node node, UIWindow* parent) : Super(node, parent) {}
+        MainWindow(UIWindow* parent) : Super(parent) {}
         // do some event
         virtual bool DoEvent(const EventArgument& arg) noexcept override;
     private:

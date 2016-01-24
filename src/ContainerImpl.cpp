@@ -69,7 +69,7 @@ auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept ->U
     if (mctrl) return mctrl;
     // 性能警告
 #ifdef _DEBUG
-    if (this->GetCount() > 100) {
+    if (this->GetChildrenCount() > 100) {
         UIManager << DL_Warning
             << "Performance Warning: O(n) algorithm"
             << " is not fine for container that over 100 children"
@@ -214,15 +214,15 @@ auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl *
             << LongUI::endl;
     }
     // 检查范围
-    if (i >= this->GetCount()) {
+    if (i >= this->GetChildrenCount()) {
         UIManager << DL_Error << L"out of range" << LongUI::endl;
         return nullptr;
     }
     // 只有一个?
-    if (this->GetCount() == 1) return m_pHead;
+    if (this->GetChildrenCount() == 1) return m_pHead;
     // 前半部分?
     UIControl * control;
-    if (i < this->GetCount() / 2) {
+    if (i < this->GetChildrenCount() / 2) {
         control = m_pHead;
         while (i) {
             assert(control && "null pointer");
@@ -233,7 +233,7 @@ auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl *
     // 后半部分?
     else {
         control = m_pTail;
-        i = static_cast<uint32_t>(this->GetCount()) - i - 1;
+        i = static_cast<uint32_t>(this->GetChildrenCount()) - i - 1;
         while (i) {
             assert(control && "null pointer");
             control = control->prev;
@@ -660,8 +660,29 @@ auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) 
 // UIPage 构造函数
 LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp), 
     m_animation(AnimationType::Type_QuadraticEaseIn) {
-    
+    // 初始化
+    m_animation.start = m_animation.value = 0.f;
+    m_animation.end = 1.f;
+    m_animation.duration = 0.3f;
 }
+
+
+/// <summary>
+/// Initalizes the specified node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIPage::initalize(pugi::xml_node node) noexcept {
+    // 动画类型
+    auto atype = Helper::GetEnumFromXml(node, AnimationType::Type_QuadraticEaseOut, "animationtype");
+    m_animation.type = atype;
+    // 动画持续时间
+    const char* str = nullptr;
+    if ((str = Helper::XMLGetValue(node, "animationduration"))) {
+        m_animation.duration = LongUI::AtoF(str);
+    }
+}
+
 
 // UIPage 析构函数
 LongUI::UIPage::~UIPage() noexcept {
@@ -704,7 +725,25 @@ auto LongUI::UIPage::Recreate() noexcept -> HRESULT {
 // UIPage: 主景渲染
 void LongUI::UIPage::render_chain_main() const noexcept {
     // 渲染帮助器
-    Super::RenderHelper(&m_pNowDisplay, &m_pNowDisplay + 1);
+    if (m_pNextDisplay) {
+        float direction = this->is_slide_to_right() ? 1.f : -1.f;
+        float off = this->is_slide_to_right() ? -1.f : 1.f;
+        float xoffset = (m_animation.value * direction + off) * view_size.width;
+        UIManager << DL_Hint << xoffset << L" <> " << m_animation.value << endl;
+        UIManager_RenderTarget->SetTransform(
+            D2D1::Matrix3x2F::Translation(xoffset, 0.f) * m_pNextDisplay->world
+            );
+        m_pNextDisplay->Render();
+        // 有效
+        if (m_pNextDisplay != m_pNowDisplay) {
+            xoffset = (m_animation.value * direction ) * view_size.width;
+            UIManager_RenderTarget->SetTransform(
+                D2D1::Matrix3x2F::Translation(xoffset, 0.f) * m_pNowDisplay->world
+                );
+            m_pNowDisplay->Render();
+        }
+    }
+    UIManager_RenderTarget->SetTransform(&this->world);
     // 父类主景
     Super::render_chain_main();
 }
@@ -723,6 +762,12 @@ void LongUI::UIPage::Render() const noexcept {
 void LongUI::UIPage::Update() noexcept {
     // 帮助器
     Super::UpdateHelper<Super>(this->begin(), this->end());
+    // 更新动画
+    m_animation.Update(UIManager.GetDeltaTime());
+    // 检查结果
+    if (m_animation.time <= 0.f) {
+        m_pNowDisplay = m_pNextDisplay;
+    }
 }
 
 /// <summary>
@@ -735,7 +780,8 @@ auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     auto mctrl = Super::FindChild(pt);
     if (mctrl) return mctrl;
     // 检查
-    if (m_pNowDisplay && IsPointInRect(m_pNowDisplay->visible_rect, pt)) {
+    if (m_pNowDisplay == m_pNextDisplay) {
+        //if(IsPointInRect(m_pNowDisplay->visible_rect, pt));
         return m_pNowDisplay;
     }
     return nullptr;
@@ -758,7 +804,6 @@ void LongUI::UIPage::PushBack(UIControl* child) noexcept {
 LongUINoinline void LongUI::UIPage::Insert(uint32_t index, UIControl* child) noexcept {
     assert(child && "bad argument");
     if (child) {
-        m_pNowDisplay = child;
 #ifdef _DEBUG
         auto dgb_result = false;
         dgb_result = (child->flags & Flag_HeightFixed) == 0;
@@ -770,11 +815,48 @@ LongUINoinline void LongUI::UIPage::Insert(uint32_t index, UIControl* child) noe
         this->after_insert(child);
         ++m_cChildrenCount;
         assert(m_vChildren.isok());
+        // 修改
+        if (!m_pNowDisplay) {
+            m_pNowDisplay = m_pNextDisplay = m_vChildren.front();
+        }
     }
+}
+
+
+// UIPage: 显示下一页
+void LongUI::UIPage::DisplayNextPage(uint32_t index) noexcept {
+    // 范围检查
+    if (index < this->GetChildrenCount()) {
+        this->DisplayNextPage(m_vChildren[index]);
+    }
+    else {
+        assert(!"out of range");
+    }
+}
+
+// UIPage: 显示下一页
+void LongUI::UIPage::DisplayNextPage(UIControl* page) noexcept {
+    // 检查
+    assert(page && page->parent == this && "bad action");
+    // 蛋疼
+    if (m_pNextDisplay == page) return;
+    // 计算
+    auto nowp = m_pNowDisplay;
+    auto a = std::find(this->begin(), this->end(), page) - this->begin();
+    auto b = std::find(this->begin(), this->end(), nowp) - this->begin();
+    // 动画
+    if (a > b) this->set_slider_to_left();
+    else this->set_slider_to_right();
+    // 调整
+    m_pNowDisplay = m_pNextDisplay;
+    m_pNextDisplay = page;
+    // 剩余
+    m_pWindow->StartRender(m_animation.time = m_animation.duration, this);
 }
 
 // UIPage: 仅移除
 void LongUI::UIPage::RemoveJust(UIControl* child) noexcept {
+    // 查找
     auto itr = std::find(this->begin(), this->end(), child);
     // 没找到
     if (itr == this->end()) {
@@ -785,6 +867,19 @@ void LongUI::UIPage::RemoveJust(UIControl* child) noexcept {
     }
     // 找到了
     else {
+        // 更新
+        if (m_pNextDisplay == child) {
+            UIManager << DL_Warning
+                << L"removing displaying control"
+                << LongUI::endl;
+            m_pNextDisplay = m_vChildren.size() ? m_vChildren.front() : nullptr;
+        }
+        if (m_pNowDisplay == child) {
+            UIManager << DL_Warning
+                << L"removing displaying control"
+                << LongUI::endl;
+            m_pNowDisplay = m_vChildren.size() ? m_vChildren.front() : nullptr;
+        }
         // 修改
         m_vChildren.erase(itr);
         --m_cChildrenCount;

@@ -1488,9 +1488,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         auto exstt1 = sm.GetOldExtraState();
         auto exstt2 = sm.GetNowExtraState();
         // 额外状态动画中
-        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+        if (exstt1 != exstt2) {
             // 渲染下层
-            metas[exstt1 * basic + bastt2].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+            if (exani.value < ANIMATION_END) {
+                metas[exstt1 * basic + bastt2].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+            }
             // 渲染上层
             metas[exstt2 * basic + bastt2].Render(UIManager_RenderTarget, rect, exani.value);
         }
@@ -1516,9 +1518,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         auto exstt1 = sm.GetOldExtraState();
         auto exstt2 = sm.GetNowExtraState();
         // 额外状态动画中
-        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+        if (exstt1 != exstt2) {
             // 渲染下层
-            LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brushes[exstt1*basic+bastt2], rect);
+            if (exani.value < ANIMATION_END) {
+                LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, brushes[exstt1*basic+bastt2], rect);
+            }
             // 渲染上层
             auto brush = brushes[exstt2*basic + bastt2];
             brush->SetOpacity(exani.value);
@@ -1554,7 +1558,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         auto exstt2 = sm.GetNowExtraState();
         D2D1_COLOR_F color;
         // 额外状态动画中
-        if (exani.value > 0.f && exani.value < ANIMATION_END) {
+        if (exstt1 != exstt2) {
             float exalpha = ANIMATION_END - exani.value;
             // Alpha混合
             color.a = clrs[exstt2*basic + bastt2].a * exani.value

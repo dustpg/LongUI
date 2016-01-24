@@ -15,34 +15,30 @@
 // longui namespace
 namespace LongUI {
     // alloc for normal space
-    static auto NormalAlloc(size_t length) noexcept { return std::malloc(length); }
+    static inline auto NormalAlloc(size_t length) noexcept { return std::malloc(length); }
     // free for normal space
-    static auto NormalFree(void* address) noexcept { return std::free(address); }
+    static inline auto NormalFree(void* address) noexcept { return std::free(address); }
 #ifndef _DEBUG
     // alloc for small space
-    static auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
+    static inline auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
     // free for small space
-    static auto SmallFree(void* address) noexcept { return ::dlfree(address); }
+    static inline auto SmallFree(void* address) noexcept { return ::dlfree(address); }
 #else
     // alloc for small space
-    static auto SmallAlloc(size_t length) noexcept { return std::malloc(length); }
+    static inline auto SmallAlloc(size_t length) noexcept { return std::malloc(length); }
     // free for small space
-    static auto SmallFree(void* address) noexcept { return std::free(address); }
+    static inline auto SmallFree(void* address) noexcept { return std::free(address); }
 #endif
     // template helper
-    template<typename T> static auto NormalAllocT(size_t length) noexcept {
+    template<typename T> static inline auto NormalAllocT(size_t length) noexcept {
         return reinterpret_cast<T*>(LongUI::NormalAlloc(length * sizeof(T))); 
     }
     // template helper
-    template<typename T> static auto SmallAllocT(size_t length) noexcept { 
+    template<typename T> static inline auto SmallAllocT(size_t length) noexcept { 
         return reinterpret_cast<T*>(LongUI::SmallAlloc(length * sizeof(T))); 
     }
     // error beep
     inline void BeepError() noexcept { ::MessageBeep(MB_ICONERROR); }
-    // get dpi for x
-    inline auto GetDpiX() noexcept { return 96.f; }
-    // get dpi for y
-    inline auto GetDpiY() noexcept { return 96.f; }
 }
 
 

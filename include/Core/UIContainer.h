@@ -91,7 +91,7 @@ namespace LongUI {
         // get length/count of children
         auto GetLength() const noexcept { return m_cChildrenCount; }
         // get length/count of children
-        auto GetCount() const noexcept { return m_cChildrenCount; }
+        auto GetChildrenCount() const noexcept { return m_cChildrenCount; }
     public:
         // get content width - zoomed
         auto GetContentWidthZoomed() const noexcept { return m_2fContentSize.width / m_2fZoom.width; }
