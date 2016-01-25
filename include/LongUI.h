@@ -599,4 +599,5 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
 #   include "Control/UIText.h"
 #   include "Control/UICheckBox.h"
 #   include "Control/UIButton.h"
+#   include "Control/UIComboBox.h"
 #endif

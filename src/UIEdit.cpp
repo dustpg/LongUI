@@ -1,5 +1,169 @@
 ﻿#include "LongUI.h"
 
+
+// ----------------------------------------------------------------------------
+// **** UIEdit
+// ----------------------------------------------------------------------------
+
+// UI基本编辑控件: 前景渲染
+void LongUI::UIEditBasic::render_chain_foreground() const noexcept {
+    // 文本算前景
+    m_text.Render(0.f, 0.f);
+    // 父类
+    Super::render_chain_foreground();
+}
+
+// UI基本编辑控件: 渲染
+void LongUI::UIEditBasic::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
+}
+
+// UI基本编辑框: 刷新
+void LongUI::UIEditBasic::Update() noexcept {
+    // 改变了大小
+    if (this->IsControlLayoutChanged()) {
+        // 设置大小
+        m_text.Resize(this->view_size.width, this->view_size.height);
+        // 已经处理
+        this->ControlLayoutChangeHandled();
+    }
+    // 刷新
+    m_text.Update();
+    return Super::Update();
+}
+
+// UI基本编辑控件
+bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    // LongUI 消息
+    if (arg.sender) {
+        switch (arg.event)
+        {
+        case LongUI::Event::Event_TreeBulidingFinished:
+            __fallthrough;
+        case LongUI::Event::Event_SubEvent:
+            return true;
+        case LongUI::Event::Event_SetFocus:
+            m_text.OnSetFocus();
+            return true;
+        case LongUI::Event::Event_KillFocus:
+            m_text.OnKillFocus();
+            return true;
+        case LongUI::Event::Event_SetText:
+            assert(!"NOIMPL");
+            __fallthrough;
+        case LongUI::Event::Event_GetText:
+            arg.str = m_text.c_str();
+            return true;
+        }
+    }
+    // 系统消息
+    else {
+        switch (arg.msg)
+        {
+        default:
+            return false;
+        case WM_KEYDOWN:
+            m_text.OnKey(static_cast<uint32_t>(arg.sys.wParam));
+            break;
+        case WM_CHAR:
+            m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
+            break;
+        }
+    }
+    return true;
+}
+
+// UI基本编辑控件: 鼠标事件
+bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    // LongUI 消息
+    switch (arg.event)
+    {
+    case LongUI::MouseEvent::Event_DragEnter:
+        m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
+        break;
+    case LongUI::MouseEvent::Event_DragOver:
+        m_text.OnDragOver(pt4self.x, pt4self.y);
+        break;
+    case LongUI::MouseEvent::Event_DragLeave:
+        m_text.OnDragLeave();
+        break;
+    case LongUI::MouseEvent::Event_Drop:
+        m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
+        break;
+    case LongUI::MouseEvent::Event_MouseEnter:
+        m_pWindow->now_cursor = m_hCursorI;
+        break;
+    case LongUI::MouseEvent::Event_MouseLeave:
+        m_pWindow->now_cursor = m_pWindow->default_cursor;
+        break;
+    case LongUI::MouseEvent::Event_MouseMove:
+        // 拖拽?
+        if (arg.sys.wParam & MK_LBUTTON) {
+            m_text.OnLButtonHold(pt4self.x, pt4self.y);
+        }
+        break;
+    case LongUI::MouseEvent::Event_LButtonDown:
+        m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.sys.wParam & MK_SHIFT));
+        break;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        m_text.OnLButtonUp(pt4self.x, pt4self.y);
+        break;
+    }
+    return true;
+}
+
+// close this control 关闭控件
+HRESULT LongUI::UIEditBasic::Recreate() noexcept {
+    m_text.Recreate();
+    return Super::Recreate();
+}
+
+// close this control 关闭控件
+void LongUI::UIEditBasic::cleanup() noexcept {
+    delete this;
+}
+
+// 构造函数
+void LongUI::UIEditBasic::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    m_text.Init(node);
+    // 允许键盘焦点
+    auto flag = this->flags | Flag_Focusable;
+    if (node) {
+
+    }
+    // 修改
+    force_cast(this->flags) = flag;
+}
+
+// UIEditBasic::CreateControl 函数
+LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
+    // 分类判断
+    UIEditBasic* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    case_LongUI__Type_CreateControl:
+        LongUI__CreateWidthCET(UIEditBasic, pControl, type, node);
+    }
+    return pControl;
+}
+
+
+
+
 #if defined(_DEBUG)  && 1
 #define TRACE_FUCTION UIManager << DL_Log << L"Trace: called" << LongUI::endl
 #else

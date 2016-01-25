@@ -266,6 +266,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         this->RegisterControlClass(UISingle::CreateControl, "Single");
         this->RegisterControlClass(UIListLine::CreateControl, "ListLine");
         this->RegisterControlClass(UICheckBox::CreateControl, "CheckBox");
+        this->RegisterControlClass(UIComboBox::CreateControl, "ComboBox");
         this->RegisterControlClass(UIRichEdit::CreateControl, "RichEdit");
         this->RegisterControlClass(UIEditBasic::CreateControl, "Edit");
         this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
@@ -380,14 +381,16 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
     UIControl* now_control = nullptr;
     UIContainer* parent_node = window;
     // 遍历算法: 1.压入所有子结点 2.依次弹出 3.重复1
+    bool noskip = true;
     while (true) {
         // 压入/入队 所有子结点
         node = node.first_child();
-        while (node) {
+        while (noskip && node) {
             xml_queue.Push(node);
             parents_queue.Push(parent_node);
             node = node.next_sibling();
         }
+        noskip = true;
         // 为空则退出
         if (xml_queue.IsEmpty()) break;
         // 弹出/出队 第一个结点
@@ -408,13 +411,15 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         // 添加子结点
         parent_node->PushBack(now_control);
         // 设置结点为下次父结点
-        parent_node = static_cast<decltype(parent_node)>(now_control);
+        parent_node = static_cast<UIContainer*>(now_control);
+        // 不是容器的话直接跳过
+        noskip = !!(parent_node->flags & Flag_UIContainer);
     }
 }
 
 // 获取创建控件函数指针
 auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlFunction {
-    // 检查
+    // 检查 !white_space(clname[0]) && 
     assert(clname && clname[0] && "bad argment");
     // 查找
     auto result = m_hashStr2CreateFunc.Find(clname);
@@ -879,6 +884,28 @@ auto LongUI::CUIManager::RegisterControlClass(
     auto result = m_hashStr2CreateFunc.Insert(m_oStringAllocator.CopyString(clname), func);
     // 插入失败的原因只有一个->OOM
     return result ? S_OK : E_OUTOFMEMORY;
+}
+
+// 获取控件 wchar_t指针
+void LongUI::CUIManager::UnregisterControlClass(const char* clname) noexcept {
+    if (!clname || !(*clname)) {
+        assert(!"bad argument");
+        return;
+    }
+    // 移除
+    if (m_hashStr2CreateFunc.Find(clname)) {
+        m_hashStr2CreateFunc.Remove(clname);
+    }
+#ifdef _DEBUG
+    else {
+        UIManager << DL_Error
+            << L"class name # "
+            << clname
+            << L" # not found"
+            << LongUI::endl;
+        assert(!"class not found");
+    }
+#endif
 }
 
 // 显示错误代码

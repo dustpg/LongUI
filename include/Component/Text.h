@@ -40,7 +40,9 @@ namespace LongUI { namespace Component {
         // destructor
         ~ShortText() noexcept;
         // set color
-        void SetState(ControlState state) noexcept { m_pColor = this->color + state; };
+        void SetState(ControlState state) noexcept { m_pColor = this->color + state; }
+        // get color
+        const auto*GetColor() const noexcept { return m_pColor; }
         // real length
         auto GetRealLength() const noexcept { return m_config.text_length; }
         // operator = for wide-char(utf16 on windows)

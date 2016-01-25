@@ -37,13 +37,15 @@ namespace LongUI {
         using callback_for_creating_window = auto(*)(pugi::xml_node node, UIWindow* wndparent, void* buffer)->UIWindow*;
     public: // handle zone 操作区
         // initialize 初始化
-        auto Initialize(IUIConfigure* = nullptr) noexcept ->HRESULT;
+        auto Initialize(IUIConfigure* config = nullptr) noexcept ->HRESULT;
         // uninitialize 反初始化
         void Uninitialize() noexcept;
         // run 运行
         void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
         auto RegisterControlClass(CreateControlFunction func, const char* clname) noexcept ->HRESULT;
+        // unregister 取消映射函数映射关系
+        void UnregisterControlClass(const char* clname) noexcept;
         // ShowError with HRESULT code
         void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // wait for VS

@@ -622,12 +622,12 @@ namespace LongUI { namespace EzContainer {
         // back
         auto&back() const noexcept {  return reinterpret_cast<T*&>(m_vector.back()); }
         // insert
-        auto insert(uint32_t pos, T* dat) noexcept { return m_vector.insert(pos, dat); }
+        auto insert(uint32_t pos, T* dat) noexcept { return m_vector.insert(pos, (void*)(dat)); }
         // insert
         template<typename TT>
         auto insert(const VectorType::Iterator<TT>& itr, T* dat) noexcept { return m_vector.insert(uint32_t(&(*itr) - this->data()), dat); }
         // push back with data
-        auto push_back(T* data) noexcept { return m_vector.push_back(data); }
+        auto push_back(T* data) noexcept { return m_vector.push_back((void*)(data)); }
         // push back
         auto push_back() noexcept { return m_vector.push_back(nullptr); }
         // pop back
@@ -659,9 +659,9 @@ namespace LongUI { namespace EzContainer {
         // reserve length
         auto reserve(uint32_t len) noexcept { return m_vector.reserve(len); }
         // operator[]
-        auto operator[](uint32_t index) noexcept ->P& { return reinterpret_cast<P&>(m_vector[index]); }
+        auto operator[](uint32_t index) noexcept ->P& { return (P&)(m_vector[index]); }
         // operator[] const
-        auto operator[](uint32_t index) const noexcept ->const P& { return reinterpret_cast<const P&>(m_vector[index]); }
+        auto operator[](uint32_t index) const noexcept ->const P& { return (const P&)(m_vector[index]); }
     private:
         // vector data
         VectorType          m_vector;

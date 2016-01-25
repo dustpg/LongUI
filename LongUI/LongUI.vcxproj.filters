@@ -167,6 +167,9 @@
     <ClInclude Include="..\include\Control\Layout\UIPage.h">
       <Filter>LongUI\Header\Control\Layout</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Control\UIComboBox.h">
+      <Filter>LongUI\Header\Control\Layout</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\ControlCore.cpp">
@@ -211,9 +214,6 @@
     <ClCompile Include="..\src\UIList.cpp">
       <Filter>LongUI\Source\XCtrl</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\UIRichEdit.cpp">
-      <Filter>LongUI\Source\XCtrl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\UISlider.cpp">
       <Filter>LongUI\Source\XCtrl</Filter>
     </ClCompile>
@@ -225,6 +225,9 @@
     </ClCompile>
     <ClCompile Include="..\src\UIUtil2.cpp">
       <Filter>LongUI\Source\XUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\UIEdit.cpp">
+      <Filter>LongUI\Source\XCtrl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

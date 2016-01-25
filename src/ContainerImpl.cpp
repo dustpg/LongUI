@@ -729,20 +729,22 @@ void LongUI::UIPage::render_chain_main() const noexcept {
         float direction = this->is_slide_to_right() ? 1.f : -1.f;
         float off = this->is_slide_to_right() ? -1.f : 1.f;
         float xoffset = (m_animation.value * direction + off) * view_size.width;
-        UIManager << DL_Hint << xoffset << L" <> " << m_animation.value << endl;
         UIManager_RenderTarget->SetTransform(
-            D2D1::Matrix3x2F::Translation(xoffset, 0.f) * m_pNextDisplay->world
+            D2D1::Matrix3x2F::Translation(xoffset, 0.f) 
+            * m_pNextDisplay->world
             );
         m_pNextDisplay->Render();
         // 有效
         if (m_pNextDisplay != m_pNowDisplay) {
             xoffset = (m_animation.value * direction ) * view_size.width;
             UIManager_RenderTarget->SetTransform(
-                D2D1::Matrix3x2F::Translation(xoffset, 0.f) * m_pNowDisplay->world
+                D2D1::Matrix3x2F::Translation(xoffset, 0.f) 
+                * m_pNowDisplay->world
                 );
             m_pNowDisplay->Render();
         }
     }
+    // 回归
     UIManager_RenderTarget->SetTransform(&this->world);
     // 父类主景
     Super::render_chain_main();
@@ -781,12 +783,10 @@ auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     if (mctrl) return mctrl;
     // 检查
     if (m_pNowDisplay == m_pNextDisplay) {
-        //if(IsPointInRect(m_pNowDisplay->visible_rect, pt));
         return m_pNowDisplay;
     }
     return nullptr;
 }
-
 
 // UIPage: 推入最后
 void LongUI::UIPage::PushBack(UIControl* child) noexcept {
@@ -821,7 +821,6 @@ LongUINoinline void LongUI::UIPage::Insert(uint32_t index, UIControl* child) noe
         }
     }
 }
-
 
 // UIPage: 显示下一页
 void LongUI::UIPage::DisplayNextPage(uint32_t index) noexcept {

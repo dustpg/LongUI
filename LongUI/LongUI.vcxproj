@@ -173,6 +173,7 @@
     <ClInclude Include="..\include\Control\Layout\UISingle.h" />
     <ClInclude Include="..\include\Control\UIButton.h" />
     <ClInclude Include="..\include\Control\UICheckBox.h" />
+    <ClInclude Include="..\include\Control\UIComboBox.h" />
     <ClInclude Include="..\include\Control\UIEdit.h" />
     <ClInclude Include="..\include\Control\UIRichEdit.h" />
     <ClInclude Include="..\include\Control\UIScrollBar.h" />
@@ -240,7 +241,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\src\UIRichEdit.cpp">
+    <ClCompile Include="..\src\UIEdit.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

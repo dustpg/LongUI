@@ -138,10 +138,10 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2"/>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
-    <Page>
-        <Button borderwidth="1" margin="4,4,4,4" text="虽然"/>
-        <Button borderwidth="1" margin="4,4,4,4" text="不过"/>
-    </Page>
+    <ComboBox name="cbb_01" margin="4,4,4,4" borderwidth="1">
+        <Item>真的</Item>
+        <Item>假的</Item>
+    </ComboBox>
     <Single templatesize="256, 0"><Edit text="这个"/></Single>
     <Single templatesize="256, 0">
         <Slider thumbsize="32,32" margin="4,4,4,4"/>
@@ -422,6 +422,7 @@ public:
     virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
         return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
+    // choose
     virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t override {
         // Intel 测试
         for (size_t i = 0; i < length; ++i) {

@@ -113,10 +113,14 @@ namespace LongUI {
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
 #endif
     };
+    // ComboBox
+    class UIComboBox;
     // srcollbar type A
     class UIScrollBarA : public UIScrollBar {
         // basic size
         static constexpr float BASIC_SIZE = 16.f;
+        // friend class
+        friend class UIComboBox;
         // 父类申明
         using Super = UIScrollBar;
         // arrow for this

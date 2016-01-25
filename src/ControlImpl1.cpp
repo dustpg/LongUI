@@ -240,21 +240,12 @@ void LongUI::UIButton::cleanup() noexcept {
     delete this;
 }
 
-
 // ----------------------------------------------------------------------------
-// **** UIEdit
+// **** UIComboBox
 // ----------------------------------------------------------------------------
 
-// UI基本编辑控件: 前景渲染
-void LongUI::UIEditBasic::render_chain_foreground() const noexcept {
-    // 文本算前景
-    m_text.Render(0.f, 0.f);
-    // 父类
-    Super::render_chain_foreground();
-}
-
-// UI基本编辑控件: 渲染
-void LongUI::UIEditBasic::Render() const noexcept {
+// Render 渲染 
+void LongUI::UIComboBox::Render() const noexcept {
     // 背景渲染
     this->render_chain_background();
     // 主景渲染
@@ -263,130 +254,126 @@ void LongUI::UIEditBasic::Render() const noexcept {
     this->render_chain_foreground();
 }
 
-// UI基本编辑框: 刷新
-void LongUI::UIEditBasic::Update() noexcept {
-    // 改变了大小
-    if (this->IsControlLayoutChanged()) {
-        // 设置大小
-        m_text.Resize(this->view_size.width, this->view_size.height);
-        // 已经处理
-        this->ControlLayoutChangeHandled();
-    }
-    // 刷新
-    m_text.Update();
-    return Super::Update();
-}
-
-// UI基本编辑控件
-bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    // LongUI 消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            __fallthrough;
-        case LongUI::Event::Event_SubEvent:
-            return true;
-        case LongUI::Event::Event_SetFocus:
-            m_text.OnSetFocus();
-            return true;
-        case LongUI::Event::Event_KillFocus:
-            m_text.OnKillFocus();
-            return true;
-        case LongUI::Event::Event_SetText:
-            assert(!"NOIMPL");
-            __fallthrough;
-        case LongUI::Event::Event_GetText:
-            arg.str = m_text.c_str();
-            return true;
-        }
-    }
-    // 系统消息
-    else {
-        switch (arg.msg)
-        {
-        default:
-            return false;
-        case WM_KEYDOWN:
-            m_text.OnKey(static_cast<uint32_t>(arg.sys.wParam));
-            break;
-        case WM_CHAR:
-            m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
-            break;
-        }
-    }
-    return true;
-}
-
-// UI基本编辑控件: 鼠标事件
-bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept {
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
-    // LongUI 消息
-    switch (arg.event)
+// UI文本: 渲染前景
+void LongUI::UIComboBox::render_chain_foreground() const noexcept {
+    // 父类渲染
+    Super::render_chain_foreground();
+    // 渲染下拉箭头
     {
-    case LongUI::MouseEvent::Event_DragEnter:
-        m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
-        break;
-    case LongUI::MouseEvent::Event_DragOver:
-        m_text.OnDragOver(pt4self.x, pt4self.y);
-        break;
-    case LongUI::MouseEvent::Event_DragLeave:
-        m_text.OnDragLeave();
-        break;
-    case LongUI::MouseEvent::Event_Drop:
-        m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
-        break;
-    case LongUI::MouseEvent::Event_MouseEnter:
-        m_pWindow->now_cursor = m_hCursorI;
-        break;
-    case LongUI::MouseEvent::Event_MouseLeave:
-        m_pWindow->now_cursor = m_pWindow->default_cursor;
-        break;
-    case LongUI::MouseEvent::Event_MouseMove:
-        // 拖拽?
-        if (arg.sys.wParam & MK_LBUTTON) {
-            m_text.OnLButtonHold(pt4self.x, pt4self.y);
-        }
-        break;
-    case LongUI::MouseEvent::Event_LButtonDown:
-        m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.sys.wParam & MK_SHIFT));
-        break;
-    case LongUI::MouseEvent::Event_LButtonUp:
-        m_text.OnLButtonUp(pt4self.x, pt4self.y);
-        break;
+        // 几何体
+        auto arrow = UIScrollBarA::s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom];
+#if 0
+        // 目标矩形
+        D2D1_RECT_F rect; 
+        rect.right = this->view_size.width;
+        rect.left = rect.right - UIScrollBarA::BASIC_SIZE;
+        rect.top = (this->view_size.height - UIScrollBarA::BASIC_SIZE) * 0.5f;
+        rect.bottom = (this->view_size.height + UIScrollBarA::BASIC_SIZE) * 0.5f;
+        // 颜色同文本
+        m_pBrush_SetBeforeUse->SetColor(m_text.GetColor());
+        // 渲染
+        auto render_geo = [](ID2D1RenderTarget* const target, ID2D1Brush* const bush,
+            ID2D1Geometry* const geo, const D2D1_RECT_F& rect) noexcept {
+            D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
+            target->SetTransform(
+                DX::Matrix3x2F::Translation(rect.left, rect.top) * matrix
+                );
+            target->DrawGeometry(geo, bush, 2.33333f);
+            // 修改
+            target->SetTransform(&matrix);
+        };
+        // 渲染
+        render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, arrow, rect);
+#else
+        // 目标坐标
+        D2D1_POINT_2F pt; 
+        pt.x = this->view_size.width - UIScrollBarA::BASIC_SIZE;
+        pt.y = (this->view_size.height - UIScrollBarA::BASIC_SIZE) * 0.5f;
+        // 颜色同文本
+        m_pBrush_SetBeforeUse->SetColor(m_text.GetColor());
+        // 渲染
+        auto render_arrow = [&pt, arrow](ID2D1RenderTarget* target, ID2D1Brush* brush) noexcept {
+            D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
+            target->SetTransform(DX::Matrix3x2F::Translation(pt.x, pt.y) * matrix);
+            target->DrawGeometry(arrow, brush, 2.33333f);
+            target->SetTransform(&matrix);
+        };
+        // 渲染
+        render_arrow(UIManager_RenderTarget, m_pBrush_SetBeforeUse);
+#endif
     }
-    return true;
 }
 
-// close this control 关闭控件
-HRESULT LongUI::UIEditBasic::Recreate() noexcept {
-    m_text.Recreate();
-    return Super::Recreate();
+// initialize, maybe you want call v-method
+void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    m_vItems.reserve(32);
+    // 成功
+    if (m_vItems.isok()) {
+        // 获取物品列表
+        for (auto item : node) {
+            this->PushItem(item.text().as_string(""));
+        }
+        // 获取索引
+        auto index = uint32_t(LongUI::AtoI(node.attribute("select").value()));
+        // 初始化
+        m_text = index < this->GetItemCount() ? m_vItems[index] : L"";
+    }
 }
 
-// close this control 关闭控件
-void LongUI::UIEditBasic::cleanup() noexcept {
+// 插入物品
+LongUINoinline void LongUI::UIComboBox::InsertItem(uint32_t index, const wchar_t* item) noexcept {
+    assert(item && index <= m_vItems.size() && "bad argument");
+    auto copy = m_strAllocator.CopyString(item);
+    // 有效
+    if (copy && index <= m_vItems.size()) {
+        m_vItems.insert(index, copy);
+        m_pWindow->Invalidate(this);
+    }
+#ifdef _DEBUG
+    else {
+        assert(!"error");
+    }
+#endif
+}
+
+// 移除物品
+LongUINoinline void LongUI::UIComboBox::RemoveItem(uint32_t index) noexcept {
+    assert(index < m_vItems.size() && "bad argument");
+    // 有效
+    if (index < m_vItems.size()) {
+        m_vItems.erase(index);
+        m_pWindow->Invalidate(this);
+    }
+}
+
+// 添加物品
+void LongUI::UIComboBox::PushItem(const char* item) noexcept {
+    assert(item && "bad argument");
+    if (!item) item = "";
+    // 有效
+    wchar_t buffer[LongUIStringBufferLength];
+    buffer[UTF8toWideChar(item, buffer)] = 0;
+    this->PushItem(buffer);
+}
+
+// 添加物品
+void LongUI::UIComboBox::PushItem(const wchar_t* item) noexcept {
+    assert(item && "bad argument");
+    if (!item) item = L"";
+    this->InsertItem(this->GetItemCount(), item);
+}
+
+
+// UIComboBox: 关闭控件
+void LongUI::UIComboBox::cleanup() noexcept {
     delete this;
 }
 
-// 构造函数
-void LongUI::UIEditBasic::initialize(pugi::xml_node node) noexcept {
-    // 链式初始化
-    Super::initialize(node);
-    m_text.Init(node);
-    // 允许键盘焦点
-    auto flag = this->flags | Flag_Focusable;
-    if (node) {
-
-    }
-    // 修改
-    force_cast(this->flags) = flag;
-}
-
-// UIEditBasic::CreateControl 函数
-LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
-    // 分类判断
-    UIEditBasic* pControl = nullptr;
+// UIComboBox::CreateControl 函数
+auto LongUI::UIComboBox::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+    UIComboBox* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -396,7 +383,7 @@ LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type, pugi
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        LongUI__CreateWidthCET(UIEditBasic, pControl, type, node);
+        LongUI__CreateWidthCET(UIComboBox, pControl, type, node);
     }
     return pControl;
 }
@@ -484,6 +471,26 @@ bool LongUI::UIButton::debug_do_event(const LongUI::DebugEventInformation& info)
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIButton>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI组合框: 调试信息
+bool LongUI::UIComboBox::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIComboBox";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIComboBox";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIComboBox>()
             || Super::debug_do_event(info);
     default:
         break;
