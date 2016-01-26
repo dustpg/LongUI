@@ -131,12 +131,14 @@ void LongUI::UIEditBasic::cleanup() noexcept {
 
 // 构造函数
 void LongUI::UIEditBasic::initialize(pugi::xml_node node) noexcept {
+    // 必须有效
+    assert(node && "call UIEditBasic::initialize() if no xml-node");
     // 链式初始化
     Super::initialize(node);
     m_text.Init(node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
-    if (node) {
+    {
 
     }
     // 修改

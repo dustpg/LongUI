@@ -202,6 +202,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         this->SetControlState(LongUI::State_Pushed);
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
+        m_tarStateClick = LongUI::State_Hover;
         // 左键弹起:
         if (m_pWindow->IsReleasedControl(this)) {
             bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
@@ -244,6 +245,22 @@ void LongUI::UIButton::cleanup() noexcept {
 // **** UIComboBox
 // ----------------------------------------------------------------------------
 
+// UIComboBox: 构造函数
+LongUI::UIComboBox::UIComboBox(UIContainer* cp) noexcept : Super(cp) {
+    // 点击事件
+    auto call = [this](UIControl* unused) noexcept {
+        UNREFERENCED_PARAMETER(unused);
+        D2D1_POINT_2F p1 = { this->view_pos.x,  this->view_pos.y };
+        D2D1_POINT_2F p2 = { this->view_size.width,  this->view_size.height };
+        p1 = LongUI::TransformPoint(this->world, p1);
+        p2 = LongUI::TransformPoint(this->world, p2);
+        //auto popup = UIManager.CreatePopupWindow(rect, m_pWindow);
+        return true;
+    };
+    // 添加事件
+    this->Super::uniface_addevent(SubEvent::Event_ItemClicked, std::move(UICallBack(call)));
+}
+
 // Render 渲染 
 void LongUI::UIComboBox::Render() const noexcept {
     // 背景渲染
@@ -259,7 +276,7 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
     // 父类渲染
     Super::render_chain_foreground();
     // 渲染下拉箭头
-    {
+    if (!m_uiElement.IsExtraInterfaceValid()) {
         // 几何体
         auto arrow = UIScrollBarA::s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom];
 #if 0

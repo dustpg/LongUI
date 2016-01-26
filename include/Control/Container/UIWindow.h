@@ -27,6 +27,17 @@
 
 // LongUI namespace
 namespace LongUI {
+    // config::window
+    namespace Config { struct Window : Control {
+        // window title name
+        const wchar_t*      title_name;
+        // full rendering
+        bool                full_rendering;
+        // always do rendering
+        bool                always_rendering;
+        // debug show
+        bool                debug_show;
+    };}
     // ui's window
     class LongUIAPI UIWindow : public UIVerticalLayout, public Helper::ComStatic<
         Helper::QiListSelf<IUnknown, Helper::QiList<IDropTarget>>> {
@@ -42,7 +53,7 @@ namespace LongUI {
         virtual void cleanup() noexcept override;
     public:
         // flag of window
-        enum WindowFlag : uint8_t {
+        enum WindowFlag : uint32_t {
             // no flag
             Flag_None = 0,
             // [default: false] window is always do full-rendering
@@ -54,7 +65,7 @@ namespace LongUI {
             Flag_AlwaysRendering = 1 << 1,
         };
         // type of window
-        enum WindowType : uint8_t {
+        enum WindowType : uint32_t {
             // draw on parent-window, supported as parent-window
             // longui menu only, error with system menu
             Type_RenderOnParent = 0,

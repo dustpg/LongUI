@@ -94,11 +94,13 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
 #ifdef _DEBUG
     // 没有被初始化
     assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
+    // 断言
+    assert(node && "call 'UIControl::initialize()' if no xml-node");
 #endif
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
     // 有效?
-    if (node) {
+    {
         // 调试
 #ifdef _DEBUG
         this->debug_this = node.attribute("debug").as_bool(false);
@@ -207,6 +209,56 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
         if (!node.attribute(LongUI::XMLAttribute::Enabled).as_bool(true)) {
             this->SetEnabled(false);
         }
+    }
+    // 修改flag
+    force_cast(this->flags) |= flag;
+#ifdef _DEBUG
+    // 被初始化
+    this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
+#endif
+}
+
+/// <summary>
+/// Initializes this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::initialize() noexcept  {
+#ifdef _DEBUG
+    // 没有被初始化
+    assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
+#endif
+    // 构造默认
+    auto flag = LongUIFlag::Flag_None;
+    flag |= LongUI::Flag_ClipStrictly;
+    // 检查名称
+    if (m_pWindow) {
+#ifdef _DEBUG
+        char buffer[128];
+        {
+            static long s_dbg_longui_index = 0;
+            buffer[0] = 0;
+            ++s_dbg_longui_index;
+            auto c = std::snprintf(
+                buffer, 128,
+                "dbg_longui_%ls_id_%ld",
+                this->GetControlClassName(),
+                s_dbg_longui_index
+                );
+            assert(c > 0 && "bad std::snprintf call");
+            // 小写
+            auto mystrlow = [](char* str) noexcept {
+                while (*str) {
+                    if (*str >= 'A' && *str <= 'Z') *str += 'a' - 'A';
+                    ++str;
+                }
+            };
+            mystrlow(buffer);
+            if (buffer[0]) {
+                auto namestr = m_pWindow->CopyStringSafe(buffer);
+                force_cast(this->name) = namestr;
+            }
+        }
+#endif
     }
     // 修改flag
     force_cast(this->flags) |= flag;
@@ -516,10 +568,12 @@ void LongUI::UIControl::RefreshWorld() noexcept {
 /// <param name="node">The node.</param>
 /// <returns></returns>
 void LongUI::UIMarginalable::initialize(pugi::xml_node node) noexcept {
+    // 必须有效
+    assert(node && "call UIMarginalable::initialize() if no xml-node");
     // 链式调用
     Super::initialize(node);
     // 有效结点
-    if (node) {
+    {
         // 获取类型
         auto get_type = [](pugi::xml_node node, MarginalControl bad_match) noexcept {
             // 属性值列表
@@ -614,6 +668,8 @@ namespace LongUI {
     protected:
         // init
         void initialize(pugi::xml_node node) noexcept { Super::initialize(node); }
+        // init without xml-node
+        void initialize() noexcept { Super::initialize(); }
     };
     // space holder
     class UISpaceHolder final : public UINull {
@@ -626,7 +682,7 @@ namespace LongUI {
         virtual auto Recreate() noexcept ->HRESULT override { return S_OK; }
     public:
         // constructor 构造函数
-        UISpaceHolder() noexcept : Super(nullptr) { Super::initialize(LongUINullXMLNode); }
+        UISpaceHolder() noexcept : Super(nullptr) { Super::initialize(); }
         // destructor 析构函数
         ~UISpaceHolder() noexcept { }
     };
@@ -676,6 +732,8 @@ LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal
 /// <param name="node">The node.</param>
 /// <returns></returns>
 void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
+    // 必须有效
+    assert(node && "call UIContainer::initialize() if no xml-node");
 #ifdef _DEBUG
     for (auto ctrl : marginal_control) {
         assert(ctrl == nullptr && "bad action");
@@ -687,7 +745,7 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
     m_orgMargin = this->margin_rect;
     auto flag = this->flags | Flag_UIContainer;
     // 有效
-    if (node) {
+    {
         // 模板大小
         Helper::MakeFloats(
             node.attribute(LongUI::XMLAttribute::TemplateSize).value(),

@@ -1208,7 +1208,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         };
         // bool属性
         auto bool_attribute = [&node, prefix](const char* attr, bool def) {
-            return pugi::impl::get_value_bool(Helper::XMLGetValue(node, attr, prefix), def);
+            auto v = Helper::XMLGetValue(node, attr, prefix);
+            if (!v) return def; auto ch = v[0];
+            return (ch == 't' || ch == 'T' || ch != '0');
         };
         const char* str = nullptr;
         // 检查类型

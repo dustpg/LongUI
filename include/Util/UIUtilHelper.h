@@ -264,8 +264,10 @@ namespace LongUI { namespace Helper {
     bool MakeStateBasedColor(pugi::xml_node node, const char* prefix, D2D1_COLOR_F color[4]) noexcept;
     // make meta group
     bool MakeMetaGroup(pugi::xml_node node, const char* prefix, uint16_t fary[], uint32_t count) noexcept;
-    // make floats from string
-    bool SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATE_COUNT]) noexcept;
+    // make border color form xml-node
+    void SetBorderColor(pugi::xml_node, D2D1_COLOR_F[STATE_COUNT]) noexcept;
+    // make border color
+    void SetBorderColor(D2D1_COLOR_F[STATE_COUNT]) noexcept;
     // get value string
     auto XMLGetValue(pugi::xml_node node, const char* attribute, const char* prefix =nullptr) noexcept -> const char*;
     // get value enum-int

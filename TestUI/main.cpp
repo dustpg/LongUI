@@ -131,20 +131,26 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 
 const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window textantimode="cleartype" size="800, 800" name="MainWindow" debugshow="true"
-    autoshow="false" clearcolor="1,1,1,0.95" >
+<Window textantimode="cleartype" size="800, 600" name="MainWindow" debugshow="true"
+    autoshow="false" clearcolor="1, 1, 1, 0.95" popup="false">
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <Page name="pg_1">
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2"/>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
-    <ComboBox name="cbb_01" margin="4,4,4,4" borderwidth="1">
-        <Item>真的</Item>
-        <Item>假的</Item>
-    </ComboBox>
-    <Single templatesize="256, 0"><Edit text="这个"/></Single>
-    <Single templatesize="256, 0">
-        <Slider thumbsize="32,32" margin="4,4,4,4"/>
+    <HorizontalLayout name="H" size="0, 48">
+        <Button borderwidth="1" margin="4,4,4,4" text="占位测试"/>
+        <ComboBox textformat="1" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
+            <Item>真的</Item>
+            <Item>假的</Item>
+        </ComboBox>
+    </HorizontalLayout>
+    <HorizontalLayout templatesize="256, 0">
+        <Edit textformat="1" text="这个"/>
+        <Edit text="这个"/>
+    </HorizontalLayout>
+    <Single templatesize="512, 0">
+        <Slider name="sld_opacity" thumbsize="32,32" margin="4,4,4,4"/>
     </Single>
     <Single templatesize="256, 0">
         <CheckBox text="卧槽" margin="4,4,4,4"/>
@@ -163,6 +169,11 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Item desc="按钮1" res="btn.png"/>
         <Item desc="复选框1" res="cbx.png"/>
     </Bitmap>
+    <!-- Text Format区域Zone -->
+    <TextFormat>
+        <!-- You can use other name not limited in 'Item' -->
+        <Item desc="雅黑" family="Microsoft YaHei" valign="middle"/>
+    </TextFormat>
     <!-- Meta区域Zone -->
     <Meta>
         <Item desc="按钮1无效图元" bitmap="1" rect="0,  0, 96, 24" rule="button"/>
@@ -212,6 +223,16 @@ private:
     virtual void cleanup() noexcept override { this->~MainWindow(); }
     // init
     void init() {
+        auto slider = LongUI::longui_cast<LongUI::UISlider*>(this->FindControl("sld_opacity"));
+        if (slider) {
+            auto window = this;
+            slider->SetValue01(window->clear_color.a);
+            slider->AddEventCall([slider, window](LongUI::UIControl*) {
+                window->clear_color.a = slider->GetValue01();
+                window->Invalidate(window);
+                return true;
+            }, LongUI::SubEvent::Event_ValueChanged);
+        }
         auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl("lst_01"));
         if (list) {
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
@@ -268,14 +289,6 @@ private:
             }, LongUI::SubEvent::Event_ItemClicked);
         }
     }
-    // on number button clicked
-    void number_button_clicked(LongUI::UIControl* btn);
-    // on plus
-    bool on_plus();
-    // on minus
-    bool on_minus();
-    // on equal
-    bool on_equal();
 private:
 };
 

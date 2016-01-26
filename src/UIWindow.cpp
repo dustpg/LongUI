@@ -82,8 +82,9 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
     }
     // 窗口区
     {
-        // 默认样式
-        DWORD window_style = WS_OVERLAPPEDWINDOW;
+        // 检查样式样式
+        auto popup = node.attribute("popup").as_bool(false);
+        DWORD window_style = popup ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
         // 设置窗口大小
         RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
         // 默认

@@ -78,7 +78,7 @@ namespace LongUI{
         auto IsHorizontalSlider() const noexcept { return !m_bVerticalSlider; }
         // set value [0, 1]
         void SetValue01(float value) noexcept { 
-            assert(value >= 0.f && value <= 0.f && "out of range"); 
+            assert(value >= 0.f && value <= 1.f && "out of range"); 
             m_fValue = value; m_pWindow->Invalidate(this); 
         }
         // set value [start, end]

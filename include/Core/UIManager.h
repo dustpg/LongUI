@@ -85,10 +85,7 @@ namespace LongUI {
             return this->create_control(cp, function, node, 0);
         }
         // create control with template id, template and function cannot be null in same time
-        auto CreateControl(UIContainer* cp, size_t templateid, CreateControlFunction function) noexcept {
-            assert((templateid || function) && "cannot be null in same time");
-            return this->create_control(cp, function, LongUINullXMLNode, templateid);
-        }
+        auto CreateControl(UIContainer* cp, size_t templateid, CreateControlFunction function) noexcept ->UIControl*;
         // create text format
         auto CreateTextFormat(
             _In_z_ WCHAR const* fontFamilyName,
@@ -99,6 +96,8 @@ namespace LongUI {
             _COM_Outptr_ IDWriteTextFormat** textFormat
             ) noexcept ->HRESULT;
     public: // Create UI Window Zone!!!!!!!!!
+        // create popup window
+        auto CreatePopupWindow(const D2D1_RECT_L& rect, UIWindow* parent) noexcept ->UIWindow*;
         // create ui window with xml string
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
         // create ui window with custom window && xml string
@@ -334,7 +333,7 @@ namespace LongUI {
         auto create_system_brushes() noexcept ->HRESULT;
         // discard resources
         void discard_resources() noexcept;
-        // create the control
+        // create the control with xml-node
         auto create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
         // create ui window
         auto create_ui_window(pugi::xml_node node, UIWindow* parent, callback_for_creating_window func, void* buffer) noexcept ->UIWindow*;

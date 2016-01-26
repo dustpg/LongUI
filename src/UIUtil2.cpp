@@ -374,21 +374,24 @@ LONGUI_NAMESPACE_BEGIN namespace Helper {
 LONGUI_NAMESPACE_END
 
 // 设置边框颜色
-bool LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATE_COUNT]) noexcept {
+void LongUI::Helper::SetBorderColor(pugi::xml_node node, D2D1_COLOR_F color[STATE_COUNT]) noexcept {
+    Helper::SetBorderColor(color);
+    // 必须有效
+    assert(node && "no null");
+    // 检查
+    for (auto i = 0u; i < STATE_COUNT; ++i) {
+        Helper::MakeColor(node.attribute(BORDER_COLOR_ATTR[i]).value(), color[i]);
+    }
+}
+
+// 设置边框颜色
+LongUINoinline void LongUI::Helper::SetBorderColor(D2D1_COLOR_F color[STATE_COUNT]) noexcept {
     // 边框颜色
     color[State_Disabled]   = D2D1::ColorF(0xBFBFBFui32);
     color[State_Normal]     = D2D1::ColorF(0xACACACui32);
     color[State_Hover]      = D2D1::ColorF(0x7EB4EAui32);
     color[State_Pushed]     = D2D1::ColorF(0x569DE5ui32);
-    // 检查
-    if (node) {
-        for (auto i = 0u; i < STATE_COUNT; ++i) {
-            Helper::MakeColor(node.attribute(BORDER_COLOR_ATTR[i]).value(), color[i]);
-        }
-    }
-    return true;
 }
-
 
 
 // --------------------------------------------------------------------------------------------------------

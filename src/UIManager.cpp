@@ -360,12 +360,14 @@ void LongUI::CUIManager::Uninitialize() noexcept {
 
 // 创建事件
 void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
-    assert(type < LongUI::TypeGreater_CreateControl_ReinterpretParentPointer &&
-        type > Type_CreateControl_NullParentPointer);
+    // 类型断言
+    assert(type < LongUI::TypeGreater_CreateControl_ReinterpretParentPointer);
+    assert(type > Type_CreateControl_NullParentPointer);
+    // 遍历hash表
     m_hashStr2CreateFunc.ForEach([type](StringTable::Unit* unit) noexcept {
         assert(unit);
         auto func = reinterpret_cast<CreateControlFunction>(unit->value);
-        func(type, LongUINullXMLNode);
+        func(type, pugi::xml_node(nullptr));
     });
 }
 
@@ -593,17 +595,29 @@ void LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept {
     while (::timeGetTime() < end_time_of_sleep) ::Sleep(1);
 }
 
+
+// 利用模板ID创建控件
+auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, CreateControlFunction function) noexcept ->UIControl* {
+    // 检查参数
+    assert(function && "function must be specified");
+    assert(templateid && "ttemplate id must be specified");
+    // 检查模板ID
+    assert(templateid < m_cCountCtrlTemplate && "out of range");
+    if (templateid >= m_cCountCtrlTemplate) templateid = 0;
+    // 创建
+    return function(cp->CET(), m_pTemplateNodes[templateid]);
+}
+
 // 利用现有资源创建控件
 auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t tid) noexcept -> UIControl * {
+    // TODO: NODE
+    assert(node && "call another method if no xml-node");
     // 检查参数 function
     if (!function) {
-        assert(node && "bad argument");
-        if (node) {
-            function = this->GetCreateFunc(node.name());
-        }
+        function = this->GetCreateFunc(node.name());
     }
     // 结点有效并且没有指定模板ID则尝试获取
-    if (node && !tid) {
+    if (!tid) {
         tid = static_cast<decltype(tid)>(LongUI::AtoI(
             node.attribute(LongUI::XMLAttribute::TemplateID).value())
             );
@@ -612,8 +626,8 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     if (tid) {
         assert(tid < m_cCountCtrlTemplate && "out of range");
         if (tid >= m_cCountCtrlTemplate) tid = 0;
-        // 结点有效则添加属性
-        if (node) {
+        // 结点有效->添加属性
+        {
             auto attribute = m_pTemplateNodes[tid].first_attribute();
             // 遍历属性
             while (attribute) {
@@ -626,10 +640,6 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
                 attribute = attribute.next_attribute();
             }
         }
-        // 没有则直接设置
-        else {
-            node = m_pTemplateNodes[tid];
-        }
     }
     // 检查
     assert(function && "bad idea");
@@ -638,16 +648,29 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     return ctrl;
 }
 
+// 创建弹出窗口
+auto LongUI::CUIManager::CreatePopupWindow(const D2D1_RECT_L& rect, UIWindow* parent) noexcept ->UIWindow* {
+    assert(!"NOIMPL");
+    assert(parent && "windows parent cannot be null");
+    UNREFERENCED_PARAMETER(rect);
+    UNREFERENCED_PARAMETER(parent);
+    return nullptr;
+}
+
+
 // 创建UI窗口
-auto LongUI::CUIManager::create_ui_window(pugi::xml_node node, 
-    UIWindow* pat, callback_for_creating_window func, void* buf) noexcept -> UIWindow* {
-    assert(node && "bad argument");
-    // 有效情况
-    if (func && node) {
-        // 创建窗口
-        auto window = func(node, pat, buf);
-        // 查错
-        assert(window); if (!window) return nullptr;
+auto LongUI::CUIManager::create_ui_window(
+    pugi::xml_node node,
+    UIWindow* parent,
+    callback_for_creating_window func,
+    void* buf) noexcept -> UIWindow* {
+    assert(func && node && "bad argument");
+    // 创建窗口
+    auto window = func(node, parent, buf);
+    // 查错
+    assert(window && "OOM or some error");
+    // 成功
+    if (window) {
         // 重建资源
         auto hr = window->Recreate();
         ShowHR(hr);
@@ -658,19 +681,26 @@ auto LongUI::CUIManager::create_ui_window(pugi::xml_node node,
         // 创建控件树
         this->make_control_tree(window, node);
         // 完成创建
-        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
 #ifdef _DEBUG
         auto time = dbg_timer.Delta_ms<double>();
         UIManager << DL_Log
-            << Formated(L" took time %.3lf ms for making tree ", time)
+            << Formated(L" took %.3lfms for making ", time)
             << window
             << LongUI::endl;
+        dbg_timer.MovStartEnd();
 #endif
+        // 发送消息
+        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+#ifdef _DEBUG
+        time = dbg_timer.Delta_ms<double>();
+        UIManager << DL_Log
+            << Formated(L" took %.3lfms for sending finished event ", time)
+            << LongUI::endl;
         //::Sleep(5000);
-        // 返回
-        return window;
+#endif
+            // 返回 
     }
-    return nullptr;
+    return window;
 }
 
 // 消息转换
@@ -980,7 +1010,6 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
         assert(m_ppTextFormats[LongUIDefaultTextFormatIndex] == nullptr && "bad action");
         hr = this->CreateTextFormat(
             LongUIDefaultTextFontName,
-            //L"Microsoft YaHei",
             DWRITE_FONT_WEIGHT_NORMAL,
             DWRITE_FONT_STYLE_NORMAL,
             DWRITE_FONT_STRETCH_NORMAL,
@@ -992,8 +1021,12 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     }
     // 设置
     if (SUCCEEDED(hr)) {
-        m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-        m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+        m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetParagraphAlignment(
+            DWRITE_PARAGRAPH_ALIGNMENT(LongUIDefaultTextVAlign)
+            );
+        m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetTextAlignment(
+            DWRITE_TEXT_ALIGNMENT(LongUIDefaultTextHAlign)
+            );
     }
     // 索引0图元: 暂无
     if (SUCCEEDED(hr)) {

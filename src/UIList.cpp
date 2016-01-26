@@ -6,6 +6,8 @@
 // ----------------------------------------------------------------------------
 // UI列表控件: 初始化
 void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
+    // 必须有效
+    assert(node && "call UIListHeader::initialize() if no xml-node");
     // 链式调用
     Super::initialize(node);
     // 初始
@@ -18,7 +20,7 @@ void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
     }
     // MAIN PROC
     auto listflag = this->list_flag | Flag_MultiSelect;
-    if (node) {
+    {
         const char* str = nullptr;
         // 行高度
         if ((str = node.attribute("lineheight").value())) {
@@ -262,15 +264,15 @@ void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
 
 // 对列表插入一个行模板至指定位置
 auto LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept ->UIListLine* {
+    // 创建列表行
     auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(this->CET(), pugi::xml_node()));
-    if (ctrl) {
-        // 添加子控件
-        for (const auto& data : m_vLineTemplate) {
-            ctrl->Insert(ctrl->end(), UIManager.CreateControl(ctrl, data.id, data.func));
-        }
-        // 插入
-        this->Insert(index, ctrl);
+    if (!ctrl) return ctrl;
+    // 添加子控件
+    for (const auto& data : m_vLineTemplate) {
+        ctrl->Insert(ctrl->end(), UIManager.CreateControl(ctrl, data.id, data.func));
     }
+    // 插入
+    this->Insert(index, ctrl);
     return ctrl;
 }
 
@@ -796,7 +798,7 @@ void LongUI::UIListLine::initialize(pugi::xml_node node) noexcept {
     Super::initialize(node);
     // listline 特性: 宽度必须固定
     //auto flag = this->flags | Flag_WidthFixed;
-    if (node) {
+    {
 
     }
     //force_cast(this->flags) = flag;
@@ -853,6 +855,8 @@ noexcept -> UIControl* {
 
 // UI列表头控件: 构造函数
 void LongUI::UIListHeader::initialize(pugi::xml_node node) noexcept {
+    // 必须有效
+    assert(node && "call UIListHeader::initialize() if no xml-node");
     // 链式调用
     Super::initialize(node);
     // 本类必须为边界控件
@@ -861,7 +865,7 @@ void LongUI::UIListHeader::initialize(pugi::xml_node node) noexcept {
     longui_cast<UIList*>(this->parent)->SetHeader(this);
     // 支持模板子结点
     //auto flag = this->flags;
-    if (node) {
+    {
         const char* str = nullptr;
         // 行高度
         if ((str = node.attribute("lineheight").value())) {

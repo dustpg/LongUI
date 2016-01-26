@@ -140,7 +140,11 @@ namespace LongUI {
     // LongUI Default Text Font Family Name
     static constexpr wchar_t* const LongUIDefaultTextFontName = L"Arial";
     // LongUI Default Text Font Size
-    static constexpr float          LongUIDefaultTextFontSize = 22.f;
+    static constexpr float          LongUIDefaultTextFontSize = 16.f;
+    // LongUI Default Text V-Align
+    static constexpr uint32_t       LongUIDefaultTextVAlign = DWRITE_PARAGRAPH_ALIGNMENT_CENTER;
+    // LongUI Default Text H-Align
+    static constexpr uint32_t       LongUIDefaultTextHAlign = DWRITE_TEXT_ALIGNMENT_CENTER;
     // LongUI 常量
     enum EnumUIConstant : uint32_t {
         // LongUI CUIString Fixed Buffer Length [fixed buffer length]
@@ -259,14 +263,6 @@ namespace LongUI {
 #define LONGUI_NOVTABLE
 #endif
 
-
-#ifndef CATCH_HRESULT
-#define CATCH_HRESULT(hr) catch (std::bad_alloc& ) { hr = E_OUTOFMEMORY; } catch (...)  { hr=E_FAIL; }
-#endif
-
-#define LongUINullXMLNode LongUI::null_xml_node
-
-
 namespace LongUI {
     // pre-declare
     class UIControl;
@@ -282,8 +278,6 @@ namespace LongUI {
     class CUIString;
     // pre-declare
     class IUIScript;
-    // null for xmlnode, pugixml hold a handle for pointer
-    static const pugi::xml_node null_xml_node = pugi::xml_node(nullptr);
 }
 
 // XML Node Attribute/Value constexpr char* const Setting

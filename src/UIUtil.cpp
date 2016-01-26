@@ -1,7 +1,6 @@
 ﻿#include "LongUI.h"
 #include <algorithm>
 
-
 // 忙等
 LongUINoinline void LongUI::usleep(long usec) noexcept {
     LARGE_INTEGER lFrequency;
@@ -12,7 +11,6 @@ LongUINoinline void LongUI::usleep(long usec) noexcept {
     lEndTime.QuadPart += (LONGLONG)usec * lFrequency.QuadPart / 1000000;
     do { ::QueryPerformanceCounter(&lCurTime); } while (lCurTime.QuadPart < lEndTime.QuadPart);
 }
-
 
 /// <summary>
 /// float4 color ---> 32-bit ARGB uint color
@@ -60,9 +58,6 @@ LongUINoinline auto LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F
     color4f.a = static_cast<float>((color32 & ALPHA_MASK) >> ALPHA_SHIFT) / 255.f;
 }
 
-
-
-// Meta 渲染
 /// <summary>
 /// render the meta 渲染Meta
 /// </summary>

@@ -17,6 +17,8 @@ LongUI::UIScrollBar::UIScrollBar(UIContainer* cp) noexcept :
 /// <param name="node">The node.</param>
 /// <returns></returns>
 void LongUI::UIScrollBar::initialize(pugi::xml_node node) noexcept {
+    // 必须有效
+    assert(node && "call UIScrollBar::initialize() if no xml-node");
     // 链式调用
     Super::initialize(node);
     // 边界相关
@@ -26,7 +28,7 @@ void LongUI::UIScrollBar::initialize(pugi::xml_node node) noexcept {
     // 修改
     m_uiAnimation.duration = 0.4f;
     // 结点有效
-    if (node) {
+    {
         const char* str = nullptr;
         // 滚轮步长
         if ((str = node.attribute("wheelstep").value())) {
@@ -129,6 +131,8 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 
 // UIScrollBarA 初始化
 void LongUI::UIScrollBarA::initialize(pugi::xml_node node) noexcept {
+    // 必须有效
+    assert(node && "call UIScrollBarA::initialize() if no xml-node");
     // 链式调用
     Super::initialize(node);
     auto stt = this->check_state();
@@ -147,7 +151,7 @@ void LongUI::UIScrollBarA::initialize(pugi::xml_node node) noexcept {
     }
     assert(m_pArrow1Geo && m_pArrow2Geo);
     // 修改颜色
-    if (node) {
+    {
         auto str = node.attribute("arrowstep").value();
         if (str) {
             m_fArrowStep = LongUI::AtoF(str);

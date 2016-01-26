@@ -31,6 +31,11 @@ namespace LongUI {
     auto WINAPI CreateNullControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     // Container
     class UIContainer;
+    // config for creating control
+    namespace Config { struct Control {
+        // name for control
+        const char* name;
+    };}
     // base control class -- 基本控件类
     class LongUIAPI alignas(sizeof(void*)) UIControl : public CUISingleNormalObject {
         // Super class
@@ -132,6 +137,10 @@ namespace LongUI {
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
+        // initialize without xml-node
+        void initialize() noexcept;
+        // initialize with config
+        void initialize(const Config::Control& cc) noexcept;
     public:
         // get window of control
         auto GetWindow() const noexcept { return m_pWindow; }

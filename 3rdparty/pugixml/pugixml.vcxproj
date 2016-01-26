@@ -122,7 +122,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="pugixml.cpp" />
-    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pugiconfig.hpp" />
