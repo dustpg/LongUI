@@ -138,11 +138,11 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2"/>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
-    <HorizontalLayout name="H" size="0, 48">
+    <HorizontalLayout name="H" templatesize="600, 0">
         <Button borderwidth="1" margin="4,4,4,4" text="占位测试"/>
         <ComboBox textformat="1" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
-            <Item>真的</Item>
-            <Item>假的</Item>
+            <ListLine><Text text="真的" templateid="4"/></ListLine>
+            <ListLine><Text text="假的" templateid="4"/></ListLine>
         </ComboBox>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">

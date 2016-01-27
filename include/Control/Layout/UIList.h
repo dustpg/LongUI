@@ -176,8 +176,8 @@ namespace LongUI {
         virtual void RefreshLayout() noexcept override final;
         // push back
         virtual void PushBack(UIControl* child) noexcept;
-        // just remove 
-        virtual void RemoveJust(UIControl* child) noexcept;
+        // remove child 
+        virtual void Remove(UIControl* child) noexcept;
         // insert
         void Insert(uint32_t index, UIListLine* line) noexcept;
         // get child at index

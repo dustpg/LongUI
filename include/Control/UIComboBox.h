@@ -58,7 +58,7 @@ namespace LongUI{
         // create 创建
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
-        UIComboBox(UIContainer* cp) noexcept;
+        UIComboBox(UIContainer* cp) noexcept : Super(cp) { }
         // get state
         auto GetControlState() const noexcept { return m_uiElement.GetNowBasicState(); }
         // set state

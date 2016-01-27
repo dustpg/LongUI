@@ -38,6 +38,11 @@ namespace LongUI {
         // debug show
         bool                debug_show;
     };}
+    // config::popup window
+    namespace Config { struct Popup {
+        // pos to parent
+        D2D1_RECT_L                 position;
+    };}
     // ui's window
     class LongUIAPI UIWindow : public UIVerticalLayout, public Helper::ComStatic<
         Helper::QiListSelf<IUnknown, Helper::QiList<IDropTarget>>> {
@@ -102,7 +107,15 @@ namespace LongUI {
             Index_SkipRender,
             // prerender(for off screen render)
             Index_Prerender,
+            // exit on close
+            Index_ExitOnClose,
+            // close when focus killed
+            Index_CloseOnFocusKilled,
+            // count of this
+            INDEX_COUNT,
         };
+        // assert
+        static_assert(INDEX_COUNT < 32, "out of range");
     public: // UIControl 接口实现
         // Render 渲染 
         virtual void Render() const noexcept override;
@@ -117,16 +130,20 @@ namespace LongUI {
     public:
         // constructor
         UIWindow(UIWindow* parent) noexcept;
+        // create popup window
+        static auto CreatePopup(const Config::Popup&, UIWindow* parent) noexcept -> UIWindow*;
     protected:
         // init
         void initialize(pugi::xml_node node) noexcept;
+        // init as popup window
+        void initialize(const Config::Popup& popup) noexcept;
         // destructor
         ~UIWindow() noexcept;
         // deleted 
         UIWindow(const UIWindow&) = delete; UIWindow() = delete;
     public: // some new
         // on close event
-        virtual auto OnClose() noexcept -> bool { this->delay_cleanup(); UIManager.Exit(); return true; };
+        virtual bool OnClose() noexcept;
     public: // IDropTarget interface
         // impl for IDropTarget::DragEnter
         HRESULT STDMETHODCALLTYPE DragEnter(IDataObject *pDataObj,DWORD grfKeyState, POINTL pt,DWORD *pdwEffect) noexcept override;
@@ -176,6 +193,10 @@ namespace LongUI {
         // copystring for control in this winddow in safe way
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
     public:
+        // get text anti-mode 
+        inline auto GetTextAntimode() const noexcept { return m_textAntiMode; }
+        // get text anti-mode 
+        inline void SetTextAntimode(D2D1_TEXT_ANTIALIAS_MODE mode) noexcept {  m_textAntiMode = static_cast<decltype(m_textAntiMode)>(mode); }
         // get waite-vs event handle
         inline auto GetVSyncEvent() const noexcept { return m_hVSync; }
         // show window

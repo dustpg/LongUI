@@ -53,8 +53,8 @@ namespace LongUI {
         virtual void RefreshLayout() noexcept override final;
         // push back
         virtual void PushBack(UIControl* child) noexcept override final;
-        // just remove 
-        virtual void RemoveJust(UIControl* child) noexcept override final;
+        // remove child
+        virtual void Remove(UIControl* child) noexcept override final;
     public:
         // get single child
         auto GetSingleChild() const noexcept { return m_pChild; }
@@ -64,7 +64,7 @@ namespace LongUI {
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept->UIControl*;
     protected:
         // init
-        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+        void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
         // render chain -> mainground

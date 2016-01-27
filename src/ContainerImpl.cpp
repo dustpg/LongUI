@@ -140,8 +140,8 @@ void LongUI::UIContainerBuiltIn::insert_only(Iterator itr, UIControl* ctrl) noex
 }
 
 
-// UIContainerBuiltIn: 仅移除控件
-void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
+// UIContainerBuiltIn: 移除控件
+void LongUI::UIContainerBuiltIn::Remove(UIControl* ctrl) noexcept {
     // 检查是否属于本容器
 #ifdef _DEBUG
     bool ok = false;
@@ -175,7 +175,8 @@ void LongUI::UIContainerBuiltIn::RemoveJust(UIControl* ctrl) noexcept {
         // 修改
         this->SetControlLayoutChanged();
     }
-    Super::RemoveJust(ctrl);
+    // 父类处理
+    Super::Remove(ctrl);
 }
 
 
@@ -611,11 +612,10 @@ void LongUI::UISingle::PushBack(UIControl* child) noexcept {
 }
 
 // UISingle: 仅移除
-void LongUI::UISingle::RemoveJust(UIControl* child) noexcept {
+void LongUI::UISingle::Remove(UIControl* child) noexcept {
     assert(m_pChild == child && "bad argment");
-    this->cleanup_child(child);
     m_pChild = UIControl::GetPlaceholder();
-    Super::RemoveJust(child);
+    Super::Remove(child);
 }
 
 // UISingle: 更新布局
@@ -672,7 +672,9 @@ LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp),
 /// </summary>
 /// <param name="node">The node.</param>
 /// <returns></returns>
-void LongUI::UIPage::initalize(pugi::xml_node node) noexcept {
+void LongUI::UIPage::initialize(pugi::xml_node node) noexcept {
+    // 链式调用
+    Super::initialize(node);
     // 动画类型
     auto atype = Helper::GetEnumFromXml(node, AnimationType::Type_QuadraticEaseOut, "animationtype");
     m_animation.type = atype;
@@ -682,7 +684,6 @@ void LongUI::UIPage::initalize(pugi::xml_node node) noexcept {
         m_animation.duration = LongUI::AtoF(str);
     }
 }
-
 
 // UIPage 析构函数
 LongUI::UIPage::~UIPage() noexcept {
@@ -854,7 +855,7 @@ void LongUI::UIPage::DisplayNextPage(UIControl* page) noexcept {
 }
 
 // UIPage: 仅移除
-void LongUI::UIPage::RemoveJust(UIControl* child) noexcept {
+void LongUI::UIPage::Remove(UIControl* child) noexcept {
     // 查找
     auto itr = std::find(this->begin(), this->end(), child);
     // 没找到
@@ -883,7 +884,7 @@ void LongUI::UIPage::RemoveJust(UIControl* child) noexcept {
         m_vChildren.erase(itr);
         --m_cChildrenCount;
         this->SetControlLayoutChanged();
-        Super::RemoveJust(child);
+        Super::Remove(child);
     }
 }
 

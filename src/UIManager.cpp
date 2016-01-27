@@ -648,16 +648,6 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     return ctrl;
 }
 
-// 创建弹出窗口
-auto LongUI::CUIManager::CreatePopupWindow(const D2D1_RECT_L& rect, UIWindow* parent) noexcept ->UIWindow* {
-    assert(!"NOIMPL");
-    assert(parent && "windows parent cannot be null");
-    UNREFERENCED_PARAMETER(rect);
-    UNREFERENCED_PARAMETER(parent);
-    return nullptr;
-}
-
-
 // 创建UI窗口
 auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
@@ -671,21 +661,29 @@ auto LongUI::CUIManager::create_ui_window(
     assert(window && "OOM or some error");
     // 成功
     if (window) {
+#ifdef _DEBUG
+        //::Sleep(5000);
+        CUITimerH dbg_timer; dbg_timer.Start();
+        UIManager << DL_Log << window << LongUI::endl;
+#endif
         // 重建资源
         auto hr = window->Recreate();
         ShowHR(hr);
 #ifdef _DEBUG
         //::Sleep(5000);
-        CUITimerH dbg_timer; dbg_timer.Start();
+        auto time = dbg_timer.Delta_ms<double>();
+        UIManager << DL_Log
+            << Formated(L" took %.3lfms for recreate.", time)
+            << LongUI::endl;
+        dbg_timer.MovStartEnd();
 #endif
         // 创建控件树
         this->make_control_tree(window, node);
         // 完成创建
 #ifdef _DEBUG
-        auto time = dbg_timer.Delta_ms<double>();
+        time = dbg_timer.Delta_ms<double>();
         UIManager << DL_Log
-            << Formated(L" took %.3lfms for making ", time)
-            << window
+            << Formated(L" took %.3lfms for making.", time)
             << LongUI::endl;
         dbg_timer.MovStartEnd();
 #endif
@@ -694,7 +692,7 @@ auto LongUI::CUIManager::create_ui_window(
 #ifdef _DEBUG
         time = dbg_timer.Delta_ms<double>();
         UIManager << DL_Log
-            << Formated(L" took %.3lfms for sending finished event ", time)
+            << Formated(L" took %.3lfms for sending finished event.", time)
             << LongUI::endl;
         //::Sleep(5000);
 #endif

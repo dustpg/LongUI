@@ -66,10 +66,8 @@ namespace LongUI {
         virtual void RefreshLayout() noexcept = 0;
         // push back, do push marginalal-control for UIContainer
         virtual void PushBack(UIControl* child) noexcept = 0;
-        // just remove 
-        virtual inline void RemoveJust(UIControl* child) noexcept { this->RemoveChildReference(child); }
-        // remove and clean child
-        void RemoveClean(UIControl* child) noexcept { this->RemoveJust(child); child->cleanup(); }
+        // remove child
+        virtual void Remove(UIControl* child) noexcept { this->RemoveChildReference(child); this->cleanup_child(child); }
     public:
         // remove child reference
         void RemoveChildReference(UIControl* child) noexcept { if (m_pMousePointed == child) m_pMousePointed = nullptr; }
@@ -85,6 +83,8 @@ namespace LongUI {
     protected:
         // init
         void initialize(pugi::xml_node node) noexcept;
+        // init
+        void initialize() noexcept;
         // dtor
         ~UIContainer() noexcept;
     public:
@@ -155,7 +155,10 @@ namespace LongUI {
         // render chain -> foreground
         void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
         // cleanup child
-        void cleanup_child(UIControl* ctrl) noexcept { assert(ctrl && (ctrl->parent == this || !ctrl->parent)); ctrl->cleanup(); }
+        void cleanup_child(UIControl* ctrl) noexcept { 
+            assert(ctrl && (ctrl->parent == this || !ctrl->parent)); 
+            if(!(ctrl->flags & Flag_NoCleanupViaParent)) ctrl->cleanup(); 
+        }
         // after insert
         void after_insert(UIControl* child) noexcept;
     public:

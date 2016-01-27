@@ -600,6 +600,23 @@ void LongUI::UIMarginalable::initialize(pugi::xml_node node) noexcept {
 #endif
 }
 
+/// <summary>
+/// Initializes witouth specified xml-node.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMarginalable::initialize() noexcept {
+    // 链式调用
+    Super::initialize();
+    // 有效结点
+    {
+        // 获取类型
+        force_cast(this->marginal_type) = Control_Unknown;
+    }
+    // 本类已被初始化
+#ifdef _DEBUG
+#endif
+}
+
 
 // 获得世界转换矩阵 for 边缘控件
 void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
@@ -728,7 +745,6 @@ LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal
 /// <summary>
 /// Initializes with specified cxml-node
 /// </summary>
-/// <param name="cp">The cp.</param>
 /// <param name="node">The node.</param>
 /// <returns></returns>
 void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
@@ -751,7 +767,7 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
             node.attribute(LongUI::XMLAttribute::TemplateSize).value(),
             &m_2fTemplateSize.width, 2
             );
-        // 渲染依赖属性
+        // XXX: 渲染依赖属性
         /*if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
             flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
         }*/
@@ -764,6 +780,27 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
             flag |= LongUI::Flag_Container_ZoomMarginalControl;
         }
     }
+    // 修改完毕
+    force_cast(this->flags) = flag;
+}
+
+
+/// <summary>
+/// Initializes without specified xml-node
+/// </summary>
+/// <returns></returns>
+void LongUI::UIContainer::initialize() noexcept {
+#ifdef _DEBUG
+    for (auto ctrl : marginal_control) {
+        assert(ctrl == nullptr && "bad action");
+    }
+#endif
+    // 链式调用
+    Super::initialize();
+    // 保留原始外间距
+    m_orgMargin = this->margin_rect;
+    // 修改flag
+    auto flag = this->flags | Flag_UIContainer;
     // 修改完毕
     force_cast(this->flags) = flag;
 }

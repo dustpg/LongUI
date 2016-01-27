@@ -88,6 +88,8 @@ namespace LongUI {
         UIMarginalable(UIContainer* cp) noexcept : Super(cp) {}
         // init
         void initialize(pugi::xml_node node) noexcept;
+        // init without xml-node
+        void initialize() noexcept;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

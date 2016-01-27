@@ -35,6 +35,8 @@ namespace LongUI {
         UIContainerBuiltIn(UIContainer* cp) noexcept : Super(cp) {}
         // ctor
         void initialize(pugi::xml_node node) noexcept { Super::initialize(node); }
+        // init without xml-node
+        void initialize() noexcept { return Super::initialize(); }
         // dtor
         ~UIContainerBuiltIn() noexcept;
     public:
@@ -91,8 +93,8 @@ namespace LongUI {
     public:
         // push back
         virtual void PushBack(UIControl* child) noexcept override final;
-        // just remove 
-        virtual void RemoveJust(UIControl* child) noexcept override final;
+        // remove child
+        virtual void Remove(UIControl* child) noexcept override final;
     public:
         // get index of ctrl in [0, length), return OOR value if not found
         auto GetIndexOf(UIControl*) const noexcept ->uint32_t;

@@ -250,7 +250,7 @@ LongUI::UIList::~UIList() noexcept {
 }
 
 // [UNTESTED]移除
-void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
+void LongUI::UIList::Remove(UIControl* child) noexcept {
     auto itr = std::find(m_vLines.cbegin(), m_vLines.cend(), child);
     if (itr == m_vLines.cend()) {
         assert("control not found");
@@ -259,7 +259,7 @@ void LongUI::UIList::RemoveJust(UIControl* child) noexcept {
     this->reset_select();
     m_vLines.erase(itr);
     --m_cChildrenCount;
-    Super::RemoveJust(child);
+    Super::Remove(child);
 }
 
 // 对列表插入一个行模板至指定位置
@@ -285,7 +285,14 @@ void LongUI::UIList::RemoveLineElementInEachLine(uint32_t index) noexcept {
         // 交换列表
         for (auto line : m_vLines) {
             auto child = line->GetAt(index);
-            line->RemoveClean(child);
+#ifdef _DEBUG
+            if (child->flags & Flag_NoCleanupViaParent) {
+                UIManager << DL_Hint
+                    << L"bad idea for line hosting flag Flag_NoCleanupViaParent"
+                    << LongUI::endl;
+            }
+#endif
+            line->Remove(child);
         }
         // 模板
         m_vLineTemplate.erase(index);

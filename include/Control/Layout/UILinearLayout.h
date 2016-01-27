@@ -55,7 +55,9 @@ namespace LongUI{
         UIVerticalLayout(const UIVerticalLayout&) = delete;
     protected:
         // init
-        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+        void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+        // init without xml-node
+        void initialize() noexcept { return Super::initialize(); }
 #ifdef LongUIDebugEvent
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
@@ -90,7 +92,7 @@ namespace LongUI{
         UIHorizontalLayout(const UIHorizontalLayout&) = delete;
     protected:
         // init
-        void initalize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+        void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
 #ifdef LongUIDebugEvent
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;

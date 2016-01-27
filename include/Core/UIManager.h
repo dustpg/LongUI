@@ -96,8 +96,6 @@ namespace LongUI {
             _COM_Outptr_ IDWriteTextFormat** textFormat
             ) noexcept ->HRESULT;
     public: // Create UI Window Zone!!!!!!!!!
-        // create popup window
-        auto CreatePopupWindow(const D2D1_RECT_L& rect, UIWindow* parent) noexcept ->UIWindow*;
         // create ui window with xml string
         auto CreateUIWindow(const char* xml, UIWindow* parent = nullptr) noexcept { return this->CreateUIWindow<LongUI::UIWindow>(xml, parent); }
         // create ui window with custom window && xml string

@@ -245,22 +245,6 @@ void LongUI::UIButton::cleanup() noexcept {
 // **** UIComboBox
 // ----------------------------------------------------------------------------
 
-// UIComboBox: 构造函数
-LongUI::UIComboBox::UIComboBox(UIContainer* cp) noexcept : Super(cp) {
-    // 点击事件
-    auto call = [this](UIControl* unused) noexcept {
-        UNREFERENCED_PARAMETER(unused);
-        D2D1_POINT_2F p1 = { this->view_pos.x,  this->view_pos.y };
-        D2D1_POINT_2F p2 = { this->view_size.width,  this->view_size.height };
-        p1 = LongUI::TransformPoint(this->world, p1);
-        p2 = LongUI::TransformPoint(this->world, p2);
-        //auto popup = UIManager.CreatePopupWindow(rect, m_pWindow);
-        return true;
-    };
-    // 添加事件
-    this->Super::uniface_addevent(SubEvent::Event_ItemClicked, std::move(UICallBack(call)));
-}
-
 // Render 渲染 
 void LongUI::UIComboBox::Render() const noexcept {
     // 背景渲染
@@ -325,6 +309,23 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
 void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
     // 链式初始化
     Super::initialize(node);
+    // 点击事件
+    auto call = [this](UIControl* unused) noexcept {
+        UNREFERENCED_PARAMETER(unused);
+        D2D1_POINT_2F p1 = { 0.f, 0.f };
+        D2D1_POINT_2F p2 = { this->view_size.width,  this->view_size.height };
+        p1 = LongUI::TransformPoint(this->world, p1);
+        p2 = LongUI::TransformPoint(this->world, p2);
+        Config::Popup config;
+        config.position = { LONG(p1.x), LONG(p1.y), LONG(p2.x), LONG(p2.y) };
+        auto popup = UIWindow::CreatePopup(config, m_pWindow);
+        if (popup) {
+            //popup->CloseWindowLater();
+        }
+        return true;
+    };
+    // 添加事件
+    this->AddEventCall(call, SubEvent::Event_ItemClicked);
     m_vItems.reserve(32);
     // 成功
     if (m_vItems.isok()) {

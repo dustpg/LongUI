@@ -35,7 +35,7 @@ namespace LongUI {
         virtual void cleanup() noexcept override;
     protected:
         // init
-        void initalize(pugi::xml_node node) noexcept;
+        void initialize(pugi::xml_node node) noexcept;
         // ctor
         UIPage(UIContainer* cp) noexcept;
         // dtor
@@ -58,8 +58,8 @@ namespace LongUI {
         virtual void RefreshLayout() noexcept override final;
         // push back
         virtual void PushBack(UIControl* child) noexcept override final;
-        // just remove 
-        virtual void RemoveJust(UIControl* child) noexcept override final;
+        // remove child
+        virtual void Remove(UIControl* child) noexcept override final;
     public:
         void Insert(uint32_t index, UIControl* child) noexcept;
         // display next page

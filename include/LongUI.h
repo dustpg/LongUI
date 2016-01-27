@@ -238,6 +238,12 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
         Flag_HeightFixed = 1 << 4,
+        /// <summary>
+        /// The flag "no cleanup"
+        /// will NOT cleaned up when parent cleaned up
+        /// you must cleanup manually
+        /// </summary>
+        Flag_NoCleanupViaParent = 1 << 5,
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
         // NOTE: this attribute used by parent

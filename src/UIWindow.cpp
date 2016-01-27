@@ -10,8 +10,28 @@ const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(
 /// <see cref="LongUI::UIWindow"/> class.
 /// </summary>
 /// <param name="parent">The parent for self in window-level</param>
-LongUI::UIWindow::UIWindow(UIWindow* parent) noexcept : Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {
+LongUI::UIWindow::UIWindow(UIWindow* parent) noexcept : 
+Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {
     std::memset(&m_curMedium, 0, sizeof(m_curMedium));
+}
+
+/// <summary>
+/// Creates the popup window
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup, UIWindow* parent) noexcept -> UIWindow* {
+    assert(parent && "bad argument");
+    auto window = new(std::nothrow) UIWindow(parent);
+    // 内存申请成功
+    if (window) {
+        // 初始化
+        window->initialize(popup);
+        // 重建
+        auto hr = window->Recreate(); ShowHR(hr);
+        // 创建完毕
+        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+    }
+    return window;
 }
 
 /// <summary>
@@ -83,7 +103,7 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
     // 窗口区
     {
         // 检查样式样式
-        auto popup = node.attribute("popup").as_bool(false);
+        auto popup = node.attribute("popup-test").as_bool(false);
         DWORD window_style = popup ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
         // 设置窗口大小
         RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
@@ -154,10 +174,106 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
     m_pWindow = this;
     // 清零
     std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
+    // 关闭时退出
+    if (node.attribute("exitonclose").as_bool(true)) {
+        m_baBoolWindow.SetTrue(UIWindow::Index_ExitOnClose);
+    }
     // 自动显示窗口
     if (node.attribute("autoshow").as_bool(true)) {
         ::ShowWindow(m_hwnd, SW_SHOW);
     }
+}
+
+
+/// <summary>
+/// Initializes the specified popup.
+/// </summary>
+/// <param name="popup">The popup.</param>
+/// <returns></returns>
+void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
+    assert(this->wndparent && "this->wndparent cannot be null while in popup window");
+    // 失去焦点即关闭
+    m_baBoolWindow.SetTrue(UIWindow::Index_CloseOnFocusKilled);
+    // 链式调用
+    Super::initialize();
+    std::memset(&m_curMedium, 0, sizeof(m_curMedium));
+    // flag 区
+    {
+        force_cast(this->wnd_type) = Type_Layered;
+    }
+    // 其他属性
+    {
+        // 最小大小
+        m_miniSize.width = LongUIWindowMinSize;
+        m_miniSize.height = LongUIWindowMinSize;
+        // 文本抗锯齿
+        m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+    }
+    // 窗口区
+    {
+        // 检查样式样式
+        constexpr DWORD window_style = WS_POPUPWINDOW;
+        // 设置窗口大小
+        RECT window_rect = { 
+            0, 0, 
+            popup.position.right - popup.position.left, 
+            popup.position.bottom - popup.position.top
+        };
+        force_cast(this->window_size.width) = window_rect.right;
+        force_cast(this->window_size.height) = window_rect.bottom;
+        visible_rect.right = this->view_size.width;
+        visible_rect.bottom = this->view_size.height;
+        m_2fContentSize = this->view_size;
+        // 调整大小
+        ::AdjustWindowRect(&window_rect, window_style, FALSE);
+        // 居中
+        window_rect.right -= window_rect.left;
+        window_rect.bottom -= window_rect.top;
+        window_rect.left = (::GetSystemMetrics(SM_CXFULLSCREEN) - window_rect.right) / 2;
+        window_rect.top = (::GetSystemMetrics(SM_CYFULLSCREEN) - window_rect.bottom) / 2;
+        // 创建窗口
+        m_hwnd = ::CreateWindowExW(
+            //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
+            WS_EX_NOREDIRECTIONBITMAP,
+            LongUI::WindowClassNameA, 
+            L"LongUI Popup Window",
+            window_style,
+            window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
+            this->wndparent->GetHwnd(),
+            nullptr,
+            ::GetModuleHandleW(nullptr),
+            this
+            );
+        // 禁止 Alt + Enter 全屏
+        if (m_hwnd) {
+            UIManager_DXGIFactory->MakeWindowAssociation(m_hwnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
+        }
+        // 创建失败
+        else {
+            UIManager.ShowError(L"Error! Failed to Create Window", __FUNCTIONW__);
+            return;
+        }
+    }
+    //SetLayeredWindowAttributes(m_hwnd, 0, 255, LWA_ALPHA);
+    // 设置Hover
+    m_csTME.cbSize = sizeof(m_csTME);
+    m_csTME.dwFlags = TME_HOVER | TME_LEAVE;
+    m_csTME.hwndTrack = m_hwnd;
+    m_csTME.dwHoverTime = 0;
+    // 创建闪烁计时器
+    m_idBlinkTimer = ::SetTimer(m_hwnd, BLINK_EVENT_ID, ::GetCaretBlinkTime(), nullptr);
+    // 添加窗口
+    UIManager.RegisterWindow(this);
+    // 拖放帮助器
+    //m_pDropTargetHelper = UIManager.GetDropTargetHelper();
+    // 注册拖拽目标
+    //::RegisterDragDrop(m_hwnd, this);
+    // 所在窗口就是自己
+    m_pWindow = this;
+    // 清零
+    std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
+    // 自动显示窗口
+    ::ShowWindow(m_hwnd, SW_SHOW);
 }
 
 // UIWindow 析构函数
@@ -640,6 +756,17 @@ void LongUI::UIWindow::Render() const noexcept  {
 #endif
 }
 
+// 退出时
+bool LongUI::UIWindow::OnClose() noexcept {
+    // 延迟清理
+    this->delay_cleanup(); 
+    // 退出程序?
+    if (m_baBoolWindow.Test(UIWindow::Index_ExitOnClose)) {
+        UIManager.Exit();
+    }
+    return true;
+};
+
 // UIWindow 事件处理
 bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 有了匿名函数妈妈再也不用担心一条函数有N行了
@@ -717,6 +844,10 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
             force_cast(arg.msg) = WM_KILLFOCUS;
         }
         ::DestroyCaret();
+        // 失去焦点即关闭窗口
+        if (m_baBoolWindow.Test(UIWindow::Index_CloseOnFocusKilled)) {
+            this->CloseWindowLater();
+        }
         handled = true;
         break;
     case WM_SIZE:           // 改变大小

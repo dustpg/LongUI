@@ -53,6 +53,8 @@ namespace LongUI {
         /// </remarks>
         virtual void cleanup() noexcept = 0;
     public:
+        // cleanup manually, BE CAREFUL TO USE THIS
+        void CleanupManually() noexcept { this->cleanup(); }
         // ui call from lambda/functor/function pointer
         template<typename T> auto AddEventCall(T call, SubEvent sb) noexcept {
             auto ok = this->uniface_addevent(sb, std::move(UICallBack(call)));
