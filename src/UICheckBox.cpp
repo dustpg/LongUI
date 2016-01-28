@@ -136,7 +136,7 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // do mouse event 鼠标事件处理
 bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
-    //UIManager << DL_Hint << this << this->GetEnabled() << endl;
+    //UIManager << DL_Hint << this << this->GetEnabled() << LongUI::endl;
     // 禁用状态禁用鼠标消息
     if (!this->GetEnabled()) return true;
     // 转换坐标

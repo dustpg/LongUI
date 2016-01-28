@@ -79,7 +79,7 @@ namespace LongUI{
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // destructor 析构函数
-        ~UIComboBox() noexcept {};
+        ~UIComboBox() noexcept;
         // deleted function
         UIComboBox(const UIComboBox&) = delete;
     protected:
@@ -87,6 +87,8 @@ namespace LongUI{
         CUIShortStringAllocator<>   m_strAllocator;
         // strings
         StringList                  m_vItems;
+        // host control to display items
+        UIList*                     m_pItemList = nullptr;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

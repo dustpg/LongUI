@@ -132,7 +132,7 @@ auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextF
     if (*fmt) {
         UIManager << DL_Warning
             << L"pointer 'fmt' pointed a non-nullptr, check it please."
-            << endl;
+            << LongUI::endl;
     }
 #endif
     // 创建
@@ -205,7 +205,7 @@ auto LongUI::DX::MakeTextFormat(
     if (*fmt) {
         UIManager << DL_Warning
             << L"pointer 'fmt' pointed a non-nullptr, check it please."
-            << endl;
+            << LongUI::endl;
     }
 #endif
     // 数据
@@ -460,7 +460,7 @@ auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mes
     if (*mesh) {
         UIManager << DL_Warning
             << L"pointer 'mesh' pointed a non-nullptr, check it please."
-            << endl;
+            << LongUI::endl;
     }
 #endif
     return E_NOTIMPL;

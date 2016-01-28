@@ -35,13 +35,15 @@ namespace LongUI {
         bool                full_rendering;
         // always do rendering
         bool                always_rendering;
-        // debug show
-        bool                debug_show;
     };}
     // config::popup window
     namespace Config { struct Popup {
         // pos to parent
         D2D1_RECT_L                 position;
+        // parent window
+        UIWindow*                   parent;
+        // [OPTIONAL]child
+        UIControl*                  child;
     };}
     // ui's window
     class LongUIAPI UIWindow : public UIVerticalLayout, public Helper::ComStatic<
@@ -131,7 +133,7 @@ namespace LongUI {
         // constructor
         UIWindow(UIWindow* parent) noexcept;
         // create popup window
-        static auto CreatePopup(const Config::Popup&, UIWindow* parent) noexcept -> UIWindow*;
+        static auto CreatePopup(const Config::Popup&) noexcept -> UIWindow*;
     protected:
         // init
         void initialize(pugi::xml_node node) noexcept;

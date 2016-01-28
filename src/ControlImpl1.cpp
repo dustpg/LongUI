@@ -307,8 +307,27 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
 
 // initialize, maybe you want call v-method
 void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
+    m_vItems.reserve(32);
+    assert(!m_pItemList);
     // 链式初始化
     Super::initialize(node);
+    // 创建列表
+    {
+        auto list = node.first_child();
+        if (!list) list= node.append_child("List");
+        assert(list && "bad action");
+        auto tmp = UIManager.CreateControl(nullptr, list, nullptr);
+        if (tmp) {
+            // 退出时不清理
+            tmp->SetNoCleanupViaParent();
+            // 转换为List
+            m_pItemList = longui_cast<UIList*>(tmp);
+            // 存在子节点尝试创建控件树
+            if (list.first_child()) {
+                UIManager.MakeControlTree(m_pItemList, list);
+            }
+        }
+    }
     // 点击事件
     auto call = [this](UIControl* unused) noexcept {
         UNREFERENCED_PARAMETER(unused);
@@ -318,25 +337,20 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         p2 = LongUI::TransformPoint(this->world, p2);
         Config::Popup config;
         config.position = { LONG(p1.x), LONG(p1.y), LONG(p2.x), LONG(p2.y) };
-        auto popup = UIWindow::CreatePopup(config, m_pWindow);
-        if (popup) {
-            //popup->CloseWindowLater();
-        }
+        config.parent = m_pWindow;
+        config.child = m_pItemList;
+        auto popup = UIWindow::CreatePopup(config);
+        popup = nullptr;
         return true;
     };
     // 添加事件
     this->AddEventCall(call, SubEvent::Event_ItemClicked);
-    m_vItems.reserve(32);
     // 成功
     if (m_vItems.isok()) {
-        // 获取物品列表
-        for (auto item : node) {
-            this->PushItem(item.text().as_string(""));
-        }
         // 获取索引
         auto index = uint32_t(LongUI::AtoI(node.attribute("select").value()));
-        // 初始化
-        m_text = index < this->GetItemCount() ? m_vItems[index] : L"";
+        // TODO: 初始化
+        //m_text = index < this->GetItemCount() ? m_vItems[index] : L"";
     }
 }
 
@@ -383,6 +397,13 @@ void LongUI::UIComboBox::PushItem(const wchar_t* item) noexcept {
     this->InsertItem(this->GetItemCount(), item);
 }
 
+// UIComboBox: 析构函数
+inline LongUI::UIComboBox::~UIComboBox() noexcept {
+    if (m_pItemList) {
+        m_pItemList->CleanupManually();
+        m_pItemList = nullptr;
+    }
+}
 
 // UIComboBox: 关闭控件
 void LongUI::UIComboBox::cleanup() noexcept {

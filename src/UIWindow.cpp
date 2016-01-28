@@ -19,13 +19,21 @@ Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {
 /// Creates the popup window
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup, UIWindow* parent) noexcept -> UIWindow* {
-    assert(parent && "bad argument");
-    auto window = new(std::nothrow) UIWindow(parent);
+auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup) noexcept -> UIWindow* {
+    assert(popup.parent && "bad argument");
+    auto window = new(std::nothrow) UIWindow(popup.parent);
     // 内存申请成功
     if (window) {
         // 初始化
         window->initialize(popup);
+        // 添加子节点
+        if (popup.child) {
+            popup.child->LinkNewParent(window);
+            window->PushBack(popup.child);
+#ifdef _DEBUG
+           force_cast(window->name) = window->CopyString("PopupWindow");
+#endif
+        }
         // 重建
         auto hr = window->Recreate(); ShowHR(hr);
         // 创建完毕
@@ -107,7 +115,7 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
         DWORD window_style = popup ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
         // 设置窗口大小
         RECT window_rect = { 0, 0, LongUIDefaultWindowWidth, LongUIDefaultWindowHeight };
-        // 默认
+        // 浮点视区大小
         if (this->view_size.width == 0.f) {
             force_cast(this->view_size.width) = static_cast<float>(LongUIDefaultWindowWidth);
         }
@@ -121,8 +129,10 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
         else {
             window_rect.bottom = static_cast<LONG>(this->view_size.height);
         }
+        // 整数窗口大小
         force_cast(this->window_size.width) = window_rect.right;
         force_cast(this->window_size.height) = window_rect.bottom;
+        // 可视区域范围
         visible_rect.right = this->view_size.width;
         visible_rect.bottom = this->view_size.height;
         m_2fContentSize = this->view_size;
@@ -180,7 +190,7 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
     }
     // 自动显示窗口
     if (node.attribute("autoshow").as_bool(true)) {
-        ::ShowWindow(m_hwnd, SW_SHOW);
+        this->ShowWindow(SW_SHOW);
     }
 }
 
@@ -192,6 +202,10 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
 /// <returns></returns>
 void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
     assert(this->wndparent && "this->wndparent cannot be null while in popup window");
+#ifdef _DEBUG
+    this->debug_show = this->wndparent->debug_show;
+    this->debug_this = this->wndparent->debug_this;
+#endif
     // 失去焦点即关闭
     m_baBoolWindow.SetTrue(UIWindow::Index_CloseOnFocusKilled);
     // 链式调用
@@ -219,8 +233,13 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
             popup.position.right - popup.position.left, 
             popup.position.bottom - popup.position.top
         };
+        // 浮点视区大小
+        force_cast(this->view_size.width) = float(window_rect.right);
+        force_cast(this->view_size.height) = float(window_rect.bottom);
+        // 整数窗口大小
         force_cast(this->window_size.width) = window_rect.right;
         force_cast(this->window_size.height) = window_rect.bottom;
+        // 可视区域范围
         visible_rect.right = this->view_size.width;
         visible_rect.bottom = this->view_size.height;
         m_2fContentSize = this->view_size;
@@ -272,8 +291,8 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
     m_pWindow = this;
     // 清零
     std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
-    // 自动显示窗口
-    ::ShowWindow(m_hwnd, SW_SHOW);
+    // 显示窗口
+    this->ShowWindow(SW_SHOW);
 }
 
 // UIWindow 析构函数
@@ -303,9 +322,10 @@ LongUI::UIWindow::~UIWindow() noexcept {
 }
 
 // 移除控件引用
-void LongUI::UIWindow::RemoveControlReference(UIControl * ctrl) noexcept {
+void LongUI::UIWindow::RemoveControlReference(UIControl* ctrl) noexcept {
+    assert(this && "null pointer");
     auto remove_reference = [ctrl](UIControl*& cref) { 
-        if (cref == ctrl) cref = nullptr; 
+        if (cref == ctrl) cref = nullptr;
     };
     // 移除引用
     remove_reference(m_pHoverTracked);
@@ -626,7 +646,7 @@ void LongUI::UIWindow::Update() noexcept {
     // 全刷新?
     if (m_aUnitNow.units[0] == static_cast<UIControl*>(this)) {
         m_baBoolWindow.SetTrue(Index_FullRenderingThisFrame);
-        //UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << endl;
+        //UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << LongUI::endl;
         // 交给父类处理
         Super::Update();
     }
@@ -666,11 +686,11 @@ void LongUI::UIWindow::Render() const noexcept  {
     // 全刷新: 继承父类
     if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
         Super::Render();
-        //UIManager << DL_Hint << "FULL" << endl;
+        //UIManager << DL_Hint << "FULL" << LongUI::endl;
     }
     // 部分刷新:
     else {
-        //UIManager << DL_Hint << "DIRT" << endl;
+        //UIManager << DL_Hint << "DIRT" << LongUI::endl;
 #if 1
         // 先排序
         UIControl* units[LongUIDirtyControlSize];
@@ -799,7 +819,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 特殊事件
     if (arg.msg == s_uTaskbarBtnCreatedMsg) {
         LongUI::SafeRelease(m_pTaskBarList);
-        UIManager << DL_Log << "TaskbarButtonCreated" << endl;
+        UIManager << DL_Log << "TaskbarButtonCreated" << LongUI::endl;
         auto hr = ::CoCreateInstance(
             CLSID_TaskbarList,
             nullptr,
@@ -873,7 +893,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         reinterpret_cast<MINMAXINFO*>(arg.sys.lParam)->ptMinTrackSize.y = m_miniSize.height;
         break;
     case WM_DISPLAYCHANGE:
-        UIManager << DL_Hint << "WM_DISPLAYCHANGE" << endl;
+        UIManager << DL_Hint << "WM_DISPLAYCHANGE" << LongUI::endl;
         {
             // 获取屏幕刷新率
             auto old = UIManager.GetDisplayFrequency();
@@ -945,7 +965,7 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
     if (this->wnd_type != Type_Layered) {
         force = true;
     }
-    //UIManager << DL_Log << "called" << endl;
+    //UIManager << DL_Log << "called" << LongUI::endl;
     // 修改大小, 需要取消目标
     UIManager_RenderTarget->SetTarget(nullptr);
     // 修改

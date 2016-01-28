@@ -16,7 +16,7 @@ void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
     m_vLineTemplate.reserve(16);
     // OOM or BAD ACTION
     if(!m_vLines.isok() && !m_vLineTemplate.isok()) {
-        UIManager << DL_Warning << "OOM for less 1KB memory" << endl;
+        UIManager << DL_Warning << "OOM for less 1KB memory" << LongUI::endl;
     }
     // MAIN PROC
     auto listflag = this->list_flag | Flag_MultiSelect;
@@ -44,14 +44,14 @@ void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
                 UIManager << DL_Warning
                     << L"BAD TEMPLATE: {"
                     << str << L"} or OOM"
-                    << endl;
+                    << LongUI::endl;
             }
         }
         // 给予提示
         else {
             UIManager << DL_Hint
                 << L"recommended to set 'linetemplate'. Now, set 'Text, 0' as template"
-                << endl;
+                << LongUI::endl;
         }
         // 允许排序
         if (node.attribute("sort").as_bool(false)) {
@@ -404,7 +404,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         bool unctrled = !(arg.sys.wParam & MK_CONTROL);
         // 双击?
         if (m_hlpDbClick.Click(arg.pt)) {
-            UIManager << DL_Log << "DB Clicked" << endl;
+            UIManager << DL_Log << "DB Clicked" << LongUI::endl;
             this->call_uievent(m_callLineDBClicked, SubEvent::Event_ItemDbClicked);
         }
         // 单击?
@@ -466,7 +466,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
             UIManager << DL_Hint
                 << L"OLD: " << old_hover_line
                 << L"NEW: " << m_pHoveredLine
-                << endl;
+                << LongUI::endl;
         }
 #endif
         m_pWindow->Invalidate(this);
@@ -773,6 +773,11 @@ void LongUI::UIList::RefreshLayout() noexcept {
 
 // 清理UI列表控件
 void LongUI::UIList::cleanup() noexcept {
+#ifdef _DEBUG
+    if (this->debug_this) {
+        UIManager << DL_Log << this << LongUI::endl;
+    }
+#endif
     delete this;
 }
 
@@ -790,10 +795,14 @@ noexcept -> UIControl* {
         break;
     case_LongUI__Type_CreateControl:
         LongUI__CreateWidthCET(UIList, pControl, type, node);
+#ifdef _DEBUG
+        if (pControl && pControl->debug_this) {
+            UIManager << DL_Log << pControl << LongUI::endl;
+        }
+#endif
     }
     return pControl;
 }
-
 
 // ----------------------------------------------------------------------------
 // ---------------------------- UIListLine! --------------------------------
@@ -1060,7 +1069,7 @@ bool LongUI::CUIMenu::Create() noexcept {
 }
 
 // 使用XML字符串创建菜单
-bool LongUI::CUIMenu::Create(const char * xml) noexcept {
+bool LongUI::CUIMenu::Create(const char* xml) noexcept {
     pugi::xml_document document;
     auto re = document.load_string(xml);
     // 错误

@@ -66,11 +66,11 @@ namespace LongUI { namespace impl { static float const floatx2[] = { 0.f, 0.f };
 /// <see cref="LongUINullXMLNode" />
 /// </remarks>
 LongUI::UIControl::UIControl(UIContainer* parent) noexcept :
-    parent(parent), 
-    context(),
-    m_stateBasic(uint8_t(-1)),
-    level(parent ? (parent->level + 1ui8) : 0ui8),
-    m_pWindow(parent ? parent->GetWindow() : nullptr) {
+parent(parent),
+context(),
+m_stateBasic(uint8_t(-1)),
+level(parent ? (parent->level + 1ui8) : 0ui8),
+m_pWindow(parent ? parent->GetWindow() : nullptr) {
     // 溢出错误
     if (this->level == 255) {
         UIManager << DL_Error
@@ -78,6 +78,18 @@ LongUI::UIControl::UIControl(UIContainer* parent) noexcept :
             << LongUI::endl;
         assert(!"too deep");
     }
+}
+
+
+/// <summary>
+/// Links the new parent.
+/// </summary>
+/// <param name="parent">The parent.</param>
+/// <returns></returns>
+void LongUI::UIControl::LinkNewParent(UIContainer* cp) noexcept {
+    assert(cp && "bad argmuent");
+    force_cast(this->parent) = cp;
+    m_pWindow = cp->GetWindow();
 }
 
 /// <summary>
@@ -270,9 +282,8 @@ void LongUI::UIControl::initialize() noexcept  {
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
-    if (this->parent) 
-        this->parent->RemoveChildReference(this);
-    m_pWindow->RemoveControlReference(this);
+    if (this->parent) this->parent->RemoveChildReference(this);
+    if (m_pWindow) m_pWindow->RemoveControlReference(this);
     LongUI::SafeRelease(m_pBrush_SetBeforeUse);
     LongUI::SafeRelease(m_pBackgroudBrush);
     // 释放脚本占用空间
@@ -295,7 +306,7 @@ void LongUI::UIControl::render_chain_background() const noexcept {
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
-            << endl;
+            << LongUI::endl;
     }
     force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_BACK);
 #endif
@@ -314,7 +325,7 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
-            << endl;
+            << LongUI::endl;
     }
     force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_FORE);
 #endif
@@ -443,7 +454,7 @@ auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
     if (this->view_size.width < 0.f && this->parent->view_size.width > 0.f) {
         UIManager << DL_Hint << this
             << "viewport's width < 0: " << this->view_size.width
-            << endl;
+            << LongUI::endl;
     }
 }
 
@@ -459,7 +470,7 @@ auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline 
     if (this->view_size.height < 0.f && this->parent->view_size.height > 0.f) {
         UIManager << DL_Hint << this
             << "viewport's height < 0: " << this->view_size.height
-            << endl;
+            << LongUI::endl;
     }
 }
 
@@ -712,6 +723,7 @@ namespace LongUI {
         return reinterpret_cast<UIControl*>(&g_control);
     }
 }
+
 
 // 创建空控件
 auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node) noexcept -> UIControl * {
@@ -1151,7 +1163,7 @@ void LongUI::UIContainer::Update() noexcept {
             (this->m_2fTemplateSize.height > 0.f);
         auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
         auto tmph = this->GetHeight() / m_2fTemplateSize.width;
-        switch (code)
+        switch (code & 0x03)
         {
         case 0:
             // do nothing
@@ -1217,7 +1229,7 @@ void LongUI::UIContainer::Update() noexcept {
                 if (ctrl->debug_this) {
                     UIManager << DL_Log << ctrl
                         << " visible rect changed to: "
-                        << ctrl->visible_rect << endl;
+                        << ctrl->visible_rect << LongUI::endl;
                 }
 #endif
             }

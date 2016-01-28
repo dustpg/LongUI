@@ -22,7 +22,7 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
 }
 
 // UIContainerBuiltIn: 主景渲染
-void LongUI::UIContainerBuiltIn::render_chain_main() const noexcept {
+inline void LongUI::UIContainerBuiltIn::render_chain_main() const noexcept {
     // 渲染帮助器
     Super::RenderHelper(this->begin(), this->end());
     // 父类主景
@@ -494,7 +494,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
             position_x += ctrl->GetTakingUpWidth();
         }
         // 修改
-        //UIManager << DL_Hint << this << position_x << endl;
+        //UIManager << DL_Hint << this << position_x << LongUI::endl;
         m_2fContentSize.width = position_x;
         m_2fContentSize.height = base_height;
         // 已经处理

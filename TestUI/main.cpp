@@ -127,7 +127,13 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 )xml";
 
 //text="%t这是繁体字哦%]!%t這是簡體字哦%]!%ptrad, smpl"/>
-
+/*
+<List debug="ftrue" sort="true" name="lst_01" linetemplate="Text, Text">
+    <ScrollBarA marginal="right"/>
+    <ListLine>Combo测试<Text text="真的" templateid="4"/></ListLine>
+    <ListLine>Combo测试<Text text="假的" templateid="4"/></ListLine>
+</List>
+*/
 
 
 const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -141,8 +147,6 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <HorizontalLayout name="H" templatesize="600, 0">
         <Button borderwidth="1" margin="4,4,4,4" text="占位测试"/>
         <ComboBox textformat="1" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
-            <ListLine><Text text="真的" templateid="4"/></ListLine>
-            <ListLine><Text text="假的" templateid="4"/></ListLine>
         </ComboBox>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">

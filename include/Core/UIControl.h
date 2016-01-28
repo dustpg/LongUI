@@ -148,6 +148,10 @@ namespace LongUI {
         auto GetWindow() const noexcept { return m_pWindow; }
         // is top level? 
         auto IsTopLevel() const noexcept { return !this->parent; }
+        // Link new parent
+        void LinkNewParent(UIContainer*) noexcept;
+        // set no cleanup
+        void SetNoCleanupViaParent() noexcept { force_cast(this->flags) = this->flags | Flag_NoCleanupViaParent; }
         // get script data
         const auto& GetScript() const noexcept { return m_script; }
         // get space holder control to aviod nullptr if you do not want a nullptr

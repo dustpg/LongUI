@@ -30,7 +30,7 @@ namespace LongUI {
     // endl for longUI
     static struct EndL { } endl;
     // ui manager ui 管理器
-    class LongUIAPI alignas(sizeof(void*)) CUIManager {
+    class LongUIAPI CUIManager {
         // string allocator
         using StringAllocator = CUIShortStringAllocator<>;
         // create ui window call back
@@ -81,7 +81,6 @@ namespace LongUI {
         auto GetCreateFunc(const char* clname) noexcept ->CreateControlFunction;
         // create control with xml node, node and function cannot be null in same time
         auto CreateControl(UIContainer* cp, pugi::xml_node node, CreateControlFunction function) noexcept {
-            assert((node || function) && "cannot be null in same time");
             return this->create_control(cp, function, node, 0);
         }
         // create control with template id, template and function cannot be null in same time
@@ -125,6 +124,9 @@ namespace LongUI {
         // exit this instance if success. be careful about your app if
         // only can be in one instance
         static bool WINAPI TryElevateUACNow(const wchar_t* parameters = nullptr, bool exit = true) noexcept;
+    private:
+        // exit
+        inline void exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
     public: // inline 区
         // lock
         inline auto Lock() noexcept { return m_uiLocker.Lock(); }
@@ -136,8 +138,13 @@ namespace LongUI {
         inline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
         inline auto GetTextRenderer(int i) const noexcept { assert(i < m_uTextRenderCount && "out of range"); return LongUI::SafeAcquire(m_apTextRenderer[i]); }
+#ifdef _DEBUG
         // exit the app
-        inline auto Exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
+        inline void Exit() noexcept;
+#else
+        // exit the app
+        inline void Exit() noexcept { this->exit(); }
+#endif
         // recreate resources
         inline auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
         // get delta time for ui
@@ -251,6 +258,12 @@ namespace LongUI {
         CUILocker                       m_uiLocker;
         // timer
         CUITimer                        m_uiTimer;
+#ifdef _DEBUG
+        // exit timing tick
+        uint32_t                        m_dbgExitTime = 0;
+        // unused
+        uint32_t                        m_dbgUnused = 0;
+#endif
         // bitmap buffer
         ID2D1Bitmap1**                  m_ppBitmaps = nullptr;
         // brush buffer
@@ -337,11 +350,9 @@ namespace LongUI {
         auto create_ui_window(pugi::xml_node node, UIWindow* parent, callback_for_creating_window func, void* buffer) noexcept ->UIWindow*;
         // do some creating-event
         void do_creating_event(CreateEventType type) noexcept;
-        // create a control tree for window
-        void make_control_tree(UIWindow* window, pugi::xml_node node) noexcept;
     public:
-        // invisible window proc
-        // static LRESULT CALLBACK InvisibleWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
+        // create a control tree for UIContainer
+        void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;
         // main window proc
         static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
         // windows message to longui mouse event

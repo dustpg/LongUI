@@ -1107,7 +1107,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="selection">The selection.</param>
     /// <returns></returns>
     void EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
-        //UIManager << DL_Hint << "selection.length: " << long(selection.length) << endl;
+        //UIManager << DL_Hint << "selection.length: " << long(selection.length) << LongUI::endl;
         // 有选择的情况下
         if (selection.length == 0) {
             m_bufMetrice.NewSize(0);

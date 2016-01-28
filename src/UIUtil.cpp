@@ -1012,7 +1012,7 @@ auto LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen
 }
 
 // 解码
-auto LongUI::Base64Decode(IN const char * __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
+auto LongUI::Base64Decode(IN const char* __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
     // 二进制长度
     uint8_t* bindata_index = bindata;
     // 主循环

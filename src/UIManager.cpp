@@ -339,8 +339,6 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     LongUI::SafeRelease(force_cast(script));
     // 释放读取器
     LongUI::SafeRelease(m_pResourceLoader);
-    // 释放配置
-    LongUI::SafeRelease(force_cast(this->configure));
     // 释放设备相关资源
     this->discard_resources();
     // 释放内存
@@ -356,6 +354,14 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     m_cCountMt = m_cCountTf = m_cCountBmp = m_cCountBrs = 0;
     // 清理
     m_hashStr2CreateFunc.Clear();
+#ifdef _DEBUG
+    long time = ::timeGetTime() - m_dbgExitTime;
+    UIManager << DL_Log
+        << L" took " << time << L"ms to exit here"
+        << LongUI::endl;
+#endif // _DEBUG
+    // 释放配置
+    LongUI::SafeRelease(force_cast(this->configure));
 }
 
 // 创建事件
@@ -372,16 +378,14 @@ void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
 }
 
 // CUIManager 创建控件树
-void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_node node) noexcept {
+void LongUI::CUIManager::MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept {
     // 断言
-    assert(window && node && "bad argument");
-    // 添加窗口
-    //add_control(window, node);
+    assert(root && node && "bad argument");
     // 队列 -- 顺序遍历树
-    LongUI::EzContainer::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
-    LongUI::EzContainer::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
-    UIControl* now_control = nullptr;
-    UIContainer* parent_node = window;
+    EzContainer::FixedCirQueue<pugi::xml_node, LongUIMaxControlInited> xml_queue;
+    EzContainer::FixedCirQueue<UIContainer*, LongUIMaxControlInited> parents_queue;
+    UIControl* control = nullptr;
+    UIContainer* parent = root;
     // 遍历算法: 1.压入所有子结点 2.依次弹出 3.重复1
     bool noskip = true;
     while (true) {
@@ -389,7 +393,7 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         node = node.first_child();
         while (noskip && node) {
             xml_queue.Push(node);
-            parents_queue.Push(parent_node);
+            parents_queue.Push(parent);
             node = node.next_sibling();
         }
         noskip = true;
@@ -397,12 +401,12 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
         if (xml_queue.IsEmpty()) break;
         // 弹出/出队 第一个结点
         node = xml_queue.Front();  xml_queue.Pop();
-        parent_node = parents_queue.Front(); parents_queue.Pop();
+        parent = parents_queue.Front(); parents_queue.Pop();
         assert(node && "bad xml node");
         // 根据名称创建控件
-        if (!(now_control = this->CreateControl(parent_node, node, nullptr))) {
+        if (!(control = this->CreateControl(parent, node, nullptr))) {
             // 错误
-            parent_node = nullptr;
+            parent = nullptr;
             UIManager << DL_Error
                 << L" control class not found: "
                 << node.name()
@@ -411,11 +415,11 @@ void LongUI::CUIManager::make_control_tree(LongUI::UIWindow* window, pugi::xml_n
             continue;
         }
         // 添加子结点
-        parent_node->PushBack(now_control);
+        parent->PushBack(control);
         // 设置结点为下次父结点
-        parent_node = static_cast<UIContainer*>(now_control);
+        parent = static_cast<UIContainer*>(control);
         // 不是容器的话直接跳过
-        noskip = !!(parent_node->flags & Flag_UIContainer);
+        noskip = !!(parent->flags & Flag_UIContainer);
     }
 }
 
@@ -471,6 +475,14 @@ auto LongUI::CUIManager::CreateTextFormat(
     return hr;
 }
 
+
+#ifdef _DEBUG
+void LongUI::CUIManager::Exit() noexcept {
+    m_dbgExitTime = ::timeGetTime();
+    UIManager << DL_Log << L" CALLED" << LongUI::endl;
+    this->exit();
+}
+#endif
 
 #ifdef LONGUI_RENDER_IN_STD_THREAD
 #include <thread>
@@ -678,7 +690,7 @@ auto LongUI::CUIManager::create_ui_window(
         dbg_timer.MovStartEnd();
 #endif
         // 创建控件树
-        this->make_control_tree(window, node);
+        this->MakeControlTree(window, node);
         // 完成创建
 #ifdef _DEBUG
         time = dbg_timer.Delta_ms<double>();
@@ -836,7 +848,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             if (s_times) {
                 UIManager << DL_Hint 
                     << L"recursive called. [UNRECOMMENDED]: depending on locker implementation." 
-                    << endl;
+                    << LongUI::endl;
             }
             ++s_times;
 #endif
@@ -2001,14 +2013,14 @@ auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManag
 }
 
 // 输出UTF-8字符串 并刷新
-void LongUI::CUIManager::Output(DebugStringLevel l, const char * s) noexcept {
+void LongUI::CUIManager::Output(DebugStringLevel l, const char* s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
     this->Output(l, buffer);
 }
 
 // 输出UTF-8字符串
-void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char * s) noexcept {
+void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char* s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
     buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
     this->OutputNoFlush(l, buffer);

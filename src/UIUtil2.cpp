@@ -269,7 +269,7 @@ namespace LongUI { namespace Helper {
     /// <param name="prefix">颜色属性前缀</param>
     /// <param name="color">颜色数组</param>
     /// <returns></returns>
-    LongUINoinline bool MakeStateBasedColor(pugi::xml_node node, const char * prefix, D2D1_COLOR_F color[4]) noexcept {
+    LongUINoinline bool MakeStateBasedColor(pugi::xml_node node, const char* prefix, D2D1_COLOR_F color[4]) noexcept {
         // 初始值
         if (color->a < 0.0f || color->a > 1.f) {
             color[State_Disabled]   = D2D1::ColorF(0xDEDEDEDEui32);

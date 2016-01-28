@@ -69,7 +69,7 @@ void LongUI::CUIRenderQueue::operator++() noexcept {
                 UIManager << DL_Log
                     << Formated(L"Time Deviation: %4ldms    Totle: %4ldms", 
                         long(dev), long(m_sTimeDeviation))
-                    << endl;
+                    << LongUI::endl;
             }
 #endif
             // TODO: 时间校正
@@ -92,7 +92,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
             << L"INDEX:[" << long(m_pCurrentUnit - m_pUnitsDataBegin) << L']'
             << ctrl << ctrl->visible_rect
             << L"from " << wait << L" to " << render
-            << endl;
+            << LongUI::endl;
     }
 #endif
     // 保留刷新
@@ -159,7 +159,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
         }
 #ifdef _DEBUG
         if (window->debug_this) {
-            UIManager << DLevel_Log << L"\r\n [INSERT]: " << ctrl << endl;
+            UIManager << DLevel_Log << L"\r\n [INSERT]: " << ctrl << LongUI::endl;
         }
 #endif
         // 二次插入

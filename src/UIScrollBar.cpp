@@ -64,7 +64,7 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
 
 // 设置新的索引位置
 void LongUI::UIScrollBar::set_index(float new_index) noexcept {
-    //UIManager << DL_Hint << "new_index: " << new_index << endl;
+    //UIManager << DL_Hint << "new_index: " << new_index << LongUI::endl;
     new_index = std::min(std::max(new_index, 0.f), m_fMaxIndex);
     // 不同就修改
     if (new_index != m_fIndex) {
@@ -112,7 +112,7 @@ void LongUI::UIScrollBarA::UpdateMarginalWidth() noexcept {
 #ifdef _DEBUG
     if (this->debug_this && m_fMaxIndex > 0.f) {
         UIManager << DL_Log  << this << L"m_fMaxIndex: "
-            << m_fMaxIndex << L" -- scrollbar standby?"<< endl;
+            << m_fMaxIndex << L" -- scrollbar standby?"<< LongUI::endl;
     }
 #endif
 #if 0
