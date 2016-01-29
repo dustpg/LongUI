@@ -265,7 +265,7 @@ void LongUI::UIList::Remove(UIControl* child) noexcept {
 // 对列表插入一个行模板至指定位置
 auto LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept ->UIListLine* {
     // 创建列表行
-    auto ctrl = static_cast<UIListLine*>(UIListLine::CreateControl(this->CET(), pugi::xml_node()));
+    auto ctrl = UIListLine::CreateControl(this);
     if (!ctrl) return ctrl;
     // 添加子控件
     for (const auto& data : m_vLineTemplate) {
@@ -808,6 +808,16 @@ noexcept -> UIControl* {
 // ---------------------------- UIListLine! --------------------------------
 // ----------------------------------------------------------------------------
 
+/// <summary>
+/// Initializes this instance.
+/// </summary>
+/// <returns></returns>
+inline void LongUI::UIListLine::initialize() noexcept {
+    // 链式调用
+    Super::initialize();
+
+}
+
 // UI列表元素控件: 初始化
 void LongUI::UIListLine::initialize(pugi::xml_node node) noexcept {
     // 链式调用
@@ -846,9 +856,23 @@ void LongUI::UIListLine::cleanup() noexcept {
     delete this;
 }
 
+
+/// <summary>
+/// Creates the control.
+/// </summary>
+/// <param name="cp">The cp.</param>
+/// <returns></returns>
+auto LongUI::UIListLine::CreateControl(UIContainer* cp) noexcept ->UIListLine* {
+    // 创建
+    UIListLine* line = new(std::nothrow) UIListLine(cp);
+    // 初始化
+    if (line) line->initialize();
+    // 返回创建指针
+    return line;
+}
+
 // UI列表元素控件: 创建控件
-auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node)
-noexcept -> UIControl* {
+auto LongUI::UIListLine::CreateControl(CreateEventType type, pugi::xml_node node) noexcept -> UIControl* {
     UIListLine* pControl = nullptr;
     switch (type)
     {

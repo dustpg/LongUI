@@ -304,6 +304,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
 
 // CUIManager  反初始化
 void LongUI::CUIManager::Uninitialize() noexcept {
+    // 反初始化事件
     this->do_creating_event(LongUI::CreateEventType::Type_Uninitialize);
     // 释放文本渲染器
     for (auto& renderer : m_apTextRenderer) {
@@ -324,9 +325,7 @@ void LongUI::CUIManager::Uninitialize() noexcept {
         }
         // 控件模板
         for (auto itr = m_pTemplateNodes; itr != m_pTemplateNodes + m_cCountCtrlTemplate; ++itr) {
-            if (*itr) {
-                LongUI::DestoryObject(*itr);
-            }
+            LongUI::DestoryObject(*itr);
         }
     }
     // 释放资源
@@ -612,9 +611,10 @@ void LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept {
 auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, CreateControlFunction function) noexcept ->UIControl* {
     // 检查参数
     assert(function && "function must be specified");
-    assert(templateid && "ttemplate id must be specified");
+    //assert(templateid && "template id must be specified");
     // 检查模板ID
     assert(templateid < m_cCountCtrlTemplate && "out of range");
+    // 越界检查
     if (templateid >= m_cCountCtrlTemplate) templateid = 0;
     // 创建
     return function(cp->CET(), m_pTemplateNodes[templateid]);
@@ -986,7 +986,6 @@ auto LongUI::CUIManager::RegisterTextRenderer(
     return count;
 }
 
-
 // 创建0索引资源
 auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     assert(m_pResourceBuffer && "bad alloc");
@@ -1015,9 +1014,8 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
         LongUI::SafeRelease(brush);
         longui_debug_hr(hr, L"_pd2dDeviceContext->CreateSolidColorBrush failed");
     }
-    // 索引0文本格式: 默认格式
-    if (SUCCEEDED(hr)) {
-        assert(m_ppTextFormats[LongUIDefaultTextFormatIndex] == nullptr && "bad action");
+    // 索引0文本格式: 默认格式, 属于设备无关资源，仅需要重建一次
+    if (SUCCEEDED(hr) && !(m_ppTextFormats[LongUIDefaultTextFormatIndex])) {
         hr = this->CreateTextFormat(
             LongUIDefaultTextFontName,
             DWRITE_FONT_WEIGHT_NORMAL,
@@ -1041,6 +1039,10 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     // 索引0图元: 暂无
     if (SUCCEEDED(hr)) {
 
+    }
+    // 索引0 xml节点
+    if (SUCCEEDED(hr) && !(m_pTemplateNodes[0])) {
+        m_pTemplateNodes[0] = m_docTemplate.append_child("Control");
     }
     return hr;
 }

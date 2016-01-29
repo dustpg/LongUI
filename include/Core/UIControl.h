@@ -196,9 +196,9 @@ namespace LongUI {
         // get HoverTrackTime
         auto GetHoverTrackTime() const noexcept { return m_cHoverTrackTime; }
         // get left of control
-        auto GetLeft() noexcept { return this->view_pos.x - this->margin_rect.left + m_fBorderWidth; };
+        auto GetLeft() noexcept { return this->view_pos.x - (this->margin_rect.left + m_fBorderWidth); };
         // get left of control
-        auto GetTop() noexcept { return this->view_pos.y - this->margin_rect.top + m_fBorderWidth; };
+        auto GetTop() noexcept { return this->view_pos.y - (this->margin_rect.top + m_fBorderWidth); };
         // set left of control
         auto SetLeft(float left) noexcept ->void;
         // set left of control

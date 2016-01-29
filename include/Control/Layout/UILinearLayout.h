@@ -93,6 +93,8 @@ namespace LongUI{
     protected:
         // init
         void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
+        // init without xml-node
+        void initialize() noexcept { return Super::initialize(); }
 #ifdef LongUIDebugEvent
         // debug infomation
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;

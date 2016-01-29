@@ -10,7 +10,7 @@ const wchar_t* const CPU_ADAPTER = L"Microsoft Basic Render Driver";
 // <M><Text text="HW"/></M>
 const char* const VIDEO_CARD_XML = 
 u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window debugshow="true" autoshow="false" size="1024, 512" clearcolor="1,1,1,0.9" name="Choose Video Card">
+<Window debugshow="true" textantimode="cleartype" autoshow="false" size="1024, 512" clearcolor="1,1,1,0.9" name="Choose Video Card">
     <HorizontalLayout>
         <List weight="3" borderwidth="1" name="lst_vc" linetemplate="Text, Text" margin="4,4,4,4" >
             <ScrollBarA marginal="right"/>
@@ -164,7 +164,12 @@ void LongUI::Demo::WindowChooseAdapter::SetMyConfig(MyConfig& config) noexcept {
                 // if selectED
                 auto& sel = list->GetSelectedIndices();
                 if (sel.size()) {
-                    vec.push_back(vec[sel.front()]);
+                    try {
+                        vec.push_back(vec[sel.front()]);
+                    }
+                    catch (...) {
+
+                    }
                 }
                 else {
                     ::MessageBoxW(m_hwnd, L"You may choose one adapter", L"HINT", MB_OK);

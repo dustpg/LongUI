@@ -227,29 +227,19 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
     {
         // 检查样式样式
         constexpr DWORD window_style = WS_POPUPWINDOW;
-        // 设置窗口大小
-        RECT window_rect = { 
-            0, 0, 
-            popup.position.right - popup.position.left, 
-            popup.position.bottom - popup.position.top
-        };
         // 浮点视区大小
-        force_cast(this->view_size.width) = float(window_rect.right);
-        force_cast(this->view_size.height) = float(window_rect.bottom);
+        force_cast(this->view_size.width) = float(popup.width);
+        force_cast(this->view_size.height) = float(popup.height);
         // 整数窗口大小
-        force_cast(this->window_size.width) = window_rect.right;
-        force_cast(this->window_size.height) = window_rect.bottom;
+        force_cast(this->window_size.width) = popup.width;
+        force_cast(this->window_size.height) = popup.height;
         // 可视区域范围
         visible_rect.right = this->view_size.width;
         visible_rect.bottom = this->view_size.height;
         m_2fContentSize = this->view_size;
-        // 调整大小
-        ::AdjustWindowRect(&window_rect, window_style, FALSE);
         // 居中
-        window_rect.right -= window_rect.left;
-        window_rect.bottom -= window_rect.top;
-        window_rect.left = (::GetSystemMetrics(SM_CXFULLSCREEN) - window_rect.right) / 2;
-        window_rect.top = (::GetSystemMetrics(SM_CYFULLSCREEN) - window_rect.bottom) / 2;
+        auto left = (::GetSystemMetrics(SM_CXFULLSCREEN) - popup.width) / 2;
+        auto top = (::GetSystemMetrics(SM_CYFULLSCREEN) - popup.height) / 2;
         // 创建窗口
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
@@ -257,7 +247,7 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
             LongUI::WindowClassNameA, 
             L"LongUI Popup Window",
             window_style,
-            window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
+            left, top, popup.width, popup.height,
             this->wndparent->GetHwnd(),
             nullptr,
             ::GetModuleHandleW(nullptr),

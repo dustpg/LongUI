@@ -38,8 +38,14 @@ namespace LongUI {
     };}
     // config::popup window
     namespace Config { struct Popup {
-        // pos to parent
-        D2D1_RECT_L                 position;
+        // top line(maybe as bottom of popup window)
+        LONG                        topline;
+        // bottom line(maybe as top of popup window)
+        LONG                        bottomline;
+        // with of popup window
+        LONG                        width;
+        // height of popup window
+        LONG                        height;
         // parent window
         UIWindow*                   parent;
         // [OPTIONAL]child
@@ -198,7 +204,7 @@ namespace LongUI {
         // get text anti-mode 
         inline auto GetTextAntimode() const noexcept { return m_textAntiMode; }
         // get text anti-mode 
-        inline void SetTextAntimode(D2D1_TEXT_ANTIALIAS_MODE mode) noexcept {  m_textAntiMode = static_cast<decltype(m_textAntiMode)>(mode); }
+        inline void SetTextAntimode(D2D1_TEXT_ANTIALIAS_MODE mode) noexcept { m_textAntiMode = static_cast<decltype(m_textAntiMode)>(mode); }
         // get waite-vs event handle
         inline auto GetVSyncEvent() const noexcept { return m_hVSync; }
         // show window

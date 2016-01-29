@@ -1,4 +1,5 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 // ----------------------------------------------------------------------------
 // **** UIText
@@ -336,9 +337,18 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         p1 = LongUI::TransformPoint(this->world, p1);
         p2 = LongUI::TransformPoint(this->world, p2);
         Config::Popup config;
-        config.position = { LONG(p1.x), LONG(p1.y), LONG(p2.x), LONG(p2.y) };
+        // 上界限
+        config.topline = LONG(p1.y);
+        // 下界限
+        config.bottomline = LONG(p2.y);
+        // 宽度
+        config.width = std::max(LONG(p2.x) - LONG(p1.x), LONG(LongUIMaxGradientStop));
+        // 高度
+        config.height = std::max(LONG(p2.y) - LONG(p1.x), LONG(LongUIMaxGradientStop));
+        // 必要数据
         config.parent = m_pWindow;
         config.child = m_pItemList;
+        // 创建弹出窗口
         auto popup = UIWindow::CreatePopup(config);
         popup = nullptr;
         return true;

@@ -46,6 +46,8 @@ namespace LongUI {
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
+        // create 创建
+        static auto WINAPI CreateControl(UIContainer* cp) noexcept ->UIListLine*;
         // ctor
         UIListLine(UIContainer* cp) noexcept : Super(cp) { }
         // get sorted data
@@ -59,6 +61,8 @@ namespace LongUI {
     protected:
         // init
         void initialize(pugi::xml_node node) noexcept;
+        // init without xml-node
+        inline void initialize() noexcept;
         // dtor
         ~UIListLine() noexcept = default;
     protected:

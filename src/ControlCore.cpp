@@ -541,28 +541,16 @@ void LongUI::UIControl::RefreshWorld() noexcept {
     }
     // 非顶级控件
     else {
-#if 1
         // 检查
         xx += this->parent->GetOffsetXZoomed();
         yy += this->parent->GetOffsetYZoomed();
+        // 缩放
+        auto zx = this->parent->GetZoomX();
+        auto zy = this->parent->GetZoomY();
         // 转换
-        this->world =
-            DX::Matrix3x2F::Translation(xx, yy)
-            *DX::Matrix3x2F::Scale(
-                this->parent->GetZoomX(), this->parent->GetZoomY()
-                )
+        this->world = DX::Matrix3x2F::Translation(xx, yy)
+            * DX::Matrix3x2F::Scale(zx, zy)
             * this->parent->world;
-#else
-        this->world =
-            DX::Matrix3x2F::Translation(xx, yy)
-            * DX::Matrix3x2F::Scale(
-                this->parent->GetZoomX(), this->parent->GetZoomY()
-                )
-            * DX::Matrix3x2F::Translation(
-                this->parent->GetOffsetX(), this->parent->GetOffsetY()
-                )
-            * this->parent->world;
-#endif
     }
     // 修改了
     this->ControlWorldChangeHandled();
@@ -675,16 +663,19 @@ namespace LongUI {
         //virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override { return false; }
     public:
         // 创建控件
-        static auto CreateControl(UIContainer* ctrlparent, pugi::xml_node node) noexcept {
-            UIControl* pControl = nullptr;
+        static auto CreateControl(UIContainer* cp, pugi::xml_node node) noexcept -> UIControl* {
+            UINull* pControl = nullptr;
             // 判断
             if (!node) {
                 UIManager << DL_Hint << L"node null" << LongUI::endl;
             }
             // 申请空间
-            pControl = new(std::nothrow) UINull(ctrlparent);
+            pControl = new(std::nothrow) UINull(cp);
             if (!pControl) {
                 UIManager << DL_Error << L"alloc null" << LongUI::endl;
+            }
+            else {
+                pControl->initialize();
             }
             return pControl;
         }
