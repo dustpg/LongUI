@@ -126,6 +126,9 @@ HRESULT LongUI::UIEditBasic::Recreate() noexcept {
 
 // close this control 关闭控件
 void LongUI::UIEditBasic::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除对象
     delete this;
 }
 
@@ -314,6 +317,9 @@ HRESULT LongUI::UIRichEdit::Recreate() noexcept {
 
 // close this control 关闭控件
 void LongUI::UIRichEdit::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除对象
     delete this;
 }
 

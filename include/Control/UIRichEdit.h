@@ -57,6 +57,8 @@ namespace LongUI {
         // constructor 构造函数
         UIRichEdit(UIContainer* cp) noexcept;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
         // destructor 析构函数

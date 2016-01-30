@@ -86,6 +86,8 @@ namespace LongUI {
     protected:
         // ctor
         UIMarginalable(UIContainer* cp) noexcept : Super(cp) {}
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept;
         // init without xml-node

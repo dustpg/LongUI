@@ -1168,6 +1168,8 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
 
 // UIWindow 关闭控件
 void LongUI::UIWindow::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
     // 删除对象
     delete this;
 }

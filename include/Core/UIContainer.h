@@ -81,12 +81,20 @@ namespace LongUI {
         // before update
         //void BeforeUpdateContainer() noexcept;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept;
         // init
         void initialize(pugi::xml_node node) noexcept;
         // init
         void initialize() noexcept;
         // dtor
-        ~UIContainer() noexcept;
+        ~UIContainer() noexcept {
+#ifdef _DEBUG
+            for (auto ctrl : marginal_control) {
+                assert(ctrl == nullptr && "call before_deleted()!");
+            }
+#endif
+        }
     public:
         // get length/count of children
         auto GetLength() const noexcept { return m_cChildrenCount; }

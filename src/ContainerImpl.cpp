@@ -179,16 +179,25 @@ void LongUI::UIContainerBuiltIn::Remove(UIControl* ctrl) noexcept {
     Super::Remove(ctrl);
 }
 
-
-// UIContainerBuiltIn: 析构函数
-LongUI::UIContainerBuiltIn::~UIContainerBuiltIn() noexcept {
-    // 关闭子控件
+/// <summary>
+/// Before_deleteds this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIContainerBuiltIn::before_deleted() noexcept { 
+    // 链式调用
+    Super::before_deleted(); 
+    // 清理子控件
     auto ctrl = m_pHead;
     while (ctrl) {
         auto next_ctrl = ctrl->next;
         this->cleanup_child(ctrl);
         ctrl = next_ctrl;
     }
+#ifdef _DEBUG
+    // 调试清理
+    m_pHead = nullptr;
+    m_pTail = nullptr;
+#endif
 }
 
 // 获取控件索引
@@ -421,6 +430,9 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
 
 // UIVerticalLayout 关闭控件
 void LongUI::UIVerticalLayout::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }
 
@@ -505,14 +517,27 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
 
 // UIHorizontalLayout 关闭控件
 void LongUI::UIHorizontalLayout::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }
 
 // --------------------- Single Layout ---------------
-// UISingle 析构函数
-LongUI::UISingle::~UISingle() noexcept {
+/// <summary>
+/// Before_deleteds this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UISingle::before_deleted() noexcept {
+    // 链式调用
+    Super::before_deleted();
+    // 清理子控件
     assert(m_pChild && "UISingle must host a child");
     this->cleanup_child(m_pChild);
+#ifdef _DEBUG
+    // 调试清理
+    m_pChild = nullptr;
+#endif
 }
 
 // UISingle: 事件处理
@@ -636,6 +661,9 @@ void LongUI::UISingle::RefreshLayout() noexcept {
 
 // UISingle 清理
 void LongUI::UISingle::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }
 
@@ -666,7 +694,6 @@ LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp),
     m_animation.duration = 0.3f;
 }
 
-
 /// <summary>
 /// Initalizes the specified node.
 /// </summary>
@@ -685,11 +712,23 @@ void LongUI::UIPage::initialize(pugi::xml_node node) noexcept {
     }
 }
 
-// UIPage 析构函数
-LongUI::UIPage::~UIPage() noexcept {
+// something must do before deleted
+void LongUI::UIPage::before_deleted() noexcept { 
+    // 链式调用
+    Super::before_deleted(); 
+    // 清理子控件
     for (auto ctrl : m_vChildren) {
         this->cleanup_child(ctrl);
     }
+    m_vChildren.clear();
+}
+
+/// <summary>
+/// Finalizes an instance of the <see cref="UIPage"/> class.
+/// </summary>
+/// <returns></returns>
+LongUI::UIPage::~UIPage() noexcept {
+
 }
 
 // UIPage: 事件处理
@@ -907,6 +946,9 @@ void LongUI::UIPage::RefreshLayout() noexcept {
 
 // UIPage 清理
 void LongUI::UIPage::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }
 
@@ -958,5 +1000,8 @@ void LongUI::UIFloatLayout::RefreshLayout() noexcept {
 
 // UIFloatLayout 关闭控件
 void LongUI::UIFloatLayout::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }

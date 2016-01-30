@@ -241,12 +241,24 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
     m_pToBeSortedHeaderChild = nullptr;
 }
 
-// UI列表控件: 析构函数
-LongUI::UIList::~UIList() noexcept {
-    // 线性容器就是不用考虑next指针
+
+/// <summary>
+/// Before_deleteds this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIList::before_deleted() noexcept { 
+    // 链式清理
+    Super::before_deleted();
+    // 清理子控件
     for (auto ctrl : m_vLines) {
         this->cleanup_child(ctrl);
     }
+    m_vLines.clear();
+}
+
+// UI列表控件: 析构函数
+LongUI::UIList::~UIList() noexcept {
+
 }
 
 // [UNTESTED]移除
@@ -773,11 +785,9 @@ void LongUI::UIList::RefreshLayout() noexcept {
 
 // 清理UI列表控件
 void LongUI::UIList::cleanup() noexcept {
-#ifdef _DEBUG
-    if (this->debug_this) {
-        UIManager << DL_Log << this << LongUI::endl;
-    }
-#endif
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }
 
@@ -853,6 +863,9 @@ void LongUI::UIListLine::Update() noexcept {
 
 // 清理UI列表元素控件
 void LongUI::UIListLine::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }
 
@@ -1046,6 +1059,9 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 
 // 清理UI列表头控件
 void LongUI::UIListHeader::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除
     delete this;
 }
 

@@ -46,6 +46,8 @@ namespace LongUI{
         // recreate 重建
         //virtual auto Recreate() noexcept ->HRESULT override;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // ui call
         //virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
         // render chain -> background

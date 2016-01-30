@@ -31,6 +31,8 @@ namespace LongUI {
         // super class
         using Super = UIContainer;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept;
         // ctor
         UIContainerBuiltIn(UIContainer* cp) noexcept : Super(cp) {}
         // ctor
@@ -38,7 +40,7 @@ namespace LongUI {
         // init without xml-node
         void initialize() noexcept { return Super::initialize(); }
         // dtor
-        ~UIContainerBuiltIn() noexcept;
+        ~UIContainerBuiltIn() noexcept {}
     public:
         // itr 迭代器
         class Iterator {
@@ -153,5 +155,7 @@ namespace LongUI {
     };
 #endif
     // make built-in iterator
-    static inline auto MakeIteratorBI(UIControl* ctrl) noexcept { return UIContainerBuiltIn::Iterator(ctrl); }
+    inline auto MakeIteratorBI(UIControl* ctrl) noexcept { 
+        return UIContainerBuiltIn::Iterator(ctrl); 
+    }
 }

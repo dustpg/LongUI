@@ -54,6 +54,8 @@ namespace LongUI{
         // no copy ctor
         UIFloatLayout(const UIFloatLayout&) = delete;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
 #ifdef LongUIDebugEvent

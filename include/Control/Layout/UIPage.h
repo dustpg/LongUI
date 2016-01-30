@@ -34,6 +34,8 @@ namespace LongUI {
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept;
         // init
         void initialize(pugi::xml_node node) noexcept;
         // ctor

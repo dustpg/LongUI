@@ -137,6 +137,8 @@ namespace LongUI {
         // delete the copy-ctor
         UIControl(const UIControl&) = delete;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { }
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // initialize without xml-node

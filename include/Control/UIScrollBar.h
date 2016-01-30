@@ -79,6 +79,8 @@ namespace LongUI {
         // deleted function
         UIScrollBar(const UIScrollBar&) = delete;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept;
     public:
@@ -135,6 +137,8 @@ namespace LongUI {
         // create this
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept;
     public:
@@ -210,6 +214,8 @@ namespace LongUI {
         // create this
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
 #ifdef LongUIDebugEvent

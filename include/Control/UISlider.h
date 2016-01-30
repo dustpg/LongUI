@@ -59,6 +59,8 @@ namespace LongUI{
         // constructor 构造函数
         UISlider(UIContainer* cp) noexcept : Super(cp) { }
     private:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init with xml-node
         void initialize(pugi::xml_node node) noexcept;
         // init without xml-node

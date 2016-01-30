@@ -45,6 +45,8 @@ namespace LongUI {
         // recreate 重建
         virtual auto Recreate() noexcept ->HRESULT override;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
         // render chain -> mainground

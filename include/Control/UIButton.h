@@ -62,6 +62,8 @@ namespace LongUI{
         // set state
         void SetControlState(ControlState state) noexcept;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // destructor 析构函数

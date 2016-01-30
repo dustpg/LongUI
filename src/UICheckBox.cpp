@@ -205,6 +205,9 @@ auto LongUI::UICheckBox::Recreate() noexcept ->HRESULT {
 
 // 关闭控件
 void LongUI::UICheckBox::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除对象
     delete this;
 }
 

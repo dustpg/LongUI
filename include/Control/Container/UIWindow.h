@@ -124,6 +124,8 @@ namespace LongUI {
         };
         // assert
         static_assert(INDEX_COUNT < 32, "out of range");
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
     public: // UIControl 接口实现
         // Render 渲染 
         virtual void Render() const noexcept override;

@@ -59,6 +59,8 @@ namespace LongUI {
         // selected?
         auto IsSelected() const noexcept { return m_bool16.Test(Index_StateSelf_1); }
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept;
         // init without xml-node
@@ -102,6 +104,8 @@ namespace LongUI {
         // dtor
         ~UIListHeader() noexcept = default;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept { Super::before_deleted(); }
         // init
         void initialize(pugi::xml_node node) noexcept;
     private:
@@ -266,6 +270,8 @@ namespace LongUI {
         template<typename T>
         auto AddBeforSortCallBack(T lam) noexcept { m_callBeforSort += lam; }
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept;
         // init
         void initialize(pugi::xml_node node) noexcept;
         // dtor

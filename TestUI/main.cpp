@@ -225,11 +225,13 @@ public:
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
 protected:
+    // something must do before deleted
+    void before_deleted() noexcept { Super::before_deleted(); }
     // init
     void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
 private:
     // clean up
-    virtual void cleanup() noexcept override { this->~MainWindow(); }
+    virtual void cleanup() noexcept override { this->before_deleted(); this->~MainWindow(); }
     // init
     void init() {
         auto slider = LongUI::longui_cast<LongUI::UISlider*>(this->FindControl("sld_opacity"));
@@ -307,7 +309,7 @@ class UIVideoAlpha : public LongUI::UIControl {
     // super class define
     typedef LongUI::UIControl Super;
     // close this control
-    virtual void cleanup() noexcept override { delete this; };
+    virtual void cleanup() noexcept override { this->before_deleted(); delete this; };
 public:
     // create 创建
     static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {

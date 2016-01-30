@@ -34,7 +34,7 @@ namespace LongUI {
         virtual void cleanup() noexcept override;
     protected:
         // dtor
-        ~UISingle() noexcept;
+        ~UISingle() noexcept {}
     public:
         // render this
         virtual void Render() const noexcept override;
@@ -63,6 +63,8 @@ namespace LongUI {
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept->UIControl*;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept;
         // init
         void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
         // render chain -> background

@@ -128,6 +128,9 @@ auto LongUI::UIBlurText::CreateControl(CreateEventType type, pugi::xml_node node
 
 // UIBlurText: 清理控件
 void LongUI::UIBlurText::cleanup() noexcept {
+    // 删除前
+    this->before_deleted();
+    // 删除
     delete this;
 }
 

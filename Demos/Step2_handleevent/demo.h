@@ -18,7 +18,7 @@ namespace LongUI { namespace Demo {
         // super class
         using Super = UIWindow;
         // clean up
-        virtual void cleanup() noexcept override { delete this; }
+        virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     public:
         // ctor
         MainWindow(UIWindow* parent) : Super(parent) {}

@@ -54,7 +54,7 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
         // super class
         using Super = UIWindow;
         // clean up
-        virtual void cleanup() noexcept override { delete this; }
+        virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     public:
         // on close event, do not exit app directly
         virtual auto OnClose() noexcept -> bool { 

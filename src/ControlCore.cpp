@@ -227,6 +227,9 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
 #ifdef _DEBUG
     // 被初始化
     this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
+    if (this->debug_this) {
+        UIManager << DL_Log << this << L" created" << LongUI::endl;
+    }
 #endif
 }
 
@@ -277,11 +280,19 @@ void LongUI::UIControl::initialize() noexcept  {
 #ifdef _DEBUG
     // 被初始化
     this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
+    if (this->debug_this) {
+        UIManager << DL_Log << this << L" created" << LongUI::endl;
+    }
 #endif
 }
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
+#ifdef _DEBUG
+    if (this->debug_this || true) {
+        UIManager << DL_Log << this << L" deleted" << LongUI::endl;
+    }
+#endif
     if (this->parent) this->parent->RemoveChildReference(this);
     if (m_pWindow) m_pWindow->RemoveControlReference(this);
     LongUI::SafeRelease(m_pBrush_SetBeforeUse);
@@ -653,7 +664,7 @@ namespace LongUI {
         // 父类申明
         using Super = UIControl;
         // clean this control 清除控件
-        virtual void cleanup() noexcept override { delete this; }
+        virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     public:
         // Render 渲染
         virtual void Render() const noexcept override {}
@@ -745,6 +756,22 @@ LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal
     std::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
 }
 
+
+/// <summary>
+/// Before_deleteds this instance.
+/// </summary>
+/// <returns></returns>
+LongUINoinline void LongUI::UIContainer::before_deleted() noexcept {
+    // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
+    for (auto ctrl : this->marginal_control) {
+        if (ctrl)  ctrl->cleanup();
+    }
+#ifdef _DEBUG
+    // 调试时清空
+    std::memset((void*)(this->marginal_control), 0, sizeof(this->marginal_control));
+#endif
+}
+
 /// <summary>
 /// Initializes with specified cxml-node
 /// </summary>
@@ -806,17 +833,6 @@ void LongUI::UIContainer::initialize() noexcept {
     auto flag = this->flags | Flag_UIContainer;
     // 修改完毕
     force_cast(this->flags) = flag;
-}
-
-// UIContainer 析构函数
-LongUI::UIContainer::~UIContainer() noexcept {
-    // 关闭边缘控件
-    // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
-    for (auto ctrl : this->marginal_control) {
-        if (ctrl) {
-            ctrl->cleanup();
-        }
-    }
 }
 
 // 插入后处理
@@ -967,7 +983,7 @@ void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
 }
 
 // UIContainer: 主景渲染
-void LongUI::UIContainer::UIContainer::render_chain_main() const noexcept {
+void LongUI::UIContainer::render_chain_main() const noexcept {
     // 渲染边缘控件
     if (this->flags & Flag_Container_ExistMarginalControl) {
         for (auto ctrl : this->marginal_control) {
