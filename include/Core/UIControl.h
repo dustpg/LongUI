@@ -137,14 +137,20 @@ namespace LongUI {
         // delete the copy-ctor
         UIControl(const UIControl&) = delete;
     protected:
-        // something must do before deleted
-        void before_deleted() noexcept { }
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // initialize without xml-node
         void initialize() noexcept;
         // initialize with config
         void initialize(const Config::Control& cc) noexcept;
+        // something must do before deleted
+        void before_deleted() noexcept {
+#ifdef _DEBUG
+            if (this->debug_this || true) {
+                UIManager << DL_Log << this << L"deleted" << LongUI::endl;
+            }
+#endif
+        }
     public:
         // get window of control
         auto GetWindow() const noexcept { return m_pWindow; }

@@ -2036,6 +2036,14 @@ auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
     return *this;
 }
 
+// 指针
+auto LongUI::CUIManager::operator<<(const void* ctrl) noexcept ->CUIManager& {
+    wchar_t buffer[LongUIStringBufferLength];
+    std::swprintf(buffer, LongUIStringBufferLength, L"[0x%p] ", ctrl);
+    this->OutputNoFlush(m_lastLevel, buffer);
+    return *this;
+}
+
 // 控件
 auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];

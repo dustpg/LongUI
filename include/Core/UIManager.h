@@ -372,6 +372,8 @@ namespace LongUI {
         CUIManager& operator<< (const long l) noexcept;
         // overload << operator for bool
         CUIManager& operator<< (const bool b) noexcept;
+        // overload << operator for void*
+        CUIManager& operator<< (const void*) noexcept;
         // overload << operator for control
         CUIManager& operator<< (const UIControl*) noexcept;
         // overload << operator for controls

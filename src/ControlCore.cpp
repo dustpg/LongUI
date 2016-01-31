@@ -230,6 +230,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
     if (this->debug_this) {
         UIManager << DL_Log << this << L" created" << LongUI::endl;
     }
+    //assert(this->name != "");
 #endif
 }
 
@@ -281,18 +282,14 @@ void LongUI::UIControl::initialize() noexcept  {
     // 被初始化
     this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
     if (this->debug_this) {
-        UIManager << DL_Log << this << L" created" << LongUI::endl;
+        UIManager << DL_Log << this << L"created" << LongUI::endl;
     }
+    //assert(this->name != "");
 #endif
 }
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
-#ifdef _DEBUG
-    if (this->debug_this || true) {
-        UIManager << DL_Log << this << L" deleted" << LongUI::endl;
-    }
-#endif
     if (this->parent) this->parent->RemoveChildReference(this);
     if (m_pWindow) m_pWindow->RemoveControlReference(this);
     LongUI::SafeRelease(m_pBrush_SetBeforeUse);
@@ -700,6 +697,25 @@ namespace LongUI {
         void initialize(pugi::xml_node node) noexcept { Super::initialize(node); }
         // init without xml-node
         void initialize() noexcept { Super::initialize(); }
+#ifdef LongUIDebugEvent
+        // debug
+        bool debug_do_event(const LongUI::DebugEventInformation& info) const noexcept override {
+            switch (info.infomation)
+            {
+            case LongUI::DebugInformation::Information_GetClassName:
+                info.str = L"UINull";
+                return true;
+            case LongUI::DebugInformation::Information_GetFullClassName:
+                info.str = L"::LongUI::UINull";
+                return true;
+            case LongUI::DebugInformation::Information_CanbeCasted:
+                return Super::debug_do_event(info);
+            default:
+                break;
+            }
+            return false;
+#endif
+        }
     };
     // space holder
     class UISpaceHolder final : public UINull {
