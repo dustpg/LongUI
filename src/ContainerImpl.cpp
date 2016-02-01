@@ -87,10 +87,10 @@ auto LongUI::UIContainerBuiltIn::FindChild(const D2D1_POINT_2F& pt) noexcept ->U
 
 
 // UIContainerBuiltIn: 推入♂最后
-void LongUI::UIContainerBuiltIn::PushBack(UIControl* child) noexcept {
+void LongUI::UIContainerBuiltIn::Push(UIControl* child) noexcept {
     // 边界控件交给父类处理
     if (child && (child->flags & Flag_MarginalControl)) {
-        Super::PushBack(child);
+        Super::Push(child);
     }
     // 一般的就自己处理
     else {
@@ -184,8 +184,6 @@ void LongUI::UIContainerBuiltIn::Remove(UIControl* ctrl) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIContainerBuiltIn::before_deleted() noexcept { 
-    // 链式调用
-    Super::before_deleted(); 
     // 清理子控件
     auto ctrl = m_pHead;
     while (ctrl) {
@@ -198,6 +196,8 @@ void LongUI::UIContainerBuiltIn::before_deleted() noexcept {
     m_pHead = nullptr;
     m_pTail = nullptr;
 #endif
+    // 链式调用
+    Super::before_deleted(); 
 }
 
 // 获取控件索引
@@ -529,8 +529,6 @@ void LongUI::UIHorizontalLayout::cleanup() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UISingle::before_deleted() noexcept {
-    // 链式调用
-    Super::before_deleted();
     // 清理子控件
     assert(m_pChild && "UISingle must host a child");
     this->cleanup_child(m_pChild);
@@ -538,6 +536,8 @@ void LongUI::UISingle::before_deleted() noexcept {
     // 调试清理
     m_pChild = nullptr;
 #endif
+    // 链式调用
+    Super::before_deleted();
 }
 
 // UISingle: 事件处理
@@ -612,10 +612,10 @@ auto LongUI::UISingle::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* 
 
 
 // UISingle: 推入最后
-void LongUI::UISingle::PushBack(UIControl* child) noexcept {
+void LongUI::UISingle::Push(UIControl* child) noexcept {
     // 边界控件交给父类处理
     if (child && (child->flags & Flag_MarginalControl)) {
-        Super::PushBack(child);
+        Super::Push(child);
     }
     // 一般的就自己处理
     else {
@@ -713,14 +713,14 @@ void LongUI::UIPage::initialize(pugi::xml_node node) noexcept {
 }
 
 // something must do before deleted
-void LongUI::UIPage::before_deleted() noexcept { 
-    // 链式调用
-    Super::before_deleted(); 
+void LongUI::UIPage::before_deleted() noexcept {
     // 清理子控件
     for (auto ctrl : m_vChildren) {
         this->cleanup_child(ctrl);
     }
     m_vChildren.clear();
+    // 链式调用
+    Super::before_deleted(); 
 }
 
 /// <summary>
@@ -829,10 +829,10 @@ auto LongUI::UIPage::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
 }
 
 // UIPage: 推入最后
-void LongUI::UIPage::PushBack(UIControl* child) noexcept {
+void LongUI::UIPage::Push(UIControl* child) noexcept {
     // 边界控件交给父类处理
     if (child && (child->flags & Flag_MarginalControl)) {
-        Super::PushBack(child);
+        Super::Push(child);
     }
     // 一般的就自己处理
     else {

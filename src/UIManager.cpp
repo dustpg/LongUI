@@ -414,7 +414,7 @@ void LongUI::CUIManager::MakeControlTree(UIContainer* root, pugi::xml_node node)
             continue;
         }
         // 添加子结点
-        parent->PushBack(control);
+        parent->Push(control);
         // 设置结点为下次父结点
         parent = static_cast<UIContainer*>(control);
         // 不是容器的话直接跳过

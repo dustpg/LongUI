@@ -337,27 +337,24 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     }
     force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_FORE);
 #endif
-    // 后继结点判断, B控件深度必须比A深
-    auto is_successor = [](const UIControl* const a, const UIControl* b) noexcept {
-        const auto target = a->level;
-        while (b->level > target) b = b->parent;
-        return a == b;
-    };
     // 渲染边框
     if (m_fBorderWidth > 0.f) {
-        //UIManager_RenderTarget->SetTransform(&this->world);
         D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
         m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
+#if 0
         if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
             brect.radiusX = m_2fBorderRdius.width;
             brect.radiusY = m_2fBorderRdius.height;
-            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
             UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-            //UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
         else {
             UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
         }
+#else
+        brect.radiusX = m_2fBorderRdius.width;
+        brect.radiusY = m_2fBorderRdius.height;
+        UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
+#endif
     }
 }
 
@@ -786,6 +783,8 @@ LongUINoinline void LongUI::UIContainer::before_deleted() noexcept {
     // 调试时清空
     std::memset((void*)(this->marginal_control), 0, sizeof(this->marginal_control));
 #endif
+    // 链式调用
+    Super::before_deleted();
 }
 
 /// <summary>
@@ -1016,7 +1015,7 @@ void LongUI::UIContainer::render_chain_main() const noexcept {
 }
 
 // 添加边界控件
-void LongUI::UIContainer::PushBack(UIControl* child) noexcept {
+void LongUI::UIContainer::Push(UIControl* child) noexcept {
     assert(child && "bad argment");
     assert((child->flags & Flag_MarginalControl) && "bad argment");
     if (child && (child->flags & Flag_MarginalControl)) {

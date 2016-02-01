@@ -52,7 +52,7 @@ namespace LongUI {
         // refresh this layout
         virtual void RefreshLayout() noexcept override final;
         // push back
-        virtual void PushBack(UIControl* child) noexcept override final;
+        virtual void Push(UIControl* child) noexcept override final;
         // remove child
         virtual void Remove(UIControl* child) noexcept override final;
     public:

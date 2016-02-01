@@ -29,7 +29,7 @@ auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup) noexcept -> UIWin
         // 添加子节点
         if (popup.child) {
             popup.child->LinkNewParent(window);
-            window->PushBack(popup.child);
+            window->Push(popup.child);
 #ifdef _DEBUG
            force_cast(window->name) = window->CopyString("PopupWindow");
 #endif

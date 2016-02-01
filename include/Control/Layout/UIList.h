@@ -183,7 +183,7 @@ namespace LongUI {
         // refresh layout
         virtual void RefreshLayout() noexcept override final;
         // push back
-        virtual void PushBack(UIControl* child) noexcept;
+        virtual void Push(UIControl* child) noexcept;
         // remove child 
         virtual void Remove(UIControl* child) noexcept;
         // insert

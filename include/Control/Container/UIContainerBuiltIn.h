@@ -94,7 +94,7 @@ namespace LongUI {
         virtual auto FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* override final;
     public:
         // push back
-        virtual void PushBack(UIControl* child) noexcept override final;
+        virtual void Push(UIControl* child) noexcept override final;
         // remove child
         virtual void Remove(UIControl* child) noexcept override final;
     public:

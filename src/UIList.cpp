@@ -158,10 +158,10 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
 }
 
 // push!
-void LongUI::UIList::PushBack(UIControl* child) noexcept {
+void LongUI::UIList::Push(UIControl* child) noexcept {
     // 边界控件交给父类处理
     if (child && (child->flags & Flag_MarginalControl)) {
-        Super::PushBack(child);
+        Super::Push(child);
     }
     // 一般的就自己处理
     else {
@@ -246,14 +246,14 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
 /// Before_deleteds this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIList::before_deleted() noexcept { 
-    // 链式清理
-    Super::before_deleted();
+void LongUI::UIList::before_deleted() noexcept {
     // 清理子控件
     for (auto ctrl : m_vLines) {
         this->cleanup_child(ctrl);
     }
     m_vLines.clear();
+    // 链式清理
+    Super::before_deleted();
 }
 
 // UI列表控件: 析构函数

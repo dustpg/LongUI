@@ -65,7 +65,7 @@ namespace LongUI {
         // refresh layout
         virtual void RefreshLayout() noexcept = 0;
         // push back, do push marginalal-control for UIContainer
-        virtual void PushBack(UIControl* child) noexcept = 0;
+        virtual void Push(UIControl* child) noexcept = 0;
         // remove child
         virtual void Remove(UIControl* child) noexcept { this->RemoveChildReference(child); this->cleanup_child(child); }
     public:
