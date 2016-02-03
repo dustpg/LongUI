@@ -285,6 +285,17 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
     this->ShowWindow(SW_SHOW);
 }
 
+
+// 清理前
+void LongUI::UIWindow::before_deleted() noexcept {
+    /*::EnumChildWindows(m_hwnd, [](HWND hwnd, LPARAM)noexcept->BOOL {
+        ::SendMessageW(hwnd, WM_CLOSE, 0, 0);
+        return TRUE;
+    }, 0);*/
+    // 链式调用
+    Super::before_deleted();
+}
+
 // UIWindow 析构函数
 LongUI::UIWindow::~UIWindow() noexcept {
     // 设置窗口指针

@@ -579,7 +579,7 @@ void LongUI::CUIManager::Run() noexcept {
     // 再次清理
     this->cleanup_delay_cleanup_chain();
     // 尝试强行关闭
-    if (m_cCountWindow) {
+    /*if (m_cCountWindow) {
         UIWindow* windows[LongUIMaxWindow];
         std::memcpy(windows, m_apWindows, sizeof(m_apWindows));
         auto count = m_cCountWindow;
@@ -587,7 +587,7 @@ void LongUI::CUIManager::Run() noexcept {
         for (auto i = 0u; i < count; ++i) {
             windows[count - i - 1]->cleanup();
         }
-    }
+    }*/
     assert(!m_cCountWindow && "bad");
     m_cCountWindow = 0;
 }

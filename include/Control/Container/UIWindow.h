@@ -124,8 +124,6 @@ namespace LongUI {
         };
         // assert
         static_assert(INDEX_COUNT < 32, "out of range");
-        // something must do before deleted
-        void before_deleted() noexcept { Super::before_deleted(); }
     public: // UIControl 接口实现
         // Render 渲染 
         virtual void Render() const noexcept override;
@@ -143,6 +141,8 @@ namespace LongUI {
         // create popup window
         static auto CreatePopup(const Config::Popup&) noexcept -> UIWindow*;
     protected:
+        // something must do before deleted
+        void before_deleted() noexcept;
         // init
         void initialize(pugi::xml_node node) noexcept;
         // init as popup window
