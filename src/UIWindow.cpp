@@ -288,10 +288,12 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
 
 // 清理前
 void LongUI::UIWindow::before_deleted() noexcept {
-    /*::EnumChildWindows(m_hwnd, [](HWND hwnd, LPARAM)noexcept->BOOL {
-        ::SendMessageW(hwnd, WM_CLOSE, 0, 0);
-        return TRUE;
-    }, 0);*/
+    // 清理子窗口
+    UIWindow* children = m_pFirstChild;
+    while (children) {
+        children->CloseWindowLater();
+        children = children->m_pNextSibling;
+    }
     // 链式调用
     Super::before_deleted();
 }

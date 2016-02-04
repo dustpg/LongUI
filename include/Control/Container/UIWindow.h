@@ -266,6 +266,10 @@ namespace LongUI {
         // last mouse point
         D2D1_POINT_2F           last_point = D2D1::Point2F(-1.f, -1.f);
     protected:
+        // next sibling
+        UIWindow*               m_pNextSibling = nullptr;
+        // 1st child
+        UIWindow*               m_pFirstChild = nullptr;
         // string allocator
         StringAllocator         m_oStringAllocator;
         // unused float
