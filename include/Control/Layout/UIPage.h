@@ -27,7 +27,7 @@
 // LongUI namespace
 namespace LongUI {
     // page-like container, child cannot be fixed width/height
-    // Index_StateSelf_1 : Animation Direction
+    // State_Self1 : Animation Direction
     class UIPage : public UIContainer {
         // super class
         using Super = UIContainer;
@@ -74,11 +74,11 @@ namespace LongUI {
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
     private:
         // slide to ->
-        auto set_slider_to_left() noexcept { m_bool16.SetFalse(Index_StateSelf_1); }
+        auto set_slider_to_left() noexcept { m_state.SetFalse(State_Self1); }
         // slide to <-
-        auto set_slider_to_right() noexcept { m_bool16.SetTrue(Index_StateSelf_1); }
+        auto set_slider_to_right() noexcept { m_state.SetTrue(State_Self1); }
         // -->?
-        auto is_slide_to_right() const noexcept { return m_bool16.Test(Index_StateSelf_1); }
+        auto is_slide_to_right() const noexcept { return m_state.Test(State_Self1); }
     protected:
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }

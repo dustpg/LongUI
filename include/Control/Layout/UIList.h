@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI {
     // ui list line, the width child must be fixed
-    // Index_StateSelf_1 : Selected
+    // State_Self1 : Selected
     class UIListLine : public UIHorizontalLayout {
         // super class
         using Super = UIHorizontalLayout;
@@ -55,9 +55,9 @@ namespace LongUI {
         // set to be sorted control
         auto SetToBeSorted(uint32_t index) noexcept { m_pToBeSorted = this->GetAt(index); }
         // selected!
-        auto SetSelected(bool b) noexcept { m_bool16.SetTo(Index_StateSelf_1, b); }
+        auto SetSelected(bool b) noexcept { m_state.SetTo(State_Self1, b); }
         // selected?
-        auto IsSelected() const noexcept { return m_bool16.Test(Index_StateSelf_1); }
+        auto IsSelected() const noexcept { return m_state.Test(State_Self1); }
     protected:
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }

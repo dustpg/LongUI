@@ -167,7 +167,7 @@ bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         this->SetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         // 检查的是本控件
-        if (m_pWindow->IsReleasedControl(this)) {
+        if (m_pWindow->IsCapturedControl(this)) {
             // 检查flag
             auto target = CheckBoxState::State_Checked;
             if (this->GetCheckBoxState() == CheckBoxState::State_Checked) {

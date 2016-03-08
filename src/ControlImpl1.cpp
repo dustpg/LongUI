@@ -208,7 +208,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case LongUI::MouseEvent::Event_LButtonUp:
         m_tarStateClick = LongUI::State_Hover;
         // 左键弹起:
-        if (m_pWindow->IsReleasedControl(this)) {
+        if (m_pWindow->IsCapturedControl(this)) {
             bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
             rec = false;
             // 设置状态
@@ -326,7 +326,7 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         auto tmp = UIManager.CreateControl(nullptr, list, nullptr);
         if (tmp) {
             // 退出时不清理
-            tmp->SetNoCleanupViaParent();
+            assert(!"NO IMPL");
             // 转换为List
             m_pItemList = longui_cast<UIList*>(tmp);
             // 存在子节点尝试创建控件树

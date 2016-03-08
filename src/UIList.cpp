@@ -249,7 +249,7 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
 void LongUI::UIList::before_deleted() noexcept {
     // 清理子控件
     for (auto ctrl : m_vLines) {
-        this->cleanup_child(ctrl);
+        this->release_child(ctrl);
     }
     m_vLines.clear();
     // 链式清理
@@ -298,7 +298,7 @@ void LongUI::UIList::RemoveLineElementInEachLine(uint32_t index) noexcept {
         for (auto line : m_vLines) {
             auto child = line->GetAt(index);
 #ifdef _DEBUG
-            if (child->flags & Flag_NoCleanupViaParent) {
+            {
                 UIManager << DL_Hint
                     << L"bad idea for line hosting flag Flag_NoCleanupViaParent"
                     << LongUI::endl;

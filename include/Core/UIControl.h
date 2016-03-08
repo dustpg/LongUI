@@ -42,8 +42,6 @@ namespace LongUI {
         using Super = void;// CUISingleNormalObject;
         // friend class
         friend class CUIManager;
-        // friend class
-        friend class UIContainer;
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
@@ -158,8 +156,6 @@ namespace LongUI {
         auto IsTopLevel() const noexcept { return !this->parent; }
         // Link new parent
         void LinkNewParent(UIContainer*) noexcept;
-        // set no cleanup
-        void SetNoCleanupViaParent() noexcept { force_cast(this->flags) = this->flags | Flag_NoCleanupViaParent; }
         // get script data
         const auto& GetScript() const noexcept { return m_script; }
         // get space holder control to aviod nullptr if you do not want a nullptr
@@ -186,19 +182,19 @@ namespace LongUI {
         // get taking up height of control
         auto GetNonContentHeight() const noexcept ->float;
         // change control layout
-        auto SetControlLayoutChanged() noexcept { m_bool16.SetTrue(Index_ChangeLayout); }
+        auto SetControlLayoutChanged() noexcept { m_state.SetTrue(State_ChangeLayout); }
         // handleupdate_marginal_controls control draw size changed
-        auto ControlLayoutChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeSizeHandled); }
+        auto ControlLayoutChangeHandled() noexcept { m_state.SetTrue(State_ChangeSizeHandled); }
         // change control world
-        auto SetControlWorldChanged() noexcept { m_bool16.SetTrue(Index_ChangeWorld); }
+        auto SetControlWorldChanged() noexcept { m_state.SetTrue(State_ChangeWorld); }
         // handle control world changed
-        auto ControlWorldChangeHandled() noexcept { m_bool16.SetTrue(Index_ChangeWorldHandled); }
+        auto ControlWorldChangeHandled() noexcept { m_state.SetTrue(State_ChangeWorldHandled); }
         // is control draw size changed?
-        auto IsControlLayoutChanged() const noexcept { return m_bool16.Test(Index_ChangeLayout); }
+        auto IsControlLayoutChanged() const noexcept { return m_state.Test(State_ChangeLayout); }
         // refresh the world transform
         void RefreshWorld() noexcept;
         // refresh the world transform
-        auto IsNeedRefreshWorld() const noexcept { return m_bool16.Test(Index_ChangeLayout) || m_bool16.Test(Index_ChangeWorld); }
+        auto IsNeedRefreshWorld() const noexcept { return m_state.Test(State_ChangeLayout) || m_state.Test(State_ChangeWorld); }
         // update the world transform
         auto UpdateWorld() noexcept { if (this->IsNeedRefreshWorld()) this->RefreshWorld(); }
         // get HoverTrackTime
@@ -272,46 +268,79 @@ namespace LongUI {
         // tree level
         uint8_t         const   level = 0ui8;
     protected:
-        // basic state attribute
-        enum BasicStateAttribute : uint32_t {
-            // visible
-            Attribute_Visible =0,
-            // enabled
-            Attribute_Enabled,
-        };
         // basic state
-        Helper::BitArray_8      m_stateBasic;
-        // boolx16
-        Helper::BitArray16      m_bool16;
+        enum BasicState : uint32_t {
+            // visible
+            State_Visible =0,
+            // enabled
+            State_Enabled,
+            // state for user
+            State_User,
+            // state for parent
+            State_Parent,
+            // state for window
+            State_Window,
+            // state for self no.1
+            State_Self1,
+            // state for self no.2
+            State_Self2,
+            // state for self no.3
+            State_Self3,
+            // state for self no.4
+            State_Self4,
+            // state for self no.5
+            State_Self5,
+            // state for self no.6
+            State_Self6,
+            // state for self no.7
+            State_Self7,
+            // control size changed, for performance, this maybe changed multiple-time in one frame
+            State_ChangeLayout,
+            // control world changed, for performance, this maybe changed multiple-time in one frame
+            State_ChangeWorld,
+            // control size changed, if you have handled it
+            State_ChangeSizeHandled,
+            // control world changed, if you have handled it
+            State_ChangeWorldHandled,
+            // count of this
+            STATE_COUNT,
+        };
+        // state
+        Helper::BitArray16      m_state;
+        // reference count. to avoid "Circular references", upper-level-control managed it
+        uint8_t                 m_u8RefCount = 1;
     public:
+        // AddRef
+        void AddRef() noexcept { ++m_u8RefCount; assert(m_u8RefCount < 127 && "too many refs"); }
+        // AddRef
+        void Release() noexcept { --m_u8RefCount; if (!m_u8RefCount) this->cleanup(); }
         // set visible
-        void SetVisible(bool visible) noexcept { m_stateBasic.SetTo(Attribute_Visible, visible); }
+        void SetVisible(bool visible) noexcept { m_state.SetTo(State_Visible, visible); }
         // get visible
-        auto GetVisible() const noexcept { return m_stateBasic.Test(Attribute_Visible); }
+        auto GetVisible() const noexcept { return m_state.Test(State_Visible); }
         // get visible
-        auto GetEnabled() const noexcept { return m_stateBasic.Test(Attribute_Enabled); }
+        auto GetEnabled() const noexcept { return m_state.Test(State_Enabled); }
         // set enable state
         void SetEnabled(bool enabled) noexcept {
             EventArgument arg; arg.sender = this; arg.event = Event::Event_SetEnabled;
             arg.ste.enabled = enabled; this->DoEvent(arg);
-            m_stateBasic.SetTo(Attribute_Enabled, enabled);
+            m_state.SetTo(State_Enabled, enabled);
         }
+        // set state
+        auto SetUserState(bool b) noexcept { m_state.SetTo(State_User, b); }
+        // test state
+        auto TestUserState() const noexcept { return m_state.Test(State_User); }
+        // set state
+        auto SetParentState(bool b) noexcept { m_state.SetTo(State_Parent, b); }
+        // test state
+        auto TestParentState() const noexcept { return m_state.Test(State_Parent); }
+        // set state
+        auto SetWindowState(bool b) noexcept { m_state.SetTo(State_Window, b); }
+        // test state
+        auto TestWindowState() const noexcept { return m_state.Test(State_Window); }
     protected:
         // check control state based on basic state
         auto check_state() const noexcept { return this->GetEnabled() ? State_Normal : State_Disabled; }
-    public:
-        // set state
-        auto SetUserState(bool b) noexcept { m_bool16.SetTo(Index_StateUser, b); }
-        // test state
-        auto TestUserState() const noexcept { return m_bool16.Test(Index_StateUser); }
-        // set state
-        auto SetParentState(bool b) noexcept { m_bool16.SetTo(Index_StateParent, b); }
-        // test state
-        auto TestParentState() const noexcept { return m_bool16.Test(Index_StateParent); }
-        // set state
-        auto SetWindowState(bool b) noexcept { m_bool16.SetTo(Index_StateWindow, b); }
-        // test state
-        auto TestWindowState() const noexcept { return m_bool16.Test(Index_StateWindow); }
     public:
         // control current visible position(relative to world)
         D2D1_RECT_F             visible_rect = D2D1::RectF();
@@ -332,43 +361,6 @@ namespace LongUI {
         D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACACui32);
         // roundsize of border
         D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
-        // bit-array-index 16
-        enum BitArrayIndex : uint32_t {
-            // unknown
-            Index_Unknown,
-            // control size changed, for performance, this maybe changed multiple-time in one frame
-            Index_ChangeLayout,
-            // control world changed, for performance, this maybe changed multiple-time in one frame
-            Index_ChangeWorld,
-            // control size changed, if you have handled it
-            Index_ChangeSizeHandled,
-            // control world changed, if you have handled it
-            Index_ChangeWorldHandled,
-            // state for user
-            Index_StateUser,
-            // state for parent
-            Index_StateParent,
-            // state for window
-            Index_StateWindow,
-            // state for self no.1
-            Index_StateSelf_1,
-            // state for self no.2
-            Index_StateSelf_2,
-            // state for self no.3
-            Index_StateSelf_3,
-            // state for self no.4
-            Index_StateSelf_4,
-            // state for self no.5
-            Index_StateSelf_5,
-            // state for self no.6
-            Index_StateSelf_6,
-            // state for self no.7
-            Index_StateSelf_7,
-            // state for self no.8
-            Index_StateSelf_8,
-            // count of this
-            BITARRAYINDEX_COUNT,
-        };
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

@@ -288,6 +288,11 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
 
 // 清理前
 void LongUI::UIWindow::before_deleted() noexcept {
+    // 清理引用
+    LongUI::SafeRelease(m_pHoverTracked);
+    LongUI::SafeRelease(m_pFocusedControl);
+    LongUI::SafeRelease(m_pDragDropControl);
+    LongUI::SafeRelease(m_pCapturedControl);
     // 清理子窗口
     UIWindow* children = m_pFirstChild;
     while (children) {
@@ -323,20 +328,6 @@ LongUI::UIWindow::~UIWindow() noexcept {
     // 移除窗口
     UIManager.RemoveWindow(this);
 }
-
-// 移除控件引用
-void LongUI::UIWindow::RemoveControlReference(UIControl* ctrl) noexcept {
-    assert(this && "null pointer");
-    auto remove_reference = [ctrl](UIControl*& cref) { 
-        if (cref == ctrl) cref = nullptr;
-    };
-    // 移除引用
-    remove_reference(m_pHoverTracked);
-    remove_reference(m_pFocusedControl);
-    remove_reference(m_pDragDropControl);
-    remove_reference(m_pCapturedControl);
-}
-
 
 // 注册
 void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept {
@@ -482,12 +473,38 @@ void LongUI::UIWindow::AddNamedControl(UIControl* ctrl) noexcept {
     }
 }
 
+// 设置hover跟踪控件
+void LongUI::UIWindow::SetHoverTrack(UIControl* ctrl) noexcept { 
+    assert(ctrl && "bad argument"); 
+    if (ctrl && ctrl->GetHoverTrackTime()) {
+        LongUI::SafeAcquire(ctrl);
+        LongUI::SafeRelease(m_pHoverTracked);
+        m_pHoverTracked = ctrl;
+    }
+}
+
+
+// 设置捕获控件
+void LongUI::UIWindow::SetCapture(UIControl* ctrl) noexcept { 
+    assert(ctrl && "bad argument"); 
+    ::SetCapture(m_hwnd);
+    // 设置引用计数
+    LongUI::SafeAcquire(ctrl);
+    LongUI::SafeRelease(m_pCapturedControl);
+    m_pCapturedControl = ctrl; 
+};
+
+// 释放捕获控件
+void LongUI::UIWindow::ReleaseCapture() noexcept { 
+    ::ReleaseCapture(); 
+    LongUI::SafeRelease(m_pCapturedControl);
+};
+
 // 设置图标
 void LongUI::UIWindow::SetIcon(HICON hIcon) noexcept {
     ::DefWindowProcW(m_hwnd, WM_SETICON, TRUE, reinterpret_cast<LPARAM>(hIcon));
     ::DefWindowProcW(m_hwnd, WM_SETICON, FALSE, reinterpret_cast<LPARAM>(hIcon));
 }
-
 
 // release data
 void LongUI::UIWindow::release_data() noexcept {
@@ -858,13 +875,11 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         break;
     case WM_KILLFOCUS:
         // 存在焦点控件
-        if (m_pFocusedControl){
-            force_cast(arg.sender) = this;
-            force_cast(arg.event) = LongUI::Event::Event_KillFocus;
-            m_pFocusedControl->DoEvent(arg);
-            m_pFocusedControl = nullptr;
-            force_cast(arg.sender) = nullptr;
-            force_cast(arg.msg) = WM_KILLFOCUS;
+        if (m_pFocusedControl) {
+            // 事件
+            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
+            // 释放引用
+            LongUI::SafeRelease(m_pFocusedControl);
         }
         ::DestroyCaret();
         // 失去焦点即关闭窗口
@@ -926,6 +941,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // 鼠标事件
 bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+    assert(!"m_pHoverTracked refs");
     // hover跟踪
     if (arg.event == MouseEvent::Event_MouseHover && m_pHoverTracked) {
         return m_pHoverTracked->DoMouseEvent(arg);
@@ -953,10 +969,16 @@ void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
     if (ctrl && ctrl->flags & Flag_Focusable) {
         // 有效
         if (m_pFocusedControl) {
+            // 事件
             m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
+            // 去除引用
+            m_pFocusedControl->Release();
         }
         // 有效
         if ((m_pFocusedControl = ctrl)) {
+            // 增加引用
+            m_pFocusedControl->AddRef();
+            // 事件
             m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus);
         }
     }
@@ -1040,8 +1062,8 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     // 释放数据
     this->release_data();
     // DXGI Surface 后台缓冲
-    IDXGISurface*                       pDxgiBackBuffer = nullptr;
-    IDXGISwapChain1*                    pSwapChain = nullptr;
+    IDXGISurface*               pDxgiBackBuffer = nullptr;
+    IDXGISwapChain1*            pSwapChain = nullptr;
     // 创建交换链
     HRESULT hr = S_OK;
     // 创建交换链

@@ -109,15 +109,6 @@ namespace LongUI {
             };
             return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), parent, create_func, buffer));
         }
-    public:
-        // get theme colr
-        LongUIAPI static auto GetThemeColor(D2D1_COLOR_F& colorf) noexcept ->HRESULT;
-        // is run as admin?
-        LongUIAPI static bool WINAPI IsRunAsAdministrator() noexcept;
-        // try to elevate now,  will lauch a new elevated instance and
-        // exit this instance if success. be careful about your app if
-        // only can be in one instance
-        LongUIAPI static bool WINAPI TryElevateUACNow(const wchar_t* parameters = nullptr, bool exit = true) noexcept;
     private:
         // exit
         inline void exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
@@ -140,7 +131,7 @@ namespace LongUI {
         inline auto GetTextRenderer(int i) const noexcept { assert(i < m_uTextRenderCount && "out of range"); return LongUI::SafeAcquire(m_apTextRenderer[i]); }
 #ifdef _DEBUG
         // exit the app
-        inline void Exit() noexcept;
+        void Exit() noexcept;
 #else
         // exit the app
         inline void Exit() noexcept { this->exit(); }
@@ -209,7 +200,7 @@ namespace LongUI {
         // helper for drop target
         IDropTargetHelper*              m_pDropTargetHelper = nullptr;
         // D2D 工厂
-        ID2D1Factory1*                  m_pd2dFactory = nullptr;
+        ID2D1Factory4*                  m_pd2dFactory = nullptr;
         // DWrite工厂
         IDWriteFactory1*                m_pDWriteFactory = nullptr;
         // DWrite 字体集
@@ -219,9 +210,9 @@ namespace LongUI {
         // D3D 设备上下文
         ID3D11DeviceContext*            m_pd3dDeviceContext = nullptr;
         // D2D 设备
-        ID2D1Device*                    m_pd2dDevice = nullptr;
+        ID2D1Device3*                   m_pd2dDevice = nullptr;
         // D2D 设备上下文
-        ID2D1DeviceContext*             m_pd2dDeviceContext = nullptr;
+        ID2D1DeviceContext3*            m_pd2dDeviceContext = nullptr;
         // DXGI 工厂
         IDXGIFactory2*                  m_pDxgiFactory = nullptr;
         // DXGI 设备
@@ -353,10 +344,12 @@ namespace LongUI {
     public:
         // create a control tree for UIContainer
         void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;
+        // get theme colr
+        LongUIAPI static auto GetThemeColor(D2D1_COLOR_F& colorf) noexcept ->HRESULT;
         // main window proc
-        static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
+        LongUIAPI static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
         // windows message to longui mouse event
-        static void WindowsMsgToMouseEvent(MouseEventArgument& event, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
+        LongUIAPI static void WindowsMsgToMouseEvent(MouseEventArgument& event, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
     public:
         // 单例 CUIRenderer
         LongUIAPI static CUIManager     s_instance;

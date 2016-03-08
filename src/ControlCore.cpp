@@ -68,7 +68,7 @@ namespace LongUI { namespace impl { static float const floatx2[] = { 0.f, 0.f };
 LongUI::UIControl::UIControl(UIContainer* parent) noexcept :
 parent(parent),
 context(),
-m_stateBasic(uint8_t(-1)),
+m_state(uint16_t(1 << State_Visible | 1 << State_Enabled)),
 level(parent ? (parent->level + 1ui8) : 0ui8),
 m_pWindow(parent ? parent->GetWindow() : nullptr) {
     // 溢出错误
@@ -79,7 +79,6 @@ m_pWindow(parent ? parent->GetWindow() : nullptr) {
         assert(!"too deep");
     }
 }
-
 
 /// <summary>
 /// Links the new parent.
@@ -290,8 +289,6 @@ void LongUI::UIControl::initialize() noexcept  {
 
 // 析构函数
 LongUI::UIControl::~UIControl() noexcept {
-    if (this->parent) this->parent->RemoveChildReference(this);
-    if (m_pWindow) m_pWindow->RemoveControlReference(this);
     LongUI::SafeRelease(m_pBrush_SetBeforeUse);
     LongUI::SafeRelease(m_pBackgroudBrush);
     // 释放脚本占用空间
@@ -362,14 +359,14 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
 // UI控件: 刷新
 void LongUI::UIControl::AfterUpdate() noexcept {
     // 控件大小处理了
-    if (m_bool16.Test(Index_ChangeSizeHandled)) {
-        m_bool16.SetFalse(Index_ChangeLayout);
-        m_bool16.SetFalse(Index_ChangeSizeHandled);
+    if (m_state.Test(State_ChangeSizeHandled)) {
+        m_state.SetFalse(State_ChangeLayout);
+        m_state.SetFalse(State_ChangeSizeHandled);
     }
     // 世界转换处理了
-    if (m_bool16.Test(Index_ChangeWorldHandled)) {
-        m_bool16.SetFalse(Index_ChangeWorld);
-        m_bool16.SetFalse(Index_ChangeWorldHandled);
+    if (m_state.Test(State_ChangeWorldHandled)) {
+        m_state.SetFalse(State_ChangeWorld);
+        m_state.SetFalse(State_ChangeWorldHandled);
     }
 #ifdef _DEBUG
     assert(debug_updated && "must call Update() before this");
@@ -775,9 +772,10 @@ LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal
 /// </summary>
 /// <returns></returns>
 LongUINoinline void LongUI::UIContainer::before_deleted() noexcept {
+    LongUI::SafeRelease(m_pMousePointed);
     // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
     for (auto ctrl : this->marginal_control) {
-        if (ctrl)  ctrl->cleanup();
+        if (ctrl)  release_child(ctrl);
     }
 #ifdef _DEBUG
     // 调试时清空
@@ -871,7 +869,7 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     // 设置父结点
     assert(child->parent == this);
     // 设置窗口结点
-    assert(child->m_pWindow == m_pWindow);
+    assert(child->GetWindow() == m_pWindow);
     // 重建资源
     child->Recreate();
     // 修改
@@ -926,7 +924,7 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
     if (arg.event == LongUI::MouseEvent::Event_MouseLeave) {
         if (m_pMousePointed) {
             m_pMousePointed->DoMouseEvent(arg);
-            m_pMousePointed = nullptr;
+            LongUI::SafeRelease(m_pMousePointed);
         }
         return true;
     }
@@ -939,11 +937,17 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
         auto newarg = arg;
         // 有效
         if (m_pMousePointed) {
+            // 事件
             newarg.event = LongUI::MouseEvent::Event_MouseLeave;
             m_pMousePointed->DoMouseEvent(newarg);
+            // 去除旧引用
+            m_pMousePointed->Release();
         }
         // 有效
         if ((m_pMousePointed = control_got)) {
+            // 添加新引用
+            m_pMousePointed->AddRef();
+            // 事件
             newarg.event = LongUI::MouseEvent::Event_MouseEnter;
             m_pMousePointed->DoMouseEvent(newarg);
         }
@@ -1027,7 +1031,7 @@ void LongUI::UIContainer::Push(UIControl* child) noexcept {
             UIManager << DL_Error
                 << "target marginal control has been existd, check xml-layout"
                 << LongUI::endl;
-            this->cleanup_child(this->marginal_control[mctrl->marginal_type]);
+            this->release_child(this->marginal_control[mctrl->marginal_type]);
         }
         // 写入
         force_cast(this->marginal_control[mctrl->marginal_type]) = mctrl;

@@ -121,8 +121,8 @@ namespace LongUI {
 #include <dxgi1_3.h>
 #include <d3d11.h>
 #include <D3D11SDKLayers.h>
-#include <d2d1_1.h>
-#include <d2d1_1helper.h>
+#include <d2d1_3.h>
+#include <d2d1_3helper.h>
 #include <d2d1effects.h>
 #include <d2d1effectauthor.h>
 #include <d2d1effecthelpers.h>

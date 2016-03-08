@@ -67,14 +67,12 @@ namespace LongUI {
         // push back, do push marginalal-control for UIContainer
         virtual void Push(UIControl* child) noexcept = 0;
         // remove child
-        virtual void Remove(UIControl* child) noexcept { this->RemoveChildReference(child); this->cleanup_child(child); }
+        virtual void Remove(UIControl* child) noexcept { this->release_child(child); }
     public:
-        // remove child reference
-        void RemoveChildReference(UIControl* child) noexcept { if (m_pMousePointed == child) m_pMousePointed = nullptr; }
         // ctor
         UIContainer(UIContainer* cp) noexcept;
         // cast to CreateEventType
-        auto CET() const noexcept { 
+        auto GetCET() const noexcept { 
             static_assert(sizeof(CreateEventType) == sizeof(this), "bad cast");
             return static_cast<CreateEventType>(reinterpret_cast<size_t>(this)); 
         }
@@ -162,10 +160,11 @@ namespace LongUI {
         void render_chain_main() const noexcept;
         // render chain -> foreground
         void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
-        // cleanup child
-        void cleanup_child(UIControl* ctrl) noexcept { 
+        // release child
+        void release_child(UIControl* ctrl) noexcept { 
             assert(ctrl && (ctrl->parent == this || !ctrl->parent)); 
-            if(!(ctrl->flags & Flag_NoCleanupViaParent)) ctrl->cleanup(); 
+            force_cast(ctrl->parent) = nullptr;
+            ctrl->Release(); 
         }
         // after insert
         void after_insert(UIControl* child) noexcept;

@@ -30,11 +30,10 @@ Current Version : **Alpha-Stage**
 For this repo, you need:
   
   - OS: 
-    - **Windows 8 or later**
+    - **Windows 10 or later**
   - Tool-chain/Environment A: MSC  
     - Visual Stuidio 2015 - Express for Desktop/Community or higher
-    - Windows SDK(10.0.10240.0)
-    - or Windows SDK 8.1, but no win10 features support
+    - Windows SDK(10.0.10586.0)
   - Tool-chain/Environment B(would support in the future): GCC/Clang  
     - Rakefile(ruby)
     - MinGW-W64
@@ -42,10 +41,7 @@ For this repo, you need:
   
 ## Remarks
   
-  Windows 7 also supported Direct2D 1.1, but DirectComposition, planned support
-  for Win7 without DirectComposition,but MS said that Win7 could upgrade to 
-  Win10 for free, so just 'planned', and, maybe Win8.1/Win10 support only in 
-  the next year
+Win10 supported only now
   
 ## LongUI All In One
   LongUI source files could be grouped in one file to reduce time for compiling

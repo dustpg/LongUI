@@ -11,10 +11,10 @@
 对于本项目:
   
   - OS: 
-    - **Windows 8 或更高**
+    - **Windows 10 或更高**
   - Tool-chain/Environment A: MSC  
     - Visual Stuidio 2015 - Express for Desktop/Community 或更高
-    - Windows SDK(10.0.10240.0 RTM)
+    - Windows SDK(10.0.10586.0)
   - Tool-chain/Environment B(目测未来会支持): GCC/Clang  
     - Rakefile(ruby)
     - MinGW-W64
@@ -28,10 +28,7 @@
   
 ##Remarks
   
-  Windows 7 also supported Direct2D 1.1, but DirectComposition, planned support
-  for Win7 without DirectComposition,but MS said that Win7 could upgrade to 
-  Win10 for free, so just 'planned', and, maybe Win8.1/Win10 support only in 
-  the next year
+目前只支持 Windows 10
   
 ##LongUI Programming Style
   

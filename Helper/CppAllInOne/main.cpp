@@ -7,6 +7,8 @@
 #include <cwchar>
 #include <regex>
 #include <io.h>
+#include <filesystem>
+
 static constexpr uint32_t PATH_BUFFER_LENGTH = 1024;
 static constexpr uint32_t FILE_BUFFER_LENGTH = 1024;
 

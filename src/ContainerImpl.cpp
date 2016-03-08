@@ -188,7 +188,7 @@ void LongUI::UIContainerBuiltIn::before_deleted() noexcept {
     auto ctrl = m_pHead;
     while (ctrl) {
         auto next_ctrl = ctrl->next;
-        this->cleanup_child(ctrl);
+        this->release_child(ctrl);
         ctrl = next_ctrl;
     }
 #ifdef _DEBUG
@@ -531,7 +531,7 @@ void LongUI::UIHorizontalLayout::cleanup() noexcept {
 void LongUI::UISingle::before_deleted() noexcept {
     // 清理子控件
     assert(m_pChild && "UISingle must host a child");
-    this->cleanup_child(m_pChild);
+    this->release_child(m_pChild);
 #ifdef _DEBUG
     // 调试清理
     m_pChild = nullptr;
@@ -622,7 +622,7 @@ void LongUI::UISingle::Push(UIControl* child) noexcept {
         // 检查
 #ifdef _DEBUG
         auto old = UIControl::GetPlaceholder();
-        this->cleanup_child(old);
+        this->release_child(old);
         if (old != m_pChild) {
             UIManager << DL_Warning
                 << L"m_pChild exist:"
@@ -631,7 +631,7 @@ void LongUI::UISingle::Push(UIControl* child) noexcept {
         }
 #endif
         // 移除之前的
-        this->cleanup_child(m_pChild);
+        this->release_child(m_pChild);
         this->after_insert(m_pChild = child);
     }
 }
@@ -716,7 +716,7 @@ void LongUI::UIPage::initialize(pugi::xml_node node) noexcept {
 void LongUI::UIPage::before_deleted() noexcept {
     // 清理子控件
     for (auto ctrl : m_vChildren) {
-        this->cleanup_child(ctrl);
+        this->release_child(ctrl);
     }
     m_vChildren.clear();
     // 链式调用

@@ -232,11 +232,6 @@ namespace LongUI {
     static inline auto IsWindows8Point1OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINBLUE), LOBYTE(_WIN32_WINNT_WINBLUE), 0);
     }
-    // For Windows SDK 8.1
-#ifndef _WIN32_WINNT_WIN10
-// _WIN32_WINNT_WIN10
-#define _WIN32_WINNT_WIN10 0x0A00
-#endif
     // >= Win10
     static inline auto IsWindows10OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN10), LOBYTE(_WIN32_WINNT_WIN10), 0);

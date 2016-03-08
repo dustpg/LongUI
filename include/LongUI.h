@@ -24,8 +24,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// Graphics Level
-//#define LongUIGraphicsInterfaceLevel LongUI::GraphicsInterfaceLevel::Direct2D1_1
+#ifdef _WIN32_WINNT
+#if NTDDI_VERSION < NTDDI_WIN10_TH2
+#error "Win10 TH2 required in LongUI"
+#endif
+#else
+#define _WIN32_WINNT 0x0A000001
+#endif
 
 
 // LONGUI TIPS:
@@ -238,12 +243,12 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
         Flag_HeightFixed = 1 << 4,
-        /// <summary>
-        /// The flag "no cleanup"
-        /// will NOT cleaned up when parent cleaned up
-        /// you must cleanup manually
-        /// </summary>
-        Flag_NoCleanupViaParent = 1 << 5,
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
+        /// 
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
         // NOTE: this attribute used by parent

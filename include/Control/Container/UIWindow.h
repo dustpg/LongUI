@@ -170,8 +170,6 @@ namespace LongUI {
         void KillTimer(UIControl* ctrl) noexcept { assert(ctrl); ::KillTimer(m_hwnd, UINT_PTR(ctrl)); }
         // close window later
         void CloseWindowLater() noexcept { m_baBoolWindow.SetTrue(Index_SkipRender); ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0); };
-        // remove control reference
-        void RemoveControlReference(UIControl* ctrl) noexcept;
         // begin render
         void BeginDraw() const noexcept;
         // end ender
@@ -191,13 +189,17 @@ namespace LongUI {
         // set focus control
         void SetFocus(UIControl* ctrl) noexcept;
         // set hover track control
-        void SetHoverTrack(UIControl* ctrl) noexcept { assert(ctrl); if (ctrl && ctrl->GetHoverTrackTime()) m_pHoverTracked = ctrl; }
+        void SetHoverTrack(UIControl* ctrl) noexcept;
         // find control 
         auto FindControl(const char* name) noexcept ->UIControl*;
         // add control with name
         void AddNamedControl(UIControl* ctrl) noexcept;
         // set icon, bad
         void SetIcon(HICON hIcon = nullptr) noexcept;
+        // set mouse capture
+        void SetCapture(UIControl* control) noexcept;
+        // release mouse capture
+        void ReleaseCapture() noexcept;
         // copystring for control in this winddow
         auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
         // copystring for control in this winddow in safe way
@@ -223,12 +225,8 @@ namespace LongUI {
         inline auto Invalidate(UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, 0.f, c); }
         // get window handle
         inline auto GetHwnd() const noexcept { return m_hwnd;};
-        // set mouse capture
-        inline auto SetCapture(UIControl* c) noexcept { ::SetCapture(m_hwnd); m_pCapturedControl = c; };
-        // release mouse capture
-        inline auto ReleaseCapture() noexcept { ::ReleaseCapture(); m_pCapturedControl = nullptr; };
-        // is release mouse capture
-        inline auto IsReleasedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
+        // is mouse captured control?
+        inline auto IsCapturedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
         // get back buffer
         inline auto GetBackBuffer() noexcept { return LongUI::SafeAcquire(m_pTargetBimtap); }
         // is rendered

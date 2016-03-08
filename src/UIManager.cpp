@@ -156,7 +156,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
 #endif
         hr = LongUI::Dll::D2D1CreateFactory(
             D2D1_FACTORY_TYPE_SINGLE_THREADED,
-            IID_ID2D1Factory1,
+            IID_ID2D1Factory4,
             &options,
             reinterpret_cast<void**>(&m_pd2dFactory)
             );
@@ -617,7 +617,7 @@ auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, Creat
     // 越界检查
     if (templateid >= m_cCountCtrlTemplate) templateid = 0;
     // 创建
-    return function(cp->CET(), m_pTemplateNodes[templateid]);
+    return function(cp->GetCET(), m_pTemplateNodes[templateid]);
 }
 
 // 利用现有资源创建控件
@@ -656,7 +656,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     // 检查
     assert(function && "bad idea");
     if (!function) return nullptr;
-    auto ctrl = function(cp->CET(), node);
+    auto ctrl = function(cp->GetCET(), node);
     return ctrl;
 }
 
@@ -1860,7 +1860,7 @@ void LongUI::CUIManager::RemoveWindow(UIWindow* wnd, bool cleanup) noexcept {
 #endif
 }
 
-// 是否以管理员权限运行
+/*/ 是否以管理员权限运行
 bool LongUI::CUIManager::IsRunAsAdministrator() noexcept {
     BOOL fIsRunAsAdmin = FALSE;
     PSID pAdministratorsGroup = nullptr;
@@ -1912,7 +1912,7 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
         }
     }
     return true;
-}
+}*/
 
 #ifdef _DEBUG
 

@@ -1,4 +1,5 @@
 ﻿#if 1
+
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
