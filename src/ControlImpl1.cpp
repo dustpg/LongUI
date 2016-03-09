@@ -325,8 +325,6 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         assert(list && "bad action");
         auto tmp = UIManager.CreateControl(nullptr, list, nullptr);
         if (tmp) {
-            // 退出时不清理
-            assert(!"NO IMPL");
             // 转换为List
             m_pItemList = longui_cast<UIList*>(tmp);
             // 存在子节点尝试创建控件树
@@ -415,10 +413,7 @@ void LongUI::UIComboBox::PushItem(const wchar_t* item) noexcept {
 
 // UIComboBox: 析构函数
 inline LongUI::UIComboBox::~UIComboBox() noexcept {
-    if (m_pItemList) {
-        m_pItemList->CleanupManually();
-        m_pItemList = nullptr;
-    }
+    LongUI::SafeRelease(m_pItemList);
 }
 
 // UIComboBox: 关闭控件

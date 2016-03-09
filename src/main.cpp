@@ -145,6 +145,7 @@ namespace LongUI {
     };
 }
 
+#include <VersionHelpers.h>
 // longui
 namespace LongUI {
     // 安全释放
@@ -187,25 +188,21 @@ namespace LongUI {
     private:
         // load for Shcore
         void load_shcore() noexcept {
-            // < Win8 ?
-            if (!LongUI::IsWindows8OrGreater()) {
-                ::MessageBoxA(nullptr, "Windows8 at least!", "Unsupported System", MB_ICONERROR);
+            if (!LongUI::IsWindows10OrGreater()) {
+                ::MessageBoxA(nullptr, "Windows10 at least!", "Unsupported System", MB_ICONERROR);
                 ::ExitProcess(1);
                 return;
             }
-            // >= Win8.1 ?
-            if (LongUI::IsWindows8Point1OrGreater()) {
-                m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
-                assert(m_hDllShcore);
-                if (m_hDllShcore) {
-                    auto setProcessDpiAwareness =
-                        reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
-                            ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
-                            );
-                    assert(setProcessDpiAwareness);
-                    if (setProcessDpiAwareness) {
-                        setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
-                    }
+            m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
+            assert(m_hDllShcore);
+            if (m_hDllShcore) {
+                auto setProcessDpiAwareness =
+                    reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
+                        ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
+                        );
+                assert(setProcessDpiAwareness);
+                if (setProcessDpiAwareness) {
+                    setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
                 }
             }
         }

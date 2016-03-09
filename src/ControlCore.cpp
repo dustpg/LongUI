@@ -81,6 +81,30 @@ m_pWindow(parent ? parent->GetWindow() : nullptr) {
 }
 
 /// <summary>
+/// Releases this instance.
+/// </summary>
+/// <returns></returns>
+LongUINoinline void LongUI::UIControl::Release() noexcept {
+    uint32_t count = --m_u8RefCount; 
+    if (!m_u8RefCount) this->cleanup(); 
+}
+
+#ifdef _DEBUG
+/// <summary>
+/// Adds the reference.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::AddRef() noexcept {
+    ++m_u8RefCount;
+    assert(m_u8RefCount < 127ui8 && "too many ref-count");
+    if (m_u8RefCount >= 2) {
+        int bk = 9;
+    }
+}
+#endif
+
+
+/// <summary>
 /// Links the new parent.
 /// </summary>
 /// <param name="parent">The parent.</param>
@@ -89,6 +113,7 @@ void LongUI::UIControl::LinkNewParent(UIContainer* cp) noexcept {
     assert(cp && "bad argmuent");
     force_cast(this->parent) = cp;
     m_pWindow = cp->GetWindow();
+    this->DoLongUIEvent(Event::Event_SetNewParent);
 }
 
 /// <summary>
@@ -866,6 +891,8 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
         // 子控件也是容器?(不是也无所谓了)
         force_cast(child->flags) |= Flag_Container_HostPosterityRenderingDirectly;
     }
+    // 增加引用计数
+    child->AddRef();
     // 设置父结点
     assert(child->parent == this);
     // 设置窗口结点
@@ -909,6 +936,16 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 边界控件
             for (auto mctrl : marginal_control) {
                 if(mctrl) mctrl->DoEvent(arg);
+            }
+            done = true;
+            break;
+        case LongUI::Event::Event_SetNewParent:
+            // 修改控件深度
+            for (auto mctrl : marginal_control) {
+                if (mctrl) {
+                    force_cast(mctrl->level) = this->level + 1;
+                    mctrl->DoEvent(arg);
+                }
             }
             done = true;
             break;

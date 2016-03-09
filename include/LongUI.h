@@ -336,6 +336,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// </summary>
         /// <remarks> no ex-information</remarks>
         Event_TreeBulidingFinished = 0,
+        /// <summary>
+        /// set a new parent, you should deal something
+        /// </summary>
+        Event_SetNewParent,
         // [ui-exdata]sub event, use for event callback
         Event_SubEvent,
         // [none-exdata]command, keyboard direct-access(like type 'Eenter')

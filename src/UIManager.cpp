@@ -415,6 +415,8 @@ void LongUI::CUIManager::MakeControlTree(UIContainer* root, pugi::xml_node node)
         }
         // 添加子结点
         parent->Push(control);
+        // 去除引用
+        control->Release();
         // 设置结点为下次父结点
         parent = static_cast<UIContainer*>(control);
         // 不是容器的话直接跳过
@@ -1049,9 +1051,16 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
 
 // 清理延迟清理链
 void LongUI::CUIManager::cleanup_delay_cleanup_chain() noexcept {
+#if 0
     for (auto ctrl : m_vDelayCleanup) {
-        ctrl->cleanup();
+        ctrl->Release();
     }
+#else
+    for (uint32_t i = 1; i <= m_vDelayCleanup.size(); ++i) {
+        uint32_t index = m_vDelayCleanup.size() - i;
+        m_vDelayCleanup[index]->Release();
+    }
+#endif
     m_vDelayCleanup.clear();
 }
 

@@ -172,6 +172,8 @@ namespace LongUI {
         // marginal controls, store 'CreateControlFunction' before control-tree finished to save memory
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
+        // TODO: 连续数组优化优化
+        //UIMarginalable* const   m_apConMarCtrl[UIMarginalable::MARGINAL_CONTROL_SIZE];
         // mouse pointed control
         UIControl*              m_pMousePointed = nullptr;
         // count of children, just make "GetLength/Count" to faster

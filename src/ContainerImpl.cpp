@@ -16,6 +16,15 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
                 ctrl->DoEvent(arg);
             }
             return true;
+        case LongUI::Event::Event_SetNewParent:
+            // 初始化边缘控件 
+            Super::DoEvent(arg);
+            // 修改控件深度
+            for (auto ctrl : (*this)) {
+                force_cast(ctrl->level) = this->level + 1;
+                ctrl->DoEvent(arg);
+            }
+            return true;
         }
     }
     return Super::DoEvent(arg);
@@ -553,6 +562,13 @@ bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
             assert(m_pChild && "UISingle must host a child");
             m_pChild->DoEvent(arg);
             return true;
+        case LongUI::Event::Event_SetNewParent:
+            // 初始化边缘控件 
+            Super::DoEvent(arg);
+            // 修改控件深度
+            force_cast(m_pChild->level) = this->level + 1;
+            m_pChild->DoEvent(arg);
+            return true;
         }
     }
     return Super::DoEvent(arg);
@@ -742,6 +758,15 @@ bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
             Super::DoEvent(arg);
             // 子控件
             for (auto ctrl : m_vChildren) {
+                ctrl->DoEvent(arg);
+            }
+            return true;
+        case LongUI::Event::Event_SetNewParent:
+            // 初始化边缘控件 
+            Super::DoEvent(arg);
+            // 修改控件深度
+            for (auto ctrl : m_vChildren) {
+                force_cast(ctrl->level) = this->level + 1;
                 ctrl->DoEvent(arg);
             }
             return true;

@@ -941,7 +941,6 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // 鼠标事件
 bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
-    assert(!"m_pHoverTracked refs");
     // hover跟踪
     if (arg.event == MouseEvent::Event_MouseHover && m_pHoverTracked) {
         return m_pHoverTracked->DoMouseEvent(arg);

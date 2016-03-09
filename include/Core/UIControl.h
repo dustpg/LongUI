@@ -40,8 +40,6 @@ namespace LongUI {
     class LongUIAPI alignas(sizeof(void*)) UIControl : public CUISingleNormalObject {
         // Super class
         using Super = void;// CUISingleNormalObject;
-        // friend class
-        friend class CUIManager;
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
@@ -310,10 +308,15 @@ namespace LongUI {
         // reference count. to avoid "Circular references", upper-level-control managed it
         uint8_t                 m_u8RefCount = 1;
     public:
+        // Release
+        void Release() noexcept;
+#ifdef _DEBUG
         // AddRef
-        void AddRef() noexcept { ++m_u8RefCount; assert(m_u8RefCount < 127 && "too many refs"); }
+        void AddRef() noexcept;
+#else
         // AddRef
-        void Release() noexcept { --m_u8RefCount; if (!m_u8RefCount) this->cleanup(); }
+        void AddRef() noexcept { ++m_u8RefCount; }
+#endif
         // set visible
         void SetVisible(bool visible) noexcept { m_state.SetTo(State_Visible, visible); }
         // get visible
