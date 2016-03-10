@@ -395,12 +395,12 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
             struct { LongUI::SubEvent subevent; void* pointer; } ui;
             // set text
             struct { const wchar_t* text; void* unused; } stt;
+            // notify children
+            struct { size_t identifier; size_t value; } nc;
             // set enabled
             struct { bool enabled; } ste;
             // set float
             struct { float value;  } stf;
-            // notify children
-            struct { size_t identifier; size_t custom_value; } stf;
         };
         // Return Code
         union {

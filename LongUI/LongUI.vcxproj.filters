@@ -182,9 +182,6 @@
     <ClCompile Include="..\src\ControlImpl1.cpp">
       <Filter>Source Files\XImpl</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\InlineObjImpl.cpp">
-      <Filter>Source Files\XImpl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\UIUtilSvg.cpp">
       <Filter>Source Files\XUtil</Filter>
     </ClCompile>
@@ -201,9 +198,6 @@
       <Filter>Source Files\XCtrl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\main.cpp">
-      <Filter>Source Files\XCtrl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\UICheckBox.cpp">
       <Filter>Source Files\XCtrl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\UIEdit.cpp">
@@ -226,6 +220,12 @@
     </ClCompile>
     <ClCompile Include="..\src\ControlCore.cpp">
       <Filter>Source Files\XCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ControlImpl2.cpp">
+      <Filter>Source Files\XImpl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\InlineObjImpl.cpp">
+      <Filter>Source Files\XImpl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
