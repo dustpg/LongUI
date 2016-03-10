@@ -312,6 +312,16 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
     }
 }
 
+// UIComboBox: 添加事件监听器(雾)
+bool LongUI::UIComboBox::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
+    // 点击
+    if (sb == SubEvent::Event_ValueChanged) {
+        m_eventChanged += std::move(call);
+        return true;
+    }
+    return Super::uniface_addevent(sb, std::move(call));
+}
+
 // initialize, maybe you want call v-method
 void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
     m_vItems.reserve(32);
@@ -319,19 +329,39 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
     // 链式初始化
     Super::initialize(node);
     // 创建列表
-    {
-        auto list = node.first_child();
-        if (!list) list= node.append_child("List");
-        assert(list && "bad action");
-        auto tmp = UIManager.CreateControl(nullptr, list, nullptr);
-        if (tmp) {
-            // 转换为List
-            m_pItemList = longui_cast<UIList*>(tmp);
-            // 存在子节点尝试创建控件树
-            if (list.first_child()) {
-                UIManager.MakeControlTree(m_pItemList, list);
-            }
+    auto list = node.first_child();
+    if (!list) list= node.append_child("List");
+    assert(list && "bad action");
+    auto tmp = UIManager.CreateControl(nullptr, list, nullptr);
+    if (tmp) {
+        // 转换为List
+        m_pItemList = longui_cast<UIList*>(tmp);
+        // 存在子节点尝试创建控件树
+        if (list.first_child()) {
+            UIManager.MakeControlTree(m_pItemList, list);
         }
+    }
+    // 添加事件回调
+    if (m_pItemList) {
+        auto list = m_pItemList;
+        m_pItemList->AddEventCall([list, this](UIControl* unused) noexcept {
+            UNREFERENCED_PARAMETER(unused);
+            auto& selected = list->GetSelectedIndices();
+            // 检查选项
+            if (selected.size() && m_vItems.isok()) {
+                // 选择
+                uint32_t index = uint32_t(selected.front());
+                auto old = this->GetSelectedIndex();
+                this->SetSelectedIndex(index);
+                // 是否选择
+                if (this->GetSelectedIndex() != old) {
+                    this->call_uievent(m_eventChanged, SubEvent::Event_ValueChanged);
+                }
+            }
+            // 点击选项关闭
+            list->GetWindow()->CloseWindowLater();
+            return true;
+        }, SubEvent::Event_ItemClicked);
     }
     // 点击事件
     auto call = [this](UIControl* unused) noexcept {
@@ -342,29 +372,37 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         p2 = LongUI::TransformPoint(this->world, p2);
         Config::Popup config;
         // 上界限
-        config.topline = LONG(p1.y);
+        config.topline = p1.y;
         // 下界限
-        config.bottomline = LONG(p2.y);
+        config.bottomline = p2.y;
+        // 左界限
+        config.leftline = p1.x;
         // 宽度
-        config.width = std::max(LONG(p2.x) - LONG(p1.x), LONG(LongUIMaxGradientStop));
+        config.width = std::max(p2.x - p1.x, float(LongUIMaxGradientStop));
         // 高度
-        config.height = std::max(LONG(p2.y) - LONG(p1.x), LONG(LongUIMaxGradientStop));
+        {
+            uint32_t count = std::min(m_fMaxLine, m_pItemList->GetChildrenCount());
+            config.height = m_pItemList->GetLineHeight() * static_cast<float>(count);
+        }
         // 必要数据
         config.parent = m_pWindow;
         config.child = m_pItemList;
         // 创建弹出窗口
         auto popup = UIWindow::CreatePopup(config);
-        popup = nullptr;
         return true;
     };
     // 添加事件
     this->AddEventCall(call, SubEvent::Event_ItemClicked);
     // 成功
-    if (m_vItems.isok()) {
+    if (m_vItems.isok() && m_pItemList) {
+        // 添加项目
+        for (auto line : m_pItemList->GetContainer()) {
+            this->PushItem(line->GetFirstChildText());
+        }
         // 获取索引
         auto index = uint32_t(LongUI::AtoI(node.attribute("select").value()));
-        // TODO: 初始化
-        //m_text = index < this->GetItemCount() ? m_vItems[index] : L"";
+        // 设置显示
+        this->SetSelectedIndex(index);
     }
 }
 
@@ -374,7 +412,13 @@ LongUINoinline void LongUI::UIComboBox::InsertItem(uint32_t index, const wchar_t
     auto copy = m_strAllocator.CopyString(item);
     // 有效
     if (copy && index <= m_vItems.size()) {
+        const auto oldsize = m_vItems.size();
         m_vItems.insert(index, copy);
+        // 校正索引
+        if (m_indexSelected >= index && m_indexSelected < oldsize) {
+            // 选择后面那个
+            this->SetSelectedIndex(m_indexSelected + 1);
+        }
         m_pWindow->Invalidate(this);
     }
 #ifdef _DEBUG
@@ -384,12 +428,33 @@ LongUINoinline void LongUI::UIComboBox::InsertItem(uint32_t index, const wchar_t
 #endif
 }
 
+// 设置选择索引
+void LongUI::UIComboBox::SetSelectedIndex(uint32_t index) noexcept {
+    // 在选择范围
+    if (index >= 0 && index < m_vItems.size()) {
+        m_text = m_vItems[index];
+        m_indexSelected = index;
+    }
+    // 取消显示
+    else {
+        m_text = L"";
+        m_indexSelected = static_cast<decltype(m_indexSelected)>(-1);
+    }
+    // 下帧刷新
+    m_pWindow->Invalidate(this);
+}
+
 // 移除物品
 LongUINoinline void LongUI::UIComboBox::RemoveItem(uint32_t index) noexcept {
     assert(index < m_vItems.size() && "bad argument");
     // 有效
     if (index < m_vItems.size()) {
+        const auto oldsize = m_vItems.size();
         m_vItems.erase(index);
+        // 校正索引
+        if (m_indexSelected >= index && m_indexSelected < oldsize) {
+            this->SetSelectedIndex(m_indexSelected > 0 ? m_indexSelected - 1 : m_indexSelected);
+        }
         m_pWindow->Invalidate(this);
     }
 }
@@ -397,17 +462,18 @@ LongUINoinline void LongUI::UIComboBox::RemoveItem(uint32_t index) noexcept {
 // 添加物品
 void LongUI::UIComboBox::PushItem(const char* item) noexcept {
     assert(item && "bad argument");
-    if (!item) item = "";
+    //if (!item) item = "";
     // 有效
     wchar_t buffer[LongUIStringBufferLength];
     buffer[UTF8toWideChar(item, buffer)] = 0;
     this->PushItem(buffer);
 }
 
+
 // 添加物品
 void LongUI::UIComboBox::PushItem(const wchar_t* item) noexcept {
     assert(item && "bad argument");
-    if (!item) item = L"";
+    //if (!item) item = L"";
     this->InsertItem(this->GetItemCount(), item);
 }
 
@@ -440,6 +506,18 @@ auto LongUI::UIComboBox::CreateControl(CreateEventType type, pugi::xml_node node
     }
     return pControl;
 }
+
+
+// ----------------------------------------------------------------------------
+// **** UIRadioButton
+// ----------------------------------------------------------------------------
+
+
+
+
+
+
+
 
 
 // 调试区域
@@ -544,6 +622,26 @@ bool LongUI::UIComboBox::debug_do_event(const LongUI::DebugEventInformation& inf
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIComboBox>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI单选按钮: 调试信息
+bool LongUI::UIRadioButton::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIRadioButton";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIRadioButton";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIRadioButton>()
             || Super::debug_do_event(info);
     default:
         break;

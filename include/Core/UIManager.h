@@ -113,35 +113,43 @@ namespace LongUI {
         // exit
         inline void exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
     public: // inline 区
+        // copystring for control in this winddow
+        auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
+        // copystring for control in this winddow in safe way
+        auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
         // get system brush
-        inline auto GetSystemBrush(uint32_t index) noexcept { return LongUI::SafeAcquire(m_apSystemBrushes[index]); }
+        auto GetSystemBrush(uint32_t index) noexcept { return LongUI::SafeAcquire(m_apSystemBrushes[index]); }
         // get drop target helper
-        inline auto GetDropTargetHelper() noexcept { return LongUI::SafeAcquire(m_pDropTargetHelper); }
+        auto GetDropTargetHelper() noexcept { return LongUI::SafeAcquire(m_pDropTargetHelper); }
         // get display frequency
-        inline auto GetDisplayFrequency() const noexcept { return m_dDisplayFrequency; };
-        // lock
-        inline auto Lock() noexcept { return m_uiLocker.Lock(); }
-        // unlock
-        inline auto Unlock() noexcept { return m_uiLocker.Unlock(); }
+        auto GetDisplayFrequency() const noexcept { return m_dDisplayFrequency; };
+        // lock data
+        auto DataLock() noexcept { return m_uiDataLocker.Lock(); }
+        // unlock data
+        auto DataUnlock() noexcept { return m_uiDataLocker.Unlock(); }
+        // lock dxgi
+        auto DxgiLock() noexcept { return m_uiDxgiLocker.Lock(); }
+        // unlock dxgi
+        auto DxgiUnlock() noexcept { return m_uiDxgiLocker.Unlock(); }
         // push delay cleanup
-        inline auto PushDelayCleanup(UIControl* c) noexcept { m_vDelayCleanup.push_back(c); }
+        auto PushDelayCleanup(UIControl* c) noexcept { m_vDelayCleanup.push_back(c); }
         // ShowError with string
-        inline auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
+        auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
-        inline auto GetTextRenderer(int i) const noexcept { assert(i < m_uTextRenderCount && "out of range"); return LongUI::SafeAcquire(m_apTextRenderer[i]); }
+        auto GetTextRenderer(int i) const noexcept { assert(i < m_uTextRenderCount && "out of range"); return LongUI::SafeAcquire(m_apTextRenderer[i]); }
 #ifdef _DEBUG
         // exit the app
         void Exit() noexcept;
 #else
         // exit the app
-        inline void Exit() noexcept { this->exit(); }
+        void Exit() noexcept { this->exit(); }
 #endif
         // recreate resources
-        inline auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
+        auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
         // get delta time for ui
-        inline auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
+        auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
         // get count of window
-        inline auto GetWindowsCount() const noexcept { return m_cCountWindow; }
+        auto GetWindowsCount() const noexcept { return m_cCountWindow; }
     public: // 隐形转换区
         // 转换为 ID2D1DeviceContext
 #define UIManager_RenderTarget (UIManager.GetRenderTargetNoAddRef())
@@ -245,8 +253,10 @@ namespace LongUI {
         D3D_FEATURE_LEVEL               m_featureLevel;
         // input
         CUIInput                        m_uiInput;
-        // locker
-        CUILocker                       m_uiLocker;
+        // data locker
+        CUILocker                       m_uiDataLocker;
+        // dxgi locker
+        CUILocker                       m_uiDxgiLocker;
         // timer
         CUITimer                        m_uiTimer;
 #ifdef _DEBUG
@@ -412,16 +422,24 @@ namespace LongUI {
         inline void Output(DebugStringLevel l, const char* s) const noexcept { UNREFERENCED_PARAMETER(l); UNREFERENCED_PARAMETER(s); }
 #endif
     };
-    // auto locker
-    class CUIAutoLocker {
+    // auto data locker
+    class CUIDataAutoLocker {
     public:
         // ctor
-        CUIAutoLocker() noexcept { UIManager.Lock(); }
+        CUIDataAutoLocker() noexcept { UIManager.DataLock(); }
         // dtor
-        ~CUIAutoLocker() noexcept { UIManager.Unlock(); }
+        ~CUIDataAutoLocker() noexcept { UIManager.DataUnlock(); }
     private:
     };
-#define AutoLocker CUIAutoLocker locker
+    // auto dxgi locker
+    class CUIDxgiAutoLocker {
+    public:
+        // ctor
+        CUIDxgiAutoLocker() noexcept { UIManager.DxgiLock(); }
+        // dtor
+        ~CUIDxgiAutoLocker() noexcept { UIManager.DxgiUnlock(); }
+    private:
+    };
     // formated buffer
 #ifdef _DEBUG
     auto Formated(const wchar_t* format, ...) noexcept -> const wchar_t*;

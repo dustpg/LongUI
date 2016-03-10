@@ -21,8 +21,16 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
             Super::DoEvent(arg);
             // 修改控件深度
             for (auto ctrl : (*this)) {
-                force_cast(ctrl->level) = this->level + 1;
+                ctrl->NewParentSetted();
                 ctrl->DoEvent(arg);
+            }
+            return true;
+        case LongUI::Event::Event_NotifyChildren:
+            // 仅仅传递一层
+            if (arg.sender->parent == this) {
+                for (auto ctrl : (*this)) {
+                    if(ctrl != arg.sender) ctrl->DoEvent(arg);
+                }
             }
             return true;
         }
@@ -566,8 +574,18 @@ bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 初始化边缘控件 
             Super::DoEvent(arg);
             // 修改控件深度
-            force_cast(m_pChild->level) = this->level + 1;
+            m_pChild->NewParentSetted();
             m_pChild->DoEvent(arg);
+            return true;
+        case LongUI::Event::Event_NotifyChildren:
+            // 不处理
+#ifdef _DEBUG
+            if (arg.sender == m_pChild) {
+                UIManager << DL_Warning 
+                    << L"Event_NotifyChildren for UISinge?!" 
+                    << LongUI::endl;
+            }
+#endif
             return true;
         }
     }
@@ -766,8 +784,16 @@ bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
             Super::DoEvent(arg);
             // 修改控件深度
             for (auto ctrl : m_vChildren) {
-                force_cast(ctrl->level) = this->level + 1;
+                ctrl->NewParentSetted();
                 ctrl->DoEvent(arg);
+            }
+            return true;
+        case LongUI::Event::Event_NotifyChildren:
+            // 仅仅传递一层
+            if (arg.sender->parent == this) {
+                for (auto ctrl : m_vChildren) {
+                    if(ctrl != arg.sender) ctrl->DoEvent(arg);
+                }
             }
             return true;
         }

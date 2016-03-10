@@ -58,6 +58,10 @@ namespace LongUI {
         auto SetSelected(bool b) noexcept { m_state.SetTo(State_Self1, b); }
         // selected?
         auto IsSelected() const noexcept { return m_state.Test(State_Self1); }
+        // get sorted child text
+        auto GeToBeSortedText() const noexcept { return m_pToBeSorted ? m_pToBeSorted->GetText() : L""; }
+        // get first child text
+        auto GetFirstChildText() const noexcept { return this->GetChildrenCount() ? (*this->begin())->GetText() : L""; }
     protected:
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }

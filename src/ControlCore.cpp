@@ -105,6 +105,23 @@ void LongUI::UIControl::AddRef() noexcept {
 
 
 /// <summary>
+/// News the parent setted.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::NewParentSetted() noexcept {
+    assert(this->name == "" && "control grafting cannot used for named control");
+    // 修改等级
+    force_cast(this->level) = this->parent->level + 1;
+    // 修改窗口
+    auto new_window = this->parent->GetWindow();
+    // TODO: 去除旧窗口
+    if (m_pWindow && new_window && m_pWindow != new_window) {
+
+    }
+    m_pWindow = new_window;
+}
+
+/// <summary>
 /// Links the new parent.
 /// </summary>
 /// <param name="parent">The parent.</param>
@@ -332,7 +349,7 @@ void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
     if (this->debug_checker.Test(DEBUG_CHECK_BACK)) {
-        AutoLocker;
+        CUIDataAutoLocker locker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
@@ -351,7 +368,7 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
     if (this->debug_checker.Test(DEBUG_CHECK_FORE)) {
-        AutoLocker;
+        CUIDataAutoLocker locker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
@@ -797,6 +814,7 @@ LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal
 /// </summary>
 /// <returns></returns>
 LongUINoinline void LongUI::UIContainer::before_deleted() noexcept {
+    LongUI::SafeRelease(m_pPopularChild);
     LongUI::SafeRelease(m_pMousePointed);
     // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
     for (auto ctrl : this->marginal_control) {
@@ -935,7 +953,7 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
         case LongUI::Event::Event_TreeBulidingFinished:
             // 边界控件
             for (auto mctrl : marginal_control) {
-                if(mctrl) mctrl->DoEvent(arg);
+                if (mctrl) mctrl->DoEvent(arg);
             }
             done = true;
             break;
@@ -943,12 +961,15 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 修改控件深度
             for (auto mctrl : marginal_control) {
                 if (mctrl) {
-                    force_cast(mctrl->level) = this->level + 1;
+                    mctrl->NewParentSetted();
                     mctrl->DoEvent(arg);
                 }
             }
             done = true;
             break;
+        case LongUI::Event::Event_NotifyChildren:
+            // 不处理
+            return true;
         }
     }
     // 扳回来
@@ -1077,6 +1098,13 @@ void LongUI::UIContainer::Push(UIControl* child) noexcept {
         // 推入flag
         force_cast(this->flags) |= Flag_Container_ExistMarginalControl;
     }
+}
+
+// 设置受欢迎的子控件
+void LongUI::UIContainer::SetPopularChild(UIControl* ctrl) noexcept {
+    assert(ctrl && ctrl->parent == this && "bad argument");
+    LongUI::SafeRelease(m_pPopularChild);
+    m_pPopularChild = LongUI::SafeAcquire(ctrl);
 }
 
 // 更新边缘控件

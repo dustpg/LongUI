@@ -21,7 +21,9 @@ Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {
 /// <returns></returns>
 auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup) noexcept -> UIWindow* {
     assert(popup.parent && "bad argument");
+    CUIDxgiAutoLocker locker;
     auto window = new(std::nothrow) UIWindow(popup.parent);
+    // TODO: 下面空间不足则将窗口移动到控件上面
     // 内存申请成功
     if (window) {
         // 初始化
@@ -38,6 +40,8 @@ auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup) noexcept -> UIWin
         auto hr = window->Recreate(); ShowHR(hr);
         // 创建完毕
         window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+        // 移动窗口
+        window->MoveWindow(popup.leftline, popup.bottomline);
     }
     return window;
 }
@@ -227,19 +231,21 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
     {
         // 检查样式样式
         constexpr DWORD window_style = WS_POPUPWINDOW;
+        RECT window_rect = { 0, 0, LONG(popup.width), LONG(popup.height) };
         // 浮点视区大小
-        force_cast(this->view_size.width) = float(popup.width);
-        force_cast(this->view_size.height) = float(popup.height);
+        force_cast(this->view_size.width) = popup.width;
+        force_cast(this->view_size.height) = popup.height;
         // 整数窗口大小
-        force_cast(this->window_size.width) = popup.width;
-        force_cast(this->window_size.height) = popup.height;
+        force_cast(this->window_size.width) = uint32_t(window_rect.right);
+        force_cast(this->window_size.height) = uint32_t(window_rect.bottom);
         // 可视区域范围
         visible_rect.right = this->view_size.width;
         visible_rect.bottom = this->view_size.height;
         m_2fContentSize = this->view_size;
-        // 居中
-        auto left = (::GetSystemMetrics(SM_CXFULLSCREEN) - popup.width) / 2;
-        auto top = (::GetSystemMetrics(SM_CYFULLSCREEN) - popup.height) / 2;
+        // 调整大小
+        ::AdjustWindowRect(&window_rect, window_style, FALSE);
+        window_rect.bottom -= window_rect.top;
+        window_rect.right -= window_rect.left;
         // 创建窗口
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
@@ -247,7 +253,7 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
             LongUI::WindowClassNameA, 
             L"LongUI Popup Window",
             window_style,
-            left, top, popup.width, popup.height,
+            0, 0, window_rect.right, window_rect.bottom,
             this->wndparent->GetHwnd(),
             nullptr,
             ::GetModuleHandleW(nullptr),
@@ -308,7 +314,7 @@ LongUI::UIWindow::~UIWindow() noexcept {
     // 设置窗口指针
     ::SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, LONG_PTR(0));
     // 解锁
-    UIManager.Unlock();
+    UIManager.DataUnlock();
     {
         // 取消注册
         ::RevokeDragDrop(m_hwnd);
@@ -324,7 +330,7 @@ LongUI::UIWindow::~UIWindow() noexcept {
         this->CloseWindowLater();
     }
     // 加锁
-    UIManager.Lock();
+    UIManager.DataLock();
     // 移除窗口
     UIManager.RemoveWindow(this);
 }
@@ -460,11 +466,20 @@ auto LongUI::UIWindow::FindControl(const char* cname) noexcept -> UIControl * {
     }
 }
 
+// 移动窗口
+void LongUI::UIWindow::MoveWindow(float x, float y) noexcept {
+    POINT p = { static_cast<int>(x), static_cast<int>(y) };
+    HWND hwndp = ::GetParent(m_hwnd);
+    ::MapWindowPoints(hwndp, m_hwnd, &p, 1);
+    ::SetWindowPos(m_hwnd, HWND_TOP, p.x, p.y, 0, 0, SWP_NOSIZE);
+}
+
 // 添加命名控件
 void LongUI::UIWindow::AddNamedControl(UIControl* ctrl) noexcept {
     assert(ctrl && "bad argumrnt");
     const auto cname = ctrl->name.c_str();
     // 有效
+
     if (cname[0]) {
         // 插入
         if(!m_hashStr2Ctrl.Insert(cname, ctrl)) {
@@ -545,7 +560,7 @@ void LongUI::UIWindow::refresh_caret() noexcept {
 void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
     present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
-    if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)){
+    if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
         // 插入符号?
         if (m_baBoolWindow.Test(Index_DoCaret)) {
             present.pDirtyRects[present.DirtyRectsCount] = { 
@@ -564,6 +579,14 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
             ++present.DirtyRectsCount;
         }
 #endif
+        // TODO: 从根源优化掉这个过程
+        // 遍历检查
+        LONG mw = this->window_size.width;
+        LONG mh = this->window_size.height;
+        for (UINT i = 0; i < present.DirtyRectsCount; ++i) {
+            present.pDirtyRects[i].right = std::min(mw, present.pDirtyRects[i].right);
+            present.pDirtyRects[i].bottom = std::min(mw, present.pDirtyRects[i].bottom);
+        }
     }
     // 全刷新
     else {
@@ -1058,6 +1081,8 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
 auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
     // 跳过
     if (m_baBoolWindow.Test(Index_SkipRender)) return S_OK;
+    // 渲染锁
+    CUIDxgiAutoLocker locker;
     // 释放数据
     this->release_data();
     // DXGI Surface 后台缓冲

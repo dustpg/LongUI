@@ -152,6 +152,7 @@
     <ClInclude Include="..\include\Control\UICheckBox.h" />
     <ClInclude Include="..\include\Control\UIComboBox.h" />
     <ClInclude Include="..\include\Control\UIEdit.h" />
+    <ClInclude Include="..\include\Control\UIRadioButton.h" />
     <ClInclude Include="..\include\Control\UIRichEdit.h" />
     <ClInclude Include="..\include\Control\UIScrollBar.h" />
     <ClInclude Include="..\include\Control\UISlider.h" />

@@ -38,14 +38,16 @@ namespace LongUI {
     };}
     // config::popup window
     namespace Config { struct Popup {
+        // left line of popup window
+        float                       leftline;
         // top line(maybe as bottom of popup window)
-        LONG                        topline;
+        float                       topline;
         // bottom line(maybe as top of popup window)
-        LONG                        bottomline;
+        float                       bottomline;
         // with of popup window
-        LONG                        width;
+        float                       width;
         // height of popup window
-        LONG                        height;
+        float                       height;
         // parent window
         UIWindow*                   parent;
         // [OPTIONAL]child
@@ -190,8 +192,12 @@ namespace LongUI {
         void SetFocus(UIControl* ctrl) noexcept;
         // set hover track control
         void SetHoverTrack(UIControl* ctrl) noexcept;
-        // find control 
+        // find control
         auto FindControl(const char* name) noexcept ->UIControl*;
+        // find group, maybe return nullptr
+        auto FildGroup(const char* name) noexcept ->ControlVector;
+        // move window relative to parent
+        void MoveWindow(float x, float y) noexcept;
         // add control with name
         void AddNamedControl(UIControl* ctrl) noexcept;
         // set icon, bad

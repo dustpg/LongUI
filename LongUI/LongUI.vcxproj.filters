@@ -165,6 +165,9 @@
     <ClInclude Include="..\include\longuiconf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Control\UIRadioButton.h">
+      <Filter>Header Files\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\_LongUIAllInOne.cpp">

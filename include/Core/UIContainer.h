@@ -146,6 +146,10 @@ namespace LongUI {
         auto GetTopMarginOffset() const noexcept { return this->margin_rect.top - m_orgMargin.top; }
         // get left margin offset
         auto GetLeftMarginOffset() const noexcept { return this->margin_rect.left - m_orgMargin.left; }
+        // get popular child, you can get it if a child control want to be popular(like radio button)
+        auto GetPopularChild() const noexcept { return m_pPopularChild; }
+        // set popular child, you can set it if you want to be popular(like radio button)
+        void SetPopularChild(UIControl* ctrl) noexcept;
     private:
         // refresh marginal controls
         void refresh_marginal_controls() noexcept;
@@ -168,12 +172,14 @@ namespace LongUI {
         }
         // after insert
         void after_insert(UIControl* child) noexcept;
+        // TODO: 连续数组优化优化
+        //UIMarginalable* const   m_apConMarCtrl[UIMarginalable::MARGINAL_CONTROL_SIZE];
     public:
         // marginal controls, store 'CreateControlFunction' before control-tree finished to save memory
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
-        // TODO: 连续数组优化优化
-        //UIMarginalable* const   m_apConMarCtrl[UIMarginalable::MARGINAL_CONTROL_SIZE];
+        // popular child
+        UIControl*              m_pPopularChild = nullptr;
         // mouse pointed control
         UIControl*              m_pMousePointed = nullptr;
         // count of children, just make "GetLength/Count" to faster

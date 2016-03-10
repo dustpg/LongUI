@@ -51,6 +51,8 @@ namespace LongUI { namespace Component {
         auto&operator=(const char* str) noexcept { m_text = str; this->RecreateLayout(); return *this; }
         // get string
         auto&GetString() noexcept { return m_text; }
+        // get string
+        const auto&GetString() const noexcept { return m_text; }
         // c_str for stl-like
         auto c_str() const noexcept { return m_text.c_str(); }
     public:

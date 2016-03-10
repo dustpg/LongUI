@@ -49,7 +49,7 @@ namespace LongUI{
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }
         // ui call
-        //virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
+        virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
         // render chain -> mainground
@@ -69,6 +69,10 @@ namespace LongUI{
         const auto&GetVector() const noexcept { return m_vItems; }
         // get vector
         auto GetItemCount() const noexcept { return m_vItems.size(); }
+        // get selected index
+        auto GetSelectedIndex() const noexcept { return m_indexSelected; }
+        // set selected index
+        void SetSelectedIndex(uint32_t) noexcept;
         // push item
         void PushItem(const wchar_t*) noexcept;
         // push item with utf8
@@ -85,10 +89,16 @@ namespace LongUI{
         // deleted function
         UIComboBox(const UIComboBox&) = delete;
     protected:
+        // ui callback
+        UICallBack                  m_eventChanged;
         // string buffer
         CUIShortStringAllocator<>   m_strAllocator;
         // strings
         StringList                  m_vItems;
+        // selected index
+        uint32_t                    m_indexSelected = uint32_t(-1);
+        // max display line
+        uint32_t                    m_fMaxLine = 8;
         // host control to display items
         UIList*                     m_pItemList = nullptr;
 #ifdef LongUIDebugEvent

@@ -68,7 +68,7 @@ namespace LongUI {
             arg.stt.text = txt; this->DoEvent(arg);
         }
         // get float
-        auto GetFloatt() noexcept ->float {
+        auto GetFloat() noexcept ->float {
             EventArgument arg; arg.sender = this; arg.event = Event::Event_GetFloat;
             this->DoEvent(arg); return arg.fvalue;
         }
@@ -132,6 +132,8 @@ namespace LongUI {
         void AfterUpdate() noexcept;
         // delete the copy-ctor
         UIControl(const UIControl&) = delete;
+        // new parent setted
+        void NewParentSetted() noexcept;
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;

@@ -3,7 +3,8 @@
   LongUI             |   MIT License
   --------------------------------------------
   pugixml-1.5        |   MIT License
-  [revised a little]
+[revised a little]   |
+                     |
   dlmalloc-2.8.6     |   public domain
   --------------------------------------------
 

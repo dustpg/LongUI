@@ -104,10 +104,10 @@ namespace LongUI {
         auto GetAt(uint32_t i) const noexcept ->UIControl*;
         // swap child
         void SwapChild(Iterator itr1, Iterator itr2) noexcept;
-        // move to
-        void MoveTo(UIControl* ctrl, Iterator itr) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(itr, ctrl); }
-        // move to
-        void MoveTo(UIControl* ctrl, UIControl* pos) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(Iterator(pos), ctrl); }
+        // move child to
+        void MoveChildTo(UIControl* ctrl, Iterator itr) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(itr, ctrl); }
+        // move child to
+        void MoveChildTo(UIControl* ctrl, UIControl* pos) noexcept { assert(ctrl&& "bad argument"); this->RemoveJust(ctrl); this->insert_only(Iterator(pos), ctrl); }
         // insert child, UIContainerBuiltIn support insert
         void Insert(Iterator itr, UIControl* ctrl) noexcept { this->insert_only(itr, ctrl); this->after_insert(ctrl);}
         // just remove child, : remove from list and set prev/next to null

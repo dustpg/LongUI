@@ -496,52 +496,56 @@ void LongUI::CUIManager::Run() noexcept {
     // 开始!
     m_dwWaitVSStartTime = ::timeGetTime();
     // 渲染线程函数
-#pragma region Rendering thread function
     auto render_thread_func = [](void*) noexcept ->unsigned {
         UIWindow* windows[LongUIMaxWindow];
         HANDLE waitvs[LongUIMaxWindow];
         // 不退出?
         while (!UIManager.m_exitFlag) {
             uint32_t vslen = 0;
-            // 锁住
-            UIManager.Lock();
+            uint32_t wndlen = 0;
+            {
+                // 数据锁
+                CUIDataAutoLocker locker;
 #ifdef _DEBUG
-            ++UIManager.frame_id;
+                ++UIManager.frame_id;
 #endif
-            // 延迟清理
-            UIManager.cleanup_delay_cleanup_chain();
-            // 有窗口
-            uint32_t wndlen = UIManager.m_cCountWindow;
-            // 复制数据
-            for (auto i = 0u; i < wndlen; ++i) {
-                windows[i] = UIManager.m_apWindows[i];
-            }
-            // 更新计时器
-            UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
-            UIManager.m_uiTimer.MovStartEnd();
-            // 刷新窗口
-            for (auto i = 0u; i < wndlen; ++i) {
-                // 刷新
-                windows[i]->Update();
-                // 下一帧
-                windows[i]->NextFrame();
-                // 获取等待垂直同步事件
-                waitvs[vslen] = windows[i]->GetVSyncEvent();
-                // 刷新?
-                if (!windows[i]->IsRendered()) {
-                    windows[i] = nullptr;
+                // 延迟清理
+                UIManager.cleanup_delay_cleanup_chain();
+                // 有窗口
+                wndlen = UIManager.m_cCountWindow;
+                // 复制数据
+                for (auto i = 0u; i < wndlen; ++i) {
+                    windows[i] = UIManager.m_apWindows[i];
                 }
-                // 有效
-                else if (waitvs[vslen]) {
-                    ++vslen;
+                // 更新计时器
+                UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
+                UIManager.m_uiTimer.MovStartEnd();
+                // 刷新窗口
+                for (auto i = 0u; i < wndlen; ++i) {
+                    // 刷新
+                    windows[i]->Update();
+                    // 下一帧
+                    windows[i]->NextFrame();
+                    // 获取等待垂直同步事件
+                    waitvs[vslen] = windows[i]->GetVSyncEvent();
+                    // 刷新?
+                    if (!windows[i]->IsRendered()) {
+                        windows[i] = nullptr;
+                    }
+                    // 有效
+                    else if (waitvs[vslen]) {
+                        ++vslen;
+                    }
                 }
             }
-            // 解锁
-            UIManager.Unlock();
-            // 渲染窗口
-            for (auto i = 0u; i < wndlen; ++i) {
-                if (windows[i]) {
-                    windows[i]->RenderWindow();
+            {
+                // 渲染锁
+                CUIDxgiAutoLocker locker;
+                // 渲染窗口
+                for (auto i = 0u; i < wndlen; ++i) {
+                    if (windows[i]) {
+                        windows[i]->RenderWindow();
+                    }
                 }
             }
             // 等待垂直同步
@@ -549,7 +553,6 @@ void LongUI::CUIManager::Run() noexcept {
         }
         return 0;
     };
-#pragma endregion
     // 需要std::thread?
 #ifdef LONGUI_RENDER_IN_STD_THREAD
     std::thread thread(render_thread_func, nullptr);
@@ -821,7 +824,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             // 有效
             if (arg.event != MouseEvent::Event_None) {
                 {
-                    AutoLocker;
+                    CUIDataAutoLocker locker;
                     // 需要修正坐标
                     if (arg.event <= MouseEvent::Event_MouseWheelH) {
                         arg.pt = window->last_point;
@@ -855,7 +858,7 @@ LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPAR
             ++s_times;
 #endif
             {
-                AutoLocker;
+                CUIDataAutoLocker locker;
                 // 默认处理
                 if ((handled = window->DoEvent(arg))) {
                     recode = arg.lr;

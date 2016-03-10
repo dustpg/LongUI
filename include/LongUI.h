@@ -340,6 +340,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// set a new parent, you should deal something
         /// </summary>
         Event_SetNewParent,
+        /// <summary>
+        /// [nc] notify all children, but sender/marginal control
+        /// </summary>
+        Event_NotifyChildren,
         // [ui-exdata]sub event, use for event callback
         Event_SubEvent,
         // [none-exdata]command, keyboard direct-access(like type 'Eenter')
@@ -360,7 +364,6 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_SetFloat,
         // [none-exdata] get control float value
         Event_GetFloat,
-        // notify all children(but sender)
         //Event_NotifyChildren,
         // ----- User Custom Defined Event -----
         Event_UserDefined = 0x100,
@@ -395,7 +398,9 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
             // set enabled
             struct { bool enabled; } ste;
             // set float
-            struct { float value; } stf;
+            struct { float value;  } stf;
+            // notify children
+            struct { size_t identifier; size_t custom_value; } stf;
         };
         // Return Code
         union {
@@ -613,6 +618,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
 #   include "Control/UIRichEdit.h"
 #   include "Control/UIText.h"
 #   include "Control/UICheckBox.h"
+#   include "Control/UIRadioButton.h"
 #   include "Control/UIButton.h"
 #   include "Control/UIComboBox.h"
 #endif
