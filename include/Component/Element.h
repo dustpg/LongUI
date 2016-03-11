@@ -324,25 +324,61 @@ namespace LongUI {
             }
         };
         /// <summary>
+        /// Graphics Interface for color
+        /// </summary>
+        struct GIColor {
+            // init
+            void Init() noexcept;
+            // color s
+            D2D1_COLOR_F            colors[ControlState::STATE_COUNT];
+        };
+        /// <summary>
         /// Graphics Interface for check box
         /// </summary>
-        class GICheckBox {
-        public:
+        struct GICheckBox : GIColor {
             // ctor
             GICheckBox() noexcept = default;
             // dtor 
             ~GICheckBox() noexcept = default;
             // init
-            void Init(pugi::xml_node /*node*/, const char* /*prefix*/) noexcept;
+            void Init(pugi::xml_node /*node*/, const char* /*prefix*/) noexcept { this->GIColor::Init(); }
             // recreate
             auto Recreate() noexcept { return S_OK; }
             // check if valid
             bool IsValid() const noexcept { return true; }
             // render this
             void Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept;
-        public:
-            // color s
-            D2D1_COLOR_F            colors[ControlState::STATE_COUNT];
+        };
+        /// <summary>
+        /// Graphics Interface Config for radio button
+        /// </summary>
+        struct GIConfigRadioBtn {
+            // get count of basic state
+            static constexpr size_t GetBasicCount() noexcept { return size_t(ControlState::STATE_COUNT); }
+            // get count of extra state(true/false)
+            static constexpr size_t GetExtraCount() noexcept { return 2; }
+            // meta initialize
+            static void InitMeta(pugi::xml_node node, const char* prefix, Meta metas[], uint16_t ids[]) noexcept {
+                UNREFERENCED_PARAMETER(metas);
+                Helper::MakeMetaGroup(node, prefix, ids, static_cast<uint32_t>(GetBasicCount() * GetExtraCount()));
+            }
+        };
+        /// <summary>
+        /// Graphics Interface for radio button
+        /// </summary>
+        struct GIRadioBtn : GIColor {
+            // ctor
+            GIRadioBtn() noexcept = default;
+            // dtor 
+            ~GIRadioBtn() noexcept = default;
+            // init
+            void Init(pugi::xml_node /*node*/, const char* /*prefix*/) noexcept { this->GIColor::Init(); }
+            // recreate
+            auto Recreate() noexcept { return S_OK; }
+            // check if valid
+            bool IsValid() const noexcept { return true; }
+            // render this
+            void Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept;
         };
         /// <summary>
         /// Element for Button
@@ -368,6 +404,15 @@ namespace LongUI {
             Component::GIMeta<GIConfigCheckbox>, 
             ControlState, 
             CheckBoxState
+        >;
+        /// <summary>
+        /// Element for radio button
+        /// </summary>
+        using Element4RadioBtn = Component::AnimationStateMachineEx<
+            GIRadioBtn,
+            Component::GIMeta<GIConfigRadioBtn>, 
+            ControlState, 
+            uint16_t
         >;
     }
 }

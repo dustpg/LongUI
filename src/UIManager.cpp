@@ -272,6 +272,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
         this->RegisterControlClass(UIScrollBarA::CreateControl, "ScrollBarA");
         this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
+        this->RegisterControlClass(UIRadioButton::CreateControl, "RadioButton");
         this->RegisterControlClass(UIFloatLayout::CreateControl, "FloatLayout");
         this->RegisterControlClass(UIVerticalLayout::CreateControl, "VerticalLayout");
         this->RegisterControlClass(UIHorizontalLayout::CreateControl, "HorizontalLayout");

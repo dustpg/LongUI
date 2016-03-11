@@ -1590,8 +1590,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         UIManager_RenderTarget->FillRectangle(rect, brush);
         LongUI::SafeRelease(brush);
     }
-    // 复选框图像接口 -- 渲染
-    void GICheckBox::Init(pugi::xml_node /*node*/, const char* /*prefix*/) noexcept {
+    // 基本颜色图像接口 -- 初始化
+    void GIColor::Init() noexcept {
         colors[State_Disabled]  = D2D1::ColorF(0xBFBFBFui32);
         colors[State_Normal]    = D2D1::ColorF(0x000000ui32);
         colors[State_Hover]     = D2D1::ColorF(0x7EB4EAui32);
@@ -1651,7 +1651,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             float rate = sm.GetExtraAnimation().value;
             // 解开?
             if (CheckBoxState(exstt2) == CheckBoxState::State_Unchecked) {
-                rate = 1.f - rate;
+                rate = ANIMATION_END - rate;
                 exstt2 = exstt1;
             }
             // 打勾
@@ -1703,6 +1703,49 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
         }
         // 扫尾处理
+        LongUI::SafeRelease(brush);
+    }
+    // 单选按钮 渲染
+    void GIRadioBtn::Render(const D2D1_RECT_F& rect, const Component::AnimationStateMachine& sm) const noexcept {
+        constexpr float RADIO_RATE = 0.75f;
+        assert(UIManager_RenderTarget);
+        auto brush = static_cast<ID2D1SolidColorBrush*>(UIManager.GetBrush(LongUICommonSolidColorBrushIndex));
+        assert(UIManager_RenderTarget && brush && "bad action");
+        // 检查动画
+        constexpr uint16_t basic = ControlState::STATE_COUNT;
+        const auto& baani = sm.GetBasicAnimation();
+        auto bastt1 = sm.GetOldBasicState();
+        auto bastt2 = sm.GetNowBasicState();
+        auto exstt1 = sm.GetOldExtraState();
+        auto exstt2 = sm.GetNowExtraState();
+        // 基本动画状态
+        {
+            auto* clrs = this->colors;
+            float baalpha = ANIMATION_END - baani.value;
+            D2D1_COLOR_F color;
+            // Alpha混合
+            color.a = clrs[bastt2].a * baani.value + clrs[bastt1].a * baalpha;
+            color.r = clrs[bastt2].r * baani.value + clrs[bastt1].r * baalpha;
+            color.g = clrs[bastt2].g * baani.value + clrs[bastt1].g * baalpha;
+            color.b = clrs[bastt2].b * baani.value + clrs[bastt1].b * baalpha;
+            brush->SetColor(&color);
+        }
+        // 渲染圆边框
+        D2D1_ELLIPSE ellipse;
+        ellipse.point.x = (rect.left + rect.right) * 0.5f;
+        ellipse.point.y = (rect.top + rect.bottom) * 0.5f;
+        ellipse.radiusX = (rect.right - rect.left) * 0.5f - 1.f;
+        ellipse.radiusY = (rect.bottom - rect.top) * 0.5f - 1.f;
+        UIManager_RenderTarget->DrawEllipse(&ellipse, brush);
+        // 渲染内圆
+        float rate = sm.GetExtraAnimation().value;
+        if(!exstt2) rate = ANIMATION_END - rate;
+        ellipse.radiusX *= RADIO_RATE * rate;
+        ellipse.radiusY *= RADIO_RATE * rate;
+        // 有效数据
+        if (ellipse.radiusX > 1.f) {
+            UIManager_RenderTarget->FillEllipse(&ellipse, brush);
+        }
         LongUI::SafeRelease(brush);
     }
 }

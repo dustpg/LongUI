@@ -25,7 +25,7 @@
 */
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // Vertical Layout -- 垂直布局 容器
     class UIVerticalLayout : public UIContainerBuiltIn {
         // 父类申明

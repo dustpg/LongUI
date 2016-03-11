@@ -26,7 +26,7 @@
 
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // default text control 默认文本控件
     class UIText : public UIControl {
         // 父类申明

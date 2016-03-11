@@ -163,6 +163,7 @@
     <ClInclude Include="..\include\Core\UIManager.h" />
     <ClInclude Include="..\include\Core\UIMarginalable.h" />
     <ClInclude Include="..\include\Core\UIString.h" />
+    <ClInclude Include="..\include\Core\Window.h" />
     <ClInclude Include="..\include\LongUI.h" />
     <ClInclude Include="..\include\longuiconf.h" />
     <ClInclude Include="..\include\Util\UIAnimation.h" />

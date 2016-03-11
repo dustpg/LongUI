@@ -24,6 +24,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <Xinput.h>
 
 // longui namespace
 namespace LongUI {
@@ -47,13 +48,7 @@ namespace LongUI {
         auto IsKeyUp(uint32_t index) const noexcept { return m_pKeyState[index] == 0 && m_pKeyStateOld[index] != 0;  }
     public:
         // update, impl @ UIUtil.cpp
-        auto Update() noexcept {
-            ::GetCursorPos(&m_ptMouseL);
-            m_ptMouse.x = static_cast<float>(m_ptMouseL.x);
-            m_ptMouse.y = static_cast<float>(m_ptMouseL.y);
-            std::swap(m_pKeyState, m_pKeyStateOld);
-            (void)::GetKeyboardState(m_pKeyState);
-        }
+        auto Update() noexcept;
     protected:
         // mouse postion
         D2D1_POINT_2F           m_ptMouse = D2D1::Point2F();

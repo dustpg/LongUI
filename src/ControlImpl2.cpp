@@ -35,8 +35,8 @@ void LongUI::UICheckBox::Update() noexcept {
     return Super::Update();
 }
 
-// 设置控件状态
-LongUINoinline void LongUI::UICheckBox::SetControlState(ControlState state) noexcept {
+// 强制设置控件状态
+LongUINoinline void LongUI::UICheckBox::ForceSetControlState(ControlState state) noexcept {
 #ifdef _DEBUG
     if (!this->GetEnabled()) {
         UIManager << DL_Hint << this
@@ -48,8 +48,8 @@ LongUINoinline void LongUI::UICheckBox::SetControlState(ControlState state) noex
     m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
 }
 
-// 设置复选框状态
-void LongUI::UICheckBox::SetCheckBoxState(CheckBoxState state) noexcept {
+// 强制设置复选框状态
+void LongUI::UICheckBox::ForceSetCheckBoxState(CheckBoxState state) noexcept {
 #ifdef _DEBUG
     if (!this->GetEnabled()) {
         UIManager << DL_Hint << this
@@ -148,25 +148,25 @@ bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     {
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进: 设置UI元素状态
-        this->SetControlState(LongUI::State_Hover);
+        this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         m_pWindow->now_cursor = m_hCursorHand;
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        this->SetControlState(LongUI::State_Normal);
+        this->ForceSetControlState(LongUI::State_Normal);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
         m_pWindow->now_cursor = m_pWindow->default_cursor;
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下:
         m_pWindow->SetCapture(this);
-        this->SetControlState(LongUI::State_Pushed);
+        this->ForceSetControlState(LongUI::State_Pushed);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         // 左键弹起:
-        this->SetControlState(LongUI::State_Hover);
+        this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         // 检查的是本控件
         if (m_pWindow->IsCapturedControl(this)) {
@@ -176,7 +176,7 @@ bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
                 target = CheckBoxState::State_Unchecked;
             }
             // 修改复选框状态
-            this->SetCheckBoxState(target);
+            this->ForceSetCheckBoxState(target);
             // 释放
             m_pWindow->ReleaseCapture();
         }
@@ -255,8 +255,18 @@ void LongUI::UIRadioButton::Update() noexcept {
     return Super::Update();
 }
 
-// 设置控件状态
-LongUINoinline void LongUI::UIRadioButton::SetControlState(ControlState state) noexcept {
+
+// 取消已经勾上的单选按钮
+void LongUI::UIRadioButton::uncheck_checked_and_check_this() noexcept {
+    auto checked = longui_cast<UIRadioButton*>(this->parent->GetPopularChild());
+    if (checked && checked != this) {
+        checked->SafeSetCheckedState(false);
+    }
+    this->parent->SetPopularChild(this);
+}
+
+// 强制设置控件状态
+LongUINoinline void LongUI::UIRadioButton::ForceSetControlState(ControlState state) noexcept {
 #ifdef _DEBUG
     if (!this->GetEnabled()) {
         UIManager << DL_Hint << this
@@ -268,8 +278,8 @@ LongUINoinline void LongUI::UIRadioButton::SetControlState(ControlState state) n
     m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
 }
 
-// 设置复选框状态
-void LongUI::UIRadioButton::SetCheckBoxState(bool state) noexcept {
+// 强制设置复选框状态
+void LongUI::UIRadioButton::ForceSetCheckedState(bool state) noexcept {
 #ifdef _DEBUG
     if (!this->GetEnabled()) {
         UIManager << DL_Hint << this
@@ -277,6 +287,23 @@ void LongUI::UIRadioButton::SetCheckBoxState(bool state) noexcept {
             << LongUI::endl;
     }
 #endif
+    // 修改状态
+    if (state != this->GetCheckedState()) {
+        // 单选
+        if (state) {
+            this->uncheck_checked_and_check_this();
+        }
+        m_pWindow->StartRender(m_uiElement.SetExtraState(state), this);
+        bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
+        rec = false;
+#ifdef _DEBUG
+        UIManager << DL_Log << this
+            << L"change to ["
+            << (state ? L"checked" : L"unchecked")
+            << L']' 
+            << LongUI::endl;
+#endif
+    }
 }
 
 // UIRadioButton 初始化
@@ -286,9 +313,13 @@ void LongUI::UIRadioButton::initialize(pugi::xml_node node) noexcept {
     // 先初始化复选框状态
     m_uiElement.Init(
         this->check_state(),
-        Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked),
+        node.attribute("checked").as_bool(),
         node
     );
+    // 去掉之前的勾
+    if (this->GetCheckedState()) {
+        this->uncheck_checked_and_check_this();
+    }
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
 }
@@ -350,38 +381,34 @@ bool LongUI::UIRadioButton::DoMouseEvent(const MouseEventArgument& arg) noexcept
     {
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进: 设置UI元素状态
-        this->SetControlState(LongUI::State_Hover);
+        this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
-        m_pWindow->now_cursor = m_hCursorHand;
+        //m_pWindow->now_cursor = m_hCursorHand;
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
-        this->SetControlState(LongUI::State_Normal);
+        this->ForceSetControlState(LongUI::State_Normal);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
-        m_pWindow->now_cursor = m_pWindow->default_cursor;
+        //m_pWindow->now_cursor = m_pWindow->default_cursor;
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下:
         m_pWindow->SetCapture(this);
-        this->SetControlState(LongUI::State_Pushed);
+        this->ForceSetControlState(LongUI::State_Pushed);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
         return true;
     case LongUI::MouseEvent::Event_LButtonUp:
         // 左键弹起:
-        this->SetControlState(LongUI::State_Hover);
+        this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         // 检查的是本控件
-        if (m_pWindow->IsCapturedControl(this)) {
-            /*// 检查flag
-            auto target = CheckBoxState::State_Checked;
-            if (this->GetCheckBoxState() == CheckBoxState::State_Checked) {
-                target = CheckBoxState::State_Unchecked;
-            }
-            // 修改复选框状态
-            this->SetCheckBoxState(target);*/
-            // 释放
-            m_pWindow->ReleaseCapture();
+        if (!m_pWindow->IsCapturedControl(this)) return true;
+        // 修改复选框状态
+        if (!this->GetCheckedState()) {
+            this->ForceSetCheckedState(true);
         }
+        // 释放
+        m_pWindow->ReleaseCapture();
         return true;
     }
     // 未处理的消息

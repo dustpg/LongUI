@@ -25,7 +25,7 @@
 */
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // default button control 默认按钮控件
     class UIButton : public UIText {
         // 父类申明

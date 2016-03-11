@@ -25,7 +25,7 @@
 */
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // UI String -- compatible with std library string interface(part of) but host a fixed buffer
     class LongUIAPI CUIString {
         // my version strlen

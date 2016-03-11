@@ -146,9 +146,9 @@ namespace LongUI {
         auto GetTopMarginOffset() const noexcept { return this->margin_rect.top - m_orgMargin.top; }
         // get left margin offset
         auto GetLeftMarginOffset() const noexcept { return this->margin_rect.left - m_orgMargin.left; }
-        // get popular child, you can get it if a child control want to be popular(like radio button)
+        // get popular child(like radio button)
         auto GetPopularChild() const noexcept { return m_pPopularChild; }
-        // set popular child, you can set it if you want to be popular(like radio button)
+        // set popular child(like radio button)
         void SetPopularChild(UIControl* ctrl) noexcept;
     private:
         // refresh marginal controls

@@ -25,7 +25,7 @@
 */
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // Floating Layout -- 浮动布局
     class UIFloatLayout : public UIContainerBuiltIn {
         // super class

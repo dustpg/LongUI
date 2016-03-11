@@ -58,20 +58,23 @@ namespace LongUI {
     public:
         // get control state
         auto GetControlState() const noexcept { return m_uiElement.GetNowBasicState(); }
-        // set control state
-        void SetControlState(ControlState state) noexcept;
+        // force set control state
+        void ForceSetControlState(ControlState state) noexcept;
+        // get checked state
+        auto GetCheckedState() const noexcept { return !!m_uiElement.GetNowExtraState(); }
+        // force set checked state
+        void ForceSetCheckedState(bool state) noexcept;
         // set control state in safe way
         void SafeSetControlState(ControlState state) noexcept {
-            if (this->GetEnabled()) this->SetControlState(state);
+            if (this->GetEnabled()) this->ForceSetControlState(state);
         }
-        // get checked state
-        auto GetCheckedState() const noexcept { return m_uiElement.GetNowExtraState(); }
-        // set checked state
-        void SetCheckBoxState(bool state) noexcept;
         // set checked state in safe way
         void SafeSetCheckedState(bool state) noexcept {
-            if (this->GetEnabled()) this->SetCheckBoxState(state);
+            if (this->GetEnabled()) this->ForceSetCheckedState(state);
         }
+    private:
+        // uncheck checked radio button, then check this
+        void uncheck_checked_and_check_this() noexcept;
     public:
         // create 创建
         static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
@@ -87,14 +90,12 @@ namespace LongUI {
         // deleted function
         UIRadioButton(const UIRadioButton&) = delete;
     protected:
-        // hand cursor
-        HCURSOR                     m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
         // callback
         UICallBack                  m_event;
         // color of border
         D2D1_COLOR_F                m_aBorderColor[STATE_COUNT];
         // element
-        Component::Element4Checkbox m_uiElement;
+        Component::Element4RadioBtn m_uiElement;
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

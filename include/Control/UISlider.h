@@ -26,7 +26,7 @@
 
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // default slider control 默认滑块控件
     class UISlider : public UIControl {
         // 父类申明

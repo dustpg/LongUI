@@ -25,7 +25,7 @@
 */
 
 // LongUI namespace
-namespace LongUI{
+namespace LongUI {
     // default combo box control 默认组合框
     class UIComboBox : public UIButton {
         // 父类申明

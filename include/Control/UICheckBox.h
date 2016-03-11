@@ -60,17 +60,17 @@ namespace LongUI {
         auto GetControlState() const noexcept { return m_uiElement.GetNowBasicState(); }
         // get checkbox state
         auto GetCheckBoxState() const noexcept { return m_uiElement.GetNowExtraState(); }
-        // set control state
-        void SetControlState(ControlState state) noexcept;
-        // set checkbox state
-        void SetCheckBoxState(CheckBoxState state) noexcept;
+        // force set control state
+        void ForceSetControlState(ControlState state) noexcept;
+        // force set checkbox state
+        void ForceSetCheckBoxState(CheckBoxState state) noexcept;
         // set control state in safe way
         void SafeSetControlState(ControlState state) noexcept {
-            if (this->GetEnabled()) this->SetControlState(state);
+            if (this->GetEnabled()) this->ForceSetControlState(state);
         }
         // set checkbox state in safe way
         void SafeSetCheckBoxState(CheckBoxState state) noexcept {
-            if (this->GetEnabled()) this->SetCheckBoxState(state);
+            if (this->GetEnabled()) this->ForceSetCheckBoxState(state);
         }
     public:
         // create 创建

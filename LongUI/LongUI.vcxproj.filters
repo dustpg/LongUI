@@ -168,6 +168,9 @@
     <ClInclude Include="..\include\Control\UIRadioButton.h">
       <Filter>Header Files\Control</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Core\Window.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\_LongUIAllInOne.cpp">

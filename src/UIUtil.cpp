@@ -13,6 +13,22 @@ LongUINoinline void LongUI::usleep(long usec) noexcept {
 }
 
 /// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIInput::Update() noexcept {
+    // 获取鼠标位置
+    ::GetCursorPos(&m_ptMouseL);
+    m_ptMouse.x = static_cast<float>(m_ptMouseL.x);
+    m_ptMouse.y = static_cast<float>(m_ptMouseL.y);
+    // 更新键鼠按键
+    std::swap(m_pKeyState, m_pKeyStateOld);
+    ::GetKeyboardState(m_pKeyState);
+    // 更新手柄按键
+}
+
+
+/// <summary>
 /// float4 color ---> 32-bit ARGB uint color
 /// 将浮点颜色转换成32位ARGB排列整型
 /// </summary>

@@ -343,7 +343,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// <summary>
         /// [nc] notify all children, but sender/marginal control
         /// </summary>
-        Event_NotifyChildren,
+        //Event_NotifyChildren,
         // [ui-exdata]sub event, use for event callback
         Event_SubEvent,
         // [none-exdata]command, keyboard direct-access(like type 'Eenter')
@@ -396,7 +396,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
             // set text
             struct { const wchar_t* text; void* unused; } stt;
             // notify children
-            struct { size_t identifier; size_t value; } nc;
+            //struct { size_t identifier; size_t value; } nc;
             // set enabled
             struct { bool enabled; } ste;
             // set float
@@ -595,6 +595,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
 
 // LongUI Manager
 #include "Util/UIInput.h"
+#include "Core/Window.h"
 #include "Core/UIManager.h"
 
 // LongUI Contorl

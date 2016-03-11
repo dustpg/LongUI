@@ -159,6 +159,10 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Edit textformat="1" text="这个"/>
         <Edit text="这个"/>
     </HorizontalLayout>
+    <HorizontalLayout templatesize="256, 0">
+        <RadioButton text="单选A" checked="true"/>
+        <RadioButton text="单选B"/>
+    </HorizontalLayout>
     <Single templatesize="512, 0">
         <Slider name="sld_opacity" thumbsize="32,32" margin="4,4,4,4"/>
     </Single>
@@ -282,7 +286,7 @@ private:
                 if (cbx->GetCheckBoxState() == LongUI::CheckBoxState::State_Indeterminate) {
                     stt = LongUI::CheckBoxState::State_Unchecked;
                 }
-                cbx->SetCheckBoxState(stt);
+                cbx->ForceSetCheckBoxState(stt);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }

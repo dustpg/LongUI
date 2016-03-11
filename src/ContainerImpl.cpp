@@ -25,14 +25,14 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
                 ctrl->DoEvent(arg);
             }
             return true;
-        case LongUI::Event::Event_NotifyChildren:
+        /*case LongUI::Event::Event_NotifyChildren:
             // 仅仅传递一层
             if (arg.sender->parent == this) {
                 for (auto ctrl : (*this)) {
                     if(ctrl != arg.sender) ctrl->DoEvent(arg);
                 }
             }
-            return true;
+            return true;*/
         }
     }
     return Super::DoEvent(arg);
@@ -577,7 +577,7 @@ bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
             m_pChild->NewParentSetted();
             m_pChild->DoEvent(arg);
             return true;
-        case LongUI::Event::Event_NotifyChildren:
+        /*case LongUI::Event::Event_NotifyChildren:
             // 不处理
 #ifdef _DEBUG
             if (arg.sender == m_pChild) {
@@ -586,7 +586,7 @@ bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
                     << LongUI::endl;
             }
 #endif
-            return true;
+            return true;*/
         }
     }
     return Super::DoEvent(arg);
@@ -788,14 +788,14 @@ bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 ctrl->DoEvent(arg);
             }
             return true;
-        case LongUI::Event::Event_NotifyChildren:
+        /*case LongUI::Event::Event_NotifyChildren:
             // 仅仅传递一层
             if (arg.sender->parent == this) {
                 for (auto ctrl : m_vChildren) {
                     if(ctrl != arg.sender) ctrl->DoEvent(arg);
                 }
             }
-            return true;
+            return true;*/
         }
     }
     return Super::DoEvent(arg);
