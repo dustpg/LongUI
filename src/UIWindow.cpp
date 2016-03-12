@@ -1387,3 +1387,99 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
     *pdwEffect = ::GetDropEffect(grfKeyState, *pdwEffect);
     return S_OK;
 }
+
+
+
+// -----------------------------------------------------------------------
+
+/// <summary>
+/// Initializes a new instance of the <see cref="XUIBaseWindow"/> class.
+/// </summary>
+LongUI::XUIBaseWindow::XUIBaseWindow() noexcept {
+#ifdef _DEBUG
+    m_vChildren.push_back(nullptr);
+    m_vChildren.pop_back();
+#endif
+}
+
+/// <summary>
+/// Finalizes an instance of the <see cref="XUIBaseWindow"/> class.
+/// </summary>
+/// <returns></returns>
+LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
+
+}
+
+
+/// <summary>
+/// Does the update.
+/// </summary>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::DoUpdate() noexcept {
+    // 遍历
+    for (auto window : m_vChildren) {
+        window->DoUpdate();
+    }
+    // 渲染实现窗口
+    m_pImplement->Update();
+}
+
+/// <summary>
+/// Does the render.
+/// </summary>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::DoRender() const noexcept {
+    assert(m_pImplement && "no window");
+    // 遍历
+    for (const auto window : m_vChildren) {
+        // 同一个windows窗口
+        if (this->GetHwnd() == window->GetHwnd()) {
+            window->DoRender();
+        }
+    }
+    // 渲染实现窗口
+    m_pImplement->Render();
+}
+
+// 移动窗口
+void LongUI::XUISystemWindow::MoveWindow(int32_t x, int32_t y) noexcept {
+    m_rcWindow.left = x;
+    m_rcWindow.top = y;
+    POINT pt = { x, y };
+    HWND hwndp = ::GetParent(m_hwnd);
+    ::MapWindowPoints(hwndp, m_hwnd, &pt, 1);
+    ::SetWindowPos(m_hwnd, HWND_TOP, pt.x, pt.y, 0, 0, SWP_NOSIZE);
+}
+
+// 改变大小
+void LongUI::XUISystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
+    uint32_t oldw = static_cast<uint32_t>(m_rcWindow.right - m_rcWindow.left);
+    uint32_t oldh = static_cast<uint32_t>(m_rcWindow.bottom - m_rcWindow.top);
+    // 不同时再改变大小
+    assert("!NO IMPL");
+}
+
+
+
+// longui namesapce
+namespace LongUI {
+    // system window builtin
+    class CUIBuiltinSystemWindow final : public XUISystemWindow, 
+        public CUISingleNormalObject {
+        // super class
+        using Super = XUISystemWindow;
+    public:
+        // dispose this
+        virtual void Dispose() noexcept { delete this; };
+        // window proc
+        virtual auto WndProc(UINT message, WPARAM wParam, LPARAM lParam) noexcept -> LRESULT override;
+    };
+    // create it
+    auto CreateBuiltinSystemWindow() noexcept -> XUISystemWindow* {
+        return new(std::nothrow) CUIBuiltinSystemWindow();
+    }
+    // 窗口过程处理
+    auto LongUI::CUIBuiltinSystemWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam) noexcept -> LRESULT {
+        return LRESULT();
+    }
+}

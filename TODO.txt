@@ -14,7 +14,8 @@
     TODO: 分离UIWindow
     TODO: 子窗口渲染
     TODO: 规范化拖拽
-    TODO: 规范化消息架构
+    TODO: 规范化消息架构、
+    TODO: 出场/离场动画
     TODO: 更加安全的缓存
     TODO: 完成UITab
     TODO: 完成UITree

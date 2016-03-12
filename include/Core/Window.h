@@ -25,16 +25,26 @@
 */
 
 // LongUI namespace
-namespace LongUI { namespace Window {
+namespace LongUI {
+    // base window
+    class XUIBaseWindow;
+    // system window
+    class CUISystemWindow;
+    // vector for window
+    using WindowVector = EzContainer::PointerVector<XUIBaseWindow>;
+    // vector for system window
+    using SystemWindowVector = EzContainer::PointerVector<XUIBaseWindow>;
     // window
-    class Window {
+    class XUIBaseWindow {
     public:
         // ctor
-        Window() noexcept;
+        XUIBaseWindow() noexcept;
         // dtor
-        ~Window() noexcept;
+        ~XUIBaseWindow() noexcept;
         // do render
-        void DoRender() noexcept;
+        void DoRender() const noexcept;
+        // do update
+        void DoUpdate() noexcept;
     public:
         // dispose
         virtual void Dispose() noexcept = 0;
@@ -44,40 +54,41 @@ namespace LongUI { namespace Window {
         virtual void Resize(uint32_t w, uint32_t h) noexcept = 0;
     public:
         // get window handle
-        auto GetHwnd() const noexcept { m_hwnd; }
+        auto GetHwnd() const noexcept { return m_hwnd; }
         // get top
-        auto GetTop() const noexcept { return m_iTop; }
+        auto GetTop() const noexcept { return m_rcWindow.top; }
         // get left
-        auto GetLeft() const noexcept { return m_iLeft; }
+        auto GetLeft() const noexcept { return m_rcWindow.left; }
         // get right
-        auto GetRight() const noexcept { return m_iRight; }
+        auto GetRight() const noexcept { return m_rcWindow.right; }
         // get bottom
-        auto GetBottom() const noexcept { return m_iBottom; }
+        auto GetBottom() const noexcept { return m_rcWindow.bottom; }
     protected:
         // implement longui-window
         UIWindow*           m_pImplement = nullptr;
         // parent window
-        Window*             m_pParent = nullptr;
-        // prev window
-        Window*             m_pPrev = nullptr;
-        // next window
-        Window*             m_pNext = nullptr;
-        // first child window
-        Window*             m_pChild = nullptr;
+        XUIBaseWindow*      m_pParent = nullptr;
+        // children
+        WindowVector        m_vChildren;
         // window handle
         HWND                m_hwnd = nullptr;
-        // left of window
-        int32_t             m_iLeft = 0;
-        // top of window
-        int32_t             m_iTop = 0;
-        // right of window
-        int32_t             m_iRight = 0;
-        // bottom of window
-        int32_t             m_iBottom = 0;
+        // window rect
+        RectLTRB_L          m_rcWindow;
     };
     // system window
-    class System : public Window {
+    class XUISystemWindow : public XUIBaseWindow {
+        // super class
+        using Super = XUIBaseWindow;
     public:
+        // move window
+        virtual void MoveWindow(int32_t x, int32_t y) noexcept override;
+        // resize window
+        virtual void Resize(uint32_t w, uint32_t h) noexcept override;
+    public:
+        // window proc
+        virtual auto WndProc(UINT message, WPARAM wParam, LPARAM lParam) noexcept -> LRESULT = 0;
     protected:
     };
-}}
+    // create builtin system window
+    auto CreateBuiltinSystemWindow() noexcept ->XUISystemWindow*;
+}
