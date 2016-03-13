@@ -1415,30 +1415,30 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
 /// Does the update.
 /// </summary>
 /// <returns></returns>
-void LongUI::XUIBaseWindow::DoUpdate() noexcept {
+void LongUI::XUIBaseWindow::DoWindowUpdate(const XUIBaseWindow* window) noexcept {
+    assert(window->m_pImplement && "no window");
+    // 刷新
+    window->m_pImplement->Update();
     // 遍历
-    for (auto window : m_vChildren) {
-        window->DoUpdate();
+    for (const auto child : window->m_vChildren) {
+        XUIBaseWindow::DoWindowUpdate(child);
     }
-    // 渲染实现窗口
-    m_pImplement->Update();
 }
 
 /// <summary>
 /// Does the render.
 /// </summary>
 /// <returns></returns>
-void LongUI::XUIBaseWindow::DoRender() const noexcept {
-    assert(m_pImplement && "no window");
+void LongUI::XUIBaseWindow::DoWindowRender(const XUIBaseWindow* window) noexcept {
+    // 渲染
+    window->render();
     // 遍历
-    for (const auto window : m_vChildren) {
+    for (const auto child : window->m_vChildren) {
         // 同一个windows窗口
-        if (this->GetHwnd() == window->GetHwnd()) {
-            window->DoRender();
+        if (child->GetHwnd() == window->GetHwnd()) {
+            XUIBaseWindow::DoWindowRender(child);
         }
     }
-    // 渲染实现窗口
-    m_pImplement->Render();
 }
 
 // 移动窗口
@@ -1460,7 +1460,6 @@ void LongUI::XUISystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
 }
 
 
-
 // longui namesapce
 namespace LongUI {
     // system window builtin
@@ -1468,6 +1467,9 @@ namespace LongUI {
         public CUISingleNormalObject {
         // super class
         using Super = XUISystemWindow;
+    private:
+        // render
+        virtual void render() const noexcept {};
     public:
         // dispose this
         virtual void Dispose() noexcept { delete this; };
@@ -1477,6 +1479,10 @@ namespace LongUI {
     // create it
     auto CreateBuiltinSystemWindow() noexcept -> XUISystemWindow* {
         return new(std::nothrow) CUIBuiltinSystemWindow();
+    }
+    // create it
+    auto LongUI::CreateBuiltinInsetWindow() noexcept -> XUIBaseWindow* {
+        return nullptr;
     }
     // 窗口过程处理
     auto LongUI::CUIBuiltinSystemWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam) noexcept -> LRESULT {

@@ -24,7 +24,6 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 // LongUI namespace
 namespace LongUI {
     // config::window
@@ -194,8 +193,6 @@ namespace LongUI {
         void SetHoverTrack(UIControl* ctrl) noexcept;
         // find control
         auto FindControl(const char* name) noexcept ->UIControl*;
-        // find group, maybe return nullptr
-        auto FildGroup(const char* name) noexcept ->ControlVector;
         // move window relative to parent
         void MoveWindow(float x, float y) noexcept;
         // add control with name
