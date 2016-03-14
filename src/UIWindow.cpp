@@ -2,8 +2,6 @@
 #include <algorithm>
 #include <dcomp.h>
 
-// 任务按钮创建消息
-const UINT LongUI::UIWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
 /// <summary>
 /// Initializes a new instance of the 
@@ -151,7 +149,7 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             WS_EX_NOREDIRECTIONBITMAP,
-            LongUI::WindowClassNameA, 
+            LongUI::WindowClassName, 
             titlename.length() ? titlename.c_str() : L"LongUI",
             window_style,
             window_rect.left, window_rect.top, window_rect.right, window_rect.bottom,
@@ -250,7 +248,7 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             WS_EX_NOREDIRECTIONBITMAP,
-            LongUI::WindowClassNameA, 
+            LongUI::WindowClassName, 
             L"LongUI Popup Window",
             window_style,
             0, 0, window_rect.right, window_rect.bottom,
@@ -860,7 +858,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 其他LongUI事件
     bool handled = false;
     // 特殊事件
-    if (arg.msg == s_uTaskbarBtnCreatedMsg) {
+    /*if (arg.msg == s_uTaskbarBtnCreatedMsg) {
         LongUI::SafeRelease(m_pTaskBarList);
         UIManager << DL_Log << "TaskbarButtonCreated" << LongUI::endl;
         auto hr = ::CoCreateInstance(
@@ -871,7 +869,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
             );
         ShowHR(hr);
         return true;
-    }
+    }*/
     // 处理事件
     switch (arg.msg)
     {
@@ -1235,9 +1233,10 @@ void LongUI::UIWindow::cleanup() noexcept {
 
 // 窗口创建时
 bool LongUI::UIWindow::OnCreated(HWND hwnd) noexcept {
+    assert(!"removed");
     // 权限提升?保证
     CHANGEFILTERSTRUCT cfs = { sizeof(CHANGEFILTERSTRUCT) };
-    ::ChangeWindowMessageFilterEx(hwnd, s_uTaskbarBtnCreatedMsg, MSGFLT_ALLOW, &cfs);
+    //::ChangeWindowMessageFilterEx(hwnd, s_uTaskbarBtnCreatedMsg, MSGFLT_ALLOW, &cfs);
     return true;
 }
 
@@ -1391,6 +1390,8 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
 
 
 // -----------------------------------------------------------------------
+// 任务按钮创建消息
+const UINT LongUI::XUISystemWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
 /// <summary>
 /// Initializes a new instance of the <see cref="XUIBaseWindow"/> class.
@@ -1462,8 +1463,8 @@ void LongUI::XUISystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
 
 // longui namesapce
 namespace LongUI {
-    // system window builtin
-    class CUIBuiltinSystemWindow final : public XUISystemWindow, 
+    // system window -- builtin
+    class CUIBuiltinSystemWindow final : public XUISystemWindow,
         public CUISingleNormalObject {
         // super class
         using Super = XUISystemWindow;
@@ -1473,19 +1474,150 @@ namespace LongUI {
     public:
         // dispose this
         virtual void Dispose() noexcept { delete this; };
+    public:
+        // normal event
+        bool MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept;
+    public:
         // window proc
-        virtual auto WndProc(UINT message, WPARAM wParam, LPARAM lParam) noexcept -> LRESULT override;
+        static auto WINAPI WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept->LRESULT;
+        // Register Window's Class
+        static void RegisterWindowClass() noexcept;
     };
-    // create it
-    auto CreateBuiltinSystemWindow() noexcept -> XUISystemWindow* {
-        return new(std::nothrow) CUIBuiltinSystemWindow();
+}
+
+
+/// <summary>
+/// Creates the builtin system window.
+/// </summary>
+/// <returns>XUISystemWindow pointer, return null if error</returns>
+auto LongUI::CreateBuiltinSystemWindow() noexcept -> XUISystemWindow* {
+    LongUI::CUIBuiltinSystemWindow::RegisterWindowClass();
+    //return new(std::nothrow) CUIBuiltinSystemWindow();
+    return nullptr;
+}
+
+
+/// <summary>
+/// Creates the builtin inset window.
+/// </summary>
+/// <returns>XUIBaseWindow pointer, return null if error</returns>
+auto LongUI::CreateBuiltinInsetWindow() noexcept -> XUIBaseWindow* {
+    return nullptr;
+}
+
+/// <summary>
+/// Registers the window class.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::RegisterWindowClass() noexcept {
+    WNDCLASSEXW wcex;
+    auto code = ::GetClassInfoExW(nullptr, LongUI::WindowClassName, &wcex);
+    assert(!"check code");
+    // 注册窗口类 | CS_DBLCLKS
+    wcex = { 0 };
+    wcex.cbSize = sizeof(WNDCLASSEXW);
+    wcex.style = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc = LongUI::CUIBuiltinSystemWindow::WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = sizeof(void*);
+    wcex.hInstance = ::GetModuleHandleW(nullptr);
+    wcex.hCursor = nullptr;
+    wcex.hbrBackground = nullptr;
+    wcex.lpszMenuName = nullptr;
+    wcex.lpszClassName = LongUI::WindowClassName;
+    wcex.hIcon = nullptr;// ::LoadIconW(hInstance, MAKEINTRESOURCEW(101));
+    ::RegisterClassExW(&wcex);
+}
+
+
+
+#ifdef _DEBUG
+namespace LongUI {
+    std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
+    std::atomic<UINT> g_dbg_last_proc_message = 0;
+}
+#endif
+
+/// <summary>
+/// WNDs the proc.
+/// </summary>
+/// <param name="hwnd">The HWND.</param>
+/// <param name="message">The message.</param>
+/// <param name="wParam">The w parameter.</param>
+/// <param name="lParam">The l parameter.</param>
+/// <returns></returns>
+auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept ->LRESULT {
+#ifdef _DEBUG
+    g_dbg_last_proc_message = message;
+#endif
+    // 返回值
+    LRESULT recode = 0;
+    // 创建窗口时设置指针
+    if (message == WM_CREATE) {
+        // 获取指针
+        auto* window = reinterpret_cast<LongUI::CUIBuiltinSystemWindow*>(
+            (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
+            );
+        // 设置窗口指针
+        ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
+        // TODO: 创建完毕
+        //window->OnCreated(hwnd);
+        // 返回1
+        recode = 1;
     }
-    // create it
-    auto LongUI::CreateBuiltinInsetWindow() noexcept -> XUIBaseWindow* {
-        return nullptr;
+    else {
+        // 获取储存的指针
+        auto* window = reinterpret_cast<LongUI::CUIBuiltinSystemWindow *>(static_cast<LONG_PTR>(
+            ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))
+            );
+        // 无效
+        if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
+#ifdef _DEBUG
+        g_dbg_last_proc_window_pointer = reinterpret_cast<std::uintptr_t>(window);
+#endif
+        auto handled = false;
+        {
+#ifdef _DEBUG
+            static std::atomic_int s_times = 0;
+            // 不用推荐递归调用
+            if (s_times) {
+                UIManager << DL_Hint
+                    << L"recursive called. [UNRECOMMENDED]: depending on locker implementation."
+                    << LongUI::endl;
+            }
+            ++s_times;
+#endif
+            {
+                // 加锁
+                CUIDataAutoLocker locker;
+                // 消息处理
+                handled = window->MessageHandle(message, lParam, wParam, recode);
+            }
+#ifdef _DEBUG
+            --s_times;
+#endif
+        }
+        // 未处理
+        if (!handled) {
+            recode = ::DefWindowProcW(hwnd, message, wParam, lParam);
+        }
     }
-    // 窗口过程处理
-    auto LongUI::CUIBuiltinSystemWindow::WndProc(UINT message, WPARAM wParam, LPARAM lParam) noexcept -> LRESULT {
-        return LRESULT();
+    return recode;
+}
+
+/// <summary>
+/// Normals the event.
+/// </summary>
+/// <param name="message">The message.</param>
+/// <param name="wParam">The w parameter.</param>
+/// <param name="lParam">The l parameter.</param>
+/// <param name="result">The result.</param>
+/// <returns></returns>
+bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT & result) noexcept {
+    // 消息处理
+    switch (message) {
+    case WM_KILLFOCUS:
+        break;
     }
+    return false;
 }

@@ -45,43 +45,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     std::memset(m_apTextRenderer, 0, sizeof(m_apTextRenderer));
     std::memset(m_apSystemBrushes, 0, sizeof(m_apSystemBrushes));
     // 获取实例句柄
-    auto hInstance = ::GetModuleHandleW(nullptr);
-    // 注册窗口类 | CS_DBLCLKS
-    WNDCLASSEXW wcex = { 0 };
-    {
-        wcex.cbSize = sizeof(WNDCLASSEXW);
-        wcex.style = CS_HREDRAW | CS_VREDRAW;
-        wcex.lpfnWndProc = CUIManager::WndProc;
-        wcex.cbClsExtra = 0;
-        wcex.cbWndExtra = sizeof(void*);
-        wcex.hInstance = hInstance;
-        wcex.hCursor = nullptr;
-        wcex.hbrBackground = nullptr;
-        wcex.lpszMenuName = nullptr;
-        wcex.lpszClassName = LongUI::WindowClassNameA;
-        wcex.hIcon = nullptr;// ::LoadIconW(hInstance, MAKEINTRESOURCEW(101));
-        // 注册普通窗口
-        ::RegisterClassExW(&wcex);
-    }
-   /*{
-        wcex.cbWndExtra = 0;
-        wcex.lpszClassName = L"LongUIManager";
-        wcex.hIcon = nullptr;
-        wcex.lpfnWndProc = CUIManager::InvisibleWndProc;
-        // 注册不可见窗口
-        ::RegisterClassExW(&wcex);
-        // 创建窗口
-        m_hInvisibleHosted = ::CreateWindowExW(
-            0,
-            L"LongUIManager", L"LongUI UIManager Invisible Hosted Window",
-            0,
-            0, 0, 0, 0,
-            nullptr, nullptr,
-            ::GetModuleHandleW(nullptr),
-            this
-            );
-        ::ShowWindow(m_hInvisibleHosted, SW_SHOW);
-    }*/
+    //auto hInstance = ::GetModuleHandleW(nullptr);
     HRESULT hr = S_OK;
     // 位图缓存
     if (SUCCEEDED(hr)) {
@@ -779,103 +743,7 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg,
     arg.event = me;
 }
 
-#ifdef _DEBUG
-namespace LongUI {
-    std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
-    std::atomic<UINT> g_dbg_last_proc_message = 0;
-}
-#endif
 
-// 窗口过程函数
-LRESULT LongUI::CUIManager::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
-#ifdef _DEBUG
-    g_dbg_last_proc_message = message;
-#endif
-    // 返回值
-    LRESULT recode = 0;
-    // 创建窗口时设置指针
-    if (message == WM_CREATE) {
-        // 获取指针
-        auto* window = reinterpret_cast<LongUI::UIWindow*>(
-            (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
-            );
-        // 设置窗口指针
-        ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
-        // 创建完毕
-        window->OnCreated(hwnd);
-        // 返回1
-        recode = 1;
-    }
-    else {
-        // 获取储存的指针
-        auto* window = reinterpret_cast<LongUI::UIWindow *>(static_cast<LONG_PTR>(
-            ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))
-            );
-        // 无效
-        if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
-#ifdef _DEBUG
-        g_dbg_last_proc_window_pointer = reinterpret_cast<std::uintptr_t>(window);
-#endif
-        auto handled = false;
-        // 鼠标事件?
-        if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) ||
-            message == WM_MOUSELEAVE || message == WM_MOUSEHOVER) {
-            MouseEventArgument arg;
-            CUIManager::WindowsMsgToMouseEvent(arg, message, wParam, lParam);
-            // 有效
-            if (arg.event != MouseEvent::Event_None) {
-                {
-                    CUIDataAutoLocker locker;
-                    // 需要修正坐标
-                    if (arg.event <= MouseEvent::Event_MouseWheelH) {
-                        arg.pt = window->last_point;
-                    }
-                    // 位置有效->修改
-                    if (arg.event >= MouseEvent::Event_MouseMove) {
-                        window->last_point = arg.pt;
-                    }
-                    window->DoMouseEvent(arg);
-                    // 总是处理了鼠标事件
-                    handled = true;
-                }
-            }
-        }
-        // 一般事件
-        else {
-            // 设置参数
-            LongUI::EventArgument arg;
-            // 系统消息
-            arg.msg = message;  arg.sender = nullptr;
-            arg.sys.wParam = wParam; arg.sys.lParam = lParam; 
-            arg.lr = 0;
-#ifdef _DEBUG
-            static std::atomic_int s_times = 0;
-            // 不用推荐递归调用
-            if (s_times) {
-                UIManager << DL_Hint 
-                    << L"recursive called. [UNRECOMMENDED]: depending on locker implementation." 
-                    << LongUI::endl;
-            }
-            ++s_times;
-#endif
-            {
-                CUIDataAutoLocker locker;
-                // 默认处理
-                if ((handled = window->DoEvent(arg))) {
-                    recode = arg.lr;
-                }
-            }
-#ifdef _DEBUG
-            --s_times;
-#endif
-        }
-        // 未处理
-        if (!handled) {
-            recode = ::DefWindowProcW(hwnd, message, wParam, lParam);
-        }
-    }
-    return recode;
-}
 
 // 获取主题颜色
 auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT {

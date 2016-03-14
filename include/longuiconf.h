@@ -282,10 +282,8 @@ namespace LongUI {
 
 // XML Node Attribute/Value constexpr char* const Setting
 namespace LongUI {
-    // window class name type A: zhuangbilty
-    static constexpr wchar_t* const WindowClassNameA = L"Windows.UI.LongUI.DirectWindow";
-    // window class name type B: zhuangbilty
-    static constexpr wchar_t* const WindowClassNameB = L"Windows.UI.LongUI.NormalWindow";
+    // default window class name zhuangbilty
+    static constexpr wchar_t* const WindowClassName = L"Windows.UI.LongUI.DirectWindow";
     // attribute namespace
     namespace XMLAttribute {
         // name of control

@@ -104,25 +104,19 @@ namespace LongUI {
         auto GetTextAntimode() const noexcept { return m_textAntiMode; }
         // get text anti-mode 
         void SetTextAntimode(D2D1_TEXT_ANTIALIAS_MODE mode) noexcept { m_textAntiMode = static_cast<decltype(m_textAntiMode)>(mode); }
-        // start render in sec.
-        auto StartRender(float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, t, c); }
-        // plan to render in sec.
-        auto PlanToRender(float w, float t, UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(w, t, c); }
-        // update control later
-        auto Invalidate(UIControl* c) noexcept { return m_uiRenderQueue.PlanToRender(0.f, 0.f, c); }
         // is mouse captured control?
         auto IsCapturedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
         // is rendered
         auto IsRendered() const noexcept { return m_baBoolWindow.Test(XUIBaseWindow::Index_Rendered); }
         // is prerender, THIS METHOD COULD BE CALLED IN RENDER-THREAD ONLY
         auto IsPrerender() const noexcept { return m_baBoolWindow.Test(XUIBaseWindow::Index_Prerender); }
-        // next frame
-        auto NextFrame() noexcept { m_uiRenderQueue.GetCurrentUnit()->length = 0; ++m_uiRenderQueue; }
         // copystring for control in this winddow
         auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
         // copystring for control in this winddow in safe way
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
     public:
+        // update control later
+        auto Invalidate(UIControl* ctrl) noexcept;
         // set the caret
         void SetCaretPos(UIControl* ctrl, float x, float y) noexcept;
         // create the caret
@@ -170,10 +164,6 @@ namespace LongUI {
         Helper::BitArray32      m_baBoolWindow;
         // mode for text anti-alias
         D2D1_TEXT_ANTIALIAS_MODE m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
-        // rendering queue
-        CUIRenderQueue          m_uiRenderQueue;
-        // now unit
-        CUIRenderQueue::UNIT    m_aUnitNow;
         // dirty rects
         RECT                    m_dirtyRects[LongUIDirtyControlSize];
         // track mouse event: end with DWORD
@@ -193,7 +183,9 @@ namespace LongUI {
         uint32_t                full_render_counter = 0;
         uint32_t                dirty_render_counter = 0;
 #endif
-        // clear color @xml "clearcolor"
+        // last mouse point
+        D2D1_POINT_2F           last_point = D2D1::Point2F(-1.f, -1.f);
+        // clear color
         D2D1::ColorF            clear_color = D2D1::ColorF(D2D1::ColorF::White);
     };
     // system window
@@ -206,9 +198,9 @@ namespace LongUI {
         // resize window
         virtual void Resize(uint32_t w, uint32_t h) noexcept override;
     public:
-        // window proc
-        virtual auto WndProc(UINT message, WPARAM wParam, LPARAM lParam) noexcept -> LRESULT = 0;
     protected:
+        // message id for TaskbarBtnCreated
+        static const UINT s_uTaskbarBtnCreatedMsg;
     };
     // create builtin system window
     auto CreateBuiltinSystemWindow() noexcept ->XUISystemWindow*;

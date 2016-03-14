@@ -59,8 +59,6 @@ namespace LongUI {
         using Super = UIVerticalLayout;
         // 友元申明
         friend class CUIManager;
-        // message id for TaskbarBtnCreated
-        static const UINT s_uTaskbarBtnCreatedMsg;
         // timer id for blink
         static constexpr UINT_PTR BLINK_EVENT_ID = 0;
         // clean this control 清除控件
