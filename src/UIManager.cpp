@@ -462,7 +462,7 @@ void LongUI::CUIManager::Run() noexcept {
     m_dwWaitVSStartTime = ::timeGetTime();
     // 渲染线程函数
     auto render_thread_func = [](void*) noexcept ->unsigned {
-        UIWindow* windows[LongUIMaxWindow];
+        UIViewport* windows[LongUIMaxWindow];
         HANDLE waitvs[LongUIMaxWindow];
         // 不退出?
         while (!UIManager.m_exitFlag) {
@@ -550,7 +550,7 @@ void LongUI::CUIManager::Run() noexcept {
     this->cleanup_delay_cleanup_chain();
     // 尝试强行关闭
     /*if (m_cCountWindow) {
-        UIWindow* windows[LongUIMaxWindow];
+        UIViewport* windows[LongUIMaxWindow];
         std::memcpy(windows, m_apWindows, sizeof(m_apWindows));
         auto count = m_cCountWindow;
         // 清理窗口
@@ -633,9 +633,9 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
 // 创建UI窗口
 auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
-    UIWindow* parent,
+    UIViewport* parent,
     callback_for_creating_window func,
-    void* buf) noexcept -> UIWindow* {
+    void* buf) noexcept -> UIViewport* {
     assert(func && node && "bad argument");
     // 创建窗口
     auto window = func(node, parent, buf);
@@ -694,8 +694,6 @@ void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg,
     // 获取Y
     auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
     // 设置
-    arg.sys.wParam = wParam;
-    arg.sys.lParam = lParam;
     arg.pt.x = get_x();
     arg.pt.y = get_y();
     arg.last = nullptr;
@@ -1658,7 +1656,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
 
 
 // 添加窗口
-void LongUI::CUIManager::RegisterWindow(UIWindow * wnd) noexcept {
+void LongUI::CUIManager::RegisterWindow(UIViewport * wnd) noexcept {
     assert(wnd && "bad argument");
     // 检查剩余空间
     if (m_cCountWindow >= LongUIMaxWindow) {
@@ -1695,7 +1693,7 @@ void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
 }
 
 // 移出窗口
-void LongUI::CUIManager::RemoveWindow(UIWindow* wnd, bool cleanup) noexcept {
+void LongUI::CUIManager::RemoveWindow(UIViewport* wnd, bool cleanup) noexcept {
     assert(m_cCountWindow); assert(wnd && "bad argument");
     // 清理?
     if (cleanup) {

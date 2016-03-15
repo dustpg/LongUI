@@ -142,7 +142,7 @@
     <ClInclude Include="..\include\Component\Video.h" />
     <ClInclude Include="..\include\Control\Container\UIContainerBuiltIn.h" />
     <ClInclude Include="..\include\Control\Container\UIMenu.h" />
-    <ClInclude Include="..\include\Control\Container\UIWindow.h" />
+    <ClInclude Include="..\include\Control\Container\UIViewport.h" />
     <ClInclude Include="..\include\Control\Layout\UIFloatLayout.h" />
     <ClInclude Include="..\include\Control\Layout\UILinearLayout.h" />
     <ClInclude Include="..\include\Control\Layout\UIList.h" />
@@ -248,7 +248,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\src\UIWindow.cpp">
+    <ClCompile Include="..\src\Window.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>

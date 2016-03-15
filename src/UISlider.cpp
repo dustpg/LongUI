@@ -268,7 +268,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         // 调用
         this->call_uievent(m_event, SubEvent::Event_ValueChanged);
         // 刷新
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
     return nocontinued;
 }

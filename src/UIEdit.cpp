@@ -382,7 +382,7 @@ void LongUI::UIRichEdit::TxViewChange(BOOL fUpdate){
     UNREFERENCED_PARAMETER(fUpdate);
     TRACE_FUCTION;
     //if (fUpdate) {
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     //}
 }
 
@@ -408,7 +408,7 @@ BOOL LongUI::UIRichEdit::TxShowCaret(BOOL fShow){
 BOOL LongUI::UIRichEdit::TxSetCaretPos(INT _x, INT _y){
     TRACE_FUCTION;
     m_ptCaret = {static_cast<float>(_x), static_cast<float>(_y) };
-    m_pWindow->Invalidate(this);
+    this->InvalidateThis();
     ::SetCaretPos(_x, _y);
     return TRUE;
 }

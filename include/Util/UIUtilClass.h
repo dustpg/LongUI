@@ -476,7 +476,7 @@ namespace LongUI {
             UIControl*  units[LongUIDirtyControlSize];
         };
         // ctor
-        CUIRenderQueue(UIWindow* window) noexcept;
+        CUIRenderQueue(UIViewport* window) noexcept;
         // dtor
         ~CUIRenderQueue() noexcept;
         // reset

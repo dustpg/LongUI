@@ -359,7 +359,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
 #endif
         // 刷新
         this->SetControlLayoutChanged();
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
     // 给予警告
     else {

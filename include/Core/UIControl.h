@@ -90,15 +90,7 @@ namespace LongUI {
         // Render 
         virtual void Render() const noexcept = 0;
         // update
-        virtual void Update() noexcept {
-#ifdef _DEBUG
-            void longui_dbg_update(UIControl* c);
-            longui_dbg_update(this);
-            assert(debug_checker.Test(DEBUG_CHECK_INIT) == true && "not be initialized yet");
-            assert(debug_updated == false && "cannot call this more than once");
-            debug_updated = true;
-#endif
-        };
+        virtual void Update() noexcept;
         // do event 
         virtual bool DoEvent(const EventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
         // do mouse event 
@@ -161,6 +153,10 @@ namespace LongUI {
         // get space holder control to aviod nullptr if you do not want a nullptr
         static auto GetPlaceholder() noexcept ->UIControl*;
     public:
+        // start render
+        void StartRender(float time) noexcept;
+        // invalidate this control
+        void InvalidateThis() noexcept { m_pWindow->Invalidate(this); }
         // set width fixed
         auto SetWidthFixed() noexcept { force_cast(this->flags) |= Flag_WidthFixed; }
         // set height fixed
@@ -224,8 +220,8 @@ namespace LongUI {
         ID2D1SolidColorBrush*   m_pBrush_SetBeforeUse = nullptr;
         // backgroud bursh
         ID2D1Brush*             m_pBackgroudBrush = nullptr;
-        // parent window
-        UIWindow*               m_pWindow = nullptr;
+        // window
+        XUIBaseWindow*          m_pWindow = nullptr;
         // script data
         ScriptUI                m_script;
     public:

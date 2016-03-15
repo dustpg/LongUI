@@ -257,13 +257,13 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Flag_ClipStrictly = 1 << 6,
         // [default: false][auto, no specified]
         // control need pre-render for content
-        // call UIWindow::RegisterOffScreenRender2D or
-        // call UIWindow::RegisterOffScreenRender3D to set
+        // call UIViewport::RegisterOffScreenRender2D or
+        // call UIViewport::RegisterOffScreenRender3D to set
         Flag_NeedRegisterOffScreenRender = 1 << 7,
         // [default: false][auto, no specified]
         // control need Direct3D api to render,
-        // call UIWindow::RegisterOffScreenRender3D to set
-        // if use Direct2D , call UIWindow::RegisterOffScreenRender2D
+        // call UIViewport::RegisterOffScreenRender3D to set
+        // if use Direct2D , call UIViewport::RegisterOffScreenRender2D
         Flag_OffScreen3DContent = 1 << 8,
 #if 0
         // [default: false][auto, and xml attribute "renderparent"@bool]
@@ -459,8 +459,6 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     struct MouseEventArgument {
         // data
         union {
-            // System 
-            struct { WPARAM wParam; LPARAM lParam; } sys;
             // clipboard format 
             struct { IDataObject* dataobj; DWORD* outeffect; } cf;
         };
@@ -537,30 +535,30 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         // the text real(without format) length
         OUT mutable uint16_t        text_length;
     };
-    // cursor id
-    using Cursor = size_t;
-    // system cursor enum
-    enum class SystemCursor : Cursor {
+    // cursor enum
+    enum class Cursor : size_t {
         // normal Arrow
         Cursor_Arrow = 0,
         // "I" beam
         Cursor_Ibeam,
         // wait
         Cursor_Wait,
+        // hand
+        Cursor_Hand,
+        // help
+        Cursor_Help,
         // cross
         Cursor_Cross,
+        // size all
+        Cursor_SizeAll,
         // up arrow
         Cursor_UpArrow,
         // size NW-SE
         Cursor_SizeNWSE,
         // size NE-SW 
         Cursor_SizeNESW,
-        // size all
-        Cursor_SizeAll,
-        // hand
-        Cursor_Hand,
-        // help
-        Cursor_Help,
+        // user defined zone
+        Cursor_UserDefined,
     };
 }
 
@@ -585,13 +583,11 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
 #include "Util/UIInlineObject.h"
 
 // LongUI Component
-#ifndef LongUICoreOnly
-#   include "Component/Element.h"
-#   include "Component/Video.h"
-#   include "Component/EditaleText.h"
-#   include "Component/Text.h"
-#   include "Component/Effect.h"
-#endif
+#include "Component/Element.h"
+#include "Component/Video.h"
+#include "Component/EditaleText.h"
+#include "Component/Text.h"
+#include "Component/Effect.h"
 
 // LongUI Manager
 #include "Util/UIInput.h"
@@ -603,23 +599,21 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
 #include "Core/UIMarginalable.h"
 #include "Core/UIContainer.h"
 
-// longui core only?
-#ifndef LongUICoreOnly
-#   include "Control/Container/UIContainerBuiltIn.h"
-#   include "Control/Layout/UISingle.h"
-#   include "Control/Layout/UIFloatLayout.h"
-#   include "Control/Layout/UILinearLayout.h"
-#   include "Control/Layout/UIList.h"
-#   include "Control/Layout/UIPage.h"
-#   include "Control/Container/UIWindow.h"
-#   include "Control/Container/UIMenu.h"
-#   include "Control/UIScrollBar.h"
-#   include "Control/UISlider.h"
-#   include "Control/UIEdit.h"
-#   include "Control/UIRichEdit.h"
-#   include "Control/UIText.h"
-#   include "Control/UICheckBox.h"
-#   include "Control/UIRadioButton.h"
-#   include "Control/UIButton.h"
-#   include "Control/UIComboBox.h"
-#endif
+// longui control
+#include "Control/Container/UIContainerBuiltIn.h"
+#include "Control/Layout/UISingle.h"
+#include "Control/Layout/UIFloatLayout.h"
+#include "Control/Layout/UILinearLayout.h"
+#include "Control/Layout/UIList.h"
+#include "Control/Layout/UIPage.h"
+#include "Control/Container/UIViewport.h"
+#include "Control/Container/UIMenu.h"
+#include "Control/UIScrollBar.h"
+#include "Control/UISlider.h"
+#include "Control/UIEdit.h"
+#include "Control/UIRichEdit.h"
+#include "Control/UIText.h"
+#include "Control/UICheckBox.h"
+#include "Control/UIRadioButton.h"
+#include "Control/UIButton.h"
+#include "Control/UIComboBox.h"

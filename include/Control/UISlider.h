@@ -67,7 +67,7 @@ namespace LongUI {
         void initialize() noexcept;
     public:
         // set state
-        void SetControlState(ControlState state) noexcept { m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); }
+        void SetControlState(ControlState state) noexcept { this->StartRender(m_uiElement.SetBasicState(state)); }
         // get state
         auto GetControlState() const noexcept { m_uiElement.GetNowBasicState(); }
         // get value in [0, 1]
@@ -81,7 +81,7 @@ namespace LongUI {
         // set value [0, 1]
         void SetValue01(float value) noexcept { 
             assert(value >= 0.f && value <= 1.f && "out of range"); 
-            m_fValue = value; m_pWindow->Invalidate(this); 
+            m_fValue = value; this->InvalidateThis(); 
         }
         // set value [start, end]
         void SetValueSE(float value) noexcept { this->SetValue01((value - m_fStart) / (m_fEnd - m_fStart)); }

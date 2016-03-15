@@ -212,9 +212,9 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 )xml";
 
 // MainWindow class
-class MainWindow final : public LongUI::UIWindow {
+class MainWindow final : public LongUI::UIViewport {
     // super class
-    using Super = LongUI::UIWindow;
+    using Super = LongUI::UIViewport;
     // frend class
     friend class LongUI::CUIManager;
 private:
@@ -226,7 +226,7 @@ public:
     // placement delete
     void operator delete(void* mem, void *ptr) noexcept { return ::operator delete(mem, ptr); };
     // ctor
-    MainWindow(LongUI::UIWindow* parent) : Super(parent) { }
+    MainWindow(LongUI::UIViewport* parent) : Super(parent) { }
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
 protected:

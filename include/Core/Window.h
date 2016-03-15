@@ -34,7 +34,7 @@ namespace LongUI {
     using WindowVector = EzContainer::PointerVector<XUIBaseWindow>;
     // vector for system window
     using SystemWindowVector = EzContainer::PointerVector<XUIBaseWindow>;
-    // window
+    // window for longui
     class XUIBaseWindow {
         // super class
         using Super = void;
@@ -45,10 +45,6 @@ namespace LongUI {
         XUIBaseWindow() noexcept;
         // dtor
         ~XUIBaseWindow() noexcept;
-        // do render
-        static void DoWindowRender(const XUIBaseWindow*) noexcept;
-        // do update
-        static void DoWindowUpdate(const XUIBaseWindow*) noexcept;
     public:
         // index of BitArray
         enum BitArrayIndex : uint32_t {
@@ -75,18 +71,21 @@ namespace LongUI {
             // count of this
             INDEX_COUNT,
         };
-    private:
-        // render
-        virtual void render() const noexcept = 0;
     public:
         // dispose
         virtual void Dispose() noexcept = 0;
+        // render: call UIControl::Render
+        virtual void Render() const noexcept;
+        // update: call UIControl::Update
+        virtual void Update() noexcept;
+        // recreate: call UIControl::Render
+        virtual auto Recreate() noexcept ->HRESULT;
         // move window
         virtual void MoveWindow(int32_t x, int32_t y) noexcept = 0;
         // resize window
         virtual void Resize(uint32_t w, uint32_t h) noexcept = 0;
         // set cursor
-        virtual void SetCursor() noexcept = 0;
+        virtual void SetCursor(LongUI::Cursor cursor) noexcept = 0;
     public:
         // get window handle
         auto GetHwnd() const noexcept { return m_hwnd; }
@@ -101,7 +100,7 @@ namespace LongUI {
         // show window
         void ShowWindow(int cmd) noexcept { ::ShowWindow(m_hwnd, cmd); };
         // get text anti-mode 
-        auto GetTextAntimode() const noexcept { return m_textAntiMode; }
+        auto GetTextAntimode() const noexcept { return static_cast<D2D1_TEXT_ANTIALIAS_MODE>(m_textAntiMode); }
         // get text anti-mode 
         void SetTextAntimode(D2D1_TEXT_ANTIALIAS_MODE mode) noexcept { m_textAntiMode = static_cast<decltype(m_textAntiMode)>(mode); }
         // is mouse captured control?
@@ -116,7 +115,7 @@ namespace LongUI {
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
     public:
         // update control later
-        auto Invalidate(UIControl* ctrl) noexcept;
+        void Invalidate(UIControl* ctrl) noexcept;
         // set the caret
         void SetCaretPos(UIControl* ctrl, float x, float y) noexcept;
         // create the caret
@@ -141,13 +140,15 @@ namespace LongUI {
         void ReleaseCapture() noexcept;
     protected:
         // implement longui-window
-        UIWindow*               m_pImplement = nullptr;
+        UIViewport*             m_pImplement = nullptr;
         // parent window
         XUIBaseWindow*          m_pParent = nullptr;
         // children
         WindowVector            m_vChildren;
         // window handle
         HWND                    m_hwnd = nullptr;
+        // TODO: mini size
+        D2D1_SIZE_U             m_miniSize = D2D1::SizeU(64, 64);
         // now hover track control(only one)
         UIControl*              m_pHoverTracked = nullptr;
         // now focused control (only one)
@@ -163,7 +164,7 @@ namespace LongUI {
         // will use BitArray instead of them
         Helper::BitArray32      m_baBoolWindow;
         // mode for text anti-alias
-        D2D1_TEXT_ANTIALIAS_MODE m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+        uint32_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
         // dirty rects
         RECT                    m_dirtyRects[LongUIDirtyControlSize];
         // track mouse event: end with DWORD
@@ -198,6 +199,7 @@ namespace LongUI {
         // resize window
         virtual void Resize(uint32_t w, uint32_t h) noexcept override;
     public:
+
     protected:
         // message id for TaskbarBtnCreated
         static const UINT s_uTaskbarBtnCreatedMsg;

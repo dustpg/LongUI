@@ -236,7 +236,7 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
         // 进行排序
         this->sort_line(cmp_alg);
         // 刷新
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
     m_pToBeSortedHeaderChild = nullptr;
 }
@@ -293,7 +293,7 @@ void LongUI::UIList::RemoveLineElementInEachLine(uint32_t index) noexcept {
     assert(index < m_vLineTemplate.size() && "out of range");
     if (index < m_vLineTemplate.size()) {
         // 刷新
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
         // 交换列表
         for (auto line : m_vLines) {
             auto child = line->GetAt(index);
@@ -318,7 +318,7 @@ void LongUI::UIList::SwapLineElementsInEachLine(uint32_t index1, uint32_t index2
     if (!(index1 < m_vLineTemplate.size() && index2 < m_vLineTemplate.size())) return;
     if (index1 == index2) return;
     // 刷新
-    m_pWindow->Invalidate(this);
+    this->InvalidateThis();
     // 交换列表
     for (auto line : m_vLines) {
         auto child1 = line->GetAt(index1);
@@ -336,7 +336,7 @@ void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFun
     // 有效
     if (index <= m_vLineTemplate.size() && func) {
         // 刷新
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
         // 交换列表
         for (auto line : m_vLines) {
             auto ctrl = UIManager.CreateControl(line, tid, func);
@@ -481,7 +481,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
                 << LongUI::endl;
         }
 #endif
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
     return Super::DoMouseEvent(arg);
 }
@@ -548,7 +548,7 @@ void LongUI::UIList::sort_line(bool(*cmp)(UIControl* a, UIControl* b) ) noexcept
 void LongUI::UIList::SelectChild(uint32_t index, bool new_select) noexcept {
     if (index < m_cChildrenCount) {
         this->select_child(index, new_select);
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
 }
 
@@ -561,7 +561,7 @@ void LongUI::UIList::SelectTo(uint32_t index1, uint32_t index2) noexcept {
     // 有效
     if (index1 < index2) {
         this->select_to(index1, index2);
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
 }
 

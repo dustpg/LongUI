@@ -63,9 +63,6 @@
     <ClInclude Include="..\include\Control\Container\UIContainerBuiltIn.h">
       <Filter>Header Files\Control\Container</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Control\Container\UIWindow.h">
-      <Filter>Header Files\Control\Container</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Control\Layout\UILinearLayout.h">
       <Filter>Header Files\Control\Layout</Filter>
     </ClInclude>
@@ -171,6 +168,9 @@
     <ClInclude Include="..\include\Core\Window.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Control\Container\UIViewport.h">
+      <Filter>Header Files\Control\Container</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\_LongUIAllInOne.cpp">
@@ -196,12 +196,6 @@
     </ClCompile>
     <ClCompile Include="..\src\UIUtil2.cpp">
       <Filter>Source Files\XUtil</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\UIWindow.cpp">
-      <Filter>Source Files\XCtrl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\main.cpp">
-      <Filter>Source Files\XCtrl</Filter>
     </ClCompile>
     <ClCompile Include="..\src\UIEdit.cpp">
       <Filter>Source Files\XCtrl</Filter>
@@ -229,6 +223,12 @@
     </ClCompile>
     <ClCompile Include="..\src\InlineObjImpl.cpp">
       <Filter>Source Files\XImpl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Window.cpp">
+      <Filter>Source Files\XCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

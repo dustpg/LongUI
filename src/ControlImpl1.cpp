@@ -43,7 +43,7 @@ bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
         {
         case LongUI::Event::Event_SetText:
             m_text = arg.stt.text;
-            m_pWindow->Invalidate(this);
+            this->InvalidateThis();
             __fallthrough;
         case LongUI::Event::Event_GetText:
             arg.str = m_text.c_str();
@@ -388,7 +388,7 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         config.parent = m_pWindow;
         config.child = m_pItemList;
         // 创建弹出窗口
-        auto popup = UIWindow::CreatePopup(config);
+        auto popup = UIViewport::CreatePopup(config);
         return true;
     };
     // 添加事件
@@ -419,7 +419,7 @@ LongUINoinline void LongUI::UIComboBox::InsertItem(uint32_t index, const wchar_t
             // 选择后面那个
             this->SetSelectedIndex(m_indexSelected + 1);
         }
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
 #ifdef _DEBUG
     else {
@@ -441,7 +441,7 @@ void LongUI::UIComboBox::SetSelectedIndex(uint32_t index) noexcept {
         m_indexSelected = static_cast<decltype(m_indexSelected)>(-1);
     }
     // 下帧刷新
-    m_pWindow->Invalidate(this);
+    this->InvalidateThis();
 }
 
 // 移除物品
@@ -455,7 +455,7 @@ LongUINoinline void LongUI::UIComboBox::RemoveItem(uint32_t index) noexcept {
         if (m_indexSelected >= index && m_indexSelected < oldsize) {
             this->SetSelectedIndex(m_indexSelected > 0 ? m_indexSelected - 1 : m_indexSelected);
         }
-        m_pWindow->Invalidate(this);
+        this->InvalidateThis();
     }
 }
 
@@ -901,18 +901,18 @@ bool LongUI::UIFloatLayout::debug_do_event(const LongUI::DebugEventInformation& 
 
 
 // UI窗口: 调试信息
-bool LongUI::UIWindow::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+bool LongUI::UIViewport::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
     {
     case LongUI::DebugInformation::Information_GetClassName:
-        info.str = L"UIWindow";
+        info.str = L"UIViewport";
         return true;
     case LongUI::DebugInformation::Information_GetFullClassName:
-        info.str = L"::LongUI::UIWindow";
+        info.str = L"::LongUI::UIViewport";
         return true;
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
-        return *info.iid == LongUI::GetIID<::LongUI::UIWindow>()
+        return *info.iid == LongUI::GetIID<::LongUI::UIViewport>()
             || Super::debug_do_event(info);
     default:
         break;

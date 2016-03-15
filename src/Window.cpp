@@ -5,22 +5,22 @@
 
 /// <summary>
 /// Initializes a new instance of the 
-/// <see cref="LongUI::UIWindow"/> class.
+/// <see cref="LongUI::UIViewport"/> class.
 /// </summary>
-/// <param name="parent">The parent for self in window-level</param>
-LongUI::UIWindow::UIWindow(UIWindow* parent) noexcept : 
-Super(nullptr), m_uiRenderQueue(this), wndparent(parent) {
-    std::memset(&m_curMedium, 0, sizeof(m_curMedium));
+LongUI::UIViewport::UIViewport() noexcept :  Super(nullptr) {
+    /*std::memset(&m_curMedium, 0, sizeof(m_curMedium));*/
 }
+
+#if 0
 
 /// <summary>
 /// Creates the popup window
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup) noexcept -> UIWindow* {
-    assert(popup.parent && "bad argument");
+auto LongUI::UIViewport::CreatePopup(const Config::Popup& popup) noexcept -> UIViewport* {
+    /*assert(popup.parent && "bad argument");
     CUIDxgiAutoLocker locker;
-    auto window = new(std::nothrow) UIWindow(popup.parent);
+    auto window = new(std::nothrow) UIViewport(popup.parent);
     // TODO: 下面空间不足则将窗口移动到控件上面
     // 内存申请成功
     if (window) {
@@ -40,8 +40,8 @@ auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup) noexcept -> UIWin
         window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
         // 移动窗口
         window->MoveWindow(popup.leftline, popup.bottomline);
-    }
-    return window;
+    }*/
+    return nullptr;
 }
 
 /// <summary>
@@ -49,17 +49,17 @@ auto LongUI::UIWindow::CreatePopup(const Config::Popup& popup) noexcept -> UIWin
 /// </summary>
 /// <param name="node">The xml node.</param>
 /// <returns></returns>
-void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
+void LongUI::UIViewport::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
     // 初始化
-    assert(node && "<LongUI::UIWindow::initialize> window_node null");
-    std::memset(&m_curMedium, 0, sizeof(m_curMedium));
+    assert(node && "<LongUI::UIViewport::initialize> window_node null");
+    //std::memset(&m_curMedium, 0, sizeof(m_curMedium));
     // 检查名称
     {
         auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
         if (basestr) {
-            auto namestr = this->CopyStringSafe(basestr);
+            auto namestr = m_pWindow->CopyStringSafe(basestr);
             force_cast(this->name) = namestr;
         }
     }
@@ -180,15 +180,13 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
     UIManager.RegisterWindow(this);
     // 拖放帮助器
     m_pDropTargetHelper = UIManager.GetDropTargetHelper();
-    // 注册拖拽目标
-    ::RegisterDragDrop(m_hwnd, this);
     // 所在窗口就是自己
     m_pWindow = this;
     // 清零
     std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
     // 关闭时退出
     if (node.attribute("exitonclose").as_bool(true)) {
-        m_baBoolWindow.SetTrue(UIWindow::Index_ExitOnClose);
+        m_baBoolWindow.SetTrue(UIViewport::Index_ExitOnClose);
     }
     // 自动显示窗口
     if (node.attribute("autoshow").as_bool(true)) {
@@ -202,14 +200,14 @@ void LongUI::UIWindow::initialize(pugi::xml_node node) noexcept {
 /// </summary>
 /// <param name="popup">The popup.</param>
 /// <returns></returns>
-void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
+void LongUI::UIViewport::initialize(const Config::Popup& popup) noexcept {
     assert(this->wndparent && "this->wndparent cannot be null while in popup window");
 #ifdef _DEBUG
     this->debug_show = this->wndparent->debug_show;
     this->debug_this = this->wndparent->debug_this;
 #endif
     // 失去焦点即关闭
-    m_baBoolWindow.SetTrue(UIWindow::Index_CloseOnFocusKilled);
+    m_baBoolWindow.SetTrue(UIViewport::Index_CloseOnFocusKilled);
     // 链式调用
     Super::initialize();
     std::memset(&m_curMedium, 0, sizeof(m_curMedium));
@@ -291,14 +289,14 @@ void LongUI::UIWindow::initialize(const Config::Popup& popup) noexcept {
 
 
 // 清理前
-void LongUI::UIWindow::before_deleted() noexcept {
+void LongUI::UIViewport::before_deleted() noexcept {
     // 清理引用
     LongUI::SafeRelease(m_pHoverTracked);
     LongUI::SafeRelease(m_pFocusedControl);
     LongUI::SafeRelease(m_pDragDropControl);
     LongUI::SafeRelease(m_pCapturedControl);
     // 清理子窗口
-    UIWindow* children = m_pFirstChild;
+    UIViewport* children = m_pFirstChild;
     while (children) {
         children->CloseWindowLater();
         children = children->m_pNextSibling;
@@ -307,8 +305,8 @@ void LongUI::UIWindow::before_deleted() noexcept {
     Super::before_deleted();
 }
 
-// UIWindow 析构函数
-LongUI::UIWindow::~UIWindow() noexcept {
+// UIViewport 析构函数
+LongUI::UIViewport::~UIViewport() noexcept {
     // 设置窗口指针
     ::SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, LONG_PTR(0));
     // 解锁
@@ -334,7 +332,7 @@ LongUI::UIWindow::~UIWindow() noexcept {
 }
 
 // 注册
-void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept {
+void LongUI::UIViewport::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept {
     // 检查
 #ifdef _DEBUG
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
@@ -356,7 +354,7 @@ void LongUI::UIWindow::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept
 }
 
 // 反注册
-void LongUI::UIWindow::UnRegisterOffScreenRender(UIControl* c) noexcept {
+void LongUI::UIViewport::UnRegisterOffScreenRender(UIControl* c) noexcept {
     auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
     if (itr != m_vRegisteredControl.end()) {
         m_vRegisteredControl.erase(itr);
@@ -370,7 +368,7 @@ void LongUI::UIWindow::UnRegisterOffScreenRender(UIControl* c) noexcept {
 
 
 // 设置插入符号
-void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept {
+void LongUI::UIViewport::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept {
     if (!m_cShowCaret) return;
     assert(ctrl && "bad argument") ;
     // 转换为像素坐标
@@ -401,7 +399,7 @@ void LongUI::UIWindow::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept
 }
 
 // 创建插入符号
-void LongUI::UIWindow::CreateCaret(UIControl* ctrl, float width, float height) noexcept {
+void LongUI::UIViewport::CreateCaret(UIControl* ctrl, float width, float height) noexcept {
     assert(ctrl && "bad argument") ;
     this->refresh_caret();
     // 转换为像素单位
@@ -420,7 +418,7 @@ void LongUI::UIWindow::CreateCaret(UIControl* ctrl, float width, float height) n
 }
 
 // 显示插入符号
-void LongUI::UIWindow::ShowCaret() noexcept {
+void LongUI::UIViewport::ShowCaret() noexcept {
     //::ShowCaret(m_hwnd);
     ++m_cShowCaret;
     // 创建AE位图
@@ -430,7 +428,7 @@ void LongUI::UIWindow::ShowCaret() noexcept {
 }
 
 // 异常插入符号
-void LongUI::UIWindow::HideCaret() noexcept { 
+void LongUI::UIViewport::HideCaret() noexcept { 
     //::HideCaret(m_hwnd);
     if (m_cShowCaret) {
         --m_cShowCaret;
@@ -450,7 +448,7 @@ void LongUI::UIWindow::HideCaret() noexcept {
 }
 
 // 查找控件
-auto LongUI::UIWindow::FindControl(const char* cname) noexcept -> UIControl * {
+auto LongUI::UIViewport::FindControl(const char* cname) noexcept -> UIControl * {
     // 查找控件
     auto result = m_hashStr2Ctrl.Find(cname);
     // 未找到返回空
@@ -465,7 +463,7 @@ auto LongUI::UIWindow::FindControl(const char* cname) noexcept -> UIControl * {
 }
 
 // 移动窗口
-void LongUI::UIWindow::MoveWindow(float x, float y) noexcept {
+void LongUI::UIViewport::MoveWindow(float x, float y) noexcept {
     POINT p = { static_cast<int>(x), static_cast<int>(y) };
     HWND hwndp = ::GetParent(m_hwnd);
     ::MapWindowPoints(hwndp, m_hwnd, &p, 1);
@@ -473,7 +471,7 @@ void LongUI::UIWindow::MoveWindow(float x, float y) noexcept {
 }
 
 // 添加命名控件
-void LongUI::UIWindow::AddNamedControl(UIControl* ctrl) noexcept {
+void LongUI::UIViewport::AddNamedControl(UIControl* ctrl) noexcept {
     assert(ctrl && "bad argumrnt");
     const auto cname = ctrl->name.c_str();
     // 有效
@@ -487,7 +485,7 @@ void LongUI::UIWindow::AddNamedControl(UIControl* ctrl) noexcept {
 }
 
 // 设置hover跟踪控件
-void LongUI::UIWindow::SetHoverTrack(UIControl* ctrl) noexcept { 
+void LongUI::UIViewport::SetHoverTrack(UIControl* ctrl) noexcept { 
     assert(ctrl && "bad argument"); 
     if (ctrl && ctrl->GetHoverTrackTime()) {
         LongUI::SafeAcquire(ctrl);
@@ -498,7 +496,7 @@ void LongUI::UIWindow::SetHoverTrack(UIControl* ctrl) noexcept {
 
 
 // 设置捕获控件
-void LongUI::UIWindow::SetCapture(UIControl* ctrl) noexcept { 
+void LongUI::UIViewport::SetCapture(UIControl* ctrl) noexcept { 
     assert(ctrl && "bad argument"); 
     ::SetCapture(m_hwnd);
     // 设置引用计数
@@ -508,19 +506,19 @@ void LongUI::UIWindow::SetCapture(UIControl* ctrl) noexcept {
 };
 
 // 释放捕获控件
-void LongUI::UIWindow::ReleaseCapture() noexcept { 
+void LongUI::UIViewport::ReleaseCapture() noexcept { 
     ::ReleaseCapture(); 
     LongUI::SafeRelease(m_pCapturedControl);
 };
 
 // 设置图标
-void LongUI::UIWindow::SetIcon(HICON hIcon) noexcept {
+void LongUI::UIViewport::SetIcon(HICON hIcon) noexcept {
     ::DefWindowProcW(m_hwnd, WM_SETICON, TRUE, reinterpret_cast<LPARAM>(hIcon));
     ::DefWindowProcW(m_hwnd, WM_SETICON, FALSE, reinterpret_cast<LPARAM>(hIcon));
 }
 
 // release data
-void LongUI::UIWindow::release_data() noexcept {
+void LongUI::UIViewport::release_data() noexcept {
     if (m_hVSync) {
         ::SetEvent(m_hVSync);
         ::CloseHandle(m_hVSync);
@@ -535,7 +533,7 @@ void LongUI::UIWindow::release_data() noexcept {
 }
 
 // 刻画插入符号
-void LongUI::UIWindow::draw_caret() noexcept {
+void LongUI::UIViewport::draw_caret() noexcept {
     /*// 不能在BeginDraw/EndDraw之间调用
     D2D1_POINT_2U pt = { m_rcCaretPx.left, m_rcCaretPx.top };
     D2D1_RECT_U src_rect;
@@ -549,13 +547,13 @@ void LongUI::UIWindow::draw_caret() noexcept {
 }
 
 // 更新插入符号
-void LongUI::UIWindow::refresh_caret() noexcept {
+void LongUI::UIViewport::refresh_caret() noexcept {
     // 不能在BeginDraw/EndDraw之间调用
     // TODO: 完成位图复制
 }
 
 // 设置呈现
-void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
+void LongUI::UIViewport::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
     present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
     if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
@@ -594,7 +592,7 @@ void LongUI::UIWindow::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) 
 }
 
 // begin draw
-void LongUI::UIWindow::BeginDraw() const noexcept {
+void LongUI::UIViewport::BeginDraw() const noexcept {
     // 设置文本渲染策略
     UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 离屏渲染
@@ -620,7 +618,7 @@ void LongUI::UIWindow::BeginDraw() const noexcept {
 }
 
 // 结束渲染
-void LongUI::UIWindow::EndDraw() const noexcept {
+void LongUI::UIViewport::EndDraw() const noexcept {
     // 结束渲染
     UIManager_RenderTarget->EndDraw();
     // 呈现参数设置
@@ -662,7 +660,7 @@ void LongUI::UIWindow::EndDraw() const noexcept {
 
 
 // UI窗口: 刷新
-void LongUI::UIWindow::Update() noexcept {
+void LongUI::UIViewport::Update() noexcept {
     m_baBoolWindow.SetFalse(Index_FullRenderingThisFrame);
     m_baBoolWindow.SetFalse(Index_DoCaret);
     // 新窗口大小?
@@ -722,8 +720,8 @@ void LongUI::UIWindow::Update() noexcept {
     this->AfterUpdate();
 }
 
-// UIWindow 渲染 
-void LongUI::UIWindow::Render() const noexcept  {
+// UIViewport 渲染 
+void LongUI::UIViewport::Render() const noexcept  {
     // 全刷新: 继承父类
     if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
         Super::Render();
@@ -818,18 +816,18 @@ void LongUI::UIWindow::Render() const noexcept  {
 }
 
 // 退出时
-bool LongUI::UIWindow::OnClose() noexcept {
+bool LongUI::UIViewport::OnClose() noexcept {
     // 延迟清理
     this->delay_cleanup(); 
     // 退出程序?
-    if (m_baBoolWindow.Test(UIWindow::Index_ExitOnClose)) {
+    if (m_baBoolWindow.Test(UIViewport::Index_ExitOnClose)) {
         UIManager.Exit();
     }
     return true;
 };
 
-// UIWindow 事件处理
-bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
+// UIViewport 事件处理
+bool LongUI::UIViewport::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 有了匿名函数妈妈再也不用担心一条函数有N行了
     // -------------------- On  Timer   ------------
     auto on_timer = [this](WPARAM wParam) {
@@ -904,7 +902,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
         }
         ::DestroyCaret();
         // 失去焦点即关闭窗口
-        if (m_baBoolWindow.Test(UIWindow::Index_CloseOnFocusKilled)) {
+        if (m_baBoolWindow.Test(UIViewport::Index_CloseOnFocusKilled)) {
             this->CloseWindowLater();
         }
         handled = true;
@@ -943,7 +941,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
             }
         }
         // 强行刷新一帧
-        this->Invalidate(this);
+        this->InvalidateThis;
         break;
     case WM_CLOSE:
         // 窗口关闭
@@ -961,7 +959,7 @@ bool LongUI::UIWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // 鼠标事件
-bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+bool LongUI::UIViewport::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // hover跟踪
     if (arg.event == MouseEvent::Event_MouseHover && m_pHoverTracked) {
         return m_pHoverTracked->DoMouseEvent(arg);
@@ -982,7 +980,7 @@ bool LongUI::UIWindow::DoMouseEvent(const MouseEventArgument& arg) noexcept {
 
 
 // 设置鼠标焦点
-void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
+void LongUI::UIViewport::SetFocus(UIControl* ctrl) noexcept {
     // 无效
     assert(ctrl && "bad argument");
     // 可聚焦的
@@ -1005,7 +1003,7 @@ void LongUI::UIWindow::SetFocus(UIControl* ctrl) noexcept {
 }
 
 // 重置窗口大小
-void LongUI::UIWindow::OnResize(bool force) noexcept {
+void LongUI::UIViewport::OnResize(bool force) noexcept {
     assert(this->wnd_type != Type_RenderOnParent);
     if (this->wnd_type != Type_Layered) {
         force = true;
@@ -1072,11 +1070,11 @@ void LongUI::UIWindow::OnResize(bool force) noexcept {
         LongUI::SafeRelease(pDxgiBackBuffer);
     }
     // 强行刷新一帧
-    this->Invalidate(this);
+    this->InvalidateThis;
 }
 
-// UIWindow 重建
-auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
+// UIViewport 重建
+auto LongUI::UIViewport::Recreate() noexcept ->HRESULT {
     // 跳过
     if (m_baBoolWindow.Test(Index_SkipRender)) return S_OK;
     // 渲染锁
@@ -1217,14 +1215,14 @@ auto LongUI::UIWindow::Recreate() noexcept ->HRESULT {
         // 获取屏幕刷新率
         m_uiRenderQueue.Reset(UIManager.GetDisplayFrequency());
         // 强行刷新一帧
-        this->Invalidate(this);
+        this->InvalidateThis;
     }
     // 重建 子控件UI
     return Super::Recreate();
 }
 
-// UIWindow 关闭控件
-void LongUI::UIWindow::cleanup() noexcept {
+// UIViewport 关闭控件
+void LongUI::UIViewport::cleanup() noexcept {
     // 删除前调用
     this->before_deleted();
     // 删除对象
@@ -1232,26 +1230,28 @@ void LongUI::UIWindow::cleanup() noexcept {
 }
 
 // 窗口创建时
-bool LongUI::UIWindow::OnCreated(HWND hwnd) noexcept {
+bool LongUI::UIViewport::OnCreated(HWND hwnd) noexcept {
     assert(!"removed");
     // 权限提升?保证
     CHANGEFILTERSTRUCT cfs = { sizeof(CHANGEFILTERSTRUCT) };
     //::ChangeWindowMessageFilterEx(hwnd, s_uTaskbarBtnCreatedMsg, MSGFLT_ALLOW, &cfs);
     return true;
 }
+#endif
 
 // 鼠标移动时候
-/*bool LongUI::UIWindow::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
+/*bool LongUI::UIViewport::OnMouseMove(const LongUI::EventArgument& arg) noexcept {
 }
 
 // 鼠标滚轮
-bool LongUI::UIWindow::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
+bool LongUI::UIViewport::OnMouseWheel(const LongUI::EventArgument& arg) noexcept {
 }*/
 
 // ----------------- IDropTarget!!!! Yooooooooooo~-----
 
+#if 0
 // 获取拖放效果
-DWORD GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
+/*DWORD GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
     DWORD dwEffect = 0;
     // 1. 检查pt来看是否允许drop操作在某个位置
     // 2. 计算出基于grfKeyState的drop效果
@@ -1270,7 +1270,7 @@ DWORD GetDropEffect(DWORD grfKeyState, DWORD dwAllowed) {
 }
 
 // IDropTarget::DragEnter 实现
-HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
+HRESULT  LongUI::UIViewport::DragEnter(IDataObject* pDataObj,
     DWORD grfKeyState, POINTL pt, DWORD * pdwEffect) noexcept {
     UNREFERENCED_PARAMETER(grfKeyState);
     m_baBoolWindow.SetTrue(Index_InDraging);
@@ -1294,7 +1294,7 @@ HRESULT  LongUI::UIWindow::DragEnter(IDataObject* pDataObj,
 
 
 // IDropTarget::DragOver 实现
-HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
+HRESULT LongUI::UIViewport::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
     UNREFERENCED_PARAMETER(grfKeyState);
     D2D1_POINT_2F pt2f = { static_cast<float>(pt.x), static_cast<float>(pt.y) };
     UIControl* control; control = nullptr;
@@ -1321,7 +1321,7 @@ HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffec
         }
         arg.cf.dataobj = m_pCurDataObject;
         arg.cf.outeffect = pdwEffect;
-        if (!control->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;*/
+        if (!control->DoEvent(arg)) *pdwEffect = DROPEFFECT_NONE;*
     }
     else {
         // 不支持
@@ -1336,7 +1336,7 @@ HRESULT LongUI::UIWindow::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffec
 }
 
 // IDropTarget::DragLeave 实现
-HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
+HRESULT LongUI::UIViewport::DragLeave(void) noexcept {
     // 发送事件
     if (m_pDragDropControl) {
         /*LongUI::EventArgument arg = { 0 };
@@ -1350,9 +1350,9 @@ HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
             /*arg.sender = nullptr;
             arg.msg = WM_LBUTTONUP;
             m_pCapturedControl->DoEvent(arg);
-        }*/
+        }
     }
-    /*OnDragLeave(m_hTargetWnd);*/
+    /*OnDragLeave(m_hTargetWnd);*
     m_pDragDropControl = nullptr;
     //m_isDataAvailable = TRUE;
     if (m_pDropTargetHelper) {
@@ -1363,7 +1363,7 @@ HRESULT LongUI::UIWindow::DragLeave(void) noexcept {
 }
 
 // IDropTarget::Drop 实现
-HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
+HRESULT LongUI::UIViewport::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) noexcept {
     // 发送事件
     if (m_pDragDropControl) {
         /*LongUI::EventArgument arg;
@@ -1374,7 +1374,7 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
         arg.cf.outeffect = pdwEffect;
         // 发送事件
         m_pDragDropControl->DoEvent(arg);
-        m_pDragDropControl = nullptr;*/
+        m_pDragDropControl = nullptr;*
         
     }
     // 检查参数
@@ -1385,9 +1385,8 @@ HRESULT LongUI::UIWindow::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
     }
     *pdwEffect = ::GetDropEffect(grfKeyState, *pdwEffect);
     return S_OK;
-}
-
-
+}*/
+#endif
 
 // -----------------------------------------------------------------------
 // 任务按钮创建消息
@@ -1413,34 +1412,58 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
 
 
 /// <summary>
-/// Does the update.
+/// Recreates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::XUIBaseWindow::DoWindowUpdate(const XUIBaseWindow* window) noexcept {
-    assert(window->m_pImplement && "no window");
-    // 刷新
-    window->m_pImplement->Update();
+auto LongUI::XUIBaseWindow::Recreate() noexcept ->HRESULT {
+    assert(m_pImplement && "no window");
+    HRESULT hr = S_OK;
+    // 实现
+    if (SUCCEEDED(hr)) {
+        hr = m_pImplement->Recreate();
+    }
     // 遍历
-    for (const auto child : window->m_vChildren) {
-        XUIBaseWindow::DoWindowUpdate(child);
+    for (auto child : m_vChildren) {
+        if (SUCCEEDED(hr)) {
+            hr = child->Recreate();
+        }
+    }
+    // 强行刷新一帧
+    this->Invalidate(m_pImplement);
+    return hr;
+}
+
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::Update() noexcept {
+    assert(m_pImplement && "no window");
+    // 实现
+    m_pImplement->Update();
+    // 遍历
+    for (auto child : m_vChildren) {
+        child->Update();
     }
 }
 
 /// <summary>
-/// Does the render.
+/// Renders this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::XUIBaseWindow::DoWindowRender(const XUIBaseWindow* window) noexcept {
-    // 渲染
-    window->render();
+void LongUI::XUIBaseWindow::Render() const noexcept {
+    assert(m_pImplement && "no window");
+    // 实现
+    m_pImplement->Update();
     // 遍历
-    for (const auto child : window->m_vChildren) {
+    for (const auto* child : m_vChildren) {
         // 同一个windows窗口
-        if (child->GetHwnd() == window->GetHwnd()) {
-            XUIBaseWindow::DoWindowRender(child);
+        if (child->GetHwnd() == this->GetHwnd()) {
+            child->Render();
         }
     }
 }
+
 
 // 移动窗口
 void LongUI::XUISystemWindow::MoveWindow(int32_t x, int32_t y) noexcept {
@@ -1456,13 +1479,14 @@ void LongUI::XUISystemWindow::MoveWindow(int32_t x, int32_t y) noexcept {
 void LongUI::XUISystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
     uint32_t oldw = static_cast<uint32_t>(m_rcWindow.right - m_rcWindow.left);
     uint32_t oldh = static_cast<uint32_t>(m_rcWindow.bottom - m_rcWindow.top);
-    // 不同时再改变大小
-    assert("!NO IMPL");
+    // TODO: 不同时再改变大小
+    assert(!"NOIMPL");
 }
 
 
 // longui namesapce
 namespace LongUI {
+    // CUIBuiltinSystemWindow
     // system window -- builtin
     class CUIBuiltinSystemWindow final : public XUISystemWindow,
         public CUISingleNormalObject {
@@ -1471,17 +1495,41 @@ namespace LongUI {
     private:
         // render
         virtual void render() const noexcept {};
+    private:
+        // release data for this
+        void release_data() noexcept;
     public:
         // dispose this
-        virtual void Dispose() noexcept { delete this; };
+        virtual void Dispose() noexcept { assert(!"NOIMLP"); delete this; };
+        // Recreate
+        virtual auto Recreate() noexcept->HRESULT override;
+        // set cursor
+        virtual void SetCursor(Cursor cursor) noexcept override;
     public:
         // normal event
         bool MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept;
+        // on WM_SIZE
+        void OnResize(uint32_t w, uint32_t h) noexcept;
+        // on WM_CREATE
+        void OnCreate(HWND hwnd) noexcept;
     public:
         // window proc
         static auto WINAPI WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept->LRESULT;
         // Register Window's Class
         static void RegisterWindowClass() noexcept;
+    private:
+        // swap chain
+        IDXGISwapChain2*        m_pSwapChain = nullptr;
+        // target bitmap
+        ID2D1Bitmap1*           m_pTargetBimtap = nullptr;
+        // Direct Composition Device
+        IDCompositionDevice*    m_pDcompDevice = nullptr;
+        // Direct Composition Target
+        IDCompositionTarget*    m_pDcompTarget = nullptr;
+        // Direct Composition Visual
+        IDCompositionVisual*    m_pDcompVisual = nullptr;
+        // now cursor
+        HCURSOR                 m_hNowCursor = ::LoadCursor(nullptr, IDC_ARROW);
     };
 }
 
@@ -1561,7 +1609,7 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
         // 设置窗口指针
         ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
         // TODO: 创建完毕
-        //window->OnCreated(hwnd);
+        window->OnCreate(hwnd);
         // 返回1
         recode = 1;
     }
@@ -1614,10 +1662,312 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
 /// <param name="result">The result.</param>
 /// <returns></returns>
 bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT & result) noexcept {
+    // 消息类型
+    enum MsgType { Type_Mouse, Type_Other } msgtp; msgtp = Type_Other;
     // 消息处理
-    switch (message) {
-    case WM_KILLFOCUS:
+    union { EventArgument ea; MouseEventArgument ma; };
+    // 获取X坐标
+    auto get_x = [lParam]() { return float(int16_t(LOWORD(lParam))); };
+    // 获取Y坐标
+    auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
+    // 检查信息
+    switch (message)
+    {
+    case WM_SETCURSOR:
+        // TODO: 设置光标
+        //::SetCursor(now_cursor);
+        return false;
+    case WM_MOUSEMOVE:
+        ma.event = MouseEvent::Event_MouseMove;
+        msgtp = Type_Mouse;
+        this->last_point = { get_x(), get_y() };
         break;
+    case WM_LBUTTONDOWN:
+        ma.event = MouseEvent::Event_LButtonDown;
+        msgtp = Type_Mouse;
+        break;
+    case WM_LBUTTONUP:
+        ma.event = MouseEvent::Event_LButtonUp;
+        msgtp = Type_Mouse;
+        break;
+    case WM_RBUTTONDOWN:
+        ma.event = MouseEvent::Event_RButtonDown;
+        msgtp = Type_Mouse;
+        break;
+    case WM_RBUTTONUP:
+        ma.event = MouseEvent::Event_RButtonUp;
+        msgtp = Type_Mouse;
+        break;
+    case WM_MBUTTONDOWN:
+        ma.event = MouseEvent::Event_MButtonDown;
+        msgtp = Type_Mouse;
+        break;
+    case WM_MBUTTONUP:
+        ma.event = MouseEvent::Event_MButtonUp;
+        msgtp = Type_Mouse;
+        break;
+    case WM_MOUSEWHEEL:
+        ma.event = MouseEvent::Event_MouseWheelV;
+        msgtp = Type_Mouse;
+        break;
+    case WM_MOUSEHWHEEL:
+        ma.event = MouseEvent::Event_MouseWheelH;
+        msgtp = Type_Mouse;
+        break;
+    case WM_MOUSEHOVER:
+        ma.event = MouseEvent::Event_MouseHover;
+        msgtp = Type_Mouse;
+        break;
+    case WM_MOUSELEAVE:
+        ma.event = MouseEvent::Event_MouseLeave;
+        msgtp = Type_Mouse;
+        break;
+    case WM_SETFOCUS:
+        // TODO: 设置窗口焦点
+        
+        break;
+    case WM_KILLFOCUS:
+        // 存在焦点控件
+        if (m_pFocusedControl) {
+            // 事件
+            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
+            // 释放引用
+            LongUI::SafeRelease(m_pFocusedControl);
+        }
+        //::DestroyCaret();
+        // TODO: 失去焦点即关闭窗口
+        if (m_baBoolWindow.Test(Index_CloseOnFocusKilled)) {
+
+        }
+        return true;
+    case WM_SIZE:
+        // 改变大小
+        this->OnResize(LOWORD(lParam), HIWORD(lParam));
+        return true;
+    case WM_GETMINMAXINFO:
+        // TODO: 获取限制大小
+        reinterpret_cast<MINMAXINFO*>(lParam)->ptMinTrackSize = { 64, 64 };
+        return true;
+    case WM_DISPLAYCHANGE:
+        // TODO: 显示环境改变
+        UIManager << DL_Hint << "WM_DISPLAYCHANGE" << LongUI::endl;
+        break;
+    default:
+        return false;
+    }
+    // 鼠标消息
+    if (msgtp == Type_Mouse) {
+        // 设置鼠标位置
+        ma.pt = this->last_point;
+        // hover跟踪
+        if (ma.event == MouseEvent::Event_MouseHover && m_pHoverTracked) {
+            return m_pHoverTracked->DoMouseEvent(ma);
+        }
+        // 存在捕获控件
+        if (m_pCapturedControl) {
+            return m_pCapturedControl->DoMouseEvent(ma);
+        }
+        // 窗口实现
+        auto code = m_pImplement->DoMouseEvent(ma);
+        // 设置跟踪
+        if (ma.event == MouseEvent::Event_MouseMove) {
+            m_csTME.dwHoverTime = m_pHoverTracked ? DWORD(m_pHoverTracked->GetHoverTrackTime()) : DWORD(0);
+            ::TrackMouseEvent(&m_csTME);
+        }
+        return code;
+    }
+    // 其他消息
+    else {
+
     }
     return false;
+}
+
+/// <summary>
+/// Called when [resize].
+/// </summary>
+/// <param name="w">The w.</param>
+/// <param name="h">The h.</param>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::OnResize(uint32_t w, uint32_t h) noexcept {
+    assert(!"NOIMPL");
+}
+
+
+/// <summary>
+/// Called when [create].
+/// </summary>
+/// <param name="hwnd">The HWND.</param>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::OnCreate(HWND hwnd) noexcept {
+    CHANGEFILTERSTRUCT cfs = { sizeof(CHANGEFILTERSTRUCT) };
+    ::ChangeWindowMessageFilterEx(hwnd, s_uTaskbarBtnCreatedMsg, MSGFLT_ALLOW, &cfs);
+}
+
+/// <summary>
+/// Recreates this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
+    // 跳过
+    if (m_baBoolWindow.Test(Index_SkipRender)) return S_OK;
+    // 渲染锁
+    CUIDxgiAutoLocker locker;
+    // 释放数据
+    this->release_data();
+    // DXGI Surface 后台缓冲
+    IDXGISurface*               pDxgiBackBuffer = nullptr;
+    IDXGISwapChain1*            pSwapChain = nullptr;
+    // 创建交换链
+    HRESULT hr = S_OK;
+    // 创建交换链
+    if (SUCCEEDED(hr)) {
+        RECT rect = { 0 }; ::GetClientRect(m_hwnd, &rect);
+        // 交换链信息
+        DXGI_SWAP_CHAIN_DESC1 swapChainDesc = { 0 };
+        swapChainDesc.Width = LongUI::MakeAsUnit(rect.right - rect.left);
+        swapChainDesc.Height = LongUI::MakeAsUnit(rect.bottom - rect.top);
+        swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        swapChainDesc.Stereo = FALSE;
+        swapChainDesc.SampleDesc.Count = 1;
+        swapChainDesc.SampleDesc.Quality = 0;
+        swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        swapChainDesc.BufferCount = 2;
+        swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+        swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+        // XXX: Fixit
+        if (true) {
+            // DirectComposition桌面应用程序
+            swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
+            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+            // 创建DirectComposition交换链
+            hr = UIManager_DXGIFactory->CreateSwapChainForComposition(
+                UIManager_DXGIDevice,
+                &swapChainDesc,
+                nullptr,
+                &pSwapChain
+            );
+            longui_debug_hr(hr, L"UIManager_DXGIFactory->CreateSwapChainForComposition faild");
+        }
+        else {
+            // 一般桌面应用程序
+            swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+            // 利用窗口句柄创建交换链
+            hr = UIManager_DXGIFactory->CreateSwapChainForHwnd(
+                UIManager_D3DDevice,
+                m_hwnd,
+                &swapChainDesc,
+                nullptr,
+                nullptr,
+                &pSwapChain
+            );
+            longui_debug_hr(hr, L"UIManager_DXGIFactory->CreateSwapChainForHwnd faild");
+        }
+    }
+    // 获取交换链V2
+    if (SUCCEEDED(hr)) {
+        hr = pSwapChain->QueryInterface(
+            LongUI::IID_IDXGISwapChain2,
+            reinterpret_cast<void**>(&m_pSwapChain)
+        );
+        longui_debug_hr(hr, L"pSwapChain->QueryInterface LongUI::IID_IDXGISwapChain2 faild");
+    }
+    // 获取垂直等待事件
+    if (SUCCEEDED(hr)) {
+        //m_hVSync = m_pSwapChain->GetFrameLatencyWaitableObject();
+    }
+    // 确保DXGI队列里边不会超过一帧
+    if (SUCCEEDED(hr)) {
+        //hr = UIManager_DXGIDevice->SetMaximumFrameLatency(1);
+        //longui_debug_hr(hr, L"UIManager_DXGIDevice->SetMaximumFrameLatency faild");
+    }
+    // 利用交换链获取Dxgi表面
+    if (SUCCEEDED(hr)) {
+        hr = m_pSwapChain->GetBuffer(0, LongUI_IID_PV_ARGS(pDxgiBackBuffer));
+        longui_debug_hr(hr, L"m_pSwapChain->GetBuffer faild");
+    }
+    // 利用Dxgi表面创建位图
+    if (SUCCEEDED(hr)) {
+        D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
+            D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
+            D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
+        );
+        hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
+            pDxgiBackBuffer,
+            &bitmapProperties,
+            &m_pTargetBimtap
+        );
+        longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
+    }
+    // XXX: 使用DComp
+    if (true) {
+        // 创建直接组合(Direct Composition)设备
+        if (SUCCEEDED(hr)) {
+            hr = LongUI::Dll::DCompositionCreateDevice(
+                UIManager_DXGIDevice,
+                LongUI_IID_PV_ARGS(m_pDcompDevice)
+            );
+            longui_debug_hr(hr, L"DCompositionCreateDevice faild");
+        }
+        // 创建直接组合(Direct Composition)目标
+        if (SUCCEEDED(hr)) {
+            hr = m_pDcompDevice->CreateTargetForHwnd(
+                m_hwnd, true, &m_pDcompTarget
+            );
+            longui_debug_hr(hr, L"m_pDcompDevice->CreateTargetForHwnd faild");
+        }
+        // 创建直接组合(Direct Composition)视觉
+        if (SUCCEEDED(hr)) {
+            hr = m_pDcompDevice->CreateVisual(&m_pDcompVisual);
+            longui_debug_hr(hr, L"m_pDcompDevice->CreateVisual faild");
+        }
+        // 设置当前交换链为视觉内容
+        if (SUCCEEDED(hr)) {
+            hr = m_pDcompVisual->SetContent(m_pSwapChain);
+            longui_debug_hr(hr, L"m_pDcompVisual->SetContent faild");
+        }
+        // 设置当前视觉为窗口目标
+        if (SUCCEEDED(hr)) {
+            hr = m_pDcompTarget->SetRoot(m_pDcompVisual);
+            longui_debug_hr(hr, L"m_pDcompTarget->SetRoot faild");
+        }
+        // 向系统提交
+        if (SUCCEEDED(hr)) {
+            hr = m_pDcompDevice->Commit();
+            longui_debug_hr(hr, L"m_pDcompDevice->Commit faild");
+        }
+    }
+    // 错误
+    if (FAILED(hr)){
+        UIManager << L"Recreate Failed!" << LongUI::endl;
+        ShowHR(hr);
+    }
+    LongUI::SafeRelease(pDxgiBackBuffer);
+    LongUI::SafeRelease(pSwapChain);
+    // 重建 子控件UI
+    return Super::Recreate();
+}
+
+/// <summary>
+/// Release_datas this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::release_data() noexcept {
+    // 释放资源
+    LongUI::SafeRelease(m_pTargetBimtap);
+    LongUI::SafeRelease(m_pSwapChain);
+    LongUI::SafeRelease(m_pDcompDevice);
+    LongUI::SafeRelease(m_pDcompTarget);
+    LongUI::SafeRelease(m_pDcompVisual);
+}
+
+
+/// <summary>
+/// Sets the cursor.
+/// </summary>
+/// <param name="cursor">The cursor.</param>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::SetCursor(LongUI::Cursor cursor) noexcept {
+    
 }

@@ -21,7 +21,7 @@ namespace LongUI {
 void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
     std::uintptr_t ptr = LongUI::g_dbg_last_proc_window_pointer;
     UINT msg = LongUI::g_dbg_last_proc_message;
-    auto window = reinterpret_cast<LongUI::UIWindow*>(ptr);
+    auto window = reinterpret_cast<LongUI::UIViewport*>(ptr);
 #if 0
     UIManager << DL_Log
         << L"main locker locked @"
@@ -343,6 +343,21 @@ LongUI::UIControl::~UIControl() noexcept {
         m_pWindow->UnRegisterOffScreenRender(this);
     }
 }
+
+
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::Update() noexcept {
+#ifdef _DEBUG
+    void longui_dbg_update(UIControl* c);
+    longui_dbg_update(this);
+    assert(debug_checker.Test(DEBUG_CHECK_INIT) == true && "not be initialized yet");
+    assert(debug_updated == false && "cannot call this more than once");
+    debug_updated = true;
+#endif
+};
 
 // UIControl:: 渲染调用链: 背景
 void LongUI::UIControl::render_chain_background() const noexcept {
@@ -1399,8 +1414,7 @@ bool LongUI::UIControl::call_uievent(const UICallBack& call, SubEvent sb) noexce
         code = rc || code;
     }
     // 事件最低
-    auto rc  = m_pWindow->DoEvent(arg);
-    return rc || code;
+    return m_pWindow->DoEvent(arg) || code;
 }
 
 // 延迟清理

@@ -3,7 +3,7 @@
 #include <WinError.h>
 
 // 渲染队列 构造函数
-LongUI::CUIRenderQueue::CUIRenderQueue(UIWindow* window) noexcept {
+LongUI::CUIRenderQueue::CUIRenderQueue(UIViewport* window) noexcept {
     m_unitLike.length = 0; m_unitLike.window = window;
 }
 

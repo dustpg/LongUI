@@ -86,7 +86,7 @@ namespace LongUI {
         // is top level?
         //auto IsTopLevel() noexcept { return m_pParent == nullptr; }
         // show the popup menu
-        auto Show(UIWindow* window, POINT* OPTIONAL pos) noexcept { return this->Show(window->GetHwnd(), pos); }
+        //auto Show(UIViewport* window, POINT* OPTIONAL pos) noexcept { return this->Show(window->GetHwnd(), pos); }
         // set item proc
         auto SetItemProc(ItemProc proc) noexcept { m_pItemProc = proc; }
         // get type

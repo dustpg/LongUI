@@ -183,7 +183,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// </summary>
     /// <param name="update">if set to <c>true</c> [update].</param>
     /// <returns></returns>
-    auto EditaleText::refresh(bool update) const noexcept ->UIWindow* {
+    auto EditaleText::refresh(bool update) const noexcept ->UIViewport* {
         if (!m_bThisFocused) return nullptr;
         RectLTWH_F rect; this->GetCaretRect(rect);
         auto* window = m_pHost->GetWindow();

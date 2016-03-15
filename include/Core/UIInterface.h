@@ -212,7 +212,7 @@ namespace LongUI {
         // redo
         virtual void Redo() noexcept = 0;
     };
-    // operator for UIWindow::WindowFlag
+    // operator for UIViewport::WindowFlag
     LONGUI_DEFINE_ENUM_FLAG_OPERATORS(IUIConfigure::ConfigureFlag, uint32_t);
 }
 
