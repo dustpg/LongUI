@@ -72,7 +72,7 @@
 #endif
 
 // show error if error with hr code
-#define ShowHR(hr) if(FAILED(hr)) ShowErrorWithHR(hr)
+#define ShowHR(hr) if (FAILED(hr)) ShowErrorWithHR(hr)
 
 #ifdef _DEBUG
 // show hr error in debug
@@ -191,7 +191,7 @@ namespace LongUI {
     // create control with "CET"
 #define LongUI__CreateWidthCET(CLASS, CONTROL, CET, NODE) \
 if (!NODE) UIManager << DL_Hint << L"node null" << LongUI::endl;\
-if((CONTROL = new(std::nothrow) CLASS(reinterpret_cast<LongUI::UIContainer*>(CET)))) CONTROL->CLASS::initialize(NODE);\
+if ((CONTROL = new(std::nothrow) CLASS(reinterpret_cast<LongUI::UIContainer*>(CET)))) CONTROL->CLASS::initialize(NODE);\
 else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     // use this
 #define case_LongUI__Type_CreateControl default

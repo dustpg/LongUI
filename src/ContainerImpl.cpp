@@ -29,7 +29,7 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
             // 仅仅传递一层
             if (arg.sender->parent == this) {
                 for (auto ctrl : (*this)) {
-                    if(ctrl != arg.sender) ctrl->DoEvent(arg);
+                    if (ctrl != arg.sender) ctrl->DoEvent(arg);
                 }
             }
             return true;*/
@@ -283,7 +283,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         const bool b___a = ctrl2->next == ctrl1;
         // A存在前驱
         if (ctrl1->prev) {
-            if(!b___a) force_cast(ctrl1->prev->next) = ctrl2;
+            if (!b___a) force_cast(ctrl1->prev->next) = ctrl2;
         }
         // A为头结点
         else {
@@ -291,7 +291,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         }
         // A存在后驱
         if (ctrl1->next) {
-            if(!a___b) force_cast(ctrl1->next->prev) = ctrl2;
+            if (!a___b) force_cast(ctrl1->next->prev) = ctrl2;
         }
         // A为尾结点
         else {
@@ -299,7 +299,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         }
         // B存在前驱
         if (ctrl2->prev) {
-            if(!a___b) force_cast(ctrl2->prev->next) = ctrl1;
+            if (!a___b) force_cast(ctrl2->prev->next) = ctrl1;
         }
         // B为头结点
         else {
@@ -307,7 +307,7 @@ void LongUI::UIContainerBuiltIn::SwapChild(Iterator itr1, Iterator itr2) noexcep
         }
         // B存在后驱
         if (ctrl2->next) {
-            if(!b___a) force_cast(ctrl2->next->prev) = ctrl1;
+            if (!b___a) force_cast(ctrl2->next->prev) = ctrl1;
         }
         // B为尾结点
         else {
@@ -792,7 +792,7 @@ bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 仅仅传递一层
             if (arg.sender->parent == this) {
                 for (auto ctrl : m_vChildren) {
-                    if(ctrl != arg.sender) ctrl->DoEvent(arg);
+                    if (ctrl != arg.sender) ctrl->DoEvent(arg);
                 }
             }
             return true;*/

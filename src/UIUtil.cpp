@@ -17,13 +17,20 @@ LongUINoinline void LongUI::usleep(long usec) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIInput::Update() noexcept {
+    // 修改....
+    auto my_get_keyboard_state = [](uint8_t* states) noexcept {
+        //::GetKeyboardState(states);
+        for (int i = 0; i < KEYBOARD_BUFFER_SIZE; ++i) {
+            states[i] = (::GetKeyState(i) & 0x80) != 0;
+        }
+    };
     // 获取鼠标位置
     ::GetCursorPos(&m_ptMouseL);
     m_ptMouse.x = static_cast<float>(m_ptMouseL.x);
     m_ptMouse.y = static_cast<float>(m_ptMouseL.y);
     // 更新键鼠按键
     std::swap(m_pKeyState, m_pKeyStateOld);
-    ::GetKeyboardState(m_pKeyState);
+    my_get_keyboard_state(m_pKeyState);
     // 更新手柄按键
 }
 
@@ -1448,7 +1455,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         return -1;
     }
     // 关闭进程句柄
-    if(bRet) {
+    if (bRet) {
         ::CloseHandle(pi.hProcess);
         ::CloseHandle(pi.hThread);
     }

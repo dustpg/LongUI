@@ -141,7 +141,7 @@ auto LongUI::Helper::MakeCC(const char* str, CC* OPTIONAL data) noexcept -> uint
             // 清零
             word_begin = nullptr;
             // 看看
-            if(ch) continue;
+            if (ch) continue;
             else break;
         }
         // 空白

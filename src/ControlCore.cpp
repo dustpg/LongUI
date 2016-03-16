@@ -338,10 +338,6 @@ LongUI::UIControl::~UIControl() noexcept {
         assert(UIManager.script && "no script interface but data");
         UIManager.script->FreeScript(m_script);
     }
-    // 反注册
-    if (this->flags & Flag_NeedRegisterOffScreenRender) {
-        m_pWindow->UnRegisterOffScreenRender(this);
-    }
 }
 
 

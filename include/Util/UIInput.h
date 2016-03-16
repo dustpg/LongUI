@@ -41,11 +41,11 @@ namespace LongUI {
         // get mouse position/long
         auto GetMousePositionL() const noexcept { return m_ptMouseL; };
         // is key pressed?
-        auto IsKeyPressed(uint32_t index) const noexcept { return m_pKeyState[index] != 0; }
+        auto IsKeyPressed(int index) const noexcept { return m_pKeyState[index] != 0; }
         // is key down?
-        auto IsKeyDown(uint32_t index) const noexcept { return m_pKeyState[index] != 0 && m_pKeyStateOld[index] == 0; }
+        auto IsKeyDown(int index) const noexcept { return m_pKeyState[index] != 0 && m_pKeyStateOld[index] == 0; }
         // is key down?
-        auto IsKeyUp(uint32_t index) const noexcept { return m_pKeyState[index] == 0 && m_pKeyStateOld[index] != 0;  }
+        auto IsKeyUp(int index) const noexcept { return m_pKeyState[index] == 0 && m_pKeyStateOld[index] != 0;  }
     public:
         // update, impl @ UIUtil.cpp
         auto Update() noexcept;

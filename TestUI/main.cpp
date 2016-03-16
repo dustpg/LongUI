@@ -476,6 +476,7 @@ private:
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
 //int wmain(int argc, wchar_t* argv[]) {
     //int nCmdShow = SW_SHOW;
+    ::FreeLibrary(nullptr);
     // 本Demo的配置信息
     class DemoConfigure config;
     // MainWindow 的缓存/栈空间地址, 在x86上4字节对齐

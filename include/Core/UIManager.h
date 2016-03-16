@@ -404,7 +404,7 @@ namespace LongUI {
         // overload << operator for wchar_t
         CUIManager& operator<< (const wchar_t ch) noexcept { wchar_t chs[2] = { ch, 0 }; this->OutputNoFlush(m_lastLevel, chs); return *this; }
         // output debug string with flush
-        inline void Output(DebugStringLevel l, const wchar_t* s) noexcept { if(this->flag & IUIConfigure::Flag_OutputDebugString) this->configure->OutputDebugStringW(l, s, true); }
+        inline void Output(DebugStringLevel l, const wchar_t* s) noexcept { if (this->flag & IUIConfigure::Flag_OutputDebugString) this->configure->OutputDebugStringW(l, s, true); }
         // output debug string with flush
         void Output(DebugStringLevel l, const char* s) noexcept;
     private:

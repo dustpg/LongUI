@@ -15,7 +15,7 @@ void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
     m_vSelectedIndex.reserve(16);
     m_vLineTemplate.reserve(16);
     // OOM or BAD ACTION
-    if(!m_vLines.isok() && !m_vLineTemplate.isok()) {
+    if (!m_vLines.isok() && !m_vLineTemplate.isok()) {
         UIManager << DL_Warning << "OOM for less 1KB memory" << LongUI::endl;
     }
     // MAIN PROC
@@ -984,9 +984,10 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
     // -------------------------- on mouse move
     auto on_mouse_move = [this, &arg](UIControl* hovered) noexcept {
         if (hovered) {
-            m_pWindow->now_cursor = m_hCursor;
+            // TODO: 设置光标
+            //m_pWindow->now_cursor = m_hCursor;
             // 拖拽刷新
-            if (m_pSepHovered && (arg.sys.wParam & MK_LBUTTON)) {
+            if (m_pSepHovered && (false/*arg.sys.wParam & MK_LBUTTON*/)) {
                 auto distance = arg.pt.x - m_fLastMousePosX;
                 distance *= m_pSepHovered->world._11;
                 auto tarwidth = m_pSepHovered->GetWidth() + distance;
@@ -1001,7 +1002,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
             }
         }
         else {
-            m_pWindow->ResetCursor();
+            //m_pWindow->ResetCursor();
         }
     };
     // -------------------------- real method

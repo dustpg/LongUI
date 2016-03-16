@@ -1784,7 +1784,7 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 #endif
                 return false;
             }
-            else if(exit) {
+            else if (exit) {
                 // 退出
                 UIManager.Exit();
             }

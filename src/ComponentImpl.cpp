@@ -183,16 +183,15 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// </summary>
     /// <param name="update">if set to <c>true</c> [update].</param>
     /// <returns></returns>
-    auto EditaleText::refresh(bool update) const noexcept ->UIViewport* {
+    void EditaleText::refresh(bool update) const noexcept {
         if (!m_bThisFocused) return nullptr;
         RectLTWH_F rect; this->GetCaretRect(rect);
         auto* window = m_pHost->GetWindow();
         window->CreateCaret(m_pHost, rect.width, rect.height);
         window->SetCaretPos(m_pHost, rect.left, rect.top);
         if (update) {
-            window->Invalidate(m_pHost);
+            m_pHost->InvalidateThis();
         }
-        return window;
     }
     // 重新创建布局
     void EditaleText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
@@ -645,8 +644,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // 按键时
     void EditaleText::OnKey(uint32_t keycode) noexcept {
         // 检查按键 maybe IUIInput
-        bool heldShift = (::GetKeyState(VK_SHIFT) & 0x80) != 0;
-        bool heldControl = (::GetKeyState(VK_CONTROL) & 0x80) != 0;
+        bool heldShift = UIInput.IsKeyPressed(VK_SHIFT);
+        bool heldControl = UIInput.IsKeyPressed(VK_CONTROL);
         // 绝对位置
         UINT32 absolutePosition = m_u32CaretPos + m_u32CaretPosOffset;
 
@@ -787,7 +786,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // 当设置焦点时
     void EditaleText::OnSetFocus() noexcept {
         m_bThisFocused = true;
-        this->refresh()->ShowCaret();
+        this->refresh();
+        m_pHost->GetWindow()->ShowCaret();
     }
 
     // 当失去焦点时
@@ -1739,7 +1739,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         UIManager_RenderTarget->DrawEllipse(&ellipse, brush);
         // 渲染内圆
         float rate = sm.GetExtraAnimation().value;
-        if(!exstt2) rate = ANIMATION_END - rate;
+        if (!exstt2) rate = ANIMATION_END - rate;
         ellipse.radiusX *= RADIO_RATE * rate;
         ellipse.radiusY *= RADIO_RATE * rate;
         // 有效数据

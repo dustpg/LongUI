@@ -478,7 +478,7 @@ void LongUI::UIViewport::AddNamedControl(UIControl* ctrl) noexcept {
 
     if (cname[0]) {
         // 插入
-        if(!m_hashStr2Ctrl.Insert(cname, ctrl)) {
+        if (!m_hashStr2Ctrl.Insert(cname, ctrl)) {
             ShowErrorWithStr(L"Failed to add control");
         }
     }
@@ -556,7 +556,7 @@ void LongUI::UIViewport::refresh_caret() noexcept {
 void LongUI::UIViewport::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
     present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
-    if(!m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
+    if (!m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
         // 插入符号?
         if (m_baBoolWindow.Test(Index_DoCaret)) {
             present.pDirtyRects[present.DirtyRectsCount] = { 
@@ -1277,7 +1277,7 @@ HRESULT  LongUI::UIViewport::DragEnter(IDataObject* pDataObj,
     // 检查参数
     if (!pDataObj) return E_INVALIDARG;
     // 取消聚焦窗口
-    if(m_pFocusedControl){
+    if (m_pFocusedControl){
         m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
         m_pFocusedControl = nullptr;
     }
@@ -1412,6 +1412,107 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
 
 
 /// <summary>
+/// Finds the control.
+/// </summary>
+/// <param name="cname">The cname.</param>
+/// <returns></returns>
+auto LongUI::XUIBaseWindow::FindControl(const char* cname) noexcept -> UIControl * {
+    assert(cname && (*cname) && "bad argument");
+    // 查找控件
+    auto result = m_hashStr2Ctrl.Find(cname);
+    // 未找到返回空
+    if (!result) {
+        // 给予警告
+        UIManager << DL_Warning << L" Control Not Found: " << cname << LongUI::endl;
+        return nullptr;
+    }
+    else {
+        return reinterpret_cast<LongUI::UIControl*>(*result);
+    }
+}
+
+/// <summary>
+/// Adds the named control.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::AddNamedControl(UIControl* ctrl) noexcept {
+    assert(ctrl && "bad argumrnt");
+    const auto cname = ctrl->name.c_str();
+    // 有效
+    if (cname[0]) {
+        // 插入
+        if (!m_hashStr2Ctrl.Insert(cname, ctrl)) {
+            ShowErrorWithStr(L"Failed to add control");
+        }
+    }
+}
+
+/// <summary>
+/// Sets the hover track control.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::SetHoverTrack(UIControl* ctrl) noexcept { 
+    assert(ctrl && "bad argument"); 
+    if (ctrl->GetHoverTrackTime()) {
+        LongUI::SafeAcquire(ctrl);
+        LongUI::SafeRelease(m_pHoverTracked);
+        m_pHoverTracked = ctrl;
+    }
+}
+
+/// <summary>
+/// Sets the focus.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::SetFocus(UIControl* ctrl) noexcept {
+    // 无效
+    assert(ctrl && "bad argument");
+    // 可聚焦的
+    if (ctrl->flags & Flag_Focusable) {
+        // 有效
+        if (m_pFocusedControl) {
+            // 事件
+            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
+            // 去除引用
+            m_pFocusedControl->Release();
+        }
+        // 有效
+        if ((m_pFocusedControl = ctrl)) {
+            // 增加引用
+            m_pFocusedControl->AddRef();
+            // 事件
+            m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus);
+        }
+    }
+}
+
+/// <summary>
+/// Sets the capture control.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::SetCapture(UIControl* ctrl) noexcept { 
+    assert(ctrl && "bad argument"); 
+    ::SetCapture(m_hwnd);
+    // 设置引用计数
+    LongUI::SafeAcquire(ctrl);
+    LongUI::SafeRelease(m_pCapturedControl);
+    m_pCapturedControl = ctrl; 
+};
+
+/// <summary>
+/// Releases the capture control.
+/// </summary>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::ReleaseCapture() noexcept { 
+    ::ReleaseCapture(); 
+    LongUI::SafeRelease(m_pCapturedControl);
+};
+
+/// <summary>
 /// Recreates this instance.
 /// </summary>
 /// <returns></returns>
@@ -1464,7 +1565,6 @@ void LongUI::XUIBaseWindow::Render() const noexcept {
     }
 }
 
-
 // 移动窗口
 void LongUI::XUISystemWindow::MoveWindow(int32_t x, int32_t y) noexcept {
     m_rcWindow.left = x;
@@ -1483,7 +1583,6 @@ void LongUI::XUISystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
     assert(!"NOIMPL");
 }
 
-
 // longui namesapce
 namespace LongUI {
     // CUIBuiltinSystemWindow
@@ -1493,16 +1592,17 @@ namespace LongUI {
         // super class
         using Super = XUISystemWindow;
     private:
-        // render
-        virtual void render() const noexcept {};
-    private:
         // release data for this
         void release_data() noexcept;
     public:
         // dispose this
         virtual void Dispose() noexcept { assert(!"NOIMLP"); delete this; };
-        // Recreate
-        virtual auto Recreate() noexcept->HRESULT override;
+        // render 
+        virtual void Render() const noexcept override;
+        // update 
+        virtual void Update() noexcept override;
+        // recreate
+        virtual auto Recreate() noexcept ->HRESULT override;
         // set cursor
         virtual void SetCursor(Cursor cursor) noexcept override;
     public:
@@ -1512,6 +1612,10 @@ namespace LongUI {
         void OnResize(uint32_t w, uint32_t h) noexcept;
         // on WM_CREATE
         void OnCreate(HWND hwnd) noexcept;
+        // begin render
+        void BeginRender() const noexcept;
+        // end render
+        void EndRender() const noexcept;
     public:
         // window proc
         static auto WINAPI WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept->LRESULT;
@@ -1661,7 +1765,7 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
 /// <param name="lParam">The l parameter.</param>
 /// <param name="result">The result.</param>
 /// <returns></returns>
-bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT & result) noexcept {
+bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept {
     // 消息类型
     enum MsgType { Type_Mouse, Type_Other } msgtp; msgtp = Type_Other;
     // 消息处理
@@ -1675,8 +1779,8 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     {
     case WM_SETCURSOR:
         // TODO: 设置光标
-        //::SetCursor(now_cursor);
-        return false;
+        ::SetCursor(m_hNowCursor);
+        return true;
     case WM_MOUSEMOVE:
         ma.event = MouseEvent::Event_MouseMove;
         msgtp = Type_Mouse;
@@ -1736,7 +1840,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         }
         //::DestroyCaret();
         // TODO: 失去焦点即关闭窗口
-        if (m_baBoolWindow.Test(Index_CloseOnFocusKilled)) {
+        if (this->is_close_on_focus_killed()) {
 
         }
         return true;
@@ -1810,7 +1914,7 @@ void LongUI::CUIBuiltinSystemWindow::OnCreate(HWND hwnd) noexcept {
 /// <returns></returns>
 auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
     // 跳过
-    if (m_baBoolWindow.Test(Index_SkipRender)) return S_OK;
+    if (this->is_skip_render()) return S_OK;
     // 渲染锁
     CUIDxgiAutoLocker locker;
     // 释放数据
@@ -1962,6 +2066,94 @@ void LongUI::CUIBuiltinSystemWindow::release_data() noexcept {
     LongUI::SafeRelease(m_pDcompVisual);
 }
 
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::Update() noexcept {
+    return Super::Update();
+}
+
+/// <summary>
+/// Begins the render.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::BeginRender() const noexcept {
+    // 设置文本渲染策略
+    UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
+    // 设为当前渲染对象
+    UIManager_RenderTarget->SetTarget(m_pTargetBimtap);
+    // 开始渲染
+    UIManager_RenderTarget->BeginDraw();
+    // 设置转换矩阵
+#if 0
+    UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
+#else
+    UIManager_RenderTarget->SetTransform(&m_pImplement->world);
+#endif
+    // 清空背景
+    UIManager_RenderTarget->Clear(this->clear_color);
+}
+
+/// <summary>
+/// Ends the render.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
+    // 结束渲染
+    UIManager_RenderTarget->EndDraw();
+    // 呈现参数设置
+    RECT rcScroll = { 
+        0, 0, 
+        (this->GetRight() - this->GetLeft()), 
+        (this->GetBottom() - this->GetTop()),
+    };
+    RECT dirtyRects[LongUIDirtyControlSize + 1]; 
+    std::memcpy(dirtyRects, m_dirtyRects, sizeof(dirtyRects));
+    DXGI_PRESENT_PARAMETERS present_parameters;
+    present_parameters.DirtyRectsCount = 0;
+    present_parameters.pDirtyRects = dirtyRects;
+    present_parameters.pScrollRect = &rcScroll;
+    present_parameters.pScrollOffset = nullptr;
+    // 设置参数
+    //this->set_present_parameters(present_parameters);
+    // 呈现
+    HRESULT hr = m_pSwapChain->Present1(1, 0, &present_parameters);
+    longui_debug_hr(hr, L"m_pSwapChain->Present1 faild");
+    // 收到重建消息时 重建UI
+#ifdef _DEBUG
+    assert(SUCCEEDED(hr));
+    if (hr == DXGI_ERROR_DEVICE_REMOVED 
+        || hr == DXGI_ERROR_DEVICE_RESET 
+        || test_D2DERR_RECREATE_TARGET) {
+        force_cast(test_D2DERR_RECREATE_TARGET) = false;
+        UIManager << DL_Hint << L"D2DERR_RECREATE_TARGET!" << LongUI::endl;
+        hr = UIManager.RecreateResources();
+        if (FAILED(hr)) {
+            UIManager << DL_Hint << L"But, Recreate Failed!!!" << LongUI::endl;
+            UIManager << DL_Error << L"Recreate Failed!!!" << LongUI::endl;
+        }
+    }
+#else
+    if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
+        hr = UIManager.RecreateResources();
+    }
+#endif
+    // 检查
+    ShowHR(hr);
+}
+
+/// <summary>
+/// Renders this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::Render() const noexcept {
+    // 跳过渲染?
+    //
+    this->BeginRender();
+    Super::Render();
+    this->EndRender();
+}
 
 /// <summary>
 /// Sets the cursor.
@@ -1969,5 +2161,183 @@ void LongUI::CUIBuiltinSystemWindow::release_data() noexcept {
 /// <param name="cursor">The cursor.</param>
 /// <returns></returns>
 void LongUI::CUIBuiltinSystemWindow::SetCursor(LongUI::Cursor cursor) noexcept {
-    
+    auto id = IDC_ARROW;
+    switch (cursor)
+    {
+    case LongUI::Cursor::Cursor_Arrow:
+        id = IDC_ARROW;
+        break;
+    case LongUI::Cursor::Cursor_Ibeam:
+        id = IDC_IBEAM;
+        break;
+    case LongUI::Cursor::Cursor_Wait:
+        id = IDC_WAIT;
+        break;
+    case LongUI::Cursor::Cursor_Hand:
+        id = IDC_HAND;
+        break;
+    case LongUI::Cursor::Cursor_Help:
+        id = IDC_HELP;
+        break;
+    case LongUI::Cursor::Cursor_Cross:
+        id = IDC_CROSS;
+        break;
+    case LongUI::Cursor::Cursor_SizeAll:
+        id = IDC_SIZEALL;
+        break;
+    case LongUI::Cursor::Cursor_UpArrow:
+        id = IDC_UPARROW;
+        break;
+    case LongUI::Cursor::Cursor_SizeNWSE:
+        id = IDC_SIZENWSE;
+        break;
+    case LongUI::Cursor::Cursor_SizeNESW:
+        id = IDC_SIZENESW;
+        break;
+    default:
+        break;
+    }
+    m_hNowCursor = ::LoadCursor(nullptr, id);
+}
+
+/// <summary>
+/// Does the event.
+/// </summary>
+/// <param name="arg">The argument.</param>
+/// <returns></returns>
+bool LongUI::XUIBaseWindow::DoEvent(const EventArgument& arg) noexcept {
+    assert(m_pImplement && "bad action");
+    return m_pImplement->DoEvent(arg);
+}
+
+/// <summary>
+/// Invalidates the specified control.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::Invalidate(UIControl* ctrl) noexcept {
+    assert(ctrl && "bad argument");
+    // 已经全渲染?
+    if (this->is_full_render_this_frame()) return;
+    // 检查
+    ctrl = ctrl->prerender;
+    assert(ctrl->prerender == ctrl && "bad argument");
+    // 就是窗口 或者已满?
+    if (ctrl == m_pImplement || m_uUnitLength >= LongUIDirtyControlSize) {
+        assert(m_uUnitLength == LongUIDirtyControlSize && "check it");
+        this->set_full_render_this_frame();
+        return;
+    }
+#ifdef _DEBUG
+    // 调试信息
+    size_t  debug_backup_leng = m_uUnitLength;
+    UIControl*  debug_backup_unit[LongUIDirtyControlSize];
+    std::memcpy(debug_backup_unit, m_apUnit, sizeof(debug_backup_unit));
+#endif
+    // 一次检查
+    bool changed = false;
+    const auto oldenditr = m_apUnit + m_uUnitLength;
+    for (auto itr = m_apUnit; itr < oldenditr; ++itr) {
+        // 已存在的空间
+        auto existd = *itr;
+        // 一样? --> 不干
+        if (existd == ctrl) return void(assert(changed == false));
+        // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙结点
+        if (existd->level < ctrl->level) {
+            // 是 -> 什么不干
+            if (existd->IsPosterityForSelf(ctrl)) return void(assert(changed == false));
+            // 否 -> 继续
+            else {
+
+            }
+        }
+        // 存在深度 > 插入深度 -> 检查存在的是否为插入的子孙结点
+        else if (existd->level > ctrl->level) {
+            // 是 -> 替换所有
+            if (ctrl->IsPosterityForSelf(existd)) {
+                *itr = nullptr;
+                changed = true;
+            }
+            // 否 -> 继续
+            else {
+
+            }
+        }
+        // 深度一致 -> 继续
+        else {
+
+        }
+    }
+#ifdef _DEBUG
+    if (m_pImplement->debug_this) {
+        UIManager << DLevel_Log << L"\r\n [INSERT]: " << ctrl << LongUI::endl;
+    }
+#endif
+    // 二次插入
+    if (changed) {
+        // 重置
+        m_uUnitLength = 0; 
+        // 只写迭代器
+        auto witr = m_apUnit;
+        // 只读迭代器
+        auto ritr = m_apUnit;
+        for ( ; ritr < oldenditr; ++ritr) {
+            if (*ritr) {
+                *witr = *ritr;
+                ++witr;
+                ++m_uUnitLength;
+            }
+        }
+    }
+#ifdef _DEBUG
+    // 断言调试
+    {
+        auto endt = m_apUnit + m_uUnitLength;
+        assert(std::find(m_apUnit, endt, ctrl) == endt);
+        std::for_each(m_apUnit, endt, [ctrl](UIControl* tmpc) noexcept {
+            assert(tmpc->IsPosterityForSelf(ctrl) == false && "bad ship");
+            assert(ctrl->IsPosterityForSelf(tmpc) == false && "bad ship");
+        });
+    }
+#endif
+    // 添加到最后
+    m_apUnit[m_uUnitLength++] = ctrl;
+}
+
+/// <summary>
+/// Sets the caret position.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="x">The x.</param>
+/// <param name="y">The y.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::SetCaretPos(UIControl * ctrl, float x, float y) noexcept {
+    UIManager << DL_Warning << L"NOIMPL" << endl;
+}
+
+/// <summary>
+/// Creates the caret.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="width">The width.</param>
+/// <param name="height">The height.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::CreateCaret(UIControl * ctrl, float width, float height) noexcept {
+    UIManager << DL_Warning << L"NOIMPL" << endl;
+}
+
+/// <summary>
+/// Shows the caret.
+/// </summary>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::ShowCaret() noexcept {
+    UIManager << DL_Warning << L"NOIMPL" << endl;
+}
+
+/// <summary>
+/// Hides the caret.
+/// </summary>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::HideCaret() noexcept {
+    UIManager << DL_Warning << L"NOIMPL" << endl;
 }

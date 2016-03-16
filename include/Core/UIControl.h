@@ -156,7 +156,7 @@ namespace LongUI {
         // start render
         void StartRender(float time) noexcept;
         // invalidate this control
-        void InvalidateThis() noexcept { m_pWindow->Invalidate(this); }
+        void InvalidateThis() noexcept { m_pWindow->Invalidate(this->prerender); }
         // set width fixed
         auto SetWidthFixed() noexcept { force_cast(this->flags) |= Flag_WidthFixed; }
         // set height fixed

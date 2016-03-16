@@ -107,7 +107,7 @@ namespace LongUI { namespace Component {
         auto&GetString() noexcept { return m_string; }
     private:
         // refresh, while layout chenged, should be refreshed
-        auto refresh(bool = true)const noexcept ->UIViewport*;
+        void refresh(bool = true) const noexcept ;
         // recreate layout
         void recreate_layout(IDWriteTextFormat* fmt) noexcept;
         // recreate layout without format

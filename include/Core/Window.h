@@ -48,8 +48,12 @@ namespace LongUI {
     public:
         // index of BitArray
         enum BitArrayIndex : uint32_t {
+            // exit on close
+            Index_ExitOnClose = 0,
+            // close when focus killed
+            Index_CloseOnFocusKilled,
             // caret in(true) or out?
-            Index_CaretIn = 0,
+            Index_CaretIn,
             // do caret?
             Index_DoCaret,
             // in draging?
@@ -58,16 +62,10 @@ namespace LongUI {
             Index_Rendered,
             // new size?
             Index_NewSize,
-            // full rendering in this frame?
-            Index_FullRenderingThisFrame,
             // skip render
             Index_SkipRender,
-            // prerender(for off screen render)
-            Index_Prerender,
-            // exit on close
-            Index_ExitOnClose,
-            // close when focus killed
-            Index_CloseOnFocusKilled,
+            // do full-render this frame?
+            Index_FullRenderThisFrame,
             // count of this
             INDEX_COUNT,
         };
@@ -80,7 +78,7 @@ namespace LongUI {
         virtual void Update() noexcept;
         // recreate: call UIControl::Render
         virtual auto Recreate() noexcept ->HRESULT;
-        // move window
+        // move window relative to parent
         virtual void MoveWindow(int32_t x, int32_t y) noexcept = 0;
         // resize window
         virtual void Resize(uint32_t w, uint32_t h) noexcept = 0;
@@ -107,14 +105,14 @@ namespace LongUI {
         auto IsCapturedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
         // is rendered
         auto IsRendered() const noexcept { return m_baBoolWindow.Test(XUIBaseWindow::Index_Rendered); }
-        // is prerender, THIS METHOD COULD BE CALLED IN RENDER-THREAD ONLY
-        auto IsPrerender() const noexcept { return m_baBoolWindow.Test(XUIBaseWindow::Index_Prerender); }
         // copystring for control in this winddow
         auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
         // copystring for control in this winddow in safe way
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
     public:
-        // update control later
+        // do event
+        bool DoEvent(const EventArgument& arg) noexcept;
+        // render control in next frame
         void Invalidate(UIControl* ctrl) noexcept;
         // set the caret
         void SetCaretPos(UIControl* ctrl, float x, float y) noexcept;
@@ -130,14 +128,28 @@ namespace LongUI {
         void SetHoverTrack(UIControl* ctrl) noexcept;
         // find control
         auto FindControl(const char* name) noexcept ->UIControl*;
-        // move window relative to parent
-        void MoveWindow(float x, float y) noexcept;
         // add control with name
         void AddNamedControl(UIControl* ctrl) noexcept;
         // set mouse capture
         void SetCapture(UIControl* control) noexcept;
         // release mouse capture
         void ReleaseCapture() noexcept;
+    protected:
+        // is SkipRender
+        bool is_skip_render() const noexcept { return m_baBoolWindow.Test(Index_SkipRender); }
+        // is CloseOnFocusKilled
+        bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
+        // is FullRenderingThisFrame
+        bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrame); }
+    protected:
+        // set SkipRender to true
+        void set_skip_render() noexcept { m_baBoolWindow.SetTrue(Index_SkipRender); }
+        // clear SkipRender
+        void clear_skip_render() noexcept { m_baBoolWindow.SetFalse(Index_SkipRender); }
+        // set FullRenderingThisFrame to true
+        void set_full_render_this_frame() noexcept { m_baBoolWindow.SetTrue(Index_FullRenderThisFrame); }
+        // clear FullRenderingThisFrame
+        void clear_full_render_this_frame() noexcept { m_baBoolWindow.SetFalse(Index_FullRenderThisFrame); m_uUnitLength = 0; }
     protected:
         // implement longui-window
         UIViewport*             m_pImplement = nullptr;
@@ -165,14 +177,16 @@ namespace LongUI {
         Helper::BitArray32      m_baBoolWindow;
         // mode for text anti-alias
         uint32_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+        // data length of m_apUnits
+        size_t                  m_uUnitLength;
+        // data for unit
+        UIControl*              m_apUnit[LongUIDirtyControlSize];
         // dirty rects
         RECT                    m_dirtyRects[LongUIDirtyControlSize];
         // track mouse event: end with DWORD
         TRACKMOUSEEVENT         m_csTME;
         // current STGMEDIUM: begin with DWORD
         STGMEDIUM               m_curMedium;
-        // registered control
-        ControlVector           m_vRegisteredControl;
         // control name ->map-> control pointer
         StringTable             m_hashStr2Ctrl;
     public:

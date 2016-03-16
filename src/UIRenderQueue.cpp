@@ -141,7 +141,7 @@ void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* c
                 }
             }
             // 存在深度 > 插入深度 -> 检查存在的是否为插入的子孙结点
-            else if(existd->level > ctrl->level) {
+            else if (existd->level > ctrl->level) {
                 // 是 -> 替换所有
                 if (ctrl->IsPosterityForSelf(existd)) {
                     *itr = nullptr;
