@@ -406,14 +406,14 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     auto lbutton_down = [this, &arg]() noexcept {
         auto index = this->find_line_index(arg.pt);
         // SHIFT优先
-        if (arg.sys.wParam & MK_SHIFT) {
+        if (UIInput.IsKeyPressed(VK_SHIFT)) {
             this->SelectTo(m_ixLastClickedLine, index);
             return;
         }
         // 修改
         m_ixLastClickedLine = index;
         // UNCTRLed
-        bool unctrled = !(arg.sys.wParam & MK_CONTROL);
+        bool unctrled = !(UIInput.IsKeyPressed(VK_CONTROL));
         // 双击?
         if (m_hlpDbClick.Click(arg.pt)) {
             UIManager << DL_Log << "DB Clicked" << LongUI::endl;
@@ -1017,7 +1017,8 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         switch (arg.event)
         {
         case LongUI::MouseEvent::Event_MouseLeave:
-            m_pWindow->ResetCursor();
+            // TODO: Reset Cursor
+            //m_pWindow->ResetCursor();
             handled = false;
             m_indexSepHovered = 0;
             break;

@@ -177,7 +177,7 @@ bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
 // 设置控件状态
 LongUINoinline void LongUI::UIButton::SetControlState(ControlState state) noexcept {
     m_text.SetState(state);
-    m_pWindow->StartRender(m_uiElement.SetBasicState(state), this);
+    this->StartRender(m_uiElement.SetBasicState(state));
 }
 
 // 鼠标事件处理
@@ -358,8 +358,9 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
                     this->call_uievent(m_eventChanged, SubEvent::Event_ValueChanged);
                 }
             }
-            // 点击选项关闭
-            list->GetWindow()->CloseWindowLater();
+            // TODO: 点击选项关闭
+            assert(!"NOIMPL");
+            //list->GetWindow()->CloseWindowLater();
             return true;
         }, SubEvent::Event_ItemClicked);
     }

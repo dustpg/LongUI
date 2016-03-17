@@ -459,6 +459,8 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     struct MouseEventArgument {
         // data
         union {
+            // mouse wheel delta
+            struct { float delta; } wheel;
             // clipboard format 
             struct { IDataObject* dataobj; DWORD* outeffect; } cf;
         };
@@ -537,8 +539,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     };
     // cursor enum
     enum class Cursor : size_t {
+        // default
+        Cursor_Default = 0,
         // normal Arrow
-        Cursor_Arrow = 0,
+        Cursor_Arrow,
         // "I" beam
         Cursor_Ibeam,
         // wait

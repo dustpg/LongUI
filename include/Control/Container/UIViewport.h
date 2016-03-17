@@ -48,7 +48,7 @@ namespace LongUI {
         // height of popup window
         float                       height;
         // parent window
-        UIViewport*                   parent;
+        XUIBaseWindow*              parent;
         // [OPTIONAL]child
         UIControl*                  child;
     };}
@@ -75,7 +75,7 @@ namespace LongUI {
         virtual auto Recreate() noexcept ->HRESULT override;*/
     public:
         // constructor
-        UIViewport( ) noexcept;
+        UIViewport(XUIBaseWindow* window) noexcept;
         // create popup window
         static auto CreatePopup(const Config::Popup&) noexcept -> UIViewport*;
     protected:
@@ -90,8 +90,8 @@ namespace LongUI {
         // deleted 
         UIViewport(const UIViewport&) = delete;
     public: // some new
-        // on close event
-        virtual bool OnClose() noexcept;
+        // can be closed? called on closed
+        virtual bool IsCouldBeClosed() noexcept { return true; }
     protected:
         // next sibling
 #ifdef LongUIDebugEvent

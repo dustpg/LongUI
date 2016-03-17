@@ -45,7 +45,7 @@ LongUINoinline void LongUI::UICheckBox::ForceSetControlState(ControlState state)
     }
 #endif
     m_text.SetState(state); 
-    m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
+    this->StartRender(m_uiElement.SetBasicState(state)); 
 }
 
 // 强制设置复选框状态
@@ -59,7 +59,7 @@ void LongUI::UICheckBox::ForceSetCheckBoxState(CheckBoxState state) noexcept {
 #endif
     // 修改状态
     if (state != this->GetCheckBoxState()) {
-        m_pWindow->StartRender(m_uiElement.SetExtraState(state), this);
+        this->StartRender(m_uiElement.SetExtraState(state));
         bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
         rec = false;
 #ifdef _DEBUG
@@ -150,13 +150,13 @@ bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         // 鼠标移进: 设置UI元素状态
         this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
-        m_pWindow->now_cursor = m_hCursorHand;
+        m_pWindow->SetCursor(Cursor::Cursor_Hand);
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
         this->ForceSetControlState(LongUI::State_Normal);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
-        m_pWindow->now_cursor = m_pWindow->default_cursor;
+        m_pWindow->ResetCursor();
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下:
@@ -275,7 +275,7 @@ LongUINoinline void LongUI::UIRadioButton::ForceSetControlState(ControlState sta
     }
 #endif
     m_text.SetState(state); 
-    m_pWindow->StartRender(m_uiElement.SetBasicState(state), this); 
+    this->StartRender(m_uiElement.SetBasicState(state)); 
 }
 
 // 强制设置复选框状态
@@ -293,7 +293,7 @@ void LongUI::UIRadioButton::ForceSetCheckedState(bool state) noexcept {
         if (state) {
             this->uncheck_checked_and_check_this();
         }
-        m_pWindow->StartRender(m_uiElement.SetExtraState(state), this);
+        this->StartRender(m_uiElement.SetExtraState(state));
         bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
         rec = false;
 #ifdef _DEBUG

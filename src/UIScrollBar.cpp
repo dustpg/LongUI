@@ -58,7 +58,7 @@ void LongUI::UIScrollBar::SetIndex(float new_index) noexcept {
     m_uiAnimation.start = m_uiAnimation.value = m_fIndex;
     m_uiAnimation.end = new_index;
     m_uiAnimation.time = m_uiAnimation.duration;
-    m_pWindow->StartRender(m_uiAnimation.time, this->parent);
+    this->parent->StartRender(m_uiAnimation.time);
     m_bAnimation = true;
 }
 
@@ -345,10 +345,10 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
     case LongUI::MouseEvent::Event_MouseWheelH:
     {
         // 滚动条
-        auto test1 = arg.event == LongUI::MouseEvent::Event_MouseWheelV;
-        auto test2 = !!(arg.sys.wParam & MK_SHIFT);
+        bool test1 = arg.event == LongUI::MouseEvent::Event_MouseWheelV;
+        bool test2 = UIInput.IsKeyPressed(VK_SHIFT);
         if ((test1 && test2) == (this->bartype == ScrollBarType::Type_Horizontal)) {
-            auto wheel = (float(GET_WHEEL_DELTA_WPARAM(arg.sys.wParam))) / float(WHEEL_DELTA);
+            auto wheel = arg.wheel.delta;
             this->SetIndex(m_uiAnimation.end - wheel_step * wheel);
             return true;
         }
@@ -431,7 +431,7 @@ void LongUI::UIScrollBarA::set_state(PointType _bartype, ControlState state) noe
     // 检查
     if (_bartype >= PointType::Type_Arrow1 && _bartype <= PointType::Type_Thumb) {
         auto index = static_cast<uint32_t>(_bartype) - static_cast<uint32_t>(PointType::Type_Arrow1);
-        m_pWindow->StartRender(elements[index]->SetBasicState(state), this);
+        this->StartRender(elements[index]->SetBasicState(state));
     }
 }
 

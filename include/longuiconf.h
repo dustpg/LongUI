@@ -158,7 +158,7 @@ namespace LongUI {
         // default un-redo stack size [fixed buffer length]
         LongUIDefaultUnRedoCommandSize = 13,
         // max count of longui window in same time [fixed buffer length]
-        LongUIMaxWindow = 32,
+        //LongUIMaxWindow = 32,
         // max count of longui text renderer [fixed buffer length]
         LongUITextRendererCountMax = 10,
         // max length of longui text renderer length [fixed buffer length]

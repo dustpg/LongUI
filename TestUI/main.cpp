@@ -218,15 +218,13 @@ class MainWindow final : public LongUI::UIViewport {
     // frend class
     friend class LongUI::CUIManager;
 private:
+    // removed
+    MainWindow(const MainWindow&) = delete;
     // dtor
     ~MainWindow() = default;
 public:
-    // placement new
-    auto operator new(size_t size, void* ptr) noexcept -> void* { return ::operator new(size, ptr); };
-    // placement delete
-    void operator delete(void* mem, void *ptr) noexcept { return ::operator delete(mem, ptr); };
     // ctor
-    MainWindow(LongUI::UIViewport* parent) : Super(parent) { }
+    MainWindow(LongUI::XUIBaseWindow* wnd) : Super(wnd) { }
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
 protected:
@@ -236,20 +234,20 @@ protected:
     void initialize(pugi::xml_node node) noexcept { return Super::initialize(node); }
 private:
     // clean up
-    virtual void cleanup() noexcept override { this->before_deleted(); this->~MainWindow(); }
+    virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     // init
     void init() {
-        auto slider = LongUI::longui_cast<LongUI::UISlider*>(this->FindControl("sld_opacity"));
+        auto slider = LongUI::longui_cast<LongUI::UISlider*>(m_pWindow->FindControl("sld_opacity"));
         if (slider) {
-            auto window = this;
+            auto window = m_pWindow;
             slider->SetValue01(window->clear_color.a);
             slider->AddEventCall([slider, window](LongUI::UIControl*) {
                 window->clear_color.a = slider->GetValue01();
-                window->Invalidate(window);
+                window->InvalidateWindow();
                 return true;
             }, LongUI::SubEvent::Event_ValueChanged);
         }
-        auto list = LongUI::longui_cast<LongUI::UIList*>(this->FindControl("lst_01"));
+        auto list = LongUI::longui_cast<LongUI::UIList*>(m_pWindow->FindControl("lst_01"));
         if (list) {
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
                 for (auto line : static_cast<LongUI::UIList*>(list)->GetContainer()) {
@@ -260,7 +258,7 @@ private:
                 return true;
             });
         }
-        auto btn = this->FindControl("btn_x1");
+        auto btn = m_pWindow->FindControl("btn_x1");
         if (btn) {
             auto ctrl1 = btn;
             auto ctrl2 = btn->prev->prev;
@@ -270,7 +268,7 @@ private:
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        if ((btn = this->FindControl("btn_x0"))) {
+        if ((btn = m_pWindow->FindControl("btn_x0"))) {
             auto ctrl1 = btn;
             auto ctrl2 = btn->prev;
             btn->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
@@ -279,8 +277,8 @@ private:
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        if ((btn = this->FindControl("btn_ind"))) {
-            auto cbx = LongUI::longui_cast<LongUI::UICheckBox*>(this->FindControl("cbx_0"));
+        if ((btn = m_pWindow->FindControl("btn_ind"))) {
+            auto cbx = LongUI::longui_cast<LongUI::UICheckBox*>(m_pWindow->FindControl("cbx_0"));
             btn->AddEventCall([cbx, this](UIControl*) noexcept {
                 auto stt = LongUI::CheckBoxState::State_Indeterminate;
                 if (cbx->GetCheckBoxState() == LongUI::CheckBoxState::State_Indeterminate) {
@@ -290,15 +288,15 @@ private:
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        if ((btn = this->FindControl("btn_p1"))) {
-            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(this->FindControl("pg_1"));
+        if ((btn = m_pWindow->FindControl("btn_p1"))) {
+            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
             btn->AddEventCall([page1](UIControl*) noexcept {
                 page1->DisplayNextPage(1ui32);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        if ((btn = this->FindControl("btn_p2"))) {
-            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(this->FindControl("pg_1"));
+        if ((btn = m_pWindow->FindControl("btn_p2"))) {
+            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
             btn->AddEventCall([page1](UIControl*) noexcept {
                 page1->DisplayNextPage(0ui32);
                 return true;
@@ -479,8 +477,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
     ::FreeLibrary(nullptr);
     // 本Demo的配置信息
     class DemoConfigure config;
-    // MainWindow 的缓存/栈空间地址, 在x86上4字节对齐
-    alignas(sizeof(void*)) size_t buffer[sizeof(MainWindow) / sizeof(size_t) + 1];
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)
     if (SUCCEEDED(::OleInitialize(nullptr))) {
         // 初始化 UI管理器 
@@ -488,7 +484,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
             // 作战控制连线!
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
             // 创建主窗口
-            UIManager.CreateUIWindow<MainWindow>(test_xml, nullptr, buffer)->ShowWindow(nCmdShow);
+            UIManager.CreateUIWindow<MainWindow>(test_xml);// ->ShowWindow(nCmdShow);
             // 运行本程序
             UIManager.Run();
             // 作战控制终止!

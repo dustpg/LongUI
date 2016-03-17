@@ -206,7 +206,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         break;
     case  LongUI::MouseEvent::Event_MouseMove:
         // 点中并且移动
-        if (arg.sys.wParam & MK_LBUTTON) {
+        if (UIInput.IsKeyPressed(VK_LBUTTON)) {
             if (m_bMouseClickIn) {
                 // 获取基本值
                 if (this->IsVerticalSlider()) {

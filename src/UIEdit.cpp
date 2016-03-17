@@ -97,19 +97,19 @@ bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
         break;
     case LongUI::MouseEvent::Event_MouseEnter:
-        m_pWindow->now_cursor = m_hCursorI;
+        m_pWindow->SetCursor(Cursor::Cursor_Ibeam);
         break;
     case LongUI::MouseEvent::Event_MouseLeave:
-        m_pWindow->now_cursor = m_pWindow->default_cursor;
+        m_pWindow->ResetCursor();
         break;
     case LongUI::MouseEvent::Event_MouseMove:
         // 拖拽?
-        if (arg.sys.wParam & MK_LBUTTON) {
+        if (UIInput.IsKeyPressed(VK_LBUTTON)) {
             m_text.OnLButtonHold(pt4self.x, pt4self.y);
         }
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
-        m_text.OnLButtonDown(pt4self.x, pt4self.y, !!(arg.sys.wParam & MK_SHIFT));
+        m_text.OnLButtonDown(pt4self.x, pt4self.y, UIInput.IsKeyPressed(VK_SHIFT));
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
         m_text.OnLButtonUp(pt4self.x, pt4self.y);

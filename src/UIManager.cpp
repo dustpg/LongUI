@@ -18,11 +18,17 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
 #undef CHECK_GUID
 #endif
     m_szLocaleName[0] = L'\0';
-    m_vDelayCleanup.reserve(100);
-    std::memset(m_apWindows, 0, sizeof(m_apWindows));
+    m_vDelayCleanup.reserve(32);
+    m_vWindows.reserve(32);
+    m_vDelayCleanup.clear();
+    m_vWindows.clear();
     // 开始计时
     m_uiTimer.Start();
-    this->RefreshDisplayFrequency();
+    //this->RefreshDisplayFrequency();
+    // 内容不足
+    if (!m_vDelayCleanup.isok() || !m_vWindows.isok()) {
+        return E_OUTOFMEMORY;
+    }
     // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -462,59 +468,41 @@ void LongUI::CUIManager::Run() noexcept {
     m_dwWaitVSStartTime = ::timeGetTime();
     // 渲染线程函数
     auto render_thread_func = [](void*) noexcept ->unsigned {
-        UIViewport* windows[LongUIMaxWindow];
-        HANDLE waitvs[LongUIMaxWindow];
         // 不退出?
         while (!UIManager.m_exitFlag) {
-            uint32_t vslen = 0;
-            uint32_t wndlen = 0;
             {
                 // 数据锁
                 CUIDataAutoLocker locker;
 #ifdef _DEBUG
                 ++UIManager.frame_id;
 #endif
-                // 延迟清理
-                UIManager.cleanup_delay_cleanup_chain();
-                // 有窗口
-                wndlen = UIManager.m_cCountWindow;
-                // 复制数据
-                for (auto i = 0u; i < wndlen; ++i) {
-                    windows[i] = UIManager.m_apWindows[i];
-                }
                 // 更新计时器
                 UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
                 UIManager.m_uiTimer.MovStartEnd();
                 // 刷新窗口
-                for (auto i = 0u; i < wndlen; ++i) {
-                    // 刷新
-                    windows[i]->Update();
-                    // 下一帧
-                    windows[i]->NextFrame();
-                    // 获取等待垂直同步事件
-                    waitvs[vslen] = windows[i]->GetVSyncEvent();
-                    // 刷新?
-                    if (!windows[i]->IsRendered()) {
-                        windows[i] = nullptr;
-                    }
-                    // 有效
-                    else if (waitvs[vslen]) {
-                        ++vslen;
-                    }
+                for (auto window : UIManager.m_vWindows) {
+                    window->ClearRenderInfo();
+                    window->Update();
                 }
             }
             {
                 // 渲染锁
                 CUIDxgiAutoLocker locker;
                 // 渲染窗口
-                for (auto i = 0u; i < wndlen; ++i) {
-                    if (windows[i]) {
-                        windows[i]->RenderWindow();
-                    }
+                for (auto window : UIManager.m_vWindows) {
+                    window->Render();
+                }
+            }
+            {
+                // 数据锁
+                CUIDataAutoLocker locker;
+                // 清除渲染信息
+                for (auto window : UIManager.m_vWindows) {
+                    window->ClearRenderInfo();
                 }
             }
             // 等待垂直同步
-            UIManager.WaitVS(waitvs, vslen);
+            UIManager.WaitVS();
         }
         return 0;
     };
@@ -558,20 +546,21 @@ void LongUI::CUIManager::Run() noexcept {
             windows[count - i - 1]->cleanup();
         }
     }*/
-    assert(!m_cCountWindow && "bad");
-    m_cCountWindow = 0;
+    assert(m_vDelayCleanup.empty() && "bad");
+    m_vDelayCleanup.clear();
 }
 
 // 等待垂直同步
-void LongUI::CUIManager::WaitVS(HANDLE events[], uint32_t length) noexcept {
-    // 一直刷新
-    if (this->flag & IUIConfigure::Flag_RenderInAnytime) 
-        return static_cast<void>(::WaitForMultipleObjects(length, events, TRUE, INFINITE));
+void LongUI::CUIManager::WaitVS() noexcept {
+    IDXGIOutput* pDxgiOutput = nullptr;
+    // 存在DXGI输出?
+    if (pDxgiOutput) {
+        pDxgiOutput->WaitForVBlank();
+        return;
+    }
     // 保留刷新时间点
     auto end_time_of_sleep = m_dwWaitVSStartTime + 
         ((++m_dwWaitVSCount) * 1000ui32) / static_cast<uint16_t>(m_dDisplayFrequency);
-    // 等待事件
-    if (length) ::WaitForMultipleObjects(length, events, TRUE, INFINITE);
     // 保证等待
     while (::timeGetTime() < end_time_of_sleep) ::Sleep(1);
 }
@@ -625,62 +614,63 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     }
     // 检查
     assert(function && "bad idea");
-    if (!function) return nullptr;
-    auto ctrl = function(cp->GetCET(), node);
-    return ctrl;
+    return function ? nullptr : function(cp->GetCET(), node);
 }
 
 // 创建UI窗口
 auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
-    UIViewport* parent,
-    callback_for_creating_window func,
-    void* buf) noexcept -> UIViewport* {
+    XUIBaseWindow* parent,
+    callback_for_creating_window func) noexcept -> UIViewport* {
     assert(func && node && "bad argument");
     // 创建窗口
-    auto window = func(node, parent, buf);
-    // 查错
-    assert(window && "OOM or some error");
-    // 成功
-    if (window) {
-#ifdef _DEBUG
-        //::Sleep(5000);
-        CUITimerH dbg_timer; dbg_timer.Start();
-        UIManager << DL_Log << window << LongUI::endl;
-#endif
-        // 重建资源
-        auto hr = window->Recreate();
-        ShowHR(hr);
-#ifdef _DEBUG
-        //::Sleep(5000);
-        auto time = dbg_timer.Delta_ms<double>();
-        UIManager << DL_Log
-            << Formated(L" took %.3lfms for recreate.", time)
-            << LongUI::endl;
-        dbg_timer.MovStartEnd();
-#endif
-        // 创建控件树
-        this->MakeControlTree(window, node);
-        // 完成创建
-#ifdef _DEBUG
-        time = dbg_timer.Delta_ms<double>();
-        UIManager << DL_Log
-            << Formated(L" took %.3lfms for making.", time)
-            << LongUI::endl;
-        dbg_timer.MovStartEnd();
-#endif
-        // 发送消息
-        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
-#ifdef _DEBUG
-        time = dbg_timer.Delta_ms<double>();
-        UIManager << DL_Log
-            << Formated(L" took %.3lfms for sending finished event.", time)
-            << LongUI::endl;
-        //::Sleep(5000);
-#endif
-            // 返回 
+    auto window = LongUI::CreateBuiltinSystemWindow();
+    assert(window && "create system window failed");
+    if (!window) return nullptr;
+    // 创建视口
+    auto viewport = func(node, parent);
+    // 创建失败
+    assert(viewport && "create viewport failed");
+    if (!viewport) {
+        window->Dispose();
+        return nullptr;
     }
-    return window;
+#ifdef _DEBUG
+    //::Sleep(5000);
+    CUITimerH dbg_timer; dbg_timer.Start();
+    UIManager << DL_Log << window << LongUI::endl;
+#endif
+    // 重建资源
+    auto hr = window->Recreate();
+    ShowHR(hr);
+#ifdef _DEBUG
+    //::Sleep(5000);
+    auto time = dbg_timer.Delta_ms<double>();
+    UIManager << DL_Log
+        << Formated(L" took %.3lfms for recreate.", time)
+        << LongUI::endl;
+    dbg_timer.MovStartEnd();
+#endif
+    // 创建控件树
+    this->MakeControlTree(viewport, node);
+    // 完成创建
+#ifdef _DEBUG
+    time = dbg_timer.Delta_ms<double>();
+    UIManager << DL_Log
+        << Formated(L" took %.3lfms for making.", time)
+        << LongUI::endl;
+    dbg_timer.MovStartEnd();
+#endif
+    // 发送消息
+    viewport->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+#ifdef _DEBUG
+    time = dbg_timer.Delta_ms<double>();
+    UIManager << DL_Log
+        << Formated(L" took %.3lfms for sending finished event.", time)
+        << LongUI::endl;
+    //::Sleep(5000);
+#endif
+    return viewport;
 }
 
 // 消息转换
@@ -1212,11 +1202,10 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         }
     }
     // 重建所有窗口
-    for (auto itr = m_apWindows; itr < m_apWindows + m_cCountWindow; ++itr) {
-        auto wnd = *itr;
+    for (auto window : m_vWindows) {
         if (SUCCEEDED(hr)) {
-            hr = wnd->Recreate();
-            longui_debug_hr(hr, wnd << L"wnd->Recreate");
+            hr = window->Recreate();
+            longui_debug_hr(hr, window << L"wnd->Recreate");
         }
     }
     // 断言 HR
@@ -1656,27 +1645,23 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
 
 
 // 添加窗口
-void LongUI::CUIManager::RegisterWindow(UIViewport * wnd) noexcept {
+void LongUI::CUIManager::AddWindow(XUISystemWindow* wnd) noexcept {
     assert(wnd && "bad argument");
-    // 检查剩余空间
-    if (m_cCountWindow >= LongUIMaxWindow) {
-        assert(!"ABORT! OUT OF SPACE! m_cCountWindow >= LongUIMaxWindow");
-        return;
-    }
     // 检查是否已经存在
 #ifdef _DEBUG
     {
-        auto endwindow = m_apWindows + m_cCountWindow;
-        if (std::find(m_apWindows, endwindow, wnd) != endwindow) {
+        auto end = m_vWindows.end();
+        if (std::find(m_vWindows.begin(), m_vWindows.end(), wnd) != end) {
             assert(!"target window has been registered.");
         }
     }
 #endif
     // 添加窗口
-    m_apWindows[m_cCountWindow] = wnd; ++m_cCountWindow;
+    m_vWindows.push_back(wnd);
 }
 
 // 刷新屏幕刷新率
+#if 0
 void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
     // 获取屏幕刷新率
     DEVMODEW mode; std::memset(&mode, 0, sizeof(mode));
@@ -1691,48 +1676,32 @@ void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
         m_dDisplayFrequency = 60;
     }
 }
+#endif
 
 // 移出窗口
-void LongUI::CUIManager::RemoveWindow(UIViewport* wnd, bool cleanup) noexcept {
-    assert(m_cCountWindow); assert(wnd && "bad argument");
-    // 清理?
-    if (cleanup) {
-        wnd->cleanup();
-#ifdef _DEBUG
-        // 现在已经不再数组中了, 不过需要检查一下
-        auto endwindow = m_apWindows + m_cCountWindow;
-        if (std::find(m_apWindows, endwindow, wnd) != endwindow) {
-            assert(!"remove window failed!");
-        }
-#endif
-        return;
-    }
+void LongUI::CUIManager::RemoveWindow(XUISystemWindow* wnd) noexcept {
     // 检查时是不是在本数组中
 #ifdef _DEBUG
     {
-        auto endwindow = m_apWindows + m_cCountWindow;
-        if (std::find(m_apWindows, endwindow, wnd) == endwindow) {
-            assert(!"target window not in windows array!");
+        auto end = m_vWindows.end();
+        if (std::find(m_vWindows.begin(), end, wnd) == end) {
+            assert(!"target window not in windows vector!");
             return;
         }
     }
 #endif
     // 正式移除
     {
-        auto endwindow = m_apWindows + m_cCountWindow;
-        auto itr = std::find(m_apWindows, endwindow, wnd);
-        if (itr != endwindow) {
-            std::memmove(itr, itr + 1, sizeof(void*));
-            --m_cCountWindow;
-            m_apWindows[m_cCountWindow] = nullptr;
-        }
+        auto itr = std::find(m_vWindows.begin(), m_vWindows.end(), wnd);
+        m_vWindows.erase(itr);
+        //wnd->Dispose();
     }
-    // 检查时是不是在本数组中
+    // 再次检查时是不是在本数组中
 #ifdef _DEBUG
     {
-        auto endwindow = m_apWindows + m_cCountWindow;
-        if (std::find(m_apWindows, endwindow, wnd) != endwindow) {
-            assert(!"target window in windows array!");
+        auto end = m_vWindows.end();
+        if (std::find(m_vWindows.begin(), end, wnd) != end) {
+            assert(!"target window not in windows vector!");
             return;
         }
     }

@@ -81,6 +81,16 @@ m_pWindow(parent ? parent->GetWindow() : nullptr) {
 }
 
 /// <summary>
+/// Starts the render.
+/// </summary>
+/// <param name="time">The time.</param>
+/// <returns></returns>
+void LongUI::UIControl::StartRender(float time) noexcept {
+    this->InvalidateThis();
+}
+
+
+/// <summary>
 /// Releases this instance.
 /// </summary>
 /// <returns></returns>

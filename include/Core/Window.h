@@ -78,6 +78,8 @@ namespace LongUI {
         virtual void Update() noexcept;
         // recreate: call UIControl::Render
         virtual auto Recreate() noexcept ->HRESULT;
+        // link viewport
+        virtual void LinkViewport(UIViewport* view) noexcept;
         // move window relative to parent
         virtual void MoveWindow(int32_t x, int32_t y) noexcept = 0;
         // resize window
@@ -85,6 +87,8 @@ namespace LongUI {
         // set cursor
         virtual void SetCursor(LongUI::Cursor cursor) noexcept = 0;
     public:
+        // reset cursor
+        void ResetCursor() noexcept { this->SetCursor(Cursor::Cursor_Default); }
         // get window handle
         auto GetHwnd() const noexcept { return m_hwnd; }
         // get top
@@ -109,6 +113,10 @@ namespace LongUI {
         auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
         // copystring for control in this winddow in safe way
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
+        // render window in next frame
+        void InvalidateWindow() noexcept { this->set_full_render_this_frame(); }
+        // clear render info
+        void ClearRenderInfo() noexcept { this->clear_full_render_this_frame(); m_uUnitLength = 0; }
     public:
         // do event
         bool DoEvent(const EventArgument& arg) noexcept;
@@ -149,7 +157,7 @@ namespace LongUI {
         // set FullRenderingThisFrame to true
         void set_full_render_this_frame() noexcept { m_baBoolWindow.SetTrue(Index_FullRenderThisFrame); }
         // clear FullRenderingThisFrame
-        void clear_full_render_this_frame() noexcept { m_baBoolWindow.SetFalse(Index_FullRenderThisFrame); m_uUnitLength = 0; }
+        void clear_full_render_this_frame() noexcept { m_baBoolWindow.SetFalse(Index_FullRenderThisFrame);  }
     protected:
         // implement longui-window
         UIViewport*             m_pImplement = nullptr;
@@ -207,6 +215,11 @@ namespace LongUI {
     class XUISystemWindow : public XUIBaseWindow {
         // super class
         using Super = XUIBaseWindow;
+    public:
+        // ctor
+        XUISystemWindow() noexcept;
+        // dtor
+        ~XUISystemWindow() noexcept;
     public:
         // move window
         virtual void MoveWindow(int32_t x, int32_t y) noexcept override;

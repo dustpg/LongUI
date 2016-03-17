@@ -941,7 +941,7 @@ void LongUI::UIPage::DisplayNextPage(UIControl* page) noexcept {
     m_pNowDisplay = m_pNextDisplay;
     m_pNextDisplay = page;
     // 剩余
-    m_pWindow->StartRender(m_animation.time = m_animation.duration, this);
+    this->StartRender(m_animation.time = m_animation.duration);
 }
 
 // UIPage: 仅移除

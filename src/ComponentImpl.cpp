@@ -184,7 +184,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="update">if set to <c>true</c> [update].</param>
     /// <returns></returns>
     void EditaleText::refresh(bool update) const noexcept {
-        if (!m_bThisFocused) return nullptr;
+        if (!m_bThisFocused) return;
         RectLTWH_F rect; this->GetCaretRect(rect);
         auto* window = m_pHost->GetWindow();
         window->CreateCaret(m_pHost, rect.width, rect.height);
