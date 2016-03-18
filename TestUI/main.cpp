@@ -58,8 +58,8 @@ const char* test_xml_02 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Button name="4" margin="4,4,4,4" borderwidth="1" text="Hello, world!"/>
     </HorizontalLayout>*/
 
-// <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-// 
+    // <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
+    // 
 
 const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="1024, 768" name="MainWindow" debugshow="true"
@@ -224,7 +224,7 @@ private:
     ~MainWindow() = default;
 public:
     // ctor
-    MainWindow(LongUI::XUIBaseWindow* wnd) : Super(wnd) { }
+    MainWindow(LongUI::XUIBaseWindow* window) : Super(window) { }
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
 protected:
@@ -237,6 +237,7 @@ private:
     virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     // init
     void init() {
+        return;
         auto slider = LongUI::longui_cast<LongUI::UISlider*>(m_pWindow->FindControl("sld_opacity"));
         if (slider) {
             auto window = m_pWindow;
@@ -251,7 +252,7 @@ private:
         if (list) {
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
                 for (auto line : static_cast<LongUI::UIList*>(list)->GetContainer()) {
-                    auto tobesorted =  line->GetToBeSorted();
+                    auto tobesorted = line->GetToBeSorted();
                     auto ptr = const_cast<wchar_t*>(tobesorted->GetText());
                     tobesorted->user_ptr = ptr;
                 }
@@ -334,7 +335,7 @@ public:
 public:
     // Render This Control
     virtual void Render() const noexcept override {
-        D2D1_RECT_F draw_rect; 
+        D2D1_RECT_F draw_rect;
         this->GetBorderRect(draw_rect);
         //m_btn.Render(draw_rect);
         /*switch (type)
@@ -387,7 +388,7 @@ public:
         return hr;
     }
     // constructor
-    UIVideoAlpha(LongUI::UIContainer* cp) 
+    UIVideoAlpha(LongUI::UIContainer* cp)
         noexcept : Super(cp) {
         auto hr = m_video.Init();
         assert(SUCCEEDED(hr));
@@ -446,7 +447,7 @@ public:
         }*/
     };
     // return flags
-    virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
+    virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override {
         return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
     // choose
@@ -472,8 +473,8 @@ private:
 
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
-//int wmain(int argc, wchar_t* argv[]) {
-    //int nCmdShow = SW_SHOW;
+    //int wmain(int argc, wchar_t* argv[]) {
+        //int nCmdShow = SW_SHOW;
     ::FreeLibrary(nullptr);
     // 本Demo的配置信息
     class DemoConfigure config;
@@ -507,10 +508,10 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        /*case LongUI::Event::Event_ItemClicked:
-            // number button clicked event
-            //this->number_button_clicked(arg.sender);
-            return true;*/
+            /*case LongUI::Event::Event_ItemClicked:
+                // number button clicked event
+                //this->number_button_clicked(arg.sender);
+                return true;*/
         case LongUI::Event::Event_TreeBulidingFinished:
             // Event_TreeBulidingFinished could as "init" event
             this->init();
@@ -565,23 +566,25 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 
 // longui::demo namespace
-namespace LongUI { namespace Demo {
-    // config
-    class MyConfig final : public CUIDefaultConfigure {
-        // super class
-        using Super = CUIDefaultConfigure;
-    public:
-        // ctor
-        MyConfig() : Super(UIManager) { }
-        // return true, if use cpu rendering
-        virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
-            auto base = IUIConfigure::Flag_OutputDebugString;
-            //auto base = IUIConfigure::Flag_None;
-            return base | (cpu_rendering ? IUIConfigure::Flag_RenderByCPU : IUIConfigure::Flag_None); ;
-        }
-        bool    cpu_rendering = true;
-    };
-}}
+namespace LongUI {
+    namespace Demo {
+        // config
+        class MyConfig final : public CUIDefaultConfigure {
+            // super class
+            using Super = CUIDefaultConfigure;
+        public:
+            // ctor
+            MyConfig() : Super(UIManager) { }
+            // return true, if use cpu rendering
+            virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override {
+                auto base = IUIConfigure::Flag_OutputDebugString;
+                //auto base = IUIConfigure::Flag_None;
+                return base | (cpu_rendering ? IUIConfigure::Flag_RenderByCPU : IUIConfigure::Flag_None); ;
+            }
+            bool    cpu_rendering = true;
+        };
+    }
+}
 
 // Entry for App
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine, int nCmdShow) {

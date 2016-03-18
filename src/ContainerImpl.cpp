@@ -25,14 +25,14 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
                 ctrl->DoEvent(arg);
             }
             return true;
-        /*case LongUI::Event::Event_NotifyChildren:
-            // 仅仅传递一层
-            if (arg.sender->parent == this) {
-                for (auto ctrl : (*this)) {
-                    if (ctrl != arg.sender) ctrl->DoEvent(arg);
+            /*case LongUI::Event::Event_NotifyChildren:
+                // 仅仅传递一层
+                if (arg.sender->parent == this) {
+                    for (auto ctrl : (*this)) {
+                        if (ctrl != arg.sender) ctrl->DoEvent(arg);
+                    }
                 }
-            }
-            return true;*/
+                return true;*/
         }
     }
     return Super::DoEvent(arg);
@@ -169,11 +169,11 @@ void LongUI::UIContainerBuiltIn::Remove(UIControl* ctrl) noexcept {
         }
     }
     if (!ok) {
-        UIManager << DL_Error 
-            << "control:[" 
+        UIManager << DL_Error
+            << "control:["
             << ctrl->name
-            << "] not in this container: " 
-            << this->name 
+            << "] not in this container: "
+            << this->name
             << LongUI::endl;
         return;
     }
@@ -200,7 +200,7 @@ void LongUI::UIContainerBuiltIn::Remove(UIControl* ctrl) noexcept {
 /// Before_deleteds this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIContainerBuiltIn::before_deleted() noexcept { 
+void LongUI::UIContainerBuiltIn::before_deleted() noexcept {
     // 清理子控件
     auto ctrl = m_pHead;
     while (ctrl) {
@@ -214,7 +214,7 @@ void LongUI::UIContainerBuiltIn::before_deleted() noexcept {
     m_pTail = nullptr;
 #endif
     // 链式调用
-    Super::before_deleted(); 
+    Super::before_deleted();
 }
 
 // 获取控件索引
@@ -230,7 +230,7 @@ auto LongUI::UIContainerBuiltIn::GetIndexOf(UIControl* child) const noexcept ->u
 
 // 随机访问控件
 auto LongUI::UIContainerBuiltIn::GetAt(uint32_t i) const noexcept -> UIControl * {
-   // 超出
+    // 超出
     if (i >= m_cChildrenCount) return nullptr;
     // 第一个
     if (!i) return m_pHead;
@@ -577,16 +577,16 @@ bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
             m_pChild->NewParentSetted();
             m_pChild->DoEvent(arg);
             return true;
-        /*case LongUI::Event::Event_NotifyChildren:
-            // 不处理
-#ifdef _DEBUG
-            if (arg.sender == m_pChild) {
-                UIManager << DL_Warning 
-                    << L"Event_NotifyChildren for UISinge?!" 
-                    << LongUI::endl;
-            }
-#endif
-            return true;*/
+            /*case LongUI::Event::Event_NotifyChildren:
+                // 不处理
+    #ifdef _DEBUG
+                if (arg.sender == m_pChild) {
+                    UIManager << DL_Warning
+                        << L"Event_NotifyChildren for UISinge?!"
+                        << LongUI::endl;
+                }
+    #endif
+                return true;*/
         }
     }
     return Super::DoEvent(arg);
@@ -720,8 +720,8 @@ auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) 
 
 // --------------------- Page Layout ---------------
 // UIPage 构造函数
-LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp), 
-    m_animation(AnimationType::Type_QuadraticEaseIn) {
+LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp),
+m_animation(AnimationType::Type_QuadraticEaseIn) {
     // 初始化
     m_animation.start = m_animation.value = 0.f;
     m_animation.end = 1.f;
@@ -754,7 +754,7 @@ void LongUI::UIPage::before_deleted() noexcept {
     }
     m_vChildren.clear();
     // 链式调用
-    Super::before_deleted(); 
+    Super::before_deleted();
 }
 
 /// <summary>
@@ -788,14 +788,14 @@ bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
                 ctrl->DoEvent(arg);
             }
             return true;
-        /*case LongUI::Event::Event_NotifyChildren:
-            // 仅仅传递一层
-            if (arg.sender->parent == this) {
-                for (auto ctrl : m_vChildren) {
-                    if (ctrl != arg.sender) ctrl->DoEvent(arg);
+            /*case LongUI::Event::Event_NotifyChildren:
+                // 仅仅传递一层
+                if (arg.sender->parent == this) {
+                    for (auto ctrl : m_vChildren) {
+                        if (ctrl != arg.sender) ctrl->DoEvent(arg);
+                    }
                 }
-            }
-            return true;*/
+                return true;*/
         }
     }
     return Super::DoEvent(arg);
@@ -821,17 +821,17 @@ void LongUI::UIPage::render_chain_main() const noexcept {
         float off = this->is_slide_to_right() ? -1.f : 1.f;
         float xoffset = (m_animation.value * direction + off) * view_size.width;
         UIManager_RenderTarget->SetTransform(
-            D2D1::Matrix3x2F::Translation(xoffset, 0.f) 
+            D2D1::Matrix3x2F::Translation(xoffset, 0.f)
             * m_pNextDisplay->world
-            );
+        );
         m_pNextDisplay->Render();
         // 有效
         if (m_pNextDisplay != m_pNowDisplay) {
-            xoffset = (m_animation.value * direction ) * view_size.width;
+            xoffset = (m_animation.value * direction) * view_size.width;
             UIManager_RenderTarget->SetTransform(
-                D2D1::Matrix3x2F::Translation(xoffset, 0.f) 
+                D2D1::Matrix3x2F::Translation(xoffset, 0.f)
                 * m_pNowDisplay->world
-                );
+            );
             m_pNowDisplay->Render();
         }
     }

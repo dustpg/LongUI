@@ -272,7 +272,7 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
         auto arrow = UIScrollBarA::s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom];
 #if 0
         // 目标矩形
-        D2D1_RECT_F rect; 
+        D2D1_RECT_F rect;
         rect.right = this->view_size.width;
         rect.left = rect.right - UIScrollBarA::BASIC_SIZE;
         rect.top = (this->view_size.height - UIScrollBarA::BASIC_SIZE) * 0.5f;
@@ -285,7 +285,7 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
             D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
             target->SetTransform(
                 DX::Matrix3x2F::Translation(rect.left, rect.top) * matrix
-                );
+            );
             target->DrawGeometry(geo, bush, 2.33333f);
             // 修改
             target->SetTransform(&matrix);
@@ -294,7 +294,7 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
         render_geo(UIManager_RenderTarget, m_pBrush_SetBeforeUse, arrow, rect);
 #else
         // 目标坐标
-        D2D1_POINT_2F pt; 
+        D2D1_POINT_2F pt;
         pt.x = this->view_size.width - UIScrollBarA::BASIC_SIZE;
         pt.y = (this->view_size.height - UIScrollBarA::BASIC_SIZE) * 0.5f;
         // 颜色同文本
@@ -330,7 +330,7 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
     Super::initialize(node);
     // 创建列表
     auto list = node.first_child();
-    if (!list) list= node.append_child("List");
+    if (!list) list = node.append_child("List");
     assert(list && "bad action");
     auto tmp = UIManager.CreateControl(nullptr, list, nullptr);
     if (tmp) {

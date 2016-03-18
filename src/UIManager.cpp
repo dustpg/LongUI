@@ -24,7 +24,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     m_vWindows.clear();
     // 开始计时
     m_uiTimer.Start();
-    //this->RefreshDisplayFrequency();
+    this->RefreshDisplayFrequency();
     // 内容不足
     if (!m_vDelayCleanup.isok() || !m_vWindows.isok()) {
         return E_OUTOFMEMORY;
@@ -129,7 +129,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
             IID_ID2D1Factory4,
             &options,
             reinterpret_cast<void**>(&m_pd2dFactory)
-            );
+        );
         longui_debug_hr(hr, L"D2D1CreateFactory faild");
     }
     // 创建TSF线程管理器
@@ -139,7 +139,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
             nullptr,
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pTsfThreadManager)
-            );
+        );
         longui_debug_hr(hr, L"CoCreateInstance CLSID_TF_ThreadMgr faild");
     }
     // 激活客户ID
@@ -152,7 +152,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         hr = LongUI::Dll::DWriteCreateFactory(
             DWRITE_FACTORY_TYPE_ISOLATED,
             LongUI_IID_PV_ARGS_Ex(m_pDWriteFactory)
-            );
+        );
         longui_debug_hr(hr, L"DWriteCreateFactory faild");
     }
     // 创建帮助器
@@ -162,7 +162,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
             nullptr,
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pDropTargetHelper)
-            );
+        );
         longui_debug_hr(hr, L"CoCreateInstance CLSID_DragDropHelper faild");
     }
     // 创建字体集
@@ -409,11 +409,11 @@ auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateCon
 
 // 创建文本格式
 auto LongUI::CUIManager::CreateTextFormat(
-    WCHAR const * fontFamilyName, 
-    DWRITE_FONT_WEIGHT fontWeight, 
+    WCHAR const * fontFamilyName,
+    DWRITE_FONT_WEIGHT fontWeight,
     DWRITE_FONT_STYLE fontStyle,
-    DWRITE_FONT_STRETCH fontStretch, 
-    FLOAT fontSize, 
+    DWRITE_FONT_STRETCH fontStretch,
+    FLOAT fontSize,
     IDWriteTextFormat ** textFormat) noexcept -> HRESULT {
     auto hr = S_OK;
 #ifdef _DEBUG
@@ -441,7 +441,7 @@ auto LongUI::CUIManager::CreateTextFormat(
         fontSize,
         m_szLocaleName,
         textFormat
-        );
+    );
     // 检查错误
     longui_debug_hr(hr, Formated(L"CreateTextFormat(%ls) faild", fontFamilyName));
     return hr;
@@ -479,6 +479,8 @@ void LongUI::CUIManager::Run() noexcept {
                 // 更新计时器
                 UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
                 UIManager.m_uiTimer.MovStartEnd();
+                // 更新输入
+                UIManager.m_uiInput.Update();
                 // 刷新窗口
                 for (auto window : UIManager.m_vWindows) {
                     window->ClearRenderInfo();
@@ -526,7 +528,7 @@ void LongUI::CUIManager::Run() noexcept {
     // 等待线程
 #ifdef LONGUI_RENDER_IN_STD_THREAD
     try { if (thread.joinable()) { thread.join(); } }
-    catch (...) { }
+    catch (...) {}
 #else
     if (thread) {
         ::WaitForSingleObject(thread, INFINITE);
@@ -546,8 +548,10 @@ void LongUI::CUIManager::Run() noexcept {
             windows[count - i - 1]->cleanup();
         }
     }*/
-    assert(m_vDelayCleanup.empty() && "bad");
-    m_vDelayCleanup.clear();
+    while (m_vWindows.size()) {
+        m_vWindows.back()->Dispose();
+    }
+    assert(m_vWindows.empty() && "bad");
 }
 
 // 等待垂直同步
@@ -559,7 +563,7 @@ void LongUI::CUIManager::WaitVS() noexcept {
         return;
     }
     // 保留刷新时间点
-    auto end_time_of_sleep = m_dwWaitVSStartTime + 
+    auto end_time_of_sleep = m_dwWaitVSStartTime +
         ((++m_dwWaitVSCount) * 1000ui32) / static_cast<uint16_t>(m_dDisplayFrequency);
     // 保证等待
     while (::timeGetTime() < end_time_of_sleep) ::Sleep(1);
@@ -614,27 +618,27 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     }
     // 检查
     assert(function && "bad idea");
-    return function ? nullptr : function(cp->GetCET(), node);
+    return function ? function(cp->GetCET(), node) : nullptr;
 }
 
 // 创建UI窗口
 auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
-    XUIBaseWindow* parent,
-    callback_for_creating_window func) noexcept -> UIViewport* {
-    assert(func && node && "bad argument");
+    callback_create_viewport call) noexcept -> UIViewport* {
+    assert(node && call && "bad arguments");
     // 创建窗口
-    auto window = LongUI::CreateBuiltinSystemWindow();
+    auto window = LongUI::CreateBuiltinSystemWindow(node);
     assert(window && "create system window failed");
     if (!window) return nullptr;
     // 创建视口
-    auto viewport = func(node, parent);
-    // 创建失败
+    auto viewport = call(node, window);
     assert(viewport && "create viewport failed");
     if (!viewport) {
         window->Dispose();
         return nullptr;
     }
+    // 连接视口
+    window->InitializeViewport(viewport);
 #ifdef _DEBUG
     //::Sleep(5000);
     CUITimerH dbg_timer; dbg_timer.Start();
@@ -644,7 +648,7 @@ auto LongUI::CUIManager::create_ui_window(
     auto hr = window->Recreate();
     ShowHR(hr);
 #ifdef _DEBUG
-    //::Sleep(5000);
+    //::Sleep(500);
     auto time = dbg_timer.Delta_ms<double>();
     UIManager << DL_Log
         << Formated(L" took %.3lfms for recreate.", time)
@@ -668,70 +672,10 @@ auto LongUI::CUIManager::create_ui_window(
     UIManager << DL_Log
         << Formated(L" took %.3lfms for sending finished event.", time)
         << LongUI::endl;
-    //::Sleep(5000);
+    //::Sleep(500);
 #endif
     return viewport;
 }
-
-// 消息转换
-void LongUI::CUIManager::WindowsMsgToMouseEvent(MouseEventArgument& arg, 
-    UINT message, WPARAM wParam, LPARAM lParam) noexcept {
-    // 范围检查
-    assert((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || 
-        message == WM_MOUSELEAVE || message == WM_MOUSEHOVER);
-    // 获取X
-    auto get_x = [lParam]() { return float(int16_t(LOWORD(lParam))); };
-    // 获取Y
-    auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
-    // 设置
-    arg.pt.x = get_x();
-    arg.pt.y = get_y();
-    arg.last = nullptr;
-    MouseEvent me;
-    // 检查信息
-    switch (message)
-    {
-    case WM_MOUSEMOVE:
-        me = MouseEvent::Event_MouseMove;
-        break;
-    case WM_LBUTTONDOWN:
-        me = MouseEvent::Event_LButtonDown;
-        break;
-    case WM_LBUTTONUP:
-        me = MouseEvent::Event_LButtonUp;
-        break;
-    case WM_RBUTTONDOWN:
-        me = MouseEvent::Event_RButtonDown;
-        break;
-    case WM_RBUTTONUP:
-        me = MouseEvent::Event_RButtonUp;
-        break;
-    case WM_MBUTTONDOWN:
-        me = MouseEvent::Event_MButtonDown;
-        break;
-    case WM_MBUTTONUP:
-        me = MouseEvent::Event_MButtonUp;
-        break;
-    case WM_MOUSEWHEEL:
-        me = MouseEvent::Event_MouseWheelV;
-        break;
-    case WM_MOUSEHWHEEL:
-        me = MouseEvent::Event_MouseWheelH;
-        break;
-    case WM_MOUSEHOVER:
-        me = MouseEvent::Event_MouseHover;
-        break;
-    case WM_MOUSELEAVE:
-        me = MouseEvent::Event_MouseLeave;
-        break;
-    default:
-        me = MouseEvent::Event_None;
-        break;
-    }
-    arg.event = me;
-}
-
-
 
 // 获取主题颜色
 auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT {
@@ -742,14 +686,14 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
         HKEY_CURRENT_USER,
         "Software\\Microsoft\\Windows\\DWM", "ColorizationColor",
         RRF_RT_DWORD, nullptr, &color, &buffer_size
-        );
+    );
     DWORD balance = 50; buffer_size = sizeof(DWORD);
     // 获取Colorization混合标准
     ::RegGetValueA(
         HKEY_CURRENT_USER,
         "Software\\Microsoft\\Windows\\DWM", "ColorizationColorBalance",
         RRF_RT_DWORD, nullptr, &balance, &buffer_size
-        );
+    );
     {
         // 混合通道
         auto blend_channel = [](float ch1, float ch2, float prec) {
@@ -816,7 +760,7 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
     // 格式化
     if (!::FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM,
-        nullptr,  hr,
+        nullptr, hr,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
         buffer, LongUIStringBufferLength,
         nullptr)) {
@@ -824,7 +768,7 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
         std::swprintf(
             buffer, LongUIStringBufferLength,
             L"Error! HRESULT Code: 0x%08X", hr
-            );
+        );
     }
     // 错误
     this->ShowError(buffer, str_b);
@@ -833,7 +777,7 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
     XUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
-    ) noexcept -> int32_t {
+) noexcept -> int32_t {
     assert(m_uTextRenderCount < lengthof(m_apTextRenderer) && "buffer too small");
     assert(!white_space(name[0]) && "name cannot begin with white space");
     // 满了
@@ -861,9 +805,9 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
             D2D1::BitmapProperties1(
                 static_cast<D2D1_BITMAP_OPTIONS>(LongUIDefaultBitmapOptions),
                 D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
-                ),
+            ),
             m_ppBitmaps + LongUIDefaultBitmapIndex
-            );
+        );
         longui_debug_hr(hr, L"_pd2dDeviceContext->CreateBitmap failed");
     }
     // 索引0笔刷: 全控件共享用前写纯色笔刷
@@ -886,17 +830,17 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
             LongUIDefaultTextFontSize,
             //12.f,
             m_ppTextFormats + LongUIDefaultTextFormatIndex
-            );
+        );
         longui_debug_hr(hr, L"this->CreateTextFormat failed");
     }
     // 设置
     if (SUCCEEDED(hr)) {
         m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetParagraphAlignment(
             DWRITE_PARAGRAPH_ALIGNMENT(LongUIDefaultTextVAlign)
-            );
+        );
         m_ppTextFormats[LongUIDefaultTextFormatIndex]->SetTextAlignment(
             DWRITE_TEXT_ALIGNMENT(LongUIDefaultTextHAlign)
-            );
+        );
     }
     // 索引0图元: 暂无
     if (SUCCEEDED(hr)) {
@@ -981,7 +925,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         // 创建一个临时工程
         if (SUCCEEDED(LongUI::Dll::CreateDXGIFactory1(
             IID_IDXGIFactory1, reinterpret_cast<void**>(&dxgifactory)
-            ))) {
+        ))) {
             uint32_t adnum = 0;
             IDXGIAdapter1* apAdapters[LongUIMaxAdaptersSize];
             DXGI_ADAPTER_DESC1 descs[LongUIMaxAdaptersSize];
@@ -1052,11 +996,11 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             &m_featureLevel,
             // 返回的D3D11设备上下文指针
             &m_pd3dDeviceContext
-            );
+        );
         // 检查
         if (FAILED(hr)) {
-            UIManager << DL_Warning 
-                << L"create d3d11 device failed, now, try to create in warp mode" 
+            UIManager << DL_Warning
+                << L"create d3d11 device failed, now, try to create in warp mode"
                 << LongUI::endl;
         }
         // 创建失败则尝试使用软件
@@ -1082,7 +1026,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
                 &m_featureLevel,
                 // 返回的D3D11设备上下文指针
                 &m_pd3dDeviceContext
-                );
+            );
         }
         // 再次检查错误
         if (FAILED(hr)) {
@@ -1115,7 +1059,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         hr = m_pd2dDevice->CreateDeviceContext(
             D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
             &m_pd2dDeviceContext
-            );
+        );
         longui_debug_hr(hr, L"m_pd2dDevice->CreateDeviceContext faild");
     }
     // 获取 Dxgi适配器 可以获取该适配器信息
@@ -1129,7 +1073,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
 #ifdef _DEBUG
     // 输出显卡信息
     if (SUCCEEDED(hr)) {
-        DXGI_ADAPTER_DESC desc = { 0 }; 
+        DXGI_ADAPTER_DESC desc = { 0 };
         m_pDxgiAdapter->GetDesc(&desc);
         UIManager << DL_Log << desc << LongUI::endl;
     }
@@ -1173,7 +1117,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             nullptr,
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(m_pMediaEngineFactory)
-            );
+        );
         longui_debug_hr(hr, L"CoCreateInstance CLSID_MFMediaEngineClassFactory faild");
     }
 #endif
@@ -1198,7 +1142,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
             m_apTextRenderer[i]->SetNewTarget(m_pd2dDeviceContext);
             m_apTextRenderer[i]->SetNewBrush(
                 static_cast<ID2D1SolidColorBrush*>(m_ppBrushes[LongUICommonSolidColorBrushIndex])
-                );
+            );
         }
     }
     // 重建所有窗口
@@ -1229,7 +1173,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         hr = m_pd2dDeviceContext->CreateSolidColorBrush(
             D2D1::ColorF(0xCCCCCC),
             reinterpret_cast<ID2D1SolidColorBrush**>(m_apSystemBrushes + State_Disabled)
-            );
+        );
     }
     // 普通
     if (SUCCEEDED(hr)) {
@@ -1242,17 +1186,17 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
                 stops, lengthof<uint32_t>(stops), &collection
-                );
+            );
         }
         // 创建笔刷
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
-                    ),
+                ),
                 collection,
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Normal)
-                );
+            );
         }
         LongUI::SafeRelease(collection);
     }
@@ -1267,17 +1211,17 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
                 stops, lengthof<uint32_t>(stops), &collection
-                );
+            );
         }
         // 创建笔刷
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
-                    ),
+                ),
                 collection,
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Hover)
-                );
+            );
         }
         LongUI::SafeRelease(collection);
     }
@@ -1292,17 +1236,17 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateGradientStopCollection(
                 stops, lengthof<uint32_t>(stops), &collection
-                );
+            );
         }
         // 创建笔刷
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
                     D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
-                    ),
+                ),
                 collection,
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Pushed)
-                );
+            );
         }
         LongUI::SafeRelease(collection);
     }
@@ -1358,7 +1302,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
         if (m_pd3dDebug) {
             LongUI::SafeRelease(g_pd3dDebug_longui);
             g_pd3dDebug_longui = m_pd3dDebug;
-            m_pd3dDebug = nullptr; 
+            m_pd3dDebug = nullptr;
         }
     }
     __finally {
@@ -1378,9 +1322,9 @@ void LongUI::CUIManager::discard_resources() noexcept {
 auto LongUI::CUIManager::GetBitmap(size_t index) noexcept ->ID2D1Bitmap1* {
     // 越界
     if (index >= m_cCountBmp) {
-        UIManager << DL_Warning 
+        UIManager << DL_Warning
             << L"[index @ " << long(index)
-            << L"]is out of range \t\tNow set to 0" 
+            << L"]is out of range \t\tNow set to 0"
             << LongUI::endl;
         index = 0;
     }
@@ -1597,7 +1541,7 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
             hdc, reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS,
             reinterpret_cast<void **>(&pTargetBuffer), nullptr,
             (DWORD)0
-            );
+        );
         // 错误
         if (!hBitmap) {
             hr = LongUI::WinCode2HRESULT(::GetLastError());
@@ -1637,9 +1581,9 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
 #endif
         }
     }
-    ShowHR(hr);
-    LongUI::SafeRelease(bitmap);
-    return m_phMetaIcon[index] = hAlphaIcon;
+ShowHR(hr);
+LongUI::SafeRelease(bitmap);
+return m_phMetaIcon[index] = hAlphaIcon;
 }
 
 
@@ -1661,7 +1605,6 @@ void LongUI::CUIManager::AddWindow(XUISystemWindow* wnd) noexcept {
 }
 
 // 刷新屏幕刷新率
-#if 0
 void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
     // 获取屏幕刷新率
     DEVMODEW mode; std::memset(&mode, 0, sizeof(mode));
@@ -1676,7 +1619,7 @@ void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
         m_dDisplayFrequency = 60;
     }
 }
-#endif
+
 
 // 移出窗口
 void LongUI::CUIManager::RemoveWindow(XUISystemWindow* wnd) noexcept {
@@ -1786,7 +1729,7 @@ auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
 
 // 换行刷新重载
 auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
-    wchar_t chs[3] = { L'\r',L'\n', 0 }; 
+    wchar_t chs[3] = { L'\r',L'\n', 0 };
     this->Output(m_lastLevel, chs);
     return *this;
 }
@@ -1811,7 +1754,7 @@ auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept ->CU
         static_cast<double>(desc.SharedSystemMemory) / (1024.*1024.),
         desc.AdapterLuid.HighPart,
         desc.AdapterLuid.LowPart
-        );
+    );
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
@@ -1822,7 +1765,7 @@ auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept ->CUIManage
         buffer, LongUIStringBufferLength,
         L"RECT_WH(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.width, rect.height
-        );
+    );
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
@@ -1832,10 +1775,10 @@ auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept ->
     std::swprintf(
         buffer, LongUIStringBufferLength,
         L"MATRIX (%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
-        matrix._11, matrix._12, 
-        matrix._21, matrix._22, 
+        matrix._11, matrix._12,
+        matrix._21, matrix._22,
         matrix._31, matrix._32
-        );
+    );
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
@@ -1846,7 +1789,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept ->CUIManag
         buffer, LongUIStringBufferLength,
         L"RECT_RB(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.right, rect.bottom
-        );
+    );
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
@@ -1857,7 +1800,7 @@ auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManag
         buffer, LongUIStringBufferLength,
         L"POINT(%7.2f, %7.2f)",
         pt.x, pt.y
-        );
+    );
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
@@ -1877,7 +1820,7 @@ void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char* s) noexce
 }
 
 // 浮点重载
-auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager&  {
+auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager& {
     wchar_t buffer[LongUIStringBufferLength];
     std::swprintf(buffer, LongUIStringBufferLength, L"%.2f", f);
     this->OutputNoFlush(m_lastLevel, buffer);
@@ -1902,7 +1845,7 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
             ctrl,
             ctrl->name.c_str(),
             ctrl->GetControlClassName(false)
-            );
+        );
     }
     else {
         std::swprintf(buffer, LongUIStringBufferLength, L"[null] ");
@@ -1923,7 +1866,7 @@ auto LongUI::CUIManager::operator<<(const ControlVector& ctrls) noexcept ->CUIMa
             ctrl,
             ctrl->name.c_str(),
             ctrl->GetControlClassName(false)
-            );
+        );
         this->OutputNoFlush(m_lastLevel, buffer);
         ++index;
     }

@@ -42,7 +42,7 @@ namespace LongUI {
         // string allocator
         using StringAllocator = CUIShortStringAllocator<>;
         // ctor
-        XUIBaseWindow() noexcept;
+        XUIBaseWindow(pugi::xml_node node) noexcept;
         // dtor
         ~XUIBaseWindow() noexcept;
     public:
@@ -78,8 +78,6 @@ namespace LongUI {
         virtual void Update() noexcept;
         // recreate: call UIControl::Render
         virtual auto Recreate() noexcept ->HRESULT;
-        // link viewport
-        virtual void LinkViewport(UIViewport* view) noexcept;
         // move window relative to parent
         virtual void MoveWindow(int32_t x, int32_t y) noexcept = 0;
         // resize window
@@ -95,10 +93,10 @@ namespace LongUI {
         auto GetTop() const noexcept { return m_rcWindow.top; }
         // get left
         auto GetLeft() const noexcept { return m_rcWindow.left; }
-        // get right
-        auto GetRight() const noexcept { return m_rcWindow.right; }
-        // get bottom
-        auto GetBottom() const noexcept { return m_rcWindow.bottom; }
+        // get width of window client zone
+        auto GetWidth() const noexcept { return m_rcWindow.width; }
+        // get height of window client zone
+        auto GetHeight() const noexcept { return m_rcWindow.height; }
         // show window
         void ShowWindow(int cmd) noexcept { ::ShowWindow(m_hwnd, cmd); };
         // get text anti-mode 
@@ -118,6 +116,8 @@ namespace LongUI {
         // clear render info
         void ClearRenderInfo() noexcept { this->clear_full_render_this_frame(); m_uUnitLength = 0; }
     public:
+        // initialize viewport
+        void InitializeViewport(UIViewport* viewport) noexcept;
         // do event
         bool DoEvent(const EventArgument& arg) noexcept;
         // render control in next frame
@@ -149,7 +149,11 @@ namespace LongUI {
         bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
         // is FullRenderingThisFrame
         bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrame); }
+        // is NewSize
+        bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }
     protected:
+        // set ExitOnClose to true
+        void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue(Index_ExitOnClose); }
         // set SkipRender to true
         void set_skip_render() noexcept { m_baBoolWindow.SetTrue(Index_SkipRender); }
         // clear SkipRender
@@ -158,9 +162,16 @@ namespace LongUI {
         void set_full_render_this_frame() noexcept { m_baBoolWindow.SetTrue(Index_FullRenderThisFrame); }
         // clear FullRenderingThisFrame
         void clear_full_render_this_frame() noexcept { m_baBoolWindow.SetFalse(Index_FullRenderThisFrame);  }
+        // set NewSize to true
+        void set_new_size() noexcept { m_baBoolWindow.SetTrue(Index_NewSize); }
+        // clear FullRenderingThisFrame
+        void clear_new_size() noexcept { m_baBoolWindow.SetFalse(Index_NewSize);  }
     protected:
-        // implement longui-window
-        UIViewport*             m_pImplement = nullptr;
+        // resized, called from child-class
+        void resized() noexcept;
+    protected:
+        // longui viewport
+        UIViewport*             m_pViewport = nullptr;
         // parent window
         XUIBaseWindow*          m_pParent = nullptr;
         // children
@@ -168,7 +179,7 @@ namespace LongUI {
         // window handle
         HWND                    m_hwnd = nullptr;
         // TODO: mini size
-        D2D1_SIZE_U             m_miniSize = D2D1::SizeU(64, 64);
+        POINT                   m_miniSize;
         // now hover track control(only one)
         UIControl*              m_pHoverTracked = nullptr;
         // now focused control (only one)
@@ -178,7 +189,7 @@ namespace LongUI {
         // now captured control (only one)
         UIControl*              m_pCapturedControl = nullptr;
         // window rect
-        RectLTRB_L              m_rcWindow;
+        RectLTWH_L              m_rcWindow;
         // string allocator
         StringAllocator         m_oStringAllocator;
         // will use BitArray instead of them
@@ -186,13 +197,11 @@ namespace LongUI {
         // mode for text anti-alias
         uint32_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
         // data length of m_apUnits
-        size_t                  m_uUnitLength;
+        size_t                  m_uUnitLength = 0;
         // data for unit
         UIControl*              m_apUnit[LongUIDirtyControlSize];
         // dirty rects
         RECT                    m_dirtyRects[LongUIDirtyControlSize];
-        // track mouse event: end with DWORD
-        TRACKMOUSEEVENT         m_csTME;
         // current STGMEDIUM: begin with DWORD
         STGMEDIUM               m_curMedium;
         // control name ->map-> control pointer
@@ -217,7 +226,7 @@ namespace LongUI {
         using Super = XUIBaseWindow;
     public:
         // ctor
-        XUISystemWindow() noexcept;
+        XUISystemWindow(pugi::xml_node node) noexcept;
         // dtor
         ~XUISystemWindow() noexcept;
     public:
@@ -232,7 +241,7 @@ namespace LongUI {
         static const UINT s_uTaskbarBtnCreatedMsg;
     };
     // create builtin system window
-    auto CreateBuiltinSystemWindow() noexcept ->XUISystemWindow*;
+    auto CreateBuiltinSystemWindow(pugi::xml_node node) noexcept ->XUISystemWindow*;
     // create builtin inset window
-    auto CreateBuiltinInsetWindow() noexcept ->XUIBaseWindow*;
+    auto CreateBuiltinInsetWindow(pugi::xml_node node) noexcept ->XUIBaseWindow*;
 }

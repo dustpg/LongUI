@@ -1,87 +1,89 @@
 ﻿#include "LongUI.h"
 
 // longui::impl 命名空间
-namespace LongUI { namespace impl {
-    // 字体文件枚举
-    class LongUIFontFileEnumerator final : public Helper::ComStatic<
-        Helper::QiList<IDWriteFontFileEnumerator >> {
-    public:
-        // 获取当前字体文件
-        HRESULT STDMETHODCALLTYPE GetCurrentFontFile(IDWriteFontFile **ppFontFile) noexcept override {
-            if (!ppFontFile) return E_INVALIDARG;
-            if (!m_pFilePath || !m_pFactory)  return E_FAIL;
-            *ppFontFile = LongUI::SafeAcquire(m_pCurFontFie);
-            return m_pCurFontFie ? S_OK : E_FAIL;
-        }
-        // 移动到下一个文件
-        HRESULT STDMETHODCALLTYPE MoveNext(BOOL *pHasCurrentFile) noexcept override {
-            if (!pHasCurrentFile)return E_INVALIDARG;
-            if (!m_pFilePath || !m_pFactory) return E_FAIL;
-            HRESULT hr = S_OK;
-            if (*pHasCurrentFile = *m_pFilePathNow) {
-                LongUI::SafeRelease(m_pCurFontFie);
-                hr = m_pFactory->CreateFontFileReference(m_pFilePathNow, nullptr, &m_pCurFontFie);
-                longui_debug_hr(hr, L" m_pFactory->CreateFontFileReference faild");
-                if (*pHasCurrentFile = SUCCEEDED(hr)) {
-                    m_pFilePathNow += std::wcslen(m_pFilePathNow);
-                    ++m_pFilePathNow;
-                }
+namespace LongUI {
+    namespace impl {
+        // 字体文件枚举
+        class LongUIFontFileEnumerator final : public Helper::ComStatic<
+            Helper::QiList<IDWriteFontFileEnumerator >> {
+        public:
+            // 获取当前字体文件
+            HRESULT STDMETHODCALLTYPE GetCurrentFontFile(IDWriteFontFile **ppFontFile) noexcept override {
+                if (!ppFontFile) return E_INVALIDARG;
+                if (!m_pFilePath || !m_pFactory)  return E_FAIL;
+                *ppFontFile = LongUI::SafeAcquire(m_pCurFontFie);
+                return m_pCurFontFie ? S_OK : E_FAIL;
             }
-            return hr;
-        }
-    public:
-        // 构造函数
-        LongUIFontFileEnumerator(IDWriteFactory* f) :m_pFactory(LongUI::SafeAcquire(f)) {}
-        // 析构函数
-        ~LongUIFontFileEnumerator() { LongUI::SafeRelease(m_pCurFontFie); LongUI::SafeRelease(m_pFactory); }
-        // 初始化
-        auto Initialize(const wchar_t* path) { m_pFilePathNow = m_pFilePath = path; };
-    private:
-        // 文件路径 连续字符串
-        const wchar_t*              m_pFilePath = nullptr;
-        // 当前文件路径
-        const wchar_t*              m_pFilePathNow = nullptr;
-        // 当前Direct Write Font File
-        IDWriteFontFile*            m_pCurFontFie = nullptr;
-        // DWrite 工厂
-        IDWriteFactory*             m_pFactory;
-    };
-    // 字体文件载入器
-    class LongUIFontCollectionLoader final : public Helper::ComStatic<
-        Helper::QiList<IDWriteFontCollectionLoader >> {
-    public:
-        // 创建枚举器
-        HRESULT STDMETHODCALLTYPE CreateEnumeratorFromKey(
-            IDWriteFactory *pFactory,
-            const void*collectionKey,
-            UINT32 collectionKeySize,
-            IDWriteFontFileEnumerator **ppFontFileEnumerator
+            // 移动到下一个文件
+            HRESULT STDMETHODCALLTYPE MoveNext(BOOL *pHasCurrentFile) noexcept override {
+                if (!pHasCurrentFile)return E_INVALIDARG;
+                if (!m_pFilePath || !m_pFactory) return E_FAIL;
+                HRESULT hr = S_OK;
+                if (*pHasCurrentFile = *m_pFilePathNow) {
+                    LongUI::SafeRelease(m_pCurFontFie);
+                    hr = m_pFactory->CreateFontFileReference(m_pFilePathNow, nullptr, &m_pCurFontFie);
+                    longui_debug_hr(hr, L" m_pFactory->CreateFontFileReference faild");
+                    if (*pHasCurrentFile = SUCCEEDED(hr)) {
+                        m_pFilePathNow += std::wcslen(m_pFilePathNow);
+                        ++m_pFilePathNow;
+                    }
+                }
+                return hr;
+            }
+        public:
+            // 构造函数
+            LongUIFontFileEnumerator(IDWriteFactory* f) :m_pFactory(LongUI::SafeAcquire(f)) {}
+            // 析构函数
+            ~LongUIFontFileEnumerator() { LongUI::SafeRelease(m_pCurFontFie); LongUI::SafeRelease(m_pFactory); }
+            // 初始化
+            auto Initialize(const wchar_t* path) { m_pFilePathNow = m_pFilePath = path; };
+        private:
+            // 文件路径 连续字符串
+            const wchar_t*              m_pFilePath = nullptr;
+            // 当前文件路径
+            const wchar_t*              m_pFilePathNow = nullptr;
+            // 当前Direct Write Font File
+            IDWriteFontFile*            m_pCurFontFie = nullptr;
+            // DWrite 工厂
+            IDWriteFactory*             m_pFactory;
+        };
+        // 字体文件载入器
+        class LongUIFontCollectionLoader final : public Helper::ComStatic<
+            Helper::QiList<IDWriteFontCollectionLoader >> {
+        public:
+            // 创建枚举器
+            HRESULT STDMETHODCALLTYPE CreateEnumeratorFromKey(
+                IDWriteFactory *pFactory,
+                const void*collectionKey,
+                UINT32 collectionKeySize,
+                IDWriteFontFileEnumerator **ppFontFileEnumerator
             ) noexcept override {
-            UNREFERENCED_PARAMETER(collectionKeySize);
-            if (!pFactory || !ppFontFileEnumerator) return E_INVALIDARG;
-            m_enumerator.LongUIFontFileEnumerator::~LongUIFontFileEnumerator();
-            m_enumerator.LongUIFontFileEnumerator::LongUIFontFileEnumerator(pFactory);
-            m_enumerator.Initialize(reinterpret_cast<const wchar_t*>(collectionKey));
-            *ppFontFileEnumerator = &m_enumerator;
-            return S_OK;
-        }
-    public:
-        // 构造函数
-        LongUIFontCollectionLoader() :m_enumerator(nullptr) {}
-        // 析构函数
-        ~LongUIFontCollectionLoader() = default;
-    private:
-        // 枚举器
-        LongUIFontFileEnumerator        m_enumerator;
-    };
-}}
+                UNREFERENCED_PARAMETER(collectionKeySize);
+                if (!pFactory || !ppFontFileEnumerator) return E_INVALIDARG;
+                m_enumerator.LongUIFontFileEnumerator::~LongUIFontFileEnumerator();
+                m_enumerator.LongUIFontFileEnumerator::LongUIFontFileEnumerator(pFactory);
+                m_enumerator.Initialize(reinterpret_cast<const wchar_t*>(collectionKey));
+                *ppFontFileEnumerator = &m_enumerator;
+                return S_OK;
+            }
+        public:
+            // 构造函数
+            LongUIFontCollectionLoader() :m_enumerator(nullptr) {}
+            // 析构函数
+            ~LongUIFontCollectionLoader() = default;
+        private:
+            // 枚举器
+            LongUIFontFileEnumerator        m_enumerator;
+        };
+    }
+}
 
 // 创建LongUI的字体集: 本函数会进行I/O, 所以程序开始调用一次即可
 auto LongUI::DX::CreateFontCollection(
-    const wchar_t * filename, 
+    const wchar_t * filename,
     const wchar_t * folder,
     bool include_system
-    ) noexcept -> IDWriteFontCollection* {
+) noexcept -> IDWriteFontCollection* {
     IDWriteFontCollection* collection = nullptr;
     constexpr size_t buffer_length = 256 * 256 * 16;
     // 申请足够的空间
@@ -115,7 +117,7 @@ auto LongUI::DX::CreateFontCollection(
             buffer,
             static_cast<uint32_t>(reinterpret_cast<uint8_t*>(itr + 1) - reinterpret_cast<uint8_t*>(buffer)),
             &collection
-            );
+        );
         longui_debug_hr(hr, L" UIManager_DWriteFactory->CreateCustomFontCollection faild");
         hr = UIManager_DWriteFactory->UnregisterFontCollectionLoader(&loader);
         longui_debug_hr(hr, L" UIManager_DWriteFactory->UnregisterFontCollectionLoader faild");
@@ -143,7 +145,7 @@ auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextF
         static_cast<DWRITE_FONT_STRETCH>(prop.stretch),
         prop.size,
         fmt
-        );
+    );
     // 成功
     if (SUCCEEDED(hr)) {
         auto format = *fmt;
@@ -195,9 +197,9 @@ LongUINoinline void LongUI::DX::InitTextFormatProperties(TextFormatProperties& p
 
 // 做一个文本格式
 auto LongUI::DX::MakeTextFormat(
-    IN pugi::xml_node node, 
-    OUT IDWriteTextFormat** fmt, 
-    IN OPTIONAL IDWriteTextFormat* template_fmt, 
+    IN pugi::xml_node node,
+    OUT IDWriteTextFormat** fmt,
+    IN OPTIONAL IDWriteTextFormat* template_fmt,
     IN OPTIONAL const char* prefix) noexcept -> HRESULT {
     // 参数检查
     assert(fmt && "bad argment"); if (!fmt) return E_INVALIDARG;
@@ -328,7 +330,7 @@ auto LongUI::DX::CreateTextPathGeometry(
     IN ID2D1Factory* factory,
     IN OUT OPTIONAL IDWriteFontFace** _fontface,
     OUT ID2D1PathGeometry** geometry
-    ) noexcept -> HRESULT {
+) noexcept -> HRESULT {
     // 参数检查
     assert(utf32_string && string_length && format && geometry && factory && "bad arugments");
     if (!utf32_string || !string_length || !format || !geometry || !factory) return E_INVALIDARG;
@@ -382,7 +384,7 @@ auto LongUI::DX::CreateTextPathGeometry(
                 format->GetFontStretch(),
                 format->GetFontStyle(),
                 &font
-                );
+            );
             longui_debug_hr(hr, L"failed: family->GetFirstMatchingFont ");
 
         }
@@ -406,10 +408,10 @@ auto LongUI::DX::CreateTextPathGeometry(
         if (SUCCEEDED(hr)) {
             static_assert(sizeof(uint32_t) == sizeof(char32_t), "32 != 32 ?!");
             hr = fontface->GetGlyphIndices(
-                reinterpret_cast<const uint32_t*>(utf32_string), 
-                string_length, 
+                reinterpret_cast<const uint32_t*>(utf32_string),
+                string_length,
                 glyph_indices_buffer.GetData()
-                );
+            );
             longui_debug_hr(hr, L"failed: fontface->GetGlyphIndices ");
         }
         // 创建轮廓路径几何
@@ -420,7 +422,7 @@ auto LongUI::DX::CreateTextPathGeometry(
                 nullptr, nullptr,
                 string_length,
                 true, true, sink
-                );
+            );
             longui_debug_hr(hr, L"failed: fontface->GetGlyphRunOutline ");
         }
         // 关闭路径
@@ -468,9 +470,9 @@ auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mes
 
 // 直接使用
 auto LongUI::DX::FormatTextXML(
-    const FormatTextConfig& config, 
+    const FormatTextConfig& config,
     const wchar_t* format
-    ) noexcept ->IDWriteTextLayout*{
+) noexcept ->IDWriteTextLayout* {
     UNREFERENCED_PARAMETER(config);
     UNREFERENCED_PARAMETER(format);
     return nullptr;
@@ -516,467 +518,469 @@ control char    C-Type      Infomation                                   StringP
 IDWriteFontCollection*
 
 FORMAT IN STRING
-the va_list(ap) can be nullptr while string format include the PARAMETERS, 
+the va_list(ap) can be nullptr while string format include the PARAMETERS,
 use %p to mark PARAMETERS start
 
 */
 
 // longui::dx namespace
-namespace LongUI { namespace DX {
-    // 范围类型
-    enum class RANGE_TYPE : size_t { F, W, Y, H, S, U, D, E, I, T, L };
-    // 范围数据
-    struct RANGE_DATA {
-        // 具体数据
-        union {
-            const wchar_t*          wstr;       // FL
-            IUnknown*               effect;     // E
-            IDWriteInlineObject*    inlineobj;  // I
-            IDWriteTypography*      typography; // T
-            DWRITE_FONT_WEIGHT      weight;     // W
-            DWRITE_FONT_STYLE       style;      // Y
-            DWRITE_FONT_STRETCH     stretch;    // D
-            float                   size;       // S
-            //BOOL                    underline;  // U
-            //BOOL                    strikethr;  // T
+namespace LongUI {
+    namespace DX {
+        // 范围类型
+        enum class RANGE_TYPE : size_t { F, W, Y, H, S, U, D, E, I, T, L };
+        // 范围数据
+        struct RANGE_DATA {
+            // 具体数据
+            union {
+                const wchar_t*          wstr;       // FL
+                IUnknown*               effect;     // E
+                IDWriteInlineObject*    inlineobj;  // I
+                IDWriteTypography*      typography; // T
+                DWRITE_FONT_WEIGHT      weight;     // W
+                DWRITE_FONT_STYLE       style;      // Y
+                DWRITE_FONT_STRETCH     stretch;    // D
+                float                   size;       // S
+                //BOOL                    underline;  // U
+                //BOOL                    strikethr;  // T
+            };
+            // 类型
+            RANGE_TYPE                  type;
+            // 范围
+            DWRITE_TEXT_RANGE           range;
         };
-        // 类型
-        RANGE_TYPE                  type;
-        // 范围
-        DWRITE_TEXT_RANGE           range;
-    };
-    // C参数
-    struct CoreMLParamC {
-        // 构造函数
-        CoreMLParamC(va_list va) noexcept : list(va) {};
-        // 获取刻画效果
-        auto GetEffect() noexcept { auto p = va_arg(list, IUnknown*); assert(p); p->AddRef(); return p; }
-        // 获取内联对象
-        auto GetInlineObject() noexcept {  auto p va_arg(list, IDWriteInlineObject*);  assert(p); p->AddRef(); return p; }
-        // 获取版式功能
-        auto GetTypography() noexcept {  auto p va_arg(list, IDWriteTypography*);  assert(p); p->AddRef(); return p; }
-        // 获取字符串
-        auto GetString() noexcept { return va_arg(list, const wchar_t*); }
-        // 获取字体名称
-        auto GetStringEx() noexcept { return va_arg(list, const wchar_t*); }
-        // 获取颜色
-        void GetColor(D2D1_COLOR_F& color) noexcept { color = *(va_arg(list, D2D1_COLOR_F*)); }
-        // 获取浮点, float 经过可变参数会提升至double
-        auto GetFloat() noexcept { return static_cast<float>(va_arg(list, double)); }
-        // 获取字体粗细
-        auto GetFontWeight() noexcept { return va_arg(list, DWRITE_FONT_WEIGHT); }
-        // 获取字体风格
-        auto GetFontStyle() noexcept { return va_arg(list, DWRITE_FONT_STYLE); }
-        // 获取字体伸缩
-        auto GetFontStretch() noexcept  { return va_arg(list, DWRITE_FONT_STRETCH); }
-        // 可变参数列表
-        va_list             list;
-    };
-    // 字符串参数
-    struct CoreMLParamString {
-        // 构造函数
-        CoreMLParamString(const wchar_t* p) noexcept;
-        // 获取刻画效果
-        auto GetEffect() noexcept -> IUnknown* { assert(!"unsupported for string param!"); return nullptr; }
-        // 获取内联对象
-        auto GetInlineObject() noexcept -> IDWriteInlineObject*  { assert(!"unsupported for string param!"); return nullptr; }
-        // 获取版式功能
-        auto GetTypography() noexcept -> IDWriteTypography*;
-        // 获取字符串
-        auto GetString() noexcept -> const wchar_t* { assert(!"unsupported for string param!"); return nullptr; }
-        // 获取字符串Ex
-        auto GetStringEx() noexcept -> const wchar_t*;
-        // 获取颜色
-        void GetColor(D2D1_COLOR_F& color) noexcept;
-        // 获取浮点
-        auto GetFloat() noexcept ->float;
-        // 获取字体粗细
-        auto GetFontWeight() noexcept ->DWRITE_FONT_WEIGHT;
-        // 获取字体风格
-        auto GetFontStyle() noexcept ->DWRITE_FONT_STYLE;
-        // 获取字体伸缩
-        auto GetFontStretch() noexcept ->DWRITE_FONT_STRETCH;
-        // 参数地址
-        const wchar_t*              param = nullptr;
-        // 字体名迭代器
-        wchar_t*                    family_itr = family_buffer;
-        // 字体名缓存
-        wchar_t                     family_buffer[1024];
-    private:
-        // 复制字符串, 返回最后非空白字符串数据
-        template<typename T> auto copy_string_sp(T* __restrict des) noexcept {
-            // 获取数据
-            const wchar_t* __restrict src = this->param;
-            // 跳过空白
-            while (white_space(*src)) ++src;
-            // 复制数据
-            while ((*src) && ((*src)) != ',') { *des = static_cast<T>(*src); ++src; ++des; }
-            // 检查最后有效字符串
-            auto last = des; while (white_space(last[-1])) --last;
-            // 写入
-            this->param = src + 1;
+        // C参数
+        struct CoreMLParamC {
+            // 构造函数
+            CoreMLParamC(va_list va) noexcept : list(va) {};
+            // 获取刻画效果
+            auto GetEffect() noexcept { auto p = va_arg(list, IUnknown*); assert(p); p->AddRef(); return p; }
+            // 获取内联对象
+            auto GetInlineObject() noexcept { auto p va_arg(list, IDWriteInlineObject*);  assert(p); p->AddRef(); return p; }
+            // 获取版式功能
+            auto GetTypography() noexcept { auto p va_arg(list, IDWriteTypography*);  assert(p); p->AddRef(); return p; }
+            // 获取字符串
+            auto GetString() noexcept { return va_arg(list, const wchar_t*); }
+            // 获取字体名称
+            auto GetStringEx() noexcept { return va_arg(list, const wchar_t*); }
+            // 获取颜色
+            void GetColor(D2D1_COLOR_F& color) noexcept { color = *(va_arg(list, D2D1_COLOR_F*)); }
+            // 获取浮点, float 经过可变参数会提升至double
+            auto GetFloat() noexcept { return static_cast<float>(va_arg(list, double)); }
+            // 获取字体粗细
+            auto GetFontWeight() noexcept { return va_arg(list, DWRITE_FONT_WEIGHT); }
+            // 获取字体风格
+            auto GetFontStyle() noexcept { return va_arg(list, DWRITE_FONT_STYLE); }
+            // 获取字体伸缩
+            auto GetFontStretch() noexcept { return va_arg(list, DWRITE_FONT_STRETCH); }
+            // 可变参数列表
+            va_list             list;
+        };
+        // 字符串参数
+        struct CoreMLParamString {
+            // 构造函数
+            CoreMLParamString(const wchar_t* p) noexcept;
+            // 获取刻画效果
+            auto GetEffect() noexcept -> IUnknown* { assert(!"unsupported for string param!"); return nullptr; }
+            // 获取内联对象
+            auto GetInlineObject() noexcept -> IDWriteInlineObject* { assert(!"unsupported for string param!"); return nullptr; }
+            // 获取版式功能
+            auto GetTypography() noexcept->IDWriteTypography*;
+            // 获取字符串
+            auto GetString() noexcept -> const wchar_t* { assert(!"unsupported for string param!"); return nullptr; }
+            // 获取字符串Ex
+            auto GetStringEx() noexcept -> const wchar_t*;
+            // 获取颜色
+            void GetColor(D2D1_COLOR_F& color) noexcept;
+            // 获取浮点
+            auto GetFloat() noexcept ->float;
+            // 获取字体粗细
+            auto GetFontWeight() noexcept->DWRITE_FONT_WEIGHT;
+            // 获取字体风格
+            auto GetFontStyle() noexcept->DWRITE_FONT_STYLE;
+            // 获取字体伸缩
+            auto GetFontStretch() noexcept->DWRITE_FONT_STRETCH;
+            // 参数地址
+            const wchar_t*              param = nullptr;
+            // 字体名迭代器
+            wchar_t*                    family_itr = family_buffer;
+            // 字体名缓存
+            wchar_t                     family_buffer[1024];
+        private:
+            // 复制字符串, 返回最后非空白字符串数据
+            template<typename T> auto copy_string_sp(T* __restrict des) noexcept {
+                // 获取数据
+                const wchar_t* __restrict src = this->param;
+                // 跳过空白
+                while (white_space(*src)) ++src;
+                // 复制数据
+                while ((*src) && ((*src)) != ',') { *des = static_cast<T>(*src); ++src; ++des; }
+                // 检查最后有效字符串
+                auto last = des; while (white_space(last[-1])) --last;
+                // 写入
+                this->param = src + 1;
 #ifdef _DEBUG
-            // 调试
-            if (!src[0]) this->param = nullptr;
+                // 调试
+                if (!src[0]) this->param = nullptr;
 #endif
-            // 返回
-            return last;
-        }
-    };
-    // CoreMLParamString 构造函数
-    inline CoreMLParamString::CoreMLParamString(const wchar_t* p) noexcept {
-        while (*p) {
-            if (p[0] == '%' && p[1] == 'p') {
-                this->param = p + 2;
-                break;
+                // 返回
+                return last;
             }
-            ++p;
+        };
+        // CoreMLParamString 构造函数
+        inline CoreMLParamString::CoreMLParamString(const wchar_t* p) noexcept {
+            while (*p) {
+                if (p[0] == '%' && p[1] == 'p') {
+                    this->param = p + 2;
+                    break;
+                }
+                ++p;
+            }
         }
-    }
-    // 获取浮点数
-    inline auto CoreMLParamString::GetFloat() noexcept -> float {
-        assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
-        char buffer[1024]; 
-        auto end = this->copy_string_sp(buffer); end[0] = 0;
-        assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
-        return LongUI::AtoF(buffer);
-    }
-    // 获取字体粗细
-    inline auto CoreMLParamString::GetFontWeight() noexcept -> DWRITE_FONT_WEIGHT {
-        assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
-        char buffer[1024]; 
-        auto end = this->copy_string_sp(buffer); end[0] = 0;
-        assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
-        return static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(buffer));
-    }
-    // 获取字体风格
-    inline auto CoreMLParamString::GetFontStyle() noexcept -> DWRITE_FONT_STYLE {
-        assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
-        char buffer[1024]; 
-        auto end = this->copy_string_sp(buffer); end[0] = 0;
-        assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
-        return Helper::GetEnumFromString(buffer, DWRITE_FONT_STYLE_NORMAL);
-    }
-    // 获取字体伸缩
-    inline auto CoreMLParamString::GetFontStretch() noexcept -> DWRITE_FONT_STRETCH {
-        assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
-        char buffer[1024]; 
-        auto end = this->copy_string_sp(buffer); end[0] = 0;
-        assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
-        return Helper::GetEnumFromString(buffer, DWRITE_FONT_STRETCH_NORMAL);
-    }
-    // 获取颜色
-    inline void CoreMLParamString::GetColor(D2D1_COLOR_F& color) noexcept {
-        assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
-        char buffer[1024]; 
-        auto end = this->copy_string_sp(buffer); end[0] = 0;
-        assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
-        Helper::MakeColor(buffer, color);
-    }
-    // 获取字体名称
-    auto CoreMLParamString::GetStringEx() noexcept -> const wchar_t* {
-        auto old = this->family_itr;
-        auto end = this->copy_string_sp(old); end[0] = 0;
-        this->family_itr = end + 1;
-        return old;
-    }
-    // 获取排版样式
-    inline auto CoreMLParamString::GetTypography() noexcept -> IDWriteTypography* {
-        IDWriteTypography* typography = nullptr;
-        // 设置参数
-        assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
-        char buffer[1024]; 
-        auto end = this->copy_string_sp(buffer);
-        end[0] = ' '; end[1] = 0;
-        assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
-        // 创建 Typography
-        auto hr = UIManager_DWriteFactory->CreateTypography(&typography);
-        longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTypography ");
-        assert(std::strlen(buffer) % 5 == 0 && "bad font feature tag");
-        // CPU 大小端检查
-        static_assert(uint32_t(DWRITE_FONT_FEATURE_TAG_CASE_SENSITIVE_FORMS) == uint32_t("case"_longui32), "check cpu type");
-        static_assert(sizeof(uint32_t) == sizeof(DWRITE_FONT_FEATURE_TAG), "check enum type");
-        // 添加 OpenTypoe 特性
-        if (SUCCEEDED(hr)) {
-            DWRITE_FONT_FEATURE feature;
-            feature.parameter = 1;
+        // 获取浮点数
+        inline auto CoreMLParamString::GetFloat() noexcept -> float {
+            assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
+            char buffer[1024];
+            auto end = this->copy_string_sp(buffer); end[0] = 0;
+            assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
+            return LongUI::AtoF(buffer);
+        }
+        // 获取字体粗细
+        inline auto CoreMLParamString::GetFontWeight() noexcept -> DWRITE_FONT_WEIGHT {
+            assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
+            char buffer[1024];
+            auto end = this->copy_string_sp(buffer); end[0] = 0;
+            assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
+            return static_cast<DWRITE_FONT_WEIGHT>(LongUI::AtoI(buffer));
+        }
+        // 获取字体风格
+        inline auto CoreMLParamString::GetFontStyle() noexcept -> DWRITE_FONT_STYLE {
+            assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
+            char buffer[1024];
+            auto end = this->copy_string_sp(buffer); end[0] = 0;
+            assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
+            return Helper::GetEnumFromString(buffer, DWRITE_FONT_STYLE_NORMAL);
+        }
+        // 获取字体伸缩
+        inline auto CoreMLParamString::GetFontStretch() noexcept -> DWRITE_FONT_STRETCH {
+            assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
+            char buffer[1024];
+            auto end = this->copy_string_sp(buffer); end[0] = 0;
+            assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
+            return Helper::GetEnumFromString(buffer, DWRITE_FONT_STRETCH_NORMAL);
+        }
+        // 获取颜色
+        inline void CoreMLParamString::GetColor(D2D1_COLOR_F& color) noexcept {
+            assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
+            char buffer[1024];
+            auto end = this->copy_string_sp(buffer); end[0] = 0;
+            assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
+            Helper::MakeColor(buffer, color);
+        }
+        // 获取字体名称
+        auto CoreMLParamString::GetStringEx() noexcept -> const wchar_t* {
+            auto old = this->family_itr;
+            auto end = this->copy_string_sp(old); end[0] = 0;
+            this->family_itr = end + 1;
+            return old;
+        }
+        // 获取排版样式
+        inline auto CoreMLParamString::GetTypography() noexcept -> IDWriteTypography* {
+            IDWriteTypography* typography = nullptr;
+            // 设置参数
+            assert(this->param && "bad param, ungiven parameters, nor wrong number of parameters");
+            char buffer[1024];
+            auto end = this->copy_string_sp(buffer);
+            end[0] = ' '; end[1] = 0;
+            assert((size_t(end - buffer) < lengthof(buffer)) && "buffer to small");
+            // 创建 Typography
+            auto hr = UIManager_DWriteFactory->CreateTypography(&typography);
+            longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTypography ");
+            assert(std::strlen(buffer) % 5 == 0 && "bad font feature tag");
+            // CPU 大小端检查
+            static_assert(uint32_t(DWRITE_FONT_FEATURE_TAG_CASE_SENSITIVE_FORMS) == uint32_t("case"_longui32), "check cpu type");
+            static_assert(sizeof(uint32_t) == sizeof(DWRITE_FONT_FEATURE_TAG), "check enum type");
+            // 添加 OpenTypoe 特性
+            if (SUCCEEDED(hr)) {
+                DWRITE_FONT_FEATURE feature;
+                feature.parameter = 1;
+                // 遍历字符串
+                for (auto itr = buffer; *itr; itr += 5) {
+                    // 稍微检查一下
+                    assert(itr[0] && itr[1] && itr[2] && itr[3] && itr[4] == ' ' && "bad argments");
+                    // 一般视为二进制数据
+                    auto tmp = *reinterpret_cast<int32_t*>(itr);
+                    feature.nameTag = static_cast<DWRITE_FONT_FEATURE_TAG>(tmp);
+                    auto thr = typography->AddFontFeature(feature);
+                    UNREFERENCED_PARAMETER(thr);
+                    longui_debug_hr(thr, L"failed: typography->AddFontFeature " << long(feature.nameTag));
+                }
+            }
+            return typography;
+        }
+        // 创建格式文本
+        template<typename T>
+        auto FormatTextViaCoreML(const FormatTextConfig& cfg, const wchar_t* fmt, T& param) noexcept {
+            using cctype = wchar_t;
+            cctype ch = 0;
+            cctype text[LongUIStringBufferLength]; auto text_itr = text;
+            EzContainer::FixedStack<RANGE_DATA, 1024> stack_check, stack_set;
             // 遍历字符串
-            for (auto itr = buffer; *itr; itr += 5) {
-                // 稍微检查一下
-                assert(itr[0] && itr[1] && itr[2] && itr[3] && itr[4] == ' ' && "bad argments");
-                // 一般视为二进制数据
-                auto tmp = *reinterpret_cast<int32_t*>(itr);
-                feature.nameTag = static_cast<DWRITE_FONT_FEATURE_TAG>(tmp);
-                auto thr = typography->AddFontFeature(feature);
-                UNREFERENCED_PARAMETER(thr);
-                longui_debug_hr(thr, L"failed: typography->AddFontFeature " << long(feature.nameTag));
-            }
-        }
-        return typography;
-    }
-    // 创建格式文本
-    template<typename T>
-    auto FormatTextViaCoreML(const FormatTextConfig& cfg, const wchar_t* fmt, T& param) noexcept {
-        using cctype = wchar_t;
-        cctype ch = 0;
-        cctype text[LongUIStringBufferLength]; auto text_itr = text;
-        EzContainer::FixedStack<RANGE_DATA, 1024> stack_check, stack_set;
-        // 遍历字符串
-        while ((ch = *fmt)) {
-            // 出现%标记
-            if (ch == '%') {
-                switch ((ch = fmt[1]))
-                {
-                case '%':
-                    // %% --> 添加字符"%"
-                    *text_itr = '%';
+            while ((ch = *fmt)) {
+                // 出现%标记
+                if (ch == '%') {
+                    switch ((ch = fmt[1]))
+                    {
+                    case '%':
+                        // %% --> 添加字符"%"
+                        *text_itr = '%';
+                        ++text_itr;
+                        break;
+                    case 'p':
+                        // %p --> 结束
+                        goto force_break;
+                    case ']':
+                        // %] --> 结束一个范围
+                        // 检查栈弹出
+                        stack_check.pop();
+                        // 计算长度
+                        stack_check.top->range.length = static_cast<UINT32>(text_itr - text) - stack_check.top->range.startPosition;
+                        // 压入设置栈
+                        stack_set.push_back(*stack_check.top);
+                        break;
+                    case 'a':
+                        // %a --> 添加字符串
+                        // 直接写入字符串
+                        for (auto str = param.GetString(); *str; ++str, ++text_itr) {
+                            *text_itr = *str;
+                        }
+                        break;
+                    case 'c': case 'e':
+                        // %c --> 添加颜色
+                        // %e --> 添加效果
+                    {
+                        RANGE_DATA range;
+                        if (ch == 'c') {
+                            D2D1_COLOR_F color; param.GetColor(color);
+                            range.effect = CUIColorEffect::Create(color);
+                        }
+                        else {
+                            range.effect = param.GetEffect();
+                        }
+                        assert(range.effect && "OOM or bad action");
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::E;
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 'i':
+                        // %i --> 添加内联对象
+                    {
+                        RANGE_DATA range;
+                        range.effect = param.GetInlineObject();
+                        assert(range.effect && "OOM or bad action");
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::I;
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 't':
+                        // %t --> 添加版式功能
+                    {
+                        RANGE_DATA range;
+                        range.typography = param.GetTypography();
+                        assert(range.effect && "OOM or bad action");
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::T;
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 'f': case 'l':
+                        // %f --> 字体名称
+                        // %l --> 本地名称
+                    {
+                        RANGE_DATA range;
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = ch == 'f' ? RANGE_TYPE::F : RANGE_TYPE::L;
+                        range.wstr = param.GetStringEx();
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 's':
+                        // %s --> 字体大小
+                    {
+                        RANGE_DATA range;
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::S;
+                        range.size = param.GetFloat();
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 'w':
+                        // %w --> 字体粗细
+                    {
+                        RANGE_DATA range;
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::W;
+                        range.weight = param.GetFontWeight();
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 'y':
+                        // %y --> 字体风格
+                    {
+                        RANGE_DATA range;
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::Y;
+                        range.style = param.GetFontStyle();
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 'h':
+                        // %h --> 字体伸缩
+                    {
+                        RANGE_DATA range;
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::H;
+                        range.stretch = param.GetFontStretch();
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 'u':
+                        // %u --> 设置下划线
+                    {
+                        RANGE_DATA range;
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::U;
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    case 'd':
+                        // %d --> 设置删除线
+                    {
+                        RANGE_DATA range;
+                        range.range.startPosition = static_cast<UINT32>(text_itr - text);
+                        range.type = RANGE_TYPE::D;
+                        stack_check.push_back(range);
+                        break;
+                    }
+                    }
+                    // 写入数据
+                    fmt += 2;
+                }
+                else {
+                    // 写入数据
+                    assert((size_t(text_itr - text) < lengthof(text)) && "buffer too small");
+                    *text_itr = *fmt;
+                    ++fmt;
                     ++text_itr;
-                    break;
-                case 'p': 
-                    // %p --> 结束
-                    goto force_break;
-                case ']':
-                    // %] --> 结束一个范围
-                    // 检查栈弹出
-                    stack_check.pop();
-                    // 计算长度
-                    stack_check.top->range.length = static_cast<UINT32>(text_itr - text) - stack_check.top->range.startPosition;
-                    // 压入设置栈
-                    stack_set.push_back(*stack_check.top);
-                    break;
-                case 'a':
-                    // %a --> 添加字符串
-                    // 直接写入字符串
-                    for (auto str = param.GetString(); *str; ++str, ++text_itr) {
-                        *text_itr = *str;
-                    }
-                    break;
-                case 'c': case 'e':
-                    // %c --> 添加颜色
-                    // %e --> 添加效果
-                {
-                    RANGE_DATA range;
-                    if (ch == 'c') {
-                        D2D1_COLOR_F color; param.GetColor(color);
-                        range.effect = CUIColorEffect::Create(color);
-                    }
-                    else {
-                        range.effect = param.GetEffect();
-                    }
-                    assert(range.effect && "OOM or bad action");
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::E;
-                    stack_check.push_back(range);
-                    break;
                 }
-                case 'i':
-                    // %i --> 添加内联对象
-                {
-                    RANGE_DATA range;
-                    range.effect = param.GetInlineObject();
-                    assert(range.effect && "OOM or bad action");
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::I;
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 't':
-                    // %t --> 添加版式功能
-                {
-                    RANGE_DATA range;
-                    range.typography = param.GetTypography();
-                    assert(range.effect && "OOM or bad action");
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::T;
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 'f': case 'l':
-                    // %f --> 字体名称
-                    // %l --> 本地名称
-                {
-                    RANGE_DATA range;
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = ch == 'f' ? RANGE_TYPE::F : RANGE_TYPE::L;
-                    range.wstr = param.GetStringEx();
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 's':
-                    // %s --> 字体大小
-                {
-                    RANGE_DATA range;
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::S;
-                    range.size = param.GetFloat();
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 'w':
-                    // %w --> 字体粗细
-                {
-                    RANGE_DATA range;
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::W;
-                    range.weight = param.GetFontWeight();
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 'y':
-                    // %y --> 字体风格
-                {
-                    RANGE_DATA range;
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::Y;
-                    range.style = param.GetFontStyle();
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 'h':
-                    // %h --> 字体伸缩
-                {
-                    RANGE_DATA range;
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::H;
-                    range.stretch = param.GetFontStretch();
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 'u':
-                    // %u --> 设置下划线
-                {
-                    RANGE_DATA range;
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::U;
-                    stack_check.push_back(range);
-                    break;
-                }
-                case 'd':
-                    // %d --> 设置删除线
-                {
-                    RANGE_DATA range;
-                    range.range.startPosition = static_cast<UINT32>(text_itr - text);
-                    range.type = RANGE_TYPE::D;
-                    stack_check.push_back(range);
-                    break;
-                }
-                }
-                // 写入数据
-                fmt += 2;
             }
-            else {
-                // 写入数据
-                assert((size_t(text_itr - text) < lengthof(text)) && "buffer too small");
-                *text_itr = *fmt;
-                ++fmt;
-                ++text_itr;
-            }
-        }
-    force_break:
-        auto hr = S_OK;
-        assert(stack_check.empty() == true && "unmatched maker");
-        // 计算
-        IDWriteTextLayout* layout = nullptr;
-        auto length = static_cast<UINT32>(text_itr - text);
-        auto needed = static_cast<uint32_t>(static_cast<float>(length + 1) * cfg.progress);
-        if (needed > length) needed = length;
-        // 创建布局
-        if (SUCCEEDED(hr)) {
-            hr = UIManager_DWriteFactory->CreateTextLayout(
-                text,
-                length,
-                cfg.format,
-                cfg.width, cfg.height,
-                &layout
+        force_break:
+            auto hr = S_OK;
+            assert(stack_check.empty() == true && "unmatched maker");
+            // 计算
+            IDWriteTextLayout* layout = nullptr;
+            auto length = static_cast<UINT32>(text_itr - text);
+            auto needed = static_cast<uint32_t>(static_cast<float>(length + 1) * cfg.progress);
+            if (needed > length) needed = length;
+            // 创建布局
+            if (SUCCEEDED(hr)) {
+                hr = UIManager_DWriteFactory->CreateTextLayout(
+                    text,
+                    length,
+                    cfg.format,
+                    cfg.width, cfg.height,
+                    &layout
                 );
 #ifdef _DEBUG
-            text[length] = 0;
-            longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTextLayout  " << text);
+                text[length] = 0;
+                longui_debug_hr(hr, L"failed: UIManager_DWriteFactory->CreateTextLayout  " << text);
 #endif
-        }
-        // 数据末尾
-        auto setend = stack_set.top;
-        // 正式创建
-        if (SUCCEEDED(hr)) {
-            // 创建
-            while (!stack_set.empty()) {
-                stack_set.pop();
-                // 检查进度(progress)范围 释放数据
-                auto end = stack_set.top->range.startPosition + stack_set.top->range.length;
-                if (end > needed) continue;
-                // 检查类型
-                switch (stack_set.top->type)
-                {
-                case RANGE_TYPE::F:
-                    layout->SetFontFamilyName(stack_set.top->wstr, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::W:
-                    layout->SetFontWeight(stack_set.top->weight, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::Y:
-                    layout->SetFontStyle(stack_set.top->style, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::H:
-                    layout->SetFontStretch(stack_set.top->stretch, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::S:
-                    layout->SetFontSize(stack_set.top->size, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::U:
-                    layout->SetUnderline(TRUE, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::D:
-                    layout->SetStrikethrough(TRUE, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::E:
-                    layout->SetDrawingEffect(stack_set.top->effect, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::I:
-                    layout->SetInlineObject(stack_set.top->inlineobj, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::T:
-                    layout->SetTypography(stack_set.top->typography, stack_set.top->range);
-                    break;
-                case RANGE_TYPE::L:
-                    layout->SetLocaleName(stack_set.top->wstr, stack_set.top->range);
-                    break;
+            }
+            // 数据末尾
+            auto setend = stack_set.top;
+            // 正式创建
+            if (SUCCEEDED(hr)) {
+                // 创建
+                while (!stack_set.empty()) {
+                    stack_set.pop();
+                    // 检查进度(progress)范围 释放数据
+                    auto end = stack_set.top->range.startPosition + stack_set.top->range.length;
+                    if (end > needed) continue;
+                    // 检查类型
+                    switch (stack_set.top->type)
+                    {
+                    case RANGE_TYPE::F:
+                        layout->SetFontFamilyName(stack_set.top->wstr, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::W:
+                        layout->SetFontWeight(stack_set.top->weight, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::Y:
+                        layout->SetFontStyle(stack_set.top->style, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::H:
+                        layout->SetFontStretch(stack_set.top->stretch, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::S:
+                        layout->SetFontSize(stack_set.top->size, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::U:
+                        layout->SetUnderline(TRUE, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::D:
+                        layout->SetStrikethrough(TRUE, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::E:
+                        layout->SetDrawingEffect(stack_set.top->effect, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::I:
+                        layout->SetInlineObject(stack_set.top->inlineobj, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::T:
+                        layout->SetTypography(stack_set.top->typography, stack_set.top->range);
+                        break;
+                    case RANGE_TYPE::L:
+                        layout->SetLocaleName(stack_set.top->wstr, stack_set.top->range);
+                        break;
+                    }
                 }
             }
-        }
-        // 错误信息
-        if (FAILED(hr)) {
-            UIManager << DL_Error << L"HR Code: " << long(hr) << LongUI::endl;
-        }
-        // 释放数据
-        for (auto itr = stack_set.data; itr != setend; ++itr) {
-            if (itr->type == RANGE_TYPE::E || itr->type == RANGE_TYPE::I ||
-                itr->type == RANGE_TYPE::T) {
-                LongUI::SafeRelease(itr->effect);
+            // 错误信息
+            if (FAILED(hr)) {
+                UIManager << DL_Error << L"HR Code: " << long(hr) << LongUI::endl;
             }
+            // 释放数据
+            for (auto itr = stack_set.data; itr != setend; ++itr) {
+                if (itr->type == RANGE_TYPE::E || itr->type == RANGE_TYPE::I ||
+                    itr->type == RANGE_TYPE::T) {
+                    LongUI::SafeRelease(itr->effect);
+                }
+            }
+            return layout;
         }
-        return layout;
+        // 创建格式文本
+        auto FormatTextCoreC(const FormatTextConfig& cfg, const wchar_t* fmt, ...) noexcept ->IDWriteTextLayout* {
+            va_list ap;
+            va_start(ap, fmt);
+            CoreMLParamC param(ap);
+            auto lyt = DX::FormatTextViaCoreML(cfg, fmt, param);
+            va_end(ap);
+            return lyt;
+        }
+        // 创建格式文本
+        auto FormatTextCore(const FormatTextConfig& cfg, const wchar_t* fmt, va_list) noexcept ->IDWriteTextLayout* {
+            CoreMLParamString param(fmt);
+            return DX::FormatTextViaCoreML(cfg, fmt, param);
+        }
     }
-    // 创建格式文本
-    auto FormatTextCoreC(const FormatTextConfig& cfg, const wchar_t* fmt, ...) noexcept ->IDWriteTextLayout* {
-        va_list ap;
-        va_start(ap, fmt);
-        CoreMLParamC param(ap);
-        auto lyt = DX::FormatTextViaCoreML(cfg, fmt, param);
-        va_end(ap);
-        return lyt;
-    }
-    // 创建格式文本
-    auto FormatTextCore(const FormatTextConfig& cfg, const wchar_t* fmt, va_list) noexcept ->IDWriteTextLayout* {
-        CoreMLParamString param(fmt);
-        return DX::FormatTextViaCoreML(cfg, fmt, param);
-    }
-}}
+}
 
 // 保存图片
 auto LongUI::DX::SaveAsImageFile(
-    ID2D1Bitmap1* bitmap, IWICImagingFactory* factory, 
+    ID2D1Bitmap1* bitmap, IWICImagingFactory* factory,
     const wchar_t* file_name, const GUID* container_format
-    ) noexcept -> HRESULT {
+) noexcept -> HRESULT {
     // 参数检查
     assert(bitmap && factory && file_name && file_name[0]);
     if (!(bitmap && factory && file_name && file_name[0])) {
@@ -1007,7 +1011,7 @@ auto LongUI::DX::SaveAsImageFile(
                 0,
                 &prop,
                 &readable_bitmap
-                );
+            );
 #ifdef _DEBUG
             D2D1_POINT_2F ppppt;
             ppppt.x = float(bitmap_size.width);
@@ -1081,7 +1085,7 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
                 prop.pitch * prop.height,
                 prop.bits,
                 &pWICBitmap
-                );
+            );
             longui_debug_hr(hr, L"failed: prop.factory->CreateBitmapFromMemory");
         }
         // 创建流
@@ -1100,7 +1104,7 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
                 prop.container_format ? *prop.container_format : GUID_ContainerFormatPng,
                 nullptr,
                 &pEncoder
-                );
+            );
             longui_debug_hr(hr, L"failed: prop.factory->CreateEncoder");
         }
         // 初始化编码器

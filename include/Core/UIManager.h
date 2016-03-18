@@ -33,8 +33,8 @@ namespace LongUI {
     class CUIManager {
         // string allocator
         using StringAllocator = CUIShortStringAllocator<>;
-        // create ui window call back
-        using callback_for_creating_window = auto(*)(pugi::xml_node node, XUIBaseWindow* container) ->UIViewport*;
+        // create ui viewport call back
+        using callback_create_viewport = auto(*)(pugi::xml_node node, XUIBaseWindow* container) ->UIViewport*;
     public: // handle zone 操作区
         // initialize 初始化
         LongUIAPI auto Initialize(IUIConfigure* config = nullptr) noexcept ->HRESULT;
@@ -55,7 +55,7 @@ namespace LongUI {
         // remove window
         LongUIAPI void RemoveWindow(XUISystemWindow* wnd) noexcept;
         // refresh display frequency
-        //LongUIAPI void RefreshDisplayFrequency() noexcept;
+        LongUIAPI void RefreshDisplayFrequency() noexcept;
         // return -1 for error(out of renderer space), return other for index
         LongUIAPI auto RegisterTextRenderer(XUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept ->int32_t;
         // get text renderer by name 
@@ -95,11 +95,12 @@ namespace LongUI {
         template<class T> auto CreateUIWindow(const char* xml) noexcept ->T* {
             auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); 
             if (code.status) return nullptr;
-            auto create_func = [](pugi::xml_node node, XUIBaseWindow* window) noexcept ->UIViewport* {
-                T* c = new(std::nothrow) T(window); if (c) c->T::initialize(node);
-                return c;
+            auto create_func = [](pugi::xml_node node, XUIBaseWindow* window) noexcept ->UIViewport* { 
+                T* viewport = new(std::nothrow) T(window); 
+                if(viewport) viewport->T::initialize(node);
+                return viewport;
             };
-            return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), nullptr, create_func));
+            return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), create_func));
         }
     private:
         // exit
@@ -181,7 +182,7 @@ namespace LongUI {
         IMFMediaEngineClassFactory*     m_pMediaEngineFactory = nullptr;
 #endif
         // 转换为 CUIInput
-        LongUIInline operator const CUIInput&() const noexcept { return m_uiInput; };
+        inline operator const CUIInput&() const noexcept { return m_uiInput; };
 #define UIInput (static_cast<const CUIInput&>(UIManager))
     public:
         // script 脚本
@@ -328,7 +329,7 @@ namespace LongUI {
         // create the control with xml-node
         LongUIAPI auto create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
         // create ui window
-        LongUIAPI auto create_ui_window(pugi::xml_node node, XUIBaseWindow* parent, callback_for_creating_window func) noexcept ->UIViewport*;
+        LongUIAPI auto create_ui_window(pugi::xml_node node, callback_create_viewport call) noexcept ->UIViewport*;
         // cleanup delay-cleanup-chain
         void cleanup_delay_cleanup_chain() noexcept;
         // load the template string
@@ -346,10 +347,6 @@ namespace LongUI {
         void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;
         // get theme colr
         LongUIAPI static auto GetThemeColor(D2D1_COLOR_F& colorf) noexcept ->HRESULT;
-        // main window proc
-        LongUIAPI static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
-        // windows message to longui mouse event
-        LongUIAPI static void WindowsMsgToMouseEvent(MouseEventArgument& event, UINT message, WPARAM wParam, LPARAM lParam) noexcept;
     public:
         // 单例 CUIRenderer
         LongUIAPI static CUIManager     s_instance;

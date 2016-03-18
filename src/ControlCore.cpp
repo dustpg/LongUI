@@ -33,7 +33,7 @@ void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
     ::OutputDebugStringW(LongUI::Formated(
         L"Main Locker Locked On Msg: %4u @ Window[0x%p - %S]\r\n",
         msg, window, window->name.c_str()
-        ));
+    ));
 #endif
 }
 
@@ -86,7 +86,10 @@ m_pWindow(parent ? parent->GetWindow() : nullptr) {
 /// <param name="time">The time.</param>
 /// <returns></returns>
 void LongUI::UIControl::StartRender(float time) noexcept {
-    this->InvalidateThis();
+    // 保留刷新时间
+    const auto tt = time + 0.025f;
+    // 不足再刷新
+    if (m_fRenderTime < tt) m_fRenderTime = tt;
 }
 
 
@@ -95,8 +98,8 @@ void LongUI::UIControl::StartRender(float time) noexcept {
 /// </summary>
 /// <returns></returns>
 LongUINoinline void LongUI::UIControl::Release() noexcept {
-    uint32_t count = --m_u8RefCount; 
-    if (!m_u8RefCount) this->cleanup(); 
+    uint32_t count = --m_u8RefCount;
+    if (!m_u8RefCount) this->cleanup();
 }
 
 #ifdef _DEBUG
@@ -153,7 +156,7 @@ void LongUI::UIControl::LinkNewParent(UIContainer* cp) noexcept {
 /// 对于本函数, 参数'node'允许为空
 /// <see cref="LongUINullXMLNode" />
 /// </remarks>
-void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
+void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
 #ifdef _DEBUG
     // 没有被初始化
     assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
@@ -180,9 +183,9 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
         // 检查布局上下文
         Helper::MakeFloats(
             node.attribute(LongUI::XMLAttribute::LayoutContext).value(),
-            force_cast(this->context), 
+            force_cast(this->context),
             lengthof<uint32_t>(this->context)
-            );
+        );
         // 检查背景笔刷
         if (data = node.attribute(LongUI::XMLAttribute::BackgroudBrush).value()) {
             m_idBackgroudBrush = uint16_t(LongUI::AtoI(data));
@@ -203,11 +206,11 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
                 buffer[0] = 0;
                 ++s_dbg_longui_index;
                 auto c = std::snprintf(
-                    buffer, 128, 
-                    "dbg_longui_%s_id_%ld", 
+                    buffer, 128,
+                    "dbg_longui_%s_id_%ld",
                     node.name(),
                     s_dbg_longui_index
-                    );
+                );
                 assert(c > 0 && "bad std::snprintf call");
                 // 小写
                 auto mystrlow = [](char* str) noexcept {
@@ -230,7 +233,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
             node.attribute(LongUI::XMLAttribute::Margin).value(),
             const_cast<float*>(&margin_rect.left),
             sizeof(margin_rect) / sizeof(margin_rect.left)
-            );
+        );
         // 检查渲染父控件
         if (node.attribute(LongUI::XMLAttribute::IsRenderParent).as_bool(false)) {
             assert(this->parent && "RenderParent but no parent");
@@ -249,14 +252,14 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
             node.attribute(LongUI::XMLAttribute::BorderRound).value(),
             &m_2fBorderRdius.width,
             sizeof(m_2fBorderRdius) / sizeof(m_2fBorderRdius.width)
-            );
+        );
         // 检查控件大小
         {
             float size[] = { 0.f, 0.f };
             Helper::MakeFloats(
                 node.attribute(LongUI::XMLAttribute::AllSize).value(),
                 size, lengthof<uint32_t>(size)
-                );
+            );
             // 视口区宽度固定?
             if (size[0] > 0.f) {
                 flag |= LongUI::Flag_WidthFixed;
@@ -289,7 +292,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept  {
 /// Initializes this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIControl::initialize() noexcept  {
+void LongUI::UIControl::initialize() noexcept {
 #ifdef _DEBUG
     // 没有被初始化
     assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
@@ -310,7 +313,7 @@ void LongUI::UIControl::initialize() noexcept  {
                 "dbg_longui_%ls_id_%ld",
                 this->GetControlClassName(),
                 s_dbg_longui_index
-                );
+            );
             assert(c > 0 && "bad std::snprintf call");
             // 小写
             auto mystrlow = [](char* str) noexcept {
@@ -363,6 +366,11 @@ void LongUI::UIControl::Update() noexcept {
     assert(debug_updated == false && "cannot call this more than once");
     debug_updated = true;
 #endif
+    // 检查
+    if (m_fRenderTime > 0.f) {
+        this->InvalidateThis();
+        m_fRenderTime -= UIManager.GetDeltaTime();
+    }
 };
 
 // UIControl:: 渲染调用链: 背景
@@ -873,7 +881,7 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
         Helper::MakeFloats(
             node.attribute(LongUI::XMLAttribute::TemplateSize).value(),
             &m_2fTemplateSize.width, 2
-            );
+        );
         // XXX: 渲染依赖属性
         /*if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
             flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
@@ -988,9 +996,9 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
             }
             done = true;
             break;
-        /*case LongUI::Event::Event_NotifyChildren:
-            // 不处理
-            return true;*/
+            /*case LongUI::Event::Event_NotifyChildren:
+                // 不处理
+                return true;*/
         }
     }
     // 扳回来
@@ -1186,7 +1194,7 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
                 ctrl->SetHeight(
                     this_container_height - tmptop - m_orgMargin.bottom -
                     get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Bottom])
-                    );
+                );
             }
             break;
             case 1: // Top
@@ -1200,7 +1208,7 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
                 ctrl->SetWidth(
                     this_container_width - tmpleft - m_orgMargin.right -
                     get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Right])
-                    );
+                );
                 ctrl->SetHeight(ctrl->marginal_width);
             }
             break;
@@ -1216,7 +1224,7 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
                 ctrl->SetHeight(
                     this_container_height - tmptop - m_orgMargin.bottom -
                     get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Bottom])
-                    );
+                );
             }
             break;
             case 3: // Bottom
@@ -1230,7 +1238,7 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
                 ctrl->SetWidth(
                     this_container_width - tmpleft - m_orgMargin.right -
                     get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Right])
-                    );
+                );
                 ctrl->SetHeight(ctrl->marginal_width);
             }
             break;
@@ -1316,7 +1324,7 @@ void LongUI::UIContainer::Update() noexcept {
                 << LongUI::Formated(L"Resize(%.1f, %.1f) Zoom(%.1f, %.1f)",
                     this->GetWidth(), this->GetHeight(),
                     m_2fZoom.width, m_2fZoom.height
-                    ) << LongUI::endl;
+                ) << LongUI::endl;
         }
 #endif
     }

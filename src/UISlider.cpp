@@ -17,7 +17,7 @@ void LongUI::UISlider::render_chain_background() const noexcept {
             auto half = this->thumb_size.height * 0.5f;
             border_rect.left = (border_rect.left + border_rect.right) * 0.5f -
                 SLIDER_TRACK_BORDER_WIDTH - SLIDER_TRACK_WIDTH * 0.5f;
-            border_rect.right = border_rect.left + 
+            border_rect.right = border_rect.left +
                 SLIDER_TRACK_BORDER_WIDTH * 2.f + SLIDER_TRACK_WIDTH;
             border_rect.top += half;
             border_rect.bottom -= half;
@@ -29,7 +29,7 @@ void LongUI::UISlider::render_chain_background() const noexcept {
             border_rect.right -= half;
             border_rect.top = (border_rect.top + border_rect.bottom) * 0.5f -
                 SLIDER_TRACK_BORDER_WIDTH - SLIDER_TRACK_WIDTH * 0.5f;
-            border_rect.bottom = border_rect.top + 
+            border_rect.bottom = border_rect.top +
                 SLIDER_TRACK_BORDER_WIDTH * 2.f + SLIDER_TRACK_WIDTH;
         }
         // 渲染滑槽边框
@@ -136,9 +136,9 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         // 滑块大小
         Helper::MakeFloats(
             node.attribute("thumbsize").value(),
-            &force_cast(thumb_size.width), 
-            sizeof(thumb_size)/sizeof(thumb_size.width)
-            );
+            &force_cast(thumb_size.width),
+            sizeof(thumb_size) / sizeof(thumb_size.width)
+        );
         // 默认背景
         m_bDefaultBK = node.attribute("defaultbk").as_bool(true);
     }
@@ -224,7 +224,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         }
         // 移动
         else {
-            if (IsPointInRect(m_rcThumb, pt4self)){
+            if (IsPointInRect(m_rcThumb, pt4self)) {
                 // 鼠标移进:
                 if (!m_bMouseMoveIn) {
                     // 设置UI元素状态
@@ -246,7 +246,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case  LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下
         m_pWindow->SetCapture(this);
-        if (IsPointInRect(m_rcThumb, pt4self)){
+        if (IsPointInRect(m_rcThumb, pt4self)) {
             m_bMouseClickIn = true;
             m_fClickPosition = this->IsVerticalSlider() ?
                 (pt4self.y - m_rcThumb.top) : (pt4self.x - m_rcThumb.left);

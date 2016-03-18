@@ -16,7 +16,7 @@ LongUINoinline void LongUI::usleep(long usec) noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIInput::Update() noexcept {
+void LongUI::CUIInput::Update() noexcept {
     // 修改....
     auto my_get_keyboard_state = [](uint8_t* states) noexcept {
         //::GetKeyboardState(states);
@@ -43,14 +43,14 @@ auto LongUI::CUIInput::Update() noexcept {
 /// <returns>32-bit ARGB 颜色</returns>
 LongUINoinline auto LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept -> uint32_t {
     // 常量
-    constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
-    constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
-    constexpr uint32_t GREEN_SHIFT  = CHAR_BIT * 1;
-    constexpr uint32_t BLUE_SHIFT   = CHAR_BIT * 0;
+    constexpr uint32_t ALPHA_SHIFT = CHAR_BIT * 3;
+    constexpr uint32_t RED_SHIFT = CHAR_BIT * 2;
+    constexpr uint32_t GREEN_SHIFT = CHAR_BIT * 1;
+    constexpr uint32_t BLUE_SHIFT = CHAR_BIT * 0;
     // 写入
     uint32_t colorargb =
         ((uint32_t(color.a * 255.f) & 0xFF) << ALPHA_SHIFT) |
-        ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT)   |
+        ((uint32_t(color.r * 255.f) & 0xFF) << RED_SHIFT) |
         ((uint32_t(color.g * 255.f) & 0xFF) << GREEN_SHIFT) |
         ((uint32_t(color.b * 255.f) & 0xFF) << BLUE_SHIFT);
     return colorargb;
@@ -65,19 +65,19 @@ LongUINoinline auto LongUI::PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->
 /// <returns>void</returns>
 LongUINoinline auto LongUI::UnpackTheColorARGB(uint32_t IN color32, D2D1_COLOR_F& OUT color4f) noexcept ->void {
     // 位移量
-    constexpr uint32_t ALPHA_SHIFT  = CHAR_BIT * 3;
-    constexpr uint32_t RED_SHIFT    = CHAR_BIT * 2;
-    constexpr uint32_t GREEN_SHIFT  = CHAR_BIT * 1;
-    constexpr uint32_t BLUE_SHIFT   = CHAR_BIT * 0;
+    constexpr uint32_t ALPHA_SHIFT = CHAR_BIT * 3;
+    constexpr uint32_t RED_SHIFT = CHAR_BIT * 2;
+    constexpr uint32_t GREEN_SHIFT = CHAR_BIT * 1;
+    constexpr uint32_t BLUE_SHIFT = CHAR_BIT * 0;
     // 掩码
-    constexpr uint32_t ALPHA_MASK   = 0xFFU << ALPHA_SHIFT;
-    constexpr uint32_t RED_MASK     = 0xFFU << RED_SHIFT;
-    constexpr uint32_t GREEN_MASK   = 0xFFU << GREEN_SHIFT;
-    constexpr uint32_t BLUE_MASK    = 0xFFU << BLUE_SHIFT;
+    constexpr uint32_t ALPHA_MASK = 0xFFU << ALPHA_SHIFT;
+    constexpr uint32_t RED_MASK = 0xFFU << RED_SHIFT;
+    constexpr uint32_t GREEN_MASK = 0xFFU << GREEN_SHIFT;
+    constexpr uint32_t BLUE_MASK = 0xFFU << BLUE_SHIFT;
     // 计算
-    color4f.r = static_cast<float>((color32 & RED_MASK)   >> RED_SHIFT)   / 255.f;
+    color4f.r = static_cast<float>((color32 & RED_MASK) >> RED_SHIFT) / 255.f;
     color4f.g = static_cast<float>((color32 & GREEN_MASK) >> GREEN_SHIFT) / 255.f;
-    color4f.b = static_cast<float>((color32 & BLUE_MASK)  >> BLUE_SHIFT)  / 255.f;
+    color4f.b = static_cast<float>((color32 & BLUE_MASK) >> BLUE_SHIFT) / 255.f;
     color4f.a = static_cast<float>((color32 & ALPHA_MASK) >> ALPHA_SHIFT) / 255.f;
 }
 
@@ -109,7 +109,7 @@ void LongUI::Meta::Render(ID2D1DeviceContext* target, const D2D1_RECT_F& des_rec
             static_cast<D2D1_INTERPOLATION_MODE>(this->interpolation),
             this->src_rect,
             nullptr
-            );
+        );
         break;
         /*case LongUI::BitmapRenderRule::Rule_ButtonLike:
             // 类按钮
@@ -687,9 +687,9 @@ void LongUI::CUIString::Format(const wchar_t* format, ...) noexcept {
     auto length = std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
     // 发生错误
     if (length < 0) {
-        UIManager << DL_Warning 
-            << L"std::vswprintf return " << long(length) 
-            << L" for out of space or some another error" 
+        UIManager << DL_Warning
+            << L"std::vswprintf return " << long(length)
+            << L" for out of space or some another error"
             << LongUI::endl;
         length = LongUIStringBufferLength - 1;
     }
@@ -805,96 +805,98 @@ LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matri
 }
 
 // longui::impl 命名空间
-namespace LongUI { namespace impl {
-    // 字符串转数字
-    template<typename T> LongUINoinline auto atoi(const T* str) noexcept ->int {
-        assert(str && "bad argument");
-        // 初始化
-        bool negative = false; int value = 0; T ch = 0;
-        // 遍历
-        while (ch = *str) {
-            // 空白?
-            if (!white_space(ch)) {
-                if (ch == '-') {
-                    negative = true;
+namespace LongUI {
+    namespace impl {
+        // 字符串转数字
+        template<typename T> LongUINoinline auto atoi(const T* str) noexcept ->int {
+            assert(str && "bad argument");
+            // 初始化
+            bool negative = false; int value = 0; T ch = 0;
+            // 遍历
+            while (ch = *str) {
+                // 空白?
+                if (!white_space(ch)) {
+                    if (ch == '-') {
+                        negative = true;
+                    }
+                    else if (valid_digit(ch)) {
+                        value *= 10;
+                        value += ch - static_cast<T>('0');
+                    }
+                    else {
+                        break;
+                    }
                 }
-                else if (valid_digit(ch)) {
-                    value *= 10;
-                    value += ch - static_cast<T>('0');
-                }
-                else {
-                    break;
-                }
+                ++str;
             }
-            ++str;
-        }
-        // 负数
-        if (negative) {
-            value = -value;
-        }
-        return value;
-    }
-    // 字符串转浮点
-    template<typename T> LongUINoinline auto atof(const T* p) noexcept ->float {
-        assert(p && "bad argument");
-        bool negative = false;
-        float value, scale;
-        // 跳过空白
-        while (white_space(*p)) ++p;
-        // 检查符号
-        if (*p == '-') {
-            negative = true;
-            ++p;
-        }
-        else if (*p == '+') {
-            ++p;
-        }
-        // 获取小数点或者指数之前的数字(有的话)
-        for (value = 0.0f; valid_digit(*p); ++p) {
-            value = value * 10.0f + static_cast<float>(*p - static_cast<T>('0'));
-        }
-        // 获取小数点或者指数之后的数字(有的话)
-        if (*p == '.') {
-            float pow10 = 10.0f; ++p;
-            while (valid_digit(*p)) {
-                value += (*p - static_cast<T>('0')) / pow10;
-                pow10 *= 10.0f;
-                ++p;
+            // 负数
+            if (negative) {
+                value = -value;
             }
+            return value;
         }
-        // 处理指数(有的话)
-        bool frac = false;
-        scale = 1.0f;
-        if ((*p == 'e') || (*p == 'E')) {
-            // 获取指数的符号(有的话)
-            ++p;
+        // 字符串转浮点
+        template<typename T> LongUINoinline auto atof(const T* p) noexcept ->float {
+            assert(p && "bad argument");
+            bool negative = false;
+            float value, scale;
+            // 跳过空白
+            while (white_space(*p)) ++p;
+            // 检查符号
             if (*p == '-') {
-                frac = true;
+                negative = true;
                 ++p;
             }
             else if (*p == '+') {
                 ++p;
             }
-            unsigned int expon;
-            // 获取指数的数字(有的话)
-            for (expon = 0; valid_digit(*p); ++p) {
-                expon = expon * 10 + (*p - static_cast<T>('0'));
+            // 获取小数点或者指数之前的数字(有的话)
+            for (value = 0.0f; valid_digit(*p); ++p) {
+                value = value * 10.0f + static_cast<float>(*p - static_cast<T>('0'));
             }
-            // float 最大38 double 最大308
-            if (expon > 38) expon = 38;
-            // 计算比例因数
-            while (expon >= 8) { scale *= 1E8f;  expon -= 8; }
-            while (expon) { scale *= 10.0f; --expon; }
+            // 获取小数点或者指数之后的数字(有的话)
+            if (*p == '.') {
+                float pow10 = 10.0f; ++p;
+                while (valid_digit(*p)) {
+                    value += (*p - static_cast<T>('0')) / pow10;
+                    pow10 *= 10.0f;
+                    ++p;
+                }
+            }
+            // 处理指数(有的话)
+            bool frac = false;
+            scale = 1.0f;
+            if ((*p == 'e') || (*p == 'E')) {
+                // 获取指数的符号(有的话)
+                ++p;
+                if (*p == '-') {
+                    frac = true;
+                    ++p;
+                }
+                else if (*p == '+') {
+                    ++p;
+                }
+                unsigned int expon;
+                // 获取指数的数字(有的话)
+                for (expon = 0; valid_digit(*p); ++p) {
+                    expon = expon * 10 + (*p - static_cast<T>('0'));
+                }
+                // float 最大38 double 最大308
+                if (expon > 38) expon = 38;
+                // 计算比例因数
+                while (expon >= 8) { scale *= 1E8f;  expon -= 8; }
+                while (expon) { scale *= 10.0f; --expon; }
+            }
+            // 返回
+            float returncoude = (frac ? (value / scale) : (value * scale));
+            if (negative) {
+                // float
+                returncoude = -returncoude;
+            }
+            return returncoude;
         }
-        // 返回
-        float returncoude = (frac ? (value / scale) : (value * scale));
-        if (negative) {
-            // float
-            returncoude = -returncoude;
-        }
-        return returncoude;
     }
-}}
+}
 
 /// <summary>
 /// string to float.字符串转浮点, std::atof自己实现版
@@ -1041,9 +1043,9 @@ auto LongUI::Base64Decode(IN const char* __restrict base64, OUT uint8_t * __rest
     // 主循环
     while (*base64) {
         // 基本转换
-        uint8_t a = Base64Datas[base64[0]];  
+        uint8_t a = Base64Datas[base64[0]];
         uint8_t b = Base64Datas[base64[1]];
-        uint8_t c = Base64Datas[base64[2]];  
+        uint8_t c = Base64Datas[base64[2]];
         uint8_t d = Base64Datas[base64[3]];
         // 第一个二进制数据
         *bindata_index = ((a << 2) & 0xFCui8) | ((b >> 4) & 0x03ui8);
@@ -1285,10 +1287,10 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, size_t len) noe
     // 写入
     auto safe_write_file = [this, &dwWritten]() {
         return ::WriteFile(
-            m_hConsole, m_buffer, 
-            static_cast<uint32_t>(m_length * sizeof(wchar_t)), 
+            m_hConsole, m_buffer,
+            static_cast<uint32_t>(m_length * sizeof(wchar_t)),
             &dwWritten, nullptr
-            );
+        );
     };
     // 先写入缓冲区
     if (m_length) {
@@ -1322,7 +1324,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
             L"logger_%7.5f",
             float(::GetTickCount()) / float(1000 * 60 * 60) *
             (float(std::rand()) / float(RAND_MAX)) * s_times
-            );
+        );
         config.logger_name = logger_name_buffer;
         ++s_times;
     }
@@ -1337,7 +1339,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
         0,      // 输入缓存
         1,
         nullptr
-        );
+    );
     // 无效
     if (m_hConsole == INVALID_HANDLE_VALUE) {
         ::MessageBoxW(nullptr, L"CreateNamedPipe failed", L"CUIConsole::Create failed", MB_ICONERROR);
@@ -1470,7 +1472,7 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 // longui
 namespace LongUI {
     // 创建XML资源读取器
-    auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept ->IUIResourceLoader*;
+    auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept->IUIResourceLoader*;
 }
 
 // 创建接口
@@ -1542,7 +1544,7 @@ auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
             std::wcsftime(
                 buffer, LongUIStringBufferLength,
                 L"[%c]\r\n", std::localtime(&time)
-                );
+            );
             std::fwrite(buffer, sizeof(wchar_t), std::wcslen(buffer), m_pLogFile);
         }
         std::fwrite(string, sizeof(wchar_t), std::wcslen(string), m_pLogFile);
@@ -1747,14 +1749,14 @@ auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
             if (SUCCEEDED(hr)) {
                 hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
                     surface, nullptr, &m_pDrawSurface
-                    );
+                );
             }
 #else
             // 创建D2D位图
             D2D1_BITMAP_PROPERTIES1 prop = D2D1::BitmapProperties1(
                 D2D1_BITMAP_OPTIONS_CANNOT_DRAW | D2D1_BITMAP_OPTIONS_TARGET,
                 D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED)
-                );
+            );
             hr = UIManager_RenderTarget->CreateBitmap(size, nullptr, size.width * 4, &prop, &m_pSharedSurface);
             // 获取Dxgi表面
             if (SUCCEEDED(hr)) {

@@ -44,8 +44,8 @@ LongUINoinline void LongUI::UICheckBox::ForceSetControlState(ControlState state)
             << LongUI::endl;
     }
 #endif
-    m_text.SetState(state); 
-    this->StartRender(m_uiElement.SetBasicState(state)); 
+    m_text.SetState(state);
+    this->StartRender(m_uiElement.SetBasicState(state));
 }
 
 // 强制设置复选框状态
@@ -64,14 +64,14 @@ void LongUI::UICheckBox::ForceSetCheckBoxState(CheckBoxState state) noexcept {
         rec = false;
 #ifdef _DEBUG
         const wchar_t* const list[] = {
-            L"checked", 
+            L"checked",
             L"indeterminate",
             L"unchecked"
         };
         UIManager << DL_Log << this
             << L"change to ["
             << list[size_t(state)]
-            << L']' 
+            << L']'
             << LongUI::endl;
 #endif
     }
@@ -86,7 +86,7 @@ void LongUI::UICheckBox::initialize(pugi::xml_node node) noexcept {
         this->check_state(),
         Helper::GetEnumFromXml(node, CheckBoxState::State_Unchecked),
         node
-        );
+    );
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
 }
@@ -123,10 +123,10 @@ bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
     if (arg.sender) {
         switch (arg.event)
         {
-        /*case LongUI::Event::Event_SetFocus:
-            __fallthrough;
-        case LongUI::Event::Event_KillFocus:
-            return true;*/
+            /*case LongUI::Event::Event_SetFocus:
+                __fallthrough;
+            case LongUI::Event::Event_KillFocus:
+                return true;*/
         case LongUI::Event::Event_SetEnabled:
             // 修改状态
             m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
@@ -274,8 +274,8 @@ LongUINoinline void LongUI::UIRadioButton::ForceSetControlState(ControlState sta
             << LongUI::endl;
     }
 #endif
-    m_text.SetState(state); 
-    this->StartRender(m_uiElement.SetBasicState(state)); 
+    m_text.SetState(state);
+    this->StartRender(m_uiElement.SetBasicState(state));
 }
 
 // 强制设置复选框状态
@@ -300,7 +300,7 @@ void LongUI::UIRadioButton::ForceSetCheckedState(bool state) noexcept {
         UIManager << DL_Log << this
             << L"change to ["
             << (state ? L"checked" : L"unchecked")
-            << L']' 
+            << L']'
             << LongUI::endl;
 #endif
     }

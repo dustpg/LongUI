@@ -136,7 +136,7 @@ namespace LongUI {
         // something must do before deleted
         void before_deleted() noexcept {
 #ifdef _DEBUG
-            if (this->debug_this || true) {
+            if (this->debug_this) {
                 UIManager << DL_Log << this << L"deleted" << LongUI::endl;
             }
 #endif
@@ -248,6 +248,10 @@ namespace LongUI {
         uint16_t                m_idBackgroudBrush = 0;
         // hover track time, valid while > 0
         uint16_t                m_cHoverTrackTime = 0;
+        // render time
+        float                   m_fRenderTime = 0.f;
+        // render time, unused
+        float                   m_fRenderTime_unused = 0.f;
     public:
         // parent control
         UIContainer*    const   parent = nullptr;

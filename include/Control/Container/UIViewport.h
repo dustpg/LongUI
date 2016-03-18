@@ -89,9 +89,9 @@ namespace LongUI {
         ~UIViewport() noexcept;
         // deleted 
         UIViewport(const UIViewport&) = delete;
-    public: // some new
+    public:
         // can be closed? called on closed
-        virtual bool IsCouldBeClosed() noexcept { return true; }
+        virtual bool IsCanBeClosed() noexcept { return true; }
     protected:
         // next sibling
 #ifdef LongUIDebugEvent
