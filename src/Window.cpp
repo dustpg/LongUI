@@ -8,7 +8,7 @@
 /// </summary>
 /// <param name="window">The window.</param>
 LongUI::UIViewport::UIViewport(XUIBaseWindow* window) noexcept : Super(nullptr) {
-    assert(window && "bad window given");
+    assert(window && "bad argument");
     m_pWindow = window;
 }
 
@@ -22,15 +22,7 @@ void LongUI::UIViewport::initialize(pugi::xml_node node) noexcept {
     Super::initialize(node);
     // 初始化
     assert(node && "<LongUI::UIViewport::initialize> window_node null");
-    //std::memset(&m_curMedium, 0, sizeof(m_curMedium));
     // 检查名称
-    {
-        auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
-        if (basestr) {
-            auto namestr = m_pWindow->CopyStringSafe(basestr);
-            force_cast(this->name) = namestr;
-        }
-    }
     {
         // 浮点视区大小
         if (this->view_size.width == 0.f) {
@@ -47,14 +39,51 @@ void LongUI::UIViewport::initialize(pugi::xml_node node) noexcept {
     }
 }
 
+/// <summary>
+/// Initializes the specified size.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::UIViewport::initialize(D2D1_SIZE_U size) noexcept {
+    // 父类
+    Super::initialize();
+    // 更新大小
+    force_cast(this->view_size.width) = static_cast<float>(size.width);
+    force_cast(this->view_size.height) = static_cast<float>(size.height);
+    // 可视区域范围
+    visible_rect.right = this->view_size.width;
+    visible_rect.bottom = this->view_size.height;
+    m_2fContentSize = this->view_size;
+}
 
+
+// UIViewport 关闭控件
+void LongUI::UIViewport::cleanup() noexcept {
+    // 删除前调用
+    this->before_deleted();
+    // 删除对象
+    delete this;
+}
+
+/// <summary>
+/// Creates the without XML.
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIViewport::CreateWithoutXml(XUIBaseWindow* wnd, D2D1_SIZE_U size) noexcept -> UIViewport* {
+    auto viewport = new(std::nothrow) UIViewport(wnd);
+    if (viewport) viewport->initialize(size);
+    return viewport;
+}
+
+
+#if 0
 /// <summary>
 /// Initializes the specified popup.
 /// </summary>
 /// <param name="popup">The popup.</param>
 /// <returns></returns>
 void LongUI::UIViewport::initialize(const Config::Popup& popup) noexcept {
-    /*assert(this->wndparent && "this->wndparent cannot be null while in popup window");
+    assert(this->wndparent && "this->wndparent cannot be null while in popup window");
 #ifdef _DEBUG
     this->debug_show = this->wndparent->debug_show;
     this->debug_this = this->wndparent->debug_this;
@@ -137,40 +166,9 @@ void LongUI::UIViewport::initialize(const Config::Popup& popup) noexcept {
     // 清零
     std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
     // 显示窗口
-    this->ShowWindow(SW_SHOW);*/
+    this->ShowWindow(SW_SHOW);
 }
 
-
-// 清理前
-void LongUI::UIViewport::before_deleted() noexcept {
-    // 清理引用
-    /*LongUI::SafeRelease(m_pHoverTracked);
-    LongUI::SafeRelease(m_pFocusedControl);
-    LongUI::SafeRelease(m_pDragDropControl);
-    LongUI::SafeRelease(m_pCapturedControl);
-    // 清理子窗口
-    UIViewport* children = m_pFirstChild;
-    while (children) {
-        children->CloseWindowLater();
-        children = children->m_pNextSibling;
-    }*/
-    // 链式调用
-    Super::before_deleted();
-}
-
-// UIViewport 析构函数
-LongUI::UIViewport::~UIViewport() noexcept {
-}
-
-
-
-// UIViewport 关闭控件
-void LongUI::UIViewport::cleanup() noexcept {
-    // 删除前调用
-    this->before_deleted();
-    // 删除对象
-    delete this;
-}
 
 /// <summary>
 /// Creates the popup window
@@ -178,7 +176,7 @@ void LongUI::UIViewport::cleanup() noexcept {
 /// <returns></returns>
 auto LongUI::UIViewport::CreatePopup(const Config::Popup& popup) noexcept -> UIViewport* {
     assert(!"NOIMPL");
-    /*assert(popup.parent && "bad argument");
+    assert(popup.parent && "bad argument");
     CUIDxgiAutoLocker locker;
     auto window = new(std::nothrow) UIViewport(popup.parent);
     // TODO: 下面空间不足则将窗口移动到控件上面
@@ -191,7 +189,7 @@ auto LongUI::UIViewport::CreatePopup(const Config::Popup& popup) noexcept -> UIV
             popup.child->LinkNewParent(window);
             window->Push(popup.child);
 #ifdef _DEBUG
-           force_cast(window->name) = window->CopyString("PopupWindow");
+            force_cast(window->name) = window->CopyString("PopupWindow");
 #endif
         }
         // 重建
@@ -200,48 +198,9 @@ auto LongUI::UIViewport::CreatePopup(const Config::Popup& popup) noexcept -> UIV
         window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
         // 移动窗口
         window->MoveWindow(popup.leftline, popup.bottomline);
-    }*/
+    }
     return nullptr;
 }
-
-
-#if 0
-
-// 注册
-void LongUI::UIViewport::RegisterOffScreenRender(UIControl* c, bool is3d) noexcept {
-    // 检查
-#ifdef _DEBUG
-    auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
-    if (itr != m_vRegisteredControl.end()) {
-        UIManager << DL_Warning << L"control: [" << c->name << L"] existed" << LongUI::endl;
-        return;
-    }
-#endif
-    if (is3d) {
-        m_vRegisteredControl.insert(m_vRegisteredControl.begin(), c);
-    }
-    else {
-        m_vRegisteredControl.push_back(c);
-    }
-    // some error
-    if (!m_vRegisteredControl.isok()) {
-        UIManager << DL_Warning << L"insert failed" << LongUI::endl;
-    }
-}
-
-// 反注册
-void LongUI::UIViewport::UnRegisterOffScreenRender(UIControl* c) noexcept {
-    auto itr = std::find(m_vRegisteredControl.begin(), m_vRegisteredControl.end(), c);
-    if (itr != m_vRegisteredControl.end()) {
-        m_vRegisteredControl.erase(itr);
-    }
-#ifdef _DEBUG
-    else {
-        UIManager << DL_Warning << L"control: [" << c->name << L"] not found" << LongUI::endl;
-    }
-#endif
-}
-
 
 // 设置插入符号
 void LongUI::UIViewport::SetCaretPos(UIControl* ctrl, float _x, float _y) noexcept {
@@ -1258,13 +1217,13 @@ HRESULT LongUI::UIViewport::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINT
 #endif
 
 // -----------------------------------------------------------------------
-// 任务按钮创建消息
-const UINT LongUI::XUISystemWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 
 /// <summary>
 /// Initializes a new instance of the <see cref="XUIBaseWindow"/> class.
 /// </summary>
-LongUI::XUIBaseWindow::XUIBaseWindow(pugi::xml_node node) noexcept {
+LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_pParent(config.parent) {
+    // Xml节点
+    auto node = config.node;
 #ifdef _DEBUG
     m_vChildren.push_back(nullptr);
     m_vChildren.pop_back();
@@ -1296,17 +1255,19 @@ LongUI::XUIBaseWindow::XUIBaseWindow(pugi::xml_node node) noexcept {
     //m_idBlinkTimer = ::SetTimer(m_hwnd, BLINK_EVENT_ID, ::GetCaretBlinkTime(), nullptr);
     // 拖放帮助器
     //m_pDropTargetHelper = UIManager.GetDropTargetHelper();
-    // 清零
-    std::memset(m_dirtyRects, 0, sizeof(m_dirtyRects));
     // 关闭时退出
     if (node.attribute("exitonclose").as_bool(true)) {
         this->set_exit_on_close();
     }
-    // 自动显示窗口
-    if (node.attribute("autoshow").as_bool(true)) {
-        assert(!"NOIMPL");
-        this->ShowWindow(SW_SHOW);
+    // 失去焦点关闭窗口
+    if (config.popup) {
+        this->set_close_on_focus_killed();
     }
+    // 自动显示窗口
+    /*if (node.attribute("autoshow").as_bool(true)) {
+        assert(!"NOIMPL");
+        //this->ShowWindow(SW_SHOW);
+    }*/
 }
 
 /// <summary>
@@ -1315,8 +1276,48 @@ LongUI::XUIBaseWindow::XUIBaseWindow(pugi::xml_node node) noexcept {
 /// <returns></returns>
 LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
     LongUI::SafeRelease(m_pViewport);
+    LongUI::SafeRelease(m_pHoverTracked);
+    LongUI::SafeRelease(m_pFocusedControl);
+    LongUI::SafeRelease(m_pDragDropControl);
+    LongUI::SafeRelease(m_pCapturedControl);
 }
 
+
+/// <summary>
+/// Creates the popup.
+/// </summary>
+/// <param name="pos">The position.</param>
+/// <param name="height">The height.</param>
+/// <returns></returns>
+auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height) noexcept -> XUIBaseWindow* {
+    Config::Window config;
+    // 窗口配置
+    config.node = pugi::xml_node();
+    config.parent = this;
+    config.position = pos;
+    config.height = height;
+    config.popup = true;
+    config.system = true;
+    // 创建窗口
+    auto window = LongUI::CreateBuiltinWindow(config);
+    assert(window && "create system window failed");
+    if (!window) return nullptr;
+    // 创建视口
+    D2D1_SIZE_U size = D2D1::SizeU(pos.right - pos.right, height);
+    auto viewport = UIViewport::CreateWithoutXml(window, size);
+    assert(viewport && "create viewport failed");
+    if (!viewport) {
+        window->Dispose();
+        return nullptr;
+    }
+    // 连接视口
+    window->InitializeViewport(viewport);
+    // 重建资源
+    auto hr = window->Recreate();
+    ShowHR(hr);
+    // 返回创建窗口
+    return window;
+}
 
 /// <summary>
 /// Finds the control.
@@ -1482,6 +1483,24 @@ void LongUI::XUIBaseWindow::Render() const noexcept {
             child->Render();
         }
     }
+}
+
+/// <summary>
+/// Initializes a new instance of the <see cref="XUISystemWindow"/> class.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <param name="parent">The parent.</param>
+LongUI::XUISystemWindow::XUISystemWindow(const Config::Window& config) noexcept : Super(config) {
+    UIManager.AddWindow(this);
+}
+
+
+/// <summary>
+/// Finalizes an instance of the <see cref="XUISystemWindow"/> class.
+/// </summary>
+/// <returns></returns>
+LongUI::XUISystemWindow::~XUISystemWindow() noexcept {
+    UIManager.RemoveWindow(this);
 }
 
 // 移动窗口
@@ -1672,32 +1691,6 @@ void LongUI::XUIBaseWindow::resized() noexcept {
 }
 
 
-/// <summary>
-/// Initializes a new instance of the <see cref="XUISystemWindow"/> class.
-/// </summary>
-LongUI::XUISystemWindow::XUISystemWindow(pugi::xml_node node) noexcept : Super(node) {
-    UIManager.AddWindow(this);
-}
-
-/// <summary>
-/// Finalizes an instance of the <see cref="XUISystemWindow"/> class.
-/// </summary>
-/// <returns></returns>
-LongUI::XUISystemWindow::~XUISystemWindow() noexcept {
-    // 移除窗口
-    UIManager.RemoveWindow(this);
-}
-
-
-/// <summary>
-/// Creates the builtin inset window.
-/// </summary>
-/// <returns>XUIBaseWindow pointer, return null if error</returns>
-auto LongUI::CreateBuiltinInsetWindow(pugi::xml_node node) noexcept -> XUIBaseWindow* {
-    assert(!"NOIMPL");
-    return nullptr;
-}
-
 // longui namesapce
 namespace LongUI {
     // CUIBuiltinSystemWindow
@@ -1709,9 +1702,11 @@ namespace LongUI {
     private:
         // release data for this
         void release_data() noexcept;
+        // is direct composition
+        bool is_direct_composition() const noexcept { return true; }
     public:
         // ctor
-        CUIBuiltinSystemWindow(pugi::xml_node node) noexcept;
+        CUIBuiltinSystemWindow(const Config::Window& config) noexcept;
         // dtor
         ~CUIBuiltinSystemWindow() noexcept;
     public:
@@ -1756,17 +1751,34 @@ namespace LongUI {
         HCURSOR                 m_hNowCursor = ::LoadCursor(nullptr, IDC_ARROW);
         // track mouse event: end with DWORD
         TRACKMOUSEEVENT         m_csTME;
+#ifdef _DEBUG
+        // title name
+        CUIString               m_strTitle;
+#endif
+        // msg for taskbar-btn created
+        static const UINT s_uTaskbarBtnCreatedMsg;
     };
+    // 任务按钮创建消息
+    const UINT CUIBuiltinSystemWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
 }
 
-
 /// <summary>
-/// Creates the builtin system window.
+/// Creates the builtin window.
 /// </summary>
-/// <returns>XUISystemWindow pointer, return null if error</returns>
-auto LongUI::CreateBuiltinSystemWindow(pugi::xml_node node) noexcept -> XUISystemWindow* {
-    LongUI::CUIBuiltinSystemWindow::RegisterWindowClass();
-    return new(std::nothrow) CUIBuiltinSystemWindow(node);
+/// <param name="config">The configuration.</param>
+/// <returns></returns>
+auto LongUI::CreateBuiltinWindow(const Config::Window& config) noexcept -> XUIBaseWindow* {
+    // 创建系统窗口?
+    if (config.system) {
+        LongUI::CUIBuiltinSystemWindow::RegisterWindowClass();
+        return new(std::nothrow) CUIBuiltinSystemWindow(config);
+    }
+    // 创建内建窗口
+    else {
+        assert(config.parent && "prent cannot be null for inset window");
+        assert(!"NOIMPL");
+    }
+    return nullptr;
 }
 
 
@@ -1939,11 +1951,12 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
             m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
             // 释放引用
             LongUI::SafeRelease(m_pFocusedControl);
+            UIManager << DL_Hint << "WM_KILLFOCUS control" << endl;
         }
-        //::DestroyCaret();
-        // TODO: 失去焦点即关闭窗口
+        //TODO:  ::DestroyCaret();
+        // 失去焦点即关闭窗口
         if (this->is_close_on_focus_killed()) {
-
+            assert(!"NOIMPL");
         }
         return true;
     case WM_MOVE:
@@ -2114,7 +2127,7 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
         swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         // XXX: Fixit
-        if (true) {
+        if (this->is_direct_composition()) {
             // DirectComposition桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
@@ -2178,8 +2191,8 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
         );
         longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
     }
-    // XXX: 使用DComp
-    if (true) {
+    // 使用DComp
+    if (this->is_direct_composition()) {
         // 创建直接组合(Direct Composition)设备
         if (SUCCEEDED(hr)) {
             hr = LongUI::Dll::DCompositionCreateDevice(
@@ -2278,20 +2291,35 @@ void LongUI::CUIBuiltinSystemWindow::BeginRender() const noexcept {
 void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     // 结束渲染
     UIManager_RenderTarget->EndDraw();
-    // 呈现参数设置
-    RECT rcScroll = { 0, 0, this->GetWidth(), this->GetHeight() };
-    RECT dirtyRects[LongUIDirtyControlSize + 1];
-    std::memcpy(dirtyRects, m_dirtyRects, sizeof(dirtyRects));
-    DXGI_PRESENT_PARAMETERS present_parameters;
-    present_parameters.DirtyRectsCount = 0;
-    present_parameters.pDirtyRects = dirtyRects;
-    present_parameters.pScrollRect = &rcScroll;
-    present_parameters.pScrollOffset = nullptr;
-    // 设置参数
-    //this->set_present_parameters(present_parameters);
+    HRESULT hr = S_OK;
+    // 全渲染
+    if (this->is_full_render_this_frame()) {
+        hr = m_pSwapChain->Present(1, 0);
+    }
+    // 脏渲染
+    else {
+        // 呈现参数设置
+        RECT scroll = { 0, 0, this->GetWidth(), this->GetHeight() };
+        RECT rects[LongUIDirtyControlSize];
+        DXGI_PRESENT_PARAMETERS present_parameters;
+        present_parameters.DirtyRectsCount = m_uUnitLength;
+        present_parameters.pDirtyRects = rects;
+        present_parameters.pScrollRect = &scroll;
+        present_parameters.pScrollOffset = nullptr;
+        // 设置参数
+        auto control = m_apUnit;
+        for (auto itr = rects; itr < rects + m_uUnitLength; ++itr) {
+            const auto& vrt = (*control)->visible_rect;
+            itr->left = static_cast<LONG>(vrt.left);
+            itr->top = static_cast<LONG>(vrt.top);
+            itr->right = static_cast<LONG>(std::ceil(vrt.right));
+            itr->bottom = static_cast<LONG>(std::ceil(vrt.bottom));
+            ++control;
+        }
+        // 提交
+        hr = m_pSwapChain->Present1(1, 0, &present_parameters);
+    }
     // 呈现
-    //HRESULT hr = m_pSwapChain->Present1(1, 0, &present_parameters);
-    HRESULT hr = m_pSwapChain->Present(1, 0);
     longui_debug_hr(hr, L"m_pSwapChain->Present1 faild");
     // 收到重建消息时 重建UI
 #ifdef _DEBUG
@@ -2307,6 +2335,17 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
             UIManager << DL_Error << L"Recreate Failed!!!" << LongUI::endl;
         }
     }
+    // 更新调试信息
+    wchar_t buffer[1024];
+    std::swprintf(
+        buffer, lengthof(buffer),
+        L"%ls: FRC: %d\nDRC: %d\nDRRC: %d",
+        m_strTitle.c_str(),
+        int(full_render_counter),
+        int(dirty_render_counter),
+        int(m_uUnitLength)
+    );
+    ::SetWindowTextW(m_hwnd, buffer);
 #else
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
         hr = UIManager.RecreateResources();
@@ -2408,7 +2447,9 @@ void LongUI::CUIBuiltinSystemWindow::SetCursor(LongUI::Cursor cursor) noexcept {
 /// </summary>
 /// <param name="node">The node.</param>
 /// <param name="viewport">The viewport.</param>
-LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(pugi::xml_node node) noexcept : Super(node) {
+LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& config) noexcept : Super(config) {
+    // Xml节点
+    auto node = config.node;
     const char* str = nullptr;
     // 标题名字
     CUIString titlename(WindowClassName);
@@ -2421,8 +2462,7 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(pugi::xml_node node) noex
     // 窗口区
     {
         // 检查样式样式
-        auto popup = node.attribute("popup-test").as_bool(false);
-        DWORD window_style = popup ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
+        DWORD window_style = config.popup ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
         // 设置窗口大小
         RECT window_rect;
         // 检查控件大小
@@ -2432,6 +2472,9 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(pugi::xml_node node) noex
                 node.attribute(LongUI::XMLAttribute::AllSize).value(),
                 size, lengthof<uint32_t>(size)
             );
+            // 检查
+            if (size[0] == 0.f) size[0] = float(LongUIDefaultWindowWidth);
+            if (size[1] == 0.f) size[1] = float(LongUIDefaultWindowHeight);
             // TODO: 高DPI处理策略
             if ((str = node.attribute("hidpi").value())) {
 
@@ -2479,6 +2522,9 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(pugi::xml_node node) noex
     m_csTME.dwHoverTime = 0;
     // 显示
     ::ShowWindow(m_hwnd, SW_SHOW);
+#ifdef _DEBUG
+    m_strTitle = titlename;
+#endif
 }
 
 /// <summary>

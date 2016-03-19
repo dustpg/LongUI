@@ -187,6 +187,13 @@ namespace LongUI {
         /// <returns></returns>
         virtual auto CustomRichType(const FormatTextConfig& config, const wchar_t* format) noexcept ->IDWriteTextLayout* = 0;
         /// <summary>
+        /// Creates the custom window.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <param name="node">The node.</param>
+        /// <returns></returns>
+        virtual auto CreateCustomWindow(WindowPriorityType type, pugi::xml_node node) noexcept->XUIBaseWindow* = 0;
+        /// <summary>
         /// Shows the error.
         /// </summary>
         /// <param name="str_a">String A</param>

@@ -26,14 +26,27 @@
 
 // LongUI namespace
 namespace LongUI {
-    // base window
-    class XUIBaseWindow;
-    // system window
-    class CUISystemWindow;
     // vector for window
     using WindowVector = EzContainer::PointerVector<XUIBaseWindow>;
     // vector for system window
     using SystemWindowVector = EzContainer::PointerVector<XUIBaseWindow>;
+    // config for create window
+    namespace Config { struct Window {
+        // node of window, maybe null
+        pugi::xml_node      node;
+        // parent for window, maybe null
+        XUIBaseWindow*      parent;
+        // postion of window: different top-bottom for popup window,  same for other window
+        D2D1_RECT_L         position;
+        // height of window
+        uint32_t            height;
+        // is popup?
+        bool                popup;
+        // create system window first?
+        bool                system;
+        // unused
+        bool                unused[2];
+    };}
     // window for longui
     class XUIBaseWindow {
         // super class
@@ -42,9 +55,13 @@ namespace LongUI {
         // string allocator
         using StringAllocator = CUIShortStringAllocator<>;
         // ctor
-        XUIBaseWindow(pugi::xml_node node) noexcept;
+        XUIBaseWindow(const Config::Window& config) noexcept;
         // dtor
         ~XUIBaseWindow() noexcept;
+        // create child window
+        auto CreateChildWindow() noexcept ->XUIBaseWindow*;
+        // create popup window
+        auto CreatePopup(const D2D1_RECT_L& pos, uint32_t height) noexcept ->XUIBaseWindow*;
     public:
         // index of BitArray
         enum BitArrayIndex : uint32_t {
@@ -97,8 +114,8 @@ namespace LongUI {
         auto GetWidth() const noexcept { return m_rcWindow.width; }
         // get height of window client zone
         auto GetHeight() const noexcept { return m_rcWindow.height; }
-        // show window
-        void ShowWindow(int cmd) noexcept { ::ShowWindow(m_hwnd, cmd); };
+        // get viewport
+        auto GetViewport() const noexcept { return m_pViewport; }
         // get text anti-mode 
         auto GetTextAntimode() const noexcept { return static_cast<D2D1_TEXT_ANTIALIAS_MODE>(m_textAntiMode); }
         // get text anti-mode 
@@ -113,8 +130,13 @@ namespace LongUI {
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
         // render window in next frame
         void InvalidateWindow() noexcept { this->set_full_render_this_frame(); }
+#ifdef _DEBUG
+        // clear render info in debug mode
+        void ClearRenderInfo() noexcept { this->clear_full_render_this_frame(); m_uUnitLength = 0; std::memset(m_apUnit, 0, sizeof(m_apUnit)); }
+#else
         // clear render info
         void ClearRenderInfo() noexcept { this->clear_full_render_this_frame(); m_uUnitLength = 0; }
+#endif
     public:
         // initialize viewport
         void InitializeViewport(UIViewport* viewport) noexcept;
@@ -151,7 +173,11 @@ namespace LongUI {
         bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrame); }
         // is NewSize
         bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }
+        // is CloseOnFocusKilled
+        bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
     protected:
+        // set CloseOnFocusKilled to true
+        void set_close_on_focus_killed() noexcept { m_baBoolWindow.SetTrue(Index_CloseOnFocusKilled); }
         // set ExitOnClose to true
         void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue(Index_ExitOnClose); }
         // set SkipRender to true
@@ -193,15 +219,15 @@ namespace LongUI {
         // string allocator
         StringAllocator         m_oStringAllocator;
         // will use BitArray instead of them
-        Helper::BitArray32      m_baBoolWindow;
+        Helper::BitArray16      m_baBoolWindow;
         // mode for text anti-alias
-        uint32_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
+        uint16_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
         // data length of m_apUnits
-        size_t                  m_uUnitLength = 0;
+        uint32_t                m_uUnitLength = 0;
         // data for unit
         UIControl*              m_apUnit[LongUIDirtyControlSize];
         // dirty rects
-        RECT                    m_dirtyRects[LongUIDirtyControlSize];
+        //RECT                    m_dirtyRects[LongUIDirtyControlSize];
         // current STGMEDIUM: begin with DWORD
         STGMEDIUM               m_curMedium;
         // control name ->map-> control pointer
@@ -226,7 +252,7 @@ namespace LongUI {
         using Super = XUIBaseWindow;
     public:
         // ctor
-        XUISystemWindow(pugi::xml_node node) noexcept;
+        XUISystemWindow(const Config::Window& config) noexcept;
         // dtor
         ~XUISystemWindow() noexcept;
     public:
@@ -240,8 +266,6 @@ namespace LongUI {
         // message id for TaskbarBtnCreated
         static const UINT s_uTaskbarBtnCreatedMsg;
     };
-    // create builtin system window
-    auto CreateBuiltinSystemWindow(pugi::xml_node node) noexcept ->XUISystemWindow*;
-    // create builtin inset window
-    auto CreateBuiltinInsetWindow(pugi::xml_node node) noexcept ->XUIBaseWindow*;
+    // create builtin window
+    auto CreateBuiltinWindow(const Config::Window& config) noexcept ->XUIBaseWindow*;
 }

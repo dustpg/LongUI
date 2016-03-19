@@ -564,6 +564,14 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         // user defined zone
         Cursor_UserDefined,
     };
+    // priority type of window creating
+    enum WindowPriorityType : uint32_t {
+        // custom window first
+        Type_CustomWindowFirst = 1 << 0,
+        // inset window first
+        Type_InsetWindowFirst = 1 << 1,
+    };
+    LONGUI_DEFINE_ENUM_FLAG_OPERATORS(WindowPriorityType, uint32_t);
 }
 
 #ifndef CHAR_BIT

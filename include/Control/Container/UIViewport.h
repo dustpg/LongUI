@@ -26,40 +26,10 @@
 
 // LongUI namespace
 namespace LongUI {
-    // config::window
-    namespace Config { struct Window : Control {
-        // window title name
-        const wchar_t*      title_name;
-        // full rendering
-        bool                full_rendering;
-        // always do rendering
-        bool                always_rendering;
-    };}
-    // config::popup window
-    namespace Config { struct Popup {
-        // left line of popup window
-        float                       leftline;
-        // top line(maybe as bottom of popup window)
-        float                       topline;
-        // bottom line(maybe as top of popup window)
-        float                       bottomline;
-        // with of popup window
-        float                       width;
-        // height of popup window
-        float                       height;
-        // parent window
-        XUIBaseWindow*              parent;
-        // [OPTIONAL]child
-        UIControl*                  child;
-    };}
     // ui viewport for window
     class UIViewport : public UIVerticalLayout {
         // 父类申明
         using Super = UIVerticalLayout;
-        // 友元申明
-        friend class CUIManager;
-        // timer id for blink
-        static constexpr UINT_PTR BLINK_EVENT_ID = 0;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public: // UIControl 接口实现
@@ -76,17 +46,24 @@ namespace LongUI {
     public:
         // constructor
         UIViewport(XUIBaseWindow* window) noexcept;
-        // create popup window
-        static auto CreatePopup(const Config::Popup&) noexcept -> UIViewport*;
+        // create one without xml-node
+        static auto CreateWithoutXml(XUIBaseWindow* wnd, D2D1_SIZE_U size) noexcept ->UIViewport*;
+        // get create func
+        template<class T>
+        static auto CreateFunc(pugi::xml_node node, XUIBaseWindow* window) noexcept ->UIViewport* {
+            T* viewport = new(std::nothrow) T(window);
+            if (viewport) viewport->T::initialize(node);
+            return viewport;
+        }
     protected:
         // something must do before deleted
-        void before_deleted() noexcept;
+        void before_deleted() noexcept { Super::before_deleted(); };
         // init
         void initialize(pugi::xml_node node) noexcept;
-        // init as popup window
-        void initialize(const Config::Popup& popup) noexcept;
+        // init
+        void initialize(D2D1_SIZE_U size) noexcept;
         // destructor
-        ~UIViewport() noexcept;
+        ~UIViewport() noexcept { }
         // deleted 
         UIViewport(const UIViewport&) = delete;
     public:

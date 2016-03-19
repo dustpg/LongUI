@@ -1,38 +1,5 @@
 ﻿#include "LongUI.h"
 
-// Memory leak detector
-#if defined(_DEBUG) && defined(_MSC_VER)
-ID3D11Debug*    g_pd3dDebug_longui = nullptr;
-struct LongUIMemoryLeakDetector {
-    // ctor
-    LongUIMemoryLeakDetector() {
-        ::_CrtMemCheckpoint(memstate + 0);
-        constexpr int sa = sizeof(_CrtMemState);
-    }
-    // dtor
-    ~LongUIMemoryLeakDetector() {
-        ::_CrtMemCheckpoint(memstate + 1);
-        if (::_CrtMemDifference(memstate + 2, memstate + 0, memstate + 1)) {
-            ::_CrtDumpMemoryLeaks();
-            assert(!"OOps! Memory leak detected");
-        }
-        if (g_pd3dDebug_longui) {
-            auto count = g_pd3dDebug_longui->Release();
-            if (count) {
-                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
-                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(1 | 2 | 4));
-                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
-                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(4));
-                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: End. If you saw this message, check 'KnownIssues.md' please \r\n\r\n");
-            }
-            g_pd3dDebug_longui = nullptr;
-        }
-    }
-    // mem state
-    _CrtMemState memstate[3];
-} g_detector;
-#endif
-
 
 static_assert(sizeof(std::atomic_bool) == sizeof(char), "really bad");
 #define InitStaticVar(v)  decltype(v) v = nullptr
@@ -226,6 +193,40 @@ namespace LongUI {
     } instance;
 }
 
+
+
+// Memory leak detector
+#if defined(_DEBUG) && defined(_MSC_VER)
+ID3D11Debug*    g_pd3dDebug_longui = nullptr;
+struct LongUIMemoryLeakDetector {
+    // ctor
+    LongUIMemoryLeakDetector() {
+        ::_CrtMemCheckpoint(memstate + 0);
+        constexpr int sa = sizeof(_CrtMemState);
+    }
+    // dtor
+    ~LongUIMemoryLeakDetector() {
+        ::_CrtMemCheckpoint(memstate + 1);
+        if (::_CrtMemDifference(memstate + 2, memstate + 0, memstate + 1)) {
+            ::_CrtDumpMemoryLeaks();
+            assert(!"OOps! Memory leak detected");
+        }
+        if (g_pd3dDebug_longui) {
+            auto count = g_pd3dDebug_longui->Release();
+            if (count) {
+                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
+                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(1 | 2 | 4));
+                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: ReportLiveDeviceObjects(D3D11_RLDO_IGNORE_INTERNAL)\r\n\r\n");
+                g_pd3dDebug_longui->ReportLiveDeviceObjects(D3D11_RLDO_FLAGS(4));
+                ::OutputDebugStringW(L"\r\nLongUI Memory Leak Debug: End. If you saw this message, check 'KnownIssues.md' please \r\n\r\n");
+            }
+            g_pd3dDebug_longui = nullptr;
+        }
+    }
+    // mem state
+    _CrtMemState memstate[3];
+} g_detector;
+#endif
 
 // 初始化静态变量
 LongUI::CUIManager          LongUI::CUIManager::s_instance;

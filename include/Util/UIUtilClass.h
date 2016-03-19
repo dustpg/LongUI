@@ -26,7 +26,6 @@
 
 // longui namespace
 namespace LongUI {
-#define LONGUI_FUNCTION_NOEXCEPT noexcept
     // small single object
     struct CUISingleObject {
         // throw new []
@@ -57,7 +56,7 @@ namespace LongUI {
     class XUIBaseFunc : public CUISingleSmallObject {
     public:
         // call
-        virtual auto Call(Args... args) LONGUI_FUNCTION_NOEXCEPT ->Result = 0;
+        virtual auto Call(Args... args) noexcept ->Result = 0;
         // dtor
         virtual ~XUIBaseFunc() noexcept { if (this->chain) delete this->chain; this->chain = nullptr; };
         // call chain
@@ -72,7 +71,7 @@ namespace LongUI {
         // ctor
         CUIRealFunc(const Func &x) noexcept : m_func(x) {}
         // call
-        auto Call(Args... args) LONGUI_FUNCTION_NOEXCEPT ->Result override { 
+        auto Call(Args... args) noexcept ->Result override { 
             if (this->chain) this->chain->Call(args...);
             return m_func(args...);
         }
@@ -135,7 +134,7 @@ namespace LongUI {
         template<typename Func> CUIFunction(const Func& f) noexcept : 
         m_pFunction(new(std::nothrow) CUIRealFunc<type_helper<Func>::type, Result, Args...>(f))  {}
         // () operator
-        auto operator()(Args... args) const LONGUI_FUNCTION_NOEXCEPT { assert(m_pFunction && "bad call or oom"); return m_pFunction ? m_pFunction->Call(args...) : Result(); }
+        auto operator()(Args... args) const noexcept { assert(m_pFunction && "bad call or oom"); return m_pFunction ? m_pFunction->Call(args...) : Result(); }
     };
     // Device Independent Meta
     struct DeviceIndependentMeta {
@@ -435,6 +434,8 @@ namespace LongUI {
         virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
         // if in RichType::Type_Custom, will call this, we don't implement at here
         virtual auto CustomRichType(const FormatTextConfig&, const wchar_t*) noexcept ->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
+        // create custom window
+        virtual auto CreateCustomWindow(WindowPriorityType type, pugi::xml_node node) noexcept->XUIBaseWindow* override { return nullptr; };
         // show the error string
         virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void override;
 #ifdef _DEBUG

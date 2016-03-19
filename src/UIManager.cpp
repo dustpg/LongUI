@@ -483,7 +483,6 @@ void LongUI::CUIManager::Run() noexcept {
                 UIManager.m_uiInput.Update();
                 // 刷新窗口
                 for (auto window : UIManager.m_vWindows) {
-                    window->ClearRenderInfo();
                     window->Update();
                 }
             }
@@ -624,10 +623,14 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
 // 创建UI窗口
 auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
-    callback_create_viewport call) noexcept -> UIViewport* {
+    callback_create_viewport call) noexcept -> XUIBaseWindow* {
     assert(node && call && "bad arguments");
+    Config::Window config;
+    std::memset(&config, 0, sizeof(config));
+    config.node = node;
+    config.system = true;
     // 创建窗口
-    auto window = LongUI::CreateBuiltinSystemWindow(node);
+    auto window = LongUI::CreateBuiltinWindow(config);
     assert(window && "create system window failed");
     if (!window) return nullptr;
     // 创建视口
@@ -674,7 +677,7 @@ auto LongUI::CUIManager::create_ui_window(
         << LongUI::endl;
     //::Sleep(500);
 #endif
-    return viewport;
+    return window;
 }
 
 // 获取主题颜色

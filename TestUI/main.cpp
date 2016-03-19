@@ -216,7 +216,7 @@ class MainWindow final : public LongUI::UIViewport {
     // super class
     using Super = LongUI::UIViewport;
     // frend class
-    friend class LongUI::CUIManager;
+    friend class Super;
 private:
     // removed
     MainWindow(const MainWindow&) = delete;

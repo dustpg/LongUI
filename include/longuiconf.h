@@ -278,6 +278,8 @@ namespace LongUI {
     class CUIString;
     // pre-declare
     class IUIScript;
+    // base window
+    class XUIBaseWindow;
 }
 
 // XML Node Attribute/Value constexpr char* const Setting

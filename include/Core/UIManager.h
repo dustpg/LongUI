@@ -31,6 +31,8 @@ namespace LongUI {
     static struct EndL { } endl;
     // ui manager UI管理器
     class CUIManager {
+        // friend class
+        friend class XUIBaseWindow;
         // string allocator
         using StringAllocator = CUIShortStringAllocator<>;
         // create ui viewport call back
@@ -92,15 +94,11 @@ namespace LongUI {
         // create ui window with xml string
         auto CreateUIWindow(const char* xml) noexcept { return this->CreateUIWindow<LongUI::UIViewport>(xml); }
         // create ui window with custom window && xml string
-        template<class T> auto CreateUIWindow(const char* xml) noexcept ->T* {
+        template<class T> auto CreateUIWindow(const char* xml) noexcept ->XUIBaseWindow* {
             auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); 
             if (code.status) return nullptr;
-            auto create_func = [](pugi::xml_node node, XUIBaseWindow* window) noexcept ->UIViewport* { 
-                T* viewport = new(std::nothrow) T(window); 
-                if(viewport) viewport->T::initialize(node);
-                return viewport;
-            };
-            return static_cast<T*>(this->create_ui_window(m_docWindow.first_child(), create_func));
+            auto create_func = UIViewport::CreateFunc<T>;
+            return this->create_ui_window(m_docWindow.first_child(), create_func);
         }
     private:
         // exit
@@ -329,7 +327,7 @@ namespace LongUI {
         // create the control with xml-node
         LongUIAPI auto create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
         // create ui window
-        LongUIAPI auto create_ui_window(pugi::xml_node node, callback_create_viewport call) noexcept ->UIViewport*;
+        LongUIAPI auto create_ui_window(pugi::xml_node node, callback_create_viewport call) noexcept ->XUIBaseWindow*;
         // cleanup delay-cleanup-chain
         void cleanup_delay_cleanup_chain() noexcept;
         // load the template string

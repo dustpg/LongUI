@@ -371,25 +371,24 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         D2D1_POINT_2F p2 = { this->view_size.width,  this->view_size.height };
         p1 = LongUI::TransformPoint(this->world, p1);
         p2 = LongUI::TransformPoint(this->world, p2);
-        Config::Popup config;
+        D2D1_RECT_L rect;
         // 上界限
-        config.topline = p1.y;
+        rect.top  = p1.y;
         // 下界限
-        config.bottomline = p2.y;
+        rect.bottom = p2.y;
         // 左界限
-        config.leftline = p1.x;
+        rect.left = p1.x;
         // 宽度
-        config.width = std::max(p2.x - p1.x, float(LongUIMaxGradientStop));
+        rect.right = p2.x;
         // 高度
+        float height = 0.f;
         {
             uint32_t count = std::min(m_fMaxLine, m_pItemList->GetChildrenCount());
-            config.height = m_pItemList->GetLineHeight() * static_cast<float>(count);
+            height = m_pItemList->GetLineHeight() * static_cast<float>(count);
         }
-        // 必要数据
-        config.parent = m_pWindow;
-        config.child = m_pItemList;
         // 创建弹出窗口
-        auto popup = UIViewport::CreatePopup(config);
+        auto popup = m_pWindow->CreatePopup(rect, height);
+        // 链接
         return true;
     };
     // 添加事件

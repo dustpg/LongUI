@@ -90,6 +90,8 @@ void LongUI::UIControl::StartRender(float time) noexcept {
     const auto tt = time + 0.025f;
     // 不足再刷新
     if (m_fRenderTime < tt) m_fRenderTime = tt;
+    // 刷新再说
+    //this->InvalidateThis();
 }
 
 
@@ -779,8 +781,8 @@ namespace LongUI {
                 break;
             }
             return false;
-#endif
         }
+#endif
     };
     // space holder
     class UISpaceHolder final : public UINull {

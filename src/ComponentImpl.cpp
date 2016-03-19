@@ -553,8 +553,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             );
         return true;
     }
-
-
     // 拖入
     bool EditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
         m_bDragFormatOK = false;
@@ -571,8 +569,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         return m_bDragFromThis ? false : m_bDragFormatOK;
     }
-
-
     // 拖上
     bool EditaleText::OnDragOver(float x, float y) noexcept {
         // 自己的?并且在选择范围内?
@@ -595,7 +591,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         return false;
     }
-
     // 重建
     void EditaleText::Recreate() noexcept {
         // 重新创建资源
@@ -604,8 +599,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             D2D1::ColorF(D2D1::ColorF::LightSkyBlue),
             &m_pSelectionColor
             );
+        UIManager << DL_Hint << (void*)(m_pSelectionColor) << endl;
     }
-
     // 键入一个字符时
     void EditaleText::OnChar(char32_t ch) noexcept {
         // 字符有效
@@ -640,7 +635,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             this->refresh(true);
         }
     }
-
     // 按键时
     void EditaleText::OnKey(uint32_t keycode) noexcept {
         // 检查按键 maybe IUIInput
@@ -651,7 +645,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
 
         switch (keycode)
         {
-        case VK_RETURN:     // 回车键
+        case VK_RETURN:
+            // 回车键
             // 多行 - 键CRLF字符
             if (this->IsMultiLine()) {
                 this->DeleteSelection();
@@ -666,7 +661,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 //this->sbcaller.operator()(m_pHost, SubEvent::Event_EditReturned);
             }
             break;
-        case VK_BACK:       // 退格键
+        case VK_BACK:
+            // 退格键
             // 有选择的话
             if (absolutePosition != m_u32CaretAnchor) {
                 // 删除选择区
@@ -693,7 +689,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 修改
             this->refresh();
             break;
-        case VK_DELETE:     // 删除键
+        case VK_DELETE:
+            // 删除键
             // 有选择的话
             if (absolutePosition != m_u32CaretAnchor) {
                 // 删除选择区
@@ -730,39 +727,50 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 修改
             this->refresh();
             break;
-        case VK_TAB:        // Tab键
+        case VK_TAB:
+            // Tab键
             break;
-        case VK_LEFT:       // 光标左移一个字符/集群
+        case VK_LEFT:
+            // 光标左移一个字符/集群
             this->SetSelection(heldControl ? SelectionMode::Mode_LeftWord : SelectionMode::Mode_Left, 1, heldShift);
             break;
-        case VK_RIGHT:      // 光标右移一个字符/集群
+        case VK_RIGHT:
+            // 光标右移一个字符/集群
             this->SetSelection(heldControl ? SelectionMode::Mode_RightWord : SelectionMode::Mode_Right, 1, heldShift);
             break;
-        case VK_UP:         // 多行模式: 上移一行
+        case VK_UP:
+            // 多行模式: 上移一行
             if (this->IsMultiLine())
                 this->SetSelection(SelectionMode::Mode_Up, 1, heldShift);
             break;
-        case VK_DOWN:       // 多行模式: 下移一行
+        case VK_DOWN:
+            // 多行模式: 下移一行
             if (this->IsMultiLine())
                 this->SetSelection(SelectionMode::Mode_Down, 1, heldShift);
             break;
-        case VK_HOME:       // HOME键
+        case VK_HOME:
+            // HOME键
             this->SetSelection(heldControl ? SelectionMode::Mode_First : SelectionMode::Mode_Home, 0, heldShift);
             break;
-        case VK_END:        // END键
+        case VK_END:
+            // END键
             this->SetSelection(heldControl ? SelectionMode::Mode_Last : SelectionMode::Mode_End, 0, heldShift);
             break;
-        case 'C':           // 'C'键 Ctrl+C 复制
+        case 'C':
+            // 'C'键 Ctrl+C 复制
             if (heldControl) this->CopyToClipboard();
             break;
-        case VK_INSERT:     // Insert键
+        case VK_INSERT:
+            // Insert键
             if (heldControl)    this->CopyToClipboard();
             else if (heldShift) this->PasteFromClipboard();
             break;
-        case 'V':           // 'V'键 Ctrl+V 粘贴
+        case 'V':
+            // 'V'键 Ctrl+V 粘贴
             if (heldControl)   this->PasteFromClipboard();
             break;
-        case 'X':           // 'X'键 Ctrl+X 剪切
+        case 'X':
+            // 'X'键 Ctrl+X 剪切
             if (heldControl) {
                 this->CopyToClipboard();
                 this->DeleteSelection();
@@ -770,33 +778,33 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 this->refresh();
             }
             break;
-        case 'A':           // 'A'键 Ctrl+A 全选
+        case 'A':
+            // 'A'键 Ctrl+A 全选
             if (heldControl)
                 this->SetSelection(SelectionMode::Mode_SelectAll, 0, true);
             break;
         case 'Z':
+            // 撤销
             break;
         case 'Y':
+            // 重做
             break;
         default:
             break;
         }
     }
-
     // 当设置焦点时
     void EditaleText::OnSetFocus() noexcept {
         m_bThisFocused = true;
         this->refresh();
         m_pHost->GetWindow()->ShowCaret();
     }
-
     // 当失去焦点时
     void EditaleText::OnKillFocus() noexcept {
         //auto window = m_pHost->GetWindow();
         m_pHost->GetWindow()->HideCaret();
         m_bThisFocused = false;
     }
-
     // 左键弹起时
     void EditaleText::OnLButtonUp(float x, float y) noexcept {
         // 检查
@@ -809,7 +817,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         m_pHost->GetWindow()->ReleaseCapture();
 
     }
-
     // 左键按下时
     void EditaleText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
         // 设置鼠标捕获
@@ -838,7 +845,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             this->SetSelectionFromPoint(x, y, shfit_hold);
         }
     }
-
     // 左键按住时
     void EditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
         // 起点在选择区
@@ -880,7 +886,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             this->SetSelectionFromPoint(x, y, true);
         }
     }
-
     // 对齐最近字符集
     void EditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
         DWRITE_HIT_TEST_METRICS hitTestMetrics;
