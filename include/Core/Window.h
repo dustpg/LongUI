@@ -173,8 +173,6 @@ namespace LongUI {
         bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrame); }
         // is NewSize
         bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }
-        // is CloseOnFocusKilled
-        bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
     protected:
         // set CloseOnFocusKilled to true
         void set_close_on_focus_killed() noexcept { m_baBoolWindow.SetTrue(Index_CloseOnFocusKilled); }
