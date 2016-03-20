@@ -297,11 +297,13 @@ void LongUI::UIRadioButton::ForceSetCheckedState(bool state) noexcept {
         bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
         rec = false;
 #ifdef _DEBUG
-        UIManager << DL_Log << this
-            << L"change to ["
-            << (state ? L"checked" : L"unchecked")
-            << L']'
-            << LongUI::endl;
+        if (this->debug_this) {
+            UIManager << DL_Log << this
+                << L"change to ["
+                << (state ? L"checked" : L"unchecked")
+                << L']'
+                << LongUI::endl;
+        }
 #endif
     }
 }

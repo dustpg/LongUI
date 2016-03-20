@@ -365,7 +365,7 @@ namespace LongUI { namespace Helper {
     }
     // get d2d text anti-mode
     inline auto GetEnumFromXml(pugi::xml_node node, D2D1_TEXT_ANTIALIAS_MODE bad_match,
-        const char* attribute = LongUI::XMLAttribute::WindowTextAntiMode, const char* prefix = nullptr) noexcept {
+        const char* attribute = LongUI::XmlAttribute::WindowTextAntiMode, const char* prefix = nullptr) noexcept {
         return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
     }
     // get animation type

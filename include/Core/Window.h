@@ -36,8 +36,8 @@ namespace LongUI {
         pugi::xml_node      node;
         // parent for window, maybe null
         XUIBaseWindow*      parent;
-        // postion of window: different top-bottom for popup window,  same for other window
-        D2D1_RECT_L         position;
+        // width of window
+        uint32_t            width;
         // height of window
         uint32_t            height;
         // is popup?
@@ -45,7 +45,7 @@ namespace LongUI {
         // create system window first?
         bool                system;
         // unused
-        bool                unused[2];
+        //bool                unused[2];
     };}
     // window for longui
     class XUIBaseWindow {
@@ -61,29 +61,25 @@ namespace LongUI {
         // create child window
         auto CreateChildWindow() noexcept ->XUIBaseWindow*;
         // create popup window
-        auto CreatePopup(const D2D1_RECT_L& pos, uint32_t height) noexcept ->XUIBaseWindow*;
+        auto CreatePopup(const D2D1_RECT_L& pos, uint32_t height, UIControl* child) noexcept ->XUIBaseWindow*;
     public:
         // index of BitArray
         enum BitArrayIndex : uint32_t {
-            // exit on close
+            // [RO] exit on close
             Index_ExitOnClose = 0,
-            // close when focus killed
+            // [RO] close when focus killed
             Index_CloseOnFocusKilled,
-            // caret in(true) or out?
-            Index_CaretIn,
-            // do caret?
-            Index_DoCaret,
-            // in draging?
+            // [RO] popup window
+            Index_PopupWindow,
+            // [RW] in draging?
             Index_InDraging,
-            // window rendered in last time, or want to render in this time
-            Index_Rendered,
-            // new size?
+            // [RW] new size?
             Index_NewSize,
-            // skip render
+            // [RW] skip render
             Index_SkipRender,
-            // do full-render this frame?
+            // [RW] do full-render this frame?
             Index_FullRenderThisFrame,
-            // count of this
+            // [XX] count of this
             INDEX_COUNT,
         };
     public:
@@ -122,8 +118,6 @@ namespace LongUI {
         void SetTextAntimode(D2D1_TEXT_ANTIALIAS_MODE mode) noexcept { m_textAntiMode = static_cast<decltype(m_textAntiMode)>(mode); }
         // is mouse captured control?
         auto IsCapturedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
-        // is rendered
-        auto IsRendered() const noexcept { return m_baBoolWindow.Test(XUIBaseWindow::Index_Rendered); }
         // copystring for control in this winddow
         auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
         // copystring for control in this winddow in safe way
@@ -138,6 +132,8 @@ namespace LongUI {
         void ClearRenderInfo() noexcept { this->clear_full_render_this_frame(); m_uUnitLength = 0; }
 #endif
     public:
+        // close window
+        void Close() noexcept;
         // initialize viewport
         void InitializeViewport(UIViewport* viewport) noexcept;
         // do event
@@ -165,19 +161,30 @@ namespace LongUI {
         // release mouse capture
         void ReleaseCapture() noexcept;
     protected:
+        // is NewSize
+        bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }
         // is SkipRender
         bool is_skip_render() const noexcept { return m_baBoolWindow.Test(Index_SkipRender); }
+        // is Popup
+        bool is_popup_window() const noexcept { return m_baBoolWindow.Test(Index_PopupWindow); }
+        // is ExitOnClose
+        bool is_exit_on_close() const noexcept { return m_baBoolWindow.Test(Index_ExitOnClose); }
         // is CloseOnFocusKilled
         bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
         // is FullRenderingThisFrame
         bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrame); }
-        // is NewSize
-        bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }
     protected:
-        // set CloseOnFocusKilled to true
-        void set_close_on_focus_killed() noexcept { m_baBoolWindow.SetTrue(Index_CloseOnFocusKilled); }
+        // set PopupWindow to true
+        void set_popup_window() noexcept { m_baBoolWindow.SetTrue(Index_PopupWindow); }
         // set ExitOnClose to true
         void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue(Index_ExitOnClose); }
+        // set CloseOnFocusKilled to true
+        void set_close_on_focus_killed() noexcept { m_baBoolWindow.SetTrue(Index_CloseOnFocusKilled); }
+    protected:
+        // set NewSize to true
+        void set_new_size() noexcept { m_baBoolWindow.SetTrue(Index_NewSize); }
+        // clear FullRenderingThisFrame
+        void clear_new_size() noexcept { m_baBoolWindow.SetFalse(Index_NewSize); }
         // set SkipRender to true
         void set_skip_render() noexcept { m_baBoolWindow.SetTrue(Index_SkipRender); }
         // clear SkipRender
@@ -186,10 +193,6 @@ namespace LongUI {
         void set_full_render_this_frame() noexcept { m_baBoolWindow.SetTrue(Index_FullRenderThisFrame); }
         // clear FullRenderingThisFrame
         void clear_full_render_this_frame() noexcept { m_baBoolWindow.SetFalse(Index_FullRenderThisFrame);  }
-        // set NewSize to true
-        void set_new_size() noexcept { m_baBoolWindow.SetTrue(Index_NewSize); }
-        // clear FullRenderingThisFrame
-        void clear_new_size() noexcept { m_baBoolWindow.SetFalse(Index_NewSize);  }
     protected:
         // resized, called from child-class
         void resized() noexcept;

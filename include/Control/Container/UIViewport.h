@@ -67,8 +67,6 @@ namespace LongUI {
         // deleted 
         UIViewport(const UIViewport&) = delete;
     public:
-        // can be closed? called on closed
-        virtual bool IsCanBeClosed() noexcept { return true; }
     protected:
         // next sibling
 #ifdef LongUIDebugEvent

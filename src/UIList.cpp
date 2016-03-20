@@ -622,6 +622,15 @@ LongUINoinline void LongUI::UIList::select_to(uint32_t index1, uint32_t index2) 
     }
 }
 
+/// <summary>
+/// Zeroes the width of all lines content.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIList::ZeroAllLinesContentWidth() noexcept {
+    // 清除宽度信息
+    for (auto line : (*this)) line->ZeroContentWidth();
+}
+
 // UIList: 重置选择
 void LongUI::UIList::reset_select() noexcept {
     //m_pHoveredLine = nullptr;
@@ -751,7 +760,8 @@ void LongUI::UIList::Update() noexcept {
 #ifdef _DEBUG
     // 必须一致
     if (this->IsNeedRefreshWorld() && m_pHeader && m_vLines.size() && m_vLines.front()) {
-        assert(m_pHeader->GetChildrenCount() == m_vLines.front()->GetChildrenCount() && "out of sync for child number");
+        auto code = m_pHeader->GetChildrenCount() == m_vLines.front()->GetChildrenCount();
+        assert(code && "out of sync for child number");
     }
 #endif
     //this->world;
@@ -765,6 +775,14 @@ void LongUI::UIList::RefreshLayout() noexcept {
     // 第二次
     float index = 0.f;
     float widthtt = m_vLines.front()->GetContentWidthZoomed();
+#ifdef _DEBUG
+    if (this->debug_this && widthtt > 0.f) {
+        UIManager << DL_Hint
+            << L"width exsitd: "
+            << widthtt
+            << endl;
+    }
+#endif
     if (widthtt == 0.f) widthtt = this->GetViewWidthZoomed();
     for (auto ctrl : m_vLines) {
         // 设置控件高度
@@ -825,7 +843,6 @@ noexcept -> UIControl* {
 inline void LongUI::UIListLine::initialize() noexcept {
     // 链式调用
     Super::initialize();
-
 }
 
 // UI列表元素控件: 初始化
@@ -843,8 +860,9 @@ void LongUI::UIListLine::initialize(pugi::xml_node node) noexcept {
 // 刷新UI列表元素控件
 void LongUI::UIListLine::Update() noexcept {
     // 检查宽度
-    if (m_bFirstUpdate) {
-        m_bFirstUpdate = false;
+    /*if (m_bFirstUpdate) {
+        m_bFirstUpdate = false;*/
+    /*{
         // 取消属性
         for (auto ctrl : (*this)) {
             if (ctrl->view_size.width <= 0.f) {
@@ -857,7 +875,7 @@ void LongUI::UIListLine::Update() noexcept {
             force_cast(ctrl->flags) |= Flag_WidthFixed;
         }
         return;
-    }
+    }*/
     return Super::Update();
 }
 

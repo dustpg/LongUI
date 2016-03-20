@@ -286,8 +286,10 @@ namespace LongUI {
 namespace LongUI {
     // default window class name zhuangbilty
     static constexpr wchar_t* const WindowClassName = L"Windows.UI.LongUI.DirectWindow";
+    // Invisible window class name zhuangbilty
+    static constexpr wchar_t* const InvisibleName = L"Windows.UI.LongUI.SystemInvoke";
     // attribute namespace
-    namespace XMLAttribute {
+    namespace XmlAttribute {
         // name of control
         static constexpr char* const ControlName            = "name";
         // script data
@@ -298,7 +300,7 @@ namespace LongUI {
         static constexpr char* const LayoutContext          = "context";
         // visible
         static constexpr char* const Visible                = "visible";
-        // user defined string
+        // user defined string                      [invalid yet]
         static constexpr char* const UserDefinedString      = "userstring";
         // backgroud brush, 0 for null not default brush
         static constexpr char* const BackgroudBrush         = "bgbrush";
@@ -322,12 +324,10 @@ namespace LongUI {
         static constexpr char* const Enabled                = "enabled";
 
         // marginal control direction
-        static constexpr char* const MarginalDirection       = "marginal";
+        static constexpr char* const MarginalDirection      = "marginal";
 
         // template size
         static constexpr char* const TemplateSize           = "templatesize";
-        // is always host children rendering?       [valid] for container
-        //static constexpr char* const IsHostChildrenAlways   = "hostchild";
         // is always host children rendering?       [valid] for container
         static constexpr char* const IsHostPosterityAlways  = "hostposterity";
         // marginal control will be zoomed?

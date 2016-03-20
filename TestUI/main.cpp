@@ -1,5 +1,4 @@
 ﻿#if 1
-
 #define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
@@ -448,7 +447,7 @@ public:
     };
     // return flags
     virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override {
-        return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
+        return Flag_OutputDebugString /*| Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
     // choose
     virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t override {
@@ -475,7 +474,6 @@ private:
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
     //int wmain(int argc, wchar_t* argv[]) {
         //int nCmdShow = SW_SHOW;
-    ::FreeLibrary(nullptr);
     // 本Demo的配置信息
     class DemoConfigure config;
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)

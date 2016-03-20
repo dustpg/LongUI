@@ -50,14 +50,10 @@ namespace LongUI {
         LongUIAPI void UnregisterControlClass(const char* clname) noexcept;
         // ShowError with HRESULT code
         LongUIAPI void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
-        // wait for VS
-        LongUIAPI void WaitVS() noexcept;
         // add window
         LongUIAPI void AddWindow(XUISystemWindow* wnd) noexcept;
         // remove window
         LongUIAPI void RemoveWindow(XUISystemWindow* wnd) noexcept;
-        // refresh display frequency
-        LongUIAPI void RefreshDisplayFrequency() noexcept;
         // return -1 for error(out of renderer space), return other for index
         LongUIAPI auto RegisterTextRenderer(XUIBasicTextRenderer*, const char name[LongUITextRendererNameMaxLength]) noexcept ->int32_t;
         // get text renderer by name 
@@ -124,6 +120,8 @@ namespace LongUI {
         auto DxgiUnlock() noexcept { return m_uiDxgiLocker.Unlock(); }
         // push delay cleanup
         auto PushDelayCleanup(UIControl* c) noexcept { m_vDelayCleanup.push_back(c); }
+        // push delay cleanup
+        auto PushDelayCleanup(XUIBaseWindow* w) noexcept { m_vDelayDispose.push_back(w); }
         // ShowError with string
         auto ShowError(const wchar_t * str, const wchar_t* str_b = nullptr) noexcept { this->configure->ShowError(str, str_b); }
         // GetXXX method will call AddRef if it is a COM object
@@ -216,6 +214,8 @@ namespace LongUI {
         IDXGIDevice1*                   m_pDxgiDevice = nullptr;
         // DXGI 适配器
         IDXGIAdapter*                   m_pDxgiAdapter = nullptr;
+        // DXGI 显示输出
+        IDXGIOutput*                    m_pDxgiOutput = nullptr;
 #ifdef _DEBUG
         // debug object
         ID3D11Debug*                    m_pd3dDebug = nullptr;
@@ -224,6 +224,8 @@ namespace LongUI {
         size_t                          frame_id = 0;
     private:
 #endif
+        // invisible window handle
+        HWND                            m_hInvisible = nullptr;
         // thread manager for TSF
         ITfThreadMgr*                   m_pTsfThreadManager = nullptr;
         // text renderer
@@ -238,6 +240,8 @@ namespace LongUI {
         StringTable                     m_hashStr2CreateFunc;
         // delay cleanup vector
         ControlVector                   m_vDelayCleanup;
+        // delay dispose vector
+        WindowVector                    m_vDelayDispose;
         // windows
         SystemWindowVector              m_vWindows;
         // feature level
@@ -255,6 +259,8 @@ namespace LongUI {
         uint32_t                        m_dbgExitTime = 0;
         // unused
         uint32_t                        m_dbgUnused = 0;
+        // fps calculator
+        EzContainer::EzVector<float>    m_vFpsCalculator;
 #endif
         // bitmap buffer
         ID2D1Bitmap1**                  m_ppBitmaps = nullptr;
@@ -338,6 +344,12 @@ namespace LongUI {
         auto create_indexzero_resources() noexcept ->HRESULT;
         // create system brush
         auto create_system_brushes() noexcept ->HRESULT;
+        // create output
+        auto create_dxgi_output() noexcept ->HRESULT;
+        // wait for VBlank
+        void wait_for_vblank() noexcept;
+        // refresh display frequency
+        void refresh_display_frequency() noexcept;
         // do some creating-event
         void do_creating_event(CreateEventType type) noexcept;
     public:

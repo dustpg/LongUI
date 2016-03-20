@@ -1225,6 +1225,7 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
     // Xml节点
     auto node = config.node;
 #ifdef _DEBUG
+    m_baBoolWindow.Test(INDEX_COUNT);
     m_vChildren.push_back(nullptr);
     m_vChildren.pop_back();
 #endif
@@ -1243,7 +1244,7 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
         m_miniSize.y = static_cast<LONG>(size[1]);
         // 清理颜色
         Helper::MakeColor(
-            node.attribute(LongUI::XMLAttribute::WindowClearColor).value(),
+            node.attribute(LongUI::XmlAttribute::WindowClearColor).value(),
             this->clear_color
         );
         // 文本抗锯齿
@@ -1255,13 +1256,13 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
     //m_idBlinkTimer = ::SetTimer(m_hwnd, BLINK_EVENT_ID, ::GetCaretBlinkTime(), nullptr);
     // 拖放帮助器
     //m_pDropTargetHelper = UIManager.GetDropTargetHelper();
-    // 关闭时退出
-    if (node.attribute("exitonclose").as_bool(true)) {
-        this->set_exit_on_close();
-    }
     // 失去焦点关闭窗口
     if (config.popup) {
         this->set_close_on_focus_killed();
+    }
+    // 关闭时退出
+    else if (node.attribute("exitonclose").as_bool(true)) {
+        this->set_exit_on_close();
     }
     // 自动显示窗口
     /*if (node.attribute("autoshow").as_bool(true)) {
@@ -1282,6 +1283,17 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
     LongUI::SafeRelease(m_pCapturedControl);
 }
 
+/// <summary>
+/// Closes this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::Close() noexcept {
+    // 延迟清理
+    UIManager.PushDelayCleanup(this);
+    // 跳过渲染
+    this->set_skip_render();
+}
+
 
 /// <summary>
 /// Creates the popup.
@@ -1289,12 +1301,16 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
 /// <param name="pos">The position.</param>
 /// <param name="height">The height.</param>
 /// <returns></returns>
-auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height) noexcept -> XUIBaseWindow* {
+auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height, UIControl* child) noexcept -> XUIBaseWindow* {
+    assert(pos.right - pos.left && "bad width");
+    assert(height && "bad height");
+    D2D1_SIZE_U size = D2D1::SizeU(pos.right - pos.left, height);
+    // 宽度不足
+    if (!size.width || !size.width) return nullptr;
     Config::Window config;
     // 窗口配置
-    config.node = pugi::xml_node();
     config.parent = this;
-    config.position = pos;
+    config.width = pos.right - pos.left;
     config.height = height;
     config.popup = true;
     config.system = true;
@@ -1303,7 +1319,6 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height)
     assert(window && "create system window failed");
     if (!window) return nullptr;
     // 创建视口
-    D2D1_SIZE_U size = D2D1::SizeU(pos.right - pos.right, height);
     auto viewport = UIViewport::CreateWithoutXml(window, size);
     assert(viewport && "create viewport failed");
     if (!viewport) {
@@ -1312,9 +1327,20 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height)
     }
     // 连接视口
     window->InitializeViewport(viewport);
+    // 添加子节点
+    if (child) {
+        child->LinkNewParent(viewport);
+        viewport->Push(child);
+#ifdef _DEBUG
+        force_cast(viewport->name) = window->CopyString("PopupWindow");
+#endif
+    }
     // 重建资源
-    auto hr = window->Recreate();
-    ShowHR(hr);
+    auto hr = window->Recreate(); ShowHR(hr);
+    // 创建完毕
+    viewport->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+    // 移动窗口
+    //window->MoveWindow(popup.leftline, popup.bottomline);
     // 返回创建窗口
     return window;
 }
@@ -1795,7 +1821,7 @@ void LongUI::CUIBuiltinSystemWindow::RegisterWindowClass() noexcept {
         wcex = { 0 };
         wcex.cbSize = sizeof(WNDCLASSEXW);
         wcex.style = CS_HREDRAW | CS_VREDRAW;
-        wcex.lpfnWndProc = LongUI::CUIBuiltinSystemWindow::WndProc;
+        wcex.lpfnWndProc = CUIBuiltinSystemWindow::WndProc;
         wcex.cbClsExtra = 0;
         wcex.cbWndExtra = sizeof(void*);
         wcex.hInstance = ins;
@@ -1803,7 +1829,7 @@ void LongUI::CUIBuiltinSystemWindow::RegisterWindowClass() noexcept {
         wcex.hbrBackground = nullptr;
         wcex.lpszMenuName = nullptr;
         wcex.lpszClassName = LongUI::WindowClassName;
-        wcex.hIcon = nullptr;// ::LoadIconW(hInstance, MAKEINTRESOURCEW(101));
+        wcex.hIcon = nullptr;// ::LoadIconW(ins, MAKEINTRESOURCEW(101));
         ::RegisterClassExW(&wcex);
     }
 }
@@ -1856,8 +1882,6 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
 #endif
         auto handled = false;
         {
-            // 加锁
-            CUIDataAutoLocker locker;
             // 消息处理
             handled = window->MessageHandle(message, wParam, lParam, recode);
         }
@@ -1945,20 +1969,23 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
 
         break;
     case WM_KILLFOCUS:
+    {
+        // 加锁
+        CUIDataAutoLocker locker;
         // 存在焦点控件
         if (m_pFocusedControl) {
             // 事件
             m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
             // 释放引用
             LongUI::SafeRelease(m_pFocusedControl);
-            UIManager << DL_Hint << "WM_KILLFOCUS control" << endl;
         }
         //TODO:  ::DestroyCaret();
         // 失去焦点即关闭窗口
         if (this->is_close_on_focus_killed()) {
-            assert(!"NOIMPL");
+            ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
         }
-        return true;
+    }
+    return true;
     case WM_MOVE:
         // 移动窗口
         m_rcWindow.left = LONG(int16_t(LOWORD(lParam)));
@@ -1967,6 +1994,8 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     case WM_SIZE:
         // 改变大小
     {
+        // 加锁
+        CUIDataAutoLocker locker;
         auto w = LOWORD(lParam);
         auto h = HIWORD(lParam);
         // 数据有效?
@@ -1979,22 +2008,31 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     return true;
     case WM_GETMINMAXINFO:
         // 获取限制大小
+        //CUIDataAutoLocker locker;
         reinterpret_cast<MINMAXINFO*>(lParam)->ptMinTrackSize = { m_miniSize.x, m_miniSize.y };
         return true;
     case WM_DISPLAYCHANGE:
         // TODO: 显示环境改变
-        UIManager << DL_Hint << "WM_DISPLAYCHANGE" << LongUI::endl;
+        //UIManager << DL_Hint << "WM_DISPLAYCHANGE" << LongUI::endl;
         break;
     case WM_CLOSE:
         // 关闭窗口
-        if (m_pViewport->IsCanBeClosed()) {
+    {
+        // 加锁
+        CUIDataAutoLocker locker;
+        if (this->is_exit_on_close()) {
             UIManager.Exit();
         }
+        this->Close();
+    }
+        return false;
     default:
         return false;
     }
     // 鼠标消息
     if (msgtp == Type_Mouse) {
+        // 加锁
+        CUIDataAutoLocker locker;
         // 设置鼠标位置
         ma.pt = this->last_point;
         // hover跟踪
@@ -2345,7 +2383,10 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         int(dirty_render_counter),
         int(m_uUnitLength)
     );
+    // 设置显示
+    UIManager.DxgiUnlock();
     ::SetWindowTextW(m_hwnd, buffer);
+    UIManager.DxgiLock();
 #else
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {
         hr = UIManager.RecreateResources();
@@ -2455,7 +2496,7 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
     CUIString titlename(WindowClassName);
     {
         Helper::MakeString(
-            node.attribute(LongUI::XMLAttribute::WindowTitleName).value(),
+            node.attribute(LongUI::XmlAttribute::WindowTitleName).value(),
             titlename
         );
     }
@@ -2464,25 +2505,30 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
         // 检查样式样式
         DWORD window_style = config.popup ? WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
         // 设置窗口大小
-        RECT window_rect;
+        D2D1_RECT_L window_rect;
+        window_rect.left = 0;
+        window_rect.top = 0;
         // 检查控件大小
-        {
+        if (node) {
             float size[] = { 0.f, 0.f };
             Helper::MakeFloats(
-                node.attribute(LongUI::XMLAttribute::AllSize).value(),
+                node.attribute(LongUI::XmlAttribute::AllSize).value(),
                 size, lengthof<uint32_t>(size)
             );
             // 检查
             if (size[0] == 0.f) size[0] = float(LongUIDefaultWindowWidth);
             if (size[1] == 0.f) size[1] = float(LongUIDefaultWindowHeight);
+            window_rect.right = static_cast<LONG>(size[0]);
+            window_rect.bottom = static_cast<LONG>(size[1]);
             // TODO: 高DPI处理策略
             if ((str = node.attribute("hidpi").value())) {
 
             }
-            window_rect.left = 0;
-            window_rect.top = 0;
-            window_rect.right = static_cast<LONG>(size[0]);
-            window_rect.bottom = static_cast<LONG>(size[1]);
+        }
+        else {
+            window_rect.right = config.width;
+            window_rect.bottom = config.height;
+            { int bk = 9; }
         }
         // 调整大小
         ::AdjustWindowRect(&window_rect, window_style, FALSE);

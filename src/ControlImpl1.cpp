@@ -359,7 +359,8 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
                 }
             }
             // TODO: 点击选项关闭
-            assert(!"NOIMPL");
+            ::PostMessageW(list->GetWindow()->GetHwnd(), WM_CLOSE, 0, 0);
+            //assert(!"NOIMPL");
             //list->GetWindow()->CloseWindowLater();
             return true;
         }, SubEvent::Event_ItemClicked);
@@ -367,19 +368,22 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
     // 点击事件
     auto call = [this](UIControl* unused) noexcept {
         UNREFERENCED_PARAMETER(unused);
+        // 清零
+        m_pItemList->ZeroAllLinesContentWidth();
+        // 坐标转换
         D2D1_POINT_2F p1 = { 0.f, 0.f };
         D2D1_POINT_2F p2 = { this->view_size.width,  this->view_size.height };
         p1 = LongUI::TransformPoint(this->world, p1);
         p2 = LongUI::TransformPoint(this->world, p2);
         D2D1_RECT_L rect;
         // 上界限
-        rect.top  = p1.y;
+        rect.top  = LONG(p1.y);
         // 下界限
-        rect.bottom = p2.y;
+        rect.bottom = LONG(p2.y);
         // 左界限
-        rect.left = p1.x;
+        rect.left = LONG(p1.x);
         // 宽度
-        rect.right = p2.x;
+        rect.right = LONG(p2.x);
         // 高度
         float height = 0.f;
         {
@@ -387,7 +391,11 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
             height = m_pItemList->GetLineHeight() * static_cast<float>(count);
         }
         // 创建弹出窗口
-        auto popup = m_pWindow->CreatePopup(rect, height);
+        auto popup = m_pWindow->CreatePopup(rect, LONG(height), m_pItemList);
+        // 选择
+        if (popup) {
+            m_pItemList->SelectChild(m_indexSelected);
+        }
         // 链接
         return true;
     };

@@ -599,7 +599,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             D2D1::ColorF(D2D1::ColorF::LightSkyBlue),
             &m_pSelectionColor
             );
-        UIManager << DL_Hint << (void*)(m_pSelectionColor) << endl;
     }
     // 键入一个字符时
     void EditaleText::OnChar(char32_t ch) noexcept {

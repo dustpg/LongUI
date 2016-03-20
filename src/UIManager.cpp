@@ -24,7 +24,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     m_vWindows.clear();
     // 开始计时
     m_uiTimer.Start();
-    this->RefreshDisplayFrequency();
+    this->refresh_display_frequency();
     // 内容不足
     if (!m_vDelayCleanup.isok() || !m_vWindows.isok()) {
         return E_OUTOFMEMORY;
@@ -51,8 +51,71 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     std::memset(m_apTextRenderer, 0, sizeof(m_apTextRenderer));
     std::memset(m_apSystemBrushes, 0, sizeof(m_apSystemBrushes));
     // 获取实例句柄
-    //auto hInstance = ::GetModuleHandleW(nullptr);
+    auto hInstance = ::GetModuleHandleW(nullptr);
     HRESULT hr = S_OK;
+    // 创建不可视窗口
+    if (SUCCEEDED(hr)) {
+        // 注册窗口
+        WNDCLASSEXW wcex;
+        auto code = ::GetClassInfoExW(hInstance, InvisibleName, &wcex);
+        if (!code) {
+            // 处理函数
+            auto wndproc = [](HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept ->LRESULT {
+                switch (message)
+                {
+                case WM_DISPLAYCHANGE:
+                    // 显示环境改变
+                    UIManager.refresh_display_frequency();
+                    UIManager.create_dxgi_output();
+#ifdef _DEBUG
+                    UIManager << DL_Hint << "WM_DISPLAYCHANGE" << LongUI::endl;
+                case WM_CLOSE:
+                    // 不能关闭该窗口
+#endif
+                    return 0;
+                default:
+                    return ::DefWindowProcW(hwnd, message, wParam, lParam);
+                }
+                return 0;
+            };
+            // 注册窗口类
+            wcex = { 0 };
+            wcex.cbSize = sizeof(WNDCLASSEXW);
+            wcex.style = CS_NOCLOSE;
+            wcex.cbClsExtra = 0;
+            wcex.cbWndExtra = sizeof(void*);
+            wcex.hInstance = hInstance;
+            wcex.hCursor = nullptr;
+            wcex.hbrBackground = nullptr;
+            wcex.lpszMenuName = nullptr;
+            wcex.lpszClassName = LongUI::InvisibleName;
+            wcex.hIcon = nullptr;
+            wcex.lpfnWndProc = wndproc;
+            ::RegisterClassExW(&wcex);
+        }
+#ifdef _DEBUG
+        constexpr int SIW = 256;
+        constexpr int SIH = 0;
+#else
+        constexpr int SIW = 0;
+        constexpr int SIH = 0;
+#endif
+        // 创建
+        m_hInvisible = ::CreateWindowExW(
+            0, LongUI::InvisibleName, L"SystemInvoke", 0,
+            0, 0, SIW, SIH, nullptr, nullptr, hInstance, nullptr
+        );
+        // 成功
+        if (m_hInvisible) {
+#ifdef _DEBUG
+            ::ShowWindow(m_hInvisible, SW_SHOW);
+#endif
+        }
+        else {
+            hr = E_FAIL;
+        }
+        
+    }
     // 位图缓存
     if (SUCCEEDED(hr)) {
         m_pBitmap0Buffer = reinterpret_cast<uint8_t*>(LongUI::NormalAlloc(
@@ -332,6 +395,8 @@ void LongUI::CUIManager::Uninitialize() noexcept {
 #endif // _DEBUG
     // 释放配置
     LongUI::SafeRelease(force_cast(this->configure));
+    // 关闭窗口
+    ::DestroyWindow(m_hInvisible);
 }
 
 // 创建事件
@@ -501,9 +566,34 @@ void LongUI::CUIManager::Run() noexcept {
                 for (auto window : UIManager.m_vWindows) {
                     window->ClearRenderInfo();
                 }
+                // 延迟清理
+                UIManager.cleanup_delay_cleanup_chain();
+#ifdef _DEBUG
+                // 计算平均FPS
+                auto& fpsc = UIManager.m_vFpsCalculator;
+                fpsc.push_back(UIManager.m_fDeltaTime);
+                size_t frame = size_t(UIManager.m_dDisplayFrequency / 2);
+                // 固定时间刷新一次
+                if (fpsc.size() >= size_t(frame)) {
+                    float time = 0.f;
+                    for (auto t : fpsc) time += t;
+                    time /= float(frame);
+                    wchar_t buffer[1024];
+                    std::swprintf(
+                        buffer, lengthof(buffer),
+                        L"delta: %.4fms -- %2.2f fps",
+                        time, 1.f / time
+                    );
+                    auto hwnd = UIManager.m_hInvisible;
+                    UIManager.DataUnlock();
+                    ::SetWindowTextW(hwnd, buffer);
+                    UIManager.DataLock();
+                    fpsc.clear();
+                }
+#endif
             }
             // 等待垂直同步
-            UIManager.WaitVS();
+            UIManager.wait_for_vblank();
         }
         return 0;
     };
@@ -554,11 +644,10 @@ void LongUI::CUIManager::Run() noexcept {
 }
 
 // 等待垂直同步
-void LongUI::CUIManager::WaitVS() noexcept {
-    IDXGIOutput* pDxgiOutput = nullptr;
+void LongUI::CUIManager::wait_for_vblank() noexcept {
     // 存在DXGI输出?
-    if (pDxgiOutput) {
-        pDxgiOutput->WaitForVBlank();
+    if (m_pDxgiOutput) {
+        m_pDxgiOutput->WaitForVBlank();
         return;
     }
     // 保留刷新时间点
@@ -593,7 +682,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction f
     // 结点有效并且没有指定模板ID则尝试获取
     if (!tid) {
         tid = static_cast<decltype(tid)>(LongUI::AtoI(
-            node.attribute(LongUI::XMLAttribute::TemplateID).value())
+            node.attribute(LongUI::XmlAttribute::TemplateID).value())
             );
     }
     // 利用id查找模板控件
@@ -858,17 +947,14 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
 
 // 清理延迟清理链
 void LongUI::CUIManager::cleanup_delay_cleanup_chain() noexcept {
-#if 0
     for (auto ctrl : m_vDelayCleanup) {
         ctrl->Release();
     }
-#else
-    for (uint32_t i = 1; i <= m_vDelayCleanup.size(); ++i) {
-        uint32_t index = m_vDelayCleanup.size() - i;
-        m_vDelayCleanup[index]->Release();
+    for (auto wnd : m_vDelayDispose) {
+        wnd->Dispose();
     }
-#endif
     m_vDelayCleanup.clear();
+    m_vDelayDispose.clear();
 }
 
 // 载入模板字符串
@@ -915,6 +1001,46 @@ auto LongUI::CUIManager::set_control_template_string() noexcept ->HRESULT {
     return S_OK;
 }
 
+/// <summary>
+/// create dxgi output for this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIManager::create_dxgi_output() noexcept -> HRESULT {
+    assert(m_pDxgiFactory && "bad action");
+    LongUI::SafeRelease(m_pDxgiOutput);
+    // 调试
+#ifdef _DEBUG
+    m_vFpsCalculator.reserve(m_dDisplayFrequency);
+    if (!m_vFpsCalculator.isok()) return E_OUTOFMEMORY;
+    m_vFpsCalculator.clear();
+#endif
+    // 初始化
+    IDXGIAdapter1* pDxgiAdapter = nullptr;
+    UINT ia = 0;
+    // 枚举适配器
+    while (m_pDxgiFactory->EnumAdapters1(ia, &pDxgiAdapter) != DXGI_ERROR_NOT_FOUND) {
+        assert(pDxgiAdapter && "bad action");
+#ifdef _DEBUG
+        DXGI_ADAPTER_DESC1 desca;
+        pDxgiAdapter->GetDesc1(&desca);
+#endif
+        UINT io = 0;
+        // 枚举显示输出
+        while (pDxgiAdapter->EnumOutputs(io, &m_pDxgiOutput) != DXGI_ERROR_NOT_FOUND) {
+            assert(m_pDxgiOutput && "bad action");
+#ifdef _DEBUG
+            DXGI_OUTPUT_DESC desco;
+            m_pDxgiOutput->GetDesc(&desco);
+#endif
+            return S_OK;
+        }
+        ++ia;
+        pDxgiAdapter->Release();
+    }
+    // 检查
+    assert(!pDxgiAdapter && "bad action");
+    return E_FAIL;
+}
 
 // UIManager 创建设备相关资源
 auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
@@ -925,7 +1051,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 枚举显示适配器
     if (!(this->flag & IUIConfigure::Flag_RenderByCPU)) {
         IDXGIFactory1* dxgifactory = nullptr;
-        // 创建一个临时工程
+        // 创建一个临时工厂
         if (SUCCEEDED(LongUI::Dll::CreateDXGIFactory1(
             IID_IDXGIFactory1, reinterpret_cast<void**>(&dxgifactory)
         ))) {
@@ -1124,6 +1250,10 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
         longui_debug_hr(hr, L"CoCreateInstance CLSID_MFMediaEngineClassFactory faild");
     }
 #endif
+    // 创建 Dxgi 输出
+    if (SUCCEEDED(hr)) {
+        hr = this->create_dxgi_output();
+    }
     // 创建系统笔刷
     if (SUCCEEDED(hr)) {
         hr = this->create_system_brushes();
@@ -1291,6 +1421,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     LongUI::SafeRelease(m_pd2dDeviceContext);
     LongUI::SafeRelease(m_pd2dDevice);
     LongUI::SafeRelease(m_pDxgiAdapter);
+    LongUI::SafeRelease(m_pDxgiOutput);
     LongUI::SafeRelease(m_pDxgiDevice);
     LongUI::SafeRelease(m_pd3dDevice);
     LongUI::SafeRelease(m_pd3dDeviceContext);
@@ -1608,7 +1739,7 @@ void LongUI::CUIManager::AddWindow(XUISystemWindow* wnd) noexcept {
 }
 
 // 刷新屏幕刷新率
-void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
+void LongUI::CUIManager::refresh_display_frequency() noexcept {
     // 获取屏幕刷新率
     DEVMODEW mode; std::memset(&mode, 0, sizeof(mode));
     ::EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &mode);
@@ -1619,6 +1750,7 @@ void LongUI::CUIManager::RefreshDisplayFrequency() noexcept {
             << L"EnumDisplaySettingsW failed: got zero for DEVMODEW::dmDisplayFrequency"
             << L", now assume as 60Hz"
             << LongUI::endl;
+        assert(!"TODO");
         m_dDisplayFrequency = 60;
     }
 }

@@ -175,21 +175,21 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
 #endif
         const char* data = nullptr;
         // 检查脚本
-        if ((data = node.attribute(XMLAttribute::Script).value()) && UIManager.script) {
+        if ((data = node.attribute(XmlAttribute::Script).value()) && UIManager.script) {
             m_script = UIManager.script->AllocScript(data);
         }
         // 检查权重
-        if (data = node.attribute(LongUI::XMLAttribute::LayoutWeight).value()) {
+        if (data = node.attribute(LongUI::XmlAttribute::LayoutWeight).value()) {
             force_cast(this->weight) = LongUI::AtoF(data);
         }
         // 检查布局上下文
         Helper::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::LayoutContext).value(),
+            node.attribute(LongUI::XmlAttribute::LayoutContext).value(),
             force_cast(this->context),
             lengthof<uint32_t>(this->context)
         );
         // 检查背景笔刷
-        if (data = node.attribute(LongUI::XMLAttribute::BackgroudBrush).value()) {
+        if (data = node.attribute(LongUI::XmlAttribute::BackgroudBrush).value()) {
             m_idBackgroudBrush = uint16_t(LongUI::AtoI(data));
             if (m_idBackgroudBrush) {
                 assert(!m_pBackgroudBrush);
@@ -197,10 +197,10 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
             }
         }
         // 检查可视性
-        this->SetVisible(node.attribute(LongUI::XMLAttribute::Visible).as_bool(true));
+        this->SetVisible(node.attribute(LongUI::XmlAttribute::Visible).as_bool(true));
         // 检查名称
         if (m_pWindow) {
-            auto basestr = node.attribute(LongUI::XMLAttribute::ControlName).value();
+            auto basestr = node.attribute(LongUI::XmlAttribute::ControlName).value();
 #ifdef _DEBUG
             char buffer[128];
             if (!basestr) {
@@ -232,26 +232,26 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
         }
         // 检查外边距
         Helper::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::Margin).value(),
+            node.attribute(LongUI::XmlAttribute::Margin).value(),
             const_cast<float*>(&margin_rect.left),
             sizeof(margin_rect) / sizeof(margin_rect.left)
         );
         // 检查渲染父控件
-        if (node.attribute(LongUI::XMLAttribute::IsRenderParent).as_bool(false)) {
+        if (node.attribute(LongUI::XmlAttribute::IsRenderParent).as_bool(false)) {
             assert(this->parent && "RenderParent but no parent");
             force_cast(this->prerender) = this->parent->prerender;
         }
         // 检查裁剪规则
-        if (node.attribute(LongUI::XMLAttribute::IsClipStrictly).as_bool(true)) {
+        if (node.attribute(LongUI::XmlAttribute::IsClipStrictly).as_bool(true)) {
             flag |= LongUI::Flag_ClipStrictly;
         }
         // 边框大小
-        if (data = node.attribute(LongUI::XMLAttribute::BorderWidth).value()) {
+        if (data = node.attribute(LongUI::XmlAttribute::BorderWidth).value()) {
             m_fBorderWidth = LongUI::AtoF(data);
         }
         // 边框圆角
         Helper::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::BorderRound).value(),
+            node.attribute(LongUI::XmlAttribute::BorderRound).value(),
             &m_2fBorderRdius.width,
             sizeof(m_2fBorderRdius) / sizeof(m_2fBorderRdius.width)
         );
@@ -259,7 +259,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
         {
             float size[] = { 0.f, 0.f };
             Helper::MakeFloats(
-                node.attribute(LongUI::XMLAttribute::AllSize).value(),
+                node.attribute(LongUI::XmlAttribute::AllSize).value(),
                 size, lengthof<uint32_t>(size)
             );
             // 视口区宽度固定?
@@ -274,7 +274,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
             }
         }
         // 禁止
-        if (!node.attribute(LongUI::XMLAttribute::Enabled).as_bool(true)) {
+        if (!node.attribute(LongUI::XmlAttribute::Enabled).as_bool(true)) {
             this->SetEnabled(false);
         }
     }
@@ -657,7 +657,7 @@ void LongUI::UIMarginalable::initialize(pugi::xml_node node) noexcept {
             prop.values_list = mode_list;
             prop.values_length = lengthof<uint32_t>(mode_list);
             prop.bad_match = static_cast<uint32_t>(bad_match);
-            auto value = node.attribute(XMLAttribute::MarginalDirection).value();
+            auto value = node.attribute(XmlAttribute::MarginalDirection).value();
             // 调用
             return static_cast<MarginalControl>(GetEnumFromString(value, prop));
         };
@@ -881,19 +881,19 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
     {
         // 模板大小
         Helper::MakeFloats(
-            node.attribute(LongUI::XMLAttribute::TemplateSize).value(),
+            node.attribute(LongUI::XmlAttribute::TemplateSize).value(),
             &m_2fTemplateSize.width, 2
         );
         // XXX: 渲染依赖属性
-        /*if (node.attribute(XMLAttribute::IsHostChildrenAlways).as_bool(false)) {
+        /*if (node.attribute(XmlAttribute::IsHostChildrenAlways).as_bool(false)) {
             flag |= LongUI::Flag_Container_HostChildrenRenderingDirectly;
         }*/
         // 渲染依赖属性
-        if (node.attribute(XMLAttribute::IsHostPosterityAlways).as_bool(false)) {
+        if (node.attribute(XmlAttribute::IsHostPosterityAlways).as_bool(false)) {
             flag |= LongUI::Flag_Container_HostPosterityRenderingDirectly;
         }
         // 边缘控件缩放
-        if (node.attribute(XMLAttribute::IsZoomMarginalControl).as_bool(true)) {
+        if (node.attribute(XmlAttribute::IsZoomMarginalControl).as_bool(true)) {
             flag |= LongUI::Flag_Container_ZoomMarginalControl;
         }
     }

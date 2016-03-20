@@ -50,6 +50,8 @@ namespace LongUI {
         static auto WINAPI CreateControl(UIContainer* cp) noexcept ->UIListLine*;
         // ctor
         UIListLine(UIContainer* cp) noexcept : Super(cp) { }
+        // zero content width
+        void ZeroContentWidth() noexcept { m_2fContentSize.width = 0.f; }
         // get sorted data
         auto GetToBeSorted() const noexcept { return m_pToBeSorted; }
         // set to be sorted control
@@ -74,10 +76,6 @@ namespace LongUI {
     protected:
         // to be sorted control
         UIControl*          m_pToBeSorted = nullptr;
-        // first update
-        bool                m_bFirstUpdate = true;
-        // unused for line
-        bool                m_lineunsed[sizeof(void*) - 1];
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -184,12 +182,12 @@ namespace LongUI {
         }
     public:
 #endif
-        // refresh layout
-        virtual void RefreshLayout() noexcept override final;
         // push back
         virtual void Push(UIControl* child) noexcept;
         // remove child 
         virtual void Remove(UIControl* child) noexcept;
+        // refresh layout
+        virtual void RefreshLayout() noexcept override final;
         // insert
         void Insert(uint32_t index, UIListLine* line) noexcept;
         // get child at index
@@ -232,6 +230,8 @@ namespace LongUI {
         void SelectChild(uint32_t index, bool new_select = true) noexcept;
         // select to
         void SelectTo(uint32_t index1, uint32_t index2) noexcept;
+        // set all lines content width to 0
+        void ZeroAllLinesContentWidth() noexcept;
     private:
         // reset select
         void reset_select() noexcept;
