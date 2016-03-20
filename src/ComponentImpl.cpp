@@ -1413,8 +1413,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     constexpr float ANIMATION_END = 1.f;
     // 基本动画状态机 - 构造函数
     LongUINoinline AnimationStateMachine::AnimationStateMachine() noexcept
-        : m_aniBasic(AnimationType::Type_QuadraticEaseOut),
-        m_aniExtra(AnimationType::Type_QuadraticEaseOut) {
+        : m_aniBasic(AnimationType::Type_CubicEaseIn),
+        m_aniExtra(AnimationType::Type_CubicEaseIn) {
         m_aniBasic.end = ANIMATION_END;
         m_aniExtra.end = ANIMATION_END;
     }
@@ -1425,7 +1425,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         m_sttBasicNow = m_sttBasicOld = basic;
         m_sttExtraNow = m_sttExtraOld = extra;
         // 动画类型
-        auto atype = Helper::GetEnumFromXml(node, AnimationType::Type_QuadraticEaseOut, "animationtype", prefix);
+        auto atype = Helper::GetEnumFromXml(
+            node, AnimationType::Type_CubicEaseIn, "animationtype", prefix
+        );
         m_aniBasic.type = m_aniExtra.type = atype;
         // 动画持续时间
         const char* str = nullptr;

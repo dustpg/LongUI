@@ -119,7 +119,7 @@ namespace LongUI {
         // unlock dxgi
         auto DxgiUnlock() noexcept { return m_uiDxgiLocker.Unlock(); }
         // push delay cleanup
-        auto PushDelayCleanup(UIControl* c) noexcept { m_vDelayCleanup.push_back(c); }
+        //auto PushDelayCleanup(UIControl* c) noexcept { m_vDelayCleanup.push_back(c); }
         // push delay cleanup
         auto PushDelayCleanup(XUIBaseWindow* w) noexcept { m_vDelayDispose.push_back(w); }
         // ShowError with string

@@ -721,7 +721,7 @@ auto LongUI::UISingle::CreateControl(CreateEventType type, pugi::xml_node node) 
 // --------------------- Page Layout ---------------
 // UIPage 构造函数
 LongUI::UIPage::UIPage(UIContainer* cp) noexcept : Super(cp),
-m_animation(AnimationType::Type_QuadraticEaseIn) {
+m_animation(AnimationType::Type_CubicEaseIn) {
     // 初始化
     m_animation.start = m_animation.value = 0.f;
     m_animation.end = 1.f;
@@ -737,7 +737,9 @@ void LongUI::UIPage::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
     // 动画类型
-    auto atype = Helper::GetEnumFromXml(node, AnimationType::Type_QuadraticEaseOut, "animationtype");
+    auto atype = Helper::GetEnumFromXml(
+        node, AnimationType::Type_CubicEaseIn, "animationtype"
+    );
     m_animation.type = atype;
     // 动画持续时间
     const char* str = nullptr;

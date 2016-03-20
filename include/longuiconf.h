@@ -284,8 +284,10 @@ namespace LongUI {
 
 // XML Node Attribute/Value constexpr char* const Setting
 namespace LongUI {
-    // default window class name zhuangbilty
-    static constexpr wchar_t* const WindowClassName = L"Windows.UI.LongUI.DirectWindow";
+    // default normal window class name zhuangbilty
+    static constexpr wchar_t* const WindowClassNameN = L"Windows.UI.LongUI.DirectWindow";
+    // default popup window class name zhuangbilty
+    static constexpr wchar_t* const WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
     // Invisible window class name zhuangbilty
     static constexpr wchar_t* const InvisibleName = L"Windows.UI.LongUI.SystemInvoke";
     // attribute namespace

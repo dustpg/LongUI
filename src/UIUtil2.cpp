@@ -460,7 +460,7 @@ namespace LongUI { namespace Helper {
     // 动画类型属性值列表
     const char* const cg_listAnimationType[] = {
         "linear",
-        "quadraticim",    "quadraticout",   "quadraticinout",
+        "quadraticin",    "quadraticout",   "quadraticinout",
         "cubicin",        "cubicout",       "cubicoinout",
         "quarticin",      "quarticout",     "quarticinout",
         "quinticcin",     "quinticcout",    "quinticinout",

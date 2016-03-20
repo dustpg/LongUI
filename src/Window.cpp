@@ -1815,12 +1815,12 @@ auto LongUI::CreateBuiltinWindow(const Config::Window& config) noexcept -> XUIBa
 void LongUI::CUIBuiltinSystemWindow::RegisterWindowClass() noexcept {
     auto ins = ::GetModuleHandleW(nullptr);
     WNDCLASSEXW wcex;
-    auto code = ::GetClassInfoExW(ins, LongUI::WindowClassName, &wcex);
+    auto code = ::GetClassInfoExW(ins, LongUI::WindowClassNameN, &wcex);
     if (!code) {
-        // 注册窗口类 | CS_DBLCLKS
+        // 注册一般窗口类
         wcex = { 0 };
         wcex.cbSize = sizeof(WNDCLASSEXW);
-        wcex.style = CS_HREDRAW | CS_VREDRAW;
+        wcex.style = 0;
         wcex.lpfnWndProc = CUIBuiltinSystemWindow::WndProc;
         wcex.cbClsExtra = 0;
         wcex.cbWndExtra = sizeof(void*);
@@ -1828,8 +1828,12 @@ void LongUI::CUIBuiltinSystemWindow::RegisterWindowClass() noexcept {
         wcex.hCursor = nullptr;
         wcex.hbrBackground = nullptr;
         wcex.lpszMenuName = nullptr;
-        wcex.lpszClassName = LongUI::WindowClassName;
+        wcex.lpszClassName = LongUI::WindowClassNameN;
         wcex.hIcon = nullptr;// ::LoadIconW(ins, MAKEINTRESOURCEW(101));
+        ::RegisterClassExW(&wcex);
+        // 注册弹出窗口类
+        wcex.style = CS_DROPSHADOW;
+        wcex.lpszClassName = LongUI::WindowClassNameP;
         ::RegisterClassExW(&wcex);
     }
 }
@@ -2493,7 +2497,7 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
     auto node = config.node;
     const char* str = nullptr;
     // 标题名字
-    CUIString titlename(WindowClassName);
+    CUIString titlename(L"LongUI.Window");
     {
         Helper::MakeString(
             node.attribute(LongUI::XmlAttribute::WindowTitleName).value(),
@@ -2541,7 +2545,7 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
             WS_EX_NOREDIRECTIONBITMAP,
-            LongUI::WindowClassName,
+            config.popup ? LongUI::WindowClassNameP : LongUI::WindowClassNameN,
             titlename.c_str(),
             window_style,
             m_rcWindow.left, m_rcWindow.top, m_rcWindow.width, m_rcWindow.height,

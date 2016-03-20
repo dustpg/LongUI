@@ -1759,20 +1759,11 @@ void LongUI::CUIManager::refresh_display_frequency() noexcept {
 // 移出窗口
 void LongUI::CUIManager::RemoveWindow(XUISystemWindow* wnd) noexcept {
     // 检查时是不是在本数组中
-#ifdef _DEBUG
-    {
-        auto end = m_vWindows.end();
-        if (std::find(m_vWindows.begin(), end, wnd) == end) {
-            assert(!"target window not in windows vector!");
-            return;
-        }
-    }
-#endif
     // 正式移除
     {
-        auto itr = std::find(m_vWindows.begin(), m_vWindows.end(), wnd);
-        m_vWindows.erase(itr);
-        //wnd->Dispose();
+        auto end = m_vWindows.end();
+        auto itr = std::find(m_vWindows.begin(), end, wnd);
+        if (itr != end) m_vWindows.erase(itr);
     }
     // 再次检查时是不是在本数组中
 #ifdef _DEBUG

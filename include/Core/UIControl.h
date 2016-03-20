@@ -102,8 +102,6 @@ namespace LongUI {
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
         // UIEvent
         bool call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
-        // delay_cleanup
-        void delay_cleanup() noexcept;
         // render chain -> background
         void render_chain_background() const noexcept;
         // render chain -> background

@@ -7,7 +7,7 @@
 
 // UIScrollBar 构造函数
 LongUI::UIScrollBar::UIScrollBar(UIContainer* cp) noexcept : 
-    Super(cp),m_uiAnimation(AnimationType::Type_QuadraticEaseIn) {
+    Super(cp),m_uiAnimation(AnimationType::Type_CubicEaseIn) {
 
 }
 

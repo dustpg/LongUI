@@ -140,7 +140,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window textantimode="cleartype" size="800, 600" name="MainWindow" debugshow="true"
     autoshow="false" clearcolor="1, 1, 1, 0.95" popup="false">
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
-    <Page name="pg_1">
+    <Page name="pg_1" animationduration="0.5">
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2"/>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
@@ -236,7 +236,6 @@ private:
     virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     // init
     void init() {
-        return;
         auto slider = LongUI::longui_cast<LongUI::UISlider*>(m_pWindow->FindControl("sld_opacity"));
         if (slider) {
             auto window = m_pWindow;

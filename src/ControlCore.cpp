@@ -1432,8 +1432,3 @@ bool LongUI::UIControl::call_uievent(const UICallBack& call, SubEvent sb) noexce
     // 事件最低
     return m_pWindow->DoEvent(arg) || code;
 }
-
-// 延迟清理
-void LongUI::UIControl::delay_cleanup() noexcept {
-    UIManager.PushDelayCleanup(this);
-}
