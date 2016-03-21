@@ -330,7 +330,7 @@ void LongUI::UIList::SwapLineElementsInEachLine(uint32_t index1, uint32_t index2
 }
 
 // [UNTESTED]插入一个新的行元素
-void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid) noexcept {
+void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlEvent func, size_t tid) noexcept {
     assert(index <= m_vLineTemplate.size() && "out of range");
     assert(func && "bad argument");
     // 有效
@@ -357,7 +357,7 @@ void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlFun
 }
 
 // 设置
-void LongUI::UIList::SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid ) noexcept {
+void LongUI::UIList::SetCCElementInLineTemplate(uint32_t index, CreateControlEvent func, size_t tid ) noexcept {
     assert(index < m_vLineTemplate.size() && "out of range");
     assert(func && "bad argument");
     if (index < m_vLineTemplate.size() && func) {
@@ -385,17 +385,15 @@ void LongUI::UIList::SetElementWidth(uint32_t index, float width) noexcept {
 // UI列表: 事件处理
 bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI 事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // 由父类创建边缘控件
-            Super::DoEvent(arg);
-            this->init_layout();
-            return true;
-        default:
-            break;
-        }
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_TreeBulidingFinished:
+        // 由父类创建边缘控件
+        Super::DoEvent(arg);
+        this->init_layout();
+        return true;
+    default:
+        break;
     }
     return Super::DoEvent(arg);
 }

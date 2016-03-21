@@ -166,22 +166,20 @@ auto LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) 
 // do event 事件处理
 bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // longui 消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_SetEnabled:
-            // 修改状态
-            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
-            return true;
-        case LongUI::Event::Event_SetFloat:
-            // 修改浮点数据
-            this->SetValueSE(arg.stf.value);
-            return true;
-        case LongUI::Event::Event_GetFloat:
-            // 获取浮点数据
-            arg.fvalue = this->GetValueSE();
-            return true;
-        }
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_SetEnabled:
+        // 修改状态
+        m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
+        return true;
+    case LongUI::Event::Event_SetFloat:
+        // 修改浮点数据
+        this->SetValueSE(arg.stf.value);
+        return true;
+    case LongUI::Event::Event_GetFloat:
+        // 获取浮点数据
+        arg.fvalue = this->GetValueSE();
+        return true;
     }
     return Super::DoEvent(arg);
 }

@@ -686,8 +686,6 @@ bool LongUI::UIViewport::DoEvent(const LongUI::EventArgument& arg) noexcept {
         }
     };
     // -------------------- Main DoEvent------------
-    // 这里就不处理LongUI事件了 交给父类吧
-    if (arg.sender) return Super::DoEvent(arg);
     // 其他LongUI事件
     bool handled = false;
     // 特殊事件
@@ -1226,8 +1224,8 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
     auto node = config.node;
 #ifdef _DEBUG
     m_baBoolWindow.Test(INDEX_COUNT);
-    m_vChildren.push_back(nullptr);
-    m_vChildren.pop_back();
+    m_vInsets.push_back(nullptr);
+    m_vInsets.pop_back();
 #endif
     // Debug Zone
 #ifdef _DEBUG
@@ -1264,11 +1262,7 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
     else if (node.attribute("exitonclose").as_bool(true)) {
         this->set_exit_on_close();
     }
-    // 自动显示窗口
-    /*if (node.attribute("autoshow").as_bool(true)) {
-        assert(!"NOIMPL");
-        //this->ShowWindow(SW_SHOW);
-    }*/
+
 }
 
 /// <summary>
@@ -1276,6 +1270,9 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
 /// </summary>
 /// <returns></returns>
 LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
+    for (auto inset : m_vInsets) {
+        inset->Dispose();
+    }
     LongUI::SafeRelease(m_pViewport);
     LongUI::SafeRelease(m_pHoverTracked);
     LongUI::SafeRelease(m_pFocusedControl);
@@ -1325,6 +1322,8 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height,
         window->Dispose();
         return nullptr;
     }
+    // 设置清理颜色
+    window->clear_color = D2D1::ColorF(D2D1::ColorF::White, 0.5f);
     // 连接视口
     window->InitializeViewport(viewport);
     // 添加子节点
@@ -1340,7 +1339,9 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height,
     // 创建完毕
     viewport->DoLongUIEvent(Event::Event_TreeBulidingFinished);
     // 移动窗口
-    //window->MoveWindow(popup.leftline, popup.bottomline);
+    window->MoveWindow(pos.left, pos.bottom);
+    // 显示窗口
+    window->ShowWindow(SW_SHOW);
     // 返回创建窗口
     return window;
 }
@@ -1460,13 +1461,13 @@ auto LongUI::XUIBaseWindow::Recreate() noexcept ->HRESULT {
         hr = m_pViewport->Recreate();
     }
     // 遍历
-    for (auto child : m_vChildren) {
+    for (auto inset : m_vInsets) {
         if (SUCCEEDED(hr)) {
-            hr = child->Recreate();
+            hr = inset->Recreate();
         }
     }
     // 强行刷新一帧
-    this->Invalidate(m_pViewport);
+    this->InvalidateWindow();
     return hr;
 }
 
@@ -1491,8 +1492,8 @@ void LongUI::XUIBaseWindow::Update() noexcept {
 #endif
     }
     // 遍历
-    for (auto child : m_vChildren) {
-        child->Update();
+    for (auto inset : m_vInsets) {
+        inset->Update();
     }
 }
 
@@ -1503,11 +1504,8 @@ void LongUI::XUIBaseWindow::Update() noexcept {
 void LongUI::XUIBaseWindow::Render() const noexcept {
     assert(m_pViewport && "no window");
     // 遍历
-    for (const auto* child : m_vChildren) {
-        // 同一个windows窗口
-        if (child->GetHwnd() == this->GetHwnd()) {
-            child->Render();
-        }
+    for (const auto* inset : m_vInsets) {
+        inset->Render();
     }
 }
 
@@ -1534,8 +1532,7 @@ void LongUI::XUISystemWindow::MoveWindow(int32_t x, int32_t y) noexcept {
     m_rcWindow.left = x;
     m_rcWindow.top = y;
     POINT pt = { x, y };
-    HWND hwndp = ::GetParent(m_hwnd);
-    ::MapWindowPoints(hwndp, m_hwnd, &pt, 1);
+    ::MapWindowPoints(::GetParent(m_hwnd), nullptr, &pt, 1);
     ::SetWindowPos(m_hwnd, HWND_TOP, pt.x, pt.y, 0, 0, SWP_NOSIZE);
 }
 
@@ -1746,6 +1743,8 @@ namespace LongUI {
         virtual auto Recreate() noexcept->HRESULT override;
         // set cursor
         virtual void SetCursor(Cursor cursor) noexcept override;
+        // show/hide window
+        virtual void ShowWindow(int nCmdShow) noexcept override { ::ShowWindow(m_hwnd, nCmdShow); }
     public:
         // normal event
         bool MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept;
@@ -1979,7 +1978,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         // 存在焦点控件
         if (m_pFocusedControl) {
             // 事件
-            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
+            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
             // 释放引用
             LongUI::SafeRelease(m_pFocusedControl);
         }
@@ -1988,8 +1987,21 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         if (this->is_close_on_focus_killed()) {
             ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
         }
+        return true;
     }
-    return true;
+    case WM_CHAR:
+        // 键入字符
+    {
+        CUIDataAutoLocker locker;
+        if (m_pFocusedControl) {
+            EventArgument arg;
+            arg.sender = m_pViewport;
+            arg.och.ch = static_cast<char32_t>(wParam);
+            arg.event = Event::Event_Char;
+            m_pFocusedControl->DoEvent(arg);
+        }
+        return true;
+    }
     case WM_MOVE:
         // 移动窗口
         m_rcWindow.left = LONG(int16_t(LOWORD(lParam)));
@@ -2008,8 +2020,8 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
             m_rcWindow.height = h;
             this->set_new_size();
         }
+        return true;
     }
-    return true;
     case WM_GETMINMAXINFO:
         // 获取限制大小
         //CUIDataAutoLocker locker;
@@ -2028,8 +2040,8 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
             UIManager.Exit();
         }
         this->Close();
-    }
         return false;
+    }
     default:
         return false;
     }
@@ -2571,7 +2583,6 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
     m_csTME.hwndTrack = m_hwnd;
     m_csTME.dwHoverTime = 0;
     // 显示
-    ::ShowWindow(m_hwnd, SW_SHOW);
 #ifdef _DEBUG
     m_strTitle = titlename;
 #endif

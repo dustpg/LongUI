@@ -975,35 +975,33 @@ auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIContro
 
 // do event 事件处理
 bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    assert(arg.sender && "bad argument");
     // ------------------------------------ 主函数
     bool done = false;
     // 处理窗口事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // 边界控件
-            for (auto mctrl : marginal_control) {
-                if (mctrl) mctrl->DoEvent(arg);
-            }
-            done = true;
-            break;
-        case LongUI::Event::Event_SetNewParent:
-            // 修改控件深度
-            for (auto mctrl : marginal_control) {
-                if (mctrl) {
-                    mctrl->NewParentSetted();
-                    mctrl->DoEvent(arg);
-                }
-            }
-            done = true;
-            break;
-            /*case LongUI::Event::Event_NotifyChildren:
-                // 不处理
-                return true;*/
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_TreeBulidingFinished:
+        // 边界控件
+        for (auto mctrl : marginal_control) {
+            if (mctrl) mctrl->DoEvent(arg);
         }
+        done = true;
+        break;
+    case LongUI::Event::Event_SetNewParent:
+        // 修改控件深度
+        for (auto mctrl : marginal_control) {
+            if (mctrl) {
+                mctrl->NewParentSetted();
+                mctrl->DoEvent(arg);
+            }
+        }
+        done = true;
+        break;
+        /*case LongUI::Event::Event_NotifyChildren:
+            // 不处理
+            return true;*/
     }
-    // 扳回来
     return done;
 }
 

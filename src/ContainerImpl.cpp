@@ -4,36 +4,35 @@
 // ------------------------- UIContainerBuiltIn ------------------------
 // UIContainerBuiltIn: 事件处理
 bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    assert(arg.sender && "bad argument");
     // 处理窗口事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // 初始化边缘控件 
-            Super::DoEvent(arg);
-            // 初次完成空间树建立
-            for (auto ctrl : (*this)) {
-                ctrl->DoEvent(arg);
-            }
-            return true;
-        case LongUI::Event::Event_SetNewParent:
-            // 初始化边缘控件 
-            Super::DoEvent(arg);
-            // 修改控件深度
-            for (auto ctrl : (*this)) {
-                ctrl->NewParentSetted();
-                ctrl->DoEvent(arg);
-            }
-            return true;
-            /*case LongUI::Event::Event_NotifyChildren:
-                // 仅仅传递一层
-                if (arg.sender->parent == this) {
-                    for (auto ctrl : (*this)) {
-                        if (ctrl != arg.sender) ctrl->DoEvent(arg);
-                    }
-                }
-                return true;*/
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_TreeBulidingFinished:
+        // 初始化边缘控件 
+        Super::DoEvent(arg);
+        // 初次完成空间树建立
+        for (auto ctrl : (*this)) {
+            ctrl->DoEvent(arg);
         }
+        return true;
+    case LongUI::Event::Event_SetNewParent:
+        // 初始化边缘控件 
+        Super::DoEvent(arg);
+        // 修改控件深度
+        for (auto ctrl : (*this)) {
+            ctrl->NewParentSetted();
+            ctrl->DoEvent(arg);
+        }
+        return true;
+        /*case LongUI::Event::Event_NotifyChildren:
+            // 仅仅传递一层
+            if (arg.sender->parent == this) {
+                for (auto ctrl : (*this)) {
+                    if (ctrl != arg.sender) ctrl->DoEvent(arg);
+                }
+            }
+            return true;*/
     }
     return Super::DoEvent(arg);
 }
@@ -559,35 +558,34 @@ void LongUI::UISingle::before_deleted() noexcept {
 
 // UISingle: 事件处理
 bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    assert(arg.sender && "bad argument");
     // 处理窗口事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // 初始化边缘控件 
-            Super::DoEvent(arg);
-            // 初次完成空间树建立
-            assert(m_pChild && "UISingle must host a child");
-            m_pChild->DoEvent(arg);
-            return true;
-        case LongUI::Event::Event_SetNewParent:
-            // 初始化边缘控件 
-            Super::DoEvent(arg);
-            // 修改控件深度
-            m_pChild->NewParentSetted();
-            m_pChild->DoEvent(arg);
-            return true;
-            /*case LongUI::Event::Event_NotifyChildren:
-                // 不处理
-    #ifdef _DEBUG
-                if (arg.sender == m_pChild) {
-                    UIManager << DL_Warning
-                        << L"Event_NotifyChildren for UISinge?!"
-                        << LongUI::endl;
-                }
-    #endif
-                return true;*/
-        }
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_TreeBulidingFinished:
+        // 初始化边缘控件 
+        Super::DoEvent(arg);
+        // 初次完成空间树建立
+        assert(m_pChild && "UISingle must host a child");
+        m_pChild->DoEvent(arg);
+        return true;
+    case LongUI::Event::Event_SetNewParent:
+        // 初始化边缘控件 
+        Super::DoEvent(arg);
+        // 修改控件深度
+        m_pChild->NewParentSetted();
+        m_pChild->DoEvent(arg);
+        return true;
+        /*case LongUI::Event::Event_NotifyChildren:
+            // 不处理
+#ifdef _DEBUG
+            if (arg.sender == m_pChild) {
+                UIManager << DL_Warning
+                    << L"Event_NotifyChildren for UISinge?!"
+                    << LongUI::endl;
+            }
+#endif
+            return true;*/
     }
     return Super::DoEvent(arg);
 }
@@ -769,36 +767,35 @@ LongUI::UIPage::~UIPage() noexcept {
 
 // UIPage: 事件处理
 bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    assert(arg.sender && "bad argument");
     // 处理窗口事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // 初始化边缘控件 
-            Super::DoEvent(arg);
-            // 子控件
-            for (auto ctrl : m_vChildren) {
-                ctrl->DoEvent(arg);
-            }
-            return true;
-        case LongUI::Event::Event_SetNewParent:
-            // 初始化边缘控件 
-            Super::DoEvent(arg);
-            // 修改控件深度
-            for (auto ctrl : m_vChildren) {
-                ctrl->NewParentSetted();
-                ctrl->DoEvent(arg);
-            }
-            return true;
-            /*case LongUI::Event::Event_NotifyChildren:
-                // 仅仅传递一层
-                if (arg.sender->parent == this) {
-                    for (auto ctrl : m_vChildren) {
-                        if (ctrl != arg.sender) ctrl->DoEvent(arg);
-                    }
-                }
-                return true;*/
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_TreeBulidingFinished:
+        // 初始化边缘控件 
+        Super::DoEvent(arg);
+        // 子控件
+        for (auto ctrl : m_vChildren) {
+            ctrl->DoEvent(arg);
         }
+        return true;
+    case LongUI::Event::Event_SetNewParent:
+        // 初始化边缘控件 
+        Super::DoEvent(arg);
+        // 修改控件深度
+        for (auto ctrl : m_vChildren) {
+            ctrl->NewParentSetted();
+            ctrl->DoEvent(arg);
+        }
+        return true;
+        /*case LongUI::Event::Event_NotifyChildren:
+            // 仅仅传递一层
+            if (arg.sender->parent == this) {
+                for (auto ctrl : m_vChildren) {
+                    if (ctrl != arg.sender) ctrl->DoEvent(arg);
+                }
+            }
+            return true;*/
     }
     return Super::DoEvent(arg);
 }

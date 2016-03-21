@@ -602,6 +602,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
     // 键入一个字符时
     void EditaleText::OnChar(char32_t ch) noexcept {
+        // TODO: 连续On Char优化
         // 字符有效
         if ((ch >= 0x20 || ch == 9)) {
             if (this->IsReadOnly()) {
@@ -610,7 +611,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
             // 删除选择区字符串
             this->DeleteSelection();
-            //
+            // 长度
             uint32_t length = 1;
             wchar_t chars[] = { static_cast<wchar_t>(ch), 0, 0 };
             // sizeof(wchar_t) == sizeof(char32_t) 情况下

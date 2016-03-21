@@ -202,9 +202,9 @@ namespace LongUI {
         // swap 2 line-elements
         void SwapLineElementsInEachLine(uint32_t index1, uint32_t index2) noexcept;
         // inser new line-element to each line
-        void InsertNewElementToEachLine(uint32_t index, CreateControlFunction func, size_t tid = 0) noexcept;
+        void InsertNewElementToEachLine(uint32_t index, CreateControlEvent func, size_t tid = 0) noexcept;
         // set cc-element in line-template
-        void SetCCElementInLineTemplate(uint32_t index, CreateControlFunction func, size_t tid = 0) noexcept;
+        void SetCCElementInLineTemplate(uint32_t index, CreateControlEvent func, size_t tid = 0) noexcept;
         // push line-elemnet
         template<typename ...Args> bool PushLineElement(Args... args) noexcept { return this->InsertLineElement(m_cChildrenCount, args...); }
         // insert line-elemnet

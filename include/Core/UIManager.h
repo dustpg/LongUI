@@ -45,7 +45,7 @@ namespace LongUI {
         // run 运行
         LongUIAPI void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
-        LongUIAPI auto RegisterControlClass(CreateControlFunction func, const char* clname) noexcept ->HRESULT;
+        LongUIAPI auto RegisterControlClass(CreateControlEvent func, const char* clname) noexcept ->HRESULT;
         // unregister 取消映射函数映射关系
         LongUIAPI void UnregisterControlClass(const char* clname) noexcept;
         // ShowError with HRESULT code
@@ -70,9 +70,9 @@ namespace LongUI {
         // get meta's icon handle by index, Meta HICON managed by this manager
         LongUIAPI auto GetMetaHICON(size_t index) noexcept ->HICON;
         // get create function via control-class name
-        LongUIAPI auto GetCreateFunc(const char* clname) noexcept ->CreateControlFunction;
+        LongUIAPI auto GetCreateFunc(const char* clname) noexcept ->CreateControlEvent;
         // create control with template id, template and function cannot be null in same time
-        LongUIAPI auto CreateControl(UIContainer* cp, size_t templateid, CreateControlFunction function) noexcept ->UIControl*;
+        LongUIAPI auto CreateControl(UIContainer* cp, size_t templateid, CreateControlEvent function) noexcept ->UIControl*;
         // create text format
         LongUIAPI auto CreateTextFormat(
             _In_z_ WCHAR const* fontFamilyName,
@@ -83,7 +83,7 @@ namespace LongUI {
             _COM_Outptr_ IDWriteTextFormat** textFormat
             ) noexcept ->HRESULT;
         // create control with xml node, node and function cannot be null in same time
-        auto CreateControl(UIContainer* cp, pugi::xml_node node, CreateControlFunction function) noexcept {
+        auto CreateControl(UIContainer* cp, pugi::xml_node node, CreateControlEvent function) noexcept {
             return this->create_control(cp, function, node, 0);
         }
     public: // Create UI Window Zone!!!!!!!!!
@@ -225,7 +225,7 @@ namespace LongUI {
     private:
 #endif
         // invisible window handle
-        HWND                            m_hInvisible = nullptr;
+        HWND                            m_hToolWnd = nullptr;
         // thread manager for TSF
         ITfThreadMgr*                   m_pTsfThreadManager = nullptr;
         // text renderer
@@ -252,8 +252,8 @@ namespace LongUI {
         CUILocker                       m_uiDataLocker;
         // dxgi locker
         CUILocker                       m_uiDxgiLocker;
-        // timer
-        CUITimer                        m_uiTimer;
+        // time-meter
+        CUITimeMeter                    m_uiTimeMeter;
 #ifdef _DEBUG
         // exit timing tick
         uint32_t                        m_dbgExitTime = 0;
@@ -331,7 +331,7 @@ namespace LongUI {
         // discard resources
         LongUIAPI void discard_resources() noexcept;
         // create the control with xml-node
-        LongUIAPI auto create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
+        LongUIAPI auto create_control(UIContainer* cp, CreateControlEvent function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
         // create ui window
         LongUIAPI auto create_ui_window(pugi::xml_node node, callback_create_viewport call) noexcept ->XUIBaseWindow*;
         // cleanup delay-cleanup-chain
@@ -346,12 +346,12 @@ namespace LongUI {
         auto create_system_brushes() noexcept ->HRESULT;
         // create output
         auto create_dxgi_output() noexcept ->HRESULT;
+        // do some creating-event
+        auto do_creating_event(CreateEventType type) noexcept ->HRESULT;
         // wait for VBlank
         void wait_for_vblank() noexcept;
         // refresh display frequency
         void refresh_display_frequency() noexcept;
-        // do some creating-event
-        void do_creating_event(CreateEventType type) noexcept;
     public:
         // create a control tree for UIContainer
         void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;

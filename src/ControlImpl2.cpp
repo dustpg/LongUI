@@ -120,17 +120,15 @@ auto LongUI::UICheckBox::CreateControl(CreateEventType type, pugi::xml_node node
 // do event 事件处理
 bool LongUI::UICheckBox::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-            /*case LongUI::Event::Event_SetFocus:
-                __fallthrough;
-            case LongUI::Event::Event_KillFocus:
-                return true;*/
-        case LongUI::Event::Event_SetEnabled:
-            // 修改状态
-            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
-        }
+    switch (arg.event)
+    {
+        /*case LongUI::Event::Event_SetFocus:
+            __fallthrough;
+        case LongUI::Event::Event_KillFocus:
+            return true;*/
+    case LongUI::Event::Event_SetEnabled:
+        // 修改状态
+        m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
     }
     return Super::DoEvent(arg);
 }
@@ -355,17 +353,15 @@ auto LongUI::UIRadioButton::CreateControl(CreateEventType type, pugi::xml_node n
 // do event 事件处理
 bool LongUI::UIRadioButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-            /*case LongUI::Event::Event_SetFocus:
-            __fallthrough;
-            case LongUI::Event::Event_KillFocus:
-            return true;*/
-        case LongUI::Event::Event_SetEnabled:
-            // 修改状态
-            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
-        }
+    switch (arg.event)
+    {
+        /*case LongUI::Event::Event_SetFocus:
+        __fallthrough;
+        case LongUI::Event::Event_KillFocus:
+        return true;*/
+    case LongUI::Event::Event_SetEnabled:
+        // 修改状态
+        m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
     }
     return Super::DoEvent(arg);
 }

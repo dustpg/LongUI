@@ -1,4 +1,5 @@
 ﻿#include "LongUI.h"
+#include <algorithm>
 
 // 双击
 LongUINoinline bool LongUI::Helper::DoubleClick::Click(const D2D1_POINT_2F& pt) noexcept {
@@ -9,6 +10,28 @@ LongUINoinline bool LongUI::Helper::DoubleClick::Click(const D2D1_POINT_2F& pt) 
     this->ptx = pt.x;
     this->pty = pt.y;
     return result;
+}
+
+
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+LongUINoinline bool LongUI::Helper::Timer::Update() noexcept {
+    // 当前
+    const uint32_t now = ::timeGetTime();
+    // 结尾时间
+    const uint32_t end = m_dwElapse + m_dwLastCount;
+    // 是否过时间了
+    if (now > end) {
+        // 富裕的时间
+        auto remain = std::min(now - end, m_dwElapse / 2);
+        // 添加上去
+        m_dwElapse = end + remain;
+        // 确定
+        return true;
+    }
+    return false;
 }
 
 // longui::impl 命名空间

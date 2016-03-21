@@ -23,7 +23,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     m_vDelayCleanup.clear();
     m_vWindows.clear();
     // 开始计时
-    m_uiTimer.Start();
+    m_uiTimeMeter.Start();
     this->refresh_display_frequency();
     // 内容不足
     if (!m_vDelayCleanup.isok() || !m_vWindows.isok()) {
@@ -53,7 +53,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 获取实例句柄
     auto hInstance = ::GetModuleHandleW(nullptr);
     HRESULT hr = S_OK;
-    // 创建不可视窗口
+    // 创建工具窗口
     if (SUCCEEDED(hr)) {
         // 注册窗口
         WNDCLASSEXW wcex;
@@ -101,14 +101,14 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         constexpr int SIH = 0;
 #endif
         // 创建
-        m_hInvisible = ::CreateWindowExW(
-            0, LongUI::InvisibleName, L"SystemInvoke", 0,
-            0, 0, SIW, SIH, nullptr, nullptr, hInstance, nullptr
+        m_hToolWnd = ::CreateWindowExW(
+            WS_EX_TOOLWINDOW, LongUI::InvisibleName, L"SystemInvoke",
+            0, 0, 0, SIW, SIH, nullptr, nullptr, hInstance, nullptr
         );
         // 成功
-        if (m_hInvisible) {
+        if (m_hToolWnd) {
 #ifdef _DEBUG
-            ::ShowWindow(m_hInvisible, SW_SHOW);
+            ::ShowWindow(m_hToolWnd, SW_SHOW);
 #endif
         }
         else {
@@ -213,7 +213,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 创建 DirectWrite 工厂.
     if (SUCCEEDED(hr)) {
         hr = LongUI::Dll::DWriteCreateFactory(
-            DWRITE_FACTORY_TYPE_ISOLATED,
+            DWRITE_FACTORY_TYPE_SHARED,
             LongUI_IID_PV_ARGS_Ex(m_pDWriteFactory)
         );
         longui_debug_hr(hr, L"DWriteCreateFactory faild");
@@ -312,15 +312,15 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         // 添加自定义控件
         config->RegisterSome();
     }
+    // 初始化事件
+    if (SUCCEEDED(hr)) {
+        hr = this->do_creating_event(LongUI::CreateEventType::Type_Initialize);
+        longui_debug_hr(hr, L"do_creating_event(init) faild");
+    }
     // 创建资源
     if (SUCCEEDED(hr)) {
         hr = this->RecreateResources();
         longui_debug_hr(hr, L"RecreateResources faild");
-    }
-    // 初始化事件
-    if (SUCCEEDED(hr)) {
-        this->do_creating_event(LongUI::CreateEventType::Type_Initialize);
-        longui_debug_hr(hr, L"do_creating_event(init) faild");
     }
     // 检查错误
     else {
@@ -396,20 +396,27 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     // 释放配置
     LongUI::SafeRelease(force_cast(this->configure));
     // 关闭窗口
-    ::DestroyWindow(m_hInvisible);
+    ::DestroyWindow(m_hToolWnd);
 }
 
 // 创建事件
-void LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept {
+auto LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept ->HRESULT {
     // 类型断言
     assert(type < LongUI::TypeGreater_CreateControl_ReinterpretParentPointer);
     assert(type > Type_CreateControl_NullParentPointer);
+    HRESULT hr = S_OK;
     // 遍历hash表
-    m_hashStr2CreateFunc.ForEach([type](StringTable::Unit* unit) noexcept {
+    m_hashStr2CreateFunc.ForEach([type, &hr](StringTable::Unit* unit) noexcept {
         assert(unit);
-        auto func = reinterpret_cast<CreateControlFunction>(unit->value);
-        func(type, pugi::xml_node(nullptr));
+        if (SUCCEEDED(hr)) {
+            auto func = reinterpret_cast<CreateControlEvent>(unit->value);
+            void* ptr = func(type, pugi::xml_node(nullptr));
+            size_t data = reinterpret_cast<size_t>(ptr);
+            hr = static_cast<HRESULT>(data);
+        }
     });
+    // 返回结果
+    return hr;
 }
 
 // CUIManager 创建控件树
@@ -461,7 +468,7 @@ void LongUI::CUIManager::MakeControlTree(UIContainer* root, pugi::xml_node node)
 }
 
 // 获取创建控件函数指针
-auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlFunction {
+auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlEvent {
     // 检查 !white_space(clname[0]) && 
     assert(clname && clname[0] && "bad argment");
     // 查找
@@ -469,7 +476,7 @@ auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateCon
     // 检查
     assert(result && "404 not found");
     // 返回
-    return reinterpret_cast<CreateControlFunction>(*result);
+    return reinterpret_cast<CreateControlEvent>(*result);
 }
 
 // 创建文本格式
@@ -542,8 +549,8 @@ void LongUI::CUIManager::Run() noexcept {
                 ++UIManager.frame_id;
 #endif
                 // 更新计时器
-                UIManager.m_fDeltaTime = UIManager.m_uiTimer.Delta_s<float>();
-                UIManager.m_uiTimer.MovStartEnd();
+                UIManager.m_fDeltaTime = UIManager.m_uiTimeMeter.Delta_s<float>();
+                UIManager.m_uiTimeMeter.MovStartEnd();
                 // 更新输入
                 UIManager.m_uiInput.Update();
                 // 刷新窗口
@@ -584,7 +591,7 @@ void LongUI::CUIManager::Run() noexcept {
                         L"delta: %.4fms -- %2.2f fps",
                         time, 1.f / time
                     );
-                    auto hwnd = UIManager.m_hInvisible;
+                    auto hwnd = UIManager.m_hToolWnd;
                     UIManager.DataUnlock();
                     ::SetWindowTextW(hwnd, buffer);
                     UIManager.DataLock();
@@ -659,7 +666,7 @@ void LongUI::CUIManager::wait_for_vblank() noexcept {
 
 
 // 利用模板ID创建控件
-auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, CreateControlFunction function) noexcept ->UIControl* {
+auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, CreateControlEvent function) noexcept ->UIControl* {
     // 检查参数
     assert(function && "function must be specified");
     //assert(templateid && "template id must be specified");
@@ -672,7 +679,7 @@ auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, Creat
 }
 
 // 利用现有资源创建控件
-auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlFunction function, pugi::xml_node node, size_t tid) noexcept -> UIControl * {
+auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlEvent function, pugi::xml_node node, size_t tid) noexcept -> UIControl * {
     // TODO: NODE
     assert(node && "call another method if no xml-node");
     // 检查参数 function
@@ -733,7 +740,7 @@ auto LongUI::CUIManager::create_ui_window(
     window->InitializeViewport(viewport);
 #ifdef _DEBUG
     //::Sleep(5000);
-    CUITimerH dbg_timer; dbg_timer.Start();
+    CUITimeMeterH dbg_tmtr; dbg_tmtr.Start();
     UIManager << DL_Log << window << LongUI::endl;
 #endif
     // 重建资源
@@ -741,26 +748,26 @@ auto LongUI::CUIManager::create_ui_window(
     ShowHR(hr);
 #ifdef _DEBUG
     //::Sleep(500);
-    auto time = dbg_timer.Delta_ms<double>();
+    auto time = dbg_tmtr.Delta_ms<double>();
     UIManager << DL_Log
         << Formated(L" took %.3lfms for recreate.", time)
         << LongUI::endl;
-    dbg_timer.MovStartEnd();
+    dbg_tmtr.MovStartEnd();
 #endif
     // 创建控件树
     this->MakeControlTree(viewport, node);
     // 完成创建
 #ifdef _DEBUG
-    time = dbg_timer.Delta_ms<double>();
+    time = dbg_tmtr.Delta_ms<double>();
     UIManager << DL_Log
         << Formated(L" took %.3lfms for making.", time)
         << LongUI::endl;
-    dbg_timer.MovStartEnd();
+    dbg_tmtr.MovStartEnd();
 #endif
     // 发送消息
     viewport->DoLongUIEvent(Event::Event_TreeBulidingFinished);
 #ifdef _DEBUG
-    time = dbg_timer.Delta_ms<double>();
+    time = dbg_tmtr.Delta_ms<double>();
     UIManager << DL_Log
         << Formated(L" took %.3lfms for sending finished event.", time)
         << LongUI::endl;
@@ -813,7 +820,7 @@ LongUI::CUIManager::~CUIManager() noexcept {
 
 // 获取控件 wchar_t指针
 auto LongUI::CUIManager::RegisterControlClass(
-    CreateControlFunction func, const char* clname) noexcept ->HRESULT {
+    CreateControlEvent func, const char* clname) noexcept ->HRESULT {
     if (!clname || !(*clname)) {
         assert(!"bad argument");
         return S_FALSE;
@@ -1266,7 +1273,7 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     }
     // 事件
     if (SUCCEEDED(hr)) {
-        this->do_creating_event(LongUI::CreateEventType::Type_Recreate);
+        hr = this->do_creating_event(LongUI::CreateEventType::Type_Recreate);
         longui_debug_hr(hr, L"do_creating_event(recreate) faild");
     }
     // 设置文本渲染器数据

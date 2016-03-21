@@ -250,6 +250,7 @@ void LongUI::UIScrollBarA::Render() const noexcept {
         target->DrawGeometry(geo, bush, 2.33333f);
         // 修改
         target->SetTransform(&matrix);
+
     };
     // 渲染几何体
     {
@@ -439,16 +440,21 @@ void LongUI::UIScrollBarA::set_state(PointType _bartype, ControlState state) noe
 ID2D1PathGeometry* LongUI::UIScrollBarA::
 s_apArrowPathGeometry[LongUI::UIScrollBarA::ARROW_SIZE] = { nullptr };
 
+ID2D1GeometryRealization* LongUI::UIScrollBarA::
+s_apArrowRealization[LongUI::UIScrollBarA::ARROW_SIZE] = { nullptr };
+
 // create 创建
 auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
-    UIScrollBarA* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
+        // 初始化
     {
         // 创建设备无关资源
-        auto create_geo = [](D2D1_POINT_2F* list, uint32_t length) {
+        auto create_geo = [](D2D1_POINT_2F* list, uint32_t length, ID2D1PathGeometry** out) noexcept {
+            assert(out && "bad out");
+            assert(!(*out) && "bad out");
             auto hr = S_OK;
             ID2D1PathGeometry* geometry = nullptr;
             ID2D1GeometrySink* sink = nullptr;
@@ -467,65 +473,101 @@ auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_
                 sink->EndFigure(D2D1_FIGURE_END_OPEN);
                 hr = sink->Close();
             }
-            ShowHR(hr);
             LongUI::SafeRelease(sink);
-            return geometry;
+            *out = geometry;
+            return hr;
         };
         D2D1_POINT_2F point_list[3];
+        HRESULT hr = S_OK;
         constexpr float BASIC_SIZE_MID = BASIC_SIZE * 0.5f;
         constexpr float BASIC_SIZE_NEAR = BASIC_SIZE_MID * 0.5f;
         constexpr float BASIC_SIZE_FAR = BASIC_SIZE - BASIC_SIZE_NEAR;
         // LEFT 左箭头
-        {
+        if (SUCCEEDED(hr)) {
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Left]);
             point_list[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
             point_list[1] = { BASIC_SIZE_NEAR , BASIC_SIZE_MID };
             point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
-            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Left]);
-            s_apArrowPathGeometry[UIScrollBarA::Arrow_Left] = 
-                create_geo(point_list, lengthof<uint32_t>(point_list));
+            hr = create_geo(
+                point_list, lengthof<uint32_t>(point_list),
+                s_apArrowPathGeometry + UIScrollBarA::Arrow_Left
+            );
         }
         // TOP 上箭头
-        {
+        if (SUCCEEDED(hr)) {
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Top]);
             point_list[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
             point_list[1] = { BASIC_SIZE_MID, BASIC_SIZE_NEAR };
             point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
-            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Top]);
-            s_apArrowPathGeometry[UIScrollBarA::Arrow_Top] = 
-                create_geo(point_list, lengthof<uint32_t>(point_list));
+            hr = create_geo(
+                point_list, lengthof<uint32_t>(point_list),
+                s_apArrowPathGeometry + UIScrollBarA::Arrow_Top
+            );
         }
         // RIGHT 右箭头
-        {
-
+        if (SUCCEEDED(hr)) {
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Right]);
             point_list[0] = { BASIC_SIZE_MID , BASIC_SIZE_NEAR };
             point_list[1] = { BASIC_SIZE_FAR , BASIC_SIZE_MID };
             point_list[2] = { BASIC_SIZE_MID , BASIC_SIZE_FAR };
-            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Right]);
-            s_apArrowPathGeometry[UIScrollBarA::Arrow_Right] = 
-                create_geo(point_list, lengthof<uint32_t>(point_list));
+            hr = create_geo(
+                point_list, lengthof<uint32_t>(point_list),
+                s_apArrowPathGeometry + UIScrollBarA::Arrow_Right
+            );
         }
         // BOTTOM 下箭头
-        {
+        if (SUCCEEDED(hr)) {
+            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom]);
             point_list[0] = { BASIC_SIZE_NEAR, BASIC_SIZE_MID };
             point_list[1] = { BASIC_SIZE_MID, BASIC_SIZE_FAR };
             point_list[2] = { BASIC_SIZE_FAR, BASIC_SIZE_MID };
-            assert(!s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom]);
-            s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom] = 
-                create_geo(point_list, lengthof<uint32_t>(point_list));
+            hr = create_geo(
+                point_list, lengthof<uint32_t>(point_list),
+                s_apArrowPathGeometry + UIScrollBarA::Arrow_Bottom
+            );
         }
+        return reinterpret_cast<UIControl*>(static_cast<size_t>(hr));
     }
         break;
     case LongUI::Type_Recreate:
+        // 重建
+    {
+        HRESULT hr = S_OK;
+        // 遍历
+        for (int i = 0; i < UIScrollBarA::ARROW_SIZE; ++i) {
+            assert(s_apArrowPathGeometry[i] && "bad action");
+            LongUI::SafeRelease(s_apArrowRealization[i]);
+            if (SUCCEEDED(hr)) {
+                // 创建
+                hr = UIManager_RenderTarget->CreateStrokedGeometryRealization(
+                    s_apArrowPathGeometry[i],
+                    D2D1_DEFAULT_FLATTENING_TOLERANCE,
+                    2.33333f,
+                    nullptr,
+                    s_apArrowRealization + i
+                );
+            }
+        }
+        return reinterpret_cast<UIControl*>(static_cast<size_t>(hr));
+    }
         break;
     case LongUI::Type_Uninitialize:
         // 释放资源
         for (auto& geo : s_apArrowPathGeometry) {
             LongUI::SafeRelease(geo);
         }
-        break;
+        for (auto& rea : s_apArrowRealization) {
+            LongUI::SafeRelease(rea);
+        }
+        return nullptr;
     case_LongUI__Type_CreateControl:
-        LongUI__CreateWidthCET(UIScrollBarA, pControl, type, node);
+        // 创建控件
+        {
+            UIScrollBarA* pControl = nullptr;
+            LongUI__CreateWidthCET(UIScrollBarA, pControl, type, node);
+            return pControl;
+        }
     }
-    return pControl;
 }
 
 

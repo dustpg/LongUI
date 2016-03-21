@@ -195,8 +195,8 @@ if ((CONTROL = new(std::nothrow) CLASS(reinterpret_cast<LongUI::UIContainer*>(CE
 else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     // use this
 #define case_LongUI__Type_CreateControl default
-    // CreateControl Function 控件创建函数
-    using CreateControlFunction = auto (WINAPI*)(CreateEventType, pugi::xml_node) ->UIControl*;
+    // CreateControlEvent 控件创建事件
+    using CreateControlEvent = auto (WINAPI*)(CreateEventType, pugi::xml_node) ->UIControl*;
     /// <summary>
     /// LongUI Flags for Core Control: UIControl, UIMarginalable, UIContainer
     /// </summary>
@@ -364,6 +364,8 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_SetFloat,
         // [none-exdata] get control float value
         Event_GetFloat,
+        // [och] char input
+        Event_Char,
         //Event_NotifyChildren,
         // ----- User Custom Defined Event -----
         Event_UserDefined = 0x100,
@@ -389,18 +391,16 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         UIControl*      sender;
         // data
         union {
-            // System 
-            struct { WPARAM wParam; LPARAM lParam; } sys;
             // control
             struct { LongUI::SubEvent subevent; void* pointer; } ui;
             // set text
             struct { const wchar_t* text; void* unused; } stt;
-            // notify children
-            //struct { size_t identifier; size_t value; } nc;
             // set enabled
             struct { bool enabled; } ste;
             // set float
             struct { float value;  } stf;
+            // input char
+            struct { char32_t ch; } och;
         };
         // Return Code
         union {

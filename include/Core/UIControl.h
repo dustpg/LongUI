@@ -114,6 +114,11 @@ namespace LongUI {
             EventArgument arg; arg.sender = this; arg.event = e;
             return this->DoEvent(arg);
         };
+        // do event helper
+        bool DoLongUIEvent(LongUI::Event e, UIControl* ctrl) noexcept {
+            EventArgument arg; arg.sender = ctrl; arg.event = e;
+            return this->DoEvent(arg);
+        };
         // ctor
         UIControl(UIContainer* parent) noexcept;
         // dtor

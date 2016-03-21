@@ -28,7 +28,7 @@
 // longui::component namespace
 namespace LongUI { namespace Component {
     // core editable text component
-    class LongUIAPI EditaleText {
+    class EditaleText {
         // 简写
         using HitTestMetrics = DWRITE_HIT_TEST_METRICS;
         // 缓冲区

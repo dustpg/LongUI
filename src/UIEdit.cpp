@@ -39,30 +39,32 @@ void LongUI::UIEditBasic::Update() noexcept {
 
 // UI基本编辑控件
 bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    assert(arg.sender && "bad argument");
     // LongUI 消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            __fallthrough;
-        case LongUI::Event::Event_SubEvent:
-            return true;
-        case LongUI::Event::Event_SetFocus:
-            m_text.OnSetFocus();
-            return true;
-        case LongUI::Event::Event_KillFocus:
-            m_text.OnKillFocus();
-            return true;
-        case LongUI::Event::Event_SetText:
-            assert(!"NOIMPL");
-            __fallthrough;
-        case LongUI::Event::Event_GetText:
-            arg.str = m_text.c_str();
-            return true;
-        }
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_TreeBulidingFinished:
+        __fallthrough;
+    case LongUI::Event::Event_SubEvent:
+        return true;
+    case LongUI::Event::Event_SetFocus:
+        m_text.OnSetFocus();
+        return true;
+    case LongUI::Event::Event_KillFocus:
+        m_text.OnKillFocus();
+        return true;
+    case LongUI::Event::Event_SetText:
+        assert(!"NOIMPL");
+        __fallthrough;
+    case LongUI::Event::Event_GetText:
+        arg.str = m_text.c_str();
+        return true;
+    case LongUI::Event::Event_Char:
+        m_text.OnChar(arg.och.ch);
+        return true;
     }
     // 系统消息
-    else {
+    /*if(false) {
         switch (arg.msg)
         {
         default:
@@ -74,7 +76,7 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
             m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
             break;
         }
-    }
+    }*/
     return true;
 }
 
@@ -242,44 +244,35 @@ LongUI::UIControl* LongUI::UIRichEdit::CreateControl(CreateEventType type, pugi:
 
 // do event 事件处理
 bool LongUI::UIRichEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        /*case LongUI::Event::Event_FindControl: // 查找本空间
-            if (arg.event == LongUI::Event::Event_FindControl) {
-                // 检查鼠标范围
-                assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
-                arg.ctrl = this;
-            }
-            return true;*/
-        /*case LongUI::Event::Event_MouseEnter:
-            m_pWindow->now_cursor = m_hCursorI;
-            break;
-        case LongUI::Event::Event_MouseLeave:
-            m_pWindow->now_cursor = m_pWindow->default_cursor;
-            break;*/
-        case LongUI::Event::Event_SetFocus:
-            if (m_pTextServices) {
-                m_pTextServices->OnTxUIActivate();
-                m_pTextServices->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
-            }
-            return true;
-        case LongUI::Event::Event_KillFocus:
-            if (m_pTextServices) {
-                m_pTextServices->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
-                m_pTextServices->OnTxUIDeactivate();
-                this->TxShowCaret(FALSE);
-            }
-            return true;
+    assert(arg.sender && "bad argument");
+    switch (arg.event)
+    {
+    /*case LongUI::Event::Event_FindControl: // 查找本空间
+        if (arg.event == LongUI::Event::Event_FindControl) {
+            // 检查鼠标范围
+            assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
+            arg.ctrl = this;
         }
-    }
-    // 处理系统消息
-    else if (m_pTextServices) {
-        // 检查
-        if (m_pTextServices->TxSendMessage(arg.msg, arg.sys.wParam, arg.sys.lParam, &arg.lr) != S_FALSE) {
-            // 已经处理了
-            return true;
+        return true;*/
+    /*case LongUI::Event::Event_MouseEnter:
+        m_pWindow->now_cursor = m_hCursorI;
+        break;
+    case LongUI::Event::Event_MouseLeave:
+        m_pWindow->now_cursor = m_pWindow->default_cursor;
+        break;*/
+    case LongUI::Event::Event_SetFocus:
+        if (m_pTextServices) {
+            m_pTextServices->OnTxUIActivate();
+            m_pTextServices->TxSendMessage(WM_SETFOCUS, 0, 0, 0);
         }
+        return true;
+    case LongUI::Event::Event_KillFocus:
+        if (m_pTextServices) {
+            m_pTextServices->TxSendMessage(WM_KILLFOCUS, 0, 0, 0);
+            m_pTextServices->OnTxUIDeactivate();
+            this->TxShowCaret(FALSE);
+        }
+        return true;
     }
     return false;
 }

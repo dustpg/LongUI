@@ -37,21 +37,20 @@ void LongUI::UIText::Update() noexcept {
 
 // UIText: 事件响应
 bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    assert(arg.sender && "bad argument");
     // LONGUI 事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_SetText:
-            m_text = arg.stt.text;
-            this->InvalidateThis();
-            __fallthrough;
-        case LongUI::Event::Event_GetText:
-            arg.str = m_text.c_str();
-            return true;
-        case LongUI::Event::Event_SetEnabled:
-            // 修改状态
-            m_text.SetState(arg.ste.enabled ? State_Normal : State_Disabled);
-        }
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_SetText:
+        m_text = arg.stt.text;
+        this->InvalidateThis();
+        __fallthrough;
+    case LongUI::Event::Event_GetText:
+        arg.str = m_text.c_str();
+        return true;
+    case LongUI::Event::Event_SetEnabled:
+        // 修改状态
+        m_text.SetState(arg.ste.enabled ? State_Normal : State_Disabled);
     }
     return Super::DoEvent(arg);
 }
@@ -155,21 +154,20 @@ auto LongUI::UIButton::CreateControl(CreateEventType type, pugi::xml_node node) 
 
 // do event 事件处理
 bool LongUI::UIButton::DoEvent(const LongUI::EventArgument& arg) noexcept {
+    assert(arg.sender && "bad argument");
     // longui 消息
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_SetFocus:
-            // 设置焦点: 要求焦点
-            return true;
-        case LongUI::Event::Event_KillFocus:
-            // 释放焦点:
-            m_tarStateClick = LongUI::State_Normal;
-            return true;
-        case LongUI::Event::Event_SetEnabled:
-            // 修改状态
-            m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
-        }
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_SetFocus:
+        // 设置焦点: 要求焦点
+        return true;
+    case LongUI::Event::Event_KillFocus:
+        // 释放焦点:
+        m_tarStateClick = LongUI::State_Normal;
+        return true;
+    case LongUI::Event::Event_SetEnabled:
+        // 修改状态
+        m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
     }
     return Super::DoEvent(arg);
 }
@@ -262,6 +260,16 @@ void LongUI::UIComboBox::Render() const noexcept {
     this->render_chain_foreground();
 }
 
+/// <summary>
+/// Recreates this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIComboBox::Recreate() noexcept ->HRESULT {
+    auto arrow = UIScrollBarA::GetArrowRealization(UIScrollBarA::Arrow_Bottom);
+    LongUI::SafeRelease(arrow);
+    return Super::Recreate();
+}
+
 // UI文本: 渲染前景
 void LongUI::UIComboBox::render_chain_foreground() const noexcept {
     // 父类渲染
@@ -269,7 +277,7 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
     // 渲染下拉箭头
     if (!m_uiElement.IsExtraInterfaceValid()) {
         // 几何体
-        auto arrow = UIScrollBarA::s_apArrowPathGeometry[UIScrollBarA::Arrow_Bottom];
+        auto arrow = UIScrollBarA::GetArrowRealization(UIScrollBarA::Arrow_Bottom);
 #if 0
         // 目标矩形
         D2D1_RECT_F rect;
@@ -300,15 +308,16 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
         // 颜色同文本
         m_pBrush_SetBeforeUse->SetColor(m_text.GetColor());
         // 渲染
-        auto render_arrow = [&pt, arrow](ID2D1RenderTarget* target, ID2D1Brush* brush) noexcept {
+        auto render_arrow = [&pt, arrow](ID2D1DeviceContext1* target, ID2D1Brush* brush) noexcept {
             D2D1_MATRIX_3X2_F matrix; target->GetTransform(&matrix);
             target->SetTransform(DX::Matrix3x2F::Translation(pt.x, pt.y) * matrix);
-            target->DrawGeometry(arrow, brush, 2.33333f);
+            target->DrawGeometryRealization(arrow, brush);
             target->SetTransform(&matrix);
         };
         // 渲染
         render_arrow(UIManager_RenderTarget, m_pBrush_SetBeforeUse);
 #endif
+        LongUI::SafeRelease(arrow);
     }
 }
 

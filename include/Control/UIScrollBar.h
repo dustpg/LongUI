@@ -119,21 +119,27 @@ namespace LongUI {
     class UIComboBox;
     // srcollbar type A
     class UIScrollBarA : public UIScrollBar {
-        // basic size
-        static constexpr float BASIC_SIZE = 16.f;
-        // friend class
-        friend class UIComboBox;
         // 父类申明
         using Super = UIScrollBar;
-        // arrow for this
-        enum { Arrow_Left, Arrow_Top, Arrow_Right, Arrow_Bottom, ARROW_SIZE };
-        // path geo
-        static ID2D1PathGeometry*       s_apArrowPathGeometry[ARROW_SIZE];
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
     public:
+        // basic size
+        static constexpr float BASIC_SIZE = 16.f;
+        // arrow for this
+        enum Arrow { Arrow_Left, Arrow_Top, Arrow_Right, Arrow_Bottom, ARROW_SIZE };
+    private:
+        // path geo - Realization
+        static ID2D1GeometryRealization*    s_apArrowRealization[ARROW_SIZE];
+        // path geo
+        static ID2D1PathGeometry*           s_apArrowPathGeometry[ARROW_SIZE];
+    public:
         // ctor
         UIScrollBarA(UIContainer* cp) noexcept : Super(cp) { }
+        // get arrow realization
+        static auto GetArrowRealization(Arrow id) noexcept { return LongUI::SafeAcquire(s_apArrowRealization[id]); }
+        // get arrow geometry
+        static auto GetArrowGeometry(Arrow id) noexcept { return LongUI::SafeAcquire(s_apArrowPathGeometry[id]); }
         // create this
         static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     protected:

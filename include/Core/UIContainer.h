@@ -175,7 +175,7 @@ namespace LongUI {
         // TODO: 连续数组优化优化
         //UIMarginalable* const   m_apConMarCtrl[UIMarginalable::MARGINAL_CONTROL_SIZE];
     public:
-        // marginal controls, store 'CreateControlFunction' before control-tree finished to save memory
+        // marginal controls, store 'CreateControlEvent' before control-tree finished to save memory
         UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
     protected:
         // popular child

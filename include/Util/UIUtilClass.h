@@ -166,8 +166,8 @@ namespace LongUI {
         // group of it("0" in C99, "1" for other)
         Unit        group[0];
     };
-    // the timer - high
-    class CUITimerH {
+    // the time-meter - high
+    class CUITimeMeterH {
     public:
         // QueryPerformanceCounter
         static inline auto QueryPerformanceCounter(LARGE_INTEGER* ll) noexcept {
@@ -179,22 +179,22 @@ namespace LongUI {
         // refresh the frequency
         auto inline RefreshFrequency() noexcept { ::QueryPerformanceFrequency(&m_cpuFrequency); }
         // start timer
-        auto inline Start() noexcept { CUITimerH::QueryPerformanceCounter(&m_cpuCounterStart); }
+        auto inline Start() noexcept { CUITimeMeterH::QueryPerformanceCounter(&m_cpuCounterStart); }
         // move end var to start var
         auto inline MovStartEnd() noexcept { m_cpuCounterStart = m_cpuCounterEnd; }
         // delta time in sec.
         template<typename T> auto inline Delta_s() noexcept {
-            CUITimerH::QueryPerformanceCounter(&m_cpuCounterEnd);
+            CUITimeMeterH::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in ms.
         template<typename T> auto inline Delta_ms() noexcept {
-            CUITimerH::QueryPerformanceCounter(&m_cpuCounterEnd);
+            CUITimeMeterH::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e3) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
         // delta time in micro sec.
         template<typename T> auto inline Delta_mcs() noexcept {
-            CUITimerH::QueryPerformanceCounter(&m_cpuCounterEnd);
+            CUITimeMeterH::QueryPerformanceCounter(&m_cpuCounterEnd);
             return static_cast<T>(m_cpuCounterEnd.QuadPart - m_cpuCounterStart.QuadPart)*static_cast<T>(1e6) / static_cast<T>(m_cpuFrequency.QuadPart);
         }
     private:
@@ -206,10 +206,10 @@ namespace LongUI {
         LARGE_INTEGER            m_cpuCounterEnd;
     public:
         // ctor
-        CUITimerH() noexcept { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
+        CUITimeMeterH() noexcept { m_cpuCounterStart.QuadPart = 0; m_cpuCounterEnd.QuadPart = 0; RefreshFrequency(); }
     };
-    // the timer : medium
-    class CUITimerM {
+    // the time-meter : medium
+    class CUITimeMeterM {
     public:
         // refresh the frequency
         auto inline RefreshFrequency() noexcept { }
@@ -239,20 +239,10 @@ namespace LongUI {
         DWORD                   m_dwNow = 0;
     public:
         // ctor
-        CUITimerM() noexcept { this->Start(); }
+        CUITimeMeterM() noexcept { this->Start(); }
     };
-    // CUITimer
-    using CUITimer = CUITimerM;
-    // render repeater
-    class CUIRenderRepeater {
-    public:
-        // ctor
-        CUIRenderRepeater() noexcept = default;
-        // dtor
-        ~CUIRenderRepeater() noexcept = default;
-    private:
-
-    };
+    // time-meter for ui
+    using CUITimeMeter = CUITimeMeterM;
     // Color Effect
     class CUIColorEffect : public Helper::ComBase<Helper::QiList<IUnknown>> {
         // super class

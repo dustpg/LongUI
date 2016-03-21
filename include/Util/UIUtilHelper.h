@@ -52,8 +52,21 @@ namespace LongUI { namespace Helper {
         // mouse point y
         float           pty = -1.f;
     };
+    // timer-helper for ui
+    class Timer{
+    public:
+        // ctor
+        Timer(uint32_t elapse) noexcept : m_dwElapse(elapse) { assert(elapse && "bad elapse"); }
+        // update, return true if it is time
+        bool Update() noexcept;
+    private:
+        // time for elapse
+        uint32_t        m_dwElapse;
+        // last tick-count
+        uint32_t        m_dwLastCount = ::timeGetTime();
+    };
     // CC for CreateControl
-    struct CC { CreateControlFunction func; size_t id; };
+    struct CC { CreateControlEvent func; size_t id; };
     // make cc, if data -> null, just return count
     auto MakeCC(const char* str, CC* OPTIONAL data = nullptr) noexcept ->uint32_t;
     // ------------------- Windows COM Interface Helper -----------------------------

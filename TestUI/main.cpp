@@ -364,7 +364,7 @@ public:
     }
     // do the event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override {
-        if (arg.sender) {
+        
             /*if (arg.event == LongUI::Event::Event_FindControl) {
             // 检查鼠标范围
             assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
@@ -372,7 +372,6 @@ public:
             }
             else*/ if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
             }
-        }
         return false;
     }
     // recreate resource
@@ -471,8 +470,6 @@ private:
 
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
-    //int wmain(int argc, wchar_t* argv[]) {
-        //int nCmdShow = SW_SHOW;
     // 本Demo的配置信息
     class DemoConfigure config;
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)
@@ -481,8 +478,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
         if (SUCCEEDED(UIManager.Initialize(&config))) {
             // 作战控制连线!
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
-            // 创建主窗口
-            UIManager.CreateUIWindow<MainWindow>(test_xml);// ->ShowWindow(nCmdShow);
+            // 创建主窗口 [注: 发生错误时会返回null]
+            UIManager.CreateUIWindow<MainWindow>(test_xml)->ShowWindow(nCmdShow);
             // 运行本程序
             UIManager.Run();
             // 作战控制终止!
@@ -502,24 +499,18 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_
 // do event for ui
 bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // longui event
-    if (arg.sender) {
-        switch (arg.event)
-        {
-            /*case LongUI::Event::Event_ItemClicked:
-                // number button clicked event
-                //this->number_button_clicked(arg.sender);
-                return true;*/
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // Event_TreeBulidingFinished could as "init" event
-            this->init();
-            // super will send this event to children
-            __fallthrough;
-        default:
-            return Super::DoEvent(arg);
-        }
-    }
-    // system event
-    else {
+    switch (arg.event)
+    {
+        /*case LongUI::Event::Event_ItemClicked:
+            // number button clicked event
+            //this->number_button_clicked( arg.sender );
+            return true;*/
+    case LongUI::Event::Event_TreeBulidingFinished:
+        // Event_TreeBulidingFinished could as "init" event
+        this->init();
+        // super will send this event to children
+        __fallthrough;
+    default:
         return Super::DoEvent(arg);
     }
 }

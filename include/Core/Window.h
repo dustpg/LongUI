@@ -85,19 +85,29 @@ namespace LongUI {
     public:
         // dispose
         virtual void Dispose() noexcept = 0;
+        // recreate: call UIControl::Render
+        virtual auto Recreate() noexcept ->HRESULT;
         // render: call UIControl::Render
         virtual void Render() const noexcept;
         // update: call UIControl::Update
         virtual void Update() noexcept;
-        // recreate: call UIControl::Render
-        virtual auto Recreate() noexcept ->HRESULT;
         // move window relative to parent
         virtual void MoveWindow(int32_t x, int32_t y) noexcept = 0;
         // resize window
         virtual void Resize(uint32_t w, uint32_t h) noexcept = 0;
         // set cursor
         virtual void SetCursor(LongUI::Cursor cursor) noexcept = 0;
+        // show window
+        virtual void ShowWindow(int nCmdShow) noexcept = 0;
+    protected:
+        // add inset window
+        void add_inset_window(XUIBaseWindow*) noexcept;
+        // remove inset window
+        void remove_inset_window(XUIBaseWindow*) noexcept;
     public:
+        // add 
+        // hide window
+        void HideWindow() noexcept { this->ShowWindow(SW_HIDE); }
         // reset cursor
         void ResetCursor() noexcept { this->SetCursor(Cursor::Cursor_Default); }
         // get window handle
@@ -201,8 +211,8 @@ namespace LongUI {
         UIViewport*             m_pViewport = nullptr;
         // parent window
         XUIBaseWindow*          m_pParent = nullptr;
-        // children
-        WindowVector            m_vChildren;
+        // inset-children
+        WindowVector            m_vInsets;
         // window handle
         HWND                    m_hwnd = nullptr;
         // TODO: mini size

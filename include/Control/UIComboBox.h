@@ -44,7 +44,7 @@ namespace LongUI {
         // do mouse event
         //virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept override;
         // recreate 重建
-        //virtual auto Recreate() noexcept ->HRESULT override;
+        virtual auto Recreate() noexcept ->HRESULT override;
     protected:
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }
