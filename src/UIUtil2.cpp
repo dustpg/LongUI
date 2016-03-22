@@ -21,13 +21,11 @@ LongUINoinline bool LongUI::Helper::Timer::Update() noexcept {
     // 当前
     const uint32_t now = ::timeGetTime();
     // 结尾时间
-    const uint32_t end = m_dwElapse + m_dwLastCount;
-    // 是否过时间了
+    const uint32_t end = m_dwTime + m_dwLastCount;
+    // 是否过了时间
     if (now > end) {
-        // 富裕的时间
-        auto remain = std::min(now - end, m_dwElapse / 2);
         // 添加上去
-        m_dwElapse = end + remain;
+        m_dwLastCount = end;
         // 确定
         return true;
     }

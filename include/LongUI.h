@@ -284,19 +284,12 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         // to see "LongUI::UIContainer::after_insert"
         Flag_Container_HostPosterityRenderingDirectly = 1 << 17,
         /// <summary>
-        /// if exist marginal control, will set it
-        /// </summary>
-        /// <remarks>
-        /// [Auto] this is just a optimization flag
-        /// </remarks>
-        Flag_Container_ExistMarginalControl = 1 << 18,
-        /// <summary>
         /// container will zoom marginal controls [default: true]
         /// </summary>
         /// <remarks>
         /// changed by xml-attribute("zoommarginal") defaultly
         /// </remarks>
-        Flag_Container_ZoomMarginalControl = 1 << 19,
+        Flag_Container_ZoomMarginalControl = 1 << 18,
     };
     // operator float LongUIFlag
     LONGUI_DEFINE_ENUM_FLAG_OPERATORS(LongUIFlag, uint32_t);
@@ -364,8 +357,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_SetFloat,
         // [none-exdata] get control float value
         Event_GetFloat,
-        // [och] char input
+        // [key] char input
         Event_Char,
+        // [key] key down
+        Event_KeyDown,
         //Event_NotifyChildren,
         // ----- User Custom Defined Event -----
         Event_UserDefined = 0x100,
@@ -400,7 +395,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
             // set float
             struct { float value;  } stf;
             // input char
-            struct { char32_t ch; } och;
+            struct { char32_t ch; } key;
         };
         // Return Code
         union {

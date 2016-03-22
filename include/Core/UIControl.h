@@ -90,7 +90,15 @@ namespace LongUI {
         // Render 
         virtual void Render() const noexcept = 0;
         // update
-        virtual void Update() noexcept;
+        virtual void Update() noexcept {
+#ifdef _DEBUG
+            void longui_dbg_update(UIControl* c);
+            longui_dbg_update(this);
+            assert(debug_checker.Test(DEBUG_CHECK_INIT) == true && "not be initialized yet");
+            assert(debug_updated == false && "cannot call this more than once");
+            debug_updated = true;
+#endif
+        }
         // do event 
         virtual bool DoEvent(const EventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
         // do mouse event 

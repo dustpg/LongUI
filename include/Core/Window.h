@@ -79,6 +79,10 @@ namespace LongUI {
             Index_SkipRender,
             // [RW] do full-render this frame?
             Index_FullRenderThisFrame,
+            // [RW] caret in
+            Index_CaretIn,
+            // [RW] do caret
+            //Index_DoCaret,
             // [XX] count of this
             INDEX_COUNT,
         };
@@ -99,13 +103,16 @@ namespace LongUI {
         virtual void SetCursor(LongUI::Cursor cursor) noexcept = 0;
         // show window
         virtual void ShowWindow(int nCmdShow) noexcept = 0;
+        // set caret
+        virtual void SetCaret(UIControl* ctrl, const RectLTWH_F* rect) noexcept = 0;
     protected:
         // add inset window
         void add_inset_window(XUIBaseWindow*) noexcept;
         // remove inset window
         void remove_inset_window(XUIBaseWindow*) noexcept;
     public:
-        // add 
+        // hide caret
+        void HideCaret(UIControl* ctrl) noexcept { this->SetCaret(ctrl, nullptr); }
         // hide window
         void HideWindow() noexcept { this->ShowWindow(SW_HIDE); }
         // reset cursor
@@ -150,14 +157,6 @@ namespace LongUI {
         bool DoEvent(const EventArgument& arg) noexcept;
         // render control in next frame
         void Invalidate(UIControl* ctrl) noexcept;
-        // set the caret
-        void SetCaretPos(UIControl* ctrl, float x, float y) noexcept;
-        // create the caret
-        void CreateCaret(UIControl* ctrl, float width, float height) noexcept;
-        // show the caret
-        void ShowCaret() noexcept;
-        // hide the caret
-        void HideCaret() noexcept;
         // set focus control
         void SetFocus(UIControl* ctrl) noexcept;
         // set hover track control
@@ -173,6 +172,10 @@ namespace LongUI {
     protected:
         // is NewSize
         bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }
+        // is CaretIn
+        bool is_caret_in() const noexcept { return m_baBoolWindow.Test(Index_CaretIn); }
+        // is DoCaret
+        //bool is_do_caret() const noexcept { return m_baBoolWindow.Test(Index_DoCaret); }
         // is SkipRender
         bool is_skip_render() const noexcept { return m_baBoolWindow.Test(Index_SkipRender); }
         // is Popup
@@ -193,8 +196,16 @@ namespace LongUI {
     protected:
         // set NewSize to true
         void set_new_size() noexcept { m_baBoolWindow.SetTrue(Index_NewSize); }
-        // clear FullRenderingThisFrame
+        // set CaretIn to true
+        void set_caret_in() noexcept { m_baBoolWindow.SetTrue(Index_CaretIn); }
+        // set DoCaret to true
+        //void set_do_caret() noexcept { m_baBoolWindow.SetTrue(Index_DoCaret); }
+        // change CaretIn
+        void change_caret_in() noexcept { m_baBoolWindow.SetNot(Index_CaretIn); }
+        // clear NewSize
         void clear_new_size() noexcept { m_baBoolWindow.SetFalse(Index_NewSize); }
+        // clear DoCaret
+        //void clear_do_caret() noexcept { m_baBoolWindow.SetFalse(Index_DoCaret); }
         // set SkipRender to true
         void set_skip_render() noexcept { m_baBoolWindow.SetTrue(Index_SkipRender); }
         // clear SkipRender
@@ -225,6 +236,8 @@ namespace LongUI {
         UIControl*              m_pDragDropControl = nullptr;
         // now captured control (only one)
         UIControl*              m_pCapturedControl = nullptr;
+        // timer for caret
+        Helper::Timer           m_tmCaret = Helper::Timer(::GetCaretBlinkTime());
         // window rect
         RectLTWH_L              m_rcWindow;
         // string allocator

@@ -284,8 +284,6 @@ namespace LongUI {
     MakeGetIID(ID3D11Debug);
     // ID3D10Multithread
     MakeGetIID(ID3D10Multithread);
-    // ITfThreadMgr
-    MakeGetIID(ITfThreadMgr);
     // IMFMediaEngineClassFactory
     MakeGetIID(IMFMediaEngineClassFactory);
     // IMFMediaEngine "98a1b0bb-03eb-4935-ae7c-93c1fa0e1c93"

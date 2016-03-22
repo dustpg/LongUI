@@ -31,9 +31,10 @@ void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
         << LongUI::endl;
 #else
     ::OutputDebugStringW(LongUI::Formated(
-        L"Main Locker Locked On Msg: %4u @ Window[0x%p - %S]\r\n",
+        L"Main Locker Locked On Msg: 0x%4x @ Window[0x%p - %S]\r\n",
         msg, window, window->name.c_str()
     ));
+    WM_CLOSE;
 #endif
 }
 
@@ -277,6 +278,13 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
         if (!node.attribute(LongUI::XmlAttribute::Enabled).as_bool(true)) {
             this->SetEnabled(false);
         }
+        // 用户数据
+        {
+            const char* str = nullptr;
+            if ((str = node.attribute("userdata").value())) {
+                this->user_data = LongUI::AtoI(str);
+            }
+        }
     }
     // 修改flag
     force_cast(this->flags) |= flag;
@@ -355,26 +363,6 @@ LongUI::UIControl::~UIControl() noexcept {
     }
 }
 
-
-/// <summary>
-/// Updates this instance.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::Update() noexcept {
-#ifdef _DEBUG
-    void longui_dbg_update(UIControl* c);
-    longui_dbg_update(this);
-    assert(debug_checker.Test(DEBUG_CHECK_INIT) == true && "not be initialized yet");
-    assert(debug_updated == false && "cannot call this more than once");
-    debug_updated = true;
-#endif
-    // 检查
-    if (m_fRenderTime > 0.f) {
-        this->InvalidateThis();
-        m_fRenderTime -= UIManager.GetDeltaTime();
-    }
-};
-
 // UIControl:: 渲染调用链: 背景
 void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
@@ -448,6 +436,11 @@ void LongUI::UIControl::AfterUpdate() noexcept {
     this->debug_checker.SetFalse(DEBUG_CHECK_MAIN);
     this->debug_checker.SetFalse(DEBUG_CHECK_FORE);
 #endif
+    // 检查
+    if (m_fRenderTime > 0.f) {
+        this->InvalidateThis();
+        m_fRenderTime -= UIManager.GetDeltaTime();
+    }
 }
 
 // UI控件: 重建
@@ -835,8 +828,9 @@ auto WINAPI LongUI::CreateNullControl(CreateEventType type, pugi::xml_node node)
 /// </summary>
 /// <param name="cp">The parent for self in control-level</param>
 /// <returns></returns>
-LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal_control() {
-    std::memset(force_cast(marginal_control), 0, sizeof(marginal_control));
+LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp) {
+    std::memset(m_apMarginalControlRA, 0, sizeof(m_apMarginalControlRA));
+    std::memset(m_apMarginalControlCO, 0, sizeof(m_apMarginalControlCO));
 }
 
 
@@ -847,13 +841,14 @@ LongUI::UIContainer::UIContainer(UIContainer* cp) noexcept : Super(cp), marginal
 LongUINoinline void LongUI::UIContainer::before_deleted() noexcept {
     LongUI::SafeRelease(m_pPopularChild);
     LongUI::SafeRelease(m_pMousePointed);
-    // 只有一次 Flag_Container_ExistMarginalControl 可用可不用
-    for (auto ctrl : this->marginal_control) {
-        if (ctrl)  release_child(ctrl);
+    for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+        auto ctrl = *itr;
+        release_child(ctrl);
     }
 #ifdef _DEBUG
     // 调试时清空
-    std::memset((void*)(this->marginal_control), 0, sizeof(this->marginal_control));
+    std::memset(m_apMarginalControlRA, 0, sizeof(m_apMarginalControlRA));
+    std::memset(m_apMarginalControlCO, 0, sizeof(m_apMarginalControlCO));
 #endif
     // 链式调用
     Super::before_deleted();
@@ -868,7 +863,7 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
     // 必须有效
     assert(node && "call UIContainer::initialize() if no xml-node");
 #ifdef _DEBUG
-    for (auto ctrl : marginal_control) {
+    for (auto ctrl : m_apMarginalControlRA) {
         assert(ctrl == nullptr && "bad action");
     }
 #endif
@@ -908,7 +903,7 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
 /// <returns></returns>
 void LongUI::UIContainer::initialize() noexcept {
 #ifdef _DEBUG
-    for (auto ctrl : marginal_control) {
+    for (auto ctrl : m_apMarginalControlRA) {
         assert(ctrl == nullptr && "bad action");
     }
 #endif
@@ -961,14 +956,12 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
 /// <returns>the control pointer, maybe nullptr</returns>
 auto LongUI::UIContainer::FindChild(const D2D1_POINT_2F& pt) noexcept ->UIControl* {
     // 查找边缘控件
-    if (this->flags & Flag_Container_ExistMarginalControl) {
-        for (auto ctrl : this->marginal_control) {
-            if (ctrl && IsPointInRect(ctrl->visible_rect, pt)) {
-                return ctrl;
-            }
+    for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+        auto ctrl = *itr;
+        if (IsPointInRect(ctrl->visible_rect, pt)) {
+            return ctrl;
         }
     }
-    this->AssertMarginalControl();
     return nullptr;
 }
 
@@ -983,18 +976,18 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     {
     case LongUI::Event::Event_TreeBulidingFinished:
         // 边界控件
-        for (auto mctrl : marginal_control) {
-            if (mctrl) mctrl->DoEvent(arg);
+        for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+            auto ctrl = *itr;
+            ctrl->DoEvent(arg);
         }
         done = true;
         break;
     case LongUI::Event::Event_SetNewParent:
         // 修改控件深度
-        for (auto mctrl : marginal_control) {
-            if (mctrl) {
-                mctrl->NewParentSetted();
-                mctrl->DoEvent(arg);
-            }
+        for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+            auto ctrl = *itr;
+            ctrl->NewParentSetted();
+            ctrl->DoEvent(arg);
         }
         done = true;
         break;
@@ -1055,14 +1048,14 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
         }
     }
     // 滚轮事件允许边缘控件后处理
-    if (arg.event <= MouseEvent::Event_MouseWheelH && this->flags & Flag_Container_ExistMarginalControl) {
+    if (arg.event <= MouseEvent::Event_MouseWheelH) {
         // 优化
-        for (auto ctrl : this->marginal_control) {
-            if (ctrl && ctrl->DoMouseEvent(arg)) {
+        for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+            auto ctrl = *itr;
+            if (ctrl->DoMouseEvent(arg)) {
                 return true;
             }
         }
-        this->AssertMarginalControl();
     }
     return false;
 }
@@ -1091,14 +1084,10 @@ void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
 // UIContainer: 主景渲染
 void LongUI::UIContainer::render_chain_main() const noexcept {
     // 渲染边缘控件
-    if (this->flags & Flag_Container_ExistMarginalControl) {
-        for (auto ctrl : this->marginal_control) {
-            if (ctrl) {
-                this->child_do_render(ctrl);
-            }
-        }
+    for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+        auto ctrl = *itr;
+        this->child_do_render(ctrl);
     }
-    this->AssertMarginalControl();
     // 回退转变
     UIManager_RenderTarget->SetTransform(&this->world);
     // 父类
@@ -1114,18 +1103,24 @@ void LongUI::UIContainer::Push(UIControl* child) noexcept {
         assert(mctrl->marginal_type != UIMarginalable::Control_Unknown && "bad marginal control");
         assert(mctrl->parent == this && "bad child");
         // 错误
-        if (this->marginal_control[mctrl->marginal_type]) {
+        if (this->GetMarginalControl(mctrl->marginal_type)) {
             UIManager << DL_Error
                 << "target marginal control has been existd, check xml-layout"
                 << LongUI::endl;
-            this->release_child(this->marginal_control[mctrl->marginal_type]);
+            this->release_child(this->GetMarginalControl(mctrl->marginal_type));
         }
         // 写入
-        force_cast(this->marginal_control[mctrl->marginal_type]) = mctrl;
+        force_cast(m_apMarginalControlRA[mctrl->marginal_type]) = mctrl;
         // 插♂入后
         this->after_insert(mctrl);
-        // 推入flag
-        force_cast(this->flags) |= Flag_Container_ExistMarginalControl;
+        // 更新连续表
+        m_ppEndMC = m_apMarginalControlCO;
+        for (auto test : m_apMarginalControlRA) {
+            if (test) {
+                *m_ppEndMC = test;
+                ++m_ppEndMC;
+            }
+        }
     }
 }
 
@@ -1152,8 +1147,8 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
         return this->view_size.width
             + m_orgMargin.left
             + m_orgMargin.right
-            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Left])
-            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Right])
+            + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Left))
+            + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Right))
             + m_fBorderWidth * 2.f;
     };
     // 计算高度
@@ -1162,8 +1157,8 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
         return this->view_size.height
             + m_orgMargin.top
             + m_orgMargin.bottom
-            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Top])
-            + get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom])
+            + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Top))
+            + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Bottom))
             + m_fBorderWidth * 2.f;
     };
     // 保留信息
@@ -1175,76 +1170,72 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
     assert(this_container_height == this->GetHeight());
     // 循环
     while (true) {
-        for (auto i = 0u; i < lengthof(this->marginal_control); ++i) {
-            // 获取控件
-            auto ctrl = this->marginal_control[i]; if (!ctrl) continue;
-            //float view[] = { 0.f, 0.f, 0.f, 0.f };
-            // TODO: 计算cross 大小
-            switch (i)
-            {
-            case 0: // Left
-            {
-                const auto tmptop = m_orgMargin.top +
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Top]);
-                // 坐标
-                ctrl->SetLeft(m_orgMargin.left);
-                ctrl->SetTop(tmptop);
-                // 大小
-                ctrl->SetWidth(ctrl->marginal_width);
-                ctrl->SetHeight(
-                    this_container_height - tmptop - m_orgMargin.bottom -
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Bottom])
-                );
-            }
-            break;
-            case 1: // Top
-            {
-                const float tmpleft = m_orgMargin.left +
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Left]);
-                // 坐标
-                ctrl->SetLeft(tmpleft);
-                ctrl->SetTop(m_orgMargin.top);
-                // 大小
-                ctrl->SetWidth(
-                    this_container_width - tmpleft - m_orgMargin.right -
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Right])
-                );
-                ctrl->SetHeight(ctrl->marginal_width);
-            }
-            break;
-            case 2: // Right
-            {
-                const auto tmptop = m_orgMargin.top +
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Top]);
-                // 坐标
-                ctrl->SetLeft(this_container_width - m_orgMargin.right - ctrl->marginal_width);
-                ctrl->SetTop(tmptop);
-                // 大小
-                ctrl->SetWidth(ctrl->marginal_width);
-                ctrl->SetHeight(
-                    this_container_height - tmptop - m_orgMargin.bottom -
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Bottom])
-                );
-            }
-            break;
-            case 3: // Bottom
-            {
-                const float tmpleft = m_orgMargin.left +
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Left]);
-                // 坐标
-                ctrl->SetLeft(tmpleft);
-                ctrl->SetTop(this_container_height - m_orgMargin.bottom - ctrl->marginal_width);
-                // 大小
-                ctrl->SetWidth(
-                    this_container_width - tmpleft - m_orgMargin.right -
-                    get_marginal_width_with_rule(ctrl, this->marginal_control[UIMarginalable::Control_Right])
-                );
-                ctrl->SetHeight(ctrl->marginal_width);
-            }
-            break;
-            }
+        // 待检查控件
+        UIMarginalable* mc = nullptr;
+        // Left
+        if ((mc = this->GetMarginalControl(UIMarginalable::Control_Left))) {
+            const auto tmptop = m_orgMargin.top +
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Top));
+            // 坐标
+            mc->SetLeft(m_orgMargin.left);
+            mc->SetTop(tmptop);
+            // 大小
+            mc->SetWidth(mc->marginal_width);
+            mc->SetHeight(
+                this_container_height - tmptop - m_orgMargin.bottom -
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Bottom))
+            );
             // 更新边界
-            ctrl->UpdateMarginalWidth();
+            mc->UpdateMarginalWidth();
+        }
+        // TOP
+        if ((mc = this->GetMarginalControl(UIMarginalable::Control_Top))) {
+            const float tmpleft = m_orgMargin.left +
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Left)
+                );
+            // 坐标
+            mc->SetLeft(tmpleft);
+            mc->SetTop(m_orgMargin.top);
+            // 大小
+            mc->SetWidth(
+                this_container_width - tmpleft - m_orgMargin.right -
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Right))
+            );
+            mc->SetHeight(mc->marginal_width);
+            // 更新边界
+            mc->UpdateMarginalWidth();
+        }
+        // Right
+        if ((mc = this->GetMarginalControl(UIMarginalable::Control_Right))) {
+            const auto tmptop = m_orgMargin.top +
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Top));
+            // 坐标
+            mc->SetLeft(this_container_width - m_orgMargin.right - mc->marginal_width);
+            mc->SetTop(tmptop);
+            // 大小
+            mc->SetWidth(mc->marginal_width);
+            mc->SetHeight(
+                this_container_height - tmptop - m_orgMargin.bottom -
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Bottom))
+            );
+            // 更新边界
+            mc->UpdateMarginalWidth();
+        }
+        // Bottom
+        if ((mc = this->GetMarginalControl(UIMarginalable::Control_Bottom))) {
+            const float tmpleft = m_orgMargin.left +
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Left));
+            // 坐标
+            mc->SetLeft(tmpleft);
+            mc->SetTop(this_container_height - m_orgMargin.bottom - mc->marginal_width);
+            // 大小
+            mc->SetWidth(
+                this_container_width - tmpleft - m_orgMargin.right -
+                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Right))
+            );
+            mc->SetHeight(mc->marginal_width);
+            // 更新边界
+            mc->UpdateMarginalWidth();
         }
         // 退出检查
         {
@@ -1257,13 +1248,13 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
             }
             // 修改外边距
             force_cast(this->margin_rect.left) = m_orgMargin.left
-                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Left]);
+                + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Left));
             force_cast(this->margin_rect.top) = m_orgMargin.top
-                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Top]);
+                + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Top));
             force_cast(this->margin_rect.right) = m_orgMargin.right
-                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Right]);
+                + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Right));
             force_cast(this->margin_rect.bottom) = m_orgMargin.bottom
-                + get_marginal_width(this->marginal_control[UIMarginalable::Control_Bottom]);
+                + get_marginal_width(this->GetMarginalControl(UIMarginalable::Control_Bottom));
             // 修改大小
             this->SetLeft(this_container_left);
             this->SetTop(this_container_top);
@@ -1279,10 +1270,32 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
 void LongUI::UIContainer::Update() noexcept {
     // 修改自动缩放控件
     if (this->IsNeedRefreshWorld()) {
-        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) |
-            (this->m_2fTemplateSize.height > 0.f);
-        auto tmpw = this->GetWidth() / m_2fTemplateSize.width;
-        auto tmph = this->GetHeight() / m_2fTemplateSize.width;
+        float tmpw = this->GetWidth() / m_2fTemplateSize.width;
+        float tmph = this->GetHeight() / m_2fTemplateSize.width;
+#if 1
+        // 缩放策略
+        if (this->m_2fTemplateSize.width > 0.f) {
+            if (this->m_2fTemplateSize.height > 0.f) {
+                // both
+                this->m_2fZoom.width = tmpw;
+                this->m_2fZoom.height = tmph;
+            }
+            else {
+                // this->m_2fTemplateSize.width > 0.f, only
+                this->m_2fZoom.height = this->m_2fZoom.width = tmpw;
+            }
+        }
+        else {
+            if (this->m_2fTemplateSize.height > 0.f) {
+                // this->m_2fTemplateSize.height > 0.f, only
+                this->m_2fZoom.width = this->m_2fZoom.height = tmph;
+            }
+            else {
+
+            }
+        }
+#else
+        auto code = ((this->m_2fTemplateSize.width > 0.f) << 1) | (this->m_2fTemplateSize.height > 0.f);
         switch (code & 0x03)
         {
         case 0:
@@ -1302,22 +1315,18 @@ void LongUI::UIContainer::Update() noexcept {
             this->m_2fZoom.height = tmph;
             break;
         }
+#endif
     }
     // 修改边界
     if (this->IsControlLayoutChanged()) {
         // 更新布局
         this->RefreshLayout();
         // 刷新边缘控件
-        if (this->flags & Flag_Container_ExistMarginalControl) {
+        if (m_ppEndMC != m_apMarginalControlCO) {
             this->refresh_marginal_controls();
         }
         // 处理
         this->ControlLayoutChangeHandled();
-        // 刷新
-        /*if (should_update) {
-        this->SetControlWorldChanged();
-        this->Update();
-        }*/
 #ifdef _DEBUG
         if (this->debug_this) {
             UIManager << DL_Log << L"Container" << this
@@ -1329,30 +1338,28 @@ void LongUI::UIContainer::Update() noexcept {
 #endif
     }
     // 修改可视化区域
-    if (this->IsNeedRefreshWorld() && (this->flags & Flag_Container_ExistMarginalControl)) {
-        for (auto ctrl : this->marginal_control) {
-            // 刷新
-            if (ctrl) {
-                // 更新世界矩阵
-                ctrl->SetControlWorldChanged();
-                ctrl->RefreshWorldMarginal();
-                // 坐标转换
-                D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-                auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
-                auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
-                // 修改可视区域
-                ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
-                ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
-                ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
-                ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
+    if (this->IsNeedRefreshWorld()) {
+        for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+            auto ctrl = *itr;
+            // 更新世界矩阵
+            ctrl->SetControlWorldChanged();
+            ctrl->RefreshWorldMarginal();
+            // 坐标转换
+            D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
+            auto lt = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.left));
+            auto rb = LongUI::TransformPoint(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(clip_rect.right));
+            // 修改可视区域
+            ctrl->visible_rect.left = std::max(lt.x, this->visible_rect.left);
+            ctrl->visible_rect.top = std::max(lt.y, this->visible_rect.top);
+            ctrl->visible_rect.right = std::min(rb.x, this->visible_rect.right);
+            ctrl->visible_rect.bottom = std::min(rb.y, this->visible_rect.bottom);
 #ifdef _DEBUG
-                if (ctrl->debug_this) {
-                    UIManager << DL_Log << ctrl
-                        << " visible rect changed to: "
-                        << ctrl->visible_rect << LongUI::endl;
-                }
-#endif
+            if (ctrl->debug_this) {
+                UIManager << DL_Log << ctrl
+                    << " visible rect changed to: "
+                    << ctrl->visible_rect << LongUI::endl;
             }
+#endif
         }
         // 已处理该消息
         this->ControlLayoutChangeHandled();
@@ -1365,12 +1372,10 @@ void LongUI::UIContainer::Update() noexcept {
 auto LongUI::UIContainer::Recreate() noexcept ->HRESULT {
     auto hr = S_OK;
     // 重建边缘控件
-    if (this->flags & Flag_Container_ExistMarginalControl) {
-        for (auto ctrl : this->marginal_control) {
-            if (ctrl) {
-                hr = ctrl->Recreate();
-                assert(SUCCEEDED(hr));
-            }
+    for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
+        if (SUCCEEDED(hr)) {
+            auto ctrl = *itr;
+            hr = ctrl->Recreate();
         }
     }
     // skip if before 'control-tree-finshed'

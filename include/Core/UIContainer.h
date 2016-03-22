@@ -88,7 +88,7 @@ namespace LongUI {
         // dtor
         ~UIContainer() noexcept {
 #ifdef _DEBUG
-            for (auto ctrl : marginal_control) {
+            for (auto ctrl : m_apMarginalControlRA) {
                 assert(ctrl == nullptr && "call before_deleted()!");
             }
 #endif
@@ -172,12 +172,23 @@ namespace LongUI {
         }
         // after insert
         void after_insert(UIControl* child) noexcept;
-        // TODO: 连续数组优化优化
-        //UIMarginalable* const   m_apConMarCtrl[UIMarginalable::MARGINAL_CONTROL_SIZE];
     public:
-        // marginal controls, store 'CreateControlEvent' before control-tree finished to save memory
-        UIMarginalable* const   marginal_control[UIMarginalable::MARGINAL_CONTROL_SIZE];
+        // get marginal control
+        auto GetMarginalControl(UIMarginalable::MarginalControl type) noexcept {
+            assert(type >= 0 && type < UIMarginalable::MARGINAL_CONTROL_SIZE && "out of range");
+            return m_apMarginalControlRA[type];
+        }
+        // begin for mc
+        auto MCBegin() const noexcept { return m_apMarginalControlCO; }
+        // end for mc
+        auto MCEnd() const noexcept { return m_ppEndMC; }
     protected:
+        // marginal controls - Random Access
+        UIMarginalable*         m_apMarginalControlRA[UIMarginalable::MARGINAL_CONTROL_SIZE];
+        // marginal controls - continuously
+        UIMarginalable*         m_apMarginalControlCO[UIMarginalable::MARGINAL_CONTROL_SIZE];
+        // end of marginal controls
+        UIMarginalable**        m_ppEndMC = m_apMarginalControlCO;
         // popular child
         UIControl*              m_pPopularChild = nullptr;
         // mouse pointed control
@@ -197,8 +208,6 @@ namespace LongUI {
         // zoom size
         D2D1_SIZE_F             m_2fZoom = D2D1::SizeF(1.f, 1.f);
     public:
-        // assert if exist marginal control
-        inline void AssertMarginalControl() const noexcept;
         // helper for update
         template<typename TSuperClass, typename TIterator>
         void UpdateHelper(TIterator itrbegin, TIterator itrend) noexcept;
@@ -255,16 +264,11 @@ namespace LongUI {
             this->ControlLayoutChangeHandled();
         }
         // update marginal control
-        if (this->flags & Flag_Container_ExistMarginalControl) {
-            for (auto ctrl : this->marginal_control) {
-                if (ctrl) {
-                    ctrl->Update();
-                    ctrl->AfterUpdate();
-                }
-            }
+        for (auto itr = this->MCBegin(); itr != MCEnd(); ++itr) {
+            auto ctrl = (*itr);
+            ctrl->Update();
+            ctrl->AfterUpdate();
         }
-        // assert if bug
-        this->AssertMarginalControl();
         // update children
         for (auto itr = itrbegin; itr != itrend; ++itr) {
             auto ctrl = (*itr);
@@ -287,16 +291,4 @@ namespace LongUI {
         // pop
         UIManager_RenderTarget->PopAxisAlignedClip();
     }
-    // AssertMarginalControl
-#ifdef _DEBUG
-    inline void UIContainer::AssertMarginalControl() const noexcept {
-        if (!(this->flags & Flag_Container_ExistMarginalControl)) {
-            for (auto ctrl : this->marginal_control) {
-                assert(!ctrl && "exist marginal control");
-            }
-        }
-    }
-#else
-    inline void UIContainer::AssertMarginalControl() const noexcept {}
-#endif
 }

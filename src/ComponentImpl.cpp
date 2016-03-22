@@ -187,8 +187,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         if (!m_bThisFocused) return;
         RectLTWH_F rect; this->GetCaretRect(rect);
         auto* window = m_pHost->GetWindow();
-        window->CreateCaret(m_pHost, rect.width, rect.height);
-        window->SetCaretPos(m_pHost, rect.left, rect.top);
+        window->SetCaret(m_pHost, &rect);
         if (update) {
             m_pHost->InvalidateThis();
         }
@@ -560,7 +559,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         m_bDragFromThis = m_pDataObject == data;
         assert(data && effect && "bad argument");
         UNREFERENCED_PARAMETER(effect);
-        m_pHost->GetWindow()->ShowCaret();
+        //m_pHost->GetWindow()->ShowCaret();
         ::ReleaseStgMedium(&m_recentMedium);
         // 检查支持格式: Unicode-ShortText
         FORMATETC fmtetc = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
@@ -797,12 +796,12 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     void EditaleText::OnSetFocus() noexcept {
         m_bThisFocused = true;
         this->refresh();
-        m_pHost->GetWindow()->ShowCaret();
+        //m_pHost->GetWindow()->ShowCaret();
     }
     // 当失去焦点时
     void EditaleText::OnKillFocus() noexcept {
         //auto window = m_pHost->GetWindow();
-        m_pHost->GetWindow()->HideCaret();
+        m_pHost->GetWindow()->HideCaret(m_pHost);
         m_bThisFocused = false;
     }
     // 左键弹起时
@@ -950,7 +949,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
     // 刷新
     void EditaleText::Update() noexcept {
-        // s
         this->refresh(false);
         // 检查选择区
         this->RefreshSelectionMetrics(this->GetSelectionRange());

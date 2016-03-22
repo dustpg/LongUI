@@ -11,9 +11,9 @@
     PRPR: 完成UIComboBox
     PRPR: 完成UIRadioButton
     PRPR: 分离UIWindow
+    PRPR: 规范化消息架构
     TODO: 子窗口渲染
     TODO: 规范化拖拽
-    TODO: 规范化消息架构
     TODO: 出场/离场动画
     TODO: 更加安全的缓存
     TODO: 完成UITab

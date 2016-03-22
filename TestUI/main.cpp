@@ -468,6 +468,7 @@ private:
     HMODULE         m_hDll = nullptr; // ::LoadLibraryW(L"test.dll");
 };
 
+
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
     // 本Demo的配置信息

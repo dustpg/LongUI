@@ -17,18 +17,21 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     CHECK_GUID(IDXGISwapChain2);
 #undef CHECK_GUID
 #endif
+    m_vDelayCleanup.reserve(16);
+    m_vDelayDispose.reserve(16);
+    m_vWindows.reserve(16);
+    // 内存不足
+    if (!m_vDelayCleanup.isok() || !m_vWindows.isok() || !m_vDelayDispose.isok()) {
+        return E_OUTOFMEMORY;
+    }
+    // 初始化一些东西
     m_szLocaleName[0] = L'\0';
-    m_vDelayCleanup.reserve(32);
-    m_vWindows.reserve(32);
     m_vDelayCleanup.clear();
     m_vWindows.clear();
+    m_vDelayDispose.clear();
     // 开始计时
     m_uiTimeMeter.Start();
     this->refresh_display_frequency();
-    // 内容不足
-    if (!m_vDelayCleanup.isok() || !m_vWindows.isok()) {
-        return E_OUTOFMEMORY;
-    }
     // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
@@ -94,16 +97,25 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
             ::RegisterClassExW(&wcex);
         }
 #ifdef _DEBUG
-        constexpr int SIW = 256;
-        constexpr int SIH = 0;
+        constexpr int SIX = 50;
+        constexpr int SIY = 50;
+        constexpr int SIW_ = 256;
+        constexpr int SIH_ = 0;
+        RECT rect = { SIX, SIY, SIX + SIW_, SIY + SIH_ };
+        ::AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
+        const int SIW = rect.right - rect.left;
+        const int SIH = rect.bottom - rect.top;
 #else
+        constexpr int SIX = 0;
+        constexpr int SIY = 0;
         constexpr int SIW = 0;
         constexpr int SIH = 0;
 #endif
         // 创建
         m_hToolWnd = ::CreateWindowExW(
-            WS_EX_TOOLWINDOW, LongUI::InvisibleName, L"SystemInvoke",
-            0, 0, 0, SIW, SIH, nullptr, nullptr, hInstance, nullptr
+            WS_EX_TOOLWINDOW | WS_EX_TOPMOST, 
+            LongUI::InvisibleName, L"SystemInvoke",
+            0, SIX, SIY, SIW, SIH, nullptr, nullptr, hInstance, nullptr
         );
         // 成功
         if (m_hToolWnd) {
@@ -194,21 +206,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
             reinterpret_cast<void**>(&m_pd2dFactory)
         );
         longui_debug_hr(hr, L"D2D1CreateFactory faild");
-    }
-    // 创建TSF线程管理器
-    if (SUCCEEDED(hr)) {
-        hr = ::CoCreateInstance(
-            CLSID_TF_ThreadMgr,
-            nullptr,
-            CLSCTX_INPROC_SERVER,
-            LongUI_IID_PV_ARGS(m_pTsfThreadManager)
-        );
-        longui_debug_hr(hr, L"CoCreateInstance CLSID_TF_ThreadMgr faild");
-    }
-    // 激活客户ID
-    if (SUCCEEDED(hr)) {
-        hr = m_pTsfThreadManager->Activate(&m_idTsfClient);
-        longui_debug_hr(hr, L"m_pTsfThreadManager->Activate faild");
     }
     // 创建 DirectWrite 工厂.
     if (SUCCEEDED(hr)) {
@@ -367,7 +364,6 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     LongUI::SafeRelease(m_pDWriteFactory);
     LongUI::SafeRelease(m_pDropTargetHelper);
     LongUI::SafeRelease(m_pd2dFactory);
-    LongUI::SafeRelease(m_pTsfThreadManager);
     // 释放脚本
     LongUI::SafeRelease(force_cast(script));
     // 释放读取器
@@ -588,8 +584,8 @@ void LongUI::CUIManager::Run() noexcept {
                     wchar_t buffer[1024];
                     std::swprintf(
                         buffer, lengthof(buffer),
-                        L"delta: %.4fms -- %2.2f fps",
-                        time, 1.f / time
+                        L"delta: %.2fms -- %2.2f fps",
+                        time * 1000.f, 1.f / time
                     );
                     auto hwnd = UIManager.m_hToolWnd;
                     UIManager.DataUnlock();
@@ -1031,9 +1027,8 @@ auto LongUI::CUIManager::create_dxgi_output() noexcept -> HRESULT {
         DXGI_ADAPTER_DESC1 desca;
         pDxgiAdapter->GetDesc1(&desca);
 #endif
-        UINT io = 0;
         // 枚举显示输出
-        while (pDxgiAdapter->EnumOutputs(io, &m_pDxgiOutput) != DXGI_ERROR_NOT_FOUND) {
+        while (pDxgiAdapter->EnumOutputs(0, &m_pDxgiOutput) != DXGI_ERROR_NOT_FOUND) {
             assert(m_pDxgiOutput && "bad action");
 #ifdef _DEBUG
             DXGI_OUTPUT_DESC desco;
@@ -1046,7 +1041,7 @@ auto LongUI::CUIManager::create_dxgi_output() noexcept -> HRESULT {
     }
     // 检查
     assert(!pDxgiAdapter && "bad action");
-    return E_FAIL;
+    return S_FALSE;
 }
 
 // UIManager 创建设备相关资源

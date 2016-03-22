@@ -53,15 +53,19 @@ namespace LongUI { namespace Helper {
         float           pty = -1.f;
     };
     // timer-helper for ui
-    class Timer{
+    class Timer {
     public:
         // ctor
-        Timer(uint32_t elapse) noexcept : m_dwElapse(elapse) { assert(elapse && "bad elapse"); }
+        Timer(uint32_t elapse) noexcept : m_dwTime(elapse) { assert(elapse && "bad elapse"); }
         // update, return true if it is time
         bool Update() noexcept;
+        // reset
+        void Reset() noexcept { m_dwLastCount = ::timeGetTime(); }
+        // reset
+        void Reset(uint32_t elapse) noexcept { assert(elapse && "bad elapse"); m_dwTime = elapse; this->Reset(); }
     private:
         // time for elapse
-        uint32_t        m_dwElapse;
+        uint32_t        m_dwTime;
         // last tick-count
         uint32_t        m_dwLastCount = ::timeGetTime();
     };

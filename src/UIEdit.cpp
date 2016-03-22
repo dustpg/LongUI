@@ -60,23 +60,12 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
         arg.str = m_text.c_str();
         return true;
     case LongUI::Event::Event_Char:
-        m_text.OnChar(arg.och.ch);
+        m_text.OnChar(arg.key.ch);
+        return true;
+    case LongUI::Event::Event_KeyDown:
+        m_text.OnKey(static_cast<uint32_t>(arg.key.ch));
         return true;
     }
-    // 系统消息
-    /*if(false) {
-        switch (arg.msg)
-        {
-        default:
-            return false;
-        case WM_KEYDOWN:
-            m_text.OnKey(static_cast<uint32_t>(arg.sys.wParam));
-            break;
-        case WM_CHAR:
-            m_text.OnChar(static_cast<char32_t>(arg.sys.wParam));
-            break;
-        }
-    }*/
     return true;
 }
 

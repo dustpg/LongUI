@@ -499,11 +499,11 @@ namespace LongUI { namespace EzContainer {
         auto operator[](uint32_t index) const noexcept ->const T& { assert(index < this->size() && "out of range"); return m_pData[index]; }
     private:
         // data
-        T*          m_pData = nullptr;
+        T*                  m_pData = nullptr;
         // length
-        uint32_t    m_cLength = 0;
+        uint32_t            m_cLength = 0;
         // capacity
-        uint32_t    m_cCapacity = 0;
+        uint32_t            m_cCapacity = 0;
     private:
         // safe free
         inline auto safe_free() noexcept { if (m_pData) LongUI::SmallFree(m_pData); m_pData = nullptr; }
@@ -592,6 +592,9 @@ namespace LongUI { namespace EzContainer {
             m_pData[pos] = data;
         }
     }
+#ifdef _DEBUG
+    template<typename T> using PointerVector = EzVector<T*>;
+#else
     // Pointer Vector
     template<typename T>
     class PointerVector {
@@ -666,6 +669,7 @@ namespace LongUI { namespace EzContainer {
         // vector data
         VectorType          m_vector;
     };
+#endif
 }}
 
 // longui namespace

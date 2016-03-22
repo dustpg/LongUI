@@ -11,7 +11,7 @@ void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
     // 初始
-    m_vLines.reserve(100);
+    m_vLines.reserve(50);
     m_vSelectedIndex.reserve(16);
     m_vLineTemplate.reserve(16);
     // OOM or BAD ACTION

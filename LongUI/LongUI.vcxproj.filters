@@ -40,6 +40,9 @@
     <Filter Include="Source Files\XUtil">
       <UniqueIdentifier>{282cea40-5634-43f7-a0d5-73066644be6d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Visualizers">
+      <UniqueIdentifier>{3ea0c4f9-a112-4167-8747-0740cb905557}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Component\EditaleText.h">
@@ -230,5 +233,10 @@
     <ClCompile Include="..\src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="longui.natvis">
+      <Filter>Visualizers</Filter>
+    </Natvis>
   </ItemGroup>
 </Project>

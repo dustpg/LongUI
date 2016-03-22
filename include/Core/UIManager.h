@@ -188,8 +188,8 @@ namespace LongUI {
         // flag for configure
         IUIConfigure::ConfigureFlag     flag = IUIConfigure::Flag_None;
     private:
-        // asd
-        uint32_t                        m_u32unused = 0;
+        // delta time in sec.
+        float                           m_fDeltaTime = 0.f;
         // string al
         StringAllocator                 m_oStringAllocator;
         // helper for drop target
@@ -224,10 +224,8 @@ namespace LongUI {
         size_t                          frame_id = 0;
     private:
 #endif
-        // invisible window handle
+        // tool window handle
         HWND                            m_hToolWnd = nullptr;
-        // thread manager for TSF
-        ITfThreadMgr*                   m_pTsfThreadManager = nullptr;
         // text renderer
         XUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
         // system brush
@@ -298,10 +296,6 @@ namespace LongUI {
         uint32_t                        m_dwWaitVSCount = 0;
         // vsync start time
         uint32_t                        m_dwWaitVSStartTime = 0;
-        // delta time in sec.
-        float                           m_fDeltaTime = 0.f;
-        // id for client
-        TfClientId                      m_idTsfClient = 0;
         // textrender: normal
         CUINormalTextRender             m_normalTRenderer;
         // xml doc for window

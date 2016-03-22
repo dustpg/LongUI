@@ -1262,7 +1262,11 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
     else if (node.attribute("exitonclose").as_bool(true)) {
         this->set_exit_on_close();
     }
-
+    const char* str = nullptr;
+    // 插入符号闪烁时间
+    if ((str = node.attribute("caretblinktime").value())) {
+        m_tmCaret.Reset(LongUI::AtoI(str));
+    }
 }
 
 /// <summary>
@@ -1477,23 +1481,32 @@ auto LongUI::XUIBaseWindow::Recreate() noexcept ->HRESULT {
 /// <returns></returns>
 void LongUI::XUIBaseWindow::Update() noexcept {
     assert(m_pViewport && "no viewport");
+    // 清理插入符渲染
+    //this->clear_do_caret();
     // 实现
     {
         m_pViewport->Update();
         m_pViewport->AfterUpdate();
-        // 调试
-#ifdef _DEBUG
-        if (this->is_full_render_this_frame()) {
-            ++full_render_counter;
-        }
-        else {
-            ++dirty_render_counter;
-        }
-#endif
     }
     // 遍历
     for (auto inset : m_vInsets) {
         inset->Update();
+    }
+    // 插入符号
+    if (m_tmCaret.Update()) {
+        // 反转插入符号
+        this->change_caret_in();
+#if 0
+        // 不显示插入符号时候刷新显示焦点控件
+        if (m_pFocusedControl && !this->is_caret_in()) {
+            m_pFocusedControl->InvalidateThis();
+        }
+#else
+        // 刷新显示焦点控件
+        if (m_pFocusedControl) {
+            m_pFocusedControl->InvalidateThis();
+        }
+#endif
     }
 }
 
@@ -1658,50 +1671,13 @@ void LongUI::XUIBaseWindow::Invalidate(UIControl* ctrl) noexcept {
     m_apUnit[m_uUnitLength++] = ctrl;
 }
 
-/// <summary>
-/// Sets the caret position.
-/// </summary>
-/// <param name="ctrl">The control.</param>
-/// <param name="x">The x.</param>
-/// <param name="y">The y.</param>
-/// <returns></returns>
-void LongUI::XUIBaseWindow::SetCaretPos(UIControl * ctrl, float x, float y) noexcept {
-    UIManager << DL_Warning << L"NOIMPL" << endl;
-}
-
-/// <summary>
-/// Creates the caret.
-/// </summary>
-/// <param name="ctrl">The control.</param>
-/// <param name="width">The width.</param>
-/// <param name="height">The height.</param>
-/// <returns></returns>
-void LongUI::XUIBaseWindow::CreateCaret(UIControl * ctrl, float width, float height) noexcept {
-    UIManager << DL_Warning << L"NOIMPL" << endl;
-}
-
-/// <summary>
-/// Shows the caret.
-/// </summary>
-/// <returns></returns>
-void LongUI::XUIBaseWindow::ShowCaret() noexcept {
-    UIManager << DL_Warning << L"NOIMPL" << endl;
-}
-
-/// <summary>
-/// Hides the caret.
-/// </summary>
-/// <returns></returns>
-void LongUI::XUIBaseWindow::HideCaret() noexcept {
-    UIManager << DL_Warning << L"NOIMPL" << endl;
-}
-
 
 /// <summary>
 /// Resizeds this window.
 /// </summary>
 /// <returns></returns>
 void LongUI::XUIBaseWindow::resized() noexcept {
+    assert(m_pViewport && "bad action");
     // 修改
     m_pViewport->visible_rect.right = static_cast<float>(this->GetWidth());
     m_pViewport->visible_rect.bottom = static_cast<float>(this->GetHeight());
@@ -1745,6 +1721,8 @@ namespace LongUI {
         virtual void SetCursor(Cursor cursor) noexcept override;
         // show/hide window
         virtual void ShowWindow(int nCmdShow) noexcept override { ::ShowWindow(m_hwnd, nCmdShow); }
+        // set caret
+        virtual void SetCaret(UIControl* ctrl, const RectLTWH_F* rect) noexcept override;
     public:
         // normal event
         bool MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept;
@@ -1774,6 +1752,8 @@ namespace LongUI {
         IDCompositionVisual*    m_pDcompVisual = nullptr;
         // now cursor
         HCURSOR                 m_hNowCursor = ::LoadCursor(nullptr, IDC_ARROW);
+        // caret
+        D2D1_RECT_F             m_rcCaret = D2D1::RectF();
         // track mouse event: end with DWORD
         TRACKMOUSEEVENT         m_csTME;
 #ifdef _DEBUG
@@ -1841,6 +1821,7 @@ void LongUI::CUIBuiltinSystemWindow::RegisterWindowClass() noexcept {
 
 #ifdef _DEBUG
 namespace LongUI {
+    struct Msg { UINT id; }; 
     std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
     std::atomic<UINT> g_dbg_last_proc_message = 0;
 }
@@ -1857,6 +1838,7 @@ namespace LongUI {
 auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept ->LRESULT {
 #ifdef _DEBUG
     g_dbg_last_proc_message = message;
+    LongUI::Msg msg = { message };
 #endif
     // 返回值
     LRESULT recode = 0;
@@ -1906,86 +1888,115 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
 /// <returns></returns>
 bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept {
     // 消息类型
-    enum MsgType { Type_Mouse, Type_Other } msgtp; msgtp = Type_Other;
+    //enum MsgType { Type_Mouse, Type_Other } msgtp; msgtp = Type_Other;
     // 消息处理
-    union { EventArgument ea; MouseEventArgument ma; };
-    // 获取X坐标
-    auto get_x = [lParam]() { return float(int16_t(LOWORD(lParam))); };
-    // 获取Y坐标
-    auto get_y = [lParam]() { return float(int16_t(HIWORD(lParam))); };
+    MouseEventArgument ma;
     // 检查信息
     switch (message)
     {
     case WM_SETCURSOR:
-        // TODO: 设置光标
+    {
+        CUIDataAutoLocker locker;
         ::SetCursor(m_hNowCursor);
         return false;
+    }
     case WM_MOUSEMOVE:
+    {
         ma.event = MouseEvent::Event_MouseMove;
-        msgtp = Type_Mouse;
+        // 加锁
+        CUIDataAutoLocker locker;
+        // 获取X坐标
+        auto get_x = [lParam]() noexcept { return float(int16_t(LOWORD(lParam))); };
+        // 获取Y坐标
+        auto get_y = [lParam]() noexcept { return float(int16_t(HIWORD(lParam))); };
+        // 更新坐标
         this->last_point = { get_x(), get_y() };
         break;
+    }
     case WM_LBUTTONDOWN:
         ma.event = MouseEvent::Event_LButtonDown;
-        msgtp = Type_Mouse;
         break;
     case WM_LBUTTONUP:
         ma.event = MouseEvent::Event_LButtonUp;
-        msgtp = Type_Mouse;
         break;
     case WM_RBUTTONDOWN:
         ma.event = MouseEvent::Event_RButtonDown;
-        msgtp = Type_Mouse;
         break;
     case WM_RBUTTONUP:
         ma.event = MouseEvent::Event_RButtonUp;
-        msgtp = Type_Mouse;
         break;
     case WM_MBUTTONDOWN:
         ma.event = MouseEvent::Event_MButtonDown;
-        msgtp = Type_Mouse;
         break;
     case WM_MBUTTONUP:
         ma.event = MouseEvent::Event_MButtonUp;
-        msgtp = Type_Mouse;
         break;
     case WM_MOUSEWHEEL:
         ma.event = MouseEvent::Event_MouseWheelV;
-        msgtp = Type_Mouse;
         ma.wheel.delta = (float(GET_WHEEL_DELTA_WPARAM(wParam))) / float(WHEEL_DELTA);
         break;
     case WM_MOUSEHWHEEL:
         ma.event = MouseEvent::Event_MouseWheelH;
-        msgtp = Type_Mouse;
         ma.wheel.delta = (float(GET_WHEEL_DELTA_WPARAM(wParam))) / float(WHEEL_DELTA);
         break;
     case WM_MOUSEHOVER:
         ma.event = MouseEvent::Event_MouseHover;
-        msgtp = Type_Mouse;
         break;
     case WM_MOUSELEAVE:
         ma.event = MouseEvent::Event_MouseLeave;
-        msgtp = Type_Mouse;
         break;
     case WM_SETFOCUS:
-        // TODO: 设置窗口焦点
-
-        break;
-    case WM_KILLFOCUS:
-    {
+        ::CreateCaret(m_hwnd, nullptr, 1, 1);
+        return true;
+    /*{
         // 加锁
         CUIDataAutoLocker locker;
+        // 创建插入符
+        ::CreateCaret(m_hwnd, nullptr, 1, 1);
         // 存在焦点控件
         if (m_pFocusedControl) {
             // 事件
-            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
-            // 释放引用
-            LongUI::SafeRelease(m_pFocusedControl);
+            m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus, m_pViewport);
         }
-        //TODO:  ::DestroyCaret();
+        return true;
+    }*/
+    case WM_KILLFOCUS:
+    {
+        bool close_window = false;
+        {
+            // 加锁
+            CUIDataAutoLocker locker;
+            // 存在焦点控件
+            if (m_pFocusedControl) {
+                // 事件
+                m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
+                // 释放引用
+                LongUI::SafeRelease(m_pFocusedControl);
+            }
+            // 重置
+            m_rcCaret.left = -1.f;
+            m_rcCaret.right = 0.f;
+            // 检查属性
+            close_window = this->is_close_on_focus_killed();
+        }
         // 失去焦点即关闭窗口
-        if (this->is_close_on_focus_killed()) {
+        if (close_window) {
             ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
+        }
+        // 关闭插入符号
+        ::DestroyCaret();
+        return true;
+    }
+    case WM_KEYDOWN:
+        // 键入字符
+    {
+        CUIDataAutoLocker locker;
+        if (m_pFocusedControl) {
+            EventArgument arg;
+            arg.sender = m_pViewport;
+            arg.key.ch = static_cast<char32_t>(wParam);
+            arg.event = Event::Event_KeyDown;
+            m_pFocusedControl->DoEvent(arg);
         }
         return true;
     }
@@ -1996,7 +2007,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         if (m_pFocusedControl) {
             EventArgument arg;
             arg.sender = m_pViewport;
-            arg.och.ch = static_cast<char32_t>(wParam);
+            arg.key.ch = static_cast<char32_t>(wParam);
             arg.event = Event::Event_Char;
             m_pFocusedControl->DoEvent(arg);
         }
@@ -2027,10 +2038,6 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         //CUIDataAutoLocker locker;
         reinterpret_cast<MINMAXINFO*>(lParam)->ptMinTrackSize = { m_miniSize.x, m_miniSize.y };
         return true;
-    case WM_DISPLAYCHANGE:
-        // TODO: 显示环境改变
-        //UIManager << DL_Hint << "WM_DISPLAYCHANGE" << LongUI::endl;
-        break;
     case WM_CLOSE:
         // 关闭窗口
     {
@@ -2046,7 +2053,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         return false;
     }
     // 鼠标消息
-    if (msgtp == Type_Mouse) {
+    {
         // 加锁
         CUIDataAutoLocker locker;
         // 设置鼠标位置
@@ -2068,11 +2075,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         }
         return code;
     }
-    // 其他消息
-    else {
-
-    }
-    return false;
+    //return false;
 }
 
 /// <summary>
@@ -2082,7 +2085,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
 /// <param name="h">The h.</param>
 /// <returns></returns>
 void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
-    //UIManager << DL_Log << "called" << LongUI::endl;
+    CUIDxgiAutoLocker locker;
     // 修改大小, 需要取消目标
     UIManager_RenderTarget->SetTarget(nullptr);
     // 设置
@@ -2314,7 +2317,8 @@ void LongUI::CUIBuiltinSystemWindow::release_data() noexcept {
 void LongUI::CUIBuiltinSystemWindow::Update() noexcept {
     // 重置大小?
     if (this->is_new_size()) this->OnResized();
-    return Super::Update();
+    // 父类
+    Super::Update();
 }
 
 /// <summary>
@@ -2343,6 +2347,13 @@ void LongUI::CUIBuiltinSystemWindow::BeginRender() const noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
+    // 渲染插入符号
+    if (this->is_caret_in() && m_rcCaret.right != 0.f) {
+        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        UIManager_RenderTarget->PushAxisAlignedClip(&m_rcCaret, D2D1_ANTIALIAS_MODE_ALIASED);
+        UIManager_RenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
+        UIManager_RenderTarget->PopAxisAlignedClip();
+    }
     // 结束渲染
     UIManager_RenderTarget->EndDraw();
     HRESULT hr = S_OK;
@@ -2388,6 +2399,14 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
             UIManager << DL_Hint << L"But, Recreate Failed!!!" << LongUI::endl;
             UIManager << DL_Error << L"Recreate Failed!!!" << LongUI::endl;
         }
+    }
+
+    // 调试
+    if (this->is_full_render_this_frame()) {
+        ++force_cast(full_render_counter);
+    }
+    else {
+        ++force_cast(dirty_render_counter);
     }
     // 更新调试信息
     wchar_t buffer[1024];
@@ -2498,6 +2517,52 @@ void LongUI::CUIBuiltinSystemWindow::SetCursor(LongUI::Cursor cursor) noexcept {
     }
     m_hNowCursor = ::LoadCursor(nullptr, id);
 }
+
+/// <summary>
+/// Sets the caret.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="">The .</param>
+/// <returns></returns>
+void LongUI::CUIBuiltinSystemWindow::SetCaret(UIControl* ctrl, const RectLTWH_F* rect) noexcept {
+    // 必须有效
+    assert(ctrl && "bad argument");
+    // 显示插入符号
+    if (rect) {
+        // 记录老坐标
+        auto oldx = m_rcCaret.left;
+        auto oldy = m_rcCaret.top;
+        // 计算一般位置
+        auto pt = D2D1::Point2F(rect->left, rect->top);
+        pt = LongUI::TransformPoint(ctrl->world, pt);
+        // 位置差不多
+        auto xyabs = std::abs(oldx - pt.x) + std::abs(oldy - pt.y);
+        if (xyabs < 1.f) return;
+        // 继续计算
+        m_rcCaret.left = pt.x;
+        m_rcCaret.top = pt.y;
+        m_rcCaret.right = pt.x + rect->width * ctrl->world._11;
+        m_rcCaret.bottom = pt.y + rect->height * ctrl->world._22;
+        // 计算可视化区域
+        m_rcCaret.left  =  std::max(ctrl->visible_rect.left, m_rcCaret.left);
+        m_rcCaret.top   =  std::max(ctrl->visible_rect.top, m_rcCaret.top);
+        m_rcCaret.right =  std::min(ctrl->visible_rect.right, m_rcCaret.right);
+        m_rcCaret.bottom=  std::min(ctrl->visible_rect.bottom, m_rcCaret.bottom);
+        // 刷新显示
+        this->set_caret_in();
+        // 重置定时器
+        m_tmCaret.Reset();
+    }
+    // 隐藏插入符号
+    else {
+        // 清理插入符
+        m_rcCaret.left = -1.f;
+        m_rcCaret.right = 0.f;
+        // 刷新控件
+        ctrl->InvalidateThis();
+    }
+}
+
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIBuiltinSystemWindow"/> class.
