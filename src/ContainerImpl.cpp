@@ -820,7 +820,7 @@ void LongUI::UIPage::render_chain_main() const noexcept {
         float off = this->is_slide_to_right() ? -1.f : 1.f;
         float xoffset = (m_animation.value * direction + off) * view_size.width;
         UIManager_RenderTarget->SetTransform(
-            D2D1::Matrix3x2F::Translation(xoffset, 0.f)
+            DX::Matrix3x2F::Translation(xoffset, 0.f)
             * m_pNextDisplay->world
         );
         m_pNextDisplay->Render();
@@ -828,7 +828,7 @@ void LongUI::UIPage::render_chain_main() const noexcept {
         if (m_pNextDisplay != m_pNowDisplay) {
             xoffset = (m_animation.value * direction) * view_size.width;
             UIManager_RenderTarget->SetTransform(
-                D2D1::Matrix3x2F::Translation(xoffset, 0.f)
+                DX::Matrix3x2F::Translation(xoffset, 0.f)
                 * m_pNowDisplay->world
             );
             m_pNowDisplay->Render();

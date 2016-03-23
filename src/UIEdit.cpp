@@ -1,12 +1,28 @@
 ﻿#include "LongUI.h"
 
-
 // ----------------------------------------------------------------------------
 // **** UIEdit
 // ----------------------------------------------------------------------------
 
+// 添加事件监听
+bool LongUI::UIEdit::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
+    // 单行回车
+    if (sb == SubEvent::Event_EditReturned) {
+        m_text.AddReturnEventCall(std::move(call));
+        return true;
+    }
+    // 文本改变
+    else if (sb == SubEvent::Event_ValueChanged) {
+        m_text.AddChangedEventCall(std::move(call));
+        return true;
+    }
+    // 交给父类处理
+    return Super::uniface_addevent(sb, std::move(call));
+}
+
+
 // UI基本编辑控件: 前景渲染
-void LongUI::UIEditBasic::render_chain_foreground() const noexcept {
+void LongUI::UIEdit::render_chain_foreground() const noexcept {
     // 文本算前景
     m_text.Render(0.f, 0.f);
     // 父类
@@ -14,7 +30,7 @@ void LongUI::UIEditBasic::render_chain_foreground() const noexcept {
 }
 
 // UI基本编辑控件: 渲染
-void LongUI::UIEditBasic::Render() const noexcept {
+void LongUI::UIEdit::Render() const noexcept {
     // 背景渲染
     this->render_chain_background();
     // 主景渲染
@@ -24,7 +40,7 @@ void LongUI::UIEditBasic::Render() const noexcept {
 }
 
 // UI基本编辑框: 刷新
-void LongUI::UIEditBasic::Update() noexcept {
+void LongUI::UIEdit::Update() noexcept {
     // 改变了大小
     if (this->IsControlLayoutChanged()) {
         // 设置大小
@@ -38,7 +54,7 @@ void LongUI::UIEditBasic::Update() noexcept {
 }
 
 // UI基本编辑控件
-bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
+bool  LongUI::UIEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
     assert(arg.sender && "bad argument");
     // LongUI 消息
     switch (arg.event)
@@ -48,9 +64,13 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
     case LongUI::Event::Event_SubEvent:
         return true;
     case LongUI::Event::Event_SetFocus:
+        // 设置焦点
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Pushed];
         m_text.OnSetFocus();
         return true;
     case LongUI::Event::Event_KillFocus:
+        // 移除焦点
+        m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
         m_text.OnKillFocus();
         return true;
     case LongUI::Event::Event_SetText:
@@ -70,7 +90,7 @@ bool  LongUI::UIEditBasic::DoEvent(const LongUI::EventArgument& arg) noexcept {
 }
 
 // UI基本编辑控件: 鼠标事件
-bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept {
+bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
     // LongUI 消息
     switch (arg.event)
@@ -88,10 +108,18 @@ bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
         break;
     case LongUI::MouseEvent::Event_MouseEnter:
+        // 鼠标移进, 不是焦点控件则修改边框颜色
+        if (!m_pWindow->IsFocused(this)) {
+            m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
+        }
         m_pWindow->SetCursor(Cursor::Cursor_Ibeam);
         break;
     case LongUI::MouseEvent::Event_MouseLeave:
+        // 鼠标移出, 不是焦点控件则修改边框颜色
         m_pWindow->ResetCursor();
+        if (!m_pWindow->IsFocused(this)) {
+            m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
+        }
         break;
     case LongUI::MouseEvent::Event_MouseMove:
         // 拖拽?
@@ -110,13 +138,13 @@ bool  LongUI::UIEditBasic::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 }
 
 // close this control 关闭控件
-HRESULT LongUI::UIEditBasic::Recreate() noexcept {
+HRESULT LongUI::UIEdit::Recreate() noexcept {
     m_text.Recreate();
     return Super::Recreate();
 }
 
 // close this control 关闭控件
-void LongUI::UIEditBasic::cleanup() noexcept {
+void LongUI::UIEdit::cleanup() noexcept {
     // 删除前调用
     this->before_deleted();
     // 删除对象
@@ -124,25 +152,27 @@ void LongUI::UIEditBasic::cleanup() noexcept {
 }
 
 // 构造函数
-void LongUI::UIEditBasic::initialize(pugi::xml_node node) noexcept {
+void LongUI::UIEdit::initialize(pugi::xml_node node) noexcept {
     // 必须有效
-    assert(node && "call UIEditBasic::initialize() if no xml-node");
+    assert(node && "call UIEdit::initialize() if no xml-node");
     // 链式初始化
     Super::initialize(node);
+    // 初始化文本
     m_text.Init(node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
-    {
-
-    }
+    // 初始化边框颜色
+     Helper::SetBorderColor(node, m_aBorderColor);
     // 修改
     force_cast(this->flags) = flag;
+    // 初始边框颜色
+    m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
 }
 
-// UIEditBasic::CreateControl 函数
-LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
+// UIEdit::CreateControl 函数
+LongUI::UIControl* LongUI::UIEdit::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
     // 分类判断
-    UIEditBasic* pControl = nullptr;
+    UIEdit* pControl = nullptr;
     switch (type)
     {
     case LongUI::Type_Initialize:
@@ -152,7 +182,7 @@ LongUI::UIControl* LongUI::UIEditBasic::CreateControl(CreateEventType type, pugi
     case LongUI::Type_Uninitialize:
         break;
     case_LongUI__Type_CreateControl:
-        LongUI__CreateWidthCET(UIEditBasic, pControl, type, node);
+        LongUI__CreateWidthCET(UIEdit, pControl, type, node);
     }
     return pControl;
 }

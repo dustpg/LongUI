@@ -371,7 +371,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_ItemClicked,
         // control item double-clicked
         Event_ItemDbClicked,
-        // Context Menu, just one event-call recommend
+        // Context Menu [just one event-call recommended]
         Event_ContextMenu,
         // single-line-edit returned
         Event_EditReturned,
@@ -556,6 +556,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Cursor_SizeNWSE,
         // size NE-SW 
         Cursor_SizeNESW,
+        // size WE
+        Cursor_SizeWE,
+        // size NS
+        Cursor_SizeNS,
         // user defined zone
         Cursor_UserDefined,
     };

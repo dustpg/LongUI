@@ -496,7 +496,7 @@ void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
     }
     {
         auto real_buffer = huge_buffer ? huge_buffer : buffer;
-        auto length_got = LongUI::UTF8toWideChar(str, real_buffer);
+        auto length_got = LongUI::UTF8toWideChar(str, real_buffer, buffer_length);
         real_buffer[length_got] = 0;
         // 动态申请?
         if (huge_buffer) {
@@ -939,297 +939,6 @@ auto LongUI::AtoI(const wchar_t* __restrict str) noexcept -> int {
     return impl::atoi(str);
 }
 
-
-// 源: http://llvm.org/svn/llvm-project/llvm/trunk/lib/Support/ConvertUTF.c
-// 有修改
-
-static constexpr int halfShift = 10;
-
-static constexpr char32_t halfBase = 0x0010000UL;
-static constexpr char32_t halfMask = 0x3FFUL;
-
-#define UNI_SUR_HIGH_START      (char32_t)0xD800
-#define UNI_SUR_HIGH_END        (char32_t)0xDBFF
-#define UNI_SUR_LOW_START       (char32_t)0xDC00
-#define UNI_SUR_LOW_END         (char32_t)0xDFFF
-
-#define UNI_REPLACEMENT_CHAR    (char32_t)0x0000FFFD
-#define UNI_MAX_BMP             (char32_t)0x0000FFFF
-#define UNI_MAX_UTF16           (char32_t)0x0010FFFF
-#define UNI_MAX_UTF32           (char32_t)0x7FFFFFFF
-#define UNI_MAX_LEGAL_UTF32     (char32_t)0x0010FFFF
-
-#define UNI_MAX_UTF8_BYTES_PER_CODE_POINT 4
-
-#define UNI_UTF16_BYTE_ORDER_MARK_NATIVE  0xFEFF
-#define UNI_UTF16_BYTE_ORDER_MARK_SWAPPED 0xFFFE
-
-// 转换表
-static constexpr char trailingBytesForUTF8[256] = {
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
-};
-
-/*
-* Magic values subtracted from a buffer value during UTF8 conversion.
-* This table contains as many values as there might be trailing bytes
-* in a UTF-8 sequence.
-*/
-static constexpr char32_t offsetsFromUTF8[6] = { 0x00000000UL, 0x00003080UL, 0x000E2080UL,
-0x03C82080UL, 0xFA082080UL, 0x82082080UL };
-
-/*
-* Once the bits are split out into bytes of UTF-8, this is a mask OR-ed
-* into the first byte, depending on how many bytes follow.  There are
-* as many entries in this table as there are UTF-8 sequence types.
-* (I.event., one byte sequence, two byte... etc.). Remember that sequencs
-* for *legal* UTF-8 will be 4 or fewer bytes total.
-*/
-static constexpr char firstByteMark[7] = { 0x00i8, 0x00i8, 0xC0i8, 0xE0i8, 0xF0i8, 0xF8i8, 0xFCi8 };
-
-
-/// <summary>
-/// Base64 : encode, 编码
-/// </summary>
-/// <param name="bindata">The source binary data.</param>
-/// <param name="binlen">The length of source binary data in byte</param>
-/// <param name="base64">The out data</param>
-/// <returns></returns>
-auto LongUI::Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* __restrict const base64) noexcept -> char * {
-    uint8_t current;
-    auto base64_index = base64;
-    // 
-    for (size_t i = 0; i < binlen; i += 3) {
-        current = (bindata[i] >> 2);
-        current &= static_cast<uint8_t>(0x3F);
-        *base64_index = Base64Chars[current]; ++base64_index;
-
-        current = (static_cast<uint8_t>((bindata)[i] << 4)) & (static_cast<uint8_t>(0x30));
-        if (i + 1 >= binlen) {
-            *base64_index = Base64Chars[current]; ++base64_index;
-            *base64_index = '='; ++base64_index;
-            *base64_index = '='; ++base64_index;
-            break;
-        }
-        current |= (static_cast<uint8_t>((bindata)[i + 1] >> 4)) & (static_cast<uint8_t>(0x0F));
-        *base64_index = Base64Chars[current]; ++base64_index;
-
-        current = (static_cast<uint8_t>((bindata)[i + 1] << 2)) & (static_cast<uint8_t>(0x3C));
-        if (i + 2 >= binlen) {
-            *base64_index = Base64Chars[current]; ++base64_index;
-            *base64_index = '='; ++base64_index;
-            break;
-        }
-        current |= (static_cast<uint8_t>((bindata)[i + 2] >> 6)) & (static_cast<uint8_t>(0x03));
-        *base64_index = Base64Chars[current]; ++base64_index;
-
-        current = (static_cast<uint8_t>(bindata[i + 2])) & (static_cast<uint8_t>(0x3F));
-        *base64_index = Base64Chars[current]; ++base64_index;
-    }
-    *base64_index = 0;
-    return base64;
-}
-
-// 解码
-auto LongUI::Base64Decode(IN const char* __restrict base64, OUT uint8_t * __restrict bindata) noexcept -> size_t {
-    // 二进制长度
-    uint8_t* bindata_index = bindata;
-    // 主循环
-    while (*base64) {
-        // 基本转换
-        uint8_t a = Base64Datas[base64[0]];
-        uint8_t b = Base64Datas[base64[1]];
-        uint8_t c = Base64Datas[base64[2]];
-        uint8_t d = Base64Datas[base64[3]];
-        // 第一个二进制数据
-        *bindata_index = ((a << 2) & 0xFCui8) | ((b >> 4) & 0x03ui8);
-        ++bindata_index;
-        if (base64[2] == '=') break;
-        // 第三个二进制数据
-        *bindata_index = ((b << 4) & 0xF0ui8) | ((c >> 2) & 0x0Fui8);
-        ++bindata_index;
-        if (base64[3] == '=') break;
-        // 第三个二进制数据
-        *bindata_index = ((c << 6) & 0xF0ui8) | ((d >> 0) & 0x3Fui8);
-        ++bindata_index;
-        base64 += 4;
-    }
-    return bindata_index - bindata;
-}
-
-// UTF-16 to UTF-8
-// Return: UTF-8 string length, 0 maybe error
-auto LongUI::UTF16toUTF8(const char16_t* __restrict pUTF16String, char* __restrict pUTF8String) noexcept ->uint32_t {
-    UINT32 length = 0;
-    const char16_t* source = pUTF16String;
-    char* target = pUTF8String;
-    //char* targetEnd = pUTF8String + uBufferLength;
-    // 转换
-    while (*source) {
-        char32_t ch;
-        unsigned short bytesToWrite = 0;
-        const char32_t byteMask = 0xBF;
-        const char32_t byteMark = 0x80;
-        // const char16_t* oldSource = source; /* In case we have to back up because of target overflow. */
-        ch = *source++;
-        /* If we have a surrogate pair, convert to UTF32 first. */
-        if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
-            /* If the 16 bits following the high surrogate are in the source buffer... */
-            if (*source) {
-                char32_t ch2 = *source;
-                /* If it's a low surrogate, convert to UTF32. */
-                if (ch2 >= UNI_SUR_LOW_START && ch2 <= UNI_SUR_LOW_END) {
-                    ch = ((ch - UNI_SUR_HIGH_START) << halfShift)
-                        + (ch2 - UNI_SUR_LOW_START) + halfBase;
-                    ++source;
-                }
-            }
-            else {
-                --source;
-                length = 0;
-                assert(!"end of string");
-                break;
-            }
-#ifdef STRICT_CONVERSION
-        else { /* it's an unpaired high surrogate */
-            --source; /* return to the illegal value itself */
-            result = sourceIllegal;
-            break;
-        }
-#endif
-        }
-#ifdef STRICT_CONVERSION
-        else {
-            /* UTF-16 surrogate values are illegal in UTF-32 */
-            if (ch >= UNI_SUR_LOW_START && ch <= UNI_SUR_LOW_END) {
-                --source; /* return to the illegal value itself */
-                result = sourceIllegal;
-                break;
-            }
-        }
-#endif
-        /* Figure out how many bytes the result will require */
-        if (ch < (char32_t)0x80) {
-            bytesToWrite = 1;
-        }
-        else if (ch < (char32_t)0x800) {
-            bytesToWrite = 2;
-        }
-        else if (ch < (char32_t)0x10000) {
-            bytesToWrite = 3;
-        }
-        else if (ch < (char32_t)0x110000) {
-            bytesToWrite = 4;
-        }
-        else {
-            bytesToWrite = 3;
-            ch = UNI_REPLACEMENT_CHAR;
-        }
-
-        target += bytesToWrite;
-        /*if (target > targetEnd) {
-            source = oldSource; // Back up source pointer!
-            target -= bytesToWrite;
-            length = 0; break;
-        }*/
-        switch (bytesToWrite) { /* note: everything falls through. */
-        case 4: *--target = (char)((ch | byteMark) & byteMask); ch >>= 6;
-        case 3: *--target = (char)((ch | byteMark) & byteMask); ch >>= 6;
-        case 2: *--target = (char)((ch | byteMark) & byteMask); ch >>= 6;
-        case 1: *--target = (char)(ch | firstByteMark[bytesToWrite]);
-        }
-        target += bytesToWrite;
-        length += bytesToWrite;
-    }
-    return length;
-}
-
-
-
-// UTF-8 to UTF-16
-// Return: UTF-16 string length, 0 maybe error
-auto LongUI::UTF8toUTF16(const char* __restrict pUTF8String, char16_t* __restrict pUTF16String) noexcept -> uint32_t {
-    UINT32 length = 0;
-    auto source = reinterpret_cast<const unsigned char*>(pUTF8String);
-    char16_t* target = pUTF16String;
-    //char16_t* targetEnd = pUTF16String + uBufferLength;
-    // 遍历
-    while (*source) {
-        char32_t ch = 0;
-        unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
-        /*if (extraBytesToRead >= sourceEnd - source) {
-        result = sourceExhausted; break;
-        }*/
-        /* Do this check whether lenient or strict */
-        /*if (!isLegalUTF8(source, extraBytesToRead + 1)) {
-        result = sourceIllegal;
-        break;
-        }*/
-        /*
-        * The cases all fall through. See "Note A" below.
-        */
-        switch (extraBytesToRead) {
-        case 5: ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
-        case 4: ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
-        case 3: ch += *source++; ch <<= 6;
-        case 2: ch += *source++; ch <<= 6;
-        case 1: ch += *source++; ch <<= 6;
-        case 0: ch += *source++;
-        }
-        ch -= offsetsFromUTF8[extraBytesToRead];
-
-        /*if (target >= targetEnd) {
-            source -= (extraBytesToRead + 1); // Back up source pointer!
-            length = 0; break;
-        }*/
-        if (ch <= UNI_MAX_BMP) { /* Target is a character <= 0xFFFF */
-                                 /* UTF-16 surrogate values are illegal in UTF-32 */
-            if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_LOW_END) {
-#ifdef STRICT_CONVERSION
-                source -= (extraBytesToRead + 1); /* return to the illegal value itself */
-                length = 0;
-                break;
-#else
-                *target++ = UNI_REPLACEMENT_CHAR;
-                ++length;
-#endif
-            }
-            else {
-                *target++ = (char16_t)ch; /* normal case */
-                ++length;
-            }
-        }
-        else if (ch > UNI_MAX_UTF16) {
-#ifdef STRICT_CONVERSION
-            length = 0;
-            source -= (extraBytesToRead + 1); /* return to the start */
-            break; /* Bail out; shouldn't continue */
-#else
-            *target++ = UNI_REPLACEMENT_CHAR;
-            ++length;
-#endif
-        }
-        else {
-            /* target is a character in range 0xFFFF - 0x10FFFF. */
-            /*if (target + 1 >= targetEnd) {
-                source -= (extraBytesToRead + 1); // Back up source pointer!
-                length = 0; break;
-            }*/
-            ch -= halfBase;
-            *target++ = (char16_t)((ch >> halfShift) + UNI_SUR_HIGH_START);
-            *target++ = (char16_t)((ch & halfMask) + UNI_SUR_LOW_START);
-            length += 2;
-        }
-    }
-    // 最后修正
-    return length;
-}
 
 // --------------  CUIConsole ------------
 // CUIConsole 构造函数
@@ -1698,6 +1407,17 @@ void LongUI::Component::MMFVideo::Render(D2D1_RECT_F* dst) const noexcept {
             D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, &src
             );
     }*/
+}
+
+/// <summary>
+/// Sets the source path.
+/// </summary>
+/// <param name="src">The source.</param>
+/// <returns></returns>
+auto LongUI::Component::MMFVideo::SetSourcePath(const wchar_t* src) noexcept { 
+    wchar_t path[LongUIStringBufferLength]; 
+    std::wcscpy(path, src); 
+    return this->SetSource(path);
 }
 
 // Component::MMFVideo 构造函数

@@ -70,9 +70,7 @@ namespace LongUI { namespace Component {
         // set source
         auto SetSource(BSTR src) { assert(m_pMediaEngine); m_pMediaEngine->SetSource(src); this->recreate_surface(); return m_pMediaEngine->Load(); }
         // set source path
-        auto SetSourcePath(const wchar_t* src) { wchar_t path[LongUIStringBufferLength]; std::wcscpy(path, src); return this->SetSource(path); }
-        // get source path
-        auto GetSourcePath(wchar_t* path) { BSTR url = nullptr; this->GetCurrentSource(&url); if (url) { std::wcscpy(path, url); ::SysFreeString(url); } else *path = 0; }
+        auto SetSourcePath(const wchar_t* src) noexcept;
     public:
         // ctor
         MMFVideo() noexcept;

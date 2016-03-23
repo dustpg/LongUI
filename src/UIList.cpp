@@ -415,12 +415,12 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         // 双击?
         if (m_hlpDbClick.Click(arg.pt)) {
             UIManager << DL_Log << "DB Clicked" << LongUI::endl;
-            this->call_uievent(m_callLineDBClicked, SubEvent::Event_ItemDbClicked);
+            this->CallUiEvent(m_callLineDBClicked, SubEvent::Event_ItemDbClicked);
         }
         // 单击?
         else {
             this->SelectChild(m_ixLastClickedLine, unctrled);
-            this->call_uievent(m_callLineClicked, SubEvent::Event_ItemClicked);
+            this->CallUiEvent(m_callLineClicked, SubEvent::Event_ItemClicked);
         }
     };
     // ---------------------------------------------------
@@ -1000,10 +1000,10 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
     // -------------------------- on mouse move
     auto on_mouse_move = [this, &arg](UIControl* hovered) noexcept {
         if (hovered) {
-            // TODO: 设置光标
-            //m_pWindow->now_cursor = m_hCursor;
+            // 设置光标
+            m_pWindow->SetCursor(Cursor::Cursor_SizeWE);
             // 拖拽刷新
-            if (m_pSepHovered && (false/*arg.sys.wParam & MK_LBUTTON*/)) {
+            if (m_pSepHovered && UIInput.IsKeyPressed(VK_LBUTTON)) {
                 auto distance = arg.pt.x - m_fLastMousePosX;
                 distance *= m_pSepHovered->world._11;
                 auto tarwidth = m_pSepHovered->GetWidth() + distance;
@@ -1018,7 +1018,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
             }
         }
         else {
-            //m_pWindow->ResetCursor();
+            m_pWindow->ResetCursor();
         }
     };
     // -------------------------- real method
@@ -1033,8 +1033,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         switch (arg.event)
         {
         case LongUI::MouseEvent::Event_MouseLeave:
-            // TODO: Reset Cursor
-            //m_pWindow->ResetCursor();
+            m_pWindow->ResetCursor();
             handled = false;
             m_indexSepHovered = 0;
             break;

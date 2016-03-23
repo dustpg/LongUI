@@ -113,8 +113,6 @@ namespace LongUI {
     private:
         // sep hovered control
         UIControl*              m_pSepHovered = nullptr;
-        // cross cursor
-        HCURSOR                 m_hCursor = ::LoadCursor(nullptr, IDC_SIZEWE);
         // line height
         float                   m_fLineHeight = 32.f;
         // separator with, > 0.f is left, < 0.f is right, == 0.f is no

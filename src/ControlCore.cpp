@@ -1000,12 +1000,14 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // 处理鼠标事件
 bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) noexcept {
+    assert(m_pWindow && "bad action");
     // 离开
     if (arg.event == LongUI::MouseEvent::Event_MouseLeave) {
         if (m_pMousePointed) {
             m_pMousePointed->DoMouseEvent(arg);
             LongUI::SafeRelease(m_pMousePointed);
         }
+        
         return true;
     }
     // 查找子控件
@@ -1412,7 +1414,7 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
 
 // ------------------------ HELPER ---------------------------
 // sb调用帮助器
-bool LongUI::UIControl::call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
+bool LongUI::UIControl::CallUiEvent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator())) {
     // 事件
     LongUI::EventArgument arg;
     arg.event = LongUI::Event::Event_SubEvent;

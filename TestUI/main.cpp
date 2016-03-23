@@ -155,8 +155,8 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </ComboBox>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
-        <Edit textformat="1" text="这个"/>
-        <Edit text="这个"/>
+        <Edit borderwidth="1" textformat="1" text="这个"/>
+        <Edit borderwidth="1" text="这个"/>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
         <RadioButton text="单选A" checked="true"/>
@@ -471,6 +471,21 @@ private:
 
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
+    {
+        {
+            wchar_t buf1[] = L"一二三";
+            wchar_t buf2[] = L"ABC";
+            wchar_t buf3[] = L"😂😂😂";
+        }
+        char buf1[] = u8"ABC";
+        char buf2[] = u8"一二三";
+        char buf3[] = u8"😂😂😂";
+        uint32_t len = 0;
+        len = LongUI::UTF8toUTF16GetBufLen(buf1);
+        len = LongUI::UTF8toUTF16GetBufLen(buf2);
+        len = LongUI::UTF8toUTF16GetBufLen(buf3);
+        len = 0;
+    }
     // 本Demo的配置信息
     class DemoConfigure config;
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)

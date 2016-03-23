@@ -128,7 +128,6 @@ void LongUI::UIButton::initialize(pugi::xml_node node) noexcept {
     auto flag = this->flags | Flag_Focusable;
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
-    constexpr int azz = sizeof(m_uiElement);
     // 修改
     force_cast(this->flags) = flag;
 }
@@ -207,7 +206,7 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         m_tarStateClick = LongUI::State_Hover;
         // 左键弹起:
         if (m_pWindow->IsCapturedControl(this)) {
-            bool rec = this->call_uievent(m_event, SubEvent::Event_ItemClicked);
+            bool rec = this->CallUiEvent(m_event, SubEvent::Event_ItemClicked);
             rec = false;
             // 设置状态
             this->SetControlState(m_tarStateClick);
@@ -364,7 +363,7 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
                 this->SetSelectedIndex(index);
                 // 是否选择
                 if (this->GetSelectedIndex() != old) {
-                    this->call_uievent(m_eventChanged, SubEvent::Event_ValueChanged);
+                    this->CallUiEvent(m_eventChanged, SubEvent::Event_ValueChanged);
                 }
             }
             // TODO: 点击选项关闭
@@ -482,7 +481,7 @@ void LongUI::UIComboBox::PushItem(const char* item) noexcept {
     //if (!item) item = "";
     // 有效
     wchar_t buffer[LongUIStringBufferLength];
-    buffer[UTF8toWideChar(item, buffer)] = 0;
+    buffer[UTF8toWideChar(item, buffer, lengthof(buffer))] = 0;
     this->PushItem(buffer);
 }
 
@@ -837,18 +836,18 @@ bool LongUI::UIPage::debug_do_event(const LongUI::DebugEventInformation& info) c
 }
 
 // UI 基本编辑控件: 调试信息
-bool LongUI::UIEditBasic::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+bool LongUI::UIEdit::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
     switch (info.infomation)
     {
     case LongUI::DebugInformation::Information_GetClassName:
-        info.str = L"UIEditBasic";
+        info.str = L"UIEdit";
         return true;
     case LongUI::DebugInformation::Information_GetFullClassName:
-        info.str = L"::LongUI::UIEditBasic";
+        info.str = L"::LongUI::UIEdit";
         return true;
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
-        return *info.iid == LongUI::GetIID<::LongUI::UIEditBasic>()
+        return *info.iid == LongUI::GetIID<::LongUI::UIEdit>()
             || Super::debug_do_event(info);
     default:
         break;

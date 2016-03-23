@@ -60,7 +60,7 @@ void LongUI::UICheckBox::ForceSetCheckBoxState(CheckBoxState state) noexcept {
     // 修改状态
     if (state != this->GetCheckBoxState()) {
         this->StartRender(m_uiElement.SetExtraState(state));
-        bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
+        bool rec = this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
         rec = false;
 #ifdef _DEBUG
         const wchar_t* const list[] = {
@@ -292,7 +292,7 @@ void LongUI::UIRadioButton::ForceSetCheckedState(bool state) noexcept {
             this->uncheck_checked_and_check_this();
         }
         this->StartRender(m_uiElement.SetExtraState(state));
-        bool rec = this->call_uievent(m_event, SubEvent::Event_ValueChanged);
+        bool rec = this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
         rec = false;
 #ifdef _DEBUG
         if (this->debug_this) {
@@ -381,13 +381,13 @@ bool LongUI::UIRadioButton::DoMouseEvent(const MouseEventArgument& arg) noexcept
         // 鼠标移进: 设置UI元素状态
         this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
-        //m_pWindow->now_cursor = m_hCursorHand;
+        m_pWindow->SetCursor(Cursor::Cursor_Hand);
         return true;
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出: 设置UI元素状态
         this->ForceSetControlState(LongUI::State_Normal);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
-        //m_pWindow->now_cursor = m_pWindow->default_cursor;
+        m_pWindow->ResetCursor();
         return true;
     case LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下:

@@ -28,7 +28,7 @@
 // LongUI namespace
 namespace LongUI {
     // 基本编辑类
-    class UIEditBasic : public UIControl {
+    class UIEdit : public UIControl {
         // 父类申明
         using Super = UIControl;
         // close this control 关闭控件
@@ -45,6 +45,8 @@ namespace LongUI {
         // recreate 重建
         virtual auto Recreate() noexcept ->HRESULT override;
     protected:
+        // ui call
+        virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }
         // render chain -> background
@@ -57,19 +59,19 @@ namespace LongUI {
         // create this
         static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
         // constructor 构造函数
-        UIEditBasic(UIContainer* cp) noexcept : Super(cp), m_text(this) { }
+        UIEdit(UIContainer* cp) noexcept : Super(cp), m_text(this) { }
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // destructor 析构函数
-        ~UIEditBasic() noexcept {};
+        ~UIEdit() noexcept {};
         // deleted function
-        UIEditBasic(const UIEditBasic&) = delete;
+        UIEdit(const UIEdit&) = delete;
     protected:
         // core editable text component
         Component::EditaleText  m_text;
-        // 'I' cursor
-        HCURSOR                 m_hCursorI = ::LoadCursor(nullptr, IDC_IBEAM);
+        // color of border
+        D2D1_COLOR_F            m_aBorderColor[STATE_COUNT];
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -78,12 +80,12 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIEditBasic>() {
+    template<> LongUIInline const IID& GetIID<LongUI::UIEdit>() {
         // {D60826F0-4AF1-48F9-A63A-58117943CE66}
-        static const GUID IID_LongUI_UIEditBasic = { 
+        static const GUID IID_LongUI_UIEdit = { 
             0xd60826f0, 0x4af1, 0x48f9, { 0xa6, 0x3a, 0x58, 0x11, 0x79, 0x43, 0xce, 0x66 } 
         };
-        return IID_LongUI_UIEditBasic;
+        return IID_LongUI_UIEdit;
     }
 #endif
 }

@@ -184,18 +184,22 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="update">if set to <c>true</c> [update].</param>
     /// <returns></returns>
     void EditaleText::refresh(bool update) const noexcept {
-        if (!m_bThisFocused) return;
-        RectLTWH_F rect; this->GetCaretRect(rect);
         auto* window = m_pHost->GetWindow();
-        window->SetCaret(m_pHost, &rect);
-        if (update) {
-            m_pHost->InvalidateThis();
+        // 焦点控件情况下
+        if (window->IsFocused(m_pHost)) {
+            RectLTWH_F rect; this->GetCaretRect(rect);
+            window->SetCaret(m_pHost, &rect);
+            if (update) {
+                m_pHost->InvalidateThis();
+            }
         }
     }
     // 重新创建布局
     void EditaleText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
         assert(fmt && "bad argument");
         assert(this->layout == nullptr && "bad action");
+        // 修改文本
+        m_bTxtChanged = true;
         // 创建布局
         auto hr = UIManager_DWriteFactory->CreateTextLayout(
             m_string.c_str(), static_cast<uint32_t>(m_string.length()),
@@ -555,7 +559,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // 拖入
     bool EditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
         m_bDragFormatOK = false;
-        m_bThisFocused = true;
         m_bDragFromThis = m_pDataObject == data;
         assert(data && effect && "bad argument");
         UNREFERENCED_PARAMETER(effect);
@@ -657,7 +660,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 单行 - 向窗口发送输入完毕消息
             else {
                 // sb!
-                //this->sbcaller.operator()(m_pHost, SubEvent::Event_EditReturned);
+                m_pHost->CallUiEvent(m_evReturn, SubEvent::Event_EditReturned);
+                // 取消焦点状态
+                m_pHost->GetWindow()->SetFocus(nullptr);
             }
             break;
         case VK_BACK:
@@ -794,15 +799,15 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
     // 当设置焦点时
     void EditaleText::OnSetFocus() noexcept {
-        m_bThisFocused = true;
         this->refresh();
-        //m_pHost->GetWindow()->ShowCaret();
     }
     // 当失去焦点时
     void EditaleText::OnKillFocus() noexcept {
-        //auto window = m_pHost->GetWindow();
         m_pHost->GetWindow()->HideCaret(m_pHost);
-        m_bThisFocused = false;
+        if (m_bTxtChanged) {
+            m_pHost->CallUiEvent(m_evChanged, SubEvent::Event_ValueChanged);
+            m_bTxtChanged = true;
+        }
     }
     // 左键弹起时
     void EditaleText::OnLButtonUp(float x, float y) noexcept {
@@ -1232,14 +1237,21 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 tmptype |= Type_ReadOnly;
             }
             // 加速键
-            if (bool_attribute("accelerator", false)) {
-                tmptype |= Type_Accelerator;
+            if (bool_attribute("number", false)) {
+                tmptype |= Type_Number;
             }
+            // 加速键
+            /*if (bool_attribute("accelerator", false)) {
+                tmptype |= Type_Accelerator;
+            }*/
             // 密码
             if ((str = attribute("password"))) {
                 tmptype |= Type_Password;
                 // TODO: UTF8 char(s) to UTF32 char;
-                // this->password = 
+                auto ch = *str;
+                if (ch < char(127)) {
+                    this->password = char32_t(ch);
+                }
             }
             this->type = static_cast<EditaleTextType>(tmptype);
         }
@@ -1276,7 +1288,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         // 获取文本
         {
-            if (str = node.attribute(prefix).value()) {
+            if ((str = node.attribute(prefix).value())) {
                 m_string.assign(str);
             }
         }

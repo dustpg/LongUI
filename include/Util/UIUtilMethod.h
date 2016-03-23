@@ -52,9 +52,9 @@ namespace LongUI {
     // lengthof
     template<typename T> constexpr auto lengthof(T& t) { UNREFERENCED_PARAMETER(t); return sizeof(t) / sizeof(*t); }
     // white space
-    template<typename T> static auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
+    template<typename T> inline auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
     // valid digit
-    template<typename T> static auto valid_digit(T c) noexcept { return ((c) >= '0' && (c) <= '9'); }
+    template<typename T> inline auto valid_digit(T c) noexcept { return ((c) >= '0' && (c) <= '9'); }
     // byte distance
     template<typename T, typename Y> auto bdistance(T* a, T* b) noexcept { reinterpret_cast<const char*>(b) - reinterpret_cast<const char*>(a); };
     // busy waiting in micro seconds
@@ -72,11 +72,11 @@ namespace LongUI {
     // BKDR Hash
     auto BKDRHash(const wchar_t* str) noexcept ->uint32_t;
     // BKDR Hash
-    static inline auto BKDRHash(const char* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
+    inline auto BKDRHash(const char* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
     // BKDR Hash
-    static inline auto BKDRHash(const wchar_t* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
+    inline auto BKDRHash(const wchar_t* str, uint32_t size) noexcept { return BKDRHash(str) % size; }
     // load proc
-    template<typename T> static inline auto LoadProc(T& pointer, HMODULE dll, const char* name) noexcept {
+    template<typename T> inline auto LoadProc(T& pointer, HMODULE dll, const char* name) noexcept {
         pointer = reinterpret_cast<T>(::GetProcAddress(dll, name));
     }
     // create object
@@ -86,17 +86,17 @@ namespace LongUI {
     // recreate object
     template<class T> auto RecreateObject(T& obj) noexcept { DestoryObject(obj); CreateObject(obj); }
     // is 2 power?
-    static constexpr auto Is2Power(const size_t i) noexcept { return i && !(i& (i - 1)); }
+    inline constexpr auto Is2Power(const size_t i) noexcept { return i && !(i& (i - 1)); }
     // point in rect?
-    inline static auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F& pt) noexcept {
+    inline auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F& pt) noexcept {
         return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.right && pt.y < rect.bottom);
     }
     // point in rect? overload for RectLTWH_F
-    inline static auto IsPointInRect(const RectLTWH_F& rect, const D2D1_POINT_2F& pt) noexcept {
+    inline auto IsPointInRect(const RectLTWH_F& rect, const D2D1_POINT_2F& pt) noexcept {
         return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.left + rect.width && pt.y < rect.top + rect.height);
     }
     // get transformed pointer
-    inline static auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
+    inline auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
         D2D1_POINT_2F result = {
             point.x * matrix._11 + point.y * matrix._21 + matrix._31,
             point.x * matrix._12 + point.y * matrix._22 + matrix._32
@@ -106,7 +106,7 @@ namespace LongUI {
     // get transformed pointer
     auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept ->D2D1_POINT_2F;
     // round
-    static inline auto RoundToInt(float x) { return static_cast<int>(x + .5f); }
+    inline auto RoundToInt(float x) noexcept { return static_cast<int>(x + .5f); }
     // pack the color
     auto PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t LongUINoinline;
     // unpack the color
@@ -138,34 +138,33 @@ namespace LongUI {
     auto AtoF(const char* __restrict) noexcept -> float;
     // std::atof diy version(float ver) overload for wchar_t
     auto AtoF(const wchar_t* __restrict) noexcept -> float;
-    // utf-32(ucs4) to utf-16(ucs2) char
-    //auto UTF32toUTF16(char32_t ch, wchar_t str[2]) ->int;
-    // Base64 DataChar: Map 0~63 to visible char
-    extern const char Base64Chars[65];
-    // Base64 DataChar: Map visible char to 0~63
-    extern const uint8_t Base64Datas[128];
-    // Base64 Encode 编码
-    auto Base64Encode(IN const uint8_t* __restrict bindata, IN size_t binlen, OUT char* const __restrict base64) noexcept -> char *;
-    // Base64 Decode 解码
-    auto Base64Decode(IN const char* __restrict base64, OUT uint8_t* __restrict bindata) noexcept ->size_t;
-    // UTF-16 to UTF-8
-    // Return: UTF-8 string length, 0 maybe error
-    auto UTF16toUTF8(const char16_t* __restrict, char* __restrict) noexcept -> uint32_t;
-    // UTF-8 to UTF-16
-    // Return: UTF-16 string length, 0 maybe error
-    auto UTF8toUTF16(const char* __restrict, char16_t* __restrict) noexcept -> uint32_t;
+    // UTF-16 to UTF-8: Return UTF-8 string length, 0 maybe error
+    auto UTF16toUTF8(const char16_t* __restrict src, char* __restrict des, uint32_t buflen) noexcept -> uint32_t;
+    // UTF-8 to UTF-16: Return UTF-16 string length, 0 maybe error
+    auto UTF8toUTF16(const char* __restrict src, char16_t* __restrict des, uint32_t buflen) noexcept -> uint32_t;
+    // get buffer length for UTF-16 to UTF-8(include NULL-END char)
+    auto UTF16toUTF8GetBufLen(const char16_t* src) noexcept -> uint32_t;
+    // get buffer length for UTF-8 to UTF-16(include NULL-END char)
+    auto UTF8toUTF16GetBufLen(const char* src) noexcept -> uint32_t;
     // wchar to UTF-8
-    // UTF-8 to wchar
-    inline auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des) noexcept {
-        // UTF-8 UTF-16 UTF-32(UCS-4)
+    inline auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des, uint32_t buflen) noexcept {
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
-        return UTF16toUTF8(reinterpret_cast<const char16_t*>(src), des);
+        return UTF16toUTF8(reinterpret_cast<const char16_t*>(src), des, buflen);
     }
     // UTF-8 to wchar
-    inline auto UTF8toWideChar(const char* __restrict src, wchar_t* __restrict des) noexcept {
-        // UTF-8 UTF-16 UTF-32(UCS-4)
+    inline auto UTF8toWideChar(const char* __restrict src, wchar_t* __restrict des, uint32_t buflen) noexcept {
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
-        return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des));
+        return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des), buflen);
+    }
+    // get buffer length for wchar to UTF-8(not include NULL-END char)
+    inline auto WideChartoUTF8GetBufLen(const wchar_t* src) noexcept {
+        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+        return UTF16toUTF8GetBufLen(reinterpret_cast<const char16_t*>(src));
+    }
+    // get buffer length for UTF-8 to wchar(not include NULL-END char)
+    inline auto UTF8toWideCharGetBufLen(const char* src) noexcept {
+        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+        return UTF8toUTF16GetBufLen(src);
     }
     // bubble sort for vector or list
     template<typename Itr, typename Lamda>
@@ -189,55 +188,55 @@ namespace LongUI {
     // IsWindowsVersionOrGreater
     LongUINoinline bool IsWindowsVersionOrGreater(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor) noexcept;
     // >= WinXP
-    static inline auto IsWindowsXPOrGreater() noexcept {
+    inline auto IsWindowsXPOrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 0);
     }
     // >= WinXP SP1
-    static inline auto IsWindowsXPSP1OrGreater() noexcept {
+    inline auto IsWindowsXPSP1OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 1);
     }
     // >= WinXP SP2
-    static inline auto IsWindowsXPSP2OrGreater() noexcept {
+    inline auto IsWindowsXPSP2OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 2);
     }
     // >= WinXP SP3
-    static inline auto IsWindowsXPSP3OrGreater() noexcept {
+    inline auto IsWindowsXPSP3OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINXP), LOBYTE(_WIN32_WINNT_WINXP), 3);
     }
     // >= Win Vista
-    static inline auto IsWindowsVistaOrGreater() noexcept {
+    inline auto IsWindowsVistaOrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0);
     }
     // >= Win Vista SP1
-    static inline auto IsWindowsVistaSP1OrGreater() noexcept {
+    inline auto IsWindowsVistaSP1OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 1);
     }
     // >= Win Vista SP2
-    static inline auto IsWindowsVistaSP2OrGreater() noexcept {
+    inline auto IsWindowsVistaSP2OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 2);
     }
     // >= Win7
-    static inline auto IsWindows7OrGreater() noexcept {
+    inline auto IsWindows7OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN7), LOBYTE(_WIN32_WINNT_WIN7), 0);
     }
     // >= Win7 SP1
-    static inline auto IsWindows7SP1OrGreater() noexcept {
+    inline auto IsWindows7SP1OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN7), LOBYTE(_WIN32_WINNT_WIN7), 1);
     }
     // >= Win8
-    static inline auto IsWindows8OrGreater() noexcept {
+    inline auto IsWindows8OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN8), LOBYTE(_WIN32_WINNT_WIN8), 0);
     }
     // >= Win8.1
-    static inline auto IsWindows8Point1OrGreater() noexcept {
+    inline auto IsWindows8Point1OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WINBLUE), LOBYTE(_WIN32_WINNT_WINBLUE), 0);
     }
     // >= Win10
-    static inline auto IsWindows10OrGreater() noexcept {
+    inline auto IsWindows10OrGreater() noexcept {
         return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_WIN10), LOBYTE(_WIN32_WINNT_WIN10), 0);
     }
     // Server?
-    static inline auto IsWindowsServer() noexcept {
+    inline auto IsWindowsServer() noexcept {
         OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0, 0, VER_NT_WORKSTATION };
         DWORDLONG        const dwlConditionMask = VerSetConditionMask(0, VER_PRODUCT_TYPE, VER_EQUAL);
         return !VerifyVersionInfoW(&osvi, VER_PRODUCT_TYPE, dwlConditionMask);

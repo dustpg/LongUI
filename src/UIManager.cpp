@@ -286,10 +286,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     }
     // 添加控件
     if (SUCCEEDED(hr)) {
-        // 添加默认控件创建函数
+        // 必须的控件
         this->RegisterControlClass(CreateNullControl, "Null");
+        // 添加默认控件创建函数
         this->RegisterControlClass(UIText::CreateControl, "Text");
         this->RegisterControlClass(UIList::CreateControl, "List");
+        this->RegisterControlClass(UIEdit::CreateControl, "Edit");
         this->RegisterControlClass(UIPage::CreateControl, "Page");
         this->RegisterControlClass(UISlider::CreateControl, "Slider");
         this->RegisterControlClass(UIButton::CreateControl, "Button");
@@ -298,10 +300,9 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         this->RegisterControlClass(UICheckBox::CreateControl, "CheckBox");
         this->RegisterControlClass(UIComboBox::CreateControl, "ComboBox");
         this->RegisterControlClass(UIRichEdit::CreateControl, "RichEdit");
-        this->RegisterControlClass(UIEditBasic::CreateControl, "Edit");
         this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
         this->RegisterControlClass(UIScrollBarA::CreateControl, "ScrollBarA");
-        this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
+        //this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
         this->RegisterControlClass(UIRadioButton::CreateControl, "RadioButton");
         this->RegisterControlClass(UIFloatLayout::CreateControl, "FloatLayout");
         this->RegisterControlClass(UIVerticalLayout::CreateControl, "VerticalLayout");
@@ -1936,14 +1937,14 @@ auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManag
 // 输出UTF-8字符串 并刷新
 void LongUI::CUIManager::Output(DebugStringLevel l, const char* s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
-    buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
+    buffer[LongUI::UTF8toWideChar(s, buffer, lengthof(buffer))] = 0;
     this->Output(l, buffer);
 }
 
 // 输出UTF-8字符串
 void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char* s) noexcept {
     wchar_t buffer[LongUIStringBufferLength];
-    buffer[LongUI::UTF8toWideChar(s, buffer)] = 0;
+    buffer[LongUI::UTF8toWideChar(s, buffer, lengthof(buffer))] = 0;
     this->OutputNoFlush(l, buffer);
 }
 

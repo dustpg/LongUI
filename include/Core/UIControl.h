@@ -108,8 +108,6 @@ namespace LongUI {
     protected:
         // [uniform interface]ui call
         virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
-        // UIEvent
-        bool call_uievent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
         // render chain -> background
         void render_chain_background() const noexcept;
         // render chain -> background
@@ -117,6 +115,8 @@ namespace LongUI {
         // render chain -> background
         void render_chain_foreground() const noexcept;
     public:
+        // call ui event
+        bool CallUiEvent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
         // do event helper
         bool DoLongUIEvent(LongUI::Event e) noexcept {
             EventArgument arg; arg.sender = this; arg.event = e;

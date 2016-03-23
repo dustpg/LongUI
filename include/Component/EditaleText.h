@@ -57,27 +57,38 @@ namespace LongUI { namespace Component {
         enum EditaleTextType : uint32_t {
             Type_All = uint32_t(-1),
             Type_None = 0,
-            // rich‘ED’(not richer more than RICHTEXT(UIRichEdit))
-            Type_Riched = 1 << 0,
+            // [Limited Support]
+            Type_Riched     = 1 << 0,
             // multi-line
-            Type_MultiLine = 1 << 1,
+            Type_MultiLine  = 1 << 1,
             // read-only
-            Type_ReadOnly = 1 << 2,
-            // underline accelerator character
-            Type_Accelerator = 1 << 3,
+            Type_ReadOnly   = 1 << 2,
             // use password
-            Type_Password = 1 << 4,
+            Type_Password   = 1 << 3,
+            // use number
+            Type_Number     = 1 << 4,
+            /*
+            // underline accelerator character
+            Type_Accelerator = 1 << 20,
+            */
         };
         // is riched?
-        auto IsRiched() const noexcept { return (this->type & Type_Riched) != 0; }
+        bool IsRiched() const noexcept { return !!(this->type & Type_Riched) ; }
         // is multi-line?
-        auto IsMultiLine() const noexcept { return (this->type & Type_MultiLine) != 0; }
+        bool IsMultiLine() const noexcept { return !!(this->type & Type_MultiLine); }
         // is read-only?
-        auto IsReadOnly() const noexcept { return (this->type & Type_ReadOnly) != 0; }
+        bool IsReadOnly() const noexcept { return !!(this->type & Type_ReadOnly); }
+        // is password?
+        bool IsPassword() const noexcept { return !!(this->type & Type_Password); }
+        // is number
+        bool IsNumber() const noexcept { return !!(this->type & Type_Number); }
         // set attribute to true
-        auto SetAttributeTrue(EditaleTextType _type) noexcept { this->type = EditaleTextType(uint32_t(this->type) | uint32_t(_type)); };
+        template<EditaleTextType T>
+        inline auto SetAttributeTrue() noexcept { this->type = EditaleTextType(uint32_t(this->type) | uint32_t(T)); };
         // set attribute to false
-        auto SetAttributeFalse(EditaleTextType _type) noexcept { this->type = EditaleTextType(uint32_t(this->type) & (~uint32_t(_type))); };
+        template<EditaleTextType T>
+        inline auto SetAttributeFalse() noexcept { this->type = EditaleTextType(uint32_t(this->type) & (~uint32_t(T))); };
+    public:
         // copy the global properties for layout
         static void CopyGlobalProperties(IDWriteTextLayout*, IDWriteTextLayout*) noexcept;
         // copy the single prop for range
@@ -85,6 +96,10 @@ namespace LongUI { namespace Component {
         // copy the range prop for layout
         static void CopyRangedProperties(IDWriteTextLayout*, IDWriteTextLayout*, uint32_t, uint32_t, uint32_t, bool = false) noexcept;
     public: // 外部设置区
+        // add return event call
+        void AddReturnEventCall(UICallBack&& call) noexcept { m_evReturn += std::move(call); }
+        // add return event call
+        void AddChangedEventCall(UICallBack&& call) noexcept { m_evChanged += std::move(call); }
         // get hittest
         auto GetHitTestMetrics() noexcept { return m_bufMetrice.GetData(); }
         // get hittest's length 
@@ -204,6 +219,10 @@ namespace LongUI { namespace Component {
         // password char
         char32_t                password = U'*';
     private:
+        // return event
+        UICallBack              m_evReturn;
+        // changed event
+        UICallBack              m_evChanged;
         // render target
         ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;
         // selection brush
@@ -226,8 +245,8 @@ namespace LongUI { namespace Component {
         DWRITE_TEXT_RANGE       m_dragRange;
         // click in selection
         bool                    m_bClickInSelection = false;
-        // drag start
-        bool                    m_bThisFocused = false;
+        // text changed
+        bool                    m_bTxtChanged = false;
         // drag format supported
         bool                    m_bDragFormatOK = false;
         // drag data from this
@@ -255,15 +274,15 @@ namespace LongUI { namespace Component {
 // longui namespace
 namespace LongUI { 
     // Needed text editor backspace deletion.
-    static inline bool IsSurrogate(uint32_t ch) noexcept {
+    inline bool IsSurrogate(uint32_t ch) noexcept {
         // 0xD800 <= ch <= 0xDFFF
         return (ch & 0xF800) == 0xD800;
     }
-    static inline bool IsHighSurrogate(uint32_t ch) noexcept {
+    inline bool IsHighSurrogate(uint32_t ch) noexcept {
         // 0xD800 <= ch <= 0xDBFF
         return (ch & 0xFC00) == 0xD800;
     }
-    static inline bool IsLowSurrogate(uint32_t ch) noexcept {
+    inline bool IsLowSurrogate(uint32_t ch) noexcept {
         // 0xDC00 <= ch <= 0xDFFF
         return (ch & 0xFC00) == 0xDC00;
     }

@@ -338,9 +338,23 @@ namespace LongUI {
             lam(buffer.data, code);
         }
     }
-    // longui buffer-safe sprintf
+    // [no use this because no std::snwprintf yet] longui buffer-safe sprintf
     template<typename Lambda, typename T, typename ...Args>
     void SPrintF(Lambda lam, const T* format, Args...args) noexcept(noexcept(lam.operator())) {
         return SPrintF<LongUIStringBufferLength>(lam, format, args...);
+    }
+    // safe buffer
+    template<typename T, size_t BUFFER ,typename Lambda>
+    void SafeBuffer(size_t buflen, Lambda lam) noexcept(noexcept(lam.operator()))  {
+        T fixedbuf[BUFFER]; T* buf = fixedbuf;
+        if (buflen > BUFFER) buf = LongUI::NormalAllocT<T>(buflen);
+        if (!buf) return;
+        lam(buf);
+        if (buf != fixedbuf) LongUI::NormalFree(buf);
+    }
+    // safe buffer
+    template<typename T, typename Lambda>
+    void SafeBuffer(size_t buflen, Lambda lam) noexcept(noexcept(lam.operator()))  {
+        SafeBuffer<T, LongUIStringBufferLength>(buflen, lam)
     }
 }

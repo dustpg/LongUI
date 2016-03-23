@@ -212,6 +212,7 @@ auto LongUI::DX::MakeTextFormat(
 #endif
     // 数据
     struct { TextFormatProperties prop; wchar_t buffer[MAX_PATH]; } data;
+    assert(static_cast<void*>(data.buffer) > static_cast<void*>(&data.prop) && "bad");
     // 创建新的?
     bool create_a_new_one = false;
     // 存在模板?
@@ -245,7 +246,7 @@ auto LongUI::DX::MakeTextFormat(
         auto str = get_attribute("family");
         if (str) {
             // 假设设置字体名称就是修改了
-            data.prop.name[LongUI::UTF8toWideChar(str, data.prop.name)] = 0;
+            data.prop.name[LongUI::UTF8toWideChar(str, data.prop.name, MAX_PATH)] = 0;
             create_a_new_one = true;
         }
         // 字体大小

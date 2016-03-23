@@ -187,8 +187,6 @@ namespace LongUI {
         ID2D1Brush*         m_pFontBrush = nullptr;
         // Text Services for Direct2D
         ITextServices2*     m_pTextServices = nullptr;
-        // 'I' cursor
-        HCURSOR             m_hCursorI = ::LoadCursor(nullptr, IDC_IBEAM);
         // Caret Size
         D2D1_SIZE_F         m_sizeCaret = D2D1::SizeF();
         // Caret Position

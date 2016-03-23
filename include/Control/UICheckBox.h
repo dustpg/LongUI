@@ -87,8 +87,6 @@ namespace LongUI {
         // deleted function
         UICheckBox(const UICheckBox&) = delete;
     protected:
-        // hand cursor
-        HCURSOR                     m_hCursorHand = ::LoadCursor(nullptr, IDC_HAND);
         // callback
         UICallBack                  m_event;
         // color of border

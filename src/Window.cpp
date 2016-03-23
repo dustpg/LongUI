@@ -1407,24 +1407,23 @@ void LongUI::XUIBaseWindow::SetHoverTrack(UIControl* ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::XUIBaseWindow::SetFocus(UIControl* ctrl) noexcept {
-    // 无效
-    assert(ctrl && "bad argument");
+    // 有效
+    if (m_pFocusedControl) {
+        // 事件
+        m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
+        // 去除引用
+        m_pFocusedControl->Release();
+        // 归零
+        m_pFocusedControl = nullptr;
+    }
     // 可聚焦的
-    if (ctrl->flags & Flag_Focusable) {
+    if (ctrl && ctrl->flags & Flag_Focusable) {
         // 有效
-        if (m_pFocusedControl) {
-            // 事件
-            m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus);
-            // 去除引用
-            m_pFocusedControl->Release();
-        }
-        // 有效
-        if ((m_pFocusedControl = ctrl)) {
-            // 增加引用
-            m_pFocusedControl->AddRef();
-            // 事件
-            m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus);
-        }
+        m_pFocusedControl = ctrl;
+        // 增加引用
+        m_pFocusedControl->AddRef();
+        // 事件
+        m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus, m_pViewport);
     }
 }
 
@@ -2349,7 +2348,7 @@ void LongUI::CUIBuiltinSystemWindow::BeginRender() const noexcept {
 void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     // 渲染插入符号
     if (this->is_caret_in() && m_rcCaret.right != 0.f) {
-        UIManager_RenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
+        UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
         UIManager_RenderTarget->PushAxisAlignedClip(&m_rcCaret, D2D1_ANTIALIAS_MODE_ALIASED);
         UIManager_RenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
         UIManager_RenderTarget->PopAxisAlignedClip();
@@ -2511,6 +2510,12 @@ void LongUI::CUIBuiltinSystemWindow::SetCursor(LongUI::Cursor cursor) noexcept {
         break;
     case LongUI::Cursor::Cursor_SizeNESW:
         id = IDC_SIZENESW;
+        break;
+    case LongUI::Cursor::Cursor_SizeWE:
+        id = IDC_SIZEWE;
+        break;
+    case LongUI::Cursor::Cursor_SizeNS:
+        id = IDC_SIZENS;
         break;
     default:
         break;

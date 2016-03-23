@@ -117,6 +117,8 @@ namespace LongUI {
         void HideWindow() noexcept { this->ShowWindow(SW_HIDE); }
         // reset cursor
         void ResetCursor() noexcept { this->SetCursor(Cursor::Cursor_Default); }
+        // check focus
+        bool IsFocused(UIControl* ctrl) noexcept { assert(ctrl); return m_pFocusedControl == ctrl; }
         // get window handle
         auto GetHwnd() const noexcept { return m_hwnd; }
         // get top
@@ -157,7 +159,7 @@ namespace LongUI {
         bool DoEvent(const EventArgument& arg) noexcept;
         // render control in next frame
         void Invalidate(UIControl* ctrl) noexcept;
-        // set focus control
+        // set focus control, set null to kill focused-control's focus
         void SetFocus(UIControl* ctrl) noexcept;
         // set hover track control
         void SetHoverTrack(UIControl* ctrl) noexcept;

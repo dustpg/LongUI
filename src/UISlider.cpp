@@ -264,7 +264,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     if (m_fValueOld != m_fValue) {
         m_fValueOld = m_fValue;
         // 调用
-        this->call_uievent(m_event, SubEvent::Event_ValueChanged);
+        this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
         // 刷新
         this->InvalidateThis();
     }

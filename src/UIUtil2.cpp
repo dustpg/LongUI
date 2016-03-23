@@ -25,7 +25,7 @@ LongUINoinline bool LongUI::Helper::Timer::Update() noexcept {
     // 是否过了时间
     if (now > end) {
         // 添加上去
-        m_dwLastCount = end;
+        m_dwLastCount = now;// (now - end > m_dwTime) ? now : end;
         // 确定
         return true;
     }
@@ -376,7 +376,7 @@ bool LongUI::Helper::MakeString(const char* data, CUIString& str) noexcept {
     if (!data || !*data) return false;
     wchar_t buffer[LongUIStringBufferLength];
     // 转码
-    auto length = LongUI::UTF8toWideChar(data, buffer);
+    auto length = LongUI::UTF8toWideChar(data, buffer, lengthof(buffer));
     buffer[length] = L'\0';
     // 设置字符串
     str.Set(buffer, length);

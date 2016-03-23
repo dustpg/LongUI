@@ -597,7 +597,7 @@ namespace LongUI {
         ID2D1Bitmap1* bitmap = nullptr;
         // 转换路径
         wchar_t path_buffer[MAX_PATH];
-        path_buffer[LongUI::UTF8toWideChar(uri, path_buffer)] = 0;
+        path_buffer[LongUI::UTF8toWideChar(uri, path_buffer, lengthof(path_buffer))] = 0;
         // 载入
         auto hr = load_bitmap_from_file(
             m_manager.GetRenderTargetNoAddRef(), 
