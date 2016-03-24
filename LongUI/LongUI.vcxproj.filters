@@ -209,9 +209,6 @@
     <ClCompile Include="..\src\UIManager.cpp">
       <Filter>Source Files\XCtrl</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\UIRenderQueue.cpp">
-      <Filter>Source Files\XCtrl</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\UIScrollBar.cpp">
       <Filter>Source Files\XCtrl</Filter>
     </ClCompile>
@@ -235,6 +232,9 @@
     </ClCompile>
     <ClCompile Include="..\src\luiUnicode.cpp">
       <Filter>Source Files\XUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\luiResourceLoader.cpp">
+      <Filter>Source Files\XCtrl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

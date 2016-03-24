@@ -2,222 +2,6 @@
 #include <algorithm>
 #include <WinError.h>
 
-// 渲染队列 构造函数
-LongUI::CUIRenderQueue::CUIRenderQueue(UIViewport* window) noexcept {
-    m_unitLike.length = 0; m_unitLike.window = window;
-}
-
-// 渲染队列 析构函数
-LongUI::CUIRenderQueue::~CUIRenderQueue() noexcept {
-    // 释放数据
-    if (m_pUnitsDataBegin) {
-        LongUI::NormalFree(m_pUnitsDataBegin);
-    }
-    m_pUnitsDataBegin = m_pUnitsDataEnd = m_pCurrentUnit = nullptr;
-}
-
-// 重置
-void LongUI::CUIRenderQueue::Reset(uint32_t freq) noexcept {
-    // 一样就不处理
-    if (m_wDisplayFrequency == freq) return;
-    // 之前的
-    auto oldf = m_wDisplayFrequency;
-    // 修改
-    m_wDisplayFrequency = static_cast<decltype(m_wDisplayFrequency)>(freq);
-    // 创建
-    CUIRenderQueue::UNIT* data = nullptr;
-    if (freq && (data = LongUI::NormalAllocT<UNIT>(LongUIPlanRenderingTotalTime * freq))) {
-        for (auto i = 0u; i < LongUIPlanRenderingTotalTime * freq; ++i) {
-            data[i].length = 0;
-        }
-    }
-    // XXX: 完成转化
-    if (m_pUnitsDataBegin && data) {
-        // 偷懒直接不管
-        oldf = oldf;
-        UIManager << DL_Hint
-            << L"hard to code it, unfinished yet, empty the rendering queue now"
-            << LongUI::endl;
-    }
-    // 释放
-    if (m_pUnitsDataBegin) LongUI::NormalFree(m_pUnitsDataBegin);
-    // 转移
-    if (data) {
-        m_pUnitsDataBegin = data;
-        m_pUnitsDataEnd = data + LongUIPlanRenderingTotalTime * freq;
-        m_pCurrentUnit = data;
-    }
-    // 开始渲染
-    m_dwStartTime = ::timeGetTime();
-}
-
-// ++ 操作符
-void LongUI::CUIRenderQueue::operator++() noexcept {
-    // 渲染队列模式
-    if (m_pCurrentUnit) {
-        ++m_pCurrentUnit;
-        if (m_pCurrentUnit == m_pUnitsDataEnd) {
-            m_pCurrentUnit = m_pUnitsDataBegin;
-            // 检查误差
-            auto time = m_dwStartTime;
-            m_dwStartTime = ::timeGetTime();
-            time = m_dwStartTime - time;
-            int16_t dev = int16_t(int16_t(time) - int16_t(LongUIPlanRenderingTotalTime * 1000));
-            m_sTimeDeviation += dev;
-#ifdef _DEBUG
-            if (m_unitLike.window->debug_this) {
-                UIManager << DL_Log
-                    << Formated(L"Time Deviation: %4ldms    Totle: %4ldms", 
-                        long(dev), long(m_sTimeDeviation))
-                    << LongUI::endl;
-            }
-#endif
-            // TODO: 时间校正
-        }
-    }
-    // 简单模式
-    else {
-        assert(!"error");
-    }
-}
-
-// 计划渲染
-void LongUI::CUIRenderQueue::PlanToRender(float wait, float render, UIControl* ctrl) noexcept {
-    // XXX: 待优化。
-    // 当前窗口
-    auto window = m_unitLike.window;
-#ifdef _DEBUG
-    if (window->debug_this) {
-        UIManager << DL_Log
-            << L"INDEX:[" << long(m_pCurrentUnit - m_pUnitsDataBegin) << L']'
-            << ctrl << ctrl->visible_rect
-            << L"from " << wait << L" to " << render
-            << LongUI::endl;
-    }
-#endif
-    // 保留刷新
-    if (render != 0.0f) render += 0.02f;
-    assert((wait + render) < float(LongUIPlanRenderingTotalTime) && "time overflow");
-    // 设置单元
-    auto set_unit = [window](CUIRenderQueue::UNIT& unit, UIControl* ctrl) noexcept {
-        // 已经全渲染了就不干
-        if (unit.length && unit.units[0] == window) {
-            return;
-        }
-        // 单元满了/直接渲染窗口 就设置为全渲染
-        if (unit.length == LongUIDirtyControlSize || ctrl == window) {
-            unit.length = 1;
-            unit.units[0] = window;
-            return;
-        }
-        // 保存
-        auto old_length = unit.length;
-        bool changed = false;
-        CUIRenderQueue::UNIT tmp; std::memset(&tmp, 0, sizeof(tmp));
-        std::memcpy(tmp.units, unit.units, sizeof(tmp.units[0]) * old_length);
-#ifdef _DEBUG
-        // 调试信息
-        CUIRenderQueue::UNIT debug_backup;
-        std::memcpy(&debug_backup, &tmp, sizeof(debug_backup));
-        debug_backup.length = unit.length;
-        bool jmp = true;
-        if ((jmp = false)) {
-            std::memcpy(&tmp, &debug_backup, sizeof(tmp));
-        }
-#endif
-        // 一次检查
-        for (auto itr = tmp.units; itr < tmp.units + old_length; ++itr) {
-            // 已存在的空间
-            auto existd = *itr;
-            // 一样? --> 不干
-            if (existd == ctrl) return;
-            // 存在深度 < 插入深度 -> 检查插入的是否为存在的子孙结点
-            if (existd->level < ctrl->level) {
-                // 是 -> 什么不干
-                if (existd->IsPosterityForSelf(ctrl)) return;
-                // 否 -> 继续
-                else {
-
-                }
-            }
-            // 存在深度 > 插入深度 -> 检查存在的是否为插入的子孙结点
-            else if (existd->level > ctrl->level) {
-                // 是 -> 替换所有
-                if (ctrl->IsPosterityForSelf(existd)) {
-                    *itr = nullptr;
-                    changed = true;
-                }
-                // 否 -> 继续
-                else {
-
-                }
-            }
-            // 深度一致 -> 继续
-            else {
-
-            }
-        }
-#ifdef _DEBUG
-        if (window->debug_this) {
-            UIManager << DLevel_Log << L"\r\n [INSERT]: " << ctrl << LongUI::endl;
-        }
-#endif
-        // 二次插入
-        if (changed) {
-            unit.length = 0; auto witr = unit.units;
-            for (auto ritr = tmp.units; ritr < tmp.units + old_length; ++ritr) {
-                if (*ritr) {
-                    *witr = *ritr;
-                    ++witr;
-                    ++unit.length;
-                }
-            }
-        }
-#ifdef _DEBUG
-        // 断言调试
-        auto endt = unit.units + unit.length;
-        assert(std::find(unit.units, endt, ctrl) == endt);
-        std::for_each(unit.units, endt, [ctrl](UIControl* tmpc) noexcept {
-            assert(tmpc->IsPosterityForSelf(ctrl) == false && "bad ship");
-            assert(ctrl->IsPosterityForSelf(tmpc) == false && "bad ship");
-        });
-#endif
-        // 添加到最后
-        unit.units[unit.length++] = ctrl;
-    };
-    // 渲染队列模式
-    if (m_pCurrentUnit) {
-        // 该控件渲染
-        auto rerendered = ctrl->prerender;
-        // 时间片计算
-        auto frame_offset = uint32_t(wait * float(m_wDisplayFrequency));
-        auto frame_count = uint32_t(render * float(m_wDisplayFrequency)) + 1;
-        auto start = m_pCurrentUnit + frame_offset;
-        for (uint32_t i = 0; i < frame_count; ++i) {
-            if (start == m_pUnitsDataEnd) {
-                start = m_pUnitsDataBegin;
-            }
-#ifdef _DEBUG
-            if (window->debug_this) {
-                UIManager << DLevel_Log << L" [TRY] ";
-            }
-#endif
-            set_unit(*start, rerendered);
-            ++start;
-        }
-#ifdef _DEBUG
-        if (window->debug_this) {
-            UIManager << DLevel_Log << L"\r\n";
-        }
-#endif
-    }
-    // 简单模式
-    else {
-        assert(!"error");
-    }
-}
-
-
 // ---------------- VERSION HELPER -------------------
 
 // longui namespace
@@ -249,6 +33,148 @@ namespace LongUI {
 
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
 #include <wincodec.h>
+// longui::impl 命名空间
+namespace LongUI { namespace impl {
+    // 从文件载入位图
+    auto load_bitmap_from_file(
+        ID2D1DeviceContext* pRenderTarget,
+        IWICImagingFactory* pIWICFactory,
+        PCWSTR uri,
+        UINT destinationWidth,
+        UINT destinationHeight,
+        ID2D1Bitmap1 **ppBitmap
+    ) noexcept -> HRESULT {
+        IWICBitmapDecoder *pDecoder = nullptr;
+        IWICBitmapFrameDecode *pSource = nullptr;
+        IWICStream *pStream = nullptr;
+        IWICFormatConverter *pConverter = nullptr;
+        IWICBitmapScaler *pScaler = nullptr;
+        // 创建解码器
+        HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
+            uri,
+            nullptr,
+            GENERIC_READ,
+            WICDecodeMetadataCacheOnLoad,
+            &pDecoder
+        );
+        // 获取第一帧
+        if (SUCCEEDED(hr)) {
+            hr = pDecoder->GetFrame(0, &pSource);
+        }
+        // 创建格式转换器
+        if (SUCCEEDED(hr)) {
+            hr = pIWICFactory->CreateFormatConverter(&pConverter);
+        }
+        // 尝试缩放
+        if (SUCCEEDED(hr)) {
+            if (destinationWidth != 0 || destinationHeight != 0) {
+                UINT originalWidth, originalHeight;
+                // 获取大小
+                hr = pSource->GetSize(&originalWidth, &originalHeight);
+                if (SUCCEEDED(hr)) {
+                    // 设置基本分辨率
+                    if (destinationWidth == 0) {
+                        FLOAT scalar = static_cast<FLOAT>(destinationHeight) / static_cast<FLOAT>(originalHeight);
+                        destinationWidth = static_cast<UINT>(scalar * static_cast<FLOAT>(originalWidth));
+                    }
+                    else if (destinationHeight == 0) {
+                        FLOAT scalar = static_cast<FLOAT>(destinationWidth) / static_cast<FLOAT>(originalWidth);
+                        destinationHeight = static_cast<UINT>(scalar * static_cast<FLOAT>(originalHeight));
+                    }
+                    // 创建缩放器
+                    hr = pIWICFactory->CreateBitmapScaler(&pScaler);
+                    // 初始化
+                    if (SUCCEEDED(hr)) {
+                        hr = pScaler->Initialize(
+                            pSource,
+                            destinationWidth,
+                            destinationHeight,
+                            WICBitmapInterpolationModeCubic
+                        );
+                    }
+                    if (SUCCEEDED(hr)) {
+                        hr = pConverter->Initialize(
+                            pScaler,
+                            GUID_WICPixelFormat32bppPBGRA,
+                            WICBitmapDitherTypeNone,
+                            nullptr,
+                            0.f,
+                            WICBitmapPaletteTypeMedianCut
+                        );
+                    }
+                }
+            }
+            else {
+                // 直接初始化
+                hr = pConverter->Initialize(
+                    pSource,
+                    GUID_WICPixelFormat32bppPBGRA,
+                    WICBitmapDitherTypeNone,
+                    nullptr,
+                    0.f,
+                    WICBitmapPaletteTypeMedianCut
+                );
+            }
+        }
+#if 0
+        // 读取位图数据
+        if (SUCCEEDED(hr)) {
+            hr = pRenderTarget->CreateBitmapFromWicBitmap(
+                pConverter,
+                nullptr,
+                ppBitmap
+            );
+        }
+#elif 0
+        // 计算
+        constexpr UINT basic_step = 4;
+        pConverter->CopyPixels()
+#else
+        {
+            ID2D1Bitmap1* tmp_bitmap = nullptr;
+            ID2D1Bitmap1* tar_bitmap = nullptr;
+            // 读取位图数据
+            if (SUCCEEDED(hr)) {
+                hr = pRenderTarget->CreateBitmapFromWicBitmap(
+                    pConverter,
+                    nullptr,
+                    &tmp_bitmap
+                );
+            }
+            // 创建位图
+            if (SUCCEEDED(hr)) {
+                tmp_bitmap->GetOptions();
+                hr = pRenderTarget->CreateBitmap(
+                    tmp_bitmap->GetPixelSize(),
+                    nullptr, 0,
+                    D2D1::BitmapProperties1(
+                        tmp_bitmap->GetOptions(),
+                        tmp_bitmap->GetPixelFormat()
+                    ),
+                    &tar_bitmap
+                );
+            }
+            // 复制数据
+            if (SUCCEEDED(hr)) {
+                hr = tar_bitmap->CopyFromBitmap(nullptr, tmp_bitmap, nullptr);
+            }
+            // 嫁接
+            if (SUCCEEDED(hr)) {
+                *ppBitmap = tar_bitmap;
+                tar_bitmap = nullptr;
+            }
+            LongUI::SafeRelease(tmp_bitmap);
+            LongUI::SafeRelease(tar_bitmap);
+        }
+#endif
+        LongUI::SafeRelease(pDecoder);
+        LongUI::SafeRelease(pSource);
+        LongUI::SafeRelease(pStream);
+        LongUI::SafeRelease(pConverter);
+        LongUI::SafeRelease(pScaler);
+        return hr;
+    };
+}}
 //  ---------- Resource Loader for XML -----------------
 namespace LongUI {
     // IWICImagingFactory2 "7B816B45-1996-4476-B132-DE9E247C8AF0"
@@ -455,167 +381,29 @@ namespace LongUI {
         // 获取路径
         const char* uri = node.attribute("res").value();
         assert(uri && *uri && "Error URI of Bitmap");
-        // 从文件载入位图
-        auto load_bitmap_from_file = [](
-            ID2D1DeviceContext *pRenderTarget,
-            IWICImagingFactory *pIWICFactory,
-            PCWSTR uri,
-            UINT destinationWidth,
-            UINT destinationHeight,
-            ID2D1Bitmap1 **ppBitmap
-            ) noexcept -> HRESULT {
-            IWICBitmapDecoder *pDecoder = nullptr;
-            IWICBitmapFrameDecode *pSource = nullptr;
-            IWICStream *pStream = nullptr;
-            IWICFormatConverter *pConverter = nullptr;
-            IWICBitmapScaler *pScaler = nullptr;
-            // 创建解码器
-            HRESULT hr = pIWICFactory->CreateDecoderFromFilename(
-                uri,
-                nullptr,
-                GENERIC_READ,
-                WICDecodeMetadataCacheOnLoad,
-                &pDecoder
-                );
-            // 获取第一帧
-            if (SUCCEEDED(hr)) {
-                hr = pDecoder->GetFrame(0, &pSource);
-            }
-            // 创建格式转换器
-            if (SUCCEEDED(hr)) {
-                hr = pIWICFactory->CreateFormatConverter(&pConverter);
-            }
-            // 尝试缩放
-            if (SUCCEEDED(hr)) {
-                if (destinationWidth != 0 || destinationHeight != 0) {
-                    UINT originalWidth, originalHeight;
-                    // 获取大小
-                    hr = pSource->GetSize(&originalWidth, &originalHeight);
-                    if (SUCCEEDED(hr)) {
-                        // 设置基本分辨率
-                        if (destinationWidth == 0) {
-                            FLOAT scalar = static_cast<FLOAT>(destinationHeight) / static_cast<FLOAT>(originalHeight);
-                            destinationWidth = static_cast<UINT>(scalar * static_cast<FLOAT>(originalWidth));
-                        }
-                        else if (destinationHeight == 0) {
-                            FLOAT scalar = static_cast<FLOAT>(destinationWidth) / static_cast<FLOAT>(originalWidth);
-                            destinationHeight = static_cast<UINT>(scalar * static_cast<FLOAT>(originalHeight));
-                        }
-                        // 创建缩放器
-                        hr = pIWICFactory->CreateBitmapScaler(&pScaler);
-                        // 初始化
-                        if (SUCCEEDED(hr)) {
-                            hr = pScaler->Initialize(
-                                pSource,
-                                destinationWidth,
-                                destinationHeight,
-                                WICBitmapInterpolationModeCubic
-                                );
-                        }
-                        if (SUCCEEDED(hr)) {
-                            hr = pConverter->Initialize(
-                                pScaler,
-                                GUID_WICPixelFormat32bppPBGRA,
-                                WICBitmapDitherTypeNone,
-                                nullptr,
-                                0.f,
-                                WICBitmapPaletteTypeMedianCut
-                                );
-                        }
-                    }
-                }
-                else {
-                    // 直接初始化
-                    hr = pConverter->Initialize(
-                        pSource,
-                        GUID_WICPixelFormat32bppPBGRA,
-                        WICBitmapDitherTypeNone,
-                        nullptr,
-                        0.f,
-                        WICBitmapPaletteTypeMedianCut
-                        );
-                }
-            }
-#if 0
-            // 读取位图数据
-            if (SUCCEEDED(hr)) {
-                hr = pRenderTarget->CreateBitmapFromWicBitmap(
-                    pConverter,
-                    nullptr,
-                    ppBitmap
-                    );
-            }
-#elif 0
-            // 计算
-            constexpr UINT basic_step = 4;
-            pConverter->CopyPixels()
-#else
-            {
-                ID2D1Bitmap1* tmp_bitmap = nullptr;
-                ID2D1Bitmap1* tar_bitmap = nullptr;
-                // 读取位图数据
-                if (SUCCEEDED(hr)) {
-                    hr = pRenderTarget->CreateBitmapFromWicBitmap(
-                        pConverter,
-                        nullptr,
-                        &tmp_bitmap
-                        );
-                }
-                // 创建位图
-                if (SUCCEEDED(hr)) {
-                    tmp_bitmap->GetOptions();
-                    hr = pRenderTarget->CreateBitmap(
-                        tmp_bitmap->GetPixelSize(),
-                        nullptr, 0,
-                        D2D1::BitmapProperties1(
-                            tmp_bitmap->GetOptions(),
-                            tmp_bitmap->GetPixelFormat()
-                            ),
-                        &tar_bitmap
-                        );
-                }
-                // 复制数据
-                if (SUCCEEDED(hr)) {
-                    hr = tar_bitmap->CopyFromBitmap(nullptr, tmp_bitmap, nullptr);
-                }
-                // 嫁接
-                if (SUCCEEDED(hr)) {
-                    *ppBitmap = tar_bitmap;
-                    tar_bitmap = nullptr;
-                }
-                LongUI::SafeRelease(tmp_bitmap);
-                LongUI::SafeRelease(tar_bitmap);
-            }
-#endif
-            LongUI::SafeRelease(pDecoder);
-            LongUI::SafeRelease(pSource);
-            LongUI::SafeRelease(pStream);
-            LongUI::SafeRelease(pConverter);
-            LongUI::SafeRelease(pScaler);
-            return hr;
-        };
         ID2D1Bitmap1* bitmap = nullptr;
         // 转换路径
-        wchar_t path_buffer[MAX_PATH];
-        path_buffer[LongUI::UTF8toWideChar(uri, path_buffer, lengthof(path_buffer))] = 0;
-        // 载入
-        auto hr = load_bitmap_from_file(
-            m_manager.GetRenderTargetNoAddRef(), 
-            m_pWICFactory, path_buffer, 0u, 0u, &bitmap
+        LongUI::SafeUTF8toWideChar(uri, [this, &bitmap](wchar_t* begin, wchar_t* end) {
+            UNREFERENCED_PARAMETER(end);
+            // 载入
+            auto hr = impl::load_bitmap_from_file(
+                m_manager.GetRenderTargetNoAddRef(), 
+                m_pWICFactory, begin, 0u, 0u, &bitmap
             );
-        // 失败?
+            // 失败?
 #ifdef _DEBUG
-        if (FAILED(hr)) {
-            wchar_t tmp[MAX_PATH * 2];
-            std::memset(tmp, 0, sizeof(tmp));
-            std::swprintf(
-                tmp, LongUIStringBufferLength,
-                L"File Path -- '%ls'",
-                path_buffer
+            if (FAILED(hr)) {
+                wchar_t tmp[MAX_PATH * 2];
+                std::memset(tmp, 0, sizeof(tmp));
+                std::swprintf(
+                    tmp, LongUIStringBufferLength,
+                    L"File Path -- '%ls'",
+                    begin
                 );
-            m_manager.ShowError(hr, tmp);
-        }
+                m_manager.ShowError(hr, tmp);
+            }
 #endif
+        });
         return bitmap;
     }
     // 获取笔刷

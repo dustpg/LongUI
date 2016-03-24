@@ -82,6 +82,14 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         if ((str = attribute("progress"))) {
             m_config.progress = LongUI::AtoF(str);
         }
+        // 获取X偏移量
+        if ((str = attribute("offsetx"))) {
+            this->offset.x = LongUI::AtoF(str);
+        }
+        // 获取Y偏移量
+        if ((str = attribute("offsety"))) {
+            this->offset.y = LongUI::AtoF(str);
+        }
         // 获取渲染器
         m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
         // 保证缓冲区
@@ -109,7 +117,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         // 没有文本
         auto text = node.attribute(prefix).value();
-        m_text.Set(text ? text : "");
+        assert(m_text.length() == 0 && m_text.data()[0] == 0);
+        LongUI::Helper::MakeString(text, m_text);
         // 重建
         this->RecreateLayout();
     }
@@ -959,7 +968,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         this->RefreshSelectionMetrics(this->GetSelectionRange());
     }
     // 渲染
-    void EditaleText::Render(float x, float y)const noexcept {
+    void EditaleText::Render(float x, float y) const noexcept {
+        x = this->offset.x + x;
+        y = this->offset.y + y;
     #ifdef _DEBUG
         if (m_pHost->debug_this) {
             UIManager << DL_Log
@@ -1255,6 +1266,14 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
             this->type = static_cast<EditaleTextType>(tmptype);
         }
+        // 获取X偏移量
+        if ((str = attribute("offsetx"))) {
+            this->offset.x = LongUI::AtoF(str);
+        }
+        // 获取Y偏移量
+        if ((str = attribute("offsety"))) {
+            this->offset.y = LongUI::AtoF(str);
+        }
         // 获取渲染器
         {
             m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
@@ -1288,9 +1307,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         // 获取文本
         {
-            if ((str = node.attribute(prefix).value())) {
-                m_string.assign(str);
-            }
+            str = node.attribute(prefix).value();
+            assert(m_string.length() == 0 && m_string.data()[0] == 0);
+            LongUI::Helper::MakeString(str, m_string);
         }
         // 创建布局
         this->recreate_layout(fmt);

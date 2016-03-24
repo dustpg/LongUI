@@ -214,6 +214,8 @@ namespace LongUI { namespace Component {
         void Init() noexcept;
         // type of text
         IDWriteTextLayout*      layout = nullptr;
+        // text render offset
+        D2D1_POINT_2F           offset = D2D1::Point2F();
         // type of text
         EditaleTextType         type = Type_None;
         // password char

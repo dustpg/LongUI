@@ -47,8 +47,6 @@ namespace LongUI { namespace Component {
         auto GetRealLength() const noexcept { return m_config.text_length; }
         // operator = for wide-char(utf16 on windows)
         auto&operator=(const wchar_t* str) noexcept { m_text = str; this->RecreateLayout(); return *this; }
-        // operator = for utf-8,
-        auto&operator=(const char* str) noexcept { m_text = str; this->RecreateLayout(); return *this; }
         // get string
         auto&GetString() noexcept { return m_text; }
         // get string
@@ -66,23 +64,30 @@ namespace LongUI { namespace Component {
             m_pLayout = LongUI::SafeAcquire(layout);
         }
         // set new size
-        auto Resize(float w, float h) noexcept {
+        inline auto Resize(float w, float h) noexcept {
             m_config.width = w; m_config.height = h;
             m_pLayout->SetMaxWidth(w); m_pLayout->SetMaxHeight(h);
         }
         // set new progress
-        auto SetNewProgress(float p) noexcept { 
+        inline auto SetNewProgress(float p) noexcept { 
             m_config.progress = p; 
             return this->RecreateLayout();
         }
         // render it
-        auto Render(float x, float y) const noexcept {
+        inline auto Render(float x, float y) const noexcept {
             m_pTextRenderer->basic_color.color = *m_pColor;
-            m_pLayout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
+            m_pLayout->Draw(
+                m_buffer.GetDataVoid(), 
+                m_pTextRenderer, 
+                this->offset.x + x, 
+                this->offset.y + y
+            );
         }
     public:
         // state color
         D2D1_COLOR_F                color[STATE_COUNT];
+        // text render offset
+        D2D1_POINT_2F               offset = D2D1::Point2F();
     private:
         // layout of it
         IDWriteTextLayout*          m_pLayout = nullptr;

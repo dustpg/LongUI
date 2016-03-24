@@ -478,11 +478,9 @@ LongUINoinline void LongUI::UIComboBox::RemoveItem(uint32_t index) noexcept {
 // 添加物品
 void LongUI::UIComboBox::PushItem(const char* item) noexcept {
     assert(item && "bad argument");
-    //if (!item) item = "";
-    // 有效
-    wchar_t buffer[LongUIStringBufferLength];
-    buffer[UTF8toWideChar(item, buffer, lengthof(buffer))] = 0;
-    this->PushItem(buffer);
+    LongUI::SafeUTF8toWideChar(item, [this](const wchar_t* begin, void*) {
+        this->PushItem(begin);
+    });
 }
 
 

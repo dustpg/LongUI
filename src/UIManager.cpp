@@ -1936,16 +1936,16 @@ auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManag
 
 // 输出UTF-8字符串 并刷新
 void LongUI::CUIManager::Output(DebugStringLevel l, const char* s) noexcept {
-    wchar_t buffer[LongUIStringBufferLength];
-    buffer[LongUI::UTF8toWideChar(s, buffer, lengthof(buffer))] = 0;
-    this->Output(l, buffer);
+    LongUI::SafeUTF8toWideChar(s, [this, l](const wchar_t* begin, const wchar_t*) {
+        this->Output(l, begin);
+    });
 }
 
 // 输出UTF-8字符串
 void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char* s) noexcept {
-    wchar_t buffer[LongUIStringBufferLength];
-    buffer[LongUI::UTF8toWideChar(s, buffer, lengthof(buffer))] = 0;
-    this->OutputNoFlush(l, buffer);
+    LongUI::SafeUTF8toWideChar(s, [this, l](const wchar_t* begin, const wchar_t*) {
+        this->OutputNoFlush(l, begin);
+    });
 }
 
 // 浮点重载

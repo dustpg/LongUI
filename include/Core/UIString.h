@@ -50,16 +50,10 @@ namespace LongUI {
         void Set(const wchar_t* str, uint32_t len) noexcept;
         // set/assign inline overload
         void Set(const wchar_t* str) noexcept { return this->Set(str, this->uistrlen(str)); }
-        // set/assign for utf-8
-        void Set(const char* str, uint32_t len) noexcept;
-        // set/assign for utf-8 inline overload
-        void Set(const char* str) noexcept { return this->Set(str, this->uistrlen(str)); }
         // append
         void Append(const wchar_t* str, uint32_t len) noexcept;
         // set/assign for utf-8 inline overload
         void Append(const wchar_t* str) noexcept { return this->Append(str, this->uistrlen(str)); }
-        // append for utf-8
-        //void Append(const char* str, uint32_t len) noexcept;
         // reserve
         void Reserve(uint32_t len) noexcept;
         // insert
@@ -94,8 +88,6 @@ namespace LongUI {
         auto&insert(uint32_t off, const wchar_t* str) noexcept { this->Insert(off, str); return *this; }
         // insert for wchar
         auto&insert(uint32_t off, const wchar_t ch) noexcept { wchar_t str[2] = { ch, 0 }; return this->insert(off, str, 1); }
-        // insert for char
-        auto&insert(uint32_t off, const char ch) noexcept { wchar_t str[2] = { wchar_t(ch), 0 }; return this->insert(off, str, 1); }
         // insert for CUIString
         auto&insert(uint32_t off, const CUIString& str) noexcept { return this->insert(off, str.c_str(), str.length()); }
         // erase
@@ -109,25 +101,15 @@ namespace LongUI {
     public: // std::string compatibled interface/method
         // assign: overload for [const wchar_t* + len]
         auto&assign(const wchar_t* str, uint32_t count) noexcept { this->Set(str, count); return *this; }
-        // assign: overload for [const char* + len]
-        auto&assign(const char* str, uint32_t count) noexcept { this->Set(str, count); return *this;}
         // assign: overload for [const wchar_t*]
         auto&assign(const wchar_t* str) noexcept { this->Set(str); return *this; }
-        // assign: overload for [const char*]
-        auto&assign(const char* str) noexcept { this->Set(str); return *this;}
         // assign: overload for [const wchar_t]
         auto&assign(const wchar_t ch) noexcept { wchar_t buf[2] = { ch, 0 }; this->Set(buf, 1); return *this; }
-        // assign: overload for [const char]
-        auto&assign(const char ch) noexcept { wchar_t buf[2] = { wchar_t(ch), 0 }; this->Set(buf, 1); return *this; }
         // = 操作: overload for [const wchar_t*]
         auto&operator= (const wchar_t* s) noexcept { this->assign(s); return *this; }
-        // = 操作: overload for [const char*]
-        auto&operator= (const char* s) noexcept { this->assign(s); return *this; }
         // = 操作: overload for [const wchar_t]
         auto&operator= (const wchar_t ch) noexcept { this->assign(ch); return *this; }
-        // = 操作: overload for [const char]
-        auto&operator= (const char ch) noexcept { this->assign(ch); return *this; }
-        // = 操作: overload for [const char]
+        // = 操作: overload for [CUIString]
         auto&operator= (const CUIString& str) noexcept { this->assign(str.c_str(), str.length()); return *this; }
     public: // std::string compatibled interface/method
         // append overload for [const wchar_t*]
@@ -136,16 +118,12 @@ namespace LongUI {
         auto&append(const wchar_t* str) noexcept { this->Append(str); return *this; }
         // append overload for [const wchar_t]
         auto&append(const wchar_t ch) noexcept { wchar_t buf[2] = { ch, 0 }; this->Append(buf, 1); return *this; }
-        // append overload for [const char]
-        auto&append(const char ch) noexcept { wchar_t buf[2] = { wchar_t(ch), 0 }; this->Append(buf, 1); return *this; }
         // append overload for [const CUIString&]
         auto&append(const CUIString& str) noexcept { this->append(str.c_str(), str.length()); return *this; }
         // += 操作 overload for [const wchar_t*]
         auto&operator+=(const wchar_t* s) noexcept { this->append(s); return *this; }
         // += 操作 overload for [const wchar_t]
         auto&operator+=(const wchar_t c) noexcept { this->append(c); return *this; }
-        // += 操作 overload for [const char]
-        auto&operator+=(const char c) noexcept { this->append(c); return *this; }
         // += 操作 overload for [longui string]
         auto&operator+=(const CUIString& str) noexcept { this->append(str.c_str(), str.length()); return *this; }
     public:
@@ -342,19 +320,5 @@ namespace LongUI {
     template<typename Lambda, typename T, typename ...Args>
     void SPrintF(Lambda lam, const T* format, Args...args) noexcept(noexcept(lam.operator())) {
         return SPrintF<LongUIStringBufferLength>(lam, format, args...);
-    }
-    // safe buffer
-    template<typename T, size_t BUFFER ,typename Lambda>
-    void SafeBuffer(size_t buflen, Lambda lam) noexcept(noexcept(lam.operator()))  {
-        T fixedbuf[BUFFER]; T* buf = fixedbuf;
-        if (buflen > BUFFER) buf = LongUI::NormalAllocT<T>(buflen);
-        if (!buf) return;
-        lam(buf);
-        if (buf != fixedbuf) LongUI::NormalFree(buf);
-    }
-    // safe buffer
-    template<typename T, typename Lambda>
-    void SafeBuffer(size_t buflen, Lambda lam) noexcept(noexcept(lam.operator()))  {
-        SafeBuffer<T, LongUIStringBufferLength>(buflen, lam)
     }
 }

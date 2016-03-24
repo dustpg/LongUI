@@ -246,7 +246,7 @@ auto LongUI::DX::MakeTextFormat(
         auto str = get_attribute("family");
         if (str) {
             // 假设设置字体名称就是修改了
-            data.prop.name[LongUI::UTF8toWideChar(str, data.prop.name, MAX_PATH)] = 0;
+            LongUI::UTF8toWideChar(str, data.prop.name, MAX_PATH)[0] = 0;
             create_a_new_one = true;
         }
         // 字体大小

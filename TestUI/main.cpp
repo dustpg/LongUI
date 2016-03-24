@@ -146,7 +146,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     </Page>
     <HorizontalLayout name="H" templatesize="600, 0">
         <Button borderwidth="1" margin="4,4,4,4" text="占位测试"/>
-        <ComboBox textformat="1" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
+        <ComboBox textformat="1" textoffsetx="4" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
             <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text">
                 <ScrollBarA marginal="right"/>
                 <ListLine><Text text="真的"/></ListLine>
@@ -471,21 +471,6 @@ private:
 
 // 应用程序入口
 int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, wchar_t* lpCmdLine, int nCmdShow) {
-    {
-        {
-            wchar_t buf1[] = L"一二三";
-            wchar_t buf2[] = L"ABC";
-            wchar_t buf3[] = L"😂😂😂";
-        }
-        char buf1[] = u8"ABC";
-        char buf2[] = u8"一二三";
-        char buf3[] = u8"😂😂😂";
-        uint32_t len = 0;
-        len = LongUI::UTF8toUTF16GetBufLen(buf1);
-        len = LongUI::UTF8toUTF16GetBufLen(buf2);
-        len = LongUI::UTF8toUTF16GetBufLen(buf3);
-        len = 0;
-    }
     // 本Demo的配置信息
     class DemoConfigure config;
     // 初始化 OLE (OLE会调用CoInitializeEx初始化COM)

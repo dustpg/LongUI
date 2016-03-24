@@ -2,16 +2,16 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010"> 
   <!--LongUI::CUIString-->
   <Type Name="LongUI::CUIString">
-    <DisplayString>{ m_pString, sb }</DisplayString>
+    <DisplayString>{ m_pString, su }</DisplayString>
     <Expand>
-        <Item Name="[string]">m_pString,sb</Item>
+        <Item Name="[string]">m_pString, su</Item>
         <Item Name="[length]">m_cLength</Item>
         <Item Name="[capacity]">m_cBufferLength</Item>
     </Expand>
   </Type>
   <!--LongUI::CUIWrappedCCP-->
   <Type Name="LongUI::CUIWrappedCCP">
-    <DisplayString>{ m_pString, sb }</DisplayString>
+    <DisplayString>{ m_pString, s8 }</DisplayString>
   </Type>
   <!--LongUI::Msg-->
   <Type Name="LongUI::Msg">
@@ -30,7 +30,7 @@
   </Type>
   <!--LongUI::UIControl-->
   <Type Name="LongUI::UIControl">
-    <DisplayString>{{{ name, sb }}}</DisplayString>
+    <DisplayString>{{{ name, s8 }}}</DisplayString>
     <Expand>
       <Item Name="[parent]">parent</Item>
       <Item Name="[next?]">next</Item>
@@ -45,7 +45,7 @@
   </Type>
   <!--LongUI::UIContainerBuiltIn-->
   <Type Name="LongUI::UIContainerBuiltIn">
-    <DisplayString>{{{ name, sb }}} Count = {{{ m_cChildrenCount }}}</DisplayString>
+    <DisplayString>{{{ name, s8 }}} Count = {{{ m_cChildrenCount }}}</DisplayString>
     <Expand>
       <Item Name="[count]">m_cChildrenCount</Item>
       <LinkedListItems>

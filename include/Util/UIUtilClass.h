@@ -456,47 +456,6 @@ namespace LongUI {
 #endif
     };
 #endif
-    // render queue helper
-    class CUIRenderQueue {
-    public:
-        // UNIT
-        struct UNIT {
-            // length of this unit
-            size_t      length;
-            // main data of unit
-            UIControl*  units[LongUIDirtyControlSize];
-        };
-        // ctor
-        CUIRenderQueue(UIViewport* window) noexcept;
-        // dtor
-        ~CUIRenderQueue() noexcept;
-        // reset
-        void Reset(uint32_t f) noexcept;
-        // ++ operator
-        void operator++() noexcept;
-        // plan to render
-        void PlanToRender(float wait_time, float render_time, UIControl* control) noexcept;
-        // get current unit
-        auto GetCurrentUnit() const noexcept { return m_pCurrentUnit; }
-        // get display frequency
-        auto GetDisplayFrequency() const noexcept { return m_wDisplayFrequency; }
-    private: // queue zone
-        // frequency for display
-        uint16_t            m_wDisplayFrequency = 0;
-        // time deviation total
-        int16_t             m_sTimeDeviation = 0;
-        // render start time
-        uint32_t            m_dwStartTime = 0;
-        // current unit
-        UNIT*               m_pCurrentUnit = nullptr;
-        // units data
-        UNIT*               m_pUnitsDataBegin = nullptr;
-        // end of data
-        UNIT*               m_pUnitsDataEnd = nullptr;
-    private: // easy plan
-        // UNIT like
-        struct { size_t length; UIControl* window; } m_unitLike;
-    };
     // short allocator, memory created with allocator, destroyed with allocator
     template<size_t CHAIN_SIZE=2048>
     class CUIShortStringAllocator {

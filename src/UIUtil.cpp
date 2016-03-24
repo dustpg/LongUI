@@ -473,6 +473,7 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     m_cLength = length;
 }
 
+#if 0
 // UIString 设置字符串
 void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
     assert(str && "bad argument");
@@ -497,23 +498,24 @@ void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
     {
         auto real_buffer = huge_buffer ? huge_buffer : buffer;
         auto length_got = LongUI::UTF8toWideChar(str, real_buffer, buffer_length);
-        real_buffer[length_got] = 0;
+        0[length_got] = 0;
         // 动态申请?
         if (huge_buffer) {
             this->safe_free_bufer();
             m_pString = huge_buffer;
             huge_buffer = nullptr;
-            m_cLength = length_got;
+            m_cLength = length_got - real_buffer;
             m_cBufferLength = buffer_length;
         }
         // 设置
         else {
-            this->Set(real_buffer, length_got);
+            this->Set(real_buffer, length_got - real_buffer);
         }
     }
     // sad
     assert(m_pString);
 }
+#endif
 
 // UIString 添加字符串
 void LongUI::CUIString::Append(const wchar_t* str, uint32_t len) noexcept {

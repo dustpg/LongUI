@@ -130,6 +130,19 @@ namespace LongUI {
         // DCompositionCreateDevice, Win8 and later hold it
         static HRESULT (STDAPICALLTYPE* DCompositionCreateDevice)(IDXGIDevice*, REFIID, void**);
     };
+    // safe buffer
+    template<typename T, size_t BUFFER ,typename Lambda>
+    void SafeBuffer(size_t buflen, Lambda lam) noexcept(noexcept(lam.operator()))  {
+        T fixedbuf[BUFFER]; T* buf = fixedbuf;
+        if (buflen > BUFFER) buf = LongUI::NormalAllocT<T>(buflen);
+        if (!buf) return; lam(buf);
+        if (buf != fixedbuf) LongUI::NormalFree(buf);
+    }
+    // safe buffer
+    template<typename T, typename Lambda>
+    void SafeBuffer(size_t buflen, Lambda lam) noexcept(noexcept(lam.operator()))  {
+        SafeBuffer<T, LongUIStringBufferLength>(buflen, lam)
+    }
     // std::atoi diy version
     auto AtoI(const char* __restrict) noexcept -> int;
     // std::atoi diy version overload for wchar_t
@@ -138,33 +151,69 @@ namespace LongUI {
     auto AtoF(const char* __restrict) noexcept -> float;
     // std::atof diy version(float ver) overload for wchar_t
     auto AtoF(const wchar_t* __restrict) noexcept -> float;
-    // UTF-16 to UTF-8: Return UTF-8 string length, 0 maybe error
-    auto UTF16toUTF8(const char16_t* __restrict src, char* __restrict des, uint32_t buflen) noexcept -> uint32_t;
-    // UTF-8 to UTF-16: Return UTF-16 string length, 0 maybe error
-    auto UTF8toUTF16(const char* __restrict src, char16_t* __restrict des, uint32_t buflen) noexcept -> uint32_t;
+    // UTF-32 to UTF-16 char
+    auto Char32toChar16(char32_t ch, char16_t* str) -> char16_t*;
+    // UTF-16 to UTF-8: Return end of utf8  string
+    auto UTF16toUTF8(const char16_t* __restrict src, char* __restrict des, uint32_t buflen) noexcept -> char*;
+    // UTF-8 to UTF-16: Return end of utf16 string
+    auto UTF8toUTF16(const char* __restrict src, char16_t* __restrict des, uint32_t buflen) noexcept -> char16_t*;
     // get buffer length for UTF-16 to UTF-8(include NULL-END char)
     auto UTF16toUTF8GetBufLen(const char16_t* src) noexcept -> uint32_t;
     // get buffer length for UTF-8 to UTF-16(include NULL-END char)
     auto UTF8toUTF16GetBufLen(const char* src) noexcept -> uint32_t;
-    // wchar to UTF-8
-    inline auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des, uint32_t buflen) noexcept {
-        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
-        return UTF16toUTF8(reinterpret_cast<const char16_t*>(src), des, buflen);
-    }
-    // UTF-8 to wchar
-    inline auto UTF8toWideChar(const char* __restrict src, wchar_t* __restrict des, uint32_t buflen) noexcept {
-        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
-        return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des), buflen);
-    }
     // get buffer length for wchar to UTF-8(not include NULL-END char)
     inline auto WideChartoUTF8GetBufLen(const wchar_t* src) noexcept {
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
-        return UTF16toUTF8GetBufLen(reinterpret_cast<const char16_t*>(src));
+        return LongUI::UTF16toUTF8GetBufLen(reinterpret_cast<const char16_t*>(src));
     }
     // get buffer length for UTF-8 to wchar(not include NULL-END char)
     inline auto UTF8toWideCharGetBufLen(const char* src) noexcept {
         static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
-        return UTF8toUTF16GetBufLen(src);
+        return LongUI::UTF8toUTF16GetBufLen(src);
+    }
+    // safe wchar to UTF-8
+    template<size_t BUFFER, typename Lambda> 
+    inline void SafeWideChartoUTF8(const wchar_t* src, Lambda lam) noexcept {
+        auto len = LongUI::WideChartoUTF8GetBufLen(src);
+        LongUI::SafeBuffer<char, BUFFER>(len, [len, src, lam](char* buf) noexcept {
+            static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+            auto end = LongUI::UTF16toUTF8(reinterpret_cast<const char16_t*>(src), buf, len);
+            0[end] = 0;
+            lam(buf, end);
+        });
+    }
+    // safe wchar to UTF-8
+    template<typename Lambda> 
+    inline void SafeWideChartoUTF8(const wchar_t* src, Lambda lam) noexcept {
+        return LongUI::SafeWideChartoUTF8<LongUIStringBufferLength>(src, lam);
+    }
+    // safe  UTF-8 to wchar
+    template<size_t BUFFER, typename Lambda> 
+    inline void SafeUTF8toWideChar(const char* src, Lambda lam) noexcept {
+        auto len = LongUI::UTF8toWideCharGetBufLen(src);
+        LongUI::SafeBuffer<wchar_t, BUFFER>(len, [len, src, lam](wchar_t* buf) noexcept {
+            static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+            auto end = LongUI::UTF8toUTF16(src, reinterpret_cast<char16_t*>(buf), len);
+            0[end] = 0;
+            lam(buf, reinterpret_cast<wchar_t*>(end));
+        });
+    }
+    // safe  UTF-8 to wchar
+    template<typename Lambda> 
+    inline void SafeUTF8toWideChar(const char* src, Lambda lam) noexcept {
+        return LongUI::SafeUTF8toWideChar<LongUIStringBufferLength>(src, lam);
+    }
+    // wchar to UTF-8, unsafe way
+    inline auto WideChartoUTF8(const wchar_t* __restrict src, char* __restrict des, uint32_t buflen) noexcept {
+        // UTF-8 UTF-16 UTF-32(UCS-4)
+        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+        return UTF16toUTF8(reinterpret_cast<const char16_t*>(src), des, buflen);
+    }
+    // UTF-8 to wchar, unsafe way
+    inline auto UTF8toWideChar(const char* __restrict src, wchar_t* __restrict des, uint32_t buflen) noexcept {
+        // UTF-8 UTF-16 UTF-32(UCS-4)
+        static_assert(sizeof(wchar_t) == sizeof(char16_t), "change UTF-16 to UTF-32");
+        return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des), buflen);
     }
     // bubble sort for vector or list
     template<typename Itr, typename Lamda>

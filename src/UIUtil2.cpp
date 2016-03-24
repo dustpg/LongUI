@@ -371,15 +371,19 @@ bool LongUI::Helper::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
 }
 
 
-// 创建字符串
+
+/// <summary>
+/// 创建字符串
+/// </summary>
+/// <param name="data">The data.</param>
+/// <param name="str">The string.</param>
+/// <returns></returns>
 bool LongUI::Helper::MakeString(const char* data, CUIString& str) noexcept {
     if (!data || !*data) return false;
-    wchar_t buffer[LongUIStringBufferLength];
-    // 转码
-    auto length = LongUI::UTF8toWideChar(data, buffer, lengthof(buffer));
-    buffer[length] = L'\0';
-    // 设置字符串
-    str.Set(buffer, length);
+    LongUI::SafeUTF8toWideChar(
+        data, [&str](const wchar_t* be, const wchar_t* ed) noexcept {
+        str.Set(be, uint32_t(ed - be));
+    });
     return true;
 }
 
