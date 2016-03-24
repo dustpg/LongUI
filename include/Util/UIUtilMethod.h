@@ -141,7 +141,7 @@ namespace LongUI {
     // safe buffer
     template<typename T, typename Lambda>
     void SafeBuffer(size_t buflen, Lambda lam) noexcept(noexcept(lam.operator()))  {
-        SafeBuffer<T, LongUIStringBufferLength>(buflen, lam)
+        SafeBuffer<T, LongUIStringBufferLength>(buflen, lam);
     }
     // std::atoi diy version
     auto AtoI(const char* __restrict) noexcept -> int;

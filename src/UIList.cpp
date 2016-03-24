@@ -391,6 +391,19 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
         // 由父类创建边缘控件
         Super::DoEvent(arg);
         this->init_layout();
+        // 子控件
+        for (auto ctrl : m_vLines) {
+            ctrl->DoEvent(arg);
+        }
+        return true;
+    case LongUI::Event::Event_SetNewParent:
+        // 初始化边缘控件 
+        Super::DoEvent(arg);
+        // 修改控件深度
+        for (auto ctrl : m_vLines) {
+            ctrl->NewParentSetted();
+            ctrl->DoEvent(arg);
+        }
         return true;
     default:
         break;
@@ -400,8 +413,8 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // UI列表: 鼠标事件处理
 bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
-    // -------------------  L-Button Down  ---------------
-    auto lbutton_down = [this, &arg]() noexcept {
+    // -------------------  L-Button Up  ---------------
+    auto lbutton_up = [this, &arg]() noexcept {
         auto index = this->find_line_index(arg.pt);
         // SHIFT优先
         if (UIInput.IsKeyPressed(VK_SHIFT)) {
@@ -453,9 +466,9 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         m_pHoveredLine = this->find_line(arg.pt);
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
-        lbutton_down();
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
+        lbutton_up();
         break;
     case LongUI::MouseEvent::Event_RButtonDown:
         break;

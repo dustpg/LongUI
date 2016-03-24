@@ -991,9 +991,6 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
         }
         done = true;
         break;
-        /*case LongUI::Event::Event_NotifyChildren:
-            // 不处理
-            return true;*/
     }
     return done;
 }

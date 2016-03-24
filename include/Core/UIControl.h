@@ -100,14 +100,14 @@ namespace LongUI {
 #endif
         }
         // do event 
-        virtual bool DoEvent(const EventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
+        virtual bool DoEvent(const EventArgument& /*arg*/) noexcept { return false; };
         // do mouse event 
-        virtual bool DoMouseEvent(const MouseEventArgument& arg) noexcept { UNREFERENCED_PARAMETER(arg); return false; };
+        virtual bool DoMouseEvent(const MouseEventArgument&) noexcept { return false; };
         // recreate , first call or device reset
         virtual auto Recreate() noexcept ->HRESULT;
     protected:
         // [uniform interface]ui call
-        virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept { UNREFERENCED_PARAMETER(sb); UNREFERENCED_PARAMETER(call); return false; };
+        virtual bool uniface_addevent(SubEvent, UICallBack&&) noexcept { return false; };
         // render chain -> background
         void render_chain_background() const noexcept;
         // render chain -> background

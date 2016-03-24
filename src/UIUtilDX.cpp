@@ -723,7 +723,8 @@ namespace LongUI {
         auto FormatTextViaCoreML(const FormatTextConfig& cfg, const wchar_t* fmt, T& param) noexcept {
             using cctype = wchar_t;
             cctype ch = 0;
-            cctype text[LongUIStringBufferLength]; auto text_itr = text;
+            constexpr int CoreML_BUFFER_LENGTH = 2048;
+            cctype text[CoreML_BUFFER_LENGTH]; auto text_itr = text;
             EzContainer::FixedStack<RANGE_DATA, 1024> stack_check, stack_set;
             // 遍历字符串
             while ((ch = *fmt)) {

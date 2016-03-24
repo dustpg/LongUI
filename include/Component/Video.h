@@ -68,9 +68,9 @@ namespace LongUI { namespace Component {
         // get current source from
         auto GetCurrentSource(BSTR* s) noexcept { assert(m_pMediaEngine); return m_pMediaEngine->GetCurrentSource(s); }
         // set source
-        auto SetSource(BSTR src) { assert(m_pMediaEngine); m_pMediaEngine->SetSource(src); this->recreate_surface(); return m_pMediaEngine->Load(); }
+        auto SetSource(BSTR src) noexcept { assert(m_pMediaEngine); m_pMediaEngine->SetSource(src); this->recreate_surface(); return m_pMediaEngine->Load(); }
         // set source path
-        auto SetSourcePath(const wchar_t* src) noexcept;
+        auto SetSourcePath(const wchar_t* src) noexcept->HRESULT;
     public:
         // ctor
         MMFVideo() noexcept;

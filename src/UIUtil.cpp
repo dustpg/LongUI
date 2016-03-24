@@ -473,50 +473,6 @@ void LongUI::CUIString::Set(const wchar_t* str, uint32_t length) noexcept {
     m_cLength = length;
 }
 
-#if 0
-// UIString 设置字符串
-void LongUI::CUIString::Set(const char* str, uint32_t len) noexcept {
-    assert(str && "bad argument");
-    // 固定缓存
-    wchar_t buffer[LongUIStringBufferLength];
-    // 动态缓存
-    wchar_t* huge_buffer = nullptr;
-    uint32_t buffer_length = LongUIStringBufferLength;
-    // 内存不足
-    if (!this->m_pString) {
-        this->m_pString = m_aDataStatic;
-        m_cBufferLength = LongUIStringFixedLength;
-        m_aDataStatic[0] = wchar_t(0);
-    }
-    // 假设全是英文字母, 超长的话
-    if (len > LongUIStringBufferLength) {
-        buffer_length = static_cast<uint32_t>(this->nice_buffer_length(len));
-        huge_buffer = this->alloc_bufer(m_cBufferLength);
-        // OOM ?
-        if (!huge_buffer) return this->OnOOM();
-    }
-    {
-        auto real_buffer = huge_buffer ? huge_buffer : buffer;
-        auto length_got = LongUI::UTF8toWideChar(str, real_buffer, buffer_length);
-        0[length_got] = 0;
-        // 动态申请?
-        if (huge_buffer) {
-            this->safe_free_bufer();
-            m_pString = huge_buffer;
-            huge_buffer = nullptr;
-            m_cLength = length_got - real_buffer;
-            m_cBufferLength = buffer_length;
-        }
-        // 设置
-        else {
-            this->Set(real_buffer, length_got - real_buffer);
-        }
-    }
-    // sad
-    assert(m_pString);
-}
-#endif
-
 // UIString 添加字符串
 void LongUI::CUIString::Append(const wchar_t* str, uint32_t len) noexcept {
     assert(str && "bad argument");
@@ -682,21 +638,19 @@ void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
 
 // 格式化
 void LongUI::CUIString::Format(const wchar_t* format, ...) noexcept {
-    // 初始化数据
-    wchar_t buffer[LongUIStringBufferLength]; buffer[0] = 0;
     va_list ap; va_start(ap, format);
-    // 格式化字符串
-    auto length = std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
-    // 发生错误
-    if (length < 0) {
-        UIManager << DL_Warning
-            << L"std::vswprintf return " << long(length)
-            << L" for out of space or some another error"
-            << LongUI::endl;
-        length = LongUIStringBufferLength - 1;
-    }
-    // 设置
-    this->Set(buffer, length);
+    // 检查缓冲区长度 
+    auto len = std::vswprintf(nullptr, 0, format, ap);
+    assert(len > 0 && "bad action for 'std::vswprintf'");
+    if (len < 0) return;
+    LongUI::SafeBuffer<wchar_t>(size_t(len+1), [len, format, ap, this](wchar_t* buf) {
+        // 格式化字符串
+        auto length = std::vswprintf(buf, len, format, ap);
+        // 检查一下
+        assert(len == length && ":(");
+        // 设置
+        this->Set(buf, length);
+    });
     // 收尾
     va_end(ap);
 }
@@ -1416,10 +1370,14 @@ void LongUI::Component::MMFVideo::Render(D2D1_RECT_F* dst) const noexcept {
 /// </summary>
 /// <param name="src">The source.</param>
 /// <returns></returns>
-auto LongUI::Component::MMFVideo::SetSourcePath(const wchar_t* src) noexcept { 
-    wchar_t path[LongUIStringBufferLength]; 
-    std::wcscpy(path, src); 
-    return this->SetSource(path);
+auto LongUI::Component::MMFVideo::SetSourcePath(const wchar_t* src) noexcept ->HRESULT { 
+    HRESULT hr = E_OUTOFMEMORY;
+    LongUI::SafeBuffer<wchar_t>(
+        std::wcslen(src) + 1, [src, this, &hr](wchar_t* buf) {
+        std::wcscpy(buf, src); 
+        hr = this->SetSource(buf);
+    });
+    return hr;
 }
 
 // Component::MMFVideo 构造函数

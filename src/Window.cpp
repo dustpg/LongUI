@@ -1491,22 +1491,6 @@ void LongUI::XUIBaseWindow::Update() noexcept {
     for (auto inset : m_vInsets) {
         inset->Update();
     }
-    // 插入符号
-    if (m_tmCaret.Update()) {
-        // 反转插入符号
-        this->change_caret_in();
-#if 0
-        // 不显示插入符号时候刷新显示焦点控件
-        if (m_pFocusedControl && !this->is_caret_in()) {
-            m_pFocusedControl->InvalidateThis();
-        }
-#else
-        // 刷新显示焦点控件
-        if (m_pFocusedControl) {
-            m_pFocusedControl->InvalidateThis();
-        }
-#endif
-    }
 }
 
 /// <summary>
@@ -2318,6 +2302,22 @@ void LongUI::CUIBuiltinSystemWindow::Update() noexcept {
     if (this->is_new_size()) this->OnResized();
     // 父类
     Super::Update();
+    // 插入符号
+    if (m_tmCaret.Update()) {
+        // 反转插入符号
+        this->change_caret_in();
+#if 0
+        // 不显示插入符号时候刷新显示焦点控件
+        if (m_pFocusedControl && !this->is_caret_in()) {
+            m_pFocusedControl->InvalidateThis();
+        }
+#else
+        // 刷新显示焦点控件
+        if (m_rcCaret.right > 0.f && m_pFocusedControl) {
+            m_pFocusedControl->InvalidateThis();
+        }
+#endif
+    }
 }
 
 /// <summary>

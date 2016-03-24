@@ -869,7 +869,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 // 去除鼠标捕获
                 m_pHost->GetWindow()->ReleaseCapture();
                 // 设置
-                m_pDataObject->SetUnicodeText(this->CopyToGlobal());
+                auto glo = this->CopyToGlobal();
+                if (!glo) return;
+                m_pDataObject->SetUnicodeText(glo);
                 // 开始拖拽
                 DWORD effect = DROPEFFECT_COPY;
                 if (!(this->IsReadOnly())) effect |= DROPEFFECT_MOVE;

@@ -929,6 +929,13 @@ void LongUI::UIPage::DisplayNextPage(UIControl* page) noexcept {
     assert(page && page->parent == this && "bad action");
     // 蛋疼
     if (m_pNextDisplay == page) return;
+    // 移除当前页面焦点
+    {
+        auto fc = m_pWindow->GetFocused();
+        if (fc && m_pNowDisplay->IsPosterityForSelf(fc)) {
+            m_pWindow->SetFocus(nullptr);
+        }
+    }
     // 计算
     auto nowp = m_pNowDisplay;
     auto a = std::find(this->begin(), this->end(), page) - this->begin();

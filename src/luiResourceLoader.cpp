@@ -384,7 +384,6 @@ namespace LongUI {
         ID2D1Bitmap1* bitmap = nullptr;
         // 转换路径
         LongUI::SafeUTF8toWideChar(uri, [this, &bitmap](wchar_t* begin, wchar_t* end) {
-            UNREFERENCED_PARAMETER(end);
             // 载入
             auto hr = impl::load_bitmap_from_file(
                 m_manager.GetRenderTargetNoAddRef(), 
@@ -396,7 +395,7 @@ namespace LongUI {
                 wchar_t tmp[MAX_PATH * 2];
                 std::memset(tmp, 0, sizeof(tmp));
                 std::swprintf(
-                    tmp, LongUIStringBufferLength,
+                    tmp, size_t(end-begin),
                     L"File Path -- '%ls'",
                     begin
                 );
@@ -452,41 +451,43 @@ namespace LongUI {
                 D2D1_GRADIENT_STOP stops[LongUIMaxGradientStop];
                 D2D1_GRADIENT_STOP* now_stop = stops;
                 // 缓冲池
-                char buffer[LongUIStringBufferLength];
-                // 复制到缓冲区
-                std::strcpy(buffer, str);
-                char* index = buffer;
-                const char* paragraph = nullptr;
-                char ch = 0;
-                bool ispos = false;
-                // 遍历检查
-                while (ch = *index) {
-                    // 查找第一个浮点数做为位置
-                    if (ispos) {
-                        // ,表示位置段结束, 该解析了
-                        if (ch == ',') {
-                            *index = 0;
-                            now_stop->position = LongUI::AtoF(paragraph);
-                            ispos = false;
-                            paragraph = index + 1;
+                LongUI::SafeBuffer<char>(std::strlen(str) + 1, 
+                    [str, &now_stop, &stop_count](char* buffer) {
+                    // 复制到缓冲区
+                    std::strcpy(buffer, str);
+                    char* index = buffer;
+                    const char* paragraph = nullptr;
+                    char ch = 0;
+                    bool ispos = false;
+                    // 遍历检查
+                    while (ch = *index) {
+                        // 查找第一个浮点数做为位置
+                        if (ispos) {
+                            // ,表示位置段结束, 该解析了
+                            if (ch == ',') {
+                                *index = 0;
+                                now_stop->position = LongUI::AtoF(paragraph);
+                                ispos = false;
+                                paragraph = index + 1;
+                            }
+                        }
+                        // 查找后面的数值做为颜色
+                        else {
+                            // [ 做为位置段标识开始
+                            if (ch == '[') {
+                                paragraph = index + 1;
+                                ispos = true;
+                            }
+                            // ] 做为颜色段标识结束 该解析了
+                            else if (ch == ']') {
+                                *index = 0;
+                                Helper::MakeColor(paragraph, now_stop->color);
+                                ++now_stop;
+                                ++stop_count;
+                            }
                         }
                     }
-                    // 查找后面的数值做为颜色
-                    else {
-                        // [ 做为位置段标识开始
-                        if (ch == '[') {
-                            paragraph = index + 1;
-                            ispos = true;
-                        }
-                        // ] 做为颜色段标识结束 该解析了
-                        else if (ch == ']') {
-                            *index = 0;
-                            Helper::MakeColor(paragraph, now_stop->color);
-                            ++now_stop;
-                            ++stop_count;
-                        }
-                    }
-                }
+                });
                 // 创建StopCollection
                 m_manager.GetRenderTargetNoAddRef()->CreateGradientStopCollection(stops, stop_count, &collection);
                 if (collection) {

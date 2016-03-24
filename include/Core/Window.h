@@ -118,7 +118,9 @@ namespace LongUI {
         // reset cursor
         void ResetCursor() noexcept { this->SetCursor(Cursor::Cursor_Default); }
         // check focus
-        bool IsFocused(UIControl* ctrl) noexcept { assert(ctrl); return m_pFocusedControl == ctrl; }
+        bool IsFocused(UIControl* ctrl) const noexcept { assert(ctrl); return m_pFocusedControl == ctrl; }
+        // focused control
+        auto GetFocused() const noexcept { return m_pFocusedControl; }
         // get window handle
         auto GetHwnd() const noexcept { return m_hwnd; }
         // get top

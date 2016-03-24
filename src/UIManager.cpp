@@ -852,19 +852,17 @@ void LongUI::CUIManager::UnregisterControlClass(const char* clname) noexcept {
 
 // 显示错误代码
 void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
-    wchar_t buffer[LongUIStringBufferLength];
+    constexpr uint32_t BUFFER_SIZE = 512;
+    wchar_t buffer[BUFFER_SIZE];
     // 格式化
     if (!::FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM,
         nullptr, hr,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
-        buffer, LongUIStringBufferLength,
+        buffer, BUFFER_SIZE,
         nullptr)) {
         // 处理
-        std::swprintf(
-            buffer, LongUIStringBufferLength,
-            L"Error! HRESULT Code: 0x%08X", hr
-        );
+        std::swprintf(buffer, BUFFER_SIZE, L"Error! HRESULT Code: 0x%08X", hr);
     }
     // 错误
     this->ShowError(buffer, str_b);

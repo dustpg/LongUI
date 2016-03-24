@@ -111,6 +111,7 @@ bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         // 鼠标移进, 不是焦点控件则修改边框颜色
         if (!m_pWindow->IsFocused(this)) {
             m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
+            this->InvalidateThis();
         }
         m_pWindow->SetCursor(Cursor::Cursor_Ibeam);
         break;
@@ -119,6 +120,7 @@ bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         m_pWindow->ResetCursor();
         if (!m_pWindow->IsFocused(this)) {
             m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
+            this->InvalidateThis();
         }
         break;
     case LongUI::MouseEvent::Event_MouseMove:

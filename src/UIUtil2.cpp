@@ -215,6 +215,7 @@ namespace LongUI { namespace impl {
                 else {
                     *itr = ch;
                     ++itr;
+                    assert(itr >= std::end(buf) && "buffer to small");
                 }
                 ++str;
             }
@@ -427,6 +428,12 @@ namespace LongUI { namespace Helper {
         if (!node) return nullptr;
         assert(att && "bad argument");
         char buffer[LongUIStringBufferLength];
+#ifdef _DEBUG
+        auto lena = std::strlen(att);
+        auto lenb = pfx ? std::strlen(pfx) : 0;
+        auto lenc = lengthof(buffer);
+        assert(lenc > lena + lenb && "buffer too small");
+#endif
         // 前缀有效?
         if (pfx) {
             std::strcpy(buffer, pfx);
