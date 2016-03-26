@@ -38,10 +38,6 @@ For this repo, you need:
   
 Win10 supported only now
   
-## LongUI All In One
-  LongUI source files could be grouped in one file to reduce time for compiling
-  file in [_LongUIAllInOne.cpp](./src/_LongUIAllInOne.cpp)
-  yeah, you can compile this manually :)
   
 ## LongUI Programming Style
   
