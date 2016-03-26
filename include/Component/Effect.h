@@ -23,12 +23,15 @@
 * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-
+#include "../luibase.h"
+#include "../luiconf.h"
+#include "../Graphics/luiGrD2d.h"
+#include "../Platless/luiPlHlper.h"
 
 // longui::component namespace
 namespace LongUI { namespace Component {
     // Effect
-    class LongUIAPI Effect {
+    class Effect {
         // using
         using EffectID = Helper::InfomationPointer<const IID>;
     public:
@@ -61,9 +64,6 @@ namespace LongUI { namespace Component {
         template<typename T, typename U> auto GetValue(U index) noexcept {
             return m_pEffect->GetValue<T>(index);
         }
-        // record
-        template<typename T> 
-        void Record(ID2D1DeviceContext* target, T lam) noexcept;
     private:
         // release
         void release() noexcept;
@@ -76,27 +76,27 @@ namespace LongUI { namespace Component {
         ID2D1CommandList*           m_pCmdList = nullptr;
         // effect output
         ID2D1Image*                 m_pOutput = nullptr;
-    };
-    // record
-    template<typename T> 
-    void Effect::Record(ID2D1DeviceContext* target, T draw_record) noexcept {
-        // if invalidate
-        if (CheckInvalidate()) {
-            // recreate cmd list
-            LongUI::SafeRelease(m_pCmdList);
-            target->CreateCommandList(&m_pCmdList);
-            // created
-            if (m_pCmdList) {
-                // draw
-                target->SetTarget(m_pCmdList);
-                target->BeginDraw();
-                draw_record();
-                target->EndDraw();
-                m_pCmdList->Close();
-                m_pEffect->SetInput(0, m_pCmdList);
-                // validate
-                this->SetValidate();
+    public:
+        // record
+        template<typename T> void Record(ID2D1DeviceContext* target, T lam) noexcept {
+            // if invalidate
+            if (this->CheckInvalidate()) {
+                // recreate cmd list
+                LongUI::SafeRelease(m_pCmdList);
+                target->CreateCommandList(&m_pCmdList);
+                // created
+                if (m_pCmdList) {
+                    // draw
+                    target->SetTarget(m_pCmdList);
+                    target->BeginDraw();
+                    draw_record();
+                    target->EndDraw();
+                    m_pCmdList->Close();
+                    m_pEffect->SetInput(0, m_pCmdList);
+                    // validate
+                    this->SetValidate();
+                }
             }
         }
-    }
+    };
 }}

@@ -24,6 +24,9 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIContainer.h"
+#include "../Component/Element.h"
+
 // LongUI namespace
 namespace LongUI {
     // base scroll bar 默认滚动条
@@ -141,7 +144,7 @@ namespace LongUI {
         // get arrow geometry
         static auto GetArrowGeometry(Arrow id) noexcept { return LongUI::SafeAcquire(s_apArrowPathGeometry[id]); }
         // create this
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     protected:
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }
@@ -218,7 +221,7 @@ namespace LongUI {
         // ctor
         UIScrollBarB(UIContainer* cp) noexcept : Super(cp) { }
         // create this
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
     protected:
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }

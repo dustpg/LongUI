@@ -25,6 +25,9 @@
 */
 
 
+#include <../luibase.h>
+#include <../luiconf.h>
+
 // longui::component namespace
 namespace LongUI { namespace Component {
     // OGG Theora Video

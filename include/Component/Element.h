@@ -24,6 +24,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "../luibase.h"
+#include "../luiconf.h"
+#include "../Graphics/luiGrAnim.h"
+#include "../Graphics/luiGrD2d.h"
+#include "../LongUI/luiUiMeta.h"
+
 // longui namespace
 namespace LongUI {
     // UI Animation for Posotion
@@ -72,7 +78,7 @@ namespace LongUI {
             // update with delta time
             auto Update(float t) noexcept { m_aniBasic.Update(t); m_aniExtra.Update(t); }
             // update without delta time
-            //auto Update() noexcept { this->Update(UIManager.GetDeltaTime()); }
+            //auto AfterUpdate() noexcept { this->AfterUpdate(UIManager.GetDeltaTime()); }
         private:
             // basic state animation
             CUIAnimation<FLOAT>     m_aniBasic;

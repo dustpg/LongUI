@@ -9,17 +9,12 @@ Current Version : **Alpha-Stage**
 **Friendly with High-DPI**
   - No GDI/GDI+, LongUI use Direct2D as rendering api, could zoom a container into any size
   
-**Friendly with Game**
-  - LongUI was designed that could be embedded in game (that use `D2D1`, `D3D11` even `D3D12`)
-  - also, you can use it in the standalone way
-  
 **XML Layout**
   - Easy way to create a window by xml
   
 **Light Weight**
   - LongUI was designed to be a static-link framework.
-  - The `helloworld` in only 100+kb(/MD in MSC).
-  - Compiled in 5 sec.(through `LongUI All In One`).
+  - The `helloworld` in only 200+kb(/MD in MSC).
 
 [Known Issues](./KnownIssues.md)  
 [Document](./Document/)  

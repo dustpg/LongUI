@@ -1,4 +1,5 @@
-﻿#include "LongUI.h"
+﻿#include "Control/UIScrollBar.h"
+#include "Core/luiManager.h"
 #include <algorithm>
 
 // 获取相对数值
@@ -219,7 +220,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
     m_uiThumb.Update();
     // 刷新
     if (m_bAnimation) {
-        m_uiAnimation.Update();
+        m_uiAnimation.Update(UIManager.GetDeltaTime());
         this->set_index(m_uiAnimation.value);
         if (m_uiAnimation.time <= 0.f) {
             m_bAnimation = false;
@@ -273,7 +274,9 @@ void LongUI::UIScrollBarA::Render() const noexcept {
 
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept {
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
+        this->world, D2D1::Point2F(arg.ptx, arg.pty)
+        );
     // -------------------- on mouse move --------------------
     auto on_mouse_move = [this, &pt4self]() {
         // Captured状态
@@ -347,7 +350,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
     {
         // 滚动条
         bool test1 = arg.event == LongUI::MouseEvent::Event_MouseWheelV;
-        bool test2 = UIInput.IsKeyPressed(VK_SHIFT);
+        bool test2 = UIInput.IsKbPressed(UIInput.KB_SHIFT);
         if ((test1 && test2) == (this->bartype == ScrollBarType::Type_Horizontal)) {
             auto wheel = arg.wheel.delta;
             this->SetIndex(m_uiAnimation.end - wheel_step * wheel);

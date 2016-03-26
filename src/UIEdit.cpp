@@ -1,4 +1,5 @@
-﻿#include "LongUI.h"
+﻿#include "Core/luiManager.h"
+#include "Control/UIEdit.h"
 
 // ----------------------------------------------------------------------------
 // **** UIEdit
@@ -91,21 +92,27 @@ bool  LongUI::UIEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
 
 // UI基本编辑控件: 鼠标事件
 bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
+        this->world, D2D1::Point2F(arg.ptx, arg.pty)
+    );
     // LongUI 消息
     switch (arg.event)
     {
     case LongUI::MouseEvent::Event_DragEnter:
-        m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
+        assert(!"NOIMPL!");
+        //m_text.OnDragEnter(arg.cf.dataobj, arg.cf.outeffect);
         break;
     case LongUI::MouseEvent::Event_DragOver:
-        m_text.OnDragOver(pt4self.x, pt4self.y);
+        assert(!"NOIMPL!");
+        //m_text.OnDragOver(pt4self.x, pt4self.y);
         break;
     case LongUI::MouseEvent::Event_DragLeave:
-        m_text.OnDragLeave();
+        assert(!"NOIMPL!");
+        //m_text.OnDragLeave();
         break;
     case LongUI::MouseEvent::Event_Drop:
-        m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
+        assert(!"NOIMPL!");
+        //m_text.OnDrop(arg.cf.dataobj, arg.cf.outeffect);
         break;
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进, 不是焦点控件则修改边框颜色
@@ -125,12 +132,12 @@ bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         break;
     case LongUI::MouseEvent::Event_MouseMove:
         // 拖拽?
-        if (UIInput.IsKeyPressed(VK_LBUTTON)) {
+        if (UIInput.IsMbPressed(UIInput.MB_L)) {
             m_text.OnLButtonHold(pt4self.x, pt4self.y);
         }
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
-        m_text.OnLButtonDown(pt4self.x, pt4self.y, UIInput.IsKeyPressed(VK_SHIFT));
+        m_text.OnLButtonDown(pt4self.x, pt4self.y, UIInput.IsKbPressed(UIInput.KB_SHIFT));
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
         m_text.OnLButtonUp(pt4self.x, pt4self.y);
@@ -172,7 +179,7 @@ void LongUI::UIEdit::initialize(pugi::xml_node node) noexcept {
 }
 
 // UIEdit::CreateControl 函数
-LongUI::UIControl* LongUI::UIEdit::CreateControl(CreateEventType type, pugi::xml_node node) noexcept {
+auto LongUI::UIEdit::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl*  {
     // 分类判断
     UIEdit* pControl = nullptr;
     switch (type)
@@ -190,7 +197,7 @@ LongUI::UIControl* LongUI::UIEdit::CreateControl(CreateEventType type, pugi::xml
 }
 
 
-
+#if 0
 
 #if defined(_DEBUG)  && 1
 #define TRACE_FUCTION UIManager << DL_Log << L"Trace: called" << LongUI::endl
@@ -767,3 +774,4 @@ Trace:<TxDestroyCaret> called
 Trace:<TxNotify> called
 Trace:<TxShowCaret> called
 */
+#endif

@@ -24,6 +24,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIControl.h"
+#include "../Component/Text.h"
 
 // LongUI namespace
 namespace LongUI {
@@ -53,7 +55,7 @@ namespace LongUI {
         void render_chain_foreground() const noexcept;
     public:
         // create 创建
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // ctor: cp- parent in contorl-level
         UIText(UIContainer* cp) noexcept : Super(cp) {}
     protected:

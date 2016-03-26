@@ -226,7 +226,7 @@ namespace LongUI { namespace Component {
         // changed event
         UICallBack              m_evChanged;
         // render target
-        ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;
+        //ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;
         // selection brush
         ID2D1SolidColorBrush*   m_pSelectionColor = nullptr;
         // host control
@@ -234,9 +234,9 @@ namespace LongUI { namespace Component {
         // color state
         D2D1_COLOR_F*           m_pColor = this->color + State_Normal;
         // drop source
-        CUIDropSource*          m_pDropSource = CUIDropSource::New();
+        //CUIDropSource*          m_pDropSource = CUIDropSource::New();
         // drop source
-        CUIDataObject*          m_pDataObject = CUIDataObject::New();
+        //CUIDataObject*          m_pDataObject = CUIDataObject::New();
         // click start point
         D2D1_POINT_2F           m_ptStart = D2D1::Point2F();
         // size of this

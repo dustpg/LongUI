@@ -24,6 +24,9 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIText.h"
+#include "../Component/Element.h"
+
 // LongUI namespace
 namespace LongUI {
     // default button control 默认按钮控件
@@ -54,7 +57,7 @@ namespace LongUI {
         void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
     public:
         // create 创建
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
         UIButton(UIContainer* cp) noexcept : Super(cp) {}
         // get state

@@ -1,4 +1,5 @@
-﻿#include "LongUI.h"
+﻿#include <Control/UISlider.h>
+#include <Core/luiManager.h>
 
 // UISlider 背景渲染
 void LongUI::UISlider::render_chain_background() const noexcept {
@@ -190,7 +191,9 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // 禁用状态禁用鼠标消息
     if (!this->GetEnabled()) return true;
     // 坐标转换
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, arg.pt);
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
+        this->world, D2D1::Point2F(arg.ptx,  arg.pty)
+        );
     bool nocontinued = false;
     // 分类
     switch (arg.event)
@@ -204,7 +207,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         break;
     case  LongUI::MouseEvent::Event_MouseMove:
         // 点中并且移动
-        if (UIInput.IsKeyPressed(VK_LBUTTON)) {
+        if (UIInput.IsMbPressed(UIInput.MB_L)) {
             if (m_bMouseClickIn) {
                 // 获取基本值
                 if (this->IsVerticalSlider()) {

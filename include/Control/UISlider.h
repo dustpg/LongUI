@@ -24,6 +24,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIControl.h"
+#include "../Component/Element.h"
 
 // LongUI namespace
 namespace LongUI {
@@ -55,7 +57,7 @@ namespace LongUI {
         void render_chain_foreground() const noexcept;
     public:
         // create 创建
-        static UIControl* WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept;
+        static auto CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
         UISlider(UIContainer* cp) noexcept : Super(cp) { }
     private:

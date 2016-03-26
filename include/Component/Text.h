@@ -24,10 +24,16 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "../luibase.h"
+#include "../luiconf.h"
+#include "../Platless/luiPlEzC.h"
+#include "../LongUI/luiUiTxtRdr.h"
+#include "../Graphics/luiGrDwrt.h"
+
 // longui::component namespace
 namespace LongUI { namespace Component {
     // component: short text
-    class LongUIAPI ShortText {
+    class ShortText {
     public:
         // recreate layout
         void RecreateLayout() noexcept;
@@ -96,7 +102,7 @@ namespace LongUI { namespace Component {
         // basic color
         D2D1_COLOR_F*               m_pColor = this->color + State_Normal;
         // the text config
-        FormatTextConfig            m_config;
+        DX::FormatTextConfig        m_config;
         // the string of text
         CUIString                   m_text;
         // context buffer for text renderer

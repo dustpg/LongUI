@@ -24,6 +24,9 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIText.h"
+#include "../Component/Element.h"
+
 // LongUI namespace
 namespace LongUI {
     // default RadioButton control 默认单选框控件
@@ -77,7 +80,7 @@ namespace LongUI {
         void uncheck_checked_and_check_this() noexcept;
     public:
         // create 创建
-        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
         UIRadioButton(UIContainer* cp) noexcept : Super(cp) {}
     protected:

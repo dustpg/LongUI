@@ -24,6 +24,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIControl.h"
+#include "../Component/EditaleText.h"
 
 // LongUI namespace
 namespace LongUI {
@@ -57,7 +59,7 @@ namespace LongUI {
         void render_chain_foreground() const noexcept;
     public:
         // create this
-        static UIControl* WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept;
+        static auto CreateControl(CreateEventType, pugi::xml_node) noexcept -> UIControl*;
         // constructor 构造函数
         UIEdit(UIContainer* cp) noexcept : Super(cp), m_text(this) { }
     protected:

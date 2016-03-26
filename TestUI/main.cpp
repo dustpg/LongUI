@@ -1,7 +1,10 @@
 ﻿#if 1
-#define LONGUI_WITH_DEFAULT_HEADER
 #define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
+#include "Control/UISlider.h"
+#include "Control/UICheckBox.h"
+#include "Control/UIPage.h"
+#include "Control/UIList.h"
 
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
@@ -138,7 +141,7 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window textantimode="cleartype" size="800, 600" name="MainWindow" debugshow="true"
-    autoshow="false" clearcolor="1, 1, 1, 0.95" popup="false">
+    autoshow="false" clearcolor="1, 1, 1, 0.95" titlename="A_LongUI">
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <Page name="pg_1" animationduration="0.5">
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2"/>
@@ -166,7 +169,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Slider name="sld_opacity" thumbsize="32,32" margin="4,4,4,4"/>
     </Single>
     <Single templatesize="256, 0">
-        <CheckBox text="卧槽" margin="4,4,4,4"/>
+        <CheckBox animationduration="0.5" text="卧槽" margin="4,4,4,4"/>
     </Single>
 </Window>
 )xml";
@@ -305,7 +308,7 @@ private:
 private:
 };
 
-
+#if 0
 // Test Video Control
 class UIVideoAlpha : public LongUI::UIControl {
     // super class define
@@ -314,7 +317,7 @@ class UIVideoAlpha : public LongUI::UIControl {
     virtual void cleanup() noexcept override { this->before_deleted(); delete this; };
 public:
     // create 创建
-    static UIControl* WINAPI CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
+    static UIControl* CreateControl(LongUI::CreateEventType type, pugi::xml_node node) noexcept {
         // 分类判断
         UIVideoAlpha* pControl = nullptr;
         switch (type)
@@ -401,6 +404,7 @@ protected:
     // video
     LongUI::Component::MMFVideo         m_video;
 };
+#endif
 
 // 本Demo的配置信息
 class DemoConfigure final : public LongUI::CUIDefaultConfigure {
@@ -435,7 +439,6 @@ public:
     }
     // 添加自定义控件
     auto RegisterSome() noexcept ->void override {
-        m_manager.RegisterControlClass(UIVideoAlpha::CreateControl, "Video");
         /*if (m_hDll) {
         auto func = reinterpret_cast<LongUI::CreateControlFunction>(
         ::GetProcAddress(m_hDll, "LongUICreateControl")

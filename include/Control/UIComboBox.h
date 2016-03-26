@@ -24,8 +24,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIButton.h"
+
 // LongUI namespace
 namespace LongUI {
+    // list
+    class UIList;
     // default combo box control 默认组合框
     class UIComboBox : public UIButton {
         // 父类申明
@@ -58,7 +62,7 @@ namespace LongUI {
         void render_chain_foreground() const noexcept;
     public:
         // create 创建
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
         UIComboBox(UIContainer* cp) noexcept : Super(cp) { }
         // get state
@@ -92,7 +96,7 @@ namespace LongUI {
         // ui callback
         UICallBack                  m_eventChanged;
         // string buffer
-        CUIShortStringAllocator<>   m_strAllocator;
+        CUIShortStringAllocator     m_strAllocator;
         // strings
         StringList                  m_vItems;
         // selected index

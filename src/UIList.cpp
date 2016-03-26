@@ -1,4 +1,6 @@
-﻿#include "LongUI.h"
+﻿#include "Core/luiManager.h"
+#include "Control/UIList.h"
+#include "Control/UIText.h"
 #include <algorithm>
 
 // ----------------------------------------------------------------------------
@@ -33,11 +35,11 @@ void LongUI::UIList::initialize(pugi::xml_node node) noexcept {
         // 行模板
         if ((str = node.attribute("linetemplate").value())) {
             // 检查长度
-            auto len = Helper::MakeCC(str);
+            auto len = Helper::MakeCce(str);
             m_vLineTemplate.newsize(len);
             // 有效
             if (len && m_vLineTemplate.isok()) {
-                Helper::MakeCC(str, m_vLineTemplate.data());
+                Helper::MakeCce(str, m_vLineTemplate.data());
             }
             // 没有则给予警告
             else {
@@ -351,8 +353,8 @@ void LongUI::UIList::InsertNewElementToEachLine(uint32_t index, CreateControlEve
             }
         }
         // 插入模板
-        Helper::CC cc = { func, tid };
-        m_vLineTemplate.insert(index, cc);
+        Helper::Cce cce = { func, tid };
+        m_vLineTemplate.insert(index, cce);
     }
 }
 
@@ -415,18 +417,18 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
 bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // -------------------  L-Button Up  ---------------
     auto lbutton_up = [this, &arg]() noexcept {
-        auto index = this->find_line_index(arg.pt);
+        auto index = this->find_line_index(D2D1::Point2F(arg.ptx, arg.pty));
         // SHIFT优先
-        if (UIInput.IsKeyPressed(VK_SHIFT)) {
+        if (UIInput.IsKbPressed(UIInput.KB_SHIFT)) {
             this->SelectTo(m_ixLastClickedLine, index);
             return;
         }
         // 修改
         m_ixLastClickedLine = index;
         // UNCTRLed
-        bool unctrled = !(UIInput.IsKeyPressed(VK_CONTROL));
+        bool unctrled = !(UIInput.IsKbPressed(UIInput.KB_CONTROL));
         // 双击?
-        if (m_hlpDbClick.Click(arg.pt)) {
+        if (m_hlpDbClick.Click()) {
             UIManager << DL_Log << "DB Clicked" << LongUI::endl;
             this->CallUiEvent(m_callLineDBClicked, SubEvent::Event_ItemDbClicked);
         }
@@ -463,7 +465,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case LongUI::MouseEvent::Event_MouseHover:
         break;
     case LongUI::MouseEvent::Event_MouseMove:
-        m_pHoveredLine = this->find_line(arg.pt);
+        m_pHoveredLine = this->find_line(D2D1::Point2F(arg.ptx, arg.pty));
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
         break;
@@ -749,7 +751,7 @@ void LongUI::UIList::render_chain_background() const noexcept {
 // UIList: 主景渲染
 void LongUI::UIList::render_chain_main() const noexcept {
     // 渲染帮助器
-    Super::RenderHelper(this->begin(), this->end());
+    Super::RenderHelper(UIManager_RenderTarget, this->begin(), this->end());
     // 父类主景
     Super::render_chain_main();
 }
@@ -880,7 +882,7 @@ void LongUI::UIListLine::Update() noexcept {
                 force_cast(ctrl->flags) &= (~Flag_WidthFixed);
             }
         }
-        Super::Update();
+        Super::AfterUpdate();
         // 添加属性
         for (auto ctrl : (*this)) {
             force_cast(ctrl->flags) |= Flag_WidthFixed;
@@ -975,7 +977,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
     auto get_sep_hovered_control = [this, &arg]() noexcept {
         auto realsep = m_fSepwidth * this->world._11 * this->GetZoomX();
         // 区间修正
-        float data[2] = { arg.pt.x, arg.pt.x };
+        float data[2] = { arg.ptx, arg.ptx };
         data[realsep < 0.f] -= realsep;
         // 循环查找
         auto index = 0ui32;
@@ -995,7 +997,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         // 遍历子控件
         for (auto ctrl : (*this)) {
             // 悬浮在鼠标处
-            if (IsPointInRect(ctrl->visible_rect, arg.pt)) {
+            if (IsPointInRect(ctrl->visible_rect, D2D1::Point2F(arg.ptx, arg.pty))) {
                 // 没有设置
                 if (!ctrl->TestParentState()) {
                     // 设置点击事件
@@ -1016,13 +1018,13 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
             // 设置光标
             m_pWindow->SetCursor(Cursor::Cursor_SizeWE);
             // 拖拽刷新
-            if (m_pSepHovered && UIInput.IsKeyPressed(VK_LBUTTON)) {
-                auto distance = arg.pt.x - m_fLastMousePosX;
+            if (m_pSepHovered && UIInput.IsMbPressed(UIInput.MB_L)) {
+                auto distance = arg.ptx - m_fLastMousePosX;
                 distance *= m_pSepHovered->world._11;
                 auto tarwidth = m_pSepHovered->GetWidth() + distance;
                 // 有效
                 if (tarwidth > m_fLineHeight) {
-                    m_fLastMousePosX = arg.pt.x;
+                    m_fLastMousePosX = arg.ptx;
                     m_pSepHovered->SetWidth(m_pSepHovered->GetWidth() + distance);
                     longui_cast<LongUI::UIList*>(this->parent)->SetElementWidth(m_indexSepHovered, tarwidth);
                     m_pWindow->Invalidate(this->parent);
@@ -1060,7 +1062,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
             if (hover_sep) {
                 m_pSepHovered = hover_sep;
                 m_pWindow->SetCapture(this);
-                m_fLastMousePosX = arg.pt.x;
+                m_fLastMousePosX = arg.ptx;
             }
             else {
                 // 设置排序
@@ -1122,7 +1124,7 @@ auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node no
 // ----------------------------------------------------------------------------
 // --------------------------------- Menu -------------------------------------
 // ----------------------------------------------------------------------------
-
+#if 0
 // 摧毁弹出菜单
 void LongUI::CUIMenu::Destroy() noexcept {
     if (m_hMenu) {
@@ -1183,3 +1185,4 @@ void LongUI::CUIMenu::Show(HWND parent, POINT* OPTIONAL pos) noexcept {
         m_pItemProc(index);
     }
 }
+#endif

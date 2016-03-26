@@ -24,6 +24,9 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "UIText.h"
+#include "../Component/Element.h"
+
 // LongUI namespace
 namespace LongUI {
     // default checkBox control 默认复选框控件
@@ -74,7 +77,7 @@ namespace LongUI {
         }
     public:
         // create 创建
-        static auto WINAPI CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
         // constructor 构造函数
         UICheckBox(UIContainer* cp) noexcept : Super(cp) {}
     protected:

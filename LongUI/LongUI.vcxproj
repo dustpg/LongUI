@@ -114,7 +114,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)$(Platform)\$(Configuration)\CppAllInOne.exe  $(SolutionDir)src\ _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -131,7 +132,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)$(Platform)\$(Configuration)\CppAllInOne.exe  $(SolutionDir)src\ _LongUIAllInOne.cpp LongUI.h algorithm dcomp.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -140,123 +142,71 @@
     <ClInclude Include="..\include\Component\Element.h" />
     <ClInclude Include="..\include\Component\Text.h" />
     <ClInclude Include="..\include\Component\Video.h" />
-    <ClInclude Include="..\include\Control\Container\UIContainerBuiltIn.h" />
-    <ClInclude Include="..\include\Control\Container\UIMenu.h" />
-    <ClInclude Include="..\include\Control\Container\UIViewport.h" />
-    <ClInclude Include="..\include\Control\Layout\UIFloatLayout.h" />
-    <ClInclude Include="..\include\Control\Layout\UILinearLayout.h" />
-    <ClInclude Include="..\include\Control\Layout\UIList.h" />
-    <ClInclude Include="..\include\Control\Layout\UIPage.h" />
-    <ClInclude Include="..\include\Control\Layout\UISingle.h" />
     <ClInclude Include="..\include\Control\UIButton.h" />
     <ClInclude Include="..\include\Control\UICheckBox.h" />
     <ClInclude Include="..\include\Control\UIComboBox.h" />
+    <ClInclude Include="..\include\Control\UIContainerBuiltIn.h" />
+    <ClInclude Include="..\include\Control\UIControl.h" />
     <ClInclude Include="..\include\Control\UIEdit.h" />
+    <ClInclude Include="..\include\Control\UIFloatLayout.h" />
+    <ClInclude Include="..\include\Control\UILinearLayout.h" />
+    <ClInclude Include="..\include\Control\UIList.h" />
+    <ClInclude Include="..\include\Control\UIMarginalable.h" />
+    <ClInclude Include="..\include\Control\UIPage.h" />
     <ClInclude Include="..\include\Control\UIRadioButton.h" />
-    <ClInclude Include="..\include\Control\UIRichEdit.h" />
     <ClInclude Include="..\include\Control\UIScrollBar.h" />
+    <ClInclude Include="..\include\Control\UISingle.h" />
     <ClInclude Include="..\include\Control\UISlider.h" />
     <ClInclude Include="..\include\Control\UIText.h" />
-    <ClInclude Include="..\include\Core\UIContainer.h" />
-    <ClInclude Include="..\include\Core\UIControl.h" />
-    <ClInclude Include="..\include\Core\UIInterface.h" />
-    <ClInclude Include="..\include\Core\UIManager.h" />
-    <ClInclude Include="..\include\Core\UIMarginalable.h" />
-    <ClInclude Include="..\include\Core\UIString.h" />
-    <ClInclude Include="..\include\Core\Window.h" />
+    <ClInclude Include="..\include\Control\UIViewport.h" />
+    <ClInclude Include="..\include\Core\luiInterface.h" />
+    <ClInclude Include="..\include\Core\luiManager.h" />
+    <ClInclude Include="..\include\Core\luiString.h" />
+    <ClInclude Include="..\include\Core\luiWindow.h" />
+    <ClInclude Include="..\include\Graphics\luiGrAnim.h" />
+    <ClInclude Include="..\include\Graphics\luiGrD2d.h" />
+    <ClInclude Include="..\include\Graphics\luiGrDwrt.h" />
+    <ClInclude Include="..\include\Graphics\luiGrHlper.h" />
+    <ClInclude Include="..\include\Graphics\luiGrSvg.h" />
+    <ClInclude Include="..\include\Graphics\luiGrUtil.h" />
+    <ClInclude Include="..\include\Graphics\luiGrWic.h" />
+    <ClInclude Include="..\include\Graphics\luiGrColor.h" />
     <ClInclude Include="..\include\LongUI.h" />
-    <ClInclude Include="..\include\longuiconf.h" />
-    <ClInclude Include="..\include\Util\UIAnimation.h" />
-    <ClInclude Include="..\include\Util\UIDataObject.h" />
-    <ClInclude Include="..\include\Util\UIDropSource.h" />
-    <ClInclude Include="..\include\Util\UIInlineObject.h" />
-    <ClInclude Include="..\include\Util\UIInput.h" />
-    <ClInclude Include="..\include\Util\UITextRenderer.h" />
-    <ClInclude Include="..\include\Util\UIUtilClass.h" />
-    <ClInclude Include="..\include\Util\UIUtilDX.h" />
-    <ClInclude Include="..\include\Util\UIUtilEzContainer.h" />
-    <ClInclude Include="..\include\Util\UIUtilHelper.h" />
-    <ClInclude Include="..\include\Util\UIUtilMethod.h" />
-    <ClInclude Include="..\include\Util\UIUtilSvg.h" />
+    <ClInclude Include="..\include\LongUI\luiUiDConf.h" />
+    <ClInclude Include="..\include\LongUI\luiUiConsl.h" />
+    <ClInclude Include="..\include\LongUI\luiUiHlper.h" />
+    <ClInclude Include="..\include\LongUI\luiUiInput.h" />
+    <ClInclude Include="..\include\LongUI\luiUiMeta.h" />
+    <ClInclude Include="..\include\LongUI\luiUiStrAl.h" />
+    <ClInclude Include="..\include\LongUI\luiUiTxtRdr.h" />
+    <ClInclude Include="..\include\LongUI\luiUiXml.h" />
+    <ClInclude Include="..\include\luibase.h" />
+    <ClInclude Include="..\include\luiconf.h" />
+    <ClInclude Include="..\include\Platless\luiPlEzC.h" />
+    <ClInclude Include="..\include\Platless\luiPlHlper.h" />
+    <ClInclude Include="..\include\Platless\luiPlUtil.h" />
+    <ClInclude Include="..\include\Platonly\luiPoHlper.h" />
+    <ClInclude Include="..\include\Platonly\luiPoUtil.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\ComponentImpl.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\ContainerImpl.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\ControlCore.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\ControlImpl1.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\InlineObjImpl.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\luiUnicode.cpp" />
-    <ClCompile Include="..\src\main.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\ControlImpl2.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIEdit.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIList.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIManager.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\luiResourceLoader.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIScrollBar.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UISlider.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIUtil.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIUtil2.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIUtilDX.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\UIUtilSvg.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\Window.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\src\_LongUIAllInOne.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\src\luiComponent.cpp" />
+    <ClCompile Include="..\src\luiDx.cpp" />
+    <ClCompile Include="..\src\luiInStrCon.cpp" />
+    <ClCompile Include="..\src\luiResLoader.cpp" />
+    <ClCompile Include="..\src\UIContainers.cpp" />
+    <ClCompile Include="..\src\UICtrlCR.cpp" />
+    <ClCompile Include="..\src\UICtrCBT.cpp" />
+    <ClCompile Include="..\src\luiManager.cpp" />
+    <ClCompile Include="..\src\luiPlatless.cpp" />
+    <ClCompile Include="..\src\luiPlatonly.cpp" />
+    <ClCompile Include="..\src\UIControl.cpp" />
+    <ClCompile Include="..\src\luiUiXml.cpp" />
+    <ClCompile Include="..\src\luiWindow.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\UIEdit.cpp" />
+    <ClCompile Include="..\src\UIList.cpp" />
+    <ClCompile Include="..\src\UIScrollBar.cpp" />
+    <ClCompile Include="..\src\UISlider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="longui.natvis" />

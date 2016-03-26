@@ -1,20 +1,23 @@
-﻿#include "LongUI.h"
+﻿#include <Core/luiManager.h>
+#include <Graphics/luiGrUtil.h>
+#include <Platless/luiPlEzC.h>
+#include <LongUI/luiUiHlper.h>
 
+static_assert(sizeof(bool) == sizeof(char), "really bad, unsupported!");
 
-static_assert(sizeof(std::atomic_bool) == sizeof(char), "really bad");
 #define InitStaticVar(v)  decltype(v) v = nullptr
 // 初始化静态变量
 
+#if 0
 InitStaticVar(LongUI::UIRichEdit::IID_ITextServices2);
 InitStaticVar(LongUI::UIRichEdit::CreateTextServices);
 InitStaticVar(LongUI::UIRichEdit::ShutdownTextServices);
-InitStaticVar(LongUI::Dll::D3D11CreateDevice);
+#endif
 InitStaticVar(LongUI::Dll::D2D1CreateFactory);
 InitStaticVar(LongUI::Dll::DCompositionCreateDevice);
 InitStaticVar(LongUI::Dll::D2D1InvertMatrix);
 InitStaticVar(LongUI::Dll::D2D1MakeSkewMatrix);
 InitStaticVar(LongUI::Dll::D2D1IsMatrixInvertible);
-InitStaticVar(LongUI::Dll::DWriteCreateFactory);
 InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
 
@@ -91,9 +94,12 @@ namespace LongUI {
     };
 }
 
-#include <VersionHelpers.h>
 // longui
 namespace LongUI {
+    // load proc
+    template<typename T> inline auto LoadProc(T& pointer, HMODULE dll, const char* name) noexcept {
+        pointer = reinterpret_cast<T>(::GetProcAddress(dll, name));
+    }
     // 安全释放
     //inline auto SafeFreeLibrary(HMODULE& dll) noexcept { if (dll) ::FreeLibrary(dll);  dll = nullptr; }
     // 安全释放
@@ -106,21 +112,21 @@ namespace LongUI {
             PROCESS_PER_MONITOR_DPI_AWARE = 2
         } PROCESS_DPI_AWARENESS;
         // SetProcessDpiAwareness
-        static HRESULT STDAPICALLTYPE SetProcessDpiAwarenessF(PROCESS_DPI_AWARENESS);
+        using SetProcessDpiAwarenessT = HRESULT(STDAPICALLTYPE*) (PROCESS_DPI_AWARENESS);
     public:
         // ctor
         InitializeLibrary() noexcept {
             this->load_shcore();
+#if 0
             LongUI::LoadProc(LongUI::UIRichEdit::IID_ITextServices2, m_hDllMsftedit, "IID_ITextServices2");
             LongUI::LoadProc(LongUI::UIRichEdit::CreateTextServices, m_hDllMsftedit, "CreateTextServices");
             LongUI::LoadProc(LongUI::UIRichEdit::ShutdownTextServices, m_hDllMsftedit, "ShutdownTextServices");
+#endif
             LongUI::LoadProc(LongUI::Dll::DCompositionCreateDevice, m_hDlldcomp, "DCompositionCreateDevice");
             LongUI::LoadProc(LongUI::Dll::D2D1CreateFactory, m_hDlld2d1, "D2D1CreateFactory");
             LongUI::LoadProc(LongUI::Dll::D2D1MakeSkewMatrix, m_hDlld2d1, "D2D1MakeSkewMatrix");
             LongUI::LoadProc(LongUI::Dll::D2D1InvertMatrix, m_hDlld2d1, "D2D1InvertMatrix");
             LongUI::LoadProc(LongUI::Dll::D2D1IsMatrixInvertible, m_hDlld2d1, "D2D1IsMatrixInvertible");
-            LongUI::LoadProc(LongUI::Dll::D3D11CreateDevice, m_hDlld3d11, "D3D11CreateDevice");
-            LongUI::LoadProc(LongUI::Dll::DWriteCreateFactory, m_hDlldwrite, "DWriteCreateFactory");
             LongUI::LoadProc(LongUI::Dll::CreateDXGIFactory1, m_hDlldxgi, "CreateDXGIFactory1");
         };
         //
@@ -136,39 +142,30 @@ namespace LongUI {
     private:
         // load for Shcore
         void load_shcore() noexcept {
-            if (!LongUI::IsWindows10OrGreater()) {
-                ::MessageBoxA(nullptr, "Windows10 at least!", "Unsupported System", MB_ICONERROR);
-                ::ExitProcess(1);
-                return;
-            }
             m_hDllShcore = ::LoadLibraryW(L"Shcore.dll");
-            assert(m_hDllShcore);
-            if (m_hDllShcore) {
-                auto setProcessDpiAwareness =
-                    reinterpret_cast<decltype(&InitializeLibrary::SetProcessDpiAwarenessF)>(
-                        ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness")
-                        );
-                assert(setProcessDpiAwareness);
-                if (setProcessDpiAwareness) {
-                    setProcessDpiAwareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
-                }
+            if (!m_hDllShcore) return;
+            auto func = ::GetProcAddress(m_hDllShcore, "SetProcessDpiAwareness");
+            // 调用
+            if (func) {
+                auto set_process_dpi_awareness = reinterpret_cast<SetProcessDpiAwarenessT>(func);
+                set_process_dpi_awareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
             }
         }
     private:
         // Msftedit
-        HMODULE     m_hDllMsftedit = ::LoadLibraryW(L"Msftedit.dll");
+        HMODULE     m_hDllMsftedit  = ::LoadLibraryW(L"Msftedit.dll");
         // dcomp
-        HMODULE     m_hDlldcomp = ::LoadLibraryW(L"dcomp.dll");
+        HMODULE     m_hDlldcomp     = ::LoadLibraryW(L"dcomp.dll");
         // d2d1
-        HMODULE     m_hDlld2d1 = ::LoadLibraryW(L"d2d1.dll");
+        HMODULE     m_hDlld2d1      = ::LoadLibraryW(L"d2d1.dll");
         // d3d11
-        HMODULE     m_hDlld3d11 = ::LoadLibraryW(L"d3d11.dll");
+        HMODULE     m_hDlld3d11     = ::LoadLibraryW(L"d3d11.dll");
         // dwrite
-        HMODULE     m_hDlldwrite = ::LoadLibraryW(L"dwrite.dll");
+        HMODULE     m_hDlldwrite    = ::LoadLibraryW(L"dwrite.dll");
         // dxgi
-        HMODULE     m_hDlldxgi = ::LoadLibraryW(L"dxgi.dll");
+        HMODULE     m_hDlldxgi      = ::LoadLibraryW(L"dxgi.dll");
         // Shcore
-        HMODULE     m_hDllShcore = nullptr;
+        HMODULE     m_hDllShcore    = nullptr;
     } instance;
 }
 
@@ -214,4 +211,7 @@ LongUI::CUIManager          LongUI::CUIManager::s_instance;
 #if defined(_MSC_VER)
 #pragma comment(lib, "winmm")
 #pragma comment(lib, "dxguid")
+#pragma comment(lib, "Dwrite")
+#pragma comment(lib, "D3D11")
+#pragma comment(lib, "Mfplat")
 #endif
