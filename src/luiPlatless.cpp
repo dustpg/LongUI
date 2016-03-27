@@ -5,10 +5,6 @@
 
 // longui::implnamespace
 namespace LongUI { namespace impl {
-    // white space
-    template<typename T> inline auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
-    // valid digit
-    template<typename T> inline auto valid_digit(T c) noexcept { return ((c) >= '0' && (c) <= '9'); }
     // char32 to char 16
     inline auto char32_to_char16(char32_t ch, char16_t* str) noexcept -> char16_t* {
         assert(str && "bad argment");
@@ -25,8 +21,8 @@ namespace LongUI { namespace impl {
     }
     // 2x char16 to char32
     inline auto char16x2_to_char32(char16_t lead, char16_t trail) noexcept -> char32_t {
-        assert((lead & 0xD800) == 0xD800 && "illegal utf-16 char");
-        assert((trail & 0xDC00) == 0xDC00 && "illegal utf-16 char");
+        assert(IsHighSurrogate(lead) && "illegal utf-16 char");
+        assert(IsLowSurrogate(trail) && "illegal utf-16 char");
         return char32_t((lead-0xD800) << 10 | (trail-0xDC00)) + (0x10000);
     };
     // 反弹渐出
@@ -264,8 +260,8 @@ namespace LongUI {
                 length += 1;
             }
             // 四字节区
-            else if ((ch & 0xD800) == 0xD800) {
-                assert((src[0] & 0xDC00) == 0xDC00 && "illegal utf-8");
+            else if (LongUI::IsHighSurrogate(ch)) {
+                assert(IsHighSurrogate(src[0]) && "illegal utf-8");
                 src += 1;
                 length += 4;
             }

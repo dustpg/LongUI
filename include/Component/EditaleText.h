@@ -24,6 +24,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "../luibase.h"
+#include "../luiconf.h"
+#include "../Graphics/luiGrDwrt.h"
+#include "../Core/luiString.h"
+#include "../Platless/luiPlEzC.h"
+#include "../LongUI/luiUiTxtRdr.h"
+#include <cstdint>
 
 // longui::component namespace
 namespace LongUI { namespace Component {
@@ -128,7 +135,7 @@ namespace LongUI { namespace Component {
         // recreate layout without format
         void recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); LongUI::SafeRelease(fmt); }
         // insert text
-        auto insert(uint32_t pos, const wchar_t* str, uint32_t length) noexcept ->HRESULT;
+        auto insert(uint32_t pos, const wchar_t* str, /*in out*/uint32_t& length) noexcept ->HRESULT;
     public: // 一般内部设置区
         // get selection range
         auto GetSelectionRange()const noexcept ->DWRITE_TEXT_RANGE;
@@ -139,6 +146,10 @@ namespace LongUI { namespace Component {
         // set selection
         bool SetSelectionFromPoint(float x, float y, bool extendSelection) noexcept;
     public: // Event
+        // set interger
+        void SetNumber(int32_t i) noexcept;
+        // set interger
+        auto GetNumber() const noexcept -> int32_t;
         // when drop
         bool OnDrop(IDataObject* data, DWORD* effect) noexcept {
             UNREFERENCED_PARAMETER(data); UNREFERENCED_PARAMETER(effect);
@@ -196,6 +207,8 @@ namespace LongUI { namespace Component {
             OUT uint32_t* linePositionOut
             ) noexcept;
     private:
+        // ensure string
+        void ensure_string(CUIString& str) noexcept;
         // remove text
         auto remove_text(uint32_t off, uint32_t len) noexcept {
             this->IsReadOnly() ? LongUI::BeepError() : m_string.Remove(off, len);
@@ -225,6 +238,10 @@ namespace LongUI { namespace Component {
         UICallBack              m_evReturn;
         // changed event
         UICallBack              m_evChanged;
+        // min numbder
+        int32_t                 m_iMin = -1'000'000;
+        // max numbder
+        int32_t                 m_iMax = 1'000'000;
         // render target
         //ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;
         // selection brush
@@ -272,20 +289,3 @@ namespace LongUI { namespace Component {
         D2D1_COLOR_F            color[STATE_COUNT];
     };
 }}
-
-// longui namespace
-namespace LongUI { 
-    // Needed text editor backspace deletion.
-    inline bool IsSurrogate(uint32_t ch) noexcept {
-        // 0xD800 <= ch <= 0xDFFF
-        return (ch & 0xF800) == 0xD800;
-    }
-    inline bool IsHighSurrogate(uint32_t ch) noexcept {
-        // 0xD800 <= ch <= 0xDBFF
-        return (ch & 0xFC00) == 0xD800;
-    }
-    inline bool IsLowSurrogate(uint32_t ch) noexcept {
-        // 0xDC00 <= ch <= 0xDFFF
-        return (ch & 0xFC00) == 0xDC00;
-    }
-}

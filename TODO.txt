@@ -12,7 +12,6 @@
     PRPR: 完成UIRadioButton
     PRPR: 分离UIWindow
     PRPR: 规范化消息架构
-    TODO: 一个平台无关的源文件
     TODO: 实现挂件?
     TODO: 完成UIEdit
     TODO: 完成UITab

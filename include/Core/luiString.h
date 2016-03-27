@@ -72,6 +72,14 @@ namespace LongUI {
         // On Out of Memory
         void OnOOM() noexcept;
     public: // std::string compatibled interface/method
+        // begin
+        auto begin() noexcept { return m_pString; }
+        // end
+        auto end() noexcept { return m_pString + m_cLength; }
+        // begin - const
+        const auto* begin() const noexcept { return m_pString; }
+        // end - const
+        const auto* end() const noexcept { return m_pString + m_cLength; }
         // is empty?
         auto empty() const noexcept { return !m_cLength; }
         // reserve
@@ -106,6 +114,8 @@ namespace LongUI {
     public: // std::string compatibled interface/method
         // assign: overload for [const wchar_t* + len]
         auto&assign(const wchar_t* str, uint32_t count) noexcept { this->Set(str, count); return *this; }
+        // assign: overload for [const wchar_t* + len]
+        auto&assign(const wchar_t* str, const wchar_t* end) noexcept { this->Set(str, uint32_t(end-str)); return *this; }
         // assign: overload for [const wchar_t*]
         auto&assign(const wchar_t* str) noexcept { this->Set(str); return *this; }
         // assign: overload for [const wchar_t]

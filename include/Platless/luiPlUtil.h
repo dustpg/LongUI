@@ -29,16 +29,22 @@
 
 // longui namespace
 namespace LongUI {
+    // white space
+    template<typename T> inline auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
+    // valid digit
+    template<typename T> inline auto valid_digit(T c) noexcept { return ((c) >= '0' && (c) <= '9'); }
+    // 0xD800 <= ch <= 0xDFFF
+    inline bool IsSurrogate(char16_t ch) noexcept { return (ch & 0xF800) == 0xD800; }
+    // 0xD800 <= ch <= 0xDBFF
+    inline bool IsHighSurrogate(char16_t ch) noexcept { return (ch & 0xFC00) == 0xD800; }
+    // 0xDC00 <= ch <= 0xDFFF
+    inline bool IsLowSurrogate(char16_t ch) noexcept { return (ch & 0xFC00) == 0xDC00; }
     // hex -> int
     unsigned int Hex2Int(char c) noexcept;
     // lengthof
     template<typename R, typename T> constexpr auto lengthof(T& t) { return static_cast<R>(sizeof(t) / sizeof(*t)); }
     // lengthof
     template<typename T> constexpr auto lengthof(T& t) { return sizeof(t) / sizeof(*t); }
-    // white space
-    template<typename T> inline auto white_space(T c) noexcept { return ((c) == ' ' || (c) == '\t'); }
-    // valid digit
-    template<typename T> inline auto valid_digit(T c) noexcept { return ((c) >= '0' && (c) <= '9'); }
     // byte distance
     template<typename T, typename Y> auto bdistance(T* a, T* b) noexcept { reinterpret_cast<const char*>(b) - reinterpret_cast<const char*>(a); };
     // BKDR Hash

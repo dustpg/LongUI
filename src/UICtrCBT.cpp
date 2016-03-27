@@ -1,6 +1,7 @@
 ﻿#include "Core/luiManager.h"
 #include "Control/UIComboBox.h"
 #include "Control/UIList.h"
+#include "Control/UIScrollBar.h"
 
 #ifdef LongUIDebugEvent
 #include "Control/UIEdit.h"
@@ -9,7 +10,6 @@
 #include "Control/UISingle.h"
 #include "Control/UICheckBox.h"
 #include "Control/UIRadioButton.h"
-#include "Control/UIScrollBar.h"
 #include "Control/UIFloatLayout.h"
 #endif
 #include <algorithm>

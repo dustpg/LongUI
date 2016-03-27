@@ -158,8 +158,8 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </ComboBox>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
-        <Edit borderwidth="1" textformat="1" text="这个"/>
-        <Edit borderwidth="1" text="这个"/>
+        <Edit name="edt1" textnumber="true" borderwidth="1" textformat="1" text="0这1😂个2"/>
+        <Edit name="edt2" borderwidth="1" text="这个"/>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
         <RadioButton text="单选A" checked="true"/>
@@ -229,6 +229,11 @@ public:
     MainWindow(LongUI::XUIBaseWindow* window) : Super(window) { }
     // do some event
     virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
+    // closed? MessageBoxW是阻塞式函数, 会卡住窗口, 不推荐
+    virtual bool CanbeClosedNow() noexcept override {
+        //return ::MessageBoxW(m_pWindow->GetHwnd(), L"是否退出", L"提示", MB_OKCANCEL) == IDOK;
+        return true; 
+    }
 protected:
     // something must do before deleted
     void before_deleted() noexcept { Super::before_deleted(); }
@@ -239,6 +244,7 @@ private:
     virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     // init
     void init() {
+        LongUI::UIControl* ctrl = nullptr;
         auto slider = LongUI::longui_cast<LongUI::UISlider*>(m_pWindow->FindControl("sld_opacity"));
         if (slider) {
             auto window = m_pWindow;
@@ -249,7 +255,7 @@ private:
                 return true;
             }, LongUI::SubEvent::Event_ValueChanged);
         }
-        auto list = LongUI::longui_cast<LongUI::UIList*>(m_pWindow->FindControl("lst_01"));
+        /*auto list = LongUI::longui_cast<LongUI::UIList*>(m_pWindow->FindControl("lst_01"));
         if (list) {
             list->AddBeforSortCallBack([](LongUI::UIControl* list) {
                 for (auto line : static_cast<LongUI::UIList*>(list)->GetContainer()) {
@@ -260,28 +266,28 @@ private:
                 return true;
             });
         }
-        auto btn = m_pWindow->FindControl("btn_x1");
-        if (btn) {
-            auto ctrl1 = btn;
-            auto ctrl2 = btn->prev->prev;
-            btn->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
+        ctrl = m_pWindow->FindControl("btn_x1");
+        if (ctrl) {
+            auto ctrl1 = ctrl;
+            auto ctrl2 = ctrl->prev->prev;
+            ctrl->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
                 // 交换
                 this->SwapChild(LongUI::MakeIteratorBI(ctrl1), LongUI::MakeIteratorBI(ctrl2));
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        if ((btn = m_pWindow->FindControl("btn_x0"))) {
-            auto ctrl1 = btn;
-            auto ctrl2 = btn->prev;
-            btn->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
+        if ((ctrl = m_pWindow->FindControl("btn_x0"))) {
+            auto ctrl1 = ctrl;
+            auto ctrl2 = ctrl->prev;
+            ctrl->AddEventCall([ctrl1, ctrl2, this](UIControl*) noexcept {
                 // 交换
                 this->SwapChild(LongUI::MakeIteratorBI(ctrl1), LongUI::MakeIteratorBI(ctrl2));
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        if ((btn = m_pWindow->FindControl("btn_ind"))) {
+        if ((ctrl = m_pWindow->FindControl("btn_ind"))) {
             auto cbx = LongUI::longui_cast<LongUI::UICheckBox*>(m_pWindow->FindControl("cbx_0"));
-            btn->AddEventCall([cbx, this](UIControl*) noexcept {
+            ctrl->AddEventCall([cbx, this](UIControl*) noexcept {
                 auto stt = LongUI::CheckBoxState::State_Indeterminate;
                 if (cbx->GetCheckBoxState() == LongUI::CheckBoxState::State_Indeterminate) {
                     stt = LongUI::CheckBoxState::State_Unchecked;
@@ -289,21 +295,21 @@ private:
                 cbx->ForceSetCheckBoxState(stt);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
-        }
-        if ((btn = m_pWindow->FindControl("btn_p1"))) {
+        }*/
+        if ((ctrl = m_pWindow->FindControl("btn_p1"))) {
             auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
-            btn->AddEventCall([page1](UIControl*) noexcept {
+            ctrl->AddEventCall([page1](UIControl*) noexcept {
                 page1->DisplayNextPage(1ui32);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
-        if ((btn = m_pWindow->FindControl("btn_p2"))) {
-            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
-            btn->AddEventCall([page1](UIControl*) noexcept {
-                page1->DisplayNextPage(0ui32);
+        /*if ((ctrl = m_pWindow->FindControl("edt1"))) {
+            auto hwnd = m_pWindow->GetHwnd();
+            ctrl->AddEventCall([hwnd](UIControl* c) noexcept {
+                ::MessageBoxW(hwnd, L"Clicked", c->GetText(), MB_OK);
                 return true;
-            }, LongUI::SubEvent::Event_ItemClicked);
-        }
+            }, LongUI::SubEvent::Event_EditReturned);
+        }*/
     }
 private:
 };

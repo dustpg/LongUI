@@ -46,6 +46,9 @@ namespace LongUI {
         // recreate 重建
         virtual auto Recreate() noexcept ->HRESULT override;*/
     public:
+        // canbe closed now?
+        virtual bool CanbeClosedNow() noexcept { return true; }
+    public:
         // constructor
         UIViewport(XUIBaseWindow* window) noexcept;
         // create one without xml-node

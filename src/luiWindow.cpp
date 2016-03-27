@@ -10,6 +10,16 @@
 #include <algorithm>
 // D2D1::Point2F(arg.ptx, arg.pty)
 
+// longui::impl
+namespace LongUI { namespace impl {
+    // 2x char16 to char32
+    inline auto char16x2_to_char32(char16_t lead, char16_t trail) noexcept -> char32_t {
+        assert(IsHighSurrogate(lead) && "illegal utf-16 char");
+        assert(IsLowSurrogate(trail) && "illegal utf-16 char");
+        return char32_t((lead-0xD800) << 10 | (trail-0xDC00)) + (0x10000);
+    };
+}}
+
 /// <summary>
 /// Initializes a new instance of the <see cref="UIViewport"/> class.
 /// </summary>
@@ -1735,19 +1745,23 @@ namespace LongUI {
         static void RegisterWindowClass() noexcept;
     private:
         // swap chain
-        IDXGISwapChain2*        m_pSwapChain = nullptr;
+        IDXGISwapChain2*        m_pSwapChain    = nullptr;
         // target bitmap
         ID2D1Bitmap1*           m_pTargetBimtap = nullptr;
         // Direct Composition Device
-        IDCompositionDevice*    m_pDcompDevice = nullptr;
+        IDCompositionDevice*    m_pDcompDevice  = nullptr;
         // Direct Composition Target
-        IDCompositionTarget*    m_pDcompTarget = nullptr;
+        IDCompositionTarget*    m_pDcompTarget  = nullptr;
         // Direct Composition Visual
-        IDCompositionVisual*    m_pDcompVisual = nullptr;
+        IDCompositionVisual*    m_pDcompVisual  = nullptr;
         // now cursor
-        HCURSOR                 m_hNowCursor = ::LoadCursor(nullptr, IDC_ARROW);
+        HCURSOR                 m_hNowCursor    = ::LoadCursor(nullptr, IDC_ARROW);
         // caret
-        D2D1_RECT_F             m_rcCaret = D2D1::RectF();
+        D2D1_RECT_F             m_rcCaret       = D2D1::RectF();
+        // char for utf-32
+        char16_t                m_chUtf16 = 0;
+        // char for utf-32
+        uint16_t                m_unused_biwnd[3];
         // track mouse event: end with DWORD
         TRACKMOUSEEVENT         m_csTME;
 #ifdef _DEBUG
@@ -1999,9 +2013,20 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     {
         CUIDataAutoLocker locker;
         if (m_pFocusedControl) {
+            auto ch = static_cast<char16_t>(wParam);
             EventArgument arg;
+            if (LongUI::IsHighSurrogate(ch)) {
+                m_chUtf16 = ch;
+                return true;
+            }
+            else if (LongUI::IsLowSurrogate(ch)) {
+                arg.key.ch = impl::char16x2_to_char32(m_chUtf16, ch);
+                m_chUtf16 = 0;
+            }
+            else {
+                arg.key.ch = static_cast<char32_t>(wParam);
+            }
             arg.sender = m_pViewport;
-            arg.key.ch = static_cast<char32_t>(wParam);
             arg.event = Event::Event_Char;
             m_pFocusedControl->DoEvent(arg);
         }
@@ -2037,11 +2062,19 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     {
         // 加锁
         CUIDataAutoLocker locker;
-        if (this->is_exit_on_close()) {
-            UIManager.Exit();
+        // 允许退出
+        if (m_pViewport->CanbeClosedNow()) {
+            // 检查是否退出
+            if (this->is_exit_on_close()) {
+                UIManager.Exit();
+            }
+            this->Close();
+            return false;
         }
-        this->Close();
-        return false;
+        // 不允许退出
+        else {
+            return true;
+        }
     }
     default:
         return false;
@@ -2310,11 +2343,6 @@ void LongUI::CUIBuiltinSystemWindow::release_data() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIBuiltinSystemWindow::Update() noexcept {
-    if (UIInput.IsMbDown(CUIInput::MB_L)) {
-        UIManager << DL_Hint
-            << L"L-Button Down"
-            << endl;
-    }
     // 重置大小?
     if (this->is_new_size()) this->OnResized();
     // 父类

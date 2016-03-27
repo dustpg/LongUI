@@ -4,6 +4,7 @@
 #include <Component/Element.h>
 #include <Component/EditaleText.h>
 #include <Component/Text.h>
+#include <Platless/luiPlUtil.h>
 
 #undef LONGUI_WITH_MMFVIDEO
 #ifdef LONGUI_WITH_MMFVIDEO
@@ -239,16 +240,37 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
 
     // 插入字符(串)
-    auto EditaleText::insert(
-        uint32_t pos, const wchar_t * str, uint32_t length) noexcept -> HRESULT {
+    auto EditaleText::insert(uint32_t pos, const wchar_t * str, uint32_t& length) noexcept -> HRESULT {
         HRESULT hr = S_OK;
         // 只读
         if (this->IsReadOnly()) {
             LongUI::BeepError();
             return S_FALSE;
         }
-        // 插入字符
-        m_string.insert(pos, str, length);
+        // 输入数字
+        if (this->IsNumber()) {
+            auto& data = m_string;
+            LongUI::SafeBuffer<wchar_t>(length + 1, 
+            [pos, str, &data, &length](wchar_t* const buf) {
+                auto wrt = buf;
+                for (auto itr = str; itr != str + length; ++itr) {
+                    if (valid_digit(*itr)) {
+                        *wrt = *itr;
+                        ++wrt;
+                    }
+                }
+                length = uint32_t(wrt - buf);
+#ifdef _DEBUG
+                *wrt = 0;
+#endif
+                data.insert(pos, buf, length);
+            });
+            if (!length) return S_FALSE;
+        }
+        else {
+            // 插入字符
+            m_string.insert(pos, str, length);
+        }
         auto old_length = static_cast<uint32_t>(m_string.length());
         // 保留旧布局
         auto old_layout = LongUI::SafeAcquire(this->layout);
@@ -556,8 +578,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             return S_FALSE;
         }
     }
-
-
     // 设置选择区
     bool EditaleText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
         BOOL isTrailingHit;
@@ -639,7 +659,13 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // TODO: 连续On Char优化
         // 字符有效
         if ((ch >= 0x20 || ch == 9)) {
+            // 只读?
             if (this->IsReadOnly()) {
+                LongUI::BeepError();
+                return;
+            }
+            // 输入数字
+            if (this->IsNumber() && !valid_digit(ch)) {
                 LongUI::BeepError();
                 return;
             }
@@ -683,18 +709,21 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 回车键
             // 多行 - 键CRLF字符
             if (this->IsMultiLine()) {
-                this->DeleteSelection();
-                this->insert(absolutePosition, L"\r\n", 2);
-                this->SetSelection(SelectionMode::Mode_Leading, absolutePosition + 2, false, false);
-                // 修改
-                this->refresh();
+                if (!this->IsReadOnly()) {
+                    this->DeleteSelection();
+                    uint32_t len = 2;
+                    this->insert(absolutePosition, L"\r\n", len);
+                    this->SetSelection(SelectionMode::Mode_Leading, absolutePosition + len, false, false);
+                    // 修改
+                    this->refresh();
+                }
             }
             // 单行 - 向窗口发送输入完毕消息
             else {
-                // sb!
-                m_pHost->CallUiEvent(m_evReturn, SubEvent::Event_EditReturned);
                 // 取消焦点状态
                 m_pHost->GetWindow()->SetFocus(nullptr);
+                // sb!
+                m_pHost->CallUiEvent(m_evReturn, SubEvent::Event_EditReturned);
             }
             break;
         case VK_BACK:
@@ -707,13 +736,23 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 this->recreate_layout();
             }
             else if (absolutePosition > 0) {
-                UINT32 count = 1;
-                // 对于CR/LF 特别处理
+                uint32_t count = 1;
+                // 双字特别处理
                 if (absolutePosition >= 2 && absolutePosition <= m_string.size()) {
-                    auto* __restrict base = m_string.data() + absolutePosition;
-                    if (base[-2] == L'\r' && base[-1] == L'\n') {
-                        count = 2;
+                    auto* base = m_string.data() + absolutePosition;
+                    auto ch1 = base[-2];
+                    auto ch2 = base[-1];
+                    // 1.CR/LF
+                    bool case1 = ch1 == L'\r' && ch2 == L'\n';
+                    // 2.Surrogate
+                    bool case2 = LongUI::IsLowSurrogate(ch2);
+#ifdef _DEBUG
+                    if (case2) {
+                        assert(LongUI::IsHighSurrogate(ch1) && "illegal utf-16 char");
                     }
+#endif
+                    //count = (case1 || case2) + 1;
+                    count = (case1 || case2) ? 2 : 1;
                 }
                 // 左移
                 this->SetSelection(SelectionMode::Mode_LeftChar, count, false);
@@ -748,8 +787,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                     );
                 // CR-LF?
                 if (hitTestMetrics.textPosition + 2 < m_string.length()) {
-                    auto* __restrict base = m_string.data() + hitTestMetrics.textPosition;
-                    if (base[0] == L'\r' && base[1] == L'\n') {
+                    auto* base = m_string.data() + hitTestMetrics.textPosition;
+                    auto ch1 = base[0];
+                    auto ch2 = base[1];
+                    // 1.CR/LF
+                    if (ch1 == L'\r' && ch2 == L'\n') {
                         ++hitTestMetrics.length;
                     }
                 }
@@ -776,13 +818,23 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             break;
         case VK_UP:
             // 多行模式: 上移一行
-            if (this->IsMultiLine())
+            if (this->IsMultiLine()) {
                 this->SetSelection(SelectionMode::Mode_Up, 1, heldShift);
+            }
+            // 数字模式: +1
+            else if(this->IsNumber()){
+                this->SetNumber(this->GetNumber() + 1);
+            }
             break;
         case VK_DOWN:
             // 多行模式: 下移一行
-            if (this->IsMultiLine())
+            if (this->IsMultiLine()) {
                 this->SetSelection(SelectionMode::Mode_Down, 1, heldShift);
+            }
+            // 数字模式: -1
+            else if(this->IsNumber()){
+                this->SetNumber(this->GetNumber() - 1);
+            }
             break;
         case VK_HOME:
             // HOME键
@@ -835,10 +887,25 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
     // 当失去焦点时
     void EditaleText::OnKillFocus() noexcept {
+        // 校正数字输入
+        if (this->IsNumber()) {
+            const auto num = this->GetNumber();
+            auto num2 = std::max(num, m_iMin);
+            num2 = std::min(num, m_iMax);
+            if (num != num2) this->SetNumber(num2);
+        }
+        // 隐藏插入符号
         m_pHost->GetWindow()->HideCaret(m_pHost);
+        // 文本修改事件
         if (m_bTxtChanged) {
+#ifdef _DEBUG
+            UIManager << DL_Log
+                << L"Text Changed: "
+                << m_string
+                << LongUI::endl;
+#endif
             m_pHost->CallUiEvent(m_evChanged, SubEvent::Event_ValueChanged);
-            m_bTxtChanged = true;
+            m_bTxtChanged = false;
         }
     }
     // 左键弹起时
@@ -995,6 +1062,20 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 检查选择区
         this->RefreshSelectionMetrics(this->GetSelectionRange());
     }
+    // 设置数字
+    LongUINoinline void EditaleText::SetNumber(int32_t i) noexcept {
+        if (this->IsReadOnly()) return;
+        i = std::min(m_iMax, i);
+        i = std::max(m_iMin, i);
+        m_string.Format(L"%d", int(i));
+        this->recreate_layout();
+        this->SetSelection(SelectionMode::Mode_End, 0, false, false);
+        this->refresh(true);
+    }
+    // 读取数值
+    auto EditaleText::GetNumber() const noexcept -> int32_t {
+        return LongUI::AtoI(m_string.c_str());
+    }
     // 渲染
     void EditaleText::Render(float x, float y) const noexcept {
         x = this->offset.x + x;
@@ -1105,8 +1186,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // 从 剪切板 黏贴
     auto EditaleText::PasteFromClipboard() noexcept -> HRESULT {
         // 正式开始
-        HRESULT hr = S_OK;  //uint32_t characterCount = 0ui32;
-                            // 打开剪切板
+        HRESULT hr = S_OK;
+        //uint32_t characterCount = 0ui32;
+        // 打开剪切板
         if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
             // 获取富文本数据
             if (this->IsRiched()) {
@@ -1257,7 +1339,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         auto bool_attribute = [&node, prefix](const char* attr, bool def) {
             auto v = Helper::XMLGetValue(node, attr, prefix);
             if (!v) return def; auto ch = v[0];
-            return (ch == 't' || ch == 'T' || ch != '0');
+            return (ch == 't' || ch == 'T' || ch == '1');
         };
         const char* str = nullptr;
         // 检查类型
@@ -1275,9 +1357,17 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             if (bool_attribute("readonly", false)) {
                 tmptype |= Type_ReadOnly;
             }
-            // 加速键
+            // 只能输入数字
             if (bool_attribute("number", false)) {
                 tmptype |= Type_Number;
+                // 最大值
+                if ((str = attribute("max"))) {
+                    m_iMax = LongUI::AtoI(str);
+                }
+                // 最小值
+                if ((str = attribute("min"))) {
+                    m_iMin = LongUI::AtoI(str);
+                }
             }
             // 加速键
             /*if (bool_attribute("accelerator", false)) {
@@ -1301,6 +1391,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 获取Y偏移量
         if ((str = attribute("offsety"))) {
             this->offset.y = LongUI::AtoF(str);
+        }
+        // 最大输入长度
+        if ((str = attribute("maxlength"))) {
+            assert(!"NOIMPL");
         }
         // 获取渲染器
         {
@@ -1338,10 +1432,33 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             str = node.attribute(prefix).value();
             assert(m_string.length() == 0 && m_string.data()[0] == 0);
             m_string.FromUtf8(str);
+            this->ensure_string(m_string);
         }
         // 创建布局
         this->recreate_layout(fmt);
         LongUI::SafeRelease(fmt);
+    }
+    /// <summary>
+    /// Ensure the specified string.
+    /// </summary>
+    /// <param name="str">The string.</param>
+    /// <returns></returns>
+    void EditaleText::ensure_string(CUIString& str) noexcept {
+        // 保证字符串正确性
+        if (this->IsNumber()) {
+            // 添加数字
+            LongUI::SafeBuffer<wchar_t>(str.length()+1, [&str](wchar_t* buf) noexcept {
+                auto itr = buf;
+                for (auto c : str) {
+                    if (valid_digit(c)) {
+                        *itr = c;
+                        ++itr;
+                    }
+                }
+                *itr = 0;
+                str.assign(buf, itr);
+            });
+        }
     }
     /// <summary>
     /// Copies the global properties. 复制全局属性
