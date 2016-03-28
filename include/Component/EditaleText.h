@@ -61,8 +61,8 @@ namespace LongUI { namespace Component {
         };
         // the type of editable text, bit array
         // same as TXTBIT_XXXXXXX in TextServ.h
-        enum EditaleTextType : uint32_t {
-            Type_All = uint32_t(-1),
+        enum EditaleTextType : uint16_t {
+            Type_All = uint16_t(-1),
             Type_None = 0,
             // [Limited Support]
             Type_Riched     = 1 << 0,
@@ -76,7 +76,7 @@ namespace LongUI { namespace Component {
             Type_Number     = 1 << 4,
             /*
             // underline accelerator character
-            Type_Accelerator = 1 << 20,
+            Type_Accelerator = 1 << 15,
             */
         };
         // is riched?
@@ -231,17 +231,19 @@ namespace LongUI { namespace Component {
         D2D1_POINT_2F           offset = D2D1::Point2F();
         // type of text
         EditaleTextType         type = Type_None;
-        // password char
-        char32_t                password = U'*';
     private:
-        // return event
-        UICallBack              m_evReturn;
-        // changed event
-        UICallBack              m_evChanged;
+        // password char
+        wchar_t                 m_chPwd = L'*';
+        // max length
+        uint32_t                m_uMaxLength = uint32_t(-1) / 4;
         // min numbder
         int32_t                 m_iMin = -1'000'000;
         // max numbder
         int32_t                 m_iMax = 1'000'000;
+        // return event
+        UICallBack              m_evReturn;
+        // changed event
+        UICallBack              m_evChanged;
         // render target
         //ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;
         // selection brush

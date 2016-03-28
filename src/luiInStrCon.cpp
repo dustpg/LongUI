@@ -696,10 +696,10 @@ void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
     // 有可能直接删除后面, 优化
     if (offset + length >= m_cLength) {
         m_cLength = std::min(m_cLength, offset);
+        m_pString[m_cLength] = 0;
         return;
     }
     // 将后面的字符串复制过来即可
-    // memcpy:__restrict 要求, 手动循环
     auto des = m_pString + offset;
     auto src = des + length;
     for (uint32_t i = 0; i < (m_cLength - offset - length + 1); ++i) {
@@ -707,6 +707,7 @@ void LongUI::CUIString::Remove(uint32_t offset, uint32_t length) noexcept {
         ++des; ++src;
     }
     m_cLength -= length;
+    m_pString[m_cLength] = 0;
 }
 
 // 格式化
@@ -869,11 +870,12 @@ long LongUI::CUIConsole::Close() noexcept {
 
 // CUIConsole 输出
 long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, size_t len) noexcept {
+    constexpr size_t BUFLEN = sizeof(m_buffer) / sizeof(m_buffer[0]);
     // 过长则分批
-    if (len > LongUIStringBufferLength) {
+    if (len > BUFLEN) {
         // 直接递归
         while (len) {
-            auto len_in = len > LongUIStringBufferLength ? LongUIStringBufferLength : len;
+            auto len_in = len > BUFLEN ? BUFLEN : len;
             this->Output(str, true, len_in);
             len -= len_in;
             str += len_in;
@@ -881,11 +883,11 @@ long LongUI::CUIConsole::Output(const wchar_t * str, bool flush, size_t len) noe
         return 0;
     }
     // 计算目标
-    if (m_length + len > LongUIStringBufferLength) {
+    if (m_length + len > BUFLEN) {
         flush = true;
     }
     // 写入
-    if (m_length + len < LongUIStringBufferLength) {
+    if (m_length + len < BUFLEN) {
         std::memcpy(m_buffer + m_length, str, len * sizeof(wchar_t));
         m_length += len;
         str = nullptr;
@@ -1149,10 +1151,11 @@ auto LongUI::CUIDefaultConfigure::OutputDebugStringW(
             m_timeTick = static_cast<size_t>(now);
             // 不一样则输出时间
             std::time_t time = std::time(nullptr);
-            wchar_t buffer[LongUIStringBufferLength];
+            wchar_t buffer[1024];
             std::wcsftime(
-                buffer, LongUIStringBufferLength,
-                L"[%c]\r\n", std::localtime(&time)
+                buffer, lengthof(buffer),
+                L"[%c]\r\n", 
+                std::localtime(&time)
             );
             std::fwrite(buffer, sizeof(wchar_t), std::wcslen(buffer), m_pLogFile);
         }

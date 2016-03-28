@@ -246,6 +246,30 @@ namespace LongUI {
     auto Char32toChar16(char32_t ch, char16_t* str) -> char16_t* {
         return impl::char32_to_char16(ch, str);
     }
+    // char8 转 char32
+    auto LongUI::UTF8ChartoChar32(const char* src) -> char32_t {
+        assert(src && "bad argument");
+        // 初始数据
+        char32_t ch = 0;
+        unsigned char read = BYTES_FOR_UTF8[(unsigned char)(*src)] - 1;
+        // 读取
+        switch (read)
+        {
+#ifdef _DEBUG
+        default:assert(!"bug"); break;
+        case 5: 
+        case 4: assert(!"illegal utf-8");
+#endif
+        case 3: ch += (unsigned char)(*src++); ch <<= 6;
+        case 2: ch += (unsigned char)(*src++); ch <<= 6;
+        case 1: ch += (unsigned char)(*src++); ch <<= 6;
+        case 0: ch += (unsigned char)(*src++);
+        }
+        // 减去偏移量
+        ch -= OFFSETS_FROM_UTF8[read];
+        // 返回
+        return ch;
+    }
     // 获取u16转换u8后u8所占长度(含0结尾符)
     auto UTF16toUTF8GetBufLen(const char16_t * src) noexcept -> uint32_t {
         static_assert(sizeof(char16_t) == sizeof(wchar_t), "bad action");

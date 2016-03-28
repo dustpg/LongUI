@@ -82,6 +82,8 @@ namespace LongUI {
     auto AtoF(const wchar_t* __restrict) noexcept -> float;
     // UTF-32 to UTF-16 char
     auto Char32toChar16(char32_t ch, char16_t* str) -> char16_t*;
+    // UTF-32 to UTF-32 char
+    auto UTF8ChartoChar32(const char* ) -> char32_t;
     // UTF-16 to UTF-8: Return end of utf8  string
     auto UTF16toUTF8(const char16_t* __restrict src, char* __restrict des, uint32_t buflen) noexcept -> char*;
     // UTF-8 to UTF-16: Return end of utf16 string

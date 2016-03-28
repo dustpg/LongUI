@@ -598,10 +598,6 @@ void LongUI::CUIManager::Run() noexcept {
             {
                 // 数据锁
                 CUIDataAutoLocker locker;
-                // 清除渲染信息
-                for (auto window : UIManager.m_vWindows) {
-                    window->ClearRenderInfo();
-                }
                 // 延迟清理
                 UIManager.cleanup_delay_cleanup_chain();
 #ifdef _DEBUG
@@ -1871,20 +1867,20 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 
 // 传递可视化东西
 auto LongUI::Formated(const wchar_t* format, ...) noexcept -> const wchar_t* {
-    static thread_local wchar_t buffer[LongUIStringBufferLength];
+    static thread_local wchar_t buffer[2048];
     va_list ap;
     va_start(ap, format);
-    std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
+    std::vswprintf(buffer, lengthof(buffer), format, ap);
     va_end(ap);
     return buffer;
 }
 
 // 传递可视化东西
 auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
-    static thread_local wchar_t buffer[LongUIStringBufferLength];
+    static thread_local wchar_t buffer[2048];
     va_list ap;
     va_start(ap, format);
-    std::vswprintf(buffer, LongUIStringBufferLength, format, ap);
+    std::vswprintf(buffer, lengthof(buffer), format, ap);
     va_end(ap);
     return buffer;
 }
@@ -1897,9 +1893,8 @@ auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
 }
 
 auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(
-        buffer, LongUIStringBufferLength,
+    CUIString str;
+    str.Format(
         L"Adapter:   { \r\n\t Description: %ls\r\n\t VendorId: 0x%08X"
         L"\t\t DeviceId: 0x%08X\r\n\t SubSysId: 0x%08X\t\t Revision: 0x%08X\r\n"
         L"\t DedicatedVideoMemory: %.3lfMB\r\n"
@@ -1917,53 +1912,46 @@ auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept ->CU
         desc.AdapterLuid.HighPart,
         desc.AdapterLuid.LowPart
     );
-    this->OutputNoFlush(m_lastLevel, buffer);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
 auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(
-        buffer, LongUIStringBufferLength,
+    CUIString str;
+    str.Format(
         L"RECT_WH(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.width, rect.height
     );
-    this->OutputNoFlush(m_lastLevel, buffer);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
 auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(
-        buffer, LongUIStringBufferLength,
+    CUIString str;
+    str.Format(
         L"MATRIX (%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
         matrix._11, matrix._12,
         matrix._21, matrix._22,
         matrix._31, matrix._32
     );
-    this->OutputNoFlush(m_lastLevel, buffer);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
 auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(
-        buffer, LongUIStringBufferLength,
+    CUIString str;
+    str.Format(
         L"RECT_RB(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.right, rect.bottom
     );
-    this->OutputNoFlush(m_lastLevel, buffer);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
 auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(
-        buffer, LongUIStringBufferLength,
-        L"POINT(%7.2f, %7.2f)",
-        pt.x, pt.y
-    );
-    this->OutputNoFlush(m_lastLevel, buffer);
+    CUIString str;
+    str.Format(L"POINT(%7.2f, %7.2f)", pt.x, pt.y);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
@@ -1983,26 +1971,25 @@ void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char* s) noexce
 
 // 浮点重载
 auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(buffer, LongUIStringBufferLength, L"%.2f", f);
-    this->OutputNoFlush(m_lastLevel, buffer);
+    CUIString str;
+    str.Format(L"%.2f", f);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
 // 指针
 auto LongUI::CUIManager::operator<<(const void* ctrl) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(buffer, LongUIStringBufferLength, L"[0x%p] ", ctrl);
-    this->OutputNoFlush(m_lastLevel, buffer);
+    CUIString str;
+    str.Format(L"[0x%p] ", ctrl);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
 // 控件
 auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
+    CUIString str;
     if (ctrl) {
-        std::swprintf(
-            buffer, LongUIStringBufferLength,
+        str.Format(
             L"[0x%p{%S}%ls] ",
             ctrl,
             ctrl->name.c_str(),
@@ -2010,26 +1997,25 @@ auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager
         );
     }
     else {
-        std::swprintf(buffer, LongUIStringBufferLength, L"[null] ");
+        str = L"[null]";
     }
-    this->OutputNoFlush(m_lastLevel, buffer);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
 // 控件
 auto LongUI::CUIManager::operator<<(const ControlVector& ctrls) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
+    CUIString str;
     int index = 0;
     for (auto ctrl : ctrls) {
-        std::swprintf(
-            buffer, lengthof(buffer),
+        str.Format(
             L"\r\n\t\t[%4d][0x%p{%S}%ls] ",
             index,
             ctrl,
             ctrl->name.c_str(),
             ctrl->GetControlClassName(false)
         );
-        this->OutputNoFlush(m_lastLevel, buffer);
+        this->OutputNoFlush(m_lastLevel, str.c_str());
         ++index;
     }
     return *this;
@@ -2037,9 +2023,9 @@ auto LongUI::CUIManager::operator<<(const ControlVector& ctrls) noexcept ->CUIMa
 
 // 整型重载
 auto LongUI::CUIManager::operator<<(const long l) noexcept ->CUIManager& {
-    wchar_t buffer[LongUIStringBufferLength];
-    std::swprintf(buffer, LongUIStringBufferLength, L"%ld", l);
-    this->OutputNoFlush(m_lastLevel, buffer);
+    CUIString str;
+    str.Format(L"%ld", l);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 

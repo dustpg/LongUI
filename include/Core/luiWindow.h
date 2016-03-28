@@ -93,6 +93,8 @@ namespace LongUI {
             Index_CaretIn,
             // [RW] do caret
             //Index_DoCaret,
+            // [RW] do full-render this frame in render?
+            Index_FullRenderThisFrameRender,
             // [XX] count of this
             INDEX_COUNT,
         };
@@ -155,13 +157,6 @@ namespace LongUI {
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
         // render window in next frame
         void InvalidateWindow() noexcept { this->set_full_render_this_frame(); }
-#ifdef _DEBUG
-        // clear render info in debug mode
-        void ClearRenderInfo() noexcept { this->clear_full_render_this_frame(); m_uUnitLength = 0; std::memset(m_apUnit, 0, sizeof(m_apUnit)); }
-#else
-        // clear render info
-        void ClearRenderInfo() noexcept { this->clear_full_render_this_frame(); m_uUnitLength = 0; }
-#endif
     public:
         // close window
         void Close() noexcept;
@@ -200,6 +195,8 @@ namespace LongUI {
         bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
         // is FullRenderingThisFrame
         bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrame); }
+        // is FullRenderingThisFrameRender
+        bool is_full_render_this_frame_render() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrameRender); }
     protected:
         // set PopupWindow to true
         void set_popup_window() noexcept { m_baBoolWindow.SetTrue(Index_PopupWindow); }
@@ -261,9 +258,13 @@ namespace LongUI {
         // mode for text anti-alias
         uint16_t                m_textAntiMode = D2D1_TEXT_ANTIALIAS_MODE_DEFAULT;
         // data length of m_apUnits
-        uint32_t                m_uUnitLength = 0;
+        uint16_t                m_uUnitLength = 0;
+        // data length of m_apUnits, in render
+        uint16_t                m_uUnitLengthRender = 0;
         // data for unit
         UIControl*              m_apUnit[LongUIDirtyControlSize];
+        // data for unit, in render
+        UIControl*              m_apUnitRender[LongUIDirtyControlSize];
         // dirty rects
         //RECT                    m_dirtyRects[LongUIDirtyControlSize];
         // current STGMEDIUM: begin with DWORD

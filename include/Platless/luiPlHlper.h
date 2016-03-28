@@ -66,7 +66,7 @@ namespace LongUI { namespace Helper {
         auto SetNot(uint32_t index) noexcept { assert(index<LENGTH); m_data ^= (1 << index); };
         // set to???
         template<typename V>
-        auto SetTo(uint32_t index, V value) noexcept { assert(index<LENGTH); value ? this->SetTrue(index) : this->SetFalse(index); }
+        auto SetTo(uint32_t index, V value) noexcept { assert(index<LENGTH); this->SetFalse(index); m_data |= (!!(value) << index); }
     private:
         // data for bit-array
         T           m_data = T(0);

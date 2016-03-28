@@ -158,7 +158,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </ComboBox>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
-        <Edit name="edt1" textnumber="true" borderwidth="1" textformat="1" text="0这1😂个2"/>
+        <Edit name="edt1" textpassword="密码" borderwidth="1" textformat="1" text="0"/>
         <Edit name="edt2" borderwidth="1" text="这个"/>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
@@ -300,6 +300,13 @@ private:
             auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
             ctrl->AddEventCall([page1](UIControl*) noexcept {
                 page1->DisplayNextPage(1ui32);
+                return true;
+            }, LongUI::SubEvent::Event_ItemClicked);
+        }
+        if ((ctrl = m_pWindow->FindControl("btn_p2"))) {
+            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
+            ctrl->AddEventCall([page1](UIControl*) noexcept {
+                page1->DisplayNextPage(0ui32);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }
@@ -454,7 +461,7 @@ public:
     };
     // return flags
     virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override {
-        return Flag_OutputDebugString /*| Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
+        return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
     // choose
     virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t override {

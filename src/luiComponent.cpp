@@ -222,55 +222,113 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         assert(this->layout == nullptr && "bad action");
         // 修改文本
         m_bTxtChanged = true;
-        // 创建布局
-        auto hr = UIManager_DWriteFactory->CreateTextLayout(
-            m_string.c_str(), static_cast<uint32_t>(m_string.length()),
-            fmt,
-            m_size.width, m_size.height,
-            &this->layout
+        // 数据
+        HRESULT hr = S_OK;
+        // 密码?
+        if (this->IsPassword()) {
+            // 双字密码字符
+            uint32_t len = m_string.length();
+            // 申请缓存
+            LongUI::SafeBuffer<wchar_t>(len, [len, this, fmt, &hr](wchar_t* const buf) {
+                // 复制字符串
+                for (auto itr = buf; itr < buf + len; ++itr) *itr = char16_t(m_chPwd);
+                // 创建文本布局
+                hr = UIManager_DWriteFactory->CreateTextLayout(
+                    buf, len, fmt,
+                    m_size.width, m_size.height,
+                    &this->layout
+                );
+            });
+        }
+        // 创建一般布局 
+        else {
+            hr = UIManager_DWriteFactory->CreateTextLayout(
+                m_string.c_str(), static_cast<uint32_t>(m_string.length()),
+                fmt,
+                m_size.width, m_size.height,
+                &this->layout
             );
-    #ifdef _DEBUG
+        }
+#ifdef _DEBUG
         if (m_pHost->debug_this) {
             UIManager << DL_Hint << L"CODE: " << long(hr) << LongUI::endl;
             assert(hr == S_OK);
         }
-    #endif
+#endif
         // 断言
         assert(SUCCEEDED(hr));
     }
-
     // 插入字符(串)
     auto EditaleText::insert(uint32_t pos, const wchar_t * str, uint32_t& length) noexcept -> HRESULT {
-        HRESULT hr = S_OK;
-        // 只读
-        if (this->IsReadOnly()) {
+        // 第一次查错
+        {
+            // 只读
+            if (this->IsReadOnly()) {
+                length = 0;
+            }
+            // 限制大小
+            else if ((m_string.length() + length) > m_uMaxLength) {
+                auto l = m_string.length();
+                // 太长
+                length = (l < m_uMaxLength) ? (m_uMaxLength - l) : 0;
+            }
+            // 没有输入
+            if (!length) {
+                LongUI::BeepError();
+                return S_FALSE;
+            }
+        }
+        // 第二次查错
+        {
+            // 输入数字
+            if (this->IsNumber()) {
+                auto& data = m_string;
+                LongUI::SafeBuffer<wchar_t>(length + 1,
+                    [pos, str, &data, &length](wchar_t* const buf) {
+                    auto wrt = buf;
+                    for (auto itr = str; itr != str + length; ++itr) {
+                        if (valid_digit(*itr)) {
+                            *wrt = *itr;
+                            ++wrt;
+                        }
+                    }
+                    length = uint32_t(wrt - buf);
+#ifdef _DEBUG
+                    *wrt = 0;
+#endif
+                    data.insert(pos, buf, length);
+                });
+            }
+            // 输入密码: 不能有大于0xFFFF的字符
+            else if (this->IsPassword()) {
+                auto& data = m_string;
+                LongUI::SafeBuffer<wchar_t>(length + 1,
+                    [pos, str, &data, &length](wchar_t* const buf) {
+                    auto wrt = buf;
+                    for (auto itr = str; itr != str + length; ++itr) {
+                        if (!LongUI::IsSurrogate(*itr)) {
+                            *wrt = *itr;
+                            ++wrt;
+                        }
+                    }
+                    length = uint32_t(wrt - buf);
+#ifdef _DEBUG
+                    *wrt = 0;
+#endif
+                    data.insert(pos, buf, length);
+                });
+            }
+            // 插入字符
+            else {
+                m_string.insert(pos, str, length);
+            }
+        }
+        // 没有输入
+        if (!length) {
             LongUI::BeepError();
             return S_FALSE;
         }
-        // 输入数字
-        if (this->IsNumber()) {
-            auto& data = m_string;
-            LongUI::SafeBuffer<wchar_t>(length + 1, 
-            [pos, str, &data, &length](wchar_t* const buf) {
-                auto wrt = buf;
-                for (auto itr = str; itr != str + length; ++itr) {
-                    if (valid_digit(*itr)) {
-                        *wrt = *itr;
-                        ++wrt;
-                    }
-                }
-                length = uint32_t(wrt - buf);
-#ifdef _DEBUG
-                *wrt = 0;
-#endif
-                data.insert(pos, buf, length);
-            });
-            if (!length) return S_FALSE;
-        }
-        else {
-            // 插入字符
-            m_string.insert(pos, str, length);
-        }
+        HRESULT hr = S_OK;
         auto old_length = static_cast<uint32_t>(m_string.length());
         // 保留旧布局
         auto old_layout = LongUI::SafeAcquire(this->layout);
@@ -1344,7 +1402,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         const char* str = nullptr;
         // 检查类型
         {
-            uint32_t tmptype = Type_None;
+            uint16_t tmptype = Type_None;
             // 富文本
             if (bool_attribute("rich", false)) {
                 tmptype |= Type_Riched;
@@ -1373,14 +1431,20 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             /*if (bool_attribute("accelerator", false)) {
                 tmptype |= Type_Accelerator;
             }*/
-            // 密码
-            if ((str = attribute("password"))) {
-                tmptype |= Type_Password;
-                // TODO: UTF8 char(s) to UTF32 char;
-                auto ch = *str;
-                if (ch < char(127)) {
-                    this->password = char32_t(ch);
+            // 有效密码
+            if ((str = attribute("password")) && str[0]) {
+                auto pwd = LongUI::UTF8ChartoChar32(str);
+                if (pwd > 0xFFFF) {
+#ifdef _DEBUG
+                    UIManager << DL_Error
+                        << L"password cannot over 0xFFFF"
+                        << LongUI::endl;
+#endif
                 }
+                else {
+                    m_chPwd = wchar_t(pwd);
+                }
+                tmptype |= Type_Password;
             }
             this->type = static_cast<EditaleTextType>(tmptype);
         }
@@ -1394,7 +1458,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         // 最大输入长度
         if ((str = attribute("maxlength"))) {
-            assert(!"NOIMPL");
+            auto tmp = static_cast<uint32_t>(LongUI::AtoI(str));
+            assert(m_uMaxLength > tmp && "too huge");
+            assert(tmp != 0 && "bad int");
+            m_uMaxLength = tmp;
         }
         // 获取渲染器
         {
@@ -1432,6 +1499,13 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             str = node.attribute(prefix).value();
             assert(m_string.length() == 0 && m_string.data()[0] == 0);
             m_string.FromUtf8(str);
+#ifdef _DEBUG
+            if (this->IsPassword()) {
+                for (auto ch : m_string) {
+                    assert(!LongUI::IsSurrogate(ch) && "text cannot over 0xFFFF if password");
+                }
+            }
+#endif
             this->ensure_string(m_string);
         }
         // 创建布局
@@ -1458,6 +1532,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 *itr = 0;
                 str.assign(buf, itr);
             });
+        }
+        // 字符限制
+        if (str.length() > m_uMaxLength) {
+            str.Remove(m_uMaxLength, str.length() - m_uMaxLength);
         }
     }
     /// <summary>

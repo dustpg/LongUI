@@ -1512,6 +1512,16 @@ void LongUI::XUIBaseWindow::Update() noexcept {
     for (auto inset : m_vInsets) {
         inset->Update();
     }
+    // 复制渲染数据以保证数据安全
+    m_uUnitLengthRender = m_uUnitLength;
+    std::memcpy(m_apUnitRender, m_apUnit, sizeof(m_apUnit[0]) * m_uUnitLengthRender);
+    m_baBoolWindow.SetTo(Index_FullRenderThisFrameRender, this->is_full_render_this_frame());
+    // 清理老数据
+    this->clear_full_render_this_frame(); 
+    m_uUnitLength = 0; 
+#ifdef _DEBUG
+    std::memset(m_apUnit, 0, sizeof(m_apUnit));
+#endif
 }
 
 /// <summary>
@@ -1758,10 +1768,6 @@ namespace LongUI {
         HCURSOR                 m_hNowCursor    = ::LoadCursor(nullptr, IDC_ARROW);
         // caret
         D2D1_RECT_F             m_rcCaret       = D2D1::RectF();
-        // char for utf-32
-        char16_t                m_chUtf16 = 0;
-        // char for utf-32
-        uint16_t                m_unused_biwnd[3];
         // track mouse event: end with DWORD
         TRACKMOUSEEVENT         m_csTME;
 #ifdef _DEBUG
@@ -1770,9 +1776,13 @@ namespace LongUI {
 #endif
         // msg for taskbar-btn created
         static const UINT s_uTaskbarBtnCreatedMsg;
+        // msg for char16_t
+        static char16_t s_cUtf16Backup;
     };
     // 任务按钮创建消息
     const UINT CUIBuiltinSystemWindow::s_uTaskbarBtnCreatedMsg = ::RegisterWindowMessageW(L"TaskbarButtonCreated");
+    // 任务按钮创建消息
+    char16_t CUIBuiltinSystemWindow::s_cUtf16Backup = 0;
 }
 
 /// <summary>
@@ -2016,12 +2026,12 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
             auto ch = static_cast<char16_t>(wParam);
             EventArgument arg;
             if (LongUI::IsHighSurrogate(ch)) {
-                m_chUtf16 = ch;
+                s_cUtf16Backup = ch;
                 return true;
             }
             else if (LongUI::IsLowSurrogate(ch)) {
-                arg.key.ch = impl::char16x2_to_char32(m_chUtf16, ch);
-                m_chUtf16 = 0;
+                arg.key.ch = impl::char16x2_to_char32(s_cUtf16Backup, ch);
+                s_cUtf16Backup = 0;
             }
             else {
                 arg.key.ch = static_cast<char32_t>(wParam);
@@ -2402,7 +2412,7 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     UIManager_RenderTarget->EndDraw();
     HRESULT hr = S_OK;
     // 全渲染
-    if (this->is_full_render_this_frame()) {
+    if (this->is_full_render_this_frame_render()) {
         hr = m_pSwapChain->Present(1, 0);
     }
     // 脏渲染
@@ -2411,13 +2421,13 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         RECT scroll = { 0, 0, this->GetWidth(), this->GetHeight() };
         RECT rects[LongUIDirtyControlSize];
         DXGI_PRESENT_PARAMETERS present_parameters;
-        present_parameters.DirtyRectsCount = m_uUnitLength;
+        present_parameters.DirtyRectsCount = m_uUnitLengthRender;
         present_parameters.pDirtyRects = rects;
         present_parameters.pScrollRect = &scroll;
         present_parameters.pScrollOffset = nullptr;
         // 设置参数
-        auto control = m_apUnit;
-        for (auto itr = rects; itr < rects + m_uUnitLength; ++itr) {
+        auto control = m_apUnitRender;
+        for (auto itr = rects; itr < rects + m_uUnitLengthRender; ++itr) {
             const auto& vrt = (*control)->visible_rect;
             itr->left = static_cast<LONG>(vrt.left);
             itr->top = static_cast<LONG>(vrt.top);
@@ -2446,7 +2456,7 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     }
 
     // 调试
-    if (this->is_full_render_this_frame()) {
+    if (this->is_full_render_this_frame_render()) {
         ++force_cast(full_render_counter);
     }
     else {
@@ -2460,7 +2470,7 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         m_strTitle.c_str(),
         int(full_render_counter),
         int(dirty_render_counter),
-        int(m_uUnitLength)
+        int(m_uUnitLengthRender)
     );
     // 设置显示
     UIManager.DxgiUnlock();
@@ -2485,11 +2495,11 @@ void LongUI::CUIBuiltinSystemWindow::Render() const noexcept {
     // 跳过渲染?
     if (this->is_skip_render()) return;
     // 无需渲染?
-    if (!this->is_full_render_this_frame() && !m_uUnitLength) return;
+    if (!this->is_full_render_this_frame_render() && !m_uUnitLengthRender) return;
     // 开始渲染
     this->BeginRender();
     // 全渲染
-    if (this->is_full_render_this_frame()) {
+    if (this->is_full_render_this_frame_render()) {
         // 实现
         m_pViewport->Render();
     }
@@ -2497,7 +2507,7 @@ void LongUI::CUIBuiltinSystemWindow::Render() const noexcept {
     else {
         auto init_transfrom = DX::Matrix3x2F::Identity();
         // 遍历
-        for (auto itr = m_apUnit; itr < m_apUnit + m_uUnitLength; ++itr) {
+        for (auto itr = m_apUnitRender; itr < m_apUnitRender + m_uUnitLengthRender; ++itr) {
             auto ctrl = *itr; assert(ctrl != m_pViewport && "check the code");
             UIManager_RenderTarget->SetTransform(&ctrl->world);
             D2D1_POINT_2F clipr[2];

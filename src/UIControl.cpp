@@ -15,6 +15,7 @@ void longui_dbg_update(LongUI::UIControl* control) noexcept {
 
 // longui naemspace
 namespace LongUI {
+    struct Msg { UINT id; }; 
     // debug var
     extern std::atomic_uintptr_t g_dbg_last_proc_window_pointer;
     extern std::atomic<UINT> g_dbg_last_proc_message;
@@ -23,7 +24,7 @@ namespace LongUI {
 // debug functin -- 
 void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
     std::uintptr_t ptr = LongUI::g_dbg_last_proc_window_pointer;
-    UINT msg = LongUI::g_dbg_last_proc_message;
+    LongUI::Msg msg = { LongUI::g_dbg_last_proc_message };
     auto window = reinterpret_cast<LongUI::UIViewport*>(ptr);
 #if 0
     UIManager << DL_Log
@@ -35,7 +36,7 @@ void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
 #else
     ::OutputDebugStringW(LongUI::Formated(
         L"Main Locker Locked On Msg: 0x%4x @ Window[0x%p - %S]\r\n",
-        msg, window, window->name.c_str()
+        msg.id, window, window->name.c_str()
     ));
     WM_CLOSE;
 #endif
@@ -447,6 +448,7 @@ void LongUI::UIControl::AfterUpdate() noexcept {
     this->debug_checker.SetFalse(DEBUG_CHECK_BACK);
     this->debug_checker.SetFalse(DEBUG_CHECK_MAIN);
     this->debug_checker.SetFalse(DEBUG_CHECK_FORE);
+
 #endif
     // 检查
     if (m_fRenderTime > 0.f) {
@@ -1073,9 +1075,10 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
 
 // 渲染子控件
 void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
+    auto& vrc = ctrl->visible_rect;  bool v = ctrl->GetVisible();
+    bool w = vrc.right > vrc.left;   bool h = vrc.bottom > vrc.top;
     // 可渲染?
-    if (ctrl->GetVisible() && ctrl->visible_rect.right > ctrl->visible_rect.left
-        && ctrl->visible_rect.bottom > ctrl->visible_rect.top) {
+    if (v && w && h) {
         // 修改世界转换矩阵
         UIManager_RenderTarget->SetTransform(&ctrl->world);
         // 检查剪切规则
