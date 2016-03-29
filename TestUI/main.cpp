@@ -158,7 +158,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         </ComboBox>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
-        <Edit name="edt1" textpassword="密码" borderwidth="1" textformat="1" text="0"/>
+        <Edit name="edt1" borderwidth="1" textformat="1" text="😀"/>
         <Edit name="edt2" borderwidth="1" text="这个"/>
     </HorizontalLayout>
     <HorizontalLayout templatesize="256, 0">
@@ -461,7 +461,7 @@ public:
     };
     // return flags
     virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override {
-        return Flag_OutputDebugString | Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
+        return Flag_OutputDebugString /*| Flag_RenderByCPU /*| Flag_DbgOutputFontFamily*/;
     }
     // choose
     virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept -> size_t override {

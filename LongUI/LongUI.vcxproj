@@ -27,28 +27,28 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -161,6 +161,7 @@
     <ClInclude Include="..\include\Control\UIViewport.h" />
     <ClInclude Include="..\include\Core\luiInterface.h" />
     <ClInclude Include="..\include\Core\luiManager.h" />
+    <ClInclude Include="..\include\Core\luiMenu.h" />
     <ClInclude Include="..\include\Core\luiString.h" />
     <ClInclude Include="..\include\Core\luiWindow.h" />
     <ClInclude Include="..\include\Graphics\luiGrAnim.h" />
@@ -192,6 +193,7 @@
     <ClCompile Include="..\src\luiComponent.cpp" />
     <ClCompile Include="..\src\luiDx.cpp" />
     <ClCompile Include="..\src\luiInStrCon.cpp" />
+    <ClCompile Include="..\src\luiMenu.cpp" />
     <ClCompile Include="..\src\luiResLoader.cpp" />
     <ClCompile Include="..\src\UIContainers.cpp" />
     <ClCompile Include="..\src\UICtrlCR.cpp" />

@@ -25,7 +25,7 @@ namespace LongUI {
 void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
     std::uintptr_t ptr = LongUI::g_dbg_last_proc_window_pointer;
     LongUI::Msg msg = { LongUI::g_dbg_last_proc_message };
-    auto window = reinterpret_cast<LongUI::UIViewport*>(ptr);
+    auto window = reinterpret_cast<LongUI::XUIBaseWindow*>(ptr);
 #if 0
     UIManager << DL_Log
         << L"main locker locked @"
@@ -34,11 +34,11 @@ void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
         << long(msg)
         << LongUI::endl;
 #else
+    auto name = window->GetViewport()->name.c_str();
     ::OutputDebugStringW(LongUI::Formated(
         L"Main Locker Locked On Msg: 0x%4x @ Window[0x%p - %S]\r\n",
-        msg.id, window, window->name.c_str()
+        msg.id, window, name
     ));
-    WM_CLOSE;
 #endif
 }
 

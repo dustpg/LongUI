@@ -204,6 +204,9 @@
     <ClInclude Include="..\include\Control\UIFloatLayout.h">
       <Filter>Header Files\Control\Layout</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Core\luiMenu.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -259,6 +262,9 @@
     </ClCompile>
     <ClCompile Include="..\src\luiDx.cpp">
       <Filter>Source Files\XUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\luiMenu.cpp">
+      <Filter>Source Files\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

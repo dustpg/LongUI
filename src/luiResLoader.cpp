@@ -534,7 +534,6 @@ namespace LongUI {
         assert(SUCCEEDED(hr));
         return fmt;
     }
-
     // default config
     CUIDefaultConfigure::CUIDefaultConfigure(CUIManager& manager, const char* log_file) noexcept : m_manager(manager) {
 #ifdef _DEBUG
@@ -551,6 +550,25 @@ namespace LongUI {
             m_pLogFile = nullptr;
         }
 #endif
+    }
+    // get string
+    auto CUIDefaultConfigure::GetString(TableString tbl) noexcept -> const wchar_t* {
+        switch (tbl)
+        {
+        case LongUI::String_FaildHR:
+            return L"Faild with HREULT CODE: ";
+        case LongUI::String_Cut:
+            return L"Cut\tCtrl + X";
+        case LongUI::String_Copy:
+            return L"Copy\tCtrl + C";
+        case LongUI::String_Paste:
+            return L"Paste\tCtrl + V";
+        case LongUI::String_SelectAll:
+            return L"Select All\tCtrl + A";
+        default:
+            assert(!"Unknown Table");
+            return L"Unknown";
+        }
     }
 }
 #endif

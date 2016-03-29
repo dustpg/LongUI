@@ -46,6 +46,8 @@ namespace LongUI {
     public:
         // get flags for configure
         virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { return IUIConfigure::Flag_OutputDebugString; }
+        // Get string from table
+        virtual auto GetString(TableString tbl) noexcept -> const wchar_t*;
         // create interface
         virtual auto CreateInterface(const IID& iid, void** obj) noexcept ->HRESULT override;
         // get null-end string for template for creating control

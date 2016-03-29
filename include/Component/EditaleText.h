@@ -30,6 +30,7 @@
 #include "../Core/luiString.h"
 #include "../Platless/luiPlEzC.h"
 #include "../LongUI/luiUiTxtRdr.h"
+#include "../Core/luiMenu.h"
 #include <cstdint>
 
 // longui::component namespace
@@ -178,6 +179,8 @@ namespace LongUI { namespace Component {
         void OnLButtonDown(float x, float y, bool = false) noexcept;
         // on L button hold && move: relative postion
         void OnLButtonHold(float x, float y, bool = false) noexcept;
+        // on Context menu
+        void OnContextMenu() noexcept;
     public: // 一般外部设置区
         // align caret
         void AlignCaretToNearestCluster(bool, bool = false) noexcept;
@@ -244,6 +247,8 @@ namespace LongUI { namespace Component {
         UICallBack              m_evReturn;
         // changed event
         UICallBack              m_evChanged;
+        // context menu
+        CUIMenu                 m_menuCtx;
         // render target
         //ID2D1RenderTarget*      UIManager_RenderTarget = nullptr;
         // selection brush

@@ -1896,6 +1896,20 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
     return recode;
 }
 
+
+    /*{
+        // 加锁
+        CUIDataAutoLocker locker;
+        // 创建插入符
+        ::CreateCaret(m_hwnd, nullptr, 1, 1);
+        // 存在焦点控件
+        if (m_pFocusedControl) {
+            // 事件
+            m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus, m_pViewport);
+        }
+        return true;
+    }*/
+
 /// <summary>
 /// Normals the event.
 /// </summary>
@@ -1905,6 +1919,77 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
 /// <param name="result">The result.</param>
 /// <returns></returns>
 bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept {
+    // --------------------------  获取X坐标
+    auto get_x = [lParam]() noexcept { return float(int16_t(LOWORD(lParam))); };
+    // --------------------------  获取Y坐标
+    auto get_y = [lParam]() noexcept { return float(int16_t(HIWORD(lParam))); };
+    // --------------------------  失去焦点
+    auto on_killfocus = [this]() noexcept {
+        bool close_window = false;
+        {
+            // 加锁
+            CUIDataAutoLocker locker;
+            // 存在焦点控件
+            if (m_pFocusedControl) {
+                // 事件
+                m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
+                // 释放引用
+                LongUI::SafeRelease(m_pFocusedControl);
+            }
+            // 重置
+            m_rcCaret.left = -1.f;
+            m_rcCaret.right = 0.f;
+            // 检查属性
+            close_window = this->is_close_on_focus_killed();
+        }
+        // 失去焦点即关闭窗口
+        if (close_window) {
+            ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
+        }
+        // 关闭插入符号
+        ::DestroyCaret();
+    };
+    // --------------------------  字符输入
+    auto on_char = [this, wParam]() noexcept {
+        CUIDataAutoLocker locker;
+        if (m_pFocusedControl) {
+            auto ch = static_cast<char16_t>(wParam);
+            EventArgument arg;
+            if (LongUI::IsHighSurrogate(ch)) {
+                s_cUtf16Backup = ch;
+                return;
+            }
+            else if (LongUI::IsLowSurrogate(ch)) {
+                arg.key.ch = impl::char16x2_to_char32(s_cUtf16Backup, ch);
+                s_cUtf16Backup = 0;
+            }
+            else {
+                arg.key.ch = static_cast<char32_t>(wParam);
+            }
+            arg.sender = m_pViewport;
+            arg.event = Event::Event_Char;
+            m_pFocusedControl->DoEvent(arg);
+        }
+    };
+    // --------------------------  窗口关闭
+    auto on_close = [this]() noexcept ->bool {
+        // 加锁
+        CUIDataAutoLocker locker;
+        // 允许退出
+        if (m_pViewport->CanbeClosedNow()) {
+            // 检查是否退出
+            if (this->is_exit_on_close()) {
+                UIManager.Exit();
+            }
+            this->Close();
+            return false;
+        }
+        // 不允许退出
+        else {
+            return true;
+        }
+    };
+    // --------------------------  消息处理
     // 消息类型
     //enum MsgType { Type_Mouse, Type_Other } msgtp; msgtp = Type_Other;
     // 消息处理
@@ -1923,10 +2008,6 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         ma.event = MouseEvent::Event_MouseMove;
         // 加锁
         CUIDataAutoLocker locker;
-        // 获取X坐标
-        auto get_x = [lParam]() noexcept { return float(int16_t(LOWORD(lParam))); };
-        // 获取Y坐标
-        auto get_y = [lParam]() noexcept { return float(int16_t(HIWORD(lParam))); };
         // 更新坐标
         this->last_point = { get_x(), get_y() };
         break;
@@ -1966,45 +2047,9 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     case WM_SETFOCUS:
         ::CreateCaret(m_hwnd, nullptr, 1, 1);
         return true;
-    /*{
-        // 加锁
-        CUIDataAutoLocker locker;
-        // 创建插入符
-        ::CreateCaret(m_hwnd, nullptr, 1, 1);
-        // 存在焦点控件
-        if (m_pFocusedControl) {
-            // 事件
-            m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus, m_pViewport);
-        }
-        return true;
-    }*/
     case WM_KILLFOCUS:
-    {
-        bool close_window = false;
-        {
-            // 加锁
-            CUIDataAutoLocker locker;
-            // 存在焦点控件
-            if (m_pFocusedControl) {
-                // 事件
-                m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
-                // 释放引用
-                LongUI::SafeRelease(m_pFocusedControl);
-            }
-            // 重置
-            m_rcCaret.left = -1.f;
-            m_rcCaret.right = 0.f;
-            // 检查属性
-            close_window = this->is_close_on_focus_killed();
-        }
-        // 失去焦点即关闭窗口
-        if (close_window) {
-            ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
-        }
-        // 关闭插入符号
-        ::DestroyCaret();
+        on_killfocus();
         return true;
-    }
     case WM_KEYDOWN:
         // 键入字符
     {
@@ -2020,28 +2065,8 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     }
     case WM_CHAR:
         // 键入字符
-    {
-        CUIDataAutoLocker locker;
-        if (m_pFocusedControl) {
-            auto ch = static_cast<char16_t>(wParam);
-            EventArgument arg;
-            if (LongUI::IsHighSurrogate(ch)) {
-                s_cUtf16Backup = ch;
-                return true;
-            }
-            else if (LongUI::IsLowSurrogate(ch)) {
-                arg.key.ch = impl::char16x2_to_char32(s_cUtf16Backup, ch);
-                s_cUtf16Backup = 0;
-            }
-            else {
-                arg.key.ch = static_cast<char32_t>(wParam);
-            }
-            arg.sender = m_pViewport;
-            arg.event = Event::Event_Char;
-            m_pFocusedControl->DoEvent(arg);
-        }
+        on_char();
         return true;
-    }
     case WM_MOVE:
         // 移动窗口
         m_rcWindow.left = LONG(int16_t(LOWORD(lParam)));
@@ -2069,23 +2094,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         return true;
     case WM_CLOSE:
         // 关闭窗口
-    {
-        // 加锁
-        CUIDataAutoLocker locker;
-        // 允许退出
-        if (m_pViewport->CanbeClosedNow()) {
-            // 检查是否退出
-            if (this->is_exit_on_close()) {
-                UIManager.Exit();
-            }
-            this->Close();
-            return false;
-        }
-        // 不允许退出
-        else {
-            return true;
-        }
-    }
+        return on_close();
     default:
         return false;
     }

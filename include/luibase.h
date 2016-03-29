@@ -362,12 +362,12 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_ItemClicked,
         // control item double-clicked
         Event_ItemDbClicked,
-        // Context Menu [just one event-call recommended]
-        Event_ContextMenu,
         // single-line-edit returned
         Event_EditReturned,
         // value changed(like slider, scrollbar, checkbox and ect.)
         Event_ValueChanged,
+        // Context Menu
+        //Event_ContextMenu,
         // ----- User Custom Defined Event -----
         Event_Custom,
     };
@@ -595,6 +595,19 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Type_BounceEaseIn,              // 反弹渐入插值
         Type_BounceEaseOut,             // 反弹渐出插值
         Type_BounceEaseInOut,           // 反弹渐入渐出插值
+    };
+    // string table
+    enum TableString : uint32_t {
+        // faild with hresult
+        String_FaildHR = 0,
+        // cut
+        String_Cut,
+        // copy
+        String_Copy,
+        // paste
+        String_Paste,
+        // select all
+        String_SelectAll,
     };
     // priority type of window creating
     enum WindowPriorityType : uint32_t {

@@ -1,5 +1,4 @@
-﻿#define LONGUI_WITH_DEFAULT_HEADER
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
 
 // longui::demo namespace
@@ -72,7 +71,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             // my style
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
             // create main window, return nullptr for some error
-            UIManager.CreateUIWindow(DEMO_XML);
+            UIManager.CreateUIWindow(DEMO_XML)->ShowWindow(nCmdShow);
             // run this app
             UIManager.Run();
             // my style

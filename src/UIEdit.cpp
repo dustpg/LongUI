@@ -142,6 +142,9 @@ bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case LongUI::MouseEvent::Event_LButtonUp:
         m_text.OnLButtonUp(pt4self.x, pt4self.y);
         break;
+    case LongUI::MouseEvent::Event_RButtonUp:
+        m_text.OnContextMenu();
+        break;
     }
     return true;
 }

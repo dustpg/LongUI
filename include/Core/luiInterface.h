@@ -101,6 +101,11 @@ namespace LongUI {
         /// <returns>flags for configure</returns>
         virtual auto GetConfigureFlag() noexcept ->ConfigureFlag = 0;
         /// <summary>
+        /// Get string from table
+        /// </summary>
+        /// <returns>static string</returns>
+        virtual auto GetString(TableString tbl) noexcept -> const wchar_t* = 0;
+        /// <summary>
         /// Creates the interfaces.
         /// </summary>
         /// <param name="iid">The interface iid.</param>

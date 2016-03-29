@@ -5,6 +5,7 @@
 #include <Component/EditaleText.h>
 #include <Component/Text.h>
 #include <Platless/luiPlUtil.h>
+#include <Core/luiMenu.h>
 
 #undef LONGUI_WITH_MMFVIDEO
 #ifdef LONGUI_WITH_MMFVIDEO
@@ -379,6 +380,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // 设置选择区
     auto EditaleText::SetSelection(
         SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept -> HRESULT {
+        using LineMetricsBuffer = EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 32>;
         //uint32_t line = uint32_t(-1);
         uint32_t absolute_position = m_u32CaretPos + m_u32CaretPosOffset;
         uint32_t oldabsolute_position = absolute_position;
@@ -444,7 +446,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         case SelectionMode::Mode_Up:
         case SelectionMode::Mode_Down:
         {
-            EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+            LineMetricsBuffer metrice_buffer;
             // 获取行指标
             this->layout->GetMetrics(&textMetrics);
             metrice_buffer.NewSize(textMetrics.lineCount);
@@ -551,7 +553,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         case SelectionMode::Mode_End:
         {
             // 获取预知的首位置或者末位置
-            EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 10> metrice_buffer;
+            LineMetricsBuffer metrice_buffer;
             // 获取行指标
             this->layout->GetMetrics(&textMetrics);
             metrice_buffer.NewSize(textMetrics.lineCount);
@@ -1006,6 +1008,72 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             this->SetSelectionFromPoint(x, y, shfit_hold);
         }
     }
+    // 上下文菜单
+    void EditaleText::OnContextMenu() noexcept {
+        // 没有就创建
+        if (!m_menuCtx.IsOk() && m_menuCtx.Create()) {
+            enum : size_t { 
+                ID_CUT, 
+                ID_COPY, 
+                ID_PASTE, 
+                ID_SELECTALL, 
+                ID_SIZE 
+            };
+            CUIMenu::Item item;
+            // 添加剪切
+            item.style = CUIMenu::Style_Null;
+            item.text = UIManager.configure->GetString(LongUI::String_Cut);
+            item.index = ID_CUT + 1;
+            m_menuCtx.AppendItem(item);
+            // 添加复制
+            item.style = CUIMenu::Style_Null;
+            item.text = UIManager.configure->GetString(LongUI::String_Copy);
+            item.index = ID_COPY + 1;
+            m_menuCtx.AppendItem(item);
+            // 添加黏贴
+            item.style = CUIMenu::Style_Null;
+            item.text = UIManager.configure->GetString(LongUI::String_Paste);
+            item.index = ID_PASTE + 1;
+            m_menuCtx.AppendItem(item);
+            // 添加分隔符
+            item.style = CUIMenu::Style_Separator;
+            m_menuCtx.AppendItem(item);
+            // 添加全选
+            item.style = CUIMenu::Style_Null;
+            item.text = UIManager.configure->GetString(LongUI::String_SelectAll);
+            item.index = ID_SELECTALL + 1;
+            m_menuCtx.AppendItem(item);
+            // 添加回调
+            m_menuCtx.AddItemCall([this](size_t index) noexcept -> bool {
+                switch (index)
+                {
+                case ID_CUT + 1:
+                    this->CopyToClipboard();
+                    this->DeleteSelection();
+                    this->recreate_layout();
+                    this->refresh();
+                    break;
+                case ID_COPY + 1:
+                    this->CopyToClipboard();
+                    break;
+                case ID_PASTE + 1:
+                    this->PasteFromClipboard();
+                    break;
+                case ID_SELECTALL + 1:
+                    this->SetSelection(SelectionMode::Mode_SelectAll, 0, true);
+                    break;
+                default:
+                    break;
+                }
+                return true;
+            });
+        }
+        // 创建成功
+        if (m_menuCtx.IsOk()) {
+            // 显示
+            m_menuCtx.Show(m_pHost->GetWindow(), nullptr);
+        }
+    }
     // 左键按住时
     void EditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
         // 起点在选择区
@@ -1174,10 +1242,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         if (selection.length) {
             // 断言检查
             assert(selection.startPosition < m_string.length() && "bad selection range");
-            assert((selection.startPosition + selection.length) < m_string.length() && "bad selection range");
+            assert((selection.startPosition + selection.length) <= m_string.length() && "bad selection range");
             // 获取富文本数据
             if (this->IsRiched()) {
-                assert(!"Unsupported Now");
+                assert(!"unsupported yet");
                 // TODO: 富文本
             }
             // 全局申请
@@ -1266,7 +1334,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
 
     // 获取行编号
     void EditaleText::GetLineFromPosition(
-        const DWRITE_LINE_METRICS * lineMetrics,
+        const DWRITE_LINE_METRICS* lineMetrics,
         uint32_t lineCount, uint32_t textPosition,
         OUT uint32_t * lineOut,
         OUT uint32_t * linePositionOut) noexcept {

@@ -1,22 +1,22 @@
 ﻿TODOLIST
     DONE: 完成UIEditCore, 删除沉余代码, 并嵌到UIEdit: DoDragDrop
     DONE: 移除STL容器要求
-    PRPR: 完成窗口渲染队列
+    DONE: 组件复数状态
+    DONE: 完成窗口渲染队列
+    DONE: 完成UIRadioButton
+    DONE: 完成UIComboBox
+    DONE: 分离UIWindow
+    PRPR: 完成UIPage
     PRPR: 基本资源工具框架
     PRPR: 完成滚动条与容器的匹配
     PRPR: 完成UIList
-    PRPR: 组件复数状态
     PRPR: 完成特效框架
-    PRPR: 完成UIPage
-    PRPR: 完成UIComboBox
-    PRPR: 完成UIRadioButton
-    PRPR: 分离UIWindow
     PRPR: 规范化消息架构
-    TODO: 实现挂件?
-    TODO: 完成UIEdit
+    PRPR: 完成UIEdit
     TODO: 完成UITab
     TODO: 完成UITree
     TODO: 子窗口渲染
+    TODO: 实现挂件?
     TODO: 规范化拖拽
     TODO: 出场/离场动画
     TODO: 可以正式发表了 ~yooooooooo~
