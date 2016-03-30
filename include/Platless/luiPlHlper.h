@@ -25,6 +25,7 @@
 */
 
 #include <cstdint>
+#include <cassert>
 
 // longui::helper namespace
 namespace LongUI { namespace Helper {
@@ -42,9 +43,9 @@ namespace LongUI { namespace Helper {
         template <size_t i> struct arg { using type = typename std::tuple_element<i, std::tuple<Args...>>::type; };
     };
     // make floats from string
-    bool MakeFloats(const char* str, float fary[], uint32_t count) noexcept;
+    auto MakeFloats(const char* str, float fary[], uint32_t count) noexcept -> const char*;
     // make ints from string
-    bool MakeInts(const char* str, int fary[], uint32_t count) noexcept;
+    auto MakeInts(const char* str, int fary[], uint32_t count) noexcept -> const char*;
     // Bit Array 计算机中每一字节都很宝贵
     template<typename T> class BitArray {
     public:

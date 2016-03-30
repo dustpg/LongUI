@@ -148,7 +148,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
     <HorizontalLayout name="H" templatesize="600, 0">
-        <Button borderwidth="1" margin="4,4,4,4" text="占位测试"/>
+        <Button templateid="2" text="占位测试"/>
         <ComboBox textformat="1" textoffsetx="4" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
             <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text">
                 <ScrollBarA marginal="right"/>

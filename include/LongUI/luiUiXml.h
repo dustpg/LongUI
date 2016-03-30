@@ -47,6 +47,8 @@ namespace LongUI { namespace Helper {
     auto GetEnumFromString(const char* value, RichType bad_match) noexcept ->RichType;
     // get animation type
     auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept ->AnimationType;
+    // get Brush type
+    auto GetEnumFromString(const char* value, BrushType bad_match) noexcept ->BrushType;
     // get longui bitmap render rule
     auto GetEnumFromString(const char* value, BitmapRenderRule bad_match) noexcept ->BitmapRenderRule;
     // get DWRITE_FONT_STYLE
@@ -79,7 +81,12 @@ namespace LongUI { namespace Helper {
         const char* attribute = "animationtype", const char* prefix = nullptr) noexcept {
         return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
     }
-    // get d2d interpolation mode
+    // get animation type
+    inline auto GetEnumFromXml(pugi::xml_node node, BrushType bad_match,
+        const char* attribute = "type", const char* prefix = nullptr) noexcept {
+        return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);
+    }
+        // get d2d interpolation mode
     inline auto GetEnumFromXml(pugi::xml_node node, D2D1_INTERPOLATION_MODE bad_match,
         const char* attribute = "interpolation", const char* prefix = nullptr) noexcept {
         return GetEnumFromString(Helper::XMLGetValue(node, attribute, prefix), bad_match);

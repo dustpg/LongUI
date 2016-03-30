@@ -168,6 +168,8 @@ namespace LongUI {
         // get space holder control to aviod nullptr if you do not want a nullptr
         static auto GetPlaceholder() noexcept ->UIControl*;
     public:
+        // render backgroud brush
+        //void RenderBackgroudBrush() const noexcept;
         // start render
         void StartRender(float time) noexcept;
         // invalidate this control
@@ -270,6 +272,8 @@ namespace LongUI {
     public:
         // parent control
         UIContainer*    const   parent = nullptr;
+        // backgroud control[READ WRITE for rendering thread]
+        //const UIControl*const   backgroud = nullptr;
         // render ancestry control, self or presuccessor/ancestry
         UIControl*      const   prerender = this;
         // using for UIContainerBuiltIn, prev control

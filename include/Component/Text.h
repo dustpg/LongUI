@@ -83,7 +83,7 @@ namespace LongUI { namespace Component {
         inline auto Render(float x, float y) const noexcept {
             m_pTextRenderer->basic_color.color = *m_pColor;
             m_pLayout->Draw(
-                m_buffer.GetDataVoid(), 
+                m_pTextContext, 
                 m_pTextRenderer, 
                 this->offset.x + x, 
                 this->offset.y + y
@@ -99,13 +99,13 @@ namespace LongUI { namespace Component {
         IDWriteTextLayout*          m_pLayout = nullptr;
         // Text Renderer
         XUIBasicTextRenderer*       m_pTextRenderer = nullptr;
+        // text context
+        void*                       m_pTextContext = nullptr;
         // basic color
         D2D1_COLOR_F*               m_pColor = this->color + State_Normal;
         // the text config
         DX::FormatTextConfig        m_config;
         // the string of text
         CUIString                   m_text;
-        // context buffer for text renderer
-        ContextBuffer               m_buffer;
     };
 }}

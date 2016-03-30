@@ -814,7 +814,7 @@ void LongUI::UIList::RefreshLayout() noexcept {
 
 // 清理UI列表控件
 void LongUI::UIList::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;
@@ -892,7 +892,7 @@ void LongUI::UIListLine::Update() noexcept {
 
 // 清理UI列表元素控件
 void LongUI::UIListLine::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;
@@ -1089,7 +1089,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
 
 // 清理UI列表头控件
 void LongUI::UIListHeader::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;

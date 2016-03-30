@@ -316,6 +316,8 @@ namespace LongUI {
         uint32_t                        m_dwWaitVSStartTime = 0;
         // textrender: normal
         CUINormalTextRender             m_normalTRenderer;
+        // textrender: outline
+        CUIOutlineTextRender            m_outlineTRenderer;
         // xml doc for window
         pugi::xml_document              m_docWindow;
         // xml doc for template

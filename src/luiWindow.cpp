@@ -76,7 +76,7 @@ void LongUI::UIViewport::initialize(D2D1_SIZE_U size) noexcept {
 
 // UIViewport 关闭控件
 void LongUI::UIViewport::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除对象
     delete this;
@@ -2518,11 +2518,16 @@ void LongUI::CUIBuiltinSystemWindow::Render() const noexcept {
         // 遍历
         for (auto itr = m_apUnitRender; itr < m_apUnitRender + m_uUnitLengthRender; ++itr) {
             auto ctrl = *itr; assert(ctrl != m_pViewport && "check the code");
+            UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
+            UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
-            D2D1_POINT_2F clipr[2];
-            clipr[0] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.left));
-            clipr[1] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.right));
-            UIManager_RenderTarget->PushAxisAlignedClip(reinterpret_cast<D2D1_RECT_F*>(clipr), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            // 渲染背景笔刷?
+            /*if (ctrl->backgroud != ctrl && ctrl->backgroud) {
+                auto bk = ctrl->backgroud;
+                UIManager_RenderTarget->SetTransform(&bk->world);
+                bk->RenderBackgroudBrush();
+                UIManager_RenderTarget->SetTransform(&ctrl->world);
+            }*/
             // 正常渲染
             ctrl->Render();
             // 回来

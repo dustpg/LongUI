@@ -110,10 +110,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         if (m_pTextRenderer) {
             auto length = m_pTextRenderer->GetContextSizeInByte();
             if (length) {
-                if ((str = attribute("context"))) {
-                    m_buffer.NewSize(length);
-                    m_pTextRenderer->CreateContextFromString(m_buffer.GetData(), str);
-                }
+                m_pTextContext = LongUI::SmallAlloc(length);
+                assert(m_pTextContext && "OOM for just 'length' byte");
+                m_pTextRenderer->CreateContextFromString(m_pTextContext, attribute("context"));
             }
         }
         {
@@ -153,6 +152,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         LongUI::SafeRelease(m_pLayout);
         LongUI::SafeRelease(m_pTextRenderer);
         LongUI::SafeRelease(m_config.format);
+        if (m_pTextContext) {
+            LongUI::SmallFree(m_pTextContext);
+            m_pTextContext = nullptr;
+        }
     }
     // ShortText 重建布局
     void ShortText::RecreateLayout() noexcept {
@@ -1232,7 +1235,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 刻画字体
         assert(this->layout && "bad action");
         m_pTextRenderer->basic_color.color = *m_pColor;
-        this->layout->Draw(m_buffer.GetDataVoid(), m_pTextRenderer, x, y);
+        this->layout->Draw(m_pTextContext, m_pTextRenderer, x, y);
     }
     // 复制到 目标全局句柄
     auto EditaleText::CopyToGlobal() noexcept -> HGLOBAL {
@@ -1405,6 +1408,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         LongUI::SafeRelease(m_pSelectionColor);
         //LongUI::SafeRelease(m_pDropSource);
         //LongUI::SafeRelease(m_pDataObject);
+        if (m_pTextContext) {
+            LongUI::SmallFree(m_pTextContext);
+            m_pTextContext = nullptr;
+        }
     }
     /// <summary>
     /// Initializes a new instance of the 
@@ -1538,10 +1545,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             if (m_pTextRenderer) {
                 auto length = m_pTextRenderer->GetContextSizeInByte();
                 if (length) {
-                    if ((str = attribute("context"))) {
-                        m_buffer.NewSize(length);
-                        m_pTextRenderer->CreateContextFromString(m_buffer.GetDataVoid(), str);
-                    }
+                    m_pTextContext = LongUI::SmallAlloc(length);
+                    assert(m_pTextContext && "OOM for just 'length' byte");
+                    m_pTextRenderer->CreateContextFromString(m_pTextContext, attribute("context"));
                 }
             }
         }
@@ -1820,7 +1826,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         if (exstt1 != exstt2) {
             // 渲染下层
             if (exani.value < ANIMATION_END) {
-                metas[exstt1 * basic + bastt2].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+                metas[exstt1 * basic + bastt2].Render(UIManager_RenderTarget, rect, ANIMATION_END - exani.value * exani.value);
             }
             // 渲染上层
             metas[exstt2 * basic + bastt2].Render(UIManager_RenderTarget, rect, exani.value);
@@ -1829,7 +1835,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         else {
             // 绘制旧的状态
             if (baani.value < ANIMATION_END) {
-                metas[exstt2 * basic + bastt1].Render(UIManager_RenderTarget, rect, ANIMATION_END);
+                metas[exstt2 * basic + bastt1].Render(UIManager_RenderTarget, rect, ANIMATION_END - baani.value * baani.value);
             }
             // 再绘制目标状态
             metas[exstt2 * basic + bastt2].Render(UIManager_RenderTarget, rect, baani.value);
@@ -2125,60 +2131,29 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
     return S_OK;
 }
 
-// longui 
-namespace LongUI {
+
+// longui::impl namepsace
+namespace LongUI { namespace impl{
     // same v-table?
     template<class A, class B> auto same_vtable(const A* a, const B* b) noexcept {
         auto table1 = (*reinterpret_cast<const size_t * const>(a));
         auto table2 = (*reinterpret_cast<const size_t * const>(b));
         return table1 == table2;
     }
-}
-
-// ------------------CUINormalTextRender-----------------------
-// 刻画字形
-HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
-    void* clientDrawingContext,
-    FLOAT baselineOriginX, FLOAT baselineOriginY,
-    DWRITE_MEASURING_MODE measuringMode,
-    const DWRITE_GLYPH_RUN * glyphRun,
-    const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
-    IUnknown * effect) noexcept {
-    UNREFERENCED_PARAMETER(clientDrawingContext);
-    UNREFERENCED_PARAMETER(glyphRunDescription);
-    // 获取颜色
-    D2D1_COLOR_F* color = nullptr;
-    // 检查
-    if (effect && same_vtable(effect, &this->basic_color)) {
-        color = &static_cast<CUIColorEffect*>(effect)->color;
-    }
-    else {
-        color = &this->basic_color.color;
-    }
-    // 设置颜色
-    m_pBrush->SetColor(color);
-    // 利用D2D接口直接渲染字形
-    UIManager_RenderTarget->DrawGlyphRun(
-        D2D1::Point2(baselineOriginX, baselineOriginY),
-        glyphRun,
-        m_pBrush,
-        measuringMode
-        );
-    return S_OK;
-}
+}}
 
 // 刻画下划线
-HRESULT LongUI::CUINormalTextRender::DrawUnderline(
+HRESULT LongUI::XUIBasicTextRenderer::DrawUnderline(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
     FLOAT baselineOriginY,
     const DWRITE_UNDERLINE* underline,
     IUnknown* effect
-    ) noexcept {
+) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
-    if (effect && same_vtable(effect, &this->basic_color)) {
+    if (effect && impl::same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
@@ -2199,17 +2174,17 @@ HRESULT LongUI::CUINormalTextRender::DrawUnderline(
 }
 
 // 刻画删除线
-HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
+HRESULT LongUI::XUIBasicTextRenderer::DrawStrikethrough(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
     FLOAT baselineOriginY,
     const DWRITE_STRIKETHROUGH* strikethrough,
     IUnknown* effect
-    ) noexcept {
+) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
-    if (effect && same_vtable(effect, &this->basic_color)) {
+    if (effect && impl::same_vtable(effect, &this->basic_color)) {
         color = &static_cast<CUIColorEffect*>(effect)->color;
     }
     else {
@@ -2229,6 +2204,138 @@ HRESULT LongUI::CUINormalTextRender::DrawStrikethrough(
     return S_OK;
 }
 
+
+// ------------------CUINormalTextRender-----------------------
+// 刻画字形
+HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
+    void* clientDrawingContext,
+    FLOAT baselineOriginX, FLOAT baselineOriginY,
+    DWRITE_MEASURING_MODE measuringMode,
+    const DWRITE_GLYPH_RUN * glyphRun,
+    const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
+    IUnknown * effect) noexcept {
+    UNREFERENCED_PARAMETER(clientDrawingContext);
+    UNREFERENCED_PARAMETER(glyphRunDescription);
+    // 获取颜色
+    D2D1_COLOR_F* color = nullptr;
+    // 检查
+    if (effect && impl::same_vtable(effect, &this->basic_color)) {
+        color = &static_cast<CUIColorEffect*>(effect)->color;
+    }
+    else {
+        color = &this->basic_color.color;
+    }
+    // 设置颜色
+    m_pBrush->SetColor(color);
+    // 利用D2D接口直接渲染字形
+    UIManager_RenderTarget->DrawGlyphRun(
+        D2D1::Point2(baselineOriginX, baselineOriginY),
+        glyphRun,
+        m_pBrush,
+        measuringMode
+        );
+    return S_OK;
+}
+
+
+// ------------------CUIOutlineTextRender-----------------------
+// 刻画字形
+HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
+    void* clientDrawingContext,
+    FLOAT baselineOriginX, FLOAT baselineOriginY,
+    DWRITE_MEASURING_MODE measuringMode,
+    const DWRITE_GLYPH_RUN * glyphRun,
+    const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
+    IUnknown * effect) noexcept {
+    UNREFERENCED_PARAMETER(glyphRunDescription);
+    // 获取填充颜色
+    D2D1_COLOR_F* fill_color = nullptr;
+    // 检查
+    if (effect && impl::same_vtable(effect, &this->basic_color)) {
+        fill_color = &static_cast<CUIColorEffect*>(effect)->color;
+    }
+    else {
+        fill_color = &this->basic_color.color;
+    }
+    // 获取描边颜色
+    auto outline = reinterpret_cast<OutlineContext*>(clientDrawingContext);
+    D2D1_COLOR_F* draw_color = &outline->color;
+    HRESULT hr = S_OK;
+    // 创建路径几何
+    ID2D1PathGeometry* pPathGeometry = nullptr;
+    hr = UIManager_D2DFactory->CreatePathGeometry(
+        &pPathGeometry
+    );
+    // 写入几何体
+    ID2D1GeometrySink* pSink = nullptr;
+    if (SUCCEEDED(hr)) {
+        hr = pPathGeometry->Open(
+            &pSink
+        );
+    }
+    // 描边
+    if (SUCCEEDED(hr)) {
+        hr = glyphRun->fontFace->GetGlyphRunOutline(
+            glyphRun->fontEmSize,
+            glyphRun->glyphIndices,
+            glyphRun->glyphAdvances,
+            glyphRun->glyphOffsets,
+            glyphRun->glyphCount,
+            glyphRun->isSideways,
+            glyphRun->bidiLevel % 2,
+            pSink
+        );
+    }
+    // 关闭几何体sink
+    if (SUCCEEDED(hr)) {
+        hr = pSink->Close();
+    }
+    // 渲染
+    if (SUCCEEDED(hr)) {
+        // 保存状态
+        D2D1_MATRIX_3X2_F transform, transform2;
+        UIManager_RenderTarget->GetTransform(&transform);
+        transform2 = DX::Matrix3x2F::Translation(
+            baselineOriginX, baselineOriginY
+        ) * transform;
+        UIManager_RenderTarget->SetTransform(&transform2);
+        // 设置颜色
+        m_pBrush->SetColor(draw_color);
+        // 刻画描边
+        UIManager_RenderTarget->DrawGeometry(
+            pPathGeometry,
+            m_pBrush,
+            outline->width
+        );
+        // 设置颜色
+        m_pBrush->SetColor(fill_color);
+        // 填充字形
+        UIManager_RenderTarget->FillGeometry(
+            pPathGeometry,
+            m_pBrush
+        );
+        // 回退
+        UIManager_RenderTarget->SetTransform(&transform);
+    }
+    // 扫尾
+    LongUI::SafeRelease(pPathGeometry);
+    LongUI::SafeRelease(pSink);
+    return hr;
+}
+
+// 利用字符串创建上下文
+void LongUI::CUIOutlineTextRender::CreateContextFromString(void* context, const char* utf8_string) noexcept {
+    assert(context);
+    auto outline = reinterpret_cast<OutlineContext*>(context);
+    outline->color = D2D1::ColorF(D2D1::ColorF::White);
+    outline->width = 1.f;
+    if (!utf8_string) return;
+    // 获取
+    auto end = Helper::MakeFloats(utf8_string, &outline->width, 1);
+    if (end[0] == ',') {
+        Helper::MakeColor(end+1, outline->color);
+    }
+}
 
 
 // ------------------- MMFVideo -----------------------

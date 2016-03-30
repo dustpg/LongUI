@@ -89,6 +89,10 @@ namespace LongUI { namespace Helper {
     const char* const cg_listRenderRule[] = {
         "scale", "button",
     };
+    // 渲染模式 属性值列表
+    const char* const cg_listBrushType[] = {
+        "solid", "linear", "radial", "bitmap"
+    };
     // 富文本类型 属性值列表
     const char* const cg_listRichType[] = {
         "none", "core", "xml", "custom",
@@ -144,6 +148,10 @@ namespace LongUI { namespace Helper {
     // 获取动画类型
     LongUINoinline auto GetEnumFromString(const char* value, AnimationType bad_match) noexcept ->AnimationType {
         return GetEnumFromStringHelper(value, bad_match, cg_listAnimationType);
+    }
+    // 获取笔刷类型
+    LongUINoinline auto GetEnumFromString(const char* value, BrushType bad_match) noexcept ->BrushType {
+        return GetEnumFromStringHelper(value, bad_match, cg_listBrushType);
     }
     // 获取插值模式
     LongUINoinline auto GetEnumFromString(const char* value, D2D1_INTERPOLATION_MODE bad_match) noexcept ->D2D1_INTERPOLATION_MODE {

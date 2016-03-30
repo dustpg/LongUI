@@ -302,7 +302,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     // bitmap render rule
     enum class BitmapRenderRule : uint16_t {
         Rule_Scale = 0,         // 直接缩放
-        Rule_ButtonLike,        // 三段渲染
+        Rule_ButtonLike,        // 九宫格渲染
     };
     // brush type
     enum class BrushType : size_t {
@@ -348,6 +348,12 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         Event_SetFloat,
         // [none-exdata] get control float value
         Event_GetFloat,
+#if 0
+        // [stf] set control int value
+        Event_SetNumber,
+        // [none-exdata] get control int value
+        Event_GetNumber,
+#endif
         // [key] char input
         Event_Char,
         // [key] key down
@@ -385,6 +391,10 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
             struct { bool enabled; } ste;
             // set float
             struct { float value;  } stf;
+#if 0
+            // set number
+            struct { int32_t value; } stn;
+#endif
             // input char
             struct { char32_t ch; } key;
         };

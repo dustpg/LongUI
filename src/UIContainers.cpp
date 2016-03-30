@@ -451,7 +451,7 @@ void LongUI::UIVerticalLayout::RefreshLayout() noexcept {
 
 // UIVerticalLayout 关闭控件
 void LongUI::UIVerticalLayout::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;
@@ -538,7 +538,7 @@ void LongUI::UIHorizontalLayout::RefreshLayout() noexcept {
 
 // UIHorizontalLayout 关闭控件
 void LongUI::UIHorizontalLayout::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;
@@ -694,11 +694,16 @@ void LongUI::UISingle::RefreshLayout() noexcept {
     m_pChild->SetControlLayoutChanged();
     m_pChild->SetLeft(0.f);
     m_pChild->SetTop(0.f);
+    // 设置内容大小
+    m_2fContentSize.width = m_pChild->GetWidth();
+    m_2fContentSize.height = m_pChild->GetHeight();
+    // 已经处理
+    this->ControlLayoutChangeHandled();
 }
 
 // UISingle 清理
 void LongUI::UISingle::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;
@@ -1008,7 +1013,7 @@ void LongUI::UIPage::RefreshLayout() noexcept {
 
 // UIPage 清理
 void LongUI::UIPage::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;
@@ -1062,7 +1067,7 @@ void LongUI::UIFloatLayout::RefreshLayout() noexcept {
 
 // UIFloatLayout 关闭控件
 void LongUI::UIFloatLayout::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除
     delete this;

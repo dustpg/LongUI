@@ -422,7 +422,7 @@ inline LongUI::UIScrollBarA::~UIScrollBarA() noexcept {
 
 // UIScrollBarA 关闭控件
 void  LongUI::UIScrollBarA::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除对象
     delete this;
@@ -605,7 +605,7 @@ void  LongUI::UIScrollBarB::Update() noexcept {
 
 // UIScrollBarB 关闭控件
 void  LongUI::UIScrollBarB::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除对象
     delete this;

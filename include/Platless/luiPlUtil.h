@@ -26,6 +26,7 @@
 
 #include "../luiconf.h"
 #include <cstdint>
+#include <cassert>
 
 // longui namespace
 namespace LongUI {

@@ -316,6 +316,14 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
             hr = E_FAIL;
         }
     }
+    // 注册渲染器
+    if (SUCCEEDED(hr)) {
+        // 描边渲染器
+        if (this->RegisterTextRenderer(&m_outlineTRenderer, "outline") != Type_OutlineTextRenderer) {
+            assert(!"Type_OutlineTextRenderer");
+            hr = E_FAIL;
+        }
+    }
     // 添加控件
     if (SUCCEEDED(hr)) {
         // 必须的控件

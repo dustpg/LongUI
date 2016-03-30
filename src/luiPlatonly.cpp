@@ -224,31 +224,41 @@ namespace LongUI { namespace impl {
     }
 }}
 
+
+// Outline Text Renderer : context
+namespace LongUI {
+
+}
+
 // 命名空间
 namespace LongUI { namespace Helper {
     // 创建浮点
-    LongUINoinline bool MakeFloats(const char* str, float fary[], uint32_t size) noexcept {
+    LongUINoinline auto MakeFloats(const char* str, float fary[], uint32_t size) noexcept -> const char*{
         // 检查字符串
-        if (!str || !*str) return false;
-        impl::make_units<','>([](float* out, const char* begin, const char* end) noexcept {
+        if (!str || !*str) return str;
+        const char* rcode = str;
+        impl::make_units<','>([&rcode](float* out, const char* begin, const char* end) noexcept {
             auto len = static_cast<size_t>(end - begin);
             char buf[128]; assert(len < lengthof(buf));
             std::memcpy(buf, begin, len); len[buf] = 0;
             *out = LongUI::AtoF(buf);
+            rcode = end;
         }, str, fary, size);
-        return true;
+        return rcode;
     }
     // 创建整数
-    LongUINoinline bool MakeInts(const char* str, int iary[], uint32_t size) noexcept {
+    LongUINoinline auto MakeInts(const char* str, int iary[], uint32_t size) noexcept -> const char* {
         // 检查字符串
-        if (!str || !*str) return false;
-        impl::make_units<','>([](int* out, const char* begin, const char* end) noexcept {
+        if (!str || !*str) return str;
+        const char* rcode = str;
+        impl::make_units<','>([&rcode](int* out, const char* begin, const char* end) noexcept {
             auto len = static_cast<size_t>(end - begin);
             char buf[128]; assert(len < lengthof(buf));
             std::memcpy(buf, begin, len); len[buf] = 0;
             *out = LongUI::AtoI(buf);
+            rcode = end;
         }, str, iary, size);
-        return true;
+        return rcode;
     }
     // 颜色属性名字符串集
     const char* const COLOR_BUTTON[] = {
@@ -290,12 +300,14 @@ namespace LongUI { namespace Helper {
         assert(count < BUFFER_COUNT && "out of buffer length");
         // 初始化
         std::memset(tmp, 0, sizeof(tmp));
+        // 字符串
+        auto str = Helper::XMLGetValue(node, "metagroup", prefix);
         // 计算结果
-        auto result = Helper::MakeFloats(Helper::XMLGetValue(node, "metagroup", prefix), tmp, count);
+        auto result = Helper::MakeFloats(str, tmp, count);
         // 转换数据
         for (uint32_t i = 0; i < count; ++i) fary[i] = static_cast<uint16_t>(tmp[i]);
         // 返回结果
-        return result;
+        return result != str;
     }
 }}
 
@@ -337,7 +349,7 @@ bool LongUI::Helper::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
     }
     // 浮点数组
     else {
-        return Helper::MakeFloats(data, reinterpret_cast<float*>(&color), 4);
+        return Helper::MakeFloats(data, reinterpret_cast<float*>(&color), 4) != data;
     }
 }
 

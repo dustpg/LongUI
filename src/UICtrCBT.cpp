@@ -95,7 +95,7 @@ auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) no
 
 // close this control 关闭控件
 void LongUI::UIText::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除对象
     delete this;
@@ -252,7 +252,7 @@ bool LongUI::UIButton::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept
 
 // 关闭控件
 void LongUI::UIButton::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除对象
     delete this;
@@ -511,7 +511,7 @@ inline LongUI::UIComboBox::~UIComboBox() noexcept {
 
 // UIComboBox: 关闭控件
 void LongUI::UIComboBox::cleanup() noexcept {
-    // 删除前调用
+    // 删前调用
     this->before_deleted();
     // 删除对象
     delete this;

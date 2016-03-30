@@ -267,6 +267,8 @@ namespace LongUI { namespace Component {
         D2D1_SIZE_F             m_size = D2D1::SizeF(96.f, 96.f);
         // Text Renderer
         XUIBasicTextRenderer*   m_pTextRenderer = nullptr;
+        // text context
+        void*                   m_pTextContext = nullptr;
         // drag text range
         DWRITE_TEXT_RANGE       m_dragRange;
         // click in selection
@@ -289,8 +291,6 @@ namespace LongUI { namespace Component {
         uint32_t                m_u32CaretPosOffset = 0;
         // string of text
         CUIString               m_string;
-        // context buffer for text renderer
-        ContextBuffer           m_buffer;
     public:
         // basic color
         D2D1_COLOR_F            color[STATE_COUNT];

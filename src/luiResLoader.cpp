@@ -404,10 +404,7 @@ namespace LongUI {
             Helper::MakeFloats(str, &brush_prop.transform._11, 6);
         }
         // 检查类型
-        auto type = BrushType::Type_SolidColor;
-        if (str = node.attribute("type").value()) {
-            type = static_cast<decltype(type)>(::LongUI::AtoI(str));
-        }
+        auto type = Helper::GetEnumFromXml(node, BrushType::Type_SolidColor, "type");
         switch (type)
         {
         case LongUI::BrushType::Type_SolidColor:
@@ -508,6 +505,10 @@ namespace LongUI {
             if (str = node.attribute("bitmap").value()) {
                 // 创建笔刷
                 auto bitmap = m_manager.GetBitmap(size_t(LongUI::AtoI(str)));
+                // 缩放
+                auto zoom = 1.f / bitmap->GetSize().height;
+                brush_prop.transform = DX::Matrix3x2F::Scale(D2D1::SizeF(zoom, zoom))
+                    * brush_prop.transform;
                 // 基本参数
                 D2D1_BITMAP_BRUSH_PROPERTIES1 bbprop = {
                     Helper::GetEnumFromXml(node, D2D1_EXTEND_MODE_CLAMP, "extendx"),

@@ -95,6 +95,15 @@ m_pWindow(parent ? parent->GetWindow() : nullptr) {
 }
 
 /// <summary>
+/// Renders the backgroud brush.
+/// </summary>
+/// <returns></returns>
+/*void LongUI::UIControl::RenderBackgroudBrush() const noexcept {
+    D2D1_RECT_F rect; this->GetViewRect(rect);
+    LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
+}*/
+
+/// <summary>
 /// Starts the render.
 /// </summary>
 /// <param name="time">The time.</param>
@@ -389,10 +398,20 @@ void LongUI::UIControl::render_chain_background() const noexcept {
     }
     force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_BACK);
 #endif
+#if 1
     if (m_pBackgroudBrush) {
         D2D1_RECT_F rect; this->GetViewRect(rect);
         LongUI::FillRectWithCommonBrush(UIManager_RenderTarget, m_pBackgroudBrush, rect);
     }
+#else
+    if (m_pBackgroudBrush) {
+        force_cast(this->backgroud) = this;
+        this->RenderBackgroudBrush();
+    }
+    else {
+        force_cast(this->backgroud) = this->parent ? this->parent->backgroud : nullptr;
+    }
+#endif
 }
 
 // UIControl:: 渲染调用链: 前景
@@ -757,7 +776,7 @@ namespace LongUI {
                 UIManager << DL_Error << L"alloc null" << LongUI::endl;
             }
             else {
-                pControl->initialize();
+                pControl->initialize(node);
             }
             return pControl;
         }

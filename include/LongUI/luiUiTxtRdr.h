@@ -74,9 +74,25 @@ namespace LongUI {
             BOOL isRightToLeft,
             _In_opt_ IUnknown* clientDrawingEffect
             ) noexcept override;
+        // draw underline
+        virtual HRESULT STDMETHODCALLTYPE DrawUnderline(
+            void* clientDrawingContext,
+            FLOAT baselineOriginX,
+            FLOAT baselineOriginY,
+            const DWRITE_UNDERLINE* underline,
+            IUnknown* clientDrawingEffect
+        ) noexcept override;
+        // draw strikethrough
+        virtual HRESULT STDMETHODCALLTYPE DrawStrikethrough(
+            void* clientDrawingContext,
+            FLOAT baselineOriginX,
+            FLOAT baselineOriginY,
+            const DWRITE_STRIKETHROUGH* strikethrough,
+            IUnknown* clientDrawingEffect
+        ) noexcept override;
     public: // LongUI XUIBasicTextRenderer 
         // get the render context size in byte
-        virtual auto GetContextSizeInByte() noexcept ->uint32_t = 0;
+        virtual auto GetContextSizeInByte() noexcept ->size_t = 0;
         // create context from string
         virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept = 0;
     protected:
@@ -108,28 +124,43 @@ namespace LongUI {
             const DWRITE_GLYPH_RUN_DESCRIPTION* glyphRunDescription,
             IUnknown* clientDrawingEffect
             ) noexcept override;
-        // draw underline
-        virtual HRESULT STDMETHODCALLTYPE DrawUnderline(
-            void* clientDrawingContext,
-            FLOAT baselineOriginX,
-            FLOAT baselineOriginY,
-            const DWRITE_UNDERLINE* underline,
-            IUnknown* clientDrawingEffect
-            ) noexcept override;
-        // draw strikethrough
-        virtual HRESULT STDMETHODCALLTYPE DrawStrikethrough(
-            void* clientDrawingContext,
-            FLOAT baselineOriginX,
-            FLOAT baselineOriginY,
-            const DWRITE_STRIKETHROUGH* strikethrough,
-            IUnknown* clientDrawingEffect
-            ) noexcept override;
     public:// XUIBasicTextRenderer implementation
         // get the render context size in byte
-        virtual auto GetContextSizeInByte() noexcept ->uint32_t override  { return 0ui32; }
+        virtual auto GetContextSizeInByte() noexcept ->size_t override  { return 0; }
         // create context from string
         virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept { 
             UNREFERENCED_PARAMETER(context); UNREFERENCED_PARAMETER(utf8_string);
         };
+    };
+    // Outline Text Renderer: Render Context -> outline color, outline size
+    class  CUIOutlineTextRender : public XUIBasicTextRenderer {
+        // superclass define
+        using Super = XUIBasicTextRenderer ;
+        // text context
+        struct OutlineContext {
+            // color
+            D2D1_COLOR_F    color;
+            // stroke width
+            float           width;
+        };
+    public:
+        // CUINormalTextRender
+        CUIOutlineTextRender():Super(Type_NormalTextRenderer){ }
+    public:// IDWriteTextRenderer implementation
+           // draw glyphrun
+        virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(
+            void* clientDrawingContext,
+            FLOAT baselineOriginX,
+            FLOAT baselineOriginY,
+            DWRITE_MEASURING_MODE measuringMode,
+            const DWRITE_GLYPH_RUN* glyphRun,
+            const DWRITE_GLYPH_RUN_DESCRIPTION* glyphRunDescription,
+            IUnknown* clientDrawingEffect
+        ) noexcept override;
+    public:// XUIBasicTextRenderer implementation
+           // get the render context size in byte
+        virtual auto GetContextSizeInByte() noexcept ->size_t override  { return sizeof(OutlineContext); }
+        // create context from string
+        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept;
     };
 }
