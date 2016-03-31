@@ -142,6 +142,8 @@ namespace LongUI {
         auto GetZoomX() const noexcept { return m_2fZoom.width; }
         // get zoom in y
         auto GetZoomY() const noexcept { return m_2fZoom.height; }
+        // set zoom
+        void SetZoom(float x, float y) noexcept;
         // get zoom 
         auto GetZoom(int xy) const noexcept { return xy ? this->GetZoomY() : this->GetZoomX(); }
         // get top margin offset

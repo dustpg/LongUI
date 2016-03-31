@@ -1041,6 +1041,8 @@ auto LongUI::CUIManager::set_control_template_string() noexcept ->HRESULT {
     return S_OK;
 }
 
+
+
 /// <summary>
 /// create dxgi output for this instance.
 /// </summary>
@@ -1067,10 +1069,9 @@ auto LongUI::CUIManager::create_dxgi_output() noexcept -> HRESULT {
         // 枚举显示输出
         while (pDxgiAdapter->EnumOutputs(0, &m_pDxgiOutput) != DXGI_ERROR_NOT_FOUND) {
             assert(m_pDxgiOutput && "bad action");
-#ifdef _DEBUG
             DXGI_OUTPUT_DESC desco;
             m_pDxgiOutput->GetDesc(&desco);
-#endif
+            LongUI::GetMonitorDpi(desco.Monitor, m_uMainDpiX, m_uMainDpiY);
             return S_OK;
         }
         ++ia;

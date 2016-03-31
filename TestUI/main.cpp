@@ -140,15 +140,14 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 
 const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window textantimode="cleartype" size="800, 600" name="MainWindow" debugshow="true"
-    autoshow="false" clearcolor="1, 1, 1, 0.95" titlename="A_LongUI">
+<Window textantimode="cleartype" size="800, 600" name="MainWindow" debugshow="true" clearcolor="1, 1, 1, 0.95" titlename="A_LongUI">
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
     <Page name="pg_1" animationduration="0.5">
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2"/>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
     <HorizontalLayout name="H" templatesize="600, 0">
-        <Button templateid="2" text="占位测试"/>
+        <Button templateid="2" text="占位测试" name="btn_test"/>
         <ComboBox textformat="1" textoffsetx="4" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
             <List debug="ftrue" sort="true" name="lst_01" linetemplate="Text">
                 <ScrollBarA marginal="right"/>
@@ -157,7 +156,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
             </List>
         </ComboBox>
     </HorizontalLayout>
-    <HorizontalLayout templatesize="256, 0">
+    <HorizontalLayout>
         <Edit name="edt1" borderwidth="1" textformat="1" text="😀"/>
         <Edit name="edt2" borderwidth="1" text="这个"/>
     </HorizontalLayout>
@@ -307,6 +306,16 @@ private:
             auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
             ctrl->AddEventCall([page1](UIControl*) noexcept {
                 page1->DisplayNextPage(0ui32);
+                return true;
+            }, LongUI::SubEvent::Event_ItemClicked);
+        }
+        if ((ctrl = m_pWindow->FindControl("btn_test"))) {
+            static bool a = false;
+            auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
+            ctrl->AddEventCall([page1](UIControl*) noexcept {
+                float z = a ? 1.f : 2.f;
+                a =! a;
+                page1->SetZoom(z, z);
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
         }

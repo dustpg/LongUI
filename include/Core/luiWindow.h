@@ -81,6 +81,8 @@ namespace LongUI {
             Index_CloseOnFocusKilled,
             // [RO] popup window
             Index_PopupWindow,
+            // [RO] Hi-Dpi supported
+            Index_HiDpiSupported,
             // [RW] in draging?
             Index_InDraging,
             // [RW] new size?
@@ -189,6 +191,8 @@ namespace LongUI {
         bool is_skip_render() const noexcept { return m_baBoolWindow.Test(Index_SkipRender); }
         // is Popup
         bool is_popup_window() const noexcept { return m_baBoolWindow.Test(Index_PopupWindow); }
+        // is HiDpiSupported
+        bool is_hidpi_supported() const noexcept { return m_baBoolWindow.Test(Index_HiDpiSupported); }
         // is ExitOnClose
         bool is_exit_on_close() const noexcept { return m_baBoolWindow.Test(Index_ExitOnClose); }
         // is CloseOnFocusKilled
@@ -202,6 +206,8 @@ namespace LongUI {
         void set_popup_window() noexcept { m_baBoolWindow.SetTrue(Index_PopupWindow); }
         // set ExitOnClose to true
         void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue(Index_ExitOnClose); }
+        // is HiDpiSupported
+        void set_hidpi_supported() noexcept { m_baBoolWindow.SetTrue(Index_HiDpiSupported); }
         // set CloseOnFocusKilled to true
         void set_close_on_focus_killed() noexcept { m_baBoolWindow.SetTrue(Index_CloseOnFocusKilled); }
     protected:
@@ -298,7 +304,7 @@ namespace LongUI {
         // move window
         virtual void MoveWindow(int32_t x, int32_t y) noexcept override;
         // resize window
-        virtual void Resize(uint32_t w, uint32_t h) noexcept override;
+        //virtual void Resize(uint32_t w, uint32_t h) noexcept override;
     public:
 
     protected:

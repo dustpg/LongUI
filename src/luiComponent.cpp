@@ -954,7 +954,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         if (this->IsNumber()) {
             const auto num = this->GetNumber();
             auto num2 = std::max(num, m_iMin);
-            num2 = std::min(num, m_iMax);
+            num2 = std::min(num2, m_iMax);
             if (num != num2) this->SetNumber(num2);
         }
         // 隐藏插入符号

@@ -285,7 +285,7 @@ bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept
             if (m_pointType == PointType::Type_Thumb) {
                 // 计算移动距离
                 auto pos = UISB_OffsetVaule(pt4self.x);
-                auto zoom = this->parent->GetZoom(int(this->bartype));
+                auto zoom = this->parent->GetZoom(int(this->bartype) & 1);
                 auto rate = (1.f - m_fMaxIndex / (m_fMaxRange - BASIC_SIZE*2.f)) * zoom;
                 this->set_index((pos - m_fOldPoint) / rate + m_fOldIndex);
             }

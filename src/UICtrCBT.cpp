@@ -287,7 +287,7 @@ void LongUI::UIComboBox::render_chain_foreground() const noexcept {
     // 父类渲染
     Super::render_chain_foreground();
     // 渲染下拉箭头
-    if (!m_uiElement.IsExtraInterfaceValid()) {
+    if (m_bDrawDownArrow || !m_uiElement.IsExtraInterfaceValid()) {
         // 几何体
         auto arrow = UIScrollBarA::GetArrowRealization(UIScrollBarA::Arrow_Bottom);
 #if 0
@@ -349,6 +349,8 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
     assert(!m_pItemList);
     // 链式初始化
     Super::initialize(node);
+    // 渲染下箭头
+    m_bDrawDownArrow = node.attribute("drawdownarrow").as_bool(false);
     // 创建列表
     auto list = node.first_child();
     if (!list) list = node.append_child("List");
@@ -387,8 +389,7 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         }, SubEvent::Event_ItemClicked);
     }
     // 点击事件
-    auto call = [this](UIControl* unused) noexcept {
-        UNREFERENCED_PARAMETER(unused);
+    auto call = [this](UIControl* ccb) noexcept {
         // 清零
         m_pItemList->ZeroAllLinesContentWidth();
         // 坐标转换
@@ -408,8 +409,9 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         // 高度
         float height = 0.f;
         {
-            uint32_t count = std::min(m_fMaxLine, m_pItemList->GetChildrenCount());
-            height = m_pItemList->GetLineHeight() * static_cast<float>(count);
+            uint32_t count = std::min(uint32_t(m_uMaxLine), m_pItemList->GetChildrenCount());
+            float zoomy = ccb->GetWindow()->GetViewport()->GetZoomY();
+            height = zoomy * m_pItemList->GetLineHeight() * static_cast<float>(count);
         }
         // 创建弹出窗口
         auto popup = m_pWindow->CreatePopup(rect, LONG(height), m_pItemList);

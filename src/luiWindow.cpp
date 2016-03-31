@@ -1284,6 +1284,10 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
     if ((str = node.attribute("caretblinktime").value())) {
         m_tmCaret.Reset(LongUI::AtoI(str));
     }
+    // 高DPI处理策略
+    if (node.attribute("hidpi").as_bool(true)) {
+        this->set_hidpi_supported();
+    }
 }
 
 /// <summary>
@@ -1563,12 +1567,6 @@ void LongUI::XUISystemWindow::MoveWindow(int32_t x, int32_t y) noexcept {
     ::SetWindowPos(m_hwnd, HWND_TOP, pt.x, pt.y, 0, 0, SWP_NOSIZE);
 }
 
-// 改变大小
-void LongUI::XUISystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
-    // TODO: 不同时再改变大小
-    assert(!"NOIMPL");
-}
-
 
 /// <summary>
 /// Initializes the viewport.
@@ -1579,6 +1577,12 @@ void LongUI::XUIBaseWindow::InitializeViewport(UIViewport* viewport) noexcept {
     assert(viewport && "bad viewport given");
     assert(m_pViewport == nullptr && "InitializeViewport cannot called only once for one instance");
     m_pViewport = viewport;
+    // 自动适应高DPI
+    if (this->is_hidpi_supported()) {
+        float x = float(UIManager.GetMainDpiX()) / float(LongUI::BASIC_DPI);
+        float y = float(UIManager.GetMainDpiY()) / float(LongUI::BASIC_DPI);
+        m_pViewport->SetZoom(x, y);
+    }
 }
 
 /// <summary>
@@ -1695,8 +1699,8 @@ void LongUI::XUIBaseWindow::resized() noexcept {
     // 修改
     m_pViewport->visible_rect.right = static_cast<float>(this->GetWidth());
     m_pViewport->visible_rect.bottom = static_cast<float>(this->GetHeight());
-    m_pViewport->SetWidth(m_pViewport->visible_rect.right / m_pViewport->GetZoomX());
-    m_pViewport->SetHeight(m_pViewport->visible_rect.bottom / m_pViewport->GetZoomY());
+    m_pViewport->SetWidth(m_pViewport->visible_rect.right);
+    m_pViewport->SetHeight(m_pViewport->visible_rect.bottom);
     // 强行刷新一帧
     this->InvalidateWindow();
     // 处理了
@@ -1731,6 +1735,8 @@ namespace LongUI {
         virtual void Update() noexcept override;
         // recreate
         virtual auto Recreate() noexcept->HRESULT override;
+        // resize
+        void Resize(uint32_t w, uint32_t h) noexcept override;
         // set cursor
         virtual void SetCursor(Cursor cursor) noexcept override;
         // show/hide window
@@ -2076,14 +2082,12 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         // 改变大小
     {
         // 加锁
-        CUIDataAutoLocker locker;
         auto w = LOWORD(lParam);
         auto h = HIWORD(lParam);
         // 数据有效?
-        if (w && h && (w != this->GetWidth() || h != this->GetHeight())) {
-            m_rcWindow.width = w;
-            m_rcWindow.height = h;
-            this->set_new_size();
+        if (w && h) {
+            CUIDataAutoLocker locker;
+            this->Resize(w, h);
         }
         return true;
     }
@@ -2095,6 +2099,17 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     case WM_CLOSE:
         // 关闭窗口
         return on_close();
+    case WM_DPICHANGED:
+        // dpi改变了
+        if (this->is_hidpi_supported()) {
+            float xdpi = float(uint16_t(LOWORD(wParam)));
+            float ydpi = float(uint16_t(HIWORD(wParam)));
+            float x = xdpi / float(LongUI::BASIC_DPI);
+            float y = ydpi / float(LongUI::BASIC_DPI);
+            CUIDataAutoLocker locker;
+            m_pViewport->SetZoom(x, y);
+        }
+        return true;
     default:
         return false;
     }
@@ -2124,6 +2139,18 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     }
     //return false;
 }
+
+
+// 改变大小
+void LongUI::CUIBuiltinSystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
+    assert(w && h && "bad argument");
+    if (w != this->GetWidth() || h != this->GetHeight()) {
+        m_rcWindow.width = w;
+        m_rcWindow.height = h;
+        this->set_new_size();
+    }
+}
+
 
 /// <summary>
 /// Called when [resizd].
@@ -2204,6 +2231,7 @@ void LongUI::CUIBuiltinSystemWindow::OnCreate(HWND hwnd) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
+    //m_pViewport->SetZoom(1);
     // 跳过
     if (this->is_skip_render()) return S_OK;
     // 渲染锁
@@ -2675,10 +2703,6 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
             if (size[1] == 0.f) size[1] = float(LongUIDefaultWindowHeight);
             window_rect.right = static_cast<LONG>(size[0]);
             window_rect.bottom = static_cast<LONG>(size[1]);
-            // TODO: 高DPI处理策略
-            if ((str = node.attribute("hidpi").value())) {
-
-            }
         }
         else {
             window_rect.right = config.width;
@@ -2688,8 +2712,8 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
         // 调整大小
         ::AdjustWindowRect(&window_rect, window_style, FALSE);
         // 窗口
-        m_rcWindow.width = window_rect.right - window_rect.left;
-        m_rcWindow.height = window_rect.bottom - window_rect.top;
+        m_rcWindow.width = (window_rect.right - window_rect.left);
+        m_rcWindow.height = (window_rect.bottom - window_rect.top);
         m_rcWindow.left = (::GetSystemMetrics(SM_CXFULLSCREEN) - m_rcWindow.width) / 2;
         m_rcWindow.top = (::GetSystemMetrics(SM_CYFULLSCREEN) - m_rcWindow.height) / 2;
         // 创建窗口

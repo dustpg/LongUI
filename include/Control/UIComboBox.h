@@ -102,7 +102,11 @@ namespace LongUI {
         // selected index
         uint32_t                    m_indexSelected = uint32_t(-1);
         // max display line
-        uint32_t                    m_fMaxLine = 8;
+        uint16_t                    m_uMaxLine = 8;
+        // draw down arrow
+        bool                        m_bDrawDownArrow = false;
+        // unused
+        bool                        m_unused_bool_ccb = true;
         // host control to display items
         UIList*                     m_pItemList = nullptr;
 #ifdef LongUIDebugEvent

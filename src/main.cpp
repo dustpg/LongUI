@@ -111,8 +111,16 @@ namespace LongUI {
             PROCESS_SYSTEM_DPI_AWARE = 1,
             PROCESS_PER_MONITOR_DPI_AWARE = 2
         } PROCESS_DPI_AWARENESS;
+        typedef enum MONITOR_DPI_TYPE {
+            MDT_EFFECTIVE_DPI = 0,
+            MDT_ANGULAR_DPI = 1,
+            MDT_RAW_DPI = 2,
+            MDT_DEFAULT = MDT_EFFECTIVE_DPI
+        } MONITOR_DPI_TYPE;
         // SetProcessDpiAwareness
         using SetProcessDpiAwarenessT = HRESULT(STDAPICALLTYPE*) (PROCESS_DPI_AWARENESS);
+        // SetProcessDpiAwareness
+        using GetDpiForMonitorT = HRESULT(STDAPICALLTYPE*) (HMONITOR, MONITOR_DPI_TYPE, UINT *, UINT *);
     public:
         // ctor
         InitializeLibrary() noexcept {
@@ -148,7 +156,8 @@ namespace LongUI {
             // 调用
             if (func) {
                 auto set_process_dpi_awareness = reinterpret_cast<SetProcessDpiAwarenessT>(func);
-                set_process_dpi_awareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
+                auto hr = set_process_dpi_awareness(InitializeLibrary::PROCESS_PER_MONITOR_DPI_AWARE);
+                hr = S_OK;
             }
         }
     private:
@@ -166,7 +175,28 @@ namespace LongUI {
         HMODULE     m_hDlldxgi      = ::LoadLibraryW(L"dxgi.dll");
         // Shcore
         HMODULE     m_hDllShcore    = nullptr;
+    public:
+        // safe GetDpiForMonitor
+        bool GetDpiForMonitor_s(HMONITOR m, uint32_t& xdpi, uint32_t& ydpi) {
+            // 没有dll -> 挫
+            if (!m_hDllShcore) return false;
+            // 获取函数地址
+            auto func = ::GetProcAddress(m_hDllShcore, "GetDpiForMonitor");
+            // 没有函数 -> 挫
+            if (!func) return false;
+            // 调用
+            auto get_dpi_for_monitor = reinterpret_cast<GetDpiForMonitorT>(func);
+            auto hr = get_dpi_for_monitor(m, MDT_DEFAULT, &xdpi, &ydpi);
+            return SUCCEEDED(hr);
+        }
     } instance;
+    // get monitor dpi
+    void GetMonitorDpi(HMONITOR m, uint32_t& xdpi, uint32_t& ydpi) noexcept {
+        if (!instance.GetDpiForMonitor_s(m, xdpi, ydpi)) {
+            xdpi = 96;
+            ydpi = 96;
+        }
+    }
 }
 
 

@@ -45,6 +45,10 @@ struct IDropTargetHelper;
 
 // LongUI namespace
 namespace LongUI {
+    // basic dpi
+    enum : uint32_t { BASIC_DPI = 96, };
+    // get monitor dpi
+    void GetMonitorDpi(HMONITOR, uint32_t& xdpi, uint32_t& ydpi) noexcept;
     // endl for longUI
     static struct EndL { } endl;
     // ui manager UI管理器
@@ -55,7 +59,7 @@ namespace LongUI {
         using StrAllocator = CUIShortStringAllocator;
         // create ui viewport call back
         using callback_create_viewport = auto(*)(pugi::xml_node node, XUIBaseWindow* container) ->UIViewport*;
-    public: // handle zone 操作区
+    public:
         // initialize 初始化
         LongUIAPI auto Initialize(IUIConfigure* config = nullptr) noexcept ->HRESULT;
         // uninitialize 反初始化
@@ -117,7 +121,11 @@ namespace LongUI {
     private:
         // exit
         inline void exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
-    public: // inline 区
+    public:
+        // get main dpi x
+        auto GetMainDpiX() const noexcept { return m_uMainDpiX; }
+        // get main dpi y
+        auto GetMainDpiY() const noexcept { return m_uMainDpiY; }
         // copystring for control in this winddow
         auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
         // copystring for control in this winddow in safe way
@@ -244,8 +252,10 @@ namespace LongUI {
 #endif
         // tool window handle
         HWND                            m_hToolWnd = nullptr;
-        // text renderer
-        XUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
+        // main monitor dpi x
+        uint32_t                        m_uMainDpiX = 96;
+        // main monitor dpi y
+        uint32_t                        m_uMainDpiY = 96;
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATE_COUNT];
         // loader
@@ -270,6 +280,8 @@ namespace LongUI {
         CUILocker                       m_uiDxgiLocker;
         // time-meter
         CUITimeMeter                    m_uiTimeMeter;
+        // text renderer
+        XUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
 #ifdef _DEBUG
         // exit timing tick
         uint32_t                        m_dbgExitTime = 0;

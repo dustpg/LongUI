@@ -1442,6 +1442,28 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
     }
 }
 
+/// <summary>
+/// 设置容器缩放
+/// </summary>
+/// <param name="x">The x.</param>
+/// <param name="y">The y.</param>
+/// <returns></returns>
+void LongUI::UIContainer::SetZoom(float x, float y) noexcept {
+    if (m_2fZoom.width == x && m_2fZoom.height == y) return;
+#ifdef _DEBUG
+    auto can = m_2fTemplateSize.width == 0.f && m_2fTemplateSize.height == 0.f;
+    assert(can && "not SetZoom if m_2fTemplateSize valida");
+#endif
+    /*float sx = m_2fZoom.width / x;
+    float sy = m_2fZoom.height / y;
+    this->SetWidth(this->GetWidth() * sx);
+    this->SetHeight(this->GetHeight() * sy);
+    m_2fContentSize.width *= sx;
+    m_2fContentSize.height *= sy;*/
+    m_2fZoom = { x, y };
+    this->InvalidateThis();
+    this->SetControlLayoutChanged();
+}
 
 // ------------------------ HELPER ---------------------------
 // sb调用帮助器
