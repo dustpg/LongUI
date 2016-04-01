@@ -207,6 +207,12 @@
     <ClInclude Include="..\include\Core\luiMenu.h">
       <Filter>Header Files\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Control\UIContainer.h">
+      <Filter>Header Files\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\LongUI\luiUiTmCap.h">
+      <Filter>Header Files\LongUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -265,6 +271,9 @@
     </ClCompile>
     <ClCompile Include="..\src\luiMenu.cpp">
       <Filter>Source Files\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="luiUiTmCap.cpp">
+      <Filter>Source Files\LongUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

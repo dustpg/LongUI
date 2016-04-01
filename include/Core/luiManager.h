@@ -40,6 +40,7 @@
 #include <atomic>
 #include <d3d11.h>
 #include <dxgi1_2.h>
+#include <LongUI/luiUiTmCap.h>
 
 struct IDropTargetHelper;
 
@@ -53,6 +54,10 @@ namespace LongUI {
     static struct EndL { } endl;
     // ui manager UI管理器
     class CUIManager {
+        // time capsules
+        using TimeCapsules = EzContainer::PointerVector<CUITimeCapsule>;
+        // time capsule call
+        using TimeCapsuleCall = CUITimeCapsule::TimeCallBack;
         // friend class
         friend class XUIBaseWindow;
         // string allocator
@@ -117,6 +122,10 @@ namespace LongUI {
             if (code.status) return nullptr;
             auto create_func = UIViewport::CreateFunc<T>;
             return this->create_ui_window(m_docWindow.first_child(), create_func);
+        }
+        // add time capsule
+        template<typename T> void AddTimeCapsule(T call, void* id, float time) noexcept {
+            this->push_time_capsule(std::move(TimeCapsuleCall(call)), id, time);
         }
     private:
         // exit
@@ -205,7 +214,7 @@ namespace LongUI {
 #endif
         // 转换为 CUIInput
         inline operator const CUIInput&() const noexcept { return m_uiInput; };
-#define UIInput (static_cast<const CUIInput&>(UIManager))
+#define UIInput (static_cast<const LongUI::CUIInput&>(UIManager))
     public:
         // script 脚本
         IUIScript*           const      script = nullptr;
@@ -264,6 +273,8 @@ namespace LongUI {
         uint8_t*                        m_pBitmap0Buffer = nullptr;
         // map: string<->func
         StringTable                     m_hashStr2CreateFunc;
+        // TimeCapsule vetor
+        TimeCapsules                    m_vTimeCapsules;
         // delay cleanup vector
         ControlVector                   m_vDelayCleanup;
         // delay dispose vector
@@ -378,6 +389,10 @@ namespace LongUI {
         void wait_for_vblank() noexcept;
         // refresh display frequency
         void refresh_display_frequency() noexcept;
+        // update time capsules
+        void update_time_capsules(float time) noexcept;
+        // push time capsules
+        void push_time_capsule(TimeCapsuleCall&& call, void* id, float time) noexcept;
     public:
         // create a control tree for UIContainer
         void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;

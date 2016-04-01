@@ -975,7 +975,8 @@ void LongUI::UIContainer::after_insert(UIControl* child) noexcept {
     // 设置窗口结点
     assert(child->GetWindow() == m_pWindow);
     // 重建资源
-    child->Recreate();
+    auto hr = child->Recreate();
+    if(FAILED(hr)) UIManager.ShowError(hr);
     // 修改
     child->SetControlLayoutChanged();
     // 修改
@@ -1451,6 +1452,8 @@ void LongUI::UIContainer::SetOffsetY(float value) noexcept {
 void LongUI::UIContainer::SetZoom(float x, float y) noexcept {
     if (m_2fZoom.width == x && m_2fZoom.height == y) return;
 #ifdef _DEBUG
+    assert(x > 0.f && "bad x zoom");
+    assert(y > 0.f && "bad y zoom");
     auto can = m_2fTemplateSize.width == 0.f && m_2fTemplateSize.height == 0.f;
     assert(can && "not SetZoom if m_2fTemplateSize valida");
 #endif

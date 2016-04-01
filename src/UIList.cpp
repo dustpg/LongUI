@@ -441,8 +441,6 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // 分类
     switch (arg.event)
     {
-    case LongUI::MouseEvent::Event_None:
-        break;
     case LongUI::MouseEvent::Event_MouseWheelV:
         break;
     case LongUI::MouseEvent::Event_MouseWheelH:

@@ -45,8 +45,13 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     m_vDelayCleanup.reserve(16);
     m_vDelayDispose.reserve(16);
     m_vWindows.reserve(16);
+    m_vTimeCapsules.reserve(32);
     // 内存不足
-    if (!m_vDelayCleanup.isok() || !m_vWindows.isok() || !m_vDelayDispose.isok()) {
+    if (!m_vDelayCleanup.isok() 
+        || !m_vWindows.isok() 
+        || !m_vDelayDispose.isok()
+        || !m_vTimeCapsules.isok()
+        ) {
         return E_OUTOFMEMORY;
     }
     // 初始化一些东西
@@ -382,6 +387,12 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     for (auto& renderer : m_apTextRenderer) {
         LongUI::SafeRelease(renderer);
     }
+    // 释放时间胶囊
+    for (auto cap : m_vTimeCapsules) {
+        assert(cap);
+        cap->Dispose();
+    }
+    m_vTimeCapsules.clear();
     // 释放公共设备无关资源
     {
         // 释放文本格式
@@ -588,6 +599,8 @@ void LongUI::CUIManager::Run() noexcept {
                 // 更新计时器
                 UIManager.m_fDeltaTime = UIManager.m_uiTimeMeter.Delta_s<float>();
                 UIManager.m_uiTimeMeter.MovStartEnd();
+                // 更新时间胶囊
+                UIManager.update_time_capsules(UIManager.m_fDeltaTime);
                 // 刷新窗口
                 for (auto window : UIManager.m_vWindows) {
                     window->Update();
@@ -1796,6 +1809,80 @@ void LongUI::CUIManager::refresh_display_frequency() noexcept {
     }
 }
 
+
+/// <summary>
+/// 刷新时间胶囊
+/// </summary>
+/// <param name="time">The time.</param>
+/// <returns></returns>
+void LongUI::CUIManager::update_time_capsules(float time) noexcept {
+    uint32_t deleted = 0;
+    // 遍历时间胶囊
+    for (auto& capsule : m_vTimeCapsules) {
+        assert(capsule && "bad time capsule");
+        if (capsule->Update(time)) {
+            capsule->Dispose();
+            capsule = nullptr;
+            ++deleted;
+        }
+    }
+    // 检查释放
+    if (deleted) {
+        uint32_t count = m_vTimeCapsules.size();
+        // 全部删除
+        if (count == deleted) {
+            m_vTimeCapsules.clear();
+        }
+        // 部分删除
+        else {
+            const auto data = m_vTimeCapsules.data();
+            auto last = data + (count - 1);
+            auto itr = data;
+            do {
+                // 空 -> 与最后一个交换
+                if (!(*itr)) {
+                    std::swap(*itr, *last);
+                    --last;
+                }
+                // 非空 -> 继续
+                else {
+                    ++itr;
+                }
+            } while (itr != last);
+            // 删除后面的
+            m_vTimeCapsules.resize(count - deleted);
+        }
+    }
+}
+
+// 添加时间胶囊
+void LongUI::CUIManager::push_time_capsule(TimeCapsuleCall && call, void* id, float time) noexcept {
+    const size_t realid = reinterpret_cast<size_t>(id);
+    // 有效情况下
+    if (m_vTimeCapsules.isok()) {
+        // 创建胶囊
+        auto capsule = CUITimeCapsule::Create(std::move(call), realid, time);
+        // 创建失败
+        if (!capsule) return;
+        CUITimeCapsule** included = nullptr;
+        // 遍历检查是否已经拥有
+        for (auto& capsule : m_vTimeCapsules) {
+            if (capsule->GetId() == realid) {
+                included = &capsule;
+                break;
+            }
+        }
+        // 有的情况
+        if (included) {
+            (*included)->Dispose();
+            *(included) = capsule;
+            UIManager << DL_Log << "new capsule insteaded" << LongUI::endl;
+        }
+        else {
+            m_vTimeCapsules.push_back(capsule);
+        }
+    }
+}
 
 // 移出窗口
 void LongUI::CUIManager::RemoveWindow(XUISystemWindow* wnd) noexcept {

@@ -84,12 +84,12 @@ void LongUI::UIScrollBar::set_index(float new_index) noexcept {
 void LongUI::UIScrollBar::UpdateMarginalWidth() noexcept {
     // 水平
     if (this->bartype == ScrollBarType::Type_Horizontal) {
-        m_fMaxRange = this->parent->GetContentWidthZoomed();
+        m_fMaxRange = this->parent->GetContentWidth();
         m_fMaxIndex = m_fMaxRange - this->parent->GetViewWidthZoomed();
     }
     // 垂直
     else {
-        m_fMaxRange = this->parent->GetContentHeightZoomed();
+        m_fMaxRange = this->parent->GetContentHeight();
         m_fMaxIndex = m_fMaxRange - this->parent->GetViewHeightZoomed();
     }
     // 限制

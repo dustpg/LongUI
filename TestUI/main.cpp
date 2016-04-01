@@ -5,6 +5,7 @@
 #include "Control/UICheckBox.h"
 #include "Control/UIPage.h"
 #include "Control/UIList.h"
+#include <LongUI/luiUiTmCap.h>
 
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
@@ -310,14 +311,22 @@ private:
             }, LongUI::SubEvent::Event_ItemClicked);
         }
         if ((ctrl = m_pWindow->FindControl("btn_test"))) {
-            static bool a = false;
+            static bool s_zoom = true;
             auto page1 = LongUI::longui_cast<LongUI::UIPage*>(m_pWindow->FindControl("pg_1"));
-            ctrl->AddEventCall([page1](UIControl*) noexcept {
-                float z = a ? 1.f : 2.f;
-                a =! a;
-                page1->SetZoom(z, z);
+            ctrl->AddEventCall([page1](UIControl* id) noexcept {
+                s_zoom =! s_zoom;
+                UIManager.AddTimeCapsule([page1](float x) noexcept -> bool{
+                    x = LongUI::EasingFunction(LongUI::AnimationType::Type_CubicEaseOut, x);
+                    float z = s_zoom ? 2.f : 1.f;
+                    if (s_zoom) x = -x;
+                    z = z + x;
+                    page1->SetZoom(z, z);
+                    return false;
+                }, id, 1.f);
+
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
+
         }
         /*if ((ctrl = m_pWindow->FindControl("edt1"))) {
             auto hwnd = m_pWindow->GetHwnd();

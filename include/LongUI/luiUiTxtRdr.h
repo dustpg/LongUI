@@ -56,14 +56,14 @@ namespace LongUI {
         void SetNewTarget(ID2D1DeviceContext* rt) { LongUI::SafeRelease(UIManager_RenderTarget); UIManager_RenderTarget = LongUI::SafeAcquire(rt); }
         // set new render brush
         void SetNewBrush(ID2D1SolidColorBrush* b) { LongUI::SafeRelease(m_pBrush); m_pBrush = LongUI::SafeAcquire(b); }
-    public: // IDWritePixelSnapping implementation
+    public:
         // is pixel snapping disabled?
         virtual HRESULT STDMETHODCALLTYPE IsPixelSnappingDisabled(void*, BOOL*) noexcept final override;
         // get current transform
         virtual HRESULT STDMETHODCALLTYPE GetCurrentTransform(void*, DWRITE_MATRIX*) noexcept final override;
         // get bilibili of px/pt
         virtual HRESULT STDMETHODCALLTYPE GetPixelsPerDip(void*, FLOAT*) noexcept final override;
-    public:// IDWriteTextRenderer implementation
+    public:
         // draw inline object implemented as template
         virtual HRESULT STDMETHODCALLTYPE DrawInlineObject(
             _In_opt_ void* clientDrawingContext,
@@ -90,7 +90,7 @@ namespace LongUI {
             const DWRITE_STRIKETHROUGH* strikethrough,
             IUnknown* clientDrawingEffect
         ) noexcept override;
-    public: // LongUI XUIBasicTextRenderer 
+    public:
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->size_t = 0;
         // create context from string
@@ -112,8 +112,8 @@ namespace LongUI {
         using Super = XUIBasicTextRenderer ;
     public:
         // CUINormalTextRender
-        CUINormalTextRender():Super(Type_NormalTextRenderer){ }
-    public:// IDWriteTextRenderer implementation
+        CUINormalTextRender() : Super(Type_NormalTextRenderer) { }
+    public:
         // draw glyphrun
         virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(
             void* clientDrawingContext,
@@ -123,12 +123,12 @@ namespace LongUI {
             const DWRITE_GLYPH_RUN* glyphRun,
             const DWRITE_GLYPH_RUN_DESCRIPTION* glyphRunDescription,
             IUnknown* clientDrawingEffect
-            ) noexcept override;
-    public:// XUIBasicTextRenderer implementation
+        ) noexcept override;
+    public:
         // get the render context size in byte
-        virtual auto GetContextSizeInByte() noexcept ->size_t override  { return 0; }
+        virtual auto GetContextSizeInByte() noexcept ->size_t override { return 0; }
         // create context from string
-        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept { 
+        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept {
             UNREFERENCED_PARAMETER(context); UNREFERENCED_PARAMETER(utf8_string);
         };
     };
@@ -145,9 +145,9 @@ namespace LongUI {
         };
     public:
         // CUINormalTextRender
-        CUIOutlineTextRender():Super(Type_NormalTextRenderer){ }
-    public:// IDWriteTextRenderer implementation
-           // draw glyphrun
+        CUIOutlineTextRender() : Super(Type_NormalTextRenderer) { }
+    public:
+        // draw glyphrun
         virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(
             void* clientDrawingContext,
             FLOAT baselineOriginX,
@@ -157,8 +157,8 @@ namespace LongUI {
             const DWRITE_GLYPH_RUN_DESCRIPTION* glyphRunDescription,
             IUnknown* clientDrawingEffect
         ) noexcept override;
-    public:// XUIBasicTextRenderer implementation
-           // get the render context size in byte
+    public:
+        // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->size_t override  { return sizeof(OutlineContext); }
         // create context from string
         virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept;

@@ -415,7 +415,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     /// </summary>
     enum class MouseEvent : uint32_t {
         // none, never got
-        Event_None,
+        //Event_None,
         // mouse wheel in v, if no child handle this, will send it to marginal control
         Event_MouseWheelV,
         // mouse wheel in h, if no child handle this, will send it to marginal control

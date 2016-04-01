@@ -145,6 +145,7 @@
     <ClInclude Include="..\include\Control\UIButton.h" />
     <ClInclude Include="..\include\Control\UICheckBox.h" />
     <ClInclude Include="..\include\Control\UIComboBox.h" />
+    <ClInclude Include="..\include\Control\UIContainer.h" />
     <ClInclude Include="..\include\Control\UIContainerBuiltIn.h" />
     <ClInclude Include="..\include\Control\UIControl.h" />
     <ClInclude Include="..\include\Control\UIEdit.h" />
@@ -179,6 +180,7 @@
     <ClInclude Include="..\include\LongUI\luiUiInput.h" />
     <ClInclude Include="..\include\LongUI\luiUiMeta.h" />
     <ClInclude Include="..\include\LongUI\luiUiStrAl.h" />
+    <ClInclude Include="..\include\LongUI\luiUiTmCap.h" />
     <ClInclude Include="..\include\LongUI\luiUiTxtRdr.h" />
     <ClInclude Include="..\include\LongUI\luiUiXml.h" />
     <ClInclude Include="..\include\luibase.h" />
@@ -209,6 +211,7 @@
     <ClCompile Include="..\src\UIList.cpp" />
     <ClCompile Include="..\src\UIScrollBar.cpp" />
     <ClCompile Include="..\src\UISlider.cpp" />
+    <ClCompile Include="luiUiTmCap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="longui.natvis" />
