@@ -1982,7 +1982,7 @@ auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
 }
 
 // 换行刷新重载
-auto LongUI::CUIManager::operator<<(const LongUI::EndL) noexcept ->CUIManager& {
+auto LongUI::CUIManager::operator<<(const LongUI::EndL&) noexcept ->CUIManager& {
     wchar_t chs[3] = { L'\r',L'\n', 0 };
     this->Output(m_lastLevel, chs);
     return *this;

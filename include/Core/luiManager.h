@@ -420,7 +420,7 @@ namespace LongUI {
         // overload << operator for controls
         CUIManager& operator<< (const ControlVector&) noexcept;
         // overload << operator for endl
-        CUIManager& operator<< (const LongUI::EndL) noexcept;
+        CUIManager& operator<< (const LongUI::EndL&) noexcept;
         // overload << operator for DXGI_ADAPTER_DESC*
         CUIManager& operator<< (const D2D1_MATRIX_3X2_F& m) noexcept;
         // overload << operator for DXGI_ADAPTER_DESC*

@@ -640,6 +640,8 @@ namespace LongUI { namespace EzContainer {
         auto pop_back() noexcept { return m_vector.pop_back(); }
         // clear
         auto clear() noexcept { return m_vector.clear(); }
+        // resize
+        void resize(uint32_t len) noexcept { m_vector.resize(len); }
         // erase
         auto erase(uint32_t pos) noexcept { return m_vector.erase(pos); }
         // erase with length

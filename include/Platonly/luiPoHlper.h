@@ -57,23 +57,16 @@ namespace LongUI { namespace Helper {
     struct DoubleClick {
         // ctor
         DoubleClick(uint32_t t = ::GetDoubleClickTime()) noexcept : time(t) {};
-#ifdef LONGUI_DOUBLECLICK_WITH_POINT
         // click, return true if double clicked
-        bool Click(float x, float y) noexcept;
-#else
-        // click, return true if double clicked
-        bool Click() noexcept;
-#endif
+        bool Click(long x, long y) noexcept;
         // time
         uint32_t        time;
         // last click time
         uint32_t        last = 0;
-#ifdef LONGUI_DOUBLECLICK_WITH_POINT
         // mouse point x
-        float           ptx = -1.f;
+        long           ptx = -1;
         // mouse point y
-        float           pty = -1.f;
-#endif
+        long           pty = -1;
     };
     // timer-helper for ui
     class Timer {

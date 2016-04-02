@@ -426,7 +426,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         // UNCTRLed
         bool unctrled = !(UIInput.IsKbPressed(UIInput.KB_CONTROL));
         // 双击?
-        if (m_hlpDbClick.Click()) {
+        if (m_hlpDbClick.Click(long(arg.ptx), long(arg.pty))) {
             UIManager << DL_Log << "DB Clicked" << LongUI::endl;
             this->CallUiEvent(m_callLineDBClicked, SubEvent::Event_ItemDbClicked);
         }

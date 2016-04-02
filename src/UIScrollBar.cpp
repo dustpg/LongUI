@@ -183,7 +183,7 @@ void LongUI::UIScrollBarA::Update() noexcept {
         m_fIndex = offset;
         UIManager << DL_Hint << "diffence with offset(I: " 
             << m_fIndex << " O: " << offset 
-            << " ), set new index" << LongUI::endl;
+            << " ), set a new index" << LongUI::endl;
     }
 #else
     m_fIndex = -(this->bartype == ScrollBarType::Type_Horizontal ?
@@ -447,7 +447,7 @@ ID2D1GeometryRealization* LongUI::UIScrollBarA::
 s_apArrowRealization[LongUI::UIScrollBarA::ARROW_SIZE] = { nullptr };
 
 // create 创建
-auto WINAPI LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+auto LongUI::UIScrollBarA::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
     switch (type)
     {
@@ -580,7 +580,7 @@ LongUI::UIScrollBarB::UIScrollBarB(UIContainer* cp) noexcept : Super(cp) {
 }*/
 
 // UIScrollBarB 创建函数
-auto WINAPI LongUI::UIScrollBarB::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
+auto LongUI::UIScrollBarB::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断
     UIScrollBarB* pControl = nullptr;
     switch (type)

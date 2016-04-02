@@ -22,25 +22,15 @@ namespace LongUI {
     }
 }
 
-#ifdef LONGUI_DOUBLECLICK_WITH_POINT
 // 双击
-LongUINoinline bool LongUI::Helper::DoubleClick::Click(float x, float y) noexcept {
+LongUINoinline bool LongUI::Helper::DoubleClick::Click(long x, long y) noexcept {
     auto now = ::timeGetTime();
     bool result = ((now - this->last) <= time) && x == this->ptx && y == this->pty;
     this->last = result ? 0ui32 : now;
-    this->ptx = pt.x;
-    this->pty = pt.y;
+    this->ptx = x;
+    this->pty = y;
     return result;
 }
-#else
-// 双击
-LongUINoinline bool LongUI::Helper::DoubleClick::Click() noexcept {
-    auto now = ::timeGetTime();
-    bool result = ((now - this->last) <= time) ;
-    this->last = result ? 0ui32 : now;
-    return result;
-}
-#endif
 
 /// <summary>
 /// Updates this instance.
