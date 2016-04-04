@@ -20,6 +20,25 @@ namespace LongUI { namespace impl {
     };
 }}
 
+
+
+/// <summary>
+/// Canbe the closed now?
+/// </summary>
+/// <returns></returns>
+bool LongUI::UIViewport::CanbeClosedNow() noexcept {
+    return true;
+}
+
+/// <summary>
+/// Called when [close].
+/// </summary>
+/// <returns></returns>
+void LongUI::UIViewport::OnClose() noexcept {
+    UIManager.Exit();
+}
+
+
 /// <summary>
 /// Initializes a new instance of the <see cref="UIViewport"/> class.
 /// </summary>
@@ -212,7 +231,7 @@ auto LongUI::UIViewport::CreatePopup(const Config::Popup& popup) noexcept -> UIV
         // 重建
         auto hr = window->Recreate(); ShowHR(hr);
         // 创建完毕
-        window->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+        window->DoLongUIEvent(Event::Event_TreeBuildingFinished);
         // 移动窗口
         window->MoveWindow(popup.leftline, popup.bottomline);
     }
@@ -1276,9 +1295,9 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
         this->set_close_on_focus_killed();
     }
     // 关闭时退出
-    else if (node.attribute("exitonclose").as_bool(true)) {
+    /*else if (node.attribute("exitonclose").as_bool(true)) {
         this->set_exit_on_close();
-    }
+    }*/
     const char* str = nullptr;
     // 插入符号闪烁时间
     if ((str = node.attribute("caretblinktime").value())) {
@@ -1289,6 +1308,16 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
         this->set_hidpi_supported();
     }
 }
+
+
+#ifdef _DEBUG
+namespace LongUI {
+    struct Msg { UINT id; }; 
+    std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
+    std::atomic<UINT> g_dbg_last_proc_message = 0;
+}
+#endif
+
 
 /// <summary>
 /// Finalizes an instance of the <see cref="XUIBaseWindow"/> class.
@@ -1303,6 +1332,12 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
     LongUI::SafeRelease(m_pFocusedControl);
     LongUI::SafeRelease(m_pDragDropControl);
     LongUI::SafeRelease(m_pCapturedControl);
+#ifdef _DEBUG
+    auto wptr = reinterpret_cast<std::uintptr_t>(this);
+    if (g_dbg_last_proc_window_pointer == wptr) {
+        g_dbg_last_proc_window_pointer = 0;
+    }
+#endif
 }
 
 /// <summary>
@@ -1310,6 +1345,8 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::XUIBaseWindow::Close() noexcept {
+    // 退出窗口
+    m_pViewport->OnClose();
     // 延迟清理
     UIManager.PushDelayCleanup(this);
     // 跳过渲染
@@ -1366,7 +1403,7 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height,
         UIManager.ShowError(hr);
     }
     // 创建完毕
-    viewport->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+    viewport->DoLongUIEvent(Event::Event_TreeBuildingFinished);
     // 移动窗口
     window->MoveWindow(pos.left, pos.bottom);
     // 显示窗口
@@ -1655,7 +1692,7 @@ void LongUI::XUIBaseWindow::Invalidate(UIControl* ctrl) noexcept {
     }
 #ifdef _DEBUG
     if (m_pViewport->debug_this) {
-        UIManager << DLevel_Log << L"\r\n [INSERT]: " << ctrl << LongUI::endl;
+        UIManager << DL_Log << L"[INSERT]: " << ctrl << LongUI::endl;
     }
 #endif
     // 二次插入
@@ -1842,15 +1879,6 @@ void LongUI::CUIBuiltinSystemWindow::RegisterWindowClass() noexcept {
 }
 
 
-
-#ifdef _DEBUG
-namespace LongUI {
-    struct Msg { UINT id; }; 
-    std::atomic_uintptr_t g_dbg_last_proc_window_pointer = 0;
-    std::atomic<UINT> g_dbg_last_proc_message = 0;
-}
-#endif
-
 /// <summary>
 /// WNDs the proc.
 /// </summary>
@@ -1884,11 +1912,11 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
         auto* window = reinterpret_cast<LongUI::CUIBuiltinSystemWindow *>(static_cast<LONG_PTR>(
             ::GetWindowLongPtrW(hwnd, GWLP_USERDATA))
             );
-        // 无效
-        if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
 #ifdef _DEBUG
         g_dbg_last_proc_window_pointer = reinterpret_cast<std::uintptr_t>(window);
 #endif
+        // 无效
+        if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
         auto handled = false;
         {
             // 消息处理
@@ -1983,10 +2011,6 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         CUIDataAutoLocker locker;
         // 允许退出
         if (m_pViewport->CanbeClosedNow()) {
-            // 检查是否退出
-            if (this->is_exit_on_close()) {
-                UIManager.Exit();
-            }
             this->Close();
             return false;
         }
@@ -2477,13 +2501,14 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     }
     // 呈现
     longui_debug_hr(hr, L"m_pSwapChain->Present1 faild");
-    // 收到重建消息时 重建UI
+    // 收到重建消息/设备丢失时 重建UI
 #ifdef _DEBUG
     assert(SUCCEEDED(hr));
     if (hr == DXGI_ERROR_DEVICE_REMOVED
         || hr == DXGI_ERROR_DEVICE_RESET
         || test_D2DERR_RECREATE_TARGET) {
         force_cast(test_D2DERR_RECREATE_TARGET) = false;
+        assert(!"just remain...");
         UIManager << DL_Hint << L"D2DERR_RECREATE_TARGET!" << LongUI::endl;
         hr = UIManager.RecreateResources();
         if (FAILED(hr)) {
@@ -2511,7 +2536,7 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     );
     // 设置显示
     UIManager.DxgiUnlock();
-    ::SetWindowTextW(m_hwnd, buffer);
+    ::DefWindowProc(m_hwnd, WM_SETTEXT, WPARAM(0), LPARAM(buffer));
     UIManager.DxgiLock();
 #else
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET) {

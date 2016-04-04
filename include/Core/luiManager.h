@@ -51,7 +51,9 @@ namespace LongUI {
     // get monitor dpi
     void GetMonitorDpi(HMONITOR, uint32_t& xdpi, uint32_t& ydpi) noexcept;
     // endl for longUI
-    static struct EndL { } endl;
+    struct EndL { };
+    // endl instance
+    extern EndL const endl;
     // ui manager UI管理器
     class CUIManager {
         // time capsules
@@ -168,6 +170,8 @@ namespace LongUI {
         // exit the app
         void Exit() noexcept { this->exit(); }
 #endif
+        // get system window count
+        auto GetSystemWindowCount() const noexcept { return m_vWindows.size(); }
         // recreate resources
         auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
         // get delta time for ui

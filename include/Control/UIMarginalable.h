@@ -34,7 +34,7 @@ namespace LongUI {
     /// <remarks>
     /// like: hamburger menu, menu bar, tool bar, tab bar, scroll bar, barabara, etc
     /// UIMarginalable just a 'marginal-able' control, not real 'marginal' control
-    /// 'marginal' control created by parent in 'Event_TreeBulidingFinished'
+    /// 'marginal' control created by parent in 'Event_TreeBuildingFinished'
     /// normal control created by ui-manager in 'CreateUIWindow'
     /// </remarks>
     class UIMarginalable : public UIControl {

@@ -46,8 +46,10 @@ namespace LongUI {
         // recreate 重建
         virtual auto Recreate() noexcept ->HRESULT override;*/
     public:
-        // canbe closed now?
-        virtual bool CanbeClosedNow() noexcept { return true; }
+        // canbe closed now? --- default action: return true;
+        virtual bool CanbeClosedNow() noexcept; /*{ return true; }*/
+        // onclosed --- default action: exit;
+        virtual void OnClose() noexcept; /*{  UIManager.Exit();}*/
     public:
         // constructor
         UIViewport(XUIBaseWindow* window) noexcept;

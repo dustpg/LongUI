@@ -75,8 +75,8 @@ namespace LongUI {
     public:
         // index of BitArray
         enum BitArrayIndex : uint32_t {
-            // [RO] exit on close
-            Index_ExitOnClose = 0,
+            // [UN]
+            //Index_ExitOnClose = 0,
             // [RO] close when focus killed
             Index_CloseOnFocusKilled,
             // [RO] popup window
@@ -194,7 +194,7 @@ namespace LongUI {
         // is HiDpiSupported
         bool is_hidpi_supported() const noexcept { return m_baBoolWindow.Test(Index_HiDpiSupported); }
         // is ExitOnClose
-        bool is_exit_on_close() const noexcept { return m_baBoolWindow.Test(Index_ExitOnClose); }
+        //bool is_exit_on_close() const noexcept { return m_baBoolWindow.Test(Index_ExitOnClose); }
         // is CloseOnFocusKilled
         bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
         // is FullRenderingThisFrame
@@ -205,7 +205,7 @@ namespace LongUI {
         // set PopupWindow to true
         void set_popup_window() noexcept { m_baBoolWindow.SetTrue(Index_PopupWindow); }
         // set ExitOnClose to true
-        void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue(Index_ExitOnClose); }
+        //void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue(Index_ExitOnClose); }
         // is HiDpiSupported
         void set_hidpi_supported() noexcept { m_baBoolWindow.SetTrue(Index_HiDpiSupported); }
         // set CloseOnFocusKilled to true

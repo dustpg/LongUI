@@ -187,6 +187,8 @@ namespace LongUI {
     struct CUISingleSmallObject : CUISingleObject {
         // nothrow new 
         auto operator new(size_t size, const std::nothrow_t&) noexcept ->void*{ return LongUI::SmallAlloc(size); };
+        // nothrow delete 
+        auto operator delete(void* address, const std::nothrow_t&) ->void { return LongUI::SmallFree(address); }
         // delete
         auto operator delete(void* address) noexcept ->void { return LongUI::SmallFree(address); }
     };

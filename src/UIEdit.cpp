@@ -60,7 +60,7 @@ bool  LongUI::UIEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI 消息
     switch (arg.event)
     {
-    case LongUI::Event::Event_TreeBulidingFinished:
+    case LongUI::Event::Event_TreeBuildingFinished:
         __fallthrough;
     case LongUI::Event::Event_SubEvent:
         return true;

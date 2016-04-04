@@ -13,71 +13,62 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 // longui::demo namespace
 namespace LongUI { namespace Demo {
-    // MainWindow class
-    class MainWindow final : public UIWindow {
+    // MainViewport class
+    class MainViewport final : public UIViewport {
         // super class
-        using Super = UIWindow;
+        using Super = UIViewport;
         // clean up
         virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     public:
         // ctor
-        MainWindow(UIWindow* parent) : Super(parent) {}
+        MainViewport(XUIBaseWindow* window) : Super(window) {}
         // do some event
         virtual bool DoEvent(const EventArgument& arg) noexcept override;
-        // clean up
-        virtual bool OnClose() noexcept override {
-            // only one window remain ?
-            if (UIManager.GetWindowsCount() == 1) {
+    public:
+        // canbe closed now?
+        virtual bool CanbeClosedNow() noexcept override { return true; }
+        // onclose
+        virtual void OnClose() noexcept override {
+            // exit on only 1 window
+            if (UIManager.GetSystemWindowCount() == 1) {
                 UIManager.Exit();
             }
-            // delete this
-            else {
-                this->delay_cleanup();
-            }
-            return true;
         }
     private:
-        // init
-        void init();
+        // tree finished
+        void tree_bulit();
     };
 }}
 
 
 // -------------------------- IMPLEMENT ---------------------------
 // do event for ui
-bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
-     
-        // longui event
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // Event_TreeBulidingFinished could as "init" event
-            this->init();
-            // super will send this event to children
-            __fallthrough;
-        default:
-            return Super::DoEvent(arg);
-        }
-    }
-    // system event
-    else {
+bool LongUI::Demo::MainViewport::DoEvent(const EventArgument& arg) noexcept {
+    // longui event
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_TreeBuildingFinished:
+        // Event_TreeBuildingFinished could as "init" event
+        this->tree_bulit();
+        // super will send this event to children
+        __fallthrough;
+    default:
         return Super::DoEvent(arg);
     }
 }
 
 // init window
-void LongUI::Demo::MainWindow::init() {
+void LongUI::Demo::MainViewport::tree_bulit() {
     UIControl* control = nullptr;
     // OK
-    if ((control = this->FindControl("ok"))) {
+    if ((control = m_pWindow->FindControl("ok"))) {
         control->AddEventCall([](UIControl* btn) noexcept ->bool {
-            UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML);
+            UIManager.CreateUIWindow<LongUI::Demo::MainViewport>(DEMO_XML)->ShowWindow(SW_SHOW);
             return true;
         }, SubEvent::Event_ItemClicked);
     }
     // Exit
-    if ((control = this->FindControl("exit"))) {
+    if ((control = m_pWindow->FindControl("exit"))) {
         control->AddEventCall([](UIControl* btn) noexcept ->bool {
             UIManager.Exit();
             return true;

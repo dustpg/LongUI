@@ -6,6 +6,7 @@
 #include "Control/UIPage.h"
 #include "Control/UIList.h"
 #include <LongUI/luiUiTmCap.h>
+#include <Platonly/luiPoFile.h>
 
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
@@ -404,7 +405,7 @@ public:
             assert(arg.pt.x < this->width && arg.pt.y < this->width && "check it");
             arg.ctrl = this;
             }
-            else*/ if (arg.event == LongUI::Event::Event_TreeBulidingFinished) {
+            else*/ if (arg.event == LongUI::Event::Event_TreeBuildingFinished) {
             }
         return false;
     }
@@ -540,8 +541,8 @@ bool MainWindow::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // number button clicked event
             //this->number_button_clicked( arg.sender );
             return true;*/
-    case LongUI::Event::Event_TreeBulidingFinished:
-        // Event_TreeBulidingFinished could as "init" event
+    case LongUI::Event::Event_TreeBuildingFinished:
+        // Event_TreeBuildingFinished could as "init" event
         this->init();
         // super will send this event to children
         __fallthrough;

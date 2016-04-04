@@ -23,6 +23,8 @@ InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 
 // longui namespace
 namespace LongUI {
+    // longui::endl
+    const EndL endl;
     // primes list
     const uint32_t EzContainer::PRIMES_LIST[14] = {
         19, 79, 149, 263, 457, 787, 1031, 2333,

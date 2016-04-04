@@ -588,8 +588,9 @@ void LongUI::CUIManager::Run() noexcept {
     m_dwWaitVSStartTime = ::timeGetTime();
     // 渲染线程函数
     auto render_thread_func = [](void*) noexcept ->unsigned {
-        // 不退出?
-        while (!UIManager.m_exitFlag) {
+        // 循环
+        while (true) {
+            // 刷新
             {
                 // 数据锁
                 CUIDataAutoLocker locker;
@@ -608,6 +609,9 @@ void LongUI::CUIManager::Run() noexcept {
                 // 更新输入
                 UIManager.m_uiInput.AfterUpdate();
             }
+            // 退出检查
+            if (UIManager.m_exitFlag) break;
+            // 渲染
             {
                 // 渲染锁
                 CUIDxgiAutoLocker locker;
@@ -616,6 +620,7 @@ void LongUI::CUIManager::Run() noexcept {
                     window->Render();
                 }
             }
+            // 帧尾处理
             {
                 // 数据锁
                 CUIDataAutoLocker locker;
@@ -813,7 +818,7 @@ auto LongUI::CUIManager::create_ui_window(
     dbg_tmtr.MovStartEnd();
 #endif
     // 发送消息
-    viewport->DoLongUIEvent(Event::Event_TreeBulidingFinished);
+    viewport->DoLongUIEvent(Event::Event_TreeBuildingFinished);
 #ifdef _DEBUG
     time = dbg_tmtr.Delta_ms<double>();
     UIManager << DL_Log

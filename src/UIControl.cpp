@@ -34,11 +34,13 @@ void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
         << long(msg)
         << LongUI::endl;
 #else
-    auto name = window->GetViewport()->name.c_str();
-    ::OutputDebugStringW(LongUI::Formated(
-        L"Main Locker Locked On Msg: 0x%4x @ Window[0x%p - %S]\r\n",
-        msg.id, window, name
-    ));
+    if (window) {
+        auto name = window->GetViewport()->name.c_str();
+        ::OutputDebugStringW(LongUI::Formated(
+            L"Main Locker Locked On Msg: 0x%4x @ Window[0x%p - %S]\r\n",
+            msg.id, window, name
+        ));
+    }
 #endif
 }
 
@@ -1008,7 +1010,7 @@ bool LongUI::UIContainer::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 处理窗口事件
     switch (arg.event)
     {
-    case LongUI::Event::Event_TreeBulidingFinished:
+    case LongUI::Event::Event_TreeBuildingFinished:
         // 边界控件
         for (auto itr = this->MCBegin(); itr != this->MCEnd(); ++itr) {
             auto ctrl = *itr;

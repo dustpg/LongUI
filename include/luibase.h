@@ -319,7 +319,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// The event to signal that control-tree buliding finished
         /// </summary>
         /// <remarks> no ex-information</remarks>
-        Event_TreeBulidingFinished = 0,
+        Event_TreeBuildingFinished = 0,
         /// <summary>
         /// set a new parent, you should deal something
         /// </summary>

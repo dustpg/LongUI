@@ -387,7 +387,7 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LongUI 事件
     switch (arg.event)
     {
-    case LongUI::Event::Event_TreeBulidingFinished:
+    case LongUI::Event::Event_TreeBuildingFinished:
         // 由父类创建边缘控件
         Super::DoEvent(arg);
         this->init_layout();

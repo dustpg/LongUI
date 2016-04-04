@@ -13,7 +13,7 @@ bool LongUI::UIContainerBuiltIn::DoEvent(const LongUI::EventArgument& arg) noexc
     // 处理窗口事件
     switch (arg.event)
     {
-    case LongUI::Event::Event_TreeBulidingFinished:
+    case LongUI::Event::Event_TreeBuildingFinished:
         // 初始化边缘控件 
         Super::DoEvent(arg);
         // 初次完成空间树建立
@@ -567,7 +567,7 @@ bool LongUI::UISingle::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 处理窗口事件
     switch (arg.event)
     {
-    case LongUI::Event::Event_TreeBulidingFinished:
+    case LongUI::Event::Event_TreeBuildingFinished:
         // 初始化边缘控件 
         Super::DoEvent(arg);
         // 初次完成空间树建立
@@ -781,7 +781,7 @@ bool LongUI::UIPage::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // 处理窗口事件
     switch (arg.event)
     {
-    case LongUI::Event::Event_TreeBulidingFinished:
+    case LongUI::Event::Event_TreeBuildingFinished:
         // 初始化边缘控件 
         Super::DoEvent(arg);
         // 子控件
