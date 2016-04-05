@@ -3,7 +3,7 @@
 // window xml layout
 static const char* const DEMO_XML =
 u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="512, 512" debug="true" name="LongUI Demo Window">
+<Window size="512, 512" debug="true" titlename="LongUI Demo Window">
     <Text name="display" text="0"/>
     <HorizontalLayout>
         <Button name="btn_num7" margin="4,4,4,4" borderwidth="1" text="7"/>
@@ -37,19 +37,19 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 // longui::demo namespace
 namespace LongUI { namespace Demo {
     // MainWindow class
-    class MainWindow final : public UIWindow {
+    class MainViewport final : public UIViewport {
         // super class
-        using Super = UIWindow;
+        using Super = UIViewport;
         // clean up
         virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     public:
         // ctor
-        MainWindow(UIWindow* parent) : Super(parent) {}
+        MainViewport(XUIBaseWindow* window) : Super(window) {}
         // do some event
         virtual bool DoEvent(const EventArgument& arg) noexcept override;
     private:
-        // init
-        void init();
+        // tree built
+        void tree_built();
         // on number button clicked
         void number_button_clicked(UIControl* btn);
         // on plus
@@ -60,7 +60,7 @@ namespace LongUI { namespace Demo {
         bool on_equal(UIControl* btn);
     private:
         // display
-        UIText*                 m_display = nullptr;
+        UIControl*              m_display = nullptr;
         // cached number
         long long               m_number = 0ll;
         // string to display
@@ -71,39 +71,33 @@ namespace LongUI { namespace Demo {
 
 // -------------------------- IMPLEMENT ---------------------------
 // do event for ui
-bool LongUI::Demo::MainWindow::DoEvent(const EventArgument& arg) noexcept {
+bool LongUI::Demo::MainViewport::DoEvent(const EventArgument& arg) noexcept {
     // longui event
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_SubEvent:
-            // number button clicked event
-            if (arg.ui.subevent == LongUI::SubEvent::Event_ItemClicked) {
-                this->number_button_clicked(arg.sender);
-            }
-            return true;
-        case LongUI::Event::Event_TreeBulidingFinished:
-            // Event_TreeBulidingFinished could as "init" event
-            this->init();
-            // super will send this event to children
-            __fallthrough;
-        default:
-            return Super::DoEvent(arg);
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_SubEvent:
+        // number button clicked event
+        if (arg.ui.subevent == LongUI::SubEvent::Event_ItemClicked) {
+            this->number_button_clicked(arg.sender);
         }
-    }
-    // system event
-    else {
+        return true;
+    case LongUI::Event::Event_TreeBuildingFinished:
+        // Event_TreeBulidingFinished could as "init" event
+        this->tree_built();
+        // super will send this event to children
+        __fallthrough;
+    default:
         return Super::DoEvent(arg);
     }
 }
 
 // init window
-void LongUI::Demo::MainWindow::init() {
+void LongUI::Demo::MainViewport::tree_built() {
     UIControl* control = nullptr;
     // get display control, check error?
-    m_display = longui_cast<UIText*>(this->FindControl("display"));
+    m_display = m_pWindow->FindControl("display");
     // +
-    if ((control = this->FindControl("btn_plus"))) {
+    if ((control = m_pWindow->FindControl("btn_plus"))) {
         control->AddEventCall([this, control](UIControl* btn)->bool {
             auto test = control == btn;
             try {
@@ -116,7 +110,7 @@ void LongUI::Demo::MainWindow::init() {
         }, SubEvent::Event_ItemClicked);
     }
     // -
-    if ((control = this->FindControl("btn_minu"))) {
+    if ((control = m_pWindow->FindControl("btn_minu"))) {
         control->AddEventCall([this](UIControl* btn) noexcept ->bool {
             try {
                 return this->on_minus(btn);
@@ -128,7 +122,7 @@ void LongUI::Demo::MainWindow::init() {
         }, SubEvent::Event_ItemClicked);
     }
     // =
-    if ((control = this->FindControl("btn_equl"))) {
+    if ((control = m_pWindow->FindControl("btn_equl"))) {
         control->AddEventCall([this](UIControl* btn) noexcept ->bool {
             try {
                 return this->on_equal(btn);
@@ -140,7 +134,7 @@ void LongUI::Demo::MainWindow::init() {
         }, SubEvent::Event_ItemClicked);
     }
     // C
-    if ((control = this->FindControl("btn_clear"))) {
+    if ((control = m_pWindow->FindControl("btn_clear"))) {
         control->AddEventCall([this](UIControl* btn) noexcept ->bool {
             m_number = 0; m_string.clear(); 
             m_display->SetText(L"0"); 
@@ -152,7 +146,7 @@ void LongUI::Demo::MainWindow::init() {
         constexpr int name_buffer_length = 16;
         char buffer[name_buffer_length];
         std::snprintf(buffer, name_buffer_length, "btn_num%d", i);
-        auto btn = this->FindControl(buffer);
+        auto btn = m_pWindow->FindControl(buffer);
         // use user_data
         if (btn) {
             btn->user_data = size_t(i + 1);
@@ -161,7 +155,7 @@ void LongUI::Demo::MainWindow::init() {
 }
 
 // on number button clicked
-void LongUI::Demo::MainWindow::number_button_clicked(UIControl* btn) {
+void LongUI::Demo::MainViewport::number_button_clicked(UIControl* btn) {
     if (btn->user_data) {
         try {
             wchar_t ch = L'0' + wchar_t(btn->user_data) - 1;
@@ -179,7 +173,7 @@ void LongUI::Demo::MainWindow::number_button_clicked(UIControl* btn) {
 }
 
 // on plus
-bool LongUI::Demo::MainWindow::on_plus(UIControl* btn) {
+bool LongUI::Demo::MainViewport::on_plus(UIControl* btn) {
     UNREFERENCED_PARAMETER(btn);
     m_number = _wtoll(m_string.c_str());
     m_string = L'+';
@@ -188,7 +182,7 @@ bool LongUI::Demo::MainWindow::on_plus(UIControl* btn) {
 }
 
 // on minus
-bool LongUI::Demo::MainWindow::on_minus(UIControl* btn) {
+bool LongUI::Demo::MainViewport::on_minus(UIControl* btn) {
     UNREFERENCED_PARAMETER(btn);
     m_number = _wtoll(m_string.c_str());
     m_string = L'-';
@@ -197,7 +191,7 @@ bool LongUI::Demo::MainWindow::on_minus(UIControl* btn) {
 }
 
 // on equal
-bool LongUI::Demo::MainWindow::on_equal(UIControl* btn) {
+bool LongUI::Demo::MainViewport::on_equal(UIControl* btn) {
     UNREFERENCED_PARAMETER(btn);
     m_number += _wtoll(m_string.c_str());
     constexpr int buffer_length = 256;

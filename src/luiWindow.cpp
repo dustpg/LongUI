@@ -1344,9 +1344,11 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
 /// Closes this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::XUIBaseWindow::Close() noexcept {
+void LongUI::XUIBaseWindow::on_close() noexcept {
     // 退出窗口
-    m_pViewport->OnClose();
+    if (!this->is_close_on_focus_killed()) {
+        m_pViewport->OnClose();
+    }
     // 延迟清理
     UIManager.PushDelayCleanup(this);
     // 跳过渲染
@@ -1406,8 +1408,6 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height,
     viewport->DoLongUIEvent(Event::Event_TreeBuildingFinished);
     // 移动窗口
     window->MoveWindow(pos.left, pos.bottom);
-    // 显示窗口
-    window->ShowWindow(SW_SHOW);
     // 返回创建窗口
     return window;
 }
@@ -1770,6 +1770,8 @@ namespace LongUI {
         virtual void Render() const noexcept override;
         // update 
         virtual void Update() noexcept override;
+        // close window
+        virtual void Close() noexcept { ::PostMessageW(m_hwnd, WM_CLOSE, 0, 0); };
         // recreate
         virtual auto Recreate() noexcept->HRESULT override;
         // resize
@@ -2006,12 +2008,12 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         }
     };
     // --------------------------  窗口关闭
-    auto on_close = [this]() noexcept ->bool {
+    auto on_close_msg = [this]() noexcept ->bool {
         // 加锁
         CUIDataAutoLocker locker;
         // 允许退出
         if (m_pViewport->CanbeClosedNow()) {
-            this->Close();
+            this->on_close();
             return false;
         }
         // 不允许退出
@@ -2122,7 +2124,7 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         return true;
     case WM_CLOSE:
         // 关闭窗口
-        return on_close();
+        return on_close_msg();
     case WM_DPICHANGED:
         // dpi改变了
         if (this->is_hidpi_supported()) {

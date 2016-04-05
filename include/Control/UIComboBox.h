@@ -77,15 +77,17 @@ namespace LongUI {
         auto GetSelectedIndex() const noexcept { return m_indexSelected; }
         // set selected index
         void SetSelectedIndex(uint32_t) noexcept;
-        // push item
-        void PushItem(const wchar_t*) noexcept;
-        // push item with utf8
-        void PushItem(const char*) noexcept;
         // remove item
         void RemoveItem(uint32_t index) noexcept;
-        // insert item
-        void InsertItem(uint32_t index, const wchar_t*) noexcept;
+        // push item to string list and item list
+        void PushItem(const wchar_t* str) noexcept;
+        // push item to string list and item list in utf-8
+        void PushItem(const char* str) noexcept;
+        // insert item to string list and item list
+        void InsertItem(uint32_t index, const wchar_t* str) noexcept;
     protected:
+        // sync list
+        void sync_list() noexcept;
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // destructor 析构函数
@@ -105,8 +107,8 @@ namespace LongUI {
         uint16_t                    m_uMaxLine = 8;
         // draw down arrow
         bool                        m_bDrawDownArrow = false;
-        // unused
-        bool                        m_unused_bool_ccb = true;
+        // list changed
+        bool                        m_bChanged = false;
         // host control to display items
         UIList*                     m_pItemList = nullptr;
 #ifdef LongUIDebugEvent

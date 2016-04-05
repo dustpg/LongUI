@@ -343,6 +343,21 @@ bool LongUI::UIComboBox::uniface_addevent(SubEvent sb, UICallBack&& call) noexce
     return Super::uniface_addevent(sb, std::move(call));
 }
 
+
+// 同步列表
+void LongUI::UIComboBox::sync_list() noexcept {
+    if (m_pItemList) {
+        m_pItemList->ClearList();
+        for (const auto* item : m_vItems) {
+            m_pItemList->PushLineElement(item);
+        }
+        m_pItemList->SetControlLayoutChanged();
+        m_pItemList->InvalidateThis();
+        assert(m_pItemList->GetChildrenCount() == m_vItems.size());
+    }
+}
+
+
 // initialize, maybe you want call v-method
 void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
     m_vItems.reserve(32);
@@ -381,15 +396,21 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
                     this->CallUiEvent(m_eventChanged, SubEvent::Event_ValueChanged);
                 }
             }
-            // TODO: 点击选项关闭
+            // 点击选项关闭
             ::PostMessageW(list->GetWindow()->GetHwnd(), WM_CLOSE, 0, 0);
-            //assert(!"NOIMPL");
-            //list->GetWindow()->CloseWindowLater();
             return true;
         }, SubEvent::Event_ItemClicked);
     }
     // 点击事件
     auto call = [this](UIControl* ccb) noexcept {
+        // 同步显示
+        if (m_bChanged) {
+            // zero window pointer because there is no window
+            // right now, will crashed if insert new child
+            m_pItemList->ZeroWindow();
+            this->sync_list();
+            m_bChanged = false;
+        }
         // 清零
         m_pItemList->ZeroAllLinesContentWidth();
         // 坐标转换
@@ -415,9 +436,12 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         }
         // 创建弹出窗口
         auto popup = m_pWindow->CreatePopup(rect, LONG(height), m_pItemList);
-        // 选择
+        // 成功
         if (popup) {
+            // 选择
             m_pItemList->SelectChild(m_indexSelected);
+            // 显示
+            popup->ShowWindow(SW_SHOW);
         }
         // 链接
         return true;
@@ -430,6 +454,8 @@ void LongUI::UIComboBox::initialize(pugi::xml_node node) noexcept {
         for (auto line : m_pItemList->GetContainer()) {
             this->PushItem(line->GetFirstChildText());
         }
+        // 已经同步过了
+        m_bChanged = false;
         // 获取索引
         auto index = uint32_t(LongUI::AtoI(node.attribute("select").value()));
         // 设置显示
@@ -445,6 +471,8 @@ LongUINoinline void LongUI::UIComboBox::InsertItem(uint32_t index, const wchar_t
     if (copy && index <= m_vItems.size()) {
         const auto oldsize = m_vItems.size();
         m_vItems.insert(index, copy);
+        // 标记已修改
+        m_bChanged = true;
         // 校正索引
         if (m_indexSelected >= index && m_indexSelected < oldsize) {
             // 选择后面那个
@@ -480,8 +508,11 @@ LongUINoinline void LongUI::UIComboBox::RemoveItem(uint32_t index) noexcept {
     assert(index < m_vItems.size() && "bad argument");
     // 有效
     if (index < m_vItems.size()) {
+        // 移除item列表
         const auto oldsize = m_vItems.size();
         m_vItems.erase(index);
+        // 标记已修改
+        m_bChanged = true;
         // 校正索引
         if (m_indexSelected >= index && m_indexSelected < oldsize) {
             this->SetSelectedIndex(m_indexSelected > 0 ? m_indexSelected - 1 : m_indexSelected);
@@ -490,7 +521,11 @@ LongUINoinline void LongUI::UIComboBox::RemoveItem(uint32_t index) noexcept {
     }
 }
 
-// 添加物品
+/// <summary>
+/// Pushes the item to string list and item list.
+/// </summary>
+/// <param name="item">The utf-8 string. cannot be null</param>
+/// <returns></returns>
 void LongUI::UIComboBox::PushItem(const char* item) noexcept {
     assert(item && "bad argument");
     LongUI::SafeUTF8toWideChar(item, [this](const wchar_t* begin, void*) {
@@ -498,11 +533,13 @@ void LongUI::UIComboBox::PushItem(const char* item) noexcept {
     });
 }
 
-
-// 添加物品
+/// <summary>
+/// Pushes the item to string list and item list.
+/// </summary>
+/// <param name="item">The wchar string. cannot be null</param>
+/// <returns></returns>
 void LongUI::UIComboBox::PushItem(const wchar_t* item) noexcept {
     assert(item && "bad argument");
-    //if (!item) item = L"";
     this->InsertItem(this->GetItemCount(), item);
 }
 

@@ -1,5 +1,5 @@
-﻿#include "Core/luiManager.h"
-#include "Control/UIList.h"
+﻿#include "Control/UIList.h"
+#include "Core/luiManager.h"
 #include "Control/UIText.h"
 #include <algorithm>
 
@@ -157,6 +157,16 @@ auto LongUI::UIList::FindChild(const D2D1_POINT_2F& pt) noexcept -> UIControl* {
     return this->find_line(pt);
 }
 
+// 清除所有子控件
+void LongUI::UIList::ClearList() noexcept {
+    for (auto ctrl : m_vLines) {
+        this->release_child(ctrl);
+    }
+    m_vLines.clear();
+    m_cChildrenCount = 0;
+}
+
+
 // push!
 void LongUI::UIList::Push(UIControl* child) noexcept {
     // 边界控件交给父类处理
@@ -248,10 +258,7 @@ void LongUI::UIList::Sort(uint32_t index, UIControl* child) noexcept {
 /// <returns></returns>
 void LongUI::UIList::before_deleted() noexcept {
     // 清理子控件
-    for (auto ctrl : m_vLines) {
-        this->release_child(ctrl);
-    }
-    m_vLines.clear();
+    this->ClearList();
     // 链式清理
     Super::before_deleted();
 }
@@ -281,11 +288,16 @@ auto LongUI::UIList::InsertLineTemplateToList(uint32_t index) noexcept ->UIListL
     if (!ctrl) return ctrl;
     // 添加子控件
     for (const auto& data : m_vLineTemplate) {
-        ctrl->Insert(ctrl->end(), UIManager.CreateControl(ctrl, data.id, data.func));
+        auto tmp = UIManager.CreateControl(ctrl, data.id, data.func);
+        ctrl->Insert(ctrl->end(), tmp);;
+        tmp->Release();
     }
     // 插入
     this->Insert(index, ctrl);
-    return ctrl;
+    // 释放计数
+    ctrl->Release();
+    // 返回插入的
+    return this->GetAt(index);
 }
 
 // [UNTESTED] 利用索引移除行模板中一个元素
@@ -1115,5 +1127,3 @@ auto LongUI::UIListHeader::CreateControl(CreateEventType type, pugi::xml_node no
     }
     return pControl;
 }
-
-

@@ -77,6 +77,7 @@ namespace LongUI {
         enum BitArrayIndex : uint32_t {
             // [UN]
             //Index_ExitOnClose = 0,
+            Index_Sep = 0,
             // [RO] close when focus killed
             Index_CloseOnFocusKilled,
             // [RO] popup window
@@ -111,6 +112,8 @@ namespace LongUI {
         virtual void Update() noexcept;
         // move window relative to parent
         virtual void MoveWindow(int32_t x, int32_t y) noexcept = 0;
+        // close window
+        virtual void Close() noexcept = 0;
         // resize window
         virtual void Resize(uint32_t w, uint32_t h) noexcept = 0;
         // set cursor
@@ -160,8 +163,6 @@ namespace LongUI {
         // render window in next frame
         void InvalidateWindow() noexcept { this->set_full_render_this_frame(); }
     public:
-        // close window
-        void Close() noexcept;
         // initialize viewport
         void InitializeViewport(UIViewport* viewport) noexcept;
         // do event
@@ -180,6 +181,9 @@ namespace LongUI {
         void SetCapture(UIControl* control) noexcept;
         // release mouse capture
         void ReleaseCapture() noexcept;
+    protected:
+        // on window closed
+        void on_close() noexcept;
     protected:
         // is NewSize
         bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }

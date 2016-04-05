@@ -67,7 +67,9 @@ namespace LongUI { namespace impl { static float const floatx2[] = { 0.f, 0.f };
 /// <returns></returns>
 void LongUI::UIControl::InvalidateThis() noexcept {
     // 无效化预渲染控件
-    m_pWindow->Invalidate(this->prerender);
+    if (m_pWindow) {
+        m_pWindow->Invalidate(this->prerender);
+    }
 }
 
 /// <summary>
@@ -135,11 +137,28 @@ LongUINoinline void LongUI::UIControl::Release() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::AddRef() noexcept {
+    this;
+    switch (m_u8RefCount)
+    {
+        int bk;
+    case 0:
+        bk = 9;
+    case 1:
+        bk = 9;
+    case 2:
+        bk = 9;
+        break;
+    case 3:
+        bk = 9;
+        break;
+    case 4:
+        bk = 9;
+        break;
+    default:
+        break;
+    }
     ++m_u8RefCount;
     assert(m_u8RefCount < 127ui8 && "too many ref-count");
-    if (m_u8RefCount >= 2) {
-        int bk = 9;
-    }
 }
 #endif
 
@@ -167,7 +186,6 @@ void LongUI::UIControl::NewParentSetted() noexcept {
 /// <param name="parent">The parent.</param>
 /// <returns></returns>
 void LongUI::UIControl::LinkNewParent(UIContainer* cp) noexcept {
-    assert(cp && "bad argmuent");
     force_cast(this->parent) = cp;
     m_pWindow = cp->GetWindow();
     this->DoLongUIEvent(Event::Event_SetNewParent);
@@ -1210,15 +1228,16 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
         UIMarginalable* mc = nullptr;
         // Left
         if ((mc = this->GetMarginalControl(UIMarginalable::Control_Left))) {
-            const auto tmptop = m_orgMargin.top +
-                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Top));
+            const auto tmptop =  get_marginal_width_with_rule(
+                mc, this->GetMarginalControl(UIMarginalable::Control_Top)
+            );
             // 坐标
-            mc->SetLeft(m_orgMargin.left);
-            mc->SetTop(tmptop);
+            mc->SetLeft(-m_orgMargin.left);
+            mc->SetTop(tmptop-m_orgMargin.top);
             // 大小
             mc->SetWidth(mc->marginal_width);
             mc->SetHeight(
-                this_container_height - tmptop - m_orgMargin.bottom -
+                this_container_height - tmptop -
                 get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Bottom))
             );
             // 更新边界
@@ -1226,15 +1245,15 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
         }
         // TOP
         if ((mc = this->GetMarginalControl(UIMarginalable::Control_Top))) {
-            const float tmpleft = m_orgMargin.left +
-                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Left)
-                );
+            const float tmpleft = get_marginal_width_with_rule(
+                mc, this->GetMarginalControl(UIMarginalable::Control_Left)
+            );
             // 坐标
-            mc->SetLeft(tmpleft);
-            mc->SetTop(m_orgMargin.top);
+            mc->SetLeft(tmpleft - m_orgMargin.left);
+            mc->SetTop(-m_orgMargin.top);
             // 大小
             mc->SetWidth(
-                this_container_width - tmpleft - m_orgMargin.right -
+                this_container_width - tmpleft -
                 get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Right))
             );
             mc->SetHeight(mc->marginal_width);
@@ -1243,15 +1262,16 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
         }
         // Right
         if ((mc = this->GetMarginalControl(UIMarginalable::Control_Right))) {
-            const auto tmptop = m_orgMargin.top +
-                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Top));
+            const auto tmptop = get_marginal_width_with_rule(
+                mc, this->GetMarginalControl(UIMarginalable::Control_Top)
+            );
             // 坐标
             mc->SetLeft(this_container_width - m_orgMargin.right - mc->marginal_width);
             mc->SetTop(tmptop);
             // 大小
             mc->SetWidth(mc->marginal_width);
             mc->SetHeight(
-                this_container_height - tmptop - m_orgMargin.bottom -
+                this_container_height - tmptop -
                 get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Bottom))
             );
             // 更新边界
@@ -1259,14 +1279,15 @@ void LongUI::UIContainer::refresh_marginal_controls() noexcept {
         }
         // Bottom
         if ((mc = this->GetMarginalControl(UIMarginalable::Control_Bottom))) {
-            const float tmpleft = m_orgMargin.left +
-                get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Left));
+            const float tmpleft = get_marginal_width_with_rule(
+                mc, this->GetMarginalControl(UIMarginalable::Control_Left)
+            );
             // 坐标
-            mc->SetLeft(tmpleft);
+            mc->SetLeft(tmpleft - m_orgMargin.left);
             mc->SetTop(this_container_height - m_orgMargin.bottom - mc->marginal_width);
             // 大小
             mc->SetWidth(
-                this_container_width - tmpleft - m_orgMargin.right -
+                this_container_width - tmpleft -
                 get_marginal_width_with_rule(mc, this->GetMarginalControl(UIMarginalable::Control_Right))
             );
             mc->SetHeight(mc->marginal_width);

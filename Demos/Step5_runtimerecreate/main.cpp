@@ -8,25 +8,17 @@
 const wchar_t* const CPU_ADAPTER = L"Microsoft Basic Render Driver";
 
 // <M><Text text="HW"/></M>
-const char* const VIDEO_CARD_XML = 
+const char* const VIDEO_CARD_XML =
 u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window debugshow="true" textantimode="cleartype" autoshow="false" size="1024, 512" clearcolor="1,1,1,0.9" name="Choose Video Card">
+<Window debugshow="true" textantimode="cleartype" size="512, 64" clearcolor="1,1,1,0.9" titlename="Choose Video Card">
     <HorizontalLayout>
-        <List weight="3" borderwidth="1" name="lst_vc" linetemplate="Text, Text" margin="4,4,4,4" >
-            <ScrollBarA marginal="right"/>
-            <ScrollBarA marginal="bottom"/>
-            <ListHeader marginal="top" sepwidth="-8">
-                <Button borderwidth="1" margin="1,1,1,1" text="type" name="lst_header0" weight="0.2"/>
-                <Button borderwidth="1" margin="1,1,1,1" text="name" name="lst_header1"/>
-            </ListHeader>
-        </List>
-        <VerticalLayout weight="1">
-            <Null weight="2"/>
-            <Button borderwidth="1" margin="16,4,4,16" name="btn_ok" text="OK! Choose It!"/>
-            <Null weight="2"/>
-            <Button borderwidth="1" margin="16,4,4,16" name="btn_re" text="Test Recreate!"/>
-            <Null weight="2"/>
-        </VerticalLayout>
+        <ComboBox name="cbb_vc" align="left"  margin="4,4,4,4" borderwidth="1">
+            <List linetemplate="Text">
+                <ScrollBarA marginal="right"/>
+            </List>
+        </ComboBox>
+        <Button borderwidth="1" weight="0.2" margin="4,4,4,4" name="btn_ok" text="OK!"/>
+        <Button borderwidth="1" weight="0.4" margin="4,4,4,4" name="btn_re" text="Recreate!"/>
     </HorizontalLayout>
 </Window>
 )xml";
@@ -45,31 +37,29 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
         // return true, if use cpu rendering
         virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { return Flag_OutputDebugString; }
         // choose it
-        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
+        virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept->size_t override;
         // adapters
         std::vector<DXGI_ADAPTER_DESC1>     adapter_vector;
     };
     // window to choose adapter
-    class WindowChooseAdapter final : public UIWindow {
+    class WindowChooseAdapter final : public UIViewport {
         // super class
-        using Super = UIWindow;
+        using Super = UIViewport;
         // clean up
         virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     public:
         // on close event, do not exit app directly
-        virtual auto OnClose() noexcept -> bool { 
-            auto old = m_bExit;
-            this->delay_cleanup(); 
-            if (old) UIManager.Exit(); 
-            return true; 
+        virtual void OnClose() noexcept override {
+            // exit on one window
+            if (UIManager.GetSystemWindowCount() == 1) {
+                UIManager.Exit();
+            }
         };
         // ctor
-        WindowChooseAdapter(UIWindow* parent) : Super(parent) {}
+        WindowChooseAdapter(XUIBaseWindow* window) : Super(window) {}
     public:
         // set config
         void SetMyConfig(MyConfig& config) noexcept;
-        //
-        size_t              m_bExit = true;
     };
 }
 LONGUI_NAMESPACE_END
@@ -90,7 +80,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             auto svc_window = UIManager.CreateUIWindow<LongUI::Demo::WindowChooseAdapter>(VIDEO_CARD_XML);
             // successed
             if (svc_window) {
-                svc_window->SetMyConfig(config);
+                auto view = reinterpret_cast<LongUI::Demo::WindowChooseAdapter*>(svc_window->GetViewport());
+                view->SetMyConfig(config);
             }
             // some error
             else {
@@ -138,56 +129,54 @@ auto LongUI::Demo::MyConfig::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], 
     return length;
 }
 
+// reauire UIList control
+#include <Control/UIComboBox.h>
+
 // set MyConfig
 void LongUI::Demo::WindowChooseAdapter::SetMyConfig(MyConfig& config) noexcept {
     // find list that named "lst_vc"
-    auto list = longui_cast<UIList*>(this->FindControl("lst_vc"));
+    auto combo = longui_cast<UIComboBox*>(m_pWindow->FindControl("cbb_vc"));
     // if found
-    if (list) {
+    if (combo) {
         // add infomation to list via 'adapter_vector'
-        for (auto i = 0u; i < config.adapter_vector.size(); ++i) {
-            // set "TYPE"
-            auto aname = config.adapter_vector[i].Description;
-            // set "NAME"
-            auto atype = std::wcscmp(aname, CPU_ADAPTER) ? L"GPU" : L"CPU";
-            // push it
-            list->PushLineElement(atype, aname);
+        for (const auto& desc : config.adapter_vector) {
+            combo->PushItem(desc.Description);
         }
+        // set select-index to 0
+        combo->SetSelectedIndex(0);
         // find button that named "btn_ok"
-        auto btn = this->FindControl("btn_ok");
+        auto btn = m_pWindow->FindControl("btn_ok");
         // if found
         if (btn) {
             // I wanna capture 'adapter_vector'
             auto& vec = config.adapter_vector;
             // add event callback
-            btn->AddEventCall([&vec, list, this](UIControl*) noexcept ->bool {
+            btn->AddEventCall([&vec, combo, this](UIControl*) noexcept ->bool {
                 // if selectED
-                auto& sel = list->GetSelectedIndices();
-                if (sel.size()) {
+                auto sel = combo->GetSelectedIndex();
+                if (sel < vec.size()) {
                     try {
-                        vec.push_back(vec[sel.front()]);
+                        vec.push_back(vec[sel]);
                     }
                     catch (...) {
-
+                        ::MessageBoxW(m_pWindow->GetHwnd(), L"ERROR", L"ERROR", MB_ICONERROR);
                     }
                 }
                 else {
-                    ::MessageBoxW(m_hwnd, L"You may choose one adapter", L"HINT", MB_OK);
+                    ::MessageBoxW(m_pWindow->GetHwnd(), L"You may choose one adapter", L"HINT", MB_OK);
                 }
-                // close this window later
-                this->CloseWindowLater();
-                // do not exit
-                m_bExit = false;
                 // recreate
                 UIManager.RecreateResources();
                 // create main window
-                UIManager.CreateUIWindow<LongUI::Demo::MainWindow>(DEMO_XML);
+                UIManager.CreateUIWindow<LongUI::Demo::MainViewport>(DEMO_XML)->ShowWindow(SW_SHOW);
+                // close this window 
+                m_pWindow->Close();
                 return true;
             }, SubEvent::Event_ItemClicked);
         }
     }
     // find button that named "btn_re"
-    auto btn = this->FindControl("btn_re");
+    auto btn = m_pWindow->FindControl("btn_re");
     // if found
     if (btn) {
         // add event callback
@@ -198,7 +187,7 @@ void LongUI::Demo::WindowChooseAdapter::SetMyConfig(MyConfig& config) noexcept {
         }, SubEvent::Event_ItemClicked);
     }
     // show the window
-    this->ShowWindow(SW_SHOW);
+    m_pWindow->ShowWindow(SW_SHOW);
 }
 
 /*

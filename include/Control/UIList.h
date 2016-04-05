@@ -195,6 +195,8 @@ namespace LongUI {
         void Insert(uint32_t index, UIListLine* line) noexcept;
         // get child at index
         auto GetAt(uint32_t index) const noexcept { return m_vLines[index]; }
+        // clear list
+        void ClearList() noexcept;
     public:
         // get line-element count
         auto GetLineElementCount() const noexcept { return m_vLineTemplate.size(); }
