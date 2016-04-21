@@ -44,10 +44,10 @@ namespace LongUI {
     // hex -> int
     unsigned int Hex2Int(char c) noexcept;
     // lengthof
-    template<typename R, typename T> constexpr auto lengthof(T& t) { return static_cast<R>(sizeof(t) / sizeof(*t)); }
+    template<typename T, size_t COUNT> constexpr auto lengthof(T (&)[COUNT]) { return COUNT; }
     // lengthof
-    template<typename T> constexpr auto lengthof(T& t) { return sizeof(t) / sizeof(*t); }
-    // byte distance
+    template<typename Y, typename T, size_t COUNT> constexpr auto lengthof(T (&)[COUNT]) { return Y(COUNT); }
+    // byte distanc
     template<typename T, typename Y> auto bdistance(T* a, T* b) noexcept { reinterpret_cast<const char*>(b) - reinterpret_cast<const char*>(a); };
     // BKDR Hash
     auto BKDRHash(const char* str) noexcept ->uint32_t;

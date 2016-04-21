@@ -606,7 +606,7 @@ namespace LongUI { namespace EzContainer {
         // using
         using VectorType = EzVector<void*>;
         // using
-        static auto TPP(void** data) noexcept { return reinterpret_cast<T**>(data); }
+        static auto TPP(void** data) noexcept { return (T**)(data); }
     public:
         // begin
         auto begin() noexcept { return VectorType::Iterator<T*>(TPP(m_vector.data())); }
