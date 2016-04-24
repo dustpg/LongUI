@@ -149,8 +149,8 @@ namespace LongUI {
         return UTF8toUTF16(src, reinterpret_cast<char16_t*>(des), buflen);
     }
     // bubble sort for vector or list, you should include <algorithm> first
-    template<typename Itr, typename Lamda>
-    void BubbleSort(Itr begin, Itr end, Lamda lam) noexcept {
+    template<typename Itr, typename Lambda>
+    void BubbleSort(Itr begin, Itr end, Lambda lam) noexcept {
         --end;
         bool flag = true;
         while (flag) {
