@@ -1860,6 +1860,19 @@ void LongUI::CUIManager::update_time_capsules(float time) noexcept {
     }
 }
 
+// 移除时间胶囊
+void LongUI::CUIManager::remove_time_capsule(void* id) noexcept {
+    size_t realid = reinterpret_cast<size_t>(id);
+    for (auto itr = m_vTimeCapsules.begin(); itr != m_vTimeCapsules.end(); ++itr) {
+        auto capsule = *itr;
+        if (capsule->GetId() == realid) {
+            capsule->Dispose();
+            m_vTimeCapsules.erase(itr);
+            return;
+        }
+    }
+}
+
 // 添加时间胶囊
 void LongUI::CUIManager::push_time_capsule(TimeCapsuleCall && call, void* id, float time) noexcept {
     const size_t realid = reinterpret_cast<size_t>(id);

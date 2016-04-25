@@ -129,6 +129,8 @@ namespace LongUI {
         template<typename T> void AddTimeCapsule(T call, void* id, float time) noexcept {
             this->push_time_capsule(std::move(TimeCapsuleCall(call)), id, time);
         }
+        // add time capsule
+        void RemoveTimeCapsule(void* id) noexcept { this->remove_time_capsule(id);  }
     private:
         // exit
         inline void exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
@@ -397,6 +399,8 @@ namespace LongUI {
         void update_time_capsules(float time) noexcept;
         // push time capsules
         void push_time_capsule(TimeCapsuleCall&& call, void* id, float time) noexcept;
+        // remove time capsules
+        void remove_time_capsule(void* id) noexcept;
     public:
         // create a control tree for UIContainer
         void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;

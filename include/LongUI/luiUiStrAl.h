@@ -103,6 +103,6 @@ namespace LongUI {
                 chian->used += len;
             }
             return address;
-        };
+        }
     };
 }
