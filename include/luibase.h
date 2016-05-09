@@ -26,7 +26,7 @@
 
 #ifdef _WIN32_WINNT
 #if NTDDI_VERSION < NTDDI_WIN10_TH2
-#error "Win10 TH2 required in LongUI"
+#error "Win10 Th2 required for LongUI"
 #endif
 #else
 #define _WIN32_WINNT 0x0A000001

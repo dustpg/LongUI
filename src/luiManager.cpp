@@ -703,6 +703,10 @@ void LongUI::CUIManager::Run() noexcept {
 
 // 等待垂直同步
 void LongUI::CUIManager::wait_for_vblank() noexcept {
+    // 自行等待垂直同步以方便游戏窗口不等待垂直同步的实现
+    /*if (this->flag & IUIConfigure::Flag_RenderInAnytime) {
+        return;
+    }*/
     // 存在DXGI输出?
     if (m_pDxgiOutput) {
         m_pDxgiOutput->WaitForVBlank();
@@ -1595,6 +1599,7 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
 // 利用名称获取
 auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> XUIBasicTextRenderer* {
     int index = 0;
+    // 字符串有效情况下
     if (name && name[0]) {
         // 跳过空白
         while (white_space(*name)) ++name;

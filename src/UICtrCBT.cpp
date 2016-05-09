@@ -21,7 +21,7 @@
 // 前景渲染
 void LongUI::UIText::render_chain_foreground() const noexcept {
     // 文本算前景
-    m_text.Render(0.f, 0.f);
+    m_text.Render(UIManager_RenderTarget, D2D1::Point2F());
     // 父类
     Super::render_chain_foreground();
 }

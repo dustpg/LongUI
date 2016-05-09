@@ -112,7 +112,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             if (length) {
                 m_pTextContext = LongUI::SmallAlloc(length);
                 assert(m_pTextContext && "OOM for just 'length' byte");
-                m_pTextRenderer->CreateContextFromString(m_pTextContext, attribute("context"));
+                m_pTextRenderer->MakeContextFromString(m_pTextContext, attribute("context"));
             }
         }
         {
@@ -156,6 +156,19 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             LongUI::SmallFree(m_pTextContext);
             m_pTextContext = nullptr;
         }
+    }
+    // render
+    void ShortText::Render(ID2D1RenderTarget* target,D2D1_POINT_2F pt) const noexcept {
+        assert(target && "bad argument");
+        m_pTextRenderer->target = target;
+        m_pTextRenderer->basic_color.color = *m_pColor;
+        m_pLayout->Draw(
+            m_pTextContext,
+            m_pTextRenderer,
+            this->offset.x + pt.x,
+            this->offset.y + pt.y
+        );
+        m_pTextRenderer->target = nullptr;
     }
     // ShortText 重建布局
     void ShortText::RecreateLayout() noexcept {
@@ -1206,9 +1219,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         return LongUI::AtoI(m_string.c_str());
     }
     // 渲染
-    void EditaleText::Render(float x, float y) const noexcept {
-        x = this->offset.x + x;
-        y = this->offset.y + y;
+    void EditaleText::Render(ID2D1RenderTarget* target, D2D1_POINT_2F pt) const noexcept {
+        assert(target && "bad argument");
+        float x = this->offset.x + pt.x;
+        float y = this->offset.y + pt.y;
     #ifdef _DEBUG
         if (m_pHost->debug_this) {
             UIManager << DL_Log
@@ -1234,8 +1248,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         // 刻画字体
         assert(this->layout && "bad action");
+        m_pTextRenderer->target = target;
         m_pTextRenderer->basic_color.color = *m_pColor;
         this->layout->Draw(m_pTextContext, m_pTextRenderer, x, y);
+        m_pTextRenderer->target = nullptr;
+
     }
     // 复制到 目标全局句柄
     auto EditaleText::CopyToGlobal() noexcept -> HGLOBAL {
@@ -1547,7 +1564,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 if (length) {
                     m_pTextContext = LongUI::SmallAlloc(length);
                     assert(m_pTextContext && "OOM for just 'length' byte");
-                    m_pTextRenderer->CreateContextFromString(m_pTextContext, attribute("context"));
+                    m_pTextRenderer->MakeContextFromString(m_pTextContext, attribute("context"));
                 }
             }
         }
@@ -2097,9 +2114,9 @@ HRESULT LongUI::XUIBasicTextRenderer::IsPixelSnappingDisabled(void*, BOOL * isDi
 
 // 从目标渲染呈现器获取
 HRESULT LongUI::XUIBasicTextRenderer::GetCurrentTransform(void*, DWRITE_MATRIX * mat) noexcept {
-    assert(UIManager_RenderTarget);
+    assert(this->target);
     // XXX: 优化 Profiler 就这1行 0.05%
-    UIManager_RenderTarget->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
+    this->target->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(mat));
     return S_OK;
 }
 
@@ -2151,6 +2168,7 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawUnderline(
     IUnknown* effect
 ) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
+    assert(this->target);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
     if (effect && impl::same_vtable(effect, &this->basic_color)) {
@@ -2169,7 +2187,7 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawUnderline(
         baselineOriginY + underline->offset + underline->thickness
     };
     // 填充矩形
-    UIManager_RenderTarget->FillRectangle(&rectangle, m_pBrush);
+    this->target->FillRectangle(&rectangle, m_pBrush);
     return S_OK;
 }
 
@@ -2181,6 +2199,7 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawStrikethrough(
     const DWRITE_STRIKETHROUGH* strikethrough,
     IUnknown* effect
 ) noexcept {
+    assert(this->target);
     UNREFERENCED_PARAMETER(clientDrawingContext);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
@@ -2200,7 +2219,7 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawStrikethrough(
         baselineOriginY + strikethrough->offset + strikethrough->thickness
     };
     // 填充矩形
-    UIManager_RenderTarget->FillRectangle(&rectangle, m_pBrush);
+    this->target->FillRectangle(&rectangle, m_pBrush);
     return S_OK;
 }
 
@@ -2216,6 +2235,7 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     IUnknown * effect) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
     UNREFERENCED_PARAMETER(glyphRunDescription);
+    assert(this->target);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
     // 检查
@@ -2228,7 +2248,7 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     // 设置颜色
     m_pBrush->SetColor(color);
     // 利用D2D接口直接渲染字形
-    UIManager_RenderTarget->DrawGlyphRun(
+    this->target->DrawGlyphRun(
         D2D1::Point2(baselineOriginX, baselineOriginY),
         glyphRun,
         m_pBrush,
@@ -2248,6 +2268,7 @@ HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
     const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
     IUnknown * effect) noexcept {
     UNREFERENCED_PARAMETER(glyphRunDescription);
+    assert(this->target);
     // 获取填充颜色
     D2D1_COLOR_F* fill_color = nullptr;
     // 检查
@@ -2294,15 +2315,15 @@ HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
     if (SUCCEEDED(hr)) {
         // 保存状态
         D2D1_MATRIX_3X2_F transform, transform2;
-        UIManager_RenderTarget->GetTransform(&transform);
+        this->target->GetTransform(&transform);
         transform2 = DX::Matrix3x2F::Translation(
             baselineOriginX, baselineOriginY
         ) * transform;
-        UIManager_RenderTarget->SetTransform(&transform2);
+        this->target->SetTransform(&transform2);
         // 设置颜色
         m_pBrush->SetColor(draw_color);
         // 刻画描边
-        UIManager_RenderTarget->DrawGeometry(
+        this->target->DrawGeometry(
             pPathGeometry,
             m_pBrush,
             outline->width
@@ -2310,12 +2331,12 @@ HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
         // 设置颜色
         m_pBrush->SetColor(fill_color);
         // 填充字形
-        UIManager_RenderTarget->FillGeometry(
+        this->target->FillGeometry(
             pPathGeometry,
             m_pBrush
         );
         // 回退
-        UIManager_RenderTarget->SetTransform(&transform);
+        this->target->SetTransform(&transform);
     }
     // 扫尾
     LongUI::SafeRelease(pPathGeometry);
@@ -2324,7 +2345,7 @@ HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
 }
 
 // 利用字符串创建上下文
-void LongUI::CUIOutlineTextRender::CreateContextFromString(void* context, const char* utf8_string) noexcept {
+void LongUI::CUIOutlineTextRender::MakeContextFromString(void* context, const char* utf8_string) noexcept {
     assert(context);
     auto outline = reinterpret_cast<OutlineContext*>(context);
     outline->color = D2D1::ColorF(D2D1::ColorF::White);

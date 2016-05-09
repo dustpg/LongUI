@@ -796,22 +796,6 @@ template<> void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept {
     this->time -= t;
 }
 
-// for D2D1_MATRIX_3X2_F or Float6
-template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept {
-    if (this->time <= 0.f) {
-        this->value = this->end;
-        return;
-    }
-    UIAnimation_Template_A;
-    UIAnimation_Template_B(_11);
-    UIAnimation_Template_B(_12);
-    UIAnimation_Template_B(_21);
-    UIAnimation_Template_B(_22);
-    UIAnimation_Template_B(_31);
-    UIAnimation_Template_B(_32);
-    // 减少时间
-    this->time -= t;
-}
 #undef UIAnimation_Template_A
 #undef UIAnimation_Template_B
 // CUIAnimation ----------  END  -------------

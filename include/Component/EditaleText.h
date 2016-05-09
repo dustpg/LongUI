@@ -189,7 +189,7 @@ namespace LongUI { namespace Component {
         // update this
         void Update() noexcept;
         // render this: absolute postion
-        void Render(float x, float y) const noexcept;
+        void Render(ID2D1RenderTarget* target, D2D1_POINT_2F) const noexcept;
         // refresh the selection HitTestMetrics
         void RefreshSelectionMetrics(DWRITE_TEXT_RANGE) noexcept;
         // copy to HGLOBAL

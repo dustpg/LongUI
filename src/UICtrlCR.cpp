@@ -16,7 +16,7 @@ void LongUI::UICheckBox::render_chain_main() const noexcept {
 void LongUI::UICheckBox::render_chain_foreground() const noexcept {
     // 文本算前景
     if (m_text.GetString().length()) {
-        m_text.Render(BOX_SIZE, 0.f);
+        m_text.Render(UIManager_RenderTarget, D2D1::Point2F(BOX_SIZE, 0.f));
     }
     // 父类-父类
     UIControl::render_chain_foreground();
@@ -234,7 +234,7 @@ void LongUI::UIRadioButton::render_chain_main() const noexcept {
 void LongUI::UIRadioButton::render_chain_foreground() const noexcept {
     // 文本算前景
     if (m_text.GetString().length()) {
-        m_text.Render(RADIO_SIZE, 0.f);
+        m_text.Render(UIManager_RenderTarget, D2D1::Point2F(RADIO_SIZE, 0.f));
     }
     // 父类-父类
     UIControl::render_chain_foreground();

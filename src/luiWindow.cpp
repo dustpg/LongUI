@@ -396,7 +396,7 @@ void LongUI::UIViewport::release_data() noexcept {
         m_hVSync = nullptr;
     }
     // 释放资源
-    LongUI::SafeRelease(m_pTargetBimtap);
+    LongUI::SafeRelease(m_pTargetBitmap);
     LongUI::SafeRelease(m_pSwapChain);
     LongUI::SafeRelease(m_pDcompDevice);
     LongUI::SafeRelease(m_pDcompTarget);
@@ -412,7 +412,7 @@ void LongUI::UIViewport::draw_caret() noexcept {
     src_rect.left = m_bCaretIn ? 0 : LongUIWindowPlanningBitmap / 4;
     src_rect.right = src_rect.left + m_rcCaretPx.width;
     src_rect.bottom = src_rect.top + m_rcCaretPx.height;
-    m_pTargetBimtap->CopyFromBitmap(
+    m_pTargetBitmap->CopyFromBitmap(
         &pt, m_pBitmapPlanning, &src_rect
         );*/
 }
@@ -475,7 +475,7 @@ void LongUI::UIViewport::BeginDraw() const noexcept {
     }
     force_cast(m_baBoolWindow).SetFalse(Index_Prerender);
     // 设为当前渲染对象
-    UIManager_RenderTarget->SetTarget(m_pTargetBimtap);
+    UIManager_RenderTarget->SetTarget(m_pTargetBitmap);
     // 开始渲染
     UIManager_RenderTarget->BeginDraw();
     // 设置转换矩阵
@@ -892,7 +892,7 @@ void LongUI::UIViewport::OnResize(bool force) noexcept {
         rect_right = this->window_size.width;
         rect_bottom = this->window_size.height;
     }
-    auto old_size = m_pTargetBimtap->GetPixelSize();
+    auto old_size = m_pTargetBitmap->GetPixelSize();
     HRESULT hr = S_OK;
     // 强行 或者 小于才Resize
     if (force || old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
@@ -902,7 +902,7 @@ void LongUI::UIViewport::OnResize(bool force) noexcept {
             << LongUI::Formated(L"(%d, %d)", int(rect_right), int(rect_bottom))
             << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
-        LongUI::SafeRelease(m_pTargetBimtap);
+        LongUI::SafeRelease(m_pTargetBitmap);
         hr = m_pSwapChain->ResizeBuffers(
             2, rect_right, rect_bottom, DXGI_FORMAT_B8G8R8A8_UNORM,
             DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
@@ -927,7 +927,7 @@ void LongUI::UIViewport::OnResize(bool force) noexcept {
             hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
                 pDxgiBackBuffer,
                 &bitmapProperties,
-                &m_pTargetBimtap
+                &m_pTargetBitmap
             );
             longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
         }
@@ -1031,7 +1031,7 @@ auto LongUI::UIViewport::Recreate() noexcept ->HRESULT {
         hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
             pDxgiBackBuffer,
             &bitmapProperties,
-            &m_pTargetBimtap
+            &m_pTargetBitmap
         );
         longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
     }
@@ -1758,6 +1758,8 @@ namespace LongUI {
         void release_data() noexcept;
         // is direct composition
         bool is_direct_composition() const noexcept { return true; }
+        // get dxgi swapeffect
+        bool get_swap_effect() const noexcept { return false; }
     public:
         // ctor
         CUIBuiltinSystemWindow(const Config::Window& config) noexcept;
@@ -1802,7 +1804,7 @@ namespace LongUI {
         // swap chain
         IDXGISwapChain2*        m_pSwapChain    = nullptr;
         // target bitmap
-        ID2D1Bitmap1*           m_pTargetBimtap = nullptr;
+        ID2D1Bitmap1*           m_pTargetBitmap = nullptr;
         // Direct Composition Device
         IDCompositionDevice*    m_pDcompDevice  = nullptr;
         // Direct Composition Target
@@ -2191,7 +2193,11 @@ void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
     // 设置
     auto rect_right = LongUI::MakeAsUnit(this->GetWidth());
     auto rect_bottom = LongUI::MakeAsUnit(this->GetHeight());
-    auto old_size = m_pTargetBimtap->GetPixelSize();
+    if (!this->is_direct_composition()) {
+        rect_right = this->GetWidth();
+        rect_bottom = this->GetHeight();
+    }
+    auto old_size = m_pTargetBitmap->GetPixelSize();
     HRESULT hr = S_OK;
     // 小于才Resize
     if (old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
@@ -2201,7 +2207,7 @@ void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
             << LongUI::Formated(L"(%d, %d)", int(rect_right), int(rect_bottom))
             << LongUI::endl;
         IDXGISurface* pDxgiBackBuffer = nullptr;
-        LongUI::SafeRelease(m_pTargetBimtap);
+        LongUI::SafeRelease(m_pTargetBitmap);
         hr = m_pSwapChain->ResizeBuffers(
             2, rect_right, rect_bottom, DXGI_FORMAT_B8G8R8A8_UNORM,
             DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
@@ -2226,7 +2232,7 @@ void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
             hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
                 pDxgiBackBuffer,
                 &bitmapProperties,
-                &m_pTargetBimtap
+                &m_pTargetBitmap
             );
             longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
         }
@@ -2274,8 +2280,14 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
         RECT rect = { 0 }; ::GetClientRect(m_hwnd, &rect);
         // 交换链信息
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = { 0 };
-        swapChainDesc.Width = LongUI::MakeAsUnit(rect.right - rect.left);
-        swapChainDesc.Height = LongUI::MakeAsUnit(rect.bottom - rect.top);
+        if (this->is_direct_composition()) {
+            swapChainDesc.Width = LongUI::MakeAsUnit(rect.right - rect.left);
+            swapChainDesc.Height = LongUI::MakeAsUnit(rect.bottom - rect.top);
+        }
+        else {
+            swapChainDesc.Width = (rect.right - rect.left);
+            swapChainDesc.Height = (rect.bottom - rect.top);
+        }
         swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
         swapChainDesc.Stereo = FALSE;
         swapChainDesc.SampleDesc.Count = 1;
@@ -2345,7 +2357,7 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
         hr = UIManager_RenderTarget->CreateBitmapFromDxgiSurface(
             pDxgiBackBuffer,
             &bitmapProperties,
-            &m_pTargetBimtap
+            &m_pTargetBitmap
         );
         longui_debug_hr(hr, L"UIManager_RenderTarget->CreateBitmapFromDxgiSurface faild");
     }
@@ -2404,7 +2416,7 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
 /// <returns></returns>
 void LongUI::CUIBuiltinSystemWindow::release_data() noexcept {
     // 释放资源
-    LongUI::SafeRelease(m_pTargetBimtap);
+    LongUI::SafeRelease(m_pTargetBitmap);
     LongUI::SafeRelease(m_pSwapChain);
     LongUI::SafeRelease(m_pDcompDevice);
     LongUI::SafeRelease(m_pDcompTarget);
@@ -2446,7 +2458,7 @@ void LongUI::CUIBuiltinSystemWindow::BeginRender() const noexcept {
     // 设置文本渲染策略
     UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 设为当前渲染对象
-    UIManager_RenderTarget->SetTarget(m_pTargetBimtap);
+    UIManager_RenderTarget->SetTarget(m_pTargetBitmap);
     // 开始渲染
     UIManager_RenderTarget->BeginDraw();
     // 设置转换矩阵
@@ -2476,7 +2488,7 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     HRESULT hr = S_OK;
     // 全渲染
     if (this->is_full_render_this_frame_render()) {
-        hr = m_pSwapChain->Present(1, 0);
+        hr = m_pSwapChain->Present(0, 0);
     }
     // 脏渲染
     else {
@@ -2499,7 +2511,7 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
             ++control;
         }
         // 提交
-        hr = m_pSwapChain->Present1(1, 0, &present_parameters);
+        hr = m_pSwapChain->Present1(0, 0, &present_parameters);
     }
     // 呈现
     longui_debug_hr(hr, L"m_pSwapChain->Present1 faild");

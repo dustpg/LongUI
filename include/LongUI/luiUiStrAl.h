@@ -30,7 +30,9 @@
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4200)
+#pragma warning(disable: 4100)
 #endif
+
 // longui namespace
 namespace LongUI {
     // short allocator, memory created with allocator, destroyed with allocator

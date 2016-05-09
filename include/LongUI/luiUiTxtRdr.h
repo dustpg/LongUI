@@ -93,14 +93,16 @@ namespace LongUI {
     public:
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->size_t = 0;
-        // create context from string
-        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept = 0;
+        // make context from string
+        virtual void MakeContextFromString(void* context, const char* utf8_string) noexcept = 0;
     protected:
         // render target of d2d
         ID2D1DeviceContext*         UIManager_RenderTarget = nullptr;
         // solid color brush
         ID2D1SolidColorBrush*       m_pBrush = nullptr;
     public:
+        // temp render target
+        ID2D1RenderTarget*          target = nullptr;
         // basic color
         CUIColorEffect              basic_color;
         // type of text renderer
@@ -127,8 +129,8 @@ namespace LongUI {
     public:
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->size_t override { return 0; }
-        // create context from string
-        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept {
+        // make context from string
+        virtual void MakeContextFromString(void* context, const char* utf8_string) noexcept {
             UNREFERENCED_PARAMETER(context); UNREFERENCED_PARAMETER(utf8_string);
         };
     };
@@ -160,7 +162,7 @@ namespace LongUI {
     public:
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->size_t override  { return sizeof(OutlineContext); }
-        // create context from string
-        virtual void CreateContextFromString(void* context, const char* utf8_string) noexcept;
+        // make context from string
+        virtual void MakeContextFromString(void* context, const char* utf8_string) noexcept;
     };
 }

@@ -50,7 +50,7 @@ namespace LongUI { namespace Helper {
     template<typename T> class BitArray {
     public:
         // bit wide
-        static constexpr size_t LENGTH = sizeof(T) * CHAR_BIT;
+        enum : size_t { LENGTH = sizeof(T) * CHAR_BIT };
         // ctor
         BitArray() noexcept {};
         // ctor

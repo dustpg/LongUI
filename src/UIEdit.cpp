@@ -25,7 +25,7 @@ bool LongUI::UIEdit::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
 // UI基本编辑控件: 前景渲染
 void LongUI::UIEdit::render_chain_foreground() const noexcept {
     // 文本算前景
-    m_text.Render(0.f, 0.f);
+    m_text.Render(UIManager_RenderTarget, D2D1::Point2F());
     // 父类
     Super::render_chain_foreground();
 }

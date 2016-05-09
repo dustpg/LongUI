@@ -80,15 +80,7 @@ namespace LongUI { namespace Component {
             return this->RecreateLayout();
         }
         // render it
-        inline auto Render(float x, float y) const noexcept {
-            m_pTextRenderer->basic_color.color = *m_pColor;
-            m_pLayout->Draw(
-                m_pTextContext, 
-                m_pTextRenderer, 
-                this->offset.x + x, 
-                this->offset.y + y
-            );
-        }
+        void Render(ID2D1RenderTarget* target, D2D1_POINT_2F) const noexcept;
     public:
         // state color
         D2D1_COLOR_F                color[STATE_COUNT];

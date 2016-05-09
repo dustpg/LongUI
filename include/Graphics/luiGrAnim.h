@@ -53,12 +53,6 @@ namespace LongUI {
         template<> inline auto GetAnimaEnd<D2D1_POINT_2F>() noexcept -> D2D1_POINT_2F { 
             return D2D1::Point2F(); 
         }
-        template<> inline auto GetAnimaStart<D2D1_MATRIX_3X2_F>() noexcept -> D2D1_MATRIX_3X2_F { 
-            return D2D1::Matrix3x2F::Identity(); 
-        }
-        template<> inline auto GetAnimaEnd<D2D1_MATRIX_3X2_F>() noexcept -> D2D1_MATRIX_3X2_F { 
-            return D2D1::Matrix3x2F::Identity(); 
-        }
     }
     // UI Animation
     template<typename T> class CUIAnimation {
@@ -87,5 +81,4 @@ namespace LongUI {
     template<> void LongUI::CUIAnimation<float>::Update(float t) noexcept;
     template<> void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept;
     template<> void LongUI::CUIAnimation<D2D1_POINT_2F>::Update(float t) noexcept;
-    template<> void LongUI::CUIAnimation<D2D1_MATRIX_3X2_F>::Update(float t) noexcept;
 }
