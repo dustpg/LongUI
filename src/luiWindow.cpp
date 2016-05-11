@@ -2489,6 +2489,8 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     // 全渲染
     if (this->is_full_render_this_frame_render()) {
         hr = m_pSwapChain->Present(0, 0);
+        // 呈现
+        longui_debug_hr(hr, L"m_pSwapChain->Present1 full rendering faild");
     }
     // 脏渲染
     else {
@@ -2512,9 +2514,9 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         }
         // 提交
         hr = m_pSwapChain->Present1(0, 0, &present_parameters);
+        // 呈现
+        longui_debug_hr(hr, L"m_pSwapChain->Present1 dirty rendering faild");
     }
-    // 呈现
-    longui_debug_hr(hr, L"m_pSwapChain->Present1 faild");
     // 收到重建消息/设备丢失时 重建UI
 #ifdef _DEBUG
     assert(SUCCEEDED(hr));
