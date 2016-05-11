@@ -1099,7 +1099,7 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapter
     // 核显卡优先 
 #ifdef LONGUI_NUCLEAR_FIRST
     for (size_t i = 0; i < length; ++i) {
-        DXGI_ADAPTER_DESC1& desc = adapters[i];
+        auto& desc = adapters[i];
         if (!std::wcsncmp(L"NVIDIA", desc.Description, 6))
             return i;
     }

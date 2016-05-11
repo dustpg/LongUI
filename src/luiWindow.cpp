@@ -2340,8 +2340,8 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
     }
     // 确保DXGI队列里边不会超过一帧
     if (SUCCEEDED(hr)) {
-        //hr = UIManager_DXGIDevice->SetMaximumFrameLatency(1);
-        //longui_debug_hr(hr, L"UIManager_DXGIDevice->SetMaximumFrameLatency faild");
+        hr = m_pSwapChain->SetMaximumFrameLatency(1);
+        longui_debug_hr(hr, L"m_pSwapChain->SetMaximumFrameLatency faild");
     }
     // 利用交换链获取Dxgi表面
     if (SUCCEEDED(hr)) {

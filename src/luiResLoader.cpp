@@ -154,6 +154,7 @@ namespace LongUI { namespace impl {
         return hr;
     };
 }}
+
 //  ---------- Resource Loader for XML -----------------
 namespace LongUI {
     // IWICImagingFactory2 "7B816B45-1996-4476-B132-DE9E247C8AF0"
