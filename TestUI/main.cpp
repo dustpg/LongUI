@@ -148,7 +148,7 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2" textrenderer="outline" textcontext="2"/>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
-    <Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
+    <Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="core" margin="4,4,4,4" 
         __textfamily="Segoe UI"
         text="普通文本 {b}粗体文本{/b} {sad str=&quot;s&quot; /} "/>
     <HorizontalLayout name="H" templatesize="600, 0">
