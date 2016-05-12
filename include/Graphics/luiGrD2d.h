@@ -74,10 +74,10 @@ namespace LongUI { namespace DX {
         }
         // make a translation matrix - overload
         static inline auto Translation(float x, float y) noexcept {
-            return Translation(D2D1::SizeF(x, y));
+            return Translation(D2D1_SIZE_F{ x, y });
         }
         // make a scale matrix 
-        static inline auto Scale(D2D1_SIZE_F size, D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
+        static inline auto Scale(D2D1_SIZE_F size, D2D1_POINT_2F center = D2D1_POINT_2F{0.f}) noexcept {
             Matrix3x2F scale;
             scale._11 = size.width; scale._12 = 0.0;
             scale._21 = 0.0; scale._22 = size.height;
@@ -86,17 +86,17 @@ namespace LongUI { namespace DX {
             return scale;
         }
         // make a scale matrix - overload
-        static inline auto Scale(FLOAT x, FLOAT y, D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
-            return Scale(D2D1::SizeF(x, y), center);
+        static inline auto Scale(FLOAT x, FLOAT y, D2D1_POINT_2F center = D2D1_POINT_2F{0.f}) noexcept {
+            return Scale(D2D1_SIZE_F{ x, y }, center);
         }
         // make a rotation matrix
-        static inline auto Rotation(FLOAT angle, D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
+        static inline auto Rotation(FLOAT angle, D2D1_POINT_2F center = D2D1_POINT_2F{0.f}) noexcept {
             Matrix3x2F rotation;
             DX::D2D1MakeRotateMatrix(angle, center, rotation);
             return rotation;
         }
         // make a skew matrix
-        static inline auto Skew(FLOAT angleX, FLOAT angleY,D2D1_POINT_2F center = D2D1::Point2F()) noexcept {
+        static inline auto Skew(FLOAT angleX, FLOAT angleY,D2D1_POINT_2F center = D2D1_POINT_2F{0.f}) noexcept {
             Matrix3x2F skew;
             Dll::D2D1MakeSkewMatrix(angleX, angleY, center, &skew);
             return skew;

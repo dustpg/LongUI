@@ -16,7 +16,7 @@ void LongUI::UICheckBox::render_chain_main() const noexcept {
 void LongUI::UICheckBox::render_chain_foreground() const noexcept {
     // 文本算前景
     if (m_text.GetString().length()) {
-        m_text.Render(UIManager_RenderTarget, D2D1::Point2F(BOX_SIZE, 0.f));
+        m_text.Render(UIManager_RenderTarget, D2D1_POINT_2F{ BOX_SIZE, 0.f });
     }
     // 父类-父类
     UIControl::render_chain_foreground();
@@ -143,7 +143,9 @@ bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // 禁用状态禁用鼠标消息
     if (!this->GetEnabled()) return true;
     // 转换坐标
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, D2D1::Point2F(arg.ptx, arg.pty));
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
+        this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
+    );
     // 鼠标 消息
     switch (arg.event)
     {
@@ -234,7 +236,7 @@ void LongUI::UIRadioButton::render_chain_main() const noexcept {
 void LongUI::UIRadioButton::render_chain_foreground() const noexcept {
     // 文本算前景
     if (m_text.GetString().length()) {
-        m_text.Render(UIManager_RenderTarget, D2D1::Point2F(RADIO_SIZE, 0.f));
+        m_text.Render(UIManager_RenderTarget, D2D1_POINT_2F{ RADIO_SIZE, 0.f });
     }
     // 父类-父类
     UIControl::render_chain_foreground();
@@ -376,7 +378,9 @@ bool LongUI::UIRadioButton::DoMouseEvent(const MouseEventArgument& arg) noexcept
     // 禁用状态禁用鼠标消息
     if (!this->GetEnabled()) return true;
     // 转换坐标
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(this->world, D2D1::Point2F(arg.ptx, arg.pty));
+    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
+        this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
+    );
     // 鼠标 消息
     switch (arg.event)
     {

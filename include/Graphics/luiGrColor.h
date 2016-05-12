@@ -47,8 +47,9 @@ namespace LongUI {
         D2D1_COLOR_F        color;
     public:
         // create a object
-        static inline auto Create(D2D1_COLOR_F& color, bool addref = true) {
-            auto* obj = reinterpret_cast<CUIColorEffect*>(LongUI::SmallAlloc(sizeof(CUIColorEffect)));
+        static inline auto Create(const D2D1_COLOR_F& color, bool addref = true) {
+            auto ptr = LongUI::SmallAlloc(sizeof(CUIColorEffect));
+            auto*obj = reinterpret_cast<CUIColorEffect*>(ptr);
             if (obj) {
                 obj->CUIColorEffect::CUIColorEffect(addref ? 1 : 0);
                 obj->color = color;

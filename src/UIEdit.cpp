@@ -25,7 +25,7 @@ bool LongUI::UIEdit::uniface_addevent(SubEvent sb, UICallBack&& call) noexcept {
 // UI基本编辑控件: 前景渲染
 void LongUI::UIEdit::render_chain_foreground() const noexcept {
     // 文本算前景
-    m_text.Render(UIManager_RenderTarget, D2D1::Point2F());
+    m_text.Render(UIManager_RenderTarget, D2D1_POINT_2F{0.f});
     // 父类
     Super::render_chain_foreground();
 }
@@ -93,7 +93,7 @@ bool  LongUI::UIEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
 // UI基本编辑控件: 鼠标事件
 bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
-        this->world, D2D1::Point2F(arg.ptx, arg.pty)
+        this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
     );
     // LongUI 消息
     switch (arg.event)

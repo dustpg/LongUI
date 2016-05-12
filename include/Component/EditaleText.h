@@ -231,7 +231,7 @@ namespace LongUI { namespace Component {
         // type of text
         IDWriteTextLayout*      layout = nullptr;
         // text render offset
-        D2D1_POINT_2F           offset = D2D1::Point2F();
+        D2D1_POINT_2F           offset = D2D1_POINT_2F{0.f};
         // type of text
         EditaleTextType         type = Type_None;
     private:
@@ -262,9 +262,9 @@ namespace LongUI { namespace Component {
         // drop source
         //CUIDataObject*          m_pDataObject = CUIDataObject::New();
         // click start point
-        D2D1_POINT_2F           m_ptStart = D2D1::Point2F();
+        D2D1_POINT_2F           m_ptStart = D2D1_POINT_2F{ 0.f };
         // size of this
-        D2D1_SIZE_F             m_size = D2D1::SizeF(96.f, 96.f);
+        D2D1_SIZE_F             m_size = D2D1_SIZE_F{ 96.f, 96.f };
         // Text Renderer
         XUIBasicTextRenderer*   m_pTextRenderer = nullptr;
         // text context

@@ -85,7 +85,7 @@ namespace LongUI { namespace Component {
         // state color
         D2D1_COLOR_F                color[STATE_COUNT];
         // text render offset
-        D2D1_POINT_2F               offset = D2D1::Point2F();
+        D2D1_POINT_2F               offset = D2D1_POINT_2F{0.f};
     private:
         // layout of it
         IDWriteTextLayout*          m_pLayout = nullptr;

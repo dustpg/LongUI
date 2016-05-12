@@ -532,7 +532,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     // type for rich
     enum class RichType : uint16_t {
         // none, you should set rich-style by youself
-        Type_None,
+        Type_None = 0,
         // core, use longui-core-mark-language mark it
         Type_Core,
         // xml, use xml-style, can use < > or { }

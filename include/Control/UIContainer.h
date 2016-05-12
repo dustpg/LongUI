@@ -202,15 +202,15 @@ namespace LongUI {
         // unused float
         float                   m_fUnusedCnr = 0.f;
         // orginal margin
-        D2D1_RECT_F             m_orgMargin = D2D1::RectF();
+        D2D1_RECT_F             m_orgMargin = D2D1_RECT_F{0.f};
         // template size
-        D2D1_SIZE_F             m_2fTemplateSize = D2D1::SizeF(0.f, 0.f);
+        D2D1_SIZE_F             m_2fTemplateSize = D2D1_SIZE_F{0.f};
         // offset position
-        D2D1_POINT_2F           m_2fOffset = D2D1::Point2F();
+        D2D1_POINT_2F           m_2fOffset = D2D1_POINT_2F{0.f};
         // size of content
-        D2D1_SIZE_F             m_2fContentSize = D2D1::SizeF(0.f, 0.f);
+        D2D1_SIZE_F             m_2fContentSize = D2D1_SIZE_F{0.f};
         // zoom size
-        D2D1_SIZE_F             m_2fZoom = D2D1::SizeF(1.f, 1.f);
+        D2D1_SIZE_F             m_2fZoom = D2D1_SIZE_F{1.f,1.f};
     public:
         // helper for update
         template<typename TSuperClass, typename TIterator>

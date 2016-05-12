@@ -427,7 +427,7 @@ bool LongUI::UIList::DoEvent(const LongUI::EventArgument& arg) noexcept {
 bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // -------------------  L-Button Up  ---------------
     auto lbutton_up = [this, &arg]() noexcept {
-        auto index = this->find_line_index(D2D1::Point2F(arg.ptx, arg.pty));
+        auto index = this->find_line_index(D2D1_POINT_2F{arg.ptx, arg.pty});
         // SHIFT优先
         if (UIInput.IsKbPressed(UIInput.KB_SHIFT)) {
             this->SelectTo(m_ixLastClickedLine, index);
@@ -473,7 +473,7 @@ bool LongUI::UIList::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case LongUI::MouseEvent::Event_MouseHover:
         break;
     case LongUI::MouseEvent::Event_MouseMove:
-        m_pHoveredLine = this->find_line(D2D1::Point2F(arg.ptx, arg.pty));
+        m_pHoveredLine = this->find_line(D2D1_POINT_2F{arg.ptx, arg.pty});
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
         break;
@@ -1005,7 +1005,7 @@ bool LongUI::UIListHeader::DoMouseEvent(const MouseEventArgument& arg) noexcept 
         // 遍历子控件
         for (auto ctrl : (*this)) {
             // 悬浮在鼠标处
-            if (IsPointInRect(ctrl->visible_rect, D2D1::Point2F(arg.ptx, arg.pty))) {
+            if (IsPointInRect(ctrl->visible_rect, D2D1_POINT_2F{arg.ptx, arg.pty})) {
                 // 没有设置
                 if (!ctrl->TestParentState()) {
                     // 设置点击事件

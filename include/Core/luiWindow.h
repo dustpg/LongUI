@@ -291,7 +291,7 @@ namespace LongUI {
         uint32_t                dirty_render_counter = 0;
 #endif
         // last mouse point
-        D2D1_POINT_2F           last_point = D2D1::Point2F(-1.f, -1.f);
+        D2D1_POINT_2F           last_point = D2D1_POINT_2F{-1.f, -1.f};
         // clear color
         D2D1::ColorF            clear_color = D2D1::ColorF(D2D1::ColorF::White);
     };

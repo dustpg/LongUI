@@ -8,7 +8,6 @@
 #include "Control/UIViewport.h"
 #include <dcomp.h>
 #include <algorithm>
-// D2D1::Point2F(arg.ptx, arg.pty)
 
 // longui::impl
 namespace LongUI { namespace impl {
@@ -243,7 +242,7 @@ void LongUI::UIViewport::SetCaretPos(UIControl* ctrl, float _x, float _y) noexce
     if (!m_cShowCaret) return;
     assert(ctrl && "bad argument");
     // 转换为像素坐标
-    auto pt = D2D1::Point2F(_x, _y);
+    D2D1_POINT_2F pt { _x, _y };
     if (ctrl) {
         // FIXME
         // TODO: FIX IT
@@ -676,7 +675,7 @@ void LongUI::UIViewport::Render() const noexcept {
         tf->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
         UIManager_RenderTarget->DrawText(
             buffer, length, tf,
-            D2D1::RectF(0.f, 0.f, 1000.f, 70.f),
+            D2D1_RECT_F{ 0.f, 0.f, 1000.f, 70.f },
             m_pBrush_SetBeforeUse
         );
         tf->SetTextAlignment(ta);
@@ -1365,7 +1364,7 @@ void LongUI::XUIBaseWindow::on_close() noexcept {
 auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height, UIControl* child) noexcept -> XUIBaseWindow* {
     assert(pos.right - pos.left && "bad width");
     assert(height && "bad height");
-    D2D1_SIZE_U size = D2D1::SizeU(pos.right - pos.left, height);
+    D2D1_SIZE_U size { uint32_t(pos.right - pos.left), height };
     // 宽度不足
     if (!size.width || !size.width) return nullptr;
     Config::Window config;
@@ -1733,6 +1732,7 @@ void LongUI::XUIBaseWindow::Invalidate(UIControl* ctrl) noexcept {
 /// <returns></returns>
 void LongUI::XUIBaseWindow::resized() noexcept {
     assert(m_pViewport && "bad action");
+    UIManager << DL_Log << LongUI::endl;
     // 修改
     m_pViewport->visible_rect.right = static_cast<float>(this->GetWidth());
     m_pViewport->visible_rect.bottom = static_cast<float>(this->GetHeight());
@@ -1813,8 +1813,10 @@ namespace LongUI {
         IDCompositionVisual*    m_pDcompVisual  = nullptr;
         // now cursor
         HCURSOR                 m_hNowCursor    = ::LoadCursor(nullptr, IDC_ARROW);
+        // new size
+        D2D1_SIZE_U             m_szNew         = D2D1_SIZE_U{0};
         // caret
-        D2D1_RECT_F             m_rcCaret       = D2D1::RectF();
+        D2D1_RECT_F             m_rcCaret       = D2D1_RECT_F{0.f};
         // track mouse event: end with DWORD
         TRACKMOUSEEVENT         m_csTME;
 #ifdef _DEBUG
@@ -2173,8 +2175,8 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
 void LongUI::CUIBuiltinSystemWindow::Resize(uint32_t w, uint32_t h) noexcept {
     assert(w && h && "bad argument");
     if (w != this->GetWidth() || h != this->GetHeight()) {
-        m_rcWindow.width = w;
-        m_rcWindow.height = h;
+        m_szNew.width = w;
+        m_szNew.height = h;
         this->set_new_size();
     }
 }
@@ -2191,12 +2193,14 @@ void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
     // 修改大小, 需要取消目标
     UIManager_RenderTarget->SetTarget(nullptr);
     // 设置
-    auto rect_right = LongUI::MakeAsUnit(this->GetWidth());
-    auto rect_bottom = LongUI::MakeAsUnit(this->GetHeight());
+    auto rect_right = LongUI::MakeAsUnit(m_szNew.width);
+    auto rect_bottom = LongUI::MakeAsUnit(m_szNew.height);
     if (!this->is_direct_composition()) {
-        rect_right = this->GetWidth();
-        rect_bottom = this->GetHeight();
+        rect_right = m_szNew.width;
+        rect_bottom = m_szNew.height;
     }
+    m_rcWindow.width = m_szNew.width;
+    m_rcWindow.height = m_szNew.height;
     auto old_size = m_pTargetBitmap->GetPixelSize();
     HRESULT hr = S_OK;
     // 小于才Resize
@@ -2491,9 +2495,13 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         hr = m_pSwapChain->Present(0, 0);
         // 呈现
         longui_debug_hr(hr, L"m_pSwapChain->Present1 full rendering faild");
+        assert(SUCCEEDED(hr));
     }
     // 脏渲染
     else {
+#ifdef _DEBUG
+        auto sssssssssssize = m_pTargetBitmap->GetSize();
+#endif
         // 呈现参数设置
         RECT scroll = { 0, 0, this->GetWidth(), this->GetHeight() };
         RECT rects[LongUIDirtyControlSize];
@@ -2516,10 +2524,10 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         hr = m_pSwapChain->Present1(0, 0, &present_parameters);
         // 呈现
         longui_debug_hr(hr, L"m_pSwapChain->Present1 dirty rendering faild");
+        assert(SUCCEEDED(hr));
     }
     // 收到重建消息/设备丢失时 重建UI
 #ifdef _DEBUG
-    assert(SUCCEEDED(hr));
     if (hr == DXGI_ERROR_DEVICE_REMOVED
         || hr == DXGI_ERROR_DEVICE_RESET
         || test_D2DERR_RECREATE_TARGET) {
@@ -2678,7 +2686,7 @@ void LongUI::CUIBuiltinSystemWindow::SetCaret(UIControl* ctrl, const RectLTWH_F*
         auto oldx = m_rcCaret.left;
         auto oldy = m_rcCaret.top;
         // 计算一般位置
-        auto pt = D2D1::Point2F(rect->left, rect->top);
+        D2D1_POINT_2F pt{ rect->left, rect->top };
         pt = LongUI::TransformPoint(ctrl->world, pt);
         // 位置差不多
         auto xyabs = std::abs(oldx - pt.x) + std::abs(oldy - pt.y);

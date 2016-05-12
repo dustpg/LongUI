@@ -367,15 +367,15 @@ namespace LongUI {
         auto check_state() const noexcept { return this->GetEnabled() ? State_Normal : State_Disabled; }
     public:
         // control current visible position(relative to world)
-        D2D1_RECT_F             visible_rect = D2D1::RectF();
+        D2D1_RECT_F             visible_rect = D2D1_RECT_F{0.f};
         // transform for world
         D2D1_MATRIX_3X2_F       world = DX::Matrix3x2F::Identity();
         // position of control's view
-        D2D1_POINT_2F   const   view_pos = D2D1::Point2F();
+        D2D1_POINT_2F   const   view_pos = D2D1_POINT_2F{0.f};
         // size of viewport
-        D2D1_SIZE_F     const   view_size = D2D1::SizeF(0.f, 0.f);
+        D2D1_SIZE_F     const   view_size = D2D1_SIZE_F{0.f};
         // margin rect
-        D2D1_RECT_F     const   margin_rect = D2D1::RectF();
+        D2D1_RECT_F     const   margin_rect = D2D1_RECT_F{0.f};
         // flags, use const_cast to change in constructor function
         LongUIFlag      const   flags = LongUIFlag::Flag_None;
     protected:
@@ -384,7 +384,7 @@ namespace LongUI {
         // now color of border
         D2D1_COLOR_F            m_colorBorderNow = D2D1::ColorF(0xFFACACACui32);
         // roundsize of border
-        D2D1_SIZE_F             m_2fBorderRdius = D2D1::SizeF();
+        D2D1_SIZE_F             m_2fBorderRdius = D2D1_SIZE_F{0.f};
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation

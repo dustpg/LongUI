@@ -508,7 +508,7 @@ namespace LongUI {
                 auto bitmap = m_manager.GetBitmap(size_t(LongUI::AtoI(str)));
                 // 缩放
                 auto zoom = 1.f / bitmap->GetSize().height;
-                brush_prop.transform = DX::Matrix3x2F::Scale(D2D1::SizeF(zoom, zoom))
+                brush_prop.transform = DX::Matrix3x2F::Scale(D2D1_SIZE_F{ zoom, zoom })
                     * brush_prop.transform;
                 // 基本参数
                 D2D1_BITMAP_BRUSH_PROPERTIES1 bbprop = {

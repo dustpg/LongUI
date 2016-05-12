@@ -48,10 +48,10 @@ namespace LongUI {
             return D2D1::ColorF(D2D1::ColorF::Black); 
         }
         template<> inline auto GetAnimaStart<D2D1_POINT_2F>() noexcept -> D2D1_POINT_2F { 
-            return D2D1::Point2F(); 
+            return D2D1_POINT_2F{0.f}; 
         }
         template<> inline auto GetAnimaEnd<D2D1_POINT_2F>() noexcept -> D2D1_POINT_2F { 
-            return D2D1::Point2F(); 
+            return D2D1_POINT_2F{0.f}; 
         }
     }
     // UI Animation

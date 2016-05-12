@@ -1062,7 +1062,7 @@ bool LongUI::UIContainer::DoMouseEvent(const LongUI::MouseEventArgument& arg) no
         return true;
     }
     // 查找子控件
-    auto control_got = this->FindChild(D2D1::Point2F(arg.ptx, arg.pty));
+    auto control_got = this->FindChild(D2D1_POINT_2F{arg.ptx, arg.pty});
     // 不可视算没有
     if (control_got && !control_got->GetVisible()) control_got = nullptr;
     // 不同

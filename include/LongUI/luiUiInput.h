@@ -255,9 +255,9 @@ namespace LongUI {
         void Update(HRAWINPUT) noexcept;
     protected:
         // mouse postion
-        D2D1_POINT_2F           m_ptMouse = D2D1::Point2F();
+        D2D1_POINT_2F           m_ptMouse = D2D1_POINT_2F{0.f};
         // mouse postion
-        POINT                   m_ptMouseL = POINT();
+        POINT                   m_ptMouseL = POINT{0};
         // mouse button buffer
         char                    m_bufMButton[MBI_SIZE];
         // unused

@@ -57,6 +57,8 @@ namespace LongUI { namespace DX {
     auto FormatTextCore(const FormatTextConfig&, const wchar_t*, va_list=nullptr) noexcept ->IDWriteTextLayout*;
     // format the text within xml string
     auto FormatTextXML(const FormatTextConfig&, const wchar_t*) noexcept ->IDWriteTextLayout*;
+    // check xml validity
+    bool CheckXmlValidity(const wchar_t*) noexcept;
     // get default LongUI imp  IDWriteFontCollection
     auto CreateFontCollection(
         const wchar_t* filename = L"*.*tf",

@@ -954,7 +954,7 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     if (SUCCEEDED(hr)) {
         assert(m_ppBitmaps[LongUIDefaultBitmapIndex] == nullptr && "bad action");
         hr = m_pd2dDeviceContext->CreateBitmap(
-            D2D1::SizeU(LongUIDefaultBitmapSize, LongUIDefaultBitmapSize),
+            D2D1_SIZE_U{ LongUIDefaultBitmapSize, LongUIDefaultBitmapSize },
             nullptr, LongUIDefaultBitmapSize * 4,
             D2D1::BitmapProperties1(
                 static_cast<D2D1_BITMAP_OPTIONS>(LongUIDefaultBitmapOptions),
@@ -1385,7 +1385,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
-                    D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
+                    D2D1_POINT_2F{0.f}, D2D1_POINT_2F{0.f, 1.f}
                 ),
                 collection,
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Normal)
@@ -1410,7 +1410,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
-                    D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
+                    D2D1_POINT_2F{0.f}, D2D1_POINT_2F{0.f, 1.f}
                 ),
                 collection,
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Hover)
@@ -1435,7 +1435,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
         if (SUCCEEDED(hr)) {
             hr = m_pd2dDeviceContext->CreateLinearGradientBrush(
                 D2D1::LinearGradientBrushProperties(
-                    D2D1::Point2F(), D2D1::Point2F(0.f, 1.f)
+                    D2D1_POINT_2F{0.f}, D2D1_POINT_2F{0.f, 1.f}
                 ),
                 collection,
                 reinterpret_cast<ID2D1LinearGradientBrush**>(m_apSystemBrushes + State_Pushed)

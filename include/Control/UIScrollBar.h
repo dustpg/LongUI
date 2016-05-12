@@ -174,11 +174,11 @@ namespace LongUI {
         ~UIScrollBarA() noexcept;
     private:
         // the rect of arrow 2
-        D2D1_RECT_F             m_rtArrow1 = D2D1::RectF();
+        D2D1_RECT_F             m_rtArrow1 = D2D1_RECT_F{0.f};
         // the rect of arrow 2
-        D2D1_RECT_F             m_rtArrow2 = D2D1::RectF();
+        D2D1_RECT_F             m_rtArrow2 = D2D1_RECT_F{0.f};
         // the rect of thumb
-        D2D1_RECT_F             m_rtThumb = D2D1::RectF();
+        D2D1_RECT_F             m_rtThumb = D2D1_RECT_F{0.f};
         // arrow 1 text path geo
         ID2D1PathGeometry*      m_pArrow1Geo = nullptr;
         // arrow 2 text path geo

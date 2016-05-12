@@ -180,23 +180,24 @@ auto LongUI::DX::CreateTextFormat(const TextFormatProperties& prop, IDWriteTextF
 
 
 // 初始化TextFormatProperties
-LongUINoinline void LongUI::DX::InitTextFormatProperties(TextFormatProperties& prop, size_t name_buf_len) noexcept {
+LongUINoinline void LongUI::DX::InitTextFormatProperties(
+    TextFormatProperties& prop, size_t name_buf_len) noexcept {
     UNREFERENCED_PARAMETER(name_buf_len);
 #ifdef _DEBUG
     auto length = std::wcslen(LongUI::LongUIDefaultTextFontName) + 1;
     assert(name_buf_len > length && "buffer too small");
 #endif
     // 复制数据
-    prop.size = LongUIDefaultTextFontSize;
-    prop.tab = 0.f;
-    prop.weight = static_cast<uint16_t>(DWRITE_FONT_WEIGHT_NORMAL);
-    prop.style = static_cast<uint8_t>(DWRITE_FONT_STYLE_NORMAL);
-    prop.stretch = static_cast<uint8_t>(DWRITE_FONT_STRETCH_NORMAL);
-    prop.valign = static_cast<uint8_t>(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-    prop.halign = static_cast<uint8_t>(DWRITE_TEXT_ALIGNMENT_LEADING);
-    prop.flow = static_cast<uint8_t>(DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM);
-    prop.reading = static_cast<uint8_t>(DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
-    prop.wrapping = static_cast<uint32_t>(DWRITE_WORD_WRAPPING_NO_WRAP);
+    prop.size       = LongUIDefaultTextFontSize;
+    prop.tab        = 0.f;
+    prop.weight     = static_cast<uint16_t>(DWRITE_FONT_WEIGHT_NORMAL);
+    prop.style      = static_cast<uint8_t>(DWRITE_FONT_STYLE_NORMAL);
+    prop.stretch    = static_cast<uint8_t>(DWRITE_FONT_STRETCH_NORMAL);
+    prop.valign     = static_cast<uint8_t>(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
+    prop.halign     = static_cast<uint8_t>(DWRITE_TEXT_ALIGNMENT_LEADING);
+    prop.flow       = static_cast<uint8_t>(DWRITE_FLOW_DIRECTION_TOP_TO_BOTTOM);
+    prop.reading    = static_cast<uint8_t>(DWRITE_READING_DIRECTION_LEFT_TO_RIGHT);
+    prop.wrapping   = static_cast<uint32_t>(DWRITE_WORD_WRAPPING_NO_WRAP);
     std::wcscpy(prop.name, LongUIDefaultTextFontName);
 }
 
@@ -474,13 +475,170 @@ auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mes
     return E_NOTIMPL;
 }
 
+// 仅仅检查Xml有效性
+bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
+    if (!xml) return false;
+    // 最大支持嵌套的层数
+    constexpr size_t MAX_TAG_LEVEL = 2;
+    //constexpr size_t MAX_TAG_LEVEL = 256;
+    struct tag { const wchar_t* begin; const wchar_t* end; };
+    tag tags[MAX_TAG_LEVEL]; auto* toptag = tags;
+    tag tag2 = { nullptr, nullptr };
+    // 处理状态机
+    enum : uint32_t {
+        state_text = 0,
+        state_tagb, state_tag1, state_tag2, 
+        state_w8av, state_w8rt,
+        state_attr, state_var1, state_var2,
+        } fsm;
+    fsm = state_text;
+    // 标签相等
+    auto same_tag = [](const tag& a, const tag& b) {
+        return (a.end - a.begin) == (b.end - b.begin) &&
+            !std::wcsncmp(a.begin, b.begin, b.end - b.begin);
+    };
+    // 处理栈为空
+    auto stack_empty = [&]() { return toptag == tags; };
+    // 处理栈溢出
+    auto stack_overflow = [&]() { return toptag == tags + MAX_TAG_LEVEL; };
+    // 检查是否为左符号
+    auto check_ltag = [](wchar_t ch) { return ch == '<' || ch == '{';  };
+    // 检查是否为右符号
+    auto check_rtag = [](wchar_t ch) { return ch == '>' || ch == '}';  };
+    // 标签闭合符号
+    auto check_clz = [](wchar_t ch) { return ch == '/';  };
+    // 等号符号
+    auto check_equal= [](wchar_t ch) { return ch == '=';  };
+    // 引号符号
+    auto check_quot = [](wchar_t ch) { return ch == '"' ;  };
+    // 标记标签1起点
+    auto mark1_begin = [&](const wchar_t* itr) { toptag->begin = itr; };
+    // 标记标签1终点
+    auto mark1_end = [&](const wchar_t* itr) { toptag->end = itr; ++toptag; };
+    // 标签1弹出
+    auto mark1_pop = [&]() { --toptag; };
+    // 标记标签2起点
+    auto mark2_begin = [&](const wchar_t* itr) { tag2.begin = itr; };
+    // 标记标签2终点
+    auto mark2_end = [&](const wchar_t* itr) { tag2.end = itr; };
+    // 正式处理
+    for (auto itr = xml; *itr; ++itr) {
+        // 分状态讨论
+        switch (fsm)
+        {
+        case state_text:
+            // 等待标签起始符号出现 -> state_tagb
+            if (check_ltag(*itr)) fsm = state_tagb;
+            break;
+        case state_tagb:
+            // 标签闭合符号 -> state_tag2
+            if (check_clz(*itr)) {
+                fsm = state_tag2;
+                mark2_begin(itr+1);
+            }
+            // 否则 -> state_tag1
+            else {
+                assert(stack_overflow() == false && "stack overflow");
+                if (stack_overflow()) return false;
+                fsm = state_tag1;
+                mark1_begin(itr);
+            }
+            break;
+        case state_tag1:
+            // 出现关闭符号
+            if (check_clz(*itr)) {
+                // 只需要等待关闭标签出现
+                fsm = state_w8rt;
+            }
+            // 出现空格或者右标签符号
+            else if (white_space(*itr) || check_rtag(*itr)) {
+                // 标记标签结束位置
+                mark1_end(itr);
+                // 出现右标签 -> state_text
+                if (check_rtag(*itr)) fsm = state_text;
+                // 出现空格 -> state_w8av
+                else fsm = state_w8av;
+            }
+            break;
+        case state_tag2:
+            // 出现空格或者右标签符号
+            if (white_space(*itr) || check_rtag(*itr)) {
+                mark2_end(itr);
+                // 标签栈为空 -> 失败
+                if (stack_empty()) return false;
+                // 弹出栈顶
+                mark1_pop();
+                // 标签名不匹配 -> 失败
+                if (!same_tag(tag2, *toptag)) return false;
+                // 出现右标签 -> state_text
+                if (check_rtag(*itr)) fsm = state_text;
+                // 出现空格 -> state_w8rt
+                else fsm = state_w8rt;
+            }
+            break;
+        case state_w8av:
+            // 结束标签出现 -> state_w8rt
+            if (check_clz(*itr)) {
+                fsm = state_w8rt;
+                mark1_pop();
+            }
+            // 结束标签 -> state_text
+            else if (check_rtag(*itr)) fsm = state_text;
+            // 属性出现(非空格) -> state_attr
+            else if (!white_space(*itr)) fsm = state_attr;
+            break;
+        case state_w8rt:
+            // 等待关闭标签出现 -> state_text
+            if (check_rtag(*itr)) fsm = state_text;
+            break;
+        case state_attr:
+            // 等待等号出现 -> state_var1
+            if (check_equal(*itr)) fsm = state_var1;
+            break;
+        case state_var1:
+            // 等待引号出现 -> state_var2
+            if (check_quot(*itr)) fsm = state_var2;
+            break;
+        case state_var2:
+            // 等待引出现 -> state_w8av
+            if (check_quot(*itr)) fsm = state_w8av;
+            break;
+        }
+    }
+    // 返回处理结果
+    return stack_empty();
+}
+
+/*
+    <b>     粗体
+    <i>     斜体
+    <u>     下划线
+    <s>     删除线
+    <font>  字体
+            
+    <evel>  字符串替换字符串    -- 目前不支持
+            str  字符串
+    <ruby>  注音标签
+
+    <img>   显示图片            -- 目前不支持
+            src  图片id     默认: 必须指定
+            clip 剪切矩形   默认: 图片大小
+            size 显示大小   默认: 剪切大小
+
+*/
+
 // 直接使用
 auto LongUI::DX::FormatTextXML(
     const FormatTextConfig& config,
     const wchar_t* format
 ) noexcept ->IDWriteTextLayout* {
+#ifdef _DEBUG
+    assert(DX::CheckXmlValidity(format) && "FormatTextXML: bad xml");
+#endif
+    assert(!"NOIMPL");
     UNREFERENCED_PARAMETER(config);
     UNREFERENCED_PARAMETER(format);
+
     return nullptr;
 }
 

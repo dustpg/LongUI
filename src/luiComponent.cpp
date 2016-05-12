@@ -1177,9 +1177,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 UINT32 actualHitTestCount = 1;
                 this->layout->HitTestTextRange(
                     m_u32CaretPos,
-                    0, // length
-                    0, // x
-                    0, // y
+                    0,      // length
+                    0.f,    // x
+                    0.f,    // y
                     &caretMetrics,
                     1,
                     &actualHitTestCount
@@ -2018,21 +2018,21 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 // 仅动画第一阶段
                 if (rate < 0.5f) {
                     auto temp = rate * 2.f;
-                    D2D1_POINT_2F pt1 = D2D1::Point2F(rect.left + P1X, rect.top + P1Y);
-                    D2D1_POINT_2F pt2 = D2D1::Point2F(pt1.x + (P2X - P1X)*temp, pt1.y + (P2Y - P1Y)*temp);
+                    D2D1_POINT_2F pt1{ rect.left + P1X, rect.top + P1Y };
+                    D2D1_POINT_2F pt2{ pt1.x + (P2X - P1X)*temp, pt1.y + (P2Y - P1Y)*temp };
                     UIManager_RenderTarget->DrawLine(pt1, pt2, brush, STROKE_WIDTH);
                 }
                 // 仅动画第二阶段
                 else {
                     // 第一阶段
-                    D2D1_POINT_2F pt1 = D2D1::Point2F(rect.left + P1X, rect.top + P1Y);
-                    D2D1_POINT_2F pt2 = D2D1::Point2F(rect.left + P2X, rect.top + P2Y);
+                    D2D1_POINT_2F pt1{ rect.left + P1X, rect.top + P1Y };
+                    D2D1_POINT_2F pt2{ rect.left + P2X, rect.top + P2Y };
                     UIManager_RenderTarget->DrawLine(pt1, pt2, brush, STROKE_WIDTH);
                     // 第二阶段
                     auto temp = (rate - 0.5f) * 2.f;
                     UIManager_RenderTarget->DrawLine(
                         pt2,
-                        D2D1::Point2F(pt2.x + (P3X - P2X)*temp, pt2.y + (P3Y - P2Y)*temp),
+                        D2D1_POINT_2F{ pt2.x + (P3X - P2X)*temp, pt2.y + (P3Y - P2Y)*temp },
                         brush,
                         STROKE_WIDTH
                         );
@@ -2249,7 +2249,7 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     m_pBrush->SetColor(color);
     // 利用D2D接口直接渲染字形
     this->target->DrawGlyphRun(
-        D2D1::Point2(baselineOriginX, baselineOriginY),
+        D2D1_POINT_2F{ baselineOriginX, baselineOriginY },
         glyphRun,
         m_pBrush,
         measuringMode
@@ -2507,7 +2507,8 @@ auto LongUI::Component::MMFVideo::recreate_surface() noexcept ->HRESULT {
         // 获取规范大小
         w = LongUI::MakeAsUnit(w); h = LongUI::MakeAsUnit(h);
         // 检查承载大小
-        D2D1_SIZE_U size = m_pDrawSurface ? m_pDrawSurface->GetPixelSize() : D2D1::SizeU();
+        D2D1_SIZE_U size = m_pDrawSurface ? 
+            m_pDrawSurface->GetPixelSize() : D2D1_SIZE_U{0, 0};
         // 重建表面
         if (w > size.width || h > size.height) {
             size = { w, h };

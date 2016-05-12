@@ -193,7 +193,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     if (!this->GetEnabled()) return true;
     // 坐标转换
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
-        this->world, D2D1::Point2F(arg.ptx,  arg.pty)
+        this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
         );
     bool nocontinued = false;
     // 分类

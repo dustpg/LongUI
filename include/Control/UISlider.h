@@ -94,7 +94,7 @@ namespace LongUI {
         UISlider(const UISlider&) = delete;
     protected:
         // slider rect
-        D2D1_RECT_F                 m_rcThumb = D2D1::RectF();
+        D2D1_RECT_F                 m_rcThumb = D2D1_RECT_F{0.f};
         // ui element
         Component::Element4Button   m_uiElement;
         // value range[0, 1]
@@ -107,7 +107,7 @@ namespace LongUI {
         float                       m_fEnd = 1.f;
     public:
         // size of thumb
-        D2D1_SIZE_F const           thumb_size = D2D1::SizeF(10.f, 20.f);
+        D2D1_SIZE_F const           thumb_size = D2D1_SIZE_F{10.f, 20.f};
     protected:
         // click posistion
         float                       m_fClickPosition = 0.f;

@@ -275,7 +275,7 @@ void LongUI::UIScrollBarA::Render() const noexcept {
 // UIScrollBarA::do event 事件处理
 bool  LongUI::UIScrollBarA::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
-        this->world, D2D1::Point2F(arg.ptx, arg.pty)
+        this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
         );
     // -------------------- on mouse move --------------------
     auto on_mouse_move = [this, &pt4self]() {
