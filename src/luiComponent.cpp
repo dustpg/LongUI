@@ -160,6 +160,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // render
     void ShortText::Render(ID2D1RenderTarget* target,D2D1_POINT_2F pt) const noexcept {
         assert(target && "bad argument");
+        if (!m_pLayout) return;
         m_pTextRenderer->target = target;
         m_pTextRenderer->basic_color.color = *m_pColor;
         m_pLayout->Draw(
@@ -211,8 +212,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             break;
         }
         LongUI::SafeRelease(old_layout);
-        // sad
-        assert(m_pLayout);
+        if (!m_pLayout) {
+            UIManager << DL_Error
+                << L"create text layout failed! "
+                << LongUI::endl;
+        }
     }
     // -------------------- LongUI::Component::EditaleText --------------------
     // DWrite部分代码参考: 

@@ -56,6 +56,7 @@ namespace LongUI { namespace DX {
     // format the text within core string
     auto FormatTextCore(const FormatTextConfig&, const wchar_t*, va_list=nullptr) noexcept ->IDWriteTextLayout*;
     // format the text within xml string
+    // you MUST call CheckXmlValidity to check it
     auto FormatTextXML(const FormatTextConfig&, const wchar_t*) noexcept ->IDWriteTextLayout*;
     // check xml validity
     bool CheckXmlValidity(const wchar_t*) noexcept;

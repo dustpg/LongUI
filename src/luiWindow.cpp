@@ -2495,13 +2495,9 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         hr = m_pSwapChain->Present(0, 0);
         // 呈现
         longui_debug_hr(hr, L"m_pSwapChain->Present1 full rendering faild");
-        assert(SUCCEEDED(hr));
     }
     // 脏渲染
     else {
-#ifdef _DEBUG
-        auto sssssssssssize = m_pTargetBitmap->GetSize();
-#endif
         // 呈现参数设置
         RECT scroll = { 0, 0, this->GetWidth(), this->GetHeight() };
         RECT rects[LongUIDirtyControlSize];
@@ -2524,7 +2520,6 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         hr = m_pSwapChain->Present1(0, 0, &present_parameters);
         // 呈现
         longui_debug_hr(hr, L"m_pSwapChain->Present1 dirty rendering faild");
-        assert(SUCCEEDED(hr));
     }
     // 收到重建消息/设备丢失时 重建UI
 #ifdef _DEBUG
@@ -2532,7 +2527,6 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
         || hr == DXGI_ERROR_DEVICE_RESET
         || test_D2DERR_RECREATE_TARGET) {
         force_cast(test_D2DERR_RECREATE_TARGET) = false;
-        assert(!"just remain...");
         UIManager << DL_Hint << L"D2DERR_RECREATE_TARGET!" << LongUI::endl;
         hr = UIManager.RecreateResources();
         if (FAILED(hr)) {
@@ -2540,7 +2534,7 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
             UIManager << DL_Error << L"Recreate Failed!!!" << LongUI::endl;
         }
     }
-
+    assert(SUCCEEDED(hr));
     // 调试
     if (this->is_full_render_this_frame_render()) {
         ++force_cast(full_render_counter);

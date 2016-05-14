@@ -140,7 +140,6 @@ const char* test_xml_03 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </List>
 */
 
-
 const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window textantimode="grayscale" size="800, 600" name="MainWindow" debugshow="true" clearcolor="1, 1, 1, 0.95" titlename="A_LongUI">
     <Slider name="sld_01" thumbsize="32,32" margin="4,4,4,4" size="0,64"/>
@@ -148,9 +147,10 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <Button name="btn_p1" borderwidth="1" margin="4,4,4,4" text="页面1, 点击到页面2" textrenderer="outline" textcontext="2"/>
         <Button name="btn_p2" borderwidth="1" margin="4,4,4,4" text="页面2, 点击到页面1"/>
     </Page>
-    <Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="core" margin="4,4,4,4" 
+    <Button name="btn_x1" size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
         __textfamily="Segoe UI"
-        text="普通文本 {b}粗体文本{/b} {sad str=&quot;s&quot; /} "/>
+        text="&amp;lt;普通文本 &lt;b&gt;粗体文本&lt;/b&gt; &lt;font color = &quot;#F00&quot; 
+            face=&quot;KaiTi&quot;&gt;楷体&lt;/font&gt;测试{sad str=&quot;s&quot; /} "/>
     <HorizontalLayout name="H" templatesize="600, 0">
         <Button templateid="2" text="占位测试" name="btn_test"/>
         <ComboBox textformat="1" textoffsetx="4" name="cbb_01" align="left" margin="4,4,4,4" borderwidth="1">
@@ -178,7 +178,40 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_04;
+
+const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<Window textantimode="grayscale" size="800, 600" name="MainWindow" debugshow="true" clearcolor="1, 1, 1, 0.95" titlename="A_LongUI">
+    <Null/>    
+
+    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
+        text="&amp;lt;普通文本 &lt;b&gt;粗体文本&lt;/b&gt; &lt;font color = &quot;#F00&quot; 
+            face=&quot;KaiTi&quot;&gt;楷体&lt;/font&gt;测试 "/>
+
+    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
+        text="&lt;font color=&quot;#6CF&quot; size = &quot;30&quot;&gt;三十像素中嵌套的&lt;font 
+size = &quot;20&quot;&gt;二十像素&lt;/font&gt;与&lt;font size = &quot;10&quot; 
+color=&quot;#000&quot;&gt;十像&lt;font color=&quot;#00F&quot;&gt;素&lt;/font&gt;&lt;/font&gt;字体&lt;/font&gt;"/>
+
+  
+    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+        text="使用&amp;lt;b&amp;gt;文字&amp;lt;/b&amp;gt;显示&lt;b&gt;粗体&lt;/b&gt;文字"/>
+
+
+    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+        text="使用&amp;lt;i&amp;gt;文字&amp;lt;/i&amp;gt;显示&lt;i&gt;斜体&lt;/i&gt;文字"/>
+
+    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+        text="使用&amp;lt;s&amp;gt;文字&amp;lt;/s&amp;gt;显示&lt;s&gt;删除线&lt;/s&gt;"/>
+
+    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+        text="使用&amp;lt;u&amp;gt;文字&amp;lt;/u&amp;gt;显示&lt;u&gt;下划线&lt;/u&gt;"/>
+
+    <Null/>    
+
+</Window>
+)xml";
+
+const char* test_xml = test_xml_05;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -193,6 +226,7 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     <TextFormat>
         <!-- You can use other name not limited in 'Item' -->
         <Item desc="雅黑" family="Microsoft YaHei" valign="middle"/>
+        <Item desc="雅黑" family="Microsoft YaHei" valign="middle" align="center"/>
     </TextFormat>
     <!-- Meta区域Zone -->
     <Meta>

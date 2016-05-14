@@ -475,23 +475,52 @@ auto LongUI::DX::CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mes
     return E_NOTIMPL;
 }
 
+namespace LongUI { namespace impl {
+    // 处理状态机
+    enum xml_state : uint32_t {
+        state_text = 0, // 文本处理
+        state_tagb,     // 标签起始
+        state_tag1,     // 起始标签
+        state_tag2,     // 终结标签
+        state_w8av,     // 等待属性
+        state_w8rt,     // 等待右标
+        state_attr,     // 处理属性
+        state_var1,     // 前属性值
+        state_var2,     // 后属性值
+    };
+    // 检查是否为左符号
+    inline auto check_ltag(wchar_t ch) noexcept { 
+        return ch == '<';  
+    };
+    // 检查是否为右符号
+    inline auto check_rtag(wchar_t ch) noexcept { 
+        return ch == '>';  
+    };
+    // 标签闭合符号
+    inline auto check_clz(wchar_t ch) noexcept { 
+        return ch == '/';  
+    };
+    // 等号符号
+    inline auto check_equal(wchar_t ch) noexcept { 
+        return ch == '=';  
+    };
+    // 引号符号
+    inline auto check_quot(wchar_t ch) noexcept { 
+        return ch == '"' ;  
+    };
+}}
+
 // 仅仅检查Xml有效性
 bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
     if (!xml) return false;
     // 最大支持嵌套的层数
-    constexpr size_t MAX_TAG_LEVEL = 2;
-    //constexpr size_t MAX_TAG_LEVEL = 256;
+    //constexpr size_t MAX_TAG_LEVEL = 2;
+    constexpr size_t MAX_TAG_LEVEL = 256;
     struct tag { const wchar_t* begin; const wchar_t* end; };
     tag tags[MAX_TAG_LEVEL]; auto* toptag = tags;
     tag tag2 = { nullptr, nullptr };
     // 处理状态机
-    enum : uint32_t {
-        state_text = 0,
-        state_tagb, state_tag1, state_tag2, 
-        state_w8av, state_w8rt,
-        state_attr, state_var1, state_var2,
-        } fsm;
-    fsm = state_text;
+    impl::xml_state fsm = impl::state_text;
     // 标签相等
     auto same_tag = [](const tag& a, const tag& b) {
         return (a.end - a.begin) == (b.end - b.begin) &&
@@ -501,16 +530,6 @@ bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
     auto stack_empty = [&]() { return toptag == tags; };
     // 处理栈溢出
     auto stack_overflow = [&]() { return toptag == tags + MAX_TAG_LEVEL; };
-    // 检查是否为左符号
-    auto check_ltag = [](wchar_t ch) { return ch == '<' || ch == '{';  };
-    // 检查是否为右符号
-    auto check_rtag = [](wchar_t ch) { return ch == '>' || ch == '}';  };
-    // 标签闭合符号
-    auto check_clz = [](wchar_t ch) { return ch == '/';  };
-    // 等号符号
-    auto check_equal= [](wchar_t ch) { return ch == '=';  };
-    // 引号符号
-    auto check_quot = [](wchar_t ch) { return ch == '"' ;  };
     // 标记标签1起点
     auto mark1_begin = [&](const wchar_t* itr) { toptag->begin = itr; };
     // 标记标签1终点
@@ -526,43 +545,43 @@ bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
         // 分状态讨论
         switch (fsm)
         {
-        case state_text:
+        case impl::state_text:
             // 等待标签起始符号出现 -> state_tagb
-            if (check_ltag(*itr)) fsm = state_tagb;
+            if (impl::check_ltag(*itr)) fsm = impl::state_tagb;
             break;
-        case state_tagb:
+        case impl::state_tagb:
             // 标签闭合符号 -> state_tag2
-            if (check_clz(*itr)) {
-                fsm = state_tag2;
+            if (impl::check_clz(*itr)) {
+                fsm = impl::state_tag2;
                 mark2_begin(itr+1);
             }
             // 否则 -> state_tag1
             else {
                 assert(stack_overflow() == false && "stack overflow");
                 if (stack_overflow()) return false;
-                fsm = state_tag1;
+                fsm = impl::state_tag1;
                 mark1_begin(itr);
             }
             break;
-        case state_tag1:
+        case impl::state_tag1:
             // 出现关闭符号
-            if (check_clz(*itr)) {
+            if (impl::check_clz(*itr)) {
                 // 只需要等待关闭标签出现
-                fsm = state_w8rt;
+                fsm = impl::state_w8rt;
             }
             // 出现空格或者右标签符号
-            else if (white_space(*itr) || check_rtag(*itr)) {
+            else if (white_space(*itr) || impl::check_rtag(*itr)) {
                 // 标记标签结束位置
                 mark1_end(itr);
                 // 出现右标签 -> state_text
-                if (check_rtag(*itr)) fsm = state_text;
+                if (impl::check_rtag(*itr)) fsm = impl::state_text;
                 // 出现空格 -> state_w8av
-                else fsm = state_w8av;
+                else fsm = impl::state_w8av;
             }
             break;
-        case state_tag2:
+        case impl::state_tag2:
             // 出现空格或者右标签符号
-            if (white_space(*itr) || check_rtag(*itr)) {
+            if (white_space(*itr) || impl::check_rtag(*itr)) {
                 mark2_end(itr);
                 // 标签栈为空 -> 失败
                 if (stack_empty()) return false;
@@ -571,37 +590,37 @@ bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
                 // 标签名不匹配 -> 失败
                 if (!same_tag(tag2, *toptag)) return false;
                 // 出现右标签 -> state_text
-                if (check_rtag(*itr)) fsm = state_text;
+                if (impl::check_rtag(*itr)) fsm = impl::state_text;
                 // 出现空格 -> state_w8rt
-                else fsm = state_w8rt;
+                else fsm = impl::state_w8rt;
             }
             break;
-        case state_w8av:
+        case impl::state_w8av:
             // 结束标签出现 -> state_w8rt
-            if (check_clz(*itr)) {
-                fsm = state_w8rt;
+            if (impl::check_clz(*itr)) {
+                fsm = impl::state_w8rt;
                 mark1_pop();
             }
             // 结束标签 -> state_text
-            else if (check_rtag(*itr)) fsm = state_text;
+            else if (impl::check_rtag(*itr)) fsm = impl::state_text;
             // 属性出现(非空格) -> state_attr
-            else if (!white_space(*itr)) fsm = state_attr;
+            else if (!white_space(*itr)) fsm =impl:: state_attr;
             break;
-        case state_w8rt:
+        case impl::state_w8rt:
             // 等待关闭标签出现 -> state_text
-            if (check_rtag(*itr)) fsm = state_text;
+            if (impl::check_rtag(*itr)) fsm = impl::state_text;
             break;
-        case state_attr:
+        case impl::state_attr:
             // 等待等号出现 -> state_var1
-            if (check_equal(*itr)) fsm = state_var1;
+            if (impl::check_equal(*itr)) fsm = impl::state_var1;
             break;
-        case state_var1:
+        case impl::state_var1:
             // 等待引号出现 -> state_var2
-            if (check_quot(*itr)) fsm = state_var2;
+            if (impl::check_quot(*itr)) fsm = impl::state_var2;
             break;
-        case state_var2:
+        case impl::state_var2:
             // 等待引出现 -> state_w8av
-            if (check_quot(*itr)) fsm = state_w8av;
+            if (impl::check_quot(*itr)) fsm = impl::state_w8av;
             break;
         }
     }
@@ -610,22 +629,333 @@ bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
 }
 
 /*
+    只支持文本内转义
+
+    &amp;   &   和
+    &lt;    <   小于号
+    &gt;    >   大于号
+    &apos;  '   单引号
+    &quot;  "   双引号
+
     <b>     粗体
     <i>     斜体
     <u>     下划线
     <s>     删除线
     <font>  字体
-            
-    <evel>  字符串替换字符串    -- 目前不支持
+            color字体颜色
+            size 字体大小
+            face 字体名称
+    <eval>  字符串替换字符串    -- 需要配置接口支持
             str  字符串
     <ruby>  注音标签
 
-    <img>   显示图片            -- 目前不支持
+    <img>   显示图片            -- 需要配置接口支持
             src  图片id     默认: 必须指定
             clip 剪切矩形   默认: 图片大小
             size 显示大小   默认: 剪切大小
 
 */
+
+// longui::impl 命名空间
+namespace LongUI { namespace impl {
+    // 缓存长度
+    enum : size_t {
+#ifdef _DEBUG
+        FIXED_BUF_LEN = 1,
+#else
+        FIXED_BUF_LEN = 1024,
+#endif
+    };
+    // 字符串对
+    template<typename T> struct string_pair { const T* begin; const T* end; };
+    // 简陋Xml解析器
+    struct ez_xml_parser {
+        // 字符类型
+        using xmlchar_t = wchar_t;
+        // strpair
+        using strpair = string_pair<xmlchar_t>;
+        // 类型
+        enum ft : uint8_t { b,i,u,s,font,eval,ruby,img,unk };
+        // 单位
+        struct unit { 
+            uint32_t bgn; 
+            uint16_t len; 
+            uint16_t fmt;
+            union {
+                struct { 
+                    const xmlchar_t*    name1;
+                    const xmlchar_t*    name2;
+                    D2D1_COLOR_F        color; 
+                    float               size; 
+                    float               unused; 
+                } font;
+                struct { 
+                    const xmlchar_t*    name1;
+                    const xmlchar_t*    name2;
+                    D2D1_COLOR_F        color; 
+                    float               size; 
+                    float               unused; 
+                } img ;
+                struct { 
+                    const xmlchar_t*    name1;
+                    const xmlchar_t*    name2;
+                } eval ;
+            };
+        };
+        // 构造函数
+        ez_xml_parser() noexcept = default;
+        // 析构函数
+        ~ez_xml_parser() noexcept;
+        // 标记标签起始
+        void mk_tagbegin() noexcept;
+        // 标记标签起始
+        void mk_tagend() noexcept;
+        // 设置属性
+        void set_attr() noexcept;
+        // 添加字符
+        void push_char(xmlchar_t) noexcept;
+        // 内存OK
+        bool strok() const noexcept { return buffer != nullptr; }
+        // 内存ok
+        bool initok() const noexcept { return inits != nullptr; }
+        // 内存ok
+        bool setsok() const noexcept { return sets != nullptr && strok(); }
+        // 设置顶层格式
+        template<ft fmttype> inline void setfmt() {
+            inits_top->fmt = fmttype; ++inits_top;
+        }
+        // 缓存指针
+        xmlchar_t*  buffer = fixed_buffer;
+        // 初始栈栈底
+        unit*       inits = init_buffer;
+        // 初始栈栈顶
+        unit*       inits_top = init_buffer;
+        // 设置栈栈底
+        unit*       sets = sets_buffer;
+        // 设置栈栈顶
+        unit*       sets_top = sets_buffer;
+        // 属性名字符串
+        strpair     attr_pair;
+        // 属性值字符串
+        strpair     valu_pair;
+        // 标签名字符串
+        strpair     taag_pair;
+        // 缓存长度
+        uint32_t    buflen = FIXED_BUF_LEN;
+        // 初始栈长度
+        uint32_t    inits_len = FIXED_BUF_LEN;
+        // 初始栈长度
+        uint32_t    sets_len = FIXED_BUF_LEN;
+        // 字符串长度
+        uint32_t    strlen = 0;
+        // 固定缓存大小
+        xmlchar_t   fixed_buffer[FIXED_BUF_LEN];
+        // 初始栈缓存
+        unit        init_buffer[FIXED_BUF_LEN];
+        // 设置栈缓存
+        unit        sets_buffer[FIXED_BUF_LEN];
+    };
+    /// <summary>
+    /// Finalizes an instance of the <see cref="ez_xml_parser"/> class.
+    /// </summary>
+    /// <returns></returns>
+    ez_xml_parser::~ez_xml_parser() noexcept {
+        // 释放缓存
+        if (buffer != fixed_buffer) LongUI::NormalFree(buffer);
+        if (inits != init_buffer) LongUI::NormalFree(inits);
+        if (sets != sets_buffer) LongUI::NormalFree(sets);
+    }
+    /// <summary>
+    /// push the specified char to this
+    /// </summary>
+    /// <param name="ch">The ch.</param>
+    /// <returns></returns>
+    void ez_xml_parser::push_char(xmlchar_t ch) noexcept {
+        assert(buflen < 1024 * 1024 * 16 && "16MB memory used");
+        // 缓存不足
+        if (buflen <= strlen) {
+            auto oldbuf = buffer; buflen *= 2;
+            buffer = LongUI::NormalAllocT<wchar_t>(buflen);
+            if (buffer) std::memcpy(buffer, oldbuf, sizeof(wchar_t) * strlen);
+            if (oldbuf != fixed_buffer) LongUI::NormalFree(oldbuf);
+        }
+        // 有效
+        if (buffer) buffer[strlen++] = ch;
+    }
+    /// <summary>
+    /// mark tag begin
+    /// </summary>
+    /// <returns></returns>
+    void ez_xml_parser::mk_tagbegin() noexcept {
+        auto tag1 = taag_pair.begin;
+        auto tag2 = taag_pair.end;
+        assert(tag1&& tag2 && tag2 > tag1);
+        // 保证空间
+        if (inits_top == inits + inits_len) {
+            auto oldbuf = inits; inits_len *= 2;
+            inits = LongUI::NormalAllocT<unit>(inits_len);
+            if (inits) std::memcpy(inits, oldbuf, (char*)(inits_top) - (char*)(oldbuf));
+            inits_top = inits + (inits_top - oldbuf);
+            if (oldbuf != init_buffer) LongUI::NormalFree(oldbuf);
+            if (!inits) return;
+        }
+        // 标记起始位置
+        inits_top->bgn = this->strlen;
+        std::memset(&inits_top->font, 0, sizeof(inits_top->font));
+        // 一个
+        if (tag2 - tag1 == 1) {
+            switch (*tag1)
+            {
+            case 'b': this->setfmt<b>(); return;
+            case 'i': this->setfmt<i>(); return;
+            case 'u': this->setfmt<u>(); return;
+            case 's': this->setfmt<s>(); return;
+            }
+        }
+        // 四个
+        else if (tag2 - tag1 == 4) {
+            if (!std::wcsncmp(tag1, L"font", 4)) return this->setfmt<font>();
+            else if (std::wcsncmp(tag1, L"eval", 4)) return this->setfmt<eval>();
+            else if (std::wcsncmp(tag1, L"ruby", 4)) return this->setfmt<ruby>();
+        }
+        // 三个
+        else if (tag2 - tag1 == 3) {
+            if (!std::wcsncmp(tag1, L"img", 3)) return this->setfmt<img>();
+            else {
+
+            }
+        }
+        // 无效
+        assert(!"unknown tag for tag1~tag2");
+        this->setfmt<unk>();
+    }
+    /// <summary>
+    /// mark tag end
+    /// </summary>
+    /// <returns></returns>
+    void ez_xml_parser::mk_tagend() noexcept {
+        assert(inits && inits_top != inits);
+        --inits_top;
+        inits_top->len = uint16_t(strlen - inits_top->bgn);
+        // 保证空间
+        if (sets_top == sets + sets_len) {
+            auto oldbuf = sets; sets_len *= 2;
+            sets = LongUI::NormalAllocT<unit>(sets_len);
+            if (sets) std::memcpy(sets, oldbuf, (char*)(sets_top) - (char*)(oldbuf));
+            sets_top = sets + (sets_top - oldbuf);
+            if (oldbuf != sets_buffer) LongUI::NormalFree(oldbuf);
+            if (!sets) return;
+        }
+        // 字符串计算
+        if (inits_top->fmt == ft::eval) {
+            assert(!"NOTIMPL");
+        }
+        *sets_top = *inits_top; 
+        ++sets_top;
+    }
+
+    /// <summary>
+    /// Set_attrs the specified a.
+    /// </summary>
+    /// <param name="a">a.</param>
+    /// <param name="v">The v.</param>
+    /// <returns></returns>
+    void ez_xml_parser::set_attr() noexcept {
+        assert(attr_pair.begin&& attr_pair.end && attr_pair.end > attr_pair.begin);
+        assert(valu_pair.begin&& valu_pair.end && valu_pair.end >=valu_pair.begin);
+        assert(inits && inits_top > inits);
+        auto& unit = inits_top[-1];
+        constexpr size_t VAULE_FIXED_BUFFER_LENTH = 1024;
+        assert(size_t(valu_pair.end - valu_pair.begin) < VAULE_FIXED_BUFFER_LENTH);
+        xmlchar_t strbuffer[VAULE_FIXED_BUFFER_LENTH];
+        // 分情况讨论
+        switch (unit.fmt)
+        {
+        case LongUI::impl::ez_xml_parser::b:
+            break;
+        case LongUI::impl::ez_xml_parser::i:
+            break;
+        case LongUI::impl::ez_xml_parser::u:
+            break;
+        case LongUI::impl::ez_xml_parser::s:
+            break;
+        case LongUI::impl::ez_xml_parser::font:
+            if (!std::wcsncmp(attr_pair.begin, L"size", 4)) {
+                size_t cpylen = size_t(valu_pair.end - valu_pair.begin) * sizeof(xmlchar_t);
+                std::memcpy(strbuffer, valu_pair.begin, cpylen);
+                strbuffer[size_t(valu_pair.end - valu_pair.begin)] = 0;
+                unit.font.size = LongUI::AtoF(strbuffer);
+            }
+            else if (!std::wcsncmp(attr_pair.begin, L"color", 5)) {
+                auto u8itr = reinterpret_cast<char*>(strbuffer);
+                for (auto itr = valu_pair.begin; itr != valu_pair.end; ++itr) {
+                    *u8itr = char(*itr); ++u8itr;
+                }
+                *u8itr = 0; u8itr = reinterpret_cast<char*>(strbuffer);
+                LongUI::Helper::MakeColor(u8itr, unit.font.color);
+            }
+            else if (!std::wcsncmp(attr_pair.begin, L"face", 4)) {
+                unit.font.name1 = valu_pair.begin;
+                unit.font.name2 = valu_pair.end;
+            }
+            break;
+        case LongUI::impl::ez_xml_parser::eval:
+            if (!std::wcsncmp(attr_pair.begin, L"str", 3)) {
+                unit.eval.name1 = valu_pair.begin;
+                unit.eval.name2 = valu_pair.end;
+            }
+            break;
+        case LongUI::impl::ez_xml_parser::ruby:
+            break;
+        case LongUI::impl::ez_xml_parser::img:
+            break;
+        case LongUI::impl::ez_xml_parser::unk:
+        default:
+            assert(!"UNKNDOWN FORMAT");
+            break;
+        }
+    }
+    /// <summary>
+    /// XMLs the escape character.
+    /// </summary>
+    /// <param name="">The .</param>
+    /// <param name="ch">The ch.</param>
+    /// <returns></returns>
+    inline auto xml_escape_char(const wchar_t* str, wchar_t& ch) noexcept {
+        // 转义起始
+        if (str[0] == '&') {
+            // &amp;   &   和
+            if (str[1] == 'a' && str[2] == 'm' && str[3] == 'p' && str[4] == ';') {
+                ch = '&';
+                str += 4;
+            }
+            // &lt;    <   小于号
+            else if (str[1] == 'l' && str[2] == 't' && str[3] == ';') {
+                ch = '<';
+                str += 3;
+            }
+            // &gt;    >   大于号
+            else if (str[1] == 'g' && str[2] == 't' && str[3] == ';') {
+                ch = '>';
+                str += 3;
+            }
+            // &apos;  '   单引号
+            else if (str[1] == 'a' && str[2] == 'p' && 
+                str[3] == 'o' && str[4] == 's' && str[5] == ';') {
+                ch = '\'';
+                str += 5;
+            }
+            // &quot;  "   双引号
+            else if (str[1] == 'q' && str[2] == 'u' && 
+                str[3] == 'o' && str[4] == 't' && str[5] == ';') {
+                ch = '"';
+                str += 5;
+            }
+        }
+        // 返回
+        return str;
+    }
+}}
 
 // 直接使用
 auto LongUI::DX::FormatTextXML(
@@ -633,13 +963,202 @@ auto LongUI::DX::FormatTextXML(
     const wchar_t* format
 ) noexcept ->IDWriteTextLayout* {
 #ifdef _DEBUG
-    assert(DX::CheckXmlValidity(format) && "FormatTextXML: bad xml");
+    assert(DX::CheckXmlValidity(format) && "bad xml, you should check it");
 #endif
-    assert(!"NOIMPL");
-    UNREFERENCED_PARAMETER(config);
-    UNREFERENCED_PARAMETER(format);
+    // 简易解析器
+    auto xml_parser_ptr = LongUI::NormalAllocT<impl::ez_xml_parser>(1);
+    if (!xml_parser_ptr) return nullptr;
+    xml_parser_ptr->impl::ez_xml_parser::ez_xml_parser();
+    auto& xmlparser = *xml_parser_ptr;
+     xmlparser;
+    // 已经假定Xml字符串合法
+    IDWriteTextLayout* layout = nullptr;
+    // 状态机
+    impl::xml_state fsm = impl::state_text;
+    // 正式处理
+    for (auto itr = format; *itr; ++itr) {
+        switch (fsm)
+        {
+        case impl::state_text:
+            // 等待标签起始符号出现 -> state_tagb
+            if (impl::check_ltag(*itr)) {
+                fsm = impl::state_tagb;
+            }
+            // 加入文本
+            else {
+                // 记录
+                wchar_t ch = *itr;
+                // 转义符
+                itr = impl::xml_escape_char(itr, ch);
+                // 添加字符
+                xmlparser.push_char(ch);
+                // OOM
+                if (!xmlparser.strok()) goto oom_error;
+            }
+            break;
+        case impl::state_tagb:
+            // 标签闭合符号 -> state_tag2
+            if (impl::check_clz(*itr)) {
+                fsm = impl::state_tag2;
+                //mark2_begin(itr+1);
+            }
+            // 否则 -> state_tag1
+            else {
+                fsm = impl::state_tag1;
+                xmlparser.taag_pair.begin = itr;
+                //mark1_begin(itr);
+            }
+            break;
+        case impl::state_tag1:
+            // 出现关闭符号
+            if (impl::check_clz(*itr)) {
+                // 只需要等待关闭标签出现
+                fsm = impl::state_w8rt;
+            }
+            // 出现空格或者右标签符号
+            else if (white_space(*itr) || impl::check_rtag(*itr)) {
+                // 标记标签结束位置
+                xmlparser.taag_pair.end = itr;
+                xmlparser.mk_tagbegin();
+                if (!xmlparser.initok()) goto oom_error;
+                // 出现右标签 -> state_text
+                if (impl::check_rtag(*itr)) fsm = impl::state_text;
+                // 出现空格 -> state_w8av
+                else fsm = impl::state_w8av;
+            }
+            break;
+        case impl::state_tag2:
+            // 出现空格或者右标签符号
+            if (white_space(*itr) || impl::check_rtag(*itr)) {
+                //mark2_end(itr);
+                // 弹出栈顶
+                //mark1_pop();
+                xmlparser.mk_tagend();
+                if (!xmlparser.setsok()) goto oom_error;
+                // 标签名不匹配 -> 失败
+                //if (!same_tag(tag2, *toptag)) return false;
 
-    return nullptr;
+                // 出现右标签 -> state_text
+                if (impl::check_rtag(*itr)) fsm = impl::state_text;
+                // 出现空格 -> state_w8rt
+                else fsm = impl::state_w8rt;
+            }
+            break;
+        case impl::state_w8av:
+            // 结束标签出现 -> state_w8rt
+            if (impl::check_clz(*itr)) {
+                fsm = impl::state_w8rt;
+                xmlparser.mk_tagend();
+                if (!xmlparser.setsok()) goto oom_error;
+            }
+            // 结束标签 -> state_text
+            else if (impl::check_rtag(*itr)) fsm = impl::state_text;
+            // 属性出现(非空格) -> state_attr
+            else if (!white_space(*itr)) {
+                xmlparser.attr_pair.begin = itr;
+                fsm = impl::state_attr;
+            }
+            break;
+        case impl::state_w8rt:
+            // 等待关闭标签出现 -> state_text
+            if (impl::check_rtag(*itr)) fsm = impl::state_text;
+            break;
+        case impl::state_attr:
+            // 等待等号出现 -> state_var1
+            if (impl::check_equal(*itr)) {
+                fsm = impl::state_var1;
+                xmlparser.attr_pair.end = itr;
+            }
+            break;
+        case impl::state_var1:
+            // 等待引号出现 -> state_var2
+            if (impl::check_quot(*itr)) {
+                xmlparser.valu_pair.begin = itr+1;
+                fsm = impl::state_var2;
+            }
+            break;
+        case impl::state_var2:
+            // 等待引出现 -> state_w8av
+            if (impl::check_quot(*itr)) {
+                xmlparser.valu_pair.end = itr;
+                xmlparser.set_attr();
+                fsm = impl::state_w8av;
+            }
+            break;
+        }
+    }
+    // 创建布局
+    auto hr = UIManager_DWriteFactory->CreateTextLayout(
+        xmlparser.buffer,
+        xmlparser.strlen,
+        config.format,
+        config.width, config.height,
+        &layout
+    );
+    // 调试
+#ifdef _DEBUG
+    xmlparser.push_char(0);
+#endif
+    // 创建成功
+    if (SUCCEEDED(hr)) {
+        auto stack = xmlparser.sets_top;
+        while (stack != xmlparser.sets) {
+            --stack;
+            auto& unit = *stack;
+            DWRITE_TEXT_RANGE range{unit.bgn, unit.len};
+            switch (unit.fmt)
+            {
+            case LongUI::impl::ez_xml_parser::b:
+                layout->SetFontWeight(DWRITE_FONT_WEIGHT_BOLD, range);
+                break;
+            case LongUI::impl::ez_xml_parser::i:
+                layout->SetFontStyle(DWRITE_FONT_STYLE_ITALIC, range);
+                break;
+            case LongUI::impl::ez_xml_parser::u:
+                layout->SetUnderline(TRUE, range);
+                break;
+            case LongUI::impl::ez_xml_parser::s:
+                layout->SetStrikethrough(TRUE, range);
+                break;
+            case LongUI::impl::ez_xml_parser::font:
+                if (unit.font.size > 0.f) {
+                    layout->SetFontSize(unit.font.size, range);
+                }
+                if (unit.font.color.a > 0.f) {
+                    if (const auto c = CUIColorEffect::Create(unit.font.color)) {
+                        layout->SetDrawingEffect(c, range);
+                        c->Release();
+                    }
+                }
+                if (unit.font.name1) {
+                    constexpr size_t FACENAME_BUFFER_LEN = MAX_PATH * 2;
+                    wchar_t facebuf[FACENAME_BUFFER_LEN];
+                    size_t len = unit.font.name2 - unit.font.name1;
+                    assert(len < FACENAME_BUFFER_LEN && "buffer too small");
+                    std::memcpy(facebuf, unit.font.name1, sizeof(facebuf[0])* len);
+                    facebuf[len] = 0;
+                    layout->SetFontFamilyName(facebuf, range);
+                }
+                break;
+            case LongUI::impl::ez_xml_parser::eval:
+                break;
+            case LongUI::impl::ez_xml_parser::ruby:
+                break;
+            case LongUI::impl::ez_xml_parser::img:
+                break;
+            case LongUI::impl::ez_xml_parser::unk:
+            default:
+                assert(!"UNKNDOWN FORMAT");
+                break;
+            }
+        }
+    }
+    // 结尾处理
+oom_error:
+    assert(layout && "error, ignore this meesage");
+    xml_parser_ptr->impl::ez_xml_parser::~ez_xml_parser();
+    LongUI::NormalFree(xml_parser_ptr);
+    return layout;
 }
 
 

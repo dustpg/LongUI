@@ -72,6 +72,7 @@ namespace LongUI { namespace Component {
         // set new size
         inline auto Resize(float w, float h) noexcept {
             m_config.width = w; m_config.height = h;
+            if (!m_pLayout) return;
             m_pLayout->SetMaxWidth(w); m_pLayout->SetMaxHeight(h);
         }
         // set new progress
