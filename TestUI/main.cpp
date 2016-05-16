@@ -7,6 +7,7 @@
 #include "Control/UIList.h"
 #include <LongUI/luiUiTmCap.h>
 #include <Platonly/luiPoFile.h>
+#include "LongUI/luiUiDConf.h"
 
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
@@ -181,7 +182,21 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window textantimode="grayscale" size="800, 600" name="MainWindow" debugshow="true" clearcolor="1, 1, 1, 0.95" titlename="A_LongUI">
-    <Null/>    
+    <Null/>
+
+    <HorizontalLayout size="0, 128">
+        <Button borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+        text="字汉字&#xD;&#xA;&lt;s&gt;&lt;font face=&quot;KaiTi&quot;size=&quot;32&quot;color=
+&quot;#6CF&quot;&gt;字&lt;ruby str=&quot;hàn&quot;&gt;汉&lt;/ruby&gt;字&lt;/font&gt;&lt;/s&gt;&#xD;&#xA;字汉字" />
+
+        <Button borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+        text="字汉字&#xD;&lt;s&gt;&lt;font size=&quot;32&quot;color=&quot;#6CF&quot;&gt;字汉字&lt;/font&gt;&lt;/s&gt;&#xD;&#xA;字汉字" />
+    </HorizontalLayout>
+
+    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+        text="ABCDEFG&lt;eval str=&quot;EVAL&quot;/&gt;测试"/>
+
+    <Null/>
 
     <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
         text="&amp;lt;普通文本 &lt;b&gt;粗体文本&lt;/b&gt; &lt;font color = &quot;#F00&quot; 
@@ -192,10 +207,8 @@ const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 size = &quot;20&quot;&gt;二十像素&lt;/font&gt;与&lt;font size = &quot;10&quot; 
 color=&quot;#000&quot;&gt;十像&lt;font color=&quot;#00F&quot;&gt;素&lt;/font&gt;&lt;/font&gt;字体&lt;/font&gt;"/>
 
-  
     <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
         text="使用&amp;lt;b&amp;gt;文字&amp;lt;/b&amp;gt;显示&lt;b&gt;粗体&lt;/b&gt;文字"/>
-
 
     <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
         text="使用&amp;lt;i&amp;gt;文字&amp;lt;/i&amp;gt;显示&lt;i&gt;斜体&lt;/i&gt;文字"/>
@@ -479,6 +492,8 @@ protected:
 class DemoConfigure final : public LongUI::CUIDefaultConfigure {
     typedef LongUI::CUIDefaultConfigure Super;
 public:
+    // add/release
+    LONGUI_BASIC_INTERFACE_IMPL;
     // 构造函数
     DemoConfigure() : Super(UIManager, "longui.log") { /*this->script = &mruby;*/ this->resource = res_xml; }
     // 析构函数

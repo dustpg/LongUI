@@ -58,7 +58,9 @@ namespace LongUI {
 
 
 // main property only?
+#ifndef LONGUI_NO_EDITCORE_COPYMAINPROPERTYONLY
 #define LONGUI_EDITCORE_COPYMAINPROPERTYONLY
+#endif
 
 // using Media Foundation to play video file?
 #define LONGUI_WITH_MMFVIDEO

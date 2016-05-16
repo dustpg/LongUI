@@ -216,6 +216,9 @@
     <ClInclude Include="..\include\Platonly\luiPoFile.h">
       <Filter>Header Files\Platonly</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Graphics\luiGrInObj.h">
+      <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -279,6 +282,9 @@
       <Filter>Source Files\LongUI</Filter>
     </ClCompile>
     <ClCompile Include="..\src\luiPoFile.cpp">
+      <Filter>Source Files\XUtil</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\luiInObj.cpp">
       <Filter>Source Files\XUtil</Filter>
     </ClCompile>
   </ItemGroup>

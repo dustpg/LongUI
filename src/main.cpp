@@ -25,14 +25,23 @@ InitStaticVar(LongUI::Dll::CreateDXGIFactory1);
 namespace LongUI {
     // longui::endl
     const EndL endl;
+    
     // primes list
     const uint32_t EzContainer::PRIMES_LIST[14] = {
         19, 79, 149, 263, 457, 787, 1031, 2333,
         5167, 11369, 24989, 32491, 42257, 54941,
     };
+    // XUIBasicTextRenderer {8C14E163-F12F-4ECD-9F18-82C167D5CF7C}
+    const GUID IID_XUIBasicTextRenderer = { 
+        0x8c14e163, 0xf12f, 0x4ecd, { 0x9f, 0x18, 0x82, 0xc1, 0x67, 0xd5, 0xcf, 0x7c } 
+    };
     // IUIScript: {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
     const GUID IID_IUIScript = {
         0x09b531bd, 0x2e3b, 0x4c98, { 0x98, 0x5c, 0x1f, 0xd6, 0xb4, 0x6, 0xe5, 0x3d }
+    };
+    // IUITextFormatter {1F553B9E-AB13-48A6-96C0-3A0FFE6DF79B}
+    const GUID IID_IUITextFormatter = { 
+        0x1f553b9e, 0xab13, 0x48a6, { 0x96, 0xc0, 0x3a, 0xf, 0xfe, 0x6d, 0xf7, 0x9b } 
     };
     // IUIResourceLoader: {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
     const GUID IID_IUIResourceLoader = {
@@ -77,6 +86,10 @@ namespace LongUI {
     // IDWriteFontFileEnumerator("72755049-5ff7-435d-8348-4be97cfa6c7c") 
     const GUID IID_IDWriteFontFileEnumerator = {
         0x72755049, 0x5ff7, 0x435d, { 0x83, 0x48, 0x4b, 0xe9, 0x7c, 0xfa, 0x6c, 0x7c }
+    };
+    // IDWritePixelSnapping(eaf3a2da-ecf4-4d24-b644-b34f6842024b)
+    const GUID IID_IDWritePixelSnapping = {
+        0xeaf3a2da, 0xecf4, 0x4d24, { 0xb6, 0x44, 0xb3, 0x4f, 0x68, 0x42, 0x02, 0x4b }
     };
     // IDWriteFontCollectionLoader("cca920e4-52f0-492b-bfa8-29c72ee0a468") 
     const GUID IID_IDWriteFontCollectionLoader = {

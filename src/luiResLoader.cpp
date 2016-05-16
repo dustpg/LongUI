@@ -10,8 +10,9 @@
 
 
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
-
+#include "LongUI/luiUiDConf.h"
 #include <wincodec.h>
+
 // longui::impl 命名空间
 namespace LongUI { namespace impl {
     // 从文件载入位图

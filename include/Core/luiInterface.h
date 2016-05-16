@@ -51,6 +51,39 @@ namespace LongUI {
         // free the script memory
         virtual auto FreeScript(ScriptUI&) noexcept ->void = 0;
     };
+    // text formatter interface
+    class LONGUI_NOVTABLE IUITextFormatter : public IUIInterface {
+    public:
+        // string pair
+        struct StringPair { const wchar_t* begin; const wchar_t* end; };
+        /// <summary>
+        /// Customs the type of the rich.
+        /// </summary>
+        /// <param name="config">The configuration.</param>
+        /// <param name="format">The format.</param>
+        /// <remarks>if in RichType::Type_Custom, will call this</remarks>
+        /// <returns></returns>
+        virtual auto CustomRichType(const DX::FormatTextConfig& config, const wchar_t* format) noexcept ->IDWriteTextLayout* = 0;
+        /// <summary>
+        /// create inline img interface.
+        /// </summary>
+        /// <param name="img">The img.</param>
+        /// <returns></returns>
+        virtual auto XmlImgInterface(const DX::InlineImage& img) noexcept->IDWriteInlineObject* =0;
+        /// /// <summary>
+        /// eval string for xml formatting.
+        /// </summary>
+        /// <param name="pair">The pair.</param>
+        /// <returns></returns>
+        virtual auto XmlEvalString(StringPair pair) noexcept->StringPair = 0;
+        /// <summary>
+        /// Frees the string(from XmlEvalString).
+        /// </summary>
+        /// <param name="pair">The pair.</param>
+        /// <returns></returns>
+        virtual void XmlFreeString(StringPair pair) noexcept = 0;
+    };
+
     // Meta
     struct Meta; struct DeviceIndependentMeta;
     // ui res loader
@@ -146,14 +179,6 @@ namespace LongUI {
         /// </remarks>
         /// <returns>index of adapters</returns>
         virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[/*length*/], const size_t length /*<=64*/) noexcept ->size_t = 0;
-        /// <summary>
-        /// Customs the type of the rich.
-        /// </summary>
-        /// <param name="config">The configuration.</param>
-        /// <param name="format">The format.</param>
-        /// <remarks>if in RichType::Type_Custom, will call this</remarks>
-        /// <returns></returns>
-        virtual auto CustomRichType(const DX::FormatTextConfig& config, const wchar_t* format) noexcept ->IDWriteTextLayout* = 0;
         /// <summary>
         /// Creates the custom window.
         /// </summary>

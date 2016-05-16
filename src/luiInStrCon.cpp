@@ -818,8 +818,10 @@ LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matri
     return result;
 }
 
-
 // --------------  CUIConsole ------------
+
+#include "LongUI/luiUiConsl.h"
+
 // CUIConsole 构造函数
 LongUI::CUIConsole::CUIConsole() noexcept {
     //::InitializeCriticalSection(&m_cs);  
@@ -1063,15 +1065,66 @@ long LongUI::CUIConsole::Create(const wchar_t* lpszWindowTitle, Config& config) 
 
 // --------------  CUIDefaultConfigure ------------
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
+#include "LongUI/luiUiDConf.h"
+
+/// <summary>
+/// Adds the reference.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIDefaultConfigure::AddRef() noexcept -> ULONG {
+    return ++m_cRef;
+}
+
+/// <summary>
+/// Releases this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIDefaultConfigure::Release() noexcept -> ULONG {
+    auto cc = --m_cRef;
+    if (!cc) {
+        this->CUIDefaultConfigure::~CUIDefaultConfigure();
+        LongUI::NormalFree(this);
+    }
+    return cc;
+}
 
 // longui
 namespace LongUI {
+    // 创建默认配置接口
+    auto CreateDefaultConfigure(CUIManager& manager, const char* log_file) noexcept ->IUIConfigure* {
+        auto ptr = LongUI::NormalAllocT<CUIDefaultConfigure>(1);
+        if (ptr) {
+            ptr->CUIDefaultConfigure::CUIDefaultConfigure(manager, log_file);
+        }
+        return ptr;
+    }
     // 创建XML资源读取器
     auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept->IUIResourceLoader*;
 }
 
 // 创建接口
-auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void** ppvObject) noexcept -> HRESULT {
+auto LongUI::CUIDefaultConfigure::CreateInterface(const IID& riid, void** ppvObject) noexcept -> HRESULT {
+    // ez formatter
+    struct EzTextFormatter final: IUITextFormatter {
+        LONGUI_BASIC_INTERFACE_IMPL;
+        auto CustomRichType(const DX::FormatTextConfig& config,
+            const wchar_t* format) noexcept ->IDWriteTextLayout* override {
+            assert(!"implement via yourslef");
+            return nullptr;
+        }
+        auto XmlImgInterface(const DX::InlineImage& img
+        ) noexcept->IDWriteInlineObject* override {
+            assert(!"implement via yourslef");
+            return nullptr;
+        }
+        auto XmlEvalString(StringPair pair) noexcept->StringPair override {
+            return pair;
+        }
+        void XmlFreeString(StringPair) noexcept override { }
+    };
+    constexpr size_t len = (sizeof(EzTextFormatter) + sizeof(size_t) - 1) / sizeof(size_t);
+    static size_t s_fmt_buffer[len];
+    static_assert(sizeof(s_fmt_buffer) >= sizeof(EzTextFormatter), "buffer to small");
     // 资源读取器
     if (riid == LongUI::GetIID<LongUI::IUIResourceLoader>()) {
         *ppvObject = LongUI::CreateResourceLoaderForXML(m_manager, this->resource);
@@ -1083,6 +1136,10 @@ auto LongUI::CUIDefaultConfigure::CreateInterface(const IID & riid, void** ppvOb
     // 字体集
     else if (riid == LongUI::GetIID<IDWriteFontCollection>()) {
 
+    }
+    // 字体格式化器
+    else if (riid == LongUI::GetIID<LongUI::IUITextFormatter>()) {
+        *ppvObject = new(s_fmt_buffer) EzTextFormatter;
     }
     // 检查
     return (*ppvObject) ? S_OK : E_NOINTERFACE;
@@ -1111,6 +1168,7 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(const DXGI_ADAPTER_DESC1 adapter
 auto LongUI::CUIDefaultConfigure::ShowError(const wchar_t* str_a, const wchar_t* str_b) noexcept -> void {
     ::MessageBoxW(::GetForegroundWindow(), str_a, str_b, MB_ICONERROR); assert(!"error");
 }
+
 
 #ifdef _DEBUG
 #include <ctime>

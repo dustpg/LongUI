@@ -46,10 +46,13 @@ namespace LongUI {
     };
     // Basic TextRenderer
     class LONGUI_NOVTABLE XUIBasicTextRenderer : public Helper::ComStatic<
-        Helper::QiListSelf<IUnknown, Helper::QiList<IDWriteTextRenderer>>> {
+        Helper::QiListSelf<XUIBasicTextRenderer, 
+        Helper::QiList<IDWriteTextRenderer, 
+        Helper::QiList<IDWritePixelSnapping, 
+        Helper::QiList<IUnknown>>>>> {
     public:
         // destructor
-        ~XUIBasicTextRenderer()  noexcept { LongUI::SafeRelease(UIManager_RenderTarget); LongUI::SafeRelease(m_pBrush);}
+        virtual ~XUIBasicTextRenderer() noexcept { LongUI::SafeRelease(UIManager_RenderTarget); LongUI::SafeRelease(m_pBrush);}
         // constructor
         XUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { /*basic_color.userdata = 0;*/ basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
@@ -90,6 +93,9 @@ namespace LongUI {
             const DWRITE_STRIKETHROUGH* strikethrough,
             IUnknown* clientDrawingEffect
         ) noexcept override;
+    public:
+        // fill rect
+        void FillRect(const D2D1_RECT_F&) noexcept;
     public:
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->size_t = 0;

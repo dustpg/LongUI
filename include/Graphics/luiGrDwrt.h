@@ -51,6 +51,15 @@ namespace LongUI { namespace DX {
         // [out] the text real(without format) length
         mutable uint16_t        text_length;
     };
+    // inline image
+    struct InlineImage {
+        // src rect, all 0 -> default
+        D2D1_RECT_F     rect;
+        // show size, all 0 -> default
+        D2D1_SIZE_F     size;
+        // image src string
+        const wchar_t*  src;
+    };
     // format the text in C++ within core string
     auto FormatTextCoreC(const FormatTextConfig&, const wchar_t*, ...) noexcept ->IDWriteTextLayout*;
     // format the text within core string

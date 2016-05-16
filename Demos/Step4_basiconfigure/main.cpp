@@ -1,6 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
 #include "../Step3_handleeventex/demo.h"
+#include "LongUI/luiUiDConf.h"
 
 // longui::demo namespace
 LONGUI_NAMESPACE_BEGIN namespace Demo {
@@ -11,6 +12,8 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
     public:
         // ctor
         MyConfig() : Super(UIManager) { }
+        // add/release
+        LONGUI_BASIC_INTERFACE_IMPL;
         // return true, if use cpu rendering
         virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { 
             auto base = IUIConfigure::Flag_OutputDebugString;

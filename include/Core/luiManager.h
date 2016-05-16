@@ -32,9 +32,6 @@
 #include "luiInterface.h"
 #include "luiWindow.h"
 #include "../Platonly/luiPoUtil.h"
-#ifdef LONGUI_WITH_DEFAULT_CONFIG
-#include "../LongUI/luiUiDConf.h"
-#endif
 #include "../Core/luiString.h"
 #include "../Control/UIViewport.h"
 #include <atomic>
@@ -135,6 +132,22 @@ namespace LongUI {
         // exit
         inline void exit() noexcept { m_exitFlag = true; ::PostQuitMessage(0); }
     public:
+        // custom text rich format
+        auto CustomRichType(const DX::FormatTextConfig& c, const wchar_t* f) noexcept {
+            return m_pTextFormatter->CustomRichType(c, f);
+        }
+        // create inline img interface.
+        auto XmlImgInterface(const DX::InlineImage& img) noexcept {
+            return m_pTextFormatter->XmlImgInterface(img);
+        }
+        // eval string for xml formatting.
+        auto XmlEvalString(IUITextFormatter::StringPair pair) noexcept {
+            return m_pTextFormatter->XmlEvalString(pair);
+        }
+        // Frees the string(from XmlEvalString).
+        void XmlFreeString(IUITextFormatter::StringPair pair) noexcept {
+            return m_pTextFormatter->XmlFreeString(pair);
+        }
         // get main dpi x
         auto GetMainDpiX() const noexcept { return m_uMainDpiX; }
         // get main dpi y
@@ -231,6 +244,8 @@ namespace LongUI {
     private:
         // delta time in sec.
         float                           m_fDeltaTime = 0.f;
+        // formatter
+        IUITextFormatter*               m_pTextFormatter = nullptr;
         // string al
         StrAllocator                    m_oStringAllocator;
         // helper for drop target
@@ -355,10 +370,6 @@ namespace LongUI {
         wchar_t                         m_szLocaleName[LOCALE_NAME_MAX_LENGTH / sizeof(void*) * sizeof(void*) + sizeof(void*)];
         // name of text renderers
         NameTR                          m_aszTextRendererName[LongUITextRendererCountMax];
-#ifdef LONGUI_WITH_DEFAULT_CONFIG
-        // 默认配置
-        CUIDefaultConfigure             m_config;
-#endif
     public:
         // constructor 构造函数
         CUIManager() noexcept;

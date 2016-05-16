@@ -208,7 +208,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             m_pLayout = DX::FormatTextXML(m_config, m_text.c_str());
             break;
         case LongUI::RichType::Type_Custom:
-            m_pLayout = UIManager.configure->CustomRichType(m_config, m_text.c_str());
+            m_pLayout = UIManager.CustomRichType(m_config, m_text.c_str());
             break;
         }
         LongUI::SafeRelease(old_layout);
@@ -2136,17 +2136,15 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
     FLOAT originX, FLOAT originY,
     _In_ IDWriteInlineObject * inlineObject,
     BOOL isSideways, BOOL isRightToLeft,
-    _In_opt_ IUnknown * clientDrawingEffect) noexcept {
+    _In_opt_ IUnknown* clientDrawingEffect) noexcept {
     UNREFERENCED_PARAMETER(isSideways);
     UNREFERENCED_PARAMETER(isRightToLeft);
     assert(inlineObject && "bad argument");
-    // 内联对象必须是LongUI内联对象
     // 渲染
     inlineObject->Draw(
-        clientDrawingContext,
-        this,
+        clientDrawingContext, this,
         originX, originY,
-        false, false,
+        isSideways, isRightToLeft,
         clientDrawingEffect
         );
     return S_OK;
@@ -2193,6 +2191,16 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawUnderline(
     // 填充矩形
     this->target->FillRectangle(&rectangle, m_pBrush);
     return S_OK;
+}
+
+
+/// <summary>
+/// Fills the rect.
+/// </summary>
+/// <param name="">The .</param>
+/// <returns></returns>
+void LongUI::XUIBasicTextRenderer::FillRect(const D2D1_RECT_F& rc) noexcept {
+    this->target->FillRectangle(&rc, m_pBrush);
 }
 
 // 刻画删除线

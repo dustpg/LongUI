@@ -57,5 +57,4 @@ namespace LongUI {
             return obj;
         }
     };
-
 }

@@ -50,7 +50,7 @@ struct IDWriteFactory1;
 struct IDWriteFontFileEnumerator;
 struct IDWriteFontCollectionLoader;
 struct IDWriteFontCollection;
-
+struct IDWritePixelSnapping;
 
 #define LongUI_IID_PV_ARGS(pointer) LongUI::GetIID(pointer), reinterpret_cast<void**>(&pointer)
 #define LongUI_IID_PV_ARGS_Ex(pointer) LongUI::GetIID(pointer), reinterpret_cast<IUnknown**>(&pointer)
@@ -66,6 +66,7 @@ namespace LongUI { namespace Helper {
 }}
 
 namespace LongUI {
+    class XUIBasicTextRenderer;
     // IIDs
     extern const GUID IID_IMFMediaEngineClassFactory;
     extern const GUID IID_IMFMediaEngine;
@@ -76,12 +77,15 @@ namespace LongUI {
     extern const GUID IID_IDWriteInlineObject;
     extern const GUID IID_IDWriteFactory1;
     extern const GUID IID_IDWriteFontCollection;
+    extern const GUID IID_IDWritePixelSnapping;
     extern const GUID IID_IDWriteFontFileEnumerator;
     extern const GUID IID_IDWriteFontCollectionLoader;
     extern const GUID IID_IDXGISwapChain2;
     extern const GUID IID_ITextHost2;
     extern const GUID IID_IUIScript;
     extern const GUID IID_IUIResourceLoader;
+    extern const GUID IID_IUITextFormatter;
+    extern const GUID IID_XUIBasicTextRenderer;
     // IUnknown
     MakeGetIID(IUnknown);
     // IDropTarget
@@ -126,12 +130,18 @@ namespace LongUI {
     MakeGetIID(IDWriteFontFileEnumerator);
     // IDWriteFontCollectionLoader("cca920e4-52f0-492b-bfa8-29c72ee0a468") 
     MakeGetIID(IDWriteFontCollectionLoader);
-    // IDWriteFontCollectionLoader("cca920e4-52f0-492b-bfa8-29c72ee0a468") 
+    //  IDWriteFontCollection
     MakeGetIID(IDWriteFontCollection);
+    // IDWritePixelSnapping
+    MakeGetIID(IDWritePixelSnapping);
     // IUIResourceLoader {16222E4B-9AC8-4756-8CA9-75A72D2F4F60}
     MakeLongUIGetIID(IUIResourceLoader);
     // IUIScript {09B531BD-2E3B-4C98-985C-1FD6B406E53D}
     MakeLongUIGetIID(IUIScript);
+    // IUITextFormatter 
+    MakeLongUIGetIID(IUITextFormatter);
+    // IID_XUIBasicTextRenderer 
+    MakeLongUIGetIID(XUIBasicTextRenderer);
 }
 
 #undef MakeGetIID

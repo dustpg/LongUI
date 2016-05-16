@@ -25,6 +25,7 @@
 */
 
 #include "../luibase.h"
+#include "../Core/luiInterface.h"
 #include "luiUiConsl.h"
 
 // longui namespace
@@ -40,9 +41,9 @@ namespace LongUI {
         auto operator=(const CUIDefaultConfigure&)->CUIDefaultConfigure = delete;
     public:
         // add ref count
-        virtual auto STDMETHODCALLTYPE AddRef() noexcept ->ULONG override final { return 2; }
+        virtual auto STDMETHODCALLTYPE AddRef() noexcept->ULONG override;
         // release
-        virtual auto STDMETHODCALLTYPE Release() noexcept ->ULONG override final { return 1; }
+        virtual auto STDMETHODCALLTYPE Release() noexcept->ULONG override;
     public:
         // get flags for configure
         virtual auto GetConfigureFlag() noexcept ->ConfigureFlag override { return IUIConfigure::Flag_OutputDebugString; }
@@ -58,8 +59,6 @@ namespace LongUI {
         virtual auto RegisterSome() noexcept ->void override {};
         // if use gpu render, you should choose a video card, return the index
         virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
-        // if in RichType::Type_Custom, will call this, we don't implement at here
-        virtual auto CustomRichType(const DX::FormatTextConfig&, const wchar_t*) noexcept ->IDWriteTextLayout* { assert("noimpl"); return nullptr; };
         // create custom window
         virtual auto CreateCustomWindow(WindowPriorityType type, pugi::xml_node node) noexcept->XUIBaseWindow* override { return nullptr; };
         // show the error string
@@ -74,6 +73,10 @@ namespace LongUI {
     protected:
         // manager
         CUIManager&             m_manager;
+        // ref-count
+        uint32_t                m_cRef = 1;
+        // unused
+        uint32_t                m_unused = 233;
 #ifdef _DEBUG
     private:
         // time tick

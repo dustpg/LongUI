@@ -1,5 +1,6 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
+#include "LongUI/luiUiDConf.h"
 
 // longui::demo namespace
 LONGUI_NAMESPACE_BEGIN namespace Show {
@@ -10,6 +11,8 @@ LONGUI_NAMESPACE_BEGIN namespace Show {
     public:
         // ctor
         MyConfig() : Super(UIManager) { }
+        // add/release
+        LONGUI_BASIC_INTERFACE_IMPL;
         // locale name
         auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept ->void override {
             std::wcscpy(name, L"en-us");

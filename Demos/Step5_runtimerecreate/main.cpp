@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "LongUI.h"
 #include "../Step3_handleeventex/demo.h"
+#include "LongUI/luiUiDConf.h"
 
 #include <vector>
 
@@ -32,6 +33,8 @@ LONGUI_NAMESPACE_BEGIN namespace Demo {
     public:
         // ctor
         MyConfig() : Super(UIManager, "log.log") { }
+        // add/release
+        LONGUI_BASIC_INTERFACE_IMPL;
         // 获取控件模板
         //auto GetTemplateString() noexcept ->const char* override { return TEMPLATE_XML; }
         // return true, if use cpu rendering

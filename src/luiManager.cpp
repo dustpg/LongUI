@@ -16,6 +16,18 @@
 #define LONGUI_D3D_DEBUG
 //#define LONGUI_RENDER_IN_STD_THREAD
 
+// longui namespace
+namespace LongUI {
+#ifdef LONGUI_WITH_DEFAULT_CONFIG
+    auto CreateDefaultConfigure(CUIManager&, 
+        const char* logfilename) noexcept->IUIConfigure*;
+#endif
+    // get bitmap
+    auto UIManager_GetBitmap(size_t index) noexcept ->ID2D1Bitmap1*{
+        return UIManager.GetBitmap(index);
+    }
+}
+
 // longui::impl
 namespace LongUI { namespace impl{
     // create object
@@ -28,18 +40,21 @@ namespace LongUI { namespace impl{
     }
 }}
 
+//#define _DEBUG_LL
+
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 检查GUID
 #if defined(_DEBUG_LL) && defined(_MSC_VER)
 #define CHECK_GUID(x)  assert(LongUI::IID_##x == __uuidof(x) && "bad guid")
+    CHECK_GUID(IDXGISwapChain2);
+    CHECK_GUID(IDWriteFactory1);
     CHECK_GUID(IDWriteTextRenderer);
     CHECK_GUID(IDWriteInlineObject);
-    CHECK_GUID(IDWriteFactory1);
+    CHECK_GUID(IDWritePixelSnapping);
     CHECK_GUID(IDWriteFontCollection);
     CHECK_GUID(IDWriteFontFileEnumerator);
     CHECK_GUID(IDWriteFontCollectionLoader);
-    CHECK_GUID(IDXGISwapChain2);
 #undef CHECK_GUID
 #endif
     m_vDelayCleanup.reserve(16);
@@ -65,7 +80,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 检查
     if (!config) {
 #ifdef LONGUI_WITH_DEFAULT_CONFIG
-        config = &m_config;
+        config = LongUI::CreateDefaultConfigure(*this, nullptr);
+        if (!config) return E_OUTOFMEMORY;
 #else
         return E_INVALIDARG;
 #endif
@@ -86,6 +102,11 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 获取实例句柄
     auto hInstance = ::GetModuleHandleW(nullptr);
     HRESULT hr = S_OK;
+    // 获取文本格式化器
+    if (SUCCEEDED(hr)) {
+       hr = config->CreateInterface(LongUI_IID_PV_ARGS(m_pTextFormatter));
+       longui_debug_hr(hr, L"Create m_pTextFormatter faild");
+    }
     // 创建工具窗口
     if (SUCCEEDED(hr)) {
         // 注册窗口
@@ -416,6 +437,8 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     LongUI::SafeRelease(m_pDWriteFactory);
     //LongUI::SafeRelease(m_pDropTargetHelper);
     LongUI::SafeRelease(m_pd2dFactory);
+    // 释放格式化器
+    LongUI::SafeRelease(m_pTextFormatter);
     // 释放脚本
     LongUI::SafeRelease(force_cast(script));
     // 释放读取器
@@ -866,7 +889,7 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
 }
 
 // CUIManager 构造函数
-LongUI::CUIManager::CUIManager() noexcept : m_config(*this) {
+LongUI::CUIManager::CUIManager() noexcept  {
 
 }
 

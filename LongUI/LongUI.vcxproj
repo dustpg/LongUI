@@ -169,6 +169,7 @@
     <ClInclude Include="..\include\Graphics\luiGrD2d.h" />
     <ClInclude Include="..\include\Graphics\luiGrDwrt.h" />
     <ClInclude Include="..\include\Graphics\luiGrHlper.h" />
+    <ClInclude Include="..\include\Graphics\luiGrInObj.h" />
     <ClInclude Include="..\include\Graphics\luiGrSvg.h" />
     <ClInclude Include="..\include\Graphics\luiGrUtil.h" />
     <ClInclude Include="..\include\Graphics\luiGrWic.h" />
@@ -195,6 +196,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\luiComponent.cpp" />
     <ClCompile Include="..\src\luiDx.cpp" />
+    <ClCompile Include="..\src\luiInObj.cpp" />
     <ClCompile Include="..\src\luiInStrCon.cpp" />
     <ClCompile Include="..\src\luiMenu.cpp" />
     <ClCompile Include="..\src\luiPoFile.cpp" />

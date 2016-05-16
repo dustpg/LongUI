@@ -648,6 +648,10 @@ bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
     <eval>  字符串替换字符串    -- 需要配置接口支持
             str  字符串
     <ruby>  注音标签
+            str  注音字符串
+            face 字体名称
+            zoom 字体比例 默认0.5
+
 
     <img>   显示图片            -- 需要配置接口支持
             src  图片id     默认: 必须指定
@@ -655,6 +659,14 @@ bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
             size 显示大小   默认: 剪切大小
 
 */
+
+
+// longui::impl 命名空间
+namespace LongUI {
+    // 创建RUBY注音内联对象
+    auto CreateRubyNotation(IDWriteTextLayout* ruby, 
+        IDWriteTextLayout* text) noexcept->IDWriteInlineObject*;
+}
 
 // longui::impl 命名空间
 namespace LongUI { namespace impl {
@@ -700,6 +712,14 @@ namespace LongUI { namespace impl {
                     const xmlchar_t*    name1;
                     const xmlchar_t*    name2;
                 } eval ;
+                struct { 
+                    const xmlchar_t*    face1;
+                    const xmlchar_t*    face2;
+                    const xmlchar_t*    name1;
+                    const xmlchar_t*    name2;
+                    float               zoom; 
+                    float               unused; 
+                } ruby ;
             };
         };
         // 构造函数
@@ -724,6 +744,8 @@ namespace LongUI { namespace impl {
         template<ft fmttype> inline void setfmt() {
             inits_top->fmt = fmttype; ++inits_top;
         }
+        // 重新分配字符串缓存
+        void reallocstr() noexcept;
         // 缓存指针
         xmlchar_t*  buffer = fixed_buffer;
         // 初始栈栈底
@@ -774,13 +796,17 @@ namespace LongUI { namespace impl {
         assert(buflen < 1024 * 1024 * 16 && "16MB memory used");
         // 缓存不足
         if (buflen <= strlen) {
-            auto oldbuf = buffer; buflen *= 2;
-            buffer = LongUI::NormalAllocT<wchar_t>(buflen);
-            if (buffer) std::memcpy(buffer, oldbuf, sizeof(wchar_t) * strlen);
-            if (oldbuf != fixed_buffer) LongUI::NormalFree(oldbuf);
+            buflen *= 2; this->reallocstr();
+            if (!buffer) return;
         }
         // 有效
         if (buffer) buffer[strlen++] = ch;
+    }
+    // wcsncmp for impl
+    template<size_t len, typename T>
+    inline auto wcsncmp(const T* __restrict a, const T* __restrict b) noexcept {
+        assert(a && b && "you bad bad");
+        return std::memcmp(a, b, sizeof(T) * len);
     }
     /// <summary>
     /// mark tag begin
@@ -814,13 +840,13 @@ namespace LongUI { namespace impl {
         }
         // 四个
         else if (tag2 - tag1 == 4) {
-            if (!std::wcsncmp(tag1, L"font", 4)) return this->setfmt<font>();
-            else if (std::wcsncmp(tag1, L"eval", 4)) return this->setfmt<eval>();
-            else if (std::wcsncmp(tag1, L"ruby", 4)) return this->setfmt<ruby>();
+            if (!impl::wcsncmp<4>(tag1, L"font")) return this->setfmt<font>();
+            else if (!impl::wcsncmp<4>(tag1, L"eval")) return this->setfmt<eval>();
+            else if (!impl::wcsncmp<4>(tag1, L"ruby")) return this->setfmt<ruby>();
         }
         // 三个
         else if (tag2 - tag1 == 3) {
-            if (!std::wcsncmp(tag1, L"img", 3)) return this->setfmt<img>();
+            if (!impl::wcsncmp<3>(tag1, L"img")) return this->setfmt<img>();
             else {
 
             }
@@ -846,14 +872,42 @@ namespace LongUI { namespace impl {
             if (oldbuf != sets_buffer) LongUI::NormalFree(oldbuf);
             if (!sets) return;
         }
+        // 注音占位符添加
+        if (inits_top->fmt == ft::ruby) {
+            //this->push_char(xmlchar_t('R'));
+        }
         // 字符串计算
-        if (inits_top->fmt == ft::eval) {
-            assert(!"NOTIMPL");
+        else if (inits_top->fmt == ft::eval) {
+            IUITextFormatter::StringPair pair{
+                inits_top->eval.name1,
+                inits_top->eval.name2
+            };
+            pair = UIManager.XmlEvalString(pair);
+            if (pair.begin) {
+                uint32_t pairlen = static_cast<uint32_t>(pair.end - pair.begin);
+                if (buflen - strlen < pairlen) {
+                    buflen += pairlen * 2; this->reallocstr();
+                }
+                if (buffer) {
+                    std::memcpy(buffer + strlen, pair.begin, pairlen * sizeof(xmlchar_t));
+                    strlen += pairlen;
+                }
+                UIManager.XmlFreeString(pair);
+            }
         }
         *sets_top = *inits_top; 
         ++sets_top;
     }
-
+    /// <summary>
+    /// Reallocstrs this instance.
+    /// </summary>
+    /// <returns></returns>
+    void ez_xml_parser::reallocstr() noexcept {
+        auto oldbuf = buffer; 
+        buffer = LongUI::NormalAllocT<xmlchar_t>(buflen);
+        if (buffer) std::memcpy(buffer, oldbuf, sizeof(wchar_t) * strlen);
+        if (oldbuf != fixed_buffer) LongUI::NormalFree(oldbuf);
+    }
     /// <summary>
     /// Set_attrs the specified a.
     /// </summary>
@@ -880,13 +934,15 @@ namespace LongUI { namespace impl {
         case LongUI::impl::ez_xml_parser::s:
             break;
         case LongUI::impl::ez_xml_parser::font:
-            if (!std::wcsncmp(attr_pair.begin, L"size", 4)) {
+            // 字体大小
+            if (!impl::wcsncmp<4>(attr_pair.begin, L"size")) {
                 size_t cpylen = size_t(valu_pair.end - valu_pair.begin) * sizeof(xmlchar_t);
                 std::memcpy(strbuffer, valu_pair.begin, cpylen);
                 strbuffer[size_t(valu_pair.end - valu_pair.begin)] = 0;
                 unit.font.size = LongUI::AtoF(strbuffer);
             }
-            else if (!std::wcsncmp(attr_pair.begin, L"color", 5)) {
+            // 字体颜色
+            else if (!impl::wcsncmp<5>(attr_pair.begin, L"color")) {
                 auto u8itr = reinterpret_cast<char*>(strbuffer);
                 for (auto itr = valu_pair.begin; itr != valu_pair.end; ++itr) {
                     *u8itr = char(*itr); ++u8itr;
@@ -894,18 +950,37 @@ namespace LongUI { namespace impl {
                 *u8itr = 0; u8itr = reinterpret_cast<char*>(strbuffer);
                 LongUI::Helper::MakeColor(u8itr, unit.font.color);
             }
-            else if (!std::wcsncmp(attr_pair.begin, L"face", 4)) {
+            // 字体名称
+            else if (!impl::wcsncmp<4>(attr_pair.begin, L"face")) {
                 unit.font.name1 = valu_pair.begin;
                 unit.font.name2 = valu_pair.end;
             }
             break;
         case LongUI::impl::ez_xml_parser::eval:
-            if (!std::wcsncmp(attr_pair.begin, L"str", 3)) {
+            // 计算字符串
+            if (!impl::wcsncmp<3>(attr_pair.begin, L"str")) {
                 unit.eval.name1 = valu_pair.begin;
                 unit.eval.name2 = valu_pair.end;
             }
             break;
         case LongUI::impl::ez_xml_parser::ruby:
+            // 注音字符串
+            if (!impl::wcsncmp<3>(attr_pair.begin, L"str")) {
+                unit.ruby.name1 = valu_pair.begin;
+                unit.ruby.name2 = valu_pair.end;
+            }
+            // 注音字体大小
+            else if (!impl::wcsncmp<4>(attr_pair.begin, L"zoom")) {
+                size_t cpylen = size_t(valu_pair.end - valu_pair.begin) * sizeof(xmlchar_t);
+                std::memcpy(strbuffer, valu_pair.begin, cpylen);
+                strbuffer[size_t(valu_pair.end - valu_pair.begin)] = 0;
+                unit.ruby.zoom = LongUI::AtoF(strbuffer);
+            }
+            // 注音字体名称
+            else if (!impl::wcsncmp<4>(attr_pair.begin, L"face")) {
+                unit.ruby.face1 = valu_pair.begin;
+                unit.ruby.face2 = valu_pair.end;
+            }
             break;
         case LongUI::impl::ez_xml_parser::img:
             break;
@@ -955,7 +1030,110 @@ namespace LongUI { namespace impl {
         // 返回
         return str;
     }
+    /// <summary>
+    /// Set_fonts the specified unit.
+    /// </summary>
+    /// <param name="unit">The unit.</param>
+    /// <param name="layout">The layout.</param>
+    void set_font(const ez_xml_parser::unit& unit, IDWriteTextLayout& layout) {
+        constexpr size_t FACENAME_BUFFER_LEN = MAX_PATH * 2;
+        DWRITE_TEXT_RANGE range{unit.bgn, unit.len};
+        if (unit.font.size > 0.f) {
+            layout.SetFontSize(unit.font.size, range);
+        }
+        if (unit.font.color.a > 0.f) {
+            if (const auto c = CUIColorEffect::Create(unit.font.color)) {
+                layout.SetDrawingEffect(c, range);
+                c->Release();
+            }
+        }
+        if (unit.font.name1) {
+            wchar_t facebuf[FACENAME_BUFFER_LEN];
+            size_t len = unit.font.name2 - unit.font.name1;
+            assert(len < FACENAME_BUFFER_LEN && "buffer too small");
+            std::memcpy(facebuf, unit.font.name1, sizeof(facebuf[0])* len);
+            facebuf[len] = 0;
+            layout.SetFontFamilyName(facebuf, range);
+        }
+    }
+    /// <summary>
+    /// Set_rubies the specified unit.
+    /// </summary>
+    /// <param name="unit">The unit.</param>
+    /// <param name="layout">The layout.</param>
+    void set_ruby(const ez_xml_parser::unit& unit, 
+        IDWriteTextLayout& layout, const wchar_t* str) {
+        assert(unit.ruby.name1 && unit.ruby.name2);
+        // 注音必须有被注音的部分.....和注音的部分
+        if (!(unit.len && unit.ruby.name2 > unit.ruby.name1)) return;
+        IDWriteTextLayout* ruby = nullptr, *text = nullptr;
+        auto rlen = static_cast<uint32_t>(unit.ruby.name2 - unit.ruby.name1);
+        auto tlen = static_cast<uint32_t>(unit.len);
+        auto hr = S_OK;
+        // 创建注音布局
+        if (SUCCEEDED(hr)) {
+            hr = UIManager_DWriteFactory->CreateTextLayout(
+                unit.ruby.name1, rlen, &layout, 32.f, 32.f, &ruby
+            );
+        }
+        // 创建文本布局
+        if (SUCCEEDED(hr)) {
+            hr = UIManager_DWriteFactory->CreateTextLayout(
+                str + unit.bgn, tlen, &layout, 32.f, 32.f, &text
+            );
+        }
+        // 复制格式
+        if (SUCCEEDED(hr)) {
+            // 字体效果
+            IUnknown* effect = nullptr;
+            layout.GetDrawingEffect(unit.bgn, &effect, nullptr);
+            ruby->SetDrawingEffect(effect, DWRITE_TEXT_RANGE{ 0, rlen });
+            text->SetDrawingEffect(effect, DWRITE_TEXT_RANGE{ 0, tlen });
+            // 字体倾斜
+            DWRITE_FONT_STYLE style = DWRITE_FONT_STYLE_NORMAL;
+            layout.GetFontStyle(unit.bgn, &style, nullptr);
+            ruby->SetFontStyle(style, DWRITE_TEXT_RANGE{ 0, rlen });
+            text->SetFontStyle(style, DWRITE_TEXT_RANGE{ 0, tlen });
+            // 字体粗细
+            DWRITE_FONT_WEIGHT weight = DWRITE_FONT_WEIGHT_NORMAL;
+            layout.GetFontWeight(unit.bgn, &weight, nullptr);
+            ruby->SetFontWeight(weight, DWRITE_TEXT_RANGE{ 0, rlen });
+            text->SetFontWeight(weight, DWRITE_TEXT_RANGE{ 0, tlen });
+            // 字体名称
+            constexpr uint32_t FACENAME_BUFFER_LEN = MAX_PATH * 2;
+            wchar_t facebuf[FACENAME_BUFFER_LEN]; facebuf[0] = 0;
+            layout.GetFontFamilyName(unit.bgn, facebuf, FACENAME_BUFFER_LEN, nullptr);
+            text->SetFontFamilyName(facebuf, DWRITE_TEXT_RANGE{ 0, tlen });
+            size_t len = (const char*)(unit.ruby.face2) - (const char*)(unit.ruby.face1);
+            if (len && len < size_t(FACENAME_BUFFER_LEN * 2)) {
+                std::memcpy(facebuf, unit.ruby.face1, len);
+                facebuf[len / sizeof(wchar_t)] = 0;
+            }
+            ruby->SetFontFamilyName(facebuf, DWRITE_TEXT_RANGE{ 0, rlen });
+            // 字体大小
+            float fontsize = 0.f;
+            layout.GetFontSize(unit.bgn, &fontsize, nullptr);
+            text->SetFontSize(fontsize, DWRITE_TEXT_RANGE{ 0, tlen });
+            // 注音部分字体大小
+            {
+                auto tsize = fontsize * (unit.ruby.zoom == 0.f ? 0.5f : unit.ruby.zoom);
+                ruby->SetFontSize(tsize, DWRITE_TEXT_RANGE{ 0, rlen });
+            }
+            // 创建RUBY内联对象
+            if (const auto rubyobj = LongUI::CreateRubyNotation(ruby, text)) {
+                DWRITE_TEXT_RANGE range{ unit.bgn , uint32_t(unit.len) };
+                layout.SetInlineObject(rubyobj, range);
+                rubyobj->Release();
+            }
+            // 扫尾
+            LongUI::SafeRelease(effect);
+        }
+        // 释放数据
+        LongUI::SafeRelease(ruby);
+        LongUI::SafeRelease(text);
+    }
 }}
+
 
 // 直接使用
 auto LongUI::DX::FormatTextXML(
@@ -970,7 +1148,6 @@ auto LongUI::DX::FormatTextXML(
     if (!xml_parser_ptr) return nullptr;
     xml_parser_ptr->impl::ez_xml_parser::ez_xml_parser();
     auto& xmlparser = *xml_parser_ptr;
-     xmlparser;
     // 已经假定Xml字符串合法
     IDWriteTextLayout* layout = nullptr;
     // 状态机
@@ -1121,28 +1298,12 @@ auto LongUI::DX::FormatTextXML(
                 layout->SetStrikethrough(TRUE, range);
                 break;
             case LongUI::impl::ez_xml_parser::font:
-                if (unit.font.size > 0.f) {
-                    layout->SetFontSize(unit.font.size, range);
-                }
-                if (unit.font.color.a > 0.f) {
-                    if (const auto c = CUIColorEffect::Create(unit.font.color)) {
-                        layout->SetDrawingEffect(c, range);
-                        c->Release();
-                    }
-                }
-                if (unit.font.name1) {
-                    constexpr size_t FACENAME_BUFFER_LEN = MAX_PATH * 2;
-                    wchar_t facebuf[FACENAME_BUFFER_LEN];
-                    size_t len = unit.font.name2 - unit.font.name1;
-                    assert(len < FACENAME_BUFFER_LEN && "buffer too small");
-                    std::memcpy(facebuf, unit.font.name1, sizeof(facebuf[0])* len);
-                    facebuf[len] = 0;
-                    layout->SetFontFamilyName(facebuf, range);
-                }
+                impl::set_font(unit, *layout);
                 break;
             case LongUI::impl::ez_xml_parser::eval:
                 break;
             case LongUI::impl::ez_xml_parser::ruby:
+                impl::set_ruby(unit, *layout, xmlparser.buffer);
                 break;
             case LongUI::impl::ez_xml_parser::img:
                 break;
