@@ -1256,7 +1256,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         m_pTextRenderer->basic_color.color = *m_pColor;
         this->layout->Draw(m_pTextContext, m_pTextRenderer, x, y);
         m_pTextRenderer->target = nullptr;
-
     }
     // 复制到 目标全局句柄
     auto EditaleText::CopyToGlobal() noexcept -> HGLOBAL {
@@ -2364,7 +2363,7 @@ void LongUI::CUIOutlineTextRender::MakeContextFromString(void* context, const ch
     outline->width = 1.f;
     if (!utf8_string) return;
     // 获取
-    auto end = Helper::MakeFloats(utf8_string, &outline->width, 1);
+    auto end = Helper::MakeFloats(utf8_string, outline->width);
     if (end[0] == ',') {
         Helper::MakeColor(end+1, outline->color);
     }

@@ -33,19 +33,33 @@
 
 // longui namespace
 namespace LongUI {
+    // inline obj super
+    using XUISuperIO = Helper::ComBase<Helper::QiList<IDWriteInlineObject>, uint32_t>;
     // inline obj
-    using XUIInlineObject = Helper::ComBase<Helper::QiList<IDWriteInlineObject>, uint32_t>;
+    struct XUIInlineObject : XUISuperIO {
+        // get the overhang metrics of this
+        virtual auto STDMETHODCALLTYPE GetOverhangMetrics(
+            DWRITE_OVERHANG_METRICS* overhangs
+        ) noexcept->HRESULT override;
+        // get break condition
+        virtual auto STDMETHODCALLTYPE GetBreakConditions(
+            DWRITE_BREAK_CONDITION* breakConditionBefore,
+            DWRITE_BREAK_CONDITION* breakConditionAfter
+        ) noexcept->HRESULT override;
+        // operator @delete
+        void operator delete(void* p, size_t) noexcept { 
+            LongUI::SmallFree(p); 
+        };
+    };
     // ruby notation object
     class CUIRubyNotation final : public XUIInlineObject {
         // super class
         using Super = XUIInlineObject;
     public:
         // ctor
-        CUIRubyNotation() noexcept : Super(1) {}
+        CUIRubyNotation() noexcept : Super() {}
         // dtor
         virtual ~CUIRubyNotation() noexcept;
-        // operator @delete
-        void operator delete(void* p, size_t) noexcept { LongUI::SmallFree(p); };
     public:
         // draw this
         virtual auto STDMETHODCALLTYPE Draw(
@@ -60,15 +74,6 @@ namespace LongUI {
         // get the metrics of this
         virtual auto STDMETHODCALLTYPE GetMetrics(
             DWRITE_INLINE_OBJECT_METRICS* metrics
-        ) noexcept->HRESULT override;
-        // get the overhang metrics of this
-        virtual auto STDMETHODCALLTYPE GetOverhangMetrics(
-            DWRITE_OVERHANG_METRICS* overhangs
-        ) noexcept->HRESULT override;
-        // get break condition
-        virtual auto STDMETHODCALLTYPE GetBreakConditions(
-            DWRITE_BREAK_CONDITION* breakConditionBefore,
-            DWRITE_BREAK_CONDITION* breakConditionAfter
         ) noexcept->HRESULT override;
     private:
         // base line
@@ -95,11 +100,9 @@ namespace LongUI {
         using Super = XUIInlineObject;
     public:
         // ctor
-        CUIInlineImage() noexcept : Super(1) {}
+        CUIInlineImage() noexcept : Super() {}
         // dtor
         virtual ~CUIInlineImage() noexcept {}
-        // operator @delete
-        void operator delete(void* p, size_t) noexcept { LongUI::SmallFree(p); };
     public:
         // draw this
         virtual auto STDMETHODCALLTYPE Draw(
@@ -115,15 +118,6 @@ namespace LongUI {
         virtual auto STDMETHODCALLTYPE GetMetrics(
             DWRITE_INLINE_OBJECT_METRICS* metrics
         ) noexcept->HRESULT override;
-        // get the overhang metrics of this
-        virtual auto STDMETHODCALLTYPE GetOverhangMetrics(
-            DWRITE_OVERHANG_METRICS* overhangs
-        ) noexcept->HRESULT override;
-        // get break condition
-        virtual auto STDMETHODCALLTYPE GetBreakConditions(
-            DWRITE_BREAK_CONDITION* breakConditionBefore,
-            DWRITE_BREAK_CONDITION* breakConditionAfter
-        ) noexcept->HRESULT override;
     private:
         // bitmap id
         uint32_t                    m_uBitmapId = 0;
@@ -133,6 +127,6 @@ namespace LongUI {
         D2D1_SIZE_F                 m_szDisplay{ 0.f };
     public:
         // create a object
-        static auto Create(IDWriteTextLayout*, IDWriteTextLayout*) noexcept->CUIInlineImage*;
+        static auto Create(const DX::InlineImage& ii) noexcept->CUIInlineImage*;
     };
 }

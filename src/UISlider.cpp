@@ -111,7 +111,7 @@ void LongUI::UISlider::Update() noexcept {
 // UISlider 构造函数
 void LongUI::UISlider::initialize() noexcept {
     Super::initialize();
-    assert(!"noimpl");
+    assert(!"notimpl");
 }
 
 // UISlider 初始化
@@ -138,8 +138,7 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         // 滑块大小
         Helper::MakeFloats(
             node.attribute("thumbsize").value(),
-            &force_cast(thumb_size.width),
-            sizeof(thumb_size) / sizeof(thumb_size.width)
+            force_cast(thumb_size)
         );
         // 默认背景
         m_bDefaultBK = node.attribute("defaultbk").as_bool(true);

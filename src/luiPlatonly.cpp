@@ -339,7 +339,7 @@ bool LongUI::Helper::MakeColor(const char* data, D2D1_COLOR_F& color) noexcept {
     }
     // 浮点数组
     else {
-        return Helper::MakeFloats(data, reinterpret_cast<float*>(&color), 4) != data;
+        return Helper::MakeFloats(data, color) != data;
     }
 }
 

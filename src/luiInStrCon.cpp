@@ -7,6 +7,12 @@
 #include "Platless/luiPlUtil.h"
 #include <algorithm>
 
+// longui namespace
+namespace LongUI {
+    // create bulit-in inline image
+    auto CreateInlineImage(const DX::InlineImage& ii) noexcept->IDWriteInlineObject*;
+}
+
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIInput"/> class.
 /// </summary>
@@ -1102,24 +1108,28 @@ namespace LongUI {
     auto CreateResourceLoaderForXML(CUIManager& manager, const char* xml) noexcept->IUIResourceLoader*;
 }
 
+
 // 创建接口
 auto LongUI::CUIDefaultConfigure::CreateInterface(const IID& riid, void** ppvObject) noexcept -> HRESULT {
     // ez formatter
     struct EzTextFormatter final: IUITextFormatter {
         LONGUI_BASIC_INTERFACE_IMPL;
+        // custim rich format
         auto CustomRichType(const DX::FormatTextConfig& config,
             const wchar_t* format) noexcept ->IDWriteTextLayout* override {
             assert(!"implement via yourslef");
             return nullptr;
         }
+        // create img
         auto XmlImgInterface(const DX::InlineImage& img
         ) noexcept->IDWriteInlineObject* override {
-            assert(!"implement via yourslef");
-            return nullptr;
+            return LongUI::CreateInlineImage(img);
         }
+        // eval string
         auto XmlEvalString(StringPair pair) noexcept->StringPair override {
             return pair;
         }
+        // free data
         void XmlFreeString(StringPair) noexcept override { }
     };
     constexpr size_t len = (sizeof(EzTextFormatter) + sizeof(size_t) - 1) / sizeof(size_t);

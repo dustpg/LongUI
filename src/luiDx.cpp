@@ -6,6 +6,7 @@
 #include <LongUI/luiUiXml.h>
 #include <LongUI/luiUiMeta.h>
 #include <LongUI/luiUiHlper.h>
+#include <dwrite_2.h>
 
 // longui::impl 命名空间
 namespace LongUI { namespace impl {
@@ -654,7 +655,7 @@ bool LongUI::DX::CheckXmlValidity(const wchar_t* xml) noexcept {
 
 
     <img>   显示图片            -- 需要配置接口支持
-            src  图片id     默认: 必须指定
+            src  图片字符串 默认: 接口规定
             clip 剪切矩形   默认: 图片大小
             size 显示大小   默认: 剪切大小
 
@@ -701,12 +702,11 @@ namespace LongUI { namespace impl {
                     float               size; 
                     float               unused; 
                 } font;
-                struct { 
+                struct {
                     const xmlchar_t*    name1;
                     const xmlchar_t*    name2;
-                    D2D1_COLOR_F        color; 
-                    float               size; 
-                    float               unused; 
+                    D2D1_RECT_F         clip; 
+                    D2D1_SIZE_F         size; 
                 } img ;
                 struct { 
                     const xmlchar_t*    name1;
@@ -872,9 +872,10 @@ namespace LongUI { namespace impl {
             if (oldbuf != sets_buffer) LongUI::NormalFree(oldbuf);
             if (!sets) return;
         }
-        // 注音占位符添加
-        if (inits_top->fmt == ft::ruby) {
-            //this->push_char(xmlchar_t('R'));
+        // 图片占位符添加
+        if (inits_top->fmt == ft::img) {
+            this->push_char(xmlchar_t('*'));
+            inits_top->len++;
         }
         // 字符串计算
         else if (inits_top->fmt == ft::eval) {
@@ -921,7 +922,24 @@ namespace LongUI { namespace impl {
         auto& unit = inits_top[-1];
         constexpr size_t VAULE_FIXED_BUFFER_LENTH = 1024;
         assert(size_t(valu_pair.end - valu_pair.begin) < VAULE_FIXED_BUFFER_LENTH);
+        if (size_t(valu_pair.end - valu_pair.begin) >= VAULE_FIXED_BUFFER_LENTH) return;
         xmlchar_t strbuffer[VAULE_FIXED_BUFFER_LENTH];
+        // 复制字符串
+        auto pair = valu_pair;
+        auto copy_string_utf16 = [&]() noexcept {
+            size_t cpylen = size_t(pair.end - pair.begin) * sizeof(xmlchar_t);
+            std::memcpy(strbuffer, pair.begin, cpylen);
+            strbuffer[size_t(pair.end - pair.begin)] = 0;
+            return strbuffer;
+        };
+        auto copy_string_utf8 = [&]() noexcept {
+            auto u8itr = reinterpret_cast<char*>(strbuffer);
+            for (auto itr = pair.begin; itr != pair.end; ++itr) {
+                *u8itr = char(*itr); ++u8itr;
+            }
+            *u8itr = 0; u8itr = reinterpret_cast<char*>(strbuffer);
+            return u8itr;
+        };
         // 分情况讨论
         switch (unit.fmt)
         {
@@ -936,19 +954,11 @@ namespace LongUI { namespace impl {
         case LongUI::impl::ez_xml_parser::font:
             // 字体大小
             if (!impl::wcsncmp<4>(attr_pair.begin, L"size")) {
-                size_t cpylen = size_t(valu_pair.end - valu_pair.begin) * sizeof(xmlchar_t);
-                std::memcpy(strbuffer, valu_pair.begin, cpylen);
-                strbuffer[size_t(valu_pair.end - valu_pair.begin)] = 0;
-                unit.font.size = LongUI::AtoF(strbuffer);
+                unit.font.size = LongUI::AtoF(copy_string_utf16());
             }
             // 字体颜色
             else if (!impl::wcsncmp<5>(attr_pair.begin, L"color")) {
-                auto u8itr = reinterpret_cast<char*>(strbuffer);
-                for (auto itr = valu_pair.begin; itr != valu_pair.end; ++itr) {
-                    *u8itr = char(*itr); ++u8itr;
-                }
-                *u8itr = 0; u8itr = reinterpret_cast<char*>(strbuffer);
-                LongUI::Helper::MakeColor(u8itr, unit.font.color);
+                LongUI::Helper::MakeColor(copy_string_utf8(), unit.font.color);
             }
             // 字体名称
             else if (!impl::wcsncmp<4>(attr_pair.begin, L"face")) {
@@ -971,10 +981,7 @@ namespace LongUI { namespace impl {
             }
             // 注音字体大小
             else if (!impl::wcsncmp<4>(attr_pair.begin, L"zoom")) {
-                size_t cpylen = size_t(valu_pair.end - valu_pair.begin) * sizeof(xmlchar_t);
-                std::memcpy(strbuffer, valu_pair.begin, cpylen);
-                strbuffer[size_t(valu_pair.end - valu_pair.begin)] = 0;
-                unit.ruby.zoom = LongUI::AtoF(strbuffer);
+                unit.ruby.zoom = LongUI::AtoF(copy_string_utf16());
             }
             // 注音字体名称
             else if (!impl::wcsncmp<4>(attr_pair.begin, L"face")) {
@@ -983,6 +990,19 @@ namespace LongUI { namespace impl {
             }
             break;
         case LongUI::impl::ez_xml_parser::img:
+            // 图片源
+            if (!impl::wcsncmp<3>(attr_pair.begin, L"src")) {
+                unit.img.name1 = valu_pair.begin;
+                unit.img.name2 = valu_pair.end;
+            }
+            // 裁剪区
+            else if (!impl::wcsncmp<4>(attr_pair.begin, L"clip")) {
+                Helper::MakeFloats(copy_string_utf8(), unit.img.clip);
+            }
+            // 显示大小
+            else if (!impl::wcsncmp<4>(attr_pair.begin, L"size")) {
+                Helper::MakeFloats(copy_string_utf8(), unit.img.size);
+            }
             break;
         case LongUI::impl::ez_xml_parser::unk:
         default:
@@ -1131,6 +1151,26 @@ namespace LongUI { namespace impl {
         // 释放数据
         LongUI::SafeRelease(ruby);
         LongUI::SafeRelease(text);
+    }
+    /// <summary>
+    /// set_img the specified unit.
+    /// </summary>
+    /// <param name="unit">The unit.</param>
+    /// <param name="layout">The layout.</param>
+    void set_img(const ez_xml_parser::unit& unit,
+        IDWriteTextLayout& layout) noexcept {
+        size_t len = (unit.img.name2 - unit.img.name1);
+        LongUI::SafeBuffer<wchar_t>(len + 1, [&, len](wchar_t buf[]) noexcept {
+            std::memcpy(buf, unit.img.name1, len * sizeof(wchar_t));
+            buf[len] = 0;
+            DX::InlineImage ii{ unit.img.clip, unit.img.size, buf };
+            if (const auto img = UIManager.XmlImgInterface(ii)) {
+                layout.SetInlineObject(
+                    img, DWRITE_TEXT_RANGE{ unit.bgn, unit.len }
+                );
+                img->Release();
+            }
+        });
     }
 }}
 
@@ -1306,6 +1346,7 @@ auto LongUI::DX::FormatTextXML(
                 impl::set_ruby(unit, *layout, xmlparser.buffer);
                 break;
             case LongUI::impl::ez_xml_parser::img:
+                impl::set_img(unit, *layout);
                 break;
             case LongUI::impl::ez_xml_parser::unk:
             default:

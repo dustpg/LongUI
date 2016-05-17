@@ -44,6 +44,16 @@ namespace LongUI { namespace Helper {
     };
     // make floats from string
     auto MakeFloats(const char* str, float fary[], uint32_t count) noexcept -> const char*;
+    // make floats from string
+    template<typename T> inline auto MakeFloats(const char* str, T& obj) noexcept -> const char* {
+        constexpr uint32_t c = sizeof(obj) / sizeof(float);
+        static_assert(c > 0, "bad size");
+        return MakeFloats(str, reinterpret_cast<float*>(&obj), c);
+    }
+    // make floats from string
+    template<size_t COUNT> inline auto MakeFloats(const char* str, float (&c)[COUNT]) noexcept -> const char* {
+        return MakeFloats(str, c, COUNT);
+    }
     // make ints from string
     auto MakeInts(const char* str, int fary[], uint32_t count) noexcept -> const char*;
     // Bit Array 计算机中每一字节都很宝贵

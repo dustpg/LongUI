@@ -182,45 +182,57 @@ const char* test_xml_04 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
 const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window textantimode="grayscale" size="800, 600" name="MainWindow" debugshow="true" clearcolor="1, 1, 1, 0.95" titlename="A_LongUI">
-    <Null/>
+    <HorizontalLayout>
+        <VerticalLayout weight="5">
+            <Null/>
+            <HorizontalLayout size="0, 128">
+                <Button borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+                text="字汉字&#xD;&#xA;&lt;s&gt;&lt;font face=&quot;KaiTi&quot;size=&quot;32&quot;color=
+        &quot;#6CF&quot;&gt;字&lt;ruby str=&quot;hàn&quot;&gt;汉&lt;/ruby&gt;字&lt;/font&gt;&lt;/s&gt;&#xD;&#xA;字汉字" />
 
-    <HorizontalLayout size="0, 128">
-        <Button borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
-        text="字汉字&#xD;&#xA;&lt;s&gt;&lt;font face=&quot;KaiTi&quot;size=&quot;32&quot;color=
-&quot;#6CF&quot;&gt;字&lt;ruby str=&quot;hàn&quot;&gt;汉&lt;/ruby&gt;字&lt;/font&gt;&lt;/s&gt;&#xD;&#xA;字汉字" />
+                <Button borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+                text="&lt;ruby str=&quot;dú dǒng kōng qì &quot;&gt;察言观色&lt;/ruby&gt;
+&#xD;&#xA;
+&lt;ruby str=&quot;dú&quot;&gt;察&lt;/ruby&gt;&lt;ruby str=&quot;dǒng &quot;&gt;言&lt;/ruby&gt;&lt;ruby str=&quot; kōng&quot;&gt;观&lt;/ruby&gt;&lt;ruby str=&quot;qì&quot;&gt;色&lt;/ruby&gt;
+"               />
 
-        <Button borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
-        text="字汉字&#xD;&lt;s&gt;&lt;font size=&quot;32&quot;color=&quot;#6CF&quot;&gt;字汉字&lt;/font&gt;&lt;/s&gt;&#xD;&#xA;字汉字" />
+            </HorizontalLayout>
+
+            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+                text="ABCDEFG&lt;img src=&quot;1&quot; size=&quot;16,16&quot;/&gt;测试"/>
+
+            <Null/>
+
+            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
+                text="&amp;lt;普通文本 &lt;b&gt;粗体文本&lt;/b&gt; &lt;font color = &quot;#F00&quot; 
+                    face=&quot;KaiTi&quot;&gt;楷体&lt;/font&gt;测试 "/>
+
+            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
+                text="&lt;font color=&quot;#6CF&quot; size = &quot;30&quot;&gt;三十像素中嵌套的&lt;font 
+        size = &quot;20&quot;&gt;二十像素&lt;/font&gt;与&lt;font size = &quot;10&quot; 
+        color=&quot;#000&quot;&gt;十像&lt;font color=&quot;#00F&quot;&gt;素&lt;/font&gt;&lt;/font&gt;字体&lt;/font&gt;"/>
+
+            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+                text="使用&amp;lt;b&amp;gt;文字&amp;lt;/b&amp;gt;显示&lt;b&gt;粗体&lt;/b&gt;文字"/>
+
+            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+                text="使用&amp;lt;i&amp;gt;文字&amp;lt;/i&amp;gt;显示&lt;i&gt;斜体&lt;/i&gt;文字"/>
+
+            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+                text="使用&amp;lt;s&amp;gt;文字&amp;lt;/s&amp;gt;显示&lt;s&gt;删除线&lt;/s&gt;"/>
+
+            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+                text="使用&amp;lt;u&amp;gt;文字&amp;lt;/u&amp;gt;显示&lt;u&gt;下划线&lt;/u&gt;"/>
+
+            <Null/>    
+
+        </VerticalLayout>
+        <VerticalLayout>
+            <Button borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="3"
+                text="明月几时有？把酒问青天。不知天上宫阙，今夕是何年。我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间。"/>
+        </VerticalLayout>
+
     </HorizontalLayout>
-
-    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
-        text="ABCDEFG&lt;eval str=&quot;EVAL&quot;/&gt;测试"/>
-
-    <Null/>
-
-    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
-        text="&amp;lt;普通文本 &lt;b&gt;粗体文本&lt;/b&gt; &lt;font color = &quot;#F00&quot; 
-            face=&quot;KaiTi&quot;&gt;楷体&lt;/font&gt;测试 "/>
-
-    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" 
-        text="&lt;font color=&quot;#6CF&quot; size = &quot;30&quot;&gt;三十像素中嵌套的&lt;font 
-size = &quot;20&quot;&gt;二十像素&lt;/font&gt;与&lt;font size = &quot;10&quot; 
-color=&quot;#000&quot;&gt;十像&lt;font color=&quot;#00F&quot;&gt;素&lt;/font&gt;&lt;/font&gt;字体&lt;/font&gt;"/>
-
-    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
-        text="使用&amp;lt;b&amp;gt;文字&amp;lt;/b&amp;gt;显示&lt;b&gt;粗体&lt;/b&gt;文字"/>
-
-    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
-        text="使用&amp;lt;i&amp;gt;文字&amp;lt;/i&amp;gt;显示&lt;i&gt;斜体&lt;/i&gt;文字"/>
-
-    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
-        text="使用&amp;lt;s&amp;gt;文字&amp;lt;/s&amp;gt;显示&lt;s&gt;删除线&lt;/s&gt;"/>
-
-    <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
-        text="使用&amp;lt;u&amp;gt;文字&amp;lt;/u&amp;gt;显示&lt;u&gt;下划线&lt;/u&gt;"/>
-
-    <Null/>    
-
 </Window>
 )xml";
 
@@ -240,6 +252,8 @@ constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <!-- You can use other name not limited in 'Item' -->
         <Item desc="雅黑" family="Microsoft YaHei" valign="middle"/>
         <Item desc="雅黑" family="Microsoft YaHei" valign="middle" align="center"/>
+        <Item desc="楷体" family="KaiTi" valign="middle" align="center"
+            flowdirection="top2bottom" readingdirection="right2left"/>
     </TextFormat>
     <!-- Meta区域Zone -->
     <Meta>

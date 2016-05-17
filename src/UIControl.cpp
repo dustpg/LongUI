@@ -228,8 +228,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
         // 检查布局上下文
         Helper::MakeFloats(
             node.attribute(LongUI::XmlAttribute::LayoutContext).value(),
-            force_cast(this->context),
-            lengthof<uint32_t>(this->context)
+            force_cast(this->context)
         );
         // 检查背景笔刷
         if (data = node.attribute(LongUI::XmlAttribute::BackgroudBrush).value()) {
@@ -276,8 +275,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
         // 检查外边距
         Helper::MakeFloats(
             node.attribute(LongUI::XmlAttribute::Margin).value(),
-            const_cast<float*>(&margin_rect.left),
-            sizeof(margin_rect) / sizeof(margin_rect.left)
+            force_cast(margin_rect)
         );
         // 检查渲染父控件
         if (node.attribute(LongUI::XmlAttribute::IsRenderParent).as_bool(false)) {
@@ -295,15 +293,14 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
         // 边框圆角
         Helper::MakeFloats(
             node.attribute(LongUI::XmlAttribute::BorderRound).value(),
-            &m_2fBorderRdius.width,
-            sizeof(m_2fBorderRdius) / sizeof(m_2fBorderRdius.width)
+            m_2fBorderRdius
         );
         // 检查控件大小
         {
             float size[] = { 0.f, 0.f };
             Helper::MakeFloats(
                 node.attribute(LongUI::XmlAttribute::AllSize).value(),
-                size, lengthof<uint32_t>(size)
+                size
             );
             // 视口区宽度固定?
             if (size[0] > 0.f) {
@@ -930,7 +927,7 @@ void LongUI::UIContainer::initialize(pugi::xml_node node) noexcept {
         // 模板大小
         Helper::MakeFloats(
             node.attribute(LongUI::XmlAttribute::TemplateSize).value(),
-            &m_2fTemplateSize.width, 2
+            m_2fTemplateSize.width
         );
         // XXX: 渲染依赖属性
         /*if (node.attribute(XmlAttribute::IsHostChildrenAlways).as_bool(false)) {

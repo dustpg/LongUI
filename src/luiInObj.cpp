@@ -1,7 +1,6 @@
 ﻿#include <Graphics/luiGrInObj.h>
 #include <algorithm>
 
-
 // longui namespace
 namespace LongUI {
     /// <summary>
@@ -9,11 +8,55 @@ namespace LongUI {
     /// </summary>
     /// <param name="layout">The layout.</param>
     /// <returns></returns>
-    auto CreateRubyNotation(IDWriteTextLayout* r, IDWriteTextLayout* t) noexcept -> IDWriteInlineObject* {
+    auto CreateRubyNotation(IDWriteTextLayout* r, 
+        IDWriteTextLayout* t) noexcept -> IDWriteInlineObject* {
         return CUIRubyNotation::Create(r, t);
     }
-    // get bitmap
+    /// <summary>
+    /// Creates the ruby notation.
+    /// </summary>
+    /// <param name="layout">The layout.</param>
+    /// <returns></returns>
+    auto CreateInlineImage(const DX::InlineImage& ii) noexcept -> IDWriteInlineObject* {
+        return CUIInlineImage::Create(ii);
+    }
+    /// <summary>
+    /// get bitmap from ui-manager
+    /// </summary>
+    /// <param name="layout">The layout.</param>
+    /// <returns></returns>
     auto UIManager_GetBitmap(size_t index) noexcept ->ID2D1Bitmap1*;
+    // string to float
+    auto AtoF(const wchar_t* __restrict str) noexcept -> float;
+}
+
+
+/// <summary>
+/// Gets the overhang metrics.
+/// </summary>
+/// <param name="overhangs">The overhangs.</param>
+/// <returns></returns>
+auto LongUI::XUIInlineObject::GetOverhangMetrics(
+    DWRITE_OVERHANG_METRICS* overhangs ) noexcept->HRESULT {
+    overhangs->left      = 0.f;
+    overhangs->top       = 0.f;
+    overhangs->right     = 0.f;
+    overhangs->bottom    = 0.f;
+    return S_OK;
+}
+
+/// <summary>
+/// Gets the break conditions.
+/// </summary>
+/// <param name="breakConditionBefore">The break condition before.</param>
+/// <param name="breakConditionAfter">The break condition after.</param>
+/// <returns></returns>
+auto LongUI::XUIInlineObject::GetBreakConditions(
+    DWRITE_BREAK_CONDITION* breakConditionBefore, 
+    DWRITE_BREAK_CONDITION* breakConditionAfter) noexcept -> HRESULT {
+    *breakConditionBefore = DWRITE_BREAK_CONDITION_NEUTRAL;
+    *breakConditionAfter  = DWRITE_BREAK_CONDITION_NEUTRAL;
+    return S_OK;
 }
 
 
@@ -74,35 +117,6 @@ auto LongUI::CUIRubyNotation::GetMetrics(
     return S_OK;
 }
 
-
-
-/// <summary>
-/// Gets the overhang metrics.
-/// </summary>
-/// <param name="overhangs">The overhangs.</param>
-/// <returns></returns>
-auto LongUI::CUIRubyNotation::GetOverhangMetrics(
-    DWRITE_OVERHANG_METRICS* overhangs ) noexcept->HRESULT {
-    overhangs->left      = 0.f;
-    overhangs->top       = 0.f;
-    overhangs->right     = 0.f;
-    overhangs->bottom    = 0.f;
-    return S_OK;
-}
-
-/// <summary>
-/// Gets the break conditions.
-/// </summary>
-/// <param name="breakConditionBefore">The break condition before.</param>
-/// <param name="breakConditionAfter">The break condition after.</param>
-/// <returns></returns>
-auto LongUI::CUIRubyNotation::GetBreakConditions(
-    DWRITE_BREAK_CONDITION* breakConditionBefore, 
-    DWRITE_BREAK_CONDITION* breakConditionAfter) noexcept -> HRESULT {
-    *breakConditionBefore = DWRITE_BREAK_CONDITION_NEUTRAL;
-    *breakConditionAfter  = DWRITE_BREAK_CONDITION_NEUTRAL;
-    return S_OK;
-}
 
 /// <summary>
 /// Creates this instance.
@@ -176,8 +190,8 @@ auto LongUI::CUIInlineImage::Draw(
     BOOL isSideways, BOOL isRightToLeft, 
     IUnknown* clientDrawingEffect) noexcept -> HRESULT {
     // 获取渲染接口
-    XUIBasicTextRenderer* rrr = nullptr;
-    auto hr = renderer->QueryInterface(LongUI_IID_PV_ARGS(rrr));
+    XUIBasicTextRenderer* btr = nullptr;
+    auto hr = renderer->QueryInterface(LongUI_IID_PV_ARGS(btr));
     // 本对象需要特定接口
     if (SUCCEEDED(hr)) {
         // 获取指定位图
@@ -191,11 +205,11 @@ auto LongUI::CUIInlineImage::Draw(
             // 可渲染对象
             if (!(bitmap->GetOptions() & D2D1_BITMAP_OPTIONS_CANNOT_DRAW)) {
                 constexpr auto im = D2D1_BITMAP_INTERPOLATION_MODE_LINEAR;
-                rrr->target->DrawBitmap(bitmap, &des, 1.f, im, &m_rcSrc);
+                btr->target->DrawBitmap(bitmap, &des, 1.f, im, &m_rcSrc);
             }
             // 不可渲染 -> 填充矩形
             else {
-                rrr->FillRect(des);
+                btr->FillRect(des);
                 hr = S_FALSE;
                 assert(!"TARGET BITMAP CANNOT DRAW!");
             }
@@ -210,7 +224,48 @@ auto LongUI::CUIInlineImage::Draw(
         assert(!"NEED LongUI::XUIBasicTextRenderer to render this");
     }
     // 扫尾处理
-    LongUI::SafeRelease(rrr);
+    LongUI::SafeRelease(btr);
     return hr;
 }
 
+/// <summary>
+/// Gets the metrics.
+/// </summary>
+/// <param name="metrics">The metrics.</param>
+/// <returns></returns>
+auto LongUI::CUIInlineImage::GetMetrics(
+    DWRITE_INLINE_OBJECT_METRICS* metrics) noexcept -> HRESULT {
+    metrics->supportsSideways = true;
+    metrics->width = m_szDisplay.width;
+    metrics->height = m_szDisplay.height;
+    metrics->baseline = m_szDisplay.height;
+    return S_OK;
+}
+
+/// <summary>
+/// Creates a longui-inline-image with the specified arg "ii".
+/// </summary>
+/// <param name="ii">The ii.</param>
+/// <returns></returns>
+auto LongUI::CUIInlineImage::Create(
+    const DX::InlineImage& ii) noexcept -> CUIInlineImage * {
+    auto ptr = LongUI::SmallAllocT<CUIInlineImage>(1);
+    ptr->CUIInlineImage::CUIInlineImage();
+    // 修改ID
+    uint32_t id = uint32_t(LongUI::AtoF(ii.src));
+    ptr->m_uBitmapId = id;
+    D2D1_SIZE_F size = ii.size;
+    D2D1_RECT_F rect = ii.rect;
+    // 检查位图属性
+    if (const auto bitmap = LongUI::UIManager_GetBitmap(id)) {
+        size = bitmap->GetSize();
+        rect = { 0.f, 0.f, size.width, size.height };
+        bitmap->Release();
+    }
+    // 指定了大小
+    ptr->m_szDisplay = ii.size.width > 0.f ? ii.size : size;
+    // 指定了源位置
+    ptr->m_rcSrc = ii.rect.right > 0.f ? ii.rect : rect;
+    // 扫尾处理
+    return ptr;
+}
