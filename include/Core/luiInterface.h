@@ -148,6 +148,7 @@ namespace LongUI {
         /// could create:
         ///   - LongUI::IUIResourceLoader*
         ///   - LongUI::IUIScript*
+        ///   - LongUI::IUITextFormatter*
         ///   - IDWriteFontCollection*
         /// </remarks>
         virtual auto CreateInterface(const IID& iid, void** obj) noexcept ->HRESULT= 0;

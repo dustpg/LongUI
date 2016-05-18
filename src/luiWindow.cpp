@@ -1950,6 +1950,14 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
         return true;
     }*/
 
+#ifndef WM_NCUAHDRAWCAPTION 
+#define WM_NCUAHDRAWCAPTION 0xAE
+#endif
+
+#ifndef WM_NCUAHDRAWFRAME  
+#define WM_NCUAHDRAWFRAME   0xAF
+#endif
+
 /// <summary>
 /// Normals the event.
 /// </summary>
@@ -1958,11 +1966,12 @@ auto LongUI::CUIBuiltinSystemWindow::WndProc(HWND hwnd, UINT message, WPARAM wPa
 /// <param name="lParam">The l parameter.</param>
 /// <param name="result">The result.</param>
 /// <returns></returns>
-bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept {
+bool LongUI::CUIBuiltinSystemWindow::MessageHandle(
+    UINT message, WPARAM wParam, LPARAM lParam, LRESULT& result) noexcept {
     // --------------------------  获取X坐标
-    auto get_x = [lParam]() noexcept { return float(int16_t(LOWORD(lParam))); };
+    auto get_x = [lParam]() noexcept {return float(int16_t(LOWORD(lParam)));};
     // --------------------------  获取Y坐标
-    auto get_y = [lParam]() noexcept { return float(int16_t(HIWORD(lParam))); };
+    auto get_y = [lParam]() noexcept {return float(int16_t(HIWORD(lParam)));};
     // --------------------------  失去焦点
     auto on_killfocus = [this]() noexcept {
         bool close_window = false;
@@ -1972,7 +1981,9 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
             // 存在焦点控件
             if (m_pFocusedControl) {
                 // 事件
-                m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
+                m_pFocusedControl->DoLongUIEvent(
+                    Event::Event_KillFocus, m_pViewport
+                );
                 // 释放引用
                 LongUI::SafeRelease(m_pFocusedControl);
             }
@@ -2068,11 +2079,13 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
         break;
     case WM_MOUSEWHEEL:
         ma.event = MouseEvent::Event_MouseWheelV;
-        ma.wheel.delta = (float(GET_WHEEL_DELTA_WPARAM(wParam))) / float(WHEEL_DELTA);
+        ma.wheel.delta = (float(GET_WHEEL_DELTA_WPARAM(wParam))) 
+            / float(WHEEL_DELTA);
         break;
     case WM_MOUSEHWHEEL:
         ma.event = MouseEvent::Event_MouseWheelH;
-        ma.wheel.delta = (float(GET_WHEEL_DELTA_WPARAM(wParam))) / float(WHEEL_DELTA);
+        ma.wheel.delta = (float(GET_WHEEL_DELTA_WPARAM(wParam))) 
+            / float(WHEEL_DELTA);
         break;
     case WM_MOUSEHOVER:
         ma.event = MouseEvent::Event_MouseHover;
@@ -2102,6 +2115,12 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(UINT message, WPARAM wParam, 
     case WM_CHAR:
         // 键入字符
         on_char();
+        return true;
+    case WM_NCUAHDRAWCAPTION:
+        return true;
+    case WM_NCUAHDRAWFRAME:
+        return true;
+    case WM_GETICON :
         return true;
     case WM_MOVE:
         // 移动窗口

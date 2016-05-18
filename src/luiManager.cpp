@@ -1475,6 +1475,7 @@ extern ID3D11Debug*    g_pd3dDebug_longui;
 
 // UIManager 丢弃
 void LongUI::CUIManager::discard_resources() noexcept {
+    LongUI::CUIDxgiAutoLocker locker;
     // 释放系统笔刷
     for (auto& brush : m_apSystemBrushes) {
         LongUI::SafeRelease(brush);
@@ -1514,24 +1515,12 @@ void LongUI::CUIManager::discard_resources() noexcept {
     ::MFShutdown();
 #endif
 #ifdef _DEBUG
-#ifdef _MSC_VER
-    __try {
-        if (m_pd3dDebug) {
-            LongUI::SafeRelease(g_pd3dDebug_longui);
-            g_pd3dDebug_longui = m_pd3dDebug;
-            m_pd3dDebug = nullptr;
+    if (m_pd3dDebug) {
+        if (const auto count = m_pd3dDebug->Release()) {
+            m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
         }
-    }
-    __finally {
         m_pd3dDebug = nullptr;
     }
-#else
-    if (m_pd3dDebug) {
-        m_pd3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
-    }
-    LongUI::SafeRelease(m_pd3dDebug);
-#endif
-    this;
 #endif
 }
 

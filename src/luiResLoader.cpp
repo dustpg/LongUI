@@ -9,8 +9,6 @@
 #include <WinError.h>
 
 
-#ifdef LONGUI_WITH_DEFAULT_CONFIG
-#include "LongUI/luiUiDConf.h"
 #include <wincodec.h>
 
 // longui::impl 命名空间
@@ -156,6 +154,9 @@ namespace LongUI { namespace impl {
     };
 }}
 
+#ifdef LONGUI_WITH_DEFAULT_CONFIG
+#include "LongUI/luiUiDConf.h"
+
 //  ---------- Resource Loader for XML -----------------
 namespace LongUI {
     // IWICImagingFactory2 "7B816B45-1996-4476-B132-DE9E247C8AF0"
@@ -215,7 +216,7 @@ namespace LongUI {
         //  ui manager
         CUIManager&             m_manager;
         // WIC factory
-        IWICImagingFactory2*    m_pWICFactory = nullptr;
+        IWICImagingFactory2*    m_pWicFactory = nullptr;
         // node for reource
         pugi::xml_node          m_aNodes[RESOURCE_TYPE_COUNT];
         // xml doc for resource
@@ -243,7 +244,7 @@ namespace LongUI {
                 CLSID_WICImagingFactory2,
                 nullptr,
                 CLSCTX_INPROC_SERVER,
-                LongUI_IID_PV_ARGS(m_pWICFactory)
+                LongUI_IID_PV_ARGS(m_pWicFactory)
                 );
         }
         // 载入
@@ -267,7 +268,7 @@ namespace LongUI {
     }
     // dtor for CUIResourceLoaderXML
     LongUI::CUIResourceLoaderXML::~CUIResourceLoaderXML() noexcept {
-        LongUI::SafeRelease(m_pWICFactory);
+        LongUI::SafeRelease(m_pWicFactory);
     }
     // get reource count
     auto LongUI::CUIResourceLoaderXML::GetResourceCount(ResourceType type) const noexcept -> size_t {
@@ -368,7 +369,7 @@ namespace LongUI {
             // 载入
             auto hr = impl::load_bitmap_from_file(
                 m_manager.GetRenderTargetNoAddRef(), 
-                m_pWICFactory, begin, 0u, 0u, &bitmap
+                m_pWicFactory, begin, 0u, 0u, &bitmap
             );
             // 失败?
 #ifdef _DEBUG
