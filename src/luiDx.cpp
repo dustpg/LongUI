@@ -2106,7 +2106,10 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
         return outformat;
     }
     // d2d1 ------------------------
-    void LongUINoinline D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept {
+    void LongUINoinline D2D1MakeRotateMatrix(
+        float angle, 
+        D2D1_POINT_2F center, 
+        D2D1_MATRIX_3X2_F& matrix) noexcept {
         constexpr float pi = 3.141592654f;
         float theta = angle * (pi / 180.0f);
         float sin_theta = std::sin(theta);
@@ -2117,6 +2120,23 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
         matrix._22 = cos_theta;
         matrix._31 = center.x - center.x * cos_theta + center.y * sin_theta;
         matrix._32 = center.y - center.x * sin_theta - center.y * cos_theta;
+    }
+    // make skew
+    void LongUINoinline D2D1MakeSkewMatrixEx(
+        float x, float y, 
+        D2D1_POINT_2F center,
+        D2D1_MATRIX_3X2_F& matrix) noexcept {
+        constexpr float pi = 3.141592654f;
+        float theta_x = x * (pi / 180.0f);
+        float theta_y = y * (pi / 180.0f);
+        float tan_x = std::tan(theta_x);
+        float tan_y = std::tan(theta_y);
+        matrix._11 = 1.f;
+        matrix._12 = tan_y;
+        matrix._21 = tan_x;
+        matrix._22 = 1.f;
+        matrix._31 =-center.y * tan_x;
+        matrix._32 = center.x * tan_y ;
     }
 #ifdef _DEBUG
     long g_dbg_product_counter = 0;

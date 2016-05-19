@@ -128,9 +128,9 @@ LongUINoinline auto LongUI::Helper::FindFilesToBuffer(
             // 跳过.开头
             if (fileinfo.cFileName[0] != '.') {
                 // 写入
-                auto code = std::swprintf(buf, buf_len - 1, L"%ls\\%ls", folder, fileinfo.cFileName);
+                auto code = std::swprintf(buf, buf_len, L"%ls\\%ls", folder, fileinfo.cFileName);
                 // 缓存不足
-                if (code < 0) break;
+                if (code >= (decltype(code))(buf_len)) break;
                 // 写入
                 buf += code + 1; buf[0] = 0; buf_len -= code + 1;
             }

@@ -47,6 +47,8 @@ namespace LongUI { namespace DX {
     auto CreateMeshFromGeometry(ID2D1Geometry* geometry, ID2D1Mesh** mesh) noexcept ->HRESULT;
     // d2d matrix helper : rotate
     void D2D1MakeRotateMatrix(float angle, D2D1_POINT_2F center, D2D1_MATRIX_3X2_F& matrix) noexcept;
+    // d2d matrix helper : skew
+    void D2D1MakeSkewMatrix(float x, float y, D2D1_POINT_2F, D2D1_MATRIX_3X2_F&) noexcept;
     // Matrix3x2F
     struct Matrix3x2F : D2D1_MATRIX_3X2_F {
         // ctor
@@ -98,7 +100,7 @@ namespace LongUI { namespace DX {
         // make a skew matrix
         static inline auto Skew(FLOAT angleX, FLOAT angleY,D2D1_POINT_2F center = D2D1_POINT_2F{0.f}) noexcept {
             Matrix3x2F skew;
-            Dll::D2D1MakeSkewMatrix(angleX, angleY, center, &skew);
+            DX::D2D1MakeSkewMatrix(angleX, angleY, center, skew);
             return skew;
         }
         // force cast - const overload

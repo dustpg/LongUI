@@ -39,8 +39,6 @@ namespace LongUI {
         //static decltype(&::D3D11CreateDevice) D3D11CreateDevice;
         // D2D1InvertMatrix@d2d1.dll
         static decltype(&::D2D1InvertMatrix) D2D1InvertMatrix;
-        // D2D1MakeSkewMatrix@d2d1.dll
-        static decltype(&::D2D1MakeSkewMatrix) D2D1MakeSkewMatrix;
         // D2D1IsMatrixInvertible@d2d1.dll
         static decltype(&::D2D1IsMatrixInvertible) D2D1IsMatrixInvertible;
         // D2D1CreateFactory@d2d1.dll

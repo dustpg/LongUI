@@ -77,6 +77,5 @@ namespace LongUI {
     };
     // define flag
     LONGUI_DEFINE_ENUM_FLAG_OPERATORS(CUIFile::OpenFlag, uint32_t);
-
 }
 
