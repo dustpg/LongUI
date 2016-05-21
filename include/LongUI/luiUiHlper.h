@@ -104,6 +104,14 @@ namespace LongUI {
     //MakeGetIID(IDropTargetHelper);
     // IDXGISurface
     MakeGetIID(IDXGISurface);
+    // bitmap
+    MakeGetIID(ID2D1Bitmap1);
+    // dc
+    MakeGetIID(ID2D1DeviceContext);
+    // dc1
+    MakeGetIID(ID2D1DeviceContext1);
+    // dc3
+    MakeGetIID(ID2D1DeviceContext3);
     // ID3D11Texture2D
     MakeGetIID(ID3D11Texture2D);
     // ID3D11Debug

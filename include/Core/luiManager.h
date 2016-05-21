@@ -191,6 +191,8 @@ namespace LongUI {
         auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
         // get delta time for ui
         auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
+        // get runed time in ms
+        auto GetRunedTime() const noexcept { return m_cNowTick - m_cStartTick; }
     public: // 隐形转换区
         // 转换为 ID2D1DeviceContext
 #define UIManager_RenderTarget (UIManager.GetRenderTargetNoAddRef())
@@ -244,6 +246,10 @@ namespace LongUI {
     private:
         // delta time in sec.
         float                           m_fDeltaTime = 0.f;
+        // app start tick
+        uint32_t                        m_cStartTick = 0;
+        // app start tick
+        uint32_t                        m_cNowTick = 0;
         // formatter
         IUITextFormatter*               m_pTextFormatter = nullptr;
         // string al
@@ -311,7 +317,7 @@ namespace LongUI {
         // dxgi locker
         CUILocker                       m_uiDxgiLocker;
         // time-meter
-        CUITimeMeter                    m_uiTimeMeter;
+        CUITimeMeterH                   m_uiTimeMeter;
         // text renderer
         XUIBasicTextRenderer*           m_apTextRenderer[LongUITextRendererCountMax];
 #ifdef _DEBUG

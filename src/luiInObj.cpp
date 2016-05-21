@@ -221,7 +221,9 @@ auto LongUI::CUIInlineImage::Draw(
         }
     }
     else {
-        assert(!"NEED LongUI::XUIBasicTextRenderer to render this");
+#ifdef _DEBUG
+        ::OutputDebugStringW(L"NEED LongUI::XUIBasicTextRenderer to render this\r\n");
+#endif
     }
     // 扫尾处理
     LongUI::SafeRelease(btr);

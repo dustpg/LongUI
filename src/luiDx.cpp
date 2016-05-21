@@ -355,7 +355,7 @@ auto LongUI::DX::CreateTextPathGeometry(
     EzContainer::SmallBuffer<uint16_t, 1024> glyph_indices_buffer;
     glyph_indices_buffer.NewSize(string_length);
     // 内存不足?
-    HRESULT hr = glyph_indices_buffer.GetCount() < string_length ? S_OK : E_OUTOFMEMORY;
+    HRESULT hr = glyph_indices_buffer.GetCount() < string_length ? E_OUTOFMEMORY : S_OK;
     // 创建字形
     if (!fontface) {
         // 获取字体名称
@@ -429,7 +429,7 @@ auto LongUI::DX::CreateTextPathGeometry(
                 glyph_indices_buffer.GetData(),
                 nullptr, nullptr,
                 string_length,
-                true, true, sink
+                false, false, sink
             );
             longui_debug_hr(hr, L"failed: fontface->GetGlyphRunOutline ");
         }

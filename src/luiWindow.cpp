@@ -1811,6 +1811,8 @@ namespace LongUI {
         IDCompositionTarget*    m_pDcompTarget  = nullptr;
         // Direct Composition Visual
         IDCompositionVisual*    m_pDcompVisual  = nullptr;
+        // wait
+        HANDLE                  m_hVSync        = nullptr;
         // now cursor
         HCURSOR                 m_hNowCursor    = ::LoadCursor(nullptr, IDC_ARROW);
         // new size
@@ -2222,8 +2224,17 @@ void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
     m_rcWindow.height = m_szNew.height;
     auto old_size = m_pTargetBitmap->GetPixelSize();
     HRESULT hr = S_OK;
+    bool force = false;
+    // 不等于就Resize
+    if (!this->is_direct_composition()) {
+        if (old_size.width != uint32_t(rect_right) ||
+            old_size.height != uint32_t(rect_bottom)) {
+            force = true;
+        }
+    }
     // 小于才Resize
-    if (old_size.width < uint32_t(rect_right) || old_size.height < uint32_t(rect_bottom)) {
+    if (force || old_size.width < uint32_t(rect_right) 
+        || old_size.height < uint32_t(rect_bottom)) {
         UIManager << DL_Hint << L"Window: ["
             << m_pViewport->name
             << L"]\tTarget Bitmap Resize to "
@@ -2336,7 +2347,7 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
         else {
             // 一般桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
             // 利用窗口句柄创建交换链
             hr = UIManager_DXGIFactory->CreateSwapChainForHwnd(
                 UIManager_D3DDevice,
@@ -2359,12 +2370,13 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
     }
     // 获取垂直等待事件
     if (SUCCEEDED(hr)) {
-        //m_hVSync = m_pSwapChain->GetFrameLatencyWaitableObject();
+        m_hVSync = m_pSwapChain->GetFrameLatencyWaitableObject();
     }
     // 确保DXGI队列里边不会超过一帧
     if (SUCCEEDED(hr)) {
         hr = m_pSwapChain->SetMaximumFrameLatency(1);
         longui_debug_hr(hr, L"m_pSwapChain->SetMaximumFrameLatency faild");
+        //hr = S_OK;
     }
     // 利用交换链获取Dxgi表面
     if (SUCCEEDED(hr)) {
@@ -2509,36 +2521,40 @@ void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     // 结束渲染
     UIManager_RenderTarget->EndDraw();
     HRESULT hr = S_OK;
-    // 全渲染
-    if (this->is_full_render_this_frame_render()) {
-        hr = m_pSwapChain->Present(0, 0);
-        // 呈现
-        longui_debug_hr(hr, L"m_pSwapChain->Present1 full rendering faild");
-    }
-    // 脏渲染
-    else {
-        // 呈现参数设置
-        RECT scroll = { 0, 0, this->GetWidth(), this->GetHeight() };
-        RECT rects[LongUIDirtyControlSize];
-        DXGI_PRESENT_PARAMETERS present_parameters;
-        present_parameters.DirtyRectsCount = m_uUnitLengthRender;
-        present_parameters.pDirtyRects = rects;
-        present_parameters.pScrollRect = &scroll;
-        present_parameters.pScrollOffset = nullptr;
-        // 设置参数
-        auto control = m_apUnitRender;
-        for (auto itr = rects; itr < rects + m_uUnitLengthRender; ++itr) {
-            const auto& vrt = (*control)->visible_rect;
-            itr->left = static_cast<LONG>(vrt.left);
-            itr->top = static_cast<LONG>(vrt.top);
-            itr->right = static_cast<LONG>(std::ceil(vrt.right));
-            itr->bottom = static_cast<LONG>(std::ceil(vrt.bottom));
-            ++control;
+    {
+        // 全渲染
+        if (this->is_full_render_this_frame_render()) {
+            hr = m_pSwapChain->Present(0, 0);
+            //if (hr == DXGI_ERROR_WAS_STILL_DRAWING) hr = S_FALSE;
+            // 呈现
+            longui_debug_hr(hr, L"m_pSwapChain->Present1 full rendering faild");
         }
-        // 提交
-        hr = m_pSwapChain->Present1(0, 0, &present_parameters);
-        // 呈现
-        longui_debug_hr(hr, L"m_pSwapChain->Present1 dirty rendering faild");
+        // 脏渲染
+        else {
+            // 呈现参数设置
+            RECT scroll = { 0, 0, this->GetWidth(), this->GetHeight() };
+            RECT rects[LongUIDirtyControlSize];
+            DXGI_PRESENT_PARAMETERS present_parameters;
+            present_parameters.DirtyRectsCount = m_uUnitLengthRender;
+            present_parameters.pDirtyRects = rects;
+            present_parameters.pScrollRect = &scroll;
+            present_parameters.pScrollOffset = nullptr;
+            // 设置参数
+            auto control = m_apUnitRender;
+            for (auto itr = rects; itr < rects + m_uUnitLengthRender; ++itr) {
+                const auto& vrt = (*control)->visible_rect;
+                itr->left = static_cast<LONG>(vrt.left);
+                itr->top = static_cast<LONG>(vrt.top);
+                itr->right = static_cast<LONG>(std::ceil(vrt.right));
+                itr->bottom = static_cast<LONG>(std::ceil(vrt.bottom));
+                ++control;
+            }
+            // 提交
+            hr = m_pSwapChain->Present1(0, 0, &present_parameters);
+            //if (hr == DXGI_ERROR_WAS_STILL_DRAWING) hr = S_FALSE;
+            // 呈现
+            longui_debug_hr(hr, L"m_pSwapChain->Present1 dirty rendering faild");
+        }
     }
     // 收到重建消息/设备丢失时 重建UI
 #ifdef _DEBUG
@@ -2595,6 +2611,8 @@ void LongUI::CUIBuiltinSystemWindow::Render() const noexcept {
     if (this->is_skip_render()) return;
     // 无需渲染?
     if (!this->is_full_render_this_frame_render() && !m_uUnitLengthRender) return;
+    // 等待
+    ::WaitForSingleObjectEx(m_hVSync, 100, true);
     // 开始渲染
     this->BeginRender();
     // 全渲染
@@ -2781,7 +2799,7 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
         // 创建窗口
         m_hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
-            WS_EX_NOREDIRECTIONBITMAP,
+            this->is_direct_composition() ? WS_EX_NOREDIRECTIONBITMAP : 0,
             config.popup ? LongUI::WindowClassNameP : LongUI::WindowClassNameN,
             titlename.c_str(),
             window_style,
@@ -2818,6 +2836,10 @@ LongUI::CUIBuiltinSystemWindow::CUIBuiltinSystemWindow(const Config::Window& con
 /// </summary>
 /// <returns></returns>
 LongUI::CUIBuiltinSystemWindow::~CUIBuiltinSystemWindow() noexcept {
+    if (m_hVSync) {
+        ::CloseHandle(m_hVSync);
+        m_hVSync = nullptr;
+    }
     // 设置窗口指针
     ::SetWindowLongPtrW(m_hwnd, GWLP_USERDATA, LONG_PTR(0));
     // 释放资源

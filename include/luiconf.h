@@ -91,9 +91,6 @@ namespace LongUI {
 //#define LONGUI_NUCLEAR_FIRST
 
 #ifdef LONGUI_WITH_DEFAULT_HEADER
-#ifndef _DEBUG
-#define NDEBUG
-#endif
 #include <Windows.h>
 //#include <commctrl.h>
 #include <Shlobj.h>

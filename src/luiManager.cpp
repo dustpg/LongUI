@@ -597,6 +597,13 @@ void LongUI::CUIManager::Exit() noexcept {
     UIManager << DL_Log << L" CALLED" << LongUI::endl;
     this->exit();
 }
+namespace LongUI {
+    namespace impl {
+        void dbg_cal_fps() {
+
+        }
+    }
+}
 #endif
 
 #ifdef LONGUI_RENDER_IN_STD_THREAD
@@ -605,12 +612,16 @@ void LongUI::CUIManager::Exit() noexcept {
 #include <process.h>
 #endif
 
+
 // 消息循环
 void LongUI::CUIManager::Run() noexcept {
     // 开始!
     m_dwWaitVSStartTime = ::timeGetTime();
+    UIManager.m_uiTimeMeter.RefreshFrequency();
     // 渲染线程函数
     auto render_thread_func = [](void*) noexcept ->unsigned {
+        // 更新
+        UIManager.m_cStartTick = UIManager.m_cNowTick = ::timeGetTime();
         // 循环
         while (true) {
             // 刷新
@@ -623,6 +634,19 @@ void LongUI::CUIManager::Run() noexcept {
                 // 更新计时器
                 UIManager.m_fDeltaTime = UIManager.m_uiTimeMeter.Delta_s<float>();
                 UIManager.m_uiTimeMeter.MovStartEnd();
+                auto old = UIManager.m_cNowTick;
+                auto now = ::timeGetTime(); UIManager.m_cNowTick = now;
+                // 大概每隔2分钟, 刷新一次
+                /*constexpr uint32_t REFRESH_RATE = 1024 * 128 - 1;
+                constexpr uint32_t REFRESH_MASK = ~REFRESH_RATE;
+                if ((old & REFRESH_MASK) != (now & REFRESH_MASK) ) {
+                    UIManager.m_uiTimeMeter.RefreshFrequency();
+#ifdef _DEBUG
+                    UIManager << DL_Log
+                        << L"m_uiTimeMeter.RefreshFrequency"
+                        << LongUI::endl;
+#endif
+                }*/
                 // 更新时间胶囊
                 UIManager.update_time_capsules(UIManager.m_fDeltaTime);
                 // 刷新窗口
@@ -727,9 +751,9 @@ void LongUI::CUIManager::Run() noexcept {
 // 等待垂直同步
 void LongUI::CUIManager::wait_for_vblank() noexcept {
     // 自行等待垂直同步以方便游戏窗口不等待垂直同步的实现
-    /*if (this->flag & IUIConfigure::Flag_RenderInAnytime) {
+    if (this->flag & IUIConfigure::Flag_RenderInAnytime) {
         return;
-    }*/
+    }
     // 存在DXGI输出?
     if (m_pDxgiOutput) {
         m_pDxgiOutput->WaitForVBlank();
