@@ -448,20 +448,9 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
     if (m_fBorderWidth > 0.f) {
         D2D1_ROUNDED_RECT brect; this->GetBorderRect(brect.rect);
         m_pBrush_SetBeforeUse->SetColor(&m_colorBorderNow);
-#if 0
-        if (m_2fBorderRdius.width > 0.f && m_2fBorderRdius.height > 0.f) {
-            brect.radiusX = m_2fBorderRdius.width;
-            brect.radiusY = m_2fBorderRdius.height;
-            UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-        }
-        else {
-            UIManager_RenderTarget->DrawRectangle(&brect.rect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-        }
-#else
         brect.radiusX = m_2fBorderRdius.width;
         brect.radiusY = m_2fBorderRdius.height;
         UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
-#endif
     }
 }
 

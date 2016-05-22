@@ -185,6 +185,8 @@ namespace LongUI {
         // exit the app
         void Exit() noexcept { this->exit(); }
 #endif
+        // is exit
+        bool IsExit() const noexcept { return !!m_exitFlag; }
         // get system window count
         auto GetSystemWindowCount() const noexcept { return m_vWindows.size(); }
         // recreate resources
