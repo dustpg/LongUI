@@ -1110,7 +1110,9 @@ void LongUI::UIContainer::child_do_render(const UIControl* ctrl) noexcept {
         // 检查剪切规则
         if (ctrl->flags & Flag_ClipStrictly) {
             D2D1_RECT_F clip_rect; ctrl->GetClipRect(clip_rect);
-            UIManager_RenderTarget->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            UIManager_RenderTarget->PushAxisAlignedClip(
+                &clip_rect, D2D1_ANTIALIAS_MODE_ALIASED
+            );
         }
         // 渲染
         ctrl->Render();

@@ -618,7 +618,7 @@ void LongUI::UIViewport::Render() const noexcept {
             D2D1_POINT_2F clipr[2];
             clipr[0] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.left));
             clipr[1] = LongUI::TransformPointInverse(ctrl->world, reinterpret_cast<D2D1_POINT_2F&>(ctrl->visible_rect.right));
-            UIManager_RenderTarget->PushAxisAlignedClip(reinterpret_cast<D2D1_RECT_F*>(clipr), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            UIManager_RenderTarget->PushAxisAlignedClip(reinterpret_cast<D2D1_RECT_F*>(clipr), D2D1_ANTIALIAS_MODE_ALIASED);
 #if 0 // def _DEBUG
             if (this->debug_this) {
                 AutoLocker;
@@ -2627,7 +2627,7 @@ void LongUI::CUIBuiltinSystemWindow::Render() const noexcept {
         for (auto itr = m_apUnitRender; itr < m_apUnitRender + m_uUnitLengthRender; ++itr) {
             auto ctrl = *itr; assert(ctrl != m_pViewport && "check the code");
             UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
-            UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            UIManager_RenderTarget->PushAxisAlignedClip(&ctrl->visible_rect, D2D1_ANTIALIAS_MODE_ALIASED);
             UIManager_RenderTarget->SetTransform(&ctrl->world);
             // 渲染背景笔刷?
             /*if (ctrl->backgroud != ctrl && ctrl->backgroud) {

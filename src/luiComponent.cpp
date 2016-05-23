@@ -2151,11 +2151,11 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
 
 
 // longui::impl namepsace
-namespace LongUI { namespace impl{
+namespace LongUI { namespace impl {
     // same v-table?
     template<class A, class B> auto same_vtable(const A* a, const B* b) noexcept {
-        auto table1 = (*reinterpret_cast<const size_t * const>(a));
-        auto table2 = (*reinterpret_cast<const size_t * const>(b));
+        const auto table1 = (*reinterpret_cast<const size_t * const>(a));
+        const auto table2 = (*reinterpret_cast<const size_t * const>(b));
         return table1 == table2;
     }
 }}
@@ -2256,6 +2256,11 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     else {
         color = &this->basic_color.color;
     }
+#ifdef _DEBUG
+    if (glyphRun->isSideways) {
+        UIManager << DL_Log << L"isSideways" << LongUI::endl;
+    }
+#endif
     // 设置颜色
     m_pBrush->SetColor(color);
     // 利用D2D接口直接渲染字形

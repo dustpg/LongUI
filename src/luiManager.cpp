@@ -977,7 +977,8 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
 
 // 注册文本渲染器
 auto LongUI::CUIManager::RegisterTextRenderer(
-    XUIBasicTextRenderer* renderer, const char name[LongUITextRendererNameMaxLength]
+    XUIBasicTextRenderer* renderer, 
+    const char name[LongUITextRendererNameMaxLength]
 ) noexcept -> int32_t {
     assert(m_uTextRenderCount < lengthof(m_apTextRenderer) && "buffer too small");
     assert(!white_space(name[0]) && "name cannot begin with white space");

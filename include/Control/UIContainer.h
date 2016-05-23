@@ -286,7 +286,9 @@ namespace LongUI {
         // push clip for children
         {
             D2D1_RECT_F clip_rect; this->GetViewRect(clip_rect);
-            target->PushAxisAlignedClip(&clip_rect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+            target->PushAxisAlignedClip(
+                &clip_rect, D2D1_ANTIALIAS_MODE_ALIASED
+            );
         }
         // render children
         for (auto itr = itrbegin; itr != itrend; ++itr) {
