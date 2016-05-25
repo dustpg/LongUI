@@ -65,6 +65,22 @@ namespace LongUI {
             assert(ok && "this control do not support this event!");
             return ok;
         }
+        // add onclicked
+        template<typename T> auto Add_OnClicked(T call) noexcept {
+            return this->AddEventCall(call, SubEvent::Event_ItemClicked);
+        }
+        // add ondbclicked
+        template<typename T> auto Add_OnDbClicked(T call) noexcept {
+            return this->AddEventCall(call, SubEvent::Event_ItemDbClicked);
+        }
+        // add onchanged
+        template<typename T> auto Add_OnChanged(T call) noexcept {
+            return this->AddEventCall(call, SubEvent::Event_ValueChanged);
+        }
+        // add onreturned
+        template<typename T> auto Add_OnReturned(T call) noexcept {
+            return this->AddEventCall(call, SubEvent::Event_EditReturned);
+        }
         // get text
         auto GetText() noexcept ->const wchar_t* {
             EventArgument arg; arg.sender = this; arg.event = Event::Event_GetText;

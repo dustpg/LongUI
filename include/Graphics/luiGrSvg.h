@@ -29,7 +29,7 @@
 // longui::svg namespace
 namespace LongUI { namespace SVG {
     // parser path
-    auto ParserPath(const char* path, ID2D1PathGeometry1** OUT out) noexcept ->HRESULT;
+    auto ParserPath(const char* path, /*OUT*/ID2D1PathGeometry1** out) noexcept ->HRESULT;
     // parser path
-    auto ParserPath(const char* path, ID2D1PathGeometry* IN geometry) noexcept ->HRESULT;
+    auto ParserPath(const char* path, /*IN*/ID2D1PathGeometry* geometry) noexcept ->HRESULT;
 }}

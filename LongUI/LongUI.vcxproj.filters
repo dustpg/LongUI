@@ -287,6 +287,9 @@
     <ClCompile Include="..\src\luiInObj.cpp">
       <Filter>Source Files\XUtil</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\luiSvg.cpp">
+      <Filter>Source Files\LongUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="longui.natvis">

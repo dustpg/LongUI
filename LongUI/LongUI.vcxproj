@@ -201,6 +201,7 @@
     <ClCompile Include="..\src\luiMenu.cpp" />
     <ClCompile Include="..\src\luiPoFile.cpp" />
     <ClCompile Include="..\src\luiResLoader.cpp" />
+    <ClCompile Include="..\src\luiSvg.cpp" />
     <ClCompile Include="..\src\UIContainers.cpp" />
     <ClCompile Include="..\src\UICtrlCR.cpp" />
     <ClCompile Include="..\src\UICtrCBT.cpp" />
