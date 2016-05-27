@@ -59,29 +59,19 @@ namespace LongUI { namespace Component {
         const auto&GetString() const noexcept { return m_text; }
         // c_str for stl-like
         auto c_str() const noexcept { return m_text.c_str(); }
-    public:
         // get layout
         auto GetLayout() const noexcept { return LongUI::SafeAcquire(m_pLayout); }
-        // set layout
-        auto SetLayout(IDWriteTextLayout* layout) noexcept {
-            assert(layout);
-            assert(m_config.rich_type == RichType::Type_None && "set layout must be Type_None mode");
-            LongUI::SafeRelease(m_pLayout);
-            m_pLayout = LongUI::SafeAcquire(layout);
-        }
-        // set new size
-        inline auto Resize(float w, float h) noexcept {
-            m_config.width = w; m_config.height = h;
-            if (!m_pLayout) return;
-            m_pLayout->SetMaxWidth(w); m_pLayout->SetMaxHeight(h);
-        }
         // set new progress
-        inline auto SetNewProgress(float p) noexcept { 
-            m_config.progress = p; 
-            return this->RecreateLayout();
-        }
+        void SetNewProgress(float p) noexcept { m_config.progress = p; this->RecreateLayout(); }
+    public:
+        // set layout
+        auto SetLayout(IDWriteTextLayout* layout) noexcept;
+        // set new size
+        void Resize(float w, float h) noexcept;
         // render it
         void Render(ID2D1RenderTarget* target, D2D1_POINT_2F) const noexcept;
+        // get text box
+        void GetTextBox(RectLTWH_F& rect) const noexcept;
     public:
         // state color
         D2D1_COLOR_F                color[STATE_COUNT];

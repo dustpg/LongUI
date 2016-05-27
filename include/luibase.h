@@ -234,28 +234,40 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
         Flag_HeightFixed = 1 << 4,
+        /// <summary>
+        /// auto size, need control implement support.
+        /// set width to  a negative number,
+        /// </summary>
+        /// <remarks>
+        /// attribute ("size") size="-1, 0"
+        /// </remarks>
+        Flag_AutoWidth = 1 << 5,
+        /// <summary>
+        /// auto size, need control implement support.
+        /// set height to a negative number
         /// 
-        /// 
-        /// 
-        /// 
-        /// 
-        /// 
+        /// built-in supported control: UIText & sub-class
+        /// </summary>
+        /// <remarks>
+        /// attribute ("size") size="0, -1"
+        /// </remarks>
+        Flag_AutoHeight = 1 << 6,
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
         // NOTE: this attribute used by parent
         // NOTE: container should be true in this case but not mandatory
         // XML Attribute : "strictclip"@bool
-        Flag_ClipStrictly = 1 << 6,
+        Flag_ClipStrictly = 1 << 7,
         // [default: false][auto, no specified]
         // control need pre-render for content
         // call UIViewport::RegisterOffScreenRender2D or
         // call UIViewport::RegisterOffScreenRender3D to set
-        Flag_NeedRegisterOffScreenRender = 1 << 7,
+        Flag_NeedRegisterOffScreenRender = 1 << 8,
         // [default: false][auto, no specified]
         // control need Direct3D api to render,
         // call UIViewport::RegisterOffScreenRender3D to set
         // if use Direct2D , call UIViewport::RegisterOffScreenRender2D
-        Flag_OffScreen3DContent = 1 << 8,
+        Flag_OffScreen3DContent = 1 << 9,
 #if 0
         // [default: false][auto, and xml attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,

@@ -198,7 +198,7 @@ const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 
             </HorizontalLayout>
 
-            <Button size="0, 64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
+            <Button size="0,64" borderwidth="1" textrichtype="xml" margin="4,4,4,4" textformat="2"
                 text="ABCDEFG&lt;img src=&quot;1&quot; size=&quot;16,16&quot;/&gt;测试"/>
 
             <Null/>

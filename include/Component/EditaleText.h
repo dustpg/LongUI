@@ -185,7 +185,9 @@ namespace LongUI { namespace Component {
         // align caret
         void AlignCaretToNearestCluster(bool, bool = false) noexcept;
         // get the caret rect
-        void GetCaretRect(RectLTWH_F&)const noexcept;
+        void GetCaretRect(RectLTWH_F&) const noexcept;
+        // get text box
+        void GetTextBox(RectLTWH_F& rect) const noexcept;
         // update this
         void Update() noexcept;
         // render this: absolute postion

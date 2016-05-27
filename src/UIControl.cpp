@@ -216,13 +216,12 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
 #ifdef _DEBUG
         this->debug_this = node.attribute("debug").as_bool(false);
 #endif
-        const char* data = nullptr;
         // 检查脚本
-        if ((data = node.attribute(XmlAttribute::Script).value()) && UIManager.script) {
-            m_script = UIManager.script->AllocScript(data);
+        if (const auto data = node.attribute(XmlAttribute::Script).value()) {
+            if (UIManager.script) m_script = UIManager.script->AllocScript(data);
         }
         // 检查权重
-        if (data = node.attribute(LongUI::XmlAttribute::LayoutWeight).value()) {
+        if (const auto data = node.attribute(LongUI::XmlAttribute::LayoutWeight).value()) {
             force_cast(this->weight) = LongUI::AtoF(data);
         }
         // 检查布局上下文
@@ -231,7 +230,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
             force_cast(this->context)
         );
         // 检查背景笔刷
-        if (data = node.attribute(LongUI::XmlAttribute::BackgroudBrush).value()) {
+        if (const auto data = node.attribute(LongUI::XmlAttribute::BackgroudBrush).value()) {
             m_idBackgroudBrush = uint16_t(LongUI::AtoI(data));
             if (m_idBackgroudBrush) {
                 assert(!m_pBackgroudBrush);
@@ -287,7 +286,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
             flag |= LongUI::Flag_ClipStrictly;
         }
         // 边框大小
-        if (data = node.attribute(LongUI::XmlAttribute::BorderWidth).value()) {
+        if (const auto data = node.attribute(LongUI::XmlAttribute::BorderWidth).value()) {
             m_fBorderWidth = LongUI::AtoF(data);
         }
         // 边框圆角
@@ -297,20 +296,28 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
         );
         // 检查控件大小
         {
-            float size[] = { 0.f, 0.f };
-            Helper::MakeFloats(
-                node.attribute(LongUI::XmlAttribute::AllSize).value(),
-                size
-            );
-            // 视口区宽度固定?
-            if (size[0] > 0.f) {
-                flag |= LongUI::Flag_WidthFixed;
-                this->SetWidth(size[0]);
-            }
-            // 视口区高度固固定?
-            if (size[1] > 0.f) {
-                flag |= LongUI::Flag_HeightFixed;
-                this->SetHeight(size[1]);
+            auto tsz = LongUI::XmlAttribute::AllSize;
+            if (const auto str = node.attribute(tsz).value()) {
+                float size[] = { 0.f, 0.f };
+                Helper::MakeFloats(str, size);
+                // 视口区宽度固定?
+                if (size[0] > 0.f) {
+                    flag |= LongUI::Flag_WidthFixed;
+                    this->SetWidth(size[0]);
+                }
+                // 自带调整宽度
+                else if (size[0] < 0.f) {
+                    flag |= LongUI::Flag_AutoWidth;
+                }
+                // 视口区高度固固定?
+                if (size[1] > 0.f) {
+                    flag |= LongUI::Flag_HeightFixed;
+                    this->SetHeight(size[1]);
+                }
+                // 自带调整高度
+                else if (size[1] < 0.f) {
+                    flag |= LongUI::Flag_AutoHeight;
+                }
             }
         }
         // 禁止
@@ -549,12 +556,15 @@ auto LongUI::UIControl::GetNonContentHeight() const noexcept -> float {
         + m_fBorderWidth * 2.f;
 }
 
-// 设置占用宽度
-auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
-    // 设置
-    auto new_vwidth = width - this->GetNonContentWidth();
-    if (new_vwidth != this->view_size.width) {
-        force_cast(this->view_size.width) = new_vwidth;
+ /// <summary>
+/// Sets the width of the content.
+/// </summary>
+/// <param name="width">The width.</param>
+/// <returns></returns>
+void LongUI::UIControl::SetContentWidth(float width) noexcept {
+    // 不同就修改
+    if (width != this->view_size.width) {
+        force_cast(this->view_size.width) = width;
         this->SetControlLayoutChanged();
     }
     // 检查
@@ -565,12 +575,15 @@ auto LongUI::UIControl::SetWidth(float width) noexcept -> void {
     }
 }
 
-// 设置占用高度
-auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline {
-    // 设置
-    auto new_vheight = height - this->GetNonContentHeight();
-    if (new_vheight != this->view_size.height) {
-        force_cast(this->view_size.height) = new_vheight;
+/// <summary>
+/// Sets the height of the content.
+/// </summary>
+/// <param name="height">The height.</param>
+/// <returns></returns>
+void LongUI::UIControl::SetContentHeight(float height) noexcept {
+    // 不同就修改
+    if (height != this->view_size.height) {
+        force_cast(this->view_size.height) = height;
         this->SetControlLayoutChanged();
     }
     // 检查
@@ -579,6 +592,16 @@ auto LongUI::UIControl::SetHeight(float height) noexcept -> void LongUINoinline 
             << "viewport's height < 0: " << this->view_size.height
             << LongUI::endl;
     }
+}
+
+// 设置占用宽度
+void LongUI::UIControl::SetWidth(float width) noexcept {
+    this->SetContentWidth(width - this->GetNonContentWidth());
+}
+
+// 设置占用高度
+void LongUI::UIControl::SetHeight(float height) noexcept {
+    this->SetContentHeight(height - this->GetNonContentHeight());
 }
 
 // 设置控件左坐标

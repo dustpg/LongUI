@@ -139,6 +139,22 @@ void LongUI::UIButton::initialize(pugi::xml_node node) noexcept {
     m_uiElement.Init(this->check_state(), 0, node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
+    // 自动调整大小
+    auto autosize = (Flag_AutoWidth | Flag_AutoHeight);
+    if (this->flags & autosize) {
+        RectLTWH_F rect; m_text.GetTextBox(rect);
+
+        // 自带调整宽度
+        if (this->flags & Flag_AutoWidth) {
+            flag |= Flag_WidthFixed;
+            this->SetContentWidth(rect.width);
+        }
+        // 自带调整高度
+        if (this->flags & Flag_AutoHeight) {
+            flag |= Flag_HeightFixed;
+            this->SetContentHeight(rect.height);
+        }
+    }
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
     // 修改

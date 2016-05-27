@@ -6,12 +6,34 @@
 #include <Component/Text.h>
 #include <Platless/luiPlUtil.h>
 #include <Core/luiMenu.h>
-
 #undef LONGUI_WITH_MMFVIDEO
 #ifdef LONGUI_WITH_MMFVIDEO
 #include <Component/Video.h>
 #endif
 #include <algorithm>
+
+
+// longui::impl
+LONGUI_NAMESPACE_BEGIN namespace impl {
+    /// <summary>
+    /// get textbox the specified layout.
+    /// </summary>
+    /// <param name="layout">The layout.</param>
+    /// <param name="rect">The rect.</param>
+    /// <returns></returns>
+    void get_text_box(IDWriteTextLayout* layout, RectLTWH_F& rect) noexcept {
+        if (layout) {
+            DWRITE_TEXT_METRICS tm;
+            if (SUCCEEDED(layout->GetMetrics(&tm))) {
+                rect.left = tm.left;
+                rect.top = tm.top;
+                rect.width = tm.widthIncludingTrailingWhitespace;
+                rect.height = tm.height;
+            }
+        }
+    }
+}
+LONGUI_NAMESPACE_END
 
 // longui::component
 LONGUI_NAMESPACE_BEGIN namespace Component {
@@ -147,7 +169,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         m_config.format = UIManager.GetTextFormat(0);
         this->RecreateLayout();
     }
-    // ShortText 析构
+    /// <summary>
+    /// Finalizes an instance of the <see cref="ShortText"/> class.
+    /// </summary>
+    /// <returns></returns>
     ShortText::~ShortText() noexcept {
         LongUI::SafeRelease(m_pLayout);
         LongUI::SafeRelease(m_pTextRenderer);
@@ -157,8 +182,43 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             m_pTextContext = nullptr;
         }
     }
-    // render
-    void ShortText::Render(ID2D1RenderTarget* target,D2D1_POINT_2F pt) const noexcept {
+    /// <summary>
+    /// Resizes the specified w & h
+    /// </summary>
+    /// <param name="w">The w.</param>
+    /// <param name="h">The h.</param>
+    /// <returns></returns>
+    void ShortText::Resize(float w, float h) noexcept {
+        m_config.width = w; m_config.height = h;
+        if (!m_pLayout) return;
+        m_pLayout->SetMaxWidth(w); m_pLayout->SetMaxHeight(h);
+    }
+    /// <summary>
+    /// Gets the text box.
+    /// </summary>
+    /// <param name="rect">The rect.</param>
+    /// <returns></returns>
+    void ShortText::GetTextBox(RectLTWH_F& rect) const noexcept {
+        impl::get_text_box(m_pLayout, rect);
+    }
+    /// <summary>
+    /// Sets the layout.
+    /// </summary>
+    /// <param name="layout">The layout.</param>
+    /// <returns></returns>
+    auto ShortText::SetLayout(IDWriteTextLayout* layout) noexcept {
+        assert(layout);
+        assert(m_config.rich_type == RichType::Type_None && "set layout must be Type_None mode");
+        LongUI::SafeRelease(m_pLayout);
+        m_pLayout = LongUI::SafeAcquire(layout);
+    }
+    /// <summary>
+    /// Renders the specified target.
+    /// </summary>
+    /// <param name="target">The target.</param>
+    /// <param name="pt">The pt.</param>
+    /// <returns></returns>
+    void ShortText::Render(ID2D1RenderTarget* target, D2D1_POINT_2F pt) const noexcept {
         assert(target && "bad argument");
         if (!m_pLayout) return;
         m_pTextRenderer->target = target;
@@ -1161,8 +1221,16 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             m_u32CaretPosOffset = 0;
         }
     }
+    /// <summary>
+    /// Gets the text box
+    /// </summary>
+    /// <param name="rect">The rect.</param>
+    /// <returns></returns>
+    void EditaleText::GetTextBox(RectLTWH_F& rect) const noexcept {
+        impl::get_text_box(this->layout, rect);
+    }
     // 获取插入符号矩形
-    void EditaleText::GetCaretRect(RectLTWH_F& rect)const noexcept {
+    void EditaleText::GetCaretRect(RectLTWH_F& rect) const noexcept {
         // 检查布局
         if (this->layout) {
             // 获取 f(文本偏移) -> 坐标

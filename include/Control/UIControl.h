@@ -140,7 +140,7 @@ namespace LongUI {
         void render_chain_foreground() const noexcept;
     public:
         // call ui event
-        bool CallUiEvent(const UICallBack& call, SubEvent sb) noexcept(noexcept(call.operator()));
+        bool CallUiEvent(const UICallBack& call, SubEvent sb) noexcept;
         // do event helper
         bool DoLongUIEvent(LongUI::Event e) noexcept {
             EventArgument arg; arg.sender = this; arg.event = e;
@@ -233,13 +233,17 @@ namespace LongUI {
         // get left of control
         auto GetTop() noexcept { return this->view_pos.y - (this->margin_rect.top + m_fBorderWidth); };
         // set left of control
-        auto SetLeft(float left) noexcept ->void;
+        void SetLeft(float left) noexcept;
         // set left of control
-        auto SetTop(float top) noexcept ->void;
+        void SetTop(float top) noexcept;
+        // set new Content width of control
+        void SetContentWidth(float width) noexcept ;
+        // set new Content height of control
+        void SetContentHeight(float height) noexcept ;
         // set new taking up width of control
-        auto SetWidth(float width) noexcept ->void LongUINoinline;
+        void SetWidth(float width) noexcept;
         // set new taking up height of control
-        auto SetHeight(float height) noexcept ->void LongUINoinline;
+        void SetHeight(float height) noexcept;
         // get rect for cliping
         void GetClipRect(D2D1_RECT_F& rect) const noexcept;
         // get border rect
