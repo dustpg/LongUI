@@ -28,7 +28,7 @@
 
 // LongUI namespace
 namespace LongUI {
-    // single control class, UISingle always hosts a child
+    // single control class, UISingle always hosts one child
     class UISingle : public UIContainer {
         // super class
         using Super = UIContainer;
@@ -96,13 +96,7 @@ namespace LongUI {
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
     };
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UISingle>() {
-        // {B3C3CDEB-21A7-48E3-8E6C-693212ED7619}
-        static const GUID IID_LongUI_UISingle = {
-            0xb3c3cdeb, 0x21a7, 0x48e3, { 0x8e, 0x6c, 0x69, 0x32, 0x12, 0xed, 0x76, 0x19 }
-        };
-        return IID_LongUI_UISingle;
-    }
+    template<> const IID& GetIID<LongUI::UISingle>() noexcept;
 #else
 };
 #endif

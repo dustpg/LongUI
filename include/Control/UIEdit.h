@@ -82,12 +82,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIEdit>() {
-        // {D60826F0-4AF1-48F9-A63A-58117943CE66}
-        static const GUID IID_LongUI_UIEdit = { 
-            0xd60826f0, 0x4af1, 0x48f9, { 0xa6, 0x3a, 0x58, 0x11, 0x79, 0x43, 0xce, 0x66 } 
-        };
-        return IID_LongUI_UIEdit;
-    }
+    template<> const IID& GetIID<LongUI::UIEdit>() noexcept;
 #endif
 }

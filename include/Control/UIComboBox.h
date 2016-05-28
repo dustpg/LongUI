@@ -119,12 +119,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIComboBox>() {
-        // {01C8A079-4BF6-4F04-BE48-04E47C056CCE}
-        static const GUID IID_LongUI_UIComboBox = { 
-            0x1c8a079, 0x4bf6, 0x4f04, { 0xbe, 0x48, 0x4, 0xe4, 0x7c, 0x5, 0x6c, 0xce } 
-        };
-        return IID_LongUI_UIComboBox;
-    }
+    template<> const IID& GetIID<LongUI::UIComboBox>() noexcept;
 #endif
 }

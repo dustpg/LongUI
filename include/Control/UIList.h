@@ -329,29 +329,11 @@ namespace LongUI {
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
     };
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIListLine>() {
-        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
-        static const GUID IID_LongUI_UIListLine= {
-         0x83b86af2, 0x6755, 0x47a8, { 0xba, 0x7d, 0x69, 0x3c, 0x2b, 0xdb, 0xf, 0xbc } 
-        };
-        return IID_LongUI_UIListLine;
-    }
+    template<> const IID& GetIID<LongUI::UIListLine>() noexcept;
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIList>() {
-        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
-        static const GUID IID_LongUI_UIList = {
-            0xe5cf04fc, 0x1221, 0x4e06,{ 0xb6, 0xf3, 0x31, 0x5d, 0x45, 0xb1, 0xf2, 0xe6 } 
-        };
-        return IID_LongUI_UIList;
-    }
+    template<> const IID& GetIID<LongUI::UIList>() noexcept;
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIListHeader>() {
-        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
-        static const GUID IID_LongUI_UIListHeader = { 
-            0x6db3aac2, 0xf4cf, 0x4301, { 0x92, 0x91, 0xa5, 0x18, 0x1b, 0x22, 0xa0, 0x39 } 
-        };
-        return IID_LongUI_UIListHeader;
-    }
+    template<> const IID& GetIID<LongUI::UIListHeader>() noexcept;
 #else
     };
 #endif

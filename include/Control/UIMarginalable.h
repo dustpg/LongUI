@@ -101,12 +101,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIMarginalable>() {
-        // {6CF3853D-6740-4635-AF7E-F8A42AEBA6C9}
-        static const GUID IID_LongUI_UIMarginalControl = { 
-            0x6cf3853d, 0x6740, 0x4635,{ 0xaf, 0x7e, 0xf8, 0xa4, 0x2a, 0xeb, 0xa6, 0xc9 } 
-        };
-        return IID_LongUI_UIMarginalControl;
-    }
+    template<> const IID& GetIID<LongUI::UIMarginalable>() noexcept;
 #endif
 }

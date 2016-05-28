@@ -106,20 +106,8 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIHorizontalLayout>() {
-        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
-        static const GUID IID_LongUI_UIHorizontalLayout = {
-            0xe5cf04fc, 0x1221, 0x4e06,{ 0xb6, 0xf3, 0x31, 0x5d, 0x45, 0xb1, 0xf2, 0xe6 } 
-        };
-        return IID_LongUI_UIHorizontalLayout;
-    }
+    template<> const IID& GetIID<LongUI::UIHorizontalLayout>() noexcept;
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIVerticalLayout>() {
-        // {3BE5198C-B922-4C99-827E-F0D08875B045}
-        static const GUID IID_LongUI_UIVerticalLayout = {
-            0x3be5198c, 0xb922, 0x4c99,{ 0x82, 0x7e, 0xf0, 0xd0, 0x88, 0x75, 0xb0, 0x45 } 
-        };
-        return IID_LongUI_UIVerticalLayout;
-    }
+    template<> const IID& GetIID<LongUI::UIVerticalLayout>() noexcept;
 #endif
 }

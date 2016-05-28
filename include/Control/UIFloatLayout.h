@@ -67,12 +67,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIFloatLayout>() {
-        // {8EE34AFA-7FC5-4F06-85B3-6B834979B3AF}
-        static const GUID IID_LongUI_UIFloatLayout = {
-            0x8ee34afa, 0x7fc5, 0x4f06, { 0x85, 0xb3, 0x6b, 0x83, 0x49, 0x79, 0xb3, 0xaf } 
-        };
-        return IID_LongUI_UIFloatLayout;
-    }
+    template<> const IID& GetIID<LongUI::UIFloatLayout>() noexcept;
 #endif
 }

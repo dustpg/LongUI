@@ -107,12 +107,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIRadioButton>() {
-        // {AC3EDEE4-BF70-434D-8F73-E7F8EA702F0E}
-        static const GUID IID_LongUI_UIRadioButton = { 
-            0xac3edee4, 0xbf70, 0x434d, { 0x8f, 0x73, 0xe7, 0xf8, 0xea, 0x70, 0x2f, 0xe } 
-        };
-        return IID_LongUI_UIRadioButton;
-    }
+    template<> const IID& GetIID<LongUI::UIRadioButton>() noexcept;
 #endif
 }

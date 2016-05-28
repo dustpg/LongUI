@@ -12,6 +12,7 @@
 #include "Control/UIRadioButton.h"
 #include "Control/UIFloatLayout.h"
 #endif
+
 #include <algorithm>
 
 // ----------------------------------------------------------------------------
@@ -48,6 +49,26 @@ void LongUI::UIText::Update() noexcept {
     return Super::Update();
 }
 
+/// <summary>
+/// refresh auto-size for this control
+/// </summary>
+/// <returns></returns>
+void LongUI::UIText::refresh_auto_size() noexcept {
+    // 自动调整大小
+    if (this->flags & (Flag_AutoWidth | Flag_AutoHeight)) {
+        RectLTWH_F rect; m_text.GetTextBox(rect);
+        // 自动调整宽度
+        if (this->flags & Flag_AutoWidth) {
+            this->SetContentWidth(rect.width);
+        }
+        // 自动调整高度
+        if (this->flags & Flag_AutoHeight) {
+            this->SetContentHeight(rect.height);
+        }
+    }
+}
+
+
 // UIText: 事件响应
 bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
     assert(arg.sender && "bad argument");
@@ -56,6 +77,7 @@ bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
     {
     case LongUI::Event::Event_SetText:
         m_text = arg.stt.text;
+        this->refresh_auto_size();
         this->InvalidateThis();
         __fallthrough;
     case LongUI::Event::Event_GetText:
@@ -68,6 +90,26 @@ bool LongUI::UIText::DoEvent(const LongUI::EventArgument& arg) noexcept {
     return Super::DoEvent(arg);
 }
 
+
+/// <summary>
+/// Initializes the specified node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIText::initialize(pugi::xml_node node) noexcept { 
+    // 基本初始化
+    Super::initialize(node); m_text.Init(node);
+    // 保留旧标记
+    auto flag = this->flags;
+    // 自动调整宽度
+    if (this->flags & Flag_AutoWidth) flag |= Flag_WidthFixed;
+    // 自动调整高度
+    if (this->flags & Flag_AutoHeight) flag |= Flag_HeightFixed;
+    // 更新标记
+    force_cast(this->flags) = flags;
+    // 自动调整大小
+    this->refresh_auto_size();
+}
 
 /*/ UIText 构造函数
 LongUI::UIText::UIText(pugi::xml_node node) noexcept: Super(node), m_text(node) {
@@ -139,22 +181,6 @@ void LongUI::UIButton::initialize(pugi::xml_node node) noexcept {
     m_uiElement.Init(this->check_state(), 0, node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
-    // 自动调整大小
-    auto autosize = (Flag_AutoWidth | Flag_AutoHeight);
-    if (this->flags & autosize) {
-        RectLTWH_F rect; m_text.GetTextBox(rect);
-
-        // 自带调整宽度
-        if (this->flags & Flag_AutoWidth) {
-            flag |= Flag_WidthFixed;
-            this->SetContentWidth(rect.width);
-        }
-        // 自带调整高度
-        if (this->flags & Flag_AutoHeight) {
-            flag |= Flag_HeightFixed;
-            this->SetContentHeight(rect.height);
-        }
-    }
     // 初始化
     Helper::SetBorderColor(node, m_aBorderColor);
     // 修改
@@ -596,7 +622,195 @@ auto LongUI::UIComboBox::CreateControl(CreateEventType type, pugi::xml_node node
 
 // 调试区域
 #ifdef LongUIDebugEvent
-// longui 转换
+// GUID 信息
+namespace LongUI {
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UISingle>() noexcept {
+        // {B3C3CDEB-21A7-48E3-8E6C-693212ED7619}
+        static const GUID IID_LongUI_UISingle = {
+            0xb3c3cdeb, 0x21a7, 0x48e3, { 0x8e, 0x6c, 0x69, 0x32, 0x12, 0xed, 0x76, 0x19 }
+        };
+        return IID_LongUI_UISingle;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIPage>() noexcept {
+        // {26E98A66-C52F-40BB-AAD8-FAA0A549D899}
+        static const GUID IID_LongUI_UIPage = {
+            0x26e98a66, 0xc52f, 0x40bb, { 0xaa, 0xd8, 0xfa, 0xa0, 0xa5, 0x49, 0xd8, 0x99 }
+        };
+        return IID_LongUI_UIPage;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIListLine>() noexcept {
+        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
+        static const GUID IID_LongUI_UIListLine= {
+            0x83b86af2, 0x6755, 0x47a8, { 0xba, 0x7d, 0x69, 0x3c, 0x2b, 0xdb, 0xf, 0xbc } 
+        };
+        return IID_LongUI_UIListLine;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIList>() noexcept {
+        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
+        static const GUID IID_LongUI_UIList = {
+            0xe5cf04fc, 0x1221, 0x4e06,{ 0xb6, 0xf3, 0x31, 0x5d, 0x45, 0xb1, 0xf2, 0xe6 } 
+        };
+        return IID_LongUI_UIList;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIListHeader>() noexcept {
+        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
+        static const GUID IID_LongUI_UIListHeader = { 
+            0x6db3aac2, 0xf4cf, 0x4301, { 0x92, 0x91, 0xa5, 0x18, 0x1b, 0x22, 0xa0, 0x39 } 
+        };
+        return IID_LongUI_UIListHeader;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIHorizontalLayout>() noexcept {
+        // {E5CF04FC-1221-4E06-B6F3-315D45B1F2E6}
+        static const GUID IID_LongUI_UIHorizontalLayout = {
+            0xe5cf04fc, 0x1221, 0x4e06,{ 0xb6, 0xf3, 0x31, 0x5d, 0x45, 0xb1, 0xf2, 0xe6 } 
+        };
+        return IID_LongUI_UIHorizontalLayout;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIVerticalLayout>() noexcept {
+        // {3BE5198C-B922-4C99-827E-F0D08875B045}
+        static const GUID IID_LongUI_UIVerticalLayout = {
+            0x3be5198c, 0xb922, 0x4c99,{ 0x82, 0x7e, 0xf0, 0xd0, 0x88, 0x75, 0xb0, 0x45 } 
+        };
+        return IID_LongUI_UIVerticalLayout;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIFloatLayout>() noexcept {
+        // {8EE34AFA-7FC5-4F06-85B3-6B834979B3AF}
+        static const GUID IID_LongUI_UIFloatLayout = {
+            0x8ee34afa, 0x7fc5, 0x4f06, { 0x85, 0xb3, 0x6b, 0x83, 0x49, 0x79, 0xb3, 0xaf } 
+        };
+        return IID_LongUI_UIFloatLayout;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIButton>() noexcept {
+        // {90098AB1-4C9E-4F16-BF5E-9179B2B29570}
+        static const GUID IID_LongUI_UIButton = {
+            0x90098ab1, 0x4c9e, 0x4f16,{ 0xbf, 0x5e, 0x91, 0x79, 0xb2, 0xb2, 0x95, 0x70 } 
+        };
+        return IID_LongUI_UIButton;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UICheckBox>() noexcept {
+        // {B5B59701-F9CB-4B12-9FCB-8AA4780B4061}
+        static const GUID IID_LongUI_UICheckBox = {
+            0xb5b59701, 0xf9cb, 0x4b12, { 0x9f, 0xcb, 0x8a, 0xa4, 0x78, 0xb, 0x40, 0x61 } 
+        };
+        return IID_LongUI_UICheckBox;
+    }
+    // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIComboBox>() noexcept {
+        // {01C8A079-4BF6-4F04-BE48-04E47C056CCE}
+        static const GUID IID_LongUI_UIComboBox = { 
+            0x1c8a079, 0x4bf6, 0x4f04, { 0xbe, 0x48, 0x4, 0xe4, 0x7c, 0x5, 0x6c, 0xce } 
+        };
+        return IID_LongUI_UIComboBox;
+    }
+    // UIContainer GUID 信息
+    template<> const IID& GetIID<LongUI::UIContainer>() noexcept {
+        // {30523BF0-4170-4F2F-9FF6-7946A2B8BEEB}
+        static const GUID IID_LongUI_UIContainer = {
+            0x30523bf0, 0x4170, 0x4f2f,{ 0x9f, 0xf6, 0x79, 0x46, 0xa2, 0xb8, 0xbe, 0xeb }
+        };
+        return IID_LongUI_UIContainer;
+    }
+    // UIContainerBuiltIn GUID 信息
+    template<> const IID& GetIID<LongUI::UIContainerBuiltIn>() noexcept {
+        // {D88DC85F-4903-42C7-93A4-DE6EBEC38576}
+        static const GUID IID_LongUI_UIContainerBuiltIn = {
+            0xd88dc85f, 0x4903, 0x42c7, { 0x93, 0xa4, 0xde, 0x6e, 0xbe, 0xc3, 0x85, 0x76 }
+        };
+        return IID_LongUI_UIContainerBuiltIn;
+    }
+    // UIEdit GUID 信息 
+    template<> const IID& GetIID<LongUI::UIEdit>() noexcept {
+        // {D60826F0-4AF1-48F9-A63A-58117943CE66}
+        static const GUID IID_LongUI_UIEdit = { 
+            0xd60826f0, 0x4af1, 0x48f9, { 0xa6, 0x3a, 0x58, 0x11, 0x79, 0x43, 0xce, 0x66 } 
+        };
+        return IID_LongUI_UIEdit;
+    }
+    // UIControl GUID 信息
+    template<> const IID& GetIID<LongUI::UIControl>() noexcept { 
+        // {87EB711F-3B53-4B21-ABCD-C907E5C43F8D}
+        static const GUID IID_LongUI_UIControl = { 
+            0x87eb711f, 0x3b53, 0x4b21,{ 0xab, 0xcd, 0xc9, 0x7, 0xe5, 0xc4, 0x3f, 0x8d } 
+        };
+        return IID_LongUI_UIControl;
+    }
+    // UIRadioButton GUID 信息
+    template<> const IID& GetIID<LongUI::UIMarginalable>() noexcept {
+        // {6CF3853D-6740-4635-AF7E-F8A42AEBA6C9}
+        static const GUID IID_LongUI_UIMarginalControl = { 
+            0x6cf3853d, 0x6740, 0x4635,{ 0xaf, 0x7e, 0xf8, 0xa4, 0x2a, 0xeb, 0xa6, 0xc9 } 
+        };
+        return IID_LongUI_UIMarginalControl;
+    }
+    // UIRadioButton GUID 信息
+    template<> const IID& GetIID<LongUI::UIRadioButton>() noexcept {
+        // {AC3EDEE4-BF70-434D-8F73-E7F8EA702F0E}
+        static const GUID IID_LongUI_UIRadioButton = { 
+            0xac3edee4, 0xbf70, 0x434d, { 0x8f, 0x73, 0xe7, 0xf8, 0xea, 0x70, 0x2f, 0xe } 
+        };
+        return IID_LongUI_UIRadioButton;
+    }
+    // UIScrollBar GUID 信息
+    template<> const IID& GetIID<LongUI::UIScrollBar>() noexcept {
+        // {AD925DE3-636D-44DD-A01E-A2C180DEA98D}
+        static const GUID IID_LongUI_UIScrollBar = { 
+            0xad925de3, 0x636d, 0x44dd,{ 0xa0, 0x1e, 0xa2, 0xc1, 0x80, 0xde, 0xa9, 0x8d } 
+        };
+        return IID_LongUI_UIScrollBar;
+    }
+    // UIScrollBarA GUID 信息
+    template<> const IID& GetIID<LongUI::UIScrollBarA>() noexcept {
+        // {AD925DE3-636D-44DD-A01E-A2C180DEA98D}
+        static const GUID IID_LongUI_UIScrollBarA = {
+            0x30af626, 0x1958, 0x4bdf,{ 0x86, 0x3e, 0x19, 0x2b, 0xdb, 0x1a, 0x49, 0x46 }
+        };
+        return IID_LongUI_UIScrollBarA;
+    }
+    
+    // UIScrollBarB GUID 信息
+    template<> const IID& GetIID<LongUI::UIScrollBarB>() noexcept {
+        // {820DACDF-5B99-4291-A9B2-9010BE28D12D}
+        static const GUID IID_LongUI_UIScrollBarB = { 
+            0x820dacdf, 0x5b99, 0x4291,{ 0xa9, 0xb2, 0x90, 0x10, 0xbe, 0x28, 0xd1, 0x2d } 
+        };
+        return IID_LongUI_UIScrollBarB;
+    }
+    // UISlider GUID 信息
+    template<> const IID& GetIID<LongUI::UISlider>() noexcept {
+        // {3BE5198C-B922-4C99-827E-F0D08875B045}
+        static const GUID IID_LongUI_UISlider = {
+            0xcc64ee29, 0x3be1, 0x4b24,{ 0x9b, 0x27, 0x99, 0xbf, 0x98, 0xaa, 0x3c, 0x15 } 
+        };
+        return IID_LongUI_UISlider;
+    }
+    // UIViewport GUID信息
+    template<> const IID& GetIID<LongUI::UIViewport>() noexcept {
+        // {64F7B3E5-621E-4864-9535-7E6A29F670C1}
+        static const GUID IID_LongUI_UIViewport = { 
+            0x64f7b3e5, 0x621e, 0x4864,{ 0x95, 0x35, 0x7e, 0x6a, 0x29, 0xf6, 0x70, 0xc1 } 
+        };
+        return IID_LongUI_UIViewport;
+    }
+    // UIText GUID信息
+    template<> const IID& GetIID<LongUI::UIText>() noexcept {
+        // {47F83436-2D1F-413B-BBAD-9322EFF18185}
+        static const GUID IID_LongUI_UIText = {
+            0x47f83436, 0x2d1f, 0x413b,{ 0xbb, 0xad, 0x93, 0x22, 0xef, 0xf1, 0x81, 0x85 } 
+        };
+        return IID_LongUI_UIText;
+    }
+}
+
 
 // UI控件: 调试信息
 bool LongUI::UIControl::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {

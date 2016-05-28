@@ -104,12 +104,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UICheckBox>() {
-        // {B5B59701-F9CB-4B12-9FCB-8AA4780B4061}
-        static const GUID IID_LongUI_UICheckBox = {
-            0xb5b59701, 0xf9cb, 0x4b12, { 0x9f, 0xcb, 0x8a, 0xa4, 0x78, 0xb, 0x40, 0x61 } 
-        };
-        return IID_LongUI_UICheckBox;
-    }
+    template<>  const IID& GetIID<LongUI::UICheckBox>() noexcept;
 #endif
 }

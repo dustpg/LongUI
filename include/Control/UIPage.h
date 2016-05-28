@@ -121,13 +121,7 @@ namespace LongUI {
         virtual bool debug_do_event(const LongUI::DebugEventInformation&) const noexcept override;
     };
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIPage>() {
-        // {26E98A66-C52F-40BB-AAD8-FAA0A549D899}
-        static const GUID IID_LongUI_UIPage = {
-            0x26e98a66, 0xc52f, 0x40bb, { 0xaa, 0xd8, 0xfa, 0xa0, 0xa5, 0x49, 0xd8, 0x99 }
-        };
-        return IID_LongUI_UIPage;
-    }
+    template<> const IID& GetIID<LongUI::UIPage>() noexcept;
 #else
 };
 #endif

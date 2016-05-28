@@ -44,6 +44,9 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept ->HRESULT override;
+    private:
+        // refresh auto size
+        void refresh_auto_size() noexcept;
     protected:
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }
@@ -60,7 +63,7 @@ namespace LongUI {
         UIText(UIContainer* cp) noexcept : Super(cp) {}
     protected:
         // initialize, maybe you want call v-method
-        void initialize(pugi::xml_node node) noexcept { Super::initialize(node); m_text.Init(node); }
+        void initialize(pugi::xml_node node) noexcept;
         // dtor
         ~UIText() noexcept { }
         // copy ctor = delete
@@ -76,12 +79,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIText>() {
-        // {47F83436-2D1F-413B-BBAD-9322EFF18185}
-        static const GUID IID_LongUI_UIText = {
-            0x47f83436, 0x2d1f, 0x413b,{ 0xbb, 0xad, 0x93, 0x22, 0xef, 0xf1, 0x81, 0x85 } 
-        };
-        return IID_LongUI_UIText;
-    }
+    template<> const IID& GetIID<LongUI::UIText>() noexcept;
 #endif
 }

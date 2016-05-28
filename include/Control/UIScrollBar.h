@@ -235,28 +235,10 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIScrollBar>() {
-        // {AD925DE3-636D-44DD-A01E-A2C180DEA98D}
-        static const GUID IID_LongUI_UIScrollBar = { 
-            0xad925de3, 0x636d, 0x44dd,{ 0xa0, 0x1e, 0xa2, 0xc1, 0x80, 0xde, 0xa9, 0x8d } 
-        };
-        return IID_LongUI_UIScrollBar;
-    }
+    template<> const IID& GetIID<LongUI::UIScrollBar>() noexcept;
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIScrollBarA>() {
-        // {AD925DE3-636D-44DD-A01E-A2C180DEA98D}
-        static const GUID IID_LongUI_UIScrollBarA = {
-            0x30af626, 0x1958, 0x4bdf,{ 0x86, 0x3e, 0x19, 0x2b, 0xdb, 0x1a, 0x49, 0x46 }
-        };
-        return IID_LongUI_UIScrollBarA;
-    }
+    template<> const IID& GetIID<LongUI::UIScrollBarA>() noexcept;
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIScrollBarB>() {
-        // {820DACDF-5B99-4291-A9B2-9010BE28D12D}
-        static const GUID IID_LongUI_UIScrollBarB = { 
-            0x820dacdf, 0x5b99, 0x4291,{ 0xa9, 0xb2, 0x90, 0x10, 0xbe, 0x28, 0xd1, 0x2d } 
-        };
-        return IID_LongUI_UIScrollBarB;
-    }
+    template<> const IID& GetIID<LongUI::UIScrollBarB>() noexcept;
 #endif
 }
