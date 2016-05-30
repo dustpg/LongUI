@@ -2,7 +2,7 @@
 #include <LongUI/luiUiXml.h>
 #include <Component/Effect.h>
 #include <Component/Element.h>
-#include <Component/EditaleText.h>
+#include <Component/EditableText.h>
 #include <Component/Text.h>
 #include <Platless/luiPlUtil.h>
 #include <Core/luiMenu.h>
@@ -278,7 +278,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 << LongUI::endl;
         }
     }
-    // -------------------- LongUI::Component::EditaleText --------------------
+    // -------------------- LongUI::Component::EditableText --------------------
     // DWrite部分代码参考: 
     // http://msdn.microsoft.com/zh-cn/library/windows/desktop/dd941792(v=vs.85).aspx
     /// <summary>
@@ -286,7 +286,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// </summary>
     /// <param name="update">if set to <c>true</c> [update].</param>
     /// <returns></returns>
-    void EditaleText::refresh(bool update) const noexcept {
+    void EditableText::refresh(bool update) const noexcept {
         auto* window = m_pHost->GetWindow();
         // 焦点控件情况下
         if (window->IsFocused(m_pHost)) {
@@ -298,7 +298,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 重新创建布局
-    void EditaleText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
+    void EditableText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
         assert(fmt && "bad argument");
         assert(this->layout == nullptr && "bad action");
         // 修改文本
@@ -340,7 +340,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         assert(SUCCEEDED(hr));
     }
     // 插入字符(串)
-    auto EditaleText::insert(uint32_t pos, const wchar_t * str, uint32_t& length) noexcept -> HRESULT {
+    auto EditableText::insert(uint32_t pos, const wchar_t * str, uint32_t& length) noexcept -> HRESULT {
         // 第一次查错
         {
             // 只读
@@ -418,31 +418,31 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 富文本情况下?
         if (old_layout && this->IsRiched() && SUCCEEDED(hr)) {
             // 复制全局属性
-            Component::EditaleText::CopyGlobalProperties(old_layout, this->layout);
+            Component::EditableText::CopyGlobalProperties(old_layout, this->layout);
             // 对于每种属性, 获取并应用到新布局
             // 在首位?
             if (pos) {
                 // 第一块
-                Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
+                Component::EditableText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
                 // 插入块
-                Component::EditaleText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
+                Component::EditableText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
                 // 结束块
-                Component::EditaleText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
+                Component::EditableText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
             }
             else {
                 // 插入块
-                Component::EditaleText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
+                Component::EditableText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
                 // 结束块
-                Component::EditaleText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
+                Component::EditableText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
             }
             // 末尾
-            Component::EditaleText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_string.length()), UINT32_MAX);
+            Component::EditableText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_string.length()), UINT32_MAX);
         }
         LongUI::SafeRelease(old_layout);
         return hr;
     }
     // 返回当前选择区域
-    auto EditaleText::GetSelectionRange() const noexcept -> DWRITE_TEXT_RANGE {
+    auto EditableText::GetSelectionRange() const noexcept -> DWRITE_TEXT_RANGE {
         // 返回当前选择返回
         auto caretBegin = m_u32CaretAnchor;
         auto caretEnd = m_u32CaretPos + m_u32CaretPosOffset;
@@ -458,7 +458,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         return { caretBegin, caretEnd - caretBegin };
     }
     // 设置选择区
-    auto EditaleText::SetSelection(
+    auto EditableText::SetSelection(
         SelectionMode mode, uint32_t advance, bool exsel, bool update) noexcept -> HRESULT {
         using LineMetricsBuffer = EzContainer::SmallBuffer<DWRITE_LINE_METRICS, 32>;
         //uint32_t line = uint32_t(-1);
@@ -537,7 +537,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 );
             // 获取行
             uint32_t line, linePosition;
-            Component::EditaleText::GetLineFromPosition(
+            Component::EditableText::GetLineFromPosition(
                 metrice_buffer.GetData(),
                 metrice_buffer.GetCount(),
                 m_u32CaretPos,
@@ -643,7 +643,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 &textMetrics.lineCount
                 );
             uint32_t line;
-            Component::EditaleText::GetLineFromPosition(
+            Component::EditableText::GetLineFromPosition(
                 metrice_buffer.GetData(),
                 metrice_buffer.GetCount(),
                 m_u32CaretPos,
@@ -707,7 +707,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
 
     // 删除选择区文字
-    auto EditaleText::DeleteSelection() noexcept -> HRESULT {
+    auto EditableText::DeleteSelection() noexcept -> HRESULT {
         DWRITE_TEXT_RANGE selection = this->GetSelectionRange();
         if (selection.length == 0 || this->IsReadOnly()) return S_FALSE;
         // 删除成功的话设置选择区
@@ -719,7 +719,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 设置选择区
-    bool EditaleText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
+    bool EditableText::SetSelectionFromPoint(float x, float y, bool exsel) noexcept {
         BOOL isTrailingHit;
         BOOL isInside;
         DWRITE_HIT_TEST_METRICS caret_metrics;
@@ -739,7 +739,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         return true;
     }
     // 拖入
-    bool EditaleText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
+    bool EditableText::OnDragEnter(IDataObject* data, DWORD* effect) noexcept {
 #if 0
         m_bDragFormatOK = false;
         m_bDragFromThis = m_pDataObject == data;
@@ -759,7 +759,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
 #endif
     }
     // 拖上
-    bool EditaleText::OnDragOver(float x, float y) noexcept {
+    bool EditableText::OnDragOver(float x, float y) noexcept {
 #if 0
         // 自己的?并且在选择范围内?
         if (m_bDragFromThis) {
@@ -786,7 +786,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
 #endif
     }
     // 重建
-    void EditaleText::Recreate() noexcept {
+    void EditableText::Recreate() noexcept {
         // 重新创建资源
         LongUI::SafeRelease(m_pSelectionColor);
         UIManager_RenderTarget->CreateSolidColorBrush(
@@ -795,7 +795,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             );
     }
     // 键入一个字符时
-    void EditaleText::OnChar(char32_t ch) noexcept {
+    void EditableText::OnChar(char32_t ch) noexcept {
         // TODO: 连续On Char优化
         // 字符有效
         if ((ch >= 0x20 || ch == 9)) {
@@ -836,7 +836,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 按键时
-    void EditaleText::OnKey(uint32_t keycode) noexcept {
+    void EditableText::OnKey(uint32_t keycode) noexcept {
         // 检查按键 maybe IUIInput
         bool heldShift = UIInput.IsKbPressed(UIInput.KB_SHIFT);
         bool heldControl = UIInput.IsKbPressed(UIInput.KB_CONTROL);
@@ -1022,11 +1022,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 当设置焦点时
-    void EditaleText::OnSetFocus() noexcept {
+    void EditableText::OnSetFocus() noexcept {
         this->refresh();
     }
     // 当失去焦点时
-    void EditaleText::OnKillFocus() noexcept {
+    void EditableText::OnKillFocus() noexcept {
         // 校正数字输入
         if (this->IsNumber()) {
             const auto num = this->GetNumber();
@@ -1049,7 +1049,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 左键弹起时
-    void EditaleText::OnLButtonUp(float x, float y) noexcept {
+    void EditableText::OnLButtonUp(float x, float y) noexcept {
         // 检查
         if (m_bClickInSelection && m_ptStart.x == x && m_ptStart.y == y) {
             // 选择
@@ -1061,7 +1061,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
 
     }
     // 左键按下时
-    void EditaleText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
+    void EditableText::OnLButtonDown(float x, float y, bool shfit_hold) noexcept {
         // 设置鼠标捕获
         m_pHost->GetWindow()->SetCapture(m_pHost);
         // 刷新
@@ -1089,7 +1089,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 上下文菜单
-    void EditaleText::OnContextMenu() noexcept {
+    void EditableText::OnContextMenu() noexcept {
         // 没有就创建
         if (!m_menuCtx.IsOk() && m_menuCtx.Create()) {
             enum : size_t { 
@@ -1155,7 +1155,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 左键按住时
-    void EditaleText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
+    void EditableText::OnLButtonHold(float x, float y, bool shfit_hold) noexcept {
         // 起点在选择区
         if (!shfit_hold && m_bClickInSelection) {
             // 开始拖拽
@@ -1201,7 +1201,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 对齐最近字符集
-    void EditaleText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
+    void EditableText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
         DWRITE_HIT_TEST_METRICS hitTestMetrics;
         float caretX, caretY;
         // 对齐最近字符集
@@ -1226,11 +1226,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// </summary>
     /// <param name="rect">The rect.</param>
     /// <returns></returns>
-    void EditaleText::GetTextBox(RectLTWH_F& rect) const noexcept {
+    void EditableText::GetTextBox(RectLTWH_F& rect) const noexcept {
         impl::get_text_box(this->layout, rect);
     }
     // 获取插入符号矩形
-    void EditaleText::GetCaretRect(RectLTWH_F& rect) const noexcept {
+    void EditableText::GetCaretRect(RectLTWH_F& rect) const noexcept {
         // 检查布局
         if (this->layout) {
             // 获取 f(文本偏移) -> 坐标
@@ -1271,13 +1271,13 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
     }
     // 刷新
-    void EditaleText::Update() noexcept {
+    void EditableText::Update() noexcept {
         this->refresh(false);
         // 检查选择区
         this->RefreshSelectionMetrics(this->GetSelectionRange());
     }
     // 设置数字
-    LongUINoinline void EditaleText::SetNumber(int32_t i) noexcept {
+    LongUINoinline void EditableText::SetNumber(int32_t i) noexcept {
         if (this->IsReadOnly()) return;
         i = std::min(m_iMax, i);
         i = std::max(m_iMin, i);
@@ -1287,11 +1287,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         this->refresh(true);
     }
     // 读取数值
-    auto EditaleText::GetNumber() const noexcept -> int32_t {
+    auto EditableText::GetNumber() const noexcept -> int32_t {
         return LongUI::AtoI(m_string.c_str());
     }
     // 渲染
-    void EditaleText::Render(ID2D1RenderTarget* target, D2D1_POINT_2F pt) const noexcept {
+    void EditableText::Render(ID2D1RenderTarget* target, D2D1_POINT_2F pt) const noexcept {
         assert(target && "bad argument");
         float x = this->offset.x + pt.x;
         float y = this->offset.y + pt.y;
@@ -1326,7 +1326,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         m_pTextRenderer->target = nullptr;
     }
     // 复制到 目标全局句柄
-    auto EditaleText::CopyToGlobal() noexcept -> HGLOBAL {
+    auto EditableText::CopyToGlobal() noexcept -> HGLOBAL {
         // 获取选择区
         auto selection = this->GetSelectionRange();
         // 有选择区域
@@ -1349,7 +1349,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
 
     // 复制到 剪切板
-    auto EditaleText::CopyToClipboard() noexcept -> HRESULT {
+    auto EditableText::CopyToClipboard() noexcept -> HRESULT {
         HRESULT hr = E_FAIL;
         // 打开剪切板
         if (::OpenClipboard(m_pHost->GetWindow()->GetHwnd())) {
@@ -1378,7 +1378,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
 
 
     // 从 目标全局句柄 黏贴
-    auto EditaleText::PasteFromGlobal(HGLOBAL global) noexcept -> HRESULT {
+    auto EditableText::PasteFromGlobal(HGLOBAL global) noexcept -> HRESULT {
         // 正式开始
         size_t byteSize = ::GlobalSize(global);
         // 获取数据
@@ -1401,7 +1401,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
 
     // 从 剪切板 黏贴
-    auto EditaleText::PasteFromClipboard() noexcept -> HRESULT {
+    auto EditableText::PasteFromClipboard() noexcept -> HRESULT {
         // 正式开始
         HRESULT hr = S_OK;
         //uint32_t characterCount = 0ui32;
@@ -1424,7 +1424,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
 
     // 获取行编号
-    void EditaleText::GetLineFromPosition(
+    void EditableText::GetLineFromPosition(
         const DWRITE_LINE_METRICS* lineMetrics,
         uint32_t lineCount, uint32_t textPosition,
         OUT uint32_t * lineOut,
@@ -1452,7 +1452,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// </summary>
     /// <param name="selection">The selection.</param>
     /// <returns></returns>
-    void EditaleText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
+    void EditableText::RefreshSelectionMetrics(DWRITE_TEXT_RANGE selection) noexcept {
         //UIManager << DL_Hint << "selection.length: " << long(selection.length) << LongUI::endl;
         // 有选择的情况下
         if (selection.length == 0) {
@@ -1486,10 +1486,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
     /// <summary>
     /// Finalizes an instance of the 
-    /// <see cref="LongUI::Component::EditaleText"/> class.
+    /// <see cref="LongUI::Component::EditableText"/> class.
     /// </summary>
     /// <returns></returns>
-    EditaleText::~EditaleText() noexcept {
+    EditableText::~EditableText() noexcept {
         ::ReleaseStgMedium(&m_recentMedium);
         LongUI::SafeRelease(this->layout);
         LongUI::SafeRelease(m_pTextRenderer);
@@ -1503,10 +1503,10 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
     /// <summary>
     /// Initializes a new instance of the 
-    /// <see cref=LongUI::Component::"EditaleText"/> class.
+    /// <see cref=LongUI::Component::"EditableText"/> class.
     /// </summary>
     /// <param name="host">The host control</param>
-    EditaleText::EditaleText(UIControl* host) noexcept : m_pHost(host) {
+    EditableText::EditableText(UIControl* host) noexcept : m_pHost(host) {
 
     }
     /// <summary>
@@ -1515,7 +1515,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="node">The node.</param>
     /// <param name="prefix">The prefix.</param>
     /// <returns></returns>
-    void EditaleText::Init() noexcept {
+    void EditableText::Init() noexcept {
         m_dragRange = { 0, 0 };
         // 颜色
         this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
@@ -1540,7 +1540,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="node">The node.</param>
     /// <param name="prefix">The prefix.</param>
     /// <returns></returns>
-    void EditaleText::Init(pugi::xml_node node, const char* prefix) noexcept {
+    void EditableText::Init(pugi::xml_node node, const char* prefix) noexcept {
         m_dragRange = { 0, 0 };
         // 初始化
         this->color[State_Disabled] = D2D1::ColorF(D2D1::ColorF::Gray);
@@ -1679,7 +1679,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// </summary>
     /// <param name="str">The string.</param>
     /// <returns></returns>
-    void EditaleText::ensure_string(CUIString& str) noexcept {
+    void EditableText::ensure_string(CUIString& str) noexcept {
         // 保证字符串正确性
         if (this->IsNumber()) {
             // 添加数字
@@ -1706,7 +1706,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="old_layout">The old_layout.</param>
     /// <param name="new_layout">The new_layout.</param>
     /// <returns></returns>
-    void EditaleText::CopyGlobalProperties(
+    void EditableText::CopyGlobalProperties(
         IDWriteTextLayout* old_layout,
         IDWriteTextLayout* new_layout) noexcept {
         // 基本属性
@@ -1732,7 +1732,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
 
     // 对范围复制单个属性
-    void EditaleText::CopySinglePropertyRange(
+    void EditableText::CopySinglePropertyRange(
         IDWriteTextLayout* old_layout, uint32_t old_start,
         IDWriteTextLayout* new_layout, uint32_t new_start, uint32_t length) noexcept {
         // 计算范围
@@ -1798,7 +1798,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
 
     // 范围复制AoE!
-    void EditaleText::CopyRangedProperties(
+    void EditableText::CopyRangedProperties(
         IDWriteTextLayout* old_layout, IDWriteTextLayout* new_layout,
         uint32_t begin, uint32_t end, uint32_t new_offset, bool negative) noexcept {
         auto current = begin;
@@ -1812,7 +1812,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 检查有效性
             rangeLength = std::min(rangeLength, end - current);
             // 复制单个
-            Component::EditaleText::CopySinglePropertyRange(
+            Component::EditableText::CopySinglePropertyRange(
                 old_layout,
                 current,
                 new_layout,

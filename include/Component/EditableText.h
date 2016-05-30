@@ -36,7 +36,7 @@
 // longui::component namespace
 namespace LongUI { namespace Component {
     // core editable text component
-    class EditaleText {
+    class EditableText {
         // 简写
         using HitTestMetrics = DWRITE_HIT_TEST_METRICS;
         // 缓冲区
@@ -223,9 +223,9 @@ namespace LongUI { namespace Component {
         // set color
         void SetState(ControlState state) noexcept { m_pColor = this->color + state; };
         // destructor
-        ~EditaleText() noexcept;
+        ~EditableText() noexcept;
         // constructor
-        EditaleText(UIControl* host) noexcept;
+        EditableText(UIControl* host) noexcept;
         // initizlize
         void Init(pugi::xml_node node, const char* prefix = "text") noexcept;
         // initizlize without xml-node

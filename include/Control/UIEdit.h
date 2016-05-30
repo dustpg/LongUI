@@ -25,7 +25,7 @@
 */
 
 #include "UIControl.h"
-#include "../Component/EditaleText.h"
+#include "../Component/EditableText.h"
 
 // LongUI namespace
 namespace LongUI {
@@ -71,7 +71,7 @@ namespace LongUI {
         UIEdit(const UIEdit&) = delete;
     protected:
         // core editable text component
-        Component::EditaleText  m_text;
+        Component::EditableText  m_text;
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATE_COUNT];
 #ifdef LongUIDebugEvent

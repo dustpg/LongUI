@@ -1732,7 +1732,6 @@ void LongUI::XUIBaseWindow::Invalidate(UIControl* ctrl) noexcept {
 /// <returns></returns>
 void LongUI::XUIBaseWindow::resized() noexcept {
     assert(m_pViewport && "bad action");
-    UIManager << DL_Log << LongUI::endl;
     // 修改
     m_pViewport->visible_rect.right = static_cast<float>(this->GetWidth());
     m_pViewport->visible_rect.bottom = static_cast<float>(this->GetHeight());
@@ -2347,7 +2346,7 @@ auto LongUI::CUIBuiltinSystemWindow::Recreate() noexcept ->HRESULT {
         else {
             // 一般桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
             // 利用窗口句柄创建交换链
             hr = UIManager_DXGIFactory->CreateSwapChainForHwnd(
                 UIManager_D3DDevice,

@@ -54,9 +54,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\Component\EditaleText.h">
-      <Filter>Header Files\Component</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\Component\Effect.h">
       <Filter>Header Files\Component</Filter>
     </ClInclude>
@@ -218,6 +215,9 @@
     </ClInclude>
     <ClInclude Include="..\include\Graphics\luiGrInObj.h">
       <Filter>Header Files\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Component\EditableText.h">
+      <Filter>Header Files\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

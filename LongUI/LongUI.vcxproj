@@ -137,7 +137,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\Component\EditaleText.h" />
+    <ClInclude Include="..\include\Component\EditableText.h" />
     <ClInclude Include="..\include\Component\Effect.h" />
     <ClInclude Include="..\include\Component\Element.h" />
     <ClInclude Include="..\include\Component\Text.h" />

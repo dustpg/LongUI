@@ -236,7 +236,7 @@ const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_05;
+const char* test_xml = test_xml_04;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>

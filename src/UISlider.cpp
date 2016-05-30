@@ -1,5 +1,6 @@
 ﻿#include <Control/UISlider.h>
 #include <Core/luiManager.h>
+#include <algorithm>
 
 // UISlider 背景渲染
 void LongUI::UISlider::render_chain_background() const noexcept {
@@ -195,6 +196,40 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
         );
     bool nocontinued = false;
+    // 修改值
+    auto changed_value = [this, pt4self](float pos) noexcept {
+        // 获取基本值
+        if (this->IsVerticalSlider()) {
+            auto slider_height = this->view_size.height - this->thumb_size.height;
+            m_fValue = (pt4self.y - pos) / slider_height;
+        }
+        else {
+            auto slider_width = this->view_size.width - this->thumb_size.width;
+            m_fValue = (pt4self.x - pos) / slider_width;
+        }
+        // 阈值检查
+        m_fValue = std::min(std::max(m_fValue, 0.f), 1.f);
+    };
+    // 一般移动
+    auto normal_moving = [this, pt4self]() noexcept {
+        // 移到Thumb上方
+        if (IsPointInRect(m_rcThumb, pt4self)) {
+            // 鼠标移进:
+            if (!m_bMouseMoveIn) {
+                // 设置UI元素状态
+                this->SetControlState(LongUI::State_Hover);
+                m_bMouseMoveIn = true;
+            }
+        }
+        else {
+            // 鼠标移出:
+            if (m_bMouseMoveIn) {
+                // 设置UI元素状态
+                this->SetControlState(LongUI::State_Normal);
+                m_bMouseMoveIn = false;
+            }
+        }
+    };
     // 分类
     switch (arg.event)
     {
@@ -208,58 +243,43 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case  LongUI::MouseEvent::Event_MouseMove:
         // 点中并且移动
         if (UIInput.IsMbPressed(UIInput.MB_L)) {
-            if (m_bMouseClickIn) {
-                // 获取基本值
-                if (this->IsVerticalSlider()) {
-                    auto slider_height = this->view_size.height - this->thumb_size.height;
-                    m_fValue = (pt4self.y - m_fClickPosition) / slider_height;
-                }
-                else {
-                    auto slider_width = this->view_size.width - this->thumb_size.width;
-                    m_fValue = (pt4self.x - m_fClickPosition) / slider_width;
-                }
-                // 阈值检查
-                if (m_fValue > 1.f) m_fValue = 1.f;
-                else if (m_fValue < 0.f) m_fValue = 0.f;
-            }
+            // 修改
+            if (m_bMouseClickIn) changed_value(m_fClickPosition);
         }
-        // 移动
-        else {
-            if (IsPointInRect(m_rcThumb, pt4self)) {
-                // 鼠标移进:
-                if (!m_bMouseMoveIn) {
-                    // 设置UI元素状态
-                    this->SetControlState(LongUI::State_Hover);
-                    m_bMouseMoveIn = true;
-                }
-            }
-            else {
-                // 鼠标移出:
-                if (m_bMouseMoveIn) {
-                    // 设置UI元素状态
-                    this->SetControlState(LongUI::State_Normal);
-                    m_bMouseMoveIn = false;
-                }
-            }
-        }
+        // 一般移动
+        else normal_moving();
         nocontinued = true;
         break;
     case  LongUI::MouseEvent::Event_LButtonDown:
         // 左键按下
         m_pWindow->SetCapture(this);
+        // 点中thumb
         if (IsPointInRect(m_rcThumb, pt4self)) {
-            m_bMouseClickIn = true;
             m_fClickPosition = this->IsVerticalSlider() ?
                 (pt4self.y - m_rcThumb.top) : (pt4self.x - m_rcThumb.left);
-            this->SetControlState(LongUI::State_Pushed);
         }
+        // 直接移动
+        else {
+            float offset = this->IsVerticalSlider() ?
+                (m_rcThumb.bottom - m_rcThumb.top) : (m_rcThumb.right - m_rcThumb.left);
+            changed_value(offset * 0.5f);
+        }
+        m_bMouseClickIn = true;
         nocontinued = true;
+        this->SetControlState(LongUI::State_Pushed);
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
         // 右键按下
         m_bMouseClickIn = false;
         m_pWindow->ReleaseCapture();
         this->SetControlState(LongUI::State_Hover);
+        nocontinued = true;
+        break;
+    case LongUI::MouseEvent::Event_MouseWheelV:
+    case LongUI::MouseEvent::Event_MouseWheelH:
+        m_fValue -= arg.wheel.delta * 0.1f;
+        // 阈值检查
+        m_fValue = std::min(std::max(m_fValue, 0.f), 1.f);
         nocontinued = true;
         break;
     }

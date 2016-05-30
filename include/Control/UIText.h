@@ -35,6 +35,8 @@ namespace LongUI {
         using Super = UIControl ;
         // clean this
         virtual void cleanup() noexcept override;
+        // refresh auto size
+        void refresh_auto_size() noexcept;
     public:
         // Render 渲染
         virtual void Render() const noexcept override;
@@ -44,9 +46,6 @@ namespace LongUI {
         virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
         // recreate 重建
         //virtual auto Recreate() noexcept ->HRESULT override;
-    private:
-        // refresh auto size
-        void refresh_auto_size() noexcept;
     protected:
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }
