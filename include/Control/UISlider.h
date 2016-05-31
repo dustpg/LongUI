@@ -81,10 +81,7 @@ namespace LongUI {
         // is Horizontal Slider?
         auto IsHorizontalSlider() const noexcept { return !m_bVerticalSlider; }
         // set value [0, 1]
-        void SetValue01(float value) noexcept { 
-            assert(value >= 0.f && value <= 1.f && "out of range"); 
-            m_fValue = value; this->InvalidateThis(); 
-        }
+        void SetValue01(float value) noexcept;
         // set value [start, end]
         void SetValueSE(float value) noexcept { this->SetValue01((value - m_fStart) / (m_fEnd - m_fStart)); }
     protected:

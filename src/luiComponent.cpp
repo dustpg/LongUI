@@ -436,10 +436,47 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 Component::EditableText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
             }
             // 末尾
-            Component::EditableText::CopySinglePropertyRange(old_layout, old_length, this->layout, static_cast<uint32_t>(m_string.length()), UINT32_MAX);
+            Component::EditableText::CopySinglePropertyRange(
+                old_layout, 
+                old_length, 
+                this->layout, 
+                static_cast<uint32_t>(m_string.length()), 
+                UINT32_MAX
+            );
         }
         LongUI::SafeRelease(old_layout);
         return hr;
+    }
+    /// <summary>
+    /// Copy_removes this instance.
+    /// </summary>
+    /// <param name="oldLayout">The old layout.</param>
+    /// <param name="r">The r.</param>
+    /// <returns></returns>
+    auto EditableText::copy_remove(IDWriteTextLayout* oldLayout, DWRITE_TEXT_RANGE r) noexcept {
+        auto newLayout = this->layout;
+        if (!(newLayout && oldLayout)) return;
+        if (newLayout == oldLayout) return;
+        if (!this->IsRiched()) return;
+        auto position = r.startPosition;
+        auto lengthToRemove = r.length;
+        uint32_t oldTextLength = m_string.length() + lengthToRemove;
+        Component::EditableText::CopyGlobalProperties(oldLayout, newLayout);
+
+        if (position == 0) {
+            Component::EditableText::CopyRangedProperties(
+                oldLayout, newLayout, oldTextLength, lengthToRemove, true
+            ); 
+        }
+        else {
+            Component::EditableText::CopyRangedProperties(oldLayout, newLayout, 0, position, 0, true );
+            Component::EditableText::CopyRangedProperties(
+                oldLayout, newLayout, position + lengthToRemove, oldTextLength, lengthToRemove, true
+            );
+        }
+        Component::EditableText::CopySinglePropertyRange(
+            oldLayout, oldTextLength, newLayout, static_cast<UINT32>(m_string.length()), UINT32_MAX
+        );
     }
     // 返回当前选择区域
     auto EditableText::GetSelectionRange() const noexcept -> DWRITE_TEXT_RANGE {
@@ -810,7 +847,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 return;
             }
             // 删除选择区字符串
-            this->DeleteSelection();
+            this->delete_selandrelay();
             // 长度
             uint32_t length = 1;
             wchar_t chars[] = { static_cast<wchar_t>(ch), 0, 0 };
@@ -835,6 +872,23 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             this->refresh(true);
         }
     }
+    // delete selection and recreate layout
+    void EditableText::delete_selandrelay() noexcept {
+        // 获取选择返回
+        auto range = this->GetSelectionRange();
+        // 有效删除范围
+        if (!range.length) return;
+        // 保留旧布局
+        auto old = LongUI::SafeAcquire(this->layout);
+        // 删除选择区
+        this->DeleteSelection();
+        // 重建布局
+        this->recreate_layout();
+        // 复制内容
+        this->copy_remove(old, range);
+        // 释放
+        LongUI::SafeRelease(old);
+    }
     // 按键时
     void EditableText::OnKey(uint32_t keycode) noexcept {
         // 检查按键 maybe IUIInput
@@ -842,7 +896,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         bool heldControl = UIInput.IsKbPressed(UIInput.KB_CONTROL);
         // 绝对位置
         UINT32 absolutePosition = m_u32CaretPos + m_u32CaretPosOffset;
-
         switch (keycode)
         {
         case VK_RETURN:
@@ -850,7 +903,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 多行 - 键CRLF字符
             if (this->IsMultiLine()) {
                 if (!this->IsReadOnly()) {
-                    this->DeleteSelection();
+                    this->delete_selandrelay();
                     uint32_t len = 2;
                     this->insert(absolutePosition, L"\r\n", len);
                     this->SetSelection(SelectionMode::Mode_Leading, absolutePosition + len, false, false);
@@ -870,12 +923,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 退格键
             // 有选择的话
             if (absolutePosition != m_u32CaretAnchor) {
-                // 删除选择区
-                this->DeleteSelection();
-                // 重建布局
-                this->recreate_layout();
+                this->delete_selandrelay();
             }
             else if (absolutePosition > 0) {
+                // 保留旧布局
+                auto old = LongUI::SafeAcquire(this->layout);
                 uint32_t count = 1;
                 // 双字特别处理
                 if (absolutePosition >= 2 && absolutePosition <= m_string.size()) {
@@ -899,7 +951,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 // 字符串: 删除count个字符
                 if (this->remove_text(m_u32CaretPos, count)) {
                     this->recreate_layout();
+                    this->copy_remove(old, DWRITE_TEXT_RANGE{ m_u32CaretPos, count });
                 }
+                LongUI::SafeRelease(old);
             }
             // 修改
             this->refresh();
@@ -908,10 +962,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 删除键
             // 有选择的话
             if (absolutePosition != m_u32CaretAnchor) {
-                // 删除选择区
-                this->DeleteSelection();
-                // 重建布局
-                this->recreate_layout();
+                this->delete_selandrelay();
             }
             // 删除下一个的字符
             else {
@@ -1001,8 +1052,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 'X'键 Ctrl+X 剪切
             if (heldControl) {
                 this->CopyToClipboard();
-                this->DeleteSelection();
-                this->recreate_layout();
+                this->delete_selandrelay();
                 this->refresh();
             }
             break;
@@ -1129,8 +1179,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 {
                 case ID_CUT + 1:
                     this->CopyToClipboard();
-                    this->DeleteSelection();
-                    this->recreate_layout();
+                    this->delete_selandrelay();
                     this->refresh();
                     break;
                 case ID_COPY + 1:
@@ -1336,7 +1385,6 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             assert((selection.startPosition + selection.length) <= m_string.length() && "bad selection range");
             // 获取富文本数据
             if (this->IsRiched()) {
-                assert(!"unsupported yet");
                 // TODO: 富文本
             }
             // 全局申请
@@ -1387,7 +1435,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 数据有效?
         if (memory) {
             // 替换选择区
-            this->DeleteSelection();
+            this->delete_selandrelay();
             const wchar_t* text = reinterpret_cast<const wchar_t*>(memory);
             // 计算长度
             auto characterCount = static_cast<UINT32>(std::min(std::wcslen(text), byteSize / sizeof(wchar_t)));
@@ -2175,7 +2223,20 @@ LONGUI_NAMESPACE_END
 
 
 // -------------------------------------------------------------
-
+/// <summary>
+/// Changes the target.
+/// </summary>
+/// <param name="rt">The rt.</param>
+/// <returns></returns>
+auto LongUI::XUIBasicTextRenderer::ChangeTarget(
+    ID2D1RenderTarget* rt)  noexcept -> HRESULT {
+    assert(rt && "bad target");
+    LongUI::SafeRelease(m_pBrush);
+    return rt->CreateSolidColorBrush(
+        D2D1::ColorF(D2D1::ColorF::Black),
+        &m_pBrush
+    );
+}
 
 // 返回FALSE
 HRESULT LongUI::XUIBasicTextRenderer::IsPixelSnappingDisabled(void*, BOOL * isDisabled) noexcept {

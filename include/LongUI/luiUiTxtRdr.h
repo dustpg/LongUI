@@ -56,9 +56,7 @@ namespace LongUI {
         // constructor
         XUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { /*basic_color.userdata = 0;*/ basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
-        void SetNewTarget(ID2D1DeviceContext* rt) { LongUI::SafeRelease(UIManager_RenderTarget); UIManager_RenderTarget = LongUI::SafeAcquire(rt); }
-        // set new render brush
-        void SetNewBrush(ID2D1SolidColorBrush* b) { LongUI::SafeRelease(m_pBrush); m_pBrush = LongUI::SafeAcquire(b); }
+        auto ChangeTarget(ID2D1RenderTarget* rt) noexcept -> HRESULT;
     public:
         // is pixel snapping disabled?
         virtual HRESULT STDMETHODCALLTYPE IsPixelSnappingDisabled(void*, BOOL*) noexcept final override;

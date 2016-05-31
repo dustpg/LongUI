@@ -1442,6 +1442,12 @@ void LongUI::XUIBaseWindow::AddNamedControl(UIControl* ctrl) noexcept {
     // 有效
     if (cname[0]) {
         // 插入
+#ifdef _DEBUG
+        {
+            auto result = m_hashStr2Ctrl.Find(cname);
+            assert(result == nullptr && "control exsited!");
+        }
+#endif
         if (!m_hashStr2Ctrl.Insert(cname, ctrl)) {
             ShowErrorWithStr(L"Failed to add control");
         }
@@ -2512,14 +2518,15 @@ void LongUI::CUIBuiltinSystemWindow::BeginRender() const noexcept {
 void LongUI::CUIBuiltinSystemWindow::EndRender() const noexcept {
     // 渲染插入符号
     if (this->is_caret_in() && m_rcCaret.right != 0.f) {
+        constexpr auto mode = D2D1_ANTIALIAS_MODE_ALIASED;
         UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
-        UIManager_RenderTarget->PushAxisAlignedClip(&m_rcCaret, D2D1_ANTIALIAS_MODE_ALIASED);
+        UIManager_RenderTarget->PushAxisAlignedClip(&m_rcCaret, mode);
         UIManager_RenderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Black));
         UIManager_RenderTarget->PopAxisAlignedClip();
     }
     // 结束渲染
-    UIManager_RenderTarget->EndDraw();
-    HRESULT hr = S_OK;
+    auto hr = UIManager_RenderTarget->EndDraw();
+    hr = S_OK;
     {
         // 全渲染
         if (this->is_full_render_this_frame_render()) {

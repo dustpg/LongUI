@@ -92,7 +92,7 @@ auto LongUI::CUIRubyNotation::Draw(
     auto hr = m_pRubyLayout->Draw(
         clientDrawingContext,
         renderer,
-        originX + m_fOffsetX, originY - m_fOffsetY * 0.2f
+        originX + m_fOffsetX, originY - m_fOffsetY * 0.4f
     );
     // 文本
     hr = m_pTextLayout->Draw(

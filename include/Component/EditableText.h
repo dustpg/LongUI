@@ -129,6 +129,10 @@ namespace LongUI { namespace Component {
         // get string
         auto&GetString() noexcept { return m_string; }
     private:
+        // delete selection and recreate layout
+        void delete_selandrelay() noexcept;
+        // copy prop on remove
+        auto copy_remove(IDWriteTextLayout*, DWRITE_TEXT_RANGE r) noexcept;
         // refresh, while layout chenged, should be refreshed
         void refresh(bool = true) const noexcept ;
         // recreate layout

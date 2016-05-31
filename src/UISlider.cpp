@@ -115,6 +115,24 @@ void LongUI::UISlider::initialize() noexcept {
     assert(!"notimpl");
 }
 
+/// <summary>
+/// Sets the value01.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::UISlider::SetValue01(float value) noexcept {
+#ifdef _DEBUG
+    if (!(value >= 0.f && value <= 1.f)) {
+        UIManager << DL_Hint
+            << L"Out of Range:"
+            << value
+            << LongUI::endl;
+    }
+#endif
+    m_fValue = std::min(std::max(value, 0.f), 1.f);
+    this->InvalidateThis(); 
+}
+
 // UISlider 初始化
 void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
     assert(node && "call UISlider::initialize() if no xml");
@@ -134,7 +152,7 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         }
         // 当前值
         if ((str = node.attribute("value").value())) {
-            m_fValue = LongUI::AtoF(str);
+            this->SetValueSE(LongUI::AtoF(str));
         }
         // 滑块大小
         Helper::MakeFloats(
@@ -144,6 +162,8 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         // 默认背景
         m_bDefaultBK = node.attribute("defaultbk").as_bool(true);
     }
+    // 记录
+    m_fValueOld = m_fValue;
 }
 
 
@@ -176,7 +196,13 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
         return true;
     case LongUI::Event::Event_SetFloat:
         // 修改浮点数据
+    {
+        auto old = m_fValue;
         this->SetValueSE(arg.stf.value);
+        if (old != m_fValue) {
+            this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
+        }
+    }
         return true;
     case LongUI::Event::Event_GetFloat:
         // 获取浮点数据

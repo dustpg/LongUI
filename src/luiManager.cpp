@@ -1382,10 +1382,9 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 设置文本渲染器数据
     if (SUCCEEDED(hr)) {
         for (uint32_t i = 0u; i < m_uTextRenderCount; ++i) {
-            m_apTextRenderer[i]->SetNewTarget(m_pd2dDeviceContext);
-            m_apTextRenderer[i]->SetNewBrush(
-                static_cast<ID2D1SolidColorBrush*>(m_ppBrushes[LongUICommonSolidColorBrushIndex])
-            );
+            hr = m_apTextRenderer[i]->ChangeTarget(m_pd2dDeviceContext);
+            longui_debug_hr(hr, L"ChangeTarget failed: " << long(i));
+            if (FAILED(hr)) break;
         }
     }
     // 重建所有窗口

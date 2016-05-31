@@ -24,28 +24,19 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <luibase.h>
+#include <luiconf.h>
+#include <Control/UIText.h>
+#include <Component/Effect.h>
+
 // LongUI namespace
 namespace LongUI {
-    // d2d blur guid
-    extern GUID CLSID_D2D1GaussianBlur;
     // bulr-able text control 可模糊的文本控件
     class UIBlurText : public UIText {
         // 父类申明
         using Super = UIText ;
         // clean this
         virtual void cleanup() noexcept override;
-        // nothrow new 
-        auto operator new(size_t size, const std::nothrow_t&) noexcept ->void* { 
-            return LongUI::Additional::Alloc(size); 
-        };
-        // nothrow delete 
-        auto operator delete(void* address, const std::nothrow_t&) ->void {
-            return LongUI::Additional::Free(address);
-        }
-        // delete
-        auto operator delete(void* address) noexcept ->void { 
-            return LongUI::Additional::Free(address);
-        }
     public:
         // Render 渲染
         virtual void Render() const noexcept override;
@@ -66,19 +57,13 @@ namespace LongUI {
         void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
     public:
         // set blur
-        void SetBlurValue(float b) noexcept { 
-            m_fBlur = b;
-            if(m_effect.IsOK()) m_effect.SetValue(
-                D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, m_fBlur
-                );
-            m_pWindow->Invalidate(this);
-        }
+        void SetBlurValue(float sd) noexcept;
         // get blur
         auto GetBulrValue() const noexcept { return m_fBlur; }
         // create 创建
-        static auto WINAPI CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
+        static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // ctor: cp- parent in contorl-level
-        UIBlurText(UIContainer* cp) noexcept : Super(cp), m_effect(CLSID_D2D1GaussianBlur) {}
+        UIBlurText(UIContainer* cp) noexcept;
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
@@ -99,12 +84,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> LongUIInline const IID& GetIID<LongUI::UIBlurText>() {
-        // {1AF45E28-9342-4CA4-AA6E-E48048C5E7AE}
-        static const GUID IID_LongUI_UIBlurText = { 
-            0x1af45e28, 0x9342, 0x4ca4, { 0xaa, 0x6e, 0xe4, 0x80, 0x48, 0xc5, 0xe7, 0xae }
-        };
-        return IID_LongUI_UIBlurText;
-    }
+    template<> const IID& GetIID<LongUI::UIBlurText>() noexcept;
 #endif
 }

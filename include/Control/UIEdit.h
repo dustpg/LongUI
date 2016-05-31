@@ -62,6 +62,8 @@ namespace LongUI {
         static auto CreateControl(CreateEventType, pugi::xml_node) noexcept -> UIControl*;
         // constructor 构造函数
         UIEdit(UIContainer* cp) noexcept : Super(cp), m_text(this) { }
+        // get component
+        auto&GetComponent() noexcept { return m_text; }
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
@@ -71,7 +73,7 @@ namespace LongUI {
         UIEdit(const UIEdit&) = delete;
     protected:
         // core editable text component
-        Component::EditableText  m_text;
+        Component::EditableText m_text;
         // color of border
         D2D1_COLOR_F            m_aBorderColor[STATE_COUNT];
 #ifdef LongUIDebugEvent

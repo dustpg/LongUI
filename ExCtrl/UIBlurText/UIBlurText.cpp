@@ -1,36 +1,43 @@
-﻿#include "../common.h"
-#include "UIBlurText.h"
-
-#undef UIManager
-#define UIManager (*LongUI::Additional::g_config.manager)
+﻿#include "UIBlurText.h"
+#include <Core/luiManager.h>
 
 // longui namespace
 namespace LongUI {
     // Gaussian Blur GUID
-    GUID CLSID_D2D1GaussianBlur = {
+    const GUID CLSID_D2D1GaussianBlur = {
         0x1feb6d69, 0x2fe6, 0x4ac9, { 0x8c, 0x58, 0x1d, 0x7f, 0x93, 0xe7, 0xa6, 0xa5 }
     };
 }
 
 
+/// <summary>
+/// Sets the blur value.
+/// </summary>
+/// <param name="sd">The sd.</param>
+void LongUI::UIBlurText::SetBlurValue(float sd) noexcept { 
+    LongUI::CUIDxgiAutoLocker locker;
+    m_fBlur = sd;
+    if(m_effect.IsOK()) m_effect.SetValue(
+        D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, m_fBlur
+    );
+    m_pWindow->Invalidate(this);
+}
+
 // ----------------------------------------------------------------------------
 // **** UIBlurText
 // ----------------------------------------------------------------------------
+LongUI::UIBlurText::UIBlurText(UIContainer * cp) noexcept: 
+Super(cp), m_effect(LongUI::CLSID_D2D1GaussianBlur) {
+    
+}
+
 
 /// <summary>
 /// Renders this instance.
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBlurText::Render() const noexcept {
-    if (m_pWindow->IsPrerender()) {
-        force_cast(m_effect).Record(
-            UIManager_RenderTarget, [this]() noexcept {
-            this->Super::Render();
-        });
-    }
-    else {
-        m_effect.Render();
-    }
+    m_effect.Render();
 }
 
 /// <summary>
@@ -38,11 +45,20 @@ void LongUI::UIBlurText::Render() const noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBlurText::Update() noexcept {
+    // 刷新父类
+    Super::Update();
     // 改变了大小
     if (this->IsControlLayoutChanged()) {
         m_effect.SetInvalidate();
     }
-    return Super::Update();
+    // 记录
+    m_effect.Record(
+        UIManager_RenderTarget, [this]() noexcept {
+        this->Super::Render();
+#ifdef _DEBUG
+        UIManager << DL_Hint << L"Recorded" << LongUI::endl;
+#endif
+    });
 }
 
 // UIText: 事件响应
@@ -81,8 +97,11 @@ auto LongUI::UIBlurText::Recreate() noexcept ->HRESULT {
     }
     // 设置特效
     if (SUCCEEDED(hr)) {
-        m_effect.SetValue(D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION, D2D1_GAUSSIANBLUR_OPTIMIZATION_SPEED);
-        m_effect.SetValue(D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, m_fBlur);
+        constexpr auto i1 = D2D1_GAUSSIANBLUR_PROP_OPTIMIZATION;
+        constexpr auto v1 = D2D1_GAUSSIANBLUR_OPTIMIZATION_SPEED;
+        m_effect.SetValue(i1, v1);
+        constexpr auto i2 = D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION;
+        m_effect.SetValue(i2, m_fBlur);
         m_effect.SetInvalidate();
     }
     // 重建父类
@@ -101,10 +120,9 @@ void LongUI::UIBlurText::initialize(pugi::xml_node node) noexcept {
     // 链式初始化
     Super::initialize(node);
     // 获取模糊值
-    const char* str = node.attribute("blur").value();
-    if (str) m_fBlur = LongUI::AtoF(str);
-    // 注册离屏渲染控件
-    m_pWindow->RegisterOffScreenRender2D(this);
+    if (const auto str = node.attribute("blur").value()) {
+        m_fBlur = LongUI::AtoF(str);
+    }
 }
 
 
@@ -154,5 +172,14 @@ bool LongUI::UIBlurText::debug_do_event(const LongUI::DebugEventInformation& inf
         break;
     }
     return false;
+}
+
+// 重载?特例化 GetIID
+template<> const IID& LongUI::GetIID<LongUI::UIBlurText>() noexcept {
+    // {1AF45E28-9342-4CA4-AA6E-E48048C5E7AE}
+    static const GUID IID_LongUI_UIBlurText = { 
+        0x1af45e28, 0x9342, 0x4ca4, { 0xaa, 0x6e, 0xe4, 0x80, 0x48, 0xc5, 0xe7, 0xae }
+    };
+    return IID_LongUI_UIBlurText;
 }
 #endif

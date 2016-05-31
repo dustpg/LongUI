@@ -59,11 +59,13 @@ void LongUI::UIText::refresh_auto_size() noexcept {
         RectLTWH_F rect; m_text.GetTextBox(rect);
         // 自动调整宽度
         if (this->flags & Flag_AutoWidth) {
-            this->SetContentWidth(rect.width);
+            auto exw = this->margin_rect.left + this->margin_rect.right;
+            this->SetContentWidth(rect.width + exw);
         }
         // 自动调整高度
         if (this->flags & Flag_AutoHeight) {
-            this->SetContentHeight(rect.height);
+            auto exh = this->margin_rect.bottom + this->margin_rect.top;
+            this->SetContentHeight(rect.height + exh);
         }
     }
 }
@@ -106,7 +108,7 @@ void LongUI::UIText::initialize(pugi::xml_node node) noexcept {
     // 自动调整高度
     if (this->flags & Flag_AutoHeight) flag |= Flag_HeightFixed;
     // 更新标记
-    force_cast(this->flags) = flags;
+    force_cast(this->flags) = flag;
     // 自动调整大小
     this->refresh_auto_size();
 }

@@ -78,24 +78,25 @@ namespace LongUI { namespace Component {
         ID2D1Image*                 m_pOutput = nullptr;
     public:
         // record
-        template<typename T> void Record(ID2D1DeviceContext* target, T lam) noexcept {
+        template<typename T> void Record(
+            ID2D1DeviceContext* target, T draw_record) noexcept {
             // if invalidate
-            if (this->CheckInvalidate()) {
-                // recreate cmd list
-                LongUI::SafeRelease(m_pCmdList);
-                target->CreateCommandList(&m_pCmdList);
-                // created
-                if (m_pCmdList) {
-                    // draw
-                    target->SetTarget(m_pCmdList);
-                    target->BeginDraw();
-                    draw_record();
-                    target->EndDraw();
-                    m_pCmdList->Close();
-                    m_pEffect->SetInput(0, m_pCmdList);
-                    // validate
-                    this->SetValidate();
-                }
+            if (!this->CheckInvalidate()) return;
+            // recreate cmd list
+            LongUI::SafeRelease(m_pCmdList);
+            target->CreateCommandList(&m_pCmdList);
+            // created
+            if (m_pCmdList) {
+                // draw
+                target->SetTarget(m_pCmdList);
+                target->BeginDraw();
+                target->SetTransform(DX::Matrix3x2F::Identity());
+                draw_record();
+                auto hr = target->EndDraw();
+                hr = m_pCmdList->Close();
+                m_pEffect->SetInput(0, m_pCmdList);
+                // validate
+                this->SetValidate();
             }
         }
     };

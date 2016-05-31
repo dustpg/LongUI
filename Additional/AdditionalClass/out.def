@@ -1,5 +1,0 @@
-LIBRARY     AdditionalClass.dll
-EXPORTS
-            LongUIAddInitialize         PRIVATE
-            LongUIAddRegisterControl    PRIVATE
-            LongUIAddUninitialize       PRIVATE
