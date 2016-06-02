@@ -7,14 +7,14 @@ Current Version : **Alpha-Stage**
 ## Features in LongUI
   
 **Friendly with High-DPI**
-  - No GDI/GDI+, LongUI use Direct2D as rendering api, could zoom a container into any size
+  - No GDI/GDI+, LongUI could zoom a container into any size
   
 **XML Layout**
-  - Easy way to create a window by xml
+  - Easy way to create a window through xml
   
 **Light Weight**
-  - LongUI was designed to be a static-link framework.
-  - The `helloworld` in only 200+kb(/MD in MSC).
+  - static-link framework.
+  - The `helloworld` in 200+kb only(/MD in MSC).
 
 [Known Issues](./KnownIssues.md)  
 [Document](./Document/)  

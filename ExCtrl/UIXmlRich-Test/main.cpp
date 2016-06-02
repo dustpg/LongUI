@@ -1,6 +1,7 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <LongUI.h>
 #include <LongUI/luiUiDConf.h>
+#include "../UIXmlRich/UIXmlRich.h"
 
 extern const char* BLURTEXT_XXLAYOUT;
 extern const char* BLURTEXT_TEMPLATE;
@@ -11,6 +12,10 @@ struct XmlConfig : LongUI::CUIDefaultConfigure {
     auto GetTemplateString() noexcept ->const char* override {
         return BLURTEXT_TEMPLATE;
     }
+    // add all custom controls
+    void RegisterSome() noexcept override {
+        UIManager.RegisterControlClass(LongUI::UIXmlRich::CreateControl, "XmlRich");
+    };
     XmlConfig() : CUIDefaultConfigure(UIManager) {
         this->resource = BLURTEXT_RESOURCE;
     }
@@ -62,45 +67,46 @@ void InitWindow(LongUI::XUIBaseWindow* window, int nCmdShow) noexcept {
         ::MessageBoxW(nullptr, msg, L"Create Window Failed", MB_ICONERROR);
         return;
     }
-    auto input = longui_cast<UIEdit*>(window->FindControl("i"));
+    auto input = longui_cast<UIXmlRich*>(window->FindControl("i"));
     auto output = longui_cast<UIEdit*>(window->FindControl("o"));
     assert(input && output);
     // bold
     if (const auto b = window->FindControl("btnB")) {
-        auto&icomponent = input->GetComponent();
-        auto&i = *input; auto&o = *output;
-        b->Add_OnClicked([&](UIControl*) noexcept {
-            auto range = icomponent.GetSelectionRange();
-            if (range.length) {
-                icomponent.layout->SetFontWeight(
-                    DWRITE_FONT_WEIGHT_BOLD, range
-                );
-                i.InvalidateThis();
-            }
+        b->Add_OnClicked([=](UIControl*) noexcept {
+            input->SetSelectionBold();
             return true;
         });
     }
     // underline
     if (const auto u = window->FindControl("btnU")) {
-        auto&icomponent = input->GetComponent();
-        auto&i = *input; auto&o = *output;
-        u->Add_OnClicked([&](UIControl*) noexcept {
-            auto range = icomponent.GetSelectionRange();
-            if (range.length) {
-                icomponent.layout->SetUnderline(true, range);
-                i.InvalidateThis();
-            }
+        u->Add_OnClicked([=](UIControl*) noexcept {
+            input->SetSelectionUnderline();
+            return true;
+        });
+    }
+    // strikethrough
+    if (const auto s = window->FindControl("btnS")) {
+        s->Add_OnClicked([=](UIControl*) noexcept {
+            input->SetSelectionStrikethrough();
+            return true;
+        });
+    }
+    // italic
+    if (const auto i = window->FindControl("btnI")) {
+        i->Add_OnClicked([=](UIControl*) noexcept {
+            input->SetSelectionItalic();
+            return true;
+        });
+    }
+    // color
+    if (const auto c = window->FindControl("btnC")) {
+        c->Add_OnClicked([=](UIControl*) noexcept {
+            input->SetSelectionColor();
             return true;
         });
     }
     window->ShowWindow(nCmdShow);
 }
-
-#pragma comment(lib, "longui")
-#pragma comment(lib, "pugixml")
-#pragma comment(lib, "dlmalloc")
-#pragma comment(lib, "UIBlurText")
-
 
 const char* BLURTEXT_XXLAYOUT = 
 u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -121,7 +127,7 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
                 <Button name="btnU" templateid="1" text="&lt;u&gt;U&lt;/u&gt;" />
                 <Button name="btnS" templateid="1" text="&lt;s&gt;S&lt;/s&gt;" />
             </HorizontalLayout>
-            <Edit name="i" text="Hello, world!" textformat="1" textrich="true"
+            <XmlRich name="i" text="Hello, world!" textformat="1"
                 textmultiline="true" borderwidth="1" margin="4,4,4,4" />
         </VerticalLayout>
         <VerticalLayout>
@@ -182,3 +188,21 @@ const char* BLURTEXT_RESOURCE = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
     </uMeta>
 </Resource>
 )xml";
+
+
+#pragma comment(lib, "longui")
+#pragma comment(lib, "pugixml")
+#pragma comment(lib, "dlmalloc")
+#pragma comment(lib, "UIXmlRich")
+
+#ifdef _UNICODE
+#if defined _M_IX86
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_IA64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='ia64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
+#endif

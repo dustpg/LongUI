@@ -54,15 +54,15 @@ namespace LongUI {
         // get null-end string for template for creating control
         virtual auto GetTemplateString() noexcept ->const char* override { return nullptr; }
         // get locale name of ui(for text)
-        virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept ->void override { name[0] = L'\0'; };
+        virtual void GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept override { name[0] = L'\0'; };
         // add all custom controls
-        virtual auto RegisterSome() noexcept ->void override {};
+        virtual void RegisterSome() noexcept override {};
         // if use gpu render, you should choose a video card, return the index
         virtual auto ChooseAdapter(const DXGI_ADAPTER_DESC1 adapters[], const size_t length) noexcept ->size_t override;
         // create custom window
         virtual auto CreateCustomWindow(WindowPriorityType type, pugi::xml_node node) noexcept->XUIBaseWindow* override { return nullptr; };
         // show the error string
-        virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void override;
+        virtual void ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept override;
 #ifdef _DEBUG
         // output the debug string
         virtual auto OutputDebugStringW(DebugStringLevel level, const wchar_t* string, bool flush) noexcept -> void override;

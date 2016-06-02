@@ -49,7 +49,7 @@ namespace LongUI {
         // alloc the script memory and copy into(may be compiled into byte code), return memory size
         virtual auto AllocScript(const char* utf8) noexcept ->LongUI::ScriptUI = 0;
         // free the script memory
-        virtual auto FreeScript(ScriptUI&) noexcept ->void = 0;
+        virtual void FreeScript(ScriptUI&) noexcept = 0;
     };
     // text formatter interface
     class LONGUI_NOVTABLE IUITextFormatter : public IUIInterface {
@@ -104,7 +104,7 @@ namespace LongUI {
         // get resouce by index, index in range [0, count),  for Type_Bitmap, Type_Brush, Type_TextFormat
         virtual auto GetResourcePointer(ResourceType type, size_t index) noexcept ->void* = 0;
         // get meta by index, index in range [0, count)
-        virtual auto GetMeta(size_t index, DeviceIndependentMeta&) noexcept ->void = 0;
+        virtual void GetMeta(size_t index, DeviceIndependentMeta&) noexcept = 0;
     };
     // UI Configure Interface
     class LONGUI_NOVTABLE IUIConfigure : public IUIInterface {
@@ -162,12 +162,12 @@ namespace LongUI {
         /// </summary>
         /// <param name="name">The locale name buffer</param>
         /// <remarks>L"" for local locale name</remarks>
-        virtual auto GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept ->void = 0;
+        virtual void GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept = 0;
         /// <summary>
         /// Adds the custom control.
         /// </summary>
         /// <remarks>call CUIManager::RegisterControl to add control class</remarks>
-        virtual auto RegisterSome() noexcept ->void = 0;
+        virtual void RegisterSome() noexcept = 0;
         /// <summary>
         /// Chooses the video adapter.
         /// </summary>
@@ -193,7 +193,7 @@ namespace LongUI {
         /// <param name="str_a">String A</param>
         /// <param name="str_b">String B</param>
         /// <returns></returns>
-        virtual auto ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept -> void = 0;
+        virtual void ShowError(const wchar_t* str_a, const wchar_t* str_b = nullptr) noexcept = 0;
 #ifdef _DEBUG
         /// <summary>
         /// Outputs the debug string in debug mode

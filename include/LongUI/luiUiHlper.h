@@ -52,6 +52,21 @@ struct IDWriteFontCollectionLoader;
 struct IDWriteFontCollection;
 struct IDWritePixelSnapping;
 
+struct ID2D1Transform;
+struct ID2D1EffectImpl;
+struct ID2D1DrawTransform;
+struct ID2D1TransformNode;
+
+extern const GUID IID_ID2D1Transform;
+extern const GUID IID_ID2D1EffectImpl;
+extern const GUID IID_ID2D1DrawTransform;
+extern const GUID IID_ID2D1TransformNode;
+
+extern const GUID IID_IDXGIFactory2;
+extern const GUID IID_ID3D11Texture2D;
+extern const GUID IID_ID3D11Debug;
+
+
 #define LongUI_IID_PV_ARGS(pointer) LongUI::GetIID(pointer), reinterpret_cast<void**>(&pointer)
 #define LongUI_IID_PV_ARGS_Ex(pointer) LongUI::GetIID(pointer), reinterpret_cast<IUnknown**>(&pointer)
 #define MakeGetIID(c) template<> LongUIInline const IID& GetIID<c>() { return IID_##c; }
@@ -102,6 +117,14 @@ namespace LongUI {
     MakeGetIID(IDXGIFactory2);
     // IDropTargetHelper
     //MakeGetIID(IDropTargetHelper);
+    // ID2D1Transform
+    MakeGetIID(ID2D1Transform);
+    // ID2D1EffectImpl
+    MakeGetIID(ID2D1EffectImpl);
+    // ID2D1TransformNode
+    MakeGetIID(ID2D1TransformNode);
+    // ID2D1DrawTransform
+    MakeGetIID(ID2D1DrawTransform);
     // IDXGISurface
     MakeGetIID(IDXGISurface);
     // bitmap

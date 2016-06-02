@@ -966,6 +966,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
             // 删除下一个的字符
             else {
+                // 保留旧布局
+                auto old = LongUI::SafeAcquire(this->layout);
                 DWRITE_HIT_TEST_METRICS hitTestMetrics;
                 float caretX, caretY;
                 // 获取集群大小
@@ -991,7 +993,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 // 删除字符
                 if (this->remove_text(hitTestMetrics.textPosition, hitTestMetrics.length)) {
                     this->recreate_layout();
+                    this->copy_remove(old, 
+                        DWRITE_TEXT_RANGE{ hitTestMetrics.textPosition, hitTestMetrics.length }
+                    );
                 }
+                LongUI::SafeRelease(old);
             }
             // 修改
             this->refresh();
