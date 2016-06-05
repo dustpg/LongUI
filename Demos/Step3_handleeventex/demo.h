@@ -78,7 +78,7 @@ bool LongUI::Demo::MainViewport::DoEvent(const EventArgument& arg) noexcept {
     case LongUI::Event::Event_SubEvent:
         // number button clicked event
         if (arg.ui.subevent == LongUI::SubEvent::Event_ItemClicked) {
-            this->number_button_clicked(arg.sender);
+            this->number_button_clicked( arg.sender );
         }
         return true;
     case LongUI::Event::Event_TreeBuildingFinished:

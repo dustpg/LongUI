@@ -47,7 +47,7 @@ struct PixelInputType {
     float4 color        : COLOR;
 };
 // vs main
-PixelInputType ColorVertexShader(VertexInputType input) {
+PixelInputType vsmain(VertexInputType input) {
     PixelInputType output;
     output.scenepos = float4(input.position.xy, 1, 1); 
     output.position.x = (input.position.x * sceneToOutputX[0] + sceneToOutputX[1]);
@@ -58,7 +58,7 @@ PixelInputType ColorVertexShader(VertexInputType input) {
     return output;
 }
 // ps main
-float4 ColorPixelShader(PixelInputType input) : SV_TARGET {
+float4 psmain(PixelInputType input) : SV_TARGET {
     return input.color;
 }
 
@@ -110,11 +110,11 @@ float4 ColorPixelShader(PixelInputType input) : SV_TARGET {
             { 0.f, -unit }
         };
         vbuffer[Effect::Hsv::VERTEX_COUNT - 2] = {
-            D2D1::ColorF(D2D1::ColorF::White),
+            D2D1::ColorF(D2D1::ColorF::Black),
             {-sin60 * unit, cos60 * unit }
         };
         vbuffer[Effect::Hsv::VERTEX_COUNT - 1] = {
-            D2D1::ColorF(D2D1::ColorF::Black),
+            D2D1::ColorF(D2D1::ColorF::White),
             { sin60 * unit, cos60 * unit }
         };
     }
@@ -237,12 +237,7 @@ IFACEMETHODIMP LongUI::Effect::Hsv::Initialize(
         if (FAILED(pEffectContext->LoadVertexShader(LongUI::GUID_HsvEffectVShader, buf, 0))) {
             // 编译VS
             if (SUCCEEDED(hr)) {
-                hr = LongUI::CompileHLSL(
-                    HSV_SHADER,
-                    "ColorVertexShader",
-                    "vs_5_0",
-                    vs
-                );
+                hr = LongUI::CompileHLSL(HSV_SHADER, "vsmain", "vs_5_0", vs);
             }
             // 载入VS
             if (SUCCEEDED(hr)) {
@@ -259,12 +254,7 @@ IFACEMETHODIMP LongUI::Effect::Hsv::Initialize(
             ID3DBlob *ps = nullptr;
             // 编译PS
             if (SUCCEEDED(hr)) {
-                hr = LongUI::CompileHLSL(
-                    HSV_SHADER,
-                    "ColorPixelShader",
-                    "ps_5_0",
-                    ps
-                );
+                hr = LongUI::CompileHLSL(HSV_SHADER, "psmain", "ps_5_0", ps);
             }
             // 载入PS
             if (SUCCEEDED(hr)) {

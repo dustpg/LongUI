@@ -2,6 +2,7 @@
 #include "Control/UIComboBox.h"
 #include "Control/UIList.h"
 #include "Control/UIScrollBar.h"
+#include "Control/UIColor.h"
 
 #ifdef LongUIDebugEvent
 #include "Control/UIEdit.h"
@@ -16,6 +17,86 @@
 #include <algorithm>
 
 // ----------------------------------------------------------------------------
+// **** UIColor
+// ----------------------------------------------------------------------------
+
+/// <summary>
+/// Render_chain_backgrounds this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIColor::render_chain_background() const noexcept {
+    // 渲染父类背景(比如黑白间隔用来显示透明色)
+    Super::render_chain_background();
+    // 渲染基本色
+    D2D1_RECT_F rect; this->GetViewRect(rect);
+    auto brush = m_pBrush_SetBeforeUse;
+    brush->SetColor(&m_color);
+    UIManager_RenderTarget->FillRectangle(&rect, brush);
+}
+
+
+/// <summary>
+/// Initializes the specified node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIColor::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    // 获取颜色
+    if (const auto c = node.attribute("color").value()) {
+        Helper::MakeColor(c, m_color);
+    }
+}
+
+/// <summary>
+/// Cleanups this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIColor::cleanup() noexcept {
+    this->before_deleted();
+    delete this;
+}
+
+/// <summary>
+/// Renders this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIColor::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
+}
+
+/// <summary>
+/// Creates the control.
+/// </summary>
+/// <param name="">The .</param>
+/// <param name="">The .</param>
+/// <returns></returns>
+auto LongUI::UIColor::CreateControl(
+    CreateEventType type, pugi::xml_node node) noexcept -> UIControl* {
+    // 分类判断
+    UIColor* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    case_LongUI__Type_CreateControl:
+        LongUI__CreateWidthCET(UIColor, pControl, type, node);
+    }
+    return pControl;
+}
+
+
+// ----------------------------------------------------------------------------
 // **** UIText
 // ----------------------------------------------------------------------------
 
@@ -26,6 +107,7 @@ void LongUI::UIText::render_chain_foreground() const noexcept {
     // 父类
     Super::render_chain_foreground();
 }
+
 
 // UI文本: 渲染
 void LongUI::UIText::Render() const noexcept {
@@ -627,6 +709,14 @@ auto LongUI::UIComboBox::CreateControl(CreateEventType type, pugi::xml_node node
 // GUID 信息
 namespace LongUI {
     // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIColor>() noexcept {
+        // {BDB1D144-C511-4FAB-912F-2B9716AB2C36}
+        static const GUID IID_LongUI_UIColor = { 
+            0xbdb1d144, 0xc511, 0x4fab, { 0x91, 0x2f, 0x2b, 0x97, 0x16, 0xab, 0x2c, 0x36 } 
+        };
+        return IID_LongUI_UIColor;
+    }
+    // 重载?特例化 GetIID
     template<> const IID& GetIID<LongUI::UISingle>() noexcept {
         // {B3C3CDEB-21A7-48E3-8E6C-693212ED7619}
         static const GUID IID_LongUI_UISingle = {
@@ -857,6 +947,26 @@ auto LongUI::UIControl::GetControlClassName(bool full) const noexcept ->const wc
     info.iid = nullptr; info.str = L"";
     this->debug_do_event(info);
     return info.str;
+}
+
+// UI颜色: 调试信息
+bool LongUI::UIColor::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIColor";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIColor";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIColor>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
 }
 
 // UI文本: 调试信息

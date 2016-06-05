@@ -219,6 +219,9 @@
     <ClInclude Include="..\include\Component\EditableText.h">
       <Filter>Header Files\Component</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Control\UIColor.h">
+      <Filter>Header Files\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
@@ -278,9 +281,6 @@
     <ClCompile Include="..\src\luiMenu.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="luiUiTmCap.cpp">
-      <Filter>Source Files\LongUI</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\luiPoFile.cpp">
       <Filter>Source Files\XUtil</Filter>
     </ClCompile>
@@ -288,6 +288,9 @@
       <Filter>Source Files\XUtil</Filter>
     </ClCompile>
     <ClCompile Include="..\src\luiSvg.cpp">
+      <Filter>Source Files\LongUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\luiUiTmCap.cpp">
       <Filter>Source Files\LongUI</Filter>
     </ClCompile>
   </ItemGroup>

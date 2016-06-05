@@ -221,11 +221,18 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     void ShortText::Render(ID2D1RenderTarget* target, D2D1_POINT_2F pt) const noexcept {
         assert(target && "bad argument");
         if (!m_pLayout) return;
+        m_pLayout->SetReadingDirection(DWRITE_READING_DIRECTION_TOP_TO_BOTTOM);
+        m_pLayout->SetFlowDirection(DWRITE_FLOW_DIRECTION_RIGHT_TO_LEFT);
         m_pTextRenderer->target = target;
         m_pTextRenderer->basic_color.color = *m_pColor;
-        m_pLayout->Draw(
+        //ID2D1SolidColorBrush* brush = nullptr;
+        //target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &brush);
+        //target->DrawTextLayout(pt, m_pLayout, brush);
+        //brush->Release();
+        IDWriteTextRenderer1* pTextRenderer = m_pTextRenderer;
+        auto hr = m_pLayout->Draw(
             m_pTextContext,
-            m_pTextRenderer,
+            pTextRenderer,
             this->offset.x + pt.x,
             this->offset.y + pt.y
         );
@@ -1377,7 +1384,8 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         assert(this->layout && "bad action");
         m_pTextRenderer->target = target;
         m_pTextRenderer->basic_color.color = *m_pColor;
-        this->layout->Draw(m_pTextContext, m_pTextRenderer, x, y);
+        IDWriteTextRenderer1* pTextRenderer = m_pTextRenderer;
+        this->layout->Draw(m_pTextContext, pTextRenderer, x, y);
         m_pTextRenderer->target = nullptr;
     }
     // 复制到 目标全局句柄
@@ -2274,13 +2282,37 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawInlineObject(
     UNREFERENCED_PARAMETER(isSideways);
     UNREFERENCED_PARAMETER(isRightToLeft);
     assert(inlineObject && "bad argument");
+    IDWriteTextRenderer1* pTextRenderer = this;
     // 渲染
     inlineObject->Draw(
-        clientDrawingContext, this,
+        clientDrawingContext, pTextRenderer,
         originX, originY,
         isSideways, isRightToLeft,
         clientDrawingEffect
         );
+    return S_OK;
+}
+
+// 渲染内联对象
+auto LongUI::XUIBasicTextRenderer::DrawInlineObject(
+    _In_opt_ void* clientDrawingContext,
+    FLOAT originX, FLOAT originY,
+    DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+    _In_ IDWriteInlineObject * inlineObject,
+    BOOL isSideways, BOOL isRightToLeft,
+    _In_opt_ IUnknown* clientDrawingEffect) noexcept ->HRESULT {
+    UNREFERENCED_PARAMETER(isSideways);
+    UNREFERENCED_PARAMETER(isRightToLeft);
+    UNREFERENCED_PARAMETER(orientationAngle);
+    assert(inlineObject && "bad argument");
+    IDWriteTextRenderer1* pTextRenderer = this;
+    // 渲染
+    inlineObject->Draw(
+        clientDrawingContext, pTextRenderer,
+        originX, originY,
+        isSideways, isRightToLeft,
+        clientDrawingEffect
+    );
     return S_OK;
 }
 
@@ -2293,13 +2325,73 @@ namespace LongUI { namespace impl {
         const auto table2 = (*reinterpret_cast<const size_t * const>(b));
         return table1 == table2;
     }
+    // rotate rect
+    auto rotate(const D2D1_RECT_F& rect, DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle) {
+        switch (orientationAngle)
+        {
+        case DWRITE_GLYPH_ORIENTATION_ANGLE_90_DEGREES:
+            return D2D1_RECT_F{ -rect.top, rect.left, -rect.bottom, rect.right };
+        case DWRITE_GLYPH_ORIENTATION_ANGLE_180_DEGREES:
+            return D2D1_RECT_F{ -rect.left, -rect.top, -rect.right, -rect.bottom };
+        case DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES:
+            return D2D1_RECT_F{ rect.top, -rect.left, rect.bottom, -rect.right };
+        case DWRITE_GLYPH_ORIENTATION_ANGLE_0_DEGREES:
+        default:
+            return rect;
+        }
+    }
+    // offset rect
+    inline auto offset( const D2D1_RECT_F& rect, float offsetX, float offsetY)  {
+        return D2D1_RECT_F{
+            rect.left + offsetX,
+            rect.top + offsetY,
+            rect.right + offsetX,
+            rect.bottom + offsetY 
+        };
+    }
 }}
 
-// 刻画下划线
+/// <summary>
+/// Draws the underline.
+/// </summary>
+/// <param name="clientDrawingContext">The client drawing context.</param>
+/// <param name="baselineOriginX">The baseline origin x.</param>
+/// <param name="baselineOriginY">The baseline origin y.</param>
+/// <param name="underline">The underline.</param>
+/// <param name="effect">The effect.</param>
+/// <returns></returns>
 HRESULT LongUI::XUIBasicTextRenderer::DrawUnderline(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
     FLOAT baselineOriginY,
+    const DWRITE_UNDERLINE* underline,
+    IUnknown* effect
+) noexcept {
+    return this->XUIBasicTextRenderer::DrawUnderline(
+        clientDrawingContext,
+        baselineOriginX,
+        baselineOriginY,
+        DWRITE_GLYPH_ORIENTATION_ANGLE_0_DEGREES,
+        underline,
+        effect
+    );
+}
+
+/// <summary>
+/// Draws the underline.
+/// </summary>
+/// <param name="clientDrawingContext">The client drawing context.</param>
+/// <param name="baselineOriginX">The baseline origin x.</param>
+/// <param name="baselineOriginY">The baseline origin y.</param>
+/// <param name="orientationAngle">The orientation angle.</param>
+/// <param name="underline">The underline.</param>
+/// <param name="effect">The effect.</param>
+/// <returns></returns>
+HRESULT LongUI::XUIBasicTextRenderer::DrawUnderline(
+    void* clientDrawingContext,
+    FLOAT baselineOriginX,
+    FLOAT baselineOriginY,
+    DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
     const DWRITE_UNDERLINE* underline,
     IUnknown* effect
 ) noexcept {
@@ -2316,17 +2408,17 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawUnderline(
     // 设置颜色
     m_pBrush->SetColor(color);
     // 计算矩形
-    D2D1_RECT_F rectangle = {
-        baselineOriginX,
-        baselineOriginY + underline->offset,
-        baselineOriginX + underline->width,
-        baselineOriginY + underline->offset + underline->thickness
+    D2D1_RECT_F rect = { 
+        0, underline->offset, 
+        underline->width, 
+        underline->offset + underline->thickness 
     };
+    rect = impl::rotate(rect, orientationAngle);
+    rect = impl::offset(rect, baselineOriginX, baselineOriginY);
     // 填充矩形
-    this->target->FillRectangle(&rectangle, m_pBrush);
+    this->target->FillRectangle(&rect, m_pBrush);
     return S_OK;
 }
-
 
 /// <summary>
 /// Fills the rect.
@@ -2337,11 +2429,48 @@ void LongUI::XUIBasicTextRenderer::FillRect(const D2D1_RECT_F& rc) noexcept {
     this->target->FillRectangle(&rc, m_pBrush);
 }
 
-// 刻画删除线
+
+/// <summary>
+/// Draws the strikethrough.
+/// </summary>
+/// <param name="clientDrawingContext">The client drawing context.</param>
+/// <param name="baselineOriginX">The baseline origin x.</param>
+/// <param name="baselineOriginY">The baseline origin y.</param>
+/// <param name="strikethrough">The strikethrough.</param>
+/// <param name="effect">The effect.</param>
+/// <returns></returns>
 HRESULT LongUI::XUIBasicTextRenderer::DrawStrikethrough(
     void* clientDrawingContext,
     FLOAT baselineOriginX,
     FLOAT baselineOriginY,
+    const DWRITE_STRIKETHROUGH* strikethrough,
+    IUnknown* effect
+) noexcept {
+    return this->XUIBasicTextRenderer::DrawStrikethrough(
+        clientDrawingContext,
+        baselineOriginX,
+        baselineOriginY,
+        DWRITE_GLYPH_ORIENTATION_ANGLE_0_DEGREES,
+        strikethrough,
+        effect
+    );
+}
+
+/// <summary>
+/// Draws the strikethrough.
+/// </summary>
+/// <param name="clientDrawingContext">The client drawing context.</param>
+/// <param name="baselineOriginX">The baseline origin x.</param>
+/// <param name="baselineOriginY">The baseline origin y.</param>
+/// <param name="orientationAngle">The orientation angle.</param>
+/// <param name="strikethrough">The strikethrough.</param>
+/// <param name="effect">The effect.</param>
+/// <returns></returns>
+HRESULT LongUI::XUIBasicTextRenderer::DrawStrikethrough(
+    void* clientDrawingContext,
+    FLOAT baselineOriginX,
+    FLOAT baselineOriginY,
+    DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
     const DWRITE_STRIKETHROUGH* strikethrough,
     IUnknown* effect
 ) noexcept {
@@ -2358,17 +2487,17 @@ HRESULT LongUI::XUIBasicTextRenderer::DrawStrikethrough(
     // 设置颜色
     m_pBrush->SetColor(color);
     // 计算矩形
-    D2D1_RECT_F rectangle = {
-        baselineOriginX,
-        baselineOriginY + strikethrough->offset,
-        baselineOriginX + strikethrough->width,
-        baselineOriginY + strikethrough->offset + strikethrough->thickness
+    D2D1_RECT_F rect = { 
+        0, strikethrough->offset, 
+        strikethrough->width, 
+        strikethrough->offset + strikethrough->thickness 
     };
+    rect = impl::rotate(rect, orientationAngle);
+    rect = impl::offset(rect, baselineOriginX, baselineOriginY);
     // 填充矩形
-    this->target->FillRectangle(&rectangle, m_pBrush);
+    this->target->FillRectangle(&rect, m_pBrush);
     return S_OK;
 }
-
 
 // ------------------CUINormalTextRender-----------------------
 // 刻画字形
@@ -2408,12 +2537,136 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     return S_OK;
 }
 
+// 刻画字形
+HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
+    void* clientDrawingContext,
+    FLOAT baselineOriginX, FLOAT baselineOriginY,
+    DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+    DWRITE_MEASURING_MODE measuringMode,
+    const DWRITE_GLYPH_RUN * glyphRun,
+    const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
+    IUnknown * effect) noexcept {
+    UNREFERENCED_PARAMETER(clientDrawingContext);
+    UNREFERENCED_PARAMETER(glyphRunDescription);
+    assert(this->target);
+    // 获取颜色
+    D2D1_COLOR_F* color = nullptr;
+    // 检查
+    if (effect && impl::same_vtable(effect, &this->basic_color)) {
+        color = &static_cast<CUIColorEffect*>(effect)->color;
+    }
+    else {
+        color = &this->basic_color.color;
+    }
+#ifdef _DEBUG
+    if (glyphRun->isSideways) {
+        UIManager << DL_Log << L"isSideways" << LongUI::endl;
+    }
+#endif
+    // 设置颜色
+    m_pBrush->SetColor(color);
+    // 利用D2D接口直接渲染字形
+    this->target->DrawGlyphRun(
+        D2D1_POINT_2F{ baselineOriginX, baselineOriginY },
+        glyphRun,
+        m_pBrush,
+        measuringMode
+    );
+    return S_OK;
+}
+
 
 // ------------------CUIOutlineTextRender-----------------------
 // 刻画字形
 HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
     void* clientDrawingContext,
     FLOAT baselineOriginX, FLOAT baselineOriginY,
+    DWRITE_MEASURING_MODE measuringMode,
+    const DWRITE_GLYPH_RUN * glyphRun,
+    const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
+    IUnknown * effect) noexcept {
+    UNREFERENCED_PARAMETER(glyphRunDescription);
+    assert(this->target);
+    // 获取填充颜色
+    D2D1_COLOR_F* fill_color = nullptr;
+    // 检查
+    if (effect && impl::same_vtable(effect, &this->basic_color)) {
+        fill_color = &static_cast<CUIColorEffect*>(effect)->color;
+    }
+    else {
+        fill_color = &this->basic_color.color;
+    }
+    // 获取描边颜色
+    auto outline = reinterpret_cast<OutlineContext*>(clientDrawingContext);
+    D2D1_COLOR_F* draw_color = &outline->color;
+    HRESULT hr = S_OK;
+    // 创建路径几何
+    ID2D1PathGeometry* pPathGeometry = nullptr;
+    hr = UIManager_D2DFactory->CreatePathGeometry(
+        &pPathGeometry
+    );
+    // 写入几何体
+    ID2D1GeometrySink* pSink = nullptr;
+    if (SUCCEEDED(hr)) {
+        hr = pPathGeometry->Open(
+            &pSink
+        );
+    }
+    // 描边
+    if (SUCCEEDED(hr)) {
+        hr = glyphRun->fontFace->GetGlyphRunOutline(
+            glyphRun->fontEmSize,
+            glyphRun->glyphIndices,
+            glyphRun->glyphAdvances,
+            glyphRun->glyphOffsets,
+            glyphRun->glyphCount,
+            glyphRun->isSideways,
+            glyphRun->bidiLevel % 2,
+            pSink
+        );
+    }
+    // 关闭几何体sink
+    if (SUCCEEDED(hr)) {
+        hr = pSink->Close();
+    }
+    // 渲染
+    if (SUCCEEDED(hr)) {
+        // 保存状态
+        D2D1_MATRIX_3X2_F transform, transform2;
+        this->target->GetTransform(&transform);
+        transform2 = DX::Matrix3x2F::Translation(
+            baselineOriginX, baselineOriginY
+        ) * transform;
+        this->target->SetTransform(&transform2);
+        // 设置颜色
+        m_pBrush->SetColor(draw_color);
+        // 刻画描边
+        this->target->DrawGeometry(
+            pPathGeometry,
+            m_pBrush,
+            outline->width
+        );
+        // 设置颜色
+        m_pBrush->SetColor(fill_color);
+        // 填充字形
+        this->target->FillGeometry(
+            pPathGeometry,
+            m_pBrush
+        );
+        // 回退
+        this->target->SetTransform(&transform);
+    }
+    // 扫尾
+    LongUI::SafeRelease(pPathGeometry);
+    LongUI::SafeRelease(pSink);
+    return hr;
+}
+
+// 刻画字形
+HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
+    void* clientDrawingContext,
+    FLOAT baselineOriginX, FLOAT baselineOriginY,
+    DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
     DWRITE_MEASURING_MODE measuringMode,
     const DWRITE_GLYPH_RUN * glyphRun,
     const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,

@@ -213,6 +213,8 @@ namespace LongUI {
         auto length() const noexcept { return std::strlen(m_pString); }
         // c-string
         auto c_str() const noexcept { return m_pString; }
+        // empty
+        bool empty() const noexcept { return !m_pString[0]; }
         // [] for const
         auto&operator[](size_t i) const noexcept { return m_pString[i]; }
         // = 

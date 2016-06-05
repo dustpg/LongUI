@@ -45,6 +45,7 @@ struct IMFMediaEngineEx;
 struct IMFMediaEngineNotify;
 struct IDCompositionDevice;
 struct IDWriteTextRenderer;
+struct IDWriteTextRenderer1;
 struct IDWriteInlineObject;
 struct IDWriteFactory1;
 struct IDWriteFontFileEnumerator;
@@ -89,6 +90,7 @@ namespace LongUI {
     extern const GUID IID_IMFMediaEngineNotify;
     extern const GUID IID_IDCompositionDevice;
     extern const GUID IID_IDWriteTextRenderer;
+    extern const GUID IID_IDWriteTextRenderer1;
     extern const GUID IID_IDWriteInlineObject;
     extern const GUID IID_IDWriteFactory1;
     extern const GUID IID_IDWriteFontCollection;
@@ -153,6 +155,8 @@ namespace LongUI {
     MakeGetIID(IDCompositionDevice);
     // IDWriteTextRenderer
     MakeGetIID(IDWriteTextRenderer);
+    // IDWriteTextRenderer1
+    MakeGetIID(IDWriteTextRenderer1);
     // IID_IDWriteInlineObject 
     MakeGetIID(IDWriteInlineObject);
     // IDWriteFactory1 ("30572f99-dac6-41db-a16e-0486307e606a")

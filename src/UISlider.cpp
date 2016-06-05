@@ -129,7 +129,11 @@ void LongUI::UISlider::SetValue01(float value) noexcept {
             << LongUI::endl;
     }
 #endif
+    auto old = m_fValue;
     m_fValue = std::min(std::max(value, 0.f), 1.f);
+    if (old != m_fValue) {
+        this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
+    }
     this->InvalidateThis(); 
 }
 

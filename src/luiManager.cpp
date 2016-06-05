@@ -9,6 +9,7 @@
 #include "Control/UIList.h"
 #include "Control/UIEdit.h"
 #include "Control/UISlider.h"
+#include "Control/UIColor.h"
 #include "Control/UIPage.h"
 #include "Control/UISingle.h"
 #include "Control/UICheckBox.h"
@@ -40,16 +41,19 @@ namespace LongUI { namespace impl{
     }
 }}
 
-//#define _DEBUG_LL
+#ifdef _DEBUG
+#define _DEBUG_LL
+#endif
 
 // CUIManager 初始化
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 检查GUID
 #if defined(_DEBUG_LL) && defined(_MSC_VER)
-#define CHECK_GUID(x)  assert(LongUI::IID_##x == __uuidof(x) && "bad guid")
+#define CHECK_GUID(x) assert(LongUI::IID_##x == __uuidof(x) && "bad guid")
     CHECK_GUID(IDXGISwapChain2);
     CHECK_GUID(IDWriteFactory1);
     CHECK_GUID(IDWriteTextRenderer);
+    CHECK_GUID(IDWriteTextRenderer1);
     CHECK_GUID(IDWriteInlineObject);
     CHECK_GUID(IDWritePixelSnapping);
     CHECK_GUID(IDWriteFontCollection);
@@ -359,6 +363,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         this->RegisterControlClass(UIList::CreateControl, "List");
         this->RegisterControlClass(UIEdit::CreateControl, "Edit");
         this->RegisterControlClass(UIPage::CreateControl, "Page");
+        this->RegisterControlClass(UIColor::CreateControl, "Color");
         this->RegisterControlClass(UISlider::CreateControl, "Slider");
         this->RegisterControlClass(UIButton::CreateControl, "Button");
         this->RegisterControlClass(UISingle::CreateControl, "Single");
@@ -751,17 +756,13 @@ void LongUI::CUIManager::Run() noexcept {
 // 等待垂直同步
 void LongUI::CUIManager::wait_for_vblank() noexcept {
     // 自行等待垂直同步以方便游戏窗口不等待垂直同步的实现
-    if (this->flag & IUIConfigure::Flag_RenderInAnytime) {
-        return;
-    }
+    if (this->flag & IUIConfigure::Flag_RenderInAnytime) return;
     // 存在DXGI输出?
-    if (m_pDxgiOutput) {
-        m_pDxgiOutput->WaitForVBlank();
-        return;
-    }
+    if (m_pDxgiOutput) return void(m_pDxgiOutput->WaitForVBlank());
     // 保留刷新时间点
-    auto end_time_of_sleep = m_dwWaitVSStartTime +
-        ((++m_dwWaitVSCount) * 1000ui32) / static_cast<uint16_t>(m_dDisplayFrequency);
+    auto f = static_cast<uint32_t>(m_dDisplayFrequency);
+    auto c = ((++m_dwWaitVSCount) * 1000ui32);
+    auto end_time_of_sleep = m_dwWaitVSStartTime + c / f;
     // 保证等待
     while (::timeGetTime() < end_time_of_sleep) ::Sleep(1);
 }
@@ -1161,16 +1162,17 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 枚举显示适配器
     if (!(this->flag & IUIConfigure::Flag_RenderByCPU)) {
         IDXGIFactory1* dxgifactory = nullptr;
+        auto idd = IID_IDXGIFactory1;
+        auto add = reinterpret_cast<void**>(&dxgifactory);
         // 创建一个临时工厂
-        if (SUCCEEDED(LongUI::Dll::CreateDXGIFactory1(
-            IID_IDXGIFactory1, reinterpret_cast<void**>(&dxgifactory)
-        ))) {
-            uint32_t adnum = 0;
+        if (SUCCEEDED(LongUI::Dll::CreateDXGIFactory1(idd, add))) {
             IDXGIAdapter1* apAdapters[LongUIMaxAdaptersSize];
             DXGI_ADAPTER_DESC1 descs[LongUIMaxAdaptersSize];
+            uint32_t adnum = 0;
             // 枚举适配器
             for (adnum = 0; adnum < lengthof(apAdapters); ++adnum) {
-                if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == DXGI_ERROR_NOT_FOUND) {
+                constexpr HRESULT nf = DXGI_ERROR_NOT_FOUND;
+                if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == nf) {
                     break;
                 }
                 apAdapters[adnum]->GetDesc1(descs + adnum);

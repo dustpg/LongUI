@@ -123,14 +123,14 @@ void LongUI::UIXmlRich::SetSelectionWeight(DWRITE_FONT_WEIGHT w) noexcept {
 /// <returns></returns>
 bool LongUI::UIXmlRich::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LONGUI 事件
-    /*if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_SetText:
-            Super::DoEvent(arg);
-            return true;
-        }
-    }*/
+    /*
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_SetText:
+        Super::DoEvent(arg);
+        return true;
+    }
+    */
     return Super::DoEvent(arg);
 }
 

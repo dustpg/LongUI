@@ -2111,9 +2111,9 @@ LONGUI_NAMESPACE_BEGIN namespace DX {
         D2D1_POINT_2F center, 
         D2D1_MATRIX_3X2_F& matrix) noexcept {
         constexpr float pi = 3.141592654f;
-        float theta = angle * (pi / 180.0f);
-        float sin_theta = std::sin(theta);
-        float cos_theta = std::cos(theta);
+        const float theta = angle * (pi / 180.0f);
+        const float sin_theta = std::sin(theta);
+        const float cos_theta = std::cos(theta);
         matrix._11 = cos_theta;
         matrix._12 = sin_theta;
         matrix._21 = -sin_theta;

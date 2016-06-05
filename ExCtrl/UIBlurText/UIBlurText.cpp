@@ -64,22 +64,20 @@ void LongUI::UIBlurText::Update() noexcept {
 // UIText: 事件响应
 bool LongUI::UIBlurText::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // LONGUI 事件
-    if (arg.sender) {
-        switch (arg.event)
-        {
-        case LongUI::Event::Event_SetText:
-            // 修改文本
-            m_effect.SetInvalidate();
-            Super::DoEvent(arg);
-        case LongUI::Event::Event_SetFloat:
-            // 修改浮点数据
-            this->SetBlurValue(arg.stf.value);
-            return true;
-        case LongUI::Event::Event_GetFloat:
-            // 获取浮点数据
-            arg.fvalue = this->GetBulrValue();
-            return true;
-        }
+    switch (arg.event)
+    {
+    case LongUI::Event::Event_SetText:
+        // 修改文本
+        m_effect.SetInvalidate();
+        Super::DoEvent(arg);
+    case LongUI::Event::Event_SetFloat:
+        // 修改浮点数据
+        this->SetBlurValue(arg.stf.value);
+        return true;
+    case LongUI::Event::Event_GetFloat:
+        // 获取浮点数据
+        arg.fvalue = this->GetBulrValue();
+        return true;
     }
     return Super::DoEvent(arg);
 }

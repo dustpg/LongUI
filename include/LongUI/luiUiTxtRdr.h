@@ -27,7 +27,7 @@
 #include "../luibase.h"
 #include "../luiconf.h"
 #include <d2d1_3.h>
-#include <dwrite_1.h>
+#include <dwrite_2.h>
 #include "../Graphics/luiGrHlper.h"
 #include "../Graphics/luiGrColor.h"
 
@@ -47,9 +47,10 @@ namespace LongUI {
     // Basic TextRenderer
     class LONGUI_NOVTABLE XUIBasicTextRenderer : public Helper::ComStatic<
         Helper::QiListSelf<XUIBasicTextRenderer, 
+        Helper::QiList<IDWriteTextRenderer1, 
         Helper::QiList<IDWriteTextRenderer, 
         Helper::QiList<IDWritePixelSnapping, 
-        Helper::QiList<IUnknown>>>>> {
+        Helper::QiList<IUnknown>>>>>> {
     public:
         // destructor
         virtual ~XUIBasicTextRenderer() noexcept { LongUI::SafeRelease(UIManager_RenderTarget); LongUI::SafeRelease(m_pBrush);}
@@ -92,6 +93,36 @@ namespace LongUI {
             IUnknown* clientDrawingEffect
         ) noexcept override;
     public:
+        // DrawUnderline for IDWriteTextRenderer1
+        virtual HRESULT STDMETHODCALLTYPE DrawUnderline(
+            _In_opt_ void* clientDrawingContext,
+            FLOAT baselineOriginX,
+            FLOAT baselineOriginY,
+            DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+            _In_ DWRITE_UNDERLINE const* underline,
+            _In_opt_ IUnknown* clientDrawingEffect
+        ) noexcept override;
+        // DrawStrikethrough for IDWriteTextRenderer1
+        virtual HRESULT STDMETHODCALLTYPE DrawStrikethrough(
+            _In_opt_ void* clientDrawingContext,
+            FLOAT baselineOriginX,
+            FLOAT baselineOriginY,
+            DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+            _In_ DWRITE_STRIKETHROUGH const* strikethrough,
+            _In_opt_ IUnknown* clientDrawingEffect
+        ) noexcept override;
+        // DrawInlineObject
+        virtual HRESULT STDMETHODCALLTYPE DrawInlineObject(
+            _In_opt_ void* clientDrawingContext,
+            FLOAT originX,
+            FLOAT originY,
+            DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+            _In_ IDWriteInlineObject* inlineObject,
+            BOOL isSideways,
+            BOOL isRightToLeft,
+            _In_opt_ IUnknown* clientDrawingEffect
+        ) noexcept override;
+    public:
         // fill rect
         void FillRect(const D2D1_RECT_F&) noexcept;
     public:
@@ -130,6 +161,17 @@ namespace LongUI {
             const DWRITE_GLYPH_RUN_DESCRIPTION* glyphRunDescription,
             IUnknown* clientDrawingEffect
         ) noexcept override;
+        // draw glyphrun
+        virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(
+            _In_opt_ void* clientDrawingContext,
+            FLOAT baselineOriginX,
+            FLOAT baselineOriginY,
+            DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+            DWRITE_MEASURING_MODE measuringMode,
+            _In_ DWRITE_GLYPH_RUN const* glyphRun,
+            _In_ DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
+            _In_opt_ IUnknown* clientDrawingEffect
+        ) noexcept override;
     public:
         // get the render context size in byte
         virtual auto GetContextSizeInByte() noexcept ->size_t override { return 0; }
@@ -162,6 +204,17 @@ namespace LongUI {
             const DWRITE_GLYPH_RUN* glyphRun,
             const DWRITE_GLYPH_RUN_DESCRIPTION* glyphRunDescription,
             IUnknown* clientDrawingEffect
+        ) noexcept override;
+        // draw glyphrun
+        virtual HRESULT STDMETHODCALLTYPE DrawGlyphRun(
+            _In_opt_ void* clientDrawingContext,
+            FLOAT baselineOriginX,
+            FLOAT baselineOriginY,
+            DWRITE_GLYPH_ORIENTATION_ANGLE orientationAngle,
+            DWRITE_MEASURING_MODE measuringMode,
+            _In_ DWRITE_GLYPH_RUN const* glyphRun,
+            _In_ DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
+            _In_opt_ IUnknown* clientDrawingEffect
         ) noexcept override;
     public:
         // get the render context size in byte
