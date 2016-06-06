@@ -38,34 +38,6 @@ For this repo, you need:
   
 Win10 supported only now
   
-  
-## LongUI Programming Style
-  
-  - **class** :  
-      - \[C/I/?\] UI ClassName, e.g. `CUIManager`, `IUIInterface`
-      - except: class under LongUI::XXX(Component/Helper....)
-  - **member variable**:  
-      - public: member_variable, e.g. `parent`, `user_data`
-      - private/protected: m_typeMemberVariable, e.g, `m_pWindow`
-  - **method/function**:  
-      - public: ClassMethod(), e.g. `GetWindow()`, `Update()`
-      - private/protected:  class_method(), e.g. `refresh_this()`
-      - except: match STL-Style method: `begin()`, `end()`, `insert()`, 
-      but **public**
-  - **enum**:  see it
-```cpp
-        enum class PointType : uint16_t {
-            Type_None,      // None
-            Type_Arrow1,    // Arrow1
-            Type_Arrow2,    // Arrow2
-            Type_Thumb,     // Thumb
-            Type_Shaft,     // Shaft
-        };
-```
-  - **auto variable**:  
-    - DEPENDS ON MY MOOD, e.g. int `old_x`, `oldX`, `uOldX`
-    
-  
 ## PROJECTS LIST
   -  3rdparty/* , 3rdparty library, like dlmalloc
   -  Demos/* , demos  

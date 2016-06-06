@@ -2,59 +2,7 @@
  C++ 轻量级 Direct2D GUI 库/框架  
  
  文档总是英文是最新的, 中文文档一般是一段时间再更上
- 你要相信一个初中英语水平的人写的英语文档同中文文档一样好懂
- 
-##### Current Version : Alpha-Stage
-
-## Requirements
-  
-对于本项目:
-  
-  - OS: 
-    - **Windows 10 或更高**
-  - Tool-chain/Environment A: MSC  
-    - Visual Stuidio 2015 - Express for Desktop/Community 或更高
-    - Windows SDK(10.0.10586.0)
-  - Tool-chain/Environment B(目测未来会支持): GCC/Clang  
-    - Rakefile(ruby)
-    - MinGW-W64
-    
-##KnownIssues
-  
-  已知问题: (KnownIssues.md)[./KnownIssues.md]
-  
-## XML Attributes List
-  (xml-attributes.md)[./Document/xml-attributes.md]
-  
-##Remarks
-  
-目前只支持 Windows 10
-  
-##LongUI Programming Style
-  
-  - **class** :  
-      - \[C/I/?\] UI ClassName, 例如. `CUIManager`, `IUIInterface `
-      - 例外: 位于LongUI::XXX(Component/Helper....)下面的类
-  - **member variable**:  
-      - public: member_variable, 例如. `parent`, `user_data`
-      - private/protected: m_typeMemberVariable, 例如, `m_pWindow`
-  - **method/function**:  
-      - public: ClassMethod(), 例如. `GetWindow()`, `Update()`
-      - private/protected:  class_method(), 例如. `refresh_this()`  
-      - 例外: 匹配 STL 风格方法: `begin()`, `end()`, `insert()`, 却是**public**
-  - **enum**:  看!
-```cpp
-        enum class PointType : uint16_t {
-            Type_None,      // None
-            Type_Arrow1,    // Arrow1
-            Type_Arrow2,    // Arrow2
-            Type_Thumb,     // Thumb
-            Type_Shaft,     // Shaft
-        };
-```
-  - **auto variable**:  
-    - 看当时的心情, 例如  int `old_x`, `oldX`, `uOldX`
-    
+   
 
 ## 项目列表
   
