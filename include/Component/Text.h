@@ -69,7 +69,7 @@ namespace LongUI { namespace Component {
         // set new size
         void Resize(float w, float h) noexcept;
         // render it
-        void Render(ID2D1RenderTarget* target, D2D1_POINT_2F) const noexcept;
+        void Render(ID2D1DeviceContext* target, D2D1_POINT_2F) const noexcept;
         // get text box
         void GetTextBox(RectLTWH_F& rect) const noexcept;
     public:

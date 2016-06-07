@@ -30,7 +30,7 @@
 // LongUI namespace
 namespace LongUI {
     // display color
-    class UIColor : public UIControl {
+    class UIColor final : public UIControl {
         // 父类申明
         using Super = UIControl ;
         // clean this
@@ -58,12 +58,19 @@ namespace LongUI {
         static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // ctor: cp- parent in contorl-level
         UIColor(UIContainer* cp) noexcept : Super(cp) {}
+        // set direct transparent
+        void SetDirectTransparent() noexcept { m_state.SetTrue<State_Self1>(); }
+        // set normal transparent
+        void SetNormalTransparent() noexcept { m_state.SetFalse<State_Self1>(); }
         // get color
         auto&GetColor() const noexcept { return m_color; }
         // set color
         void SetColor(const D2D1_COLOR_F& c) noexcept { 
             m_color = c; this->InvalidateThis();
         }
+    protected:
+        // check transparent mode
+        bool is_direct_transparent() const noexcept { return m_state.Test<State_Self1>(); }
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;

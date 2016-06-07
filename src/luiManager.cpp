@@ -1403,6 +1403,73 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
 // 创建系统笔刷
 auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     HRESULT hr = S_OK;
+    // 透明表示笔刷 - 杂色间隔
+    if (SUCCEEDED(hr)) {
+        // 创建位图
+        constexpr uint32_t bunit = 16;
+        constexpr uint32_t bsize = 64;
+        constexpr uint32_t bstep = bsize / bunit;
+        ID2D1BitmapRenderTarget* pBitmapRenderTarget = nullptr;
+        ID2D1Bitmap* pBitmap  = nullptr;
+        // 创建位图呈现器
+        if (SUCCEEDED(hr)) {
+            D2D1_PIXEL_FORMAT format = D2D1::PixelFormat(
+                DXGI_FORMAT_B8G8R8A8_UNORM,
+                D2D1_ALPHA_MODE_PREMULTIPLIED
+            );
+            D2D1_SIZE_F size = D2D1_SIZE_F{ float(bsize), float(bsize) };
+            hr = UIManager_RenderTarget->CreateCompatibleRenderTarget(
+                &size,
+                nullptr,
+                &format,
+                D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_NONE,
+                &pBitmapRenderTarget
+            );
+        }
+        // 填充位图
+        if (SUCCEEDED(hr)) {
+            pBitmapRenderTarget->BeginDraw();
+            for (uint32_t i = 0; i < bstep * bstep; ++i) {
+                uint32_t x = i % bstep;
+                uint32_t y = i / bstep;
+                if ((x & 1) == (y & 1)) {
+                    D2D1_RECT_F rect {
+                        float(x) * float(bunit),
+                        float(y) * float(bunit),
+                        float(x) * float(bunit) + float(bunit),
+                        float(y) * float(bunit) + float(bunit),
+                    };
+                    constexpr auto mode = D2D1_ANTIALIAS_MODE_ALIASED;
+                    pBitmapRenderTarget->PushAxisAlignedClip(&rect, mode);
+                    pBitmapRenderTarget->Clear(D2D1::ColorF(0xCCCCCC));
+                    pBitmapRenderTarget->PopAxisAlignedClip();
+                }
+            }
+            pBitmapRenderTarget->EndDraw();
+        }
+        // 获取位图
+        if (SUCCEEDED(hr)) {
+            hr = pBitmapRenderTarget->GetBitmap(&pBitmap);
+        }
+        // 复制位图
+        /*if (SUCCEEDED(hr)) {
+            hr = pBitmapRenderTarget->CreateBitmap(
+
+            );
+        }*/
+        // 创建笔刷
+        if (SUCCEEDED(hr)) {
+            D2D1_BITMAP_BRUSH_PROPERTIES bbp;
+            bbp.extendModeX = D2D1_EXTEND_MODE_WRAP;
+            bbp.extendModeY = D2D1_EXTEND_MODE_WRAP;
+            bbp.interpolationMode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+            hr = m_pd2dDeviceContext->CreateBitmapBrush(
+                pBitmap, &bbp, nullptr, &m_pTransparentBrush
+            );
+        }
+        LongUI::SafeRelease(pBitmapRenderTarget);
+        LongUI::SafeRelease(pBitmap);
+    }
     /*
     焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
         0. 禁用: 0xBF灰度 矩形描边; 中心 0xCC灰色
@@ -1506,6 +1573,7 @@ void LongUI::CUIManager::discard_resources() noexcept {
     for (auto& brush : m_apSystemBrushes) {
         LongUI::SafeRelease(brush);
     }
+    LongUI::SafeRelease(m_pTransparentBrush);
     // 释放公共设备相关资源
     {
         // 释放 位图

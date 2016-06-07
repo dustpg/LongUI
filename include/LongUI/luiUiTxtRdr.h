@@ -53,7 +53,7 @@ namespace LongUI {
         Helper::QiList<IUnknown>>>>>> {
     public:
         // destructor
-        virtual ~XUIBasicTextRenderer() noexcept { LongUI::SafeRelease(UIManager_RenderTarget); LongUI::SafeRelease(m_pBrush);}
+        virtual ~XUIBasicTextRenderer() noexcept { LongUI::SafeRelease(m_pBrush);}
         // constructor
         XUIBasicTextRenderer(TextRendererType t) noexcept :type(t), basic_color(1) { /*basic_color.userdata = 0;*/ basic_color.color = { 0.f,0.f,0.f,1.f }; }
         // set new render target
@@ -131,13 +131,11 @@ namespace LongUI {
         // make context from string
         virtual void MakeContextFromString(void* context, const char* utf8_string) noexcept = 0;
     protected:
-        // render target of d2d
-        ID2D1DeviceContext*         UIManager_RenderTarget = nullptr;
         // solid color brush
         ID2D1SolidColorBrush*       m_pBrush = nullptr;
     public:
         // temp render target
-        ID2D1RenderTarget*          target = nullptr;
+        ID2D1DeviceContext*         target = nullptr;
         // basic color
         CUIColorEffect              basic_color;
         // type of text renderer

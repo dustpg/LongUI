@@ -25,10 +25,27 @@
 /// </summary>
 /// <returns></returns>
 void LongUI::UIColor::render_chain_background() const noexcept {
-    // 渲染父类背景(比如黑白间隔用来显示透明色)
-    Super::render_chain_background();
+    // 渲染父类背景?
+    //Super::render_chain_background();
     // 渲染基本色
     D2D1_RECT_F rect; this->GetViewRect(rect);
+    // 无需渲染背景
+    if (m_color.a < 1.f) {
+        // 直接透明
+        if (this->is_direct_transparent()) {
+            constexpr auto mode = D2D1_ANTIALIAS_MODE_ALIASED;
+            UIManager_RenderTarget->PushAxisAlignedClip(&rect, mode);
+            UIManager_RenderTarget->Clear(D2D1_COLOR_F{ 0.f,0.f,0.f,0.f });
+            UIManager_RenderTarget->PopAxisAlignedClip();
+        }
+        // 透明表示色
+        else {
+            auto tb = UIManager.GetTransparentBrush();
+            UIManager_RenderTarget->FillRectangle(&rect, tb);
+            tb->Release();
+        }
+    }
+    // 渲染背景前部分
     auto brush = m_pBrush_SetBeforeUse;
     brush->SetColor(&m_color);
     UIManager_RenderTarget->FillRectangle(&rect, brush);
@@ -46,6 +63,10 @@ void LongUI::UIColor::initialize(pugi::xml_node node) noexcept {
     // 获取颜色
     if (const auto c = node.attribute("color").value()) {
         Helper::MakeColor(c, m_color);
+    }
+    // 获取颜色
+    if (node.attribute("direct").as_bool()) {
+        this->SetDirectTransparent();
     }
 }
 

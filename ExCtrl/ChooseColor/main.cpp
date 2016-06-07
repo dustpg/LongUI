@@ -11,12 +11,13 @@ u8R"xml(<?xml version="1.0" encoding="utf-8"?>
         <ColorHSV name="hsvMain" s="sldS" v="sldV"/>
         <Color color="#F00" name="colShow" weight="0.3"/>
     </HorizontalLayout >
-    <HorizontalLayout size="0,46">
+    <HorizontalLayout size="0,64">
         <Slider name="sldS" value="1" thumbsize="32,32" 
             margin="4,4,4,4" />
         <Slider name="sldV" value="1" thumbsize="32,32" 
             margin="4,4,4,4" />
-        <Button name="btnAuto" text="测试" size="-1, 0"
+        <Button name="btnAuto" text="测试" size="-1, 0" 
+            textreadingdirection="top2bottom" textflowdirection="right2left"
             borderwidth="1" margin="4,4,4,4" />
     </HorizontalLayout>
 </Window>

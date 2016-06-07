@@ -255,8 +255,8 @@ void LongUI::UIViewport::SetCaretPos(UIControl* ctrl, float _x, float _y) noexce
             << LongUI::endl;
     }
 #endif
-    m_baBoolWindow.SetTrue(Index_CaretIn);
-    m_baBoolWindow.SetTrue(Index_DoCaret);
+    m_baBoolWindow.SetTrue<Index_CaretIn>();
+    m_baBoolWindow.SetTrue<Index_DoCaret>();
     const auto intx = static_cast<LONG>(pt.x);
     const auto inty = static_cast<LONG>(pt.y);
     const auto oldx = static_cast<LONG>(m_rcCaretPx.left);
@@ -312,8 +312,8 @@ void LongUI::UIViewport::HideCaret() noexcept {
     }
 #endif
     if (!m_cShowCaret) {
-        m_baBoolWindow.SetFalse(Index_CaretIn);
-        m_baBoolWindow.SetTrue(Index_DoCaret);
+        m_baBoolWindow.SetFalse<Index_CaretIn>();
+        m_baBoolWindow.SetTrue<Index_DoCaret>();
     }
 }
 
@@ -426,9 +426,9 @@ void LongUI::UIViewport::refresh_caret() noexcept {
 void LongUI::UIViewport::set_present_parameters(DXGI_PRESENT_PARAMETERS& present) const noexcept {
     present.DirtyRectsCount = static_cast<uint32_t>(m_aUnitNow.length);
     // 存在脏矩形?
-    if (!m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
+    if (!m_baBoolWindow.Test<Index_FullRenderingThisFrame>()) {
         // 插入符号?
-        if (m_baBoolWindow.Test(Index_DoCaret)) {
+        if (m_baBoolWindow.Test<Index_DoCaret>()) {
             present.pDirtyRects[present.DirtyRectsCount] = {
                 m_rcCaretPx.left, m_rcCaretPx.top,
                 m_rcCaretPx.left + m_rcCaretPx.width,
@@ -467,12 +467,12 @@ void LongUI::UIViewport::BeginDraw() const noexcept {
     UIManager_RenderTarget->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE(m_textAntiMode));
     // 离屏渲染
     UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
-    force_cast(m_baBoolWindow).SetTrue(Index_Prerender);
+    force_cast(m_baBoolWindow).SetTrue<Index_Prerender>();
     for (auto ctrl : m_vRegisteredControl) {
         assert(ctrl->parent && "check it");
         ctrl->Render();
     }
-    force_cast(m_baBoolWindow).SetFalse(Index_Prerender);
+    force_cast(m_baBoolWindow).SetFalse<Index_Prerender>();
     // 设为当前渲染对象
     UIManager_RenderTarget->SetTarget(m_pTargetBitmap);
     // 开始渲染
@@ -531,12 +531,12 @@ void LongUI::UIViewport::EndDraw() const noexcept {
 
 // UI窗口: 刷新
 void LongUI::UIViewport::Update() noexcept {
-    m_baBoolWindow.SetFalse(Index_FullRenderingThisFrame);
-    m_baBoolWindow.SetFalse(Index_DoCaret);
+    m_baBoolWindow.SetFalse<Index_FullRenderingThisFrame>();
+    m_baBoolWindow.SetFalse<Index_DoCaret>();
     // 新窗口大小?
-    if (m_baBoolWindow.Test(Index_NewSize)) {
+    if (m_baBoolWindow.Test<Index_NewSize>()) {
         this->OnResize();
-        m_baBoolWindow.SetFalse(Index_NewSize);
+        m_baBoolWindow.SetFalse<Index_NewSize>();
     }
     {
         auto current_unit = m_uiRenderQueue.GetCurrentUnit();
@@ -554,14 +554,14 @@ void LongUI::UIViewport::Update() noexcept {
     if (!m_aUnitNow.length) return;
     // 全刷新?
     if (m_aUnitNow.units[0] == static_cast<UIControl*>(this)) {
-        m_baBoolWindow.SetTrue(Index_FullRenderingThisFrame);
+        m_baBoolWindow.SetTrue<Index_FullRenderingThisFrame>();
         //UIManager << DL_Hint << "m_present.DirtyRectsCount = 0;" << LongUI::endl;
         // 交给父类处理
         Super::Update();
     }
     // 部分刷新
     else {
-        m_baBoolWindow.SetFalse(Index_FullRenderingThisFrame);
+        m_baBoolWindow.SetFalse<Index_FullRenderingThisFrame>();
         // 更新脏矩形
         for (uint32_t i = 0ui32; i < m_aUnitNow.length; ++i) {
             auto ctrl = m_aUnitNow.units[i];
@@ -580,7 +580,7 @@ void LongUI::UIViewport::Update() noexcept {
     }
     // 调试
 #ifdef _DEBUG
-    if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
+    if (m_baBoolWindow.Test<Index_FullRenderingThisFrame>()) {
         ++full_render_counter;
     }
     else {
@@ -593,7 +593,7 @@ void LongUI::UIViewport::Update() noexcept {
 // UIViewport 渲染 
 void LongUI::UIViewport::Render() const noexcept {
     // 全刷新: 继承父类
-    if (m_baBoolWindow.Test(Index_FullRenderingThisFrame)) {
+    if (m_baBoolWindow.Test<Index_FullRenderingThisFrame>()) {
         Super::Render();
         //UIManager << DL_Hint << "FULL" << LongUI::endl;
     }
@@ -642,7 +642,7 @@ void LongUI::UIViewport::Render() const noexcept {
 #endif
     }
     // 插入符号
-    if (m_baBoolWindow.Test(Index_DoCaret) && m_baBoolWindow.Test(Index_CaretIn)) {
+    if (m_baBoolWindow.Test<Index_DoCaret>() && m_baBoolWindow.Test<Index_CaretIn>()) {
         UIManager_RenderTarget->SetTransform(DX::Matrix3x2F::Identity());
         D2D1_RECT_F rect;
         rect.left = static_cast<float>(m_rcCaretPx.left);
@@ -706,8 +706,8 @@ bool LongUI::UIViewport::DoEvent(const LongUI::EventArgument& arg) noexcept {
             // 闪烁?
             if (wParam == BLINK_EVENT_ID) {
                 if (m_cShowCaret) {
-                    m_baBoolWindow.SetNot(Index_CaretIn);
-                    m_baBoolWindow.SetTrue(Index_DoCaret);
+                    m_baBoolWindow.SetNot<Index_CaretIn>();
+                    m_baBoolWindow.SetTrue<Index_DoCaret>();
                 }
                 return true;
             }
@@ -788,7 +788,7 @@ bool LongUI::UIViewport::DoEvent(const LongUI::EventArgument& arg) noexcept {
             wheight != this->window_size.height)) {
             force_cast(this->window_size.width) = wwidth;
             force_cast(this->window_size.height) = wheight;
-            m_baBoolWindow.SetTrue(Index_NewSize);
+            m_baBoolWindow.SetTrue<Index_NewSize>();
         }
     }
     handled = true;
@@ -944,7 +944,7 @@ void LongUI::UIViewport::OnResize(bool force) noexcept {
 // UIViewport 重建
 auto LongUI::UIViewport::Recreate() noexcept ->HRESULT {
     // 跳过
-    if (m_baBoolWindow.Test(Index_SkipRender)) return S_OK;
+    if (m_baBoolWindow.Test<Index_SkipRender>()) return S_OK;
     // 渲染锁
     CUIDxgiAutoLocker locker;
     // 释放数据
@@ -1134,7 +1134,7 @@ bool LongUI::UIViewport::OnMouseWheel(const LongUI::EventArgument& arg) noexcept
 HRESULT  LongUI::UIViewport::DragEnter(IDataObject* pDataObj,
     DWORD grfKeyState, POINTL pt, DWORD * pdwEffect) noexcept {
     UNREFERENCED_PARAMETER(grfKeyState);
-    m_baBoolWindow.SetTrue(Index_InDraging);
+    m_baBoolWindow.SetTrue<Index_InDraging>();
     // 检查参数
     if (!pDataObj) return E_INVALIDARG;
     // 取消聚焦窗口
@@ -1219,7 +1219,7 @@ HRESULT LongUI::UIViewport::DragLeave(void) noexcept {
     if (m_pDropTargetHelper) {
         m_pDropTargetHelper->DragLeave();
     }
-    m_baBoolWindow.SetFalse(Index_InDraging);
+    m_baBoolWindow.SetFalse<Index_InDraging>();
     return S_OK;
 }
 
@@ -1258,7 +1258,7 @@ LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_
     // Xml节点
     auto node = config.node;
 #ifdef _DEBUG
-    m_baBoolWindow.Test(INDEX_COUNT);
+    m_baBoolWindow.Test<INDEX_COUNT>();
     m_vInsets.push_back(nullptr);
     m_vInsets.pop_back();
 #endif
@@ -1561,7 +1561,7 @@ void LongUI::XUIBaseWindow::Update() noexcept {
     // 复制渲染数据以保证数据安全
     m_uUnitLengthRender = m_uUnitLength;
     std::memcpy(m_apUnitRender, m_apUnit, sizeof(m_apUnit[0]) * m_uUnitLengthRender);
-    m_baBoolWindow.SetTo(Index_FullRenderThisFrameRender, this->is_full_render_this_frame());
+    m_baBoolWindow.SetTo<Index_FullRenderThisFrameRender>(this->is_full_render_this_frame());
     // 清理老数据
     this->clear_full_render_this_frame(); 
     m_uUnitLength = 0; 

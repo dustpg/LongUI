@@ -288,33 +288,48 @@ auto LongUI::DX::MakeTextFormat(
             tabstop = LongUI::AtoF(str);
             create_a_new_one = true;
         }
+        // 阅读进行方向
+        {
+            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(
+                node, static_cast<DWRITE_READING_DIRECTION>(data.prop.reading), 
+                "readingdirection", prefix)
+                );
+            create_a_new_one = tmp != data.prop.reading || create_a_new_one;
+            data.prop.reading = tmp;
+        }
         // 段落排列方向
         {
-            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(node, static_cast<DWRITE_FLOW_DIRECTION>(data.prop.flow), "flowdirection", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(
+                node, static_cast<DWRITE_FLOW_DIRECTION>(data.prop.flow), 
+                "flowdirection", prefix)
+                );
             create_a_new_one = tmp != data.prop.flow || create_a_new_one;
             data.prop.flow = tmp;
         }
         // 段落(垂直)对齐
         {
-            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(node, static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(data.prop.valign), "valign", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(
+                node, static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(data.prop.valign), 
+                "valign", prefix)
+                );
             create_a_new_one = tmp != data.prop.valign || create_a_new_one;
             data.prop.valign = tmp;
         }
         // 文本(水平)对齐
         {
-            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(node, static_cast<DWRITE_TEXT_ALIGNMENT>(data.prop.halign), "align", prefix));
+            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(
+                node, static_cast<DWRITE_TEXT_ALIGNMENT>(data.prop.halign), 
+                "align", prefix)
+                );
             create_a_new_one = tmp != data.prop.halign || create_a_new_one;
             data.prop.halign = tmp;
         }
-        // 阅读进行方向
-        {
-            auto tmp = static_cast<uint8_t>(Helper::GetEnumFromXml(node, static_cast<DWRITE_READING_DIRECTION>(data.prop.reading), "readingdirection", prefix));
-            create_a_new_one = tmp != data.prop.reading || create_a_new_one;
-            data.prop.reading = tmp;
-        }
         // 设置自动换行
         {
-            auto tmp = static_cast<uint32_t>(Helper::GetEnumFromXml(node, static_cast<DWRITE_WORD_WRAPPING>(data.prop.wrapping), "wordwrapping", prefix));
+            auto tmp = static_cast<uint32_t>(Helper::GetEnumFromXml(
+                node, static_cast<DWRITE_WORD_WRAPPING>(data.prop.wrapping), 
+                "wordwrapping", prefix)
+                );
             create_a_new_one = tmp != data.prop.wrapping || create_a_new_one;
             data.prop.wrapping = tmp;
         }

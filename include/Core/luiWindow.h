@@ -186,55 +186,55 @@ namespace LongUI {
         void on_close() noexcept;
     protected:
         // is NewSize
-        bool is_new_size() const noexcept { return m_baBoolWindow.Test(Index_NewSize); }
+        bool is_new_size() const noexcept { return m_baBoolWindow.Test<Index_NewSize>(); }
         // is CaretIn
-        bool is_caret_in() const noexcept { return m_baBoolWindow.Test(Index_CaretIn); }
+        bool is_caret_in() const noexcept { return m_baBoolWindow.Test<Index_CaretIn>(); }
         // is DoCaret
-        //bool is_do_caret() const noexcept { return m_baBoolWindow.Test(Index_DoCaret); }
+        //bool is_do_caret() const noexcept { return m_baBoolWindow.Test<Index_DoCaret>(); }
         // is SkipRender
-        bool is_skip_render() const noexcept { return m_baBoolWindow.Test(Index_SkipRender); }
+        bool is_skip_render() const noexcept { return m_baBoolWindow.Test<Index_SkipRender>(); }
         // is Popup
-        bool is_popup_window() const noexcept { return m_baBoolWindow.Test(Index_PopupWindow); }
+        bool is_popup_window() const noexcept { return m_baBoolWindow.Test<Index_PopupWindow>(); }
         // is HiDpiSupported
-        bool is_hidpi_supported() const noexcept { return m_baBoolWindow.Test(Index_HiDpiSupported); }
+        bool is_hidpi_supported() const noexcept { return m_baBoolWindow.Test<Index_HiDpiSupported>(); }
         // is ExitOnClose
-        //bool is_exit_on_close() const noexcept { return m_baBoolWindow.Test(Index_ExitOnClose); }
+        //bool is_exit_on_close() const noexcept { return m_baBoolWindow.Test<Index_ExitOnClose>(); }
         // is CloseOnFocusKilled
-        bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test(Index_CloseOnFocusKilled); }
+        bool is_close_on_focus_killed() const noexcept { return m_baBoolWindow.Test<Index_CloseOnFocusKilled>(); }
         // is FullRenderingThisFrame
-        bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrame); }
+        bool is_full_render_this_frame() const noexcept { return m_baBoolWindow.Test<Index_FullRenderThisFrame>(); }
         // is FullRenderingThisFrameRender
-        bool is_full_render_this_frame_render() const noexcept { return m_baBoolWindow.Test(Index_FullRenderThisFrameRender); }
+        bool is_full_render_this_frame_render() const noexcept { return m_baBoolWindow.Test<Index_FullRenderThisFrameRender>(); }
     protected:
         // set PopupWindow to true
-        void set_popup_window() noexcept { m_baBoolWindow.SetTrue(Index_PopupWindow); }
+        void set_popup_window() noexcept { m_baBoolWindow.SetTrue<Index_PopupWindow>(); }
         // set ExitOnClose to true
-        //void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue(Index_ExitOnClose); }
+        //void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue<Index_ExitOnClose>(); }
         // is HiDpiSupported
-        void set_hidpi_supported() noexcept { m_baBoolWindow.SetTrue(Index_HiDpiSupported); }
+        void set_hidpi_supported() noexcept { m_baBoolWindow.SetTrue<Index_HiDpiSupported>(); }
         // set CloseOnFocusKilled to true
-        void set_close_on_focus_killed() noexcept { m_baBoolWindow.SetTrue(Index_CloseOnFocusKilled); }
+        void set_close_on_focus_killed() noexcept { m_baBoolWindow.SetTrue<Index_CloseOnFocusKilled>(); }
     protected:
         // set NewSize to true
-        void set_new_size() noexcept { m_baBoolWindow.SetTrue(Index_NewSize); }
+        void set_new_size() noexcept { m_baBoolWindow.SetTrue<Index_NewSize>(); }
         // set CaretIn to true
-        void set_caret_in() noexcept { m_baBoolWindow.SetTrue(Index_CaretIn); }
+        void set_caret_in() noexcept { m_baBoolWindow.SetTrue<Index_CaretIn>(); }
         // set DoCaret to true
-        //void set_do_caret() noexcept { m_baBoolWindow.SetTrue(Index_DoCaret); }
+        //void set_do_caret() noexcept { m_baBoolWindow.SetTrue<Index_DoCaret>(); }
         // change CaretIn
-        void change_caret_in() noexcept { m_baBoolWindow.SetNot(Index_CaretIn); }
+        void change_caret_in() noexcept { m_baBoolWindow.SetNot<Index_CaretIn>(); }
         // clear NewSize
-        void clear_new_size() noexcept { m_baBoolWindow.SetFalse(Index_NewSize); }
+        void clear_new_size() noexcept { m_baBoolWindow.SetFalse<Index_NewSize>(); }
         // clear DoCaret
-        //void clear_do_caret() noexcept { m_baBoolWindow.SetFalse(Index_DoCaret); }
+        //void clear_do_caret() noexcept { m_baBoolWindow.SetFalse<Index_DoCaret>(); }
         // set SkipRender to true
-        void set_skip_render() noexcept { m_baBoolWindow.SetTrue(Index_SkipRender); }
+        void set_skip_render() noexcept { m_baBoolWindow.SetTrue<Index_SkipRender>(); }
         // clear SkipRender
-        void clear_skip_render() noexcept { m_baBoolWindow.SetFalse(Index_SkipRender); }
+        void clear_skip_render() noexcept { m_baBoolWindow.SetFalse<Index_SkipRender>(); }
         // set FullRenderingThisFrame to true
-        void set_full_render_this_frame() noexcept { m_baBoolWindow.SetTrue(Index_FullRenderThisFrame); }
+        void set_full_render_this_frame() noexcept { m_baBoolWindow.SetTrue<Index_FullRenderThisFrame>(); }
         // clear FullRenderingThisFrame
-        void clear_full_render_this_frame() noexcept { m_baBoolWindow.SetFalse(Index_FullRenderThisFrame);  }
+        void clear_full_render_this_frame() noexcept { m_baBoolWindow.SetFalse<Index_FullRenderThisFrame>();  }
     protected:
         // resized, called from child-class
         void resized() noexcept;

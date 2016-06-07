@@ -78,11 +78,11 @@ namespace LongUI {
         static auto CreateControl(CreateEventType type, pugi::xml_node) noexcept ->UIControl*;
     private:
         // slide to ->
-        auto set_slider_to_left() noexcept { m_state.SetFalse(State_Self1); }
+        auto set_slider_to_left() noexcept { m_state.SetFalse<State_Self1>(); }
         // slide to <-
-        auto set_slider_to_right() noexcept { m_state.SetTrue(State_Self1); }
+        auto set_slider_to_right() noexcept { m_state.SetTrue<State_Self1>(); }
         // -->?
-        auto is_slide_to_right() const noexcept { return m_state.Test(State_Self1); }
+        auto is_slide_to_right() const noexcept { return m_state.Test<State_Self1>(); }
     protected:
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }

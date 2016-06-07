@@ -204,7 +204,7 @@ void LongUI::UIControl::LinkNewParent(UIContainer* cp) noexcept {
 void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
 #ifdef _DEBUG
     // 没有被初始化
-    assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
+    assert(this->debug_checker.Test<DEBUG_CHECK_INIT>() == false && "had been initialized");
     // 断言
     assert(node && "call 'UIControl::initialize()' if no xml-node");
 #endif
@@ -336,7 +336,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
     force_cast(this->flags) |= flag;
 #ifdef _DEBUG
     // 被初始化
-    this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
+    this->debug_checker.SetTrue<DEBUG_CHECK_INIT>();
     if (this->debug_this) {
         UIManager << DL_Log << this << L" created" << LongUI::endl;
     }
@@ -351,7 +351,7 @@ void LongUI::UIControl::initialize(pugi::xml_node node) noexcept {
 void LongUI::UIControl::initialize() noexcept {
 #ifdef _DEBUG
     // 没有被初始化
-    assert(this->debug_checker.Test(DEBUG_CHECK_INIT) == false && "had been initialized");
+    assert(this->debug_checker.Test<DEBUG_CHECK_INIT>() == false && "had been initialized");
 #endif
     // 构造默认
     auto flag = LongUIFlag::Flag_None;
@@ -390,7 +390,7 @@ void LongUI::UIControl::initialize() noexcept {
     force_cast(this->flags) |= flag;
 #ifdef _DEBUG
     // 被初始化
-    this->debug_checker.SetTrue(DEBUG_CHECK_INIT);
+    this->debug_checker.SetTrue<DEBUG_CHECK_INIT>();
     if (this->debug_this) {
         UIManager << DL_Log << this << L"created" << LongUI::endl;
     }
@@ -413,14 +413,14 @@ LongUI::UIControl::~UIControl() noexcept {
 void LongUI::UIControl::render_chain_background() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
-    if (this->debug_checker.Test(DEBUG_CHECK_BACK)) {
+    if (this->debug_checker.Test<DEBUG_CHECK_BACK>()) {
         CUIDataAutoLocker locker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
             << LongUI::endl;
     }
-    force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_BACK);
+    force_cast(this->debug_checker).SetTrue<DEBUG_CHECK_BACK>();
 #endif
 #if 1
     if (m_pBackgroudBrush) {
@@ -442,14 +442,14 @@ void LongUI::UIControl::render_chain_background() const noexcept {
 void LongUI::UIControl::render_chain_foreground() const noexcept {
 #ifdef _DEBUG
     // 重复调用检查
-    if (this->debug_checker.Test(DEBUG_CHECK_FORE)) {
+    if (this->debug_checker.Test<DEBUG_CHECK_FORE>()) {
         CUIDataAutoLocker locker;
         UIManager << DL_Error
             << L"check logic: called twice in one time"
             << this
             << LongUI::endl;
     }
-    force_cast(this->debug_checker).SetTrue(DEBUG_CHECK_FORE);
+    force_cast(this->debug_checker).SetTrue<DEBUG_CHECK_FORE>();
 #endif
     // 渲染边框
     if (m_fBorderWidth > 0.f) {
@@ -465,21 +465,21 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
 // UI控件: 刷新
 void LongUI::UIControl::AfterUpdate() noexcept {
     // 控件大小处理了
-    if (m_state.Test(State_ChangeSizeHandled)) {
-        m_state.SetFalse(State_ChangeLayout);
-        m_state.SetFalse(State_ChangeSizeHandled);
+    if (m_state.Test<State_ChangeSizeHandled>()) {
+        m_state.SetFalse<State_ChangeLayout>();
+        m_state.SetFalse<State_ChangeSizeHandled>();
     }
     // 世界转换处理了
-    if (m_state.Test(State_ChangeWorldHandled)) {
-        m_state.SetFalse(State_ChangeWorld);
-        m_state.SetFalse(State_ChangeWorldHandled);
+    if (m_state.Test<State_ChangeWorldHandled>()) {
+        m_state.SetFalse<State_ChangeWorld>();
+        m_state.SetFalse<State_ChangeWorldHandled>();
     }
 #ifdef _DEBUG
     assert(debug_updated && "must call AfterUpdate() before this");
     debug_updated = false;
-    this->debug_checker.SetFalse(DEBUG_CHECK_BACK);
-    this->debug_checker.SetFalse(DEBUG_CHECK_MAIN);
-    this->debug_checker.SetFalse(DEBUG_CHECK_FORE);
+    this->debug_checker.SetFalse<DEBUG_CHECK_BACK>();
+    this->debug_checker.SetFalse<DEBUG_CHECK_MAIN>();
+    this->debug_checker.SetFalse<DEBUG_CHECK_FORE>();
 
 #endif
     // 检查

@@ -128,8 +128,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         }
         // 获取渲染器
         m_pTextRenderer = UIManager.GetTextRenderer(attribute("renderer"));
+        assert(m_pTextRenderer);
         // 保证缓冲区
-        if (m_pTextRenderer) {
+        {
             auto length = m_pTextRenderer->GetContextSizeInByte();
             if (length) {
                 m_pTextContext = LongUI::SmallAlloc(length);
@@ -218,17 +219,19 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="target">The target.</param>
     /// <param name="pt">The pt.</param>
     /// <returns></returns>
-    void ShortText::Render(ID2D1RenderTarget* target, D2D1_POINT_2F pt) const noexcept {
+    void ShortText::Render(ID2D1DeviceContext* target, D2D1_POINT_2F pt) const noexcept {
         assert(target && "bad argument");
         if (!m_pLayout) return;
-        m_pLayout->SetReadingDirection(DWRITE_READING_DIRECTION_TOP_TO_BOTTOM);
-        m_pLayout->SetFlowDirection(DWRITE_FLOW_DIRECTION_RIGHT_TO_LEFT);
         m_pTextRenderer->target = target;
         m_pTextRenderer->basic_color.color = *m_pColor;
-        //ID2D1SolidColorBrush* brush = nullptr;
-        //target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &brush);
-        //target->DrawTextLayout(pt, m_pLayout, brush);
-        //brush->Release();
+        //m_pLayout->SetReadingDirection(DWRITE_READING_DIRECTION_TOP_TO_BOTTOM);
+        //m_pLayout->SetFlowDirection(DWRITE_FLOW_DIRECTION_RIGHT_TO_LEFT);
+#if 0
+        ID2D1SolidColorBrush* brush = nullptr;
+        target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &brush);
+        target->DrawTextLayout(pt, m_pLayout, brush);
+        brush->Release();
+#else
         IDWriteTextRenderer1* pTextRenderer = m_pTextRenderer;
         auto hr = m_pLayout->Draw(
             m_pTextContext,
@@ -236,6 +239,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             this->offset.x + pt.x,
             this->offset.y + pt.y
         );
+#endif
         m_pTextRenderer->target = nullptr;
     }
     // ShortText 重建布局
@@ -1353,7 +1357,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         return LongUI::AtoI(m_string.c_str());
     }
     // 渲染
-    void EditableText::Render(ID2D1RenderTarget* target, D2D1_POINT_2F pt) const noexcept {
+    void EditableText::Render(ID2D1DeviceContext* target, D2D1_POINT_2F pt) const noexcept {
         assert(target && "bad argument");
         float x = this->offset.x + pt.x;
         float y = this->offset.y + pt.y;
@@ -2316,6 +2320,16 @@ auto LongUI::XUIBasicTextRenderer::DrawInlineObject(
     return S_OK;
 }
 
+// longui namespace
+namespace LongUI {
+    // transform for orientation angle
+    const D2D1_MATRIX_3X2_F ORIENTATION_ANGLE_TRANSFORM[] = {
+        { 1, 0, 0, 1, 0, 0 },
+        { 0, 1,-1, 0, 0, 0 },
+        {-1, 0, 0,-1, 0, 0 },
+        { 0,-1, 1, 0, 0, 0 },
+    };
+}
 
 // longui::impl namepsace
 namespace LongUI { namespace impl {
@@ -2507,9 +2521,8 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     DWRITE_MEASURING_MODE measuringMode,
     const DWRITE_GLYPH_RUN * glyphRun,
     const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
-    IUnknown * effect) noexcept {
+    IUnknown* effect) noexcept {
     UNREFERENCED_PARAMETER(clientDrawingContext);
-    UNREFERENCED_PARAMETER(glyphRunDescription);
     assert(this->target);
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
@@ -2531,11 +2544,13 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     this->target->DrawGlyphRun(
         D2D1_POINT_2F{ baselineOriginX, baselineOriginY },
         glyphRun,
+        glyphRunDescription,
         m_pBrush,
         measuringMode
-        );
+    );
     return S_OK;
 }
+
 
 // 刻画字形
 HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
@@ -2546,9 +2561,26 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     const DWRITE_GLYPH_RUN * glyphRun,
     const DWRITE_GLYPH_RUN_DESCRIPTION * glyphRunDescription,
     IUnknown * effect) noexcept {
+    constexpr int dgoacount = DWRITE_GLYPH_ORIENTATION_ANGLE_270_DEGREES + 1;
+    constexpr int oatmcount = lengthof<int>(ORIENTATION_ANGLE_TRANSFORM);
+    static_assert(dgoacount == oatmcount, "must be same");
+    assert(int(orientationAngle) < oatmcount  && "out of range");
     UNREFERENCED_PARAMETER(clientDrawingContext);
-    UNREFERENCED_PARAMETER(glyphRunDescription);
     assert(this->target);
+    // 检查是否侧放置
+    if (glyphRun->isSideways) {
+        orientationAngle = DWRITE_GLYPH_ORIENTATION_ANGLE(int(orientationAngle) + 1);
+        orientationAngle = DWRITE_GLYPH_ORIENTATION_ANGLE(int(orientationAngle)%oatmcount);
+    }
+    // 保存世界转换
+    D2D1_MATRIX_3X2_F transform; this->target->GetTransform(&transform);
+    this->target->SetTransform(
+        ORIENTATION_ANGLE_TRANSFORM[orientationAngle] 
+        * DX::Matrix3x2F::Translation(
+            D2D1_SIZE_F{baselineOriginX, baselineOriginY}
+        )
+        * transform
+    );
     // 获取颜色
     D2D1_COLOR_F* color = nullptr;
     // 检查
@@ -2558,20 +2590,18 @@ HRESULT LongUI::CUINormalTextRender::DrawGlyphRun(
     else {
         color = &this->basic_color.color;
     }
-#ifdef _DEBUG
-    if (glyphRun->isSideways) {
-        UIManager << DL_Log << L"isSideways" << LongUI::endl;
-    }
-#endif
     // 设置颜色
     m_pBrush->SetColor(color);
     // 利用D2D接口直接渲染字形
     this->target->DrawGlyphRun(
-        D2D1_POINT_2F{ baselineOriginX, baselineOriginY },
+        D2D1_POINT_2F{ 0.f, 0.f },
         glyphRun,
+        glyphRunDescription,
         m_pBrush,
         measuringMode
     );
+    // 回退转换
+    this->target->SetTransform(&transform);
     return S_OK;
 }
 
@@ -2717,12 +2747,19 @@ HRESULT LongUI::CUIOutlineTextRender::DrawGlyphRun(
     }
     // 渲染
     if (SUCCEEDED(hr)) {
+        // 检查是否侧放置
+        if (glyphRun->isSideways) {
+            using dwgoa = DWRITE_GLYPH_ORIENTATION_ANGLE;
+            constexpr int oatmcount = lengthof<int>(ORIENTATION_ANGLE_TRANSFORM);
+            orientationAngle = dwgoa(int(orientationAngle) + 1);
+            orientationAngle = dwgoa(int(orientationAngle)%oatmcount);
+        }
         // 保存状态
         D2D1_MATRIX_3X2_F transform, transform2;
         this->target->GetTransform(&transform);
-        transform2 = DX::Matrix3x2F::Translation(
-            baselineOriginX, baselineOriginY
-        ) * transform;
+        transform2 = ORIENTATION_ANGLE_TRANSFORM[orientationAngle]
+            * DX::Matrix3x2F::Translation(baselineOriginX, baselineOriginY)
+            * transform;
         this->target->SetTransform(&transform2);
         // 设置颜色
         m_pBrush->SetColor(draw_color);

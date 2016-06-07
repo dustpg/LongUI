@@ -62,9 +62,9 @@ namespace LongUI {
         // set to be sorted control
         auto SetToBeSorted(uint32_t index) noexcept { m_pToBeSorted = this->GetAt(index); }
         // selected!
-        auto SetSelected(bool b) noexcept { m_state.SetTo(State_Self1, b); }
+        auto SetSelected(bool b) noexcept { m_state.SetTo<State_Self1>(b); }
         // selected?
-        auto IsSelected() const noexcept { return m_state.Test(State_Self1); }
+        auto IsSelected() const noexcept { return m_state.Test<State_Self1>(); }
         // get sorted child text
         auto GeToBeSortedText() const noexcept { return m_pToBeSorted ? m_pToBeSorted->GetText() : L""; }
         // get first child text

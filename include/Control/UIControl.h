@@ -118,7 +118,7 @@ namespace LongUI {
 #ifdef _DEBUG
             void longui_dbg_update(UIControl* c);
             longui_dbg_update(this);
-            assert(debug_checker.Test(DEBUG_CHECK_INIT) == true && "not be initialized yet");
+            assert(debug_checker.Test<DEBUG_CHECK_INIT>() == true && "not be initialized yet");
             assert(debug_updated == false && "cannot call this more than once");
             debug_updated = true;
 #endif
@@ -211,19 +211,19 @@ namespace LongUI {
         // get taking up height of control
         auto GetNonContentHeight() const noexcept ->float;
         // change control layout
-        auto SetControlLayoutChanged() noexcept { m_state.SetTrue(State_ChangeLayout); }
+        auto SetControlLayoutChanged() noexcept { m_state.SetTrue<State_ChangeLayout>(); }
         // handleupdate_marginal_controls control draw size changed
-        auto ControlLayoutChangeHandled() noexcept { m_state.SetTrue(State_ChangeSizeHandled); }
+        auto ControlLayoutChangeHandled() noexcept { m_state.SetTrue<State_ChangeSizeHandled>(); }
         // change control world
-        auto SetControlWorldChanged() noexcept { m_state.SetTrue(State_ChangeWorld); }
+        auto SetControlWorldChanged() noexcept { m_state.SetTrue<State_ChangeWorld>(); }
         // handle control world changed
-        auto ControlWorldChangeHandled() noexcept { m_state.SetTrue(State_ChangeWorldHandled); }
+        auto ControlWorldChangeHandled() noexcept { m_state.SetTrue<State_ChangeWorldHandled>(); }
         // is control draw size changed?
-        auto IsControlLayoutChanged() const noexcept { return m_state.Test(State_ChangeLayout); }
+        auto IsControlLayoutChanged() const noexcept { return m_state.Test<State_ChangeLayout>(); }
         // refresh the world transform
         void RefreshWorld() noexcept;
         // refresh the world transform
-        auto IsNeedRefreshWorld() const noexcept { return m_state.Test(State_ChangeLayout) || m_state.Test(State_ChangeWorld); }
+        auto IsNeedRefreshWorld() const noexcept { return m_state.Test<State_ChangeLayout>() || m_state.Test<State_ChangeWorld>(); }
         // update the world transform
         auto UpdateWorld() noexcept { if (this->IsNeedRefreshWorld()) this->RefreshWorld(); }
         // get HoverTrackTime
@@ -359,29 +359,29 @@ namespace LongUI {
         void AddRef() noexcept { ++m_u8RefCount; }
 #endif
         // set visible
-        void SetVisible(bool visible) noexcept { m_state.SetTo(State_Visible, visible); }
+        void SetVisible(bool visible) noexcept { m_state.SetTo<State_Visible>(visible); }
         // get visible
-        auto GetVisible() const noexcept { return m_state.Test(State_Visible); }
+        auto GetVisible() const noexcept { return m_state.Test<State_Visible>(); }
         // get visible
-        auto GetEnabled() const noexcept { return m_state.Test(State_Enabled); }
+        auto GetEnabled() const noexcept { return m_state.Test<State_Enabled>(); }
         // set enable state
         void SetEnabled(bool enabled) noexcept {
             EventArgument arg; arg.sender = this; arg.event = Event::Event_SetEnabled;
             arg.ste.enabled = enabled; this->DoEvent(arg);
-            m_state.SetTo(State_Enabled, enabled);
+            m_state.SetTo<State_Enabled>(enabled);
         }
         // set state
-        auto SetUserState(bool b) noexcept { m_state.SetTo(State_User, b); }
+        auto SetUserState(bool b) noexcept { m_state.SetTo<State_User>(b); }
         // test state
-        auto TestUserState() const noexcept { return m_state.Test(State_User); }
+        auto TestUserState() const noexcept { return m_state.Test<State_User>(); }
         // set state
-        auto SetParentState(bool b) noexcept { m_state.SetTo(State_Parent, b); }
+        auto SetParentState(bool b) noexcept { m_state.SetTo<State_Parent>(b); }
         // test state
-        auto TestParentState() const noexcept { return m_state.Test(State_Parent); }
+        auto TestParentState() const noexcept { return m_state.Test<State_Parent>(); }
         // set state
-        auto SetWindowState(bool b) noexcept { m_state.SetTo(State_Window, b); }
+        auto SetWindowState(bool b) noexcept { m_state.SetTo<State_Window>(b); }
         // test state
-        auto TestWindowState() const noexcept { return m_state.Test(State_Window); }
+        auto TestWindowState() const noexcept { return m_state.Test<State_Window>(); }
     protected:
         // check control state based on basic state
         auto check_state() const noexcept { return this->GetEnabled() ? State_Normal : State_Disabled; }

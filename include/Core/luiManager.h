@@ -158,6 +158,8 @@ namespace LongUI {
         auto CopyStringSafe(const char* str) noexcept { auto s = this->CopyString(str); return s ? s : ""; }
         // get system brush
         auto GetSystemBrush(uint32_t index) noexcept { return LongUI::SafeAcquire(m_apSystemBrushes[index]); }
+        // get Transparent representation brush
+        auto GetTransparentBrush() noexcept { return LongUI::SafeAcquire(m_pTransparentBrush); }
         // get drop target helper
         //auto GetDropTargetHelper() noexcept { return LongUI::SafeAcquire(m_pDropTargetHelper); }
         // get display frequency
@@ -296,6 +298,8 @@ namespace LongUI {
         uint32_t                        m_uMainDpiY = 96;
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATE_COUNT];
+        // Transparent display
+        ID2D1BitmapBrush*               m_pTransparentBrush = nullptr;
         // loader
         IUIResourceLoader*              m_pResourceLoader = nullptr;
         // default bitmap buffer
