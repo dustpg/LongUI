@@ -75,10 +75,17 @@ bool  LongUI::UIEdit::DoEvent(const LongUI::EventArgument& arg) noexcept {
         m_text.OnKillFocus();
         return true;
     case LongUI::Event::Event_SetText:
-        assert(!"NOIMPL");
+        m_text.SetString(arg.stt.text);
+        this->InvalidateThis();
         __fallthrough;
     case LongUI::Event::Event_GetText:
         arg.str = m_text.c_str();
+        return true;
+    case LongUI::Event::Event_SetFloat:
+        assert(!"NOINTERFACE");
+        return true;
+    case LongUI::Event::Event_GetFloat:
+        arg.fvalue = LongUI::AtoF(m_text.c_str());
         return true;
     case LongUI::Event::Event_Char:
         m_text.OnChar(arg.key.ch);

@@ -622,6 +622,8 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     enum TableString : uint32_t {
         // faild with hresult
         String_FaildHR = 0,
+        // failed to recreate
+        String_FailRecreate,
         // cut
         String_Cut,
         // copy

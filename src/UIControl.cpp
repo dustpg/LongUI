@@ -510,9 +510,15 @@ auto LongUI::UIControl::Recreate() noexcept ->HRESULT {
     // 设备重置再说
     LongUI::SafeRelease(m_pBrush_SetBeforeUse);
     LongUI::SafeRelease(m_pBackgroudBrush);
-    m_pBrush_SetBeforeUse = static_cast<decltype(m_pBrush_SetBeforeUse)>(
-        UIManager.GetBrush(LongUICommonSolidColorBrushIndex)
-        );
+    {
+        auto brush = UIManager.GetBrush(LongUICommonSolidColorBrushIndex);
+#ifdef _DEBUG
+        ID2D1SolidColorBrush* tmp = nullptr;
+        brush->QueryInterface(IID_ID2D1SolidColorBrush, (void**)(&tmp));
+        assert(tmp); tmp->Release();
+#endif
+        m_pBrush_SetBeforeUse = static_cast<ID2D1SolidColorBrush*>(brush);
+    }
     if (m_idBackgroudBrush) {
         m_pBackgroudBrush = UIManager.GetBrush(m_idBackgroudBrush);
     }
@@ -780,7 +786,7 @@ void LongUI::UIMarginalable::RefreshWorldMarginal() noexcept {
 namespace LongUI {
     // null control
     class UINull : public UIControl {
-        // 父类申明
+        // super class
         using Super = UIControl;
         // clean this control 清除控件
         virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
@@ -841,7 +847,7 @@ namespace LongUI {
     };
     // space holder
     class UISpaceHolder final : public UINull {
-        // 父类申明
+        // super class
         using Super = UINull;
         // clean this control 清除控件
         virtual void cleanup() noexcept override { }

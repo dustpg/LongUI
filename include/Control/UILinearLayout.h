@@ -30,7 +30,7 @@
 namespace LongUI {
     // Vertical Layout -- 垂直布局 容器
     class UIVerticalLayout : public UIContainerBuiltIn {
-        // 父类申明
+        // super class
         using Super = UIContainerBuiltIn;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
@@ -67,7 +67,7 @@ namespace LongUI {
     };
     // Horizontal Layout -- 水平布局 容器
     class UIHorizontalLayout : public UIContainerBuiltIn {
-        // 父类申明
+        // super class
         using Super = UIContainerBuiltIn;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;

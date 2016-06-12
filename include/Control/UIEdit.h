@@ -31,7 +31,7 @@
 namespace LongUI {
     // 基本编辑类
     class UIEdit : public UIControl {
-        // 父类申明
+        // super class
         using Super = UIControl;
         // close this control 关闭控件
         virtual void cleanup() noexcept override;

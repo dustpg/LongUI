@@ -122,6 +122,8 @@ namespace LongUI {
         virtual void ShowWindow(int nCmdShow) noexcept = 0;
         // set caret
         virtual void SetCaret(UIControl* ctrl, const RectLTWH_F* rect) noexcept = 0;
+        // set title name
+        virtual void SetTitleName(const wchar_t* name) noexcept = 0;
     protected:
         // add inset window
         void add_inset_window(XUIBaseWindow*) noexcept;
@@ -221,6 +223,8 @@ namespace LongUI {
         void set_caret_in() noexcept { m_baBoolWindow.SetTrue<Index_CaretIn>(); }
         // set DoCaret to true
         //void set_do_caret() noexcept { m_baBoolWindow.SetTrue<Index_DoCaret>(); }
+        // clear CaretIn
+        void clear_caret_in() noexcept { m_baBoolWindow.SetNot<Index_CaretIn>(); }
         // change CaretIn
         void change_caret_in() noexcept { m_baBoolWindow.SetNot<Index_CaretIn>(); }
         // clear NewSize
@@ -309,8 +313,8 @@ namespace LongUI {
         virtual void MoveWindow(int32_t x, int32_t y) noexcept override;
         // resize window
         //virtual void Resize(uint32_t w, uint32_t h) noexcept override;
-    public:
-
+        // set title name
+        virtual void SetTitleName(const wchar_t* name) noexcept override;
     protected:
         // message id for TaskbarBtnCreated
         static const UINT s_uTaskbarBtnCreatedMsg;

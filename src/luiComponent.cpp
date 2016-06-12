@@ -208,6 +208,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="layout">The layout.</param>
     /// <returns></returns>
     auto ShortText::SetLayout(IDWriteTextLayout* layout) noexcept {
+        CUIDxgiAutoLocker locker;
         assert(layout);
         assert(m_config.rich_type == RichType::Type_None && "set layout must be Type_None mode");
         LongUI::SafeRelease(m_pLayout);
@@ -244,6 +245,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     }
     // ShortText 重建布局
     void ShortText::RecreateLayout() noexcept {
+        CUIDxgiAutoLocker locker;
         // 保留数据
         auto old_layout = m_pLayout;
         m_pLayout = nullptr;
@@ -308,10 +310,30 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
         }
     }
+    /// <summary>
+    /// Resizes the specified w.
+    /// </summary>
+    /// <param name="w">The w.</param>
+    /// <param name="h">The h.</param>
+    /// <returns></returns>
+    void EditableText::Resize(float w, float h) noexcept {
+        CUIDxgiAutoLocker locker;
+        m_size.width = w; m_size.height = h; 
+        m_pLayout->SetMaxWidth(w); 
+        m_pLayout->SetMaxHeight(h);
+    }
+    // 直接重建布局
+    void EditableText::recreate_layout() noexcept { 
+        CUIDxgiAutoLocker locker;
+        auto fmt = m_pLayout; 
+        m_pLayout = nullptr; 
+        this->recreate_layout(fmt); 
+        LongUI::SafeRelease(fmt); 
+    }
     // 重新创建布局
     void EditableText::recreate_layout(IDWriteTextFormat* fmt) noexcept {
         assert(fmt && "bad argument");
-        assert(this->layout == nullptr && "bad action");
+        assert(m_pLayout == nullptr && "bad action");
         // 修改文本
         m_bTxtChanged = true;
         // 数据
@@ -328,7 +350,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 hr = UIManager_DWriteFactory->CreateTextLayout(
                     buf, len, fmt,
                     m_size.width, m_size.height,
-                    &this->layout
+                    &m_pLayout
                 );
             });
         }
@@ -338,7 +360,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 m_string.c_str(), static_cast<uint32_t>(m_string.length()),
                 fmt,
                 m_size.width, m_size.height,
-                &this->layout
+                &m_pLayout
             );
         }
 #ifdef _DEBUG
@@ -423,34 +445,34 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         HRESULT hr = S_OK;
         auto old_length = static_cast<uint32_t>(m_string.length());
         // 保留旧布局
-        auto old_layout = LongUI::SafeAcquire(this->layout);
+        auto old_layout = LongUI::SafeAcquire(m_pLayout);
         // 重新创建布局
         this->recreate_layout();
         // 富文本情况下?
         if (old_layout && this->IsRiched() && SUCCEEDED(hr)) {
             // 复制全局属性
-            Component::EditableText::CopyGlobalProperties(old_layout, this->layout);
+            Component::EditableText::CopyGlobalProperties(old_layout, m_pLayout);
             // 对于每种属性, 获取并应用到新布局
             // 在首位?
             if (pos) {
                 // 第一块
-                Component::EditableText::CopyRangedProperties(old_layout, this->layout, 0, pos, 0);
+                Component::EditableText::CopyRangedProperties(old_layout, m_pLayout, 0, pos, 0);
                 // 插入块
-                Component::EditableText::CopySinglePropertyRange(old_layout, pos - 1, this->layout, pos, length);
+                Component::EditableText::CopySinglePropertyRange(old_layout, pos - 1, m_pLayout, pos, length);
                 // 结束块
-                Component::EditableText::CopyRangedProperties(old_layout, this->layout, pos, old_length, length);
+                Component::EditableText::CopyRangedProperties(old_layout, m_pLayout, pos, old_length, length);
             }
             else {
                 // 插入块
-                Component::EditableText::CopySinglePropertyRange(old_layout, 0, this->layout, 0, length);
+                Component::EditableText::CopySinglePropertyRange(old_layout, 0, m_pLayout, 0, length);
                 // 结束块
-                Component::EditableText::CopyRangedProperties(old_layout, this->layout, 0, old_length, length);
+                Component::EditableText::CopyRangedProperties(old_layout, m_pLayout, 0, old_length, length);
             }
             // 末尾
             Component::EditableText::CopySinglePropertyRange(
                 old_layout, 
                 old_length, 
-                this->layout, 
+                m_pLayout, 
                 static_cast<uint32_t>(m_string.length()), 
                 UINT32_MAX
             );
@@ -465,7 +487,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="r">The r.</param>
     /// <returns></returns>
     auto EditableText::copy_remove(IDWriteTextLayout* oldLayout, DWRITE_TEXT_RANGE r) noexcept {
-        auto newLayout = this->layout;
+        auto newLayout = m_pLayout;
         if (!(newLayout && oldLayout)) return;
         if (newLayout == oldLayout) return;
         if (!this->IsRiched()) return;
@@ -561,7 +583,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 // Use hit-testing to limit text position.
                 DWRITE_HIT_TEST_METRICS hitTestMetrics;
                 float caretX, caretY;
-                this->layout->HitTestTextPosition(
+                m_pLayout->HitTestTextPosition(
                     m_u32CaretPos,
                     false,
                     &caretX,
@@ -576,9 +598,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         {
             LineMetricsBuffer metrice_buffer;
             // 获取行指标
-            this->layout->GetMetrics(&textMetrics);
+            m_pLayout->GetMetrics(&textMetrics);
             metrice_buffer.NewSize(textMetrics.lineCount);
-            this->layout->GetLineMetrics(
+            m_pLayout->GetLineMetrics(
                 metrice_buffer.GetData(),
                 textMetrics.lineCount,
                 &textMetrics.lineCount
@@ -606,7 +628,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             DWRITE_HIT_TEST_METRICS hitTestMetrics;
             float caretX, caretY, dummyX;
             // 获取当前文本X位置
-            this->layout->HitTestTextPosition(
+            m_pLayout->HitTestTextPosition(
                 m_u32CaretPos,
                 m_u32CaretPosOffset > 0, // trailing if nonzero, else leading edge
                 &caretX,
@@ -614,7 +636,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 &hitTestMetrics
                 );
             // 获取新位置Y坐标
-            this->layout->HitTestTextPosition(
+            m_pLayout->HitTestTextPosition(
                 linePosition,
                 false, // leading edge
                 &dummyX,
@@ -623,7 +645,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
                 );
             // 获取新x, y 的文本位置
             BOOL isInside, isTrailingHit;
-            this->layout->HitTestPoint(
+            m_pLayout->HitTestPoint(
                 caretX, caretY,
                 &isTrailingHit,
                 &isInside,
@@ -639,11 +661,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 计算所需字符串集
             EzContainer::SmallBuffer<DWRITE_CLUSTER_METRICS, 64> metrice_buffer;
             UINT32 clusterCount;
-            this->layout->GetClusterMetrics(nullptr, 0, &clusterCount);
+            m_pLayout->GetClusterMetrics(nullptr, 0, &clusterCount);
             if (clusterCount == 0) break;
             // 重置大小
             metrice_buffer.NewSize(clusterCount);
-            this->layout->GetClusterMetrics(metrice_buffer.GetData(), clusterCount, &clusterCount);
+            m_pLayout->GetClusterMetrics(metrice_buffer.GetData(), clusterCount, &clusterCount);
             m_u32CaretPos = absolute_position;
             UINT32 clusterPosition = 0;
             UINT32 oldCaretPosition = m_u32CaretPos;
@@ -683,9 +705,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 获取预知的首位置或者末位置
             LineMetricsBuffer metrice_buffer;
             // 获取行指标
-            this->layout->GetMetrics(&textMetrics);
+            m_pLayout->GetMetrics(&textMetrics);
             metrice_buffer.NewSize(textMetrics.lineCount);
-            this->layout->GetLineMetrics(
+            m_pLayout->GetLineMetrics(
                 metrice_buffer.GetData(),
                 textMetrics.lineCount,
                 &textMetrics.lineCount
@@ -772,7 +794,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         BOOL isInside;
         DWRITE_HIT_TEST_METRICS caret_metrics;
         // 获取当前点击位置
-        this->layout->HitTestPoint(
+        m_pLayout->HitTestPoint(
             x, y,
             &isTrailingHit,
             &isInside,
@@ -815,7 +837,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             BOOL trailin, inside;
             DWRITE_HIT_TEST_METRICS caret_metrics;
             // 获取当前点击位置
-            this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
+            m_pLayout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
             bool inzone = caret_metrics.textPosition >= range.startPosition &&
                 caret_metrics.textPosition < range.startPosition + range.length;
             if (inzone) return false;
@@ -890,7 +912,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 有效删除范围
         if (!range.length) return;
         // 保留旧布局
-        auto old = LongUI::SafeAcquire(this->layout);
+        auto old = LongUI::SafeAcquire(m_pLayout);
         // 删除选择区
         this->DeleteSelection();
         // 重建布局
@@ -938,7 +960,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
             else if (absolutePosition > 0) {
                 // 保留旧布局
-                auto old = LongUI::SafeAcquire(this->layout);
+                auto old = LongUI::SafeAcquire(m_pLayout);
                 uint32_t count = 1;
                 // 双字特别处理
                 if (absolutePosition >= 2 && absolutePosition <= m_string.size()) {
@@ -978,11 +1000,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             // 删除下一个的字符
             else {
                 // 保留旧布局
-                auto old = LongUI::SafeAcquire(this->layout);
+                auto old = LongUI::SafeAcquire(m_pLayout);
                 DWRITE_HIT_TEST_METRICS hitTestMetrics;
                 float caretX, caretY;
                 // 获取集群大小
-                this->layout->HitTestTextPosition(
+                m_pLayout->HitTestTextPosition(
                     absolutePosition,
                     false,
                     &caretX,
@@ -1142,7 +1164,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             BOOL trailin, inside;
             DWRITE_HIT_TEST_METRICS caret_metrics;
             // 获取当前点击位置
-            this->layout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
+            m_pLayout->HitTestPoint(x, y, &trailin, &inside, &caret_metrics);
             m_bClickInSelection = caret_metrics.textPosition >= range.startPosition &&
                 caret_metrics.textPosition < range.startPosition + range.length;
         }
@@ -1270,8 +1292,9 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     void EditableText::AlignCaretToNearestCluster(bool hit, bool skip) noexcept {
         DWRITE_HIT_TEST_METRICS hitTestMetrics;
         float caretX, caretY;
+        assert(m_pLayout);
         // 对齐最近字符集
-        this->layout->HitTestTextPosition(
+        m_pLayout->HitTestTextPosition(
             m_u32CaretPos,
             false,
             &caretX,
@@ -1293,16 +1316,16 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <param name="rect">The rect.</param>
     /// <returns></returns>
     void EditableText::GetTextBox(RectLTWH_F& rect) const noexcept {
-        impl::get_text_box(this->layout, rect);
+        impl::get_text_box(m_pLayout, rect);
     }
     // 获取插入符号矩形
     void EditableText::GetCaretRect(RectLTWH_F& rect) const noexcept {
         // 检查布局
-        if (this->layout) {
+        if (m_pLayout) {
             // 获取 f(文本偏移) -> 坐标
             DWRITE_HIT_TEST_METRICS caretMetrics;
             float caretX, caretY;
-            this->layout->HitTestTextPosition(
+            m_pLayout->HitTestTextPosition(
                 m_u32CaretPos,
                 m_u32CaretPosOffset > 0,
                 &caretX,
@@ -1313,7 +1336,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             DWRITE_TEXT_RANGE selectionRange = this->GetSelectionRange();
             if (selectionRange.length > 0) {
                 UINT32 actualHitTestCount = 1;
-                this->layout->HitTestTextRange(
+                m_pLayout->HitTestTextRange(
                     m_u32CaretPos,
                     0,      // length
                     0.f,    // x
@@ -1342,6 +1365,19 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         // 检查选择区
         this->RefreshSelectionMetrics(this->GetSelectionRange());
     }
+    // 设置字符串
+    void EditableText::SetString(const wchar_t* str) noexcept {
+        if (this->IsReadOnly()) return;
+        // 不同再修改
+        if (m_string != str) {
+            m_string = str;
+            this->recreate_layout();
+            m_u32CaretPos = 0;
+            m_u32CaretAnchor = 0;
+            m_u32CaretPosOffset = 0;
+            this->refresh(true);
+        }
+    }
     // 设置数字
     LongUINoinline void EditableText::SetNumber(int32_t i) noexcept {
         if (this->IsReadOnly()) return;
@@ -1359,6 +1395,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     // 渲染
     void EditableText::Render(ID2D1DeviceContext* target, D2D1_POINT_2F pt) const noexcept {
         assert(target && "bad argument");
+        if (!m_pLayout) return;
         float x = this->offset.x + pt.x;
         float y = this->offset.y + pt.y;
     #ifdef _DEBUG
@@ -1384,12 +1421,11 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
             }
             UIManager_RenderTarget->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
         }
-        // 刻画字体
-        assert(this->layout && "bad action");
+        // 刻画文本
         m_pTextRenderer->target = target;
         m_pTextRenderer->basic_color.color = *m_pColor;
         IDWriteTextRenderer1* pTextRenderer = m_pTextRenderer;
-        this->layout->Draw(m_pTextContext, pTextRenderer, x, y);
+        m_pLayout->Draw(m_pTextContext, pTextRenderer, x, y);
         m_pTextRenderer->target = nullptr;
     }
     // 复制到 目标全局句柄
@@ -1527,7 +1563,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         };
         // 检查选择的区块数量
         uint32_t actualHitTestCount = 0;
-        this->layout->HitTestTextRange(
+        m_pLayout->HitTestTextRange(
             selection.startPosition,
             selection.length,
             0.f, // x
@@ -1540,7 +1576,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
         m_bufMetrice.NewSize(actualHitTestCount);
         if (!actualHitTestCount) return;
         // 正式获取
-        this->layout->HitTestTextRange(
+        m_pLayout->HitTestTextRange(
             selection.startPosition,
             selection.length,
             0.f, // x
@@ -1557,7 +1593,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     /// <returns></returns>
     EditableText::~EditableText() noexcept {
         ::ReleaseStgMedium(&m_recentMedium);
-        LongUI::SafeRelease(this->layout);
+        LongUI::SafeRelease(m_pLayout);
         LongUI::SafeRelease(m_pTextRenderer);
         LongUI::SafeRelease(m_pSelectionColor);
         //LongUI::SafeRelease(m_pDropSource);

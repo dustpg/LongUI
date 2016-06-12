@@ -31,7 +31,7 @@
 namespace LongUI {
     // default text control 默认文本控件
     class UIText : public UIControl {
-        // 父类申明
+        // super class
         using Super = UIControl ;
         // clean this
         virtual void cleanup() noexcept override;

@@ -33,7 +33,7 @@
 namespace LongUI {
     // xml edit
     class UIXmlRich : public UIEdit {
-        // 父类申明
+        // super class
         using Super = UIEdit ;
         // clean this
         virtual void cleanup() noexcept override;

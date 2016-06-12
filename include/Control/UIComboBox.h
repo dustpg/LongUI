@@ -32,7 +32,7 @@ namespace LongUI {
     class UIList;
     // default combo box control 默认组合框
     class UIComboBox : public UIButton {
-        // 父类申明
+        // super class
         using Super = UIButton;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;

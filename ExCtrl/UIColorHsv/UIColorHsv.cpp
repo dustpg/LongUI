@@ -132,8 +132,13 @@ namespace LongUI { namespace impl {
         }
         return out;
     }
+    // set float to
+    inline void safe_set_float(UIControl*ctrl, float v) noexcept {
+        if (ctrl) if (ctrl->GetFloat() != v) ctrl->SetFloat(v);
+    }
 }}
 
+/*
 /// <summary>
 /// Updates this instance.
 /// </summary>
@@ -141,7 +146,7 @@ namespace LongUI { namespace impl {
 void LongUI::UIColorHsv::Update() noexcept {
     // 刷新父类
     Super::Update();
-}
+}*/
 
 /// <summary>
 /// Sets the color.
@@ -149,6 +154,9 @@ void LongUI::UIColorHsv::Update() noexcept {
 /// <param name="in">The input color.</param>
 /// <returns></returns>
 void LongUI::UIColorHsv::SetColor(const D2D1_COLOR_F& in) noexcept {
+    // 无需修改
+    if (in.r == m_colorPicked.r && in.g == m_colorPicked.g &&
+        in.b == m_colorPicked.b) return;
     m_colorPicked = in;
     struct { float h, s, v; } out;
     // 计算
@@ -173,18 +181,11 @@ void LongUI::UIColorHsv::SetColor(const D2D1_COLOR_F& in) noexcept {
             out.h = 0.f;
             return out;
         }
-        if (in.r >= max)
-            out.h = (in.g - in.b) / delta;
-        else
-            if (in.g >= max)
-                out.h = 2.f + (in.b - in.r) / delta;
-            else
-                out.h = 4.f + (in.r - in.g) / delta;
-
+        if (in.r >= max) out.h = (in.g - in.b) / delta;
+        else if (in.g >= max) out.h = 2.f + (in.b - in.r) / delta;
+        else out.h = 4.f + (in.r - in.g) / delta;
         out.h *= 60.f;
-
-        if (out.h < 0.f)
-            out.h += 360.f;
+        if (out.h < 0.f) out.h += 360.f;
         return out;
     };
     
@@ -203,17 +204,17 @@ void LongUI::UIColorHsv::SetH(float h) noexcept {
     assert(0.f <= h && h < 360.f && "out of range");
     // 不一样再修改
     if (m_fHue != h) {
-        m_fHue = h;
+        // 修改数据
+        impl::safe_set_float(m_pCtrlH, m_fHue = h);
         this->value_changed();
-        if (m_pCtrlH) m_pCtrlH->SetFloat(h);
+        this->InvalidateThis();
         // 上渲染锁
-        if(m_pHsvEffect) {
+        if (m_pHsvEffect) {
             auto color = impl::get_color_from_hue(h);
             LongUI::CUIDxgiAutoLocker locker;
             auto i = Effect::Hsv::Properties_PickedColor;
             m_pHsvEffect->SetValue(i, color);
         }
-        this->InvalidateThis();
     }
 }
 
@@ -226,9 +227,8 @@ void LongUI::UIColorHsv::SetS(float s) noexcept {
     assert(0.f <= s && s <= 1.f && "out of range");
     // 不一样再修改
     if (m_fSaturation != s) {
-        m_fSaturation = s;
+        impl::safe_set_float(m_pCtrlS, m_fSaturation = s);
         this->value_changed();
-        if (m_pCtrlS) m_pCtrlS->SetFloat(s);
         this->InvalidateThis();
     }
 }
@@ -243,9 +243,8 @@ void LongUI::UIColorHsv::SetV(float v) noexcept {
     assert(0.f <= v && v <= 1.f && "out of range");
     // 不一样再修改
     if (m_fValue != v) {
-        m_fValue = v;
+        impl::safe_set_float(m_pCtrlV, m_fValue = v);
         this->value_changed();
-        if (m_pCtrlV) m_pCtrlV->SetFloat(v);
         this->InvalidateThis();
     }
 }
@@ -388,6 +387,15 @@ bool LongUI::UIColorHsv::DoEvent(const LongUI::EventArgument& arg) noexcept {
         }
         if (!m_strV.empty()) {
             m_pCtrlV = m_pWindow->FindControl(m_strV.c_str());
+        }
+        if (!m_strR.empty()) {
+            m_pCtrlR = m_pWindow->FindControl(m_strR.c_str());
+        }
+        if (!m_strG.empty()) {
+            m_pCtrlG = m_pWindow->FindControl(m_strG.c_str());
+        }
+        if (!m_strB.empty()) {
+            m_pCtrlB = m_pWindow->FindControl(m_strB.c_str());
         }
         return true;
     }
@@ -665,9 +673,21 @@ void LongUI::UIColorHsv::initialize(pugi::xml_node node) noexcept {
     if (const auto str = node.attribute("s").value()) {
         m_strS = m_pWindow->CopyStringSafe(str);
     }
-    // s显示控件
+    // v显示控件
     if (const auto str = node.attribute("v").value()) {
-        m_strV =  m_pWindow->CopyStringSafe(str);
+        m_strV = m_pWindow->CopyStringSafe(str);
+    }
+    // r显示控件
+    if (const auto str = node.attribute("r").value()) {
+        m_strR = m_pWindow->CopyStringSafe(str);
+    }
+    // g显示控件
+    if (const auto str = node.attribute("g").value()) {
+        m_strG = m_pWindow->CopyStringSafe(str);
+    }
+    // b显示控件
+    if (const auto str = node.attribute("b").value()) {
+        m_strB = m_pWindow->CopyStringSafe(str);
     }
     m_colorPicked = D2D1::ColorF(D2D1::ColorF::Red);
 }
@@ -719,7 +739,15 @@ void LongUI::UIColorHsv::release_gpu_resource() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIColorHsv::value_changed() noexcept {
+    // 计算RGB
     m_colorPicked = impl::hsv2rgb(m_fHue, m_fSaturation, m_fValue);
+    // R
+    if (m_pCtrlR) m_pCtrlR->SetFloat(m_colorPicked.r);
+    // G
+    if (m_pCtrlG) m_pCtrlG->SetFloat(m_colorPicked.g);
+    // B
+    if (m_pCtrlB) m_pCtrlB->SetFloat(m_colorPicked.b);
+    // 调用事件
     this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
 }
 

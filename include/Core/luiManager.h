@@ -68,12 +68,16 @@ namespace LongUI {
         LongUIAPI auto Initialize(IUIConfigure* config = nullptr) noexcept ->HRESULT;
         // uninitialize 反初始化
         LongUIAPI void Uninitialize() noexcept;
+        // kill focus
+        LongUIAPI void KillFocus() noexcept;
         // run 运行
         LongUIAPI void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
         LongUIAPI auto RegisterControlClass(CreateControlEvent func, const char* clname) noexcept ->HRESULT;
         // unregister 取消映射函数映射关系
         LongUIAPI void UnregisterControlClass(const char* clname) noexcept;
+        // check registered 
+        LongUIAPI bool IsRegisteredControlClass(const char* clname) noexcept;
         // ShowError with HRESULT code
         LongUIAPI void ShowError(HRESULT, const wchar_t* str_b = nullptr) noexcept;
         // add window
@@ -114,13 +118,19 @@ namespace LongUI {
         }
     public:
         // create ui window with xml string, must include UIViewport.h first
-        auto CreateUIWindow(const char* xml) noexcept { return this->CreateUIWindow<LongUI::UIViewport>(xml); }
+        auto CreateUIWindow(const char* xml) noexcept { 
+            return this->CreateUIWindow<LongUI::UIViewport>(xml); 
+        }
         // create ui window with xml string, must include UIViewport.h first
         template<class T> auto CreateUIWindow(const char* xml) noexcept ->XUIBaseWindow* {
             auto code = m_docWindow.load_string(xml); assert(code && "bad xml"); 
             if (code.status) return nullptr;
+            return this->CreateUIWindow<T>(m_docWindow.first_child());
+        }
+        // create ui window with xml node, must include UIViewport.h first
+        template<class T> auto CreateUIWindow(pugi::xml_node node) noexcept ->XUIBaseWindow* {
             auto create_func = UIViewport::CreateFunc<T>;
-            return this->create_ui_window(m_docWindow.first_child(), create_func);
+            return this->create_ui_window(node, create_func);
         }
         // add time capsule
         template<typename T> void AddTimeCapsule(T call, void* id, float time) noexcept {

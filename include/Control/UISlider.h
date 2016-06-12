@@ -31,7 +31,7 @@
 namespace LongUI {
     // default slider control 默认滑块控件
     class UISlider : public UIControl {
-        // 父类申明
+        // super class
         using Super = UIControl;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;

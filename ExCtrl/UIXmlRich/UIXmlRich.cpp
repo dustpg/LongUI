@@ -49,12 +49,13 @@ void LongUI::UIXmlRich::SetSelectionColor() noexcept {
 /// <returns></returns>
 template<typename T>
 void LongUI::UIXmlRich::set_selection_helper(T call) noexcept {
-    if (!m_text.layout) return;
-    auto range = m_text.GetSelectionRange();
-    if (range.length) {
-        LongUI::CUIDxgiAutoLocker locker;
-        call(range);
-        this->InvalidateThis();
+    LongUI::CUIDxgiAutoLocker locker;
+    if (const auto layout = m_text.RefLayout()) {
+        auto range = m_text.GetSelectionRange();
+        if (range.length) {
+            call(range, layout);
+            this->InvalidateThis();
+        }
     }
 }
 
@@ -64,8 +65,9 @@ void LongUI::UIXmlRich::set_selection_helper(T call) noexcept {
 /// <param name="u">if set to <c>true</c> [u].</param>
 /// <returns></returns>
 void LongUI::UIXmlRich::SetSelectionUnderline(bool u) noexcept {
-    this->set_selection_helper([=](DWRITE_TEXT_RANGE range)noexcept {
-        m_text.layout->SetUnderline(u, range);
+    this->set_selection_helper([=](DWRITE_TEXT_RANGE range,
+        IDWriteTextLayout* layout) noexcept {
+        layout->SetUnderline(u, range);
     });
 }
 
@@ -75,8 +77,9 @@ void LongUI::UIXmlRich::SetSelectionUnderline(bool u) noexcept {
 /// <param name="u">if set to <c>true</c> [u].</param>
 /// <returns></returns>
 void LongUI::UIXmlRich::SetSelectionStrikethrough(bool u) noexcept {
-    this->set_selection_helper([=](DWRITE_TEXT_RANGE range)noexcept {
-        m_text.layout->SetStrikethrough(u, range);
+    this->set_selection_helper([=](DWRITE_TEXT_RANGE range,
+        IDWriteTextLayout* layout)noexcept {
+        layout->SetStrikethrough(u, range);
     });
 }
 
@@ -86,10 +89,12 @@ void LongUI::UIXmlRich::SetSelectionStrikethrough(bool u) noexcept {
 /// <param name="s">The s.</param>
 /// <returns></returns>
 void LongUI::UIXmlRich::SetSelectionStyle(DWRITE_FONT_STYLE s) noexcept {
-    this->set_selection_helper([=](DWRITE_TEXT_RANGE range)noexcept {
-        m_text.layout->SetFontStyle(s, range);
+    this->set_selection_helper([=](DWRITE_TEXT_RANGE range,
+        IDWriteTextLayout* layout)noexcept {
+        layout->SetFontStyle(s, range);
     });
 }
+
 
 /// <summary>
 /// Sets the color of the selection.
@@ -97,9 +102,10 @@ void LongUI::UIXmlRich::SetSelectionStyle(DWRITE_FONT_STYLE s) noexcept {
 /// <param name="c">The c.</param>
 /// <returns></returns>
 void LongUI::UIXmlRich::SetSelectionColor(const D2D1_COLOR_F& c) noexcept {
-    this->set_selection_helper([=](DWRITE_TEXT_RANGE range)noexcept {
+    this->set_selection_helper([=](DWRITE_TEXT_RANGE range,
+        IDWriteTextLayout* layout)noexcept {
         if (auto color = CUIColorEffect::Create(c)) {
-            m_text.layout->SetDrawingEffect(color, range);
+            layout->SetDrawingEffect(color, range);
             color->Release();
         }
     });
@@ -111,8 +117,9 @@ void LongUI::UIXmlRich::SetSelectionColor(const D2D1_COLOR_F& c) noexcept {
 /// <param name="w">The w.</param>
 /// <returns></returns>
 void LongUI::UIXmlRich::SetSelectionWeight(DWRITE_FONT_WEIGHT w) noexcept {
-    this->set_selection_helper([=](DWRITE_TEXT_RANGE range)noexcept {
-        m_text.layout->SetFontWeight(w, range);
+    this->set_selection_helper([=](DWRITE_TEXT_RANGE range,
+        IDWriteTextLayout* layout)noexcept {
+        layout->SetFontWeight(w, range);
     });
 }
 

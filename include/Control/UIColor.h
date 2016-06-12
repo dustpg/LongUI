@@ -31,7 +31,7 @@
 namespace LongUI {
     // display color
     class UIColor final : public UIControl {
-        // 父类申明
+        // super class
         using Super = UIControl ;
         // clean this
         virtual void cleanup() noexcept override;

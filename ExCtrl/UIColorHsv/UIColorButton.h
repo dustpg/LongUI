@@ -26,56 +26,54 @@
 
 #include <luibase.h>
 #include <luiconf.h>
-#include <Control/UIText.h>
-#include <Component/Effect.h>
+#include <Control/UIButton.h>
 
 // LongUI namespace
 namespace LongUI {
-    // bulr-able text control 可模糊的文本控件
-    class UIBlurText : public UIText {
+    // color button
+    class UIColorButton : public UIButton {
         // super class
-        using Super = UIText ;
+        using Super = UIButton;
         // clean this
         virtual void cleanup() noexcept override;
     public:
-        // Render 渲染
+        // Render
         virtual void Render() const noexcept override;
-        // update 刷新
-        virtual void Update() noexcept override;
-        // do event 事件处理
-        virtual bool DoEvent(const LongUI::EventArgument& arg) noexcept override;
-        // recreate 重建
-        virtual auto Recreate() noexcept ->HRESULT override;
     protected:
+        // add event listener
+        //virtual bool uniface_addevent(SubEvent sb, UICallBack&& call) noexcept override;
         // something must do before deleted
         void before_deleted() noexcept { Super::before_deleted(); }
         // render chain -> background
         void render_chain_background() const noexcept { return Super::render_chain_background(); }
         // render chain -> mainground
-        void render_chain_main() const noexcept { return Super::render_chain_main(); }
+        void render_chain_main() const noexcept  { return Super::render_chain_main(); }
         // render chain -> foreground
-        void render_chain_foreground() const noexcept { return Super::render_chain_foreground(); }
+        void render_chain_foreground() const noexcept;
     public:
-        // set blur
-        void SetBlurValue(float sd) noexcept;
-        // get blur
-        auto GetBulrValue() const noexcept { return m_fBlur; }
         // create 创建
         static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // ctor: cp- parent in contorl-level
-        UIBlurText(UIContainer* cp) noexcept;
+        UIColorButton(UIContainer* cp) noexcept : Super(cp) {}
+        // get color
+        auto&GetColor() const noexcept { return m_color; }
+        // set color
+        void SetColor(const D2D1_COLOR_F& color) noexcept {
+            m_color = color;
+            this->InvalidateThis();
+        }
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // dtor
-        ~UIBlurText() noexcept { }
+        ~UIColorButton() noexcept = default;
         // copy ctor = delete
-        UIBlurText(const UIBlurText&) = delete;
+        UIColorButton(const UIColorButton&) = delete;
     protected:
-        // blur effect
-        Component::Effect               m_effect;
-        // blur float
-        float                           m_fBlur = 1.f;
+        // color
+        D2D1_COLOR_F            m_color = { 1.f,1.f,1.f,1.f };
+        // color padding 
+        //D2D1_RECT_F             m_rcPaddingColor = { 0.f };
 #ifdef LongUIDebugEvent
     protected:
         // debug infomation
@@ -84,6 +82,6 @@ namespace LongUI {
     };
 #ifdef LongUIDebugEvent
     // 重载?特例化 GetIID
-    template<> const IID& GetIID<LongUI::UIBlurText>() noexcept;
+    template<> const IID& GetIID<LongUI::UIColorButton>() noexcept;
 #endif
 }

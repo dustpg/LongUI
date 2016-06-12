@@ -30,7 +30,7 @@
 namespace LongUI {
     // ui viewport for window
     class UIViewport : public UIVerticalLayout {
-        // 父类申明
+        // super class
         using Super = UIVerticalLayout;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;

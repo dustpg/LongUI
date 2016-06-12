@@ -230,6 +230,8 @@ namespace LongUI {
     public:
         // ctor
         CUIInput() noexcept;
+        // clear mouse state
+        void ClearMouseState() noexcept { m_bufMButton[MBI_ThisFrame] = 0; }
         // init with tool window
         auto Init(HWND) noexcept ->HRESULT;
         // get mouse position

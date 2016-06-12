@@ -133,7 +133,7 @@ namespace LongUI {
     // LongUI Default Text Font Family Name
     static constexpr wchar_t* const LongUIDefaultTextFontName = L"Arial";
     // LongUI Default Text Font Size
-    static constexpr float          LongUIDefaultTextFontSize = 16.f;
+    static constexpr float          LongUIDefaultTextFontSize = 14.f;
     // LongUI Default Text V-Align
     static constexpr uint32_t       LongUIDefaultTextVAlign = 2; // DWRITE_PARAGRAPH_ALIGNMENT_CENTER;
     // LongUI Default Text H-Align

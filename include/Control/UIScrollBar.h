@@ -31,7 +31,7 @@
 namespace LongUI {
     // base scroll bar 默认滚动条
     class UIScrollBar : public UIMarginalable {
-        // 父类申明
+        // super class
         using Super = UIMarginalable;
     protected:
         // Scroll Bar Type
@@ -122,7 +122,7 @@ namespace LongUI {
     class UIComboBox;
     // srcollbar type A
     class UIScrollBarA : public UIScrollBar {
-        // 父类申明
+        // super class
         using Super = UIScrollBar;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;
@@ -207,7 +207,7 @@ namespace LongUI {
     };
     // srcollbar type B
     class UIScrollBarB : public UIScrollBar {
-        // 父类申明
+        // super class
         using Super = UIScrollBar;
         // close this control 关闭控件
         void cleanup() noexcept override;

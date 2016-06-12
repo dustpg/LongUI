@@ -387,7 +387,11 @@ namespace LongUI {
         });
         return bitmap;
     }
-    // 获取笔刷
+    /// <summary>
+    /// get brush from xml node
+    /// </summary>
+    /// <param name="node">The node.</param>
+    /// <returns></returns>
     auto LongUI::CUIResourceLoaderXML::get_brush(pugi::xml_node node) noexcept -> ID2D1Brush* {
         union {
             ID2D1SolidColorBrush*       scb;
@@ -529,7 +533,11 @@ namespace LongUI {
         assert(brush && "unknown error but error");
         return brush;
     }
-    // get textformat
+    /// <summary>
+    /// get textformat from xml node
+    /// </summary>
+    /// <param name="node">The node.</param>
+    /// <returns></returns>
     auto LongUI::CUIResourceLoaderXML::get_text_format(pugi::xml_node node) noexcept -> IDWriteTextFormat* {
         assert(node && "node not found");
         IDWriteTextFormat* fmt = nullptr;
@@ -538,7 +546,11 @@ namespace LongUI {
         assert(SUCCEEDED(hr));
         return fmt;
     }
-    // default config
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CUIDefaultConfigure"/> class.
+    /// </summary>
+    /// <param name="manager">The manager.</param>
+    /// <param name="log_file">The log_file.</param>
     CUIDefaultConfigure::CUIDefaultConfigure(CUIManager& manager, const char* log_file) noexcept : m_manager(manager) {
 #ifdef _DEBUG
         if (log_file) {
@@ -546,7 +558,10 @@ namespace LongUI {
         }
 #endif
     }
-    // dtor
+    /// <summary>
+    /// Finalizes an instance of the <see cref="CUIDefaultConfigure"/> class.
+    /// </summary>
+    /// <returns></returns>
     CUIDefaultConfigure::~CUIDefaultConfigure() noexcept {
 #ifdef _DEBUG
         if (m_pLogFile) {
@@ -555,12 +570,18 @@ namespace LongUI {
         }
 #endif
     }
-    // get string
+    /// <summary>
+    /// Gets the string.
+    /// </summary>
+    /// <param name="tbl">The table.</param>
+    /// <returns></returns>
     auto CUIDefaultConfigure::GetString(TableString tbl) noexcept -> const wchar_t* {
         switch (tbl)
         {
         case LongUI::String_FaildHR:
             return L"Faild with HREULT CODE: ";
+        case LongUI::String_FailRecreate:
+            return L"Faild to Recreate";
         case LongUI::String_Cut:
             return L"Cut\tCtrl + X";
         case LongUI::String_Copy:

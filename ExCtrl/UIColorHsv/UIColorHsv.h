@@ -30,9 +30,9 @@
 
 // LongUI namespace
 namespace LongUI {
-    // xml edit
+    // control to display hsv picker
     class UIColorHsv : public UIControl {
-        // 父类申明
+        // super class
         using Super = UIControl ;
         // clean this
         virtual void cleanup() noexcept override;
@@ -64,7 +64,7 @@ namespace LongUI {
         // Render 渲染
         virtual void Render() const noexcept override;
         // update 刷新
-        virtual void Update() noexcept override;
+        //virtual void Update() noexcept override;
         // do event 事件处理
         virtual bool DoEvent(const EventArgument& arg) noexcept override;
         // do event 事件处理
@@ -89,6 +89,10 @@ namespace LongUI {
         UIColorHsv(UIContainer* cp) noexcept : Super(cp) {}
         // get hue/color rotation in [0, 360)
         auto GetH() const noexcept { return m_fHue; }
+        // get s in [0, 1]
+        auto GetS() const noexcept { return m_fSaturation; }
+        // get v in [0, 1]
+        auto GetV() const noexcept { return m_fValue; }
         // get color
         auto&PickColor() const noexcept { return m_colorPicked; }
         // set color
@@ -120,12 +124,24 @@ namespace LongUI {
         CUIWrappedCCP               m_strS = "";
         // control name to display v
         CUIWrappedCCP               m_strV = "";
+        // control name to display r
+        CUIWrappedCCP               m_strR = "";
+        // control name to display g
+        CUIWrappedCCP               m_strG = "";
+        // control name to display b
+        CUIWrappedCCP               m_strB = "";
         // control to display h
         UIControl*                  m_pCtrlH = nullptr;
         // control to display s
         UIControl*                  m_pCtrlS = nullptr;
         // control to display v
         UIControl*                  m_pCtrlV = nullptr;
+        // control to display r
+        UIControl*                  m_pCtrlR = nullptr;
+        // control to display g
+        UIControl*                  m_pCtrlG = nullptr;
+        // control to display b
+        UIControl*                  m_pCtrlB = nullptr;
         // hsv brush
         ID2D1LinearGradientBrush*   m_pHsvBrushLG = nullptr;
         // hsv ouput

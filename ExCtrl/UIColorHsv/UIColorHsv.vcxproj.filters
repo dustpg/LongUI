@@ -3,9 +3,11 @@
   <ItemGroup>
     <ClInclude Include="UIColorHsv.h" />
     <ClInclude Include="HsvEffect.h" />
+    <ClInclude Include="UIColorButton.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UIColorHsv.cpp" />
     <ClCompile Include="HsvEffect.cpp" />
+    <ClCompile Include="UIColorButton.cpp" />
   </ItemGroup>
 </Project>

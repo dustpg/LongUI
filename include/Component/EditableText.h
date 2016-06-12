@@ -114,18 +114,13 @@ namespace LongUI { namespace Component {
         auto GetHitTestLength() noexcept { return m_bufMetrice.GetCount(); }
         // c-style string
         auto c_str() const noexcept { return m_string.c_str(); }
-        /// <summary>
-        /// Resizes the layout, use this after resize
-        /// </summary>
-        /// <param name="w">The width of layout.</param>
-        /// <param name="h">The height of layout.</param>
-        /// <returns></returns>
-        auto Resize(float w, float h) noexcept { m_size.width = w; m_size.height = h; this->layout->SetMaxWidth(w); this->layout->SetMaxHeight(h); }
+        // Resizes the layout, use this after resize
+        void Resize(float w, float h) noexcept;
         /// <summary>
         /// Recreates the layout. use this after change text
         /// </summary>
         /// <returns></returns>
-        auto RecreateLayout() noexcept { return this->recreate_layout(); }
+        void RecreateLayout() noexcept { this->recreate_layout(); }
         // get string
         auto&GetString() noexcept { return m_string; }
     private:
@@ -138,7 +133,7 @@ namespace LongUI { namespace Component {
         // recreate layout
         void recreate_layout(IDWriteTextFormat* fmt) noexcept;
         // recreate layout without format
-        void recreate_layout() noexcept { auto fmt = this->layout; this->layout = nullptr; this->recreate_layout(fmt); LongUI::SafeRelease(fmt); }
+        void recreate_layout() noexcept;
         // insert text
         auto insert(uint32_t pos, const wchar_t* str, /*in out*/uint32_t& length) noexcept ->HRESULT;
     public: // 一般内部设置区
@@ -151,6 +146,8 @@ namespace LongUI { namespace Component {
         // set selection
         bool SetSelectionFromPoint(float x, float y, bool extendSelection) noexcept;
     public: // Event
+        // set text
+        void SetString(const wchar_t*) noexcept;
         // set interger
         void SetNumber(int32_t i) noexcept;
         // set interger
@@ -234,8 +231,14 @@ namespace LongUI { namespace Component {
         void Init(pugi::xml_node node, const char* prefix = "text") noexcept;
         // initizlize without xml-node
         void Init() noexcept;
+        // get layout
+        auto RefLayout() const noexcept { return m_pLayout; }
+        // get layout
+        auto GetLayout() const noexcept { return LongUI::SafeAcquire(m_pLayout); }
+    private:
         // type of text
-        IDWriteTextLayout*      layout = nullptr;
+        IDWriteTextLayout*      m_pLayout = nullptr;
+    public:
         // text render offset
         D2D1_POINT_2F           offset = D2D1_POINT_2F{0.f};
         // type of text
@@ -295,6 +298,8 @@ namespace LongUI { namespace Component {
         uint32_t                m_u32CaretPos = 0;
         // the pos offset of caret 光标偏移 -- 选择区大小
         uint32_t                m_u32CaretPosOffset = 0;
+        // unused
+        uint32_t                m_unused_u32;
         // string of text
         CUIString               m_string;
     public:

@@ -31,7 +31,7 @@
 namespace LongUI {
     // default button control 默认按钮控件
     class UIButton : public UIText {
-        // 父类申明
+        // super class
         using Super = UIText;
         // clean this control 清除控件
         virtual void cleanup() noexcept override;

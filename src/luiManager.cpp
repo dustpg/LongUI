@@ -45,7 +45,12 @@ namespace LongUI { namespace impl{
 #define _DEBUG_LL
 #endif
 
-// CUIManager 初始化
+/// <summary>
+/// Initializes while the specified configuration.
+/// 使用指定的配置信息初始化LongUI管理器
+/// </summary>
+/// <param name="config">The configuration.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     // 检查GUID
 #if defined(_DEBUG_LL) && defined(_MSC_VER)
@@ -356,28 +361,27 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
     }
     // 添加控件
     if (SUCCEEDED(hr)) {
-        // 必须的控件
-        this->RegisterControlClass(CreateNullControl, "Null");
+        // 注册控件类
+#define LONGUI_REGISTERCC(name) UI##name::CreateControl, #name
+        //this->RegisterControlClass(LONGUI_REGISTERCC(ScrollBarB));
         // 添加默认控件创建函数
-        this->RegisterControlClass(UIText::CreateControl, "Text");
-        this->RegisterControlClass(UIList::CreateControl, "List");
-        this->RegisterControlClass(UIEdit::CreateControl, "Edit");
-        this->RegisterControlClass(UIPage::CreateControl, "Page");
-        this->RegisterControlClass(UIColor::CreateControl, "Color");
-        this->RegisterControlClass(UISlider::CreateControl, "Slider");
-        this->RegisterControlClass(UIButton::CreateControl, "Button");
-        this->RegisterControlClass(UISingle::CreateControl, "Single");
-        this->RegisterControlClass(UIListLine::CreateControl, "ListLine");
-        this->RegisterControlClass(UICheckBox::CreateControl, "CheckBox");
-        this->RegisterControlClass(UIComboBox::CreateControl, "ComboBox");
-        //this->RegisterControlClass(UIRichEdit::CreateControl, "RichEdit");
-        this->RegisterControlClass(UIListHeader::CreateControl, "ListHeader");
-        this->RegisterControlClass(UIScrollBarA::CreateControl, "ScrollBarA");
-        //this->RegisterControlClass(UIScrollBarB::CreateControl, "ScrollBarB");
-        this->RegisterControlClass(UIRadioButton::CreateControl, "RadioButton");
-        this->RegisterControlClass(UIFloatLayout::CreateControl, "FloatLayout");
-        this->RegisterControlClass(UIVerticalLayout::CreateControl, "VerticalLayout");
-        this->RegisterControlClass(UIHorizontalLayout::CreateControl, "HorizontalLayout");
+        this->RegisterControlClass(CreateNullControl, "Null");
+        this->RegisterControlClass(LONGUI_REGISTERCC(Text));
+        this->RegisterControlClass(LONGUI_REGISTERCC(List));
+        this->RegisterControlClass(LONGUI_REGISTERCC(Edit));
+        this->RegisterControlClass(LONGUI_REGISTERCC(Page));
+        this->RegisterControlClass(LONGUI_REGISTERCC(Color));
+        this->RegisterControlClass(LONGUI_REGISTERCC(Slider));
+        this->RegisterControlClass(LONGUI_REGISTERCC(Button));
+        this->RegisterControlClass(LONGUI_REGISTERCC(Single));
+        this->RegisterControlClass(LONGUI_REGISTERCC(ListLine));
+        this->RegisterControlClass(LONGUI_REGISTERCC(CheckBox));
+        this->RegisterControlClass(LONGUI_REGISTERCC(ListHeader));
+        this->RegisterControlClass(LONGUI_REGISTERCC(ScrollBarA));
+        this->RegisterControlClass(LONGUI_REGISTERCC(RadioButton));
+        this->RegisterControlClass(LONGUI_REGISTERCC(FloatLayout));
+        this->RegisterControlClass(LONGUI_REGISTERCC(VerticalLayout));
+        this->RegisterControlClass(LONGUI_REGISTERCC(HorizontalLayout));
         // 添加自定义控件
         config->RegisterSome();
     }
@@ -392,7 +396,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         longui_debug_hr(hr, L"RecreateResources faild");
     }
     // 检查错误
-    else {
+    if (FAILED(hr)) {
         this->ShowError(hr);
     }
     // 检查当前路径
@@ -405,7 +409,21 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
 }
 
 
-// CUIManager  反初始化
+/// <summary>
+/// call this if killed the focus.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIManager::KillFocus() noexcept {
+    m_uiInput.ClearMouseState();
+#ifdef _DEBUG
+    UIManager << DL_Log << L"called" << LongUI::endl;
+#endif
+}
+
+/// <summary>
+/// Uninitializes this instance.
+/// </summary>
+/// <returns></returns>
 void LongUI::CUIManager::Uninitialize() noexcept {
     // 反初始化事件
     this->do_creating_event(LongUI::CreateEventType::Type_Uninitialize);
@@ -824,6 +842,8 @@ auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
     callback_create_viewport call) noexcept -> XUIBaseWindow* {
     assert(node && call && "bad arguments");
+    // 初始化
+    HRESULT hr;
     Config::Window config;
     std::memset(&config, 0, sizeof(config));
     config.node = node;
@@ -839,7 +859,7 @@ auto LongUI::CUIManager::create_ui_window(
         window->Dispose();
         return nullptr;
     }
-    // 连接视口
+    // 链接视口
     window->InitializeViewport(viewport);
 #ifdef _DEBUG
     //::Sleep(5000);
@@ -847,9 +867,10 @@ auto LongUI::CUIManager::create_ui_window(
     UIManager << DL_Log << window << LongUI::endl;
 #endif
     // 重建资源
-    auto hr = window->Recreate();
-    if (FAILED(hr)) {
-        this->ShowError(hr);
+    if (FAILED(hr = window->Recreate())) {
+        constexpr auto id = String_FailRecreate;
+        auto substring = this->configure->GetString(id);
+        this->ShowError(hr, substring);
     }
 #ifdef _DEBUG
     //::Sleep(500);
@@ -881,7 +902,12 @@ auto LongUI::CUIManager::create_ui_window(
     return window;
 }
 
-// 获取主题颜色
+/// <summary>
+/// Gets the color of the theme.
+/// 获取主题颜色
+/// </summary>
+/// <param name="colorf">The colorf.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT {
     union { DWORD color; uint8_t argb[4]; };
     color = DWORD(-1); auto hr = S_OK; DWORD buffer_size = sizeof(DWORD);
@@ -923,27 +949,43 @@ LongUI::CUIManager::~CUIManager() noexcept {
     this->discard_resources();
 }
 
-// 获取控件 wchar_t指针
+/// <summary>
+/// Registers the control class.
+/// 注册控件类
+/// </summary>
+/// <param name="func">The create event function.</param>
+/// <param name="clname">The class name.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::RegisterControlClass(
     CreateControlEvent func, const char* clname) noexcept ->HRESULT {
-    if (!clname || !(*clname)) {
-        assert(!"bad argument");
-        return S_FALSE;
-    }
+    assert(clname && clname[0] && "bad argument");
     // 插入
     auto result = m_hashStr2CreateFunc.Insert(m_oStringAllocator.CopyString(clname), func);
     // 插入失败的原因只有一个->OOM
     return result ? S_OK : E_OUTOFMEMORY;
 }
 
-// 获取控件 wchar_t指针
+/// <summary>
+/// Determines whether [is registerd control class] [the specified clname].
+/// 检查控件类是否注册
+/// </summary>
+/// <param name="clname">The class name.</param>
+/// <returns></returns>
+bool LongUI::CUIManager::IsRegisteredControlClass(const char* clname) noexcept {
+    assert(clname && clname[0] && "bad argument");
+    return !!m_hashStr2CreateFunc.Find(clname);
+}
+
+/// <summary>
+/// Unregisters the control class.
+/// 反注册控件类
+/// </summary>
+/// <param name="clname">The class name.</param>
+/// <returns></returns>
 void LongUI::CUIManager::UnregisterControlClass(const char* clname) noexcept {
-    if (!clname || !(*clname)) {
-        assert(!"bad argument");
-        return;
-    }
+    assert(clname && clname[0] && "bad argument");
     // 移除
-    if (m_hashStr2CreateFunc.Find(clname)) {
+    if (this->IsRegisteredControlClass(clname)) {
         m_hashStr2CreateFunc.Remove(clname);
     }
 #ifdef _DEBUG
@@ -958,7 +1000,13 @@ void LongUI::CUIManager::UnregisterControlClass(const char* clname) noexcept {
 #endif
 }
 
-// 显示错误代码
+/// <summary>
+/// Shows the error.
+/// 显示错误代码
+/// </summary>
+/// <param name="hr">The hr.</param>
+/// <param name="str_b">The STR_B.</param>
+/// <returns></returns>
 void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
     constexpr uint32_t BUFFER_SIZE = 512;
     wchar_t buffer[BUFFER_SIZE];
@@ -969,8 +1017,9 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
         MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL),
         buffer, BUFFER_SIZE,
         nullptr)) {
+        auto s = this->configure->GetString(String_FaildHR);
         // 处理
-        std::swprintf(buffer, BUFFER_SIZE, L"Error! HRESULT Code: 0x%08X", hr);
+        std::swprintf(buffer, BUFFER_SIZE, L"%ls: 0x%08X", s, hr);
     }
     // 错误
     this->ShowError(buffer, str_b);
