@@ -222,6 +222,34 @@ LongUI::UIText::UIText(pugi::xml_node node) noexcept: Super(node), m_text(node) 
 }
 */
 
+/// <summary>
+/// Gets the basic color of the text.
+/// </summary>
+/// <param name="s">The s.</param>
+/// <param name="color">The color.</param>
+/// <returns></returns>
+void LongUI::UIText::GetBasicColor(ControlState s, D2D1_COLOR_F& color) const noexcept {
+    assert(s < STATE_COUNT && "out of range");
+    color = m_text.color[s];
+}
+
+
+/// <summary>
+/// Sets the basic color of the text.
+/// </summary>
+/// <param name="s">The s.</param>
+/// <param name="color">The color.</param>
+/// <returns></returns>
+void LongUI::UIText::SetBasicColor(ControlState s, const D2D1_COLOR_F& color) noexcept {
+    assert(s < STATE_COUNT && "out of range");
+    {
+        // CUIDxgiAutoLocker locker;
+        m_text.color[s] = color;
+    }
+    this->InvalidateThis();
+}
+
+
 // UIText::CreateControl 函数
 auto LongUI::UIText::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     // 分类判断

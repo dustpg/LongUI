@@ -24,6 +24,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "../luibase.h"
 #include "../luiconf.h"
 #include <cstdint>
 #include <cassert>
@@ -177,20 +178,20 @@ namespace LongUI {
     // small single object
     struct CUISingleNormalObject : CUISingleObject {
         // nothrow new 
-        auto operator new(size_t size, const std::nothrow_t&) noexcept ->void*{ return LongUI::NormalAlloc(size); };
+        void*operator new(size_t size, const std::nothrow_t&) noexcept { return LongUI::NormalAlloc(size); };
         // nothrow delete 
-        auto operator delete(void* address, const std::nothrow_t&) ->void { return LongUI::NormalFree(address); }
+        void operator delete(void* address, const std::nothrow_t&) { LongUI::NormalFree(address); }
         // delete
-        auto operator delete(void* address) noexcept ->void { return LongUI::NormalFree(address); }
+        void operator delete(void* address) noexcept { LongUI::NormalFree(address); }
     };
     // small single object
     struct CUISingleSmallObject : CUISingleObject {
         // nothrow new 
-        auto operator new(size_t size, const std::nothrow_t&) noexcept ->void*{ return LongUI::SmallAlloc(size); };
+        void*operator new(size_t size, const std::nothrow_t&) noexcept { return LongUI::SmallAlloc(size); };
         // nothrow delete 
-        auto operator delete(void* address, const std::nothrow_t&) ->void { return LongUI::SmallFree(address); }
+        void operator delete(void* address, const std::nothrow_t&) { LongUI::SmallFree(address); }
         // delete
-        auto operator delete(void* address) noexcept ->void { return LongUI::SmallFree(address); }
+        void operator delete(void* address) noexcept { LongUI::SmallFree(address); }
     };
     // BaseFunc
     template<typename Result, typename ...Args>
@@ -271,6 +272,11 @@ namespace LongUI {
         }
         // opeator =
         MyType& operator=(const MyType &x) noexcept = delete;
+        // opeator =
+        MyType& operator=(MyType&& x) noexcept {
+            this->release(); std::swap(m_pFunction, x.m_pFunction);
+            return *this;
+        }
         // ctor with func
         template<typename Func> CUIFunction(const Func& f) noexcept : 
         m_pFunction(new(std::nothrow) CUIRealFunc<type_helper<Func>::type, Result, Args...>(f))  {}

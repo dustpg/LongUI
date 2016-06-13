@@ -60,6 +60,10 @@ namespace LongUI {
         static auto CreateControl(CreateEventType, pugi::xml_node) noexcept ->UIControl*;
         // ctor: cp- parent in contorl-level
         UIText(UIContainer* cp) noexcept : Super(cp) {}
+        // set text basic color
+        void SetBasicColor(ControlState, const D2D1_COLOR_F&) noexcept;
+        // set text basic color
+        void GetBasicColor(ControlState, D2D1_COLOR_F&) const noexcept;
     protected:
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;

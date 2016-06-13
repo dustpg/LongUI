@@ -55,7 +55,7 @@ namespace LongUI {
         // basic width of hsv line
         static constexpr float BASIC_HSV_LINE_WIDTH = 2.5f;
         // basic width of hsv circle
-        static constexpr float BASIC_HSV_CIRCLE_WIDTH = 30.f;
+        static constexpr float BASIC_HSV_CIRCLE_WIDTH = 40.f;
         // basic radius of hsv circle, Hsv::UNIT < this < 2*Hsv::UNIT
         static constexpr float BASIC_HSV_CIRCLE_RADIUS = 150.f;
         // basic radius of triangle, ≈ Hsv::UNIT
@@ -95,6 +95,8 @@ namespace LongUI {
         auto GetV() const noexcept { return m_fValue; }
         // get color
         auto&PickColor() const noexcept { return m_colorPicked; }
+        // get color
+        auto&GetColor() const noexcept { return m_colorPicked; }
         // set color
         void SetColor(const D2D1_COLOR_F& c) noexcept;
         // set hue/color rotation in [0, 360)

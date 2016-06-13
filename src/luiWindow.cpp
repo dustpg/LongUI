@@ -34,7 +34,7 @@ bool LongUI::UIViewport::CanbeClosedNow() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIViewport::OnClose() noexcept {
-    UIManager.Exit();
+    if (!m_pWindow->GetParent()) UIManager.Exit();
 }
 
 
@@ -206,15 +206,30 @@ LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
 /// <returns></returns>
 void LongUI::XUIBaseWindow::on_close() noexcept {
     // 退出窗口
-    if (!this->is_close_on_focus_killed()) {
-        m_pViewport->OnClose();
-    }
+    m_pViewport->OnClose();
+    // 激活父窗口
+    if (m_pParent) ::SetFocus(m_pParent->GetHwnd());
     // 延迟清理
     UIManager.PushDelayCleanup(this);
     // 跳过渲染
     this->set_skip_render();
 }
 
+
+/// <summary>
+/// Create_child_window the specified node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <param name="parent">The parent.</param>
+/// <param name="func">The function.</param>
+/// <returns></returns>
+auto LongUI::XUIBaseWindow::create_child_window(
+    pugi::xml_node node,
+    XUIBaseWindow* parent,
+    callback_create_viewport func
+) noexcept->XUIBaseWindow* {
+    return UIManager.create_ui_window(node, parent, func);
+}
 
 /// <summary>
 /// Creates the popup.
@@ -228,6 +243,7 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height,
     D2D1_SIZE_U size { uint32_t(pos.right - pos.left), height };
     // 宽度不足
     if (!size.width || !size.width) return nullptr;
+    HRESULT hr;
     Config::Window config;
     // 窗口配置
     config.parent = this;
@@ -259,9 +275,7 @@ auto LongUI::XUIBaseWindow::CreatePopup(const D2D1_RECT_L& pos, uint32_t height,
 #endif
     }
     // 重建资源
-    auto hr = window->Recreate();
-    // 检查错误
-    if (FAILED(hr)) {
+    if (FAILED(hr = window->Recreate())) {
         UIManager.ShowError(hr);
     }
     // 创建完毕
@@ -452,6 +466,7 @@ void LongUI::XUIBaseWindow::Render() const noexcept {
 /// <param name="parent">The parent.</param>
 LongUI::XUISystemWindow::XUISystemWindow(const Config::Window& config) noexcept : Super(config) {
     UIManager.AddWindow(this);
+    this->set_popup_window(config.popup);
 }
 
 
@@ -660,7 +675,12 @@ namespace LongUI {
         // set cursor
         virtual void SetCursor(Cursor cursor) noexcept override;
         // show/hide window
-        virtual void ShowWindow(int nCmdShow) noexcept override { ::ShowWindow(m_hwnd, nCmdShow); }
+        virtual void ShowWindow(int nCmdShow) noexcept override {
+            if (m_pParent && !this->is_popup_window()) {
+                ::EnableWindow(m_pParent->GetHwnd(), !nCmdShow);
+            }
+            ::ShowWindow(m_hwnd, nCmdShow); 
+        }
         // set caret
         virtual void SetCaret(UIControl* ctrl, const RectLTWH_F* rect) noexcept override;
 #ifdef _DEBUG

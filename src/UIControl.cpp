@@ -34,7 +34,7 @@ void longui_dbg_locked(const LongUI::CUILocker&) noexcept {
         << long(msg)
         << LongUI::endl;
 #else
-    if (window) {
+    if (window && window->GetViewport()) {
         auto name = window->GetViewport()->name.c_str();
         ::OutputDebugStringW(LongUI::Formated(
             L"Main Locker Locked On Msg: 0x%4x @ Window[0x%p - %S]\r\n",

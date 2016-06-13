@@ -62,7 +62,9 @@ namespace LongUI {
         // string allocator
         using StrAllocator = CUIShortStringAllocator;
         // create ui viewport call back
-        using callback_create_viewport = auto(*)(pugi::xml_node node, XUIBaseWindow* container) ->UIViewport*;
+        using callback_create_viewport = auto(*)(
+            pugi::xml_node node, XUIBaseWindow* container
+            ) ->UIViewport*;
     public:
         // initialize 初始化
         LongUIAPI auto Initialize(IUIConfigure* config = nullptr) noexcept ->HRESULT;
@@ -409,7 +411,16 @@ namespace LongUI {
         // create the control with xml-node
         LongUIAPI auto create_control(UIContainer* cp, CreateControlEvent function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
         // create ui window
-        LongUIAPI auto create_ui_window(pugi::xml_node node, callback_create_viewport call) noexcept ->XUIBaseWindow*;
+        LongUIAPI auto create_ui_window(
+            pugi::xml_node node, 
+            XUIBaseWindow* parent,
+            callback_create_viewport call) noexcept ->XUIBaseWindow*;
+        // create ui window without parent
+        auto create_ui_window(
+            pugi::xml_node node,
+            callback_create_viewport call) noexcept {
+            return this->create_ui_window(node, nullptr, call);
+        }
         // cleanup delay-cleanup-chain
         void cleanup_delay_cleanup_chain() noexcept;
         // load the template string

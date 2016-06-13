@@ -549,6 +549,7 @@ bool LongUI::UIColorHsv::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         return true;
     }
     case LongUI::MouseEvent::Event_LButtonUp:
+        m_tyClicked = this->Type_Node;
         m_pWindow->ReleaseCapture();
         return true;
     case LongUI::MouseEvent::Event_RButtonDown:

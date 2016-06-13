@@ -7,68 +7,41 @@
 #include "../UIColorHsv/UIColorButton.h"
 #include "colorpicker.h"
 
-static const char* const BLURTEXT_LAYOUT = 
-u8R"xml(<?xml version="1.0" encoding="utf-8"?>
-<Window size="800, 600" titlename="LongUI HSV Color Picker">
+const char* const DEMO_LAYOUT = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<Window size="800, 600" titlename="Choose Color Demo" margin="8,8,8,8" >
     <HorizontalLayout>
-        <ColorHSV weight="2" name="hsvMain" h="sldH" s="sldS" v="sldV"
-            r="sldR" g="sldG" b="sldB"/>
-        <VerticalLayout size="32, 0">
-            <Text text="H"/>
-            <Text text="S"/>
-            <Text text="V"/>
-            <Null/>
-            <Text text="R"/>
-            <Text text="G"/>
-            <Text text="B"/>
-            <Null/>
-            <Text text="A"/>
-        </VerticalLayout>
-        <VerticalLayout>
-            <Slider name="sldH" end="360" thumbsize="8,16" margin="4,4,4,4" />
-            <Slider name="sldS" value="1" thumbsize="8,16" margin="4,4,4,4" />
-            <Slider name="sldV" value="1" thumbsize="8,16" margin="4,4,4,4" />
-            <Null/>
-            <Slider name="sldR" value="1" thumbsize="8,16" margin="4,4,4,4" />
-            <Slider name="sldG" value="0" thumbsize="8,16" margin="4,4,4,4" />
-            <Slider name="sldB" value="0" thumbsize="8,16" margin="4,4,4,4" />
-            <Null/>
-            <Slider name="sldA" value="1" thumbsize="8,16" margin="4,4,4,4" />
-        </VerticalLayout>
-        <VerticalLayout size="64,0">
-            <Edit name="edtH" text="0.00" margin="4,4,4,4" borderwidth="1"/>
-            <Edit name="edtS" text="1.00" margin="4,4,4,4" borderwidth="1"/>
-            <Edit name="edtV" text="1.00" margin="4,4,4,4" borderwidth="1"/>
-            <Null/>
-            <Edit name="edtR" text="1.00" margin="4,4,4,4" borderwidth="1"/>
-            <Edit name="edtG" text="0.00" margin="4,4,4,4" borderwidth="1"/>
-            <Edit name="edtB" text="0.00" margin="4,4,4,4" borderwidth="1"/>
-            <Null/>
-            <Edit name="edtA" text="1.00" margin="4,4,4,4" borderwidth="1"/>
-        </VerticalLayout>
-        <VerticalLayout size="32, 0">
-            <Text name="txtH" text="0"/>
-            <Text name="txtS" text="100"/>
-            <Text name="txtV" text="100"/>
-            <Null/>
-            <Text name="txtR" text="255"/>
-            <Text name="txtG" text=  "0"/>
-            <Text name="txtB" text=  "0"/>
-            <Null/>
-            <Text name="txtA" text="255"/>
-        </VerticalLayout>
+        <Button name="btnA" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnB" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnC" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnD" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
     </HorizontalLayout>
-    <HorizontalLayout weight="0.3">
-        <Color color="RED" direct="true" name="colShowA"/>
-        <Color color="blue" name="colShowB"/>
-        <ColorButton color="#6CF" colorpadding="8,8,8,8"
-            borderwidth="1" margin="4,4,4,4" />
+    <HorizontalLayout>
+        <Button name="btnE" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnF" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnG" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnH" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+    </HorizontalLayout>
+    <HorizontalLayout>
+        <Button name="btnI" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnJ" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnK" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnL" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+    </HorizontalLayout>
+    <HorizontalLayout>
+        <Button name="btnM" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnN" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnO" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
+        <Button name="btnP" textsize="30" margin="4,4,4,4" borderwidth="1" text="Click Me"/>
     </HorizontalLayout>
 </Window>
 )xml";
 
 // init the window
-void InitWindow(LongUI::XUIBaseWindow*, int nCmdShow) noexcept;
+void InitWindow(
+    LongUI::XUIBaseWindow*, 
+    LongUI::CUIColorPicker&,
+    int nCmdShow
+) noexcept;
 
 // hsv
 struct HsvConfig : LongUI::CUIDefaultConfigure {
@@ -122,8 +95,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
             // my style
             UIManager << DL_Hint << L"Battle Control Online!" << LongUI::endl;
             // create main window, return nullptr for some error
-            picker.Create(nullptr); picker.ShowWindow(nCmdShow);
-            //::InitWindow(UIManager.CreateUIWindow(BLURTEXT_LAYOUT), nCmdShow);
+            //picker.Create(nullptr); picker.ShowWindow(nCmdShow);
+            ::InitWindow(UIManager.CreateUIWindow(DEMO_LAYOUT), picker, nCmdShow);
             // run this app
             UIManager.Run();
             // my style
@@ -143,13 +116,56 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lpCmdLine
 /// Initializes the window.
 /// </summary>
 /// <param name="window">The window.</param>
+/// <param name="picker">The picker.</param>
 /// <param name="nCmdShow">The n command show.</param>
 /// <returns></returns>
-void InitWindow(LongUI::XUIBaseWindow* window, int nCmdShow) noexcept {
+void InitWindow(
+    LongUI::XUIBaseWindow* window, 
+    LongUI::CUIColorPicker& picker,
+    int nCmdShow) noexcept {
+    using namespace LongUI;
     if (!window) {
         auto msg = L" May: 1.OOM 2.Xml 3.Dxgi";
         ::MessageBoxW(nullptr, msg, L"Create Window Failed", MB_ICONERROR);
         return;
+    }
+    // button commnad
+    auto command = [=, &picker](UIControl* btn) noexcept {
+        auto text = longui_cast<UIText*>(btn);
+        // set the callback on color picked
+        picker.SetCallback([=](const D2D1_COLOR_F* color) noexcept {
+            // on ok
+            if (color) {
+                text->SetBasicColor(State_Normal, *color);
+                text->SetBasicColor(State_Hover,  *color);
+                text->SetBasicColor(State_Pushed, *color);
+            }
+            // on cancel
+#ifdef _DEBUG
+            else {
+                UIManager << DL_Log << L"On Cancel" << endl;
+            }
+#endif
+            return true;
+        });
+        // create the picker window
+        if (picker.Create(window)) {
+            D2D1_COLOR_F oldc{ 0.f,0.f,0.f,1.f };
+            text->GetBasicColor(State_Normal, oldc);
+            picker.SetText(picker.Index_OK, L"确定: R U OK?");
+            picker.SetText(picker.Index_Old, L"之前");
+            picker.SetInitColor(oldc);
+            picker.ShowWindow(nCmdShow);
+        }
+        return true;
+    };
+    // set event
+    constexpr int count = 16; char name[] = "btn ";
+    for (int i = 0; i < count; ++i) {
+        name[3] = char(i) + 'A';
+        auto btn = window->FindControl(name);
+        assert(btn && "control not found");
+        btn->Add_OnClicked(command);
     }
     window->ShowWindow(nCmdShow);
 }

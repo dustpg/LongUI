@@ -376,6 +376,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         this->RegisterControlClass(LONGUI_REGISTERCC(Single));
         this->RegisterControlClass(LONGUI_REGISTERCC(ListLine));
         this->RegisterControlClass(LONGUI_REGISTERCC(CheckBox));
+        this->RegisterControlClass(LONGUI_REGISTERCC(ComboBox));
         this->RegisterControlClass(LONGUI_REGISTERCC(ListHeader));
         this->RegisterControlClass(LONGUI_REGISTERCC(ScrollBarA));
         this->RegisterControlClass(LONGUI_REGISTERCC(RadioButton));
@@ -568,7 +569,7 @@ auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateCon
     // 查找
     auto result = m_hashStr2CreateFunc.Find(clname);
     // 检查
-    assert(result && "404 not found");
+    assert(result && "class not found");
     // 返回
     return reinterpret_cast<CreateControlEvent>(*result);
 }
@@ -840,6 +841,7 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlEvent func
 // 创建UI窗口
 auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
+    XUIBaseWindow* parent,
     callback_create_viewport call) noexcept -> XUIBaseWindow* {
     assert(node && call && "bad arguments");
     // 初始化
@@ -847,6 +849,7 @@ auto LongUI::CUIManager::create_ui_window(
     Config::Window config;
     std::memset(&config, 0, sizeof(config));
     config.node = node;
+    config.parent = parent;
     config.system = true;
     // 创建窗口
     auto window = LongUI::CreateBuiltinWindow(config);

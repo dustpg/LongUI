@@ -30,6 +30,9 @@
 #include "../Platless/luiPlHlper.h"
 
 #include <cstdint>
+#include <../3rdParty/pugixml/pugixml.hpp>
+#include <Control/UIViewport.h>
+//#include <Core/luiManager.h>
 
 
 // LongUI namespace
@@ -59,6 +62,16 @@ namespace LongUI {
     class XUIBaseWindow {
         // super class
         using Super = void;
+        // create ui viewport call back
+        using callback_create_viewport = auto(*)(
+            pugi::xml_node node, XUIBaseWindow* container
+            ) ->UIViewport*;
+        // create child window
+        static auto create_child_window(
+            pugi::xml_node node,
+            XUIBaseWindow* parent,
+            callback_create_viewport func
+        ) noexcept->XUIBaseWindow*;
     public:
         // rect
         using RectLTWH_L = RectLTWH<LONG>;
@@ -68,10 +81,30 @@ namespace LongUI {
         XUIBaseWindow(const Config::Window& config) noexcept;
         // dtor
         ~XUIBaseWindow() noexcept;
-        // create child window
-        auto CreateChildWindow() noexcept ->XUIBaseWindow*;
+        // create child window with xml string, include UIViewport.h first
+        auto CreateChildWindow(const char* xml) noexcept ->XUIBaseWindow* { 
+            return this->CreateChildWindow<UIViewport>(xml); 
+        }
+        // create child window with xml string
+        template<class T> 
+        auto CreateChildWindow(const char* xml) noexcept ->XUIBaseWindow* {
+            pugi::xml_document doc;
+            auto code = doc.load_string(xml); assert(code && "bad xml"); 
+            if (code.status) return nullptr;
+            return this->CreateChildWindow<T>(doc.first_child());
+        }
+        // create child window with xml node, include UIViewport.h first
+        template<class T> 
+        auto CreateChildWindow(pugi::xml_node node) noexcept ->XUIBaseWindow* {
+            auto create_func = UIViewport::CreateFunc<T>;
+            return this->create_child_window(node, this, create_func);
+        }
         // create popup window
-        auto CreatePopup(const D2D1_RECT_L& pos, uint32_t height, UIControl* child) noexcept ->XUIBaseWindow*;
+        auto CreatePopup(
+            const D2D1_RECT_L& pos, 
+            uint32_t height, 
+            UIControl* child
+        ) noexcept ->XUIBaseWindow*;
     public:
         // index of BitArray
         enum BitArrayIndex : uint32_t {
@@ -130,6 +163,10 @@ namespace LongUI {
         // remove inset window
         void remove_inset_window(XUIBaseWindow*) noexcept;
     public:
+        // get parent window
+        auto GetParent() const noexcept { return m_pParent; }
+        // is popup window?
+        bool IsPopup() const noexcept { return this->is_popup_window(); }
         // hide caret
         void HideCaret(UIControl* ctrl) noexcept { this->SetCaret(ctrl, nullptr); }
         // hide window
@@ -209,7 +246,7 @@ namespace LongUI {
         bool is_full_render_this_frame_render() const noexcept { return m_baBoolWindow.Test<Index_FullRenderThisFrameRender>(); }
     protected:
         // set PopupWindow to true
-        void set_popup_window() noexcept { m_baBoolWindow.SetTrue<Index_PopupWindow>(); }
+        void set_popup_window(bool p) noexcept { m_baBoolWindow.SetTo<Index_PopupWindow>(p); }
         // set ExitOnClose to true
         //void set_exit_on_close() noexcept { m_baBoolWindow.SetTrue<Index_ExitOnClose>(); }
         // is HiDpiSupported

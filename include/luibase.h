@@ -377,13 +377,15 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
     // LongUI Sub Event
     enum class SubEvent : size_t {
         // control item clicked(like button)
-        Event_ItemClicked,
+        Event_ItemClicked = 0,
+        // do command
+        Event_ItemDoCommand = Event_ItemClicked,
         // control item double-clicked
-        Event_ItemDbClicked,
+        Event_ItemDbClicked = 1,
         // single-line-edit returned
-        Event_EditReturned,
+        Event_EditReturned = 2,
         // value changed(like slider, scrollbar, checkbox and ect.)
-        Event_ValueChanged,
+        Event_ValueChanged = 3,
         // Context Menu
         //Event_ContextMenu,
         // ----- User Custom Defined Event -----

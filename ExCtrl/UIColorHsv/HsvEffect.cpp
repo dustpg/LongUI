@@ -23,45 +23,25 @@ namespace LongUI {
     };
     // hsv shader
     const char* const HSV_SHADER = u8R"hlsl(
-// cbuffer
-cbuffer ClipSpaceTransforms : register(b0)
-{
-    float2x1 sceneToOutputX;
-    float2x1 sceneToOutputY;
+cbuffer CT : register(b0) { float2x1 S2OX, S2OY;};
+cbuffer HC : register(b1) { float4 hsvcolor; };
+struct VIT { float4 color : COLOR; float4 position : MESH_POSITION; };
+struct PIT { 
+  float4 position : SV_POSITION; 
+  float4 scenepos : SCENE_POSITION;
+  float4 color    : COLOR;
 };
-
-cbuffer HsvColor : register(b1)
-{
-    float4 hsvcolor;
-};
-
-// vs in
-struct VertexInputType {
-    float4 color        : COLOR;
-    float4 position     : MESH_POSITION;
-};
-// ps in
-struct PixelInputType {
-    float4 position     : SV_POSITION;
-    float4 scenepos     : SCENE_POSITION;
-    float4 color        : COLOR;
-};
-// vs main
-PixelInputType vsmain(VertexInputType input) {
-    PixelInputType output;
-    output.scenepos = float4(input.position.xy, 1, 1); 
-    output.position.x = (input.position.x * sceneToOutputX[0] + sceneToOutputX[1]);
-    output.position.y = (input.position.y * sceneToOutputY[0] + sceneToOutputY[1]);
-    output.position.z = 1;
-    output.position.w = 1;
-    output.color = input.color.w == 0 ? hsvcolor : input.color;
-    return output;
+PIT vsmain(VIT i) {
+  PIT o;
+  o.scenepos = float4(i.position.xy, 1, 1); 
+  o.position.x = (i.position.x * S2OX[0] + S2OX[1]);
+  o.position.y = (i.position.y * S2OY[0] + S2OY[1]);
+  o.position.z = 1;
+  o.position.w = 1;
+  o.color = i.color.w == 0 ? hsvcolor : i.color;
+  return o;
 }
-// ps main
-float4 psmain(PixelInputType input) : SV_TARGET {
-    return input.color;
-}
-
+float4 psmain(PIT i) : SV_TARGET { return i.color; }
 )hlsl";
     // make vertex
     static void MakeVertex(Effect::Hsv::Vertex vbuffer[]) {
@@ -277,31 +257,32 @@ IFACEMETHODIMP LongUI::Effect::Hsv::Initialize(
             vbProp.data = reinterpret_cast<BYTE*>(vbuffer);
             vbProp.inputCount = 1;
             vbProp.usage =  D2D1_VERTEX_USAGE_STATIC;
-
             static const D2D1_INPUT_ELEMENT_DESC vertexLayout[] = {
                 {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0},
                 {"MESH_POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, sizeof(Vertex::color)},
             };
-
             D2D1_CUSTOM_VERTEX_BUFFER_PROPERTIES cvbProp = {0};
             cvbProp.elementCount = uint32_t(std::end(vertexLayout) - std::begin(vertexLayout));
             cvbProp.inputElements = vertexLayout;
             cvbProp.stride = sizeof(Vertex);
-            if (vs) {
+            // 编译VS
+            if (!vs) hr = LongUI::CompileHLSL(HSV_SHADER, "vsmain", "vs_5_0", vs);
+            // 创建缓存
+            if (SUCCEEDED(hr)) {
                 const auto buf = reinterpret_cast<const BYTE*>(vs->GetBufferPointer());
                 cvbProp.shaderBufferWithInputSignature = buf;
                 cvbProp.shaderBufferSize = static_cast<uint32_t>(vs->GetBufferSize());
+                // 创建顶点缓存
+                hr = pEffectContext->CreateVertexBuffer(
+                    &vbProp,
+                    &GUID_HsvEffectVBuffer,
+                    &cvbProp,
+                    &m_pVertexBuffer
+                );
             }
             else {
                 assert(!"ERROR, NO VS");
             }
-            // 创建顶点缓存
-            hr = pEffectContext->CreateVertexBuffer(
-                &vbProp,
-                &GUID_HsvEffectVBuffer,
-                &cvbProp,
-                &m_pVertexBuffer
-            );
         }
         LongUI::SafeRelease(vs);
     }

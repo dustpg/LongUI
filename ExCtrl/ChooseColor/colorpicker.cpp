@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <LongUI.h>
 #include <Control/UIColor.h>
+#include <Control/UIViewport.h>
 #include "../UIColorHsv/UIColorHsv.h"
 #include "../UIColorHsv/UIColorButton.h"
 #include <../3rdParty/lz4/lib/lz4hc.h>
@@ -77,7 +78,7 @@ namespace LongUI {
         </VerticalLayout>
     </HorizontalLayout>
     <HorizontalLayout size="0, 64">
-        <VerticalLayout size="100, 0">
+        <VerticalLayout size="70, 0">
             <Text  name="txtNow"  text="Current"/>
             <Text  name="txtOld"  text="Previous"/>
         </VerticalLayout>
@@ -94,33 +95,34 @@ namespace LongUI {
             <Null/>
         </VerticalLayout>
         <VerticalLayout>
-            <ColorButton name="cbn1" borderwidth="1" margin="4,4,4,4"/>
-            <ColorButton name="cbn2" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnA" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnG" borderwidth="1" margin="4,4,4,4"/>
         </VerticalLayout>
         <VerticalLayout>
-            <ColorButton name="cbn3" borderwidth="1" margin="4,4,4,4"/>
-            <ColorButton name="cbn4" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnB" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnH" borderwidth="1" margin="4,4,4,4"/>
         </VerticalLayout>
         <VerticalLayout>
-            <ColorButton name="cbn5" borderwidth="1" margin="4,4,4,4"/>
-            <ColorButton name="cbn6" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnC" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnI" borderwidth="1" margin="4,4,4,4"/>
         </VerticalLayout>
         <VerticalLayout>
-            <ColorButton name="cbn7" borderwidth="1" margin="4,4,4,4"/>
-            <ColorButton name="cbn8" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnD" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnJ" borderwidth="1" margin="4,4,4,4"/>
         </VerticalLayout>
         <VerticalLayout>
-            <ColorButton name="cbn9" borderwidth="1" margin="4,4,4,4"/>
-            <ColorButton name="cbna" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnE" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnK" borderwidth="1" margin="4,4,4,4"/>
         </VerticalLayout>
         <VerticalLayout>
-            <ColorButton name="cbnb" borderwidth="1" margin="4,4,4,4"/>
-            <ColorButton name="cbnc" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnF" borderwidth="1" margin="4,4,4,4"/>
+            <ColorButton name="cbnL" borderwidth="1" margin="4,4,4,4"/>
         </VerticalLayout>
     </HorizontalLayout>
     <HorizontalLayout size="0, 32">
         <Null/>
         <Button name="btnOK" size="-1, 0" margin="4,4,4,4" borderwidth="1" text="OK"/>
+        <Button name="btnRe" size="-1, 0" margin="4,4,4,4" borderwidth="1" text="Reset"/>
         <Button name="btnCl" size="-1, 0" margin="4,4,4,4" borderwidth="1" text="Cancel"/>
     </HorizontalLayout>
 </Window>
@@ -138,11 +140,9 @@ namespace LongUI { namespace impl {
         return reinterpret_cast<const D2D1_COLOR_F&>(c);
     }
     // clamp 01
-    void clamp01(float& f) noexcept {
+    inline void clamp01(float& f) noexcept {
         f = std::max(std::min(f, 1.f), 0.f);
     }
-    // is legal color
-
 }}
 
 
@@ -152,8 +152,8 @@ namespace LongUI { namespace impl {
 LongUI::CUIColorPicker::CUIColorPicker() noexcept {
     ColorPickerF dc { 1.f, 1.f, 1.f, 1.f };
     for (auto&c : m_aSaveColor) c = dc;
-    std::memset(m_pTexted, 0, sizeof(m_pTexted));
-    std::memset(m_apSaveColor, 0, sizeof(m_apSaveColor));
+    std::memset(m_apTexted, 0, sizeof(m_apTexted));
+    std::memset(m_apColorCtrl, 0, sizeof(m_apColorCtrl));
 }
 
 /// <summary>
@@ -161,8 +161,11 @@ LongUI::CUIColorPicker::CUIColorPicker() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIColorPicker::~CUIColorPicker() noexcept {
-
+    if (m_pWindow) {
+        m_pWindow->Close();
+    }
 }
+
 
 /// <summary>
 /// Sets the old color.
@@ -193,6 +196,17 @@ void LongUI::CUIColorPicker::set_old_color(const D2D1_COLOR_F& c) noexcept {
     set("colOldA"); set("colOldB");
 }
 
+/// <summary>
+/// Refresh saved color for the specified index.
+/// </summary>
+/// <param name="index">The index.</param>
+/// <returns></returns>
+void LongUI::CUIColorPicker::refresh_saved_color(int index) noexcept {
+    assert(size_t(index) < lengthof(m_apColorCtrl) && "out of range");
+    assert(m_pWindow && "bad window");
+    m_apColorCtrl[index]->SetColor(impl::d2d(m_aSaveColor[index]));
+}
+
 // longui namespace
 namespace LongUI {
     // viewport for color picker
@@ -201,9 +215,20 @@ namespace LongUI {
         using Super = UIViewport;
         // clean up
         void cleanup() noexcept override { before_deleted(); delete this; }
+        // id
+        enum ID : uint32_t {
+            ID_Null = 0,    // null
+            ID_COLORBUTTON, // color buttons
+            ID_RESET,       // reset
+            ID_OK,          // ok
+            ID_CANCEL,      // cancel
+            ID_SAVECOLOR,   // save color
+        };
     public:
         // ctor
         UIPickerView(XUIBaseWindow* window) : Super(window) {}
+        // init with picker
+        void TreeFinished(CUIColorPicker* picker) noexcept;
         // do some event
         bool DoEvent(const EventArgument& arg) noexcept override {
             // longui event
@@ -212,24 +237,83 @@ namespace LongUI {
             case LongUI::Event::Event_SubEvent:
                 this->subevent(arg.ui.subevent, arg.sender);
                 return true;
-            case LongUI::Event::Event_TreeBuildingFinished:
-                this->tree_bulit();
-                __fallthrough;
             default:
                 return Super::DoEvent(arg);
             }
         }
+        // onclosed
+        void OnClose() noexcept override {
+            auto color = m_pHsvControl->PickColor();
+            color.a = m_pAlphaDisplay->GetFloat();
+            m_pColorPicker->m_uiCallback(this->IsOK() ? &color : nullptr);
+            m_pColorPicker->m_pWindow = nullptr;
+        }
+        // set OK
+        void SetOK() noexcept { m_state.SetTrue<State_Self7>(); }
+        // is OK?
+        bool IsOK() const noexcept { return m_state.Test<State_Self7>(); }
+        // set color
+        inline void SetColor(const D2D1_COLOR_F& c) noexcept {
+            m_pHsvControl->SetColor(c);
+            m_pAlphaDisplay->SetFloat(c.a);
+        }
     private:
-        // tree finished
-        void tree_bulit() noexcept;
         // tree finished
         void subevent(SubEvent e, UIControl* sender) noexcept {
             if (e == LongUI::SubEvent::Event_ItemClicked) {
+                this->command(sender);
+            }
+        }
+        // clicked/command
+        void command(UIControl* sender) noexcept {
+            // on color buttons clicked/command
+            auto on_colorbutton = [=]() noexcept {
+                auto cbn = longui_cast<UIColorButton*>(sender);
+                this->SetColor(cbn->GetColor());
+            };
+            const auto _this = m_pColorPicker;
+            const auto alpha = m_pAlphaDisplay;
+            const auto hsvct = m_pHsvControl;
+            // on save color
+            auto on_savecolor = [=]() noexcept {
+                std::memmove(
+                    _this->m_aSaveColor + 1, _this->m_aSaveColor + 0,
+                    sizeof(_this->m_aSaveColor) - sizeof(_this->m_aSaveColor[0])
+                );
+                auto color = hsvct->PickColor();
+                color.a = alpha->GetFloat();
+                _this->m_aSaveColor[0] = impl::longui(color);
+                for (int i = 0; i < _this->SAVED_COLOR_COUNT; ++i) {
+                    _this->refresh_saved_color(i);
+                }
+            };
+            // witch control?
+            switch (ID(sender->user_data))
+            {
+            case LongUI::UIPickerView::ID_COLORBUTTON:
+                on_colorbutton();
+                break;
+            case LongUI::UIPickerView::ID_RESET:
+                this->SetColor(impl::d2d(_this->m_colorOld));
+                break;
+            case LongUI::UIPickerView::ID_OK:
+                this->SetOK();
+                __fallthrough;
+            case LongUI::UIPickerView::ID_CANCEL:
+                m_pWindow->Close();
+                break;
+            case LongUI::UIPickerView::ID_SAVECOLOR:
+                on_savecolor();
+                break;
             }
         }
     public:
-        // picker
-        CUIColorPicker*         picker = nullptr;
+        // hsv control
+        UIColorHsv*         m_pHsvControl = nullptr;
+        // alpha data
+        UIControl*          m_pAlphaDisplay = nullptr;
+        // color picker
+        CUIColorPicker*     m_pColorPicker = nullptr;
     };
 }
 
@@ -239,7 +323,8 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <returns></returns>
 bool LongUI::CUIColorPicker::Create(XUIBaseWindow* parent) noexcept {
-    assert(m_pWindow == nullptr);
+    assert(parent && "bad argument");
+    if (m_pWindow) return true;
     bool a = UIManager.IsRegisteredControlClass("ColorHSV");
     bool b = UIManager.IsRegisteredControlClass("ColorButton");
 #ifdef _DEBUG
@@ -275,15 +360,29 @@ bool LongUI::CUIColorPicker::Create(XUIBaseWindow* parent) noexcept {
         });
     }
 #endif
+    m_pWindow = parent->CreateChildWindow<UIPickerView>(COLOR_PCIKER_LAYOUT);
     // 创建窗口
-    m_pWindow = UIManager.CreateUIWindow<UIPickerView>(COLOR_PCIKER_LAYOUT);
+    //m_pWindow = UIManager.CreateUIWindow<UIPickerView>(COLOR_PCIKER_LAYOUT);
     // 成功时写入指针
     if (m_pWindow) {
         auto view = m_pWindow->GetViewport();
-        static_cast<UIPickerView*>(view)->picker = this;
+        static_cast<UIPickerView*>(view)->TreeFinished(this);
     }
     // 正式创建
     return !!m_pWindow;
+}
+
+
+/// <summary>
+/// Sets the color of the initialize.
+/// </summary>
+/// <param name="c">The c.</param>
+/// <returns></returns>
+void LongUI::CUIColorPicker::SetInitColor(const D2D1_COLOR_F& c) noexcept{
+    this->SetOldColor(c);
+    if (!m_pWindow) return;
+    auto view = static_cast<UIPickerView*>(m_pWindow->GetViewport());
+    view->SetColor(c);
 }
 
 /// <summary>
@@ -323,22 +422,64 @@ void LongUI::CUIColorPicker::CloseWindow() noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::CUIColorPicker::SetText(
-    ControlIndex index, const wchar_t * text) noexcept {
+    ControlIndex index, const wchar_t* text) noexcept {
+    assert(m_pWindow && "check return code for CUIColorPicker::Create");
+    assert(index < INDEX_COUNT && "out of range");
+    m_apTexted[index]->SetText(text);
 }
 
 /// <summary>
 /// Trees bulit.
 /// </summary>
+/// <param name="picker">The picker.</param>
 /// <returns></returns>
-void LongUI::UIPickerView::tree_bulit() noexcept {
+void LongUI::UIPickerView::TreeFinished(CUIColorPicker* picker) noexcept {
+    assert(picker);
     auto window = m_pWindow;
     auto hsv = longui_cast<UIColorHsv*>(window->FindControl("hsvMain"));
+    m_pHsvControl = hsv;
+    m_pColorPicker = picker;
+    m_pAlphaDisplay = window->FindControl("sldA");
     assert(hsv && "control not found");
+    // controls
+    {
+        char buf[] = "cbn ";
+        auto cbuttons = picker->m_apColorCtrl;
+        auto ccolors = picker->m_aSaveColor;
+        for (int i = 0; i < picker->SAVED_COLOR_COUNT; ++i) {
+            buf[3] = char(i) + 'A';
+            auto ctrl = longui_cast<UIColorButton*>(window->FindControl(buf));
+            cbuttons[i] = longui_cast<UIColorButton*>(ctrl);
+            assert(ctrl && "ctrl not found");
+            ctrl->user_data = ID_COLORBUTTON;
+            ctrl->SetColor(impl::d2d(ccolors[i]));
+        }
+    }
+    // reset/ok/cancel
+    {
+        const auto re = window->FindControl("btnRe");
+        const auto ok = window->FindControl("btnOK");
+        const auto cl = window->FindControl("btnCl");
+        const auto sc = window->FindControl("btnDo");
+        assert(re && ok && cl && sc && "control not found");
+        re->user_data = ID_RESET;
+        ok->user_data = ID_OK;
+        cl->user_data = ID_CANCEL;
+        sc->user_data = ID_SAVECOLOR;
+        // texted
+        const auto texted = picker->m_apTexted;
+        texted[picker->Index_OK] = ok;
+        texted[picker->Index_Cancel] = cl;
+        texted[picker->Index_Reset] = re;
+        texted[picker->Index_Now] = window->FindControl("txtNow");
+        texted[picker->Index_Old] = window->FindControl("txtOld");
+        texted[picker->Index_Html] = window->FindControl("txtHtml");
+    }
     // hsv
     {
         const auto a = window->FindControl("colNowA");
         const auto b = window->FindControl("colNowB");
-        const auto c = window->FindControl("sldA");
+        const auto c = m_pAlphaDisplay;
         const auto html = window->FindControl("edtHtml");
         assert(a && b && c && "control not found");
         assert(html && "control not found");
