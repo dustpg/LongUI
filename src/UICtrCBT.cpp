@@ -3,6 +3,7 @@
 #include "Control/UIList.h"
 #include "Control/UIScrollBar.h"
 #include "Control/UIColor.h"
+#include "Control/UIRamBitmap.h"
 
 #ifdef LongUIDebugEvent
 #include "Control/UIEdit.h"
@@ -116,6 +117,168 @@ auto LongUI::UIColor::CreateControl(
     return pControl;
 }
 
+
+// ----------------------------------------------------------------------------
+// **** UIRamBitmap
+// ----------------------------------------------------------------------------
+
+
+/// <summary>
+/// Cleanups this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIRamBitmap::cleanup() noexcept {
+    this->before_deleted();
+    delete this;
+}
+
+
+/// <summary>
+/// Finalizes an instance of the <see cref="UIRamBitmap"/> class.
+/// </summary>
+/// <returns></returns>
+LongUI::UIRamBitmap::~UIRamBitmap() noexcept {
+    LongUI::SafeRelease(m_pBitmap);
+    if (m_pBitmapData) {
+        LongUI::NormalFree(m_pBitmapData);
+        m_pBitmapData = nullptr;
+    }
+}
+
+/// <summary>
+/// Initializes the specified node.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+void LongUI::UIRamBitmap::initialize(pugi::xml_node node) noexcept {
+    // 链式初始化
+    Super::initialize(node);
+    // 获取位图
+    if (const auto str = node.attribute("bitmapsize").value()) {
+        float size[2];
+        Helper::MakeFloats(str, size);
+        m_szBitmap.width = uint32_t(size[0]);
+        m_szBitmap.height = uint32_t(size[1]);
+    }
+    // 一般计算
+    auto w = std::max(m_szBitmap.width, uint32_t(MIN_SIZE));
+    auto h = std::max(m_szBitmap.height, uint32_t(MIN_SIZE));
+    w = (w + MIN_PITCH - 1) / MIN_PITCH * MIN_PITCH;
+    h = (h + MIN_PITCH - 1) / MIN_PITCH * MIN_PITCH;
+    // 申请空间
+    m_cPitchWidth = w;
+    m_pBitmapData = LongUI::NormalAllocT<RGBA>(w*h);
+}
+
+/// <summary>
+/// Render chain: render background for this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIRamBitmap::render_chain_background() const noexcept {
+    // 父类背景
+    Super::render_chain_background();
+    // 计算位置
+    D2D1_RECT_F des_rect; this->GetViewRect(des_rect);
+    D2D1_RECT_F src_rect{
+        0.f, 0.f,
+        float(m_szBitmap.width),
+        float(m_szBitmap.height)
+    };
+    // 渲染位图
+    UIManager_RenderTarget->DrawBitmap(
+        m_pBitmap,
+        &des_rect,
+        1.f,
+        D2D1_INTERPOLATION_MODE(m_modeInterpolation),
+        &src_rect
+    );
+}
+
+/// <summary>
+/// Renders this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIRamBitmap::Render() const noexcept {
+    // 背景渲染
+    this->render_chain_background();
+    // 主景渲染
+    this->render_chain_main();
+    // 前景渲染
+    this->render_chain_foreground();
+}
+
+/// <summary>
+/// Writes the data.
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIRamBitmap::write_data() noexcept ->HRESULT {
+    assert(m_pBitmap && m_pBitmapData);
+    CUIDxgiAutoLocker locker;
+    const auto data = m_pBitmapData;
+    const auto pitch = m_cPitchWidth * uint32_t(sizeof(m_pBitmapData[0]));
+    return m_pBitmap->CopyFromMemory(nullptr, data, pitch);
+}
+
+/// <summary>
+/// Recreates this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIRamBitmap::Recreate() noexcept ->HRESULT {
+    auto hr = S_OK;
+    LongUI::SafeRelease(m_pBitmap);
+    // 内存不足
+    if (SUCCEEDED(hr)) {
+        hr = m_pBitmapData ? S_OK : E_OUTOFMEMORY;
+    }
+    // 重建父类
+    if (SUCCEEDED(hr)) {
+        hr = Super::Recreate();
+    }
+    // 重建位图
+    if (SUCCEEDED(hr)) {
+        auto w = std::max(m_szBitmap.width, uint32_t(MIN_SIZE));
+        auto h = std::max(m_szBitmap.height, uint32_t(MIN_SIZE));
+        w = (w + MIN_PITCH - 1) / MIN_PITCH * MIN_PITCH;
+        h = (h + MIN_PITCH - 1) / MIN_PITCH * MIN_PITCH;
+        hr = UIManager_RenderTarget->CreateBitmap(
+            D2D1_SIZE_U{ w, h },
+            m_pBitmapData, w * sizeof(m_pBitmapData[0]),
+            D2D1::BitmapProperties1(
+                D2D1_BITMAP_OPTIONS_NONE,
+                D2D1::PixelFormat(
+                    DXGI_FORMAT_B8G8R8A8_UNORM, 
+                    D2D1_ALPHA_MODE_PREMULTIPLIED
+                )
+            ),
+            &m_pBitmap
+        );
+    }
+    return hr;
+}
+
+/// <summary>
+/// Creates the control.
+/// </summary>
+/// <param name="type">The type.</param>
+/// <param name="node">The node.</param>
+/// <returns></returns>
+auto LongUI::UIRamBitmap::CreateControl(
+    CreateEventType type, pugi::xml_node node) noexcept -> UIControl * {
+    // 分类判断
+    UIRamBitmap* pControl = nullptr;
+    switch (type)
+    {
+    case LongUI::Type_Initialize:
+        break;
+    case LongUI::Type_Recreate:
+        break;
+    case LongUI::Type_Uninitialize:
+        break;
+    case_LongUI__Type_CreateControl:
+        LongUI__CreateWidthCET(UIRamBitmap, pControl, type, node);
+    }
+    return pControl;
+}
 
 // ----------------------------------------------------------------------------
 // **** UIText
@@ -758,6 +921,14 @@ auto LongUI::UIComboBox::CreateControl(CreateEventType type, pugi::xml_node node
 // GUID 信息
 namespace LongUI {
     // 重载?特例化 GetIID
+    template<> const IID& GetIID<LongUI::UIRamBitmap>() noexcept {
+        // {763F1F35-E13A-4548-8D14-594FC11FB3ED}
+        static const GUID IID_LongUI_UIRamBitmap = { 
+            0x763f1f35, 0xe13a, 0x4548, { 0x8d, 0x14, 0x59, 0x4f, 0xc1, 0x1f, 0xb3, 0xed } 
+        };
+        return IID_LongUI_UIRamBitmap;
+    }
+    // 重载?特例化 GetIID
     template<> const IID& GetIID<LongUI::UIColor>() noexcept {
         // {BDB1D144-C511-4FAB-912F-2B9716AB2C36}
         static const GUID IID_LongUI_UIColor = { 
@@ -1011,6 +1182,26 @@ bool LongUI::UIColor::debug_do_event(const LongUI::DebugEventInformation& info) 
     case LongUI::DebugInformation::Information_CanbeCasted:
         // 类型转换
         return *info.iid == LongUI::GetIID<::LongUI::UIColor>()
+            || Super::debug_do_event(info);
+    default:
+        break;
+    }
+    return false;
+}
+
+// UI系统内存位图: 调试信息
+bool LongUI::UIRamBitmap::debug_do_event(const LongUI::DebugEventInformation& info) const noexcept {
+    switch (info.infomation)
+    {
+    case LongUI::DebugInformation::Information_GetClassName:
+        info.str = L"UIRamBitmap";
+        return true;
+    case LongUI::DebugInformation::Information_GetFullClassName:
+        info.str = L"::LongUI::UIRamBitmap";
+        return true;
+    case LongUI::DebugInformation::Information_CanbeCasted:
+        // 类型转换
+        return *info.iid == LongUI::GetIID<::LongUI::UIRamBitmap>()
             || Super::debug_do_event(info);
     default:
         break;

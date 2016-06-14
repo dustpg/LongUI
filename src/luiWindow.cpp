@@ -681,10 +681,11 @@ namespace LongUI {
         virtual void SetCursor(Cursor cursor) noexcept override;
         // show/hide window
         virtual void ShowWindow(int nCmdShow) noexcept override {
+            //::AnimateWindow(m_hwnd, 2000, AW_SLIDE | AW_VER_NEGATIVE);
+            ::ShowWindow(m_hwnd, nCmdShow); 
             if (m_pParent && !this->is_popup_window()) {
                 ::EnableWindow(m_pParent->GetHwnd(), !nCmdShow);
             }
-            ::ShowWindow(m_hwnd, nCmdShow); 
         }
         // set caret
         virtual void SetCaret(UIControl* ctrl, const RectLTWH_F* rect) noexcept override;

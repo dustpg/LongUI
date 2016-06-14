@@ -3,11 +3,14 @@
 #include "LongUI.h"
 #include "Control/UISlider.h"
 #include "Control/UICheckBox.h"
+#include "Control/UIRamBitmap.h"
 #include "Control/UIPage.h"
 #include "Control/UIList.h"
 #include <LongUI/luiUiTmCap.h>
 #include <Platonly/luiPoFile.h>
 #include "LongUI/luiUiDConf.h"
+
+#define FC(name) const auto name = m_pWindow->FindControl(#name)
 
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
@@ -236,7 +239,18 @@ const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 </Window>
 )xml";
 
-const char* test_xml = test_xml_04;
+const char* test_xml_06 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
+<Window size="800, 600" titlename="Ram Bitmap">
+    <HorizontalLayout>
+        <RamBitmap name="bmpA" bitmapsize="128, 128" size="400, 400"/>
+        <VerticalLayout>
+            <Button name="btnA" borderwidth="1" margin="4,4,4,4" text="随机"/>
+        </VerticalLayout>
+    </HorizontalLayout>
+</Window>
+)xml";
+
+const char* test_xml = test_xml_06;
 
 
 constexpr char* res_xml = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
@@ -309,6 +323,7 @@ private:
     virtual void cleanup() noexcept override { this->before_deleted(); delete this; }
     // init
     void init() {
+        using namespace LongUI;
         LongUI::UIControl* ctrl = nullptr;
         auto slider = LongUI::longui_cast<LongUI::UISlider*>(m_pWindow->FindControl("sld_opacity"));
         if (slider) {
@@ -391,7 +406,6 @@ private:
 
                 return true;
             }, LongUI::SubEvent::Event_ItemClicked);
-
         }
         /*if ((ctrl = m_pWindow->FindControl("edt1"))) {
             auto hwnd = m_pWindow->GetHwnd();
@@ -400,6 +414,36 @@ private:
                 return true;
             }, LongUI::SubEvent::Event_EditReturned);
         }*/
+        if (const auto bmp = m_pWindow->FindControl("bmpA")){
+            auto rambmp = longui_cast<UIRamBitmap*>(bmp);
+            FC(btnA);
+            //the noise array
+            constexpr int noiseWidth = 128;
+            constexpr int noiseHeight = 128;
+            static float noise[noiseHeight][noiseWidth];
+            // generateNoise
+            {
+                for (int y = 0; y < noiseHeight; y++)
+                    for (int x = 0; x < noiseWidth; x++)
+                        noise[y][x] = float(::rand() % 32768) / 32768.0f;
+            }
+            // AAAAAAAAAAAAAAAAAAAAAAAAA
+            btnA->Add_OnClicked([=](UIControl*) noexcept {
+                using rgba = UIRamBitmap::RGBA;
+                auto size = rambmp->GetBitmapsSize();
+                assert(size.width == noiseWidth);
+                assert(size.height == noiseHeight);
+                rambmp->Redraw([size](rgba* buf, uint32_t pitch) noexcept {
+                    for (uint32_t y = 0; y < size.height; y++)
+                        for (uint32_t x = 0; x < size.width; x++) {
+                            auto& color = buf[y * pitch + x];
+                            color.r = color.g = color.b = uint8_t(256.f * noise[x][y]);
+                            color.a = 255ui8;
+                        }
+                });
+                return true;
+            });
+        }
     }
 private:
 };

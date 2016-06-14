@@ -6,6 +6,7 @@
 #include "Control/UIRadioButton.h"
 #include "Control/UIScrollBar.h"
 #include "Control/UIFloatLayout.h"
+#include "Control/UIRamBitmap.h"
 #include "Control/UIList.h"
 #include "Control/UIEdit.h"
 #include "Control/UISlider.h"
@@ -377,6 +378,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* config) noexcept ->HRESULT {
         this->RegisterControlClass(LONGUI_REGISTERCC(ListLine));
         this->RegisterControlClass(LONGUI_REGISTERCC(CheckBox));
         this->RegisterControlClass(LONGUI_REGISTERCC(ComboBox));
+        this->RegisterControlClass(LONGUI_REGISTERCC(RamBitmap));
         this->RegisterControlClass(LONGUI_REGISTERCC(ListHeader));
         this->RegisterControlClass(LONGUI_REGISTERCC(ScrollBarA));
         this->RegisterControlClass(LONGUI_REGISTERCC(RadioButton));

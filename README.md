@@ -50,7 +50,8 @@ Win10 supported only now
   
 ## License
   - LongUI under MIT License
-  - pugixml parser - version 1.5 (MIT License)
-  - dlmalloc-2.8.6 (public domain)
-  - ~~Scintilla-3.5.3 (License for Scintilla)~~
+  - pugixml - 1.5 (MIT License)
+  - dlmalloc - 2.8.6 (public domain)
+  - lz4 (with xxhash) (BSD 2-Clause License)
+  - <s>Scintilla-3.5.3 (License for Scintilla)</s>
   - More detail, see [License.txt](./License.txt)

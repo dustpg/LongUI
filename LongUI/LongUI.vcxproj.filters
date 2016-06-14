@@ -222,6 +222,9 @@
     <ClInclude Include="..\include\Control\UIColor.h">
       <Filter>Header Files\Control</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\Control\UIRamBitmap.h">
+      <Filter>Header Files\Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp">
