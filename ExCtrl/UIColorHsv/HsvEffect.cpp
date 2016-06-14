@@ -301,15 +301,11 @@ IFACEMETHODIMP LongUI::Effect::Hsv::Initialize(
 /// <param name="changeType">Type of the change.</param>
 /// <returns></returns>
 IFACEMETHODIMP LongUI::Effect::Hsv::PrepareForRender(D2D1_CHANGE_TYPE changeType) noexcept {
-    //if (changeType == D2D1_CHANGE_TYPE_NONE) return S_OK;
-    // 修改了属性
-    if (changeType == D2D1_CHANGE_TYPE_PROPERTIES) {
-        // 更新常量缓存
-        return m_pDrawInfo->SetVertexShaderConstantBuffer(
-            reinterpret_cast<BYTE*>(&m_cbuffer), sizeof(m_cbuffer)
-        );
-    }
-    return S_OK;
+    if (changeType == D2D1_CHANGE_TYPE_NONE) return S_OK;
+    // 更新常量缓存
+    return m_pDrawInfo->SetVertexShaderConstantBuffer(
+        reinterpret_cast<BYTE*>(&m_cbuffer), sizeof(m_cbuffer)
+    );
 }
 
 /// <summary>

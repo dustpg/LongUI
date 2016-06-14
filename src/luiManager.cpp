@@ -422,6 +422,16 @@ void LongUI::CUIManager::KillFocus() noexcept {
 }
 
 /// <summary>
+/// Recreates the resources.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIManager::RecreateResources() noexcept -> HRESULT {
+    CUIDxgiAutoLocker locker;
+    this->discard_resources(); 
+    return this->create_device_resources(); 
+}
+
+/// <summary>
 /// Uninitializes this instance.
 /// </summary>
 /// <returns></returns>
@@ -741,8 +751,6 @@ void LongUI::CUIManager::Run() noexcept {
         ::TranslateMessage(&msg);
         ::DispatchMessageW(&msg);
     }
-    // 退出
-    m_exitFlag = true;
     // 等待线程
 #ifdef LONGUI_RENDER_IN_STD_THREAD
     try { if (thread.joinable()) { thread.join(); } }
@@ -1620,7 +1628,6 @@ extern ID3D11Debug*    g_pd3dDebug_longui;
 
 // UIManager 丢弃
 void LongUI::CUIManager::discard_resources() noexcept {
-    LongUI::CUIDxgiAutoLocker locker;
     // 释放系统笔刷
     for (auto& brush : m_apSystemBrushes) {
         LongUI::SafeRelease(brush);

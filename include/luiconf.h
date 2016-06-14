@@ -18,16 +18,23 @@ namespace LongUI {
     inline auto NormalAlloc(size_t length) noexcept { return std::malloc(length); }
     // free for normal space
     inline auto NormalFree(void* address) noexcept { return std::free(address); }
-#ifndef _DEBUG
+#ifdef _DEBUG
+    // debug length
+    enum : size_t { DEBUG_LENGTH = 32 };
+    // alloc for small space
+    inline auto SmallAlloc(size_t length) noexcept -> void* { 
+        auto ptr = reinterpret_cast<char*>(std::malloc(length + DEBUG_LENGTH));
+        return ptr ? DEBUG_LENGTH + ptr : nullptr; 
+    }
+    // free for small space
+    inline auto SmallFree(void* address) noexcept { 
+        return std::free(address ? reinterpret_cast<char*>(address) - DEBUG_LENGTH : nullptr); 
+    }
+#else
     // alloc for small space
     inline auto SmallAlloc(size_t length) noexcept { return ::dlmalloc(length); }
     // free for small space
     inline auto SmallFree(void* address) noexcept { return ::dlfree(address); }
-#else
-    // alloc for small space
-    inline auto SmallAlloc(size_t length) noexcept { return std::malloc(length); }
-    // free for small space
-    inline auto SmallFree(void* address) noexcept { return std::free(address); }
 #endif
     // template helper
     template<typename T> inline auto NormalAllocT(size_t length) noexcept {

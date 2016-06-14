@@ -208,7 +208,12 @@ void LongUI::XUIBaseWindow::on_close() noexcept {
     // 退出窗口
     m_pViewport->OnClose();
     // 激活父窗口
-    if (m_pParent) ::SetFocus(m_pParent->GetHwnd());
+    if (m_pParent) {
+        if (!this->is_popup_window()) {
+            ::EnableWindow(m_pParent->GetHwnd(), true);
+        }
+        ::SetFocus(m_pParent->GetHwnd());
+    }
     // 延迟清理
     UIManager.PushDelayCleanup(this);
     // 跳过渲染

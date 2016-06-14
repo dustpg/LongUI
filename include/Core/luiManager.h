@@ -72,6 +72,8 @@ namespace LongUI {
         LongUIAPI void Uninitialize() noexcept;
         // kill focus
         LongUIAPI void KillFocus() noexcept;
+        // recreate resources
+        LongUIAPI auto RecreateResources() noexcept ->HRESULT;
         // run 运行
         LongUIAPI void Run() noexcept;
         // add "string to create funtion" map 添加函数映射关系
@@ -132,7 +134,7 @@ namespace LongUI {
         // create ui window with xml node, must include UIViewport.h first
         template<class T> auto CreateUIWindow(pugi::xml_node node) noexcept ->XUIBaseWindow* {
             auto create_func = UIViewport::CreateFunc<T>;
-            return this->create_ui_window(node, create_func);
+            return this->create_ui_window(node, nullptr, create_func);
         }
         // add time capsule
         template<typename T> void AddTimeCapsule(T call, void* id, float time) noexcept {
@@ -203,8 +205,6 @@ namespace LongUI {
         bool IsExit() const noexcept { return !!m_exitFlag; }
         // get system window count
         auto GetSystemWindowCount() const noexcept { return m_vWindows.size(); }
-        // recreate resources
-        auto RecreateResources() noexcept { this->discard_resources(); return this->create_device_resources(); }
         // get delta time for ui
         auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
         // get runed time in ms
@@ -396,31 +396,27 @@ namespace LongUI {
         NameTR                          m_aszTextRendererName[LongUITextRendererCountMax];
     public:
         // constructor 构造函数
-        CUIManager() noexcept;
+        LongUIAPI CUIManager() noexcept;
         // destructor 析构函数
-        ~CUIManager() noexcept;
+        LongUIAPI ~CUIManager() noexcept;
         // delte this method 删除复制构造函数
         CUIManager(const CUIManager&) = delete;
         // delte this method 删除移动构造函数
         CUIManager(CUIManager&&) = delete;
     private:
-        // create all resources
-        LongUIAPI auto create_device_resources() noexcept ->HRESULT;
-        // discard resources
-        LongUIAPI void discard_resources() noexcept;
-        // create the control with xml-node
-        LongUIAPI auto create_control(UIContainer* cp, CreateControlEvent function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
         // create ui window
         LongUIAPI auto create_ui_window(
             pugi::xml_node node, 
             XUIBaseWindow* parent,
             callback_create_viewport call) noexcept ->XUIBaseWindow*;
-        // create ui window without parent
-        auto create_ui_window(
-            pugi::xml_node node,
-            callback_create_viewport call) noexcept {
-            return this->create_ui_window(node, nullptr, call);
-        }
+        // push time capsules
+        LongUIAPI void push_time_capsule(TimeCapsuleCall&& call, void* id, float time) noexcept;
+        // create the control with xml-node
+        LongUIAPI auto create_control(UIContainer* cp, CreateControlEvent function, pugi::xml_node node, size_t id) noexcept ->UIControl*;
+        // create all resources
+        auto create_device_resources() noexcept ->HRESULT;
+        // discard resources
+        void discard_resources() noexcept;
         // cleanup delay-cleanup-chain
         void cleanup_delay_cleanup_chain() noexcept;
         // load the template string
@@ -441,13 +437,11 @@ namespace LongUI {
         void refresh_display_frequency() noexcept;
         // update time capsules
         void update_time_capsules(float time) noexcept;
-        // push time capsules
-        void push_time_capsule(TimeCapsuleCall&& call, void* id, float time) noexcept;
         // remove time capsules
         void remove_time_capsule(void* id) noexcept;
     public:
         // create a control tree for UIContainer
-        void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;
+        LongUIAPI void MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept;
         // get theme colr
         LongUIAPI static auto GetThemeColor(D2D1_COLOR_F& colorf) noexcept ->HRESULT;
     public:
@@ -519,7 +513,6 @@ namespace LongUI {
         CUIDataAutoLocker() noexcept { UIManager.DataLock(); }
         // dtor
         ~CUIDataAutoLocker() noexcept { UIManager.DataUnlock(); }
-    private:
     };
     // auto dxgi locker
     class CUIDxgiAutoLocker {
@@ -528,7 +521,6 @@ namespace LongUI {
         CUIDxgiAutoLocker() noexcept { UIManager.DxgiLock(); }
         // dtor
         ~CUIDxgiAutoLocker() noexcept { UIManager.DxgiUnlock(); }
-    private:
     };
     // formated buffer
 #ifdef _DEBUG
