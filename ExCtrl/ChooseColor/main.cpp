@@ -168,11 +168,6 @@ void InitWindow(
         btn->Add_OnClicked(command);
     }
     window->ShowWindow(nCmdShow);
-    ::Sleep(1000);
-    auto h = window->GetHwnd();
-    auto c = ::SetFocus(h);
-    UIManager << DL_Log << (void*)h << endl;
-    UIManager << DL_Log << (void*)c << endl;
 }
 
 #pragma comment(lib, "lz4")

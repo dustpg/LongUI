@@ -68,10 +68,12 @@ namespace LongUI {
         // initialize, maybe you want call v-method
         void initialize(pugi::xml_node node) noexcept;
         // dtor
-        ~UIBlurText() noexcept { }
+        ~UIBlurText() noexcept { /*m_pTest->Release();*/ }
         // copy ctor = delete
         UIBlurText(const UIBlurText&) = delete;
     protected:
+        //
+        //ID2D1Effect*                    m_pTest = nullptr;
         // blur effect
         Component::Effect               m_effect;
         // blur float

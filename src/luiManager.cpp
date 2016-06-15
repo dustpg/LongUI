@@ -692,8 +692,6 @@ void LongUI::CUIManager::Run() noexcept {
                 // 更新输入
                 UIManager.m_uiInput.AfterUpdate();
             }
-            // 退出检查
-            if (UIManager.m_exitFlag) break;
             // 渲染
             {
                 // 渲染锁
@@ -733,6 +731,8 @@ void LongUI::CUIManager::Run() noexcept {
                 }
 #endif
             }
+            // 退出检查
+            if (UIManager.m_exitFlag) break;
             // 等待垂直同步
             UIManager.wait_for_vblank();
         }

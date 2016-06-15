@@ -179,7 +179,7 @@ void LongUI::UIRamBitmap::render_chain_background() const noexcept {
     Super::render_chain_background();
     // 计算位置
     D2D1_RECT_F des_rect; this->GetViewRect(des_rect);
-    D2D1_RECT_F src_rect{
+    D2D1_RECT_F src_rect {
         0.f, 0.f,
         float(m_szBitmap.width),
         float(m_szBitmap.height)

@@ -9,7 +9,6 @@ namespace LongUI {
     };
 }
 
-
 /// <summary>
 /// Sets the blur value.
 /// </summary>
@@ -20,6 +19,12 @@ void LongUI::UIBlurText::SetBlurValue(float sd) noexcept {
     if(m_effect.IsOK()) m_effect.SetValue(
         D2D1_GAUSSIANBLUR_PROP_STANDARD_DEVIATION, m_fBlur
     );
+#ifdef TEST_EFFECT
+    m_pTest->SetValue(
+        D2D1_TURBULENCE_PROP_BASE_FREQUENCY,
+        D2D1_SIZE_F{sd, sd}
+    );
+#endif
     m_pWindow->Invalidate(this);
 }
 
@@ -28,7 +33,7 @@ void LongUI::UIBlurText::SetBlurValue(float sd) noexcept {
 // ----------------------------------------------------------------------------
 LongUI::UIBlurText::UIBlurText(UIContainer * cp) noexcept: 
 Super(cp), m_effect(LongUI::CLSID_D2D1GaussianBlur) {
-    
+
 }
 
 
@@ -37,7 +42,11 @@ Super(cp), m_effect(LongUI::CLSID_D2D1GaussianBlur) {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBlurText::Render() const noexcept {
+#ifdef TEST_EFFECT
+    UIManager_RenderTarget->DrawImage(m_pTest);
+#else
     m_effect.Render();
+#endif
 }
 
 /// <summary>
@@ -102,6 +111,15 @@ auto LongUI::UIBlurText::Recreate() noexcept ->HRESULT {
         m_effect.SetValue(i2, m_fBlur);
         m_effect.SetInvalidate();
     }
+#ifdef TEST_EFFECT
+    LongUI::SafeRelease(m_pTest);
+    if (SUCCEEDED(hr)) {
+        hr = UIManager_RenderTarget->CreateEffect(
+            CLSID_D2D1Turbulence,
+            &m_pTest
+        );
+    }
+#endif
     // 重建父类
     if (SUCCEEDED(hr)) {
         hr = Super::Recreate();

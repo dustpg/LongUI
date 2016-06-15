@@ -9,8 +9,9 @@
 #include <LongUI/luiUiTmCap.h>
 #include <Platonly/luiPoFile.h>
 #include "LongUI/luiUiDConf.h"
+#include <random>
 
-#define FC(name) const auto name = m_pWindow->FindControl(#name)
+#define FC(name) const auto name = m_pWindow->FindControl(u8#name)
 
 //  animationduration="2"
 // 测试XML &#xD; --> \r &#xA; --> \n
@@ -242,9 +243,13 @@ const char* test_xml_05 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 const char* test_xml_06 = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" titlename="Ram Bitmap">
     <HorizontalLayout>
-        <RamBitmap name="bmpA" bitmapsize="128, 128" size="400, 400"/>
-        <VerticalLayout>
-            <Button name="btnA" borderwidth="1" margin="4,4,4,4" text="随机"/>
+        <RamBitmap weight="3" name="bmpA" bitmapsize="128, 128"/>
+        <VerticalLayout >
+            <Button name="btnA" borderwidth="1" textsize="30" margin="4,4,4,4" text="随机噪音"/>
+            <Button name="btnB" borderwidth="1" textsize="30" margin="4,4,4,4" text="平滑噪音"/>
+            <Button name="btnC" borderwidth="1" textsize="30" margin="4,4,4,4" text="Turbulence"/>
+            <Button name="btnD" borderwidth="1" textsize="30" margin="4,4,4,4" text="模拟云彩"/>
+            <Button name="btnE" borderwidth="1" textsize="30" margin="4,4,4,4" text="云彩动画"/>
         </VerticalLayout>
     </HorizontalLayout>
 </Window>
@@ -414,25 +419,58 @@ private:
                 return true;
             }, LongUI::SubEvent::Event_EditReturned);
         }*/
-        if (const auto bmp = m_pWindow->FindControl("bmpA")){
+        if (const auto bmp = m_pWindow->FindControl("bmpA")) {
             auto rambmp = longui_cast<UIRamBitmap*>(bmp);
-            FC(btnA);
+            FC(btnA); FC(btnB); FC(btnC); FC(btnD); FC(btnE);
             //the noise array
             constexpr int noiseWidth = 128;
             constexpr int noiseHeight = 128;
             static float noise[noiseHeight][noiseWidth];
-            // generateNoise
-            {
+            // smooth
+            auto smoothNoise = [=](float x, float y) noexcept {
+                //get fractional part of x and y
+                float fractX = x - int(x);
+                float fractY = y - int(y);
+                //wrap around
+                int x1 = (int(x) + noiseWidth) % noiseWidth;
+                int y1 = (int(y) + noiseHeight) % noiseHeight;
+                //neighbor values
+                int x2 = (x1 + noiseWidth - 1) % noiseWidth;
+                int y2 = (y1 + noiseHeight - 1) % noiseHeight;
+                //smooth the noise with bilinear interpolation
+                float value = 0.f;
+                value += fractX       * fractY      * noise[y1][x1];
+                value += (1.f-fractX) * fractY      * noise[y1][x2];
+                value += fractX       * (1.f-fractY)* noise[y2][x1];
+                value += (1.f-fractX) * (1.f-fractY)* noise[y2][x2];
+                return value;
+            };
+            // generate Noise
+            auto generateNoise = [=]() noexcept {
+                std::random_device rd;
+                std::mt19937 random(rd());
                 for (int y = 0; y < noiseHeight; y++)
                     for (int x = 0; x < noiseWidth; x++)
-                        noise[y][x] = float(::rand() % 32768) / 32768.0f;
-            }
+                        noise[y][x] = float(random() % 32768) / 32768.0f;
+            };
+            // turbulence
+            auto turbulence = [=](float x, float y, float size) noexcept {
+                float value = 0.f, initialSize = size;
+                while(size >= 1.f) {
+                    value += smoothNoise(x / size, y / size) * size;
+                    size /= 2.f;
+                }
+                return (128.f * value / initialSize);
+            };
             // AAAAAAAAAAAAAAAAAAAAAAAAA
             btnA->Add_OnClicked([=](UIControl*) noexcept {
                 using rgba = UIRamBitmap::RGBA;
                 auto size = rambmp->GetBitmapsSize();
                 assert(size.width == noiseWidth);
                 assert(size.height == noiseHeight);
+                generateNoise();
+                rambmp->SetInterpolationMode(D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+                // redraw bitmap
                 rambmp->Redraw([size](rgba* buf, uint32_t pitch) noexcept {
                     for (uint32_t y = 0; y < size.height; y++)
                         for (uint32_t x = 0; x < size.width; x++) {
@@ -441,6 +479,151 @@ private:
                             color.a = 255ui8;
                         }
                 });
+                return true;
+            });
+            // BBBBBBBBBBBBBBBBBBBB
+            btnB->Add_OnClicked([=](UIControl*) noexcept {
+                using rgba = UIRamBitmap::RGBA;
+                auto size = rambmp->GetBitmapsSize();
+                assert(size.width == noiseWidth);
+                assert(size.height == noiseHeight);
+                generateNoise();
+                rambmp->SetInterpolationMode(D2D1_INTERPOLATION_MODE_LINEAR);
+                // redraw bitmap
+                rambmp->Redraw([=](rgba* buf, uint32_t pitch) noexcept {
+                    for (uint32_t y = 0; y < size.height; y++)
+                        for (uint32_t x = 0; x < size.width; x++) {
+                            auto& color = buf[y * pitch + x];
+                            color.r = color.g = color.b = uint8_t(
+                                256.f * smoothNoise(float(x) / 8.f, float(y) / 8.f)
+                            );
+                            color.a = 255ui8;
+                        }
+                });
+                return true;
+            });
+            // CCCCCCCCCCCCCCCCCCCC
+            btnC->Add_OnClicked([=](UIControl*) noexcept {
+                using rgba = UIRamBitmap::RGBA;
+                auto size = rambmp->GetBitmapsSize();
+                assert(size.width == noiseWidth);
+                assert(size.height == noiseHeight);
+                generateNoise();
+                rambmp->SetInterpolationMode(D2D1_INTERPOLATION_MODE_LINEAR);
+                // redraw bitmap
+                rambmp->Redraw([=](rgba* buf, uint32_t pitch) noexcept {
+                    for (uint32_t y = 0; y < size.height; y++)
+                        for (uint32_t x = 0; x < size.width; x++) {
+                            auto& color = buf[y * pitch + x];
+                            color.r = color.g = color.b = uint8_t(
+                                turbulence(float(x), float(y), 64.f)
+                            );
+                            color.a = 255ui8;
+                        }
+                });
+                return true;
+            });
+            // DDDDDDDDDDDDDDDDDDDDDDDDDDD
+            btnD->Add_OnClicked([=](UIControl*) noexcept {
+                using rgba = UIRamBitmap::RGBA;
+                auto size = rambmp->GetBitmapsSize();
+                assert(size.width == noiseWidth);
+                assert(size.height == noiseHeight);
+                generateNoise();
+                rambmp->SetInterpolationMode(D2D1_INTERPOLATION_MODE_LINEAR);
+                // redraw bitmap
+                rambmp->Redraw([=](rgba* buf, uint32_t pitch) noexcept {
+                    const D2D1_COLOR_F sb = D2D1::ColorF(0x8080FFui32);
+                    const D2D1_COLOR_F cl = D2D1::ColorF(0xFFFFFFui32);
+                    for (uint32_t y = 0; y < size.height; y++)
+                        for (uint32_t x = 0; x < size.width; x++) {
+                            auto& color = buf[y * pitch + x];
+                            float alpha = turbulence(float(x), float(y), 64.f) / 255.f;
+                            float alphasb = 1.f - alpha;
+                            color.r = uint8_t((sb.r * alphasb + cl.r * alpha) * 255.f);
+                            color.g = uint8_t((sb.g * alphasb + cl.g * alpha) * 255.f);
+                            color.b = uint8_t((sb.b * alphasb + cl.b * alpha) * 255.f);
+                            color.a = 255ui8;
+                        }
+                });
+                return true;
+            });
+            // 3D
+            constexpr int noiseDepth = 64;
+            static float noise3d[noiseDepth][noiseHeight][noiseWidth];
+            {
+                std::random_device rd;
+                std::mt19937 random(rd());
+                for(int z = 0; z < noiseDepth; z++)
+                    for(int y = 0; y < noiseHeight; y++)
+                        for(int x = 0; x < noiseWidth; x++)
+                            noise3d[z][y][x] = float(random() % 32768) / 32768.f;
+            }
+            auto smoothNoise3d = [=](float x, float y, float z) noexcept {
+                //get fractional part of x and y
+                float fractX = x - int(x);
+                float fractY = y - int(y);
+                float fractZ = z - int(z);
+
+                //wrap around
+                int x1 = (int(x) + noiseWidth) % noiseWidth;
+                int y1 = (int(y) + noiseHeight) % noiseHeight;
+                int z1 = (int(z) + noiseDepth) % noiseDepth;
+
+                //neighbor values
+                int x2 = (x1 + noiseWidth - 1) % noiseWidth;
+                int y2 = (y1 + noiseHeight - 1) % noiseHeight;
+                int z2 = (z1 + noiseDepth - 1) % noiseDepth;
+
+                //smooth the noise with bilinear interpolation
+                float value = 0.f;
+                value += fractX     * fractY     * fractZ     * noise3d[z1][y1][x1];
+                value += fractX     * (1.f - fractY) * fractZ     * noise3d[z1][y2][x1];
+                value += (1.f - fractX) * fractY     * fractZ     * noise3d[z1][y1][x2];
+                value += (1.f - fractX) * (1.f - fractY) * fractZ     * noise3d[z1][y2][x2];
+
+                value += fractX     * fractY     * (1.f - fractZ) * noise3d[z2][y1][x1];
+                value += fractX     * (1.f - fractY) * (1.f - fractZ) * noise3d[z2][y2][x1];
+                value += (1.f - fractX) * fractY     * (1.f - fractZ) * noise3d[z2][y1][x2];
+                value += (1.f - fractX) * (1.f - fractY) * (1.f - fractZ) * noise3d[z2][y2][x2];
+
+                return value;
+            };
+            // 3d
+            auto turbulence3d = [=](float x, float y, float z, float size) noexcept {
+                float value = 0.f, initialSize = size;
+                while(size >= 1.f) {
+                    value += smoothNoise3d(x / size, y / size, z / size) * size;
+                    size /= 2.f;
+                }
+                return(128.f * value / initialSize);
+            };
+            // EEEEEEEEEEEEEEEEEEEEEEEEE
+            btnE->Add_OnClicked([=](UIControl*) noexcept {
+                UIManager.AddTimeCapsule([=](float t) noexcept {
+                    using rgba = UIRamBitmap::RGBA;
+                    auto size = rambmp->GetBitmapsSize();
+                    assert(size.width == noiseWidth);
+                    assert(size.height == noiseHeight);
+                    rambmp->SetInterpolationMode(D2D1_INTERPOLATION_MODE_LINEAR);
+                    // redraw bitmap
+                    rambmp->Redraw([=](rgba* buf, uint32_t pitch) noexcept {
+                        const D2D1_COLOR_F sb = D2D1::ColorF(0x8080FFui32);
+                        const D2D1_COLOR_F cl = D2D1::ColorF(0xFFFFFFui32);
+                        auto base = t * float(noiseDepth);
+                        for (uint32_t y = 0; y < size.height; y++)
+                            for (uint32_t x = 0; x < size.width; x++) {
+                                auto& color = buf[y * pitch + x];
+                                float alpha = turbulence3d(float(x), float(y), base, 64.f) / 255.f;
+                                float alphasb = 1.f - alpha;
+                                color.r = uint8_t((sb.r * alphasb + cl.r * alpha) * 255.f);
+                                color.g = uint8_t((sb.g * alphasb + cl.g * alpha) * 255.f);
+                                color.b = uint8_t((sb.b * alphasb + cl.b * alpha) * 255.f);
+                                color.a = 255ui8;
+                            }
+                    });
+                    return false; }, noise3d, 6.f
+                );
                 return true;
             });
         }
