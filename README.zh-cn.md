@@ -2,7 +2,13 @@
  C++ 轻量级 Direct2D GUI 库/框架  
  
  文档总是英文是最新的, 中文文档一般是一段时间再更上
-   
+
+## LongUI 特性
+ 
+**支持高DPI的GUI库**
+  - 没有使用GDI/+, 程序使用Direct2D做为渲染API
+  - 不同显示器设置不同 DPI 时仍然工作良好
+  - 即: PROCESS_PER_MONITOR_DPI_AWARE
 
 ## 项目列表
   

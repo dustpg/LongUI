@@ -8,6 +8,7 @@ Current Version : **Alpha-Stage**
   
 **Friendly with High-DPI**
   - No GDI/GDI+, LongUI could zoom a container into any size
+  - level: PROCESS_PER_MONITOR_DPI_AWARE
   
 **XML Layout**
   - Easy way to create a window through xml
