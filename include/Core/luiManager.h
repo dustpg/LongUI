@@ -174,6 +174,12 @@ namespace LongUI {
         auto GetSystemBrush(uint32_t index) noexcept { return LongUI::SafeAcquire(m_apSystemBrushes[index]); }
         // get Transparent representation brush
         auto GetTransparentBrush() noexcept { return LongUI::SafeAcquire(m_pTransparentBrush); }
+        // get Transparent representation brush, wont add ref-count
+        auto RefTransparentBrush() noexcept { return m_pTransparentBrush; }
+        // get focused representation brush
+        auto GetFocusedBrush() noexcept { return LongUI::SafeAcquire(m_pFocusedBrush); }
+        // get focused representation brush, wont add ref-count
+        auto RefFocusedBrush() noexcept { return m_pFocusedBrush; }
         // get drop target helper
         //auto GetDropTargetHelper() noexcept { return LongUI::SafeAcquire(m_pDropTargetHelper); }
         // get display frequency
@@ -211,39 +217,39 @@ namespace LongUI {
         auto GetRunedTime() const noexcept { return m_cNowTick - m_cStartTick; }
     public: // 隐形转换区
         // 转换为 ID2D1DeviceContext
-#define UIManager_RenderTarget (UIManager.GetRenderTargetNoAddRef())
-        inline auto GetRenderTargetNoAddRef() const noexcept { return m_pd2dDeviceContext; };
+#define UIManager_RenderTarget (UIManager.RefRenderTarget())
+        inline auto RefRenderTarget() const noexcept { return m_pd2dDeviceContext; };
         // 转换为 DXGI Factory2
-#define UIManager_DXGIFactory (UIManager.GetDXGIFactoryNoAddRef())
-        inline auto GetDXGIFactoryNoAddRef() const noexcept { return m_pDxgiFactory; };
+#define UIManager_DXGIFactory (UIManager.RefDXGIFactory())
+        inline auto RefDXGIFactory() const noexcept { return m_pDxgiFactory; };
         // 转换为 D3D11 Device
-#define UIManager_D3DDevice  (UIManager.GetD3DDeviceNoAddRef())
-        inline auto GetD3DDeviceNoAddRef() const noexcept { return m_pd3dDevice; };
+#define UIManager_D3DDevice  (UIManager.RefD3DDevice())
+        inline auto RefD3DDevice() const noexcept { return m_pd3dDevice; };
         // 转换为 D3D11 Device Context
-#define UIManager_D3DContext (UIManager.GetD3DContextNoAddRef())
-        inline auto GetD3DContextNoAddRef() const noexcept { return m_pd3dDeviceContext; };
+#define UIManager_D3DContext (UIManager.RefD3DContext())
+        inline auto RefD3DContext() const noexcept { return m_pd3dDeviceContext; };
         // 转换为 D2D1 Device
-#define UIManager_D2DDevice  (UIManager.GetD2DDeviceNoAddRef())
-        inline auto GetD2DDeviceNoAddRef() const noexcept { return m_pd2dDevice; };
+#define UIManager_D2DDevice  (UIManager.RefD2DDevice())
+        inline auto RefD2DDevice() const noexcept { return m_pd2dDevice; };
         // 转换为 DXGI Device1
-#define UIManager_DXGIDevice (UIManager.GetDXGIDeviceNoAddRef())
-        inline auto GetDXGIDeviceNoAddRef() const noexcept { return m_pDxgiDevice; };
+#define UIManager_DXGIDevice (UIManager.RefDXGIDevice())
+        inline auto RefDXGIDevice() const noexcept { return m_pDxgiDevice; };
         // 转换为 DXGI Adapter
-#define UIManager_DXGIAdapter (UIManager.GetDXGIAdapterNoAddRef())
-        inline auto GetDXGIAdapterNoAddRef() const noexcept { return m_pDxgiAdapter; };
+#define UIManager_DXGIAdapter (UIManager.RefDXGIAdapter())
+        inline auto RefDXGIAdapter() const noexcept { return m_pDxgiAdapter; };
         // 转换为 DWrite Factory1
-#define UIManager_DWriteFactory (UIManager.GetDWriteFactoryNoAddRef())
-        inline auto GetDWriteFactoryNoAddRef() const noexcept { return m_pDWriteFactory; };
+#define UIManager_DWriteFactory (UIManager.RefDWriteFactory())
+        inline auto RefDWriteFactory() const noexcept { return m_pDWriteFactory; };
         // 转换为 D2D Factory1
-#define UIManager_D2DFactory (UIManager.GetD2DFactoryNoAddRef())
-        inline auto GetD2DFactoryNoAddRef() const noexcept { return m_pd2dFactory; };
+#define UIManager_D2DFactory (UIManager.RefD2DFactory())
+        inline auto RefD2DFactory() const noexcept { return m_pd2dFactory; };
 #ifdef LONGUI_WITH_MMFVIDEO
         // 转换为  IMFDXGIDeviceManager
-#   define UIManager_MFDXGIDeviceManager (UIManager.GetMFDXGIDeviceManagerNoAddRef())
-        inline auto GetMFDXGIDeviceManagerNoAddRef() const noexcept { return m_pMFDXGIManager; };
+#   define UIManager_MFDXGIDeviceManager (UIManager.RefMFDXGIDeviceManager())
+        inline auto RefMFDXGIDeviceManager() const noexcept { return m_pMFDXGIManager; };
         // 转换为  IMFMediaEngineClassFactory
-#   define UIManager_MFMediaEngineClassFactory (UIManager.GetMFMediaEngineClassFactoryNoAddRef())
-        inline auto GetMFMediaEngineClassFactoryNoAddRef()const noexcept { return m_pMediaEngineFactory; };
+#   define UIManager_MFMediaEngineClassFactory (UIManager.RefMFMediaEngineClassFactory())
+        inline auto RefMFMediaEngineClassFactory()const noexcept { return m_pMediaEngineFactory; };
         // MF Dxgi设备管理器
         IMFDXGIDeviceManager*           m_pMFDXGIManager = nullptr;
         // MF 媒体引擎
@@ -310,8 +316,12 @@ namespace LongUI {
         uint32_t                        m_uMainDpiY = 96;
         // system brush
         ID2D1Brush*                     m_apSystemBrushes[STATE_COUNT];
+        // Built-in brush used bitmap
+        ID2D1Bitmap1*                   m_pd2dBrushTarget = nullptr;
         // Transparent display
-        ID2D1BitmapBrush*               m_pTransparentBrush = nullptr;
+        ID2D1ImageBrush*                m_pTransparentBrush = nullptr;
+        // Transparent display
+        ID2D1ImageBrush*                m_pFocusedBrush = nullptr;
         // loader
         IUIResourceLoader*              m_pResourceLoader = nullptr;
         // default bitmap buffer

@@ -41,9 +41,9 @@ void LongUI::UIColor::render_chain_background() const noexcept {
         }
         // 透明表示色
         else {
-            auto tb = UIManager.GetTransparentBrush();
-            UIManager_RenderTarget->FillRectangle(&rect, tb);
-            tb->Release();
+            UIManager_RenderTarget->FillRectangle(
+                &rect, UIManager.RefTransparentBrush()
+            );
         }
     }
     // 渲染背景前部分

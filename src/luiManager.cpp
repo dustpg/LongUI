@@ -649,7 +649,10 @@ namespace LongUI {
 #endif
 
 
-// 消息循环
+/// <summary>
+/// Runs this instance.
+/// </summary>
+/// <returns></returns>
 void LongUI::CUIManager::Run() noexcept {
     // 开始!
     m_dwWaitVSStartTime = ::timeGetTime();
@@ -1461,76 +1464,121 @@ auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     return hr;
 }
 
+// longui namespace
+namespace LongUI {
+    // built-in brush
+    enum : uint32_t {
+        // size of bitmap
+        TARGET_BITMAP_SIZE = 64,
+        // transparent size
+        TRANSPARENT_SIZE = 16,
+        // transparent count
+        TRANSPARENT_COUNT = 2,
+        // transparent offset x
+        TRANSPARENT_OFFSET_X = 0,
+        // transparent offset y
+        TRANSPARENT_OFFSET_Y = 0,
+        // transparent color 1
+        TRANSPARENT_COLOR1 = 0xFFFFFFFFui32,
+        // transparent color 2
+        TRANSPARENT_COLOR2 = 0xFFCCCCCCui32,
+        // focused size
+        FOCUSED_SIZE = 32,
+        // focused offset x
+        FOCUSED_OFFSET_X = 0,
+        // focused offset y
+        FOCUSED_OFFSET_Y = 32,
+        // focused color 1
+        FOCUSED_COLOR1 = 0xFFFFFFFFui32,
+        // focused color 2
+        FOCUSED_COLOR2 = 0xFF000000ui32,
+    };
+}
 
 // 创建系统笔刷
 auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     HRESULT hr = S_OK;
     // 透明表示笔刷 - 杂色间隔
     if (SUCCEEDED(hr)) {
-        // 创建位图
-        constexpr uint32_t bunit = 16;
-        constexpr uint32_t bsize = 64;
-        constexpr uint32_t bstep = bsize / bunit;
-        ID2D1BitmapRenderTarget* pBitmapRenderTarget = nullptr;
-        ID2D1Bitmap* pBitmap  = nullptr;
+        // 使用位图
+        ID2D1Bitmap* pBitmap = nullptr;
         // 创建位图呈现器
         if (SUCCEEDED(hr)) {
-            D2D1_PIXEL_FORMAT format = D2D1::PixelFormat(
-                DXGI_FORMAT_B8G8R8A8_UNORM,
-                D2D1_ALPHA_MODE_PREMULTIPLIED
-            );
-            D2D1_SIZE_F size = D2D1_SIZE_F{ float(bsize), float(bsize) };
-            hr = UIManager_RenderTarget->CreateCompatibleRenderTarget(
-                &size,
-                nullptr,
-                &format,
-                D2D1_COMPATIBLE_RENDER_TARGET_OPTIONS_NONE,
-                &pBitmapRenderTarget
-            );
-        }
-        // 填充位图
-        if (SUCCEEDED(hr)) {
-            pBitmapRenderTarget->BeginDraw();
-            for (uint32_t i = 0; i < bstep * bstep; ++i) {
-                uint32_t x = i % bstep;
-                uint32_t y = i / bstep;
-                if ((x & 1) == (y & 1)) {
-                    D2D1_RECT_F rect {
-                        float(x) * float(bunit),
-                        float(y) * float(bunit),
-                        float(x) * float(bunit) + float(bunit),
-                        float(y) * float(bunit) + float(bunit),
-                    };
-                    constexpr auto mode = D2D1_ANTIALIAS_MODE_ALIASED;
-                    pBitmapRenderTarget->PushAxisAlignedClip(&rect, mode);
-                    pBitmapRenderTarget->Clear(D2D1::ColorF(0xCCCCCC));
-                    pBitmapRenderTarget->PopAxisAlignedClip();
+            uint32_t buffer[TARGET_BITMAP_SIZE * TARGET_BITMAP_SIZE];
+            static_assert(sizeof(buffer) < 32 * 1024, "buffer too large, set it to heap");
+            // 填充缓存
+            {
+                // A. 透明表示色
+                constexpr uint32_t size1 = TRANSPARENT_SIZE*TRANSPARENT_COUNT;
+                constexpr uint32_t count1 = size1*size1;
+                for (uint32_t i = 0; i < count1; ++i) {
+                    uint32_t x = i % size1;
+                    uint32_t y = i / size1;
+                    constexpr uint32_t ox = TRANSPARENT_OFFSET_X;
+                    constexpr uint32_t oy = TRANSPARENT_OFFSET_Y;
+                    uint32_t index = (x + ox) + (y + oy) *  TARGET_BITMAP_SIZE;
+                    index[buffer] = (x / TRANSPARENT_SIZE == y / TRANSPARENT_SIZE) ?
+                        TRANSPARENT_COLOR1 : TRANSPARENT_COLOR2;
+                }
+                // B. 焦点表示色
+                constexpr uint32_t count2 = FOCUSED_SIZE*FOCUSED_SIZE;
+                for (uint32_t i = 0; i < count2; ++i) {
+                    uint32_t x = i % FOCUSED_SIZE;
+                    uint32_t y = i / FOCUSED_SIZE;
+                    constexpr uint32_t ox = FOCUSED_OFFSET_X;
+                    constexpr uint32_t oy = FOCUSED_OFFSET_Y;
+                    uint32_t index = (x + ox) + (y + oy) *  TARGET_BITMAP_SIZE;
+                    index[buffer] = ((x & 1) == (y & 1)) ?
+                        FOCUSED_COLOR1 : FOCUSED_COLOR2;
                 }
             }
-            pBitmapRenderTarget->EndDraw();
-        }
-        // 获取位图
-        if (SUCCEEDED(hr)) {
-            hr = pBitmapRenderTarget->GetBitmap(&pBitmap);
-        }
-        // 复制位图
-        /*if (SUCCEEDED(hr)) {
-            hr = pBitmapRenderTarget->CreateBitmap(
-
+            // 创建w位图
+            hr = m_pd2dDeviceContext->CreateBitmap(
+                D2D1_SIZE_U { TARGET_BITMAP_SIZE, TARGET_BITMAP_SIZE },
+                buffer, TARGET_BITMAP_SIZE * sizeof(buffer[0]),
+                D2D1::BitmapProperties1(
+                    D2D1_BITMAP_OPTIONS_NONE,
+                    D2D1::PixelFormat(
+                        DXGI_FORMAT_B8G8R8A8_UNORM, 
+                        D2D1_ALPHA_MODE_PREMULTIPLIED
+                    )
+                ),
+                &m_pd2dBrushTarget
             );
-        }*/
-        // 创建笔刷
+        }
+        // 创建透明显示色笔刷
         if (SUCCEEDED(hr)) {
-            D2D1_BITMAP_BRUSH_PROPERTIES bbp;
+            // 设置参数
+            D2D1_IMAGE_BRUSH_PROPERTIES bbp;
+            bbp.sourceRectangle = { 
+                0.f, 0.f,
+                float(TRANSPARENT_SIZE * TRANSPARENT_COUNT),
+                float(TRANSPARENT_SIZE * TRANSPARENT_COUNT)
+            };
             bbp.extendModeX = D2D1_EXTEND_MODE_WRAP;
             bbp.extendModeY = D2D1_EXTEND_MODE_WRAP;
-            bbp.interpolationMode = D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
-            hr = m_pd2dDeviceContext->CreateBitmapBrush(
-                pBitmap, &bbp, nullptr, &m_pTransparentBrush
-            );
+            bbp.interpolationMode = D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR;
+            // 正式创建
+            if (SUCCEEDED(hr)) {
+                bbp.sourceRectangle.left   += float(TRANSPARENT_OFFSET_X);
+                bbp.sourceRectangle.top    += float(TRANSPARENT_OFFSET_Y);
+                bbp.sourceRectangle.right  += float(TRANSPARENT_OFFSET_X);
+                bbp.sourceRectangle.bottom += float(TRANSPARENT_OFFSET_Y);
+                hr = m_pd2dDeviceContext->CreateImageBrush(
+                    m_pd2dBrushTarget, &bbp, nullptr, &m_pTransparentBrush
+                );
+            }
+            // 正式创建
+            if (SUCCEEDED(hr)) {
+                bbp.sourceRectangle.left   += float(FOCUSED_OFFSET_X - TRANSPARENT_OFFSET_X);
+                bbp.sourceRectangle.top    += float(FOCUSED_OFFSET_Y - TRANSPARENT_OFFSET_Y);
+                bbp.sourceRectangle.right  += float(FOCUSED_OFFSET_X - TRANSPARENT_OFFSET_X);
+                bbp.sourceRectangle.bottom += float(FOCUSED_OFFSET_Y - TRANSPARENT_OFFSET_Y);
+                hr = m_pd2dDeviceContext->CreateImageBrush(
+                    m_pd2dBrushTarget, &bbp, nullptr, &m_pFocusedBrush
+                );
+            }
         }
-        LongUI::SafeRelease(pBitmapRenderTarget);
-        LongUI::SafeRelease(pBitmap);
     }
     /*
     焦点: 0x3399FF 矩形描边, 并且内边有虚线矩形
@@ -1635,6 +1683,8 @@ void LongUI::CUIManager::discard_resources() noexcept {
         LongUI::SafeRelease(brush);
     }
     LongUI::SafeRelease(m_pTransparentBrush);
+    LongUI::SafeRelease(m_pd2dBrushTarget);
+    LongUI::SafeRelease(m_pFocusedBrush);
     // 释放公共设备相关资源
     {
         // 释放 位图

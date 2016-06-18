@@ -368,7 +368,7 @@ namespace LongUI {
         LongUI::SafeUTF8toWideChar(uri, [this, &bitmap](wchar_t* begin, wchar_t* end) {
             // 载入
             auto hr = impl::load_bitmap_from_file(
-                m_manager.GetRenderTargetNoAddRef(), 
+                m_manager.RefRenderTarget(), 
                 m_pWicFactory, begin, 0u, 0u, &bitmap
             );
             // 失败?
@@ -421,7 +421,7 @@ namespace LongUI {
             if (!Helper::MakeColor(node.attribute("color").value(), color)) {
                 color = D2D1::ColorF(D2D1::ColorF::Black);
             }
-            m_manager.GetRenderTargetNoAddRef()->CreateSolidColorBrush(&color, &brush_prop, &scb);
+            m_manager.RefRenderTarget()->CreateSolidColorBrush(&color, &brush_prop, &scb);
         }
         break;
         case LongUI::BrushType::Type_LinearGradient:
@@ -472,7 +472,7 @@ namespace LongUI {
                     }
                 });
                 // 创建StopCollection
-                m_manager.GetRenderTargetNoAddRef()->CreateGradientStopCollection(stops, stop_count, &collection);
+                m_manager.RefRenderTarget()->CreateGradientStopCollection(stops, stop_count, &collection);
                 if (collection) {
                     // 线性渐变?
                     if (type == LongUI::BrushType::Type_LinearGradient) {
@@ -483,7 +483,7 @@ namespace LongUI {
                         Helper::MakeFloats(node.attribute("start").value(), &lgbprop.startPoint.x, 2);
                         Helper::MakeFloats(node.attribute("end").value(), &lgbprop.endPoint.x, 2);
                         // 创建笔刷
-                        m_manager.GetRenderTargetNoAddRef()->CreateLinearGradientBrush(
+                        m_manager.RefRenderTarget()->CreateLinearGradientBrush(
                             &lgbprop, &brush_prop, collection, &lgb
                             );
                     }
@@ -498,7 +498,7 @@ namespace LongUI {
                         Helper::MakeFloats(node.attribute("rx").value(), &rgbprop.radiusX, 1);
                         Helper::MakeFloats(node.attribute("ry").value(), &rgbprop.radiusY, 1);
                         // 创建笔刷
-                        m_manager.GetRenderTargetNoAddRef()->CreateRadialGradientBrush(
+                        m_manager.RefRenderTarget()->CreateRadialGradientBrush(
                             &rgbprop, &brush_prop, collection, &rgb
                             );
                     }
@@ -523,7 +523,7 @@ namespace LongUI {
                     Helper::GetEnumFromXml(node, D2D1_INTERPOLATION_MODE_LINEAR, "interpolation"),
                 };
                 // 创建位图笔刷
-                m_manager.GetRenderTargetNoAddRef()->CreateBitmapBrush(
+                m_manager.RefRenderTarget()->CreateBitmapBrush(
                     bitmap, &bbprop, &brush_prop, &b1b
                     );
                 LongUI::SafeRelease(bitmap);
