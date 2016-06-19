@@ -1528,7 +1528,7 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                     constexpr uint32_t ox = FOCUSED_OFFSET_X;
                     constexpr uint32_t oy = FOCUSED_OFFSET_Y;
                     uint32_t index = (x + ox) + (y + oy) *  TARGET_BITMAP_SIZE;
-                    index[buffer] = ((x & 1) == (y & 1)) ?
+                    index[buffer] = ((x/2) & 1) == ((y/2) & 1)  ?
                         FOCUSED_COLOR1 : FOCUSED_COLOR2;
                 }
             }
@@ -1574,10 +1574,15 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
                 bbp.sourceRectangle.top    += float(FOCUSED_OFFSET_Y - TRANSPARENT_OFFSET_Y);
                 bbp.sourceRectangle.right  += float(FOCUSED_OFFSET_X - TRANSPARENT_OFFSET_X);
                 bbp.sourceRectangle.bottom += float(FOCUSED_OFFSET_Y - TRANSPARENT_OFFSET_Y);
+                bbp.interpolationMode = D2D1_INTERPOLATION_MODE_LINEAR;
                 hr = m_pd2dDeviceContext->CreateImageBrush(
                     m_pd2dBrushTarget, &bbp, nullptr, &m_pFocusedBrush
                 );
             }
+            /*// 正式创建
+            if (SUCCEEDED(hr)) {
+                m_pFocusedBrush->SetTransform(D2D1::Matrix3x2F::Scale(2.f, 2.f));
+            }*/
         }
     }
     /*

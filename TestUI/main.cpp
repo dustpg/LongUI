@@ -422,22 +422,22 @@ private:
         if (const auto bmp = m_pWindow->FindControl("bmpA")) {
             auto rambmp = longui_cast<UIRamBitmap*>(bmp);
             FC(btnA); FC(btnB); FC(btnC); FC(btnD); FC(btnE);
-            //the noise array
+            // the noise array
             constexpr int noiseWidth = 128;
             constexpr int noiseHeight = 128;
             static float noise[noiseHeight][noiseWidth];
             // smooth
             auto smoothNoise = [=](float x, float y) noexcept {
-                //get fractional part of x and y
+                // get fractional part of x and y
                 float fractX = x - int(x);
                 float fractY = y - int(y);
-                //wrap around
+                // wrap around
                 int x1 = (int(x) + noiseWidth) % noiseWidth;
                 int y1 = (int(y) + noiseHeight) % noiseHeight;
-                //neighbor values
+                // neighbor values
                 int x2 = (x1 + noiseWidth - 1) % noiseWidth;
                 int y2 = (y1 + noiseHeight - 1) % noiseHeight;
-                //smooth the noise with bilinear interpolation
+                // smooth the noise with bilinear interpolation
                 float value = 0.f;
                 value += fractX       * fractY      * noise[y1][x1];
                 value += (1.f-fractX) * fractY      * noise[y1][x2];
@@ -560,22 +560,22 @@ private:
                             noise3d[z][y][x] = float(random() % 32768) / 32768.f;
             }
             auto smoothNoise3d = [=](float x, float y, float z) noexcept {
-                //get fractional part of x and y
+                // get fractional part of x and y
                 float fractX = x - int(x);
                 float fractY = y - int(y);
                 float fractZ = z - int(z);
 
-                //wrap around
+                // wrap around
                 int x1 = (int(x) + noiseWidth) % noiseWidth;
                 int y1 = (int(y) + noiseHeight) % noiseHeight;
                 int z1 = (int(z) + noiseDepth) % noiseDepth;
 
-                //neighbor values
+                // neighbor values
                 int x2 = (x1 + noiseWidth - 1) % noiseWidth;
                 int y2 = (y1 + noiseHeight - 1) % noiseHeight;
                 int z2 = (z1 + noiseDepth - 1) % noiseDepth;
 
-                //smooth the noise with bilinear interpolation
+                // smooth the noise with bilinear interpolation
                 float value = 0.f;
                 value += fractX     * fractY     * fractZ     * noise3d[z1][y1][x1];
                 value += fractX     * (1.f - fractY) * fractZ     * noise3d[z1][y2][x1];

@@ -532,10 +532,6 @@ LongUINoinline void LongUI::UIButton::SetControlState(ControlState state) noexce
 bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     // 禁用状态禁用鼠标消息
     if (!this->GetEnabled()) return true;
-    // 转换坐标
-    D2D1_POINT_2F pt4self = LongUI::TransformPointInverse(
-        this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
-    );
     // 鼠标 消息
     switch (arg.event)
     {
@@ -558,9 +554,14 @@ bool LongUI::UIButton::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case LongUI::MouseEvent::Event_LButtonUp:
         m_tarStateClick = LongUI::State_Hover;
         // 左键弹起:
-        if (m_pWindow->IsCapturedControl(this)) {
-            bool rec = this->CallUiEvent(m_event, SubEvent::Event_ItemClicked);
-            rec = false;
+        if (m_pWindow->IsControlCaptured(this)) {
+            // 范围内弹起
+            D2D1_POINT_2F pt{ arg.ptx, arg.pty };
+            if (LongUI::IsPointInRect(this->visible_rect, pt)) {
+                bool rec = this->CallUiEvent(m_event, SubEvent::Event_ItemClicked);
+                // TODO: rec
+                rec = false;
+            }
             // 设置状态
             this->SetControlState(m_tarStateClick);
             m_colorBorderNow = m_aBorderColor[m_tarStateClick];

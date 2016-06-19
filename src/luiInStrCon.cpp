@@ -808,7 +808,10 @@ template<> void LongUI::CUIAnimation<D2D1_COLOR_F>::Update(float t) noexcept {
 
 
 // get transformed pointer
-LongUINoinline auto LongUI::TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept ->D2D1_POINT_2F {
+LongUINoinline auto LongUI::TransformPointInverse(
+    const D2D1_MATRIX_3X2_F& matrix, 
+    const D2D1_POINT_2F point
+) noexcept ->D2D1_POINT_2F {
     D2D1_POINT_2F result;
     // x = (bn-dm) / (bc-ad)
     // y = (an-cm) / (ad-bc)

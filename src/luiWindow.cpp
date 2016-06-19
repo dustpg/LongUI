@@ -120,6 +120,7 @@ auto LongUI::UIViewport::CreateWithoutXml(XUIBaseWindow* wnd, D2D1_SIZE_U size) 
 LongUI::XUIBaseWindow::XUIBaseWindow(const Config::Window& config) noexcept : m_pParent(config.parent) {
     // Xml节点
     auto node = config.node;
+    m_vTabstops.reserve(32);
 #ifdef _DEBUG
     m_baBoolWindow.Test<INDEX_COUNT>();
     m_vInsets.push_back(nullptr);
@@ -187,6 +188,7 @@ namespace LongUI {
 /// <returns></returns>
 LongUI::XUIBaseWindow::~XUIBaseWindow() noexcept {
     for (auto inset : m_vInsets) inset->Dispose();
+    for (auto ctrl : m_vTabstops) ctrl->Release();
     LongUI::SafeRelease(m_pDragDropControl);
     LongUI::SafeRelease(m_pCapturedControl);
     LongUI::SafeRelease(m_pFocusedControl);
@@ -312,6 +314,77 @@ auto LongUI::XUIBaseWindow::FindControl(const char* cname) noexcept -> UIControl
 }
 
 /// <summary>
+/// Adds the tabstop.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::AddTabstop(UIControl* ctrl) noexcept {
+    if (ctrl && m_vTabstops.isok()) {
+        ctrl->AddRef();
+        m_vTabstops.push_back(ctrl);
+    }
+}
+
+/// <summary>
+/// remove the tabstop.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::XUIBaseWindow::RemoveTabstop(UIControl* ctrl) noexcept {
+    if (ctrl && m_vTabstops.isok()) {
+        auto itr = std::find(m_vTabstops.begin(), m_vTabstops.end(), ctrl);
+        if (itr != m_vTabstops.end()) {
+            (*itr)->Release();
+            m_vTabstops.erase(itr);
+        }
+    }
+}
+
+
+/// <summary>
+/// Finds the next tabstop.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+auto LongUI::XUIBaseWindow::FindNextTabstop(UIControl* ctrl) const noexcept->UIControl* {
+    assert(ctrl && "bad argument");
+    if (m_vTabstops.empty()) return ctrl;
+    auto itr = std::find(m_vTabstops.begin(), m_vTabstops.end(), ctrl);
+    const auto last = --m_vTabstops.end();
+    if (itr == m_vTabstops.end()) {
+        return *last;
+    }
+    else if (itr == last) {
+        return m_vTabstops.front();
+    }
+    else {
+        return *++itr;
+    }
+}
+
+
+/// <summary>
+/// Finds the previous tabstop.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+auto LongUI::XUIBaseWindow::FindPrevTabstop(UIControl* ctrl) const noexcept->UIControl* {
+    assert(ctrl && "bad argument");
+    if (m_vTabstops.empty()) return ctrl;
+    auto itr = std::find(m_vTabstops.begin(), m_vTabstops.end(), ctrl);
+    if (itr == m_vTabstops.end()) {
+        return m_vTabstops[0];
+    }
+    else if (itr == m_vTabstops.begin()) {
+        return m_vTabstops.back();
+    }
+    else {
+        return *--itr;
+    }
+}
+
+
+/// <summary>
 /// Adds the named control.
 /// </summary>
 /// <param name="ctrl">The control.</param>
@@ -358,6 +431,8 @@ void LongUI::XUIBaseWindow::SetFocus(UIControl* ctrl) noexcept {
     if (m_pFocusedControl) {
         // 事件
         m_pFocusedControl->DoLongUIEvent(Event::Event_KillFocus, m_pViewport);
+        // 渲染
+        this->Invalidate(m_pFocusedControl);
         // 去引
         m_pFocusedControl->Release();
         // 归零
@@ -373,6 +448,8 @@ void LongUI::XUIBaseWindow::SetFocus(UIControl* ctrl) noexcept {
         m_pFocusedControl->AddRef();
         // 事件
         m_pFocusedControl->DoLongUIEvent(Event::Event_SetFocus, m_pViewport);
+        // 渲染
+        this->Invalidate(m_pFocusedControl);
     }
 }
 

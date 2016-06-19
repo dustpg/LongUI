@@ -219,13 +219,21 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// </remarks>
         Flag_Focusable = 1 << 2,
         /// <summary>
+        /// do not render focused-effect in
+        /// defualt way(white-blank dashed line)
+        /// </summary>
+        /// <remarks>
+        /// set it by your code
+        /// </remarks>
+        Flag_NoDefaultFocusedRendering = 1 << 3,
+        /// <summary>
         /// the width of control is fixed [default: false]
         /// </summary>
         /// <remarks>
         /// [Auto] width fixed if given a valid width value in xml 
         /// attribute ("size") [0], e.g. size="96, 0"
         /// </remarks>
-        Flag_WidthFixed = 1 << 3,
+        Flag_WidthFixed = 1 << 4,
         /// <summary>
         /// the height of control is fixed [default: false]
         /// </summary>
@@ -233,7 +241,7 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// [Auto] height fixed if given a valid height value in xml 
         /// attribute ("size") [1], e.g. size="0, 32"
         /// </remarks>
-        Flag_HeightFixed = 1 << 4,
+        Flag_HeightFixed = 1 << 5,
         /// <summary>
         /// auto size, need control implement support.
         /// set width to  a negative number,
@@ -241,33 +249,33 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
         /// <remarks>
         /// attribute ("size") size="-1, 0"
         /// </remarks>
-        Flag_AutoWidth = 1 << 5,
+        Flag_AutoWidth = 1 << 6,
         /// <summary>
         /// auto size, need control implement support.
         /// set height to a negative number
-        /// 
         /// built-in supported control: UIText & sub-class
         /// </summary>
         /// <remarks>
         /// attribute ("size") size="0, -1"
         /// </remarks>
-        Flag_AutoHeight = 1 << 6,
+        Flag_AutoHeight = 1 << 7,
+
         // [default: true] if true, this caontrol cann't draw out of
         // it's cliprect, if false, it coule draw on sibling/parent.
         // NOTE: this attribute used by parent
         // NOTE: container should be true in this case but not mandatory
         // XML Attribute : "strictclip"@bool
-        Flag_ClipStrictly = 1 << 7,
+        Flag_ClipStrictly = 1 << 8,
         // [default: false][auto, no specified]
         // control need pre-render for content
         // call UIViewport::RegisterOffScreenRender2D or
         // call UIViewport::RegisterOffScreenRender3D to set
-        Flag_NeedRegisterOffScreenRender = 1 << 8,
+        Flag_NeedRegisterOffScreenRender = 1 << 9,
         // [default: false][auto, no specified]
         // control need Direct3D api to render,
         // call UIViewport::RegisterOffScreenRender3D to set
         // if use Direct2D , call UIViewport::RegisterOffScreenRender2D
-        Flag_OffScreen3DContent = 1 << 9,
+        Flag_OffScreen3DContent = 1 << 10,
 #if 0
         // [default: false][auto, and xml attribute "renderparent"@bool]
         // if this control will be rendering when do dirty-rendering,

@@ -73,6 +73,14 @@ void LongUI::UIControl::InvalidateThis() noexcept {
 }
 
 /// <summary>
+/// Determines whether this instance is focused.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UIControl::IsFocused() const noexcept {
+    return m_pWindow ? m_pWindow->IsControlFocused(this) : false;
+}
+
+/// <summary>
 /// Initializes a new instance of the <see cref="LongUI::UIControl" />
 /// class with xml node
 /// </summary>
@@ -459,6 +467,15 @@ void LongUI::UIControl::render_chain_foreground() const noexcept {
         brect.radiusY = m_2fBorderRdius.height;
         UIManager_RenderTarget->DrawRoundedRectangle(&brect, m_pBrush_SetBeforeUse, m_fBorderWidth);
     }
+    // 默认聚焦效果行为
+    if (!(this->flags & Flag_NoDefaultFocusedRendering) && 
+        m_pWindow->IsControlFocused(this)) {
+        D2D1_RECT_F rect; this->GetFocusRect(rect);
+        UIManager.RefFocusedBrush()->SetTransform(this->world);
+        UIManager_RenderTarget->DrawRectangle(
+            &rect, UIManager.RefFocusedBrush(), 2.f
+        );
+    }
 }
 
 
@@ -620,7 +637,12 @@ auto LongUI::UIControl::SetLeft(float left) noexcept -> void {
     }
 }
 
-// 设置控件顶坐标
+/// <summary>
+/// Sets the top of control
+/// 设置控件顶坐标
+/// </summary>
+/// <param name="top">The top.</param>
+/// <returns></returns>
 auto LongUI::UIControl::SetTop(float top) noexcept -> void {
     auto new_top = top + this->margin_rect.top + m_fBorderWidth;
     // 修改了位置?
@@ -630,7 +652,12 @@ auto LongUI::UIControl::SetTop(float top) noexcept -> void {
     }
 }
 
-// 获取占用/剪切矩形
+/// <summary>
+/// Gets the clip rect.
+/// 获取占用/剪切矩形
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
 void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderWidth);
     rect.top = -(this->margin_rect.top + m_fBorderWidth);
@@ -638,7 +665,12 @@ void LongUI::UIControl::GetClipRect(D2D1_RECT_F& rect) const noexcept {
     rect.bottom = this->view_size.height + this->margin_rect.bottom + m_fBorderWidth;
 }
 
-// 获取边框矩形
+/// <summary>
+/// Gets the border rect.
+/// 获取边框矩形
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
 void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = -m_fBorderWidth * 0.5f;
     rect.top = -m_fBorderWidth * 0.5f;
@@ -646,7 +678,26 @@ void LongUI::UIControl::GetBorderRect(D2D1_RECT_F& rect) const noexcept {
     rect.bottom = this->view_size.height + m_fBorderWidth * 0.5f;
 }
 
-// 获取视口刻画矩形
+
+/// <summary>
+/// Gets the focus-rendering rect.
+/// 获取焦点渲染矩形
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::UIControl::GetFocusRect(D2D1_RECT_F& rect) const noexcept {
+    rect.left = 1.f + m_fBorderWidth;
+    rect.top  = 1.f + m_fBorderWidth;
+    rect.right = this->view_size.width - m_fBorderWidth - 1.f;
+    rect.bottom= this->view_size.height- m_fBorderWidth - 1.f;
+}
+
+/// <summary>
+/// Gets the view rect.
+/// 获取视口渲染矩形
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
 void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
     rect.left = 0.f;
     rect.top = 0.f;
@@ -654,7 +705,12 @@ void LongUI::UIControl::GetViewRect(D2D1_RECT_F& rect) const noexcept {
     rect.bottom = this->view_size.height;
 }
 
-// 父控件视角: 获取占用/剪切矩形
+/// <summary>
+/// Gets the clip rect for parent
+/// 父控件视角: 获取占用/剪切矩形
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
 void LongUI::UIControl::GetClipRectFP(D2D1_RECT_F& rect) const noexcept {
     rect.left = -(this->margin_rect.left + m_fBorderWidth);
     rect.top = -(this->margin_rect.top + m_fBorderWidth);
@@ -667,7 +723,11 @@ void LongUI::UIControl::GetClipRectFP(D2D1_RECT_F& rect) const noexcept {
 }
 
 
-// 获得世界转换矩阵
+/// <summary>
+/// Refreshes the world matrix.
+/// 获得世界转换矩阵
+/// </summary>
+/// <returns></returns>
 void LongUI::UIControl::RefreshWorld() noexcept {
     float xx = this->view_pos.x;
     float yy = this->view_pos.y;

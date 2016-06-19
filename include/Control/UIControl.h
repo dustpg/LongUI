@@ -190,6 +190,8 @@ namespace LongUI {
         void StartRender(float time) noexcept;
         // invalidate this control
         void InvalidateThis() noexcept;// { m_pWindow->Invalidate(this->prerender); }
+        // is focused
+        bool IsFocused() const noexcept; // { m_pWindow->IsControlFocused(this); }
         // set width fixed
         auto SetWidthFixed() noexcept { force_cast(this->flags) |= Flag_WidthFixed; }
         // set height fixed
@@ -248,6 +250,8 @@ namespace LongUI {
         void GetClipRect(D2D1_RECT_F& rect) const noexcept;
         // get border rect
         void GetBorderRect(D2D1_RECT_F& rect) const noexcept;
+        // get focus rendered rect
+        void GetFocusRect(D2D1_RECT_F& rect) const noexcept;
         // get viewport rect
         void GetViewRect(D2D1_RECT_F& rect) const noexcept;
         // get rect for cliping for parent

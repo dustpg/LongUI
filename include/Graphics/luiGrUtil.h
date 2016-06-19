@@ -49,11 +49,11 @@ namespace LongUI {
     // Render Common Brush
     void FillRectWithCommonBrush(ID2D1RenderTarget* target, ID2D1Brush* brush, const D2D1_RECT_F& rect) noexcept;
     // point in rect?
-    inline auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F& pt) noexcept {
+    inline auto IsPointInRect(const D2D1_RECT_F& rect, const D2D1_POINT_2F pt) noexcept {
         return(pt.x >= rect.left && pt.y >= rect.top && pt.x < rect.right && pt.y < rect.bottom);
     }
     // get transformed pointer
-    inline auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept {
+    inline auto TransformPoint(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F point) noexcept {
         D2D1_POINT_2F result = {
             point.x * matrix._11 + point.y * matrix._21 + matrix._31,
             point.x * matrix._12 + point.y * matrix._22 + matrix._32
@@ -61,7 +61,7 @@ namespace LongUI {
         return result;
     }
     // get transformed pointer
-    auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F& point) noexcept ->D2D1_POINT_2F;
+    auto TransformPointInverse(const D2D1_MATRIX_3X2_F& matrix, const D2D1_POINT_2F point) noexcept ->D2D1_POINT_2F;
     // pack the color
     auto PackTheColorARGB(D2D1_COLOR_F& IN color) noexcept ->uint32_t;
     // unpack the color

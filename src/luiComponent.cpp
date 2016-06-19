@@ -302,7 +302,7 @@ LONGUI_NAMESPACE_BEGIN namespace Component {
     void EditableText::refresh(bool update) const noexcept {
         auto* window = m_pHost->GetWindow();
         // 焦点控件情况下
-        if (window->IsFocused(m_pHost)) {
+        if (window->IsControlFocused(m_pHost)) {
             RectLTWH_F rect; this->GetCaretRect(rect);
             window->SetCaret(m_pHost, &rect);
             if (update) {

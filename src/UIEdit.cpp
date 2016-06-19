@@ -123,7 +123,7 @@ bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         break;
     case LongUI::MouseEvent::Event_MouseEnter:
         // 鼠标移进, 不是焦点控件则修改边框颜色
-        if (!m_pWindow->IsFocused(this)) {
+        if (!m_pWindow->IsControlFocused(this)) {
             m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
             this->InvalidateThis();
         }
@@ -132,7 +132,7 @@ bool  LongUI::UIEdit::DoMouseEvent(const MouseEventArgument& arg) noexcept {
     case LongUI::MouseEvent::Event_MouseLeave:
         // 鼠标移出, 不是焦点控件则修改边框颜色
         m_pWindow->ResetCursor();
-        if (!m_pWindow->IsFocused(this)) {
+        if (!m_pWindow->IsControlFocused(this)) {
             m_colorBorderNow = m_aBorderColor[LongUI::State_Normal];
             this->InvalidateThis();
         }
@@ -180,6 +180,8 @@ void LongUI::UIEdit::initialize(pugi::xml_node node) noexcept {
     m_text.Init(node);
     // 允许键盘焦点
     auto flag = this->flags | Flag_Focusable;
+    // 不用渲染默认焦点效果
+    flag |= Flag_NoDefaultFocusedRendering;
     // 初始化边框颜色
      Helper::SetBorderColor(node, m_aBorderColor);
     // 修改

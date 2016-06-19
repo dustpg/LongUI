@@ -163,6 +163,10 @@ namespace LongUI {
         // remove inset window
         void remove_inset_window(XUIBaseWindow*) noexcept;
     public:
+        // check control focused
+        bool IsControlFocused(const UIControl* c) const noexcept { return m_pFocusedControl == c; }
+        // is mouse captured control?
+        auto IsControlCaptured(const UIControl* c) const noexcept { return m_pCapturedControl == c; };
         // get parent window
         auto GetParent() const noexcept { return m_pParent; }
         // is popup window?
@@ -173,8 +177,6 @@ namespace LongUI {
         void HideWindow() noexcept { this->ShowWindow(SW_HIDE); }
         // reset cursor
         void ResetCursor() noexcept { this->SetCursor(Cursor::Cursor_Default); }
-        // check focus
-        bool IsFocused(UIControl* ctrl) const noexcept { assert(ctrl); return m_pFocusedControl == ctrl; }
         // focused control
         auto GetFocused() const noexcept { return m_pFocusedControl; }
         // get window handle
@@ -193,8 +195,6 @@ namespace LongUI {
         auto GetTextAntimode() const noexcept { return static_cast<D2D1_TEXT_ANTIALIAS_MODE>(m_textAntiMode); }
         // get text anti-mode 
         void SetTextAntimode(D2D1_TEXT_ANTIALIAS_MODE mode) noexcept { m_textAntiMode = static_cast<decltype(m_textAntiMode)>(mode); }
-        // is mouse captured control?
-        auto IsCapturedControl(UIControl* c) noexcept { return m_pCapturedControl == c; };
         // copystring for control in this winddow
         auto CopyString(const char* str) noexcept { return m_oStringAllocator.CopyString(str); }
         // copystring for control in this winddow in safe way
@@ -202,6 +202,16 @@ namespace LongUI {
         // render window in next frame
         void InvalidateWindow() noexcept { this->set_full_render_this_frame(); }
     public:
+        // add tabstop control
+        void AddTabstop(UIControl* ctrl) noexcept;
+        // remove tabstop control
+        void RemoveTabstop(UIControl* ctrl) noexcept;
+        // find control
+        auto FindControl(const char* name) noexcept ->UIControl*;
+        // find next tabstop control
+        auto FindNextTabstop(UIControl* ctrl) const noexcept->UIControl*;
+        // find prev tabstop control
+        auto FindPrevTabstop(UIControl* ctrl) const noexcept->UIControl*;
         // initialize viewport
         void InitializeViewport(UIViewport* viewport) noexcept;
         // do event
@@ -212,8 +222,6 @@ namespace LongUI {
         void SetFocus(UIControl* ctrl) noexcept;
         // set hover track control
         void SetHoverTrack(UIControl* ctrl) noexcept;
-        // find control
-        auto FindControl(const char* name) noexcept ->UIControl*;
         // add control with name
         void AddNamedControl(UIControl* ctrl) noexcept;
         // set mouse capture
@@ -290,6 +298,8 @@ namespace LongUI {
         HWND                    m_hwnd = nullptr;
         // TODO: mini size
         POINT                   m_miniSize;
+        // tabstop controls
+        ControlVector           m_vTabstops;
         // now hover track control(only one)
         UIControl*              m_pHoverTracked = nullptr;
         // now focused control (only one)

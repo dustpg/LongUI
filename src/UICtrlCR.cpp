@@ -172,7 +172,7 @@ bool LongUI::UICheckBox::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         // 检查的是本控件
-        if (m_pWindow->IsCapturedControl(this)) {
+        if (m_pWindow->IsControlCaptured(this)) {
             // 检查flag
             auto target = CheckBoxState::State_Checked;
             if (this->GetCheckBoxState() == CheckBoxState::State_Checked) {
@@ -407,7 +407,7 @@ bool LongUI::UIRadioButton::DoMouseEvent(const MouseEventArgument& arg) noexcept
         this->ForceSetControlState(LongUI::State_Hover);
         m_colorBorderNow = m_aBorderColor[LongUI::State_Hover];
         // 检查的是本控件
-        if (!m_pWindow->IsCapturedControl(this)) return true;
+        if (!m_pWindow->IsControlCaptured(this)) return true;
         // 修改复选框状态
         if (!this->GetCheckedState()) {
             this->ForceSetCheckedState(true);
