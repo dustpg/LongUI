@@ -220,9 +220,7 @@ LongUI::CUIColorPicker::CUIColorPicker() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIColorPicker::~CUIColorPicker() noexcept {
-    if (m_pWindow) {
-        m_pWindow->Close();
-    }
+    if (m_pWindow) m_pWindow->Close();
 }
 
 
@@ -266,9 +264,14 @@ void LongUI::CUIColorPicker::refresh_saved_color(int index) noexcept {
     m_apColorCtrl[index]->SetColor(impl::d2d(m_aSaveColor[index]));
 }
 
-// longui namespace
+/// <summary>
+/// longui namespace
+/// 
+/// </summary>
 namespace LongUI {
-    // viewport for color picker
+    /// <summary>
+    /// viewport for color picker
+    /// </summary>
     class UIPickerView final : public UIViewport {
         // super class
         using Super = UIViewport;

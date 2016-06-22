@@ -654,25 +654,23 @@ else UIManager << DL_Error << L"alloc null" << LongUI::endl;
 }
 
 
-// value type binding for longui::effect
+// value type binding for longui::effect, should include <cassert>
 #define LONGUI_VALUE_TYPE_BINDING(CLASS, TYPE, NAME)\
     {\
-        L#NAME, [](IUnknown* obj, const BYTE* data, UINT32 len) noexcept {\
+        L#NAME, [](IUnknown* obj, const BYTE* data, uint32_t len) noexcept {\
             assert(obj && data && len == sizeof(TYPE));\
             auto impl = static_cast<ID2D1EffectImpl*>(obj);\
             auto ths = static_cast<CLASS*>(impl);\
             ths->Set##NAME(*reinterpret_cast<const TYPE*>(data));\
             return S_OK;\
-        },  [](const IUnknown* obj, BYTE* OPTIONAL data, UINT32 len, UINT32* OPTIONAL outeln) noexcept {\
+        },  [](const IUnknown* obj, BYTE* data, uint32_t len, uint32_t* OPTIONAL outeln) noexcept {\
             assert(obj);\
             if (data) {\
                 auto impl = static_cast<const ID2D1EffectImpl*>(obj);\
                 auto ths = static_cast<const CLASS*>(impl);\
                 *reinterpret_cast<TYPE*>(data) = ths->Get##NAME();\
             }\
-            if (outeln) {\
-                *outeln = sizeof(TYPE);\
-            }\
+            if (outeln) *outeln = sizeof(TYPE);\
             return S_OK;\
         }\
     }

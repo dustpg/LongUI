@@ -1,11 +1,14 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <algorithm>
+// LongUI
 #include <LongUI.h>
 #include <LongUI/luiUiDConf.h>
 #include <Control/UIColor.h>
+// HSV Control
 #include "../UIColorHsv/UIColorHsv.h"
 #include "../UIColorHsv/UIColorButton.h"
-#include "colorpicker.h"
+// Choose Color
+#include "../ChooseColor/colorpicker.h"
 
 const char* const DEMO_LAYOUT = u8R"xml(<?xml version="1.0" encoding="utf-8"?>
 <Window size="800, 600" titlename="Choose Color Demo" margin="8,8,8,8" >
@@ -47,7 +50,7 @@ void InitWindow(
 struct HsvConfig : LongUI::CUIDefaultConfigure {
     LONGUI_BASIC_INTERFACE_IMPL;
     /*auto GetTemplateString() noexcept ->const char* override {
-        return BLURTEXT_TEMPLATE;
+    return BLURTEXT_TEMPLATE;
     }*/
     // add all custom controls
     void RegisterSome() noexcept override {
@@ -175,4 +178,5 @@ void InitWindow(
 #pragma comment(lib, "pugixml")
 #pragma comment(lib, "dlmalloc")
 #pragma comment(lib, "UIColorHsv")
+#pragma comment(lib, "ChooseColor")
 #pragma comment(lib, "D3DCompiler")
