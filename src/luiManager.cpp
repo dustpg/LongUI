@@ -526,7 +526,13 @@ auto LongUI::CUIManager::do_creating_event(CreateEventType type) noexcept ->HRES
     return hr;
 }
 
-// CUIManager 创建控件树
+/// <summary>
+/// Makes the control tree.
+/// 创建控件树
+/// </summary>
+/// <param name="root">The root.</param>
+/// <param name="node">The node.</param>
+/// <returns></returns>
 void LongUI::CUIManager::MakeControlTree(UIContainer* root, pugi::xml_node node) noexcept {
     // 断言
     assert(root && node && "bad argument");
@@ -574,7 +580,12 @@ void LongUI::CUIManager::MakeControlTree(UIContainer* root, pugi::xml_node node)
     }
 }
 
-// 获取创建控件函数指针
+/// <summary>
+/// Gets the create function pointer.
+/// 获取创建控件函数指针
+/// </summary>
+/// <param name="clname">The clname.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateControlEvent {
     // 检查 !white_space(clname[0]) && 
     assert(clname && clname[0] && "bad argment");
@@ -586,7 +597,17 @@ auto LongUI::CUIManager::GetCreateFunc(const char* clname) noexcept -> CreateCon
     return reinterpret_cast<CreateControlEvent>(*result);
 }
 
-// 创建文本格式
+/// <summary>
+/// Creates the text format.
+/// 创建文本格式
+/// </summary>
+/// <param name="fontFamilyName">Name of the font family.</param>
+/// <param name="fontWeight">The font weight.</param>
+/// <param name="fontStyle">The font style.</param>
+/// <param name="fontStretch">The font stretch.</param>
+/// <param name="fontSize">Size of the font.</param>
+/// <param name="textFormat">The text format.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::CreateTextFormat(
     WCHAR const * fontFamilyName,
     DWRITE_FONT_WEIGHT fontWeight,
@@ -628,18 +649,17 @@ auto LongUI::CUIManager::CreateTextFormat(
 
 
 #ifdef _DEBUG
+/// <summary>
+/// Exits this instance.
+/// </summary>
+/// <returns></returns>
 void LongUI::CUIManager::Exit() noexcept {
     m_dbgExitTime = ::timeGetTime();
     UIManager << DL_Log << L" CALLED" << LongUI::endl;
     this->exit();
 }
-namespace LongUI {
-    namespace impl {
-        void dbg_cal_fps() {
+namespace LongUI { namespace impl { void dbg_cal_fps() { } }}
 
-        }
-    }
-}
 #endif
 
 #ifdef LONGUI_RENDER_IN_STD_THREAD
@@ -676,7 +696,7 @@ void LongUI::CUIManager::Run() noexcept {
                 auto old = UIManager.m_cNowTick;
                 auto now = ::timeGetTime(); UIManager.m_cNowTick = now;
                 // 大概每隔2分钟, 刷新一次
-                /*constexpr uint32_t REFRESH_RATE = 1024 * 128 - 1;
+                constexpr uint32_t REFRESH_RATE = 1024 * 128 - 1;
                 constexpr uint32_t REFRESH_MASK = ~REFRESH_RATE;
                 if ((old & REFRESH_MASK) != (now & REFRESH_MASK) ) {
                     UIManager.m_uiTimeMeter.RefreshFrequency();
@@ -685,7 +705,7 @@ void LongUI::CUIManager::Run() noexcept {
                         << L"m_uiTimeMeter.RefreshFrequency"
                         << LongUI::endl;
 #endif
-                }*/
+                }
                 // 更新时间胶囊
                 UIManager.update_time_capsules(UIManager.m_fDeltaTime);
                 // 刷新窗口
@@ -785,7 +805,11 @@ void LongUI::CUIManager::Run() noexcept {
     assert(m_vWindows.empty() && "bad");
 }
 
-// 等待垂直同步
+/// <summary>
+/// Wait_for_vblanks this instance.
+/// 等待垂直同步
+/// </summary>
+/// <returns></returns>
 void LongUI::CUIManager::wait_for_vblank() noexcept {
     // 自行等待垂直同步以方便游戏窗口不等待垂直同步的实现
     if (this->flag & IUIConfigure::Flag_RenderInAnytime) return;
@@ -800,8 +824,19 @@ void LongUI::CUIManager::wait_for_vblank() noexcept {
 }
 
 
-// 利用模板ID创建控件
-auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, CreateControlEvent function) noexcept ->UIControl* {
+/// <summary>
+/// Creates the control.
+/// 利用模板ID创建控件
+/// </summary>
+/// <param name="cp">The cp.</param>
+/// <param name="templateid">The templateid.</param>
+/// <param name="function">The function.</param>
+/// <returns></returns>
+auto LongUI::CUIManager::CreateControl(
+    UIContainer* cp, 
+    size_t templateid, 
+    CreateControlEvent function
+) noexcept ->UIControl* {
     // 检查参数
     assert(function && "function must be specified");
     //assert(templateid && "template id must be specified");
@@ -813,8 +848,21 @@ auto LongUI::CUIManager::CreateControl(UIContainer* cp, size_t templateid, Creat
     return function(cp->GetCET(), m_pTemplateNodes[templateid]);
 }
 
-// 利用现有资源创建控件
-auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlEvent function, pugi::xml_node node, size_t tid) noexcept -> UIControl * {
+/// <summary>
+/// Create_controls the specified cp.
+/// 利用现有资源创建控件
+/// </summary>
+/// <param name="cp">The cp.</param>
+/// <param name="function">The function.</param>
+/// <param name="node">The node.</param>
+/// <param name="tid">The tid.</param>
+/// <returns></returns>
+auto LongUI::CUIManager::create_control(
+    UIContainer* cp, 
+    CreateControlEvent function, 
+    pugi::xml_node node, 
+    size_t tid
+) noexcept -> UIControl * {
     // TODO: NODE
     assert(node && "call another method if no xml-node");
     // 检查参数 function
@@ -851,7 +899,14 @@ auto LongUI::CUIManager::create_control(UIContainer* cp, CreateControlEvent func
     return function ? function(cp->GetCET(), node) : nullptr;
 }
 
-// 创建UI窗口
+/// <summary>
+/// Create_ui_windows the specified node.
+/// 创建UI窗口
+/// </summary>
+/// <param name="node">The node.</param>
+/// <param name="parent">The parent.</param>
+/// <param name="call">The call.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::create_ui_window(
     pugi::xml_node node,
     XUIBaseWindow* parent,
@@ -892,7 +947,7 @@ auto LongUI::CUIManager::create_ui_window(
     //::Sleep(500);
     auto time = dbg_tmtr.Delta_ms<double>();
     UIManager << DL_Log
-        << Formated(L" took %.3lfms for recreate.", time)
+        << Formated(L" took %.3lfms to recreate.", time)
         << LongUI::endl;
     dbg_tmtr.MovStartEnd();
 #endif
@@ -902,7 +957,7 @@ auto LongUI::CUIManager::create_ui_window(
 #ifdef _DEBUG
     time = dbg_tmtr.Delta_ms<double>();
     UIManager << DL_Log
-        << Formated(L" took %.3lfms for making.", time)
+        << Formated(L" took %.3lfms to make tree.", time)
         << LongUI::endl;
     dbg_tmtr.MovStartEnd();
 #endif
@@ -911,7 +966,7 @@ auto LongUI::CUIManager::create_ui_window(
 #ifdef _DEBUG
     time = dbg_tmtr.Delta_ms<double>();
     UIManager << DL_Log
-        << Formated(L" took %.3lfms for sending finished event.", time)
+        << Formated(L" took %.3lfms to send finished event.", time)
         << LongUI::endl;
     //::Sleep(500);
 #endif
@@ -955,12 +1010,19 @@ auto LongUI::CUIManager::GetThemeColor(D2D1_COLOR_F& colorf) noexcept -> HRESULT
     return hr;
 }
 
-// CUIManager 构造函数
+/// <summary>
+/// Initializes a new instance of the <see cref="CUIManager"/> class.
+///  <see cref="CUIManager"/> 构造函数
+/// </summary>
 LongUI::CUIManager::CUIManager() noexcept  {
 
 }
 
-// CUIManager 析构函数
+/// <summary>
+/// Finalizes an instance of the <see cref="CUIManager"/> class.
+///  <see cref="CUIManager"/> 析构函数
+/// </summary>
+/// <returns></returns>
 LongUI::CUIManager::~CUIManager() noexcept {
     this->discard_resources();
 }
@@ -1041,7 +1103,13 @@ void LongUI::CUIManager::ShowError(HRESULT hr, const wchar_t* str_b) noexcept {
     this->ShowError(buffer, str_b);
 }
 
-// 注册文本渲染器
+/// <summary>
+/// Registers the text renderer.
+/// 注册文本渲染器
+/// </summary>
+/// <param name="renderer">The renderer.</param>
+/// <param name="name">The name.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::RegisterTextRenderer(
     XUIBasicTextRenderer* renderer, 
     const char name[LongUITextRendererNameMaxLength]
@@ -1060,7 +1128,11 @@ auto LongUI::CUIManager::RegisterTextRenderer(
     return count;
 }
 
-// 创建0索引资源
+/// <summary>
+/// Create_indexzero_resourceses this instance.
+/// 创建0索引资源
+/// </summary>
+/// <returns></returns>
 auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     assert(m_pResourceBuffer && "bad alloc");
     HRESULT hr = S_OK;
@@ -1121,7 +1193,11 @@ auto LongUI::CUIManager::create_indexzero_resources() noexcept ->HRESULT {
     return hr;
 }
 
-// 清理延迟清理链
+/// <summary>
+/// Cleanup_delay_cleanup_chains this instance.
+/// 清理延迟清理链
+/// </summary>
+/// <returns></returns>
 void LongUI::CUIManager::cleanup_delay_cleanup_chain() noexcept {
     for (auto ctrl : m_vDelayCleanup) {
         ctrl->Release();
@@ -1133,7 +1209,12 @@ void LongUI::CUIManager::cleanup_delay_cleanup_chain() noexcept {
     m_vDelayDispose.clear();
 }
 
-// 载入模板字符串
+/// <summary>
+/// Load_control_template_strings the specified string.
+/// 载入模板字符串
+/// </summary>
+/// <param name="str">The string.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept ->HRESULT {
     // 检查参数
     if (str && *str) {
@@ -1161,7 +1242,11 @@ auto LongUI::CUIManager::load_control_template_string(const char* str) noexcept 
 }
 
 
-// 设置模板字符串
+/// <summary>
+/// Set_control_template_strings this instance.
+/// 设置模板字符串
+/// </summary>
+/// <returns></returns>
 auto LongUI::CUIManager::set_control_template_string() noexcept ->HRESULT {
     // 有效情况
     if (m_cCountCtrlTemplate > 1) {
@@ -1218,7 +1303,11 @@ auto LongUI::CUIManager::create_dxgi_output() noexcept -> HRESULT {
     return S_FALSE;
 }
 
-// UIManager 创建设备相关资源
+/// <summary>
+/// Create_device_resourceses this instance.
+/// UIManager 创建设备相关资源
+/// </summary>
+/// <returns></returns>
 auto LongUI::CUIManager::create_device_resources() noexcept ->HRESULT {
     // 重新获取flag
     this->flag = this->configure->GetConfigureFlag();
@@ -1495,7 +1584,11 @@ namespace LongUI {
     };
 }
 
-// 创建系统笔刷
+/// <summary>
+/// Create_system_brusheses this instance.
+/// 创建系统笔刷
+/// </summary>
+/// <returns></returns>
 auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
     HRESULT hr = S_OK;
     // 透明表示笔刷 - 杂色间隔
@@ -1681,7 +1774,11 @@ auto LongUI::CUIManager::create_system_brushes() noexcept -> HRESULT {
 extern ID3D11Debug*    g_pd3dDebug_longui;
 #endif
 
-// UIManager 丢弃
+/// <summary>
+/// Discard_resourceses this instance.
+/// 丢弃设备资源
+/// </summary>
+/// <returns></returns>
 void LongUI::CUIManager::discard_resources() noexcept {
     // 释放系统笔刷
     for (auto& brush : m_apSystemBrushes) {
@@ -1734,7 +1831,12 @@ void LongUI::CUIManager::discard_resources() noexcept {
 #endif
 }
 
-// 获取位图
+/// <summary>
+/// Gets the bitmap via index.
+/// 获取位图
+/// </summary>
+/// <param name="index">The index.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::GetBitmap(size_t index) noexcept ->ID2D1Bitmap1* {
     // 越界
     if (index >= m_cCountBmp) {
@@ -1762,7 +1864,12 @@ auto LongUI::CUIManager::GetBitmap(size_t index) noexcept ->ID2D1Bitmap1* {
     return LongUI::SafeAcquire(bitmap);
 }
 
-// 获取笔刷
+/// <summary>
+/// Gets the brush.
+/// 获取笔刷
+/// </summary>
+/// <param name="index">The index.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::GetBrush(size_t index) noexcept -> ID2D1Brush* {
     // 越界
     if (index >= m_cCountBrs) {
@@ -1790,7 +1897,12 @@ auto LongUI::CUIManager::GetBrush(size_t index) noexcept -> ID2D1Brush* {
     return LongUI::SafeAcquire(brush);
 }
 
-// CUIManager 获取文本格式
+/// <summary>
+/// Gets the text format.
+/// 获取文本格式
+/// </summary>
+/// <param name="index">The index.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextFormat* {
     // 越界
     if (index >= m_cCountTf) {
@@ -1818,7 +1930,12 @@ auto LongUI::CUIManager::GetTextFormat(size_t index) noexcept ->IDWriteTextForma
     return LongUI::SafeAcquire(format);
 }
 
-// 利用名称获取
+/// <summary>
+/// Gets the text renderer.
+/// 利用名称获取
+/// </summary>
+/// <param name="name">The name.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> XUIBasicTextRenderer* {
     int index = 0;
     // 字符串有效情况下
@@ -1842,7 +1959,13 @@ auto LongUI::CUIManager::GetTextRenderer(const char* name) const noexcept -> XUI
     return this->GetTextRenderer(index);
 }
 
-// 获取图元
+/// <summary>
+/// Gets the meta.
+/// 获取图元
+/// </summary>
+/// <param name="index">The index.</param>
+/// <param name="meta">The meta.</param>
+/// <returns></returns>
 void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
     // 越界
     if (index >= m_cCountMt) {
@@ -1878,7 +2001,12 @@ void LongUI::CUIManager::GetMeta(size_t index, LongUI::Meta& meta) noexcept {
     }
 }
 
-// 获取Meta的图标句柄
+/// <summary>
+/// Gets the meta hicon.
+/// 获取Meta的图标句柄
+/// </summary>
+/// <param name="index">The index.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
     // 越界
     if (index >= m_cCountMt) {
@@ -2008,7 +2136,12 @@ auto LongUI::CUIManager::GetMetaHICON(size_t index) noexcept -> HICON {
 
 
 
-// 添加窗口
+/// <summary>
+/// Adds the window.
+/// 添加窗口
+/// </summary>
+/// <param name="wnd">The WND.</param>
+/// <returns></returns>
 void LongUI::CUIManager::AddWindow(XUISystemWindow* wnd) noexcept {
     assert(wnd && "bad argument");
     // 检查是否已经存在
@@ -2024,7 +2157,11 @@ void LongUI::CUIManager::AddWindow(XUISystemWindow* wnd) noexcept {
     m_vWindows.push_back(wnd);
 }
 
-// 刷新屏幕刷新率
+/// <summary>
+/// Refresh_display_frequencies this instance.
+/// 刷新屏幕刷新率
+/// </summary>
+/// <returns></returns>
 void LongUI::CUIManager::refresh_display_frequency() noexcept {
     // 获取屏幕刷新率
     DEVMODEW mode; std::memset(&mode, 0, sizeof(mode));
@@ -2087,7 +2224,12 @@ void LongUI::CUIManager::update_time_capsules(float time) noexcept {
     }
 }
 
-// 移除时间胶囊
+/// <summary>
+/// Remove_time_capsules the specified identifier.
+/// 移除时间胶囊
+/// </summary>
+/// <param name="id">The identifier.</param>
+/// <returns></returns>
 void LongUI::CUIManager::remove_time_capsule(void* id) noexcept {
     size_t realid = reinterpret_cast<size_t>(id);
     for (auto itr = m_vTimeCapsules.begin(); itr != m_vTimeCapsules.end(); ++itr) {
@@ -2100,7 +2242,14 @@ void LongUI::CUIManager::remove_time_capsule(void* id) noexcept {
     }
 }
 
-// 添加时间胶囊
+/// <summary>
+/// Push_time_capsules the specified call.
+/// 添加时间胶囊
+/// </summary>
+/// <param name="call">The call.</param>
+/// <param name="id">The identifier.</param>
+/// <param name="time">The time.</param>
+/// <returns></returns>
 void LongUI::CUIManager::push_time_capsule(TimeCapsuleCall && call, void* id, float time) noexcept {
     const size_t realid = reinterpret_cast<size_t>(id);
     // 有效情况下
@@ -2129,7 +2278,12 @@ void LongUI::CUIManager::push_time_capsule(TimeCapsuleCall && call, void* id, fl
     }
 }
 
-// 移出窗口
+/// <summary>
+/// Removes the window.
+/// 移除窗口
+/// </summary>
+/// <param name="wnd">The WND.</param>
+/// <returns></returns>
 void LongUI::CUIManager::RemoveWindow(XUISystemWindow* wnd) noexcept {
     // 检查时是不是在本数组中
     // 正式移除
@@ -2206,7 +2360,13 @@ bool LongUI::CUIManager::TryElevateUACNow(const wchar_t* parameters, bool exit) 
 
 #ifdef _DEBUG
 
-// 传递可视化东西
+/// <summary>
+/// Formateds the specified format.
+/// 传递可视化东西
+/// </summary>
+/// <param name="format">The format.</param>
+/// <param name="">The .</param>
+/// <returns></returns>
 auto LongUI::Formated(const wchar_t* format, ...) noexcept -> const wchar_t* {
     static thread_local wchar_t buffer[2048];
     va_list ap;
@@ -2216,7 +2376,13 @@ auto LongUI::Formated(const wchar_t* format, ...) noexcept -> const wchar_t* {
     return buffer;
 }
 
-// 传递可视化东西
+/// <summary>
+/// Interfmts the specified format.
+/// 传递可视化东西
+/// </summary>
+/// <param name="format">The format.</param>
+/// <param name="">The .</param>
+/// <returns></returns>
 auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
     static thread_local wchar_t buffer[2048];
     va_list ap;
@@ -2226,13 +2392,23 @@ auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
     return buffer;
 }
 
-// 换行刷新重载
+/// <summary>
+/// Operators the specified .
+/// 换行刷新重载
+/// </summary>
+/// <param name="">The .</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const LongUI::EndL&) noexcept ->CUIManager& {
     wchar_t chs[3] = { L'\r',L'\n', 0 };
     this->Output(m_lastLevel, chs);
     return *this;
 }
 
+/// <summary>
+/// Operators the specified desc.
+/// </summary>
+/// <param name="desc">The desc.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept ->CUIManager& {
     CUIString str;
     str.Format(
@@ -2257,6 +2433,11 @@ auto LongUI::CUIManager::operator<<(const DXGI_ADAPTER_DESC& desc) noexcept ->CU
     return *this;
 }
 
+/// <summary>
+/// Operators the specified rect.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept ->CUIManager& {
     CUIString str;
     str.Format(
@@ -2267,6 +2448,11 @@ auto LongUI::CUIManager::operator<<(const RectLTWH_F& rect) noexcept ->CUIManage
     return *this;
 }
 
+/// <summary>
+/// Operators the specified matrix.
+/// </summary>
+/// <param name="matrix">The matrix.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept ->CUIManager& {
     CUIString str;
     str.Format(
@@ -2279,6 +2465,11 @@ auto LongUI::CUIManager::operator<<(const D2D1_MATRIX_3X2_F& matrix) noexcept ->
     return *this;
 }
 
+/// <summary>
+/// Operators the specified rect.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept ->CUIManager& {
     CUIString str;
     str.Format(
@@ -2289,6 +2480,11 @@ auto LongUI::CUIManager::operator<<(const D2D1_RECT_F& rect) noexcept ->CUIManag
     return *this;
 }
 
+/// <summary>
+/// Operators the specified pt.
+/// </summary>
+/// <param name="pt">The pt.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManager& {
     CUIString str;
     str.Format(L"POINT(%7.2f, %7.2f)", pt.x, pt.y);
@@ -2296,21 +2492,38 @@ auto LongUI::CUIManager::operator<<(const D2D1_POINT_2F& pt) noexcept ->CUIManag
     return *this;
 }
 
-// 输出UTF-8字符串 并刷新
+/// <summary>
+/// Outputs the specified l.
+/// 输出UTF-8字符串 并刷新
+/// </summary>
+/// <param name="l">The l.</param>
+/// <param name="s">The s.</param>
+/// <returns></returns>
 void LongUI::CUIManager::Output(DebugStringLevel l, const char* s) noexcept {
     LongUI::SafeUTF8toWideChar(s, [this, l](const wchar_t* begin, const wchar_t*) {
         this->Output(l, begin);
     });
 }
 
-// 输出UTF-8字符串
+/// <summary>
+/// Outputs the no flush.
+/// 输出UTF-8字符串
+/// </summary>
+/// <param name="l">The l.</param>
+/// <param name="s">The s.</param>
+/// <returns></returns>
 void LongUI::CUIManager::OutputNoFlush(DebugStringLevel l, const char* s) noexcept {
     LongUI::SafeUTF8toWideChar(s, [this, l](const wchar_t* begin, const wchar_t*) {
         this->OutputNoFlush(l, begin);
     });
 }
 
-// 浮点重载
+/// <summary>
+/// Operators the specified f.
+/// 浮点重载
+/// </summary>
+/// <param name="f">The f.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager& {
     CUIString str;
     str.Format(L"%.2f", f);
@@ -2318,7 +2531,12 @@ auto LongUI::CUIManager::operator<<(const float f) noexcept ->CUIManager& {
     return *this;
 }
 
-// 指针
+/// <summary>
+/// Operators the specified control.
+/// 指针
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const void* ctrl) noexcept ->CUIManager& {
     CUIString str;
     str.Format(L"[0x%p] ", ctrl);
@@ -2326,25 +2544,31 @@ auto LongUI::CUIManager::operator<<(const void* ctrl) noexcept ->CUIManager& {
     return *this;
 }
 
-// 控件
+/// <summary>
+/// Operators the specified control.
+/// 控件
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const UIControl* ctrl) noexcept ->CUIManager& {
     CUIString str;
-    if (ctrl) {
-        str.Format(
+    if (ctrl) str.Format(
             L"[0x%p{%S}%ls] ",
             ctrl,
             ctrl->name.c_str(),
             ctrl->GetControlClassName(false)
         );
-    }
-    else {
-        str = L"[null]";
-    }
+    else str = L"[null]";
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
 
-// 控件
+/// <summary>
+/// Operators the specified CTRLS.
+/// 控件数组
+/// </summary>
+/// <param name="ctrls">The CTRLS.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const ControlVector& ctrls) noexcept ->CUIManager& {
     CUIString str;
     int index = 0;
@@ -2362,7 +2586,12 @@ auto LongUI::CUIManager::operator<<(const ControlVector& ctrls) noexcept ->CUIMa
     return *this;
 }
 
-// 整型重载
+/// <summary>
+/// Operators the specified l.
+/// 整型输出重载
+/// </summary>
+/// <param name="l">The l.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const long l) noexcept ->CUIManager& {
     CUIString str;
     str.Format(L"%ld", l);
@@ -2370,7 +2599,12 @@ auto LongUI::CUIManager::operator<<(const long l) noexcept ->CUIManager& {
     return *this;
 }
 
-// 整型重载
+/// <summary>
+/// Operators the specified b.
+/// 布尔输出重载
+/// </summary>
+/// <param name="b">The b.</param>
+/// <returns></returns>
 auto LongUI::CUIManager::operator<<(const bool b) noexcept ->CUIManager& {
     this->OutputNoFlush(m_lastLevel, b ? "true" : "false");
     return *this;
