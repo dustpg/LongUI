@@ -263,4 +263,5 @@ LongUI::CUIManager          LongUI::CUIManager::s_instance;
 #pragma comment(lib, "Dwrite")
 #pragma comment(lib, "D3D11")
 #pragma comment(lib, "Mfplat")
+#pragma comment(lib, "Dwmapi")
 #endif

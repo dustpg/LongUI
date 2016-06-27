@@ -1107,6 +1107,8 @@ bool LongUI::CUIBuiltinSystemWindow::MessageHandle(
         // 键入字符
         on_char();
         return true;
+    case WM_DWMCOMPOSITIONCHANGED:
+        return true;
     case WM_NCUAHDRAWCAPTION:
         return true;
     case WM_NCUAHDRAWFRAME:
@@ -1270,6 +1272,8 @@ void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
     this->resized();
 }
 
+// dwm api
+//#include <dwmapi.h>
 
 /// <summary>
 /// Called when [create].
@@ -1277,8 +1281,25 @@ void LongUI::CUIBuiltinSystemWindow::OnResized() noexcept {
 /// <param name="hwnd">The HWND.</param>
 /// <returns></returns>
 void LongUI::CUIBuiltinSystemWindow::OnCreate(HWND hwnd) noexcept {
+    // task bar
     CHANGEFILTERSTRUCT cfs = { sizeof(CHANGEFILTERSTRUCT) };
     ::ChangeWindowMessageFilterEx(hwnd, s_uTaskbarBtnCreatedMsg, MSGFLT_ALLOW, &cfs);
+
+    /*// Inform application of the frame change.
+    RECT rcClient; ::GetWindowRect(hwnd, &rcClient);
+    ::SetWindowPos(hwnd,
+        nullptr,
+        rcClient.left, rcClient.top,
+        rcClient.right - rcClient.left, rcClient.bottom - rcClient.top,
+        SWP_FRAMECHANGED
+    );
+
+    // client area
+    MARGINS margins = { -1 };
+    auto hr = ::DwmExtendFrameIntoClientArea(hwnd, &margins);
+    if (FAILED(hr)) {
+        UIManager.ShowError(hr, L"DwmExtendFrameIntoClientArea");
+    }*/
 }
 
 /// <summary>

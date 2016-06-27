@@ -2,7 +2,11 @@
 #include <Core/luiManager.h>
 #include <algorithm>
 
-// UISlider 背景渲染
+/// <summary>
+/// Render_chain_backgrounds this instance.
+/// UISlider 背景渲染
+/// </summary>
+/// <returns></returns>
 void LongUI::UISlider::render_chain_background() const noexcept {
     Super::render_chain_background();
     // 默认背景?
@@ -47,7 +51,11 @@ void LongUI::UISlider::render_chain_background() const noexcept {
     }
 }
 
-// UISlider 前景
+/// <summary>
+/// Render_chain_foregrounds this instance.
+/// UISlider 前景
+/// </summary>
+/// <returns></returns>
 void LongUI::UISlider::render_chain_foreground() const noexcept {
     // 边框
     m_uiElement.Render(m_rcThumb);
@@ -67,7 +75,11 @@ void LongUI::UISlider::render_chain_foreground() const noexcept {
 }
 
 
-// Render 渲染 
+/// <summary>
+/// Renders this instance.
+/// 渲染 
+/// </summary>
+/// <returns></returns>
 void LongUI::UISlider::Render() const noexcept {
     // 背景渲染
     this->render_chain_background();
@@ -78,7 +90,11 @@ void LongUI::UISlider::Render() const noexcept {
 }
 
 
-// UI滑动条: 刷新
+/// <summary>
+/// Updates this instance.
+/// UI滑动条: 刷新
+/// </summary>
+/// <returns></returns>
 void LongUI::UISlider::Update() noexcept {
     // 更新计时器
     m_uiElement.Update();
@@ -143,6 +159,8 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
     // 链式调用
     Super::initialize(node);
     m_uiElement.Init(this->check_state(), 0, node);
+    // 可被设为焦点
+    auto flag = this->flags | Flag_Focusable;
     // 设置
     {
         const char* str = nullptr;
@@ -158,6 +176,10 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         if ((str = node.attribute("value").value())) {
             this->SetValueSE(LongUI::AtoF(str));
         }
+        // 步进值
+        if ((str = node.attribute("step").value())) {
+            m_fStep = LongUI::AtoF(str);
+        }
         // 滑块大小
         Helper::MakeFloats(
             node.attribute("thumbsize").value(),
@@ -166,12 +188,17 @@ void LongUI::UISlider::initialize(pugi::xml_node node) noexcept {
         // 默认背景
         m_bDefaultBK = node.attribute("defaultbk").as_bool(true);
     }
-    // 记录
-    m_fValueOld = m_fValue;
+    // 修改flag
+    force_cast(this->flags) = flag;
 }
 
 
-// UISlider::CreateControl 函数
+/// <summary>
+/// Creates the UISlider control.
+/// </summary>
+/// <param name="type">The type.</param>
+/// <param name="node">The node.</param>
+/// <returns></returns>
 auto LongUI::UISlider::CreateControl(CreateEventType type, pugi::xml_node node) noexcept ->UIControl* {
     UISlider* pControl = nullptr;
     switch (type)
@@ -194,23 +221,37 @@ bool LongUI::UISlider::DoEvent(const LongUI::EventArgument& arg) noexcept {
     // longui 消息
     switch (arg.event)
     {
+        float value_old;
     case LongUI::Event::Event_SetEnabled:
         // 修改状态
         m_uiElement.SetBasicState(arg.ste.enabled ? State_Normal : State_Disabled);
         return true;
     case LongUI::Event::Event_SetFloat:
         // 修改浮点数据
-    {
-        auto old = m_fValue;
+        value_old = m_fValue;
         this->SetValueSE(arg.stf.value);
-        if (old != m_fValue) {
+        if (value_old != m_fValue) {
             this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
         }
-    }
         return true;
     case LongUI::Event::Event_GetFloat:
         // 获取浮点数据
         arg.fvalue = this->GetValueSE();
+        return true;
+    case LongUI::Event::Event_KeyDown:
+        value_old = m_fValue;
+        // 左上按键
+        if (arg.key.ch == UIInput.KB_LEFT || arg.key.ch == UIInput.KB_UP) {
+            this->SetValueSE(this->GetValueSE() - m_fStep);
+        }
+        // 右下按键
+        else if (arg.key.ch == UIInput.KB_RIGHT || arg.key.ch == UIInput.KB_DOWN) {
+            this->SetValueSE(this->GetValueSE() + m_fStep);
+        }
+        // 修改事件
+        if (value_old != m_fValue) {
+            this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
+        }
         return true;
     }
     return Super::DoEvent(arg);
@@ -226,6 +267,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         this->world, D2D1_POINT_2F{arg.ptx, arg.pty}
         );
     bool nocontinued = false;
+    const auto value_old = m_fValue;
     // 修改值
     auto changed_value = [this, pt4self](float pos) noexcept {
         // 获取基本值
@@ -314,8 +356,7 @@ bool LongUI::UISlider::DoMouseEvent(const MouseEventArgument& arg) noexcept {
         break;
     }
     // 检查事件
-    if (m_fValueOld != m_fValue) {
-        m_fValueOld = m_fValue;
+    if (value_old != m_fValue) {
         // 调用
         this->CallUiEvent(m_event, SubEvent::Event_ValueChanged);
         // 刷新

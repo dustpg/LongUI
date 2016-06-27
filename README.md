@@ -17,9 +17,7 @@ Current Version : **Alpha-Stage**
   - static-link framework.
   - The `helloworld` in 200+kb only(/MD in MSC).
 
-[Known Issues](./KnownIssues.md)  
-[Document](./Document/)  
-[DemosShow](./DemosShow.md)  
+[Document](./Document/) [DemosShow](./DemosShow.md) [Known Issues](./KnownIssues.md) 
 
 ## Requirements
   

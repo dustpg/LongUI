@@ -96,8 +96,8 @@ namespace LongUI {
         Component::Element4Button   m_uiElement;
         // value range[0, 1]
         float                       m_fValue = 0.f;
-        // value range[0, 1]
-        float                       m_fValueOld = 0.f;
+        // value change step
+        float                       m_fStep = 0.1f;
         // start
         float                       m_fStart = 0.f;
         // end
