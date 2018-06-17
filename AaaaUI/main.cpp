@@ -106,7 +106,7 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
         {
             LongUI::UIViewport viewport1;
 #if 1
-            main_inited(viewport1, 8);
+            main_inited(viewport1, 7);
             viewport1.AddSpacer({ 100, 100 }, 1);
             (new(std::nothrow) LongUI::UILabel{ &viewport1 })->SetText(L"hello");
             LongUI::UILabel world{ &viewport1 };

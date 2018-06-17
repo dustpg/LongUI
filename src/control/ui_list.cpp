@@ -120,11 +120,11 @@ void LongUI::UIListBox::relayout() noexcept {
     const auto ctsize = this->GetBox().GetContentSize();
     // 先布局列对象(有面积!)
     // TODO: 要求最小面积(至少要有头吧?) 这里就不用判断了
-    if (m_pCols && ctsize.height * ctsize.width > 0.f) {
+    if (m_pCols/* && ctsize.height * ctsize.width > 0.f*/) {
         m_pCols->SetPos(lt);
         this->resize_child(*m_pCols, ctsize);
         // 下次再来
-        if (m_pCols->WillRelayout() && ctsize.height > 0.f)
+        if (m_pCols->WillRelayout())
             return this->NeedRelayout();
     }
     // 拥有头对象?
@@ -358,9 +358,11 @@ auto LongUI::UIListBox::DoEvent(UIControl* sender,
     switch (e.nevent)
     {
     case NoticeEvent::Event_RefreshBoxMinSize:
-        // TODO: 更新最小大小
-        Super::DoEvent(sender, e);
+        // 先更新cols的最小大小以确定宽度
         this->refresh_cols_minsize();
+        // 更新最小大小
+        //Super::DoEvent(sender, e);
+        this->refresh_minsize();
         return Event_Accept;
     default:
         // 其他事件
@@ -465,6 +467,31 @@ void LongUI::UIListBox::refresh_cols_minsize() noexcept {
         ++itr;
     }
     m_pCols->DoEvent(this, { NoticeEvent::Event_RefreshBoxMinSize });
+}
+
+
+/// <summary>
+/// Refreshes the minsize.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIListBox::refresh_minsize() noexcept {
+    Size2F msize = { 0.f };
+    // 先确定Head
+    if (m_pHead) {
+        msize = m_pHead->GetBox().minsize;
+    }
+    // 再确定Body
+    const auto b = m_list.begin();
+    auto e = m_list.end();
+    // 超过的话只计算前面N个
+    if (m_list.size() > m_displayRow) {
+        e = b + m_displayRow;
+    }
+    std::for_each(b, e, [&msize](auto ctrl) noexcept {
+        msize.height += ctrl->GetBox().minsize.height;
+    });
+    // 设置大小
+    this->set_contect_minsize(msize);
 }
 
 // ----------------------------------------------------------------------------

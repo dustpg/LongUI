@@ -97,6 +97,8 @@ namespace LongUI {
         void relayout() noexcept;
         // refresh cols min size
         void refresh_cols_minsize() noexcept;
+        // refresh this min size
+        void refresh_minsize() noexcept;
         // select item
         void select_item(UIListItem& item) noexcept;
         // refresh items index
@@ -120,6 +122,8 @@ namespace LongUI {
         ItemList            m_selected;
         // minwidth
         POD::Vector<float>  m_minwidth;
+        // minsize display row | xul::rows related
+        uint8_t             m_displayRow = 2;
         // select type
         AttributeSeltype    m_seltype = Seltype_Single;
     };
