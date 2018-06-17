@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<window title="Hello bChick"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+   
+  <script type="application/x-javascript"
+	  src="chrome://global/content/dialogOverlay.js" />
+  
+  <toolbox tooltiptext="Hi sailor">
+    <popup id="menubar-popup"><menuitem label="This is a menubar" /></popup>  
+    <menubar id="my-menubar" context="menubar-popup">
+      <menu label="file">
+	<menupopup>
+	  <menuitem label="new" oncommand="doNew();" />
+	  <menuitem label="open" oncommand="doOpen();" />
+	</menupopup>
+      </menu>
+      <menu label="edit" />
+      <spacer flex="1" />
+      <menu label="help" />
+    </menubar> 
+    
+    <popup id="toolbar-popup"><menuitem label="This is a toolbar" /></popup>  
+    <toolbar id="my-toolbar" context="toolbar-popup"
+	     tbautostretch="always" persist="collapsed">
+      <toolbarbutton id="newBtn" label="new" oncommand="doNew();" />
+      <toolbarseparator />
+      <toolbarbutton id="openBtn" label="open" oncommand="doOpen();" />
+      <spacer flex="1" />
+      <toolbarbutton id="helpBtn" label="help" oncommand="doHelp();" />
+    </toolbar>
+  </toolbox>
+  
+  <vbox align="left" id="vb" flex="1">
+
+    <popup id="xlabel-popup"><menuitem label="This is an xlabel" /></popup>  
+    <label id="xlabel"  value="label.val;" context="xlabel-popup" />
+
+    <popup id="image-popup"><menuitem label="This is an image" /></popup>  
+    <image src="images/star.png" context="image-popup"/>
+
+    <popup id="listbox-popup"><menuitem label="This is a listbox" /></popup>  
+    <listbox rows="5" class="list" id="my-list" flex="1" context="listbox-popup">
+      <listcols>
+	<listcol flex="1" />
+	<splitter class="tree-splitter" />
+	<listcol flex="2" />
+	<splitter class="tree-splitter" />
+	<listcol flex="3" />
+      </listcols>
+      <listhead>
+	<listheader label="Name" />
+	<listheader label="Sex" />
+	<listheader label="Color" />
+      </listhead>
+      <listitem>
+	<listcell label="Pearl" />
+	<listcell label="Female" />
+	<listcell label="Gray" />
+      </listitem>
+      <listitem>
+	<listcell label="Aramis" />
+	<listcell label="Male" />
+	<listcell label="Black" />
+      </listitem>
+      <listitem>
+	<listcell label="Yakima" />
+	<listcell label="Male" />
+	<listcell label="Holstein" />
+      </listitem>
+      <listitem>
+	<listcell label="Cosmo" />
+	<listcell label="Female" />
+	<listcell label="White" />
+      </listitem>
+      <listitem>
+	<listcell label="Fergus" />
+	<listcell label="Male" />
+	<listcell label="Black" />
+      </listitem>
+    </listbox>
+    
+    <popup id="menulist-popup"><menuitem label="This is a menulist"/></popup>  
+    <menulist id="my-menulist" editable="true" context="menulist-popup" > 
+      <menupopup>  
+	<menuitem label="new" oncommand="doNew();" />
+	<menuitem label="open" oncommand="doOpen();" />
+      </menupopup>  
+    </menulist>  
+    
+    <popup id="button-popup"><menuitem label="This is a button"/></popup>  
+    <button label="btn.lbl;" oncommand="greet();" context="button-popup" />
+  </vbox>
+  
+  <popup id="my-popup">
+    <menuitem label="popupTitle" />
+    <menuseparator />
+    <menuitem label="new" oncommand="doNew();" />
+    <menuitem label="open" oncommand="doOpen();" />
+  </popup>  
+  
+</window>

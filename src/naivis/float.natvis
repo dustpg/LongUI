@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--debug display format float: x.xx-->
+  <Type Name="LongUI::DDFFloat2">
+    <DisplayString>
+{(int)f,d}.
+{((int)(f*10))%10,d}
+{((int)(f*100))%10,d}
+    </DisplayString>
+  </Type>
+  <!--debug display format float: x.xxx-->
+  <Type Name="LongUI::DDFFloat3">
+    <DisplayString>
+{(int)f,d}.
+{((int)(f*10))%10,d}
+{((int)(f*100))%10,d}
+{((int)(f*1000))%10,d}
+    </DisplayString>
+  </Type>
+  <!--debug display format float: x.xxxx-->
+  <Type Name="LongUI::DDFFloat4">
+    <DisplayString>
+{(int)f,d}.
+{((int)(f*10))%10,d}
+{((int)(f*100))%10,d}
+{((int)(f*1000))%10,d}
+{((int)(f*10000))%10,d}
+    </DisplayString>
+  </Type>
+</AutoVisualizer>

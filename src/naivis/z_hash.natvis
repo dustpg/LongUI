@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--POD Hash-->
+  <Type Name="LongUI::POD::HashMap&lt;*&gt;">
+    <DisplayString>{{ size = { m_cItemSize } }}</DisplayString>
+    <Expand>
+      <CustomListItems MaxItemsPerView="5000" ExcludeView="Test">
+        <Variable Name="bucket" InitialValue="m_pBaseTable"/>
+        <Variable Name="cell" InitialValue="(LongUI::POD::detail::hash_cell*)nullptr"/>
+        <Variable Name="nullcase_i" InitialValue="0"/>
+        <Size>m_cItemSize</Size>
+        <!--m_pBaseTable == nullptr-->
+        <If Condition="bucket == nullptr">
+          <Loop>
+            <Break Condition="nullcase_i == m_cItemSize"/>
+            <Item>"OOM: m_pBaseTable == nullptr", sb</Item>
+            <Exec>nullcase_i++</Exec>
+          </Loop>
+        </If>
+        <!--m_pBaseTable != nullptr-->
+        <Else>
+          <!--for each: bucket list-->
+          <Loop Condition="*bucket != 233">
+            <Exec>cell = (LongUI::POD::detail::hash_cell*)bucket[0]</Exec>
+            <!--for each: cell list-->
+            <Loop Condition="cell != nullptr">
+              <Item >*(value_type*)(&amp;cell->str), na</Item>
+              <Exec>cell = cell->next</Exec>
+            </Loop>
+            <Exec>bucket++</Exec>
+          </Loop>
+        </Else>
+      </CustomListItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

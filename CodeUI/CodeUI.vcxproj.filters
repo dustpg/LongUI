@@ -1,0 +1,985 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="header">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="source\cfunc">
+      <UniqueIdentifier>{722bcaeb-9f5b-4bf8-8932-1b19e0b9461a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\container">
+      <UniqueIdentifier>{9de67fa4-a599-45b3-a857-9bce71c12773}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\control">
+      <UniqueIdentifier>{0ff1819c-5538-419a-83f3-2041a23c6ba3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\debugger">
+      <UniqueIdentifier>{3b05f7e3-dfc9-4d06-b87e-bba7a80809c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\thread">
+      <UniqueIdentifier>{68c383f9-5075-4703-8e1b-535708d4a2db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\constexpr">
+      <UniqueIdentifier>{320c1072-a6ac-460b-8e5c-db4ccbff6a5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\container">
+      <UniqueIdentifier>{c61bf596-6109-4f35-9f22-661ea6b39364}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\core">
+      <UniqueIdentifier>{74e8adda-a48e-48c4-8895-4e7af25142c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\interface">
+      <UniqueIdentifier>{1623c663-0142-4477-bb70-6dca3f0eeac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="naivis">
+      <UniqueIdentifier>{f7855509-e0e5-416f-9c9b-ecd980fbcc29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\control">
+      <UniqueIdentifier>{c73d5931-ea5e-4a98-bbbd-c0ffe54a9e38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\thread">
+      <UniqueIdentifier>{2b4a0e09-51bd-40ee-aef7-67d420d6f6d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\util">
+      <UniqueIdentifier>{36d75b7e-1749-4c88-b729-fe6ecc15e001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\util">
+      <UniqueIdentifier>{e6a72991-7098-42c8-8bab-2211e87117d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\typecheck">
+      <UniqueIdentifier>{5d6ba8f4-fb3d-44cf-9d7c-66411d50bc05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\debugger">
+      <UniqueIdentifier>{15e9b041-3fa9-44a6-bf56-8ad43b7a2c36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\core\type_decl">
+      <UniqueIdentifier>{7d4982ad-0b2f-4e37-9ba0-b71338c53492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\core">
+      <UniqueIdentifier>{0289de38-5e08-42b1-99e9-106cf814d4d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\input">
+      <UniqueIdentifier>{940f2e2d-7fe0-4b56-8160-d1fdefd37c2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\filesystem">
+      <UniqueIdentifier>{58ebc83b-de89-4e8c-86d6-3292d38fa834}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\filesystem">
+      <UniqueIdentifier>{a2ba2a93-07bb-4788-9f4b-2f1b6d2b1e7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\input">
+      <UniqueIdentifier>{548c9bbd-5970-4bd6-aa13-7ddb9edf400e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\style">
+      <UniqueIdentifier>{5cbe3782-1cfc-411a-b11e-710c73906168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\event">
+      <UniqueIdentifier>{f5f26c46-567b-42fc-b601-053dcea6f62c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\style">
+      <UniqueIdentifier>{6054dcc8-fac8-4794-8cab-afab5a9bce66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\event">
+      <UniqueIdentifier>{c8fb3ce7-1aec-4b91-a698-249efa6e26a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\graphics">
+      <UniqueIdentifier>{3052e5b3-6877-480b-af93-2105622051f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\graphics">
+      <UniqueIdentifier>{5a33c31d-2e3e-4718-8fad-3865a480f553}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\interface">
+      <UniqueIdentifier>{b83431dd-d714-4b99-a350-dc278a89309a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\private">
+      <UniqueIdentifier>{df804da4-4c5a-453e-b7c0-a5c7db53cdf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\text">
+      <UniqueIdentifier>{89ec46fb-330d-4769-819a-9ebe01c65191}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\image">
+      <UniqueIdentifier>{7000f022-6db7-4930-8101-2693f5792911}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\text">
+      <UniqueIdentifier>{181992d2-37ea-4f99-abb5-d1b0eb67990c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\control\gapi">
+      <UniqueIdentifier>{a947198d-917a-4fc7-8bf9-e78663d4621c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\resource">
+      <UniqueIdentifier>{578d7e75-b9b8-4c07-a285-98018882bda6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\resource">
+      <UniqueIdentifier>{920c1762-c4be-47be-b5f2-3f3e218671ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\private\source">
+      <UniqueIdentifier>{e6c6d25b-928b-4b69-9b6e-25257ef19487}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\accessible">
+      <UniqueIdentifier>{07e56794-4e13-4148-9934-6d21456979de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\style\native">
+      <UniqueIdentifier>{4ff79046-1c87-49d0-af12-aa8d67ca9f6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\accessible">
+      <UniqueIdentifier>{64fca7be-cd69-40ce-b76a-a439e9634ae9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TextBC">
+      <UniqueIdentifier>{385110b9-e856-44b7-ad8d-032571f62f88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\xul">
+      <UniqueIdentifier>{a6d71977-def0-4209-8c07-3d678c1966da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\xul">
+      <UniqueIdentifier>{831aee61-bd1d-4925-8862-1c2ee723490e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\cfunciton\ui_colorsystem.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cfunciton\ui_easing.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cfunciton\ui_namecolor.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cfunciton\ui_stringcolor.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cfunciton\ui_util.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cfunciton\view_atof.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cfunciton\view_atoi.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cfunciton\view_unicode.c">
+      <Filter>source\cfunc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\container\pod_hash.cpp">
+      <Filter>source\container</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\container\pod_sharedarray.cpp">
+      <Filter>source\container</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\container\pod_vector.cpp">
+      <Filter>source\container</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\container\ui_string.cpp">
+      <Filter>source\container</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\container\ui_string_view.cpp">
+      <Filter>source\container</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debugger\ui_loginfo.cpp">
+      <Filter>source\debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debugger\ui_tracer.cpp">
+      <Filter>source\debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\thread\ui_fiber.cpp">
+      <Filter>source\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\thread\ui_locker.cpp">
+      <Filter>source\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\thread\ui_rwlocker.cpp">
+      <Filter>source\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\thread\ui_waiter.cpp">
+      <Filter>source\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debugger\ui_debug.cpp">
+      <Filter>source\debugger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\ui_animation.cpp">
+      <Filter>source\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\ui_unicode.cpp">
+      <Filter>source\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\ui_color_sysem.cpp">
+      <Filter>source\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_basic_type.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_manager.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_window_manager.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\filesystem\ui_file.cpp">
+      <Filter>source\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\filesystem\ui_fileop.cpp">
+      <Filter>source\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\filesystem\ui_findfile.cpp">
+      <Filter>source\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\input\ui_kminput.cpp">
+      <Filter>source\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_window.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_node.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\ui_ssvalue.cpp">
+      <Filter>source\style</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\ui_function.cpp">
+      <Filter>source\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_control.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_malloc.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_bg_renderer.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\ui_style.cpp">
+      <Filter>source\style</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\interface\ui_default_config.cpp">
+      <Filter>source\interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_viewport.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_scroll_bar.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_box_layout.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_scroll_area.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_control_control.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_color.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_control_state.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_cursor.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_resource_manager.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\ui_style_value.cpp">
+      <Filter>source\style</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\event\ui_event_host.cpp">
+      <Filter>source\event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_spacer.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\ui_double_click.cpp">
+      <Filter>source\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_test.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_all_control_info.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_button.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_image.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_label.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\text\ui_text_layout.cpp">
+      <Filter>source\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\gapi\ui_control_g.cpp">
+      <Filter>source\control\gapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\gapi\ui_label_g.cpp">
+      <Filter>source\control\gapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resource\ui_res_image.cpp">
+      <Filter>source\resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\private\ui_private_control.cpp">
+      <Filter>source\private\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\private\ui_private_image.cpp">
+      <Filter>source\private\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resource\ui_resource_id.cpp">
+      <Filter>source\resource</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\ui_named_control.cpp">
+      <Filter>source\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_const_sstring.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_matrix.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\ui_native_style.cpp">
+      <Filter>source\style</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_graphics_util.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_hidpi.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\ui_style_state.cpp">
+      <Filter>source\style</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_bd_renderer.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_btn.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_geometry.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_mesh.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_cbx.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_radio.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_slider.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_scale.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_checkbox.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_caption.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_textbox.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\gapi\ui_textbox_g.cpp">
+      <Filter>source\control\gapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\accessible\ui_accessible_win.cpp">
+      <Filter>source\accessible</Filter>
+    </ClCompile>
+    <ClCompile Include="..\TextBC\bc_txtcell.cpp">
+      <Filter>TextBC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\TextBC\bc_txtdoc.cpp">
+      <Filter>TextBC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\container\nonpod_vector.cpp">
+      <Filter>source\container</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_radio.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_group_box.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_menu_list.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_menu_popup.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_menu_item.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_bg.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\TextBC\bc_txtstr.cpp">
+      <Filter>TextBC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\TextBC\bc_txtbuf.cpp">
+      <Filter>TextBC</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\ui_time_clipboard.cpp">
+      <Filter>source\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xul\SimpAX.cpp">
+      <Filter>source\xul</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_group.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_progress.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_list.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_tree.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_tree.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_abtn.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_stackdeck.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_tab.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_splitter.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\native\ui_win10_tab.cpp">
+      <Filter>source\style\native</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debugger\ui_debug_window.cpp">
+      <Filter>source\debugger</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\src\naivis\z_string.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\z_string_view.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\z_vector.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\color.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\float.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\z_hash.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\z_sharedarray.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\result.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\ui_control.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+    <Natvis Include="..\TextBC\bc_txtedit.natvis">
+      <Filter>TextBC</Filter>
+    </Natvis>
+    <Natvis Include="..\src\naivis\simpax.natvis">
+      <Filter>naivis</Filter>
+    </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\typecheck\is_iterator.h">
+      <Filter>header\typecheck</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\typecheck\int_by_size.h">
+      <Filter>header\typecheck</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_string.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_string_view.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\constexpr\const_bkdr.h">
+      <Filter>header\constexpr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container\pod_fixedqueue.h">
+      <Filter>header\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container\pod_hash.h">
+      <Filter>header\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container\pod_sharedarray.h">
+      <Filter>header\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container\pod_vector.h">
+      <Filter>header\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\interface\ui_interface.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\thread\ui_fiber.h">
+      <Filter>header\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\thread\ui_locker.h">
+      <Filter>header\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\thread\ui_rwlocker.h">
+      <Filter>header\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\thread\ui_waiter.h">
+      <Filter>header\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_aniamtion.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_time.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_unicode.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\debugger\ui_loginfo.h">
+      <Filter>header\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\debugger\ui_tracer.h">
+      <Filter>header\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_endian.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_color_system.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_color.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_basic_interface.h">
+      <Filter>header\core\type_decl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_basic_type.h">
+      <Filter>header\core\type_decl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_core_type.h">
+      <Filter>header\core\type_decl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_color_list.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\debugger\ui_debug.h">
+      <Filter>header\debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_manager.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_unimacro.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_window_manager.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_node.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_time_meter.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\input\ui_kminput.h">
+      <Filter>header\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\filesystem\ui_file.h">
+      <Filter>header\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\filesystem\ui_fileop.h">
+      <Filter>header\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\filesystem\ui_findfile.h">
+      <Filter>header\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_ostype.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_window.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_object.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_ssvalue_list.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_ssvalue.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_control.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_style_value.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_event_host.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_mouse_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_drag_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_time_capsule.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_function.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_notice_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_gui_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_style.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_control_state.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_attribute.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\luiconf.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_malloc.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\interface\ui_iconfig.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_graphics_impl.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_graphics_decl.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_viewport.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_box_layout.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_scroll_area.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_scroll_bar.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_control_control.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_private_control.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_console.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\interface\ui_default_config.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_strattr.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_wndarg.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_cursor.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_resource_manager.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_adapter_desc.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_renderer_decl.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_bg_renderer.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_ctrlmeta.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_matrix3x2.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_string_helper.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_unicode_cast.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_spacer.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_double_click.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_test.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\interface\ui_ctrlinfolist.h">
+      <Filter>header\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_button.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_image.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_label.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\text\ui_text_layout.h">
+      <Filter>header\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\text\ui_ctl_impl.h">
+      <Filter>header\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\text\ui_ctl_decl.h">
+      <Filter>header\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\text\ui_attribute.h">
+      <Filter>header\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\text\ui_ctl_arg.h">
+      <Filter>header\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container\const_string_list.h">
+      <Filter>header\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_initialize_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\resource\ui_resource.h">
+      <Filter>header\resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\resource\ui_image.h">
+      <Filter>header\resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\resource\ui_resource_id.h">
+      <Filter>header\resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_attribute.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_private_image.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_memory_stream.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_named_control.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_const_sstring.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_native_style.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_graphics_util.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_text.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\style\ui_style_state.h">
+      <Filter>header\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_lastsort.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_bd_renderer.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_win10_stlye.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_geometry.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_mesh.h">
+      <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_scale.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\private\ui_super.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_input_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_checkbox.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_caption.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_groupbox.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_textbox.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\accessible\ui_accessible_win.h">
+      <Filter>header\accessible</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\accessible\ui_accessible.h">
+      <Filter>header\accessible</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\accessible\ui_accessible_event.h">
+      <Filter>header\accessible</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\accessible\ui_accessible_type.h">
+      <Filter>header\accessible</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\accessible\ui_accessible_callback.h">
+      <Filter>header\accessible</Filter>
+    </ClInclude>
+    <ClInclude Include="..\TextBC\bc_txtline.h">
+      <Filter>TextBC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\TextBC\bc_txtplat.h">
+      <Filter>TextBC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\TextBC\bc_txtcell.h">
+      <Filter>TextBC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\TextBC\bc_txtdoc.h">
+      <Filter>TextBC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_ctordtor.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container\nonpod_vector.h">
+      <Filter>header\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\container\ui_string_vector.h">
+      <Filter>header\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_radio.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_radiogroup.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_menulist.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_menupopup.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_menuitem.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\TextBC\bc_txtstr.h">
+      <Filter>TextBC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\TextBC\bc_txtbuf.h">
+      <Filter>TextBC</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\ui_clipboard.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xul\SimpAX.h">
+      <Filter>header\xul</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_progress.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_listbox.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_listitem.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_listcols.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_listcol.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_listheader.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_listhead.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_treeitem.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_treechildren.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_treerow.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_tree.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_treecols.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_treecol.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_treecell.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_deck.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_stack.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_tabpanels.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_tabs.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_tab.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_tabbox.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_splitter.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_tabpanel.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\event\ui_splitter_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

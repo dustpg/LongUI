@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="LongUI::Result">
+    <DisplayString>{code, hr}</DisplayString>
+  </Type>
+  <Type Name="LongUI::PrivateMsg">
+    <DisplayString>{message, wm}</DisplayString>
+  </Type>
+  <Type Name="LongUI::MetaControl">
+    <DisplayString>{element_name}</DisplayString>
+  </Type>
+</AutoVisualizer>

@@ -1,35 +1,57 @@
-ï»¿TODOLIST
-    DONE: å®ŒæˆUIEditCore, åˆ é™¤æ²‰ä½™ä»£ç , å¹¶åµŒåˆ°UIEdit: DoDragDrop
-    DONE: ç§»é™¤STLå®¹å™¨è¦æ±‚
-    DONE: ç»„ä»¶å¤æ•°çŠ¶æ€
-    DONE: å®Œæˆçª—å£æ¸²æŸ“é˜Ÿåˆ—
-    DONE: å®ŒæˆUIRadioButton
-    DONE: å®ŒæˆUIComboBox
-    DONE: åˆ†ç¦»UIWindow
-    PRPR: å®ŒæˆUIPage
-    PRPR: åŸºæœ¬èµ„æºå·¥å…·æ¡†æž¶
-    PRPR: å®Œæˆæ»šåŠ¨æ¡ä¸Žå®¹å™¨çš„åŒ¹é…
-    PRPR: å®ŒæˆUIList
-    PRPR: å®Œæˆç‰¹æ•ˆæ¡†æž¶
-    PRPR: è§„èŒƒåŒ–æ¶ˆæ¯æž¶æž„
-    PRPR: å®ŒæˆUIEdit
-    
-    TODO: size_t != uintptr_t
-    TODO: æœ€å¤§è§„æ¨¡çš„ä¸€æ¬¡é‡æž„
-    
-    TODO: UIButton: æ‰‹åŠ¨å¼¹èµ·æ¨¡å¼
-    TODO: å®ŒæˆUITab
-    TODO: å®ŒæˆUITree
-    TODO: Accessibility æ”¯æŒ https://msdn.microsoft.com/en-us/library/windows/desktop/ee663255(v=vs.85).aspx
-    TODO: å­çª—å£æ¸²æŸ“
-    TODO: å®žçŽ°æŒ‚ä»¶?
-    TODO: è§„èŒƒåŒ–æ‹–æ‹½
-    TODO: å‡ºåœº/ç¦»åœºåŠ¨ç”»
-    TODO: å¯ä»¥æ­£å¼å‘è¡¨äº† ~yooooooooo~
-    TODO: å®Œç¾Žçš„æ’å…¥ç¬¦æ¸²æŸ“ç­–ç•¥
-    TODO: æ›´åŠ å®‰å…¨çš„ç¼“å­˜ç­–ç•¥
-    TODO: å®Œæˆè„šæœ¬å¯¹æŽ¥æ¡†æž¶
-    TODO: UIRichEditçš„æ•´ç†
-    TODO: å®Œæˆæ–‡æœ¬å†…è”å¯¹è±¡
-    TODO: å®ŒæˆHelperå·¥å…·
-    TODO: å…¶ä»–æŽ§ä»¶
+button Ä¬ÈÏÎÄ±¾¾ÓÖÐ
+
+disable×´Ì¬È¡ÏûÆäËûµÄ¶¯»­?
+
+¿¼ÂÇÈ¥µôCUIWindow::m_pTopestWcc? Ä¿Ç°levelÊý¾ÝÖ»ºÍÕâ¸öÓÐ¹Ø
+
+STYLE minsizeÓµÓÐÇ¿ÖÆÐÔ?
+
+set_child_parent_nnrivc È«Ãæ¼ì²é
+
+½«´æÔÚÓÚUIControlµÄËùÓÐÊôÐÔ½»¸øUIControl::add_attribute´¦Àí
+
+InitÊÂ¼þÓÐÒ»¸öHRµÄ·µ»ØÖµ
+
+°²È«¼ì²é, ÎÞÐèstatic_cast<I::???*>
+
+OOM: Ç¿ÖÆ²âÊÔ, ÉêÇëº¯ÊýÊ¹ÓÃ¾²Ì¬±äÁ¿°´½ø¶ÈÖ±½Ó·µ»Ønullptr
+
+TextBC: ½ö½ö²åÈë·ûÒÆ¶¯µÄÓÅ»¯
+
+SimpAX: (ch == ' ') | (ch == '\t'); -> (ch == ' ') || (ch == '\t');
+
+SimpAX: ×Ö½ÚÓ³Éä±íÊ¹ÓÃÃ¿Ò»Î», ½ÚÔ¼7±¶
+
+POD VectorÕë¶ÔÖ¸Õë(ÒÔ¼°Ð¡ÓÚÖ¸Õë?)ÓÅ»¯
+
+CUIWindow Ò²Ê¹ÓÃÊ÷½Úµã
+
+ÊµÏÖ fixedqueue
+
+°²È«¼ì²é Ààprintf 
+
+CUIString::fromLatin1
+
+m_state.in_dtor ?
+
+UIControl::Update ¸ÄÎª·ÇÐéº¯Êý ×·¼Ó Ðéº¯ÊýChangedEvent
+
+Òì²½¼ÓÔØ
+
+ËùÓÐ#include Qt»¯
+
+CSS border-width ÊôÐÔ
+Ö»ÓÐµ±±ß¿òÑùÊ½²»ÊÇ none Ê±²ÅÆð×÷ÓÃ¡£
+Èç¹û±ß¿òÑùÊ½ÊÇ none£¬±ß¿ò¿í¶ÈÊµ¼ÊÉÏ»áÖØÖÃÎª 0
+
+Î»ÓòÑ¹ËõÊôÐÔ
+
+CUINativeStyleWindows10 Ê¹ÓÃË½ÓÐ±ÊË¢
+
+Ò»°ãµ¥ÀýÀà·½·¨È«²¿¾²Ì¬»¯
+
+ÓÅ»¯¼¸ºÎÏÔÊ¾
+
+native style mix color
+
+Ä¿±ê×´Ì¬Á¢¼´ÉúÐ§?

@@ -1,0 +1,53 @@
+<html>
+
+<header>
+<title>XUL tricks</title>
+</header>
+
+<body>
+<h2>Looking at Mozilla's Components</h2>
+
+Using Mozilla (or any other Gecko-based browser) it is possible to look at the
+components of Mozilla by entering the component's specification into the URL
+widget. 
+<p>
+(Note: The following directions work under Linux with Mozilla 1.0.1 installed.
+If you're using different software, then you'll have to adjust accordingly.)
+<pre>
+cd /usr/lib/mozilla-1.0.1/chrome; ls *.jar
+</pre>
+You'll see the packages that make up Mozilla.  You can use the 
+<pre>unzip -l</pre> 
+command to see the files that make up these packages.  For example:
+<pre>
+unzip -l some-jar-file | grep "xul$"
+</pre>
+spits out a list of the form
+<pre>
+    some-size  some-date some-time   content/some-component/some-xul-file
+</pre>
+To see the page that this file describes, point your browser to 
+<pre>
+chrome://some-component/content/some-xul-file
+</pre>
+You can even stick the browser window inside the browser window by entering:
+<pre>
+chrome://navigator/content/navigator.xul
+</pre>
+And then, of course, you can put a browser window inside of that one, and
+another browser inside of that one, and so on, and so forth.
+
+<h2>Launching Mozilla without its Chrome</h2>
+
+You can launch a Mozilla application without bothering to install it in the
+chrome directory by supplying the URL on the command line.
+<pre>
+mozilla -chrome http://www2.axian.com/~ali/xul/top.xul
+</pre>
+or
+<pre>
+mozilla -chrome file:///home/ali/xul/top.xul
+</pre>
+
+</body>
+</html>

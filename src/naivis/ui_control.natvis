@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="LongUI::DDFFloat1">
+    <DisplayString>
+      {(int)f,d}.
+      {((int)(f*10))%10,d}
+    </DisplayString>
+  </Type>
+  <!--NORMAL VIEW-->
+  <Type Name="LongUI::UIControlN">
+    <DisplayString>{{{ name_dbg, s8 }}} Count = {{{ m_cChildrenCount }}}</DisplayString>
+    <Expand>
+      <Item Name="[pos]">m_oBox.pos</Item>
+      <Item Name="[size]">m_oBox.size</Item>
+      <Item Name="[count]">m_cChildrenCount</Item>
+      <LinkedListItems>
+        <Size>m_cChildrenCount</Size>
+        <HeadPointer>m_oHead.next</HeadPointer>
+        <NextPointer>next</NextPointer>
+        <ValueNode>(LongUI::UIControl*)this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  <!--LAYOUT VIEW-->
+  <Type Name="LongUI::UIControlL">
+    <DisplayString>
+      {{{ name_dbg, s8 }}} Rect = {{ {
+      (int)m_oBox.pos.x }, { (int)m_oBox.pos.y }, {
+      (int)m_oBox.size.width }, { (int)m_oBox.size.height } }}
+    </DisplayString>
+    <Expand>
+      <LinkedListItems>
+        <Size>m_cChildrenCount</Size>
+        <HeadPointer>m_oHead.next</HeadPointer>
+        <NextPointer>next</NextPointer>
+        <ValueNode>(LongUI::UIControl*)this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+  <!--COPY ONE OF ABOVE-->
+  <Type Name="LongUI::UIControl">
+    <DisplayString>
+      {{{ name_dbg, s8 }}} Rect = {{ {
+      (int)m_oBox.pos.x }, { (int)m_oBox.pos.y }, {
+      (int)m_oBox.size.width }, { (int)m_oBox.size.height } }}
+    </DisplayString>
+    <Expand>
+      <LinkedListItems>
+        <Size>m_cChildrenCount</Size>
+        <HeadPointer>m_oHead.next</HeadPointer>
+        <NextPointer>next</NextPointer>
+        <ValueNode>(LongUI::UIControl*)this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

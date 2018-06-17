@@ -1,0 +1,447 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{68DBE32A-6DDF-4E22-B265-8AC889B912F4}</ProjectGuid>
+    <RootNamespace>CodeUI</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>..\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>..\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>..\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>..\include\;$(IncludePath)</IncludePath>
+    <LibraryPath>$(OutDir);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <SDLCheck>false</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
+      <SDLCheck>false</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4068;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\accessible\ui_accessible_win.cpp" />
+    <ClCompile Include="..\src\cfunciton\ui_colorsystem.c" />
+    <ClCompile Include="..\src\cfunciton\ui_easing.c" />
+    <ClCompile Include="..\src\cfunciton\ui_namecolor.c" />
+    <ClCompile Include="..\src\cfunciton\ui_stringcolor.c" />
+    <ClCompile Include="..\src\cfunciton\ui_util.c" />
+    <ClCompile Include="..\src\cfunciton\view_atof.c" />
+    <ClCompile Include="..\src\cfunciton\view_atoi.c" />
+    <ClCompile Include="..\src\cfunciton\view_unicode.c" />
+    <ClCompile Include="..\src\container\nonpod_vector.cpp" />
+    <ClCompile Include="..\src\container\pod_hash.cpp" />
+    <ClCompile Include="..\src\container\pod_sharedarray.cpp" />
+    <ClCompile Include="..\src\container\pod_vector.cpp" />
+    <ClCompile Include="..\src\container\ui_string.cpp" />
+    <ClCompile Include="..\src\container\ui_string_view.cpp" />
+    <ClCompile Include="..\src\control\gapi\ui_control_g.cpp" />
+    <ClCompile Include="..\src\control\gapi\ui_label_g.cpp" />
+    <ClCompile Include="..\src\control\gapi\ui_textbox_g.cpp" />
+    <ClCompile Include="..\src\control\ui_box_layout.cpp" />
+    <ClCompile Include="..\src\control\ui_button.cpp" />
+    <ClCompile Include="..\src\control\ui_caption.cpp" />
+    <ClCompile Include="..\src\control\ui_checkbox.cpp" />
+    <ClCompile Include="..\src\control\ui_control.cpp" />
+    <ClCompile Include="..\src\control\ui_control_state.cpp" />
+    <ClCompile Include="..\src\control\ui_group_box.cpp" />
+    <ClCompile Include="..\src\control\ui_image.cpp" />
+    <ClCompile Include="..\src\control\ui_label.cpp" />
+    <ClCompile Include="..\src\control\ui_list.cpp" />
+    <ClCompile Include="..\src\control\ui_menu_item.cpp" />
+    <ClCompile Include="..\src\control\ui_menu_list.cpp" />
+    <ClCompile Include="..\src\control\ui_menu_popup.cpp" />
+    <ClCompile Include="..\src\control\ui_progress.cpp" />
+    <ClCompile Include="..\src\control\ui_radio.cpp" />
+    <ClCompile Include="..\src\control\ui_scale.cpp" />
+    <ClCompile Include="..\src\control\ui_scroll_area.cpp" />
+    <ClCompile Include="..\src\control\ui_scroll_bar.cpp" />
+    <ClCompile Include="..\src\control\ui_spacer.cpp" />
+    <ClCompile Include="..\src\control\ui_splitter.cpp" />
+    <ClCompile Include="..\src\control\ui_stackdeck.cpp" />
+    <ClCompile Include="..\src\control\ui_tab.cpp" />
+    <ClCompile Include="..\src\control\ui_test.cpp" />
+    <ClCompile Include="..\src\control\ui_textbox.cpp" />
+    <ClCompile Include="..\src\control\ui_tree.cpp" />
+    <ClCompile Include="..\src\control\ui_viewport.cpp" />
+    <ClCompile Include="..\src\core\ui_basic_type.cpp" />
+    <ClCompile Include="..\src\core\ui_color.cpp" />
+    <ClCompile Include="..\src\core\ui_const_sstring.cpp" />
+    <ClCompile Include="..\src\core\ui_control_control.cpp" />
+    <ClCompile Include="..\src\core\ui_all_control_info.cpp" />
+    <ClCompile Include="..\src\core\ui_hidpi.cpp" />
+    <ClCompile Include="..\src\core\ui_malloc.cpp" />
+    <ClCompile Include="..\src\core\ui_manager.cpp" />
+    <ClCompile Include="..\src\core\ui_node.cpp" />
+    <ClCompile Include="..\src\core\ui_resource_manager.cpp" />
+    <ClCompile Include="..\src\core\ui_window.cpp" />
+    <ClCompile Include="..\src\core\ui_window_manager.cpp" />
+    <ClCompile Include="..\src\debugger\ui_debug.cpp" />
+    <ClCompile Include="..\src\debugger\ui_debug_window.cpp" />
+    <ClCompile Include="..\src\debugger\ui_loginfo.cpp" />
+    <ClCompile Include="..\src\debugger\ui_tracer.cpp" />
+    <ClCompile Include="..\src\event\ui_event_host.cpp" />
+    <ClCompile Include="..\src\filesystem\ui_file.cpp" />
+    <ClCompile Include="..\src\filesystem\ui_fileop.cpp" />
+    <ClCompile Include="..\src\filesystem\ui_findfile.cpp" />
+    <ClCompile Include="..\src\graphics\ui_geometry.cpp" />
+    <ClCompile Include="..\src\graphics\ui_bd_renderer.cpp" />
+    <ClCompile Include="..\src\graphics\ui_bg_renderer.cpp" />
+    <ClCompile Include="..\src\graphics\ui_cursor.cpp" />
+    <ClCompile Include="..\src\graphics\ui_graphics_util.cpp" />
+    <ClCompile Include="..\src\graphics\ui_matrix.cpp" />
+    <ClCompile Include="..\src\graphics\ui_mesh.cpp" />
+    <ClCompile Include="..\src\input\ui_kminput.cpp" />
+    <ClCompile Include="..\src\interface\ui_default_config.cpp" />
+    <ClCompile Include="..\src\private\ui_private_control.cpp" />
+    <ClCompile Include="..\src\private\ui_private_image.cpp" />
+    <ClCompile Include="..\src\resource\ui_resource_id.cpp" />
+    <ClCompile Include="..\src\resource\ui_res_image.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_abtn.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_bg.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_btn.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_cbx.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_group.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_radio.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_slider.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_tab.cpp" />
+    <ClCompile Include="..\src\style\native\ui_win10_tree.cpp" />
+    <ClCompile Include="..\src\style\ui_native_style.cpp" />
+    <ClCompile Include="..\src\style\ui_ssvalue.cpp" />
+    <ClCompile Include="..\src\style\ui_style.cpp" />
+    <ClCompile Include="..\src\style\ui_style_state.cpp" />
+    <ClCompile Include="..\src\style\ui_style_value.cpp" />
+    <ClCompile Include="..\src\text\ui_text_layout.cpp" />
+    <ClCompile Include="..\src\thread\ui_fiber.cpp" />
+    <ClCompile Include="..\src\thread\ui_locker.cpp" />
+    <ClCompile Include="..\src\thread\ui_rwlocker.cpp" />
+    <ClCompile Include="..\src\thread\ui_waiter.cpp" />
+    <ClCompile Include="..\src\util\ui_animation.cpp" />
+    <ClCompile Include="..\src\util\ui_color_sysem.cpp" />
+    <ClCompile Include="..\src\util\ui_double_click.cpp" />
+    <ClCompile Include="..\src\util\ui_function.cpp" />
+    <ClCompile Include="..\src\util\ui_named_control.cpp" />
+    <ClCompile Include="..\src\util\ui_time_clipboard.cpp" />
+    <ClCompile Include="..\src\util\ui_unicode.cpp" />
+    <ClCompile Include="..\src\xul\SimpAX.cpp" />
+    <ClCompile Include="..\TextBC\bc_txtbuf.cpp" />
+    <ClCompile Include="..\TextBC\bc_txtcell.cpp" />
+    <ClCompile Include="..\TextBC\bc_txtdoc.cpp" />
+    <ClCompile Include="..\TextBC\bc_txtstr.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\src\naivis\color.natvis" />
+    <Natvis Include="..\src\naivis\float.natvis" />
+    <Natvis Include="..\src\naivis\result.natvis" />
+    <Natvis Include="..\src\naivis\simpax.natvis">
+      <SubType>Designer</SubType>
+    </Natvis>
+    <Natvis Include="..\src\naivis\ui_control.natvis" />
+    <Natvis Include="..\src\naivis\z_hash.natvis" />
+    <Natvis Include="..\src\naivis\z_sharedarray.natvis" />
+    <Natvis Include="..\src\naivis\z_string.natvis" />
+    <Natvis Include="..\src\naivis\z_string_view.natvis" />
+    <Natvis Include="..\src\naivis\z_vector.natvis">
+      <SubType>Designer</SubType>
+    </Natvis>
+    <Natvis Include="..\TextBC\bc_txtedit.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\accessible\ui_accessible.h" />
+    <ClInclude Include="..\include\accessible\ui_accessible_callback.h" />
+    <ClInclude Include="..\include\accessible\ui_accessible_event.h" />
+    <ClInclude Include="..\include\accessible\ui_accessible_type.h" />
+    <ClInclude Include="..\include\accessible\ui_accessible_win.h" />
+    <ClInclude Include="..\include\constexpr\const_bkdr.h" />
+    <ClInclude Include="..\include\container\const_string_list.h" />
+    <ClInclude Include="..\include\container\nonpod_vector.h" />
+    <ClInclude Include="..\include\container\pod_fixedqueue.h" />
+    <ClInclude Include="..\include\container\pod_hash.h" />
+    <ClInclude Include="..\include\container\pod_sharedarray.h" />
+    <ClInclude Include="..\include\container\pod_vector.h" />
+    <ClInclude Include="..\include\container\ui_string_vector.h" />
+    <ClInclude Include="..\include\control\ui_box_layout.h" />
+    <ClInclude Include="..\include\control\ui_button.h" />
+    <ClInclude Include="..\include\control\ui_caption.h" />
+    <ClInclude Include="..\include\control\ui_checkbox.h" />
+    <ClInclude Include="..\include\control\ui_control.h" />
+    <ClInclude Include="..\include\control\ui_control_state.h" />
+    <ClInclude Include="..\include\control\ui_ctrlmeta.h" />
+    <ClInclude Include="..\include\control\ui_deck.h" />
+    <ClInclude Include="..\include\control\ui_groupbox.h" />
+    <ClInclude Include="..\include\control\ui_image.h" />
+    <ClInclude Include="..\include\control\ui_label.h" />
+    <ClInclude Include="..\include\control\ui_listbox.h" />
+    <ClInclude Include="..\include\control\ui_listcol.h" />
+    <ClInclude Include="..\include\control\ui_listcols.h" />
+    <ClInclude Include="..\include\control\ui_listhead.h" />
+    <ClInclude Include="..\include\control\ui_listheader.h" />
+    <ClInclude Include="..\include\control\ui_listitem.h" />
+    <ClInclude Include="..\include\control\ui_menuitem.h" />
+    <ClInclude Include="..\include\control\ui_menulist.h" />
+    <ClInclude Include="..\include\control\ui_menupopup.h" />
+    <ClInclude Include="..\include\control\ui_progress.h" />
+    <ClInclude Include="..\include\control\ui_radio.h" />
+    <ClInclude Include="..\include\control\ui_radiogroup.h" />
+    <ClInclude Include="..\include\control\ui_scale.h" />
+    <ClInclude Include="..\include\control\ui_scroll_area.h" />
+    <ClInclude Include="..\include\control\ui_scroll_bar.h" />
+    <ClInclude Include="..\include\control\ui_spacer.h" />
+    <ClInclude Include="..\include\control\ui_splitter.h" />
+    <ClInclude Include="..\include\control\ui_stack.h" />
+    <ClInclude Include="..\include\control\ui_tab.h" />
+    <ClInclude Include="..\include\control\ui_tabbox.h" />
+    <ClInclude Include="..\include\control\ui_tabpanel.h" />
+    <ClInclude Include="..\include\control\ui_tabpanels.h" />
+    <ClInclude Include="..\include\control\ui_tabs.h" />
+    <ClInclude Include="..\include\control\ui_test.h" />
+    <ClInclude Include="..\include\control\ui_textbox.h" />
+    <ClInclude Include="..\include\control\ui_tree.h" />
+    <ClInclude Include="..\include\control\ui_treecell.h" />
+    <ClInclude Include="..\include\control\ui_treechildren.h" />
+    <ClInclude Include="..\include\control\ui_treecol.h" />
+    <ClInclude Include="..\include\control\ui_treecols.h" />
+    <ClInclude Include="..\include\control\ui_treeitem.h" />
+    <ClInclude Include="..\include\control\ui_treerow.h" />
+    <ClInclude Include="..\include\control\ui_viewport.h" />
+    <ClInclude Include="..\include\core\ui_basic_interface.h" />
+    <ClInclude Include="..\include\core\ui_basic_type.h" />
+    <ClInclude Include="..\include\core\ui_color.h" />
+    <ClInclude Include="..\include\core\ui_color_list.h" />
+    <ClInclude Include="..\include\core\ui_const_sstring.h" />
+    <ClInclude Include="..\include\core\ui_control_control.h" />
+    <ClInclude Include="..\include\core\ui_core_type.h" />
+    <ClInclude Include="..\include\core\ui_malloc.h" />
+    <ClInclude Include="..\include\core\ui_manager.h" />
+    <ClInclude Include="..\include\core\ui_node.h" />
+    <ClInclude Include="..\include\core\ui_object.h" />
+    <ClInclude Include="..\include\core\ui_resource_manager.h" />
+    <ClInclude Include="..\include\core\ui_string.h" />
+    <ClInclude Include="..\include\core\ui_string_helper.h" />
+    <ClInclude Include="..\include\core\ui_string_view.h" />
+    <ClInclude Include="..\include\core\ui_time_capsule.h" />
+    <ClInclude Include="..\include\core\ui_window.h" />
+    <ClInclude Include="..\include\core\ui_window_manager.h" />
+    <ClInclude Include="..\include\debugger\ui_debug.h" />
+    <ClInclude Include="..\include\debugger\ui_loginfo.h" />
+    <ClInclude Include="..\include\debugger\ui_tracer.h" />
+    <ClInclude Include="..\include\event\ui_gui_event.h" />
+    <ClInclude Include="..\include\event\ui_initialize_event.h" />
+    <ClInclude Include="..\include\event\ui_input_event.h" />
+    <ClInclude Include="..\include\event\ui_notice_event.h" />
+    <ClInclude Include="..\include\event\ui_drag_event.h" />
+    <ClInclude Include="..\include\event\ui_event_host.h" />
+    <ClInclude Include="..\include\event\ui_mouse_event.h" />
+    <ClInclude Include="..\include\event\ui_splitter_event.h" />
+    <ClInclude Include="..\include\filesystem\ui_file.h" />
+    <ClInclude Include="..\include\filesystem\ui_fileop.h" />
+    <ClInclude Include="..\include\filesystem\ui_findfile.h" />
+    <ClInclude Include="..\include\graphics\ui_adapter_desc.h" />
+    <ClInclude Include="..\include\graphics\ui_bd_renderer.h" />
+    <ClInclude Include="..\include\graphics\ui_bg_renderer.h" />
+    <ClInclude Include="..\include\graphics\ui_cursor.h" />
+    <ClInclude Include="..\include\graphics\ui_geometry.h" />
+    <ClInclude Include="..\include\graphics\ui_graphics_decl.h" />
+    <ClInclude Include="..\include\graphics\ui_graphics_impl.h" />
+    <ClInclude Include="..\include\graphics\ui_attribute.h" />
+    <ClInclude Include="..\include\graphics\ui_matrix3x2.h" />
+    <ClInclude Include="..\include\graphics\ui_mesh.h" />
+    <ClInclude Include="..\include\graphics\ui_renderer_decl.h" />
+    <ClInclude Include="..\include\graphics\ui_graphics_util.h" />
+    <ClInclude Include="..\include\input\ui_kminput.h" />
+    <ClInclude Include="..\include\interface\ui_ctrlinfolist.h" />
+    <ClInclude Include="..\include\interface\ui_default_config.h" />
+    <ClInclude Include="..\include\interface\ui_iconfig.h" />
+    <ClInclude Include="..\include\interface\ui_interface.h" />
+    <ClInclude Include="..\include\luiconf.h" />
+    <ClInclude Include="..\include\resource\ui_image.h" />
+    <ClInclude Include="..\include\resource\ui_resource.h" />
+    <ClInclude Include="..\include\resource\ui_resource_id.h" />
+    <ClInclude Include="..\include\style\ui_attribute.h" />
+    <ClInclude Include="..\include\style\ui_style_state.h" />
+    <ClInclude Include="..\include\style\ui_native_style.h" />
+    <ClInclude Include="..\include\style\ui_strattr.h" />
+    <ClInclude Include="..\include\style\ui_style.h" />
+    <ClInclude Include="..\include\style\ui_ssvalue.h" />
+    <ClInclude Include="..\include\style\ui_ssvalue_list.h" />
+    <ClInclude Include="..\include\style\ui_style_value.h" />
+    <ClInclude Include="..\include\style\ui_text.h" />
+    <ClInclude Include="..\include\text\ui_attribute.h" />
+    <ClInclude Include="..\include\text\ui_ctl_arg.h" />
+    <ClInclude Include="..\include\text\ui_ctl_decl.h" />
+    <ClInclude Include="..\include\text\ui_ctl_impl.h" />
+    <ClInclude Include="..\include\text\ui_text_layout.h" />
+    <ClInclude Include="..\include\thread\ui_fiber.h" />
+    <ClInclude Include="..\include\thread\ui_locker.h" />
+    <ClInclude Include="..\include\thread\ui_rwlocker.h" />
+    <ClInclude Include="..\include\thread\ui_waiter.h" />
+    <ClInclude Include="..\include\typecheck\int_by_size.h" />
+    <ClInclude Include="..\include\typecheck\is_iterator.h" />
+    <ClInclude Include="..\include\util\ui_clipboard.h" />
+    <ClInclude Include="..\include\util\ui_ctordtor.h" />
+    <ClInclude Include="..\include\util\ui_lastsort.h" />
+    <ClInclude Include="..\include\util\ui_aniamtion.h" />
+    <ClInclude Include="..\include\util\ui_color_system.h" />
+    <ClInclude Include="..\include\util\ui_named_control.h" />
+    <ClInclude Include="..\include\util\ui_double_click.h" />
+    <ClInclude Include="..\include\util\ui_endian.h" />
+    <ClInclude Include="..\include\util\ui_function.h" />
+    <ClInclude Include="..\include\util\ui_ostype.h" />
+    <ClInclude Include="..\include\util\ui_time.h" />
+    <ClInclude Include="..\include\util\ui_time_meter.h" />
+    <ClInclude Include="..\include\util\ui_unicode.h" />
+    <ClInclude Include="..\include\util\ui_unicode_cast.h" />
+    <ClInclude Include="..\include\util\ui_unimacro.h" />
+    <ClInclude Include="..\include\xul\SimpAX.h" />
+    <ClInclude Include="..\src\private\ui_console.h" />
+    <ClInclude Include="..\src\private\ui_memory_stream.h" />
+    <ClInclude Include="..\src\private\ui_private_control.h" />
+    <ClInclude Include="..\src\private\ui_private_image.h" />
+    <ClInclude Include="..\src\private\ui_super.h" />
+    <ClInclude Include="..\src\private\ui_win10_stlye.h" />
+    <ClInclude Include="..\src\private\ui_wndarg.h" />
+    <ClInclude Include="..\TextBC\bc_txtbuf.h" />
+    <ClInclude Include="..\TextBC\bc_txtcell.h" />
+    <ClInclude Include="..\TextBC\bc_txtdoc.h" />
+    <ClInclude Include="..\TextBC\bc_txtline.h" />
+    <ClInclude Include="..\TextBC\bc_txtplat.h" />
+    <ClInclude Include="..\TextBC\bc_txtstr.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

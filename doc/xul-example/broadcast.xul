@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<window title="XUL Broadcasters and Observers"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+   
+<script>
+<![CDATA[
+
+function disable(checked,obid)
+{
+   document.getElementById(obid).setAttribute("disabled", checked);
+}
+
+function relabel(checked)
+{
+   if (checked)
+     document.getElementById("relabeler").setAttribute("label","Other Label");
+   else
+     document.getElementById("relabeler").setAttribute("label","Some Label");
+}
+
+function relabel2(checked)
+{
+   var cmd = document.getElementById("relabeler-cmd");
+   if (checked)
+     cmd.setAttribute("label","Next Label");
+   else
+     cmd.setAttribute("label","One Label");
+}
+
+function check(bcid,checked)
+{
+   document.getElementById(bcid).setAttribute("checked", checked);
+}
+
+function select(bcid,button)
+{
+   var parent = button.parentNode;
+   alert(parent.getElementsByAttribute("checked","true"));
+}
+
+]]>
+</script>
+
+<description><html:h1>
+XUL Broadcasters and Observers (and Commands)
+</html:h1></description>
+
+<broadcasterset>
+  <broadcaster id="disabler"  disabled="false"/>
+  <broadcaster id="relabeler" label="Some Label"/>
+</broadcasterset>
+
+<commandset>
+  <command id="disabler-cmd"  disabled="false" />
+  <command id="relabeler-cmd" label="One Label" />
+
+  <command id="check1-cmd"   checked="false"  
+           oncommand="check('check1-cmd',this.checked);" />
+  <command id="check2-cmd"   checked="false"  
+           oncommand="check('check2-cmd',this.checked);" />
+  <command id="check3-cmd"   checked="false"  
+           oncommand="check('check3-cmd',this.checked);" />
+
+  <command id="radio1-cmd" checked="false" selected="false" 
+           oncommand="select('radio1-cmd',this);"/>
+  <command id="radio2-cmd" checked="false" selected="false" 
+           oncommand="select('radio2-cmd',this);"/>
+  <command id="radio3-cmd" checked="false" selected="false"
+           oncommand="select('radio3-cmd',this);"/>
+</commandset>
+
+<vbox flex="1" style="overflow: auto">
+<groupbox > 
+  <toolbox id="my-toolbox">
+
+    <toolbar id="a-toolbar" >
+      <toolbarbutton label="Disablable"  observes="disabler" />
+      <toolbarbutton label="Relabelable" observes="relabeler" />
+
+      <toolbarseparator />
+      <toolbarbutton label="Disablable"  observes="disabler-cmd" />
+      <toolbarbutton label="Relabelable" observes="relabeler-cmd" />
+    </toolbar>
+
+    <toolbar id="another-toolbar" >
+      <toolbarbutton label="Check1" type="checkbox" observes="check1-cmd" />
+      <toolbarbutton label="Check2" type="checkbox" observes="check2-cmd" />
+      <toolbarbutton label="Check3" type="checkbox" observes="check3-cmd" />
+
+      <toolbarseparator />
+      <toolbarbutton label="Radio1" type="radio" group="radio"  
+                     observes="radio1-cmd" />
+      <toolbarbutton label="Radio2" type="radio" group="radio"  
+                     observes="radio2-cmd" />
+      <toolbarbutton label="Radio3" type="radio" group="radio"  
+                     observes="radio3-cmd" />
+
+    </toolbar>
+
+    <menubar id="my-menubar">
+       <menu label="Menu"  >
+        <menupopup>
+           <menuitem label="Disablable"  observes="disabler"  />
+           <menuitem label="Relabelable" observes="relabeler" />
+        </menupopup>
+      </menu>
+       <menu label="Next Menu"  >
+        <menupopup>
+           <menuitem label="Disablable"  observes="disabler-cmd"  />
+           <menuitem label="Relabelable" observes="relabeler-cmd" />
+        </menupopup>
+      </menu>
+      <menu label="Checkbox">
+        <menupopup>
+           <menuitem type="checkbox" label="Check1" observes="check1-cmd" />
+           <menuitem type="checkbox" label="Check2" observes="check2-cmd" />
+           <menuitem type="checkbox" label="Check3" observes="check3-cmd" />
+        </menupopup>
+      </menu>
+      <menu label="Radio"  >
+        <menupopup>
+           <menuitem type="radio" name="radio" label="Radio1"  
+                     observes="radio1-cmd" />
+           <menuitem type="radio" name="radio" label="Radio2"  
+                     observes="radio2-cmd" />
+           <menuitem type="radio" name="radio" label="Radio3"  
+                     observes="radio3-cmd" />
+        </menupopup>
+      </menu>
+
+    </menubar>
+  </toolbox>
+
+  <hbox>
+       <vbox flex="1" >
+           <button label="Disablable"  observes="disabler" />
+           <button label="Relabelable" observes="relabeler" />
+      </vbox>
+       <vbox flex="1" >
+           <button label="Disablable"  observes="disabler-cmd" />
+           <button label="Relabelable" observes="relabeler-cmd" />
+      </vbox>
+
+      <vbox flex="1">
+           <checkbox label="Check1" observes="check1-cmd" />
+           <checkbox label="Check2" observes="check2-cmd" />
+           <checkbox label="Check3" observes="check3-cmd" />
+      </vbox>
+
+      <radiogroup flex="1" >
+           <radio label="Radio1"  observes="radio1-cmd" />
+           <radio label="Radio2"  observes="radio2-cmd" />
+           <radio label="Radio3"  observes="radio3-cmd" />
+      </radiogroup>
+  </hbox>
+
+</groupbox>
+
+<hbox>
+    <checkbox id="disable-check"  label="Disable First" 
+              oncommand="disable(this.checked, 'disabler');"/>
+    <checkbox id="relabel-check"  label="Relabel First" 
+              oncommand="relabel(this.checked);"/>
+    <checkbox id="disable-check2" label="Disable Next" 
+              oncommand="disable(this.checked, 'disabler-cmd');"/>
+    <checkbox id="relabel-check2" label="Relabel Next" 
+              oncommand="relabel2(this.checked);"/>
+</hbox>
+
+</vbox>
+
+</window>

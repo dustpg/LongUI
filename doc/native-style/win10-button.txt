@@ -1,0 +1,20 @@
+normal:
+  border-color: #adadad;
+  background-color: #e1e1e1;
+
+default:
+  border-width: 2px;
+  border-color: #0078d7;
+
+disabled: 
+  border-color: #bfbfbf;
+  background-color: #cccccc;
+  color: #838383;
+
+hover:
+  border-color: #0078d7
+  background-color: #e5f1fb
+
+active:
+  border-color: #005499
+  background-color: #cce4f7

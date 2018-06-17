@@ -1,0 +1,36 @@
+.btn1 {
+    -moz-appearance: none;
+    background-clip: content-box;
+    background-color: red;
+    margin: 1em;
+    padding: 2em;
+    cursor: pointer;
+}
+
+
+.v1 {
+    background-color: red;
+}
+
+#hbox1{
+    background-color: green;
+}
+
+#slider_box1 {
+    background-color: red;
+}
+#slider_box1:active {
+    background-color: green;
+}
+
+
+#slider_box3 {
+    background-color: blue;
+}
+#slider_box3:active {
+    background-color: cyan;
+}
+
+.t:hover {
+  font-size: 30px;
+}

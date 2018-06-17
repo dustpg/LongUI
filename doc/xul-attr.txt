@@ -1,0 +1,6 @@
+﻿                 调整主轴方向对齐方法
+Box Packing    : pack = { "start", "center", "end" }
+
+
+                 调整侧轴方向对齐方法
+Box Alignment  : align= { "start", "center", "end", "baseline",  "stretch" }

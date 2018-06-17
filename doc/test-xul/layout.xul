@@ -1,0 +1,282 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="css/test.css" type="text/css"?>
+
+<window title="XUL Layout"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+   
+  <script type="application/x-javascript"
+	  src="chrome://global/content/dialogOverlay.js" />
+  
+  <script type="application/javascript">
+    function getKeys(obj) {
+      var keys = [];
+      for(var key in obj){
+          keys.push(key);
+      }
+      return keys;
+    }
+    function getStyle(a) { return a.currentStyle || window.getComputedStyle(a) }
+
+    function getList(obj) {
+      var list = ""
+      for(var key in obj){
+        if (typeof obj[key] == "string") {
+          if (obj[key].length > 0) { list += "" + key + "=" + obj[key] + ";\n " }
+        }
+      }
+      return list;
+    }
+    function getSize(x) {
+      var obj = typeof x == "string" ? document.getElementById(x) : x
+      return "[" + obj.clientWidth + "x" + obj.clientHeight + "]"
+    }
+    function getBox(x) {
+      var obj = typeof x == "string" ? document.getElementById(x) : x
+
+    }
+    function test() {
+      var y=document.getElementById("default")
+      var x=document.getElementById("test")
+      var z=document.getElementById("tbox")
+      y.value = getSize("tbox") + getKeys(z)
+      //document.getElementById("lbl1").value = "A"
+      //document.getElementById("test").value = "B"
+    }
+    function label_test() {
+
+      var a=document.getElementById("hw")
+      var b=document.getElementById("hw-box")
+      var style = getStyle(a);
+
+      var text = getSize(a) + getSize(b)
+      document.getElementById("default").value = getKeys(style.padding)
+    }
+  </script>
+  
+<description><html:h1>XUL Box Layout</html:h1></description>
+
+<vbox flex="1" style="overflow: auto">
+  <vbox style="background-color: cyan" id="hw-box">
+    <label value="hello world!" id="hw" style="background-color: red; font-size: 50px"/>
+    <vbox height="17px" style="background-color: green">
+    </vbox>
+  </vbox>
+  <vbox class="v1" id="a" width="10" height="60">
+    <label id="lbl1" />
+    <label id="test"/>
+    <hbox id="hbox1">
+      <textbox id="tbox"/>
+      <textbox id="tbox2" style="min-height:5px"/>
+      <textbox id="tbox4" flex="1"/>
+    </hbox>
+    <vbox>
+      <vbox height="30px"/>
+      <textbox id="default"/>
+    </vbox>
+  </vbox>
+ <groupbox>
+  <caption label="flexiness" />
+  <hbox>
+    <button label="确定" class="btn1" oncommand="test();" style="font-family: SimSun"/>
+    <button label="label测试" oncommand="label_test();" />
+    <button label="No Flex" />
+    <button label="No Flex" />
+    <button label="No Flex" />
+  </hbox>
+
+  <hbox>
+    <button label="There's a" />
+    <button label="spacer"/>
+    <spacer flex="1" />
+    <button label="in the" />
+    <button label="middle." />
+  </hbox>
+
+  <hbox>
+    <button label="This spacer ->" />
+    <spacer flex="2" />
+    <button label="is bigger than this spacer, ->" />
+    <spacer flex="1" />
+    <button label="so there!" />
+  </hbox>
+
+  <hbox>
+    <button label="No Flex" />
+    <button label="No Flex" />
+    <button flex="1" label="flex=1" />
+    <button label="No Flex" />
+    <button label="No Flex" />
+  </hbox>
+
+  <hbox>
+    <button flex="1" label="flex=1" />
+    <button flex="2" label="flex=2" />
+    <button flex="3" label="flex=3" />
+    <button flex="4" label="flex=4" />
+    <button flex="5" label="flex=5" />
+  </hbox>
+
+  <hbox>
+    <button flex="1" label="flex=1" />
+    <button flex="1" label="flex=1" />
+    <button flex="1" label="flex=1" />
+    <button flex="1" label="flex=1" />
+    <button flex="1" label="flex=1" />
+  </hbox>
+
+ </groupbox>
+
+
+ <groupbox>
+  <caption label="direction" />
+  <hbox dir="forward">
+    <button label="Here" />
+    <button label="the" />
+    <button label="direction" />
+    <button label="is" />
+    <button label="forward" />
+  </hbox>
+  <hbox dir="reverse">
+    <button label="Here" />
+    <button label="the" />
+    <button label="direction" />
+    <button label="is" />
+    <button label="reverse" />
+  </hbox>
+  <hbox>
+    <button label="Here the"        ordinal="4" />
+    <button label="ordinal"         ordinal="1" />
+    <button label="attribute"       ordinal="3" />
+    <button label="sets the order." ordinal="2"  />
+  </hbox>
+ </groupbox>
+
+ <groupbox>
+  <caption label="packing" />
+  <hbox pack="start">
+    <button label="Here" />
+    <button label="the" />
+    <button label="packing" />
+    <button label="is" />
+    <button label="start" />
+  </hbox>
+  <hbox pack="center">
+    <button label="Here" />
+    <button label="the" />
+    <button label="packing" />
+    <button label="is" />
+    <button label="center" />
+  </hbox>
+  <hbox pack="end">
+    <button label="Here" />
+    <button label="the" />
+    <button label="packing" />
+    <button label="is" />
+    <button label="end" />
+  </hbox>
+  <hbox pack="start">
+    <button label="Here" />
+    <button label="packing" />
+    <button label="yields" />
+    <button label="to" />
+    <button label="flex" flex="1" />
+  </hbox>
+ </groupbox>
+
+ <groupbox>
+  <caption label="alignment" />
+  <hbox align="start">
+    <button label="Here" image="images/betty_boop.xbm" orient="vertical" />
+    <button orient="vertical">
+       <label value="the" />
+       <label value="alignment" />
+    </button>
+    <button label="is" image="images/betty_boop.xbm" />
+    <button label="start" />
+  </hbox>
+  <hbox align="center">
+    <button label="Here" image="images/betty_boop.xbm" orient="vertical" />
+    <button orient="vertical">
+       <label value="the" />
+       <label value="alignment" />
+    </button>
+    <button label="is"  image="images/betty_boop.xbm" />
+    <button label="center" />
+  </hbox>
+  <hbox align="end">
+    <button label="Here" image="images/betty_boop.xbm" orient="vertical" />
+    <button orient="vertical">
+       <label value="the" />
+       <label value="alignment" />
+    </button>
+    <button label="is" image="images/betty_boop.xbm" />
+    <button label="end" />
+  </hbox>
+  <hbox align="baseline">
+    <button label="Here" image="images/betty_boop.xbm" orient="vertical" />
+    <button orient="vertical">
+       <label value="the" />
+       <label value="alignment" />
+    </button>
+    <button label="is" image="images/betty_boop.xbm" />
+    <button label="baseline" />
+  </hbox>
+  <hbox align="stretch">
+    <button label="Here" image="images/betty_boop.xbm" orient="vertical" />
+    <button orient="vertical">
+       <label value="the" />
+       <label value="alignment" />
+    </button>
+    <button label="is" image="images/betty_boop.xbm" />
+    <button label="stretch" />
+  </hbox>
+ </groupbox>
+
+ <groupbox orient="horizontal">
+  <caption label="equality" />
+  <vbox equalsize="always">
+    <button label="Here" image="images/betty_boop.xbm" orient="vertical" />
+    <button orient="vertical">
+       <label value="the" />
+       <label value="equalsize" />
+       <label value="attribute" />
+    </button>
+    <button label="is" image="images/betty_boop.xbm" />
+    <button label="always" />
+  </vbox>
+  <vbox equalsize="never">
+    <button label="Here" image="images/betty_boop.xbm" orient="vertical" />
+    <button orient="vertical">
+       <label value="the" />
+       <label value="equalsize" />
+       <label value="attribute" />
+    </button>
+    <button label="is" image="images/betty_boop.xbm" />
+    <button label="never" />
+  </vbox>
+ </groupbox>
+
+
+ <groupbox>
+  <caption label="hiddeness" />
+  <hbox>
+    <label value="Every other button in the line below is hidden" />
+  </hbox>
+  <hbox>
+    <button label="Every" />
+    <button label="other" hidden="true" />
+    <button label="button" />
+    <button label="in" hidden="true" />
+    <button label="the" />
+    <button label="line" hidden="true" />
+    <button label="below" />
+    <button label="is" hidden="true" />
+    <button label="hidden" />
+  </hbox>
+ </groupbox>
+
+</vbox>
+
+</window>

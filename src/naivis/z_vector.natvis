@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--POD Vector-->
+  <Type Name="LongUI::POD::Vector&lt;*&gt;">
+    <DisplayString Condition="m_uVecLen == 0">{{ empty }}</DisplayString>
+    <DisplayString Condition="m_uVecLen != 0">{{ size = { m_uVecLen } }}</DisplayString>
+    <Expand>
+      <Item Name="[capacity]" ExcludeView="simple">m_uVecCap</Item>
+      <Item Name="[bytesize]" ExcludeView="simple">m_uByteLen + 0</Item>
+      <!--Item Name="[extrabuy]" ExcludeView="simple">
+        m_uExtra &amp; ((1&lt;&lt;EX_RESERVED)-1)
+      </Item>
+      <Item Name="[extrabuf]" ExcludeView="simple">
+        (m_uExtra &lt;&lt;EX_RESERVED) &amp; ((1&lt;&lt;(EX_FBL-EX_RESERVED))-1)
+      </Item>
+      <Item Name="[ex-align]" ExcludeView="simple">
+        m_uExtra &amp; ((1&lt;&lt;EX_RESERVED)-1)
+      </Item-->
+      <ArrayItems>
+        <Size>m_uVecLen</Size>
+        <ValuePointer>($T1*)m_pData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <!--NonPOD Vector-->
+  <Type Name="LongUI::NonPOD::Vector&lt;*&gt;">
+    <DisplayString Condition="m_vector.m_uVecLen == 0">{{ empty }}</DisplayString>
+    <DisplayString Condition="m_vector.m_uVecLen != 0">{{ size = { m_vector.m_uVecLen } }}</DisplayString>
+    <Expand>
+      <Item Name="[capacity]" ExcludeView="simple">m_vector.m_uVecCap</Item>
+      <Item Name="[bytesize]" ExcludeView="simple">m_vector.m_uByteLen + 0</Item>
+      <ArrayItems>
+        <Size>m_vector.m_uVecLen</Size>
+        <ValuePointer>($T1*)m_vector.m_pData</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

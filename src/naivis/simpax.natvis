@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--SimpAX::StrPair-->
+  <Type Name="SimpAX::StrPair">
+    <DisplayString>{a,[(b-a)] s8}</DisplayString>
+    <Expand>
+      <Item Name="[size]" ExcludeView="simple">b-a</Item>
+      <ArrayItems>
+        <Size>b-a</Size>
+        <ValuePointer>a</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <!--SimpAX::CAXStream-->
+  <Type Name="SimpAX::CAXStream">
+    <DisplayString Condition="m_pStackTop == m_pStackBase">{{ empty }}</DisplayString>
+    <DisplayString Condition="m_pStackTop != m_pStackBase">{{ size = { m_pStackTop - m_pStackBase  } }}</DisplayString>
+    <Expand>
+      <Item Name="[capacity]" ExcludeView="simple">m_pStackCap - m_pStackBase </Item>
+      <ArrayItems>
+        <Size>m_pStackTop - m_pStackBase</Size>
+        <ValuePointer>m_pStackBase</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

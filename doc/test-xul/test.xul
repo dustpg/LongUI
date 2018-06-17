@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="css/test.css" type="text/css"?>
+
+<window title="XUL Test"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<script>
+<![CDATA[
+
+function get_text() {
+  document.getElementById("lbl1").value = "Color"
+  var v = document.getElementById("lbl1").value;
+  document.getElementById("output").value = v;
+}
+
+]]>
+</script>
+
+<!--vbox flex="1" style="overflow: auto;">
+  <label href="https://www.google.com" class="text-link"/>
+  <label value="用户名:"  class="text-link" crop="start" accesskey="u" control="tbxUserName"/>
+  <textbox id="tbxUserName"/>
+  <hbox>
+    <image src="images/25.png" style="margin:4px; border-style:solid; border-width: 4px; padding: 4px;"/>
+  </hbox>
+  <vbox style="background-color: cyan">
+    <image src="images/25.png"/>
+    <label value="hello, world!\n-x-确定" accesskey="c" id="lbl1"
+      style="background-color: red; font-size: 20px; font-family: SimSun" />
+    <hbox style="background-color: blue; min-height:20px; min-width:0px;">
+    </hbox>
+  </vbox>
+</vbox-->
+<hbox id="slider_box1">
+  <hbox id="slider_box2" flex="1"/>
+  <hbox id="slider_box3" flex="1">
+    <scale flex="1" accesskey="k" id="slider"/>
+  </hbox>
+</hbox>
+<vbox>
+  <listbox rows="5">
+    <listitem label="Normal" />
+  </listbox>
+</vbox>
+</window>

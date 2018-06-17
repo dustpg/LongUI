@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<window title="XUL Images"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+   
+  <script type="application/x-javascript"
+	  src="chrome://global/content/dialogOverlay.js" />
+  
+<description><html:h1>XUL Images</html:h1></description>
+
+<vbox flex="1" style="overflow: auto">
+
+<groupbox>
+  <caption label="Some Stars" />
+  <hbox>
+    <vbox align="center">
+      <image style="width: 20px; height: 20px" src="images/star.png" />
+      <label value="smaller image" />
+    </vbox>
+
+    <vbox align="center">
+      <image src="images/star.png" />
+      <label value="natural-sized image" />
+    </vbox>
+  
+    <vbox align="center">
+      <image style="width: 200px; height: 200px" src="images/star.png" />
+      <label value="enlarged image" />
+    </vbox>
+  </hbox>
+</groupbox>
+
+<groupbox>
+  <caption label="More Stars" />
+  <hbox>
+    <vbox align="center">
+      <image src="images/star.png" />
+      <label value="natural-sized image" />
+    </vbox>
+
+    <vbox align="center">
+      <image style="width: 200px; height: 200px" src="images/star.png" />
+      <label value="enlarged image" />
+    </vbox>
+  </hbox>
+</groupbox>
+</vbox>
+
+</window>

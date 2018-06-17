@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--wchar_t string-->
+  <Type Name="LongUI::CUIBasicString&lt;*, *&gt;">
+    <DisplayString Condition="m_vector.m_uVecLen == 0">{{ empty }}</DisplayString>
+    <DisplayString Condition="m_vector.m_uVecLen != 0 
+                   &amp;&amp; m_vector.m_uVecCap == 0">{{ out of memory }}</DisplayString>
+    <DisplayString Condition="m_vector.m_uVecLen != 0 
+                   &amp;&amp; m_vector.m_uVecCap != 0">{ ($T1*)m_vector.m_pData }</DisplayString>
+    <Expand>
+      <Item Name="[length]" ExcludeView="simple">m_vector.m_uVecLen</Item>
+      <Item Name="[capacity(-1)]" ExcludeView="simple">m_vector.m_uVecCap</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

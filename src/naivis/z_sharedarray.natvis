@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--POD Vector-->
+  <Type Name="LongUI::POD::SharedArray&lt;*&gt;">
+    <DisplayString Condition="m_pointer == nullptr">nil</DisplayString>
+    <DisplayString>{{ size = { m_pointer->m_cLength } }}</DisplayString>
+    <Expand>
+      <Item Name="[refcount]" ExcludeView="simple">m_pointer->m_cRefCount</Item>
+      <ArrayItems>
+        <Size>m_pointer->m_cLength</Size>
+        <ValuePointer>($T1*)m_pointer->m_data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

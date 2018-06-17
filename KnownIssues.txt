@@ -1,0 +1,4 @@
+1. Memory leak in Accessible under Windows 7.
+  ref: https://social.msdn.microsoft.com/Forums/windowsdesktop/en-US/4986251c-3aea-4c4b-b8ea-dc77e3566a65/releasing-irawelementprovidersimple-implementations?forum=windowsaccessibilityandautomation
+
+2. 

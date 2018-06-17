@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--LongUI::ColorF-->
+    <Type Name="LongUI::ColorF">
+    <DisplayString>
+{{ 
+r = { (DDFFloat3*)&amp;r, na } 
+g = { (DDFFloat3*)&amp;g, na } 
+b = { (DDFFloat3*)&amp;b, na } 
+a = { (DDFFloat3*)&amp;a, na } 
+}}
+    </DisplayString>
+  </Type>
+  <!--RGBA-->
+  <Type Name="LongUI::RGBA">
+    <DisplayString>
+{{
+r = { (int)r, d } 
+g = { (int)g, d } 
+b = { (int)b, d } 
+a = { (int)a, d } 
+}}
+    </DisplayString>
+  </Type>
+  </AutoVisualizer>
