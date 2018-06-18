@@ -105,6 +105,49 @@ void LongUI::UIControl::apply_world_transform() const noexcept {
     painter.SetTransform(auto_cast(m_mtWorld));
 }
 
+// LongUI::detail
+namespace LongUI { namespace detail {
+    // both visible?
+    inline bool both_visible(AttributeOverflow x, AttributeOverflow y) noexcept {
+        return x == Overflow_Visible && y == Overflow_Visible;
+        //return ((x << 4) | y) == ((Overflow_Visible << 4) | Overflow_Visible);
+    }
+}}
+
+
+/// <summary>
+/// Applies the clip rect.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::apply_clip_rect() const noexcept {
+    // 检查overflow属性
+    const auto overflow_x = this->GetStyle().overflow_x;
+    const auto overflow_y = this->GetStyle().overflow_y;
+    if (detail::both_visible(overflow_x, overflow_y)) return;
+    // 压入
+    auto& painter = UIManager.Ref2DRenderer();
+    const float max_size = DEFAULT_CONTROL_MAX_SIZE;
+    RectF rect = { 0, 0, max_size, max_size };
+    const auto size = this->GetSize();
+    if (overflow_x != Overflow_Visible)
+        rect.right = size.width;
+    if (overflow_y != Overflow_Visible)
+        rect.bottom = size.height;
+
+    const auto mode = D2D1_ANTIALIAS_MODE_PER_PRIMITIVE;
+    painter.PushAxisAlignedClip(auto_cast(&rect), mode);
+}
+
+void LongUI::UIControl::cancel_clip_rect() const noexcept {
+    // 检查overflow属性
+    const auto overflow_x = this->GetStyle().overflow_x;
+    const auto overflow_y = this->GetStyle().overflow_y;
+    if (detail::both_visible(overflow_x, overflow_y)) return;
+    // 弹出
+    auto& painter = UIManager.Ref2DRenderer();
+    painter.PopAxisAlignedClip();
+}
+
 
 PCN_NOINLINE
 /// <summary>

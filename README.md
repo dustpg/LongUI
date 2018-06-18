@@ -7,12 +7,12 @@ Current Version : **Alpha-Stage**
 ## Features in LongUI
   
 **Light Weight**
-  - this is main target to creat LongUI
+  - this is main target to create LongUI
   - static-link framework, helloworld just 140kb now
 
 **XML User Interface Language**
   - partially compatible Mozilla's XUL (XML part)
-  - partially compatible CSS(on the plan)
+  - partially compatible CSS(on the plan) to get custom look
   - more detail, see [XUL](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL)
 
 **Accessible**

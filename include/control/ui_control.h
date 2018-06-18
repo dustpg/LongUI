@@ -327,6 +327,10 @@ namespace LongUI {
     protected:
         // apply world transform to renderer
         void apply_world_transform() const noexcept;
+        // apply clip rect
+        void apply_clip_rect() const noexcept;
+        // cancel clip rect
+        void cancel_clip_rect() const noexcept;
         // native style render, return true if not rendered 
         bool native_style_render() const noexcept;
         // custom style render

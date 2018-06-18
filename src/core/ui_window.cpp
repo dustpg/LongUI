@@ -1295,13 +1295,13 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             this->OnSystemKeyDown(static_cast<CUIInputKM::KB>(wParam));
             UIManager.DataUnlock();
             return 1;
-        //case WM_GETMINMAXINFO:
-        //    ::DefWindowProcW(hwnd, message, wParam, lParam);
-        //    {
-        //        const auto info = reinterpret_cast<MINMAXINFO*>(lParam);
-        //        int bk = 9;
-        //    }
-        //    break;
+        case WM_GETMINMAXINFO:
+            [](const LPMINMAXINFO info) noexcept {
+                // TODO: 窗口最小大小
+                info->ptMinTrackSize.x += DEFAULT_CONTROL_WIDTH;
+                info->ptMinTrackSize.y += DEFAULT_CONTROL_HEIGHT;
+            }(reinterpret_cast<MINMAXINFO*>(lParam));
+            return 0;
         case WM_CHAR:
             this->OnChar(static_cast<char16_t>(wParam));
             return 1;

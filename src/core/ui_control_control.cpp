@@ -93,6 +93,8 @@ void LongUI::CUIControlControl::RecursiveRender(
 
     // 设置世界转换矩阵
     ctrl.apply_world_transform();
+    // 设置裁剪矩形
+    ctrl.apply_clip_rect();
     // 区域渲染上层已经
     ctrl.Render();
 
@@ -107,6 +109,10 @@ void LongUI::CUIControlControl::RecursiveRender(
         if (child.m_state.attachment != Attachment_Scroll)
             RecursiveRender(child, region, length);
     }
+
+    // 取消裁剪矩形
+    ctrl.cancel_clip_rect();
+
     //ctrl.render_children();
 }
 

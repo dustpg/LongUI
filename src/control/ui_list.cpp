@@ -82,12 +82,24 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
     //m_state.focusable = true;
     // 默认为列表框
     m_oStyle.appearance = Appearance_ListBox;
+    // 要求裁剪边框
+    //m_oStyle.overflow_x = Overflow_Hidden;
+    //m_oStyle.overflow_y = Overflow_Hidden;
     // 默认样式
     m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
     m_oBox.margin = { 4.f, 2.f, 4.f, 2.f };
     // 至少一个
     m_selected.reserve(1);
     // TODO: OOM处理
+
+    // 创建Body控件
+    m_pListboxBody = new(std::nothrow) UIScrollArea{ this };
+    if (m_pListboxBody) {
+        m_pListboxBody->SetAutoOverflow();
+        m_pListboxBody->SetDebugName("listbox::listboxbody");
+    }
+    // OOM处理
+    this->ctor_failed_if(m_pListboxBody);
 }
 
 
@@ -113,14 +125,13 @@ void LongUI::UIListBox::Update() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIListBox::relayout() noexcept {
-    // XXX: 获取左上角位置
-    const auto lt = this->GetBox().GetContentPos();
+    // 获取左上角位置
+    auto lt = this->GetBox().GetContentPos();
+    auto ctsize = this->GetBox().GetContentSize();
     const auto xofffset = lt.x;
-    float yoffset = lt.y;
-    const auto ctsize = this->GetBox().GetContentSize();
+
     // 先布局列对象(有面积!)
-    // TODO: 要求最小面积(至少要有头吧?) 这里就不用判断了
-    if (m_pCols/* && ctsize.height * ctsize.width > 0.f*/) {
+    if (m_pCols) {
         m_pCols->SetPos(lt);
         this->resize_child(*m_pCols, ctsize);
         // 下次再来
@@ -131,9 +142,16 @@ void LongUI::UIListBox::relayout() noexcept {
     if (m_pHead) {
         m_pHead->SetPos(lt);
         const auto height = m_pHead->GetMinSize().height;
-        yoffset += height;
+        lt.y += height;
+        ctsize.height -= height;
         this->resize_child(*m_pHead, { ctsize.width, height });
     }
+    // Body 位置大小
+    m_pListboxBody->SetPos(lt);
+    this->resize_child(*m_pListboxBody, ctsize);
+
+    // == Item ==
+    float item_offset = 0.f;
     // 先获取获取行高度
     const auto line_height = [this]() noexcept {
         float height = 0.f;
@@ -143,10 +161,12 @@ void LongUI::UIListBox::relayout() noexcept {
     }();
     // 遍历有效子节点
     for (auto* child : m_list) {
-        child->SetPos({xofffset, yoffset });
-        this->resize_child(*child, { ctsize.width,  line_height });;
-        yoffset += line_height;
+        child->SetPos({xofffset, item_offset });
+        this->resize_child(*child, { ctsize.width,  line_height });
+        item_offset += line_height;
     }
+    // TODO: 宽度
+    m_pListboxBody->ForceUpdateScrollSize({ ctsize.width, item_offset });
 }
 
 
@@ -171,11 +191,16 @@ void LongUI::UIListBox::refresh_item_index() noexcept {
 /// <returns></returns>
 void LongUI::UIListBox::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_SELTYPE     = 0xdee1c438_ui32;
+    constexpr auto BKDR_ROWS        = 0x0f63dd45_ui32;
     switch (key)
     {
     case BKDR_SELTYPE:
         // seltype      : 选择类型
         m_seltype = AttrParser::Seltype(value);
+        return;
+    case BKDR_ROWS:
+        // rows         : 显示列数
+        m_displayRow = value.ToInt32();
         return;
     default:
         // 其他交给父类处理
@@ -195,10 +220,17 @@ void LongUI::UIListBox::add_child(UIControl& child) noexcept {
         const auto ptr = static_cast<UIListItem*>(&child);
         m_list.push_back(ptr);
         this->mark_need_refresh_index();
+        return UIControlPrivate::CallAddChild(*m_pListboxBody, child);
     }
     // 是ListCols
     else if (uisafe_cast<UIListCols>(&child)) {
         m_pCols = static_cast<UIListCols*>(&child);
+        Super::add_child(child);
+        // 交换body cols以提高优先级处理鼠标消息
+        this->SwapNode(child, *m_pListboxBody);
+        // 正在添加节点, 没必要用SwapChildren?
+        //this->SwapChildren(child, *m_pListboxBody);
+        return;
     }
     // 是ListHead
     else if (uisafe_cast<UIListHead>(&child)) {
@@ -481,15 +513,9 @@ void LongUI::UIListBox::refresh_minsize() noexcept {
         msize = m_pHead->GetBox().minsize;
     }
     // 再确定Body
-    const auto b = m_list.begin();
-    auto e = m_list.end();
-    // 超过的话只计算前面N个
-    if (m_list.size() > m_displayRow) {
-        e = b + m_displayRow;
-    }
-    std::for_each(b, e, [&msize](auto ctrl) noexcept {
-        msize.height += ctrl->GetBox().minsize.height;
-    });
+    const auto hpr = m_list.empty() ? EMPTY_HEIGHT_PER_ROW :
+        (*m_list.begin())->GetBox().minsize.height;
+    msize.height += m_displayRow * hpr;
     // 设置大小
     this->set_contect_minsize(msize);
 }
@@ -547,8 +573,8 @@ auto LongUI::UIListItem::GetText() const noexcept -> const wchar_t* {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIListItem::GetIndex() const noexcept -> uint32_t {
-    if (const auto list = longui_cast<UIListBox*>(m_pParent)) {
-        list->GetItemIndex(*this);
+    if (const auto list = m_pListBox) {
+        return list->GetItemIndex(*this);
     }
     return 0;
 }
@@ -596,7 +622,7 @@ LongUI::UIListItem::~UIListItem() noexcept {
     if (m_pParent)
 #endif
     // 操作上级标记自己被删除
-    if (const auto list = longui_cast<UIListBox*>(m_pParent)) {
+    if (const auto list = m_pListBox) {
         list->ItemRemoved(*this);
     }
     // 释放私有数据
@@ -625,7 +651,7 @@ void LongUI::UIListItem::relayout() noexcept {
     // 根据列表的布局
     if (maybe.GetParent() != this) {
         // 获取UIListBox
-        if (const auto list = longui_cast<UIListBox*>(m_pParent)) {
+        if (const auto list = m_pListBox) {
             if (const auto cols = list->GetCols()) {
                 return cols->MatchLayout(*this);
             }
@@ -664,8 +690,8 @@ auto LongUI::UIListItem::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_LButtonDown:
-        // XXX: 保存到成员变量略去判断
-        if (const auto list = longui_cast<UIListBox*>(m_pParent)) {
+        // 存在ListBox
+        if (const auto list = m_pListBox) {
             // 判断SHIFT
             if (CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT)) {
                 list->SelectTo(*this);
@@ -702,6 +728,24 @@ void LongUI::UIListItem::SetText(CUIString&& text) noexcept {
     }
 }
 
+
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIListItem::Update() noexcept {
+    // 获取listbox
+    if (m_state.parent_changed) {
+        UIListBox* listbox = nullptr;
+        if (m_pParent) {
+            const auto ppp = m_pParent->GetParent();
+            listbox = longui_cast<UIListBox*>(ppp);
+        }
+        m_pListBox = listbox;
+    }
+    // 父类处理
+    Super::Update();
+}
 
 
 /// <summary>

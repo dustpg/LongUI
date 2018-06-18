@@ -37,19 +37,21 @@
 namespace LongUI {
     // int Constant
     enum EnumUIConstant : int32_t {
-        // dirty rect count
+        // dirty rect count             : for optimization
         DIRTY_RECT_COUNT = 16,
-        // Default Window Width 
+        // default Window Width         : for init
         DEFAULT_WINDOW_WIDTH = 400,
-        // Default Window Height
+        // default Window Height        : for init
         DEFAULT_WINDOW_HEIGHT = 300,
-        // Default Control Width 
+        // default Control Width        : for init
         DEFAULT_CONTROL_WIDTH = 100,
-        // Default Control Height
+        // default Control Height       : for init
         DEFAULT_CONTROL_HEIGHT = 30,
-        // min scrollbar display size
+        // empty height per row         : for minsize
+        EMPTY_HEIGHT_PER_ROW = 24,
+        // min scrollbar display size   : for scrollbar
         MIN_SCROLLBAR_DISPLAY_SIZE = 64,
-        // default control max width/height
+        // default control max width/height :
         DEFAULT_CONTROL_MAX_SIZE = 100000,
 
         // invalid minsize
@@ -62,32 +64,7 @@ namespace LongUI {
         MAX_GRAPHICS_ADAPTERS = 32,
         // window class name buffer
         WNDCLASS_NAME_BUFFER_LENGTH = 48,
-        // LongUI Control Tree Max Depth [fixed buffer length]
-        /*TreeMaxDepth = 256,
-        // LongUI String Buffer Length [fixed buffer length]
-        StringBufferLength = 256,
-        // max count of control in window while in init [fixed buffer length]
-        MaxControlInited = (512 - 1),
-        // default un-redo stack size [fixed buffer length]
-        DefaultUnRedoCommandSize = 13,
-        // max count of longui text renderer [fixed buffer length]
-        TextRendererCountMax = 10,
-        // max count of gradient stop [fixed buffer length]
-        MaxGradientStop = 128,
-        // dirty control size [fixed buffer length]
-        // if dirty control number bigger than this in one frame,
-        // will do the full-rendering, not dirty-rendering
-        DirtyControlSize = 15,
-        // PlanToRender total time in sec. [fixed buffer length]
-        PlanRenderingTotalTime = 5,
-        // minimal size in pixel for window by default
-        WindowMinSize = 128,
-        // minimal size for auto-size control
-        AutoControlMinSize = 8,
-        // target bitmap unit size, larger than this,
-        // will call IDXGISwapChain::ResizeBuffers,
-        // but to large will waste some memory
-        TargetBitmapUnitSize = 128,*/
+
     };
     // attribute [pseudo] namespace
     struct Attribute {

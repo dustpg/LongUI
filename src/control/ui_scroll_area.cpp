@@ -46,6 +46,27 @@ LongUI::UIScrollArea::~UIScrollArea() noexcept {
 #endif
 }
 
+
+/// <summary>
+/// Sets the automatic overflow.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIScrollArea::SetAutoOverflow() noexcept {
+    m_oStyle.overflow_x = LongUI::Overflow_Auto;
+    m_oStyle.overflow_y = LongUI::Overflow_Auto;
+}
+
+
+/// <summary>
+/// Forces the size of the update scroll.
+/// </summary>
+/// <param name="ss">The ss.</param>
+/// <returns></returns>
+void LongUI::UIScrollArea::ForceUpdateScrollSize(Size2F ss) noexcept {
+    m_minScrollSize = ss;
+    this->NeedRelayout();
+}
+
 /// <summary>
 /// Adds the spacer.
 /// </summary>
@@ -164,6 +185,9 @@ void LongUI::UIScrollArea::Update() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollArea::on_state_dirty() noexcept {
+    //if (std::strcmp("listbox::listboxbody", this->name_dbg) == 0) {
+    //    int bk = 9;
+    //}
     const auto w = this->GetSize().width;
     const auto h = this->GetSize().height;
     // 有面积才算数
@@ -188,7 +212,8 @@ void LongUI::UIScrollArea::on_state_dirty() noexcept {
 /// <returns></returns>
 void LongUI::UIScrollArea::relayout() noexcept {
     // TODO: 基本布局
-    
+
+    this->layout_scroll_bar();
 }
 
 /// <summary>

@@ -28,6 +28,8 @@
 
 // ui namespace
 namespace LongUI {
+    // listbox
+    class UIListBox;
     // listitem
     class UIListItem : public UIBoxLayout {
         // super class
@@ -70,6 +72,8 @@ namespace LongUI {
         //void Render() const noexcept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
+        // update
+        void Update() noexcept override;
     protected:
         // relayout
         void relayout() noexcept override;
@@ -83,6 +87,8 @@ namespace LongUI {
         //auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
 #endif
     private:
+        // parent box 
+        UIListBox*          m_pListBox = nullptr;
         // private data
         Private*            m_private = nullptr;
     };

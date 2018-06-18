@@ -36,6 +36,8 @@ namespace LongUI {
     class UIListItem;
     // list head
     class UIListHead;
+    // list body(ScrollArea)
+    class UIScrollArea;
     // listbox control
     class UIListBox : public UIControl {
         // super class
@@ -116,14 +118,18 @@ namespace LongUI {
         UIListHead*         m_pHead = nullptr;
         // last op
         UIListItem*         m_pLastOp = nullptr;
+        // listbox body
+        UIScrollArea*       m_pListboxBody = nullptr;
         // item list
         ItemList            m_list;
         // selected
         ItemList            m_selected;
         // minwidth
         POD::Vector<float>  m_minwidth;
-        // minsize display row | xul::rows related
-        uint8_t             m_displayRow = 2;
+        // display row | xul::rows related
+        uint16_t            m_displayRow = 4;
+        // unused u8
+        char                m_unusedU8 = 0;
         // select type
         AttributeSeltype    m_seltype = Seltype_Single;
     };

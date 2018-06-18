@@ -53,6 +53,10 @@ namespace LongUI {
         // [NEW] relayout
         virtual void relayout() noexcept;
     public:
+        // set auto overflow
+        void SetAutoOverflow() noexcept;
+        // force update scroll size
+        void ForceUpdateScrollSize(Size2F ss) noexcept;
         // add spacer
         void AddSpacer(Size2F size, float flex) noexcept;
         // get min scroll size

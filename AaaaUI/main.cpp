@@ -1,4 +1,5 @@
-﻿#include <core/ui_string.h>
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include <core/ui_string.h>
 #include <core/ui_manager.h>
 #include <core/ui_malloc.h>
 #include <control/ui_ctrlmeta.h>
@@ -106,12 +107,12 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
         {
             LongUI::UIViewport viewport1;
 #if 1
-            main_inited(viewport1, 7);
-            viewport1.AddSpacer({ 100, 100 }, 1);
+            main_inited(viewport1, 12);
+            /*viewport1.AddSpacer({ 100, 100 }, 1);
             (new(std::nothrow) LongUI::UILabel{ &viewport1 })->SetText(L"hello");
             LongUI::UILabel world{ &viewport1 };
             world.SetText(L"world");
-            LongUI::UILabel{ &viewport1 }.SetText(L"?!");
+            LongUI::UILabel{ &viewport1 }.SetText(L"?!");*/
 #else
             viewport1.RefWindow().ShowWindow();
             viewport1.RefWindow().SetTitleName(L"Window");
@@ -137,9 +138,10 @@ LongUI::UIControl* vv;
 void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     vv = &viewport;
     // **测试** 用
-    auto& style = const_cast<LongUI::Style&>(viewport.GetStyle());
-    style.overflow_x = LongUI::Overflow_Auto;
-    style.overflow_y = LongUI::Overflow_Auto;
+    viewport.SetAutoOverflow();
+    //auto& style = const_cast<LongUI::Style&>(viewport.GetStyle());
+    //style.overflow_x = LongUI::Overflow_Auto;
+    //style.overflow_y = LongUI::Overflow_Auto;
     {
         auto a = LongUI::Matrix::Matrix3x2F::Scale({ 2, 2 });
         auto b = LongUI::Matrix::Matrix3x2F::Translation({ 100, 100 });
@@ -153,6 +155,23 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     //set_root(z); z->user_data = reinterpret_cast<uintptr_t>(ptr);
     viewport.SetBgColor({ LongUI::RGBA_White });
     viewport.SetDebugName("root");
+
+    const auto loadfile = [&viewport](const char* filename) noexcept {
+        if (const auto file = std::fopen(filename, "r")) {
+            std::fseek(file, 0L, SEEK_END);
+            const auto len = std::ftell(file);
+            if (const auto ptr = std::malloc(len + 1)) {
+                std::fseek(file, 0L, SEEK_SET);
+                std::fread(ptr, len, 1, file);
+                const auto str = reinterpret_cast<char*>(ptr);
+                str[len] = 0;
+                viewport.SetXUL(str);
+                std::free(ptr);
+            }
+            std::fclose(file);
+        }
+    };
+
     LongUI::UISlider* slider = nullptr;
     auto add_spacer = [](LongUI::UIControl* p) noexcept {
         new(std::nothrow) LongUI::UISpacer{ p };
@@ -445,6 +464,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     case 11:
         viewport.SetXUL(xml_text_box);
+        break;
+    case 12:
+        loadfile("../doc/test-xul/list.xul");
+        viewport.GetWindow()->Resize({ 800, 600 });
         break;
     }
 
