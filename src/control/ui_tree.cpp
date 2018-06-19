@@ -476,10 +476,6 @@ void LongUI::UITreeRow::relayout() noexcept {
         // (image, end)
         auto itr = ++Iterator<UIControl>{ &m_private->image };
 
-#ifndef NDEBUG
-        int a = 0;
-#endif // !NDEBUG
-
 
         for (auto& col : (*cols)) {
             // 必须是col
@@ -488,16 +484,7 @@ void LongUI::UITreeRow::relayout() noexcept {
             if (itr == this->end()) break;
             const auto pos = col.GetPos();
             const auto size = col.GetSize();
-
             auto& child = *itr;
-            
-            a++;
-            if (a == 2)
-            LUIDebug(Hint) LUI_FRAMEID 
-                << static_cast<UITreeCell&>(child).GetTextString()
-                << ' ' << (int)pos.x 
-                << endl;
-
             child.SetPos({ pos.x + xoffset, pos.y });
             const auto width = size.width - xoffset;
             this->resize_child(child, { width, size.height });

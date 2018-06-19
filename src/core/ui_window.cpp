@@ -30,6 +30,8 @@ namespace LongUI { namespace detail {
     auto lowest_common_ancestor(UIControl* now, UIControl* old) noexcept {
         // 由于控件有深度信息, 所以可以进行优化
         // 时间复杂度 O(q) q是目标解与最深条件节点之间深度差
+
+
         // now不能为空
         assert(now && "new one cannot be null");
         // old为空则返回now
