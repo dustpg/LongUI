@@ -62,6 +62,9 @@ LongUI::UITree::~UITree() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITree"/> class.
 /// </summary>
+/// UITree(tree) 是树形控件的基础顶层控件, 所有的子控件需要包含在内部
+/// <remarks>
+/// </remarks>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
@@ -332,6 +335,10 @@ void LongUI::UITreeRow::open_close(bool open) noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeRow"/> class.
 /// </summary>
+/// <remarks>
+/// treerow 表示树形控件的一行, 父控件是treeitem, 子控件是treecell
+/// 在XUL中主要作用就是用来展开收拢树形控件的一行
+/// </remarks>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcept
@@ -438,16 +445,59 @@ void LongUI::UITreeRow::refresh_minsize() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeRow::relayout() noexcept {
-    const auto ctsize = this->GetBox().GetContentSize();
-    float xoffset = m_fLevelOffset;
-    // 遍历有效子节点
-    for (auto& child : (*this)) {
-        // TODO: maxsize足够小应该居中放置
-        child.SetPos({ xoffset, 0.f });
-        const auto min = child.GetMinSize();
-        this->resize_child(child, { min.width, ctsize.height });
-        xoffset += min.width;
+    // 没有cols时调用
+    const auto when_no_cols = [this]() noexcept {
+        const auto ctsize = this->GetBox().GetContentSize();
+        float xoffset = m_fLevelOffset;
+        // 遍历有效子节点
+        for (auto& child : (*this)) {
+            // TODO: maxsize足够小应该居中放置
+            child.SetPos({ xoffset, 0.f });
+            const auto min = child.GetMinSize();
+            this->resize_child(child, { min.width, ctsize.height });
+            xoffset += min.width;
+        }
+    };
+    // 存在cols时调用
+    const auto when_cols = [this, when_no_cols](UITreeCols* cols) noexcept {
+        const auto ctsize = this->GetBox().GetContentSize();
+        float xoffset = m_fLevelOffset;
+        const auto set_child = [&xoffset, ctsize](UIControl& child) noexcept {
+            child.SetPos({ xoffset, 0.f });
+            const auto min = child.GetMinSize();
+            UITreeRow::resize_child(child, { min.width, ctsize.height });
+            xoffset += min.width;
+        };
+        // twisty
+        set_child(m_private->twisty);
+        // image
+        set_child(m_private->image);
+        
+        // (image, end)
+        auto itr = ++Iterator<UIControl>{ &m_private->image };
+        for (auto& col : (*cols)) {
+            // 必须是col
+            if (!uisafe_cast<UITreeCol>(&col)) continue;
+            // 提前出局
+            if (itr == this->end()) break;
+            const auto pos = col.GetPos();
+            const auto size = col.GetSize();
+            auto& child = *itr;
+            child.SetPos({ pos.x + xoffset, pos.y });
+            const auto width = size.width - xoffset;
+            this->resize_child(child, { width, size.height });
+            ++itr;
+        }
+    };
+    // 父节点是treeitem
+    if (const auto treeitem = longui_cast<UITreeItem*>(m_pParent)) {
+        const auto tree = treeitem->GetTreeNode();
+        assert(tree && "bad tree");
+        // 获取树列
+        if (const auto cols = tree->GetCols()) return when_cols(cols);
     }
+    // 没有cols
+    when_no_cols();
 }
 
 
@@ -469,6 +519,10 @@ LongUI::UITreeItem::~UITreeItem() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeItem" /> class.
 /// </summary>
+/// <remarks>
+/// UITreeItem(treeitem) 应该被直接包含在treechildren下面, 以及包含treerow控件
+/// treeitem 可以被用户点击以选择树形控件的一行
+/// </remarks>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeItem::UITreeItem(UIControl* parent, const MetaControl& meta) noexcept
@@ -665,7 +719,6 @@ auto LongUI::UITreeItem::accessible(const AccessibleEventArg& args) noexcept -> 
                     text += cell->GetTextString();
                 }
             }
-            int bk = 9;
         }
     };
     // 分类处理
@@ -729,6 +782,8 @@ void LongUI::UITreeChildren::SetLevelOffset(float offset) {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeChildren"/> class.
 /// </summary>
+/// UITreeChildren(treechildren) 是为了嵌套树的一系列子控件的一个容器
+/// 其父控件必须是treeitem(或是tree), 其子控件们也必须是treeitem
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeChildren::UITreeChildren(UIControl* parent, const MetaControl& meta) noexcept
@@ -804,6 +859,10 @@ LongUI::UITreeCol::~UITreeCol() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeCol"/> class.
 /// </summary>
+/// <remarks>
+/// UITreeCol(treecol) 其目的是为了方便设置列属性, 例如flex
+/// 本身父控件必须是treecols
+/// </remarks>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCol::UITreeCol(UIControl* parent, const MetaControl& meta) noexcept
@@ -827,6 +886,10 @@ LongUI::UITreeCols::~UITreeCols() noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="UITreeCols"/> class.
 /// </summary>
+/// <remarks>
+/// UITreeCols(treecols) 是treecol的父级控件(容器), 本身父控件必须是tree
+/// 其目的是为了方便设置辣么多列属性, 例如flex
+/// </remarks>
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCols::UITreeCols(UIControl* parent, const MetaControl& meta) noexcept

@@ -37,7 +37,7 @@ namespace LongUI {
         // super class
         using Super = UIBoxLayout;
         // item list
-        using ColList = POD::Vector<UIListCol*>;
+        //using ColList = POD::Vector<UIListCol*>;
     protected:
         // ctor
         UIListCols(UIControl* parent, const MetaControl&) noexcept;
@@ -54,10 +54,10 @@ namespace LongUI {
         void MatchLayout(UIControl&) noexcept;
     protected:
         // add child
-        void add_child(UIControl& child) noexcept override;
+        //void add_child(UIControl& child) noexcept override;
     protected:
         // item list
-        ColList             m_list;
+        //ColList             m_list;
     };
     // get meta info for UIListCols
     LUI_DECLARE_METAINFO(UIListCols);

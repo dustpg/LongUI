@@ -32,11 +32,11 @@ namespace LongUI {
     // tree col
     class UITreeCol;
     // treecols control
-    class UITreeCols : public UIListCols {
+    class UITreeCols : public UIBoxLayout {
         // super class
-        using Super = UIListCols;
+        using Super = UIBoxLayout;
         // item list
-        using ColTree = POD::Vector<UITreeCol*>;
+        //using ColTree = POD::Vector<UITreeCol*>;
     protected:
         // ctor
         UITreeCols(UIControl* parent, const MetaControl&) noexcept;
@@ -47,9 +47,6 @@ namespace LongUI {
         ~UITreeCols() noexcept;
         // ctor
         UITreeCols(UIControl* parent = nullptr) noexcept : UITreeCols(parent, UITreeCols::s_meta) {}
-    protected:
-        // get list
-        auto& list() noexcept { return reinterpret_cast<ColTree&>(m_list); }
     private:
     };
     // get meta info for UITreeCols

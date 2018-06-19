@@ -82,9 +82,6 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
     //m_state.focusable = true;
     // 默认为列表框
     m_oStyle.appearance = Appearance_ListBox;
-    // 要求裁剪边框
-    //m_oStyle.overflow_x = Overflow_Hidden;
-    //m_oStyle.overflow_y = Overflow_Hidden;
     // 默认样式
     m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
     m_oBox.margin = { 4.f, 2.f, 4.f, 2.f };
@@ -655,6 +652,7 @@ void LongUI::UIListItem::relayout() noexcept {
             if (const auto cols = list->GetCols()) {
                 return cols->MatchLayout(*this);
             }
+            // TODO: 没有cols的场合?
         }
     }
     // 默认的水平布局
@@ -811,8 +809,6 @@ LongUI::UIListCols::UIListCols(UIControl* parent, const MetaControl& meta) noexc
     : Super(parent, meta) {
     // 水平布局
     this->SetOrient(Orient_Horizontal);
-    // XXX: OOM 处理
-    m_list.reserve(20);
 }
 
 /// <summary>
@@ -828,13 +824,13 @@ LongUI::UIListCols::~UIListCols() noexcept {
 /// </summary>
 /// <param name="child">The child.</param>
 /// <returns></returns>
-void LongUI::UIListCols::add_child(UIControl& child) noexcept {
-    // 是列对象?
-    if (uisafe_cast<UIListCol>(&child)) {
-        m_list.push_back(static_cast<UIListCol*>(&child));
-    }
-    Super::add_child(child);
-}
+//void LongUI::UIListCols::add_child(UIControl& child) noexcept {
+//    // 是列对象?
+//    if (uisafe_cast<UIListCol>(&child)) {
+//        m_list.push_back(static_cast<UIListCol*>(&child));
+//    }
+//    Super::add_child(child);
+//}
 
 /// <summary>
 /// Matches the layout.
@@ -843,14 +839,20 @@ void LongUI::UIListCols::add_child(UIControl& child) noexcept {
 /// <returns></returns>
 void LongUI::UIListCols::MatchLayout(UIControl& container) noexcept {
     const auto height = container.GetBox().GetContentSize().height;
-    const auto end = m_list.end();
-    auto itr = m_list.begin();
-    for (auto& child : container) {
+    auto itr = container.begin();
+    const auto end = container.end();
+    // 遍历cols
+    for (auto& col : (*this)) {
+        // 必须是col
+        if (!uisafe_cast<UIListCol>(&col)) continue;
+        // 下面没了
         if (itr == end) break;
-        const auto ctrl = *itr;
-        const auto width = ctrl->GetSize().width;
-        UIControl::resize_child(child, { width, height });
-        child.SetPos(ctrl->GetPos());
+        // 设置
+        auto& cchild = *itr;
+        const auto width = col.GetSize().width;
+        UIControl::resize_child(cchild, { width, height });
+        cchild.SetPos(col.GetPos());
+        // 递进
         ++itr;
     }
 }

@@ -1,4 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
+#define CASE_NUM (13)
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
 #include <core/ui_malloc.h>
@@ -107,7 +108,7 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
         {
             LongUI::UIViewport viewport1;
 #if 1
-            main_inited(viewport1, 12);
+            main_inited(viewport1, CASE_NUM);
             /*viewport1.AddSpacer({ 100, 100 }, 1);
             (new(std::nothrow) LongUI::UILabel{ &viewport1 })->SetText(L"hello");
             LongUI::UILabel world{ &viewport1 };
@@ -467,6 +468,14 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     case 12:
         loadfile("../doc/test-xul/list.xul");
+        viewport.GetWindow()->Resize({ 800, 600 });
+        break;
+    case 13:
+        loadfile("../doc/test-xul/tree-simple.xul");
+        viewport.GetWindow()->Resize({ 800, 600 });
+        break;
+    case 14:
+        loadfile("../doc/test-xul/tree-nested.xul");
         viewport.GetWindow()->Resize({ 800, 600 });
         break;
     }
