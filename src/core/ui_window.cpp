@@ -24,6 +24,44 @@
 #include "../private/ui_private_control.h"
 #endif
 
+// LongUI::detail
+namespace LongUI { namespace detail {
+    // lowest common ancestor
+    auto lowest_common_ancestor(UIControl* now, UIControl* old) noexcept {
+        // 由于控件有深度信息, 所以可以进行优化
+        // 时间复杂度 O(q) q是目标解与最深条件节点之间深度差
+        // now不能为空
+        assert(now && "new one cannot be null");
+        // old为空则返回now
+        if (!old) return now;
+        // 连接到相同深度
+        UIControl* upper, *lower;
+        if (now->GetLevel() < old->GetLevel()) {
+            // 越大就是越低
+            lower = old; upper = now;
+        }
+        else {
+            // 越小就是越高
+            lower = now; upper = old;
+        }
+        // 将低节点调整至于高节点同一水平
+        auto adj = lower->GetLevel() - upper->GetLevel();
+        while (adj) {
+            lower = lower->GetParent();
+            --adj;
+        }
+        // 共同遍历
+        while (upper != lower) {
+            assert(upper->IsTopLevel() == false);
+            assert(lower->IsTopLevel() == false);
+            upper = upper->GetParent();
+            lower = lower->GetParent();
+        }
+        assert(upper && lower && "cannot be null");
+        return upper;
+    }
+}}
+
 /// <summary>
 /// Sets the control world changed.
 /// </summary>
@@ -32,8 +70,10 @@
 void LongUI::CUIWindow::SetControlWorldChanged(UIControl& ctrl) noexcept {
     assert(UIControlPrivate::TestWorldChanged(ctrl));
     assert(ctrl.GetWindow() == this);
-    if (m_pTopestWcc && m_pTopestWcc->GetLevel() < ctrl.GetLevel()) return;
-    m_pTopestWcc = &ctrl;
+    m_pTopestWcc = detail::lowest_common_ancestor(&ctrl, m_pTopestWcc);
+    //LUIDebug(Log) << ctrl << ctrl.GetLevel() << endl;
+    //if (m_pTopestWcc && m_pTopestWcc->GetLevel() < ctrl.GetLevel()) return;
+    //m_pTopestWcc = &ctrl;
 }
 
 /// <summary>

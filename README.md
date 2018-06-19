@@ -14,6 +14,7 @@ Current Version : **Alpha-Stage**
 **XML User Interface Language**
   - partially compatible Mozilla's XUL (XML part)
   - partially compatible CSS(on the plan) to get custom look
+  - built-in script interface to support your own script-lang
   - more detail, see [XUL](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL)
 
 **High-DPI Support**

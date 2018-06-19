@@ -47,6 +47,11 @@ namespace LongUI {
         ~UITreeCols() noexcept;
         // ctor
         UITreeCols(UIControl* parent = nullptr) noexcept : UITreeCols(parent, UITreeCols::s_meta) {}
+    protected:
+        // do event
+        auto DoEvent(UIControl* s, const EventArg& e) noexcept->EventAccept override;
+        // update
+        //void Update() noexcept override;
     private:
     };
     // get meta info for UITreeCols

@@ -50,9 +50,9 @@ namespace LongUI {
         // get orient
         auto GetOrient() const noexcept { return static_cast<AttributeOrient>(m_state.orient); }
     public:
-        //// do normal event
+        // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
-        //// do mouse event
+        // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         //// update, postpone change some data
         //void Update() noexcept override;

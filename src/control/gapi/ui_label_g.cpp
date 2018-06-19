@@ -10,8 +10,20 @@
 void LongUI::UILabel::Render() const noexcept {
     // 基本渲染
     Super::Render();
-    //if (name_dbg[0] != 't')
-    //LUIDebug(Hint) << this->GetTextString() << endl;
+
+    //if (m_string == L"Male") {
+    //    auto& rdr = UIManager.Ref2DRenderer();
+    //    Matrix3X2F tr;
+    //    rdr.GetTransform(&auto_cast(tr));
+    //    LUIDebug(Hint) LUI_FRAMEID 
+    //        << this->GetPos() 
+    //        << ' ' << m_mtWorld._31
+    //        << endl;
+    //    const auto rect = this->GetBox().GetContentEdge();
+    //    auto& brush = UIManager.RefCCBrush({ 1,0,0,1 });
+    //    rdr.FillRectangle(auto_cast(&rect), &brush);
+    //}
+
     // 前景文本
     const auto rect = this->GetBox().GetContentEdge();
     ColorF color; this->GetForegroundColor(color);

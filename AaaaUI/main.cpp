@@ -1,5 +1,6 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #define CASE_NUM (13)
+
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
 #include <core/ui_malloc.h>

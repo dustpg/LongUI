@@ -4,7 +4,6 @@
 #include <algorithm>
 
 
-
 PCN_NOINLINE
 /// <summary>
 /// Ensures the BG-Color renderer.
@@ -94,6 +93,7 @@ void LongUI::UIControlPrivate::UpdateWorld(UIControl& ctrl) noexcept {
             }
             ctrl.m_mtWorld = matrix;
         }
+
         ctrl.m_state.world_changed = false;
         auto& box = ctrl.m_oBox;
         auto ctrl_rect = ctrl.GetBox().GetBorderEdge();

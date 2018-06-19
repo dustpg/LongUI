@@ -475,6 +475,12 @@ void LongUI::UITreeRow::relayout() noexcept {
         
         // (image, end)
         auto itr = ++Iterator<UIControl>{ &m_private->image };
+
+#ifndef NDEBUG
+        int a = 0;
+#endif // !NDEBUG
+
+
         for (auto& col : (*cols)) {
             // 必须是col
             if (!uisafe_cast<UITreeCol>(&col)) continue;
@@ -482,19 +488,30 @@ void LongUI::UITreeRow::relayout() noexcept {
             if (itr == this->end()) break;
             const auto pos = col.GetPos();
             const auto size = col.GetSize();
+
             auto& child = *itr;
+            
+            a++;
+            if (a == 2)
+            LUIDebug(Hint) LUI_FRAMEID 
+                << static_cast<UITreeCell&>(child).GetTextString()
+                << ' ' << (int)pos.x 
+                << endl;
+
             child.SetPos({ pos.x + xoffset, pos.y });
             const auto width = size.width - xoffset;
             this->resize_child(child, { width, size.height });
             ++itr;
         }
+
     };
     // 父节点是treeitem
     if (const auto treeitem = longui_cast<UITreeItem*>(m_pParent)) {
         const auto tree = treeitem->GetTreeNode();
         assert(tree && "bad tree");
         // 获取树列
-        if (const auto cols = tree->GetCols()) return when_cols(cols);
+        if (const auto cols = tree->GetCols()) 
+            return when_cols(cols);
     }
     // 没有cols
     when_no_cols();
@@ -513,6 +530,7 @@ void LongUI::UITreeRow::relayout() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::UITreeItem::~UITreeItem() noexcept {
+
 }
 
 
@@ -896,6 +914,46 @@ LongUI::UITreeCols::UITreeCols(UIControl* parent, const MetaControl& meta) noexc
     : Super(parent, meta) {
 }
 
+
+void do_treeitem(LongUI::UIControl& c) noexcept {
+    using namespace LongUI;
+    for (auto& child : c) {
+        if (uisafe_cast<UITreeItem>(&child)) {
+            child.NeedRelayout();
+            for (auto& ccc : child) ccc.NeedRelayout();
+        }
+        else {
+            do_treeitem(child);
+        }
+    }
+}
+
+/// <summary>
+/// Does the event.
+/// </summary>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept {
+    switch (e.nevent)
+    {
+    case NoticeEvent::Event_Splitter:
+        assert(m_pParent && "no parent");
+        do_treeitem(*m_pParent);
+        m_pParent->NeedRelayout();
+        m_pParent->Invalidate();
+        [[fallthrough]];
+    default:
+        return Super::DoEvent(sender, e);
+    }
+}
+
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+//void LongUI::UITreeCols::Update() noexcept {
+//    return Super::Update();
+//}
 
 // ----------------------------------------------------------------------------
 // --------------------           Tree Cell           -------------------------

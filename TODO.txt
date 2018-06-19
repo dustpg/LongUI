@@ -1,5 +1,7 @@
 button 默认文本居中
 
+移动窗口/假缩放窗口 会重绘窗口
+
 disable状态取消其他的动画?
 
 考虑去掉CUIWindow::m_pTopestWcc? 目前level数据只和这个有关
