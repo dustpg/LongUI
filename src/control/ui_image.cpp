@@ -22,8 +22,6 @@ LongUI::UIImage::UIImage(UIControl* parent, const MetaControl& meta) noexcept
 
 }
 
-// super helper
-#include "../private/ui_super.h"
 
 /// <summary>
 /// Finalizes an instance of the <see cref="UIImage"/> class.

@@ -35,9 +35,6 @@ LongUI::UIScale::UIScale(UIControl* parent, const MetaControl& meta) noexcept
 #endif
 }
 
-// super helper
-#include "../private/ui_super.h"
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UIScale"/> class.
 /// </summary>

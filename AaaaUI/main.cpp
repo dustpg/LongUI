@@ -479,6 +479,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         loadfile("../doc/test-xul/tree-nested.xul");
         viewport.GetWindow()->Resize({ 800, 600 });
         break;
+    case 15:
+        loadfile("../doc/test-xul/layout.xul");
+        viewport.GetWindow()->Resize({ 800, 600 });
+        break;
     }
 
 

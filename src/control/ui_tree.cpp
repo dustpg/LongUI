@@ -7,6 +7,7 @@
 #include <control/ui_treecell.h>
 #include <control/ui_treechildren.h>
 #include <control/ui_ctrlmeta.h>
+#include <control/ui_scroll_bar.h>
 
 #include <core/ui_manager.h>
 #include <input/ui_kminput.h>
@@ -105,6 +106,12 @@ void LongUI::UITree::add_child(UIControl& child) noexcept {
     if (uisafe_cast<UITreeCols>(&child)) {
         m_pCols = static_cast<UITreeCols*>(&child);
     }
+    // 直属TreeChildren
+    else if (uisafe_cast<UITreeChildren>(&child)) {
+        // HACK: 这时候child还是UIControl, 不能向下转换
+        //       但是SetAutoOverflow是处理UIControl本身的
+        static_cast<UITreeChildren&>(child).SetAutoOverflow();
+    }
     return Super::add_child(child);
 }
 
@@ -115,12 +122,17 @@ void LongUI::UITree::add_child(UIControl& child) noexcept {
 /// <param name="value">The value.</param>
 /// <returns></returns>
 void LongUI::UITree::add_attribute(uint32_t key, U8View value) noexcept {
-    constexpr auto BKDR_SELTYPE = 0xdee1c438_ui32;
+    constexpr auto BKDR_SELTYPE     = 0xdee1c438_ui32;
+    constexpr auto BKDR_ROWS        = 0x0f63dd45_ui32;
     switch (key)
     {
     case BKDR_SELTYPE:
         // seltype      : 选择类型
         m_seltype = AttrParser::Seltype(value);
+        return;
+    case BKDR_ROWS:
+        // rows         : 显示列数
+        m_displayRow = value.ToInt32();
         return;
     default:
         // 其他交给父类处理
@@ -139,8 +151,28 @@ auto LongUI::UITree::DoEvent(UIControl* sender,
     switch (e.nevent)
     {
     case NoticeEvent::Event_RefreshBoxMinSize:
-        this->refresh_minsize(m_pCols);
+        // TREE 的MINSIZE 刷新
+    {
+        float height = 0.f;
+        // 加上内容
+        if (m_pCols)
+            height += m_pCols->GetMinSize().height;
+        // 判断DISPLAY ROWS
+        if (m_pChildren && m_displayRow) {
+            UIControl* ctrl = m_pChildren;
+            while (ctrl->GetCount()) ctrl = &(*ctrl->begin());
+            // 正常情况下ctrl现在是treecell, parent就是treerow
+            const auto mh = ctrl->GetParent()->GetMinSize().height;
+            height += mh * static_cast<float>(m_displayRow);
+        }
+        // 加上间距
+        this->set_contect_minsize({ 0, height });
+    }
         return Event_Accept;
+    //case NoticeEvent::Event_Initialize:
+    //    // 初始化
+    //    if (m_pChildren) m_pChildren->SetAutoOverflow();
+    //    [[fallthrough]];
     default:
         // 其他事件
         return Super::DoEvent(sender, e);
@@ -489,6 +521,8 @@ void LongUI::UITreeRow::relayout() noexcept {
             const auto width = size.width - xoffset;
             this->resize_child(child, { width, size.height });
             ++itr;
+            // 后续的不再偏移
+            xoffset = 0.f;
         }
 
     };
@@ -664,7 +698,7 @@ void LongUI::UITreeItem::relayout_base(UIControl* head) noexcept {
     const auto lt = this->GetBox().GetContentPos();
     float xofffset = m_fLevelOffset;
     float yoffset = lt.y;
-    const auto ctwidth= this->GetBox().GetContentSize().width;
+    const auto ct = this->GetBox().GetContentSize();
     // 拥有头对象?
     if (head) {
         // 位置
@@ -673,7 +707,7 @@ void LongUI::UITreeItem::relayout_base(UIControl* head) noexcept {
         //m_pRow->SetLevelOffset(m_fLevelOffset);
         // 大小
         const auto height = head->GetMinSize().height;
-        this->resize_child(*head, { ctwidth, height });
+        this->resize_child(*head, { ct.width, height });
         // 调整children数据
         yoffset += height;
         // 第一层实际是0的偏移
@@ -685,9 +719,15 @@ void LongUI::UITreeItem::relayout_base(UIControl* head) noexcept {
         m_pChildren->SetLevelOffset(xofffset);
         // 位置
         m_pChildren->SetPos({ lt.x, yoffset });
-        // 大小
+        // 大小: 作为树的直属TC则瓜分剩余的
+        Size2F size = { ct.width , 0.f };
+        if (m_pTree == this) {
+            size.height = std::max(ct.height - yoffset, 0.f);
+        }
+        else 
+            size.height = m_pChildren->GetMinSize().height;
         const auto mh = m_pChildren->GetMinSize().height;
-        this->resize_child(*m_pChildren, { ctwidth, mh });
+        this->resize_child(*m_pChildren, size);
     }
 }
 
@@ -697,6 +737,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeItem::refresh_minsize(UIControl* head) noexcept {
+    // TODO: TREE 拥有独立的MINSIZE算法, 考虑更新算法
     float height = 0.f;
     // 加上内容
     if (head)
@@ -777,8 +818,8 @@ LongUI::UITreeChildren::~UITreeChildren() noexcept {
 /// <param name="offset">The offset.</param>
 void LongUI::UITreeChildren::SetLevelOffset(float offset) {
     for (auto& child : (*this)) {
-        // 子节点必须是UITreeItem
-        if (const auto ptr = longui_cast<UITreeItem*>(&child)) {
+        // 子节点必须是UITreeItem(可能是滚动条)
+        if (const auto ptr = uisafe_cast<UITreeItem>(&child)) {
             ptr->TreeLevelOffset(offset);
         }
     }
@@ -839,9 +880,13 @@ void LongUI::UITreeChildren::Update() noexcept {
 void LongUI::UITreeChildren::add_child(UIControl& child) noexcept {
     // TreeCols对象?
     if (uisafe_cast<UITreeItem>(&child)) {
+
+    }
+    else if (uisafe_cast<UIScrollBar>(&child)) {
+
     }
     else {
-        assert(!"child to treechildren must be treeitem");
+        assert(!"child to treechildren must be treeitem or scrollbar");
     }
     return Super::add_child(child);
 }

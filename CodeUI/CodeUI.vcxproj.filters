@@ -831,9 +831,6 @@
     <ClInclude Include="..\include\control\ui_scale.h">
       <Filter>header\control</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\private\ui_super.h">
-      <Filter>source\private</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\event\ui_input_event.h">
       <Filter>header\event</Filter>
     </ClInclude>

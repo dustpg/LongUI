@@ -431,7 +431,6 @@
     <ClInclude Include="..\src\private\ui_memory_stream.h" />
     <ClInclude Include="..\src\private\ui_private_control.h" />
     <ClInclude Include="..\src\private\ui_private_image.h" />
-    <ClInclude Include="..\src\private\ui_super.h" />
     <ClInclude Include="..\src\private\ui_win10_stlye.h" />
     <ClInclude Include="..\src\private\ui_wndarg.h" />
     <ClInclude Include="..\TextBC\bc_txtbuf.h" />

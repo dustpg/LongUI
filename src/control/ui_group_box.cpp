@@ -66,9 +66,6 @@ LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexc
 
 }
 
-// super helper
-#include "../private/ui_super.h"
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UIGroupBox"/> class.
 /// </summary>
@@ -77,8 +74,6 @@ LongUI::UIGroupBox::~UIGroupBox() noexcept {
     m_state.destructing = true;
     if (m_private) delete m_private;
 }
-
-
 
 /// <summary>
 /// Adds the attribute.

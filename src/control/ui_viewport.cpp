@@ -45,8 +45,6 @@ void LongUI::UIViewport::resize_window(Size2F size) noexcept {
     //m_window.SetControlWorldChanged(*this);
 }
 
-// super helper
-#include "../private/ui_super.h"
 
 /// <summary>
 /// Finalizes an instance of the <see cref="UIViewport"/> class.

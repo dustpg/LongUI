@@ -25,7 +25,7 @@ function setText(treeID,textID)
 
             <groupbox flex="2">
                   <caption label="single selection" />
-                  <tree id="tree1" flex="1" hidecolumnpicker="true" seltype="single" onselect="setText('tree1','value1');">
+                  <tree id="tree1" flex="1" hidecolumnpicker="true" seltype="cell" onselect="setText('tree1','value1');">
                         <treecols>
                               <treecol id="name1" flex="1" label="Name" />
                               <treecol id="sex1" flex="1" label="Sex" />

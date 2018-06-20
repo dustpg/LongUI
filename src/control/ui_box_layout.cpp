@@ -82,9 +82,6 @@ LongUI::UIHBoxLayout::UIHBoxLayout(UIControl* parent, const MetaControl& meta) n
     m_state.orient = Orient_Horizontal;
 }
 
-// super helper
-#include "../private/ui_super.h"
-
 /*/// <summary>
 /// Refreshes the minimum size of the content.
 /// </summary>

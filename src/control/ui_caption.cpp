@@ -22,9 +22,6 @@ LongUI::UICaption::UICaption(UIControl* parent, const MetaControl& meta) noexcep
     this->SetBgColor({ RGBA_White });
 }
 
-// super helper
-#include "../private/ui_super.h"
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UICaption"/> class.
 /// </summary>

@@ -65,9 +65,6 @@ LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexc
     this->ctor_failed_if(m_private);
 }
 
-// super helper
-#include "../private/ui_super.h"
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UIProgress"/> class.
 /// </summary>

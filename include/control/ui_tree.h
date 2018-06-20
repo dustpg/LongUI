@@ -89,13 +89,17 @@ namespace LongUI {
         void select_item(UITreeItem&) noexcept;
     protected:
         // cols
-        UITreeCols*             m_pCols = nullptr;
+        UITreeCols*         m_pCols = nullptr;
         // last op
-        UITreeItem*             m_pLastOp = nullptr;
+        UITreeItem*         m_pLastOp = nullptr;
         // selected
-        ItemList                m_selected;
+        ItemList            m_selected;
+        // display row | xul::rows related
+        uint16_t            m_displayRow = 0;
+        // unused u8
+        char                m_unusedU8 = 0;
         // select type
-        AttributeSeltype        m_seltype = Seltype_Multiple;
+        AttributeSeltype    m_seltype = Seltype_Multiple;
     private:
     };
     // get meta info for UITree

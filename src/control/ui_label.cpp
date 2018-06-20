@@ -36,9 +36,6 @@ LongUI::UILabel::UILabel(UIControl* parent, const MetaControl& meta) noexcept
     m_oBox.margin = { 6, 1, 5, 2 };
 }
 
-// super helper
-#include "../private/ui_super.h"
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UILabel"/> class.
 /// </summary>

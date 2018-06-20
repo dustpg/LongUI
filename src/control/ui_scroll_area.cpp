@@ -30,9 +30,6 @@ LongUI::UIScrollArea::UIScrollArea(UIControl* parent, const MetaControl& meta) n
 }
 
 
-// super helper
-#include "../private/ui_super.h"
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UIScrollArea"/> class.
 /// </summary>
@@ -52,8 +49,8 @@ LongUI::UIScrollArea::~UIScrollArea() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollArea::SetAutoOverflow() noexcept {
-    m_oStyle.overflow_x = LongUI::Overflow_Auto;
-    m_oStyle.overflow_y = LongUI::Overflow_Auto;
+    m_oStyle.overflow_x = Overflow_Auto;
+    m_oStyle.overflow_y = Overflow_Auto;
 }
 
 

@@ -65,8 +65,6 @@ LongUI::UITextBox::UITextBox(UIControl* parent, const MetaControl& meta) noexcep
     this->create_private();
 }
 
-// super helper
-#include "../private/ui_super.h"
 
 /// <summary>
 /// Finalizes an instance of the <see cref="UITextBox"/> class.
