@@ -53,6 +53,8 @@ namespace LongUI {
         // update
         //void Update() noexcept override;
     private:
+        // do update for item
+        static void do_update_for_item(UIControl&) noexcept;
     };
     // get meta info for UITreeCols
     LUI_DECLARE_METAINFO(UITreeCols);

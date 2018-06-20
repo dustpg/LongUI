@@ -61,8 +61,12 @@ namespace LongUI {
         void SelectToThis() noexcept;
         // select this
         void Select(bool exsel) noexcept;
+        // get col
+        auto GetCol() const noexcept { return m_pRow; }
         // get tree node
         auto GetTreeNode() const noexcept { return m_pTree; }
+        // get tree children
+        auto GetTreeChildren() const noexcept { return m_pChildren; }
         // tree children changed
         void TreeChildrenChanged(bool has_child) noexcept;
         // tree children closed

@@ -1,59 +1,59 @@
-button Ĭ���ı�����
+﻿button 默认文本居中
 
-�ƶ�����/�����Ŵ��� ���ػ洰��
+移动窗口/假缩放窗口 会重绘窗口
 
-disable״̬ȡ�������Ķ���?
+disable状态取消其他的动画?
 
-����ȥ��CUIWindow::m_pTopestWcc? Ŀǰlevel����ֻ������й�
+xul根节点window弄成可选的?没有就创建一个?
 
-STYLE minsizeӵ��ǿ����?
+STYLE minsize拥有强制性?
 
-set_child_parent_nnrivc ȫ����
+set_child_parent_nnrivc 全面检查
 
-��������UIControl���������Խ���UIControl::add_attribute����
+将存在于UIControl的所有属性交给UIControl::add_attribute处理
 
-Init�¼���һ��HR�ķ���ֵ
+Init事件有一个HR的返回值
 
-��ȫ���, ����static_cast<I::???*>
+安全检查, 无需static_cast<I::???*>
 
-OOM: ǿ�Ʋ���, ���뺯��ʹ�þ�̬����������ֱ�ӷ���nullptr
+OOM: [强制测试]申请函数使用静态变量按进度直接返回nullptr
 
-TextBC: ����������ƶ����Ż�
+TextBC: 仅仅插入符移动的优化
 
 SimpAX: (ch == ' ') | (ch == '\t'); -> (ch == ' ') || (ch == '\t');
 
-SimpAX: �ֽ�ӳ���ʹ��ÿһλ, ��Լ7��
+SimpAX: 字节映射表使用每一位, 节约7倍
 
-POD Vector���ָ��(�Լ�С��ָ��?)�Ż�
+POD Vector针对指针(以及小于指针?)优化
 
-CUIWindow Ҳʹ�����ڵ�
+CUIWindow 也使用树节点
 
-ʵ�� fixedqueue
+实现 fixedqueue
 
-��ȫ��� ��printf 
+安全检查 类printf 
 
 CUIString::fromLatin1
 
 m_state.in_dtor ?
 
-UIControl::Update ��Ϊ���麯�� ׷�� �麯��ChangedEvent
+UIControl::Update 改为非虚函数 追加 虚函数ChangedEvent
 
-�첽����
+异步加载
 
-����#include Qt��
+所有#include Qt化
 
-CSS border-width ����
-ֻ�е��߿���ʽ���� none ʱ�������á�
-����߿���ʽ�� none���߿����ʵ���ϻ�����Ϊ 0
+CSS border-width 属性
+只有当边框样式不是 none 时才起作用。
+如果边框样式是 none，边框宽度实际上会重置为 0
 
-λ��ѹ������
+位域压缩属性
 
-CUINativeStyleWindows10 ʹ��˽�б�ˢ
+CUINativeStyleWindows10 使用私有笔刷
 
-һ�㵥���෽��ȫ����̬��
+一般单例类方法全部静态化
 
-�Ż�������ʾ
+优化几何显示
 
 native style mix color
 
-Ŀ��״̬������Ч?
+目标状态立即生效?

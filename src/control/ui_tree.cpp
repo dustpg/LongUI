@@ -901,20 +901,6 @@ LongUI::UITreeCols::UITreeCols(UIControl* parent, const MetaControl& meta) noexc
     : Super(parent, meta) {
 }
 
-
-void do_treeitem(LongUI::UIControl& c) noexcept {
-    using namespace LongUI;
-    for (auto& child : c) {
-        if (uisafe_cast<UITreeItem>(&child)) {
-            child.NeedRelayout();
-            for (auto& ccc : child) ccc.NeedRelayout();
-        }
-        else {
-            do_treeitem(child);
-        }
-    }
-}
-
 /// <summary>
 /// Does the event.
 /// </summary>
@@ -925,12 +911,31 @@ auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept-
     {
     case NoticeEvent::Event_Splitter:
         assert(m_pParent && "no parent");
-        do_treeitem(*m_pParent);
-        m_pParent->NeedRelayout();
+        this->NeedRelayout();
+        // 父节点是tree
+        if (auto tc = longui_cast<UITree*>(m_pParent)->GetTreeChildren())
+            UITreeCols::do_update_for_item(*tc);
         m_pParent->Invalidate();
         [[fallthrough]];
     default:
         return Super::DoEvent(sender, e);
+    }
+}
+
+/// <summary>
+/// Does the update for item.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::UITreeCols::do_update_for_item(UIControl& ctrl) noexcept {
+    for (auto& child : ctrl) {
+        if (uisafe_cast<UITreeItem>(&child)) {
+            if (auto col = static_cast<UITreeItem&>(child).GetCol()) 
+                col->NeedRelayout();
+        }
+        else {
+            UITreeCols::do_update_for_item(child);
+        }
     }
 }
 
