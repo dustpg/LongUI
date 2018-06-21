@@ -46,6 +46,8 @@ namespace LongUI {
         // ctor
         UITreeRow(UIControl* parent = nullptr) noexcept : UITreeRow(parent, UITreeRow::s_meta) {}
     public:
+        // is selected?
+        //auto IsSelected() const noexcept { return m_oStyle.state.selected; }
         // set has child
         void SetHasChild(bool has) noexcept;
         // open node

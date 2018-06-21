@@ -212,7 +212,7 @@ void LongUI::UITree::ItemRemoved(UITreeItem& item) noexcept {
 /// <returns></returns>
 void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
     // 在表内额外添加就算了
-    if (item.IsMarked() && exadd) return;
+    if (item.IsSelected() && exadd) return;
     // 记录上次操作对象
     m_pLastOp = &item;
     // 清空?
@@ -228,7 +228,13 @@ void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
 /// <param name="item">The item.</param>
 /// <returns></returns>
 void LongUI::UITree::ClearSelected(UITreeItem& item) noexcept {
-
+    const auto enditr = m_selected.end();
+    const auto itr = std::find(m_selected.begin(), enditr, &item);
+    m_selected.erase(itr);
+    item.StartAnimation({ StyleStateType::Type_Selected, false });
+    if (const auto row = item.GetRow()) {
+        row->StartAnimation({ StyleStateType::Type_Selected, false });
+    }
 }
 
 /// <summary>
@@ -236,16 +242,27 @@ void LongUI::UITree::ClearSelected(UITreeItem& item) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITree::ClearAllSelected() noexcept {
-
+    for (auto* item : m_selected) {
+        assert(item->GetRow() && "???");
+        item->StartAnimation({ StyleStateType::Type_Selected, false });
+        item->GetRow()->StartAnimation({ StyleStateType::Type_Selected, false });
+    }
+    m_selected.clear();
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Selects the item.
 /// </summary>
 /// <param name="item">The item.</param>
 /// <returns></returns>
 void LongUI::UITree::select_item(UITreeItem& item) noexcept {
-
+    // 写入表内
+    m_selected.push_back(&item);
+    item.StartAnimation({ StyleStateType::Type_Selected, true });
+    if (const auto row = item.GetRow()) {
+        row->StartAnimation({ StyleStateType::Type_Selected, true });
+    }
 }
 
 #ifdef LUI_ACCESSIBLE
@@ -470,7 +487,13 @@ auto LongUI::UITreeRow::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             else {
                 // 判断CTRL键
                 const auto ctrl = CUIInputKM::GetKeyState(CUIInputKM::KB_CONTROL);
-                item->Select(ctrl);
+                const auto tree = item->GetTreeNode();
+                if (ctrl && tree->IsMultiple() && item->IsSelected()) {
+                    // 取消选择
+                    tree->ClearSelected(*item);
+                }
+                // 添加选择
+                else item->Select(ctrl);
             }
         }
         [[fallthrough]];
@@ -676,9 +699,9 @@ void LongUI::UITreeItem::SelectToThis() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeItem::Select(bool exsel) noexcept {
-    int bk = 9;
+    assert(m_pTree && "tree cannot be null on call select");
+    m_pTree->SelectItem(*this, exsel);
 }
-
 
 /// <summary>
 /// Trees the children close.
@@ -999,8 +1022,8 @@ auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept-
 void LongUI::UITreeCols::do_update_for_item(UIControl& ctrl) noexcept {
     for (auto& child : ctrl) {
         if (uisafe_cast<UITreeItem>(&child)) {
-            if (auto col = static_cast<UITreeItem&>(child).GetCol()) 
-                col->NeedRelayout();
+            if (auto row = static_cast<UITreeItem&>(child).GetRow())
+                row->NeedRelayout();
         }
         else {
             UITreeCols::do_update_for_item(child);

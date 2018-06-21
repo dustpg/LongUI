@@ -49,20 +49,15 @@ namespace LongUI {
         ~UITreeItem() noexcept;
         // ctor
         UITreeItem(UIControl* parent = nullptr) noexcept : UITreeItem(parent, UITreeItem::s_meta) {}
-    public: // parent used
-        // selected?
-        auto IsMarked() const noexcept { return m_bMarkdSel; }
-        // mark selected
-        auto MarkSelected() noexcept { return m_bMarkdSel = true; }
-        // clear selected
-        auto ClearMarked() noexcept { return m_bMarkdSel = false; }
     public:
+        // is selected?
+        auto IsSelected() const noexcept { return m_oStyle.state.selected; }
         // select to this
         void SelectToThis() noexcept;
         // select this
         void Select(bool exsel) noexcept;
-        // get col
-        auto GetCol() const noexcept { return m_pRow; }
+        // get row
+        auto GetRow() const noexcept { return m_pRow; }
         // get tree node
         auto GetTreeNode() const noexcept { return m_pTree; }
         // get tree children

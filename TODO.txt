@@ -2,6 +2,8 @@
 
 移动窗口/假缩放窗口 会重绘窗口
 
+Tree的选择换为TreeRow而不是TreeItem?
+
 disable状态取消其他的动画?
 
 xul根节点window弄成可选的?没有就创建一个?
