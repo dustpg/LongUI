@@ -53,8 +53,8 @@ namespace LongUI {
         bool IsMultiple() const noexcept { return m_seltype == Seltype_Multiple; }
         // get cols
         auto GetCols() const noexcept { return m_pCols; }
-        // item removed. called from UIListItem's dtor
-        //void ItemRemoved(UITreeItem&) noexcept;
+        // item removed. called from UITreeItem's dtor
+        void ItemRemoved(UITreeItem&) noexcept;
         // select item
         void SelectItem(UITreeItem&, bool exadd) noexcept;
         // select to

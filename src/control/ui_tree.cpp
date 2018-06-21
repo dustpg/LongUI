@@ -181,6 +181,30 @@ auto LongUI::UITree::DoEvent(UIControl* sender,
 
 
 /// <summary>
+/// Items the removed.
+/// </summary>
+/// <param name="item">The item.</param>
+/// <returns></returns>
+void LongUI::UITree::ItemRemoved(UITreeItem& item) noexcept {
+    // 删除中直接返回?
+    if (m_state.destructing) return;
+    // 移除Last Op引用
+    if (m_pLastOp == &item) m_pLastOp = nullptr;
+    // 1. 删除在选数据
+    {
+        const auto enditr = m_selected.end();
+        const auto itr = std::find(m_selected.begin(), enditr, &item);
+#ifndef NDEBUG
+        // 自己写的允许擦除end迭代器
+        m_selected.erase(m_selected.end());
+#endif
+        //if (itr != enditr)
+        m_selected.erase(itr);
+    }
+}
+
+
+/// <summary>
 /// Selects the item.
 /// </summary>
 /// <param name="item">The item.</param>
