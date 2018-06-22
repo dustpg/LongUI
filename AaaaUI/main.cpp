@@ -1,5 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (14)
+#define CASE_NUM (16)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
@@ -481,6 +481,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     case 15:
         loadfile("../doc/test-xul/layout.xul");
+        viewport.GetWindow()->Resize({ 800, 600 });
+        break;
+    case 16:
+        loadfile("../doc/test-xul/css-test.xul");
         viewport.GetWindow()->Resize({ 800, 600 });
         break;
     }

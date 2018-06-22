@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="css/test.css" type="text/css"?>
+
+<window title="XUL Test"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<script>
+<![CDATA[
+
+function get_text() {
+  document.getElementById("lbl1").value = "Color"
+  var v = document.getElementById("lbl1").value;
+  document.getElementById("output").value = v;
+}
+
+]]>
+</script>
+
+<spacer flex="1"/>
+<hbox flex="1">
+  <spacer flex="1"/>
+  <button label="BUTTON" flex="1"/>
+  <spacer flex="1"/>
+</hbox>
+<spacer flex="1"/>
+
+
+</window>

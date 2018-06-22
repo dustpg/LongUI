@@ -81,6 +81,9 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
 #endif
     // 水平布局
     this->SetOrient(Orient_Horizontal);
+    // 居中
+    m_oStyle.pack = Pack_Center;
+    m_oStyle.align = Align_Center;
     m_oBox.margin = { 5, 5, 5, 5 };
     // 私有实现
     m_private = new(std::nothrow) Private{ *this };
