@@ -223,6 +223,93 @@ void LongUI::UITree::SelectItem(UITreeItem& item, bool exadd) noexcept {
 
 
 /// <summary>
+/// Selects to.
+/// </summary>
+/// <param name="item">The item.</param>
+/// <returns></returns>
+void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
+    assert(m_pChildren && "cannot be null on call select");
+    assert(m_pChildren->GetCount() && "cannot be 0 on call select");
+    // 单选?
+    if (!this->IsMultiple()) return this->SelectItem(item, false);
+    // 先清除之前的所有选择
+    this->ClearAllSelected();
+    // LongUI 控件树最大深度256, TreeItem之间交错连接故最大深度128
+    UIControl* items[128];
+    auto item_top = items;
+    // 一堆方便
+    const auto push_item = [&item_top](UIControl* i) noexcept {
+        ++item_top; *item_top = i;
+    };
+    const auto pop_item = [&]() noexcept {
+        assert(item_top >= items); --item_top;
+    };
+    const auto next_item = [](UIControl* i) noexcept {
+        UIControl* item = ++Iterator<UIControl>{ i };
+        return item;
+    };
+    // 没有上次操作对象
+    items[0] = m_pChildren->begin();
+    // 拥有上次操作对象
+    if (m_pLastOp) {
+        const auto d1 = m_pLastOp->GetLevel();
+        const auto d2 = this->GetLevel();
+        assert(d1 > d2 && ((d1 - d2) & 1) == 0);
+        auto d3 = (d1 - d2) / 2 - 1;
+        *item_top = m_pLastOp; ++item_top;
+        UIControl* opt = m_pLastOp;
+        while (d3) {
+            --d3; 
+            // 获取上一级TreeItem
+            assert(opt->GetParent());
+            opt = opt->GetParent();
+            assert(opt->GetParent());
+            opt = opt->GetParent();
+            assert(longui_cast<UITreeItem*>(opt));
+            // 弟节点
+            if (!opt->IsLastChild()) {
+                // XXX: [测试] next 是滚动条的场合?
+                *item_top = next_item(opt);
+                ++item_top;
+            }
+        }
+        // 逆置数组
+        std::reverse(items, item_top);
+        // 将顶层指针下移动
+        --item_top;
+    }
+    // 利用深度优先遍历
+    while (true) {
+        // 没有数据则退出(正常情况则不可能)
+        assert(item_top >= items && "BUG");
+        if (item_top < items) break;
+        // 获取栈顶数据
+        const auto now_item = *item_top;
+        if (now_item->IsLastChild()) pop_item();
+        else *item_top = next_item(now_item);
+        
+        // XXX: [优化] items大概率是UITreeItem, 小概率是滚动条
+        if (const auto item_ptr = uisafe_cast<UITreeItem>(now_item)) {
+
+#if 0
+            auto& dbg_item = static_cast<UITreeItem&>(*now_item);
+            const auto dbg_row = dbg_item.GetRow();
+            CUIString row_text;
+            dbg_row->GetRowString(row_text);
+            LUIDebug(Log) << row_text << endl;
+#endif
+            this->select_item(*item_ptr);
+            // 遇到目标目标则退出循环
+            if (item_ptr == &item) break;
+            // 将子节点压入待用栈
+            if (const auto tc = item_ptr->GetTreeChildren()) {
+                if (tc->GetCount()) push_item(tc->begin());
+            }
+        }
+    }
+}
+
+/// <summary>
 /// Clears the selected.
 /// </summary>
 /// <param name="item">The item.</param>
@@ -348,6 +435,20 @@ void LongUI::UITreeRow::SetHasChild(bool has) noexcept {
     auto& sstate = UIControlPrivate::GetStyleState(m_private->twisty);
     sstate.indeterminate = has;
     m_bHasChild = has;
+}
+
+/// <summary>
+/// Gets the row string.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::UITreeRow::GetRowString(CUIString& text) const noexcept {
+    for (auto& child : (*this)) {
+        if (const auto cell = uisafe_cast<const UITreeCell>(&child)) {
+            if (!text.empty()) text += L' ';
+            text += cell->GetTextString();
+        }
+    }
 }
 
 
@@ -480,20 +581,20 @@ auto LongUI::UITreeRow::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
     case LongUI::MouseEvent::Event_LButtonDown:
         // 父节点必须是UITreeItem
         if (const auto item = longui_cast<UITreeItem*>(m_pParent)) {
+            const auto tree = item->GetTreeNode();
             // 判断SHIFT
             if (CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT)) {
-                item->SelectToThis();
+                tree->SelectTo(*item);
             }
             else {
                 // 判断CTRL键
                 const auto ctrl = CUIInputKM::GetKeyState(CUIInputKM::KB_CONTROL);
-                const auto tree = item->GetTreeNode();
                 if (ctrl && tree->IsMultiple() && item->IsSelected()) {
                     // 取消选择
                     tree->ClearSelected(*item);
                 }
                 // 添加选择
-                else item->Select(ctrl);
+                else tree->SelectItem(*item, ctrl);
             }
         }
         [[fallthrough]];
@@ -686,12 +787,14 @@ void LongUI::UITreeItem::TreeChildrenChanged(bool has_child) noexcept {
 }
 
 
+#if 0
 /// <summary>
 /// Selects to this.
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeItem::SelectToThis() noexcept {
-
+    assert(m_pTree && "tree cannot be null on call select");
+    m_pTree->SelectTo();
 }
 
 /// <summary>
@@ -702,6 +805,8 @@ void LongUI::UITreeItem::Select(bool exsel) noexcept {
     assert(m_pTree && "tree cannot be null on call select");
     m_pTree->SelectItem(*this, exsel);
 }
+
+#endif
 
 /// <summary>
 /// Trees the children close.
@@ -805,14 +910,7 @@ void LongUI::UITreeItem::refresh_minsize(UIControl* head) noexcept {
 auto LongUI::UITreeItem::accessible(const AccessibleEventArg& args) noexcept -> EventAccept {
     // 获取ACC名称
     const auto get_acc_name = [this](CUIString& text) noexcept {
-        if (m_pRow) {
-            for (auto& child : (*m_pRow)) {
-                if (const auto cell = uisafe_cast<UITreeCell>(&child)) {
-                    if (!text.empty()) text += L' ';
-                    text += cell->GetTextString();
-                }
-            }
-        }
+        if (m_pRow) m_pRow->GetRowString(text);
     };
     // 分类处理
     switch (args.event)

@@ -48,6 +48,8 @@ namespace LongUI {
     public:
         // is selected?
         //auto IsSelected() const noexcept { return m_oStyle.state.selected; }
+        // get row string
+        void GetRowString(CUIString&) const noexcept;
         // set has child
         void SetHasChild(bool has) noexcept;
         // open node

@@ -472,6 +472,8 @@ namespace LongUI {
     // decl meta control
 #define LUI_DECLARE_METAINFO(C)\
     template<> inline const MetaControl& GetMetaInfo<C>() noexcept {\
+        return C::s_meta; }\
+    template<> inline const MetaControl& GetMetaInfo<const C>() noexcept {\
         return C::s_meta; }
     // get meta info for UIControl
     LUI_DECLARE_METAINFO(UIControl);

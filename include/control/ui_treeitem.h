@@ -53,9 +53,9 @@ namespace LongUI {
         // is selected?
         auto IsSelected() const noexcept { return m_oStyle.state.selected; }
         // select to this
-        void SelectToThis() noexcept;
+        //void SelectToThis() noexcept;
         // select this
-        void Select(bool exsel) noexcept;
+        //void Select(bool exsel) noexcept;
         // get row
         auto GetRow() const noexcept { return m_pRow; }
         // get tree node

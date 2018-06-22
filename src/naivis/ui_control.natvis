@@ -53,4 +53,20 @@
       </LinkedListItems>
     </Expand>
   </Type>
+  <!--COPY ONE OF ABOVE-->
+  <Type Name="LongUI::UILabel">
+    <DisplayString>
+      {{{ m_string, na }}} Rect = {{ {
+      (int)m_oBox.pos.x }, { (int)m_oBox.pos.y }, {
+      (int)m_oBox.size.width }, { (int)m_oBox.size.height } }}
+    </DisplayString>
+    <Expand>
+      <LinkedListItems>
+        <Size>m_cChildrenCount</Size>
+        <HeadPointer>m_oHead.next</HeadPointer>
+        <NextPointer>next</NextPointer>
+        <ValueNode>(LongUI::UIControl*)this</ValueNode>
+      </LinkedListItems>
+    </Expand>
+  </Type>
 </AutoVisualizer>

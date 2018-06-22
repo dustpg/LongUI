@@ -58,7 +58,7 @@ namespace LongUI {
         // select item
         void SelectItem(UITreeItem&, bool exadd) noexcept;
         // select to
-        //void SelectTo(UITreeItem&) noexcept;
+        void SelectTo(UITreeItem&) noexcept;
         // clear select
         void ClearSelected(UITreeItem&) noexcept;
         // clear all select
