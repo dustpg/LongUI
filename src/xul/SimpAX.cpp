@@ -1,4 +1,4 @@
-#include "xul/SimpAX.h"
+ï»¿#include "xul/SimpAX.h"
 #include <cassert>
 #include <cstddef>
 #include <memory>
@@ -14,7 +14,7 @@
 #endif
 
 
-// ·ÖÅäÆ÷×Ô¶¨ÒåÇøÓò
+// åˆ†é…å™¨è‡ªå®šä¹‰åŒºåŸŸ
 
 /// <summary>
 /// Frees the specified .
@@ -44,6 +44,54 @@ inline void*SimpAX::CAXStream::realloc(void* ptr, size_t len) noexcept {
     return std::realloc(ptr, len);
 }
 
+/// <summary>
+/// Finds the character.
+/// </summary>
+/// <param name="pair">The pair.</param>
+/// <param name="ch">The ch.</param>
+/// <returns></returns>
+auto SimpAX::CAXStream::FindChar(StrPair pair, Char ch) noexcept -> const SimpAX::Char * {
+    while (pair.a < pair.b) {
+        if (*pair.a == ch) return pair.a;
+        ++pair.a;
+    }
+    return nullptr;
+}
+
+/// <summary>
+/// Finds the equation.
+/// </summary>
+/// <param name="pair">The pair.</param>
+/// <param name="name">The name.</param>
+/// <returns></returns>
+auto SimpAX::CAXStream::FindEquation(StrPair pair, const Char* name) noexcept -> StrPair {
+    auto rv = StrPair{ pair.begin(), pair.begin() };
+    // æŸ¥æ‰¾name
+    [=, &rv]() noexcept {
+        // æŸ¥æ‰¾å€¼å
+        const auto names = std::strstr(pair.begin(), name);
+        // æ²¡æœ‰æ‰¾åˆ°æˆ–è€…ä¸åœ¨è¿™ä¸ªæ®µå†…éƒ½ç®—æ²¡æ‰¾åˆ°
+        // HACK: æ®µå†…
+        if (names >= pair.end() || names == nullptr) return;
+        // æŸ¥æ‰¾=
+        auto now = StrPair{ names + 1,  pair.end() };
+        const auto eql_mark = CAXStream::FindChar(now, '=');
+        if (!eql_mark) return;
+        // æŸ¥æ‰¾å·¦è¾¹"
+        now.a = eql_mark + 1;
+        const auto left_quot = CAXStream::FindChar(now, '\"');
+        if (!left_quot) return;
+        // æŸ¥æ‰¾å³è¾¹"
+        now.a = left_quot + 1;
+        const auto right_quot = CAXStream::FindChar(now, '\"');
+        if (!right_quot) return;
+        // æŸ¥æ‰¾å®Œæ¯•
+        rv.a = left_quot + 1;
+        rv.b = right_quot;
+    }();
+    return rv;
+}
+
 #ifdef _MSC_VER
 _declspec(noinline)
 #endif
@@ -55,15 +103,15 @@ _declspec(noinline)
 /// <param name="b">The b.</param>
 /// <returns></returns>
 bool SimpAX::IsSame(const StrPair a, const StrPair b) noexcept {
-    // ³¤¶ÈÏàÍ¬ÔÙËµ
+    // é•¿åº¦ç›¸åŒå†è¯´
     if (a.b - a.a == b.b - b.a) {
-        // ÎªÁËÅÅ³ınull
+        // ä¸ºäº†æ’é™¤null
         if (a.a == b.a) return true;
         if (!a.a | !b.a) return false;
-        // ±éÀú
+        // éå†
         const auto* __restrict itr1 = a.a, * __restrict itr2 = b.a;
         while (itr1 < a.b) { if (*itr1 != *itr2) return false; ++itr1; ++itr2; }
-        // È«²¿Ò»ÖÂ
+        // å…¨éƒ¨ä¸€è‡´
         return true;
     }
     return false;
@@ -188,10 +236,10 @@ SimpAX::CAXStream::~CAXStream() noexcept {
 }
 
 /*
-    Ãû³Æ¿ÉÒÔº¬×ÖÄ¸¡¢Êı×ÖÒÔ¼°ÆäËûµÄ×Ö·û
-    Ãû³Æ²»ÄÜÒÔÊı×Ö»òÕß±êµã·ûºÅ¿ªÊ¼
-    Ãû³Æ²»ÄÜÒÔ×Ö·û ¡°xml¡±£¨»òÕß XML¡¢Xml£©¿ªÊ¼
-    Ãû³Æ²»ÄÜ°üº¬¿Õ¸ñ
+    åç§°å¯ä»¥å«å­—æ¯ã€æ•°å­—ä»¥åŠå…¶ä»–çš„å­—ç¬¦
+    åç§°ä¸èƒ½ä»¥æ•°å­—æˆ–è€…æ ‡ç‚¹ç¬¦å·å¼€å§‹
+    åç§°ä¸èƒ½ä»¥å­—ç¬¦ â€œxmlâ€ï¼ˆæˆ–è€… XMLã€Xmlï¼‰å¼€å§‹
+    åç§°ä¸èƒ½åŒ…å«ç©ºæ ¼
 */
 
 /// <summary>
@@ -200,46 +248,46 @@ SimpAX::CAXStream::~CAXStream() noexcept {
 /// <param name="str">The string.</param>
 /// <returns></returns>
 auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
-    // ×´Ì¬
+    // çŠ¶æ€
     m_pStackTop = m_pStackBase;
-    // ×´Ì¬»ú
+    // çŠ¶æ€æœº
     enum sm {
-        // ×¼±¸½âÎöÔªËØ, µÈ´ı±êÇ©
+        // å‡†å¤‡è§£æå…ƒç´ , ç­‰å¾…æ ‡ç­¾
         sm_standby,
-        // ½áÊø½âÎö×¢ÊÍ, µÈ´ı-->
+        // ç»“æŸè§£ææ³¨é‡Š, ç­‰å¾…-->
         sm_comment_end,
-        // ½âÎö´¦ÀíÖ¸Áî, µÈ´ıÖ¸Áî
+        // è§£æå¤„ç†æŒ‡ä»¤, ç­‰å¾…æŒ‡ä»¤
         sm_pi_begin,
-        // ½áÊø´¦ÀíÖ¸Áî, µÈ´ı?
+        // ç»“æŸå¤„ç†æŒ‡ä»¤, ç­‰å¾…?
         sm_pi_end,
-        // ½âÎöÔªËØÃû³Æ, µÈ´ı¿Õ°×/±êÇ©½áÊø·ûºÅ
+        // è§£æå…ƒç´ åç§°, ç­‰å¾…ç©ºç™½/æ ‡ç­¾ç»“æŸç¬¦å·
         sm_elename_end,
-        // ±êÇ©½áÊø·ûºÅ
+        // æ ‡ç­¾ç»“æŸç¬¦å·
         sm_ele_end,
-        // ¿ªÊ¼ÊôĞÔ¼üÃû, µÈ´ı×Ö·û
+        // å¼€å§‹å±æ€§é”®å, ç­‰å¾…å­—ç¬¦
         sm_key_begin,
-        // ½áÊøÊôĞÔ¼üÃû, µÈ´ı¿Õ°×
+        // ç»“æŸå±æ€§é”®å, ç­‰å¾…ç©ºç™½
         sm_key_end,
-        // ½âÎöÊôĞÔµÈºÅ, µÈ´ıµÈºÅ
+        // è§£æå±æ€§ç­‰å·, ç­‰å¾…ç­‰å·
         sm_attr_eq,
-        // ¿ªÊ¼ÊôĞÔÊıÖµ, µÈ´ı'/"ÒıºÅ
+        // å¼€å§‹å±æ€§æ•°å€¼, ç­‰å¾…'/"å¼•å·
         sm_value_begin,
-        // ½áÊøÊôĞÔÊıÖµ, µÈ´ıÌØ¶¨ÒıºÅ
+        // ç»“æŸå±æ€§æ•°å€¼, ç­‰å¾…ç‰¹å®šå¼•å·
         sm_value_end,
-        // ½áÊøCDATA Öµ, µÈ´ı]]>
+        // ç»“æŸCDATA å€¼, ç­‰å¾…]]>
         sm_cdata_end,
-        // ÊıÁ¿
+        // æ•°é‡
         sm_count,
-        // ×´Ì¬
+        // çŠ¶æ€
     } state = sm_standby;
-    // µ±Ç°ÔªËØ
+    // å½“å‰å…ƒç´ 
     StrPair this_element;
     StrPair this_text;
-    // »¥³âÔªËØ
+    // äº’æ–¥å…ƒç´ 
     union { StrPair this_comment; ATTRs this_attr; PIs this_pi; };
     Char    this_quot;
     bool    value_escape = false, text_escape = false;
-    // ´íÎó¼ÇÂ¼
+    // é”™è¯¯è®°å½•
     const auto doc = str;
     auto make_error = [&, doc](Result::Code code) noexcept ->Result {
 #if defined(SAX_NO_ERROR_CHECK)
@@ -259,7 +307,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
 #ifdef SAX_PROFILER
     auto last = hclock::now();
 #endif
-    // ±éÀú
+    // éå†
     while (auto ch = *str) {
 #ifdef SAX_PROFILER
         auto now = hclock::now();
@@ -270,14 +318,14 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
         switch (state)
         {
         case sm_standby:
-            // ¼ÇÂ¼×ªÒå·ûºÅ
+            // è®°å½•è½¬ä¹‰ç¬¦å·
             text_escape |= impl::is_escape(ch);
-            // µÈ´ı±êÇ©ÆğÊ¼
+            // ç­‰å¾…æ ‡ç­¾èµ·å§‹
             if (impl::is_begin_tag_open(ch)) {
                 this_text.b = str; ++str; ch = *str;
-                // Ìá½»TEXT
+                // æäº¤TEXT
                 if (this_text.a != this_text.b) {
-                    // ×ªÒå×Ö·û?
+                    // è½¬ä¹‰å­—ç¬¦?
                     if (text_escape) {
                         text_escape = false;
                         this->interpret_escape(this_text);
@@ -285,26 +333,26 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
                     }
                     this->add_text(this_text);
                 }
-                // 0. ½áÊø±êÇ©
+                // 0. ç»“æŸæ ‡ç­¾
                 if (impl::is_end_tag(ch)) { this_element.a = str + 1; state = sm_ele_end; }
-                // 1. ?Ö¸Áî
+                // 1. ?æŒ‡ä»¤
                 else if (impl::is_begin_pi(ch)) { state = sm_pi_begin; this_pi.target.a = str+1; }
-                // 2. !×¢ÊÍ/CDATA
+                // 2. !æ³¨é‡Š/CDATA
                 else if (impl::is_begin_comment(ch)) {
-                    // !--, µÈ´ı½áÊø-->
+                    // !--, ç­‰å¾…ç»“æŸ-->
                     if (impl::is_begin_comment2(str[1])) { 
                         state = sm_comment_end; str += 3; this_comment.a = str; continue;
                     }
-                    // ![CDATA[, µÈ´ı½áÊø]]>
+                    // ![CDATA[, ç­‰å¾…ç»“æŸ]]>
                     else if (auto cdata = impl::is_str_head_equal(str + 1, "[CDATA[")) {
                         state = sm_cdata_end; this_text.a = str = cdata; continue;
                     }
 #ifdef SAX_DO_ERROR_CHECK
-                    // ·ñÔò´íÎó
+                    // å¦åˆ™é”™è¯¯
                     else return make_error(Result::Code_BadComment);
 #endif
                 }
-                // 3. ±êÇ©, TODO: ¼ì²é±êÇ©Ãû³ÆÓĞĞ§ĞÔ
+                // 3. æ ‡ç­¾, TODO: æ£€æŸ¥æ ‡ç­¾åç§°æœ‰æ•ˆæ€§
                 else {
 #ifdef SAX_DO_ERROR_CHECK
                     if (impl::is_space(ch)) return make_error(Result::Code_BadElement);
@@ -315,7 +363,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             }
             break;
         case sm_comment_end:
-            // µÈ´ı×¢ÊÍ½áÊø·û
+            // ç­‰å¾…æ³¨é‡Šç»“æŸç¬¦
             if (impl::is_end_comment(ch)) {
                 if (impl::is_end_comment2(str[1])) {
                     state = sm_standby;
@@ -327,13 +375,13 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             }
             break;
         case sm_pi_begin:
-            // ¹Ø±Õ
+            // å…³é—­
             if (impl::is_end_pi(ch)) {
                 this_pi.target.b = str;
                 this_pi.instructions.a = str;
                 [[fallthrough]];
             }
-            // ¿Õ°×
+            // ç©ºç™½
             else {
                 if (impl::is_space(ch)) {
                     this_pi.target.b = str;
@@ -343,7 +391,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
                 break;
             }
         case sm_pi_end:
-            // µÈ´ı?>
+            // ç­‰å¾…?>
             if (impl::is_end_pi(ch)) {
                 this_pi.instructions.b = str; ++str;
                 this_text.a = str + 1;
@@ -355,25 +403,25 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             }
             break;
         case sm_elename_end:
-            // ¿Õ°× ½áÊø ¹Ø±Õ, ±íÊ¾Íê³É
+            // ç©ºç™½ ç»“æŸ å…³é—­, è¡¨ç¤ºå®Œæˆ
             if (impl::is_space(ch) | impl::is_begin_tag_close(ch) | impl::is_end_tag(ch)) {
                 this_element.b = str;
                 this->push(this_element);
                 this->begin_element(this_element);
                 if (!this->is_stack_ok()) return make_error(Result::Code_OOM);
                 state = sm_standby;
-                // ¿Õ°×·ûºÅ, µÈ´ı¼ü
+                // ç©ºç™½ç¬¦å·, ç­‰å¾…é”®
                 if (impl::is_space(ch)) state = sm_key_begin;
-                // ½áÊø/¹Ø±Õ ±êÇ©
+                // ç»“æŸ/å…³é—­ æ ‡ç­¾
                 else {
-                    // ½áÊø±êÇ©
+                    // ç»“æŸæ ‡ç­¾
                     if (impl::is_end_tag(ch)) {
                         this->pop();
                         this->end_element(this_element);
 #ifndef DEBUG
                         std::memset(&this_element, 0, sizeof(this_element));
 #endif
-                        // ÅÜµ½¹Ø±Õ
+                        // è·‘åˆ°å…³é—­
                         str++; 
 #ifdef SAX_DO_ERROR_CHECK
                         if (!impl::is_begin_tag_close(*str)) {
@@ -386,16 +434,16 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             }
             break;
         case sm_ele_end:
-            // µÈ´ı¿Õ°× ±êÇ©¹Ø±Õ
+            // ç­‰å¾…ç©ºç™½ æ ‡ç­¾å…³é—­
             if (impl::is_space(ch) | impl::is_begin_tag_close(ch)) {
                 this_element.b = str;
-                // ¼ì²éÆ¥ÅäÇé¿ö
+                // æ£€æŸ¥åŒ¹é…æƒ…å†µ
 #ifdef SAX_DO_ERROR_CHECK
                 if (m_pStackTop == m_pStackBase || this->stack_top().pair != this_element) {
                     return make_error(Result::Code_Mismatched);
                 }
 #endif
-                // Ìø¹ı¿Õ°×, Ö±µ½¹Ø±Õ
+                // è·³è¿‡ç©ºç™½, ç›´åˆ°å…³é—­
                 while (impl::is_begin_tag_close(*str)) ++str;
                 this_text.a = str;
                 state = sm_standby;
@@ -408,7 +456,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             }
             break;
         case sm_key_begin:
-            // Óöµ½½áÊø
+            // é‡åˆ°ç»“æŸ
             if (impl::is_end_tag(ch)) {
                 state = sm_standby;
                 this->pop();
@@ -416,26 +464,26 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
 #ifndef DEBUG
                 std::memset(&this_element, 0, sizeof(this_element));
 #endif
-                // ÅÜµ½¹Ø±Õ
+                // è·‘åˆ°å…³é—­
                 str++; 
 #ifdef SAX_DO_ERROR_CHECK
                 if (!impl::is_begin_tag_close(*str))
                     return make_error(Result::Code_BadElement);
 #endif
             }
-            // Óöµ½½áÊø>
+            // é‡åˆ°ç»“æŸ>
             else if (impl::is_begin_tag_close(ch)) {
                 state = sm_standby;
                 this_text.a = str+1;
             }
-            // Óöµ½·Ç¿Õ°×, ½âÎö
+            // é‡åˆ°éç©ºç™½, è§£æ
             else if (!impl::is_space(ch)) {
                 this_attr.key.a = str;
                 state = sm_key_end;
             }
             break;
         case sm_key_end:
-            // Óöµ½¿Õ°×
+            // é‡åˆ°ç©ºç™½
             if (impl::is_space(ch) | impl::is_attr_eq(ch)) {
                 this_attr.key.b = str;
                 if (impl::is_attr_eq(ch)) state = sm_value_begin;
@@ -446,9 +494,9 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             state = sm_value_begin;
             break;
         case sm_value_begin:
-            // µÈ´ıÒıºÅ
+            // ç­‰å¾…å¼•å·
             if (impl::is_quot(ch)) {
-                // ¼ÇÂ¼µ±Ç°ÒıºÅÀàĞÍ
+                // è®°å½•å½“å‰å¼•å·ç±»å‹
                 this_quot = ch;
                 this_attr.value.a = str + 1;
                 //value_escape = false;
@@ -457,12 +505,12 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             break;
         case sm_value_end:
             assert(impl::is_quot(this_quot));
-            // ¼ÇÂ¼×ªÒå·ûºÅ
+            // è®°å½•è½¬ä¹‰ç¬¦å·
             value_escape |= impl::is_escape(ch);
-            // ÓëÒÑ´æÔÚµÄÒıºÅÆ¥Åä
+            // ä¸å·²å­˜åœ¨çš„å¼•å·åŒ¹é…
             if (ch == this_quot) {
                 this_attr.value.b = str;
-                // ´æÔÚ×ªÒå·ûºÅ
+                // å­˜åœ¨è½¬ä¹‰ç¬¦å·
                 if (value_escape) {
                     value_escape = false;
                     this->interpret_escape(this_attr.value);
@@ -480,7 +528,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             }
             break;
         case sm_cdata_end:
-            // µÈ´ı]]>, Ìá½»TEXT²¢×ªÏò´ı»ú×´Ì¬
+            // ç­‰å¾…]]>, æäº¤TEXTå¹¶è½¬å‘å¾…æœºçŠ¶æ€
             if (auto cdata = impl::is_str_head_equal(str, "]]>")) {
                 auto tmp = this_text; tmp.b = str;
                 this_text.a = str = cdata; 
@@ -492,9 +540,9 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
         }
         ++str;
     }
-    // ½áÊøTEXT
+    // ç»“æŸTEXT
     this_text.b = str; if (this_text.b != this_text.a) {
-        // ×ªÒå·ûºÅ
+        // è½¬ä¹‰ç¬¦å·
         if (text_escape) {
             text_escape = false;
             this->interpret_escape(this_text);
@@ -502,7 +550,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
         }
         this->add_text(this_text);
     }
-    // ´íÎó¼ì²é
+    // é”™è¯¯æ£€æŸ¥
     Result re{ Result::Code::Code_OK, 0 };
     if (m_pStackTop != m_pStackBase) re.code = Result::Code_SyntaxError;
     if (state != sm_standby) re.code = Result::Code_InternalError;
@@ -584,15 +632,15 @@ void SimpAX::CAXStream::add_comment(const StrPair comment) noexcept {
 /// Grows up.
 /// </summary>
 void SimpAX::CAXStream::grow_up() {
-    // Stack overflow   ÎÒ¾ÍÊÇÏë´òÕâ¼¸¸ö´Ê¶øÒÑ
-    // Ä¬ÈÏ³¤¶È32, ºóÃæÔö±¶
+    // Stack overflow   æˆ‘å°±æ˜¯æƒ³æ‰“è¿™å‡ ä¸ªè¯è€Œå·²
+    // é»˜è®¤é•¿åº¦32, åé¢å¢å€
     const auto cap = m_pStackCap - m_pStackBase;
     const auto len = m_pStackTop - m_pStackBase;
     const auto newcap = cap ? cap * 2 : 32;
     const auto ptr = this->malloc(newcap * sizeof(StrPair));
-    // ¸´ÖÆ
+    // å¤åˆ¶
     if (len) std::memcpy(ptr, m_pStackBase, len * sizeof(StrPair));
-    // Ìæ»»
+    // æ›¿æ¢
     if (m_pStackBase != m_aStackBuffer) this->free(m_pStackBase);
     m_pStackBase = reinterpret_cast<StackEle*>(ptr);
     m_pStackCap = m_pStackBase + newcap;
@@ -620,26 +668,26 @@ bool SimpAX::CAXStream::try_get_instruction_value(
     const Char* key, StrPair& ins) noexcept {
     auto pair = ins;
     while (pair.a < pair.b) {
-        // Æ¥ÅäKEY
+        // åŒ¹é…KEY
         if (auto str = impl::is_str_head_equal(pair.a, key)) {
-            // Æ¥ÅäµÈºÅ
+            // åŒ¹é…ç­‰å·
             while (!impl::is_attr_eq(*str)) {
                 ++str; if (str == pair.b) return false;
             }
-            // Æ¥ÅäÒıºÅ
+            // åŒ¹é…å¼•å·
             while (!impl::is_quot(*str)) {
                 ++str; if (str == pair.b) return false;
             }
-            // ¼ÇÂ¼ÒıºÅ
+            // è®°å½•å¼•å·
             const auto this_quot = *str; ++str; pair.a = str;
-            // Æ¥ÅäÒıºÅ
+            // åŒ¹é…å¼•å·
             while (*str != this_quot) {
                 ++str; if (str == pair.b) return false;
             }
             pair.b = str;
             ins = pair;
         }
-        // ÍÆ½ø½ø¶È
+        // æ¨è¿›è¿›åº¦
         ++pair.a;
     }
     return true;
@@ -688,11 +736,11 @@ bool SimpAX::CAXStream::push(StrPair str) {
 /// <returns></returns>
 _declspec(noinline)
 void SimpAX::CAXStream::interpret_escape(StrPair& pair) noexcept {
-    // ±£Ö¤Êı¾İ×¼È·
+    // ä¿è¯æ•°æ®å‡†ç¡®
     const auto length = pair.end() - pair.begin();
     auto nowlen = m_pEscapeBufferEnd - m_pEscapeBuffer;
     m_pEscapeBufferEnd = nullptr;
-    // »º´æ²»×ã
+    // ç¼“å­˜ä¸è¶³
     if (length > nowlen) {
 #ifndef NDEBUG
         nowlen = length;
@@ -703,12 +751,12 @@ void SimpAX::CAXStream::interpret_escape(StrPair& pair) noexcept {
         const auto ptr = this->malloc(sizeof(Char) * nowlen);
         m_pEscapeBuffer = reinterpret_cast<Char*>(ptr);
     }
-    // ÄÚ´æ²»×ã
+    // å†…å­˜ä¸è¶³
     if (!m_pEscapeBuffer) return;
     m_pEscapeBufferEnd = m_pEscapeBuffer + nowlen;
-    // ÕıÊ½´¦Àí
+    // æ­£å¼å¤„ç†
     /*
-        ÊµÌåÃû³Æ ×Ö·û Ê®½øÖÆÒıÓÃ Ê®Áù½øÖÆÒıÓÃ
+        å®ä½“åç§° å­—ç¬¦ åè¿›åˆ¶å¼•ç”¨ åå…­è¿›åˆ¶å¼•ç”¨
         quot    "   &#34;   &#x22;
         amp     &   &#38;   &#x26;
         apos    '   &#39;   &#x27;
@@ -718,16 +766,16 @@ void SimpAX::CAXStream::interpret_escape(StrPair& pair) noexcept {
     auto* __restrict src_itr = pair.a;
     const auto src_end = pair.b;
     auto* __restrict des_itr = m_pEscapeBuffer;
-    // ×ªÒå·ûºÅ
+    // è½¬ä¹‰ç¬¦å·
     const Char* escape = nullptr;
-    // ±éÀú×Ö·û´®
+    // éå†å­—ç¬¦ä¸²
     while (src_itr != src_end) {
         const auto ch = src_itr[0];
-        // ×ªÒåÌáÊ¾·û
+        // è½¬ä¹‰æç¤ºç¬¦
         if (impl::is_escape(ch)) {
             escape = src_itr;
         }
-        // ×ªÒå½áÊø·û
+        // è½¬ä¹‰ç»“æŸç¬¦
         else if (escape && impl::is_end_escape(ch)) {
             constexpr Char A = Char('a');
             constexpr Char G = Char('g');
@@ -761,7 +809,7 @@ void SimpAX::CAXStream::interpret_escape(StrPair& pair) noexcept {
                     escape_ch = Char('"');
                 break;
             }
-            // ×ªÒå³É¹¦
+            // è½¬ä¹‰æˆåŠŸ
             if (escape_ch) { 
                 des_itr -= src_itr - escape;
                 *des_itr = escape_ch; 
@@ -771,12 +819,12 @@ void SimpAX::CAXStream::interpret_escape(StrPair& pair) noexcept {
             }
             escape = nullptr;
         }
-        // ¸´ÖÆ×Ö·û´®
+        // å¤åˆ¶å­—ç¬¦ä¸²
         *des_itr = ch;
         ++des_itr;
         ++src_itr;
     }
-    // Ğ´»Ø×Ö·û´®
+    // å†™å›å­—ç¬¦ä¸²
     pair.a = m_pEscapeBuffer;
     pair.b = des_itr;
 }

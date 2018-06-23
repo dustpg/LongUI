@@ -1,4 +1,4 @@
-﻿移动窗口/假缩放窗口 会重绘窗口
+﻿Win10支持超过MAX_PATH路径?
 
 Tree的选择换为TreeRow而不是TreeItem?
 
@@ -8,17 +8,17 @@ xul根节点window弄成可选的?没有就创建一个?
 
 STYLE minsize拥有强制性?
 
-set_child_parent_nnrivc 全面检查
+set_child_parent_nnrivc 全面检查?
 
-将存在于UIControl的所有属性交给UIControl::add_attribute处理
+将存在于UIControl的所有属性交给UIControl::add_attribute处理?
 
-Init事件有一个HR的返回值
+Init事件有一个HR的返回值?
 
 安全检查, 无需static_cast<I::???*>
 
-OOM: [强制测试]申请函数使用静态变量按进度直接返回nullptr
+OOM: [强制测试]申请函数使用静态变量按进度直接返回nullptr?
 
-TextBC: 仅仅插入符移动的优化
+TextBC: 仅仅插入符移动的优化?
 
 SimpAX: (ch == ' ') | (ch == '\t'); -> (ch == ' ') || (ch == '\t');
 
@@ -38,7 +38,7 @@ m_state.in_dtor ?
 
 UIControl::Update 改为非虚函数 追加 虚函数ChangedEvent
 
-异步加载
+异步加载?
 
 所有#include Qt化
 

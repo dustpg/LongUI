@@ -245,6 +245,7 @@
     <ClCompile Include="..\src\style\ui_style.cpp" />
     <ClCompile Include="..\src\style\ui_style_state.cpp" />
     <ClCompile Include="..\src\style\ui_style_value.cpp" />
+    <ClCompile Include="..\src\style\ui_window_style.cpp" />
     <ClCompile Include="..\src\text\ui_text_layout.cpp" />
     <ClCompile Include="..\src\thread\ui_fiber.cpp" />
     <ClCompile Include="..\src\thread\ui_locker.cpp" />

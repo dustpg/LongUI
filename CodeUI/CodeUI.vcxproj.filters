@@ -467,6 +467,9 @@
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp">
       <Filter>source\debugger</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\style\ui_window_style.cpp">
+      <Filter>source\style</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">

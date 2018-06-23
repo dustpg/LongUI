@@ -84,6 +84,10 @@ namespace SimpAX {
         SAX_API ~CAXStream() noexcept;
         // load string
         SAX_API auto Load(const Char* str) noexcept ->Result;
+        // find char in pair, return null on not-found
+        static auto FindChar(StrPair, Char) noexcept -> const Char*;
+        // find equation in pair
+        static auto FindEquation(StrPair, const Char*) noexcept->StrPair;
     private:
         // free
         static void free(void*) noexcept;

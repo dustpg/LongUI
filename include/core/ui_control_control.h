@@ -4,6 +4,7 @@
 #include <type_traits>
 // ui
 #include "ui_basic_type.h"
+#include "ui_core_type.h"
 #include "../style/ui_style_state.h"
 
 // ui namespace
@@ -13,9 +14,9 @@ namespace LongUI {
         // cc size
         template<size_t> struct cc;
         // 32bit
-        template<> struct cc<4> { enum { size = 16*6, align = 4 }; };
+        template<> struct cc<4> { enum { size = 16*6+24, align = 4 }; };
         // 64bit
-        template<> struct cc<8> { enum { size = 24*6, align = 8 };  };
+        template<> struct cc<8> { enum { size = 24*6+32, align = 8 };  };
     }
     // private data for control control
     struct PrivateCC;
@@ -43,6 +44,10 @@ namespace LongUI {
         void ControlDisattached(UIControl& ctrl) noexcept;
         // invalidate control: rect : window level rect
         void InvalidateControl(UIControl& ctrl/*, const RectF& rect*/) noexcept;
+        // set xul dir
+        void SetXULDir(const CUIString&) noexcept;
+        // get xul dir
+        auto GetXULDir() const noexcept -> const CUIString&;
     public:
         // make xul tree
         static bool MakeXUL(UIControl& ctrl, const char* xul) noexcept;
@@ -84,6 +89,8 @@ namespace LongUI {
         >::type                 m_private;
         // get cc
         auto&cc() noexcept { return reinterpret_cast<PrivateCC&>(m_private); }
+        // get const cc
+        auto&cc() const noexcept { return reinterpret_cast<const PrivateCC&>(m_private); }
     };
 }
 

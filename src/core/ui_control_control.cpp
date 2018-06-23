@@ -6,6 +6,7 @@
 #include <util/ui_time_meter.h>
 #include <util/ui_aniamtion.h>
 #include <core/ui_window.h>
+#include <core/ui_string.h>
 // debug
 #include <debugger/ui_debug.h>
 
@@ -48,7 +49,35 @@ struct LongUI::PrivateCC {
     POD::Vector<CtrlAnima>  animaitons;
     // dirty update
     POD::Vector<DirtyUpdate>dirty_update;
+    // xul dir
+    CUIString               xul_dir;
 };
+
+
+/// <summary>
+/// Sets the xul dir.
+/// </summary>
+/// <param name="dir">The dir.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::SetXULDir(const CUIString& dir) noexcept {
+    auto& string = cc().xul_dir;
+    string = dir;
+    // 尝试添加一个/
+    if (const auto len = string.length()) {
+        auto ch = string[len - 1];
+        if (!(ch == '/' || ch == '\\')) {
+            string.append('/');
+        }
+    }
+}
+
+/// <summary>
+/// Gets the xul dir.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIControlControl::GetXULDir() const noexcept -> const CUIString& {
+    return cc().xul_dir;
+}
 
 /// <summary>
 /// Initializes a new instance of the <see cref="PrivateCC"/> struct.
@@ -503,7 +532,7 @@ namespace LongUI {
         UIControl&                  m_root;
     private:
         // add Processing Instruction
-        void add_processing(const PIs& attr) noexcept override {}
+        void add_processing(const PIs& attr) noexcept override;
         // begin element
         void begin_element(const StrPair tag) noexcept override;
         // end element
@@ -515,6 +544,30 @@ namespace LongUI {
         // add text
         void add_text(const StrPair) noexcept override {}
     };
+    /// <summary>
+    /// Adds the processing.
+    /// </summary>
+    /// <param name="attr">The attribute.</param>
+    /// <returns></returns>
+    void CUIControlControl::CUIXulStream::add_processing(const PIs& attr) noexcept {
+        // 加载CSS
+        if (attr.target == "xml-stylesheet"_pair) {
+            // 查找href
+            const auto href = CAXStream::FindEquation(attr.instructions, "href");
+            if (href.end() != href.begin()) {
+                // 默认 chrome://global/skin
+                if (href == "chrome://global/skin"_pair) {
+
+                }
+                else {
+                    // 使用窗口载入CSS
+                    const auto wnd = m_root.GetWindow();
+                    assert(wnd && "can not set css on window is null");
+                    wnd->LoadCSSFile({ href.begin(), href.end() });
+                }
+            }
+        }
+    }
     /// <summary>
     /// Begins the element.
     /// </summary>

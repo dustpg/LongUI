@@ -484,6 +484,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         viewport.GetWindow()->Resize({ 800, 600 });
         break;
     case 16:
+        UIManager.SetXULDir(L"../doc/test-xul");
         loadfile("../doc/test-xul/css-test.xul");
         viewport.GetWindow()->Resize({ 800, 600 });
         break;

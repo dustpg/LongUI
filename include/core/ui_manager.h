@@ -97,6 +97,8 @@ namespace LongUI {
         void OneFrame() noexcept;
         // wait vblank
         void WaitForVBlank() noexcept;
+        // set css root directory for loading resource
+        //void SetCSSRootDir(const wchar_t* dir) noexcept;
     public:
         // delete later for control
         static void DeleteLater(UIControl&) noexcept;

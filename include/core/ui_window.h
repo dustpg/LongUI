@@ -3,6 +3,7 @@
 // ui
 #include "ui_node.h"
 #include "ui_object.h"
+#include "ui_core_type.h"
 #include "ui_basic_type.h"
 #include "../util/ui_ostype.h"
 #include "../accessible/ui_accessible.h"
@@ -84,6 +85,12 @@ namespace LongUI {
         bool IsCtorFailed() const noexcept { return m_bCtorFaild; }
         // mark full rendering
         void MarkFullRendering() noexcept;
+    public:
+        // load css file
+        void LoadCSSFile(U8View file) noexcept;
+        // load css string
+        void LoadCSSString(U8View string) noexcept;
+        // set css root dir for loading resource
     public:
         // map to screen
         void MapToScreen(RectF& rect) const noexcept;

@@ -7,6 +7,7 @@
 #include <input/ui_kminput.h>
 #include <util/ui_ctordtor.h>
 #include <core/ui_manager.h>
+//#include <core/ui_string.h>
 #include <util/ui_ostype.h>
 #include <util/ui_endian.h>
 #include <luiconf.h>
@@ -48,8 +49,24 @@ namespace LongUI { struct PrivateManager {
     POD::HashMap<META*>     cclasses;
     // km-input
     CUIInputKM              km_input;
+    // css roor dir
+    //CUIString               css_root_dir;
 };}
 
+
+/// <summary>
+/// Sets the CSS root dir.
+/// </summary>
+/// <param name="dir">The dir.</param>
+/// <returns></returns>
+//void LongUI::CUIManager::SetCSSRootDir(const wchar_t* dir) noexcept {
+//    auto& string = this_()->pm().css_root_dir;
+//    string = dir;
+//    if (string.empty()) return;
+//    const auto index = string.length() - 1;
+//    if (string[index] == '/' || string[index] == '\\') return;
+//    string.append('/');
+//}
 
 // delete later
 namespace LongUI { enum LaterDelete : uint32_t {
@@ -553,7 +570,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     constexpr uint32_t buflen = MAX_PATH * 4;
     wchar_t buffer[buflen]; buffer[0] = 0;
     ::GetCurrentDirectoryW(buflen, buffer);
-    LUIDebug(Hint) 
+    LUIDebug(Hint)
         << " Current Directory: "
         << buffer
         << LongUI::endl;

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
-<?xml-stylesheet href="css/test.css" type="text/css"?>
+<?xml-stylesheet href="css/button.css" type="text/css"?>
 
 <window title="XUL Test"
         xmlns:html="http://www.w3.org/1999/xhtml"
