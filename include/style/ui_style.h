@@ -94,7 +94,5 @@ namespace LongUI {
         Size2F              minsize;
         // style used max size
         Size2F              maxsize;
-        // fixed style
-        SSBlocks            fixed;
     };
 }

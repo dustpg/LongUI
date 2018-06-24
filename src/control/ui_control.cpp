@@ -338,6 +338,10 @@ auto LongUI::UIControl::init() noexcept -> Result {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
         }
     }
+    // 重新连接样式表
+    if (hr) {
+        this->link_style_sheet();
+    }
     return hr;
 }
 
@@ -1172,10 +1176,24 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     //UIManager.ControlAttached(child);
 }
 
+/// <summary>
+/// Resets the style sheet.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::link_style_sheet() noexcept {
+    // 先连接全局的
+
+    // 再连接窗口的
+    if (const auto window = m_pWindow) {
+        int bk = 9;
+    }
+    // 连接内联样式
+
+}
 
 
 /// <summary>
-/// Sets the xui.
+/// Sets the xul.
 /// </summary>
 /// <param name="xul">The xul string.</param>
 /// <returns></returns>

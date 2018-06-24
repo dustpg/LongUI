@@ -11,6 +11,8 @@
 #include <cstddef>
 
 namespace LongUI {
+    // style sheet
+    class CUIStyleSheet;
     // Cursor
     class CUICursor;
     // control
@@ -90,7 +92,6 @@ namespace LongUI {
         void LoadCSSFile(U8View file) noexcept;
         // load css string
         void LoadCSSString(U8View string) noexcept;
-        // set css root dir for loading resource
     public:
         // map to screen
         void MapToScreen(RectF& rect) const noexcept;
@@ -185,6 +186,8 @@ namespace LongUI {
     protected:
         // window handle
         HWND                m_hwnd = nullptr;
+        // style sheet
+        CUIStyleSheet*      m_pStyleSheet = nullptr;
         // parent window
         CUIWindow*          m_parent = nullptr;
         // topest world changed control

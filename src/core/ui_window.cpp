@@ -3,6 +3,7 @@
 #include <core/ui_window.h>
 #include <util/ui_unicode.h>
 #include <core/ui_manager.h>
+#include <core/ui_string.h>
 #include <input/ui_kminput.h>
 #include <style/ui_ssvalue.h>
 #include <core/ui_color_list.h>
@@ -98,6 +99,8 @@ void LongUI::CUIWindow::close_window() noexcept {
 
 // ui namespace
 namespace LongUI {
+    // make style sheet
+    auto MakeStyleSheet(U8View view, SSPtr old) noexcept->SSPtr;
     // private msg
     struct PrivateMsg;
     /// <summary>
@@ -206,10 +209,6 @@ namespace LongUI {
         RectWHL         rect = {};
         // window adjust
         RectL           adjust = {};
-        // stylesheets: values
-        SSValues        values;
-        // stylesheets: selectors
-        SSSelectors     selectors;
 #ifndef NDEBUG
         // full render counter
         uint32_t        dbg_full_render_counter = 0;
@@ -231,6 +230,8 @@ namespace LongUI {
         UIControl*      now_defualt = nullptr;
         // window defualt control
         UIControl*      wnd_defualt = nullptr;
+        // style sheet
+        CUIStyleSheet*  style_sheet = nullptr;
     public:
         // save utf-16 char
         char16_t        saved_utf16 = 0;
@@ -308,6 +309,42 @@ m_private(new(std::nothrow) Private) {
 
     UIManager.add_window(*this);
 }
+
+
+/// <summary>
+/// Loads the CSS file.
+/// </summary>
+/// <param name="file">The file.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::LoadCSSFile(U8View file) noexcept {
+    // TODO: OOM 处理
+    auto path = UIManager.GetXULDir();
+    path += CUIString::FromUtf8(file);
+    // 载入文件
+    if (CUIFile css_file{ path.c_str(), CUIFile::Flag_Read }) {
+        const auto file_size = css_file.GetFilezize();
+        POD::Vector<char> css_buffer;
+        css_buffer.resize(file_size + 1);
+        if (css_buffer.is_ok()) {
+            const auto ptr = &css_buffer.front();
+            css_file.Read(ptr, file_size);
+            ptr[file_size] = 0;
+            this->LoadCSSString({ ptr, ptr + file_size });
+        }
+    }
+}
+
+/// <summary>
+/// Loads the CSS string.
+/// </summary>
+/// <param name="string">The string.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::LoadCSSString(U8View string) noexcept {
+    assert(m_private && "cannot be null on load css");
+    auto& ss = m_private->style_sheet;
+    ss = LongUI::MakeStyleSheet(string, ss);
+}
+
 
 /// <summary>
 /// Adds the child.
@@ -929,7 +966,6 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
     this->RegisterWindowClass();
     // 初始化
     HWND hwnd = nullptr;
-    LongUI::ParseStylesheet("", this->values, this->selectors);
     // 标题名称
     const wchar_t* titlename = nullptr;
     // 窗口

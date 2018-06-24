@@ -8,6 +8,10 @@
 #include "../container/pod_vector.h"
 
 namespace LongUI {
+    // style sheet
+    class CUIStyleSheet;
+    // style sheet pointer
+    using SSPtr = CUIStyleSheet * ;
     /// <summary>
     /// value of style sheet
     /// </summary>
@@ -30,6 +34,7 @@ namespace LongUI {
             bool        boolean;
         };
     };
+#if 0
     // stylesheets: block
     struct SSBlock {
         // window hosted value buffer, unknown-terminated values
@@ -39,25 +44,35 @@ namespace LongUI {
         // not pseudo-classes
         StyleState      noo;
     };
+#endif
+    // Combinator
+    enum Combinator : uint8_t {
+        // Combinator None
+        Combinator_None         = 0,
+        // Adjacent sibling selectors   A + B
+        Combinator_AdjacentSibling,
+        // General sibling selectors    A ~ B
+        Combinator_General,
+        // Child selectors              A > B
+        Combinator_Child,
+        // Descendant selectors         A   B
+        Combinator_Descendant,
+    };
     // stylesheets: selector
     struct SSSelector {
-        // id - unique pointer in window
-        const char*     idn;
-        // class - unique pointer in program
-        const char*     cln;
-        // element - unique pointer in program
-        const char*     ele;
-        // index of value
-        uint16_t        idx;
-        // length of value
-        uint16_t        len;
+        // next level 
+        SSSelector*     next;
+        // type selector 
+        const char*     stype;
+        // class selector
+        const char*     sclass;
+        // id selector
+        const char*     sid;
+        // pseudo class (index)
+        StyleStateType  pseudocl;
+        // combinator
+        Combinator      combinator;
     };
-    // stylesheets: blocks
-    using SSBlocks = POD::Vector<SSBlock>;
     // stylesheets: values
     using SSValues = POD::Vector<SSValue>;
-    // stylesheets: selectors
-    using SSSelectors = POD::Vector<SSSelector>;
-    // parse stylesheet, return false if failed to parse
-    bool ParseStylesheet(const char*, SSValues&, SSSelectors&) noexcept;
 }

@@ -324,8 +324,10 @@ namespace LongUI {
     private:
         // init
         auto init() noexcept->Result;
+        // link style sheet
+        void link_style_sheet() noexcept;
         // mark children dirty
-        void mark_posterity_dirty() noexcept;
+        //void mark_posterity_dirty() noexcept;
     protected:
         // apply world transform to renderer
         void apply_world_transform() const noexcept;

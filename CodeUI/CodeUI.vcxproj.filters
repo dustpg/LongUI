@@ -467,7 +467,10 @@
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp">
       <Filter>source\debugger</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\style\ui_window_style.cpp">
+    <ClCompile Include="..\src\xul\SimpAC.cpp">
+      <Filter>source\xul</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\style\ui_ssvalue_list.cpp">
       <Filter>source\style</Filter>
     </ClCompile>
   </ItemGroup>
@@ -980,6 +983,9 @@
     </ClInclude>
     <ClInclude Include="..\include\event\ui_splitter_event.h">
       <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\xul\SimpAC.h">
+      <Filter>header\xul</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

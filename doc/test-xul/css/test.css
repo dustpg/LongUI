@@ -8,6 +8,23 @@
 }
 
 
+button {
+    -moz-appearance: none;
+    background-size: 100% 400%;
+    background-repeat: no-repeat;
+    background-image: url(../images/btn.png);
+    transition: 0.5s;
+    border: 0
+}
+
+button:hover {
+    background-position: 0% 33.3%
+}
+
+button:active {
+    background-position: 0% 66.6%
+}
+
 .v1 {
     background-color: red;
 }

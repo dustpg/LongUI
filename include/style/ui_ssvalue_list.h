@@ -12,16 +12,18 @@ namespace LongUI {
         // unknown
         Type_Unknown = 0,
 
-        // [Position] cursor 
-        Type_PositionCursor,
-        // [Position] left 
-        Type_PositionLeft,
-        // [Position] right 
-        Type_PositionRight,
-        // [Position] overflow
-        Type_PositionOverflow,
-        // [Position] z-index
-        Type_PositionZindex,
+        //// [Position] cursor 
+        //Type_PositionCursor,
+        //// [Position] left 
+        //Type_PositionLeft,
+        //// [Position] right 
+        //Type_PositionRight,
+        // [Position] overflow-x
+        Type_PositionOverflowX,
+        // [Position] overflow-y
+        Type_PositionOverflowY,
+        //// [Position] z-index
+        //Type_PositionZindex,
 
         // [Margin] top
         Type_MarginTop,
@@ -41,22 +43,6 @@ namespace LongUI {
         // [Padding] left
         Type_PaddingLeft,
 
-        // [Border] top
-        Type_BorderTop,
-        // [Border] right
-        Type_BorderRight,
-        // [Border] bottom
-        Type_BorderBottom,
-        // [Border] left
-        Type_BorderLeft,
-        // [Border] top-color
-        Type_BorderTopColor,
-        // [Border] right-color
-        Type_BorderRightColor,
-        // [Border] bottom-color
-        Type_BorderBottomColor,
-        // [Border] left-color
-        Type_BorderLeftColor,
         // [Border] top-width
         Type_BorderTopWidth,
         // [Border] right-width
@@ -65,28 +51,35 @@ namespace LongUI {
         Type_BorderBottomWidth,
         // [Border] left-width
         Type_BorderLeftWidth,
-
-        // [Border] top-style
-        Type_BorderTopStyle,
-        // [Border] right-style
-        Type_BorderRightStyle,
-        // [Border] bottom-style
-        Type_BorderBottomStyle,
-        // [Border] left-style
-        Type_BorderLeftStyle,
-        // [Border] top-left-radius
-        Type_BorderTopLeftRadius,
-        // [Border] top-right-radius
-        Type_BorderTopRightRadius,
-        // [Border] bottom-left-radius
-        Type_BorderBottomLeftRadius,
-        // [Border] bottom-right-radius
-        Type_BorderBottomRightRadius,
+        //// [Border] top-style
+        //Type_BorderTopStyle,
+        //// [Border] right-style
+        //Type_BorderRightStyle,
+        //// [Border] bottom-style
+        //Type_BorderBottomStyle,
+        //// [Border] left-style
+        //Type_BorderLeftStyle,
+        //// [Border] top-color
+        //Type_BorderTopColor,
+        //// [Border] right-color
+        //Type_BorderRightColor,
+        //// [Border] bottom-color
+        //Type_BorderBottomColor,
+        //// [Border] left-color
+        //Type_BorderLeftColor,
+        //// [Border] top-left-radius
+        //Type_BorderTopLeftRadius,
+        //// [Border] top-right-radius
+        //Type_BorderTopRightRadius,
+        //// [Border] bottom-left-radius
+        //Type_BorderBottomLeftRadius,
+        //// [Border] bottom-right-radius
+        //Type_BorderBottomRightRadius,
         // [Border] image-source
         Type_BorderImageSource,
-        // [Border] image-slice
+        //// [Border] image-slice
         //Type_BorderBottomRightRadius,
-        // [Border] image-width
+        //// [Border] image-width
         //Type_BorderLeftWidth,
         
         // [Background] color
@@ -101,6 +94,18 @@ namespace LongUI {
         Type_BackgroundClip,
         // [Background] origin 
         Type_BackgroundOrigin,
+
+        // [LongUI] appearance
+        Type_UIAppearance,
     };
+    // extra value type
+    struct ExValueType {
+        // value type
+        ValueType       vtype;
+        // extra number
+        uint32_t        extra;
+    };
+    // u8view to value type
+    auto U8View2ValueType(const char*b, const char* e) noexcept->ExValueType;
 }
 

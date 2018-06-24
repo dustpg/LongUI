@@ -242,10 +242,10 @@
     <ClCompile Include="..\src\style\native\ui_win10_tree.cpp" />
     <ClCompile Include="..\src\style\ui_native_style.cpp" />
     <ClCompile Include="..\src\style\ui_ssvalue.cpp" />
+    <ClCompile Include="..\src\style\ui_ssvalue_list.cpp" />
     <ClCompile Include="..\src\style\ui_style.cpp" />
     <ClCompile Include="..\src\style\ui_style_state.cpp" />
     <ClCompile Include="..\src\style\ui_style_value.cpp" />
-    <ClCompile Include="..\src\style\ui_window_style.cpp" />
     <ClCompile Include="..\src\text\ui_text_layout.cpp" />
     <ClCompile Include="..\src\thread\ui_fiber.cpp" />
     <ClCompile Include="..\src\thread\ui_locker.cpp" />
@@ -258,6 +258,7 @@
     <ClCompile Include="..\src\util\ui_named_control.cpp" />
     <ClCompile Include="..\src\util\ui_time_clipboard.cpp" />
     <ClCompile Include="..\src\util\ui_unicode.cpp" />
+    <ClCompile Include="..\src\xul\SimpAC.cpp" />
     <ClCompile Include="..\src\xul\SimpAX.cpp" />
     <ClCompile Include="..\TextBC\bc_txtbuf.cpp" />
     <ClCompile Include="..\TextBC\bc_txtcell.cpp" />
@@ -427,6 +428,7 @@
     <ClInclude Include="..\include\util\ui_unicode.h" />
     <ClInclude Include="..\include\util\ui_unicode_cast.h" />
     <ClInclude Include="..\include\util\ui_unimacro.h" />
+    <ClInclude Include="..\include\xul\SimpAC.h" />
     <ClInclude Include="..\include\xul\SimpAX.h" />
     <ClInclude Include="..\src\private\ui_console.h" />
     <ClInclude Include="..\src\private\ui_memory_stream.h" />
