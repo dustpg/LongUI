@@ -40,6 +40,8 @@ namespace LongUI {
             Flag_DbgDrawTextCell = 1 << 13,
             // [debug flag under DEBUG MODE] display debug window
             Flag_DbgDebugWindow = 1 << 14,
+            // [debug flag under DEBUG MODE] Dnt link style sheet
+            Flag_DbgNoLinkStyle = 1 << 15,
         };
     public:
 #ifndef NDEBUG

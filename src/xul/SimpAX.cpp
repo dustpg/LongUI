@@ -379,7 +379,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             if (impl::is_end_pi(ch)) {
                 this_pi.target.b = str;
                 this_pi.instructions.a = str;
-                [[fallthrough]];
+                // fallthrough
             }
             // 空白
             else {
@@ -390,6 +390,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
                 }
                 break;
             }
+            [[fallthrough]];
         case sm_pi_end:
             // 等待?>
             if (impl::is_end_pi(ch)) {

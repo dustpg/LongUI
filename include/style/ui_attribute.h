@@ -243,5 +243,7 @@ namespace LongUI{
         static auto Pack(U8View) noexcept->AttributePack;
         // view to seltype
         static auto Seltype(U8View) noexcept->AttributeSeltype;
+        // view to overflow
+        static auto Overflow(U8View) noexcept->AttributeOverflow;
     };
 }

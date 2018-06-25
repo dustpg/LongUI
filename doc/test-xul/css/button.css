@@ -1,3 +1,4 @@
-button#button, button .button{
-    background-color: red
+button .button, button#button{
+    background-color: red;
+    background-color: blue;
 }

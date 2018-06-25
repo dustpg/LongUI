@@ -20,6 +20,8 @@ namespace LongUI {
     }
     // private data for control control
     struct PrivateCC;
+    // style sheet
+    class CUIStyleSheet;
     // control
     class UIControl;
     // control control
@@ -44,10 +46,19 @@ namespace LongUI {
         void ControlDisattached(UIControl& ctrl) noexcept;
         // invalidate control: rect : window level rect
         void InvalidateControl(UIControl& ctrl/*, const RectF& rect*/) noexcept;
+    public:
         // set xul dir
         void SetXULDir(const CUIString&) noexcept;
         // get xul dir
         auto GetXULDir() const noexcept -> const CUIString&;
+        // add css string
+        void AddCssString(U8View) noexcept;
+        // add css file
+        void AddCssFile(const char*) noexcept;
+        // add css file
+        void AddCssFile(const wchar_t*) noexcept;
+        // get style sheet
+        auto GetStyleSheet() const noexcept { return m_pStyleSheet; }
     public:
         // make xul tree
         static bool MakeXUL(UIControl& ctrl, const char* xul) noexcept;
@@ -77,6 +88,8 @@ namespace LongUI {
         // dtor
         ~CUIControlControl() noexcept;
     protected:
+        // style sheet
+        CUIStyleSheet*          m_pStyleSheet = nullptr;
         // time tick
         uint32_t                m_dwTimeTick;
         // delta time(unit: ms)

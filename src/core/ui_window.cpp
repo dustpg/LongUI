@@ -230,8 +230,6 @@ namespace LongUI {
         UIControl*      now_defualt = nullptr;
         // window defualt control
         UIControl*      wnd_defualt = nullptr;
-        // style sheet
-        CUIStyleSheet*  style_sheet = nullptr;
     public:
         // save utf-16 char
         char16_t        saved_utf16 = 0;
@@ -340,9 +338,7 @@ void LongUI::CUIWindow::LoadCSSFile(U8View file) noexcept {
 /// <param name="string">The string.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::LoadCSSString(U8View string) noexcept {
-    assert(m_private && "cannot be null on load css");
-    auto& ss = m_private->style_sheet;
-    ss = LongUI::MakeStyleSheet(string, ss);
+    m_pStyleSheet = LongUI::MakeStyleSheet(string, m_pStyleSheet);
 }
 
 
@@ -385,6 +381,8 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     if (m_parent) {
         m_parent->remove_child(*this);
     }
+    // 释放样式表
+    LongUI::DeleteStyleSheet(m_pStyleSheet);
     // 有效私有数据
     if (m_private) {
         // 删除自窗口

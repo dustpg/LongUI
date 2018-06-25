@@ -92,6 +92,8 @@ namespace LongUI {
         void LoadCSSFile(U8View file) noexcept;
         // load css string
         void LoadCSSString(U8View string) noexcept;
+        // get style sheet
+        auto GetStyleSheet() const noexcept { return m_pStyleSheet; }
     public:
         // map to screen
         void MapToScreen(RectF& rect) const noexcept;

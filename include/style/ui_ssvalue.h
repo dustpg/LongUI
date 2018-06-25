@@ -10,8 +10,14 @@
 namespace LongUI {
     // style sheet
     class CUIStyleSheet;
+    // control
+    class UIControl;
     // style sheet pointer
     using SSPtr = CUIStyleSheet * ;
+    // delete style sheet
+    void DeleteStyleSheet(CUIStyleSheet* ptr) noexcept;
+    // match style sheet
+    void MatchStyleSheet(UIControl&, CUIStyleSheet* ptr) noexcept;
     /// <summary>
     /// value of style sheet
     /// </summary>

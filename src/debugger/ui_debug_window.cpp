@@ -28,6 +28,7 @@ namespace LongUI {
             this->force_render();
             this->draw_text_cell();
             this->draw_dirty_rect();
+            this->link_style_sheet();
         }
         // dtor
         ~CUIDebugView() noexcept {
@@ -103,6 +104,20 @@ namespace LongUI {
                 return Event_Accept;
             });
         }
+        // link style sheet
+        void link_style_sheet() noexcept {
+            const auto checkbox = do_checkbox("cbx-style");
+            const auto& flag = UIManager.flag;
+            checkbox->SetChecked(!(flag & IUIConfigure::Flag_DbgNoLinkStyle));
+            checkbox->AddGuiEventListener(
+                checkbox->_stateChanged(), [&flag](UIControl& control) noexcept {
+                const auto box = longui_cast<UICheckBox*>(&control);
+                auto& mflag = const_cast<CUIManager::ConfigFlag&>(flag);
+                if (!box->GetChecked()) mflag = mflag | IUIConfigure::Flag_DbgNoLinkStyle;
+                else mflag = mflag & CUIManager::ConfigFlag(~IUIConfigure::Flag_DbgNoLinkStyle);
+                return Event_Accept;
+            });
+        }
     };
 }
 
@@ -132,6 +147,7 @@ const char* LongUI::debug_view_xul = u8R"(<?xml version="1.0"?>
     </hbox>
     <checkbox id="cbx-dirty" label="draw dirty rect"/>
     <checkbox id="cbx-cell" label="draw text cell"/>
+    <checkbox id="cbx-style" label="link style sheet"/>
 </groupbox>
 </window>)";
 

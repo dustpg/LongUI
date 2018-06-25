@@ -399,7 +399,7 @@ auto LongUI::UIControl::get_subelement(U8View name) noexcept -> UIControl * {
 /// <param name="value">The value.</param>
 /// <returns></returns>
 void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
-    // 这会在初始化之前添加, 所以一般直接修改就能达到效果而不需标记更新
+// 这会在初始化之前添加, 所以一般直接修改就能达到效果而不需标记更新
 #ifndef NDEBUG
     assert(!m_state.inited && "cannot call this after init-ed");
 #endif
@@ -471,6 +471,13 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_CLASS:
         // class      : 样式表用类名
+        while (value.begin() < value.end()) {
+            const auto splited = value.Split(' ');
+            if (splited.end() > splited.begin()) {
+                const auto unitext = UIManager.GetUniqueText(splited);
+                m_classesStyle.push_back(unitext);
+            }
+        }
         break;
     case BKDR_CONTEXTMENU:
         // CONTEXTMENU: 上下文菜单
@@ -1181,11 +1188,17 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::link_style_sheet() noexcept {
-    // 先连接全局的
+#ifndef NDEBUG
+    if (UIManager.flag & IUIConfigure::Flag_DbgNoLinkStyle)
+        return;
+#endif // !NDEBUG
 
+    // 先连接全局的
+    LongUI::MatchStyleSheet(*this, UIManager.GetStyleSheet());
     // 再连接窗口的
     if (const auto window = m_pWindow) {
-        int bk = 9;
+        const auto ss = window->GetStyleSheet();
+        LongUI::MatchStyleSheet(*this, ss);
     }
     // 连接内联样式
 

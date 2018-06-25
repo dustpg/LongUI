@@ -218,6 +218,17 @@ void LongUI::CUIManager::OneFrame() noexcept {
             << endl;
         this_()->DataUnlock();
     }
+    else {
+        // update超过1毫秒也算
+        if (t1 > 1.f) {
+            this_()->DataLock();
+            LUIDebug(Hint)
+                << "U<" << DDFFloat2{ t1 } << "ms>"
+                << "R<" << DDFFloat2{ t2 } << "ms>"
+                << endl;
+            this_()->DataUnlock();
+        }
+    }
     // 计算FPS
     const auto time = DbgMgr().PushDelta(
         this_()->m_fDeltaTime, 

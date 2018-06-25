@@ -200,3 +200,19 @@ auto LongUI::AttrParser::Seltype(U8View view) noexcept -> AttributeSeltype {
     case 't': return Seltype_Text;
     }
 }
+
+/// <summary>
+/// Overflows the specified .
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::AttrParser::Overflow(U8View view) noexcept -> AttributeOverflow {
+    assert(view.end() > view.begin());
+    switch (*view.begin())
+    {
+    default: return Overflow_Visible;
+    case 'a': return Overflow_Auto;
+    case 'h': return Overflow_Hidden;
+    case 's': return Overflow_Scroll;
+    }
+}

@@ -1,7 +1,8 @@
 ﻿#pragma once
+
 #include <cstdint>
 #include <cassert>
-
+#include <core/ui_core_type.h>
 
 
 namespace LongUI {
@@ -18,6 +19,8 @@ namespace LongUI {
         //Type_PositionLeft,
         //// [Position] right 
         //Type_PositionRight,
+        // [Position] overflow
+        Type_PositionOverflow,
         // [Position] overflow-x
         Type_PositionOverflowX,
         // [Position] overflow-y
@@ -25,6 +28,8 @@ namespace LongUI {
         //// [Position] z-index
         //Type_PositionZindex,
 
+        // [Margin] margin
+        Type_Margin,
         // [Margin] top
         Type_MarginTop,
         // [Margin] right
@@ -34,6 +39,8 @@ namespace LongUI {
         // [Margin] left
         Type_MarginLeft,
 
+        // [Padding] padding
+        Type_Padding,
         // [Padding] top
         Type_PaddingTop,
         // [Padding] right
@@ -43,6 +50,8 @@ namespace LongUI {
         // [Padding] left
         Type_PaddingLeft,
 
+        // [Border] width
+        Type_BorderWidth,
         // [Border] top-width
         Type_BorderTopWidth,
         // [Border] right-width
@@ -98,14 +107,23 @@ namespace LongUI {
         // [LongUI] appearance
         Type_UIAppearance,
     };
+#if 0
     // extra value type
     struct ExValueType {
         // value type
         ValueType       vtype;
         // extra number
-        uint32_t        extra;
+        //uint32_t        extra;
     };
+#endif
     // u8view to value type
-    auto U8View2ValueType(const char*b, const char* e) noexcept->ExValueType;
+    auto U8View2ValueType(U8View view) noexcept->ValueType;
+    // make value
+    void ValueTypeMakeValue(
+        ValueType ex, 
+        uint32_t value_len,
+        const U8View values[],
+        void* values_write
+    ) noexcept;
 }
 

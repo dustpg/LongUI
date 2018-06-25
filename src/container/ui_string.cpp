@@ -156,15 +156,23 @@ namespace LongUI { namespace detail {
     inline auto split_view(PodStringView<T>& view, T ch) noexcept ->PodStringView<T> {
         // 初始化
         auto token = view;  int offset = 0;
+        token.first = nullptr;
         const auto*itr = view.first;
         const auto itr_end = view.second;
         // 遍历字符串
         while (itr != itr_end) {
-            if (*itr == ch) { offset = 1; break; }
-            else ++itr;
+            if (*itr == ch) { 
+                if (token.first) {
+                    offset = 1;
+                    break;
+                }
+            }
+            else if (!token.first) token.first = itr;
+            ++itr;
         }
         // 写回数据
         token.second = itr;
+        if (!token.first) token.first = token.second;
         view = { itr + offset, itr_end };
         return token;
     }
