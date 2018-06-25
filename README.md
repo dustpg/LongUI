@@ -9,11 +9,11 @@ Current Version : **Alpha-Stage**
 **Light Weight**
   - this is main target to create LongUI
   - static-link framework, helloworld just 140kb now
-  - for this, **no c++ exception** in LongUI, *noexcept* anywhere 
+  - for this, **no c++ exception** in LongUI, you cannot use c++ function maybe throw in callback
 
 **XML User Interface Language**
   - partially compatible Mozilla's XUL (XML part)
-  - partially compatible CSS(on the plan) to get custom look
+  - partially compatible CSS to get custom look
   - built-in script interface to support your own script-lang
   - more detail, see [XUL](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL)
 
