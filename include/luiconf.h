@@ -20,6 +20,8 @@
 // no accessible? make bin-file smaller
 //#define LUI_NO_ACCESSIBLE
 
+// LongUI::POD::Vector::size_type use uint32_t
+//#define LUI_VECTOR_SIZE_USE_UINT32
 
 
 // ----------------------------------------------------------------------------

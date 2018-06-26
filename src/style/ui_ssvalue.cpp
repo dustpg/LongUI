@@ -1,11 +1,15 @@
 ﻿// lui
-#include <style/ui_ssvalue.h>
 #include <util/ui_ctordtor.h>
+#include <style/ui_ssvalue.h>
 #include <control/ui_control.h>
 #include <control/ui_ctrlmeta.h>
 #include <core/ui_color_list.h>
+#include <util/ui_time_meter.h>
 #include <core/ui_manager.h>
 #include <core/ui_malloc.h>
+#include <debugger/ui_debug.h>
+// private
+#include "../private/ui_private_control.h"
 // css
 #include <xul/SimpAC.h>
 // c/c++
@@ -394,18 +398,15 @@ namespace LongUI {
         
         return ptr;
     }
-    /// <summary>
-    /// Matches the selector.
-    /// </summary>
-    /// <param name="ctrl">The control.</param>
-    /// <param name="selector">The selector.</param>
-    /// <returns></returns>
-    bool MatchSelector(UIControl& ctrl, const SSSelector& selector) noexcept {
-        //auto now_comb = selector.combinator;
-        auto now_slct = &selector;
-        auto now_ctrl = &ctrl;
-        // 匹配基本选择器
-        auto match_basic = [](UIControl& c, const SSSelector& s) noexcept {
+    // detail namespace
+    namespace detail {
+        /// <summary>
+        /// Matches the basic.
+        /// </summary>
+        /// <param name="c">The control.</param>
+        /// <param name="s">The selector.</param>
+        /// <returns></returns>
+        bool match_basic(UIControl& c, const SSSelector& s) noexcept {
             // 类型选择器  <->  XUL 类型
             if (s.stype) {
                 const auto name = c.GetMetaInfo().element_name;
@@ -422,23 +423,89 @@ namespace LongUI {
                 const auto eitr = classes.end();
                 const auto nitr = std::find(classes.begin(), eitr, s.sclass);
                 if (eitr == nitr) return false;
-                int bk = 9;
             }
             // ID选择器  <->  控件ID
             if (s.sid) {
                 // 都是动态申请的Unique Text, 使用 == 比较
-
                 // HINT: 最后一个, 直接return
                 return c.GetID() == s.sid;
             }
             return true;
         };
-        // 遍历所有选择器
-        while (now_slct) {
-            // 匹配基本选择器
-            match_basic(*now_ctrl, *now_slct);
-            // 推进下一层
-            now_slct = now_slct->next;
+    }
+    /// <summary>
+    /// Matches the selector.
+    /// </summary>
+    /// <param name="ctrl">The control.</param>
+    /// <param name="selector">The selector.</param>
+    /// <returns></returns>
+    bool MatchSelector(UIControl& ctrl, const SSSelector& selector) noexcept {
+        // 匹配基本选择器
+        const auto result = detail::match_basic(ctrl, selector);
+        if (!result) return false;
+        // 检测组合选择器
+        const auto combin = selector.combinator;
+        const auto next_selector = selector.next;
+        switch (combin)
+        {
+            UIControl* now_ctrl;
+        case Combinator_AdjacentSibling:
+            assert(next_selector && "bad selector");
+            // A + B 相邻兄弟节点
+            // 检测前节点控件
+            if (!ctrl.IsFirstChild()) {
+                auto& prev = UIControlPrivate::Prev(ctrl);
+                // 有戏: 递归匹配
+                if (LongUI::MatchSelector(prev, *next_selector)) return true;
+            }
+            // 检测后节点控件
+            if (!ctrl.IsLastChild()) {
+                auto& next = UIControlPrivate::Next(ctrl);
+                // 有戏: 递归匹配, 最后一个就直接返回
+                return LongUI::MatchSelector(next, *next_selector);
+            }
+            // 没戏
+            return false;
+        case Combinator_GeneralSibling:
+            assert(next_selector && "bad selector");
+            // A + B 一般兄弟节点
+            if (!ctrl.IsTopLevel()) {
+                const auto parent = ctrl.GetParent();
+                // 遍历父节点所有的子节点
+                for (auto& c : (*parent)) {
+                    // (除开本体)
+                    if (&ctrl != &c) {
+                        // 有戏: 递归匹配
+                        if (LongUI::MatchSelector(ctrl, *next_selector)) 
+                            return true;
+                    }
+                }
+            }
+            // 没戏
+            return false;
+        case Combinator_Child:
+            assert(next_selector && "bad selector");
+            // A > B 子节点
+            if (!ctrl.IsTopLevel()) {
+                const auto parent = ctrl.GetParent();
+                // 有戏: 递归匹配, 最后一个就直接返回
+                return LongUI::MatchSelector(*parent, *next_selector);
+            }
+            // 没戏
+            return false;
+        case Combinator_Descendant:
+            assert(next_selector && "bad selector");
+            now_ctrl = &ctrl;
+            // A   B 子孙节点
+            if (!now_ctrl->IsTopLevel()) {
+                const auto parent = now_ctrl->GetParent();
+                // 有戏: 递归匹配
+                if (LongUI::MatchSelector(*parent, *next_selector))
+                    return true;
+                now_ctrl = parent;
+            }
+            // 没戏
+            return false;
         }
         return true;
     }
@@ -452,6 +519,11 @@ namespace LongUI {
 /// <param name="ptr">The PTR.</param>
 /// <returns></returns>
 void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
+#ifndef NDEBUG
+    static float s_dbg_time = 0.f;
+    CUITimeMeterH dbg_meter;
+    dbg_meter.Start();
+#endif
     auto block = reinterpret_cast<SSBlock*>(ptr);
     while (block) {
         // 遍历BLOCK中所有主选择器
@@ -460,10 +532,43 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
             const auto& this_main = block->main[i];
             // 匹配成功: 添加属性
             if (LongUI::MatchSelector(ctrl, this_main)) {
+                auto& matched = UIControlPrivate::GetStyleMatched(ctrl);
+                const auto& src = block->list;
+                const auto index = matched.size();
+                const auto src_len = src.size();
+                matched.reserve(16);
+                matched.resize(src_len + 2);
+                // 确定
+                if (matched.is_ok()) {
+                    const auto ptr = &matched.front() + index;
+                    // 0: 标记起始点与长度(包括开始两个)
+                    ptr[0].type = ValueType::Type_NewOne;
+                    ptr[0].u32 = static_cast<uint32_t>(src_len) + 2;
+                    // 1: 标记伪类的状态
+                    reinterpret_cast<SSValuePC&>(ptr[1]) = {};
+                    // [2, end)
+                    std::memcpy(ptr + 2, &src.front(), src_len * sizeof(SSValue));
+                }
                 break;
             }
         }
         // 推进
         block = block->next;
     }
+#ifndef NDEBUG
+    // 检查函数调用时长
+    const auto dbg_took = dbg_meter.Delta_ms<float>();
+    const auto old = static_cast<int>(s_dbg_time);
+    s_dbg_time += dbg_took;
+    const auto now = static_cast<int>(s_dbg_time);
+    if (now != old) {
+        LUIDebug(Hint)
+            << "Sheet Match: [ALL]"
+            << s_dbg_time
+            << "ms [ROUND]"
+            << dbg_took
+            << "ms"
+            << endl;
+    }
+#endif
 }

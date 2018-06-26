@@ -52,6 +52,9 @@ struct LongUI::UIControlPrivate {
     // get style state
     static auto&GetStyleState(UIControl& ctrl) noexcept {
         return ctrl.m_oStyle.state; }
+    // get style matched value
+    static auto&GetStyleMatched(UIControl& ctrl) noexcept {
+        return ctrl.m_oStyle.matched; }
     // set parent data
     static auto SetParentData(UIControl& ctrl, uint32_t data) noexcept {
         return ctrl.m_uData4Parent = data; }
@@ -66,9 +69,14 @@ struct LongUI::UIControlPrivate {
         ctrl.add_attribute(key, value); }
     // prev control
     static auto&Prev(UIControl& ctrl) noexcept {
-        return static_cast<UIControl&>(*ctrl.prev);
-    }
+        return static_cast<UIControl&>(*ctrl.prev); }
     // next control
     static auto&Next(UIControl& ctrl) noexcept  {
         return static_cast<UIControl&>(*ctrl.next); }
+    // prev control
+    static auto Prev(UIControl* ctrl) noexcept {
+        return static_cast<UIControl*>(ctrl->prev); }
+    // next control
+    static auto Next(UIControl* ctrl) noexcept  {
+        return static_cast<UIControl*>(ctrl->next); }
 };

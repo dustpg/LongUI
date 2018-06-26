@@ -216,3 +216,14 @@ auto LongUI::AttrParser::Overflow(U8View view) noexcept -> AttributeOverflow {
     case 's': return Overflow_Scroll;
     }
 }
+
+/// <summary>
+/// Appearances the specified view.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::AttrParser::Appearance(U8View view) noexcept -> AttributeAppearance {
+    assert(view.end() > view.begin());
+    // TODO: NOTIMPL
+    return Appearance_None;
+}

@@ -79,7 +79,7 @@ namespace SimpAC {
         // Adjacent sibling selectors   A + B
         Combinators_AdjacentSibling = 0,
         // General sibling selectors    A ~ B
-        Combinators_General,
+        Combinators_GeneralSibling,
         // Child selectors              A > B
         Combinators_Child,
         // Descendant selectors         A   B

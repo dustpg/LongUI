@@ -40,17 +40,15 @@ namespace LongUI {
             bool        boolean;
         };
     };
-#if 0
-    // stylesheets: block
-    struct SSBlock {
-        // window hosted value buffer, unknown-terminated values
-        SSValue*        values;
+    // stylesheets: value pc
+    struct SSValuePC {
         // yes pseudo-classes
         StyleState      yes;
         // not pseudo-classes
         StyleState      noo;
     };
-#endif
+    // SSValuePC = SSValue
+    static_assert(sizeof(SSValuePC) == sizeof(SSValue), "must be same");
     // Combinator
     enum Combinator : uint8_t {
         // Combinator None
@@ -58,7 +56,7 @@ namespace LongUI {
         // Adjacent sibling selectors   A + B
         Combinator_AdjacentSibling,
         // General sibling selectors    A ~ B
-        Combinator_General,
+        Combinator_GeneralSibling,
         // Child selectors              A > B
         Combinator_Child,
         // Descendant selectors         A   B

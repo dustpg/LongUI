@@ -166,38 +166,38 @@ namespace LongUI{
     /// appearance attr
     /// </summary>
     enum AttributeAppearance : uint8_t {
-        Appearance_NotSet = uint8_t(-1),
-        Appearance_None = 0,
-        Appearance_Radio,
-        Appearance_Button,
-        Appearance_Resizer,
-        Appearance_CheckBox,
-        Appearance_ScrollBarButtonUp,
-        Appearance_ScrollBarButtonRight,
-        Appearance_ScrollBarButtonDown,
-        Appearance_ScrollBarButtonLeft,
-        Appearance_ScrollbarThumbH,
-        Appearance_ScrollbarThumbV,
-        Appearance_ScrollbarTrackH,
-        Appearance_ScrollbarTrackV,
-        Appearance_ScaleH,
-        Appearance_ScaleV,
-        Appearance_ScaleThumbH,
-        Appearance_ScaleThumbV,
-        Appearance_ProgressBarH,
-        Appearance_ProgressBarV,
-        Appearance_ProgressChunkH,
-        Appearance_ProgressChunkV,
-        Appearance_ListBox,
-        Appearance_ListItem,
-        Appearance_GroupBox,
-        Appearance_TreeHeaderCell,
-        Appearance_TreeTwisty,
-        Appearance_DropDownMarker,
-        Appearance_MenuItem,
-        Appearance_Tab,
-        Appearance_TabPanels,
-        Appearance_TextField,
+        Appearance_NotSet = uint8_t(-1),    // init value
+        Appearance_None = 0,                // [none]
+        Appearance_Radio,                   // [radio]
+        Appearance_Button,                  // [button]
+        Appearance_Resizer,                 // [resizer]
+        Appearance_CheckBox,                // [checkbox]
+        Appearance_ScrollBarButtonUp,       // [scrollbarbutton-up]
+        Appearance_ScrollBarButtonRight,    // [scrollbarbutton-right]
+        Appearance_ScrollBarButtonDown,     // [scrollbarbutton-down]
+        Appearance_ScrollBarButtonLeft,     // [scrollbarbutton-left]
+        Appearance_ScrollbarThumbH,         // [scrollbarthumb-horizontal]
+        Appearance_ScrollbarThumbV,         // [scrollbarthumb-vertical]
+        Appearance_ScrollbarTrackH,         // [scrollbartrack-horizontal]
+        Appearance_ScrollbarTrackV,         // [scrollbartrack-vertical]
+        Appearance_ScaleH,                  // [scale-horizontal]
+        Appearance_ScaleV,                  // [scale-vertical]
+        Appearance_ScaleThumbH,             // [scalethumb-horizontal]
+        Appearance_ScaleThumbV,             // [scalethumb-vertical]
+        Appearance_ProgressBarH,            // [progressbar]
+        Appearance_ProgressBarV,            // [progressbar-vertical]
+        Appearance_ProgressChunkH,          // [progresschunk]
+        Appearance_ProgressChunkV,          // [progresschunk-vertical]
+        Appearance_ListBox,                 // [listbox]
+        Appearance_ListItem,                // [listitem]
+        Appearance_GroupBox,                // [groupbox]
+        Appearance_TreeHeaderCell,          // [treeheadercell]
+        Appearance_TreeTwisty,              // [treetwisty]
+        Appearance_DropDownMarker,          // used for menu list drop down marker
+        Appearance_MenuItem,                // [menuitem]
+        Appearance_Tab,                     // [tab]
+        Appearance_TabPanels,               // [tabpanels]
+        Appearance_TextField,               // [textfield ]
     };
     /// <summary>
     /// select type
@@ -245,5 +245,7 @@ namespace LongUI{
         static auto Seltype(U8View) noexcept->AttributeSeltype;
         // view to overflow
         static auto Overflow(U8View) noexcept->AttributeOverflow;
+        // view to appearance
+        static auto Appearance(U8View) noexcept->AttributeAppearance;
     };
 }

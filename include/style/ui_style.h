@@ -94,5 +94,7 @@ namespace LongUI {
         Size2F              minsize;
         // style used max size
         Size2F              maxsize;
+        // value list matched
+        SSValues            matched;
     };
 }

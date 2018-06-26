@@ -10,6 +10,8 @@ namespace LongUI {
     /// type of value
     /// </summary>
     enum class ValueType : uint32_t {
+        // new one
+        Type_NewOne = 0xfffffffful,
         // unknown
         Type_Unknown = 0,
 

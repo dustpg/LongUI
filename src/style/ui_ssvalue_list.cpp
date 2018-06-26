@@ -79,6 +79,13 @@ void LongUI::ValueTypeMakeValue(
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.u32, values[0].ColorRGBA32());
         break;
+
+
+    case ValueType::Type_UIAppearance:
+        // [APPEARANCE]
+        //   -- -moz-appearance
+        detail::attribute(ssv.byte, AttrParser::Appearance(values[0]));
+        break;
     }
     // 输出
     auto& out = *reinterpret_cast<SSValues*>(values_write);

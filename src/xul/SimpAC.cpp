@@ -271,7 +271,7 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
             goto add_combinator;
         case css_state::general:
             // A ~ B
-            this->add_selector_combinator(Combinators_General);
+            this->add_selector_combinator(Combinators_GeneralSibling);
             goto add_combinator;
         case css_state::child:
             // A + B

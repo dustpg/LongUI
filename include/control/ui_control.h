@@ -156,7 +156,7 @@ namespace LongUI {
 #endif
     public:
         // apply value
-        //void ApplyValue(const SSValue&) noexcept;
+        void ApplyValue(SSValue) noexcept;
         // need update in this frame
         void NeedUpdate() noexcept;// { L::AddUpdateList(*this); }
         // need update in next frame
@@ -248,7 +248,7 @@ namespace LongUI {
         // set visible
         void SetVisible(bool visible) noexcept;
         // get id
-        auto GetID() const noexcept { return m_id.c_str(); }
+        auto GetID() const noexcept { return m_id; }
         // set postion of control [Relative to parent]
         void SetPos(Point2F pos) noexcept;
         // get postion of control [Relative to parent]
@@ -326,6 +326,8 @@ namespace LongUI {
         auto init() noexcept->Result;
         // link style sheet
         void link_style_sheet() noexcept;
+        // setup style values
+        void setup_style_values() noexcept;
         // mark children dirty
         //void mark_posterity_dirty() noexcept;
     protected:
@@ -347,7 +349,7 @@ namespace LongUI {
         // child count
         uint32_t                m_cChildrenCount = 0;
         // id of control
-        CUIConstShortString     m_id;
+        const char*             m_id =  nullptr;
         // meta info of control
         const MetaControl&      m_refMetaInfo;
         // animation

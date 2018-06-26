@@ -431,7 +431,7 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case BKDR_ID:
         // id         : 窗口唯一id
-        m_id = value;
+        m_id = UIManager.GetUniqueText(value);
         // 尝试添加命名控件
         if (m_pWindow) m_pWindow->AddNamedControl(*this);
         break;
@@ -480,13 +480,13 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         }
         break;
     case BKDR_CONTEXTMENU:
-        // CONTEXTMENU: 上下文菜单
+        // contextmenu: 上下文菜单
         break;
     case BKDR_ACCESSKEY:
-        // ACCESSKEY  : 快捷访问键
+        // accesskey  : 快捷访问键
         break;
     case BKDR_DRAGGABLE:
-        // DRAGGABLE  : 允许拖拽
+        // draggable  : 允许拖拽
         break;
     case BKDR_FLEX:
         // flex       : 布局弹性系数
@@ -1119,6 +1119,9 @@ void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
     // 没有动画
     else {
         const auto changed = m_oStyle.state.Change(change);
+        if (changed == false) {
+            int bk = 9;
+        }
         assert(changed);
     }
 }
@@ -1192,6 +1195,7 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     if (UIManager.flag & IUIConfigure::Flag_DbgNoLinkStyle)
         return;
 #endif // !NDEBUG
+    m_oStyle.matched.clear();
 
     // 先连接全局的
     LongUI::MatchStyleSheet(*this, UIManager.GetStyleSheet());
@@ -1202,6 +1206,81 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     }
     // 连接内联样式
 
+    // 第一次设置
+    this->setup_style_values();
+}
+
+
+/// <summary>
+/// Setups the style values.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::setup_style_values() noexcept {
+    // 基础继承
+    const auto& list = m_oStyle.matched;
+    for (auto itr = list.begin(); itr != list.end();) {
+        // 必须是START
+        assert((*itr).type == ValueType::Type_NewOne);
+        // 检测长度 
+        const auto len = itr[0].u32;
+        // 检测伪类
+        const auto pc = reinterpret_cast<const SSValuePC&>(itr[1]);
+        // 匹配状态
+        if (true) {
+            // 遍历状态
+            const auto end_itr = itr + len;
+            auto being_itr = itr + 2;
+            for (; being_itr != end_itr; ++being_itr) {
+                this->ApplyValue(*being_itr);
+            }
+        }
+        // 递进
+        itr += len;
+    }
+    // 内联样式
+}
+
+// longui::detail namespace
+namespace LongUI { namespace detail {
+    // attribute write
+    template<typename T, typename U>
+    static inline void write_value(T& a, U b) noexcept {
+        static_assert(sizeof(T) == sizeof(U));
+        a = static_cast<T>(b);
+    }
+}}
+
+PCN_NOINLINE
+/// <summary>
+/// Applies the value.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
+    switch (value.type)
+    {
+    default:
+        assert(!"unsupported value type");
+        break;
+    case ValueType::Type_PositionOverflowX:
+        detail::write_value(m_oStyle.overflow_x, value.byte);
+        break;
+    case ValueType::Type_PositionOverflowY:
+        detail::write_value(m_oStyle.overflow_y, value.byte);
+        break;
+    case ValueType::Type_BackgroundColor:
+        this->SetBgColor({ value.u32 });
+        break;
+    case ValueType::Type_UIAppearance:
+        detail::write_value(m_oStyle.appearance, value.byte);
+#if 0
+        if (m_oStyle.appearance == Appearance_None)
+            this->ClearAppearance();
+        else
+            LongUI::NativeStyleInit(*this, m_oStyle.appearance);
+#endif
+        break;
+    }
 }
 
 
@@ -1249,9 +1328,9 @@ auto LongUI::UIControl::accessible(const AccessibleEventArg& args) noexcept -> E
         // 获取Acc名称
         *static_cast<const get1_t&>(args).name =
 #ifdef NDEBUG
-            CUIString::FromUtf8(m_id.empty() ? m_refMetaInfo.element_name : m_id.c_str());
+            CUIString::FromUtf8(!m_id ? m_refMetaInfo.element_name : m_id);
 #else
-            CUIString::FromUtf8(m_id.empty() ? this->name_dbg : m_id.c_str());
+            CUIString::FromUtf8(!m_id ? this->name_dbg : m_id);
 #endif
         return Event_Accept;
     case AccessibleEvent::Event_All_GetDescription:

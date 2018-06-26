@@ -244,10 +244,6 @@ void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
     const auto pop_item = [&]() noexcept {
         assert(item_top >= items); --item_top;
     };
-    const auto next_item = [](UIControl* i) noexcept {
-        UIControl* item = ++Iterator<UIControl>{ i };
-        return item;
-    };
     // 没有上次操作对象
     items[0] = m_pChildren->begin();
     // 拥有上次操作对象
@@ -269,7 +265,7 @@ void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
             // 弟节点
             if (!opt->IsLastChild()) {
                 // XXX: [测试] next 是滚动条的场合?
-                *item_top = next_item(opt);
+                *item_top = UIControlPrivate::Next(opt);
                 ++item_top;
             }
         }
@@ -286,7 +282,7 @@ void LongUI::UITree::SelectTo(UITreeItem& item) noexcept {
         // 获取栈顶数据
         const auto now_item = *item_top;
         if (now_item->IsLastChild()) pop_item();
-        else *item_top = next_item(now_item);
+        else *item_top = UIControlPrivate::Next(now_item);
         
         // XXX: [优化] items大概率是UITreeItem, 小概率是滚动条
         if (const auto item_ptr = uisafe_cast<UITreeItem>(now_item)) {

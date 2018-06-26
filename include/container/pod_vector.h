@@ -10,6 +10,7 @@
 #include "../typecheck/int_by_size.h"
 #include "../util/ui_unimacro.h"
 #include "../util/ui_ctordtor.h"
+#include "../luiconf.h"
 
 namespace LongUI {
     // string class
@@ -56,8 +57,13 @@ namespace LongUI { namespace POD {
                 EX_FBL1 = 8,  EX_FBL2 = 16,
             };
         public:
+#ifdef LUI_VECTOR_SIZE_USE_UINT32
+            // size type
+            using size_type = uint32_t;
+#else
             // size type
             using size_type = std::uintptr_t;
+#endif
             // max size
             auto max_size() const noexcept ->size_type { return 1u << 20; }
             // clear data

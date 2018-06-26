@@ -1,4 +1,5 @@
-button .button, button#button{
+button#button, #layout .button{
+    -moz-appearance: none;
     background-color: red;
     background-color: blue;
 }

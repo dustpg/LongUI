@@ -1242,6 +1242,8 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
     const auto wParam = prmsg.wParam;
     // 鼠标离开
     if (message == WM_MOUSELEAVE) {
+        // BUG: Alt + 快捷键也会触发?
+        //CUIInputKM::Instance().GetKeyState(CUIInputKM::KB_MENU);
         arg.px = -1.f; arg.py = -1.f;
         arg.wheel = 0.f;
         arg.type = MouseEvent::Event_MouseLeave;
