@@ -38,8 +38,6 @@ namespace LongUI {
 
         // ctor failed
         bool        ctor_failed : 1;
-        // directly managed
-        bool        directly_managed : 1;
         // gui event to parent[true, to parent, false to viewport]
         bool        gui_event_to_parent : 1;
         // attachment 
@@ -64,6 +62,8 @@ namespace LongUI {
         bool        unified_input : 1;
         // parent not-need relayout if this [visible] changed
         bool        parent_notneed_relayout : 1;
+        // in basic animation
+        bool        in_basic_animation : 1;
         // unused #1 for reserved
         bool        reserved1 : 1;
 
@@ -87,7 +87,7 @@ namespace LongUI {
         bool        in_update_list : 1;
         // in render-dirty list             [O-flag]
         bool        in_dirty_list : 1;
-        // child index changed(add child)   [N-flag]
+        // child index changed(+ - child)   [N-flag]
         bool        child_i_changed : 1;
         // parent changed                   [N-flag]
         bool        parent_changed : 1;

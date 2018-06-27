@@ -94,7 +94,7 @@ namespace LongUI {
     protected:
         // min scroll size
         Size2F              m_minScrollSize;
-        // line size
+        // line size for UIScale::increment
         Size2F              m_szLine;
         // horizontal scroll bar
         UIScrollBar*        m_pHorizontalSB = nullptr;

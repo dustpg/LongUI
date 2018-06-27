@@ -123,13 +123,13 @@ LongUI::UIScrollBar::~UIScrollBar() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollBar::Update() noexcept {
-    // TODO: disabled 状态修改? 广播给子控件
-    if (m_state.style_state_changed) {
-        //m_state.style_state_changed = false;
-        if (m_pAnimation) {
+    //// TODO: disabled 状态修改? 广播给子控件
+    //if (m_state.style_state_changed) {
+    //    //m_state.style_state_changed = false;
+    //    if (m_pAnimation) {
 
-        }
-    }
+    //    }
+    //}
     return Super::Update();
 }
 
@@ -168,6 +168,15 @@ void LongUI::UIScrollBar::SetMax(float v) noexcept {
 /// <returns></returns>
 void LongUI::UIScrollBar::SetPageIncrement(float pi) noexcept {
     m_private->slider.SetPageIncrement(pi);
+}
+
+/// <summary>
+/// Sets the increment.
+/// </summary>
+/// <param name="pi">The pi.</param>
+/// <returns></returns>
+void LongUI::UIScrollBar::SetIncrement(float pi) noexcept {
+    m_private->slider.increment = pi;
 }
 
 /// <summary>
@@ -227,6 +236,45 @@ auto LongUI::UIScrollBar::DoEvent(UIControl * sender,
     }
     // 基类处理
     return Super::DoEvent(sender, e);
+}
+
+/// <summary>
+/// Does the mouse event.
+/// </summary>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UIScrollBar::DoMouseEvent(
+    const MouseEventArg & e) noexcept -> EventAccept {
+    switch (e.type)
+    {
+    case MouseEvent::Event_LButtonDown:
+        // 鼠标左键按下
+        // TODO: 持续按下
+        if (m_pHovered) {
+            // 分类讨论
+            switch (UIControlPrivate::GetParentData(*m_pHovered))
+            {
+            case Private::Type_UpTop:
+                // 顶上
+                m_private->slider.Decrease();
+                break;
+            case Private::Type_DownTop:
+                // 顶下
+                m_private->slider.DecreasePage();
+                break;
+            case Private::Type_UpBottom:
+                // 底上
+                m_private->slider.IncreasePage();
+                break;
+            case Private::Type_DownBottom:
+                // 底下
+                m_private->slider.Increase();
+                break;
+            };
+        }
+        break;
+    }
+    return Super::DoMouseEvent(e);
 }
 
 

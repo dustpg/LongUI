@@ -18,6 +18,8 @@ namespace LongUI {
         // 64bit
         template<> struct cc<8> { enum { size = 24*6+32, align = 8 };  };
     }
+    // basic animation
+    struct ControlAnimationBasic;
     // private data for control control
     struct PrivateCC;
     // style sheet
@@ -33,6 +35,8 @@ namespace LongUI {
     public:
         // start animation
         void StartAnimation(UIControl&, StyleStateTypeChange) noexcept;
+        // find basic animation
+        auto FindBasicAnimation(const UIControl&) const noexcept -> const ControlAnimationBasic*;
     public:
         // add init list
         void AddInitList(UIControl& ctrl) noexcept;

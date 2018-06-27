@@ -1035,34 +1035,20 @@ void LongUI::UIControl::remove_child(UIControl& child) noexcept {
 }
 
 /// <summary>
-/// Adds the direct child.
-/// </summary>
-/// <param name="child">The child.</param>
-/// <returns></returns>
-void LongUI::UIControl::add_direct_child(UIControl& child) noexcept {
-    assert(child.m_pParent == nullptr && "parent must null befor set direct parent");
-    child.m_state.directly_managed = true;
-    this->add_child(child);
-    child.NeedUpdate();
-}
-
-/// <summary>
 /// Determines whether [is excluded from the layout].
 /// </summary>
 /// <returns></returns>
 bool LongUI::UIControl::IsVaildInLayout() const noexcept {
     // 排除: 不可直视
     const bool a = this->IsVisible();
-    // 排除: 直接管理
-    const bool b = !m_state.directly_managed;
     // 排除: 固定定位
-    const bool c = m_state.attachment == Attachment_Scroll;
+    const bool b = m_state.attachment == Attachment_Scroll;
     // 排除: 相对定位
 
     // 排除: 绝对定位
 
     // AND
-    return a & b & c;
+    return a & b;
 }
 
 /// <summary>

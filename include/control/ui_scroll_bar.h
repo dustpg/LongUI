@@ -51,6 +51,8 @@ namespace LongUI {
         void Update() noexcept override;
         // do normal event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept ->EventAccept override;
+        // do mouse event
+        auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
     public:
         // get value
         auto GetValue() const noexcept -> float;
@@ -61,6 +63,8 @@ namespace LongUI {
         void SetMax(float v) noexcept;
         // set page increment
         void SetPageIncrement(float pi) noexcept;
+        // set increment
+        void SetIncrement(float pi) noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event

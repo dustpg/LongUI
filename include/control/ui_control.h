@@ -65,8 +65,6 @@
 namespace LongUI {
     // meta info
     struct MetaControl;
-    // control animation
-    struct ControlAnimation;
     // control control
     class CUIControlControl;
     // control private function
@@ -309,8 +307,6 @@ namespace LongUI {
         auto take_clicked() noexcept -> UIControl*;
         // remove child
         void remove_child(UIControl& child) noexcept;
-        // add direct child(not pushed into children list)
-        void add_direct_child(UIControl& child) noexcept;
         // start animation: bottom-up
         void start_animation_b2u(StyleStateTypeChange) noexcept;
         // start animation: up-bottom
@@ -343,6 +339,12 @@ namespace LongUI {
         void custom_style_render() const noexcept;
         // delete renderer
         void delete_renderer() noexcept;
+        // exist basic animation ?
+        auto exist_basic_animation() const noexcept { return m_state.in_basic_animation; }
+        // clear basic animation
+        void clear_basic_animation() noexcept { m_state.in_basic_animation = false; }
+        // setup basic animation
+        void setup_basic_animation() noexcept { m_state.in_basic_animation = true; }
     protected:
         // state
         CtrlState               m_state;
@@ -352,8 +354,6 @@ namespace LongUI {
         const char*             m_id = "";
         // meta info of control
         const MetaControl&      m_refMetaInfo;
-        // animation
-        const ControlAnimation* m_pAnimation = nullptr;
         // style model
         Style                   m_oStyle;
         // box model

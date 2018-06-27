@@ -32,7 +32,7 @@ namespace LongUI {
 /// </summary>
 struct LongUI::PrivateCC {
     // control animation
-    using CtrlAnima = ControlAnimation;
+    using BasicAnima = ControlAnimationBasic;
     // ctor
     inline PrivateCC() noexcept;
     // ctor
@@ -46,7 +46,7 @@ struct LongUI::PrivateCC {
     // init list
     POD::Vector<UIControl*> init_list;
     // animation list
-    POD::Vector<CtrlAnima>  animaitons;
+    POD::Vector<BasicAnima> basic_anima;
     // dirty update
     POD::Vector<DirtyUpdate>dirty_update;
     // xul dir
@@ -408,17 +408,17 @@ void LongUI::CUIControlControl::normal_update() noexcept {
     m_dwDeltaTime = delta;
     m_dwTimeTick = new_tick;
     // 动画为空
-    auto& animations = cc().animaitons;
+    auto& animations = cc().basic_anima;
     if (animations.empty()) return;
     // 更新基本动画
-    auto basic_update = [delta](ControlAnimation& ca) noexcept {
-        ca.basic.done += delta;
+    auto basic_update = [delta](ControlAnimationBasic& ca) noexcept {
+        ca.done += delta;
         // 完成动画: ctrl 标记为0
-        if (ca.basic.done >= ca.basic.duration) {
-            ca.basic.done = ca.basic.duration;
+        if (ca.done >= ca.duration) {
+            ca.done = ca.duration;
             //ca.ctrl->m_oStyle.state = ca.basic.target;
             //ca.ctrl->m_state.style_state_changed = false;
-            ca.ctrl->m_pAnimation = nullptr;
+            ca.ctrl->clear_basic_animation();
             ca.ctrl = nullptr;
         }
     };
@@ -431,7 +431,7 @@ void LongUI::CUIControlControl::normal_update() noexcept {
         // 检查有效
         if (!x.ctrl) continue;
         // 更新矩形 没有动画就没有必要
-        if (x.basic.duration) x.ctrl->Invalidate();
+        if (x.duration) x.ctrl->Invalidate();
         // 额外动画?
         //if (x.extra) extra_update(x);
         //else basic_update(x);
@@ -442,7 +442,24 @@ void LongUI::CUIControlControl::normal_update() noexcept {
     if (!animations.back().ctrl) animations.pop_back();
 }
 
-
+/// <summary>
+/// Finds the basic animation.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+auto LongUI::CUIControlControl::FindBasicAnimation(
+    const UIControl& ctrl) const noexcept
+    -> const ControlAnimationBasic* {
+    auto& anima = cc().basic_anima;
+    // 对比函数
+    const auto finder = [&ctrl](
+        const ControlAnimationBasic& ca) noexcept {
+        return ca.ctrl == &ctrl;
+    };
+    const auto end_itr = anima.end();
+    const auto itr = std::find_if(anima.begin(), end_itr, finder);
+    return end_itr == itr ? nullptr : &(*itr);
+}
 
 /// <summary>
 /// Starts the animation.
@@ -454,21 +471,20 @@ void LongUI::CUIControlControl::StartAnimation(
     UIControl& ctrl, 
     StyleStateTypeChange type) noexcept {
     //LUIDebug(Hint) << ctrl << type << endl;
-    auto& anima = cc().animaitons;
+    auto& anima = cc().basic_anima;
     // 对比函数
-    const auto finder = [&ctrl](ControlAnimation& ca) noexcept {
+    const auto finder = [&ctrl](ControlAnimationBasic& ca) noexcept {
         return ca.ctrl == &ctrl;
     };
     // 查找已有动画
     const auto itr = std::find_if(anima.begin(), anima.end(), finder);
-    ControlAnimation* ca;
+    ControlAnimationBasic* ca;
     if (itr != anima.end()) ca = &(*itr);
     else {
-        ControlAnimation init_ca;
+        ControlAnimationBasic init_ca;
         init_ca.ctrl = &ctrl;
-        init_ca.basic.done = 0;
-        init_ca.basic.origin = ctrl.m_oStyle.state;
-        //init_ca.extra = nullptr;
+        init_ca.done = 0;
+        init_ca.origin = ctrl.m_oStyle.state;
         anima.push_back(init_ca);
         // TODO: OOM处理
         if (!anima) return;
@@ -476,26 +492,20 @@ void LongUI::CUIControlControl::StartAnimation(
     }
     // 检测类型
     const auto native_type = ctrl.m_oStyle.appearance;
-    // 自带类型
-    if (native_type != AttributeAppearance::Appearance_None) {
-        // 超过一帧的直接修改状态
-        if (ca->basic.done > m_dwDeltaTime) {
-            ca->basic.origin = ctrl.m_oStyle.state;
-            ca->basic.done = 0;
-        }
-        // 基本动画直接复写已存在动画数据
-        const auto changed = ctrl.m_oStyle.state.Change(type);
-        assert(changed && "not changed");
-        if (changed) ctrl.m_state.style_state_changed = true;
-        //ctrl.NeedUpdate();
-        ca->basic.duration = LongUI::NativeStyleDuration({ native_type });
+    assert(native_type != AttributeAppearance::Appearance_None);
+    // 超过一帧的直接修改状态
+    if (ca->done > m_dwDeltaTime) {
+        ca->origin = ctrl.m_oStyle.state;
+        ca->done = 0;
     }
-    // 自定义类型
-    else {
-        assert(!"unsupported yet");
-    }
+    // 基本动画直接复写已存在动画数据
+    const auto changed = ctrl.m_oStyle.state.Change(type);
+    assert(changed && "not changed");
+    if (changed) ctrl.m_state.style_state_changed = true;
+    //ctrl.NeedUpdate();
+    ca->duration = LongUI::NativeStyleDuration({ native_type });
     // 设置动画
-    ctrl.m_pAnimation = ca;
+    ca->ctrl->setup_basic_animation();
 }
 
 // XML 解析

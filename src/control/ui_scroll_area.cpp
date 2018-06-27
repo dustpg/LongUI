@@ -238,6 +238,7 @@ void LongUI::UIScrollArea::sync_scroll_bar() noexcept {
     auto csize = m_oBox.GetContentSize();
     // 水平滚动条
     if (hok) {
+        m_pHorizontalSB->SetIncrement(m_szLine.width);
         m_pHorizontalSB->SetPageIncrement(csize.width - cross_zone.width);
         m_pHorizontalSB->SetMax(m_minScrollSize.width - csize.width);
         m_pHorizontalSB->SetValue(m_ptChildOffset.x);
@@ -246,6 +247,7 @@ void LongUI::UIScrollArea::sync_scroll_bar() noexcept {
     else m_ptChildOffset.x = 0.f;
     // 垂直滚动条
     if (vok) {
+        m_pVerticalSB->SetIncrement(m_szLine.height);
         m_pVerticalSB->SetPageIncrement(csize.height - cross_zone.height);
         m_pVerticalSB->SetMax(m_minScrollSize.height - csize.height);
         m_pVerticalSB->SetValue(m_ptChildOffset.y);
@@ -314,7 +316,7 @@ auto LongUI::UIScrollArea::create_scrollbar(AttributeOrient o) noexcept -> UIScr
         else
             bar->name_dbg = "scrollarea::vscrollbar";
 #endif
-        this->add_direct_child(*bar);
+        this->add_child(*bar);
         this->resize_child(*bar, {});
         this->set_child_fixed_attachment(*bar);
         this->set_child_parent_nnrivc(*bar);

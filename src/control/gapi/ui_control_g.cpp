@@ -60,9 +60,14 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     break;
     }
     // 存在动画
-    if (m_pAnimation) {
-        arg.from = m_pAnimation->basic.origin;
-        arg.progress = m_pAnimation->basic.GetRate();
+    if (this->exist_basic_animation()) {
+        // XXX: [优化]
+        const auto basic = UIManager.FindBasicAnimation(*this);
+        assert(basic && "BAD ACTION");
+        if (basic) {
+            arg.from = basic->origin;
+            arg.progress = basic->GetRate();
+        }
     }
     // 渲染本地风格
     LongUI::NativeStyleDraw(arg);

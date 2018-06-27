@@ -1,5 +1,13 @@
 ﻿Win10支持超过MAX_PATH路径?
 
+UIScrollArea::m_szLine动起来?
+
+directly_managed 没有必要?
+
+GUI事件持续触发(比如一直按住鼠标左键)?
+
+合并 m_oHead m_oTail以节约一个指针?
+
 Tree的选择换为TreeRow而不是TreeItem?
 
 disable状态取消其他的动画?

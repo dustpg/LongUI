@@ -46,8 +46,23 @@ namespace LongUI {
     auto EasingFunction(AnimationType type, float x) noexcept -> float;
     // control class
     class UIControl;
-    // basic control animation
+    // ex- control animation
+    struct ControlAnimationExtra {
+        // next animation offfset
+        uint32_t                next;
+        // changed list length
+        uint32_t                length;
+#ifdef NDEBUG
+
+#else
+        // value list
+        //ValueType               list[2];
+#endif
+    };
+    // control animation
     struct ControlAnimationBasic {
+        // control
+        UIControl*          ctrl;
         // origin state
         StyleState          origin;
         // target state time done(unit: ms)
@@ -55,20 +70,6 @@ namespace LongUI {
         // target state duration(unit: ms)
         uint16_t            duration;
         // get rate
-        auto GetRate() const noexcept { return float(done)/float(duration); }
-    };
-    //// state control animation
-    //struct ControlAnimationState {
-    //    // state type
-    //    StyleStateType      type;
-    //};
-    // control animation
-    struct ControlAnimation {
-        // control
-        UIControl*              ctrl;
-        // basic/native animation
-        ControlAnimationBasic   basic;
-        //// none-state-type terminated animations array
-        //ControlAnimationState*  extra;
+        auto GetRate() const noexcept { return float(done) / float(duration); }
     };
 }
