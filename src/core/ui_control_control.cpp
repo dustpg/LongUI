@@ -417,15 +417,15 @@ void LongUI::CUIControlControl::normal_update() noexcept {
         if (ca.basic.done >= ca.basic.duration) {
             ca.basic.done = ca.basic.duration;
             //ca.ctrl->m_oStyle.state = ca.basic.target;
-            ca.ctrl->m_state.style_state_changed = false;
+            //ca.ctrl->m_state.style_state_changed = false;
             ca.ctrl->m_pAnimation = nullptr;
             ca.ctrl = nullptr;
         }
     };
     // 更新复杂动画
-    auto extra_update = [](ControlAnimation& ca) noexcept {
-        assert(!"unsupported yet");
-    };
+    //auto extra_update = [](ControlAnimation& ca) noexcept {
+    //    assert(!"unsupported yet");
+    //};
     // 更新动画
     for (auto& x : animations) {
         // 检查有效
@@ -433,13 +433,16 @@ void LongUI::CUIControlControl::normal_update() noexcept {
         // 更新矩形 没有动画就没有必要
         if (x.basic.duration) x.ctrl->Invalidate();
         // 额外动画?
-        if (x.extra) extra_update(x);
-        else basic_update(x);
+        //if (x.extra) extra_update(x);
+        //else basic_update(x);
+        basic_update(x);
     }
     // 最后一个无效?
     // NOTE: 一帧最多删一个, 但是动画结束频率肯定不高
     if (!animations.back().ctrl) animations.pop_back();
 }
+
+
 
 /// <summary>
 /// Starts the animation.
@@ -448,15 +451,16 @@ void LongUI::CUIControlControl::normal_update() noexcept {
 /// <param name="type">The type.</param>
 /// <returns></returns>
 void LongUI::CUIControlControl::StartAnimation(
-    UIControl& ctrl, StyleStateTypeChange type) noexcept {
+    UIControl& ctrl, 
+    StyleStateTypeChange type) noexcept {
     //LUIDebug(Hint) << ctrl << type << endl;
+    auto& anima = cc().animaitons;
     // 对比函数
-    auto finder = [&ctrl](ControlAnimation& ca) noexcept {
+    const auto finder = [&ctrl](ControlAnimation& ca) noexcept {
         return ca.ctrl == &ctrl;
     };
-    auto& anima = cc().animaitons;
     // 查找已有动画
-    auto itr = std::find_if(anima.begin(), anima.end(), finder);
+    const auto itr = std::find_if(anima.begin(), anima.end(), finder);
     ControlAnimation* ca;
     if (itr != anima.end()) ca = &(*itr);
     else {
@@ -464,7 +468,7 @@ void LongUI::CUIControlControl::StartAnimation(
         init_ca.ctrl = &ctrl;
         init_ca.basic.done = 0;
         init_ca.basic.origin = ctrl.m_oStyle.state;
-        init_ca.extra = nullptr;
+        //init_ca.extra = nullptr;
         anima.push_back(init_ca);
         // TODO: OOM处理
         if (!anima) return;
@@ -482,7 +486,8 @@ void LongUI::CUIControlControl::StartAnimation(
         // 基本动画直接复写已存在动画数据
         const auto changed = ctrl.m_oStyle.state.Change(type);
         assert(changed && "not changed");
-        ctrl.m_state.style_state_changed = changed;
+        if (changed) ctrl.m_state.style_state_changed = true;
+        //ctrl.NeedUpdate();
         ca->basic.duration = LongUI::NativeStyleDuration({ native_type });
     }
     // 自定义类型
@@ -644,7 +649,7 @@ bool LongUI::CUIControlControl::MakeXUL(UIControl& ctrl, const char* xul) noexce
     // 错误信息
     const auto& error = stream.error;
 #endif
-    // 设置长跳转环境   随便, setjmp是宏, 而非函数
+    // 设置长跳转环境   顺便, setjmp是宏, 而非函数
     const auto code = setjmp(stream.env);
     // 先去掉所有子控件
     while (ctrl.GetCount()) (*ctrl.begin()).SetParent(nullptr);

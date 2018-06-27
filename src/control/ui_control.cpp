@@ -353,6 +353,11 @@ void LongUI::UIControl::Update() noexcept {
     // 本次已经刷新了?
     //assert(!m_state.updated && "been updated this time");
     assert(m_state.inited && "must init control first");
+    // 状态修改
+    if (m_state.style_state_changed) {
+        m_state.style_state_changed = false;
+        m_oStyle.old_state = m_oStyle.state;
+    }
     // 最基的不处理子控件索引更改
     m_state.child_i_changed = false;
     m_state.parent_changed = false;
@@ -1096,7 +1101,15 @@ void LongUI::UIControl::RemoveStyleClass(U8View pair) noexcept {
 /// <returns></returns>
 bool LongUI::UIControl::CheckAnimation(StyleStateTypeChange type) noexcept {
     // TODO: 移除该函数
-    return this->GetStyle().appearance != AttributeAppearance::Appearance_None;
+    const auto app = this->GetStyle().appearance;
+    // 非默认控件
+    if (app == AttributeAppearance::Appearance_None) {
+        return false;
+    }
+    // 默认控件
+    else {
+        return LongUI::NativeStyleDuration({ app }) != 0;
+    }
 }
 
 /// <summary>
@@ -1119,9 +1132,7 @@ void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
     // 没有动画
     else {
         const auto changed = m_oStyle.state.Change(change);
-        if (changed == false) {
-            int bk = 9;
-        }
+        m_oStyle.old_state = m_oStyle.state;
         assert(changed);
     }
 }
@@ -1226,7 +1237,22 @@ void LongUI::UIControl::setup_style_values() noexcept {
         // 检测伪类
         const auto pc = reinterpret_cast<const SSValuePC&>(itr[1]);
         // 匹配状态
-        if (true) {
+        static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
+        const auto now = reinterpret_cast<const uint32_t&>(m_oStyle.state);
+        const auto yes = reinterpret_cast<const uint32_t&>(pc.yes);
+        const auto noo = reinterpret_cast<const uint32_t&>(pc.noo);
+        /*
+            YES:
+                0001  &  0010  -> 0000   X
+                0011  &  0010  -> 0010   O
+                0001  &  0011  -> 0001   X
+            NOO:
+                0001  &  0010  -> 0000   O
+                0011  &  0010  -> 0010   X
+                0001  &  0011  -> 0001   X
+
+        */
+        if ((now & yes) == yes && (now & noo) == 0) {
             // 遍历状态
             const auto end_itr = itr + len;
             auto being_itr = itr + 2;

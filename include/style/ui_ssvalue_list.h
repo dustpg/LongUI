@@ -108,6 +108,8 @@ namespace LongUI {
 
         // [LongUI] appearance
         Type_UIAppearance,
+        // COUNT
+        TYPE_COUNT
     };
 #if 0
     // extra value type
@@ -118,6 +120,8 @@ namespace LongUI {
         //uint32_t        extra;
     };
 #endif
+    // value type for animation
+    //bool ValueTypeForAnimation(ValueType) noexcept;
     // u8view to value type
     auto U8View2ValueType(U8View view) noexcept->ValueType;
     // make value

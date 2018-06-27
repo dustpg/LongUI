@@ -85,7 +85,7 @@ namespace LongUI {
         bool        style_state_changed : 1;
         // in update list                   [O-flag]
         bool        in_update_list : 1;
-        // in render-dirty list                  [O-flag]
+        // in render-dirty list             [O-flag]
         bool        in_dirty_list : 1;
         // child index changed(add child)   [N-flag]
         bool        child_i_changed : 1;

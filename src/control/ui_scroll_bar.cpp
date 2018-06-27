@@ -125,7 +125,7 @@ LongUI::UIScrollBar::~UIScrollBar() noexcept {
 void LongUI::UIScrollBar::Update() noexcept {
     // TODO: disabled 状态修改? 广播给子控件
     if (m_state.style_state_changed) {
-        m_state.style_state_changed = false;
+        //m_state.style_state_changed = false;
         if (m_pAnimation) {
 
         }

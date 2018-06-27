@@ -73,7 +73,7 @@ namespace LongUI {
         // id selector
         const char*     sid;
         // pseudo class (index)
-        StyleStateType  pseudocl;
+        SSValuePC       pc;
         // combinator
         Combinator      combinator;
     };

@@ -192,3 +192,83 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     }
     return { ValueType::Type_Unknown };
 }
+
+// longui
+namespace LongUI {
+    PCN_NOINLINE
+    /// <summary>
+    /// U8s to pc.
+    /// </summary>
+    /// <param name="pc">The pc.</param>
+    /// <param name="view">The view.</param>
+    /// <returns></returns>
+    void U8ToPC(SSValuePC& pc, U8View view) noexcept {
+        const auto bkdr = LongUI::BKDRHash(view.begin(), view.end());
+        switch (bkdr)
+        {
+        case 0x2694fd9a_ui32:
+            // active
+            pc.yes.active = true;
+            break;
+        case 0x091a155f_ui32:
+            // checked
+            pc.yes.checked = true;
+            break;
+        case 0xdf345f61_ui32:
+            // defualt
+            pc.yes.default5 = true;
+            break;
+        case 0x715f1adc_ui32:
+            // disabled
+            pc.yes.disabled = true;
+            break;
+        case 0xd3d78067_ui32:
+            // enabled
+            pc.noo.disabled = true;
+            break;
+        case 0x0d707348_ui32:
+            // focus
+            pc.yes.focus = true;
+            break;
+        case 0x3090d164_ui32:
+            // hover
+            pc.yes.hover = true;
+            break;
+        case 0xc42c9ea7_ui32:
+            // indeterminate
+            pc.yes.indeterminate = true;
+            break;
+        case 0x03481b1f_ui32:
+            // selected
+            pc.yes.selected = true;
+            break;
+        }
+    }
+}
+
+/// <summary>
+/// Values the type for animation.
+/// </summary>
+/// <param name="vtype">The vtype.</param>
+/// <returns></returns>
+//bool LongUI::ValueTypeForAnimation(ValueType vtype) noexcept {
+//    // TODO: 使用映射表
+//    switch (vtype)
+//    {
+//    case ValueType::Type_MarginTop:
+//    case ValueType::Type_MarginRight:
+//    case ValueType::Type_MarginBottom:
+//    case ValueType::Type_MarginLeft:
+//    case ValueType::Type_PaddingTop:
+//    case ValueType::Type_PaddingRight:
+//    case ValueType::Type_PaddingBottom:
+//    case ValueType::Type_PaddingLeft:
+//    case ValueType::Type_BorderTopWidth:
+//    case ValueType::Type_BorderRightWidth:
+//    case ValueType::Type_BorderBottomWidth:
+//    case ValueType::Type_BorderLeftWidth:
+//    case ValueType::Type_BackgroundColor:
+//        return true;
+//    }
+//    return false;
+//}

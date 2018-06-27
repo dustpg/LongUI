@@ -129,6 +129,8 @@ auto LongUI::Box::GetContentPos() const noexcept -> Point2F {
 LongUI::Style::Style() noexcept {
     constexpr auto a = sizeof(Style);
     state.Init();
+    old_state = state;
+    now_transition = 0;
     pack = Pack_Start;
     align = Align_Stretcht;
     appearance = AttributeAppearance::Appearance_NotSet;
@@ -139,6 +141,7 @@ LongUI::Style::Style() noexcept {
     flex = 0.0f;
     minsize = { INVALID_MINSIZE, INVALID_MINSIZE };
     maxsize = { DEFAULT_CONTROL_MAX_SIZE, DEFAULT_CONTROL_MAX_SIZE };
+    unu16 = 0;
 }
 
 /// <summary>
@@ -146,6 +149,7 @@ LongUI::Style::Style() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::Style::~Style() noexcept {
+
 }
 
 

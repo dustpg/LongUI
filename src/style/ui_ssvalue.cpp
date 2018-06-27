@@ -42,6 +42,8 @@ namespace LongUI {
     void FreeBlocks(SSBlock* head) noexcept;
     // free selector
     void FreeSelector(SSSelector sss[], uint32_t len) noexcept;
+    // parser pc
+    void U8ToPC(SSValuePC& pc, U8View view) noexcept;
     // simpac
     using namespace SimpAC;
     /// <summary>
@@ -177,7 +179,7 @@ namespace LongUI {
             selector->sid = UIManager.GetUniqueText(value);
             break;
         case Selectors_PseudoClass:
-            assert(!"TODO");
+            LongUI::U8ToPC(selector->pc, value);
             break;
         }
     }
@@ -228,6 +230,7 @@ namespace LongUI {
             const U8View property {pair.begin(), pair.end()};
             LUIDebug(Error)
                 << "unknown property: "
+                << property
                 << endl;
         }
 #endif // !NDEBUG
@@ -245,18 +248,20 @@ namespace LongUI {
     /// </summary>
     /// <returns></returns>
     void LongUI::CUICssStream::property_finished() noexcept {
-        if (m_nowProperty == ValueType::Type_Unknown) return;
-        assert(m_propertyValues.size() && "bad size");
-        if (m_propertyValues.empty()) return;
-        // 根据属性处理值
-        const auto& u8_view = reinterpret_cast<
-            POD::Vector<U8View>&>(m_propertyValues);
-        LongUI::ValueTypeMakeValue(
-            m_nowProperty,
-            static_cast<uint32_t>(u8_view.size()),
-            &u8_view.front(),
-            &m_values
-        );
+        // 有效属性
+        if (m_nowProperty != ValueType::Type_Unknown) {
+            assert(m_propertyValues.size() && "bad size");
+            if (m_propertyValues.empty()) return;
+            // 根据属性处理值
+            const auto& u8_view = reinterpret_cast<
+                POD::Vector<U8View>&>(m_propertyValues);
+            LongUI::ValueTypeMakeValue(
+                m_nowProperty,
+                static_cast<uint32_t>(u8_view.size()),
+                &u8_view.front(),
+                &m_values
+            );
+        }
         // 收尾处理
         m_propertyValues.clear();
         m_nowProperty = ValueType::Type_Unknown;
@@ -528,7 +533,7 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
     while (block) {
         // 遍历BLOCK中所有主选择器
         const auto len = block->main_len;
-        for (uint32_t i = 0; i != len ; ++i){
+        for (uint32_t i = 0; i != len ; ++i) {
             const auto& this_main = block->main[i];
             // 匹配成功: 添加属性
             if (LongUI::MatchSelector(ctrl, this_main)) {
@@ -537,7 +542,7 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
                 const auto index = matched.size();
                 const auto src_len = src.size();
                 matched.reserve(16);
-                matched.resize(src_len + 2);
+                matched.resize(index + src_len + 2);
                 // 确定
                 if (matched.is_ok()) {
                     const auto ptr = &matched.front() + index;
@@ -545,7 +550,7 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
                     ptr[0].type = ValueType::Type_NewOne;
                     ptr[0].u32 = static_cast<uint32_t>(src_len) + 2;
                     // 1: 标记伪类的状态
-                    reinterpret_cast<SSValuePC&>(ptr[1]) = {};
+                    reinterpret_cast<SSValuePC&>(ptr[1]) = this_main.pc;
                     // [2, end)
                     std::memcpy(ptr + 2, &src.front(), src_len * sizeof(SSValue));
                 }
@@ -572,3 +577,4 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
     }
 #endif
 }
+

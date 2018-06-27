@@ -6,6 +6,7 @@
 #include <core/ui_string.h>
 #include <input/ui_kminput.h>
 #include <style/ui_ssvalue.h>
+#include <filesystem/ui_file.h>
 #include <core/ui_color_list.h>
 #include <container/pod_hash.h>
 #include <graphics/ui_cursor.h>

@@ -43,6 +43,10 @@ namespace SimpAC {
         static inline bool is_space(char ch) noexcept {
             return (ch == ' ') || (ch == '\t');
         }
+        // is new line?
+        static inline bool is_newline(char ch) noexcept {
+            return (ch == '\r') || (ch == '\n');
+        }
         // is quot attr?
         static inline bool is_quot(char ch) noexcept {
             return (ch == '"') || (ch == '\'');
@@ -243,7 +247,7 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
     // 状态
     BasicSelectors selector;
     //Combinators combinator;
-    StrPair this_view/*, ex_view*/;
+    StrPair this_view, ex_view;
     char last_quot = 0;
     auto state = css_state::standby;
     auto show_combinator = combinator_state::reset;
@@ -258,6 +262,8 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
         switch (state)
         {
         case css_state::standby:
+            // standby 跳过无用字符
+            if (impl::is_newline(ch)) break;
             // 默认的元素选择器
             selector = BasicSelectors::Selectors_Type;
             this_view.first = view.first + 1;
@@ -359,7 +365,7 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
             // 直接结束
             else if (ch == '}') goto end_of_properties;
             // 寻找值起始点
-            else if (!impl::is_space(ch)) {
+            else if (!(impl::is_space(ch) || impl::is_newline(ch))) {
                 // 冒号?
                 if (impl::is_quot(ch)) {
                     last_quot = ch;
@@ -386,10 +392,10 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
             break;
         case css_state::values_end:
             // 寻找值结束点
-            if (impl::is_space(ch) || ch == ';') {
+            if (impl::is_space(ch) || impl::is_newline(ch) || ch == ';') {
                 this_view.second = view.first;
                 this->add_value(this_view);
-                state = ch == ';'
+                state = (ch == ';')
                     ? css_state::properties
                     : css_state::values;
             }

@@ -74,6 +74,12 @@ namespace LongUI {
         Style(const Style&) noexcept = delete;
         // state            [4]
         StyleState          state;
+        // old state        [4]
+        StyleState          old_state;
+        // now transition   [2]
+        uint16_t            now_transition;
+        // unused           [2]
+        uint16_t            unu16;
         // pack             [1]
         AttributePack       pack;
         // align            [1]

@@ -57,18 +57,18 @@ namespace LongUI {
         // get rate
         auto GetRate() const noexcept { return float(done)/float(duration); }
     };
-    // state control animation
-    struct ControlAnimationState {
-        // state type
-        StyleStateType      type;
-    };
+    //// state control animation
+    //struct ControlAnimationState {
+    //    // state type
+    //    StyleStateType      type;
+    //};
     // control animation
     struct ControlAnimation {
         // control
         UIControl*              ctrl;
         // basic/native animation
         ControlAnimationBasic   basic;
-        // none-state-type terminated animations array
-        ControlAnimationState*  extra;
+        //// none-state-type terminated animations array
+        //ControlAnimationState*  extra;
     };
 }
