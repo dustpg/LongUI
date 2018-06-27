@@ -349,7 +349,7 @@ namespace LongUI {
         // child count
         uint32_t                m_cChildrenCount = 0;
         // id of control
-        const char*             m_id =  nullptr;
+        const char*             m_id = "";
         // meta info of control
         const MetaControl&      m_refMetaInfo;
         // animation
