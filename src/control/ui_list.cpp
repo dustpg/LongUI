@@ -105,6 +105,14 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
 /// </summary>
 /// <returns></returns>
 void LongUI::UIListBox::Update() noexcept {
+    // 子节点添加删除
+    if (m_state.child_i_changed) {
+        // 更新行高
+        if (!m_list.empty()) {
+            m_pListboxBody->line_size.height =
+                (*m_list.begin())->GetBox().minsize.height;
+        }
+    }
     // 要求重新布局
     if (this->is_need_relayout()) {
         // 不脏了
@@ -510,9 +518,8 @@ void LongUI::UIListBox::refresh_minsize() noexcept {
         msize = m_pHead->GetBox().minsize;
     }
     // 再确定Body
-    const auto hpr = m_list.empty() ? EMPTY_HEIGHT_PER_ROW :
-        (*m_list.begin())->GetBox().minsize.height;
-    msize.height += m_displayRow * hpr;
+    const auto line_height = m_pListboxBody->line_size.height;
+    msize.height += m_displayRow * line_height;
     // 设置大小
     this->set_contect_minsize(msize);
 }

@@ -25,7 +25,7 @@ namespace LongUI {
 /// <returns></returns>
 LongUI::UIScrollArea::UIScrollArea(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
-    m_szLine = { 16, 16 };
+    this->line_size = { EMPTY_HEIGHT_PER_ROW, EMPTY_HEIGHT_PER_ROW };
     m_minScrollSize = {};
 }
 
@@ -128,7 +128,7 @@ auto LongUI::UIScrollArea::do_wheel(int index, float wheel) noexcept ->EventAcce
     // 位置变动检查
     auto& pos_o = index[&m_ptChildOffset.x];
     const auto line_height = UIManager.GetWheelScrollLines();
-    auto pos = pos_o - index[&m_szLine.width] * wheel * line_height;
+    auto pos = pos_o - index[&this->line_size.width] * wheel * line_height;
     pos = std::max(std::min(pos, cremainw), 0.f);
     EventAccept accept = Event_Ignore;
     // 已经修改
@@ -238,7 +238,7 @@ void LongUI::UIScrollArea::sync_scroll_bar() noexcept {
     auto csize = m_oBox.GetContentSize();
     // 水平滚动条
     if (hok) {
-        m_pHorizontalSB->SetIncrement(m_szLine.width);
+        m_pHorizontalSB->SetIncrement(this->line_size.width);
         m_pHorizontalSB->SetPageIncrement(csize.width - cross_zone.width);
         m_pHorizontalSB->SetMax(m_minScrollSize.width - csize.width);
         m_pHorizontalSB->SetValue(m_ptChildOffset.x);
@@ -247,7 +247,7 @@ void LongUI::UIScrollArea::sync_scroll_bar() noexcept {
     else m_ptChildOffset.x = 0.f;
     // 垂直滚动条
     if (vok) {
-        m_pVerticalSB->SetIncrement(m_szLine.height);
+        m_pVerticalSB->SetIncrement(this->line_size.height);
         m_pVerticalSB->SetPageIncrement(csize.height - cross_zone.height);
         m_pVerticalSB->SetMax(m_minScrollSize.height - csize.height);
         m_pVerticalSB->SetValue(m_ptChildOffset.y);

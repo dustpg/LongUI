@@ -84,12 +84,24 @@ LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
 /// </summary>
 /// <returns></returns>
 void LongUI::UITree::Update() noexcept {
+    // 更新行高
+    if (m_state.child_i_changed) {
+        // 判断DISPLAY ROWS
+        if (m_pChildren) {
+            UIControl* ctrl = m_pChildren;
+            while (ctrl->GetCount()) ctrl = &(*ctrl->begin());
+            // 正常情况下ctrl现在是treecell, parent就是treerow
+            const auto mh = ctrl->GetParent()->GetMinSize().height;
+            m_pChildren->line_size.height = mh;
+        }
+    }
     // 要求重新布局
     if (this->is_need_relayout()) {
         // 不脏了
         m_state.dirty = false;
         // 重新布局
         this->relayout_base(m_pCols);
+        // 更新行高
     }
     // 其他的交给父类处理
     Super::Update();
@@ -158,11 +170,8 @@ auto LongUI::UITree::DoEvent(UIControl* sender,
         if (m_pCols)
             height += m_pCols->GetMinSize().height;
         // 判断DISPLAY ROWS
-        if (m_pChildren && m_displayRow) {
-            UIControl* ctrl = m_pChildren;
-            while (ctrl->GetCount()) ctrl = &(*ctrl->begin());
-            // 正常情况下ctrl现在是treecell, parent就是treerow
-            const auto mh = ctrl->GetParent()->GetMinSize().height;
+        if (m_pChildren) {
+            const auto mh = m_pChildren->line_size.height;
             height += mh * static_cast<float>(m_displayRow);
         }
         // 加上间距

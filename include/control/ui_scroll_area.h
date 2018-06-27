@@ -91,11 +91,12 @@ namespace LongUI {
         auto layout_vscrollbar(bool notenough) noexcept->float;
         // layout the scroll bar - v
         auto layout_hscrollbar(bool notenough) noexcept->float;
+    public:
+        // line size
+        Size2F              line_size;
     protected:
         // min scroll size
         Size2F              m_minScrollSize;
-        // line size for UIScale::increment
-        Size2F              m_szLine;
         // horizontal scroll bar
         UIScrollBar*        m_pHorizontalSB = nullptr;
         // vertical scroll bar

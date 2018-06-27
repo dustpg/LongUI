@@ -23,17 +23,17 @@ namespace LongUI {
         Event_TurnRight,
         // event-down
         Event_TurnDown,
-        // event-next       : RB R1
+        // event-next       : RB R1 TAB
         Event_TurnNext,
-        // event-prev       : LB L1
+        // event-prev       : LB L1 Shift+TAB
         Event_TurnPrev,
-        // event-ok         : A ○
+        // event-ok         : A  ○  Enter
         Event_Ok,
-        // event-cancel     : B ×
+        // event-cancel     : B  ×  ESC
         Event_Cancel,
-        // event-function   : X □
+        // event-function   : X  □  CtxMenu
         Event_Function,
-        // event-action     : Y △
+        // event-action     : Y  △  
         Event_Action,
     };
     /// <summary>
