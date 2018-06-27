@@ -206,8 +206,6 @@ namespace LongUI {
         bool SetFocus() noexcept;
         // kill focus of this control
         void KillFocus() noexcept;
-        // is accept unified input interface?
-        bool IsAcceptUnifiedInput() const noexcept { return m_state.unified_input; }
         // focusable?
         auto IsFocusable() const noexcept { return m_state.focusable; }
         // defaultable?

@@ -58,14 +58,14 @@ namespace LongUI {
         bool        atomicity : 1;
         // delete later?
         bool        delete_later : 1;
-        // accept unified input interface
-        bool        unified_input : 1;
         // parent not-need relayout if this [visible] changed
         bool        parent_notneed_relayout : 1;
         // in basic animation
         bool        in_basic_animation : 1;
         // unused #1 for reserved
         bool        reserved1 : 1;
+        // unused #2 for reserved
+        bool        reserved2 : 1;
 
         // ----------- custom data
 
