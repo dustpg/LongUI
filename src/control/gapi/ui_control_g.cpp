@@ -60,7 +60,7 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     break;
     }
     // 存在动画
-    if (this->exist_basic_animation()) {
+    if (this->exist_animation()) {
         // XXX: [优化]
         const auto basic = UIManager.FindBasicAnimation(*this);
         assert(basic && "BAD ACTION");

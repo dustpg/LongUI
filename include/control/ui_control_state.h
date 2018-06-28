@@ -60,8 +60,8 @@ namespace LongUI {
         bool        delete_later : 1;
         // parent not-need relayout if this [visible] changed
         bool        parent_notneed_relayout : 1;
-        // in basic animation
-        bool        in_basic_animation : 1;
+        // in animation
+        bool        in_animation : 1;
         // unused #1 for reserved
         bool        reserved1 : 1;
         // unused #2 for reserved
@@ -81,7 +81,7 @@ namespace LongUI {
         bool        visible : 1;
         // world matrix changed             [N-flag]
         bool        world_changed : 1;
-        // style state changed              [N-flag]
+        // state changed if [animated]      [N-flag]
         bool        style_state_changed : 1;
         // in update list                   [O-flag]
         bool        in_update_list : 1;

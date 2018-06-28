@@ -21,6 +21,8 @@ namespace SimpAC {
         // end
         auto end() const noexcept { return second; }
     };
+    // split unit
+    auto SplitUnit(StrPair& pair) noexcept->StrPair;
     // Combinators
     enum Combinators : uint32_t;
     // Combinators

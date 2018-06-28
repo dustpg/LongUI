@@ -21,6 +21,25 @@ auto LongUI::EasingFunction(AnimationType type, float x) noexcept -> float {
     return static_cast<float>(y);
 }
 
+/// <summary>
+/// Cubics the bezier ex.
+/// </summary>
+/// <param name="t">The t.</param>
+/// <param name="arg">The argument.</param>
+/// <returns></returns>
+//auto LongUI::CubicBezierEx(float t, uint32_t arg) noexcept -> float {
+//    const float p0 = 0.f;
+//    const float p1 = 0.f;
+//    const float p2 = 1.f;
+//    const float p3 = 1.f;
+//    return
+//        (1.f - t)*(1.f - t)*(1.f - t) * p0
+//        + 3.f * (1.f - t)*(1.f - t) * t * p1
+//        + 3.f * (1.f - t) * t*t * p2
+//        + t * t*t * p3;
+//
+//}
+
 /*/// <summary>
 /// Initializes the specified type.
 /// </summary>

@@ -212,7 +212,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
     const auto t2 = meter.Delta_ms<float>();
     if (this_()->flag & ConfigFlag::Flag_DbgOutputTimeTook) {
         this_()->DataLock();
-        LUIDebug(None)
+        LUIDebug(None) LUI_FRAMEID
             << "U<" << DDFFloat2{ t1 } << "ms>"
             << "R<" << DDFFloat2{ t2 } << "ms>"
             << endl;
@@ -222,7 +222,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
         // update超过1毫秒也算
         if (t1 > 1.f) {
             this_()->DataLock();
-            LUIDebug(Hint)
+            LUIDebug(Hint) LUI_FRAMEID
                 << "U<" << DDFFloat2{ t1 } << "ms>"
                 << "R<" << DDFFloat2{ t2 } << "ms>"
                 << endl;

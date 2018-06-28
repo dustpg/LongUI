@@ -106,10 +106,38 @@ namespace LongUI {
         // [Background] origin 
         Type_BackgroundOrigin,
 
+        // [Transition] transition
+        // [Transition] duration
+        Type_TransitionDuration,
+
+
+
         // [LongUI] appearance
         Type_UIAppearance,
         // COUNT
         TYPE_COUNT
+    };
+    /// <summary>
+    /// value of style sheet
+    /// </summary>
+    struct SSValue {
+        // type of value
+        ValueType       type;
+        // unit of value
+        //ValueUnit       unit;
+        // union
+        union {
+            // u32 data
+            uint32_t    u32;
+            // i32 data
+            int32_t     i32;
+            // single float data
+            float       single;
+            // byte data
+            uint8_t     byte;
+            // boolean data
+            bool        boolean;
+        };
     };
 #if 0
     // extra value type

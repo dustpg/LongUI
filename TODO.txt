@@ -1,5 +1,7 @@
 ﻿Win10支持超过MAX_PATH路径?
 
+控件自己走去出也要计算mouse hover leave
+
 GUI事件持续触发(比如一直按住鼠标左键)?
 
 合并 m_oHead m_oTail以节约一个指针?

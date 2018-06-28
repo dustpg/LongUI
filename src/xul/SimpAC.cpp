@@ -239,6 +239,31 @@ auto SimpAC::CACStream::parse_selector_lv1(char ch, combinator_state& state) noe
 
 
 /// <summary>
+/// Splits the unit.
+/// </summary>
+/// <param name="pair">The pair.</param>
+/// <returns></returns>
+auto SimpAC::SplitUnit(StrPair& pair) noexcept -> StrPair {
+    StrPair rv = { pair.second, pair.second };
+    const auto end_itr = pair.first;
+    // 逆序遍历字符串
+    while (end_itr < rv.first) {
+        --rv.first;
+        const auto ch = *rv.first;
+        // 最后一个允许.
+        // 1e-1
+        // 1.
+        if ((ch >= '0' && ch <= '9')|| ch == '.') {
+            ++rv.first;
+            break;
+        }
+    }
+    pair.second = rv.first;
+    return rv;
+}
+
+
+/// <summary>
 /// Loads the specified string.
 /// </summary>
 /// <param name="view">The view.</param>

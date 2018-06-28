@@ -5,6 +5,7 @@
 // ui
 #include "../util/ui_unimacro.h"
 #include "../style/ui_style_state.h"
+#include "../style/ui_ssvalue_list.h"
 
 // ui namespace
 namespace LongUI {
@@ -44,22 +45,36 @@ namespace LongUI {
     };
     // easing function
     auto EasingFunction(AnimationType type, float x) noexcept -> float;
+    // cubic bezier
+    //auto CubicBezierEx(float t, uint32_t arg) noexcept ->float;
     // control class
     class UIControl;
-    // ex- control animation
-    struct ControlAnimationExtra {
-        // next animation offfset
-        uint32_t                next;
-        // changed list length
-        uint32_t                length;
-#ifdef NDEBUG
-
-#else
-        // value list
-        //ValueType               list[2];
-#endif
+    // ssvalue2
+    struct SSFromTo {
+        // from
+        SSValue     from;
+        // to
+        SSValue     to;
     };
-    // control animation
+#ifdef NDEBUG
+    enum { EXTRA_FROM_TO_LIST_LENGTH = 6 };
+#else
+    enum { EXTRA_FROM_TO_LIST_LENGTH = 2 };
+#endif
+    // extra control animation
+    struct ControlAnimationExtra {
+        // control pointer
+        UIControl*          ctrl;
+        // target state time done(unit: ms)
+        uint16_t            done;
+        // target state duration(unit: ms)
+        uint16_t            duration;
+        // changed list length
+        uint32_t            length;
+        // value list
+        SSFromTo            list[EXTRA_FROM_TO_LIST_LENGTH];
+    };
+    // basic control animation
     struct ControlAnimationBasic {
         // control
         UIControl*          ctrl;

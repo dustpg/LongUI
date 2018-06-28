@@ -18,28 +18,6 @@ namespace LongUI {
     void DeleteStyleSheet(CUIStyleSheet* ptr) noexcept;
     // match style sheet
     void MatchStyleSheet(UIControl&, CUIStyleSheet* ptr) noexcept;
-    /// <summary>
-    /// value of style sheet
-    /// </summary>
-    struct SSValue {
-        // type of value
-        ValueType       type;
-        // unit of value
-        //ValueUnit       unit;
-        // union
-        union {
-            // u32 data
-            uint32_t    u32;
-            // i32 data
-            int32_t     i32;
-            // single float data
-            float       single;
-            // byte data
-            uint8_t     byte;
-            // boolean data
-            bool        boolean;
-        };
-    };
     // stylesheets: value pc
     struct SSValuePC {
         // yes pseudo-classes

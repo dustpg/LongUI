@@ -1,6 +1,6 @@
 button#button, #layout .button{
     -moz-appearance: none;
-    transition: 0.5s;
+    transition-duration: 5s;
     background-color: red;
     background-color: blue;
 }
@@ -12,6 +12,6 @@ button#button, #layout .button{
 .imgButton {
     -moz-appearance: none;
     border-width: 3px;
-    border-image-source: url(../images/btn.png);
-    border-image-slice: 3 fill;
+    /* border-image-source: url(../images/btn.png); */
+    /* border-image-slice: 3 fill; */
 }

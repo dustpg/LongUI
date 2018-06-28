@@ -26,14 +26,14 @@ typedef union { uint32_t pri; uint8_t rgba[4]; } color_t;
 /// <param name="step">The step.</param>
 /// <remarks>
 /// color format support:
-/// [V] keywords colors
-/// [V] transparent
-/// [V] rebeccapurple
-/// [V] #RRGGBB, #RGB
-/// [V] #RRGGBBAA, #RGBA
+/// [O] keywords colors
+/// [O] transparent
+/// [O] rebeccapurple
+/// [O] #RRGGBB, #RGB
+/// [O] #RRGGBBAA, #RGBA
 /// [X] rgb(), rgba()
 /// [X] hsl(), hsla()
-/// [x] system-color [context-sensitive]
+/// [X] system-color [context-sensitive]
 /// [X] currentColor [context-sensitive]
 /// </remarks>
 /// <returns></returns>

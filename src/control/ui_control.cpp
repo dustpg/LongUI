@@ -354,10 +354,7 @@ void LongUI::UIControl::Update() noexcept {
     //assert(!m_state.updated && "been updated this time");
     assert(m_state.inited && "must init control first");
     // 状态修改
-    if (m_state.style_state_changed) {
-        m_state.style_state_changed = false;
-        m_oStyle.old_state = m_oStyle.state;
-    }
+    m_state.style_state_changed = false;
     // 最基的不处理子控件索引更改
     m_state.child_i_changed = false;
     m_state.parent_changed = false;
@@ -1081,24 +1078,6 @@ void LongUI::UIControl::RemoveStyleClass(U8View pair) noexcept {
 }
 
 /// <summary>
-/// Checks the animation.
-/// </summary>
-/// <param name="type">The type.</param>
-/// <returns></returns>
-bool LongUI::UIControl::CheckAnimation(StyleStateTypeChange type) noexcept {
-    // TODO: 移除该函数
-    const auto app = this->GetStyle().appearance;
-    // 非默认控件
-    if (app == AttributeAppearance::Appearance_None) {
-        return false;
-    }
-    // 默认控件
-    else {
-        return LongUI::NativeStyleDuration({ app }) != 0;
-    }
-}
-
-/// <summary>
 /// Starts the animation.
 /// </summary>
 /// <param name="change">The change.</param>
@@ -1111,15 +1090,14 @@ void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
         LUIDebug(Hint) << this << change << endl;
     }
 #endif
-    // 存在动画
-    if (this->CheckAnimation(change)) {
-        UIManager.StartAnimation(*this, change);
+    const auto app = this->GetStyle().appearance;
+    // 非默认控件
+    if (app == AttributeAppearance::Appearance_None) {
+        UIManager.StartExtraAnimation(*this, change);
     }
-    // 没有动画
+    // 默认控件
     else {
-        const auto changed = m_oStyle.state.Change(change);
-        m_oStyle.old_state = m_oStyle.state;
-        assert(changed);
+        UIManager.StartBasicAnimation(*this, change);
     }
 }
 
@@ -1283,6 +1261,9 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_BackgroundColor:
         this->SetBgColor({ value.u32 });
         break;
+    case ValueType::Type_TransitionDuration:
+
+        break;
     case ValueType::Type_UIAppearance:
         detail::write_value(m_oStyle.appearance, value.byte);
 #if 0
@@ -1294,6 +1275,8 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
         break;
     }
 }
+
+
 
 
 /// <summary>

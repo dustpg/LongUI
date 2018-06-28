@@ -14,9 +14,9 @@ namespace LongUI {
         // cc size
         template<size_t> struct cc;
         // 32bit
-        template<> struct cc<4> { enum { size = 16*6+24, align = 4 }; };
+        template<> struct cc<4> { enum { size = 16*8+24, align = 4 }; };
         // 64bit
-        template<> struct cc<8> { enum { size = 24*6+32, align = 8 };  };
+        template<> struct cc<8> { enum { size = 24*8+32, align = 8 };  };
     }
     // basic animation
     struct ControlAnimationBasic;
@@ -33,8 +33,10 @@ namespace LongUI {
         // CUIXulStream
         struct CUIXulStream;
     public:
-        // start animation
-        void StartAnimation(UIControl&, StyleStateTypeChange) noexcept;
+        // start basic animation
+        void StartBasicAnimation(UIControl&, StyleStateTypeChange) noexcept;
+        // start extra animation
+        void StartExtraAnimation(UIControl&, StyleStateTypeChange) noexcept;
         // find basic animation
         auto FindBasicAnimation(const UIControl&) const noexcept -> const ControlAnimationBasic*;
     public:
@@ -91,6 +93,11 @@ namespace LongUI {
         CUIControlControl() noexcept;
         // dtor
         ~CUIControlControl() noexcept;
+    private:
+        // update basic animation
+        void update_basic_animation(uint32_t delta) noexcept;
+        // update extra animation
+        void update_extra_animation(uint32_t delta) noexcept;
     protected:
         // style sheet
         CUIStyleSheet*          m_pStyleSheet = nullptr;

@@ -4,6 +4,8 @@
 #include <core/ui_string_view.h>
 #include <style/ui_ssvalue_list.h>
 #include <typecheck/int_by_size.h>
+// css
+#include <xul/SimpAC.h>
 
 // longui namespace
 namespace LongUI {
@@ -75,12 +77,29 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_BackgroundColor:
         // [COLOR]
         //   -- background-color
-
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.u32, values[0].ColorRGBA32());
         break;
 
-
+    case ValueType::Type_TransitionDuration:
+        // [TIME]
+        //   -- transition-duration
+        assert(value_len == 1 && "unsupported");
+        // 默认定为秒
+        {
+            auto v0 = reinterpret_cast<const SimpAC::StrPair*>(values)[0];
+            const auto unit = SimpAC::SplitUnit(v0);
+            ssv.single = reinterpret_cast<U8View&>(v0).ToFloat();
+            // 检测单位
+            if (unit.end() > unit.begin()) {
+                switch (unit.begin()[0])
+                {
+                    // 毫秒就除以1000
+                case 'm': ssv.single /= 1000.;
+                }
+            }
+        }
+        break;
     case ValueType::Type_UIAppearance:
         // [APPEARANCE]
         //   -- -moz-appearance
@@ -178,6 +197,11 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
         return { ValueType::Type_BackgroundColor };
 
 
+        // ------------- Transition ----------------
+
+    case 0x10117138_ui32:
+        // transition-duration
+        return { ValueType::Type_TransitionDuration };
         // ------------- LongUI ----------------
 
 #if 0
