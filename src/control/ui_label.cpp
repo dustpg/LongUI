@@ -50,7 +50,6 @@ LongUI::UILabel::~UILabel() noexcept {
 /// <returns></returns>
 void  LongUI::UILabel::Update() noexcept {
     // TODO: 处理BOX修改 SpecifyMinContectSize
-
     // 检查到大小修改
     if (this->is_size_changed()) {
         m_text.Resize(this->GetBox().GetContentSize());

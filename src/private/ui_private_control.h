@@ -48,6 +48,9 @@ struct LongUI::UIControlPrivate {
     // set orient
     static void SetOrient(UIControl& ctrl, bool o) noexcept {
         ctrl.m_state.orient = o; }
+    // is atomicity
+    static auto IsAtomicity(const UIControl& ctrl) noexcept {
+        return ctrl.m_state.atomicity; }
     // get parent data
     static auto GetParentData(const UIControl& ctrl) noexcept {
         return ctrl.m_uData4Parent; }

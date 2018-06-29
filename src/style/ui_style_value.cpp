@@ -1,9 +1,35 @@
-﻿#include <style/ui_style_value.h>
+﻿#include <style/ui_text.h>
+#include <style/ui_style_value.h>
 #include <core/ui_color_list.h>
 #include <graphics/ui_bg_renderer.h>
 #include "../private/ui_private_control.h"
 
 //#undef PCN_NOINLINE
+
+// longui::detail
+namespace LongUI { namespace detail{
+    // get text font
+    auto get_text_font(UIControl& ctrl) noexcept->TextFont*;
+    // get text font
+    auto get_text_font(const UIControl& ctrl) noexcept->const TextFont*{
+        return get_text_font(const_cast<UIControl&>(ctrl));
+    }
+}}
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the color of the fg.
+/// </summary>
+/// <param name="color">The color.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetFgColor(RGBA color) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        ColorF::FromRGBA_RT(tf->text.color, color);
+        ctrl->Invalidate();
+    }
+}
 
 PCN_NOINLINE
 /// <summary>
@@ -32,13 +58,17 @@ auto LongUI::CUIStyleValue::GetBgColor() const noexcept -> RGBA {
     return { RGBA_Transparent };
 }
 
-
+PCN_NOINLINE
 /// <summary>
 /// Gets the color of the fg.
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetFgColor() const noexcept -> RGBA {
-    //auto ctrl = static_cast<const UIControl*>(this);
+    const auto ctrl = static_cast<const UIControl*>(this);
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        return tf->text.color.ToRGBA();
+    }
     return { RGBA_Black };
 }
 
@@ -118,3 +148,28 @@ void LongUI::CUIStyleValue::SetBgRepeat(AttributeRepeat ar) noexcept {
     }
 }
 
+// longui::detail
+namespace LongUI { namespace detail {
+    /// <summary>
+    /// Gets the text font.
+    /// </summary>
+    /// <param name="ctrl">The control.</param>
+    /// <returns></returns>
+    auto get_text_font(UIControl& ctrl) noexcept->TextFont* {
+        auto& style = ctrl.GetStyle();
+        // 存在Text对象
+        if (style.offset_tf) {
+            const auto tf = const_cast<Style&>(style).GetTextFont();
+            return tf;
+        }
+        // 如果是state.atomicity则查看
+        else if (UIControlPrivate::IsAtomicity(ctrl)) {
+            for (auto& x : ctrl) {
+                if (const auto tf = get_text_font(x))
+                    return tf;
+            }
+        }
+        // 没有就没有咯(摊手)
+        return nullptr;
+    }
+}}

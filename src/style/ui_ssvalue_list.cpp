@@ -1,6 +1,7 @@
 ﻿// lui
 #include <style/ui_ssvalue.h>
 #include <style/ui_attribute.h>
+#include <core/ui_color_list.h>
 #include <core/ui_string_view.h>
 #include <style/ui_ssvalue_list.h>
 #include <typecheck/int_by_size.h>
@@ -75,8 +76,10 @@ void LongUI::ValueTypeMakeValue(
 
 
     case ValueType::Type_BackgroundColor:
+    case ValueType::Type_TextColor:
         // [COLOR]
         //   -- background-color
+        //   -- color
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data.u32, values[0].ColorRGBA32());
         break;
@@ -202,6 +205,13 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x10117138_ui32:
         // transition-duration
         return { ValueType::Type_TransitionDuration };
+
+        // -------------  Text  ----------------
+
+    case 0xd8c9a893_ui32:
+        // color
+        return { ValueType::Type_TextColor };
+
         // ------------- LongUI ----------------
 
 #if 0
@@ -217,6 +227,16 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     return { ValueType::Type_Unknown };
 }
 
+/// <summary>
+/// Initializes the state buffer.
+/// </summary>
+/// <param name="buf">The buf.</param>
+/// <returns></returns>
+void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
+    const auto len = static_cast<int>(ValueType::TYPE_COUNT) * sizeof(*buf);
+    std::memset(buf, 0, len);
+    buf[static_cast<int>(ValueType::Type_TextColor)].u32 = RGBA_Black;
+}
 
 /// <summary>
 /// Gets the type of the easy.
@@ -253,6 +273,7 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
         // [STATE]
         return ValueEasyType::Type_NoAnimation;
     case LongUI::ValueType::Type_BackgroundColor:
+    case LongUI::ValueType::Type_TextColor:
         // [COLOR]
         return ValueEasyType::Type_Color;
     }

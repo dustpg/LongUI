@@ -87,7 +87,7 @@ namespace LongUI {
         // appearance tpye  [1]
         AttributeAppearance appearance;
         // unused           [1]
-        uint8_t             unused;
+        uint8_t             tfunction;
         // offset in byte for text font, set this if support text [2]
         uint16_t            offset_tf;
         // overflow-x       [1]

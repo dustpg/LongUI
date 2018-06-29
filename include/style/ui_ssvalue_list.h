@@ -110,15 +110,14 @@ namespace LongUI {
         // [Transition] duration
         Type_TransitionDuration,
 
-
+        // [Text]color
+        Type_TextColor,
 
         // [LongUI] appearance
         Type_UIAppearance,
         // COUNT
         TYPE_COUNT
     };
-    // check type count
-    static_assert(static_cast<int>(ValueType::TYPE_COUNT) <= 1024, "TO HUGE");
     // value easy type
     enum class ValueEasyType : int8_t {
         // no animation
@@ -130,8 +129,6 @@ namespace LongUI {
         // uint32_t
         Type_Uint32
     };
-    // get easy type
-    auto GetEasyType(ValueType) noexcept->ValueEasyType;
     // union
     union UniByte4 {
         // u32 data
@@ -163,6 +160,12 @@ namespace LongUI {
         //uint32_t        extra;
     };
 #endif
+    // check type count
+    static_assert(static_cast<int>(ValueType::TYPE_COUNT) <= 1024, "TO HUGE");
+    // get easy type
+    auto GetEasyType(ValueType) noexcept->ValueEasyType;
+    // init states buffer
+    void InitStateBuffer(UniByte4[/*ValueType::TYPE_COUNT*/]) noexcept;
     // u8view to value type
     auto U8View2ValueType(U8View view) noexcept->ValueType;
     // make value

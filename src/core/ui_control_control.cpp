@@ -473,22 +473,22 @@ void LongUI::CUIControlControl::update_extra_animation(uint32_t delta)noexcept {
         // 完成动画: ctrl 标记为0
         if (x.done >= x.duration) {
             x.done = x.duration;
-            //x.ctrl->clear_basic_animation();
             x.ctrl = nullptr;
         }
         // 获取比率P
-        const auto p = x.GetRate();
+        const auto at = static_cast<AnimationType>(ctrl.GetStyle().tfunction);
+        const auto p0 = LongUI::EasingFunction(at, x.GetRate());
         for (uint32_t i = 0; i != x.length; ++i) {
-            const auto ind = LongUI::IndeterminateValue(x.list[i], p);
+            const auto ind = LongUI::IndeterminateValue(x.list[i], p0);
             ctrl.ApplyValue(ind);
         }
     }
     // 长度过长则需要手动删除
     if (animations.size() > 100) {
         assert(!"NOTIMPL");
-        return;
+        //return;
     }
-    // HINT: 一帧最多删一个, 但是这里多了手动删除
+    // HINT: 一帧最多删一个, 但是这里多了手动删除(?)
     if (!animations.back().ctrl) animations.pop_back();
 }
 
@@ -584,8 +584,9 @@ void LongUI::UIControl::extra_animation_callback(
     const auto to_state = m_oStyle.state;
     // 状态缓冲池
     UniByte4 state_buf[static_cast<int>(ValueType::TYPE_COUNT)];
-    // XXX: 延迟调用state_buf的memset?
-    std::memset(state_buf, 0, sizeof(state_buf));
+    // 设置初始状态
+    LongUI::InitStateBuffer(state_buf);
+    // 优化flag
     bool need_state_buf = false;
     // 判断匹配规则
     for (auto itr = matched.begin(); itr != matched.end();) {

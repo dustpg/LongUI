@@ -10,6 +10,8 @@ namespace LongUI {
     /// </summary>
     class CUIStyleValue {
     public:
+        // set foreground color
+        void SetFgColor(RGBA color) noexcept;
         // set background clip
         void SetBgClip(AttributeBox clip) noexcept;
         // set background color
@@ -23,9 +25,9 @@ namespace LongUI {
         // set background attachment
         void SetBgAttachment(AttributeAttachment aa) noexcept;
     public:
-        // get background color
-        auto GetBgColor() const noexcept ->RGBA ;
         // get foreground color
         auto GetFgColor() const noexcept->RGBA;
+        // get background color
+        auto GetBgColor() const noexcept->RGBA;
     };
 }

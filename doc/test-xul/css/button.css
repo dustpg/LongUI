@@ -6,7 +6,8 @@ button#button, #layout .button{
 }
 
 #layout button:hover {
-    background-color: yellow
+    background-color: yellow;
+    color: cyan
 }
 
 #layout button:active {

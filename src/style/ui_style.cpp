@@ -1,6 +1,7 @@
 ﻿#include <control/ui_control_state.h>
 #include <style/ui_style.h>
 #include <util/ui_unimacro.h>
+#include <core/ui_color_list.h>
 #include <luiconf.h>
 
 
@@ -138,7 +139,7 @@ LongUI::Style::Style() noexcept {
     offset_tf = 0;
     overflow_x = Overflow_Visible;
     overflow_y = Overflow_Visible;
-    unused = 0;
+    tfunction = 0;
     flex = 0.0f;
     minsize = { INVALID_MINSIZE, INVALID_MINSIZE };
     maxsize = { DEFAULT_CONTROL_MAX_SIZE, DEFAULT_CONTROL_MAX_SIZE };

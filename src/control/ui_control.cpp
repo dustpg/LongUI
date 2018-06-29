@@ -326,6 +326,8 @@ auto LongUI::UIControl::init() noexcept -> Result {
     Result hr = arg.GetResult();
     // 初始化其他
     if (hr) {
+        // 重新连接样式表
+        this->link_style_sheet();
         // 设置默认样式
         constexpr auto defapp = Appearance_None;
         UIControlPrivate::SetAppearanceIfNotSet(*this, defapp);
@@ -337,10 +339,6 @@ auto LongUI::UIControl::init() noexcept -> Result {
         if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
         }
-    }
-    // 重新连接样式表
-    if (hr) {
-        this->link_style_sheet();
     }
     return hr;
 }
@@ -1262,9 +1260,12 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
         this->SetBgColor({ value.data.u32 });
         break;
     case ValueType::Type_TransitionDuration:
-        m_oStyle.tduration = static_cast<decltype(m_oStyle.tduration)>(
-            value.data.single * 1000.f
-            );
+        using dur_t = decltype(m_oStyle.tduration);
+        assert(value.data.single < 65.5f && "out of range");
+        m_oStyle.tduration = static_cast<dur_t>(value.data.single * 1000.f);
+        break;
+    case ValueType::Type_TextColor:
+        this->SetFgColor({ value.data.u32 });
         break;
     case ValueType::Type_UIAppearance:
         detail::write_value(m_oStyle.appearance, value.data.byte);
@@ -1302,6 +1303,9 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_TransitionDuration:
         value.data.single = static_cast<float>(m_oStyle.tduration) * 1000.f;
+        break;
+    case ValueType::Type_TextColor:
+        detail::write_value(value.data.u32, this->GetFgColor().primitive);
         break;
     case ValueType::Type_UIAppearance:
         detail::write_value(value.data.byte, m_oStyle.appearance);
