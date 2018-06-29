@@ -1197,7 +1197,7 @@ void LongUI::UIControl::setup_style_values() noexcept {
         // 必须是START
         assert((*itr).type == ValueType::Type_NewOne);
         // 检测长度 
-        const auto len = itr[0].u32;
+        const auto len = itr[0].data.u32; assert(len > 2 && "bad size");
         // 检测伪类
         const auto pc = reinterpret_cast<const SSValuePC&>(itr[1]);
         // 匹配状态
@@ -1253,19 +1253,21 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
         assert(!"unsupported value type");
         break;
     case ValueType::Type_PositionOverflowX:
-        detail::write_value(m_oStyle.overflow_x, value.byte);
+        detail::write_value(m_oStyle.overflow_x, value.data.byte);
         break;
     case ValueType::Type_PositionOverflowY:
-        detail::write_value(m_oStyle.overflow_y, value.byte);
+        detail::write_value(m_oStyle.overflow_y, value.data.byte);
         break;
     case ValueType::Type_BackgroundColor:
-        this->SetBgColor({ value.u32 });
+        this->SetBgColor({ value.data.u32 });
         break;
     case ValueType::Type_TransitionDuration:
-
+        m_oStyle.tduration = static_cast<decltype(m_oStyle.tduration)>(
+            value.data.single * 1000.f
+            );
         break;
     case ValueType::Type_UIAppearance:
-        detail::write_value(m_oStyle.appearance, value.byte);
+        detail::write_value(m_oStyle.appearance, value.data.byte);
 #if 0
         if (m_oStyle.appearance == Appearance_None)
             this->ClearAppearance();
@@ -1277,7 +1279,35 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
 }
 
 
-
+PCN_NOINLINE
+/// <summary>
+/// Gets the value.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
+    switch (value.type)
+    {
+    default:
+        assert(!"unsupported value type");
+        break;
+    case ValueType::Type_PositionOverflowX:
+        detail::write_value(value.data.byte, m_oStyle.overflow_x);
+        break;
+    case ValueType::Type_PositionOverflowY:
+        detail::write_value(value.data.byte, m_oStyle.overflow_y);
+        break;
+    case ValueType::Type_BackgroundColor:
+        detail::write_value(value.data.u32, this->GetBgColor().primitive);
+        break;
+    case ValueType::Type_TransitionDuration:
+        value.data.single = static_cast<float>(m_oStyle.tduration) * 1000.f;
+        break;
+    case ValueType::Type_UIAppearance:
+        detail::write_value(value.data.byte, m_oStyle.appearance);
+        break;
+    }
+}
 
 /// <summary>
 /// Sets the xul.

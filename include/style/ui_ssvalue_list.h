@@ -117,27 +117,42 @@ namespace LongUI {
         // COUNT
         TYPE_COUNT
     };
+    // check type count
+    static_assert(static_cast<int>(ValueType::TYPE_COUNT) <= 1024, "TO HUGE");
+    // value easy type
+    enum class ValueEasyType : int8_t {
+        // no animation
+        Type_NoAnimation = 0,
+        // float
+        Type_Float,
+        // color
+        Type_Color,
+        // uint32_t
+        Type_Uint32
+    };
+    // get easy type
+    auto GetEasyType(ValueType) noexcept->ValueEasyType;
+    // union
+    union UniByte4 {
+        // u32 data
+        uint32_t    u32;
+        // i32 data
+        int32_t     i32;
+        // single float data
+        float       single;
+        // byte data
+        uint8_t     byte;
+        // boolean data
+        bool        boolean;
+    };
     /// <summary>
     /// value of style sheet
     /// </summary>
     struct SSValue {
         // type of value
         ValueType       type;
-        // unit of value
-        //ValueUnit       unit;
-        // union
-        union {
-            // u32 data
-            uint32_t    u32;
-            // i32 data
-            int32_t     i32;
-            // single float data
-            float       single;
-            // byte data
-            uint8_t     byte;
-            // boolean data
-            bool        boolean;
-        };
+        // data
+        UniByte4        data;
     };
 #if 0
     // extra value type
@@ -148,8 +163,6 @@ namespace LongUI {
         //uint32_t        extra;
     };
 #endif
-    // value type for animation
-    //bool ValueTypeForAnimation(ValueType) noexcept;
     // u8view to value type
     auto U8View2ValueType(U8View view) noexcept->ValueType;
     // make value

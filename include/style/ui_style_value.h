@@ -22,5 +22,10 @@ namespace LongUI {
         void SetBgOrigin(AttributeBox ab) noexcept;
         // set background attachment
         void SetBgAttachment(AttributeAttachment aa) noexcept;
+    public:
+        // get background color
+        auto GetBgColor() const noexcept ->RGBA ;
+        // get foreground color
+        auto GetFgColor() const noexcept->RGBA;
     };
 }

@@ -130,6 +130,9 @@ LongUI::Style::Style() noexcept {
     constexpr auto a = sizeof(Style);
     state.Init();
     pack = Pack_Start;
+    tduration = 0;
+    unused2 = 0;
+    unused4 = 0;
     align = Align_Stretcht;
     appearance = AttributeAppearance::Appearance_NotSet;
     offset_tf = 0;

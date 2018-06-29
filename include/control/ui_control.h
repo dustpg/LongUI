@@ -155,6 +155,8 @@ namespace LongUI {
     public:
         // apply value
         void ApplyValue(SSValue) noexcept;
+        // get value
+        void GetValue(SSValue&) const noexcept;
         // need update in this frame
         void NeedUpdate() noexcept;// { L::AddUpdateList(*this); }
         // need update in next frame
@@ -186,11 +188,6 @@ namespace LongUI {
         auto&GetStyle() const noexcept { return m_oStyle; }
         // get box model
         auto&GetBox() const noexcept { return m_oBox; }
-    public:
-        // get background color
-        void GetBackgroundColor(ColorF&) const noexcept;
-        // get foreground color
-        void GetForegroundColor(ColorF&) const noexcept;
     public:
         // is ancestor for this
         bool IsAncestorForThis(const UIControl& node) const noexcept;
@@ -320,6 +317,8 @@ namespace LongUI {
         void extra_animation_callback(StyleStateTypeChange, void*) noexcept;
         // start but no animation
         void start_but_no_animation(StyleStateTypeChange) noexcept;
+        // animation property filter
+        auto animation_property_filter(void*) noexcept -> uint32_t;
         // link style sheet
         void link_style_sheet() noexcept;
         // setup style values
@@ -339,12 +338,12 @@ namespace LongUI {
         void custom_style_render() const noexcept;
         // delete renderer
         void delete_renderer() noexcept;
-        // exist animation ?
-        auto exist_animation() const noexcept { return m_state.in_animation; }
-        // clear animation
-        void clear_animation() noexcept { m_state.in_animation = false; }
-        // setup animation
-        void setup_animation() noexcept { m_state.in_animation = true; }
+        // exist basic animation ?
+        auto exist_basic_animation() const noexcept { return m_state.in_basic_animation; }
+        // clear basic animation
+        void clear_basic_animation() noexcept { m_state.in_basic_animation = false; }
+        // setup basic animation
+        void setup_basic_animation() noexcept { m_state.in_basic_animation = true; }
     protected:
         // state
         CtrlState               m_state;

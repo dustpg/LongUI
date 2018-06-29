@@ -16,6 +16,8 @@ struct LongUI::UIControlPrivate {
         return ctrl.m_state.world_changed;}
     // ensure bgc renderer
     static auto EnsureBgcRenderer(UIControl& ctrl) noexcept->CUIRendererBackground*;
+    // get  bgc renderer
+    static auto GetBgcRenderer(const UIControl& ctrl) noexcept->CUIRendererBackground*;
     // refresh min size
     static void RefreshMinSize(UIControl& ctrl) noexcept;
     // update world

@@ -56,10 +56,12 @@ namespace LongUI {
         // to
         SSValue     to;
     };
+    // indeterminate value
+    auto IndeterminateValue(SSFromTo, float) noexcept->SSValue;
 #ifdef NDEBUG
-    enum { EXTRA_FROM_TO_LIST_LENGTH = 6 };
+    enum { EXTRA_FROM_TO_LIST_LENGTH = 8 };
 #else
-    enum { EXTRA_FROM_TO_LIST_LENGTH = 2 };
+    enum { EXTRA_FROM_TO_LIST_LENGTH = 4 };
 #endif
     // extra control animation
     struct ControlAnimationExtra {
@@ -73,6 +75,8 @@ namespace LongUI {
         uint32_t            length;
         // value list
         SSFromTo            list[EXTRA_FROM_TO_LIST_LENGTH];
+        // get rate
+        auto GetRate() const noexcept { return float(done) / float(duration); }
     };
     // basic control animation
     struct ControlAnimationBasic {

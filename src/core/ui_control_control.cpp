@@ -436,7 +436,7 @@ void LongUI::CUIControlControl::update_basic_animation(uint32_t delta)noexcept {
             ca.done = ca.duration;
             //ca.ctrl->m_oStyle.state = ca.basic.target;
             //ca.ctrl->m_state.style_state_changed = false;
-            ca.ctrl->clear_animation();
+            ca.ctrl->clear_basic_animation();
             ca.ctrl = nullptr;
         }
     };
@@ -450,6 +450,45 @@ void LongUI::CUIControlControl::update_basic_animation(uint32_t delta)noexcept {
         basic_update(x);
     }
     // HINT: 一帧最多删一个, 但是动画结束频率肯定不高
+    if (!animations.back().ctrl) animations.pop_back();
+}
+
+
+/// <summary>
+/// Updates the extra animation.
+/// </summary>
+/// <param name="delta">The delta.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::update_extra_animation(uint32_t delta)noexcept {
+    // 动画为空
+    auto& animations = cc().extra_anima;
+    if (animations.empty()) return;
+    // 更新动画
+    for (auto& x : animations) {
+        // 检查有效
+        if (!x.ctrl) continue;
+        auto& ctrl = *x.ctrl;
+        // 增加delta
+        x.done += delta;
+        // 完成动画: ctrl 标记为0
+        if (x.done >= x.duration) {
+            x.done = x.duration;
+            //x.ctrl->clear_basic_animation();
+            x.ctrl = nullptr;
+        }
+        // 获取比率P
+        const auto p = x.GetRate();
+        for (uint32_t i = 0; i != x.length; ++i) {
+            const auto ind = LongUI::IndeterminateValue(x.list[i], p);
+            ctrl.ApplyValue(ind);
+        }
+    }
+    // 长度过长则需要手动删除
+    if (animations.size() > 100) {
+        assert(!"NOTIMPL");
+        return;
+    }
+    // HINT: 一帧最多删一个, 但是这里多了手动删除
     if (!animations.back().ctrl) animations.pop_back();
 }
 
@@ -518,7 +557,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
     cab->duration = dur;
     const auto changed = ctrl.m_oStyle.state.Change(type);
     assert(changed && "not changed");
-    cab->ctrl->setup_animation();
+    cab->ctrl->setup_basic_animation();
 }
 
 
@@ -530,9 +569,119 @@ void LongUI::CUIControlControl::StartBasicAnimation(
 /// <returns></returns>
 void LongUI::UIControl::extra_animation_callback(
     StyleStateTypeChange change, void * ptr) noexcept {
+    // 检测参数有效性
     assert(ptr && "bad ptr");
     auto& vector = *reinterpret_cast<POD::Vector<SSFromTo>*>(ptr);
     assert(vector.empty() && "not empty");
+    // 判断
+    const auto& matched = m_oStyle.matched;
+    // 上层必须保证matched不为空
+    assert(matched.size() && "cannot be zero");
+    // 检测状态
+    const auto from_state = m_oStyle.state;
+    // 没变就算了
+    if (!m_oStyle.state.Change(change)) return assert(!"NOT CHANGED");
+    const auto to_state = m_oStyle.state;
+    // 状态缓冲池
+    UniByte4 state_buf[static_cast<int>(ValueType::TYPE_COUNT)];
+    // XXX: 延迟调用state_buf的memset?
+    std::memset(state_buf, 0, sizeof(state_buf));
+    bool need_state_buf = false;
+    // 判断匹配规则
+    for (auto itr = matched.begin(); itr != matched.end();) {
+        // 必须是START
+        assert((*itr).type == ValueType::Type_NewOne);
+        // 检测长度 
+        const auto len = itr[0].data.u32; assert(len > 2 && "bad size");
+        // 检测伪类
+        const auto pc = reinterpret_cast<const SSValuePC&>(itr[1]);
+        // 匹配状态
+        static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
+        const auto now = reinterpret_cast<const uint32_t&>(from_state);
+        const auto too = reinterpret_cast<const uint32_t&>(to_state);
+        const auto yes = reinterpret_cast<const uint32_t&>(pc.yes);
+        const auto noo = reinterpret_cast<const uint32_t&>(pc.noo);
+        // XXX: [优化]
+        // matched1 有效表示取消该状态, TO状态需要额外计算
+        const auto matched1 = (now & yes) == yes && (now & noo) == 0;
+        // matched2 有效表示设置该状态, TO状态可以直接设置
+        const auto matched2 = (too & yes) == yes && (too & noo) == 0;
+        // 不一致时计算动画
+        if (matched1 != matched2) {
+            // 遍历状态
+            const auto end_itr = itr + len;
+            auto being_itr = itr + 2;
+            for (; being_itr != end_itr; ++being_itr) {
+                SSFromTo ft;
+                // FROM状态直接获取
+                ft.from.type = (*being_itr).type;
+                ft.from.data.u32 = 0;
+                this->GetValue(ft.from);
+                // TO 状态在 matched2有效则可以直接设置
+                if (matched2) ft.to = *being_itr;
+                else {
+                    ft.to = { ValueType::Type_Unknown };
+                    need_state_buf = true;
+                }
+                // 压入数组
+                vector.push_back(ft);
+            }
+        }
+        // 额外计算
+        else if (matched1) {
+            // 遍历状态
+            const auto end_itr = itr + len;
+            auto being_itr = itr + 2;
+            for (; being_itr != end_itr; ++being_itr) {
+                const auto index = static_cast<uint32_t>((*being_itr).type);
+                state_buf[index] = (*being_itr).data;
+            }
+        }
+        // 递进
+        itr += len;
+    }
+    // 没有就算了
+    if (vector.empty()) return;
+    // 计算额外数据
+    if (need_state_buf) {
+        for (auto& x : vector) {
+            if (x.to.type == ValueType::Type_Unknown) {
+                const auto index = static_cast<uint32_t>(x.from.type);
+                const auto old = state_buf[index];
+                x.to.data = old;
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Animations the property filter.
+/// </summary>
+/// <param name="ptr">The PTR.</param>
+/// <returns></returns>
+auto LongUI::UIControl::animation_property_filter(void*ptr)noexcept->uint32_t{
+    // 检测参数有效性
+    assert(ptr && "bad ptr");
+    auto& vector = *reinterpret_cast<POD::Vector<SSFromTo>*>(ptr);
+    auto len = static_cast<uint32_t>(vector.size());
+    // 遍历数组
+    for (auto& x : vector) {
+        // 去掉不需要动画的
+        const auto ez = LongUI::GetEasyType(x.from.type);
+        if (ez == ValueEasyType::Type_NoAnimation 
+            || m_oStyle.tduration == 0 ) {
+            // 设置即时值
+            SSValue value;
+            value.type = x.from.type;
+            value.data = x.to.data;
+            this->ApplyValue(value);
+            // 取消这份
+            x.from.type = ValueType::Type_Unknown;
+            --len;
+        }
+    }
+    // 返回0则需要clear
+    return len;
 }
 
 /// <summary>
@@ -561,30 +710,66 @@ void LongUI::CUIControlControl::StartExtraAnimation(
     UIControl& ctrl, StyleStateTypeChange type) noexcept {
     // 断言类型
     assert(ctrl.m_oStyle.appearance == AttributeAppearance::Appearance_None);
+    // 先判断有没有匹配规则
+    if (ctrl.GetStyle().matched.empty()) 
+        return ctrl.start_but_no_animation(type);
     // 利用回调获取修改的属性
     auto& from_to_list = cc().from_to;
     ctrl.extra_animation_callback(type, &from_to_list);
+    // 筛选属性, 有些不能用于动画
+    const auto len = ctrl.animation_property_filter(&from_to_list);
     // 没有动画
-    if (from_to_list.empty())
-        return ctrl.start_but_no_animation(type);
+    if (!len) return from_to_list.clear();
+    // 删除UNKNOWN
+    if (len != from_to_list.size()) {
+        // [[nodiscard]] warnning
+        std::remove_if(from_to_list.begin(), from_to_list.end(),
+            [](const SSFromTo& x) noexcept {
+            return x.from.type == ValueType::Type_Unknown;
+        });
+        from_to_list.resize(len);
+    }
     // 逆序查找动画, 直到:
     //  0. 找到合适的
     //  1. 查找到结束点
     //  2. 查找到开始了的动画
     // 就算找到了合适的, 但是动画槽满了也要重新创建
+
+    // !! 辣鸡, 不管了, 直接创建
     auto& animation = cc().extra_anima;
-
+    // 计算对象数量
+    const uint32_t new_size = (len + EXTRA_FROM_TO_LIST_LENGTH - 1)
+        / EXTRA_FROM_TO_LIST_LENGTH;
+    const auto index = animation.size();
+    animation.resize(index + new_size);
+    // OOM处理: 无视掉
+    if (!animation.is_ok()) return;
+    // 表格
+    auto list_itr = from_to_list.begin();
+    // 起始点
+    const auto begin_itr = animation.begin() + index;
+    const auto end_itr = animation.end();
+    auto len_remain = len;
+    for (auto itr = begin_itr; itr != end_itr; ++itr) {
+        // f(x)
+        auto&x = *itr;
+        // 初始化
+        x.ctrl = &ctrl;
+        x.done = 0;
+        x.duration = ctrl.GetStyle().tduration;
+        x.length = len_remain > EXTRA_FROM_TO_LIST_LENGTH
+             ? EXTRA_FROM_TO_LIST_LENGTH : len_remain;
+        // 写入数组
+        std::memcpy(
+            x.list, &(*list_itr), sizeof(x.list[0]) * x.length
+        );
+        len_remain -= x.length;
+        list_itr += x.length;
+    }
+    from_to_list.clear();
 }
 
 
-/// <summary>
-/// Updates the extra animation.
-/// </summary>
-/// <param name="delta">The delta.</param>
-/// <returns></returns>
-void LongUI::CUIControlControl::update_extra_animation(uint32_t delta)noexcept {
-
-}
 
 // XML 解析
 #include <xul/SimpAX.h>

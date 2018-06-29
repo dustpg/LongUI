@@ -1,12 +1,16 @@
 button#button, #layout .button{
     -moz-appearance: none;
-    transition-duration: 5s;
+    transition-duration: 0.5s;
     background-color: red;
     background-color: blue;
 }
 
 #layout button:hover {
     background-color: yellow
+}
+
+#layout button:active {
+    background-color: green
 }
 
 .imgButton {

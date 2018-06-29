@@ -61,7 +61,7 @@ namespace LongUI {
         // parent not-need relayout if this [visible] changed
         bool        parent_notneed_relayout : 1;
         // in animation
-        bool        in_animation : 1;
+        bool        in_basic_animation : 1;
         // unused #1 for reserved
         bool        reserved1 : 1;
         // unused #2 for reserved

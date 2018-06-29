@@ -4,6 +4,16 @@
 #include <algorithm>
 
 
+/// <summary>
+/// Gets the BGC renderer.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+auto LongUI::UIControlPrivate::GetBgcRenderer(
+    const UIControl & ctrl) noexcept -> CUIRendererBackground * {
+    return ctrl.m_pBgRender;
+}
+
 PCN_NOINLINE
 /// <summary>
 /// Ensures the BG-Color renderer.

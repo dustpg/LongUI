@@ -45,7 +45,7 @@ void LongUI::ValueTypeMakeValue(
 #endif // !NDEBUG
     SSValue ssv;
     ssv.type = vtype;
-    ssv.u32 = 0;
+    ssv.data.u32 = 0;
     // 分类讨论
     switch (vtype)
     {
@@ -70,7 +70,7 @@ void LongUI::ValueTypeMakeValue(
         // [OVERFLOW]
         //   -- overflow-x
         //   -- overflow-y
-        detail::attribute(ssv.byte, AttrParser::Overflow(values[0]));
+        detail::attribute(ssv.data.byte, AttrParser::Overflow(values[0]));
         break;
 
 
@@ -78,7 +78,7 @@ void LongUI::ValueTypeMakeValue(
         // [COLOR]
         //   -- background-color
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.u32, values[0].ColorRGBA32());
+        detail::attribute(ssv.data.u32, values[0].ColorRGBA32());
         break;
 
     case ValueType::Type_TransitionDuration:
@@ -89,13 +89,13 @@ void LongUI::ValueTypeMakeValue(
         {
             auto v0 = reinterpret_cast<const SimpAC::StrPair*>(values)[0];
             const auto unit = SimpAC::SplitUnit(v0);
-            ssv.single = reinterpret_cast<U8View&>(v0).ToFloat();
+            ssv.data.single = reinterpret_cast<U8View&>(v0).ToFloat();
             // 检测单位
             if (unit.end() > unit.begin()) {
                 switch (unit.begin()[0])
                 {
                     // 毫秒就除以1000
-                case 'm': ssv.single /= 1000.;
+                case 'm': ssv.data.single /= 1000.;
                 }
             }
         }
@@ -103,7 +103,7 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_UIAppearance:
         // [APPEARANCE]
         //   -- -moz-appearance
-        detail::attribute(ssv.byte, AttrParser::Appearance(values[0]));
+        detail::attribute(ssv.data.byte, AttrParser::Appearance(values[0]));
         break;
     }
     // 输出
@@ -217,6 +217,49 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     return { ValueType::Type_Unknown };
 }
 
+
+/// <summary>
+/// Gets the type of the easy.
+/// </summary>
+/// <param name="type">The type.</param>
+/// <returns></returns>
+auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
+    // XXX: 优化为简单查表
+    switch (type)
+    {
+    case LongUI::ValueType::Type_MarginTop:
+    case LongUI::ValueType::Type_MarginRight:
+    case LongUI::ValueType::Type_MarginBottom:
+    case LongUI::ValueType::Type_MarginLeft:
+    case LongUI::ValueType::Type_PaddingTop:
+    case LongUI::ValueType::Type_PaddingRight:
+    case LongUI::ValueType::Type_PaddingBottom:
+    case LongUI::ValueType::Type_PaddingLeft:
+    case LongUI::ValueType::Type_BorderTopWidth:
+    case LongUI::ValueType::Type_BorderRightWidth:
+    case LongUI::ValueType::Type_BorderBottomWidth:
+    case LongUI::ValueType::Type_BorderLeftWidth:
+        // [FLOAT]
+        return ValueEasyType::Type_Float;
+    case LongUI::ValueType::Type_BorderImageSource:
+        // [IMAGE]
+        assert(!"NOT IMPL");
+    case LongUI::ValueType::Type_BackgroundAttachment:
+    case LongUI::ValueType::Type_BackgroundRepeat:
+    case LongUI::ValueType::Type_BackgroundClip:
+    case LongUI::ValueType::Type_BackgroundOrigin:
+    case LongUI::ValueType::Type_TransitionDuration:
+    case LongUI::ValueType::Type_UIAppearance:
+        // [STATE]
+        return ValueEasyType::Type_NoAnimation;
+    case LongUI::ValueType::Type_BackgroundColor:
+        // [COLOR]
+        return ValueEasyType::Type_Color;
+    }
+    assert(!"error type");
+    return ValueEasyType::Type_NoAnimation;
+}
+
 // longui
 namespace LongUI {
     PCN_NOINLINE
@@ -270,29 +313,3 @@ namespace LongUI {
     }
 }
 
-/// <summary>
-/// Values the type for animation.
-/// </summary>
-/// <param name="vtype">The vtype.</param>
-/// <returns></returns>
-//bool LongUI::ValueTypeForAnimation(ValueType vtype) noexcept {
-//    // TODO: 使用映射表
-//    switch (vtype)
-//    {
-//    case ValueType::Type_MarginTop:
-//    case ValueType::Type_MarginRight:
-//    case ValueType::Type_MarginBottom:
-//    case ValueType::Type_MarginLeft:
-//    case ValueType::Type_PaddingTop:
-//    case ValueType::Type_PaddingRight:
-//    case ValueType::Type_PaddingBottom:
-//    case ValueType::Type_PaddingLeft:
-//    case ValueType::Type_BorderTopWidth:
-//    case ValueType::Type_BorderRightWidth:
-//    case ValueType::Type_BorderBottomWidth:
-//    case ValueType::Type_BorderLeftWidth:
-//    case ValueType::Type_BackgroundColor:
-//        return true;
-//    }
-//    return false;
-//}

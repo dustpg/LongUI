@@ -60,7 +60,7 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     break;
     }
     // 存在动画
-    if (this->exist_animation()) {
+    if (this->exist_basic_animation()) {
         // XXX: [优化]
         const auto basic = UIManager.FindBasicAnimation(*this);
         assert(basic && "BAD ACTION");
@@ -154,23 +154,23 @@ void LongUI::UIControl::cancel_clip_rect() const noexcept {
 }
 
 
-PCN_NOINLINE
-/// <summary>
-/// Gets the color of the background.
-/// </summary>
-/// <param name="">The .</param>
-/// <returns></returns>
-void LongUI::UIControl::GetBackgroundColor(ColorF& color) const noexcept {
-    if (m_pBgRender) color = m_pBgRender->GetColor();
-    else color = ColorF::FromRGBA_CT<RGBA_Transparent>();
-}
-
-PCN_NOINLINE
-/// <summary>
-/// Gets the color of the foreground.
-/// </summary>
-/// <param name="">The .</param>
-/// <returns></returns>
-void LongUI::UIControl::GetForegroundColor(ColorF& color) const noexcept {
-    color = ColorF::FromRGBA_CT<RGBA_Black>();
-}
+//PCN_NOINLINE
+///// <summary>
+///// Gets the color of the background.
+///// </summary>
+///// <param name="">The .</param>
+///// <returns></returns>
+//void LongUI::UIControl::GetBackgroundColor(ColorF& color) const noexcept {
+//    if (m_pBgRender) color = m_pBgRender->GetColor();
+//    else color = ColorF::FromRGBA_CT<RGBA_Transparent>();
+//}
+//
+//PCN_NOINLINE
+///// <summary>
+///// Gets the color of the foreground.
+///// </summary>
+///// <param name="">The .</param>
+///// <returns></returns>
+//void LongUI::UIControl::GetForegroundColor(ColorF& color) const noexcept {
+//    color = ColorF::FromRGBA_CT<RGBA_Black>();
+//}

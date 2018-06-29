@@ -548,7 +548,7 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
                     const auto ptr = &matched.front() + index;
                     // 0: 标记起始点与长度(包括开始两个)
                     ptr[0].type = ValueType::Type_NewOne;
-                    ptr[0].u32 = static_cast<uint32_t>(src_len) + 2;
+                    ptr[0].data.u32 = static_cast<uint32_t>(src_len) + 2;
                     // 1: 标记伪类的状态
                     reinterpret_cast<SSValuePC&>(ptr[1]) = this_main.pc;
                     // [2, end)

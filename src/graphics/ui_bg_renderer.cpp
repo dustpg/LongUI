@@ -12,7 +12,7 @@
 /// Initializes a new instance of the <see cref="Background"/> class.
 /// </summary>
 LongUI::CUIRendererBackground::CUIRendererBackground() noexcept {
-    m_color = ColorF::FromRGBA_CT<RGBA_Transparent>();
+    this->color = ColorF::FromRGBA_CT<RGBA_Transparent>();
 }
 
 /// <summary>
@@ -26,10 +26,8 @@ LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
 /// <summary>
 /// Sets the image.
 /// </summary>
-/// <param name="id">The identifier.</param>
 /// <returns></returns>
-void LongUI::CUIRendererBackground::SetImage(uint32_t id) noexcept {
-    id;
+void LongUI::CUIRendererBackground::RefreshImage() noexcept {
     assert(!"NOT IMPL");
 }
 
@@ -40,11 +38,11 @@ void LongUI::CUIRendererBackground::SetImage(uint32_t id) noexcept {
 /// <returns></returns>
 void LongUI::CUIRendererBackground::RenderColor(const LongUI::Box& box) const noexcept {
     // 渲染背景颜色
-    if (m_color.a == 0.f) return;
-    //if (!reinterpret_cast<const uint32_t&>(m_color.a)) return;
+    if (this->color.a == 0.f) return;
+    //if (!reinterpret_cast<const uint32_t&>(this->color.a)) return;
     // 获取渲染矩阵
     RectF rect;
-    switch (m_clip)
+    switch (this->clip)
     {
     default: [[fallthrough]];
     case LongUI::Box_BorderBox:  box.GetBorderEdge(rect);  break;
@@ -53,7 +51,7 @@ void LongUI::CUIRendererBackground::RenderColor(const LongUI::Box& box) const no
     }
     // 获取渲染器
     auto& render = UIManager.Ref2DRenderer();
-    auto& brush0 = UIManager.RefCCBrush(m_color);
+    auto& brush0 = UIManager.RefCCBrush(this->color);
     // 执行渲染
     render.FillRectangle(auto_cast(rect), &brush0);
 }
@@ -66,7 +64,7 @@ void LongUI::CUIRendererBackground::RenderColor(const LongUI::Box& box) const no
 /// <returns></returns>
 void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const noexcept {
     // 渲染背景图片
-    if (!m_idImage) return;
+    if (!this->image_id) return;
     box;
     assert(!"NOT IMPL");
     // 背景可能是:

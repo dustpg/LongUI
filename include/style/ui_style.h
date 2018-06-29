@@ -76,6 +76,12 @@ namespace LongUI {
         StyleState          state;
         // pack             [1]
         AttributePack       pack;
+        // t-duration       [2]
+        uint16_t            tduration;
+        // unused           [2]
+        uint16_t            unused2;
+        // unused           [4]
+        uint32_t            unused4;
         // align            [1]
         AttributeAlign      align;
         // appearance tpye  [1]
