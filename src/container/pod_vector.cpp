@@ -299,11 +299,9 @@ void LongUI::POD::detail::vector_base::push_back(const char* data) noexcept {
     assert(m_uVecLen <= m_uVecCap && "bad case");
     // 重新申请空间
     if (m_uVecLen == m_uVecCap) {
-        // 分配策略: 每次加一半
-        const uintptr_t newlen = m_uVecLen + m_uVecLen / 2;
-        // 分配策略: 4起步
-        this->reserve(std::max(newlen, static_cast<uintptr_t>(4)));
-        //this->reserve(newlen);
+        // 分配策略: 在reserve中实现
+        this->reserve(m_uVecLen + 1);
+        // 内存不足
         if (!is_ok()) return;
     }
     // 写入数据
@@ -349,10 +347,19 @@ PCN_NOINLINE
 void LongUI::POD::detail::vector_base::reserve(size_type n) noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
     assert(n < (1 << 20) && "to huge");
+    // 获取目标容量
     const auto cap = static_cast<uint32_t>(n + this->get_extra_buy());
     // 扩容: 不足就重新申请
     if (m_uVecCap < cap) {
-        const auto bytelen = cap * m_uByteLen;
+        auto new_cap = cap;
+        // 额外分配策略是加一半
+        const auto target = m_uVecCap + m_uVecCap / 2;
+        // 所以没有一半就加上一半
+        if (new_cap < target) new_cap = target;
+        // 最少是4
+        if (new_cap < 4) new_cap = 4;
+        // 如果才加
+        const auto bytelen = new_cap * m_uByteLen;
 #if 0
         // 有效堆, 用realloc扩容
         if (this->is_valid_heap(m_pData)) {
@@ -369,7 +376,7 @@ void LongUI::POD::detail::vector_base::reserve(size_type n) noexcept {
             // 无效堆: 复制旧数据
             m_pData = data;
             if (!ptr) std::memcpy(m_pData, this->invalid_heap(), m_uVecCap*m_uByteLen);
-            m_uVecCap = cap;
+            m_uVecCap = new_cap;
         }
         // 内存不足, 释放旧数据
         else {

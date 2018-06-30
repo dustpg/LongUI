@@ -145,6 +145,16 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     //style.overflow_x = LongUI::Overflow_Auto;
     //style.overflow_y = LongUI::Overflow_Auto;
     {
+        LongUI::POD::Vector<int> v;
+        v.resize(1024);
+        const auto a = v.capacity();
+        v.resize(1000);
+        const auto b = v.capacity();
+        v.resize(1025);
+        const auto c = v.capacity();
+        v[0];
+    }
+    {
         auto a = LongUI::Matrix::Matrix3x2F::Scale({ 2, 2 });
         auto b = LongUI::Matrix::Matrix3x2F::Translation({ 100, 100 });
         auto c = a * b;
