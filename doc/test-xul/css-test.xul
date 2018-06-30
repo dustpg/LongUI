@@ -17,13 +17,18 @@ function get_text() {
 ]]>
 </script>
 
-<spacer flex="1"/>
+<hbox flex="1">
+  <spacer flex="1"/>
+  <!-- <image flex="1" src="images/25.png"/> -->
+  <spacer flex="1"/>
+</hbox>
 <hbox flex="1" id="layout">
   <button label="BUTTON"/>
   <spacer flex="1"/>
   <button class="  A   B  C D button E  " label="BUTTON" flex="1"/>
   <spacer flex="1"/>
 </hbox>
+<button id="bgimage" label="BUTTON" flex="1"/>
 <spacer flex="1"/>
 
 

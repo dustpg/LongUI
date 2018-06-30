@@ -4,7 +4,6 @@
 
 // ui
 namespace LongUI {
-    // TODO: remove this
     // rgba
     constexpr uint32_t operator ""_rgba(unsigned long long value) noexcept {
         static_assert(sizeof(value) >= sizeof(uint32_t), "bad sizeof");

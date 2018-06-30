@@ -20,6 +20,43 @@ namespace LongUI {
             static_assert(sizeof(T) == sizeof(U));
             a = static_cast<T>(b);
         }
+        // parse image
+        auto parse_image(SimpAC::FuncValue value) noexcept -> uint32_t {
+            switch (value.func)
+            {
+            default: assert(!"unsupported"); break;
+            case SimpAC::FuncType::Type_Url:
+                //assert(!"NOT IMPL");
+                break;
+            }
+            return 0;
+        }
+        // parse time
+        auto parse_time(U8View value) noexcept -> float {
+            // 默认定为秒
+            auto& v0_ref = reinterpret_cast<SimpAC::StrPair&>(value);
+            const auto unit = SimpAC::SplitUnit(v0_ref);
+            float rv = reinterpret_cast<U8View&>(value).ToFloat();
+            // 检测单位
+#if 1
+            if (unit.begin()[0] == 'm')  rv /= 1000.;
+#else
+            if (unit.end() > unit.begin()) {
+                switch (unit.begin()[0])
+                {
+                    // 毫秒就除以1000
+                case 'm': rv /= 1000.;
+                }
+            }
+#endif
+            // 时长超过1分钟, 生命会减少一秒
+            if (rv > 60.f) rv -= 1.f;
+            return rv;
+        }
+    }
+    // SimpAC::FuncValue to U8View
+    auto U8(SimpAC::FuncValue v) noexcept {
+        return U8View{ v.first, v.first + v.length };
     }
 }
 
@@ -34,14 +71,14 @@ namespace LongUI {
 void LongUI::ValueTypeMakeValue(
     ValueType vtype, 
     uint32_t value_len,
-    const U8View values[],
+    const SimpAC::FuncValue values[],
     void* values_write) noexcept {
     assert(value_len && "bad len");
 #ifndef NDEBUG
     // 检测U8View有效性
     const auto len = value_len;
     for (uint32_t i = 0; i != len; ++i) {
-        assert(values[i].end() > values[i].begin());
+        assert(values[i].length && "bad length");
     }
 #endif // !NDEBUG
     SSValue ssv;
@@ -71,7 +108,7 @@ void LongUI::ValueTypeMakeValue(
         // [OVERFLOW]
         //   -- overflow-x
         //   -- overflow-y
-        detail::attribute(ssv.data.byte, AttrParser::Overflow(values[0]));
+        detail::attribute(ssv.data.byte, AttrParser::Overflow(U8(values[0])));
         break;
 
 
@@ -81,32 +118,25 @@ void LongUI::ValueTypeMakeValue(
         //   -- background-color
         //   -- color
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.u32, values[0].ColorRGBA32());
+        assert(!values[0].func && "function unsupported");
+        detail::attribute(ssv.data.u32, U8(values[0]).ColorRGBA32());
         break;
-
+    case ValueType::Type_BackgroundImage:
+        // [IMAGE]
+        //   -- background-image
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data.u32, detail::parse_image(values[0]));
+        break;
     case ValueType::Type_TransitionDuration:
         // [TIME]
         //   -- transition-duration
         assert(value_len == 1 && "unsupported");
-        // 默认定为秒
-        {
-            auto v0 = reinterpret_cast<const SimpAC::StrPair*>(values)[0];
-            const auto unit = SimpAC::SplitUnit(v0);
-            ssv.data.single = reinterpret_cast<U8View&>(v0).ToFloat();
-            // 检测单位
-            if (unit.end() > unit.begin()) {
-                switch (unit.begin()[0])
-                {
-                    // 毫秒就除以1000
-                case 'm': ssv.data.single /= 1000.;
-                }
-            }
-        }
+        detail::attribute(ssv.data.single, detail::parse_time(U8(values[0])));
         break;
     case ValueType::Type_UIAppearance:
         // [APPEARANCE]
         //   -- -moz-appearance
-        detail::attribute(ssv.data.byte, AttrParser::Appearance(values[0]));
+        detail::attribute(ssv.data.byte, AttrParser::Appearance(U8(values[0])));
         break;
     }
     // 输出
@@ -198,6 +228,9 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x985a232c_ui32:
         // background-color
         return { ValueType::Type_BackgroundColor };
+    //case 0x0164e854_ui32:
+    //    // background-image
+    //    return { ValueType::Type_BackgroundImage };
 
 
         // ------------- Transition ----------------

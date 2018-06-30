@@ -76,13 +76,15 @@ namespace LongUI {
         virtual void begin_property(StrPair) noexcept override;
         // add value
         virtual void add_value(StrPair) noexcept override;
+        // add func value
+        virtual void add_func_value(FuncValue, StrPair) noexcept override;
     private:
         // write ptr
         SSBlockPtr *                m_pBlockWrite;
         // main seletor list
         POD::Vector<SSSelector>     m_mainList;
         // pvalues
-        POD::Vector<StrPair>        m_propertyValues;
+        POD::Vector<FuncValue>      m_propertyValues;
         // value list
         SSValues                    m_values;
         // now property
@@ -241,7 +243,22 @@ namespace LongUI {
     /// <param name="pair">The pair.</param>
     /// <returns></returns>
     void CUICssStream::add_value(StrPair pair) noexcept {
-        m_propertyValues.push_back(pair);
+        const auto length = pair.second - pair.first;
+        assert(length < 0xffff && "bad length");
+        SimpAC::FuncValue fv;
+        fv.first = pair.first;
+        fv.length = length;
+        fv.func = SimpAC::FuncType::Type_None;
+        m_propertyValues.push_back(fv);
+    }
+    /// <summary>
+    /// Adds the function value.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="raw">The raw func name.</param>
+    /// <returns></returns>
+    void CUICssStream::add_func_value(FuncValue value, StrPair raw) noexcept {
+        m_propertyValues.push_back(value);
     }
     /// <summary>
     /// Properties the finished.
@@ -253,12 +270,10 @@ namespace LongUI {
             assert(m_propertyValues.size() && "bad size");
             if (m_propertyValues.empty()) return;
             // 根据属性处理值
-            const auto& u8_view = reinterpret_cast<
-                POD::Vector<U8View>&>(m_propertyValues);
             LongUI::ValueTypeMakeValue(
                 m_nowProperty,
-                static_cast<uint32_t>(u8_view.size()),
-                &u8_view.front(),
+                m_propertyValues.size(),
+                &m_propertyValues.front(),
                 &m_values
             );
         }

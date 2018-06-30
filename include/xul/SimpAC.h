@@ -21,6 +21,17 @@ namespace SimpAC {
         // end
         auto end() const noexcept { return second; }
     };
+    // func type
+    enum FuncType : uint16_t;
+    // func value
+    struct alignas(void*) FuncValue {
+        // string begin pointer
+        const Char*     first;
+        // string length max in 65,535
+        uint16_t        length;
+        // type of func
+        FuncType        func;
+    };
     // split unit
     auto SplitUnit(StrPair& pair) noexcept->StrPair;
     // Combinators
@@ -70,6 +81,8 @@ namespace SimpAC {
         virtual void begin_property(StrPair) noexcept SAC_PURE_VIRTUAL_SUFFIX;
         // add a value
         virtual void add_value(StrPair) noexcept SAC_PURE_VIRTUAL_SUFFIX;
+        // add a function value
+        virtual void add_func_value(FuncValue value, StrPair raw_func) noexcept SAC_PURE_VIRTUAL_SUFFIX;
 #ifdef SAC_ATTRIBUTE_SELECTOR
         // add a attribute selector
         virtual void add_attribute_selector(BasicSelectors, StrPair, StrPair) noexcept SAC_PURE_VIRTUAL_SUFFIX;
@@ -117,5 +130,23 @@ namespace SimpAC {
         // Attribute selectors: End     E[foo&="bar"]
         Selectors_AttributeEnd,
 #endif
+    };
+    // func type: see also SimpAC::FUNC_HASH_LIST
+    enum FuncType : uint16_t {
+        Type_None = 0,
+        Type_Attr,              // attr()
+        Type_Calc,              // calc()
+        Type_CubicBezier,       // cubic-bezier()
+        Type_Hsl,               // hsl()
+        Type_Hsla,              // hsla()
+        Type_LinearGradient,    // linear-gradient()
+        Type_RadialGradient,    // radial-gradient()
+        Type_ReLinearGradient,  // repeating-linear-gradient()
+        Type_ReRadialGradient,  // repeating-radial-gradient()
+        Type_Rgb,               // rgb()
+        Type_Rgba,              // rgba()
+        Type_Url,               // url()
+        Type_Var,               // var()
+        Type_Unknown,           // unknown
     };
 }

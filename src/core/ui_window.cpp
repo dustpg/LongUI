@@ -466,7 +466,15 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
     // 注册命名控件
     if (this && *ctrl.GetID()) {
         // 必须没有被注册过
-        assert(!this->FindControl(ctrl.GetID()) && "id exist!");
+#ifndef NDEBUG
+        if (this->FindControl(ctrl.GetID())) {
+            LUIDebug(Error) LUI_FRAMEID
+                << "add named control but id exist: "
+                << ctrl.GetID()
+                << endl;
+            assert(!"id exist!");
+        }
+#endif
         // XXX: 错误处理
         m_private->ctrl_map.insert({ ctrl.GetID(), &ctrl });
     }
@@ -1773,21 +1781,15 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     // 收到重建消息/设备丢失时 重建UI
     constexpr int32_t DREMOVED = DXGI_ERROR_DEVICE_REMOVED;
     constexpr int32_t DRESET = DXGI_ERROR_DEVICE_RESET;
-    // TODO: UIManager.RecreateResources
 #ifdef NDEBUG
     if (hr.code == DREMOVED || hr.code == DRESET) {
-        //hr = { UIManager.RecreateResources() };
+        UIManager.NeedRecreate();
     }
 #else
     // TODO: 测试 test_D2DERR_RECREATE_TARGET
     if (hr.code == DREMOVED || hr.code == DRESET ) {
-        assert(!"NOTIMPL");
+        UIManager.NeedRecreate();
         LUIDebug(Hint) << "D2DERR_RECREATE_TARGET!" << LongUI::endl;
-        //hr = UIManager.RecreateResources();
-        /*if (FAILED(hr)) {
-            LUIDebug(Hint) << "But, Recreate Failed!!!" << LongUI::endl;
-            LUIDebug(Error) << "Recreate Failed!!!" << LongUI::endl;
-        }*/
     }
     assert(hr);
     // 调试

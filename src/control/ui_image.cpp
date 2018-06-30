@@ -74,6 +74,7 @@ void LongUI::UIImage::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     }
     default:
+        // 父类处理
         return Super::add_attribute(key, value);
     }
 }

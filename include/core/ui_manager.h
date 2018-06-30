@@ -59,7 +59,7 @@ namespace LongUI {
         // 64bit
         template<> struct private_manager<8> { enum { size = 656, align = 8 }; };
     }
-    // km input
+    // input
     class CUIInputKM;
     // private
     struct PrivateManager;
@@ -75,20 +75,23 @@ namespace LongUI {
         // refresh system info
         void refresh_system_info() noexcept;
     public:
-        // km input
+        // input
         friend CUIInputKM;
         // ctor_dtor
         friend detail::ctor_dtor<CUIManager>;
         // interface for memory management
-        struct IMM; friend IMM;
+        struct IMM;
         // time capsules
         //using TimeCapsules = POD::Vector<CUITimeCapsule*>;
         // time capsule call
         //using TimeCapsuleCall = CUITimeCapsule::TimeCallBack;
         // flag
         using ConfigFlag = IUIConfigure::ConfigureFlag;
+    public:
         // get instance
         static inline auto GetInstance() noexcept->CUIManager&;
+        // delete later for control
+        static void DeleteLater(UIControl&) noexcept;
         // initialize
         auto Initialize(IUIConfigure* config = nullptr) noexcept ->Result;
         // uninitialize
@@ -97,11 +100,8 @@ namespace LongUI {
         void OneFrame() noexcept;
         // wait vblank
         void WaitForVBlank() noexcept;
-        // set css root directory for loading resource
-        //void SetCSSRootDir(const wchar_t* dir) noexcept;
-    public:
-        // delete later for control
-        static void DeleteLater(UIControl&) noexcept;
+        // need recreate
+        void NeedRecreate() noexcept;
     public:
         // add [unique]/[release-free] text
         auto GetUniqueText(U8View pair) noexcept->const char*;
@@ -177,6 +177,8 @@ namespace LongUI {
         // rendering locker
         CUILocker               m_uiRenderLocker;
     protected:
+        // try recreate all device resource
+        void try_recreate() noexcept;
         // private manager
         auto&pm() noexcept { return reinterpret_cast<PrivateManager&>(m_private); }
         // private data
@@ -184,6 +186,9 @@ namespace LongUI {
             detail::private_manager<sizeof(void*)>::size,
             detail::private_manager<sizeof(void*)>::align
         >::type                 m_private;
+    private:
+        // recreate flag
+        bool                    m_flagRecreate = false;
     };
     // auto data locker
     class CUIDataAutoLocker {

@@ -169,7 +169,7 @@ namespace LongUI {
             return hr;
         }
         // load bitmap
-        template<typename Lambda> inline auto load_bitmap(
+        template<typename Lambda> auto load_bitmap(
             Lambda create,
             IWICImagingFactory* pIWICFactory,
             HANDLE file,
@@ -248,11 +248,13 @@ struct LongUI::PrivateResMgr {
     // resource map
     using ResourceMap = POD::HashMap<uint32_t>;
     // init
-    inline auto init() noexcept->Result;
+    auto init() noexcept->Result;
     // recreate
-    inline auto recreate() noexcept->Result;
+    auto recreate() noexcept->Result;
     // release
-    inline void release() noexcept;
+    void release() noexcept;
+    // push index0
+    auto push_index0_res() noexcept ->Result;
     // d2d factroy
     ID2D1Factory1*      d2dfactroy;
     // dwrite factroy
@@ -284,17 +286,35 @@ inline auto LongUI::PrivateResMgr::recreate() noexcept -> Result {
 }
 
 /// <summary>
+/// Pushes the index0 resource.
+/// </summary>
+/// <returns></returns>
+auto LongUI::PrivateResMgr::push_index0_res() noexcept ->Result {
+    assert(this->reslist.empty() && "bad list");
+    reslist.reserve(128);
+    // 内存不足
+    if (!reslist.is_ok()) return { Result::RE_OUTOFMEMORY };
+    // 资源数据
+    const auto data = ResourceData {
+        nullptr,
+        ":lui/index0",
+        0,
+        ResourceType::Type_Custom
+    };
+    return { Result::RS_OK };
+}
+
+/// <summary>
 /// Initializes this instance.
 /// </summary>
 /// <returns></returns>
 inline auto LongUI::PrivateResMgr::init() noexcept -> Result {
+    // 设置默认字体
     this->defarg = { 
         "Arial", 
         12.5f, 1.2f, 0.f, 
         Weight_Normal, Style_Normal, Stretch_Normal
     };
-    reslist.reserve(16);
-    if(!reslist) return{ Result::RE_OUTOFMEMORY };
     Result hr = { Result::RS_OK };
     // 创建 WIC 工厂.
     if (hr) {
@@ -332,15 +352,7 @@ inline auto LongUI::PrivateResMgr::init() noexcept -> Result {
     }
     // 创建INDEX0资源
     if (hr) {
-        // 资源数据
-        ResourceData data {
-            nullptr,
-            ":lui/index0",
-            0,
-            ResourceType::Type_Image
-        };
-        // 默认资源
-        //const auto index0 = CUIImage0::CreateImage0();
+        hr = this->push_index0_res();
     }
     return hr;
 }
@@ -366,8 +378,9 @@ inline void LongUI::PrivateResMgr::release() noexcept {
 /// <param name="id">The identifier.</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::GetResoureceData(
-    uint32_t id) const noexcept -> const ResourceData &{
+    uint32_t id) const noexcept -> const ResourceData& {
     auto& list = rm().reslist;
+    assert(id && "id cannot be 0");
     assert(id < list.size() && "id out of range");
     return list[id];
 }
@@ -588,7 +601,6 @@ auto LongUI::CUIResMgr::CreateBitmapFromSSImageMemory(
     assert(!"NOT IMPL");
     return{ Result::RE_NOTIMPL };
 }
-
 
 PCN_NOINLINE
 /// <summary>

@@ -22,4 +22,16 @@
       </ArrayItems>
     </Expand>
   </Type>
+  <!--SimpAC::FuncValue-->
+  <Type Name="SimpAC::FuncValue">
+    <DisplayString>{first,[length] s8}</DisplayString>
+    <Expand>
+      <Item Name="[func]" ExcludeView="simple">func</Item>
+      <Item Name="[size]" ExcludeView="simple">length</Item>
+      <ArrayItems>
+        <Size>length</Size>
+        <ValuePointer>first</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
 </AutoVisualizer>

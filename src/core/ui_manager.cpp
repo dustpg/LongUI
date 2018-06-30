@@ -160,6 +160,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
 #endif
     // 数据更新区域
     this_()->DataLock();
+    // 尝试重新创建
+    this_()->try_recreate();
     // 记录帧间时间
     this_()->m_fDeltaTime = this_()->update_delta_time();
     // 刷新控件控制
@@ -266,6 +268,38 @@ void LongUI::CUIManager::WaitForVBlank() noexcept {
 
 
 /// <summary>
+/// Needs the recreate.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIManager::NeedRecreate() noexcept {
+    this_()->DataLock();
+    m_flagRecreate = true;
+    this_()->DataUnlock();
+}
+
+/// <summary>
+/// Tries the recreate.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIManager::try_recreate() noexcept {
+    // 检查Flag
+    if (!m_flagRecreate) return;
+    m_flagRecreate = false;
+    this_()->RenderLock();
+    // 重建资源
+
+    // 重建控件
+
+    this_()->RenderUnlock();
+    // TODO: 错误处理对策
+#ifndef NDEBUG
+    LUIDebug(Hint) 
+        << "[Recreate Resource]" 
+        << endl;
+#endif // !NDEBUG
+}
+
+/// <summary>
 /// Gets the unique text.
 /// </summary>
 /// <param name="pair">The pair.</param>
@@ -278,9 +312,6 @@ auto LongUI::CUIManager::GetUniqueText(
 
 // windows api
 #include <Windows.h>
-
-
-
 
 /// <summary>
 /// Creates the control.

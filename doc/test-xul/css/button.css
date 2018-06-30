@@ -14,6 +14,12 @@ button#button, #layout .button{
     background-color: green
 }
 
+#bgimage {
+    -moz-appearance: none;
+    background-color: red;
+    background-image: url('../images/25.png');
+}
+
 .imgButton {
     -moz-appearance: none;
     border-width: 3px;

@@ -326,8 +326,6 @@ auto LongUI::UIControl::init() noexcept -> Result {
     Result hr = arg.GetResult();
     // 初始化其他
     if (hr) {
-        // 重新连接样式表
-        this->link_style_sheet();
         // 设置默认样式
         constexpr auto defapp = Appearance_None;
         UIControlPrivate::SetAppearanceIfNotSet(*this, defapp);
@@ -339,6 +337,8 @@ auto LongUI::UIControl::init() noexcept -> Result {
         if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
         }
+        // 重新连接样式表
+        this->link_style_sheet();
     }
     return hr;
 }

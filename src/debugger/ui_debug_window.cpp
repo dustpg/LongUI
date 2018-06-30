@@ -25,6 +25,7 @@ namespace LongUI {
             window->ShowWindow();
             window->SetPos({ 0, 0 });
             this->exit();
+            this->recreate();
             this->force_render();
             this->draw_text_cell();
             this->draw_dirty_rect();
@@ -73,6 +74,7 @@ namespace LongUI {
         void recreate() noexcept {
             do_button("btn-recreate")->AddGuiEventListener(
                 UIButton::_clicked(), [](UIControl& control) noexcept {
+                UIManager.NeedRecreate();
                 return Event_Accept;
             });
         }
@@ -141,9 +143,9 @@ const char* LongUI::debug_view_xul = u8R"(<?xml version="1.0"?>
 <groupbox flex="1">
     <caption label="Core Debug" />
     <hbox>
-        <button id="btn-force" label="force render one frame"/>
+        <button id="btn-force" label="force render x1"/>
         <button id="btn-exit" label="exit"/>
-        <button id="btn-recreate" visible="false" label="recreate"/>
+        <button id="btn-recreate" label="recreate"/>
     </hbox>
     <checkbox id="cbx-dirty" label="draw dirty rect"/>
     <checkbox id="cbx-cell" label="draw text cell"/>

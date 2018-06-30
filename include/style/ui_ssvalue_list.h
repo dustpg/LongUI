@@ -5,6 +5,12 @@
 #include <core/ui_core_type.h>
 
 
+// simpac namespace
+namespace SimpAC {
+    // Func Value
+    struct FuncValue;
+}
+
 namespace LongUI {
     /// <summary>
     /// type of value
@@ -151,15 +157,6 @@ namespace LongUI {
         // data
         UniByte4        data;
     };
-#if 0
-    // extra value type
-    struct ExValueType {
-        // value type
-        ValueType       vtype;
-        // extra number
-        //uint32_t        extra;
-    };
-#endif
     // check type count
     static_assert(static_cast<int>(ValueType::TYPE_COUNT) <= 1024, "TO HUGE");
     // get easy type
@@ -172,7 +169,7 @@ namespace LongUI {
     void ValueTypeMakeValue(
         ValueType ex, 
         uint32_t value_len,
-        const U8View values[],
+        const SimpAC::FuncValue values[],
         void* values_write
     ) noexcept;
 }
