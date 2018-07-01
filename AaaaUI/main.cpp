@@ -10,6 +10,7 @@
 #include <graphics/ui_matrix3x2.h>
 
 #include <core/ui_color_list.h>
+#include <container/pod_hash.h>
 #include <container/nonpod_vector.h>
 
 #include <vector>
@@ -150,6 +151,14 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         const auto c = v.capacity();
         v[0];
     }
+    //{
+    //    LongUI::POD::HashMap<int> as;
+    //    const auto view1 = LongUI::U8View::FromCStyle(u8R"(../doc/test-xul/images/25.png)");
+    //    const auto view2 = LongUI::U8View::FromCStyle(u8R"(../doc/test-xul/)");
+    //    as.insert(view1.begin(), view1.end(), 123);
+    //    as.insert(view2.begin(), view2.end(), 321);
+    //    as.insert(view2.begin(), view2.end(), 321);
+    //}
     {
         auto a = LongUI::Matrix::Matrix3x2F::Scale({ 2, 2 });
         auto b = LongUI::Matrix::Matrix3x2F::Translation({ 100, 100 });
@@ -254,6 +263,12 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
 #endif
         c->SetBgColor({ color }); c->SetDebugName(name);
         return c;
+    };
+    auto do_button = [](LongUI::CUIWindow*window, const char* name) noexcept {
+        const auto ctrl = window->FindControl(name);
+        assert(ctrl && "404");
+        const auto btn = longui_cast<LongUI::UIButton*>(ctrl);
+        return btn;
     };
     auto init_flex = [](LongUI::UIControl* c, float flex) noexcept {
         const_cast<float&>(c->GetStyle().flex) = flex;
@@ -492,6 +507,18 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     case 16:
         loadfile("../doc/test-xul/css-test.xul");
         viewport.GetWindow()->Resize({ 800, 600 });
+        do_button(viewport.GetWindow(), "btn1")->AddGuiEventListener(
+            LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
+            const auto window = control.GetWindow();
+            if (const auto img1 = window->FindControl("img1")) {
+                img1->DeleteLater();
+            }
+            else if (const auto img2 = window->FindControl("img2")) {
+                const auto img = longui_cast<LongUI::UIImage*>(img2);
+                img->SetSource(LongUI::U8View::FromCStyle(""));
+            }
+            return LongUI::Event_Accept;
+        });
         break;
     }
 

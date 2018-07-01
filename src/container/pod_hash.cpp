@@ -222,6 +222,12 @@ auto LongUI::POD::detail::hash_base::find(
     const char* str_end
 ) const noexcept -> hash_iterator {
     assert(str_begin && str_end > str_begin);
+    // 字符串相同
+    const auto is_same = [](const hash_cell& cell, const char* a, const char* b) noexcept {
+        const auto old_length = std::strlen(cell.str);
+        if (old_length != (b - a)) return false;
+        return !std::strncmp(cell.str, a, b - a);
+    };
     // 有的话
     if (m_cItemSize) {
         const auto celln = m_pBaseTableEnd - m_pBaseTable;
@@ -230,9 +236,10 @@ auto LongUI::POD::detail::hash_base::find(
         const auto index = code & (celln - 1);
         auto cell = reinterpret_cast<hash_cell*>(m_pBaseTable[index]);
         while (cell) {
-            if (!std::strncmp(cell->str, str_begin, str_end - str_begin)) return{
-                m_pBaseTable + index, cell
-            };
+            // XXX: 可以保存必要数据优化
+            if (is_same(*cell, str_begin, str_end))
+                return { m_pBaseTable + index, cell };
+            // 推动
             cell = cell->next;
         }
     }

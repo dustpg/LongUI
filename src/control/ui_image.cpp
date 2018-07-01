@@ -82,7 +82,7 @@ bool LongUI::UIImage::SetSource(U8View src) noexcept {
     const auto id = UIManager.LoadResource(src, RESTYPE, true);
     // TODO: 错误处理
 #ifndef NDEBUG
-    if (!id) {
+    if (!id && src.end() != src.begin()) {
         LUIDebug(Error) LUI_FRAMEID
             << "| resource not found: "
             << src

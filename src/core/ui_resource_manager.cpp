@@ -523,6 +523,8 @@ auto LongUI::CUIResMgr::LoadResource(
     U8View uri, 
     ResourceType type, 
     bool is_xul_dir) noexcept -> uint32_t {
+    // 没有就算了
+    if (uri.end() == uri.begin()) return 0;
     // 待用数据
     PathOP::UriPath path_buf;
     auto& list = rm().reslist;
@@ -607,6 +609,9 @@ auto LongUI::CUIResMgr::CreateBitmap(
 /// <returns></returns>
 auto LongUI::CUIResMgr::CreateBitmapFromSSImageFile(
     const char* utf8_file_name, I::Bitmap *& bitmap) noexcept -> Result {
+#ifndef NDEBUG
+    LUIDebug(Hint) << "load file: " << utf8_file_name << endl;
+#endif
     CUIFile file{ utf8_file_name, CUIFile::Flag_Read };
     if (!file) return Result::GetSystemLastError();
     const auto handle = reinterpret_cast<void*>(file.GetHandle());
