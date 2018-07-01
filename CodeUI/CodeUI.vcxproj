@@ -370,7 +370,7 @@
     <ClInclude Include="..\include\event\ui_mouse_event.h" />
     <ClInclude Include="..\include\event\ui_splitter_event.h" />
     <ClInclude Include="..\include\filesystem\ui_file.h" />
-    <ClInclude Include="..\include\filesystem\ui_fileop.h" />
+    <ClInclude Include="..\include\filesystem\ui_pathop.h" />
     <ClInclude Include="..\include\filesystem\ui_findfile.h" />
     <ClInclude Include="..\include\graphics\ui_adapter_desc.h" />
     <ClInclude Include="..\include\graphics\ui_bd_renderer.h" />

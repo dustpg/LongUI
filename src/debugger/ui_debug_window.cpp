@@ -133,19 +133,16 @@ namespace LongUI { namespace impl {
 }}
 
 
-
-
-const char* LongUI::debug_view_xul = u8R"(<?xml version="1.0"?>
-<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
-<window title="XUL Layout"
-        xmlns:html="http://www.w3.org/1999/xhtml"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+// xul stirng
+const char* LongUI::debug_view_xul = u8R"(
+<?xml version="1.0"?>
+<window title="XUL Layout">
 <groupbox flex="1">
-    <caption label="Core Debug" />
+    <caption label="Core Debug"/>
     <hbox>
         <button id="btn-force" label="force render x1"/>
+        <button id="btn-recreate" label="recreate res"/>
         <button id="btn-exit" label="exit"/>
-        <button id="btn-recreate" label="recreate"/>
     </hbox>
     <checkbox id="cbx-dirty" label="draw dirty rect"/>
     <checkbox id="cbx-cell" label="draw text cell"/>

@@ -36,6 +36,9 @@ namespace LongUI {
     class UIImage : public UIControl {
         // super class
         using Super = UIControl;
+    public:
+        // set image source
+        bool SetSource(U8View src) noexcept;
     protected:
         // ctor
         UIImage(UIControl* parent, const MetaControl&) noexcept;
@@ -47,10 +50,12 @@ namespace LongUI {
         // ctor
         UIImage(UIControl* parent = nullptr) noexcept : UIImage(parent, UIImage::s_meta) {}
     public:
+        // do normal event
+        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg & e) noexcept->EventAccept override;
         // recreate
-        auto Recreate() noexcept->Result override;
+        //auto Recreate() noexcept->Result override;
         // render
         void Render() const noexcept override;
     protected:

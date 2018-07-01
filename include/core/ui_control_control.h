@@ -54,9 +54,9 @@ namespace LongUI {
         void InvalidateControl(UIControl& ctrl/*, const RectF& rect*/) noexcept;
     public:
         // set xul dir
-        void SetXULDir(const CUIString&) noexcept;
+        void SetXULDir(const char*) noexcept;
         // get xul dir
-        auto GetXULDir() const noexcept -> const CUIString&;
+        auto GetXULDir() const noexcept -> U8View;
         // add css string
         void AddCssString(U8View) noexcept;
         // add css file

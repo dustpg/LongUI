@@ -5,8 +5,8 @@
 
 // ui namespace
 namespace LongUI {
-    // file op namespace
-    namespace FileOP {
+    // path op namespace
+    namespace PathOP {
         // base path length
         enum { FILEOP_MAX_PATH = 512 };
         // base path

@@ -269,6 +269,8 @@ struct LongUI::PrivateResMgr {
     ResourceMap         resmap;
     // defualt font
     FontArg             defarg;
+    // resource count
+    uint32_t            rescount;
 };
 
 
@@ -301,6 +303,8 @@ auto LongUI::PrivateResMgr::push_index0_res() noexcept ->Result {
         0,
         ResourceType::Type_Custom
     };
+    this->rescount++;
+    reslist.push_back(data);
     return { Result::RS_OK };
 }
 
@@ -403,14 +407,23 @@ void LongUI::CUIResMgr::AddResourceRefCount(uint32_t id) noexcept {
 /// <param name="id">The identifier.</param>
 /// <returns></returns>
 void LongUI::CUIResMgr::ReleaseResourceRefCount(uint32_t id) noexcept {
+    // 资源数量断言
+    auto& counter = rm().rescount;
+    assert(counter > 1 && "bad counter");
+    // 资源列表断言
     auto& list = rm().reslist;
     assert(id < list.size() && "out of range");
     assert(list[id].obj && "object not found");
+    // 资源数据断言
     auto& data = list[id];
     assert(data.ref && "cannot release count 0");
-    if (--data.ref) {
+    // 引用计数归为0
+    if (--data.ref == 0) {
+        // 则释放数据
         data.obj->Destroy();
         data.obj = nullptr;
+        // 减少资源数量
+        counter--;
     }
 }
 
@@ -501,47 +514,76 @@ auto LongUI::CUIResMgr::SaveAsPng(
 /// <summary>
 /// Loads the resource.
 /// </summary>
-/// <param name="uri_begin">The URI begin.</param>
-/// <param name="uri_end">The URI end.</param>
+/// <param name="uri">The URI.</param>
 /// <param name="type">The type.</param>
+/// <param name="is_xul_dir">if set to <c>true</c> [is xul dir].</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::LoadResource(
-    const char* uri_begin, 
-    const char* uri_end,
-    ResourceType type) noexcept -> uint32_t {
+    U8View uri, 
+    ResourceType type, 
+    bool is_xul_dir) noexcept -> uint32_t {
     auto& list = rm().reslist;
+    auto& map = rm().resmap;
     const auto index = static_cast<uint32_t>(list.size());
-    // TODO: 错误处理
-    const auto re = rm().resmap.insert(uri_begin, uri_end, index);
-    // 一致即为空
-    if (re.first->second == index) {
-        ResourceData data{
-            nullptr,
-            re.first->first,
-            0,
-            type
-        };
-        // 创建位图
-        I::Bitmap* bitmap = nullptr;
-        auto hr = this->CreateBitmapFromSSImageFile(data.uri, bitmap);
-        // 创建IMAGE资源
-        if (hr) {
-            hr = CUIImage::CreateImage(*bitmap, data.obj);
+    // 待用BUFFER
+    char buf[MAX_PATH];
+    // TODO: 复用已有的
+    assert(index == rm().rescount && "NOT IMPL");
+    // 检查是不是XUL目录
+    if (is_xul_dir) {
+        const auto dir = UIManager.GetXULDir();
+        const auto length1 = dir.end() - dir.begin();;
+        const auto length2 = uri.end() - uri.begin();
+        // 过长
+        if (length1 + length2 > MAX_PATH) {
+#ifndef NDEBUG
+            LUIDebug(Error) LUI_FRAMEID
+                << "path too long: "
+                << dir
+                << uri
+                << endl;
+#endif // !NDEBUG
+            return 0;
         }
-        // 推入表中
-        if (hr) {
-            list.push_back(data);
-            if (!list) hr = { Result::RE_OUTOFMEMORY };
-        }
-        // TODO: 错误处理: 信息丢失
-        return hr ? index : 0;
+        std::memcpy(buf, dir.begin(), length1);
+        std::memcpy(buf + length1, uri.begin(), length2);
+        uri.first = buf;
+        uri.second = buf + length1 + length2;
     }
-    // 不一致就是已经载入了
-    else {
+    // 插入URL
+    const auto re = map.insert(uri.begin(), uri.end(), index);
+    // 内存不足
+    if (re.first == map.end()) { assert(!"ERROR"); return 0; }
+    // 插入失败 而且 数据不为0就是已有的
+    if (!re.second && re.first->second) {
         const auto id = re.first->second;
         assert(type == list[id].type && "must be same");
         return id;
     }
+    // 插入失败但是数据为0则是本来有数据但是中间被释放了
+    re.first->second = index;
+    // 待插入数据
+    ResourceData data{
+        nullptr,
+        re.first->first,
+        0,
+        type
+    };
+    // 创建位图
+    I::Bitmap* bitmap = nullptr;
+    auto hr = this->CreateBitmapFromSSImageFile(data.uri, bitmap);
+    // 创建IMAGE资源
+    if (hr) {
+        hr = CUIImage::CreateImage(*bitmap, luiref data.obj);
+    }
+    // 推入表中
+    if (hr) {
+        list.push_back(data);
+        if (list) ++rm().rescount;
+        else hr = { Result::RE_OUTOFMEMORY };
+    }
+    // TODO: 错误处理: 信息丢失
+    return hr ? index : 0;
 }
 
 /// <summary>
@@ -579,7 +621,7 @@ auto LongUI::CUIResMgr::CreateBitmap(
 /// <param name="bitmap">The bitmap.</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::CreateBitmapFromSSImageFile(
-    const char * utf8_file_name, I::Bitmap *& bitmap) noexcept -> Result {
+    const char* utf8_file_name, I::Bitmap *& bitmap) noexcept -> Result {
     CUIFile file{ utf8_file_name, CUIFile::Flag_Read };
     if (!file) return Result::GetSystemLastError();
     const auto handle = reinterpret_cast<void*>(file.GetHandle());
@@ -934,6 +976,8 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
     impl::delete_native_style_renderer(m_pNativeStyle);
     // 释放设备资源
     this->release_device();
+    // 释放资源列表
+    this->release_res_list();
     // 释放无关资源
     rm().release();
     // 调用析构函数
@@ -950,7 +994,7 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
 /// <returns></returns>
 auto LongUI::CUIResMgr::recreate(IUIConfigure* cfg) noexcept -> Result {
     constexpr auto same_s = sizeof(PrivateResMgr) == sizeof(m_private);
-    constexpr auto same_a = alignof(PrivateResMgr) == alignof(void*);
+    constexpr auto same_a = alignof(PrivateResMgr) == alignof(private_t);
     static_assert(same_s && same_a, "must be same");
     this->release_device();
     const auto flag = cfg->GetConfigureFlag();
@@ -1182,6 +1226,32 @@ void LongUI::CUIResMgr::redirect_screen() noexcept {
     assert(!adapter && "bad action");
 }
 
+/// <summary>
+/// Releases the resource list.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIResMgr::release_res_list() noexcept {
+    auto& list = rm().reslist;
+    // 释放未正确释放的资源(资源泄漏)
+    for (auto& x : list) {
+        if (x.obj) {
+#ifndef NDEBUG
+            const auto index = &x - &list.front();
+            LUIDebug(Error)
+                << "resource non-released:(index:"
+                << index
+                << ", ref: "
+                << x.ref
+                << ", type: "
+                << static_cast<int>(x.type)
+                << ")" << endl;
+#endif
+            x.obj->Destroy();
+            x.obj = nullptr;
+        }
+    }
+    assert(rm().rescount == 1 && "rescount should be 1");
+}
 
 /// <summary>
 /// Releases this instance.

@@ -612,9 +612,6 @@
     <ClInclude Include="..\include\filesystem\ui_file.h">
       <Filter>header\filesystem</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\filesystem\ui_fileop.h">
-      <Filter>header\filesystem</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\filesystem\ui_findfile.h">
       <Filter>header\filesystem</Filter>
     </ClInclude>
@@ -986,6 +983,9 @@
     </ClInclude>
     <ClInclude Include="..\include\xul\SimpAC.h">
       <Filter>header\xul</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\filesystem\ui_pathop.h">
+      <Filter>header\filesystem</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

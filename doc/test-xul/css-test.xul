@@ -19,7 +19,9 @@ function get_text() {
 
 <hbox flex="1">
   <spacer flex="1"/>
-  <!-- <image flex="1" src="images/25.png"/> -->
+  <image flex="1" src="images/25.png"/>
+  <image flex="1" src="images/25.png"/>
+  <!-- <image flex="1" src="images/owl.gif"/> -->
   <spacer flex="1"/>
 </hbox>
 <hbox flex="1" id="layout">

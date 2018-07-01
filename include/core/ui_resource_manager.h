@@ -24,6 +24,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "ui_core_type.h"
 #include "ui_basic_type.h"
 #include "../text/ui_ctl_decl.h"
 #include "../resource/ui_resource.h"
@@ -31,12 +32,13 @@
 
 // ui namespace
 namespace LongUI {
-#if 0
+/*
      system-supported image file format list:
       - png
       - jpg
       - gif
-#endif
+      - and more
+*/
     // rgba-color
     union RGBA;
     // priavte resmgr
@@ -58,7 +60,7 @@ namespace LongUI {
             // pointer count
             p_ptr_count = 4 + 2 + 4 + 1,
             // 32bit count
-            p_32b_count = 0 + 2 + 2 + 2 + 2,
+            p_32b_count = 0 + 2 + 2 + 2 + 2 + 1,
             // size count
             p_size =    p_ptr_count * sizeof(void*) + 
                         p_32b_count * sizeof(uint32_t)
@@ -89,7 +91,7 @@ namespace LongUI {
         // save as png
         auto SaveAsPng(I::Bitmap& bmp, const wchar_t* file) noexcept->Result;
         // load resource, return id
-        auto LoadResource(const char* uri_begin, const char* uri_end, ResourceType) noexcept->uint32_t;
+        auto LoadResource(U8View, ResourceType, bool is_xul_dir) noexcept->uint32_t;
         // get resource data
         auto GetResoureceData(uint32_t id)const noexcept->const ResourceData&;
         // add resource ref-count
@@ -140,6 +142,8 @@ namespace LongUI {
         auto&rm() const noexcept { return reinterpret_cast<const PrivateResMgr&>(m_private); }
         // release device
         void release_device() noexcept;
+        // release res-list
+        void release_res_list() noexcept;
     protected:
         // original local name length, LOCALE_NAME_MAX_LENGTH = 85
         enum { olnl = 85 + 3 };

@@ -63,16 +63,9 @@ void LongUI::UIImage::add_attribute(uint32_t key, U8View value) noexcept {
     switch (key)
     {
     case BKDR_SRC:
-    {
-        const auto b = value.begin();
-        const auto e = value.end();
-        const auto t = ResourceType::Type_Image;
-        const auto id = UIManager.LoadResource(b, e, t);
-        // TODO: 错误处理
-        assert(id && "bad id");
-        m_idSrc.SetId(id);
+        // src  : 图像源
+        this->SetSource(value);
         break;
-    }
     default:
         // 父类处理
         return Super::add_attribute(key, value);
@@ -80,18 +73,66 @@ void LongUI::UIImage::add_attribute(uint32_t key, U8View value) noexcept {
 }
 
 /// <summary>
-/// Recreates this instance.
+/// Sets the source.
 /// </summary>
+/// <param name="src">The source.</param>
 /// <returns></returns>
-auto LongUI::UIImage::Recreate() noexcept->Result {
-    // 获取Image对象
-    if (m_idSrc.GetId()) {
+bool LongUI::UIImage::SetSource(U8View src) noexcept {
+    constexpr auto RESTYPE = ResourceType::Type_Image;
+    const auto id = UIManager.LoadResource(src, RESTYPE, true);
+    // TODO: 错误处理
+#ifndef NDEBUG
+    if (!id) {
+        LUIDebug(Error) LUI_FRAMEID
+            << "| resource not found: "
+            << src
+            << endl;
+    }
+#endif
+    if (id) {
+        m_idSrc.SetId(id);
+        assert(m_idSrc.GetResoureceType() == RESTYPE);
         const auto obj = m_idSrc.GetResoureceObj();
         m_pSharedSrc = static_cast<CUIImage*>(obj);
         assert(m_pSharedSrc && "bug");
+        return true;
     }
-    // 基类处理
-    return Super::Recreate();
+    return false;
+}
+
+/// <summary>
+/// Recreates this instance.
+/// </summary>
+/// <returns></returns>
+//auto LongUI::UIImage::Recreate() noexcept->Result {
+//    // 获取Image对象
+//    if (m_idSrc.GetId()) {
+//    }
+//    // 基类处理
+//    return Super::Recreate();
+//}
+
+
+/// <summary>
+/// Does the event.
+/// </summary>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UIImage::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
+    switch (e.nevent)
+    {
+        Size2F minsize_set;
+    case LongUI::NoticeEvent::Event_RefreshBoxMinSize:
+        minsize_set = { 0.f };
+        if (m_pSharedSrc) {
+            const auto size = m_pSharedSrc->GetSize();
+            minsize_set.width = static_cast<float>(size.width);
+            minsize_set.height = static_cast<float>(size.height);
+        }
+        this->set_contect_minsize(minsize_set);
+        return LongUI::Event_Accept;
+    }
+    return Super::DoEvent(sender, e);
 }
 
 /// <summary>
@@ -102,11 +143,10 @@ void LongUI::UIImage::Render() const noexcept {
     // 渲染背景
     Super::Render();
     // 图像有效
-    if (m_idSrc.GetId()) {
-        assert(m_pSharedSrc && "bug");
-        m_pSharedSrc->Render(
-            UIManager.Ref2DRenderer()
-        );
+    if (m_pSharedSrc) {
+        // 将目标画在内容区
+        const auto des_rect = this->GetBox().GetContentEdge();
+        m_pSharedSrc->Render(UIManager.Ref2DRenderer(), &des_rect);
     }
 }
 

@@ -38,6 +38,8 @@ namespace LongUI {
         // friend class
         friend class CUIResMgr;
     public:
+        // render
+    public:
         // def ctor
         CUISharedResource() noexcept = default;
         // def dtor

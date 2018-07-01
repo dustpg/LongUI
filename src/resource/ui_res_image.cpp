@@ -39,6 +39,7 @@ auto LongUI::CUIImage::CreateImage(
     if (auto obj = new(std::nothrow) CUIImage{ bitmap }) {
         const auto size = bitmap.GetPixelSize();
         obj->m_size = { size.width, size.height };
+        ptr = obj;
         return hr;
     }
     // 内存不足
@@ -90,7 +91,7 @@ auto LongUI::CUIImage::MakeError(I::Bitmap& bitmap) noexcept->Result {
 /// <param name="mode">The mode.</param>
 /// <returns></returns>
 void LongUI::CUIImage::Render(
-    I::Renderer2D & renderer,
+    I::Renderer2D& renderer,
     const RectF * des_rect, 
     const RectF * src_rect, 
     float opacity, 

@@ -56,7 +56,7 @@ struct LongUI::PrivateCC {
     // from to list
     POD::Vector<SSFromTo>   from_to;
     // xul dir
-    CUIString               xul_dir;
+    CUIStringU8             xul_dir;
 };
 
 
@@ -65,7 +65,7 @@ struct LongUI::PrivateCC {
 /// </summary>
 /// <param name="dir">The dir.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::SetXULDir(const CUIString& dir) noexcept {
+void LongUI::CUIControlControl::SetXULDir(const char* dir) noexcept {
     auto& string = cc().xul_dir;
     string = dir;
     // 尝试添加一个/
@@ -81,8 +81,8 @@ void LongUI::CUIControlControl::SetXULDir(const CUIString& dir) noexcept {
 /// Gets the xul dir.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIControlControl::GetXULDir() const noexcept -> const CUIString& {
-    return cc().xul_dir;
+auto LongUI::CUIControlControl::GetXULDir() const noexcept -> U8View {
+    return cc().xul_dir.view();
 }
 
 /// <summary>

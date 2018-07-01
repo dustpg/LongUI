@@ -20,9 +20,6 @@
 void main_inited(LongUI::UIViewport&, int) noexcept;
 void object_test() noexcept;
 
-namespace LongUI { void NativeStyle() noexcept {}; }
-
-
 extern const char* xml_text_box;
 extern const char* xul_layout;
 extern const char* xul_popup;
@@ -59,7 +56,6 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
             ;
     }
 };
-
 
 #pragma comment(lib, "CodeUI")
 #include <control/ui_radiogroup.h>
@@ -105,7 +101,6 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
         //const auto ptr1 = LongUI::NormalAlloc(1024);
         //const auto ptr2 = LongUI::NormalRealloc(ptr1, 2048);
         //LongUI::NormalFree(ptr2);
-        //LongUI::NativeStyle();
         {
             LongUI::UIViewport viewport1;
 #if 1
@@ -138,6 +133,7 @@ LongUI::UIControl* vv;
 
 
 void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
+    UIManager.SetXULDir("../doc/test-xul");
     vv = &viewport;
     // **测试** 用
     viewport.SetAutoOverflow();
@@ -494,7 +490,6 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         viewport.GetWindow()->Resize({ 800, 600 });
         break;
     case 16:
-        UIManager.SetXULDir(L"../doc/test-xul");
         loadfile("../doc/test-xul/css-test.xul");
         viewport.GetWindow()->Resize({ 800, 600 });
         break;

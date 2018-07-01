@@ -370,6 +370,7 @@ void LongUI::POD::detail::vector_base::reserve(size_type n) noexcept {
             m_pData = this->realloc(nullptr, bytelen);
         }
 #else
+        // 有效堆
         const auto ptr = this->is_valid_heap(m_pData) ? m_pData : nullptr;
         // 使用realloc扩容
         if (const auto data = this->realloc(ptr, bytelen)) {

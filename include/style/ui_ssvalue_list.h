@@ -98,7 +98,7 @@ namespace LongUI {
         //Type_BorderBottomRightRadius,
         //// [Border] image-width
         //Type_BorderLeftWidth,
-        
+
         // [Background] color
         Type_BackgroundColor,
         // [Background] image
@@ -112,12 +112,16 @@ namespace LongUI {
         // [Background] origin 
         Type_BackgroundOrigin,
 
-        // [Transition] transition
         // [Transition] duration
         Type_TransitionDuration,
 
-        // [Text]color
+        // [Text] color
         Type_TextColor,
+
+        //// [Font] size
+        //Type_FontSize,
+        //// [Font] family
+        //Type_FontFamily,
 
         // [LongUI] appearance
         Type_UIAppearance,
@@ -167,7 +171,7 @@ namespace LongUI {
     auto U8View2ValueType(U8View view) noexcept->ValueType;
     // make value
     void ValueTypeMakeValue(
-        ValueType ex, 
+        ValueType ex,
         uint32_t value_len,
         const SimpAC::FuncValue values[],
         void* values_write

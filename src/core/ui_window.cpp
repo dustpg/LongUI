@@ -317,8 +317,8 @@ m_private(new(std::nothrow) Private) {
 /// <returns></returns>
 void LongUI::CUIWindow::LoadCSSFile(U8View file) noexcept {
     // TODO: OOM 处理
-    auto path = UIManager.GetXULDir();
-    path += CUIString::FromUtf8(file);
+    CUIStringU8 path = UIManager.GetXULDir();
+    path += file;
     // 载入文件
     if (CUIFile css_file{ path.c_str(), CUIFile::Flag_Read }) {
         const auto file_size = css_file.GetFilezize();

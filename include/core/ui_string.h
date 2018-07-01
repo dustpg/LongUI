@@ -119,6 +119,8 @@ namespace LongUI {
         Self&append(const T* str) noexcept { return append(str, str + detail::strlen(str)); };
         // append with string
         Self&append(const Self& str) noexcept { return append(str.begin(), str.end()); };
+        // append with char
+        Self&append(const View v) noexcept { return append(v.begin(), v.end()); };
         // append width RAI
         template<typename RAI> typename std::enable_if<type_helper::is_iterator<RAI>::value, Self&>::type
             append(RAI first, RAI last) noexcept {
@@ -237,6 +239,8 @@ namespace LongUI {
         Self&operator+=(const T x) noexcept { append(x); return *this; }
         // operator+=
         Self&operator+=(const T* x) noexcept { append(x); return *this; }
+        // operator+=
+        Self&operator+=(const View x) noexcept { append(x); return *this; }
         // operator+=
         Self&operator+=(const Self&x) noexcept { append(x); return *this; }
         // operator=

@@ -1,5 +1,5 @@
 ﻿#include <Windows.h>
-#include <filesystem/ui_fileop.h>
+#include <filesystem/ui_pathop.h>
 #include <core/ui_string.h>
 
 /// <summary>
@@ -7,7 +7,7 @@
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
-auto LongUI::FileOP::TempDirectoryPath(BasePath& bp) noexcept->uint32_t {
+auto LongUI::PathOP::TempDirectoryPath(BasePath& bp) noexcept->uint32_t {
     return ::GetTempPathW(FILEOP_MAX_PATH, bp.path);
 }
 
@@ -17,7 +17,7 @@ auto LongUI::FileOP::TempDirectoryPath(BasePath& bp) noexcept->uint32_t {
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
-auto LongUI::FileOP::TempDirectoryPath(CUIString& str) noexcept -> uint32_t {
+auto LongUI::PathOP::TempDirectoryPath(CUIString& str) noexcept -> uint32_t {
     const auto buflen = ::GetTempPathW(0, nullptr);
     str.as_buffer_nul(buflen -1, [buflen](wchar_t* buf) noexcept {
         ::GetTempPathW(buflen, buf);
@@ -32,7 +32,7 @@ auto LongUI::FileOP::TempDirectoryPath(CUIString& str) noexcept -> uint32_t {
 /// <param name="prefix">The prefix.</param>
 /// <param name="filename">The filename.</param>
 /// <returns></returns>
-auto LongUI::FileOP::TempFileName(
+auto LongUI::PathOP::TempFileName(
     const wchar_t* path, 
     const wchar_t* prefix, 
     BasePath & filename) noexcept -> uint32_t {
