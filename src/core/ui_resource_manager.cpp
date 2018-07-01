@@ -2,6 +2,7 @@
 #include <graphics/ui_adapter_desc.h>
 #include <interface/ui_iconfig.h>
 #include <resource/ui_resource.h>
+#include <filesystem/ui_pathop.h>
 #include <filesystem/ui_file.h>
 #include <container/pod_hash.h>
 #include <debugger/ui_debug.h>
@@ -522,34 +523,20 @@ auto LongUI::CUIResMgr::LoadResource(
     U8View uri, 
     ResourceType type, 
     bool is_xul_dir) noexcept -> uint32_t {
+    // 待用数据
+    PathOP::UriPath path_buf;
     auto& list = rm().reslist;
     auto& map = rm().resmap;
+    auto get_dir = [is_xul_dir]() noexcept {
+        return is_xul_dir ? UIManager.GetXULDir() : U8View{};
+    };
     const auto index = static_cast<uint32_t>(list.size());
-    // 待用BUFFER
-    char buf[MAX_PATH];
     // TODO: 复用已有的
     assert(index == rm().rescount && "NOT IMPL");
-    // 检查是不是XUL目录
-    if (is_xul_dir) {
-        const auto dir = UIManager.GetXULDir();
-        const auto length1 = dir.end() - dir.begin();;
-        const auto length2 = uri.end() - uri.begin();
-        // 过长
-        if (length1 + length2 > MAX_PATH) {
-#ifndef NDEBUG
-            LUIDebug(Error) LUI_FRAMEID
-                << "path too long: "
-                << dir
-                << uri
-                << endl;
-#endif // !NDEBUG
-            return 0;
-        }
-        std::memcpy(buf, dir.begin(), length1);
-        std::memcpy(buf + length1, uri.begin(), length2);
-        uri.first = buf;
-        uri.second = buf + length1 + length2;
-    }
+    // 转换统一URI字符串
+    uri = PathOP::MakeUriPath(path_buf, get_dir(), uri);
+    // 检测问题
+    if (uri.end() == uri.begin()) { assert(!"ERROR"); return 0; }
     // 插入URL
     const auto re = map.insert(uri.begin(), uri.end(), index);
     // 内存不足
@@ -560,15 +547,9 @@ auto LongUI::CUIResMgr::LoadResource(
         assert(type == list[id].type && "must be same");
         return id;
     }
-    // 插入失败但是数据为0则是本来有数据但是中间被释放了
-    re.first->second = index;
+    // -----------------------------------------
     // 待插入数据
-    ResourceData data{
-        nullptr,
-        re.first->first,
-        0,
-        type
-    };
+    ResourceData data { nullptr, re.first->first, 0, type };
     // 创建位图
     I::Bitmap* bitmap = nullptr;
     auto hr = this->CreateBitmapFromSSImageFile(data.uri, bitmap);
@@ -582,8 +563,12 @@ auto LongUI::CUIResMgr::LoadResource(
         if (list) ++rm().rescount;
         else hr = { Result::RE_OUTOFMEMORY };
     }
-    // TODO: 错误处理: 信息丢失
-    return hr ? index : 0;
+    // TODO: 错误处理(信息丢失)
+    const auto rvcode = hr ? index : 0;
+    // 写入目前的位置
+    re.first->second = rvcode;
+    // 返回
+    return rvcode;
 }
 
 /// <summary>
@@ -1239,7 +1224,7 @@ void LongUI::CUIResMgr::release_res_list() noexcept {
             const auto index = &x - &list.front();
             LUIDebug(Error)
                 << "resource non-released:(index:"
-                << index
+                << static_cast<int32_t>(index)
                 << ", ref: "
                 << x.ref
                 << ", type: "
