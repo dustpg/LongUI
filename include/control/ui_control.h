@@ -315,8 +315,8 @@ namespace LongUI {
         auto init() noexcept->Result;
         // extra animation callback
         void extra_animation_callback(StyleStateTypeChange, void*) noexcept;
-        // start but no animation
-        void start_but_no_animation(StyleStateTypeChange) noexcept;
+        // start animation change
+        bool start_animation_change(StyleStateTypeChange) noexcept;
         // animation property filter
         auto animation_property_filter(void*) noexcept -> uint32_t;
         // link style sheet

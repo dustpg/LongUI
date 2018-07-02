@@ -63,11 +63,6 @@ namespace LongUI {
         // size of it
         size_t              size;
     };
-    /*// windows error code to HRESULT
-    inline auto WinCode2HRESULT(uint32_t x) noexcept ->Result {
-        constexpr Result T_FACILITY_WIN32 = 7;
-        return ((Result)(x) <= 0 ? ((Result)(x)) : ((Result)(((x)& 0x0000FFFF) | (T_FACILITY_WIN32 << 16) | 0x80000000)));
-    }*/
     // point
     template<typename T> struct Point { T x; T y; };
     // rect
@@ -148,6 +143,8 @@ namespace LongUI {
     auto Mix(Point2F from, Point2F to, float progress) noexcept ->Point2F;
     // mix rect
     auto Mix(const RectF& from, const RectF& to, float progress) noexcept;
+    // is persent value?
+    inline bool IsPersentValue(float f) noexcept { return f > -1.f && f < 1.f; }
     // round in gui level
     inline auto RoundInGuiLevel(float a) noexcept { return float(int32_t(a + 0.5f)); }
     // round in gui level

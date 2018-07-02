@@ -65,7 +65,7 @@ struct LongUI::PrivateCC {
 /// </summary>
 /// <param name="dir">The dir.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::SetXULDir(const char* dir) noexcept {
+void LongUI::CUIControlControl::SetXULDir(U8View dir) noexcept {
     auto& string = cc().xul_dir;
     string = dir;
     // 尝试添加一个/
@@ -529,7 +529,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
     assert(native_type != AttributeAppearance::Appearance_None);
     const auto dur = LongUI::NativeStyleDuration({ native_type });
     // 没有动画
-    if (!dur) return ctrl.start_but_no_animation(type);
+    if (!dur) return static_cast<void>(ctrl.start_animation_change(type));
     // TODO: 整理代码, 比如先保证vector有效性
     auto& anima = cc().basic_anima;
     using cab_t = ControlAnimationBasic * ;
@@ -542,8 +542,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
         anima.push_back(init_ca);
         // OOM处理: 变了就不管了
         if (!anima.is_ok()) {
-            const auto changed = ctrl.m_oStyle.state.Change(type);
-            assert(changed && "not changed");
+            ctrl.start_animation_change(type);
             ctrl.NeedUpdate();
             return;
         };
@@ -555,8 +554,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
         cab->done = 0;
     }
     cab->duration = dur;
-    const auto changed = ctrl.m_oStyle.state.Change(type);
-    assert(changed && "not changed");
+    ctrl.start_animation_change(type);
     cab->ctrl->setup_basic_animation();
 }
 
@@ -580,7 +578,8 @@ void LongUI::UIControl::extra_animation_callback(
     // 检测状态
     const auto from_state = m_oStyle.state;
     // 没变就算了
-    if (!m_oStyle.state.Change(change)) return assert(!"NOT CHANGED");
+    if (!this->start_animation_change(change)) return;
+    // 记录目标状态
     const auto to_state = m_oStyle.state;
     // 状态缓冲池
     UniByte4 state_buf[static_cast<int>(ValueType::TYPE_COUNT)];
@@ -690,12 +689,20 @@ auto LongUI::UIControl::animation_property_filter(void*ptr)noexcept->uint32_t{
 /// </summary>
 /// <param name="change">The change.</param>
 /// <returns></returns>
-void LongUI::UIControl::start_but_no_animation(StyleStateTypeChange change) noexcept {
-    // 没有动画
+bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noexcept {
+    // 没有改变?
     const auto changed = m_oStyle.state.Change(change);
-    //m_state.style_state_changed = true;
-    //this->NeedUpdate();
-    assert(changed);
+#ifndef NDEBUG
+    if (!changed) {
+        LUIDebug(Warning) LUI_FRAMEID
+            << "start animation but not changed("
+            << int(change.type)
+            << ")"
+            << this
+            << endl;
+    }
+#endif // !NDEBUG
+    return changed;
 }
 
 /// <summary>
@@ -712,8 +719,8 @@ void LongUI::CUIControlControl::StartExtraAnimation(
     // 断言类型
     assert(ctrl.m_oStyle.appearance == AttributeAppearance::Appearance_None);
     // 先判断有没有匹配规则
-    if (ctrl.GetStyle().matched.empty()) 
-        return ctrl.start_but_no_animation(type);
+    if (ctrl.GetStyle().matched.empty())
+        return static_cast<void>(ctrl.start_animation_change(type));
     // 利用回调获取修改的属性
     auto& from_to_list = cc().from_to;
     ctrl.extra_animation_callback(type, &from_to_list);

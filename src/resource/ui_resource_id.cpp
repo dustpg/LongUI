@@ -18,8 +18,12 @@ LongUI::CUIResourceID::~CUIResourceID() noexcept {
 /// <param name="id">The identifier.</param>
 /// <returns></returns>
 void LongUI::CUIResourceID::SetId(uint32_t id) noexcept {
+    // 先加
+    if (id) UIManager.AddResourceRefCount(id);
+    // 后减
     if (m_id) UIManager.ReleaseResourceRefCount(m_id);
-    if ((m_id = id)) UIManager.AddResourceRefCount(id);
+    // 最后赋值
+    m_id = id;
 }
 
 /// <summary>

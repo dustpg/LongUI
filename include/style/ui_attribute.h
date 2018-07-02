@@ -111,14 +111,16 @@ namespace LongUI{
         Align_Baseline,
     };
     /// <summary>
-    /// repeat 
+    /// repeat high-4bit(y) low-4bit(x)
     /// </summary>
     enum AttributeRepeat : uint8_t {
         Repeat_Repeat = 0,
-        Repeat_RepeatX,
-        Repeat_RepeatY,
+        Repeat_Space,
+        Repeat_Round,
         Repeat_NoRepeat,
-        REPEAT_COUNT,
+        // ---------------
+        Repeat_RepeatXOnly = Repeat_NoRepeat << 4 | Repeat_Repeat,
+        Repeat_RepeatYOnly = Repeat_Repeat << 4 | Repeat_NoRepeat,
     };
     /// <summary>
     /// repeat for image
@@ -235,6 +237,10 @@ namespace LongUI{
         // percentage%
         Unit_Percentage,
     };
+    // BKDR Hash Function
+    auto BKDRHash(const char* a, const char* b) noexcept->uint32_t;
+    // Hash find index
+    auto Uint32FindIndex(const uint32_t[], uint32_t len, uint32_t code) noexcept->uint32_t;
     // parse the attribute
     struct AttrParser {
         // view to align
@@ -247,5 +253,7 @@ namespace LongUI{
         static auto Overflow(U8View) noexcept->AttributeOverflow;
         // view to appearance
         static auto Appearance(U8View) noexcept->AttributeAppearance;
+        // view to repeat
+        static auto Repeat(U8View, U8View) noexcept ->AttributeRepeat;
     };
 }

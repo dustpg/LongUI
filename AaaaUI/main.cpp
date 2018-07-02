@@ -134,7 +134,7 @@ LongUI::UIControl* vv;
 
 
 void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
-    UIManager.SetXULDir("../doc/test-xul");
+    UIManager.SetXULDir(LongUI::U8View::FromCStyle("../doc/test-xul"));
     vv = &viewport;
     // **测试** 用
     viewport.SetAutoOverflow();
@@ -515,7 +515,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
             }
             else if (const auto img2 = window->FindControl("img2")) {
                 const auto img = longui_cast<LongUI::UIImage*>(img2);
-                img->SetSource(LongUI::U8View::FromCStyle(""));
+                static int a = 0;
+                const auto view = LongUI::U8View::FromCStyle(
+                    (a++) & 1 ? "" : "images/25.png");
+                img->SetSource(view);
             }
             return LongUI::Event_Accept;
         });

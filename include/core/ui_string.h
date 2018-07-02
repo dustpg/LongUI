@@ -246,6 +246,8 @@ namespace LongUI {
         // operator=
         Self&operator=(const Self&x) noexcept { m_vector = x.m_vector; return *this; }
         // operator=
+        Self&operator=(View v) noexcept { return this->assign(v.begin(), v.end()); }
+        // operator=
         Self&operator=(Self&&x) noexcept { m_vector = std::move(x.m_vector); return *this; }
         // operator[]
         auto operator[](size_t pos) noexcept ->T& { return m_vector[pos]; }

@@ -165,6 +165,8 @@ namespace LongUI {
     static_assert(static_cast<int>(ValueType::TYPE_COUNT) <= 1024, "TO HUGE");
     // get easy type
     auto GetEasyType(ValueType) noexcept->ValueEasyType;
+    // is image
+    bool IsImageType(ValueType) noexcept;
     // init states buffer
     void InitStateBuffer(UniByte4[/*ValueType::TYPE_COUNT*/]) noexcept;
     // u8view to value type

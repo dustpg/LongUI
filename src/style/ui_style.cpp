@@ -232,3 +232,70 @@ auto LongUI::AttrParser::Appearance(U8View view) noexcept -> AttributeAppearance
     // TODO: NOTIMPL
     return Appearance_None;
 }
+
+
+// longui
+namespace LongUI {
+    // repeat data
+    const uint32_t REPEAT_DATA[] = {
+        0xfcef1f9f_ui32,    // repeat
+        0xf1c473aa_ui32,    // space
+        0xe019b212_ui32,    // round
+        0x4adeb4b7_ui32,    // no-repeat
+        0x79aed116_ui32,    // repeat-x
+        0x79aed117_ui32,    // repeat-y
+    };
+    PCN_NOINLINE
+    /// <summary>
+    /// Uint32s the index of the find.
+    /// </summary>
+    /// <param name="list">The list.</param>
+    /// <param name="len">The length.</param>
+    /// <param name="code">The code.</param>
+    /// <returns></returns>
+    auto Uint32FindIndex(const uint32_t list[], uint32_t len, uint32_t code) noexcept -> uint32_t {
+        uint32_t index = 0;
+        for (; index != len; ++index) {
+            if (list[index] == code) break;
+        }
+        return index;
+    }
+}
+
+/// <summary>
+/// Repeats the specified v1.
+/// </summary>
+/// <param name="v1">The v1.</param>
+/// <param name="v2">The v2.</param>
+/// <returns></returns>
+auto LongUI::AttrParser::Repeat(U8View v1, U8View v2) noexcept -> AttributeRepeat {
+    assert(v1.end() > v1.begin());
+    /*
+        repeat-x    :repeat     no-repeat
+        repeat-y    :no-repeat  repeat
+        repeat      :repeat     repeat
+        space       :space      space
+        round       :round      round
+        no-repeat   :no-repeat  no-repeat
+    */
+    const auto hash1 = LongUI::BKDRHash(v1.begin(), v1.end());
+    const auto index = LongUI::Uint32FindIndex(
+        LongUI::REPEAT_DATA, 
+        sizeof(REPEAT_DATA) / sizeof(REPEAT_DATA[0]),
+        hash1
+    );
+    // 1 for 2
+    if (index > Repeat_NoRepeat) {
+        // repeat-x
+        if (index == Repeat_NoRepeat + 1) return Repeat_RepeatXOnly;
+        // repeat-y
+        else return Repeat_RepeatYOnly;
+    }
+    // y-repeat
+    const auto hash2 = LongUI::BKDRHash(v2.begin(), v2.end());
+    return static_cast<AttributeRepeat>(index | (LongUI::Uint32FindIndex(
+        LongUI::REPEAT_DATA, 
+        sizeof(REPEAT_DATA) / sizeof(REPEAT_DATA[0]),
+        hash2
+    ) << 4));
+}

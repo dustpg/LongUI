@@ -1259,6 +1259,12 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_BackgroundColor:
         this->SetBgColor({ value.data.u32 });
         break;
+    case ValueType::Type_BackgroundImage:
+        this->SetBgImage({ value.data.u32 });
+        break;
+    case ValueType::Type_BackgroundRepeat:
+        this->SetBgRepeat(static_cast<AttributeRepeat>(value.data.byte));
+        break;
     case ValueType::Type_TransitionDuration:
         using dur_t = decltype(m_oStyle.tduration);
         assert(value.data.single < 65.5f && "out of range");
@@ -1300,6 +1306,12 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_BackgroundColor:
         detail::write_value(value.data.u32, this->GetBgColor().primitive);
+        break;
+    case ValueType::Type_BackgroundImage:
+        detail::write_value(value.data.u32, this->GetBgImage());
+        break;
+    case ValueType::Type_BackgroundRepeat:
+        detail::write_value(value.data.byte, this->GetBgRepeat());
         break;
     case ValueType::Type_TransitionDuration:
         value.data.single = static_cast<float>(m_oStyle.tduration) * 1000.f;

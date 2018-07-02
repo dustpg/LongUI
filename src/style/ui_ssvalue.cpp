@@ -324,6 +324,13 @@ LongUI::SSBlock::SSBlock(uint32_t len) noexcept: main_len(len) {
 /// </summary>
 /// <returns></returns>
 LongUI::SSBlock::~SSBlock() noexcept {
+    // 释放表中的图像引用
+    for (const auto x : this->list) {
+        if (LongUI::IsImageType(x.type) && x.data.u32) {
+            UIManager.ReleaseResourceRefCount(x.data.u32);
+        }
+    }
+    // 释放选择器
     LongUI::FreeSelector(this->main, this->main_len);
 }
 

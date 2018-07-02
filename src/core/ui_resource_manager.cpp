@@ -422,7 +422,14 @@ void LongUI::CUIResMgr::ReleaseResourceRefCount(uint32_t id) noexcept {
     if (--data.ref == 0) {
         // 则释放数据
         data.obj->Destroy();
+        // 字符映射表中删除
+        const auto itr = rm().resmap.find(data.uri);
+        assert(itr != rm().resmap.end());
+        itr->second = 0;
+        // 清空数据
         data.obj = nullptr;
+        //data.uri = nullptr;
+        //data.type = ResourceType::Type_Custom;
         // 减少资源数量
         counter--;
     }
@@ -532,9 +539,21 @@ auto LongUI::CUIResMgr::LoadResource(
     auto get_dir = [is_xul_dir]() noexcept {
         return is_xul_dir ? UIManager.GetXULDir() : U8View{};
     };
-    const auto index = static_cast<uint32_t>(list.size());
-    // TODO: 复用已有的
-    assert(index == rm().rescount && "NOT IMPL");
+    const auto nsize = static_cast<uint32_t>(list.size());
+    assert(nsize >= rm().rescount && "???");
+    auto index = nsize;
+    // 复用已有的: 如果超过 3/4就直接末尾添加
+    if (rm().rescount >= nsize * 3 / 4 ) {
+        list.resize(list.size() + 1);
+        if (!list.is_ok()) return 0;
+    }
+    // 否则就复用已有的
+    else {
+        for (index = 1; index != nsize; ++index) {
+            if (list[index].obj == nullptr) break;
+        }
+        assert(index != nsize && "not found");
+    }
     // 转换统一URI字符串
     uri = PathOP::MakeUriPath(path_buf, get_dir(), uri);
     // 检测问题
@@ -561,9 +580,8 @@ auto LongUI::CUIResMgr::LoadResource(
     }
     // 推入表中
     if (hr) {
-        list.push_back(data);
-        if (list) ++rm().rescount;
-        else hr = { Result::RE_OUTOFMEMORY };
+        list[index] = data;
+        ++rm().rescount;
     }
     // TODO: 错误处理(信息丢失)
     const auto rvcode = hr ? index : 0;
@@ -1274,3 +1292,13 @@ void LongUI::CUIResMgr::release_device() noexcept {
 #endif
 }
 
+
+namespace LongUI { namespace detail {
+    // image to id
+    auto xul_image_to_id(U8View view) noexcept -> uint32_t {
+        const auto type = ResourceType::Type_Image;
+        const auto id = UIManager.LoadResource(view, type, true);
+        if (id) UIManager.AddResourceRefCount(id);
+        return id;
+    }
+}}

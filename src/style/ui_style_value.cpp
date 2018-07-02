@@ -87,6 +87,31 @@ void LongUI::CUIStyleValue::SetBgImage(uint32_t id) noexcept {
     }
 }
 
+
+/// <summary>
+/// Gets the bg image.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBgImage() const noexcept -> uint32_t {
+    auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+        return r->image_id;
+    }
+    return 0;
+}
+
+/// <summary>
+/// Gets the bg repeat.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBgRepeat() const noexcept -> AttributeRepeat {
+    auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+        return r->repeat;
+    }
+    return Repeat_Repeat;
+}
+
 PCN_NOINLINE
 /// <summary>
 /// Sets the bg clip.
@@ -140,7 +165,6 @@ PCN_NOINLINE
 /// <param name="ar">The ar.</param>
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgRepeat(AttributeRepeat ar) noexcept {
-    assert(ar < AttributeRepeat::REPEAT_COUNT && "out of range");
     auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
         r->repeat = ar;

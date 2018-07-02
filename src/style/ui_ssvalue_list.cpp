@@ -10,53 +10,30 @@
 
 // longui namespace
 namespace LongUI {
+    // SimpAC::FuncValue to U8View
+    auto U8(SimpAC::FuncValue v) noexcept {
+        return U8View{ v.first, v.first + v.length };
+    }
     // BKDR Hash Function
     auto BKDRHash(const char* a, const char* b) noexcept->uint32_t;
     // detail namespace
     namespace detail {
+        // using namespace
+        using namespace SimpAC;
         // attribute write
         template<typename T, typename U> 
         static inline void attribute(T& a, U b) noexcept {
             static_assert(sizeof(T) == sizeof(U));
             a = static_cast<T>(b);
         }
+        // xul image to id
+        auto xul_image_to_id(U8View) noexcept->uint32_t;
+        // parse bgrepeat
+        auto parse_bgrepeat(const FuncValue[], uint32_t) noexcept->uint8_t;
         // parse image
-        auto parse_image(SimpAC::FuncValue value) noexcept -> uint32_t {
-            switch (value.func)
-            {
-            default: assert(!"unsupported"); break;
-            case SimpAC::FuncType::Type_Url:
-                //assert(!"NOT IMPL");
-                break;
-            }
-            return 0;
-        }
+        auto parse_image(FuncValue value) noexcept->uint32_t;
         // parse time
-        auto parse_time(U8View value) noexcept -> float {
-            // 默认定为秒
-            auto& v0_ref = reinterpret_cast<SimpAC::StrPair&>(value);
-            const auto unit = SimpAC::SplitUnit(v0_ref);
-            float rv = reinterpret_cast<U8View&>(value).ToFloat();
-            // 检测单位
-#if 1
-            if (unit.begin()[0] == 'm')  rv /= 1000.;
-#else
-            if (unit.end() > unit.begin()) {
-                switch (unit.begin()[0])
-                {
-                    // 毫秒就除以1000
-                case 'm': rv /= 1000.;
-                }
-            }
-#endif
-            // 时长超过1分钟, 生命会减少一秒
-            if (rv > 60.f) rv -= 1.f;
-            return rv;
-        }
-    }
-    // SimpAC::FuncValue to U8View
-    auto U8(SimpAC::FuncValue v) noexcept {
-        return U8View{ v.first, v.first + v.length };
+        auto parse_time(U8View value) noexcept -> float;
     }
 }
 
@@ -126,6 +103,10 @@ void LongUI::ValueTypeMakeValue(
         //   -- background-image
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data.u32, detail::parse_image(values[0]));
+        break;
+    case ValueType::Type_BackgroundRepeat:
+        assert(value_len <= 2 && "unsupported");
+        detail::attribute(ssv.data.byte, detail::parse_bgrepeat(values, value_len));
         break;
     case ValueType::Type_TransitionDuration:
         // [TIME]
@@ -228,9 +209,12 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x985a232c_ui32:
         // background-color
         return { ValueType::Type_BackgroundColor };
-    //case 0x0164e854_ui32:
-    //    // background-image
-    //    return { ValueType::Type_BackgroundImage };
+    case 0x0164e854_ui32:
+        // background-image
+        return { ValueType::Type_BackgroundImage };
+    case 0x03dddbea_ui32:
+        // background-repeat
+        return { ValueType::Type_BackgroundRepeat };
 
 
         // ------------- Transition ----------------
@@ -314,6 +298,20 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     return ValueEasyType::Type_NoAnimation;
 }
 
+/// <summary>
+/// Determines whether [is image type] [the specified type].
+/// </summary>
+/// <param name="type">The type.</param>
+/// <returns></returns>
+bool LongUI::IsImageType(ValueType type) noexcept {
+    switch (type)
+    {
+    case LongUI::ValueType::Type_BackgroundImage:
+        return true;
+    }
+    return false;
+}
+
 // longui
 namespace LongUI {
     PCN_NOINLINE
@@ -363,6 +361,54 @@ namespace LongUI {
             // selected
             pc.yes.selected = true;
             break;
+        }
+    }
+    // detail namespace
+    namespace detail {
+        // parse image
+        auto parse_image(SimpAC::FuncValue value) noexcept -> uint32_t {
+            switch (value.func)
+            {
+            default: assert(!"unsupported"); break;
+            case SimpAC::FuncType::Type_Url:
+                if (*value.first == '\'' || *value.first == '\"') {
+                    assert(value.first[value.length - 1] == *value.first);
+                    assert(value.length > 2);
+                    value.first++;
+                    value.length -= 2;
+                }
+                return xul_image_to_id(U8(value));
+            }
+            return 0;
+        }
+        // parse time
+        auto parse_time(U8View value) noexcept -> float {
+            // 默认定为秒
+            auto& v0_ref = reinterpret_cast<SimpAC::StrPair&>(value);
+            const auto unit = SimpAC::SplitUnit(v0_ref);
+            float rv = reinterpret_cast<U8View&>(value).ToFloat();
+            // 检测单位
+#if 1
+            if (unit.begin()[0] == 'm')  rv /= 1000.;
+#else
+            if (unit.end() > unit.begin()) {
+                switch (unit.begin()[0])
+                {
+                    // 毫秒就除以1000
+                case 'm': rv /= 1000.;
+                }
+            }
+#endif
+            // 时长超过1分钟, 生命会减少一秒
+            if (rv > 60.f) rv -= 1.f;
+            return rv;
+        }
+        // parse bg repeat
+        auto parse_bgrepeat(const FuncValue v[], uint32_t l) noexcept -> uint8_t {
+            assert(l == 1 || l == 2);
+            const auto v1 = U8(v[0]);
+            const auto v2 = U8(l == 1 ? v[0] : v[1]);
+            return AttrParser::Repeat(v1, v2);
         }
     }
 }

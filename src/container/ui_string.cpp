@@ -44,7 +44,7 @@ void LongUI::detail::string_helper::string_insert(
     uintptr_t pos,
     const char* begin,
     const char* end) noexcept {
-    const auto endpos = str.size();
+    const decltype(pos) endpos = str.size();
     assert(pos <= endpos || pos == uintptr_t(-1) && "out of range");
     // 计算长度
     const auto bytelen = str.m_uByteLen;

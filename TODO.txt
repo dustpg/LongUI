@@ -4,11 +4,11 @@ tab default功能?
 
 CSS支持完善?
 
-CUIResMgr::LoadResource todo?
-
 读取资源方式修改以方便读取压缩包中的文件?
 ------------------------------------------------------------------
 gif等动画支持?
+
+LUI_VECTOR_SIZE_USE_UINT32 让这个宏有用
 
 hash_base::find 优化
 

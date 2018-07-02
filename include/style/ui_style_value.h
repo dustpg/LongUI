@@ -29,5 +29,9 @@ namespace LongUI {
         auto GetFgColor() const noexcept->RGBA;
         // get background color
         auto GetBgColor() const noexcept->RGBA;
+        // get background image resource id
+        auto GetBgImage() const noexcept->uint32_t;
+        // get background repeat
+        auto GetBgRepeat() const noexcept->AttributeRepeat;
     };
 }

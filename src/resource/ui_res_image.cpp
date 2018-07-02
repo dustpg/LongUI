@@ -92,10 +92,11 @@ auto LongUI::CUIImage::MakeError(I::Bitmap& bitmap) noexcept->Result {
 /// <returns></returns>
 void LongUI::CUIImage::Render(
     I::Renderer2D& renderer,
-    const RectF * des_rect, 
-    const RectF * src_rect, 
+    const RectF* des_rect, 
+    const RectF* src_rect, 
     float opacity, 
     InterpolationMode mode) const noexcept {
+    assert(m_bitmap);
     D2D1_MATRIX_4X4_F* matrix = nullptr;
     // 调用NATIVE接口
     renderer.DrawBitmap(
@@ -107,5 +108,4 @@ void LongUI::CUIImage::Render(
         matrix
     );
 }
-
 

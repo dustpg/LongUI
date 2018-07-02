@@ -102,6 +102,8 @@ void LongUI::CUIWindow::close_window() noexcept {
 namespace LongUI {
     // make style sheet
     auto MakeStyleSheet(U8View view, SSPtr old) noexcept->SSPtr;
+    // make style sheet
+    auto MakeStyleSheetFromFile(U8View view, SSPtr old) noexcept->SSPtr;
     // private msg
     struct PrivateMsg;
     /// <summary>
@@ -309,6 +311,48 @@ m_private(new(std::nothrow) Private) {
     UIManager.add_window(*this);
 }
 
+/// <summary>
+/// Makes the style sheet from file.
+/// </summary>
+/// <param name="file">The file.</param>
+/// <param name="old">The old.</param>
+/// <returns></returns>
+auto LongUI::MakeStyleSheetFromFile(U8View file, SSPtr old) noexcept -> SSPtr {
+    const CUIStringU8 old_dir = UIManager.GetXULDir();
+    auto path = old_dir; path += file;
+    // OOM处理?
+    //if (!(old_dir.is_ok() && path.is_ok())) return old;
+    // 获取CSS目录以便获取正确的文件路径
+    auto view = path.view();
+    while (view.end() > view.begin()) {
+        --view.second; const auto ch = *view.end();
+        if (ch == '/' || ch == '\\') break;
+    }
+    // 设置CSS目录作为当前目录
+    UIManager.SetXULDir(view);
+    // 待使用缓存
+    POD::Vector<char> css_buffer;
+    // 载入文件
+    if (CUIFile css_file{ path.c_str(), CUIFile::Flag_Read }) {
+        const auto file_size = css_file.GetFilezize();
+        css_buffer.resize(file_size + 1);
+        // OK
+        if (css_buffer.is_ok()) {
+            const auto ptr = &css_buffer.front();
+            css_file.Read(ptr, file_size);
+            ptr[file_size] = 0;
+        }
+    }
+    // 字符缓存有效
+    if (const auto len = css_buffer.size()) {
+        const auto ptr = &css_buffer.front();
+        U8View string{ ptr, ptr + len - 1 };
+        old = LongUI::MakeStyleSheet(string, old);
+    }
+    // 设置之前的目录作为当前目录
+    UIManager.SetXULDir(old_dir.view());
+    return old;
+}
 
 /// <summary>
 /// Loads the CSS file.
@@ -316,21 +360,7 @@ m_private(new(std::nothrow) Private) {
 /// <param name="file">The file.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::LoadCSSFile(U8View file) noexcept {
-    // TODO: OOM 处理
-    CUIStringU8 path = UIManager.GetXULDir();
-    path += file;
-    // 载入文件
-    if (CUIFile css_file{ path.c_str(), CUIFile::Flag_Read }) {
-        const auto file_size = css_file.GetFilezize();
-        POD::Vector<char> css_buffer;
-        css_buffer.resize(file_size + 1);
-        if (css_buffer.is_ok()) {
-            const auto ptr = &css_buffer.front();
-            css_file.Read(ptr, file_size);
-            ptr[file_size] = 0;
-            this->LoadCSSString({ ptr, ptr + file_size });
-        }
-    }
+    m_pStyleSheet = LongUI::MakeStyleSheetFromFile(file, m_pStyleSheet);
 }
 
 /// <summary>

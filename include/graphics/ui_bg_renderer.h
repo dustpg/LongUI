@@ -3,7 +3,9 @@
 #include "ui_renderer_decl.h"
 #include "../core/ui_color.h"
 #include "../core/ui_object.h"
+#include "../core/ui_basic_type.h"
 #include "../style/ui_attribute.h"
+#include "../graphics/ui_graphics_decl.h"
 
 namespace LongUI {
     // box
@@ -23,11 +25,18 @@ namespace LongUI {
         void RenderColor(const Box& box) const noexcept;
         // render image
         void RenderImage(const Box& box) const noexcept;
-    public:
-        // set image with id
-        void RefreshImage() noexcept;
+        // refresh image
+        auto RefreshImage() noexcept->Result;
+        // recreate
+        auto Recreate() noexcept->Result;
     private:
+        // release brush
+        void release_brush() noexcept;
+        // get render rect
+        void get_render_rect(const Box&, RectF&) const noexcept;
         // ------------- GPU-RES ------------
+        // image brush
+        I::Brush*           m_pImageBrush = nullptr;
     public:
         // ------------- CPU-RES ------------
         // background-color

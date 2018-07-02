@@ -38,7 +38,7 @@ namespace LongUI {
         using Super = UIControl;
     public:
         // set image source
-        bool SetSource(U8View src) noexcept;
+        void SetSource(U8View src) noexcept;
     protected:
         // ctor
         UIImage(UIControl* parent, const MetaControl&) noexcept;

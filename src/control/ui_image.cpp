@@ -76,28 +76,34 @@ void LongUI::UIImage::add_attribute(uint32_t key, U8View value) noexcept {
 /// Sets the source.
 /// </summary>
 /// <param name="src">The source.</param>
-/// <returns></returns>
-bool LongUI::UIImage::SetSource(U8View src) noexcept {
+void LongUI::UIImage::SetSource(U8View src) noexcept {
+    const auto old_src = m_pSharedSrc;
     constexpr auto RESTYPE = ResourceType::Type_Image;
     const auto id = UIManager.LoadResource(src, RESTYPE, true);
-    // TODO: 错误处理
 #ifndef NDEBUG
     if (!id && src.end() != src.begin()) {
         LUIDebug(Error) LUI_FRAMEID
-            << "| resource not found: "
+            << "Resource not found: "
             << src
             << endl;
     }
 #endif
+    // 重置数据
+    m_pSharedSrc = nullptr;
+    m_idSrc.SetId(id);
+    // 数据有效
     if (id) {
-        m_idSrc.SetId(id);
         assert(m_idSrc.GetResoureceType() == RESTYPE);
         const auto obj = m_idSrc.GetResoureceObj();
         m_pSharedSrc = static_cast<CUIImage*>(obj);
         assert(m_pSharedSrc && "bug");
-        return true;
     }
-    return false;
+    // 要求重新计算以及重绘
+    if (m_pSharedSrc != old_src) {
+        this->mark_window_minsize_changed();
+        this->NeedUpdate();
+        this->Invalidate();
+    }
 }
 
 /// <summary>
