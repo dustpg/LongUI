@@ -130,7 +130,7 @@ namespace LongUI {
         // render this control only, [Global rendering and Incremental rendering]
         virtual void Render() const noexcept;
         // recreate/init device(gpu) resource
-        virtual auto Recreate() noexcept->Result;
+        virtual auto Recreate(bool release_only) noexcept->Result;
     protected:
         // add child[child maybe in ctor, cannot call method except under UIControl]
         virtual void add_child(UIControl& child) noexcept;

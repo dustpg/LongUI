@@ -70,6 +70,8 @@ namespace LongUI {
         void before_render_windows() noexcept;
         // render all windows
         auto render_windows() noexcept->Result;
+        // recreate_device all windows
+        auto recreate_windows() noexcept->Result;
         // update delta time
         auto update_delta_time() noexcept -> float;
         // sleep for vblank

@@ -522,6 +522,11 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
             }
             return LongUI::Event_Accept;
         });
+        //do_button(viewport.GetWindow(), "bgimage")->AddGuiEventListener(
+        //    LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
+        //    UIManager.NeedRecreate();
+        //    return LongUI::Event_Accept;
+        //});
         break;
     }
 

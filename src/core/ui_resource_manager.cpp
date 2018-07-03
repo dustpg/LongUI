@@ -250,7 +250,7 @@ struct LongUI::PrivateResMgr {
     using ResourceMap = POD::HashMap<uint32_t>;
     // init
     auto init() noexcept->Result;
-    // recreate
+    // recreate_device
     auto recreate() noexcept->Result;
     // release
     void release() noexcept;
@@ -1000,7 +1000,7 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
 /// Recreates this instance.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIResMgr::recreate(IUIConfigure* cfg) noexcept -> Result {
+auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
     constexpr auto same_s = sizeof(PrivateResMgr) == sizeof(m_private);
     constexpr auto same_a = alignof(PrivateResMgr) == alignof(private_t);
     static_assert(same_s && same_a, "must be same");
@@ -1262,6 +1262,39 @@ void LongUI::CUIResMgr::release_res_list() noexcept {
 }
 
 /// <summary>
+/// Recreates the resource.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
+    Result rv = { Result::RS_OK };
+    // XXX: 优化重建
+    // TODO: 蛋疼的错误处理
+    for (auto& x : rm().reslist) {
+        switch (x.type)
+        {
+        case ResourceType::Type_Image:
+        {
+            I::Bitmap* bitmap = nullptr;
+            const auto hr = this->CreateBitmapFromSSImageFile(x.uri, bitmap);
+            if (hr) {
+                const auto img = static_cast<CUIImage*>(x.obj);
+                img->RecreateBitmap(*bitmap);
+            }
+            else rv = hr;
+        }
+            break;
+        }
+    }
+    // XXX: 正常重建
+    if (rv) {
+        impl::delete_native_style_renderer(m_pNativeStyle);
+        m_pNativeStyle = impl::create_native_style_renderer();
+        if (!m_pNativeStyle) rv = { Result::RE_OUTOFMEMORY };
+    }
+    return rv;
+}
+
+/// <summary>
 /// Releases this instance.
 /// </summary>
 /// <returns></returns>
@@ -1269,6 +1302,10 @@ void LongUI::CUIResMgr::release_device() noexcept {
 #ifndef NDEBUG
     const auto d3d = m_p3DDevice;
 #endif
+    //if (m_p3DRenderer) {
+    //    m_p3DRenderer->ClearState();
+    //    m_p3DRenderer->Flush();
+    //}
     LongUI::SafeRelease(m_pMainScreen);
     LongUI::SafeRelease(m_pCommonBrush);
     LongUI::SafeRelease(m_p2DRenderer);

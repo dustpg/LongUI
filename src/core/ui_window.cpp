@@ -81,6 +81,15 @@ void LongUI::CUIWindow::SetControlWorldChanged(UIControl& ctrl) noexcept {
 }
 
 /// <summary>
+/// Deletes the later.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::DeleteLater() noexcept {
+    const auto view = &this->RefViewport();
+    view->DeleteLater();
+}
+
+/// <summary>
 /// Deletes this instance.
 /// </summary>
 /// <returns></returns>
@@ -137,13 +146,15 @@ namespace LongUI {
     public:
         // delete window
         static void DeleteWindow(HWND hwnd) noexcept;
+        // reelase device data
+        void ReleaseDeviceData() noexcept { this->release_data(); }
         // ctor
         Private() noexcept;
         // dtor
         ~Private() noexcept { this->release_data(); }
         // init
         HWND Init(HWND parent, CUIWindow::WindowConfig config) noexcept;
-        // recreate
+        // recreate_device
         auto Recreate(HWND hwnd) noexcept->Result;
         // render
         auto Render(const UIViewport& v) const noexcept->Result;
@@ -450,11 +461,57 @@ auto LongUI::CUIWindow::Render() const noexcept -> Result {
     return{ Result::RS_OK };
 }
 
+namespace LongUI {
+    /// <summary>
+    /// Recursives the recreate_device.
+    /// </summary>
+    /// <param name="ctrl">The control.</param>
+    /// <param name="release">if set to <c>true</c> [release].</param>
+    /// <returns></returns>
+    auto RecursiveRecreate(UIControl& ctrl, bool release) noexcept ->Result {
+        Result hr = ctrl.Recreate(release);
+        for (auto& x : ctrl) {
+#if 0
+            const auto code = LongUI::RecursiveRecreate(x, release);
+            if (!code) hr = code;
+#else
+            hr = LongUI::RecursiveRecreate(x, release);
+            if (!hr) break;
+#endif
+        }
+        return hr;
+    }
+}
+
 /// <summary>
-/// Recreates this instance.
+/// Recreates the device data.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIWindow::recreate() noexcept -> Result {
+auto LongUI::CUIWindow::RecreateDeviceData() noexcept -> Result {
+    return LongUI::RecursiveRecreate(this->RefViewport(), false);
+}
+
+/// <summary>
+/// Releases the device data.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::ReleaseDeviceData() noexcept {
+    LongUI::RecursiveRecreate(this->RefViewport(), true);
+}
+
+/// <summary>
+/// Releases the window only device.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::release_window_only_device() noexcept {
+    m_private->ReleaseDeviceData();
+}
+
+/// <summary>
+/// Recreates the window.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIWindow::recreate_window() noexcept -> Result {
     assert(m_private && "bug: you shall not pass");
     return m_private->Recreate(m_hwnd);
 }
@@ -1473,6 +1530,9 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
 auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
     if (this->is_skip_render()) return{ Result::RS_OK };
     CUIRenderAutoLocker locker;
+    assert(this->bitmap == nullptr && "call release first");
+    assert(this->swapchan == nullptr && "call release first");
+    // 保证内存不泄漏
     this->release_data();
     Result hr = { Result::RS_OK };
     // 创建交换酱
@@ -1566,8 +1626,15 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::release_data() noexcept {
-    LongUI::SafeRelease(this->swapchan);
+#ifndef NDEBUG
+    //if (this->swapchan) {
+    //    this->swapchan->AddRef();
+    //    const auto count = this->swapchan->Release();
+    //    int bk = 9;
+    //}
+#endif
     LongUI::SafeRelease(this->bitmap);
+    LongUI::SafeRelease(this->swapchan);
 }
 
 /// <summary>
@@ -1746,6 +1813,8 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
 #endif
     // 结束渲染
     Result hr = { renderer.EndDraw() };
+    // 清除目标
+    renderer.SetTarget(nullptr);
     // TODO: 完全渲染
     if (this->is_full_render_for_render()) {
 #ifndef NDEBUG

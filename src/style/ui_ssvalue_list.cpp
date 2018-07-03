@@ -105,8 +105,18 @@ void LongUI::ValueTypeMakeValue(
         detail::attribute(ssv.data.u32, detail::parse_image(values[0]));
         break;
     case ValueType::Type_BackgroundRepeat:
+        // [REPEAT]
+        //   -- background-repeat
         assert(value_len <= 2 && "unsupported");
         detail::attribute(ssv.data.byte, detail::parse_bgrepeat(values, value_len));
+        break;
+    case ValueType::Type_BackgroundClip:
+    case ValueType::Type_BackgroundOrigin:
+        // [C-BOX]
+        //   -- background-clip
+        //   -- background-origin
+        assert(value_len < 2 && "unsupported");
+        detail::attribute(ssv.data.byte, AttrParser::Box(U8(values[0])));
         break;
     case ValueType::Type_TransitionDuration:
         // [TIME]
@@ -215,7 +225,12 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x03dddbea_ui32:
         // background-repeat
         return { ValueType::Type_BackgroundRepeat };
-
+    case 0xdc07b69b_ui32:
+        // background-clip
+        return { ValueType::Type_BackgroundClip };
+    case 0xf493a695_ui32:
+        // background-origin
+        return { ValueType::Type_BackgroundOrigin };
 
         // ------------- Transition ----------------
 

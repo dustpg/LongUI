@@ -268,7 +268,7 @@ void LongUI::CUIManager::WaitForVBlank() noexcept {
 
 
 /// <summary>
-/// Needs the recreate.
+/// Needs the recreate_device.
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIManager::NeedRecreate() noexcept {
@@ -277,27 +277,6 @@ void LongUI::CUIManager::NeedRecreate() noexcept {
     this_()->DataUnlock();
 }
 
-/// <summary>
-/// Tries the recreate.
-/// </summary>
-/// <returns></returns>
-void LongUI::CUIManager::try_recreate() noexcept {
-    // 检查Flag
-    if (!m_flagRecreate) return;
-    m_flagRecreate = false;
-    this_()->RenderLock();
-    // 重建资源
-
-    // 重建控件
-
-    this_()->RenderUnlock();
-    // TODO: 错误处理对策
-#ifndef NDEBUG
-    LUIDebug(Hint) 
-        << "[Recreate Resource]" 
-        << endl;
-#endif // !NDEBUG
-}
 
 /// <summary>
 /// Gets the unique text.
@@ -360,6 +339,39 @@ namespace LongUI {
             return UIManager.CreateControl({ a,b }, p);
         }
     }
+}
+
+
+/// <summary>
+/// Tries the recreate_device.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIManager::try_recreate() noexcept {
+    // 检查Flag
+    if (!m_flagRecreate) return;
+    m_flagRecreate = false;
+    // LCK
+    this_()->RenderLock();
+    // 重建设备
+    auto hr = this->CUIResMgr::recreate_device(this->config);
+    // 重建资源
+    if (hr) {
+        hr = this->CUIResMgr::recreate_resource();
+    }
+    // 重建窗口
+    if (hr) {
+        hr = this->CUIWndMgr::recreate_windows();
+    }
+    // UNL
+    this_()->RenderUnlock();
+    // TODO: 错误处理对策
+#ifndef NDEBUG
+    LUIDebug(Hint)
+        << "[Recreate Resource]: "
+        << hr
+        << endl;
+#endif // !NDEBUG
+    this->ShowError(hr);
 }
 
 /// <summary>
@@ -605,7 +617,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     // 第一次重建设备资源
     if (hr) {
         auto& pmm = this_()->pm();
-        hr = this_()->recreate(this_()->config);
+        hr = this_()->recreate_device(this_()->config);
     }
     // 检查当前路径
 #ifndef NDEBUG

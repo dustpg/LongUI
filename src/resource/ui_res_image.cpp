@@ -47,6 +47,17 @@ auto LongUI::CUIImage::CreateImage(
 }
 
 /// <summary>
+/// Recreates the bitmap.
+/// </summary>
+/// <param name="bitmap">The bitmap.</param>
+/// <returns></returns>
+void LongUI::CUIImage::RecreateBitmap(I::Bitmap& bitmap) noexcept {
+    assert(m_bitmap && "m_bitmap must be not-null");
+    m_bitmap->Release();
+    m_bitmap = &bitmap;
+}
+
+/// <summary>
 /// Makes the error.
 /// </summary>
 /// <param name="bitmap">The bitmap.</param>

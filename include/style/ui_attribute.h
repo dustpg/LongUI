@@ -243,6 +243,8 @@ namespace LongUI{
     auto Uint32FindIndex(const uint32_t[], uint32_t len, uint32_t code) noexcept->uint32_t;
     // parse the attribute
     struct AttrParser {
+        // box
+        static auto Box(U8View) noexcept->AttributeBox;
         // view to align
         static auto Align(U8View) noexcept->AttributeAlign;
         // view to pack

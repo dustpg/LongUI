@@ -36,6 +36,8 @@ namespace LongUI {
         auto GetSize() const noexcept { return m_size; }
         // get bitmap
         auto&RefBitmap() const noexcept { return *m_bitmap; }
+        // recreate bitmap
+        void RecreateBitmap(I::Bitmap&) noexcept;
     public:
         // render
         void Render(

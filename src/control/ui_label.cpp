@@ -132,7 +132,6 @@ bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
     return true;
 }
 
-
 /// <summary>
 /// Initializes the label.
 /// </summary>

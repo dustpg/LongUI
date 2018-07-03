@@ -100,7 +100,7 @@ namespace LongUI {
         void OneFrame() noexcept;
         // wait vblank
         void WaitForVBlank() noexcept;
-        // need recreate
+        // need recreate_device
         void NeedRecreate() noexcept;
     public:
         // add [unique]/[release-free] text
@@ -177,7 +177,7 @@ namespace LongUI {
         // rendering locker
         CUILocker               m_uiRenderLocker;
     protected:
-        // try recreate all device resource
+        // try recreate_device all device resource
         void try_recreate() noexcept;
         // private manager
         auto&pm() noexcept { return reinterpret_cast<PrivateManager&>(m_private); }
@@ -187,7 +187,7 @@ namespace LongUI {
             detail::private_manager<sizeof(void*)>::align
         >::type                 m_private;
     private:
-        // recreate flag
+        // recreate_device flag
         bool                    m_flagRecreate = false;
     };
     // auto data locker

@@ -54,7 +54,7 @@ namespace LongUI {
         // render this control only, [Global rendering and Incremental rendering]
         void Render() const noexcept override;
         // recreate/init device(gpu) resource
-        auto Recreate() noexcept->Result override;
+        auto Recreate(bool release_only) noexcept->Result override;
     protected:
     private:
     };

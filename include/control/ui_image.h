@@ -54,7 +54,7 @@ namespace LongUI {
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg & e) noexcept->EventAccept override;
-        // recreate
+        // recreate_device
         //auto Recreate() noexcept->Result override;
         // render
         void Render() const noexcept override;

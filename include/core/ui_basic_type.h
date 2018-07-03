@@ -144,7 +144,11 @@ namespace LongUI {
     // mix rect
     auto Mix(const RectF& from, const RectF& to, float progress) noexcept;
     // is persent value?
-    inline bool IsPersentValue(float f) noexcept { return f > -1.f && f < 1.f; }
+    inline auto IsPersentValue(float f) noexcept { return f > -1.f && f < 1.f; }
+    // make persent value
+    inline auto MakePersentValue(float f) noexcept { return f * 0.001f; }
+    // get persent value
+    inline auto GetPersentValue(float f) noexcept { return f * 1000.f; }
     // round in gui level
     inline auto RoundInGuiLevel(float a) noexcept { return float(int32_t(a + 0.5f)); }
     // round in gui level

@@ -100,6 +100,7 @@ auto LongUI::CUIStyleValue::GetBgImage() const noexcept -> uint32_t {
     return 0;
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Gets the bg repeat.
 /// </summary>
@@ -127,6 +128,19 @@ void LongUI::CUIStyleValue::SetBgClip(AttributeBox clip) noexcept {
     }
 }
 
+PCN_NOINLINE
+/// <summary>
+/// Gets the bg clip.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBgClip() const noexcept->AttributeBox {
+    auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+        return r->clip;
+    }
+    return Box_BorderBox;
+}
+
 
 PCN_NOINLINE
 /// <summary>
@@ -141,6 +155,19 @@ void LongUI::CUIStyleValue::SetBgOrigin(AttributeBox ab) noexcept {
         r->origin = ab;
         ctrl->Invalidate();
     }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Gets the bg origin.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBgOrigin() const noexcept->AttributeBox {
+    auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+        return r->origin;
+    }
+    return Box_BorderBox;
 }
 
 

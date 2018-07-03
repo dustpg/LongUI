@@ -51,7 +51,7 @@ namespace LongUI {
         // value changed event
         static inline constexpr auto _changed() noexcept { return GuiEvent::Event_Change; }
     public:
-        // recreate
+        // recreate_device
         //auto Recreate() noexcept->Result override;
         // render
         //void Render() const noexcept override;

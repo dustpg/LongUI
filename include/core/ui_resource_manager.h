@@ -154,8 +154,10 @@ namespace LongUI {
         void redirect_screen() noexcept;
         // wait for vblank
         bool wait_for_vblank() noexcept;
-        // recreate
-        auto recreate(IUIConfigure*) noexcept->Result;
+        // recreate device
+        auto recreate_device(IUIConfigure*) noexcept->Result;
+        // recreate resource
+        auto recreate_resource() noexcept->Result;
         // ctor
         CUIResMgr(IUIConfigure* cfg, Result& hr) noexcept;
         // ctor

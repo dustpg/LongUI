@@ -22,7 +22,7 @@ namespace LongUI {
         void Draw(I::Renderer2D&, I::Brush&, const Matrix3X2F&, float width) noexcept;
         // fill render
         void Fill(I::Renderer2D&, I::Brush&, const Matrix3X2F&) noexcept;
-        // recreate
+        // recreate_device
         auto Recreate() noexcept ->Result;
         // create from points
         static auto CreateFromPoints(CUIGeometry& obj, 

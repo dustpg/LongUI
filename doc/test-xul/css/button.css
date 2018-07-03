@@ -18,7 +18,9 @@ button#button, #layout .button{
     -moz-appearance: none;
     background-color: red;
     background-image: url('../images/25.png');
-    background-repeat: round
+    background-repeat: round;
+    background-clip: content-box;
+    background-origin: content-box;
 }
 
 .imgButton {

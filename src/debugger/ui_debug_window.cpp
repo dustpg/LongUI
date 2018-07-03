@@ -70,7 +70,7 @@ namespace LongUI {
                 return Event_Accept;
             });
         }
-        // recreate
+        // recreate_device
         void recreate() noexcept {
             do_button("btn-recreate")->AddGuiEventListener(
                 UIButton::_clicked(), [](UIControl& control) noexcept {

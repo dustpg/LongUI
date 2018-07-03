@@ -104,7 +104,17 @@ auto LongUI::CUIWindow::RefViewport() noexcept -> UIViewport& {
 /// Recreates this instance.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIViewport::Recreate() noexcept -> Result {
-    return m_window.recreate();
+auto LongUI::UIViewport::Recreate(bool release_only) noexcept -> Result {
+    // 释放窗口数据
+    m_window.release_window_only_device();
+    // 继承调用
+    auto hr = Super::Recreate(release_only);
+    // 仅仅释放
+    if (release_only) return hr;
+    // 重建/初始化 窗口资源
+    if (hr) {
+        hr = m_window.recreate_window();
+    }
+    return hr;
 }
 

@@ -148,7 +148,9 @@ namespace LongUI {
         // will do full render this frame?
         bool IsFullRenderThisFrame() const noexcept;
     public:
-        // delete
+        // delete later
+        void DeleteLater() noexcept;
+        // delete now
         void Delete() noexcept;
         // set control world changed
         void SetControlWorldChanged(UIControl&) noexcept;
@@ -156,6 +158,10 @@ namespace LongUI {
         void BeforeRender() noexcept;
         // render
         auto Render() const noexcept->Result;
+        // Recreate
+        auto RecreateDeviceData() noexcept->Result;
+        // release window device data
+        void ReleaseDeviceData() noexcept;
         // get viewport
         auto RefViewport() noexcept ->UIViewport&;
         // get viewport
@@ -174,8 +180,10 @@ namespace LongUI {
         void add_child(CUIWindow& child) noexcept;
         // remove child
         void remove_child(CUIWindow& child) noexcept;
-        // recreate
-        auto recreate() noexcept->Result;
+        // recreate_device window
+        auto recreate_window() noexcept->Result;
+        // release window only device data
+        void release_window_only_device() noexcept;
         // ctor
         CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept;
         // no copy

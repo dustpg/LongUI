@@ -83,7 +83,7 @@ namespace LongUI {
         CUINativeStyleWindows10() noexcept;
         // dtor
         ~CUINativeStyleWindows10() noexcept { this->release_all_resources(); }
-        // recreate resources
+        // recreate_device resources
         auto Recreate() noexcept->Result;
         // draw native
         void DrawNative(const NativeDrawArgs& args) noexcept;

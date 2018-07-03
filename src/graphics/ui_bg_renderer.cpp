@@ -22,6 +22,14 @@ LongUI::CUIRendererBackground::CUIRendererBackground() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
+    this->ReleaseDeviceData();
+}
+
+/// <summary>
+/// Releases the device data.
+/// </summary>
+void LongUI::CUIRendererBackground::ReleaseDeviceData() {
+    // 先释放
     this->release_brush();
 }
 
@@ -29,9 +37,8 @@ LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
 /// Recreates this instance.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIRendererBackground::Recreate() noexcept -> Result {
-    // 先释放
-    this->release_brush();
+auto LongUI::CUIRendererBackground::CreateDeviceData() noexcept -> Result {
+    assert(m_pImageBrush == nullptr && "must release first");
     // 创建笔刷
     return this->RefreshImage();
 }
@@ -76,22 +83,29 @@ void LongUI::CUIRendererBackground::release_brush() noexcept {
     }
 }
 
-/// <summary>
-/// Gets the render rect.
-/// </summary>
-/// <param name="box">The box.</param>
-/// <param name="rect">The rect.</param>
-/// <returns></returns>
-void LongUI::CUIRendererBackground::get_render_rect(
-    const Box& box, RectF& rect) const noexcept{
-    switch (this->clip)
-    {
-    default: [[fallthrough]];
-    case LongUI::Box_BorderBox:  box.GetBorderEdge(rect);  break;
-    case LongUI::Box_PaddingBox: box.GetPaddingEdge(rect); break;
-    case LongUI::Box_ContentBox: box.GetContentEdge(rect); break;
+// longui::detail
+namespace LongUI { namespace detail {
+    /// <summary>
+    /// Gets the render rect.
+    /// </summary>
+    /// <param name="attr">The attribute.</param>
+    /// <param name="box">The box.</param>
+    /// <param name="rect">The rect.</param>
+    /// <returns></returns>
+    void get_render_rect(
+        AttributeBox attr,
+        const Box& box, 
+        RectF& rect) noexcept {
+        switch (attr)
+        {
+        default: [[fallthrough]];
+        case LongUI::Box_BorderBox:  box.GetBorderEdge(rect);  break;
+        case LongUI::Box_PaddingBox: box.GetPaddingEdge(rect); break;
+        case LongUI::Box_ContentBox: box.GetContentEdge(rect); break;
+        }
     }
-}
+}}
+
 
 /// <summary>
 /// Renders the color.
@@ -103,7 +117,7 @@ void LongUI::CUIRendererBackground::RenderColor(const Box& box) const noexcept {
     if (this->color.a == 0.f) return;
     //if (!reinterpret_cast<const uint32_t&>(this->color.a)) return;
     // 获取渲染矩阵
-    RectF rect; this->get_render_rect(box, rect);
+    RectF rect; detail::get_render_rect(this->clip, box, rect);
     // 获取渲染器
     auto& render = UIManager.Ref2DRenderer();
     auto& brush0 = UIManager.RefCCBrush(this->color);
@@ -132,7 +146,7 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const no
         static_cast<float>(img->GetSize().height)
     };
     // 获取渲染矩阵
-    RectF rect; this->get_render_rect(box, rect);
+    RectF rect; detail::get_render_rect(this->origin, box, rect);
     // 获取渲染器
     auto& render = UIManager.Ref2DRenderer();
     // 设置基本转换矩阵

@@ -79,7 +79,7 @@ namespace LongUI {
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
         // recreate device resource
-        auto Recreate() noexcept->Result override;
+        auto Recreate(bool release_only) noexcept->Result override;
     protected:
         // error beep
         void ErrorBeep() noexcept override;

@@ -100,9 +100,10 @@ void LongUI::UITest::Update() noexcept {
 /// <summary>
 /// Recreates this instance.
 /// </summary>
+/// <param name="release_only">if set to <c>true</c> [release only].</param>
 /// <returns></returns>
-auto LongUI::UITest::Recreate() noexcept -> Result {
-    return Super::Recreate();
+auto LongUI::UITest::Recreate(bool release_only) noexcept -> Result {
+    return Super::Recreate(release_only);
 }
 
 #endif

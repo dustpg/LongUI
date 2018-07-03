@@ -189,6 +189,29 @@ auto LongUI::CUIWndMgr::render_windows() noexcept -> Result {
     return hr;
 }
 
+/// <summary>
+/// Recreates the windows.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIWndMgr::recreate_windows() noexcept -> Result {
+    auto& wnds = wm().windowsu;
+    Result hr = { Result::RS_OK };
+    // 第一次遍历
+    for (auto x : wnds) {
+        // 释放所有窗口的设备相关数据
+        x->ReleaseDeviceData();
+        // 标记全刷新
+        x->MarkFullRendering();
+    }
+    // 第二次遍历
+    for (auto x : wnds) {
+        // 只有重建了
+        const auto code = x->RecreateDeviceData();
+        // 记录最新的错误数据
+        if (!code) hr = code;
+    }
+    return hr;
+}
 
 // private control
 #include "../private/ui_private_control.h"

@@ -36,8 +36,10 @@ namespace LongUI {
         Private() noexcept;
         // dtor
         ~Private() noexcept { if (created) this->release_doc(); }
-        // recreate cached bitmap
-        auto recrete_cached_bitmap() noexcept->Result;
+        // create_device cached bitmap
+        auto create_cached_bitmap() noexcept->Result;
+        // release cached bitmap
+        void release_cached_bitmap() noexcept;
         // get doc object
         auto&document() noexcept { return reinterpret_cast<doc_t&>(docbuf); }
         // create doc
@@ -70,11 +72,17 @@ namespace LongUI {
         static_assert(alignof(Private) <= alignof(double), "must less than double");
     }
     /// <summary>
-    /// Recretes the cached bitmap.
+    /// Creates the cached bitmap.
     /// </summary>
     /// <returns></returns>
-    auto UITextBox::Private::recrete_cached_bitmap() noexcept -> Result {
+    auto UITextBox::Private::create_cached_bitmap() noexcept -> Result {
         return { Result::RS_OK };
+    }
+    /// <summary>
+    /// Releases the cached bitmap.
+    /// </summary>
+    /// <returns></returns>
+    void UITextBox::Private::release_cached_bitmap() noexcept {
     }
     /// <summary>
     /// Releases the document().
@@ -106,13 +114,25 @@ namespace LongUI {
 /// Recreates this instance.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UITextBox::Recreate() noexcept -> Result {
+auto LongUI::UITextBox::Recreate(bool release_only) noexcept -> Result {
+    // --------------------- 释放数据
+    // 使用了缓存?
+    if (m_private->cached) {
+        // 重建待使用位图
+        m_private->release_cached_bitmap();
+    }
+
     // 重建父类设备资源
-    Result hr = Super::Recreate();
+    Result hr = Super::Recreate(release_only);
+    // 仅仅释放?
+    if (release_only) return hr;
+
+    // --------------------- 创建
+
     // 使用了缓存?
     if (hr && m_private->cached) {
-        // 重建待使用位图
-        hr = m_private->recrete_cached_bitmap();
+        // 创建待使用位图
+        hr = m_private->create_cached_bitmap();
     }
     // 父类
     return hr;

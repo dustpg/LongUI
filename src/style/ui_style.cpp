@@ -159,6 +159,21 @@ LongUI::Style::~Style() noexcept {
 
 
 /// <summary>
+/// Boxes the specified .
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::AttrParser::Box(U8View view) noexcept -> AttributeBox {
+    assert(view.end() > view.begin());
+    switch (*view.begin())
+    {
+    default: return Box_BorderBox;
+    case 'p': return Box_PaddingBox;
+    case 'c': return Box_ContentBox;
+    }
+}
+
+/// <summary>
 /// Aligns the specified view.
 /// </summary>
 /// <param name="view">The view.</param>

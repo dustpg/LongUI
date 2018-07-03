@@ -8,6 +8,9 @@
 #include <event/ui_initialize_event.h>
 #include "../private/ui_private_control.h"
 
+#include <graphics/ui_bd_renderer.h>
+#include <graphics/ui_bg_renderer.h>
+
 
 #include <luiconf.h>
 #include <algorithm>
@@ -332,7 +335,7 @@ auto LongUI::UIControl::init() noexcept -> Result {
         // 依赖类型初始化控件
         LongUI::NativeStyleInit(*this, this->GetStyle().appearance);
         // 重建对象
-        hr = this->Recreate();
+        hr = this->Recreate(false);
         // 初始化大小
         if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
@@ -377,8 +380,30 @@ void LongUI::UIControl::Update() noexcept {
 /// <summary>
 /// Recreates this instance.
 /// </summary>
+/// <param name="release_only">if set to <c>true</c> [release only].</param>
 /// <returns></returns>
-auto LongUI::UIControl::Recreate() noexcept -> Result {
+auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
+    Result hr = { Result::RS_OK };
+    // --------------------- 释放数据
+
+
+    // 背景
+    if (m_pBgRender) m_pBgRender->ReleaseDeviceData();
+    // 边框
+    //if (m_pBdRender) m_pBdRender->ReleaseDeviceData();
+
+    // 仅仅释放
+    if (release_only) return hr;
+
+
+    // --------------------- 创建数据
+
+
+    // 背景
+    if (m_pBgRender) hr = m_pBgRender->CreateDeviceData();
+    // 边框
+    //if (m_pBdRender && hr) hr = m_pBdRender->CreateDeviceData();
+
     return{ Result::RS_OK };
 }
 
@@ -1265,6 +1290,12 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_BackgroundRepeat:
         this->SetBgRepeat(static_cast<AttributeRepeat>(value.data.byte));
         break;
+    case ValueType::Type_BackgroundClip:
+        this->SetBgClip(static_cast<AttributeBox>(value.data.byte));
+        break;
+    case ValueType::Type_BackgroundOrigin:
+        this->SetBgOrigin(static_cast<AttributeBox>(value.data.byte));
+        break;
     case ValueType::Type_TransitionDuration:
         using dur_t = decltype(m_oStyle.tduration);
         assert(value.data.single < 65.5f && "out of range");
@@ -1312,6 +1343,12 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_BackgroundRepeat:
         detail::write_value(value.data.byte, this->GetBgRepeat());
+        break;
+    case ValueType::Type_BackgroundClip:
+        detail::write_value(value.data.byte, this->GetBgClip());
+        break;
+    case ValueType::Type_BackgroundOrigin:
+        detail::write_value(value.data.byte, this->GetBgOrigin());
         break;
     case ValueType::Type_TransitionDuration:
         value.data.single = static_cast<float>(m_oStyle.tduration) * 1000.f;
