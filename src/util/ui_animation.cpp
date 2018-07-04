@@ -46,11 +46,11 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
         const auto x0_0 = p;
         const auto x0_1 = 1.f - p;
         rv.data.single
-            = value.from.data.single * x0_0
-            + value.to.data.single * x0_1
+            = value.from.data.single * x0_1
+            + value.to.data.single * x0_0
             ;
+        break;
     }
-    break;
     case ValueEasyType::Type_Color:
         // [COLOR]
     {
@@ -58,8 +58,8 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
         ColorF::FromRGBA_RT(from, { value.from.data.u32 });
         ColorF::FromRGBA_RT(to, { value.to.data.u32 });
         rv.data.u32 = LongUI::Mix(from, to, p).ToRGBA().primitive;
+        break;
     }
-    break;
     case ValueEasyType::Type_Uint32:
         // [UINT32]
     {
@@ -70,6 +70,7 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
         rv.data.u32 = static_cast<uint32_t>(
             from * x0_0 + to * x0_1)
             ;
+        break;
     }
     }
     return rv;
