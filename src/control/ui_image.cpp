@@ -136,7 +136,7 @@ auto LongUI::UIImage::DoEvent(UIControl* sender, const EventArg& e) noexcept -> 
             minsize_set.height = static_cast<float>(size.height);
         }
         this->set_contect_minsize(minsize_set);
-        return LongUI::Event_Accept;
+        return Event_Accept;
     }
     return Super::DoEvent(sender, e);
 }

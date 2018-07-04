@@ -319,7 +319,6 @@ auto LongUI::UIScrollArea::create_scrollbar(AttributeOrient o) noexcept -> UIScr
         this->add_child(*bar);
         this->resize_child(*bar, {});
         this->set_child_fixed_attachment(*bar);
-        this->set_child_parent_nnrivc(*bar);
         UIControlPrivate::SetGuiEvent2Parent(*bar);
         //bar->Init();
         return bar;

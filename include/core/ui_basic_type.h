@@ -37,6 +37,7 @@ namespace LongUI {
         // Commonly used code list
         enum CommonResult : int32_t { 
             RS_OK           = (int32_t)0x00000000, // Operation successful
+            RS_FALSE        = (int32_t)0x00000001, // Operation successful
             RE_NOTIMPL      = (int32_t)0x80004001, // Not implemented
             RE_NOINTERFACE  = (int32_t)0x80004002, // No such interface supported
             RE_POINTER      = (int32_t)0x80004003, // Pointer that is not valid

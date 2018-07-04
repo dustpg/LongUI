@@ -30,11 +30,11 @@ namespace LongUI {
         // from c-tyle string
         static auto FromCStyle(const T str[]) noexcept -> PodStringView { return{ str, str + detail::strlen(str) }; };
         // size
-        auto size() const noexcept -> uint32_t { return static_cast<uint32_t>(end() - begin()); }
+        auto size() const noexcept { return static_cast<uint32_t>(end() - begin()); }
         // begin
-        auto begin() const noexcept ->const T*{ return first; };
+        auto begin() const noexcept { return first; };
         // end
-        auto end() const noexcept ->const T*{ return second; };
+        auto end() const noexcept { return second; };
         // is true?
         operator bool() noexcept { return *begin() == 't'; }
         // to RGBA32 in byte order
@@ -64,11 +64,11 @@ namespace LongUI {
         // to int32_t
         operator int32_t() const noexcept;
         // to float
-        auto ToFloat() const noexcept -> float { return static_cast<float>(*this); }
+        auto ToFloat() const noexcept { return static_cast<float>(*this); }
         // to int32_t
-        auto ToInt32() const noexcept -> int32_t { return static_cast<int32_t>(*this); }
+        auto ToInt32() const noexcept { return static_cast<int32_t>(*this); }
         // to double
-        auto ToDouble() const noexcept -> double { return static_cast<double>(*this); }
+        auto ToDouble() const noexcept { return static_cast<double>(*this); }
         // 1st
         const T*        first;
         // 2nd

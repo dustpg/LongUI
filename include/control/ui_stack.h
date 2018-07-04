@@ -61,7 +61,7 @@ namespace LongUI {
         void relayout_stack() noexcept;
     protected:
         // add child
-        void add_child(UIControl& child) noexcept override;
+        //void add_child(UIControl& child) noexcept override;
     private:
     };
     // get meta info for UIStack

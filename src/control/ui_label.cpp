@@ -49,6 +49,13 @@ LongUI::UILabel::~UILabel() noexcept {
 /// </summary>
 /// <returns></returns>
 void  LongUI::UILabel::Update() noexcept {
+    // text color 修改了
+    if (m_state.textcolor_changed) this->Invalidate();
+    // text/font 修改了
+    if (m_state.textfont_changed) {
+        this->reset_font();
+        this->Invalidate();
+    }
     // TODO: 处理BOX修改 SpecifyMinContectSize
     // 检查到大小修改
     if (this->is_size_changed()) {
@@ -79,7 +86,8 @@ auto LongUI::UILabel::DoEvent(
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 初始化
-        this->init_label();
+        this->reset_font();
+        if (m_pWindow) m_control.FindControl(*m_pWindow);
         [[fallthrough]];
     default:
         // 基类处理
@@ -136,15 +144,13 @@ bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
 /// Initializes the label.
 /// </summary>
 /// <returns></returns>
-void LongUI::UILabel::init_label() noexcept {
+void LongUI::UILabel::reset_font() noexcept {
     // TODO: 错误检查
 
     // 设置初始化数据
     m_text.SetFont(m_tfBuffer.font, m_string.c_str(), m_string.length());
     // 设置基本属性
     this->after_set_text();
-    // 获取关系控件
-    if (m_pWindow) m_control.FindControl(*m_pWindow);
 }
 
 PCN_NOINLINE

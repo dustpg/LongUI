@@ -355,6 +355,7 @@ void LongUI::UIControl::Update() noexcept {
     assert(m_state.inited && "must init control first");
     // 状态修改
     m_state.style_state_changed = false;
+    m_state.textcolor_changed = false;
     m_state.textfont_changed = false;
     // 最基的不处理子控件索引更改
     m_state.child_i_changed = false;
@@ -430,11 +431,13 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_HEIGHT      = 0x28d4978b_ui32;
     constexpr auto BKDR_ORIENT      = 0xeda466cd_ui32;
     constexpr auto BKDR_VISIBLE     = 0x646b6442_ui32;
-    constexpr auto BKDR_TABINDEX    = 0x1c6477b9_ui32;
+    constexpr auto BKDR_DEFAULT     = 0xdc8b8bf9_ui32;
+    //constexpr auto BKDR_TABINDEX    = 0x1c6477b9_ui32;
     constexpr auto BKDR_DISABLED    = 0x715f1adc_ui32;
     constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
     constexpr auto BKDR_DRAGGABLE   = 0xbd13c3b5_ui32;
     constexpr auto BKDR_CONTEXTMENU = 0xb133f7f6_ui32;
+
     
     constexpr auto BKDR_DATAUSER    = 0x5c110136_ui32;
     constexpr auto BKDR_DATAU16     = 0xc036b6f7_ui32;
@@ -476,13 +479,17 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         // disabled   : 禁用状态
         m_oStyle.state.disabled = static_cast<bool>(value);
         break;
+    case BKDR_DEFAULT:
+        // default    : 窗口初始默认控件
+        if (m_pWindow && value) m_pWindow->SetDefualt(*this);
+        break;
     case BKDR_VISIBLE:
         // visible    : 是否可见
         m_state.visible = static_cast<bool>(value);
         break;
-    case BKDR_TABINDEX:
-        // tabindex   : tab键索引
-        break;
+    //case BKDR_TABINDEX:
+    //    // tabindex   : tab键索引
+    //    break;
     case BKDR_CLASS:
         // class      : 样式表用类名
         while (value.begin() < value.end()) {
@@ -678,9 +685,9 @@ auto LongUI::UIControl::DoEvent(UIControl* sender, const EventArg& e) noexcept -
     {
     case LongUI::NoticeEvent::Event_RefreshBoxMinSize:
         this->set_contect_minsize({});
-        return LongUI::Event_Accept;
+        return Event_Accept;
     }
-    return LongUI::Event_Ignore;
+    return Event_Ignore;
 }
 
 
@@ -690,7 +697,7 @@ auto LongUI::UIControl::DoEvent(UIControl* sender, const EventArg& e) noexcept -
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
-    return LongUI::Event_Ignore;
+    return Event_Ignore;
 }
 
 
@@ -986,8 +993,9 @@ void LongUI::UIControl::SetVisible(bool visible) noexcept {
         // TODO: 顶级控件?
         //if (this->IsTopLevel()) {
         //}
+        // XXX: 优化其他情况
         // 布局相关
-        if (m_state.parent_notneed_relayout) {
+        if (m_state.attachment == Attachment_Fixed) {
             m_pParent->Invalidate();
         }
         else {

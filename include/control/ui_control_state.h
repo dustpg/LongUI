@@ -36,32 +36,30 @@ namespace LongUI {
 
         // ------------ change once
 
-        // ctor failed
-        bool        ctor_failed : 1;
-        // gui event to parent[true, to parent, false to viewport]
-        bool        gui_event_to_parent : 1;
-        // attachment 
-        bool        attachment : 1;
-        // focusable
-        bool        focusable : 1;
-        // defaultable
-        bool        defaultable : 1;
-        // in dtor
-        bool        destructing : 1;
         // has been inited
         bool        inited : 1;
+        // ctor failed
+        bool        ctor_failed : 1;
+        // in dtor
+        bool        destructing : 1;
+        // is delete later?
+        bool        delete_later : 1;
+        // gui event to parent[true, to parent, false to viewport]
+        bool        gui_event_to_parent : 1;
+        // in animation
+        bool        in_basic_animation : 1;
+        // defaultable
+        bool        defaultable : 1;
+        // attachment 
+        bool        attachment : 1;
+        // atomicity, children will keep same state with parent
+        bool        atomicity : 1;
+        // focusable
+        bool        focusable : 1;
         // orientation
         bool        orient : 1;
         // layout direction
         bool        dir : 1;
-        // atomicity, children will keep same state with parent
-        bool        atomicity : 1;
-        // delete later?
-        bool        delete_later : 1;
-        // parent not-need relayout if this [visible] changed
-        bool        parent_notneed_relayout : 1;
-        // in animation
-        bool        in_basic_animation : 1;
         // unused #1 for reserved
         bool        reserved1 : 1;
 
@@ -72,8 +70,12 @@ namespace LongUI {
 
 
         // ----------- change over once
-        // text&font chnaged
+
+        // textcolor changed
+        bool        textcolor_changed : 1;
+        // text&font(except color) chnaged
         bool        textfont_changed : 1;
+
         // dirty:   need re-calculate layout,  be set if layout/size changed
         bool        dirty : 1;
         // visible                          [S-falg]

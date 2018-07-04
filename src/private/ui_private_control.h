@@ -85,6 +85,12 @@ struct LongUI::UIControlPrivate {
     static auto Next(UIControl* ctrl) noexcept  {
         return static_cast<UIControl*>(ctrl->next); }
     // mark window minsize changed
-    static auto MarkWindowMinsizeChanged(UIControl& ctrl) noexcept {
+    static void MarkWindowMinsizeChanged(UIControl& ctrl) noexcept {
          ctrl.mark_window_minsize_changed(); }
+    // mark font&text changed
+    static void MarkTFChanged(UIControl& ctrl) noexcept {
+         ctrl.m_state.textfont_changed = true; }
+    // mark text color changed
+    static void MarkTCChanged(UIControl& ctrl) noexcept {
+         ctrl.m_state.textcolor_changed = true; }
 };

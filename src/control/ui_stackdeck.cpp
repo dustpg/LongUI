@@ -113,10 +113,10 @@ LongUI::UIStack::UIStack(UIControl* parent, const MetaControl& meta) noexcept
 /// </summary>
 /// <param name="child">The child.</param>
 /// <returns></returns>
-void LongUI::UIStack::add_child(UIControl& child) noexcept {
-    this->set_child_parent_nnrivc(child);
-    return Super::add_child(child);
-}
+//void LongUI::UIStack::add_child(UIControl& child) noexcept {
+//    this->set_child_parent_nnrivc(child);
+//    return Super::add_child(child);
+//}
 
 
 /// <summary>

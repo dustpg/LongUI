@@ -9,6 +9,8 @@
 
 // longui::detail
 namespace LongUI { namespace detail{
+    // last
+    static UIControl* g_pLastTextFont = nullptr;
     // get text font
     auto get_text_font(UIControl& ctrl) noexcept->TextFont*;
     // get text font
@@ -25,10 +27,15 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetFgColor(RGBA color) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
+    // 需要使用g_pLastTextFont
+    detail::g_pLastTextFont = nullptr;
     // 存在TF对象
     if (const auto tf = detail::get_text_font(*ctrl)) {
         ColorF::FromRGBA_RT(tf->text.color, color);
-        ctrl->Invalidate();
+        const auto hastf = detail::g_pLastTextFont;
+        // 标记颜色修改
+        UIControlPrivate::MarkTCChanged(*hastf);
+        hastf->NeedUpdate();
     }
 }
 
@@ -367,6 +374,7 @@ namespace LongUI { namespace detail {
         auto& style = ctrl.GetStyle();
         // 存在Text对象
         if (style.offset_tf) {
+            g_pLastTextFont = &ctrl;
             const auto tf = const_cast<Style&>(style).GetTextFont();
             return tf;
         }

@@ -449,9 +449,6 @@ namespace LongUI {
         // set child fixed attachment
         static void set_child_fixed_attachment(UIControl& child) noexcept {
             child.m_state.attachment = Attachment_Fixed; }
-        // set child 'parent not need relayout if [visible] changed
-        static void set_child_parent_nnrivc(UIControl& child) noexcept {
-            child.m_state.parent_notneed_relayout = true; }
     };
     // == operator
     inline bool operator==(const UIControl& a, const UIControl& b) noexcept {

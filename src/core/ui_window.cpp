@@ -1892,7 +1892,6 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
         hr = { this->swapchan->Present1(0, 0, &present_parameters) };
 #endif
         longui_debug_hr(hr, L"swapchan->Present full rendering faild");
-        assert(hr);
     }
     // 收到重建消息/设备丢失时 重建UI
     constexpr int32_t DREMOVED = DXGI_ERROR_DEVICE_REMOVED;
@@ -1900,11 +1899,13 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
 #ifdef NDEBUG
     if (hr.code == DREMOVED || hr.code == DRESET) {
         UIManager.NeedRecreate();
+        hr = { Result::RS_FALSE };
     }
 #else
     // TODO: 测试 test_D2DERR_RECREATE_TARGET
     if (hr.code == DREMOVED || hr.code == DRESET ) {
         UIManager.NeedRecreate();
+        hr = { Result::RS_FALSE };
         LUIDebug(Hint) << "D2DERR_RECREATE_TARGET!" << LongUI::endl;
     }
     assert(hr);

@@ -316,13 +316,13 @@ auto LongUI::UIBoxLayout::DoEvent(
     {
     case NoticeEvent::Event_RefreshBoxMinSize:
         this->refresh_min();
-        return LongUI::Event_Accept;
+        return Event_Accept;
     case NoticeEvent::Event_Splitter:
         this->move_splitter(*longui_cast<UISplitter*>(sender), [&e]() noexcept {
             const auto& ev = static_cast<const EventSplitterArg&>(e);
             return Point2F{ ev.offset_x, ev.offset_y };
         }());
-        return LongUI::Event_Accept;
+        return Event_Accept;
     }
     return Super::DoEvent(sender, e);
 }

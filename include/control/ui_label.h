@@ -41,7 +41,7 @@ namespace LongUI {
         // after set text
         void after_set_text() noexcept;
         // init label
-        void init_label() noexcept;
+        void reset_font() noexcept;
     public:
         // get text
         auto GetText() const noexcept { return m_string.c_str(); }
