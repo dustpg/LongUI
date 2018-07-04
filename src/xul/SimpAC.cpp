@@ -406,6 +406,10 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
             if (ch == ';') state = css_state::properties;
             // 直接结束
             else if (ch == '}') goto end_of_properties;
+            // / 开头
+            else if (ch == '/') {
+                this->add_value({ view.first, view.first + 1 });
+            }
             // 寻找值起始点
             else if (!(impl::is_space(ch) || impl::is_newline(ch))) {
                 // 引号?
@@ -441,6 +445,15 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
             else if (impl::is_space(ch) || impl::is_newline(ch) || ch == ';') {
                 this_view.second = view.first;
                 this->add_value(this_view);
+                state = (ch == ';')
+                    ? css_state::properties
+                    : css_state::values;
+            }
+            // 是个/
+            else if (ch == '/') {
+                this_view.second = view.first;
+                this->add_value(this_view);
+                this->add_value({ view.first, view.first+1 });
                 state = (ch == ';')
                     ? css_state::properties
                     : css_state::values;

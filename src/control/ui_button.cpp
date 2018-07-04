@@ -1,4 +1,5 @@
 ﻿// Gui
+#include <input/ui_kminput.h>
 #include <debugger/ui_debug.h>
 #include <control/ui_button.h>
 #include <control/ui_ctrlmeta.h>
@@ -151,6 +152,25 @@ auto LongUI::UIButton::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAcc
         return Super::DoMouseEvent(e);
     }
 }
+
+/// <summary>
+/// Does the input event.
+/// </summary>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UIButton::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
+    switch (e.event)
+    {
+    case InputEvent::Event_KeyDown:
+        if (e.character == CUIInputKM::KB_RETURN) {
+            this->Click();
+            return Event_Accept;
+        }
+        break;
+    }
+    return Super::DoInputEvent(e);
+}
+
 
 #ifdef LUI_ACCESSIBLE
 #include <accessible/ui_accessible_callback.h>

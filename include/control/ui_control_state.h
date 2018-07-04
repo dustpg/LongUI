@@ -64,8 +64,6 @@ namespace LongUI {
         bool        in_basic_animation : 1;
         // unused #1 for reserved
         bool        reserved1 : 1;
-        // unused #2 for reserved
-        bool        reserved2 : 1;
 
         // ----------- custom data
 
@@ -74,7 +72,8 @@ namespace LongUI {
 
 
         // ----------- change over once
-
+        // text&font chnaged
+        bool        textfont_changed : 1;
         // dirty:   need re-calculate layout,  be set if layout/size changed
         bool        dirty : 1;
         // visible                          [S-falg]

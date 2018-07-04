@@ -4,7 +4,8 @@
 #include <graphics/ui_bg_renderer.h>
 #include "../private/ui_private_control.h"
 
-//#undef PCN_NOINLINE
+#undef PCN_NOINLINE
+#define PCN_NOINLINE
 
 // longui::detail
 namespace LongUI { namespace detail{
@@ -38,7 +39,7 @@ PCN_NOINLINE
 /// <param name="color">The color.</param>
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgColor(RGBA color) noexcept {
-    auto ctrl = static_cast<UIControl*>(this);
+    const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
         ColorF::FromRGBA_RT(r->color, color);
         ctrl->Invalidate();
@@ -51,7 +52,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgColor() const noexcept -> RGBA {
-    auto ctrl = static_cast<const UIControl*>(this);
+    const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
         return r->color.ToRGBA();
     }
@@ -79,7 +80,7 @@ PCN_NOINLINE
 /// <param name="id">The identifier.</param>
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgImage(uint32_t id) noexcept {
-    auto ctrl = static_cast<UIControl*>(this);
+    const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
         r->image_id = id;
         r->RefreshImage();
@@ -93,7 +94,7 @@ void LongUI::CUIStyleValue::SetBgImage(uint32_t id) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgImage() const noexcept -> uint32_t {
-    auto ctrl = static_cast<const UIControl*>(this);
+    const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
         return r->image_id;
     }
@@ -106,7 +107,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgRepeat() const noexcept -> AttributeRepeat {
-    auto ctrl = static_cast<const UIControl*>(this);
+    const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
         return r->repeat;
     }
@@ -121,7 +122,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgClip(AttributeBox clip) noexcept {
     assert(clip < AttributeBox::BOX_COUNT && "out of range");
-    auto ctrl = static_cast<UIControl*>(this);
+    const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
         r->clip = clip;
         ctrl->Invalidate();
@@ -134,7 +135,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgClip() const noexcept->AttributeBox {
-    auto ctrl = static_cast<const UIControl*>(this);
+    const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
         return r->clip;
     }
@@ -150,7 +151,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgOrigin(AttributeBox ab) noexcept {
     assert(ab < AttributeBox::BOX_COUNT && "out of range");
-    auto ctrl = static_cast<UIControl*>(this);
+    const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
         r->origin = ab;
         ctrl->Invalidate();
@@ -163,7 +164,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgOrigin() const noexcept->AttributeBox {
-    auto ctrl = static_cast<const UIControl*>(this);
+    const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
         return r->origin;
     }
@@ -178,7 +179,7 @@ PCN_NOINLINE
 /// <param name="aa">The aa.</param>
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgAttachment(AttributeAttachment aa) noexcept {
-    auto ctrl = static_cast<UIControl*>(this);
+    const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
         r->attachment = aa;
         ctrl->Invalidate();
@@ -192,11 +193,167 @@ PCN_NOINLINE
 /// <param name="ar">The ar.</param>
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgRepeat(AttributeRepeat ar) noexcept {
-    auto ctrl = static_cast<UIControl*>(this);
+    const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
         r->repeat = ar;
         ctrl->Invalidate();
     }
+}
+
+
+
+/// <summary>
+/// Afters the box changed.
+/// </summary>
+void LongUI::CUIStyleValue::after_box_changed() {
+    const auto ctrl = static_cast<UIControl*>(this);
+    UIControlPrivate::MarkWindowMinsizeChanged(*ctrl);
+    ctrl->NeedUpdate();
+}
+
+/// <summary>
+/// Sets the margin top.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetMarginTop(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.margin.top = value;
+    this->after_box_changed();
+}
+
+
+/// <summary>
+/// Sets the margin left.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetMarginLeft(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.margin.left = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the margin right.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetMarginRight(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.margin.right = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the margin bottom.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetMarginBottom(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.margin.bottom = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the padding top.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetPaddingTop(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.padding.top = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the padding left.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetPaddingLeft(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.padding.left = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the padding right.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetPaddingRight(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.padding.right = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the padding bottom.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetPaddingBottom(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.padding.bottom = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the border top.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBorderTop(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.border.top = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the border left.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBorderLeft(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.border.left = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the border right.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBorderRight(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.border.right = value;
+    this->after_box_changed();
+}
+
+/// <summary>
+/// Sets the border bottom.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBorderBottom(float value) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    auto& box = const_cast<Box&>(ctrl->GetBox());
+    box.border.bottom = value;
+    this->after_box_changed();
 }
 
 // longui::detail

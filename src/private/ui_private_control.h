@@ -84,4 +84,7 @@ struct LongUI::UIControlPrivate {
     // next control
     static auto Next(UIControl* ctrl) noexcept  {
         return static_cast<UIControl*>(ctrl->next); }
+    // mark window minsize changed
+    static auto MarkWindowMinsizeChanged(UIControl& ctrl) noexcept {
+         ctrl.mark_window_minsize_changed(); }
 };

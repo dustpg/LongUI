@@ -9,6 +9,8 @@ namespace LongUI {
     /// gui style value host
     /// </summary>
     class CUIStyleValue {
+        // after box changed
+        void after_box_changed();
     public:
         // set foreground color
         void SetFgColor(RGBA color) noexcept;
@@ -37,5 +39,30 @@ namespace LongUI {
         auto GetBgRepeat() const noexcept->AttributeRepeat;
         // get background origin
         auto GetBgOrigin() const noexcept->AttributeBox;
+    public:
+        // set margin top
+        void SetMarginTop(float value) noexcept;
+        // set margin left
+        void SetMarginLeft(float value) noexcept;
+        // set margin right
+        void SetMarginRight(float value) noexcept;
+        // set margin bottom
+        void SetMarginBottom(float value) noexcept;
+        // set padding top
+        void SetPaddingTop(float value) noexcept;
+        // set padding left
+        void SetPaddingLeft(float value) noexcept;
+        // set padding right
+        void SetPaddingRight(float value) noexcept;
+        // set padding bottom
+        void SetPaddingBottom(float value) noexcept;
+        // set border top width
+        void SetBorderTop(float value) noexcept;
+        // set border left width
+        void SetBorderLeft(float value) noexcept;
+        // set border right width
+        void SetBorderRight(float value) noexcept;
+        // set border bottom width
+        void SetBorderBottom(float value) noexcept;
     };
 }

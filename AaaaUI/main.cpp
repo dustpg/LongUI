@@ -48,9 +48,9 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
             | ConfigureFlag::Flag_OutputDebugString
             | ConfigureFlag::Flag_QuitOnLastWindowClosed
             //| ConfigureFlag::Flag_DbgOutputTimeTook 
-#ifndef NDEBUG
+//#ifndef NDEBUG
             | ConfigureFlag::Flag_RenderByCPU
-#endif
+//#endif
             //| ConfigureFlag::Flag_DbgDrawDirtyRect
             | ConfigureFlag::Flag_DbgDrawTextCell
             | ConfigureFlag::Flag_DbgDebugWindow

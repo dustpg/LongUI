@@ -41,6 +41,8 @@ namespace LongUI {
         // ------------- CPU-RES ------------
         // background-color
         ColorF              color;
+        // background-size
+        //Size2F              size;
         // background-image
         uint32_t            image_id = 0;
         // background-clip

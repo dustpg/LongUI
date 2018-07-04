@@ -15,6 +15,7 @@
 /// </summary>
 LongUI::CUIRendererBackground::CUIRendererBackground() noexcept {
     this->color = ColorF::FromRGBA_CT<RGBA_Transparent>();
+    //this->size = { };
 }
 
 /// <summary>

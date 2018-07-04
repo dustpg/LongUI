@@ -34,6 +34,11 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
     SSValue rv;
     rv.type = value.from.type;
     rv.data.u32 = 0;
+    const auto x0_0 = p;
+    const auto x0_1 = 1.f - p;
+    const auto do_float = [=](float from, float to) noexcept {
+        return from * x0_1 + to * x0_0;
+    };
     // 分类讨论
     switch (LongUI::GetEasyType(rv.type))
     {
@@ -42,24 +47,37 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
         return { ValueType::Type_Unknown };
     case ValueEasyType::Type_Float:
         // [FLOAT]
-    {
-        const auto x0_0 = p;
-        const auto x0_1 = 1.f - p;
-        rv.data.single
-            = value.from.data.single * x0_1
-            + value.to.data.single * x0_0
-            ;
+        rv.data.single = do_float(
+            value.from.data.single,
+            value.to.data.single
+        );
         break;
-    }
     case ValueEasyType::Type_Color:
         // [COLOR]
     {
+#if 0
+        RGBA from, to, target;
+        from.primitive = value.from.data.u32;
+        to.primitive = value.to.data.u32;
+        // R
+        target.u8.r = uint8_t(do_float(float(from.u8.r), float(to.u8.r)));
+        // G
+        target.u8.g = uint8_t(do_float(float(from.u8.g), float(to.u8.g)));
+        // B
+        target.u8.b = uint8_t(do_float(float(from.u8.b), float(to.u8.b)));
+        // A
+        target.u8.a = uint8_t(do_float(float(from.u8.a), float(to.u8.a)));
+        // RGBA
+        rv.data.u32 = target.primitive;
+#else
         ColorF from, to;
         ColorF::FromRGBA_RT(from, { value.from.data.u32 });
         ColorF::FromRGBA_RT(to, { value.to.data.u32 });
         rv.data.u32 = LongUI::Mix(from, to, p).ToRGBA().primitive;
+#endif
         break;
     }
+#if 0
     case ValueEasyType::Type_Uint32:
         // [UINT32]
     {
@@ -68,10 +86,11 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
         const double from = value.from.data.u32;
         const double to = value.to.data.u32;
         rv.data.u32 = static_cast<uint32_t>(
-            from * x0_0 + to * x0_1)
+            from * x0_1 + to * x0_0)
             ;
         break;
     }
+#endif
     }
     return rv;
 }

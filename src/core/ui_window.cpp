@@ -966,10 +966,27 @@ void LongUI::CUIWindow::SetPos(Point2L pos) noexcept {
 /// <param name="vk">The vk.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
+    constexpr auto ekey = LongUI::InputEvent::Event_KeyDown;
+    // 回车键?
+    if (key == CUIInputKM::KB_RETURN) {
+        // 直接将输入引导到默认控件
+        if (const auto defc = this->now_defualt) {
+            defc->DoInputEvent({ ekey, key });
+            return;
+        }
+    }
     // 直接将输入引导到焦点控件
     if (const auto focused_ctrl = this->focused) {
         // 检查输出
-        focused_ctrl->DoInputEvent({ LongUI::InputEvent::Event_KeyDown, key });
+        const auto rv = focused_ctrl->DoInputEvent({ ekey, key });
+        // 回车键无视了?!
+        if (rv == Event_Ignore && key == CUIInputKM::KB_RETURN) {
+            // 直接将输入引导到默认控件
+            if (const auto defc = this->now_defualt) {
+                defc->DoInputEvent({ ekey, key });
+                return;
+            }
+        }
     }
 }
 

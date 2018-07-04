@@ -1,6 +1,7 @@
 ﻿// lui
 #include <style/ui_ssvalue.h>
 #include <style/ui_attribute.h>
+#include <core/ui_basic_type.h>
 #include <core/ui_color_list.h>
 #include <core/ui_string_view.h>
 #include <style/ui_ssvalue_list.h>
@@ -34,6 +35,15 @@ namespace LongUI {
         auto parse_image(FuncValue value) noexcept->uint32_t;
         // parse time
         auto parse_time(U8View value) noexcept -> float;
+        // parse float
+        auto parse_float(FuncValue value) noexcept -> float;
+        // 1 for 4
+        void one_for_four(
+            ValueType vtype,
+            uint32_t value_len,
+            const SimpAC::FuncValue values[],
+            void* values_write
+        ) noexcept;
     }
 }
 
@@ -87,8 +97,31 @@ void LongUI::ValueTypeMakeValue(
         //   -- overflow-y
         detail::attribute(ssv.data.byte, AttrParser::Overflow(U8(values[0])));
         break;
-
-
+    case ValueType::Type_Margin:
+    case ValueType::Type_Padding:
+    case ValueType::Type_BorderWidth:
+        // [1FOR4]
+        //   -- margin
+        //   -- padding
+        //   -- border-width
+        detail::one_for_four(vtype, value_len, values, values_write);
+        return;
+    case ValueType::Type_MarginTop:
+    case ValueType::Type_MarginRight:
+    case ValueType::Type_MarginBottom:
+    case ValueType::Type_MarginLeft:
+    case ValueType::Type_PaddingTop:
+    case ValueType::Type_PaddingRight:
+    case ValueType::Type_PaddingBottom:
+    case ValueType::Type_PaddingLeft:
+    case ValueType::Type_BorderTopWidth:
+    case ValueType::Type_BorderRightWidth:
+    case ValueType::Type_BorderBottomWidth:
+    case ValueType::Type_BorderLeftWidth:
+        // [FLOAT]
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data.single, detail::parse_float(values[0]));
+        break;
     case ValueType::Type_BackgroundColor:
     case ValueType::Type_TextColor:
         // [COLOR]
@@ -112,7 +145,7 @@ void LongUI::ValueTypeMakeValue(
         break;
     case ValueType::Type_BackgroundClip:
     case ValueType::Type_BackgroundOrigin:
-        // [C-BOX]
+        // [BOX]
         //   -- background-clip
         //   -- background-origin
         assert(value_len < 2 && "unsupported");
@@ -424,6 +457,65 @@ namespace LongUI {
             const auto v1 = U8(v[0]);
             const auto v2 = U8(l == 1 ? v[0] : v[1]);
             return AttrParser::Repeat(v1, v2);
+        }
+        // parse float
+        auto parse_float(FuncValue value) noexcept -> float {
+            auto view = U8(value);
+            const auto unit = SimpAC::SplitUnit(reinterpret_cast<SimpAC::StrPair&>(view));
+            const auto single = view.ToFloat();
+            // 存在单位
+            if (unit.begin() != unit.end()) {
+                // 百分比
+                if (*unit.begin() == '%')
+                    return LongUI::MakePersentValueFrom100(single);
+#ifndef NDEBUG
+                else if (std::strncmp(unit.begin(), "px", 2)) {
+                    assert(!"UNSUPPORTED UNIT");
+                }
+#endif
+            }
+            return single;
+        }
+        // one_for_four map
+        static const int8_t one_for_four_map[] = {
+            0, 0, 0, 0,
+            0, 1, 1, 1,
+            0, 0, 2, 2,
+            0, 1, 1, 3,
+        };
+        PCN_NOINLINE
+        /// <summary>
+        /// Ones for four.
+        /// </summary>
+        /// <param name="vtype">The vtype.</param>
+        /// <param name="value_len">Length of the value.</param>
+        /// <param name="values">The values.</param>
+        /// <param name="values_write">The values write.</param>
+        /// <returns></returns>
+        void one_for_four(
+            ValueType vtype, 
+            uint32_t value_len, 
+            const SimpAC::FuncValue values[], 
+            void* values_write) noexcept {
+            assert(value_len);
+            // 1, 1, 1, 1
+            // 1, 2, 1, 2
+            // 1, 2, 3, 2
+            // 1, 2, 3, 4
+            const auto vtype0 = static_cast<uint32_t>(vtype);
+            const auto vtype1 = static_cast<ValueType>(vtype0 + 1);
+            const auto vtype2 = static_cast<ValueType>(vtype0 + 2);
+            const auto vtype3 = static_cast<ValueType>(vtype0 + 3);
+            const auto vtype4 = static_cast<ValueType>(vtype0 + 4);
+            const auto index = (value_len > 4 ? 4 : value_len) - 1;
+            const auto i1 = one_for_four_map[index + 4 * 0];
+            const auto i2 = one_for_four_map[index + 4 * 1];
+            const auto i3 = one_for_four_map[index + 4 * 2];
+            const auto i4 = one_for_four_map[index + 4 * 3];
+            LongUI::ValueTypeMakeValue(vtype1, 1, values + i1, values_write);
+            LongUI::ValueTypeMakeValue(vtype2, 1, values + i2, values_write);
+            LongUI::ValueTypeMakeValue(vtype3, 1, values + i3, values_write);
+            LongUI::ValueTypeMakeValue(vtype4, 1, values + i4, values_write);
         }
     }
 }

@@ -351,25 +351,14 @@ auto LongUI::UIControl::init() noexcept -> Result {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::Update() noexcept {
-    // 本次已经刷新了?
-    //assert(!m_state.updated && "been updated this time");
+    // 调用update前必须初始化
     assert(m_state.inited && "must init control first");
     // 状态修改
     m_state.style_state_changed = false;
+    m_state.textfont_changed = false;
     // 最基的不处理子控件索引更改
     m_state.child_i_changed = false;
     m_state.parent_changed = false;
-
-
-    //UIManager.MarkWindowMinsizeChanged(m_pWindow);
-
-    /*if (!std::strcmp(name_dbg, "hbox1-a")) {
-        static int counter = 0;
-        if (counter) {
-            int bk = 9;
-        }
-        ++counter;
-    }*/
 
     /*LUIDebug(Hint) LUI_FRAMEID
         << this 
@@ -1304,6 +1293,42 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_TextColor:
         this->SetFgColor({ value.data.u32 });
         break;
+    case ValueType::Type_MarginTop:
+        this->SetMarginTop(value.data.single);
+        break;
+    case ValueType::Type_MarginRight:
+        this->SetMarginRight(value.data.single);
+        break;
+    case ValueType::Type_MarginBottom:
+        this->SetMarginBottom(value.data.single);
+        break;
+    case ValueType::Type_MarginLeft:
+        this->SetMarginLeft(value.data.single);
+        break;
+    case ValueType::Type_PaddingTop:
+        this->SetPaddingTop(value.data.single);
+        break;
+    case ValueType::Type_PaddingRight:
+        this->SetPaddingRight(value.data.single);
+        break;
+    case ValueType::Type_PaddingBottom:
+        this->SetPaddingBottom(value.data.single);
+        break;
+    case ValueType::Type_PaddingLeft:
+        this->SetPaddingLeft(value.data.single);
+        break;
+    case ValueType::Type_BorderTopWidth:
+        this->SetBorderTop(value.data.single);
+        break;
+    case ValueType::Type_BorderRightWidth:
+        this->SetBorderRight(value.data.single);
+        break;
+    case ValueType::Type_BorderBottomWidth:
+        this->SetBorderBottom(value.data.single);
+        break;
+    case ValueType::Type_BorderLeftWidth:
+        this->SetBorderLeft(value.data.single);
+        break;
     case ValueType::Type_UIAppearance:
         detail::write_value(m_oStyle.appearance, value.data.byte);
 #if 0
@@ -1358,6 +1383,42 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_UIAppearance:
         detail::write_value(value.data.byte, m_oStyle.appearance);
+        break;
+    case ValueType::Type_MarginTop:
+        detail::write_value(value.data.single, this->GetBox().margin.top);
+        break;
+    case ValueType::Type_MarginRight:
+        detail::write_value(value.data.single, this->GetBox().margin.right);
+        break;
+    case ValueType::Type_MarginBottom:
+        detail::write_value(value.data.single, this->GetBox().margin.bottom);
+        break;
+    case ValueType::Type_MarginLeft:
+        detail::write_value(value.data.single, this->GetBox().margin.left);
+        break;
+    case ValueType::Type_PaddingTop:
+        detail::write_value(value.data.single, this->GetBox().padding.top);
+        break;
+    case ValueType::Type_PaddingRight:
+        detail::write_value(value.data.single, this->GetBox().padding.right);
+        break;
+    case ValueType::Type_PaddingBottom:
+        detail::write_value(value.data.single, this->GetBox().padding.bottom);
+        break;
+    case ValueType::Type_PaddingLeft:
+        detail::write_value(value.data.single, this->GetBox().padding.left);
+        break;
+    case ValueType::Type_BorderTopWidth:
+        detail::write_value(value.data.single, this->GetBox().border.top);
+        break;
+    case ValueType::Type_BorderRightWidth:
+        detail::write_value(value.data.single, this->GetBox().border.right);
+        break;
+    case ValueType::Type_BorderBottomWidth:
+        detail::write_value(value.data.single, this->GetBox().border.bottom);
+        break;
+    case ValueType::Type_BorderLeftWidth:
+        detail::write_value(value.data.single, this->GetBox().border.left);
         break;
     }
 }

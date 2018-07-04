@@ -137,7 +137,7 @@ namespace LongUI {
         // color
         Type_Color,
         // uint32_t
-        Type_Uint32
+        //Type_Uint32,
     };
     // union
     union UniByte4 {

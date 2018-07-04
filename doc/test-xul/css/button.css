@@ -3,10 +3,12 @@ button#button, #layout .button{
     transition-duration: 0.5s;
     background-color: red;
     background-color: blue;
+    margin-left: 2px;
 }
 
 #layout button:hover {
     background-color: yellow;
+    margin-left: 20px;
     color: cyan
 }
 
@@ -16,11 +18,14 @@ button#button, #layout .button{
 
 #bgimage {
     -moz-appearance: none;
+    /* background-size: 60px; */
     background-color: red;
+    margin: 2px 3px 4px;
+    padding: 10px;
+    border-width: 3px;
     background-image: url('../images/25.png');
     background-repeat: round;
-    background-clip: content-box;
-    background-origin: content-box;
+    background-origin: content-box
 }
 
 .imgButton {

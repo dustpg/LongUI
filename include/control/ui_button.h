@@ -68,6 +68,8 @@ namespace LongUI {
         //void Render() const noexcept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
+        // input event
+        auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     protected:
         // add private child
         void add_private_child() noexcept;

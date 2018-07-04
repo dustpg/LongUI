@@ -145,8 +145,10 @@ namespace LongUI {
     auto Mix(const RectF& from, const RectF& to, float progress) noexcept;
     // is persent value?
     inline auto IsPersentValue(float f) noexcept { return f > -1.f && f < 1.f; }
-    // make persent value
-    inline auto MakePersentValue(float f) noexcept { return f * 0.001f; }
+    // make persent value from 1.00
+    inline auto MakePersentValueFrom1(float f) noexcept { return f * 0.001f; }
+    // make persent value from 100%
+    inline auto MakePersentValueFrom100(float f) noexcept { return f * 0.00001f; }
     // get persent value
     inline auto GetPersentValue(float f) noexcept { return f * 1000.f; }
     // round in gui level

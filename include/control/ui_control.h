@@ -125,7 +125,6 @@ namespace LongUI {
         // do mouse event
         virtual auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept;
         // update, postpone change some data
-        // ??? + update when hover changed
         virtual void Update() noexcept;
         // render this control only, [Global rendering and Incremental rendering]
         virtual void Render() const noexcept;
