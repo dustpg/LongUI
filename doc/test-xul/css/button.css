@@ -1,6 +1,7 @@
 button#button, #layout .button{
     -moz-appearance: none;
-    transition-duration: 0.5s;
+    transition-duration: 555ms;
+    transition-timing-function: ease-out;
     background-color: red;
     background-color: blue;
     margin-left: 2px;
@@ -8,7 +9,11 @@ button#button, #layout .button{
 
 #layout button:hover {
     background-color: yellow;
-    margin-left: 20px;
+    margin-left: 200px;
+    /* font-family: KaiTi; */
+    /* font-size: 30px; */
+    /* font-style: italic; */
+    /* font-weight: 600; */
     color: cyan
 }
 

@@ -86,7 +86,7 @@ namespace LongUI {
         AttributeAlign      align;
         // appearance tpye  [1]
         AttributeAppearance appearance;
-        // unused           [1]
+        // t-timing funtion [1]
         uint8_t             tfunction;
         // offset in byte for text font, set this if support text [2]
         uint16_t            offset_tf;

@@ -49,8 +49,8 @@ namespace LongUI {
         //virtual auto GetString(TableString tbl) noexcept -> const wchar_t*;
         // get locale name of ui(for text)
         void GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept override;
-        // get defualt font arg
-        void DefualtFontArg(FontArg& arg) noexcept override;
+        // get default font arg
+        void DefaultFontArg(FontArg& arg) noexcept override;
         // add all controls
         void RegisterControl(ControlInfoList& list) noexcept override;
         // if use gpu render, you should choose a video card, return the index

@@ -100,7 +100,7 @@ auto LongUI::UILabel::DoEvent(
 /// </summary>
 /// <returns></returns>
 void LongUI::UILabel::SetAsDefaultMinsize() noexcept {
-    const auto& fontsize = UIManager.GetDefualtFont();
+    const auto& fontsize = UIManager.GetDefaultFont();
     const auto lineheight = LongUI::GetLineHeight(fontsize);
     this->set_contect_minsize({ lineheight * 2.f, lineheight });
 }

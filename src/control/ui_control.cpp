@@ -481,7 +481,7 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_DEFAULT:
         // default    : 窗口初始默认控件
-        if (m_pWindow && value) m_pWindow->SetDefualt(*this);
+        if (m_pWindow && value) m_pWindow->SetDefault(*this);
         break;
     case BKDR_VISIBLE:
         // visible    : 是否可见
@@ -752,7 +752,7 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
     case LongUI::MouseEvent::Event_LButtonDown:
         this->StartAnimation({ StyleStateType::Type_Active, true });
         this->start_animation_children({ StyleStateType::Type_Active, true });
-        m_pWindow->SetDefualt(*this);
+        m_pWindow->SetDefault(*this);
         // 可以设为焦点-设为捕捉控件
         if (this->SetFocus()) m_pWindow->SetCapture(*this);
         return Event_Accept;
@@ -824,7 +824,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
     case LongUI::MouseEvent::Event_LButtonDown:
         s = Event_Accept;
         this->StartAnimation({ StyleStateType::Type_Active, true });
-        m_pWindow->SetDefualt(*this);
+        m_pWindow->SetDefault(*this);
         // 可以设为焦点-设为捕捉控件
         if (this->SetFocus()) m_pWindow->SetCapture(*this);
         m_pClicked = m_pHovered;
@@ -1285,21 +1285,39 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
         this->SetBgImage({ value.data.u32 });
         break;
     case ValueType::Type_BackgroundRepeat:
-        this->SetBgRepeat(static_cast<AttributeRepeat>(value.data.byte));
+        this->SetBgRepeat(AttributeRepeat{ value.data.byte });
         break;
     case ValueType::Type_BackgroundClip:
-        this->SetBgClip(static_cast<AttributeBox>(value.data.byte));
+        this->SetBgClip(AttributeBox{ value.data.byte });
         break;
     case ValueType::Type_BackgroundOrigin:
-        this->SetBgOrigin(static_cast<AttributeBox>(value.data.byte));
+        this->SetBgOrigin(AttributeBox{ value.data.byte });
         break;
     case ValueType::Type_TransitionDuration:
         using dur_t = decltype(m_oStyle.tduration);
         assert(value.data.single < 65.5f && "out of range");
         m_oStyle.tduration = static_cast<dur_t>(value.data.single * 1000.f);
         break;
+    case ValueType::Type_TransitionTimingFunc:
+        detail::write_value(m_oStyle.tfunction, value.data.byte);
+        break;
     case ValueType::Type_TextColor:
         this->SetFgColor({ value.data.u32 });
+        break;
+    case ValueType::Type_FontSize:
+        this->SetFontSize({ value.data.single });
+        break;
+    case ValueType::Type_FontStyle:
+        this->SetFontStyle(AttributeFontStyle{ value.data.byte });
+        break;
+    case ValueType::Type_FontStretch:
+        this->SetFontStretch(AttributeFontStretch{ value.data.byte });
+        break;
+    case ValueType::Type_FontWeight:
+        this->SetFontWeight(AttributeFontWeight{ value.data.word });
+        break;
+    case ValueType::Type_FontFamily:
+        this->SetFontFamily(UIManager.GetUniqueTextFromHandle(value.data.u32));
         break;
     case ValueType::Type_MarginTop:
         this->SetMarginTop(value.data.single);
@@ -1386,8 +1404,27 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
     case ValueType::Type_TransitionDuration:
         value.data.single = static_cast<float>(m_oStyle.tduration) * 1000.f;
         break;
+    case ValueType::Type_TransitionTimingFunc:
+        detail::write_value(value.data.byte, m_oStyle.tfunction);
+        break;
     case ValueType::Type_TextColor:
         detail::write_value(value.data.u32, this->GetFgColor().primitive);
+        break;
+    case ValueType::Type_FontSize:
+        detail::write_value(value.data.single, this->GetFontSize());
+        break;
+    case ValueType::Type_FontStyle:
+        detail::write_value(value.data.byte, this->GetFontStyle());
+        break;
+    case ValueType::Type_FontStretch:
+        detail::write_value(value.data.byte, this->GetFontStretch());
+        break;
+    case ValueType::Type_FontWeight:
+        detail::write_value(value.data.word, this->GetFontWeight());
+        break;
+    case ValueType::Type_FontFamily:
+        // cannot get font family from here
+        detail::write_value(value.data.u32, CUIManager::ERROR_HANDLE);
         break;
     case ValueType::Type_UIAppearance:
         detail::write_value(value.data.byte, m_oStyle.appearance);

@@ -20,6 +20,6 @@ namespace LongUI {
         // font data
         FontArg         font;
     };
-    // defualt 
+    // default 
     void MakeDefault(TextFont&) noexcept;
 }

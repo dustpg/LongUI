@@ -2,6 +2,7 @@
 
 #include "ui_ssvalue_list.h"
 #include "ui_attribute.h"
+#include "../text/ui_attribute.h"
 #include "../core/ui_color.h"
 
 namespace LongUI {
@@ -26,6 +27,16 @@ namespace LongUI {
         void SetBgOrigin(AttributeBox ab) noexcept;
         // set background attachment
         void SetBgAttachment(AttributeAttachment aa) noexcept;
+        // set font size
+        void SetFontSize(float size) noexcept;
+        // set font style
+        void SetFontStyle(AttributeFontStyle style) noexcept;
+        // set font family(maybe you should use GetUniqueText)
+        void SetFontFamily(const char* family) noexcept;
+        // set font weight
+        void SetFontWeight(AttributeFontWeight weight) noexcept;
+        // set font stretch
+        void SetFontStretch(AttributeFontStretch stretch) noexcept;
     public:
         // get background clip
         auto GetBgClip() const noexcept->AttributeBox;
@@ -39,6 +50,16 @@ namespace LongUI {
         auto GetBgRepeat() const noexcept->AttributeRepeat;
         // get background origin
         auto GetBgOrigin() const noexcept->AttributeBox;
+        // get font size
+        auto GetFontSize() const noexcept->float;
+        // get font style
+        auto GetFontStyle() const noexcept->AttributeFontStyle;
+        // get font family
+        auto GetFontFamily() const noexcept->const char*;
+        // get font weight
+        auto GetFontWeight() const noexcept->AttributeFontWeight;
+        // get font stretch
+        auto GetFontStretch() const noexcept->AttributeFontStretch;
     public:
         // set margin top
         void SetMarginTop(float value) noexcept;

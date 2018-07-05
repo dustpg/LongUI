@@ -37,8 +37,8 @@ extern const char* xul_tabs;
 struct HelloConfig : public LongUI::CUIDefaultConfigure {
     using LongUI::IUIConfigure::ConfigureFlag;
     // get def-font
-    void DefualtFontArg(LongUI::FontArg& arg) noexcept override {
-        //CUIDefaultConfigure::DefualtFontArg(arg);
+    void DefaultFontArg(LongUI::FontArg& arg) noexcept override {
+        //CUIDefaultConfigure::DefaultFontArg(arg);
         arg.size = 20.f;
         //arg.family = "SimSun";
     }
@@ -141,6 +141,12 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     //auto& style = const_cast<LongUI::Style&>(viewport.GetStyle());
     //style.overflow_x = LongUI::Overflow_Auto;
     //style.overflow_y = LongUI::Overflow_Auto;
+    {
+        const auto str1 = UIManager.GetUniqueText(LongUI::U8View::FromCStyle("../doc/test-xul"));
+        const auto hand = UIManager.GetUniqueTextHandle(str1);
+        const auto str2 = UIManager.GetUniqueTextFromHandle(hand);
+        assert(str2 == str1);
+    }
     {
         LongUI::POD::Vector<int> v;
         v.resize(1024);

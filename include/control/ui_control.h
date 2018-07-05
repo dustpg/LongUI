@@ -154,12 +154,12 @@ namespace LongUI {
     public:
         // apply value
         void ApplyValue(SSValue) noexcept;
-        // get value
+        // get value[cannot get string yet]
         void GetValue(SSValue&) const noexcept;
         // need update in this frame
-        void NeedUpdate() noexcept;// { L::AddUpdateList(*this); }
+        void NeedUpdate() noexcept;
         // need update in next frame
-        void NextUpdate() noexcept;// { L::AddUpdateList(*this); }
+        void NextUpdate() noexcept;
         // need relayout in this freame
         void NeedRelayout() noexcept;
         // is first child?
@@ -322,8 +322,6 @@ namespace LongUI {
         void link_style_sheet() noexcept;
         // setup style values
         void setup_style_values() noexcept;
-        // mark children dirty
-        //void mark_posterity_dirty() noexcept;
     protected:
         // apply world transform to renderer
         void apply_world_transform() const noexcept;

@@ -120,7 +120,7 @@ namespace LongUI {
         void SetClearColor(const ColorF&) noexcept;
         // set now cursor
         void SetNowCursor(const CUICursor&) noexcept;
-        // set now cursor to defualt
+        // set now cursor to default
         void SetNowCursor(std::nullptr_t) noexcept;
     public:
         // find control, return null if notfound
@@ -139,10 +139,10 @@ namespace LongUI {
         bool SetFocus(UIControl& ctrl) noexcept;
         // kill focus of control,
         void KillFocus(UIControl& ctrl) noexcept;
-        // set now defualt control
-        void SetDefualt(UIControl& ctrl) noexcept;
-        // reset window defualt control(set window-defualt control to defualt)
-        void ResetDefualt() noexcept;
+        // set now default control
+        void SetDefault(UIControl& ctrl) noexcept;
+        // reset window default control(set window-default control to default)
+        void ResetDefault() noexcept;
         // mark dirty rect
         void MarkDirtRect(const RectF& rect) noexcept;
         // will do full render this frame?

@@ -44,9 +44,9 @@
 // ui namespace
 namespace LongUI {
     /// <summary>
-    /// The defualt control information
+    /// The default control information
     /// </summary>
-    const MetaControl* const DefualtControlInfo[] = {
+    const MetaControl* const DefaultControlInfo[] = {
         // V Box Layout - 垂直箱型布局
         &UIVBoxLayout::s_meta,
         // H Box Layout - 水平箱型布局
@@ -139,22 +139,22 @@ namespace LongUI {
 #endif
     };
     /// <summary>
-    /// Adds the defualt control information.
+    /// Adds the default control information.
     /// </summary>
     /// <param name="list">The list.</param>
-    void AddDefualtControlInfo(ControlInfoList& list) noexcept {
+    void AddDefaultControlInfo(ControlInfoList& list) noexcept {
         // 默认CC数量
         constexpr uint32_t CONTROL_CLASS_SIZE = 48;
         list.reserve(CONTROL_CLASS_SIZE);
         if (list) list.assign(
-            std::begin(DefualtControlInfo),
-            std::end(DefualtControlInfo)
+            std::begin(DefaultControlInfo),
+            std::end(DefaultControlInfo)
         );
 #ifndef NDEBUG
         // CONTROL_CLASS_SIZE要足够大
         assert(list.size() <= CONTROL_CLASS_SIZE && "set it to bigger");
         // 测试正确性
-        for (auto x : DefualtControlInfo) {
+        for (auto x : DefaultControlInfo) {
             // 跳过这个
             if (x == &UIMenuPopup::s_meta) continue;
             // 测试这个

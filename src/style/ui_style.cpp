@@ -260,6 +260,18 @@ namespace LongUI {
         0x79aed116_ui32,    // repeat-x
         0x79aed117_ui32,    // repeat-y
     };
+    // stretch data
+    const uint32_t STRETCH_DATA[] = {
+        0xddf0e19a_ui32,    // ultra-condensed
+        0xa41e35ee_ui32,    // extra-condensed
+        0x56fd39df_ui32,    // condensed
+        0xed2dab54_ui32,    // semi-condensed
+        0xbeadc473_ui32,    // normal
+        0x50e559e8_ui32,    // semi-expanded
+        0x8e48a541_ui32,    // expanded
+        0x3ad78dc6_ui32,    // extra-expanded
+        0x75e8cbaa_ui32,    // ultra-expanded
+    };
     PCN_NOINLINE
     /// <summary>
     /// Uint32s the index of the find.
@@ -313,4 +325,87 @@ auto LongUI::AttrParser::Repeat(U8View v1, U8View v2) noexcept -> AttributeRepea
         sizeof(REPEAT_DATA) / sizeof(REPEAT_DATA[0]),
         hash2
     ) << 4));
+}
+
+
+
+
+#include <text/ui_attribute.h>
+
+/// <summary>
+/// Fonts the style.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::TFAttrParser::Style(U8View view) noexcept->AttributeFontStyle {
+    assert(view.end() > view.begin());
+    switch (*view.begin())
+    {
+    default: return Style_Normal;
+    case 'o': return Style_Oblique;
+    case 'i': return Style_Italic;
+    }
+}
+
+/// <summary>
+/// Weights the specified view.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::TFAttrParser::Weight(U8View view)noexcept->AttributeFontWeight {
+    assert(view.end() > view.begin());
+    switch (const auto ch = *view.begin())
+    {
+    default: 
+        if (ch >= '0' && ch <= '9') {
+            const auto v = view.ToInt32();
+            return static_cast<AttributeFontWeight>(v);
+        }
+        [[fallthrough]];
+    case 'n': return Weight_Normal;
+    case 'l': return Weight_Light;
+    case 'b': return Weight_Bold;
+    }
+    return Weight_Normal;
+}
+
+/// <summary>
+/// Stretches the specified view.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::TFAttrParser::Stretch(U8View view)noexcept->AttributeFontStretch {
+    /*
+        ultra-condensed 50%
+        extra-condensed 62.5%
+        condensed       75%
+        semi-condensed  87.5%
+        normal          100%
+        semi-expanded   112.5%
+        expanded        125%
+        extra-expanded  150%
+        ultra-expanded  200%
+    */
+    const auto hash = LongUI::BKDRHash(view.begin(), view.end());
+    const auto index = LongUI::Uint32FindIndex(
+        LongUI::STRETCH_DATA,
+        sizeof(STRETCH_DATA) / sizeof(STRETCH_DATA[0]),
+        hash
+    );
+    // 没有找到
+    if (index == sizeof(STRETCH_DATA) / sizeof(STRETCH_DATA[0])) {
+        --view.second;
+        // 百分比
+        if (*view.second == '%') {
+            // FIXME: 和映射表一致{50~150->50~200}
+            constexpr float step = 12.5f;
+            const auto persent = view.ToFloat();
+            auto rv = int8_t(int(persent / step) - 3);
+            if (rv < 0) rv = 0;
+            else if (rv > Stretch_UltraExpanded) rv = Stretch_UltraExpanded;
+            return static_cast<AttributeFontStretch>(rv);
+        }
+        return Stretch_Normal;
+    }
+    return static_cast<AttributeFontStretch>(index + 1);
 }

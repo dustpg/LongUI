@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <cstdint>
+#include <core/ui_core_type.h>
 
 // ui namespace
 namespace LongUI{
@@ -127,4 +128,14 @@ namespace LongUI{
         /// </summary>
         Stretch_UltraExpanded = 9
     };
+
+    // parse the attribute
+    struct TFAttrParser {
+        // font-style
+        static auto Style(U8View) noexcept->AttributeFontStyle;
+        // font-weight
+        static auto Weight(U8View) noexcept->AttributeFontWeight;
+        // font stretch
+        static auto Stretch(U8View) noexcept->AttributeFontStretch;
+    }; 
 }

@@ -163,11 +163,11 @@ void LongUI::CUIDefaultConfigure::Exit() noexcept {
 }
 
 /// <summary>
-/// Defualts the font argument.
+/// Defaults the font argument.
 /// </summary>
 /// <param name="arg">The argument.</param>
 /// <returns></returns>
-void LongUI::CUIDefaultConfigure::DefualtFontArg(FontArg& arg) noexcept {
+void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
     //arg.size = 16.f;
     // 获取默认GUI字体句柄
     const auto font = ::GetStockObject(DEFAULT_GUI_FONT);

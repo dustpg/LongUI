@@ -10,6 +10,8 @@ CSS支持完善?
 
 LUI_VECTOR_SIZE_USE_UINT32 让这个宏有用
 
+POD Vector针对指针(以及小于指针?)优化?
+
 hash_base::find 优化
 
 使用Hash数组查找避免swicth跳转?(等待CSS属性稳定)
@@ -51,8 +53,6 @@ TextBC: 仅仅插入符移动的优化?
 SimpAX: (ch == ' ') | (ch == '\t'); -> (ch == ' ') || (ch == '\t');
 
 SimpAX: 字节映射表使用每一位, 节约7倍
-
-POD Vector针对指针(以及小于指针?)优化
 
 CUIWindow 也使用树节点
 

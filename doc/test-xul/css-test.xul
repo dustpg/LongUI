@@ -27,7 +27,7 @@ function get_text() {
 <hbox flex="1" id="layout">
   <button label="BUTTON" id="btn1"/>
   <spacer flex="1"/>
-  <button class="  A   B  C D button E  " label="BUTTON" flex="1"/>
+  <button class="  A   B  C D button E  " label="按钮" flex="1"/>
   <spacer flex="1"/>
 </hbox>
 <button id="bgimage" label="BUTTON" flex="1"/>

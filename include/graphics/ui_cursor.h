@@ -6,7 +6,7 @@ namespace LongUI {
     // cursor
     class CUICursor final {
     public:
-        // defualt
+        // default
         enum DefaultCursor : uintptr_t {
             // arraw
             Cursor_Arrow = 0,

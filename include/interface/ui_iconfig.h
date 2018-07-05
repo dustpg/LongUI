@@ -66,11 +66,11 @@ namespace LongUI {
         virtual void GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept = 0;
 
         /// <summary>
-        /// Defualts the font arg
+        /// Defaults the font arg
         /// </summary>
         /// <param name="arg">The argument.</param>
         /// <param name="family">The font family name.</param>
-        virtual void DefualtFontArg(FontArg& arg) noexcept = 0;
+        virtual void DefaultFontArg(FontArg& arg) noexcept = 0;
 
         /// <summary>
         /// Adds the control class info.

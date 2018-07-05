@@ -268,7 +268,7 @@ struct LongUI::PrivateResMgr {
     ResourceList        reslist;
     // resource data
     ResourceMap         resmap;
-    // defualt font
+    // default font
     FontArg             defarg;
     // resource count
     uint32_t            rescount;
@@ -684,10 +684,10 @@ auto LongUI::CUIResMgr::create_bitmap_private(
 
 
 /// <summary>
-/// Gets the defualt font.
+/// Gets the default font.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIResMgr::GetDefualtFont() const noexcept ->const FontArg&{
+auto LongUI::CUIResMgr::GetDefaultFont()const noexcept->const FontArg&{
     return rm().defarg;
 }
 
@@ -970,7 +970,7 @@ auto LongUI::CUIResMgr::init_default_font(IUIConfigure* cfg) noexcept->Result {
     // 配置默认字体
     auto& arg = rm().defarg;
     // 获取配置的默认字体
-    cfg->DefualtFontArg(arg);
+    cfg->DefaultFontArg(arg);
     // 创建默认字体
     return this->CreateCtlFont(arg, rm().deffont);
 }

@@ -181,7 +181,7 @@ namespace LongUI {
         // removed
         auto UNICALL AdviseEventRemoved(EVENTID eventId, SAFEARRAY *propertyIDs)noexcept->HRESULT override;
     public: // IInvokeProvider
-        // invoke / defualt action(?)
+        // invoke / default action(?)
         auto UNICALL Invoke()noexcept->HRESULT override;
     public: // ISelectionProvider
         // get selection

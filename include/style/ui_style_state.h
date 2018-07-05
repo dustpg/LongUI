@@ -8,7 +8,7 @@ namespace LongUI {
     enum class StyleStateType : uint8_t {
         Type_None = 0,
         Type_Selected,
-        Type_Defualt,
+        Type_Default,
         Type_Disabled,
         Type_Hover,
         Type_Active,
@@ -21,10 +21,10 @@ namespace LongUI {
         //Type_Current,
         Type_NA_TabAfterSelectedTab,
 
-        //Type_Opening,
+        Type_Opening,
         //Type_Idle1,
         //Type_Idle2,
-        //Type_Ending,
+        Type_Ending,
 
         //Type_NA_FirstChild,
         //Type_NA_LastChild,
@@ -41,7 +41,7 @@ namespace LongUI {
         bool        none        : 1;
         // ui-selected
         bool        selected    : 1;
-        // defualt command control
+        // default command control
         bool        default5    : 1;
         // disable
         bool        disabled    : 1;
@@ -55,7 +55,7 @@ namespace LongUI {
         bool        checked     : 1;
         // indeterminate, higher than checked
         bool        indeterminate : 1;
-        // closed
+        // closed   [twisty]
         bool        closed      : 1;
 
         // odd index
@@ -65,14 +65,14 @@ namespace LongUI {
         // after selected tab
         bool        after_seltab : 1;
 
-        //// opening 
-        //bool        opening     : 1;
+        // opening 
+        bool        opening     : 1;
         //// idle1
         //bool        idle1       : 1;
         //// idle2
         //bool        idle2       : 1;
-        //// ending
-        //bool        ending      : 1;
+        // ending
+        bool        ending      : 1;
 
         // first child
         //bool        first_child  : 1;

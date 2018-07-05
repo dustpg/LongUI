@@ -240,10 +240,10 @@ namespace LongUI {
         UIControl*      saved_focused = nullptr;
         // captured control
         UIControl*      captured = nullptr;
-        // now defualt control
-        UIControl*      now_defualt = nullptr;
-        // window defualt control
-        UIControl*      wnd_defualt = nullptr;
+        // now default control
+        UIControl*      now_default = nullptr;
+        // window default control
+        UIControl*      wnd_default = nullptr;
     public:
         // save utf-16 char
         char16_t        saved_utf16 = 0;
@@ -665,12 +665,12 @@ void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
 }
 
 /// <summary>
-/// Resets the defualt.
+/// Resets the default.
 /// </summary>
 /// <returns></returns>
-void LongUI::CUIWindow::ResetDefualt() noexcept {
-    if (m_private->wnd_defualt) {
-        this->SetDefualt(*m_private->wnd_defualt);
+void LongUI::CUIWindow::ResetDefault() noexcept {
+    if (m_private->wnd_default) {
+        this->SetDefault(*m_private->wnd_default);
     }
 }
 
@@ -704,15 +704,15 @@ bool LongUI::CUIWindow::IsFullRenderThisFrame() const noexcept {
 }
 
 /// <summary>
-/// Sets the defualt.
+/// Sets the default.
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::SetDefualt(UIControl& ctrl) noexcept {
+void LongUI::CUIWindow::SetDefault(UIControl& ctrl) noexcept {
     assert(this && "null this ptr");
     if (!ctrl.IsDefaultable()) return;
-    constexpr auto dtype = StyleStateType::Type_Defualt;
-    auto& nowc = m_private->now_defualt;
+    constexpr auto dtype = StyleStateType::Type_Default;
+    auto& nowc = m_private->now_default;
     if (nowc) nowc->StartAnimation({ dtype, false });
     (nowc = &ctrl)->StartAnimation({ dtype, true });
 }
@@ -970,7 +970,7 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
     // 回车键?
     if (key == CUIInputKM::KB_RETURN) {
         // 直接将输入引导到默认控件
-        if (const auto defc = this->now_defualt) {
+        if (const auto defc = this->now_default) {
             defc->DoInputEvent({ ekey, key });
             return;
         }
@@ -982,7 +982,7 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
         // 回车键无视了?!
         if (rv == Event_Ignore && key == CUIInputKM::KB_RETURN) {
             // 直接将输入引导到默认控件
-            if (const auto defc = this->now_defualt) {
+            if (const auto defc = this->now_default) {
                 defc->DoInputEvent({ ekey, key });
                 return;
             }

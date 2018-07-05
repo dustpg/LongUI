@@ -1,5 +1,7 @@
 ﻿// lui
 #include <style/ui_ssvalue.h>
+#include <util/ui_aniamtion.h>
+#include <text/ui_attribute.h>
 #include <style/ui_attribute.h>
 #include <core/ui_basic_type.h>
 #include <core/ui_color_list.h>
@@ -37,6 +39,10 @@ namespace LongUI {
         auto parse_time(U8View value) noexcept -> float;
         // parse float
         auto parse_float(FuncValue value) noexcept -> float;
+        // parse string
+        auto parse_string(U8View value) noexcept->uint32_t;
+        // parse timing function
+        auto parse_timingfunc(U8View value) noexcept->AnimationType;
         // 1 for 4
         void one_for_four(
             ValueType vtype,
@@ -118,6 +124,8 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_BorderRightWidth:
     case ValueType::Type_BorderBottomWidth:
     case ValueType::Type_BorderLeftWidth:
+        // [MBP]
+    case ValueType::Type_FontSize:
         // [FLOAT]
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data.single, detail::parse_float(values[0]));
@@ -156,6 +164,36 @@ void LongUI::ValueTypeMakeValue(
         //   -- transition-duration
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data.single, detail::parse_time(U8(values[0])));
+        break;
+    case ValueType::Type_TransitionTimingFunc:
+        // [TIMING FUNCTION]
+        //   -- transition-timing-function
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data.byte, detail::parse_timingfunc(U8(values[0])));
+        break;
+    case ValueType::Type_FontStyle:
+        // [FontStyle]
+        //   -- font-size
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data.byte, TFAttrParser::Style(U8(values[0])));
+        break;
+    case ValueType::Type_FontStretch:
+        // [FontStretch]
+        //   -- font-stretch
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data.byte, TFAttrParser::Stretch(U8(values[0])));
+        break;
+    case ValueType::Type_FontWeight:
+        // [FontStretch]
+        //   -- font-weight
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data.word, TFAttrParser::Weight(U8(values[0])));
+        break;
+    case ValueType::Type_FontFamily:
+        // [FontFamily]
+        //   -- font-family
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data.u32, detail::parse_string(U8(values[0])));
         break;
     case ValueType::Type_UIAppearance:
         // [APPEARANCE]
@@ -270,15 +308,31 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x10117138_ui32:
         // transition-duration
         return { ValueType::Type_TransitionDuration };
+    case 0xa5460fb3_ui32:
+        // transition-timing-function
+        return { ValueType::Type_TransitionTimingFunc };
 
-        // -------------  Text  ----------------
+        // ------------- TextFont  ----------------
 
     case 0xd8c9a893_ui32:
         // color
         return { ValueType::Type_TextColor };
-
+    case 0x841ed0a7_ui32:
+        // font-size
+        return { ValueType::Type_FontSize };
+    case 0x9d3ddc0f_ui32:
+        // font-style
+        return { ValueType::Type_FontStyle };
+    case 0x3bf8aeab_ui32:
+        // font-stretch
+        return { ValueType::Type_FontStretch };
+    case 0x5b44f3da_ui32:
+        // font-weight
+        return { ValueType::Type_FontWeight };
+    case 0x61ced682_ui32:
+        // font-family
+        return { ValueType::Type_FontFamily };
         // ------------- LongUI ----------------
-
 #if 0
     case 0xee354dac_ui32:
         // appearance
@@ -290,17 +344,6 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
         break;
     }
     return { ValueType::Type_Unknown };
-}
-
-/// <summary>
-/// Initializes the state buffer.
-/// </summary>
-/// <param name="buf">The buf.</param>
-/// <returns></returns>
-void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
-    const auto len = static_cast<int>(ValueType::TYPE_COUNT) * sizeof(*buf);
-    std::memset(buf, 0, len);
-    buf[static_cast<int>(ValueType::Type_TextColor)].u32 = RGBA_Black;
 }
 
 /// <summary>
@@ -324,6 +367,8 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BorderRightWidth:
     case LongUI::ValueType::Type_BorderBottomWidth:
     case LongUI::ValueType::Type_BorderLeftWidth:
+        // [MBP]
+    case ValueType::Type_FontSize:
         // [FLOAT]
         return ValueEasyType::Type_Float;
     case LongUI::ValueType::Type_BorderImageSource:
@@ -333,9 +378,15 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BackgroundRepeat:
     case LongUI::ValueType::Type_BackgroundClip:
     case LongUI::ValueType::Type_BackgroundOrigin:
-    case LongUI::ValueType::Type_TransitionDuration:
+    case LongUI::ValueType::Type_FontStyle:
+    case LongUI::ValueType::Type_FontStretch:
+    case LongUI::ValueType::Type_FontWeight:
     case LongUI::ValueType::Type_UIAppearance:
         // [STATE]
+    case LongUI::ValueType::Type_FontFamily:
+        // [STRING]
+    case LongUI::ValueType::Type_TransitionDuration:
+        // [SPTIME]
         return ValueEasyType::Type_NoAnimation;
     case LongUI::ValueType::Type_BackgroundColor:
     case LongUI::ValueType::Type_TextColor:
@@ -382,7 +433,7 @@ namespace LongUI {
             pc.yes.checked = true;
             break;
         case 0xdf345f61_ui32:
-            // defualt
+            // default
             pc.yes.default5 = true;
             break;
         case 0x715f1adc_ui32:
@@ -409,6 +460,19 @@ namespace LongUI {
             // selected
             pc.yes.selected = true;
             break;
+        case 0xbaf00ef8_ui32:
+            // closed
+            pc.yes.closed = true;
+            break;
+        case 0x5f149358_ui32:
+            // closed
+            pc.yes.opening = true;
+            break;
+        case 0xd398231b_ui32:
+            // closed
+            pc.yes.ending = true;
+            break;
+
         }
     }
     // detail namespace
@@ -517,6 +581,79 @@ namespace LongUI {
             LongUI::ValueTypeMakeValue(vtype3, 1, values + i3, values_write);
             LongUI::ValueTypeMakeValue(vtype4, 1, values + i4, values_write);
         }
+        /// <summary>
+        /// Parses the timingfunc.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns></returns>
+        auto parse_timingfunc(U8View value) noexcept -> AnimationType {
+            assert(value.end() > value.begin());
+            // XXX: 
+            /*
+                ease
+                linear
+                ease-in
+                ease-out
+                ease-in-out
+            */
+            switch (value.end() - value.begin())
+            {
+            case 1: case 2:
+                return static_cast<AnimationType>(value.ToInt32());
+            case 4:
+                // ease
+                return Type_CubicEaseOut;
+            case 6:
+                // linear
+                return Type_LinearInterpolation;
+            case 7:
+                // ease-in
+                return Type_CubicEaseIn;
+            case 8:
+                // ease-out
+                return Type_CubicEaseOut;
+            case 11:
+                // ease-out
+                return Type_CubicEaseInOut;
+            }
+            return Type_LinearInterpolation;
+        }
     }
 }
 
+
+#include <core/ui_manager.h>
+#include <text/ui_ctl_arg.h>
+
+/// <summary>
+/// Initializes the state buffer.
+/// </summary>
+/// <param name="buf">The buf.</param>
+/// <returns></returns>
+void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
+    // XXX: 优化初始化
+    const auto len = static_cast<int>(ValueType::TYPE_COUNT) * sizeof(*buf);
+    std::memset(buf, 0, len);
+    const auto& font = UIManager.GetDefaultFont();
+    // 字体
+    buf[static_cast<int>(ValueType::Type_TextColor)].u32 
+        = RGBA_Black;
+    buf[static_cast<int>(ValueType::Type_FontSize)].single 
+        = font.size;
+    buf[static_cast<int>(ValueType::Type_FontStretch)].byte
+        = font.stretch;
+    buf[static_cast<int>(ValueType::Type_FontWeight)].word
+        = font.weight;
+}
+
+
+/// <summary>
+/// Parses the string.
+/// </summary>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+auto LongUI::detail::parse_string(U8View value) noexcept -> uint32_t {
+    const auto string = UIManager.GetUniqueText(value);
+    const auto handle = UIManager.GetUniqueTextHandle(string);
+    return handle;
+}

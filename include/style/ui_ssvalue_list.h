@@ -114,14 +114,22 @@ namespace LongUI {
 
         // [Transition] duration
         Type_TransitionDuration,
+        // [Transition] timing funtion
+        Type_TransitionTimingFunc,
 
         // [Text] color
         Type_TextColor,
 
-        //// [Font] size
-        //Type_FontSize,
-        //// [Font] family
-        //Type_FontFamily,
+        // [Font] size
+        Type_FontSize,
+        // [Font] style
+        Type_FontStyle,
+        // [Font] stretch
+        Type_FontStretch,
+        // [Font] weight
+        Type_FontWeight,
+        // [Font] family
+        Type_FontFamily,
 
         // [LongUI] appearance
         Type_UIAppearance,
@@ -145,6 +153,8 @@ namespace LongUI {
         uint32_t    u32;
         // i32 data
         int32_t     i32;
+        // u16 data
+        uint16_t    word;
         // single float data
         float       single;
         // byte data

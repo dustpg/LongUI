@@ -633,7 +633,7 @@ auto LongUI::CUIDebug::operator<<(StyleStateTypeChange e) noexcept->CUIDebug& {
     case LongUI::StyleStateType::Type_None:     type_name = "[none]"; break;
     case LongUI::StyleStateType::Type_OddIndex: type_name = "[oddindex]"; break;
     case LongUI::StyleStateType::Type_Selected: type_name = "[selected]"; break;
-    case LongUI::StyleStateType::Type_Defualt:  type_name = "[defualt]"; break;
+    case LongUI::StyleStateType::Type_Default:  type_name = "[default]"; break;
     case LongUI::StyleStateType::Type_Disabled: type_name = "[disabled]"; break;
     case LongUI::StyleStateType::Type_Hover:    type_name = "[hover]"; break;
     case LongUI::StyleStateType::Type_Active:   type_name = "[active]"; break;

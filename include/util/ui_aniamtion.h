@@ -10,7 +10,7 @@
 // ui namespace
 namespace LongUI {
     // the type of aniamtion
-    enum AnimationType : uint32_t {
+    enum AnimationType : uint8_t {
         Type_LinearInterpolation = 0,   // 线性插值
         Type_QuadraticEaseIn,           // 平方渐入插值
         Type_QuadraticEaseOut,          // 平方渐出插值

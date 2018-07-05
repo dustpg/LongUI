@@ -86,7 +86,7 @@ namespace LongUI {
         // create ctl text
         auto CreateCtlText(const TextArg&, I::Text*&) noexcept->Result;
         // get default font data
-        auto GetDefualtFont() const noexcept -> const FontArg&;
+        auto GetDefaultFont() const noexcept -> const FontArg&;
     public:
         // save as png
         auto SaveAsPng(I::Bitmap& bmp, const wchar_t* file) noexcept->Result;

@@ -69,14 +69,14 @@ namespace LongUI {
         // accesskey
         char                    m_accesskey = 0;
     public:
-        // defualt value
+        // default value
         enum : int32_t {
             // ** fonts are much differenty with each other
             // ** use this to adjust
 
-            // defualt text x offset
+            // default text x offset
             DEFUALT_TEXT_X_OFFSET = 0,
-            // defualt text y offset
+            // default text y offset
             DEFUALT_TEXT_Y_OFFSET = 0,
         };
     };
