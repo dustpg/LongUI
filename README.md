@@ -1,15 +1,15 @@
 ﻿## LongUI
   
-Lightweight Direct2D GUI Library in C++  
+Lightweight C++ GUI Library
 
 Current Version : **Alpha-Stage**
 
 ## Features in LongUI
   
 **Light Weight**
-  - this is main target to create LongUI
+  - main target to create LongUI
   - static-link framework, helloworld just 133kb now
-  - for this, **no c++ exception** in LongUI, you cannot use c++ function maybe throw in callback
+  - for this, **no c++ exception** in LongUI, becareful exception in LongUI
 
 **XML User Interface Language**
   - partially compatible Mozilla's XUL (XML part)
@@ -22,6 +22,9 @@ Current Version : **Alpha-Stage**
 
 **Accessible**
   - support accessible even it's light-weight
+
+**Hardware Acceleration**
+  - gpu render based on direct2d now
 
 **Freedom License**
   - the code is almost all written by myself, and under MIT License
