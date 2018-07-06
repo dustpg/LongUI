@@ -49,8 +49,7 @@ namespace LongUI {
         // create time capsule for control
         template<typename T>
         void CreateTimeCapsule(T&& func, float total, UIControl* ctrl = nullptr) noexcept {
-            this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl);
-        }
+            this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl); }
         // dispose time capsule for control
         void DisposeTimeCapsule(UIControl& ctrl) noexcept;
     public:
@@ -64,8 +63,8 @@ namespace LongUI {
         void ControlAttached(UIControl& ctrl) noexcept;
         // control disattached
         void ControlDisattached(UIControl& ctrl) noexcept;
-        // invalidate control: rect : window level rect
-        void InvalidateControl(UIControl& ctrl/*, const RectF& rect*/) noexcept;
+        // invalidate control
+        void InvalidateControl(UIControl& ctrl) noexcept;
     public:
         // set xul dir
         void SetXULDir(U8View) noexcept;

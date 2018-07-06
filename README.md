@@ -8,7 +8,7 @@ Current Version : **Alpha-Stage**
   
 **Light Weight**
   - this is main target to create LongUI
-  - static-link framework, helloworld just 200kb now
+  - static-link framework, helloworld just 133kb now
   - for this, **no c++ exception** in LongUI, you cannot use c++ function maybe throw in callback
 
 **XML User Interface Language**

@@ -71,10 +71,10 @@ namespace LongUI {
     // attribute [pseudo] namespace
     struct Attribute {
         // default normal window class name zhuangbilty
-        static constexpr wchar_t* const WindowClassNameN = L"Windows.UI.LongUI.DirectWindow";
+        static constexpr const wchar_t* WindowClassNameN = L"Windows.UI.LongUI.DirectWindow";
         // default popup window class name zhuangbilty
-        static constexpr wchar_t* const WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
+        static constexpr const wchar_t* WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
         // tool window class name zhuangbilty
-        static constexpr wchar_t* const WindowClassNameT = L"Windows.UI.LongUI.SystemInvoke";
+        static constexpr const wchar_t* WindowClassNameT = L"Windows.UI.LongUI.SystemInvoke";
     };
 }

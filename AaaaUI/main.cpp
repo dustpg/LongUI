@@ -535,20 +535,20 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
             }
             return LongUI::Event_Accept;
         });
-        do_button(viewport.GetWindow(), "bgimage")->AddGuiEventListener(
-            LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
-            UIManager.CreateTimeCapsule([](float p) noexcept {
-                p *= 2.f;
-            }, 2.f, &control);
-            UIManager.CreateTimeCapsule([](float p) noexcept {
-                p *= 2.f;
-            }, 1.f, &control);
-            UIManager.CreateTimeCapsule([](float p) noexcept {
-                p *= 2.f;
-            }, 3.f, &control);
-            control.DeleteLater();
-            return LongUI::Event_Accept;
-        });
+        //do_button(viewport.GetWindow(), "bgimage")->AddGuiEventListener(
+        //    LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
+        //    UIManager.CreateTimeCapsule([](float p) noexcept {
+        //        p *= 2.f;
+        //    }, 2.f, &control);
+        //    UIManager.CreateTimeCapsule([](float p) noexcept {
+        //        p *= 2.f;
+        //    }, 1.f, &control);
+        //    UIManager.CreateTimeCapsule([](float p) noexcept {
+        //        p *= 2.f;
+        //    }, 3.f, &control);
+        //    control.DeleteLater();
+        //    return LongUI::Event_Accept;
+        //});
         break;
     }
 
