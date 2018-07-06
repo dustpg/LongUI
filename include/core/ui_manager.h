@@ -83,10 +83,6 @@ namespace LongUI {
         friend detail::ctor_dtor<CUIManager>;
         // interface for memory management
         struct IMM;
-        // time capsules
-        //using TimeCapsules = POD::Vector<CUITimeCapsule*>;
-        // time capsule call
-        //using TimeCapsuleCall = CUITimeCapsule::TimeCallBack;
         // flag
         using ConfigFlag = IUIConfigure::ConfigureFlag;
     public:
@@ -122,7 +118,7 @@ namespace LongUI {
         auto GetWheelScrollChars() const noexcept { return m_uWheelScrollChars; }
         // get delta time in ms
         auto GetDeltaTimeMs() const noexcept { return m_dwDeltaTime; }
-        // get delta time for ui
+        // get delta time in sec.
         auto GetDeltaTime() const noexcept { return m_fDeltaTime; }
         // get app run time in ms
         //auto GetAppTimeTick() const noexcept { return m_dwTimeTick - m_cStartTick; }

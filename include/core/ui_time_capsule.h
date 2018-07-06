@@ -24,44 +24,60 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "ui_node.h"
 #include "ui_object.h"
-#include "../util/ui_function.h"
+#include <utility>
 
 // ui namespace
 namespace LongUI {
-    // Time Capsule Return Code, 
-    enum TimeCapsuleReturnCode : bool {
-        Code_UntilFinished  = false,
-        Code_Terminate      = true,
+    // control
+    class UIControl;
+    // time capsule
+    class CUITimeCapsule : public Node, public CUISmallObject {
+    protected:
+        // ctor
+        CUITimeCapsule(float total) noexcept;
+        // dtor
+        virtual ~CUITimeCapsule() noexcept = default;
+        // call
+        virtual void call(float p) noexcept = 0;
+    public:
+        // delete this
+        void Dispose() noexcept;
+        // call this
+        bool Call(float delta) noexcept;
+        // is more mo than
+        bool IsMoreMOThan(const CUITimeCapsule& x) const noexcept;
+#if 1
+    public:
+        // pointer
+        UIControl *         pointer = nullptr;
+#endif
+    private:
+        // total time
+        float      const    m_fTotalTime;
+        // time done
+        float               m_fDoneTime = 0.f;
     };
     // impl namespace
     namespace impl {
-        // time capsule pod data
-        struct pod_time_capsule {
-            // callback pointer
-            void*           call;
-            // time total
-            float           total;
-            // time done
-            float           done;
+        // impl for time capsule
+        template<typename T>
+        class time_capsule : public CUITimeCapsule {
+            // func object
+            T           m_func;
+            // dtor
+            ~time_capsule() noexcept = default;
+            // impl for call
+            void call(float p) noexcept override { return m_func(p); };
+        public:
+            // ctor
+            time_capsule(T&& func, float total) noexcept : CUITimeCapsule(total), m_func(std::move(func)) {}
         };
+        // create time capsule
+        template<typename T>
+        inline auto create(float total, T&& func) noexcept ->CUITimeCapsule* {
+            return new(std::nothrow) impl::time_capsule<T>(std::move(func), total);
+        }
     }
-    // time capsule
-    class CUITimeCapsule final : impl::pod_time_capsule {
-    public:
-        // callback
-        using TimeCallBack = CUIFunction<TimeCapsuleReturnCode(float)>;
-        // dispose this time capsule
-        void Dispose() noexcept;
-    public:
-        // add one time capsule to longui
-        static auto AddOne(TimeCallBack&& call, float time) noexcept ->CUITimeCapsule*;
-    private:
-        //// call back
-        //TimeCallBack        m_call;
-        //// time total
-        //const float         m_fTimeTotal;
-        //// time done
-        //float               m_fTimeDone = 0.f;
-    };
 }

@@ -207,6 +207,7 @@
     <ClCompile Include="..\src\core\ui_manager.cpp" />
     <ClCompile Include="..\src\core\ui_node.cpp" />
     <ClCompile Include="..\src\core\ui_resource_manager.cpp" />
+    <ClCompile Include="..\src\core\ui_time_capsule.cpp" />
     <ClCompile Include="..\src\core\ui_window.cpp" />
     <ClCompile Include="..\src\core\ui_window_manager.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug.cpp" />

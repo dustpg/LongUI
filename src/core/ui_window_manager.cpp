@@ -113,7 +113,7 @@ LongUI::CUIWndMgr::~CUIWndMgr() noexcept {
 auto LongUI::CUIWndMgr::update_delta_time() noexcept -> float {
     // TODO: 固定时间更新频率
     auto& meter = wm().timemeter;
-    const auto time = meter.Delta_ms<double>();
+    const auto time = meter.Delta_s<double>();
     meter.MovStartEnd();
     return static_cast<float>(time);
 }

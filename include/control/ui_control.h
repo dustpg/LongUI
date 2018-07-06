@@ -65,6 +65,8 @@
 namespace LongUI {
     // meta info
     struct MetaControl;
+    // time capsule
+    class CUITimeCapsule;
     // control control
     class CUIControlControl;
     // control private function
@@ -370,6 +372,8 @@ namespace LongUI {
         UIControl*              m_pHovered = nullptr;
         // clicked child, right during in click-down-to-up
         UIControl*              m_pClicked = nullptr;
+        // last end time capsule
+        CUITimeCapsule*         m_pLastEnd = nullptr;
         // style unique classes
         UniqueClasses           m_classesStyle;
     private:

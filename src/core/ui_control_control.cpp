@@ -155,6 +155,8 @@ void LongUI::CUIControlControl::RecursiveRender(
 /// Initializes a new instance of the <see cref="CUIControlControl"/> class.
 /// </summary>
 LongUI::CUIControlControl::CUIControlControl() noexcept {
+    m_oHeadTimeCapsule = { nullptr, &m_oTailTimeCapsule };
+    m_oTailTimeCapsule = { &m_oHeadTimeCapsule, nullptr };
     detail::ctor_dtor<PrivateCC>::create(&cc());
     m_dwTimeTick = LongUI::GetTimeTick();
     m_dwDeltaTime = 0;
@@ -165,7 +167,96 @@ LongUI::CUIControlControl::CUIControlControl() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIControlControl::~CUIControlControl() noexcept {
+    this->dispose_all_time_capsule();
     cc().~PrivateCC();
+}
+
+/// <summary>
+/// Disposes all time capsule.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIControlControl::dispose_all_time_capsule() noexcept {
+    // 释放时间胶囊
+    //m_oHead.next->m_oTail;
+    const auto tcbegin = m_oHeadTimeCapsule.next;
+    const auto tcend = &m_oTailTimeCapsule;
+    for (auto node = tcbegin; node != tcend; ) {
+        const auto old = static_cast<CUITimeCapsule*>(node);
+        node = node->next;
+        old->Dispose();
+    }
+}
+
+
+
+/// <summary>
+/// Disposes the time capsule.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::DisposeTimeCapsule(UIControl& ctrl) noexcept {
+    const auto tcbegin = m_oHeadTimeCapsule.next;
+    const auto tcend = &m_oTailTimeCapsule;
+#ifndef NDEBUG
+    bool disposed = false;
+#endif
+    // 遍历
+    for (auto node = tcbegin; node != tcend; ) {
+        const auto old = static_cast<CUITimeCapsule*>(node);
+        node = node->next;
+        // 检测是否存在
+        if (old->pointer == &ctrl) {
+#ifndef NDEBUG
+            disposed = true;
+#endif
+            old->Dispose();
+        }
+    }
+#ifndef NDEBUG
+    assert(disposed && "no object disposed");
+#endif
+}
+
+/// <summary>
+/// Refreshes the time capsule.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="capsule">The capsule.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::refresh_time_capsule(
+    UIControl& ctrl, CUITimeCapsule& capsule) noexcept {
+    // 可能有比较长寿
+    if (ctrl.m_pLastEnd) {
+        // 还是自己比较寿命
+        if (ctrl.m_pLastEnd->IsMoreMOThan(capsule)) return;
+    }
+    // 没机会
+    ctrl.m_pLastEnd = &capsule;
+}
+
+/// <summary>
+/// Updates the time capsule.
+/// </summary>
+/// <param name="delta">The delta.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::update_time_capsule(float delta) noexcept {
+    const auto tcbegin = m_oHeadTimeCapsule.next;
+    const auto tcend = &m_oTailTimeCapsule;
+    // 遍历所有节点
+    for (auto node = tcbegin; node != tcend; ) {
+        const auto old = static_cast<CUITimeCapsule*>(node);
+        node = node->next;
+        // 直接调用
+        if (old->Call(delta)) {
+            // 记录针对控件的释放
+            if (old->pointer) {
+                auto& last = old->pointer->m_pLastEnd;
+                assert(last && "last end cannot be null if tc exist");
+                if (last == old) last = nullptr;
+            }
+            old->Dispose();
+        }
+    }
 }
 
 // ui namespace
@@ -207,6 +298,11 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
     if (ctrl.is_in_dirty_list()) {
         ctrl.m_state.in_dirty_list = false;
         LongUI::RemovePointerItem(reinterpret_cast<PointerVector&>(cc().dirty_update), &ctrl);
+    }
+    // 4. 移除时间胶囊
+    if (ctrl.m_pLastEnd) {
+        this->DisposeTimeCapsule(ctrl);
+        ctrl.m_pLastEnd = nullptr;
     }
 }
 

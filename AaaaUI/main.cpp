@@ -131,6 +131,7 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
 LongUI::UIControl* vv;
 
 #include <util/ui_lastsort.h>
+#include <core/ui_time_capsule.h>
 
 
 void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
@@ -146,6 +147,12 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         const auto hand = UIManager.GetUniqueTextHandle(str1);
         const auto str2 = UIManager.GetUniqueTextFromHandle(hand);
         assert(str2 == str1);
+    }
+    {
+        //using namespace LongUI;
+        //UIManager.CreateTimeCapsule([](float p) noexcept {
+        //    LUIDebug(Hint) << p << endl;
+        //}, 1.f);
     }
     {
         LongUI::POD::Vector<int> v;
@@ -528,11 +535,20 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
             }
             return LongUI::Event_Accept;
         });
-        //do_button(viewport.GetWindow(), "bgimage")->AddGuiEventListener(
-        //    LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
-        //    UIManager.NeedRecreate();
-        //    return LongUI::Event_Accept;
-        //});
+        do_button(viewport.GetWindow(), "bgimage")->AddGuiEventListener(
+            LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
+            UIManager.CreateTimeCapsule([](float p) noexcept {
+                p *= 2.f;
+            }, 2.f, &control);
+            UIManager.CreateTimeCapsule([](float p) noexcept {
+                p *= 2.f;
+            }, 1.f, &control);
+            UIManager.CreateTimeCapsule([](float p) noexcept {
+                p *= 2.f;
+            }, 3.f, &control);
+            control.DeleteLater();
+            return LongUI::Event_Accept;
+        });
         break;
     }
 

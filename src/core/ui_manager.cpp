@@ -51,8 +51,6 @@ namespace LongUI { struct PrivateManager {
     POD::HashMap<META*>     cclasses;
     // km-input
     CUIInputKM              km_input;
-    // css roor dir
-    //CUIString               css_root_dir;
 
 
 
@@ -191,6 +189,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
     this_()->try_recreate();
     // 记录帧间时间
     this_()->m_fDeltaTime = this_()->update_delta_time();
+    // 刷新时间胶囊
+    this_()->update_time_capsule(this_()->m_fDeltaTime);
     // 刷新控件控制
     this_()->normal_update();
 
@@ -269,7 +269,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
         std::swprintf(
             buffer, buflen,
             L"delta: %.2fms -- %2.2f fps",
-            time, 1000.f / time
+            time * 1000.f, 1.f / time
         );
         if (this_()->flag & IUIConfigure::Flag_DbgDebugWindow)
             ::ui_dbg_set_window_title(this_()->m_pDebugWindow, buffer);
@@ -741,7 +741,7 @@ flag(config->GetConfigureFlag()) {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIManager::~CUIManager() noexcept {
-    //this_()->config->Release();
+
     this_()->pm().~PrivateManager();
 #ifndef NDEBUG
     DbgMgr().~CUIManagerDebug();
@@ -771,6 +771,26 @@ void LongUI::CUIManager::refresh_system_info() noexcept {
     this_()->m_uWheelScrollLines = data;
     ::SystemParametersInfoA(SPI_GETWHEELSCROLLCHARS, 0, &data, 0);
     this_()->m_uWheelScrollChars = data;
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Afters the create tc.
+/// </summary>
+/// <param name="tc">The tc.</param>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc, UIControl* ctrl) noexcept {
+    if (!tc) return;
+    auto&self = UIManager;
+    // 连接前后节点
+    self.m_oTailTimeCapsule.prev->next = tc;
+    tc->prev = self.m_oTailTimeCapsule.prev;
+    tc->next = &self.m_oTailTimeCapsule;
+    self.m_oTailTimeCapsule.prev = tc;
+    // 设置指针
+    if (tc->pointer = ctrl)
+        self.refresh_time_capsule(*ctrl, *tc);
 }
 
 /// <summary>

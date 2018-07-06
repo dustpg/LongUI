@@ -6,6 +6,8 @@
 #include "ui_basic_type.h"
 #include "ui_core_type.h"
 #include "../style/ui_style_state.h"
+// time capsule
+#include "ui_time_capsule.h"
 
 // ui namespace
 namespace LongUI {
@@ -32,6 +34,10 @@ namespace LongUI {
         friend PrivateCC;
         // CUIXulStream
         struct CUIXulStream;
+        // after create time capsule
+        static void after_create_tc(CUITimeCapsule*, UIControl* ctrl) noexcept;
+        // refresh time capsule
+        static void refresh_time_capsule(UIControl&, CUITimeCapsule&) noexcept;
     public:
         // start basic animation
         void StartBasicAnimation(UIControl&, StyleStateTypeChange) noexcept;
@@ -39,6 +45,14 @@ namespace LongUI {
         void StartExtraAnimation(UIControl&, StyleStateTypeChange) noexcept;
         // find basic animation
         auto FindBasicAnimation(const UIControl&) const noexcept -> const ControlAnimationBasic*;
+    public:
+        // create time capsule for control
+        template<typename T>
+        void CreateTimeCapsule(T&& func, float total, UIControl* ctrl = nullptr) noexcept {
+            this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl);
+        }
+        // dispose time capsule for control
+        void DisposeTimeCapsule(UIControl& ctrl) noexcept;
     public:
         // add init list
         void AddInitList(UIControl& ctrl) noexcept;
@@ -75,6 +89,8 @@ namespace LongUI {
             uint32_t length
         ) noexcept;
     protected:
+        // update time capsule
+        void update_time_capsule(float delta) noexcept;
         // update control
         void update_control_in_list() noexcept;
         // init control, return true if update-list not empty
@@ -98,6 +114,13 @@ namespace LongUI {
         void update_basic_animation(uint32_t delta) noexcept;
         // update extra animation
         void update_extra_animation(uint32_t delta) noexcept;
+        // dispose all time capsule
+        void dispose_all_time_capsule() noexcept;
+    private:
+        // time capsule head
+        Node                    m_oHeadTimeCapsule;
+        // time capsule tail
+        Node                    m_oTailTimeCapsule;
     protected:
         // style sheet
         CUIStyleSheet*          m_pStyleSheet = nullptr;

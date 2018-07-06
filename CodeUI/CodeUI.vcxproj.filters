@@ -473,6 +473,9 @@
     <ClCompile Include="..\src\style\ui_ssvalue_list.cpp">
       <Filter>source\style</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\ui_time_capsule.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">

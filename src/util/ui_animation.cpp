@@ -30,7 +30,7 @@ auto LongUI::EasingFunction(AnimationType type, float x) noexcept -> float {
 /// <param name="p">The p.</param>
 /// <returns></returns>
 auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
-    assert(p >= 0.f && p <= 1.f && "out of range");
+    //assert(p >= 0.f && p <= 1.f && "out of range");
     SSValue rv;
     rv.type = value.from.type;
     rv.data.u32 = 0;

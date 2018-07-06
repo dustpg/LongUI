@@ -237,13 +237,17 @@ namespace LongUI {
         // focused control
         UIControl*      focused = nullptr;
         // TODO: focused control - saved 
-        UIControl*      saved_focused = nullptr;
+        //UIControl*      saved_focused = nullptr;
         // captured control
         UIControl*      captured = nullptr;
         // now default control
         UIControl*      now_default = nullptr;
         // window default control
         UIControl*      wnd_default = nullptr;
+        // get first
+        auto GetFirst() noexcept { return &this->focused; }
+        // get last
+        auto GetLast() noexcept { return &this->wnd_default; }
     public:
         // save utf-16 char
         char16_t        saved_utf16 = 0;
@@ -582,10 +586,14 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     if (m_inDtor) return;
     // XXX: ControlDisattached
 
-    // TODO: 这几个移动到CUIWindow厘里面, 方便Get
-    assert(m_private->focused != &ctrl);
-    assert(m_private->captured != &ctrl);
-    assert(m_private->saved_focused != &ctrl);
+    // XXX: 暴力移除一般引用..?
+    {
+        const auto b = m_private->GetFirst();
+        const auto e = m_private->GetLast() + 1;
+        for (auto itr = b; itr != e; ++itr) {
+            if (&ctrl == *itr) *itr = nullptr;
+        }
+    }
     // 移除映射表中的引用
     if (*ctrl.GetID()) {
         // TODO: 实现删除接口
@@ -659,7 +667,7 @@ bool LongUI::CUIWindow::ReleaseCapture(UIControl& ctrl) noexcept {
 void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
     if (m_private->focused == &ctrl) {
         m_private->focused = nullptr;
-        m_private->saved_focused = nullptr;
+        //m_private->saved_focused = nullptr;
         ctrl.StartAnimation({ StyleStateType::Type_Focus, false });
     }
 }

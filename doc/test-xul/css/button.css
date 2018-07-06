@@ -2,6 +2,7 @@ button#button, #layout .button{
     -moz-appearance: none;
     transition-duration: 555ms;
     transition-timing-function: ease-out;
+    /* transition-timing-function: 26; */
     background-color: red;
     background-color: blue;
     margin-left: 2px;
