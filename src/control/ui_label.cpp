@@ -84,10 +84,21 @@ auto LongUI::UILabel::DoEvent(
     case NoticeEvent::Event_RefreshBoxMinSize:
         // 不会改变
         return Event_Accept;
+    case NoticeEvent::Event_DoAccessAction:
+        // 访问连接控件
+        if (m_control.ctrl) 
+            return m_control.ctrl->DoEvent(this, e);
+        return Event_Ignore;
+    case NoticeEvent::Event_ShowAccessKey:
+        this->ShowAccessKey(e.derived);
+        return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 初始化
-        this->reset_font();
-        if (m_pWindow) m_control.FindControl(*m_pWindow);
+    {
+        CUIString tmp{ std::move(m_string) };
+        this->SetText(std::move(tmp));
+    }
+        m_control.FindControl(m_pWindow);
         [[fallthrough]];
     default:
         // 基类处理
@@ -107,6 +118,38 @@ void LongUI::UILabel::SetAsDefaultMinsize() noexcept {
 
 
 /// <summary>
+/// Setups the access key display.
+/// </summary>
+/// <param name="ch">The ch.</param>
+/// <returns></returns>
+void LongUI::UILabel::setup_access_key() noexcept {
+    const auto ch = m_chAccessKey;
+    if (ch >= 'A' && ch <= 'Z') {
+        // 查找字符串是否存在指定字符
+        m_uPosAkey = 0;
+        for (auto c : m_string) {
+            if (c >= 'a') c -= 'a' - 'A';
+            if (c == ch) return;
+            m_uPosAkey++;
+        }
+        // 添加字符串
+        m_uPosAkey++;
+    }
+}
+
+/// <summary>
+/// Shows the access key.
+/// </summary>
+/// <param name="show">if set to <c>true</c> [show].</param>
+/// <returns></returns>
+void LongUI::UILabel::ShowAccessKey(bool show) noexcept {
+    if (m_chAccessKey && m_text) {
+        m_text.SetUnderline(m_uPosAkey, show);
+        this->Invalidate();
+    }
+}
+
+/// <summary>
 /// Sets the text.
 /// </summary>
 /// <param name="text">The text.</param>
@@ -124,6 +167,18 @@ bool LongUI::UILabel::SetText(WcView text) noexcept {
     return this->SetText(CUIString{ text });
 }
 
+// longui::detail
+namespace LongUI { namespace detail{
+    // append access key
+    inline void append_ass_key(CUIString& str, char key) noexcept {
+        wchar_t buf[3];
+        buf[0] = '(';
+        buf[1] = key;
+        buf[2] = ')';
+        str.append(buf, buf + 3);
+    }
+}}
+
 PCN_NOINLINE
 /// <summary>
 /// Sets the text.
@@ -131,9 +186,19 @@ PCN_NOINLINE
 /// <param name="text">The text.</param>
 /// <returns></returns>
 bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
+    // 相同自然不需要
     if (m_string == text) return false;
     m_string = std::move(text);
+    // 检查访问键
+    this->setup_access_key();
+    // 需要额外的字符
+    const auto base_len = m_string.length();
+    if (m_uPosAkey == base_len + 1)
+        detail::append_ass_key(m_string, m_chAccessKey);
+    // 创建文本布局
     auto hr = m_text.SetText(m_string.c_str(), m_string.length());
+    m_string.erase(base_len);
+    // 设置字体
     this->after_set_text();
     // TODO: hr错误处理
     assert(hr);
@@ -180,10 +245,6 @@ void LongUI::UILabel::after_set_text() noexcept {
 void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增属性列表
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
-#if 0
-    constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
-    assert(!"UIControl already BKDR_ACCESSKEY");
-#endif
     // 分类讨论
     switch (key)
     {
@@ -191,16 +252,6 @@ void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
         // value
         m_string = CUIString::FromUtf8(value);
         return;
-#if 0
-    case BKDR_ACCESSKEY:
-        // accesskey
-        // 访问按键, 仅支持ASCII(严格情况A-Z)
-        if (attr.value.begin() != attr.value.end()) {
-            const int8_t akey = *attr.value.begin();
-            m_accesskey = akey >= 0 ? akey : 0;
-        }
-        return;
-#endif
     default:
         // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);

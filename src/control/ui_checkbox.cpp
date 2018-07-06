@@ -183,7 +183,7 @@ auto LongUI::UICheckBox::DoEvent(
     // 分类讨论
     switch (arg.nevent)
     {
-    case NoticeEvent::Event_DoDefaultAction:
+    case NoticeEvent::Event_DoAccessAction:
         // 默认行动
         this->Toggle();
         return Event_Accept;

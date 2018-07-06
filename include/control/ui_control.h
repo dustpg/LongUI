@@ -241,6 +241,8 @@ namespace LongUI {
     public:
         // set visible
         void SetVisible(bool visible) noexcept;
+        // get access key
+        auto GetAccessKey() const noexcept { return m_chAccessKey; }
         // get id
         auto GetID() const noexcept { return m_id; }
         // set postion of control [Relative to parent]
@@ -384,8 +386,12 @@ namespace LongUI {
     protected:
         // parent accessible data
         uint32_t                m_uData4Parent = 0;
-        // window accessible data
-        uint32_t                m_uData4Window = 0;
+        // ununsed u16
+        uint16_t                m_unused_u16 = 0;
+        // accesskey char
+        char                    m_chAccessKey = 0;
+        // ununsed char
+        char                    m_chUnused = 0;
     public:
 #ifdef LUI_USER_INIPTR_DATA
         // user int data, for user accessing

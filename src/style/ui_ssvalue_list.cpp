@@ -464,14 +464,14 @@ namespace LongUI {
             // closed
             pc.yes.closed = true;
             break;
-        case 0x5f149358_ui32:
-            // closed
-            pc.yes.opening = true;
-            break;
-        case 0xd398231b_ui32:
-            // closed
-            pc.yes.ending = true;
-            break;
+        //case 0x5f149358_ui32:
+        //    // closed
+        //    pc.yes.opening = true;
+        //    break;
+        //case 0xd398231b_ui32:
+        //    // closed
+        //    pc.yes.ending = true;
+        //    break;
 
         }
     }

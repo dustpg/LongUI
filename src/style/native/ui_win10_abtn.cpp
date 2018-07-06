@@ -88,6 +88,28 @@ void LongUI::CUINativeStyleWindows10::draw_arrow_only(const RectF& rect,
 
 
 /// <summary>
+/// Draws the drop mark.
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_drop_mark(
+    const NativeDrawArgs & args) noexcept {
+    ColorF color;
+    //ColorF::FromRGBA_RT(color, { 
+    //    args.to.disabled ? 0x606060ff_rgba : 0x3d3d3dff_rgba
+    //});
+    ColorF::FromRGBA_RT(color, { 0x3d3d3dff_rgba });
+    constexpr float angle0 = Direction_Down * 90.f;
+    constexpr float angle1 = Direction_Up * 90.f;
+    //float angle = args.to.active ? angle1 : angle0;
+    // 切换ACTIVE
+    //if (args.to.active != args.from.active) {
+
+    //}
+    return this->draw_arrow_only(args.border, color, angle0);
+}
+
+/// <summary>
 /// Gets the color of the arrow BTN.
 /// </summary>
 /// <param name="state">The state.</param>

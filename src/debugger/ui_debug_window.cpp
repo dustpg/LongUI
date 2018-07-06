@@ -140,9 +140,9 @@ const char* LongUI::debug_view_xul = u8R"(
 <groupbox flex="1">
     <caption label="Core Debug"/>
     <hbox>
-        <button id="btn-force" label="force render x1"/>
-        <button id="btn-recreate" label="recreate res"/>
-        <button id="btn-exit" label="exit" default="true"/>
+        <button id="btn-force" label="force render x1" accesskey="f"/>
+        <button id="btn-recreate" label="recreate res" accesskey="r"/>
+        <button id="btn-exit" label="exit" default="true" accesskey="e"/>
     </hbox>
     <checkbox id="cbx-dirty" label="draw dirty rect"/>
     <checkbox id="cbx-cell" label="draw text cell"/>

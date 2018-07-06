@@ -42,6 +42,8 @@ namespace LongUI {
         void after_set_text() noexcept;
         // init label
         void reset_font() noexcept;
+        // setup access key
+        void setup_access_key() noexcept;
     public:
         // get text
         auto GetText() const noexcept { return m_string.c_str(); }
@@ -55,6 +57,11 @@ namespace LongUI {
         bool SetText(WcView text) noexcept;
         // set default minsize
         void SetAsDefaultMinsize() noexcept;
+    public:
+        // set connection control
+        void SetControl(UIControl& ctrl) noexcept { m_control.SetControl(&ctrl); }
+        // show access key
+        void ShowAccessKey(bool show = true) noexcept;
     protected:
         // connection control
         NamedControl            m_control;
@@ -66,8 +73,8 @@ namespace LongUI {
         CUITextLayout           m_text;
         // text string
         CUIString               m_string;
-        // accesskey
-        char                    m_accesskey = 0;
+        // access key position
+        uint32_t                m_uPosAkey = 0;
     public:
         // default value
         enum : int32_t {

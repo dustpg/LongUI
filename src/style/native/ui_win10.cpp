@@ -19,7 +19,6 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     const auto appearance = args.appearance;
     switch (appearance)
     {
-        ColorF color;
         uint32_t index; ArrowDirection dir;
     default: case LongUI::Appearance_None: assert(!"error"); return;
     case LongUI::Appearance_Radio:
@@ -70,11 +69,7 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     case LongUI::Appearance_TreeTwisty:
         return this->draw_tree_twisty(args);
     case LongUI::Appearance_DropDownMarker:
-        //ColorF::FromRGBA_RT(color, { 
-        //    args.to.disabled ? 0x606060ff_rgba : 0x3d3d3dff_rgba
-        //});
-        ColorF::FromRGBA_RT(color, { 0x3d3d3dff_rgba });
-        return this->draw_arrow_only(args.border, color, Direction_Down);
+        return this->draw_drop_mark(args);
     case LongUI::Appearance_MenuItem:
         return this->draw_selbg(args);
     case LongUI::Appearance_Tab:

@@ -323,6 +323,9 @@ auto LongUI::UIControl::init() noexcept -> Result {
     if (!this) return{ Result::RE_OUTOFMEMORY };
     assert(m_state.inited == false && "this control has been inited");
     m_state.inited = true;
+    // XXX: 注册访问按键
+    if (m_chAccessKey >= 'A' && m_chAccessKey <= 'Z' && m_pWindow)
+        m_pWindow->RegisterAccessKey(*this);
     // 初始化对象
     EventInitializeArg arg; 
     this->DoEvent(this, arg);
@@ -505,6 +508,11 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_ACCESSKEY:
         // accesskey  : 快捷访问键
+        if (value.end() > value.begin()){
+            auto ch = *value.begin();
+            if (ch >= 'a' && ch <= 'z') ch -= 'a' - 'A';
+            m_chAccessKey = ch;
+        }
         break;
     case BKDR_DRAGGABLE:
         // draggable  : 允许拖拽

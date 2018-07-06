@@ -123,6 +123,8 @@ namespace LongUI {
         // set now cursor to default
         void SetNowCursor(std::nullptr_t) noexcept;
     public:
+        // register access key
+        void RegisterAccessKey(UIControl& ctrl) noexcept;
         // find control, return null if notfound
         auto FindControl(const char* id) noexcept ->UIControl*;
         // control attached

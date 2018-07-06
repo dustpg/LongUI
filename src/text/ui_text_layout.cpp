@@ -142,6 +142,16 @@ void LongUI::CUITextLayout::Resize(Size2F size) noexcept {
 }
 
 /// <summary>
+/// Sets the underline.
+/// </summary>
+/// <param name="pos">The position.</param>
+/// <param name="has">if set to <c>true</c> [has].</param>
+/// <returns></returns>
+void LongUI::CUITextLayout::SetUnderline(uint32_t pos, bool has) noexcept {
+    if (m_text) m_text->SetUnderline(has, { pos, 1 });
+}
+
+/// <summary>
 /// Gets the size.
 /// </summary>
 /// <returns></returns>

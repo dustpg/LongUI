@@ -19,8 +19,10 @@ namespace LongUI {
 #endif
         // set name
         void SetName(const char* begin, const char* end) noexcept;
+        // set control
+        void SetControl(UIControl* c) noexcept { assert((value & 1) == 0); ctrl = c; }
         // find control window
-        void FindControl(CUIWindow& window) noexcept;
+        void FindControl(CUIWindow* window) noexcept;
         // control ptr
         UIControl*      ctrl;
         // control name

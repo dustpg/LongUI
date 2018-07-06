@@ -97,6 +97,8 @@ namespace LongUI {
         // get button color, return border half-width
         static auto get_button_color(StyleState, ColorF& bd, ColorF& bg) noexcept ->float;
     private:
+        // draw drop mark
+        void draw_drop_mark(const NativeDrawArgs& args) noexcept;
         // draw arrow only
         void draw_arrow_only(const RectF&, const ColorF&, float angle) noexcept;
         // draw arrow button

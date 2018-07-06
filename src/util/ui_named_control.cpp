@@ -9,11 +9,7 @@
 
 // LongUI::NAMED_CONTROL_EXALLOC
 namespace LongUI { enum  : size_t {
-#ifdef NDEBUG
-    NAMED_CONTROL_EXALLOC = 0
-#else
     NAMED_CONTROL_EXALLOC = 1
-#endif
 };}
 
 /// <summary>
@@ -30,6 +26,7 @@ void LongUI::NamedControl::SetName(
     assert(all_len > SHORT_MEMORY_LENGTH && "name too long");
     // 申请内存
     if (const auto ptr = LongUI::SmallAllocT<char>(all_len)) {
+        assert((reinterpret_cast<uintptr_t>(ptr) & 1) == 0);
         const auto str = ptr + NAMED_CONTROL_EXALLOC;
         std::memcpy(str, begin, str_len);
         str[str_len] = 0;
@@ -41,15 +38,14 @@ void LongUI::NamedControl::SetName(
 /// Finds the control.
 /// </summary>
 /// <param name="window">The window.</param>
-void LongUI::NamedControl::FindControl(CUIWindow& window) noexcept {
+void LongUI::NamedControl::FindControl(CUIWindow* window) noexcept {
+    const auto raw_name = this->name;
+    const auto raw_value = this->value;
     // 名称有效
-    if (name) {
-#ifndef NDEBUG
+    if (raw_value & 1) {
         assert(value != 1 && "bad pointer");
-        assert((value & 1) == 0 && "bad pointer");
-#endif
-        this->ctrl = window.FindControl(this->name);
-        const auto raw_ptr = name - NAMED_CONTROL_EXALLOC;
+        this->ctrl = window ? window->FindControl(raw_name) : nullptr;
+        const auto raw_ptr = raw_name - NAMED_CONTROL_EXALLOC;
         LongUI::SmallFree(const_cast<char*>(raw_ptr));
     }
 }

@@ -35,6 +35,8 @@ namespace LongUI {
         void Resize(Size2F) noexcept;
         // test text size
         auto GetSize() const noexcept->Size2F;
+        // set underline
+        void SetUnderline(uint32_t pos, bool) noexcept;
     public:
         // ok
         bool IsOK() const noexcept { return !!m_text; }

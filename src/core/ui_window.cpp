@@ -16,6 +16,7 @@
 // C++
 #include <cassert>
 #include <algorithm>
+
 // Windows
 #define NOMINMAX
 #include <Windows.h>
@@ -25,6 +26,9 @@
 #include <util/ui_time_meter.h>
 #include "../private/ui_private_control.h"
 #endif
+
+// error beep
+extern "C" void longui_error_beep();
 
 // LongUI::detail
 namespace LongUI { namespace detail {
@@ -176,11 +180,13 @@ namespace LongUI {
         // when key down
         void OnKeyDown(CUIInputKM::KB key) noexcept;
         // when system key down
-        void OnSystemKeyDown(CUIInputKM::KB key) noexcept;
+        void OnSystemKeyDown(CUIInputKM::KB key, uintptr_t lp) noexcept;
         // when input a utf-16 char
         void OnChar(char16_t ch) noexcept;
         // when input a utf-32 char[thread safe]
         void OnCharTs(char32_t ch) noexcept;
+        // do hotkey
+        void OnHotKey(uintptr_t id) noexcept;
     public:
         // full render this frame?
         inline bool is_full_render_for_update() const noexcept { return full_render_for_update; }
@@ -274,6 +280,8 @@ namespace LongUI {
         bool            full_render_for_update = true;
         // full render for render
         bool            full_render_for_render = true;
+        // access key display
+        bool            access_key_display = false;
     public:
         // dirty count#1
         uint32_t        dirty_count_for_update = 0;
@@ -283,7 +291,12 @@ namespace LongUI {
         RectF           dirty_rect_for_update[LongUI::DIRTY_RECT_COUNT];
         // dirty rect#2
         RectF           dirty_rect_for_render[LongUI::DIRTY_RECT_COUNT];
+    public:
+        // access key map
+        UIControl*      access_key_map['Z' - 'A' + 1];
     private:
+        // toggle access key display
+        void toggle_access_key_display() noexcept;
         // resize window buffer
         void resize_window_buffer() noexcept;
         // forece resize
@@ -301,6 +314,7 @@ namespace LongUI {
         moving_resizing = false;
         mouse_left_down = false;
         system_skip_rendering = false;
+        std::memset(access_key_map, 0, sizeof(access_key_map));
     }
 }
 
@@ -528,6 +542,30 @@ auto LongUI::CUIWindow::GetPos() const noexcept -> Point2L {
 }
 
 /// <summary>
+/// Registers the access key.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::RegisterAccessKey(UIControl& ctrl) noexcept {
+    const auto ch = ctrl.GetAccessKey();
+    if (ch >= 'A' && ch <= 'Z') {
+        const auto index = ch - 'A';
+        const auto map = m_private->access_key_map;
+#ifndef NDEBUG
+        if (map[index]) {
+            LUIDebug(Warning)
+                << "Access key("
+                << ch
+                << ") existed"
+                << endl;
+        }
+#endif
+        map[index] = &ctrl;
+    }
+    else assert(ch == 0 && "unsupported access key");
+}
+
+/// <summary>
 /// Finds the control.
 /// </summary>
 /// <param name="id">The identifier.</param>
@@ -545,7 +583,9 @@ auto LongUI::CUIWindow::FindControl(const char* id) noexcept -> UIControl* {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::ControlAttached(UIControl& ctrl) noexcept {
-    this->AddNamedControl(ctrl);
+    assert(!"TODO");
+    //this->AddNamedControl(ctrl);
+    //this->RegisterAccessKey(ctrl);
 }
 
 /// <summary>
@@ -593,6 +633,25 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
         for (auto itr = b; itr != e; ++itr) {
             if (&ctrl == *itr) *itr = nullptr;
         }
+    }
+    // 移除访问键引用
+    const auto ch = ctrl.GetAccessKey();
+    if (ch >= 'A' && ch <= 'Z') {
+        const auto index = ch - 'A';
+        const auto map = m_private->access_key_map;
+        // 移除引用
+        if (map[index] == &ctrl) map[index] = nullptr;
+        // 提出警告
+#ifndef NDEBUG
+        else {
+            LUIDebug(Warning)
+                << "map[index] != &ctrl:(map[index]:"
+                << map[index]
+                << ")"
+                << endl;
+        }
+#endif
+
     }
     // 移除映射表中的引用
     if (*ctrl.GetID()) {
@@ -1002,10 +1061,29 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
 /// Called when [system key down].
 /// </summary>
 /// <param name="key">The key.</param>
+/// <param name="lp">The lp.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Private::OnSystemKeyDown(CUIInputKM::KB key) noexcept {
+void LongUI::CUIWindow::Private::OnSystemKeyDown(CUIInputKM::KB key, uintptr_t lp) noexcept {
     // 检查访问键
+    if (key == CUIInputKM::KB_MENU) {
+        // 只有按下瞬间有效, 后续的重复触发不算
+        if (!(lp & (1 << 30))) 
+            this->toggle_access_key_display();
+    }
+}
 
+
+/// <summary>
+/// Toggles the access key display.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::toggle_access_key_display() noexcept {
+    auto& key = this->access_key_display;
+    key = !key;
+    const EventArg arg{ NoticeEvent::Event_ShowAccessKey, key };
+    for (auto ctrl : this->access_key_map) {
+        if (ctrl) ctrl->DoEvent(nullptr, arg);
+    }
 }
 
 // c
@@ -1048,6 +1126,24 @@ void LongUI::CUIWindow::Private::OnCharTs(char32_t ch) noexcept {
             focused_ctrl->DoInputEvent({ LongUI::InputEvent::Event_Char, ch });
             UIManager.DataUnlock();
         }
+    }
+}
+
+/// <summary>
+/// Called when [hot key].
+/// </summary>
+/// <param name="id">The identifier.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::OnHotKey(uintptr_t id) noexcept {
+    // A-Z
+    if (id < ('Z' - 'A' + 1)) {
+        UIManager.DataLock();
+        const auto ctrl = this->access_key_map[id];
+        if (ctrl) {
+            ctrl->DoEvent(nullptr, { NoticeEvent::Event_DoAccessAction, 0 });
+        }
+        else ::longui_error_beep();
+        UIManager.DataUnlock();
     }
 }
 
@@ -1136,6 +1232,10 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
     }
     // 创建成功
     if (hwnd) {
+        // 注册所有的Alt+A-Z
+        for (int i = 0; i != ('Z' - 'A' + 1); ++i) {
+            ::RegisterHotKey(hwnd, i, MOD_ALT, 'A' + i);
+        }
 
         //MARGINS shadow_state{ 1,1,1,1 };
         //::DwmExtendFrameIntoClientArea(hwnd, &shadow_state);
@@ -1365,6 +1465,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
     if (message == WM_MOUSELEAVE) {
         // BUG: Alt + 快捷键也会触发?
         //CUIInputKM::Instance().GetKeyState(CUIInputKM::KB_MENU);
+
         arg.px = -1.f; arg.py = -1.f;
         arg.wheel = 0.f;
         arg.type = MouseEvent::Event_MouseLeave;
@@ -1491,7 +1592,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             return 1;
         case WM_SYSKEYDOWN:
             UIManager.DataLock();
-            this->OnSystemKeyDown(static_cast<CUIInputKM::KB>(wParam));
+            this->OnSystemKeyDown(static_cast<CUIInputKM::KB>(wParam), lParam);
             UIManager.DataUnlock();
             return 1;
         case WM_GETMINMAXINFO:
@@ -1531,7 +1632,9 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
 
             }
             break;
-
+        case WM_HOTKEY:
+            this->OnHotKey(wParam);
+            break;
         }
     // 未处理消息
     return ::DefWindowProcW(hwnd, message, wParam, lParam);

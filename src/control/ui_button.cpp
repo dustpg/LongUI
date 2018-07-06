@@ -43,6 +43,8 @@ namespace LongUI {
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
 #endif
+        // 设置连接控件
+        label.SetControl(btn);
     }
 }
 
@@ -207,7 +209,9 @@ void LongUI::UIButton::SetText(CUIString&& text) noexcept {
 auto LongUI::UIButton::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
     // 初始化
-    if (e.nevent == NoticeEvent::Event_Initialize) {
+    switch (e.nevent)
+    {
+    case NoticeEvent::Event_Initialize:
         UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
         // 没子控件
         if (!this->GetCount()) {
@@ -215,6 +219,10 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
             m_private->label.SetAsDefaultMinsize();
             this->add_private_child();
         }
+        break;
+    case NoticeEvent::Event_DoAccessAction:
+        this->Click();
+        break;
     }
     // 基类处理
     return Super::DoEvent(sender, e);
@@ -242,14 +250,19 @@ void LongUI::UIButton::Click() noexcept {
 /// <param name="value">The value.</param>
 /// <returns></returns>
 void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
-    // 新增属性列表
-    constexpr auto BKDR_VALUE = 0x246df521_ui32;
+    // 新增(?)属性列表
+    constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
     // 分类讨论
     switch (key)
     {
     case "label"_bkdr:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        return;
+    case BKDR_ACCESSKEY:
+        // 传递给子控件
+        UIControlPrivate::AddAttribute(m_private->label, key, value);
         return;
     default:
         // 其他情况, 交给基类处理

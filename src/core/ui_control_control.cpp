@@ -276,6 +276,7 @@ namespace LongUI {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIControlControl::ControlAttached(UIControl& ctrl) noexcept {
+    assert(!"TODO");
     int b = 9;
     // 1.为控件链接新的样式表(有的话)
     ctrl;

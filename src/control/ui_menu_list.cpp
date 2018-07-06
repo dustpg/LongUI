@@ -85,6 +85,8 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
     m_state.defaultable = true;
     // 原子性, 子控件为本控件的组成部分
     m_state.atomicity = true;
+    // 默认是处于关闭状态
+    m_oStyle.state.closed = true;
     // 布局方向
     m_oStyle.align = Align_Center;
     // 垂直布局

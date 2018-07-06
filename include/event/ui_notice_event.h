@@ -11,8 +11,10 @@ namespace LongUI {
         Event_Initialize = 0,
         // refresh min size
         Event_RefreshBoxMinSize,
-        // do default action
-        Event_DoDefaultAction,
+        // do default/access action
+        Event_DoAccessAction,
+        // show access key  [derived: 1/0 show/hide]
+        Event_ShowAccessKey,
         // viewport/ direct-managed-parent only
         Event_UIEvent,
         // viewport only
