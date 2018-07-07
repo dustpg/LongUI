@@ -346,7 +346,25 @@ auto LongUI::UIControl::init() noexcept -> Result {
         // 重新连接样式表
         this->link_style_sheet();
     }
+    // 设置初始化状态
+    this->setup_init_state();
+
     return hr;
+}
+
+/// <summary>
+/// Setups the state of the initialize.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::setup_init_state() noexcept {
+    // FIXME: 貌似(?)是错误的实现
+    if (m_oStyle.appearance != Appearance_None) {
+        // 静止
+        if (m_oStyle.state.disabled) {
+            const auto color = LongUI::NativeFgColor(m_oStyle.state);
+            this->SetFgColor({ color });
+        }
+    }
 }
 
 /// <summary>
@@ -1103,6 +1121,20 @@ void LongUI::UIControl::RemoveStyleClass(U8View pair) noexcept {
     // NOTE: <UB说明> STL中, 这句是UB(out of range)
     //       不过这是是自己实现的, 所以不是UB
     m_classesStyle.erase(std::find(b, e, style_class));
+}
+
+/// <summary>
+/// Sets the enabled.
+/// </summary>
+/// <param name="disabled">if set to <c>true</c> [disabled].</param>
+/// <returns></returns>
+void LongUI::UIControl::SetDisabled(bool disabled) noexcept {
+    // 标记自己和所有后代处于[enable]状态
+    this->StartAnimation({ StyleStateType::Type_Disabled, disabled });
+    // 原子控件除外, 因为对外是一个控件
+    if (m_state.atomicity) return;
+    // 递归调用
+    for (auto& child : (*this)) child.SetDisabled(disabled);
 }
 
 /// <summary>

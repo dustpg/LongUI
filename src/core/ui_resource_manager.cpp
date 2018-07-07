@@ -912,6 +912,8 @@ namespace LongUI {
         auto create_native_style_renderer() noexcept -> void*;
         // delete native style renderer
         void delete_native_style_renderer(void* ptr) noexcept;
+        // recreate 
+        auto recreate_native_style_renderer(void*ptr)->Result;
     }
 }
 
@@ -1285,11 +1287,9 @@ auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
             break;
         }
     }
-    // XXX: 正常重建
+    // 正常重建
     if (rv) {
-        impl::delete_native_style_renderer(m_pNativeStyle);
-        m_pNativeStyle = impl::create_native_style_renderer();
-        if (!m_pNativeStyle) rv = { Result::RE_OUTOFMEMORY };
+        rv = impl::recreate_native_style_renderer(m_pNativeStyle);
     }
     return rv;
 }

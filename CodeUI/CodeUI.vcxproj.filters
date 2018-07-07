@@ -410,15 +410,6 @@
     <ClCompile Include="..\src\control\ui_group_box.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\control\ui_menu_list.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\control\ui_menu_popup.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\control\ui_menu_item.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\style\native\ui_win10_bg.cpp">
       <Filter>source\style\native</Filter>
     </ClCompile>
@@ -475,6 +466,9 @@
     </ClCompile>
     <ClCompile Include="..\src\core\ui_time_capsule.cpp">
       <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_menu_listpopitem.cpp">
+      <Filter>source\control</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

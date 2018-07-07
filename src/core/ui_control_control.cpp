@@ -528,13 +528,21 @@ void LongUI::CUIControlControl::update_basic_animation(uint32_t delta)noexcept {
     // 更新基本动画
     auto basic_update = [delta](ControlAnimationBasic& ca) noexcept {
         ca.done += delta;
+        auto& ctrl = *ca.ctrl;
         // 完成动画: ctrl 标记为0
         if (ca.done >= ca.duration) {
             ca.done = ca.duration;
-            //ca.ctrl->m_oStyle.state = ca.basic.target;
-            //ca.ctrl->m_state.style_state_changed = false;
             ca.ctrl->clear_basic_animation();
             ca.ctrl = nullptr;
+        }
+        // 前景色不同
+        if (ca.fgcolor1 != ca.fgcolor2) {
+            const auto p0 = ca.GetRate();
+            ColorF from, to;
+            ColorF::FromRGBA_RT(from, { ca.fgcolor1 });
+            ColorF::FromRGBA_RT(to, { ca.fgcolor2 });
+            const auto color = LongUI::Mix(from, to, p0).ToRGBA().primitive;
+            ctrl.SetFgColor({ color });
         }
     };
     // 更新动画
@@ -624,6 +632,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
     // 检测类型
     const auto native_type = ctrl.m_oStyle.appearance;
     assert(native_type != AttributeAppearance::Appearance_None);
+    // 获取动画时间
     const auto dur = LongUI::NativeStyleDuration({ native_type });
     // 没有动画
     if (!dur) return static_cast<void>(ctrl.start_animation_change(type));
@@ -636,6 +645,8 @@ void LongUI::CUIControlControl::StartBasicAnimation(
         init_ca.ctrl = &ctrl;
         init_ca.done = 0;
         init_ca.origin = ctrl.m_oStyle.state;
+        init_ca.fgcolor1 = LongUI::NativeFgColor(init_ca.origin);
+        init_ca.fgcolor2 = init_ca.fgcolor1;
         anima.push_back(init_ca);
         // OOM处理: 变了就不管了
         if (!anima.is_ok()) {
@@ -652,6 +663,9 @@ void LongUI::CUIControlControl::StartBasicAnimation(
     }
     cab->duration = dur;
     ctrl.start_animation_change(type);
+    // 获取目标前景色
+    cab->fgcolor2 = LongUI::NativeFgColor(ctrl.m_oStyle.state);
+    // 标记动画中
     cab->ctrl->setup_basic_animation();
 }
 

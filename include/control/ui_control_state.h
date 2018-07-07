@@ -52,7 +52,7 @@ namespace LongUI {
         bool        defaultable : 1;
         // attachment 
         bool        attachment : 1;
-        // atomicity, children will keep same state with parent
+        // atomicity[only one layer]children will keep same state with parent
         bool        atomicity : 1;
         // focusable
         bool        focusable : 1;

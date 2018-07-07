@@ -181,9 +181,7 @@
     <ClCompile Include="..\src\control\ui_image.cpp" />
     <ClCompile Include="..\src\control\ui_label.cpp" />
     <ClCompile Include="..\src\control\ui_list.cpp" />
-    <ClCompile Include="..\src\control\ui_menu_item.cpp" />
-    <ClCompile Include="..\src\control\ui_menu_list.cpp" />
-    <ClCompile Include="..\src\control\ui_menu_popup.cpp" />
+    <ClCompile Include="..\src\control\ui_menu_listpopitem.cpp" />
     <ClCompile Include="..\src\control\ui_progress.cpp" />
     <ClCompile Include="..\src\control\ui_radio.cpp" />
     <ClCompile Include="..\src\control\ui_scale.cpp" />

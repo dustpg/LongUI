@@ -39,6 +39,8 @@ namespace LongUI {
     void NativeStyleInit(UIControl& ctrl, AttributeAppearance) noexcept;
     // get animation dur
     auto NativeStyleDuration(const GetDurationArgs) noexcept -> uint32_t;
+    // get foreground color if changed
+    auto NativeFgColor(StyleState now) noexcept->uint32_t;
     // get foreground color if exist
     //bool NativeStyleGetForeground(const NativeDrawArgs& args, ColorF&) noexcept;
 }

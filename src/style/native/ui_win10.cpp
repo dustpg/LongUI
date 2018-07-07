@@ -182,7 +182,8 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(
         ctrl.SetFixedSize({ ARROW_SIZE, ARROW_SIZE });
         break;
     case LongUI::Appearance_MenuItem:
-        ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
+        // 包含文字, 不适合设置
+        //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
         break;
     case LongUI::Appearance_TreeTwisty:
     case LongUI::Appearance_DropDownMarker:

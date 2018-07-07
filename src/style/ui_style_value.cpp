@@ -30,6 +30,11 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetFgColor(RGBA color) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
+#ifndef NDEBUG
+    if (color.primitive == this->GetFgColor().primitive) {
+        LUIDebug(Hint) << ctrl << "set same color" << endl;
+    }
+#endif // !NDEBUG
     // 需要使用g_pLastTextFont
     detail::g_pLastTextFont = nullptr;
     // 存在TF对象

@@ -1,6 +1,7 @@
 ﻿// ui
 #include <core/ui_object.h>
 #include <core/ui_manager.h>
+#include <core/ui_color_list.h>
 // private
 #include "../private/ui_win10_stlye.h"
 // c++
@@ -21,9 +22,14 @@ namespace LongUI {
         auto create_native_style_renderer() noexcept -> void* {
             return new(std::nothrow) CUINativeStyleNow;
         }
+        // recreate native style renderer
+        auto recreate_native_style_renderer(void* ptr) noexcept ->Result {
+            const auto obj = static_cast<CUINativeStyleNow*>(ptr);
+            return obj->Recreate();
+        }
         // delete native style renderer
         void delete_native_style_renderer(void* ptr) noexcept {
-            auto obj = static_cast<CUINativeStyleNow*>(ptr);
+            const auto obj = static_cast<CUINativeStyleNow*>(ptr);
             delete obj;
         }
     }
@@ -35,6 +41,7 @@ namespace LongUI {
 /// <param name="args">The arguments.</param>
 /// <returns></returns>
 auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_t {
+    // XXX: 理论应该放在CUINativeStyle里面
     // TODO: 不同类型甚至不同状态动画时长都不一样
     // TODO: 让一直是0的放在一起
 
@@ -56,6 +63,16 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
     default:
         return BASIC_ANIMATION_DURATION;
     }
+}
+
+/// <summary>
+/// Natives the color of the fg.
+/// </summary>
+/// <param name="now">The now.</param>
+/// <returns></returns>
+auto LongUI::NativeFgColor(StyleState now) noexcept -> uint32_t {
+    // XXX: 理论应该放在CUINativeStyle里面
+    return now.disabled ? 0x838383ff_rgba : 0x000000ff_rgba;
 }
 
 PCN_NOINLINE

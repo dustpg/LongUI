@@ -230,7 +230,7 @@ void LongUI::UILabel::after_set_text() noexcept {
     this->set_contect_minsize({ width, height });
     this->mark_window_minsize_changed();
     //this->NeedUpdate();
-    //this->Invalidate();
+    this->Invalidate();
 #ifdef LUI_ACCESSIBLE
     LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
 #endif

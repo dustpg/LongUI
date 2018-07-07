@@ -88,6 +88,10 @@ namespace LongUI {
         uint16_t            done;
         // target state duration(unit: ms)
         uint16_t            duration;
+        // fg color from
+        uint32_t            fgcolor1;
+        // fg color to
+        uint32_t            fgcolor2;
         // get rate
         auto GetRate() const noexcept { return float(done) / float(duration); }
     };

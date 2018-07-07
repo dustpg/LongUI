@@ -261,6 +261,14 @@ namespace LongUI {
         bool IsVisible() const noexcept { return m_state.visible; }
         // set hidden
         void SetHidden(bool hidden) noexcept { this->SetVisible(!hidden); }
+        // set this and all descendant enabled/disabled
+        void SetDisabled(bool disabled) noexcept;
+        // set this and all descendant enabled/disabled
+        void SetEnabled(bool enable) noexcept { this->SetDisabled(!enable); }
+        // start state animation
+        void StartAnimation(StyleStateTypeChange) noexcept;
+        // start general animation
+
     public:
         // get style classes
         auto&GetStyleClasses() const noexcept { return m_classesStyle; }
@@ -270,8 +278,6 @@ namespace LongUI {
         void AddStyleClass(U8View) noexcept;
         // remove style class
         void RemoveStyleClass(U8View) noexcept;
-        // start animation
-        void StartAnimation(StyleStateTypeChange) noexcept;
     public:
         // window point inside border?
         bool IsPointInsideBorder(Point2F) const noexcept;
@@ -316,6 +322,8 @@ namespace LongUI {
     private:
         // init
         auto init() noexcept->Result;
+        // setup init state
+        void setup_init_state() noexcept;
         // extra animation callback
         void extra_animation_callback(StyleStateTypeChange, void*) noexcept;
         // start animation change

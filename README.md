@@ -25,6 +25,7 @@ Current Version : **Alpha-Stage**
 
 **Hardware Acceleration**
   - gpu render based on direct2d now
+  - dynamic gpu change support(like surface book)
 
 **Freedom License**
   - the code is almost all written by myself, and under MIT License
