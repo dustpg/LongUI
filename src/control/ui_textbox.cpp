@@ -297,7 +297,7 @@ auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAcce
 /// </summary>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept {
+auto LongUI::UITextBox::DoMouseEvent_(const MouseEventArg& e) noexcept->EventAccept {
     // 鼠标相对本控件位置
     Point2F pt_this = { e.px, e.py };
     this->MapFromWindow(pt_this);
@@ -340,7 +340,7 @@ auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAcce
 /// Mouses the click.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::mouse_click(Point2F pt) noexcept {
+void LongUI::UITextBox::mouse_click_(Point2F pt) noexcept {
     const auto thumb_pos = this->thumb.GetPos();
     // 在滑块的上方
     if (m_pHovered) {

@@ -4,8 +4,14 @@
 // **include this file in source-file at first**
 // 
 
+// style sheet support, include css-parse[unused yet]
+#define LUI_STYLESHEET_SUPPORT
+
 // windows 10 support only, make bin-file smaller, faster
 //#define LUI_WIN10_ONLY
+
+// no accessible? make bin-file smaller
+//#define LUI_NO_ACCESSIBLE
 
 // give every control intptr_t c++: user_data/xml: data-user;
 #define LUI_USER_INIPTR_DATA
@@ -16,9 +22,6 @@
 
 // give every control CUIConstShortString c++: user_u8str/xml: data-u8;
 //#define LUI_USER_U8STR_DATA
-
-// no accessible? make bin-file smaller
-//#define LUI_NO_ACCESSIBLE
 
 // LongUI::POD::Vector::size_type use uint32_t
 //#define LUI_VECTOR_SIZE_USE_UINT32

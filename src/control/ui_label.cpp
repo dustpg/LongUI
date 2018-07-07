@@ -2,6 +2,7 @@
 #include <control/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
 #include <core/ui_manager.h>
+#include <core/ui_window.h>
 
 #ifdef LUI_ACCESSIBLE
 #include <accessible/ui_accessible_callback.h>
@@ -16,6 +17,8 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UILabel, "label");
 }
 
+// open href
+extern "C" void longui_open_href(const char* ref);
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UILabel" /> class.
@@ -23,7 +26,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UILabel::UILabel(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(parent, meta), m_hrefCursor(CUICursor::Cursor_Hand) {
     // 本控件支持font属性
     LongUI::MakeDefault(m_tfBuffer);
     UILabel* const nilobj = nullptr;
@@ -70,6 +73,40 @@ void  LongUI::UILabel::Update() noexcept {
 }
 
 /// <summary>
+/// Does the mouse event.
+/// </summary>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UILabel::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept {
+    Point2F pos = { e.px, e.py }; this->MapFromWindow(pos);
+    switch (e.type)
+    {
+    case LongUI::MouseEvent::Event_MouseEnter:
+        assert(m_pWindow && "no window no mouse");
+        if (this->is_def_href()) {
+            m_pWindow->SetNowCursor(m_hrefCursor);
+            m_text.SetUnderline(0, m_string.length(), true);
+            this->Invalidate();
+            return Event_Accept;
+        }
+        break;
+    case LongUI::MouseEvent::Event_MouseLeave:
+        assert(m_pWindow && "no window no mouse");
+        if (this->is_def_href()) {
+            m_pWindow->SetNowCursor(nullptr);
+            m_text.SetUnderline(0, m_string.length(), false);
+            this->Invalidate();
+            return Event_Accept;
+        }
+        break;
+    case LongUI::MouseEvent::Event_LButtonUp:
+        if (!m_href.empty()) ::longui_open_href(m_href.c_str());
+        return Event_Accept;
+    }
+    return Super::DoMouseEvent(e);
+}
+
+/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
@@ -85,10 +122,12 @@ auto LongUI::UILabel::DoEvent(
         // 不会改变
         return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
+        // 检测超链接
+        if (!m_href.empty()) ::longui_open_href(m_href.c_str());
         // 访问连接控件
         if (m_control.ctrl) 
             return m_control.ctrl->DoEvent(this, e);
-        return Event_Ignore;
+        return Event_Accept;
     case NoticeEvent::Event_ShowAccessKey:
         this->ShowAccessKey(e.derived);
         return Event_Accept;
@@ -144,7 +183,7 @@ void LongUI::UILabel::setup_access_key() noexcept {
 /// <returns></returns>
 void LongUI::UILabel::ShowAccessKey(bool show) noexcept {
     if (m_chAccessKey && m_text) {
-        m_text.SetUnderline(m_uPosAkey, show);
+        m_text.SetUnderline(m_uPosAkey,1, show);
         this->Invalidate();
     }
 }
@@ -245,12 +284,18 @@ void LongUI::UILabel::after_set_text() noexcept {
 void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增属性列表
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_HREF        = 0x0e0d950fui32;
+
     // 分类讨论
     switch (key)
     {
     case BKDR_VALUE:
         // value
         m_string = CUIString::FromUtf8(value);
+        return;
+    case BKDR_HREF:
+        // href
+        m_href = value;
         return;
     default:
         // 其他情况, 交给基类处理

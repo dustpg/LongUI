@@ -7,6 +7,8 @@
 #include "../text/ui_text_layout.h"
 #include "../core/ui_const_sstring.h"
 #include "../util/ui_named_control.h"
+// cursor
+#include <graphics/ui_cursor.h>
 
 // ui namespace
 namespace LongUI {
@@ -27,6 +29,8 @@ namespace LongUI {
     public:
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
+        // mouse event
+        auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
         void Update() noexcept override;
         // render
@@ -44,6 +48,8 @@ namespace LongUI {
         void reset_font() noexcept;
         // setup access key
         void setup_access_key() noexcept;
+        // is default href
+        auto is_def_href() const noexcept { return !m_href.empty() && m_oStyle.matched.empty(); }
     public:
         // get text
         auto GetText() const noexcept { return m_string.c_str(); }
@@ -63,6 +69,8 @@ namespace LongUI {
         // show access key
         void ShowAccessKey(bool show = true) noexcept;
     protected:
+        // hovered curor
+        CUICursor               m_hrefCursor;
         // connection control
         NamedControl            m_control;
         // text font buffer

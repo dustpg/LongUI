@@ -10,7 +10,7 @@ namespace LongUI {
         return helper::rgba(static_cast<uint32_t>(value));
     }
     // rgba color
-    enum ColorRGBA : RGBA::type {
+    enum ColorRGBA : uint32_t {
         // SP
         RGBA_TianyiBlue     = 0x66CCFFFF_rgba,
         RGBA_Transparent    = 0x00000000_rgba,

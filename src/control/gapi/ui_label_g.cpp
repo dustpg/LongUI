@@ -27,7 +27,12 @@ void LongUI::UILabel::Render() const noexcept {
     // 前景文本
     const auto rect = this->GetBox().GetContentEdge();
     //ColorF color; ColorF::FromRGBA_RT(color, this->GetFgColor());
-    const auto& color = m_tfBuffer.text.color;
+    auto color = m_tfBuffer.text.color;
+    // XXX: 默认控件而且是HREF模式
+    if (this->is_def_href()) {
+        color.a = 1.f;        color.r = 0.f;
+        color.g = 0.4f;       color.b = 0.8f;
+    }
     // 文本偏移
     const float xoffset = rect.left + DEFUALT_TEXT_X_OFFSET;
     const float yoffset = rect.top + DEFUALT_TEXT_Y_OFFSET;

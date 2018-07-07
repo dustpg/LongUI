@@ -1,5 +1,5 @@
-﻿// debug
-#include <windows.h>
+﻿#include <windows.h>
+#include <shellapi.h>
 
 #ifndef DEBUG
 void ui_debug_output_info(const char* str) {
@@ -12,4 +12,8 @@ void ui_debug_output_infow(const wchar_t* str) {
 
 void longui_error_beep() {
     MessageBeep(MB_ICONERROR);
+}
+
+void longui_open_href(const char* href) {
+    ShellExecuteA(NULL, NULL, href, NULL, NULL, SW_NORMAL);
 }
