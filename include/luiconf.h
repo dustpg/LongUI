@@ -55,6 +55,12 @@ namespace LongUI {
         MIN_SCROLLBAR_DISPLAY_SIZE = 64,
         // default control max width/height :
         DEFAULT_CONTROL_MAX_SIZE = 100000,
+        // window auto into sleep mode time after window hide (in ms)
+#ifdef NDEBUG
+        WINDOW_AUTOSLEEP_TIME = 1000 * 60 * 1,
+#else
+        WINDOW_AUTOSLEEP_TIME = 1000 * 1,
+#endif
 
         // invalid minsize
         INVALID_MINSIZE = -1,

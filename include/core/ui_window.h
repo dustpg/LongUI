@@ -87,6 +87,16 @@ namespace LongUI {
         bool IsCtorFailed() const noexcept { return m_bCtorFaild; }
         // mark full rendering
         void MarkFullRendering() noexcept;
+        // is auto sleep?
+        bool IsAutpSleep() const noexcept { return config & Config_Popup; }
+        // is in sleep mode?
+        auto IsInSleepMode() const noexcept { return !m_hwnd; }
+        // into sleep mode immediately
+        void IntoSleepImmediately() noexcept;
+        // try sleep
+        void TrySleep() noexcept;
+        // wake up
+        void WakekUp() noexcept;
     public:
         // load css file
         void LoadCSSFile(U8View file) noexcept;
@@ -110,6 +120,8 @@ namespace LongUI {
         void ClosePopup() noexcept;
         // set title name
         void SetTitleName(const wchar_t*) noexcept;
+        // get title name
+        auto GetTitleName() const noexcept->WcView;
         // set pos of window
         void SetPos(Point2L pos) noexcept;
         // get pos of window
@@ -159,7 +171,7 @@ namespace LongUI {
         // before render
         void BeforeRender() noexcept;
         // render
-        auto Render() const noexcept->Result;
+        auto Render() noexcept->Result;
         // Recreate
         auto RecreateDeviceData() noexcept->Result;
         // release window device data

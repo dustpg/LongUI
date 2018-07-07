@@ -94,6 +94,7 @@ struct MemoryLeakDetector {
 };
 
 extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
+    ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     MemoryLeakDetector dtr;
     HelloConfig cfg;
     if (UIManager.Initialize(&cfg)) {

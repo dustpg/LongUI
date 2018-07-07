@@ -150,12 +150,16 @@ namespace LongUI {
     public:
         // delete window
         static void DeleteWindow(HWND hwnd) noexcept;
+        // delete window
+        static void PostDeleteWindow(HWND hwnd) noexcept;
         // reelase device data
         void ReleaseDeviceData() noexcept { this->release_data(); }
         // ctor
         Private() noexcept;
         // dtor
         ~Private() noexcept { this->release_data(); }
+        // init window pos
+        void InitWindowPos() noexcept;
         // init
         HWND Init(HWND parent, CUIWindow::WindowConfig config) noexcept;
         // recreate_device
@@ -215,6 +219,8 @@ namespace LongUI {
         I::Bitmap*      bitmap = nullptr;
         // window clear color
         ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
+        // title name
+        CUIString       titlename{ L"LUI" };
     public:
         // mouse track data
         TRACKMOUSEEVENT track_mouse;
@@ -255,6 +261,10 @@ namespace LongUI {
         // get last
         auto GetLast() noexcept { return &this->wnd_default; }
     public:
+        // auto sleep count
+        uint32_t        auto_sleep_count = 0;
+        // unused
+        uint32_t        asndiujsahfdiuashfiuha = 0;
         // save utf-16 char
         char16_t        saved_utf16 = 0;
         // ma return code
@@ -327,16 +337,18 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
 m_parent(parent), config(cfg),
 m_private(new(std::nothrow) Private) {
     // XXX: 错误处理
-    if (!m_private) {
-        m_bCtorFaild = true;
-        return;
-    }
+    if (!m_private) { m_bCtorFaild = true; return;}
     // 初始化
     m_private->viewport = &this->RefViewport();
     // 添加窗口
     if (parent) parent->add_child(*this);
-    m_hwnd = m_private->Init(parent ? parent->GetHwnd() : nullptr, config);
+    // 初始化默认大小位置
+    m_private->InitWindowPos();
+    // XXX: 自动睡眠?
+    if (this->IsAutpSleep()) {
 
+    }
+    else this->WakekUp();
     UIManager.add_window(*this);
 }
 
@@ -451,7 +463,7 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         // 管理器层移除引用
         UIManager.remove_window(*this);
         // 摧毁窗口
-        Private::DeleteWindow(m_hwnd);
+        if (m_hwnd) Private::DeleteWindow(m_hwnd);
         // 删除数据
         delete m_private;
     }
@@ -470,11 +482,23 @@ void LongUI::CUIWindow::BeforeRender() noexcept {
 /// Renders this instance.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIWindow::Render() const noexcept -> Result {
+auto LongUI::CUIWindow::Render() noexcept -> Result {
     assert(m_private && "bug: you shall not pass");
     // 可见可渲染
     if (this->IsVisible()) {
         return m_private->Render(this->RefViewport());
+    }
+    // 不可见增加
+    else {
+        static_assert(WINDOW_AUTOSLEEP_TIME > 10, "must large than 10");
+        auto& count = m_private->auto_sleep_count;
+        if (count) {
+            count += UIManager.GetDeltaTimeMs();
+            if (count > WINDOW_AUTOSLEEP_TIME) {
+                this->IntoSleepImmediately();
+                count = 0;
+            }
+        }
     }
     return{ Result::RS_OK };
 }
@@ -823,6 +847,7 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
     const auto sameh = this->rect.height == size.height;
     if (samew && sameh) return;
     this->mark_full_rendering_for_update();
+    LUIDebug(Hint) << size.width << ", " << size.height << endl;
     // 数据锁
     CUIDataAutoLocker locker;
     // 修改
@@ -853,6 +878,12 @@ void LongUI::CUIWindow::Resize(Size2L size) noexcept {
     const auto& old = pimpl->rect;
     if (old.width == size.width && old.height == size.height) {
         pimpl->mark_full_rendering_for_update();
+        return;
+    }
+    // 睡眠模式
+    if (this->IsInSleepMode()) { 
+        pimpl->rect.width = size.width;
+        pimpl->rect.height = size.height;
         return;
     }
     // 内联窗口
@@ -926,14 +957,52 @@ void LongUI::CUIWindow::MapFromScreen(Point2F& pos) const noexcept {
     }
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Shows the window.
 /// </summary>
 /// <param name="sw">The sw type.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::show_window(TypeShow sw) noexcept {
+    if (sw == Show_Hide) this->TrySleep();
+    else this->WakekUp();
     assert(m_hwnd && "bad window");
     ::ShowWindow(m_hwnd, sw);
+}
+
+/// <summary>
+/// Wakeks up.
+/// </summary>
+void LongUI::CUIWindow::WakekUp() noexcept {
+    if (!this->IsInSleepMode()) return;
+    // XXX: 0. 尝试唤醒父窗口
+    if (m_parent) m_parent->WakekUp();
+    // 1. 创建窗口
+    const auto pwnd = m_parent ? m_parent->GetHwnd() : nullptr;
+    m_hwnd = m_private->Init(pwnd, this->config);
+    // 2. 创建资源
+    this->recreate_window();
+}
+
+/// <summary>
+/// Intoes the sleep.
+/// </summary>
+void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
+    if (this->IsInSleepMode()) return;
+    m_private->ReleaseDeviceData();
+    assert(m_private->children.empty());
+    Private::PostDeleteWindow(m_hwnd);
+    m_hwnd = nullptr;
+}
+
+/// <summary>
+/// Tries the sleep.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::TrySleep() noexcept {
+    if (this->IsInSleepMode()) return;
+    if (!this->IsAutpSleep()) return;
+    m_private->auto_sleep_count = 1;
 }
 
 /// <summary>
@@ -968,8 +1037,17 @@ bool LongUI::CUIWindow::IsVisible() const noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::SetTitleName(const wchar_t* name) noexcept {
     assert(name && "bad name");
-    assert(m_hwnd && "bad window");
+    m_private->titlename = name;
+    if (this->IsInSleepMode()) return;
     ::DefWindowProcW(m_hwnd, WM_SETTEXT, WPARAM(0), LPARAM(name));
+}
+
+/// <summary>
+/// Gets the name of the title.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIWindow::GetTitleName() const noexcept -> WcView {
+    return m_private->titlename.view();
 }
 
 /// <summary>
@@ -1013,7 +1091,10 @@ void LongUI::CUIWindow::SetPos(Point2L pos) noexcept {
     assert(m_private && "bug: you shall not pass");
     auto& this_pos = reinterpret_cast<Point2L&>(m_private->rect.left);
     // 无需移动窗口
-    if (this_pos.x == pos.x && this_pos.y == pos.y) return; this_pos = pos;
+    if (this_pos.x == pos.x && this_pos.y == pos.y) return; 
+    this_pos = pos;
+    // 睡眠模式
+    if (this->IsAutpSleep()) return;
     // 内联窗口
     if (this->IsInlineWindow()) {
         assert(!"NOT IMPL");
@@ -1064,11 +1145,14 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
 /// <param name="lp">The lp.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::OnSystemKeyDown(CUIInputKM::KB key, uintptr_t lp) noexcept {
-    // 检查访问键
-    if (key == CUIInputKM::KB_MENU) {
+    switch (key)
+    {
+    case CUIInputKM::KB_MENU:
+        // 检查访问键
         // 只有按下瞬间有效, 后续的重复触发不算
-        if (!(lp & (1 << 30))) 
+        if (!(lp & (1 << 30)))
             this->toggle_access_key_display();
+        break;
     }
 }
 
@@ -1158,6 +1242,7 @@ namespace LongUI { namespace detail {
     // delete later
     enum msg : uint32_t {
         msg_custom = WM_USER + 10,
+        msg_post_delete_window,
     };
 }}
 
@@ -1167,7 +1252,33 @@ namespace LongUI { namespace detail {
 /// <param name="hwnd">The HWND.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::DeleteWindow(HWND hwnd) noexcept {
-    ::DestroyWindow(hwnd);
+    const auto code = ::DestroyWindow(hwnd);
+    assert(code && "DestroyWindow failed");
+}
+
+/// <summary>
+/// Posts the delete window.
+/// </summary>
+/// <param name="hwnd">The HWND.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::PostDeleteWindow(HWND hwnd) noexcept {
+    ::PostMessageW(hwnd, detail::msg_post_delete_window, 0, 0);
+}
+
+/// <summary>
+/// Initializes the window position.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::InitWindowPos() noexcept {
+    auto& winrect = this->rect;
+    // 默认大小
+    winrect.width = LongUI::DEFAULT_WINDOW_WIDTH;
+    winrect.height = LongUI::DEFAULT_WINDOW_HEIGHT;
+    // 默认居中
+    const auto scw = ::GetSystemMetrics(SM_CXFULLSCREEN);
+    const auto sch = ::GetSystemMetrics(SM_CYFULLSCREEN);
+    winrect.left = (scw - winrect.width) / 2;
+    winrect.top = (sch - winrect.height) / 2;
 }
 
 /// <summary>
@@ -1181,8 +1292,6 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
     this->RegisterWindowClass();
     // 初始化
     HWND hwnd = nullptr;
-    // 标题名称
-    const wchar_t* titlename = nullptr;
     // 窗口
     {
         // 检查样式样式
@@ -1195,18 +1304,12 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
         ::AdjustWindowRect(reinterpret_cast<RECT*>(&this->adjust), window_style, FALSE); 
         // 窗口
         RectWHL window_rect;
-        window_rect.width = LongUI::DEFAULT_WINDOW_WIDTH;
-        window_rect.height = LongUI::DEFAULT_WINDOW_HEIGHT;
-        window_rect.width += this->adjust.right - this->adjust.left;
-        window_rect.height += this->adjust.bottom - this->adjust.top;
-        // 屏幕大小
-        const auto scw = ::GetSystemMetrics(SM_CXFULLSCREEN);
-        const auto sch = ::GetSystemMetrics(SM_CYFULLSCREEN);
-        // 默认居中显示
-        window_rect.left = (scw - window_rect.width) / 2;
-        window_rect.top = (sch - window_rect.height) / 2;
-        this->rect.left = window_rect.left;
-        this->rect.top = window_rect.top;
+        window_rect.left = this->rect.left;
+        window_rect.top = this->rect.top;
+        window_rect.width = this->rect.width + this->adjust.right - this->adjust.left;
+        window_rect.height = this->rect.height + this->adjust.bottom - this->adjust.top;
+        // 针对this->rect清零, 否则会检查到未修改
+        this->rect = { -1, -1, -1, -1 };
         // 额外
         uint32_t ex_flag = 0;
         if (this->is_direct_composition()) ex_flag |= WS_EX_NOREDIRECTIONBITMAP;
@@ -1218,7 +1321,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
             ex_flag,
             (config & CUIWindow::Config_Popup) ?
             Attribute::WindowClassNameP : Attribute::WindowClassNameN,
-            titlename,
+            titlename.c_str(),
             window_style,
             window_rect.left, window_rect.top,
             window_rect.width, window_rect.height,
@@ -1236,6 +1339,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
         for (int i = 0; i != ('Z' - 'A' + 1); ++i) {
             ::RegisterHotKey(hwnd, i, MOD_ALT, 'A' + i);
         }
+        // 注册通用快捷键
 
         //MARGINS shadow_state{ 1,1,1,1 };
         //::DwmExtendFrameIntoClientArea(hwnd, &shadow_state);
@@ -1536,6 +1640,9 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
     else
         switch (message)
         {
+        case detail::msg_post_delete_window:
+            Private::DeleteWindow(hwnd);
+            return 0;
         case WM_SHOWWINDOW:
             // TODO: popup?
             break;
@@ -1584,17 +1691,23 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             if (this->moving_resizing) return 0;
             // 重置大小
             this->OnResizeTs({ LOWORD(lParam), HIWORD(lParam) });
-            return 1;
+            return 0;
         case WM_KEYDOWN:
             UIManager.DataLock();
             this->OnKeyDown(static_cast<CUIInputKM::KB>(wParam));
             UIManager.DataUnlock();
-            return 1;
+            return 0;
         case WM_SYSKEYDOWN:
-            UIManager.DataLock();
-            this->OnSystemKeyDown(static_cast<CUIInputKM::KB>(wParam), lParam);
-            UIManager.DataUnlock();
-            return 1;
+            // Alt+F4
+            if (wParam == CUIInputKM::KB_F4) {
+                ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
+            }
+            else {
+                UIManager.DataLock();
+                this->OnSystemKeyDown(static_cast<CUIInputKM::KB>(wParam), lParam);
+                UIManager.DataUnlock();
+            }
+            return 0;
         case WM_GETMINMAXINFO:
             [](const LPMINMAXINFO info) noexcept {
                 // TODO: 窗口最小大小
@@ -1604,15 +1717,15 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             return 0;
         case WM_CHAR:
             this->OnChar(static_cast<char16_t>(wParam));
-            return 1;
+            return 0;
         case WM_UNICHAR:
             this->OnCharTs(static_cast<char32_t>(wParam));
-            return 1;
+            return 0;
         case WM_MOVING:
             // LOCK: 加锁?
             this->rect.top = reinterpret_cast<RECT*>(lParam)->top;
             this->rect.left = reinterpret_cast<RECT*>(lParam)->left;
-            return 1;
+            return true;
         case WM_CLOSE:
             this->viewport->RefWindow().close_window();
             return 0;
@@ -1656,7 +1769,10 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
 /// <param name="hwnd">The HWND.</param>
 /// <returns></returns>
 auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
+    // 可能是节能模式?
+    if (!hwnd) return { Result::RS_FALSE };
     if (this->is_skip_render()) return{ Result::RS_OK };
+
     CUIRenderAutoLocker locker;
     assert(this->bitmap == nullptr && "call release first");
     assert(this->swapchan == nullptr && "call release first");

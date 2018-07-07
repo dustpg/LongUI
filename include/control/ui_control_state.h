@@ -33,8 +33,7 @@ namespace LongUI {
         void Init() noexcept;
         // tree level
         uint8_t     level;
-
-        // ------------ change once
+        // ------------ life
 
         // has been inited
         bool        inited : 1;
@@ -42,6 +41,20 @@ namespace LongUI {
         bool        ctor_failed : 1;
         // in dtor
         bool        destructing : 1;
+
+        // ------------ attr
+
+        // attachment 
+        bool        attachment : 1;
+        // focusable
+        bool        focusable : 1;
+        // orientation
+        bool        orient : 1;
+        // layout direction
+        bool        dir : 1;
+
+        // ---------- unstable interface
+
         // is delete later?
         bool        delete_later : 1;
         // gui event to parent[true, to parent, false to viewport]
@@ -50,16 +63,8 @@ namespace LongUI {
         bool        in_basic_animation : 1;
         // defaultable
         bool        defaultable : 1;
-        // attachment 
-        bool        attachment : 1;
-        // atomicity[only one layer]children will keep same state with parent
+        // atomicity,children will keep same state with parent
         bool        atomicity : 1;
-        // focusable
-        bool        focusable : 1;
-        // orientation
-        bool        orient : 1;
-        // layout direction
-        bool        dir : 1;
         // unused #1 for reserved
         bool        reserved1 : 1;
 
@@ -69,14 +74,13 @@ namespace LongUI {
         bool        custom_data : 1;
 
 
-        // ----------- change over once
+        // ----------- state
 
         // textcolor changed
         bool        textcolor_changed : 1;
         // text&font(except color) chnaged
         bool        textfont_changed : 1;
-
-        // dirty:   need re-calculate layout,  be set if layout/size changed
+        // layout dirty
         bool        dirty : 1;
         // visible                          [S-falg]
         bool        visible : 1;
