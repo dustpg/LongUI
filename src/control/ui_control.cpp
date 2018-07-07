@@ -1131,6 +1131,8 @@ void LongUI::UIControl::RemoveStyleClass(U8View pair) noexcept {
 void LongUI::UIControl::SetDisabled(bool disabled) noexcept {
     // 标记自己和所有后代处于[enable]状态
     this->StartAnimation({ StyleStateType::Type_Disabled, disabled });
+    // 禁止的话清除焦点状态
+    if (disabled) this->KillFocus();
     // 原子控件除外, 因为对外是一个控件
     if (m_state.atomicity) return;
     // 递归调用

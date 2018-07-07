@@ -7,8 +7,8 @@ Current Version : **Alpha-Stage**
 ## Features in LongUI
   
 **Light Weight**
-  - main target to create LongUI
-  - static-link framework, helloworld just 133kb now
+  - main target on LongUI
+  - static-link framework, helloworld.exe just 133kb now
   - for this, **no c++ exception** in LongUI, becareful exception in LongUI
 
 **XML User Interface Language**

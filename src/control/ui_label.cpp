@@ -133,10 +133,9 @@ auto LongUI::UILabel::DoEvent(
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 初始化
-    {
-        CUIString tmp{ std::move(m_string) };
-        this->SetText(std::move(tmp));
-    }
+        if (!m_string.empty()) {
+            this->SetText(CUIString{ std::move(m_string) });
+        }
         m_control.FindControl(m_pWindow);
         [[fallthrough]];
     default:

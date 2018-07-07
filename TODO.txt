@@ -4,6 +4,8 @@ tab功能?
 
 DComp?
 
+转为disabled应该释放部分特殊引用
+
 读取资源方式修改以方便读取压缩包中的文件?
 
 Xxx::ControlAttached 目前无用

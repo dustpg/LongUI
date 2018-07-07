@@ -248,8 +248,6 @@ namespace LongUI {
         Windows         children;
         // focused control
         UIControl*      focused = nullptr;
-        // TODO: focused control - saved 
-        //UIControl*      saved_focused = nullptr;
         // captured control
         UIControl*      captured = nullptr;
         // now default control
@@ -634,6 +632,7 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
         m_private->ctrl_map.insert({ ctrl.GetID(), &ctrl });
     }
 }
+
 
 /// <summary>
 /// Controls the disattached.
@@ -1119,19 +1118,20 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
     if (key == CUIInputKM::KB_RETURN) {
         // 直接将输入引导到默认控件
         if (const auto defc = this->now_default) {
-            defc->DoInputEvent({ ekey, key });
+            if (defc->IsEnabled()) defc->DoInputEvent({ ekey, key });
             return;
         }
     }
     // 直接将输入引导到焦点控件
     if (const auto focused_ctrl = this->focused) {
+        assert(focused_ctrl->IsEnabled());
         // 检查输出
         const auto rv = focused_ctrl->DoInputEvent({ ekey, key });
         // 回车键无视了?!
         if (rv == Event_Ignore && key == CUIInputKM::KB_RETURN) {
             // 直接将输入引导到默认控件
             if (const auto defc = this->now_default) {
-                defc->DoInputEvent({ ekey, key });
+                if (defc->IsEnabled()) defc->DoInputEvent({ ekey, key });
                 return;
             }
         }
@@ -1223,7 +1223,7 @@ void LongUI::CUIWindow::Private::OnHotKey(uintptr_t id) noexcept {
     if (id < ('Z' - 'A' + 1)) {
         UIManager.DataLock();
         const auto ctrl = this->access_key_map[id];
-        if (ctrl) {
+        if (ctrl && ctrl->IsEnabled()) {
             ctrl->DoEvent(nullptr, { NoticeEvent::Event_DoAccessAction, 0 });
         }
         else ::longui_error_beep();

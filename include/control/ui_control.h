@@ -265,7 +265,7 @@ namespace LongUI {
         void SetDisabled(bool disabled) noexcept;
         // set this and all descendant enabled/disabled
         void SetEnabled(bool enable) noexcept { this->SetDisabled(!enable); }
-        // start state animation
+        // start state animation [do not use this to change state, use SetXXX instead]
         void StartAnimation(StyleStateTypeChange) noexcept;
         // start general animation
 

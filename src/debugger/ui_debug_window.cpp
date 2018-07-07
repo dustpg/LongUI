@@ -142,7 +142,7 @@ const char* LongUI::debug_view_xul = u8R"(
     <label href="https://github.com/dustpg/LongUI" value="LongUI on github"/>
     <hbox>
         <button id="btn-force" label="force render x1" accesskey="f"/>
-        <button id="btn-recreate" label="recreate res" disabled="true" accesskey="r"/>
+        <button id="btn-recreate" label="recreate res" accesskey="r"/>
         <button id="btn-exit" label="exit" default="true" accesskey="e"/>
     </hbox>
     <checkbox id="cbx-dirty" label="draw dirty rect"/>
