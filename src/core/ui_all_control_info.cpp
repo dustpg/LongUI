@@ -41,8 +41,23 @@
 #include <control/ui_treecell.h>
 #include <control/ui_treechildren.h>
 
+#include <control/ui_popupset.h>
+
 // ui namespace
 namespace LongUI {
+    // -------------------- TYPE DEF ------------------
+    struct UIMetaTypeDef {
+        static const MetaControl UIPopupSet__s_meta;
+        static UIControl* create_UIPopupSet(UIControl* p) noexcept {
+            return new(std::nothrow) UIPopupSet{ p, UIPopupSet__s_meta };
+        }
+    };
+    // UIPopupSet
+    const MetaControl UIMetaTypeDef::UIPopupSet__s_meta = {
+        &UIPopupSet::s_meta,
+        "popupset",
+        UIMetaTypeDef::create_UIPopupSet
+    };
     /// <summary>
     /// The default control information
     /// </summary>
@@ -130,6 +145,9 @@ namespace LongUI {
         &UITreeCell::s_meta,
         // Tree Children - 树子节点
         &UITreeChildren::s_meta,
+
+        // ---------------- TYPEDEF -------------------------
+        &UIMetaTypeDef::UIPopupSet__s_meta,
 
 #ifndef NDEBUG
         // Test - 测试控件

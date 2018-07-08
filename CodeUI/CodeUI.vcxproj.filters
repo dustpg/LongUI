@@ -984,5 +984,8 @@
     <ClInclude Include="..\include\filesystem\ui_pathop.h">
       <Filter>header\filesystem</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\control\ui_popupset.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

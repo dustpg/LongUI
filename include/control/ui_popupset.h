@@ -24,33 +24,10 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_control.h"
+#include "ui_spacer.h"
 
 // ui namespace
 namespace LongUI {
-    // ui meta typedef
-    struct UIMetaTypeDef;
-    // spacer
-    class UISpacer : public UIControl {
-        // super class
-        using Super = UIControl;
-        // friend class
-        friend UIMetaTypeDef;
-    protected:
-        // ctor
-        UISpacer(UIControl* parent, const MetaControl&) noexcept;
-    public:
-        // class meta
-        static const  MetaControl   s_meta;
-        // dtor
-        ~UISpacer() noexcept;
-        // ctor
-        UISpacer(UIControl* parent = nullptr) noexcept:UISpacer(parent, UISpacer::s_meta) {}
-        // render
-        void Render() const noexcept override;
-        // do mouse event
-        auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-    };
-    // get meta info for UISpacer
-    LUI_DECLARE_METAINFO(UISpacer);
+    // popset
+    using UIPopupSet = UISpacer;
 }

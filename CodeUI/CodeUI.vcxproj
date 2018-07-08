@@ -315,6 +315,7 @@
     <ClInclude Include="..\include\control\ui_menuitem.h" />
     <ClInclude Include="..\include\control\ui_menulist.h" />
     <ClInclude Include="..\include\control\ui_menupopup.h" />
+    <ClInclude Include="..\include\control\ui_popupset.h" />
     <ClInclude Include="..\include\control\ui_progress.h" />
     <ClInclude Include="..\include\control\ui_radio.h" />
     <ClInclude Include="..\include\control\ui_radiogroup.h" />
