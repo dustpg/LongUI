@@ -9,6 +9,7 @@
 #include <debugger/ui_debug.h>
 #endif
 
+#ifdef LUI_NONPOD_VECTOR
 using namespace LongUI::NonPOD;
 
 /// <summary>
@@ -596,3 +597,4 @@ void detail::vector_base::assign_count(const char* data, uint32_t count) noexcep
 //    // +ns
 //    m_uVecLen += n;
 //}
+#endif

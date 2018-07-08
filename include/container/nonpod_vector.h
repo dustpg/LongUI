@@ -9,6 +9,7 @@
 #include <iterator>
 #include <type_traits>
 
+#ifdef LUI_NONPOD_VECTOR
 
 // LongUI::non-pod namespace
 namespace LongUI { namespace NonPOD {
@@ -312,3 +313,5 @@ namespace LongUI { namespace NonPOD {
         auto end() noexcept ->iterator { return { *this, tr(m_vector.end_n()) }; }
     };
 }}
+
+#endif

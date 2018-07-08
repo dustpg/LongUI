@@ -27,9 +27,7 @@ namespace LongUI {
         UIControl*      ctrl;
         // control name
         const char*     name;
-#ifndef NDEBUG
         // pointer value
         uintptr_t       value;
-#endif
     };
 }

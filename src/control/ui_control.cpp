@@ -423,10 +423,10 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
 /// </summary>
 /// <param name="name">The name.</param>
 /// <returns></returns>
-auto LongUI::UIControl::get_subelement(U8View name) noexcept -> UIControl * {
-    // ::before ::after?
-    return nullptr;
-}
+//auto LongUI::UIControl::get_subelement(U8View name) noexcept -> UIControl * {
+//    // ::before ::after?
+//    return nullptr;
+//}
 
 /// <summary>
 /// Parses the specified .

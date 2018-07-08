@@ -4,7 +4,7 @@
 // **include this file in source-file at first**
 // 
 
-// style sheet support, include css-parse[unused yet]
+// style sheet support, include css-parse[unused yet], undef to make bin-file smaller 
 #define LUI_STYLESHEET_SUPPORT
 
 // windows 10 support only, make bin-file smaller, faster
@@ -12,6 +12,9 @@
 
 // no accessible? make bin-file smaller
 //#define LUI_NO_ACCESSIBLE
+
+// longui implement a non-pod vector, define this if you want to use
+//#define LUI_NONPOD_VECTOR
 
 // give every control intptr_t c++: user_data/xml: data-user;
 #define LUI_USER_INIPTR_DATA

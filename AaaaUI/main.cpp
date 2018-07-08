@@ -583,6 +583,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
 void object_test() noexcept {
     LongUI::CUIStringEx c = L"壕";
     LongUI::CUIString aaaa;
+#ifdef LUI_NONPOD_VECTOR
     LongUI::NonPOD::Vector<LongUI::CUIStringEx> a, b;
     a.reserve(10);
     a.emplace_back_ex()->assign(L"SAD");
@@ -600,7 +601,7 @@ void object_test() noexcept {
     b = a;
     b = std::move(a);
     b.resize(9);
-
+#endif
     {
         LongUI::CUIString b1, b2;
         LongUI::CUIString a = L"++++";

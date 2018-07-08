@@ -10,6 +10,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo0_helloworld", "demo\de
 		{68DBE32A-6DDF-4E22-B265-8AC889B912F4} = {68DBE32A-6DDF-4E22-B265-8AC889B912F4}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo1_helloxul", "demo\demo1_helloxul\demo1_helloxul.vcxproj", "{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{68DBE32A-6DDF-4E22-B265-8AC889B912F4} = {68DBE32A-6DDF-4E22-B265-8AC889B912F4}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -34,6 +39,14 @@ Global
 		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F8}.Release|x64.Build.0 = Release|x64
 		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F8}.Release|x86.ActiveCfg = Release|Win32
 		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F8}.Release|x86.Build.0 = Release|Win32
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Debug|x64.ActiveCfg = Debug|x64
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Debug|x64.Build.0 = Debug|x64
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Debug|x86.ActiveCfg = Debug|Win32
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Debug|x86.Build.0 = Debug|Win32
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Release|x64.ActiveCfg = Release|x64
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Release|x64.Build.0 = Release|x64
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Release|x86.ActiveCfg = Release|Win32
+		{AA91B48A-FFEB-4F6D-9E4E-8C2D5DBCD3F9}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

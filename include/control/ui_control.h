@@ -136,7 +136,7 @@ namespace LongUI {
         // add child[child maybe in ctor, cannot call method except under UIControl]
         virtual void add_child(UIControl& child) noexcept;
         // get sub element ::before
-        virtual auto get_subelement(U8View name) noexcept->UIControl*;
+        //virtual auto get_subelement(U8View name) noexcept->UIControl*;
         // add attribute : key = bkdr hashed string key, this method valid before inited
         virtual void add_attribute(uint32_t key, U8View value) noexcept;
 #ifdef LUI_ACCESSIBLE
