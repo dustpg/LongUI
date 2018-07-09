@@ -6,6 +6,7 @@
 #include <control/ui_menulist.h>
 #include <control/ui_menuitem.h>
 #include <control/ui_menupopup.h>
+#include <core/ui_popup_window.h>
 // 子控件
 #include <control/ui_box_layout.h>
 #include <control/ui_image.h>
@@ -48,10 +49,6 @@ namespace LongUI {
         label.name_dbg = "menuitem::label";
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
-        CUIString text;
-        text.append(L'框');
-        text.append('A' + std::rand() % 10);
-        label.SetText(text);
 #endif
     }
     // UIMenuList私有信息
@@ -101,6 +98,7 @@ namespace LongUI {
 //#endif
 //    };
 }
+
 // --------------------------- UIMenuItem  ---------------------
 
 /// <summary>
@@ -179,6 +177,27 @@ auto LongUI::UIMenuItem::DoEvent(
 
 
 /// <summary>
+/// Adds the attribute.
+/// </summary>
+/// <param name="key">The key.</param>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
+    constexpr auto BKDR_LABEL = 0x74e22f74_ui32;
+    constexpr auto BKDR_VALUE = 0x246df521_ui32;
+    switch (key)
+    {
+    case BKDR_LABEL:
+        // 传递给子控件
+        UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        break;
+    }
+    return Super::add_attribute(key, value);
+}
+
+
+
+/// <summary>
 /// Renders this instance.
 /// </summary>
 /// <returns></returns>
@@ -237,7 +256,18 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
 
 
 
+
+
+
+
 // --------------------------- UIMenuList  ---------------------
+
+
+
+
+
+
+
 
 /// <summary>
 /// Gets the text.
@@ -289,8 +319,14 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
 LongUI::UIMenuList::~UIMenuList() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
-    // XXX: 无需(?)释放弹出菜单
-    //if (m_pMenuPopup) delete m_pMenuPopup;
+    // XXX: 窗口处于析构状态时无需释放窗口
+    if (m_pWindow && m_pWindow->IsInDtor()) {
+
+    }
+    else {
+        // 释放
+        if (m_pMenuPopup) delete m_pMenuPopup;
+    }
     // 释放私有数据
     if (m_private) delete m_private;
 }
@@ -341,7 +377,8 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
     case NoticeEvent::Event_RefreshBoxMinSize:
         return Super::DoEvent(sender, e);
 #endif
-    case NoticeEvent::Event_PopupClosed:
+    case NoticeEvent::Event_PopupBegin:
+    case NoticeEvent::Event_PopupEnd:
         // 关闭了弹出窗口
         //if (sender == m_pMenuPopup) {
         //    int bk = 9;
@@ -428,7 +465,6 @@ void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
     // 检查是不是 Menu Popup
     if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
         m_pMenuPopup = ptr;
-        ptr->init_hoster(this);
         return;
     }
     return Super::add_child(child);
@@ -441,25 +477,16 @@ void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
 void LongUI::UIMenuList::ShowPopup() noexcept {
     // 有窗口?
     if (m_pMenuPopup) {
-        auto& window = m_pMenuPopup->RefWindow();
-        const auto this_window = this->GetWindow();
-        assert(this_window);
-        // 计算大小
-        auto& popup = m_pMenuPopup->RefWindow();
-        // 边框
-        auto size = this->GetBox().GetBorderSize();
-        // 高度
-        size.height = m_pMenuPopup->GetMinSize().height;
-        // TODO: DPI缩放
-
-        // 姿势
-        const int32_t w = static_cast<int32_t>(size.width);
-        const int32_t h = static_cast<int32_t>(size.height);
-        popup.Resize({ w, h });
-
+        // 出现在左下角
         const auto edge = this->GetBox().GetBorderEdge();
         const auto y = this->GetSize().height - edge.top;
-        this_window->PopupWindow(window, this->MapToWindowEx({ edge.left, y }));
+        const auto pos = this->MapToWindowEx({ edge.left, y });
+        LongUI::PopupWindowFromViewport(
+            *this,
+            *m_pMenuPopup,
+            pos,
+            PopupType::Type_Exclusive
+        );
     }
 
     // 触发修改GUI事件
@@ -475,7 +502,19 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
 #endif
 
 
+
+
+
+
+
+
 // -------------------------- UIMenuPopup  ---------------------
+
+
+
+
+
+
 
 
 /// <summary>
@@ -483,6 +522,7 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::UIMenuPopup::~UIMenuPopup() noexcept {
+
 }
 
 /// <summary>
@@ -491,7 +531,7 @@ LongUI::UIMenuPopup::~UIMenuPopup() noexcept {
 /// <param name="hoster">The hoster.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noexcept
-    : Super(hoster, CUIWindow::Config_Popup, meta), m_pHoster(hoster) {
+    : Super(*hoster, CUIWindow::Config_Popup, meta) {
     // XXX: 默认是白色
     m_window.SetClearColor({ 1.f, 1.f, 1.f, 1.f });
 }
@@ -536,9 +576,6 @@ auto LongUI::UIMenuPopup::DoEvent(
             this->change_select(m_pPerSelected, m_pSelected);
             m_pPerSelected = m_pSelected;
         }
-        // 提示Honster窗口关闭了
-        if (m_pHoster) return m_pHoster->DoEvent(
-            this, { NoticeEvent::Event_PopupClosed, 0 });
         break;
     case NoticeEvent::Event_UIEvent:
         // 自己不处理自己的UIEvent 否则就stackoverflow了

@@ -17,8 +17,6 @@ namespace LongUI {
     auto U8(SimpAC::FuncValue v) noexcept {
         return U8View{ v.first, v.first + v.length };
     }
-    // BKDR Hash Function
-    auto BKDRHash(const char* a, const char* b) noexcept->uint32_t;
     // detail namespace
     namespace detail {
         // using namespace

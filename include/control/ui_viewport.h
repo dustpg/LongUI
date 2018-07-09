@@ -32,17 +32,26 @@ namespace LongUI {
     class UIViewport : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
+        // viewports
+        using Viewports = POD::Vector<UIViewport*>;
         // friend window
         friend CUIWindow;
     public:
+        // class meta
+        static const  MetaControl   s_meta;
+        // do event
+        auto DoEvent(UIControl*, const EventArg&) noexcept->EventAccept override;
         // recreate/init device(gpu) resource
         auto Recreate(bool release_only) noexcept->Result override;
+        // [NEW] on subview popup
+        virtual void SubViewportPopupBegin(UIViewport&, PopupType) noexcept;
+        // [NEW] on subview popup closed
+        virtual void SubViewportPopupEnd(UIViewport&, PopupType) noexcept;
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View view) noexcept override;
-    protected:
         // ctor for control
-        UIViewport(UIControl* parent, CUIWindow::WindowConfig, const MetaControl&) noexcept;
+        UIViewport(UIControl& pseudo_parent, CUIWindow::WindowConfig, const MetaControl&) noexcept;
     public:
         // ctor
         UIViewport(
@@ -53,11 +62,29 @@ namespace LongUI {
         ~UIViewport() noexcept;
         // ref the window
         auto&RefWindow() noexcept { return m_window; }
+        // get hoster
+        auto GetHoster() const noexcept { return m_pHoster; }
+        // assin new hoster
+        void AssignNewHoster(UIControl& h) noexcept { m_pHoster = &h; }
+        // PopupBegin to hoster
+        void HosterPopupBegin() noexcept;
+        // add subviewport
+        void AddSubViewport(UIViewport& sub) noexcept;
+        // find subviewport with unique string
+        auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
+        // find subviewport with normal string
+        auto FindSubViewport(U8View view) const noexcept->UIViewport*;
     private:
         // resize window
         void resize_window(Size2F size) noexcept;
     protected:
         // window
         CUIWindow           m_window;
+        // last hoster, will set null after closed
+        UIControl*          m_pHoster = nullptr;
+        // sub-viewports
+        Viewports           m_subviewports;
     };
+    // get meta info for UIViewport
+    LUI_DECLARE_METAINFO(UIViewport);
 }

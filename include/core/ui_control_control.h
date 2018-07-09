@@ -67,7 +67,7 @@ namespace LongUI {
         void InvalidateControl(UIControl& ctrl) noexcept;
     public:
         // set xul dir
-        void SetXULDir(U8View) noexcept;
+        void SetXulDir(U8View) noexcept;
         // get xul dir
         auto GetXULDir() const noexcept -> U8View;
         // add css string
@@ -80,7 +80,7 @@ namespace LongUI {
         auto GetStyleSheet() const noexcept { return m_pStyleSheet; }
     public:
         // make xul tree
-        static bool MakeXUL(UIControl& ctrl, const char* xul) noexcept;
+        static bool MakeXul(UIControl& ctrl, const char* xul) noexcept;
         // render 
         static void RecursiveRender(
             const UIControl& ctrl,

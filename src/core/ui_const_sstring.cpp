@@ -26,7 +26,6 @@ PCN_NOINLINE
 /// <param name="view">The view.</param>
 /// <returns></returns>
 void LongUI::CUIConstShortString::set_view(U8View view) noexcept {
-    assert(view.end() - view.begin() < SHORT_MEMORY_LENGTH && "too long");
     // 释放旧的空间
     this->release();
     const size_t len = view.end() - view.begin();

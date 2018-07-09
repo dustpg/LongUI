@@ -24,10 +24,10 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_spacer.h"
+#include "ui_menupopup.h"
 
 // ui namespace
 namespace LongUI {
     // popupset
-    using UIPopupSet = UISpacer;
+    using UIPopup = UIMenuPopup;
 }

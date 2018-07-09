@@ -128,8 +128,10 @@ namespace LongUI {
         virtual auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept;
         // update, postpone change some data
         virtual void Update() noexcept;
-        // render this control only, [Global rendering and Incremental rendering]
+        // render this control only
         virtual void Render() const noexcept;
+        // render this and all descendant
+        //virtual void RenderAll() const noexcept;
         // recreate/init device(gpu) resource
         virtual auto Recreate(bool release_only) noexcept->Result;
     protected:
@@ -172,7 +174,7 @@ namespace LongUI {
         // clear appearance and all margin/padding/border
         void ClearAppearance() noexcept;
         // set xul-string as content
-        void SetXUL(const char* xul) noexcept;
+        void SetXul(const char* xul) noexcept;
         // find child via position 
         auto FindChild(const Point2F& pos) noexcept->UIControl*;
         // swap child index
@@ -243,8 +245,12 @@ namespace LongUI {
         void SetVisible(bool visible) noexcept;
         // get access key
         auto GetAccessKey() const noexcept { return m_chAccessKey; }
-        // get id
+        // get id, default as ""
         auto GetID() const noexcept { return m_id; }
+        // set tooltip text
+        void SetTooltipText(U8View v) noexcept;
+        // set tooltip text
+        auto GetTooltipText() const noexcept { return m_strTooltipText.c_str(); }
         // set postion of control [Relative to parent]
         void SetPos(Point2F pos) noexcept;
         // get postion of control [Relative to parent]
@@ -359,7 +365,7 @@ namespace LongUI {
         // child count
         uint32_t                m_cChildrenCount = 0;
         // id of control
-        const char*             m_id = "";
+        const char*             m_id = CUIConstShortString::EMPTY;
         // meta info of control
         const MetaControl&      m_refMetaInfo;
         // style model
@@ -384,6 +390,12 @@ namespace LongUI {
         UIControl*              m_pClicked = nullptr;
         // last end time capsule
         CUITimeCapsule*         m_pLastEnd = nullptr;
+        // context menu
+        const char*             m_pCtxCtrl = nullptr;
+        // tooltip window
+        const char*             m_pTooltipCtrl = nullptr;
+        // tooltip text
+        CUIConstShortString     m_strTooltipText;
         // style unique classes
         UniqueClasses           m_classesStyle;
     private:

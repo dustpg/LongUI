@@ -41,6 +41,10 @@ void LongUI::UIControlPrivate::SyncInitData(UIControl& ctrl) noexcept {
         assert(child.GetLevel() < 100ui8 && "tree too deep");
         // 窗口
         child.m_pWindow = ctrl.m_pWindow;
+
+        assert(child.m_pCtxCtrl == nullptr && "TODO: move to global");
+        // XXX: 添加新的窗口引用
+        //child.m_pWindow->Att
         UIControlPrivate::SyncInitData(child);
     }
 }

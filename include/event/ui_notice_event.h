@@ -15,12 +15,14 @@ namespace LongUI {
         Event_DoAccessAction,
         // show access key  [derived: 1/0 show/hide]
         Event_ShowAccessKey,
-        // viewport/ direct-managed-parent only
+        // viewport/ uievent-to-parent only
         Event_UIEvent,
         // viewport only
         Event_WindowClosed,
         // popup hoster only
-        Event_PopupClosed,
+        Event_PopupBegin,
+        // popup hoster only
+        Event_PopupEnd,
         // image-child clicked 
         Event_ImageChildClicked,
         // splitter drag

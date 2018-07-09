@@ -1,5 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (6)
+#define CASE_NUM (17)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
@@ -20,6 +20,11 @@
 #include <Windows.h>
 void main_inited(LongUI::UIViewport&, int) noexcept;
 void object_test() noexcept;
+
+namespace LongUI {
+    // BKDR Hash Function
+    auto BKDRHash(const char* ) noexcept->uint32_t;
+}
 
 extern const char* xml_text_box;
 extern const char* xul_layout;
@@ -94,6 +99,7 @@ struct MemoryLeakDetector {
 };
 
 extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
+    const auto code = LongUI::BKDRHash("tooltiptext");
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     MemoryLeakDetector dtr;
     HelloConfig cfg;
@@ -136,7 +142,7 @@ LongUI::UIControl* vv;
 
 
 void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
-    UIManager.SetXULDir(LongUI::U8View::FromCStyle("../doc/test-xul"));
+    UIManager.SetXulDir(LongUI::U8View::FromCStyle("../doc/test-xul"));
     vv = &viewport;
     // **测试** 用
     viewport.SetAutoOverflow();
@@ -196,7 +202,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
                 std::fread(ptr, len, 1, file);
                 const auto str = reinterpret_cast<char*>(ptr);
                 str[len] = 0;
-                viewport.SetXUL(str);
+                viewport.SetXul(str);
                 std::free(ptr);
             }
             std::fclose(file);
@@ -454,11 +460,11 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     }
     case 4:
-        viewport.SetXUL(xul_layout);
+        viewport.SetXul(xul_layout);
         viewport.GetWindow()->Resize({ 640, 480 });
         break;
     case 5:
-        viewport.SetXUL(xul_test);
+        viewport.SetXul(xul_test);
         {
             const auto window = viewport.GetWindow();
             const auto button1 = window->FindControl("button+");
@@ -483,24 +489,24 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         }
         break;
     case 6:
-        viewport.SetXUL(xul_popup);
+        viewport.SetXul(xul_popup);
         viewport.GetWindow()->Resize({ 640, 480 });
         break;
     case 7:
-        viewport.SetXUL(xul_listbox);
+        viewport.SetXul(xul_listbox);
         break;
     case 8:
-        viewport.SetXUL(xul_tree);
+        viewport.SetXul(xul_tree);
         viewport.GetWindow()->Resize({ 640, 480 });
         break;
     case 9:
-        viewport.SetXUL(xul_tree2);
+        viewport.SetXul(xul_tree2);
         break;
     case 10:
-        viewport.SetXUL(xul_tabs);
+        viewport.SetXul(xul_tabs);
         break;
     case 11:
-        viewport.SetXUL(xml_text_box);
+        viewport.SetXul(xml_text_box);
         break;
     case 12:
         loadfile("../doc/test-xul/list.xul");
@@ -550,6 +556,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         //    control.DeleteLater();
         //    return LongUI::Event_Accept;
         //});
+        break;
+    case 17:
+        loadfile("../doc/test-xul/ctxmenu.xul");
+        //viewport.GetWindow()->Resize({ 800, 600 });
         break;
     }
 

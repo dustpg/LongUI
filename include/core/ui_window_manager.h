@@ -42,9 +42,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_wndmgr;
         // 32bit
-        template<> struct private_wndmgr<4> { enum { size = 56, align = 8 }; };
+        template<> struct private_wndmgr<4> { enum { size = 72, align = 8 }; };
         // 64bit
-        template<> struct private_wndmgr<8> { enum { size = 72, align = 8 }; };
+        template<> struct private_wndmgr<8> { enum { size = 96, align = 8 }; };
     }
     // UI Window Manager
     class CUIWndMgr {
@@ -59,6 +59,10 @@ namespace LongUI {
         void MarkWindowMinsizeChanged(CUIWindow* window) noexcept;
         // get window list
         auto GetWindowList() const noexcept->const WindowVector&;
+        // move subviewport to global
+        void MoveSubViewToGlobal(UIViewport&) noexcept;
+        // find subviewport with unique string
+        auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
     protected:
         // close helper
         void close_helper(CUIWindow& wnd) noexcept;

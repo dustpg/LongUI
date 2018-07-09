@@ -350,13 +350,14 @@ auto LongUI::CUIManager::GetUniqueTextHandle(const char* str) noexcept -> uint32
 /// <param name="parent">The parent.</param>
 /// <returns></returns>
 auto LongUI::CUIManager::CreateControl(U8View element,
-    UIControl* parent) noexcept -> UIControl * {
+    UIControl* parent) noexcept -> UIControl* {
     auto& list = this_()->pm().cclasses;
     const auto itr = list.find(element.begin(), element.end());
     if (itr != list.end()) 
         return itr->second->create_func(parent);
     return nullptr;
 }
+
 
 /// <summary>
 /// longui namespace

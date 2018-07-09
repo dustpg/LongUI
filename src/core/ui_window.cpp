@@ -11,6 +11,7 @@
 #include <container/pod_hash.h>
 #include <graphics/ui_cursor.h>
 #include <control/ui_viewport.h>
+#include <core/ui_popup_window.h>
 #include <util/ui_color_system.h>
 #include <graphics/ui_graphics_decl.h>
 // C++
@@ -189,8 +190,8 @@ namespace LongUI {
         void OnChar(char16_t ch) noexcept;
         // when input a utf-32 char[thread safe]
         void OnCharTs(char32_t ch) noexcept;
-        // do hotkey
-        void OnHotKey(uintptr_t id) noexcept;
+        // do access key
+        void OnAccessKey(uintptr_t id) noexcept;
     public:
         // full render this frame?
         inline bool is_full_render_for_update() const noexcept { return full_render_for_update; }
@@ -220,7 +221,7 @@ namespace LongUI {
         // window clear color
         ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
         // title name
-        CUIString       titlename{ L"LUI" };
+        CUIString       titlename{ L"LUI"_sv };
     public:
         // mouse track data
         TRACKMOUSEEVENT track_mouse;
@@ -262,7 +263,7 @@ namespace LongUI {
         // auto sleep count
         uint32_t        auto_sleep_count = 0;
         // unused
-        uint32_t        asndiujsahfdiuashfiuha = 0;
+        PopupType       popup_type = PopupType::Type_Exclusive;
         // save utf-16 char
         char16_t        saved_utf16 = 0;
         // ma return code
@@ -368,7 +369,7 @@ auto LongUI::MakeStyleSheetFromFile(U8View file, SSPtr old) noexcept -> SSPtr {
         if (ch == '/' || ch == '\\') break;
     }
     // 设置CSS目录作为当前目录
-    UIManager.SetXULDir(view);
+    UIManager.SetXulDir(view);
     // 待使用缓存
     POD::Vector<char> css_buffer;
     // 载入文件
@@ -389,7 +390,7 @@ auto LongUI::MakeStyleSheetFromFile(U8View file, SSPtr old) noexcept -> SSPtr {
         old = LongUI::MakeStyleSheet(string, old);
     }
     // 设置之前的目录作为当前目录
-    UIManager.SetXULDir(old_dir.view());
+    UIManager.SetXulDir(old_dir.view());
     return old;
 }
 
@@ -455,7 +456,7 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     LongUI::DeleteStyleSheet(m_pStyleSheet);
     // 有效私有数据
     if (m_private) {
-        // 删除自窗口
+        // XXX: 删除自窗口?
         auto& children = m_private->children;
         while (!children.empty()) children.back()->Delete();
         // 管理器层移除引用
@@ -618,18 +619,24 @@ void LongUI::CUIWindow::ControlAttached(UIControl& ctrl) noexcept {
 void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
     // 注册命名控件
     if (this && *ctrl.GetID()) {
-        // 必须没有被注册过
-#ifndef NDEBUG
-        if (this->FindControl(ctrl.GetID())) {
-            LUIDebug(Error) LUI_FRAMEID
-                << "add named control but id exist: "
-                << ctrl.GetID()
-                << endl;
-            assert(!"id exist!");
+        // XXX: 自己就是窗口的场合
+        if (&this->RefViewport() == &ctrl) {
+
         }
+        else {
+            // 必须没有被注册过
+#ifndef NDEBUG
+            if (this->FindControl(ctrl.GetID())) {
+                LUIDebug(Error) LUI_FRAMEID
+                    << "add named control but id exist: "
+                    << ctrl.GetID()
+                    << endl;
+                assert(!"id exist!");
+            }
 #endif
-        // XXX: 错误处理
-        m_private->ctrl_map.insert({ ctrl.GetID(), &ctrl });
+            // XXX: 错误处理
+            m_private->ctrl_map.insert({ ctrl.GetID(), &ctrl });
+        }
     }
 }
 
@@ -846,7 +853,7 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
     const auto sameh = this->rect.height == size.height;
     if (samew && sameh) return;
     this->mark_full_rendering_for_update();
-    LUIDebug(Hint) << size.width << ", " << size.height << endl;
+    //LUIDebug(Hint) << size.width << ", " << size.height << endl;
     // 数据锁
     CUIDataAutoLocker locker;
     // 修改
@@ -988,8 +995,10 @@ void LongUI::CUIWindow::WakekUp() noexcept {
 /// </summary>
 void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
     if (this->IsInSleepMode()) return;
-    m_private->ReleaseDeviceData();
     assert(m_private->children.empty());
+    // 释放资源
+    m_private->ReleaseDeviceData();
+    // 摧毁窗口
     Private::PostDeleteWindow(m_hwnd);
     m_hwnd = nullptr;
 }
@@ -1001,6 +1010,7 @@ void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
 void LongUI::CUIWindow::TrySleep() noexcept {
     if (this->IsInSleepMode()) return;
     if (!this->IsAutpSleep()) return;
+    if (!m_private->children.empty()) return;
     m_private->auto_sleep_count = 1;
 }
 
@@ -1029,6 +1039,19 @@ bool LongUI::CUIWindow::IsVisible() const noexcept {
     return !!::IsWindowVisible(m_hwnd);
 }
 
+
+/// <summary>
+/// Sets the name of the title.
+/// </summary>
+/// <param name="name">The name.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
+    m_private->titlename = std::move(name);
+    if (this->IsInSleepMode()) return;
+    const auto ptr = m_private->titlename.c_str();
+    ::DefWindowProcW(m_hwnd, WM_SETTEXT, WPARAM(0), LPARAM(ptr));
+}
+
 /// <summary>
 /// Sets the name of the title.
 /// </summary>
@@ -1036,10 +1059,10 @@ bool LongUI::CUIWindow::IsVisible() const noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::SetTitleName(const wchar_t* name) noexcept {
     assert(name && "bad name");
-    m_private->titlename = name;
-    if (this->IsInSleepMode()) return;
-    ::DefWindowProcW(m_hwnd, WM_SETTEXT, WPARAM(0), LPARAM(name));
+    this->SetTitleName(CUIString{ name });
 }
+
+
 
 /// <summary>
 /// Gets the name of the title.
@@ -1054,8 +1077,9 @@ auto LongUI::CUIWindow::GetTitleName() const noexcept -> WcView {
 /// </summary>
 /// <param name="wnd">The WND.</param>
 /// <param name="pos">The position.</param>
+/// <param name="type">The type.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos) noexcept {
+void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type) noexcept {
     auto& this_popup = m_private->popup;
     // 再次显示就是关闭
     if (this_popup == &wnd) {
@@ -1064,8 +1088,13 @@ void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos) noexcept {
     else {
         this->ClosePopup();
         this_popup = &wnd;
+        // 记录类型备用
+        m_private->popup_type = type;
+        // 提示窗口
+        auto& view = wnd.RefViewport();
+        view.HosterPopupBegin();
+        this->RefViewport().SubViewportPopupBegin(view, type);
         // 计算位置
-        const auto& view = wnd.RefViewport();
         this->MapToScreen(pos);
         const auto x = static_cast<int32_t>(pos.x);
         wnd.SetPos({ x, static_cast<int32_t>(pos.y) });
@@ -1093,7 +1122,7 @@ void LongUI::CUIWindow::SetPos(Point2L pos) noexcept {
     if (this_pos.x == pos.x && this_pos.y == pos.y) return; 
     this_pos = pos;
     // 睡眠模式
-    if (this->IsAutpSleep()) return;
+    if (this->IsInSleepMode()) return;
     // 内联窗口
     if (this->IsInlineWindow()) {
         assert(!"NOT IMPL");
@@ -1216,19 +1245,16 @@ void LongUI::CUIWindow::Private::OnCharTs(char32_t ch) noexcept {
 /// <summary>
 /// Called when [hot key].
 /// </summary>
-/// <param name="id">The identifier.</param>
+/// <param name="i">The index.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Private::OnHotKey(uintptr_t id) noexcept {
-    // A-Z
-    if (id < ('Z' - 'A' + 1)) {
-        UIManager.DataLock();
-        const auto ctrl = this->access_key_map[id];
-        if (ctrl && ctrl->IsEnabled()) {
-            ctrl->DoEvent(nullptr, { NoticeEvent::Event_DoAccessAction, 0 });
-        }
-        else ::longui_error_beep();
-        UIManager.DataUnlock();
+void LongUI::CUIWindow::Private::OnAccessKey(uintptr_t i) noexcept {
+    UIManager.DataLock();
+    const auto ctrl = this->access_key_map[i];
+    if (ctrl && ctrl->IsEnabled()) {
+        ctrl->DoEvent(nullptr, { NoticeEvent::Event_DoAccessAction, 0 });
     }
+    else ::longui_error_beep();
+    UIManager.DataUnlock();
 }
 
 // LongUI::detail
@@ -1301,6 +1327,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
             MA_NOACTIVATE/*ANDEAT*/ : MA_ACTIVATE;
         // 调整大小
         static_assert(sizeof(RECT) == sizeof(this->adjust), "bad type");
+        this->adjust = { 0 };
         ::AdjustWindowRect(reinterpret_cast<RECT*>(&this->adjust), window_style, FALSE); 
         // 窗口
         RectWHL window_rect;
@@ -1335,11 +1362,6 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
     }
     // 创建成功
     if (hwnd) {
-        // 注册所有的Alt+A-Z
-        for (int i = 0; i != ('Z' - 'A' + 1); ++i) {
-            ::RegisterHotKey(hwnd, i, MOD_ALT, 'A' + i);
-        }
-        // 注册通用快捷键
 
         //MARGINS shadow_state{ 1,1,1,1 };
         //::DwmExtendFrameIntoClientArea(hwnd, &shadow_state);
@@ -1525,12 +1547,16 @@ void LongUI::CUIWindow::Private::BeforeRender() noexcept {
     );
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Closes the popup.
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::ClosePopup() noexcept {
     if (this->popup) {
+        auto& sub = this->popup->RefViewport();
+        this->viewport->SubViewportPopupEnd(sub, this->popup_type);
+        //sub.ClearHoster();
         this->popup->CloseWindow();
         this->popup = nullptr;
     }
@@ -1569,7 +1595,6 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
     if (message == WM_MOUSELEAVE) {
         // BUG: Alt + 快捷键也会触发?
         //CUIInputKM::Instance().GetKeyState(CUIInputKM::KB_MENU);
-
         arg.px = -1.f; arg.py = -1.f;
         arg.wheel = 0.f;
         arg.type = MouseEvent::Event_MouseLeave;
@@ -1577,6 +1602,15 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         this->mouse_enter = false;
         this->DoMouseEventTs(arg);
     }
+    // 鼠标悬壶(济世)
+    //else if (message == WM_MOUSEHOVER) {
+    //    arg.type = MouseEvent::Event_MouseIdleHover;
+    //    arg.wheel = 0.f;
+    //    arg.px = static_cast<float>(int16_t(LOWORD(lParam)));
+    //    arg.py = static_cast<float>(int16_t(HIWORD(lParam)));
+    //    arg.modifier = static_cast<InputModifier>(wParam);
+    //    this->DoMouseEventTs(arg);
+    //}
     // 一般鼠标消息处理
     else if (message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) {
         // 检查映射表长度
@@ -1616,14 +1650,11 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         case MouseEvent::Event_LButtonDown:
             // 有弹出窗口先关闭
             if (this->popup) {
-                this->popup->CloseWindow();
-                this->popup = nullptr;
+                this->ClosePopup();
                 return 0;
             }
-            else {
-                this->mouse_left_down = true;
-                ::SetCapture(hwnd);
-            }
+            this->mouse_left_down = true;
+            ::SetCapture(hwnd);
             //LUIDebug(Hint) << "\r\n\t\tDown: " << this->captured << endl;
             break;
         case MouseEvent::Event_LButtonUp:
@@ -1745,9 +1776,11 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
 
             }
             break;
-        case WM_HOTKEY:
-            this->OnHotKey(wParam);
-            break;
+        case WM_SYSCHAR:
+            if (wParam >= 'a' && wParam <= 'z') {
+                this->OnAccessKey(wParam - 'a');
+            }
+            return 0;
         }
     // 未处理消息
     return ::DefWindowProcW(hwnd, message, wParam, lParam);
@@ -1815,7 +1848,8 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
         if (this->is_direct_composition()) {
             
         }
-        else {
+        // 失败则尝试创建一般的
+        if (sc == nullptr) {
             // 一般桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;

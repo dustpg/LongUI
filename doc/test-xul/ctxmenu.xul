@@ -11,9 +11,28 @@
 ]]>
 </script>
 
-<description><html:h1>XUL Popups</html:h1></description>
+
+    <menulist label="Selected" context="menu1">
+     <menupopup id="menu1">
+      <menuitem label="Normal"/>
+      <menuitem label="Selected" selected="true" />
+      <menuitem label="Disabled" disabled="true" />
+      <menuitem label="Checkbox" type="checkbox" />
+      <menuitem label="Checked"  type="checkbox" checked="true" />
+     </menupopup>
+
+    </menulist>
 
 <popupset>
+
+  <menupopup id="menu2">
+    <menuitem label="Normal"/>
+    <menuitem label="Selected" selected="true" />
+    <menuitem label="Disabled" disabled="true" />
+    <menuitem label="Checkbox" type="checkbox" />
+    <menuitem label="Checked"  type="checkbox" checked="true" />
+  </menupopup>
+
   <popup id="contextpopup">
    <menuitem label="This is a context popup" />
   </popup>
@@ -23,15 +42,27 @@
    <menuitem label="Aramis"  />
    <menuitem label="Yakima"  />
   </popup>
+  
+  <!-- <tooltip id="moretip" orient="vertical" style="background-color: #33DD00;">
+    <label value="Click here to see more information"/>
+    <label value="Really!" style="color: red;"/>
+  </tooltip> -->
+
 </popupset>
-  <label href="http://example.com" class="text-link" value="Click here to go to example.com"/>
+
+
+<vbox>
+  <button label="Simple" tooltiptext="A simple popup"/>
+  <button label="More" tooltip="moretip"/>
+</vbox>
+     <spacer flex="1"/>
+
   <vbox flex="1" style="overflow: auto">
 
-   <groupbox orient="horizontal" context="popupmenu">
-   <caption label="Context Popups" />
-   <!-- context="contextpopup" -->
-     <spacer flex="1" />
-     <button flex="1" label="button here" />
+   <groupbox orient="horizontal" context="menu2">
+   <caption label="Context Popups"/>
+     <spacer flex="1" context="contextpopup"/>
+     <button flex="1" label="button here"/>
    </groupbox>
 
 

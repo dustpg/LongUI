@@ -4,6 +4,7 @@
 #include <container/pod_hash.h>
 #include <control/ui_ctrlmeta.h>
 #include <event/ui_event_host.h>
+#include <core/ui_popup_window.h>
 #include <style/ui_native_style.h>
 #include <event/ui_initialize_event.h>
 #include "../private/ui_private_control.h"
@@ -17,6 +18,10 @@
 
 // ui namespace
 namespace LongUI {
+    // 视口?
+    bool IsViewport(const UIControl&) noexcept;
+    // 添加视口
+    void AddSubViewport(CUIWindow&, UIControl&) noexcept;
     // 删除控件
     void DeleteControl(UIControl* ctrl) noexcept { 
         delete ctrl; 
@@ -452,14 +457,15 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_HEIGHT      = 0x28d4978b_ui32;
     constexpr auto BKDR_ORIENT      = 0xeda466cd_ui32;
     constexpr auto BKDR_VISIBLE     = 0x646b6442_ui32;
+    constexpr auto BKDR_CONTEXT     = 0x89f92d3b_ui32;
+    constexpr auto BKDR_TOOLTIP     = 0x9a54b5f3_ui32;
     constexpr auto BKDR_DEFAULT     = 0xdc8b8bf9_ui32;
     //constexpr auto BKDR_TABINDEX    = 0x1c6477b9_ui32;
     constexpr auto BKDR_DISABLED    = 0x715f1adc_ui32;
     constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
     constexpr auto BKDR_DRAGGABLE   = 0xbd13c3b5_ui32;
-    constexpr auto BKDR_CONTEXTMENU = 0xb133f7f6_ui32;
+    constexpr auto BKDR_TOOLTIPTEXT = 0x77a52e88_ui32;
 
-    
     constexpr auto BKDR_DATAUSER    = 0x5c110136_ui32;
     constexpr auto BKDR_DATAU16     = 0xc036b6f7_ui32;
     constexpr auto BKDR_DATAU8      = 0xe4278072_ui32;
@@ -521,8 +527,17 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
             }
         }
         break;
-    case BKDR_CONTEXTMENU:
-        // contextmenu: 上下文菜单
+    case BKDR_CONTEXT:
+        // context    : 上下文菜单 
+        m_pCtxCtrl = UIManager.GetUniqueText(value);
+        break;
+    case BKDR_TOOLTIP:
+        // tooltip    : 提示窗口
+        m_pTooltipCtrl = UIManager.GetUniqueText(value);
+        break;
+    case BKDR_TOOLTIPTEXT:
+        // tooltiptext: 提示文本
+        m_strTooltipText = value;
         break;
     case BKDR_ACCESSKEY:
         // accesskey  : 快捷访问键
@@ -808,6 +823,16 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
     if (m_state.atomicity) return mouse_under_atomicity(e);
     using Pc = UIControlPrivate;
     EventAccept s = EventAccept::Event_Ignore;
+    /*
+        XXX: 将switch处理分成两部分
+
+        switch [1]
+        if (m_pHovered && m_pHovered->IsEnabled()) {
+            if (m_pHovered->DoMouseEvent(e)) return Event_Accept;
+        }
+        switch [2]
+    */
+
     // 自己处理消息
     switch (e.type)
     {
@@ -847,6 +872,19 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         // 处理MOUSE消息
         return Event_Accept;
     }
+    case LongUI::MouseEvent::Event_MouseIdleHover:
+        // 子控件优先处理事件
+        if (m_pHovered && m_pHovered->IsEnabled()) {
+            if (m_pHovered->DoMouseEvent(e)) return Event_Accept;
+        }
+        // 显示TOOLTIP
+        if (m_pTooltipCtrl) {
+            return LongUI::PopupWindowFromName(
+                *this, m_pTooltipCtrl, { e.px, e.py }, PopupType::Type_Tooltip);
+        }
+        // 显示TOOLTIP TEXT
+        return LongUI::PopupWindowFromTooltipText(
+            *this, m_strTooltipText.c_str(), { e.px, e.py });
     case LongUI::MouseEvent::Event_LButtonDown:
         s = Event_Accept;
         this->StartAnimation({ StyleStateType::Type_Active, true });
@@ -870,6 +908,14 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             if (m_pClicked) m_pClicked->DoMouseEvent(e);
         }
         return Event_Accept;
+    case LongUI::MouseEvent::Event_RButtonUp:
+        // 子控件优先处理事件
+        if (m_pHovered && m_pHovered->IsEnabled()) {
+            if (m_pHovered->DoMouseEvent(e)) return Event_Accept;
+        }
+        return LongUI::PopupWindowFromName(
+            *this, m_pCtxCtrl, { e.px, e.py },  PopupType::Type_Context);
+
     }
     // 子控件有效则处理消息
     if (auto child = m_pHovered) {
@@ -1006,6 +1052,16 @@ void LongUI::UIControl::SetPos(Point2F pos) noexcept {
     m_state.world_changed = true;
     m_oBox.pos = pos;
     this->NeedUpdate();
+}
+
+/// <summary>
+/// Sets the tooltip text.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+void LongUI::UIControl::SetTooltipText(U8View view) noexcept {
+    m_strTooltipText = view;
+    //this->Invalidate();
 }
 
 /// <summary>
@@ -1186,6 +1242,8 @@ void LongUI::UIControl::mark_window_minsize_changed() noexcept {
     UIManager.MarkWindowMinsizeChanged(m_pWindow);
 }
 
+
+
 /// <summary>
 /// Adds the child.
 /// </summary>
@@ -1194,6 +1252,12 @@ void LongUI::UIControl::mark_window_minsize_changed() noexcept {
 void LongUI::UIControl::add_child(UIControl& child) noexcept {
     // 这条函数(add_child)非常重要
     assert(this && "bad this ptr");
+    // 视口?
+    if (LongUI::IsViewport(child)) {
+        assert(m_pWindow && "add subwindow must be vaild window");
+        LongUI::AddSubViewport(*m_pWindow, child);
+        return;
+    }
     // 无需再次添加
     if (child.m_pParent == this) return;
     child.m_state.parent_changed = true;
@@ -1213,6 +1277,8 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     child.m_pWindow->ControlDisattached(child);
     // 设置新的窗口
     child.m_pWindow = m_pWindow;
+    // XXX: 添加新的窗口引用
+    //child.m_pWindow->ControlAttached(child);
     // 同步
     if (child.GetCount()) UIControlPrivate::SyncInitData(child);
     m_state.child_i_changed = true;
@@ -1515,8 +1581,8 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
 /// </summary>
 /// <param name="xul">The xul string.</param>
 /// <returns></returns>
-void LongUI::UIControl::SetXUL(const char* xul) noexcept {
-    CUIControlControl::MakeXUL(*this, xul);
+void LongUI::UIControl::SetXul(const char* xul) noexcept {
+    CUIControlControl::MakeXul(*this, xul);
 }
 
 PCN_NOINLINE

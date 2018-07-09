@@ -48,3 +48,11 @@ namespace LongUI {
         ele,\
         create_##T\
     };
+
+// control meta info 
+#define LUI_CONTROL_META_INFO_NO(T, ele) \
+    const MetaControl T::s_meta = {\
+        &T::Super::s_meta,\
+        ele,\
+        nullptr\
+    };

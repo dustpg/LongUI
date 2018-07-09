@@ -19,7 +19,7 @@ namespace LongUI {
         // ctor
         CUIDebugView() noexcept :
             Super(nullptr, CUIWindow::Config_ToolWindow) {
-            this->SetXUL(debug_view_xul);
+            this->SetXul(debug_view_xul);
             const auto window = this->GetWindow();
             window->SetClearColor({ 1,1,1,1 });
             window->ShowWindow();

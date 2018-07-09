@@ -10,6 +10,7 @@ Current Version : **Alpha-Stage**
   - main target on LongUI
   - static-link framework, helloworld just 150kb now
   - for this, **no c++ exception** in LongUI, becareful exception in LongUI
+  - you should catch exception in *noexcept* callback if want to use
 
 **XML User Interface Language**
   - partially compatible Mozilla's XUL (XML part)

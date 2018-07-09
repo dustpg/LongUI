@@ -48,8 +48,6 @@ namespace LongUI {
         UISpacer(UIControl* parent = nullptr) noexcept:UISpacer(parent, UISpacer::s_meta) {}
         // render
         void Render() const noexcept override;
-        // do mouse event
-        auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
     };
     // get meta info for UISpacer
     LUI_DECLARE_METAINFO(UISpacer);

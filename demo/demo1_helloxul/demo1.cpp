@@ -4,7 +4,7 @@
 
 const auto xul = u8R"xml(
 <?xml version="1.0"?>
-<window>
+<window clearcolor="white" title="lui demo">
   <spacer flex="1"/>
   <hbox>
     <spacer flex="1"/>
@@ -19,7 +19,7 @@ int main() {
     if (UIManager.Initialize()) {
         {
             LongUI::UIViewport viewport;
-            viewport.SetXUL(xul);
+            viewport.SetXul(xul);
             viewport.GetWindow()->ShowWindow();
             UIManager.MainLoop();
         }

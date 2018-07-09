@@ -14,6 +14,7 @@ namespace LongUI {
 /// </summary>
 /// <returns></returns>
 LongUI::UISpacer::~UISpacer() noexcept {
+
 }
 
 

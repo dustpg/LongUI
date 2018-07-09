@@ -41,6 +41,7 @@
 #include <control/ui_treecell.h>
 #include <control/ui_treechildren.h>
 
+#include <control/ui_popup.h>
 #include <control/ui_popupset.h>
 
 // ui namespace
@@ -51,12 +52,22 @@ namespace LongUI {
         static UIControl* create_UIPopupSet(UIControl* p) noexcept {
             return new(std::nothrow) UIPopupSet{ p, UIPopupSet__s_meta };
         }
+        static const MetaControl UIPopup__s_meta;
+        static UIControl* create_UIPopup(UIControl* p) noexcept {
+            return new(std::nothrow) UIPopup{ p, UIPopup__s_meta };
+        }
     };
     // UIPopupSet
     const MetaControl UIMetaTypeDef::UIPopupSet__s_meta = {
         &UIPopupSet::s_meta,
         "popupset",
         UIMetaTypeDef::create_UIPopupSet
+    };
+    // UIPopup
+    const MetaControl UIMetaTypeDef::UIPopup__s_meta = {
+        &UIPopup::s_meta,
+        "popup",
+        UIMetaTypeDef::create_UIPopup
     };
     /// <summary>
     /// The default control information
@@ -147,6 +158,7 @@ namespace LongUI {
         &UITreeChildren::s_meta,
 
         // ---------------- TYPEDEF -------------------------
+        &UIMetaTypeDef::UIPopup__s_meta,
         &UIMetaTypeDef::UIPopupSet__s_meta,
 
 #ifndef NDEBUG
@@ -175,6 +187,8 @@ namespace LongUI {
         for (auto x : DefaultControlInfo) {
             // 跳过这个
             if (x == &UIMenuPopup::s_meta) continue;
+            // 跳过这个
+            if (x == &UIMetaTypeDef::UIPopup__s_meta) continue;
             // 测试这个
             if (auto ctrl = x->create_func(nullptr)) {
                 assert(&ctrl->GetMetaInfo() == x);

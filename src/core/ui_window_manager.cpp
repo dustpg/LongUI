@@ -8,12 +8,22 @@
 #include <cassert>
 #include <algorithm>
 
+namespace LongUI { namespace detail {
+    // find viewport
+    UIViewport* find_viewport(
+        const POD::Vector<UIViewport*>&, 
+        const char*
+    ) noexcept;
+}}
+
 /// <summary>
 /// private data/func for WndMgr
 /// </summary>
 struct LongUI::PrivateWndMgr {
     // windows
     using WindowVector = POD::Vector<CUIWindow*>;
+    // viewports
+    using ViewportVector = POD::Vector<UIViewport*>;
     // ctor
     PrivateWndMgr() {};
     // dtor
@@ -24,6 +34,8 @@ struct LongUI::PrivateWndMgr {
     WindowVector            windowsu;
     // windows list for rendering
     WindowVector            windowsr;
+    // subviewports
+    ViewportVector          subviewports;
 };
 
 
@@ -35,6 +47,25 @@ auto LongUI::CUIWndMgr::GetWindowList() const noexcept -> const WindowVector& {
     return reinterpret_cast<const WindowVector&>(wm().windowsu);
 }
 
+/// <summary>
+/// Moves the sub view to global.
+/// </summary>
+/// <param name="vp">The vp.</param>
+/// <returns></returns>
+void LongUI::CUIWndMgr::MoveSubViewToGlobal(UIViewport& vp) noexcept {
+    const auto ptr = &vp;
+    // XXX: OOM处理
+    wm().subviewports.push_back(ptr);
+}
+
+/// <summary>
+/// Finds the sub viewport with unistr.
+/// </summary>
+/// <param name="name">The name.</param>
+/// <returns></returns>
+auto LongUI::CUIWndMgr::FindSubViewportWithUnistr(const char* name)const noexcept->UIViewport*{
+    return detail::find_viewport(wm().subviewports, name);
+}
 
 /// <summary>
 /// Marks the window minsize changed.

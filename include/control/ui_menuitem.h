@@ -57,6 +57,8 @@ namespace LongUI {
         // render
         //void Render() const noexcept override;
     protected:
+        // add attribute
+        void add_attribute(uint32_t key, U8View value) noexcept override;
         // re-layout
         //void relayout() noexcept override;
     public:

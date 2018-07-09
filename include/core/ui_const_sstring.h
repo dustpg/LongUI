@@ -8,6 +8,7 @@
 namespace LongUI {
     // const short string
     class CUIConstShortString {
+    public:
         // self type
         //using Self = CUIConstShortString;
         // empty string

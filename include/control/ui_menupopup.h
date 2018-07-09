@@ -29,6 +29,8 @@
 
 // ui namespace
 namespace LongUI {
+    // ui meta typedef
+    struct UIMetaTypeDef;
     // menu list
     class UIMenuList;
     // menu item
@@ -41,6 +43,8 @@ namespace LongUI {
         friend UIMenuList;
         // friend class
         friend UIMenuItem;
+        // friend class
+        friend UIMetaTypeDef;
     public:
         // selected changed
         static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
@@ -62,8 +66,6 @@ namespace LongUI {
         void Update() noexcept override;
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
-        // get hoster
-        auto GetHoster() const noexcept { return m_pHoster; }
         // get selected
         auto GetSelected() const noexcept { return m_pSelected; }
         // get selected index
@@ -76,8 +78,6 @@ namespace LongUI {
         // change select
         static void change_select(UIControl* old, UIControl* now) noexcept;
     protected:
-        // hoster
-        UIControl*              m_pHoster = nullptr;
         // selected control
         UIMenuItem*             m_pSelected = nullptr;
         // pre-selected

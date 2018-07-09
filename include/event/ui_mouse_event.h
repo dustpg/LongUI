@@ -16,6 +16,8 @@ namespace LongUI {
         Event_MouseEnter,
         // mouse leave, send this event even control disabled
         Event_MouseLeave,
+        // mouse idle hover
+        Event_MouseIdleHover,
         // mouse move
         Event_MouseMove,
         // left-button down
@@ -30,8 +32,6 @@ namespace LongUI {
         Event_MButtonDown,
         // middle-button up
         Event_MButtonUp,
-        // mouse idle hover
-        Event_MouseHoverTime,
         // event unknown
         Event_Unknown,
     };

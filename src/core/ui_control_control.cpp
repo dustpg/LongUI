@@ -65,7 +65,7 @@ struct LongUI::PrivateCC {
 /// </summary>
 /// <param name="dir">The dir.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::SetXULDir(U8View dir) noexcept {
+void LongUI::CUIControlControl::SetXulDir(U8View dir) noexcept {
     auto& string = cc().xul_dir;
     string = dir;
     // 尝试添加一个/
@@ -999,8 +999,6 @@ namespace LongUI {
                     << endl;
                 std::longjmp(this->env, 1);
             }
-            // 测试数据
-            //ctrl->SetFlex_test(1.f);
             // 写入栈顶
             this->stack_top().user_ptr = ctrl;
         }
@@ -1034,7 +1032,7 @@ namespace LongUI {
 /// <param name="ctrl">The control.</param>
 /// <param name="view">The view.</param>
 /// <returns></returns>
-bool LongUI::CUIControlControl::MakeXUL(UIControl& ctrl, const char* xul) noexcept {
+bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexcept {
     // 解析器, 因为没有使用异常, 所以在这里使用长跳转模拟异常
     CUIXulStream stream{ ctrl };
 #ifndef NDEBUG

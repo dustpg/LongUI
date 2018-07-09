@@ -15,12 +15,12 @@ namespace LongUI {
     class CUIStyleSheet;
     // Cursor
     class CUICursor;
-    // control
-    class UIControl;
     // window manager
     class CUIWndMgr;
     // color
     struct ColorF;
+    // popup type
+    enum class PopupType : uint32_t;
     /// <summary>
     /// window base class
     /// </summary>
@@ -83,6 +83,8 @@ namespace LongUI {
         void ActiveWindow() noexcept;
         // is visible
         bool IsVisible() const noexcept;
+        // is in dtor
+        bool IsInDtor() const noexcept { return m_inDtor; }
         // is ctor failed?
         bool IsCtorFailed() const noexcept { return m_bCtorFaild; }
         // mark full rendering
@@ -115,11 +117,13 @@ namespace LongUI {
         void MapFromScreen(Point2F& pos) const noexcept;
     public:
         // show popup window
-        void PopupWindow(CUIWindow& wnd, Point2F pos) noexcept;
+        void PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type) noexcept;
         // close popupwindow
         void ClosePopup() noexcept;
         // set title name
         void SetTitleName(const wchar_t*) noexcept;
+        // set title name
+        void SetTitleName(CUIString&&) noexcept;
         // get title name
         auto GetTitleName() const noexcept->WcView;
         // set pos of window
