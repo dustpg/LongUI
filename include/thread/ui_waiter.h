@@ -7,7 +7,7 @@ namespace LongUI {
     // thread-waiter
     class CUIWaiter {
         // impl
-        struct impl_info { void* buf[2]; };
+        struct impl_info { void* buf[2];};
         // buffer size
         enum { buf_size = sizeof(impl_info) };
         // buffer align
@@ -22,7 +22,7 @@ namespace LongUI {
         // notify all
         void Broadcast() noexcept;
         // reset, could notify again?
-        void Reset() noexcept;
+        //void Reset() noexcept;
     public:
         // cannot be moved
         CUIWaiter(CUIWaiter&&) noexcept = delete;

@@ -61,7 +61,7 @@ LongUI::CUIWaiter::CUIWaiter() noexcept {
 /// <returns></returns>
 void LongUI::CUIWaiter::Wait() noexcept {
     auto& waiter = reinterpret_cast<ui_waiter_impl_t&>(m_impl);
-    ::AcquireSRWLockExclusive(&waiter.rwl);
+    ::AcquireSRWLockShared(&waiter.rwl);
     while (!waiter.get_bool())
         ::SleepConditionVariableSRW(
             &waiter.cv,
@@ -69,8 +69,8 @@ void LongUI::CUIWaiter::Wait() noexcept {
             INFINITE,
             CONDITION_VARIABLE_LOCKMODE_SHARED
         );
-    waiter.set_true();
-    ::ReleaseSRWLockExclusive(&waiter.rwl);
+    waiter.set_false();
+    ::ReleaseSRWLockShared(&waiter.rwl);
 }
 
 /// <summary>
