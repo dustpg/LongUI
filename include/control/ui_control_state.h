@@ -63,8 +63,11 @@ namespace LongUI {
         bool        in_basic_animation : 1;
         // defaultable
         bool        defaultable : 1;
-        // atomicity,children will keep same state with parent
-        bool        atomicity : 1;
+        // atomicity (children will keep same input-state with parent)
+        bool        atomicity   : 1;
+        // tooltip shown?
+        bool        tooltip_shown : 1;
+
 
         // ----------- custom data
 
@@ -73,8 +76,6 @@ namespace LongUI {
 
 
         // ----------- state
-        // tooltip shown?
-        bool        tooltip_shown   : 1;
 
         // textcolor changed
         bool        textcolor_changed : 1;

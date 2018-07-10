@@ -43,7 +43,7 @@ Current Version : **Alpha-Stage**
   
 C++轻量级GUI库
 
-<a href="#cn-ver"/>当前版本 : **Alpha-Stage**
+当前版本 : **Alpha-Stage**
 
 ## LongUI特点
 

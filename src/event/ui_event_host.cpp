@@ -26,15 +26,19 @@ struct LongUI::CUIEventHost::FunctionNode : LongUI::CUISmallObject {
     const uint8_t*          scriptptr = nullptr;
 };
 
-// event hash code list
-namespace LongUI { static const uint32_t GUIEVENT_NAME_HASH[] = {
-    0xa3affbe4_ui32,    // oncommand
-    0x44abeefd_ui32,    // onclick
-    0xdcb4e517_ui32,    // onchange
-    0xa67f471e_ui32,    // onblur
-    0x79ba71c9_ui32,    // onfocus
-    0x61c771af_ui32,    // onselect
-};}
+namespace LongUI { 
+    // find index
+    auto Uint32FindIndex(const uint32_t list[], uint32_t len, uint32_t code) noexcept->uint32_t;
+    // event hash code list
+    static const uint32_t GUIEVENT_NAME_HASH[] = {
+        0xa3affbe4_ui32,    // oncommand
+        0x44abeefd_ui32,    // onclick
+        0xdcb4e517_ui32,    // onchange
+        0xa67f471e_ui32,    // onblur
+        0x79ba71c9_ui32,    // onfocus
+        0x61c771af_ui32,    // onselect
+    };
+}
 
 /// <summary>
 /// string to gui event id
@@ -42,19 +46,14 @@ namespace LongUI { static const uint32_t GUIEVENT_NAME_HASH[] = {
 /// <param name="">The .</param>
 /// <returns></returns>
 auto LongUI::CUIEventHost::strtoe(U8View view) noexcept -> GuiEvent {
+    // XXX: 有现成的查找函数
     constexpr uint32_t len = sizeof(GUIEVENT_NAME_HASH)
         / sizeof(GUIEVENT_NAME_HASH[0]);
     // 计算hash
     const auto hash = BKDRHash(view.begin(), view.end());
-    uint32_t index = 0;
-    // 查找索引
-    for (; index != len; ++index)
-        if (GUIEVENT_NAME_HASH[index] == hash) break;
+    const auto index = LongUI::Uint32FindIndex(GUIEVENT_NAME_HASH, len, hash);
     // 范围检查
-    if (index == len) {
-        assert("event type not found");
-        index = uint32_t(-1);
-    }
+    assert(index < len && "type not found");
     return static_cast<GuiEvent>(index);
 }
 

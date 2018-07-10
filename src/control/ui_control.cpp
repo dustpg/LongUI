@@ -501,6 +501,8 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_STYLE:
         // style      : 内联样式表
+        if (LongUI::ParseInlineStlye(m_oStyle.matched, value))
+            m_bHasInlineStyle = true;
         break;
     case BKDR_DISABLED:
         // disabled   : 禁用状态
@@ -693,6 +695,7 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
 /// </summary>
 LongUI::UIControl::UIControl(UIControl* parent, const MetaControl& meta) noexcept : 
 m_pParent(nullptr), m_refMetaInfo(meta) {
+    m_bHasInlineStyle = false;
     Node::next = nullptr;
     Node::prev = nullptr;
     m_ptChildOffset = { 0, 0 };
@@ -1334,16 +1337,33 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     if (UIManager.flag & IUIConfigure::Flag_DbgNoLinkStyle)
         return;
 #endif // !NDEBUG
-    m_oStyle.matched.clear();
+    // 处理之前的内联样式
+    //if (m_bHasInlineStyle) {
 
+    //}
+    m_oStyle.matched.clear();
     // 先连接全局的
     LongUI::MatchStyleSheet(*this, UIManager.GetStyleSheet());
-    // 再连接窗口的
-    if (const auto window = m_pWindow) {
-        const auto ss = window->GetStyleSheet();
-        LongUI::MatchStyleSheet(*this, ss);
+    // 最高支持32层窗口
+    CUIWindow* buf[32]; 
+    auto itr = buf;
+    // 生成列表
+    {
+        auto window = m_pWindow;
+        const auto end_buf = buf + sizeof(buf) / sizeof(buf[0]);
+        while (window) {
+            *itr = window;
+            window = window->GetParent();
+            // 越界保护
+            if (++itr == end_buf) break;
+        }
     }
-    // 连接内联样式
+    // 再逆序连接窗口的样式表
+    while (itr != buf) {
+        --itr; const auto window = *itr;
+        LongUI::MatchStyleSheet(*this, window->GetStyleSheet());
+    }
+    // 处理内联样式
 
     // 第一次设置
     this->setup_style_values();
@@ -1399,8 +1419,14 @@ namespace LongUI { namespace detail {
     // attribute write
     template<typename T, typename U>
     static inline void write_value(T& a, U b) noexcept {
-        static_assert(sizeof(T) == sizeof(U));
+        static_assert(sizeof(T) == sizeof(U), "must be same");
         a = static_cast<T>(b);
+    }
+    // same cast
+    template<typename T, typename U>
+    static inline T same_cast(U a) noexcept {
+        static_assert(sizeof(T) == sizeof(U), "must be same");
+        return static_cast<T>(a);
     }
 }}
 
@@ -1429,13 +1455,13 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
         this->SetBgImage({ value.data.u32 });
         break;
     case ValueType::Type_BackgroundRepeat:
-        this->SetBgRepeat(AttributeRepeat{ value.data.byte });
+        this->SetBgRepeat(detail::same_cast<AttributeRepeat>(value.data.byte));
         break;
     case ValueType::Type_BackgroundClip:
-        this->SetBgClip(AttributeBox{ value.data.byte });
+        this->SetBgClip(detail::same_cast<AttributeBox>(value.data.byte));
         break;
     case ValueType::Type_BackgroundOrigin:
-        this->SetBgOrigin(AttributeBox{ value.data.byte });
+        this->SetBgOrigin(detail::same_cast<AttributeBox>(value.data.byte));
         break;
     case ValueType::Type_TransitionDuration:
         using dur_t = decltype(m_oStyle.tduration);
@@ -1452,13 +1478,13 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
         this->SetFontSize({ value.data.single });
         break;
     case ValueType::Type_FontStyle:
-        this->SetFontStyle(AttributeFontStyle{ value.data.byte });
+        this->SetFontStyle(detail::same_cast<AttributeFontStyle>(value.data.byte));
         break;
     case ValueType::Type_FontStretch:
-        this->SetFontStretch(AttributeFontStretch{ value.data.byte });
+        this->SetFontStretch(detail::same_cast<AttributeFontStretch>(value.data.byte));
         break;
     case ValueType::Type_FontWeight:
-        this->SetFontWeight(AttributeFontWeight{ value.data.word });
+        this->SetFontWeight(detail::same_cast<AttributeFontWeight>(value.data.word));
         break;
     case ValueType::Type_FontFamily:
         this->SetFontFamily(UIManager.GetUniqueTextFromHandle(value.data.u32));

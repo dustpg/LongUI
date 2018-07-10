@@ -14,10 +14,14 @@ namespace LongUI {
     class UIControl;
     // style sheet pointer
     using SSPtr = CUIStyleSheet * ;
+    // stylesheets: values
+    using SSValues = POD::Vector<SSValue>;
     // delete style sheet
     void DeleteStyleSheet(CUIStyleSheet* ptr) noexcept;
     // match style sheet
     void MatchStyleSheet(UIControl&, CUIStyleSheet* ptr) noexcept;
+    // parse inline style
+    bool ParseInlineStlye(SSValues&, U8View) noexcept;
     // stylesheets: value pc
     struct SSValuePC {
         // yes pseudo-classes
@@ -55,6 +59,4 @@ namespace LongUI {
         // combinator
         Combinator      combinator;
     };
-    // stylesheets: values
-    using SSValues = POD::Vector<SSValue>;
 }

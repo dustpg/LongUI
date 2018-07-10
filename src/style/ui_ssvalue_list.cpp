@@ -24,7 +24,7 @@ namespace LongUI {
         // attribute write
         template<typename T, typename U> 
         static inline void attribute(T& a, U b) noexcept {
-            static_assert(sizeof(T) == sizeof(U));
+            static_assert(sizeof(T) == sizeof(U), "must be same");
             a = static_cast<T>(b);
         }
         // xul image to id

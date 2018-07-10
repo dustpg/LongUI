@@ -540,6 +540,16 @@ namespace LongUI {
 
 
 /// <summary>
+/// Parses the inline stlye.
+/// </summary>
+/// <param name="values">The values.</param>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+bool LongUI::ParseInlineStlye(SSValues& values, U8View view) noexcept {
+    return false;
+}
+
+/// <summary>
 /// Matches the style sheet.
 /// </summary>
 /// <param name="ctrl">The control.</param>

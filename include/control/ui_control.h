@@ -414,8 +414,8 @@ namespace LongUI {
         uint16_t                m_unused_u16 = 0;
         // accesskey char
         char                    m_chAccessKey = 0;
-        // ununsed char
-        char                    m_chUnused = 0;
+        // has inline style
+        bool                    m_bHasInlineStyle : 1;
     public:
 #ifdef LUI_USER_INIPTR_DATA
         // user int data, for user accessing

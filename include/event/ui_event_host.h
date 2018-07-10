@@ -29,23 +29,19 @@ namespace LongUI{
         // add gui event listener without ownid(ownid = 0)
         template<typename Callable>
         inline void AddGuiEventListener(GuiEvent e, Callable call) {
-            return AddGuiEventListener(e, 0, call);
-        }
+            return AddGuiEventListener(e, 0, call); }
         // add gui event listener without ownid(ownid = 0)
         template<typename Callable>
         inline void AddGuiEventListener(const char* e, Callable call) {
-            return AddGuiEventListener(e, 0, call);
-        }
+            return AddGuiEventListener(e, 0, call); }
         // remove gui event listener with enum-name-event
         void RemoveGuiEventListener(uintptr_t ownid, GuiEvent) noexcept;
         // remove gui event listener with string-name-event
         void RemoveGuiEventListener(uintptr_t ownid, U8View view) noexcept {
-            RemoveGuiEventListener(ownid, strtoe(view));
-        }
+            RemoveGuiEventListener(ownid, strtoe(view)); }
         // remove gui event listener with string-name-event
         void RemoveGuiEventListener(uintptr_t ownid, const char* str) noexcept {
-            RemoveGuiEventListener(ownid, strtoe(U8View::FromCStyle(str)));
-        }
+            RemoveGuiEventListener(ownid, strtoe(U8View::FromCStyle(str))); }
         // trigger event
         auto TriggrtEvent(GuiEvent event) noexcept ->EventAccept;
     private:
@@ -59,12 +55,10 @@ namespace LongUI{
         void add_gui_event_listener(GuiEvent, GuiEventListener&&) noexcept;
         // add gui event listener
         void add_gui_event_listener(const char* str, GuiEventListener&& l) noexcept {
-            add_gui_event_listener(U8View::FromCStyle(str), std::move(l));
-        }
+            add_gui_event_listener(U8View::FromCStyle(str), std::move(l)); }
         // add gui event listener
         void add_gui_event_listener(U8View view, GuiEventListener&& l) noexcept {
-            add_gui_event_listener(view, std::move(l));
-        }
+            add_gui_event_listener(view, std::move(l)); }
     protected:
         // ctor
         CUIEventHost() noexcept {}
