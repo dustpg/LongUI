@@ -267,7 +267,7 @@ void LongUI::UILabel::after_set_text() noexcept {
     const auto height = std::ceil(size.height);
     this->set_contect_minsize({ width, height });
     this->mark_window_minsize_changed();
-    //this->NeedUpdate();
+    this->NeedUpdate();
     this->Invalidate();
 #ifdef LUI_ACCESSIBLE
     LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);

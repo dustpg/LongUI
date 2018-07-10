@@ -33,9 +33,13 @@ namespace LongUI {
         PopupType type
     ) noexcept;
     // popup window from tooltip text
-    auto PopupWindowFromTooltipText(
+    void PopupWindowFromTooltipText(
         UIControl& ctrl,
         const char* text,
         Point2F pos
-    ) noexcept->EventAccept;
+    ) noexcept;
+    // close tooltip window
+    void PopupWindowCloseTooltip(
+        UIControl& ctrl
+    ) noexcept;
 }

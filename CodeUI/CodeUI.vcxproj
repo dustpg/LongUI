@@ -193,6 +193,7 @@
     <ClCompile Include="..\src\control\ui_tab.cpp" />
     <ClCompile Include="..\src\control\ui_test.cpp" />
     <ClCompile Include="..\src\control\ui_textbox.cpp" />
+    <ClCompile Include="..\src\control\ui_tooltip.cpp" />
     <ClCompile Include="..\src\control\ui_tree.cpp" />
     <ClCompile Include="..\src\control\ui_viewport.cpp" />
     <ClCompile Include="..\src\core\ui_basic_type.cpp" />
@@ -334,6 +335,7 @@
     <ClInclude Include="..\include\control\ui_tabs.h" />
     <ClInclude Include="..\include\control\ui_test.h" />
     <ClInclude Include="..\include\control\ui_textbox.h" />
+    <ClInclude Include="..\include\control\ui_tooltip.h" />
     <ClInclude Include="..\include\control\ui_tree.h" />
     <ClInclude Include="..\include\control\ui_treecell.h" />
     <ClInclude Include="..\include\control\ui_treechildren.h" />

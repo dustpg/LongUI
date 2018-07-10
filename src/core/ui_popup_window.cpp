@@ -2,6 +2,7 @@
 #include <control/ui_viewport.h>
 #include <control/ui_control.h>
 #include <core/ui_manager.h>
+#include <core/ui_string.h>
 
 #include <cassert>
 #include <algorithm>
@@ -62,17 +63,15 @@ void LongUI::PopupWindowFromViewport(
     case LongUI::PopupType::Type_Exclusive:
         size.width = ctrl.GetBox().GetBorderSize().width;
         break;
-    default:
+    case LongUI::PopupType::Type_Popup:
         size.width = std::max(size.width, float(DEFAULT_CONTROL_WIDTH));
         break;
-#if 0
-    case LongUI::PopupType::Type_Popup:
-        break;
     case LongUI::PopupType::Type_Context:
+        size.width = std::max(size.width, float(DEFAULT_CONTROL_WIDTH));
         break;
     case LongUI::PopupType::Type_Tooltip:
+        pos.y += 10.f;
         break;
-#endif
     }
     // TODO: DPI缩放
 
@@ -81,6 +80,7 @@ void LongUI::PopupWindowFromViewport(
     // 调整大小
     const int32_t w = static_cast<int32_t>(size.width);
     const int32_t h = static_cast<int32_t>(size.height);
+    //if (w && h)
     window.Resize({ w, h });
     // 正式弹出
     this_window->PopupWindow(window, pos, type);
@@ -94,12 +94,30 @@ void LongUI::PopupWindowFromViewport(
 /// <param name="text">The text.</param>
 /// <param name="pos">The position.</param>
 /// <returns></returns>
-auto LongUI::PopupWindowFromTooltipText(
+void LongUI::PopupWindowFromTooltipText(
     UIControl& ctrl, 
     const char* text, 
-    Point2F pos) noexcept->EventAccept {
+    Point2F pos) noexcept {
     assert(text && "can not send null");
-    if (!text[0]) return Event_Ignore;
+    const auto window = ctrl.GetWindow();
+    assert(window && "window cannot be null if tooltip");
+    const auto ptr = window->TooltipText(CUIString::FromUtf8(text));
+    if (!ptr) return;
+    UIManager.CreateTimeCapsule([&ctrl, ptr, pos](float) noexcept {
+        constexpr auto type = PopupType::Type_Tooltip;
+        LongUI::PopupWindowFromViewport(ctrl, *ptr, pos, type);
+        //const auto name = UIManager.GetUniqueText("moretip"_sv);
+        //LongUI::PopupWindowFromName(ctrl, name, pos, type);
+    }, 0.f, &ctrl);
+}
 
-    return Event_Accept;
+/// <summary>
+/// Popups the window close tooltip.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::PopupWindowCloseTooltip(UIControl& ctrl) noexcept {
+    const auto window = ctrl.GetWindow();
+    assert(window && "cannot close toolip for null");
+    window->CloseTooltip();
 }

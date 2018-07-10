@@ -42,6 +42,8 @@
 #include "../util/ui_ostype.h"
 // type
 #include <type_traits>
+// waiter
+#include <thread/ui_waiter.h>
 
 // longui manager
 #define UIManager (LongUI::CUIManager::GetInstance())
@@ -178,9 +180,15 @@ namespace LongUI {
         CUILocker               m_uiDataLocker;
         // rendering locker
         CUILocker               m_uiRenderLocker;
+        // time capsule waiter
+        CUIWaiter               m_uiTimeCapsuleWaiter;
     protected:
         // try recreate_device all device resource
         void try_recreate() noexcept;
+        // call time capsule#1
+        void call_time_capsule_s1() noexcept;
+        // call time capsule#2
+        void call_time_capsule_s2() noexcept;
         // private manager
         auto&pm() noexcept { return reinterpret_cast<PrivateManager&>(m_private); }
         // private data

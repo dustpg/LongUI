@@ -142,6 +142,8 @@ namespace LongUI {
         using Windows = POD::Vector<CUIWindow*>;
         // release data
         void release_data() noexcept;
+        // release common tooltip
+        void check_cmntlp() noexcept { common_tooltip = nullptr; }
         // begin render
         void begin_render() const noexcept;
         // begin render
@@ -154,11 +156,11 @@ namespace LongUI {
         // delete window
         static void PostDeleteWindow(HWND hwnd) noexcept;
         // reelase device data
-        void ReleaseDeviceData() noexcept { this->release_data(); }
+        void ReleaseDeviceData() noexcept { this->release_data();  }
         // ctor
         Private() noexcept;
         // dtor
-        ~Private() noexcept { this->release_data(); }
+        ~Private() noexcept { this->release_data(); this->check_cmntlp(); }
         // init window pos
         void InitWindowPos() noexcept;
         // init
@@ -173,6 +175,8 @@ namespace LongUI {
         void BeforeRender() noexcept;
         // close popup
         void ClosePopup() noexcept;
+        // set common tooltip text
+        void SetTooltipText(CUIString&&)noexcept;
     public:
         // mouse event[thread safe]
         void DoMouseEventTs(const MouseEventArg& args) noexcept;
@@ -230,6 +234,8 @@ namespace LongUI {
         CUIWindow*      popup = nullptr;
         // viewport
         UIViewport*     viewport = nullptr;
+        // common tooltip viewport
+        UIViewport*     common_tooltip = nullptr;
         // now cursor
         CUICursor       cursor = { CUICursor::Cursor_Arrow };
         // rect of window
@@ -347,7 +353,7 @@ m_private(new(std::nothrow) Private) {
     if (this->IsAutpSleep()) {
 
     }
-    else this->WakekUp();
+    else this->WakeUp();
     UIManager.add_window(*this);
 }
 
@@ -879,6 +885,7 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
 /// <param name="size">The size.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Resize(Size2L size) noexcept {
+    assert(size.width && size.height);
     const auto pimpl = m_private;
     // 不一样才处理
     const auto& old = pimpl->rect;
@@ -971,18 +978,22 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIWindow::show_window(TypeShow sw) noexcept {
     if (sw == Show_Hide) this->TrySleep();
-    else this->WakekUp();
+    else this->WakeUp();
     assert(m_hwnd && "bad window");
+    //LUIDebug(Hint) 
+    //    << int(sw) << "   "
+    //    << (int)::GetCurrentThread() 
+    //    << endl;
     ::ShowWindow(m_hwnd, sw);
 }
 
 /// <summary>
 /// Wakeks up.
 /// </summary>
-void LongUI::CUIWindow::WakekUp() noexcept {
+void LongUI::CUIWindow::WakeUp() noexcept {
     if (!this->IsInSleepMode()) return;
     // XXX: 0. 尝试唤醒父窗口
-    if (m_parent) m_parent->WakekUp();
+    if (m_parent) m_parent->WakeUp();
     // 1. 创建窗口
     const auto pwnd = m_parent ? m_parent->GetHwnd() : nullptr;
     m_hwnd = m_private->Init(pwnd, this->config);
@@ -1103,11 +1114,31 @@ void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type)
 }
 
 /// <summary>
+/// Tooltips the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+auto LongUI::CUIWindow::TooltipText(CUIString&& text)noexcept->UIViewport* {
+    m_private->SetTooltipText(std::move(text));
+    return m_private->common_tooltip;
+}
+
+/// <summary>
 /// Closes the popup.
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::ClosePopup() noexcept {
     m_private->ClosePopup();
+}
+
+/// <summary>
+/// Closes the tooltip.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::CloseTooltip() noexcept {
+    if (m_private->popup_type == PopupType::Type_Tooltip) {
+        m_private->ClosePopup();
+    }
 }
 
 /// <summary>
@@ -1134,6 +1165,25 @@ void LongUI::CUIWindow::SetPos(Point2L pos) noexcept {
         constexpr UINT flag = SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE;
         ::SetWindowPos(m_hwnd, nullptr, pos.x + adjx, pos.y + adjy, 0, 0, flag);
     }
+}
+
+// longui namespace
+namespace LongUI {
+    // Commons the tooltip create.
+    auto CommonTooltipCreate(UIControl& hoster) noexcept->UIViewport*;
+    // Commons the tooltip set text.
+    void CommonTooltipSetText(UIViewport& viewport, CUIString&& text) noexcept;
+}
+
+/// <summary>
+/// Sets the tooltip text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::SetTooltipText(CUIString&& text) noexcept {
+    auto& ptr = this->common_tooltip;
+    if (!ptr) ptr = LongUI::CommonTooltipCreate(*this->viewport);
+    if (ptr) LongUI::CommonTooltipSetText(*ptr, std::move(text));
 }
 
 /// <summary>
@@ -1376,6 +1426,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
     if (parent) {
         //::EnableWindow(parent, false);
     }
+    //this->SetTooltipText({});
     return hwnd;
 }
 
@@ -1603,14 +1654,14 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         this->DoMouseEventTs(arg);
     }
     // 鼠标悬壶(济世)
-    //else if (message == WM_MOUSEHOVER) {
-    //    arg.type = MouseEvent::Event_MouseIdleHover;
-    //    arg.wheel = 0.f;
-    //    arg.px = static_cast<float>(int16_t(LOWORD(lParam)));
-    //    arg.py = static_cast<float>(int16_t(HIWORD(lParam)));
-    //    arg.modifier = static_cast<InputModifier>(wParam);
-    //    this->DoMouseEventTs(arg);
-    //}
+    else if (message == WM_MOUSEHOVER) {
+        arg.type = MouseEvent::Event_MouseIdleHover;
+        arg.wheel = 0.f;
+        arg.px = static_cast<float>(int16_t(LOWORD(lParam)));
+        arg.py = static_cast<float>(int16_t(HIWORD(lParam)));
+        arg.modifier = static_cast<InputModifier>(wParam);
+        this->DoMouseEventTs(arg);
+    }
     // 一般鼠标消息处理
     else if (message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) {
         // 检查映射表长度

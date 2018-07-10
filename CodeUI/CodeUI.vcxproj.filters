@@ -473,6 +473,9 @@
     <ClCompile Include="..\src\core\ui_popup_window.cpp">
       <Filter>source\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\control\ui_tooltip.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -995,6 +998,9 @@
     </ClInclude>
     <ClInclude Include="..\include\core\ui_popup_window.h">
       <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_tooltip.h">
+      <Filter>header\control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

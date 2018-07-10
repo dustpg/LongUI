@@ -14,6 +14,7 @@
 #include <control/ui_listcols.h>
 #include <control/ui_progress.h>
 #include <control/ui_caption.h>
+#include <control/ui_tooltip.h>
 #include <control/ui_listcol.h>
 #include <control/ui_listbox.h>
 #include <control/ui_textbox.h>
@@ -43,6 +44,7 @@
 
 #include <control/ui_popup.h>
 #include <control/ui_popupset.h>
+
 
 // ui namespace
 namespace LongUI {
@@ -101,6 +103,8 @@ namespace LongUI {
         &UISplitter::s_meta,
         // Text Box - 文本框
         &UITextBox::s_meta,
+        // Tooltip - 提示框
+        &UITooltip::s_meta,
         // Caption - 分组标题
         &UICaption::s_meta,
         // Spacer - 占位控件
@@ -185,6 +189,8 @@ namespace LongUI {
         assert(list.size() <= CONTROL_CLASS_SIZE && "set it to bigger");
         // 测试正确性
         for (auto x : DefaultControlInfo) {
+            // 跳过这个
+            if (x == &UITooltip::s_meta) continue;
             // 跳过这个
             if (x == &UIMenuPopup::s_meta) continue;
             // 跳过这个

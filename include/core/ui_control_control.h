@@ -90,6 +90,8 @@ namespace LongUI {
     protected:
         // update time capsule
         void update_time_capsule(float delta) noexcept;
+        // has time capsule?
+        bool has_time_capsule() const noexcept;
         // update control
         void update_control_in_list() noexcept;
         // init control, return true if update-list not empty

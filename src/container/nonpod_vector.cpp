@@ -9,6 +9,10 @@
 #include <debugger/ui_debug.h>
 #endif
 
+#ifndef NDEBUG
+extern "C" void longui_function_holder() noexcept { }
+#endif // !NDEBUG
+
 #ifdef LUI_NONPOD_VECTOR
 using namespace LongUI::NonPOD;
 

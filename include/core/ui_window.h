@@ -61,6 +61,8 @@ namespace LongUI {
             Config_DeleteOnClose = 1 << 3,
             // tool window, no included in [quit on close]
             Config_ToolWindow = 1 << 4,
+            // modal window, cannot control parent until closed
+            Config_ModalWindow = 1 << 5,
             // default config
             Config_Default = 0,
         };
@@ -98,7 +100,7 @@ namespace LongUI {
         // try sleep
         void TrySleep() noexcept;
         // wake up
-        void WakekUp() noexcept;
+        void WakeUp() noexcept;
     public:
         // load css file
         void LoadCSSFile(U8View file) noexcept;
@@ -118,8 +120,12 @@ namespace LongUI {
     public:
         // show popup window
         void PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type) noexcept;
-        // close popupwindow
+        // set tooltip text, return tooltip viewport pointer
+        auto TooltipText(CUIString&&) noexcept ->UIViewport*;
+        // close all popupwindow
         void ClosePopup() noexcept;
+        // close tooltip
+        void CloseTooltip() noexcept;
         // set title name
         void SetTitleName(const wchar_t*) noexcept;
         // set title name

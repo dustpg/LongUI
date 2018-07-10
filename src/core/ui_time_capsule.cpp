@@ -7,6 +7,7 @@
 /// <param name="total">The total.</param>
 LongUI::CUITimeCapsule::CUITimeCapsule(float total) noexcept
     : m_fTotalTime(total) {
+    assert(total >= 0.f && "bad time");
 }
 
 
@@ -32,7 +33,7 @@ bool LongUI::CUITimeCapsule::Call(float delta) noexcept {
     m_fDoneTime += delta;
     auto p = m_fDoneTime / m_fTotalTime;
     bool rv = false;
-    if (p >= 1.f) { p = 1.f; rv = true; }
+    if (m_fDoneTime >= m_fTotalTime) { p = 1.f; rv = true; }
     this->call(p);
     return rv;
 }

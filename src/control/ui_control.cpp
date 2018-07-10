@@ -788,8 +788,12 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
     case LongUI::MouseEvent::Event_MouseLeave:
         this->StartAnimation({ StyleStateType::Type_Hover, false });
         this->start_animation_children({ StyleStateType::Type_Hover, false });
+        this->release_tooltip();
         // 截断ENTER LEAVE消息
         return Event_Accept;
+    case LongUI::MouseEvent::Event_MouseIdleHover:
+        // 处理Tooltip
+        return this->do_tooltip({ e.px, e.py });
     case LongUI::MouseEvent::Event_LButtonDown:
         this->StartAnimation({ StyleStateType::Type_Active, true });
         this->start_animation_children({ StyleStateType::Type_Active, true });
@@ -809,8 +813,46 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
         }
         this->start_animation_children({ StyleStateType::Type_Active, false });
         return Event_Accept;
+    case LongUI::MouseEvent::Event_RButtonUp:
+        // 直接调用
+        return LongUI::PopupWindowFromName(
+            *this, m_pCtxCtrl, { e.px, e.py }, PopupType::Type_Context);
     }
     return Event_Ignore;
+}
+
+/// <summary>
+/// Does the tooltip.
+/// </summary>
+/// <param name="pos">The position.</param>
+/// <returns></returns>
+auto LongUI::UIControl::do_tooltip(Point2F pos) noexcept -> EventAccept {
+    if (m_state.tooltip_shown) return Event_Ignore;
+    m_state.tooltip_shown = true;
+    // 显示TOOLTIP
+    if (const auto tooltip = m_pTooltipCtrl) {
+        constexpr auto type = PopupType::Type_Tooltip;
+        return LongUI::PopupWindowFromName(*this, tooltip, pos, type);
+    }
+    // 显示TOOLTIP TEXT
+    if (!m_strTooltipText.empty()) {
+        const auto text = m_strTooltipText.c_str();
+        LongUI::PopupWindowFromTooltipText(*this, text, pos);
+        return Event_Accept;
+    }
+    m_state.tooltip_shown = false;
+    return Event_Ignore;
+}
+
+/// <summary>
+/// Releases the tooltip.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::release_tooltip() noexcept {
+    if (m_state.tooltip_shown) {
+        m_state.tooltip_shown = false;
+        LongUI::PopupWindowCloseTooltip(*this);
+    }
 }
 
 /// <summary>
@@ -856,6 +898,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             this->NeedUpdate();
         }
         // 截断ENTER LEAVE消息
+        this->release_tooltip();
         return Event_Accept;
     case LongUI::MouseEvent::Event_MouseMove:
     {
@@ -877,14 +920,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         if (m_pHovered && m_pHovered->IsEnabled()) {
             if (m_pHovered->DoMouseEvent(e)) return Event_Accept;
         }
-        // 显示TOOLTIP
-        if (m_pTooltipCtrl) {
-            return LongUI::PopupWindowFromName(
-                *this, m_pTooltipCtrl, { e.px, e.py }, PopupType::Type_Tooltip);
-        }
-        // 显示TOOLTIP TEXT
-        return LongUI::PopupWindowFromTooltipText(
-            *this, m_strTooltipText.c_str(), { e.px, e.py });
+        return this->do_tooltip({ e.px, e.py });
     case LongUI::MouseEvent::Event_LButtonDown:
         s = Event_Accept;
         this->StartAnimation({ StyleStateType::Type_Active, true });

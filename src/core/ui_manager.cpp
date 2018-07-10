@@ -94,9 +94,10 @@ namespace LongUI { struct PrivateManager {
 //}
 
 // delete later
-namespace LongUI { enum LaterDelete : uint32_t {
-    Delete_First = WM_USER + 10,
-    Delete_Control,
+namespace LongUI { enum CallLater : uint32_t {
+    Later_First = WM_USER + 10,
+    Later_DeleteControl,
+    Later_CallTimeCapsule
 };}
 
 /// <summary>
@@ -189,11 +190,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
     this_()->try_recreate();
     // 记录帧间时间
     this_()->m_fDeltaTime = this_()->update_delta_time();
-    // 刷新时间胶囊
-    this_()->update_time_capsule(this_()->m_fDeltaTime);
     // 刷新控件控制
     this_()->normal_update();
-
     // 初始化控件
     while (this_()->init_control_in_list()) {
         // 更新窗口最小大小
@@ -223,6 +221,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
     this_()->refresh_window_world();
     // 脏矩形更新
     this_()->dirty_update();
+    // 记录时间胶囊
+    const auto has_tc = this->has_time_capsule();
     // 结束数据更新
     this_()->DataUnlock();
 #ifndef NDEBUG
@@ -231,11 +231,15 @@ void LongUI::CUIManager::OneFrame() noexcept {
     meter.MovStartEnd();
     //meter.Start();
 #endif
+    // 时间胶囊S1
+    if (has_tc) this->call_time_capsule_s1();
     // 渲染所有窗口
     this_()->before_render_windows();
     this_()->RenderLock();
     const auto hr = this_()->render_windows();
     this_()->RenderUnlock();
+    // 时间胶囊S2
+    if (has_tc) this->call_time_capsule_s2();
 #ifndef NDEBUG
     // 记录渲染时间
     const auto t2 = meter.Delta_ms<float>();
@@ -393,6 +397,32 @@ namespace LongUI {
     }
 }
 
+/// <summary>
+/// Calls the time capsule s1.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIManager::call_time_capsule_s1() noexcept {
+    // 获取必要数据
+    const auto delta = this_()->m_fDeltaTime;
+    const HWND hwnd = UIManager.m_hToolWnd;
+    const UINT msg = CallLater::Later_CallTimeCapsule;
+    // 解除上级锁
+    this->DataUnlock();
+    // 发送消息
+    const auto wp = reinterpret_cast<WPARAM>(&m_uiTimeCapsuleWaiter);
+    union { LPARAM lp; float time; };
+    lp = 0; time = delta;
+    ::PostMessageW(hwnd, msg, wp, lp);
+}
+
+/// <summary>
+/// Calls the time capsule s2.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIManager::call_time_capsule_s2() noexcept {
+    // 等待执行完毕
+    m_uiTimeCapsuleWaiter.Wait();
+}
 
 /// <summary>
 /// Tries the recreate_device.
@@ -514,13 +544,22 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
                     // 不能关闭该窗口
 #endif
                     break;
-                case LaterDelete::Delete_Control:
+                case CallLater::Later_DeleteControl:
                 {
                     // 延迟删除控件
                     CUIDataAutoLocker locker;
                     LongUI::DeleteControl(reinterpret_cast<UIControl*>(wParam));
                     break;
                 }
+                case CallLater::Later_CallTimeCapsule:
+                {
+                    const auto ptr = reinterpret_cast<CUIWaiter*>(wParam);
+                    union { LPARAM lp; float time; };
+                    lp = lParam;
+                    UIManager.update_time_capsule(time);
+                    ptr->Broadcast();
+                }
+                    break;
                 default:
                     return ::DefWindowProcW(hwnd, message, wParam, lParam);
                 }
@@ -704,7 +743,7 @@ void LongUI::CUIManager::DeleteLater(UIControl& ctrl) noexcept {
     LongUI::MarkControlDeleteLater(ctrl);
     // 进行标记删除
     const HWND hwnd = UIManager.m_hToolWnd;
-    const UINT msg = LaterDelete::Delete_Control;
+    const UINT msg = CallLater::Later_DeleteControl;
     const auto wpa = reinterpret_cast<WPARAM>(&ctrl);
     const auto rv = ::PostMessageW(hwnd, msg, wpa, 0); rv;
     assert(rv && "post message failed, maybe too many messages");

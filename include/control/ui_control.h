@@ -325,6 +325,10 @@ namespace LongUI {
         auto calculate_child_index(const UIControl&) const noexcept->uint32_t;
         // calculate child at
         auto calculate_child_at(uint32_t index) noexcept->UIControl*;
+        // do tooltip
+        auto do_tooltip(Point2F pos) noexcept->EventAccept;
+        // release tooltip
+        void release_tooltip() noexcept;
     private:
         // init
         auto init() noexcept->Result;

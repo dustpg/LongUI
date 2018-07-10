@@ -259,6 +259,17 @@ void LongUI::CUIControlControl::update_time_capsule(float delta) noexcept {
     }
 }
 
+
+/// <summary>
+/// Determines whether [has time capsule].
+/// </summary>
+/// <returns></returns>
+bool LongUI::CUIControlControl::has_time_capsule() const noexcept {
+    const auto tcbegin = m_oHeadTimeCapsule.next;
+    const auto tcend = &m_oTailTimeCapsule;
+    return tcbegin != tcend;
+}
+
 // ui namespace
 namespace LongUI {
     enum {

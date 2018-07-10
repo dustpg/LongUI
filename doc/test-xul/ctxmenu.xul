@@ -43,10 +43,10 @@
    <menuitem label="Yakima"  />
   </popup>
   
-  <!-- <tooltip id="moretip" orient="vertical" style="background-color: #33DD00;">
+  <tooltip id="moretip" orient="vertical" style="background-color: #33DD00;">
     <label value="Click here to see more information"/>
     <label value="Really!" style="color: red;"/>
-  </tooltip> -->
+  </tooltip>
 
 </popupset>
 
@@ -55,14 +55,14 @@
   <button label="Simple" tooltiptext="A simple popup"/>
   <button label="More" tooltip="moretip"/>
 </vbox>
-     <spacer flex="1"/>
+     <spacer flex="1" tooltiptext="tooltiptext = 'tooltiptext' "/>
 
   <vbox flex="1" style="overflow: auto">
 
-   <groupbox orient="horizontal" context="menu2">
+   <groupbox orient="horizontal" >
    <caption label="Context Popups"/>
-     <spacer flex="1" context="contextpopup"/>
-     <button flex="1" label="button here"/>
+     <spacer flex="1" context="contextpopup" context="menu2"/>
+     <button flex="1" label="button here" tooltip="menu2" />
    </groupbox>
 
 

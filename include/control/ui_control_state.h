@@ -65,8 +65,6 @@ namespace LongUI {
         bool        defaultable : 1;
         // atomicity,children will keep same state with parent
         bool        atomicity : 1;
-        // unused #1 for reserved
-        bool        reserved1 : 1;
 
         // ----------- custom data
 
@@ -75,6 +73,8 @@ namespace LongUI {
 
 
         // ----------- state
+        // tooltip shown?
+        bool        tooltip_shown   : 1;
 
         // textcolor changed
         bool        textcolor_changed : 1;
