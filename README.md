@@ -29,13 +29,12 @@ Current Version : **Alpha-Stage**
   - dynamic gpu change support(like surface book)
   - hardware acceleration layered window support(on win8.1 and higher)
 
-**Freedom License**
-  - the code is almost all written by myself, and under MIT License
-  - no 3rd-party-code, as much as possible
-  
 ## License
   - LongUI under MIT License
   - more detail, see [License.txt](./License.txt) 
+  
+#####Minimum supported client
+  - Windows 8 and Platform Update for Windows 7 [desktop apps]
 
 ---
 
@@ -69,11 +68,10 @@ C++轻量级GUI库
   - 目前使用基于Direct2D的GPU渲染
   - 支持动态切换显卡(比如surface book, 微软SB)
   - 支持硬件加速的分层(可以透明)窗口(需要Win8.1以及以上)
-
-**自由的License**
-  - 代码几乎全是自己写的, 并且是MIT协议
-  - 没有第三方代码(尽量)
   
 ## License
   - LongUI是基于 MIT License的
   - 更多细节请查看[License.txt](./License.txt) 
+    
+#####最低客户端支持
+  - Windows 8以及 Windows 7 的平台更新[桌面应用程序]
