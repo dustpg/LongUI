@@ -9,8 +9,7 @@ Current Version : **Alpha-Stage**
 **Light Weight**
   - main target on LongUI
   - static-link framework, helloworld just 150kb now
-  - for this, **no c++ exception** in LongUI, becareful exception in LongUI
-  - you should catch exception in *noexcept* callback if want to use
+  - for this, **no c++ exception** in LongUI
 
 **XML User Interface Language**
   - partially compatible Mozilla's XUL (XML part)
@@ -33,7 +32,7 @@ Current Version : **Alpha-Stage**
   - LongUI under MIT License
   - more detail, see [License.txt](./License.txt) 
   
-#####Minimum supported client
+##### Minimum supported client
   - Windows 8 and Platform Update for Windows 7 [desktop apps]
 
 ---
@@ -49,8 +48,7 @@ C++轻量级GUI库
 **轻量级**
   - 这是LongUI的主要实现目标
   - 设计为静态库, 目前helloworld仅仅150kb
-  - 为此, LongUI**没有使用C++异常**, 请小心使用C++异常
-  - 其中, 应该在LongUI的回调中catch掉所有异常
+  - 为此, LongUI**没有使用C++异常**
 
 **XML User Interface Language**
   - 部分兼容 Mozilla的XUL (XML部分)
@@ -73,5 +71,5 @@ C++轻量级GUI库
   - LongUI是基于 MIT License的
   - 更多细节请查看[License.txt](./License.txt) 
     
-#####最低客户端支持
+##### 最低客户端支持
   - Windows 8以及 Windows 7 的平台更新[桌面应用程序]
