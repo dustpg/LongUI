@@ -74,7 +74,7 @@ namespace LongUI {
         /// <returns></returns>
         auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept -> Size2F {
             // XXX: win7的场合?
-            if (!dpi_support_dll) return { 1.f, 1.f };
+            if (!ptr_GetDpiForMonitor) return { 1.f, 1.f };
             const auto monitor = ::MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
             union { 
                 HRESULT(WINAPI* get_dpi)(HMONITOR, monitor_dpi_type, UINT*, UINT*) noexcept; 

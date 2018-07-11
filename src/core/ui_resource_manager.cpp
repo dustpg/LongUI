@@ -324,7 +324,7 @@ inline auto LongUI::PrivateResMgr::init() noexcept -> Result {
     // 创建 WIC 工厂.
     if (hr) {
         hr = { ::CoCreateInstance(
-            CLSID_WICImagingFactory2,
+            CLSID_WICImagingFactory1,
             nullptr,
             CLSCTX_INPROC_SERVER,
             IID_IWICImagingFactory,
