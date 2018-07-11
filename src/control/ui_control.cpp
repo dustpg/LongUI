@@ -1116,8 +1116,9 @@ void LongUI::UIControl::SetVisible(bool visible) noexcept {
         //}
         // XXX: 优化其他情况
         // 布局相关
+        this->Invalidate();
         if (m_state.attachment == Attachment_Fixed) {
-            m_pParent->Invalidate();
+
         }
         else {
             m_pParent->NeedRelayout();

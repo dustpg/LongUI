@@ -67,7 +67,7 @@ C++轻量级GUI库
 **硬件加速支持**
   - 目前使用基于Direct2D的GPU渲染
   - 支持动态切换显卡(比如surface book, 微软SB)
-  - 支持硬件加速的分层(可以透明)窗口(需要Win8.1以及以上)
+  - 支持硬件加速的分层(允许透明)窗口(需要Win8.1以及以上)
   
 ## License
   - LongUI是基于 MIT License的

@@ -1,5 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (17)
+#define CASE_NUM (10)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
@@ -697,11 +697,11 @@ const char* xul_tabs = u8R"(<?xml version="1.0"?>
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <groupbox flex="1">
     <caption label="tab" />
-    <tabbox  flex="1">
+    <tabbox flex="1">
         <tabs>
-            <tab label="Default"     />
-            <tab label="Tab"         />
-            <tab label="Orientation" />
+            <tab label="Default"/>
+            <tab label="Tab"/>
+            <tab label="Orientation"/>
         </tabs>
         <tabpanels flex="1" >
             <label value="Default" />    

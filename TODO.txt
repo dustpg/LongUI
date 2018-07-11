@@ -8,10 +8,6 @@ CUIWaiter单独测试?
 
 Context Menu按键支持
 
-HI-DPI?
-
-内联样式支持?
-
 还有部分控件没有实现
 
 combobox有 "无选择状态"?

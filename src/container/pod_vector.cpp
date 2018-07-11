@@ -68,7 +68,6 @@ m_uExtra(x.m_uExtra) {
     // 对面有效堆数据
     if (x.is_valid_heap(x.m_pData)) {
         x.force_reset();
-        x.m_uVecLen = 0;
     }
     // 自己也必须是缓存数据
     else {
@@ -76,6 +75,8 @@ m_uExtra(x.m_uExtra) {
         const auto cpylen = m_uVecLen + get_extra_buy();
         std::memcpy(m_pData, x.m_pData, cpylen*m_uByteLen);
     }
+    // 长度置为0
+    x.m_uVecLen = 0;
 }
 
 

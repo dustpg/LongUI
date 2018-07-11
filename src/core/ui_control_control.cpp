@@ -817,10 +817,9 @@ bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noex
 #ifndef NDEBUG
     if (!changed) {
         LUIDebug(Warning) LUI_FRAMEID
-            << "start animation but not changed("
-            << int(change.type)
+            << "animation not changed("
+            << change
             << ")"
-            << this
             << endl;
     }
 #endif // !NDEBUG
