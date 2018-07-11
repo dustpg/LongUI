@@ -317,6 +317,17 @@ void LongUI::POD::detail::vector_base::push_back(const char* data) noexcept {
     assert(size() <= max_size());
 }
 
+/// <summary>
+/// Shrinks the resize.
+/// </summary>
+/// <param name="n">The n.</param>
+/// <returns></returns>
+void LongUI::POD::detail::vector_base::shrink_resize(size_type n) noexcept {
+    assert(n <= size() && "must be less or same");
+    m_uVecLen = static_cast<uint32_t>(n);
+    assert(size() <= max_size());
+}
+
 PCN_NOINLINE
 /// <summary>
 /// Resizes the specified n.

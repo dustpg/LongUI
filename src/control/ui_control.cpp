@@ -1337,11 +1337,34 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     if (UIManager.flag & IUIConfigure::Flag_DbgNoLinkStyle)
         return;
 #endif // !NDEBUG
+    auto& style_matched = m_oStyle.matched;
+    // 最高支持32枚内联样式
+    SSValue vbuf[32]; uint32_t inline_size = 0;
     // 处理之前的内联样式
-    //if (m_bHasInlineStyle) {
-
-    //}
-    m_oStyle.matched.clear();
+    if (m_bHasInlineStyle) {
+        auto last = &style_matched.back();
+        while (true) {
+            assert(last >= &style_matched.front());
+            if (last->type == ValueType::Type_NewOne) break;
+            --last;
+        }
+        constexpr uint32_t len = sizeof(vbuf) / sizeof(vbuf[0]);
+        inline_size = std::min(last->data.u32, len);
+        std::memcpy(vbuf, last, inline_size * sizeof(vbuf[0]));
+#ifndef NDEBUG
+        if (vbuf[0].data.u32 != inline_size) {
+            LUIDebug(Warning)
+                << "inline style num. greater than "
+                << inline_size
+                << "  : "
+                << vbuf[0].data.u32
+                << endl;
+        }
+#endif // !NDEBUG
+        vbuf[0].data.u32 = inline_size;
+    }
+    // DOWN-RESIZE
+    style_matched.clear();
     // 先连接全局的
     LongUI::MatchStyleSheet(*this, UIManager.GetStyleSheet());
     // 最高支持32层窗口
@@ -1364,7 +1387,9 @@ void LongUI::UIControl::link_style_sheet() noexcept {
         LongUI::MatchStyleSheet(*this, window->GetStyleSheet());
     }
     // 处理内联样式
-
+    if (inline_size) {
+        style_matched.insert(style_matched.end(), vbuf, vbuf + inline_size);
+    }
     // 第一次设置
     this->setup_style_values();
 }

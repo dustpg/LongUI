@@ -59,6 +59,8 @@ namespace LongUI {
         CUICssStream(SSBlockPtr* ptr) noexcept;
         // dtor
         ~CUICssStream() noexcept;
+        // make inline style
+        void MakeInlineStlye(SSValues& out) noexcept;
     public:
         // add comment
         virtual void add_comment(StrPair) noexcept override;
@@ -94,6 +96,15 @@ namespace LongUI {
         // state: combinator
         Combinator                  m_combinator = Combinator_None;
     };
+    /// <summary>
+    /// Makes the inline stlye.
+    /// </summary>
+    /// <param name="out">The out.</param>
+    /// <returns></returns>
+    void CUICssStream::MakeInlineStlye(SSValues& out) noexcept {
+        this->property_finished();
+        out = std::move(m_values);
+    }
     /// <summary>
     /// Initializes a new instance of the <see cref="CUICssStream" /> class.
     /// </summary>
@@ -422,7 +433,6 @@ namespace LongUI {
         // css解析
         CUICssStream stream{ reinterpret_cast<SSBlockPtr*>(&ptr) };
         stream.Load({ view.begin(), view.end() });
-        
         return ptr;
     }
     // detail namespace
@@ -546,7 +556,20 @@ namespace LongUI {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 bool LongUI::ParseInlineStlye(SSValues& values, U8View view) noexcept {
-    return false;
+    CUICssStream stream{ nullptr };
+    stream.Load({ view.begin(), view.end() }, true);
+    stream.MakeInlineStlye(values);
+    const auto src_len = values.size();
+    if (!src_len) return false;
+    SSValue buffer[2];
+    // 0: 标记起始点与长度(包括开始两个)
+    buffer[0].type = ValueType::Type_NewOne;
+    buffer[0].data.u32 = static_cast<uint32_t>(src_len) + 2;
+    // 1: 标记伪类的状态
+    reinterpret_cast<SSValuePC&>(buffer[1]) = { };
+    // 插入数据
+    values.insert(values.begin(), buffer, buffer + 2);
+    return true;
 }
 
 /// <summary>

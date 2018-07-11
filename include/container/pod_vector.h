@@ -113,6 +113,8 @@ namespace LongUI { namespace POD {
             vector_base(size_type bl, uhalfptr_t ex) noexcept;
             // resize
             void resize(size_type n, const char* data) noexcept;
+            // shrink resize
+            void shrink_resize(size_type n) noexcept;
             // erase at pos range
             void erase(size_type start, size_type end) noexcept;
             // insert range
@@ -361,7 +363,7 @@ namespace LongUI { namespace POD {
         auto at(size_type pos) noexcept -> T& { assert(pos < size() && "OOR"); return data()[pos]; }
         // get at const
         auto at(size_type pos) const noexcept -> const T&{ assert(pos < size() && "OOR"); return data()[pos]; }
-            // operator[] 
+        // operator[] 
         auto operator[](size_type pos) noexcept -> T& { assert(pos < size() && "OOR"); return data()[pos]; }
         // operator[] const
         auto operator[](size_type pos) const noexcept -> const T&{ assert(pos < size() && "OOR"); return data()[pos]; }
@@ -384,6 +386,8 @@ namespace LongUI { namespace POD {
         void resize(size_type n) noexcept { resize(n, T{}); }
         // resize with filled-value
         void resize(size_type n, const T& x) noexcept { vector_base::resize(n, tr(&x)); }
+        // shrink resize
+        void shrink_resize(size_type n) noexcept { vector_base::shrink_resize(n); }
         // fit
         void shrink_to_fit() noexcept { vector_base::shrink_to_fit(); }
         // get data ptr

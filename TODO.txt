@@ -32,7 +32,7 @@ CSS支持完善?
 
 LUI_VECTOR_SIZE_USE_UINT32 让这个宏有用
 
-POD Vector针对指针(以及小于指针?)优化?
+POD Vector针对指针大小的优化?
 
 hash_base::find 优化
 

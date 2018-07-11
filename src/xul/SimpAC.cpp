@@ -284,14 +284,15 @@ auto SimpAC::SplitUnit(StrPair& pair) noexcept -> StrPair {
 /// Loads the specified string.
 /// </summary>
 /// <param name="view">The view.</param>
+/// <param name="inline_style">if set to <c>true</c> [inline style].</param>
 /// <returns></returns>
-void SimpAC::CACStream::Load(StrPair view) noexcept {
+void SimpAC::CACStream::Load(StrPair view, bool inline_style) noexcept {
     // 状态
     BasicSelectors selector;
     //Combinators combinator;
     StrPair this_view, ex_view;
     Char last_quot = 0, func_quot = 0;
-    auto state = css_state::standby;
+    auto state = inline_style ? css_state::properties : css_state::standby;
     auto show_combinator = combinator_state::reset;
     // 处理状态
     while (view.first < view.second) {
@@ -563,6 +564,11 @@ void SimpAC::CACStream::Load(StrPair view) noexcept {
         }
         // 推进
         ++view.first;
+    }
+    // 没有处理完的值
+    if (state == css_state::values_end) {
+        this_view.second = view.first;
+        this->add_value(this_view);
     }
 }
 

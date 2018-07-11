@@ -61,7 +61,7 @@
 
    <groupbox orient="horizontal" >
    <caption label="Context Popups"/>
-     <spacer flex="1" context="contextpopup" context="menu2"/>
+     <spacer flex="1" context="menu2"/>
      <button flex="1" label="button here" tooltip="menu2" />
    </groupbox>
 

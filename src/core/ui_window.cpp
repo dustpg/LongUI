@@ -287,10 +287,8 @@ namespace LongUI {
         // skip window via system
         bool            system_skip_rendering : 1;
     public:
-        //// restore # update
-        //bool            restore_for_update = false;
-        //// restore # render
-        //bool            restore_for_render = false;
+        // visible window
+        bool            window_visible = false;
         // full render for update
         bool            full_render_for_update = true;
         // full render for render
@@ -977,14 +975,26 @@ PCN_NOINLINE
 /// <param name="sw">The sw type.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::show_window(TypeShow sw) noexcept {
-    if (sw == Show_Hide) this->TrySleep();
-    else this->WakeUp();
+    // 隐藏
+    if (sw == Show_Hide) {
+        m_private->window_visible = false;
+        this->TrySleep();
+    }
+    // 显示
+    else {
+        m_private->window_visible = true;
+        this->WakeUp();
+    }
     assert(m_hwnd && "bad window");
-    //LUIDebug(Hint) 
-    //    << int(sw) << "   "
-    //    << (int)::GetCurrentThread() 
-    //    << endl;
-    ::ShowWindow(m_hwnd, sw);
+    /*
+        This function posts a show-window event to the message 
+        queue of the given window. An application can use this 
+        function to avoid becoming nonresponsive while waiting 
+        for a nonresponsive application to finish processing a 
+        show-window event.
+    */
+    // 使用非阻塞的函数
+    ::ShowWindowAsync(m_hwnd, sw);
 }
 
 /// <summary>
@@ -1047,7 +1057,8 @@ void LongUI::CUIWindow::ActiveWindow() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::CUIWindow::IsVisible() const noexcept {
-    return !!::IsWindowVisible(m_hwnd);
+    return m_private->window_visible;
+    //return !!::IsWindowVisible(m_hwnd);
 }
 
 

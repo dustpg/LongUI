@@ -54,7 +54,7 @@ namespace SimpAC {
         // dtor
         ~CACStream() noexcept {}
         // load string
-        void Load(StrPair) noexcept;
+        void Load(StrPair, bool inline_style = false) noexcept;
     protected:
         // state for combinator
         enum class combinator_state;
