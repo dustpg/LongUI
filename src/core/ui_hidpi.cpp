@@ -42,14 +42,19 @@ namespace LongUI {
             assert(call && "support windows 10 only");
             set_pda(dpi_per_monitor);
 #else
+            // win 8
             if (const auto dll = ::LoadLibraryA(dpi_support_dll)) {
-                call = ::GetProcAddress(dll, SETPROCESSDPIAWARENESS_NAME);
-                if (!call) return;
-                ptr_GetDpiForMonitor = ::GetProcAddress(dll, GETDPIFORMONITOR_NAME);
-                // 设置DPI支持等级
-                if (set_pda(dpi_per_monitor) == E_INVALIDARG)
-                    set_pda(dpi_system);
+                // win 8.1
+                if ((call = ::GetProcAddress(dll, SETPROCESSDPIAWARENESS_NAME))) {
+                    ptr_GetDpiForMonitor = ::GetProcAddress(dll, GETDPIFORMONITOR_NAME);
+                    // 设置DPI支持等级
+                    if (set_pda(dpi_per_monitor) == E_INVALIDARG)
+                        set_pda(dpi_system);
+                    return;
+                }
             }
+            // win7/win8 
+            ::SetProcessDPIAware();
 #endif
         }
         /// <summary>
@@ -73,8 +78,21 @@ namespace LongUI {
         /// <param name="hwnd">The HWND.</param>
         /// <returns></returns>
         auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept -> Size2F {
-            // XXX: win7的场合?
-            if (!ptr_GetDpiForMonitor) return { 1.f, 1.f };
+#ifndef LUI_WIN10_ONLY
+            // WIN7/Win8 只支持相同的DPI
+            if (!ptr_GetDpiForMonitor) {
+                static const Size2F dpi_xy = []() noexcept ->Size2F {
+                    const auto hdc = ::GetDC(nullptr);
+                    const auto dpi_x = ::GetDeviceCaps(hdc, LOGPIXELSX);
+                    const auto dpi_y = ::GetDeviceCaps(hdc, LOGPIXELSY);
+                    ::ReleaseDC(nullptr, hdc);
+                    const auto x = float(dpi_x) / float(BASIC_DPI);
+                    const auto y = float(dpi_y) / float(BASIC_DPI);
+                    return{ x, y };
+                }();
+                return dpi_xy;
+            }
+#endif
             const auto monitor = ::MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
             union { 
                 HRESULT(WINAPI* get_dpi)(HMONITOR, monitor_dpi_type, UINT*, UINT*) noexcept; 
