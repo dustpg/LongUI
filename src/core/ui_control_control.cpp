@@ -495,7 +495,7 @@ void LongUI::CUIControlControl::dirty_update() noexcept {
         const auto csize = x.ctrl->GetSize();
         RectF rect = { 0, 0, csize.width, csize.height };
         x.ctrl->MapToWindow(rect);
-        const auto size = wnd->RefViewport().GetSize();
+        const auto size = wnd->RefViewport().GetRealSize();
         // 不在窗口内显示?
         if (rect.right <= 0.f ||
             rect.bottom <= 0.f ||

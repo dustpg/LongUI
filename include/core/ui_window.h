@@ -63,6 +63,8 @@ namespace LongUI {
             Config_ToolWindow = 1 << 4,
             // modal window, cannot control parent until closed
             Config_ModalWindow = 1 << 5,
+            // fixed size, cannot drag to resize but invoke Resize()
+            Config_FixedSize = 1 << 6,
             // default config
             Config_Default = 0,
         };
@@ -117,6 +119,8 @@ namespace LongUI {
         //void MapFromScreen(RectF& rect) const noexcept;
         // map from screen
         void MapFromScreen(Point2F& pos) const noexcept;
+        // hi-dpi support
+        void HiDpiSupport() noexcept;
     public:
         // show popup window
         void PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type) noexcept;
@@ -136,8 +140,12 @@ namespace LongUI {
         void SetPos(Point2L pos) noexcept;
         // get pos of window
         auto GetPos() const noexcept->Point2L;
-        // resize widow
-        void Resize(Size2L size) noexcept;
+        // set absolute rect(= set pos + resize)
+        void SetAbsoluteRect(const RectL& rect) noexcept;
+        // resize window  : absolute
+        void ResizeAbsolute(Size2L size) noexcept;
+        // resize window : relative
+        void ResizeRelative(Size2F size) noexcept;
         // set color color
         void SetClearColor(const ColorF&) noexcept;
         // set now cursor
@@ -241,4 +249,13 @@ namespace LongUI {
         // state: under "minsize changed" list
         bool                m_bMinsizeList = false;
     };
+    // WindowConfig | WindowConfig
+    inline CUIWindow::WindowConfig operator|(
+        CUIWindow::WindowConfig a, CUIWindow::WindowConfig b) noexcept {
+        using target_t = uint8_t;
+        static_assert(sizeof(target_t) == sizeof(CUIWindow::WindowConfig), "same!");
+        const auto aa = static_cast<target_t>(a);
+        const auto bb = static_cast<target_t>(b);
+        return CUIWindow::WindowConfig(aa | bb);
+    }
 }

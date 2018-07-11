@@ -44,7 +44,7 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
     // get def-font
     void DefaultFontArg(LongUI::FontArg& arg) noexcept override {
         //CUIDefaultConfigure::DefaultFontArg(arg);
-        arg.size = 20.f;
+        arg.size = 16.f;
         //arg.family = "SimSun";
     }
     // get cfg-flag
@@ -461,7 +461,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     }
     case 4:
         viewport.SetXul(xul_layout);
-        viewport.GetWindow()->Resize({ 640, 480 });
+        viewport.GetWindow()->ResizeAbsolute({ 640, 480 });
         break;
     case 5:
         viewport.SetXul(xul_test);
@@ -490,14 +490,14 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     case 6:
         viewport.SetXul(xul_popup);
-        viewport.GetWindow()->Resize({ 640, 480 });
+        viewport.GetWindow()->ResizeAbsolute({ 640, 480 });
         break;
     case 7:
         viewport.SetXul(xul_listbox);
         break;
     case 8:
         viewport.SetXul(xul_tree);
-        viewport.GetWindow()->Resize({ 640, 480 });
+        viewport.GetWindow()->ResizeAbsolute({ 640, 480 });
         break;
     case 9:
         viewport.SetXul(xul_tree2);
@@ -510,23 +510,23 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     case 12:
         loadfile("../doc/test-xul/list.xul");
-        viewport.GetWindow()->Resize({ 800, 600 });
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         break;
     case 13:
         loadfile("../doc/test-xul/tree-simple.xul");
-        viewport.GetWindow()->Resize({ 800, 600 });
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         break;
     case 14:
         loadfile("../doc/test-xul/tree-nested.xul");
-        viewport.GetWindow()->Resize({ 800, 600 });
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         break;
     case 15:
         loadfile("../doc/test-xul/layout.xul");
-        viewport.GetWindow()->Resize({ 800, 600 });
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         break;
     case 16:
         loadfile("../doc/test-xul/css-test.xul");
-        viewport.GetWindow()->Resize({ 800, 600 });
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         do_button(viewport.GetWindow(), "btn1")->AddGuiEventListener(
             LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
             const auto window = control.GetWindow();
@@ -559,7 +559,11 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     case 17:
         loadfile("../doc/test-xul/ctxmenu.xul");
-        //viewport.GetWindow()->Resize({ 800, 600 });
+        //viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
+        break;
+    case 18:
+        loadfile("../doc/test-xul/hidpi.xul");
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         break;
     }
 

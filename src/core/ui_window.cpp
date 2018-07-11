@@ -22,6 +22,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <Dwmapi.h>
+//#include <ShellScalingApi.h>
 
 #ifndef NDEBUG
 #include <util/ui_time_meter.h>
@@ -30,6 +31,12 @@
 
 // error beep
 extern "C" void longui_error_beep();
+
+// LongUI::impl
+namespace LongUI { namespace impl {
+    // get dpi scale
+    auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept -> Size2F;
+}}
 
 // LongUI::detail
 namespace LongUI { namespace detail {
@@ -196,6 +203,8 @@ namespace LongUI {
         void OnCharTs(char32_t ch) noexcept;
         // do access key
         void OnAccessKey(uintptr_t id) noexcept;
+        // on dpi changed
+        void OnDpiChanged(uintptr_t, const RectL& rect) noexcept;
     public:
         // full render this frame?
         inline bool is_full_render_for_update() const noexcept { return full_render_for_update; }
@@ -878,11 +887,11 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
 
 
 /// <summary>
-/// Resizes the specified size.
+/// Resizes the absolute.
 /// </summary>
 /// <param name="size">The size.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Resize(Size2L size) noexcept {
+void LongUI::CUIWindow::ResizeAbsolute(Size2L size) noexcept {
     assert(size.width && size.height);
     const auto pimpl = m_private;
     // 不一样才处理
@@ -911,6 +920,16 @@ void LongUI::CUIWindow::Resize(Size2L size) noexcept {
     }
 }
 
+/// <summary>
+/// Resizes the relative.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::ResizeRelative(Size2F size) noexcept {
+    // 先要清醒才行
+    this->WakeUp();
+    return this->ResizeAbsolute(RefViewport().AdjustSize(size));
+}
 
 /// <summary>
 /// Maps to screen.
@@ -968,6 +987,17 @@ void LongUI::CUIWindow::MapFromScreen(Point2F& pos) const noexcept {
     }
 }
 
+/// <summary>
+/// His the dpi support.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::HiDpiSupport() noexcept {
+    if (UIManager.flag & IUIConfigure::Flag_DonotSupportHiDpi) return;
+    const auto dpi = impl::get_dpi_scale_from_hwnd(m_hwnd);
+    this->RefViewport().JustResetZoom(dpi.width, dpi.height);
+    //this->RefViewport().JustResetZoom(2.f, 2.f);
+}
+
 PCN_NOINLINE
 /// <summary>
 /// Shows the window.
@@ -1007,6 +1037,8 @@ void LongUI::CUIWindow::WakeUp() noexcept {
     // 1. 创建窗口
     const auto pwnd = m_parent ? m_parent->GetHwnd() : nullptr;
     m_hwnd = m_private->Init(pwnd, this->config);
+    // 1.5 检测DPI支持
+    this->HiDpiSupport();
     // 2. 创建资源
     this->recreate_window();
 }
@@ -1149,6 +1181,35 @@ void LongUI::CUIWindow::ClosePopup() noexcept {
 void LongUI::CUIWindow::CloseTooltip() noexcept {
     if (m_private->popup_type == PopupType::Type_Tooltip) {
         m_private->ClosePopup();
+    }
+}
+
+/// <summary>
+/// Sets the absolute rect.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::SetAbsoluteRect(const RectL& rect) noexcept {
+    // 懒得判断了
+    auto& write = m_private->rect;
+    write.left = rect.left;
+    write.top = rect.top;
+    write.width = rect.right - rect.left;
+    write.height = rect.bottom - rect.top;
+    // 睡眠模式
+    if (this->IsInSleepMode()) return;
+    // 内联窗口
+    if (this->IsInlineWindow()) {
+        assert(!"NOT IMPL");
+    }
+    // 系统窗口
+    else {
+        ::SetWindowPos(
+            m_hwnd, 
+            nullptr, 
+            write.left, write.top, write.width, write.height,
+            SWP_NOZORDER | SWP_NOACTIVATE
+        );
     }
 }
 
@@ -1304,6 +1365,36 @@ void LongUI::CUIWindow::Private::OnCharTs(char32_t ch) noexcept {
 }
 
 /// <summary>
+/// Called when [dpi changed].
+/// </summary>
+/// <param name="wParam">The w parameter.</param>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::OnDpiChanged(uintptr_t wParam, const RectL& rect) noexcept {
+    // dpi改变了
+    if (UIManager.flag & IUIConfigure::Flag_DonotSupportHiDpi) return;
+    float xdpi = float(uint16_t(LOWORD(wParam)));
+    float ydpi = float(uint16_t(HIWORD(wParam)));
+    float x = xdpi / float(LongUI::BASIC_DPI);
+    float y = ydpi / float(LongUI::BASIC_DPI);
+    CUIDataAutoLocker locker;
+    auto& vp = *this->viewport;
+    auto& window = vp.RefWindow();
+    // 固定大小应该需要缩放窗口
+    if (window.config & Config_FixedSize || true) {
+        vp.JustResetZoom(x, y);
+        window.SetAbsoluteRect(rect);
+    }
+    // 不定大小应该懒得弄了
+    else {
+        vp.JustResetZoom(x, y);
+        const auto fw = static_cast<float>(this->rect.width);
+        const auto fh = static_cast<float>(this->rect.height);
+        this->viewport->resize_window({ fw, fh });
+    }
+}
+
+/// <summary>
 /// Called when [hot key].
 /// </summary>
 /// <param name="i">The index.</param>
@@ -1382,14 +1473,21 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
     // 窗口
     {
         // 检查样式样式
-        const DWORD window_style = config & CUIWindow::Config_Popup ?
-            WS_POPUPWINDOW : WS_OVERLAPPEDWINDOW;
+        const auto style = [config]() noexcept -> DWORD {
+            if (config & CUIWindow::Config_Popup)
+                return WS_POPUPWINDOW;
+            DWORD style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+            if (!(config & CUIWindow::Config_FixedSize))
+                style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
+            return style;
+        }();
+        // MA返回码
         this->ma_return_code = config & CUIWindow::Config_Popup ?
             MA_NOACTIVATE/*ANDEAT*/ : MA_ACTIVATE;
         // 调整大小
         static_assert(sizeof(RECT) == sizeof(this->adjust), "bad type");
         this->adjust = { 0 };
-        ::AdjustWindowRect(reinterpret_cast<RECT*>(&this->adjust), window_style, FALSE); 
+        ::AdjustWindowRect(reinterpret_cast<RECT*>(&this->adjust), style, FALSE);
         // 窗口
         RectWHL window_rect;
         window_rect.left = this->rect.left;
@@ -1410,7 +1508,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
             (config & CUIWindow::Config_Popup) ?
             Attribute::WindowClassNameP : Attribute::WindowClassNameN,
             titlename.c_str(),
-            window_style,
+            style,
             window_rect.left, window_rect.top,
             window_rect.width, window_rect.height,
             parent,
@@ -1842,6 +1940,10 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             if (wParam >= 'a' && wParam <= 'z') {
                 this->OnAccessKey(wParam - 'a');
             }
+            return 0;
+        case WM_DPICHANGED:
+            this->OnDpiChanged(wParam, *reinterpret_cast<RectL*>(lParam));
+
             return 0;
         }
     // 未处理消息

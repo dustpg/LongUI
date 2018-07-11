@@ -531,7 +531,8 @@ LongUI::UIMenuPopup::~UIMenuPopup() noexcept {
 /// <param name="hoster">The hoster.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noexcept
-    : Super(*hoster, CUIWindow::Config_Popup, meta) {
+    : Super(*hoster, 
+        CUIWindow::Config_FixedSize | CUIWindow::Config_Popup, meta) {
     // XXX: 默认是白色
     m_window.SetClearColor({ 1.f, 1.f, 1.f, 1.f });
 }

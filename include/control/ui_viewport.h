@@ -74,10 +74,20 @@ namespace LongUI {
         auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
         // find subviewport with normal string
         auto FindSubViewport(U8View view) const noexcept->UIViewport*;
+        // just reset zoom
+        void JustResetZoom(float x, float y) noexcept;
+        // get real size(size * scale)
+        auto GetRealSize() const noexcept { return m_szReal; }
+        // Adjust size
+        auto AdjustSize(Size2F) const noexcept->Size2L;
+        // Adjust size
+        auto AdjustZoomedSize(Size2F, Size2L) const noexcept->Size2L;
     private:
         // resize window
         void resize_window(Size2F size) noexcept;
     protected:
+        // real size
+        Size2F              m_szReal = {};
         // window
         CUIWindow           m_window;
         // last hoster, will set null after closed

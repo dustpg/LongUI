@@ -57,6 +57,8 @@ namespace LongUI {
         // get system last error
         static auto GetSystemLastError() noexcept ->Result;
     };
+    // basic dpi(100%)
+    enum : uint32_t { BASIC_DPI = 96, };
     // Script define
     struct ScriptUI {
         // script data, maybe binary data maybe string

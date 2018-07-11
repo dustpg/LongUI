@@ -66,6 +66,34 @@ LongUI::UIViewport::UIViewport(
     this->SetOrient(Orient_Vertical);
 }
 
+/// <summary>
+/// Adjusts the size.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+auto LongUI::UIViewport::AdjustSize(Size2F size) const noexcept -> Size2L {
+    const auto w = size.width  * m_mtWorld._11;
+    const auto h = size.height * m_mtWorld._22;
+    const auto wl = static_cast<long>(w + 0.5f);
+    const auto hl = static_cast<long>(h + 0.5f);
+    return { wl, hl };
+}
+
+/// <summary>
+/// Adjusts the size of the zoomed.
+/// </summary>
+/// <param name="scale">The scale.</param>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+auto LongUI::UIViewport::AdjustZoomedSize(Size2F scale, Size2L size) const noexcept -> Size2L {
+    const auto size_w = float(size.width);
+    const auto size_h = float(size.height);
+    const auto just_w = size_w * scale.width / m_mtWorld._11;
+    const auto just_h = size_h * scale.height / m_mtWorld._22;
+    const auto long_w = static_cast<long>(just_w + 0.5f);
+    const auto long_h = static_cast<long>(just_h + 0.5f);
+    return { long_w, long_h };
+}
 
 /// <summary>
 /// Resizes the window.
@@ -74,6 +102,9 @@ LongUI::UIViewport::UIViewport(
 /// <returns></returns>
 void LongUI::UIViewport::resize_window(Size2F size) noexcept {
     //m_pWindow = &m_window;
+    m_szReal = size;
+    size.width /= m_mtWorld._11;
+    size.height /= m_mtWorld._22;
     this->Resize(size);
     m_window.m_pTopestWcc = this;
     m_state.world_changed = true;
@@ -123,6 +154,17 @@ auto LongUI::UIViewport::FindSubViewportWithUnistr(
 auto LongUI::UIViewport::FindSubViewport(U8View view) const noexcept -> UIViewport* {
     const auto unistr = UIManager.GetUniqueText(view);
     return this->FindSubViewportWithUnistr(unistr);
+}
+
+/// <summary>
+/// Resets the zoom.
+/// </summary>
+/// <param name="x">The x.</param>
+/// <param name="y">The y.</param>
+/// <returns></returns>
+void LongUI::UIViewport::JustResetZoom(float x, float y) noexcept {
+    m_mtWorld._11 = x  ; m_mtWorld._12 = 0.f;
+    m_mtWorld._21 = 0.f; m_mtWorld._22 = y  ;
 }
 
 /// <summary>

@@ -65,7 +65,9 @@ LongUI::UITooltip::~UITooltip() noexcept {
 /// <param name="hoster">The hoster.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITooltip::UITooltip(UIControl* hoster, const MetaControl& meta)
-    noexcept: Super(*hoster, CUIWindow::Config_Popup, meta) {
+    noexcept: Super(*hoster, 
+        CUIWindow::Config_FixedSize | CUIWindow::Config_Popup,
+        meta) {
     // XXX: 设置清楚色
     m_window.SetClearColor({ 1.f, 1.f, 1.f, 1.f });
 }

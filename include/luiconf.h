@@ -74,11 +74,12 @@ namespace LongUI {
         SHORT_MEMORY_LENGTH = 127,
         // invalid control width/height
         INVALID_CONTROL_SIZE = -1,
+        // small buffer length
+        SMALL_BUFFER_LENGTH = 32,
         // max number of graphics adapters
-        MAX_GRAPHICS_ADAPTERS = 32,
+        MAX_GRAPHICS_ADAPTERS = SMALL_BUFFER_LENGTH,
         // window class name buffer
         WNDCLASS_NAME_BUFFER_LENGTH = 48,
-
     };
     // attribute [pseudo] namespace
     struct Attribute {

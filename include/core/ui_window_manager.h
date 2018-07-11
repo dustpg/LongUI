@@ -31,8 +31,6 @@
 
 // ui namespace
 namespace LongUI {
-    // basic dpi
-    enum : uint32_t { BASIC_DPI = 96, };
     // priavte wndmgr
     struct PrivateWndMgr;
     // window list

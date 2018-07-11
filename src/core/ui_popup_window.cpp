@@ -78,10 +78,8 @@ void LongUI::PopupWindowFromViewport(
     // 设置新的
     viewport.AssignNewHoster(ctrl);
     // 调整大小
-    const int32_t w = static_cast<int32_t>(size.width);
-    const int32_t h = static_cast<int32_t>(size.height);
     //if (w && h)
-    window.Resize({ w, h });
+    window.ResizeRelative(size);
     // 正式弹出
     this_window->PopupWindow(window, pos, type);
 }

@@ -1172,6 +1172,7 @@ void LongUI::UIControl::remove_child(UIControl& child) noexcept {
     //this->NeedUpdate();
 }
 
+
 /// <summary>
 /// Determines whether [is excluded from the layout].
 /// </summary>
@@ -1338,8 +1339,9 @@ void LongUI::UIControl::link_style_sheet() noexcept {
         return;
 #endif // !NDEBUG
     auto& style_matched = m_oStyle.matched;
-    // 最高支持32枚内联样式
-    SSValue vbuf[32]; uint32_t inline_size = 0;
+    // 最高支持32(默认)枚内联样式
+    LongUI::DEFAULT_CONTROL_MAX_SIZE;
+    SSValue vbuf[SMALL_BUFFER_LENGTH]; uint32_t inline_size = 0;
     // 处理之前的内联样式
     if (m_bHasInlineStyle) {
         auto last = &style_matched.back();
@@ -1367,8 +1369,8 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     style_matched.clear();
     // 先连接全局的
     LongUI::MatchStyleSheet(*this, UIManager.GetStyleSheet());
-    // 最高支持32层窗口
-    CUIWindow* buf[32]; 
+    // 最高支持32(默认)层窗口
+    CUIWindow* buf[SMALL_BUFFER_LENGTH];
     auto itr = buf;
     // 生成列表
     {

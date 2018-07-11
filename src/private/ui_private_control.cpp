@@ -98,8 +98,8 @@ void LongUI::UIControlPrivate::UpdateWorld(UIControl& ctrl) noexcept {
         else {
             auto parent = ctrl.GetParent();
             matrix = parent->GetWorld();
-            matrix._31 += ctrl.GetPos().x;
-            matrix._32 += ctrl.GetPos().y;
+            matrix._31 += ctrl.GetPos().x * matrix._11;
+            matrix._32 += ctrl.GetPos().y * matrix._22;
             // 固定位置?
             if (ctrl.m_state.attachment == Attachment_Scroll) {
                 matrix._31 -= parent->m_ptChildOffset.x;
