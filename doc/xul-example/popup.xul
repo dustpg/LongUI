@@ -14,9 +14,6 @@
 <description><html:h1>XUL Popups</html:h1></description>
 
 <popupset>
-
-  <button label="After End" />
-
   <popup id="contextpopup">
    <menuitem label="This is a context popup" />
   </popup>

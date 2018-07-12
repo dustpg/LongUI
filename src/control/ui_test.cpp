@@ -1,6 +1,6 @@
 ﻿#include <control/ui_test.h>
 #ifndef NDEBUG
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
 
 

@@ -1,10 +1,10 @@
 ﻿// Gui
+#include <core/ui_ctrlmeta.h>
 #include <control/ui_scale.h>
 #include <util/ui_aniamtion.h>
 #include <control/ui_image.h>
 #include <core/ui_color_list.h>
-#include <control/ui_ctrlmeta.h>
-#include <control/ui_scroll_bar.h>
+#include <control/ui_scrollbar.h>
 // C++
 #include <cassert>
 // Private

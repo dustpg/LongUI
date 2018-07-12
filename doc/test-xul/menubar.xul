@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<window title="XUL Toolbars, Menubars and Statusbars"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+   
+<script>
+<![CDATA[
+
+function colorize(newStyle)
+{
+  document.getElementById("canvas").setAttribute("style",newStyle);
+}
+
+function imagize(btnID,imageID)
+{
+  if (document.getElementById(btnID).getAttribute("checked"))
+    document.getElementById(imageID).setAttribute("hidden","false");
+  else
+    document.getElementById(imageID).setAttribute("hidden","true");
+}
+
+]]>
+</script>
+
+
+<vbox flex="1" style="overflow: auto">
+<groupbox > 
+  <caption label="non-functioning tool and menu bars" />
+  <toolbox id="non-functioning-toolbox">
+
+    <toolbar id="a-toolbar" >
+      <label value="This is a toolbar:" />
+      <toolbarseparator />
+      <toolbarbutton label="Button" accesskey="B" oncommand="alert('Ouch!');"/>
+      <toolbarbutton label="Check" type="checkbox" checked="true" />
+      <toolbarbutton label="Disabled" disabled="true"/>
+      <toolbarbutton label="Image" image="images/star.png"/>
+    </toolbar>
+
+    <toolbar id="another-toolbar" >
+      <label value="This is another toolbar:" />
+      <toolbarseparator/>
+      <toolbarbutton label="Radio1" type="radio" group="radio" />
+      <toolbarbutton label="Radio2" type="radio" group="radio" checked="true" />
+      <toolbarbutton label="Radio3" type="radio" group="radio"/>
+    </toolbar>
+    <hbox>
+      <button label="radio" type="radio" flex="2" group="123"/>
+      <button label="radio" type="radio" group="123"/>
+      <button label="radio" type="radio" group="123"/>
+      <button label="checkbox" type="checkbox"/>
+    </hbox>
+    <hbox>
+      <button label="radio" type="radio" group="123"/>
+      <button label="radio" type="radio" group="123"/>
+      <button label="radio" type="radio" group="123"/>
+    </hbox>
+  </toolbox>
+</groupbox>
+
+<!-- <statusbar>
+  <statusbarpanel  label="This is a statusbarpanel." />
+  <statusbarpanel  label="As is this." />
+  <statusbarpanel  label="And also this...." flex="1" />
+  <statusbarpanel  label="Click Me!" onclick="alert('Ouch');" />
+</statusbar> -->
+
+</vbox>
+
+</window>

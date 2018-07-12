@@ -1,5 +1,5 @@
 ﻿#include <control/ui_viewport.h>
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <core/ui_manager.h>
 #include <core/ui_string.h>
 #include <cassert>
@@ -45,7 +45,7 @@ namespace LongUI {
 LongUI::UIViewport::UIViewport(CUIWindow* parent, CUIWindow::WindowConfig config) noexcept
     : Super(nullptr), m_window(parent, config) {
     m_pWindow = &m_window;
-    this->SetOrient(Orient_Vertical);
+    m_state.orient = Orient_Vertical;
 }
 
 /// <summary>
@@ -63,7 +63,7 @@ LongUI::UIViewport::UIViewport(
     m_window(pseudo_parent.GetWindow(), config) {
     assert(m_pParent == nullptr);
     m_pWindow = &m_window;
-    this->SetOrient(Orient_Vertical);
+    m_state.orient = Orient_Vertical;
 }
 
 /// <summary>

@@ -25,41 +25,9 @@
 */
 
 #include "ui_boxlayout.h"
-#include <container/pod_vector.h>
-//#include "../util/ui_double_click.h"
 
 // ui namespace
 namespace LongUI {
-    // list col
-    class UIListCol;
-    // listcols control
-    class UIListCols : public UIBoxLayout {
-        // super class
-        using Super = UIBoxLayout;
-        // item list
-        //using ColList = POD::Vector<UIListCol*>;
-    protected:
-        // ctor
-        UIListCols(UIControl* parent, const MetaControl&) noexcept;
-    public:
-        // class meta
-        static const  MetaControl   s_meta;
-        // dtor
-        ~UIListCols() noexcept;
-        // ctor
-        UIListCols(UIControl* parent = nullptr) noexcept : UIListCols(parent, UIListCols::s_meta) {}
-        // will relayout?
-        bool WillRelayout() const noexcept { return this->is_need_relayout(); }
-        // match layout
-        void MatchLayout(UIControl&) noexcept;
-    protected:
-        // add child
-        //void add_child(UIControl& child) noexcept override;
-    protected:
-        // item list
-        //ColList             m_list;
-    };
-    // get meta info for UIListCols
-    LUI_DECLARE_METAINFO(UIListCols);
+    // toolbox
+    using UIToolBox = UIBoxLayout;
 }
-

@@ -5,10 +5,10 @@
 #include <control/ui_listhead.h>
 #include <control/ui_listheader.h>
 
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <control/ui_image.h>
 #include <control/ui_label.h>
-#include <control/ui_box_layout.h>
+#include <control/ui_boxlayout.h>
 #include <input/ui_kminput.h>
 #include <constexpr/const_bkdr.h>
 #include <debugger/ui_debug.h>
@@ -604,7 +604,7 @@ LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexc
     // 原子性, 子控件为本控件的组成部分
     //m_state.atomicity = true;
     // 水平布局
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
     // 列表项目
     m_oStyle.appearance = Appearance_ListItem;
     // 私有实现
@@ -815,7 +815,7 @@ namespace LongUI {
 LongUI::UIListCols::UIListCols(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
     // 水平布局
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
 }
 
 /// <summary>
@@ -923,7 +923,7 @@ namespace LongUI {
 LongUI::UIListHead::UIListHead(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
     // 水平布局
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
 }
 
 
@@ -1006,7 +1006,7 @@ LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) n
     // 内间距
     m_oBox.padding = { 4, 0, 4, 0 };
     // 水平布局
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
     // 属于HEADER CELL
     m_oStyle.appearance = Appearance_TreeHeaderCell;
     // 私有实现

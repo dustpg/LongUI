@@ -1,5 +1,5 @@
-﻿#include <control/ui_splitter.h>
-#include <control/ui_ctrlmeta.h>
+﻿#include <core/ui_ctrlmeta.h>
+#include <control/ui_splitter.h>
 #include <event/ui_splitter_event.h>
 #include <core/ui_window.h>
 #include <debugger/ui_debug.h>

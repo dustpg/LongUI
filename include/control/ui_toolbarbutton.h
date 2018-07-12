@@ -24,42 +24,31 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_boxlayout.h"
-#include <container/pod_vector.h>
-//#include "../util/ui_double_click.h"
+#include "ui_button.h"
 
 // ui namespace
 namespace LongUI {
-    // list col
-    class UIListCol;
-    // listcols control
-    class UIListCols : public UIBoxLayout {
+    // toolbarbutton
+    class UIToolBarButton : public UIButton {
         // super class
-        using Super = UIBoxLayout;
-        // item list
-        //using ColList = POD::Vector<UIListCol*>;
-    protected:
-        // ctor
-        UIListCols(UIControl* parent, const MetaControl&) noexcept;
+        using Super = UIButton;
+        // private impl
+        struct Private;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UIListCols() noexcept;
+        ~UIToolBarButton() noexcept;
         // ctor
-        UIListCols(UIControl* parent = nullptr) noexcept : UIListCols(parent, UIListCols::s_meta) {}
-        // will relayout?
-        bool WillRelayout() const noexcept { return this->is_need_relayout(); }
-        // match layout
-        void MatchLayout(UIControl&) noexcept;
+        UIToolBarButton(UIControl* parent = nullptr) noexcept : UIToolBarButton(parent, UIToolBarButton::s_meta) {}
     protected:
-        // add child
-        //void add_child(UIControl& child) noexcept override;
-    protected:
-        // item list
-        //ColList             m_list;
-    };
-    // get meta info for UIListCols
-    LUI_DECLARE_METAINFO(UIListCols);
-}
+        // ctor
+        UIToolBarButton(UIControl* parent, const MetaControl&) noexcept;
+    public:
+        // do normal event
+        auto DoEvent(UIControl*, const EventArg&)noexcept->EventAccept override;
 
+    };
+    // get meta info for UIToolBarButton
+    LUI_DECLARE_METAINFO(UIToolBarButton);
+}

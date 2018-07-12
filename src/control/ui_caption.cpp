@@ -1,5 +1,5 @@
-﻿#include <control/ui_caption.h>
-#include <control/ui_ctrlmeta.h>
+﻿#include <core/ui_ctrlmeta.h>
+#include <control/ui_caption.h>
 #include <debugger/ui_debug.h>
 #include <core/ui_color_list.h>
 #include <constexpr/const_bkdr.h>

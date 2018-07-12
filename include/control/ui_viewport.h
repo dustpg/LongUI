@@ -24,7 +24,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_box_layout.h"
+#include "ui_boxlayout.h"
 #include "../core/ui_window.h"
 
 namespace LongUI {

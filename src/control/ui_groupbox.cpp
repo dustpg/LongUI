@@ -1,8 +1,8 @@
 ﻿// Gui
+#include <core/ui_ctrlmeta.h>
 #include <control/ui_caption.h>
-#include <control/ui_ctrlmeta.h>
 #include <control/ui_groupbox.h>
-#include <control/ui_box_layout.h>
+#include <control/ui_boxlayout.h>
 // Debug
 #include <debugger/ui_debug.h>
 // Private

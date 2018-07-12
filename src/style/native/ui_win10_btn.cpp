@@ -40,6 +40,49 @@ void LongUI::CUINativeStyleWindows10::draw_button(
 }
 
 /// <summary>
+/// Draws the tb button.
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_tb_button(
+    const NativeDrawArgs & args) noexcept {
+    const auto get_color = [](StyleState state, ColorF& bg, ColorF& bd) noexcept {
+        uint32_t bgc = 0xffffff00_rgba, bdc = 0xffffff00_rgba;
+        if (state.disabled);
+        else if (state.active || state.checked)
+            bgc = 0xcce8ffff_rgba, bdc = 0x99d1ffff_rgba;
+        else if (state.hover)
+            bgc = 0xe5f3ffff_rgba, bdc = 0xcce8ffff_rgba;
+        ColorF::FromRGBA_RT(bg, { bgc });
+        ColorF::FromRGBA_RT(bd, { bdc });
+    };
+    // 获取颜色
+    ColorF bgcolor1, bdcolor1, bgcolor2, bdcolor2;
+    get_color(args.from, bgcolor1, bdcolor1);
+    get_color(args.to  , bgcolor2, bdcolor2);
+    // 计算颜色
+    const auto bgcolor = LongUI::Mix(bgcolor1, bgcolor2, args.progress);
+    const auto bdcolor = LongUI::Mix(bdcolor1, bdcolor2, args.progress);
+    // 无需渲染
+    if (bgcolor.a == 0.f) return;
+    // 渲染器
+    auto& renderer = UIManager.Ref2DRenderer();
+    // 背景色彩
+    auto& bursh0 = UIManager.RefCCBrush(bgcolor);
+    renderer.FillRectangle(auto_cast(args.border), &bursh0);
+    // 边框中心位置
+    const auto border_halfw = 0.5f;
+    auto center = args.border;
+    center.top += border_halfw;
+    center.left += border_halfw;
+    center.right -= border_halfw;
+    center.bottom -= border_halfw;
+    // 边框色彩
+    auto& bursh1 = UIManager.RefCCBrush(bdcolor);
+    renderer.DrawRectangle(auto_cast(center), &bursh1, border_halfw * 2.f);
+}
+
+/// <summary>
 /// Gets the color of the button.
 /// </summary>
 /// <param name="state">The state.</param>
@@ -63,8 +106,8 @@ auto LongUI::CUINativeStyleWindows10::get_button_color(
     float border_halfw = 0.5f;
     // 禁用
     if (state.disabled) { bdc = disabled_border; bgc = disabled_backgd; }
-    // 按下
-    else if (state.active) { bdc = active_border; bgc = active_backgd; }
+    // 按下/点中
+    else if (state.active || state.checked) { bdc = active_border; bgc = active_backgd; }
     // 悬浮
     else if (state.hover) { bdc = hover_border; bgc = hover_backgd; }
     // 普通

@@ -1,6 +1,6 @@
 ﻿#include <control/ui_deck.h>
 #include <control/ui_stack.h>
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
 
 #include <algorithm>

@@ -1,10 +1,10 @@
 ﻿// Gui
+#include <core/ui_ctrlmeta.h>
 #include <input/ui_kminput.h>
 #include <debugger/ui_debug.h>
 #include <control/ui_button.h>
-#include <control/ui_ctrlmeta.h>
 // 子控件
-#include <control/ui_box_layout.h>
+#include <control/ui_boxlayout.h>
 #include <control/ui_image.h>
 #include <control/ui_label.h>
 #include <constexpr/const_bkdr.h>
@@ -83,7 +83,7 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     m_pAccCtrl = nullptr;
 #endif
     // 水平布局
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
     // 居中
     m_oStyle.pack = Pack_Center;
     m_oStyle.align = Align_Center;
@@ -253,6 +253,8 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增(?)属性列表
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
     constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
+    constexpr auto BKDR_TYPE        = 0x0fab1332_ui32;
+
     // 分类讨论
     switch (key)
     {
@@ -264,12 +266,33 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, key, value);
         return;
+    case BKDR_TYPE:
+        // type  : BUTTON类型
+        m_type = this->parse_button_type(value);
+        return;
     default:
         // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);
     }
 }
 
+
+/// <summary>
+/// Parses the type of the button.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::UIButton::parse_button_type(U8View view)noexcept->ButtonType {
+    if (view.end() > view.begin()) {
+        switch (*view.begin())
+        {
+        case 'c': return UIButton::Type_Checkbox;
+        case 'r': return UIButton::Type_Radio;
+        case 'm': return UIButton::Type_Menu;
+        }
+    }
+    return UIButton::Type_Normal;
+}
 
 #ifdef LUI_ACCESSIBLE
 

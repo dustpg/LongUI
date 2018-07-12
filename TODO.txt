@@ -8,6 +8,8 @@ CUIWaiter单独测试?
 
 Context Menu按键支持
 
+不少控件拥有checked的属性
+
 还有部分控件没有实现
 
 combobox有 "无选择状态"?

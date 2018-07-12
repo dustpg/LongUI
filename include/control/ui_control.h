@@ -45,7 +45,7 @@
 #include "../style/ui_style.h"
 #include "../style/ui_attribute.h"
 // state
-#include "ui_control_state.h"
+#include "../core/ui_control_state.h"
 // renderer
 #include "../graphics/ui_renderer_decl.h"
 // config

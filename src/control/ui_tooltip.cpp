@@ -1,6 +1,6 @@
-﻿#include <control/ui_label.h>
+﻿#include <core/ui_ctrlmeta.h>
+#include <control/ui_label.h>
 #include <control/ui_tooltip.h>
-#include <control/ui_ctrlmeta.h>
 
 
 // ui namespace

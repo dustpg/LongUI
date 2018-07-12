@@ -29,6 +29,8 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
         return this->draw_rasizer(args);
     case LongUI::Appearance_CheckBox:
         return this->draw_checkbox(args);
+    case LongUI::Appearance_ToolBarButton:
+        return this->draw_tb_button(args);
     case LongUI::Appearance_ScrollBarButtonUp:
     case LongUI::Appearance_ScrollBarButtonRight:
     case LongUI::Appearance_ScrollBarButtonDown:

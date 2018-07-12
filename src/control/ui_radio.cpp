@@ -1,12 +1,12 @@
 ﻿// Gui
+#include <core/ui_ctrlmeta.h>
 #include <control/ui_radio.h>
 #include <debugger/ui_debug.h>
-#include <control/ui_ctrlmeta.h>
 #include <control/ui_radiogroup.h>
 // 子控件
 #include <control/ui_image.h>
 #include <control/ui_label.h>
-#include <control/ui_box_layout.h>
+#include <control/ui_boxlayout.h>
 // Private
 #include "../private/ui_private_control.h"
 
@@ -56,7 +56,7 @@ namespace LongUI {
 LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
     m_state.focusable = true;
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
     // 原子性, 子控件为本控件的组成部分
     m_state.atomicity = true;

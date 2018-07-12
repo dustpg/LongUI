@@ -107,6 +107,8 @@ namespace LongUI {
         void draw_tree_twisty(const NativeDrawArgs& args) noexcept;
         // draw button
         static void draw_button(const NativeDrawArgs& args) noexcept;
+        // draw toolbar button
+        static void draw_tb_button(const NativeDrawArgs& args) noexcept;
         // draw textfield
         static void draw_textfield(const NativeDrawArgs& args) noexcept;
         // draw resizer

@@ -7,7 +7,7 @@
 #include <control/ui_image.h>
 #include <control/ui_label.h>
 
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <constexpr/const_bkdr.h>
 #include <debugger/ui_debug.h>
 

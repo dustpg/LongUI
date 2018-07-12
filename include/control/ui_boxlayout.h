@@ -24,15 +24,19 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_scroll_area.h"
+#include "ui_scrollarea.h"
 
 namespace LongUI {
     // splitter
     class UISplitter;
+    // meta def
+    struct UIMetaTypeDef;
     // box layout
     class UIBoxLayout : public UIScrollArea {
         // super class
         using Super = UIScrollArea;
+        // friend class
+        friend UIMetaTypeDef;
     public:
         // class meta
         static const  MetaControl   s_meta;

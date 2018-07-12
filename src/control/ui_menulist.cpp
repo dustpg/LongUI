@@ -1,16 +1,16 @@
 ﻿// Gui
 #include <core/ui_window.h>
+#include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
-#include <control/ui_ctrlmeta.h>
 // Menu
 #include <control/ui_menulist.h>
 #include <control/ui_menuitem.h>
 #include <control/ui_menupopup.h>
 #include <core/ui_popup_window.h>
 // 子控件
-#include <control/ui_box_layout.h>
 #include <control/ui_image.h>
 #include <control/ui_label.h>
+#include <control/ui_boxlayout.h>
 // Private
 #include "../private/ui_private_control.h"
 
@@ -109,7 +109,7 @@ namespace LongUI {
 LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexcept 
     : Super(parent, meta) {
     m_state.focusable = true;
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
     //m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
@@ -302,7 +302,7 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
     // 布局方向
     m_oStyle.align = Align_Center;
     // 垂直布局
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
     m_oBox.margin = { 5, 5, 5, 5 };
     m_oBox.padding.right = 5;
     // 私有实现

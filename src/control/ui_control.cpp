@@ -1,8 +1,8 @@
 ﻿#include <core/ui_window.h>
 #include <core/ui_manager.h>
+#include <core/ui_ctrlmeta.h>
 #include <control/ui_control.h>
 #include <container/pod_hash.h>
-#include <control/ui_ctrlmeta.h>
 #include <event/ui_event_host.h>
 #include <core/ui_popup_window.h>
 #include <style/ui_native_style.h>
@@ -456,6 +456,7 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_WIDTH       = 0x370bff82_ui32;
     constexpr auto BKDR_HEIGHT      = 0x28d4978b_ui32;
     constexpr auto BKDR_ORIENT      = 0xeda466cd_ui32;
+    constexpr auto BKDR_CHECKED     = 0x091a155f_ui32;
     constexpr auto BKDR_VISIBLE     = 0x646b6442_ui32;
     constexpr auto BKDR_CONTEXT     = 0x89f92d3b_ui32;
     constexpr auto BKDR_TOOLTIP     = 0x9a54b5f3_ui32;
@@ -470,56 +471,65 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_DATAU16     = 0xc036b6f7_ui32;
     constexpr auto BKDR_DATAU8      = 0xe4278072_ui32;
    
+    // 优化用HASH掩码
+    constexpr auto MASK_HASH        = 0xffffffff_ui32;
+    //constexpr auto MASK_HASH        = 0x00000fff_ui32;
+
     // HASH 一致就认为一致即可
-    switch (key)
+    switch (key & MASK_HASH)
     {
-    case BKDR_ID:
+    case BKDR_ID & MASK_HASH:
         // id         : 窗口唯一id
         m_id = UIManager.GetUniqueText(value);
         // 尝试添加命名控件
         if (m_pWindow) m_pWindow->AddNamedControl(*this);
         break;
-    case BKDR_LEFT:
+    case BKDR_LEFT & MASK_HASH:
         // left
         m_oBox.pos.x = value.ToFloat();
         break;
-    case BKDR_RIGHT:
+    case BKDR_RIGHT & MASK_HASH:
         // right
         m_oBox.pos.y = value.ToFloat();
         break;
-    case BKDR_WIDTH:
+    case BKDR_WIDTH & MASK_HASH:
         // width
         m_oStyle.maxsize.width =
             m_oStyle.minsize.width =
             m_oBox.size.width = value.ToFloat();
         break;
-    case BKDR_HEIGHT:
+    case BKDR_HEIGHT & MASK_HASH:
         // height
         m_oStyle.maxsize.height =
             m_oStyle.minsize.height =
             m_oBox.size.width = value.ToFloat();
         break;
-    case BKDR_STYLE:
+    case BKDR_STYLE & MASK_HASH:
         // style      : 内联样式表
         if (LongUI::ParseInlineStlye(m_oStyle.matched, value))
             m_bHasInlineStyle = true;
         break;
-    case BKDR_DISABLED:
+    case BKDR_DISABLED & MASK_HASH:
         // disabled   : 禁用状态
+        //if (value) m_oStyle.state.disabled = true;
         m_oStyle.state.disabled = static_cast<bool>(value);
         break;
-    case BKDR_DEFAULT:
+    case BKDR_CHECKED & MASK_HASH:
+        // checked
+        m_oStyle.state.checked = static_cast<bool>(value);
+        break;
+    case BKDR_DEFAULT & MASK_HASH:
         // default    : 窗口初始默认控件
         if (m_pWindow && value) m_pWindow->SetDefault(*this);
         break;
-    case BKDR_VISIBLE:
+    case BKDR_VISIBLE & MASK_HASH:
         // visible    : 是否可见
         m_state.visible = static_cast<bool>(value);
         break;
     //case BKDR_TABINDEX:
     //    // tabindex   : tab键索引
     //    break;
-    case BKDR_CLASS:
+    case BKDR_CLASS & MASK_HASH:
         // class      : 样式表用类名
         while (value.begin() < value.end()) {
             const auto splited = value.Split(' ');
@@ -529,19 +539,19 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
             }
         }
         break;
-    case BKDR_CONTEXT:
+    case BKDR_CONTEXT & MASK_HASH:
         // context    : 上下文菜单 
         m_pCtxCtrl = UIManager.GetUniqueText(value);
         break;
-    case BKDR_TOOLTIP:
+    case BKDR_TOOLTIP & MASK_HASH:
         // tooltip    : 提示窗口
         m_pTooltipCtrl = UIManager.GetUniqueText(value);
         break;
-    case BKDR_TOOLTIPTEXT:
+    case BKDR_TOOLTIPTEXT & MASK_HASH:
         // tooltiptext: 提示文本
         m_strTooltipText = value;
         break;
-    case BKDR_ACCESSKEY:
+    case BKDR_ACCESSKEY & MASK_HASH:
         // accesskey  : 快捷访问键
         if (value.end() > value.begin()){
             auto ch = *value.begin();
@@ -549,43 +559,43 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
             m_chAccessKey = ch;
         }
         break;
-    case BKDR_DRAGGABLE:
+    case BKDR_DRAGGABLE & MASK_HASH:
         // draggable  : 允许拖拽
         break;
-    case BKDR_FLEX:
+    case BKDR_FLEX & MASK_HASH:
         // flex       : 布局弹性系数
         m_oStyle.flex = value.ToFloat();
         break;
-    case BKDR_ORIENT:
+    case BKDR_ORIENT & MASK_HASH:
         // orient     : 布局方向
         m_state.orient = *value.begin() == 'v';
         break;
-    case BKDR_DIR:
+    case BKDR_DIR & MASK_HASH:
         // dir        : 排列方向
         m_state.dir = *value.begin() == 'r';
         break;
-    case BKDR_ALIGN:
+    case BKDR_ALIGN & MASK_HASH:
         // align      : 布局方向垂直对齐方法
         m_oStyle.align = AttrParser::Align(value);
         break;
-    case BKDR_PACK:
+    case BKDR_PACK & MASK_HASH:
         // pack       : 布局方向平行对齐方法
         m_oStyle.pack = AttrParser::Pack(value);
         break;
 #ifdef LUI_USER_INIPTR_DATA
-    case BKDR_DATAUSER:
+    case BKDR_DATAUSER & MASK_HASH:
         // data-user
         this->user_data = value.ToInt32();
         break;
 #endif
 #ifdef LUI_USER_U16STR_DATA
-    case BKDR_DATAU16:
+    case BKDR_DATAU16 & MASK_HASH:
         // data-u16
         this->user_u16str = CUIString::FromUtf8(value);
         break;
 #endif
 #ifdef LUI_USER_U8STR_DATA
-    case BKDR_DATAU8:
+    case BKDR_DATAU8 & MASK_HASH:
         // data-u8
         this->user_u8str = value;
         break;

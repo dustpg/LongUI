@@ -1,6 +1,6 @@
-﻿#include <control/ui_box_layout.h>
+﻿#include <control/ui_boxlayout.h>
 #include <control/ui_splitter.h>
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <event/ui_splitter_event.h>
 
 #include <algorithm>
@@ -56,8 +56,7 @@ namespace LongUI {
 /// <param name="meta">The meta.</param>
 LongUI::UIBoxLayout::UIBoxLayout(UIControl* parent, const MetaControl& meta) noexcept 
     : Super(parent, meta) {
-    // 公共容器
-    //m_state.public_container = true;
+    m_state.orient = Orient_Vertical;
 }
 
 /// <summary>
@@ -368,7 +367,6 @@ LongUI::UIBoxLayout::~UIBoxLayout() noexcept {
 }
 
 
-PCN_NOINLINE
 /// <summary>
 /// Sets the orient.
 /// </summary>

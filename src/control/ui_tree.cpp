@@ -6,8 +6,8 @@
 #include <control/ui_treeitem.h>
 #include <control/ui_treecell.h>
 #include <control/ui_treechildren.h>
-#include <control/ui_ctrlmeta.h>
-#include <control/ui_scroll_bar.h>
+#include <core/ui_ctrlmeta.h>
+#include <control/ui_scrollbar.h>
 
 #include <core/ui_manager.h>
 #include <input/ui_kminput.h>
@@ -985,7 +985,7 @@ void LongUI::UITreeChildren::SetLevelOffset(float offset) {
 LongUI::UITreeChildren::UITreeChildren(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
     // 垂直布局
-    this->SetOrient(Orient_Vertical);
+    m_state.orient = Orient_Vertical;
 }
 
 

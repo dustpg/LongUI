@@ -260,23 +260,11 @@
     <ClCompile Include="..\src\control\ui_viewport.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\control\ui_scroll_bar.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\control\ui_box_layout.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\control\ui_scroll_area.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\ui_control_control.cpp">
       <Filter>source\core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\core\ui_color.cpp">
       <Filter>source\core</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\control\ui_control_state.cpp">
-      <Filter>source\control</Filter>
     </ClCompile>
     <ClCompile Include="..\src\graphics\ui_cursor.cpp">
       <Filter>source\graphics</Filter>
@@ -407,9 +395,6 @@
     <ClCompile Include="..\src\control\ui_radio.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\control\ui_group_box.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\style\native\ui_win10_bg.cpp">
       <Filter>source\style\native</Filter>
     </ClCompile>
@@ -467,13 +452,31 @@
     <ClCompile Include="..\src\core\ui_time_capsule.cpp">
       <Filter>source\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\control\ui_menu_listpopitem.cpp">
-      <Filter>source\control</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\core\ui_popup_window.cpp">
       <Filter>source\core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\control\ui_tooltip.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_toolbar.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_box.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\core\ui_control_state.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_groupbox.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_scrollarea.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_scrollbar.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\control\ui_menulist.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
   </ItemGroup>
@@ -663,9 +666,6 @@
     <ClInclude Include="..\include\style\ui_style.h">
       <Filter>header\style</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\control\ui_control_state.h">
-      <Filter>header\control</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\style\ui_attribute.h">
       <Filter>header\style</Filter>
     </ClInclude>
@@ -685,15 +685,6 @@
       <Filter>header\graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\include\control\ui_viewport.h">
-      <Filter>header\control</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\control\ui_box_layout.h">
-      <Filter>header\control</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\control\ui_scroll_area.h">
-      <Filter>header\control</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\control\ui_scroll_bar.h">
       <Filter>header\control</Filter>
     </ClInclude>
     <ClInclude Include="..\include\core\ui_control_control.h">
@@ -728,9 +719,6 @@
     </ClInclude>
     <ClInclude Include="..\include\graphics\ui_bg_renderer.h">
       <Filter>header\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\control\ui_ctrlmeta.h">
-      <Filter>header\control</Filter>
     </ClInclude>
     <ClInclude Include="..\include\graphics\ui_matrix3x2.h">
       <Filter>header\graphics</Filter>
@@ -1000,6 +988,27 @@
       <Filter>header\core</Filter>
     </ClInclude>
     <ClInclude Include="..\include\control\ui_tooltip.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_toolbox.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_toolbar.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_scrollarea.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_scrollbar.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_toolbarbutton.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_toolbarseparator.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_boxlayout.h">
       <Filter>header\control</Filter>
     </ClInclude>
   </ItemGroup>

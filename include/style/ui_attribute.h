@@ -174,6 +174,7 @@ namespace LongUI{
         Appearance_Button,                  // [button]
         Appearance_Resizer,                 // [resizer]
         Appearance_CheckBox,                // [checkbox]
+        Appearance_ToolBarButton,           // [toolbarbutton]
         Appearance_ScrollBarButtonUp,       // [scrollbarbutton-up]
         Appearance_ScrollBarButtonRight,    // [scrollbarbutton-right]
         Appearance_ScrollBarButtonDown,     // [scrollbarbutton-down]
@@ -199,7 +200,7 @@ namespace LongUI{
         Appearance_MenuItem,                // [menuitem]
         Appearance_Tab,                     // [tab]
         Appearance_TabPanels,               // [tabpanels]
-        Appearance_TextField,               // [textfield ]
+        Appearance_TextField,               // [textfield]
     };
     /// <summary>
     /// select type

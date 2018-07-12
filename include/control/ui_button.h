@@ -24,7 +24,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_box_layout.h"
+#include "ui_boxlayout.h"
 #include "../core/ui_core_type.h"
 
 // ui namespace
@@ -36,6 +36,13 @@ namespace LongUI {
         // private impl
         struct Private;
     public:
+        // button type
+        enum ButtonType : uint8_t {
+            Type_Normal = 0,    // normal type
+            Type_Checkbox,      // toggle button
+            Type_Menu,          // menu
+            Type_Radio,         // radio-like button
+        };
         // class meta
         static const  MetaControl   s_meta;
         // dtor
@@ -61,6 +68,8 @@ namespace LongUI {
         void SetText(CUIString&& text) noexcept;
         // set text
         void SetText(WcView text) noexcept;
+        // is checked?
+        auto IsChecker() const noexcept { return m_oStyle.state.checked; }
     public:
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
@@ -80,9 +89,16 @@ namespace LongUI {
         // accessible event
         auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
 #endif
+        // parse button type
+        static auto parse_button_type(U8View) noexcept->ButtonType;
+        // is 
     private:
         // private data
         Private*            m_private = nullptr;
+        // button type
+        ButtonType          m_type = Type_Normal;
+        // toolbar button
+        bool                m_bToolBar = false;
     };
     // get meta info for UIButton
     LUI_DECLARE_METAINFO(UIButton);

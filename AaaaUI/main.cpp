@@ -1,10 +1,10 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (10)
+#define CASE_NUM (19)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
 #include <core/ui_malloc.h>
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
 #include <control/ui_viewport.h>
 #include <graphics/ui_matrix3x2.h>
@@ -44,7 +44,7 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
     // get def-font
     void DefaultFontArg(LongUI::FontArg& arg) noexcept override {
         //CUIDefaultConfigure::DefaultFontArg(arg);
-        arg.size = 16.f;
+        arg.size = 20.f;
         //arg.family = "SimSun";
     }
     // get cfg-flag
@@ -59,6 +59,7 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
             //| ConfigureFlag::Flag_DbgDrawDirtyRect
             | ConfigureFlag::Flag_DbgDrawTextCell
             | ConfigureFlag::Flag_DbgDebugWindow
+            | ConfigureFlag::Flag_DonotSupportHiDpi
             ;
     }
 };
@@ -78,6 +79,7 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
 #include <control/ui_image.h>
 #include <control/ui_label.h>
 #include <control/ui_test.h>
+
 
 struct MemoryLeakDetector {
 #ifndef NDEBUG
@@ -563,6 +565,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         break;
     case 18:
         loadfile("../doc/test-xul/hidpi.xul");
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
+        break;
+    case 19:
+        loadfile("../doc/test-xul/menubar.xul");
         viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         break;
     }

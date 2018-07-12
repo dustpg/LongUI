@@ -1,8 +1,8 @@
 ﻿#include <interface/ui_ctrlinfolist.h>
 #include <control/ui_radiogroup.h>
-#include <control/ui_box_layout.h>
-#include <control/ui_scroll_bar.h>
 #include <control/ui_listheader.h>
+#include <control/ui_boxlayout.h>
+#include <control/ui_scrollbar.h>
 #include <control/ui_menupopup.h>
 #include <control/ui_menulist.h>
 #include <control/ui_menuitem.h>
@@ -34,6 +34,11 @@
 #include <control/ui_tabpanel.h>
 #include <control/ui_tabpanels.h>
 
+#include <control/ui_toolbar.h>
+#include <control/ui_toolbox.h>
+#include <control/ui_toolbarbutton.h>
+#include <control/ui_toolbarseparator.h>
+
 #include <control/ui_tree.h>
 #include <control/ui_treerow.h>
 #include <control/ui_treecol.h>
@@ -58,6 +63,15 @@ namespace LongUI {
         static UIControl* create_UIPopup(UIControl* p) noexcept {
             return new(std::nothrow) UIPopup{ p, UIPopup__s_meta };
         }
+        static const MetaControl UIToolBox__s_meta;
+        static UIControl* create_UIToolBox(UIControl* p) noexcept {
+            return new(std::nothrow) UIToolBox{ p, UIToolBox__s_meta };
+        }
+        static const MetaControl UIToolBarSeparator__s_meta;
+        static UIControl* create_UIToolBarSeparator(UIControl* p) noexcept {
+            return new(std::nothrow) UIToolBarSeparator{ p, UIToolBarSeparator__s_meta };
+        }
+        
     };
     // UIPopupSet
     const MetaControl UIMetaTypeDef::UIPopupSet__s_meta = {
@@ -70,6 +84,18 @@ namespace LongUI {
         &UIPopup::s_meta,
         "popup",
         UIMetaTypeDef::create_UIPopup
+    };
+    // UIToolBox
+    const MetaControl UIMetaTypeDef::UIToolBox__s_meta = {
+        &UIToolBox::s_meta,
+        "toolbox",
+        UIMetaTypeDef::create_UIToolBox
+    };
+    // UIToolBarSeparator
+    const MetaControl UIMetaTypeDef::UIToolBarSeparator__s_meta = {
+        &UIToolBarSeparator::s_meta,
+        "toolbarseparator",
+        UIMetaTypeDef::create_UIToolBarSeparator
     };
     /// <summary>
     /// The default control information
@@ -146,6 +172,11 @@ namespace LongUI {
         // List Box - 列表框
         &UIListBox::s_meta,
 
+        // Tool Bar 工具条
+        &UIToolBar::s_meta,
+        // Tool Bar 工具条用按钮
+        &UIToolBarButton::s_meta,
+
         // Tree - 树控件
         &UITree::s_meta,
         // Tree Row - 树行组
@@ -163,7 +194,9 @@ namespace LongUI {
 
         // ---------------- TYPEDEF -------------------------
         &UIMetaTypeDef::UIPopup__s_meta,
+        &UIMetaTypeDef::UIToolBox__s_meta,
         &UIMetaTypeDef::UIPopupSet__s_meta,
+        &UIMetaTypeDef::UIToolBarSeparator__s_meta,
 
 #ifndef NDEBUG
         // Test - 测试控件
@@ -178,7 +211,7 @@ namespace LongUI {
     /// <param name="list">The list.</param>
     void AddDefaultControlInfo(ControlInfoList& list) noexcept {
         // 默认CC数量
-        constexpr uint32_t CONTROL_CLASS_SIZE = 48;
+        constexpr uint32_t CONTROL_CLASS_SIZE = 64;
         list.reserve(CONTROL_CLASS_SIZE);
         if (list) list.assign(
             std::begin(DefaultControlInfo),

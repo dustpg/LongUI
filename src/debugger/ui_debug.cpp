@@ -494,7 +494,7 @@ auto LongUI::CUIDebug::operator<<(const void* ctrl) noexcept ->CUIDebug& {
 }
 
 #include <control/ui_control.h>
-#include <control/ui_ctrlmeta.h>
+#include <core/ui_ctrlmeta.h>
 #include <wchar.h>
 
 /// <summary>

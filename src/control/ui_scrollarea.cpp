@@ -1,8 +1,8 @@
 ﻿// Gui
-#include <control/ui_scroll_area.h>
-#include <control/ui_scroll_bar.h>
-#include <control/ui_ctrlmeta.h>
+#include <control/ui_scrollarea.h>
+#include <control/ui_scrollbar.h>
 #include <control/ui_spacer.h>
+#include <core/ui_ctrlmeta.h>
 #include <core/ui_manager.h>
 #include <luiconf.h>
 // C++

@@ -1876,6 +1876,8 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             }
             return 0;
         case WM_SIZE:
+            // 先关闭弹出窗口再说
+            this->ClosePopup();
             // 最小化不算
             switch (wParam) { case SIZE_MINIMIZED: return 0; }
             // 拖拽重置不算
@@ -1941,9 +1943,14 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
                 this->OnAccessKey(wParam - 'a');
             }
             return 0;
+        case WM_SYSCOMMAND:
+            // 点击标题也要关闭弹出窗口
+            if (wParam == (SC_MOVE | HTCAPTION)) {
+                this->ClosePopup();
+            }
+            break;
         case WM_DPICHANGED:
             this->OnDpiChanged(wParam, *reinterpret_cast<RectL*>(lParam));
-
             return 0;
         }
     // 未处理消息

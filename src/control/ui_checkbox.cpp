@@ -1,9 +1,9 @@
 ﻿// Gui
+#include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
 #include <control/ui_checkbox.h>
-#include <control/ui_ctrlmeta.h>
 // 子控件
-#include <control/ui_box_layout.h>
+#include <control/ui_boxlayout.h>
 #include <control/ui_image.h>
 #include <control/ui_label.h>
 #include <constexpr/const_bkdr.h>
@@ -128,7 +128,7 @@ LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexc
     // 没有逻辑子控件
     m_pAccCtrl = nullptr;
 #endif
-    this->SetOrient(Orient_Horizontal);
+    m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
     // 私有实现
     m_private = new(std::nothrow) Private{ *this };
