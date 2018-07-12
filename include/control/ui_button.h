@@ -40,8 +40,8 @@ namespace LongUI {
         enum ButtonType : uint8_t {
             Type_Normal = 0,    // normal type
             Type_Checkbox,      // toggle button
-            Type_Menu,          // menu
             Type_Radio,         // radio-like button
+            Type_Menu,          // menu
         };
         // class meta
         static const  MetaControl   s_meta;
@@ -55,9 +55,13 @@ namespace LongUI {
     public:
         // clicked event
         static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
+        // checked change event
+        static inline constexpr auto _checkedChanged() noexcept { return GuiEvent::Event_Change; }
     public:
         // click this
         void Click() noexcept;
+        // set image source
+        void SetImageSource(U8View src) noexcept;
         // get text
         auto GetText() const noexcept ->const wchar_t*;
         // get text- string object
@@ -69,7 +73,7 @@ namespace LongUI {
         // set text
         void SetText(WcView text) noexcept;
         // is checked?
-        auto IsChecker() const noexcept { return m_oStyle.state.checked; }
+        auto IsChecked() const noexcept { return m_oStyle.state.checked; }
     public:
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
@@ -91,10 +95,11 @@ namespace LongUI {
 #endif
         // parse button type
         static auto parse_button_type(U8View) noexcept->ButtonType;
-        // is 
     private:
         // private data
         Private*            m_private = nullptr;
+        // group id
+        const char*         m_pGroup = nullptr;
         // button type
         ButtonType          m_type = Type_Normal;
         // toolbar button

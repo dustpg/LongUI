@@ -553,7 +553,9 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_ACCESSKEY & MASK_HASH:
         // accesskey  : 快捷访问键
-        if (value.end() > value.begin()){
+        assert(value.end() > value.begin() && "bad accesskey");
+        //if (value.end() > value.begin()) {
+        if (true) {
             auto ch = *value.begin();
             if (ch >= 'a' && ch <= 'z') ch -= 'a' - 'A';
             m_chAccessKey = ch;

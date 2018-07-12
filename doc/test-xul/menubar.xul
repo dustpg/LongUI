@@ -36,7 +36,7 @@ function imagize(btnID,imageID)
       <toolbarbutton label="Button" accesskey="B" oncommand="alert('Ouch!');"/>
       <toolbarbutton label="Check" type="checkbox" checked="true" />
       <toolbarbutton label="Disabled" disabled="true"/>
-      <toolbarbutton label="Image" image="images/star.png"/>
+      <toolbarbutton label="Image" image="images/25.png"/>
     </toolbar>
 
     <toolbar id="another-toolbar" >
@@ -57,6 +57,81 @@ function imagize(btnID,imageID)
       <button label="radio" type="radio" group="123"/>
       <button label="radio" type="radio" group="123"/>
     </hbox>
+
+    <!-- <menubar id="my-menubar" grippyhidden="true">
+      <label value="This is a menubar" />
+      <toolbarseparator />
+      <menu label="Radio" accesskey="R" >
+        <menupopup>
+           <menuitem type="radio" name="radio" label="Radio1" />
+           <menuitem type="radio" name="radio" label="Radio2" />
+           <menuitem type="radio" name="radio" label="Radio3" />
+        </menupopup>
+      </menu>
+      <menu label="Checkbox" accesskey="C">
+        <menupopup>
+           <menuitem type="checkbox" label="Check1" />
+           <menuitem type="checkbox" label="Check2" />
+           <menuitem type="checkbox" label="Check3" />
+        </menupopup>
+      </menu>
+      <menu label="Cascading" accesskey="a">
+        <menupopup>
+           <menu label="More" >
+             <menupopup>
+               <menuitem label="A" />
+               <menuitem label="B" />
+               <menuitem label="C" />
+               <menuseparator />
+               <menu label="More" >
+                 <menupopup>
+                   <menuitem label="1" />
+                   <menuitem label="2" />
+                   <menuitem label="3" />
+                 </menupopup>
+               </menu>
+             </menupopup>
+           </menu>
+           <menuseparator />
+           <menuitem label="X" />
+           <menuitem label="Y" />
+           <menuitem label="Z" />
+        </menupopup>
+      </menu>
+      <menu label="Images" accesskey="I" >
+        <menupopup>
+           <menuitem label="Left" 
+                     class="menuitem-iconic" src="images/25.png" />
+           <menuitem label="Right" dir="reverse"
+                     class="menuitem-iconic" src="images/25.png" />
+           <menuitem label="None" />
+        </menupopup>
+      </menu>
+      <spacer flex="1" />
+      <menu label="Help" accesskey="H">
+        <menupopup>
+           <menuitem label="This is help" />
+        </menupopup>
+      </menu>
+    </menubar> -->
+
+    <!-- <menubar id="back-menubar" dir="reverse">
+      <menu label="Menubar" />
+      <menu label="with" />
+      <menu label="its"  />
+      <menu label="grippy"  />
+      <spacer flex="1" />
+      <menu label="here->"  />
+    </menubar>
+
+    <menubar id="another-menubar" grippyhidden="true">
+      <menu label="Menubar" />
+      <menu label="with" />
+      <menu label="its"  />
+      <menu label="grippy"  />
+      <menu label="hidden"  />
+    </menubar> -->
+
   </toolbox>
 </groupbox>
 

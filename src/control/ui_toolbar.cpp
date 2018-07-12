@@ -67,7 +67,7 @@ LongUI::UIToolBarButton::~UIToolBarButton() noexcept {
 LongUI::UIToolBarButton::UIToolBarButton(UIControl* parent, const MetaControl& meta) noexcept 
  : Super(parent, meta) {
     m_oBox.margin = { 0 };
-    //m_oBox.padding = { 3, 3, 3, 3 };
+    m_oBox.padding = { 2, 2, 2, 2 };
 }
 
 

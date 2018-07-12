@@ -369,6 +369,7 @@
     <ClInclude Include="..\include\debugger\ui_debug.h" />
     <ClInclude Include="..\include\debugger\ui_loginfo.h" />
     <ClInclude Include="..\include\debugger\ui_tracer.h" />
+    <ClInclude Include="..\include\event\ui_group_event.h" />
     <ClInclude Include="..\include\event\ui_gui_event.h" />
     <ClInclude Include="..\include\event\ui_initialize_event.h" />
     <ClInclude Include="..\include\event\ui_input_event.h" />

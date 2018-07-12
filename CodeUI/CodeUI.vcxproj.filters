@@ -1011,5 +1011,8 @@
     <ClInclude Include="..\include\control\ui_boxlayout.h">
       <Filter>header\control</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\event\ui_group_event.h">
+      <Filter>header\event</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

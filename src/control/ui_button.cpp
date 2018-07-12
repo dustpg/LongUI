@@ -1,8 +1,10 @@
 ﻿// Gui
+#include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
 #include <input/ui_kminput.h>
 #include <debugger/ui_debug.h>
 #include <control/ui_button.h>
+#include <event/ui_group_event.h>
 // 子控件
 #include <control/ui_boxlayout.h>
 #include <control/ui_image.h>
@@ -198,7 +200,21 @@ void LongUI::UIButton::SetText(CUIString&& text) noexcept {
     }
 }
 
-
+/// <summary>
+/// Does the implicit group GUI argument.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="group">The group.</param>
+/// <returns></returns>
+void LongUI::DoImplicitGroupGuiArg(UIControl& ctrl, const char* group) noexcept {
+    const auto parent = ctrl.GetParent();
+    if (parent && group) {
+        const ImplicitGroupGuiArg arg{ group };
+        for (auto& child : (*parent)) {
+            child.DoEvent(&ctrl, arg);
+        }
+    }
+}
 
 /// <summary>
 /// Does the event.
@@ -221,8 +237,24 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         }
         break;
     case NoticeEvent::Event_DoAccessAction:
+        // 访问行为
         this->Click();
         break;
+    case NoticeEvent::Event_ImplicitGroupChecked:
+        // 组有位成员被点中
+        if (sender == this) return Event_Ignore;
+        if (this->IsDisabled()) return Event_Ignore;
+        if (!this->IsChecked()) return Event_Ignore;
+        if (m_pGroup != static_cast<const ImplicitGroupGuiArg&>(e).group_name)
+            return Event_Ignore;
+        // 是CHECKBOX类型?
+        this->StartAnimation({ StyleStateType::Type_Checked, false });
+        // 触发修改GUI事件
+        this->TriggrtEvent(_checkedChanged());
+#ifdef LUI_ACCESSIBLE
+        // TODO: ACCESSIBLE
+#endif
+        return Event_Accept;
     }
     // 基类处理
     return Super::DoEvent(sender, e);
@@ -230,16 +262,56 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
 
 
 /// <summary>
+/// Sets the image source.
+/// </summary>
+/// <param name="src">The source.</param>
+/// <returns></returns>
+void LongUI::UIButton::SetImageSource(U8View src) noexcept {
+    assert(m_private && "bad action");
+    m_private->image.SetSource(src);
+}
+
+/// <summary>
 /// Clicks this instance.
 /// </summary>
 /// <returns></returns>
 void LongUI::UIButton::Click() noexcept {
+    if (this->IsDisabled()) return;
     assert(m_private && "bad action");
-    // 触发修改GUI事件
-    this->TriggrtEvent(_clicked());
+    // 分类讨论
+    switch (m_type)
+    {
+    case UIButton::Type_Normal:
+        // 普通按钮: 触发修改GUI事件
+        this->TriggrtEvent(_clicked());
 #ifdef LUI_ACCESSIBLE
-    LongUI::Accessible(m_pAccessible, LongUI::Callback_Invoked);
+        LongUI::Accessible(m_pAccessible, LongUI::Callback_Invoked);
 #endif
+        break;
+    case UIButton::Type_Checkbox:
+        // 是CHECKBOX类型?
+        this->StartAnimation({ StyleStateType::Type_Checked, !this->IsChecked() });
+        // 触发修改GUI事件
+        this->TriggrtEvent(_checkedChanged());
+#ifdef LUI_ACCESSIBLE
+        // TODO: ACCESSIBLE
+#endif
+        break;
+    case UIButton::Type_Radio:
+        // 是RADIO类型?
+        if (!this->IsChecked()) {
+            this->StartAnimation({ StyleStateType::Type_Checked, true });
+            this->TriggrtEvent(_checkedChanged());
+            LongUI::DoImplicitGroupGuiArg(*this, m_pGroup);
+#ifdef LUI_ACCESSIBLE
+            // TODO: ACCESSIBLE
+#endif
+        }
+        break;
+    case UIButton::Type_Menu:
+        // 是MENU类型?
+        break;
+    }
 }
 
 
@@ -251,10 +323,13 @@ void LongUI::UIButton::Click() noexcept {
 /// <returns></returns>
 void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增(?)属性列表
-    constexpr auto BKDR_VALUE       = 0x246df521_ui32;
-    constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
+    constexpr auto BKDR_SRC         = 0x001E57C4_ui32;
     constexpr auto BKDR_TYPE        = 0x0fab1332_ui32;
-
+    constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_GROUP       = 0x1f6836d3_ui32;
+    constexpr auto BKDR_IMAGE       = 0x41d46dbb_ui32;
+    constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
+    
     // 分类讨论
     switch (key)
     {
@@ -266,9 +341,17 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, key, value);
         return;
+    case BKDR_IMAGE:
+        // 传递给子控件
+        UIControlPrivate::AddAttribute(m_private->image, BKDR_SRC, value);
+        return;
     case BKDR_TYPE:
         // type  : BUTTON类型
         m_type = this->parse_button_type(value);
+        return;
+    case BKDR_GROUP:
+        // group : 按键组
+        m_pGroup = UIManager.GetUniqueText(value);
         return;
     default:
         // 其他情况, 交给基类处理

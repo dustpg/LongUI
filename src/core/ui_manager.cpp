@@ -315,7 +315,7 @@ void LongUI::CUIManager::NeedRecreate() noexcept {
 /// <param name="pair">The pair.</param>
 /// <returns></returns>
 auto LongUI::CUIManager::GetUniqueText(
-    U8View pair) noexcept -> const char * {
+    U8View pair) noexcept -> const char* {
     assert(pair.second > pair.first && "bad string");
     return this_()->pm().texts.insert(pair.first, pair.second, nullptr).first->first;
 }

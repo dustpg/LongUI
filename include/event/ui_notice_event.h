@@ -27,6 +27,8 @@ namespace LongUI {
         Event_ImageChildClicked,
         // splitter drag
         Event_Splitter,
+        // implicit radio group member checked
+        Event_ImplicitGroupChecked
     };
     /// <summary>
     /// event argument
