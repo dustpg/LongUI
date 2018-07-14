@@ -66,28 +66,41 @@ namespace LongUI {
         void Update() noexcept override;
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
-        // get selected
-        auto GetSelected() const noexcept { return m_pSelected; }
+        // window closed
+        void WindowClosed() noexcept override;
+    public:
+        // get last selected
+        auto GetLastSelected() const noexcept { return m_pLastSelected; }
         // get selected index
         auto GetSelectedIndex() const noexcept { return m_iSelected; }
+        // select first item
+        void SelectFirstItem() noexcept;
+        // clear select
+        void ClearSelected() noexcept;
     protected:
         // add child
-        void add_child(UIControl& child) noexcept override;
+        //void add_child(UIControl& child) noexcept override;
         // select child
         void select(UIControl* child) noexcept;
         // change select
         static void change_select(UIControl* old, UIControl* now) noexcept;
+        // save selected?
+        auto is_save_selected() const noexcept { return m_state.custom_data; }
+        // save selected: true
+        auto save_selected_true() noexcept { m_state.custom_data = true; }
+        // save selected: false
+        auto save_selected_false() noexcept { m_state.custom_data = false; }
+        // selected before init
+        //void selected_before_init(UIControl&c) noexcept { m_pPerSelected = &c; }
     protected:
-        // selected control
-        UIMenuItem*             m_pSelected = nullptr;
+        // last-selected
+        UIMenuItem*             m_pLastSelected = nullptr;
         // pre-selected
         UIControl*              m_pPerSelected = nullptr;
         // selected index
         int32_t                 m_iSelected = -1;
-    private:
-        // hoster
-        // private data
-        //PrivateMenuPopup*        m_private = nullptr;
+        // mouse in
+        bool                    m_bMouseIn = false;
     };
     // get meta info for UIMenuPopup
     LUI_DECLARE_METAINFO(UIMenuPopup);

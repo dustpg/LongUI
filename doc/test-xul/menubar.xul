@@ -55,17 +55,29 @@ function imagize(btnID,imageID)
     <hbox>
       <button label="radio" type="radio" group="123"/>
       <button label="radio" type="radio" group="123"/>
-      <button label="radio" type="radio" group="123"/>
+      <button label="radio" type="radio" group="123" popup="menu1"/>
     </hbox>
 
-    <!-- <menubar id="my-menubar" grippyhidden="true">
+        <menupopup id="menu1">
+          <menuitem label="123" type="radio"/>
+          <menuitem label="123" />
+          <menuitem label="123"/>
+           <!-- <menuitem type="radio" name="radio" label="Radio1" />
+           <menuitem type="radio" name="radio" label="Radio2" />
+           <menuitem type="radio" name="radio" label="Radio3" /> -->
+        </menupopup>
+
+    <menubar id="my-menubar">
       <label value="This is a menubar" />
       <toolbarseparator />
-      <menu label="Radio" accesskey="R" >
-        <menupopup>
-           <menuitem type="radio" name="radio" label="Radio1" />
+      <menu label="Radio" accesskey="R">
+        <menupopup >
+          <menuitem label="123" />
+          <menuitem label="123" />
+          <menuitem label="123"/>
+           <!-- <menuitem type="radio" name="radio" label="Radio1" />
            <menuitem type="radio" name="radio" label="Radio2" />
-           <menuitem type="radio" name="radio" label="Radio3" />
+           <menuitem type="radio" name="radio" label="Radio3" /> -->
         </menupopup>
       </menu>
       <menu label="Checkbox" accesskey="C">
@@ -77,7 +89,7 @@ function imagize(btnID,imageID)
       </menu>
       <menu label="Cascading" accesskey="a">
         <menupopup>
-           <menu label="More" >
+           <!-- <menu label="More" >
              <menupopup>
                <menuitem label="A" />
                <menuitem label="B" />
@@ -91,7 +103,7 @@ function imagize(btnID,imageID)
                  </menupopup>
                </menu>
              </menupopup>
-           </menu>
+           </menu> -->
            <menuseparator />
            <menuitem label="X" />
            <menuitem label="Y" />
@@ -113,7 +125,7 @@ function imagize(btnID,imageID)
            <menuitem label="This is help" />
         </menupopup>
       </menu>
-    </menubar> -->
+    </menubar>
 
     <!-- <menubar id="back-menubar" dir="reverse">
       <menu label="Menubar" />

@@ -212,27 +212,6 @@ auto LongUI::CUIWindow::RefViewport() noexcept -> UIViewport& {
 }
 
 /// <summary>
-/// Does the event.
-/// </summary>
-/// <param name="sender">The sender.</param>
-/// <param name="arg">The argument.</param>
-/// <returns></returns>
-auto LongUI::UIViewport::DoEvent(
-    UIControl* sender, const EventArg& arg) noexcept -> EventAccept {
-    switch (arg.nevent)
-    {
-    case NoticeEvent::Event_WindowClosed:
-        // 提示Hoster窗口关闭了
-        if (m_pHoster) m_pHoster->DoEvent(
-            this, { NoticeEvent::Event_PopupEnd, 0 });
-        // 清除当前Hoster
-        m_pHoster = nullptr;
-        return Event_Accept;
-    }
-    return Super::DoEvent(sender, arg);
-}
-
-/// <summary>
 /// Hosters the popup begin.
 /// </summary>
 /// <returns></returns>
@@ -242,6 +221,16 @@ void LongUI::UIViewport::HosterPopupBegin() noexcept {
         this, { NoticeEvent::Event_PopupBegin, 0 });
 }
 
+/// <summary>
+/// Hosters the popup end.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIViewport::HosterPopupEnd() noexcept {
+    // 提示Hoster窗口准备关闭
+    if (m_pHoster) m_pHoster->DoEvent(
+        this, { NoticeEvent::Event_PopupEnd, 0 });
+    m_pHoster = nullptr;
+}
 
 /// <summary>
 /// Recreates this instance.
@@ -259,6 +248,14 @@ auto LongUI::UIViewport::Recreate(bool release_only) noexcept -> Result {
         hr = m_window.recreate_window();
     }
     return hr;
+}
+
+/// <summary>
+/// Windows the closed.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIViewport::WindowClosed() noexcept {
+    this->HosterPopupEnd();
 }
 
 /// <summary>

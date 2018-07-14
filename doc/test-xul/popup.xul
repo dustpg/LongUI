@@ -82,7 +82,7 @@
     <menulist label="Selected">
      <menupopup>
       <menuitem label="Normal"/>
-      <menuitem label="Selected" selected="true" />
+      <menuitem label="Selected" selected="true"/>
       <menuitem label="Disabled" disabled="true" />
       <menuitem label="Checkbox" type="checkbox" />
       <menuitem label="Checked"  type="checkbox" checked="true" />

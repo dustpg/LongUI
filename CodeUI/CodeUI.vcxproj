@@ -180,6 +180,7 @@
     <ClCompile Include="..\src\control\ui_image.cpp" />
     <ClCompile Include="..\src\control\ui_label.cpp" />
     <ClCompile Include="..\src\control\ui_list.cpp" />
+    <ClCompile Include="..\src\control\ui_menubar.cpp" />
     <ClCompile Include="..\src\control\ui_menulist.cpp" />
     <ClCompile Include="..\src\control\ui_progress.cpp" />
     <ClCompile Include="..\src\control\ui_radio.cpp" />
@@ -313,9 +314,12 @@
     <ClInclude Include="..\include\control\ui_listhead.h" />
     <ClInclude Include="..\include\control\ui_listheader.h" />
     <ClInclude Include="..\include\control\ui_listitem.h" />
+    <ClInclude Include="..\include\control\ui_menu.h" />
+    <ClInclude Include="..\include\control\ui_menubar.h" />
     <ClInclude Include="..\include\control\ui_menuitem.h" />
     <ClInclude Include="..\include\control\ui_menulist.h" />
     <ClInclude Include="..\include\control\ui_menupopup.h" />
+    <ClInclude Include="..\include\control\ui_menuseparator.h" />
     <ClInclude Include="..\include\control\ui_popup.h" />
     <ClInclude Include="..\include\control\ui_popupset.h" />
     <ClInclude Include="..\include\control\ui_progress.h" />

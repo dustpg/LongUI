@@ -19,7 +19,10 @@ void LongUI::CUINativeStyleWindows10::draw_selbg(const NativeDrawArgs& args) noe
         auto color = ColorF::FromRGBA_CT<0x0078d7ff_rgba>();
         color.a = alpha;
         auto& brush = UIManager.RefCCBrush(color);
-        renderer.FillRectangle(auto_cast(args.border), &brush);
+        auto rect = args.border;
+        const auto width = rect.right - rect.left;
+        rect.right = rect.left + width * alpha;
+        renderer.FillRectangle(auto_cast(rect), &brush);
     };
 
     // 改变时

@@ -9,7 +9,7 @@
 namespace LongUI {
     // popup type
     enum class PopupType : uint32_t {
-        // type exclusive : invoke via exclusive hoster
+        // type exclusive : invoke via exclusive hoster, will keep same width as hoster
         Type_Exclusive = 0,
         // type popup     : maybe by active control(left click)
         Type_Popup,

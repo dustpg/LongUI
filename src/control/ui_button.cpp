@@ -1,14 +1,17 @@
 ﻿// Gui
+#include <core/ui_window.h>
 #include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
 #include <input/ui_kminput.h>
 #include <debugger/ui_debug.h>
-#include <control/ui_button.h>
 #include <event/ui_group_event.h>
-// 子控件
-#include <control/ui_boxlayout.h>
+#include <core/ui_popup_window.h>
+// 控件
 #include <control/ui_image.h>
 #include <control/ui_label.h>
+#include <control/ui_button.h>
+#include <control/ui_boxlayout.h>
+#include <control/ui_menupopup.h>
 #include <constexpr/const_bkdr.h>
 // Private
 #include "../private/ui_private_control.h"
@@ -105,6 +108,13 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
 LongUI::UIButton::~UIButton() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
+    // XXX: 窗口处于析构状态时无需释放窗口
+    if (m_pWindow && m_pWindow->IsInDtor()) {
+
+    }
+    else {
+        if (m_pMenuPopup) delete m_pMenuPopup;
+    }
     // 释放私有数据
     if (m_private) delete m_private;
 }
@@ -224,6 +234,7 @@ void LongUI::DoImplicitGroupGuiArg(UIControl& ctrl, const char* group) noexcept 
 /// <returns></returns>
 auto LongUI::UIButton::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
+    using group_t = const ImplicitGroupGuiArg;
     // 初始化
     switch (e.nevent)
     {
@@ -240,12 +251,20 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         // 访问行为
         this->Click();
         break;
+    case NoticeEvent::Event_PopupEnd:
+        // 弹出窗口关闭
+        if (sender == m_pMenuPopup) {
+            constexpr auto ct = StyleStateType::Type_Checked;
+            this->StartAnimation({ ct, false });
+        }
+        return Event_Accept;
     case NoticeEvent::Event_ImplicitGroupChecked:
         // 组有位成员被点中
         if (sender == this) return Event_Ignore;
         if (this->IsDisabled()) return Event_Ignore;
         if (!this->IsChecked()) return Event_Ignore;
-        if (m_pGroup != static_cast<const ImplicitGroupGuiArg&>(e).group_name)
+        if (m_type != UIButton::Type_Radio) return Event_Ignore;
+        if (m_pGroup != static_cast<group_t&>(e).group_name)
             return Event_Ignore;
         // 是CHECKBOX类型?
         this->StartAnimation({ StyleStateType::Type_Checked, false });
@@ -310,6 +329,21 @@ void LongUI::UIButton::Click() noexcept {
         break;
     case UIButton::Type_Menu:
         // 是MENU类型?
+        if (m_pMenuPopup) {
+            // CHECK状态
+            constexpr auto ct = StyleStateType::Type_Checked;
+            this->StartAnimation({ ct, true });
+            // 出现在左下角
+            const auto edge = this->GetBox().GetBorderEdge();
+            const auto y = this->GetSize().height - edge.top;
+            const auto pos = this->MapToWindowEx({ edge.left, y });
+            LongUI::PopupWindowFromViewport(
+                *this,
+                *m_pMenuPopup,
+                pos,
+                PopupType::Type_Popup
+            );
+        }
         break;
     }
 }

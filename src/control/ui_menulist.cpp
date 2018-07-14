@@ -183,13 +183,21 @@ auto LongUI::UIMenuItem::DoEvent(
 /// <param name="value">The value.</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
-    constexpr auto BKDR_LABEL = 0x74e22f74_ui32;
-    constexpr auto BKDR_VALUE = 0x246df521_ui32;
+    constexpr auto BKDR_LABEL       = 0x74e22f74_ui32;
+    constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_SELECTED    = 0x03481b1f_ui32;
     switch (key)
     {
     case BKDR_LABEL:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        break;
+    case BKDR_SELECTED:
+        // selected: 选择
+        if (const auto obj = uisafe_cast<UIMenuPopup>(m_pParent)) {
+            obj->select(this);
+            obj->m_pPerSelected = this;
+        }
         break;
     }
     return Super::add_attribute(key, value);
@@ -357,6 +365,10 @@ void LongUI::UIMenuList::init_menulist() {
     UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
     auto& marker = m_private->marker;
     UIControlPrivate::SetAppearanceIfNotSet(marker, Appearance_DropDownMarker);
+    // 没有选择的?
+    if (m_pMenuPopup && !m_pMenuPopup->GetLastSelected()) {
+        m_pMenuPopup->SelectFirstItem();
+    }
 }
 
 /// <summary>
@@ -408,7 +420,7 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
     assert(m_pMenuPopup);
     // 修改选择数据
     m_iSelected = m_pMenuPopup->GetSelectedIndex();
-    const auto ctrl = m_pMenuPopup->GetSelected();
+    const auto ctrl = m_pMenuPopup->GetLastSelected();
     // 修改事件
     if (ctrl) this->SetText(ctrl->GetTextString());
     else this->SetText(CUIString{});
@@ -464,6 +476,8 @@ void LongUI::UIMenuList::SetText(const CUIString& text) noexcept {
 void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
     // 检查是不是 Menu Popup
     if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
+        // HACK: ptr目前可能只是UIControl, 但是现在修改的正是UIControl
+        ptr->save_selected_true();
         m_pMenuPopup = ptr;
         return;
     }
@@ -543,13 +557,46 @@ LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noe
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuPopup::Update() noexcept {
-    if (m_pHovered && m_pPerSelected != m_pHovered) {
-        this->change_select(m_pPerSelected, m_pHovered);
-        m_pPerSelected = m_pHovered;
+    // 检测是否
+    if (m_pHovered || m_bMouseIn) {
+        m_bMouseIn = true;
+        if (m_pPerSelected != m_pHovered) {
+            this->change_select(m_pPerSelected, m_pHovered);
+            m_pPerSelected = m_pHovered;
+        }
     }
+    // 父类更新
     Super::Update();
 }
 
+
+/// <summary>
+/// Windows the closed.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::WindowClosed() noexcept {
+    m_bMouseIn = false;
+    // 保存
+    if (this->is_save_selected()) {
+        // 不同的选择就归位
+        if (m_pPerSelected != m_pLastSelected) {
+            this->change_select(m_pPerSelected, m_pLastSelected);
+            m_pPerSelected = m_pLastSelected;
+        }
+    }
+    // 不保存
+    else {
+        //if (m_pLastSelected) this->change_select(m_pLastSelected, nullptr);
+        // 相同的选择就置空
+        if (m_pPerSelected && m_pPerSelected == m_pLastSelected) {
+            this->change_select(m_pPerSelected, nullptr);
+        }
+        m_pLastSelected = nullptr;
+        m_pPerSelected = nullptr;
+        m_iSelected = -1;
+    }
+    return Super::WindowClosed();
+}
 
 /// <summary>
 /// Does the event.
@@ -562,22 +609,16 @@ auto LongUI::UIMenuPopup::DoEvent(
     // 初始化
     switch (arg.nevent)
     {
+#if 0
     case NoticeEvent::Event_Initialize:
-        // 初始化: 选择第一个
-        this->select([this]() noexcept {
-            const auto control = m_pSelected;
-            m_pSelected = nullptr;
-            return control;
-        }());
-        m_pPerSelected = m_pSelected;
-        break;
-    case NoticeEvent::Event_WindowClosed:
-        // 不同的选择就归位
-        if (m_pPerSelected != m_pSelected) {
-            this->change_select(m_pPerSelected, m_pSelected);
-            m_pPerSelected = m_pSelected;
+        if (m_pPerSelected) {
+            const auto ptr = m_pPerSelected;
+            m_pPerSelected = nullptr;
+            this->select(ptr);
+            m_pPerSelected = ptr;
         }
         break;
+#endif
     case NoticeEvent::Event_UIEvent:
         // 自己不处理自己的UIEvent 否则就stackoverflow了
         if (sender == this) return Event_Accept;
@@ -593,22 +634,43 @@ auto LongUI::UIMenuPopup::DoEvent(
     return Super::DoEvent(sender, arg);
 }
 
+/// <summary>
+/// Selects the first item.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::SelectFirstItem() noexcept {
+    for (auto& x : (*this)) {
+        if (const auto ptr = uisafe_cast<UIMenuItem>(&x)) {
+            this->select(ptr);
+            m_pPerSelected = m_pLastSelected;
+            return;
+        }
+    }
+}
+
+/// <summary>
+/// Clears the selected.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::ClearSelected() noexcept {
+    if (m_pLastSelected) this->select(nullptr);
+}
 
 /// <summary>
 /// Adds the child.
 /// </summary>
 /// <param name="child">The child.</param>
 /// <returns></returns>
-void LongUI::UIMenuPopup::add_child(UIControl& child) noexcept {
-    // 在未初始化的时候, 记录第一个UIMenuItem
-    if (!this->is_inited() && !m_pSelected) {
-        // 会在Event_Initialize进行选择
-        if (const auto ptr = uisafe_cast<UIMenuItem>(&child)) {
-            m_pSelected = ptr;
-        }
-    }
-    return Super::add_child(child);
-}
+//void LongUI::UIMenuPopup::add_child(UIControl& child) noexcept {
+//    // 在未初始化的时候, 记录第一个UIMenuItem
+//    if (!this->is_inited() && !m_pLastSelected) {
+//        // 会在Event_Initialize进行选择
+//        if (const auto ptr = uisafe_cast<UIMenuItem>(&child)) {
+//            m_pLastSelected = ptr;
+//        }
+//    }
+//    return Super::add_child(child);
+//}
 
 /// <summary>
 /// Selects the specified child.
@@ -616,13 +678,13 @@ void LongUI::UIMenuPopup::add_child(UIControl& child) noexcept {
 /// <param name="child">The child.</param>
 /// <returns></returns>
 void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
-    if (child == m_pSelected) return;
+    if (child == m_pLastSelected) return;
     assert(child == nullptr || child->GetParent() == this);
     // 修改状态
     if (child != m_pPerSelected) 
-        this->change_select(m_pSelected, child);
+        this->change_select(m_pLastSelected, child);
     // 修改数据
-    m_pSelected = longui_cast<UIMenuItem*>(child);
+    m_pLastSelected = longui_cast<UIMenuItem*>(child);
     m_iSelected = child ? this->calculate_child_index(*child) : -1;
     // 事件触发
     this->TriggrtEvent(_selectedChanged());

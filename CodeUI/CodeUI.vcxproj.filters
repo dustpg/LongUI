@@ -479,6 +479,9 @@
     <ClCompile Include="..\src\control\ui_menulist.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\control\ui_menubar.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1013,6 +1016,15 @@
     </ClInclude>
     <ClInclude Include="..\include\event\ui_group_event.h">
       <Filter>header\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_menubar.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_menu.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_menuseparator.h">
+      <Filter>header\control</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

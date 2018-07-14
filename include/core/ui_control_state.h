@@ -72,6 +72,9 @@ namespace LongUI {
         // ----------- custom data
 
         // custom data, defined via control self, donot use this if you donot know
+        //  - listbox   : need refresh index flag
+        //  - progress  : data changed flag
+        //  - menu popup: save selected
         bool        custom_data : 1;
 
 

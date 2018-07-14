@@ -17,8 +17,6 @@ namespace LongUI {
         Event_ShowAccessKey,
         // viewport/ uievent-to-parent only
         Event_UIEvent,
-        // viewport only
-        Event_WindowClosed,
         // popup hoster only
         Event_PopupBegin,
         // popup hoster only

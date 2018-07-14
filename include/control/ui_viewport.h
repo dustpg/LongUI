@@ -39,10 +39,10 @@ namespace LongUI {
     public:
         // class meta
         static const  MetaControl   s_meta;
-        // do event
-        auto DoEvent(UIControl*, const EventArg&) noexcept->EventAccept override;
         // recreate/init device(gpu) resource
         auto Recreate(bool release_only) noexcept->Result override;
+        // [NEW] on window closed
+        virtual void WindowClosed() noexcept;
         // [NEW] on subview popup
         virtual void SubViewportPopupBegin(UIViewport&, PopupType) noexcept;
         // [NEW] on subview popup closed
@@ -68,6 +68,8 @@ namespace LongUI {
         void AssignNewHoster(UIControl& h) noexcept { m_pHoster = &h; }
         // PopupBegin to hoster
         void HosterPopupBegin() noexcept;
+        // PopupEnd to hoster
+        void HosterPopupEnd() noexcept;
         // add subviewport
         void AddSubViewport(UIViewport& sub) noexcept;
         // find subviewport with unique string

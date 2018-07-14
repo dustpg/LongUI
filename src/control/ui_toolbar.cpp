@@ -1,6 +1,5 @@
 ﻿// Gui
 #include <core/ui_ctrlmeta.h>
-#include <control/ui_label.h>
 #include <control/ui_toolbar.h>
 #include <control/ui_toolbarbutton.h>
 // Private
@@ -66,6 +65,7 @@ LongUI::UIToolBarButton::~UIToolBarButton() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UIToolBarButton::UIToolBarButton(UIControl* parent, const MetaControl& meta) noexcept 
  : Super(parent, meta) {
+    m_bToolBar = true;
     m_oBox.margin = { 0 };
     m_oBox.padding = { 2, 2, 2, 2 };
 }

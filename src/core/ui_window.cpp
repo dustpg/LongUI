@@ -116,7 +116,7 @@ void LongUI::CUIWindow::Delete() noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::close_window() noexcept {
     UIManager.close_helper(*this);
-    this->RefViewport().DoEvent(nullptr, { NoticeEvent::Event_WindowClosed, 0 });
+    this->RefViewport().WindowClosed();
 }
 
 // ui namespace
@@ -469,6 +469,8 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     LongUI::DeleteStyleSheet(m_pStyleSheet);
     // 有效私有数据
     if (m_private) {
+        // 弹出窗口会在下一步删除
+        m_private->popup = nullptr;
         // XXX: 删除自窗口?
         auto& children = m_private->children;
         while (!children.empty()) children.back()->Delete();
@@ -1715,8 +1717,8 @@ PCN_NOINLINE
 void LongUI::CUIWindow::Private::ClosePopup() noexcept {
     if (this->popup) {
         auto& sub = this->popup->RefViewport();
+        sub.HosterPopupEnd();
         this->viewport->SubViewportPopupEnd(sub, this->popup_type);
-        //sub.ClearHoster();
         this->popup->CloseWindow();
         this->popup = nullptr;
     }

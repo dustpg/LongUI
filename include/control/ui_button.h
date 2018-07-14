@@ -29,6 +29,8 @@
 
 // ui namespace
 namespace LongUI {
+    // menu popup
+    class UIMenuPopup;
     // button
     class UIButton : public UIBoxLayout {
         // super class
@@ -100,10 +102,15 @@ namespace LongUI {
         Private*            m_private = nullptr;
         // group id
         const char*         m_pGroup = nullptr;
+    protected:
+        // menupopup
+        UIMenuPopup*        m_pMenuPopup = nullptr;
         // button type
         ButtonType          m_type = Type_Normal;
-        // toolbar button
+        // toolbar button   :<UIToolBarButton>
         bool                m_bToolBar = false;
+        // menu button      :<UIMenu>
+        bool                m_bMenuBar = false;
     };
     // get meta info for UIButton
     LUI_DECLARE_METAINFO(UIButton);

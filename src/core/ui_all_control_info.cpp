@@ -3,9 +3,6 @@
 #include <control/ui_listheader.h>
 #include <control/ui_boxlayout.h>
 #include <control/ui_scrollbar.h>
-#include <control/ui_menupopup.h>
-#include <control/ui_menulist.h>
-#include <control/ui_menuitem.h>
 #include <control/ui_groupbox.h>
 #include <control/ui_checkbox.h>
 #include <control/ui_listhead.h>
@@ -38,6 +35,12 @@
 #include <control/ui_toolbox.h>
 #include <control/ui_toolbarbutton.h>
 #include <control/ui_toolbarseparator.h>
+#include <control/ui_menuseparator.h>
+#include <control/ui_menupopup.h>
+#include <control/ui_menulist.h>
+#include <control/ui_menuitem.h>
+#include <control/ui_menubar.h>
+#include <control/ui_menu.h>
 
 #include <control/ui_tree.h>
 #include <control/ui_treerow.h>
@@ -71,7 +74,10 @@ namespace LongUI {
         static UIControl* create_UIToolBarSeparator(UIControl* p) noexcept {
             return new(std::nothrow) UIToolBarSeparator{ p, UIToolBarSeparator__s_meta };
         }
-        
+        static const MetaControl UIMenuSeparator__s_meta;
+        static UIControl* create_UIMenuSeparator(UIControl* p) noexcept {
+            return new(std::nothrow) UIMenuSeparator{ p, UIMenuSeparator__s_meta };
+        }
     };
     // UIPopupSet
     const MetaControl UIMetaTypeDef::UIPopupSet__s_meta = {
@@ -97,10 +103,19 @@ namespace LongUI {
         "toolbarseparator",
         UIMetaTypeDef::create_UIToolBarSeparator
     };
+    // UIMenuSeparator
+    const MetaControl UIMetaTypeDef::UIMenuSeparator__s_meta = {
+        &UIMenuSeparator::s_meta,
+        "menuseparator",
+        UIMetaTypeDef::create_UIMenuSeparator
+    };
     /// <summary>
     /// The default control information
     /// </summary>
     const MetaControl* const DefaultControlInfo[] = {
+        // 一般控件
+        &UIControl::s_meta,
+
         // V Box Layout - 垂直箱型布局
         &UIVBoxLayout::s_meta,
         // H Box Layout - 水平箱型布局
@@ -176,6 +191,10 @@ namespace LongUI {
         &UIToolBar::s_meta,
         // Tool Bar 工具条用按钮
         &UIToolBarButton::s_meta,
+        // Menu Bar 菜单栏
+        &UIMenuBar::s_meta,
+        // Menu 菜单
+        &UIMenu::s_meta,
 
         // Tree - 树控件
         &UITree::s_meta,
@@ -196,13 +215,12 @@ namespace LongUI {
         &UIMetaTypeDef::UIPopup__s_meta,
         &UIMetaTypeDef::UIToolBox__s_meta,
         &UIMetaTypeDef::UIPopupSet__s_meta,
+        &UIMetaTypeDef::UIMenuSeparator__s_meta,
         &UIMetaTypeDef::UIToolBarSeparator__s_meta,
 
 #ifndef NDEBUG
         // Test - 测试控件
         &UITest::s_meta,
-        // Test - 一般控件
-        &UIControl::s_meta,
 #endif
     };
     /// <summary>

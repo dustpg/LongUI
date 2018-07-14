@@ -24,27 +24,10 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_boxlayout.h"
+#include "ui_spacer.h"
 
 // ui namespace
 namespace LongUI {
-    // tool bar
-    class UIToolBar : public UIBoxLayout {
-        // super class
-        using Super = UIBoxLayout;
-        // friend class
-        friend UIMetaTypeDef;
-    public:
-        // class meta
-        static const  MetaControl   s_meta;
-        // dtor
-        ~UIToolBar() noexcept;
-        // ctor
-        UIToolBar(UIControl* parent = nullptr) noexcept : UIToolBar(parent, UIToolBar::s_meta) {}
-    protected:
-        // lui std ctor
-        UIToolBar(UIControl* parent, const MetaControl&) noexcept;
-    };
-    // get meta info for UIBoxLayout
-    LUI_DECLARE_METAINFO(UIToolBar);
+    // menu separator
+    using UIMenuSeparator = UISpacer;
 }

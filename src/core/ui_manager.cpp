@@ -252,8 +252,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
         this_()->DataUnlock();
     }
     else {
-        // update超过1毫秒也算
-        if (t1 > 1.f) {
+        // update超过2毫秒也算
+        if (t1 > 2.f) {
             this_()->DataLock();
             LUIDebug(Hint) LUI_FRAMEID
                 << "U<" << DDFFloat2{ t1 } << "ms>"

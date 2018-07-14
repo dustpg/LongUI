@@ -24,27 +24,37 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_boxlayout.h"
+#include "ui_button.h"
 
 // ui namespace
 namespace LongUI {
-    // tool bar
-    class UIToolBar : public UIBoxLayout {
+    // menu
+    class UIMenu : public UIButton {
         // super class
-        using Super = UIBoxLayout;
-        // friend class
-        friend UIMetaTypeDef;
+        using Super = UIButton;
+        // private impl
+        struct Private;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UIToolBar() noexcept;
+        ~UIMenu() noexcept;
         // ctor
-        UIToolBar(UIControl* parent = nullptr) noexcept : UIToolBar(parent, UIToolBar::s_meta) {}
+        UIMenu(UIControl* parent = nullptr) noexcept : UIMenu(parent, UIMenu::s_meta) {}
     protected:
-        // lui std ctor
-        UIToolBar(UIControl* parent, const MetaControl&) noexcept;
+        // ctor
+        UIMenu(UIControl* parent, const MetaControl&) noexcept;
+    public:
+        // do normal event
+        auto DoEvent(UIControl*, const EventArg&)noexcept->EventAccept override;
+        // mouse event
+        auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
+    protected:
+        // add child
+        void add_child(UIControl& child) noexcept override;
+        // add attribute : key = bkdr hashed string key, this method valid before inited
+        void add_attribute(uint32_t key, U8View value) noexcept override;
     };
-    // get meta info for UIBoxLayout
-    LUI_DECLARE_METAINFO(UIToolBar);
+    // get meta info for UIMenu
+    LUI_DECLARE_METAINFO(UIMenu);
 }

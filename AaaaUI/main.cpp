@@ -1,5 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (19)
+#define CASE_NUM (17)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
@@ -54,7 +54,7 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
             | ConfigureFlag::Flag_QuitOnLastWindowClosed
             //| ConfigureFlag::Flag_DbgOutputTimeTook 
 //#ifndef NDEBUG
-            | ConfigureFlag::Flag_RenderByCPU
+ 
 //#endif
             //| ConfigureFlag::Flag_DbgDrawDirtyRect
             | ConfigureFlag::Flag_DbgDrawTextCell
