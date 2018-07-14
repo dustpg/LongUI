@@ -205,7 +205,7 @@ void LongUI::CUIControlControl::DisposeTimeCapsule(UIControl& ctrl) noexcept {
         const auto old = static_cast<CUITimeCapsule*>(node);
         node = node->next;
         // 检测是否存在
-        if (old->pointer == &ctrl) {
+        if (old->IsSameHoster(ctrl)) {
 #ifndef NDEBUG
             disposed = true;
 #endif
@@ -248,12 +248,7 @@ void LongUI::CUIControlControl::update_time_capsule(float delta) noexcept {
         node = node->next;
         // 直接调用
         if (old->Call(delta)) {
-            // 记录针对控件的释放
-            if (old->pointer) {
-                auto& last = old->pointer->m_pLastEnd;
-                assert(last && "last end cannot be null if tc exist");
-                if (last == old) last = nullptr;
-            }
+
             old->Dispose();
         }
     }

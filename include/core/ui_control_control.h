@@ -35,7 +35,7 @@ namespace LongUI {
         // CUIXulStream
         struct CUIXulStream;
         // after create time capsule
-        static void after_create_tc(CUITimeCapsule*, UIControl* ctrl) noexcept;
+        static auto after_create_tc(CUITimeCapsule*, UIControl* ctrl) noexcept->CUITimeCapsule*;
         // refresh time capsule
         static void refresh_time_capsule(UIControl&, CUITimeCapsule&) noexcept;
     public:
@@ -48,8 +48,8 @@ namespace LongUI {
     public:
         // create time capsule for control
         template<typename T>
-        void CreateTimeCapsule(T&& func, float total, UIControl* ctrl = nullptr) noexcept {
-            this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl); }
+        auto CreateTimeCapsule(T&& func, float total, UIControl* ctrl = nullptr) noexcept {
+            return this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl); }
         // dispose time capsule for control
         void DisposeTimeCapsule(UIControl& ctrl) noexcept;
     public:

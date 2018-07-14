@@ -1,4 +1,5 @@
 #include <core/ui_time_capsule.h>
+#include <control/ui_control.h>
 #include <cassert>
 
 /// <summary>
@@ -12,6 +13,16 @@ LongUI::CUITimeCapsule::CUITimeCapsule(float total) noexcept
 
 
 /// <summary>
+/// Tries the clear last time capsule.
+/// </summary>
+/// <param name="tc">The tc.</param>
+/// <returns></returns>
+void LongUI::UIControl::TryClearLastTimeCapsule(CUITimeCapsule& tc) noexcept {
+    assert(m_pLastEnd && "last end cannot be null if tc exist");
+    if (m_pLastEnd == &tc) m_pLastEnd = nullptr;
+}
+
+/// <summary>
 /// Releases unmanaged and - optionally - managed resources.
 /// </summary>
 /// <returns></returns>
@@ -19,6 +30,10 @@ void LongUI::CUITimeCapsule::Dispose() noexcept {
     assert(this && "this pointer cannot be null");
     assert(this->prev && "prev pointer cannot be null");
     assert(this->next && "next pointer cannot be null");
+    // 记录针对控件的释放
+    if (const auto ptr = m_pHoster) {
+        ptr->TryClearLastTimeCapsule(*this);
+    }
     this->prev->next = this->next;
     this->next->prev = this->prev;
     delete this;

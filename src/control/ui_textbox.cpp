@@ -188,7 +188,7 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         // cached:  LUI优化扩展
         //   使用离屏渲染/脏矩形更新等算法进行优化
         //   推荐长文本使用
-        if (value) this->private_use_cached();
+        if (value.ToBool()) this->private_use_cached();
         break;
     case BKDR_TYPE:
         // type:        类型
@@ -205,7 +205,7 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_MULTILINE:
         // multiline:   多行模式
-        if (value) this->private_mark_multiline();
+        if (value.ToBool()) this->private_mark_multiline();
         break;
     case BKDR_SIZE:
         // size:        单行模式容纳字符数量
@@ -220,7 +220,7 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_READONLY:
         // readonly:    只读模式
-        if (value) this->private_mark_readonly();
+        if (value.ToBool()) this->private_mark_readonly();
         break;
     case BKDR_VALUE:
         // value:       显示文本

@@ -110,14 +110,6 @@ void LongUI::CUIWindow::Delete() noexcept {
     delete view;
 }
 
-/// <summary>
-/// Closes the window.
-/// </summary>
-/// <returns></returns>
-void LongUI::CUIWindow::close_window() noexcept {
-    UIManager.close_helper(*this);
-    this->RefViewport().WindowClosed();
-}
 
 // ui namespace
 namespace LongUI {
@@ -158,6 +150,8 @@ namespace LongUI {
         // clean up
         //void cleanup() noexcept;
     public:
+        // empty render
+        void EmptyRender() noexcept;
         // delete window
         static void DeleteWindow(HWND hwnd) noexcept;
         // delete window
@@ -1000,6 +994,17 @@ void LongUI::CUIWindow::HiDpiSupport() noexcept {
     //this->RefViewport().JustResetZoom(2.f, 2.f);
 }
 
+
+/// <summary>
+/// Closes the window.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::close_window() noexcept {
+    UIManager.close_helper(*this);
+    this->RefViewport().WindowClosed();
+}
+
+
 PCN_NOINLINE
 /// <summary>
 /// Shows the window.
@@ -1009,13 +1014,13 @@ PCN_NOINLINE
 void LongUI::CUIWindow::show_window(TypeShow sw) noexcept {
     // 隐藏
     if (sw == Show_Hide) {
-        m_private->window_visible = false;
         this->TrySleep();
+        m_private->window_visible = false;
     }
     // 显示
     else {
-        m_private->window_visible = true;
         this->WakeUp();
+        m_private->window_visible = true;
     }
     assert(m_hwnd && "bad window");
     /*
@@ -1033,7 +1038,11 @@ void LongUI::CUIWindow::show_window(TypeShow sw) noexcept {
 /// Wakeks up.
 /// </summary>
 void LongUI::CUIWindow::WakeUp() noexcept {
-    if (!this->IsInSleepMode()) return;
+    // 不在睡眠状态强行渲染一帧
+    if (!this->IsInSleepMode()) {
+        if (!m_private->window_visible) m_private->EmptyRender();
+        return;
+    }
     // XXX: 0. 尝试唤醒父窗口
     if (m_parent) m_parent->WakeUp();
     // 1. 创建窗口
@@ -1177,6 +1186,21 @@ void LongUI::CUIWindow::ClosePopup() noexcept {
 }
 
 /// <summary>
+/// Closes the popup high level.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::ClosePopupHighLevel() noexcept {
+    auto winp = this;
+    while (winp && winp->config & Config_Popup) winp = winp->GetParent();
+    if (winp) winp->ClosePopup();
+#ifndef NDEBUG
+    else {
+        LUIDebug(Error) << "winp -> null" << endl;
+    }
+#endif // !NDEBUG
+}
+
+/// <summary>
 /// Closes the tooltip.
 /// </summary>
 /// <returns></returns>
@@ -1303,8 +1327,12 @@ void LongUI::CUIWindow::Private::OnSystemKeyDown(CUIInputKM::KB key, uintptr_t l
     case CUIInputKM::KB_MENU:
         // 检查访问键
         // 只有按下瞬间有效, 后续的重复触发不算
-        if (!(lp & (1 << 30)))
-            this->toggle_access_key_display();
+        if (!(lp & (1 << 30))) {
+            // 有popup就关闭
+            if (this->popup) this->ClosePopup();
+            // 没有就开关ACCESSKEY显示
+            else this->toggle_access_key_display();
+        }
         break;
     }
 }
@@ -1402,6 +1430,16 @@ void LongUI::CUIWindow::Private::OnDpiChanged(uintptr_t wParam, const RectL& rec
 /// <param name="i">The index.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::OnAccessKey(uintptr_t i) noexcept {
+    // 存在弹出窗口就指向弹出窗口
+    if (this->popup) {
+        // TOOLTIP不算
+        if (this->popup_type != PopupType::Type_Tooltip) {
+            const auto popprivate = this->popup->m_private;
+            popprivate->OnAccessKey(i);
+            return;
+        }
+    }
+    // 正式处理
     UIManager.DataLock();
     const auto ctrl = this->access_key_map[i];
     if (ctrl && ctrl->IsEnabled()) {
@@ -1716,6 +1754,8 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIWindow::Private::ClosePopup() noexcept {
     if (this->popup) {
+        // 递归关闭
+        this->popup->ClosePopup();
         auto& sub = this->popup->RefViewport();
         sub.HosterPopupEnd();
         this->viewport->SubViewportPopupEnd(sub, this->popup_type);
@@ -1734,7 +1774,7 @@ void LongUI::CUIWindow::Private::DoMouseEventTs(const MouseEventArg & args) noex
     CUIDataAutoLocker locker;
     UIControl* ctrl = this->captured;
     if (!ctrl) ctrl = this->viewport;
-    ctrl->DoMouseEvent(args);
+    const auto code = ctrl->DoMouseEvent(args);
 }
 
 #ifdef LUI_ACCESSIBLE
@@ -1811,9 +1851,10 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             break;
         case MouseEvent::Event_LButtonDown:
             // 有弹出窗口先关闭
-            if (this->popup) {
-                this->ClosePopup();
-                return 0;
+            // FIXME: 自己也是弹出窗口的话怎么处理?
+            if (this->popup && !(viewport->RefWindow().config & Config_Popup)) {
+                this->ClosePopup(); 
+                return 0; 
             }
             this->mouse_left_down = true;
             ::SetCapture(hwnd);
@@ -2379,6 +2420,19 @@ auto LongUI::Result::GetSystemLastError() noexcept -> Result {
         ((int32_t)(((x) & 0x0000FFFF) | (UI_FACILITY << 16) | 0x80000000))) };
 }
 
+/// <summary>
+/// Empties the render.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::EmptyRender() noexcept {
+    if (this->bitmap) {
+        UIManager.RenderLock();
+        this->mark_full_rendering_for_render();
+        this->begin_render();
+        this->end_render();
+        UIManager.RenderUnlock();
+    }
+}
 
 
 #ifndef NDEBUG

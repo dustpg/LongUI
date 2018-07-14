@@ -74,10 +74,6 @@ namespace LongUI {
         static UIControl* create_UIToolBarSeparator(UIControl* p) noexcept {
             return new(std::nothrow) UIToolBarSeparator{ p, UIToolBarSeparator__s_meta };
         }
-        static const MetaControl UIMenuSeparator__s_meta;
-        static UIControl* create_UIMenuSeparator(UIControl* p) noexcept {
-            return new(std::nothrow) UIMenuSeparator{ p, UIMenuSeparator__s_meta };
-        }
     };
     // UIPopupSet
     const MetaControl UIMetaTypeDef::UIPopupSet__s_meta = {
@@ -102,12 +98,6 @@ namespace LongUI {
         &UIToolBarSeparator::s_meta,
         "toolbarseparator",
         UIMetaTypeDef::create_UIToolBarSeparator
-    };
-    // UIMenuSeparator
-    const MetaControl UIMetaTypeDef::UIMenuSeparator__s_meta = {
-        &UIMenuSeparator::s_meta,
-        "menuseparator",
-        UIMetaTypeDef::create_UIMenuSeparator
     };
     /// <summary>
     /// The default control information
@@ -191,6 +181,8 @@ namespace LongUI {
         &UIToolBar::s_meta,
         // Tool Bar 工具条用按钮
         &UIToolBarButton::s_meta,
+        // Menu Separator 菜单分隔栏
+        &UIMenuSeparator::s_meta,
         // Menu Bar 菜单栏
         &UIMenuBar::s_meta,
         // Menu 菜单
@@ -215,7 +207,6 @@ namespace LongUI {
         &UIMetaTypeDef::UIPopup__s_meta,
         &UIMetaTypeDef::UIToolBox__s_meta,
         &UIMetaTypeDef::UIPopupSet__s_meta,
-        &UIMetaTypeDef::UIMenuSeparator__s_meta,
         &UIMetaTypeDef::UIToolBarSeparator__s_meta,
 
 #ifndef NDEBUG

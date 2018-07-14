@@ -141,11 +141,11 @@ void LongUI::UITree::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_SELTYPE:
         // seltype      : 选择类型
         m_seltype = AttrParser::Seltype(value);
-        return;
+        break;
     case BKDR_ROWS:
         // rows         : 显示列数
         m_displayRow = value.ToInt32();
-        return;
+        break;
     default:
         // 其他交给父类处理
         return Super::add_attribute(key, value);

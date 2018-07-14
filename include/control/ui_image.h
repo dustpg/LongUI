@@ -28,6 +28,8 @@
 #include "ui_control.h"
 #include "../resource/ui_resource_id.h"
 
+#define LUI_IMAGE_ASICON_SUPPORT
+
 // ui namespace
 namespace LongUI {
     // image resource
@@ -39,6 +41,13 @@ namespace LongUI {
     public:
         // set image source
         void SetSource(U8View src) noexcept;
+#ifdef LUI_IMAGE_ASICON_SUPPORT
+        // just set center contain
+        void JustSetAsIcon() noexcept { m_bAsIcon = true; }
+#else
+        // just set center contain
+        void JustSetAsIcon() noexcept { }
+#endif
     protected:
         // ctor
         UIImage(UIControl* parent, const MetaControl&) noexcept;
@@ -62,10 +71,14 @@ namespace LongUI {
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
     protected:
-        // image id
-        CUIResourceID       m_idSrc;
         // shared image
         CUIImage*           m_pSharedSrc = nullptr;
+        // image id
+        CUIResourceID       m_idSrc;
+#ifdef LUI_IMAGE_ASICON_SUPPORT
+        // as icon
+        bool                m_bAsIcon = false;
+#endif
     };
     // get meta info for UIImage
     LUI_DECLARE_METAINFO(UIImage);

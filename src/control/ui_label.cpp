@@ -291,11 +291,11 @@ void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_VALUE:
         // value
         m_string = CUIString::FromUtf8(value);
-        return;
+        break;
     case BKDR_HREF:
         // href
         m_href = value;
-        return;
+        break;
     default:
         // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);

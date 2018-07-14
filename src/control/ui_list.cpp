@@ -202,11 +202,11 @@ void LongUI::UIListBox::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_SELTYPE:
         // seltype      : 选择类型
         m_seltype = AttrParser::Seltype(value);
-        return;
+        break;
     case BKDR_ROWS:
         // rows         : 显示列数
         m_displayRow = value.ToInt32();
-        return;
+        break;
     default:
         // 其他交给父类处理
         return Super::add_attribute(key, value);
@@ -790,7 +790,7 @@ void LongUI::UIListItem::add_attribute(uint32_t key, U8View value) noexcept {
     case "label"_bkdr:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
-        return;
+        break;
     default:
         // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);
@@ -1042,7 +1042,7 @@ void LongUI::UIListHeader::add_attribute(uint32_t key, U8View value) noexcept {
     case "label"_bkdr:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
-        return;
+        break;
     default:
         // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);

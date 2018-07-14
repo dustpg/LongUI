@@ -820,17 +820,23 @@ PCN_NOINLINE
 /// <param name="tc">The tc.</param>
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc, UIControl* ctrl) noexcept {
-    if (!tc) return;
-    auto&self = UIManager;
-    // 连接前后节点
-    self.m_oTailTimeCapsule.prev->next = tc;
-    tc->prev = self.m_oTailTimeCapsule.prev;
-    tc->next = &self.m_oTailTimeCapsule;
-    self.m_oTailTimeCapsule.prev = tc;
-    // 设置指针
-    if (tc->pointer = ctrl)
-        self.refresh_time_capsule(*ctrl, *tc);
+auto LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc, 
+    UIControl* ctrl) noexcept -> CUITimeCapsule* {
+    // 有效指针
+    if (tc) {
+        auto&self = UIManager;
+        // 连接前后节点
+        self.m_oTailTimeCapsule.prev->next = tc;
+        tc->prev = self.m_oTailTimeCapsule.prev;
+        tc->next = &self.m_oTailTimeCapsule;
+        self.m_oTailTimeCapsule.prev = tc;
+        // 设置指针
+        if (ctrl) {
+            tc->SetHoster(*ctrl);
+            self.refresh_time_capsule(*ctrl, *tc);
+        }
+    }
+    return tc;
 }
 
 /// <summary>

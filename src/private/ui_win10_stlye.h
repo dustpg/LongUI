@@ -56,6 +56,10 @@ namespace LongUI {
         };
         // constant
         enum : uint32_t {
+            // menu separator height
+            MENUSEPARATOR_HEIGHT = 5,
+            // menu separator lead
+            MENUSEPARATOR_LEAD = 28,
             // menu item height
             MENUITEM_HEIGHT = 21,
             // arrow size in px
@@ -99,6 +103,8 @@ namespace LongUI {
     private:
         // draw drop mark
         void draw_drop_mark(const NativeDrawArgs& args) noexcept;
+        // draw drop mark
+        void draw_menu_arrow(const NativeDrawArgs& args) noexcept;
         // draw arrow only
         void draw_arrow_only(const RectF&, const ColorF&, float angle) noexcept;
         // draw arrow button
@@ -151,6 +157,8 @@ namespace LongUI {
         static void draw_tab(const NativeDrawArgs& args) noexcept;
         // draw tab panels
         //static void draw_tab_panels(const NativeDrawArgs& args) noexcept;
+        // draw menu separator
+        static void draw_menu_separator(const RectF&) noexcept;
     private:
 #ifdef LUI_DRAW_ARROW_IN_MESH
         // arrow mesh

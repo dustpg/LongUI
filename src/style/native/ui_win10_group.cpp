@@ -72,3 +72,24 @@ void LongUI::CUINativeStyleWindows10::draw_list_item(
     //auto& bursh1 = UIManager.RefCCBrush(bdcolor);
     //renderer.DrawRectangle(auto_cast(center), &bursh1, border_halfw * 2.f);
 }
+
+
+
+/// <summary>
+/// Draws the menu separator.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_menu_separator(const RectF& rect) noexcept {
+    const auto color = ColorF::FromRGBA_CT<0xd7d7d7ff_rgba>();
+    // 渲染器
+    auto& renderer = UIManager.Ref2DRenderer();
+    // 线条色彩
+    auto& bursh0 = UIManager.RefCCBrush(color);
+    RectF line = { };
+    line.top = (rect.bottom + rect.top) * 0.5f - 0.5f;
+    line.bottom = line.top + 1.f;
+    line.left = rect.left + float(MENUSEPARATOR_LEAD);
+    line.right = rect.right - float(MENUSEPARATOR_HEIGHT);
+    renderer.FillRectangle(auto_cast(line), &bursh0);
+}

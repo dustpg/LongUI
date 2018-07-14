@@ -1,7 +1,9 @@
 ﻿// Gui
 #include <core/ui_window.h>
+#include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
+#include <event/ui_group_event.h>
 // Menu
 #include <control/ui_menulist.h>
 #include <control/ui_menuitem.h>
@@ -44,6 +46,8 @@ namespace LongUI {
         : image(&btn), label(&btn) {
         //UIControlPrivate::SetFocusable(image, false);
         //UIControlPrivate::SetFocusable(label, false);
+        const_cast<RectF&>(image.GetBox().margin) = { 2.f, 2.f, 2.f, 2.f };
+        this->image.JustSetAsIcon();
 #ifndef NDEBUG
         image.name_dbg = "menuitem::image";
         label.name_dbg = "menuitem::label";
@@ -110,7 +114,7 @@ LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexc
     : Super(parent, meta) {
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
-    m_oStyle.align = AttributeAlign::Align_Center;
+    m_oStyle.align = AttributeAlign::Align_Stretcht;
     //m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
     // 原子控件
@@ -160,12 +164,26 @@ auto LongUI::UIMenuItem::GetTextString() const noexcept -> const CUIString &{
 /// <returns></returns>
 auto LongUI::UIMenuItem::DoEvent(
     UIControl * sender, const EventArg & arg) noexcept -> EventAccept {
+    using group_t = const ImplicitGroupGuiArg;
     // 初始化
-
     switch (arg.nevent)
     {
     case  NoticeEvent::Event_Initialize:
         this->init_menuitem();
+        break;
+    case NoticeEvent::Event_ImplicitGroupChecked:
+        // 组有位成员被点中
+        if (sender == this) return Event_Ignore;
+        if (this->IsDisabled()) return Event_Ignore;
+        if (!this->IsChecked()) return Event_Ignore;
+        if (m_type != UIMenuItem::Type_Radio) return Event_Ignore;
+        if (m_pName != static_cast<group_t&>(arg).group_name)
+            return Event_Ignore;
+        // 是CHECKBOX类型?
+        this->SetChecked(false);
+#ifdef LUI_ACCESSIBLE
+        // TODO: ACCESSIBLE
+#endif
         break;
 #ifndef NDEBUG
     case NoticeEvent::Event_RefreshBoxMinSize:
@@ -175,6 +193,18 @@ auto LongUI::UIMenuItem::DoEvent(
     return Super::DoEvent(sender, arg);
 }
 
+/// <summary>
+/// Sets the checked.
+/// </summary>
+/// <param name="checked">if set to <c>true</c> [checked].</param>
+/// <returns></returns>
+void LongUI::UIMenuItem::SetChecked(bool checked) noexcept {
+    //if (this->IsChecked() == checked) return;
+
+    const auto statetp = StyleStateType::Type_Checked;
+    this->StartAnimation({ statetp , checked });
+    m_private->image.StartAnimation({ statetp , checked });
+}
 
 /// <summary>
 /// Adds the attribute.
@@ -183,6 +213,9 @@ auto LongUI::UIMenuItem::DoEvent(
 /// <param name="value">The value.</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
+    constexpr auto BKDR_SRC         = 0x001E57C4_ui32;
+    constexpr auto BKDR_NAME        = 0x0ed6f72f_ui32;
+    constexpr auto BKDR_TYPE        = 0x0fab1332_ui32;
     constexpr auto BKDR_LABEL       = 0x74e22f74_ui32;
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
     constexpr auto BKDR_SELECTED    = 0x03481b1f_ui32;
@@ -192,6 +225,18 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
         break;
+    case BKDR_SRC:
+        // src  : 图片名
+        UIControlPrivate::AddAttribute(m_private->image, BKDR_SRC, value);
+        break;
+    case BKDR_NAME:
+        // name :  组名
+        m_pName = UIManager.GetUniqueText(value);
+        break;
+    case BKDR_TYPE:
+        // type : 类型
+        m_type = this->view2type(value);
+        break;
     case BKDR_SELECTED:
         // selected: 选择
         if (const auto obj = uisafe_cast<UIMenuPopup>(m_pParent)) {
@@ -199,11 +244,26 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
             obj->m_pPerSelected = this;
         }
         break;
+    default:
+        // 其他的交给父类处理
+        return Super::add_attribute(key, value);
     }
-    return Super::add_attribute(key, value);
 }
 
 
+/// <summary>
+/// View2types the specified view.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::UIMenuItem::view2type(U8View view)noexcept->ItemType {
+    switch (*view.begin())
+    {
+    default: return UIMenuItem::Type_Normal;
+    case 'c': return UIMenuItem::Type_CheckBox;
+    case 'r': return UIMenuItem::Type_Radio;
+    }
+}
 
 /// <summary>
 /// Renders this instance.
@@ -220,11 +280,55 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
 void LongUI::UIMenuItem::init_menuitem() noexcept {
     UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_MenuItem);
     if (!m_private) return;
+    // 父节点必须是UIMenuPopup
+    if (const auto ptr = longui_cast<UIMenuPopup*>(m_pParent)) {
+        // 不是COMBOBOX
+        if (ptr->HasPaddingForItem()) {
+            switch (m_type)
+            {
+            case LongUI::UIMenuItem::Type_CheckBox:
+                UIControlPrivate::SetAppearanceIfNotSet(m_private->image, Appearance_MenuCheckBox);
+                UIControlPrivate::GetStyleState(m_private->image).checked = m_oStyle.state.checked;
+                break;
+            case LongUI::UIMenuItem::Type_Radio:
+                UIControlPrivate::SetAppearanceIfNotSet(m_private->image, Appearance_MenuRadio);
+                UIControlPrivate::GetStyleState(m_private->image).checked = m_oStyle.state.checked;
+                break;
+            }
+            // XXX: 标准化
+            m_oBox.padding.right = float(ICON_WIDTH);
+            m_private->image.SetStyleMinSize({ float(ICON_WIDTH), 0.f });
+        }
+    }
+
+
     //constexpr auto iapp = Appearance_CheckBox;
     //UIControlPrivate::SetAppearanceIfNotSet(m_private->image, iapp);
     // 标签数据
     //auto& label = m_private->label;
     //const auto a = label.GetText();
+}
+
+
+/// <summary>
+/// Does the checkbox.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuItem::do_checkbox() noexcept {
+    const auto statetp = StyleStateType::Type_Checked;
+    const auto checked = !this->GetStyle().state.checked;
+    this->StartAnimation({ statetp , checked });
+    m_private->image.StartAnimation({ statetp , checked });
+}
+
+/// <summary>
+/// Does the radio.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuItem::do_radio() noexcept {
+    if (m_oStyle.state.checked) return;
+    this->SetChecked(true);
+    LongUI::DoImplicitGroupGuiArg(*this, m_pName);
 }
 
 
@@ -237,41 +341,28 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
     // 左键弹起 修改状态
     switch (e.type)
     {
-    /*case LongUI::MouseEvent::Event_MouseEnter:
-
-        this->StartAnimation({ statetp , checked });
-        break;
-    case LongUI::MouseEvent::Event_MouseLeave*/
+    //case LongUI::MouseEvent::Event_MouseLeave:
+    //case LongUI::MouseEvent::Event_MouseIdleHover:
+    //    m_pWindow->ClosePopup();
+    //    break;
     case LongUI::MouseEvent::Event_LButtonUp:
-        {
-            const auto statetp = StyleStateType::Type_Checked;
-            const auto checked = !this->GetStyle().state.checked;
-            this->StartAnimation({ statetp , checked });
-            m_private->image.StartAnimation({ statetp , checked });
+        // 复选框
+        if (m_type == UIMenuItem::Type_CheckBox) {
+            this->do_checkbox();
+        }
+        // 单选框
+        else if (m_type == UIMenuItem::Type_Radio) {
+            this->do_radio();
         }
         // 事件
         this->TriggrtEvent(_selected());
-        // 关闭弹出窗口
-        if (const auto wnd = this->GetWindow()) {
-            if (wnd->config & CUIWindow::Config_Popup) {
-                assert(wnd->GetParent());
-                wnd->GetParent()->ClosePopup();
-            }
-        }
+        m_pWindow->ClosePopupHighLevel();
     }
     return Super::DoMouseEvent(e);
 }
 
 
-
-
-
-
-
 // --------------------------- UIMenuList  ---------------------
-
-
-
 
 
 
@@ -587,9 +678,8 @@ void LongUI::UIMenuPopup::WindowClosed() noexcept {
     // 不保存
     else {
         //if (m_pLastSelected) this->change_select(m_pLastSelected, nullptr);
-        // 相同的选择就置空
-        if (m_pPerSelected && m_pPerSelected == m_pLastSelected) {
-            this->change_select(m_pPerSelected, nullptr);
+        if (m_pPerSelected) {
+            m_pPerSelected->StartAnimation({ StyleStateType::Type_Selected, false });
         }
         m_pLastSelected = nullptr;
         m_pPerSelected = nullptr;
@@ -654,6 +744,40 @@ void LongUI::UIMenuPopup::SelectFirstItem() noexcept {
 /// <returns></returns>
 void LongUI::UIMenuPopup::ClearSelected() noexcept {
     if (m_pLastSelected) this->select(nullptr);
+}
+
+
+/// <summary>
+/// Subs the viewport popup begin.
+/// </summary>
+/// <param name="vp">The vp.</param>
+/// <param name="type">The type.</param>
+/// <returns></returns>
+void LongUI::UIMenuPopup::SubViewportPopupBegin(UIViewport& vp, PopupType type) noexcept {
+    if (m_pDelayClosed) {
+        m_pDelayClosed->Dispose();
+        m_pDelayClosed = nullptr;
+    }
+}
+
+
+/// <summary>
+/// Sets the delay closed popup.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::SetDelayClosedPopup() noexcept {
+    if (m_pDelayClosed) {
+
+    }
+    else {
+        const auto window = m_pWindow;
+        auto& capsule = m_pDelayClosed;
+        capsule = UIManager.CreateTimeCapsule([window, &capsule](float t) noexcept {
+            if (t < 1.f) return;
+            capsule = nullptr;
+            window->ClosePopup();
+        }, 0.5f, this);
+    }
 }
 
 /// <summary>

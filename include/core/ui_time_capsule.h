@@ -48,12 +48,13 @@ namespace LongUI {
         bool Call(float delta) noexcept;
         // is more mo than
         bool IsMoreMOThan(const CUITimeCapsule& x) const noexcept;
-#if 1
-    public:
-        // pointer
-        UIControl *         pointer = nullptr;
-#endif
+        // set hoster
+        void SetHoster(UIControl& hoster) noexcept { m_pHoster = &hoster; }
+        // is same hoster
+        bool IsSameHoster(UIControl& hoster) const noexcept { return m_pHoster == &hoster; }
     private:
+        // pointer
+        UIControl *         m_pHoster = nullptr;
         // total time
         float      const    m_fTotalTime;
         // time done

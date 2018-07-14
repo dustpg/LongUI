@@ -130,6 +130,14 @@ void LongUI::UIButton::add_private_child() noexcept {
     }
 }
 
+/// <summary>
+/// Sets the label flex.
+/// </summary>
+/// <param name="f">The f.</param>
+/// <returns></returns>
+void LongUI::UIButton::set_label_flex(float f) noexcept {
+    UIControlPrivate::SetFlex(m_private->label, f);
+}
 
 /// <summary>
 /// Sets the text.
@@ -217,8 +225,7 @@ void LongUI::UIButton::SetText(CUIString&& text) noexcept {
 /// <param name="group">The group.</param>
 /// <returns></returns>
 void LongUI::DoImplicitGroupGuiArg(UIControl& ctrl, const char* group) noexcept {
-    const auto parent = ctrl.GetParent();
-    if (parent && group) {
+    if (const auto parent = ctrl.GetParent()) {
         const ImplicitGroupGuiArg arg{ group };
         for (auto& child : (*parent)) {
             child.DoEvent(&ctrl, arg);
@@ -370,23 +377,23 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
     case "label"_bkdr:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
-        return;
+        break;
     case BKDR_ACCESSKEY:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, key, value);
-        return;
+        break;
     case BKDR_IMAGE:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->image, BKDR_SRC, value);
-        return;
+        break;
     case BKDR_TYPE:
         // type  : BUTTON类型
         m_type = this->parse_button_type(value);
-        return;
+        break;
     case BKDR_GROUP:
         // group : 按键组
         m_pGroup = UIManager.GetUniqueText(value);
-        return;
+        break;
     default:
         // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);

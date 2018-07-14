@@ -30,10 +30,16 @@ namespace LongUI {
             this->draw_text_cell();
             this->draw_dirty_rect();
             this->link_style_sheet();
+            //UIManager.CreateTimeCapsule([this](float t) noexcept {
+            //    if (t < 1.f) return;
+            //    const auto window = this->GetWindow();
+            //    const auto ctrl = window->FindControl("btn-exit");
+            //    const auto btn = longui_cast<UIButton*>(ctrl);
+            //    btn->SetText(L"EXIT"_sv);
+            //}, 5.f, this);
         }
         // dtor
-        ~CUIDebugView() noexcept {
-        }
+        ~CUIDebugView() noexcept { }
     private:
         // do button
         auto do_button(const char* name) noexcept {

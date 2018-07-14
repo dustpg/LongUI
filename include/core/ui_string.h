@@ -39,10 +39,10 @@ namespace LongUI {
         CUIBasicString(const Self& str) noexcept : Self() { this->assign(str); }
         // ctor with c-style string
         CUIBasicString(const T* str) noexcept : Self(str, str + detail::strlen(str)) { }
-        // ctor with view
-        CUIBasicString(View view) noexcept : Self(view.begin(), view.end()) { }
         // ctor with init list
         CUIBasicString(std::initializer_list<T> list) noexcept : Self(list.begin(), list.end()) { }
+        // ctor with view
+        CUIBasicString(View view) noexcept : Self(view.begin(), view.end()) { }
         // move ctor
         CUIBasicString(Self&& str) noexcept : m_vector(std::move(str.m_vector)) {  }
     public:

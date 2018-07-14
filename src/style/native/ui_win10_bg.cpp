@@ -14,9 +14,10 @@
 /// <returns></returns>
 void LongUI::CUINativeStyleWindows10::draw_selbg(const NativeDrawArgs& args) noexcept {
     // 正式渲染
-    auto draw_this = [&args](float alpha) noexcept {
+    auto draw_this = [&args](float alpha, bool disabled) noexcept {
         auto& renderer = UIManager.Ref2DRenderer();
-        auto color = ColorF::FromRGBA_CT<0x0078d7ff_rgba>();
+        auto color = ColorF::FromRGBA_CT<0x3399ffff_rgba>();
+        if (disabled) color = ColorF::FromRGBA_CT<0xd6d6d6ff_rgba>();
         color.a = alpha;
         auto& brush = UIManager.RefCCBrush(color);
         auto rect = args.border;
@@ -24,7 +25,6 @@ void LongUI::CUINativeStyleWindows10::draw_selbg(const NativeDrawArgs& args) noe
         rect.right = rect.left + width * alpha;
         renderer.FillRectangle(auto_cast(rect), &brush);
     };
-
     // 改变时
     if (args.to.selected || args.from.selected) {
         // 渲染
@@ -32,7 +32,7 @@ void LongUI::CUINativeStyleWindows10::draw_selbg(const NativeDrawArgs& args) noe
             if (args.to.selected == args.from.selected) return 1.f;
             else return args.from.selected ? 1.f - args.progress : args.progress;
         };
-        draw_this(get_alpha());
+        draw_this(get_alpha(), args.to.disabled);
     }
 }
 

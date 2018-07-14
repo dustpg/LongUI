@@ -4,6 +4,8 @@ DComp?
 
 CUIWaiter单独测试?
 
+Event_Initialize 时构造对象?
+
 窗口生命周期控制?
 
 Context Menu按键支持

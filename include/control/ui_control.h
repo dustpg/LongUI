@@ -216,6 +216,8 @@ namespace LongUI {
         auto IsDeleteLater() const noexcept { return m_state.delete_later; }
         // mark delete later
         auto MarkDeleteLater() noexcept { m_state.delete_later = true; }
+        // try clear last time capsule
+        void TryClearLastTimeCapsule(CUITimeCapsule& tc) noexcept;
     public:
         // resize
         bool Resize(Size2F size) noexcept;

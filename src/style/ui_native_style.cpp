@@ -57,6 +57,10 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
     case LongUI::Appearance_ProgressChunkV:
     case LongUI::Appearance_ScrollbarTrackH:
     case LongUI::Appearance_ScrollbarTrackV:
+    case LongUI::Appearance_DropDownMarker:
+    case LongUI::Appearance_MenuSeparator:
+    case LongUI::Appearance_MenuArrow:
+    case LongUI::Appearance_Separator:
         return 0;
     case LongUI::Appearance_Tab:
         return BASIC_ANIMATION_DURATION * 2;

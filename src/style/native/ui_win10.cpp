@@ -22,15 +22,19 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
         uint32_t index; ArrowDirection dir;
     default: case LongUI::Appearance_None: assert(!"error"); return;
     case LongUI::Appearance_Radio:
+    case LongUI::Appearance_MenuRadio:
         return this->draw_radio(args);
     case LongUI::Appearance_Button:
         return this->draw_button(args);
     case LongUI::Appearance_Resizer:
         return this->draw_rasizer(args);
     case LongUI::Appearance_CheckBox:
+    case LongUI::Appearance_MenuCheckBox:
         return this->draw_checkbox(args);
     case LongUI::Appearance_ToolBarButton:
         return this->draw_tb_button(args);
+    case LongUI::Appearance_MenuSeparator:
+        return this->draw_menu_separator(args.border);
     case LongUI::Appearance_ScrollBarButtonUp:
     case LongUI::Appearance_ScrollBarButtonRight:
     case LongUI::Appearance_ScrollBarButtonDown:
@@ -72,6 +76,8 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
         return this->draw_tree_twisty(args);
     case LongUI::Appearance_DropDownMarker:
         return this->draw_drop_mark(args);
+    case LongUI::Appearance_MenuArrow:
+        return this->draw_menu_arrow(args);
     case LongUI::Appearance_MenuItem:
         return this->draw_selbg(args);
     case LongUI::Appearance_Tab:
@@ -187,6 +193,10 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(
         // 包含文字, 不适合设置
         //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
         break;
+    case LongUI::Appearance_MenuSeparator:
+        ctrl.SetStyleMinSize({ 0, MENUSEPARATOR_HEIGHT });
+        break;
+    case LongUI::Appearance_MenuArrow:
     case LongUI::Appearance_TreeTwisty:
     case LongUI::Appearance_DropDownMarker:
     case LongUI::Appearance_ScrollBarButtonUp:

@@ -163,6 +163,8 @@ namespace LongUI {
         void ControlDisattached(UIControl& ctrl) noexcept;
         // add named control                [null this ptr acceptable]
         void AddNamedControl(UIControl& ctrl) noexcept;
+        // close popupwindow until not popup[null this ptr acceptable]
+        void ClosePopupHighLevel() noexcept;
         // set captured control
         void SetCapture(UIControl& ctrl) noexcept;
         // release captured control, return true if released

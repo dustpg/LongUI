@@ -43,6 +43,17 @@ namespace LongUI {
         // selected event
         static inline constexpr auto _selected() noexcept { return GuiEvent::Event_Select; }
     public:
+        // ICON WIDTH
+        enum : uint32_t { ICON_WIDTH = 28 };
+        // item type
+        enum ItemType : uint32_t {
+            // normal type
+            Type_Normal = 0,
+            // checkbox
+            Type_CheckBox,
+            // radio
+            Type_Radio,
+        };
         // class meta
         static const  MetaControl   s_meta;
         // dtor
@@ -61,7 +72,17 @@ namespace LongUI {
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // re-layout
         //void relayout() noexcept override;
+        // view to type
+        static auto view2type(U8View) noexcept->ItemType;
+        // do check box
+        void do_checkbox() noexcept;
+        // do radio
+        void do_radio() noexcept;
     public:
+        // set check
+        void SetChecked(bool checked) noexcept;
+        // is checked?
+        auto IsChecked() const noexcept { return m_oStyle.state.checked; }
         // get text
         auto GetText() const noexcept->const wchar_t*;
         // get text object
@@ -69,6 +90,11 @@ namespace LongUI {
     private:
         // private data
         Private*            m_private = nullptr;
+    protected:
+        // group name
+        const char*         m_pName = nullptr;
+        // item type
+        ItemType            m_type = Type_Normal;
     };
     // get meta info for UIMenuItem
     LUI_DECLARE_METAINFO(UIMenuItem);

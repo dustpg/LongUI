@@ -68,6 +68,8 @@ namespace LongUI {
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // window closed
         void WindowClosed() noexcept override;
+        // popup begin
+        void SubViewportPopupBegin(UIViewport&, PopupType) noexcept override;
     public:
         // get last selected
         auto GetLastSelected() const noexcept { return m_pLastSelected; }
@@ -77,6 +79,8 @@ namespace LongUI {
         void SelectFirstItem() noexcept;
         // clear select
         void ClearSelected() noexcept;
+        // set delay closed popup
+        void SetDelayClosedPopup() noexcept;
     protected:
         // add child
         //void add_child(UIControl& child) noexcept override;
@@ -92,11 +96,16 @@ namespace LongUI {
         auto save_selected_false() noexcept { m_state.custom_data = false; }
         // selected before init
         //void selected_before_init(UIControl&c) noexcept { m_pPerSelected = &c; }
+    public:
+        // has padding for menuitem
+        bool HasPaddingForItem() const noexcept { return !is_save_selected(); }
     protected:
         // last-selected
         UIMenuItem*             m_pLastSelected = nullptr;
         // pre-selected
         UIControl*              m_pPerSelected = nullptr;
+        // delay closed time capsule
+        CUITimeCapsule*         m_pDelayClosed = nullptr;
         // selected index
         int32_t                 m_iSelected = -1;
         // mouse in

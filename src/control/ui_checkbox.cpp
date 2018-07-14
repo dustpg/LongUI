@@ -165,7 +165,7 @@ void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
     case "label"_bkdr:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
-        return;
+        break;
     default:
         // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);

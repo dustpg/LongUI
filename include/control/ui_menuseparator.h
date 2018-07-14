@@ -24,10 +24,27 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_spacer.h"
+#include "ui_control.h"
 
 // ui namespace
 namespace LongUI {
-    // menu separator
-    using UIMenuSeparator = UISpacer;
+    // spacer
+    class UIMenuSeparator : public UIControl {
+        // super class
+        using Super = UIControl;
+        // friend class
+        friend UIMetaTypeDef;
+    protected:
+        // ctor
+        UIMenuSeparator(UIControl* parent, const MetaControl&) noexcept;
+    public:
+        // class meta
+        static const  MetaControl   s_meta;
+        // dtor
+        ~UIMenuSeparator() noexcept = default;
+        // ctor
+        UIMenuSeparator(UIControl* parent = nullptr) noexcept :UIMenuSeparator(parent, UIMenuSeparator::s_meta) {}
+    };
+    // get meta info for UIMenuSeparator
+    LUI_DECLARE_METAINFO(UIMenuSeparator);
 }

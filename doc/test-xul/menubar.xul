@@ -69,44 +69,50 @@ function imagize(btnID,imageID)
 
     <menubar id="my-menubar">
       <label value="This is a menubar" />
-      <toolbarseparator />
+      <toolbarseparator/>
       <menu label="Radio" accesskey="R">
         <menupopup >
-          <menuitem label="123" />
-          <menuitem label="123" />
-          <menuitem label="123"/>
-           <!-- <menuitem type="radio" name="radio" label="Radio1" />
-           <menuitem type="radio" name="radio" label="Radio2" />
-           <menuitem type="radio" name="radio" label="Radio3" /> -->
+           <menuitem type="radio" label="Radio1" />
+           <menuitem type="radio" label="Radio2" />
+           <menuitem type="radio" label="Radio3" />
         </menupopup>
       </menu>
       <menu label="Checkbox" accesskey="C">
         <menupopup>
-           <menuitem type="checkbox" label="Check1" />
+           <menuitem type="checkbox" label="Check1" checked="true" />
            <menuitem type="checkbox" label="Check2" />
            <menuitem type="checkbox" label="Check3" />
         </menupopup>
       </menu>
       <menu label="Cascading" accesskey="a">
         <menupopup>
-           <!-- <menu label="More" >
+           <menu label="More!!!!!!!!!!!!!!!!!!!!!!!!!!!" >
              <menupopup>
                <menuitem label="A" />
                <menuitem label="B" />
                <menuitem label="C" />
-               <menuseparator />
+               <!-- <menuseparator />
                <menu label="More" >
                  <menupopup>
                    <menuitem label="1" />
                    <menuitem label="2" />
                    <menuitem label="3" />
                  </menupopup>
-               </menu>
+               </menu> -->
              </menupopup>
-           </menu> -->
-           <menuseparator />
+           </menu>
+            <menu label="ABC" >
+             <menupopup>
+               <menuitem label="A" />
+               <menuitem label="B" />
+               <menuitem label="C" />
+             </menupopup>
+           </menu>
+           <menuseparator/>
            <menuitem label="X" />
+           <menuseparator/>
            <menuitem label="Y" />
+           <menuseparator/>
            <menuitem label="Z" />
         </menupopup>
       </menu>

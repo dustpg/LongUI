@@ -512,19 +512,19 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_DISABLED & MASK_HASH:
         // disabled   : 禁用状态
         //if (value) m_oStyle.state.disabled = true;
-        m_oStyle.state.disabled = static_cast<bool>(value);
+        m_oStyle.state.disabled = value.ToBool();
         break;
     case BKDR_CHECKED & MASK_HASH:
         // checked
-        m_oStyle.state.checked = static_cast<bool>(value);
+        m_oStyle.state.checked = value.ToBool();
         break;
     case BKDR_DEFAULT & MASK_HASH:
         // default    : 窗口初始默认控件
-        if (m_pWindow && value) m_pWindow->SetDefault(*this);
+        if (m_pWindow && value.ToBool()) m_pWindow->SetDefault(*this);
         break;
     case BKDR_VISIBLE & MASK_HASH:
         // visible    : 是否可见
-        m_state.visible = static_cast<bool>(value);
+        m_state.visible = value.ToBool();
         break;
     //case BKDR_TABINDEX:
     //    // tabindex   : tab键索引

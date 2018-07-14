@@ -90,6 +90,8 @@ namespace LongUI {
         void add_private_child() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+        // set label flex
+        void set_label_flex(float f) noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event

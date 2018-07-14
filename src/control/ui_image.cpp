@@ -67,7 +67,7 @@ void LongUI::UIImage::add_attribute(uint32_t key, U8View value) noexcept {
         this->SetSource(value);
         break;
     default:
-        // 父类处理
+        // 其他情况, 交给基类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -151,7 +151,32 @@ void LongUI::UIImage::Render() const noexcept {
     // 图像有效
     if (m_pSharedSrc) {
         // 将目标画在内容区
-        const auto des_rect = this->GetBox().GetContentEdge();
+        auto des_rect = this->GetBox().GetContentEdge();
+        // 居中显示
+#ifdef LUI_IMAGE_ASICON_SUPPORT
+        if (m_bAsIcon) {
+            const auto usize = m_pSharedSrc->GetSize();
+            const auto src_w = static_cast<float>(usize.width);
+            const auto src_h = static_cast<float>(usize.height);
+            const auto des_w = des_rect.right - des_rect.left;
+            const auto des_h = des_rect.bottom - des_rect.top;
+
+            const auto target_h = des_w / src_w * src_h;
+            // [target_w, des_h]
+            if (target_h > des_h) {
+                const auto target_w = des_h / src_h * src_w;
+                const auto half = (des_w - target_w) * 0.5f;
+                des_rect.left += half;
+                des_rect.right -= half;
+            }
+            // [des_w, target_h]
+            else {
+                const auto half = (des_h - target_h) * 0.5f;
+                des_rect.top += half;
+                des_rect.bottom -= half;
+            }
+        }
+#endif
         m_pSharedSrc->Render(UIManager.Ref2DRenderer(), &des_rect);
     }
 }

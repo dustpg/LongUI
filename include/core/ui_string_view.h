@@ -35,8 +35,6 @@ namespace LongUI {
         auto begin() const noexcept { return first; };
         // end
         auto end() const noexcept { return second; };
-        // is true?
-        operator bool() noexcept { return *begin() == 't'; }
         // to RGBA32 in byte order
         auto ColorRGBA32() const noexcept->uint32_t {
             return detail::color_rgba32(
@@ -63,6 +61,8 @@ namespace LongUI {
         operator double() const noexcept;
         // to int32_t
         operator int32_t() const noexcept;
+        // to bool
+        bool ToBool() noexcept { return *begin() == 't'; }
         // to float
         auto ToFloat() const noexcept { return static_cast<float>(*this); }
         // to int32_t

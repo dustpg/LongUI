@@ -1,10 +1,13 @@
 ﻿// Gui Core
 #include <core/ui_window.h>
+#include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
+#include <core/ui_popup_window.h>
 //#include <debugger/ui_debug.h>
 // Control
 #include <control/ui_menu.h>
 #include <control/ui_menubar.h>
+#include <control/ui_menuitem.h>
 #include <control/ui_menupopup.h>
 // Private
 #include "../private/ui_private_control.h"
@@ -73,6 +76,20 @@ LongUI::UIMenu::UIMenu(UIControl* parent, const MetaControl& meta) noexcept
 }
 
 
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenu::Update() noexcept {
+    // 准备构造
+    if (m_pMenuArrow == reinterpret_cast<UIControl*>(-1)) {
+        if (m_pMenuArrow = new(std::nothrow) UIControl{ this }) {
+            constexpr auto app = Appearance_MenuArrow;
+            UIControlPrivate::SetAppearance(*m_pMenuArrow, app);
+        }
+    }
+    return Super::Update();
+}
 
 /// <summary>
 /// Does the event.
@@ -81,30 +98,41 @@ LongUI::UIMenu::UIMenu(UIControl* parent, const MetaControl& meta) noexcept
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UIMenu::DoEvent(UIControl * sender,
-    const EventArg & e) noexcept -> EventAccept {
+    const EventArg& e) noexcept -> EventAccept {
     // 初始化
     switch (e.nevent)
     {
     case NoticeEvent::Event_Initialize:
-        // 初始化
-        UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_ToolBarButton);
+        // 父节点是MenuPopup?
+        if (uisafe_cast<UIMenuPopup>(m_pParent)) {
+            UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_MenuItem);
+            m_oBox.padding.left = UIMenuItem::ICON_WIDTH;
+            m_pMenuArrow = reinterpret_cast<UIControl*>(-1);
+            this->set_label_flex(1.f);
+        }
+        // 其他情况
+        else {
+            UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_ToolBarButton);
+        }
         break;
     case NoticeEvent::Event_PopupBegin:
         // 弹出的是内建的菜单
         if (sender == m_pMenuPopup) {
-            assert(m_pParent && "parent must be UIMenuBar");
-            const auto bar = longui_cast<UIMenuBar*>(m_pParent);
-            bar->SetNowMenu(*this);
-            //LUIDebug(Hint) << "Menu On" << endl;
+            assert(m_pParent && "parent must be valid");
+            // 父节点是UIMenuBar?
+            if (const auto bar = uisafe_cast<UIMenuBar>(m_pParent)) {
+                bar->SetNowMenu(*this);
+            }
         }
         break;
     case NoticeEvent::Event_PopupEnd:
         // 关闭的是内建的菜单
         if (sender == m_pMenuPopup) {
-            assert(m_pParent && "parent must be UIMenuBar");
-            const auto bar = longui_cast<UIMenuBar*>(m_pParent);
-            bar->ClearNowMenu();
-            //LUIDebug(Hint) << "Menu Off" << endl;
+            assert(m_pParent && "parent must be valid");
+            // 父节点是UIMenuBar?
+            if (const auto bar = uisafe_cast<UIMenuBar>(m_pParent)) {
+                bar->ClearNowMenu();
+            }
         }
         break;
     }
@@ -122,14 +150,62 @@ auto LongUI::UIMenu::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept 
     {
     case MouseEvent::Event_MouseEnter:
         // 鼠标移入而且菜单条处于激活模式
-    {
-        assert(m_pParent && "parent must be UIMenuBar");
-        const auto bar = longui_cast<UIMenuBar*>(m_pParent);
-        if (bar->HasNowMenu(*this)) this->Click();
+        assert(m_pParent && "parent must be vaild");
+        // 父节点是UIMenuBar
+        if (const auto bar = uisafe_cast<UIMenuBar>(m_pParent)) {
+            if (bar->HasNowMenu(*this)) this->Click();
+        }
+        // 父节点是MenuPopup
+        else if (const auto menu = longui_cast<UIMenuPopup*>(m_pParent)) {
+
+        }
+        break;
+    case MouseEvent::Event_MouseLeave:
+        if (m_pMenuPopup && uisafe_cast<UIMenuPopup>(m_pParent)) {
+            static_cast<UIMenuPopup*>(m_pParent)->SetDelayClosedPopup();
+        }
+        break;
+    case MouseEvent::Event_MouseIdleHover:
+        // 显示下一级
+        if (m_pMenuPopup && uisafe_cast<UIMenuPopup>(m_pParent)) {
+            this->try_show_next_level_menu();
+            return Event_Accept;
+        }
+        break;
+    case MouseEvent::Event_LButtonUp:
+        // 父节点是MenuPopup?
+        if (m_pMenuPopup && uisafe_cast<UIMenuPopup>(m_pParent)) {
+            // 显示下一级菜单
+            this->try_show_next_level_menu();
+            // XXX: 截断上流消息, 直达UIControl
+            return UIControl::DoMouseEvent(e);
+        }
         break;
     }
-    }
     return Super::DoMouseEvent(e);
+}
+
+/// <summary>
+/// Tries the show next level menu.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenu::try_show_next_level_menu() noexcept {
+    // 没有头发
+    assert(m_pMenuPopup && "must be valid");
+    // 显示了就不算
+    if (m_pMenuPopup->RefWindow().IsVisible()) return;
+    // CHECK状态
+    constexpr auto ct = StyleStateType::Type_Checked;
+    this->StartAnimation({ ct, true });
+    // XXX: 出现在右侧
+    const auto edge = this->GetBox().GetBorderEdge();
+    const auto pos = this->MapToWindowEx({ edge.right - 5, 0 });
+    LongUI::PopupWindowFromViewport(
+        *this,
+        *m_pMenuPopup,
+        pos,
+        PopupType::Type_Popup
+    );
 }
 
 /// <summary>
@@ -156,10 +232,13 @@ void LongUI::UIMenu::add_child(UIControl& child) noexcept {
 /// <returns></returns>
 void LongUI::UIMenu::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_TYPE = 0x0fab1332_ui32;
-    // 无视TYPE
     switch (key)
     {
-    case BKDR_TYPE: return;
+    case BKDR_TYPE:
+        // 无视TYPE
+        break;
+    default:
+        // 其他情况, 交给基类处理
+        return Super::add_attribute(key, value);
     }
-    return Super::add_attribute(key, value);
 }

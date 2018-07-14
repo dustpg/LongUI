@@ -110,6 +110,18 @@ void LongUI::CUINativeStyleWindows10::draw_drop_mark(
 }
 
 /// <summary>
+/// Draws the menu arrow.
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_menu_arrow(
+    const NativeDrawArgs & args) noexcept {
+    const auto color = ColorF::FromRGBA_CT<0x3d3d3dff_rgba>();
+    constexpr float angle = Direction_Right * 90.f;
+    return this->draw_arrow_only(args.border, color, angle);
+}
+
+/// <summary>
 /// Gets the color of the arrow BTN.
 /// </summary>
 /// <param name="state">The state.</param>
