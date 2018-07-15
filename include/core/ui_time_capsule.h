@@ -32,8 +32,12 @@
 namespace LongUI {
     // control
     class UIControl;
+    // contrl control
+    class CUIControlControl;
     // time capsule
     class CUITimeCapsule : public Node, public CUISmallObject {
+        // friend
+        friend CUIControlControl;
     protected:
         // ctor
         CUITimeCapsule(float total) noexcept;
@@ -41,9 +45,15 @@ namespace LongUI {
         virtual ~CUITimeCapsule() noexcept = default;
         // call
         virtual void call(float p) noexcept = 0;
-    public:
         // delete this
-        void Dispose() noexcept;
+        void dispose() noexcept;
+        // normal check hoster last end
+        void normal_check_hoster_last_end() noexcept;
+    public:
+        // force terminate
+        void Terminate() noexcept;
+        // restart
+        void Restart() noexcept;
         // call this
         bool Call(float delta) noexcept;
         // is more mo than

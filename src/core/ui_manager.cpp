@@ -394,6 +394,11 @@ namespace LongUI {
         UIControl* create_control(const char*a, const char*b, UIControl*p) noexcept {
             return UIManager.CreateControl({ a,b }, p);
         }
+        // search for last end
+        void search_capsule_for_last_end(UIControl& ctrl) noexcept {
+            UIManager.RefreshTimeCapsule(ctrl);
+        }
+
     }
 }
 
@@ -838,6 +843,7 @@ auto LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc,
     }
     return tc;
 }
+
 
 /// <summary>
 /// Shows the error.

@@ -258,8 +258,13 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         // 访问行为
         this->Click();
         break;
+    case NoticeEvent::Event_PopupBegin:
+        // 弹出窗口
+        m_bPopupShown = true;
+        break;
     case NoticeEvent::Event_PopupEnd:
         // 弹出窗口关闭
+        m_bPopupShown = false;
         if (sender == m_pMenuPopup) {
             constexpr auto ct = StyleStateType::Type_Checked;
             this->StartAnimation({ ct, false });

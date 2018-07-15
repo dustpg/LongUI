@@ -592,7 +592,7 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
             const auto& this_main = block->main[i];
             // 匹配成功: 添加属性
             if (LongUI::MatchSelector(ctrl, this_main)) {
-                auto& matched = UIControlPrivate::GetStyleMatched(ctrl);
+                auto& matched = UIControlPrivate::RefStyleMatched(ctrl);
                 const auto& src = block->list;
                 const auto index = matched.size();
                 const auto src_len = src.size();

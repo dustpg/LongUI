@@ -29,6 +29,9 @@ struct LongUI::UIControlPrivate {
     // do mouse leave event
     static auto DoMouseLeave(UIControl& ctrl, const Point2F& pos) noexcept->EventAccept;
     // ----------- INLINE ZONE ----------------
+    // ref last end time capsule
+    static auto&RefLastEnd(UIControl& ctrl) noexcept {
+        return ctrl.m_pLastEnd; }
     // set focusable
     static void SetFocusable(UIControl& ctrl, bool f) noexcept {
         ctrl.m_state.focusable = f; }
@@ -54,11 +57,11 @@ struct LongUI::UIControlPrivate {
     // get parent data
     static auto GetParentData(const UIControl& ctrl) noexcept {
         return ctrl.m_uData4Parent; }
-    // get style state
-    static auto&GetStyleState(UIControl& ctrl) noexcept {
+    // ref style state
+    static auto&RefStyleState(UIControl& ctrl) noexcept {
         return ctrl.m_oStyle.state; }
-    // get style matched value
-    static auto&GetStyleMatched(UIControl& ctrl) noexcept {
+    // ref style matched value
+    static auto&RefStyleMatched(UIControl& ctrl) noexcept {
         return ctrl.m_oStyle.matched; }
     // set parent data
     static auto SetParentData(UIControl& ctrl, uint32_t data) noexcept {

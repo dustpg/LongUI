@@ -66,6 +66,8 @@ namespace LongUI {
         void Update() noexcept override;
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
+        // do mouse event
+        auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept;
         // window closed
         void WindowClosed() noexcept override;
         // popup begin
@@ -81,6 +83,8 @@ namespace LongUI {
         void ClearSelected() noexcept;
         // set delay closed popup
         void SetDelayClosedPopup() noexcept;
+        // mark no delay closed popup
+        void MarkNoDelayClosedPopup() noexcept;
     protected:
         // add child
         //void add_child(UIControl& child) noexcept override;
@@ -110,6 +114,8 @@ namespace LongUI {
         int32_t                 m_iSelected = -1;
         // mouse in
         bool                    m_bMouseIn = false;
+        // no delay closed once
+        //bool                    m_bNoClosedOnce = false;
     };
     // get meta info for UIMenuPopup
     LUI_DECLARE_METAINFO(UIMenuPopup);

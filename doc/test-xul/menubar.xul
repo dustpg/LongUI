@@ -91,14 +91,14 @@ function imagize(btnID,imageID)
                <menuitem label="A" />
                <menuitem label="B" />
                <menuitem label="C" />
-               <!-- <menuseparator />
+               <menuseparator />
                <menu label="More" >
                  <menupopup>
                    <menuitem label="1" />
                    <menuitem label="2" />
                    <menuitem label="3" />
                  </menupopup>
-               </menu> -->
+               </menu>
              </menupopup>
            </menu>
             <menu label="ABC" >

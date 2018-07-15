@@ -1411,7 +1411,7 @@ void LongUI::CUIWindow::Private::OnDpiChanged(uintptr_t wParam, const RectL& rec
     auto& vp = *this->viewport;
     auto& window = vp.RefWindow();
     // 固定大小应该需要缩放窗口
-    if (window.config & Config_FixedSize || true) {
+    if (window.config & Config_FixedSize /*|| true*/) {
         vp.JustResetZoom(x, y);
         window.SetAbsoluteRect(rect);
     }
@@ -1899,14 +1899,23 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             }
             return 0;
 #endif
+
+            // 即时重置大小
+#ifdef LUI_RESIZE_IMMEDIATELY
+        case WM_EXITSIZEMOVE:
+            this->OnResizeTs(LongUI::GetClientSize(hwnd));
+            break;
+#else
         case WM_ENTERSIZEMOVE:
             this->moving_resizing = true;
             break;
         case WM_EXITSIZEMOVE:
-            // TODO: flag检查是否允许拖动时缩放
             this->moving_resizing = false;
             this->OnResizeTs(LongUI::GetClientSize(hwnd));
             break;
+#endif
+
+
         //case WM_NCCALCSIZE:
         //    if (wParam) return 0;
         //    break;
@@ -1923,8 +1932,10 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             this->ClosePopup();
             // 最小化不算
             switch (wParam) { case SIZE_MINIMIZED: return 0; }
+#ifndef LUI_RESIZE_IMMEDIATELY
             // 拖拽重置不算
             if (this->moving_resizing) return 0;
+#endif
             // 重置大小
             this->OnResizeTs({ LOWORD(lParam), HIWORD(lParam) });
             return 0;

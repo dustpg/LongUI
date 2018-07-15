@@ -52,6 +52,8 @@ namespace LongUI {
             return this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl); }
         // dispose time capsule for control
         void DisposeTimeCapsule(UIControl& ctrl) noexcept;
+        // refresh time capsule for control
+        void RefreshTimeCapsule(UIControl& ctrl) noexcept;
     public:
         // add init list
         void AddInitList(UIControl& ctrl) noexcept;

@@ -176,18 +176,42 @@ LongUI::CUIControlControl::~CUIControlControl() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIControlControl::dispose_all_time_capsule() noexcept {
-    // 释放时间胶囊
+    // 强制释放所有时间胶囊
     //m_oHead.next->m_oTail;
     const auto tcbegin = m_oHeadTimeCapsule.next;
     const auto tcend = &m_oTailTimeCapsule;
     for (auto node = tcbegin; node != tcend; ) {
         const auto old = static_cast<CUITimeCapsule*>(node);
         node = node->next;
-        old->Dispose();
+        old->dispose();
     }
 }
 
 
+/// <summary>
+/// Refreshes the time capsule.
+/// 更新最后终止的时间胶囊
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::RefreshTimeCapsule(UIControl& ctrl) noexcept {
+    assert(ctrl.m_pLastEnd == nullptr && "must be null");
+    const auto tcbegin = m_oHeadTimeCapsule.next;
+    const auto tcend = &m_oTailTimeCapsule;
+    CUITimeCapsule* last_end = nullptr;
+    // 遍历所有节点寻找最后终止的时间胶囊
+    for (auto node = tcbegin; node != tcend; node = node->next) {
+        const auto capsule = static_cast<CUITimeCapsule*>(node);
+        // 必须是相同的
+        if (capsule->IsSameHoster(ctrl)) {
+            // last_end比capsule还长寿就不用替换了
+            if (!(last_end && last_end->IsMoreMOThan(*capsule))) 
+                last_end = capsule;
+        }
+    }
+    // 更新数据
+    ctrl.m_pLastEnd = last_end;
+}
 
 /// <summary>
 /// Disposes the time capsule.
@@ -204,12 +228,12 @@ void LongUI::CUIControlControl::DisposeTimeCapsule(UIControl& ctrl) noexcept {
     for (auto node = tcbegin; node != tcend; ) {
         const auto old = static_cast<CUITimeCapsule*>(node);
         node = node->next;
-        // 检测是否存在
+        // 检测是否存在: 强制释放同一拥有者所有时间胶囊
         if (old->IsSameHoster(ctrl)) {
 #ifndef NDEBUG
             disposed = true;
 #endif
-            old->Dispose();
+            old->dispose();
         }
     }
 #ifndef NDEBUG
@@ -246,10 +270,10 @@ void LongUI::CUIControlControl::update_time_capsule(float delta) noexcept {
     for (auto node = tcbegin; node != tcend; ) {
         const auto old = static_cast<CUITimeCapsule*>(node);
         node = node->next;
-        // 直接调用
+        // 直接调用: 正常流程释放时间胶囊
         if (old->Call(delta)) {
-
-            old->Dispose();
+            old->normal_check_hoster_last_end();
+            old->dispose();
         }
     }
 }

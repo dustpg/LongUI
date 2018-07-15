@@ -4,8 +4,11 @@
 // **include this file in source-file at first**
 // 
 
-// style sheet support, include css-parse[unused yet], undef to make bin-file smaller 
+// [unused yet]style sheet support, include css-parse, undef to make bin-file smaller 
 #define LUI_STYLESHEET_SUPPORT
+
+// resize immediately on drag-sizing, but maybe like "Jelly"
+//#define LUI_RESIZE_IMMEDIATELY
 
 // windows 10 support only, make bin-file smaller, faster
 //#define LUI_WIN10_ONLY
@@ -16,17 +19,16 @@
 // longui implement a non-pod vector, define this if you want to use
 //#define LUI_NONPOD_VECTOR
 
-// give every control intptr_t c++: user_data/xml: data-user;
+// give every control intptr_t c++: user_data/xml: data-user(int);
 #define LUI_USER_INIPTR_DATA
 
-// give every control CUIString c++: user_u16str/xml: data-u16;
-// [[Not-Recommended]]
+// give every control CUIString c++: user_u16str/xml: data-u16(str);
 //#define LUI_USER_U16STR_DATA
 
-// give every control CUIConstShortString c++: user_u8str/xml: data-u8;
+// give every control CUIConstShortString c++: user_u8str/xml: data-u8(str);
 //#define LUI_USER_U8STR_DATA
 
-// LongUI::POD::Vector::size_type use uint32_t
+// [unused yet]LongUI::POD::Vector::size_type use uint32_t
 //#define LUI_VECTOR_SIZE_USE_UINT32
 
 

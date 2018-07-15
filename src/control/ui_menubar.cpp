@@ -161,8 +161,10 @@ auto LongUI::UIMenu::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept 
         }
         break;
     case MouseEvent::Event_MouseLeave:
-        if (m_pMenuPopup && uisafe_cast<UIMenuPopup>(m_pParent)) {
-            static_cast<UIMenuPopup*>(m_pParent)->SetDelayClosedPopup();
+        if (m_bPopupShown && m_pMenuPopup) {
+            if (const auto ptr = uisafe_cast<UIMenuPopup>(m_pParent)) {
+                ptr->SetDelayClosedPopup();
+            }
         }
         break;
     case MouseEvent::Event_MouseIdleHover:

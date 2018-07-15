@@ -158,10 +158,22 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         assert(str2 == str1);
     }
     {
-        //using namespace LongUI;
-        //UIManager.CreateTimeCapsule([](float p) noexcept {
-        //    LUIDebug(Hint) << p << endl;
-        //}, 1.f);
+        using namespace LongUI;
+        const auto a = UIManager.CreateTimeCapsule([](float p) noexcept {
+        }, 1.f, &viewport);
+        const auto b = UIManager.CreateTimeCapsule([](float p) noexcept {
+        }, 100.f, &viewport);
+        const auto c = UIManager.CreateTimeCapsule([](float p) noexcept {
+        }, 10.f, &viewport);
+        const auto d = UIManager.CreateTimeCapsule([](float p) noexcept {
+        }, 5.f, &viewport);
+        const auto e = UIManager.CreateTimeCapsule([](float p) noexcept {
+        }, 50.f);
+        a->Restart();
+        b->Restart();
+        b->Terminate();
+        c->Terminate();
+        e->Terminate();
     }
     {
         LongUI::POD::Vector<int> v;

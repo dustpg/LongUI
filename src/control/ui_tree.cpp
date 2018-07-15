@@ -437,7 +437,7 @@ LongUI::UITreeRow::~UITreeRow() noexcept {
 /// <param name="has">if set to <c>true</c> [has].</param>
 /// <returns></returns>
 void LongUI::UITreeRow::SetHasChild(bool has) noexcept {
-    auto& sstate = UIControlPrivate::GetStyleState(m_private->twisty);
+    auto& sstate = UIControlPrivate::RefStyleState(m_private->twisty);
     sstate.indeterminate = has;
     m_bHasChild = has;
 }

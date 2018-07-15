@@ -5,6 +5,7 @@
 #include <debugger/ui_debug.h>
 #include <event/ui_group_event.h>
 // Menu
+#include <control/ui_menu.h>
 #include <control/ui_menulist.h>
 #include <control/ui_menuitem.h>
 #include <control/ui_menupopup.h>
@@ -288,11 +289,11 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
             {
             case LongUI::UIMenuItem::Type_CheckBox:
                 UIControlPrivate::SetAppearanceIfNotSet(m_private->image, Appearance_MenuCheckBox);
-                UIControlPrivate::GetStyleState(m_private->image).checked = m_oStyle.state.checked;
+                UIControlPrivate::RefStyleState(m_private->image).checked = m_oStyle.state.checked;
                 break;
             case LongUI::UIMenuItem::Type_Radio:
                 UIControlPrivate::SetAppearanceIfNotSet(m_private->image, Appearance_MenuRadio);
-                UIControlPrivate::GetStyleState(m_private->image).checked = m_oStyle.state.checked;
+                UIControlPrivate::RefStyleState(m_private->image).checked = m_oStyle.state.checked;
                 break;
             }
             // XXX: 标准化
@@ -688,6 +689,27 @@ void LongUI::UIMenuPopup::WindowClosed() noexcept {
     return Super::WindowClosed();
 }
 
+
+/// <summary>
+/// Does the mouse event.
+/// </summary>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UIMenuPopup::DoMouseEvent(const MouseEventArg&e)noexcept->EventAccept{
+    switch (e.type)
+    {
+    case MouseEvent::Event_MouseEnter:
+        assert(m_pHoster && "hoster must be valid on mouse event");
+        if (const auto menu = uisafe_cast<UIMenu>(m_pHoster)) {
+            // 嵌套?
+            if (const auto mp = uisafe_cast<UIMenuPopup>(menu->GetParent())) {
+                mp->MarkNoDelayClosedPopup();
+            }
+        }
+    }
+    return Super::DoMouseEvent(e);
+}
+
 /// <summary>
 /// Does the event.
 /// </summary>
@@ -755,17 +777,34 @@ void LongUI::UIMenuPopup::ClearSelected() noexcept {
 /// <returns></returns>
 void LongUI::UIMenuPopup::SubViewportPopupBegin(UIViewport& vp, PopupType type) noexcept {
     if (m_pDelayClosed) {
-        m_pDelayClosed->Dispose();
+        m_pDelayClosed->Terminate();
         m_pDelayClosed = nullptr;
     }
 }
 
+/// <summary>
+/// Terminates the delay closed popup.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::MarkNoDelayClosedPopup() noexcept {
+    if (m_pDelayClosed) {
+        m_pDelayClosed->Terminate();
+        m_pDelayClosed = nullptr;
+    }
+    //m_bNoClosedOnce = true;
+}
 
 /// <summary>
 /// Sets the delay closed popup.
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuPopup::SetDelayClosedPopup() noexcept {
+    // 一次不关闭
+    //if (m_bNoClosedOnce) {
+    //    m_bNoClosedOnce = false;
+    //    return;
+    //}
+    // 
     if (m_pDelayClosed) {
 
     }
@@ -776,7 +815,7 @@ void LongUI::UIMenuPopup::SetDelayClosedPopup() noexcept {
             if (t < 1.f) return;
             capsule = nullptr;
             window->ClosePopup();
-        }, 0.5f, this);
+        }, 1.f, this);
     }
 }
 

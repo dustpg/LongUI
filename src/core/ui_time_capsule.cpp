@@ -1,6 +1,8 @@
 #include <core/ui_time_capsule.h>
 #include <control/ui_control.h>
 #include <cassert>
+// PRIVATE
+#include "../private/ui_private_control.h"
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUITimeCapsule"/> class.
@@ -13,30 +15,69 @@ LongUI::CUITimeCapsule::CUITimeCapsule(float total) noexcept
 
 
 /// <summary>
-/// Tries the clear last time capsule.
-/// </summary>
-/// <param name="tc">The tc.</param>
-/// <returns></returns>
-void LongUI::UIControl::TryClearLastTimeCapsule(CUITimeCapsule& tc) noexcept {
-    assert(m_pLastEnd && "last end cannot be null if tc exist");
-    if (m_pLastEnd == &tc) m_pLastEnd = nullptr;
-}
-
-/// <summary>
 /// Releases unmanaged and - optionally - managed resources.
 /// </summary>
 /// <returns></returns>
-void LongUI::CUITimeCapsule::Dispose() noexcept {
+void LongUI::CUITimeCapsule::dispose() noexcept {
     assert(this && "this pointer cannot be null");
     assert(this->prev && "prev pointer cannot be null");
     assert(this->next && "next pointer cannot be null");
-    // 记录针对控件的释放
-    if (const auto ptr = m_pHoster) {
-        ptr->TryClearLastTimeCapsule(*this);
-    }
     this->prev->next = this->next;
     this->next->prev = this->prev;
     delete this;
+}
+
+/// <summary>
+/// Normals the check hoster last end.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUITimeCapsule::normal_check_hoster_last_end() noexcept {
+    // 记录针对控件的释放
+    if (const auto ptr = m_pHoster) {
+        auto& last_end = UIControlPrivate::RefLastEnd(*ptr);
+        assert(last_end && "last end cannot be null if tc exist");
+        if (last_end == this) last_end = nullptr;
+    }
+}
+
+// longui::impl
+namespace LongUI { namespace impl {
+    // search for last end
+    void search_capsule_for_last_end(UIControl&) noexcept;
+}}
+
+/// <summary>
+/// Res the start.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUITimeCapsule::Restart() noexcept {
+    m_fDoneTime = 0.f;
+    // 存在拥有者?
+    if (const auto hoster = m_pHoster) {
+        auto& last_end = UIControlPrivate::RefLastEnd(*hoster);
+        assert(last_end && "cannot be null here");
+        // 自己比last_end更长寿则替换掉
+        if (this->IsMoreMOThan(*last_end)) 
+            last_end = this;
+    }
+}
+
+/// <summary>
+/// Terminates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUITimeCapsule::Terminate() noexcept {
+    const auto hoster = m_pHoster;
+    // 释放了再说
+    this->dispose();
+    // 存在拥有者?
+    if (hoster) {
+        auto& last_end = UIControlPrivate::RefLastEnd(*hoster);
+        if (last_end == this) {
+            last_end = nullptr;
+            impl::search_capsule_for_last_end(*hoster);
+        }
+    }
 }
 
 /// <summary>

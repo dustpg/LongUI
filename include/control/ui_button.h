@@ -113,6 +113,8 @@ namespace LongUI {
         bool                m_bToolBar = false;
         // menu button      :<UIMenu>
         bool                m_bMenuBar = false;
+        // popup shown
+        bool                m_bPopupShown = false;
     };
     // get meta info for UIButton
     LUI_DECLARE_METAINFO(UIButton);
