@@ -244,22 +244,20 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 记录渲染时间
     const auto t2 = meter.Delta_ms<float>();
     if (this_()->flag & ConfigFlag::Flag_DbgOutputTimeTook) {
-        this_()->DataLock();
+        CUIDataAutoLocker locker;
         LUIDebug(None) LUI_FRAMEID
             << "U<" << DDFFloat2{ t1 } << "ms>"
             << "R<" << DDFFloat2{ t2 } << "ms>"
             << endl;
-        this_()->DataUnlock();
     }
     else {
         // update超过2毫秒也算
         if (t1 > 2.f) {
-            this_()->DataLock();
+            CUIDataAutoLocker locker;
             LUIDebug(Hint) LUI_FRAMEID
                 << "U<" << DDFFloat2{ t1 } << "ms>"
                 << "R<" << DDFFloat2{ t2 } << "ms>"
                 << endl;
-            this_()->DataUnlock();
         }
     }
     // 计算FPS
@@ -303,9 +301,8 @@ void LongUI::CUIManager::WaitForVBlank() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIManager::NeedRecreate() noexcept {
-    this_()->DataLock();
+    CUIDataAutoLocker locker;
     m_flagRecreate = true;
-    this_()->DataUnlock();
 }
 
 
@@ -558,6 +555,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
                 }
                 case CallLater::Later_CallTimeCapsule:
                 {
+                    // 调用时间胶囊
                     const auto ptr = reinterpret_cast<CUIWaiter*>(wParam);
                     union { LPARAM lp; float time; };
                     lp = lParam;

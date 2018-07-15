@@ -129,7 +129,7 @@ auto LongUI::UILabel::DoEvent(
             return m_control.ctrl->DoEvent(this, e);
         return Event_Accept;
     case NoticeEvent::Event_ShowAccessKey:
-        this->ShowAccessKey(e.derived);
+        this->ShowAccessKey(e.derived & 1);
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 初始化

@@ -201,7 +201,7 @@ void LongUI::UIMenu::try_show_next_level_menu() noexcept {
     this->StartAnimation({ ct, true });
     // XXX: 出现在右侧
     const auto edge = this->GetBox().GetBorderEdge();
-    const auto pos = this->MapToWindowEx({ edge.right - 5, 0 });
+    const auto pos = this->MapToWindowEx({ edge.right, -1 });
     LongUI::PopupWindowFromViewport(
         *this,
         *m_pMenuPopup,

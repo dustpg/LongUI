@@ -454,6 +454,7 @@ auto LongUI::UIMenuList::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
 /// Initializes the menulist.
 /// </summary>
 void LongUI::UIMenuList::init_menulist() {
+
     UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
     auto& marker = m_private->marker;
     UIControlPrivate::SetAppearanceIfNotSet(marker, Appearance_DropDownMarker);
@@ -637,12 +638,38 @@ LongUI::UIMenuPopup::~UIMenuPopup() noexcept {
 /// <param name="hoster">The hoster.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noexcept
-    : Super(*hoster, 
-        CUIWindow::Config_FixedSize | CUIWindow::Config_Popup, meta) {
-    // XXX: 默认是白色
-    m_window.SetClearColor({ 1.f, 1.f, 1.f, 1.f });
+    : Super(*hoster, CUIWindow::Config_FixedSize | CUIWindow::Config_Popup, meta) {
+    // 保存选择的认为是组合框
+    if (this->is_save_selected())
+        this->init_clear_color_for_default_combobox();
+    // 否则认为是一般菜单
+    else
+        this->init_clear_color_for_default_ctxmenu();
 }
 
+/// <summary>
+/// Initializes the clear color for default ctxmenu.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::init_clear_color_for_default_ctxmenu() noexcept {
+    constexpr float single = float(0xf0) / float(0xff);
+    ColorF color;
+    color.r = single; color.g = single;
+    color.b = single; color.a = 1.f;
+    m_window.SetClearColor(color);
+}
+
+/// <summary>
+/// Initializes the clear color for default combobox.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIMenuPopup::init_clear_color_for_default_combobox() noexcept {
+    constexpr float single = float(0xff) / float(0xff);
+    ColorF color;
+    color.r = single; color.g = single;
+    color.b = single; color.a = 1.f;
+    m_window.SetClearColor(color);
+}
 
 /// <summary>
 /// Updates this instance.
@@ -655,6 +682,8 @@ void LongUI::UIMenuPopup::Update() noexcept {
         if (m_pPerSelected != m_pHovered) {
             this->change_select(m_pPerSelected, m_pHovered);
             m_pPerSelected = m_pHovered;
+            // 没有m_pDelayClosed? 尝试关闭
+            //if (!m_pDelayClosed) SetDelayClosedPopup();
         }
     }
     // 父类更新
@@ -678,13 +707,7 @@ void LongUI::UIMenuPopup::WindowClosed() noexcept {
     }
     // 不保存
     else {
-        //if (m_pLastSelected) this->change_select(m_pLastSelected, nullptr);
-        if (m_pPerSelected) {
-            m_pPerSelected->StartAnimation({ StyleStateType::Type_Selected, false });
-        }
-        m_pLastSelected = nullptr;
-        m_pPerSelected = nullptr;
-        m_iSelected = -1;
+        this->ClearSelected();
     }
     return Super::WindowClosed();
 }
@@ -704,6 +727,13 @@ auto LongUI::UIMenuPopup::DoMouseEvent(const MouseEventArg&e)noexcept->EventAcce
             // 嵌套?
             if (const auto mp = uisafe_cast<UIMenuPopup>(menu->GetParent())) {
                 mp->MarkNoDelayClosedPopup();
+#if 0
+                mp->m_bMouseIn = false;
+                mp->m_pPerSelected = menu;
+                constexpr auto c = StyleStateType::Type_Selected;
+                if (!menu->GetStyle().state.selected)
+                    menu->StartAnimation({ c, true });
+#endif
             }
         }
     }
@@ -721,16 +751,9 @@ auto LongUI::UIMenuPopup::DoEvent(
     // 初始化
     switch (arg.nevent)
     {
-#if 0
-    case NoticeEvent::Event_Initialize:
-        if (m_pPerSelected) {
-            const auto ptr = m_pPerSelected;
-            m_pPerSelected = nullptr;
-            this->select(ptr);
-            m_pPerSelected = ptr;
-        }
-        break;
-#endif
+    //case NoticeEvent::Event_Initialize:
+    //    // 没有匹配的
+    //    break;
     case NoticeEvent::Event_UIEvent:
         // 自己不处理自己的UIEvent 否则就stackoverflow了
         if (sender == this) return Event_Accept;
@@ -765,7 +788,15 @@ void LongUI::UIMenuPopup::SelectFirstItem() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuPopup::ClearSelected() noexcept {
-    if (m_pLastSelected) this->select(nullptr);
+    //if (m_pLastSelected) this->select(nullptr);
+    //m_pLastSelected = nullptr;
+
+    if (m_pPerSelected) {
+        m_pPerSelected->StartAnimation({ StyleStateType::Type_Selected, false });
+    }
+    m_pLastSelected = nullptr;
+    m_pPerSelected = nullptr;
+    m_iSelected = -1;
 }
 
 
@@ -787,12 +818,32 @@ void LongUI::UIMenuPopup::SubViewportPopupBegin(UIViewport& vp, PopupType type) 
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuPopup::MarkNoDelayClosedPopup() noexcept {
+    // FIXME: 新窗口WM_MOUSELEAVE WM_MOUSEMOVE前后可能互换
+    // 处理KnownIssues#3:
+    //  - 先LEAVE: 终止延迟关闭
+    //  - 先ENTER, 标记m_bNoClosedOnce
+
     if (m_pDelayClosed) {
         m_pDelayClosed->Terminate();
         m_pDelayClosed = nullptr;
+        m_bNoClosedOnce = false;
     }
+    else m_bNoClosedOnce = true;
+
+//#ifndef NDEBUG
+//    else {
+//        LUIDebug(Warning) << "m_pDelayClosed => null" << endl;
+//    }
+//#endif // !NDEBUG
+
     //m_bNoClosedOnce = true;
 }
+
+#ifndef NDEBUG
+void longui_ui_menulist_1(void* ptr) noexcept {
+    LUIDebug(Hint) << ptr << LongUI::endl;
+}
+#endif
 
 /// <summary>
 /// Sets the delay closed popup.
@@ -800,20 +851,22 @@ void LongUI::UIMenuPopup::MarkNoDelayClosedPopup() noexcept {
 /// <returns></returns>
 void LongUI::UIMenuPopup::SetDelayClosedPopup() noexcept {
     // 一次不关闭
-    //if (m_bNoClosedOnce) {
-    //    m_bNoClosedOnce = false;
-    //    return;
-    //}
-    // 
+    if (m_bNoClosedOnce) {
+        m_bNoClosedOnce = false;
+        return;
+    }
+
+    // 已经有了?
     if (m_pDelayClosed) {
 
     }
     else {
-        const auto window = m_pWindow;
+        const auto window = &m_window;
         auto& capsule = m_pDelayClosed;
         capsule = UIManager.CreateTimeCapsule([window, &capsule](float t) noexcept {
             if (t < 1.f) return;
             capsule = nullptr;
+            //::longui_ui_menulist_1(window);
             window->ClosePopup();
         }, 1.f, this);
     }

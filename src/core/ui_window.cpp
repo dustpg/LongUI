@@ -1387,9 +1387,8 @@ void LongUI::CUIWindow::Private::OnCharTs(char32_t ch) noexcept {
     if (ch >= 0x20 || ch == '\t') {
         // 直接将输入引导到焦点控件
         if (const auto focused_ctrl = this->focused) {
-            UIManager.DataLock();
+            CUIDataAutoLocker locker;
             focused_ctrl->DoInputEvent({ LongUI::InputEvent::Event_Char, ch });
-            UIManager.DataUnlock();
         }
     }
 }
@@ -1440,13 +1439,12 @@ void LongUI::CUIWindow::Private::OnAccessKey(uintptr_t i) noexcept {
         }
     }
     // 正式处理
-    UIManager.DataLock();
+    CUIDataAutoLocker locker;
     const auto ctrl = this->access_key_map[i];
     if (ctrl && ctrl->IsEnabled()) {
         ctrl->DoEvent(nullptr, { NoticeEvent::Event_DoAccessAction, 0 });
     }
     else ::longui_error_beep();
-    UIManager.DataUnlock();
 }
 
 // LongUI::detail
@@ -1774,7 +1772,8 @@ void LongUI::CUIWindow::Private::DoMouseEventTs(const MouseEventArg & args) noex
     CUIDataAutoLocker locker;
     UIControl* ctrl = this->captured;
     if (!ctrl) ctrl = this->viewport;
-    const auto code = ctrl->DoMouseEvent(args);
+    /*const auto code = */
+    ctrl->DoMouseEvent(args);
 }
 
 #ifdef LUI_ACCESSIBLE
@@ -1940,9 +1939,10 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             this->OnResizeTs({ LOWORD(lParam), HIWORD(lParam) });
             return 0;
         case WM_KEYDOWN:
-            UIManager.DataLock();
+        {
+            CUIDataAutoLocker locker;
             this->OnKeyDown(static_cast<CUIInputKM::KB>(wParam));
-            UIManager.DataUnlock();
+        }
             return 0;
         case WM_SYSKEYDOWN:
             // Alt+F4
@@ -1950,9 +1950,8 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
                 ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
             }
             else {
-                UIManager.DataLock();
+                CUIDataAutoLocker locker;
                 this->OnSystemKeyDown(static_cast<CUIInputKM::KB>(wParam), lParam);
-                UIManager.DataUnlock();
             }
             return 0;
         case WM_GETMINMAXINFO:
@@ -2437,11 +2436,10 @@ auto LongUI::Result::GetSystemLastError() noexcept -> Result {
 /// <returns></returns>
 void LongUI::CUIWindow::Private::EmptyRender() noexcept {
     if (this->bitmap) {
-        UIManager.RenderLock();
+        CUIRenderAutoLocker locker;
         this->mark_full_rendering_for_render();
         this->begin_render();
         this->end_render();
-        UIManager.RenderUnlock();
     }
 }
 
