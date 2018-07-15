@@ -265,6 +265,8 @@ namespace LongUI {
         bool IsDisabled() const noexcept { return m_oStyle.state.disabled; }
         // is visible
         bool IsVisible() const noexcept { return m_state.visible; }
+        // is visible to root
+        bool IsVisibleToRoot() const noexcept;
         // set hidden
         void SetHidden(bool hidden) noexcept { this->SetVisible(!hidden); }
         // set this and all descendant enabled/disabled

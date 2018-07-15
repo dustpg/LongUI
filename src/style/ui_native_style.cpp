@@ -50,9 +50,11 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
     {
     case LongUI::Appearance_ListBox:
     case LongUI::Appearance_GroupBox:
+    case LongUI::Appearance_StatusBar:
     case LongUI::Appearance_TabPanels:
     case LongUI::Appearance_ProgressBarH:
     case LongUI::Appearance_ProgressBarV:
+    case LongUI::Appearance_StatusBarPanel:
     case LongUI::Appearance_ProgressChunkH:
     case LongUI::Appearance_ProgressChunkV:
     case LongUI::Appearance_ScrollbarTrackH:

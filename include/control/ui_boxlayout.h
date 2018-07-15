@@ -63,6 +63,10 @@ namespace LongUI {
         void relayout_h() noexcept;
         // relayout v
         void relayout_v() noexcept;
+#ifdef LUI_ACCESSIBLE
+        // accessible 
+        auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
+#endif
     public:
         // set orient
         void SetOrient(AttributeOrient o) noexcept;

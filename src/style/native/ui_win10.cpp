@@ -35,6 +35,11 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
         return this->draw_tb_button(args);
     case LongUI::Appearance_MenuSeparator:
         return this->draw_menu_separator(args.border);
+    case LongUI::Appearance_StatusBar:
+        return this->draw_status_bar(args.border);
+    case LongUI::Appearance_Separator:
+    case LongUI::Appearance_StatusBarPanel:
+        return this->draw_status_bar_panel(args.border);
     case LongUI::Appearance_ScrollBarButtonUp:
     case LongUI::Appearance_ScrollBarButtonRight:
     case LongUI::Appearance_ScrollBarButtonDown:
@@ -194,8 +199,14 @@ void LongUI::CUINativeStyleWindows10::InitCtrl(
         //ctrl.SetStyleMinSize({ 0, MENUITEM_HEIGHT });
         break;
     case LongUI::Appearance_MenuSeparator:
-        ctrl.SetStyleMinSize({ 0, MENUSEPARATOR_HEIGHT });
+        ctrl.SetStyleMinSize({ -1, MENUSEPARATOR_HEIGHT });
         break;
+    //case LongUI::Appearance_StatusBar:
+    //    ctrl.SetStyleMinSize({ -1, -1 });
+    //    break;
+    //case LongUI::Appearance_StatusBarPanel:
+    //    ctrl.SetStyleMinSize({ 5, 5 });
+    //    break;
     case LongUI::Appearance_MenuArrow:
     case LongUI::Appearance_TreeTwisty:
     case LongUI::Appearance_DropDownMarker:

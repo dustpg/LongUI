@@ -31,6 +31,9 @@
 #include <control/ui_tabpanel.h>
 #include <control/ui_tabpanels.h>
 
+#include <control/ui_statusbar.h>
+#include <control/ui_statusbarpanel.h>
+
 #include <control/ui_toolbar.h>
 #include <control/ui_toolbox.h>
 #include <control/ui_toolbarbutton.h>
@@ -165,6 +168,11 @@ namespace LongUI {
         &UITabPanel::s_meta,
         // Tab Panels - 标签页容器组
         &UITabPanels::s_meta,
+
+        // Status Bar - 状态栏
+        &UIStatusBar::s_meta,
+        // Status Bar Panel - 状态栏项目
+        &UIStatusBarPanel::s_meta,
 
         // List Head - 列表头组
         &UIListHead::s_meta,

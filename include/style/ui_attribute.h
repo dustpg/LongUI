@@ -197,16 +197,18 @@ namespace LongUI{
         Appearance_ProgressChunkH,          // [progresschunk]
         Appearance_ProgressChunkV,          // [progresschunk-vertical]
         Appearance_ListBox,                 // [listbox]
-        Appearance_ListItem,                // [listitem]
+        Appearance_StatusBar,               // [statusbar]
+        Appearance_StatusBarPanel,               // [statusbarpanel]
         Appearance_GroupBox,                // [groupbox]
         Appearance_TreeHeaderCell,          // [treeheadercell]
         Appearance_TreeTwisty,              // [treetwisty]
         Appearance_DropDownMarker,          // used for menu list drop down marker
+        Appearance_ListItem,                // [listitem]
         Appearance_MenuItem,                // [menuitem]
         Appearance_Tab,                     // [tab]
         Appearance_TabPanels,               // [tabpanels]
         Appearance_TextField,               // [textfield]
-    };
+    }; 
     /// <summary>
     /// select type
     /// </summary>

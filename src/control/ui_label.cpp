@@ -87,7 +87,7 @@ auto LongUI::UILabel::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
             m_pWindow->SetNowCursor(m_hrefCursor);
             m_text.SetUnderline(0, m_string.length(), true);
             this->Invalidate();
-            return Event_Accept;
+            //return Event_Accept;
         }
         break;
     case LongUI::MouseEvent::Event_MouseLeave:
@@ -96,12 +96,12 @@ auto LongUI::UILabel::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
             m_pWindow->SetNowCursor(nullptr);
             m_text.SetUnderline(0, m_string.length(), false);
             this->Invalidate();
-            return Event_Accept;
+            //return Event_Accept;
         }
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
         if (!m_href.empty()) ::longui_open_href(m_href.c_str());
-        return Event_Accept;
+        break;
     }
     return Super::DoMouseEvent(e);
 }

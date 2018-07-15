@@ -159,6 +159,10 @@ namespace LongUI {
         //static void draw_tab_panels(const NativeDrawArgs& args) noexcept;
         // draw menu separator
         static void draw_menu_separator(const RectF&) noexcept;
+        // draw status bar
+        static void draw_status_bar(const RectF&) noexcept;
+        // draw status bar panel
+        static void draw_status_bar_panel(const RectF&) noexcept;
     private:
 #ifdef LUI_DRAW_ARROW_IN_MESH
         // arrow mesh

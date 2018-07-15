@@ -153,12 +153,12 @@ function imagize(btnID,imageID)
   </toolbox>
 </groupbox>
 
-<!-- <statusbar>
+<statusbar>
   <statusbarpanel  label="This is a statusbarpanel." />
   <statusbarpanel  label="As is this." />
   <statusbarpanel  label="And also this...." flex="1" />
   <statusbarpanel  label="Click Me!" onclick="alert('Ouch');" />
-</statusbar> -->
+</statusbar>
 
 </vbox>
 

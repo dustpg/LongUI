@@ -128,6 +128,10 @@ namespace LongUI {
         auto TooltipText(CUIString&&) noexcept ->UIViewport*;
         // close all popupwindow
         void ClosePopup() noexcept;
+        // get now popupwindow
+        auto GetNowPopup() const noexcept->CUIWindow*;
+        // get now popupwindow with type
+        auto GetNowPopup(PopupType type) const noexcept->CUIWindow*;
         // close tooltip
         void CloseTooltip() noexcept;
         // set title name

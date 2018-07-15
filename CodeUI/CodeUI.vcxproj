@@ -190,6 +190,7 @@
     <ClCompile Include="..\src\control\ui_spacer.cpp" />
     <ClCompile Include="..\src\control\ui_splitter.cpp" />
     <ClCompile Include="..\src\control\ui_stackdeck.cpp" />
+    <ClCompile Include="..\src\control\ui_statusbar.cpp" />
     <ClCompile Include="..\src\control\ui_tab.cpp" />
     <ClCompile Include="..\src\control\ui_test.cpp" />
     <ClCompile Include="..\src\control\ui_textbox.cpp" />
@@ -331,6 +332,8 @@
     <ClInclude Include="..\include\control\ui_spacer.h" />
     <ClInclude Include="..\include\control\ui_splitter.h" />
     <ClInclude Include="..\include\control\ui_stack.h" />
+    <ClInclude Include="..\include\control\ui_statusbar.h" />
+    <ClInclude Include="..\include\control\ui_statusbarpanel.h" />
     <ClInclude Include="..\include\control\ui_tab.h" />
     <ClInclude Include="..\include\control\ui_tabbox.h" />
     <ClInclude Include="..\include\control\ui_tabpanel.h" />

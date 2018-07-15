@@ -1179,6 +1179,7 @@ auto LongUI::CUIWindow::TooltipText(CUIString&& text)noexcept->UIViewport* {
 
 /// <summary>
 /// Closes the popup.
+/// 关闭当前的弹出窗口
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::ClosePopup() noexcept {
@@ -1186,9 +1187,35 @@ void LongUI::CUIWindow::ClosePopup() noexcept {
 }
 
 /// <summary>
-/// Closes the popup high level.
+/// Gets the now popup.
+/// 获取当前的弹出窗口
 /// </summary>
-/// <returns></returns>
+/// <returns>
+/// <see cref="CUIWindow"/>指针, 当前没有弹出窗口则返回空指针
+///</returns>
+auto LongUI::CUIWindow::GetNowPopup() const noexcept-> CUIWindow* {
+    return m_private->popup;
+}
+
+/// <summary>
+/// Gets the now popup with specify type.
+/// 获取当前指定类型的弹出窗口
+/// </summary>
+/// <param name="type">The type.</param>
+/// <returns>
+/// <see cref="CUIWindow" />指针, 当前没有指定类型的弹出窗口则返回空指针
+/// </returns>
+auto LongUI::CUIWindow::GetNowPopup(PopupType type) const noexcept-> CUIWindow* {
+    return m_private->popup_type == type ? m_private->popup : nullptr;
+}
+
+/// <summary>
+/// Closes the popup high level.
+/// 尽可能向上级关闭弹出窗口
+/// </summary>
+/// <remarks>
+/// 该函数允许传递空this指针
+/// </remarks>
 void LongUI::CUIWindow::ClosePopupHighLevel() noexcept {
     auto winp = this;
     while (winp && winp->config & Config_Popup) winp = winp->GetParent();
@@ -1441,7 +1468,7 @@ void LongUI::CUIWindow::Private::OnAccessKey(uintptr_t i) noexcept {
     // 正式处理
     CUIDataAutoLocker locker;
     const auto ctrl = this->access_key_map[i];
-    if (ctrl && ctrl->IsEnabled()) {
+    if (ctrl && ctrl->IsEnabled() && ctrl->IsVisibleToRoot()) {
         ctrl->DoEvent(nullptr, { NoticeEvent::Event_DoAccessAction, 0 });
     }
     else ::longui_error_beep();

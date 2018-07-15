@@ -24,36 +24,27 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "ui_boxlayout.h"
+#include "ui_label.h"
 
 // ui namespace
 namespace LongUI {
-    // menu
-    class UIMenu;
-    // menubar
-    class UIMenuBar : public UIBoxLayout {
+    // status bar panel
+    class UIStatusBarPanel : public UILabel {
         // super class
-        using Super = UIBoxLayout;
+        using Super = UILabel;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UIMenuBar() noexcept;
+        ~UIStatusBarPanel() noexcept = default;
         // ctor
-        UIMenuBar(UIControl* parent = nullptr) noexcept : UIMenuBar(parent, UIMenuBar::s_meta) {}
+        UIStatusBarPanel(UIControl* parent = nullptr) noexcept : UIStatusBarPanel(parent, UIStatusBarPanel::s_meta) {}
     protected:
         // lui std ctor
-        UIMenuBar(UIControl* parent, const MetaControl&) noexcept;
-        // now popup menu
-        UIMenu*             m_pPopupNow = nullptr;
-    public:
-        // has now menu?
-        auto HasNowMenu(UIMenu& m) const noexcept { return m_pPopupNow && m_pPopupNow != &m; }
-        // set now menu
-        void SetNowMenu(UIMenu& m) noexcept { m_pPopupNow = &m; }
-        // clear now menu
-        void ClearNowMenu() noexcept { m_pPopupNow = nullptr; }
+        UIStatusBarPanel(UIControl* parent, const MetaControl&) noexcept;
+        // add attribute
+        void add_attribute(uint32_t key, U8View value) noexcept override;
     };
     // get meta info for UIBoxLayout
-    LUI_DECLARE_METAINFO(UIMenuBar);
+    LUI_DECLARE_METAINFO(UIStatusBarPanel);
 }

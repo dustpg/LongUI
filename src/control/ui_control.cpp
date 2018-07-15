@@ -1249,6 +1249,19 @@ void LongUI::UIControl::SetDisabled(bool disabled) noexcept {
 }
 
 /// <summary>
+/// Determines whether [is visible to root].
+/// </summary>
+/// <returns></returns>
+bool LongUI::UIControl::IsVisibleToRoot() const noexcept {
+    auto ctrl = this;
+    while (!ctrl->IsTopLevel()) {
+        if (!ctrl->IsVisible()) return false;
+        ctrl = ctrl->GetParent();
+    }
+    return true;
+}
+
+/// <summary>
 /// Starts the animation.
 /// </summary>
 /// <param name="change">The change.</param>
@@ -1722,9 +1735,9 @@ auto LongUI::UIControl::accessible(const AccessibleEventArg& args) noexcept -> E
         // 获取Acc名称
         *static_cast<const get1_t&>(args).name =
 #ifdef NDEBUG
-            CUIString::FromUtf8(!m_id ? m_refMetaInfo.element_name : m_id);
+            CUIString::FromUtf8(!m_id[0] ? m_refMetaInfo.element_name : m_id);
 #else
-            CUIString::FromUtf8(!m_id ? this->name_dbg : m_id);
+            CUIString::FromUtf8(!m_id[0] ? this->name_dbg : m_id);
 #endif
         return Event_Accept;
     case AccessibleEvent::Event_All_GetDescription:
@@ -1736,8 +1749,8 @@ auto LongUI::UIControl::accessible(const AccessibleEventArg& args) noexcept -> E
             m_refMetaInfo.element_name,
             name.c_str()
         );
-    }
         return Event_Accept;
+    }
     }
     return Event_Ignore;
 }

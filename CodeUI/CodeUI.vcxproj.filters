@@ -482,6 +482,9 @@
     <ClCompile Include="..\src\control\ui_menubar.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\control\ui_statusbar.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1024,6 +1027,12 @@
       <Filter>header\control</Filter>
     </ClInclude>
     <ClInclude Include="..\include\control\ui_menuseparator.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_statusbar.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_statusbarpanel.h">
       <Filter>header\control</Filter>
     </ClInclude>
   </ItemGroup>

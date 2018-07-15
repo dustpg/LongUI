@@ -28,32 +28,21 @@
 
 // ui namespace
 namespace LongUI {
-    // menu
-    class UIMenu;
-    // menubar
-    class UIMenuBar : public UIBoxLayout {
+    // status bar
+    class UIStatusBar : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
     public:
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UIMenuBar() noexcept;
+        ~UIStatusBar() noexcept = default;
         // ctor
-        UIMenuBar(UIControl* parent = nullptr) noexcept : UIMenuBar(parent, UIMenuBar::s_meta) {}
+        UIStatusBar(UIControl* parent = nullptr) noexcept : UIStatusBar(parent, UIStatusBar::s_meta) {}
     protected:
         // lui std ctor
-        UIMenuBar(UIControl* parent, const MetaControl&) noexcept;
-        // now popup menu
-        UIMenu*             m_pPopupNow = nullptr;
-    public:
-        // has now menu?
-        auto HasNowMenu(UIMenu& m) const noexcept { return m_pPopupNow && m_pPopupNow != &m; }
-        // set now menu
-        void SetNowMenu(UIMenu& m) noexcept { m_pPopupNow = &m; }
-        // clear now menu
-        void ClearNowMenu() noexcept { m_pPopupNow = nullptr; }
+        UIStatusBar(UIControl* parent, const MetaControl&) noexcept;
     };
     // get meta info for UIBoxLayout
-    LUI_DECLARE_METAINFO(UIMenuBar);
+    LUI_DECLARE_METAINFO(UIStatusBar);
 }

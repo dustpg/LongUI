@@ -736,6 +736,8 @@ auto LongUI::UIMenuPopup::DoMouseEvent(const MouseEventArg&e)noexcept->EventAcce
 #endif
             }
         }
+        // 先检查自己有没有?
+        if (m_window.GetNowPopup()) this->SetDelayClosedPopup();
     }
     return Super::DoMouseEvent(e);
 }

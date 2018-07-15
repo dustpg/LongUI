@@ -396,3 +396,34 @@ LongUI::UIVBoxLayout::~UIVBoxLayout() noexcept {
 /// <returns></returns>
 LongUI::UIHBoxLayout::~UIHBoxLayout() noexcept {
 }
+
+
+#ifdef LUI_ACCESSIBLE
+#include <accessible/ui_accessible_event.h>
+#include <core/ui_string.h>
+/// <summary>
+/// Accessibles the specified .
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+auto LongUI::UIBoxLayout::accessible(const AccessibleEventArg& args) noexcept->EventAccept {
+    switch (args.event)
+    {
+        using get0_t = AccessibleGetPatternsArg;
+        using get1_t = AccessibleGetAccNameArg;
+        using getd_t = AccessibleGetDescriptionArg;
+        CUIString* output;
+    case AccessibleEvent::Event_All_GetAccessibleName:
+        // 获取Acc名称  []
+        output = static_cast<const get1_t&>(args).name;
+        *output = m_state.orient == Orient_Horizontal ?
+            L"hor-layout"_sv : L"hor-layout"_sv;
+        if (m_id[0]) {
+            output->append(L": "_sv);
+            output->append(CUIString::FromUtf8(m_id));
+        }
+        return Event_Accept;
+    }
+    return Super::accessible(args);
+}
+#endif

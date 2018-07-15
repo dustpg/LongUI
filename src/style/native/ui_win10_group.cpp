@@ -93,3 +93,39 @@ void LongUI::CUINativeStyleWindows10::draw_menu_separator(const RectF& rect) noe
     line.right = rect.right - float(MENUSEPARATOR_HEIGHT);
     renderer.FillRectangle(auto_cast(line), &bursh0);
 }
+
+
+/// <summary>
+/// Draws the status bar.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_status_bar(const RectF& rect) noexcept {
+    const auto bgcolor = ColorF::FromRGBA_CT<0xf0f0f0ff_rgba>();
+    const auto licolor = ColorF::FromRGBA_CT<0xd7d7d7ff_rgba>();
+    auto& renderer = UIManager.Ref2DRenderer();
+    // 背景色
+    auto& bursh0 = UIManager.RefCCBrush(bgcolor);
+    renderer.FillRectangle(auto_cast(rect), &bursh0);
+    // 线条色
+    RectF line = rect;
+    line.bottom = line.top + 1.f;
+    auto& bursh1 = UIManager.RefCCBrush(licolor);
+    renderer.FillRectangle(auto_cast(line), &bursh1);
+}
+
+/// <summary>
+/// Draws the status bar panel.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_status_bar_panel(const RectF& rect) noexcept {
+    const auto color = ColorF::FromRGBA_CT<0xd7d7d7ff_rgba>();
+    // 渲染器
+    auto& renderer = UIManager.Ref2DRenderer();
+    // 线条色彩
+    auto& bursh0 = UIManager.RefCCBrush(color);
+    RectF line = rect;
+    line.left = rect.right - 1.f;
+    renderer.FillRectangle(auto_cast(line), &bursh0);
+}
