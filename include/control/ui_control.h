@@ -24,6 +24,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// config
+#include "../luiconf.h"
 // super class list
 #include "../core/ui_node.h"
 #include "../core/ui_object.h"
@@ -48,8 +50,6 @@
 #include "../core/ui_control_state.h"
 // renderer
 #include "../graphics/ui_renderer_decl.h"
-// config
-#include "../luiconf.h"
 // accessible
 #include "../accessible/ui_accessible.h"
 

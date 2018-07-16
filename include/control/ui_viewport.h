@@ -39,8 +39,6 @@ namespace LongUI {
     public:
         // class meta
         static const  MetaControl   s_meta;
-        // recreate/init device(gpu) resource
-        auto Recreate(bool release_only) noexcept->Result override;
         // [NEW] on window closed
         virtual void WindowClosed() noexcept;
         // [NEW] on subview popup

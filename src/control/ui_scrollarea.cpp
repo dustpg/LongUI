@@ -4,7 +4,6 @@
 #include <control/ui_spacer.h>
 #include <core/ui_ctrlmeta.h>
 #include <core/ui_manager.h>
-#include <luiconf.h>
 // C++
 #include <algorithm>
 // Private

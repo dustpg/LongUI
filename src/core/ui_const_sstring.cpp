@@ -1,8 +1,8 @@
-﻿// ui
+﻿#include <luiconf.h>
+// ui
 #include <core/ui_const_sstring.h>
 #include <util/ui_unimacro.h>
 #include <core/ui_malloc.h>
-#include <luiconf.h>
 // c++
 #include <cassert>
 

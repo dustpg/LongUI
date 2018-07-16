@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 // ui
+#include <luiconf.h>
 #include <core/ui_object.h>
 #include <graphics/ui_mesh.h>
 #include <graphics/ui_geometry.h>
 #include <style/ui_native_style.h>
-#include <luiconf.h>
 
 // ui namespace
 namespace LongUI {

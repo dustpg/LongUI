@@ -10,7 +10,7 @@ namespace LongUI {
     // impl
     namespace impl {
         // dll name
-        static const char* dpi_support_dll = "Shcore.dll";
+        static constexpr const char* dpi_support_dll = "Shcore.dll";
         // GetDpiForMonitor
         static FARPROC ptr_GetDpiForMonitor = nullptr;
         // dpi awareness
@@ -62,11 +62,9 @@ namespace LongUI {
         /// </summary>
         /// <returns></returns>
         void uninit_high_dpi_support() noexcept {
-            // FreeLibrary(nullptr) is undefined on doc
 #ifdef LUI_WIN10_ONLY
             ::FreeLibrary(::GetModuleHandleA(dpi_support_dll));
 #else
-            // 释放
             if (const auto dll = ::GetModuleHandleA(dpi_support_dll)) {
                 ::FreeLibrary(dll);
             }

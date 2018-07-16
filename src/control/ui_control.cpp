@@ -13,7 +13,6 @@
 #include <graphics/ui_bg_renderer.h>
 
 
-#include <luiconf.h>
 #include <algorithm>
 
 // ui namespace

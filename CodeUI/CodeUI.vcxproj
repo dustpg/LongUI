@@ -221,6 +221,7 @@
     <ClCompile Include="..\src\filesystem\ui_file.cpp" />
     <ClCompile Include="..\src\filesystem\ui_fileop.cpp" />
     <ClCompile Include="..\src\filesystem\ui_findfile.cpp" />
+    <ClCompile Include="..\src\graphics\ui_dcomp.cpp" />
     <ClCompile Include="..\src\graphics\ui_geometry.cpp" />
     <ClCompile Include="..\src\graphics\ui_bd_renderer.cpp" />
     <ClCompile Include="..\src\graphics\ui_bg_renderer.cpp" />
@@ -392,6 +393,7 @@
     <ClInclude Include="..\include\graphics\ui_bd_renderer.h" />
     <ClInclude Include="..\include\graphics\ui_bg_renderer.h" />
     <ClInclude Include="..\include\graphics\ui_cursor.h" />
+    <ClInclude Include="..\include\graphics\ui_dcomp.h" />
     <ClInclude Include="..\include\graphics\ui_geometry.h" />
     <ClInclude Include="..\include\graphics\ui_graphics_decl.h" />
     <ClInclude Include="..\include\graphics\ui_graphics_impl.h" />

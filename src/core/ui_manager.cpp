@@ -1,16 +1,17 @@
-﻿// ui
+﻿#include <luiconf.h>
+// ui
 #include <interface/ui_default_config.h>
 #include <interface/ui_ctrlinfolist.h>
 #include <container/pod_vector.h>
 #include <core/ui_time_capsule.h>
 #include <container/pod_hash.h>
+#include <graphics/ui_dcomp.h>
 #include <input/ui_kminput.h>
 #include <util/ui_ctordtor.h>
 #include <core/ui_manager.h>
 //#include <core/ui_string.h>
 #include <util/ui_ostype.h>
 #include <util/ui_endian.h>
-#include <luiconf.h>
 
 // c++
 #include <type_traits>
@@ -470,6 +471,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
 #endif
     // 设置高DPI支持
     impl::init_high_dpi_support();
+    // 设置DComp支持
+    impl::init_dcomp_support();
     // 初始化COM
     {
         const Result hr = { ::CoInitialize(nullptr) };
@@ -800,6 +803,8 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     UIManager.~CUIManager();
     // 反初始化COM
     ::CoUninitialize();
+    // 反初始化DComp支持
+    impl::uninit_dcomp_support();
     // 反初始化高DPI支持
     impl::uninit_high_dpi_support();
 }

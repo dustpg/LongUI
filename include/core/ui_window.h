@@ -53,18 +53,20 @@ namespace LongUI {
         enum WindowConfig : uint8_t {
             // popup window
             Config_Popup = 1 << 0,
-            // borderless window
-            Config_Borderless = 1 << 1,
+            // frameless window
+            Config_Frameless = 1 << 1,
             // quit on close
             Config_QuitOnClose = 1 << 2,
             // delete on close
             Config_DeleteOnClose = 1 << 3,
-            // tool window, no included in [quit on close]
+            // tool window, no included in "quit on close"
             Config_ToolWindow = 1 << 4,
             // modal window, cannot control parent until closed
             Config_ModalWindow = 1 << 5,
             // fixed size, cannot drag to resize but invoke Resize()
             Config_FixedSize = 1 << 6,
+            // layered window[support for Win8.1 and higher]
+            Config_LayeredWindow = 1 << 7,
             // default config
             Config_Default = 0,
         };

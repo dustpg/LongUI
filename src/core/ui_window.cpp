@@ -6,6 +6,7 @@
 #include <core/ui_string.h>
 #include <input/ui_kminput.h>
 #include <style/ui_ssvalue.h>
+#include <graphics/ui_dcomp.h>
 #include <filesystem/ui_file.h>
 #include <core/ui_color_list.h>
 #include <container/pod_hash.h>
@@ -42,10 +43,10 @@ namespace LongUI { namespace impl {
 namespace LongUI { namespace detail {
     // lowest common ancestor
     auto lowest_common_ancestor(UIControl* now, UIControl* old) noexcept {
-        // 由于控件有深度信息, 所以可以进行优化
-        // 时间复杂度 O(q) q是目标解与最深条件节点之间深度差
-
-
+        /* 
+            由于控件有深度信息, 所以可以进行优化
+            时间复杂度 O(q) q是目标解与最深条件节点之间深度差
+        */
         // now不能为空
         assert(now && "new one cannot be null");
         // old为空则返回now
@@ -75,6 +76,11 @@ namespace LongUI { namespace detail {
         }
         assert(upper && lower && "cannot be null");
         return upper;
+    }
+    // 获取透明窗口适合的大小
+    inline auto get_fit_size_for_trans(uint32_t len) noexcept {
+        constexpr uint32_t UNIT = TRANSPARENT_WIN_BUFFER_UNIT;
+        return static_cast<uint32_t>(len + UNIT - 1) / UNIT * UNIT;
     }
 }}
 
@@ -135,6 +141,8 @@ namespace LongUI {
     /// private data for CUIWindow
     /// </summary>
     class CUIWindow::Private : public CUIObject {
+        // dcomp
+        using dcomp = impl::dcomp_window_buf;
         // control map
         using CtrlMap = POD::HashMap<UIControl*>;
         // window list
@@ -178,6 +186,8 @@ namespace LongUI {
         void ClosePopup() noexcept;
         // set common tooltip text
         void SetTooltipText(CUIString&&)noexcept;
+        // set dcomp support
+        void SetLayeredWindowSupport() noexcept;
     public:
         // mouse event[thread safe]
         void DoMouseEventTs(const MouseEventArg& args) noexcept;
@@ -214,7 +224,7 @@ namespace LongUI {
         // clear full rendering
         inline void clear_full_rendering_for_render() noexcept { full_render_for_render = false; }
         // using direct composition?
-        inline bool is_direct_composition() const noexcept { return false; }
+        inline bool is_direct_composition() const noexcept { return dcomp_support; }
         // is skip render?
         inline bool is_skip_render() const noexcept { return system_skip_rendering; }
     public:
@@ -225,6 +235,8 @@ namespace LongUI {
         I::Swapchan*    swapchan = nullptr;
         // bitmap buffer
         I::Bitmap*      bitmap = nullptr;
+        // dcomp
+        dcomp           dcomp_buf;
         // window clear color
         ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
         // title name
@@ -245,6 +257,8 @@ namespace LongUI {
         RectWHL         rect = {};
         // window adjust
         RectL           adjust = {};
+        // window buffer logical size
+        Size2U          wndbuf_logical = {};
 #ifndef NDEBUG
         // full render counter
         uint32_t        dbg_full_render_counter = 0;
@@ -281,6 +295,8 @@ namespace LongUI {
         bool            flag_sized : 1;
         // mouse enter
         bool            mouse_enter : 1;
+        // dcomp support
+        bool            dcomp_support : 1;
         // accessibility called
         bool            accessibility : 1;
         // moving or resizing
@@ -289,6 +305,8 @@ namespace LongUI {
         bool            mouse_left_down : 1;
         // skip window via system
         bool            system_skip_rendering : 1;
+        // layered window support
+        bool            layered_window_support : 1;
     public:
         // visible window
         bool            window_visible = false;
@@ -326,11 +344,14 @@ namespace LongUI {
     LongUI::CUIWindow::Private::Private() noexcept {
         flag_sized = false;
         mouse_enter = false;
+        dcomp_support = false;
         accessibility = false;
         moving_resizing = false;
         mouse_left_down = false;
         system_skip_rendering = false;
+        layered_window_support = false;
         std::memset(access_key_map, 0, sizeof(access_key_map));
+        impl::init_dcomp(dcomp_buf);
     }
 }
 
@@ -344,6 +365,10 @@ m_parent(parent), config(cfg),
 m_private(new(std::nothrow) Private) {
     // XXX: 错误处理
     if (!m_private) { m_bCtorFaild = true; return;}
+    // XXX: 内联窗口的场合
+    // 添加分层窗口支持
+    if ((cfg & Config_LayeredWindow)) 
+        m_private->SetLayeredWindowSupport();
     // 初始化
     m_private->viewport = &this->RefViewport();
     // 添加窗口
@@ -351,10 +376,10 @@ m_private(new(std::nothrow) Private) {
     // 初始化默认大小位置
     m_private->InitWindowPos();
     // XXX: 自动睡眠?
-    if (this->IsAutpSleep()) {
+    //if (this->IsAutpSleep()) {
 
-    }
-    else this->WakeUp();
+    //}
+    //else this->WakeUp();
     UIManager.add_window(*this);
 }
 
@@ -538,6 +563,10 @@ namespace LongUI {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIWindow::RecreateDeviceData() noexcept -> Result {
+    // 重建窗口设备资源
+    const auto hr = this->recreate_window();
+    if (!hr) return hr;
+    // 重建控件设备资源
     return LongUI::RecursiveRecreate(this->RefViewport(), false);
 }
 
@@ -546,6 +575,9 @@ auto LongUI::CUIWindow::RecreateDeviceData() noexcept -> Result {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::ReleaseDeviceData() noexcept {
+    // 释放窗口设备资源
+    this->release_window_only_device();
+    // 释放控件设备资源
     LongUI::RecursiveRecreate(this->RefViewport(), true);
 }
 
@@ -1312,6 +1344,15 @@ void LongUI::CUIWindow::Private::SetTooltipText(CUIString&& text) noexcept {
 }
 
 /// <summary>
+/// Sets the layered window support.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::SetLayeredWindowSupport() noexcept {
+    this->layered_window_support = true;
+    this->dcomp_support = impl::check_dcomp_support();
+}
+
+/// <summary>
 /// Called when [key down].
 /// </summary>
 /// <param name="vk">The vk.</param>
@@ -1559,7 +1600,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
         window_rect.top = this->rect.top;
         window_rect.width = this->rect.width + this->adjust.right - this->adjust.left;
         window_rect.height = this->rect.height + this->adjust.bottom - this->adjust.top;
-        // 针对this->rect清零, 否则会检查到未修改
+        // 针对this->rect清空为-1, 否则会检查到未修改
         this->rect = { -1, -1, -1, -1 };
         // 额外
         uint32_t ex_flag = 0;
@@ -2071,13 +2112,14 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
             uint32_t(client_rect.right - client_rect.left),
             uint32_t(client_rect.bottom - client_rect.top)
         };
+        // 设置逻辑大小
+        this->wndbuf_logical = wndsize;
         // 交换链信息
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = { 0 };
-        // TODO: DComp
+        // 检测DComp支持
         if (this->is_direct_composition()) {
-            assert(!"NOTIMPL");
-            swapChainDesc.Width = wndsize.width;
-            swapChainDesc.Height = wndsize.height;
+            swapChainDesc.Width = detail::get_fit_size_for_trans(wndsize.width);
+            swapChainDesc.Height = detail::get_fit_size_for_trans(wndsize.height);
         }
         else {
             swapChainDesc.Width = wndsize.width;
@@ -2095,12 +2137,22 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
         swapChainDesc.Flags = 0;
         // SWAP酱
         IDXGISwapChain1* sc = nullptr;
-        // TODO: DComp
+        // 检查DComp支持
         if (this->is_direct_composition()) {
-            
+            // DirectComposition桌面应用程序
+            swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
+            swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+            // 创建DirectComposition交换链
+            hr = { UIManager.RefGraphicsFactory().CreateSwapChainForComposition(
+                &UIManager.Ref3DDevice(),
+                &swapChainDesc,
+                nullptr,
+                &sc
+            ) };
+            longui_debug_hr(hr, L"UIManager_DXGIFactory->CreateSwapChainForComposition faild");
         }
-        // 失败则尝试创建一般的
-        if (sc == nullptr) {
+        // 创建一般的交换链
+        else {
             // 一般桌面应用程序
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
@@ -2142,9 +2194,9 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
         longui_debug_hr(hr, L"2DRenderer.CreateBitmapFromDxgiSurface faild");
     }
     LongUI::SafeRelease(backbuffer);
-    // TODO: 使用DComp
+    // 使用DComp
     if (this->is_direct_composition()) {
-
+        hr = impl::create_dcomp(this->dcomp_buf, hwnd, *this->swapchan);
     }
     return hr;
 }
@@ -2164,6 +2216,7 @@ void LongUI::CUIWindow::Private::release_data() noexcept {
 #endif
     LongUI::SafeRelease(this->bitmap);
     LongUI::SafeRelease(this->swapchan);
+    impl::release_dcomp(this->dcomp_buf);
 }
 
 /// <summary>
@@ -2174,20 +2227,30 @@ void LongUI::CUIWindow::Private::resize_window_buffer() noexcept {
     this->flag_sized = false;
     assert(this->rect.width && this->rect.height);
     // 检测是否无需修改
-    const auto olds = this->bitmap->GetPixelSize();
+    const auto olds = this->wndbuf_logical;
     const auto samew = olds.width == this->rect.width;
     const auto sameh = olds.height == this->rect.height;
     if (samew && sameh) return;
+    // 更新逻辑大小
+    this->wndbuf_logical.width = this->rect.width;
+    this->wndbuf_logical.height = this->rect.height;
     // 渲染区
     CUIRenderAutoLocker locker;
     // 取消引用
     UIManager.Ref2DRenderer().SetTarget(nullptr);
     // 强行重置flag
     bool force_resize = true;
-    // DComp
+    // 目标大小
+    auto target = this->wndbuf_logical;
+    // DComp支持
     if (this->is_direct_composition()) {
-        assert(!"NOT IMPL");
-        force_resize = false;
+        const auto old_realx = detail::get_fit_size_for_trans(olds.width);
+        const auto old_realy = detail::get_fit_size_for_trans(olds.height);
+        target.width = detail::get_fit_size_for_trans(target.width);
+        target.height = detail::get_fit_size_for_trans(target.height);
+        // 透明窗口只需要比实际大小大就行
+        if (old_realx == target.width && old_realy == target.height)
+            force_resize = false;
     }
     // 重置缓冲帧大小
     if (force_resize) {
@@ -2195,7 +2258,7 @@ void LongUI::CUIWindow::Private::resize_window_buffer() noexcept {
         LongUI::SafeRelease(this->bitmap);
         // TODO: 延迟等待
         Result hr = { this->swapchan->ResizeBuffers(
-            2, this->rect.width, this->rect.height,
+            2, target.width, target.height,
             DXGI_FORMAT_B8G8R8A8_UNORM,
             // DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT
             0
@@ -2233,12 +2296,15 @@ void LongUI::CUIWindow::Private::resize_window_buffer() noexcept {
         }
         // 重建失败?
         LongUI::SafeRelease(dxgibuffer);
+#ifndef NDEBUG
         LUIDebug(Hint)
-            << "resize to"
-            << this->rect.width
+            << "resize to["
+            << target.width
             << 'x'
-            << this->rect.height
+            << target.height
+            << ']'
             << LongUI::endl;
+#endif // !NDEBUG
         // TODO: 错误处理
         if (!hr) {
             LUIDebug(Error) << L" Recreate FAILED!" << LongUI::endl;

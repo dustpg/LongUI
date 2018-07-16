@@ -1,8 +1,8 @@
 ﻿// UI HREADER
+#include <luiconf.h>
 #include <text/ui_text_layout.h>
 #include <core/ui_color_list.h>
 #include <core/ui_manager.h>
-#include <luiconf.h>
 // OS IMPL
 #include <graphics/ui_graphics_impl.h>
 #include <text/ui_ctl_arg.h>

@@ -6,11 +6,11 @@
 #include <cstring>
 #include <new>
 
+#include "../luiconf.h"
 #include "../typecheck/is_iterator.h"
 #include "../typecheck/int_by_size.h"
 #include "../util/ui_unimacro.h"
 #include "../util/ui_ctordtor.h"
-#include "../luiconf.h"
 
 namespace LongUI {
     // string class

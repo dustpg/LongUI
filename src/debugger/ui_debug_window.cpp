@@ -21,7 +21,7 @@ namespace LongUI {
             Super(nullptr, CUIWindow::Config_ToolWindow) {
             this->SetXul(debug_view_xul);
             const auto window = this->GetWindow();
-            window->SetClearColor({ 1,1,1,1 });
+            window->SetClearColor({ 1, 1, 1, 1 });
             window->ShowWindow();
             window->SetPos({ 0, 0 });
             this->exit();

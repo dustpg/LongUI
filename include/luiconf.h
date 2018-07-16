@@ -7,8 +7,8 @@
 // [unused yet]style sheet support, include css-parse, undef to make bin-file smaller 
 #define LUI_STYLESHEET_SUPPORT
 
-// resize immediately on drag-sizing, but maybe like "Jelly"
-//#define LUI_RESIZE_IMMEDIATELY
+// resize immediately on drag-sizing, but maybe like "Jelly" on resizing if not a transparent window
+#define LUI_RESIZE_IMMEDIATELY
 
 // windows 10 support only, make bin-file smaller, faster
 //#define LUI_WIN10_ONLY
@@ -47,19 +47,21 @@
 namespace LongUI {
     // int Constant
     enum EnumUIConstant : int32_t {
-        // dirty rect count             : for optimization
+        // dirty rect count                 : for optimization
         DIRTY_RECT_COUNT = 16,
-        // default Window Width         : for init
+        // transparent window buffer unit   : for optimization
+        TRANSPARENT_WIN_BUFFER_UNIT = 64,
+        // default Window Width             : for init
         DEFAULT_WINDOW_WIDTH = 400,
-        // default Window Height        : for init
+        // default Window Height            : for init
         DEFAULT_WINDOW_HEIGHT = 300,
-        // default Control Width        : for init
+        // default Control Width            : for init
         DEFAULT_CONTROL_WIDTH = 100,
-        // default Control Height       : for init
+        // default Control Height           : for init
         DEFAULT_CONTROL_HEIGHT = 30,
-        // empty height per row         : for minsize
+        // empty height per row             : for minsize
         EMPTY_HEIGHT_PER_ROW = 24,
-        // min scrollbar display size   : for scrollbar
+        // min scrollbar display size       : for scrollbar
         MIN_SCROLLBAR_DISPLAY_SIZE = 64,
         // default control max width/height :
         DEFAULT_CONTROL_MAX_SIZE = 100000,

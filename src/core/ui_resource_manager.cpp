@@ -1,4 +1,5 @@
-﻿// ui
+﻿#include <luiconf.h>
+// ui
 #include <graphics/ui_adapter_desc.h>
 #include <interface/ui_iconfig.h>
 #include <resource/ui_resource.h>
@@ -9,7 +10,6 @@
 #include <core/ui_manager.h>
 #include <core/ui_string.h>
 #include <core/ui_malloc.h>
-#include <luiconf.h>
 
 #include <util/ui_unicode_cast.h>
 

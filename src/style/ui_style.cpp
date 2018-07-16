@@ -1,8 +1,8 @@
-﻿#include <style/ui_style.h>
+﻿#include <luiconf.h>
+#include <style/ui_style.h>
 #include <util/ui_unimacro.h>
 #include <core/ui_color_list.h>
 #include <core/ui_control_state.h>
-#include <luiconf.h>
 
 
 /// <summary>

@@ -485,6 +485,9 @@
     <ClCompile Include="..\src\control\ui_statusbar.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_dcomp.cpp">
+      <Filter>source\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1034,6 +1037,9 @@
     </ClInclude>
     <ClInclude Include="..\include\control\ui_statusbarpanel.h">
       <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\graphics\ui_dcomp.h">
+      <Filter>header\graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
