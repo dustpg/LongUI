@@ -74,6 +74,8 @@ namespace LongUI {
         // 2nd
         const T*        second;
     };
+    // split unit for U8View
+    auto SplitUnit(PodStringView<char>&) noexcept ->PodStringView<char>;
     // _sv
     inline PodStringView<char> operator ""_sv(const char* str, size_t len) noexcept {
         return{ str , str + len };

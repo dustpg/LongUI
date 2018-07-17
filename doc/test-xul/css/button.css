@@ -6,12 +6,10 @@ button#button, #layout .button{
     background-color: red;
     background-color: blue;
     margin-left: 2px;
-    box-flex: 1
 }
 
 #layout button:hover {
-    box-flex: 2;
-    /* background-color: yellow; */
+    background-color: yellow;
     /* margin-left: 200px; */
     /* font-family: KaiTi; */
     /* font-size: 30px; */

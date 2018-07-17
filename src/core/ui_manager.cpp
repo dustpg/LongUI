@@ -33,15 +33,17 @@ inline auto LongUI::CUIManager::this_() noexcept -> CUIManager* {
 }
 
 // private manager
-namespace LongUI { struct PrivateManager {
+namespace LongUI { struct CUIManager::Private {
+    // mark winmin
+    static void MarkWndMin() noexcept { UIManager.m_flagWndMinSizeChanged = true; }
     // TC
     using TC = CUITimeCapsule;
     // meta
     using META = const MetaControl;
     // ctor
-    PrivateManager() noexcept {  }
+    Private() noexcept {  }
     // dtor
-    ~PrivateManager() noexcept {}
+    ~Private() noexcept {}
     // time capsules
     POD::Vector<TC*>        time_capsules;
     // time capsules
@@ -115,6 +117,8 @@ namespace LongUI {
     void AddDefaultControlInfo(ControlInfoList&) noexcept;
     // delete control
     void DeleteControl(UIControl*) noexcept;
+    // mark control dl?
+    void OnTimer(UIControl&, uint32_t id) noexcept;
     // check control dl?
     bool CheckControlDeleteLater(const UIControl&) noexcept;
     // mark control dl?
@@ -194,7 +198,9 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 刷新控件控制
     this_()->normal_update();
     // 初始化控件
-    while (this_()->init_control_in_list()) {
+    while (this_()->init_control_in_list() || m_flagWndMinSizeChanged) {
+        // 标记为空
+        m_flagWndMinSizeChanged = false;
         // 更新窗口最小大小
         this_()->refresh_window_minsize();
         // 刷新在表控件
@@ -365,21 +371,31 @@ auto LongUI::CUIManager::CreateControl(U8View element,
 /// longui namespace
 /// </summary>
 namespace LongUI {
+    // detail namespace
+    namespace detail {
+        /// <summary>
+        /// Marks the wndmin changed.
+        /// </summary>
+        /// <returns></returns>
+        void mark_wndmin_changed() noexcept {
+            CUIManager::Private::MarkWndMin();
+        }
+    }
     // help
     enum {
-        pmanag1 = sizeof(PrivateManager),
+        pmanag1 = sizeof(CUIManager::Private),
         pm_size = detail::private_manager<sizeof(void*)>::size,
         pm_align= detail::private_manager<sizeof(void*)>::align,
     };
     // check
     static_assert(pm_size == pmanag1, "must be same");
-    static_assert(pm_align == alignof(PrivateManager), "must be same");
+    static_assert(pm_align == alignof(CUIManager::Private), "must be same");
     /// <summary>
     /// single instance buffer for longui manager
     /// </summary>
     std::aligned_storage<sizeof(CUIManager), alignof(CUIManager)>::type s_bufManager;
     // impl
-    namespace impl {     
+    namespace impl {
         // init HiDPI
         void init_high_dpi_support() noexcept;
         // uninit HiDPI
@@ -536,6 +552,17 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
                     UIManager.pm().km_input
                         .Update(reinterpret_cast<HRAWINPUT>(lParam));
                     return 1;
+#if 0
+                case WM_TIMER:
+                {
+                    const WPARAM high = wParam & ~WPARAM(3);
+                    const uint32_t low = wParam & 3;
+                    const auto ctrl = reinterpret_cast<UIControl*>(high);
+                    CUIDataAutoLocker locker;
+                    LongUI::OnTimer(*ctrl, low);
+                    return 0;
+                }
+#endif
                 case WM_SETTINGCHANGE:
                     UIManager.refresh_system_info();
                     break;
@@ -775,7 +802,7 @@ flag(config->GetConfigureFlag()) {
     detail::ctor_dtor<CUIManagerDebug>::create(&DbgMgr());
 #endif
     //config->AddRef();
-    detail::ctor_dtor<PrivateManager>::create(&this_()->pm());
+    detail::ctor_dtor<Private>::create(&this_()->pm());
     // 更新系统信息
     this_()->refresh_system_info();
     
@@ -788,7 +815,7 @@ flag(config->GetConfigureFlag()) {
 /// <returns></returns>
 LongUI::CUIManager::~CUIManager() noexcept {
 
-    this_()->pm().~PrivateManager();
+    this_()->pm().~Private();
 #ifndef NDEBUG
     DbgMgr().~CUIManagerDebug();
 #endif

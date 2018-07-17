@@ -25,6 +25,13 @@ namespace LongUI {
     void DeleteControl(UIControl* ctrl) noexcept { 
         delete ctrl; 
     }
+    // 计时器函数
+    //void OnTimer(UIControl& ctrl, uint32_t id) noexcept {
+    //    assert(id < 4 && "bad id");
+    //    constexpr auto eid = static_cast<uint32_t>(NoticeEvent::Event_Timer0);
+    //    const auto nid = static_cast<NoticeEvent>(eid + id);
+    //    ctrl.DoEvent(nullptr, { nid });
+    //}
     // 删除控件
     bool CheckControlDeleteLater(const UIControl& ctrl) noexcept {
         return ctrl.IsDeleteLater();
@@ -137,6 +144,26 @@ bool LongUI::UIControl::IsLastChild() const noexcept {
 }
 
 /// <summary>
+/// Sets the timer[0123]
+/// </summary>
+/// <param name="id0123">The id0123.</param>
+/// <param name="elapse">The elapse.</param>
+/// <returns></returns>
+//void LongUI::UIControl::SetTimer0123(uint32_t id0123, uint32_t elapse) noexcept {
+//    m_bHasTimer = true;
+//}
+
+/// <summary>
+/// Kills the timer[0123]
+/// </summary>
+/// <param name="id0123">The id0123.</param>
+/// <param name="elapse">The elapse.</param>
+/// <returns></returns>
+//void LongUI::UIControl::KillTimer0123(uint32_t id0123, uint32_t elapse) noexcept {
+//
+//}
+
+/// <summary>
 /// Resizes the child.
 /// </summary>
 /// <param name="child">The child.</param>
@@ -161,24 +188,14 @@ bool LongUI::UIControl::Resize(Size2F size) noexcept {
     // 无需修改
     if (IsSameInGuiLevel(m_oBox.size, size)) return false;
     // 修改布局
-    const auto layout = this->IsTopLevel() ? this : m_pParent;
-    layout->NeedRelayout();
+    //const auto layout = this->IsTopLevel() ? this : m_pParent;
+    if (m_pParent) m_pParent->NeedRelayout();
+    this->NeedRelayout();
     // XXX: 需要修改世界矩阵
     m_state.world_changed = true;
     // 修改了数据
     m_oBox.size = size;
     return true;
-}
-
-/// <summary>
-/// Sets the size of the fixed.
-/// </summary>
-/// <param name="size">The size.</param>
-/// <returns></returns>
-void LongUI::UIControl::SetFixedSize(Size2F size) noexcept {
-    this->SetStyleMaxSize(size);
-    this->SetStyleMinSize(size);
-    this->Resize(size);
 }
 
 PCN_NOINLINE
@@ -195,6 +212,17 @@ auto LongUI::UIControl::GetMinSize() const noexcept -> Size2F {
         s.width == IMS ? b.width : s.width,
         s.height == IMS ? b.height : s.height,
     };
+}
+
+/// <summary>
+/// Sets the size of the fixed.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::UIControl::SetFixedSize(Size2F size) noexcept {
+    this->SetStyleMaxSize(size);
+    this->SetStyleMinSize(size);
+    this->Resize(size);
 }
 
 /// <summary>
@@ -215,7 +243,7 @@ void LongUI::UIControl::SetStyleMaxSize(Size2F size) noexcept {
 /// <returns></returns>
 void LongUI::UIControl::SetStyleMinSize(Size2F size) noexcept {
     m_oStyle.minsize = size;
-    //UIManager.MarkWindowMinsizeChanged(m_pWindow);
+    this->mark_window_minsize_changed();
 }
 
 /// <summary>
@@ -444,11 +472,11 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     assert(!m_state.inited && "cannot call this after init-ed");
 #endif
     constexpr auto BKDR_ID          = 0x0000361f_ui32;
+    constexpr auto BKDR_TOP         = 0x001e9951_ui32;
     constexpr auto BKDR_DIR         = 0x001a65b1_ui32;
     constexpr auto BKDR_PACK        = 0x0f1b8d4d_ui32;
     constexpr auto BKDR_FLEX        = 0x0dc767b5_ui32;
     constexpr auto BKDR_LEFT        = 0x0e936497_ui32;
-    constexpr auto BKDR_RIGHT       = 0xdf4832f0_ui32;
     constexpr auto BKDR_STYLE       = 0xf253f789_ui32;
     constexpr auto BKDR_ALIGN       = 0xb54685e9_ui32;
     constexpr auto BKDR_CLASS       = 0xd85fe06c_ui32;
@@ -485,10 +513,14 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_LEFT & MASK_HASH:
         // left
+        // TODO: 单位?
+        //const auto unit = LongUI::SplitUnit(luiref value);
         m_oBox.pos.x = value.ToFloat();
         break;
-    case BKDR_RIGHT & MASK_HASH:
-        // right
+    case BKDR_TOP & MASK_HASH:
+        // top
+        // TODO: 单位?
+        //const auto unit = LongUI::SplitUnit(luiref value);
         m_oBox.pos.y = value.ToFloat();
         break;
     case BKDR_WIDTH & MASK_HASH:
@@ -706,6 +738,7 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
 /// </summary>
 LongUI::UIControl::UIControl(UIControl* parent, const MetaControl& meta) noexcept : 
 m_pParent(nullptr), m_refMetaInfo(meta) {
+    m_bHasTimer = false;
     m_bHasInlineStyle = false;
     Node::next = nullptr;
     Node::prev = nullptr;
@@ -1500,6 +1533,36 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_PositionOverflowY:
         detail::write_value(m_oStyle.overflow_y, value.data.byte);
         break;
+    case ValueType::Type_DimensionWidth:
+        detail::write_value(m_oStyle.minsize.width, value.data.single);
+        detail::write_value(m_oStyle.maxsize.width, value.data.single);
+        detail::write_value(m_oBox.size.width, value.data.single);
+        this->mark_window_minsize_changed();
+        this->NeedRelayout();
+        break;
+    case ValueType::Type_DimensionHeight:
+        detail::write_value(m_oStyle.minsize.height, value.data.single);
+        detail::write_value(m_oStyle.maxsize.height, value.data.single);
+        detail::write_value(m_oBox.size.height, value.data.single);
+        this->mark_window_minsize_changed();
+        this->NeedRelayout();
+        break;
+    case ValueType::Type_DimensionMinWidth:
+        detail::write_value(m_oStyle.minsize.width, value.data.single);
+        this->mark_window_minsize_changed();
+        break;
+    case ValueType::Type_DimensionMinHeight:
+        detail::write_value(m_oStyle.minsize.height, value.data.single);
+        this->mark_window_minsize_changed();
+        break;
+    case ValueType::Type_DimensionMaxWidth:
+        detail::write_value(m_oStyle.maxsize.width, value.data.single);
+        if (m_pParent) m_pParent->NeedRelayout();
+        break;
+    case ValueType::Type_DimensionMaxHeight:
+        detail::write_value(m_oStyle.maxsize.height, value.data.single);
+        if (m_pParent) m_pParent->NeedRelayout();
+        break;
     case ValueType::Type_BoxFlex:
         detail::write_value(m_oStyle.flex, value.data.single);
         if (m_pParent) m_pParent->NeedRelayout();
@@ -1611,6 +1674,24 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_PositionOverflowY:
         detail::write_value(value.data.byte, m_oStyle.overflow_y);
+        break;
+    case ValueType::Type_DimensionWidth:
+        detail::write_value(value.data.single, m_oBox.size.width);
+        break;
+    case ValueType::Type_DimensionHeight:
+        detail::write_value(value.data.single, m_oBox.size.width);
+        break;
+    case ValueType::Type_DimensionMinWidth:
+        detail::write_value(value.data.single, m_oStyle.minsize.width);
+        break;
+    case ValueType::Type_DimensionMinHeight:
+        detail::write_value(value.data.single, m_oStyle.minsize.height);
+        break;
+    case ValueType::Type_DimensionMaxWidth:
+        detail::write_value(value.data.single, m_oStyle.maxsize.width);
+        break;
+    case ValueType::Type_DimensionMaxHeight:
+        detail::write_value(value.data.single, m_oStyle.maxsize.height);
         break;
     case ValueType::Type_BoxFlex:
         detail::write_value(value.data.single, m_oStyle.flex);

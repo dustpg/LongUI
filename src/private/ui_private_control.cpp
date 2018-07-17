@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+#include <debugger/ui_debug.h>
+
 
 /// <summary>
 /// Gets the BGC renderer.
@@ -70,7 +72,7 @@ void LongUI::UIControlPrivate::RefreshMinSize(UIControl& ctrl) noexcept {
         const auto a = reinterpret_cast<const uint64_t&>(minsize1);
         const auto b = reinterpret_cast<const uint64_t&>(minsize2);
         // 在64位下可以只判断一次
-        if (a != b) ctrl.NeedRelayout();
+        if (a != b) { ctrl.NeedRelayout(); child.NeedRelayout(); }
     }
     // 刷新大小
     ctrl.DoEvent(&ctrl, { NoticeEvent::Event_RefreshBoxMinSize });

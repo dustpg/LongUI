@@ -14,6 +14,8 @@ namespace LongUI { namespace detail {
         const POD::Vector<UIViewport*>&, 
         const char*
     ) noexcept;
+    // mark wndmin changed
+    void mark_wndmin_changed() noexcept;
 }}
 
 /// <summary>
@@ -67,6 +69,8 @@ auto LongUI::CUIWndMgr::FindSubViewportWithUnistr(const char* name)const noexcep
     return detail::find_viewport(wm().subviewports, name);
 }
 
+
+
 /// <summary>
 /// Marks the window minsize changed.
 /// </summary>
@@ -82,6 +86,7 @@ void LongUI::CUIWndMgr::MarkWindowMinsizeChanged(CUIWindow* window) noexcept {
 #endif
         window->m_bMinsizeList = true;
     }
+    detail::mark_wndmin_changed();
 }
 
 /// <summary>

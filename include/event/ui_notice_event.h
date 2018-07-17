@@ -26,7 +26,20 @@ namespace LongUI {
         // splitter drag
         Event_Splitter,
         // implicit radio group member checked
-        Event_ImplicitGroupChecked
+        Event_ImplicitGroupChecked,
+
+
+        // ----------------------------
+#if 0
+        // timer event #0
+        Event_Timer0,
+        // timer event #1
+        Event_Timer1,
+        // timer event #2
+        Event_Timer2,
+        // timer event #3
+        Event_Timer3,
+#endif
     };
     /// <summary>
     /// event argument

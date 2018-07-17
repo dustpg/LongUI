@@ -20,7 +20,7 @@ namespace LongUI {
         Type_NewOne = 0xfffffffful,
         // unknown
         Type_Unknown = 0,
-
+        
         //// [Position] cursor 
         //Type_PositionCursor,
         //// [Position] left 
@@ -35,6 +35,19 @@ namespace LongUI {
         Type_PositionOverflowY,
         //// [Position] z-index
         //Type_PositionZindex,
+
+        // [Dimension] width
+        Type_DimensionWidth,
+        // [Dimension] height
+        Type_DimensionHeight,
+        // [Dimension] min-width
+        Type_DimensionMinWidth,
+        // [Dimension] min-height
+        Type_DimensionMinHeight,
+        // [Dimension] max-width
+        Type_DimensionMaxWidth,
+        // [Dimension] max-height
+        Type_DimensionMaxHeight,
 
         // [Box] flex
         Type_BoxFlex,

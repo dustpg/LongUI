@@ -1,5 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (19)
+#define CASE_NUM (16)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>

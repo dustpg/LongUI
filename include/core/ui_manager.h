@@ -63,8 +63,6 @@ namespace LongUI {
     }
     // input
     class CUIInputKM;
-    // private
-    struct PrivateManager;
     // config keeper, make sure config inited first
     struct ConfigKeeper { IUIConfigure* config; };
     // longui ui-manager
@@ -85,6 +83,8 @@ namespace LongUI {
         friend detail::ctor_dtor<CUIManager>;
         // interface for memory management
         struct IMM;
+        // private
+        struct Private;
         // flag
         using ConfigFlag = IUIConfigure::ConfigureFlag;
     public:
@@ -190,7 +190,7 @@ namespace LongUI {
         // call time capsule#2
         void call_time_capsule_s2() noexcept;
         // private manager
-        auto&pm() noexcept { return reinterpret_cast<PrivateManager&>(m_private); }
+        auto&pm() noexcept { return reinterpret_cast<Private&>(m_private); }
         // private data
         std::aligned_storage<
             detail::private_manager<sizeof(void*)>::size,
@@ -199,6 +199,8 @@ namespace LongUI {
     private:
         // recreate_device flag
         bool                    m_flagRecreate = false;
+        // window minsize changed flag
+        bool                    m_flagWndMinSizeChanged = false;
     };
     // auto data locker
     class CUIDataAutoLocker {

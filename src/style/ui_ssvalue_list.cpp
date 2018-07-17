@@ -11,8 +11,15 @@
 // css
 #include <xul/SimpAC.h>
 
+
 // longui namespace
 namespace LongUI {
+    // split unit
+    auto SplitUnit(PodStringView<char>& view) noexcept -> PodStringView<char> {
+        auto& pair = reinterpret_cast<SimpAC::StrPair&>(view);
+        const auto rv = SimpAC::SplitUnit(pair);
+        return reinterpret_cast<const PodStringView<char>&>(rv);
+    }
     // SimpAC::FuncValue to U8View
     auto U8(SimpAC::FuncValue v) noexcept {
         return U8View{ v.first, v.first + v.length };
@@ -123,6 +130,12 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_BorderBottomWidth:
     case ValueType::Type_BorderLeftWidth:
         // [MBP]
+    case ValueType::Type_DimensionWidth:
+    case ValueType::Type_DimensionHeight:
+    case ValueType::Type_DimensionMinWidth:
+    case ValueType::Type_DimensionMinHeight:
+    case ValueType::Type_DimensionMaxWidth:
+    case ValueType::Type_DimensionMaxHeight:
     case ValueType::Type_BoxFlex:
     case ValueType::Type_FontSize:
         // [FLOAT]
@@ -226,7 +239,27 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
         // overflow-y
         return { ValueType::Type_PositionOverflowY };
 
-        // ------------- Box ----------------
+        // ------------- Dimension ----------------
+        // width
+    case 0x370bff82_ui32:
+        return { ValueType::Type_DimensionWidth };
+        // height
+    case 0x28d4978b_ui32:
+        return { ValueType::Type_DimensionHeight };
+        // min-width
+    case 0xb722a407_ui32:
+        return { ValueType::Type_DimensionMinWidth };
+        // min-height
+    case 0xb46ac79a_ui32:
+        return { ValueType::Type_DimensionMinHeight };
+        // max-width
+    case 0x0aeeba29_ui32:
+        return { ValueType::Type_DimensionMaxWidth };
+        // max-height
+    case 0x95da1b00_ui32:
+        return { ValueType::Type_DimensionMaxHeight };
+
+        // ---------------- Box -------------------
         
     case 0x1818e927:
         // box-flex
@@ -371,6 +404,12 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BorderBottomWidth:
     case LongUI::ValueType::Type_BorderLeftWidth:
         // [MBP]
+    case ValueType::Type_DimensionWidth:
+    case ValueType::Type_DimensionHeight:
+    case ValueType::Type_DimensionMinWidth:
+    case ValueType::Type_DimensionMinHeight:
+    case ValueType::Type_DimensionMaxWidth:
+    case ValueType::Type_DimensionMaxHeight:
     case ValueType::Type_BoxFlex:
     case ValueType::Type_FontSize:
         // [FLOAT]
@@ -500,9 +539,8 @@ namespace LongUI {
         // parse time
         auto parse_time(U8View value) noexcept -> float {
             // 默认定为秒
-            auto& v0_ref = reinterpret_cast<SimpAC::StrPair&>(value);
-            const auto unit = SimpAC::SplitUnit(v0_ref);
-            float rv = reinterpret_cast<U8View&>(value).ToFloat();
+            const auto unit = LongUI::SplitUnit(luiref value);
+            float rv = value.ToFloat();
             // 检测单位
 #if 1
             if (unit.begin()[0] == 'm')  rv /= 1000.;
@@ -529,7 +567,7 @@ namespace LongUI {
         // parse float
         auto parse_float(FuncValue value) noexcept -> float {
             auto view = U8(value);
-            const auto unit = SimpAC::SplitUnit(reinterpret_cast<SimpAC::StrPair&>(view));
+            const auto unit = LongUI::SplitUnit(luiref view);
             const auto single = view.ToFloat();
             // 存在单位
             if (unit.begin() != unit.end()) {
@@ -648,6 +686,11 @@ void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
         = font.stretch;
     buf[static_cast<int>(ValueType::Type_FontWeight)].word
         = font.weight;
+    // 大小
+    buf[static_cast<int>(ValueType::Type_DimensionMaxWidth)].single
+        = static_cast<float>(DEFAULT_CONTROL_MAX_SIZE);
+    buf[static_cast<int>(ValueType::Type_DimensionMaxHeight)].single
+        = static_cast<float>(DEFAULT_CONTROL_MAX_SIZE);
 }
 
 

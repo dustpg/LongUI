@@ -32,6 +32,13 @@ function get_text() {
 </hbox>
 <button id="bgimage" label="BUTTON" flex="1"/>
 <spacer flex="1"/>
-
+<groupbox flex="1" > 
+<caption label="stack" />
+  <stack>
+     <label value="Stars" style="font-weight:bold" top="80px" />
+     <button image="images/25.png"  left="60px" top="60px"
+             style="height: 30px; width:25px; background-color: #663333;"/>
+  </stack>
+</groupbox>
 
 </window>

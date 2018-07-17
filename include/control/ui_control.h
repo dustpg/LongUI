@@ -170,6 +170,10 @@ namespace LongUI {
         bool IsFirstChild() const noexcept;
         // is last child
         bool IsLastChild() const noexcept;
+        // set timer 0~3
+        //void SetTimer0123(uint32_t id0123, uint32_t elapse) noexcept;
+        // kill timer 0~3
+        //void KillTimer0123(uint32_t id0123, uint32_t elapse) noexcept;
     public:
         // clear appearance and all margin/padding/border
         void ClearAppearance() noexcept;
@@ -416,6 +420,8 @@ namespace LongUI {
         uint16_t                m_unused_u16 = 0;
         // accesskey char
         char                    m_chAccessKey = 0;
+        // has timer
+        bool                    m_bHasTimer : 1;
         // has inline style
         bool                    m_bHasInlineStyle : 1;
     public:
