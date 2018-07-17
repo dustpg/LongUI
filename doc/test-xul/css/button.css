@@ -6,16 +6,18 @@ button#button, #layout .button{
     background-color: red;
     background-color: blue;
     margin-left: 2px;
+    box-flex: 1
 }
 
 #layout button:hover {
-    background-color: yellow;
-    margin-left: 200px;
+    box-flex: 2;
+    /* background-color: yellow; */
+    /* margin-left: 200px; */
     /* font-family: KaiTi; */
     /* font-size: 30px; */
     /* font-style: italic; */
     /* font-weight: 600; */
-    color: cyan
+    /* color: cyan */
 }
 
 #layout button:active {

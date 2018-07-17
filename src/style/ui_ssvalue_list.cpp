@@ -123,6 +123,7 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_BorderBottomWidth:
     case ValueType::Type_BorderLeftWidth:
         // [MBP]
+    case ValueType::Type_BoxFlex:
     case ValueType::Type_FontSize:
         // [FLOAT]
         assert(value_len == 1 && "unsupported");
@@ -225,7 +226,11 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
         // overflow-y
         return { ValueType::Type_PositionOverflowY };
 
-
+        // ------------- Box ----------------
+        
+    case 0x1818e927:
+        // box-flex
+        return { ValueType::Type_BoxFlex };
         // ------------- Margin ----------------
 
     case 0xcd67f276_ui32:
@@ -366,6 +371,7 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BorderBottomWidth:
     case LongUI::ValueType::Type_BorderLeftWidth:
         // [MBP]
+    case ValueType::Type_BoxFlex:
     case ValueType::Type_FontSize:
         // [FLOAT]
         return ValueEasyType::Type_Float;

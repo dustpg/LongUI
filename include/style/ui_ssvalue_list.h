@@ -36,6 +36,9 @@ namespace LongUI {
         //// [Position] z-index
         //Type_PositionZindex,
 
+        // [Box] flex
+        Type_BoxFlex,
+
         // [Margin] margin
         Type_Margin,
         // [Margin] top

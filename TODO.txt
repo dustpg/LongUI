@@ -1,14 +1,10 @@
 ﻿tab功能?
 
-DComp?
-
 CUIWaiter单独测试?
 
 Event_Initialize 时构造对象?
 
-窗口生命周期控制?
-
-Context Menu按键支持
+窗口生命周期控制?Xxx::ControlAttached 目前无用
 
 不少控件拥有checked的属性
 
@@ -16,11 +12,11 @@ Context Menu按键支持
 
 读取资源方式修改以方便读取压缩包中的文件?
 
-Xxx::ControlAttached 目前无用
-
 赋予原子控件真正的意义
 ------------------------------------------------------------------
 菜单应该像离开一样是进入一段时间就行, 不需要等待IDLE HOVER事件
+
+Context Menu按键支持
 
 双滚动条 BUG1. 没有显示完 2.夹角处显示
 

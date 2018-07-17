@@ -1500,6 +1500,10 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_PositionOverflowY:
         detail::write_value(m_oStyle.overflow_y, value.data.byte);
         break;
+    case ValueType::Type_BoxFlex:
+        detail::write_value(m_oStyle.flex, value.data.single);
+        if (m_pParent) m_pParent->NeedRelayout();
+        break;
     case ValueType::Type_BackgroundColor:
         this->SetBgColor({ value.data.u32 });
         break;
@@ -1607,6 +1611,9 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_PositionOverflowY:
         detail::write_value(value.data.byte, m_oStyle.overflow_y);
+        break;
+    case ValueType::Type_BoxFlex:
+        detail::write_value(value.data.single, m_oStyle.flex);
         break;
     case ValueType::Type_BackgroundColor:
         detail::write_value(value.data.u32, this->GetBgColor().primitive);

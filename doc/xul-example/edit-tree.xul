@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="file://C:/main.css" type="text/css"?>                                    
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<row><button label="GetRowValues" oncommand="getrowcellvalues();"/></row>
+ <tree flex="1" editable="true" id="mytree">
+
+  <treecols>
+    <treecol label="Active" type="checkbox"/>
+    <treecol label="Name" flex="1" id="name"/>
+  </treecols>
+
+  <treechildren>
+    <treeitem>
+      <treerow>
+        <treecell value="false"/>
+        <treecell label="Alice"/>
+      </treerow>
+    </treeitem>
+    <treeitem>
+      <treerow>
+        <treecell value="false"/>
+        <treecell label="Bob"/>
+      </treerow>
+    </treeitem>
+  </treechildren>
+
+</tree>
+
+</window>
