@@ -135,6 +135,12 @@ namespace LongUI {
 
         // [Text] color
         Type_TextColor,
+        // [-Webkit-Text] stroke 
+        Type_WKTextColorStroke,
+        // [-Webkit-Text] stroke-width
+        Type_WKTextColorStrokeWidth,
+        // [-Webkit-Text] stroke-color
+        Type_WKTextColorStrokeColor,
 
         // [Font] size
         Type_FontSize,
@@ -148,7 +154,7 @@ namespace LongUI {
         Type_FontFamily,
 
         // [LongUI] appearance
-        Type_UIAppearance,
+        Type_LUIAppearance,
         // COUNT
         TYPE_COUNT
     };

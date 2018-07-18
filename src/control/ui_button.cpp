@@ -122,6 +122,9 @@ LongUI::UIButton::~UIButton() noexcept {
 /// <summary>
 /// Adds the private child.
 /// </summary>
+/// <remarks>
+/// 由于可以往button标签里面直接嵌入label等标签, 所以才有本函数
+/// </remarks>
 /// <returns></returns>
 void LongUI::UIButton::add_private_child() noexcept {
     if (!m_private->image.GetParent()) {
@@ -254,6 +257,14 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
             this->add_private_child();
         }
         break;
+    //case NoticeEvent::Event_RefreshBoxMinSize:
+    //    this->refresh_min();
+    //    // XXX: 宽度过小?
+    //    if (m_minScrollSize.width < float(MIN_BUTTON_WIDTH)) {
+    //        m_minScrollSize.width = float(MIN_BUTTON_WIDTH);
+    //        this->set_contect_minsize(m_minScrollSize);
+    //    }
+    //    return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 访问行为
         this->Click();

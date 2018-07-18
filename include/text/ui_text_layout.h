@@ -17,10 +17,10 @@ namespace LongUI {
         auto set_text(TextArg& arg) noexcept->Result;
     public:
         // ctor
-        CUITextLayout() noexcept {}
+        CUITextLayout() noexcept = default;
         // dtor
         ~CUITextLayout() noexcept;
-        // renderer
+        // renderer with default text render
         void Render(
             I::Renderer2D& renderer, 
             const ColorF& color,
@@ -44,6 +44,8 @@ namespace LongUI {
         operator bool() const noexcept { return !!m_text; }
         // operator !
         bool operator!() const noexcept { return !m_text; }
+        // get ctl text
+        auto GetCtlText() const noexcept { return m_text; }
     private:
         // ctl text data
         I::Text*            m_text = nullptr;

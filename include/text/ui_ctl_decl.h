@@ -10,6 +10,8 @@ namespace LongUI { namespace I {
     struct Font;
     // CTL Text
     struct Text;
+    // CTL Text Renderer
+    struct TextRenderer;
 }}
 
 // ui

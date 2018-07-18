@@ -37,6 +37,17 @@ void LongUI::UILabel::Render() const noexcept {
     const float xoffset = rect.left + DEFUALT_TEXT_X_OFFSET;
     const float yoffset = rect.top + DEFUALT_TEXT_Y_OFFSET;
     // 具体渲染
-    m_text.Render(UIManager.Ref2DRenderer(), color, { xoffset, yoffset });
+    // -- 拥有描边?
+    if (m_tfBuffer.text.stroke_width > 0.f) {
+        TextOutlineContext context;
+        context.renderer = &UIManager.Ref2DRenderer();
+        context.color = m_tfBuffer.text.color;
+        context.outline_color = m_tfBuffer.text.stroke_color;
+        context.outline_width = m_tfBuffer.text.stroke_width;
+        m_outline.Render(context, m_text.GetCtlText(), { xoffset, yoffset });
+    }
+    else {
+        m_text.Render(UIManager.Ref2DRenderer(), color, { xoffset, yoffset });
+    }
 }
 

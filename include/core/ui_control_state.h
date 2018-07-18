@@ -80,10 +80,10 @@ namespace LongUI {
 
         // ----------- state
 
-        // textcolor changed
-        bool        textcolor_changed : 1;
-        // text&font(except color) chnaged
-        bool        textfont_changed : 1;
+        // text-font display attr changed
+        bool        textfont_display_changed : 1;
+        // text-font layout attr changed
+        bool        textfont_layout_changed : 1;
         // layout dirty
         bool        dirty : 1;
         // visible                          [S-falg]

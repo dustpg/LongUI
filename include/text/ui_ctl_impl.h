@@ -16,6 +16,8 @@ namespace LongUI { namespace I {
     struct PCN_NOVTABLE Font : IDWriteTextFormat { };
     // CTL Text
     struct PCN_NOVTABLE Text : IDWriteTextLayout1 { };
+    // CTL Text
+    struct PCN_NOVTABLE TextRenderer : IDWriteTextRenderer { };
     // font from text
     inline auto FontFromText(Text* text) noexcept {
         const auto fmt = static_cast<IDWriteTextFormat*>(text);

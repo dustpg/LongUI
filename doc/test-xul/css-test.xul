@@ -17,12 +17,12 @@ function get_text() {
 ]]>
 </script>
 
-<!-- <hbox flex="1">
+<hbox flex="1">
   <spacer flex="1"/>
   <image id="img1" flex="1" src="images/25.png"/>
-  <image id="img2" flex="1" src="images/owl.gif"/> -->
+  <image id="img2" flex="1" src="images/owl.gif"/>
   <!-- <image flex="1" src="images/owl.gif"/> -->
-  <!-- <spacer flex="1"/>
+  <spacer flex="1"/>
 </hbox>
 <hbox flex="1" id="layout">
   <button label="BUTTON" id="btn1"/>
@@ -30,15 +30,19 @@ function get_text() {
   <button class="  A   B  C D button E  " label="按钮" flex="1"/>
   <spacer flex="1"/>
 </hbox>
-<button id="bgimage" label="BUTTON" flex="1"/> -->
+<button id="bgimage" label="BUTTON" flex="1"/>
 <spacer flex="1"/>
 <groupbox flex="1" > 
 <caption label="stack" />
   <stack>
      <label value="Stars" style="font-weight:bold" top="80px" />
-     <button image="images/25.png"  left="60px" top="60px"
+     <button image="images/25.png" left="60px" top="60px" label="按钮" 
              style0="height: 30px; width:25px; background-color: #663333;"/>
   </stack>
+  <hbox>
+    <button image="images/25.png" label="A" flex="1"/>
+    <button image="images/25.png" flex="10"/>
+  </hbox>
 </groupbox>
 
 </window>

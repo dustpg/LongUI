@@ -13,6 +13,10 @@ namespace LongUI {
         // after box changed
         void after_box_changed();
     public:
+        // set text stroke color
+        void SetTextStrokeWidth(float width) noexcept;
+        // set text stroke color
+        void SetTextStrokeColor(RGBA color) noexcept;
         // set foreground color
         void SetFgColor(RGBA color) noexcept;
         // set background clip
@@ -38,10 +42,14 @@ namespace LongUI {
         // set font stretch
         void SetFontStretch(AttributeFontStretch stretch) noexcept;
     public:
-        // get background clip
-        auto GetBgClip() const noexcept->AttributeBox;
+        // set text stroke color
+        auto GetTextStrokeWidth() const noexcept->float;
+        // set text stroke color
+        auto GetTextStrokeColor() const noexcept->RGBA;
         // get foreground color
         auto GetFgColor() const noexcept->RGBA;
+        // get background clip
+        auto GetBgClip() const noexcept->AttributeBox;
         // get background color
         auto GetBgColor() const noexcept->RGBA;
         // get background image resource id

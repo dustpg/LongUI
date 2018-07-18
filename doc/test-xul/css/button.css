@@ -21,11 +21,13 @@ button#button, #layout .button{
 stack>button {
     transition-duration: 555ms;
     background-color: blue;
+    -webkit-text-stroke: 2px red;
     left: 10;
 }
 
 stack>button:hover {
     background-color: yellow;
+    /* -webkit-text-stroke-color: green */
     left: 300;
 }
 

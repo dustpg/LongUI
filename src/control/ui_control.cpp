@@ -408,8 +408,8 @@ void LongUI::UIControl::Update() noexcept {
     assert(m_state.inited && "must init control first");
     // 状态修改
     m_state.style_state_changed = false;
-    m_state.textcolor_changed = false;
-    m_state.textfont_changed = false;
+    m_state.textfont_display_changed = false;
+    m_state.textfont_layout_changed = false;
     // 最基的不处理子控件索引更改
     m_state.child_i_changed = false;
     m_state.parent_changed = false;
@@ -1626,6 +1626,12 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_TextColor:
         this->SetFgColor({ value.data.u32 });
         break;
+    case ValueType::Type_WKTextColorStrokeWidth:
+        this->SetTextStrokeWidth({ value.data.single });
+        break;
+    case ValueType::Type_WKTextColorStrokeColor:
+        this->SetTextStrokeColor({ value.data.u32 });
+        break;
     case ValueType::Type_FontSize:
         this->SetFontSize({ value.data.single });
         break;
@@ -1677,7 +1683,7 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_BorderLeftWidth:
         this->SetBorderLeft(value.data.single);
         break;
-    case ValueType::Type_UIAppearance:
+    case ValueType::Type_LUIAppearance:
         detail::write_value(m_oStyle.appearance, value.data.byte);
 #if 0
         if (m_oStyle.appearance == Appearance_None)
@@ -1759,6 +1765,12 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
     case ValueType::Type_TextColor:
         detail::write_value(value.data.u32, this->GetFgColor().primitive);
         break;
+    case ValueType::Type_WKTextColorStrokeWidth:
+        detail::write_value(value.data.single, this->GetTextStrokeWidth());
+        break;
+    case ValueType::Type_WKTextColorStrokeColor:
+        detail::write_value(value.data.u32, this->GetTextStrokeColor().primitive);
+        break;
     case ValueType::Type_FontSize:
         detail::write_value(value.data.single, this->GetFontSize());
         break;
@@ -1775,7 +1787,7 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         // cannot get font family from here
         detail::write_value(value.data.u32, CUIManager::ERROR_HANDLE);
         break;
-    case ValueType::Type_UIAppearance:
+    case ValueType::Type_LUIAppearance:
         detail::write_value(value.data.byte, m_oStyle.appearance);
         break;
     case ValueType::Type_MarginTop:

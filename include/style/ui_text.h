@@ -8,8 +8,14 @@
 namespace LongUI {
     // style.text
     struct StyleText {
-        // text color
+        // [display]text color
         ColorF          color;
+        // [display]text stroke color
+        ColorF          stroke_color;
+        // [display]text stroke width
+        float           stroke_width;
+        // [display]text unused float32
+        float           text_unused;
         // text crop
 
     };

@@ -90,10 +90,10 @@ struct LongUI::UIControlPrivate {
     // mark window minsize changed
     static void MarkWindowMinsizeChanged(UIControl& ctrl) noexcept {
          ctrl.mark_window_minsize_changed(); }
-    // mark font&text changed
-    static void MarkTFChanged(UIControl& ctrl) noexcept {
-         ctrl.m_state.textfont_changed = true; }
-    // mark text color changed
-    static void MarkTCChanged(UIControl& ctrl) noexcept {
-         ctrl.m_state.textcolor_changed = true; }
+    // mark textfont display-attr changed
+    static void MarkTFDisplayChanged(UIControl& ctrl) noexcept {
+         ctrl.m_state.textfont_display_changed = true; }
+    // mark textfont layout-attr changed
+    static void MarkTFLayoutChanged(UIControl& ctrl) noexcept {
+         ctrl.m_state.textfont_layout_changed = true; }
 };

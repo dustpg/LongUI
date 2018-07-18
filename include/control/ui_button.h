@@ -38,6 +38,8 @@ namespace LongUI {
         // private impl
         struct Private;
     public:
+        // min button width
+        //enum { MIN_BUTTON_WIDTH = 175 };
         // button type
         enum ButtonType : uint8_t {
             Type_Normal = 0,    // normal type

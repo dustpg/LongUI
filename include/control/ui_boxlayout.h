@@ -52,8 +52,6 @@ namespace LongUI {
     private:
         // relayout
         void relayout() noexcept override;
-        // refresh min size
-        void refresh_min() noexcept;
         // move splitter
         void move_splitter(UISplitter& splitter, Point2F offset) noexcept;
     protected:
@@ -63,6 +61,8 @@ namespace LongUI {
         void relayout_h() noexcept;
         // relayout v
         void relayout_v() noexcept;
+        // refresh min size
+        void refresh_min() noexcept;
 #ifdef LUI_ACCESSIBLE
         // accessible 
         auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;

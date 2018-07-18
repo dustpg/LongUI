@@ -5,6 +5,7 @@
 #include "../style/ui_text.h"
 #include "../core/ui_string.h"
 #include "../text/ui_text_layout.h"
+#include "../text/ui_text_outline.h"
 #include "../core/ui_const_sstring.h"
 #include "../util/ui_named_control.h"
 // cursor
@@ -79,6 +80,8 @@ namespace LongUI {
         CUIConstShortString     m_href;
         // text layout
         CUITextLayout           m_text;
+        // outline renderer
+        CUITextOutline          m_outline;
         // text string
         CUIString               m_string;
         // access key position

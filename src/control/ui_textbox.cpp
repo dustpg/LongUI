@@ -35,8 +35,9 @@ namespace LongUI {
 /// <param name="tf">The tf.</param>
 /// <returns></returns>
 void LongUI::MakeDefault(TextFont& tf) noexcept {
-    tf.text.color = { 0 };
-    tf.text.color.a = 1.f;
+    tf.text.color = { 0, 0, 0, 1 };
+    tf.text.stroke_color = { 0 };
+    tf.text.stroke_width = 0.f;
     tf.font = UIManager.GetDefaultFont();
 }
 

@@ -41,8 +41,53 @@ void LongUI::CUIStyleValue::SetFgColor(RGBA color) noexcept {
     if (const auto tf = detail::get_text_font(*ctrl)) {
         ColorF::FromRGBA_RT(tf->text.color, color);
         const auto hastf = detail::g_pLastTextFont;
-        // 标记颜色修改
-        UIControlPrivate::MarkTCChanged(*hastf);
+        // 标记文本显示属性修改
+        UIControlPrivate::MarkTFDisplayChanged(*hastf);
+        hastf->NeedUpdate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the color of the text stroke.
+/// </summary>
+/// <param name="color">The color.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetTextStrokeColor(RGBA color) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+#ifndef NDEBUG
+    if (color.primitive == this->GetTextStrokeColor().primitive) {
+        LUIDebug(Hint) << ctrl << "set same color" << endl;
+    }
+#endif // !NDEBUG
+    // 需要使用g_pLastTextFont
+    detail::g_pLastTextFont = nullptr;
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        ColorF::FromRGBA_RT(tf->text.stroke_color, color);
+        const auto hastf = detail::g_pLastTextFont;
+        // 标记文本显示属性修改
+        UIControlPrivate::MarkTFDisplayChanged(*hastf);
+        hastf->NeedUpdate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the width of the text stroke.
+/// </summary>
+/// <param name="width">The width.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetTextStrokeWidth(float width) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    // 需要使用g_pLastTextFont
+    detail::g_pLastTextFont = nullptr;
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        tf->text.stroke_width = width;
+        const auto hastf = detail::g_pLastTextFont;
+        // 标记文本显示属性修改
+        UIControlPrivate::MarkTFDisplayChanged(*hastf);
         hastf->NeedUpdate();
     }
 }
@@ -76,6 +121,35 @@ auto LongUI::CUIStyleValue::GetBgColor() const noexcept -> RGBA {
 
 PCN_NOINLINE
 /// <summary>
+/// Gets the color of the text stroke.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetTextStrokeColor() const noexcept->RGBA {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        return tf->text.stroke_color.ToRGBA();
+    }
+    return { RGBA_Transparent };
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Gets the width of the text stroke.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetTextStrokeWidth() const noexcept -> float {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        return tf->text.stroke_width;
+    }
+    return 0.0f;
+}
+
+
+PCN_NOINLINE
+/// <summary>
 /// Gets the color of the fg.
 /// </summary>
 /// <returns></returns>
@@ -87,6 +161,8 @@ auto LongUI::CUIStyleValue::GetFgColor() const noexcept -> RGBA {
     }
     return { RGBA_Black };
 }
+
+
 
 PCN_NOINLINE
 /// <summary>
@@ -104,6 +180,7 @@ void LongUI::CUIStyleValue::SetBgImage(uint32_t id) noexcept {
 }
 
 
+PCN_NOINLINE
 /// <summary>
 /// Gets the bg image.
 /// </summary>
@@ -229,7 +306,8 @@ void LongUI::CUIStyleValue::SetFontSize(float size) noexcept {
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.size = size;
         const auto hastf = detail::g_pLastTextFont;
-        UIControlPrivate::MarkTFChanged(*hastf);
+        // 标记文本布局属性修改
+        UIControlPrivate::MarkTFLayoutChanged(*hastf);
         hastf->NeedUpdate();
     }
 }
@@ -262,7 +340,8 @@ void LongUI::CUIStyleValue::SetFontStyle(AttributeFontStyle style) noexcept {
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.style = style;
         const auto hastf = detail::g_pLastTextFont;
-        UIControlPrivate::MarkTFChanged(*hastf);
+        // 标记文本布局属性修改
+        UIControlPrivate::MarkTFLayoutChanged(*hastf);
         hastf->NeedUpdate();
     }
 }
@@ -296,7 +375,8 @@ void LongUI::CUIStyleValue::SetFontFamily(const char* family) noexcept {
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.family = family;
         const auto hastf = detail::g_pLastTextFont;
-        UIControlPrivate::MarkTFChanged(*hastf);
+        // 标记文本布局属性修改
+        UIControlPrivate::MarkTFLayoutChanged(*hastf);
         hastf->NeedUpdate();
     }
 }
@@ -328,7 +408,8 @@ void LongUI::CUIStyleValue::SetFontWeight(AttributeFontWeight weight) noexcept {
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.weight = weight;
         const auto hastf = detail::g_pLastTextFont;
-        UIControlPrivate::MarkTFChanged(*hastf);
+        // 标记文本布局属性修改
+        UIControlPrivate::MarkTFLayoutChanged(*hastf);
         hastf->NeedUpdate();
     }
 }
@@ -360,7 +441,8 @@ void LongUI::CUIStyleValue::SetFontStretch(AttributeFontStretch stretch) noexcep
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.stretch = stretch;
         const auto hastf = detail::g_pLastTextFont;
-        UIControlPrivate::MarkTFChanged(*hastf);
+        // 标记文本布局属性修改
+        UIControlPrivate::MarkTFLayoutChanged(*hastf);
         hastf->NeedUpdate();
     }
 }

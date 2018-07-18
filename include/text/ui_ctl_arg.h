@@ -21,19 +21,19 @@ namespace LongUI {
     };
     // font arg
     struct FontArg {
-        // font family, maybe use CUIManager::GetUniqueText to create release-free text
+        // [layout]font family, maybe use CUIManager::GetUniqueText to create release-free text
         const char*             family;
-        // font size
+        // [layout]font size
         float                   size;
-        // line height * 
+        // [layout]line height * 
         float                   line_height_multi;
-        // line height + 
+        // [layout]line height + 
         float                   line_height_plus;
-        // weight
+        // [layout]weight
         AttributeFontWeight     weight;
-        // style
+        // [layout]style
         AttributeFontStyle      style;
-        // stretch 
+        // [layout]stretch 
         AttributeFontStretch    stretch;
     };
     // get line height

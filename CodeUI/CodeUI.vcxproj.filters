@@ -488,6 +488,9 @@
     <ClCompile Include="..\src\graphics\ui_dcomp.cpp">
       <Filter>source\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\text\ui_text_outline.cpp">
+      <Filter>source\text</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1040,6 +1043,9 @@
     </ClInclude>
     <ClInclude Include="..\include\graphics\ui_dcomp.h">
       <Filter>header\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\text\ui_text_outline.h">
+      <Filter>header\text</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

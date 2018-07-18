@@ -563,18 +563,15 @@ void LongUI::CUIControlControl::dirty_update() noexcept {
     // 进行脏更新
     for (auto& x : list) {
         x.ctrl->m_state.in_dirty_list = false;
-        const auto wnd = x.ctrl->GetWindow();
-        assert(wnd && "bad window");
-        //const auto csize = x.ctrl->GetSize();
-        //RectF rect = { 0, 0, csize.width, csize.height };
-        //x.ctrl->MapToWindow(rect);
+        const auto window = x.ctrl->GetWindow();
+        assert(window && "bad window");
         // XXX: 大概率是[两个相同的矩形或者第一个无效]
         // 标记两次矩形位置
         impl::mark_two_rect_dirty(
             x.rect,
             x.ctrl->GetBox().visible,
-            wnd->RefViewport().GetRealSize(),
-            *wnd
+            window->RefViewport().GetRealSize(),
+            *window
         );
     }
     // 清空

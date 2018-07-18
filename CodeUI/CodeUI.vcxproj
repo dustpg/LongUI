@@ -252,6 +252,7 @@
     <ClCompile Include="..\src\style\ui_style_state.cpp" />
     <ClCompile Include="..\src\style\ui_style_value.cpp" />
     <ClCompile Include="..\src\text\ui_text_layout.cpp" />
+    <ClCompile Include="..\src\text\ui_text_outline.cpp" />
     <ClCompile Include="..\src\thread\ui_fiber.cpp" />
     <ClCompile Include="..\src\thread\ui_locker.cpp" />
     <ClCompile Include="..\src\thread\ui_rwlocker.cpp" />
@@ -425,6 +426,7 @@
     <ClInclude Include="..\include\text\ui_ctl_decl.h" />
     <ClInclude Include="..\include\text\ui_ctl_impl.h" />
     <ClInclude Include="..\include\text\ui_text_layout.h" />
+    <ClInclude Include="..\include\text\ui_text_outline.h" />
     <ClInclude Include="..\include\thread\ui_fiber.h" />
     <ClInclude Include="..\include\thread\ui_locker.h" />
     <ClInclude Include="..\include\thread\ui_rwlocker.h" />

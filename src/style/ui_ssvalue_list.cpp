@@ -140,12 +140,14 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_DimensionMaxHeight:
     case ValueType::Type_BoxFlex:
     case ValueType::Type_FontSize:
+    case ValueType::Type_WKTextColorStrokeWidth:
         // [FLOAT]
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data.single, detail::parse_float(values[0]));
         break;
     case ValueType::Type_BackgroundColor:
     case ValueType::Type_TextColor:
+    case ValueType::Type_WKTextColorStrokeColor:
         // [COLOR]
         //   -- background-color
         //   -- color
@@ -185,6 +187,21 @@ void LongUI::ValueTypeMakeValue(
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data.byte, detail::parse_timingfunc(U8(values[0])));
         break;
+    case ValueType::Type_WKTextColorStroke:
+        // [COLOR STROKE]
+        //   -- -webkit-text-stroke
+        assert(value_len == 2 && "unsupported");
+        // re:-webkit-text-stroke-width
+        ValueTypeMakeValue(
+            ValueType::Type_WKTextColorStrokeWidth,
+            1, values, values_write
+        );
+        // re:-webkit-text-stroke-color
+        ValueTypeMakeValue(
+            ValueType::Type_WKTextColorStrokeColor,
+            1, values + value_len - 1, values_write
+        );
+        return;
     case ValueType::Type_FontStyle:
         // [FontStyle]
         //   -- font-size
@@ -209,7 +226,7 @@ void LongUI::ValueTypeMakeValue(
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data.u32, detail::parse_string(U8(values[0])));
         break;
-    case ValueType::Type_UIAppearance:
+    case ValueType::Type_LUIAppearance:
         // [APPEARANCE]
         //   -- -moz-appearance
         detail::attribute(ssv.data.byte, AttrParser::Appearance(U8(values[0])));
@@ -361,6 +378,15 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0xd8c9a893_ui32:
         // color
         return { ValueType::Type_TextColor };
+    case 0x2c36f3b2_ui32:
+        // -webkit-text-stroke
+        return { ValueType::Type_WKTextColorStroke };
+    case 0xc7329a9b_ui32:
+        // -webkit-text-stroke-width
+        return { ValueType::Type_WKTextColorStrokeWidth };
+    case 0x68f043ac_ui32:
+        // -webkit-text-stroke-color
+        return { ValueType::Type_WKTextColorStrokeColor };
     case 0x841ed0a7_ui32:
         // font-size
         return { ValueType::Type_FontSize };
@@ -383,7 +409,7 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
 #endif
     case 0xd6e6b71a_ui32:
         // -moz-appearance
-        return { ValueType::Type_UIAppearance  };
+        return { ValueType::Type_LUIAppearance  };
     default:
         break;
     }
@@ -424,6 +450,9 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case ValueType::Type_FontSize:
         // [FLOAT]
         return ValueEasyType::Type_Float;
+
+
+
     case LongUI::ValueType::Type_BorderImageSource:
         // [IMAGE]
         assert(!"NOT IMPL");
@@ -434,15 +463,19 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_FontStyle:
     case LongUI::ValueType::Type_FontStretch:
     case LongUI::ValueType::Type_FontWeight:
-    case LongUI::ValueType::Type_UIAppearance:
+    case LongUI::ValueType::Type_LUIAppearance:
         // [STATE]
     case LongUI::ValueType::Type_FontFamily:
         // [STRING]
     case LongUI::ValueType::Type_TransitionDuration:
         // [SPTIME]
         return ValueEasyType::Type_NoAnimation;
+
+
+
     case LongUI::ValueType::Type_BackgroundColor:
     case LongUI::ValueType::Type_TextColor:
+    case LongUI::ValueType::Type_WKTextColorStrokeColor:
         // [COLOR]
         return ValueEasyType::Type_Color;
     }

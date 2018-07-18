@@ -52,10 +52,10 @@ LongUI::UILabel::~UILabel() noexcept {
 /// </summary>
 /// <returns></returns>
 void  LongUI::UILabel::Update() noexcept {
-    // text color 修改了
-    if (m_state.textcolor_changed) this->Invalidate();
-    // text/font 修改了
-    if (m_state.textfont_changed) {
+    // 文本显示 修改了
+    if (m_state.textfont_display_changed) this->Invalidate();
+    // 文本布局 修改了
+    if (m_state.textfont_layout_changed) {
         this->reset_font();
         this->Invalidate();
     }
