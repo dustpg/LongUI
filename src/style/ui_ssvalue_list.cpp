@@ -45,7 +45,7 @@ namespace LongUI {
         // parse float
         auto parse_float(FuncValue value) noexcept -> float;
         // parse string
-        auto parse_string(U8View value) noexcept->uint32_t;
+        auto parse_string(U8View value) noexcept->const char*;
         // parse timing function
         auto parse_timingfunc(U8View value) noexcept->AnimationType;
         // 1 for 4
@@ -79,9 +79,9 @@ void LongUI::ValueTypeMakeValue(
         assert(values[i].length && "bad length");
     }
 #endif // !NDEBUG
-    SSValue ssv;
+    SSValue ssv = {  };
     ssv.type = vtype;
-    ssv.data.u32 = 0;
+    //ssv.data.u32 = 0;
     // 分类讨论
     switch (vtype)
     {
@@ -106,7 +106,7 @@ void LongUI::ValueTypeMakeValue(
         // [OVERFLOW]
         //   -- overflow-x
         //   -- overflow-y
-        detail::attribute(ssv.data.byte, AttrParser::Overflow(U8(values[0])));
+        detail::attribute(ssv.data4.byte, AttrParser::Overflow(U8(values[0])));
         break;
     case ValueType::Type_Margin:
     case ValueType::Type_Padding:
@@ -143,7 +143,7 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_WKTextColorStrokeWidth:
         // [FLOAT]
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.single, detail::parse_float(values[0]));
+        detail::attribute(ssv.data4.single, detail::parse_float(values[0]));
         break;
     case ValueType::Type_BackgroundColor:
     case ValueType::Type_TextColor:
@@ -153,19 +153,19 @@ void LongUI::ValueTypeMakeValue(
         //   -- color
         assert(value_len == 1 && "unsupported");
         assert(!values[0].func && "function unsupported");
-        detail::attribute(ssv.data.u32, U8(values[0]).ColorRGBA32());
+        detail::attribute(ssv.data4.u32, U8(values[0]).ColorRGBA32());
         break;
     case ValueType::Type_BackgroundImage:
         // [IMAGE]
         //   -- background-image
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.u32, detail::parse_image(values[0]));
+        detail::attribute(ssv.data4.u32, detail::parse_image(values[0]));
         break;
     case ValueType::Type_BackgroundRepeat:
         // [REPEAT]
         //   -- background-repeat
         assert(value_len <= 2 && "unsupported");
-        detail::attribute(ssv.data.byte, detail::parse_bgrepeat(values, value_len));
+        detail::attribute(ssv.data4.byte, detail::parse_bgrepeat(values, value_len));
         break;
     case ValueType::Type_BackgroundClip:
     case ValueType::Type_BackgroundOrigin:
@@ -173,19 +173,19 @@ void LongUI::ValueTypeMakeValue(
         //   -- background-clip
         //   -- background-origin
         assert(value_len < 2 && "unsupported");
-        detail::attribute(ssv.data.byte, AttrParser::Box(U8(values[0])));
+        detail::attribute(ssv.data4.byte, AttrParser::Box(U8(values[0])));
         break;
     case ValueType::Type_TransitionDuration:
         // [TIME]
         //   -- transition-duration
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.single, detail::parse_time(U8(values[0])));
+        detail::attribute(ssv.data4.single, detail::parse_time(U8(values[0])));
         break;
     case ValueType::Type_TransitionTimingFunc:
         // [TIMING FUNCTION]
         //   -- transition-timing-function
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.byte, detail::parse_timingfunc(U8(values[0])));
+        detail::attribute(ssv.data4.byte, detail::parse_timingfunc(U8(values[0])));
         break;
     case ValueType::Type_WKTextColorStroke:
         // [COLOR STROKE]
@@ -206,30 +206,30 @@ void LongUI::ValueTypeMakeValue(
         // [FontStyle]
         //   -- font-size
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.byte, TFAttrParser::Style(U8(values[0])));
+        detail::attribute(ssv.data4.byte, TFAttrParser::Style(U8(values[0])));
         break;
     case ValueType::Type_FontStretch:
         // [FontStretch]
         //   -- font-stretch
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.byte, TFAttrParser::Stretch(U8(values[0])));
+        detail::attribute(ssv.data4.byte, TFAttrParser::Stretch(U8(values[0])));
         break;
     case ValueType::Type_FontWeight:
         // [FontStretch]
         //   -- font-weight
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.word, TFAttrParser::Weight(U8(values[0])));
+        detail::attribute(ssv.data4.word, TFAttrParser::Weight(U8(values[0])));
         break;
     case ValueType::Type_FontFamily:
         // [FontFamily]
         //   -- font-family
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data.u32, detail::parse_string(U8(values[0])));
+        detail::attribute(ssv.data8.strptr, detail::parse_string(U8(values[0])));
         break;
     case ValueType::Type_LUIAppearance:
         // [APPEARANCE]
         //   -- -moz-appearance
-        detail::attribute(ssv.data.byte, AttrParser::Appearance(U8(values[0])));
+        detail::attribute(ssv.data4.byte, AttrParser::Appearance(U8(values[0])));
         break;
     }
     // 输出
@@ -742,8 +742,6 @@ void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
 /// </summary>
 /// <param name="value">The value.</param>
 /// <returns></returns>
-auto LongUI::detail::parse_string(U8View value) noexcept -> uint32_t {
-    const auto string = UIManager.GetUniqueText(value);
-    const auto handle = UIManager.GetUniqueTextHandle(string);
-    return handle;
+auto LongUI::detail::parse_string(U8View value) noexcept -> const char* {
+    return UIManager.GetUniqueText(value);
 }

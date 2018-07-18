@@ -46,8 +46,6 @@ namespace LongUI { struct CUIManager::Private {
     ~Private() noexcept {}
     // time capsules
     POD::Vector<TC*>        time_capsules;
-    // time capsules
-    POD::Vector<const char*>string_handle;
     // unique text
     POD::HashMap<void*>     texts;
     // unique control classes
@@ -55,30 +53,6 @@ namespace LongUI { struct CUIManager::Private {
     // km-input
     CUIInputKM              km_input;
 
-
-
-
-
-    // 敬仰万能的union大神吧
-    // get string from handle
-    template<size_t>auto get_string_from_handle(uint32_t)const noexcept->const char*;
-    // 32bit: get string from handle 
-    template<>auto get_string_from_handle<4>(uint32_t h)const noexcept->const char*{
-        union { uint32_t a; const char* b; }; a = h; return b; }
-    // 64bit: get string from handle
-    template<>auto get_string_from_handle<8>(uint32_t h)const noexcept->const char*{
-        if (h < string_handle.size()) return string_handle[h];
-        else return ""; }
-    // set handle from string
-    template<size_t>auto set_handle_from_string(const char* s) noexcept ->uint32_t;
-    // 32bit: set handle from string
-    template<>auto set_handle_from_string<4>(const char* s) noexcept->uint32_t{
-        union { uint32_t a; const char* b; }; b = s; return a; }
-    // 64bit: set handle from string
-    template<>auto set_handle_from_string<8>(const char* s) noexcept->uint32_t{
-        const auto handle = uint32_t(string_handle.size());
-        string_handle.push_back(s);
-        return handle; }
 };}
 
 
@@ -322,30 +296,6 @@ auto LongUI::CUIManager::GetUniqueText(
     U8View pair) noexcept -> const char* {
     assert(pair.second > pair.first && "bad string");
     return this_()->pm().texts.insert(pair.first, pair.second, nullptr).first->first;
-}
-
-/// <summary>
-/// Gets the unique text from handle.
-/// </summary>
-/// <param name="h">The h.</param>
-/// <returns></returns>
-auto LongUI::CUIManager::GetUniqueTextFromHandle(uint32_t h)noexcept->const char* {
-    assert(h != ERROR_HANDLE && "error handle");
-    return pm().get_string_from_handle<sizeof(void*)>(h);
-}
-
-/// <summary>
-/// Creates the unique text handle.
-/// </summary>
-/// <param name="str">The string.</param>
-/// <returns></returns>
-auto LongUI::CUIManager::GetUniqueTextHandle(const char* str) noexcept -> uint32_t {
-#ifndef NDEBUG
-    const auto view = U8View::FromCStyle(str);
-    const auto unique = this->GetUniqueText(view);
-    assert(unique == str && "string must from GetUniqueText");
-#endif
-    return pm().set_handle_from_string<sizeof(void*)>(str);
 }
 
 // windows api

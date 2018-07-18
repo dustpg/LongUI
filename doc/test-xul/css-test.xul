@@ -41,7 +41,7 @@ function get_text() {
   </stack>
   <hbox>
     <button image="images/25.png" label="A" flex="1"/>
-    <button image="images/25.png" flex="10"/>
+    <button class="border-image" label="按钮" flex="10"/>
   </hbox>
 </groupbox>
 

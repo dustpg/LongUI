@@ -57,9 +57,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_manager;
         // 32bit
-        template<> struct private_manager<4> { enum { size = 624, align = 4 }; };
+        template<> struct private_manager<4> { enum { size = 608, align = 4 }; };
         // 64bit
-        template<> struct private_manager<8> { enum { size = 680, align = 8 }; };
+        template<> struct private_manager<8> { enum { size = 656, align = 8 }; };
     }
     // input
     class CUIInputKM;
@@ -75,8 +75,6 @@ namespace LongUI {
         // refresh system info
         void refresh_system_info() noexcept;
     public:
-        // error handle
-        enum : uint32_t { ERROR_HANDLE = uint32_t(-1) };
         // input
         friend CUIInputKM;
         // ctor_dtor
@@ -105,10 +103,6 @@ namespace LongUI {
     public:
         // add [unique]/[release-free] text
         auto GetUniqueText(U8View pair) noexcept->const char*;
-        // get [unique]/[release-free] text from handle
-        auto GetUniqueTextFromHandle(uint32_t) noexcept->const char*;
-        // get unique text handle
-        auto GetUniqueTextHandle(const char*) noexcept->uint32_t;
         // create control within element name
         auto CreateControl(U8View element, UIControl* parent) noexcept->UIControl*;
     public:

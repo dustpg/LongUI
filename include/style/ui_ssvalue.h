@@ -29,8 +29,19 @@ namespace LongUI {
         // not pseudo-classes
         StyleState      noo;
     };
+    // stylesheets: value pc with length
+    struct SSValuePCL {
+        // type of value
+        ValueType       type;
+        // length of data
+        uint32_t        length;
+        // yes pseudo-classes
+        StyleState      yes;
+        // not pseudo-classes
+        StyleState      noo;
+    };
     // SSValuePC = SSValue
-    static_assert(sizeof(SSValuePC) == sizeof(SSValue), "must be same");
+    static_assert(sizeof(SSValuePCL) == sizeof(SSValue), "must be same");
     // Combinator
     enum Combinator : uint8_t {
         // Combinator None

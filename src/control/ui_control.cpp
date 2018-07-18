@@ -1432,19 +1432,20 @@ void LongUI::UIControl::link_style_sheet() noexcept {
             --last;
         }
         constexpr uint32_t len = sizeof(vbuf) / sizeof(vbuf[0]);
-        inline_size = std::min(last->data.u32, len);
+        auto& pcl = *reinterpret_cast<SSValuePCL*>(last);
+        inline_size = std::min(pcl.length, len);
         std::memcpy(vbuf, last, inline_size * sizeof(vbuf[0]));
 #ifndef NDEBUG
-        if (vbuf[0].data.u32 != inline_size) {
+        if (pcl.length != inline_size) {
             LUIDebug(Warning)
                 << "inline style num. greater than "
                 << inline_size
                 << "  : "
-                << vbuf[0].data.u32
+                << pcl.length
                 << endl;
         }
 #endif // !NDEBUG
-        vbuf[0].data.u32 = inline_size;
+        pcl.length = inline_size;
     }
     // DOWN-RESIZE
     style_matched.clear();
@@ -1488,15 +1489,14 @@ void LongUI::UIControl::setup_style_values() noexcept {
     for (auto itr = list.begin(); itr != list.end();) {
         // 必须是START
         assert((*itr).type == ValueType::Type_NewOne);
+        auto& pcl = reinterpret_cast<const SSValuePCL&>(*itr);
         // 检测长度 
-        const auto len = itr[0].data.u32; assert(len > 2 && "bad size");
-        // 检测伪类
-        const auto pc = reinterpret_cast<const SSValuePC&>(itr[1]);
+        const auto len = pcl.length; assert(len > 1 && "bad size");
         // 匹配状态
         static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
         const auto now = reinterpret_cast<const uint32_t&>(m_oStyle.state);
-        const auto yes = reinterpret_cast<const uint32_t&>(pc.yes);
-        const auto noo = reinterpret_cast<const uint32_t&>(pc.noo);
+        const auto yes = reinterpret_cast<const uint32_t&>(pcl.yes);
+        const auto noo = reinterpret_cast<const uint32_t&>(pcl.noo);
         /*
             YES:
                 0001  &  0010  -> 0000   X
@@ -1511,7 +1511,7 @@ void LongUI::UIControl::setup_style_values() noexcept {
         if ((now & yes) == yes && (now & noo) == 0) {
             // 遍历状态
             const auto end_itr = itr + len;
-            auto being_itr = itr + 2;
+            auto being_itr = itr + 1;
             for (; being_itr != end_itr; ++being_itr) {
                 this->ApplyValue(*being_itr);
             }
@@ -1544,147 +1544,147 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="value">The value.</param>
 /// <returns></returns>
-void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
+void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
     switch (value.type)
     {
     default:
         assert(!"unsupported value type");
         break;
     case ValueType::Type_PositionOverflowX:
-        detail::write_value(m_oStyle.overflow_x, value.data.byte);
+        detail::write_value(m_oStyle.overflow_x, value.data4.byte);
         break;
     case ValueType::Type_PositionOverflowY:
-        detail::write_value(m_oStyle.overflow_y, value.data.byte);
+        detail::write_value(m_oStyle.overflow_y, value.data4.byte);
         break;
     case ValueType::Type_PositionLeft:
-        detail::write_value(m_oBox.pos.x, value.data.single);
+        detail::write_value(m_oBox.pos.x, value.data4.single);
         m_state.world_changed = true;
         this->NeedUpdate();
         break;
     case ValueType::Type_PositionTop:
-        detail::write_value(m_oBox.pos.y, value.data.single);
+        detail::write_value(m_oBox.pos.y, value.data4.single);
         m_state.world_changed = true;
         this->NeedUpdate();
         break;
     case ValueType::Type_DimensionWidth:
-        detail::write_value(m_oStyle.minsize.width, value.data.single);
-        detail::write_value(m_oStyle.maxsize.width, value.data.single);
-        detail::write_value(m_oBox.size.width, value.data.single);
+        detail::write_value(m_oStyle.minsize.width, value.data4.single);
+        detail::write_value(m_oStyle.maxsize.width, value.data4.single);
+        detail::write_value(m_oBox.size.width, value.data4.single);
         this->mark_window_minsize_changed();
         this->NeedRelayout();
         break;
     case ValueType::Type_DimensionHeight:
-        detail::write_value(m_oStyle.minsize.height, value.data.single);
-        detail::write_value(m_oStyle.maxsize.height, value.data.single);
-        detail::write_value(m_oBox.size.height, value.data.single);
+        detail::write_value(m_oStyle.minsize.height, value.data4.single);
+        detail::write_value(m_oStyle.maxsize.height, value.data4.single);
+        detail::write_value(m_oBox.size.height, value.data4.single);
         this->mark_window_minsize_changed();
         this->NeedRelayout();
         break;
     case ValueType::Type_DimensionMinWidth:
-        detail::write_value(m_oStyle.minsize.width, value.data.single);
+        detail::write_value(m_oStyle.minsize.width, value.data4.single);
         this->mark_window_minsize_changed();
         break;
     case ValueType::Type_DimensionMinHeight:
-        detail::write_value(m_oStyle.minsize.height, value.data.single);
+        detail::write_value(m_oStyle.minsize.height, value.data4.single);
         this->mark_window_minsize_changed();
         break;
     case ValueType::Type_DimensionMaxWidth:
-        detail::write_value(m_oStyle.maxsize.width, value.data.single);
+        detail::write_value(m_oStyle.maxsize.width, value.data4.single);
         if (m_pParent) m_pParent->NeedRelayout();
         break;
     case ValueType::Type_DimensionMaxHeight:
-        detail::write_value(m_oStyle.maxsize.height, value.data.single);
+        detail::write_value(m_oStyle.maxsize.height, value.data4.single);
         if (m_pParent) m_pParent->NeedRelayout();
         break;
     case ValueType::Type_BoxFlex:
-        detail::write_value(m_oStyle.flex, value.data.single);
+        detail::write_value(m_oStyle.flex, value.data4.single);
         if (m_pParent) m_pParent->NeedRelayout();
         break;
     case ValueType::Type_BackgroundColor:
-        this->SetBgColor({ value.data.u32 });
+        this->SetBgColor({ value.data4.u32 });
         break;
     case ValueType::Type_BackgroundImage:
-        this->SetBgImage({ value.data.u32 });
+        this->SetBgImage({ value.data4.u32 });
         break;
     case ValueType::Type_BackgroundRepeat:
-        this->SetBgRepeat(detail::same_cast<AttributeRepeat>(value.data.byte));
+        this->SetBgRepeat(detail::same_cast<AttributeRepeat>(value.data4.byte));
         break;
     case ValueType::Type_BackgroundClip:
-        this->SetBgClip(detail::same_cast<AttributeBox>(value.data.byte));
+        this->SetBgClip(detail::same_cast<AttributeBox>(value.data4.byte));
         break;
     case ValueType::Type_BackgroundOrigin:
-        this->SetBgOrigin(detail::same_cast<AttributeBox>(value.data.byte));
+        this->SetBgOrigin(detail::same_cast<AttributeBox>(value.data4.byte));
         break;
     case ValueType::Type_TransitionDuration:
         using dur_t = decltype(m_oStyle.tduration);
-        assert(value.data.single < 65.5f && "out of range");
-        m_oStyle.tduration = static_cast<dur_t>(value.data.single * 1000.f);
+        assert(value.data4.single < 65.5f && "out of range");
+        m_oStyle.tduration = static_cast<dur_t>(value.data4.single * 1000.f);
         break;
     case ValueType::Type_TransitionTimingFunc:
-        detail::write_value(m_oStyle.tfunction, value.data.byte);
+        detail::write_value(m_oStyle.tfunction, value.data4.byte);
         break;
     case ValueType::Type_TextColor:
-        this->SetFgColor({ value.data.u32 });
+        this->SetFgColor({ value.data4.u32 });
         break;
     case ValueType::Type_WKTextColorStrokeWidth:
-        this->SetTextStrokeWidth({ value.data.single });
+        this->SetTextStrokeWidth({ value.data4.single });
         break;
     case ValueType::Type_WKTextColorStrokeColor:
-        this->SetTextStrokeColor({ value.data.u32 });
+        this->SetTextStrokeColor({ value.data4.u32 });
         break;
     case ValueType::Type_FontSize:
-        this->SetFontSize({ value.data.single });
+        this->SetFontSize({ value.data4.single });
         break;
     case ValueType::Type_FontStyle:
-        this->SetFontStyle(detail::same_cast<AttributeFontStyle>(value.data.byte));
+        this->SetFontStyle(detail::same_cast<AttributeFontStyle>(value.data4.byte));
         break;
     case ValueType::Type_FontStretch:
-        this->SetFontStretch(detail::same_cast<AttributeFontStretch>(value.data.byte));
+        this->SetFontStretch(detail::same_cast<AttributeFontStretch>(value.data4.byte));
         break;
     case ValueType::Type_FontWeight:
-        this->SetFontWeight(detail::same_cast<AttributeFontWeight>(value.data.word));
+        this->SetFontWeight(detail::same_cast<AttributeFontWeight>(value.data4.word));
         break;
     case ValueType::Type_FontFamily:
-        this->SetFontFamily(UIManager.GetUniqueTextFromHandle(value.data.u32));
+        this->SetFontFamily(value.data8.strptr);
         break;
     case ValueType::Type_MarginTop:
-        this->SetMarginTop(value.data.single);
+        this->SetMarginTop(value.data4.single);
         break;
     case ValueType::Type_MarginRight:
-        this->SetMarginRight(value.data.single);
+        this->SetMarginRight(value.data4.single);
         break;
     case ValueType::Type_MarginBottom:
-        this->SetMarginBottom(value.data.single);
+        this->SetMarginBottom(value.data4.single);
         break;
     case ValueType::Type_MarginLeft:
-        this->SetMarginLeft(value.data.single);
+        this->SetMarginLeft(value.data4.single);
         break;
     case ValueType::Type_PaddingTop:
-        this->SetPaddingTop(value.data.single);
+        this->SetPaddingTop(value.data4.single);
         break;
     case ValueType::Type_PaddingRight:
-        this->SetPaddingRight(value.data.single);
+        this->SetPaddingRight(value.data4.single);
         break;
     case ValueType::Type_PaddingBottom:
-        this->SetPaddingBottom(value.data.single);
+        this->SetPaddingBottom(value.data4.single);
         break;
     case ValueType::Type_PaddingLeft:
-        this->SetPaddingLeft(value.data.single);
+        this->SetPaddingLeft(value.data4.single);
         break;
     case ValueType::Type_BorderTopWidth:
-        this->SetBorderTop(value.data.single);
+        this->SetBorderTop(value.data4.single);
         break;
     case ValueType::Type_BorderRightWidth:
-        this->SetBorderRight(value.data.single);
+        this->SetBorderRight(value.data4.single);
         break;
     case ValueType::Type_BorderBottomWidth:
-        this->SetBorderBottom(value.data.single);
+        this->SetBorderBottom(value.data4.single);
         break;
     case ValueType::Type_BorderLeftWidth:
-        this->SetBorderLeft(value.data.single);
+        this->SetBorderLeft(value.data4.single);
         break;
     case ValueType::Type_LUIAppearance:
-        detail::write_value(m_oStyle.appearance, value.data.byte);
+        detail::write_value(m_oStyle.appearance, value.data4.byte);
 #if 0
         if (m_oStyle.appearance == Appearance_None)
             this->ClearAppearance();
@@ -1709,122 +1709,121 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         assert(!"unsupported value type");
         break;
     case ValueType::Type_PositionOverflowX:
-        detail::write_value(value.data.byte, m_oStyle.overflow_x);
+        detail::write_value(value.data4.byte, m_oStyle.overflow_x);
         break;
     case ValueType::Type_PositionOverflowY:
-        detail::write_value(value.data.byte, m_oStyle.overflow_y);
+        detail::write_value(value.data4.byte, m_oStyle.overflow_y);
         break;
     case ValueType::Type_PositionLeft:
-        detail::write_value(value.data.single, m_oBox.pos.x);
+        detail::write_value(value.data4.single, m_oBox.pos.x);
         break;
     case ValueType::Type_PositionTop:
-        detail::write_value(value.data.single, m_oBox.pos.y);
+        detail::write_value(value.data4.single, m_oBox.pos.y);
         break;
     case ValueType::Type_DimensionWidth:
-        detail::write_value(value.data.single, m_oBox.size.width);
+        detail::write_value(value.data4.single, m_oBox.size.width);
         break;
     case ValueType::Type_DimensionHeight:
-        detail::write_value(value.data.single, m_oBox.size.width);
+        detail::write_value(value.data4.single, m_oBox.size.width);
         break;
     case ValueType::Type_DimensionMinWidth:
-        detail::write_value(value.data.single, m_oStyle.minsize.width);
+        detail::write_value(value.data4.single, m_oStyle.minsize.width);
         break;
     case ValueType::Type_DimensionMinHeight:
-        detail::write_value(value.data.single, m_oStyle.minsize.height);
+        detail::write_value(value.data4.single, m_oStyle.minsize.height);
         break;
     case ValueType::Type_DimensionMaxWidth:
-        detail::write_value(value.data.single, m_oStyle.maxsize.width);
+        detail::write_value(value.data4.single, m_oStyle.maxsize.width);
         break;
     case ValueType::Type_DimensionMaxHeight:
-        detail::write_value(value.data.single, m_oStyle.maxsize.height);
+        detail::write_value(value.data4.single, m_oStyle.maxsize.height);
         break;
     case ValueType::Type_BoxFlex:
-        detail::write_value(value.data.single, m_oStyle.flex);
+        detail::write_value(value.data4.single, m_oStyle.flex);
         break;
     case ValueType::Type_BackgroundColor:
-        detail::write_value(value.data.u32, this->GetBgColor().primitive);
+        detail::write_value(value.data4.u32, this->GetBgColor().primitive);
         break;
     case ValueType::Type_BackgroundImage:
-        detail::write_value(value.data.u32, this->GetBgImage());
+        detail::write_value(value.data4.u32, this->GetBgImage());
         break;
     case ValueType::Type_BackgroundRepeat:
-        detail::write_value(value.data.byte, this->GetBgRepeat());
+        detail::write_value(value.data4.byte, this->GetBgRepeat());
         break;
     case ValueType::Type_BackgroundClip:
-        detail::write_value(value.data.byte, this->GetBgClip());
+        detail::write_value(value.data4.byte, this->GetBgClip());
         break;
     case ValueType::Type_BackgroundOrigin:
-        detail::write_value(value.data.byte, this->GetBgOrigin());
+        detail::write_value(value.data4.byte, this->GetBgOrigin());
         break;
     case ValueType::Type_TransitionDuration:
-        value.data.single = static_cast<float>(m_oStyle.tduration) * 1000.f;
+        value.data4.single = static_cast<float>(m_oStyle.tduration) * 1000.f;
         break;
     case ValueType::Type_TransitionTimingFunc:
-        detail::write_value(value.data.byte, m_oStyle.tfunction);
+        detail::write_value(value.data4.byte, m_oStyle.tfunction);
         break;
     case ValueType::Type_TextColor:
-        detail::write_value(value.data.u32, this->GetFgColor().primitive);
+        detail::write_value(value.data4.u32, this->GetFgColor().primitive);
         break;
     case ValueType::Type_WKTextColorStrokeWidth:
-        detail::write_value(value.data.single, this->GetTextStrokeWidth());
+        detail::write_value(value.data4.single, this->GetTextStrokeWidth());
         break;
     case ValueType::Type_WKTextColorStrokeColor:
-        detail::write_value(value.data.u32, this->GetTextStrokeColor().primitive);
+        detail::write_value(value.data4.u32, this->GetTextStrokeColor().primitive);
         break;
     case ValueType::Type_FontSize:
-        detail::write_value(value.data.single, this->GetFontSize());
+        detail::write_value(value.data4.single, this->GetFontSize());
         break;
     case ValueType::Type_FontStyle:
-        detail::write_value(value.data.byte, this->GetFontStyle());
+        detail::write_value(value.data4.byte, this->GetFontStyle());
         break;
     case ValueType::Type_FontStretch:
-        detail::write_value(value.data.byte, this->GetFontStretch());
+        detail::write_value(value.data4.byte, this->GetFontStretch());
         break;
     case ValueType::Type_FontWeight:
-        detail::write_value(value.data.word, this->GetFontWeight());
+        detail::write_value(value.data4.word, this->GetFontWeight());
         break;
     case ValueType::Type_FontFamily:
-        // cannot get font family from here
-        detail::write_value(value.data.u32, CUIManager::ERROR_HANDLE);
+        detail::write_value(value.data8.strptr, this->GetFontFamily());
         break;
     case ValueType::Type_LUIAppearance:
-        detail::write_value(value.data.byte, m_oStyle.appearance);
+        detail::write_value(value.data4.byte, m_oStyle.appearance);
         break;
     case ValueType::Type_MarginTop:
-        detail::write_value(value.data.single, this->GetBox().margin.top);
+        detail::write_value(value.data4.single, this->GetBox().margin.top);
         break;
     case ValueType::Type_MarginRight:
-        detail::write_value(value.data.single, this->GetBox().margin.right);
+        detail::write_value(value.data4.single, this->GetBox().margin.right);
         break;
     case ValueType::Type_MarginBottom:
-        detail::write_value(value.data.single, this->GetBox().margin.bottom);
+        detail::write_value(value.data4.single, this->GetBox().margin.bottom);
         break;
     case ValueType::Type_MarginLeft:
-        detail::write_value(value.data.single, this->GetBox().margin.left);
+        detail::write_value(value.data4.single, this->GetBox().margin.left);
         break;
     case ValueType::Type_PaddingTop:
-        detail::write_value(value.data.single, this->GetBox().padding.top);
+        detail::write_value(value.data4.single, this->GetBox().padding.top);
         break;
     case ValueType::Type_PaddingRight:
-        detail::write_value(value.data.single, this->GetBox().padding.right);
+        detail::write_value(value.data4.single, this->GetBox().padding.right);
         break;
     case ValueType::Type_PaddingBottom:
-        detail::write_value(value.data.single, this->GetBox().padding.bottom);
+        detail::write_value(value.data4.single, this->GetBox().padding.bottom);
         break;
     case ValueType::Type_PaddingLeft:
-        detail::write_value(value.data.single, this->GetBox().padding.left);
+        detail::write_value(value.data4.single, this->GetBox().padding.left);
         break;
     case ValueType::Type_BorderTopWidth:
-        detail::write_value(value.data.single, this->GetBox().border.top);
+        detail::write_value(value.data4.single, this->GetBox().border.top);
         break;
     case ValueType::Type_BorderRightWidth:
-        detail::write_value(value.data.single, this->GetBox().border.right);
+        detail::write_value(value.data4.single, this->GetBox().border.right);
         break;
     case ValueType::Type_BorderBottomWidth:
-        detail::write_value(value.data.single, this->GetBox().border.bottom);
+        detail::write_value(value.data4.single, this->GetBox().border.bottom);
         break;
     case ValueType::Type_BorderLeftWidth:
-        detail::write_value(value.data.single, this->GetBox().border.left);
+        detail::write_value(value.data4.single, this->GetBox().border.left);
         break;
     }
 }

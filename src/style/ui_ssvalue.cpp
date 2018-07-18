@@ -335,10 +335,10 @@ LongUI::SSBlock::SSBlock(uint32_t len) noexcept: main_len(len) {
 /// </summary>
 /// <returns></returns>
 LongUI::SSBlock::~SSBlock() noexcept {
-    // 释放表中的图像引用
+    // XXX: 释放表中的图像引用
     for (const auto x : this->list) {
-        if (LongUI::IsImageType(x.type) && x.data.u32) {
-            UIManager.ReleaseResourceRefCount(x.data.u32);
+        if (LongUI::IsImageType(x.type) && x.data4.u32) {
+            UIManager.ReleaseResourceRefCount(x.data4.u32);
         }
     }
     // 释放选择器
@@ -561,14 +561,17 @@ bool LongUI::ParseInlineStlye(SSValues& values, U8View view) noexcept {
     stream.MakeInlineStlye(values);
     const auto src_len = values.size();
     if (!src_len) return false;
-    SSValue buffer[2];
-    // 0: 标记起始点与长度(包括开始两个)
-    buffer[0].type = ValueType::Type_NewOne;
-    buffer[0].data.u32 = static_cast<uint32_t>(src_len) + 2;
-    // 1: 标记伪类的状态
-    reinterpret_cast<SSValuePC&>(buffer[1]) = { };
+    SSValuePCL marker;
+    // 0: 标记起始点与长度/标记伪类的状态(包括开始的这个)
+    marker.type = ValueType::Type_NewOne;
+    marker.length = static_cast<uint32_t>(src_len) + 1;
+    marker.yes = {};
+    marker.noo = {};
+    const auto a = reinterpret_cast<SSValue*>(&marker);
+    const auto b = reinterpret_cast<SSValue*>(&marker + 1);
+    static_assert(sizeof(marker) == sizeof(*a), "same!");
     // 插入数据
-    values.insert(values.begin(), buffer, buffer + 2);
+    values.insert(values.begin(), a, b);
     return true;
 }
 
@@ -597,17 +600,18 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
                 const auto index = matched.size();
                 const auto src_len = src.size();
                 matched.reserve(16);
-                matched.resize(index + src_len + 2);
+                matched.resize(index + src_len + 1);
                 // 确定
                 if (matched.is_ok()) {
                     const auto ptr = &matched.front() + index;
-                    // 0: 标记起始点与长度(包括开始两个)
-                    ptr[0].type = ValueType::Type_NewOne;
-                    ptr[0].data.u32 = static_cast<uint32_t>(src_len) + 2;
-                    // 1: 标记伪类的状态
-                    reinterpret_cast<SSValuePC&>(ptr[1]) = this_main.pc;
-                    // [2, end)
-                    std::memcpy(ptr + 2, &src.front(), src_len * sizeof(SSValue));
+                    // 0: 标记起始点与长度伪类的状态(包括这个, 也就是喜+1)
+                    auto& pcl = reinterpret_cast<SSValuePCL&>(ptr[0]);
+                    pcl.type = ValueType::Type_NewOne;
+                    pcl.length = static_cast<uint32_t>(src_len) + 1;
+                    pcl.yes = this_main.pc.yes;
+                    pcl.noo = this_main.pc.noo;
+                    // [1, end)
+                    std::memcpy(ptr + 1, &src.front(), src_len * sizeof(SSValue));
                 }
                 break;
             }

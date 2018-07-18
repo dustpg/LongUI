@@ -14,7 +14,7 @@ namespace LongUI {
         ColorF          stroke_color;
         // [display]text stroke width
         float           stroke_width;
-        // [display]text unused float32
+        // text unused float32
         float           text_unused;
         // text crop
 

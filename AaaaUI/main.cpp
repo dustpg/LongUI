@@ -152,12 +152,6 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     //style.overflow_x = LongUI::Overflow_Auto;
     //style.overflow_y = LongUI::Overflow_Auto;
     {
-        const auto str1 = UIManager.GetUniqueText(LongUI::U8View::FromCStyle("../doc/test-xul"));
-        const auto hand = UIManager.GetUniqueTextHandle(str1);
-        const auto str2 = UIManager.GetUniqueTextFromHandle(hand);
-        assert(str2 == str1);
-    }
-    {
         using namespace LongUI;
         const auto a = UIManager.CreateTimeCapsule([](float p) noexcept {
         }, 1.f, &viewport);

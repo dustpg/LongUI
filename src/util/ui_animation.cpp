@@ -33,7 +33,7 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
     //assert(p >= 0.f && p <= 1.f && "out of range");
     SSValue rv;
     rv.type = value.from.type;
-    rv.data.u32 = 0;
+    rv.data4.u32 = 0;
     const auto x0_0 = p;
     const auto x0_1 = 1.f - p;
     const auto do_float = [=](float from, float to) noexcept {
@@ -47,9 +47,9 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
         return { ValueType::Type_Unknown };
     case ValueEasyType::Type_Float:
         // [FLOAT]
-        rv.data.single = do_float(
-            value.from.data.single,
-            value.to.data.single
+        rv.data4.single = do_float(
+            value.from.data4.single,
+            value.to.data4.single
         );
         break;
     case ValueEasyType::Type_Color:
@@ -71,9 +71,9 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
         rv.data.u32 = target.primitive;
 #else
         ColorF from, to;
-        ColorF::FromRGBA_RT(from, { value.from.data.u32 });
-        ColorF::FromRGBA_RT(to, { value.to.data.u32 });
-        rv.data.u32 = LongUI::Mix(from, to, p).ToRGBA().primitive;
+        ColorF::FromRGBA_RT(from, { value.from.data4.u32 });
+        ColorF::FromRGBA_RT(to, { value.to.data4.u32 });
+        rv.data4.u32 = LongUI::Mix(from, to, p).ToRGBA().primitive;
 #endif
         break;
     }

@@ -157,7 +157,7 @@ namespace LongUI {
 #endif
     public:
         // apply value
-        void ApplyValue(SSValue) noexcept;
+        void ApplyValue(const SSValue&) noexcept;
         // get value[cannot get string yet]
         void GetValue(SSValue&) const noexcept;
         // need update in this frame

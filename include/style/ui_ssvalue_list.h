@@ -110,10 +110,9 @@ namespace LongUI {
         //Type_BorderBottomRightRadius,
         // [Border] image-source
         Type_BorderImageSource,
-        //// [Border] image-slice
-        //Type_BorderBottomRightRadius,
-        //// [Border] image-width
-        //Type_BorderLeftWidth,
+        // [Border] image-slice
+        Type_BorderImageSlice,
+
 
         // [Background] color
         Type_BackgroundColor,
@@ -169,7 +168,7 @@ namespace LongUI {
         // uint32_t
         //Type_Uint32,
     };
-    // union
+    // union 4
     union UniByte4 {
         // u32 data
         uint32_t    u32;
@@ -184,6 +183,26 @@ namespace LongUI {
         // boolean data
         bool        boolean;
     };
+    // union 8
+    union UniByte8 {
+        // u32 data
+        uint32_t    u32[2];
+        // i32 data
+        int32_t     i32[2];
+        // u16 data
+        uint16_t    word[4];
+        // single float data
+        float       single[2];
+        // double float data
+        //double      double_;
+        // byte data
+        uint8_t     byte[8];
+        // boolean data
+        bool        boolean[8];
+        // u8 string data
+        const char* strptr;
+    };
+    static_assert(sizeof(UniByte8) == sizeof(double), "same!");
     /// <summary>
     /// value of style sheet
     /// </summary>
@@ -191,7 +210,9 @@ namespace LongUI {
         // type of value
         ValueType       type;
         // data
-        UniByte4        data;
+        UniByte4        data4;
+        // data
+        UniByte8        data8;
     };
     // check type count
     static_assert(static_cast<int>(ValueType::TYPE_COUNT) <= 1024, "TO HUGE");

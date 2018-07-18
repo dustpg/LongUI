@@ -780,16 +780,16 @@ void LongUI::UIControl::extra_animation_callback(
     for (auto itr = matched.begin(); itr != matched.end();) {
         // 必须是START
         assert((*itr).type == ValueType::Type_NewOne);
+        auto& pcl = reinterpret_cast<const SSValuePCL&>(itr[0]);
+        static_assert(sizeof(itr[0]) == sizeof(pcl), "must be same!");
         // 检测长度 
-        const auto len = itr[0].data.u32; assert(len > 2 && "bad size");
-        // 检测伪类
-        const auto pc = reinterpret_cast<const SSValuePC&>(itr[1]);
+        const auto len = pcl.length; assert(len > 1 && "bad size");
         // 匹配状态
         static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
         const auto now = reinterpret_cast<const uint32_t&>(from_state);
         const auto too = reinterpret_cast<const uint32_t&>(to_state);
-        const auto yes = reinterpret_cast<const uint32_t&>(pc.yes);
-        const auto noo = reinterpret_cast<const uint32_t&>(pc.noo);
+        const auto yes = reinterpret_cast<const uint32_t&>(pcl.yes);
+        const auto noo = reinterpret_cast<const uint32_t&>(pcl.noo);
         // XXX: [优化]
         // matched1 有效表示取消该状态, TO状态需要额外计算
         const auto matched1 = (now & yes) == yes && (now & noo) == 0;
@@ -799,12 +799,12 @@ void LongUI::UIControl::extra_animation_callback(
         if (matched1 != matched2) {
             // 遍历状态
             const auto end_itr = itr + len;
-            auto being_itr = itr + 2;
+            auto being_itr = itr + 1;
             for (; being_itr != end_itr; ++being_itr) {
                 SSFromTo ft;
                 // FROM状态直接获取
                 ft.from.type = (*being_itr).type;
-                ft.from.data.u32 = 0;
+                //ft.from.data.u32 = 0;
                 this->GetValue(ft.from);
                 // TO 状态在 matched2有效则可以直接设置
                 if (matched2) ft.to = *being_itr;
@@ -820,10 +820,11 @@ void LongUI::UIControl::extra_animation_callback(
         else if (matched1) {
             // 遍历状态
             const auto end_itr = itr + len;
-            auto being_itr = itr + 2;
+            auto being_itr = itr + 1;
             for (; being_itr != end_itr; ++being_itr) {
                 const auto index = static_cast<uint32_t>((*being_itr).type);
-                state_buf[index] = (*being_itr).data;
+                // XXX: 只有data4?
+                state_buf[index] = (*being_itr).data4;
             }
         }
         // 递进
@@ -837,7 +838,8 @@ void LongUI::UIControl::extra_animation_callback(
             if (x.to.type == ValueType::Type_Unknown) {
                 const auto index = static_cast<uint32_t>(x.from.type);
                 const auto old = state_buf[index];
-                x.to.data = old;
+                x.to.data4 = old;
+                x.to.data8 = { 0 };
             }
         }
     }
@@ -862,7 +864,8 @@ auto LongUI::UIControl::animation_property_filter(void*ptr)noexcept->uint32_t{
             // 设置即时值
             SSValue value;
             value.type = x.from.type;
-            value.data = x.to.data;
+            value.data4 = x.to.data4;
+            value.data8 = x.to.data8;
             this->ApplyValue(value);
             // 取消这份
             x.from.type = ValueType::Type_Unknown;
