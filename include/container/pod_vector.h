@@ -64,6 +64,8 @@ namespace LongUI { namespace POD {
             // size type
             using size_type = std::uintptr_t;
 #endif
+            // size of template
+            auto size_of_template() const noexcept { return m_uByteLen; }
             // max size
             auto max_size() const noexcept ->size_type { return 1u << 20; }
             // clear data
@@ -303,6 +305,8 @@ namespace LongUI { namespace POD {
     public:
         // size type
         using size_type = vector_base::size_type;
+        // size of template
+        auto size_of_template() const noexcept { return vector_base::size_of_template();  }
         // max size
         auto max_size() const noexcept ->size_type { return vector_base::max_size(); }
         // clear data

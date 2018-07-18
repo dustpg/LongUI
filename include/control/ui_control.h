@@ -173,14 +173,14 @@ namespace LongUI {
         // set timer 0~3
         //void SetTimer0123(uint32_t id0123, uint32_t elapse) noexcept;
         // kill timer 0~3
-        //void KillTimer0123(uint32_t id0123, uint32_t elapse) noexcept;
+        //void KillTimer0123(uint32_t id0123) noexcept;
     public:
         // clear appearance and all margin/padding/border
         void ClearAppearance() noexcept;
         // set xul-string as content
         void SetXul(const char* xul) noexcept;
         // find child via position 
-        auto FindChild(const Point2F& pos) noexcept->UIControl*;
+        auto FindChild(const Point2F pos) noexcept->UIControl*;
         // swap child index
         void SwapChildren(UIControl& a, UIControl& b) noexcept;
         // get children count

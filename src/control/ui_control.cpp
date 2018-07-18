@@ -159,7 +159,7 @@ bool LongUI::UIControl::IsLastChild() const noexcept {
 /// <param name="id0123">The id0123.</param>
 /// <param name="elapse">The elapse.</param>
 /// <returns></returns>
-//void LongUI::UIControl::KillTimer0123(uint32_t id0123, uint32_t elapse) noexcept {
+//void LongUI::UIControl::KillTimer0123(uint32_t id0123) noexcept {
 //
 //}
 
@@ -1020,6 +1020,13 @@ LongUI::UIControl::~UIControl() noexcept {
         m_pAccessible = nullptr;
     }
 #endif
+    // 检测计时器
+    //if (m_bHasTimer) {
+    //    this->KillTimer0123(0);
+    //    this->KillTimer0123(1);
+    //    this->KillTimer0123(2);
+    //    this->KillTimer0123(3);
+    //}
     // 移除高层引用
     UIManager.ControlDisattached(*this);
     // 移除窗口引用
@@ -1111,10 +1118,20 @@ void LongUI::UIControl::SwapChildren(UIControl& a, UIControl& b) noexcept {
 /// </summary>
 /// <param name="pos">The position.</param>
 /// <returns></returns>
-auto LongUI::UIControl::FindChild(const Point2F & pos) noexcept -> UIControl* {
+auto LongUI::UIControl::FindChild(const Point2F pos) noexcept -> UIControl* {
     UIControl* found = nullptr;
     // TODO: 优化 Attachment_Fixed
     for (auto& ctrl : *this) {
+#ifndef NDEBUG
+        //if (!std::strcmp(ctrl.name_dbg, "button")) {
+        //    LUIDebug(Hint)
+        //        << "M["
+        //        << pos
+        //        << "]"
+        //        << ctrl.GetBox().visible
+        //        << endl;
+        //}
+#endif
         if (ctrl.IsVisible() && IsInclude(ctrl.GetBox().visible, pos)) {
             if (ctrl.m_state.attachment == Attachment_Fixed)
                 return &ctrl;
@@ -1313,6 +1330,12 @@ void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
     }
     // 默认控件
     else {
+        // 拥有额外的动画?
+        if (!m_oStyle.matched.empty()) {
+            const auto state = m_oStyle.state;
+            UIManager.StartExtraAnimation(*this, change);
+            m_oStyle.state = state;
+        }
         UIManager.StartBasicAnimation(*this, change);
     }
 }
@@ -1533,6 +1556,16 @@ void LongUI::UIControl::ApplyValue(SSValue value) noexcept {
     case ValueType::Type_PositionOverflowY:
         detail::write_value(m_oStyle.overflow_y, value.data.byte);
         break;
+    case ValueType::Type_PositionLeft:
+        detail::write_value(m_oBox.pos.x, value.data.single);
+        m_state.world_changed = true;
+        this->NeedUpdate();
+        break;
+    case ValueType::Type_PositionTop:
+        detail::write_value(m_oBox.pos.y, value.data.single);
+        m_state.world_changed = true;
+        this->NeedUpdate();
+        break;
     case ValueType::Type_DimensionWidth:
         detail::write_value(m_oStyle.minsize.width, value.data.single);
         detail::write_value(m_oStyle.maxsize.width, value.data.single);
@@ -1674,6 +1707,12 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_PositionOverflowY:
         detail::write_value(value.data.byte, m_oStyle.overflow_y);
+        break;
+    case ValueType::Type_PositionLeft:
+        detail::write_value(value.data.single, m_oBox.pos.x);
+        break;
+    case ValueType::Type_PositionTop:
+        detail::write_value(value.data.single, m_oBox.pos.y);
         break;
     case ValueType::Type_DimensionWidth:
         detail::write_value(value.data.single, m_oBox.size.width);

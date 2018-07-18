@@ -130,6 +130,8 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_BorderBottomWidth:
     case ValueType::Type_BorderLeftWidth:
         // [MBP]
+    case ValueType::Type_PositionLeft:
+    case ValueType::Type_PositionTop:
     case ValueType::Type_DimensionWidth:
     case ValueType::Type_DimensionHeight:
     case ValueType::Type_DimensionMinWidth:
@@ -238,6 +240,12 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0xa8321dfe_ui32:
         // overflow-y
         return { ValueType::Type_PositionOverflowY };
+    case 0x0e936497_ui32:
+        // left
+        return { ValueType::Type_PositionLeft };
+    case 0x001e9951_ui32:
+        // top
+        return { ValueType::Type_PositionTop };
 
         // ------------- Dimension ----------------
         // width
@@ -404,6 +412,8 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BorderBottomWidth:
     case LongUI::ValueType::Type_BorderLeftWidth:
         // [MBP]
+    case ValueType::Type_PositionLeft:
+    case ValueType::Type_PositionTop:
     case ValueType::Type_DimensionWidth:
     case ValueType::Type_DimensionHeight:
     case ValueType::Type_DimensionMinWidth:

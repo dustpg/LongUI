@@ -18,6 +18,17 @@ button#button, #layout .button{
     /* color: cyan */
 }
 
+stack>button {
+    transition-duration: 555ms;
+    background-color: blue;
+    left: 10;
+}
+
+stack>button:hover {
+    background-color: yellow;
+    left: 300;
+}
+
 #layout button:active {
     background-color: green
 }

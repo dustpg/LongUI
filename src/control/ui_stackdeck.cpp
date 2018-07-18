@@ -14,13 +14,15 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIStack, "stack");
     // impl namespace
     namespace impl {
-        // find greatest child-minsize
-        PCN_NOINLINE auto greatest_minsize(UIControl& ctrl) noexcept {
+        // find greatest child-minsize/ right-buttom
+        auto greatest_minsize_rb(UIControl& ctrl) noexcept {
             Size2F size = { 0.f, 0.f };
             for (auto& child : ctrl) {
+                const auto pos = child.GetPos();
                 const auto thism = child.GetMinSize();
-                size.width = std::max(size.width, thism.width);
-                size.height = std::max(size.height, thism.height);
+                const Size2F rb{ pos.x + thism.width, pos.y + thism.height };
+                size.width = std::max(size.width, rb.width);
+                size.height = std::max(size.height, rb.height);
             }
             return size;
         }
@@ -141,7 +143,10 @@ void LongUI::UIStack::Update() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIStack::relayout_stack() noexcept {
-
+    for (auto& child : (*this)) {
+        const auto size = child.GetMinSize();
+        this->resize_child(child, size);
+    }
 }
 
 
@@ -157,7 +162,7 @@ auto LongUI::UIStack::DoEvent(UIControl* sender,
     {
     case NoticeEvent::Event_RefreshBoxMinSize:
         // 更新最小大小
-        this->set_contect_minsize(impl::greatest_minsize(*this));
+        this->set_contect_minsize(impl::greatest_minsize_rb(*this));
         return Event_Accept;
     default:
         // 其他事件

@@ -23,18 +23,18 @@ namespace LongUI {
         
         //// [Position] cursor 
         //Type_PositionCursor,
-        //// [Position] left 
-        //Type_PositionLeft,
-        //// [Position] right 
-        //Type_PositionRight,
+        //// [Position] z-index
+        //Type_PositionZindex,
         // [Position] overflow
         Type_PositionOverflow,
         // [Position] overflow-x
         Type_PositionOverflowX,
         // [Position] overflow-y
         Type_PositionOverflowY,
-        //// [Position] z-index
-        //Type_PositionZindex,
+        // [Position] left 
+        Type_PositionLeft,
+        // [Position] top 
+        Type_PositionTop,
 
         // [Dimension] width
         Type_DimensionWidth,

@@ -18,10 +18,10 @@
 namespace LongUI {
     // dirty Update
     struct DirtyUpdate {
-        // rect
-        //RectF           rect;
         // ctrl
         UIControl*      ctrl;
+        // rect
+        RectF           rect;
         // window
         //CUIWindow*      wnd;
     };
@@ -316,6 +316,9 @@ void LongUI::CUIControlControl::ControlAttached(UIControl& ctrl) noexcept {
 /// Removes the reference.
 /// </summary>
 void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
+    assert(cc().init_list.size_of_template() == sizeof(void*));
+    assert(cc().update_list.size_of_template() == sizeof(void*));
+    //assert(cc().dirty_update.size_of_template() == sizeof(void*));
     // 1. 移除初始化表中的引用
     if (!ctrl.is_inited()) {
         LongUI::RemovePointerItem(reinterpret_cast<PointerVector&>(cc().init_list), &ctrl);
@@ -328,7 +331,12 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
     // 3. 移除在脏矩形列表
     if (ctrl.is_in_dirty_list()) {
         ctrl.m_state.in_dirty_list = false;
-        LongUI::RemovePointerItem(reinterpret_cast<PointerVector&>(cc().dirty_update), &ctrl);
+        auto& list = cc().dirty_update;
+        const auto itr = std::find_if(list.begin(), list.end(), [&ctrl](const auto& x) noexcept {
+            return x.ctrl == &ctrl;
+        });
+        assert(itr != list.end() && "not found in list");
+        list.erase(itr);
     }
     // 4. 移除时间胶囊
     if (ctrl.m_pLastEnd) {
@@ -346,6 +354,7 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
 void LongUI::RemovePointerItem(PointerVector& list, void* ptr) noexcept {
     auto& vector = reinterpret_cast<POD::Vector<void*>&>(list);
     assert(!vector.empty() && "vector cannot be empty");
+    assert(vector.size_of_template() == sizeof(ptr));
     // 优化 删除最后一个
     if (vector.back() == ptr) return vector.pop_back();
     // 遍历数组
@@ -409,8 +418,9 @@ void LongUI::CUIControlControl::InvalidateControl(UIControl& ctrl/*, const RectF
     // 窗口储存渲染的矩形信息
     if (const auto wnd = ctrl.GetWindow()) {
         // XXX: [优化]如果已经全渲染则没有必要了
+        
         // 加入脏更新表
-        list.push_back({ &ctrl });
+        list.push_back({ &ctrl, ctrl.GetBox().visible });
         ctrl.m_state.in_dirty_list = true;
         //// 将矩形映射到窗口坐标系
         //auto wndcs = rect; 
@@ -501,6 +511,49 @@ void LongUI::CUIControlControl::push_next_update() noexcept {
 
 #include <control/ui_viewport.h>
 
+// longui::impl namespace
+namespace LongUI { namespace impl {
+    // mark two rect
+    inline void mark_two_rect_dirty(
+        const RectF& a, 
+        const RectF& b,
+        const Size2F size,
+        CUIWindow& window
+        ) noexcept {
+        const auto is_valid = [size](const RectF& rect) noexcept {
+            return LongUI::GetArea(rect) > 0.f
+                && rect.right > 0.f
+                && rect.bottom > 0.f
+                && rect.left < size.width
+                && rect.top < size.height
+                ;
+        };
+        // 判断有效性
+        const auto av = is_valid(a);
+        const auto bv = is_valid(a);
+        // 都无效
+        if (!av && !bv) return;
+        // 合并矩形
+        RectF merged_rect = a;
+        // 都有效
+        if (av && bv) {
+            // 存在交集
+            if (LongUI::IsOverlap(a, b)) {
+                merged_rect.top = std::min(a.top, b.top);
+                merged_rect.left = std::min(a.left, b.left);
+                merged_rect.right = std::max(a.right, b.right);
+                merged_rect.bottom = std::max(a.bottom, b.bottom);
+            }
+            // 没有交集
+            else window.MarkDirtRect(b);
+        }
+        // 只有B有效
+        else if (bv) merged_rect = b;
+        // 标记
+        window.MarkDirtRect(merged_rect);
+    }
+}}
+
 /// <summary>
 /// Dirties the update.
 /// </summary>
@@ -511,20 +564,18 @@ void LongUI::CUIControlControl::dirty_update() noexcept {
     for (auto& x : list) {
         x.ctrl->m_state.in_dirty_list = false;
         const auto wnd = x.ctrl->GetWindow();
-        const auto csize = x.ctrl->GetSize();
-        RectF rect = { 0, 0, csize.width, csize.height };
-        x.ctrl->MapToWindow(rect);
-        const auto size = wnd->RefViewport().GetRealSize();
-        // 不在窗口内显示?
-        if (rect.right <= 0.f ||
-            rect.bottom <= 0.f ||
-            rect.left >= size.width ||
-            rect.top >= size.height) 
-            continue;
-        // 面积为0?
-        // if (LongUI::GetArea(rect) == 0.f) continue;
-        // 标记脏矩形
-        wnd->MarkDirtRect(rect);
+        assert(wnd && "bad window");
+        //const auto csize = x.ctrl->GetSize();
+        //RectF rect = { 0, 0, csize.width, csize.height };
+        //x.ctrl->MapToWindow(rect);
+        // XXX: 大概率是[两个相同的矩形或者第一个无效]
+        // 标记两次矩形位置
+        impl::mark_two_rect_dirty(
+            x.rect,
+            x.ctrl->GetBox().visible,
+            wnd->RefViewport().GetRealSize(),
+            *wnd
+        );
     }
     // 清空
     list.clear();
@@ -848,19 +899,22 @@ bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noex
 /// <summary>
 /// Starts the extra animation.
 /// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="type">The type.</param>
+/// <param name="animation_only">if set to <c>true</c> [animation only].</param>
+/// <returns></returns>
 /// <remarks>
 /// Extra动画允许多个动画不同时间段并行处理
 /// </remarks>
-/// <param name="ctrl">The control.</param>
-/// <param name="type">The type.</param>
-/// <returns></returns>
 void LongUI::CUIControlControl::StartExtraAnimation(
     UIControl& ctrl, StyleStateTypeChange type) noexcept {
     // 断言类型
-    assert(ctrl.m_oStyle.appearance == AttributeAppearance::Appearance_None);
+    //assert(ctrl.m_oStyle.appearance == AttributeAppearance::Appearance_None);
     // 先判断有没有匹配规则
-    if (ctrl.GetStyle().matched.empty())
-        return static_cast<void>(ctrl.start_animation_change(type));
+    if (ctrl.GetStyle().matched.empty()) {
+        ctrl.start_animation_change(type);
+        return;
+    }
     // 利用回调获取修改的属性
     auto& from_to_list = cc().from_to;
     ctrl.extra_animation_callback(type, &from_to_list);

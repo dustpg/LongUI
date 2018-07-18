@@ -541,21 +541,21 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     case 16:
         loadfile("../doc/test-xul/css-test.xul");
         viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
-        do_button(viewport.GetWindow(), "btn1")->AddGuiEventListener(
-            LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
-            const auto window = control.GetWindow();
-            if (const auto img1 = window->FindControl("img1")) {
-                img1->DeleteLater();
-            }
-            else if (const auto img2 = window->FindControl("img2")) {
-                const auto img = longui_cast<LongUI::UIImage*>(img2);
-                static int a = 0;
-                const auto view = LongUI::U8View::FromCStyle(
-                    (a++) & 1 ? "" : "images/25.png");
-                img->SetSource(view);
-            }
-            return LongUI::Event_Accept;
-        });
+        //do_button(viewport.GetWindow(), "btn1")->AddGuiEventListener(
+        //    LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
+        //    const auto window = control.GetWindow();
+        //    if (const auto img1 = window->FindControl("img1")) {
+        //        img1->DeleteLater();
+        //    }
+        //    else if (const auto img2 = window->FindControl("img2")) {
+        //        const auto img = longui_cast<LongUI::UIImage*>(img2);
+        //        static int a = 0;
+        //        const auto view = LongUI::U8View::FromCStyle(
+        //            (a++) & 1 ? "" : "images/25.png");
+        //        img->SetSource(view);
+        //    }
+        //    return LongUI::Event_Accept;
+        //});
         //do_button(viewport.GetWindow(), "bgimage")->AddGuiEventListener(
         //    LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
         //    UIManager.CreateTimeCapsule([](float p) noexcept {
