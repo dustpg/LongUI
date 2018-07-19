@@ -49,6 +49,7 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
     switch (args.appearance)
     {
     case LongUI::Appearance_ListBox:
+    case LongUI::Appearance_Caption:
     case LongUI::Appearance_GroupBox:
     case LongUI::Appearance_StatusBar:
     case LongUI::Appearance_TabPanels:

@@ -105,6 +105,7 @@ namespace LongUI {
         void TrySleep() noexcept;
         // wake up
         void WakeUp() noexcept;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     public:
         // load css file
         void LoadCSSFile(U8View file) noexcept;
@@ -112,6 +113,7 @@ namespace LongUI {
         void LoadCSSString(U8View string) noexcept;
         // get style sheet
         auto GetStyleSheet() const noexcept { return m_pStyleSheet; }
+#endif
     public:
         // map to screen
         void MapToScreen(RectF& rect) const noexcept;
@@ -236,8 +238,10 @@ namespace LongUI {
     protected:
         // window handle
         HWND                m_hwnd = nullptr;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // style sheet
         CUIStyleSheet*      m_pStyleSheet = nullptr;
+#endif
         // parent window
         CUIWindow*          m_parent = nullptr;
         // topest world changed control

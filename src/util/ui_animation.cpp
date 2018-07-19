@@ -23,6 +23,7 @@ auto LongUI::EasingFunction(AnimationType type, float x) noexcept -> float {
 }
 
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
 /// Indeterminates the value.
 /// </summary>
@@ -94,6 +95,7 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
     }
     return rv;
 }
+#endif
 
 /// <summary>
 /// Cubics the bezier ex.

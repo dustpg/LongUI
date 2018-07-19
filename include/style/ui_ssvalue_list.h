@@ -1,9 +1,11 @@
 ﻿#pragma once
 
+#include "../luiconf.h"
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+
+#include <core/ui_core_type.h>
 #include <cstdint>
 #include <cassert>
-#include <core/ui_core_type.h>
-
 
 // simpac namespace
 namespace SimpAC {
@@ -20,13 +22,7 @@ namespace LongUI {
         Type_NewOne = 0xfffffffful,
         // unknown
         Type_Unknown = 0,
-        
-        //// [Position] cursor 
-        //Type_PositionCursor,
-        //// [Position] z-index
-        //Type_PositionZindex,
-        // [Position] overflow
-        Type_PositionOverflow,
+
         // [Position] overflow-x
         Type_PositionOverflowX,
         // [Position] overflow-y
@@ -52,8 +48,6 @@ namespace LongUI {
         // [Box] flex
         Type_BoxFlex,
 
-        // [Margin] margin
-        Type_Margin,
         // [Margin] top
         Type_MarginTop,
         // [Margin] right
@@ -63,8 +57,6 @@ namespace LongUI {
         // [Margin] left
         Type_MarginLeft,
 
-        // [Padding] padding
-        Type_Padding,
         // [Padding] top
         Type_PaddingTop,
         // [Padding] right
@@ -74,8 +66,6 @@ namespace LongUI {
         // [Padding] left
         Type_PaddingLeft,
 
-        // [Border] width
-        Type_BorderWidth,
         // [Border] top-width
         Type_BorderTopWidth,
         // [Border] right-width
@@ -84,35 +74,10 @@ namespace LongUI {
         Type_BorderBottomWidth,
         // [Border] left-width
         Type_BorderLeftWidth,
-        //// [Border] top-style
-        //Type_BorderTopStyle,
-        //// [Border] right-style
-        //Type_BorderRightStyle,
-        //// [Border] bottom-style
-        //Type_BorderBottomStyle,
-        //// [Border] left-style
-        //Type_BorderLeftStyle,
-        //// [Border] top-color
-        //Type_BorderTopColor,
-        //// [Border] right-color
-        //Type_BorderRightColor,
-        //// [Border] bottom-color
-        //Type_BorderBottomColor,
-        //// [Border] left-color
-        //Type_BorderLeftColor,
-        //// [Border] top-left-radius
-        //Type_BorderTopLeftRadius,
-        //// [Border] top-right-radius
-        //Type_BorderTopRightRadius,
-        //// [Border] bottom-left-radius
-        //Type_BorderBottomLeftRadius,
-        //// [Border] bottom-right-radius
-        //Type_BorderBottomRightRadius,
         // [Border] image-source
         Type_BorderImageSource,
         // [Border] image-slice
         Type_BorderImageSlice,
-
 
         // [Background] color
         Type_BackgroundColor,
@@ -134,12 +99,10 @@ namespace LongUI {
 
         // [Text] color
         Type_TextColor,
-        // [-Webkit-Text] stroke 
-        Type_WKTextColorStroke,
         // [-Webkit-Text] stroke-width
-        Type_WKTextColorStrokeWidth,
+        Type_WKTextStrokeWidth,
         // [-Webkit-Text] stroke-color
-        Type_WKTextColorStrokeColor,
+        Type_WKTextStrokeColor,
 
         // [Font] size
         Type_FontSize,
@@ -151,11 +114,22 @@ namespace LongUI {
         Type_FontWeight,
         // [Font] family
         Type_FontFamily,
-
         // [LongUI] appearance
         Type_LUIAppearance,
-        // COUNT
-        TYPE_COUNT
+
+        // last single property
+        SINGLE_LAST = Type_LUIAppearance,
+
+        // [ShortHand] overflow
+        Type_ShortHandOverflow,
+        // [ShortHand] -webkit-text-stroke 
+        Type_ShortHandWKTextStroke,
+        // [ShortHand] margin
+        Type_ShortHandMargin,
+        // [ShortHand] padding
+        Type_ShortHandPadding,
+        // [ShortHand] border-width
+        Type_ShortHandBorderWidth,
     };
     // value easy type
     enum class ValueEasyType : int8_t {
@@ -214,8 +188,6 @@ namespace LongUI {
         // data
         UniByte8        data8;
     };
-    // check type count
-    static_assert(static_cast<int>(ValueType::TYPE_COUNT) <= 1024, "TO HUGE");
     // get easy type
     auto GetEasyType(ValueType) noexcept->ValueEasyType;
     // is image
@@ -233,3 +205,4 @@ namespace LongUI {
     ) noexcept;
 }
 
+#endif

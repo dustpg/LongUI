@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "../luiconf.h"
 #include "ui_ssvalue_list.h"
 #include "ui_attribute.h"
 #include "../text/ui_attribute.h"
@@ -11,15 +12,17 @@ namespace LongUI {
     /// gui style value host
     /// </summary>
     class CUIStyleValue {
-        // after box changed
-        void after_box_changed();
     public:
+        // set foreground color
+        void SetFgColor(RGBA color) noexcept;
+        // get foreground color
+        auto GetFgColor() const noexcept->RGBA;
+    public:
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // set text stroke color
         void SetTextStrokeWidth(float width) noexcept;
         // set text stroke color
         void SetTextStrokeColor(RGBA color) noexcept;
-        // set foreground color
-        void SetFgColor(RGBA color) noexcept;
         // set background clip
         void SetBgClip(AttributeBox clip) noexcept;
         // set background color
@@ -51,8 +54,6 @@ namespace LongUI {
         auto GetTextStrokeWidth() const noexcept->float;
         // set text stroke color
         auto GetTextStrokeColor() const noexcept->RGBA;
-        // get foreground color
-        auto GetFgColor() const noexcept->RGBA;
         // get background clip
         auto GetBgClip() const noexcept->AttributeBox;
         // get background color
@@ -102,5 +103,9 @@ namespace LongUI {
         void SetBorderRight(float value) noexcept;
         // set border bottom width
         void SetBorderBottom(float value) noexcept;
+    private:
+        // after box changed
+        void after_box_changed();
+#endif
     };
 }

@@ -33,8 +33,10 @@ namespace LongUI {
 struct LongUI::PrivateCC {
     // control animation
     using BasicAnima = ControlAnimationBasic;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // control animation
     using ExtraAnima = ControlAnimationExtra;
+#endif
     // ctor
     inline PrivateCC() noexcept;
     // ctor
@@ -49,12 +51,19 @@ struct LongUI::PrivateCC {
     POD::Vector<UIControl*> init_list;
     // animation list
     POD::Vector<BasicAnima> basic_anima;
-    // animation list
-    POD::Vector<ExtraAnima> extra_anima;
     // dirty update
     POD::Vector<DirtyUpdate>dirty_update;
+#ifdef LUI_DISABLE_STYLE_SUPPORT
+    // unused1
+    POD::Vector<UIControl*> unused1;
+    // unused2
+    POD::Vector<UIControl*> unused2;
+#else
+    // animation list
+    POD::Vector<ExtraAnima> extra_anima;
     // from to list
     POD::Vector<SSFromTo>   from_to;
+#endif
     // xul dir
     CUIStringU8             xul_dir;
 };
@@ -590,8 +599,10 @@ void LongUI::CUIControlControl::normal_update() noexcept {
     m_dwTimeTick = new_tick;
     // 更新基本动画
     this->update_basic_animation(delta);
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // 更新额外动画
     this->update_extra_animation(delta);
+#endif
 }
 
 /// <summary>
@@ -637,6 +648,7 @@ void LongUI::CUIControlControl::update_basic_animation(uint32_t delta)noexcept {
 }
 
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
 /// Updates the extra animation.
 /// </summary>
@@ -674,7 +686,7 @@ void LongUI::CUIControlControl::update_extra_animation(uint32_t delta)noexcept {
     // HINT: 一帧最多删一个, 但是这里多了手动删除(?)
     if (!animations.back().ctrl) animations.pop_back();
 }
-
+#endif
 
 /// <summary>
 /// Finds the basic animation.
@@ -748,6 +760,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
 }
 
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
 /// Extras the animation callback.
 /// </summary>
@@ -771,9 +784,12 @@ void LongUI::UIControl::extra_animation_callback(
     // 记录目标状态
     const auto to_state = m_oStyle.state;
     // 状态缓冲池
-    UniByte4 state_buf[static_cast<int>(ValueType::TYPE_COUNT)];
+    constexpr auto LAST = static_cast<int>(ValueType::SINGLE_LAST) ;
+    UniByte4 state_buf[LAST + 1];
     // 设置初始状态
+    // XXX: 延迟初始化? 优化?
     LongUI::InitStateBuffer(state_buf);
+    bool writen_buf = false;
     // 优化flag
     bool need_state_buf = false;
     // 判断匹配规则
@@ -876,25 +892,6 @@ auto LongUI::UIControl::animation_property_filter(void*ptr)noexcept->uint32_t{
     return len;
 }
 
-/// <summary>
-/// Starts the but no animation.
-/// </summary>
-/// <param name="change">The change.</param>
-/// <returns></returns>
-bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noexcept {
-    // 没有改变?
-    const auto changed = m_oStyle.state.Change(change);
-#ifndef NDEBUG
-    if (!changed) {
-        LUIDebug(Warning) LUI_FRAMEID
-            << "animation not changed("
-            << change
-            << ")"
-            << endl;
-    }
-#endif // !NDEBUG
-    return changed;
-}
 
 /// <summary>
 /// Starts the extra animation.
@@ -970,8 +967,27 @@ void LongUI::CUIControlControl::StartExtraAnimation(
     }
     from_to_list.clear();
 }
+#endif
 
-
+/// <summary>
+/// Starts the but no animation.
+/// </summary>
+/// <param name="change">The change.</param>
+/// <returns></returns>
+bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noexcept {
+    // 没有改变?
+    const auto changed = m_oStyle.state.Change(change);
+#ifndef NDEBUG
+    if (!changed) {
+        LUIDebug(Warning) LUI_FRAMEID
+            << "animation not changed("
+            << change
+            << ")"
+            << endl;
+    }
+#endif // !NDEBUG
+    return changed;
+}
 
 // XML 解析
 #include <xul/SimpAX.h>
@@ -1030,6 +1046,7 @@ namespace LongUI {
     /// <param name="attr">The attribute.</param>
     /// <returns></returns>
     void CUIControlControl::CUIXulStream::add_processing(const PIs& attr) noexcept {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // 加载CSS
         if (attr.target == "xml-stylesheet"_pair) {
             // 查找href
@@ -1047,6 +1064,7 @@ namespace LongUI {
                 }
             }
         }
+#endif
     }
     /// <summary>
     /// Begins the element.

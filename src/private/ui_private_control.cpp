@@ -7,6 +7,7 @@
 #include <debugger/ui_debug.h>
 
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
 /// Gets the BGC renderer.
 /// </summary>
@@ -55,6 +56,7 @@ auto LongUI::UIControlPrivate::EnsureBdRenderer(
     else
         return ctrl.m_pBdRender = new(std::nothrow) CUIRendererBorder;
 }
+#endif
 
 /// <summary>
 /// Updates the level.

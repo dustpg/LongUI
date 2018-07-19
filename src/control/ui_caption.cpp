@@ -19,7 +19,8 @@ namespace LongUI {
 /// <param name="meta">The meta.</param>
 LongUI::UICaption::UICaption(UIControl* parent, const MetaControl& meta) noexcept 
     : Super(parent, meta) {
-    this->SetBgColor({ RGBA_White });
+    m_oStyle.appearance = Appearance_Caption;
+    //this->SetBgColor({ RGBA_White });
 }
 
 /// <summary>

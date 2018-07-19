@@ -29,7 +29,20 @@ void LongUI::CUINativeStyleWindows10::draw_group_box(const NativeDrawArgs & args
     renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
 
-
+/// <summary>
+/// Draws the caption.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::draw_caption(const RectF& rect) noexcept {
+    // 预备
+    const auto color = ColorF::FromRGBA_CT<RGBA_White>();
+    auto& renderer = UIManager.Ref2DRenderer();
+    auto& brush = UIManager.RefCCBrush(color);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    renderer.FillRectangle(auto_cast(rect), &brush);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+}
 
 /// <summary>
 /// Draws the list item.

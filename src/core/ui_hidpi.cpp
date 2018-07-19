@@ -40,6 +40,7 @@ namespace LongUI {
             assert(dll && "support windows 10 only");
             call = ::GetProcAddress(dll, SETPROCESSDPIAWARENESS_NAME);
             assert(call && "support windows 10 only");
+            ptr_GetDpiForMonitor = ::GetProcAddress(dll, GETDPIFORMONITOR_NAME);
             set_pda(dpi_per_monitor);
 #else
             // win 8

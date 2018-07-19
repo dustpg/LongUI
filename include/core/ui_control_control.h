@@ -3,6 +3,7 @@
 // c++
 #include <type_traits>
 // ui
+#include "../luiconf.h"
 #include "ui_basic_type.h"
 #include "ui_core_type.h"
 #include "../style/ui_style_state.h"
@@ -39,10 +40,12 @@ namespace LongUI {
         // refresh time capsule
         static void refresh_time_capsule(UIControl&, CUITimeCapsule&) noexcept;
     public:
-        // start basic animation
-        void StartBasicAnimation(UIControl&, StyleStateTypeChange) noexcept;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // start extra animation
         void StartExtraAnimation(UIControl&, StyleStateTypeChange) noexcept;
+#endif
+        // start basic animation
+        void StartBasicAnimation(UIControl&, StyleStateTypeChange) noexcept;
         // find basic animation
         auto FindBasicAnimation(const UIControl&) const noexcept -> const ControlAnimationBasic*;
     public:
@@ -72,6 +75,7 @@ namespace LongUI {
         void SetXulDir(U8View) noexcept;
         // get xul dir
         auto GetXULDir() const noexcept -> U8View;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // add css string
         void AddCssString(U8View) noexcept;
         // add css file
@@ -80,6 +84,7 @@ namespace LongUI {
         void AddCssFile(const wchar_t*) noexcept;
         // get style sheet
         auto GetStyleSheet() const noexcept { return m_pStyleSheet; }
+#endif
     public:
         // make xul tree
         static bool MakeXul(UIControl& ctrl, const char* xul) noexcept;
@@ -115,8 +120,10 @@ namespace LongUI {
     private:
         // update basic animation
         void update_basic_animation(uint32_t delta) noexcept;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // update extra animation
         void update_extra_animation(uint32_t delta) noexcept;
+#endif
         // dispose all time capsule
         void dispose_all_time_capsule() noexcept;
     private:
@@ -125,8 +132,10 @@ namespace LongUI {
         // time capsule tail
         Node                    m_oTailTimeCapsule;
     protected:
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // style sheet
         CUIStyleSheet*          m_pStyleSheet = nullptr;
+#endif
         // time tick
         uint32_t                m_dwTimeTick;
         // delta time(unit: ms)

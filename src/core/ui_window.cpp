@@ -119,10 +119,12 @@ void LongUI::CUIWindow::Delete() noexcept {
 
 // ui namespace
 namespace LongUI {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // make style sheet
     auto MakeStyleSheet(U8View view, SSPtr old) noexcept->SSPtr;
     // make style sheet
     auto MakeStyleSheetFromFile(U8View view, SSPtr old) noexcept->SSPtr;
+#endif
     // private msg
     struct PrivateMsg;
     /// <summary>
@@ -383,6 +385,7 @@ m_private(new(std::nothrow) Private) {
     UIManager.add_window(*this);
 }
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
 /// Makes the style sheet from file.
 /// </summary>
@@ -443,6 +446,7 @@ void LongUI::CUIWindow::LoadCSSFile(U8View file) noexcept {
 void LongUI::CUIWindow::LoadCSSString(U8View string) noexcept {
     m_pStyleSheet = LongUI::MakeStyleSheet(string, m_pStyleSheet);
 }
+#endif
 
 
 /// <summary>
@@ -484,8 +488,10 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     if (m_parent) {
         m_parent->remove_child(*this);
     }
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // 释放样式表
     LongUI::DeleteStyleSheet(m_pStyleSheet);
+#endif
     // 有效私有数据
     if (m_private) {
         // 弹出窗口会在下一步删除

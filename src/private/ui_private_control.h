@@ -14,6 +14,7 @@ struct LongUI::UIControlPrivate {
     // test if world changed
     static bool TestWorldChanged(UIControl& ctrl) noexcept {
         return ctrl.m_state.world_changed;}
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // ensure bg renderer
     static auto EnsureBgRenderer(UIControl& ctrl) noexcept->CUIRendererBackground*;
     // get bg renderer
@@ -22,6 +23,7 @@ struct LongUI::UIControlPrivate {
     static auto EnsureBdRenderer(UIControl& ctrl) noexcept->CUIRendererBorder*;
     // get bd renderer
     static auto GetBdRenderer(const UIControl& ctrl) noexcept->CUIRendererBorder*;
+#endif
     // refresh min size
     static void RefreshMinSize(UIControl& ctrl) noexcept;
     // update world
@@ -64,9 +66,11 @@ struct LongUI::UIControlPrivate {
     // ref style state
     static auto&RefStyleState(UIControl& ctrl) noexcept {
         return ctrl.m_oStyle.state; }
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // ref style matched value
     static auto&RefStyleMatched(UIControl& ctrl) noexcept {
         return ctrl.m_oStyle.matched; }
+#endif
     // set parent data
     static auto SetParentData(UIControl& ctrl, uint32_t data) noexcept {
         return ctrl.m_uData4Parent = data; }

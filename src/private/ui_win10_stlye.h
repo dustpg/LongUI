@@ -111,6 +111,8 @@ namespace LongUI {
         void draw_arrow_button(const NativeDrawArgs& args, ArrowDirection dir) noexcept;
         // draw tree twisty
         void draw_tree_twisty(const NativeDrawArgs& args) noexcept;
+        // draw caption
+        static void draw_caption(const RectF&) noexcept;
         // draw button
         static void draw_button(const NativeDrawArgs& args) noexcept;
         // draw toolbar button

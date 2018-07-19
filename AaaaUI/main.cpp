@@ -113,6 +113,7 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
         //LongUI::NormalFree(ptr2);
         {
             LongUI::UIViewport viewport1;
+            viewport1.RefWindow().SetClearColor({ 1,1,1,1 });
 #if 1
             main_inited(viewport1, CASE_NUM);
             /*viewport1.AddSpacer({ 100, 100 }, 1);
@@ -198,7 +199,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     viewport.RefWindow().SetTitleName(L"Window");
     //auto z = new(std::nothrow) LongUI::UIVBoxLayout;
     //set_root(z); z->user_data = reinterpret_cast<uintptr_t>(ptr);
-    viewport.SetBgColor({ LongUI::RGBA_White });
+    //viewport.SetBgColor({ LongUI::RGBA_White });
     viewport.SetDebugName("root");
 
     const auto loadfile = [&viewport](const char* filename) noexcept {
@@ -223,7 +224,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     };
     auto add_vbox = [](LongUI::UIControl* p, uint32_t color, const char* name) noexcept {
         const auto c = new(std::nothrow) LongUI::UIVBoxLayout{ p };
-        c->SetBgColor({ color }); c->SetDebugName(name);
+        //c->SetBgColor({ color }); c->SetDebugName(name);
         return c;
     };
     auto add_btn = [](LongUI::UIControl* p, const char* name) noexcept {
@@ -233,7 +234,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     };
     auto add_ctrl = [](LongUI::UIControl* p, uint32_t color, const char* name) noexcept {
         const auto c = new(std::nothrow) LongUI::UIControl{ p };
-        c->SetBgColor({ color }); c->SetDebugName(name);
+        //c->SetBgColor({ color }); c->SetDebugName(name);
         return c;
     };
     auto add_img= [](LongUI::UIControl* p, const char* name) noexcept {
@@ -248,7 +249,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     };
     auto add_label = [](LongUI::UIControl* p, uint32_t color, const char* name) noexcept {
         const auto c = new(std::nothrow) LongUI::UILabel{ p };
-        c->SetBgColor({ color }); 
+        //c->SetBgColor({ color }); 
         c->SetDebugName(name);
         return c;
     };
@@ -289,7 +290,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
 #else
         const auto c = new(std::nothrow) LongUI::UITest{ p };
 #endif
-        c->SetBgColor({ color }); c->SetDebugName(name);
+        //c->SetBgColor({ color }); c->SetDebugName(name);
         return c;
     };
     auto do_button = [](LongUI::CUIWindow*window, const char* name) noexcept {
@@ -307,7 +308,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     {
         const auto vbox = new(std::nothrow) LongUI::UIVBoxLayout{ &viewport };
         vbox->SetDebugName("root-vbox");
-        vbox->SetBgColor({ LongUI::RGBA_Cyan });
+        //vbox->SetBgColor({ LongUI::RGBA_Cyan });
         //vbox->SetFlex_test(1.f);
 
         const auto lbl1 = add_label(vbox, LongUI::RGBA_Red, "vbox-label1");
@@ -432,7 +433,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         const auto combo = add_combo(&viewport, "root-combo");
         const auto popup = new(std::nothrow) LongUI::UIMenuPopup{ combo };
         popup->SetDebugName("menu");
-        popup->SetBgColor({ LongUI::RGBA_White });
+        //popup->SetBgColor({ LongUI::RGBA_White });
 
         add_menuitem(popup, "m0");
         add_menuitem(popup, "m1");

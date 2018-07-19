@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <cstdint>
+#include "../luiconf.h"
 
 // attribute selector? obj[attr="sb"]
 //#define SAC_ATTRIBUTE_SELECTOR
@@ -38,6 +39,7 @@ namespace SimpAC {
     enum Combinators : uint32_t;
     // Combinators
     enum BasicSelectors : uint32_t;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // pure virtual ?
 #ifdef SAC_PURE_VIRTUAL
 #define SAC_PURE_VIRTUAL_SUFFIX = 0
@@ -89,6 +91,7 @@ namespace SimpAC {
 #endif 
     protected:
     };
+#endif
     // Combinators
     enum Combinators : uint32_t {
         // Adjacent sibling selectors   A + B

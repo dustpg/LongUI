@@ -1,4 +1,6 @@
 ﻿// lui
+#include <luiconf.h>
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 #include <style/ui_ssvalue.h>
 #include <util/ui_aniamtion.h>
 #include <text/ui_attribute.h>
@@ -88,19 +90,6 @@ void LongUI::ValueTypeMakeValue(
     default: 
         // 没有数据
         return;
-    case ValueType::Type_PositionOverflow:
-        // overflow: a [b]
-        // re:overflow-x
-        ValueTypeMakeValue(
-            ValueType::Type_PositionOverflowX,
-            1, values, values_write
-        );
-        // re:overflow-y
-        ValueTypeMakeValue(
-            ValueType::Type_PositionOverflowY,
-            1, values + value_len - 1, values_write
-        );
-        return;
     case ValueType::Type_PositionOverflowX:
     case ValueType::Type_PositionOverflowY:
         // [OVERFLOW]
@@ -108,15 +97,6 @@ void LongUI::ValueTypeMakeValue(
         //   -- overflow-y
         detail::attribute(ssv.data4.byte, AttrParser::Overflow(U8(values[0])));
         break;
-    case ValueType::Type_Margin:
-    case ValueType::Type_Padding:
-    case ValueType::Type_BorderWidth:
-        // [1FOR4]
-        //   -- margin
-        //   -- padding
-        //   -- border-width
-        detail::one_for_four(vtype, value_len, values, values_write);
-        return;
     case ValueType::Type_MarginTop:
     case ValueType::Type_MarginRight:
     case ValueType::Type_MarginBottom:
@@ -140,14 +120,14 @@ void LongUI::ValueTypeMakeValue(
     case ValueType::Type_DimensionMaxHeight:
     case ValueType::Type_BoxFlex:
     case ValueType::Type_FontSize:
-    case ValueType::Type_WKTextColorStrokeWidth:
+    case ValueType::Type_WKTextStrokeWidth:
         // [FLOAT]
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data4.single, detail::parse_float(values[0]));
         break;
     case ValueType::Type_BackgroundColor:
     case ValueType::Type_TextColor:
-    case ValueType::Type_WKTextColorStrokeColor:
+    case ValueType::Type_WKTextStrokeColor:
         // [COLOR]
         //   -- background-color
         //   -- color
@@ -187,21 +167,6 @@ void LongUI::ValueTypeMakeValue(
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data4.byte, detail::parse_timingfunc(U8(values[0])));
         break;
-    case ValueType::Type_WKTextColorStroke:
-        // [COLOR STROKE]
-        //   -- -webkit-text-stroke
-        assert(value_len == 2 && "unsupported");
-        // re:-webkit-text-stroke-width
-        ValueTypeMakeValue(
-            ValueType::Type_WKTextColorStrokeWidth,
-            1, values, values_write
-        );
-        // re:-webkit-text-stroke-color
-        ValueTypeMakeValue(
-            ValueType::Type_WKTextColorStrokeColor,
-            1, values + value_len - 1, values_write
-        );
-        return;
     case ValueType::Type_FontStyle:
         // [FontStyle]
         //   -- font-size
@@ -231,6 +196,58 @@ void LongUI::ValueTypeMakeValue(
         //   -- -moz-appearance
         detail::attribute(ssv.data4.byte, AttrParser::Appearance(U8(values[0])));
         break;
+
+        // ------------------- 简写属性 -----------------
+
+    case ValueType::Type_ShortHandOverflow:
+        // overflow: a [b]
+        // re:overflow-x
+        ValueTypeMakeValue(
+            ValueType::Type_PositionOverflowX,
+            1, values, values_write
+        );
+        // re:overflow-y
+        ValueTypeMakeValue(
+            ValueType::Type_PositionOverflowY,
+            1, values + value_len - 1, values_write
+        );
+        return;
+
+    case ValueType::Type_ShortHandWKTextStroke:
+        // [TEXT STROKE]
+        //   -- -webkit-text-stroke
+        assert(value_len == 2 && "unsupported");
+        // re:-webkit-text-stroke-width
+        ValueTypeMakeValue(
+            ValueType::Type_WKTextStrokeWidth,
+            1, values, values_write
+        );
+        // re:-webkit-text-stroke-color
+        ValueTypeMakeValue(
+            ValueType::Type_WKTextStrokeColor,
+            1, values + value_len - 1, values_write
+        );
+        return;
+    case ValueType::Type_ShortHandMargin:
+    case ValueType::Type_ShortHandPadding:
+    case ValueType::Type_ShortHandBorderWidth:
+        // [1FOR4]
+        //   -- margin
+        //   -- padding
+        //   -- border-width
+    {
+        const ValueType map[] = {
+            ValueType::Type_MarginTop,
+            ValueType::Type_PaddingTop,
+            ValueType::Type_BorderTopWidth,
+        };
+        const auto vtype0 = static_cast<uint32_t>(ValueType::Type_ShortHandMargin);
+        const auto vtype1 = static_cast<uint32_t>(vtype);
+        assert(vtype1 - vtype0 < sizeof(map) / sizeof(map[0]));
+        const auto vtype2 = map[vtype1 - vtype0];
+        detail::one_for_four(vtype2, value_len, values, values_write);
+        return;
+    }
     }
     // 输出
     auto& out = *reinterpret_cast<SSValues*>(values_write);
@@ -248,9 +265,6 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     {
         // ------------- Position ----------------
 
-    case 0x29867c0e_ui32:
-        // overflow
-        return { ValueType::Type_PositionOverflow };
     case 0xa8321dfd_ui32:
         // overflow-x
         return { ValueType::Type_PositionOverflowX };
@@ -291,9 +305,6 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
         return { ValueType::Type_BoxFlex };
         // ------------- Margin ----------------
 
-    case 0xcd67f276_ui32:
-        // margin
-        return { ValueType::Type_Margin };
     case 0x4b67d8e6_ui32:
         // margin-top
         return { ValueType::Type_MarginTop };
@@ -309,9 +320,6 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
 
         // ------------- Padding ----------------
 
-    case 0x44220515_ui32:
-        // padding
-        return { ValueType::Type_Padding };
     case 0xf617c735_ui32:
         // padding-top
         return { ValueType::Type_PaddingTop };
@@ -328,9 +336,6 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
 
         // ------------- Border ----------------
 
-    case 0x7f449c09_ui32:
-        // border-width
-        return { ValueType::Type_BorderWidth };
     case 0xe2efc419_ui32:
         // border-top-width
         return { ValueType::Type_BorderTopWidth };
@@ -378,15 +383,12 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0xd8c9a893_ui32:
         // color
         return { ValueType::Type_TextColor };
-    case 0x2c36f3b2_ui32:
-        // -webkit-text-stroke
-        return { ValueType::Type_WKTextColorStroke };
     case 0xc7329a9b_ui32:
         // -webkit-text-stroke-width
-        return { ValueType::Type_WKTextColorStrokeWidth };
+        return { ValueType::Type_WKTextStrokeWidth };
     case 0x68f043ac_ui32:
         // -webkit-text-stroke-color
-        return { ValueType::Type_WKTextColorStrokeColor };
+        return { ValueType::Type_WKTextStrokeColor };
     case 0x841ed0a7_ui32:
         // font-size
         return { ValueType::Type_FontSize };
@@ -410,6 +412,25 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0xd6e6b71a_ui32:
         // -moz-appearance
         return { ValueType::Type_LUIAppearance  };
+
+
+        // ------------- SHORTHAND --------------
+
+    case 0x29867c0e_ui32:
+        // overflow
+        return { ValueType::Type_ShortHandOverflow };
+    case 0x2c36f3b2_ui32:
+        // -webkit-text-stroke
+        return { ValueType::Type_ShortHandWKTextStroke };
+    case 0xcd67f276_ui32:
+        // margin
+        return { ValueType::Type_ShortHandMargin };
+    case 0x44220515_ui32:
+        // padding
+        return { ValueType::Type_ShortHandPadding };
+    case 0x7f449c09_ui32:
+        // border-width
+        return { ValueType::Type_ShortHandBorderWidth };
     default:
         break;
     }
@@ -475,7 +496,7 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
 
     case LongUI::ValueType::Type_BackgroundColor:
     case LongUI::ValueType::Type_TextColor:
-    case LongUI::ValueType::Type_WKTextColorStrokeColor:
+    case LongUI::ValueType::Type_WKTextStrokeColor:
         // [COLOR]
         return ValueEasyType::Type_Color;
     }
@@ -655,16 +676,15 @@ namespace LongUI {
             const auto vtype1 = static_cast<ValueType>(vtype0 + 1);
             const auto vtype2 = static_cast<ValueType>(vtype0 + 2);
             const auto vtype3 = static_cast<ValueType>(vtype0 + 3);
-            const auto vtype4 = static_cast<ValueType>(vtype0 + 4);
             const auto index = (value_len > 4 ? 4 : value_len) - 1;
             const auto i1 = one_for_four_map[index + 4 * 0];
             const auto i2 = one_for_four_map[index + 4 * 1];
             const auto i3 = one_for_four_map[index + 4 * 2];
             const auto i4 = one_for_four_map[index + 4 * 3];
-            LongUI::ValueTypeMakeValue(vtype1, 1, values + i1, values_write);
-            LongUI::ValueTypeMakeValue(vtype2, 1, values + i2, values_write);
-            LongUI::ValueTypeMakeValue(vtype3, 1, values + i3, values_write);
-            LongUI::ValueTypeMakeValue(vtype4, 1, values + i4, values_write);
+            LongUI::ValueTypeMakeValue(vtype , 1, values + i1, values_write);
+            LongUI::ValueTypeMakeValue(vtype1, 1, values + i2, values_write);
+            LongUI::ValueTypeMakeValue(vtype2, 1, values + i3, values_write);
+            LongUI::ValueTypeMakeValue(vtype3, 1, values + i4, values_write);
         }
         /// <summary>
         /// Parses the timingfunc.
@@ -716,9 +736,12 @@ namespace LongUI {
 /// <param name="buf">The buf.</param>
 /// <returns></returns>
 void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
+    // check type count
+    static_assert(static_cast<int>(ValueType::SINGLE_LAST) <= 256, "TO HUGE");
     // XXX: 优化初始化
-    const auto len = static_cast<int>(ValueType::TYPE_COUNT) * sizeof(*buf);
-    std::memset(buf, 0, len);
+    constexpr auto COUNT = static_cast<int>(ValueType::SINGLE_LAST) + 1;
+    constexpr auto LENBY = COUNT * sizeof(*buf);
+    std::memset(buf, 0, LENBY);
     const auto& font = UIManager.GetDefaultFont();
     // 字体
     buf[static_cast<int>(ValueType::Type_TextColor)].u32 
@@ -745,3 +768,37 @@ void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
 auto LongUI::detail::parse_string(U8View value) noexcept -> const char* {
     return UIManager.GetUniqueText(value);
 }
+#endif
+/*
+
+//// [Position] cursor
+//Type_PositionCursor,
+//// [Position] z-index
+//Type_PositionZindex,
+
+
+//// [Border] top-style
+//Type_BorderTopStyle,
+//// [Border] right-style
+//Type_BorderRightStyle,
+//// [Border] bottom-style
+//Type_BorderBottomStyle,
+//// [Border] left-style
+//Type_BorderLeftStyle,
+//// [Border] top-color
+//Type_BorderTopColor,
+//// [Border] right-color
+//Type_BorderRightColor,
+//// [Border] bottom-color
+//Type_BorderBottomColor,
+//// [Border] left-color
+//Type_BorderLeftColor,
+//// [Border] top-left-radius
+//Type_BorderTopLeftRadius,
+//// [Border] top-right-radius
+//Type_BorderTopRightRadius,
+//// [Border] bottom-left-radius
+//Type_BorderBottomLeftRadius,
+//// [Border] bottom-right-radius
+//Type_BorderBottomRightRadius,
+*/

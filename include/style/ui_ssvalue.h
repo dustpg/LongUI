@@ -7,6 +7,7 @@
 #include "ui_ssvalue_list.h"
 #include "../container/pod_vector.h"
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 namespace LongUI {
     // style sheet
     class CUIStyleSheet;
@@ -71,3 +72,4 @@ namespace LongUI {
         Combinator      combinator;
     };
 }
+#endif

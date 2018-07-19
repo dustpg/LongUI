@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 // ui
+#include "../luiconf.h"
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 #include "ui_renderer_decl.h"
 #include "../core/ui_color.h"
 #include "../core/ui_object.h"
@@ -33,3 +35,4 @@ namespace LongUI {
         bool                slice_fill = false;
     };
 }
+#endif

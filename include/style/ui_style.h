@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 // ui
+#include "../luiconf.h"
 #include "ui_ssvalue.h"
 #include "ui_attribute.h"
 #include "ui_style_state.h"
@@ -100,7 +101,9 @@ namespace LongUI {
         Size2F              minsize;
         // style used max size
         Size2F              maxsize;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // value list matched
         SSValues            matched;
+#endif
     };
 }

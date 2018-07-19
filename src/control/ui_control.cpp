@@ -375,8 +375,10 @@ auto LongUI::UIControl::init() noexcept -> Result {
         if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
         }
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // 重新连接样式表
         this->link_style_sheet();
+#endif
     }
     // 设置初始化状态
     this->setup_init_state();
@@ -429,11 +431,13 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
     Result hr = { Result::RS_OK };
     // --------------------- 释放数据
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 
     // 背景
     if (m_pBgRender) m_pBgRender->ReleaseDeviceData();
     // 边框
     //if (m_pBdRender) m_pBdRender->ReleaseDeviceData();
+#endif
 
     // 仅仅释放
     if (release_only) return hr;
@@ -441,11 +445,14 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
 
     // --------------------- 创建数据
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 
     // 背景
     if (m_pBgRender) hr = m_pBgRender->CreateDeviceData();
     // 边框
     //if (m_pBdRender && hr) hr = m_pBdRender->CreateDeviceData();
+
+#endif
 
     return{ Result::RS_OK };
 }
@@ -535,11 +542,14 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
             m_oStyle.minsize.height =
             m_oBox.size.width = value.ToFloat();
         break;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     case BKDR_STYLE & MASK_HASH:
         // style      : 内联样式表
         if (LongUI::ParseInlineStlye(m_oStyle.matched, value))
             m_bHasInlineStyle = true;
+
         break;
+#endif
     case BKDR_DISABLED & MASK_HASH:
         // disabled   : 禁用状态
         //if (value) m_oStyle.state.disabled = true;
@@ -1323,19 +1333,29 @@ void LongUI::UIControl::StartAnimation(StyleStateTypeChange change) noexcept {
         LUIDebug(Hint) << this << change << endl;
     }
 #endif
+    // 未初始化
+    if (!this->is_inited()) { m_oStyle.state.Change(change); return; }
+
+    // 正式处理
     const auto app = this->GetStyle().appearance;
     // 非默认控件
     if (app == AttributeAppearance::Appearance_None) {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         UIManager.StartExtraAnimation(*this, change);
+#else
+        m_oStyle.state.Change(change);
+#endif
     }
     // 默认控件
     else {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // 拥有额外的动画?
         if (!m_oStyle.matched.empty()) {
             const auto state = m_oStyle.state;
             UIManager.StartExtraAnimation(*this, change);
             m_oStyle.state = state;
         }
+#endif
         UIManager.StartBasicAnimation(*this, change);
     }
 }
@@ -1410,6 +1430,7 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     //UIManager.ControlAttached(child);
 }
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
 /// Resets the style sheet.
 /// </summary>
@@ -1522,6 +1543,8 @@ void LongUI::UIControl::setup_style_values() noexcept {
     // 内联样式
 }
 
+#endif
+
 // longui::detail namespace
 namespace LongUI { namespace detail {
     // attribute write
@@ -1538,6 +1561,7 @@ namespace LongUI { namespace detail {
     }
 }}
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 PCN_NOINLINE
 /// <summary>
 /// Applies the value.
@@ -1626,10 +1650,10 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
     case ValueType::Type_TextColor:
         this->SetFgColor({ value.data4.u32 });
         break;
-    case ValueType::Type_WKTextColorStrokeWidth:
+    case ValueType::Type_WKTextStrokeWidth:
         this->SetTextStrokeWidth({ value.data4.single });
         break;
-    case ValueType::Type_WKTextColorStrokeColor:
+    case ValueType::Type_WKTextStrokeColor:
         this->SetTextStrokeColor({ value.data4.u32 });
         break;
     case ValueType::Type_FontSize:
@@ -1765,10 +1789,10 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
     case ValueType::Type_TextColor:
         detail::write_value(value.data4.u32, this->GetFgColor().primitive);
         break;
-    case ValueType::Type_WKTextColorStrokeWidth:
+    case ValueType::Type_WKTextStrokeWidth:
         detail::write_value(value.data4.single, this->GetTextStrokeWidth());
         break;
-    case ValueType::Type_WKTextColorStrokeColor:
+    case ValueType::Type_WKTextStrokeColor:
         detail::write_value(value.data4.u32, this->GetTextStrokeColor().primitive);
         break;
     case ValueType::Type_FontSize:
@@ -1827,6 +1851,7 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     }
 }
+#endif
 
 /// <summary>
 /// Sets the xul.

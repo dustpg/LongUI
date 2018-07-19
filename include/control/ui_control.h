@@ -156,10 +156,12 @@ namespace LongUI {
         UIControl*              m_pAccCtrl = this;
 #endif
     public:
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         // apply value
         void ApplyValue(const SSValue&) noexcept;
         // get value[cannot get string yet]
         void GetValue(SSValue&) const noexcept;
+#endif
         // need update in this frame
         void NeedUpdate() noexcept;
         // need update in next frame
@@ -408,11 +410,13 @@ namespace LongUI {
         CUIConstShortString     m_strTooltipText;
         // style unique classes
         UniqueClasses           m_classesStyle;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     private:
         // bg renderer
         CUIRendererBackground*  m_pBgRender = nullptr;
         // bd renderer
         CUIRendererBorder*      m_pBdRender = nullptr;
+#endif
     protected:
         // parent accessible data
         uint32_t                m_uData4Parent = 0;

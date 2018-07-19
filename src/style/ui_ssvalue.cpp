@@ -14,6 +14,7 @@
 #include <xul/SimpAC.h>
 // c/c++
 #include <cstring>
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 
 // longui namespace
 namespace LongUI {
@@ -637,3 +638,4 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
 #endif
 }
 
+#endif

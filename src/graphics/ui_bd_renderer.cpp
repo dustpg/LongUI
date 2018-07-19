@@ -8,6 +8,7 @@
 // c++
 #include <cassert>
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIRendererBorder"/> class.
@@ -30,3 +31,4 @@ LongUI::CUIRendererBorder::~CUIRendererBorder() noexcept {
 /// <returns></returns>
 void LongUI::CUIRendererBorder::RenderBorder(const Box & box) const noexcept {
 }
+#endif

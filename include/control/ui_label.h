@@ -50,7 +50,11 @@ namespace LongUI {
         // setup access key
         void setup_access_key() noexcept;
         // is default href
-        auto is_def_href() const noexcept { return !m_href.empty() && m_oStyle.matched.empty(); }
+        auto is_def_href() const noexcept { return !m_href.empty() 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+            && m_oStyle.matched.empty()
+#endif
+            ; }
     public:
         // get text
         auto GetText() const noexcept { return m_string.c_str(); }

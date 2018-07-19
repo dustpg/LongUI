@@ -1,4 +1,5 @@
-﻿#include <style/ui_text.h>
+﻿#include <luiconf.h>
+#include <style/ui_text.h>
 #include <style/ui_style_value.h>
 #include <core/ui_color_list.h>
 #include <graphics/ui_bg_renderer.h>
@@ -48,6 +49,22 @@ void LongUI::CUIStyleValue::SetFgColor(RGBA color) noexcept {
     }
 }
 
+PCN_NOINLINE
+/// <summary>
+/// Gets the color of the fg.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetFgColor() const noexcept -> RGBA {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        return tf->text.color.ToRGBA();
+    }
+    return { RGBA_Black };
+}
+
+
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 PCN_NOINLINE
 /// <summary>
 /// Sets the color of the text stroke.
@@ -148,20 +165,6 @@ auto LongUI::CUIStyleValue::GetTextStrokeWidth() const noexcept -> float {
     return 0.0f;
 }
 
-
-PCN_NOINLINE
-/// <summary>
-/// Gets the color of the fg.
-/// </summary>
-/// <returns></returns>
-auto LongUI::CUIStyleValue::GetFgColor() const noexcept -> RGBA {
-    const auto ctrl = static_cast<const UIControl*>(this);
-    // 存在TF对象
-    if (const auto tf = detail::get_text_font(*ctrl)) {
-        return tf->text.color.ToRGBA();
-    }
-    return { RGBA_Black };
-}
 
 
 
@@ -430,6 +433,9 @@ PCN_NOINLINE
 /// <param name="family">The family.</param>
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetFontFamily(const char* family) noexcept {
+    // 默认字体
+    if (family == nullptr) 
+        family = UIManager.GetDefaultFont().family;
     const auto ctrl = static_cast<UIControl*>(this);
     // 存在TF对象
     detail::g_pLastTextFont = nullptr;
@@ -675,6 +681,8 @@ void LongUI::CUIStyleValue::SetBorderBottom(float value) noexcept {
     box.border.bottom = value;
     this->after_box_changed();
 }
+
+#endif
 
 // longui::detail
 namespace LongUI { namespace detail {

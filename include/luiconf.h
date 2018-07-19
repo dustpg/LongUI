@@ -4,23 +4,23 @@
 // **include this file in source-file at first**
 // 
 
-// [unused yet]style sheet support, include css-parse, undef to make bin-file smaller 
-#define LUI_STYLESHEET_SUPPORT
-
 // resize immediately on drag-sizing, but maybe like "Jelly" on resizing if not a transparent window
 #define LUI_RESIZE_IMMEDIATELY
 
+// style support, disable to make bin-file smaller, default look only
+#define LUI_DISABLE_STYLE_SUPPORT
+
 // windows 10 support only, make bin-file smaller, faster
-//#define LUI_WIN10_ONLY
+#define LUI_WIN10_ONLY
 
 // no accessible? make bin-file smaller
-//#define LUI_NO_ACCESSIBLE
+#define LUI_NO_ACCESSIBLE
 
 // longui implement a non-pod vector, define this if you want to use
 //#define LUI_NONPOD_VECTOR
 
 // give every control intptr_t c++: user_data/xml: data-user(int);
-#define LUI_USER_INIPTR_DATA
+//#define LUI_USER_INIPTR_DATA
 
 // give every control CUIString c++: user_u16str/xml: data-u16(str);
 //#define LUI_USER_U16STR_DATA
@@ -38,7 +38,6 @@
 #if !defined(NDEBUG) || !defined(LUI_NO_ACCESSIBLE)
 #define LUI_ACCESSIBLE
 #endif
-
 
 #include <cstdlib>
 #include <cstdint>
@@ -87,11 +86,11 @@ namespace LongUI {
     };
     // attribute [pseudo] namespace
     struct Attribute {
+        // tool window class name zhuangbilty
+        static constexpr const wchar_t* WindowClassNameT = L"Windows.UI.LongUI.SystemInvoke";
         // default normal window class name zhuangbilty
         static constexpr const wchar_t* WindowClassNameN = L"Windows.UI.LongUI.DirectWindow";
         // default popup window class name zhuangbilty
         static constexpr const wchar_t* WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
-        // tool window class name zhuangbilty
-        static constexpr const wchar_t* WindowClassNameT = L"Windows.UI.LongUI.SystemInvoke";
     };
 }

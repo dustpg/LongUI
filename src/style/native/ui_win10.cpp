@@ -73,6 +73,8 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     case LongUI::Appearance_GroupBox:
     case LongUI::Appearance_TabPanels:
         return this->draw_group_box(args);
+    case LongUI::Appearance_Caption:
+        return this->draw_caption(args.border);
     case LongUI::Appearance_ListItem:
         return this->draw_list_item(args);
     case LongUI::Appearance_TreeHeaderCell:

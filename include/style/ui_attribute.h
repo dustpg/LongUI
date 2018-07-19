@@ -198,8 +198,9 @@ namespace LongUI {
         Appearance_ProgressChunkV,          // [progresschunk-vertical]
         Appearance_ListBox,                 // [listbox]
         Appearance_StatusBar,               // [statusbar]
-        Appearance_StatusBarPanel,               // [statusbarpanel]
+        Appearance_StatusBarPanel,          // [statusbarpanel]
         Appearance_GroupBox,                // [groupbox]
+        Appearance_Caption,                 // undefined in xul
         Appearance_TreeHeaderCell,          // [treeheadercell]
         Appearance_TreeTwisty,              // [treetwisty]
         Appearance_DropDownMarker,          // used for menu list drop down marker

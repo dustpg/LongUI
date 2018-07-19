@@ -49,6 +49,7 @@ namespace LongUI {
     //auto CubicBezierEx(float t, uint32_t arg) noexcept ->float;
     // control class
     class UIControl;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     // ssvalue2
     struct SSFromTo {
         // from
@@ -78,6 +79,7 @@ namespace LongUI {
         // get rate
         auto GetRate() const noexcept { return float(done) / float(duration); }
     };
+#endif
     // basic control animation
     struct ControlAnimationBasic {
         // control

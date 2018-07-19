@@ -13,8 +13,10 @@
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::delete_renderer() noexcept {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     if (m_pBgRender) delete m_pBgRender;
     if (m_pBdRender) delete m_pBdRender;
+#endif
 }
 
 /// <summary>
@@ -80,6 +82,7 @@ bool LongUI::UIControl::native_style_render() const noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIControl::custom_style_render() const noexcept {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
     /*
         栈顺序:
         - 这里实现
@@ -98,7 +101,7 @@ void LongUI::UIControl::custom_style_render() const noexcept {
         m_pBgRender->RenderImage(this->GetBox());
     }
     // 边框渲染
-
+#endif
 }
 
 /// <summary>

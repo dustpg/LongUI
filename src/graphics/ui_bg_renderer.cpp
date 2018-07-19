@@ -10,6 +10,7 @@
 // c++
 #include <cassert>
 
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
 /// Initializes a new instance of the <see cref="Background"/> class.
 /// </summary>
@@ -188,3 +189,4 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const no
     // 渲染笔刷
     render.FillRectangle(auto_cast(rect), m_pImageBrush);
 }
+#endif
