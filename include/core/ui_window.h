@@ -108,9 +108,9 @@ namespace LongUI {
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     public:
         // load css file
-        void LoadCSSFile(U8View file) noexcept;
+        void LoadCssFile(U8View file) noexcept;
         // load css string
-        void LoadCSSString(U8View string) noexcept;
+        void LoadCssString(U8View string) noexcept;
         // get style sheet
         auto GetStyleSheet() const noexcept { return m_pStyleSheet; }
 #endif

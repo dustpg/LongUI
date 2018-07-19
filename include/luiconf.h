@@ -8,13 +8,13 @@
 #define LUI_RESIZE_IMMEDIATELY
 
 // style support, disable to make bin-file smaller, default look only
-#define LUI_DISABLE_STYLE_SUPPORT
+//#define LUI_DISABLE_STYLE_SUPPORT
 
 // windows 10 support only, make bin-file smaller, faster
-#define LUI_WIN10_ONLY
+//#define LUI_WIN10_ONLY
 
 // no accessible? make bin-file smaller
-#define LUI_NO_ACCESSIBLE
+//#define LUI_NO_ACCESSIBLE
 
 // longui implement a non-pod vector, define this if you want to use
 //#define LUI_NONPOD_VECTOR

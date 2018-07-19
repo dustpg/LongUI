@@ -434,7 +434,7 @@ auto LongUI::MakeStyleSheetFromFile(U8View file, SSPtr old) noexcept -> SSPtr {
 /// </summary>
 /// <param name="file">The file.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::LoadCSSFile(U8View file) noexcept {
+void LongUI::CUIWindow::LoadCssFile(U8View file) noexcept {
     m_pStyleSheet = LongUI::MakeStyleSheetFromFile(file, m_pStyleSheet);
 }
 
@@ -443,9 +443,10 @@ void LongUI::CUIWindow::LoadCSSFile(U8View file) noexcept {
 /// </summary>
 /// <param name="string">The string.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::LoadCSSString(U8View string) noexcept {
+void LongUI::CUIWindow::LoadCssString(U8View string) noexcept {
     m_pStyleSheet = LongUI::MakeStyleSheet(string, m_pStyleSheet);
 }
+
 #endif
 
 

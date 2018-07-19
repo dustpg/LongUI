@@ -25,6 +25,14 @@ namespace LongUI {
         // window
         //CUIWindow*      wnd;
     };
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    // delete style sheet
+    void DeleteStyleSheet(CUIStyleSheet* ptr) noexcept;
+    // make style sheet
+    auto MakeStyleSheet(U8View view, SSPtr old) noexcept->SSPtr;
+    // make style sheet
+    auto MakeStyleSheetFromFile(U8View view, SSPtr old) noexcept->SSPtr;
+#endif
 }
 
 /// <summary>
@@ -93,6 +101,28 @@ void LongUI::CUIControlControl::SetXulDir(U8View dir) noexcept {
 auto LongUI::CUIControlControl::GetXULDir() const noexcept -> U8View {
     return cc().xul_dir.view();
 }
+
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+/// <summary>
+/// Adds the Global CSS string.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::AddGlobalCssString(U8View view) noexcept {
+    m_pStyleSheet = LongUI::MakeStyleSheet(view, m_pStyleSheet);
+}
+
+
+/// <summary>
+/// Adds the Global CSS file.
+/// </summary>
+/// <param name="file">The file.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::AddGlobalCssFile(U8View file) noexcept {
+    m_pStyleSheet = LongUI::MakeStyleSheetFromFile(file, m_pStyleSheet);
+}
+
+#endif
 
 /// <summary>
 /// Initializes a new instance of the <see cref="PrivateCC"/> struct.
@@ -176,6 +206,9 @@ LongUI::CUIControlControl::CUIControlControl() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIControlControl::~CUIControlControl() noexcept {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    LongUI::DeleteStyleSheet(m_pStyleSheet);
+#endif
     this->dispose_all_time_capsule();
     cc().~PrivateCC();
 }
@@ -1060,7 +1093,7 @@ namespace LongUI {
                     // 使用窗口载入CSS
                     const auto wnd = m_root.GetWindow();
                     assert(wnd && "can not set css on window is null");
-                    wnd->LoadCSSFile({ href.begin(), href.end() });
+                    wnd->LoadCssFile({ href.begin(), href.end() });
                 }
             }
         }

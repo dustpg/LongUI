@@ -514,7 +514,7 @@ namespace LongUI {
                     // (除开本体)
                     if (&ctrl != &c) {
                         // 有戏: 递归匹配
-                        if (LongUI::MatchSelector(ctrl, *next_selector)) 
+                        if (LongUI::MatchSelector(c, *next_selector)) 
                             return true;
                     }
                 }

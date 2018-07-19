@@ -8,15 +8,23 @@ const auto xul = u8R"xml(
   <spacer flex="1"/>
   <hbox>
     <spacer flex="1"/>
-    <label value="hellow world!"/>
+    <label class="fookin-comic-sans" value="hellow world!"/>
     <spacer flex="1"/>
   </hbox>
   <spacer flex="1"/>
 </window>
 )xml";
 
+const auto global_css = u8R"css(
+spacer ~ .fookin-comic-sans {
+  font-family: "Comic Sans MS"
+}
+)css";
+
 int main() {
     if (UIManager.Initialize()) {
+        using LongUI::U8View;
+        UIManager.AddGlobalCssString(U8View::FromCStyle(global_css));
         {
             LongUI::UIViewport viewport;
             viewport.SetXul(xul);

@@ -76,12 +76,10 @@ namespace LongUI {
         // get xul dir
         auto GetXULDir() const noexcept -> U8View;
 #ifndef LUI_DISABLE_STYLE_SUPPORT
-        // add css string
-        void AddCssString(U8View) noexcept;
-        // add css file
-        void AddCssFile(const char*) noexcept;
-        // add css file
-        void AddCssFile(const wchar_t*) noexcept;
+        // add global css string
+        void AddGlobalCssString(U8View) noexcept;
+        // add global css file
+        void AddGlobalCssFile(U8View file_name) noexcept;
         // get style sheet
         auto GetStyleSheet() const noexcept { return m_pStyleSheet; }
 #endif
