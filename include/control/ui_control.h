@@ -412,7 +412,7 @@ namespace LongUI {
         // bg renderer
         CUIRendererBackground*  m_pBgRender = nullptr;
         // bd renderer
-        CUIBorderRender*        m_pBdRender = nullptr;
+        CUIRendererBorder*      m_pBdRender = nullptr;
     protected:
         // parent accessible data
         uint32_t                m_uData4Parent = 0;

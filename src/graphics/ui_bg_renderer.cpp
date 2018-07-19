@@ -49,6 +49,7 @@ auto LongUI::CUIRendererBackground::CreateDeviceData() noexcept -> Result {
 /// </summary>
 auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
     using brush_t = ID2D1BitmapBrush1;
+    if (!this->image_id) return { Result::RS_FALSE };
     Result hr = { Result::RS_OK };
     // 没有就创建
     if (!m_pImageBrush && this->image_id) {
@@ -134,9 +135,7 @@ void LongUI::CUIRendererBackground::RenderColor(const Box& box) const noexcept {
 /// <returns></returns>
 void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const noexcept {
     // 渲染背景图片
-    if (!m_pImageBrush) return;
-    // 断言数据
-    assert(this->image_id && "bad id");
+    if (!this->image_id || !m_pImageBrush) return;
     // 获取数据
     auto& data = UIManager.GetResoureceData(this->image_id);
     assert(data.type == ResourceType::Type_Image);

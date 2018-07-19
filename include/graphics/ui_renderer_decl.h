@@ -5,5 +5,5 @@ namespace LongUI {
     // background renderer
     class CUIRendererBackground;
     // border renderer
-    class CUIBorderRender;
+    class CUIRendererBorder;
 }

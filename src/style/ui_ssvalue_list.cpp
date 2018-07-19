@@ -454,8 +454,8 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
 
 
     case LongUI::ValueType::Type_BorderImageSource:
+    case LongUI::ValueType::Type_BackgroundImage:
         // [IMAGE]
-        assert(!"NOT IMPL");
     case LongUI::ValueType::Type_BackgroundAttachment:
     case LongUI::ValueType::Type_BackgroundRepeat:
     case LongUI::ValueType::Type_BackgroundClip:

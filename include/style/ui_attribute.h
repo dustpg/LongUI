@@ -4,7 +4,7 @@
 #include "../core/ui_string_view.h"
 
 
-namespace LongUI{
+namespace LongUI {
     /// <summary>
     /// orientation
     /// </summary>

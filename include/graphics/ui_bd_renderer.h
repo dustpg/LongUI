@@ -7,26 +7,29 @@
 #include "../style/ui_attribute.h"
 
 namespace LongUI {
-    // box
-    struct Box;
-    // background renderer
-    class CUIBorderRender : public CUISmallObject {
+    // border renderer
+    class CUIRendererBorder : public CUISmallObject {
     public:
         // ctor
-        CUIBorderRender() noexcept;
+        CUIRendererBorder() noexcept;
         // dtor
-        ~CUIBorderRender() noexcept;
+        ~CUIRendererBorder() noexcept;
         // move ctor
-        CUIBorderRender(CUIBorderRender&&) = delete;
+        CUIRendererBorder(CUIRendererBorder&&) = delete;
         // copy ctor
-        CUIBorderRender(const CUIBorderRender&) = delete;
+        CUIRendererBorder(const CUIRendererBorder&) = delete;
         // render border
         void RenderBorder(const Box& box) const noexcept;
     public:
     public:
         // ------------- GPU-RES ------------
-    private:
+    public:
         // ------------- CPU-RES ------------
-        ColorF              m_unused;
+        // rect for image slice
+        RectF               slice_rect = {};
+        // resource for image
+        uint32_t            image_id = 0;
+        // fill for image slice
+        bool                slice_fill = false;
     };
 }

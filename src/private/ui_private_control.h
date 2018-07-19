@@ -14,10 +14,14 @@ struct LongUI::UIControlPrivate {
     // test if world changed
     static bool TestWorldChanged(UIControl& ctrl) noexcept {
         return ctrl.m_state.world_changed;}
-    // ensure bgc renderer
-    static auto EnsureBgcRenderer(UIControl& ctrl) noexcept->CUIRendererBackground*;
-    // get  bgc renderer
-    static auto GetBgcRenderer(const UIControl& ctrl) noexcept->CUIRendererBackground*;
+    // ensure bg renderer
+    static auto EnsureBgRenderer(UIControl& ctrl) noexcept->CUIRendererBackground*;
+    // get bg renderer
+    static auto GetBgRenderer(const UIControl& ctrl) noexcept->CUIRendererBackground*;
+    // ensure bd renderer
+    static auto EnsureBdRenderer(UIControl& ctrl) noexcept->CUIRendererBorder*;
+    // get bd renderer
+    static auto GetBdRenderer(const UIControl& ctrl) noexcept->CUIRendererBorder*;
     // refresh min size
     static void RefreshMinSize(UIControl& ctrl) noexcept;
     // update world

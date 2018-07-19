@@ -10,17 +10,17 @@
 
 
 /// <summary>
-/// Initializes a new instance of the <see cref="CUIBorderRender"/> class.
+/// Initializes a new instance of the <see cref="CUIRendererBorder"/> class.
 /// </summary>
-LongUI::CUIBorderRender::CUIBorderRender() noexcept {
+LongUI::CUIRendererBorder::CUIRendererBorder() noexcept {
 
 }
 
 /// <summary>
-/// Finalizes an instance of the <see cref="CUIBorderRender"/> class.
+/// Finalizes an instance of the <see cref="CUIRendererBorder"/> class.
 /// </summary>
 /// <returns></returns>
-LongUI::CUIBorderRender::~CUIBorderRender() noexcept {
+LongUI::CUIRendererBorder::~CUIRendererBorder() noexcept {
 }
 
 /// <summary>
@@ -28,5 +28,5 @@ LongUI::CUIBorderRender::~CUIBorderRender() noexcept {
 /// </summary>
 /// <param name="box">The box.</param>
 /// <returns></returns>
-void LongUI::CUIBorderRender::RenderBorder(const Box & box) const noexcept {
+void LongUI::CUIRendererBorder::RenderBorder(const Box & box) const noexcept {
 }

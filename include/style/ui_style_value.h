@@ -4,6 +4,7 @@
 #include "ui_attribute.h"
 #include "../text/ui_attribute.h"
 #include "../core/ui_color.h"
+#include "../core/ui_basic_type.h"
 
 namespace LongUI {
     /// <summary>
@@ -31,6 +32,10 @@ namespace LongUI {
         void SetBgOrigin(AttributeBox ab) noexcept;
         // set background attachment
         void SetBgAttachment(AttributeAttachment aa) noexcept;
+        // set border image source from resource id
+        void SetBdImageSource(uint32_t id) noexcept;
+        // set border image slice
+        void SetBdImageSlice(const RectF& slice, bool fill) noexcept;
         // set font size
         void SetFontSize(float size) noexcept;
         // set font style
@@ -58,6 +63,10 @@ namespace LongUI {
         auto GetBgRepeat() const noexcept->AttributeRepeat;
         // get background origin
         auto GetBgOrigin() const noexcept->AttributeBox;
+        // get border image source [resource id]
+        auto GetBdImageSource() const noexcept ->uint32_t;
+        // get border image slice
+        bool GetBdImageSlice(RectF& output) const noexcept;
         // get font size
         auto GetFontSize() const noexcept->float;
         // get font style

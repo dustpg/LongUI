@@ -1,4 +1,5 @@
 ﻿#include <graphics/ui_bg_renderer.h>
+#include <graphics/ui_bd_renderer.h>
 #include "ui_private_control.h"
 
 #include <algorithm>
@@ -11,9 +12,19 @@
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
-auto LongUI::UIControlPrivate::GetBgcRenderer(
+auto LongUI::UIControlPrivate::GetBgRenderer(
     const UIControl & ctrl) noexcept -> CUIRendererBackground * {
     return ctrl.m_pBgRender;
+}
+
+/// <summary>
+/// Gets the bd renderer.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+auto LongUI::UIControlPrivate::GetBdRenderer(
+    const UIControl & ctrl) noexcept -> CUIRendererBorder * {
+    return ctrl.m_pBdRender;
 }
 
 PCN_NOINLINE
@@ -22,13 +33,27 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
-auto LongUI::UIControlPrivate::EnsureBgcRenderer(
+auto LongUI::UIControlPrivate::EnsureBgRenderer(
     UIControl& ctrl) noexcept ->CUIRendererBackground* {
     // ensure 函数尽量保证不内联
     if (ctrl.m_pBgRender)
         return ctrl.m_pBgRender;
     else
         return ctrl.m_pBgRender = new(std::nothrow) CUIRendererBackground;
+}
+
+PCN_NOINLINE
+/// <summary>
+/// </summary>
+/// <param name="">The .</param>
+/// <returns></returns>
+auto LongUI::UIControlPrivate::EnsureBdRenderer(
+    UIControl& ctrl) noexcept ->CUIRendererBorder* {
+    // ensure 函数尽量保证不内联
+    if (ctrl.m_pBgRender)
+        return ctrl.m_pBdRender;
+    else
+        return ctrl.m_pBdRender = new(std::nothrow) CUIRendererBorder;
 }
 
 /// <summary>

@@ -2,6 +2,7 @@
 #include <style/ui_style_value.h>
 #include <core/ui_color_list.h>
 #include <graphics/ui_bg_renderer.h>
+#include <graphics/ui_bd_renderer.h>
 #include "../private/ui_private_control.h"
 
 #include <core/ui_manager.h>
@@ -100,7 +101,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgColor(RGBA color) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
-    if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
         ColorF::FromRGBA_RT(r->color, color);
         ctrl->Invalidate();
     }
@@ -113,7 +114,7 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgColor() const noexcept -> RGBA {
     const auto ctrl = static_cast<const UIControl*>(this);
-    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::GetBgRenderer(*ctrl)) {
         return r->color.ToRGBA();
     }
     return { RGBA_Transparent };
@@ -172,7 +173,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgImage(uint32_t id) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
-    if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
         r->image_id = id;
         r->RefreshImage();
         ctrl->Invalidate();
@@ -187,7 +188,7 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgImage() const noexcept -> uint32_t {
     const auto ctrl = static_cast<const UIControl*>(this);
-    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::GetBgRenderer(*ctrl)) {
         return r->image_id;
     }
     return 0;
@@ -200,7 +201,7 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgRepeat() const noexcept -> AttributeRepeat {
     const auto ctrl = static_cast<const UIControl*>(this);
-    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::GetBgRenderer(*ctrl)) {
         return r->repeat;
     }
     return Repeat_Repeat;
@@ -215,7 +216,7 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetBgClip(AttributeBox clip) noexcept {
     assert(clip < AttributeBox::BOX_COUNT && "out of range");
     const auto ctrl = static_cast<UIControl*>(this);
-    if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
         r->clip = clip;
         ctrl->Invalidate();
     }
@@ -228,7 +229,7 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgClip() const noexcept->AttributeBox {
     const auto ctrl = static_cast<const UIControl*>(this);
-    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::GetBgRenderer(*ctrl)) {
         return r->clip;
     }
     return Box_BorderBox;
@@ -244,7 +245,7 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetBgOrigin(AttributeBox ab) noexcept {
     assert(ab < AttributeBox::BOX_COUNT && "out of range");
     const auto ctrl = static_cast<UIControl*>(this);
-    if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
         r->origin = ab;
         ctrl->Invalidate();
     }
@@ -257,12 +258,72 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::CUIStyleValue::GetBgOrigin() const noexcept->AttributeBox {
     const auto ctrl = static_cast<const UIControl*>(this);
-    if (auto r = UIControlPrivate::GetBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::GetBgRenderer(*ctrl)) {
         return r->origin;
     }
     return Box_BorderBox;
 }
 
+PCN_NOINLINE
+/// <summary>
+/// Sets the bd image source.
+/// </summary>
+/// <param name="id">The identifier.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBdImageSource(uint32_t id) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    if (auto r = UIControlPrivate::EnsureBdRenderer(*ctrl)) {
+        r->image_id = id;
+        //r->RefreshImage();
+        //ctrl->Invalidate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the bd image slice.
+/// </summary>
+/// <param name="slice">The slice.</param>
+/// <param name="fill">if set to <c>true</c> [fill].</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBdImageSlice(const RectF& slice, bool fill) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    if (auto r = UIControlPrivate::EnsureBdRenderer(*ctrl)) {
+        r->slice_rect = slice;
+        r->slice_fill = fill;
+        //r->RefreshImage();
+        //ctrl->Invalidate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the bd image source.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBdImageSource() const noexcept -> uint32_t {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBdRenderer(*ctrl)) {
+        return r->image_id;
+    }
+    return 0;
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Gets the bd image slice.
+/// </summary>
+/// <param name="output">The output.</param>
+/// <returns></returns>
+bool LongUI::CUIStyleValue::GetBdImageSlice(RectF& output) const noexcept {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBdRenderer(*ctrl)) {
+        output = r->slice_rect;
+        return r->slice_fill;
+    }
+    output = { };
+    return false;
+}
 
 PCN_NOINLINE
 /// <summary>
@@ -272,7 +333,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgAttachment(AttributeAttachment aa) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
-    if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
         r->attachment = aa;
         ctrl->Invalidate();
     }
@@ -286,7 +347,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIStyleValue::SetBgRepeat(AttributeRepeat ar) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
-    if (auto r = UIControlPrivate::EnsureBgcRenderer(*ctrl)) {
+    if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
         r->repeat = ar;
         ctrl->Invalidate();
     }
