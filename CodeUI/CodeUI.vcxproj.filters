@@ -1047,5 +1047,8 @@
     <ClInclude Include="..\include\text\ui_text_outline.h">
       <Filter>header\text</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\util\ui_little_math.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

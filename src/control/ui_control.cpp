@@ -1571,6 +1571,7 @@ PCN_NOINLINE
 void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
     switch (value.type)
     {
+        RectF tmp_rect;
     default:
         assert(!"unsupported value type");
         break;
@@ -1624,11 +1625,18 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         detail::write_value(m_oStyle.flex, value.data4.single);
         if (m_pParent) m_pParent->NeedRelayout();
         break;
+    case ValueType::Type_BorderImageSource:
+        this->SetBdImageSource_NCRC(value.data4.u32);
+        break;
+    case ValueType::Type_BorderImageSlice:
+        LongUI::UniByte8ToSliceRect(value.data8, &tmp_rect.left);
+        this->SetBdImageSlice(tmp_rect, value.data4.boolean);
+        break;
     case ValueType::Type_BackgroundColor:
         this->SetBgColor({ value.data4.u32 });
         break;
     case ValueType::Type_BackgroundImage:
-        this->SetBgImage({ value.data4.u32 });
+        this->SetBgImage_NCRC({ value.data4.u32 });
         break;
     case ValueType::Type_BackgroundRepeat:
         this->SetBgRepeat(detail::same_cast<AttributeRepeat>(value.data4.byte));
@@ -1729,6 +1737,7 @@ PCN_NOINLINE
 void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
     switch (value.type)
     {
+        RectF tmp_rect;
     default:
         assert(!"unsupported value type");
         break;
@@ -1765,11 +1774,18 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
     case ValueType::Type_BoxFlex:
         detail::write_value(value.data4.single, m_oStyle.flex);
         break;
+    case ValueType::Type_BorderImageSource:
+        detail::write_value(value.data4.u32, this->GetBdImageSource_NCRC());
+        break;
+    case ValueType::Type_BorderImageSlice:
+        detail::write_value(value.data4.boolean, this->GetBdImageSlice(tmp_rect));
+        LongUI::SliceRectToUniByte8(&tmp_rect.left, value.data8);
+        break;
     case ValueType::Type_BackgroundColor:
         detail::write_value(value.data4.u32, this->GetBgColor().primitive);
         break;
     case ValueType::Type_BackgroundImage:
-        detail::write_value(value.data4.u32, this->GetBgImage());
+        detail::write_value(value.data4.u32, this->GetBgImage_NCRC());
         break;
     case ValueType::Type_BackgroundRepeat:
         detail::write_value(value.data4.byte, this->GetBgRepeat());

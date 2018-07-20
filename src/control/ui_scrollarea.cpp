@@ -4,6 +4,7 @@
 #include <control/ui_spacer.h>
 #include <core/ui_ctrlmeta.h>
 #include <core/ui_manager.h>
+#include <util/ui_little_math.h>
 // C++
 #include <algorithm>
 // Private
@@ -127,8 +128,9 @@ auto LongUI::UIScrollArea::do_wheel(int index, float wheel) noexcept ->EventAcce
     // 位置变动检查
     auto& pos_o = index[&m_ptChildOffset.x];
     const auto line_height = UIManager.GetWheelScrollLines();
-    auto pos = pos_o - index[&this->line_size.width] * wheel * line_height;
-    pos = std::max(std::min(pos, cremainw), 0.f);
+    float pos = pos_o - index[&this->line_size.width] * wheel * line_height;
+    pos = detail::clamp(pos, 0.f, cremainw);
+
     EventAccept accept = Event_Ignore;
     // 已经修改
     if (pos != pos_o) {

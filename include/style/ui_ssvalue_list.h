@@ -76,7 +76,7 @@ namespace LongUI {
         Type_BorderLeftWidth,
         // [Border] image-source
         Type_BorderImageSource,
-        // [Border] image-slice
+        // [Border] image-slice         : bool + [SliceRect]
         Type_BorderImageSlice,
 
         // [Background] color
@@ -160,11 +160,13 @@ namespace LongUI {
     // union 8
     union UniByte8 {
         // u32 data
-        uint32_t    u32[2];
+        uint32_t    dword[2];
         // i32 data
         int32_t     i32[2];
         // u16 data
         uint16_t    word[4];
+        // i16 data
+        int16_t     i16[4];
         // single float data
         float       single[2];
         // double float data
@@ -188,6 +190,10 @@ namespace LongUI {
         // data
         UniByte8        data8;
     };
+    // UniByte8 to SliceRect
+    void UniByte8ToSliceRect(UniByte8 data, float out[4]) noexcept;
+    // SliceRect to UniByte8
+    void SliceRectToUniByte8(const float rect[4], UniByte8& out) noexcept;
     // get easy type
     auto GetEasyType(ValueType) noexcept->ValueEasyType;
     // is image

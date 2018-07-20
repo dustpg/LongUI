@@ -5,6 +5,7 @@
 #include <control/ui_image.h>
 #include <resource/ui_image.h>
 #include <container/pod_hash.h>
+#include <util/ui_little_math.h>
 // Private
 #include "../private/ui_private_control.h"
 // C++
@@ -118,7 +119,7 @@ void LongUI::UIScale::SetValue(float value) noexcept {
     // 整型转换
     if (true) value = LongUI::RoundInGuiLevel(value);
     // 范围检查
-    const auto newv = std::max(std::min(value, m_fMax), m_fMin);
+    const auto newv = detail::clamp(value, m_fMin, m_fMax);
     // 差不多?
     if (LongUI::IsSameInGuiLevel(newv, m_fValue)) return;
     // 修改数据

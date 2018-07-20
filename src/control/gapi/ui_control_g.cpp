@@ -101,6 +101,12 @@ void LongUI::UIControl::custom_style_render() const noexcept {
         m_pBgRender->RenderImage(this->GetBox());
     }
     // 边框渲染
+    if (m_pBdRender) {
+        // UPDATE#2
+        m_pBdRender->BeforeRender();
+        // C.
+        m_pBdRender->RenderBorder(this->GetBox());
+    }
 #endif
 }
 

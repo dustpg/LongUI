@@ -3,6 +3,7 @@
 #include <control/ui_caption.h>
 #include <control/ui_progress.h>
 #include <control/ui_boxlayout.h>
+#include <util/ui_little_math.h>
 // Debug
 #include <debugger/ui_debug.h>
 // Private
@@ -200,8 +201,7 @@ void LongUI::UIProgress::init_bar() noexcept {
 void LongUI::UIProgress::adjust_flex() noexcept {
     // 数值设定
     m_max = std::max(m_max, 1.f);
-    m_value = std::max(m_value, 0.f);
-    m_value = std::min(m_value, m_max);
+    m_value = detail::clamp(m_value, 0.f, m_max);
     // 不确定情况
     if (m_oStyle.state.indeterminate) {
         UIControlPrivate::SetFlex(m_private->bar, 1.f);

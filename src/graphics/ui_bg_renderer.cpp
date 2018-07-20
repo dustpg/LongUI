@@ -66,6 +66,9 @@ auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
         // 目前只支持IMAGE
         const auto img = static_cast<CUIImage*>(data.obj);
         const auto brush = reinterpret_cast<brush_t*>(m_pImageBrush);
+        // 获取大小
+        m_szImage.width = static_cast<float>(img->GetSize().width);
+        m_szImage.height = static_cast<float>(img->GetSize().height);
         // 图像
         brush->SetBitmap(&img->RefBitmap());
         // 扩展
@@ -137,15 +140,8 @@ void LongUI::CUIRendererBackground::RenderColor(const Box& box) const noexcept {
 void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const noexcept {
     // 渲染背景图片
     if (!this->image_id || !m_pImageBrush) return;
-    // 获取数据
-    auto& data = UIManager.GetResoureceData(this->image_id);
-    assert(data.type == ResourceType::Type_Image);
-    // 获取大小
-    const auto img = static_cast<CUIImage*>(data.obj);
-    const auto img_size = Size2F{
-        static_cast<float>(img->GetSize().width),
-        static_cast<float>(img->GetSize().height)
-    };
+    // 图片大小
+    const auto& img_size = m_szImage;
     // 获取渲染矩阵
     RectF rect; detail::get_render_rect(this->origin, box, rect);
     // 获取渲染器
@@ -161,7 +157,8 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const no
         const auto size = i[&img_size.width];
         const auto length = i[&rect.right] - i[&rect.left];
         const auto count = length / size;
-        const auto relen = float(int(count + 0.5f)) * size;
+        const auto count1 = count < 1.f ? 1.f : count;
+        const auto relen = float(int(count1 + 0.5f)) * size;
         return length / relen;
     };
     // 计算X-REPEAT

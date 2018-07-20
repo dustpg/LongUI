@@ -295,7 +295,7 @@ namespace LongUI {
 /// <param name="v1">The v1.</param>
 /// <param name="v2">The v2.</param>
 /// <returns></returns>
-auto LongUI::AttrParser::Repeat(U8View v1, U8View v2) noexcept -> AttributeRepeat {
+auto LongUI::AttrParser::Repeat2(U8View v1, U8View v2) noexcept -> AttributeRepeat {
     assert(v1.end() > v1.begin());
     /*
         repeat-x    :repeat     no-repeat

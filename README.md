@@ -2,13 +2,13 @@
   
 Lightweight C++ GUI Library
 
-Current Version : **Alpha-Stage**
+[INDEX索引](./INDEX.md)
 
 ## Features in LongUI
   
 **Light Weight**
   - main target on LongUI
-  - static-link framework, helloworld just 150kb now
+  - static-link framework, helloworld bin-file-size less than 200kb
   - for this, **no c++ exception** in LongUI
 
 **XML User Interface Language**
@@ -41,13 +41,11 @@ Current Version : **Alpha-Stage**
   
 C++轻量级GUI库
 
-当前版本 : **Alpha-Stage**
-
 ## LongUI特点
 
 **轻量级**
   - 这是LongUI的主要实现目标
-  - 设计为静态库, 目前helloworld仅仅150kb
+  - 设计为静态库, helloworld二进制文件不足200kb
   - 为此, LongUI**没有使用C++异常**
 
 **XML User Interface Language**

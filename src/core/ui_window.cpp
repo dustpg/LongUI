@@ -1856,12 +1856,20 @@ void LongUI::CUIWindow::Private::DoMouseEventTs(const MouseEventArg & args) noex
 
 #endif
 
+#ifndef NDEBUG
+volatile UINT g_dbgLastEventId = 0;
+#endif
+
+
 /// <summary>
 /// Does the MSG.
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
 auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intptr_t {
+#ifndef NDEBUG
+    g_dbgLastEventId = prmsg.message;
+#endif
     MouseEventArg arg;
     const auto hwnd = prmsg.hwnd;
     const auto message = prmsg.message;

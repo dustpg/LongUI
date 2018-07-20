@@ -36,6 +36,9 @@ namespace LongUI {
     private:
         // release brush
         void release_brush() noexcept;
+        // ----------- CACHE-DATA -----------
+        // image size
+        Size2F              m_szImage = {};
         // ------------- GPU-RES ------------
         // image brush
         I::Brush*           m_pImageBrush = nullptr;

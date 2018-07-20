@@ -168,7 +168,7 @@ void LongUI::CUIDefaultConfigure::Exit() noexcept {
 /// <param name="arg">The argument.</param>
 /// <returns></returns>
 void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
-    //arg.size = 16.f;
+    arg.size = 16.f;
     // 获取默认GUI字体句柄
     const auto font = ::GetStockObject(DEFAULT_GUI_FONT);
     constexpr size_t EX_NAME_LENGTH = 32;
@@ -189,7 +189,6 @@ void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
     }
     // 斜体字
     arg.style = buf.log.lfItalic ? Style_Italic : Style_Normal;
-    arg.size = 20.f;
 }
 
 

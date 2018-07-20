@@ -23,8 +23,10 @@ spacer ~ .fookin-comic-sans {
 
 int main() {
     if (UIManager.Initialize()) {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
         using LongUI::U8View;
         UIManager.AddGlobalCssString(U8View::FromCStyle(global_css));
+#endif
         {
             LongUI::UIViewport viewport;
             viewport.SetXul(xul);

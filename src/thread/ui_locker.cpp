@@ -1,5 +1,9 @@
 ﻿#include <Windows.h>
 #include <thread/ui_locker.h>
+#ifndef NDEBUG
+#include <cstdio>
+extern volatile UINT g_dbgLastEventId ;
+#endif
 
 // locker type
 namespace LongUI { using ui_locker_t = CRITICAL_SECTION; }
@@ -33,7 +37,18 @@ void LongUI::CUILocker::Lock() noexcept {
     ::EnterCriticalSection(locker);
 #else
     if (!::TryEnterCriticalSection(locker)) {
-        ::OutputDebugStringA("locker been locked.\r\n");
+        char buf[16]; 
+        static int s_counter = 0; ++s_counter;
+        ::OutputDebugStringA("locker been locked#");
+        std::sprintf(buf, "%4d", s_counter)[buf] = 0;
+        ::OutputDebugStringA(buf);
+
+        ::OutputDebugStringA("@msg: ");
+
+        std::sprintf(buf, "%4d", g_dbgLastEventId)[buf] = 0;
+        ::OutputDebugStringA(buf);
+
+        ::OutputDebugStringA("\r\n");
         ::EnterCriticalSection(locker);
     }
 #endif

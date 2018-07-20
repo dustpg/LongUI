@@ -1,4 +1,5 @@
-﻿#include <core/ui_color.h>
+﻿#include <util/ui_little_math.h>
+#include <core/ui_color.h>
 #include <emmintrin.h>
 #include <algorithm>
 
@@ -66,7 +67,7 @@ PCN_NOINLINE
 /// <param name="x">The x.</param>
 /// <returns></returns>
 auto LongUI::Mix(const ColorF& from, const ColorF& to, float x) noexcept -> ColorF {
-    const auto x0_0 = std::max(std::min(x, 1.f), 0.f);
+    const auto x0_0 = detail::clamp(x, 0.f, 1.f);
     const auto x0_1 = 1.f - x0_0;
     ColorF rv;
     rv.r = from.r * x0_1 + to.r * x0_0;

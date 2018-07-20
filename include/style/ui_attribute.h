@@ -111,16 +111,18 @@ namespace LongUI {
         Align_Baseline,
     };
     /// <summary>
-    /// repeat high-4bit(y) low-4bit(x)
+    /// repeat 2-attr: [high-4bit(y) low-4bit(x)]
     /// </summary>
     enum AttributeRepeat : uint8_t {
-        Repeat_Repeat = 0,
-        Repeat_Space,
-        Repeat_Round,
-        Repeat_NoRepeat,
+        Repeat_Repeat = 0,                  // *-repeat
+        Repeat_Space,                       // *-repeat
+        Repeat_Round,                       // *-repeat
+        Repeat_NoRepeat,                    // background-repeat
+        Repeat_Stretch = Repeat_NoRepeat,   // border-image-repeat
         // ---------------
         Repeat_RepeatXOnly = Repeat_NoRepeat << 4 | Repeat_Repeat,
         Repeat_RepeatYOnly = Repeat_Repeat << 4 | Repeat_NoRepeat,
+        Repeat_Stretch2 = Repeat_Stretch << 4 | Repeat_Stretch,
     };
     /// <summary>
     /// repeat for image
@@ -265,6 +267,6 @@ namespace LongUI {
         // view to appearance
         static auto Appearance(U8View) noexcept->AttributeAppearance;
         // view to repeat
-        static auto Repeat(U8View, U8View) noexcept ->AttributeRepeat;
+        static auto Repeat2(U8View, U8View) noexcept ->AttributeRepeat;
     };
 }

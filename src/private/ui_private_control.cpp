@@ -51,7 +51,7 @@ PCN_NOINLINE
 auto LongUI::UIControlPrivate::EnsureBdRenderer(
     UIControl& ctrl) noexcept ->CUIRendererBorder* {
     // ensure 函数尽量保证不内联
-    if (ctrl.m_pBgRender)
+    if (ctrl.m_pBdRender)
         return ctrl.m_pBdRender;
     else
         return ctrl.m_pBdRender = new(std::nothrow) CUIRendererBorder;

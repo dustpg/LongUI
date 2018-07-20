@@ -10,8 +10,11 @@
 #include <core/ui_string_view.h>
 #include <style/ui_ssvalue_list.h>
 #include <typecheck/int_by_size.h>
+#include <util/ui_little_math.h>
 // css
 #include <xul/SimpAC.h>
+// C++
+//#include <algorithm>
 
 
 // longui namespace
@@ -50,6 +53,8 @@ namespace LongUI {
         auto parse_string(U8View value) noexcept->const char*;
         // parse timing function
         auto parse_timingfunc(U8View value) noexcept->AnimationType;
+        // parse slice
+        void parse_slice(const FuncValue[], uint32_t, SSValue& out) noexcept;
         // 1 for 4
         void one_for_four(
             ValueType vtype,
@@ -88,6 +93,7 @@ void LongUI::ValueTypeMakeValue(
     switch (vtype)
     {
     default: 
+        assert(!"NOT MATCHED");
         // 没有数据
         return;
     case ValueType::Type_PositionOverflowX:
@@ -135,8 +141,16 @@ void LongUI::ValueTypeMakeValue(
         assert(!values[0].func && "function unsupported");
         detail::attribute(ssv.data4.u32, U8(values[0]).ColorRGBA32());
         break;
+    case ValueType::Type_BorderImageSlice:
+        // [SLICE]
+        //   -- border-image-slice
+        assert(value_len <= 5 && "unsupported");
+        detail::parse_slice(values, value_len, ssv);
+        break;
+    case ValueType::Type_BorderImageSource:
     case ValueType::Type_BackgroundImage:
         // [IMAGE]
+        //   -- border-image-source
         //   -- background-image
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data4.u32, detail::parse_image(values[0]));
@@ -348,8 +362,12 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x3d08d15d_ui32:
         // border-left-width
         return { ValueType::Type_BorderLeftWidth };
-
-
+    case 0xdc5bccaa_ui32:
+        // border-image-source
+        return { ValueType::Type_BorderImageSource };
+    case 0x9ba640af_ui32:
+        // border-image-slice
+        return { ValueType::Type_BorderImageSlice };
 
         // ------------- Background ----------------
 
@@ -513,6 +531,7 @@ bool LongUI::IsImageType(ValueType type) noexcept {
     switch (type)
     {
     case LongUI::ValueType::Type_BackgroundImage:
+    case LongUI::ValueType::Type_BorderImageSource:
         return true;
     }
     return false;
@@ -626,7 +645,7 @@ namespace LongUI {
             assert(l == 1 || l == 2);
             const auto v1 = U8(v[0]);
             const auto v2 = U8(l == 1 ? v[0] : v[1]);
-            return AttrParser::Repeat(v1, v2);
+            return AttrParser::Repeat2(v1, v2);
         }
         // parse float
         auto parse_float(FuncValue value) noexcept -> float {
@@ -637,7 +656,7 @@ namespace LongUI {
             if (unit.begin() != unit.end()) {
                 // 百分比
                 if (*unit.begin() == '%')
-                    return LongUI::MakePersentValueFrom100(single);
+                    return detail::mark_percent_from100(single);
 #ifndef NDEBUG
                 else if (std::strncmp(unit.begin(), "px", 2)) {
                     assert(!"UNSUPPORTED UNIT");
@@ -768,6 +787,129 @@ void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
 auto LongUI::detail::parse_string(U8View value) noexcept -> const char* {
     return UIManager.GetUniqueText(value);
 }
+
+
+/// <summary>
+/// Parses the slice.
+/// </summary>
+/// <param name="list">The list.</param>
+/// <param name="len">The length.</param>
+/// <param name="out">The out.</param>
+/// <returns></returns>
+void LongUI::detail::parse_slice(
+    const SimpAC::FuncValue list[], 
+    uint32_t len, 
+    SSValue& out) noexcept {
+#if 0
+    for (int16_t i = -10000; i != 101; ++i) {
+        RectF rect;
+        UniByte8 data, after;
+        data.i16[0] = i;
+        data.i16[1] = i;
+        data.i16[2] = i;
+        data.i16[3] = i;
+        LongUI::UniByte8ToSliceRect(data, &rect.left);
+        LongUI::SliceRectToUniByte8(&rect.left, after);
+        LUIDebug(Log)
+            << "[" << int(data.i16[0]) << "]"
+            << (detail::is_percent_value(rect.left) ?
+                detail::get_percent_value(rect.left) :
+                rect.left)
+            << "[" << int(after.i16[0]) << "]"
+            << endl;
+    }
+    std::terminate();
+#endif
+    int16_t i16_list[4];
+    int count = 0;
+    for (uint32_t i = 0; i != len; ++i) {
+        // 关键字 fill
+        if (list[i].first[0] == 'f') {
+            out.data4.boolean = true;
+            continue;
+        }
+        // 其他情况
+        auto view = U8(list[i]);
+        const auto unit = LongUI::SplitUnit(view);
+        const auto single = view.ToFloat();
+        // 百分比
+        if (unit.begin() != unit.end() && unit.begin()[0] == '%') {
+            // 以一万为基础, 最多三万
+            const auto after = detail::clamp(single, 0.f, 300.f);
+#ifndef NDEBUG
+            if (after != single) {
+                LUIDebug(Error)
+                    << "slice: unsupported value: "
+                    << U8(list[i])
+                    << endl;
+            }
+#endif
+            const int16_t percent = static_cast<int16_t>(after * 100.f);
+            i16_list[count] = -percent;
+        }
+        // 数字
+        else i16_list[count] = static_cast<int16_t>(single);
+        if (++count == 4) break;
+    }
+    // 建立映射
+    const auto i0 = one_for_four_map[count - 1 + 4 * 0];
+    const auto i1 = one_for_four_map[count - 1 + 4 * 1];
+    const auto i2 = one_for_four_map[count - 1 + 4 * 2];
+    const auto i3 = one_for_four_map[count - 1 + 4 * 3];
+    out.data8.i16[0] = i16_list[i0];
+    out.data8.i16[1] = i16_list[i1];
+    out.data8.i16[2] = i16_list[i2];
+    out.data8.i16[3] = i16_list[i3];
+}
+
+/// <summary>
+/// Unis the byte8 to slice rect.
+/// </summary>
+/// <param name="data">The data.</param>
+/// <param name="out">The out.</param>
+/// <returns></returns>
+void LongUI::UniByte8ToSliceRect(UniByte8 data, float out[4]) noexcept {
+    constexpr int COUNT = 4;
+    for (int i = 0; i != COUNT; ++i) {
+        const auto i16value = data.i16[i];
+        float writen;
+        // 百分比
+        if (i16value < 0) {
+            const auto percent10000 = -i16value;
+            writen = detail::mark_percent_from10000(float(percent10000));
+        }
+        // 大小
+        else writen = static_cast<float>(i16value);
+        // 写入
+        out[i] = writen;
+    }
+}
+
+/// <summary>
+/// Slices the rect to uni byte8.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <param name="out">The out.</param>
+/// <returns></returns>
+void LongUI::SliceRectToUniByte8(const float rect[4], UniByte8& out) noexcept {
+    constexpr int COUNT = 4;
+    for (int i = 0; i != COUNT; ++i) {
+        const auto fvalue = rect[i];
+        int16_t writen;
+        // 百分比
+        if (detail::is_percent_value(fvalue)) {
+            const auto percent = detail::get_percent_value(fvalue);
+            const auto percent10000 = percent * 1e4f;
+            const int16_t i16value = static_cast<int16_t>(percent10000);
+            writen = -i16value;
+        }
+        // 大小
+        else writen = static_cast<int16_t>(fvalue);
+        // 写入
+        out.i16[i] = writen;
+    }
+}
+
 #endif
 /*
 
