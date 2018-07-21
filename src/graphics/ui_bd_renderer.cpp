@@ -177,6 +177,17 @@ void LongUI::CUIRendererBorder::render_default_border(const Box& box) const noex
 
 }
 
+
+/// <summary>
+/// Recreates this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIRendererBorder::CreateDeviceData() noexcept -> Result {
+    assert(m_pImageBrush == nullptr && "must release first");
+    // 创建笔刷
+    return this->refresh_image();
+}
+
 /// <summary>
 /// Renders the border.
 /// </summary>

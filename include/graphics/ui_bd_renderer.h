@@ -26,6 +26,8 @@ namespace LongUI {
         void RenderBorder(const Box& box) const noexcept;
         // release device data
         void ReleaseDeviceData() noexcept;
+        // create device data
+        auto CreateDeviceData() noexcept->Result;
     public:
         // set image id
         void SetImageId(uint32_t ) noexcept;

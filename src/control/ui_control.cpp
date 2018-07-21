@@ -436,7 +436,7 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
     // 背景
     if (m_pBgRender) m_pBgRender->ReleaseDeviceData();
     // 边框
-    //if (m_pBdRender) m_pBdRender->ReleaseDeviceData();
+    if (m_pBdRender) m_pBdRender->ReleaseDeviceData();
 #endif
 
     // 仅仅释放
@@ -450,8 +450,7 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
     // 背景
     if (m_pBgRender) hr = m_pBgRender->CreateDeviceData();
     // 边框
-    //if (m_pBdRender && hr) hr = m_pBdRender->CreateDeviceData();
-
+    if (m_pBdRender && hr) hr = m_pBdRender->CreateDeviceData();
 #endif
 
     return{ Result::RS_OK };

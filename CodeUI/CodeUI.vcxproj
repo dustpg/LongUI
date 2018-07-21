@@ -229,6 +229,7 @@
     <ClCompile Include="..\src\graphics\ui_graphics_util.cpp" />
     <ClCompile Include="..\src\graphics\ui_matrix.cpp" />
     <ClCompile Include="..\src\graphics\ui_mesh.cpp" />
+    <ClCompile Include="..\src\graphics\ui_shader_borderimage.cpp" />
     <ClCompile Include="..\src\input\ui_kminput.cpp" />
     <ClCompile Include="..\src\interface\ui_default_config.cpp" />
     <ClCompile Include="..\src\private\ui_private_control.cpp" />
@@ -463,6 +464,18 @@
     <ClInclude Include="..\TextBC\bc_txtline.h" />
     <ClInclude Include="..\TextBC\bc_txtplat.h" />
     <ClInclude Include="..\TextBC\bc_txtstr.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\helper\BorderImageEffect.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

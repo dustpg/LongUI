@@ -33,10 +33,10 @@ stack>button:hover {
 
 button.border-image {
     -moz-appearance: none;
-    border-width: 20px;
+    border-width: 15px;
     border-image-source: url('../images/border.png');
     border-image-slice: 27 fill; 
-    /* border-image-repeat: round    */
+    border-image-repeat: repeat   
 }
 
 

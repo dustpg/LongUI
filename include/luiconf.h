@@ -39,13 +39,10 @@
 #define LUI_ACCESSIBLE
 #endif
 
-#include <cstdlib>
-#include <cstdint>
-
 // Constant Setting
 namespace LongUI {
     // int Constant
-    enum EnumUIConstant : int32_t {
+    enum EnumUIConstant : long {
         // dirty rect count                 : for optimization
         DIRTY_RECT_COUNT = 16,
         // transparent window buffer unit   : for optimization

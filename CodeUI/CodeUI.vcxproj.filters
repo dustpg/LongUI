@@ -138,6 +138,9 @@
     <Filter Include="source\xul">
       <UniqueIdentifier>{831aee61-bd1d-4925-8862-1c2ee723490e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="source\graphics\shader">
+      <UniqueIdentifier>{c6ce787a-91d5-4489-9784-d76f5fe6571d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cfunciton\ui_colorsystem.c">
@@ -490,6 +493,9 @@
     </ClCompile>
     <ClCompile Include="..\src\text\ui_text_outline.cpp">
       <Filter>source\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\graphics\ui_shader_borderimage.cpp">
+      <Filter>source\graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1050,5 +1056,10 @@
     <ClInclude Include="..\include\util\ui_little_math.h">
       <Filter>header\util</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\helper\BorderImageEffect.hlsl">
+      <Filter>source\graphics\shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
