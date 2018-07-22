@@ -4,12 +4,14 @@
   - [O]basic support
   - [-]partial support
   - [X]unsupport
+
   1. Position
   - [O]overflow { x [y] }
   - [O]overflow-x { auto hidden scroll visible }
   - [O]overflow-y { auto hidden scroll visible }
   - [-]left { ??px }
   - [-]top { ??px }
+
   2. Dimension
   - [-]width { ??px }
   - [-]height { ??px }
@@ -17,6 +19,7 @@
   - [-]min-height { ??px }
   - [-]max-width { ??px }
   - [-]max-height { ??px }
+
   3. Margin Padding Border
   - [O]margin { x [y] [z] [w] }
   - [-]margin-top { ??px }
@@ -34,6 +37,13 @@
   - [-]border-right-width { ??px }
   - [-]border-bottom-width { ??px }
   - [-]border-left-width { ??px }
+  - [X]border-image
+  - [-]border-image-source { url(???) (only one) }
+  - [O]border-image-slice { ?? ??% [y] [z] [w] && fill? }
+  - border-image-width
+  - border-image-outset
+  - [O]border-image-repeat { stretch repeat round [y] }
+
   4. Background
   - [X]background
   - [O]background-color { *color format* }
@@ -43,6 +53,7 @@
   - [O]background-repeat { repeat-x repeat-y|repeat round no-repeat [y] }
   - [X]background-position
   - [X]background-size
+
   5. Text&Font
   - [O]color { *color format* }
   - [O]-webkit-text-stroke { ??px *color format* }
@@ -54,9 +65,11 @@
   - [O]font-stretch { normal ultra-condensed~ultra-expanded  }
   - [O]font-weight { normal bold 100~900 }
   - [-]font-family { ?? (only one) }
+
   6. Transition&Animation
   - [O]transition-duration { ?s ?ms (0.0s~65.535s) }
   - [-]transition-timing-function { linear ease ease-in ease-out ease-in-out AT* }
+
   7. LongUI
   - [-]-moz-appearance { none }
 
@@ -69,3 +82,8 @@
   - #rrggbbaa
   - #rrggbbaa
   
+**AT\***
+  - LongUI extension
+  - id for AnimationType
+  - e.g. 26 for AnimationType::Type_BackEaseOut
+  - remarks: "ease" function just one of AnimationType, not a real cubic-bezier

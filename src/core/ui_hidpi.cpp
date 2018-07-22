@@ -77,6 +77,7 @@ namespace LongUI {
         /// <param name="hwnd">The HWND.</param>
         /// <returns></returns>
         auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept -> Size2F {
+            //return { 3.f, 3.f };
 #ifndef LUI_WIN10_ONLY
             // WIN7/Win8 只支持相同的DPI
             if (!ptr_GetDpiForMonitor) {

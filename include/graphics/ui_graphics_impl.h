@@ -22,6 +22,8 @@ namespace LongUI { namespace I {
     struct PCN_NOVTABLE Bitmap : ID2D1Bitmap1 {};
     // brush
     struct PCN_NOVTABLE Brush : ID2D1Brush {};
+    // effect
+    struct PCN_NOVTABLE Effect : ID2D1Effect {};
     // Swap
     struct PCN_NOVTABLE Swapchan : IDXGISwapChain1 {};
     // 3d device
@@ -69,6 +71,12 @@ namespace LongUI {
     inline auto&auto_cast(const RectF& f) noexcept {
         auto& t = reinterpret_cast<const D2D1_RECT_F&>(f);
         static_assert(sizeof(f) == sizeof(t), "must be same");
+        return t;
+    }
+    // ui auto cast: rect&
+    inline auto&auto_cast(const RectL& l) noexcept {
+        auto& t = reinterpret_cast<const D2D1_RECT_L&>(l);
+        static_assert(sizeof(l) == sizeof(t), "must be same");
         return t;
     }
     // ui auto cast: ellipse&

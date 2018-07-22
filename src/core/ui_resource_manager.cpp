@@ -10,8 +10,9 @@
 #include <core/ui_manager.h>
 #include <core/ui_string.h>
 #include <core/ui_malloc.h>
-
 #include <util/ui_unicode_cast.h>
+// Effect
+#include <effect/ui_effect_borderimage.h>
 
 // private
 #include "../private/ui_private_image.h"
@@ -346,6 +347,11 @@ inline auto LongUI::PrivateResMgr::init() noexcept -> Result {
         ) };
         longui_debug_hr(Result{ hr }, L"D2D1CreateFactory faild");
     }
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    if (hr) {
+        hr = Effect::RegisterBorderImage(this->d2dfactroy);
+    }
+#endif
     // 创建DWrite工厂
     if (hr) {
         hr = { ::DWriteCreateFactory(

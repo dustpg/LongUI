@@ -138,8 +138,14 @@
     <Filter Include="source\xul">
       <UniqueIdentifier>{831aee61-bd1d-4925-8862-1c2ee723490e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\graphics\shader">
-      <UniqueIdentifier>{c6ce787a-91d5-4489-9784-d76f5fe6571d}</UniqueIdentifier>
+    <Filter Include="shader">
+      <UniqueIdentifier>{14d01814-f908-4134-ac07-f8a1d05f2da8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\effect">
+      <UniqueIdentifier>{8fb6d4bc-d6d0-4af0-954f-217cd760fb6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header\effect">
+      <UniqueIdentifier>{cd46833d-9d7e-4619-96e7-9b5280f03c39}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -494,8 +500,14 @@
     <ClCompile Include="..\src\text\ui_text_outline.cpp">
       <Filter>source\text</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\graphics\ui_shader_borderimage.cpp">
-      <Filter>source\graphics</Filter>
+    <ClCompile Include="..\src\private\ui_private_effect.cpp">
+      <Filter>source\private\source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\effect\ui_effect_borderimage.cpp">
+      <Filter>source\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\effect\ui_shader_borderimage.cpp">
+      <Filter>source\effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1056,10 +1068,16 @@
     <ClInclude Include="..\include\util\ui_little_math.h">
       <Filter>header\util</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\private\ui_private_effect.h">
+      <Filter>source\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\effect\ui_effect_borderimage.h">
+      <Filter>header\effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\helper\BorderImageEffect.hlsl">
-      <Filter>source\graphics\shader</Filter>
+      <Filter>shader</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

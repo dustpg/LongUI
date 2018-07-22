@@ -307,6 +307,20 @@ void LongUI::CUIStyleValue::SetBdImageSlice(const RectF& slice, bool fill) noexc
 
 PCN_NOINLINE
 /// <summary>
+/// Sets the bd image repeat.
+/// </summary>
+/// <param name="repeat">The repeat.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBdImageRepeat(AttributeRepeat repeat) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    if (auto r = UIControlPrivate::EnsureBdRenderer(*ctrl)) {
+        r->SetImageRepeat(repeat);
+        ctrl->Invalidate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
 /// Gets the bd image source.[No Changing Ref-Count]
 /// </summary>
 /// <remarks>
@@ -334,6 +348,18 @@ bool LongUI::CUIStyleValue::GetBdImageSlice(RectF& output) const noexcept {
     }
     output = { };
     return false;
+}
+
+/// <summary>
+/// Gets the bd image repeat.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBdImageRepeat() const noexcept -> AttributeRepeat {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBdRenderer(*ctrl)) {
+        return r->GetImageRepeat();
+    }
+    return Repeat_Repeat;
 }
 
 PCN_NOINLINE

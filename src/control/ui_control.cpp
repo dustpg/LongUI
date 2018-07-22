@@ -1631,6 +1631,9 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         LongUI::UniByte8ToSliceRect(value.data8, &tmp_rect.left);
         this->SetBdImageSlice(tmp_rect, value.data4.boolean);
         break;
+    case ValueType::Type_BorderImageRepeat:
+        this->SetBdImageRepeat(detail::same_cast<AttributeRepeat>(value.data4.byte));
+        break;
     case ValueType::Type_BackgroundColor:
         this->SetBgColor({ value.data4.u32 });
         break;
@@ -1779,6 +1782,9 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
     case ValueType::Type_BorderImageSlice:
         detail::write_value(value.data4.boolean, this->GetBdImageSlice(tmp_rect));
         LongUI::SliceRectToUniByte8(&tmp_rect.left, value.data8);
+        break;
+    case ValueType::Type_BorderImageRepeat:
+        detail::write_value(value.data4.byte, this->GetBdImageRepeat());
         break;
     case ValueType::Type_BackgroundColor:
         detail::write_value(value.data4.u32, this->GetBgColor().primitive);

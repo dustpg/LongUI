@@ -7,11 +7,25 @@
 #include <graphics/ui_bd_renderer.h>
 #include <graphics/ui_graphics_impl.h>
 // resource
+#include <effect/ui_effect_borderimage.h>
 #include <resource/ui_image.h>
 // c++
 #include <cassert>
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
+
+extern "C" const GUID GUID_LongUIEffect_BorderImage;
+
+namespace LongUI {
+    // auto cast
+    auto&auto_cast(IImageOutput*& img) noexcept {
+        return reinterpret_cast<ID2D1Image*&>(img);
+    }
+    // auto cast
+    auto&auto_cast(IImageOutput& img) noexcept {
+        return reinterpret_cast<ID2D1Image&>(img);
+    }
+}
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIRendererBorder"/> class.
@@ -33,18 +47,16 @@ LongUI::CUIRendererBorder::~CUIRendererBorder() noexcept {
 /// </summary>
 void LongUI::CUIRendererBorder::ReleaseDeviceData() noexcept {
     // 先释放
-    this->release_brush();
+    this->release_effect();
 }
 
 /// <summary>
 /// Releases the brush.
 /// </summary>
 /// <returns></returns>
-void LongUI::CUIRendererBorder::release_brush() noexcept {
-    if (m_pImageBrush) {
-        m_pImageBrush->Release();
-        m_pImageBrush = nullptr;
-    }
+void LongUI::CUIRendererBorder::release_effect() noexcept {
+    LongUI::SafeRelease(m_pBorder);
+    LongUI::SafeRelease(auto_cast(m_pOutput));
 }
 
 /// <summary>
@@ -94,23 +106,24 @@ void LongUI::CUIRendererBorder::SetImageRepeat(AttributeRepeat repeat) noexcept 
 /// <returns></returns>
 auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
     m_szImage = {};
-    using brush_t = ID2D1BitmapBrush1;
+    using effect_t = ID2D1Effect;
     if (!m_idImage) return { Result::RS_FALSE };
     Result hr = { Result::RS_OK };
     // 没有就创建
-    if (!m_pImageBrush && m_idImage) {
+    if (!m_pBorder && m_idImage) {
         ID2D1Bitmap1* const bitmap = nullptr;
-        auto& brush = reinterpret_cast<brush_t*&>(m_pImageBrush);
-        hr = { UIManager.Ref2DRenderer().CreateBitmapBrush(bitmap, &brush) };
+        auto& effect = reinterpret_cast<effect_t*&>(m_pBorder);
+        hr = { UIManager.Ref2DRenderer().CreateEffect(
+            GUID_LongUIEffect_BorderImage,
+            &effect
+        ) };
     }
-    // 设置属性
-    if (m_pImageBrush) {
-        assert(m_idImage && "bad id");
+    // 更新输入
+    if (m_pBorder) {
         auto& data = UIManager.GetResoureceData(m_idImage);
         assert(data.type == ResourceType::Type_Image);
         // 目前只支持IMAGE
         const auto img = static_cast<CUIImage*>(data.obj);
-        const auto brush = reinterpret_cast<brush_t*>(m_pImageBrush);
         // 检查大小
         const auto osize = img->GetSize();
         const auto fw = static_cast<float>(osize.width);
@@ -119,11 +132,12 @@ auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
         m_bLayoutChanged |= fh == m_szImage.height;
         m_szImage.width = fw;
         m_szImage.height = fh;
-        // 图像
-        brush->SetBitmap(&img->RefBitmap());
-        // 扩展
-        brush->SetExtendModeX(D2D1_EXTEND_MODE_WRAP);
-        brush->SetExtendModeY(D2D1_EXTEND_MODE_WRAP);
+        // 设置输入
+        m_pBorder->SetInput(0, &img->RefBitmap());
+        // 获取输出
+        if (!m_pOutput) {
+            m_pBorder->GetOutput(&auto_cast(m_pOutput));
+        }
     }
     return hr;
 }
@@ -133,27 +147,26 @@ auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIRendererBorder::refresh_real_slice() noexcept {
-    m_rcRealSlice = m_rcSlice;
     // LEFT
-    if (detail::is_percent_value(m_rcSlice.left)) {
-        m_rcRealSlice.left = m_szImage.width *
-            detail::get_percent_value(m_rcSlice.left);
-    }
+    if (detail::is_percent_value(m_rcSlice.left))
+        m_rcRealSlice.left = detail::get_percent_value(m_rcSlice.left);
+    else
+        m_rcRealSlice.left = m_rcSlice.left / m_szImage.width;
     // TOP
-    if (detail::is_percent_value(m_rcSlice.top)) {
-        m_rcRealSlice.top = m_szImage.height *
-            detail::get_percent_value(m_rcSlice.top);
-    }
+    if (detail::is_percent_value(m_rcSlice.top)) 
+        m_rcRealSlice.top = detail::get_percent_value(m_rcSlice.top);
+    else
+        m_rcRealSlice.top = m_rcSlice.top / m_szImage.height;
     // RIGHT
-    if (detail::is_percent_value(m_rcSlice.right)) {
-        m_rcRealSlice.right = m_szImage.width *
-            detail::get_percent_value(m_rcSlice.right);
-    }
+    if (detail::is_percent_value(m_rcSlice.right))
+        m_rcRealSlice.right = detail::get_percent_value(m_rcSlice.right);
+    else
+        m_rcRealSlice.right = m_rcSlice.right / m_szImage.width;
     // BOTTOM
-    if (detail::is_percent_value(m_rcSlice.bottom)) {
-        m_rcRealSlice.bottom = m_szImage.height *
-            detail::get_percent_value(m_rcSlice.bottom);
-    }
+    if (detail::is_percent_value(m_rcSlice.bottom))
+        m_rcRealSlice.bottom = detail::get_percent_value(m_rcSlice.bottom);
+    else
+        m_rcRealSlice.bottom = m_rcSlice.bottom / m_szImage.height;
 }
 
 /// <summary>
@@ -183,9 +196,67 @@ void LongUI::CUIRendererBorder::render_default_border(const Box& box) const noex
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIRendererBorder::CreateDeviceData() noexcept -> Result {
-    assert(m_pImageBrush == nullptr && "must release first");
+    assert(m_pBorder == nullptr && "must release first");
+    assert(m_pOutput == nullptr && "must release first");
     // 创建笔刷
     return this->refresh_image();
+}
+
+/// <summary>
+/// Calculates the repeat.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <param name="box">The box.</param>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::CUIRendererBorder::calculate_repeat(
+    RectF& rect, const Box& box, Size2F size) const noexcept {
+    Size2F img_center_size = {
+        m_szImage.width * (1.f - m_rcRealSlice.left - m_rcRealSlice.right),
+        m_szImage.height * (1.f - m_rcRealSlice.top - m_rcRealSlice.bottom)
+    };
+    RectF img_scale = {
+        m_szImage.height * m_rcRealSlice.top / box.border.top,
+        m_szImage.width * m_rcRealSlice.left / box.border.left,
+        m_szImage.height * m_rcRealSlice.bottom / box.border.bottom,
+        m_szImage.width * m_rcRealSlice.right / box.border.right
+    };
+    Size2F bd_center_size = {
+        size.width - box.border.left - box.border.right,
+        size.height - box.border.top - box.border.bottom
+    };
+    rect.left = bd_center_size.width / img_center_size.width * img_scale.left;
+    rect.top = bd_center_size.height / img_center_size.height * img_scale.top;
+    rect.right = bd_center_size.width / img_center_size.width * img_scale.right;
+    rect.bottom = bd_center_size.height / img_center_size.height * img_scale.bottom;
+    // 计算X-REPEAT
+    switch (m_repeat & 0x0f)
+    {
+    case Repeat_Space:
+    case Repeat_Round:
+        rect.left = LongUI::RoundInGuiLevel(rect.left);
+        rect.right = LongUI::RoundInGuiLevel(rect.right);
+        break;
+    case Repeat_Stretch:
+        rect.left = 1.f;
+        rect.right = 1.f;
+        break;
+    }
+    // 计算Y-REPEAT
+    switch (m_repeat >> 4)
+    {
+    case Repeat_Repeat:
+        break;
+    case Repeat_Space:
+    case Repeat_Round:
+        rect.top = LongUI::RoundInGuiLevel(rect.top);
+        rect.bottom = LongUI::RoundInGuiLevel(rect.bottom);
+        break;
+    case Repeat_Stretch:
+        rect.top = 1.f;
+        rect.bottom = 1.f;
+        break;
+    }
 }
 
 /// <summary>
@@ -198,12 +269,28 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
     // 渲染默认风格
     if (!m_idImage) return this->render_default_border(box);
     // 渲染边框图片
-    if (!m_pImageBrush) return;
+    if (!m_pOutput) return;
     // 记录
     const auto border_rect = box.GetBorderEdge();
+    const Size2F size = { 
+        border_rect.right - border_rect.left,
+        border_rect.bottom - border_rect.top
+    };
     auto& renderer = UIManager.Ref2DRenderer();
-    // 设置基本转换矩阵
-    Matrix3X2F matrix = { 1.f, 0.f, 0.f, 1.f, 0.f, 0.f };
+    // 更新cbuffer
+    Effect::CBufferBorderImage cbuffer;
+    cbuffer.border_ratio.left = box.border.left / size.width;
+    cbuffer.border_ratio.top = box.border.top / size.height;
+    cbuffer.border_ratio.right = 1.f - box.border.right / size.width;
+    cbuffer.border_ratio.bottom = 1.f - box.border.bottom / size.height;
+
+    cbuffer.slice_ratio = m_rcRealSlice;
+    cbuffer.repeat = { 1.f, 1.f, 0.f, 0.f };
+    this->calculate_repeat(luiref cbuffer.repeat, box, size);
+    cbuffer.size = size;
+    cbuffer.center_alpha = m_bSliceFill ? 1.f : 0.f;
+    cbuffer.unused = 0.f;
+    m_pBorder->SetValue(0, cbuffer);
     /*
         ---------------------------------------
         | TL         | T            | TR      |
@@ -215,75 +302,9 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
         | BL         | B            | BR      |
         ---------------------------------------
     */
-    // 记录缩放比例
-    const auto ratio_left = box.border.left / m_rcRealSlice.left;
-    const auto ratio_top = box.border.top / m_rcRealSlice.top;
-    const auto ratio_right = box.border.right / m_rcRealSlice.right;
-    const auto ratio_bottom = box.border.bottom / m_rcRealSlice.bottom;
-    const auto offset_right = ratio_right * (m_rcSlice.right - m_szImage.width);
-    const auto offset_bottom = ratio_bottom * (m_rcSlice.bottom - m_szImage.height);
-    const auto src_top = m_szImage.width - m_rcSlice.left - m_rcSlice.right;
-    const auto src_left = m_szImage.height - m_rcSlice.top - m_rcSlice.bottom;
-    // 计算矩形位置
-    const RectF top_left = {
-        border_rect.left,
-        border_rect.top,
-        border_rect.left + box.border.left,
-        border_rect.top + box.border.top
-    }, top_right = {
-        border_rect.right - box.border.right,
-        border_rect.top,
-        border_rect.right,
-        border_rect.top + box.border.top,
-    }, bottom_right = {
-        border_rect.right - box.border.right,
-        border_rect.bottom - box.border.bottom,
-        border_rect.right,
-        border_rect.bottom,
-    }, bottom_left = {
-        border_rect.left,
-        border_rect.bottom - box.border.bottom,
-        border_rect.left + box.border.left,
-        border_rect.bottom,
-    };
-    const RectF top_rect = {
-        top_left.right,
-        top_left.top,
-        top_right.left,
-        top_right.bottom
-    };
-    // 渲染TL角落
-    matrix._11 = ratio_left;
-    matrix._22 = ratio_top;
-    matrix._31 = top_left.left; 
-    matrix._32 = top_left.top;
-    m_pImageBrush->SetTransform(&auto_cast(matrix));
-    renderer.FillRectangle(&auto_cast(top_left), m_pImageBrush);
-    // 渲染TR角落
-    matrix._11 = ratio_right;
-    matrix._22 = ratio_top;
-    matrix._31 = top_right.left + offset_right;
-    matrix._32 = top_right.top;
-    m_pImageBrush->SetTransform(&auto_cast(matrix));
-    renderer.FillRectangle(&auto_cast(top_right), m_pImageBrush);
-    // 渲染BR角落
-    matrix._11 = ratio_right;
-    matrix._22 = ratio_bottom;
-    matrix._31 = bottom_right.left + offset_right;
-    matrix._32 = bottom_right.top + offset_bottom;
-    m_pImageBrush->SetTransform(&auto_cast(matrix));
-    renderer.FillRectangle(&auto_cast(bottom_right), m_pImageBrush);
-    // 渲染BL角落
-    matrix._11 = ratio_left;
-    matrix._22 = ratio_bottom;
-    matrix._31 = bottom_left.left;
-    matrix._32 = bottom_left.top + offset_bottom;
-    m_pImageBrush->SetTransform(&auto_cast(matrix));
-    renderer.FillRectangle(&auto_cast(bottom_left), m_pImageBrush);
-    // 渲染TOP边框
-
-    //m_pImageBrush->SetTransform(&auto_cast(matrix));
-    //renderer.FillRectangle(&auto_cast(top_rect), m_pImageBrush);
+    // 正式渲染
+    Point2F offset = { border_rect.left, border_rect.top };
+    renderer.DrawImage(&auto_cast(*m_pOutput), &auto_cast(offset));
 }
 
 

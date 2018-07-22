@@ -156,6 +156,7 @@ void LongUI::ValueTypeMakeValue(
         detail::attribute(ssv.data4.u32, detail::parse_image(values[0]));
         break;
     case ValueType::Type_BackgroundRepeat:
+    case ValueType::Type_BorderImageRepeat:
         // [REPEAT]
         //   -- background-repeat
         assert(value_len <= 2 && "unsupported");
@@ -368,6 +369,9 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x9ba640af_ui32:
         // border-image-slice
         return { ValueType::Type_BorderImageSlice };
+    case 0x309f759a_ui32:
+        // border-image-repeat
+        return { ValueType::Type_BorderImageRepeat };
 
         // ------------- Background ----------------
 
@@ -490,7 +494,8 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
         // [FLOAT]
         return ValueEasyType::Type_Float;
 
-
+    default:
+        assert(!"error type");
 
     case LongUI::ValueType::Type_BorderImageSource:
     case LongUI::ValueType::Type_BackgroundImage:
@@ -518,8 +523,6 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
         // [COLOR]
         return ValueEasyType::Type_Color;
     }
-    assert(!"error type");
-    return ValueEasyType::Type_NoAnimation;
 }
 
 /// <summary>

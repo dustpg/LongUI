@@ -304,9 +304,13 @@ auto LongUI::AttrParser::Repeat2(U8View v1, U8View v2) noexcept -> AttributeRepe
         space       :space      space
         round       :round      round
         no-repeat   :no-repeat  no-repeat
+
+        stretch
     */
     const auto hash1 = LongUI::BKDRHash(v1.begin(), v1.end());
-    const auto index = LongUI::Uint32FindIndex(
+    // stretch
+    const auto index = hash1 == 0x02f093f5 ? Repeat_Stretch 
+        : LongUI::Uint32FindIndex(
         LongUI::REPEAT_DATA, 
         sizeof(REPEAT_DATA) / sizeof(REPEAT_DATA[0]),
         hash1
@@ -320,11 +324,14 @@ auto LongUI::AttrParser::Repeat2(U8View v1, U8View v2) noexcept -> AttributeRepe
     }
     // y-repeat
     const auto hash2 = LongUI::BKDRHash(v2.begin(), v2.end());
-    return static_cast<AttributeRepeat>(index | (LongUI::Uint32FindIndex(
-        LongUI::REPEAT_DATA, 
-        sizeof(REPEAT_DATA) / sizeof(REPEAT_DATA[0]),
-        hash2
-    ) << 4));
+    // stretch->no-repeat
+    const auto index2 = hash2 == 0x02f093f5 ? Repeat_Stretch
+        : LongUI::Uint32FindIndex(
+            LongUI::REPEAT_DATA,
+            sizeof(REPEAT_DATA) / sizeof(REPEAT_DATA[0]),
+            hash2
+        );
+    return static_cast<AttributeRepeat>(index | (index2 << 4));
 }
 
 

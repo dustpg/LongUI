@@ -39,6 +39,8 @@ namespace LongUI {
         void SetBdImageSource_NCRC(uint32_t id) noexcept;
         // set border image slice
         void SetBdImageSlice(const RectF& slice, bool fill) noexcept;
+        // set border image repeat
+        void SetBdImageRepeat(AttributeRepeat repeat) noexcept;
         // set font size
         void SetFontSize(float size) noexcept;
         // set font style
@@ -68,6 +70,8 @@ namespace LongUI {
         auto GetBdImageSource_NCRC() const noexcept ->uint32_t;
         // get border image slice
         bool GetBdImageSlice(RectF& output) const noexcept;
+        // get border image repeat
+        auto GetBdImageRepeat() const noexcept->AttributeRepeat;
         // get font size
         auto GetFontSize() const noexcept->float;
         // get font style

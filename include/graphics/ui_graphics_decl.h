@@ -10,6 +10,10 @@ namespace LongUI { namespace I {
     struct Bitmap;
     // brush
     struct Brush;
+    // effect
+    struct Effect;
+    // image
+    struct Drawable;
     // 3d device
     struct Device3D;
     // renderer 3d

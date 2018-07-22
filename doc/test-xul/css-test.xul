@@ -17,11 +17,10 @@ function get_text() {
 ]]>
 </script>
 
-<hbox flex="1">
+<!-- <hbox flex="1">
   <spacer flex="1"/>
   <image id="img1" flex="1" src="images/25.png"/>
   <image id="img2" flex="1" src="images/owl.gif"/>
-  <!-- <image flex="1" src="images/owl.gif"/> -->
   <spacer flex="1"/>
 </hbox>
 <hbox flex="1" id="layout">
@@ -40,9 +39,16 @@ function get_text() {
              style0="height: 30px; width:25px; background-color: #663333;"/>
   </stack>
   <hbox>
-    <button image="images/25.png" label="A" flex="1"/>
-    <button class="border-image" label="按钮" flex="10"/>
-  </hbox>
-</groupbox>
+    <button image="images/25.png" label="A" flex="1"/> -->
+    <hbox flex="1">
+      <button class="border-image" label="按钮" flex="10"/>
+      <button class="border-image" label="按钮" flex="10"/>
+    </hbox>
+    <hbox flex="2">
+      <button class="border-image" label="按钮" flex="10"/>
+      <button class="border-image" label="按钮" flex="10"/>
+    </hbox>
+  <!-- </hbox>
+</groupbox> -->
 
 </window>

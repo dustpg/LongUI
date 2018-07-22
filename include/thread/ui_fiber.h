@@ -1,11 +1,13 @@
 ﻿#pragma once
-#include <cstdint>
+
+#include "../luiconf.h"
 #include "../util/ui_unimacro.h"
+#include <cstdint>
 
 // virtual dtor
 #define FIBER_DTOR_TYPE virtual
 
-
+#ifdef LUI_FIBER
 namespace LongUI {
     // fiber
     class CUIFiber;
@@ -120,3 +122,4 @@ namespace LongUI {
 
 // into top namespace
 using LongUI::fiber_yield;
+#endif

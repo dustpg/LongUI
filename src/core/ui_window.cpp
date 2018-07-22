@@ -900,10 +900,10 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
     const auto samew = this->rect.width == size.width;
     const auto sameh = this->rect.height == size.height;
     if (samew && sameh) return;
-    this->mark_full_rendering_for_update();
-    //LUIDebug(Hint) << size.width << ", " << size.height << endl;
     // 数据锁
     CUIDataAutoLocker locker;
+    //LUIDebug(Hint) << size.width << ", " << size.height << endl;
+    this->mark_full_rendering_for_update();
     // 修改
     this->rect.width = size.width;
     this->rect.height = size.height;

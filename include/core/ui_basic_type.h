@@ -147,9 +147,9 @@ namespace LongUI {
     // mix rect
     auto Mix(const RectF& from, const RectF& to, float progress) noexcept;
     // round in gui level
-    inline auto RoundInGuiLevel(float a) noexcept { return float(int32_t(a + 0.5f)); }
+    inline auto RoundInGuiLevel(float a) noexcept { return float(long(a + 0.5f)); }
     // round in gui level
-    inline auto RoundInGuiLevel(double a) noexcept { return double(int32_t(a + 0.5)); }
+    inline auto RoundInGuiLevel(double a) noexcept { return double(long(a + 0.5)); }
     // a && b
     inline bool operator &&(const RectF& a, const RectF& b) noexcept {
         return LongUI::IsOverlap(a, b);

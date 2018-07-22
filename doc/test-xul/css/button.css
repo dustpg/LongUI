@@ -33,12 +33,15 @@ stack>button:hover {
 
 button.border-image {
     -moz-appearance: none;
-    border-width: 15px;
+    border-width: 10px 20px 30px 40px;
     border-image-source: url('../images/border.png');
-    border-image-slice: 27 fill; 
-    border-image-repeat: repeat   
+    border-image-slice: 33% fill; 
+    border-image-repeat: round repeat
 }
 
+button.border-image:hover {
+    border-image-source: url('../images/border2.png');
+}
 
 
 #layout button:active {

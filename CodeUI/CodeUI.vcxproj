@@ -217,6 +217,8 @@
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp" />
     <ClCompile Include="..\src\debugger\ui_loginfo.cpp" />
     <ClCompile Include="..\src\debugger\ui_tracer.cpp" />
+    <ClCompile Include="..\src\effect\ui_effect_borderimage.cpp" />
+    <ClCompile Include="..\src\effect\ui_shader_borderimage.cpp" />
     <ClCompile Include="..\src\event\ui_event_host.cpp" />
     <ClCompile Include="..\src\filesystem\ui_file.cpp" />
     <ClCompile Include="..\src\filesystem\ui_fileop.cpp" />
@@ -229,10 +231,10 @@
     <ClCompile Include="..\src\graphics\ui_graphics_util.cpp" />
     <ClCompile Include="..\src\graphics\ui_matrix.cpp" />
     <ClCompile Include="..\src\graphics\ui_mesh.cpp" />
-    <ClCompile Include="..\src\graphics\ui_shader_borderimage.cpp" />
     <ClCompile Include="..\src\input\ui_kminput.cpp" />
     <ClCompile Include="..\src\interface\ui_default_config.cpp" />
     <ClCompile Include="..\src\private\ui_private_control.cpp" />
+    <ClCompile Include="..\src\private\ui_private_effect.cpp" />
     <ClCompile Include="..\src\private\ui_private_image.cpp" />
     <ClCompile Include="..\src\resource\ui_resource_id.cpp" />
     <ClCompile Include="..\src\resource\ui_res_image.cpp" />
@@ -379,6 +381,7 @@
     <ClInclude Include="..\include\debugger\ui_debug.h" />
     <ClInclude Include="..\include\debugger\ui_loginfo.h" />
     <ClInclude Include="..\include\debugger\ui_tracer.h" />
+    <ClInclude Include="..\include\effect\ui_effect_borderimage.h" />
     <ClInclude Include="..\include\event\ui_group_event.h" />
     <ClInclude Include="..\include\event\ui_gui_event.h" />
     <ClInclude Include="..\include\event\ui_initialize_event.h" />
@@ -455,6 +458,7 @@
     <ClInclude Include="..\src\private\ui_console.h" />
     <ClInclude Include="..\src\private\ui_memory_stream.h" />
     <ClInclude Include="..\src\private\ui_private_control.h" />
+    <ClInclude Include="..\src\private\ui_private_effect.h" />
     <ClInclude Include="..\src\private\ui_private_image.h" />
     <ClInclude Include="..\src\private\ui_win10_stlye.h" />
     <ClInclude Include="..\src\private\ui_wndarg.h" />

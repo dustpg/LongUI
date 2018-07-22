@@ -9,6 +9,8 @@
 #include "../style/ui_attribute.h"
 
 namespace LongUI {
+    // image output
+    struct IImageOutput;
     // border renderer
     class CUIRendererBorder : public CUISmallObject {
     public:
@@ -43,10 +45,12 @@ namespace LongUI {
         bool GetImageSlice(RectF& output) const noexcept {
             output = m_rcSlice; return m_bSliceFill; }
     private:
+        // calculate repeat
+        void calculate_repeat(RectF& rect, const Box& box, Size2F size) const noexcept;
         // refresh image
         auto refresh_image() noexcept->Result;
-        // release brush
-        void release_brush() noexcept;
+        // release effect
+        void release_effect() noexcept;
         // refresh real slice
         void refresh_real_slice() noexcept;
         // render default border
@@ -58,8 +62,10 @@ namespace LongUI {
         RectF               m_rcRealSlice = { };
     private:
         // ------------- GPU-RES ------------
-        // image brush
-        I::Brush*           m_pImageBrush = nullptr;
+        // effect
+        I::Effect*          m_pBorder = nullptr;
+        // iamge output
+        IImageOutput*       m_pOutput = nullptr;
     private:
         // ------------- CPU-RES ------------
         // rect for image slice

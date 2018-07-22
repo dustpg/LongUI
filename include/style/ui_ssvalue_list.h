@@ -78,6 +78,8 @@ namespace LongUI {
         Type_BorderImageSource,
         // [Border] image-slice         : bool + [SliceRect]
         Type_BorderImageSlice,
+        // [Border] image-repeat
+        Type_BorderImageRepeat,
 
         // [Background] color
         Type_BackgroundColor,

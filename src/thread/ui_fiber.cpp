@@ -1,7 +1,13 @@
-﻿#include <Windows.h>
+﻿#include <thread/ui_fiber.h>
 #include <cassert>
-#include <thread/ui_fiber.h>
+#include <Windows.h>
 
+
+#ifndef NDEBUG
+extern "C" void longui_function_holder2() noexcept { }
+#endif // !NDEBUG
+
+#ifdef LUI_FIBER
 /// <summary>
 /// Switches to fiber.
 /// </summary>
@@ -95,3 +101,4 @@ void LongUI::CUIFiber::FiberYield() noexcept {
     assert(ptr && "cannot yield for main fiber");
     reinterpret_cast<CUIFiber*>(ptr)->yield();
 }
+#endif
