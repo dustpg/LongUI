@@ -540,6 +540,9 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BorderImageSource:
     case LongUI::ValueType::Type_BackgroundImage:
         // [IMAGE]
+    case LongUI::ValueType::Type_BorderStyle:
+    case LongUI::ValueType::Type_BorderImageSlice:
+    case LongUI::ValueType::Type_BorderImageRepeat:
     case LongUI::ValueType::Type_BackgroundAttachment:
     case LongUI::ValueType::Type_BackgroundRepeat:
     case LongUI::ValueType::Type_BackgroundClip:

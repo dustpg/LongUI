@@ -97,6 +97,7 @@ void LongUI::CUIEventHost::add_gui_event_listener(
     GuiEvent e,
     GuiEventListener&& listener) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
+    assert(ctrl && "null this pointer!");
     const auto a = reinterpret_cast<void*>(this);
     const auto b = reinterpret_cast<void*>(ctrl);
     assert(a == b && "must be same");

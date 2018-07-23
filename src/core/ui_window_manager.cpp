@@ -268,7 +268,14 @@ void LongUI::CUIWndMgr::refresh_window_minsize() noexcept {
         if (window->m_bMinsizeList) {
             window->m_bMinsizeList = false;
             UIViewport& root = window->RefViewport();
+            alignas(uint64_t) const auto minsize1 = root.GetMinSize();
             UIControlPrivate::RefreshMinSize(root);
+            alignas(uint64_t) const auto minsize2 = root.GetMinSize();
+            // 修改了
+            const auto a = reinterpret_cast<const uint64_t&>(minsize1);
+            const auto b = reinterpret_cast<const uint64_t&>(minsize2);
+            // 在64位下可以只判断一次
+            if (a != b) root.NeedRelayout();
         }
     }
 }

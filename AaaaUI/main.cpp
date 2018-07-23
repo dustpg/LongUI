@@ -59,7 +59,7 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
             //| ConfigureFlag::Flag_DbgDrawDirtyRect
             | ConfigureFlag::Flag_DbgDrawTextCell
             | ConfigureFlag::Flag_DbgDebugWindow
-            | ConfigureFlag::Flag_DonotSupportHiDpi
+            | ConfigureFlag::Flag_NoAutoScaleOnHighDpi
             ;
     }
 };

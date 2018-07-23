@@ -103,11 +103,6 @@ void LongUI::UIControlPrivate::RefreshMinSize(UIControl& ctrl) noexcept {
     }
     // 刷新大小
     ctrl.DoEvent(&ctrl, { NoticeEvent::Event_RefreshBoxMinSize });
-    // 指定大小作比较
-    //auto& b = ctrl.m_oBox;
-    //auto& s = ctrl.m_oStyle;
-    //b.minsize.width = std::max(s.minsize.width, b.minsize.width);
-    //b.minsize.height = std::max(s.minsize.height, b.minsize.height);
 }
 
 /// <summary>

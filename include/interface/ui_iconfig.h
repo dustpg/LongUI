@@ -29,8 +29,8 @@ namespace LongUI {
             Flag_QuitOnLastWindowClosed = 1 << 2,
             // only one system window, like game(all child window will be logic window)
             Flag_OnlyOneSystemWindow = 1 << 3,
-            // do not support hi-dpi
-            Flag_DonotSupportHiDpi = 1 << 4,
+            // no hi-dpi auto scale
+            Flag_NoAutoScaleOnHighDpi = 1 << 4,
             // -------------------------------------------------------------
             // [debug flag under DEBUG MODE] output font family infomation
             Flag_DbgOutputFontFamily = 1 << 10,

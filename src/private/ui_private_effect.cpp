@@ -1,5 +1,6 @@
 ﻿#include "ui_private_effect.h"
 #include <cassert>
+#ifndef LUI_DISABLE_STYLE_SUPPORT
 
 /// <summary>
 /// Adds the reference.
@@ -150,3 +151,4 @@ LongUI::CUIBaseEffectD2D::CUIBaseEffectD2D() noexcept {
 LongUI::CUIBaseEffectD2D::~CUIBaseEffectD2D() noexcept {
     LongUI::SafeRelease(m_pDrawInfo);
 }
+#endif

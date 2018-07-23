@@ -47,11 +47,16 @@ stack>button:hover {
 
 button.border-image {
     -moz-appearance: none;
+    border-width: 27px;
+    border-image-source: url('../images/border.png');
+    border-image-slice: 33% fill;
+    border-image-repeat: repeat;
 }
 
-/* button.border-image:hover {
+button.border-image:hover {
     border-image-source: url('../images/border2.png');
-} */
+    border-image-slice: 33%;
+}
 
 
 #layout button:active {

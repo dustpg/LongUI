@@ -1,9 +1,9 @@
 **property**
 
   0. Instructions
-  - [O]basic support
-  - [-]partial support
-  - [X]unsupport
+  - [O]basic support 基本支持
+  - [-]partial support 部分支持
+  - [X]unsupport 不支持
 
   1. Position
   - [O]overflow { x [y] }

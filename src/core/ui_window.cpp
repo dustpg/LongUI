@@ -1027,7 +1027,7 @@ void LongUI::CUIWindow::MapFromScreen(Point2F& pos) const noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::HiDpiSupport() noexcept {
-    if (UIManager.flag & IUIConfigure::Flag_DonotSupportHiDpi) return;
+    if (UIManager.flag & IUIConfigure::Flag_NoAutoScaleOnHighDpi) return;
     const auto dpi = impl::get_dpi_scale_from_hwnd(m_hwnd);
     this->RefViewport().JustResetZoom(dpi.width, dpi.height);
     //this->RefViewport().JustResetZoom(2.f, 2.f);
@@ -1476,7 +1476,7 @@ void LongUI::CUIWindow::Private::OnCharTs(char32_t ch) noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::Private::OnDpiChanged(uintptr_t wParam, const RectL& rect) noexcept {
     // dpi改变了
-    if (UIManager.flag & IUIConfigure::Flag_DonotSupportHiDpi) return;
+    if (UIManager.flag & IUIConfigure::Flag_NoAutoScaleOnHighDpi) return;
     float xdpi = float(uint16_t(LOWORD(wParam)));
     float ydpi = float(uint16_t(HIWORD(wParam)));
     float x = xdpi / float(LongUI::BASIC_DPI);
