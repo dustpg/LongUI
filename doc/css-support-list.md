@@ -93,3 +93,33 @@
   - id for AnimationType
   - e.g. 26 for AnimationType::Type_BackEaseOut
   - remarks: "ease" function just one of AnimationType, not a real cubic-bezier
+
+---
+
+  **grammar**
+
+  0. Precedence
+  - no special precedence, post item will overwrite the previous item, inline style is "high-precedence"
+  - 没有特殊的优先级. 后项会覆盖前项, 内联样式拥有"最高优先级"
+
+  1. Selector
+  - type selector: button
+  - class selector: .win10-button
+  - id selector: #button0
+  - universal selector: *
+  - **remarks**: becareful on "type selector" with "c++ inheritance class": "type" is control now type, has no relations with super/base classes. [UIButton based on UIBoxLayout, but "box" won't match "button". in other words, if you implement MyButton based on UIButton, "button" won't match your control]
+  - **注**: 小心"类型选择器"与"C++继承类", "类型"是指控件的当前类型, 和它的基类/超类无关. [比如UIButton继承于UIBoxLayout, 但是"box"是匹配不了"button"的. 换句话说, 您继承于UIButton实现了MyButton, "button"是匹配不到您的控件的]
+
+  2. Combinators
+  - adjacent sibling combinator: A + B
+  - general  sibling combinator: A ~ B
+  - child            combinator: A > B
+  - descendant       combinator: A   B
+  - **remarks**: won't modify style on relationship changed
+  - **注**: 当关系改变时不会修改样式
+
+  3. Pseudo-classes
+  - **css base:** :active :checked :default :disabled :enabled :focus :hover :indeterminate
+  - **longui ex:** :selected :closed *and more*
+  - **remarks**: pseudo-classes as state on LongUI, (state) animation based on this, so extended here
+  - **注**: 伪类是作为状态存在于LongUI中的, (状态)动画是基于这个的, 所以会有扩展

@@ -452,7 +452,6 @@ namespace LongUI {
                 // 类型选择器中类型是动态申请的
                 // 使用strcmp比较
                 if (std::strcmp(s.stype, name)) return false;
-                int bk = 9;
             }
             // 类名选择器  <->  控件样式类
             if (s.sclass) {
