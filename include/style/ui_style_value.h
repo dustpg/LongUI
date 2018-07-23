@@ -1,9 +1,11 @@
 ﻿#pragma once
+#pragma interface
 
 #include "../luiconf.h"
 #include "ui_ssvalue_list.h"
 #include "ui_attribute.h"
 #include "../text/ui_attribute.h"
+#include "../core/ui_node.h"
 #include "../core/ui_color.h"
 #include "../core/ui_basic_type.h"
 
@@ -11,7 +13,10 @@ namespace LongUI {
     /// <summary>
     /// gui style value host
     /// </summary>
-    class CUIStyleValue {
+    class PCN_NOVTABLE CUIStyleValue {
+    protected:
+        // virtual dtor
+        virtual ~CUIStyleValue() noexcept = default;
     public:
         // set foreground color
         void SetFgColor(RGBA color) noexcept;

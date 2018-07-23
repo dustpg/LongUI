@@ -1,16 +1,18 @@
 ﻿#pragma once
+#pragma interface
 
 #include "ui_gui_event.h"
 #include "../core/ui_core_type.h"
 #include "../util/ui_function.h"
 #include "../core/ui_string_view.h"
+#include "../style/ui_style_value.h"
 #include <utility>
 
 namespace LongUI{
     /// <summary>
     /// gui event host
     /// </summary>
-    class CUIEventHost {
+    class PCN_NOVTABLE CUIEventHost : public CUIStyleValue {
         // function node
         struct FunctionNode;
     public:

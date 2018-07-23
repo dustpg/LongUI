@@ -31,7 +31,6 @@
 #include "../core/ui_object.h"
 #include "../core/ui_core_type.h"
 #include "../event/ui_event_host.h"
-#include "../style/ui_style_value.h"
 // id string
 #include "../core/ui_const_sstring.h"
 // vector
@@ -74,7 +73,6 @@ namespace LongUI {
     // control
     class UIControl :
         public CUIEventHost,
-        public CUIStyleValue,
         protected Node,
         public CUIObject {
         // super class
@@ -386,12 +384,12 @@ namespace LongUI {
         Box                     m_oBox;
         // world transform: do mapping
         Matrix3X2F              m_mtWorld;
-        // children offset
-        Point2F                 m_ptChildOffset;
         // child-control head node
         Node                    m_oHead;
         // child-control tail node
         Node                    m_oTail;
+        // children offset
+        Point2F                 m_ptChildOffset;
         // parent
         UIControl*              m_pParent;
         // window

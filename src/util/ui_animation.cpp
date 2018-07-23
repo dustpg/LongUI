@@ -32,6 +32,7 @@ auto LongUI::EasingFunction(AnimationType type, float x) noexcept -> float {
 /// <returns></returns>
 auto LongUI::IndeterminateValue(const SSFromTo& value, float p) noexcept -> SSValue {
     //assert(p >= 0.f && p <= 1.f && "out of range");
+    sizeof(ControlAnimationExtra);
     SSValue rv;
     rv.type = value.from.type;
     rv.data4.u32 = 0;

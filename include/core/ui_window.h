@@ -5,6 +5,7 @@
 #include "ui_object.h"
 #include "ui_core_type.h"
 #include "ui_basic_type.h"
+#include "ui_window_event.h"
 #include "../util/ui_ostype.h"
 #include "../accessible/ui_accessible.h"
 // c++
@@ -24,7 +25,7 @@ namespace LongUI {
     /// <summary>
     /// window base class
     /// </summary>
-    class CUIWindow final : public CUISmallObject/*, protected Node*/ {
+    class CUIWindow final : public CUIWindowEvent, public CUINoMo {
         // private impl
         class Private;
         // friend class

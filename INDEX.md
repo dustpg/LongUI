@@ -4,7 +4,7 @@ Current Version : 0.1.0
 
 [css support list](./doc/css-support-list.md)
 
-#### bin-size with configuration
+#### bin-size within configuration
 
 
 |  FLAG                     | Bin-Size*  | Ratio |

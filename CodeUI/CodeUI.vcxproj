@@ -212,6 +212,7 @@
     <ClCompile Include="..\src\core\ui_resource_manager.cpp" />
     <ClCompile Include="..\src\core\ui_time_capsule.cpp" />
     <ClCompile Include="..\src\core\ui_window.cpp" />
+    <ClCompile Include="..\src\core\ui_window_event.cpp" />
     <ClCompile Include="..\src\core\ui_window_manager.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp" />
@@ -377,6 +378,7 @@
     <ClInclude Include="..\include\core\ui_string_view.h" />
     <ClInclude Include="..\include\core\ui_time_capsule.h" />
     <ClInclude Include="..\include\core\ui_window.h" />
+    <ClInclude Include="..\include\core\ui_window_event.h" />
     <ClInclude Include="..\include\core\ui_window_manager.h" />
     <ClInclude Include="..\include\debugger\ui_debug.h" />
     <ClInclude Include="..\include\debugger\ui_loginfo.h" />

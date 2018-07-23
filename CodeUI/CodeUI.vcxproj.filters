@@ -509,6 +509,9 @@
     <ClCompile Include="..\src\effect\ui_shader_borderimage.cpp">
       <Filter>source\effect</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\core\ui_window_event.cpp">
+      <Filter>source\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1073,6 +1076,9 @@
     </ClInclude>
     <ClInclude Include="..\include\effect\ui_effect_borderimage.h">
       <Filter>header\effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\core\ui_window_event.h">
+      <Filter>header\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

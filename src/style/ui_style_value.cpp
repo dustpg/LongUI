@@ -9,8 +9,8 @@
 #include <core/ui_manager.h>
 #include <text/ui_ctl_arg.h>
 
-#undef PCN_NOINLINE
-#define PCN_NOINLINE
+//#undef PCN_NOINLINE
+//#define PCN_NOINLINE
 
 // longui::detail
 namespace LongUI { namespace detail{
@@ -763,7 +763,7 @@ void LongUI::CUIStyleValue::SetPaddingBottom(float value) noexcept {
 void LongUI::CUIStyleValue::SetBorderTop(float value) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     auto& box = const_cast<Box&>(ctrl->GetBox());
-    box.border.top = value;
+    box.border.top = value; 
     this->after_box_changed();
 }
 

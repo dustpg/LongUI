@@ -37,11 +37,17 @@
   - [-]border-right-width { ??px }
   - [-]border-bottom-width { ??px }
   - [-]border-left-width { ??px }
+  - [-]border-style { solid }
+  - [X]border-*-style
+  - [-]border-color { *color format* }
+  - [X]border-*-color
+  - [-]border-radius { ??px [ / ??px] }
+  - [X]border-*-radius
   - [X]border-image
   - [-]border-image-source { url(???) (only one) }
   - [O]border-image-slice { ?? ??% [y] [z] [w] && fill? }
-  - border-image-width
-  - border-image-outset
+  - [X]border-image-width
+  - [X]border-image-outset
   - [O]border-image-repeat { stretch repeat round [y] }
 
   4. Background
