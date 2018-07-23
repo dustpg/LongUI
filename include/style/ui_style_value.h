@@ -35,6 +35,12 @@ namespace LongUI {
         void SetBgOrigin(AttributeBox ab) noexcept;
         // set background attachment
         void SetBgAttachment(AttributeAttachment aa) noexcept;
+        // set border style
+        void SetBdStyle(AttributeBStyle style) noexcept;
+        // set border color
+        void SetBdColor(RGBA color) noexcept;
+        // set border radius
+        void SetBdRadius(Size2F radius) noexcept;
         // set border image source from resource id
         void SetBdImageSource_NCRC(uint32_t id) noexcept;
         // set border image slice
@@ -66,6 +72,12 @@ namespace LongUI {
         auto GetBgRepeat() const noexcept->AttributeRepeat;
         // get background origin
         auto GetBgOrigin() const noexcept->AttributeBox;
+        // get border style
+        auto GetBdStyle() const noexcept->AttributeBStyle;
+        // get border color
+        auto GetBdColor() const noexcept->RGBA;
+        // get border radius
+        auto GetBdRadius() const noexcept->Size2F;
         // get border image source [resource id]
         auto GetBdImageSource_NCRC() const noexcept ->uint32_t;
         // get border image slice

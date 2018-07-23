@@ -11,6 +11,7 @@
 #include <style/ui_ssvalue_list.h>
 #include <typecheck/int_by_size.h>
 #include <util/ui_little_math.h>
+#include <core/ui_manager.h>
 // css
 #include <xul/SimpAC.h>
 // C++
@@ -132,14 +133,41 @@ void LongUI::ValueTypeMakeValue(
         detail::attribute(ssv.data4.single, detail::parse_float(values[0]));
         break;
     case ValueType::Type_BackgroundColor:
+    case ValueType::Type_BorderColor:
     case ValueType::Type_TextColor:
     case ValueType::Type_WKTextStrokeColor:
         // [COLOR]
         //   -- background-color
+        //   -- border-color
         //   -- color
+        //   -- -webkit-text-stroke-color
         assert(value_len == 1 && "unsupported");
         assert(!values[0].func && "function unsupported");
         detail::attribute(ssv.data4.u32, U8(values[0]).ColorRGBA32());
+        break;
+    case ValueType::Type_BorderStyle:
+        assert(value_len == 1 && "unsupported");
+        // [B-STYLE]
+        //   -- border-style
+        // 目前只有solid
+#ifndef NDEBUG
+        if (std::strncmp(values->first, "solid", values->length)) {
+            LUIDebug(Error) << "support 'solid' only" << endl;
+        }
+#endif // !NDEBUG
+        detail::attribute(ssv.data4.byte, values->first[0] == 's' ? Style_Solid : Style_None);
+        break;
+    case ValueType::Type_BorderRadius:
+        // [RADIUS]
+        //   -- border-radius
+        assert(value_len <= 3 && "unsupported");
+        detail::attribute(ssv.data4.single, detail::parse_float(values[0]));
+        ssv.data8.single[0] = ssv.data4.single;
+        ssv.data8.single[1] = ssv.data8.single[0];
+        if (value_len == 3) {
+            assert(values[1].first[0] == '/' && "unsupported");
+            detail::attribute(ssv.data8.single[1], detail::parse_float(values[2]));
+        }
         break;
     case ValueType::Type_BorderImageSlice:
         // [SLICE]
@@ -363,6 +391,15 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0x3d08d15d_ui32:
         // border-left-width
         return { ValueType::Type_BorderLeftWidth };
+    case 0x3a8c9410_ui32:
+        // border-style
+        return { ValueType::Type_BorderStyle };
+    case 0x2102451a_ui32:
+        // border-color
+        return { ValueType::Type_BorderColor };
+    case 0xaa15d28b_ui32:
+        // border-radius
+        return { ValueType::Type_BorderRadius };
     case 0xdc5bccaa_ui32:
         // border-image-source
         return { ValueType::Type_BorderImageSource };
@@ -494,6 +531,9 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
         // [FLOAT]
         return ValueEasyType::Type_Float;
 
+    case ValueType::Type_BorderRadius:
+        // [SIZE]
+        return ValueEasyType::Type_Size;
     default:
         assert(!"error type");
 
@@ -515,9 +555,8 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
         // [SPTIME]
         return ValueEasyType::Type_NoAnimation;
 
-
-
     case LongUI::ValueType::Type_BackgroundColor:
+    case LongUI::ValueType::Type_BorderColor:
     case LongUI::ValueType::Type_TextColor:
     case LongUI::ValueType::Type_WKTextStrokeColor:
         // [COLOR]
@@ -749,21 +788,17 @@ namespace LongUI {
 }
 
 
-#include <core/ui_manager.h>
 #include <text/ui_ctl_arg.h>
 
 /// <summary>
-/// Initializes the state buffer.
+/// Initializes the default state.
 /// </summary>
 /// <param name="buf">The buf.</param>
+/// <param name="buf2">The buf2.</param>
 /// <returns></returns>
-void LongUI::InitStateBuffer(UniByte4 buf[]) noexcept {
+void LongUI::InitDefaultState(UniByte4 buf[], UniByte8 buf2[]) noexcept {
     // check type count
     static_assert(static_cast<int>(ValueType::SINGLE_LAST) <= 256, "TO HUGE");
-    // XXX: 优化初始化
-    constexpr auto COUNT = static_cast<int>(ValueType::SINGLE_LAST) + 1;
-    constexpr auto LENBY = COUNT * sizeof(*buf);
-    std::memset(buf, 0, LENBY);
     const auto& font = UIManager.GetDefaultFont();
     // 字体
     buf[static_cast<int>(ValueType::Type_TextColor)].u32 

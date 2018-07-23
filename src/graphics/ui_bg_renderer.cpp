@@ -117,18 +117,23 @@ namespace LongUI { namespace detail {
 /// Renders the color.
 /// </summary>
 /// <param name="box">The box.</param>
+/// <param name="radius">The radius.</param>
 /// <returns></returns>
-void LongUI::CUIRendererBackground::RenderColor(const Box& box) const noexcept {
+void LongUI::CUIRendererBackground::RenderColor(const Box& box, Size2F radius) const noexcept {
     // 渲染背景颜色
     if (this->color.a == 0.f) return;
     //if (!reinterpret_cast<const uint32_t&>(this->color.a)) return;
     // 获取渲染矩阵
-    RectF rect; detail::get_render_rect(this->clip, box, rect);
+    D2D1_ROUNDED_RECT rrect;
+    detail::get_render_rect(this->clip, box, auto_cast(rrect.rect));
+    rrect.radiusX = radius.width;
+    rrect.radiusY = radius.height;
+
     // 获取渲染器
     auto& render = UIManager.Ref2DRenderer();
     auto& brush0 = UIManager.RefCCBrush(this->color);
     // 执行渲染
-    render.FillRectangle(auto_cast(rect), &brush0);
+    render.FillRoundedRectangle(&rrect, &brush0);
 }
 
 
@@ -136,26 +141,30 @@ void LongUI::CUIRendererBackground::RenderColor(const Box& box) const noexcept {
 /// Renders the image.
 /// </summary>
 /// <param name="box">The box.</param>
+/// <param name="radius">The radius.</param>
 /// <returns></returns>
-void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const noexcept {
+void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F radius) const noexcept {
     // 渲染背景图片
     if (!this->image_id || !m_pImageBrush) return;
     // 图片大小
     const auto& img_size = m_szImage;
     // 获取渲染矩阵
-    RectF rect; detail::get_render_rect(this->origin, box, rect);
+    D2D1_ROUNDED_RECT rrect;
+    detail::get_render_rect(this->origin, box, auto_cast(rrect.rect));
+    rrect.radiusX = radius.width;
+    rrect.radiusY = radius.height;
     // 获取渲染器
     auto& render = UIManager.Ref2DRenderer();
     // 设置基本转换矩阵
     Matrix3X2F matrix = {
         1.f, 0.f, 
         0.f, 1.f, 
-        rect.left, rect.top
+        rrect.rect.left, rrect.rect.top
     };
     // 计算ROUND
     const auto cal_round = [&](int i) noexcept {
         const auto size = i[&img_size.width];
-        const auto length = i[&rect.right] - i[&rect.left];
+        const auto length = i[&rrect.rect.right] - i[&rrect.rect.left];
         const auto count = length / size;
         const auto count1 = count < 1.f ? 1.f : count;
         const auto relen = float(int(count1 + 0.5f)) * size;
@@ -168,7 +177,7 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const no
         matrix._11 = cal_round(0);
         break;
     case Repeat_NoRepeat:
-        rect.right = rect.left + img_size.width;
+        rrect.rect.right = rrect.rect.left + img_size.width;
         break;
     }
     // 计算Y-REPEAT
@@ -178,12 +187,12 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box) const no
         matrix._22 = cal_round(1);
         break;
     case Repeat_NoRepeat:
-        rect.bottom = rect.top + img_size.height;
+        rrect.rect.bottom = rrect.rect.top + img_size.height;
         break;
     }
     // 计算宽度
     m_pImageBrush->SetTransform(&auto_cast(matrix));
     // 渲染笔刷
-    render.FillRectangle(auto_cast(rect), m_pImageBrush);
+    render.FillRoundedRectangle(&rrect, m_pImageBrush);
 }
 #endif

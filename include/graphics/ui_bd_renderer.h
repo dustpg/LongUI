@@ -74,11 +74,19 @@ namespace LongUI {
         uint32_t            m_idImage = 0;
         // fill for image slice
         bool                m_bSliceFill = false;
+        // [FLAG]image layout changed
+        bool                m_bLayoutChanged = false;
         // repeat for image
         AttributeRepeat     m_repeat = Repeat_Stretch2;
-    private:
-        // image layout changed
-        bool                m_bLayoutChanged = false;
+    public:
+        // style
+        AttributeBStyle     style = Style_None;
+        // border color
+        ColorF              color = {};
+        // radius x
+        float               radius_x = 0.f;
+        // radius y
+        float               radius_y = 0.f;
     };
 }
 #endif

@@ -81,7 +81,7 @@ PCN_NOINLINE
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
 void LongUI::Box::GetContentEdge(RectF& rect) const noexcept {
-    this->GetBorderEdge(rect);
+    this->GetPaddingEdge(rect);
     rect.top += this->padding.top;
     rect.left += this->padding.left;
     rect.right -= this->padding.right;

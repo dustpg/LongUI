@@ -95,10 +95,17 @@ void LongUI::UIControl::custom_style_render() const noexcept {
     */
     // 背景渲染
     if (m_pBgRender) {
+        // UPDATE#0
+        Size2F radius = { 0.f };
+        if (m_pBdRender) {
+            radius.width = m_pBdRender->radius_x;
+            radius.height = m_pBdRender->radius_y;
+        }
+        // UPDATE#1
         // A.
-        m_pBgRender->RenderColor(this->GetBox());
+        m_pBgRender->RenderColor(this->GetBox(), radius);
         // B.
-        m_pBgRender->RenderImage(this->GetBox());
+        m_pBgRender->RenderImage(this->GetBox(), radius);
     }
     // 边框渲染
     if (m_pBdRender) {

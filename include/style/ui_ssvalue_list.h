@@ -74,12 +74,19 @@ namespace LongUI {
         Type_BorderBottomWidth,
         // [Border] left-width
         Type_BorderLeftWidth,
+        // [Border] style
+        Type_BorderStyle,
+        // [Border] color
+        Type_BorderColor,
+        // [Border] radius
+        Type_BorderRadius,
         // [Border] image-source
         Type_BorderImageSource,
         // [Border] image-slice         : bool + [SliceRect]
         Type_BorderImageSlice,
         // [Border] image-repeat
         Type_BorderImageRepeat,
+
 
         // [Background] color
         Type_BackgroundColor,
@@ -141,8 +148,8 @@ namespace LongUI {
         Type_Float,
         // color
         Type_Color,
-        // uint32_t
-        //Type_Uint32,
+        // size
+        Type_Size,
     };
     // union 4
     union UniByte4 {
@@ -201,7 +208,7 @@ namespace LongUI {
     // is image
     bool IsImageType(ValueType) noexcept;
     // init states buffer
-    void InitStateBuffer(UniByte4[/*ValueType::TYPE_COUNT*/]) noexcept;
+    void InitDefaultState(UniByte4[], UniByte8[]) noexcept;
     // u8view to value type
     auto U8View2ValueType(U8View view) noexcept->ValueType;
     // make value

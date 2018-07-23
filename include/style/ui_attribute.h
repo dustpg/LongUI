@@ -155,11 +155,10 @@ namespace LongUI {
     /// border style 
     /// </summary>
     enum AttributeBStyle : uint8_t {
-        Style_Node = 0,
-        Style_Hidden,
+        Style_None = 0,
+        Style_Solid,
         Style_Dotted,
         Style_Dashed,
-        Style_Solid,
         Style_Double,
         Style_Groove,
         Style_Ridge,

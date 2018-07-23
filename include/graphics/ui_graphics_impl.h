@@ -91,6 +91,12 @@ namespace LongUI {
         static_assert(sizeof(f) == sizeof(t), "must be same");
         return t;
     }
+    // ui auto cast: color&
+    inline auto&auto_cast(D2D1_RECT_F& r) noexcept {
+        auto& t = reinterpret_cast<RectF&>(r);
+        static_assert(sizeof(r) == sizeof(t), "must be same");
+        return t;
+    }
     // ui auto cast: point&
     inline auto&auto_cast(const Point2F& f) noexcept {
         auto& t = reinterpret_cast<const D2D1_POINT_2F&>(f);

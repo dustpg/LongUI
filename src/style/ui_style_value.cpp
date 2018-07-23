@@ -273,6 +273,93 @@ auto LongUI::CUIStyleValue::GetBgOrigin() const noexcept->AttributeBox {
     return Box_BorderBox;
 }
 
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the bd radius.
+/// </summary>
+/// <param name="radius">The radius.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBdRadius(Size2F radius) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    if (auto r = UIControlPrivate::EnsureBdRenderer(*ctrl)) {
+        r->radius_x = radius.width;
+        r->radius_y = radius.height;
+        ctrl->Invalidate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the color of the bd.
+/// </summary>
+/// <param name="radius">The radius.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBdColor(RGBA color) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    if (auto r = UIControlPrivate::EnsureBdRenderer(*ctrl)) {
+        ColorF::FromRGBA_RT(r->color, color);
+        ctrl->Invalidate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Gets the bd style.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBdStyle() const noexcept->AttributeBStyle {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBdRenderer(*ctrl)) {
+        return r->style;
+    }
+    return Style_None;
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// Gets the color of the bd.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBdColor() const noexcept -> RGBA{
+    const auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBdRenderer(*ctrl)) {
+        return r->color.ToRGBA();
+    }
+    return { RGBA_Transparent };
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// Gets the bd radius.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetBdRadius() const noexcept -> Size2F{
+    const auto ctrl = static_cast<const UIControl*>(this);
+    if (auto r = UIControlPrivate::GetBdRenderer(*ctrl)) {
+        return { r->radius_x, r->radius_y };
+    }
+    return {};
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// Sets the bd style.
+/// </summary>
+/// <param name="style">The style.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetBdStyle(AttributeBStyle style) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    if (auto r = UIControlPrivate::EnsureBdRenderer(*ctrl)) {
+        r->style = style;
+        ctrl->Invalidate();
+    }
+}
+
+
 PCN_NOINLINE
 /// <summary>
 /// Sets the bd image source.[No Changing Ref-Count]

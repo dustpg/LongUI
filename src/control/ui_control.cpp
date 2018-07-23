@@ -1624,6 +1624,15 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         detail::write_value(m_oStyle.flex, value.data4.single);
         if (m_pParent) m_pParent->NeedRelayout();
         break;
+    case ValueType::Type_BorderStyle:
+        this->SetBdStyle(detail::same_cast<AttributeBStyle>(value.data4.byte));
+        break;
+    case ValueType::Type_BorderColor:
+        this->SetBdColor({ value.data4.u32 });
+        break;
+    case ValueType::Type_BorderRadius:
+        this->SetBdRadius({ value.data8.single[0], value.data8.single[1] });
+        break;
     case ValueType::Type_BorderImageSource:
         this->SetBdImageSource_NCRC(value.data4.u32);
         break;
@@ -1739,7 +1748,7 @@ PCN_NOINLINE
 void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
     switch (value.type)
     {
-        RectF tmp_rect;
+        RectF tmp_rect; Size2F tmp_size;
     default:
         assert(!"unsupported value type");
         break;
@@ -1775,6 +1784,17 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_BoxFlex:
         detail::write_value(value.data4.single, m_oStyle.flex);
+        break;
+    case ValueType::Type_BorderStyle:
+        detail::write_value(value.data4.byte, this->GetBdStyle());
+        break;
+    case ValueType::Type_BorderColor:
+        detail::write_value(value.data4.u32, this->GetBdColor().primitive);
+        break;
+    case ValueType::Type_BorderRadius:
+        tmp_size = this->GetBdRadius();
+        detail::write_value(value.data8.single[0], tmp_size.width);
+        detail::write_value(value.data8.single[1], tmp_size.height);
         break;
     case ValueType::Type_BorderImageSource:
         detail::write_value(value.data4.u32, this->GetBdImageSource_NCRC());

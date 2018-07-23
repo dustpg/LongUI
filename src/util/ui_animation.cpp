@@ -30,7 +30,7 @@ auto LongUI::EasingFunction(AnimationType type, float x) noexcept -> float {
 /// <param name="value">The value.</param>
 /// <param name="p">The p.</param>
 /// <returns></returns>
-auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
+auto LongUI::IndeterminateValue(const SSFromTo& value, float p) noexcept -> SSValue {
     //assert(p >= 0.f && p <= 1.f && "out of range");
     SSValue rv;
     rv.type = value.from.type;
@@ -78,6 +78,17 @@ auto LongUI::IndeterminateValue(SSFromTo value, float p) noexcept -> SSValue {
 #endif
         break;
     }
+    case ValueEasyType::Type_Size:
+        // [SIZE]
+        rv.data8.single[0] = do_float(
+            value.from.data8.single[0],
+            value.to.data8.single[0]
+        );
+        rv.data8.single[1] = do_float(
+            value.from.data8.single[1],
+            value.to.data8.single[1]
+        );
+        break;
 #if 0
     case ValueEasyType::Type_Uint32:
         // [UINT32]

@@ -58,7 +58,7 @@ namespace LongUI {
         SSValue     to;
     };
     // indeterminate value
-    auto IndeterminateValue(SSFromTo, float) noexcept->SSValue;
+    auto IndeterminateValue(const SSFromTo&, float) noexcept->SSValue;
 #ifdef NDEBUG
     enum { EXTRA_FROM_TO_LIST_LENGTH = 8 };
 #else

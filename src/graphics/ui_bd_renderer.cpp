@@ -187,7 +187,20 @@ void LongUI::CUIRendererBorder::BeforeRender() noexcept {
 /// <param name="box">The box.</param>
 /// <returns></returns>
 void LongUI::CUIRendererBorder::render_default_border(const Box& box) const noexcept {
+    if (this->style == Style_None) return;
 
+    D2D1_ROUNDED_RECT rrect;
+    box.GetBorderEdge(auto_cast(rrect.rect));
+    rrect.radiusX = this->radius_x;
+    rrect.radiusY = this->radius_y;
+
+    auto& renderer = UIManager.Ref2DRenderer();
+    auto& brush = UIManager.RefCCBrush(this->color);
+    renderer.DrawRoundedRectangle(
+        &rrect,
+        &brush,
+        box.border.left
+    );
 }
 
 

@@ -31,17 +31,27 @@ stack>button:hover {
     left: 300;
 }
 
-button.border-image {
-    -moz-appearance: none;
-    border-width: 10px 20px 30px 40px;
-    border-image-source: url('../images/border.png');
-    border-image-slice: 33% fill; 
-    border-image-repeat: round repeat
+.border-image {
+    border-width: 4px 4px;
+    border-style: solid;
+    border-color: red;
+    border-radius: 40px/10px;
+    background-color: cyan;
+    transition-timing-function: ease-out;
+    transition-duration: 200ms;
 }
 
-button.border-image:hover {
-    border-image-source: url('../images/border2.png');
+.border-image:hover {
+    border-radius: 40px
 }
+
+button.border-image {
+    -moz-appearance: none;
+}
+
+/* button.border-image:hover {
+    border-image-source: url('../images/border2.png');
+} */
 
 
 #layout button:active {

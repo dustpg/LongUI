@@ -24,9 +24,9 @@ namespace LongUI {
         // copy ctor
         CUIRendererBackground(const CUIRendererBackground&) = delete;
         // render color
-        void RenderColor(const Box& box) const noexcept;
+        void RenderColor(const Box& box, Size2F) const noexcept;
         // render image
-        void RenderImage(const Box& box) const noexcept;
+        void RenderImage(const Box& box, Size2F) const noexcept;
         // refresh image
         auto RefreshImage() noexcept->Result;
         // create device data

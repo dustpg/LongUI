@@ -41,7 +41,7 @@ function get_text() {
   <hbox>
     <button image="images/25.png" label="A" flex="1"/> -->
     <hbox flex="1">
-      <button class="border-image" label="按钮" flex="10"/>
+      <label class="border-image" value="按钮" flex="10"/>
       <button class="border-image" label="按钮" flex="10"/>
     </hbox>
     <hbox flex="2">

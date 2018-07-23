@@ -819,9 +819,12 @@ void LongUI::UIControl::extra_animation_callback(
     // 状态缓冲池
     constexpr auto LAST = static_cast<int>(ValueType::SINGLE_LAST) ;
     UniByte4 state_buf[LAST + 1];
+    UniByte8 state_buf_ex[LAST + 1]; 
     // 设置初始状态
     // XXX: 延迟初始化? 优化?
-    LongUI::InitStateBuffer(state_buf);
+    std::memset(state_buf, 0, sizeof(state_buf));
+    std::memset(state_buf_ex, 0, sizeof(state_buf_ex));
+    LongUI::InitDefaultState(state_buf, state_buf_ex);
     bool writen_buf = false;
     // 优化flag
     bool need_state_buf = false;
@@ -872,8 +875,8 @@ void LongUI::UIControl::extra_animation_callback(
             auto being_itr = itr + 1;
             for (; being_itr != end_itr; ++being_itr) {
                 const auto index = static_cast<uint32_t>((*being_itr).type);
-                // XXX: 只有data4?
                 state_buf[index] = (*being_itr).data4;
+                state_buf_ex[index] = (*being_itr).data8;
             }
         }
         // 递进
@@ -886,9 +889,8 @@ void LongUI::UIControl::extra_animation_callback(
         for (auto& x : vector) {
             if (x.to.type == ValueType::Type_Unknown) {
                 const auto index = static_cast<uint32_t>(x.from.type);
-                const auto old = state_buf[index];
-                x.to.data4 = old;
-                x.to.data8 = { 0 };
+                x.to.data4 = state_buf[index];
+                x.to.data8 = state_buf_ex[index];
             }
         }
     }
