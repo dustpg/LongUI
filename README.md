@@ -17,16 +17,29 @@ Lightweight C++ GUI Library
   - built-in script interface to support your own script-lang
   - more detail, see [XUL](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL)
 
+<div align="right">  
+<img src="screenshots/list-demo-vs-firefox-xul.png" style="height:200px;margin: -40px 0" />
+</div>
+
 **High-DPI Support**
   - dynamic dpi monitor(e.g: 2 different dpi monitor) support
 
 **Accessible**
   - support accessible even it's light-weight
 
+<div align="right">  
+<img src="screenshots/accessible-with-inspect.png" style="height:200px;margin-bottom: -40px" />
+</div>
+  
+
 **Hardware Acceleration**
   - gpu render based on direct2d now
   - dynamic gpu change support(like surface book)
   - hardware acceleration layered window support(on win8.1 and higher)
+
+<div align="right">  
+<img src="screenshots/layered-window.png" style="height:200px;margin-bottom: -150px" />
+</div>
 
 ## License
   - LongUI under MIT License
@@ -53,6 +66,10 @@ C++轻量级GUI库
   - 部分兼容 CSS 用来显示自定义的样式
   - 内建的脚本接口用来支持自定义的脚本语言
   - 更多XUL相关内容: [查看这里](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL)
+  
+<div align="right">  
+<img src="screenshots/list-demo-vs-firefox-xul.png" style="height:200px;margin: -40px 0" />
+</div>
 
 **高DPI支持**
   - 动态支持高DPI显示器(比如两个显示器不同DPI)
@@ -60,10 +77,18 @@ C++轻量级GUI库
 **Accessible**
   - 没错! 即便是轻量级还是支持了Accessible!
 
+<div align="right">  
+<img src="screenshots/accessible-with-inspect.png" style="height:200px;margin-bottom: -40px" />
+</div>
+
 **硬件加速支持**
   - 目前使用基于Direct2D的GPU渲染
   - 支持动态切换显卡(比如surface book, 微软SB)
   - 支持硬件加速的分层(允许透明)窗口(需要Win8.1以及以上)
+
+<div align="right">  
+<img src="screenshots/layered-window.png" style="height:200px;margin-bottom: -150px" />
+</div>
   
 ## License
   - LongUI是基于 MIT License的
