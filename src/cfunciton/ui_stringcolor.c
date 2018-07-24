@@ -74,17 +74,17 @@ uint32_t ui_web_color_string_to_rgba32(const char* begin, const char* end, char 
         {
             unsigned char r1 = ui_hex_to_int(begin[step * 1]);
             unsigned char r2 = ui_hex_to_int(begin[step * 2]);
-            color.rgba[0] = (r2 << HEX16_BIT) | r1;
+            color.rgba[0] = (r1 << HEX16_BIT) | r2;
             unsigned char g1 = ui_hex_to_int(begin[step * 3]);
             unsigned char g2 = ui_hex_to_int(begin[step * 4]);
-            color.rgba[1] = (g2 << HEX16_BIT) | g1;
+            color.rgba[1] = (g1 << HEX16_BIT) | g2;
             unsigned char b1 = ui_hex_to_int(begin[step * 5]);
             unsigned char b2 = ui_hex_to_int(begin[step * 6]);
-            color.rgba[2] = (b2 << HEX16_BIT) | b1;
+            color.rgba[2] = (b1 << HEX16_BIT) | b2;
             if (len == 9) {
                 unsigned char a1 = ui_hex_to_int(begin[step * 7]);
                 unsigned char a2 = ui_hex_to_int(begin[step * 8]);
-                color.rgba[3] = (a2 << HEX16_BIT) | a1;
+                color.rgba[3] = (a1 << HEX16_BIT) | a2;
             }
             break;
         }
