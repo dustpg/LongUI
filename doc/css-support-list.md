@@ -4,6 +4,7 @@
   - [O]basic support 基本支持
   - [-]partial support 部分支持
   - [X]unsupport 不支持
+  - remarks: unsupport inherited property 不支持属性继承
 
   1. Position
   - [O]overflow { x [y] }
@@ -62,6 +63,7 @@
 
   5. Text&Font
   - [O]color { *color format* }
+  - [-]text-align { start end center justify left right  }
   - [O]-webkit-text-stroke { ??px *color format* }
   - [-]-webkit-text-stroke-width { ??px }
   - [O]-webkit-text-stroke-color { ??px *color format* }
@@ -73,8 +75,9 @@
   - [-]font-family { ?? (only one) }
 
   6. Transition&Animation
-  - [O]transition-duration { ?s ?ms (0.0s~65.535s) }
+  - [O]transition-duration { ?s ?ms (0.0s~65.535s, only one) }
   - [-]transition-timing-function { linear ease ease-in ease-out ease-in-out AT* }
+  - [X]transition-property
 
   7. LongUI
   - [-]-moz-appearance { none }
@@ -121,5 +124,7 @@
   3. Pseudo-classes
   - **css base:** :active :checked :default :disabled :enabled :focus :hover :indeterminate
   - **longui ex:** :selected :closed *and more*
-  - **remarks**: pseudo-classes as state on LongUI, (state) animation based on this, so extended here
-  - **注**: 伪类是作为状态存在于LongUI中的, (状态)动画是基于这个的, 所以会有扩展
+  - **remarks**: pseudo-classes as state on LongUI, (state) animation based on this. 
+  - **limit**: one selector-chain has **zero or one** pseudo-class only 
+  - **注**: 伪类是作为状态存在于LongUI中的, (状态)动画是基于这个的实现的. 
+  - **限制**: 一条选择器链只有至多有一个伪类选择器.
