@@ -18,7 +18,7 @@ Lightweight C++ GUI Library
   - more detail, see [XUL](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL)
 
 <div align="right">  
-<img src="screenshots/list-demo-vs-firefox-xul.png" style="height:200px;margin: -40px 0" />
+<img src="screenshots/list-demo-vs-firefox-xul.png" width="50%" style="margin-bottom: -40px"/>
 </div>
 
 **High-DPI Support**
@@ -28,7 +28,7 @@ Lightweight C++ GUI Library
   - support accessible even it's light-weight
 
 <div align="right">  
-<img src="screenshots/accessible-with-inspect.png" style="height:200px;margin-bottom: -40px" />
+<img src="screenshots/accessible-with-inspect.png" width="50%" style="margin-bottom: -40px" />
 </div>
   
 
@@ -38,7 +38,7 @@ Lightweight C++ GUI Library
   - hardware acceleration layered window support(on win8.1 and higher)
 
 <div align="right">  
-<img src="screenshots/layered-window.png" style="height:200px;margin-bottom: -150px" />
+<img src="screenshots/layered-window.png" width="40%" style="margin-bottom: -50px" />
 </div>
 
 ## License
@@ -68,7 +68,7 @@ C++轻量级GUI库
   - 更多XUL相关内容: [查看这里](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL)
   
 <div align="right">  
-<img src="screenshots/list-demo-vs-firefox-xul.png" style="height:200px;margin: -40px 0" />
+<img src="screenshots/list-demo-vs-firefox-xul.png" width="50%" style="margin-bottom: -40px"/>
 </div>
 
 **高DPI支持**
@@ -78,7 +78,7 @@ C++轻量级GUI库
   - 没错! 即便是轻量级还是支持了Accessible!
 
 <div align="right">  
-<img src="screenshots/accessible-with-inspect.png" style="height:200px;margin-bottom: -40px" />
+<img src="screenshots/accessible-with-inspect.png" width="50%" style="margin-bottom: -40px" />
 </div>
 
 **硬件加速支持**
@@ -87,7 +87,7 @@ C++轻量级GUI库
   - 支持硬件加速的分层(允许透明)窗口(需要Win8.1以及以上)
 
 <div align="right">  
-<img src="screenshots/layered-window.png" style="height:200px;margin-bottom: -150px" />
+<img src="screenshots/layered-window.png" width="40%" style="margin-bottom: -50px" />
 </div>
   
 ## License
