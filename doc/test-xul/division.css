@@ -28,14 +28,20 @@ richlistitem > label {
     font-size: 25px;
     background-color: #5555;
     text-align: center;
-    margin: 1px;
     padding: 10px;
+    margin: 1px;
+    margin-left: 20px;
 }
 
 richlistitem:hover > label,
 richlistitem:selected > label
 {
     background-color: #ff8000bb;
+}
+
+richlistitem:selected > label
+{
+    margin-left: 0px;
 }
 
 /* richlistitem:hover > image, */

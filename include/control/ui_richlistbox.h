@@ -43,8 +43,10 @@ namespace LongUI {
         UIRichListBox(UIControl* parent = nullptr) noexcept : UIRichListBox(parent, UIRichListBox::s_meta) {}
         // do event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
-        // select item
-        void SelectItem(UIRichListItem* item) noexcept;
+        // get now selected
+        auto GetSelected() const noexcept { return m_pSelectedItem; };
+        // select item, null to clear selected
+        void SelectItem(UIRichListItem* item =nullptr) noexcept;
         // item detach
         void ItemDetached(UIRichListItem& item) noexcept;
     protected:
