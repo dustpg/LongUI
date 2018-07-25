@@ -578,7 +578,7 @@ namespace LongUI { namespace impl {
         };
         // 判断有效性
         const auto av = is_valid(a);
-        const auto bv = is_valid(a);
+        const auto bv = is_valid(b);
         // 都无效
         if (!av && !bv) return;
         // 合并矩形

@@ -581,7 +581,7 @@ namespace LongUI {
             assert(next_selector && "bad selector");
             now_ctrl = &ctrl;
             // A   B 子孙节点
-            if (!now_ctrl->IsTopLevel()) {
+            while (!now_ctrl->IsTopLevel()) {
                 const auto parent = now_ctrl->GetParent();
                 // 有戏: 递归匹配
                 if (LongUI::MatchSelector(*parent, *next_selector, out))
