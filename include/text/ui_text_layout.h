@@ -9,8 +9,8 @@
 namespace LongUI {
     // color
     struct ColorF;
-    // text arg
-    struct TextArg;
+    // text font
+    struct TextFont;
     // static text layout
     class CUITextLayout : public CUINoMo {
         // set text
@@ -28,7 +28,7 @@ namespace LongUI {
         ) const noexcept;
     public:
         // set font data
-        auto SetFont(const FontArg& arg, const wchar_t* str, size_t len) noexcept->Result;
+        auto SetFont(const TextFont& arg, const wchar_t* str, size_t len) noexcept->Result;
         // set text
         auto SetText(const wchar_t* str, size_t len) noexcept->Result;
         // resize

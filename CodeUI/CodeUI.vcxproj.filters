@@ -512,6 +512,9 @@
     <ClCompile Include="..\src\core\ui_window_event.cpp">
       <Filter>source\core</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\control\ui_richlist.cpp">
+      <Filter>source\control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1079,6 +1082,12 @@
     </ClInclude>
     <ClInclude Include="..\include\core\ui_window_event.h">
       <Filter>header\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_richlistitem.h">
+      <Filter>header\control</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\control\ui_richlistbox.h">
+      <Filter>header\control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

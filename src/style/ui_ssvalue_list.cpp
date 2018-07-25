@@ -210,6 +210,11 @@ void LongUI::ValueTypeMakeValue(
         assert(value_len == 1 && "unsupported");
         detail::attribute(ssv.data4.byte, detail::parse_timingfunc(U8(values[0])));
         break;
+    case ValueType::Type_TextAlign:
+        // [TEXT ALIGN]
+        assert(value_len == 1 && "unsupported");
+        detail::attribute(ssv.data4.byte, TFAttrParser::TextAlign(U8(values[0])));
+        break;
     case ValueType::Type_FontStyle:
         // [FontStyle]
         //   -- font-size
@@ -442,6 +447,9 @@ auto LongUI::U8View2ValueType(U8View view) noexcept -> ValueType {
     case 0xd8c9a893_ui32:
         // color
         return { ValueType::Type_TextColor };
+    case 0xa53a05fd_ui32:
+        // text-align
+        return { ValueType::Type_TextAlign };
     case 0xc7329a9b_ui32:
         // -webkit-text-stroke-width
         return { ValueType::Type_WKTextStrokeWidth };
@@ -547,6 +555,7 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BackgroundRepeat:
     case LongUI::ValueType::Type_BackgroundClip:
     case LongUI::ValueType::Type_BackgroundOrigin:
+    case LongUI::ValueType::Type_TextAlign:
     case LongUI::ValueType::Type_FontStyle:
     case LongUI::ValueType::Type_FontStretch:
     case LongUI::ValueType::Type_FontWeight:
@@ -596,43 +605,43 @@ namespace LongUI {
         switch (bkdr)
         {
         case 0x2694fd9a_ui32:
-            // active
+            // :active
             pc.yes.active = true;
             break;
         case 0x091a155f_ui32:
-            // checked
+            // :checked
             pc.yes.checked = true;
             break;
         case 0xdf345f61_ui32:
-            // default
+            // :default
             pc.yes.default5 = true;
             break;
         case 0x715f1adc_ui32:
-            // disabled
+            // :disabled
             pc.yes.disabled = true;
             break;
         case 0xd3d78067_ui32:
-            // enabled
+            // :enabled
             pc.noo.disabled = true;
             break;
         case 0x0d707348_ui32:
-            // focus
+            // :focus
             pc.yes.focus = true;
             break;
         case 0x3090d164_ui32:
-            // hover
+            // :hover
             pc.yes.hover = true;
             break;
         case 0xc42c9ea7_ui32:
-            // indeterminate
+            // :indeterminate
             pc.yes.indeterminate = true;
             break;
         case 0x03481b1f_ui32:
-            // selected
+            // :selected
             pc.yes.selected = true;
             break;
         case 0xbaf00ef8_ui32:
-            // closed
+            // :closed
             pc.yes.closed = true;
             break;
         //case 0x5f149358_ui32:

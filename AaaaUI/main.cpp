@@ -1,5 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (16)
+#define CASE_NUM (20)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
@@ -112,8 +112,12 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
         //const auto ptr2 = LongUI::NormalRealloc(ptr1, 2048);
         //LongUI::NormalFree(ptr2);
         {
-            LongUI::UIViewport viewport1;
-            viewport1.RefWindow().SetClearColor({ 1,1,1,1 });
+            LongUI::UIViewport viewport1{
+                nullptr,
+                LongUI::CUIWindow::Config_Default
+                | LongUI::CUIWindow::Config_LayeredWindow
+            };
+            viewport1.RefWindow().SetClearColor({ 1,1,1,0.0 });
 #if 1
             main_inited(viewport1, CASE_NUM);
             /*viewport1.AddSpacer({ 100, 100 }, 1);
@@ -578,6 +582,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         loadfile("../doc/test-xul/menubar.xul");
         viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         break;
+    case 20:
+        loadfile("../doc/test-xul/division.xul");
+        viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
+        break;
     }
 
 
@@ -610,6 +618,10 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
 void object_test() noexcept {
     LongUI::CUIStringEx c = L"壕";
     LongUI::CUIString aaaa;
+    LongUI::POD::Vector<const char*> aasaa;
+    aasaa.push_back("asd");
+    aasaa.push_back("asd");
+    aasaa.push_back("asd");
 #ifdef LUI_NONPOD_VECTOR
     LongUI::NonPOD::Vector<LongUI::CUIStringEx> a, b;
     a.reserve(10);

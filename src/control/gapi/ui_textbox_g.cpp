@@ -1,11 +1,13 @@
-﻿// ui
+﻿// ctrl
+#include <luiconf.h>
+#include <control/ui_textbox.h>
+// ui
 #include <core/ui_manager.h>
 #include <text/ui_ctl_impl.h>
 #include <input/ui_kminput.h>
 #include <util/ui_ctordtor.h>
 #include <util/ui_clipboard.h>
 #include <core/ui_color_list.h>
-#include <control/ui_textbox.h>
 #include <graphics/ui_graphics_impl.h>
 
 // TextBC

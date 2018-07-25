@@ -16,6 +16,8 @@ namespace LongUI { namespace I {
 
 // ui
 namespace LongUI {
+    // ctl style text
+    struct StyleText;
     // ctl text arg
     struct TextArg;
     // ctl font arg

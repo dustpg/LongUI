@@ -102,8 +102,9 @@
   **grammar**
 
   0. Precedence
-  - no special precedence, post item will overwrite the previous item, inline style is "high-precedence"
-  - 没有特殊的优先级. 后项会覆盖前项, 内联样式拥有"最高优先级"
+  - post item will overwrite the previous item
+  - 后项会覆盖前项
+  - **TODO**: 目前由触发者(比如 A:hover > B) 是和其他分开计算的, 会导致互相覆盖. 如何处理. 待定.
 
   1. Selector
   - type selector: button
@@ -125,6 +126,6 @@
   - **css base:** :active :checked :default :disabled :enabled :focus :hover :indeterminate
   - **longui ex:** :selected :closed *and more*
   - **remarks**: pseudo-classes as state on LongUI, (state) animation based on this. 
-  - **limit**: one selector-chain has **zero or one** pseudo-class only 
+  - **limit**: one selector-chain has **zero or one** pseudo-class only. 
   - **注**: 伪类是作为状态存在于LongUI中的, (状态)动画是基于这个的实现的. 
-  - **限制**: 一条选择器链只有至多有一个伪类选择器.
+  - **限制**: 一条选择器链只有至多有一个伪类选择器. 

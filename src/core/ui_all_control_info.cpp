@@ -1,4 +1,6 @@
 ﻿#include <interface/ui_ctrlinfolist.h>
+#include <control/ui_richlistitem.h>
+#include <control/ui_richlistbox.h>
 #include <control/ui_radiogroup.h>
 #include <control/ui_listheader.h>
 #include <control/ui_boxlayout.h>
@@ -109,6 +111,10 @@ namespace LongUI {
         // 一般控件
         &UIControl::s_meta,
 
+        // Rich List Item - 富列表项目
+        &UIRichListItem::s_meta,
+        // Rich List Box - 富列表容器
+        &UIRichListBox::s_meta,
         // V Box Layout - 垂直箱型布局
         &UIVBoxLayout::s_meta,
         // H Box Layout - 水平箱型布局

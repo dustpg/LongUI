@@ -170,6 +170,8 @@ namespace LongUI {
         bool IsFirstChild() const noexcept;
         // is last child
         bool IsLastChild() const noexcept;
+        // is descendant or sibling
+        bool IsDescendantOrSiblingFor(const UIControl&) const noexcept;
         // set timer 0~3
         //void SetTimer0123(uint32_t id0123, uint32_t elapse) noexcept;
         // kill timer 0~3
@@ -338,18 +340,33 @@ namespace LongUI {
     private:
         // init
         auto init() noexcept->Result;
+        // remove triggered
+        void remove_triggered() noexcept;
         // setup init state
         void setup_init_state() noexcept;
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+        // make off init data
+        void make_off_initstate(UIControl* ,uint32_t, UniByte4[], UniByte8[]) const noexcept;
         // extra animation callback
-        void extra_animation_callback(StyleStateTypeChange, void*) noexcept;
-        // start animation change
-        bool start_animation_change(StyleStateTypeChange) noexcept;
-        // animation property filter
-        auto animation_property_filter(void*) noexcept -> uint32_t;
+        void extra_animation_callback(
+            StyleStateTypeChange changed, 
+            void* out_values, 
+            void* out_blocks
+        ) noexcept;
+        // extra animation callback
+        void extra_animation_callback(
+            UIControl& trigger,
+            const SSValues& values,
+            void* out_values,
+            bool set
+        ) noexcept;
         // link style sheet
         void link_style_sheet() noexcept;
-        // setup style values
-        void setup_style_values() noexcept;
+        // animation property filter
+        auto animation_property_filter(void*) noexcept->uint32_t;
+#endif
+        // start animation change
+        bool start_animation_change(StyleStateTypeChange) noexcept;
     protected:
         // apply world transform to renderer
         void apply_world_transform() const noexcept;

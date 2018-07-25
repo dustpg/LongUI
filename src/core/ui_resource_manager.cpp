@@ -9,6 +9,7 @@
 #include <debugger/ui_debug.h>
 #include <core/ui_manager.h>
 #include <core/ui_string.h>
+#include <style/ui_text.h>
 #include <core/ui_malloc.h>
 #include <util/ui_unicode_cast.h>
 // Effect
@@ -693,7 +694,7 @@ auto LongUI::CUIResMgr::create_bitmap_private(
 /// Gets the default font.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIResMgr::GetDefaultFont()const noexcept->const FontArg&{
+auto LongUI::CUIResMgr::GetDefaultFont()const noexcept->const FontArg& {
     return rm().defarg;
 }
 
@@ -742,8 +743,8 @@ PCN_NOINLINE
 /// <param name="arg">The argument.</param>
 /// <param name="font">The font.</param>
 /// <returns></returns>
-auto LongUI::CUIResMgr::CreateCtlFont(
-    const FontArg& arg, I::Font *& font) noexcept -> Result {
+auto LongUI::CUIResMgr::CreateCtlFont(const FontArg& arg, 
+    I::Font *& font, const StyleText* text) noexcept -> Result {
     // 使用默认的?
     assert(arg.family && "NOT IMPL");
     // 字体名称用缓冲区
@@ -773,21 +774,24 @@ auto LongUI::CUIResMgr::CreateCtlFont(
         // 设置自动换行
         tmp = { format->SetWordWrapping(DWRITE_WORD_WRAPPING_NO_WRAP) };
         longui_debug_hr(tmp, L"failed format->SetWordWrapping - NO_WRAP" );
-        // 设置 Tab宽度
-        //tmp = { format->SetIncrementalTabStop(arg.tab == 0.f ? arg.size * 4.f : arg.tab) };
-        //longui_debug_hr(tmp, L"failed format->SetIncrementalTabStop  " << arg.tab);
-        // 设置段落排列方向
-        /*tmp = format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(args.flow));
-        longui_debug_hr(tmp, L"failed format->SetFlowDirection  " << long(args.flow));
-        // 设置段落(垂直)对齐
-        tmp = format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(args.valign));
-        longui_debug_hr(tmp, L"failed format->SetParagraphAlignment  " << long(args.valign));
-        // 设置文本(水平)对齐
-        tmp = format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(args.halign));
-        longui_debug_hr(tmp, L"failed format->SetTextAlignmen  t" << long(args.halign));
-        // 设置阅读进行方向
-        tmp = format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(args.reading));
-        longui_debug_hr(tmp, L"failed format->SetReadingDirection  " << long(args.reading));*/
+        // 有效样式
+        if (text) {
+            // 设置 Tab宽度
+            //tmp = { format->SetIncrementalTabStop(arg.tab == 0.f ? arg.size * 4.f : arg.tab) };
+            //longui_debug_hr(tmp, L"failed format->SetIncrementalTabStop  " << arg.tab);
+            // 设置段落排列方向
+            //tmp = format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(args.flow));
+            //longui_debug_hr(tmp, L"failed format->SetFlowDirection  " << long(args.flow));
+            // 设置段落(垂直)对齐
+            //tmp = format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(args.valign));
+            //longui_debug_hr(tmp, L"failed format->SetParagraphAlignment  " << long(args.valign));
+            // 设置文本(水平)对齐
+            tmp = { format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(text->alignment)) };
+            longui_debug_hr(tmp, L"failed format->SetTextAlignmen  t" << long(text->alignment));
+            // 设置阅读进行方向
+            //tmp = format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(args.reading));
+            //longui_debug_hr(tmp, L"failed format->SetReadingDirection  " << long(args.reading));
+        }
         // 设置行高度
         const auto lh = LongUI::GetLineHeight(arg);
         const auto bl = lh * 0.85f;

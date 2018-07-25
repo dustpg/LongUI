@@ -70,6 +70,9 @@ struct LongUI::UIControlPrivate {
     // ref style matched value
     static auto&RefStyleMatched(UIControl& ctrl) noexcept {
         return ctrl.m_oStyle.matched; }
+    // ref style trigger
+    static auto&RefStyleTrigger(UIControl& ctrl) noexcept {
+        return ctrl.m_oStyle.trigger; }
 #endif
     // set parent data
     static auto SetParentData(UIControl& ctrl, uint32_t data) noexcept {

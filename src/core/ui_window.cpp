@@ -688,7 +688,6 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
     }
 }
 
-
 /// <summary>
 /// Controls the disattached.
 /// </summary>

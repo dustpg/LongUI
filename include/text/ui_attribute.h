@@ -6,6 +6,19 @@
 // ui namespace
 namespace LongUI{
     /// <summary>
+    /// text-align
+    /// </summary>
+    enum AttributeTextAlign : uint8_t {
+        TAlign_Start = 0,
+        TAlign_End,
+        TAlign_Center,
+        TAlign_Justified,
+        // ---------------
+        TAlign_Left = TAlign_Start,
+        TAlign_Right = TAlign_End,
+    };
+
+    /// <summary>
     /// font weight
     /// </summary>
     enum AttributeFontWeight : uint16_t {
@@ -137,5 +150,7 @@ namespace LongUI{
         static auto Weight(U8View) noexcept->AttributeFontWeight;
         // font stretch
         static auto Stretch(U8View) noexcept->AttributeFontStretch;
+        // Align
+        static auto TextAlign(U8View) noexcept->AttributeTextAlign;
     }; 
 }

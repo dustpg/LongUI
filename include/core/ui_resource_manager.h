@@ -82,7 +82,7 @@ namespace LongUI {
         static auto Ref2DFactory() noexcept ->int&;
     public:
         // create ctl font
-        auto CreateCtlFont(const FontArg&, I::Font*&) noexcept->Result;
+        auto CreateCtlFont(const FontArg&, I::Font*&, const StyleText*s=nullptr) noexcept->Result;
         // create ctl text
         auto CreateCtlText(const TextArg&, I::Text*&) noexcept->Result;
         // get default font data

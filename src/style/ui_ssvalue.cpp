@@ -14,6 +14,8 @@
 #include <xul/SimpAC.h>
 // c/c++
 #include <cstring>
+#include <algorithm>
+
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 
 // longui namespace
@@ -28,15 +30,49 @@ namespace LongUI {
         SSBlock(uint32_t len) noexcept;
         // dtor
         ~SSBlock() noexcept;
+        // match normal
+        void MatchNormal(UIControl& ctrl, const SSSelector&) const noexcept;
+        // add triggered
+        void AddTriggered(UIControl&) noexcept;
+        // add trigger
+        void AddTrigger(const UIControls&, const SSSelector&, bool& ) noexcept;
         // next block
         SSBlock*        next = nullptr;
         // seletor number
         uint32_t        main_len;
         // value list
         SSValues        list;
+        // triggered list
+        UIControls      triggered;
         // main seletors, at least one
         SSSelector      main[1];
     };
+    /// <summary>
+    /// Gets the values from block.
+    /// </summary>
+    /// <param name="id">The identifier.</param>
+    /// <returns></returns>
+    auto GetValuesFromBlock(uintptr_t id) noexcept ->const SSValues& {
+        const auto block = reinterpret_cast<const SSBlock*>(id);
+        return block->list;
+    }
+    /// <summary>
+    /// Gets the controls from block.
+    /// </summary>
+    /// <param name="id">The identifier.</param>
+    /// <returns></returns>
+    auto GetControlsFromBlock(uintptr_t id) noexcept ->const UIControls& {
+        assert((id & 1) == 0);
+        const auto block = reinterpret_cast<const SSBlock*>(id);
+        return block->triggered;
+    }
+    // remove triggered
+    void RemoveTriggered(uintptr_t id, UIControl& ctrl) noexcept {
+        assert((id & 1) == 0);
+        SSBlock& block = *reinterpret_cast<SSBlock*>(id);
+        auto& vector = block.triggered;
+        LongUI::RemovePointerItem(reinterpret_cast<PointerVector&>(vector), &ctrl);
+    }
     // block ptr
     using SSBlockPtr = SSBlock * ;
     // free blocks
@@ -342,6 +378,11 @@ LongUI::SSBlock::~SSBlock() noexcept {
             UIManager.ReleaseResourceRefCount(x.data4.u32);
         }
     }
+    // 释放被触发器
+    for (auto* const ctrl : this->triggered) {
+        // HACK: SSBlock释放的场合直接情况即可
+        UIControlPrivate::RefStyleTrigger(*ctrl).clear();
+    }
     // 释放选择器
     LongUI::FreeSelector(this->main, this->main_len);
 }
@@ -475,11 +516,17 @@ namespace LongUI {
     /// </summary>
     /// <param name="ctrl">The control.</param>
     /// <param name="selector">The selector.</param>
+    /// <param name="out">The out.</param>
     /// <returns></returns>
-    bool MatchSelector(UIControl& ctrl, const SSSelector& selector) noexcept {
+    bool MatchSelector(UIControl& ctrl, const SSSelector& selector, UIControls& out) noexcept {
         // 匹配基本选择器
         const auto result = detail::match_basic(ctrl, selector);
         if (!result) return false;
+        // 添加伪类
+        const auto yes = reinterpret_cast<const uint32_t&>(selector.pc.yes);
+        const auto noo = reinterpret_cast<const uint32_t&>(selector.pc.noo);
+        static_assert(sizeof(yes) == sizeof(selector.pc.yes), "same!");;
+        if (yes || noo) out.push_back(&ctrl);
         // 检测组合选择器
         const auto combin = selector.combinator;
         const auto next_selector = selector.next;
@@ -493,13 +540,13 @@ namespace LongUI {
             if (!ctrl.IsFirstChild()) {
                 auto& prev = UIControlPrivate::Prev(ctrl);
                 // 有戏: 递归匹配
-                if (LongUI::MatchSelector(prev, *next_selector)) return true;
+                if (LongUI::MatchSelector(prev, *next_selector, out)) return true;
             }
             // 检测后节点控件
             if (!ctrl.IsLastChild()) {
                 auto& next = UIControlPrivate::Next(ctrl);
                 // 有戏: 递归匹配, 最后一个就直接返回
-                return LongUI::MatchSelector(next, *next_selector);
+                return LongUI::MatchSelector(next, *next_selector, out);
             }
             // 没戏
             return false;
@@ -513,7 +560,7 @@ namespace LongUI {
                     // (除开本体)
                     if (&ctrl != &c) {
                         // 有戏: 递归匹配
-                        if (LongUI::MatchSelector(c, *next_selector)) 
+                        if (LongUI::MatchSelector(c, *next_selector, out))
                             return true;
                     }
                 }
@@ -526,7 +573,7 @@ namespace LongUI {
             if (!ctrl.IsTopLevel()) {
                 const auto parent = ctrl.GetParent();
                 // 有戏: 递归匹配, 最后一个就直接返回
-                return LongUI::MatchSelector(*parent, *next_selector);
+                return LongUI::MatchSelector(*parent, *next_selector, out);
             }
             // 没戏
             return false;
@@ -537,7 +584,7 @@ namespace LongUI {
             if (!now_ctrl->IsTopLevel()) {
                 const auto parent = now_ctrl->GetParent();
                 // 有戏: 递归匹配
-                if (LongUI::MatchSelector(*parent, *next_selector))
+                if (LongUI::MatchSelector(*parent, *next_selector, out))
                     return true;
                 now_ctrl = parent;
             }
@@ -546,6 +593,7 @@ namespace LongUI {
         }
         return true;
     }
+    // 
 }
 
 
@@ -576,6 +624,88 @@ bool LongUI::ParseInlineStlye(SSValues& values, U8View view) noexcept {
 }
 
 /// <summary>
+/// Adds the trigger.
+/// </summary>
+/// <param name="list">The list.</param>
+/// <param name="selector">The selector.</param>
+/// <param name="matched">The matched.</param>
+/// <returns></returns>
+void LongUI::SSBlock::AddTrigger(const UIControls& list, const SSSelector& selector, bool& matched) noexcept {
+    const StyleTrigger this_triggerr = {
+        reinterpret_cast<const uint32_t&>(selector.pc.yes),
+        reinterpret_cast<const uint32_t&>(selector.pc.noo),
+        reinterpret_cast<uintptr_t>(this)
+    };
+    for (auto* const ptr : list) {
+        auto& trigger = UIControlPrivate::RefStyleTrigger(*ptr);
+        const auto end_itr = trigger.end();
+        // XXX: 优化
+        if (std::find_if(trigger.begin(), end_itr, [=](const auto& x) noexcept {
+            return x.yes == this_triggerr.yes 
+                && x.noo == this_triggerr.noo 
+                && x.tid == this_triggerr.tid;
+        }) == end_itr) {
+            // 追加
+            trigger.push_back(this_triggerr);
+            // 当前匹配
+            const auto state = ptr->GetStyle().state;
+            const auto now = reinterpret_cast<const uint32_t&>(state);
+            if ((now & this_triggerr.yes) == this_triggerr.yes && (now & this_triggerr.noo) == 0) {
+                matched = true;
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Adds the triggered.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::SSBlock::AddTriggered(UIControl& ctrl) noexcept {
+    const StyleTrigger this_triggerr = { 
+        0, 0, reinterpret_cast<uintptr_t>(this) + 1
+    };
+    auto& trigger = UIControlPrivate::RefStyleTrigger(ctrl);
+    const auto end_itr = trigger.end();
+    // XXX: 优化
+    if (std::find_if(trigger.begin(), end_itr, [=](const auto& x) noexcept {
+        return x.tid == this_triggerr.tid;
+    }) == end_itr) {
+        trigger.push_back(this_triggerr);
+        this->triggered.push_back(&ctrl);
+    }
+
+}
+
+/// <summary>
+/// Matches the normal.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="sel">The sel.</param>
+/// <returns></returns>
+void LongUI::SSBlock::MatchNormal(UIControl& ctrl, const SSSelector& sel) const noexcept {
+    auto& matched = UIControlPrivate::RefStyleMatched(ctrl);
+    const auto& src = this->list;
+    const auto index = matched.size();
+    const auto src_len = src.size();
+    matched.reserve(16);
+    matched.resize(index + src_len + 1);
+    // 确定
+    if (matched.is_ok()) {
+        const auto ptr = &matched.front() + index;
+        // 0: 标记起始点与长度伪类的状态(包括这个, 也就是喜+1)
+        auto& pcl = reinterpret_cast<SSValuePCL&>(ptr[0]);
+        pcl.type = ValueType::Type_NewOne;
+        pcl.length = static_cast<uint32_t>(src_len) + 1;
+        pcl.yes = sel.pc.yes;
+        pcl.noo = sel.pc.noo;
+        // [1, end)
+        std::memcpy(ptr + 1, &src.front(), src_len * sizeof(SSValue));
+    }
+}
+
+/// <summary>
 /// Matches the style sheet.
 /// </summary>
 /// <param name="ctrl">The control.</param>
@@ -587,35 +717,68 @@ void LongUI::MatchStyleSheet(UIControl& ctrl, CUIStyleSheet* ptr) noexcept {
     CUITimeMeterH dbg_meter;
     dbg_meter.Start();
 #endif
+    const auto stylep = UIManager.GetStyleCachedControlList();
+    auto& controls = *reinterpret_cast<UIControls*>(stylep);
     auto block = reinterpret_cast<SSBlock*>(ptr);
     while (block) {
         // 遍历BLOCK中所有主选择器
         const auto len = block->main_len;
+        UIControl* block_push_triggered = nullptr;
+        bool matched = false;
         for (uint32_t i = 0; i != len ; ++i) {
             const auto& this_main = block->main[i];
+            controls.clear();
             // 匹配成功: 添加属性
-            if (LongUI::MatchSelector(ctrl, this_main)) {
-                auto& matched = UIControlPrivate::RefStyleMatched(ctrl);
-                const auto& src = block->list;
-                const auto index = matched.size();
-                const auto src_len = src.size();
-                matched.reserve(16);
-                matched.resize(index + src_len + 1);
-                // 确定
-                if (matched.is_ok()) {
-                    const auto ptr = &matched.front() + index;
-                    // 0: 标记起始点与长度伪类的状态(包括这个, 也就是喜+1)
-                    auto& pcl = reinterpret_cast<SSValuePCL&>(ptr[0]);
-                    pcl.type = ValueType::Type_NewOne;
-                    pcl.length = static_cast<uint32_t>(src_len) + 1;
-                    pcl.yes = this_main.pc.yes;
-                    pcl.noo = this_main.pc.noo;
-                    // [1, end)
-                    std::memcpy(ptr + 1, &src.front(), src_len * sizeof(SSValue));
+            if (LongUI::MatchSelector(ctrl, this_main, controls)) {
+                // 匹配到触发器
+                if (!controls.empty() && controls[0] != &ctrl) {
+                    const auto next_ok = [](const SSSelector* s) noexcept {
+                        while (true) {
+                            const auto a = reinterpret_cast<const uint32_t&>(s->pc.yes);
+                            const auto b = reinterpret_cast<const uint32_t&>(s->pc.noo);
+                            if (a || b) break;
+                            s = s->next;
+                        }
+                        return s;
+                    };
+                    block->AddTrigger(controls, *next_ok(&this_main), matched);
+                    block_push_triggered = &ctrl;
                 }
-                break;
+                // 匹配到一般规则
+                else {
+#ifndef NDEBUG
+                    if (controls.size() > 1) {
+                        LUIDebug(Error)
+                            << "Pseudo-classes supported but only one in chain"
+                            << endl;
+                    }
+#endif // !NDEBUG
+                    block->MatchNormal(ctrl, this_main);
+                    // 处理匹配
+                    const auto state = ctrl.GetStyle().state;
+                    const auto now = reinterpret_cast<const uint32_t&>(state);
+                    const auto yes = reinterpret_cast<const uint32_t&>(this_main.pc.yes);
+                    const auto noo = reinterpret_cast<const uint32_t&>(this_main.pc.noo);
+                    if ((now & yes) == yes && (now & noo) == 0) matched = true;
+                }
+                //break;
             }
         }
+        // 初始化
+        UIControl* setup_value = nullptr;
+        // 添加被触发者
+        if (block_push_triggered) {
+            block->AddTriggered(*block_push_triggered);
+            if (matched) setup_value = block_push_triggered;
+        }
+        // 正常触发
+        else {
+            // 当前匹配
+            if (matched) setup_value = &ctrl;
+        }
+        // 这里初始化状态
+        if (setup_value) for (const auto& value : block->list)
+            setup_value->ApplyValue(value);
         // 推进
         block = block->next;
     }

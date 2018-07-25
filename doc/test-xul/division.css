@@ -1,0 +1,45 @@
+listcell {
+    text-align:center;
+}
+
+richlistitem {
+    background-color: transparent;
+}
+
+
+richlistitem > image {
+    height: 4px;
+}
+
+richlistitem > spacer {
+    height: 2px;
+}
+
+richlistbox > spacer {
+    height: 6px;
+}
+
+richlistitem > * {
+    transition-duration: 200ms;
+}
+
+richlistitem > label {
+    color: white;
+    font-size: 25px;
+    background-color: #5555;
+    text-align: center;
+    margin: 1px;
+    padding: 10px;
+}
+
+richlistitem:hover > label,
+richlistitem:selected > label
+{
+    background-color: #ff8000bb;
+}
+
+/* richlistitem:hover > image, */
+richlistitem:selected > image
+{
+    background-color: #ff8000;
+}

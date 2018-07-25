@@ -251,7 +251,7 @@ void LongUI::UILabel::reset_font() noexcept {
     // TODO: 错误检查
 
     // 设置初始化数据
-    m_text.SetFont(m_tfBuffer.font, m_string.c_str(), m_string.length());
+    m_text.SetFont(m_tfBuffer, m_string.c_str(), m_string.length());
     // 设置基本属性
     this->after_set_text();
 }

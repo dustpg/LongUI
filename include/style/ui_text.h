@@ -9,13 +9,13 @@ namespace LongUI {
     // style.text
     struct StyleText {
         // [display]text color
-        ColorF          color;
+        ColorF              color;
         // [display]text stroke color
-        ColorF          stroke_color;
+        ColorF              stroke_color;
         // [display]text stroke width
-        float           stroke_width;
-        // text unused float32
-        float           text_unused;
+        float               stroke_width;
+        // [layout] text alignment
+        AttributeTextAlign  alignment;
         // text crop
 
     };

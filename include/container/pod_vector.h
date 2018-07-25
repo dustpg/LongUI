@@ -129,6 +129,8 @@ namespace LongUI { namespace POD {
             void assign(size_type n, const char* data) noexcept;
             // push back
             void push_back(const char*) noexcept;
+            // push back pointer
+            void push_back_ptr(const char*) noexcept;
             // swap another object
             void swap(vector_base& x) noexcept;
             // begin pointer
@@ -337,6 +339,13 @@ namespace LongUI { namespace POD {
         // buffer ctor
         template<typename EX>
         Vector(size_type /*ali*/, EX ex) noexcept: vector_base(sizeof(T), ex) {}
+        // pushback pointer
+        template<size_t S> void push_back_helper(const T& x) noexcept {
+            vector_base::push_back(tr(&x)); }
+        // pushback pointer
+        template<> void push_back_helper<sizeof(void*)>(const T& x) noexcept {
+            union { T d; const char* ptr; }; d = x;
+            vector_base::push_back_ptr(ptr); }
     public:
         // iterator
         using iterator = detail::base_iterator<Vector, T*>;
@@ -401,7 +410,7 @@ namespace LongUI { namespace POD {
         // assign data
         void assign(std::initializer_list<T> list) noexcept { assign(list.begin(), list.end()); }
         // push back
-        void push_back(const T& x) noexcept { vector_base::push_back(tr(&x)); }
+        void push_back(const T& x) noexcept { this->push_back_helper<sizeof(T)>(x); }
         // begin iterator
         auto begin() noexcept -> iterator { return{ *this, reinterpret_cast<T*>(vector_base::begin()) }; }
         // end iterator

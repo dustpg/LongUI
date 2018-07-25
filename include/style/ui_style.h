@@ -104,6 +104,8 @@ namespace LongUI {
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         // value list matched
         SSValues            matched;
+        // trigger
+        SSTrigger           trigger;
 #endif
     };
 }

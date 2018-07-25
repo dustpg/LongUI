@@ -1,12 +1,13 @@
 ﻿#pragma once
 
+// Util
+#include "../luiconf.h"
+#include "../util/ui_endian.h"
+#include "../util/ui_unimacro.h"
 // C++
 #include <cstdint>
 #include <cstring>
 #include <cwchar>
-// Util
-#include "../util/ui_endian.h"
-#include "../util/ui_unimacro.h"
 
 
 namespace LongUI {
@@ -61,6 +62,10 @@ namespace LongUI {
         operator double() const noexcept;
         // to int32_t
         operator int32_t() const noexcept;
+        // operator==
+        bool operator==(const PodStringView x) const noexcept {
+            return size() == x.size() && !std::memcmp(begin(), x.begin(), size() * sizeof(T));
+        }
         // to bool
         bool ToBool() noexcept { return *begin() == 't'; }
         // to float

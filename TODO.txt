@@ -16,6 +16,8 @@ Event_Initialize 时构造对象?
 
 Timer
 
+缓存字体TextFormat? 修改text-align就要创建一个新的字体.
+
 图片动画?
 
 赋予原子控件真正的意义
@@ -43,8 +45,6 @@ CSS针对文件的缓存?避免多次解析?
 CSS支持完善?
 
 LUI_VECTOR_SIZE_USE_UINT32 让这个宏有用
-
-POD Vector针对指针大小的优化?
 
 hash_base::find 优化
 

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="division.css" type="text/css"?>
+
+<window title="XUL Test"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<spacer flex="1"/>
+<hbox flex="1">
+  <spacer flex="1"/>
+  <richlistbox flex="2">
+    <richlistitem orient="vertical">
+      <image/>
+      <spacer/>
+      <label value="操控"/>
+    </richlistitem>
+    <spacer/>
+    <richlistitem orient="vertical">
+      <image/>
+      <spacer/>
+      <label value="按键配置"/>
+    </richlistitem>
+    <spacer/>
+    <richlistitem orient="vertical">
+      <image/>
+      <spacer/>
+      <label value="显示"/>
+    </richlistitem>
+    <spacer/>
+    <richlistitem orient="vertical">
+      <image/>
+      <spacer/>
+      <label value="影像"/>
+    </richlistitem>
+  </richlistbox>
+  <spacer flex="1"/>
+</hbox>
+<spacer flex="1"/>
+
+
+</window>

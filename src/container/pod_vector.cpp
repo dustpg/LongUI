@@ -307,12 +307,30 @@ void LongUI::POD::detail::vector_base::push_back(const char* data) noexcept {
     }
     // 写入数据
     const auto write_ptr = m_pData + m_uByteLen * m_uVecLen;
-    // 对于指针大小的手动优化
-    if (m_uByteLen == sizeof(void*))
-        std::memcpy(write_ptr, data, sizeof(void*));
-    // 其他情况
-    else
-        std::memcpy(write_ptr, data, m_uByteLen);
+    std::memcpy(write_ptr, data, m_uByteLen);
+    // 增加了
+    ++m_uVecLen;
+    assert(size() <= max_size());
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Pushes the back PTR.
+/// </summary>
+/// <param name="ptr">The PTR.</param>
+/// <returns></returns>
+void LongUI::POD::detail::vector_base::push_back_ptr(const char* ptr) noexcept {
+    assert(m_uByteLen == sizeof(void*) && "m_uByteLen cannot be ptr");
+    // 重新申请空间
+    if (m_uVecLen == m_uVecCap) {
+        // 分配策略: 在reserve中实现
+        this->reserve(m_uVecLen + 1);
+        // 内存不足
+        if (!is_ok()) return;
+    }
+    // 写入数据
+    const auto write_ptr = m_pData + m_uByteLen * m_uVecLen;
+    reinterpret_cast<const char**>(write_ptr)[0] = ptr;
     // 增加了
     ++m_uVecLen;
     assert(size() <= max_size());

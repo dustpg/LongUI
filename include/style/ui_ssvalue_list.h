@@ -108,6 +108,8 @@ namespace LongUI {
 
         // [Text] color
         Type_TextColor,
+        // [Text] align
+        Type_TextAlign,
         // [-Webkit-Text] stroke-width
         Type_WKTextStrokeWidth,
         // [-Webkit-Text] stroke-color

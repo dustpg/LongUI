@@ -9,6 +9,8 @@
 #include <event/ui_initialize_event.h>
 #include "../private/ui_private_control.h"
 
+#include <util/ui_little_math.h>
+
 #include <graphics/ui_bd_renderer.h>
 #include <graphics/ui_bg_renderer.h>
 
@@ -17,6 +19,8 @@
 
 // ui namespace
 namespace LongUI {
+    // remove
+    void RemoveTriggered(uintptr_t id, UIControl& ctrl) noexcept;
     // 视口?
     bool IsViewport(const UIControl&) noexcept;
     // 添加视口
@@ -141,6 +145,19 @@ bool LongUI::UIControl::IsFirstChild() const noexcept {
 /// <returns></returns>
 bool LongUI::UIControl::IsLastChild() const noexcept {
     return this->next->next == nullptr;
+}
+
+/// <summary>
+/// Determines whether [is descendant or sibling for] [the specified control].
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+bool LongUI::UIControl::IsDescendantOrSiblingFor(const UIControl& ctrl) const noexcept {
+    if (ctrl.GetParent() == this->GetParent()) return true;
+    auto ptr = this;
+    while (ptr->GetLevel() > ctrl.GetLevel())
+        ptr = ptr->GetParent();
+    return ptr == &ctrl;
 }
 
 /// <summary>
@@ -399,6 +416,18 @@ void LongUI::UIControl::setup_init_state() noexcept {
             this->SetFgColor({ color });
         }
     }
+}
+
+/// <summary>
+/// Removes the triggered.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::remove_triggered() noexcept {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    for (const auto& x : m_oStyle.trigger) {
+        if (x.tid & 1) LongUI::RemoveTriggered(x.tid - 1, *this);
+    }
+#endif
 }
 
 /// <summary>
@@ -1036,6 +1065,8 @@ LongUI::UIControl::~UIControl() noexcept {
     //    this->KillTimer0123(2);
     //    this->KillTimer0123(3);
     //}
+    // 移除被触发列表
+    this->remove_triggered();
     // 移除高层引用
     UIManager.ControlDisattached(*this);
     // 移除窗口引用
@@ -1440,6 +1471,8 @@ void LongUI::UIControl::link_style_sheet() noexcept {
         return;
 #endif // !NDEBUG
     auto& style_matched = m_oStyle.matched;
+    // 移除被触发列表
+    this->remove_triggered();
     // 最高支持32(默认)枚内联样式
     LongUI::DEFAULT_CONTROL_MAX_SIZE;
     SSValue vbuf[SMALL_BUFFER_LENGTH]; uint32_t inline_size = 0;
@@ -1492,55 +1525,12 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     }
     // 处理内联样式
     if (inline_size) {
+        // 适应内联数据
+        for (uint32_t i = 0; i != inline_size; ++i) this->ApplyValue(vbuf[i]);
         style_matched.insert(style_matched.end(), vbuf, vbuf + inline_size);
     }
-    // 第一次设置
-    this->setup_style_values();
 }
 
-
-/// <summary>
-/// Setups the style values.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::setup_style_values() noexcept {
-    // 基础继承
-    const auto& list = m_oStyle.matched;
-    for (auto itr = list.begin(); itr != list.end();) {
-        // 必须是START
-        assert((*itr).type == ValueType::Type_NewOne);
-        auto& pcl = reinterpret_cast<const SSValuePCL&>(*itr);
-        // 检测长度 
-        const auto len = pcl.length; assert(len > 1 && "bad size");
-        // 匹配状态
-        static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
-        const auto now = reinterpret_cast<const uint32_t&>(m_oStyle.state);
-        const auto yes = reinterpret_cast<const uint32_t&>(pcl.yes);
-        const auto noo = reinterpret_cast<const uint32_t&>(pcl.noo);
-        /*
-            YES:
-                0001  &  0010  -> 0000   X
-                0011  &  0010  -> 0010   O
-                0001  &  0011  -> 0001   X
-            NOO:
-                0001  &  0010  -> 0000   O
-                0011  &  0010  -> 0010   X
-                0001  &  0011  -> 0001   X
-
-        */
-        if ((now & yes) == yes && (now & noo) == 0) {
-            // 遍历状态
-            const auto end_itr = itr + len;
-            auto being_itr = itr + 1;
-            for (; being_itr != end_itr; ++being_itr) {
-                this->ApplyValue(*being_itr);
-            }
-        }
-        // 递进
-        itr += len;
-    }
-    // 内联样式
-}
 
 #endif
 
@@ -1613,6 +1603,11 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->mark_window_minsize_changed();
         break;
     case ValueType::Type_DimensionMaxWidth:
+        //if (detail::is_percent_value(value.data4.single)) {
+        //    auto p = detail::get_percent_value(value.data4.single);
+        //    if (m_pParent) p *= m_pParent->GetSize().width;
+        //    detail::write_value(m_oStyle.maxsize.width, p);
+        //}
         detail::write_value(m_oStyle.maxsize.width, value.data4.single);
         if (m_pParent) m_pParent->NeedRelayout();
         break;
@@ -1668,6 +1663,9 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         break;
     case ValueType::Type_TextColor:
         this->SetFgColor({ value.data4.u32 });
+        break;
+    case ValueType::Type_TextAlign:
+        this->SetTextAlign(detail::same_cast<AttributeTextAlign>(value.data4.byte));
         break;
     case ValueType::Type_WKTextStrokeWidth:
         this->SetTextStrokeWidth({ value.data4.single });
@@ -1777,6 +1775,8 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         detail::write_value(value.data4.single, m_oStyle.minsize.height);
         break;
     case ValueType::Type_DimensionMaxWidth:
+        //detail::write_value(value.data4.single, detail::mark_percent_from1(
+            //m_oStyle.maxsize.width / m_pParent->GetSize().width));
         detail::write_value(value.data4.single, m_oStyle.maxsize.width);
         break;
     case ValueType::Type_DimensionMaxHeight:
@@ -1829,6 +1829,9 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         break;
     case ValueType::Type_TextColor:
         detail::write_value(value.data4.u32, this->GetFgColor().primitive);
+        break;
+    case ValueType::Type_TextAlign:
+        detail::write_value(value.data4.byte, this->GetTextAlign());
         break;
     case ValueType::Type_WKTextStrokeWidth:
         detail::write_value(value.data4.single, this->GetTextStrokeWidth());

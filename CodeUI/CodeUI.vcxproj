@@ -184,6 +184,7 @@
     <ClCompile Include="..\src\control\ui_menulist.cpp" />
     <ClCompile Include="..\src\control\ui_progress.cpp" />
     <ClCompile Include="..\src\control\ui_radio.cpp" />
+    <ClCompile Include="..\src\control\ui_richlist.cpp" />
     <ClCompile Include="..\src\control\ui_scale.cpp" />
     <ClCompile Include="..\src\control\ui_scrollarea.cpp" />
     <ClCompile Include="..\src\control\ui_scrollbar.cpp" />
@@ -332,6 +333,8 @@
     <ClInclude Include="..\include\control\ui_progress.h" />
     <ClInclude Include="..\include\control\ui_radio.h" />
     <ClInclude Include="..\include\control\ui_radiogroup.h" />
+    <ClInclude Include="..\include\control\ui_richlistbox.h" />
+    <ClInclude Include="..\include\control\ui_richlistitem.h" />
     <ClInclude Include="..\include\control\ui_scale.h" />
     <ClInclude Include="..\include\control\ui_scrollarea.h" />
     <ClInclude Include="..\include\control\ui_scrollbar.h" />

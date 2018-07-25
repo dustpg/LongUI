@@ -32,6 +32,10 @@ namespace LongUI {
     auto MakeStyleSheet(U8View view, SSPtr old) noexcept->SSPtr;
     // make style sheet
     auto MakeStyleSheetFromFile(U8View view, SSPtr old) noexcept->SSPtr;
+    // get data from block
+    auto GetValuesFromBlock(uintptr_t id) noexcept ->const SSValues&;
+    // get data from block
+    auto GetControlsFromBlock(uintptr_t id) noexcept ->const UIControls&;
 #endif
 }
 
@@ -57,6 +61,8 @@ struct LongUI::PrivateCC {
     POD::Vector<UIControl*> next_update;
     // init list
     POD::Vector<UIControl*> init_list;
+    // style cache
+    POD::Vector<UIControl*> style_cache;
     // animation list
     POD::Vector<BasicAnima> basic_anima;
     // dirty update
@@ -713,8 +719,19 @@ void LongUI::CUIControlControl::update_extra_animation(uint32_t delta)noexcept {
     }
     // 长度过长则需要手动删除
     if (animations.size() > 100) {
-        assert(!"NOTIMPL");
-        //return;
+        const auto bgn_itr = animations.begin();
+        const auto itr = std::remove_if(bgn_itr, animations.end(), [](const auto&x) noexcept {
+            return x.ctrl == nullptr;
+        });
+        const auto len = itr - bgn_itr;
+#ifndef NDEBUG
+        LUIDebug(Hint)
+            << "ex-animation list shrink resize to: "
+            << int(len)
+            << endl;
+#endif // !NDEBUG
+        animations.shrink_resize(len);
+        return;
     }
     // HINT: 一帧最多删一个, 但是这里多了手动删除(?)
     if (!animations.back().ctrl) animations.pop_back();
@@ -794,28 +811,118 @@ void LongUI::CUIControlControl::StartBasicAnimation(
 
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
+
+
+/// <summary>
+/// Gets the style cached control list.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIControlControl::GetStyleCachedControlList() noexcept -> void * {
+    return &cc().style_cache;
+}
+
+/// <summary>
+/// Makes the off initstate.
+/// </summary>
+/// <param name="trigger">The trigger.</param>
+/// <param name="state">The state.</param>
+/// <param name="buf4">The buf4.</param>
+/// <param name="buf8">The buf8.</param>
+/// <returns></returns>
+void LongUI::UIControl::make_off_initstate(
+    UIControl* trigger,
+    uint32_t state, UniByte4 buf4[], UniByte8 buf8[]) const noexcept {
+    // 判断
+    const auto& matched = m_oStyle.matched;
+    // 判断匹配规则
+    for (auto itr = matched.begin(); itr != matched.end();) {
+        // 必须是START
+        assert((*itr).type == ValueType::Type_NewOne);
+        auto& pcl = reinterpret_cast<const SSValuePCL&>(itr[0]);
+        static_assert(sizeof(itr[0]) == sizeof(pcl), "must be same!");
+        // 检测长度 
+        const auto len = pcl.length; assert(len > 1 && "bad size");
+        // 匹配状态
+        static_assert(sizeof(StyleState) == sizeof(uint32_t), "must be same");
+        const auto yes = reinterpret_cast<const uint32_t&>(pcl.yes);
+        const auto noo = reinterpret_cast<const uint32_t&>(pcl.noo);
+        const auto matched = (state & yes) == yes && (state & noo) == 0;
+        // 额外计算
+        if (matched) {
+            // 遍历状态
+            const auto end_itr = itr + len;
+            auto being_itr = itr + 1;
+            for (; being_itr != end_itr; ++being_itr) {
+                const auto index = static_cast<uint32_t>((*being_itr).type);
+                buf4[index] = (*being_itr).data4;
+                buf8[index] = (*being_itr).data8;
+            }
+        }
+        // 递进
+        itr += len;
+    }
+
+    // 是被触发者
+    if (trigger) {
+        // FIXME: 三层？
+        for (const auto& x : m_oStyle.trigger) {
+            if (x.tid & 1 == 0) continue;
+            for (const auto& y : trigger->m_oStyle.trigger) {
+                if (y.tid != x.tid - 1) continue;
+                const auto now = reinterpret_cast<const uint32_t&>(trigger->m_oStyle.state);
+                const uint32_t yes = y.yes;
+                const uint32_t noo = y.noo;
+                const auto matched = (now & yes) == yes && (now & noo) == 0;
+                if (!matched) continue;
+                const auto list = LongUI::GetValuesFromBlock(y.tid);
+                for (const auto& z : list) {
+                    const auto index = static_cast<uint32_t>(z.type);
+                    buf4[index] = z.data4;
+                    buf8[index] = z.data8;
+                }
+            }
+        }
+    }
+}
+
 /// <summary>
 /// Extras the animation callback.
 /// </summary>
 /// <param name="change">The change.</param>
 /// <param name="ptr">The PTR.</param>
+/// <param name="blocks">The blocks.</param>
 /// <returns></returns>
 void LongUI::UIControl::extra_animation_callback(
-    StyleStateTypeChange change, void * ptr) noexcept {
+    StyleStateTypeChange change, 
+    void* ptr, 
+    void* blocks) noexcept {
     // 检测参数有效性
     assert(ptr && "bad ptr");
     auto& vector = *reinterpret_cast<POD::Vector<SSFromTo>*>(ptr);
     assert(vector.empty() && "not empty");
     // 判断
     const auto& matched = m_oStyle.matched;
-    // 上层必须保证matched不为空
-    assert(matched.size() && "cannot be zero");
     // 检测状态
     const auto from_state = m_oStyle.state;
     // 没变就算了
     if (!this->start_animation_change(change)) return;
     // 记录目标状态
     const auto to_state = m_oStyle.state;
+    // 触发器
+    for (const auto& x : m_oStyle.trigger) {
+        if (x.tid & 1) continue;
+        const auto now = reinterpret_cast<const uint32_t&>(from_state);
+        const auto too = reinterpret_cast<const uint32_t&>(to_state);
+        const auto yes = reinterpret_cast<const uint32_t&>(x.yes);
+        const auto noo = reinterpret_cast<const uint32_t&>(x.noo);
+        const auto matched1 = (now & yes) == yes && (now & noo) == 0;
+        const auto matched2 = (too & yes) == yes && (too & noo) == 0;
+        if (matched1 != matched2) {
+            reinterpret_cast<POD::Vector<uintptr_t>*>(blocks)->push_back(x.tid + matched2);
+        }
+    }
+    // 修改的不为空
+    if (matched.empty()) return;
     // 状态缓冲池
     constexpr auto LAST = static_cast<int>(ValueType::SINGLE_LAST) ;
     UniByte4 state_buf[LAST + 1];
@@ -828,6 +935,11 @@ void LongUI::UIControl::extra_animation_callback(
     bool writen_buf = false;
     // 优化flag
     bool need_state_buf = false;
+    // OFF SET
+    if (!change.change) {
+        const auto now = reinterpret_cast<const uint32_t&>(to_state);
+        this->make_off_initstate(nullptr, now, state_buf, state_buf_ex);
+    }
     // 判断匹配规则
     for (auto itr = matched.begin(); itr != matched.end();) {
         // 必须是START
@@ -860,6 +972,7 @@ void LongUI::UIControl::extra_animation_callback(
                 this->GetValue(ft.from);
                 // TO 状态在 matched2有效则可以直接设置
                 if (matched2) ft.to = *being_itr;
+
                 else {
                     ft.to = { ValueType::Type_Unknown };
                     need_state_buf = true;
@@ -868,22 +981,73 @@ void LongUI::UIControl::extra_animation_callback(
                 vector.push_back(ft);
             }
         }
-        // 额外计算
-        else if (matched1) {
-            // 遍历状态
-            const auto end_itr = itr + len;
-            auto being_itr = itr + 1;
-            for (; being_itr != end_itr; ++being_itr) {
-                const auto index = static_cast<uint32_t>((*being_itr).type);
-                state_buf[index] = (*being_itr).data4;
-                state_buf_ex[index] = (*being_itr).data8;
-            }
-        }
         // 递进
         itr += len;
     }
     // 没有就算了
     if (vector.empty()) return;
+    // 计算额外数据
+    if (need_state_buf) {
+        for (auto& x : vector) {
+            if (x.to.type == ValueType::Type_Unknown) {
+                const auto index = static_cast<uint32_t>(x.from.type);
+                x.to.data4 = state_buf[index];
+                x.to.data8 = state_buf_ex[index];
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Extras the animation callback.
+/// </summary>
+/// <param name="values">The values.</param>
+/// <param name="ptr">The PTR.</param>
+/// <param name="set">if set to <c>true</c> [set].</param>
+/// <returns></returns>
+void LongUI::UIControl::extra_animation_callback(
+    UIControl& trigger,
+    const SSValues& values,
+    void* ptr,
+    bool set) noexcept {
+    // 检测参数有效性
+    assert(ptr && "bad ptr");
+    auto& vector = *reinterpret_cast<POD::Vector<SSFromTo>*>(ptr);
+    assert(vector.empty() && "not empty");
+    // 状态缓冲池
+    constexpr auto LAST = static_cast<int>(ValueType::SINGLE_LAST);
+    UniByte4 state_buf[LAST + 1];
+    UniByte8 state_buf_ex[LAST + 1];
+    // 设置初始状态
+    // XXX: 延迟初始化? 优化?
+    std::memset(state_buf, 0, sizeof(state_buf));
+    std::memset(state_buf_ex, 0, sizeof(state_buf_ex));
+    LongUI::InitDefaultState(state_buf, state_buf_ex);
+    bool writen_buf = false;
+    // 优化flag
+    bool need_state_buf = false;
+    // OFF SET
+    if (!set) {
+        const auto state = reinterpret_cast<const uint32_t&>(m_oStyle.state);
+        this->make_off_initstate(&trigger, state, state_buf, state_buf_ex);
+    }
+    // 额外规则
+    for (const auto& x : values) {
+        SSFromTo ft;
+        // FROM状态直接获取
+        ft.from.type = x.type;
+        //ft.from.data.u32 = 0;
+        this->GetValue(ft.from);
+        // TO 状态在 matched2有效则可以直接设置
+        if (set) ft.to = x;
+
+        else {
+            ft.to = { ValueType::Type_Unknown };
+            need_state_buf = true;
+        }
+        // 压入数组
+        vector.push_back(ft);
+    }
     // 计算额外数据
     if (need_state_buf) {
         for (auto& x : vector) {
@@ -927,7 +1091,6 @@ auto LongUI::UIControl::animation_property_filter(void*ptr)noexcept->uint32_t{
     return len;
 }
 
-
 /// <summary>
 /// Starts the extra animation.
 /// </summary>
@@ -943,13 +1106,42 @@ void LongUI::CUIControlControl::StartExtraAnimation(
     // 断言类型
     //assert(ctrl.m_oStyle.appearance == AttributeAppearance::Appearance_None);
     // 先判断有没有匹配规则
-    if (ctrl.GetStyle().matched.empty()) {
+    if (ctrl.GetStyle().matched.empty() && ctrl.GetStyle().trigger.empty()) {
         ctrl.start_animation_change(type);
         return;
     }
+    const auto cacheptr = this->GetStyleCachedControlList();
+    auto& blocks = *reinterpret_cast<POD::Vector<uintptr_t>*>(cacheptr);
+    blocks.clear();
     // 利用回调获取修改的属性
     auto& from_to_list = cc().from_to;
-    ctrl.extra_animation_callback(type, &from_to_list);
+    ctrl.extra_animation_callback(type, &from_to_list, &blocks);
+    this->do_animation_in_from_to(ctrl);
+    // 检测blocks
+    if (!blocks.empty()) {
+        for (const auto block : blocks) {
+            const bool set = block & 1;
+            const auto ptr = block & (~uintptr_t(1));
+            const auto& values = LongUI::GetValuesFromBlock(ptr);
+            const auto& ctrls = LongUI::GetControlsFromBlock(ptr);
+            for (const auto x : ctrls) {
+                if (x->IsDescendantOrSiblingFor(ctrl)) {
+                    from_to_list.clear();
+                    x->extra_animation_callback(ctrl, values, &from_to_list, set);
+                    this->do_animation_in_from_to(*x);
+                }
+            }
+        }
+    }
+}
+
+/// <summary>
+/// Does the animation in from to.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::do_animation_in_from_to(UIControl & ctrl) noexcept {
+    auto& from_to_list = cc().from_to;
     // 筛选属性, 有些不能用于动画
     const auto len = ctrl.animation_property_filter(&from_to_list);
     // 没有动画
@@ -992,7 +1184,7 @@ void LongUI::CUIControlControl::StartExtraAnimation(
         x.done = 0;
         x.duration = ctrl.GetStyle().tduration;
         x.length = len_remain > EXTRA_FROM_TO_LIST_LENGTH
-             ? EXTRA_FROM_TO_LIST_LENGTH : len_remain;
+            ? EXTRA_FROM_TO_LIST_LENGTH : len_remain;
         // 写入数组
         std::memcpy(
             x.list, &(*list_itr), sizeof(x.list[0]) * x.length

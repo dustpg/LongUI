@@ -22,6 +22,10 @@ namespace LongUI {
         void SetFgColor(RGBA color) noexcept;
         // get foreground color
         auto GetFgColor() const noexcept->RGBA;
+        // set text align
+        void SetTextAlign(AttributeTextAlign) noexcept;
+        // get text align
+        auto GetTextAlign() const noexcept ->AttributeTextAlign;
     public:
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         // set text stroke color

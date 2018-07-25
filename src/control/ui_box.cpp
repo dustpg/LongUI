@@ -101,19 +101,19 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     }
 #endif
     // - 获取剩余长度
-    auto get_remain_length = [this](Size2F sb) noexcept {
+    const auto get_remain_length = [this](Size2F sb) noexcept {
         return sb.height - m_minScrollSize.height;
     };
     // - 位置下移
-    auto pos_move_next = [](Point2F& pos, Size2F size) noexcept {
+    const auto pos_move_next = [](Point2F& pos, Size2F size) noexcept {
         pos.y += size.height;
     };
     // - 添加弹性
-    auto add_flex = [](Size2F& size, float length) noexcept {
+    const auto add_flex = [](Size2F& size, float length) noexcept {
         size.height += length;
     };
     // - 调整对齐
-    auto adjust_align = [](Size2F& size, Size2F maxs, float f) noexcept {
+    const auto adjust_align = [](Size2F& size, Size2F maxs, float f) noexcept {
         // 仅仅调整位置
         if (f >= 0.0f) {
             return Point2F{ (maxs.width - size.width) * f, 0.f };
@@ -180,19 +180,19 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
     }
 #endif
     // - 获取剩余长度
-    auto get_remain_length = [this](Size2F sb) noexcept {
+    const auto get_remain_length = [this](Size2F sb) noexcept {
         return sb.width - m_minScrollSize.width;
     };
     // - 位置下移
-    auto pos_move_next = [](Point2F& pos, Size2F size) noexcept {
+    const auto pos_move_next = [](Point2F& pos, Size2F size) noexcept {
         pos.x += size.width;
     };
     // - 添加弹性
-    auto add_flex = [](Size2F& size, float length) noexcept {
+    const auto add_flex = [](Size2F& size, float length) noexcept {
         size.width += length;
     };
     // - 调整对齐
-    auto adjust_align = [](Size2F& size, Size2F maxs, float f) noexcept {
+    const auto adjust_align = [](Size2F& size, Size2F maxs, float f) noexcept {
         // 仅仅调整位置
         if (f >= 0.0f) {
             return Point2F{ 0.f, (maxs.height - size.height) * f };
@@ -416,11 +416,15 @@ auto LongUI::UIBoxLayout::accessible(const AccessibleEventArg& args) noexcept->E
     case AccessibleEvent::Event_All_GetAccessibleName:
         // 获取Acc名称  []
         output = static_cast<const get1_t&>(args).name;
-        *output = m_state.orient == Orient_Horizontal ?
-            L"hor-layout"_sv : L"ver-layout"_sv;
-        if (m_id[0]) {
-            output->append(L": "_sv);
-            output->append(CUIString::FromUtf8(m_id));
+        {
+            CUIStringU8 string = m_state.orient == Orient_Horizontal ?
+                "hor-"_sv : "ver-"_sv;
+            string.append(m_refMetaInfo.element_name);
+            if (m_id[0]) {
+                string.append(": "_sv);
+                string.append(m_id);
+            }
+            *output = CUIString::FromUtf8(string.view());
         }
         return Event_Accept;
     }

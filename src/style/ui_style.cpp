@@ -377,6 +377,22 @@ auto LongUI::TFAttrParser::Weight(U8View view)noexcept->AttributeFontWeight {
 }
 
 /// <summary>
+/// Texts the align.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::TFAttrParser::TextAlign(U8View view) noexcept -> AttributeTextAlign {
+    switch (const auto ch = *view.begin())
+    {
+    default: return TAlign_Start;
+    case 'r': return TAlign_Right;
+    case 'e': return TAlign_End;
+    case 'c': return TAlign_Center;
+    case 'j': return TAlign_Justified;
+    }
+}
+
+/// <summary>
 /// Stretches the specified view.
 /// </summary>
 /// <param name="view">The view.</param>

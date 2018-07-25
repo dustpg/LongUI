@@ -5,6 +5,7 @@
 #include <core/ui_manager.h>
 // OS IMPL
 #include <graphics/ui_graphics_impl.h>
+#include <style/ui_text.h>
 #include <text/ui_ctl_arg.h>
 #include <text/ui_ctl_impl.h>
 
@@ -50,11 +51,11 @@ void LongUI::CUITextLayout::Render(
 /// <param name="str">The string.</param>
 /// <param name="len">The length.</param>
 /// <returns></returns>
-auto LongUI::CUITextLayout::SetFont(const FontArg& arg, 
+auto LongUI::CUITextLayout::SetFont(const TextFont& arg,
     const wchar_t* str, size_t len) noexcept -> Result {
     I::Font* font = nullptr;
     // 创建字体文件
-    auto hr = UIManager.CreateCtlFont(arg, luiref font);
+    auto hr = UIManager.CreateCtlFont(arg.font, luiref font, &arg.text);
     // 设置字体
     if (hr) {
         TextArg arg;

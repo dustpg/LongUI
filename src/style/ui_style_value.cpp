@@ -63,6 +63,39 @@ auto LongUI::CUIStyleValue::GetFgColor() const noexcept -> RGBA {
     return { RGBA_Black };
 }
 
+PCN_NOINLINE
+/// <summary>
+/// Sets the text align.
+/// </summary>
+/// <param name="talign">The talign.</param>
+/// <returns></returns>
+void LongUI::CUIStyleValue::SetTextAlign(AttributeTextAlign talign) noexcept {
+    const auto ctrl = static_cast<UIControl*>(this);
+    // 需要使用g_pLastTextFont
+    detail::g_pLastTextFont = nullptr;
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        tf->text.alignment = talign;
+        const auto hastf = detail::g_pLastTextFont;
+        // 标记文本显示属性修改
+        UIControlPrivate::MarkTFLayoutChanged(*hastf);
+        hastf->NeedUpdate();
+    }
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Gets the text align.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIStyleValue::GetTextAlign()const noexcept->AttributeTextAlign {
+    const auto ctrl = static_cast<const UIControl*>(this);
+    // 存在TF对象
+    if (const auto tf = detail::get_text_font(*ctrl)) {
+        return tf->text.alignment;
+    }
+    return TAlign_Start;
+}
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 PCN_NOINLINE

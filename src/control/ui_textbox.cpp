@@ -38,6 +38,7 @@ void LongUI::MakeDefault(TextFont& tf) noexcept {
     tf.text.color = { 0, 0, 0, 1 };
     tf.text.stroke_color = { 0 };
     tf.text.stroke_width = 0.f;
+    tf.text.alignment = TAlign_Start;
     tf.font = UIManager.GetDefaultFont();
 }
 

@@ -9,14 +9,27 @@
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 namespace LongUI {
+    // style trigger list
+    struct StyleTrigger {
+        // p-s yes match:
+        uint32_t  yes;
+        // p-s not match
+        uint32_t  noo;
+        // trigger id     : +1 for be triggered
+        uintptr_t tid;
+    };
     // style sheet
     class CUIStyleSheet;
     // control
     class UIControl;
     // style sheet pointer
     using SSPtr = CUIStyleSheet * ;
+    // controls
+    using UIControls = POD::Vector<UIControl*>;
     // stylesheets: values
     using SSValues = POD::Vector<SSValue>;
+    // stylesheets: trigger
+    using SSTrigger = POD::Vector<StyleTrigger>;
     // delete style sheet
     void DeleteStyleSheet(CUIStyleSheet* ptr) noexcept;
     // match style sheet
@@ -66,7 +79,7 @@ namespace LongUI {
         const char*     sclass;
         // id selector
         const char*     sid;
-        // pseudo class (index)
+        // pseudo classes
         SSValuePC       pc;
         // combinator
         Combinator      combinator;
