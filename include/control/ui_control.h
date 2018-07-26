@@ -443,6 +443,8 @@ namespace LongUI {
         bool                    m_bHasTimer : 1;
         // has inline style
         bool                    m_bHasInlineStyle : 1;
+        // text changed, use this if you support text display for optimization
+        bool                    m_bTextChanged : 1;
     public:
 #ifdef LUI_USER_INIPTR_DATA
         // user int data, for user accessing

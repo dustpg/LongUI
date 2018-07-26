@@ -45,6 +45,8 @@ namespace LongUI {
 #endif
         // after set text
         void after_set_text() noexcept;
+        // on text changed
+        void on_text_changed() noexcept;
         // init label
         void reset_font() noexcept;
         // setup access key
@@ -60,11 +62,11 @@ namespace LongUI {
         auto GetText() const noexcept { return m_string.c_str(); }
         // get text- string object
         auto&GetTextString() const noexcept { return m_string; }
-        // set text
+        // set text, return true if changed
         bool SetText(const CUIString& text) noexcept;
-        // set text
+        // set text, return true if changed
         bool SetText(CUIString&& text) noexcept;
-        // set text
+        // set text, return true if changed
         bool SetText(WcView text) noexcept;
         // set default minsize
         void SetAsDefaultMinsize() noexcept;

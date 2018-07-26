@@ -8,7 +8,7 @@
 #include "../style/ui_style_value.h"
 #include <utility>
 
-namespace LongUI{
+namespace LongUI {
     /// <summary>
     /// gui event host
     /// </summary>
@@ -18,32 +18,24 @@ namespace LongUI{
     public:
         // add gui event listener with ownid
         template<typename E, typename Callable>
-        inline void AddGuiEventListener(E e, uintptr_t ownid, Callable call) {
+        inline Conn AddGuiEventListener(E e, Callable call) {
             static_assert(
                 std::is_same<E, const char*>::value ||
                 std::is_same<E, U8View>::value ||
                 std::is_same<E, GuiEvent>::value,
                 "e must be 'const char*' or 'GuiEvent'"
                 );
-            GuiEventListener listener{ call, ownid };
-            this->add_gui_event_listener(e, std::move(listener));
+            GuiEventListener listener{ call };
+            return this->add_gui_event_listener(e, std::move(listener));
         }
-        // add gui event listener without ownid(ownid = 0)
-        template<typename Callable>
-        inline void AddGuiEventListener(GuiEvent e, Callable call) {
-            return AddGuiEventListener(e, 0, call); }
-        // add gui event listener without ownid(ownid = 0)
-        template<typename Callable>
-        inline void AddGuiEventListener(const char* e, Callable call) {
-            return AddGuiEventListener(e, 0, call); }
-        // remove gui event listener with enum-name-event
-        void RemoveGuiEventListener(uintptr_t ownid, GuiEvent) noexcept;
-        // remove gui event listener with string-name-event
-        void RemoveGuiEventListener(uintptr_t ownid, U8View view) noexcept {
-            RemoveGuiEventListener(ownid, strtoe(view)); }
-        // remove gui event listener with string-name-event
-        void RemoveGuiEventListener(uintptr_t ownid, const char* str) noexcept {
-            RemoveGuiEventListener(ownid, strtoe(U8View::FromCStyle(str))); }
+        //// remove all same-gui event listener with enum-name-event
+        //void RemoveGuiEventListener(GuiEvent) noexcept;
+        //// remove all same-gui event listener with string-name-event
+        //void RemoveGuiEventListener(U8View view) noexcept {
+        //    RemoveGuiEventListener(strtoe(view)); }
+        //// remove all same-gui event listener with string-name-event
+        //void RemoveGuiEventListener(const char* str) noexcept {
+        //    RemoveGuiEventListener(strtoe(U8View::FromCStyle(str))); }
         // trigger event
         auto TriggrtEvent(GuiEvent event) noexcept ->EventAccept;
     private:
@@ -54,13 +46,13 @@ namespace LongUI{
         // require event
         auto require_event(GuiEvent) noexcept->FunctionNode*;
         // add gui event listener
-        void add_gui_event_listener(GuiEvent, GuiEventListener&&) noexcept;
+        Conn add_gui_event_listener(GuiEvent, GuiEventListener&&) noexcept;
         // add gui event listener
-        void add_gui_event_listener(const char* str, GuiEventListener&& l) noexcept {
-            add_gui_event_listener(U8View::FromCStyle(str), std::move(l)); }
+        Conn add_gui_event_listener(const char* str, GuiEventListener&& l) noexcept {
+            return add_gui_event_listener(U8View::FromCStyle(str), std::move(l)); }
         // add gui event listener
-        void add_gui_event_listener(U8View view, GuiEventListener&& l) noexcept {
-            add_gui_event_listener(view, std::move(l)); }
+        Conn add_gui_event_listener(U8View view, GuiEventListener&& l) noexcept {
+            return add_gui_event_listener(view, std::move(l)); }
     protected:
         // ctor
         CUIEventHost() noexcept {}

@@ -53,11 +53,17 @@ LongUI::UILabel::~UILabel() noexcept {
 /// <returns></returns>
 void  LongUI::UILabel::Update() noexcept {
     // 文本显示 修改了
-    if (m_state.textfont_display_changed) this->Invalidate();
+    if (m_state.textfont_display_changed) 
+        this->Invalidate();
     // 文本布局 修改了
     if (m_state.textfont_layout_changed) {
         this->reset_font();
         this->Invalidate();
+    }
+    // 文本修改了
+    if (m_bTextChanged) {
+        m_bTextChanged = false;
+        this->on_text_changed();
     }
     // TODO: 处理BOX修改 SpecifyMinContectSize
     // 检查到大小修改
@@ -71,6 +77,7 @@ void  LongUI::UILabel::Update() noexcept {
     // 处理大小修改
     this->size_change_handled();
 }
+
 
 /// <summary>
 /// Does the mouse event.
@@ -217,16 +224,11 @@ namespace LongUI { namespace detail{
     }
 }}
 
-PCN_NOINLINE
 /// <summary>
-/// Sets the text.
+/// Ons the text changed.
 /// </summary>
-/// <param name="text">The text.</param>
 /// <returns></returns>
-bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
-    // 相同自然不需要
-    if (m_string == text) return false;
-    m_string = std::move(text);
+void LongUI::UILabel::on_text_changed() noexcept {
     // 检查访问键
     this->setup_access_key();
     // 需要额外的字符
@@ -238,8 +240,23 @@ bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
     m_string.erase(base_len);
     // 设置字体
     this->after_set_text();
+    // 需要渲染
+    this->Invalidate();
     // TODO: hr错误处理
     assert(hr);
+}
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="text">The text.</param>
+/// <returns></returns>
+bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
+    // 相同自然不需要
+    if (m_string == text) return false;
+    m_string = std::move(text);
+    m_bTextChanged = true;
+    this->NeedUpdate();
     return true;
 }
 
@@ -267,8 +284,6 @@ void LongUI::UILabel::after_set_text() noexcept {
     const auto height = std::ceil(size.height);
     this->set_contect_minsize({ width, height });
     this->mark_window_minsize_changed();
-    this->NeedUpdate();
-    this->Invalidate();
 #ifdef LUI_ACCESSIBLE
     LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
 #endif

@@ -86,7 +86,7 @@ namespace LongUI { namespace POD {
         // check for pod
         static_assert(std::is_pod<T>::value, "type T must be POD type");
         // ctor
-        fixed_queue() : fixed_queue_base(sizeof(T), LEN) { helper::offset_check<T, LEN>(); }
+        fixed_queue() noexcept : fixed_queue_base(sizeof(T), LEN) { helper::offset_check<T, LEN>(); }
         // dtor
         ~fixed_queue() noexcept = default;
         // push back

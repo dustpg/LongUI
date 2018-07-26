@@ -778,6 +778,7 @@ LongUI::UIControl::UIControl(UIControl* parent, const MetaControl& meta) noexcep
 m_pParent(nullptr), m_refMetaInfo(meta) {
     m_bHasTimer = false;
     m_bHasInlineStyle = false;
+    m_bTextChanged = false;
     Node::next = nullptr;
     Node::prev = nullptr;
     m_ptChildOffset = { 0, 0 };

@@ -3,57 +3,55 @@
 
 
 /// <summary>
+/// Disconnects this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::Conn::Disconnect() noexcept {
+    if (!this->handle) return;
+    // 清空以免二次 Disconnect
+    using func_t = GuiEventListener::FuncT;
+    const auto func = reinterpret_cast<func_t*>(this->handle);
+    const_cast<uintptr_t&>(this->handle) = 0;
+    // 连接前后节点
+    *func->prev_funcpp = func->chain;
+    func->chain = nullptr;
+    //释放数据
+    delete func;
+}
+
+/// <summary>
 /// Adds the chain helper.
 /// </summary>
 /// <param name="a">a.</param>
 /// <param name="b">The b.</param>
 /// <returns></returns>
-void LongUI::detail::uifunc_helper::add_chain_helper(
+auto LongUI::detail::uifunc_helper::add_chain_helper(
     GuiEventListener& a,
-    GuiEventListener& b) noexcept {
+    GuiEventListener&& b) noexcept -> uintptr_t {
+    // 将B的调用链添加至A中
+    // 1. 寻找A的末尾节点
+    // 2. 指向B开始节点
+    // 3. 修正prev_funcpp
+    // 4. 记录B的句柄
+    // 5. 消灭B
     if (b.IsOK()) {
-        b.m_pFunction->chain = a.m_pFunction;
-        a.m_pFunction = b.m_pFunction;
+        using write_t = decltype(a.m_pFunction);
+        // STEP#1 
+        write_t* to_write = &a.m_pFunction;
+        while (*to_write) to_write = &(*to_write)->chain;
+        // STEP#2
+        *to_write = b.m_pFunction;
+        // STEP#3
+        b.m_pFunction->prev_funcpp = to_write;
+        // STEP#4
+        const auto handle = reinterpret_cast<uintptr_t>(b.m_pFunction);
+        // STEP#5
         b.m_pFunction = nullptr;
+        // 返回
+        return handle;
     }
     else {
         assert(!"error, check arg#IsOK ");
+        return 0;
     }
 }
-
-/// <summary>
-/// Removes the chain helper.
-/// </summary>
-/// <param name="gel">The gel.</param>
-/// <param name="id">The identifier.</param>
-/// <returns></returns>
-void LongUI::detail::uifunc_helper::remove_chain_helper(
-    GuiEventListener& gel, uintptr_t id) noexcept {
-    auto func = gel.m_pFunction;
-    // 无头学姐变成有头学姐
-    std::aligned_storage<
-        sizeof(std::remove_pointer<decltype(func)>::type),
-        alignof(uintptr_t)
-    >::type buf;
-    //reinterpret_cast<decltype(func)>(&buf)->ownid = ~id;
-    reinterpret_cast<decltype(func)>(&buf)->chain = func;
-    auto last = reinterpret_cast<decltype(func)>(&buf);
-    // 带头单链表节点删除
-    while (func) {
-        // 找到目标节点
-        if (func->ownid == id) {
-            const auto temp = last->chain = func->chain;
-            func->chain = nullptr;
-            delete func;
-            func = temp;
-        }
-        // 推进节点
-        else {
-            last = func;
-            func = func->chain;
-        }
-    }
-    // 结算节点, 砍去头
-    gel.m_pFunction = reinterpret_cast<decltype(func)>(&buf)->chain;
-}
-

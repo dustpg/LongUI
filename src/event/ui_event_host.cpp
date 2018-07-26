@@ -40,6 +40,8 @@ namespace LongUI {
     };
 }
 
+
+
 /// <summary>
 /// string to gui event id
 /// </summary>
@@ -93,17 +95,18 @@ auto LongUI::CUIEventHost::require_event(GuiEvent type) noexcept -> FunctionNode
 /// <param name="e">The e.</param>
 /// <param name="listener">The listener.</param>
 /// <returns></returns>
-void LongUI::CUIEventHost::add_gui_event_listener(
+auto LongUI::CUIEventHost::add_gui_event_listener(
     GuiEvent e,
-    GuiEventListener&& listener) noexcept {
+    GuiEventListener&& listener) noexcept ->Conn {
     const auto ctrl = static_cast<UIControl*>(this);
     assert(ctrl && "null this pointer!");
     const auto a = reinterpret_cast<void*>(this);
     const auto b = reinterpret_cast<void*>(ctrl);
     assert(a == b && "must be same");
     if (const auto node = this->require_event(e)) {
-        node->func.AddCallChain(std::move(listener));
+        return node->func.AddCallChain(std::move(listener));
     }
+    return { 0 };
 }
 
 PCN_NOINLINE
@@ -140,12 +143,12 @@ auto LongUI::CUIEventHost::TriggrtEvent(GuiEvent event) noexcept ->EventAccept {
 /// <param name="ownid">The ownid.</param>
 /// <param name="">The .</param>
 /// <returns></returns>
-void LongUI::CUIEventHost::RemoveGuiEventListener(uintptr_t ownid, GuiEvent e) noexcept {
-    const auto ctrl = static_cast<UIControl*>(this);
-    if (const auto node = this->find_event(e)) {
-        node->func.RemoveCallChain(ownid);
-    }
-}
+//void LongUI::CUIEventHost::RemoveGuiEventListener(GuiEvent e) noexcept {
+//    const auto ctrl = static_cast<UIControl*>(this);
+//    if (const auto node = this->find_event(e)) {
+//        node->func.RemoveCallChain(ownid);
+//    }
+//}
 
 
 /// <summary>
