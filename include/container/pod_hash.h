@@ -145,7 +145,7 @@ namespace LongUI { namespace POD {
 #endif
     public:
         // ctor
-        HashMap() : detail::hash_base(sizeof(T)) {}
+        HashMap() noexcept : detail::hash_base(sizeof(T)) {}
         // dtor
         ~HashMap() noexcept = default;
         // copy : not implement yet

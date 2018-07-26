@@ -1,2 +1,0 @@
-label	:	cursor = default
-		margin = { 1, 5, 2, 6 }

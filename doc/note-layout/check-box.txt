@@ -1,5 +1,0 @@
-checkbox-container  : margin-left = padding-left
-                    : [SP] margin = { 2, 4, 2, 4 } padding = { 1, 2, 1, 4 }
-
-checkbox-image      : box-align = center
-
