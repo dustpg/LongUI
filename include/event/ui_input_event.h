@@ -12,9 +12,8 @@ namespace LongUI {
         Event_Char = 0,
         // event key
         Event_KeyDown,
-
+#if 0
         // --------------------- Unified Input -----------------
-
         // event-left 
         Event_TurnLeft,
         // event-top
@@ -35,6 +34,7 @@ namespace LongUI {
         Event_Function,
         // event-action     : Y  △  
         Event_Action,
+#endif
     };
     /// <summary>
     /// Argument for mouse event

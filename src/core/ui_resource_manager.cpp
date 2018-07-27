@@ -1068,7 +1068,7 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
         // Debug状态 有D3D DebugLayer就可以取消注释
         creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-        D3D_FEATURE_LEVEL featureLevels[] = {
+        const D3D_FEATURE_LEVEL featureLevels[] = {
             D3D_FEATURE_LEVEL_11_1,
             D3D_FEATURE_LEVEL_11_0,
             D3D_FEATURE_LEVEL_10_1,

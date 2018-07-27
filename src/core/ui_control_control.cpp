@@ -864,9 +864,9 @@ void LongUI::UIControl::make_off_initstate(
 
     // 是被触发者
     if (trigger) {
-        // FIXME: 三层？
+        // XXX: 三层？
         for (const auto& x : m_oStyle.trigger) {
-            if (x.tid & 1 == 0) continue;
+            if ((x.tid & 1) == 0) continue;
             for (const auto& y : trigger->m_oStyle.trigger) {
                 if (y.tid != x.tid - 1) continue;
                 const auto now = reinterpret_cast<const uint32_t&>(trigger->m_oStyle.state);
