@@ -8,6 +8,7 @@
 #include <core/ui_manager.h>
 #include <core/ui_malloc.h>
 #include <debugger/ui_debug.h>
+#include <util/ui_lastsort.h>
 // private
 #include "../private/ui_private_control.h"
 // css
@@ -24,6 +25,8 @@ namespace LongUI {
     struct SSBlock : CUINoMo {
         // new 
         static auto Create(uint32_t len) noexcept->SSBlock*;
+        // push trigger data
+        bool PushTriggerData(UIControl&, StyleTrigger trigger) noexcept;
         // delete
         void Dispose() noexcept;
         // ctor
@@ -637,22 +640,11 @@ void LongUI::SSBlock::AddTrigger(const UIControls& list, const SSSelector& selec
         reinterpret_cast<uintptr_t>(this)
     };
     for (auto* const ptr : list) {
-        auto& trigger = UIControlPrivate::RefStyleTrigger(*ptr);
-        const auto end_itr = trigger.end();
-        // XXX: 优化
-        if (std::find_if(trigger.begin(), end_itr, [=](const auto& x) noexcept {
-            return x.yes == this_triggerr.yes 
-                && x.noo == this_triggerr.noo 
-                && x.tid == this_triggerr.tid;
-        }) == end_itr) {
-            // 追加
-            trigger.push_back(this_triggerr);
-            // 当前匹配
-            const auto state = ptr->GetStyle().state;
-            const auto now = reinterpret_cast<const uint32_t&>(state);
-            if ((now & this_triggerr.yes) == this_triggerr.yes && (now & this_triggerr.noo) == 0) {
-                matched = true;
-            }
+        SSBlock::PushTriggerData(*ptr, this_triggerr);
+        const auto state = ptr->GetStyle().state;
+        const auto now = reinterpret_cast<const uint32_t&>(state);
+        if ((now & this_triggerr.yes) == this_triggerr.yes && (now & this_triggerr.noo) == 0) {
+            matched = true;
         }
     }
 }
@@ -666,16 +658,42 @@ void LongUI::SSBlock::AddTriggered(UIControl& ctrl) noexcept {
     const StyleTrigger this_triggerr = { 
         0, 0, reinterpret_cast<uintptr_t>(this) + 1
     };
+    if (SSBlock::PushTriggerData(ctrl, this_triggerr)) {
+        this->triggered.push_back(&ctrl);
+    }
+}
+
+/// <summary>
+/// Pushes the trigger data.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="data">The data.</param>
+/// <returns></returns>
+bool LongUI::SSBlock::PushTriggerData(UIControl& ctrl, StyleTrigger data) noexcept {
     auto& trigger = UIControlPrivate::RefStyleTrigger(ctrl);
     const auto end_itr = trigger.end();
     // XXX: 优化
     if (std::find_if(trigger.begin(), end_itr, [=](const auto& x) noexcept {
-        return x.tid == this_triggerr.tid;
+        return x.yes == data.yes
+            && x.noo == data.noo
+            && x.tid == data.tid;
     }) == end_itr) {
-        trigger.push_back(this_triggerr);
-        this->triggered.push_back(&ctrl);
+        // 追加
+        trigger.push_back(data);
+        LongUI::LastSort(trigger.begin(), trigger.end(), [](const auto& x, const auto& y) {
+            return x.tid < y.tid;
+        });
+        return true;
     }
-
+#ifndef NDEBUG
+    LUIDebug(Warning)
+        << "StyleTrigger existed! : "
+        << bool(data.tid & 1)
+        << " - "
+        << reinterpret_cast<void*>(data.tid & ~uintptr_t(1))
+        << endl;
+#endif
+    return false;
 }
 
 /// <summary>

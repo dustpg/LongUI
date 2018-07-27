@@ -821,6 +821,34 @@ auto LongUI::CUIControlControl::GetStyleCachedControlList() noexcept -> void * {
     return &cc().style_cache;
 }
 
+
+// longui::detail
+namespace LongUI { namespace detail {
+    // std::set_intersection sp-ver, allow set a keep same unit
+    template<typename T, typename U, typename Comp>
+    auto set_intersection_sp(const T& set0, const T& set1,
+        U d_first, U end_of_buf, Comp comp) noexcept {
+        auto first1 = set0.begin(), last1 = set0.end();
+        auto first2 = set1.begin(), last2 = set1.end();
+        while (first1 != last1 && first2 != last2) {
+            if (comp(*first1, *first2)) ++first1;
+            else {
+                if (!comp(*first2, *first1)) {
+                    *d_first++ = *first1++;
+                    if (d_first == end_of_buf) {
+#ifndef NDEBUG
+                        LUIDebug(Warning) << "out of buffer!" << endl;
+#endif
+                        break;
+                    }
+                }
+                else ++first2;
+            }
+        }
+        return d_first;
+    }
+}}
+
 /// <summary>
 /// Makes the off initstate.
 /// </summary>
@@ -864,6 +892,30 @@ void LongUI::UIControl::make_off_initstate(
 
     // 是被触发者
     if (trigger) {
+        // 几乎0代价, 所以可以稍微大点
+        StyleTrigger trigger_buf[LongUI::SMALL_BUFFER_LENGTH * 2];
+        const auto& set0 = trigger->m_oStyle.trigger;
+        const auto& set1 = m_oStyle.trigger;
+        // 类似与求交集, 但是集合A的允许重复(因为触发条件不同)
+        const auto end_buf = detail::set_intersection_sp(
+            set0, set1, std::begin(trigger_buf), std::end(trigger_buf),
+            [](const auto&x, const auto& y) noexcept { return x.tid < y.tid - 1; }
+        );
+        // 遍历
+        for (auto itr = trigger_buf; itr != end_buf; ++itr) {
+            const auto now = reinterpret_cast<const uint32_t&>(trigger->m_oStyle.state);
+            const uint32_t yes = itr->yes;
+            const uint32_t noo = itr->noo;
+            const auto matched = (now & yes) == yes && (now & noo) == 0;
+            if (!matched) continue;
+            const auto list = LongUI::GetValuesFromBlock(itr->tid);
+            for (const auto& z : list) {
+                const auto index = static_cast<uint32_t>(z.type);
+                buf4[index] = z.data4;
+                buf8[index] = z.data8;
+            }
+        }
+#if 0
         // XXX: 三层？
         for (const auto& x : m_oStyle.trigger) {
             if ((x.tid & 1) == 0) continue;
@@ -882,6 +934,7 @@ void LongUI::UIControl::make_off_initstate(
                 }
             }
         }
+#endif
     }
 }
 
