@@ -62,13 +62,10 @@ void LongUI::CUIDefaultConfigure::LoadDataFromUrl(
 /// <summary>
 /// Shows the error.
 /// </summary>
-/// <param name="a">a.</param>
-/// <param name="b">The b.</param>
+/// <param name="info">The information.</param>
 /// <returns></returns>
-bool LongUI::CUIDefaultConfigure::ShowError(
-    const wchar_t* a, const wchar_t* b) noexcept {
+void LongUI::CUIDefaultConfigure::OnError(ErrorInfo info) noexcept {
     assert(!"error");
-    return false;
 }
 
 /// <summary>

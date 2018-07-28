@@ -13,6 +13,39 @@ namespace LongUI {
     struct ControlInfoList;
     // Font arg
     struct FontArg;
+    // error info
+    struct ErrorInfo {
+        // sub error info
+        union SubInfo {
+            // handle id
+            uintptr_t   id;
+            // string
+            const char* u8str;
+            // sub info
+        }               sub;
+        // main error info
+        enum MainError : uint32_t {
+            // out of memory - sub[0 or size to try alloc]
+            Error_OutOfMemory,
+            // file not found - sub[nullptr or filename]
+            Error_FileNotFound_U8,
+            // file not found - sub[nullptr or filename]
+            Error_FileNotFound_U16,
+            // xml parse failed - sub[0 or ]
+            Error_XmlParseFailed,
+            // main error info
+        }               main;
+        // error level
+        enum ErrorLevel : uint32_t {
+            // level: warning
+            Level_Warning = 0,
+            // level: error
+            Level_Error,
+            // level: fatal
+            Level_Fatal,
+            // level of error
+        }               level;
+    };
     // UI Configure Interface
     struct PCN_NOVTABLE IUIConfigure /*: IUIRefCount*/ {
         // flag
@@ -105,10 +138,8 @@ namespace LongUI {
         /// <summary>
         /// Shows the error.
         /// </summary>
-        /// <param name="str_a">String A</param>
-        /// <param name="str_b">String B</param>
-        /// <returns>return false if user ignore this error</returns>
-        virtual bool ShowError(const wchar_t* str_a, const wchar_t* str_b) noexcept = 0;
+        /// <param name="info">The information.</param>
+        virtual void OnError(ErrorInfo info) noexcept = 0;
     public:
         /*// run a section script for event
         virtual auto Evaluation(ScriptUI, UIControl&) noexcept ->bool = 0;

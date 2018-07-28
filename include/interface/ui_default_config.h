@@ -58,7 +58,7 @@ namespace LongUI {
         // load data from url on file not found
         void LoadDataFromUrl(U8View url_in_utf8, const CUIString& url_in_utf16, POD::Vector<uint8_t>& buffer) noexcept override;
         // show the error string
-        bool ShowError(const wchar_t* a, const wchar_t* b) noexcept override;
+        void OnError(ErrorInfo info) noexcept override;
     public:
         // alloc for normal space
         void*NormalAlloc(size_t length) noexcept override;

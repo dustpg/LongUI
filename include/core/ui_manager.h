@@ -131,8 +131,6 @@ namespace LongUI {
         void Exit() noexcept { this->config->Exit(); }
         // do platform main loop
         void MainLoop() noexcept { this->config->MainLoop(); }
-        // show error with string
-        bool ShowError(const wchar_t* a, const wchar_t* b) noexcept;
         // show error with result code
         bool ShowError(Result hr, const wchar_t* str_b = nullptr) noexcept;
         // load data from url

@@ -833,17 +833,8 @@ auto LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc,
 /// <returns></returns>
 bool LongUI::CUIManager::ShowError(Result hr, const wchar_t* str) noexcept {
     assert(hr);
+    //this->config->OnError();
     return 0;
-}
-
-/// <summary>
-/// Shows the error.
-/// </summary>
-/// <param name="a">a.</param>
-/// <param name="b">The b.</param>
-/// <returns></returns>
-bool LongUI::CUIManager::ShowError(const wchar_t* a, const wchar_t* b) noexcept {
-    return this_()->config->ShowError(a, b);
 }
 
 PCN_NOINLINE

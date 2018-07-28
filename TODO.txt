@@ -10,6 +10,8 @@ Event_Initialize 时构造对象?
 
 还有部分控件没有实现
 
+OnError
+
 读取资源方式修改以方便读取压缩包中的文件?
 
 bug.dmp
