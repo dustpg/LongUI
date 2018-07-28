@@ -59,8 +59,15 @@ namespace LongUI {
     /// The iid identifier write text layout1
     /// </summary>
     const GUID IID_IDWriteTextLayout1 = {
-        0x9064d822, 0x80a7, 0x465c,
-        { 0xa9, 0x86, 0xdf, 0x65, 0xf7, 0x8b, 0x8f, 0xeb }
+        0x9064d822, 0x80a7, 0x465c, { 
+        0xa9, 0x86, 0xdf, 0x65, 0xf7, 0x8b, 0x8f, 0xeb }
+    };
+    /// <summary>
+    /// The iid idxgi factory2
+    /// </summary>
+    const GUID IID_IDXGIFactory2 = {
+        0x50c83a1c, 0xe072, 0x4c48, { 
+        0x87, 0xb0, 0x36, 0x30, 0xfa, 0x36, 0xa6, 0xd0 }
     };
     // impl namespace
     namespace impl { 
@@ -884,7 +891,7 @@ LongUI::CUIResMgr::Debug::Debug() noexcept {
     // 未找到
     if (!dxgidebug_dll) return;
     // 定义接口GUID
-    const GUID iid_IDXGIDebug = {
+    const GUID local_IID_IDXGIDebug = {
         0x119E7452, 0xDE9E, 0x40fe, 0x88, 0x06, 0x88,
         0xF9, 0x0C, 0x12, 0xB4, 0x41
     };
@@ -897,7 +904,7 @@ LongUI::CUIResMgr::Debug::Debug() noexcept {
     // 加载函数
     if ((addr = ::GetProcAddress(dxgidebug_dll, name))) {
         const auto code = func(
-            iid_IDXGIDebug, 
+            local_IID_IDXGIDebug,
             reinterpret_cast<void**>(&dxgidebug)
         );
     }
@@ -1217,13 +1224,9 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
 #endif
     // 获取 Dxgi工厂
     if (hr) {
-        const GUID local_IID_IDXGIFactory2 = {
-            0x50c83a1c, 0xe072, 0x4c48, {
-            0x87, 0xb0, 0x36, 0x30, 0xfa, 0x36, 0xa6, 0xd0
-        } };
         IDXGIFactory2* fc = nullptr;
         hr = { dxgiadapter->GetParent(
-            local_IID_IDXGIFactory2,
+            LongUI::IID_IDXGIFactory2,
             reinterpret_cast<void**>(&fc)
         ) };
         m_pGraphicsFactory = static_cast<I::FactoryGraphics*>(fc);

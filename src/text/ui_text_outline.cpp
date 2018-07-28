@@ -12,13 +12,16 @@
 // C/C++
 #include <cassert>
 
-
-// longui::impl
-namespace LongUI { namespace impl {
+// longui namespace
+namespace LongUI {
     // IDWriteTextRenderer
     const GUID IID_IDWriteTextRenderer = {
         0xef8a8135, 0x5cc6, 0x45fe,{ 0x88, 0x25, 0xc5, 0xa0, 0x72, 0x4e, 0xb8, 0x19 }
     };
+}
+
+// longui::impl
+namespace LongUI { namespace impl {
     // offset rect
     inline auto offset(const RectF& rect, float offsetX, float offsetY) noexcept {
         return RectF {
@@ -125,7 +128,7 @@ namespace LongUI { namespace impl {
     HRESULT basic_renderer::QueryInterface(const IID& id, void **ppvObject) noexcept {
         IUnknown* ptr = nullptr;
         if (id == IID_IUnknown) ptr = static_cast<IUnknown*>(this);
-        else if (id == impl::IID_IDWriteTextRenderer) ptr = static_cast<IDWriteTextRenderer*>(this);
+        else if (id == LongUI::IID_IDWriteTextRenderer) ptr = static_cast<IDWriteTextRenderer*>(this);
         if (*ppvObject = ptr) { this->AddRef(); return S_OK; }
         return E_NOINTERFACE;
     }

@@ -11,6 +11,16 @@
 #include <Windows.h>
 #include <dcomp.h>
 
+
+// longui namespace
+namespace LongUI {
+    // IDCompositionDevice "C37EA93A-E7AA-450D-B16F-9746CB0407F3"
+    const GUID IID_IDCompositionDevice = {
+        0xC37EA93A, 0xE7AA, 0x450D,{ 0xB1, 0x6F, 0x97, 0x46, 0xCB, 0x04, 0x07, 0xF3 }
+    };
+}
+
+
 // longui::impl
 namespace LongUI { namespace impl {
     // dcomp window buf
@@ -28,10 +38,7 @@ namespace LongUI { namespace impl {
     static constexpr const char* dcomp_support_dll = "Dcomp.dll";
     // GetDpiForMonitor
     static FARPROC ptr_DCompositionCreateDevice2 = nullptr;
-    // IDCompositionDevice "C37EA93A-E7AA-450D-B16F-9746CB0407F3"
-    const GUID IID_IDCompositionDevice = {
-        0xC37EA93A, 0xE7AA, 0x450D,{ 0xB1, 0x6F, 0x97, 0x46, 0xCB, 0x04, 0x07, 0xF3 }
-    };
+
 }}
 
 /// <summary>
@@ -128,7 +135,7 @@ auto LongUI::impl::create_dcomp(dcomp_window_buf& buf, HWND hwnd, I::Swapchan& s
         };
         call = ptr_DCompositionCreateDevice2;
         const auto address = reinterpret_cast<void**>(&dcomp.dcomp_device);
-        hr = { dccd(d2d_device, impl::IID_IDCompositionDevice, address) };
+        hr = { dccd(d2d_device, LongUI::IID_IDCompositionDevice, address) };
         d2d_device->Release();
         longui_debug_hr(hr, L"DCompositionCreateDevice faild");
     }

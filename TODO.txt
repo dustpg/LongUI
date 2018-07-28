@@ -6,6 +6,8 @@ Event_Initialize 时构造对象?
 
 窗口生命周期控制?Xxx::ControlAttached 目前无用
 
+Demo2 点击几下后会重新布局.
+
 不少控件拥有checked的属性
 
 还有部分控件没有实现
