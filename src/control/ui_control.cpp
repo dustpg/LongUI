@@ -192,6 +192,8 @@ void LongUI::UIControl::resize_child(UIControl& child, Size2F size) noexcept {
     child.m_state.world_changed = true;
     // 需要重新布局
     child.NeedRelayout();
+    // 重新渲染
+    child.Invalidate();
     // 确定修改
     child.m_oBox.size = size;
 }
@@ -1193,6 +1195,7 @@ void LongUI::UIControl::SetPos(Point2F pos) noexcept {
     m_state.world_changed = true;
     m_oBox.pos = pos;
     this->NeedUpdate();
+    this->Invalidate();
 }
 
 /// <summary>

@@ -246,7 +246,6 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIBoxLayout::relayout() noexcept {
-    this->Invalidate();
     /*
         偏向于小的大小进行布局
 
