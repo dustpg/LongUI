@@ -1217,9 +1217,13 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
 #endif
     // 获取 Dxgi工厂
     if (hr) {
+        const GUID local_IID_IDXGIFactory2 = {
+            0x50c83a1c, 0xe072, 0x4c48, {
+            0x87, 0xb0, 0x36, 0x30, 0xfa, 0x36, 0xa6, 0xd0
+        } };
         IDXGIFactory2* fc = nullptr;
         hr = { dxgiadapter->GetParent(
-            IID_IDXGIFactory2,
+            local_IID_IDXGIFactory2,
             reinterpret_cast<void**>(&fc)
         ) };
         m_pGraphicsFactory = static_cast<I::FactoryGraphics*>(fc);
