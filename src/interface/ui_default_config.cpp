@@ -41,7 +41,7 @@ auto LongUI::CUIDefaultConfigure::GetConfigureFlag() noexcept ->ConfigureFlag {
 /// <returns></returns>
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(
     const GraphicsAdapterDesc /*adapters*/[], 
-    const size_t length) noexcept -> size_t {
+    const uint32_t length) noexcept -> uint32_t {
     return length;
 }
 
@@ -73,7 +73,7 @@ void LongUI::CUIDefaultConfigure::OnError(ErrorInfo info) noexcept {
 /// </summary>
 /// <param name="name">The name.</param>
 /// <returns></returns>
-void LongUI::CUIDefaultConfigure::GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept {
+void LongUI::CUIDefaultConfigure::GetLocaleName(char16_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept {
     name[0] = 0;
 }
 

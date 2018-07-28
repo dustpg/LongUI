@@ -73,6 +73,8 @@ namespace LongUI {
         // popup begin
         void SubViewportPopupBegin(UIViewport&, PopupType) noexcept override;
     public:
+        // add item
+        void AddItem(CUIString&& label) noexcept;
         // get last selected
         auto GetLastSelected() const noexcept { return m_pLastSelected; }
         // get selected index

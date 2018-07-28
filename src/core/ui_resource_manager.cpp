@@ -44,6 +44,12 @@ namespace LongUI { namespace detail {
         static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
         return reinterpret_cast<const wchar_t*>(str);
     }
+    // utf16 to system char type
+    static inline auto sys(const wchar_t* str) noexcept {
+        using target_t = wchar_t;
+        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+        return reinterpret_cast<const char16_t*>(str);
+    }
 }}
 
 // ui namespace
@@ -793,7 +799,7 @@ auto LongUI::CUIResMgr::CreateCtlFont(const FontArg& arg,
         auto_cast(arg.style),
         auto_cast(arg.stretch),
         arg.size,
-        m_szLocaleName,
+        detail::sys(m_szLocaleName),
         reinterpret_cast<IDWriteTextFormat**>(&font)
     ) };
     // 直接断言方便检查
@@ -1061,7 +1067,6 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
         // 第一次失败直接返回
         if (!tmp) return tmp;
         IDXGIAdapter1* apAdapters[MAX_GRAPHICS_ADAPTERS];
-        DXGI_ADAPTER_DESC1 descs[MAX_GRAPHICS_ADAPTERS];
         GraphicsAdapterDesc gas[MAX_GRAPHICS_ADAPTERS];
         uint32_t adnum = 0;
         // 枚举适配器
@@ -1070,12 +1075,13 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
             if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == nf) {
                 break;
             }
-            auto desc = descs + adnum;
-            apAdapters[adnum]->GetDesc1(descs + adnum);
-            gas[adnum].friend_name = desc->Description;
-            gas[adnum].shared_system = desc->SharedSystemMemory;
-            gas[adnum].dedicated_video = desc->DedicatedVideoMemory;
-            gas[adnum].dedicated_system = desc->DedicatedSystemMemory;
+            DXGI_ADAPTER_DESC1 desc;
+            apAdapters[adnum]->GetDesc1(&desc);
+            static_assert(sizeof(desc.Description) <= sizeof(gas->friend_name), "SMALL!");
+            std::memcpy(gas[adnum].friend_name, desc.Description, sizeof(desc.Description));
+            gas[adnum].shared_system = desc.SharedSystemMemory;
+            gas[adnum].dedicated_video = desc.DedicatedVideoMemory;
+            gas[adnum].dedicated_system = desc.DedicatedSystemMemory;
         }
         // 选择适配器
         const auto index = cfg->ChooseAdapter(gas, adnum);
@@ -1215,7 +1221,7 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
         DXGI_ADAPTER_DESC desc = { 0 };
         dxgiadapter->GetDesc(&desc);
         GraphicsAdapterDesc d;
-        d.friend_name = desc.Description;
+        std::memcpy(d.friend_name, desc.Description, sizeof(desc.Description));
         d.shared_system = desc.SharedSystemMemory;
         d.dedicated_video = desc.DedicatedVideoMemory;
         d.dedicated_system = desc.DedicatedSystemMemory;

@@ -55,6 +55,8 @@ namespace LongUI {
         // clicked event
         //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
     public:
+        // get popup pointer
+        auto GetPopupObj() const noexcept { return m_pMenuPopup; }
         // show popup
         void ShowPopup() noexcept;
         // get text

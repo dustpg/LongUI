@@ -48,13 +48,13 @@ namespace LongUI {
         // Get string from table
         //virtual auto GetString(TableString tbl) noexcept -> const wchar_t*;
         // get locale name of ui(for text)
-        void GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept override;
+        void GetLocaleName(char16_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept override;
         // get default font arg
         void DefaultFontArg(FontArg& arg) noexcept override;
         // add all controls
         void RegisterControl(ControlInfoList& list) noexcept override;
         // if use gpu render, you should choose a video card, return the index
-        auto ChooseAdapter(const GraphicsAdapterDesc adapters[], const size_t length) noexcept ->size_t override;
+        auto ChooseAdapter(const GraphicsAdapterDesc adapters[], const uint32_t length) noexcept ->uint32_t override;
         // load data from url on file not found
         void LoadDataFromUrl(U8View url_in_utf8, const CUIString& url_in_utf16, POD::Vector<uint8_t>& buffer) noexcept override;
         // show the error string

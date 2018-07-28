@@ -107,7 +107,7 @@ namespace LongUI {
         /// </summary>
         /// <param name="name">The locale name buffer</param>
         /// <remarks>empty for local locale name</remarks>
-        virtual void GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept = 0;
+        virtual void GetLocaleName(char16_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept = 0;
 
         /// <summary>
         /// Defaults the font arg
@@ -133,7 +133,7 @@ namespace LongUI {
         /// btw, in the adapter list, also include the WARP-adapter
         /// </remarks>
         /// <returns>index of adapters</returns>
-        virtual auto ChooseAdapter(const GraphicsAdapterDesc adapters[/*length*/], const size_t length /*<=64*/) noexcept->size_t = 0;
+        virtual auto ChooseAdapter(const GraphicsAdapterDesc adapters[/*length*/], const uint32_t length /*<=64*/) noexcept->uint32_t = 0;
 
         /// <summary>
         /// Shows the error.

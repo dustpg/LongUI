@@ -87,6 +87,10 @@ namespace LongUI {
         auto GetText() const noexcept->const char16_t*;
         // get text object
         auto GetTextString() const noexcept->const CUIString&;
+        // set text
+        void SetText(CUIString&&) noexcept;
+        // set text
+        void SetText(U16View) noexcept;
     private:
         // private data
         Private*            m_private = nullptr;

@@ -141,6 +141,24 @@ LongUI::UIMenuItem::~UIMenuItem() noexcept {
 }
 
 /// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="str">The string.</param>
+/// <returns></returns>
+void LongUI::UIMenuItem::SetText(CUIString&& str) noexcept {
+    m_private->label.SetText(std::move(str));
+}
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+void LongUI::UIMenuItem::SetText(U16View view) noexcept {
+    m_private->label.SetText(view);
+}
+
+/// <summary>
 /// Gets the text.
 /// </summary>
 /// <returns></returns>
@@ -583,7 +601,7 @@ void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
 /// <returns></returns>
 void LongUI::UIMenuList::ShowPopup() noexcept {
     // 有窗口?
-    if (m_pMenuPopup) {
+    if (m_pMenuPopup && m_pMenuPopup->GetCount()) {
         // 出现在左下角
         const auto edge = this->GetBox().GetBorderEdge();
         const auto y = this->GetSize().height - edge.top;
@@ -770,6 +788,18 @@ auto LongUI::UIMenuPopup::DoEvent(
     // 父类处理
     return Super::DoEvent(sender, arg);
 }
+
+/// <summary>
+/// Adds the item.
+/// </summary>
+/// <param name="label">The label.</param>
+/// <returns></returns>
+void LongUI::UIMenuPopup::AddItem(CUIString&& label) noexcept {
+    if (const auto item = new(std::nothrow) UIMenuItem{ this }) {
+        item->SetText(std::move(label));
+    }
+}
+
 
 /// <summary>
 /// Selects the first item.

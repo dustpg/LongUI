@@ -148,7 +148,7 @@ namespace LongUI {
         // original local name length, LOCALE_NAME_MAX_LENGTH = 85
         enum { olnl = 85 + 3 };
         // local name
-        wchar_t                 m_szLocaleName[olnl];
+        char16_t                m_szLocaleName[olnl];
     protected:
         // redirect screen
         void redirect_screen() noexcept;
