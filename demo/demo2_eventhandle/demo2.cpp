@@ -57,7 +57,7 @@ public:
             // Time Capsule
             UIManager.CreateTimeCapsule([display](float p) noexcept {
                 CUIString text;
-                text.format(L"now exit in 0.49sec! @ %.2f%%", p*100.f);
+                text.format(u"now exit in 0.49sec! @ %.2f%%", p*100.f);
                 display->SetText(std::move(text));
                 if (p == 1.f) UIManager.Exit();
             }, 0.49f, display);
@@ -66,18 +66,18 @@ public:
         // #EVENT2
         find_button("exit")->AddGuiEventListener(
             UIButton::_clicked(), [display](UIControl&) noexcept {
-            display->SetText(L"now exit in 0.49sec!"_sv);
+            display->SetText(u"now exit in 0.49sec!"_sv);
             // Time Capsule# 2
             UIManager.CreateTimeCapsule([display](float p) noexcept {
                 if (p == 1.f) 
-                    display->SetText(L"here never arrived! because of 1.99sec!"_sv);
+                    display->SetText(u"here never arrived! because of 1.99sec!"_sv);
             }, 1.99f, display);
             return Event_Accept;
         });
         // #EVENT3
         find_button("exit")->AddGuiEventListener(
             UIButton::_clicked(), [display](UIControl&) noexcept {
-            display->SetText(L"here never arrived! because of Disconnect!"_sv);
+            display->SetText(u"here never arrived! because of Disconnect!"_sv);
             return Event_Accept;
         }).Disconnect();
     }

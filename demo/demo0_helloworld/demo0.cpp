@@ -7,7 +7,7 @@ int main() {
         {
             LongUI::UIViewport viewport;
             LongUI::UILabel label{ &viewport };
-            label.SetText(L"Hello world!");
+            label.SetText(u"Hello world!");
             viewport.GetWindow()->ShowWindow();
             UIManager.MainLoop();
         }
