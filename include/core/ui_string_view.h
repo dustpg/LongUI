@@ -3,6 +3,7 @@
 // Util
 #include "../luiconf.h"
 #include "../util/ui_endian.h"
+#include "../util/ui_unicode.h"
 #include "../util/ui_unimacro.h"
 // C++
 #include <cstdint>
@@ -14,13 +15,11 @@ namespace LongUI {
     // detail namespace
     namespace detail {
         // string length
-        inline auto strlen(const char ptr[]) noexcept->size_t { return std::strlen(ptr); }
+        inline auto strlen(const char* ptr) noexcept { return std::strlen(ptr); }
         // string length
-        inline auto strlen(const wchar_t ptr[]) noexcept->size_t { return std::wcslen(ptr); }
+        inline auto strlen(const wcharxx_t* ptr) noexcept { return std::wcslen(reinterpret_cast<const wchar_t*>(ptr)); }
         // string length
-        auto strlen(const char16_t ptr[]) noexcept->size_t;
-        // string length
-        auto strlen(const char32_t ptr[]) noexcept->size_t;
+        auto strlen(const unwchar_t* ptr) noexcept->size_t;
         // name to rgb32
         auto name_rgb32(const char* a, const char* b, char c) noexcept->uint32_t;
         // name to rgba32
@@ -99,7 +98,7 @@ namespace LongUI {
     }
 }
 // HELPER MACRO
-#define UI_DECLARE_METHOD_FOR_CHAR_TYPE(T) \
+#define LUI_DECLARE_METHOD_FOR_CHAR_TYPE(T) \
     template<> PodStringView<T>::operator float() const noexcept;\
     template<> PodStringView<T>::operator double() const noexcept;\
     template<> PodStringView<T>::operator int32_t() const noexcept;\
@@ -107,12 +106,10 @@ namespace LongUI {
 
 namespace LongUI {
     // char
-    UI_DECLARE_METHOD_FOR_CHAR_TYPE(char);
-    // wchar
-    UI_DECLARE_METHOD_FOR_CHAR_TYPE(wchar_t);
+    LUI_DECLARE_METHOD_FOR_CHAR_TYPE(char);
     // char16_t
-    UI_DECLARE_METHOD_FOR_CHAR_TYPE(char16_t);
+    LUI_DECLARE_METHOD_FOR_CHAR_TYPE(char16_t);
     // char32_t
-    UI_DECLARE_METHOD_FOR_CHAR_TYPE(char32_t);
+    LUI_DECLARE_METHOD_FOR_CHAR_TYPE(char32_t);
 }
-#undef UI_DECLARE_METHOD_FOR_CHAR_TYPE
+#undef LUI_DECLARE_METHOD_FOR_CHAR_TYPE

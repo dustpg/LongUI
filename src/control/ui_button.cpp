@@ -57,7 +57,7 @@ namespace LongUI {
 /// Gets the text.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIButton::GetText() const noexcept -> const wchar_t* {
+auto LongUI::UIButton::GetText() const noexcept -> const char16_t* {
     assert(m_private && "bad action");
     return m_private->label.GetText();
 }
@@ -97,7 +97,7 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
-    //m_private->label.SetText(L"确定");
+    //m_private->label.SetText(u"确定");
 }
 
 
@@ -156,7 +156,7 @@ void LongUI::UIButton::SetText(const CUIString& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIButton::SetText(WcView text) noexcept {
+void LongUI::UIButton::SetText(U16View text) noexcept {
     this->SetText(CUIString{ text });
 }
 
@@ -469,7 +469,7 @@ auto LongUI::UIButton::accessible(const AccessibleEventArg& args) noexcept -> Ev
         return Event_Accept;
     case AccessibleEvent::Event_Value_SetValue:
         // 设置值
-        this->SetText(WcView{
+        this->SetText(U16View{
             static_cast<const AccessibleVSetValueArg&>(args).string,
             static_cast<const AccessibleVSetValueArg&>(args).string +
             static_cast<const AccessibleVSetValueArg&>(args).length

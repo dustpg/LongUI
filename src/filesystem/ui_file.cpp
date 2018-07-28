@@ -10,13 +10,22 @@
 
 // TODO: 异步IO
 
+// longui::detail namespace
+namespace LongUI { namespace detail {
+    // utf16 to system char type
+    static inline auto sys(const char16_t* str) noexcept {
+        using target_t = wchar_t;
+        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+        return reinterpret_cast<const wchar_t*>(str);
+    }
+}}
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIFile"/> class.
 /// </summary>
 /// <param name="flag">The flag.</param>
 /// <param name="filename">The file name.</param>
-LongUI::CUIFile::CUIFile(OpenFlag flag, const wchar_t* filename) noexcept {
+LongUI::CUIFile::CUIFile(OpenFlag flag, const char16_t* filename) noexcept {
     assert(filename && "bad filename");
     static_assert(ERROR_HANDLE == (intptr_t)INVALID_HANDLE_VALUE, "must be same");
     DWORD access = 0;
@@ -41,7 +50,7 @@ LongUI::CUIFile::CUIFile(OpenFlag flag, const wchar_t* filename) noexcept {
     }
     // 创建文件句柄
     const auto file = ::CreateFileW(
-        filename,
+        detail::sys(filename),
         access,
         FILE_SHARE_READ,
         nullptr,

@@ -135,6 +135,8 @@ namespace LongUI {
         bool ShowError(const wchar_t* a, const wchar_t* b) noexcept;
         // show error with result code
         bool ShowError(Result hr, const wchar_t* str_b = nullptr) noexcept;
+        // load data from url
+        void LoadDataFromUrl(U8View url_utf8, POD::Vector<uint8_t>& buffer) noexcept;
     private:
         // ctor
         CUIManager(IUIConfigure* config, Result& out) noexcept;

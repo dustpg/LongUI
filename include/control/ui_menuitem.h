@@ -84,7 +84,7 @@ namespace LongUI {
         // is checked?
         auto IsChecked() const noexcept { return m_oStyle.state.checked; }
         // get text
-        auto GetText() const noexcept->const wchar_t*;
+        auto GetText() const noexcept->const char16_t*;
         // get text object
         auto GetTextString() const noexcept->const CUIString&;
     private:

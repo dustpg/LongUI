@@ -99,9 +99,9 @@ namespace LongUI {
         // release resource ref-count
         void ReleaseResourceRefCount(uint32_t id) noexcept;
         // create bitmap from system-supported image file
-        auto CreateBitmapFromSSImageFile(const char* utf8, I::Bitmap*&) noexcept->Result;
+        auto CreateBitmapFromSSImageFile(U8View view, I::Bitmap*&) noexcept->Result;
         // create bitmap from system-supported image memory
-        auto CreateBitmapFromSSImageMemory(const void* ptr, size_t len, I::Bitmap*&) noexcept->Result;
+        auto CreateBitmapFromSSImageMemory(uint8_t* ptr, uint32_t len, I::Bitmap*&) noexcept->Result;
         // create bitmap with init-data
         auto CreateBitmap(Size2U size, const RGBA* color, uint32_t pitch, I::Bitmap*&) noexcept->Result;
         // create bitmap without init-data
@@ -109,7 +109,7 @@ namespace LongUI {
             return CreateBitmap(size, nullptr, 0, bmp); }
     private:
         // create bitmap
-        auto create_bitmap_private(void*, void*&) noexcept->Result;
+        auto create_bitmap_private(uint8_t*, uint32_t, void*&) noexcept->Result;
     protected:
         // init default font data
         auto init_default_font(IUIConfigure*) noexcept->Result;

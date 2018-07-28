@@ -208,7 +208,7 @@ bool LongUI::UILabel::SetText(const CUIString & text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-bool LongUI::UILabel::SetText(WcView text) noexcept {
+bool LongUI::UILabel::SetText(U16View text) noexcept {
     return this->SetText(CUIString{ text });
 }
 
@@ -216,7 +216,7 @@ bool LongUI::UILabel::SetText(WcView text) noexcept {
 namespace LongUI { namespace detail{
     // append access key
     inline void append_ass_key(CUIString& str, char key) noexcept {
-        wchar_t buf[3];
+        char16_t buf[3];
         buf[0] = '(';
         buf[1] = key;
         buf[2] = ')';

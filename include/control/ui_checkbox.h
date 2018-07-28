@@ -50,7 +50,7 @@ namespace LongUI {
         // toggle this
         void Toggle() noexcept { return this->SetChecked(!this->GetChecked()); }
         // get text
-        auto GetText() const noexcept ->const wchar_t*;
+        auto GetText() const noexcept ->const char16_t*;
         // get text- string object
         auto GetTextString() const noexcept -> const CUIString&;
         // set text
@@ -58,7 +58,7 @@ namespace LongUI {
         // set text
         void SetText(CUIString&& text) noexcept;
         // set text
-        void SetText(WcView text) noexcept;
+        void SetText(U16View text) noexcept;
     protected:
         // ctor
         UICheckBox(UIControl* parent, const MetaControl& ) noexcept;

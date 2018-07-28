@@ -12,6 +12,12 @@ namespace LongUI { namespace detail {
     inline auto is_double_dot(const char* str) noexcept {
         return str[0] == '.' && str[1] == '.';
     }
+    // utf16 to system char type
+    static inline auto sys(char16_t* str) noexcept {
+        using target_t = wchar_t;
+        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+        return reinterpret_cast<wchar_t*>(str);
+    }
 }}
 
 /// <summary>
@@ -175,8 +181,8 @@ auto LongUI::PathOP::TempDirectoryPath(BasePath& bp) noexcept->uint32_t {
 /// <returns></returns>
 auto LongUI::PathOP::TempDirectoryPath(CUIString& str) noexcept -> uint32_t {
     const auto buflen = ::GetTempPathW(0, nullptr);
-    str.as_buffer_nul(buflen -1, [buflen](wchar_t* buf) noexcept {
-        ::GetTempPathW(buflen, buf);
+    str.as_buffer_nul(buflen -1, [buflen](char16_t* buf) noexcept {
+        ::GetTempPathW(buflen, detail::sys(buf));
     });
     return static_cast<uint32_t>(str.length());
 }

@@ -1527,7 +1527,8 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     // 处理内联样式
     if (inline_size) {
         // 适应内联数据
-        for (uint32_t i = 0; i != inline_size; ++i) this->ApplyValue(vbuf[i]);
+        for (uint32_t i = 1; i != inline_size; ++i) 
+            this->ApplyValue(vbuf[i]);
         style_matched.insert(style_matched.end(), vbuf, vbuf + inline_size);
     }
 }
@@ -1952,7 +1953,7 @@ auto LongUI::UIControl::accessible(const AccessibleEventArg& args) noexcept -> E
     {
         const auto name = CUIString::FromUtf8(this->GetID());
         static_cast<const getd_t&>(args).description->format(
-            L"element<%hs> id<%ls>",
+            u"element<%hs> id<%ls>",
             m_refMetaInfo.element_name,
             name.c_str()
         );

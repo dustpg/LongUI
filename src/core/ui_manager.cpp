@@ -102,8 +102,8 @@ namespace LongUI {
 #ifndef NDEBUG
 #include <util/ui_time_meter.h>
 static void ui_endian_runtime_assert() noexcept;
-void ui_dbg_set_window_title(LongUI::CUIWindow*, const wchar_t*) noexcept;
-void ui_dbg_set_window_title(HWND, const wchar_t*) noexcept;
+void ui_dbg_set_window_title(LongUI::CUIWindow*, const char*) noexcept;
+void ui_dbg_set_window_title(HWND, const char*) noexcept;
 
 namespace LongUI {
     // debug data
@@ -248,10 +248,10 @@ void LongUI::CUIManager::OneFrame() noexcept {
     );
     if (time > 0.f) {
         constexpr size_t buflen = 128;
-        wchar_t buffer[buflen];
-        std::swprintf(
+        char buffer[buflen];
+        std::snprintf(
             buffer, buflen,
-            L"delta: %.2fms -- %2.2f fps",
+            "delta: %.2fms -- %2.2f fps",
             time * 1000.f, 1.f / time
         );
         if (this_()->flag & IUIConfigure::Flag_DbgDebugWindow)
@@ -477,7 +477,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     // 获取文本格式化器
     if (hr) {
         //hr = configure.CreateInterface(LongUI_IID_PV_ARGS(this_()->m_pTextFormatter));
-        longui_debug_hr(hr, L"Create this_()->m_pTextFormatter faild");
+        longui_debug_hr(hr, "Create this_()->m_pTextFormatter faild");
     }
     // 创建工具窗口
     if (hr) {
@@ -606,7 +606,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
             CLSCTX_INPROC_SERVER,
             LongUI_IID_PV_ARGS(this_()->m_pDropTargetHelper)
         );
-        longui_debug_hr(hr, L"CoCreateInstance CLSID_DragDropHelper faild");
+        longui_debug_hr(hr, "CoCreateInstance CLSID_DragDropHelper faild");
     }*/
     // 创建字体集
     if (hr) {
@@ -615,7 +615,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
         // 失败获取系统字体集
         if (!this_()->m_pFontCollection) {
             hr = this_()->m_pDWriteFactory->GetSystemFontCollection(&this_()->m_pFontCollection);
-            longui_debug_hr(hr, L"this_()->m_pDWriteFactory->GetSystemFontCollection faild");
+            longui_debug_hr(hr, "this_()->m_pDWriteFactory->GetSystemFontCollection faild");
         }*/
     }
 #ifndef NDEBUG
@@ -633,7 +633,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
                 if (SUCCEEDED(family->GetFamilyNames(&string))) {
                     wchar_t buffer[LongUIStringBufferLength];
                     auto tc = string->GetCount();
-                    UIManager << DLevel_Log << Formated(L"%4d[%d]: ", int(i), int(tc));
+                    UIManager << DLevel_Log << Formated("%4d[%d]: ", int(i), int(tc));
                     // 遍历所有字体名称
 #if 0
                     for (auto j = 0u; j < 1u; j++) {
@@ -681,12 +681,12 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     // 初始化事件
     /*if (hr) {
         hr = this_()->do_creating_event(LongUI::CreateEventType::Type_Initialize);
-        longui_debug_hr(hr, L"do_creating_event(init) faild");
+        longui_debug_hr(hr, "do_creating_event(init) faild");
     }
     // 创建资源
     if (hr) {
         hr = this_()->RecreateResources();
-        longui_debug_hr(hr, L"RecreateResources faild");
+        longui_debug_hr(hr, "RecreateResources faild");
     }*/
     // 第一次重建设备资源
     if (hr) {
@@ -844,6 +844,37 @@ bool LongUI::CUIManager::ShowError(Result hr, const wchar_t* str) noexcept {
 /// <returns></returns>
 bool LongUI::CUIManager::ShowError(const wchar_t* a, const wchar_t* b) noexcept {
     return this_()->config->ShowError(a, b);
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Loads the data from URL.
+/// </summary>
+/// <param name="url_in_utf8">The URL in UTF8.</param>
+/// <param name="buffer">The buffer.</param>
+/// <returns></returns>
+void LongUI::CUIManager::LoadDataFromUrl(
+    U8View url_in_utf8,
+    POD::Vector<uint8_t>& buffer) noexcept {
+    const auto url_utf16 = CUIString::FromUtf8(url_in_utf8);
+    // 读取文件
+    if (CUIFile file{ url_utf16.c_str(), CUIFile::Flag_Read }) {
+        const auto file_size = file.GetFilezize();
+        buffer.resize(file_size + 1);
+        if (buffer.is_ok()) file.Read(&buffer.front(), file_size);
+        return;
+    }
+    // 查找失败, 利用config接口读取
+    this->config->LoadDataFromUrl(url_in_utf8, url_utf16, buffer);
+    // 载入失败
+#ifndef NDEBUG
+    if (buffer.empty())
+        LUIDebug(Error)
+            << "load file failed: "
+            << url_utf16
+            << endl;
+#endif // !NDEBUG
+
 }
 
 #ifndef NDEBUG

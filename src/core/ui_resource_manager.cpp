@@ -36,6 +36,16 @@
 #pragma comment(lib, "dwrite")
 #pragma comment(lib, "windowscodecs")
 
+// longui::detail namespace
+namespace LongUI { namespace detail {
+    // utf16 to system char type
+    static inline auto sys(const char16_t* str) noexcept {
+        using target_t = wchar_t;
+        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+        return reinterpret_cast<const wchar_t*>(str);
+    }
+}}
+
 // ui namespace
 namespace LongUI {
     /// <summary>
@@ -101,17 +111,17 @@ namespace LongUI {
                     args.bits,
                     &wic_bitmap
                 );
-                longui_debug_hr(Result{ hr }, L"failed: args.factory->CreateBitmapFromMemory");
+                longui_debug_hr(Result{ hr }, "failed: args.factory->CreateBitmapFromMemory");
             }
             // 创建流
             if (SUCCEEDED(hr)) {
                 hr = args.factory->CreateStream(&stream);
-                longui_debug_hr(Result{ hr }, L"failed: args.factory->CreateStream");
+                longui_debug_hr(Result{ hr }, "failed: args.factory->CreateStream");
             }
             // 从文件初始化
             if (SUCCEEDED(hr)) {
                 hr = stream->InitializeFromFilename(file_name, GENERIC_WRITE);
-                longui_debug_hr(Result{ hr }, L"failed: stream->InitializeFromFilename  " << file_name);
+                longui_debug_hr(Result{ hr }, "failed: stream->InitializeFromFilename  " << file_name);
             }
             // 创建编码器
             if (SUCCEEDED(hr)) {
@@ -120,48 +130,48 @@ namespace LongUI {
                     nullptr,
                     &pEncoder
                 );
-                longui_debug_hr(Result{ hr }, L"failed: args.factory->CreateEncoder");
+                longui_debug_hr(Result{ hr }, "failed: args.factory->CreateEncoder");
             }
             // 初始化编码器
             if (SUCCEEDED(hr)) {
                 hr = pEncoder->Initialize(stream, WICBitmapEncoderNoCache);
-                longui_debug_hr(Result{ hr }, L"failed: pEncoder->Initialize");
+                longui_debug_hr(Result{ hr }, "failed: pEncoder->Initialize");
             }
             // 创建新的一帧
             if (SUCCEEDED(hr)) {
                 hr = pEncoder->CreateNewFrame(&frame_encode, nullptr);
-                longui_debug_hr(Result{ hr }, L"failed: pEncoder->CreateNewFrame");
+                longui_debug_hr(Result{ hr }, "failed: pEncoder->CreateNewFrame");
             }
             // 初始化帧编码器
             if (SUCCEEDED(hr)) {
                 hr = frame_encode->Initialize(nullptr);
-                longui_debug_hr(Result{ hr }, L"failed: frame_encode->Initialize");
+                longui_debug_hr(Result{ hr }, "failed: frame_encode->Initialize");
             }
             // 设置大小
             if (SUCCEEDED(hr)) {
                 hr = frame_encode->SetSize(args.width, args.height);
-                longui_debug_hr(Result{ hr }, L"failed: frame_encode->SetSize " << long(args.width) << L", " << long(args.height));
+                longui_debug_hr(Result{ hr }, "failed: frame_encode->SetSize " << long(args.width) << L", " << long(args.height));
             }
             // 设置格式
             WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
             if (SUCCEEDED(hr)) {
                 hr = frame_encode->SetPixelFormat(&format);
-                longui_debug_hr(Result{ hr }, L"failed: frame_encode->SetPixelFormat");
+                longui_debug_hr(Result{ hr }, "failed: frame_encode->SetPixelFormat");
             }
             // 写入源数据
             if (SUCCEEDED(hr)) {
                 hr = frame_encode->WriteSource(wic_bitmap, nullptr);
-                longui_debug_hr(Result{ hr }, L"failed: frame_encode->WriteSource");
+                longui_debug_hr(Result{ hr }, "failed: frame_encode->WriteSource");
             }
             // 提交帧编码器
             if (SUCCEEDED(hr)) {
                 hr = frame_encode->Commit();
-                longui_debug_hr(Result{ hr }, L"failed: frame_encode->Commit");
+                longui_debug_hr(Result{ hr }, "failed: frame_encode->Commit");
             }
             // 提交编码
             if (SUCCEEDED(hr)) {
                 hr = pEncoder->Commit();
-                longui_debug_hr(Result{ hr }, L"failed: pEncoder->Commit");
+                longui_debug_hr(Result{ hr }, "failed: pEncoder->Commit");
             }
             // 扫尾处理
             LongUI::SafeRelease(wic_bitmap);
@@ -175,19 +185,33 @@ namespace LongUI {
         template<typename Lambda> auto load_bitmap(
             Lambda create,
             IWICImagingFactory* pIWICFactory,
-            HANDLE file,
+            uint8_t* buf,
+            uint32_t len,
+            //HANDLE file,
             I::Bitmap*&bitmap
         ) noexcept -> HRESULT {
             IWICBitmapDecoder *decoder = nullptr;
             IWICBitmapFrameDecode *source = nullptr;
             IWICFormatConverter *converter = nullptr;
+            IWICStream* stream = nullptr;
+            HRESULT hr = S_OK;
+            // 创建内存流
+            if (SUCCEEDED(hr)) {
+                hr = pIWICFactory->CreateStream(&stream);
+            }
+            // 创建内存流
+            if (SUCCEEDED(hr)) {
+                hr = stream->InitializeFromMemory(buf, len);
+            }
             // 创建解码器
-            HRESULT hr = pIWICFactory->CreateDecoderFromFileHandle(
-                reinterpret_cast<ULONG_PTR>(file),
-                nullptr,
-                WICDecodeMetadataCacheOnLoad,
-                &decoder
-            );
+            if (SUCCEEDED(hr)) {
+                hr = pIWICFactory->CreateDecoderFromStream(
+                    stream,
+                    nullptr,
+                    WICDecodeMetadataCacheOnLoad,
+                    &decoder
+                );
+            }
             // 获取第一帧
             if (SUCCEEDED(hr)) {
                 hr = decoder->GetFrame(0, &source);
@@ -230,6 +254,7 @@ namespace LongUI {
                 hr = create(size, ptr, bypch, bitmap);
             }
             LongUI::NormalFree(ptr);
+            LongUI::SafeRelease(stream);
             LongUI::SafeRelease(converter);
             LongUI::SafeRelease(source);
             LongUI::SafeRelease(decoder);
@@ -580,7 +605,7 @@ auto LongUI::CUIResMgr::LoadResource(
     ResourceData data { nullptr, re.first->first, 0, type };
     // 创建位图
     I::Bitmap* bitmap = nullptr;
-    auto hr = this->CreateBitmapFromSSImageFile(data.uri, bitmap);
+    auto hr = this->CreateBitmapFromSSImageFile(uri, bitmap);
     // 创建IMAGE资源
     if (hr) {
         hr = CUIImage::CreateImage(*bitmap, luiref data.obj);
@@ -633,15 +658,14 @@ auto LongUI::CUIResMgr::CreateBitmap(
 /// <param name="bitmap">The bitmap.</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::CreateBitmapFromSSImageFile(
-    const char* utf8_file_name, I::Bitmap *& bitmap) noexcept -> Result {
-#ifndef NDEBUG
-    LUIDebug(Hint) << "load file: " << utf8_file_name << endl;
-#endif
-    CUIFile file{ utf8_file_name, CUIFile::Flag_Read };
-    if (!file) return Result::GetSystemLastError();
-    const auto handle = reinterpret_cast<void*>(file.GetHandle());
-    void*& refbmp = reinterpret_cast<void*&>(bitmap);
-    return create_bitmap_private(handle, refbmp);
+    U8View view, I::Bitmap *& bitmap) noexcept -> Result {
+    // TODO: 可以SEEK的流以节约内存
+    POD::Vector<uint8_t> buffer;
+    UIManager.LoadDataFromUrl(view, buffer);
+    if (const auto len = buffer.size()) {
+        return CreateBitmapFromSSImageMemory(&buffer.front(), len, bitmap);
+    }
+    return Result{ Result::RE_FILENOTFOUND };
 }
 
 /// <summary>
@@ -652,11 +676,10 @@ auto LongUI::CUIResMgr::CreateBitmapFromSSImageFile(
 /// <param name="">The .</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::CreateBitmapFromSSImageMemory(
-    const void * ptr, 
-    size_t len, 
+    uint8_t * ptr, 
+    uint32_t len, 
     I::Bitmap *& bitmap) noexcept -> Result {
-    assert(!"NOT IMPL");
-    return{ Result::RE_NOTIMPL };
+    return create_bitmap_private(ptr, len, reinterpret_cast<void*&>(bitmap));
 }
 
 PCN_NOINLINE
@@ -667,7 +690,7 @@ PCN_NOINLINE
 /// <param name="bitmap">The bitmap.</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::create_bitmap_private(
-    void * file, void *& bitmap) noexcept -> Result {
+    uint8_t* ptr, uint32_t len, void *& bitmap) noexcept -> Result {
     // 创建位图
     auto create_bitmap = [this](
         Size2U size, 
@@ -682,7 +705,8 @@ auto LongUI::CUIResMgr::create_bitmap_private(
         impl::load_bitmap(
             create_bitmap,
             rm().wicfactroy,
-            reinterpret_cast<HANDLE>(file),
+            ptr,
+            len,
             reinterpret_cast<I::Bitmap*&>(bitmap)
             )
     };
@@ -715,7 +739,7 @@ auto LongUI::CUIResMgr::CreateCtlText(
     IDWriteTextLayout* layout = nullptr;
     // 创建基本布局
     Result hr = { rm().dwritefactroy->CreateTextLayout(
-        arg.string,
+        detail::sys(arg.string),
         static_cast<uint32_t>(arg.length),
         arg.font ? arg.font : rm().deffont,
         arg.mwidth,
@@ -1287,7 +1311,8 @@ auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
         case ResourceType::Type_Image:
         {
             I::Bitmap* bitmap = nullptr;
-            const auto hr = this->CreateBitmapFromSSImageFile(x.uri, bitmap);
+            const auto view = U8View::FromCStyle(x.uri);
+            const auto hr = this->CreateBitmapFromSSImageFile(view, bitmap);
             if (hr) {
                 const auto img = static_cast<CUIImage*>(x.obj);
                 img->RecreateBitmap(*bitmap);

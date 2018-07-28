@@ -567,7 +567,7 @@ namespace LongUI {
 /// Gets the text.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIListItem::GetText() const noexcept -> const wchar_t* {
+auto LongUI::UIListItem::GetText() const noexcept -> const char16_t* {
     assert(m_private && "bad action");
     return m_private->label.GetText();
 }
@@ -681,7 +681,7 @@ void LongUI::UIListItem::SetText(const CUIString& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIListItem::SetText(WcView text) noexcept {
+void LongUI::UIListItem::SetText(U16View text) noexcept {
     this->SetText(CUIString{ text });
 }
 
@@ -1078,6 +1078,6 @@ void LongUI::UIListHeader::SetText(const CUIString & text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIListHeader::SetText(WcView text) noexcept {
+void LongUI::UIListHeader::SetText(U16View text) noexcept {
     return this->SetText(CUIString{ text });
 }

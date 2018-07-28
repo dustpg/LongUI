@@ -67,7 +67,7 @@ namespace LongUI { namespace POD {
             // size of template
             auto size_of_template() const noexcept { return m_uByteLen; }
             // max size
-            auto max_size() const noexcept ->size_type { return 1u << 20; }
+            auto max_size() const noexcept ->size_type { return 1u << 30; }
             // clear data
             void clear() noexcept { m_uVecLen = 0; }
             // pop back

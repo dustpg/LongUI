@@ -58,7 +58,7 @@ namespace LongUI {
         // set text
         void SetText(CUIString&& text) noexcept;
         // set text
-        void SetText(WcView text) noexcept;
+        void SetText(U16View text) noexcept;
     public:
         // do event
         //auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;

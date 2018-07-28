@@ -11,7 +11,7 @@
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIDefaultConfigure::GetSimpleLogFileName() noexcept -> CUIString {
-    return{ L"simple.log" };
+    return{ u"simple.log" };
 }
 #endif
 
@@ -43,8 +43,21 @@ auto LongUI::CUIDefaultConfigure::ChooseAdapter(
     const GraphicsAdapterDesc /*adapters*/[], 
     const size_t length) noexcept -> size_t {
     return length;
-    return length-1;
 }
+
+/// <summary>
+/// Loads the data from URL.
+/// </summary>
+/// <param name="url_utf8">The URL UTF8.</param>
+/// <param name="buffer">The buffer.</param>
+/// <returns></returns>
+void LongUI::CUIDefaultConfigure::LoadDataFromUrl(
+    U8View url_utf8,
+    const CUIString& url_in_utf16,
+    POD::Vector<uint8_t>& buffer) noexcept {
+    
+}
+
 
 /// <summary>
 /// Shows the error.

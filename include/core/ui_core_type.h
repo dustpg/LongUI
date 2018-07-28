@@ -5,22 +5,22 @@ namespace LongUI {
     template<typename T> struct PodStringView;
     // UTF-8 String View
     using U8View = PodStringView<char>;
-    // wchar string view
-    using WcView = PodStringView<wchar_t>;
+    // utf-16 string view
+    using U16View = PodStringView<char16_t>;
     // basic string
     template<typename T, unsigned B> class CUIBasicString;
     // utf-8 string
     using CUIStringU8 = CUIBasicString<char, 8>;
-    // wchar string
-    using CUIStringWC = CUIBasicString<wchar_t, 8 / sizeof(wchar_t)>;
     // utf-16 string
     using CUIString16 = CUIBasicString<char16_t, 4>;
     // utf-32 string
     using CUIString32 = CUIBasicString<char32_t, 2>;
-    // large fiexed buffer
-    using CUIStringEx = CUIBasicString<wchar_t, 64>;
-    // default string
-    using CUIString = CUIStringWC;
+    // utf-16 string ex
+    using CUIStringEx = CUIBasicString<char16_t, 64>;
+    // default string: utf-16
+    using CUIString = CUIString16;
+    // pod vector
+    namespace POD { template<typename T> class Vector; }
     // string vectors
     //struct CUIStringList;
     // EventAccept

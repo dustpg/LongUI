@@ -58,7 +58,7 @@ namespace LongUI {
         // show popup
         void ShowPopup() noexcept;
         // get text
-        auto GetText() const noexcept ->const wchar_t*;
+        auto GetText() const noexcept ->const char16_t*;
         // get text- string object
         auto GetTextString() const noexcept -> const CUIString&;
         // set text
@@ -66,7 +66,7 @@ namespace LongUI {
         // set text
         void SetText(CUIString&& text) noexcept;
         // set text
-        void SetText(WcView text) noexcept;
+        void SetText(U16View text) noexcept;
         // get selection index
         auto GetSelectionIndex() const noexcept { return m_iSelected; }
     public:

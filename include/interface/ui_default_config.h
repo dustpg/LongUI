@@ -55,8 +55,8 @@ namespace LongUI {
         void RegisterControl(ControlInfoList& list) noexcept override;
         // if use gpu render, you should choose a video card, return the index
         auto ChooseAdapter(const GraphicsAdapterDesc adapters[], const size_t length) noexcept ->size_t override;
-        // create custom window
-        //auto CreateCustomWindow(WindowPriorityType type, pugi::xml_node node) noexcept->XUIBaseWindow* override { return nullptr; };
+        // load data from url on file not found
+        void LoadDataFromUrl(U8View url_in_utf8, const CUIString& url_in_utf16, POD::Vector<uint8_t>& buffer) noexcept override;
         // show the error string
         bool ShowError(const wchar_t* a, const wchar_t* b) noexcept override;
     public:

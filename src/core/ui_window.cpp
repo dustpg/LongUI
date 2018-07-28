@@ -1,6 +1,7 @@
 ﻿// Gui
 #include <luiconf.h>
 #include <core/ui_window.h>
+#include <core/ui_string_view.h>
 #include <util/ui_unicode.h>
 #include <core/ui_manager.h>
 #include <core/ui_string.h>
@@ -15,6 +16,8 @@
 #include <core/ui_popup_window.h>
 #include <util/ui_color_system.h>
 #include <graphics/ui_graphics_decl.h>
+
+
 // C++
 #include <cassert>
 #include <algorithm>
@@ -242,7 +245,7 @@ namespace LongUI {
         // window clear color
         ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
         // title name
-        CUIString       titlename{ L"LUI"_sv };
+        CUIString       titlename{ u"LUI"_sv };
     public:
         // mouse track data
         TRACKMOUSEEVENT track_mouse;
@@ -406,23 +409,15 @@ auto LongUI::MakeStyleSheetFromFile(U8View file, SSPtr old) noexcept -> SSPtr {
     // 设置CSS目录作为当前目录
     UIManager.SetXulDir(view);
     // 待使用缓存
-    POD::Vector<char> css_buffer;
+    POD::Vector<uint8_t> css_buffer;
     // 载入文件
-    if (CUIFile css_file{ path.c_str(), CUIFile::Flag_Read }) {
-        const auto file_size = css_file.GetFilezize();
-        css_buffer.resize(file_size + 1);
-        // OK
-        if (css_buffer.is_ok()) {
-            const auto ptr = &css_buffer.front();
-            css_file.Read(ptr, file_size);
-            ptr[file_size] = 0;
-        }
-    }
+    UIManager.LoadDataFromUrl(path.view(), luiref css_buffer);
     // 字符缓存有效
     if (const auto len = css_buffer.size()) {
-        const auto ptr = &css_buffer.front();
-        U8View string{ ptr, ptr + len - 1 };
-        old = LongUI::MakeStyleSheet(string, old);
+        const auto bptr = &*css_buffer.cbegin();
+        const auto ptr0 = reinterpret_cast<const char*>(bptr);
+        const U8View view{ ptr0, ptr0 + len };
+        old = LongUI::MakeStyleSheet(view, old);
     }
     // 设置之前的目录作为当前目录
     UIManager.SetXulDir(old_dir.view());
@@ -1160,18 +1155,16 @@ void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
 /// </summary>
 /// <param name="name">The name.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::SetTitleName(const wchar_t* name) noexcept {
+void LongUI::CUIWindow::SetTitleName(const char16_t* name) noexcept {
     assert(name && "bad name");
     this->SetTitleName(CUIString{ name });
 }
-
-
 
 /// <summary>
 /// Gets the name of the title.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIWindow::GetTitleName() const noexcept -> WcView {
+auto LongUI::CUIWindow::GetTitleName() const noexcept -> U16View {
     return m_private->titlename.view();
 }
 
@@ -1571,6 +1564,16 @@ void LongUI::CUIWindow::Private::InitWindowPos() noexcept {
     winrect.top = (sch - winrect.height) / 2;
 }
 
+// longui::detail namespace
+namespace LongUI { namespace detail {
+    // utf16 to system char type
+    static inline auto sys(const char16_t* str) noexcept {
+        using target_t = wchar_t;
+        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+        return reinterpret_cast<const wchar_t*>(str);
+    }
+}}
+
 /// <summary>
 /// Initializes this instance.
 /// </summary>
@@ -1619,7 +1622,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
             ex_flag,
             (config & CUIWindow::Config_Popup) ?
             Attribute::WindowClassNameP : Attribute::WindowClassNameN,
-            titlename.c_str(),
+            detail::sys(titlename.c_str()),
             style,
             window_rect.left, window_rect.top,
             window_rect.width, window_rect.height,
@@ -2555,16 +2558,17 @@ void LongUI::CUIWindow::Private::EmptyRender() noexcept {
 
 void ui_dbg_set_window_title(
     LongUI::CUIWindow* pwnd,
-    const wchar_t * title) noexcept {
+    const char * title) noexcept {
     assert(pwnd && "bad action");
-    pwnd->SetTitleName(title);
+    pwnd->SetTitleName(LongUI::CUIString::FromUtf8(title));
 }
 
 void ui_dbg_set_window_title(
     HWND hwnd,
-    const wchar_t * title) noexcept {
+    const char * title) noexcept {
     assert(hwnd && "bad action");
-    ::SetWindowTextW(hwnd, title);
+    const auto aaa = LongUI::CUIString::FromUtf8(title);
+    ::SetWindowTextW(hwnd, LongUI::detail::sys(aaa.c_str()));
 }
 
 #endif

@@ -1,5 +1,5 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (20)
+#define CASE_NUM (16)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
@@ -101,6 +101,7 @@ struct MemoryLeakDetector {
 };
 
 extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
+    //LongUI::wcharxx_t a;
     const auto code = LongUI::BKDRHash("tooltiptext");
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     MemoryLeakDetector dtr;
@@ -121,13 +122,13 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
 #if 1
             main_inited(viewport1, CASE_NUM);
             /*viewport1.AddSpacer({ 100, 100 }, 1);
-            (new(std::nothrow) LongUI::UILabel{ &viewport1 })->SetText(L"hello");
+            (new(std::nothrow) LongUI::UILabel{ &viewport1 })->SetText(u"hello");
             LongUI::UILabel world{ &viewport1 };
-            world.SetText(L"world");
-            LongUI::UILabel{ &viewport1 }.SetText(L"?!");*/
+            world.SetText(u"world");
+            LongUI::UILabel{ &viewport1 }.SetText(u"?!");*/
 #else
             viewport1.RefWindow().ShowWindow();
-            viewport1.RefWindow().SetTitleName(L"Window");
+            viewport1.RefWindow().SetTitleName(u"Window");
             viewport1.SetBgColor({ LongUI::RGBA_White });
             viewport1.SetDebugName("root");
             LongUI::Result::GetSystemLastError();
@@ -200,7 +201,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         int bk = 9;
     }
     viewport.RefWindow().ShowWindow();
-    viewport.RefWindow().SetTitleName(L"Window");
+    viewport.RefWindow().SetTitleName(u"Window");
     //auto z = new(std::nothrow) LongUI::UIVBoxLayout;
     //set_root(z); z->user_data = reinterpret_cast<uintptr_t>(ptr);
     //viewport.SetBgColor({ LongUI::RGBA_White });
@@ -316,7 +317,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         //vbox->SetFlex_test(1.f);
 
         const auto lbl1 = add_label(vbox, LongUI::RGBA_Red, "vbox-label1");
-        lbl1->SetText(L"hello world!-x-");
+        lbl1->SetText(u"hello world!-x-");
 
 
         const auto vbox2 = add_vbox(vbox, LongUI::RGBA_Cyan, "vbox-vbox2");
@@ -444,8 +445,8 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         add_menuitem(popup, "m2");
 
 
-        button2->SetText(L"取消");
-        radio2->SetText(L"单选按钮2");
+        button2->SetText(u"取消");
+        radio2->SetText(u"单选按钮2");
         button->AddGuiEventListener(button->_clicked(), [=](LongUI::UIControl& ctrl) mutable {
             if (radio) {
                 radio->SetParent(nullptr);
@@ -464,7 +465,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
             ////child->RefWindow().InitAsPopup();
             //child->RefWindow().ShowNoActivate();
 
-            //child->RefWindow().SetTitleName(L"Test");
+            //child->RefWindow().SetTitleName(u"Test");
 
             //child->DeleteLater();
             return LongUI::Event_Accept;
@@ -494,7 +495,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
                     return LongUI::Event_Accept;
                 });
                 ptr2->AddGuiEventListener(ptr2->_clicked(), [=](LongUI::UIControl& ctrl) noexcept {
-                    ptr2->SetText(L"++++");
+                    ptr2->SetText(u"++++");
                     meter->SetValue(meter->GetValue() - 10.f);
                     return LongUI::Event_Accept;
                 });
@@ -602,11 +603,11 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     bk = 9;
 
     LongUI::CUIString str;
-    str.format(L"%f%ls", 1.f, L"𪚥");
+    str.format(u"%f%ls", 1.f, u"𪚥");
     LongUI::POD::Vector<double> a = { 32.f, 16.f, 8.f, 7.f };
     auto longx4x4 = LongUI::CUIString::FromUtf8(u8"𪚥𪚥𪚥𪚥");
     longx4x4 += longx4x4;
-    auto c = LongUI::CUIStringEx::FromUtf8(u8"𪚥𪚥𪚥𪚥");
+    //auto c = LongUI::CUIStringEx::FromUtf8(u8"𪚥𪚥𪚥𪚥");
     //LongUI::CUIStringU8 str;
     //auto len2 = U::GetBufferLength<U::UTF16>(str.view());
     //auto len3 = U::GetBufferLength<U::UTF32>(str.view());
@@ -616,7 +617,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
 #include <chrono>
 
 void object_test() noexcept {
-    LongUI::CUIStringEx c = L"壕";
+    //LongUI::CUIStringEx c = L"壕";
     LongUI::CUIString aaaa;
     LongUI::POD::Vector<const char*> aasaa;
     aasaa.push_back("asd");
@@ -625,25 +626,25 @@ void object_test() noexcept {
 #ifdef LUI_NONPOD_VECTOR
     LongUI::NonPOD::Vector<LongUI::CUIStringEx> a, b;
     a.reserve(10);
-    a.emplace_back_ex()->assign(L"SAD");
-    a.emplace_back_ex()->assign(L"POI");
-    a.emplace_back_ex()->assign(L"OK!");
+    a.emplace_back_ex()->assign(u"SAD");
+    a.emplace_back_ex()->assign(u"POI");
+    a.emplace_back_ex()->assign(u"OK!");
     a.push_back(c);
     a.pop_back();
     auto& str = a[1];
     for (int i = 0; i != 40; ++i)
-        a[2].append(L"喔喔窝");
+        a[2].append(u"喔喔窝");
     a.erase(1);
-    str.append(L" DESU!");
+    str.append(u" DESU!");
     str.shrink_to_fit();
-    //a.emplace_ex(2, 2)->assign(L"OK!");
+    //a.emplace_ex(2, 2)->assign(u"OK!");
     b = a;
     b = std::move(a);
     b.resize(9);
 #endif
     {
         LongUI::CUIString b1, b2;
-        LongUI::CUIString a = L"++++";
+        LongUI::CUIString a = u"++++";
         b1 = a;
         b2 = std::move(a);
     }

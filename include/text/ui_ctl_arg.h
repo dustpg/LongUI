@@ -11,7 +11,7 @@ namespace LongUI {
         // font, null for default
         I::Font*        font;
         // string pointer, be carefual about dangling pointer
-        const wchar_t*  string;
+        const char16_t* string;
         // string length
         size_t          length;
         // max width

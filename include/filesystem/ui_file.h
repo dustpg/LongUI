@@ -2,7 +2,7 @@
 #include <cstdint>
 #include "../util/ui_unimacro.h"
 
-// read const wchar_t* based filename file, no std::wfopen in c++
+// utf-16 based filename file
 
 namespace LongUI {
     /// <summary>
@@ -37,7 +37,7 @@ namespace LongUI {
         enum : uint32_t { Flag_UTF8FileName = 1ul << 31 };
     public:
         // ctor
-        CUIFile(const wchar_t* namefile, OpenFlag) noexcept;
+        CUIFile(const char16_t* namefile, OpenFlag) noexcept;
         // ctor
         CUIFile(const char* namefile, OpenFlag) noexcept;
         // dtor
@@ -62,7 +62,7 @@ namespace LongUI {
         void*GetHandle() const noexcept { return reinterpret_cast<void*>(m_hFile); }
     private:
         // ctor
-        CUIFile(OpenFlag, const wchar_t* namefile) noexcept;
+        CUIFile(OpenFlag, const char16_t* namefile) noexcept;
         // file handle
         intptr_t        m_hFile = ERROR_HANDLE;
     };
@@ -71,9 +71,9 @@ namespace LongUI {
         return static_cast<CUIFile::OpenFlag>(static_cast<uint32_t>(a) | b);
     }
     // ctor with wchar file name
-    inline CUIFile::CUIFile(const wchar_t* n, OpenFlag f) noexcept :
+    inline CUIFile::CUIFile(const char16_t* n, OpenFlag f) noexcept :
         CUIFile(static_cast<OpenFlag>(f), n){}
     // ctor with char file name
     inline CUIFile::CUIFile(const char* n, OpenFlag f) noexcept :
-        CUIFile(static_cast<OpenFlag>(f | Flag_UTF8FileName), reinterpret_cast<const wchar_t*>(n)) {}
+        CUIFile(static_cast<OpenFlag>(f | Flag_UTF8FileName), reinterpret_cast<const char16_t*>(n)) {}
 }

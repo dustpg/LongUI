@@ -31,7 +31,7 @@ extern "C" {
 /// <param name="str">The string.</param>
 /// <returns></returns>
 template<> auto LongUI::Unicode::
-GetBufferLength<LongUI::Unicode::UTF8>(const char16_t str[]) noexcept->SizeType {
+GetBufferLength<LongUI::Unicode::UTF8>(const char16_t str[]) noexcept->uint32_t {
     const auto length = detail::strlen(str);
     return ui_utf16_to_utf8_get_buflen(str, str + length) + 1;
 }
@@ -42,7 +42,7 @@ GetBufferLength<LongUI::Unicode::UTF8>(const char16_t str[]) noexcept->SizeType 
 /// <param name="view">The view.</param>
 /// <returns></returns>
 template<> auto LongUI::Unicode::
-GetBufferLength<LongUI::Unicode::UTF8>(PodStringView<char16_t> view) noexcept->SizeType {
+GetBufferLength<LongUI::Unicode::UTF8>(PodStringView<char16_t> view) noexcept->uint32_t {
     return ui_utf16_to_utf8_get_buflen(view.first, view.second);
 }
 
@@ -52,7 +52,7 @@ GetBufferLength<LongUI::Unicode::UTF8>(PodStringView<char16_t> view) noexcept->S
 /// <param name="str">The string.</param>
 /// <returns></returns>
 template<> auto LongUI::Unicode::GetBufferLength
-<LongUI::Unicode::UTF16>(const char str[]) noexcept->SizeType {
+<LongUI::Unicode::UTF16>(const char str[]) noexcept->uint32_t {
     const auto length = detail::strlen(str);
     return ui_utf8_to_utf16_get_buflen(str, str + length) + 1;
 }
@@ -64,7 +64,7 @@ template<> auto LongUI::Unicode::GetBufferLength
 /// <param name="b">The b.</param>
 /// <returns></returns>
 template<> auto LongUI::Unicode::GetBufferLength
-<LongUI::Unicode::UTF16>(PodStringView<char> view) noexcept->SizeType {
+<LongUI::Unicode::UTF16>(PodStringView<char> view) noexcept->uint32_t {
     return ui_utf8_to_utf16_get_buflen(view.first, view.second);
 }
 
@@ -77,7 +77,7 @@ template<> auto LongUI::Unicode::GetBufferLength
 /// <returns></returns>
 template<>
 PCN_NOINLINE
-auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, const char16_t str[]) noexcept->SizeType {
+auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, const char16_t str[]) noexcept->uint32_t {
     const auto length = ui_utf16_to_utf8(buf, buflen - 1, str, str + detail::strlen(str));
     buf[length] = 0;
     return length;
@@ -91,7 +91,7 @@ auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, con
 /// <param name="view">The view.</param>
 /// <returns></returns>
 template<>
-auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, PodStringView<char16_t> view) noexcept->SizeType {
+auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, PodStringView<char16_t> view) noexcept->uint32_t {
     return ui_utf16_to_utf8(buf, buflen, view.first, view.second);
 }
 
@@ -104,7 +104,7 @@ auto LongUI::Unicode::To<LongUI::Unicode::UTF8>(char buf[], uint32_t buflen, Pod
 /// <returns></returns>
 template<>
 PCN_NOINLINE
-auto LongUI::Unicode::To<LongUI::Unicode::UTF16>(char16_t buf[], uint32_t buflen, const char str[]) noexcept->SizeType {
+auto LongUI::Unicode::To<LongUI::Unicode::UTF16>(char16_t buf[], uint32_t buflen, const char str[]) noexcept->uint32_t {
     const auto length = ui_utf8_to_utf16(buf, buflen - 1, str, str + detail::strlen(str));
     buf[length] = 0;
     return length;
@@ -118,7 +118,7 @@ auto LongUI::Unicode::To<LongUI::Unicode::UTF16>(char16_t buf[], uint32_t buflen
 /// <param name="view">The view.</param>
 /// <returns></returns>
 template<>
-auto LongUI::Unicode::To<LongUI::Unicode::UTF16>(char16_t buf[], uint32_t buflen, PodStringView<char> view) noexcept->SizeType {
+auto LongUI::Unicode::To<LongUI::Unicode::UTF16>(char16_t buf[], uint32_t buflen, PodStringView<char> view) noexcept->uint32_t {
     return ui_utf8_to_utf16(buf, buflen, view.first, view.second);
 }
 

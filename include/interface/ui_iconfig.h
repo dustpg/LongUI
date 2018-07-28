@@ -55,6 +55,15 @@ namespace LongUI {
 #endif
 
         /// <summary>
+        /// Loads the data from URL.
+        /// </summary>
+        /// <param name="url_in_utf8">The URL in UTF8.</param>
+        /// <param name="url_in_utf16">The URL in UTF16.</param>
+        /// <param name="buffer">The output buffer.</param>
+        /// <returns></returns>
+        virtual void LoadDataFromUrl(U8View url_in_utf8, const CUIString& url_in_utf16, POD::Vector<uint8_t>& buffer) noexcept = 0;
+
+        /// <summary>
         /// Get flags for configure
         /// </summary>
         /// <returns>flags for configure</returns>
@@ -64,7 +73,7 @@ namespace LongUI {
         /// Gets the locale name
         /// </summary>
         /// <param name="name">The locale name buffer</param>
-        /// <remarks>L"" for local locale name</remarks>
+        /// <remarks>empty for local locale name</remarks>
         virtual void GetLocaleName(wchar_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept = 0;
 
         /// <summary>

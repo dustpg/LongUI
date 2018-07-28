@@ -40,7 +40,7 @@ namespace LongUI { auto get_frame_id() noexcept->uint32_t; }
 // helper marco
 #define _lui_inter_debug LongUI::CUIDebug::GetInstance()
 #ifndef NDEBUG
-#define _lui_inter_extra << LongUI::Interfmt(L"<%4dL@%ls>: ", int(__LINE__), __FUNCTIONW__)
+#define _lui_inter_extra << LongUI::Interfmt("<%4dL@%s>: ", int(__LINE__), __FUNCTION__)
 #define longui_debug_hr(hr, msg) if (!hr) LUIDebug(Error) << msg << LongUI::endl
 #else
 #define _lui_inter_extra
@@ -99,7 +99,7 @@ namespace LongUI {
         template<typename T>
         inline const CUIDebug& operator<< (const T&) const noexcept { return *this; }
         // output with wide char
-        inline void Output(DebugStringLevel, const wchar_t*) const noexcept { }
+        inline void Output(DebugStringLevel, const char16_t*) const noexcept { }
         // output with utf-8
         inline void Output(DebugStringLevel, const char*) const noexcept { }
 
@@ -150,8 +150,8 @@ namespace LongUI {
         CUIDebug& operator<< (const Point2F& p) noexcept;
         // overload << operator for Size2F
         CUIDebug& operator<< (const Size2F& p) noexcept;
-        // overload << operator for const wchar_t*
-        CUIDebug& operator<< (const wchar_t* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
+        // overload << operator for const char16_t*
+        CUIDebug& operator<< (const char16_t* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
         // overload << operator for const char*
         CUIDebug& operator<< (const char* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
         // overload << operator for char32_t
@@ -171,14 +171,14 @@ namespace LongUI {
         // overload << operator for MouseEvent
         CUIDebug& operator<< (StyleStateTypeChange e) noexcept;
         // output debug string with flush
-        void Output(DebugStringLevel l, const wchar_t* s) noexcept;
+        void Output(DebugStringLevel l, const char16_t* s) noexcept;
         // output debug string with flush
         void Output(DebugStringLevel l, const char* s) noexcept;
     private:
         // output debug (utf-8) string without flush
         void OutputNoFlush(DebugStringLevel l, const char* s) noexcept;
         // output debug string without flush
-        void OutputNoFlush(DebugStringLevel l, const wchar_t* s) noexcept;
+        void OutputNoFlush(DebugStringLevel l, const char16_t* s) noexcept;
     public:
 #endif
     protected:
@@ -187,7 +187,7 @@ namespace LongUI {
         CUIDebug() noexcept = default;
 #else
         // ctor
-        CUIDebug(const wchar_t* file = L"") noexcept;
+        CUIDebug(const char16_t* file = u"") noexcept;
 #endif
         // dtor
         ~CUIDebug() noexcept = default;
@@ -198,9 +198,9 @@ namespace LongUI {
     };
     // formated buffer
 #ifndef NDEBUG
-    auto Formated(const wchar_t* format, ...) noexcept -> const wchar_t*;
-    auto Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t*;
+    auto Formated(const char* format, ...) noexcept -> const char*;
+    auto Interfmt(const char* format, ...) noexcept -> const char*;
 #else
-    static auto Formated(...) noexcept { return static_cast<const wchar_t*>(nullptr); }
+    static auto Formated(...) noexcept { return static_cast<const char*>(nullptr); }
 #endif
 }

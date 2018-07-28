@@ -140,11 +140,11 @@ namespace LongUI {
         // close tooltip
         void CloseTooltip() noexcept;
         // set title name
-        void SetTitleName(const wchar_t*) noexcept;
+        void SetTitleName(const char16_t*) noexcept;
         // set title name
         void SetTitleName(CUIString&&) noexcept;
         // get title name
-        auto GetTitleName() const noexcept->WcView;
+        auto GetTitleName() const noexcept->U16View;
         // set pos of window
         void SetPos(Point2L pos) noexcept;
         // get pos of window

@@ -28,9 +28,9 @@ namespace LongUI {
         ) const noexcept;
     public:
         // set font data
-        auto SetFont(const TextFont& arg, const wchar_t* str, size_t len) noexcept->Result;
+        auto SetFont(const TextFont& arg, const char16_t* str, size_t len) noexcept->Result;
         // set text
-        auto SetText(const wchar_t* str, size_t len) noexcept->Result;
+        auto SetText(const char16_t* str, size_t len) noexcept->Result;
         // resize
         void Resize(Size2F) noexcept;
         // test text size

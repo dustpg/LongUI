@@ -138,11 +138,11 @@ namespace LongUI {
     // accessible event: set value
     struct AccessibleVSetValueArg : AccessibleEventArg {
         // string pointer
-        const wchar_t*  string;
+        const char16_t* string;
         // string length
         uint32_t        length;
         // ctor
-        AccessibleVSetValueArg(const wchar_t* str, uint32_t len) noexcept {
+        AccessibleVSetValueArg(const char16_t* str, uint32_t len) noexcept {
             this->event = AccessibleEvent::Event_Value_SetValue;
             string = str;
             length = len;

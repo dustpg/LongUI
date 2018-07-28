@@ -612,11 +612,8 @@ void LongUI::UITextBox::DrawContent(Text& txt, void* ctx, TextBC::Point2F pos) n
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UITextBox::SetText(WcView text) noexcept {
-    static_assert(sizeof(wchar_t) == sizeof(char16_t), "must be same");
-    const auto a = reinterpret_cast<const char16_t*>(text.begin());
-    const auto b = reinterpret_cast<const char16_t*>(text.end());
-    m_private->document().SetText({ a, b });
+void LongUI::UITextBox::SetText(U16View text) noexcept {
+    m_private->document().SetText({ text.begin(), text.end() });
 }
 
 

@@ -43,7 +43,7 @@ namespace LongUI {
         label.name_dbg = "radio::label";
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
-        label.SetText(L"单选框");
+        label.SetText(u"单选框");
 #endif
     }
 }
@@ -187,7 +187,7 @@ void LongUI::UIRadio::SetText(const CUIString & text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIRadio::SetText(WcView text) noexcept {
+void LongUI::UIRadio::SetText(U16View text) noexcept {
     return this->SetText(CUIString{ text });
 }
 
@@ -195,7 +195,7 @@ void LongUI::UIRadio::SetText(WcView text) noexcept {
 /// Gets the text.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIRadio::GetText() const noexcept -> const wchar_t* {
+auto LongUI::UIRadio::GetText() const noexcept -> const char16_t* {
     return m_private->label.GetText();
 }
 

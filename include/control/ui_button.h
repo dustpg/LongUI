@@ -67,7 +67,7 @@ namespace LongUI {
         // set image source
         void SetImageSource(U8View src) noexcept;
         // get text
-        auto GetText() const noexcept ->const wchar_t*;
+        auto GetText() const noexcept ->const char16_t*;
         // get text- string object
         auto GetTextString() const noexcept -> const CUIString&;
         // set text
@@ -75,7 +75,7 @@ namespace LongUI {
         // set text
         void SetText(CUIString&& text) noexcept;
         // set text
-        void SetText(WcView text) noexcept;
+        void SetText(U16View text) noexcept;
         // is checked?
         auto IsChecked() const noexcept { return m_oStyle.state.checked; }
     public:

@@ -41,7 +41,7 @@ namespace LongUI {
         label.name_dbg = "checkbox::label";
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
-        label.SetText(L"复选框");
+        label.SetText(u"复选框");
 #endif
     }
 }
@@ -225,12 +225,11 @@ auto LongUI::UICheckBox::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
     }
 }
 
-
 /// <summary>
 /// Gets the text.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UICheckBox::GetText() const noexcept -> const wchar_t* {
+auto LongUI::UICheckBox::GetText() const noexcept -> const char16_t* {
     assert(m_private && "bad action");
     return m_private->label.GetText();
 }
@@ -239,7 +238,7 @@ auto LongUI::UICheckBox::GetText() const noexcept -> const wchar_t* {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UICheckBox::GetTextString() const noexcept -> const CUIString&{
+auto LongUI::UICheckBox::GetTextString() const noexcept -> const CUIString& {
     assert(m_private && "bad action");
     return m_private->label.GetTextString();
 }
@@ -268,7 +267,7 @@ void LongUI::UICheckBox::SetText(const CUIString& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UICheckBox::SetText(WcView text) noexcept {
+void LongUI::UICheckBox::SetText(U16View text) noexcept {
     this->SetText(CUIString{ text });
 }
 

@@ -89,7 +89,7 @@ namespace LongUI {
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
         assert(marker.IsFocusable() == false);
-        label.SetText(L"Combo Box");
+        label.SetText(u"Combo Box");
 #endif
     }
     
@@ -144,7 +144,7 @@ LongUI::UIMenuItem::~UIMenuItem() noexcept {
 /// Gets the text.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIMenuItem::GetText() const noexcept -> const wchar_t * {
+auto LongUI::UIMenuItem::GetText() const noexcept -> const char16_t * {
     return m_private->label.GetText();
 }
 
@@ -373,7 +373,7 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
 /// Gets the text.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIMenuList::GetText() const noexcept -> const wchar_t* {
+auto LongUI::UIMenuList::GetText() const noexcept -> const char16_t* {
     return m_private->label.GetText();
 }
 
@@ -548,7 +548,7 @@ void LongUI::UIMenuList::SetText(CUIString&& text) noexcept {
 /// </summary>
 /// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UIMenuList::SetText(WcView text) noexcept {
+void LongUI::UIMenuList::SetText(U16View text) noexcept {
     this->SetText(CUIString{ text });
 }
 

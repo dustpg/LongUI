@@ -12,20 +12,9 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="ptr">The PTR.</param>
 /// <returns></returns>
-auto LongUI::detail::strlen(const char16_t ptr[]) noexcept -> size_t {
+auto LongUI::detail::strlen(const unwchar_t ptr[]) noexcept -> size_t {
     assert(ptr && "bad string pointer");
-    return std::char_traits<char16_t>::length(ptr);
-}
-
-PCN_NOINLINE
-/// <summary>
-/// Strlens the specified PTR.
-/// </summary>
-/// <param name="ptr">The PTR.</param>
-/// <returns></returns>
-auto LongUI::detail::strlen(const char32_t ptr[]) noexcept -> size_t {
-    assert(ptr && "bad string pointer");
-    return std::char_traits<char32_t>::length(ptr);
+    return std::char_traits<unwchar_t>::length(ptr);
 }
 
 

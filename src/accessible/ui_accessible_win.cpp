@@ -18,6 +18,21 @@
 
 
 namespace LongUI {
+    // detail namespace
+    namespace detail {
+        // utf16 to system char type
+        static inline auto sys(const char16_t* str) noexcept {
+            using target_t = wchar_t;
+            static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+            return reinterpret_cast<const wchar_t*>(str);
+        }
+        // utf16 to system char type
+        static inline auto sys(const wchar_t* str) noexcept {
+            using target_t = char16_t;
+            static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+            return reinterpret_cast<const char16_t*>(str);
+        }
+    }
     /// <summary>
     /// Finalizes the accessible.
     /// </summary>
@@ -37,14 +52,14 @@ namespace LongUI {
         delete &obj;
     }
     // bstring from View
-    inline BSTR BStrFromView(const WcView view) noexcept {
+    inline BSTR BStrFromView(const U16View view) noexcept {
         const auto len = static_cast<uint32_t>(view.end() - view.begin());
-        return ::SysAllocStringLen(view.begin(), len);
+        return ::SysAllocStringLen(detail::sys(view.begin()), len);
     }
     // bstring from string
     inline BSTR BStrFromString(const CUIString& str) noexcept {
         const auto len = static_cast<uint32_t>(str.length());
-        return ::SysAllocStringLen(str.c_str(), len);
+        return ::SysAllocStringLen(detail::sys(str.c_str()), len);
     }
 }
 
@@ -752,7 +767,7 @@ auto LongUI::CUIAccessible::SetValue(LPCWSTR val) noexcept -> HRESULT {
     CUIDataAutoLocker locker;
     //assert(!"UNTESTED");
     assert(this->is_support_value());
-    AccessibleVSetValueArg arg{ val, static_cast<uint32_t>(std::wcslen(val)) };
+    AccessibleVSetValueArg arg{ detail::sys(val), static_cast<uint32_t>(std::wcslen(val)) };
     m_control.accessible(arg);
     return S_OK;
 }

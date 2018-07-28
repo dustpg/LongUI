@@ -52,7 +52,7 @@ void LongUI::CUITextLayout::Render(
 /// <param name="len">The length.</param>
 /// <returns></returns>
 auto LongUI::CUITextLayout::SetFont(const TextFont& arg,
-    const wchar_t* str, size_t len) noexcept -> Result {
+    const char16_t* str, size_t len) noexcept -> Result {
     I::Font* font = nullptr;
     // 创建字体文件
     auto hr = UIManager.CreateCtlFont(arg.font, luiref font, &arg.text);
@@ -79,7 +79,7 @@ auto LongUI::CUITextLayout::SetFont(const TextFont& arg,
 /// <param name="str">The string.</param>
 /// <param name="len">The length.</param>
 /// <returns></returns>
-auto LongUI::CUITextLayout::SetText(const wchar_t* str, size_t len) noexcept -> Result {
+auto LongUI::CUITextLayout::SetText(const char16_t* str, size_t len) noexcept -> Result {
     const auto font = I::FontFromText(m_text);
     // 参数调整
     TextArg arg;

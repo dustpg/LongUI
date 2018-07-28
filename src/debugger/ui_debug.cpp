@@ -19,6 +19,16 @@
 /// </summary>
 namespace LongUI { const EndL endl; }
 
+// longui::detail namespace
+namespace LongUI { namespace detail {
+    // utf16 to system char type
+    static inline auto sys(const char16_t* str) noexcept {
+        using target_t = wchar_t;
+        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
+        return reinterpret_cast<const wchar_t*>(str);
+    }
+}}
+
 /// <summary>
 /// UIs the unexp filter.
 /// </summary>
@@ -90,9 +100,9 @@ extern "C" LONG WINAPI ui_unexp_filter(EXCEPTION_POINTERS* p) noexcept {
 #else
     // 文件路径
     constexpr size_t FILE_PATH_LENGTH = 1024;
-    wchar_t file_path[FILE_PATH_LENGTH]; *file_path = 0;
+    char16_t file_path[FILE_PATH_LENGTH]; *file_path = 0;
     // 获取DUMP路径
-    std::memcpy(file_path, L"bug.dmp", 8 * sizeof(wchar_t));
+    std::memcpy(file_path, u"bug.dmp", 8 * sizeof(char16_t));
     //::MessageBoxW(nullptr, file_path, file_path, MB_OK | MB_ICONERROR);
     // 写入dump
     if (CUIFile bug_log{ file_path, flag }) {
@@ -122,7 +132,7 @@ extern "C" LONG WINAPI ui_unexp_filter(EXCEPTION_POINTERS* p) noexcept {
     ::MessageBoxW(
         nullptr, 
         L"ERROR, MINIDUMP FILE DUMPED.", 
-        file_path,
+        LongUI::detail::sys(file_path),
         MB_ICONERROR
     );
     return EXCEPTION_EXECUTE_HANDLER;
@@ -147,7 +157,7 @@ void LongUI::CUIDebug::InitUnExpHandler() noexcept {
 /// Initializes a new instance of the <see cref="CUIDebug"/> class.
 /// </summary>
 /// <param name="fname">The fname.</param>
-LongUI::CUIDebug::CUIDebug(const wchar_t* fname) noexcept
+LongUI::CUIDebug::CUIDebug(const char16_t* fname) noexcept
     : m_logFile(fname, CUIFile::Flag_Write | CUIFile::Flag_OpenAlways)
 {
 }
@@ -163,10 +173,8 @@ LongUI::CUIDebug::CUIDebug(const wchar_t* fname) noexcept
 void LongUI::CUIDebug::OutputString(
     DebugStringLevel level,
     const wchar_t* str,
-    bool flush
-) noexcept {
+    bool flush) noexcept {
     if (!(UIManager.flag & IUIConfigure::Flag_OutputDebugString)) return;
-
     static CUIConsole s_consoles[DebugStringLevel::DLEVEL_SIZE];
     auto& console = s_consoles[level];
     auto create_console = [=]() noexcept {
@@ -249,8 +257,8 @@ auto LongUI::CUIDebug::GetInstance() noexcept->CUIDebug& {
 /// <param name="str">The debug string.</param>
 /// <returns></returns>
 void LongUI::CUIDebug::OutputNoFlush(
-    DebugStringLevel lv, const wchar_t * str) noexcept {
-    this->OutputString(lv, str, false);
+    DebugStringLevel lv, const char16_t * str) noexcept {
+    this->OutputString(lv, detail::sys(str), false);
 }
 
 /// <summary>
@@ -260,29 +268,29 @@ void LongUI::CUIDebug::OutputNoFlush(
 /// <param name="format">The format.</param>
 /// <param name="">The .</param>
 /// <returns></returns>
-auto LongUI::Formated(const wchar_t* format, ...) noexcept -> const wchar_t* {
+auto LongUI::Formated(const char* format, ...) noexcept -> const char* {
     constexpr size_t buflen = 2048;
-    static thread_local wchar_t buffer[buflen];
+    static thread_local char buffer[buflen];
     va_list ap;
     va_start(ap, format);
-    std::vswprintf(buffer, buflen, format, ap);
+    std::vsnprintf(buffer, buflen, format, ap);
     va_end(ap);
     return buffer;
 }
 
+
 /// <summary>
 /// Interfmts the specified format.
-/// 传递可视化东西
 /// </summary>
 /// <param name="format">The format.</param>
 /// <param name="">The .</param>
 /// <returns></returns>
-auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
+auto LongUI::Interfmt(const char* format, ...) noexcept -> const char* {
     constexpr size_t buflen = 2048;
-    static thread_local wchar_t buffer[buflen];
+    static thread_local char buffer[buflen];
     va_list ap;
     va_start(ap, format);
-    std::vswprintf(buffer, buflen, format, ap);
+    std::vsnprintf(buffer, buflen, format, ap);
     va_end(ap);
     return buffer;
 }
@@ -294,7 +302,7 @@ auto LongUI::Interfmt(const wchar_t* format, ...) noexcept -> const wchar_t* {
 /// <param name="">The .</param>
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const LongUI::EndL&) noexcept ->CUIDebug& {
-    wchar_t chs[3] = { L'\r',L'\n', 0 };
+    char16_t chs[3] = { L'\r',L'\n', 0 };
     this->Output(m_lastLevel, chs);
     return *this;
 }
@@ -309,11 +317,11 @@ auto LongUI::CUIDebug::operator<<(const LongUI::EndL&) noexcept ->CUIDebug& {
 auto LongUI::CUIDebug::operator<<(const GraphicsAdapterDesc& desc) noexcept ->CUIDebug& {
     CUIString str;
     str.format(
-        L"Adapter:   { \r\n\t Friend Name: %ls\r\n"
-        L"\t DedicatedVideoMemory: %.3lfMB\r\n"
-        L"\t DedicatedSystemMemory: %.3lfMB\r\n"
-        L"\t SharedSystemMemory: %.3lfMB\r\n"
-        L"}",
+        u"Adapter:   { \r\n\t Friend Name: %ls\r\n"
+        u"\t DedicatedVideoMemory: %.3lfMB\r\n"
+        u"\t DedicatedSystemMemory: %.3lfMB\r\n"
+        u"\t SharedSystemMemory: %.3lfMB\r\n"
+        u"}",
         desc.friend_name,
         static_cast<double>(desc.dedicated_video) / (1024.*1024.),
         static_cast<double>(desc.dedicated_system) / (1024.*1024.),
@@ -331,7 +339,7 @@ auto LongUI::CUIDebug::operator<<(const GraphicsAdapterDesc& desc) noexcept ->CU
 auto LongUI::CUIDebug::operator<<(const LongUI::Matrix3X2F& matrix) noexcept ->CUIDebug& {
     CUIString str;
     str.format(
-        L"Matrix3x2 (%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
+        u"Matrix3x2 (%7.2f, %7.2f, %7.2f, %7.2f, %7.2f, %7.2f)",
         matrix._11, matrix._12,
         matrix._21, matrix._22,
         matrix._31, matrix._32
@@ -348,7 +356,7 @@ auto LongUI::CUIDebug::operator<<(const LongUI::Matrix3X2F& matrix) noexcept ->C
 auto LongUI::CUIDebug::operator<<(const LongUI::RectF& rect) noexcept ->CUIDebug& {
     CUIString str;
     str.format(
-        L"Rect(%7.2f, %7.2f, %7.2f, %7.2f)",
+        u"Rect(%7.2f, %7.2f, %7.2f, %7.2f)",
         rect.left, rect.top, rect.right, rect.bottom
     );
     this->OutputNoFlush(m_lastLevel, str.c_str());
@@ -363,7 +371,7 @@ auto LongUI::CUIDebug::operator<<(const LongUI::RectF& rect) noexcept ->CUIDebug
 auto LongUI::CUIDebug::operator<<(const LongUI::ColorF& color) noexcept ->CUIDebug& {
     CUIString str;
     str.format(
-        L"RGBA(%0.2f, %0.2f, %0.2f, %0.2f)",
+        u"RGBA(%0.2f, %0.2f, %0.2f, %0.2f)",
         color.r, color.g, color.b, color.a
     );
     this->OutputNoFlush(m_lastLevel, str.c_str());
@@ -377,7 +385,7 @@ auto LongUI::CUIDebug::operator<<(const LongUI::ColorF& color) noexcept ->CUIDeb
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const LongUI::Point2F& pt) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"Point(%7.2f, %7.2f)", pt.x, pt.y);
+    str.format(u"Point(%7.2f, %7.2f)", pt.x, pt.y);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -389,7 +397,7 @@ auto LongUI::CUIDebug::operator<<(const LongUI::Point2F& pt) noexcept ->CUIDebug
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const LongUI::Size2F& sz) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"Size(%7.2f, %7.2f)", sz.width, sz.height);
+    str.format(u"Size(%7.2f, %7.2f)", sz.width, sz.height);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -412,8 +420,8 @@ void LongUI::CUIDebug::Output(DebugStringLevel l, const char* s) noexcept {
 /// <param name="l">The l.</param>
 /// <param name="s">The s.</param>
 /// <returns></returns>
-void LongUI::CUIDebug::Output(DebugStringLevel l, const wchar_t* s) noexcept {
-    this->OutputString(l, s, true);
+void LongUI::CUIDebug::Output(DebugStringLevel l, const char16_t* s) noexcept {
+    this->OutputString(l, detail::sys(s), true);
 }
 
 /// <summary>
@@ -436,7 +444,7 @@ void LongUI::CUIDebug::OutputNoFlush(DebugStringLevel l, const char* s) noexcept
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const float f) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"%f", f);
+    str.format(u"%f", f);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -449,7 +457,7 @@ auto LongUI::CUIDebug::operator<<(const float f) noexcept ->CUIDebug& {
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const DDFFloat2 f) noexcept ->CUIDebug& {
     CUIString str; const float value = f.f;
-    str.format(L"%.2f", value);
+    str.format(u"%.2f", value);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -462,7 +470,7 @@ auto LongUI::CUIDebug::operator<<(const DDFFloat2 f) noexcept ->CUIDebug& {
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const DDFFloat3 f) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"%.3f", f.f);
+    str.format(u"%.3f", f.f);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -475,7 +483,7 @@ auto LongUI::CUIDebug::operator<<(const DDFFloat3 f) noexcept ->CUIDebug& {
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const DDFFloat4 f) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"%.4f", f.f);
+    str.format(u"%.4f", f.f);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -488,7 +496,7 @@ auto LongUI::CUIDebug::operator<<(const DDFFloat4 f) noexcept ->CUIDebug& {
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const void* ctrl) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"[0x%p] ", ctrl);
+    str.format(u"[0x%p] ", ctrl);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -539,7 +547,7 @@ auto LongUI::CUIDebug::operator<<(const UIControl* ctrl) noexcept ->CUIDebug& {
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const uint32_t o) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"%" PRIu32, o);
+    str.format(u"%" PRIu32, o);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -551,7 +559,7 @@ auto LongUI::CUIDebug::operator<<(const uint32_t o) noexcept ->CUIDebug& {
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const int32_t o) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(L"%" PRIi32, o);
+    str.format(u"%" PRIi32, o);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
@@ -652,9 +660,9 @@ auto LongUI::CUIDebug::operator<<(StyleStateTypeChange e) noexcept->CUIDebug& {
 /// <param name="ch">The ch.</param>
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const char32_t ch) noexcept  ->CUIDebug& {
-    wchar_t buffer[4] = { 0,0,0,0 };
+    char16_t buffer[4] = { 0,0,0,0 };
     // TODO: utf32 to utf16
-    buffer[0] = wchar_t(ch);
+    buffer[0] = char16_t(ch);
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }

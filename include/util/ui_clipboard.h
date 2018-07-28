@@ -5,7 +5,7 @@
 // ui namespace
 namespace LongUI {
     // copy text to clipboard
-    bool CopyTextToClipboard(WcView view) noexcept;
+    bool CopyTextToClipboard(U16View view) noexcept;
     // paste text from clipboard
     bool PasteTextToClipboard(CUIString& str) noexcept;
 }

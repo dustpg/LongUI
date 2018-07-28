@@ -88,14 +88,15 @@ auto LongUI::GetDoubleClickTime() noexcept -> uint32_t {
 /// </summary>
 /// <param name="view">The view.</param>
 /// <returns></returns>
-bool LongUI::CopyTextToClipboard(WcView view) noexcept {
+bool LongUI::CopyTextToClipboard(U16View view) noexcept {
+    static_assert(sizeof(char16_t) == sizeof(wchar_t), "WINDOWS");
     // 申请全局内存
-    constexpr size_t sz = sizeof(wchar_t);
+    constexpr size_t sz = sizeof(char16_t);
     const size_t len = sz * ((view.end() - view.begin()) + 1);
     const auto handle = ::GlobalAlloc(GMEM_MOVEABLE, len);
     if (handle) {
         // 准备解锁写入
-        if (const auto str = reinterpret_cast<wchar_t*>(::GlobalLock(handle))) {
+        if (const auto str = reinterpret_cast<char16_t*>(::GlobalLock(handle))) {
             std::memcpy(str, view.begin(), len - sz);
             str[view.end() - view.begin()] = 0;
             ::GlobalUnlock(handle);
@@ -128,8 +129,8 @@ bool LongUI::PasteTextToClipboard(CUIString& str) noexcept {
         const auto handle = ::GetClipboardData(CF_UNICODETEXT);
         // 解锁写入
         if (const auto ptr = ::GlobalLock(handle)) {
-            const auto len = ::GlobalSize(handle) / sizeof(wchar_t) - 1;
-            const auto text = reinterpret_cast<const wchar_t*>(ptr);
+            const auto len = ::GlobalSize(handle) / sizeof(char16_t) - 1;
+            const auto text = reinterpret_cast<const char16_t*>(ptr);
             const auto real = len;
             str.assign(text, text + real);
             rv = true;

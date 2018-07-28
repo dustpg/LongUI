@@ -67,7 +67,7 @@ namespace LongUI {
         // set text, return true if changed
         bool SetText(CUIString&& text) noexcept;
         // set text, return true if changed
-        bool SetText(WcView text) noexcept;
+        bool SetText(U16View text) noexcept;
         // set default minsize
         void SetAsDefaultMinsize() noexcept;
     public:
