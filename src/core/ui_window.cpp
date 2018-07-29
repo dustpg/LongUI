@@ -396,16 +396,10 @@ m_private(new(std::nothrow) Private) {
 /// <param name="old">The old.</param>
 /// <returns></returns>
 auto LongUI::MakeStyleSheetFromFile(U8View file, SSPtr old) noexcept -> SSPtr {
-    const CUIStringU8 old_dir = UIManager.GetXULDir();
+    const CUIStringU8 old_dir = UIManager.GetXulDir();
     auto path = old_dir; path += file;
-    // OOM处理?
-    //if (!(old_dir.is_ok() && path.is_ok())) return old;
     // 获取CSS目录以便获取正确的文件路径
-    auto view = path.view();
-    while (view.end() > view.begin()) {
-        --view.second; const auto ch = *view.end();
-        if (ch == '/' || ch == '\\') break;
-    }
+    const auto view = LongUI::FindLastDir(path.view());
     // 设置CSS目录作为当前目录
     UIManager.SetXulDir(view);
     // 待使用缓存

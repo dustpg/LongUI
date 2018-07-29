@@ -71,10 +71,10 @@ namespace LongUI {
         // invalidate control
         void InvalidateControl(UIControl& ctrl) noexcept;
     public:
-        // set xul dir
+        // set xul dir [internal use]
         void SetXulDir(U8View) noexcept;
-        // get xul dir
-        auto GetXULDir() const noexcept -> U8View;
+        // get xul dir [internal use]
+        auto GetXulDir() const noexcept -> U8View;
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         // add global css string
         void AddGlobalCssString(U8View) noexcept;

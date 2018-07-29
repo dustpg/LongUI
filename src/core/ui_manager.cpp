@@ -851,7 +851,9 @@ void LongUI::CUIManager::LoadDataFromUrl(
     // 读取文件
     if (CUIFile file{ url_utf16.c_str(), CUIFile::Flag_Read }) {
         const auto file_size = file.GetFilezize();
-        buffer.resize(file_size + 1);
+        // +1 针对字符串的优化处理
+        buffer.reserve(file_size + 1);
+        buffer.resize(file_size);
         if (buffer.is_ok()) file.Read(&buffer.front(), file_size);
         return;
     }

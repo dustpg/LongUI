@@ -358,11 +358,16 @@ void LongUI::POD::detail::vector_base::resize(size_type n, const char* data) noe
     assert(m_uByteLen && "m_uByteLen cannot be 0");
     if (n > size()) {
         this->reserve(n);  if (!is_ok()) return;
-        auto write_ptr = m_pData + m_uByteLen*m_uVecLen;
-        for (size_t i = 0; i != n - size(); ++i) {
-            std::memcpy(write_ptr, data, m_uByteLen);
-            write_ptr += m_uByteLen;
+        const auto start = m_pData + m_uByteLen * m_uVecLen;
+        if (data) {
+            auto write_ptr = start;
+            for (size_t i = 0; i != n - size(); ++i) {
+                std::memcpy(write_ptr, data, m_uByteLen);
+                write_ptr += m_uByteLen;
+            }
         }
+        // 由于是POD, 所以默认值是0
+        else std::memset(start, 0, (n - m_uVecLen) * m_uByteLen);
     }
     m_uVecLen = static_cast<uint32_t>(n);
     assert(size() <= max_size());
@@ -376,7 +381,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::POD::detail::vector_base::reserve(size_type n) noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
-    assert(n < (1 << 20) && "to huge");
+    assert(n < this->max_size() && "to huge");
     // 获取目标容量
     const auto cap = static_cast<uint32_t>(n + this->get_extra_buy());
     // 扩容: 不足就重新申请

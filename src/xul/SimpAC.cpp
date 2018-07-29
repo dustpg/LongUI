@@ -263,6 +263,18 @@ auto SimpAC::CACStream::parse_selector_lv1(char ch, combinator_state& state) noe
 /// <param name="inline_style">if set to <c>true</c> [inline style].</param>
 /// <returns></returns>
 void SimpAC::CACStream::Load(StrPair view, bool inline_style) noexcept {
+    // 只有三字节不管什么也直接返回
+    if (view.second - view.first <= 3) return;
+    // 移除BOM
+    {
+        union { uint32_t u32; char u8[4]; } bom, now;
+        bom.u32 = 0, now.u32 = 0;
+        bom.u8[0] = 0xef; bom.u8[1] = 0xbb; bom.u8[2] = 0xbf;
+        now.u8[0] = view.first[0]; 
+        now.u8[1] = view.first[1];
+        now.u8[2] = view.first[2];
+        if (now.u32 == bom.u32) view.first += 3;
+    }
     // 状态
     BasicSelectors selector;
     //Combinators combinator;

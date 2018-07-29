@@ -11,8 +11,6 @@
 #include "customconfig.h"
 
 
-extern const char* xul;
-
 void InitList(
     const LongUI::POD::Vector<LongUI::GraphicsAdapterDesc>& adapters,
     LongUI::UIControl* list
@@ -31,8 +29,9 @@ int main() {
         LUIDebug(Hint) << "Battle Control Online..." << LongUI::endl;
         {
             LongUI::UIViewport viewport;
-            viewport.SetXul(xul);
-            {
+            using namespace LongUI;
+            // LongUI::operator""_sv to create UxxView
+            if (viewport.SetXulFromFile(u8"luidata.zip/main.xul"_sv)) {
                 // menupopup is popupwindow, cannot be found througn FindControl
                 const auto list = viewport.RefWindow().FindControl("list");
                 const auto button = viewport.RefWindow().FindControl("button");
@@ -47,22 +46,6 @@ int main() {
     }
     return 0;
 }
-
-const char* xul = u8R"xml(
-<?xml version="1.0"?>
-<window clearcolor="white" title="lui demo">
-  <groupbox flex="1">
-  <caption label="Choose a adapter" />
-  <menulist id="list">
-    <menupopup>
-    </menupopup>
-  </menulist>
-  <spacer flex="1"/>
-  <button label="OK!" id="button" default="true"/>
-  </groupbox>
-</window>
-)xml";
-
 
 /// <summary>
 /// Initializes the list.

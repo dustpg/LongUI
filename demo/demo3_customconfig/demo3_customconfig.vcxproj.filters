@@ -3,8 +3,11 @@
   <ItemGroup>
     <ClCompile Include="demo3.cpp" />
     <ClCompile Include="customconfig.cpp" />
+    <ClCompile Include="zip.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="customconfig.h" />
+    <ClInclude Include="zip.h" />
+    <ClInclude Include="miniz.h" />
   </ItemGroup>
 </Project>

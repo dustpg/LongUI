@@ -5,6 +5,7 @@
 #include <container/pod_hash.h>
 #include <event/ui_event_host.h>
 #include <core/ui_popup_window.h>
+#include <core/ui_string.h>
 #include <style/ui_native_style.h>
 #include <event/ui_initialize_event.h>
 #include "../private/ui_private_control.h"
@@ -1906,9 +1907,43 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
 /// Sets the xul.
 /// </summary>
 /// <param name="xul">The xul string.</param>
+/// <remarks>
+/// SetXul accept null-terminated-string only
+/// SetXul目前只接受 NUL 结尾字符串
+/// </remarks>
 /// <returns></returns>
 void LongUI::UIControl::SetXul(const char* xul) noexcept {
     CUIControlControl::MakeXul(*this, xul);
+}
+
+/// <summary>
+/// Sets the xul from file.
+/// </summary>
+/// <param name="url">The URL.</param>
+/// <returns></returns>
+bool LongUI::UIControl::SetXulFromFile(U8View url) noexcept {
+#ifndef NDEBUG
+    if (UIManager.GetXulDir().size()) {
+        LUIDebug(Error)
+            << "you cannot set xul dir out of SetXulFromFile"
+            << endl;
+    }
+#endif
+    POD::Vector<uint8_t> buffer;
+    UIManager.LoadDataFromUrl(url, buffer);
+    if (const auto len = buffer.size()) {
+        UIManager.SetXulDir(LongUI::FindLastDir(url));
+        {
+            // TODO: NUL-结尾字符串
+            buffer.resize(len + 1);
+            const auto ptr = &buffer.front();
+            const auto str = reinterpret_cast<const char*>(ptr);
+            this->SetXul(str);
+        }
+        UIManager.SetXulDir({});
+        return true;
+    }
+    return false;
 }
 
 PCN_NOINLINE

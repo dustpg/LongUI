@@ -26,6 +26,50 @@ namespace LongUI {
         const auto rv = SimpAC::SplitUnit(pair);
         return reinterpret_cast<const PodStringView<char>&>(rv);
     }
+    /// <summary>
+    /// Finds the last dir.
+    /// </summary>
+    /// <param name="view">The view.</param>
+    /// <returns></returns>
+    auto FindLastDir(PodStringView<char> view) noexcept -> PodStringView<char> {
+        while (view.end() > view.begin()) {
+            --view.second; const auto ch = *view.end();
+            if (ch == '/' || ch == '\\') break;
+        }
+        return view;
+    }
+    /// <summary>
+    /// Splits the string.
+    /// </summary>
+    /// <param name="a">a.</param>
+    /// <param name="b">The b.</param>
+    /// <returns></returns>
+    auto SplitStr(PodStringView<char>& a, const PodStringView<char> b) noexcept->PodStringView<char> {
+        PodStringView<char> rv = { a.first, a.first };
+        const auto sublen = b.size();
+        const auto end_of_a = a.end() - sublen + 1;
+        // 遍历完整的字符串
+        for (auto itr = a.begin(); itr < end_of_a;) {
+            auto substr = b.first;
+            // 第一次
+            if (*itr == *substr) {
+                while (*itr == *substr) {
+                    ++itr; ++substr;
+                    // 有戏
+                    if (substr == b.second) {
+                        a.first = itr;
+                        rv.second = itr;
+                        goto force_break_on_found;
+                    }
+                }
+            }
+            else ++itr;
+        }
+        // 没有找到
+        a.first = a.second;
+    force_break_on_found:
+        return rv;
+    }
     // SimpAC::FuncValue to U8View
     auto U8(SimpAC::FuncValue v) noexcept {
         return U8View{ v.first, v.first + v.length };

@@ -582,7 +582,7 @@ auto LongUI::CUIResMgr::LoadResource(
     auto& list = rm().reslist;
     auto& map = rm().resmap;
     auto get_dir = [is_xul_dir]() noexcept {
-        return is_xul_dir ? UIManager.GetXULDir() : U8View{};
+        return is_xul_dir ? UIManager.GetXulDir() : U8View{};
     };
     const auto nsize = static_cast<uint32_t>(list.size());
     assert(nsize >= rm().rescount && "???");

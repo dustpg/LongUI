@@ -164,9 +164,12 @@
   <ItemGroup>
     <ClCompile Include="customconfig.cpp" />
     <ClCompile Include="demo3.cpp" />
+    <ClCompile Include="zip.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="customconfig.h" />
+    <ClInclude Include="miniz.h" />
+    <ClInclude Include="zip.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

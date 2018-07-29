@@ -396,7 +396,7 @@ namespace LongUI { namespace POD {
 #endif
         }
         // resize
-        void resize(size_type n) noexcept { resize(n, T{}); }
+        void resize(size_type n) noexcept { vector_base::resize(n, nullptr); }
         // resize with filled-value
         void resize(size_type n, const T& x) noexcept { vector_base::resize(n, tr(&x)); }
         // shrink resize

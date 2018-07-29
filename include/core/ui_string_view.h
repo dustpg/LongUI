@@ -65,6 +65,10 @@ namespace LongUI {
         bool operator==(const PodStringView x) const noexcept {
             return size() == x.size() && !std::memcmp(begin(), x.begin(), size() * sizeof(T));
         }
+        // operator!=
+        bool operator!=(const PodStringView x) const noexcept {
+            return !((*this) == x);
+        }
         // to bool
         bool ToBool() noexcept { return *begin() == 't'; }
         // to float
@@ -80,6 +84,10 @@ namespace LongUI {
     };
     // split unit for U8View
     auto SplitUnit(PodStringView<char>&) noexcept ->PodStringView<char>;
+    // split string with substring
+    auto SplitStr(PodStringView<char>&, PodStringView<char>) noexcept->PodStringView<char>;
+    // find last dir
+    auto FindLastDir(PodStringView<char>) noexcept ->PodStringView<char>;
     // _sv
     inline PodStringView<char> operator ""_sv(const char* str, size_t len) noexcept {
         return{ str , str + len };

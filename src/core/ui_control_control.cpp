@@ -104,7 +104,7 @@ void LongUI::CUIControlControl::SetXulDir(U8View dir) noexcept {
 /// Gets the xul dir.
 /// </summary>
 /// <returns></returns>
-auto LongUI::CUIControlControl::GetXULDir() const noexcept -> U8View {
+auto LongUI::CUIControlControl::GetXulDir() const noexcept -> U8View {
     return cc().xul_dir.view();
 }
 
