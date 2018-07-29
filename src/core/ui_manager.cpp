@@ -5,11 +5,12 @@
 #include <container/pod_vector.h>
 #include <core/ui_time_capsule.h>
 #include <container/pod_hash.h>
+#include <filesystem/ui_file.h>
 #include <graphics/ui_dcomp.h>
 #include <input/ui_kminput.h>
 #include <util/ui_ctordtor.h>
 #include <core/ui_manager.h>
-//#include <core/ui_string.h>
+#include <core/ui_string.h>
 #include <util/ui_ostype.h>
 #include <util/ui_endian.h>
 
