@@ -44,7 +44,7 @@ namespace LongUI {
             Func                m_func;
         public:
             // ctor
-            func_ex(const Func &x, func** p) noexcept : m_func(x) { prev_funcpp = p; }
+            func_ex(const Func &x, func<Result, Args...>** p) noexcept : m_func(x) { this->prev_funcpp = p; }
             // call
             auto call(Args&&... args) noexcept ->Result override {
                 if (this->chain) this->chain->call(std::forward<Args>(args)...);
