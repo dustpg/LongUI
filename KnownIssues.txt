@@ -6,6 +6,6 @@
 
 3. WinA : WM_MOUSELEAVE, WinB: WM_MOUSEMOVE message sequential maybe* orderless. make UIViewport's Event_MouseEnter/Event_MouseLeave orderless
   you should handle both situations.
-   * : if mouse move fast as you can(just 1 frame), you will get WM_MOUSEMOVE(B) at first, then WM_MOUSELEAVE(A)
+  * : if mouse move fast as you can(just 1 frame), you will get WM_MOUSEMOVE(B) at first, then WM_MOUSELEAVE(A)
 
 4.

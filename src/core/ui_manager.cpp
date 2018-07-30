@@ -733,10 +733,6 @@ void LongUI::CUIManager::DeleteLater(UIControl& ctrl) noexcept {
     assert(rv && "post message failed, maybe too many messages");
 }
 
-#ifndef NDEBUG
-#include <core/ui_string.h>
-#endif
-
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIManager"/> class.
 /// </summary>
@@ -855,6 +851,7 @@ void LongUI::CUIManager::LoadDataFromUrl(
         // +1 针对字符串的优化处理
         buffer.reserve(file_size + 1);
         buffer.resize(file_size);
+        // TODO: OOM处理
         if (buffer.is_ok()) file.Read(&buffer.front(), file_size);
         return;
     }

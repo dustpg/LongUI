@@ -1,9 +1,10 @@
 ﻿#pragma once
 
 
-
+#include "../luiconf.h"
 #include "ui_unimacro.h"
 #include <utility>
+#include <cassert>
 
 
 #ifndef LUI_CANNOT_CALL_CONSTRUCTOR_DIRECTLY
@@ -55,41 +56,42 @@ namespace LongUI { namespace detail {
             static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>::ctor_dtor();
 #endif
         }
+        // release the object
+        static void delete_obj(void*p) noexcept { static_cast<T*>(p)->T::~T(); }
+        // ctor
+        template<typename ...Args>
+        ctor_dtor(empty0, Args&&... args) noexcept : m(std::forward<Args>(args)...) {};
+        // create
+        template<typename ...Args>
+        static void create(void* ptr, Args&&... args) noexcept {
+#ifdef LUI_CANNOT_CALL_CONSTRUCTOR_DIRECTLY
+            // gcc cannot call ctor directly
+            return new(ptr) ctor_dtor<T>(empty0{}, std::forward<Args>(args)...);
+#else
+                // msc/clang extended support
+            static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>::ctor_dtor(empty0{}, std::forward<Args>(args)...);
+#endif
+        }
+#ifdef LUI_NONPOD_VECTOR
         // copy the object
         static void copy_t_obj(void* ptr, const void* x) noexcept {
             assert(ptr != x);
-            static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>
-                ::ctor_dtor(*static_cast<const ctor_dtor<T>*>(x));
+            const T& obj = static_cast<const T*>(x);
+            create(t, obj);
         }
         // move the object
         static void move_t_obj(void* ptr, void* x) noexcept {
             assert(ptr != x);
-            static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>
-                ::ctor_dtor(std::move(*static_cast<ctor_dtor<T>*>(x)));
+            T& obj = static_cast<T*>(x);
+            create(t, std::move(obj));
         }
-        // release the object
-        static void delete_obj(void*p) noexcept { static_cast<T*>(p)->T::~T(); }
         // get the vtable ptr
         static const vtable_helper* get() noexcept {
             static const vtable_helper helper{
                 create_obj,  copy_t_obj, move_t_obj,  delete_obj };
             return &helper;
         }
-        // ctor
-        template<typename ...Args>
-        ctor_dtor(empty0, Args&&... args) noexcept : m(std::forward<Args>(args)...) {};
-        // create
-        template<typename ...Args>
-        static T* create(void* ptr, Args&&... args) noexcept {
-#ifdef LUI_CANNOT_CALL_CONSTRUCTOR_DIRECTLY
-            // gcc cannot call ctor directly
-            return &(new(ptr) ctor_dtor<T>(empty0{}, std::forward<Args>(args)...))->m;
-#else
-                // msc/clang extended support
-            static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>::ctor_dtor(empty0{}, std::forward<Args>(args)...);
-                return static_cast<T*>(ptr);
 #endif
-        }
     };
 }}
 

@@ -5,12 +5,25 @@
 #include "../private/ui_private_control.h"
 
 /// <summary>
-/// Initializes a new instance of the <see cref="CUITimeCapsule"/> class.
+/// Initializes a new instance of the <see cref="CUITimeCapsule" /> class.
 /// </summary>
+/// <param name="call">The call.</param>
+/// <param name="dtor">The dtor.</param>
 /// <param name="total">The total.</param>
-LongUI::CUITimeCapsule::CUITimeCapsule(float total) noexcept
-    : m_fTotalTime(total) {
+LongUI::CUITimeCapsule::CUITimeCapsule(
+    void(*call)(void*, float p) noexcept,
+    void(*dtor)(void*) noexcept,
+    float total) noexcept
+    : m_pCall(call), m_pDtor(dtor), m_fTotalTime(total) {
     assert(total >= 0.f && "bad time");
+}
+
+/// <summary>
+/// Finalizes an instance of the <see cref="CUITimeCapsule"/> class.
+/// </summary>
+/// <returns></returns>
+LongUI::CUITimeCapsule::~CUITimeCapsule() noexcept {
+    m_pDtor(this);
 }
 
 
@@ -90,7 +103,7 @@ bool LongUI::CUITimeCapsule::Call(float delta) noexcept {
     auto p = m_fDoneTime / m_fTotalTime;
     bool rv = false;
     if (m_fDoneTime >= m_fTotalTime) { p = 1.f; rv = true; }
-    this->call(p);
+    m_pCall(this, p);
     return rv;
 }
 

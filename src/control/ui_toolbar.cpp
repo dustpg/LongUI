@@ -85,7 +85,7 @@ auto LongUI::UIToolBarButton::DoEvent(UIControl * sender,
     {
     case NoticeEvent::Event_Initialize:
         UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_ToolBarButton);
-        [[fallthrough]];
+        //[[fallthrough]];
     }
     // 基类处理
     return Super::DoEvent(sender, e);

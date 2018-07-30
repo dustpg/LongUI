@@ -26,6 +26,8 @@
 
 #include "ui_node.h"
 #include "ui_object.h"
+#include "../util/ui_ctordtor.h"
+
 #include <utility>
 
 // ui namespace
@@ -40,11 +42,12 @@ namespace LongUI {
         friend CUIControlControl;
     protected:
         // ctor
-        CUITimeCapsule(float total) noexcept;
+        CUITimeCapsule(
+            void(* call)(void*, float p) noexcept,
+            void(* dtor)(void*) noexcept,
+            float total) noexcept;
         // dtor
-        virtual ~CUITimeCapsule() noexcept = default;
-        // call
-        virtual void call(float p) noexcept = 0;
+        ~CUITimeCapsule() noexcept ;
         // delete this
         void dispose() noexcept;
         // normal check hoster last end
@@ -63,6 +66,10 @@ namespace LongUI {
         // is same hoster
         bool IsSameHoster(UIControl& hoster) const noexcept { return m_pHoster == &hoster; }
     private:
+        // call ptr
+        void(* const m_pCall)(void*, float p) noexcept;
+        // dtor ptr
+        void(* const m_pDtor)(void*) noexcept;
         // pointer
         UIControl *         m_pHoster = nullptr;
         // total time
@@ -71,24 +78,36 @@ namespace LongUI {
         float               m_fDoneTime = 0.f;
     };
     // impl namespace
-    namespace impl {
+    namespace detail {
         // impl for time capsule
-        template<typename T>
-        class time_capsule : public CUITimeCapsule {
-            // func object
-            T           m_func;
-            // dtor
-            ~time_capsule() noexcept = default;
-            // impl for call
-            void call(float p) noexcept override { return m_func(p); };
-        public:
+        template<typename T> struct time_capsule_helper : CUITimeCapsule {
+            // alignof T cannot greater double(std::max_align_t)
+            static_assert(alignof(T) <= alignof(double), "to large!");
+            // T data
+            typename std::aligned_storage<sizeof(T), alignof(T)>::type     buffer;
             // ctor
-            time_capsule(T&& func, float total) noexcept : CUITimeCapsule(total), m_func(std::move(func)) {}
+            time_capsule_helper(
+                T&& func,
+                void(*call)(void*, float p) noexcept,
+                void(*dtor)(void*) noexcept,
+                float total) noexcept : CUITimeCapsule(call, dtor, total) {
+                detail::ctor_dtor<T>::create(&this->buffer, std::move(func));
+            }
+            // operator ()
+            static void call(void* ptr, float p) noexcept {
+                const auto obj = &reinterpret_cast<time_capsule_helper*>(ptr)->buffer;
+                (*reinterpret_cast<T*>(obj))(p);
+            }
         };
         // create time capsule
         template<typename T>
         inline auto create(float total, T&& func) noexcept ->CUITimeCapsule* {
-            return new(std::nothrow) impl::time_capsule<T>(std::move(func), total);
+            return new(std::nothrow) detail::time_capsule_helper<T>(
+                std::move(func), 
+                detail::time_capsule_helper<T>::call,
+                detail::ctor_dtor<T>::delete_obj,
+                total
+                );
         }
     }
 }

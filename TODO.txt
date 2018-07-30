@@ -2,6 +2,8 @@
 
 CUIWaiter单独测试?
 
+Node 继承 偏移量调整
+
 Event_Initialize 时构造对象?
 
 窗口生命周期控制?Xxx::ControlAttached 目前无用

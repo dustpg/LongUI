@@ -52,7 +52,7 @@ namespace LongUI {
         // create time capsule for control
         template<typename T>
         auto CreateTimeCapsule(T&& func, float total, UIControl* ctrl = nullptr) noexcept {
-            return this->after_create_tc(impl::create<T>(total, std::move(func)), ctrl); }
+            return this->after_create_tc(detail::create<T>(total, std::move(func)), ctrl); }
         // dispose time capsule for control
         void DisposeTimeCapsule(UIControl& ctrl) noexcept;
         // refresh time capsule for control

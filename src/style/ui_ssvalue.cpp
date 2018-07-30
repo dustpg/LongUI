@@ -400,8 +400,8 @@ auto LongUI::SSBlock::Create(uint32_t len) noexcept -> SSBlock* {
     const auto size = sizeof(SSBlock) - sizeof(SSSelector) 
         + sizeof(SSSelector) * len;
     if (const auto ptr = LongUI::SmallAlloc(size)) {
-        const auto obj = detail::ctor_dtor<SSBlock>::create(ptr, len);
-        return obj;
+        detail::ctor_dtor<SSBlock>::create(ptr, len);
+        return static_cast<SSBlock*>(ptr);
     }
     return nullptr;
 }

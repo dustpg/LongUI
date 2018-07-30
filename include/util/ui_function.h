@@ -72,7 +72,7 @@ namespace LongUI {
             }
         };
     }
-    // UI Function, lightweight and chain-call-able version std::function
+    // UI Function, lightweight and chain-call-able version std::function, and could be disconnect
     template<typename Result, typename... Args>
     class CUIFunction<Result(Args...)> {
     public:

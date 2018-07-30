@@ -144,9 +144,9 @@ void LongUI::UIBoxLayout::relayout_v() noexcept {
     // 4. 遍历控件
     for (auto& child : *this) {
 #ifndef NDEBUG
-        if (!std::strcmp(child.name_dbg, "scrollbar::slider")) {
-            int bbk = 9;
-        }
+        //if (!std::strcmp(child.name_dbg, "scrollbar::slider")) {
+        //    int bbk = 9;
+        //}
 #endif
         // 有效才处理
         if (child.IsVaildInLayout()) {
