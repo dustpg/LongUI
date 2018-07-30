@@ -200,8 +200,8 @@ void LongUI::CUIControlControl::RecursiveRender(
 /// Initializes a new instance of the <see cref="CUIControlControl"/> class.
 /// </summary>
 LongUI::CUIControlControl::CUIControlControl() noexcept {
-    m_oHeadTimeCapsule = { nullptr, &m_oTailTimeCapsule };
-    m_oTailTimeCapsule = { &m_oHeadTimeCapsule, nullptr };
+    m_oHeadTimeCapsule = { nullptr, static_cast<CUITimeCapsule*>(&m_oTailTimeCapsule) };
+    m_oTailTimeCapsule = { static_cast<CUITimeCapsule*>(&m_oHeadTimeCapsule), nullptr };
     detail::ctor_dtor<PrivateCC>::create(&cc());
     m_dwTimeTick = LongUI::GetTimeTick();
     m_dwDeltaTime = 0;

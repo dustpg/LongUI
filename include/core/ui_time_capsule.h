@@ -38,7 +38,8 @@ namespace LongUI {
     // contrl control
     class CUIControlControl;
     // time capsule
-    class CUITimeCapsule : public Node, public CUISmallObject {
+    class CUITimeCapsule : public Node<CUITimeCapsule>,
+        public CUISmallObject {
         // friend
         friend CUIControlControl;
     protected:

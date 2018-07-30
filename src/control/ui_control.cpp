@@ -790,8 +790,8 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     m_state.Init();
     m_oBox.size = { INVALID_CONTROL_SIZE, INVALID_CONTROL_SIZE };
     // 初始化一般数据
-    m_oHead = { nullptr, &m_oTail };
-    m_oTail = { &m_oHead, nullptr };
+    m_oHead = { nullptr, static_cast<UIControl*>(&m_oTail) };
+    m_oTail = { static_cast<UIControl*>(&m_oHead), nullptr };
     // 添加到父节点的子节点链表中
     if (parent) parent->add_child(*this);
     // 更新世界
@@ -1153,7 +1153,7 @@ void LongUI::UIControl::SwapChildren(UIControl& a, UIControl& b) noexcept {
     if (a == b) return;
     m_state.child_i_changed = true;
     this->mark_window_minsize_changed();
-    Node::SwapNode(a, b);
+    UIControl::SwapNode(a, b);
     this->NeedRelayout();
 }
 
@@ -1444,7 +1444,7 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     // 连接前后节点
     m_oTail.prev->next = &child;
     child.prev = m_oTail.prev;
-    child.next = &m_oTail;
+    child.next = static_cast<UIControl*>(&m_oTail);
     m_oTail.prev = &child;
     // 要求刷新
     child.m_state.level = m_state.level + 1;

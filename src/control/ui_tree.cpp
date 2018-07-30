@@ -659,7 +659,7 @@ void LongUI::UITreeRow::relayout() noexcept {
         set_child(m_private->image);
         
         // (image, end)
-        auto itr = ++Iterator<UIControl>{ &m_private->image };
+        auto itr = ++Iterator{ &m_private->image };
 
 
         for (auto& col : (*cols)) {

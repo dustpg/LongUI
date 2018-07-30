@@ -6,19 +6,15 @@
 // Node
 namespace LongUI {
     // Node
-    struct Node {
+    template<typename T> struct Node {
         // node ptr
-        Node* prev, *next;
-        // swap node
-        static void SwapNode(Node& a, Node& b) noexcept;
-        // swap A-B node
-        static void SwapAB(Node& a, Node& b) noexcept;
+        T* prev, *next;
         // operator ==
         bool operator==(const Node& n) const noexcept { return this == &n; }
         // operator !=
         bool operator!=(const Node& n) const noexcept { return this != &n; }
         // control iterator
-        template<typename T> class Iterator {
+        class Iterator {
             // self type
             using Self = Iterator;
         public:
@@ -60,7 +56,7 @@ namespace LongUI {
             T*          m_pTNode;
         };
         // reverse iterator
-        template<typename T> class ReverseIterator {
+        class ReverseIterator {
             // self type
             using Self = ReverseIterator;
         public:

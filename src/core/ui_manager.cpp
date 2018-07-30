@@ -810,7 +810,7 @@ auto LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc,
         // 连接前后节点
         self.m_oTailTimeCapsule.prev->next = tc;
         tc->prev = self.m_oTailTimeCapsule.prev;
-        tc->next = &self.m_oTailTimeCapsule;
+        tc->next = static_cast<CUITimeCapsule*>(&self.m_oTailTimeCapsule);
         self.m_oTailTimeCapsule.prev = tc;
         // 设置指针
         if (ctrl) {

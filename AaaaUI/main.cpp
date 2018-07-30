@@ -81,6 +81,14 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
 #include <control/ui_test.h>
 
 
+__declspec(noinline)
+float DoIT(LongUI::UIViewport& a) noexcept {
+    float f = 0.f;
+    for (auto&x : a)
+        f += x.GetSize().width;
+    return f;
+}
+
 struct MemoryLeakDetector {
 #ifndef NDEBUG
     // mem state
@@ -133,6 +141,7 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
             viewport1.SetDebugName("root");
             LongUI::Result::GetSystemLastError();
 #endif
+            std::printf("%f\n", DoIT(viewport1));
             UIManager.MainLoop();
         }
         LUIDebug(Hint) << "Battle Control Terminated." << LongUI::endl;

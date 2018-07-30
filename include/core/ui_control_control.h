@@ -130,9 +130,9 @@ namespace LongUI {
         void dispose_all_time_capsule() noexcept;
     private:
         // time capsule head
-        Node                    m_oHeadTimeCapsule;
+        Node<CUITimeCapsule>    m_oHeadTimeCapsule;
         // time capsule tail
-        Node                    m_oTailTimeCapsule;
+        Node<CUITimeCapsule>    m_oTailTimeCapsule;
     protected:
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         // style sheet

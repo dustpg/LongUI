@@ -73,7 +73,7 @@ namespace LongUI {
     // control
     class UIControl :
         public CUIEventHost,
-        protected Node,
+        protected Node<UIControl>,
         public CUIObject {
         // super class
         using Super = void;
@@ -81,16 +81,25 @@ namespace LongUI {
         friend UIControlPrivate;
         // friend
         friend CUIControlControl;
-        // friend
-        friend Node::Iterator<UIControl>;
-        // friend
-        friend Node::Iterator<const UIControl>;
-        // friend
-        friend Node::ReverseIterator<UIControl>;
-        // friend
-        friend Node::ReverseIterator<const UIControl>;
+    protected:
         // unique classes
         using UniqueClasses = POD::Vector<const char*>;
+        // Itr
+        using Iterator = Node<UIControl>::Iterator;
+        // R-Itr
+        using RIterator = Node<UIControl>::ReverseIterator;
+        // C-Itr
+        using CIterator = Node<const UIControl>::Iterator;
+        // CR-Itr
+        using CRIterator = Node<const UIControl>::ReverseIterator;
+        // friend
+        friend Node<UIControl>::Iterator;
+        // friend
+        friend CIterator;
+        // friend
+        friend Node<UIControl>::ReverseIterator;
+        // friend
+        friend CRIterator;
     public:
         // class meta
         static const  MetaControl   s_meta;
@@ -406,9 +415,9 @@ namespace LongUI {
         // world transform: do mapping
         Matrix3X2F              m_mtWorld;
         // child-control head node
-        Node                    m_oHead;
+        Node<UIControl>         m_oHead;
         // child-control tail node
-        Node                    m_oTail;
+        Node<UIControl>         m_oTail;
         // children offset
         Point2F                 m_ptChildOffset;
         // parent
@@ -473,21 +482,21 @@ namespace LongUI {
 #endif
     public:
         // end iterator
-        auto end()noexcept->Iterator<UIControl> { return{ static_cast<UIControl*>(&m_oTail) }; }
+        auto end()noexcept->Iterator { return{ static_cast<UIControl*>(&m_oTail) }; }
         // begin iterator
-        auto begin()noexcept->Iterator<UIControl> { return{ static_cast<UIControl*>(m_oHead.next) }; }
+        auto begin()noexcept->Iterator { return{ static_cast<UIControl*>(m_oHead.next) }; }
         // rend iterator
-        auto rend()noexcept->ReverseIterator<UIControl> { return{ static_cast<UIControl*>(&m_oHead) }; }
+        auto rend()noexcept->RIterator { return{ static_cast<UIControl*>(&m_oHead) }; }
         // rbegin iterator
-        auto rbegin()noexcept->ReverseIterator<UIControl> { return{ static_cast<UIControl*>(m_oTail.prev) }; }
+        auto rbegin()noexcept->RIterator { return{ static_cast<UIControl*>(m_oTail.prev) }; }
         // const end iterator
-        auto end()const noexcept->Iterator<const UIControl> { return{ static_cast<const UIControl*>(&m_oTail) }; }
+        auto end()const noexcept->CIterator { return{ static_cast<const UIControl*>(&m_oTail) }; }
         // begin iterator
-        auto begin()const noexcept->Iterator<const UIControl> { return{ static_cast<const UIControl*>(m_oHead.next) }; }
+        auto begin()const noexcept->CIterator { return{ static_cast<const UIControl*>(m_oHead.next) }; }
         // rend iterator
-        auto rend()const noexcept->ReverseIterator<const UIControl> { return{ static_cast<const UIControl*>(&m_oHead) }; }
+        auto rend()const noexcept->CRIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
         // rbegin iterator
-        auto rbegin()const noexcept->ReverseIterator<const UIControl> { return{ static_cast<const UIControl*>(m_oTail.prev) }; }
+        auto rbegin()const noexcept->CRIterator { return{ static_cast<const UIControl*>(m_oTail.prev) }; }
     protected:
         // ctor failed if
         void ctor_failed_if(const void* ptr) noexcept { if (!ptr) m_state.ctor_failed = true; }
@@ -514,6 +523,11 @@ namespace LongUI {
         // set child fixed attachment
         static void set_child_fixed_attachment(UIControl& child) noexcept {
             child.m_state.attachment = Attachment_Fixed; }
+    protected: // COPY FROM NODE
+        // swap node
+        static void SwapNode(UIControl& a, UIControl& b) noexcept;
+        // swap A-B node
+        static void SwapAB(UIControl& a, UIControl& b) noexcept;
     };
     // == operator
     inline bool operator==(const UIControl& a, const UIControl& b) noexcept {

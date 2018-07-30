@@ -272,7 +272,7 @@ void LongUI::UITabs::SetSelectedTab(UITab& tab) noexcept {
     // 清除后标记
     {
         const auto b = this->begin();
-        const auto e = Iterator<UIControl>{ &tab };
+        const auto e = Iterator{ &tab };
         for (auto itr = b; itr != e; ++itr) {
             auto& refc = *itr;
             longui_cast<UITab*>(&refc)->ForceBefore();
@@ -280,7 +280,7 @@ void LongUI::UITabs::SetSelectedTab(UITab& tab) noexcept {
     }
     // 标记后标记
     {
-        const auto b = Iterator<UIControl>{ &tab };
+        const auto b = Iterator{ &tab };
         const auto e = this->end();
         for (auto itr = b; itr != e; ++itr) {
             auto& refc = *itr;
