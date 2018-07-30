@@ -2,6 +2,8 @@
 
 #include "../core/ui_object.h"
 #include "../core/ui_core_type.h"
+#include "ui_ctordtor.h"
+
 #include <cassert>
 
 namespace LongUI {
@@ -18,15 +20,30 @@ namespace LongUI {
         template<typename Result, typename ...Args>
         class func : public CUISmallObject {
         public:
+            // ctor
+            func(
+                Result(*call)(void*, Args&&...) noexcept,
+                void(*dtor)(void*) noexcept,
+                func** perv
+            ) noexcept : call_ptr(call), dtor_ptr(dtor), prev_funcpp(perv){}
             // call
-            virtual auto call(Args&&... args) noexcept->Result = 0;
+            auto call(Args&&... args) noexcept ->Result {
+                if (this->chain) this->chain->call(std::forward<Args>(args)...);
+                return this->call_ptr(this, std::forward<Args>(args)...);
+            }
             // dtor
-            virtual ~func() noexcept { delete this->chain; };
+            ~func() noexcept { delete this->chain; dtor_ptr(this); };
+            // call ptr
+            Result(*  const call_ptr)(void*, Args&&...) noexcept;
+            // dtor ptr
+            void(*    const dtor_ptr)(void*) noexcept;
             // prev_funcpp
-            func**      prev_funcpp = nullptr;
+            func**          prev_funcpp = nullptr;
             // call chain [next node]
-            func*       chain = nullptr;
+            func*           chain = nullptr;
         };
+        // TODO: function pointer
+
         // func derived 
         template<typename Func, typename Result, typename ...Args>
         class func_ex final : public func<Result, Args...> {
@@ -40,15 +57,20 @@ namespace LongUI {
                 alignof(Func) <= alignof(double),
                 "alignof Func cannot over double because of memory-alloc function"
                 );
-            // func data
-            Func                m_func;
+            // T data
+            typename std::aligned_storage<sizeof(Func), alignof(Func)>::type  m_buffer;
+            // call pointer
+            static Result call(void* ptr, Args&&... args) noexcept {
+                auto& fobj = reinterpret_cast<Func&>(static_cast<func_ex*>(ptr)->m_buffer);
+                return fobj(std::forward<Args>(args)...);
+            }
         public:
+            // super class
+            using super_t = func<Result, Args...>;
             // ctor
-            func_ex(const Func &x, func<Result, Args...>** p) noexcept : m_func(x) { this->prev_funcpp = p; }
-            // call
-            auto call(Args&&... args) noexcept ->Result override {
-                if (this->chain) this->chain->call(std::forward<Args>(args)...);
-                return m_func(std::forward<Args>(args)...);
+            func_ex(Func&&x, super_t** p) noexcept : super_t(call, 
+                ctor_dtor<Func>::delete_obj_ptr().ptr, p) {
+                ctor_dtor<Func>::create(&m_buffer, std::move(x));
             }
         };
         // type helper
@@ -117,8 +139,8 @@ namespace LongUI {
             this->dispose(); std::swap(m_pFunction, x.m_pFunction); return *this;
         }
         // ctor with func
-        template<typename Func> CUIFunction(const Func& f) noexcept : m_pFunction(
-            new(std::nothrow) detail::func_ex<typename detail::type_helper<Func>::type, Result, Args...>(f, &m_pFunction)) { }
+        template<typename Func> CUIFunction(Func&& f) noexcept : m_pFunction(
+            new(std::nothrow) detail::func_ex<typename detail::type_helper<Func>::type, Result, Args...>(std::move(f), &m_pFunction)) { }
         // () operator
         auto operator()(Args&&... args) const noexcept -> Result {
             assert(m_pFunction && "bad call or oom");

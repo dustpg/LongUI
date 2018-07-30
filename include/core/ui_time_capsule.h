@@ -30,6 +30,7 @@
 
 #include <utility>
 
+
 // ui namespace
 namespace LongUI {
     // control
@@ -95,8 +96,8 @@ namespace LongUI {
             }
             // operator ()
             static void call(void* ptr, float p) noexcept {
-                const auto obj = &reinterpret_cast<time_capsule_helper*>(ptr)->buffer;
-                (*reinterpret_cast<T*>(obj))(p);
+                auto& obj = reinterpret_cast<time_capsule_helper*>(ptr)->buffer;
+                reinterpret_cast<T&>(obj)(p);
             }
         };
         // create time capsule
@@ -105,7 +106,7 @@ namespace LongUI {
             return new(std::nothrow) detail::time_capsule_helper<T>(
                 std::move(func), 
                 detail::time_capsule_helper<T>::call,
-                detail::ctor_dtor<T>::delete_obj,
+                detail::ctor_dtor<T>::delete_obj_ptr().ptr,
                 total
                 );
         }

@@ -5,6 +5,7 @@
 #include "ui_unimacro.h"
 #include <utility>
 #include <cassert>
+#include <type_traits>
 
 
 #ifndef LUI_CANNOT_CALL_CONSTRUCTOR_DIRECTLY
@@ -25,6 +26,10 @@
 
 // LongUI::detail namespace
 namespace LongUI { namespace detail {
+    // empty dtor
+    void empty_dtor(void*) noexcept;
+    // dtor_t
+    struct dtor_t { void(*ptr)(void*) noexcept; };
     // func-vtable helper
     struct vtable_helper {
         void(*create_obj)(void*) noexcept;
@@ -56,8 +61,26 @@ namespace LongUI { namespace detail {
             static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>::ctor_dtor();
 #endif
         }
+        // release the object: real
+        template<bool> static void delete_obj_real(void*p) noexcept;
+        // release the object: real
+        template<> static void delete_obj_real<true>(void*p) noexcept { empty_dtor(p); }
+        // release the object: real
+        template<> static void delete_obj_real<false>(void*p) noexcept { static_cast<T*>(p)->T::~T(); }
         // release the object
-        static void delete_obj(void*p) noexcept { static_cast<T*>(p)->T::~T(); }
+        static void delete_obj(void*p) noexcept { 
+            delete_obj_real<std::is_trivially_destructible<T>::value>(p);
+        }
+        // release the object: real-pointer
+        template<bool> static dtor_t delete_obj_real_ptr() noexcept;
+        // release the object: real
+        template<> static dtor_t delete_obj_real_ptr<true>() noexcept { return { empty_dtor }; }
+        // release the object: real
+        template<> static dtor_t delete_obj_real_ptr<false>() noexcept { return { delete_obj }; }
+        // delete_obj pointer
+        static dtor_t delete_obj_ptr() noexcept {
+            return delete_obj_real_ptr<std::is_trivially_destructible<T>::value>();
+        }
         // ctor
         template<typename ...Args>
         ctor_dtor(empty0, Args&&... args) noexcept : m(std::forward<Args>(args)...) {};

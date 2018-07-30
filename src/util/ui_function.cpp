@@ -55,3 +55,11 @@ auto LongUI::detail::uifunc_helper::add_chain_helper(
         return 0;
     }
 }
+
+/// <summary>
+/// Empties the dtor.
+/// </summary>
+/// <param name="">The .</param>
+/// <returns></returns>
+void LongUI::detail::empty_dtor(void*) noexcept {
+}
