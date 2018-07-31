@@ -51,9 +51,10 @@ namespace LongUI { struct CUIManager::Private {
     POD::HashMap<void*>     texts;
     // unique control classes
     POD::HashMap<META*>     cclasses;
+#ifdef LUI_RAWINPUT
     // km-input
     CUIInputKM              km_input;
-
+#endif
 };}
 
 
@@ -83,7 +84,11 @@ namespace LongUI { enum CallLater : uint32_t {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIInputKM::Instance() noexcept -> CUIInputKM & {
+#ifdef LUI_RAWINPUT
     return UIManager.pm().km_input;
+#else
+    return *static_cast<CUIInputKM*>(nullptr);
+#endif
 }
 
 
@@ -497,12 +502,17 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
                 ) noexcept ->LRESULT {
                 switch (message)
                 {
-                case WM_INPUT:
+                case WM_CREATE:
+                    UIManager.m_uGuiThreadId = ::GetCurrentThreadId();
+                    break;
+#ifdef LUI_RAWINPUT
+                    case WM_INPUT:
                     // XXX: 考虑加锁
                     //CUIDataAutoLocker locker;
                     UIManager.pm().km_input
                         .Update(reinterpret_cast<HRAWINPUT>(lParam));
                     return 1;
+#endif
 #if 0
                 case WM_TIMER:
                 {
@@ -892,6 +902,41 @@ void ui_endian_runtime_assert() noexcept {
 
 #endif
 
+
+/// <summary>
+/// Initializes this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIBlockingGuiOpAutoUnlocker::init() noexcept -> uint32_t {
+    // 保险起见先Lock一下避免解锁掉渲染线程的DATA锁
+    UIManager.DataLock();
+    // 只能在Gui线程调用该方法
+    assert(::GetCurrentThreadId() == UIManager.GetGuiThreadId());
+    // 获取递归计数
+    const auto counter = UIManager.DataRecursion();
+    // 解除全部锁
+    for (uint32_t i = 0; i != counter; ++i) UIManager.DataUnlock();
+    // 返回递归计数
+    return counter;
+}
+
+/// <summary>
+/// Uninits this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIBlockingGuiOpAutoUnlocker::uninit(uint32_t counter) noexcept {
+    // 只能在Gui线程调用该方法
+    assert(::GetCurrentThreadId() == UIManager.GetGuiThreadId());
+    // 至少有一次
+    assert(counter > 0 && "bad counter");
+    // 避免错误的0次以及保险起见的1次
+    if (counter > 1) {
+        // 减去之前保险起见的1次
+        --counter;
+        // 在全部上锁
+        for (uint32_t i = 0; i != counter; ++i) UIManager.DataLock();
+    }
+}
 
 // ----------------------------------------------------------------------------
 //                          UI Window Manager

@@ -5,21 +5,24 @@
 #include <cstring>
 
 /// <summary>
-/// Initializes a new instance of the <see cref="CUIInputKM"/> class.
-/// </summary>
-LongUI::CUIInputKM::CUIInputKM() noexcept { 
-
-};
-
-
-/// <summary>
 /// Gets the state of the key.
 /// </summary>
 /// <param name="key">The key.</param>
 /// <returns></returns>
 bool LongUI::CUIInputKM::GetKeyState(KB key) noexcept {
+#ifdef LUI_RAWINPUT
+
+#endif
     return (::GetKeyState(key) & 0x80) != 0;
 }
+#ifdef LUI_RAWINPUT
+
+/// <summary>
+/// Initializes a new instance of the <see cref="CUIInputKM"/> class.
+/// </summary>
+LongUI::CUIInputKM::CUIInputKM() noexcept { 
+
+};
 
 /// <summary>
 /// Initializes the specified .
@@ -175,3 +178,4 @@ void LongUI::CUIInputKM::AfterUpdate() noexcept {
     m_bufMButton[MBI_LastFrame] = m_bufMButton[MBI_ThisFrame];
 }
 
+#endif

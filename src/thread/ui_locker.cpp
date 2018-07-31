@@ -62,3 +62,12 @@ void LongUI::CUILocker::Unlock() noexcept {
     const auto locker = reinterpret_cast<ui_locker_t*>(&m_impl);
     ::LeaveCriticalSection(locker);
 }
+
+/// <summary>
+/// Gets the recursion count.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUILocker::GetRecursionCount() const noexcept -> uint32_t {
+    const auto locker = reinterpret_cast<const ui_locker_t*>(&m_impl);
+    return locker->RecursionCount;
+}

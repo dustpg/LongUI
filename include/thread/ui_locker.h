@@ -1,6 +1,8 @@
 ﻿#pragma once
-#include <type_traits>
+
 #include "../util/ui_unimacro.h"
+#include <type_traits>
+#include <cstdint>
 
 
 // ui namespace
@@ -29,6 +31,8 @@ namespace LongUI {
         void Lock() noexcept;
         // unlock
         void Unlock() noexcept;
+        // get recursion count
+        auto GetRecursionCount() const noexcept->uint32_t;
     public:
         // cannot be moved
         CUILocker(CUILocker&&) noexcept = delete;

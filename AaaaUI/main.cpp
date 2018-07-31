@@ -124,9 +124,10 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
             LongUI::UIViewport viewport1{
                 nullptr,
                 LongUI::CUIWindow::Config_Default
-                | LongUI::CUIWindow::Config_LayeredWindow
+                //| LongUI::CUIWindow::Config_LayeredWindow
             };
-            viewport1.RefWindow().SetClearColor({ 1,1,1,0.0 });
+            //viewport1.RefWindow().SetClearColor({ 1,1,1,0.0 });
+            viewport1.RefWindow().SetClearColor({ 1,1,1,1 });
 #if 1
             main_inited(viewport1, CASE_NUM);
             /*viewport1.AddSpacer({ 100, 100 }, 1);
@@ -550,21 +551,31 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     case 16:
         loadfile("../doc/test-xul/css-test.xul");
         viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
-        //do_button(viewport.GetWindow(), "btn1")->AddGuiEventListener(
-        //    LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
-        //    const auto window = control.GetWindow();
-        //    if (const auto img1 = window->FindControl("img1")) {
-        //        img1->DeleteLater();
-        //    }
-        //    else if (const auto img2 = window->FindControl("img2")) {
-        //        const auto img = longui_cast<LongUI::UIImage*>(img2);
-        //        static int a = 0;
-        //        const auto view = LongUI::U8View::FromCStyle(
-        //            (a++) & 1 ? "" : "images/25.png");
-        //        img->SetSource(view);
-        //    }
-        //    return LongUI::Event_Accept;
-        //});
+        do_button(viewport.GetWindow(), "btn1")->AddGuiEventListener(
+            LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
+            const auto window = control.GetWindow();
+            //if (const auto img1 = window->FindControl("img1")) {
+            //    img1->DeleteLater();
+            //}
+            //else if (const auto img2 = window->FindControl("img2")) {
+            //    const auto img = longui_cast<LongUI::UIImage*>(img2);
+            //    static int a = 0;
+            //    const auto view = LongUI::U8View::FromCStyle(
+            //        (a++) & 1 ? "" : "images/25.png");
+            //    img->SetSource(view);
+            //}
+            int rv_msgbox = 0;
+            {
+                LongUI::CUIBlockingGuiOpAutoUnlocker unlocker;
+                const auto text = L"ASDDSA";
+                const auto capt = L"QWEEWQ";
+                rv_msgbox = ::MessageBoxW(window->GetHwnd(), text, capt, MB_YESNO);
+            }
+            if (rv_msgbox == IDYES) {
+                int bk = 9;
+            }
+            return LongUI::Event_Accept;
+        });
         //do_button(viewport.GetWindow(), "bgimage")->AddGuiEventListener(
         //    LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
         //    UIManager.CreateTimeCapsule([](float p) noexcept {

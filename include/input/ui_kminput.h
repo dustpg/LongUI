@@ -231,6 +231,7 @@ namespace LongUI {
         static auto Instance() noexcept->CUIInputKM&;
         // get key state
         static bool GetKeyState(KB) noexcept;
+#ifdef LUI_RAWINPUT
         // ctor
         CUIInputKM() noexcept;
         // clear mouse state
@@ -276,5 +277,6 @@ namespace LongUI {
         bool*           m_pKeyStateOld = m_abKeyStateBuffer + KEYBOARD_BUFFER_SIZE;
         // key state buffer
         bool            m_abKeyStateBuffer[KEYBOARD_BUFFER_SIZE * 2] = {0};
+#endif
     };
 }

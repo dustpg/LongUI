@@ -57,9 +57,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_manager;
         // 32bit
-        template<> struct private_manager<4> { enum { size = 608, align = 4 }; };
+        template<> struct private_manager<4> { enum { size = 64, align = 4 }; };
         // 64bit
-        template<> struct private_manager<8> { enum { size = 656, align = 8 }; };
+        template<> struct private_manager<8> { enum { size = 104, align = 8 }; };
     }
     // input
     class CUIInputKM;
@@ -119,13 +119,17 @@ namespace LongUI {
         // get app run time in ms
         //auto GetAppTimeTick() const noexcept { return m_dwTimeTick - m_cStartTick; }
         // lock data
-        auto DataLock() noexcept { return m_uiDataLocker.Lock(); }
+        void DataLock() noexcept { m_uiDataLocker.Lock(); }
         // unlock data
-        auto DataUnlock() noexcept { return m_uiDataLocker.Unlock(); }
+        void DataUnlock() noexcept { m_uiDataLocker.Unlock(); }
         // lock rendering
-        auto RenderLock() noexcept { return m_uiRenderLocker.Lock(); }
+        void RenderLock() noexcept { m_uiRenderLocker.Lock(); }
         // unlock rendering
-        auto RenderUnlock() noexcept { return m_uiRenderLocker.Unlock(); }
+        void RenderUnlock() noexcept { m_uiRenderLocker.Unlock(); }
+        // get data locker recursion count
+        auto DataRecursion() const noexcept { return m_uiDataLocker.GetRecursionCount(); }
+        // get gui thread id
+        auto GetGuiThreadId() const noexcept { return m_uGuiThreadId; }
     public:
         // exit
         void Exit() noexcept { this->config->Exit(); }
@@ -164,6 +168,10 @@ namespace LongUI {
         uint32_t                m_uWheelScrollLines = 3;
         // wheel scroll chars
         uint32_t                m_uWheelScrollChars = 3;
+        // gui thread id
+        uint32_t                m_uGuiThreadId = 0;
+        // unused u32
+        uint32_t                m_uUnused = 0;
         // tool window
         HWND                    m_hToolWnd = nullptr;
 #ifndef NDEBUG
@@ -211,6 +219,20 @@ namespace LongUI {
         CUIRenderAutoLocker() noexcept { CUIManager::GetInstance().RenderLock(); }
         // dtor
         ~CUIRenderAutoLocker() noexcept { CUIManager::GetInstance().RenderUnlock(); }
+    };
+    // blocking gui operation auto unlocker
+    class CUIBlockingGuiOpAutoUnlocker {
+        // counter
+        const uint32_t  m_counter;
+        // init
+        static auto init() noexcept->uint32_t;
+        // uninit
+        static void uninit(uint32_t) noexcept;
+    public:
+        // ctor
+        CUIBlockingGuiOpAutoUnlocker() noexcept : m_counter(init()) {};
+        // dtor
+        ~CUIBlockingGuiOpAutoUnlocker() noexcept { uninit(m_counter); }
     };
     /// <summary>
     /// single instance buffer for longui manager
