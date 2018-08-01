@@ -51,25 +51,30 @@ namespace LongUI {
         void close_window() noexcept;
     public:
         // window config
-        enum WindowConfig : uint8_t {
-            // popup window
-            Config_Popup = 1 << 0,
-            // frameless window
-            Config_Frameless = 1 << 1,
+        enum WindowConfig : uint16_t {
+            // press esc to close window
+            Config_EscToCloseWindow = 1 << 0,
+            // press alt+f4 to close window
+            Config_AltF4ToCloseWindow = 1 << 1,
             // quit on close
             Config_QuitOnClose = 1 << 2,
             // delete on close
             Config_DeleteOnClose = 1 << 3,
+
+
+            // popup window
+            Config_Popup = 1 << 8,
+            // frameless window
+            Config_Frameless = 1 << 9,
             // tool window, no included in "quit on close"
-            Config_ToolWindow = 1 << 4,
-            // modal window, cannot control parent until closed
-            Config_ModalWindow = 1 << 5,
+            Config_ToolWindow = 1 << 10,
             // fixed size, cannot drag to resize but invoke Resize()
-            Config_FixedSize = 1 << 6,
+            Config_FixedSize = 1 << 11,
             // layered window[support for Win8.1 and higher]
-            Config_LayeredWindow = 1 << 7,
+            Config_LayeredWindow = 1 << 12,
+
             // default config
-            Config_Default = 0,
+            Config_Default = Config_AltF4ToCloseWindow,
         };
     public:
         // hide the window
@@ -97,7 +102,7 @@ namespace LongUI {
         // mark full rendering
         void MarkFullRendering() noexcept;
         // is auto sleep?
-        bool IsAutpSleep() const noexcept { return config & Config_Popup; }
+        bool IsAutpSleep() const noexcept { return !!(config & Config_Popup); }
         // is in sleep mode?
         auto IsInSleepMode() const noexcept { return !m_hwnd; }
         // into sleep mode immediately
@@ -256,16 +261,16 @@ namespace LongUI {
         WindowConfig  const config;
     protected:
         // in dtor
-        bool                m_inDtor = false;
+        bool                m_inDtor : 1;
         // ctor failed
-        bool                m_bCtorFaild = false;
+        bool                m_bCtorFaild : 1;
         // state: under "minsize changed" list
         bool                m_bMinsizeList = false;
     };
     // WindowConfig | WindowConfig
     inline CUIWindow::WindowConfig operator|(
         CUIWindow::WindowConfig a, CUIWindow::WindowConfig b) noexcept {
-        using target_t = uint8_t;
+        using target_t = uint16_t;
         static_assert(sizeof(target_t) == sizeof(CUIWindow::WindowConfig), "same!");
         const auto aa = static_cast<target_t>(a);
         const auto bb = static_cast<target_t>(b);

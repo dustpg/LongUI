@@ -105,7 +105,7 @@ uint32_t ui_web_color_string_to_rgba32(const char* begin, const char* end, char 
         // 透明不包括在RGB32里面
         if (hash == 0x062e7992ul) return 0;
         // 将RGB32的A置为FF
-#if 1
+#if 0
         //color_t alpha; alpha.pri = 0; alpha.rgba[3] = 0xff;
         //const uint32_t mask = alpha.pri;
         return ui_web_color_name_hash_to_rgb32(hash) | 0xff000000ul;

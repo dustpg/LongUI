@@ -13,7 +13,7 @@ const auto xul = u8R"xml(
   <spacer flex="1"/>
   <hbox flex="1">
     <spacer flex="1"/>
-    <myctrl flex="1" value="hellow world!"/>
+    <myctrl flex="1" value="cyan"/>
     <spacer flex="1"/>
   </hbox>
   <spacer flex="1"/>

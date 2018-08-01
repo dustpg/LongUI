@@ -19,7 +19,7 @@ namespace Demo {
     /// <param name="meta">The meta.</param>
     MyControl::MyControl(UIControl* parent, 
         const MetaControl& meta) noexcept : Super(parent, meta) {
-
+        m_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
     }
     /// <summary>
     /// Does the event.
@@ -32,7 +32,9 @@ namespace Demo {
         {
         case NoticeEvent::Event_Initialize:
             // called on init
-            m_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
+
+            // force set alpha to 1.0
+            m_color.a = 1.f;
             break;
         }
         return Super::DoEvent(sender, e);
@@ -89,7 +91,7 @@ namespace Demo {
         switch (attr)
         {
         case "value"_bkdr:
-
+            ColorF::FromRGBA_RT(luiref m_color, { view.ColorRGBA32() });
             break;
         default:
             // others: 

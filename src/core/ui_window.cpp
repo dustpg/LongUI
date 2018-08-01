@@ -368,6 +368,9 @@ namespace LongUI {
 LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
 m_parent(parent), config(cfg),
 m_private(new(std::nothrow) Private) {
+    // 初始化BF
+    m_inDtor = false;
+    m_bCtorFaild = false;
     // XXX: 错误处理
     if (!m_private) { m_bCtorFaild = true; return;}
     // XXX: 内联窗口的场合
@@ -1352,13 +1355,20 @@ void LongUI::CUIWindow::Private::SetLayeredWindowSupport() noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
     constexpr auto ekey = LongUI::InputEvent::Event_KeyDown;
-    // 回车键?
-    if (key == CUIInputKM::KB_RETURN) {
-        // 直接将输入引导到默认控件
+    switch (key)
+    {
+    case CUIInputKM::KB_ESCAPE:
+        if (this->viewport->RefWindow().config
+            & CUIWindow::Config_EscToCloseWindow)
+            return this->viewport->RefWindow().CloseWindow();
+        break;
+    case CUIInputKM::KB_RETURN:
+        // 回车键: 直接将输入引导到默认控件
         if (const auto defc = this->now_default) {
             if (defc->IsEnabled()) defc->DoInputEvent({ ekey, key });
             return;
         }
+        break;
     }
     // 直接将输入引导到焦点控件
     if (const auto focused_ctrl = this->focused) {
@@ -2026,7 +2036,9 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         case WM_SYSKEYDOWN:
             // Alt+F4
             if (wParam == CUIInputKM::KB_F4) {
-                ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
+                const auto cfg = this->viewport->RefWindow().config;
+                if (cfg & CUIWindow::Config_AltF4ToCloseWindow)
+                    ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
             }
             else {
                 CUIDataAutoLocker locker;
