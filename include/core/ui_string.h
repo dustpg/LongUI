@@ -102,14 +102,7 @@ namespace LongUI {
         // assign width RAI
         template<typename RAI> typename std::enable_if<type_helper::is_iterator<RAI>::value, Self&>::type
             assign(RAI first, RAI last) noexcept {
-#ifndef NDEBUG
-            if (const auto n = last - first) {
-                const auto ptr = &first[0];
-                detail::string_helper::string_assign(m_vector, tr(ptr), tr(ptr + n));
-            }
-#else
             detail::string_helper::string_assign(m_vector, tr(&first[0]), tr(&last[0]));
-#endif
             return *this;
         }
     public:
@@ -124,14 +117,7 @@ namespace LongUI {
         // append width RAI
         template<typename RAI> typename std::enable_if<type_helper::is_iterator<RAI>::value, Self&>::type
             append(RAI first, RAI last) noexcept {
-#ifndef NDEBUG
-            if (const auto n = last - first) {
-                const auto ptr = &first[0];
-                detail::string_helper::string_insert(m_vector, npos, tr(ptr), tr(ptr + n));
-            }
-#else
             detail::string_helper::string_insert(m_vector, npos, tr(&first[0]), tr(&last[0]));
-#endif
             return *this;
         }
     public:
@@ -142,14 +128,7 @@ namespace LongUI {
         // insert width RAI
         template<typename RAI> typename std::enable_if<type_helper::is_iterator<RAI>::value, Self&>::type
             insert(size_type pos, RAI first, RAI last) noexcept {
-#ifndef NDEBUG
-            if (const auto n = last - first) {
-                const auto ptr = &first[0];
-                detail::string_helper::string_insert(m_vector, pos, tr(ptr), tr(ptr + n));
-            }
-#else
             detail::string_helper::string_insert(m_vector, pos, tr(&first[0]), tr(&last[0]));
-#endif
             return *this;
         }
     public:
@@ -171,14 +150,7 @@ namespace LongUI {
         template<typename RAI> typename std::enable_if<type_helper::is_iterator<RAI>::value, Self&>::type
             replace(size_type pos, size_type len, RAI first, RAI last) noexcept {
             detail::string_helper::string_erase(m_vector, pos, len);
-#ifndef NDEBUG
-            if (const auto n = last - first) {
-                const auto ptr = &first[0];
-                detail::string_helper::string_insert(m_vector, pos, tr(ptr), tr(ptr + n));
-            }
-#else
             detail::string_helper::string_insert(m_vector, pos, tr(&first[0]), tr(&last[0]));
-#endif
             return *this;
         }
     public:
