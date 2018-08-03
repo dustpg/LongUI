@@ -298,7 +298,8 @@ namespace LongUI {
         assert(length < 0xffff && "bad length");
         SimpAC::FuncValue fv;
         fv.first = pair.first;
-        fv.length = length;
+        fv.length = static_cast<uint16_t>(length);
+        static_assert(sizeof(fv.length) == sizeof(uint16_t), "SAME!");
         fv.func = SimpAC::FuncType::Type_None;
         m_propertyValues.push_back(fv);
     }

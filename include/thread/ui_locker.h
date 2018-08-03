@@ -46,15 +46,4 @@ namespace LongUI {
         // buffer storage
         std::aligned_storage<buf_size, buf_align>::type m_impl;
     };
-    // auto locker
-    class CUIAutoLocker {
-    public:
-        // ctor
-        CUIAutoLocker(CUILocker& l) noexcept : m_locker(l) { l.Lock(); }
-        // dtor
-        ~CUIAutoLocker() noexcept { m_locker.Unlock(); }
-    protected:
-        // locker
-        CUILocker&          m_locker;
-    };
 }
