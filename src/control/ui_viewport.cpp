@@ -37,6 +37,14 @@ namespace LongUI {
     }
 }
 
+//// longui::impl
+//namespace LongUI { namespace impl {
+//    // parse config
+//    inline auto parse_config(CUIWindow::WindowConfig cfg) noexcept ->UIControl* {
+//        return nullptr;
+//    }
+//}}
+
 /// <summary>
 /// Initializes a new instance of the <see cref="UIViewport" /> class.
 /// </summary>
@@ -193,6 +201,8 @@ void LongUI::UIViewport::add_attribute(uint32_t key, U8View value) noexcept {
     //    // sizemode         : maximized/normal
     //    break;
     default:
+        // Viewport::add_attribute部分操作对象属于窗口, 允许在初始化后调用
+        if (this->is_inited()) return;
         // 其他的交给父类处理
         return Super::add_attribute(key, value);
     }

@@ -104,7 +104,7 @@ namespace LongUI {
             KB_X              = 'X',
             KB_Y              = 'Y',
             KB_Z              = 'Z',
-#ifdef LONGUI_LRKEY_NOT_WORKING
+#ifdef LUI_LRKEY_NOT_WORKING
             KB_LWIN           = 0x5B, 
             KB_RWIN           = 0x5C, 
 #endif
@@ -157,7 +157,7 @@ namespace LongUI {
             KB_OEM_FJ_TOUROKU = 0x94,    // 'Register word' key
             KB_OEM_FJ_LOYA    = 0x95,    // 'Left OYAYUBI' key
             KB_OEM_FJ_ROYA    = 0x96,    // 'Right OYAYUBI' key
-#ifdef LONGUI_LRKEY_NOT_WORKING
+#ifdef LUI_LRKEY_NOT_WORKING
             KB_LSHIFT         = 0xA0, 
             KB_RSHIFT         = 0xA1, 
             KB_LCONTROL       = 0xA2, 

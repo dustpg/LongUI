@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<window title="XUL Textboxes"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<vbox flex="1" style="overflow: auto" >
+   <hbox align="center">
+      <label value="Default:"/>
+      <textbox id="default" oninput="setText('default');" />
+   </hbox>
+   <hbox align="center">
+      <label value="Disabled:" />
+      <textbox id="disabled" disabled="true" value="disabled" size="10"
+               oninput="setText('disabled');" />
+   </hbox>
+   <hbox align="center">
+      <label  value="Readonly:" />
+      <textbox id="readonly" readonly="true" value="readonly"  size="30"
+               oninput="setText('readonly');" />
+   </hbox>
+   <hbox align="center">
+      <label value="Max length of 20:"  />
+      <textbox id="max-length" maxlength="20"  size="20"
+               oninput="setText('max-length');" />
+   </hbox>
+   <hbox align="center">
+      <label value="Password:"  />
+      <textbox id="password" type="password" 
+               oninput="setText('password');" />
+   </hbox>
+   <hbox align="center">
+      <label value="Multiline:"  />
+      <textbox id="multiline" multiline="true" rows="7" cols="20"
+               oninput="setText('multiline');" />
+   </hbox>
+
+   <hbox  align="center">
+      <label value="Input:"  />
+   </hbox>
+
+</vbox>
+
+</window>

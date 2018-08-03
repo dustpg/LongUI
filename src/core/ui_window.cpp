@@ -370,6 +370,7 @@ m_parent(parent), config(cfg),
 m_private(new(std::nothrow) Private) {
     // 初始化BF
     m_inDtor = false;
+    m_bInExec = false;
     m_bCtorFaild = false;
     // XXX: 错误处理
     if (!m_private) { m_bCtorFaild = true; return;}
@@ -390,6 +391,7 @@ m_private(new(std::nothrow) Private) {
     //else this->WakeUp();
     UIManager.add_window(*this);
 }
+
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 /// <summary>
@@ -1030,7 +1032,11 @@ void LongUI::CUIWindow::HiDpiSupport() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::close_window() noexcept {
+    // 取消
+    this->SetResult(0);
+    // 通用处理
     UIManager.close_helper(*this);
+    // 提醒VP: 窗口关了
     this->RefViewport().WindowClosed();
 }
 
@@ -1109,6 +1115,39 @@ void LongUI::CUIWindow::TrySleep() noexcept {
 }
 
 /// <summary>
+/// Executes this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIWindow::Exec() noexcept->uintptr_t {
+    uintptr_t rv = 0;
+    const auto parent = this->GetParent();
+    const auto pahwnd = parent ? parent->GetHwnd() : nullptr;
+    m_bInExec = true;
+    {
+        CUIBlockingGuiOpAutoUnlocker unlocker;
+        // 禁止父窗口调用
+        ::EnableWindow(pahwnd, false);
+        // 增加一层消息循环
+        UIManager.RecursionMsgLoop();
+        // 恢复父窗口调用
+        ::EnableWindow(pahwnd, true);
+        // 激活父窗口
+        ::SetActiveWindow(pahwnd);
+    }
+    m_bInExec = false;
+    return rv;
+}
+
+/// <summary>
+/// Sets the result.
+/// </summary>
+/// <param name="result">The result.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::SetResult(uintptr_t result) noexcept {
+    if (m_bInExec) UIManager.BreakMsgLoop(result);
+}
+
+/// <summary>
 /// Closes the window.
 /// </summary>
 /// <returns></returns>
@@ -1134,18 +1173,6 @@ bool LongUI::CUIWindow::IsVisible() const noexcept {
     //return !!::IsWindowVisible(m_hwnd);
 }
 
-
-/// <summary>
-/// Sets the name of the title.
-/// </summary>
-/// <param name="name">The name.</param>
-/// <returns></returns>
-void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
-    m_private->titlename = std::move(name);
-    if (this->IsInSleepMode()) return;
-    const auto ptr = m_private->titlename.c_str();
-    ::DefWindowProcW(m_hwnd, WM_SETTEXT, WPARAM(0), LPARAM(ptr));
-}
 
 /// <summary>
 /// Sets the name of the title.
@@ -1530,8 +1557,21 @@ namespace LongUI { namespace detail {
     enum msg : uint32_t {
         msg_custom = WM_USER + 10,
         msg_post_delete_window,
+        msg_post_set_title,
     };
 }}
+
+
+/// <summary>
+/// Sets the name of the title.
+/// </summary>
+/// <param name="name">The name.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
+    m_private->titlename = std::move(name);
+    if (this->IsInSleepMode()) return;
+    ::PostMessageW(m_hwnd, detail::msg_post_set_title, 0, 0);
+}
 
 /// <summary>
 /// Deletes the window.
@@ -1964,6 +2004,9 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         {
         case detail::msg_post_delete_window:
             Private::DeleteWindow(hwnd);
+            return 0;
+        case detail::msg_post_set_title:
+            ::SetWindowTextW(hwnd, detail::sys(this->titlename.c_str()));
             return 0;
         case WM_SHOWWINDOW:
             // TODO: popup?

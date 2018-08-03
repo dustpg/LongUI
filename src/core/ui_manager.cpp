@@ -76,7 +76,8 @@ namespace LongUI { struct CUIManager::Private {
 namespace LongUI { enum CallLater : uint32_t {
     Later_First = WM_USER + 10,
     Later_DeleteControl,
-    Later_CallTimeCapsule
+    Later_CallTimeCapsule,
+    Later_Exit,
 };}
 
 /// <summary>
@@ -292,6 +293,14 @@ void LongUI::CUIManager::NeedRecreate() noexcept {
     m_flagRecreate = true;
 }
 
+/// <summary>
+/// Exits this instance.
+/// </summary>
+/// <param name="code">The code.</param>
+/// <returns></returns>
+void LongUI::CUIManager::Exit(uintptr_t code) noexcept {
+    ::PostMessageW(m_hToolWnd, CallLater::Later_Exit, code, 0);
+}
 
 /// <summary>
 /// Gets the unique text.
@@ -454,6 +463,8 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     constexpr auto DEFCFG_SIZE = sizeof(CUIDefaultConfigure);
     static void* s_config_buf[DEFCFG_SIZE / sizeof(void*)];
     static_assert(sizeof(s_config_buf) == sizeof(CUIDefaultConfigure), "Orz");
+    // 默认配置必须是平凡的析构(懒得析构)
+    static_assert(std::is_trivially_destructible<CUIDefaultConfigure>::value, "bad");
     // 直接初始化
     const auto defcfg = reinterpret_cast<CUIDefaultConfigure*>(s_config_buf);
     detail::ctor_dtor<CUIDefaultConfigure>::create(defcfg);
@@ -552,8 +563,15 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
                     lp = lParam;
                     UIManager.update_time_capsule(time);
                     ptr->Broadcast();
-                }
                     break;
+                }
+                case CallLater::Later_Exit:
+                {
+                    // 连续调用Break直到退出
+                    UIManager.BreakMsgLoop(wParam);
+                    ::PostMessageW(hwnd, CallLater::Later_Exit, wParam, 0);
+                    break;
+                }
                 default:
                     return ::DefWindowProcW(hwnd, message, wParam, lParam);
                 }
@@ -721,7 +739,10 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
         if (!m_pDebugWindow) hr = { Result::RE_OUTOFMEMORY };
     }
 #endif // !NDEBUG
-
+    // 开始渲染线程
+    if (hr) {
+        hr = this->config->BeginRenderThread();
+    }
     return hr;
 }
 
@@ -771,7 +792,6 @@ flag(config->GetConfigureFlag()) {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIManager::~CUIManager() noexcept {
-
     this_()->pm().~Private();
 #ifndef NDEBUG
     DbgMgr().~CUIManagerDebug();
@@ -783,6 +803,10 @@ LongUI::CUIManager::~CUIManager() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIManager::Uninitialize() noexcept {
+    // 强制退出
+    UIManager.m_uiTimeCapsuleWaiter.Broadcast();
+    // 结束掉渲染线程
+    config->EndRenderThread();
     // 手动调用析构函数
     UIManager.~CUIManager();
     // 反初始化COM

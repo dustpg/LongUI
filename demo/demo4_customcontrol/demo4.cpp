@@ -29,15 +29,19 @@ namespace Demo { struct Config final : LongUI::CUIDefaultConfigure {
 };}
 
 int main() {
+    int code = -1;
     Demo::Config config;
     if (UIManager.Initialize(&config)) {
         {
+            LongUI::UIControl::ControlMakingBegin();
             LongUI::UIViewport viewport;
             viewport.SetXul(xul);
+            LongUI::UIControl::ControlMakingEnd();
+
             viewport.GetWindow()->ShowWindow();
-            UIManager.MainLoop();
+            code = LongUI::IntCode(viewport.GetWindow()->Exec());
         }
         UIManager.Uninitialize();
     }
-    return 0;
+    return code;
 }

@@ -165,14 +165,6 @@ void LongUI::CUIDefaultConfigure::SmallFree(void* address) noexcept {
 #include <process.h>
 
 /// <summary>
-/// Exits the main loop
-/// </summary>
-/// <returns></returns>
-void LongUI::CUIDefaultConfigure::Exit() noexcept {
-    ::PostQuitMessage(0);
-}
-
-/// <summary>
 /// Defaults the font argument.
 /// </summary>
 /// <param name="arg">The argument.</param>
@@ -201,14 +193,27 @@ void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
     arg.style = buf.log.lfItalic ? Style_Italic : Style_Normal;
 }
 
+/// <summary>
+/// Exits the main loop
+/// </summary>
+/// <param name="code">The code.</param>
+/// <returns></returns>
+void LongUI::CUIDefaultConfigure::BreakMsgLoop(uintptr_t code) noexcept {
+    //::PostQuitMessage(-1);
+    ::PostMessageW(nullptr, WM_QUIT, code, 0);
+}
+
+
+static std::atomic_bool s_flag{ false };
 
 /// <summary>
-/// Mains the loop.
+/// Begins the render thread.
 /// </summary>
 /// <returns></returns>
-void LongUI::CUIDefaultConfigure::MainLoop() noexcept {
+auto LongUI::CUIDefaultConfigure::BeginRenderThread() noexcept ->Result {
     // 退出flag
-    std::atomic_bool flag{ false };
+    s_flag.store(false, std::memory_order_relaxed);
+    //std::atomic_bool flag{ false };
     // 渲染线程
     const auto thr = ::_beginthread([](void* ptr) noexcept {
         const auto flag = reinterpret_cast<std::atomic_bool*>(ptr);
@@ -218,18 +223,37 @@ void LongUI::CUIDefaultConfigure::MainLoop() noexcept {
             //UIManager.WaitForVBlank();
         }
         ::_endthread();
-    }, 0, &flag);
-    // 创建失败
-    if (thr == -1) return; MSG msg;
+    }, 0, &s_flag);
+    m_hRenderThread = thr;
+    // 检测错误
+    Result hr = { Result::RS_OK };
+    if (thr == uintptr_t(-1)) hr = { Result::RE_HANDLE };
+    return hr;
+}
+
+/// <summary>
+/// Mains the loop.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIDefaultConfigure::RecursionMsgLoop() noexcept ->uintptr_t {
+    MSG msg = { };
     // 消息循环
     while (::GetMessageW(&msg, nullptr, 0, 0)) {
         ::TranslateMessage(&msg);
         ::DispatchMessageW(&msg);
     }
+    return msg.wParam;
+}
+
+/// <summary>
+/// Ends the render thread.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIDefaultConfigure::EndRenderThread() noexcept {
     // 退出
-    flag.store(true, std::memory_order_relaxed);
+    s_flag.store(true, std::memory_order_relaxed);
     // 等待设置
-    const auto hthr = reinterpret_cast<HANDLE>(thr);
+    const auto hthr = reinterpret_cast<HANDLE>(m_hRenderThread);
     constexpr uint32_t try_wait_time = 2333;
     // 等待线程退出
     if (::WaitForSingleObject(hthr, try_wait_time) != WAIT_OBJECT_0) {

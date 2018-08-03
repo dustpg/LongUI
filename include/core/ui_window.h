@@ -61,7 +61,6 @@ namespace LongUI {
             // delete on close
             Config_DeleteOnClose = 1 << 3,
 
-
             // popup window
             Config_Popup = 1 << 8,
             // frameless window
@@ -111,6 +110,12 @@ namespace LongUI {
         void TrySleep() noexcept;
         // wake up
         void WakeUp() noexcept;
+        // set result to exit Exec()
+        void SetResult(uintptr_t) noexcept;
+        // execute, as modal window if parent window exist
+        auto Exec() noexcept -> uintptr_t;
+        // is in exec
+        bool IsInExec() const noexcept { return m_bInExec; }
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     public:
         // load css file
@@ -262,6 +267,8 @@ namespace LongUI {
     protected:
         // in dtor
         bool                m_inDtor : 1;
+        // in exec
+        bool                m_bInExec : 1;
         // ctor failed
         bool                m_bCtorFaild : 1;
         // state: under "minsize changed" list

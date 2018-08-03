@@ -144,6 +144,10 @@ namespace SimpAX { namespace impl {
     static inline bool is_space(Char ch) noexcept {
         return (ch == Char(' ')) | (ch == Char('\t'));
     }
+    // is newline?
+    static inline bool is_newline(Char ch) noexcept {
+        return (ch == Char('\n')) | (ch == Char('\r'));
+    }
     // is tag start
     static inline bool is_begin_tag_open(Char ch) noexcept {
         return ch == Char('<');
@@ -477,7 +481,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
                 this_text.a = str+1;
             }
             // 遇到非空白, 解析
-            else if (!impl::is_space(ch)) {
+            else if (!(impl::is_space(ch) || impl::is_newline(ch))) {
                 this_attr.key.a = str;
                 state = sm_key_end;
             }

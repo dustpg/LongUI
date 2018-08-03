@@ -112,17 +112,20 @@ public:
 
 
 int main() {
+    int code = -1;
     if (UIManager.Initialize()) {
         LUIDebug(Hint) << "Battle Control Online..." << LongUI::endl;
         {
             MyViewport viewport;
             viewport.SetXul(xul);
+
             viewport.SetupControl();
             viewport.GetWindow()->ShowWindow();
-            UIManager.MainLoop();
+            const auto rc = viewport.GetWindow()->Exec();
+            code = LongUI::IntCode(rc);
         }
         LUIDebug(Hint) << "Battle Control Terminated." << LongUI::endl;
         UIManager.Uninitialize();
     }
-    return 0;
+    return code;
 }

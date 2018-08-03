@@ -112,3 +112,14 @@ void call() {
     // ......
 }
 ```
+
+#### 利用 UIControl::ControlMakingBegin/End 创建大量控件
+为了保证正确性, 请在大量创建控件时使用``` UIControl::ControlMakingBegin ``` 和 ``` UIControl::ControlMakingEnd ```包裹创建过程, 比如``` UIControl::SetXul ```是这样实现的:
+```cpp
+void LongUI::UIControl::SetXul(const char* xul) noexcept {
+    UIControl::ControlMakingBegin();
+    CUIControlControl::MakeXul(*this, xul);
+    UIControl::ControlMakingEnd();
+}
+```
+这样做是为了保证这些控件是"同时"创建的, 否则可能前面的控件是上一帧创建, 后面的控件是后一帧创建.

@@ -24,10 +24,12 @@ void InitButton(
 
 
 int main() {
+    int code = -1;
     Demo::CustomConfig config;
     if (UIManager.Initialize(&config)) {
         LUIDebug(Hint) << "Battle Control Online..." << LongUI::endl;
         {
+            LongUI::UIControl::ControlMakingBegin();
             LongUI::UIViewport viewport;
             using namespace LongUI;
             // LongUI::operator""_sv to create UxxView
@@ -38,13 +40,16 @@ int main() {
                 ::InitButton(list, button, config);
                 ::InitList(config.RefAdapters(), list);
             }
+            LongUI::UIControl::ControlMakingEnd();
+
             viewport.GetWindow()->ShowWindow();
-            UIManager.MainLoop();
+            const auto rc = viewport.GetWindow()->Exec();
+            code = LongUI::IntCode(rc);
         }
         LUIDebug(Hint) << "Battle Control Terminated." << LongUI::endl;
         UIManager.Uninitialize();
     }
-    return 0;
+    return code;
 }
 
 /// <summary>

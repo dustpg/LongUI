@@ -35,9 +35,9 @@ namespace LongUI {
     class CUIDefaultConfigure : public IUIConfigure {
     public:
         // ctor
-        CUIDefaultConfigure() noexcept {}
+        CUIDefaultConfigure() noexcept = default;
         // dtor
-        ~CUIDefaultConfigure() noexcept {}
+        ~CUIDefaultConfigure() noexcept = default;
     public:
 #ifndef NDEBUG
         // get logfile name
@@ -71,10 +71,17 @@ namespace LongUI {
         // free for small space
         void SmallFree(void* address) noexcept override;
     public:
-        // main loop
-        void MainLoop() noexcept override;
-        // exit loop
-        void Exit() noexcept override;
+        // Begins the render thread.
+        auto BeginRenderThread() noexcept ->Result override;
+        // Ends the render thread.
+        void EndRenderThread() noexcept override;
+        // Recursions the MSG loop.
+        auto RecursionMsgLoop() noexcept ->uintptr_t override;
+        // break msg-loop
+        void BreakMsgLoop(uintptr_t) noexcept override;
+    private:
+        // render thread handle
+        uintptr_t               m_hRenderThread = 0;
     };
 }
 

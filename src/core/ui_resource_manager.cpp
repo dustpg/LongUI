@@ -491,6 +491,8 @@ auto LongUI::CUIResMgr::SaveAsPng(
     const wchar_t* file) noexcept -> Result {
     // 参数检查
     assert(file && file[0] && "bad arg");
+    // 渲染锁
+    CUIRenderAutoLocker locker;
     // 初始化
     D2D1_MAPPED_RECT rect = { 0 };
     Result hr = { Result::RS_OK };
@@ -704,6 +706,8 @@ PCN_NOINLINE
 /// <returns></returns>
 auto LongUI::CUIResMgr::create_bitmap_private(
     uint8_t* ptr, uint32_t len, void *& bitmap) noexcept -> Result {
+    // 渲染锁
+    CUIRenderAutoLocker locker;
     // 创建位图
     auto create_bitmap = [this](
         Size2U size, 

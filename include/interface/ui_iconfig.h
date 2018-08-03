@@ -160,15 +160,22 @@ namespace LongUI {
         virtual void SmallFree(void* address) noexcept = 0;
     public:
         /// <summary>
-        /// Mains the loop.
+        /// Begins the render thread.
         /// </summary>
-        /// <returns></returns>
-        virtual void MainLoop() noexcept = 0;
+        /// <returns>return true if ok</returns>
+        virtual auto BeginRenderThread() noexcept ->Result = 0;
         /// <summary>
-        /// exit the loop.
+        /// Ends the render thread.
         /// </summary>
-        /// <returns></returns>
-        virtual void Exit() noexcept = 0;
+        virtual void EndRenderThread() noexcept = 0;
+        /// <summary>
+        /// Recursions the MSG loop.
+        /// </summary>
+        virtual auto RecursionMsgLoop() noexcept ->uintptr_t;
+        /// <summary>
+        /// break current msg-loop
+        /// </summary>
+        virtual void BreakMsgLoop(uintptr_t code) noexcept = 0;
     };
     // operator |
     inline constexpr IUIConfigure::ConfigureFlag operator|(

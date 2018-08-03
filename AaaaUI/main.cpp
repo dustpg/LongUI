@@ -18,6 +18,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+
 void main_inited(LongUI::UIViewport&, int) noexcept;
 void object_test() noexcept;
 
@@ -108,6 +109,53 @@ struct MemoryLeakDetector {
 #endif
 };
 
+#include <shlwapi.h>
+#include <CommCtrl.h>
+
+#define PACKVERSION(major,minor) MAKELONG(minor,major)
+
+DWORD GetVersion(const wchar_t* lpszDllName)
+{
+    HINSTANCE hinstDll;
+    DWORD dwVersion = 0;
+
+    // For security purposes, LoadLibrary should be provided with a fully qualified 
+    // path to the DLL. The lpszDllName variable should be tested to ensure that it 
+    // is a fully qualified path before it is used. 
+    hinstDll = LoadLibraryW(lpszDllName);
+
+    if (hinstDll)
+    {
+        DLLGETVERSIONPROC pDllGetVersion;
+        pDllGetVersion = (DLLGETVERSIONPROC)GetProcAddress(hinstDll, "DllGetVersion");
+
+        // Because some DLLs might not implement this function, you must test for 
+        // it explicitly. Depending on the particular DLL, the lack of a DllGetVersion 
+        // function can be a useful indicator of the version. 
+
+        if (pDllGetVersion)
+        {
+            DLLVERSIONINFO dvi;
+            HRESULT hr;
+
+            ZeroMemory(&dvi, sizeof(dvi));
+            dvi.cbSize = sizeof(dvi);
+
+            hr = (*pDllGetVersion)(&dvi);
+
+            if (SUCCEEDED(hr))
+            {
+                dwVersion = PACKVERSION(dvi.dwMajorVersion, dvi.dwMinorVersion);
+            }
+        }
+        FreeLibrary(hinstDll);
+    }
+    return dwVersion;
+}
+
+//#pragma comment(lib, "Comctl32")
+
+
 extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
     //LongUI::wcharxx_t a;
     const auto code = LongUI::BKDRHash("tooltiptext");
@@ -143,7 +191,8 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
             LongUI::Result::GetSystemLastError();
 #endif
             std::printf("%f\n", DoIT(viewport1));
-            UIManager.MainLoop();
+            
+            viewport1.RefWindow().Exec();
         }
         LUIDebug(Hint) << "Battle Control Terminated." << LongUI::endl;
         UIManager.Uninitialize();

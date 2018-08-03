@@ -132,9 +132,11 @@ namespace LongUI {
         auto GetGuiThreadId() const noexcept { return m_uGuiThreadId; }
     public:
         // exit
-        void Exit() noexcept { this->config->Exit(); }
-        // do platform main loop
-        void MainLoop() noexcept { this->config->MainLoop(); }
+        void Exit(uintptr_t code = 0) noexcept;
+        // break loop
+        void BreakMsgLoop(uintptr_t code) noexcept { this->config->BreakMsgLoop(code); }
+        // msg-loop(could be in recursion)
+        void RecursionMsgLoop() noexcept { this->config->RecursionMsgLoop(); }
         // show error with result code
         bool ShowError(Result hr, const wchar_t* str_b = nullptr) noexcept;
         // load data from url
@@ -204,6 +206,14 @@ namespace LongUI {
         // window minsize changed flag
         bool                    m_flagWndMinSizeChanged = false;
     };
+    // int code
+    inline auto IntCode(uintptr_t code) noexcept -> int {
+        return static_cast<int32_t>(static_cast<uint32_t>(code));
+    }
+    // int code
+    inline auto IntCode(int code) noexcept -> uintptr_t {
+        return static_cast<uint32_t>(static_cast<int32_t>(code));   
+    }
     // auto data locker
     class CUIDataAutoLocker {
     public:

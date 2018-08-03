@@ -30,8 +30,9 @@ int main() {
         {
             LongUI::UIViewport viewport;
             viewport.SetXul(xul);
+
             viewport.GetWindow()->ShowWindow();
-            UIManager.MainLoop();
+            viewport.GetWindow()->Exec();
         }
         UIManager.Uninitialize();
     }

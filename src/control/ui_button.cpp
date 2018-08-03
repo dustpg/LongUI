@@ -170,10 +170,15 @@ auto LongUI::UIButton::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAcc
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_LButtonUp:
+        Super::DoMouseEvent(e);
         // 移出去算是取消操作
-        if (this->IsPointInsideBorder({ e.px, e.py })) this->Click();
-        [[fallthrough]];
+        if (this->IsPointInsideBorder({ e.px, e.py })) {
+            this->Click();
+            return Event_Accept;
+        }
+        return Event_Ignore;
     default:
+        // 其他情况
         return Super::DoMouseEvent(e);
     }
 }

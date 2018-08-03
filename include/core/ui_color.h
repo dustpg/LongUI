@@ -27,10 +27,10 @@ namespace LongUI {
         // rgba
         constexpr inline RGBA::type rgba(int r, int g, int b, int a) noexcept {
             return 
-                RGBA::type(r << (CHAR_BIT * color_order::r)) |
-                RGBA::type(g << (CHAR_BIT * color_order::g)) |
-                RGBA::type(b << (CHAR_BIT * color_order::b)) |
-                RGBA::type(a << (CHAR_BIT * color_order::a)) ;
+                RGBA::type(RGBA::type(r) << (CHAR_BIT * color_order::r)) |
+                RGBA::type(RGBA::type(g) << (CHAR_BIT * color_order::g)) |
+                RGBA::type(RGBA::type(b) << (CHAR_BIT * color_order::b)) |
+                RGBA::type(RGBA::type(a) << (CHAR_BIT * color_order::a)) ;
         }
         // rgba
         constexpr inline RGBA::type rgba(uint32_t value) noexcept {

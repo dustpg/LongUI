@@ -169,6 +169,10 @@ namespace LongUI {
         // get value[cannot get string yet]
         void GetValue(SSValue&) const noexcept;
 #endif
+        // call this before making lots of controls
+        static void ControlMakingBegin() noexcept;
+        // call this after lots of controls maked
+        static void ControlMakingEnd() noexcept;
         // need update in this frame
         void NeedUpdate() noexcept;
         // need update in next frame

@@ -105,6 +105,24 @@ void LongUI::UIControl::AssertCast(const LongUI::MetaControl & meta) const noexc
 #endif
 
 /// <summary>
+/// Controls the making begin.
+/// 在大量创建控件前调用此函数
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::ControlMakingBegin() noexcept {
+    UIManager.DataLock();
+}
+
+/// <summary>
+/// Controls the making end.
+/// 在大量创建控件后调用此函数
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::ControlMakingEnd() noexcept {
+    UIManager.DataUnlock();
+}
+
+/// <summary>
 /// Needs the update.
 /// </summary>
 /// <returns></returns>
@@ -792,6 +810,8 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     // 初始化一般数据
     m_oHead = { nullptr, static_cast<UIControl*>(&m_oTail) };
     m_oTail = { static_cast<UIControl*>(&m_oHead), nullptr };
+    // 数据锁
+    CUIDataAutoLocker locker;
     // 添加到父节点的子节点链表中
     if (parent) parent->add_child(*this);
     // 更新世界
@@ -1913,7 +1933,9 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
 /// </remarks>
 /// <returns></returns>
 void LongUI::UIControl::SetXul(const char* xul) noexcept {
+    UIControl::ControlMakingBegin();
     CUIControlControl::MakeXul(*this, xul);
+    UIControl::ControlMakingEnd();
 }
 
 /// <summary>
