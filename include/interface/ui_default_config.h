@@ -82,6 +82,8 @@ namespace LongUI {
     private:
         // render thread handle
         uintptr_t               m_hRenderThread = 0;
+        // exit flag
+        bool                    m_bExitFlag = false;
     };
 }
 

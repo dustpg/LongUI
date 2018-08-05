@@ -204,15 +204,14 @@ void LongUI::CUIDefaultConfigure::BreakMsgLoop(uintptr_t code) noexcept {
 }
 
 
-static std::atomic_bool s_flag{ false };
-
 /// <summary>
 /// Begins the render thread.
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIDefaultConfigure::BeginRenderThread() noexcept ->Result {
+    auto& flag = reinterpret_cast<std::atomic<bool>&>(m_bExitFlag);
     // 退出flag
-    s_flag.store(false, std::memory_order_relaxed);
+    flag.store(false, std::memory_order_relaxed);
     //std::atomic_bool flag{ false };
     // 渲染线程
     const auto thr = ::_beginthread([](void* ptr) noexcept {
@@ -223,7 +222,7 @@ auto LongUI::CUIDefaultConfigure::BeginRenderThread() noexcept ->Result {
             //UIManager.WaitForVBlank();
         }
         ::_endthread();
-    }, 0, &s_flag);
+    }, 0, &flag);
     m_hRenderThread = thr;
     // 检测错误
     Result hr = { Result::RS_OK };
@@ -250,8 +249,9 @@ auto LongUI::CUIDefaultConfigure::RecursionMsgLoop() noexcept ->uintptr_t {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIDefaultConfigure::EndRenderThread() noexcept {
+    auto& flag = reinterpret_cast<std::atomic<bool>&>(m_bExitFlag);
     // 退出
-    s_flag.store(true, std::memory_order_relaxed);
+    flag.store(true, std::memory_order_relaxed);
     // 等待设置
     const auto hthr = reinterpret_cast<HANDLE>(m_hRenderThread);
     constexpr uint32_t try_wait_time = 2333;
