@@ -254,13 +254,13 @@ void LongUI::UITextBox::private_update() noexcept {
     if (doc.IsTextChanged()) {
         doc.ClearTextChanged();
         m_private->text_need_sync = true;
-        this->TriggrtEvent(_textChanged());
+        this->TriggerEvent(_textChanged());
     }
     // 选区修改检查
     if (doc.IsSelectionChanged()) {
         doc.ClearSelectionChanged();
         m_private->selc_need_sync = true;
-        this->TriggrtEvent(_selectionChanged());
+        this->TriggerEvent(_selectionChanged());
     }
 }
 

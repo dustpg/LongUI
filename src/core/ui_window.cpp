@@ -40,6 +40,8 @@ extern "C" void longui_error_beep();
 namespace LongUI { namespace impl {
     // get dpi scale
     auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept -> Size2F;
+    // get subpixcel rendering level
+    void get_subpixel_text_rendering(uint32_t&) noexcept;
 }}
 
 // LongUI::detail
@@ -333,6 +335,8 @@ namespace LongUI {
     public:
         // access key map
         UIControl*      access_key_map['Z' - 'A' + 1];
+        // text render type
+        uint32_t        text_antialias = 0;
     private:
         // toggle access key display
         void toggle_access_key_display() noexcept;
@@ -374,6 +378,9 @@ m_private(new(std::nothrow) Private) {
     m_bCtorFaild = false;
     // XXX: 错误处理
     if (!m_private) { m_bCtorFaild = true; return;}
+    // 子像素渲染
+    if (UIManager.flag & IUIConfigure::Flag_SubpixelTextRenderingAsDefault)
+        impl::get_subpixel_text_rendering(m_private->text_antialias);
     // XXX: 内联窗口的场合
     // 添加分层窗口支持
     if ((cfg & Config_LayeredWindow)) 
@@ -2315,9 +2322,9 @@ void LongUI::CUIWindow::Private::resize_window_buffer() noexcept {
     this->wndbuf_logical.width = this->rect.width;
     this->wndbuf_logical.height = this->rect.height;
     // 渲染区
-    CUIRenderAutoLocker locker;
+    //CUIRenderAutoLocker locker;
     // 取消引用
-    UIManager.Ref2DRenderer().SetTarget(nullptr);
+    //UIManager.Ref2DRenderer().SetTarget(nullptr);
     // 强行重置flag
     bool force_resize = true;
     // 目标大小
@@ -2421,6 +2428,15 @@ auto LongUI::CUIWindow::Private::Render(const UIViewport& v) const noexcept->Res
     return{ Result::RS_OK };
 }
 
+
+// longui::impl
+namespace LongUI { namespace impl {
+    // get subpixel text render lelvel
+    void get_subpixel_text_rendering(uint32_t& level) noexcept {
+        level = D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE;
+    }
+}}
+
 /// <summary>
 /// Begins the render.
 /// </summary>
@@ -2428,8 +2444,10 @@ auto LongUI::CUIWindow::Private::Render(const UIViewport& v) const noexcept->Res
 void LongUI::CUIWindow::Private::begin_render() const noexcept {
     // TODO: 完成
     auto& renderer = UIManager.Ref2DRenderer();
+    // 文本抗锯齿等级
+    const auto tamode = static_cast<D2D1_TEXT_ANTIALIAS_MODE>(this->text_antialias);
     // 设置文本渲染策略
-    //renderer.SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_CLEARTYPE);
+    renderer.SetTextAntialiasMode(tamode);
     // 设为当前渲染对象
     renderer.SetTarget(this->bitmap);
     // 开始渲染
@@ -2513,7 +2531,10 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     // 增量渲染
     else {
         // 呈现参数设置
-        RECT scroll = { 0, 0, this->rect.width, this->rect.height };
+        RECT scroll = { 0, 0, 
+            this->wndbuf_logical.width, 
+            this->wndbuf_logical.height
+        };
         RECT rects[LongUI::DIRTY_RECT_COUNT];
         // 转换为整型
         for (uint32_t i = 0; i != this->dirty_count_for_render; ++i) {

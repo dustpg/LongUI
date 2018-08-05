@@ -223,19 +223,23 @@ void LongUI::UIScrollBar::init_bar() noexcept {
 /// <returns></returns>
 auto LongUI::UIScrollBar::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
-    // 初始化
-    if (e.nevent == NoticeEvent::Event_Initialize) {
+    switch (e.nevent)
+    {
+    case NoticeEvent::Event_Initialize:
+        // 初始化
         this->init_bar();
-    }
-    // Gui事件
-    else if (e.nevent == NoticeEvent::Event_UIEvent) {
-        // 数据修改事件向上传递
+        return Event_Accept;
+    case NoticeEvent::Event_UIEvent:
+        // Gui事件: 数据修改事件向上传递
+    {
         const auto ge = static_cast<const EventGuiArg&>(e).GetEvent();
         assert(sender == &m_private->slider);
-        return this->TriggrtEvent(ge);
+        return this->TriggerEvent(ge);
     }
-    // 基类处理
-    return Super::DoEvent(sender, e);
+    default:
+        // 基类处理
+        return Super::DoEvent(sender, e);
+    }
 }
 
 /// <summary>

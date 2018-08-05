@@ -26,6 +26,7 @@ auto LongUI::CUIDefaultConfigure::GetConfigureFlag() noexcept ->ConfigureFlag {
 #endif
         | Flag_OutputDebugString 
         | Flag_QuitOnLastWindowClosed
+        //| Flag_NoAutoScaleOnHighDpi
         //| Flag_DbgOutputTimeTook 
         //| Flag_DbgDrawDirtyRect
         | Flag_DbgDrawTextCell

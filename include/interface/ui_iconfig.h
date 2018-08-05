@@ -60,10 +60,12 @@ namespace LongUI {
             Flag_OutputDebugString = 1 << 1,
             // quit on last window closed
             Flag_QuitOnLastWindowClosed = 1 << 2,
-            // only one system window, like game(all child window will be logic window)
+            // only one system window, like game(all child window will be inline window)
             Flag_OnlyOneSystemWindow = 1 << 3,
             // no hi-dpi auto scale
             Flag_NoAutoScaleOnHighDpi = 1 << 4,
+            // subpixel text rendering as default value for window/viewport
+            Flag_SubpixelTextRenderingAsDefault = 1 << 5,
             // -------------------------------------------------------------
             // [debug flag under DEBUG MODE] output font family infomation
             Flag_DbgOutputFontFamily = 1 << 10,

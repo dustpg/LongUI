@@ -124,10 +124,10 @@ void LongUI::UIControlPrivate::UpdateWorld(UIControl& ctrl) noexcept {
             matrix = parent->GetWorld();
             matrix._31 += ctrl.GetPos().x * matrix._11;
             matrix._32 += ctrl.GetPos().y * matrix._22;
-            // 固定位置?
+            // 固定位置? 不是!
             if (ctrl.m_state.attachment == Attachment_Scroll) {
-                matrix._31 -= parent->m_ptChildOffset.x;
-                matrix._32 -= parent->m_ptChildOffset.y;
+                matrix._31 -= parent->m_ptChildOffset.x * matrix._11;
+                matrix._32 -= parent->m_ptChildOffset.y * matrix._22;
             }
             ctrl.m_mtWorld = matrix;
         }

@@ -42,7 +42,7 @@ namespace LongUI {
             return this->add_gui_event_listener(e, std::move(listener));
         }
         // trigger event
-        auto TriggrtEvent(GuiEvent event) noexcept ->EventAccept;
+        auto TriggerEvent(GuiEvent event) noexcept ->EventAccept;
     private:
         // string to event
         static auto strtoe(U8View) noexcept->GuiEvent;

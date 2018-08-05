@@ -111,11 +111,11 @@ auto LongUI::CUIEventHost::add_gui_event_listener(
 
 PCN_NOINLINE
 /// <summary>
-/// Triggrts the event.
+/// Triggers the event.
 /// </summary>
 /// <param name="event">The event.</param>
 /// <returns></returns>
-auto LongUI::CUIEventHost::TriggrtEvent(GuiEvent event) noexcept ->EventAccept {
+auto LongUI::CUIEventHost::TriggerEvent(GuiEvent event) noexcept ->EventAccept {
     const auto ctrl = static_cast<UIControl*>(this);
     auto func = Event_Ignore;
     // 查找相应事件

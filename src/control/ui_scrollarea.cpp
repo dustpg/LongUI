@@ -106,6 +106,7 @@ auto LongUI::UIScrollArea::DoEvent(
             }
             else if (sender == m_pVerticalSB) {
                 m_ptChildOffset.y = m_pVerticalSB->GetValue();
+                //LUIDebug(Hint) << m_ptChildOffset.y << endl;
                 goto return_changed;
             }
         }

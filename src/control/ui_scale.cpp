@@ -81,6 +81,7 @@ void LongUI::UIScale::refresh_thumb_postion() noexcept {
     else {
         const auto height = csize.height - ssize.height;
         pos.y = height * normalization;
+        //LUIDebug(Hint) << m_fValue << endl;
     }
     // 设置位置
     this->thumb.SetPos(pos);
@@ -125,7 +126,7 @@ void LongUI::UIScale::SetValue(float value) noexcept {
     // 修改数据
     m_fValue = newv;
     // 触发修改GUI事件
-    this->TriggrtEvent(_changed());
+    this->TriggerEvent(_changed());
     // 脏了
     m_state.dirty = true;
     // 需要渲染

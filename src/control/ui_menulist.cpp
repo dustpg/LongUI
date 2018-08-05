@@ -374,7 +374,7 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
             this->do_radio();
         }
         // 事件
-        this->TriggrtEvent(_selected());
+        this->TriggerEvent(_selected());
         m_pWindow->ClosePopupHighLevel();
     }
     return Super::DoMouseEvent(e);
@@ -536,7 +536,7 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
     if (ctrl) this->SetText(ctrl->GetTextString());
     else this->SetText(CUIString{});
     // 触发事件
-    this->TriggrtEvent(_selectedChanged());
+    this->TriggerEvent(_selectedChanged());
 }
 
 #ifdef LUI_ACCESSIBLE
@@ -615,7 +615,7 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
     }
 
     // 触发修改GUI事件
-    //this->TriggrtEvent(_clicked());
+    //this->TriggerEvent(_clicked());
 #ifdef LUI_ACCESSIBLE
     // TODO: 调用 accessible 接口
 #endif
@@ -935,7 +935,7 @@ void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
     m_pLastSelected = longui_cast<UIMenuItem*>(child);
     m_iSelected = child ? this->calculate_child_index(*child) : -1;
     // 事件触发
-    this->TriggrtEvent(_selectedChanged());
+    this->TriggerEvent(_selectedChanged());
     if (m_pHoster) m_pHoster->DoEvent(this, EventGuiArg{ _selectedChanged() });
 }
 

@@ -233,7 +233,7 @@ void LongUI::UIRadioGroup::Update() noexcept {
         // 没有找到
         m_pChecked = nullptr;
         // 修改事件?
-        this->TriggrtEvent(_changed());
+        this->TriggerEvent(_changed());
     };
     // 子节点修改过?
     if (m_state.child_i_changed) {
@@ -266,5 +266,5 @@ void LongUI::UIRadioGroup::set_checked(UIRadio * radio) noexcept {
     // 设置当前的状态
     if ((m_pChecked = radio)) m_pChecked->SetChecked(true);
     // 修改事件
-    this->TriggrtEvent(_changed());
+    this->TriggerEvent(_changed());
 }
