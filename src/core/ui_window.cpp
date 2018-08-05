@@ -1138,13 +1138,27 @@ auto LongUI::CUIWindow::Exec() noexcept->uintptr_t {
     return rv;
 }
 
+
+/// <summary>
+/// Recursives the set result.
+/// </summary>
+/// <param name="result">The result.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::recursive_set_result(uintptr_t result) noexcept {
+    assert(this->IsInExec());
+    for (const auto wnd : m_private->children) {
+        if (wnd->IsInExec()) wnd->recursive_set_result(0);
+    }
+    UIManager.BreakMsgLoop(result);
+}
+
 /// <summary>
 /// Sets the result.
 /// </summary>
 /// <param name="result">The result.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetResult(uintptr_t result) noexcept {
-    if (m_bInExec) UIManager.BreakMsgLoop(result);
+    if (m_bInExec) this->recursive_set_result(result);
 }
 
 /// <summary>

@@ -548,6 +548,11 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
                     // 不能关闭该窗口
 #endif
                     break;
+#if 0 // ADD SUPPORT
+                case WM_QUERYENDSESSION:
+                case WM_ENDSESSION:
+                    return false;
+#endif
                 case CallLater::Later_DeleteControl:
                 {
                     // 延迟删除控件
@@ -694,9 +699,9 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
         // 添加默认控件
         LongUI::AddDefaultControlInfo(list);
         // 添加自定义控件
-        if (list) this_()->config->RegisterControl(list);
+        if (list.is_ok()) this_()->config->RegisterControl(list);
         // 注册控件
-        if (list) for (auto info : list) {
+        if (list.is_ok()) for (auto info : list) {
             if (!this_()->pm().cclasses.insert({ info->element_name, info }).second) {
                 goto error_oom;
             }
@@ -707,16 +712,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
             assert(!"check this");
         }
     }
-    // 初始化事件
-    /*if (hr) {
-        hr = this_()->do_creating_event(LongUI::CreateEventType::Type_Initialize);
-        longui_debug_hr(hr, "do_creating_event(init) faild");
-    }
-    // 创建资源
-    if (hr) {
-        hr = this_()->RecreateResources();
-        longui_debug_hr(hr, "RecreateResources faild");
-    }*/
     // 第一次重建设备资源
     if (hr) {
         auto& pmm = this_()->pm();
@@ -724,16 +719,14 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     }
     // 检查当前路径
 #ifndef NDEBUG
-    constexpr uint32_t buflen = MAX_PATH * 4;
+    constexpr uint32_t buflen = MAX_PATH * 2;
     wchar_t buffer[buflen]; buffer[0] = 0;
     ::GetCurrentDirectoryW(buflen, buffer);
     LUIDebug(Hint)
         << " Current Directory: "
         << buffer
         << LongUI::endl;
-#endif
     // 创建调试窗口
-#ifndef NDEBUG
     if (hr && (flag & IUIConfigure::Flag_DbgDebugWindow)) {
         m_pDebugWindow = impl::create_debug_window();
         if (!m_pDebugWindow) hr = { Result::RE_OUTOFMEMORY };

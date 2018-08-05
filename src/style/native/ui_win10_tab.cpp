@@ -32,7 +32,7 @@ void LongUI::CUINativeStyleWindows10::draw_tab(
     };
     // 渲染器
     auto& renderer = UIManager.Ref2DRenderer();
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     // 边框
     const auto bdcolor = ColorF::FromRGBA_CT<0xd9d9d9ff_rgba>();
     auto& bursh0 = UIManager.RefCCBrush(bdcolor);
@@ -64,7 +64,7 @@ void LongUI::CUINativeStyleWindows10::draw_tab(
         const auto width = args.border.right - args.border.left;
         renderer.DrawLine(p1, { p1.x + width * fv, p1.y }, &bursh2);
     }
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
 
 /// <summary>

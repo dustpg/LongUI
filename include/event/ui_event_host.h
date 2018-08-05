@@ -31,7 +31,16 @@ namespace LongUI {
         // add gui event listener const ref overload
         template<typename E, typename Callable>
         inline Conn AddGuiEventListener(E e, const Callable& call) noexcept {
-            return this->AddGuiEventListener(e, Callable{ call }); }
+            static_assert(
+                std::is_same<E, const char*>::value ||
+                std::is_same<E, U8View>::value ||
+                std::is_same<E, GuiEvent>::value,
+                "e must be 'const char*' or 'GuiEvent'"
+                );
+            Callable mcall = call;
+            GuiEventListener listener{ std::move(mcall) };
+            return this->add_gui_event_listener(e, std::move(listener));
+        }
         // trigger event
         auto TriggrtEvent(GuiEvent event) noexcept ->EventAccept;
     private:

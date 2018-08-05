@@ -143,7 +143,7 @@ void LongUI::CUINativeStyleWindows10::draw_cbx_bg(
     constexpr float radius_bd = radius_bg - 0.5f;
     // 矩形
     RectF draw; auto& renderer = UIManager.Ref2DRenderer();
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     // 背景
     draw.top = center_y - radius_bg;
     draw.left = center_x - radius_bg;
@@ -161,5 +161,5 @@ void LongUI::CUINativeStyleWindows10::draw_cbx_bg(
     renderer.DrawRectangle(
         auto_cast(draw), &UIManager.RefCCBrush(bd)
     );
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }

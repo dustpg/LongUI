@@ -229,6 +229,8 @@ namespace LongUI {
         // is inline window
         bool IsInlineWindow() const noexcept { return false; }
     protected:
+        // recursive set result
+        void recursive_set_result(uintptr_t result) noexcept;
         // add child
         void add_child(CUIWindow& child) noexcept;
         // remove child

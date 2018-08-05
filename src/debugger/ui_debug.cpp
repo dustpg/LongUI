@@ -6,6 +6,7 @@
 #pragma warning(pop)
 
 #include <cstring>
+#include <cassert>
 
 #include <core/ui_color.h>
 #include <debugger/ui_debug.h>
@@ -666,5 +667,14 @@ auto LongUI::CUIDebug::operator<<(const char32_t ch) noexcept  ->CUIDebug& {
     this->OutputNoFlush(m_lastLevel, buffer);
     return *this;
 }
+/// <summary>
+/// Operators the specified s.
+/// </summary>
+/// <param name="s">The s.</param>
+/// <returns></returns>
+auto LongUI::CUIDebug::operator<<(const wchar_t* s) noexcept  ->CUIDebug& {
+    return (*this) << reinterpret_cast<const wcharxx_t*>(s);
+}
+
 
 #endif

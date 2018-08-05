@@ -168,7 +168,7 @@ void LongUI::UITextBox::init_private() noexcept {
     assert(m_private && "bad action");
     m_private->create_doc(*this);
     auto& cached = m_private->text_cached;
-    if (!cached.empty()) this->SetText(cached.view());
+    if (!cached.empty()) this->private_set_text();
 }
 
 
@@ -357,6 +357,7 @@ void LongUI::UITextBox::private_down() noexcept {
 /// <param name="key">The key.</param>
 /// <returns></returns>
 void LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
+    this->NeedUpdate();
     auto& doc = m_private->document();
     const auto ctrl = CUIInputKM::GetKeyState(CUIInputKM::KB_CONTROL);
     const auto shift = CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT);
@@ -606,16 +607,14 @@ void LongUI::UITextBox::DrawContent(Text& txt, void* ctx, TextBC::Point2F pos) n
     }
 }
 
-
 /// <summary>
 /// Sets the text.
 /// </summary>
-/// <param name="text">The text.</param>
 /// <returns></returns>
-void LongUI::UITextBox::SetText(U16View text) noexcept {
+void LongUI::UITextBox::private_set_text() noexcept {
+    const auto text = m_private->text_cached.view();
     m_private->document().SetText({ text.begin(), text.end() });
 }
-
 
 /// <summary>
 /// Sets the text.
@@ -623,9 +622,20 @@ void LongUI::UITextBox::SetText(U16View text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
-    this->SetText(text.view());
+    //this->SetText(text.view());
     auto& cached = m_private->text_cached;
     cached = std::move(text);
+    m_bTextChanged = true;
+    this->NeedUpdate();
+}
+
+/// <summary>
+/// Sets the text.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+void LongUI::UITextBox::SetText(U16View view) noexcept {
+    this->SetText(CUIString{ view });
 }
 
 #ifndef NDEBUG

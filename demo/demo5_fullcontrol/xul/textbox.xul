@@ -37,7 +37,7 @@
    </hbox>
 
    <hbox  align="center">
-      <label value="Input:"  />
+      <label value="Input:" id="input" />
    </hbox>
 
 </vbox>

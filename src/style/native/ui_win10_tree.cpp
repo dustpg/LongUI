@@ -17,7 +17,7 @@ void LongUI::CUINativeStyleWindows10::draw_tree_header_cell(
     const NativeDrawArgs & args) noexcept {
     // 渲染器
     auto& renderer = UIManager.Ref2DRenderer();
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
 
     // -------------------------- 背景色
 
@@ -52,7 +52,7 @@ void LongUI::CUINativeStyleWindows10::draw_tree_header_cell(
     auto& burshr = UIManager.RefCCBrush(rightline);
     renderer.FillRectangle(auto_cast(rightrect), &burshr);
 
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 
 }
 

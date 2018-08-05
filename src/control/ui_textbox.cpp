@@ -81,6 +81,11 @@ LongUI::UITextBox::~UITextBox() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::Update() noexcept {
+    // 文本修改
+    if (m_bTextChanged) {
+        m_bTextChanged = false;
+        this->private_set_text();
+    }
     // 检查到大小修改
     if (this->is_size_changed()) {
         this->private_resize(this->GetBox().GetContentSize());

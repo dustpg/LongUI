@@ -65,8 +65,6 @@ namespace LongUI {
         ~UITextBox() noexcept;
         // ctor
         UITextBox(UIControl* parent = nullptr) noexcept :UITextBox(parent, UITextBox::s_meta) {}
-        // request text, not const method
-        auto RequestText() noexcept -> const CUIString&;
     public:
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
@@ -110,11 +108,14 @@ namespace LongUI {
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+
     public:
         // set text
         void SetText(CUIString&& text) noexcept;
         // set text
-        void SetText(U16View text) noexcept;
+        void SetText(U16View view) noexcept;
+        // request text, not const method
+        auto RequestText() noexcept -> const CUIString&;
     private:
         // text used font
         TextFont                m_tfBuffer;
@@ -140,6 +141,8 @@ namespace LongUI {
         void create_private() noexcept;
         // delete private data
         void delete_private() noexcept;
+        // set text
+        void private_set_text() noexcept;
         // private use cached
         void private_use_cached() noexcept;
         // private set text

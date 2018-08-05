@@ -51,7 +51,7 @@ TextBC::CBCTextDocument::CBCTextDocument(IBCTextPlatform& plat, InitArgs args) n
     // TODO: 脏矩形渲染
 
     // 初始化一个节点?
-#if 1
+#if 0
     // 载入测试数据
     {
         char16_t buf[6];
@@ -111,7 +111,21 @@ TextBC::CBCTextDocument::CBCTextDocument(IBCTextPlatform& plat, InitArgs args) n
         this->recalculate_content_size();
         this->text_changed();
     }
+#else
+    // 首行数据
+    const auto a = new(std::nothrow) CBCTextCell{ *this };
+    a->prev = &m_head;
+    a->next = m_head.next;
+    a->MarkAsBOL();
+    //a->MarkAsEOL();
+    m_head.next = a;
+
+    this->sync_cache_to_length(0);
+    this->recalculate_content_size();
+    this->text_changed();
+    m_lines.Resize(2);
 #endif
+    m_uCaretPos = uint32_t(-1);
 }
 
 /// <summary>
@@ -1041,6 +1055,7 @@ void TextBC::CBCTextDocument::adjust_content_size_remove(
 void TextBC::CBCTextDocument::remove_text(Range range) noexcept {
     // 检查BUFFER有效性
     if (!m_lines.IsOK()) return;
+    if (!range.len) return;
     // 全部删完?
     if (range.len == m_cTotalLen) return this->remove_all();
     assert(range.len && "cannot remove 0 char");

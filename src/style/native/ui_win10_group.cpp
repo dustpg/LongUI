@@ -24,9 +24,9 @@ void LongUI::CUINativeStyleWindows10::draw_group_box(const NativeDrawArgs & args
     rect.right -= width * 0.5f;
     rect.bottom -= width * 0.5f;
     // 渲染
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     renderer.DrawRectangle(auto_cast(rect), &brush, width);
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
 
 /// <summary>
@@ -39,9 +39,9 @@ void LongUI::CUINativeStyleWindows10::draw_caption(const RectF& rect) noexcept {
     const auto color = ColorF::FromRGBA_CT<RGBA_White>();
     auto& renderer = UIManager.Ref2DRenderer();
     auto& brush = UIManager.RefCCBrush(color);
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     renderer.FillRectangle(auto_cast(rect), &brush);
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }
 
 /// <summary>
