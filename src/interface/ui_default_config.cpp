@@ -164,6 +164,17 @@ void LongUI::CUIDefaultConfigure::SmallFree(void* address) noexcept {
 #include <windows.h>
 #include <process.h>
 
+
+enum WinConst {
+    WIN_DEFAULT_GUI_FONT = 17,
+    WIN_WM_QUIT = 0x12, 
+};
+
+#ifdef NDEBUG
+static_assert(WIN_WM_QUIT == WM_QUIT, "SAME!");
+static_assert(WIN_DEFAULT_GUI_FONT == DEFAULT_GUI_FONT, "SAME!");
+#endif
+
 /// <summary>
 /// Defaults the font argument.
 /// </summary>
@@ -172,7 +183,7 @@ void LongUI::CUIDefaultConfigure::SmallFree(void* address) noexcept {
 void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
     arg.size = 16.f;
     // 获取默认GUI字体句柄
-    const auto font = ::GetStockObject(DEFAULT_GUI_FONT);
+    const auto font = ::GetStockObject(WIN_DEFAULT_GUI_FONT);
     constexpr size_t EX_NAME_LENGTH = 32;
     struct { LOGFONTW log; wchar_t ex[EX_NAME_LENGTH]; } buf;
     ::GetObjectW(font, sizeof(buf), &buf);
@@ -200,7 +211,7 @@ void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
 /// <returns></returns>
 void LongUI::CUIDefaultConfigure::BreakMsgLoop(uintptr_t code) noexcept {
     //::PostQuitMessage(-1);
-    ::PostMessageW(nullptr, WM_QUIT, code, 0);
+    ::PostMessageW(nullptr, WIN_WM_QUIT, code, 0);
 }
 
 

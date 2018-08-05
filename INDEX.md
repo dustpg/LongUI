@@ -1,6 +1,6 @@
 ﻿## INDEX
 
-Current Version : 0.1.1
+Current Version : 0.1.2
 
 [css support list](./doc/css-support-list.md)
 
@@ -22,6 +22,6 @@ Current Version : 0.1.1
 
 ## 索引
   
-当前版本 : 0.1.1
+当前版本 : 0.1.2
 
 [css支持列表](./doc/css-support-list.md)
