@@ -5,6 +5,7 @@
 #include <cassert>
 
 void InitViewport_TextBox(LongUI::UIViewport&) noexcept;
+void InitViewport_Scale(LongUI::UIViewport&) noexcept;
 struct init_func_t { void (*func)(LongUI::UIViewport&) noexcept; };
 
 /// <summary>
@@ -21,6 +22,8 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_layout);
     const auto btn_textbox = window.FindControl("textbox");
     assert(btn_textbox);
+    const auto btn_scale = window.FindControl("scale");
+    assert(btn_scale);
     CUIWindow* const parent = nullptr;
     // NORMAL
     const auto create_viewport = [&window, modal](U8View view, init_func_t call) noexcept {
@@ -55,6 +58,12 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     btn_textbox->AddGuiEventListener(
         UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/textbox.xul"_sv, { InitViewport_TextBox });
+        return Event_Accept;
+    });
+    // SCALE
+    btn_scale->AddGuiEventListener(
+        UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/scale.xul"_sv, { InitViewport_Scale });
         return Event_Accept;
     });
 }

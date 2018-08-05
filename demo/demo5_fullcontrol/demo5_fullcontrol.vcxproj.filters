@@ -4,5 +4,6 @@
     <ClCompile Include="demo5.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="textbox.cpp" />
+    <ClCompile Include="scale.cpp" />
   </ItemGroup>
 </Project>

@@ -5,6 +5,9 @@
     <button flex="1" label="box layout" id="layout"/>
     <button flex="1" label="text box" id="textbox"/>
   </hbox>
+  <hbox>
+    <button flex="1" label="scale" id="scale"/>
+  </hbox>
   <!-- <hbox>
     <button flex="1" label="box layout"/>
     <button flex="1" label="text box"/>
