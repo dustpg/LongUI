@@ -322,7 +322,7 @@ HRESULT LongUI::impl::outline_renderer::DrawGlyphRun(
             glyphRun->glyphOffsets,
             glyphRun->glyphCount,
             glyphRun->isSideways,
-            glyphRun->bidiLevel % 2,
+            glyphRun->bidiLevel & 1,
             sink
         );
     }

@@ -24,6 +24,8 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_textbox);
     const auto btn_scale = window.FindControl("scale");
     assert(btn_scale);
+    const auto btn_tab = window.FindControl("tab");
+    assert(btn_tab);
     CUIWindow* const parent = nullptr;
     // NORMAL
     const auto create_viewport = [&window, modal](U8View view, init_func_t call) noexcept {
@@ -64,6 +66,12 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     btn_scale->AddGuiEventListener(
         UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/scale.xul"_sv, { InitViewport_Scale });
+        return Event_Accept;
+    });
+    // TAB
+    btn_tab->AddGuiEventListener(
+        UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/tab.xul"_sv, { });
         return Event_Accept;
     });
 }

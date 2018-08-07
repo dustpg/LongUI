@@ -118,9 +118,12 @@ LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // tab类型
+    //m_oBox.margin = { 1, 1, 1, 1 };
     m_oBox.border = { 1, 1, 1, 1 };
     m_oBox.padding = { 0, 1, 0, 1 };
     m_oStyle.appearance = Appearance_Tab;
+    m_oStyle.overflow_x = Overflow_Hidden;
+    m_oStyle.overflow_y = Overflow_Hidden;
     // 原子控件
     m_state.atomicity = true;
     // 私有实现

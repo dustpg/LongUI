@@ -763,14 +763,14 @@ auto LongUI::CUIResMgr::CreateCtlText(
         arg.mheight,
         &layout
     ) };
-    longui_debug_hr(Result{ hr }, L"CreateTextLayout faild");
+    longui_debug_hr(hr, L"CreateTextLayout faild");
     // 查询继承类接口
     if (hr) {
         hr = { layout->QueryInterface(
             IID_IDWriteTextLayout1,
             reinterpret_cast<void**>(&text)
         ) };
-        longui_debug_hr(Result{ hr }, L"QueryInterface 'IDWriteTextLayout1' faild");
+        longui_debug_hr(hr, L"QueryInterface 'IDWriteTextLayout1' faild");
     }
     // 释放数据
     if (layout) layout->Release();

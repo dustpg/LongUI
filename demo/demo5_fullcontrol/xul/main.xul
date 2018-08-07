@@ -7,6 +7,7 @@
   </hbox>
   <hbox>
     <button flex="1" label="scale" id="scale"/>
+    <button flex="1" label="tab" id="tab"/>
   </hbox>
   <!-- <hbox>
     <button flex="1" label="box layout"/>

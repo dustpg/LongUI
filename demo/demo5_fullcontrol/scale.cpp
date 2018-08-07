@@ -11,7 +11,7 @@ void InitViewport_Scale(LongUI::UIViewport& viewport) noexcept {
     using namespace LongUI;
     auto& window = viewport.RefWindow();
     const auto display = longui_cast<UILabel*>(window.FindControl("display"));
-    const auto progress = longui_cast<UIScale*>(window.FindControl("progress"));
+    const auto progress = longui_cast<UIScale*>(window.FindControl("slider"));
     progress->AddGuiEventListener(
         UIScale::_changed(), [=](UIControl& ctrl) noexcept {
         const auto value = progress->GetValue();

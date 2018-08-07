@@ -6,7 +6,7 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <vbox flex="1">
-  <scale id="progress"/>
+  <scale id="slider"/>
   <label id="display"/>
 </vbox>
 

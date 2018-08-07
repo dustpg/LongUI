@@ -34,6 +34,8 @@ Timer
 
 repeat类型是round但是不足一个的场合?
 
+groupbox minsize
+
 ResourceList
 
 SSBlock::~SSBlock
