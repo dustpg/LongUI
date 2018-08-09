@@ -265,7 +265,7 @@ namespace LongUI {
         // window adjust
         RectL           adjust = {};
         // window buffer logical size
-        Size2U          wndbuf_logical = {};
+        Size2L          wndbuf_logical = {};
 #ifndef NDEBUG
         // full render counter
         uint32_t        dbg_full_render_counter = 0;
@@ -2195,9 +2195,9 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
     if (hr) {
         // 获取窗口大小
         RECT client_rect; ::GetClientRect(hwnd, &client_rect);
-        const Size2U wndsize = {
-            uint32_t(client_rect.right - client_rect.left),
-            uint32_t(client_rect.bottom - client_rect.top)
+        const Size2L wndsize = {
+            client_rect.right - client_rect.left,
+            client_rect.bottom - client_rect.top
         };
         // 设置逻辑大小
         this->wndbuf_logical = wndsize;
