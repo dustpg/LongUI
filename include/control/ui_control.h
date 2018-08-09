@@ -101,6 +101,17 @@ namespace LongUI {
         // friend
         friend CRIterator;
     public:
+        // on this object clicked
+        static auto _onClick() noexcept { return GuiEvent::Event_OnClick; }
+#if 0
+        // [unsupport yet]on this object double-clicked
+        static auto _onDblClick() noexcept { return GuiEvent::Event_OnDblClick; }
+#endif
+        // on this object set focus
+        static auto _onFocus() noexcept { return GuiEvent::Event_OnFocus; }
+        // on this object kill focus
+        static auto _onBlur() noexcept { return GuiEvent::Event_OnBlur; }
+    public:
         // class meta
         static const  MetaControl   s_meta;
         // safe type cast, null this safe

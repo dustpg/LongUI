@@ -408,14 +408,15 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             break;
         case sm_elename_end:
             // 空白 结束 关闭, 表示完成
-            if (impl::is_space(ch) | impl::is_begin_tag_close(ch) | impl::is_end_tag(ch)) {
+            if (impl::is_space(ch) || impl::is_begin_tag_close(ch) 
+                || impl::is_end_tag(ch) || impl::is_newline(ch)) {
                 this_element.b = str;
                 this->push(this_element);
                 this->begin_element(this_element);
                 if (!this->is_stack_ok()) return make_error(Result::Code_OOM);
                 state = sm_standby;
                 // 空白符号, 等待键
-                if (impl::is_space(ch)) state = sm_key_begin;
+                if (impl::is_space(ch) || impl::is_newline(ch)) state = sm_key_begin;
                 // 结束/关闭 标签
                 else {
                     // 结束标签
@@ -439,7 +440,7 @@ auto SimpAX::CAXStream::Load(const Char* str) noexcept -> Result {
             break;
         case sm_ele_end:
             // 等待空白 标签关闭
-            if (impl::is_space(ch) | impl::is_begin_tag_close(ch)) {
+            if (impl::is_space(ch) || impl::is_newline(ch) || impl::is_begin_tag_close(ch)) {
                 this_element.b = str;
                 // 检查匹配情况
 #ifdef SAX_DO_ERROR_CHECK

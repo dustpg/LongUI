@@ -54,7 +54,7 @@ namespace LongUI {
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
     public:
         // checked changed
-        static inline constexpr auto _changed() noexcept { return GuiEvent::Event_Change; }
+        //static inline constexpr auto _changed() noexcept { return GuiEvent::Event_Change; }
     public:
         // get checked radio
         auto GetChecked() const noexcept { return m_pChecked; }

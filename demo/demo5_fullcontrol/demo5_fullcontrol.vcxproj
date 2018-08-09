@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="checkbox.cpp" />
     <ClCompile Include="demo5.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="scale.cpp" />

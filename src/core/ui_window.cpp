@@ -375,6 +375,7 @@ m_private(new(std::nothrow) Private) {
     // 初始化BF
     m_inDtor = false;
     m_bInExec = false;
+    m_bHasScript = false;
     m_bCtorFaild = false;
     // XXX: 错误处理
     if (!m_private) { m_bCtorFaild = true; return;}
@@ -484,6 +485,8 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         m_pAccessible = nullptr;
     }
 #endif
+    // 有脚本
+    if (m_bHasScript) UIManager.FinalizeScript(*this);
     // 析构中
     m_inDtor = true;
     // 存在父窗口
@@ -767,6 +770,8 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     // 设为焦点
     focused = &ctrl;
     ctrl.StartAnimation({ StyleStateType::Type_Focus, true });
+    // Focus 事件
+    ctrl.TriggerEvent(UIControl::_onFocus());
     return true;
 }
 
@@ -806,6 +811,8 @@ void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
         m_private->focused = nullptr;
         //m_private->saved_focused = nullptr;
         ctrl.StartAnimation({ StyleStateType::Type_Focus, false });
+        // Blur 事件
+        ctrl.TriggerEvent(UIControl::_onBlur());
     }
 }
 

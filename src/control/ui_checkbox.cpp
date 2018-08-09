@@ -104,7 +104,9 @@ void LongUI::UICheckBox::change_indeterminate(bool ndeterminate) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UICheckBox::changed() noexcept {
+#ifdef NDEBUG
     this->TriggerEvent(_stateChanged());
+#endif
     // TODO: ACCESSIBLE
 #ifndef LUI_ACCESSIBLE
 

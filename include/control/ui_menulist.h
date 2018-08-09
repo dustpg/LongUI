@@ -40,7 +40,7 @@ namespace LongUI {
         void init_menulist();
     public:
         // selected changed
-        static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
+        //static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
     protected:
         // ctor
         UIMenuList(UIControl* parent, const MetaControl&) noexcept;

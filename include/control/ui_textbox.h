@@ -54,10 +54,12 @@ namespace LongUI {
         // ctor
         UITextBox(UIControl* parent, const MetaControl&) noexcept;
     public:
-        // text changed
-        static inline constexpr auto _textChanged() noexcept { return GuiEvent::Event_Change; }
+        // When [pressed enter key, or killed-focus] if text changed
+        static auto _onChange() noexcept { return GuiEvent::Event_OnChange; }
+        // This event is sent when a user enters text in a textbox
+        static auto _onInput() noexcept { return GuiEvent::Event_OnInput; }
         // selection changed
-        static inline constexpr auto _selectionChanged() noexcept { return GuiEvent::Event_Select; }
+        //static inline constexpr auto _selectionChanged() noexcept { return GuiEvent::Event_Select; }
     public:
         // class meta
         static const  MetaControl   s_meta;
@@ -66,6 +68,8 @@ namespace LongUI {
         // ctor
         UITextBox(UIControl* parent = nullptr) noexcept :UITextBox(parent, UITextBox::s_meta) {}
     public:
+        // trigger event
+        auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
         // update
@@ -108,7 +112,14 @@ namespace LongUI {
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
-
+        // try trigger change event
+        void try_trigger_change_event() noexcept;
+        // mark change event could be triggered
+        void mark_change_could_trigger() noexcept;
+        // clear change event could be triggered
+        void clear_change_could_trigger() noexcept;
+        // is change event could be triggered?
+        bool is_change_could_trigger() const noexcept;
     public:
         // set text
         void SetText(CUIString&& text) noexcept;

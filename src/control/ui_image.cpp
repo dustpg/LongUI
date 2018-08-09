@@ -37,18 +37,18 @@ LongUI::UIImage::~UIImage() noexcept {
 /// </summary>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIImage::DoMouseEvent(const MouseEventArg & e) noexcept -> EventAccept {
-    // 左键弹起 修改状态
-    switch (e.type)
-    {
-    case LongUI::MouseEvent::Event_LButtonUp:
-        assert(m_pParent);
-        m_pParent->DoEvent(this, { NoticeEvent::Event_ImageChildClicked });
-        [[fallthrough]];
-    default:
-        return Super::DoMouseEvent(e);
-    }
-}
+//auto LongUI::UIImage::DoMouseEvent(const MouseEventArg & e) noexcept -> EventAccept {
+//    // 左键弹起 修改状态
+//    switch (e.type)
+//    {
+//    case LongUI::MouseEvent::Event_LButtonUp:
+//        assert(m_pParent);
+//        m_pParent->DoEvent(this, { NoticeEvent::Event_ImageChildClicked });
+//        [[fallthrough]];
+//    default:
+//        return Super::DoMouseEvent(e);
+//    }
+//}
 
 /// <summary>
 /// Adds the attribute.

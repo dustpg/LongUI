@@ -48,7 +48,7 @@ namespace LongUI {
         UIListItem(UIControl* parent, const MetaControl&) noexcept;
     public:
         // clicked event
-        static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
+        //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
     public:
         // is selected?
         auto IsSelected() const noexcept { return m_oStyle.state.selected; }

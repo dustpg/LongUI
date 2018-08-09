@@ -47,7 +47,7 @@ namespace LongUI {
         UIListHeader(UIControl* parent, const MetaControl&) noexcept;
     public:
         // clicked event
-        static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
+        //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
     public:
         // get text
         //auto GetText() const noexcept ->const wchar_t*;

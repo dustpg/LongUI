@@ -38,7 +38,7 @@ namespace LongUI {
         UIDeck(UIControl* parent, const MetaControl&) noexcept;
     public:
         // selected changed
-        static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
+        //static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
     public:
         // class meta
         static const  MetaControl   s_meta;

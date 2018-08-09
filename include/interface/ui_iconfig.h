@@ -143,12 +143,16 @@ namespace LongUI {
         /// <param name="info">The information.</param>
         virtual void OnError(ErrorInfo info) noexcept = 0;
     public:
-        /*// run a section script for event
-        virtual auto Evaluation(ScriptUI, UIControl&) noexcept ->bool = 0;
+        // run a section script for event
+        virtual bool Evaluation(ScriptUI, UIControl&) noexcept = 0;
         // alloc the script memory and copy into(may be compiled into byte code)
         virtual auto AllocScript(U8View) noexcept-> ScriptUI = 0;
         // free the script memory
-        virtual void FreeScript(ScriptUI) noexcept = 0;*/
+        virtual void FreeScript(ScriptUI) noexcept = 0;
+        // eval script for window init, may be called over once for single window
+        virtual void Evaluation(U8View, CUIWindow&) noexcept =0;
+        // finalize window script if has script
+        virtual void FinalizeScript(CUIWindow&) noexcept =0;
     public:
         // alloc for normal space
         virtual void*NormalAlloc(size_t length) noexcept = 0;

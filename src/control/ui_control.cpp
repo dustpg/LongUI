@@ -1052,6 +1052,8 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             // 存在点击的
             if (m_pClicked) m_pClicked->DoMouseEvent(e);
         }
+        // 触发[onclick]事件
+        this->TriggerEvent(_onClick());
         return Event_Accept;
     case LongUI::MouseEvent::Event_RButtonUp:
         // 子控件优先处理事件

@@ -15,49 +15,45 @@ namespace LongUI {
     class PCN_NOVTABLE CUIEventHost : public CUIStyleValue {
         // function node
         struct FunctionNode;
-    public:
         // add gui event listener
-        template<typename E, typename Callable>
-        inline Conn AddGuiEventListener(E e, Callable&& call) noexcept {
-            static_assert(
-                std::is_same<E, const char*>::value ||
-                std::is_same<E, U8View>::value ||
-                std::is_same<E, GuiEvent>::value,
-                "e must be 'const char*' or 'GuiEvent'"
-                );
+        Conn add_gui_event_listener(GuiEvent, GuiEventListener&&) noexcept;
+    public:
+        // event string view to event id
+        static auto StrToId(U8View view) noexcept ->GuiEvent;
+        // add gui event listener
+        template<typename Callable>
+        inline Conn AddGuiEventListener(GuiEvent e, Callable&& call) noexcept {
+            //static_assert(
+            //    std::is_same<E, const char*>::value ||
+            //    std::is_same<E, U8View>::value ||
+            //    std::is_same<E, GuiEvent>::value,
+            //    "e must be 'const char*' or 'GuiEvent'"
+            //    );
             GuiEventListener listener{ std::move(call) };
             return this->add_gui_event_listener(e, std::move(listener));
         }
         // add gui event listener const ref overload
-        template<typename E, typename Callable>
-        inline Conn AddGuiEventListener(E e, const Callable& call) noexcept {
-            static_assert(
-                std::is_same<E, const char*>::value ||
-                std::is_same<E, U8View>::value ||
-                std::is_same<E, GuiEvent>::value,
-                "e must be 'const char*' or 'GuiEvent'"
-                );
+        template<typename Callable>
+        inline Conn AddGuiEventListener(const Callable& call) noexcept {
+            //static_assert(
+            //    std::is_same<E, const char*>::value ||
+            //    std::is_same<E, U8View>::value ||
+            //    std::is_same<E, GuiEvent>::value,
+            //    "e must be 'const char*' or 'GuiEvent'"
+            //    );
             Callable mcall = call;
             GuiEventListener listener{ std::move(mcall) };
             return this->add_gui_event_listener(e, std::move(listener));
         }
         // trigger event
-        auto TriggerEvent(GuiEvent event) noexcept ->EventAccept;
+        virtual auto TriggerEvent(GuiEvent event) noexcept ->EventAccept;
+        // set script
+        void SetScript(GuiEvent, U8View) noexcept;
     private:
-        // string to event
-        static auto strtoe(U8View) noexcept->GuiEvent;
         // find event
         auto find_event(GuiEvent) const noexcept->FunctionNode*;
         // require event
         auto require_event(GuiEvent) noexcept->FunctionNode*;
-        // add gui event listener
-        Conn add_gui_event_listener(GuiEvent, GuiEventListener&&) noexcept;
-        // add gui event listener
-        Conn add_gui_event_listener(const char* str, GuiEventListener&& l) noexcept {
-            return add_gui_event_listener(U8View::FromCStyle(str), std::move(l)); }
-        // add gui event listener
-        Conn add_gui_event_listener(U8View view, GuiEventListener&& l) noexcept {
-            return add_gui_event_listener(view, std::move(l)); }
     protected:
         // ctor
         CUIEventHost() noexcept {}

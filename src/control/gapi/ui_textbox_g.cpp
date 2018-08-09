@@ -60,7 +60,7 @@ namespace LongUI {
         bool                                text_need_sync = false;
         // selection cached synchronized
         bool                                selc_need_sync = false;
-        // created
+        // created flag
         bool                                created = false;
         // cached
         bool                                cached = false;
@@ -72,6 +72,7 @@ namespace LongUI {
     /// <returns></returns>
     UITextBox::Private::Private() noexcept {
         static_assert(alignof(Private) <= alignof(double), "must less than double");
+
     }
     /// <summary>
     /// Creates the cached bitmap.
@@ -109,7 +110,6 @@ namespace LongUI {
         created = true;
     }
 }
-
 
 
 /// <summary>
@@ -225,6 +225,32 @@ void LongUI::UITextBox::private_mark_password() noexcept {
 }
 
 
+
+/// <summary>
+/// Marks the change could trigger.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::mark_change_could_trigger() noexcept {
+    m_flag |= TextBC::CBCTextDocument::Flag_Custom;
+}
+
+/// <summary>
+/// Clears the change could trigger.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::clear_change_could_trigger() noexcept {
+    m_flag &= ~TextBC::CBCTextDocument::Flag_Custom;
+}
+
+/// <summary>
+/// Determines whether [is change could trigger].
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
+    static_assert(TextBC::CBCTextDocument::Flag_Custom == 1, "must be 1");
+    return m_flag & TextBC::CBCTextDocument::Flag_Custom;
+}
+
 /// <summary>
 /// Determines whether [is valid password] [the specified ch].
 /// </summary>
@@ -250,17 +276,20 @@ void LongUI::UITextBox::ErrorBeep() noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::private_update() noexcept {
     auto& doc = m_private->document();
-    // 文本修改检查
+    // [用户输入接口文本]修改检查
     if (doc.IsTextChanged()) {
         doc.ClearTextChanged();
+        this->mark_change_could_trigger();
         m_private->text_need_sync = true;
-        this->TriggerEvent(_textChanged());
+        this->TriggerEvent(this->_onInput());
     }
     // 选区修改检查
     if (doc.IsSelectionChanged()) {
         doc.ClearSelectionChanged();
         m_private->selc_need_sync = true;
+#ifdef NDEBUG
         this->TriggerEvent(_selectionChanged());
+#endif
     }
 }
 
@@ -389,7 +418,10 @@ void LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
         break;
     case CUIInputKM::KB_RETURN:
         // 回车返回键
-        doc.OnNewLine();
+        if (doc.OnNewLine()) {
+            // 单行模式尝试触发
+            this->try_trigger_change_event();
+        }
         break;
     case CUIInputKM::KB_A:
         // A 键
@@ -477,7 +509,7 @@ void LongUI::UITextBox::GenerateText(void* string, TextBC::U16View view) noexcep
 /// Requests the text.
 /// </summary>
 /// <returns></returns>
-const LongUI::CUIString& LongUI::UITextBox::RequestText() noexcept {
+auto LongUI::UITextBox::RequestText() noexcept -> const LongUI::CUIString& {
     auto& doc = m_private->document();
     auto& str = m_private->text_cached;
     auto& flag = m_private->text_need_sync;

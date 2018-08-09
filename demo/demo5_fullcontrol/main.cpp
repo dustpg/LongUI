@@ -4,6 +4,7 @@
 #include <core/ui_manager.h>
 #include <cassert>
 
+void InitViewport_CheckBox(LongUI::UIViewport&) noexcept;
 void InitViewport_TextBox(LongUI::UIViewport&) noexcept;
 void InitViewport_Scale(LongUI::UIViewport&) noexcept;
 struct init_func_t { void (*func)(LongUI::UIViewport&) noexcept; };
@@ -26,6 +27,8 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_scale);
     const auto btn_tab = window.FindControl("tab");
     assert(btn_tab);
+    const auto btn_checkbox = window.FindControl("checkbox");
+    assert(btn_checkbox);
     CUIWindow* const parent = nullptr;
     // NORMAL
     const auto create_viewport = [&window, modal](U8View view, init_func_t call) noexcept {
@@ -52,26 +55,32 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     };
     // LAYOUT
     btn_layout->AddGuiEventListener(
-        UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/layout.xul"_sv, {});
         return Event_Accept;
     });
     // TEXTBOX
     btn_textbox->AddGuiEventListener(
-        UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/textbox.xul"_sv, { InitViewport_TextBox });
         return Event_Accept;
     });
     // SCALE
     btn_scale->AddGuiEventListener(
-        UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/scale.xul"_sv, { InitViewport_Scale });
         return Event_Accept;
     });
     // TAB
     btn_tab->AddGuiEventListener(
-        UIButton::_clicked(), [create_viewport](UIControl&) noexcept {
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/tab.xul"_sv, { });
+        return Event_Accept;
+    });
+    // CHECKBOX
+    btn_checkbox->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/checkbox.xul"_sv, { InitViewport_CheckBox });
         return Event_Accept;
     });
 }

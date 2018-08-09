@@ -49,7 +49,7 @@ namespace LongUI {
         UITabBox(UIControl* parent = nullptr) noexcept : UITabBox(parent, UITabBox::s_meta) {}
     public:
         // selected changed
-        static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
+        //static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
     public:
         // set selected index
         void SetSelectedIndex(uint32_t index) noexcept;

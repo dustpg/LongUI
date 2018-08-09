@@ -41,7 +41,7 @@ namespace LongUI {
         UIMenuItem(UIControl* parent, const MetaControl& ) noexcept;
     public:
         // selected event
-        static inline constexpr auto _selected() noexcept { return GuiEvent::Event_Select; }
+        //static inline constexpr auto _selected() noexcept { return GuiEvent::Event_Select; }
     public:
         // ICON WIDTH
         enum : uint32_t { ICON_WIDTH = 28 };

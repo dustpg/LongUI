@@ -40,6 +40,10 @@
       <label value="Input:" id="input" />
    </hbox>
 
+   <hbox  align="center">
+      <label value="Change:" id="change" />
+   </hbox>
+
 </vbox>
 
 </window>

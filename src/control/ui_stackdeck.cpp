@@ -83,7 +83,9 @@ void LongUI::UIDeck::SetSelectedIndex(uint32_t index) noexcept {
         if (olditem) olditem->SetVisible(false);
         newitem->SetVisible(true);
         m_index = index;
+#ifdef NDEBUG
         this->TriggerEvent(_selectedChanged());
+#endif
     }
 }
 

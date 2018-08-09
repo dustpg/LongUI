@@ -141,6 +141,17 @@ namespace LongUI {
         bool ShowError(Result hr, const wchar_t* str_b = nullptr) noexcept;
         // load data from url
         void LoadDataFromUrl(U8View url_utf8, POD::Vector<uint8_t>& buffer) noexcept;
+    public:
+        // run a section script for event
+        bool Evaluation(ScriptUI s, UIControl& c) noexcept { return this->config->Evaluation(s, c); }
+        // alloc the script memory and copy into
+        auto AllocScript(U8View view) noexcept { return this->config->AllocScript(view); }
+        // free the script memory
+        void FreeScript(ScriptUI script) noexcept { this->config->FreeScript(script); }
+        // eval script for window init
+        void Evaluation(U8View v, CUIWindow& w) noexcept { this->config->Evaluation(v, w); }
+        // finalize window script if has script
+        void FinalizeScript(CUIWindow& w) noexcept { this->config->FinalizeScript(w); };
     private:
         // ctor
         CUIManager(IUIConfigure* config, Result& out) noexcept;

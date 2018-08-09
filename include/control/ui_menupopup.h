@@ -47,7 +47,7 @@ namespace LongUI {
         friend UIMetaTypeDef;
     public:
         // selected changed
-        static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
+        //static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
     protected:
         // ctor
         UIMenuPopup(UIControl* hoster, const MetaControl&) noexcept;

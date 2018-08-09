@@ -81,9 +81,10 @@ LongUI::UITextBox::~UITextBox() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::Update() noexcept {
-    // 文本修改
+    // [SetText接口文本]修改
     if (m_bTextChanged) {
         m_bTextChanged = false;
+        this->mark_change_could_trigger();
         this->private_set_text();
     }
     // 检查到大小修改
@@ -95,6 +96,32 @@ void LongUI::UITextBox::Update() noexcept {
     return Super::Update();
 }
 
+/// <summary>
+/// Triggers the event.
+/// </summary>
+/// <param name="event">The event.</param>
+/// <returns></returns>
+auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+    switch (event)
+    {
+    case LongUI::GuiEvent::Event_OnBlur:
+        this->try_trigger_change_event();
+        break;
+    }
+    return Super::TriggerEvent(event);
+}
+
+
+/// <summary>
+/// Triggers the change event.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::try_trigger_change_event() noexcept {
+    if (this->is_change_could_trigger()) {
+        this->clear_change_could_trigger();
+        Super::TriggerEvent(this->_onChange());
+    }
+}
 
 /// <summary>
 /// Does the event.
