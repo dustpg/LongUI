@@ -269,7 +269,7 @@ void SimpAC::CACStream::Load(StrPair view, bool inline_style) noexcept {
     {
         union { uint32_t u32; char u8[4]; } bom, now;
         bom.u32 = 0, now.u32 = 0;
-        bom.u8[0] = 0xef; bom.u8[1] = 0xbb; bom.u8[2] = 0xbf;
+        bom.u8[0] = '\xef'; bom.u8[1] = '\xbb'; bom.u8[2] = '\xbf';
         now.u8[0] = view.first[0]; 
         now.u8[1] = view.first[1];
         now.u8[2] = view.first[2];
