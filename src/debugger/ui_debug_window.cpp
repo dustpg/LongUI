@@ -89,32 +89,28 @@ namespace LongUI {
             const auto checkbox = do_checkbox("cbx-dirty");
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & IUIConfigure::Flag_DbgDrawDirtyRect));
-#ifdef NDEBUG
             checkbox->AddGuiEventListener(
-                checkbox->_stateChanged(), [&flag](UIControl& control) noexcept {
+                checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
                 const auto box = longui_cast<UICheckBox*>(&control);
                 auto& mflag = const_cast<CUIManager::ConfigFlag&>(flag);
                 if (box->GetChecked()) mflag = mflag | IUIConfigure::Flag_DbgDrawDirtyRect;
                 else mflag = mflag & CUIManager::ConfigFlag(~IUIConfigure::Flag_DbgDrawDirtyRect);
                 return Event_Accept;
             });
-#endif
         }
         // draw text cell
         void draw_text_cell() noexcept {
             const auto checkbox = do_checkbox("cbx-cell");
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & IUIConfigure::Flag_DbgDrawTextCell));
-#ifdef NDEBUG
             checkbox->AddGuiEventListener(
-                checkbox->_stateChanged(), [&flag](UIControl& control) noexcept {
+                checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
                 const auto box = longui_cast<UICheckBox*>(&control);
                 auto& mflag = const_cast<CUIManager::ConfigFlag&>(flag);
                 if (box->GetChecked()) mflag = mflag | IUIConfigure::Flag_DbgDrawTextCell;
                 else mflag = mflag & CUIManager::ConfigFlag(~IUIConfigure::Flag_DbgDrawTextCell);
                 return Event_Accept;
             });
-#endif
         }
         // link style sheet
         void link_style_sheet() noexcept {

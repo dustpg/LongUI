@@ -20,7 +20,9 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     switch (appearance)
     {
         uint32_t index; ArrowDirection dir;
-    default: case LongUI::Appearance_None: assert(!"error"); return;
+    default: case LongUI::Appearance_None: assert(!"error"); 
+    case Appearance_CheckBoxContainer:
+        return;
     case LongUI::Appearance_Radio:
     case LongUI::Appearance_MenuRadio:
         return this->draw_radio(args);

@@ -23,18 +23,18 @@ function setText(textID,val)
  <groupbox flex="1">
   <caption label="tabbing" />
   <vbox flex="1">
-    <label value="These tab oddly" />
-    <checkbox flex="1" label="6" tabindex="6" 
+    <label value="These tab oddly(unspport yet)" />
+    <checkbox flex="1" label="6" tabindex="6" id="zone1_1"
               oncommand="setText('tab-text','6');" />
-    <checkbox flex="1" label="3" tabindex="3" 
+    <checkbox flex="1" label="3" tabindex="3" id="zone1_2"
               oncommand="setText('tab-text','3');" />
-    <checkbox flex="1" label="4" tabindex="4" 
+    <checkbox flex="1" label="4" tabindex="4" id="zone1_3"
               oncommand="setText('tab-text','4');" />
-    <checkbox flex="1" label="2" tabindex="2" 
+    <checkbox flex="1" label="2" tabindex="2" id="zone1_4"
               oncommand="setText('tab-text','2');" />
-    <checkbox flex="1" label="5" tabindex="5" 
+    <checkbox flex="1" label="5" tabindex="5" id="zone1_5"
               oncommand="setText('tab-text','5');" />
-    <checkbox flex="1" label="1" tabindex="1" 
+    <checkbox flex="1" label="1" tabindex="1" id="zone1_6"
               oncommand="setText('tab-text','1');" />
     <spacer flex="1" />
     <label  id="tab-text" value="(no input)" />
@@ -46,17 +46,17 @@ function setText(textID,val)
   <vbox flex="1">
     <label value="These have access keys." />
     <label value="(Even if they're not marked)" />
-    <checkbox flex="1" label="Animal" accesskey="A" 
+    <checkbox flex="1" label="Animal" accesskey="A" id="zone2_1"
                      oncommand="setText('accesskey-text','Animal');" />
-    <checkbox flex="1" label="Bear"   accesskey="B" 
+    <checkbox flex="1" label="Bear"   accesskey="B" id="zone2_2"
                      oncommand="setText('accesskey-text','Bear');" />
-    <checkbox flex="1" label="Cat"    accesskey="C" 
+    <checkbox flex="1" label="Cat"    accesskey="C" id="zone2_3"
                      oncommand="setText('accesskey-text','Cat');" />
-    <checkbox flex="1" label="Dog"    accesskey="D" 
+    <checkbox flex="1" label="Dog"    accesskey="D" id="zone2_4"
                      oncommand="setText('accesskey-text','Dog');" />
-    <checkbox flex="1" label="Deer"   accesskey="E" 
+    <checkbox flex="1" label="Deer"   accesskey="E" id="zone2_5"
                      oncommand="setText('accesskey-text','Deer');" />
-    <checkbox flex="1" label="Fish"   accesskey="F" 
+    <checkbox flex="1" label="Fish"   accesskey="F" id="zone2_6"
                      oncommand="setText('accesskey-text','Fish');" />
     <spacer flex="1" />
     <label  id="accesskey-text" value="(no input)" />

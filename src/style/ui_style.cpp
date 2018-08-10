@@ -60,6 +60,20 @@ void LongUI::Box::GetBorderEdge(RectF& rect) const noexcept {
     rect.bottom -= this->margin.bottom;
 }
 
+/// <summary>
+/// Gets the safe border edge.
+/// </summary>
+/// <returns></returns>
+auto LongUI::Box::GetSafeBorderEdge() const noexcept -> RectF {
+    RectF rect;
+    this->GetMarginEdge(rect);
+    rect.top += this->margin.top * 0.5f;
+    rect.left += this->margin.left * 0.5f;
+    rect.right -= this->margin.right * 0.5f;
+    rect.bottom -= this->margin.bottom * 0.5f;
+    return rect;
+}
+
 PCN_NOINLINE
 /// <summary>
 /// Gets the padding rect.

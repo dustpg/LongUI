@@ -40,6 +40,8 @@ namespace LongUI {
         auto GetPaddingEdge() const noexcept { RectF rc; GetPaddingEdge(rc); return rc; }
         // get content edge
         auto GetContentEdge() const noexcept { RectF rc; GetContentEdge(rc); return rc; }
+        // get safe-border edge
+        auto GetSafeBorderEdge() const noexcept->RectF;
         // get contect size
         auto GetContentSize() const noexcept->Size2F;
         // get border size

@@ -134,7 +134,7 @@ void LongUI::UIControlPrivate::UpdateWorld(UIControl& ctrl) noexcept {
 
         ctrl.m_state.world_changed = false;
         auto& box = ctrl.m_oBox;
-        auto ctrl_rect = ctrl.GetBox().GetMarginEdge();
+        auto ctrl_rect = ctrl.GetBox().GetSafeBorderEdge();
         ctrl.MapToWindow(ctrl_rect);
         // 检查父控件
         if (!ctrl.IsTopLevel()) {

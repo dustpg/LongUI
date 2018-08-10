@@ -37,8 +37,8 @@ namespace LongUI {
         // init checkbox
         void init_checkbox() noexcept;
     public:
-        // checked changed
-        //static constexpr inline auto _stateChanged() noexcept { return GuiEvent::Event_Change; }
+        // on commnad event
+        static auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
     public:
         // set indeterminate
         void SetIndeterminate() noexcept;

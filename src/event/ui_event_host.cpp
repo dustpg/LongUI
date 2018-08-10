@@ -66,6 +66,9 @@ namespace LongUI {
 /// <param name="">The .</param>
 /// <returns></returns>
 auto LongUI::CUIEventHost::StrToId(U8View view) noexcept -> GuiEvent {
+#ifndef DEBUG
+    const auto ori_view = view;
+#endif
     // 以on开头?
     if (view.end() > view.begin() + 2) {
         const auto ch0 = view.begin()[0];
@@ -77,9 +80,17 @@ auto LongUI::CUIEventHost::StrToId(U8View view) noexcept -> GuiEvent {
         / sizeof(GUIEVENT_NAME_HASH[0]);
     // 计算hash
     const auto hash = LongUI::BKDRHash(view.begin(), view.end());
-    const auto index = LongUI::Uint32FindIndex(GUIEVENT_NAME_HASH, len, hash);
+    auto index = LongUI::Uint32FindIndex(GUIEVENT_NAME_HASH, len, hash);
     // 范围检查
-    assert(index < len && "type not found");
+    if (index == len) {
+        index = 0;
+#ifndef DEBUG
+        LUIDebug(Error) 
+            << "event not found: "
+            << ori_view
+            << endl;
+#endif
+    }
     return static_cast<GuiEvent>(index);
 }
 

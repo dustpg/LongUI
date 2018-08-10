@@ -189,6 +189,7 @@ namespace LongUI {
         Appearance_MenuSeparator,           // [menuseparator]
         Appearance_MenuArrow,               // [menuarrow]
         Appearance_Separator,               // [separator]
+        Appearance_CheckBoxContainer,       // [checkbox-container]
         Appearance_ScaleH,                  // [scale-horizontal]
         Appearance_ScaleV,                  // [scale-vertical]
         Appearance_ScaleThumbH,             // [scalethumb-horizontal]
