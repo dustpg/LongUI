@@ -118,6 +118,7 @@ auto LongUI::UIRadio::DoEvent(
         break;
     case NoticeEvent::Event_DoAccessAction:
         // 默认行动
+        this->SetAsDefaultAndFocus();
         this->SetChecked(true);
         return Event_Accept;
     }

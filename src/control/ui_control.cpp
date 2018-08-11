@@ -396,6 +396,10 @@ auto LongUI::UIControl::init() noexcept -> Result {
     // XXX: 注册访问按键
     if (m_chAccessKey >= 'A' && m_chAccessKey <= 'Z' && m_pWindow)
         m_pWindow->RegisterAccessKey(*this);
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    // 重新连接样式表
+    this->link_style_sheet();
+#endif
     // 初始化对象
     EventInitializeArg arg; 
     this->DoEvent(this, arg);
@@ -413,10 +417,6 @@ auto LongUI::UIControl::init() noexcept -> Result {
         if (m_oBox.size.width == static_cast<float>(INVALID_CONTROL_SIZE)) {
             this->Resize({ DEFAULT_CONTROL_WIDTH, DEFAULT_CONTROL_HEIGHT });
         }
-#ifndef LUI_DISABLE_STYLE_SUPPORT
-        // 重新连接样式表
-        this->link_style_sheet();
-#endif
     }
     // 设置初始化状态
     this->setup_init_state();
@@ -1151,6 +1151,17 @@ void LongUI::UIControl::SetParent(UIControl& parent) noexcept {
 /// <returns></returns>
 bool LongUI::UIControl::SetFocus() noexcept {
     return m_pWindow ? m_pWindow->SetFocus(*this) : false;
+}
+
+
+/// <summary>
+/// Sets as default and focus.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::SetAsDefaultAndFocus() noexcept {
+    if (!m_pWindow) return;
+    m_pWindow->SetFocus(*this);
+    m_pWindow->SetDefault(*this);
 }
 
 /// <summary>

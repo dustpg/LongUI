@@ -58,7 +58,7 @@ namespace LongUI {
         UIButton(UIControl* parent, const MetaControl&) noexcept;
     public:
         // on commnad event
-        static auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
         // clicked event
         //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
         // checked change event

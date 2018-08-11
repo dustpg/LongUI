@@ -42,7 +42,7 @@ namespace LongUI {
         void init_radio() noexcept;
     public:
         // on commnad event
-        static auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
     public:
         // set checked
         void SetChecked(bool) noexcept;

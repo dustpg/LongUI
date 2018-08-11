@@ -166,9 +166,14 @@ void LongUI::UITextBox::create_private() noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::init_private() noexcept {
     assert(m_private && "bad action");
+    // 延迟到init事件创建Doc对象
     m_private->create_doc(*this);
+    // 存在初始化字符的话进行文本初始化, 当然不必输出文本changed标志
     auto& cached = m_private->text_cached;
-    if (!cached.empty()) this->private_set_text();
+    if (!cached.empty()) {
+        this->private_set_text();
+        m_private->document().ClearTextChanged();
+    }
 }
 
 
@@ -592,20 +597,27 @@ auto LongUI::UITextBox::CreateContent(
     uint32_t len,
     Text&& old
 ) noexcept -> Text* {
-    const auto last_text = auto_cast(&old);
+    // 创建字体
+    I::Font* font_to_use = nullptr;
+    {
+        const auto last_text = auto_cast(&old);
+        if (last_text) font_to_use = I::FontFromText(last_text);
+        else UIManager.CreateCtlFont(m_tfBuffer.font, font_to_use, &m_tfBuffer.text);
+    }
+
     I::Text* text = nullptr;
     TextArg arg;
     static_assert(sizeof(*arg.string) == sizeof(char16_t), "unsupprted platform");
     // 参数调整
     arg.string = reinterpret_cast<decltype(arg.string)>(str);
     arg.length = len;
-    arg.font = I::FontFromText(last_text);
+    arg.font = font_to_use;
     arg.mwidth = DEFAULT_CONTROL_MAX_SIZE;
     arg.mheight = DEFAULT_CONTROL_MAX_SIZE;
     // TODO: 错误处理
     UIManager.CreateCtlText(arg, luiref text);
     // 释放旧数据
-    if (last_text) last_text->Release();
+    if (font_to_use) font_to_use->Release();
     return auto_cast(text);
 }
 
@@ -629,14 +641,12 @@ void LongUI::UITextBox::DeleteContent(Text& text) noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::DrawContent(Text& txt, void* ctx, TextBC::Point2F pos) noexcept {
     const auto ptr = auto_cast(&txt);
+    // 错误场合处理
+    if (!ptr) return;
     assert(ctx && "bad context");
     const auto renderer = static_cast<I::Renderer2D*>(ctx);
-    // 错误场合处理
-    if (ptr) {
-        const auto color = ColorF::FromRGBA_CT<RGBA_Black>();
-        auto& brush = UIManager.RefCCBrush(color);
-        renderer->DrawTextLayout({ pos.x, pos.y }, ptr, &brush);
-    }
+    auto& brush = UIManager.RefCCBrush(m_tfBuffer.text.color);
+    renderer->DrawTextLayout({ pos.x, pos.y }, ptr, &brush);
 }
 
 /// <summary>

@@ -137,10 +137,15 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender,
     case NoticeEvent::Event_RefreshBoxMinSize:
         // 不会改变
         return Event_Accept;
+    case NoticeEvent::Event_DoAccessAction:
+        // 默认行为(聚焦)
+        this->SetAsDefaultAndFocus();
+        return Event_Accept;
     case NoticeEvent::Event_Initialize:
         // 初始化
         this->init_private();
         this->init_textbox();
+        this->clear_change_could_trigger();
         [[fallthrough]];
     default:
         // 基类处理

@@ -32,6 +32,11 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_checkbox);
     const auto btn_radio = window.FindControl("radio");
     assert(btn_radio);
+    const auto btn_scrolling = window.FindControl("scrolling");
+    assert(btn_scrolling);
+    const auto btn_popup = window.FindControl("popup");
+    assert(btn_popup);
+    
     CUIWindow* const parent = nullptr;
     // NORMAL
     const auto create_viewport = [&window, modal](U8View view, init_func_t call) noexcept {
@@ -91,6 +96,18 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     btn_radio->AddGuiEventListener(
         UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/radio.xul"_sv, { InitViewport_Radio });
+        return Event_Accept;
+    });
+    // SCROLLING
+    btn_scrolling->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/scrolling.xul"_sv, {  });
+        return Event_Accept;
+    });
+    // POPUP
+    btn_popup->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/popup.xul"_sv, {});
         return Event_Accept;
     });
 }

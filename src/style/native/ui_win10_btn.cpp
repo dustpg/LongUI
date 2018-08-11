@@ -159,9 +159,9 @@ void LongUI::CUINativeStyleWindows10::draw_textfield(
     center.bottom -= border_halfw;
     // 渲染器
     auto& renderer = UIManager.Ref2DRenderer();
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     // 边框色彩
     auto& bursh1 = UIManager.RefCCBrush(bdcolor);
     renderer.DrawRectangle(auto_cast(center), &bursh1, border_halfw * 2.f);
-    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+    //renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }

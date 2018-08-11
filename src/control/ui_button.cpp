@@ -272,6 +272,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
     //    return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 访问行为
+        this->SetAsDefaultAndFocus();
         this->Click();
         break;
     case NoticeEvent::Event_PopupBegin:

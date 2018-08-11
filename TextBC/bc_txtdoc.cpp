@@ -122,7 +122,7 @@ TextBC::CBCTextDocument::CBCTextDocument(IBCTextPlatform& plat, InitArgs args) n
 
     this->sync_cache_to_length(0);
     this->recalculate_content_size();
-    this->text_changed();
+    //this->text_changed();
     m_lines.Resize(2);
 #endif
     m_uCaretPos = uint32_t(-1);

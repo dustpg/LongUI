@@ -40,7 +40,7 @@ namespace LongUI {
         void init_checkbox() noexcept;
     public:
         // on commnad event
-        static auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
     public:
         // set indeterminate
         void SetIndeterminate() noexcept;

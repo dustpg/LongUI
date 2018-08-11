@@ -2,7 +2,7 @@
 <window clearcolor="white" title="lui demo">
   <hbox>
     <checkbox label="modal window" id="modal"/>
-    <button label="disbaled button" disabled="true"/>
+    <button label="disabled button" disabled="true"/>
   </hbox>
   <hbox>
     <button flex="1" label="box layout" id="layout"/>
@@ -16,9 +16,9 @@
     <button flex="1" label="checkbox" id="checkbox"/>
     <button flex="1" label="radio_" id="radio"/>
   </hbox>
-  <!-- <hbox>
-    <button flex="1" label="box layout"/>
-    <button flex="1" label="text box"/>
-  </hbox> -->
+  <hbox>
+    <button flex="1" label="scrolling" id="scrolling" disabled="true"/>
+    <button flex="1" label="_popup_" id="popup"/>
+  </hbox>
   <spacer flex="1"/>
 </window>

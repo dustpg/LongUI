@@ -55,9 +55,9 @@ namespace LongUI {
         UITextBox(UIControl* parent, const MetaControl&) noexcept;
     public:
         // When [pressed enter key, or killed-focus] if text changed
-        static auto _onChange() noexcept { return GuiEvent::Event_OnChange; }
+        static constexpr auto _onChange() noexcept { return GuiEvent::Event_OnChange; }
         // This event is sent when a user enters text in a textbox
-        static auto _onInput() noexcept { return GuiEvent::Event_OnInput; }
+        static constexpr auto _onInput() noexcept { return GuiEvent::Event_OnInput; }
         // selection changed
         //static inline constexpr auto _selectionChanged() noexcept { return GuiEvent::Event_Select; }
     public:

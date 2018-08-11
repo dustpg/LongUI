@@ -213,6 +213,7 @@ auto LongUI::UICheckBox::DoEvent(
     {
     case NoticeEvent::Event_DoAccessAction:
         // 默认行动
+        this->SetAsDefaultAndFocus();
         this->Toggle();
         return Event_Accept;
     case NoticeEvent::Event_Initialize:

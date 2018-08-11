@@ -81,7 +81,7 @@ void InitButton(
     const auto btn = longui_cast<LongUI::UIButton*>(button);
     const auto menu = longui_cast<LongUI::UIMenuList*>(list);
     assert(btn && menu && "BAD ACTION");
-    btn->AddGuiEventListener(LongUI::UIButton::_clicked(), 
+    btn->AddGuiEventListener(LongUI::UIButton::_onCommand(), 
         [&cfg, menu](LongUI::UIControl&) noexcept {
         const auto index = menu->GetSelectionIndex();
         // index < 0 -> not selected
