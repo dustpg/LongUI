@@ -6,5 +6,6 @@
     <ClCompile Include="textbox.cpp" />
     <ClCompile Include="scale.cpp" />
     <ClCompile Include="checkbox.cpp" />
+    <ClCompile Include="radio.cpp" />
   </ItemGroup>
 </Project>

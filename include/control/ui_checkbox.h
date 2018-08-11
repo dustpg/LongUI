@@ -28,6 +28,8 @@
 
 // ui namespace
 namespace LongUI {
+    // image control
+    class UIImage;
     // checkbox
     class UICheckBox : public UIBoxLayout {
         // super class
@@ -44,6 +46,8 @@ namespace LongUI {
         void SetIndeterminate() noexcept;
         // set checked
         void SetChecked(bool checked) noexcept;
+        // set image source
+        void SetImageSource(U8View src) noexcept;
         // get checked
         auto GetChecked() const noexcept { return m_oStyle.state.checked; }
         // get indeterminate
@@ -87,6 +91,8 @@ namespace LongUI {
     private:
         // private data
         Private*                m_private = nullptr;
+        // image child
+        UIImage*                m_pImageChild = nullptr;
     };
     // get meta info for UICheckBox
     LUI_DECLARE_METAINFO(UICheckBox);

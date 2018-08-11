@@ -28,6 +28,8 @@
 
 // ui namespace
 namespace LongUI {
+    // image control
+    class UIImage;
     // redio group
     class UIRadioGroup;
     // radio
@@ -38,6 +40,26 @@ namespace LongUI {
         struct Private;
         // init radio
         void init_radio() noexcept;
+    public:
+        // on commnad event
+        static auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+    public:
+        // set checked
+        void SetChecked(bool) noexcept;
+        // set selected(sameas checked)
+        void SetSelected(bool sel) noexcept { this->SetChecked(sel); }
+        // set image source
+        void SetImageSource(U8View src) noexcept;
+        // get text
+        auto GetText() const noexcept ->const char16_t*;
+        // get text- string object
+        auto GetTextString() const noexcept -> const CUIString&;
+        // set text
+        void SetText(const CUIString& text) noexcept;
+        // set text
+        void SetText(CUIString&& text) noexcept;
+        // set text
+        void SetText(U16View text) noexcept;
     protected:
         // ctor
         UIRadio(UIControl* parent, const MetaControl&) noexcept;
@@ -54,24 +76,16 @@ namespace LongUI {
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-    public:
-        // set checked
-        void SetChecked(bool);
-        // get text
-        auto GetText() const noexcept ->const char16_t*;
-        // get text- string object
-        auto GetTextString() const noexcept -> const CUIString&;
-        // set text
-        void SetText(const CUIString& text) noexcept;
-        // set text
-        void SetText(CUIString&& text) noexcept;
-        // set text
-        void SetText(U16View text) noexcept;
+    protected:
+        // add attribute
+        void add_attribute(uint32_t key, U8View value) noexcept override;
     private:
         // radio group
         UIRadioGroup*       m_pRadioGroup = nullptr;
         // private data
         Private*            m_private = nullptr;
+        // image child
+        UIImage*            m_pImageChild = nullptr;
     };
     // get meta info for UIRadio
     LUI_DECLARE_METAINFO(UIRadio);

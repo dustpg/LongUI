@@ -26,6 +26,8 @@ bug.dmp
 
 Timer
 
+LUI_NO_SCRIPT
+
 缓存字体TextFormat? 修改text-align就要创建一个新的字体.
 
 图片动画?

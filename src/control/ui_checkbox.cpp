@@ -41,7 +41,7 @@ namespace LongUI {
         label.name_dbg = "checkbox::label";
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
-        label.SetText(u"复选框");
+        //label.SetText(u"复选框");
 #endif
         // 设置连接控件
         label.SetControl(box);
@@ -61,6 +61,22 @@ void LongUI::UICheckBox::SetIndeterminate() noexcept {
         this->change_indeterminate(true);
         this->changed();
     }
+}
+
+/// <summary>
+/// Sets the image source.
+/// </summary>
+/// <param name="src">The source.</param>
+/// <returns></returns>
+void LongUI::UICheckBox::SetImageSource(U8View src) noexcept {
+    assert(m_private && "bad action");
+    if (!m_pImageChild) {
+        const auto img = new(std::nothrow) UIImage{ this };
+        if (!img) return;
+        Super::SwapChildren(*img, m_private->label);
+        m_pImageChild = img;
+    }
+    m_pImageChild->SetSource(src);
 }
 
 PCN_NOINLINE
@@ -160,6 +176,7 @@ LongUI::UICheckBox::~UICheckBox() noexcept {
 /// <returns></returns>
 void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增属性列表
+    constexpr auto BKDR_SRC         = 0x001E57C4_ui32;
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
     constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
     // 分类讨论
@@ -172,6 +189,10 @@ void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_ACCESSKEY:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, key, value);
+        break;
+    case BKDR_SRC:
+        // src: 使用图片
+        this->SetImageSource(value);
         break;
     default:
         // 其他情况, 交给基类处理
@@ -216,18 +237,15 @@ void LongUI::UICheckBox::init_checkbox() noexcept {
     }
     // 在attr中设置了checked状态?
     if (m_oStyle.state.checked) {
-        m_oStyle.state.checked = false;
-        this->SetChecked(true);
+        UIControlPrivate::RefStyleState(m_private->image).checked = true;
     }
     // 在attr中设置了indeterminate状态?
     if (m_oStyle.state.indeterminate) {
-        m_oStyle.state.indeterminate = false;
-        this->SetIndeterminate();
+        UIControlPrivate::RefStyleState(m_private->image).indeterminate = true;
     }
-    // 同步disable状态
+    // 同步image-disable状态
     if (m_oStyle.state.disabled) {
-        for (auto&x : (*this))
-            UIControlPrivate::RefStyleState(x).disabled = true;
+        UIControlPrivate::RefStyleState(m_private->image).disabled = true;
     }
 }
 

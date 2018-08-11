@@ -10,13 +10,11 @@
 
 function setText(textID,val)
 {
-  document.getElementById(textID).value+=val;
+  document.getElementById(textID).value=val;
 }
 
 ]]>
 </script>
-
-<description><html:h1>XUL Radio Buttons</html:h1></description>
 
 <vbox flex="1" style="overflow: auto">
 <hbox>
@@ -24,37 +22,37 @@ function setText(textID,val)
   <groupbox flex="1">
     <caption label="states" />
     <radiogroup flex="1">
-       <description value="These show different states."/>
-       <radio label="Selected" selected="true"
+       <label value="These show different states."/>
+       <radio label="Selected" checked="true" id="zone1_1"
               oncommand="setText('state-text','Checked');" />
-       <radio label="Normal"   
+       <radio label="Normal"  id="zone1_2"
               oncommand="setText('state-text','Normal');" />
-       <radio label="Disabled" disabled="true" 
+       <radio label="Disabled" disabled="true"  id="zone1_3" 
               oncommand="setText('state-text','Disabled');" />
-       <separator flex="1" />
-       <description id="state-text" value="(no input)" />
+       <spacer flex="1" />
+       <label id="state-text" value="(no input)" />
      </radiogroup>
   </groupbox>
 
   <groupbox flex="1">
     <caption label="accesskeys" />
     <radiogroup flex="1">
-      <description value="These have access keys."/>
-      <description value="(Even if they're not marked)"/>
-      <radio label="Animal" accesskey="A" 
+      <label value="These have access keys."/>
+      <label value="(Even if they're not marked)"/>
+      <radio label="Animal" accesskey="A"  id="zone2_1"
              oncommand="setText('accesskey-text','Animal');" />
-      <radio label="Bear"   accesskey="B" 
+      <radio label="Bear"   accesskey="B"  id="zone2_2"
              oncommand="setText('accesskey-text','Bear');" />
-      <radio label="Cat"    accesskey="C" 
+      <radio label="Cat"    accesskey="C"  id="zone2_3"
              oncommand="setText('accesskey-text','Cat');" />
-      <radio label="Dog"    accesskey="D" 
+      <radio label="Dog"    accesskey="D"  id="zone2_4"
              oncommand="setText('accesskey-text','Dog');" />
-      <radio label="Deer"   accesskey="E" 
+      <radio label="Deer"   accesskey="E"  id="zone2_5"
              oncommand="setText('accesskey-text','Deer');" />
-      <radio label="Fish"   accesskey="F" 
+      <radio label="Fish"   accesskey="F"  id="zone2_6"
              oncommand="setText('accesskey-text','Fish');" />
-      <separator flex="1" />
-      <description  id="accesskey-text" value="(no input)" />
+      <spacer flex="1" />
+      <label  id="accesskey-text" value="(no input)" />
     </radiogroup>
   </groupbox>
 
@@ -65,48 +63,48 @@ function setText(textID,val)
   <groupbox flex="1">
     <caption label="orientation" />
     <radiogroup flex="1">
-      <description value="These radiobuttons show different orientations."/>
-      <radio label="Left"
+      <label value="These radiobuttons show different orientations."/>
+      <radio label="Left" id="zone3_1"
        oncommand="setText('or-text','A radiobutton to the left of the label');" />
-      <radio label="Right" dir="reverse" 
+      <radio label="Right" dir="reverse"  id="zone3_2"
        oncommand="setText('or-text','A radiobutton to the right of the label');"/>
-      <radio label="Above" orient="vertical" dir="forward" 
+      <radio label="Above" orient="vertical" dir="forward"  id="zone3_3"
        oncommand="setText('or-text','A radiobutton above the label');"/>
-      <radio label="Below" orient="vertical" dir="reverse" 
+      <radio label="Below" orient="vertical" dir="reverse"  id="zone3_4"
        oncommand="setText('or-text','A radiobutton below the label');"/>
-      <radio 
+      <radio  id="zone3_5"
        oncommand="setText('or-text','A radiobutton with no label');" />
-      <radio
+      <radio id="zone3_6"
        oncommand="setText('or-text','Another radiobutton with no label');" />
-      <separator flex="1" />
-      <description  id="or-text" value="(no input)" />
+      <spacer flex="1" />
+      <label  id="or-text" value="(no input)" />
     </radiogroup>
   </groupbox>
 
   <groupbox flex="1">
     <caption label="images" />
     <radiogroup flex="1">
-      <description value="These radiobuttons show images."/>
-      <radio label="Left"
+      <label value="These radiobuttons show images."/>
+      <radio label="Left"  id="zone4_1"
               src="images/star.png" 
        oncommand="setText('image-text','A radiobutton to the left of the label');" />
-      <radio label="Right" dir="reverse" 
+      <radio label="Right" dir="reverse"  id="zone4_2"
               src="images/star.png" 
        oncommand="setText('image-text','A radiobutton to the right of the label');"/>
-      <radio label="Above" orient="vertical" dir="forward" 
+      <radio label="Above" orient="vertical" dir="forward"  id="zone4_3"
               src="images/star.png" 
        oncommand="setText('image-text','A radiobutton above the label');"/>
-      <radio label="Below" orient="vertical" dir="reverse" 
+      <radio label="Below" orient="vertical" dir="reverse"  id="zone4_4"
                src="images/star.png" 
       oncommand="setText('image-text','A radiobutton below the label');"/>
-      <radio 
+      <radio  id="zone4_5"
               src="images/star.png" 
        oncommand="setText('image-text','A radiobutton with no label');" />
-      <radio
+      <radio id="zone4_6"
               src="images/star.png" 
        oncommand="setText('image-text','Another radiobutton with no label');" />
-      <separator flex="1" />
-      <description  id="image-text" value="(no input)" />
+      <spacer flex="1" />
+      <label  id="image-text" value="(no input)" />
     </radiogroup>
   </groupbox>
 

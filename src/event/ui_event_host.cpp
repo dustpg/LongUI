@@ -102,6 +102,7 @@ auto LongUI::CUIEventHost::StrToId(U8View view) noexcept -> GuiEvent {
 /// <param name="script">The script.</param>
 /// <returns></returns>
 void LongUI::CUIEventHost::SetScript(GuiEvent event, U8View script) noexcept {
+    assert(event != GuiEvent::Event_Unknown);
     if (const auto node = this->require_event(event)) {
         // 释放之前的
         node->free_script();

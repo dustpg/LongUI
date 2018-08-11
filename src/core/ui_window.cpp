@@ -42,6 +42,12 @@ namespace LongUI { namespace impl {
     auto get_dpi_scale_from_hwnd(HWND hwnd) noexcept -> Size2F;
     // get subpixcel rendering level
     void get_subpixel_text_rendering(uint32_t&) noexcept;
+    // eval script for window
+    void eval_script_for_window(U8View view, CUIWindow* window) noexcept {
+        assert(window && "eval script but no window");
+        window->MarkHasScript();
+        UIManager.Evaluation(view, *window);
+    }
 }}
 
 // LongUI::detail

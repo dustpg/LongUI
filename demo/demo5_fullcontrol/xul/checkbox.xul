@@ -67,13 +67,13 @@ function setText(textID,val)
   <caption label="states" />
   <vbox flex="1">
     <label  value="These show states." />
-    <checkbox  flex="1" label="Default"  default="true" 
+    <checkbox  flex="1" label="Default"  default="true" id="zone3_1"
                       oncommand="setText('state-text','Default');" />
-    <checkbox  flex="1" label="Checked"  checked="true" 
+    <checkbox  flex="1" label="Checked"  checked="true" id="zone3_2"
                       oncommand="setText('state-text','Checked');" />
-    <checkbox  flex="1" label="Normal"   
+    <checkbox  flex="1" label="Normal"   id="zone3_3"
                       oncommand="setText('state-text','Normal');" />
-    <checkbox  flex="1" label="Disabled" disabled="true" 
+    <checkbox  flex="1" label="Disabled" disabled="true" id="zone3_4"
                       oncommand="setText('state-text','Disabled');" />
     <spacer flex="1" />
     <label  id="state-text" value="(no input)" />
@@ -86,17 +86,17 @@ function setText(textID,val)
   <caption label="orientation" />
   <vbox flex="1">
     <label  value="These show different orientation." />
-    <checkbox label="Left"
+    <checkbox label="Left" id="zone4_1"
        oncommand="setText('label-text','A checkbox to the left of the label');" />
-    <checkbox label="Right" dir="reverse" 
+    <checkbox label="Right(unsupport yet)" dir="reverse" id="zone4_2"
        oncommand="setText('label-text','A checkbox to the right of the label');"/>
-    <checkbox label="Above" orient="vertical" dir="forward" 
+    <checkbox label="Above" orient="vertical" dir="forward" id="zone4_3"
        oncommand="setText('label-text','A checkbox above the label');"/>
-    <checkbox label="Below" orient="vertical" dir="reverse" 
+    <checkbox label="Below(unsupport yet)" orient="vertical" dir="reverse" id="zone4_4"
        oncommand="setText('label-text','A checkbox below the label');"/>
-    <checkbox 
+    <checkbox id="zone4_5"
        oncommand="setText('label-text','A checkbox with no label');" />
-    <checkbox
+    <checkbox id="zone4_6"
        oncommand="setText('label-text','Another checkbox with no label');" />
     <spacer flex="1" />
     <label  id="label-text" value="(no input)" />
@@ -107,22 +107,22 @@ function setText(textID,val)
   <caption label="images" />
   <vbox flex="1">
     <label  value="These have images." />
-    <checkbox label="Left"  
+    <checkbox label="Left" id="zone5_1"
               src="images/star.png" 
        oncommand="setText('image-text','A checkbox to the left of the label');" />
-    <checkbox label="Right" dir="reverse"  
+    <checkbox label="Right" dir="reverse"  id="zone5_2"
               src="images/star.png" 
        oncommand="setText('image-text','A checkbox to the right of the label');"/>
-    <checkbox label="Above" orient="vertical" dir="forward"  
+    <checkbox label="Above" orient="vertical" dir="forward" id="zone5_3"
               src="images/star.png" 
        oncommand="setText('image-text','A checkbox above the label');"/>
-    <checkbox label="Below" orient="vertical" dir="reverse" 
+    <checkbox label="Below" orient="vertical" dir="reverse" id="zone5_4"
               src="images/star.png" 
        oncommand="setText('image-text','A checkbox below the label');"/>
-    <checkbox 
+    <checkbox id="zone5_5"
               src="images/star.png" 
        oncommand="setText('image-text','A checkbox with no label');" />
-    <checkbox
+    <checkbox id="zone5_6"
               src="images/star.png" 
        oncommand="setText('image-text','Another checkbox with no label');" />
     <spacer flex="1" />
