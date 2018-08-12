@@ -1094,7 +1094,8 @@ void LongUI::CUIWindow::WakeUp() noexcept {
     // 1.5 检测DPI支持
     this->HiDpiSupport();
     // 2. 创建资源
-    this->recreate_window();
+    const auto hr = this->recreate_window();
+    assert(hr && "TODO: error handle");
 }
 
 /// <summary>
@@ -2218,7 +2219,11 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
         swapChainDesc.SampleDesc.Quality = 0;
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.BufferCount = 2;
+#ifdef LUI_RESIZE_IMMEDIATELY
+        swapChainDesc.Scaling = DXGI_SCALING_NONE;
+#else
         swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+#endif
         // TODO: 延迟等待
         swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
         swapChainDesc.Flags = 0;
@@ -2244,14 +2249,31 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
             swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
             swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
             // 利用窗口句柄创建交换链
-            hr = { UIManager.RefGraphicsFactory().CreateSwapChainForHwnd(
+            const auto temp = UIManager.RefGraphicsFactory().CreateSwapChainForHwnd(
                 &UIManager.Ref3DDevice(),
                 hwnd,
                 &swapChainDesc,
                 nullptr,
                 nullptr,
                 &sc
-            ) };
+            );
+            // 第一次尝试失败?
+#if defined(LUI_WIN10_ONLY) || !defined(LUI_RESIZE_IMMEDIATELY)
+            hr.code = temp;
+#else
+            // 第一次尝试失败? Win7的场合
+            if (FAILED(temp)) {
+                swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+                hr.code = UIManager.RefGraphicsFactory().CreateSwapChainForHwnd(
+                    &UIManager.Ref3DDevice(),
+                    hwnd,
+                    &swapChainDesc,
+                    nullptr,
+                    nullptr,
+                    &sc
+                );
+            }
+#endif
             longui_debug_hr(hr, L"GraphicsFactory.CreateSwapChainForHwnd faild");
         }
         // 设置 SWAP酱

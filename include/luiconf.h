@@ -4,7 +4,7 @@
 // **include this file in source-file at first**
 // 
 
-// resize immediately on drag-sizing, but maybe like "Jelly" on resizing if not a transparent window
+// resize immediately on drag-sizing, but maybe like "Jelly" if on win7
 #define LUI_RESIZE_IMMEDIATELY
 
 // style support, disable to make bin-file smaller, default look only
