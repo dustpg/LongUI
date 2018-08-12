@@ -63,6 +63,8 @@ namespace LongUI {
         //// recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // on index changed
+        void on_index_changed() noexcept;
         // selected index
         uint32_t            m_index = 0;
     private:

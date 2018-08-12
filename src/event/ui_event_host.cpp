@@ -48,10 +48,10 @@ namespace LongUI {
     static const uint32_t GUIEVENT_NAME_HASH[] = {
         0x0d8f8046_ui32,    // unknown
         0x0d3e3973_ui32,    // blur
-        0x72d7a914_ui32,    // change
+        0x0d707348_ui32,    // focus
         0xd861f07c_ui32,    // click
         0xc450725e_ui32,    // dblclick
-        0x0d707348_ui32,    // focus
+        0x72d7a914_ui32,    // change
         0xf7ea35ac_ui32,    // select
         0x777a465b_ui32,    // command
         0x41fab016_ui32,    // input

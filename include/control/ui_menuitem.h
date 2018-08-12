@@ -40,8 +40,21 @@ namespace LongUI {
         // ctor
         UIMenuItem(UIControl* parent, const MetaControl& ) noexcept;
     public:
-        // selected event
-        //static inline constexpr auto _selected() noexcept { return GuiEvent::Event_Select; }
+        // command: this item is selected
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+    public:
+        // set check (if in checkbox/radio mode)
+        void SetChecked(bool checked) noexcept;
+        // is checked?
+        auto IsChecked() const noexcept { return m_oStyle.state.checked; }
+        // get text
+        auto GetText() const noexcept->const char16_t*;
+        // get text object
+        auto GetTextString() const noexcept->const CUIString&;
+        // set text
+        void SetText(CUIString&&) noexcept;
+        // set text
+        void SetText(U16View) noexcept;
     public:
         // ICON WIDTH
         enum : uint32_t { ICON_WIDTH = 28 };
@@ -78,19 +91,6 @@ namespace LongUI {
         void do_checkbox() noexcept;
         // do radio
         void do_radio() noexcept;
-    public:
-        // set check
-        void SetChecked(bool checked) noexcept;
-        // is checked?
-        auto IsChecked() const noexcept { return m_oStyle.state.checked; }
-        // get text
-        auto GetText() const noexcept->const char16_t*;
-        // get text object
-        auto GetTextString() const noexcept->const CUIString&;
-        // set text
-        void SetText(CUIString&&) noexcept;
-        // set text
-        void SetText(U16View) noexcept;
     private:
         // private data
         Private*            m_private = nullptr;

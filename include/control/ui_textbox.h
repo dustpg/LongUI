@@ -120,6 +120,8 @@ namespace LongUI {
         void clear_change_could_trigger() noexcept;
         // is change event could be triggered?
         bool is_change_could_trigger() const noexcept;
+        // selection changed
+        void on_selected_changed() noexcept;
     public:
         // set text
         void SetText(CUIString&& text) noexcept;

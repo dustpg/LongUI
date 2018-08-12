@@ -292,10 +292,17 @@ void LongUI::UITextBox::private_update() noexcept {
     if (doc.IsSelectionChanged()) {
         doc.ClearSelectionChanged();
         m_private->selc_need_sync = true;
-#ifdef NDEBUG
-        this->TriggerEvent(_selectionChanged());
-#endif
+        this->on_selected_changed();
     }
+}
+
+/// <summary>
+/// Ons the selected changed.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::on_selected_changed() noexcept {
+    // TODO: _onSelect() ?
+    //this->TriggerEvent(_selectionChanged());
 }
 
 /// <summary>

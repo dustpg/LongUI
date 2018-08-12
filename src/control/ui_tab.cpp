@@ -417,9 +417,7 @@ void LongUI::UITabBox::SetSelectedIndex(uint32_t index) noexcept {
         // 触发事件
         if (now != m_index) {
             m_index = now;
-#ifdef NDEBUG
-            this->TriggerEvent(_selectedChanged());
-#endif
+            this->TriggerEvent(_onCommand());
         }
     }
 }

@@ -83,10 +83,16 @@ void LongUI::UIDeck::SetSelectedIndex(uint32_t index) noexcept {
         if (olditem) olditem->SetVisible(false);
         newitem->SetVisible(true);
         m_index = index;
-#ifdef NDEBUG
-        this->TriggerEvent(_selectedChanged());
-#endif
     }
+}
+
+/// <summary>
+/// Ons the index changed.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIDeck::on_index_changed() noexcept {
+    // TODO: index changed event;
+    //this->TriggerEvent(_selectedChanged());
 }
 
 // ----------------------------------------------------------------------------

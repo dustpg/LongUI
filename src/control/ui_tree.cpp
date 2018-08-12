@@ -559,14 +559,17 @@ void LongUI::UITreeRow::Update() noexcept {
 auto LongUI::UITreeRow::DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept {
     switch (e.nevent)
     {
-#ifdef NDEBUG
-    case NoticeEvent::Event_ImageChildClicked:
+    case NoticeEvent::Event_UIEvent:
         // 点击了 twisty?
         if (sender == &m_private->twisty) {
-            this->ToggleNode();
+            switch (static_cast<const EventGuiArg&>(e).GetEvent())
+            {
+            case UIControl::_onClick():
+                this->ToggleNode();
+                break;
+            }
         }
         return Event_Accept;
-#endif
     case NoticeEvent::Event_RefreshBoxMinSize:
         this->refresh_minsize();
         return Event_Accept;

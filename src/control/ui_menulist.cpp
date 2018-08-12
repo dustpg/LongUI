@@ -89,7 +89,7 @@ namespace LongUI {
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
         assert(marker.IsFocusable() == false);
-        label.SetText(u"Combo Box");
+        //label.SetText(u"Combo Box");
 #endif
     }
     
@@ -366,17 +366,13 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
     //    break;
     case LongUI::MouseEvent::Event_LButtonUp:
         // 复选框
-        if (m_type == UIMenuItem::Type_CheckBox) {
+        if (m_type == UIMenuItem::Type_CheckBox)
             this->do_checkbox();
-        }
         // 单选框
-        else if (m_type == UIMenuItem::Type_Radio) {
+        else if (m_type == UIMenuItem::Type_Radio)
             this->do_radio();
-        }
         // 事件
-#ifdef NDEBUG
-        this->TriggerEvent(_selected());
-#endif
+        this->TriggerEvent(this->_onCommand());
         m_pWindow->ClosePopupHighLevel();
     }
     return Super::DoMouseEvent(e);
@@ -509,18 +505,16 @@ auto LongUI::UIMenuList::DoEvent(UIControl * sender,
         //    int bk = 9;
         //}
         return Event_Accept;
-#ifdef NDEBUG
     case NoticeEvent::Event_UIEvent:
         // UI 传递事件
         switch (static_cast<const EventGuiArg&>(e).GetEvent())
         {
-        case UIMenuPopup::_selectedChanged():
+        case UIMenuPopup::_onCommand():
             assert(sender == m_pMenuPopup);
             this->on_selected_changed();
             return Event_Accept;
         }
         [[fallthrough]];
-#endif
     default:
         // 基类处理
         return Super::DoEvent(sender, e);
@@ -540,9 +534,7 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
     if (ctrl) this->SetText(ctrl->GetTextString());
     else this->SetText(CUIString{});
     // 触发事件
-#ifdef NDEBUG
-    this->TriggerEvent(_selectedChanged());
-#endif
+    this->TriggerEvent(this->_onCommand());
 }
 
 #ifdef LUI_ACCESSIBLE
@@ -619,7 +611,6 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
             PopupType::Type_Exclusive
         );
     }
-
     // 触发修改GUI事件
     //this->TriggerEvent(_clicked());
 #ifdef LUI_ACCESSIBLE
@@ -784,14 +775,13 @@ auto LongUI::UIMenuPopup::DoEvent(
         // 自己不处理自己的UIEvent 否则就stackoverflow了
         if (sender == this) return Event_Accept;
         // UI 传递事件
-#ifdef NDEBUG
         switch (static_cast<const EventGuiArg&>(arg).GetEvent())
         {
-        case GuiEvent::Event_Select:
+        case UIMenuItem::_onCommand():
+            assert(sender->GetParent() == this);
             this->select(sender);
             return Event_Accept;
         }
-#endif
         [[fallthrough]];
     }
     // 父类处理
@@ -944,10 +934,8 @@ void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
     m_pLastSelected = longui_cast<UIMenuItem*>(child);
     m_iSelected = child ? this->calculate_child_index(*child) : -1;
     // 事件触发
-#ifdef NDEBUG
-    this->TriggerEvent(_selectedChanged());
-    if (m_pHoster) m_pHoster->DoEvent(this, EventGuiArg{ _selectedChanged() });
-#endif
+    this->TriggerEvent(this->_onCommand());
+    if (m_pHoster) m_pHoster->DoEvent(this, EventGuiArg{ _onCommand() });
 }
 
 /// <summary>

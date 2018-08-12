@@ -21,7 +21,7 @@ function setText(textID,val)
 
   <groupbox flex="1">
     <caption label="states" />
-    <radiogroup flex="1">
+    <radiogroup flex="1" onselect="alert('A')">
        <label value="These show different states."/>
        <radio label="Selected" checked="true" id="zone1_1"
               oncommand="setText('state-text','Checked');" />

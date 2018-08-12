@@ -5,17 +5,36 @@
         xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<!-- <script>
+<script>
 <![CDATA[
 
+function set_text(text)
+{
+  var combobox = document.getElementById("combobox")
+  combobox.selectedIndex = 0
+}
 ]]>
-</script> -->
+</script>
 
 
 <popupset>
-  <popup id="contextpopup">
+  <menupopup id="contextpopup">
    <menuitem label="This is a context popup" />
-  </popup>
+  </menupopup>
+  
+  <menupopup id="contextcheckbox">
+   <menuitem label="This is a context popup" />
+   <menuitem label="Checkbox Here" type="checkbox" />
+   <menuitem label="checked" type="checkbox" checked="true" />
+  </menupopup>
+
+  <menupopup id="contextradiobox">
+   <menuitem label="This is a context popup" />
+   <menuitem label="RadioBox Here" type="radio" />
+   <menuitem label="checked" type="radio" checked="true" />
+   <menuitem label="Another group#1" type="radio" checked="true" name="group2" />
+   <menuitem label="Another group#2" type="radio" name="group2"/>
+  </menupopup>
 
   <popup id="popupmenu">
    <menuitem label="Pearl"   />
@@ -75,13 +94,12 @@
     <caption label="menulists" />
     <groupbox flex="1">
     <caption label="states" />
-    <menulist label="Selected">
+    <menulist label="Selected" id="combobox">
      <menupopup>
-      <menuitem label="Normal"/>
+      <menuitem label="Normal" oncommand="alert('V')" />
       <menuitem label="Selected" selected="true" />
       <menuitem label="Disabled" disabled="true" />
-      <menuitem label="Checkbox" type="checkbox" />
-      <menuitem label="Checked"  type="checkbox" checked="true" />
+      <menuitem label="NO Checkbox Here" type="checkbox" />
      </menupopup>
     </menulist>
     </groupbox>
@@ -116,13 +134,21 @@
 
    <groupbox orient="horizontal">
    <caption label="Regular Popups, Context Popups, and Tooltips" />
-     <button flex="1" label="Press Normal Button"  popup="popupmenu" />
-     <button flex="1" label="Press Context Button" context="contextpopup" />
+     <button flex="1" label="Press Normal Button"  popup="popupmenu"/>
+     <button flex="1" label="Press Context Button" context="contextpopup" oncommand="set_text('123')" />
      <button flex="1" label="Hover Mouse Here" 
                       tooltiptext="This is a tooltip" />
      <button flex="1" label="Three-in-one"  popup="popupmenu" 
                                             context="contextpopup" 
                                             tooltiptext="This is a tooltip" />
+   </groupbox>
+
+   <groupbox orient="horizontal">
+   <caption label="More popup" />
+     <button flex="1" label="Context Checkbox" context="contextcheckbox"/>
+     <button flex="1" label="tooltip Checkbox" tooltip="contextcheckbox"/>
+     <button flex="1" label="Context Radio"    context="contextradiobox"/>
+     <button flex="1" label="tooltip Radio" tooltip="contextradiobox"/>
    </groupbox>
 
 <groupbox>
