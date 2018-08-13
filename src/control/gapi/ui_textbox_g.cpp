@@ -60,7 +60,7 @@ namespace LongUI {
         bool                                text_need_sync = false;
         // selection cached synchronized
         bool                                selc_need_sync = false;
-        // created
+        // created flag
         bool                                created = false;
         // cached
         bool                                cached = false;
@@ -72,6 +72,7 @@ namespace LongUI {
     /// <returns></returns>
     UITextBox::Private::Private() noexcept {
         static_assert(alignof(Private) <= alignof(double), "must less than double");
+
     }
     /// <summary>
     /// Creates the cached bitmap.
@@ -109,7 +110,6 @@ namespace LongUI {
         created = true;
     }
 }
-
 
 
 /// <summary>
@@ -166,9 +166,14 @@ void LongUI::UITextBox::create_private() noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::init_private() noexcept {
     assert(m_private && "bad action");
+    // 延迟到init事件创建Doc对象
     m_private->create_doc(*this);
+    // 存在初始化字符的话进行文本初始化, 当然不必输出文本changed标志
     auto& cached = m_private->text_cached;
-    if (!cached.empty()) this->private_set_text();
+    if (!cached.empty()) {
+        this->private_set_text();
+        m_private->document().ClearTextChanged();
+    }
 }
 
 
@@ -225,6 +230,32 @@ void LongUI::UITextBox::private_mark_password() noexcept {
 }
 
 
+
+/// <summary>
+/// Marks the change could trigger.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::mark_change_could_trigger() noexcept {
+    m_flag |= TextBC::CBCTextDocument::Flag_Custom;
+}
+
+/// <summary>
+/// Clears the change could trigger.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::clear_change_could_trigger() noexcept {
+    m_flag &= ~TextBC::CBCTextDocument::Flag_Custom;
+}
+
+/// <summary>
+/// Determines whether [is change could trigger].
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
+    static_assert(TextBC::CBCTextDocument::Flag_Custom == 1, "must be 1");
+    return m_flag & TextBC::CBCTextDocument::Flag_Custom;
+}
+
 /// <summary>
 /// Determines whether [is valid password] [the specified ch].
 /// </summary>
@@ -250,18 +281,28 @@ void LongUI::UITextBox::ErrorBeep() noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::private_update() noexcept {
     auto& doc = m_private->document();
-    // 文本修改检查
+    // [用户输入接口文本]修改检查
     if (doc.IsTextChanged()) {
         doc.ClearTextChanged();
+        this->mark_change_could_trigger();
         m_private->text_need_sync = true;
-        this->TriggerEvent(_textChanged());
+        this->TriggerEvent(this->_onInput());
     }
     // 选区修改检查
     if (doc.IsSelectionChanged()) {
         doc.ClearSelectionChanged();
         m_private->selc_need_sync = true;
-        this->TriggerEvent(_selectionChanged());
+        this->on_selected_changed();
     }
+}
+
+/// <summary>
+/// Ons the selected changed.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::on_selected_changed() noexcept {
+    // TODO: _onSelect() ?
+    //this->TriggerEvent(_selectionChanged());
 }
 
 /// <summary>
@@ -389,7 +430,10 @@ void LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
         break;
     case CUIInputKM::KB_RETURN:
         // 回车返回键
-        doc.OnNewLine();
+        if (doc.OnNewLine()) {
+            // 单行模式尝试触发
+            this->try_trigger_change_event();
+        }
         break;
     case CUIInputKM::KB_A:
         // A 键
@@ -477,7 +521,7 @@ void LongUI::UITextBox::GenerateText(void* string, TextBC::U16View view) noexcep
 /// Requests the text.
 /// </summary>
 /// <returns></returns>
-const LongUI::CUIString& LongUI::UITextBox::RequestText() noexcept {
+auto LongUI::UITextBox::RequestText() noexcept -> const LongUI::CUIString& {
     auto& doc = m_private->document();
     auto& str = m_private->text_cached;
     auto& flag = m_private->text_need_sync;
@@ -560,20 +604,27 @@ auto LongUI::UITextBox::CreateContent(
     uint32_t len,
     Text&& old
 ) noexcept -> Text* {
-    const auto last_text = auto_cast(&old);
+    // 创建字体
+    I::Font* font_to_use = nullptr;
+    {
+        const auto last_text = auto_cast(&old);
+        if (last_text) font_to_use = I::FontFromText(last_text);
+        else UIManager.CreateCtlFont(m_tfBuffer.font, font_to_use, &m_tfBuffer.text);
+    }
+
     I::Text* text = nullptr;
     TextArg arg;
     static_assert(sizeof(*arg.string) == sizeof(char16_t), "unsupprted platform");
     // 参数调整
     arg.string = reinterpret_cast<decltype(arg.string)>(str);
     arg.length = len;
-    arg.font = I::FontFromText(last_text);
+    arg.font = font_to_use;
     arg.mwidth = DEFAULT_CONTROL_MAX_SIZE;
     arg.mheight = DEFAULT_CONTROL_MAX_SIZE;
     // TODO: 错误处理
     UIManager.CreateCtlText(arg, luiref text);
     // 释放旧数据
-    if (last_text) last_text->Release();
+    if (font_to_use) font_to_use->Release();
     return auto_cast(text);
 }
 
@@ -597,14 +648,12 @@ void LongUI::UITextBox::DeleteContent(Text& text) noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::DrawContent(Text& txt, void* ctx, TextBC::Point2F pos) noexcept {
     const auto ptr = auto_cast(&txt);
+    // 错误场合处理
+    if (!ptr) return;
     assert(ctx && "bad context");
     const auto renderer = static_cast<I::Renderer2D*>(ctx);
-    // 错误场合处理
-    if (ptr) {
-        const auto color = ColorF::FromRGBA_CT<RGBA_Black>();
-        auto& brush = UIManager.RefCCBrush(color);
-        renderer->DrawTextLayout({ pos.x, pos.y }, ptr, &brush);
-    }
+    auto& brush = UIManager.RefCCBrush(m_tfBuffer.text.color);
+    renderer->DrawTextLayout({ pos.x, pos.y }, ptr, &brush);
 }
 
 /// <summary>

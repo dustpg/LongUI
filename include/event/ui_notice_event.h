@@ -21,8 +21,6 @@ namespace LongUI {
         Event_PopupBegin,
         // popup hoster only
         Event_PopupEnd,
-        // image-child clicked 
-        Event_ImageChildClicked,
         // splitter drag
         Event_Splitter,
         // implicit radio group member checked

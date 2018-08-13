@@ -4,6 +4,8 @@ CUIWaiter单独测试?
 
 Node 继承 偏移量调整
 
+超过大部分(比如90%)渲染面积应该全渲染
+
 Event_Initialize 时构造对象?
 
 窗口生命周期控制?Xxx::ControlAttached 目前无用
@@ -23,6 +25,8 @@ bug.dmp
 在UPDATE中强制退出造成的影响?
 
 Timer
+
+LUI_NO_SCRIPT
 
 缓存字体TextFormat? 修改text-align就要创建一个新的字体.
 

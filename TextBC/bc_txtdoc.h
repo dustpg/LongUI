@@ -51,20 +51,26 @@ namespace TextBC {
         enum Flag : uint16_t {
             // none flag
             Flag_None = 0,
+            // custom flag
+            Flag_Custom = 1 << 0,
             // None CR-LF mode(LF Mode)
-            Flag_NoneCRLR = 1 << 0,
+            Flag_NoneCRLR = 1 << 1,
             // [unsupported] alllow dragging 
-            Flag_AllowDrag = 1 << 1,
+            Flag_AllowDrag = 1 << 2,
             // [unsupported] rich text
-            Flag_RichText = 1 << 2,
+            Flag_RichText = 1 << 3,
             // read only
-            Flag_ReadOnly = 1 << 3,
+            Flag_ReadOnly = 1 << 4,
             // multi line
-            Flag_MultiLine = 1 << 4,
+            Flag_MultiLine = 1 << 5,
             // password mode
-            Flag_UsePassword = 1 << 5,
+            Flag_UsePassword = 1 << 6,
             // [unsupported] auto scroll if caret move out
-            Flag_AutoScroll = 1 << 6,
+            Flag_AutoScroll = 1 << 7,
+
+
+            // newline return true if ctrl enter even multi line mode
+            Flag_TrueIfCtrlEnterEvenMultiLine = 1 << 15,
         };
     protected:
         // find func return value

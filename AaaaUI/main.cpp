@@ -1,4 +1,10 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿/*
+    THIS SOURCE FILE FOR TESTING
+*/
+
+
+
+#define _CRT_SECURE_NO_WARNINGS
 #define CASE_NUM (16)
 
 #include <core/ui_string.h>
@@ -506,7 +512,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
 
         button2->SetText(u"取消");
         radio2->SetText(u"单选按钮2");
-        button->AddGuiEventListener(button->_clicked(), [=](LongUI::UIControl& ctrl) mutable {
+        button->AddGuiEventListener(button->_onCommand(), [=](LongUI::UIControl& ctrl) mutable {
             if (radio) {
                 radio->SetParent(nullptr);
                 radio->DeleteLater();
@@ -516,7 +522,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         });
 
         const auto viewptr = &viewport;
-        button2->AddGuiEventListener(button2->_clicked(), [=](LongUI::UIControl& ctrl) mutable {
+        button2->AddGuiEventListener(button2->_onCommand(), [=](LongUI::UIControl& ctrl) mutable {
             const auto parent = &viewptr->RefWindow();
             //const auto child = new(std::nothrow) LongUI::UIViewport{
             //    parent, LongUI::CUIWindow::Config_Popup
@@ -549,11 +555,11 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
                 const auto ptr1 = longui_cast<LongUI::UIButton*>(button1);
                 const auto ptr2 = longui_cast<LongUI::UIButton*>(button2);
                 const auto meter = longui_cast<LongUI::UIProgress*>(pmeter);
-                ptr1->AddGuiEventListener(ptr1->_clicked(), [=](LongUI::UIControl& ctrl) noexcept {
+                ptr1->AddGuiEventListener(ptr1->_onCommand(), [=](LongUI::UIControl& ctrl) noexcept {
                     meter->SetValue(meter->GetValue() + 10.f);
                     return LongUI::Event_Accept;
                 });
-                ptr2->AddGuiEventListener(ptr2->_clicked(), [=](LongUI::UIControl& ctrl) noexcept {
+                ptr2->AddGuiEventListener(ptr2->_onCommand(), [=](LongUI::UIControl& ctrl) noexcept {
                     ptr2->SetText(u"++++");
                     meter->SetValue(meter->GetValue() - 10.f);
                     return LongUI::Event_Accept;
@@ -601,7 +607,7 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
         loadfile("../doc/test-xul/css-test.xul");
         viewport.GetWindow()->ResizeAbsolute({ 800, 600 });
         do_button(viewport.GetWindow(), "btn1")->AddGuiEventListener(
-            LongUI::UIButton::_clicked(), [](LongUI::UIControl& control) noexcept {
+            LongUI::UIButton::_onCommand(), [](LongUI::UIControl& control) noexcept {
             const auto window = control.GetWindow();
             //if (const auto img1 = window->FindControl("img1")) {
             //    img1->DeleteLater();

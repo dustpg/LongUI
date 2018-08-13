@@ -60,6 +60,17 @@ namespace LongUI {
         // show the error string
         void OnError(ErrorInfo info) noexcept override;
     public:
+        // run a section script for event
+        bool Evaluation(ScriptUI, UIControl&) noexcept override;
+        // alloc the script memory and copy into(may be compiled into byte code)
+        auto AllocScript(U8View) noexcept->ScriptUI override;
+        // free the script memory
+        void FreeScript(ScriptUI) noexcept override;
+        // eval script for window init
+        void Evaluation(U8View, CUIWindow&) noexcept override;
+        // finalize window script if has script
+        void FinalizeScript(CUIWindow&) noexcept override;
+    public:
         // alloc for normal space
         void*NormalAlloc(size_t length) noexcept override;
         // free for normal space

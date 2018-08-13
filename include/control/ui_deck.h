@@ -38,7 +38,7 @@ namespace LongUI {
         UIDeck(UIControl* parent, const MetaControl&) noexcept;
     public:
         // selected changed
-        static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
+        //static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
     public:
         // class meta
         static const  MetaControl   s_meta;
@@ -63,6 +63,8 @@ namespace LongUI {
         //// recreate/init device(gpu) resource
         //auto Recreate() noexcept->Result override;
     protected:
+        // on index changed
+        void on_index_changed() noexcept;
         // selected index
         uint32_t            m_index = 0;
     private:

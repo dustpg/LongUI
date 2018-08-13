@@ -57,10 +57,12 @@ namespace LongUI {
         // ctor
         UIButton(UIControl* parent, const MetaControl&) noexcept;
     public:
+        // on commnad event
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
         // clicked event
-        static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
+        //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
         // checked change event
-        static inline constexpr auto _checkedChanged() noexcept { return GuiEvent::Event_Change; }
+        //static inline constexpr auto _checkedChanged() noexcept { return GuiEvent::Event_Change; }
     public:
         // click this
         void Click() noexcept;
@@ -88,12 +90,12 @@ namespace LongUI {
         // input event
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
     protected:
-        // add private child
-        void add_private_child() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // set label flex
         void set_label_flex(float f) noexcept;
+        // add private child
+        void add_private_child() noexcept;
 #ifdef LUI_ACCESSIBLE
     protected:
         // accessible event

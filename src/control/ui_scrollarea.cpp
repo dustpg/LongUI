@@ -99,7 +99,7 @@ auto LongUI::UIScrollArea::DoEvent(
             this->NeedUpdate();
             this->Invalidate();
             return Event_Accept;
-        case GuiEvent::Event_Change:
+        case GuiEvent::Event_OnChange:
             if (sender == m_pHorizontalSB) {
                 m_ptChildOffset.x = m_pHorizontalSB->GetValue();
                 goto return_changed;

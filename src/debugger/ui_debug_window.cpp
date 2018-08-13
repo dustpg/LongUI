@@ -60,7 +60,7 @@ namespace LongUI {
         // force render
         void force_render() noexcept {
             do_button("btn-force")->AddGuiEventListener(
-                UIButton::_clicked(), [](UIControl& control) noexcept {
+                UIButton::_onCommand(), [](UIControl& control) noexcept {
                 const auto& o = UIManager.GetWindowList();
                 using List = POD::Vector<CUIWindow*>;
                 auto& list = reinterpret_cast<const List&>(o);
@@ -71,7 +71,7 @@ namespace LongUI {
         // exit
         void exit() noexcept {
             do_button("btn-exit")->AddGuiEventListener(
-                UIButton::_clicked(), [](UIControl& control) noexcept {
+                UIButton::_onCommand(), [](UIControl& control) noexcept {
                 UIManager.Exit();
                 return Event_Accept;
             });
@@ -79,7 +79,7 @@ namespace LongUI {
         // recreate_device
         void recreate() noexcept {
             do_button("btn-recreate")->AddGuiEventListener(
-                UIButton::_clicked(), [](UIControl& control) noexcept {
+                UIButton::_onCommand(), [](UIControl& control) noexcept {
                 UIManager.NeedRecreate();
                 return Event_Accept;
             });
@@ -90,7 +90,7 @@ namespace LongUI {
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & IUIConfigure::Flag_DbgDrawDirtyRect));
             checkbox->AddGuiEventListener(
-                checkbox->_stateChanged(), [&flag](UIControl& control) noexcept {
+                checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
                 const auto box = longui_cast<UICheckBox*>(&control);
                 auto& mflag = const_cast<CUIManager::ConfigFlag&>(flag);
                 if (box->GetChecked()) mflag = mflag | IUIConfigure::Flag_DbgDrawDirtyRect;
@@ -104,7 +104,7 @@ namespace LongUI {
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & IUIConfigure::Flag_DbgDrawTextCell));
             checkbox->AddGuiEventListener(
-                checkbox->_stateChanged(), [&flag](UIControl& control) noexcept {
+                checkbox->_onCommand(), [&flag](UIControl& control) noexcept {
                 const auto box = longui_cast<UICheckBox*>(&control);
                 auto& mflag = const_cast<CUIManager::ConfigFlag&>(flag);
                 if (box->GetChecked()) mflag = mflag | IUIConfigure::Flag_DbgDrawTextCell;
@@ -117,6 +117,7 @@ namespace LongUI {
             const auto checkbox = do_checkbox("cbx-style");
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!(flag & IUIConfigure::Flag_DbgNoLinkStyle));
+#ifdef NDEBUG
             checkbox->AddGuiEventListener(
                 checkbox->_stateChanged(), [&flag](UIControl& control) noexcept {
                 const auto box = longui_cast<UICheckBox*>(&control);
@@ -125,6 +126,7 @@ namespace LongUI {
                 else mflag = mflag & CUIManager::ConfigFlag(~IUIConfigure::Flag_DbgNoLinkStyle);
                 return Event_Accept;
             });
+#endif
         }
     };
 }

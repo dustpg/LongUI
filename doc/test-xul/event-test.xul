@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<window title="XUL Test"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<script>
+<![CDATA[
+
+function setText(textBoxID)
+{
+  var result = document.getElementById(textBoxID).value;
+  document.getElementById("display").value = result;
+}
+
+function setText2(textBoxID)
+{
+  var result = document.getElementById(textBoxID).label;
+  document.getElementById("display").value = result;
+}
+
+function setText3(result)
+{
+  document.getElementById("display").value = result;
+}
+
+]]>
+</script>
+<vbox>
+  <label id="display" />
+  <image src="images/25.png" ondblclick="alert('Hi')"/>
+  <textbox onchange="setText('tb0')" id="tb0"/>
+  <textbox onfocus="setText('tb1')" id="tb1"/>
+  <button value="789" onblur="setText('btn1')" id="btn1" label="WSWE"/>
+  <button label="state" oncommand="document.getElementById('checkbox').state = 1"/>
+  <checkbox value="789" onchange="setText2('checkbox')" id="checkbox" label="checkbox label" checked="true"/>
+  <radiogroup>
+    <radio id="orange" label="Red" onchange="setText2('orange')"/>
+    <radio id="violet" label="Green" selected="true" onchange="setText2('violet')"/>
+    <radio id="yellow" label="Blue"/>
+  </radiogroup>
+  <scale id="scale" onchange="setText('scale')"/>
+  <button label="check state" checkState="2" type="checkbox"/>
+</vbox>
+</window>

@@ -272,6 +272,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
     //    return Event_Accept;
     case NoticeEvent::Event_DoAccessAction:
         // 访问行为
+        this->SetAsDefaultAndFocus();
         this->Click();
         break;
     case NoticeEvent::Event_PopupBegin:
@@ -296,8 +297,9 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
             return Event_Ignore;
         // 是CHECKBOX类型?
         this->StartAnimation({ StyleStateType::Type_Checked, false });
+        // 取消不触发command事件
         // 触发修改GUI事件
-        this->TriggerEvent(_checkedChanged());
+        //this->TriggerEvent(_checkedChanged());
 #ifdef LUI_ACCESSIBLE
         // TODO: ACCESSIBLE
 #endif
@@ -330,7 +332,7 @@ void LongUI::UIButton::Click() noexcept {
     {
     case UIButton::Type_Normal:
         // 普通按钮: 触发修改GUI事件
-        this->TriggerEvent(_clicked());
+        this->TriggerEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         LongUI::Accessible(m_pAccessible, LongUI::Callback_Invoked);
 #endif
@@ -339,7 +341,7 @@ void LongUI::UIButton::Click() noexcept {
         // 是CHECKBOX类型?
         this->StartAnimation({ StyleStateType::Type_Checked, !this->IsChecked() });
         // 触发修改GUI事件
-        this->TriggerEvent(_checkedChanged());
+        this->TriggerEvent(this->_onCommand());
 #ifdef LUI_ACCESSIBLE
         // TODO: ACCESSIBLE
 #endif
@@ -348,7 +350,7 @@ void LongUI::UIButton::Click() noexcept {
         // 是RADIO类型?
         if (!this->IsChecked()) {
             this->StartAnimation({ StyleStateType::Type_Checked, true });
-            this->TriggerEvent(_checkedChanged());
+            this->TriggerEvent(_onCommand());
             LongUI::DoImplicitGroupGuiArg(*this, m_pGroup);
 #ifdef LUI_ACCESSIBLE
             // TODO: ACCESSIBLE

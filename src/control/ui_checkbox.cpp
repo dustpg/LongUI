@@ -32,8 +32,8 @@ namespace LongUI {
     /// </summary>
     /// <param name="btn">The BTN.</param>
     /// <returns></returns>
-    UICheckBox::Private::Private(UICheckBox& btn) noexcept
-        : image(&btn), label(&btn) {
+    UICheckBox::Private::Private(UICheckBox& box) noexcept
+        : image(&box), label(&box) {
         //UIControlPrivate::SetFocusable(image, false);
         //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
@@ -41,8 +41,10 @@ namespace LongUI {
         label.name_dbg = "checkbox::label";
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
-        label.SetText(u"复选框");
+        //label.SetText(u"复选框");
 #endif
+        // 设置连接控件
+        label.SetControl(box);
     }
 }
 
@@ -59,6 +61,22 @@ void LongUI::UICheckBox::SetIndeterminate() noexcept {
         this->change_indeterminate(true);
         this->changed();
     }
+}
+
+/// <summary>
+/// Sets the image source.
+/// </summary>
+/// <param name="src">The source.</param>
+/// <returns></returns>
+void LongUI::UICheckBox::SetImageSource(U8View src) noexcept {
+    assert(m_private && "bad action");
+    if (!m_pImageChild) {
+        const auto img = new(std::nothrow) UIImage{ this };
+        if (!img) return;
+        Super::SwapChildren(*img, m_private->label);
+        m_pImageChild = img;
+    }
+    m_pImageChild->SetSource(src);
 }
 
 PCN_NOINLINE
@@ -104,7 +122,7 @@ void LongUI::UICheckBox::change_indeterminate(bool ndeterminate) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UICheckBox::changed() noexcept {
-    this->TriggerEvent(_stateChanged());
+    this->TriggerEvent(this->_onCommand());
     // TODO: ACCESSIBLE
 #ifndef LUI_ACCESSIBLE
 
@@ -158,13 +176,23 @@ LongUI::UICheckBox::~UICheckBox() noexcept {
 /// <returns></returns>
 void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增属性列表
-    constexpr auto BKDR_VALUE = 0x246df521_ui32;
+    constexpr auto BKDR_SRC         = 0x001E57C4_ui32;
+    constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
     // 分类讨论
     switch (key)
     {
     case "label"_bkdr:
         // 传递给子控件
         UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        break;
+    case BKDR_ACCESSKEY:
+        // 传递给子控件
+        UIControlPrivate::AddAttribute(m_private->label, key, value);
+        break;
+    case BKDR_SRC:
+        // src: 使用图片
+        this->SetImageSource(value);
         break;
     default:
         // 其他情况, 交给基类处理
@@ -185,6 +213,7 @@ auto LongUI::UICheckBox::DoEvent(
     {
     case NoticeEvent::Event_DoAccessAction:
         // 默认行动
+        this->SetAsDefaultAndFocus();
         this->Toggle();
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
@@ -203,8 +232,22 @@ auto LongUI::UICheckBox::DoEvent(
 /// <returns></returns>
 void LongUI::UICheckBox::init_checkbox() noexcept {
     if (!m_private) return;
-    constexpr auto iapp = Appearance_CheckBox;
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->image, iapp);
+    if (m_oStyle.appearance == Appearance_NotSet) {
+        UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
+        UIControlPrivate::SetAppearance(m_private->image, Appearance_CheckBox);
+    }
+    // 在attr中设置了checked状态?
+    if (m_oStyle.state.checked) {
+        UIControlPrivate::RefStyleState(m_private->image).checked = true;
+    }
+    // 在attr中设置了indeterminate状态?
+    if (m_oStyle.state.indeterminate) {
+        UIControlPrivate::RefStyleState(m_private->image).indeterminate = true;
+    }
+    // 同步image-disable状态
+    if (m_oStyle.state.disabled) {
+        UIControlPrivate::RefStyleState(m_private->image).disabled = true;
+    }
 }
 
 

@@ -39,8 +39,10 @@ namespace LongUI {
         // menu list
         void init_menulist();
     public:
-        // selected changed
-        static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
+        // command selected changed
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+        // select: item selected
+        //static constexpr auto _onSelect() noexcept { return GuiEvent::Event_OnSelect; }
     protected:
         // ctor
         UIMenuList(UIControl* parent, const MetaControl&) noexcept;
@@ -51,9 +53,6 @@ namespace LongUI {
         ~UIMenuList() noexcept;
         // ctor
         UIMenuList(UIControl* parent = nullptr) noexcept : UIMenuList(parent, UIMenuList::s_meta) {}
-    public:
-        // clicked event
-        //static inline constexpr auto _clicked() noexcept { return GuiEvent::Event_Click; }
     public:
         // get popup pointer
         auto GetPopupObj() const noexcept { return m_pMenuPopup; }
@@ -69,8 +68,10 @@ namespace LongUI {
         void SetText(CUIString&& text) noexcept;
         // set text
         void SetText(U16View text) noexcept;
-        // get selection index
-        auto GetSelectionIndex() const noexcept { return m_iSelected; }
+        // set selected index
+        //void SetSelectedIndex(long) noexcept;
+        // get selected index
+        long GetSelectedIndex() const noexcept { return m_iSelected; }
     public:
         // update
         //void Update() noexcept override;
@@ -96,7 +97,7 @@ namespace LongUI {
         // private data
         Private*                m_private = nullptr;
         // selected index
-        int                     m_iSelected = -1;
+        long                    m_iSelected = -1;
     };
     // get meta info for UIMenuList
     LUI_DECLARE_METAINFO(UIMenuList);

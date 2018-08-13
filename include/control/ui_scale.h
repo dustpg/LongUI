@@ -49,7 +49,7 @@ namespace LongUI {
         UIScale(UIControl* parent = nullptr) noexcept:UIScale(parent, UIScale::s_meta) {}
     public:
         // value changed event
-        static inline constexpr auto _changed() noexcept { return GuiEvent::Event_Change; }
+        static constexpr auto _onChange() noexcept { return GuiEvent::Event_OnChange; }
     public:
         // recreate_device
         //auto Recreate() noexcept->Result override;

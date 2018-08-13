@@ -32,10 +32,10 @@ namespace LongUI {
     /// <summary>
     /// button privates data/method
     /// </summary>
-    /// <param name="btn">The BTN.</param>
+    /// <param name="radio">The radio.</param>
     /// <returns></returns>
-    UIRadio::Private::Private(UIRadio& btn) noexcept
-        : image(&btn), label(&btn) {
+    UIRadio::Private::Private(UIRadio& radio) noexcept
+        : image(&radio), label(&radio) {
         //UIControlPrivate::SetFocusable(image, false);
         //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
@@ -43,8 +43,10 @@ namespace LongUI {
         label.name_dbg = "radio::label";
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
-        label.SetText(u"单选框");
+        //label.SetText(u"单选框");
 #endif
+        // 设置连接控件
+        label.SetControl(radio);
     }
 }
 
@@ -109,8 +111,16 @@ void LongUI::UIRadio::Update() noexcept {
 auto LongUI::UIRadio::DoEvent(
     UIControl * sender, const EventArg & arg) noexcept -> EventAccept {
     // 初始化
-    if (arg.nevent == NoticeEvent::Event_Initialize) {
+    switch (arg.nevent)
+    {
+    case NoticeEvent::Event_Initialize:
         this->init_radio();
+        break;
+    case NoticeEvent::Event_DoAccessAction:
+        // 默认行动
+        this->SetAsDefaultAndFocus();
+        this->SetChecked(true);
+        return Event_Accept;
     }
     return Super::DoEvent(sender, arg);
 }
@@ -121,8 +131,21 @@ auto LongUI::UIRadio::DoEvent(
 /// <returns></returns>
 void LongUI::UIRadio::init_radio() noexcept {
     if (!m_private) return;
-    constexpr auto iapp = Appearance_Radio;
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->image, iapp);
+    if (m_oStyle.appearance == Appearance_NotSet) {
+        UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
+        UIControlPrivate::SetAppearance(m_private->image, Appearance_Radio);
+    }
+    // 在attr中设置了checked状态?
+    if (m_oStyle.state.checked) {
+        UIControlPrivate::RefStyleState(m_private->image).checked = true;
+        if (const auto group = uisafe_cast<UIRadioGroup>(m_pParent)) {
+            group->SetChecked(*this);
+        }
+    }
+    // 同步image-disable状态
+    if (m_oStyle.state.disabled) {
+        UIControlPrivate::RefStyleState(m_private->image).disabled = true;
+    }
 }
 
 
@@ -146,11 +169,51 @@ auto LongUI::UIRadio::DoMouseEvent(const MouseEventArg & e) noexcept -> EventAcc
 
 
 /// <summary>
+/// Adds the attribute.
+/// </summary>
+/// <param name="key">The key.</param>
+/// <param name="value">The value.</param>
+/// <returns></returns>
+void LongUI::UIRadio::add_attribute(uint32_t key, U8View value) noexcept {
+    // 新增属性列表
+    constexpr auto BKDR_SRC         = 0x001E57C4_ui32;
+    constexpr auto BKDR_LABEL       = 0x74e22f74_ui32;
+    constexpr auto BKDR_VALUE       = 0x246df521_ui32;
+    constexpr auto BKDR_CHECKED     = 0x091a155f_ui32;
+    constexpr auto BKDR_SELECTED    = 0x03481b1f_ui32;
+    constexpr auto BKDR_ACCESSKEY   = 0xba56ab7b_ui32;
+    switch (key)
+    {
+    case BKDR_SRC:
+        // src: 使用图片
+        this->SetImageSource(value);
+        break;
+    case BKDR_LABEL:
+        // 传递给子控件
+        UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        break;
+    case BKDR_ACCESSKEY:
+        // 传递给子控件
+        UIControlPrivate::AddAttribute(m_private->label, key, value);
+        break;
+    case BKDR_SELECTED:
+        // selected:  兼容checked
+        Super::add_attribute(BKDR_CHECKED, value);
+        break;
+    default:
+        // 交个父类处理
+        return Super::add_attribute(key, value);
+    }
+}
+
+/// <summary>
 /// Sets the seleced.
 /// </summary>
 /// <param name="checked">if set to <c>true</c> [checked].</param>
-void LongUI::UIRadio::SetChecked(bool checked) {
+void LongUI::UIRadio::SetChecked(bool checked) noexcept {
     assert(m_private && "BUG");
+    // 禁用状态
+    if (this->IsDisabled()) return;
     if (this->GetStyle().state.checked == checked) return;
     // 修改状态
     const auto statetp = StyleStateType::Type_Checked;
@@ -158,8 +221,26 @@ void LongUI::UIRadio::SetChecked(bool checked) {
     m_private->image.StartAnimation({ statetp , checked });
     // 检查回馈
     if (checked && m_pRadioGroup) {
+        this->TriggerEvent(this->_onCommand());
         m_pRadioGroup->SetChecked(*this);
     }
+}
+
+
+/// <summary>
+/// Sets the image source.
+/// </summary>
+/// <param name="src">The source.</param>
+/// <returns></returns>
+void LongUI::UIRadio::SetImageSource(U8View src) noexcept {
+    assert(m_private && "bad action");
+    if (!m_pImageChild) {
+        const auto img = new(std::nothrow) UIImage{ this };
+        if (!img) return;
+        Super::SwapChildren(*img, m_private->label);
+        m_pImageChild = img;
+    }
+    m_pImageChild->SetSource(src);
 }
 
 /// <summary>
@@ -233,7 +314,7 @@ void LongUI::UIRadioGroup::Update() noexcept {
         // 没有找到
         m_pChecked = nullptr;
         // 修改事件?
-        this->TriggerEvent(_changed());
+        this->TriggerEvent(_onCommand());
     };
     // 子节点修改过?
     if (m_state.child_i_changed) {
@@ -266,5 +347,5 @@ void LongUI::UIRadioGroup::set_checked(UIRadio * radio) noexcept {
     // 设置当前的状态
     if ((m_pChecked = radio)) m_pChecked->SetChecked(true);
     // 修改事件
-    this->TriggerEvent(_changed());
+    this->TriggerEvent(this->_onCommand());
 }

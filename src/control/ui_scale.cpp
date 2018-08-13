@@ -126,7 +126,7 @@ void LongUI::UIScale::SetValue(float value) noexcept {
     // 修改数据
     m_fValue = newv;
     // 触发修改GUI事件
-    this->TriggerEvent(_changed());
+    this->TriggerEvent(this->_onChange());
     // 脏了
     m_state.dirty = true;
     // 需要渲染

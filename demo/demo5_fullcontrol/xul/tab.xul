@@ -7,16 +7,32 @@
 
 <vbox flex="1" style="overflow: auto">
 
+<script>
+<![CDATA[
+function ShowTheObject(obj){
+  var des = "";
+  for(var name in obj) {
+    des += name + ":" + obj[name] + ";\n";
+  }
+  document.getElementById('display').value = des;
+  //alert(des);
+}
+]]>
+
+</script>
+
+
 <groupbox flex="1">
-  <tabbox flex="1">
+  <!-- <textbox multiline="true"  rows="7" cols="20" id="display"/> -->
+  <tabbox flex="1" oncommand="ShowTheObject(event.currentTarget)">
     <tabs>
        <tab label="Default"     />
        <tab label="Tab"         />
        <tab label="Orientation" />
     </tabs>
-    <tabpanels flex="1" >
-       <label value="Default" />    
-       <label value="Tab " />        
+    <tabpanels flex="1" value='0'>
+       <label value="Default"/>    
+       <label value="Tab "/>        
        <label value="Orientation" />
     </tabpanels>
   </tabbox>

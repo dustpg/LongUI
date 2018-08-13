@@ -37,6 +37,14 @@ namespace LongUI {
     class UITabBox : public UIControl {
         // super class
         using Super = UIControl;
+    public:
+        // command: selected changed
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+    public:
+        // set selected index
+        void SetSelectedIndex(uint32_t index) noexcept;
+        // get selected index
+        auto GetSelectedIndex() const noexcept { return m_index; }
     protected:
         // ctor
         UITabBox(UIControl* parent, const MetaControl&) noexcept;
@@ -47,14 +55,7 @@ namespace LongUI {
         ~UITabBox() noexcept;
         // ctor
         UITabBox(UIControl* parent = nullptr) noexcept : UITabBox(parent, UITabBox::s_meta) {}
-    public:
-        // selected changed
-        static inline constexpr auto _selectedChanged() noexcept { return GuiEvent::Event_Change; }
-    public:
-        // set selected index
-        void SetSelectedIndex(uint32_t index) noexcept;
-        // get selected index
-        auto GetSelectedIndex() const noexcept { return m_index; }
+
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

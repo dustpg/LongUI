@@ -228,6 +228,8 @@ namespace LongUI {
         bool IsTopLevel() const noexcept { return !m_parent; }
         // is inline window
         bool IsInlineWindow() const noexcept { return false; }
+        // mark: has script
+        void MarkHasScript() noexcept { m_bHasScript = true; }
     protected:
         // recursive set result
         void recursive_set_result(uintptr_t result) noexcept;
@@ -264,6 +266,8 @@ namespace LongUI {
         CUIAccessibleWnd*   m_pAccessible = nullptr;
 #endif
     public:
+        // custom script data
+        void*               custom_script_data = nullptr;
         // config
         WindowConfig  const config;
     protected:
@@ -271,6 +275,8 @@ namespace LongUI {
         bool                m_inDtor : 1;
         // in exec
         bool                m_bInExec : 1;
+        // has script
+        bool                m_bHasScript : 1;
         // ctor failed
         bool                m_bCtorFaild : 1;
         // state: under "minsize changed" list

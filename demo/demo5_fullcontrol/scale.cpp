@@ -13,7 +13,7 @@ void InitViewport_Scale(LongUI::UIViewport& viewport) noexcept {
     const auto display = longui_cast<UILabel*>(window.FindControl("display"));
     const auto progress = longui_cast<UIScale*>(window.FindControl("slider"));
     progress->AddGuiEventListener(
-        UIScale::_changed(), [=](UIControl& ctrl) noexcept {
+        UIScale::_onChange(), [=](UIControl& ctrl) noexcept {
         const auto value = progress->GetValue();
         CUIString text;
         text.format(u"%f", value);
@@ -21,5 +21,5 @@ void InitViewport_Scale(LongUI::UIViewport& viewport) noexcept {
         return Event_Accept;
     });
     // force trigger
-    //progress->TriggerEvent(UIScale::_changed());
+    //progress->TriggerEvent(UIScale::_onChange());
 }

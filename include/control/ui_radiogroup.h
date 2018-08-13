@@ -36,6 +36,18 @@ namespace LongUI {
         using Super = UIBoxLayout;
         // private impl
         struct Private;
+    public:
+        // command selected changed
+        static constexpr auto _onCommand() noexcept { return GuiEvent::Event_OnCommand; }
+        // select: item selected
+        //static constexpr auto _onSelect() noexcept { return GuiEvent::Event_OnSelect; }
+    public:
+        // get checked radio
+        auto GetChecked() const noexcept { return m_pChecked; }
+        // set checked radio
+        void SetChecked(UIRadio& radio) noexcept { this->set_checked(&radio); }
+        // set checked radio to null
+        void SetChecked(std::nullptr_t) noexcept { this->set_checked(nullptr); }
     protected:
         // ctor
         UIRadioGroup(UIControl* parent, const MetaControl&) noexcept;
@@ -52,16 +64,6 @@ namespace LongUI {
         //auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         //// do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-    public:
-        // checked changed
-        static inline constexpr auto _changed() noexcept { return GuiEvent::Event_Change; }
-    public:
-        // get checked radio
-        auto GetChecked() const noexcept { return m_pChecked; }
-        // set checked radio
-        void SetChecked(UIRadio& radio) noexcept { this->set_checked(&radio); }
-        // set checked radio to null
-        void SetChecked(std::nullptr_t) noexcept { this->set_checked(nullptr); }
     private:
         // set checked radio
         void set_checked(UIRadio* radio) noexcept;

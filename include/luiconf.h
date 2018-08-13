@@ -16,6 +16,9 @@
 // no accessible? make bin-file smaller
 //#define LUI_NO_ACCESSIBLE
 
+// no script support
+//#define LUI_NO_SCRIPT
+
 // longui implement a non-pod vector, define this if you want to use
 //#define LUI_NONPOD_VECTOR
 

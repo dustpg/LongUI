@@ -1286,6 +1286,8 @@ namespace LongUI {
     namespace impl {
         // create control
         UIControl* create_control(const char*a, const char*b, UIControl*p) noexcept;
+        // eval script for window
+        void eval_script_for_window(U8View, CUIWindow*) noexcept;
     }
     /// <summary>
     /// xml stream 
@@ -1306,19 +1308,23 @@ namespace LongUI {
     private:
         // stack base
         UIControl&                  m_root;
+#ifndef LUI_NO_SCRIPT
+        // script ok
+        bool                        m_script = false;
+#endif
     private:
         // add Processing Instruction
         void add_processing(const PIs& attr) noexcept override;
         // begin element
         void begin_element(const StrPair tag) noexcept override;
         // end element
-        void end_element(const StrPair tag) noexcept override {}
+        void end_element(const StrPair tag) noexcept override;
         // add attribute
         void add_attribute(const ATTRs& attr) noexcept override;
         // add comment
         void add_comment(const StrPair) noexcept override {}
         // add text
-        void add_text(const StrPair) noexcept override {}
+        void add_text(const StrPair) noexcept override;
     };
     /// <summary>
     /// Adds the processing.
@@ -1360,7 +1366,9 @@ namespace LongUI {
         // script节点
         else if (view == "script"_pair) {
             // 检查脚本支持
-
+#ifndef LUI_NO_SCRIPT
+            m_script = true;
+#endif
         }
         // 其他节点
         else {
@@ -1385,6 +1393,27 @@ namespace LongUI {
         }
     }
     /// <summary>
+    /// Ends the element.
+    /// </summary>
+    /// <param name="tag">The tag.</param>
+    /// <returns></returns>
+    void CUIControlControl::CUIXulStream::end_element(const StrPair tag) noexcept {
+#ifndef LUI_NO_SCRIPT
+        m_script = false;
+#endif
+    }
+    /// <summary>
+    /// Adds the text.
+    /// </summary>
+    /// <param name="pair">The pair.</param>
+    /// <returns></returns>
+    void CUIControlControl::CUIXulStream::add_text(const StrPair pair) noexcept {
+#ifndef LUI_NO_SCRIPT
+        if (m_script)
+            impl::eval_script_for_window({ pair.begin(), pair.end() }, m_root.GetWindow());
+#endif
+    }
+    /// <summary>
     /// Adds the attribute.
     /// </summary>
     /// <param name="attr">The attribute.</param>
@@ -1394,7 +1423,17 @@ namespace LongUI {
         const auto ctrl = static_cast<UIControl*>(top.user_ptr);
         // 检查有效性
         if (ctrl) {
-            // 计算键HSH
+            // 以on开头?
+            if (attr.key.b > attr.key.a + 2) {
+                const auto ch1 = attr.key.a[0];
+                const auto ch2 = attr.key.a[1];
+                if (ch1 == 'o' && ch2 == 'n') {
+                    const auto id = CUIEventHost::StrToId({ attr.key.a, attr.key.b });
+                    ctrl->SetScript(id, { attr.value.a, attr.value.b });
+                    return;
+                }
+            }
+            // 计算键HASH
             const auto key = LongUI::BKDRHash(attr.key.a, attr.key.b);
             // 添加属性
             ctrl->add_attribute(key, { attr.value.a, attr.value.b });

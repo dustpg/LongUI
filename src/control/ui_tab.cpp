@@ -389,6 +389,8 @@ auto LongUI::UITabs::accessible(const AccessibleEventArg& args) noexcept -> Even
 LongUI::UITabBox::~UITabBox() noexcept {
 }
 
+
+
 /// <summary>
 /// Initializes a new instance of the <see cref="UITabBox"/> class.
 /// </summary>
@@ -415,7 +417,7 @@ void LongUI::UITabBox::SetSelectedIndex(uint32_t index) noexcept {
         // 触发事件
         if (now != m_index) {
             m_index = now;
-            this->TriggerEvent(_selectedChanged());
+            this->TriggerEvent(_onCommand());
         }
     }
 }

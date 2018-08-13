@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="demo5.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="checkbox.cpp" />
+    <ClCompile Include="demo5_main.cpp" />
+    <ClCompile Include="demo5_init.cpp" />
+    <ClCompile Include="radio.cpp" />
     <ClCompile Include="scale.cpp" />
     <ClCompile Include="textbox.cpp" />
   </ItemGroup>

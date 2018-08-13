@@ -64,6 +64,7 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
     case LongUI::Appearance_MenuSeparator:
     case LongUI::Appearance_MenuArrow:
     case LongUI::Appearance_Separator:
+    case LongUI::Appearance_CheckBoxContainer:
         return 0;
     case LongUI::Appearance_Tab:
         return BASIC_ANIMATION_DURATION * 2;

@@ -88,6 +88,56 @@ void LongUI::CUIDefaultConfigure::RegisterControl(ControlInfoList& list) noexcep
 }
 
 
+/// <summary>
+/// Evaluations the specified script.
+/// </summary>
+/// <param name="script">The script.</param>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+bool LongUI::CUIDefaultConfigure::Evaluation(ScriptUI script, UIControl& ctrl) noexcept {
+    assert(!"BAD CALL");
+    return false;
+}
+
+/// <summary>
+/// Allocs the script.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <returns></returns>
+auto LongUI::CUIDefaultConfigure::AllocScript(U8View view) noexcept -> ScriptUI {
+    return {};
+}
+
+/// <summary>
+/// Frees the script.
+/// </summary>
+/// <param name="script">The script.</param>
+/// <returns></returns>
+void LongUI::CUIDefaultConfigure::FreeScript(ScriptUI script) noexcept {
+    assert(script.script == nullptr);
+}
+
+/// <summary>
+/// Evaluations the specified view.
+/// </summary>
+/// <param name="view">The view.</param>
+/// <param name="window">The window.</param>
+/// <returns></returns>
+void LongUI::CUIDefaultConfigure::Evaluation(U8View view, CUIWindow& window) noexcept {
+    assert(view.size());
+}
+
+
+
+/// <summary>
+/// Finalizes the script.
+/// </summary>
+/// <param name="window">The window.</param>
+/// <returns></returns>
+void LongUI::CUIDefaultConfigure::FinalizeScript(CUIWindow& window) noexcept {
+    assert(&window == &window);
+}
+
 
 // ui namespace
 namespace LongUI { enum { DEBUG_SMALL = 32 }; }
