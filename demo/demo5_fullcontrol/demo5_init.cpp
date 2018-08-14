@@ -36,6 +36,10 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_scrolling);
     const auto btn_popup = window.FindControl("popup");
     assert(btn_popup);
+    const auto btn_button = window.FindControl("button");
+    assert(btn_button);
+    const auto btn_stack = window.FindControl("stack");
+    assert(btn_stack);
     
     CUIWindow* const parent = nullptr;
     // NORMAL
@@ -108,6 +112,18 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     btn_popup->AddGuiEventListener(
         UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/popup.xul"_sv, {});
+        return Event_Accept;
+    });
+    // BUTTON
+    btn_button->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/button.xul"_sv, {});
+        return Event_Accept;
+    });
+    // STACK
+    btn_stack->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/stack.xul"_sv, {});
         return Event_Accept;
     });
 }

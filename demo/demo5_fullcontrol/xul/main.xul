@@ -20,5 +20,9 @@
     <button flex="1" label="scrolling" id="scrolling" disabled="true"/>
     <button flex="1" label="_popup_" id="popup"/>
   </hbox>
+  <hbox>
+    <button flex="1" label="button_" id="button"/>
+    <button flex="1" label="stack" id="stack"/>
+  </hbox>
   <spacer flex="1"/>
 </window>

@@ -188,9 +188,6 @@
     <ClCompile Include="..\src\container\ui_string_view.cpp">
       <Filter>source\container</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\debugger\ui_loginfo.cpp">
-      <Filter>source\debugger</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\debugger\ui_tracer.cpp">
       <Filter>source\debugger</Filter>
     </ClCompile>
@@ -579,9 +576,6 @@
     <ClInclude Include="..\include\container\pod_vector.h">
       <Filter>header\container</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\interface\ui_interface.h">
-      <Filter>header\interface</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\thread\ui_fiber.h">
       <Filter>header\thread</Filter>
     </ClInclude>
@@ -602,9 +596,6 @@
     </ClInclude>
     <ClInclude Include="..\include\util\ui_unicode.h">
       <Filter>header\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\debugger\ui_loginfo.h">
-      <Filter>header\debugger</Filter>
     </ClInclude>
     <ClInclude Include="..\include\debugger\ui_tracer.h">
       <Filter>header\debugger</Filter>

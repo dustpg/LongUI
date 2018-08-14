@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<window title="XUL Stacks and Decks"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+   
+<script>
+<![CDATA[
+
+function setDeck(index)
+{
+    document.getElementById("my-deck").setAttribute("selectedIndex",index);
+}
+
+]]>
+</script>
+
+<vbox flex="1" style="overflow: auto">
+
+<hbox>
+<groupbox > 
+<caption label="stack" />
+  <stack >
+     <image id="the-image1"      src="images/red-star.png"  />
+     <image src="images/green-star.png" style="width: 40px; height: 40px;"  />
+     <label value="Stars" style="font-weight:bold" top="80px" />
+     <button image="images/yellow-star.png"  left="60px" top="60"
+             style="height: 30px; width:25px; background-color: #663333;"/>
+  </stack>
+</groupbox>
+
+<groupbox > 
+<caption label="deck" />
+  <deck id="my-deck" onchange="alert('a')">
+     <image id="the-image2"      src="images/red-star.png"  />
+     <image id="blindchick-image" src="images/green-star.png"        />
+     <label value="Stars" style="font-weight:bold" top="80px" />
+     <button image="images/yellow-star.png"  left="60px" top="60"
+             style="height: 30px; width:25px; background-color: #663333;"/>
+  </deck>
+    <radiogroup flex="1" orient="horizontal" >
+      <radio label="0" oncommand="setDeck('0');" /> 
+      <radio label="1" oncommand="setDeck('1');" /> 
+      <radio label="2" oncommand="setDeck('2');" /> 
+      <radio label="3" oncommand="setDeck('3');" /> 
+    </radiogroup>
+</groupbox>
+
+</hbox>
+</vbox>
+</window>

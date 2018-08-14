@@ -24,7 +24,6 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <guiddef.h>
 #include "../util/ui_unimacro.h"
 #include "../core/ui_basic_type.h"
 #include "../core/ui_core_type.h"

@@ -1,7 +1,10 @@
 ﻿#pragma once
 
-#include "ui_interface.h"
+//#include "ui_interface.h"
+#include "../util/ui_unimacro.h"
+#include "../core/ui_basic_type.h"
 #include "../core/ui_core_type.h"
+#include <cstdint>
 
 // ui namespace
 namespace LongUI {

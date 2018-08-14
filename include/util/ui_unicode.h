@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include <cstdint>
-#include <core/ui_string_view.h>
 
 namespace LongUI {
     /// <summary>

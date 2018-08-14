@@ -217,7 +217,6 @@
     <ClCompile Include="..\src\core\ui_window_manager.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp" />
-    <ClCompile Include="..\src\debugger\ui_loginfo.cpp" />
     <ClCompile Include="..\src\debugger\ui_tracer.cpp" />
     <ClCompile Include="..\src\effect\ui_effect_borderimage.cpp" />
     <ClCompile Include="..\src\effect\ui_shader_borderimage.cpp" />
@@ -384,7 +383,6 @@
     <ClInclude Include="..\include\core\ui_window_event.h" />
     <ClInclude Include="..\include\core\ui_window_manager.h" />
     <ClInclude Include="..\include\debugger\ui_debug.h" />
-    <ClInclude Include="..\include\debugger\ui_loginfo.h" />
     <ClInclude Include="..\include\debugger\ui_tracer.h" />
     <ClInclude Include="..\include\effect\ui_effect_borderimage.h" />
     <ClInclude Include="..\include\event\ui_group_event.h" />
@@ -416,7 +414,6 @@
     <ClInclude Include="..\include\interface\ui_ctrlinfolist.h" />
     <ClInclude Include="..\include\interface\ui_default_config.h" />
     <ClInclude Include="..\include\interface\ui_iconfig.h" />
-    <ClInclude Include="..\include\interface\ui_interface.h" />
     <ClInclude Include="..\include\luiconf.h" />
     <ClInclude Include="..\include\resource\ui_image.h" />
     <ClInclude Include="..\include\resource\ui_resource.h" />

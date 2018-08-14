@@ -32,18 +32,18 @@ namespace LongUI {
     /// <summary>
     /// CUIStringExs 
     /// </summary>
-    struct CUIStringList final : NonPOD::Vector<CUIStringEx> {
-        // super class
-        using Super = NonPOD::Vector<CUIStringEx>;
-        // def ctor
-        CUIStringList() noexcept {}
-        // copy ctor
-        CUIStringList(const CUIStringList& s) noexcept : Super(s) {}
-        // copy ctor v2
-        CUIStringList(const Super& s) noexcept : Super(s) {}
-        // move ctor
-        CUIStringList(CUIStringList&& s) noexcept : Super(std::move(s)) {}
-        // move ctor v2
-        CUIStringList(Super&& s) noexcept : Super(std::move(s)) {}
-    };
+    //struct CUIStringList final : NonPOD::Vector<CUIStringEx> {
+    //    // super class
+    //    using Super = NonPOD::Vector<CUIStringEx>;
+    //    // def ctor
+    //    CUIStringList() noexcept {}
+    //    // copy ctor
+    //    CUIStringList(const CUIStringList& s) noexcept : Super(s) {}
+    //    // copy ctor v2
+    //    CUIStringList(const Super& s) noexcept : Super(s) {}
+    //    // move ctor
+    //    CUIStringList(CUIStringList&& s) noexcept : Super(std::move(s)) {}
+    //    // move ctor v2
+    //    CUIStringList(Super&& s) noexcept : Super(std::move(s)) {}
+    //};
 }
