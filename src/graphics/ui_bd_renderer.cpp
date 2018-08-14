@@ -76,6 +76,7 @@ void LongUI::CUIRendererBorder::SetImageId(uint32_t id) noexcept {
     m_idImage = id;
     // XXX: 错误处理
     const auto code = this->refresh_image();
+    assert(code && "TODO: ERROR HANDLE");
 }
 
 /// <summary>
@@ -290,31 +291,40 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
         border_rect.bottom - border_rect.top
     };
     auto& renderer = UIManager.Ref2DRenderer();
-    // 更新cbuffer
-    Effect::CBufferBorderImage cbuffer;
-    cbuffer.border_ratio.left = box.border.left / size.width;
-    cbuffer.border_ratio.top = box.border.top / size.height;
-    cbuffer.border_ratio.right = 1.f - box.border.right / size.width;
-    cbuffer.border_ratio.bottom = 1.f - box.border.bottom / size.height;
+    // 优化: 修改时再计算
 
-    cbuffer.slice_ratio = m_rcRealSlice;
-    cbuffer.repeat = { 1.f, 1.f, 0.f, 0.f };
-    this->calculate_repeat(luiref cbuffer.repeat, box, size);
-    cbuffer.size = size;
-    cbuffer.center_alpha = m_bSliceFill ? 1.f : 0.f;
-    cbuffer.unused = 0.f;
-    m_pBorder->SetValue(0, cbuffer);
-    /*
-        ---------------------------------------
-        | TL         | T            | TR      |
-        ---------------------------------------
-        |            |              |         |
-        | L          | C            | R       |
-        |            |              |         |
-        ---------------------------------------
-        | BL         | B            | BR      |
-        ---------------------------------------
-    */
+    // 更新cbuffer
+    Effect::BorderImageMatrix matrix;
+    // 目标:
+    matrix.zone0.left = box.border.left;
+    matrix.zone0.top = box.border.top;
+    matrix.zone1.left = size.width - box.border.left - box.border.right;
+    matrix.zone1.top = size.height - box.border.top - box.border.bottom;
+    matrix.zone2.left = box.border.right;
+    matrix.zone2.top = box.border.bottom;
+    matrix.zone3.left = size.width;
+    matrix.zone3.top = size.width;
+    // TODO: 支持图片中一小部分
+    // 源:
+    matrix.zone0.right = 0.f;
+    matrix.zone0.bottom = 0.f;
+    matrix.zone1.right = m_rcRealSlice.left;
+    matrix.zone1.bottom = m_rcRealSlice.top;
+    matrix.zone2.right = 1.f - m_rcRealSlice.right;
+    matrix.zone2.bottom = 1.f - m_rcRealSlice.bottom;
+    matrix.zone3.right = 1.f;
+    matrix.zone3.bottom = 1.f;
+    // 重复
+    matrix.repeat = { 1.f, 1.f, 1.f, 1.f };
+    this->calculate_repeat(luiref matrix.repeat, box, size);
+    m_pBorder->SetValue(Effect::BImage_Matrix, matrix);
+    // FILL
+    const uint32_t draw_count = m_bSliceFill
+        ? Effect::VERTEX_FULLCOUNT 
+        : Effect::VERTEX_NOFILLCOUNT
+        ;
+    m_pBorder->SetValue(Effect::BImage_Draw, draw_count);
+
     // 正式渲染
     Point2F offset = { border_rect.left, border_rect.top };
     renderer.DrawImage(&auto_cast(*m_pOutput), &auto_cast(offset));

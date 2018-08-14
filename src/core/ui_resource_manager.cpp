@@ -1354,6 +1354,9 @@ void LongUI::CUIResMgr::release_device() noexcept {
 #ifndef NDEBUG
     const auto d3d = m_p3DDevice;
 #endif
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+     Effect::ReleaseBorderImage();
+#endif
     //if (m_p3DRenderer) {
     //    m_p3DRenderer->ClearState();
     //    m_p3DRenderer->Flush();

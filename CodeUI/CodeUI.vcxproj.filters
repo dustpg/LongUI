@@ -1091,7 +1091,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\helper\BorderImageEffect.hlsl">
+    <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">
+      <Filter>shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\helper\BorderImageEffectVS.hlsl">
       <Filter>shader</Filter>
     </FxCompile>
   </ItemGroup>
