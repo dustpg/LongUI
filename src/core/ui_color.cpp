@@ -27,20 +27,20 @@ PCN_NOINLINE
 void LongUI::ColorF::FromRGBA_RT(ColorF& color, RGBA color32) noexcept {
 #ifdef UI_NO_SSE2
     // 位移量
-    constexpr RGBA RED_SHIFT = CHAR_BIT * helper::color_order::r;
-    constexpr RGBA GREEN_SHIFT = CHAR_BIT * helper::color_order::g;
-    constexpr RGBA BLUE_SHIFT = CHAR_BIT * helper::color_order::b;
-    constexpr RGBA ALPHA_SHIFT = CHAR_BIT * helper::color_order::a;
+    constexpr RGBA::type   RED_SHIFT = CHAR_BIT * helper::color_order::r;
+    constexpr RGBA::type GREEN_SHIFT = CHAR_BIT * helper::color_order::g;
+    constexpr RGBA::type  BLUE_SHIFT = CHAR_BIT * helper::color_order::b;
+    constexpr RGBA::type ALPHA_SHIFT = CHAR_BIT * helper::color_order::a;
     // 掩码
-    constexpr RGBA RED_MASK = 0xFFU << RED_SHIFT;
-    constexpr RGBA GREEN_MASK = 0xFFU << GREEN_SHIFT;
-    constexpr RGBA BLUE_MASK = 0xFFU << BLUE_SHIFT;
-    constexpr RGBA ALPHA_MASK = 0xFFU << ALPHA_SHIFT;
+    constexpr RGBA::type   RED_MASK = 0xFFU << RED_SHIFT;
+    constexpr RGBA::type GREEN_MASK = 0xFFU << GREEN_SHIFT;
+    constexpr RGBA::type  BLUE_MASK = 0xFFU << BLUE_SHIFT;
+    constexpr RGBA::type ALPHA_MASK = 0xFFU << ALPHA_SHIFT;
     // 计算
-    color.r = static_cast<float>((color32.pri & RED_MASK) >> RED_SHIFT) / 255.f;
-    color.g = static_cast<float>((color32.pri & GREEN_MASK) >> GREEN_SHIFT) / 255.f;
-    color.b = static_cast<float>((color32.pri & BLUE_MASK) >> BLUE_SHIFT) / 255.f;
-    color.a = static_cast<float>((color32.pri & ALPHA_MASK) >> ALPHA_SHIFT) / 255.f;
+    color.r = static_cast<float>((color32.primitive & RED_MASK) >> RED_SHIFT) / 255.f;
+    color.g = static_cast<float>((color32.primitive & GREEN_MASK) >> GREEN_SHIFT) / 255.f;
+    color.b = static_cast<float>((color32.primitive & BLUE_MASK) >> BLUE_SHIFT) / 255.f;
+    color.a = static_cast<float>((color32.primitive & ALPHA_MASK) >> ALPHA_SHIFT) / 255.f;
 #else
     constexpr float f256_255 = 256.0f / 255.0f;
     constexpr int32_t magic32 = 0x47004700;

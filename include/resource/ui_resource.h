@@ -1,5 +1,5 @@
 ﻿#pragma once
-#pragma interface
+//#pragma interface
 
 // ui
 #include "../core/ui_object.h"

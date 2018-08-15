@@ -34,7 +34,7 @@ namespace LongUI {
             | (is_pdp_endian::value << 2)
         >;
         // ascii offset
-        template<size_t SIZE> struct ascii_offset;
+        template<unsigned SIZE> struct ascii_offset;
         // ascii offset for 1
         template<> struct ascii_offset<1> { enum { value = color_order::a % 1 }; };
         // ascii offset for 2

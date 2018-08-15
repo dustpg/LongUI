@@ -37,4 +37,15 @@ namespace LongUI {
     using wcharxx_t = typename Unicode::WChar::same_t;
     // not wchar_t
     using unwchar_t = typename Unicode::WChar::unsame_t;
+    // detail namespace
+    namespace detail {
+        // utf16 to system char type
+        inline auto sys(const wcharxx_t* str) noexcept {
+            return reinterpret_cast<const wchar_t*>(str);
+        }
+        // utf16 to system char type
+        inline auto sys(const wchar_t* str) noexcept {
+            return reinterpret_cast<const wcharxx_t*>(str);
+        }
+    }
 }

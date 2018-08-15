@@ -1,4 +1,4 @@
-﻿#include "xul/SimpAC.h"
+﻿#include <xul/SimpAC.h>
 #include <cassert>
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 

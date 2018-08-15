@@ -1,4 +1,4 @@
-#include <container/nonpod_vector.h>
+ï»¿#include <container/nonpod_vector.h>
 #include <core/ui_malloc.h>
 
 #include <cstdlib>
@@ -60,7 +60,7 @@ inline char* detail::vector_base::realloc(char* p, size_t l) noexcept {
 /// <param name="l">The l.</param>
 /// <returns></returns>
 inline char* detail::vector_base::try_realloc(char* p, size_t l) noexcept {
-    // TODO: ÊµÏÖtry_realloc
+    // TODO: å®ç°try_realloc
     return reinterpret_cast<char*>(LongUI::NormalAlloc(l)); p;
 }
 
@@ -84,11 +84,11 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 void detail::vector_base::free_data() noexcept {
-    // ÓĞĞ§Êı¾İ
+    // æœ‰æ•ˆæ•°æ®
     if (m_pData) {
-        // ÊÍ·Å¶ÔÏó
+        // é‡Šæ”¾å¯¹è±¡
         this->release_objs(m_pData, m_uVecLen);
-        // ÊÍ·ÅÄÚ´æ
+        // é‡Šæ”¾å†…å­˜
         this->free(m_pData);
     }
 }
@@ -123,18 +123,18 @@ m_pVTable(x.m_pVTable),
 m_uByteLen(x.m_uByteLen),
 m_uAligned(x.m_uAligned)
 {
-    // Ã»ÓĞ¶ÔÏóÎŞĞè¸´ÖÆ
+    // æ²¡æœ‰å¯¹è±¡æ— éœ€å¤åˆ¶
     if (!x.m_uVecLen) return;
-    // ¸´ÖÆ¶ÔÏó
+    // å¤åˆ¶å¯¹è±¡
     const auto alllen = x.m_uByteLen * x.m_uVecCap;
     if (const auto ptr = this->malloc(alllen)) {
-        // ¶ÔÆë¼ì²é
+        // å¯¹é½æ£€æŸ¥
         this->check_aligned(ptr);
-        // Ğ´ÈëÊı¾İ
+        // å†™å…¥æ•°æ®
         m_pData = ptr;
         m_uVecCap = x.m_uVecCap;
         m_uVecLen = x.m_uVecLen;
-        // ¸´ÖÆ¶ÔÏó
+        // å¤åˆ¶å¯¹è±¡
         this->copy_objects(m_pData, x.m_pData, x.m_uVecLen);
     }
 }
@@ -149,19 +149,19 @@ PCN_NOINLINE
 void detail::vector_base::op_equal(const vector_base& x) noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
     assert(m_uByteLen == x.m_uByteLen && "m_uByteLen must be same");
-    // ³¤¶È¹»ÓÃ?
+    // é•¿åº¦å¤Ÿç”¨?
     if (capacity() >= x.size()) {
-        // ÊÍ·Å¶ÔÏó
+        // é‡Šæ”¾å¯¹è±¡
         this->release_objs(m_pData, m_uVecLen);
-        // ¸´ÖÆ¶ÔÏó
+        // å¤åˆ¶å¯¹è±¡
         this->copy_objects(m_pData, x.m_pData, x.m_uVecLen);
-        // ĞŞ¸Ä³¤¶È
+        // ä¿®æ”¹é•¿åº¦
         m_uVecLen = x.size();
         assert(!"NOT IMPL");
     }
-    // ÖØĞÂ¹¹Ôì
+    // é‡æ–°æ„é€ 
     else {
-        // ÊÍ·Å
+        // é‡Šæ”¾
         this->free_data();
         ctor_dtor<vector_base>::create(this, x);
     }
@@ -214,25 +214,25 @@ void detail::vector_base::push_back_help(char* obj, void* func) noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
     assert(m_uByteLen && "m_uByteLen cannot be 0");
     assert(m_uVecLen <= m_uVecCap && "bad case");
-    // ÖØĞÂÉêÇë¿Õ¼ä
+    // é‡æ–°ç”³è¯·ç©ºé—´
     if (m_uVecLen == m_uVecCap) {
-        // ·ÖÅä²ßÂÔ: Ã¿´Î¼ÓÒ»°ë
+        // åˆ†é…ç­–ç•¥: æ¯æ¬¡åŠ ä¸€åŠ
         const uint32_t newlen = m_uVecLen + m_uVecLen / 2;
-        // ·ÖÅä²ßÂÔ: 4Æğ²½
+        // åˆ†é…ç­–ç•¥: 4èµ·æ­¥
         this->reserve(std::max(newlen, static_cast<uint32_t>(4)));
         //this->reserve(newlen);
         if (!is_ok()) return;
     }
-    // ¸´ÖÆ/ÒÆ¶¯¶ÔÏó
+    // å¤åˆ¶/ç§»åŠ¨å¯¹è±¡
     const auto ptr = m_pData + m_uVecLen * m_uByteLen;
-    // ÍòÄÜ×ª»»
+    // ä¸‡èƒ½è½¬æ¢
     union { 
         void* func_ptr; 
         void(*call)(char*, char*) noexcept;
         void(*call0)(char*) noexcept;
     };
     func_ptr = func;
-    // µ÷ÓÃ¶ÔÓ¦¹¹Ôìº¯Êı
+    // è°ƒç”¨å¯¹åº”æ„é€ å‡½æ•°
     obj ? call(ptr, obj) : call0(ptr);
     // +1s
     m_uVecLen++;
@@ -245,7 +245,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void detail::vector_base::pop_back() noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
-    // Ã»ÓĞ¶«Î÷?!
+    // æ²¡æœ‰ä¸œè¥¿?!
     assert(m_uVecLen && "no objects");
     const auto len = --m_uVecLen;
     const auto ptr = m_pData + len * m_uByteLen;
@@ -261,33 +261,33 @@ PCN_NOINLINE
 /// <returns></returns>
 void detail::vector_base::reserve(uint32_t cap) noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
-    // À©Èİ: ²»×ã¾ÍÖØĞÂÉêÇë
+    // æ‰©å®¹: ä¸è¶³å°±é‡æ–°ç”³è¯·
     if (cap <= m_uVecCap) return;
-    // Ê¹ÓÃreallocÀ©Èİ
+    // ä½¿ç”¨reallocæ‰©å®¹
     const auto old = m_pData;
     const auto len = m_uVecLen;
     const auto alllen = cap * m_uByteLen;
     const auto ptr = this->try_realloc(old, alllen);
-    // ¶ÔÆë¼ì²é
+    // å¯¹é½æ£€æŸ¥
     this->check_aligned(ptr);
-    // ÉêÇëÊ§°Ü ÊÍ·ÅÀÏÊı¾İ
+    // ç”³è¯·å¤±è´¥ é‡Šæ”¾è€æ•°æ®
     if (!ptr) {
         m_pData = 0;
         m_uVecLen = 0;
         m_uVecCap = 0;
         goto release_old_data;
     }
-    // ÉêÇë³É¹¦
+    // ç”³è¯·æˆåŠŸ
     m_uVecCap = cap;
-    // ²»Í¬µØÖ·ĞèÒªÒÆ¶¯¶ÔÏó
+    // ä¸åŒåœ°å€éœ€è¦ç§»åŠ¨å¯¹è±¡
     if (ptr != old) {
-        // ÒÆ¶¯Ô­À´¶ÔÏóµ½ÏÖÔÚÕâÀï
+        // ç§»åŠ¨åŸæ¥å¯¹è±¡åˆ°ç°åœ¨è¿™é‡Œ
         this->move_objects((m_pData = ptr), old, len);
-        // ÊÍ·Å¾ÉÊı¾İ
+        // é‡Šæ”¾æ—§æ•°æ®
     release_old_data:
-        // ÊÍ·ÅÀÏ¶ÔÏó
+        // é‡Šæ”¾è€å¯¹è±¡
         this->release_objs(old, len);
-        // ÊÍ·ÅÄÚ´æ
+        // é‡Šæ”¾å†…å­˜
         this->free(old);
     }
 }
@@ -302,9 +302,9 @@ PCN_NOINLINE
 /// <param name="bytelen">The bytelen.</param>
 /// <returns></returns>
 void detail::vector_base::do_objects(char* obj, void* func, uint32_t count, uint32_t bytelen) noexcept {
-    // ÍòÄÜ×ª»»
+    // ä¸‡èƒ½è½¬æ¢
     union { void* ptr; void(*call)(char*) noexcept; }; ptr = func;
-    // Ã¿¸ö¶ÔÏó
+    // æ¯ä¸ªå¯¹è±¡
     for (decltype(m_uVecLen) i = 0; i != count; ++i) {
         call(obj + bytelen * i);
     }
@@ -324,9 +324,9 @@ PCN_NOINLINE
 void detail::vector_base::do_objobj(
     char * obj, const char* obj2, void * func, 
     uint32_t count, uint32_t bytelen) noexcept {
-    // ÍòÄÜ×ª»»
+    // ä¸‡èƒ½è½¬æ¢
     union { void* ptr; void(*call)(char*, const char*) noexcept; }; ptr = func;
-    // Ã¿¸ö¶ÔÏó
+    // æ¯ä¸ªå¯¹è±¡
     for (decltype(m_uVecLen) i = 0; i != count; ++i) {
         call(obj + bytelen * i, obj2 + bytelen * i);
     }
@@ -387,9 +387,9 @@ PCN_NOINLINE
 /// <returns></returns>
 void detail::vector_base::shrink_to_fit() noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
-    // ÊÍ·Å¶àÓàÄÚ´æ
+    // é‡Šæ”¾å¤šä½™å†…å­˜
     if (m_uVecCap > m_uVecLen) {
-        // ÊÕËõÄÚ´æ²»´æÔÚÊ§°Ü?
+        // æ”¶ç¼©å†…å­˜ä¸å­˜åœ¨å¤±è´¥?
         const auto len = m_uVecLen * m_uByteLen;
         const auto ptr = this->realloc(m_pData, len);
         assert(ptr == m_pData);
@@ -406,24 +406,24 @@ PCN_NOINLINE
 void detail::vector_base::erase(uint32_t pos, uint32_t len) noexcept {
     assert(m_uByteLen && "m_uByteLen cannot be 0");
     assert(pos < m_uVecLen && (pos + len) <= m_uVecLen && "out of range");
-    // Î»ÖÃ²»ÔÚ·şÎñÇø
+    // ä½ç½®ä¸åœ¨æœåŠ¡åŒº
     if (pos >= m_uVecLen) return;
-    // ¼ÆËã·şÎñ·¶Î§
+    // è®¡ç®—æœåŠ¡èŒƒå›´
     const auto end_pos = std::min(pos + len, m_uVecLen);
     const auto reallen = end_pos - pos;
     const auto start = m_pData + pos * m_uByteLen;
-    // ÊÍ·Å¶ÔÏó
+    // é‡Šæ”¾å¯¹è±¡
     this->release_objs(start, reallen);
-    // É¾³ıÖĞ¼äµÄ?
+    // åˆ é™¤ä¸­é—´çš„?
     if (end_pos != m_uVecLen) {
         const auto move_from = start + reallen * m_uByteLen;
         const auto move_count = m_uVecLen - end_pos;
-        // ½«ºóÃæµÄÒÆ¶¯¹ıÀ´
+        // å°†åé¢çš„ç§»åŠ¨è¿‡æ¥
         this->move_objects(start, move_from, move_count);
-        // É¾³ıºóÃæµÄ
+        // åˆ é™¤åé¢çš„
         this->release_objs(move_from, move_count);
     }
-    // µ÷Õû³¤¶È
+    // è°ƒæ•´é•¿åº¦
     m_uVecLen -= reallen;
 }
 
@@ -455,20 +455,20 @@ PCN_NOINLINE
 /// <returns></returns>
 void detail::vector_base::resize(uint32_t len) noexcept {
     const auto this_len = m_uVecLen;
-    // À©´ó
+    // æ‰©å¤§
     if (len > this_len) {
-        // ±£Ö¤¿Õ¼ä
+        // ä¿è¯ç©ºé—´
         this->reserve(len);
-        // ÄÚ´æ²»×ã
+        // å†…å­˜ä¸è¶³
         if (!this->is_ok()) return;
-        // ´´½¨¶ÔÏó
+        // åˆ›å»ºå¯¹è±¡
         this->create_objs(m_pData + m_uByteLen * this_len, len - this_len);
     }
-    // ËõĞ¡
+    // ç¼©å°
     else {
         this->release_objs(m_pData + len * m_uByteLen, this_len - len);
     }
-    // ĞŞ¸Ä³¤¶È
+    // ä¿®æ”¹é•¿åº¦
     m_uVecLen = len;
 }
 
@@ -479,11 +479,11 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 void detail::vector_base::clear() noexcept {
-    // ÓĞĞ§Êı¾İ
+    // æœ‰æ•ˆæ•°æ®
     if (m_pData) {
-        // ÊÍ·Å¶ÔÏó
+        // é‡Šæ”¾å¯¹è±¡
         this->release_objs(m_pData, m_uVecLen);
-        // Çå0
+        // æ¸…0
         m_uVecLen = 0;
     }
 }
@@ -497,13 +497,13 @@ PCN_NOINLINE
 /// <param name="len">The length.</param>
 /// <returns></returns>
 void detail::vector_base::assign_range(const char* data, uint32_t len) noexcept {
-    // Çå¿Õ
+    // æ¸…ç©º
     this->clear();
-    // ¼ì²é³¤¶È
+    // æ£€æŸ¥é•¿åº¦
     this->reserve(len);
-    // ÓĞĞ§
+    // æœ‰æ•ˆ
     if (this->is_ok()) {
-        // ¸´ÖÆ¶ÔÏó
+        // å¤åˆ¶å¯¹è±¡
         this->copy_objects(m_pData, data, len);
     }
 }
@@ -516,15 +516,15 @@ PCN_NOINLINE
 /// <param name="count">The count.</param>
 /// <returns></returns>
 void detail::vector_base::assign_count(const char* data, uint32_t count) noexcept {
-    // Çå¿Õ
+    // æ¸…ç©º
     this->clear();
-    // ¼ì²é³¤¶È
+    // æ£€æŸ¥é•¿åº¦
     this->reserve(count);
-    // ÓĞĞ§
+    // æœ‰æ•ˆ
     if (this->is_ok()) {
         const auto ptr0 = m_pData;
         const auto table = m_pVTable;
-        // ¸´ÖÆ¶ÔÏó
+        // å¤åˆ¶å¯¹è±¡
         for (uint32_t i = 0; i != count; ++i) {
             table->copy_t_obj(ptr0 + m_uByteLen * i, data);
         }
@@ -557,42 +557,42 @@ void detail::vector_base::assign_count(const char* data, uint32_t count) noexcep
 //void detail::vector_base::insert_help(char* obj, uint32_t pos, uint32_t n, void* func) noexcept {
 //    assert(m_uByteLen && "m_uByteLen cannot be 0");
 //    assert(n && "cannot insert 0 element");
-//    // move ²Ù×÷Ö»ÄÜÒ»Î»
+//    // move æ“ä½œåªèƒ½ä¸€ä½
 //#ifndef NDEBUG
 //    if (func == m_pVTable->move_t_obj) {
 //        assert(n == 1 && "move only one");
 //    }
 //#endif
-//    // ²åÈëÎ»ÖÃ
+//    // æ’å…¥ä½ç½®
 //    const auto this_len = m_uVecLen;
-//    // Ô½½ç²Ù×÷
+//    // è¶Šç•Œæ“ä½œ
 //    assert(pos <= this_len && "out of range");
-//    // XXX: ÖØĞÂÉêÇë»áµ¼ÖÂ¶ÔÏóÒÆ¶¯Á½´Î?!
+//    // XXX: é‡æ–°ç”³è¯·ä¼šå¯¼è‡´å¯¹è±¡ç§»åŠ¨ä¸¤æ¬¡?!
 //
-//    // ³¤¶È²»×ãÔòÖØĞÂÉêÇë
+//    // é•¿åº¦ä¸è¶³åˆ™é‡æ–°ç”³è¯·
 //    const uint32_t remain = m_uVecCap - m_uVecLen;
 //    if (remain < n) this->reserve(size() + n);
-//    // Êı¾İÎŞĞ§
+//    // æ•°æ®æ— æ•ˆ
 //    if (!is_ok()) return;
-//    // ÒÆ¶¯²åÈëÎ»ÖÃºóµÄ¶ÔÏó
+//    // ç§»åŠ¨æ’å…¥ä½ç½®åçš„å¯¹è±¡
 //
-//    // ÍòÄÜ×ª»»
+//    // ä¸‡èƒ½è½¬æ¢
 //    union {
 //        void* func_ptr;
 //        void(*call)(char*, char*) noexcept;
 //        void(*call0)(char*) noexcept;
 //    };
 //    func_ptr = func;
-//    // ´æÔÚ²Ù×÷¶ÔÏó
+//    // å­˜åœ¨æ“ä½œå¯¹è±¡
 //    if (obj) {
-//        // È«Ìåµ÷ÓÃ
+//        // å…¨ä½“è°ƒç”¨
 //        const auto ptr = m_pData + m_uByteLen * pos;
 //        for (uint32_t i = 0; i != n; ++i) {
 //            call(ptr + i * m_uByteLen, obj);
 //        }
 //    }
 //    else {
-//        // È«Ìåµ÷ÓÃ
+//        // å…¨ä½“è°ƒç”¨
 //        const auto ptr = m_pData + m_uByteLen * pos;
 //        for (uint32_t i = 0; i != n; ++i) {
 //            call0(ptr + i * m_uByteLen);

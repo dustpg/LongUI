@@ -9,6 +9,7 @@
 #include <cassert>
 
 #include <core/ui_color.h>
+#include <util/ui_unicode.h>
 #include <debugger/ui_debug.h>
 #include <filesystem/ui_file.h>
 #include <style/ui_style_state.h>
@@ -19,16 +20,6 @@
 /// LongUI::endl instance
 /// </summary>
 namespace LongUI { const EndL endl; }
-
-// longui::detail namespace
-namespace LongUI { namespace detail {
-    // utf16 to system char type
-    static inline auto sys(const char16_t* str) noexcept {
-        using target_t = wchar_t;
-        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
-        return reinterpret_cast<const wchar_t*>(str);
-    }
-}}
 
 /// <summary>
 /// UIs the unexp filter.

@@ -684,7 +684,7 @@ void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 void LongUI::UITextBox::SetText(U16View view) noexcept {
-    this->SetText(CUIString{ view });
+    this->SetText(CUIString(view));
 }
 
 #ifndef NDEBUG

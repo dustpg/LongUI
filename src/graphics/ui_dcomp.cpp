@@ -8,6 +8,7 @@
 #include <cassert>
 // window dcom
 #define NOMINMAX
+struct IDCompositionVisual;
 #include <Windows.h>
 #include <dcomp.h>
 
@@ -168,3 +169,4 @@ auto LongUI::impl::create_dcomp(dcomp_window_buf& buf, HWND hwnd, I::Swapchan& s
     }
     return hr;
 }
+class dcomp_device;

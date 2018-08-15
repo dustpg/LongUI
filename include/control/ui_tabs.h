@@ -74,7 +74,7 @@ namespace LongUI {
 #endif
     protected:
         // last selected
-        UITab*              m_pLastSelected = false;
+        UITab*              m_pLastSelected = nullptr;
     private:
     };
     // get meta info for UITabs

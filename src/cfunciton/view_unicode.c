@@ -50,7 +50,7 @@ static const char32_t ui_offsets_from_utf8[6] = {
 /// <param name="lead">The lead.</param>
 /// <param name="trail">The trail.</param>
 /// <returns></returns>
-inline char32_t impl_char16x2_to_char32(char16_t lead, char16_t trail) {
+extern inline char32_t impl_char16x2_to_char32(char16_t lead, char16_t trail) {
     assert(is_high_surrogate(lead) && "illegal utf-16 char");
     assert(is_low_surrogate(trail) && "illegal utf-16 char");
     return (char32_t)((lead - 0xD800) << 10 | (trail - 0xDC00)) + (0x10000);

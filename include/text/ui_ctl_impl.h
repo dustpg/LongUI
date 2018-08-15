@@ -8,6 +8,7 @@
 // DWrite
 #include <dwrite_1.h>
 
+
 // LongUI::i namespace
 namespace LongUI { namespace I {
     // CTL Factory
@@ -15,7 +16,7 @@ namespace LongUI { namespace I {
     // CTL Font
     struct PCN_NOVTABLE Font : IDWriteTextFormat { };
     // CTL Text
-    struct PCN_NOVTABLE Text : IDWriteTextLayout1 { };
+    struct PCN_NOVTABLE Text : IDWriteTextLayout { };
     // CTL Text
     struct PCN_NOVTABLE TextRenderer : IDWriteTextRenderer { };
     // font from text

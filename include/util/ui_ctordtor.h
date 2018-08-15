@@ -37,6 +37,24 @@ namespace LongUI { namespace detail {
         void(*move_t_obj)(void*, void*) noexcept;
         void(*delete_obj)(void*) noexcept;
     };
+    // release the object: real
+    template<typename T, bool> struct delete_obj_helper { };
+    // release the object: real
+    template<typename T>
+    struct delete_obj_helper<T, true> {
+        // delete obj
+        static inline void delete_obj_real(void*p) noexcept { }
+        // get delete 
+        static inline dtor_t delete_obj_ptr() noexcept { return { empty_dtor }; }
+    };
+    // release the object: real
+    template<typename T>
+    struct delete_obj_helper<T, false> {
+        // delete
+        static inline void delete_obj_real(void*p) noexcept { static_cast<T*>(p)->T::~T(); }
+        // get delete 
+        static inline dtor_t delete_obj_ptr() noexcept { return { delete_obj_real }; }
+    };
     // empty0
     struct empty0 {};
     // func-vtable getter
@@ -61,25 +79,13 @@ namespace LongUI { namespace detail {
             static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>::ctor_dtor();
 #endif
         }
-        // release the object: real
-        template<bool> static void delete_obj_real(void*p) noexcept;
-        // release the object: real
-        template<> static inline void delete_obj_real<true>(void*p) noexcept { empty_dtor(p); }
-        // release the object: real
-        template<> static inline void delete_obj_real<false>(void*p) noexcept { static_cast<T*>(p)->T::~T(); }
         // release the object
         static void delete_obj(void*p) noexcept { 
-            delete_obj_real<std::is_trivially_destructible<T>::value>(p);
+            delete_obj_helper<T, std::is_trivially_destructible<T>::value>::delete_obj_real(p);
         }
-        // release the object: real-pointer
-        template<bool> static inline dtor_t delete_obj_real_ptr() noexcept;
-        // release the object: real
-        template<> static inline dtor_t delete_obj_real_ptr<true>() noexcept { return { empty_dtor }; }
-        // release the object: real
-        template<> static inline dtor_t delete_obj_real_ptr<false>() noexcept { return { delete_obj }; }
         // delete_obj pointer
         static inline dtor_t delete_obj_ptr() noexcept {
-            return delete_obj_real_ptr<std::is_trivially_destructible<T>::value>();
+            return delete_obj_helper<T, std::is_trivially_destructible<T>::value>::delete_obj_ptr();
         }
         // ctor
         template<typename ...Args>
@@ -89,7 +95,7 @@ namespace LongUI { namespace detail {
         static void create(void* ptr, Args&&... args) noexcept {
 #ifdef LUI_CANNOT_CALL_CONSTRUCTOR_DIRECTLY
             // gcc cannot call ctor directly
-            return new(ptr) ctor_dtor<T>(empty0{}, std::forward<Args>(args)...);
+            new(ptr) ctor_dtor<T>(empty0{}, std::forward<Args>(args)...);
 #else
                 // msc/clang extended support
             static_cast<ctor_dtor<T>*>(ptr)->ctor_dtor<T>::ctor_dtor(empty0{}, std::forward<Args>(args)...);

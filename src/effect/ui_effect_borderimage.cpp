@@ -1,4 +1,5 @@
-﻿#include <effect/ui_effect_borderimage.h>
+﻿#include <cstring>
+#include <effect/ui_effect_borderimage.h>
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 #include "../private/ui_private_effect.h"
 #include <cassert>
@@ -288,11 +289,13 @@ auto LongUI::Effect::RegisterBorderImage(void* factory) noexcept -> Result {
         *witr = 0;
     }
     // 创建
-    auto create_this = [](IUnknown** effect) noexcept ->HRESULT {
-        assert(effect && "bad argment");
-        ID2D1EffectImpl* obj = new(std::nothrow) CUIEffectBorderImage;
-        *effect = obj;
-        return obj ? S_OK : E_OUTOFMEMORY;
+    struct CreateHelper {
+        static HRESULT WINAPI Create(IUnknown** effect) noexcept {
+            assert(effect && "bad argment");
+            ID2D1EffectImpl* obj = new(std::nothrow) CUIEffectBorderImage;
+            *effect = obj;
+            return obj ? S_OK : E_OUTOFMEMORY;
+        };
     };
     // 短名
     using effect_t = CUIEffectBorderImage;
@@ -308,8 +311,9 @@ auto LongUI::Effect::RegisterBorderImage(void* factory) noexcept -> Result {
     const auto hr = factory_d2d.RegisterEffectFromString(
         GUID_LongUIEffect_BorderImage,
         xml_buffer,
-        bindings, sizeof(bindings)/sizeof(bindings[0]),
-        create_this
+        //bindings, sizeof(bindings) / sizeof(bindings[0]),
+        nullptr, 0,
+        CreateHelper::Create
     );
     return  { hr };
 }

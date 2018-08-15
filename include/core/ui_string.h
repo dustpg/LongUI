@@ -13,7 +13,7 @@ namespace LongUI {
         // Vector type
         using V = POD::Vector<T>;
         // View
-        using View = PodStringView<T>;
+        using View = LongUI::PodStringView<T>;
         // B must > 0
         static_assert(B > 0, "B must > 0");
         // type helper
@@ -42,7 +42,7 @@ namespace LongUI {
         // ctor with init list
         CUIBasicString(std::initializer_list<T> list) noexcept : Self(list.begin(), list.end()) { }
         // ctor with view
-        CUIBasicString(View view) noexcept : Self(view.begin(), view.end()) { }
+        CUIBasicString(LongUI::PodStringView<T> view) noexcept : Self(view.begin(), view.end()) { }
         // move ctor
         CUIBasicString(Self&& str) noexcept : m_vector(std::move(str.m_vector)) {  }
     public:

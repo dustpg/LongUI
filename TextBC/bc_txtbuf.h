@@ -59,14 +59,16 @@ namespace TextBC {
     }
     // buffer class
     template<typename T> class CBCBuffer: public detail::buffer_base {
+        // tptr / const tptr
+        using tptr = T * ; using cptr = const T*;
         // must be pod
         static_assert(std::is_pod<T>::value, "must be pod");
         // must be pod
         static_assert(alignof(T) <= alignof(double), "'alignof' must be less than double");
         // tr pointer
-        static auto tr(void* ptr) noexcept { return reinterpret_cast<T*>(ptr); }
+        static tptr tr(void* ptr) noexcept { return reinterpret_cast<T*>(ptr); }
         // tr pointer
-        static auto ct(void* ptr) noexcept { return reinterpret_cast<const T*>(ptr); }
+        static cptr ct(void* ptr) noexcept { return reinterpret_cast<const T*>(ptr); }
     public:
         // ctor
         CBCBuffer() noexcept {}

@@ -682,7 +682,7 @@ void LongUI::UIListItem::SetText(const CUIString& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListItem::SetText(U16View text) noexcept {
-    this->SetText(CUIString{ text });
+    this->SetText(CUIString(text));
 }
 
 
@@ -1079,5 +1079,5 @@ void LongUI::UIListHeader::SetText(const CUIString & text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListHeader::SetText(U16View text) noexcept {
-    return this->SetText(CUIString{ text });
+    return this->SetText(CUIString(text));
 }

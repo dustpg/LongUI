@@ -1,8 +1,10 @@
-﻿#include "xul/SimpAX.h"
+﻿#include <cstring>
 #include <cassert>
 #include <cstddef>
 #include <memory>
 #include <array>
+
+#include <xul/SimpAX.h>
 
 //#define SAX_PROFILER
 #ifdef SAX_PROFILER

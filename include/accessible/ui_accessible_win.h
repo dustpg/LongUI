@@ -95,9 +95,9 @@ namespace LongUI {
         // interface from control
         static auto FromControl(UIControl& ctrl) noexcept->CUIAccessible*;
         // no-exception new
-        void*operator new(std::size_t) = delete;
+        void*operator new(size_t) = delete;
         // no-exception new[]
-        void*operator new[](std::size_t) = delete;
+        void*operator new[](size_t) = delete;
         // delete []
         void operator delete[](void*, size_t size) noexcept = delete;
         // delete object

@@ -11,6 +11,7 @@
 #include <core/ui_string.h>
 #include <style/ui_text.h>
 #include <core/ui_malloc.h>
+#include <util/ui_unicode.h>
 #include <util/ui_unicode_cast.h>
 // Effect
 #include <effect/ui_effect_borderimage.h>
@@ -35,22 +36,6 @@
 #pragma comment(lib, "d3d11")
 #pragma comment(lib, "dwrite")
 #pragma comment(lib, "windowscodecs")
-
-// longui::detail namespace
-namespace LongUI { namespace detail {
-    // utf16 to system char type
-    static inline auto sys(const char16_t* str) noexcept {
-        using target_t = wchar_t;
-        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
-        return reinterpret_cast<const wchar_t*>(str);
-    }
-    // utf16 to system char type
-    static inline auto sys(const wchar_t* str) noexcept {
-        using target_t = wchar_t;
-        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
-        return reinterpret_cast<const char16_t*>(str);
-    }
-}}
 
 // ui namespace
 namespace LongUI {
@@ -163,7 +148,7 @@ namespace LongUI {
             // 设置大小
             if (SUCCEEDED(hr)) {
                 hr = frame_encode->SetSize(args.width, args.height);
-                longui_debug_hr(Result{ hr }, "failed: frame_encode->SetSize " << long(args.width) << L", " << long(args.height));
+                longui_debug_hr(Result{ hr }, "failed: frame_encode->SetSize " << int32_t(args.width) << L", " << int32_t(args.height));
             }
             // 设置格式
             WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
@@ -348,6 +333,9 @@ auto LongUI::PrivateResMgr::push_index0_res() noexcept ->Result {
     reslist.push_back(data);
     return { Result::RS_OK };
 }
+
+// CLSID_WICImagingFactory1
+extern "C" const GUID CLSID_WICImagingFactory1;
 
 /// <summary>
 /// Initializes this instance.
@@ -764,6 +752,9 @@ auto LongUI::CUIResMgr::CreateCtlText(
         &layout
     ) };
     longui_debug_hr(hr, L"CreateTextLayout faild");
+#if 1
+    text = static_cast<I::Text*>(layout);
+#else
     // 查询继承类接口
     if (hr) {
         hr = { layout->QueryInterface(
@@ -771,9 +762,9 @@ auto LongUI::CUIResMgr::CreateCtlText(
             reinterpret_cast<void**>(&text)
         ) };
         longui_debug_hr(hr, L"QueryInterface 'IDWriteTextLayout1' faild");
-    }
     // 释放数据
     if (layout) layout->Release();
+#endif
     return hr;
 }
 
@@ -822,16 +813,16 @@ auto LongUI::CUIResMgr::CreateCtlFont(const FontArg& arg,
             //longui_debug_hr(tmp, L"failed format->SetIncrementalTabStop  " << arg.tab);
             // 设置段落排列方向
             //tmp = format->SetFlowDirection(static_cast<DWRITE_FLOW_DIRECTION>(args.flow));
-            //longui_debug_hr(tmp, L"failed format->SetFlowDirection  " << long(args.flow));
+            //longui_debug_hr(tmp, L"failed format->SetFlowDirection  " << int32_t(args.flow));
             // 设置段落(垂直)对齐
             //tmp = format->SetParagraphAlignment(static_cast<DWRITE_PARAGRAPH_ALIGNMENT>(args.valign));
-            //longui_debug_hr(tmp, L"failed format->SetParagraphAlignment  " << long(args.valign));
+            //longui_debug_hr(tmp, L"failed format->SetParagraphAlignment  " << int32_t(args.valign));
             // 设置文本(水平)对齐
             tmp = { format->SetTextAlignment(static_cast<DWRITE_TEXT_ALIGNMENT>(text->alignment)) };
-            longui_debug_hr(tmp, L"failed format->SetTextAlignmen  t" << long(text->alignment));
+            longui_debug_hr(tmp, L"failed format->SetTextAlignmen  t" << int32_t(text->alignment));
             // 设置阅读进行方向
             //tmp = format->SetReadingDirection(static_cast<DWRITE_READING_DIRECTION>(args.reading));
-            //longui_debug_hr(tmp, L"failed format->SetReadingDirection  " << long(args.reading));
+            //longui_debug_hr(tmp, L"failed format->SetReadingDirection  " << int32_t(args.reading));
         }
         // 设置行高度
         const auto lh = LongUI::GetLineHeight(arg);
@@ -946,15 +937,12 @@ LongUI::CUIResMgr::Debug::~Debug() noexcept {
 #endif
 
 
-#ifdef interface
-#undef interface
-#endif
-#pragma interface
+//#pragma interface
 /// <summary>
 /// screen iterface
 /// </summary>
 struct PCN_NOVTABLE LongUI::CUIResMgr::IScreen : IDXGIOutput {};
-#pragma 
+//#pragma implementation
 
 namespace LongUI {
     // impl
@@ -964,7 +952,7 @@ namespace LongUI {
         // delete native style renderer
         void delete_native_style_renderer(void* ptr) noexcept;
         // recreate 
-        auto recreate_native_style_renderer(void*ptr)->Result;
+        auto recreate_native_style_renderer(void*ptr)noexcept->Result;
     }
 }
 

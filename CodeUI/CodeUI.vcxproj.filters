@@ -564,9 +564,6 @@
     <ClInclude Include="..\include\constexpr\const_bkdr.h">
       <Filter>header\constexpr</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\container\pod_fixedqueue.h">
-      <Filter>header\container</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\container\pod_hash.h">
       <Filter>header\container</Filter>
     </ClInclude>

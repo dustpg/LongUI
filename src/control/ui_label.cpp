@@ -1,4 +1,5 @@
-﻿#include <debugger/ui_debug.h>
+﻿#include <cmath>
+#include <debugger/ui_debug.h>
 #include <control/ui_label.h>
 #include <core/ui_ctrlmeta.h>
 #include <core/ui_manager.h>
@@ -209,7 +210,7 @@ bool LongUI::UILabel::SetText(const CUIString & text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 bool LongUI::UILabel::SetText(U16View text) noexcept {
-    return this->SetText(CUIString{ text });
+    return this->SetText(CUIString(text));
 }
 
 // longui::detail
@@ -298,7 +299,7 @@ void LongUI::UILabel::after_set_text() noexcept {
 void LongUI::UILabel::add_attribute(uint32_t key, U8View value) noexcept {
     // 新增属性列表
     constexpr auto BKDR_VALUE       = 0x246df521_ui32;
-    constexpr auto BKDR_HREF        = 0x0e0d950fui32;
+    constexpr auto BKDR_HREF        = 0x0e0d950f_ui32;
 
     // 分类讨论
     switch (key)

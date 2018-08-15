@@ -10,7 +10,7 @@
 #include <debugger/ui_debug.h>
 #include <util/ui_lastsort.h>
 // private
-#include "../private/ui_private_control.h"
+#include "../private/ui_private_control.h" 
 // css
 #include <xul/SimpAC.h>
 // c/c++

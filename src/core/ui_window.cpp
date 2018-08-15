@@ -19,6 +19,7 @@
 
 
 // C++
+#include <cmath>
 #include <cassert>
 #include <algorithm>
 
@@ -253,7 +254,7 @@ namespace LongUI {
         // window clear color
         ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
         // title name
-        CUIString       titlename{ u"LUI"_sv };
+        CUIString       titlename;
     public:
         // mouse track data
         TRACKMOUSEEVENT track_mouse;
@@ -356,7 +357,7 @@ namespace LongUI {
     /// Privates the window.
     /// </summary>
     /// <returns></returns>
-    LongUI::CUIWindow::Private::Private() noexcept {
+    LongUI::CUIWindow::Private::Private() noexcept : titlename(u"LUI"_sv) {
         flag_sized = false;
         mouse_enter = false;
         dcomp_support = false;
@@ -1643,16 +1644,6 @@ void LongUI::CUIWindow::Private::InitWindowPos() noexcept {
     winrect.top = (sch - winrect.height) / 2;
 }
 
-// longui::detail namespace
-namespace LongUI { namespace detail {
-    // utf16 to system char type
-    static inline auto sys(const char16_t* str) noexcept {
-        using target_t = wchar_t;
-        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
-        return reinterpret_cast<const wchar_t*>(str);
-    }
-}}
-
 /// <summary>
 /// Initializes this instance.
 /// </summary>
@@ -1748,13 +1739,16 @@ void LongUI::CUIWindow::Private::RegisterWindowClass() noexcept {
     const auto ins = ::GetModuleHandleW(nullptr);
     WNDCLASSEXW wcex;
     auto code = ::GetClassInfoExW(ins, Attribute::WindowClassNameN, &wcex);
-    if (!code) {
-        // 处理
-        auto proc = [](HWND hwnd, 
-            UINT message, 
-            WPARAM wParam, 
+
+    // 处理函数帮助器
+    struct WndProcHelper2 {
+        // 处理函数
+        static LRESULT WINAPI CALL(
+            HWND hwnd,
+            UINT message,
+            WPARAM wParam,
             LPARAM lParam
-            ) noexcept -> LRESULT {
+        ) noexcept {
             // 创建窗口时设置指针
             if (message == WM_CREATE) {
                 // 获取指针
@@ -1770,18 +1764,20 @@ void LongUI::CUIWindow::Private::RegisterWindowClass() noexcept {
             }
             // 其他情况则获取储存的指针
             else {
-                const PrivateMsg msg { hwnd, message, wParam, lParam };
+                const PrivateMsg msg{ hwnd, message, wParam, lParam };
                 const auto lptr = ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
                 const auto window = reinterpret_cast<CUIWindow::Private*>(lptr);
                 if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
                 return window->DoMsg(msg);
             }
         };
+    };
+    if (!code) {
         // 注册一般窗口类
         wcex = { 0 };
         wcex.cbSize = sizeof(WNDCLASSEXW);
         wcex.style = 0;
-        wcex.lpfnWndProc = proc;
+        wcex.lpfnWndProc = WndProcHelper2::CALL;
         wcex.cbClsExtra = 0;
         wcex.cbWndExtra = sizeof(void*);
         wcex.hInstance = ins;

@@ -8,10 +8,8 @@
 #include <cassert>
 
 // interface, TODO: GeometryEx
-#ifdef interface
-#undef interface
-#endif
-#pragma interface
+
+//#pragma interface
 /// <summary>
 /// geometry interface
 /// </summary>
@@ -21,7 +19,7 @@ struct PCN_NOVTABLE LongUI::I::Geometry : ID2D1Geometry { };
 /// geometry-ex interface
 /// </summary>
 struct PCN_NOVTABLE LongUI::I::GeometryEx : ID2D1Geometry { };
-#pragma implementation 
+//#pragma implementation 
 
 /// <summary>
 /// Recreates this instance.

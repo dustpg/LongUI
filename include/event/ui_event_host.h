@@ -1,6 +1,5 @@
 ﻿#pragma once
-#pragma interface
-
+//#pragma interface
 #include "ui_gui_event.h"
 #include "../core/ui_core_type.h"
 #include "../util/ui_function.h"
@@ -34,7 +33,7 @@ namespace LongUI {
         }
         // add gui event listener const ref overload
         template<typename Callable>
-        inline Conn AddGuiEventListener(const Callable& call) noexcept {
+        inline Conn AddGuiEventListener(GuiEvent e, const Callable& call) noexcept {
             //static_assert(
             //    std::is_same<E, const char*>::value ||
             //    std::is_same<E, U8View>::value ||

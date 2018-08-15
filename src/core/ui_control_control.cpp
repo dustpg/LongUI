@@ -1468,6 +1468,10 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
     // 检查错误
     switch (code)
     {
+    default:
+        // 基本错误处理
+        assert(!"TODO");
+        break;
     case 0:
         // 然后解析XML字符串
         const auto result = stream.Load(xul);
@@ -1475,10 +1479,6 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
         if (!result.IsOk())
             std::longjmp(stream.env, result.code + 1);
         rv = true;
-        break;
-    default:
-        // 基本错误处理
-        assert(!"TODO");
         break;
     }
     // 返回处理

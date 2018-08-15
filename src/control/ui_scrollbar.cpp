@@ -106,9 +106,6 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
         UIControlPrivate::SetOrient(m_private->slider, orient);
 }
 
-// super helper
-//#include "../private/ui_super.h"
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UIScrollBar"/> class.
 /// </summary>

@@ -142,7 +142,7 @@ auto LongUI::Box::GetContentPos() const noexcept -> Point2F {
 /// </summary>
 /// <returns></returns>
 LongUI::Style::Style() noexcept {
-    constexpr auto a = sizeof(Style);
+    //constexpr auto a = sizeof(Style);
     state.Init();
     pack = Pack_Start;
     tduration = 0;
@@ -396,7 +396,7 @@ auto LongUI::TFAttrParser::Weight(U8View view)noexcept->AttributeFontWeight {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::TFAttrParser::TextAlign(U8View view) noexcept -> AttributeTextAlign {
-    switch (const auto ch = *view.begin())
+    switch (*view.begin())
     {
     default: return TAlign_Start;
     case 'r': return TAlign_Right;

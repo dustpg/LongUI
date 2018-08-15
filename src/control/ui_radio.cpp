@@ -269,7 +269,10 @@ void LongUI::UIRadio::SetText(const CUIString & text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIRadio::SetText(U16View text) noexcept {
-    return this->SetText(CUIString{ text });
+    // GCC: 
+    // conversion from 'LongUI::U16View' {aka 'LongUI::PodStringView<char16_t>'} 
+    // to 'char16_t' is ambiguous
+    return this->SetText(CUIString(text));
 }
 
 /// <summary>

@@ -5,6 +5,7 @@
 #include <cassert>
 // windows
 #include <Windows.h>
+#include <Winuser.h>
 
 namespace LongUI {
     // impl

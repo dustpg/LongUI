@@ -138,7 +138,7 @@ UINT32 LongUI::CUIBaseEffectD2D::GetInputCount() const noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIBaseEffectD2D"/> class.
 /// </summary>
-LongUI::CUIBaseEffectD2D::CUIBaseEffectD2D() noexcept {
+LongUI::CUIBaseEffectD2D::CUIBaseEffectD2D() noexcept : m_cRefCount(1) {
 
 }
 

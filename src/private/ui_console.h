@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#ifndef NDEBUG
 // c++
 #include <cstdint>
 
@@ -227,7 +227,10 @@ namespace LongUI {
                 bRet = ::CreateProcessW(nullptr, nullptr, nullptr, nullptr, false, CREATE_NEW_CONSOLE, nullptr, nullptr, &si, &pi);
             }
             if (!bRet) {
-                ::MessageBoxW(nullptr, L"Helper executable not found", L"ConsoleLogger failed", MB_ICONERROR);
+                static bool s_first = true;
+                if (s_first)
+                    ::MessageBoxW(nullptr, L"Helper executable(console.exe) not found", L"ConsoleLogger failed", MB_ICONERROR);
+                s_first = false;
                 ::CloseHandle(m_hConsole);
                 m_hConsole = INVALID_HANDLE_VALUE;
                 return -1;
@@ -328,3 +331,4 @@ namespace LongUI {
         return 0;
     }
 }
+#endif

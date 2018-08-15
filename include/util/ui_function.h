@@ -89,7 +89,7 @@ namespace LongUI {
             template<typename T> static inline auto add_chain(T& a, T&& b) noexcept {
                 return add_chain_helper(
                     reinterpret_cast<GuiEventListener&>(a), 
-                    reinterpret_cast<GuiEventListener&&>(std::move(b))
+                    std::move(reinterpret_cast<GuiEventListener&>(b))
                 );
             }
         };

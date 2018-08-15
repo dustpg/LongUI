@@ -565,7 +565,7 @@ void LongUI::UIMenuList::SetText(CUIString&& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuList::SetText(U16View text) noexcept {
-    this->SetText(CUIString{ text });
+    this->SetText(CUIString(text));
 }
 
 /// <summary>

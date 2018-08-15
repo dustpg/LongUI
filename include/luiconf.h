@@ -37,9 +37,18 @@
 
 // ----------------------------------------------------------------------------
 
+#ifdef _MSC_VER
 // Accessible
 #if !defined(NDEBUG) || !defined(LUI_NO_ACCESSIBLE)
+// MinGW unsupported yet?
 #define LUI_ACCESSIBLE
+#endif
+#else
+// Accessible
+#if !defined(LUI_NO_ACCESSIBLE)
+// MinGW unsupported yet?
+#define LUI_ACCESSIBLE
+#endif
 #endif
 
 // Constant Setting

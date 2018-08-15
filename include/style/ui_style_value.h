@@ -1,5 +1,5 @@
 ﻿#pragma once
-#pragma interface
+//#pragma interface
 
 #include "../luiconf.h"
 #include "ui_ssvalue_list.h"

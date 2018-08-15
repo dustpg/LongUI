@@ -39,6 +39,8 @@ namespace LongUI { namespace POD {
         template <> struct log2<1> { enum : size_t { value = 0 }; };
         // using
         using LongUI::detail::ctor_dtor;
+        // push_back_helper impl
+        template<size_t> struct push_back_helper;
         /// <summary>
         /// Vector base class
         /// </summary>
@@ -47,6 +49,8 @@ namespace LongUI { namespace POD {
             friend LongUI::detail::string_helper;
             // friend
             friend ctor_dtor<vector_base>;
+            // template friend
+            template<size_t> friend struct push_back_helper;
             // extra bit
             enum {
                 // extra aligned size(max for 128 byte in 32bit...)
@@ -297,6 +301,25 @@ namespace LongUI { namespace POD {
             // pointer
             pointer             m_ptr;
         };
+        // push back helper
+        template<size_t> struct push_back_helper {
+            // call push back
+            template<typename T>
+            static inline void call(vector_base& obj, const T& data) noexcept {
+                const auto ptr = reinterpret_cast<const char*>(&data);
+                obj.push_back(ptr);
+            }
+        };
+        // push back helper
+        template<> struct push_back_helper<sizeof(void*)> {
+            // call push back
+            template<typename T>
+            static inline void call(vector_base& obj, const T& data) noexcept {
+                union { const char* ptr; T t; } union_data;
+                union_data.t = data;
+                obj.push_back_ptr(union_data.ptr);
+            }
+        };
     }
     // Vector
     template<typename T> class Vector : protected detail::vector_base {
@@ -335,17 +358,10 @@ namespace LongUI { namespace POD {
         operator bool() const noexcept { return this->is_ok(); }
     protected:
         // friend
-        template<typename TT, unsigned BB> friend class CUIBasicString;
+        template<typename TT, unsigned BB> friend class LongUI::CUIBasicString;
         // buffer ctor
         template<typename EX>
         Vector(size_type /*ali*/, EX ex) noexcept: vector_base(sizeof(T), ex) {}
-        // pushback pointer
-        template<size_t S> void push_back_helper(const T& x) noexcept {
-            vector_base::push_back(tr(&x)); }
-        // pushback pointer
-        template<> void push_back_helper<sizeof(void*)>(const T& x) noexcept {
-            union { T d; const char* ptr; }; d = x;
-            vector_base::push_back_ptr(ptr); }
     public:
         // iterator
         using iterator = detail::base_iterator<Vector, T*>;
@@ -380,6 +396,8 @@ namespace LongUI { namespace POD {
         auto operator[](size_type pos) noexcept -> T& { assert(pos < size() && "OOR"); return data()[pos]; }
         // operator[] const
         auto operator[](size_type pos) const noexcept -> const T&{ assert(pos < size() && "OOR"); return data()[pos]; }
+        // force base object
+        auto force_base_object() noexcept ->detail::vector_base* { return this; }
     public:
         // assign data
         void assign(size_type n, const T& value) noexcept { vector_base::assign(n, tr(&value)); }
@@ -410,7 +428,7 @@ namespace LongUI { namespace POD {
         // assign data
         void assign(std::initializer_list<T> list) noexcept { assign(list.begin(), list.end()); }
         // push back
-        void push_back(const T& x) noexcept { this->push_back_helper<sizeof(T)>(x); }
+        void push_back(const T& x) noexcept { detail::push_back_helper<sizeof(T)>::call(*this, x); }
         // begin iterator
         auto begin() noexcept -> iterator { return{ *this, reinterpret_cast<T*>(vector_base::begin()) }; }
         // end iterator

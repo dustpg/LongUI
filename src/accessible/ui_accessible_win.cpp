@@ -5,6 +5,7 @@
 #include <accessible/ui_accessible_win.h>
 #include <control/ui_viewport.h>
 #include <control/ui_control.h>
+#include <util/ui_unicode.h>
 #include <core/ui_manager.h>
 #include <core/ui_window.h>
 #include <core/ui_string.h>
@@ -18,21 +19,6 @@
 
 
 namespace LongUI {
-    // detail namespace
-    namespace detail {
-        // utf16 to system char type
-        static inline auto sys(const char16_t* str) noexcept {
-            using target_t = wchar_t;
-            static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
-            return reinterpret_cast<const wchar_t*>(str);
-        }
-        // utf16 to system char type
-        static inline auto sys(const wchar_t* str) noexcept {
-            using target_t = char16_t;
-            static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
-            return reinterpret_cast<const char16_t*>(str);
-        }
-    }
     /// <summary>
     /// Finalizes the accessible.
     /// </summary>

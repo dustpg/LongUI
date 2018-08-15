@@ -6,19 +6,10 @@
 
 // ui
 #include <core/ui_string.h>
+#include <util/ui_unicode.h>
 #include <filesystem/ui_file.h>
 
 // TODO: 异步IO
-
-// longui::detail namespace
-namespace LongUI { namespace detail {
-    // utf16 to system char type
-    static inline auto sys(const char16_t* str) noexcept {
-        using target_t = wchar_t;
-        static_assert(sizeof(target_t) == sizeof(char16_t), "WINDOWS!");
-        return reinterpret_cast<const wchar_t*>(str);
-    }
-}}
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIFile"/> class.
@@ -27,7 +18,8 @@ namespace LongUI { namespace detail {
 /// <param name="filename">The file name.</param>
 LongUI::CUIFile::CUIFile(OpenFlag flag, const char16_t* filename) noexcept {
     assert(filename && "bad filename");
-    static_assert(ERROR_HANDLE == (intptr_t)INVALID_HANDLE_VALUE, "must be same");
+    // FAILED TO GCC
+    //static_assert(ERROR_HANDLE == intptr_t(INVALID_HANDLE_VALUE), "must be same");
     DWORD access = 0;
     // 读
     if (flag & Flag_Read) access |= GENERIC_READ;

@@ -6,6 +6,7 @@
 #include <debugger/ui_debug.h>
 #include <event/ui_group_event.h>
 #include <core/ui_popup_window.h>
+#include <core/ui_string.h>
 // 控件
 #include <control/ui_image.h>
 #include <control/ui_label.h>
@@ -157,7 +158,7 @@ void LongUI::UIButton::SetText(const CUIString& text) noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIButton::SetText(U16View text) noexcept {
-    this->SetText(CUIString{ text });
+    this->SetText(CUIString(text));
 }
 
 

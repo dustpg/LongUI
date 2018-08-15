@@ -41,6 +41,4 @@ namespace LongUI {
     template<typename signature> class CUIFunction;
     // Gui Event Listener
     using GuiEventListener = CUIFunction<EventAccept(UIControl& host)>;
-    // is remove listener?
-    inline bool IsRemoveListener(const GuiEventListener& l) { return !(&l); }
 }

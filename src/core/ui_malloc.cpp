@@ -17,7 +17,7 @@ namespace LongUI {
     // alloc for normal space
     PCN_NOINLINE void*NormalAlloc(size_t length) noexcept {
 #ifndef  NDEBUG
-        using atomic_t = std::atomic<std::size_t>;
+        using atomic_t = std::atomic<size_t>;
         ++reinterpret_cast<atomic_t&>(UIManager.alloc_counter_n_dbg);
 #endif
         using M = CUIManager::IMM;
@@ -33,7 +33,7 @@ namespace LongUI {
     // realloc for normal space
     PCN_NOINLINE void*NormalRealloc(void* address, size_t length) noexcept {
 #ifndef  NDEBUG
-        using atomic_t = std::atomic<std::size_t>;
+        using atomic_t = std::atomic<size_t>;
         ++reinterpret_cast<atomic_t&>(UIManager.alloc_counter_n_dbg);
 #endif
         using M = CUIManager::IMM;
@@ -43,7 +43,7 @@ namespace LongUI {
     // alloc for small space
     PCN_NOINLINE void*SmallAlloc(size_t length) noexcept {
 #ifndef  NDEBUG
-        using atomic_t = std::atomic<std::size_t>;
+        using atomic_t = std::atomic<size_t>;
         ++reinterpret_cast<atomic_t&>(UIManager.alloc_counter_s_dbg);
 #endif
         using M = CUIManager::IMM;

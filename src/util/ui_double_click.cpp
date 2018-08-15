@@ -9,7 +9,7 @@ bool LongUI::CUIDbClick::Click() noexcept {
     auto now = LongUI::GetTimeTick();
     bool result = ((now - m_dwDbClickPt) <= m_dwDbClickDur) ;
     /*&& x == this->ptx && y == this->pty*/
-    m_dwDbClickPt = result ? 0ui32 : now;
+    m_dwDbClickPt = result ? 0 : now;
     return result;
 }
 
@@ -24,7 +24,7 @@ bool LongUI::CUIDbClickEx::Click(int32_t x, int32_t y) noexcept {
     auto now = LongUI::GetTimeTick();
     bool result = ((now - m_dwDbClickPt) <= m_dwDbClickDur)
         && x == m_x && y == m_y;
-    m_dwDbClickPt = result ? 0ui32 : now;
+    m_dwDbClickPt = result ? 0 : now;
     m_x = x; m_y = y;
     return result;
 }

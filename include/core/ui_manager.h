@@ -166,9 +166,9 @@ namespace LongUI {
     public:
 #ifndef  NDEBUG
         // alloc counter: normal  [CUIManager::GetInstance().alloc_counter_n_dbg]
-        std::size_t             alloc_counter_n_dbg = 0;
+        size_t             alloc_counter_n_dbg = 0;
         // alloc counter: small   [CUIManager::GetInstance().alloc_counter_s_dbg]
-        std::size_t             alloc_counter_s_dbg = 0;
+        size_t             alloc_counter_s_dbg = 0;
 #endif // ! NDEBUG
         // flag for configure
         ConfigFlag      const   flag;

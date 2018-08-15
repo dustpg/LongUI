@@ -301,7 +301,6 @@
     <ClInclude Include="..\include\constexpr\const_bkdr.h" />
     <ClInclude Include="..\include\container\const_string_list.h" />
     <ClInclude Include="..\include\container\nonpod_vector.h" />
-    <ClInclude Include="..\include\container\pod_fixedqueue.h" />
     <ClInclude Include="..\include\container\pod_hash.h" />
     <ClInclude Include="..\include\container\pod_sharedarray.h" />
     <ClInclude Include="..\include\container\pod_vector.h" />

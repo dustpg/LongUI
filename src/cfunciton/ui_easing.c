@@ -1,11 +1,7 @@
 ﻿// easing
 #include <stdint.h>
 #include <assert.h>
-#include "math.h"
-
-#ifndef fallthrough
-#define fallthrough
-#endif
+#include <math.h>
 
 #define EASING_PI (3.14159265358979323846)
 #define EASINGPI2 (EASING_PI / 2.0)
@@ -88,7 +84,6 @@ double ui_easing_function(uint32_t type, double p) {
     {
     default:
         assert(!"type unknown");
-        fallthrough;
     case ui_impl_linear:
         // 线性插值     f(x) = x
         return p;

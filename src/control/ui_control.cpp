@@ -1481,7 +1481,7 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     m_oTail.prev = &child;
     // 要求刷新
     child.m_state.level = m_state.level + 1;
-    assert(child.GetLevel() < 100ui8 && "tree too deep");
+    assert(child.GetLevel() < 120 && "tree too deep");
     // 移除之前的窗口引用
     child.m_pWindow->ControlDisattached(child);
     // 设置新的窗口

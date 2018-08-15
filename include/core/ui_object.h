@@ -1,9 +1,7 @@
 ﻿#pragma once
-#ifdef interface
-#undef interface
-#endif
-#pragma interface
+//#pragma interface
 
+#include <cstddef>
 #include <new>
 #include <util/ui_unimacro.h>
 
@@ -20,9 +18,9 @@ namespace LongUI {
         // ctor
         CUINoMo() noexcept = default;
         // no-exception new
-        void*operator new(std::size_t) = delete;
+        void*operator new(size_t) = delete;
         // no-exception new[]
-        void*operator new[](std::size_t) = delete;
+        void*operator new[](size_t) = delete;
         // delete []
         void operator delete[](void*, size_t size) noexcept = delete;
         // delete object
@@ -38,9 +36,9 @@ namespace LongUI {
     class CUIObject {
     public:
         // no-exception new
-        void*operator new(std::size_t) = delete;
+        void*operator new(size_t) = delete;
         // no-exception new[]
-        void*operator new[](std::size_t) = delete;
+        void*operator new[](size_t) = delete;
         // delete []
         void operator delete[](void*, size_t size) noexcept = delete;
         // delete object
@@ -56,9 +54,9 @@ namespace LongUI {
     class CUISmallObject {
     public:
         // no-exception new
-        void*operator new(std::size_t) = delete;
+        void*operator new(size_t) = delete;
         // no-exception new[]
-        void*operator new[](std::size_t) = delete;
+        void*operator new[](size_t) = delete;
         // delete []
         void operator delete[](void*, size_t size) noexcept = delete;
         // delete object

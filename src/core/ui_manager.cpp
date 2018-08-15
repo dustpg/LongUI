@@ -496,6 +496,87 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
         //hr = configure.CreateInterface(LongUI_IID_PV_ARGS(this_()->m_pTextFormatter));
         longui_debug_hr(hr, "Create this_()->m_pTextFormatter faild");
     }
+    // 处理函数帮助器
+    struct WndProcHelper {
+        // 处理函数
+        static LRESULT WINAPI CALL(
+            HWND hwnd,
+            UINT message,
+            WPARAM wParam,
+            LPARAM lParam
+        ) noexcept {
+            switch (message)
+            {
+            case WM_CREATE:
+                UIManager.m_uGuiThreadId = ::GetCurrentThreadId();
+                break;
+#ifdef LUI_RAWINPUT
+            case WM_INPUT:
+                // XXX: 考虑加锁
+                //CUIDataAutoLocker locker;
+                UIManager.pm().km_input
+                    .Update(reinterpret_cast<HRAWINPUT>(lParam));
+                return 1;
+#endif
+#if 0
+            case WM_TIMER:
+            {
+                const WPARAM high = wParam & ~WPARAM(3);
+                const uint32_t low = wParam & 3;
+                const auto ctrl = reinterpret_cast<UIControl*>(high);
+                CUIDataAutoLocker locker;
+                LongUI::OnTimer(*ctrl, low);
+                return 0;
+            }
+#endif
+            case WM_SETTINGCHANGE:
+                UIManager.refresh_system_info();
+                break;
+            case WM_DISPLAYCHANGE:
+                // 显示环境改变
+                UIManager.refresh_display_frequency();
+                UIManager.redirect_screen();
+#ifndef NDEBUG
+                LUIDebug(Hint) << "WM_DISPLAYCHANGE" << LongUI::endl;
+            case WM_CLOSE:
+                // 不能关闭该窗口
+#endif
+                break;
+#if 0 // ADD SUPPORT
+            case WM_QUERYENDSESSION:
+            case WM_ENDSESSION:
+                return false;
+#endif
+            case CallLater::Later_DeleteControl:
+            {
+                // 延迟删除控件
+                CUIDataAutoLocker locker;
+                LongUI::DeleteControl(reinterpret_cast<UIControl*>(wParam));
+                break;
+            }
+            case CallLater::Later_CallTimeCapsule:
+            {
+                // 调用时间胶囊
+                const auto ptr = reinterpret_cast<CUIWaiter*>(wParam);
+                union { LPARAM lp; float time; };
+                lp = lParam;
+                UIManager.update_time_capsule(time);
+                ptr->Broadcast();
+                break;
+            }
+            case CallLater::Later_Exit:
+            {
+                // 连续调用Break直到退出
+                UIManager.BreakMsgLoop(wParam);
+                ::PostMessageW(hwnd, CallLater::Later_Exit, wParam, 0);
+                break;
+            }
+            default:
+                return ::DefWindowProcW(hwnd, message, wParam, lParam);
+            }
+            return 0;
+        };
+    };
     // 创建工具窗口
     if (hr) {
         // 注册窗口
@@ -504,84 +585,6 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
             hInstance, Attribute::WindowClassNameT, &wcex
         );
         if (!code) {
-            // 处理函数
-            auto wndproc = [](
-                HWND hwnd, 
-                UINT message, 
-                WPARAM wParam,
-                LPARAM lParam
-                ) noexcept ->LRESULT {
-                switch (message)
-                {
-                case WM_CREATE:
-                    UIManager.m_uGuiThreadId = ::GetCurrentThreadId();
-                    break;
-#ifdef LUI_RAWINPUT
-                    case WM_INPUT:
-                    // XXX: 考虑加锁
-                    //CUIDataAutoLocker locker;
-                    UIManager.pm().km_input
-                        .Update(reinterpret_cast<HRAWINPUT>(lParam));
-                    return 1;
-#endif
-#if 0
-                case WM_TIMER:
-                {
-                    const WPARAM high = wParam & ~WPARAM(3);
-                    const uint32_t low = wParam & 3;
-                    const auto ctrl = reinterpret_cast<UIControl*>(high);
-                    CUIDataAutoLocker locker;
-                    LongUI::OnTimer(*ctrl, low);
-                    return 0;
-                }
-#endif
-                case WM_SETTINGCHANGE:
-                    UIManager.refresh_system_info();
-                    break;
-                case WM_DISPLAYCHANGE:
-                    // 显示环境改变
-                    UIManager.refresh_display_frequency();
-                    UIManager.redirect_screen();
-#ifndef NDEBUG
-                    LUIDebug(Hint) << "WM_DISPLAYCHANGE" << LongUI::endl;
-                case WM_CLOSE:
-                    // 不能关闭该窗口
-#endif
-                    break;
-#if 0 // ADD SUPPORT
-                case WM_QUERYENDSESSION:
-                case WM_ENDSESSION:
-                    return false;
-#endif
-                case CallLater::Later_DeleteControl:
-                {
-                    // 延迟删除控件
-                    CUIDataAutoLocker locker;
-                    LongUI::DeleteControl(reinterpret_cast<UIControl*>(wParam));
-                    break;
-                }
-                case CallLater::Later_CallTimeCapsule:
-                {
-                    // 调用时间胶囊
-                    const auto ptr = reinterpret_cast<CUIWaiter*>(wParam);
-                    union { LPARAM lp; float time; };
-                    lp = lParam;
-                    UIManager.update_time_capsule(time);
-                    ptr->Broadcast();
-                    break;
-                }
-                case CallLater::Later_Exit:
-                {
-                    // 连续调用Break直到退出
-                    UIManager.BreakMsgLoop(wParam);
-                    ::PostMessageW(hwnd, CallLater::Later_Exit, wParam, 0);
-                    break;
-                }
-                default:
-                    return ::DefWindowProcW(hwnd, message, wParam, lParam);
-                }
-                return 0;
-            };
             // 注册窗口类
             wcex = { 0 };
             wcex.cbSize = sizeof(WNDCLASSEXW);
@@ -594,7 +597,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
             wcex.lpszMenuName = nullptr;
             wcex.lpszClassName = Attribute::WindowClassNameT;
             wcex.hIcon = nullptr;
-            wcex.lpfnWndProc = wndproc;
+            wcex.lpfnWndProc = WndProcHelper::CALL;
             ::RegisterClassExW(&wcex);
         }
 #ifdef NDEBUG

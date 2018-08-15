@@ -16,7 +16,7 @@ uint32_t ui_hash_ignore_case(const char* begin, const char* end, char step) {
     const uint32_t seed = 131;
     uint32_t hash = 0;
     while (begin != end) {
-        hash = hash * seed + ((*begin) & 0x1f + 0x40);
+        hash = hash * seed + (((*begin) & 0x1f) + 0x40);
         begin += step;
     }
     return hash;
