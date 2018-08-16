@@ -166,7 +166,7 @@ void LongUI::CUIDebug::OutputString(
     DebugStringLevel level,
     const wchar_t* str,
     bool flush) noexcept {
-    if (!(UIManager.flag & IUIConfigure::Flag_OutputDebugString)) return;
+    if (!(UIManager.flag & ConfigureFlag::Flag_OutputDebugString)) return;
     static CUIConsole s_consoles[DebugStringLevel::DLEVEL_SIZE];
     auto& console = s_consoles[level];
     auto create_console = [=]() noexcept {

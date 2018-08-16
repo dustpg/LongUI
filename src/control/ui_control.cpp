@@ -1505,7 +1505,7 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
 /// <returns></returns>
 void LongUI::UIControl::link_style_sheet() noexcept {
 #ifndef NDEBUG
-    if (UIManager.flag & IUIConfigure::Flag_DbgNoLinkStyle)
+    if (UIManager.flag & ConfigureFlag::Flag_DbgNoLinkStyle)
         return;
 #endif // !NDEBUG
     auto& style_matched = m_oStyle.matched;

@@ -45,6 +45,8 @@ namespace LongUI {
     struct PrivateResMgr;
     // config
     struct IUIConfigure;
+    // configure flag
+    enum ConfigureFlag : uint32_t;
     // color float
     struct ColorF;
     // UI Window Manager
@@ -155,7 +157,7 @@ namespace LongUI {
         // wait for vblank
         bool wait_for_vblank() noexcept;
         // recreate device
-        auto recreate_device(IUIConfigure*) noexcept->Result;
+        auto recreate_device(IUIConfigure*, ConfigureFlag) noexcept->Result;
         // recreate resource
         auto recreate_resource() noexcept->Result;
         // ctor

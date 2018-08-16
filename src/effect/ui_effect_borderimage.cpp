@@ -311,8 +311,7 @@ auto LongUI::Effect::RegisterBorderImage(void* factory) noexcept -> Result {
     const auto hr = factory_d2d.RegisterEffectFromString(
         GUID_LongUIEffect_BorderImage,
         xml_buffer,
-        //bindings, sizeof(bindings) / sizeof(bindings[0]),
-        nullptr, 0,
+        bindings, sizeof(bindings) / sizeof(bindings[0]),
         CreateHelper::Create
     );
     return  { hr };

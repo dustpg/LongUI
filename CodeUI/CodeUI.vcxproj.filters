@@ -1077,6 +1077,9 @@
     <ClInclude Include="..\include\control\ui_richlistbox.h">
       <Filter>header\control</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\util\ui_fookgcc.h">
+      <Filter>header\util</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">

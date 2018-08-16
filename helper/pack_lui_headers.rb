@@ -79,7 +79,8 @@ p $sorted_os
 
 def write_file out, list
   work_dir = ARGV[0] + "/include"
-  File.open(out, "w") { |file|
+  File.open(out, 'wb:utf-8') { |file|
+    file.write("\xEF\xBB\xBF")
     file.write("#pragma once\n")
     file.write("#include \"luiconf.h\"\n")
     file.write("#include \"lui.h\"\n") if !out.include? 'lui.h'

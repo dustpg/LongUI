@@ -45,9 +45,9 @@ extern const char* xul_tabs;
 
 #include <interface/ui_default_config.h>
 #include <text/ui_ctl_arg.h>
+#include <util/ui_fookgcc.h>
 
 struct HelloConfig : public LongUI::CUIDefaultConfigure {
-    using LongUI::IUIConfigure::ConfigureFlag;
     // get def-font
     void DefaultFontArg(LongUI::FontArg& arg) noexcept override {
         //CUIDefaultConfigure::DefaultFontArg(arg);
@@ -55,18 +55,18 @@ struct HelloConfig : public LongUI::CUIDefaultConfigure {
         //arg.family = "SimSun";
     }
     // get cfg-flag
-    ConfigureFlag GetConfigureFlag() noexcept override {
-        return ConfigureFlag::Flag_None
-            | ConfigureFlag::Flag_OutputDebugString
-            | ConfigureFlag::Flag_QuitOnLastWindowClosed
+    static LongUI::ConfigureFlag GetConfigureFlag() noexcept {
+        return LongUI::ConfigureFlag::Flag_None
+            | LongUI::ConfigureFlag::Flag_OutputDebugString
+            | LongUI::ConfigureFlag::Flag_QuitOnLastWindowClosed
             //| ConfigureFlag::Flag_DbgOutputTimeTook 
 //#ifndef NDEBUG
  
 //#endif
             //| ConfigureFlag::Flag_DbgDrawDirtyRect
-            | ConfigureFlag::Flag_DbgDrawTextCell
-            | ConfigureFlag::Flag_DbgDebugWindow
-            | ConfigureFlag::Flag_NoAutoScaleOnHighDpi
+            | LongUI::ConfigureFlag::Flag_DbgDrawTextCell
+            | LongUI::ConfigureFlag::Flag_DbgDebugWindow
+            | LongUI::ConfigureFlag::Flag_NoAutoScaleOnHighDpi
             ;
     }
 };
@@ -168,7 +168,7 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
     MemoryLeakDetector dtr;
     HelloConfig cfg;
-    if (UIManager.Initialize(&cfg)) {
+    if (UIManager.Initialize(&cfg, cfg.GetConfigureFlag())) {
         LUIDebug(Hint) << "Battle Control Online..." << LongUI::endl;
         ::object_test();
         //const auto ptr1 = LongUI::NormalAlloc(1024);

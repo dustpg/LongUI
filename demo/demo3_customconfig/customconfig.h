@@ -14,8 +14,8 @@ namespace Demo {
     /// <seealso cref="LongUI::CUIDefaultConfigure" />
     class CustomConfig : public CUIDefaultConfigure {
     public:
-        // get flags for configure
-        auto GetConfigureFlag() noexcept->ConfigureFlag override;
+        // this config
+        static auto ThisConfigFlag() noexcept->ConfigureFlag;
         // get locale name of ui(for text)
         void GetLocaleName(char16_t name[/*LOCALE_NAME_MAX_LENGTH*/]) noexcept override;
         // get default font arg

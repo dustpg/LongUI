@@ -43,8 +43,6 @@ namespace LongUI {
         // get logfile name
         auto GetSimpleLogFileName() noexcept->CUIString override;
 #endif
-        // get flags for configure
-        auto GetConfigureFlag() noexcept->ConfigureFlag override;
         // Get string from table
         //virtual auto GetString(TableString tbl) noexcept -> const wchar_t*;
         // get locale name of ui(for text)

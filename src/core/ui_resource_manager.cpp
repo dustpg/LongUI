@@ -334,9 +334,6 @@ auto LongUI::PrivateResMgr::push_index0_res() noexcept ->Result {
     return { Result::RS_OK };
 }
 
-// CLSID_WICImagingFactory1
-extern "C" const GUID CLSID_WICImagingFactory1;
-
 /// <summary>
 /// Initializes this instance.
 /// </summary>
@@ -352,7 +349,7 @@ inline auto LongUI::PrivateResMgr::init() noexcept -> Result {
     // 创建 WIC 工厂.
     if (hr) {
         hr = { ::CoCreateInstance(
-            CLSID_WICImagingFactory1,
+            CLSID_WICImagingFactory,
             nullptr,
             CLSCTX_INPROC_SERVER,
             IID_IWICImagingFactory,
@@ -1040,17 +1037,18 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
 /// <summary>
 /// Recreates this instance.
 /// </summary>
+/// <param name="cfg">The CFG.</param>
+/// <param name="flag">The flag.</param>
 /// <returns></returns>
-auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
+auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg, ConfigureFlag flag) noexcept -> Result {
     constexpr auto same_s = sizeof(PrivateResMgr) == sizeof(m_private);
     constexpr auto same_a = alignof(PrivateResMgr) == alignof(private_t);
     static_assert(same_s && same_a, "must be same");
     this->release_device();
-    const auto flag = cfg->GetConfigureFlag();
     // 待用适配器
     IDXGIAdapter1* adapter = nullptr;
     // 枚举显示适配器
-    if (!(flag & IUIConfigure::Flag_RenderByCPU)) {
+    if (!(flag & ConfigureFlag::Flag_RenderByCPU)) {
         IDXGIFactory1* dxgifactory = nullptr;
         const auto idd = IID_IDXGIFactory1;
         const auto add = reinterpret_cast<void**>(&dxgifactory);
@@ -1108,7 +1106,7 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg) noexcept -> Result {
         };
         constexpr uint32_t fl_size = sizeof(featureLevels) / sizeof(featureLevels[0]);
         // 根据情况检查驱动类型
-        const auto dtype = flag & IUIConfigure::Flag_RenderByCPU ? 
+        const auto dtype = flag & ConfigureFlag::Flag_RenderByCPU ? 
             D3D_DRIVER_TYPE_WARP : (adapter ? 
                 D3D_DRIVER_TYPE_UNKNOWN : D3D_DRIVER_TYPE_HARDWARE);
         D3D_DRIVER_TYPE types[] = { dtype, D3D_DRIVER_TYPE_WARP };

@@ -16,25 +16,6 @@ auto LongUI::CUIDefaultConfigure::GetSimpleLogFileName() noexcept -> CUIString {
 #endif
 
 /// <summary>
-/// Gets the configure flag.
-/// </summary>
-/// <returns></returns>
-auto LongUI::CUIDefaultConfigure::GetConfigureFlag() noexcept ->ConfigureFlag {
-    return Flag_None
-#ifndef NDEBUG
-        | Flag_RenderByCPU
-#endif
-        | Flag_OutputDebugString 
-        | Flag_QuitOnLastWindowClosed
-        //| Flag_NoAutoScaleOnHighDpi
-        //| Flag_DbgOutputTimeTook 
-        //| Flag_DbgDrawDirtyRect
-        | Flag_DbgDrawTextCell
-        | Flag_DbgDebugWindow
-        ;
-}
-
-/// <summary>
 /// Chooses the adapter.
 /// </summary>
 /// <param name="adapters">The adapters.</param>

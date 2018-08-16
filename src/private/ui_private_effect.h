@@ -3,11 +3,13 @@
 #include <luiconf.h>
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 #include <core/ui_object.h>
+#include <util/ui_fookgcc.h>
 #include <graphics/ui_graphics_impl.h>
 // d2d effect
 #include <d2d1effectauthor.h>
 #include <atomic>
 
+#if LUI_COMPILER == LUI_COMPILER_MSVC 
 #define LUI_D2D1_VALUE_TYPE_BINDING(CLASS, TYPE, NAME)\
     {\
         L ## # NAME, [](IUnknown* obj, const BYTE* data, UINT32 len) noexcept ->long {\
@@ -27,6 +29,33 @@
             return S_OK;\
         }\
     }
+#else
+
+
+#define LUI_D2D1_VALUE_TYPE_BINDING(CLASS, TYPE, NAME)\
+    {\
+        L ## # NAME, \
+        detail::get_unicall_funcptr<long, IUnknown*, const BYTE*, UINT32>(\
+        [](IUnknown* obj, const BYTE* data, UINT32 len) noexcept ->long {\
+            assert(obj && data && len == sizeof(TYPE));\
+            const auto impl = static_cast<ID2D1EffectImpl*>(obj);\
+            const auto ths = static_cast<CLASS*>(impl);\
+            ths->Set##NAME(*reinterpret_cast<const TYPE*>(data));\
+            return S_OK;\
+        }).ptr,  \
+        detail::get_unicall_funcptr<long, const IUnknown*, BYTE*, UINT32, UINT32*>(\
+            [](const IUnknown* obj, BYTE* data, UINT32 len, UINT32* outeln) noexcept ->long {\
+            assert(obj);\
+            if (data) {\
+                const auto impl = static_cast<const ID2D1EffectImpl*>(obj);\
+                const auto ths = static_cast<const CLASS*>(impl);\
+                ths->Get##NAME(*reinterpret_cast<TYPE*>(data));\
+            }\
+            if (outeln) *outeln = sizeof(TYPE);\
+            return S_OK;\
+        }).ptr\
+    }
+#endif
 
 // ui namespace
 namespace LongUI {

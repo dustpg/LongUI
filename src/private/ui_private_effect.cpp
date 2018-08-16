@@ -44,7 +44,7 @@ HRESULT LongUI::CUIBaseEffectD2D::QueryInterface(REFIID riid, void** ppOutput) n
         ptr = static_cast<ID2D1TransformNode*>(this);
     // 获取 IUnknown
     else if (riid == IID_IUnknown) 
-        ptr = this;
+        ptr = static_cast<ID2D1EffectImpl*>(this);
     // 没有接口
     else hr = E_NOINTERFACE;
     // 数据有效 a(=)b

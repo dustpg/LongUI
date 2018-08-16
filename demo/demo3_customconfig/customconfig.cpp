@@ -13,10 +13,10 @@
 
 namespace Demo {
     /// <summary>
-    /// Gets the configure flag.
+    /// Thises the configuration flag.
     /// </summary>
     /// <returns></returns>
-    auto CustomConfig::GetConfigureFlag() noexcept -> ConfigureFlag {
+    auto CustomConfig::ThisConfigFlag() noexcept -> ConfigureFlag {
         return Flag_None
             //| Flag_RenderByCPU
             | Flag_OutputDebugString

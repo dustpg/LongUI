@@ -83,15 +83,16 @@ namespace LongUI {
         struct IMM;
         // private
         struct Private;
-        // flag
-        using ConfigFlag = IUIConfigure::ConfigureFlag;
     public:
         // get instance
         static inline auto GetInstance() noexcept->CUIManager&;
         // delete later for control
         static void DeleteLater(UIControl&) noexcept;
         // initialize
-        auto Initialize(IUIConfigure* config = nullptr) noexcept ->Result;
+        auto Initialize(
+            IUIConfigure* config = nullptr,
+            ConfigureFlag cfgflag = ConfigureFlag::Flag_Default
+        ) noexcept ->Result;
         // uninitialize
         void Uninitialize() noexcept;
         // do one frame
@@ -154,7 +155,7 @@ namespace LongUI {
         void FinalizeScript(CUIWindow& w) noexcept { this->config->FinalizeScript(w); };
     private:
         // ctor
-        CUIManager(IUIConfigure* config, Result& out) noexcept;
+        CUIManager(IUIConfigure*, ConfigureFlag, Result& ) noexcept;
         // ctor
         CUIManager(const CUIManager&) noexcept = delete;
         // ctor
@@ -166,12 +167,12 @@ namespace LongUI {
     public:
 #ifndef  NDEBUG
         // alloc counter: normal  [CUIManager::GetInstance().alloc_counter_n_dbg]
-        size_t             alloc_counter_n_dbg = 0;
+        size_t                  alloc_counter_n_dbg = 0;
         // alloc counter: small   [CUIManager::GetInstance().alloc_counter_s_dbg]
-        size_t             alloc_counter_s_dbg = 0;
+        size_t                  alloc_counter_s_dbg = 0;
 #endif // ! NDEBUG
         // flag for configure
-        ConfigFlag      const   flag;
+        ConfigureFlag const     flag;
     private:
         // delta time in sec.
         float                   m_fDeltaTime = 0.f;

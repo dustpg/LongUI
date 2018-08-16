@@ -231,7 +231,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
 #ifndef NDEBUG
     // 记录渲染时间
     const auto t2 = meter.Delta_ms<float>();
-    if (this_()->flag & ConfigFlag::Flag_DbgOutputTimeTook) {
+    if (this_()->flag & ConfigureFlag::Flag_DbgOutputTimeTook) {
         CUIDataAutoLocker locker;
         LUIDebug(None) LUI_FRAMEID
             << "U<" << DDFFloat2{ t1 } << "ms>"
@@ -261,7 +261,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
             "delta: %.2fms -- %2.2f fps",
             time * 1000.f, 1.f / time
         );
-        if (this_()->flag & IUIConfigure::Flag_DbgDebugWindow)
+        if (this_()->flag & ConfigureFlag::Flag_DbgDebugWindow)
             ::ui_dbg_set_window_title(this_()->m_pDebugWindow, buffer);
         else
             ::ui_dbg_set_window_title(this_()->m_hToolWnd, buffer);
@@ -419,7 +419,7 @@ void LongUI::CUIManager::try_recreate() noexcept {
     // LCK
     this_()->RenderLock();
     // 重建设备
-    auto hr = this->CUIResMgr::recreate_device(this->config);
+    auto hr = this->CUIResMgr::recreate_device(this->config, this->flag);
     // 重建资源
     if (hr) {
         hr = this->CUIResMgr::recreate_resource();
@@ -445,7 +445,9 @@ void LongUI::CUIManager::try_recreate() noexcept {
 /// </summary>
 /// <param name="config">The configuration.</param>
 /// <returns></returns>
-auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
+auto LongUI::CUIManager::Initialize(
+    IUIConfigure* cfg,
+    ConfigureFlag flag) noexcept -> Result {
 #ifndef NDEBUG
     // 大小端断言
     ::ui_endian_runtime_assert();
@@ -472,7 +474,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     // 构造管理器
     {
         Result hr = { Result::RS_OK };
-        detail::ctor_dtor<CUIManager>::create(&UIManager, cfg, hr);
+        detail::ctor_dtor<CUIManager>::create(&UIManager, cfg, flag, hr);
         if (!hr) return hr;
     }
     // 致命BUG处理
@@ -625,7 +627,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
         if (!this_()->m_hToolWnd) hr = { Result::RE_FAIL };
 #ifndef NDEBUG
         // 调试
-        else if (!(flag & IUIConfigure::Flag_DbgDebugWindow))
+        else if (!(flag & ConfigureFlag::Flag_DbgDebugWindow))
             ::ShowWindow(this_()->m_hToolWnd, SW_SHOW);
 #endif
     }
@@ -657,7 +659,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     }
 #ifndef NDEBUG
     // 枚举字体
-    /*if (hr && (this_()->flag & IUIConfigure::Flag_DbgOutputFontFamily)) {
+    /*if (hr && (this_()->flag & ConfigureFlag::Flag_DbgOutputFontFamily)) {
         auto count = this_()->m_pFontCollection->GetFontFamilyCount();
         UIManager << DL_Log << "Font found: " << long(count) << "\r\n";
         // 遍历所有字体
@@ -718,7 +720,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
     // 第一次重建设备资源
     if (hr) {
         auto& pmm = this_()->pm();
-        hr = this_()->recreate_device(this_()->config);
+        hr = this_()->recreate_device(this_()->config, this_()->flag);
     }
     // 检查当前路径
 #ifndef NDEBUG
@@ -730,7 +732,7 @@ auto LongUI::CUIManager::Initialize(IUIConfigure* cfg) noexcept -> Result {
         << buffer
         << LongUI::endl;
     // 创建调试窗口
-    if (hr && (flag & IUIConfigure::Flag_DbgDebugWindow)) {
+    if (hr && (flag & ConfigureFlag::Flag_DbgDebugWindow)) {
         m_pDebugWindow = impl::create_debug_window();
         if (!m_pDebugWindow) hr = { Result::RE_OUTOFMEMORY };
     }
@@ -761,17 +763,21 @@ void LongUI::CUIManager::DeleteLater(UIControl& ctrl) noexcept {
 }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="CUIManager"/> class.
+/// Initializes a new instance of the <see cref="CUIManager" /> class.
 /// </summary>
 /// <param name="config">The configuration.</param>
-LongUI::CUIManager::CUIManager(IUIConfigure* config, Result& out) noexcept :
+/// <param name="cfgflag">The cfgflag.</param>
+/// <param name="out">The out.</param>
+LongUI::CUIManager::CUIManager(IUIConfigure* config,
+    ConfigureFlag cfgflag,
+    Result& out) noexcept :
 ConfigKeeper{ config },
 #ifndef NDEBUG
 CUIDebug(config->GetSimpleLogFileName().c_str()),
 #endif
 CUIResMgr(config, out),
 CUIWndMgr(out),
-flag(config->GetConfigureFlag()) {
+flag(cfgflag) {
 #ifndef NDEBUG
     detail::ctor_dtor<CUIManagerDebug>::create(&DbgMgr());
 #endif
@@ -975,5 +981,5 @@ void LongUI::CUIWndMgr::exit() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::CUIWndMgr::is_quit_on_last_window_closed() noexcept {
-    return !!(UIManager.flag & IUIConfigure::Flag_QuitOnLastWindowClosed);
+    return !!(UIManager.flag & ConfigureFlag::Flag_QuitOnLastWindowClosed);
 }

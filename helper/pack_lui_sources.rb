@@ -35,7 +35,8 @@ $private_list = $filelist
 
 # $filelist_c.each { |x| p x }
 # C FILE
-File.open("lui_c.c", "w") { |file|
+File.open("lui_c.c", 'wb:utf-8') { |file|
+  file.write("\xEF\xBB\xBF")
   marco = ARGV[0] + "/include/util/ui_unimacro.h"
   text = File.open(marco, mode: 'r:bom|utf-8').read
   text.each_line { |line|
@@ -60,7 +61,8 @@ File.open("lui_c.c", "w") { |file|
 }
 
 # C++ FILE
-File.open("lui.cpp", "w") { |file|
+File.open("lui.cpp", 'wb:utf-8') { |file|
+  file.write("\xEF\xBB\xBF")
   file.write("#define _CRT_SECURE_NO_WARNINGS\n")
   file.write("#define NOMINMAX\n")
   file.write("#include \"lui.h\"\n")

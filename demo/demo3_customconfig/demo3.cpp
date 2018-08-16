@@ -26,7 +26,7 @@ void InitButton(
 int main() {
     int code = -1;
     Demo::CustomConfig config;
-    if (UIManager.Initialize(&config)) {
+    if (UIManager.Initialize(&config, Demo::CustomConfig::ThisConfigFlag())) {
         LUIDebug(Hint) << "Battle Control Online..." << LongUI::endl;
         {
             LongUI::UIControl::ControlMakingBegin();
@@ -83,7 +83,7 @@ void InitButton(
     assert(btn && menu && "BAD ACTION");
     btn->AddGuiEventListener(LongUI::UIButton::_onCommand(), 
         [&cfg, menu](LongUI::UIControl&) noexcept {
-        const auto index = menu->GetSelectionIndex();
+        const auto index = menu->GetSelectedIndex();
         // index < 0 -> not selected
         if (index < 0) return LongUI::Event_Ignore;
         // index >=0 -> selected

@@ -1,6 +1,7 @@
 ﻿#include "bc_txtdoc.h"
 #include <cassert>
 #include <algorithm>
+#include <cstring>
 #ifndef NDEBUG
 #include <cstdio>
 #endif

@@ -706,7 +706,7 @@ void LongUI::UITextBox::DebugOutput(const char* txt) noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::DrawCell(void* ctx, const TextBC::RectWHF& rect, int index) noexcept {
     assert(ctx && "bad context");
-    if (UIManager.flag & IUIConfigure::Flag_DbgDrawTextCell) {
+    if (UIManager.flag & ConfigureFlag::Flag_DbgDrawTextCell) {
         const auto renderer = static_cast<I::Renderer2D*>(ctx);
         const auto red = ColorF::FromRGBA_CT<RGBA_Red>();
         const auto blue = ColorF::FromRGBA_CT<RGBA_Blue>();

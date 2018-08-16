@@ -440,6 +440,7 @@
     <ClInclude Include="..\include\typecheck\is_iterator.h" />
     <ClInclude Include="..\include\util\ui_clipboard.h" />
     <ClInclude Include="..\include\util\ui_ctordtor.h" />
+    <ClInclude Include="..\include\util\ui_fookgcc.h" />
     <ClInclude Include="..\include\util\ui_lastsort.h" />
     <ClInclude Include="..\include\util\ui_aniamtion.h" />
     <ClInclude Include="..\include\util\ui_color_system.h" />

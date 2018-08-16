@@ -37,6 +37,9 @@
 
 // ----------------------------------------------------------------------------
 
+// LongUI Need Win7-PlatformUpdate
+#define _WIN7_PLATFORM_UPDATE
+
 #ifdef _MSC_VER
 // Accessible
 #if !defined(NDEBUG) || !defined(LUI_NO_ACCESSIBLE)
