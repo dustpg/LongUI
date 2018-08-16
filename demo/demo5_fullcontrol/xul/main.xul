@@ -21,8 +21,11 @@
     <button flex="1" label="_popup_" id="popup"/>
   </hbox>
   <hbox>
-    <button flex="1" label="button_" id="button"/>
+    <button flex="1" label="menubar" id="menubar"/>
     <button flex="1" label="stack" id="stack"/>
+  </hbox>
+  <hbox>
+    <button flex="1" label="button" id="button"/>
   </hbox>
   <spacer flex="1"/>
 </window>
