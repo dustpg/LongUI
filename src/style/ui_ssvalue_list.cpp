@@ -1,24 +1,9 @@
 ﻿// lui
 #include <luiconf.h>
-#ifndef LUI_DISABLE_STYLE_SUPPORT
-#include <style/ui_ssvalue.h>
-#include <util/ui_aniamtion.h>
-#include <text/ui_attribute.h>
-#include <style/ui_attribute.h>
-#include <core/ui_basic_type.h>
-#include <core/ui_color_list.h>
 #include <core/ui_string_view.h>
-#include <style/ui_ssvalue_list.h>
-#include <typecheck/int_by_size.h>
-#include <util/ui_little_math.h>
-#include <core/ui_manager.h>
 // css
 #include <xul/SimpAC.h>
-// C++
-//#include <algorithm>
 
-
-// longui namespace
 namespace LongUI {
     // split unit
     auto SplitUnit(PodStringView<char>& view) noexcept -> PodStringView<char> {
@@ -70,6 +55,26 @@ namespace LongUI {
     force_break_on_found:
         return rv;
     }
+}
+
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+#include <style/ui_ssvalue.h>
+#include <util/ui_aniamtion.h>
+#include <text/ui_attribute.h>
+#include <style/ui_attribute.h>
+#include <core/ui_basic_type.h>
+#include <core/ui_color_list.h>
+#include <core/ui_string_view.h>
+#include <style/ui_ssvalue_list.h>
+#include <typecheck/int_by_size.h>
+#include <util/ui_little_math.h>
+#include <core/ui_manager.h>
+// C++
+//#include <algorithm>
+
+
+// longui namespace
+namespace LongUI {
     // SimpAC::FuncValue to U8View
     auto U8(SimpAC::FuncValue v) noexcept {
         return U8View{ v.first, v.first + v.length };

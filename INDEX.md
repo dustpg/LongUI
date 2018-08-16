@@ -1,6 +1,6 @@
 ﻿## INDEX
 
-Current Version : 0.1.2
+Current Version : 0.1.3
 
 [css support list](./doc/css-support-list.md)
 
@@ -9,14 +9,16 @@ Current Version : 0.1.2
 
 |  FLAG                     | Bin-Size*  | Ratio |
 |  ----------               | --------   | ----- |
-|  default                  |   167kb    | 1.00 |
-|  LUI_WIN10_ONLY           |   165kb    | 0.99 |
-|  LUI_NO_ACCESSIBLE        |   156kb    | 0.93 |
-|  LUI_DISABLE_STYLE_SUPPORT|   143kb    | 0.86 |
-|  all of above             |   131kb    | 0.78 |
+|  default                  |   174kb    | 1.00 |
+|  LUI_WIN10_ONLY           |   172kb    | 0.99 |
+|  LUI_NO_ACCESSIBLE        |   163kb    | 0.94 |
+|  LUI_DISABLE_STYLE_SUPPORT|   143kb    | 0.82 |
+|  all of above             |   130kb    | 0.75 |
+|  LOngUI Single File       |   190kb    | 1.09 |
 
 
-*: "hello world" release[x86 /O2 /MD] version, updated on July 23, 2018
+
+*: "hello world" release(/O2) version, updated on Aug 23, 2018
 
 ---
 
