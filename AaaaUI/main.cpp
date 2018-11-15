@@ -259,11 +259,16 @@ void main_inited(LongUI::UIViewport& viewport, int switch_on) noexcept {
     //    as.insert(view2.begin(), view2.end(), 321);
     //}
     {
+        using namespace LongUI;
+        auto color = ColorF::FromRGBA_CT<0x66ccff80_rgba>();
+
+        int bk = 9;
+
+
         auto a = LongUI::Matrix::Matrix3x2F::Scale({ 2, 2 });
         auto b = LongUI::Matrix::Matrix3x2F::Translation({ 100, 100 });
         auto c = a * b;
         auto d = b * a;
-        int bk = 9;
     }
     viewport.RefWindow().ShowWindow();
     viewport.RefWindow().SetTitleName(u"Window");

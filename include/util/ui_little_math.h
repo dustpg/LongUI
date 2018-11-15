@@ -7,10 +7,10 @@ namespace LongUI { namespace detail {
         const float t = d < min ? min : d;
         return t > max ? max : t;
     }
-    // get percent value
-    inline auto get_percent_value(float f) noexcept { return f * 1e3f; }
     // is percent value?
     inline auto is_percent_value(float f) noexcept { return f > -1.f && f < 1.f; }
+    // get percent value
+    inline auto get_percent_value(float f) noexcept { return f * 1e3f; }
     // make percent value from 1.00
     inline auto mark_percent_from1(float f) noexcept { return f * 1e-3f; }
     // make percent value from 100%

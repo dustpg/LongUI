@@ -120,6 +120,7 @@ TextBC::CBCTextDocument::CBCTextDocument(IBCTextPlatform& plat, InitArgs args) n
     a->MarkAsBOL();
     //a->MarkAsEOL();
     m_head.next = a;
+    m_tail.prev = a;
 
     this->sync_cache_to_length(0);
     this->recalculate_content_size();

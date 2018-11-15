@@ -105,6 +105,8 @@ namespace LongUI {
         return{ str , str + len };
     }
 }
+
+#if 0
 // HELPER MACRO
 #define LUI_DECLARE_METHOD_FOR_CHAR_TYPE(T) \
     template<> PodStringView<T>::operator float() const noexcept;\
@@ -121,3 +123,5 @@ namespace LongUI {
     LUI_DECLARE_METHOD_FOR_CHAR_TYPE(char32_t);
 }
 #undef LUI_DECLARE_METHOD_FOR_CHAR_TYPE
+
+#endif

@@ -290,7 +290,9 @@
     <Natvis Include="..\src\naivis\z_vector.natvis">
       <SubType>Designer</SubType>
     </Natvis>
-    <Natvis Include="..\TextBC\bc_txtedit.natvis" />
+    <Natvis Include="..\TextBC\bc_txtedit.natvis">
+      <SubType>Designer</SubType>
+    </Natvis>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\accessible\ui_accessible.h" />

@@ -26,6 +26,7 @@
   </hbox>
   <hbox>
     <button flex="1" label="button" id="button"/>
+    <button flex="1" label="image" id="image"/>
   </hbox>
   <spacer flex="1"/>
 </window>

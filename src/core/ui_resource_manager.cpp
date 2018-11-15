@@ -222,7 +222,7 @@ namespace LongUI {
             if (SUCCEEDED(hr)) {
                 hr = converter->Initialize(
                     source,
-                    GUID_WICPixelFormat32bppPRGBA,
+                    GUID_WICPixelFormat32bppRGBA,
                     WICBitmapDitherTypeNone,
                     nullptr,
                     0.f,
@@ -701,6 +701,10 @@ auto LongUI::CUIResMgr::create_bitmap_private(
         I::Bitmap*& bitmap
         ) noexcept {
         const auto rgba = reinterpret_cast<const RGBA*>(color);
+        //if (const auto file = std::fopen("output.raw", "wb")) {
+        //    std::fwrite(rgba, 4, size.width * size.height, file);
+        //    std::fclose(file);
+        //}
         return this->CreateBitmap(size, rgba, pitch, bitmap).code;
     };
     return{

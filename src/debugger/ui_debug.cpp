@@ -169,7 +169,7 @@ void LongUI::CUIDebug::OutputString(
     if (!(UIManager.flag & ConfigureFlag::Flag_OutputDebugString)) return;
     static CUIConsole s_consoles[DebugStringLevel::DLEVEL_SIZE];
     auto& console = s_consoles[level];
-    auto create_console = [=]() noexcept {
+    const auto create_console = [=]() noexcept {
         CUIConsole::Config config;
         config.i16.x = -5;
         config.i16.y = int16_t(level) * 128;

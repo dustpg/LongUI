@@ -36,9 +36,6 @@
     <Filter Include="header\interface">
       <UniqueIdentifier>{1623c663-0142-4477-bb70-6dca3f0eeac5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="naivis">
-      <UniqueIdentifier>{f7855509-e0e5-416f-9c9b-ecd980fbcc29}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\control">
       <UniqueIdentifier>{c73d5931-ea5e-4a98-bbbd-c0ffe54a9e38}</UniqueIdentifier>
     </Filter>
@@ -146,6 +143,9 @@
     </Filter>
     <Filter Include="header\effect">
       <UniqueIdentifier>{cd46833d-9d7e-4619-96e7-9b5280f03c39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="natvis">
+      <UniqueIdentifier>{f7855509-e0e5-416f-9c9b-ecd980fbcc29}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -515,37 +515,37 @@
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\z_string_view.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\z_vector.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\color.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\float.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\z_hash.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\z_sharedarray.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\result.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\ui_control.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
     <Natvis Include="..\TextBC\bc_txtedit.natvis">
       <Filter>TextBC</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\simpax.natvis">
-      <Filter>naivis</Filter>
+      <Filter>natvis</Filter>
     </Natvis>
   </ItemGroup>
   <ItemGroup>

@@ -42,6 +42,9 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     assert(btn_stack);
     const auto btn_menubar = window.FindControl("menubar");
     assert(btn_menubar);
+    const auto btn_image = window.FindControl("image");
+    assert(btn_image);
+    
     
     CUIWindow* const parent = nullptr;
     // NORMAL
@@ -132,6 +135,12 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
     btn_menubar->AddGuiEventListener(
         UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
         create_viewport(u8"xul/menubar.xul"_sv, {});
+        return Event_Accept;
+    });
+    // IMAGE
+    btn_image->AddGuiEventListener(
+        UIButton::_onCommand(), [create_viewport](UIControl&) noexcept {
+        create_viewport(u8"xul/image.xul"_sv, {});
         return Event_Accept;
     });
 }
