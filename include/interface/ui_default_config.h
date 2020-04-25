@@ -57,6 +57,8 @@ namespace LongUI {
         void LoadDataFromUrl(U8View url_in_utf8, const CUIString& url_in_utf16, POD::Vector<uint8_t>& buffer) noexcept override;
         // show the error string
         void OnError(ErrorInfo info) noexcept override;
+        // when OOM
+        auto HandleOOM(uint32_t count, size_t size) noexcept ->CodeOOM override;
     public:
         // run a section script for event
         bool Evaluation(ScriptUI, UIControl&) noexcept override;

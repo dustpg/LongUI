@@ -476,6 +476,11 @@ namespace LongUI {
         // text changed, use this if you support text display for optimization
         bool                    m_bTextChanged : 1;
     public:
+#ifndef NDEBUG
+        // debug out
+        bool                    dbg_output : 1;
+#endif
+    public:
 #ifdef LUI_USER_INIPTR_DATA
         // user int data, for user accessing
         std::intptr_t           user_data = 0;

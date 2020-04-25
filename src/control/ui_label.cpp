@@ -137,6 +137,7 @@ auto LongUI::UILabel::DoEvent(
             return m_control.ctrl->DoEvent(this, e);
         return Event_Accept;
     case NoticeEvent::Event_ShowAccessKey:
+        // 显示/隐藏访问键
         this->ShowAccessKey(e.derived & 1);
         return Event_Accept;
     case NoticeEvent::Event_Initialize:
@@ -190,7 +191,7 @@ void LongUI::UILabel::setup_access_key() noexcept {
 /// <returns></returns>
 void LongUI::UILabel::ShowAccessKey(bool show) noexcept {
     if (m_chAccessKey && m_text) {
-        m_text.SetUnderline(m_uPosAkey,1, show);
+        m_text.SetUnderline(m_uPosAkey, 1, show);
         this->Invalidate();
     }
 }

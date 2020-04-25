@@ -516,6 +516,10 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
 //    return nullptr;
 //}
 
+#ifndef NDEBUG
+#include <constexpr/const_bkdr.h>
+#endif
+
 /// <summary>
 /// Parses the specified .
 /// </summary>
@@ -561,6 +565,11 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     // HASH 一致就认为一致即可
     switch (key & MASK_HASH)
     {
+#ifndef NDEBUG
+    case "debug"_bkdr:
+        this->dbg_output = value.ToBool();
+        break;
+#endif
     case BKDR_ID & MASK_HASH:
         // id         : 窗口唯一id
         m_id = UIManager.GetUniqueText(value);
@@ -820,6 +829,7 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     UIManager.AddInitList(*this);
 #ifndef NDEBUG
     this->name_dbg = meta.element_name;
+    this->dbg_output = false;
 #endif
 }
 

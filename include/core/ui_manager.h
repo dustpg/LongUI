@@ -138,6 +138,8 @@ namespace LongUI {
         void BreakMsgLoop(uintptr_t code) noexcept { this->config->BreakMsgLoop(code); }
         // msg-loop(could be in recursion)
         void RecursionMsgLoop() noexcept { this->config->RecursionMsgLoop(); }
+        // On OOM
+        auto HandleOOM(uint32_t retry_count, size_t try_alloc) noexcept->CodeOOM;
         // show error with result code
         bool ShowError(Result hr, const wchar_t* str_b = nullptr) noexcept;
         // load data from url

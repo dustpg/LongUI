@@ -16,6 +16,15 @@ namespace LongUI {
     struct ControlInfoList;
     // Font arg
     struct FontArg;
+    // Handle code : OOM
+    enum CodeOOM : uint32_t {
+        // ignore
+        OOM_Ignore = 0,
+        // retry
+        OOM_Retry,
+        // noreturn
+        OOM_NoReturn,
+    };
     // error info
     struct ErrorInfo {
         // sub error info
@@ -28,8 +37,8 @@ namespace LongUI {
         }               sub;
         // main error info
         enum MainError : uint32_t {
-            // out of memory - sub[0 or size to try alloc]
-            Error_OutOfMemory,
+            // No Error, [just a holder]
+            Error_NoError = 0,
             // file not found - sub[nullptr or filename]
             Error_FileNotFound_U8,
             // file not found - sub[nullptr or filename]
@@ -161,6 +170,13 @@ namespace LongUI {
         /// </summary>
         /// <param name="info">The information.</param>
         virtual void OnError(ErrorInfo info) noexcept = 0;
+        /// <summary>
+        /// Called when out of memory, won't be called on ctor
+        /// </summary>
+        /// <param name="retry_count">The retry count.</param>
+        /// <param name="try_alloc">The try alloc.</param>
+        /// <returns></returns>
+        virtual auto HandleOOM(uint32_t retry_count, size_t try_alloc) noexcept->CodeOOM = 0;
     public:
         // run a section script for event
         virtual bool Evaluation(ScriptUI, UIControl&) noexcept = 0;

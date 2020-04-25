@@ -5,7 +5,7 @@
 
 
 #define _CRT_SECURE_NO_WARNINGS
-#define CASE_NUM (16)
+#define CASE_NUM (11)
 
 #include <core/ui_string.h>
 #include <core/ui_manager.h>
@@ -762,37 +762,37 @@ function setText(textBoxID)
 <vbox flex="1" style="overflow: auto" >
 
    <hbox align="center">
-      <label style="width:10em" value="Default:"/>
+      <label style0="width:10em" value="Default:"/>
       <textbox id="default" oninput="setText('default');" />
    </hbox>
    <hbox align="center">
-      <label style="width:10em" value="Disabled:" />
+      <label style0="width:10em" value="Disabled:" />
       <textbox id="disabled" disabled="true" value="disabled" size="10"
                oninput="setText('disabled');" />
    </hbox>
    <hbox align="center">
-      <label style="width:10em"  value="Readonly:" />
-      <textbox id="readonly" readonly="true" value="readonly"  size="30"
+      <label style0="width:10em"  value="Readonly:" />
+      <textbox id="readonly" debug="0" readonly="true" value="readonly"  size="30"
                oninput="setText('readonly');" />
    </hbox>
    <hbox align="center">
-      <label style="width:10em" value="Max length of 20:"  />
+      <label style0="width:10em" value="Max length of 20:"  />
       <textbox id="max-length" maxlength="20"  size="20"
                oninput="setText('max-length');" />
    </hbox>
    <hbox align="center">
-      <label style="width:10em" value="Password:"  />
+      <label style0="width:10em" value="Password:"  />
       <textbox id="password" type="password" password="F"
                oninput="setText('password');" />
    </hbox>
    <hbox align="center">
-      <label style="width:10em" value="Multiline:"  />
+      <label style0="width:10em" value="Multiline:"  />
       <textbox id="multiline" multiline="true" rows="7" cols="20"
                oninput="setText('multiline');" />
    </hbox>
 
    <hbox  align="center">
-      <label style="width:10em" value="Input:"  />
+      <label style0="width:10em" value="Input:"  />
    </hbox>
 
 </vbox>

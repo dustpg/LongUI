@@ -33,21 +33,28 @@
 #include "../core/ui_const_sstring.h"
 #include "../util/ui_named_control.h"
 
+// RichED
+#include "../../RichED/ed_txtplat.h"
 // TextBC
-#include <../TextBC/bc_txtplat.h>
+//#include <../TextBC/bc_txtplat.h>
 
 // cursor
 #include <graphics/ui_cursor.h>
 
 // ui namespace
 namespace LongUI {
+    // longui <-> riched
+    using RichED::unit_t;
+    using RichED::CtxPtr;
+    using RichED::CEDTextCell;
     // textbox
     class UITextBox : public UIControl, 
-        protected TextBC::IBCTextPlatform {
+        protected RichED::IEDTextPlatform/*,
+        protected TextBC::IBCTextPlatform*/ {
         // super class
         using Super = UIControl;
         // text content
-        using Text = TextBC::IBCTextContent;
+        //using Text = TextBC::IBCTextContent;
         // private impl
         struct Private;
     protected:
@@ -82,6 +89,7 @@ namespace LongUI {
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
         // recreate device resource
         auto Recreate(bool release_only) noexcept->Result override;
+#if 0
     protected:
         // error beep
         void ErrorBeep() noexcept override;
@@ -105,10 +113,49 @@ namespace LongUI {
         void ContentEvent(Text&, MetricsEvent, void*) noexcept override;
 #ifndef NDEBUG
         // debug output
-        void DebugOutput(const char*) noexcept override;
+        //void DebugOutput(const char*) noexcept override;
         // draw cell
         void DrawCell(void* ctx, const TextBC::RectWHF& rect, int index) noexcept override;
 #endif
+#endif
+    protected:
+        // on out of memory, won't be called on ctor
+        auto OnOOM(uint32_t retry_count, size_t size) noexcept->RichED::HandleOOM override;
+        // is valid password
+        bool IsValidPassword(char32_t) noexcept override;
+        // append text
+        bool AppendText(CtxPtr ctx, RichED::U16View view) noexcept override;
+        // write to file
+        bool WriteToFile(CtxPtr, const uint8_t data[], uint32_t len) noexcept override;
+        // read from file
+        bool ReadFromFile(CtxPtr, uint8_t data[], uint32_t len) noexcept override;
+        // recreate context
+        void RecreateContext(CEDTextCell& cell) noexcept final override;
+        // delete context
+        void DeleteContext(CEDTextCell&) noexcept final override;
+        // draw context
+        void DrawContext(CtxPtr,CEDTextCell&, unit_t baseline) noexcept override;
+        // hit test
+        auto HitTest(CEDTextCell&, unit_t offset) noexcept->RichED::CellHitTest override;
+        // get char metrics
+        auto GetCharMetrics(CEDTextCell&, uint32_t pos) noexcept->RichED::CharMetrics override;
+#ifndef NDEBUG
+        // debug output
+        void DebugOutput(const char*) noexcept override;
+#endif
+    protected:
+        // draw selection
+        void draw_selection(I::Renderer2D&) const noexcept;
+        // draw img context
+        void draw_img_context(CtxPtr,CEDTextCell& cell, unit_t baseline) const noexcept;
+        // draw normal context
+        void draw_nom_context(CtxPtr,CEDTextCell& cell, unit_t baseline) const noexcept;
+        // draw effect context
+        void draw_efx_context(CtxPtr, CEDTextCell& cell, unit_t baseline) const noexcept;
+        // recreate img context
+        void recreate_img_context(CEDTextCell& cell) noexcept;
+        // recreate normal context
+        void recreate_nom_context(CEDTextCell& cell) noexcept;
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
@@ -134,6 +181,8 @@ namespace LongUI {
         TextFont                m_tfBuffer;
         // hovered curor
         CUICursor               m_hovered;
+        // private data
+        Private*                m_private = nullptr;
         // cols/size
         uint32_t                m_uCols = 20;
         // rows
@@ -144,8 +193,6 @@ namespace LongUI {
         uint16_t                m_flag = 0;
         // password char [UCS2 set only]
         char16_t                m_chPassword = 0x25cf;
-        // private data         TODO: NO POINTER
-        Private*                m_private = nullptr;
         // init textbox
         void init_textbox() noexcept;
         // init private data
@@ -167,15 +214,15 @@ namespace LongUI {
         // private mark password
         void private_mark_password() noexcept;
         // private mouse down
-        void private_mouse_down(Point2F, bool shift) noexcept;
+        bool private_mouse_down(Point2F, bool shift) noexcept;
         // private mouse up
-        void private_mouse_up(Point2F) noexcept;
+        bool private_mouse_up(Point2F) noexcept;
         // private mouse up
-        void private_mouse_move(Point2F) noexcept;
+        bool private_mouse_move(Point2F) noexcept;
         // private key down
-        void private_keydown(uint32_t key) noexcept;
+        bool private_keydown(uint32_t key) noexcept;
         // on char input
-        void private_char(char32_t) noexcept;
+        bool private_char(char32_t) noexcept;
         // private update
         void private_update() noexcept;
         // private resized

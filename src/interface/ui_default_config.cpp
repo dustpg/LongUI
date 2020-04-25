@@ -50,6 +50,19 @@ void LongUI::CUIDefaultConfigure::OnError(ErrorInfo info) noexcept {
     assert(!"error");
 }
 
+
+/// <summary>
+/// Called when [oom].
+/// </summary>
+/// <param name="count">The count.</param>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+auto LongUI::CUIDefaultConfigure::HandleOOM(uint32_t count, size_t size) noexcept -> CodeOOM {
+    assert(!"OOM");
+    std::exit(-1);
+    return OOM_NoReturn;
+}
+
 /// <summary>
 /// Gets the name of the locale.
 /// </summary>

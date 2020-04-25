@@ -32,6 +32,8 @@
 #define UNICALL __stdcall
 #define luiref
 
+#ifndef PCN_NOINLINE
+
 #if  LUI_COMPILER == LUI_COMPILER_MSVC
 #define PCN_NOINLINE __declspec(noinline)
 #define PCN_NOVTABLE __declspec(novtable)
@@ -44,3 +46,5 @@
 
 #define PCN_DLL_PUBLIC  PCN_DLLEXPRT
 #define PCN_DLL_PROTECT
+
+#endif

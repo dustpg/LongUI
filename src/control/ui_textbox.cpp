@@ -23,6 +23,8 @@
 // TextBC
 #include <../TextBC/bc_txtdoc.h>
 
+// error beep
+extern "C" void longui_error_beep();
 // ui namespace
 namespace LongUI {
     // UITextBox类 元信息
@@ -93,7 +95,10 @@ void LongUI::UITextBox::Update() noexcept {
     }
     // 污了
     this->private_update();
-    return Super::Update();
+    // 父类处理
+    Super::Update();
+    // 处理大小修改
+    this->size_change_handled();
 }
 
 /// <summary>
@@ -290,6 +295,7 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
 /// <returns></returns>
 auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept {
     Point2F pos = { e.px, e.py }; this->MapFromWindow(pos);
+    bool no_beep = true;
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_MouseWheelV:
@@ -310,10 +316,10 @@ auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAcce
         }
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
-        this->private_mouse_down(pos, !!(e.modifier & LongUI::Modifier_Shift));
+        no_beep = this->private_mouse_down(pos, !!(e.modifier & LongUI::Modifier_Shift));
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
-        this->private_mouse_up(pos);
+        no_beep = this->private_mouse_up(pos);
         break;
     case LongUI::MouseEvent::Event_RButtonDown:
         break;
@@ -326,6 +332,7 @@ auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAcce
     default:
         break;
     }
+    if (!no_beep) ::longui_error_beep();
     return Super::DoMouseEvent(e);
 }
 

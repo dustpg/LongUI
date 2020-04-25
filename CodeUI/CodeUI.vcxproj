@@ -153,6 +153,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\RichED\ed_txtbuf.cpp" />
+    <ClCompile Include="..\RichED\ed_txtcell.cpp" />
+    <ClCompile Include="..\RichED\ed_txtdoc.cpp" />
+    <ClCompile Include="..\RichED\ed_undoredo.cpp" />
     <ClCompile Include="..\src\accessible\ui_accessible_win.cpp" />
     <ClCompile Include="..\src\cfunciton\ui_colorsystem.c" />
     <ClCompile Include="..\src\cfunciton\ui_easing.c" />
@@ -276,6 +280,7 @@
     <ClCompile Include="..\TextBC\bc_txtstr.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Natvis Include="..\RichED\ed_txtedit.natvis" />
     <Natvis Include="..\src\naivis\color.natvis" />
     <Natvis Include="..\src\naivis\float.natvis" />
     <Natvis Include="..\src\naivis\result.natvis" />
@@ -459,6 +464,13 @@
     <ClInclude Include="..\include\util\ui_unimacro.h" />
     <ClInclude Include="..\include\xul\SimpAC.h" />
     <ClInclude Include="..\include\xul\SimpAX.h" />
+    <ClInclude Include="..\RichED\ed_common.h" />
+    <ClInclude Include="..\RichED\ed_config.h" />
+    <ClInclude Include="..\RichED\ed_txtbuf.h" />
+    <ClInclude Include="..\RichED\ed_txtcell.h" />
+    <ClInclude Include="..\RichED\ed_txtdoc.h" />
+    <ClInclude Include="..\RichED\ed_txtplat.h" />
+    <ClInclude Include="..\RichED\ed_undoredo.h" />
     <ClInclude Include="..\src\private\ui_console.h" />
     <ClInclude Include="..\src\private\ui_memory_stream.h" />
     <ClInclude Include="..\src\private\ui_private_control.h" />

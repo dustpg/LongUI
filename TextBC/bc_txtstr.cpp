@@ -14,6 +14,7 @@ void TextBC::CBCString::erase(uint32_t pos, uint32_t len) noexcept {
     const size_t moved = (m_length - pos) * sizeof(m_data[0]);
     std::memmove(m_data + pos, m_data + pos + len, moved);
     m_length -= len;
+    const uint16_t c = u'狼';
     this->mark_eos();
 }
 

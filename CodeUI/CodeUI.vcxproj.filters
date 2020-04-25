@@ -147,6 +147,9 @@
     <Filter Include="natvis">
       <UniqueIdentifier>{f7855509-e0e5-416f-9c9b-ecd980fbcc29}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RichED">
+      <UniqueIdentifier>{7b6f9a88-fda6-41b3-b7d4-61014e1ef5af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cfunciton\ui_colorsystem.c">
@@ -512,6 +515,18 @@
     <ClCompile Include="..\src\control\ui_richlist.cpp">
       <Filter>source\control</Filter>
     </ClCompile>
+    <ClCompile Include="..\RichED\ed_txtdoc.cpp">
+      <Filter>RichED</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RichED\ed_undoredo.cpp">
+      <Filter>RichED</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RichED\ed_txtbuf.cpp">
+      <Filter>RichED</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RichED\ed_txtcell.cpp">
+      <Filter>RichED</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -545,6 +560,9 @@
       <Filter>TextBC</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\simpax.natvis">
+      <Filter>natvis</Filter>
+    </Natvis>
+    <Natvis Include="..\RichED\ed_txtedit.natvis">
       <Filter>natvis</Filter>
     </Natvis>
   </ItemGroup>
@@ -1079,6 +1097,27 @@
     </ClInclude>
     <ClInclude Include="..\include\util\ui_fookgcc.h">
       <Filter>header\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RichED\ed_txtdoc.h">
+      <Filter>RichED</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RichED\ed_txtplat.h">
+      <Filter>RichED</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RichED\ed_undoredo.h">
+      <Filter>RichED</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RichED\ed_common.h">
+      <Filter>RichED</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RichED\ed_config.h">
+      <Filter>RichED</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RichED\ed_txtbuf.h">
+      <Filter>RichED</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RichED\ed_txtcell.h">
+      <Filter>RichED</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

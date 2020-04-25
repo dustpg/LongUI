@@ -11,7 +11,8 @@ void ui_debug_output_infow(const wchar_t* str) {
 #endif
 
 void longui_error_beep() {
-    MessageBeep(MB_ICONERROR);
+    MessageBeep(MB_ICONWARNING);
+    //MessageBeep(MB_ICONERROR);
 }
 
 void longui_open_href(const char* href) {
