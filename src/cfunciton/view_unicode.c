@@ -303,3 +303,59 @@ uint32_t ui_utf8_to_utf16(
 #endif
     return (uint32_t)(des - buf);
 }
+
+
+PCN_NOINLINE
+/// <summary>
+///  the UTF8 to UTF16.
+///  UTF8字符串 转 UTF32字符串
+/// </summary>
+/// <param name="buf">The buf.</param>
+/// <param name="buflen">The buflen.</param>
+/// <param name="src">The source.</param>
+/// <param name="end">The end.</param>
+/// <returns></returns>
+uint32_t ui_utf8_to_utf32(
+    char32_t* __restrict buf,
+    uint32_t buflen,
+    const char* __restrict src,
+    const char* end) {
+#ifndef NDEBUG
+    const uint32_t needed = ui_utf8_to_utf32_get_buflen(src, end);
+    assert(buflen >= needed && "buffer too small");
+#endif
+    uint32_t bufremain = buflen;
+    char32_t* __restrict des = buf;
+    // 遍历字符串
+    while (src < end) {
+        // 初始数据
+        char32_t ch = 0;
+        const unsigned char read = ui_bytes_for_utf8[(unsigned char)(*src)] - 1;
+        // 读取
+        switch (read)
+        {
+#ifndef NDEBUG
+        default:assert(!"bug"); break;
+        case 5:
+        case 4: assert(!"illegal utf-8 @ RFC 3629");
+#endif
+        case 3: ch += (unsigned char)(*src++); ch <<= 6;
+        case 2: ch += (unsigned char)(*src++); ch <<= 6;
+        case 1: ch += (unsigned char)(*src++); ch <<= 6;
+        case 0: ch += (unsigned char)(*src++);
+        }
+        // 减去偏移量
+        ch -= ui_offsets_from_utf8[read];
+        // 检查缓存是否富裕
+        if (!bufremain) break; --bufremain;
+        // 写入
+        des[0] = ch; des++;
+    }
+    // 收尾检查
+#ifndef NDEBUG
+    if (buflen >= needed) {
+        assert((uint32_t)(des - buf) == needed && "bug");
+    }
+#endif
+    return (uint32_t)(des - buf);
+}

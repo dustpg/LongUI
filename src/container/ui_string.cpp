@@ -391,6 +391,15 @@ extern "C" {
         const char* __restrict src,
         const char* end
     );
+    // utf-8 -> utf-32
+    uint32_t ui_utf8_to_utf32_get_buflen(const char* src, const char* end);
+    // utf-8 -> utf-32
+    uint32_t ui_utf8_to_utf32(
+        char32_t* __restrict buf,
+        uint32_t buflen,
+        const char* __restrict src,
+        const char* end
+    );
 }
 
 /// <summary>
@@ -412,6 +421,28 @@ void LongUI::detail::string_helper::string_u8_u16(
     if (str.is_ok()) {
         const auto ptr = reinterpret_cast<char16_t*>(str.m_pData);
         ::ui_utf8_to_utf16(ptr, len, begin, end);
+        ptr[str.m_uVecLen = len] = 0;
+    }
+}
+
+
+/// <summary>
+/// Strings the u8 u32.
+/// </summary>
+/// <param name="str">The string.</param>
+/// <param name="begin">The begin.</param>
+/// <param name="end">The end.</param>
+/// <returns></returns>
+void LongUI::detail::string_helper::string_u8_u32(
+    base_str& str, const char* begin, const char* end) noexcept{
+    assert(str.m_uByteLen == sizeof(char32_t));
+    // 计算所需缓存大小
+    const auto len = ::ui_utf8_to_utf32_get_buflen(begin, end);
+    str.reserve(len);
+    // 内存分配成功
+    if (str.is_ok()) {
+        const auto ptr = reinterpret_cast<char32_t*>(str.m_pData);
+        ::ui_utf8_to_utf32(ptr, len, begin, end);
         ptr[str.m_uVecLen = len] = 0;
     }
 }

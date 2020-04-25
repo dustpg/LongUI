@@ -183,16 +183,16 @@ namespace LongUI {
         CUICursor               m_hovered;
         // private data
         Private*                m_private = nullptr;
+        // max length
+        uint32_t                m_uMaxLength = 0x00ffffff;
+        // flag
+        uint32_t                m_flag = 0;
+        // password char
+        char32_t                m_chPassword = 0x25cf;
         // cols/size
         uint32_t                m_uCols = 20;
         // rows
         uint32_t                m_uRows = 1;
-        // max length
-        uint32_t                m_uMaxLength = 0x00ffffff;
-        // flag
-        uint16_t                m_flag = 0;
-        // password char [UCS2 set only]
-        char16_t                m_chPassword = 0x25cf;
         // init textbox
         void init_textbox() noexcept;
         // init private data

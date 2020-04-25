@@ -205,6 +205,14 @@ auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     return Event_Accept;
 }
 
+// utf-8 -> utf-32
+extern "C" uint32_t ui_utf8_to_utf32(
+    char32_t* __restrict buf,
+    uint32_t buflen,
+    const char* __restrict src,
+    const char* end
+);
+
 
 /// <summary>
 /// Adds the attribute.
@@ -275,10 +283,17 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         m_uMaxLength = static_cast<uint32_t>(value.ToInt32());
         break;
     case BKDR_PASSWORD:
-        // password:    密码使用的字符(目前只能用UCS2集)
+        // password:    密码使用的字符
         m_chPassword = [value]() noexcept {
-            const auto text = CUIString16::FromUtf8(value);
-            return static_cast<char16_t>(text.empty() ? '*' : text[0]);
+#if 0
+            const auto text = CUIString32::FromUtf8(value);
+            return static_cast<char32_t>(text.empty() ? '*' : text[0]);
+#else
+            constexpr uint32_t PWBL = 4;
+            char32_t buf[PWBL]; buf[0] = '*';
+            ::ui_utf8_to_utf32(buf, PWBL, value.begin(), value.end());
+            return  buf[0];
+#endif
         }();
         break;
     default:

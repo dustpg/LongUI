@@ -141,17 +141,21 @@ namespace LongUI {
         // ARG
         using namespace RichED;
         uint32_t u32color = box.m_tfBuffer.text.color.ToRGBA().primitive;
+        const DocFlag flags = static_cast<DocFlag>(box.m_flag);
         RichED::DocInitArg args {
             0, Direction_L2R, Direction_T2B,
             //0, Direction_T2B, Direction_R2L,
-            Flag_RichText | Flag_MultiLine, 
+            flags,
             box.m_chPassword, 
-            0xffffff, 0,
+            box.m_uMaxLength, 0,
             VAlign_Baseline, Mode_SpaceOrCJK,
             {  box.m_tfBuffer.font.size, u32color, 0, Effect_None }
         };
         RichED::IEDTextPlatform& platform = box;
         detail::ctor_dtor<doc_t>::create(&docbuf, platform, args);
+        const Result hr{ args.code };
+        // XXX: 错误处理
+        assert(hr);
         created = true;
     }
 }
@@ -286,6 +290,7 @@ void LongUI::UITextBox::private_mark_password() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::mark_change_could_trigger() noexcept {
+    assert(!"NOT IMPL");
     //m_flag |= TextBC::CBCTextDocument::Flag_Custom;
 }
 

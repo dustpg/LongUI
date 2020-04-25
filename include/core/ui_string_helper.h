@@ -32,13 +32,19 @@ namespace LongUI {
             }
             // string utf8 to utf-16
             static void string_u8_u16(base_str& str, const char*, const char*) noexcept;
+            // string utf8 to utf-32
+            static void string_u8_u32(base_str& str, const char*, const char*) noexcept;
+            // string utf8 to utf-xx
+            static void string_u8(char32_t, base_str& str, const char* a, const char* b) noexcept {
+                string_u8_u32(str, a, b);
+            }
             // string utf8 to utf-xx
             static void string_u8(char16_t, base_str& str, const char* a, const char* b) noexcept {
                 string_u8_u16(str, a, b);
             }
             // string utf8 to utf-xx
             static void string_u8(wchar_t, base_str& str, const char* a, const char* b) noexcept {
-                    string_u8(wcharxx_t{}, str, a, b);
+                string_u8(wcharxx_t{}, str, a, b);
             }
 #ifdef OPTIMIZATION_STRING_SPLIT_WITHIN_SINGLE_CHAR
             // string split with single char

@@ -43,6 +43,21 @@ extern const char* xul_test;
 extern const char* xul_tabs;
 
 
+extern "C" {
+    uint32_t ui_utf8_to_utf32(
+        char32_t* __restrict buf,
+        uint32_t buflen,
+        const char* __restrict src,
+        const char* end
+    );
+    uint32_t ui_utf8_to_utf16(
+        char16_t* __restrict buf,
+        uint32_t buflen,
+        const char* __restrict src,
+        const char* end
+    );
+}
+
 #include <interface/ui_default_config.h>
 #include <text/ui_ctl_arg.h>
 #include <util/ui_fookgcc.h>
@@ -163,6 +178,12 @@ DWORD GetVersion(const wchar_t* lpszDllName)
 
 
 extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
+
+    const char string[] = u8"𤭢𤭢𤭢";
+    char32_t buf1[32]; char16_t buf2[64];
+    ::ui_utf8_to_utf32(buf1, 32, string, string + sizeof(string));
+    ::ui_utf8_to_utf16(buf2, 64, string, string + sizeof(string));
+
     //LongUI::wcharxx_t a;
     const auto code = LongUI::BKDRHash("tooltiptext");
     ::HeapSetInformation(nullptr, HeapEnableTerminationOnCorruption, nullptr, 0);
@@ -782,7 +803,7 @@ function setText(textBoxID)
    </hbox>
    <hbox align="center">
       <label style0="width:10em" value="Password:"  />
-      <textbox id="password" type="password" password="F"
+      <textbox id="password" type="password" password="🐕"
                oninput="setText('password');" />
    </hbox>
    <hbox align="center">
