@@ -35,7 +35,7 @@
 #endif
 
 // error beep
-extern "C" void longui_error_beep();
+extern "C" void longui_error_beep() noexcept;
 
 // LongUI::impl
 namespace LongUI { namespace impl {
@@ -169,6 +169,8 @@ namespace LongUI {
         void begin_render() const noexcept;
         // begin render
         auto end_render() const noexcept->Result;
+        // render caret
+        void render_caret(I::Renderer2D&) const noexcept;
         // clean up
         //void cleanup() noexcept;
     public:
@@ -178,6 +180,8 @@ namespace LongUI {
         static void DeleteWindow(HWND hwnd) noexcept;
         // delete window
         static void PostDeleteWindow(HWND hwnd) noexcept;
+        // draw caret
+        static void DrawCaret() noexcept {};
         // reelase device data
         void ReleaseDeviceData() noexcept { this->release_data();  }
         // ctor
@@ -223,6 +227,8 @@ namespace LongUI {
         void OnAccessKey(uintptr_t id) noexcept;
         // on dpi changed
         void OnDpiChanged(uintptr_t, const RectL& rect) noexcept;
+        // IME postion
+        bool OnIME(HWND hwnd) const noexcept;
     public:
         // full render this frame?
         inline bool is_full_render_for_update() const noexcept { return full_render_for_update; }
@@ -267,6 +273,8 @@ namespace LongUI {
         UIViewport*     common_tooltip = nullptr;
         // now cursor
         CUICursor       cursor = { CUICursor::Cursor_Arrow };
+        // rect of caret
+        RectF           caret = {};
         // rect of window
         RectWHL         rect = {};
         // window adjust
@@ -344,6 +352,8 @@ namespace LongUI {
         UIControl*      access_key_map['Z' - 'A' + 1];
         // text render type
         uint32_t        text_antialias = 0;
+        // caret on
+        bool            caret_ok = false;
     private:
         // toggle access key display
         void toggle_access_key_display() noexcept;
@@ -400,7 +410,7 @@ m_private(new(std::nothrow) Private) {
     // 初始化默认大小位置
     m_private->InitWindowPos();
     // XXX: 自动睡眠?
-    //if (this->IsAutpSleep()) {
+    //if (this->IsAutoSleep()) {
 
     //}
     //else this->WakeUp();
@@ -782,6 +792,27 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     return true;
 }
 
+/// <summary>
+/// Shows the caret.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::ShowCaret(const UIControl& ctrl, const RectF& rect) noexcept {
+    assert(this && m_private);
+    m_private->caret_ok = true;
+    m_private->caret = rect;
+    ctrl.MapToWindow(m_private->caret);
+}
+
+/// <summary>
+/// Hides the caret.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::HideCaret() noexcept {
+    m_private->caret_ok = false;
+
+}
 
 /// <summary>
 /// Sets the capture.
@@ -1131,7 +1162,7 @@ void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::TrySleep() noexcept {
     if (this->IsInSleepMode()) return;
-    if (!this->IsAutpSleep()) return;
+    if (!this->IsAutoSleep()) return;
     if (!m_private->children.empty()) return;
     m_private->auto_sleep_count = 1;
 }
@@ -1488,7 +1519,7 @@ void LongUI::CUIWindow::Private::toggle_access_key_display() noexcept {
 // c
 extern "C" {
     // char16 -> char32
-    char32_t impl_char16x2_to_char32(char16_t lead, char16_t trail);
+    char32_t impl_char16x2_to_char32(char16_t lead, char16_t trail) noexcept;
 }
 
 /// <summary>
@@ -2033,6 +2064,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
     else
         switch (message)
         {
+            PAINTSTRUCT ps;
         case detail::msg_post_delete_window:
             Private::DeleteWindow(hwnd);
             return 0;
@@ -2081,14 +2113,26 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         //case WM_NCCALCSIZE:
         //    if (wParam) return 0;
         //    break;
+#if 0
         case WM_SETFOCUS:
+            ::CreateCaret(hwnd, (HBITMAP)NULL, 2, 20);
+            ::SetCaretPos(50, 50);
+            ::ShowCaret(hwnd);
             return 0;
         case WM_KILLFOCUS:
+            ::HideCaret(hwnd);
+            ::DestroyCaret();
+
+#endif
             if (this->viewport->RefWindow().config & CUIWindow::Config_Popup) {
                 // CloseWindow 仅仅最小化窗口
                 ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
             }
             return 0;
+        case WM_PAINT:
+            ::BeginPaint(hwnd, &ps);
+            ::EndPaint(hwnd, &ps);
+            break;
         case WM_SIZE:
             // 先关闭弹出窗口再说
             this->ClosePopup();
@@ -2126,12 +2170,18 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
                 info->ptMinTrackSize.y += DEFAULT_CONTROL_HEIGHT;
             }(reinterpret_cast<MINMAXINFO*>(lParam));
             return 0;
+        case WM_IME_CHAR:
+            // TODO: 针对IME输入的优化
+            break;
         case WM_CHAR:
             this->OnChar(static_cast<char16_t>(wParam));
             return 0;
         case WM_UNICHAR:
             this->OnCharTs(static_cast<char32_t>(wParam));
             return 0;
+        case WM_IME_COMPOSITION:
+            this->OnIME(hwnd);
+            break;
         case WM_MOVING:
             // LOCK: 加锁?
             this->rect.top = reinterpret_cast<RECT*>(lParam)->top;
@@ -2175,6 +2225,39 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
     return ::DefWindowProcW(hwnd, message, wParam, lParam);
 }
 
+/// <summary>
+/// Called when [IME].
+/// </summary>
+/// <returns></returns>
+bool LongUI::CUIWindow::Private::OnIME(HWND hwnd) const noexcept {
+    // 有效性
+    if (!this->caret_ok) return false;
+    bool code = false;
+    const auto caret_x = static_cast<LONG>(this->caret.left);
+    const auto caret_y = static_cast<LONG>(this->caret.top);
+    const auto ctrl_w = this->rect.width;
+    const auto ctrl_h = this->rect.height;
+    if (caret_x >= 0 && caret_y >= 0 && caret_x < ctrl_w && caret_y < ctrl_h) {
+        HIMC imc = ::ImmGetContext(hwnd);
+        // TODO: caret 高度可能不是字体高度
+        const auto caret_h = static_cast<LONG>(this->caret.bottom - this->caret.top);
+        if (::ImmGetOpenStatus(imc)) {
+            COMPOSITIONFORM cf = { 0 };
+            cf.dwStyle = CFS_POINT;
+            cf.ptCurrentPos.x = caret_x;
+            cf.ptCurrentPos.y = caret_y;
+            if (::ImmSetCompositionWindow(imc, &cf)) {
+                LOGFONTW lf = { 0 };
+                lf.lfHeight = caret_h;
+                // TODO: 富文本支持
+                //lf.lfItalic
+                if (::ImmSetCompositionFontW(imc, &lf)) code = true;
+            }
+        }
+        ::ImmReleaseContext(hwnd, imc);
+    }
+    return code;
+}
 
 // ----------------------------------------------------------------------------
 // ------------------- Graphics
@@ -2501,8 +2584,8 @@ void LongUI::CUIWindow::Private::begin_render() const noexcept {
 auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     auto& renderer = UIManager.Ref2DRenderer();
     renderer.SetTransform({ 1.f,0.f,0.f,1.f,0.f,0.f });
-    // TODO: 渲染插入符号
-
+    // 渲染插入符号
+    this->render_caret(renderer);
 #ifndef NDEBUG
     // 显示
     if (UIManager.flag & ConfigureFlag::Flag_DbgDrawDirtyRect) {
@@ -2642,6 +2725,19 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     return hr;
 }
 
+
+/// <summary>
+/// Renders the caret.
+/// </summary>
+/// <param name="renderer">The renderer.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noexcept {
+    // FIXME: 渲染插入符号
+    if (this->caret_ok) {
+        const auto red = ColorF::FromRGBA_CT<RGBA_Red>();
+        renderer.FillRectangle(auto_cast(this->caret), &UIManager.RefCCBrush(red));
+    }
+}
 
 
 /// <summary>

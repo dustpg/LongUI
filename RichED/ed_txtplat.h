@@ -44,7 +44,7 @@ namespace RichED {
         // read from file
         virtual bool ReadFromFile(CtxPtr, uint8_t data[], uint32_t len) noexcept = 0;
         // recreate context
-        virtual void RecreateContext(CEDTextCell& cell) noexcept = 0;
+        virtual void RecreateContext(CEDTextCell& cell/*, U16View real*/) noexcept = 0;
         // delete context
         virtual void DeleteContext(CEDTextCell&) noexcept = 0;
         // draw context
@@ -55,7 +55,7 @@ namespace RichED {
         virtual auto GetCharMetrics(CEDTextCell&, uint32_t pos) noexcept ->CharMetrics =0;
 #ifndef NDEBUG
         // debug output
-        virtual void DebugOutput(const char*) noexcept = 0;
+        virtual void DebugOutput(const char*, bool high) noexcept = 0;
 #endif
     };
 }

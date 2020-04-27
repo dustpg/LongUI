@@ -19,7 +19,7 @@ namespace LongUI {
 }
 
 // open href
-extern "C" void longui_open_href(const char* ref);
+extern "C" void longui_open_href(const char* ref) noexcept;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UILabel" /> class.

@@ -21,13 +21,13 @@ auto LongUI::detail::strlen(const unwchar_t ptr[]) noexcept -> size_t {
 // atof view
 extern "C" {
     // atof
-    double ui_function_view_atof_le(const char* begin, const char* end, char step);
+    double ui_function_view_atof_le(const char* begin, const char* end, char step) noexcept;
     // atoi
-    int32_t ui_function_view_atoi_le(const char* begin, const char* end, char step);
+    int32_t ui_function_view_atoi_le(const char* begin, const char* end, char step) noexcept;
     // rgb32
-    uint32_t ui_web_color_name_to_rgb32(const char* begin, const char* end, char step);
+    uint32_t ui_web_color_name_to_rgb32(const char* begin, const char* end, char step) noexcept;
     // argb32
-    uint32_t ui_web_color_string_to_rgba32(const char* begin, const char* end, char step);
+    uint32_t ui_web_color_string_to_rgba32(const char* begin, const char* end, char step) noexcept;
 }
 
 

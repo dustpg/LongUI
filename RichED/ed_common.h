@@ -283,8 +283,8 @@ namespace RichED {
         DocFlag             flags;
         // password char
         char32_t            password;
-        // max char count
-        uint32_t            max_char;
+        // max char length
+        uint32_t            length_max;
         // fixed lineheight
         unit_t              fixed_lineheight;
         // valign
@@ -302,22 +302,21 @@ namespace RichED {
     };
     // normal info
     struct alignas(void*) DocInfo {
-        // string total length
+        // string total length, CRLF not included
         uint32_t        total_length;
+        // max char length
+        uint32_t        length_max;
         // string total count
-        uint32_t        total_count;
+        //uint32_t        total_count;
         // display line-num end
         uint32_t        display_line_begin;
         // display line-num end
         uint32_t        display_line_end;
 
-
         // flags
         DocFlag         flags;
-        // password char
-        char32_t        password;
-        // max char count
-        uint32_t        max_char;
+        // password char [char16 x 2]
+        char32_t        password_cha16x2;
         // fixed lineheight
         unit_t          fixed_lineheight;
         // vertical align

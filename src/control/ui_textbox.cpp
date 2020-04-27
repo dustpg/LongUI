@@ -24,7 +24,8 @@
 #include <../TextBC/bc_txtdoc.h>
 
 // error beep
-extern "C" void longui_error_beep();
+extern "C" void longui_error_beep() noexcept;
+
 // ui namespace
 namespace LongUI {
     // UITextBox类 元信息
@@ -109,8 +110,18 @@ void LongUI::UITextBox::Update() noexcept {
 auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
     switch (event)
     {
+    case LongUI::GuiEvent::Event_OnFocus:
+        // 更新插入符号位置大小[Focus 肯定有Window了]
+        assert(m_pWindow);
+        this->show_caret();
+        break;
     case LongUI::GuiEvent::Event_OnBlur:
+        // 失去焦点时, 如果编辑文本修改则触发[change事件]
+        // 注: 每修改一个字符就触发[change事件]对与逻辑层意义不大
         this->try_trigger_change_event();
+        // 取消显示插入符号 [Blur 肯定有Window了]
+        assert(m_pWindow);
+        m_pWindow->HideCaret();
         break;
     }
     return Super::TriggerEvent(event);
@@ -177,13 +188,14 @@ void LongUI::UITextBox::init_textbox() noexcept {
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
+    bool op_ok = true;
     switch (e.event)
     {
     case InputEvent::Event_Char:
-        this->private_char(e.character);
+        op_ok = this->private_char(e.character);
         break;
     case InputEvent::Event_KeyDown:
-        this->private_keydown(e.character);
+        op_ok = this->private_keydown(e.character);
         break;
 #ifdef LUI_TEXTBOX_USE_UNIFIED_INPUT
     case InputEvent::Event_TurnLeft:
@@ -202,6 +214,8 @@ auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     default:
         return Super::DoInputEvent(e);
     }
+    // XXX: 其他方式?
+    if (!op_ok) ::longui_error_beep();
     return Event_Accept;
 }
 
@@ -211,7 +225,7 @@ extern "C" uint32_t ui_utf8_to_utf32(
     uint32_t buflen,
     const char* __restrict src,
     const char* end
-);
+) noexcept;
 
 
 /// <summary>
@@ -310,7 +324,7 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
 /// <returns></returns>
 auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept {
     Point2F pos = { e.px, e.py }; this->MapFromWindow(pos);
-    bool no_beep = true;
+    bool op_ok = true;
     switch (e.type)
     {
     case LongUI::MouseEvent::Event_MouseWheelV:
@@ -331,10 +345,10 @@ auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAcce
         }
         break;
     case LongUI::MouseEvent::Event_LButtonDown:
-        no_beep = this->private_mouse_down(pos, !!(e.modifier & LongUI::Modifier_Shift));
+        op_ok = this->private_mouse_down(pos, !!(e.modifier & LongUI::Modifier_Shift));
         break;
     case LongUI::MouseEvent::Event_LButtonUp:
-        no_beep = this->private_mouse_up(pos);
+        op_ok = this->private_mouse_up(pos);
         break;
     case LongUI::MouseEvent::Event_RButtonDown:
         break;
@@ -347,7 +361,8 @@ auto LongUI::UITextBox::DoMouseEvent(const MouseEventArg& e) noexcept->EventAcce
     default:
         break;
     }
-    if (!no_beep) ::longui_error_beep();
+    // XXX: 其他方式?
+    if (!op_ok) ::longui_error_beep();
     return Super::DoMouseEvent(e);
 }
 

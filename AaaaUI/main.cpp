@@ -49,13 +49,13 @@ extern "C" {
         uint32_t buflen,
         const char* __restrict src,
         const char* end
-    );
+    ) noexcept;
     uint32_t ui_utf8_to_utf16(
         char16_t* __restrict buf,
         uint32_t buflen,
         const char* __restrict src,
         const char* end
-    );
+    ) noexcept;
 }
 
 #include <interface/ui_default_config.h>
@@ -797,8 +797,8 @@ function setText(textBoxID)
                oninput="setText('readonly');" />
    </hbox>
    <hbox align="center">
-      <label style0="width:10em" value="Max length of 20:"  />
-      <textbox id="max-length" maxlength="20"  size="20"
+      <label style0="width:10em" value="Max length of 10:"  />
+      <textbox id="max-length" maxlength="10"  size="20"
                oninput="setText('max-length');" />
    </hbox>
    <hbox align="center">

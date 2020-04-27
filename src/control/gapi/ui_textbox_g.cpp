@@ -2,6 +2,7 @@
 #include <luiconf.h>
 #include <control/ui_textbox.h>
 // ui
+#include <core/ui_window.h>
 #include <core/ui_manager.h>
 #include <text/ui_ctl_impl.h>
 #include <input/ui_kminput.h>
@@ -54,10 +55,10 @@ namespace LongUI {
         void release_doc() noexcept;
         // doc map to this control
         void doc_map(float point[2]) noexcept;
-
+        // buffer type
+        using aligned_st = std::aligned_storage<sizeof(doc_t), alignof(doc_t)>;
         // document() buffer
-        std::aligned_storage<sizeof(doc_t), alignof(doc_t)>
-            ::type                          docbuf;
+        aligned_st::type                    docbuf;
         // cluster buffer 
         POD::Vector<DWRITE_CLUSTER_METRICS> cluster_buffer;
         // text
@@ -75,6 +76,8 @@ namespace LongUI {
         // selection cached synchronized
         bool                                selc_need_sync = false;
 #endif
+        // text changed via user-input
+        bool                                text_changed = false;
         // created flag
         bool                                created = false;
         // cached
@@ -195,6 +198,8 @@ auto LongUI::UITextBox::Recreate(bool release_only) noexcept -> Result {
 /// <param name="ch">The char</param>
 /// <returns></returns>
 bool LongUI::UITextBox::private_char(char32_t ch) noexcept {
+    // 暂时使用次帧刷新
+    this->NextUpdate();
     assert(m_private && "OOM");
     //m_private->document().OnChar(ch);
     return m_private->document().GuiChar(ch);
@@ -290,8 +295,9 @@ void LongUI::UITextBox::private_mark_password() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::mark_change_could_trigger() noexcept {
-    assert(!"NOT IMPL");
     //m_flag |= TextBC::CBCTextDocument::Flag_Custom;
+    assert(m_private && "BAD ACTION");
+    m_private->text_changed = true;
 }
 
 /// <summary>
@@ -300,6 +306,8 @@ void LongUI::UITextBox::mark_change_could_trigger() noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::clear_change_could_trigger() noexcept {
     //m_flag &= ~TextBC::CBCTextDocument::Flag_Custom;
+    assert(m_private && "BAD ACTION");
+    m_private->text_changed = false;
 }
 
 /// <summary>
@@ -309,7 +317,34 @@ void LongUI::UITextBox::clear_change_could_trigger() noexcept {
 bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
     //static_assert(TextBC::CBCTextDocument::Flag_Custom == 1, "must be 1");
     //return m_flag & TextBC::CBCTextDocument::Flag_Custom;
-    return false;
+    assert(m_private && "BAD ACTION");
+    m_private->text_changed = false;
+    return m_private->text_changed;
+}
+
+/// <summary>
+/// Shows the caret.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::show_caret() noexcept {
+    assert(m_private);
+    auto caret = m_private->document().GetCaret();
+    // 调整到内容区域
+    const auto lt = this->GetBox().GetContentPos();
+    caret.x += lt.x; caret.y += lt.y;
+    // GetCaret返回的矩形宽度没有意义, 可以进行自定义
+    const float custom_width = 2.f;
+    const float offset_rate = 0.0f;
+    RectF rect = {
+        caret.x - custom_width * offset_rate,       // 向前后偏移
+        caret.y + 1,                                // 上下保留一个单位的空白以保持美观
+        caret.x + custom_width * (1 - offset_rate), // 向后后偏移
+        caret.y + caret.height - 1                  // 上下保留一个单位的空白以保持美观
+    };
+
+    m_private->doc_map(&rect.left);
+    m_private->doc_map(&rect.right);
+    m_pWindow->ShowCaret(*this, rect);
 }
 
 /// <summary>
@@ -326,14 +361,13 @@ void LongUI::UITextBox::private_update() noexcept {
         //if (values & RichED::Changed_Selection) {
         //    LUIDebug(Hint) << "Changed_Selection" << LongUI::endl;
         //}
-        // XXX: 插入符号
+        // 插入符号
         if (values & RichED::Changed_Caret) {
-            //::SetTimer(data.hwnd, reinterpret_cast<uintptr_t>(this), caret_blink_time, nullptr);
-            //this->caret_blink_i = 1;
+            this->show_caret();
         }
         // 文本修改
         if (values & RichED::Changed_Text) {
-
+            m_private->text_changed = true;
         }
     }
 #if 0
@@ -353,14 +387,6 @@ void LongUI::UITextBox::private_update() noexcept {
 #endif
 }
 
-/// <summary>
-/// Ons the selected changed.
-/// </summary>
-/// <returns></returns>
-void LongUI::UITextBox::on_selected_changed() noexcept {
-    // TODO: _onSelect() ?
-    //this->TriggerEvent(_selectionChanged());
-}
 
 /// <summary>
 /// Privates the resize.
@@ -381,6 +407,7 @@ void LongUI::UITextBox::private_resize(Size2F size) noexcept {
 /// <param name="shift">if set to <c>true</c> [shift].</param>
 /// <returns></returns>
 bool LongUI::UITextBox::private_mouse_down(Point2F pos, bool shift) noexcept {
+    this->NeedUpdate();
     auto& doc = m_private->document();
     const auto lt = this->GetBox().GetContentPos();
     //doc.OnLButtonDown({ pos.x - lt.x, pos.y - lt.y }, shift);
@@ -393,8 +420,8 @@ bool LongUI::UITextBox::private_mouse_down(Point2F pos, bool shift) noexcept {
 /// <param name="pos">The position.</param>
 /// <returns></returns>
 bool LongUI::UITextBox::private_mouse_up(Point2F pos) noexcept {
-    auto& doc = m_private->document();
-    const auto lt = this->GetBox().GetContentPos();
+    //auto& doc = m_private->document();
+    //const auto lt = this->GetBox().GetContentPos();
     //doc.OnLButtonUp({ pos.x - lt.x, pos.y - lt.y });
     //return doc.GuiLButtonHold
     return true;
@@ -407,7 +434,7 @@ bool LongUI::UITextBox::private_mouse_up(Point2F pos) noexcept {
 /// <param name="pos">The position.</param>
 /// <returns></returns>
 bool LongUI::UITextBox::private_mouse_move(Point2F pos) noexcept {
-    this->NextUpdate();
+    this->NeedUpdate();
     auto& doc = m_private->document();
     const auto lt = this->GetBox().GetContentPos();
     //doc.OnLButtonHold({ pos.x - lt.x, pos.y - lt.y });
@@ -689,7 +716,6 @@ void LongUI::UITextBox::DrawCaret(void* ctx, TextBC::Point2F offset, const TextB
     renderer->FillRectangle({
         x, y, rect.x + rect.width, rect.y + rect.height
     }, &UIManager.RefCCBrush(red));
-
 }
 
 
@@ -1042,6 +1068,8 @@ auto LongUI::UITextBox::HitTest(CEDTextCell& cell, unit_t offset) noexcept -> Ri
             rv.pos = htm.textPosition;
             rv.trailing = hint;
             rv.length = htm.length;
+            // 密码帮助
+            m_private->document().PWHelperHit(cell, rv);
         }
     }
     return rv;
@@ -1079,9 +1107,11 @@ auto LongUI::UITextBox::GetCharMetrics(CEDTextCell& cell, uint32_t pos) noexcept
                 cm.offset = cell.metrics.width;
             }
             else {
+                // 密码模式
+                const auto real_pos = m_private->document().PWHelperPos(cell, pos);
                 assert(m_private);
                 auto& buf = m_private->cluster_buffer;
-                const uint32_t size = pos + 1;
+                const uint32_t size = real_pos + 1;
                 buf.resize(size);
                 if (buf.is_ok()) {
                     uint32_t max_count = 0;
@@ -1096,7 +1126,7 @@ auto LongUI::UITextBox::GetCharMetrics(CEDTextCell& cell, uint32_t pos) noexcept
                         const auto&x = data_ptr[i];
                         width += last_width = x.width;
                         // 防止万一用>=
-                        if (char_index >= pos) break;
+                        if (char_index >= real_pos) break;
                         char_index += x.length;
                     }
                     // 写回返回值
@@ -1117,8 +1147,10 @@ auto LongUI::UITextBox::GetCharMetrics(CEDTextCell& cell, uint32_t pos) noexcept
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
-void LongUI::UITextBox::DebugOutput(const char* txt) noexcept {
-    if (this->dbg_output) 
+void LongUI::UITextBox::DebugOutput(const char* txt, bool high) noexcept {
+    if (high) 
+        LUIDebug(Error) << CUIString::FromUtf8(txt) << endl;
+    else if (this->dbg_output) 
         LUIDebug(Hint) << CUIString::FromUtf8(txt) << endl;
 }
 #endif
@@ -1264,10 +1296,14 @@ void LongUI::UITextBox::recreate_nom_context(CEDTextCell& cell) noexcept {
     // 富文本
     //m_private->document().RefInfo.flags & RichED::Flag_RichText;
     auto& text = reinterpret_cast<I::Text*&>(cell.ctx.context);
-    TextArg targ = {};
-    targ.string = str.data;
-    targ.length = str.length;
-    auto hr = UIManager.CreateCtlText(targ, luiref text);
+    // 密码帮助
+    Result hr = m_private->document().PWHelperView([&text](RichED::U16View view) noexcept {
+        TextArg targ = {};
+        // TODO: 字体/富文本
+        targ.string = view.first;
+        targ.length = view.second - view.first;
+        return UIManager.CreateCtlText(targ, luiref text);
+    }, cell);
     // 测量CELL
     if (cell.RefMetaInfo().dirty) {
         const auto layout = reinterpret_cast<IDWriteTextLayout*>(cell.ctx.context);

@@ -6,23 +6,23 @@
 
 extern "C" {
     // utf-16 -> utf-8
-    uint32_t ui_utf16_to_utf8_get_buflen(const char16_t* src, const char16_t* end);
+    uint32_t ui_utf16_to_utf8_get_buflen(const char16_t* src, const char16_t* end) noexcept;
     // utf-8 -> utf-16
-    uint32_t ui_utf8_to_utf16_get_buflen(const char* src, const char* end);
+    uint32_t ui_utf8_to_utf16_get_buflen(const char* src, const char* end) noexcept;
     // utf-16 -> utf-8
     uint32_t ui_utf16_to_utf8(
         char* __restrict buf, 
         uint32_t buflen,
         const char16_t* __restrict src , 
         const char16_t* end
-    );
+    ) noexcept;
     // utf-8 -> utf-16
     uint32_t ui_utf8_to_utf16(
         char16_t* __restrict buf,
         uint32_t buflen,
         const char* __restrict src,
         const char* end
-    );
+    ) noexcept;
 }
 
 /// <summary>

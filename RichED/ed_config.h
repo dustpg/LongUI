@@ -38,9 +38,13 @@ namespace RichED {
 #ifdef NDEBUG
         // fixed length, 1 for surrogate
         TEXT_CELL_STR_MAXLEN = 63,
+        // password input buffer [via IME or API]
+        PASSWORD_INPUT_BUFFER = 32,
 #else
         // fixed length, 1 for surrogate
         TEXT_CELL_STR_MAXLEN = 9,
+        // password input buffer [via IME or API]
+        PASSWORD_INPUT_BUFFER = 2,
 #endif
         // merge min len
         TEXT_MERGE_LEN = 4,

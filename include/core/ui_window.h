@@ -101,7 +101,7 @@ namespace LongUI {
         // mark full rendering
         void MarkFullRendering() noexcept;
         // is auto sleep?
-        bool IsAutpSleep() const noexcept { return !!(config & Config_Popup); }
+        bool IsAutoSleep() const noexcept { return !!(config & Config_Popup); }
         // is in sleep mode?
         auto IsInSleepMode() const noexcept { return !m_hwnd; }
         // into sleep mode immediately
@@ -172,6 +172,10 @@ namespace LongUI {
         // set now cursor to default
         void SetNowCursor(std::nullptr_t) noexcept;
     public:
+        // show caret
+        void ShowCaret(const UIControl&ctrl, const RectF& rect) noexcept;
+        // hide caret
+        void HideCaret() noexcept;
         // register access key
         void RegisterAccessKey(UIControl& ctrl) noexcept;
         // find control, return null if notfound

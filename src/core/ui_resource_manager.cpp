@@ -34,6 +34,7 @@
 #pragma comment(lib, "dxgi")
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "d3d11")
+#pragma comment(lib, "Imm32")
 #pragma comment(lib, "dwrite")
 #pragma comment(lib, "windowscodecs")
 

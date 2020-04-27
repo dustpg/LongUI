@@ -4,7 +4,7 @@
 #include <core/ui_malloc.h>
 
 #ifndef NDEBUG
-extern "C" void ui_debug_output_infow(const wchar_t*);
+extern "C" void ui_debug_output_infow(const wchar_t*) noexcept;
 #endif
 
 // TODO: 等待aligned_malloc进入C++标准, 使用m_uAlignLen

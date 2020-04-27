@@ -383,23 +383,23 @@ void LongUI::detail::string_helper::string_split(
 
 extern "C" {
     // utf-8 -> utf-16
-    uint32_t ui_utf8_to_utf16_get_buflen(const char* src, const char* end);
+    uint32_t ui_utf8_to_utf16_get_buflen(const char* src, const char* end) noexcept;
+    // utf-8 -> utf-32
+    uint32_t ui_utf8_to_utf32_get_buflen(const char* src, const char* end) noexcept;
     // utf-8 -> utf-16
     uint32_t ui_utf8_to_utf16(
         char16_t* __restrict buf,
         uint32_t buflen,
         const char* __restrict src,
         const char* end
-    );
-    // utf-8 -> utf-32
-    uint32_t ui_utf8_to_utf32_get_buflen(const char* src, const char* end);
+    ) noexcept;
     // utf-8 -> utf-32
     uint32_t ui_utf8_to_utf32(
         char32_t* __restrict buf,
         uint32_t buflen,
         const char* __restrict src,
         const char* end
-    );
+    ) noexcept;
 }
 
 /// <summary>

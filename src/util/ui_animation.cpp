@@ -6,7 +6,7 @@
 
 extern "C" {
     // easing
-    double ui_easing_function(uint32_t type, double p);
+    double ui_easing_function(uint32_t type, double p) noexcept;
 }
 
 /// <summary>

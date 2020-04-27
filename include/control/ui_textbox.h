@@ -141,7 +141,7 @@ namespace LongUI {
         auto GetCharMetrics(CEDTextCell&, uint32_t pos) noexcept->RichED::CharMetrics override;
 #ifndef NDEBUG
         // debug output
-        void DebugOutput(const char*) noexcept override;
+        void DebugOutput(const char*, bool high) noexcept override;
 #endif
     protected:
         // draw selection
@@ -167,8 +167,8 @@ namespace LongUI {
         void clear_change_could_trigger() noexcept;
         // is change event could be triggered?
         bool is_change_could_trigger() const noexcept;
-        // selection changed
-        void on_selected_changed() noexcept;
+        // show caret
+        void show_caret() noexcept;
     public:
         // set text
         void SetText(CUIString&& text) noexcept;

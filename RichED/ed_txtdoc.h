@@ -84,6 +84,14 @@ namespace RichED {
         ) noexcept;
         // set flags
         bool gui_flags(uint16_t flags, uint32_t set) noexcept;
+        // gui password
+        bool gui_password(U16View view) noexcept;
+        // recreate the context
+        void recreate_context(CEDTextCell& cell) noexcept;
+        // get view
+        static auto get_view(const CEDTextCell& cell) noexcept ->U16View;
+        // password helper ->u16 
+        static auto password_helper16(char32_t buf[], char32_t ch, bool mode, const CEDTextCell&) noexcept ->U16View;
     public:
         // private impl
         struct Private;
@@ -268,7 +276,11 @@ namespace RichED {
         // undo ok
         uint16_t                m_uUndoIsOk = 1;
         // changed flag
-        uint32_t                m_flagChanged = 0;
+        uint16_t                m_flagChanged = 0;
+        // password UCS4 mode
+        bool                    m_bPassword4 = false;
+        // password UCS4 mode
+        bool                    m_unused = false;
         // head
         Node                    m_head;
         // tail
@@ -283,20 +295,34 @@ namespace RichED {
         CEDBuffer<LogicLine>    m_vLogic;
         // selection data
         CEDBuffer<Box>          m_vSelection;
+    public:
+        // password helper - string-view
+        template<typename T>
+        auto PWHelperView(T call, const CEDTextCell& cell) noexcept {
+            char32_t buffer[TEXT_CELL_STR_MAXLEN + 1];
+            U16View view = this->get_view(cell);
+            if (m_info.flags & Flag_UsePassword) 
+                view = this->password_helper16(buffer, m_info.password_cha16x2, m_bPassword4, cell);
+            return call(view);
+        }
+        // password helper - code-pos
+        auto PWHelperPos(const CEDTextCell& cell, uint32_t pos) noexcept ->uint32_t;
+        // password helper - code-hit
+        void PWHelperHit(const CEDTextCell& cell, CellHitTest& hit) noexcept;
     };
     // value changed
     enum ValuedChanged : uint32_t {
         // view changed, need redraw
         Changed_View            = 1 << 0,
-        // selection changed
+        // selection changed        
         Changed_Selection       = 1 << 1,
-        // caret changed
+        // caret changed            
         Changed_Caret           = 1 << 2,
-        // text changed
+        // text changed            
         Changed_Text            = 1 << 3,
-        // estimated width changed
+        // estimated width  changed  [not impl yet]
         Changed_EstimatedWidth  = 1 << 4,
-        // estimated height changed
+        // estimated height changed  [not impl yet]
         Changed_EstimatedHeight = 1 << 5,
     };
 }
