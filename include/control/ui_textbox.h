@@ -89,35 +89,6 @@ namespace LongUI {
         auto DoInputEvent(InputEventArg e) noexcept->EventAccept override;
         // recreate device resource
         auto Recreate(bool release_only) noexcept->Result override;
-#if 0
-    protected:
-        // error beep
-        void ErrorBeep() noexcept override;
-        // is valid password [char16_t only]
-        bool IsValidPassword(char16_t) noexcept override;
-        // generate text
-        void GenerateText(void* string, TextBC::U16View view) noexcept override;
-        // need redraw
-        void NeedRedraw() noexcept override;
-        // draw caret, TODO: set caret rect
-        void DrawCaret(void* ctx, TextBC::Point2F, const TextBC::RectWHF& rect) noexcept override;
-        // draw selection
-        void DrawSelection(void* ctx, TextBC::Point2F, const TextBC::RectWHF[], uint32_t len) noexcept override;
-        // create content
-        auto CreateContent(const char16_t*, uint32_t len, Text&& old) noexcept->Text* override;
-        // delete content
-        void DeleteContent(Text&) noexcept override;
-        // draw content
-        void DrawContent(Text&, void*, TextBC::Point2F) noexcept override;
-        // content metrics event
-        void ContentEvent(Text&, MetricsEvent, void*) noexcept override;
-#ifndef NDEBUG
-        // debug output
-        //void DebugOutput(const char*) noexcept override;
-        // draw cell
-        void DrawCell(void* ctx, const TextBC::RectWHF& rect, int index) noexcept override;
-#endif
-#endif
     protected:
         // on out of memory, won't be called on ctor
         auto OnOOM(uint32_t retry_count, size_t size) noexcept->RichED::HandleOOM override;
@@ -160,7 +131,7 @@ namespace LongUI {
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // try trigger change event
-        void try_trigger_change_event() noexcept;
+        bool try_trigger_change_event() noexcept;
         // mark change event could be triggered
         void mark_change_could_trigger() noexcept;
         // clear change event could be triggered

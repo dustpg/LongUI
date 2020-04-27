@@ -5,17 +5,18 @@
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
     </Plugin>
   </Plugins>
-  <VirtualDirectory Name="TextBC">
-    <File Name="../TextBC/bc_txtstr.h"/>
-    <File Name="../TextBC/bc_txtstr.cpp"/>
-    <File Name="../TextBC/bc_txtplat.h"/>
-    <File Name="../TextBC/bc_txtline.h"/>
-    <File Name="../TextBC/bc_txtdoc.h"/>
-    <File Name="../TextBC/bc_txtdoc.cpp"/>
-    <File Name="../TextBC/bc_txtcell.h"/>
-    <File Name="../TextBC/bc_txtcell.cpp"/>
-    <File Name="../TextBC/bc_txtbuf.h"/>
-    <File Name="../TextBC/bc_txtbuf.cpp"/>
+  <VirtualDirectory Name="RichED">
+    <File Name="../RichED/ed_undoredo.h"/>
+    <File Name="../RichED/ed_undoredo.cpp"/>
+    <File Name="../RichED/ed_txtplat.h"/>
+    <File Name="../RichED/ed_txtdoc.h"/>
+    <File Name="../RichED/ed_txtdoc.cpp"/>
+    <File Name="../RichED/ed_txtcell.h"/>
+    <File Name="../RichED/ed_txtcell.cpp"/>
+    <File Name="../RichED/ed_txtbuf.h"/>
+    <File Name="../RichED/ed_txtbuf.cpp"/>
+    <File Name="../RichED/ed_config.h"/>
+    <File Name="../RichED/ed_common.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <VirtualDirectory Name="accessible">
@@ -254,6 +255,7 @@
         <Library Value="d3d11"/>
         <Library Value="DXGI"/>
         <Library Value="windowscodecs"/>
+        <Library Value="imm32"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>

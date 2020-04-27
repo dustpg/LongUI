@@ -20,9 +20,6 @@
 #include <debugger/ui_debug.h>
 #endif
 
-// TextBC
-#include <../TextBC/bc_txtdoc.h>
-
 // error beep
 extern "C" void longui_error_beep() noexcept;
 
@@ -108,12 +105,14 @@ void LongUI::UITextBox::Update() noexcept {
 /// <param name="event">The event.</param>
 /// <returns></returns>
 auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+    EventAccept code = Event_Ignore;
     switch (event)
     {
     case LongUI::GuiEvent::Event_OnFocus:
         // 更新插入符号位置大小[Focus 肯定有Window了]
         assert(m_pWindow);
         this->show_caret();
+        code = Event_Accept;
         break;
     case LongUI::GuiEvent::Event_OnBlur:
         // 失去焦点时, 如果编辑文本修改则触发[change事件]
@@ -122,9 +121,10 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         // 取消显示插入符号 [Blur 肯定有Window了]
         assert(m_pWindow);
         m_pWindow->HideCaret();
+        code = Event_Accept;
         break;
     }
-    return Super::TriggerEvent(event);
+    return Super::TriggerEvent(event) || code;
 }
 
 
@@ -132,11 +132,13 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
 /// Triggers the change event.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::try_trigger_change_event() noexcept {
+bool LongUI::UITextBox::try_trigger_change_event() noexcept {
+    bool code = false;
     if (this->is_change_could_trigger()) {
         this->clear_change_could_trigger();
-        Super::TriggerEvent(this->_onChange());
+        code = Super::TriggerEvent(this->_onChange()) != Event_Ignore;
     }
+    return code;
 }
 
 /// <summary>

@@ -14,8 +14,6 @@
 // RichED
 #include <../RichED/ed_txtdoc.h>
 #include <../RichED/ed_txtcell.h>
-// TextBC
-//#include <../TextBC/bc_txtdoc.h>
 
 // C++
 #include <type_traits>
@@ -24,16 +22,6 @@
 
 // uinamespace
 namespace LongUI {
-#if 0
-    // auto cst TextBC -> LongUI
-    auto auto_cast(TextBC::IBCTextContent* ptr) noexcept {
-        return reinterpret_cast<I::Text*>(ptr);
-    }
-    // auto cst LongUI -> TextBC
-    auto auto_cast(I::Text* ptr) noexcept {
-        return reinterpret_cast<TextBC::IBCTextContent*>(ptr);
-    }
-#endif
     // private text box
     struct UITextBox::Private {
         // doc type
@@ -69,12 +57,6 @@ namespace LongUI {
         // debug counter
         uint32_t                            dbg_counter = 0;
         // debug output
-#endif
-#if 0
-        // text cached synchronized
-        bool                                text_need_sync = false;
-        // selection cached synchronized
-        bool                                selc_need_sync = false;
 #endif
         // text changed via user-input
         bool                                text_changed = false;
@@ -132,15 +114,6 @@ namespace LongUI {
     /// <param name="box">The box.</param>
     /// <returns></returns>
     void UITextBox::Private::create_doc(UITextBox& box) noexcept {
-#if 0
-        const TextBC::CBCTextDocument::InitArgs args{
-            box.m_uMaxLength,
-            static_cast<TextBC::CBCTextDocument::Flag>(box.m_flag),
-            box.m_chPassword
-        };
-        TextBC::IBCTextPlatform& plat = box;
-        detail::ctor_dtor<doc_t>::create(&docbuf, plat, args);
-#endif
         // ARG
         using namespace RichED;
         uint32_t u32color = box.m_tfBuffer.text.color.ToRGBA().primitive;
@@ -264,9 +237,7 @@ void LongUI::UITextBox::private_set_text(CUIString&& text) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::private_mark_readonly() noexcept {
-    //m_flag |= TextBC::CBCTextDocument::Flag_ReadOnly;
     m_flag |= RichED::Flag_GuiReadOnly;
-
 }
 
 
@@ -275,7 +246,6 @@ void LongUI::UITextBox::private_mark_readonly() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::private_mark_multiline() noexcept {
-    //m_flag |= TextBC::CBCTextDocument::Flag_MultiLine;
     m_flag |= RichED::Flag_MultiLine;
 }
 
@@ -284,7 +254,6 @@ void LongUI::UITextBox::private_mark_multiline() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::private_mark_password() noexcept {
-    //m_flag |= TextBC::CBCTextDocument::Flag_UsePassword;
     m_flag |= RichED::Flag_UsePassword;
 }
 
@@ -295,7 +264,6 @@ void LongUI::UITextBox::private_mark_password() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::mark_change_could_trigger() noexcept {
-    //m_flag |= TextBC::CBCTextDocument::Flag_Custom;
     assert(m_private && "BAD ACTION");
     m_private->text_changed = true;
 }
@@ -305,7 +273,6 @@ void LongUI::UITextBox::mark_change_could_trigger() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::clear_change_could_trigger() noexcept {
-    //m_flag &= ~TextBC::CBCTextDocument::Flag_Custom;
     assert(m_private && "BAD ACTION");
     m_private->text_changed = false;
 }
@@ -315,8 +282,6 @@ void LongUI::UITextBox::clear_change_could_trigger() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
-    //static_assert(TextBC::CBCTextDocument::Flag_Custom == 1, "must be 1");
-    //return m_flag & TextBC::CBCTextDocument::Flag_Custom;
     assert(m_private && "BAD ACTION");
     m_private->text_changed = false;
     return m_private->text_changed;
@@ -370,21 +335,6 @@ void LongUI::UITextBox::private_update() noexcept {
             m_private->text_changed = true;
         }
     }
-#if 0
-    // [用户输入接口文本]修改检查
-    if (doc.IsTextChanged()) {
-        doc.ClearTextChanged();
-        this->mark_change_could_trigger();
-        m_private->text_need_sync = true;
-        this->TriggerEvent(this->_onInput());
-    }
-    // 选区修改检查
-    if (doc.IsSelectionChanged()) {
-        doc.ClearSelectionChanged();
-        m_private->selc_need_sync = true;
-        this->on_selected_changed();
-    }
-#endif
 }
 
 
@@ -394,7 +344,6 @@ void LongUI::UITextBox::private_update() noexcept {
 /// <param name="size">The size.</param>
 /// <returns></returns>
 void LongUI::UITextBox::private_resize(Size2F size) noexcept {
-    //m_private->document().SetViewportSize({ size.width, size.height });
     m_private->document().Resize({ size.width, size.height });
 }
 
@@ -521,13 +470,12 @@ bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
         break;
     case CUIInputKM::KB_RETURN:
         // 回车返回键
-#if 0
-        if (doc.OnNewLine()) {
-            // 单行模式尝试触发
-            this->try_trigger_change_event();
+        if (!doc.GuiReturn()) {
+            // 处理
+            const auto c = this->try_trigger_change_event();
+            const auto i = Super::TriggerEvent(this->_onInput()) != Event_Ignore;
+            error_code = c || i;
         }
-#endif
-        error_code = doc.GuiReturn();
         break;
     case CUIInputKM::KB_A:
         // A 键
@@ -635,294 +583,6 @@ void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
 void LongUI::UITextBox::SetText(U16View view) noexcept {
     this->SetText(CUIString(view));
 }
-
-
-#if 0
-
-/// <summary>
-/// Determines whether [is valid password] [the specified ch].
-/// </summary>
-/// <param name="ch">The ch.</param>
-/// <returns></returns>
-bool LongUI::UITextBox::IsValidPassword(char16_t ch) noexcept {
-    return ch > 0x20 && ch < 0x80;
-}
-
-
-/// <summary>
-/// Errors the beep.
-/// </summary>
-/// <returns></returns>
-void LongUI::UITextBox::ErrorBeep() noexcept {
-    ::longui_error_beep();
-}
-
-/// <summary>
-/// Needs the redraw.
-/// </summary>
-/// <returns></returns>
-void LongUI::UITextBox::GenerateText(void* string, TextBC::U16View view) noexcept {
-    auto& text = *reinterpret_cast<CUIString*>(string);
-    using type1 = decltype(*text.c_str());
-    using type2 = decltype(*view.first);
-    static_assert(sizeof(type1) == 2, "must be same");
-    const auto a = reinterpret_cast<decltype(text.c_str())>(view.first);
-    const auto b = reinterpret_cast<decltype(text.c_str())>(view.second);
-    text.append(a, b);
-}
-
-
-/// <summary>
-/// Requests the text.
-/// </summary>
-/// <returns></returns>
-auto LongUI::UITextBox::RequestText() noexcept -> const LongUI::CUIString& {
-    auto& doc = m_private->document();
-    auto& str = m_private->text_cached;
-    auto& flag = m_private->text_need_sync;
-    if (flag) {
-        flag = false;
-        str.reserve(doc.GetStringLength());
-        str.clear();
-        doc.RequestText(str);
-    }
-    return str;
-}
-
-/// <summary>
-/// Needs the redraw.
-/// </summary>
-/// <returns></returns>
-void LongUI::UITextBox::NeedRedraw() noexcept {
-    // TODO: 脏矩形更新
-    this->Invalidate();
-}
-
-/// <summary>
-/// Draws the caret.
-/// </summary>
-/// <param name="ctx">The CTX.</param>
-/// <param name="offset">The offset.</param>
-/// <param name="rect">The rect.</param>
-/// <returns></returns>
-void LongUI::UITextBox::DrawCaret(void* ctx, TextBC::Point2F offset, const TextBC::RectWHF& rect) noexcept {
-    assert(ctx && "bad context");
-    // 没有焦点 没有头发
-    if (!m_oStyle.state.focus) return;
-    const auto renderer = static_cast<I::Renderer2D*>(ctx);
-    const auto red = ColorF::FromRGBA_CT<RGBA_Red>();
-    const auto x = rect.x + offset.x;
-    const auto y = rect.y + offset.y;
-    renderer->FillRectangle({
-        x, y, rect.x + rect.width, rect.y + rect.height
-    }, &UIManager.RefCCBrush(red));
-}
-
-
-
-/// <summary>
-/// Draws the selection.
-/// </summary>
-/// <param name="ctx">The CTX.</param>
-/// <param name="offset">The offset.</param>
-/// <param name="rects">The rects.</param>
-/// <param name="len">The length.</param>
-/// <returns></returns>
-void LongUI::UITextBox::DrawSelection(void* ctx, 
-    TextBC::Point2F offset, 
-    const TextBC::RectWHF rects[], uint32_t len) noexcept {
-    assert(ctx && "bad context");
-    const auto renderer = static_cast<I::Renderer2D*>(ctx);
-    const auto color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
-    const auto brush = &UIManager.RefCCBrush(color);
-    // 渲染矩形
-    for (uint32_t i = 0; i != len; ++i) {
-        const auto l = rects[i].x + offset.x;
-        const auto t = rects[i].y + offset.y;
-        const auto r = l + rects[i].width;
-        const auto b = t + rects[i].height;
-        renderer->FillRectangle({ l, t, r, b }, brush);
-    }
-}
-
-
-/// <summary>
-/// Creates the content.
-/// </summary>
-/// <param name="str">The string.</param>
-/// <param name="len">The length.</param>
-/// <param name="old">The old ptr.</param>
-/// <returns></returns>
-auto LongUI::UITextBox::CreateContent(
-    const char16_t* str,
-    uint32_t len,
-    Text&& old
-) noexcept -> Text* {
-    // 创建字体
-    I::Font* font_to_use = nullptr;
-    {
-        const auto last_text = auto_cast(&old);
-        if (last_text) font_to_use = I::FontFromText(last_text);
-        else UIManager.CreateCtlFont(m_tfBuffer.font, font_to_use, &m_tfBuffer.text);
-    }
-
-    I::Text* text = nullptr;
-    TextArg arg;
-    static_assert(sizeof(*arg.string) == sizeof(char16_t), "unsupprted platform");
-    // 参数调整
-    arg.string = reinterpret_cast<decltype(arg.string)>(str);
-    arg.length = len;
-    arg.font = font_to_use;
-    arg.mwidth = DEFAULT_CONTROL_MAX_SIZE;
-    arg.mheight = DEFAULT_CONTROL_MAX_SIZE;
-    // TODO: 错误处理
-    UIManager.CreateCtlText(arg, luiref text);
-    // 释放旧数据
-    if (font_to_use) font_to_use->Release();
-    return auto_cast(text);
-}
-
-
-/// <summary>
-/// Deletes the content.
-/// </summary>
-/// <param name="">The .</param>
-/// <returns></returns>
-void LongUI::UITextBox::DeleteContent(Text& text) noexcept {
-    const auto ptr = auto_cast(&text);
-    ptr->Release();
-}
-
-/// <summary>
-/// Draws the content.
-/// </summary>
-/// <param name="txt">The text.</param>
-/// <param name="ctx">The CTX.</param>
-/// <param name="pos">The position.</param>
-/// <returns></returns>
-void LongUI::UITextBox::DrawContent(Text& txt, void* ctx, TextBC::Point2F pos) noexcept {
-    const auto ptr = auto_cast(&txt);
-    // 错误场合处理
-    if (!ptr) return;
-    assert(ctx && "bad context");
-    const auto renderer = static_cast<I::Renderer2D*>(ctx);
-    auto& brush = UIManager.RefCCBrush(m_tfBuffer.text.color);
-    renderer->DrawTextLayout({ pos.x, pos.y }, ptr, &brush);
-}
-
-#ifndef NDEBUG
-
-/// <summary>
-/// Draws the cell.
-/// </summary>
-/// <param name="ctx">The CTX.</param>
-/// <param name="rect">The rect.</param>
-/// <param name="index">The index.</param>
-/// <returns></returns>
-void LongUI::UITextBox::DrawCell(void* ctx, const TextBC::RectWHF& rect, int index) noexcept {
-    assert(ctx && "bad context");
-    if (UIManager.flag & ConfigureFlag::Flag_DbgDrawTextCell) {
-        const auto renderer = static_cast<I::Renderer2D*>(ctx);
-        const auto red = ColorF::FromRGBA_CT<RGBA_Red>();
-        const auto blue = ColorF::FromRGBA_CT<RGBA_Blue>();
-        auto color = index & 1 ? red : blue;
-        color.a = 0.185f;
-        renderer->FillRectangle({
-            rect.x, rect.y, rect.x + rect.width, rect.y + rect.height
-        }, &UIManager.RefCCBrush(color));
-    }
-}
-
-#endif
-
-/// <summary>
-/// Contents the event.
-/// </summary>
-/// <param name="txt">The text.</param>
-/// <param name="event">The event.</param>
-/// <param name="arg">The argument.</param>
-/// <returns></returns>
-void LongUI::UITextBox::ContentEvent(Text& txt, MetricsEvent event, void* arg) noexcept {
-    const auto ptr = auto_cast(&txt);
-    switch (event)
-    {
-    case TextBC::IBCTextPlatform::Event_GetSize:
-        // 获取内容大小
-        *static_cast<TextBC::SizeF*>(arg) = { 0 };
-        if (ptr) {
-            // 利用文本测量结构体获取大小
-            DWRITE_TEXT_METRICS tm;
-            ptr->GetMetrics(&tm);
-            static_cast<TextBC::SizeF*>(arg)->width = tm.width;
-            static_cast<TextBC::SizeF*>(arg)->height = tm.height;
-        }
-        break;
-    case TextBC::IBCTextPlatform::Event_GetBaseline:
-        *static_cast<float*>(arg) = 0.;
-        if (ptr) {
-            // 利用行测量结构体获取基线偏移量
-            DWRITE_LINE_METRICS lm; uint32_t count = 1;
-            ptr->GetLineMetrics(&lm, 1, &count);
-            *static_cast<float*>(arg) = lm.baseline;
-        }
-        break;
-    case TextBC::IBCTextPlatform::Event_HitTest:
-        // 点击检测
-        {
-            union ht_data { TextBC::HitTest ht; float pos; };
-            const float px = reinterpret_cast<ht_data*>(arg)->pos;
-            auto& out = reinterpret_cast<ht_data*>(arg)->ht;
-            out = {};
-            if (ptr) {
-                BOOL hint = false, inside = false;
-                DWRITE_HIT_TEST_METRICS htm;
-                ptr->HitTestPoint(px, 0, &hint, &inside, &htm);
-                out.u16_trailing = htm.length;
-                out.pos = htm.textPosition + (hint ? out.u16_trailing : 0);
-            }
-        }
-        break;
-    case TextBC::IBCTextPlatform::Event_CharMetrics:
-        union cm_data { TextBC::CharMetrics cm; uint32_t pos; };
-        {
-            const auto pos = static_cast<cm_data*>(arg)->pos;
-            auto& out = static_cast<cm_data*>(arg)->cm;
-            out = {};
-            if (ptr) {
-                auto& buf = m_private->cluster_buffer;
-                const auto size = pos + 1;
-                buf.resize(size);
-                // TODO: 错误处理
-                if (!buf.is_ok()) break;
-                uint32_t max_count = 0;
-                ptr->GetClusterMetrics(buf.data(), size, &max_count);
-                // 遍历位置
-                const auto data_ptr = buf.data();
-                const auto data_len = max_count;
-                float width = 0, last_width = 0;
-                uint32_t char_index = 0;
-                // 防止万一, 加上 [i != data_len]
-                for (uint32_t i = 0; i != data_len; ++i) {
-                    const auto&x = data_ptr[i];
-                    width += last_width = x.width;
-                    // 防止万一用>=
-                    if (char_index >= pos) break;
-                    char_index += x.length;
-                }
-                assert(char_index == pos && u8"检查");
-                // 写回返回值
-                out.width = last_width;
-                out.x = width - last_width;
-            }
-        }
-        break;
-    default:
-        assert(!"bad case");
-    }
-}
-
-#endif
-
 
 
 // --------------------- IEDTextPlatform 实现 -------------------------
@@ -1311,10 +971,19 @@ void LongUI::UITextBox::recreate_nom_context(CEDTextCell& cell) noexcept {
         DWRITE_TEXT_METRICS dwtm;
         DWRITE_LINE_METRICS dwlm;
         DWRITE_OVERHANG_METRICS dwom;
+        enum {
+            LUI_READING_TOP_TO_BOTTOM = 2,
+            LUI_FLOW_RIGHT_TO_LEFT = 3,
+        };
+#if LUI_COMPILER == LUI_COMPILER_MSVC
+        static_assert(LUI_READING_TOP_TO_BOTTOM == DWRITE_READING_DIRECTION_TOP_TO_BOTTOM, "SAME!");
+        static_assert(LUI_FLOW_RIGHT_TO_LEFT == DWRITE_FLOW_DIRECTION_RIGHT_TO_LEFT, "SAME!");
+#endif
         if (hr) {
+            // 垂直布局
             if (ver) {
-                layout->SetReadingDirection(DWRITE_READING_DIRECTION_TOP_TO_BOTTOM);
-                layout->SetFlowDirection(DWRITE_FLOW_DIRECTION_RIGHT_TO_LEFT);
+                layout->SetReadingDirection(DWRITE_READING_DIRECTION(LUI_READING_TOP_TO_BOTTOM));
+                layout->SetFlowDirection(DWRITE_FLOW_DIRECTION(LUI_FLOW_RIGHT_TO_LEFT));
             }
             hr.code = layout->GetMetrics(&dwtm);
         }

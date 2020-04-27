@@ -231,6 +231,9 @@ namespace LongUI {
             assert(!selector->sid && "not null?");
             selector->sid = UIManager.GetUniqueText(value);
             break;
+        case Selectors_PseudoElement:
+            assert(!"NOT IMPL");
+            break;
         case Selectors_PseudoClass:
             LongUI::U8ToPC(selector->pc, value);
             break;

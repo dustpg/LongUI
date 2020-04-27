@@ -274,10 +274,6 @@
     <ClCompile Include="..\src\util\ui_unicode.cpp" />
     <ClCompile Include="..\src\xul\SimpAC.cpp" />
     <ClCompile Include="..\src\xul\SimpAX.cpp" />
-    <ClCompile Include="..\TextBC\bc_txtbuf.cpp" />
-    <ClCompile Include="..\TextBC\bc_txtcell.cpp" />
-    <ClCompile Include="..\TextBC\bc_txtdoc.cpp" />
-    <ClCompile Include="..\TextBC\bc_txtstr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\RichED\ed_txtedit.natvis" />
@@ -293,9 +289,6 @@
     <Natvis Include="..\src\naivis\z_string.natvis" />
     <Natvis Include="..\src\naivis\z_string_view.natvis" />
     <Natvis Include="..\src\naivis\z_vector.natvis">
-      <SubType>Designer</SubType>
-    </Natvis>
-    <Natvis Include="..\TextBC\bc_txtedit.natvis">
       <SubType>Designer</SubType>
     </Natvis>
   </ItemGroup>
@@ -478,12 +471,6 @@
     <ClInclude Include="..\src\private\ui_private_image.h" />
     <ClInclude Include="..\src\private\ui_win10_stlye.h" />
     <ClInclude Include="..\src\private\ui_wndarg.h" />
-    <ClInclude Include="..\TextBC\bc_txtbuf.h" />
-    <ClInclude Include="..\TextBC\bc_txtcell.h" />
-    <ClInclude Include="..\TextBC\bc_txtdoc.h" />
-    <ClInclude Include="..\TextBC\bc_txtline.h" />
-    <ClInclude Include="..\TextBC\bc_txtplat.h" />
-    <ClInclude Include="..\TextBC\bc_txtstr.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">

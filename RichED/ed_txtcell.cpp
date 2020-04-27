@@ -319,7 +319,7 @@ namespace RichED {
     /// <param name="doc">The document.</param>
     /// <param name="red">The red.</param>
     /// <returns></returns>
-    auto RichED::CreateShrinkedCell(CEDTextDocument& doc, const RichData& red) -> CEDTextCell * {
+    auto CreateShrinkedCell(CEDTextDocument& doc, const RichData& red) -> CEDTextCell* {
         return CreatePublicCell(doc, red, sizeof(FixedStringB), 1);
     }
 }

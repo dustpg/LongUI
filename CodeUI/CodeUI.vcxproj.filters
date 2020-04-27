@@ -126,9 +126,6 @@
     <Filter Include="source\accessible">
       <UniqueIdentifier>{64fca7be-cd69-40ce-b76a-a439e9634ae9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="TextBC">
-      <UniqueIdentifier>{385110b9-e856-44b7-ad8d-032571f62f88}</UniqueIdentifier>
-    </Filter>
     <Filter Include="header\xul">
       <UniqueIdentifier>{a6d71977-def0-4209-8c07-3d678c1966da}</UniqueIdentifier>
     </Filter>
@@ -392,12 +389,6 @@
     <ClCompile Include="..\src\accessible\ui_accessible_win.cpp">
       <Filter>source\accessible</Filter>
     </ClCompile>
-    <ClCompile Include="..\TextBC\bc_txtcell.cpp">
-      <Filter>TextBC</Filter>
-    </ClCompile>
-    <ClCompile Include="..\TextBC\bc_txtdoc.cpp">
-      <Filter>TextBC</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\container\nonpod_vector.cpp">
       <Filter>source\container</Filter>
     </ClCompile>
@@ -406,12 +397,6 @@
     </ClCompile>
     <ClCompile Include="..\src\style\native\ui_win10_bg.cpp">
       <Filter>source\style\native</Filter>
-    </ClCompile>
-    <ClCompile Include="..\TextBC\bc_txtstr.cpp">
-      <Filter>TextBC</Filter>
-    </ClCompile>
-    <ClCompile Include="..\TextBC\bc_txtbuf.cpp">
-      <Filter>TextBC</Filter>
     </ClCompile>
     <ClCompile Include="..\src\util\ui_time_clipboard.cpp">
       <Filter>source\util</Filter>
@@ -555,9 +540,6 @@
     </Natvis>
     <Natvis Include="..\src\naivis\ui_control.natvis">
       <Filter>natvis</Filter>
-    </Natvis>
-    <Natvis Include="..\TextBC\bc_txtedit.natvis">
-      <Filter>TextBC</Filter>
     </Natvis>
     <Natvis Include="..\src\naivis\simpax.natvis">
       <Filter>natvis</Filter>
@@ -897,18 +879,6 @@
     <ClInclude Include="..\include\accessible\ui_accessible_callback.h">
       <Filter>header\accessible</Filter>
     </ClInclude>
-    <ClInclude Include="..\TextBC\bc_txtline.h">
-      <Filter>TextBC</Filter>
-    </ClInclude>
-    <ClInclude Include="..\TextBC\bc_txtplat.h">
-      <Filter>TextBC</Filter>
-    </ClInclude>
-    <ClInclude Include="..\TextBC\bc_txtcell.h">
-      <Filter>TextBC</Filter>
-    </ClInclude>
-    <ClInclude Include="..\TextBC\bc_txtdoc.h">
-      <Filter>TextBC</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\util\ui_ctordtor.h">
       <Filter>header\util</Filter>
     </ClInclude>
@@ -932,12 +902,6 @@
     </ClInclude>
     <ClInclude Include="..\include\control\ui_menuitem.h">
       <Filter>header\control</Filter>
-    </ClInclude>
-    <ClInclude Include="..\TextBC\bc_txtstr.h">
-      <Filter>TextBC</Filter>
-    </ClInclude>
-    <ClInclude Include="..\TextBC\bc_txtbuf.h">
-      <Filter>TextBC</Filter>
     </ClInclude>
     <ClInclude Include="..\include\util\ui_clipboard.h">
       <Filter>header\util</Filter>
