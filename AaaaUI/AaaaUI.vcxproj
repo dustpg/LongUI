@@ -163,6 +163,19 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="..\RichED\ed_txtedit.natvis" />
+    <Natvis Include="..\src\naivis\color.natvis" />
+    <Natvis Include="..\src\naivis\float.natvis" />
+    <Natvis Include="..\src\naivis\result.natvis" />
+    <Natvis Include="..\src\naivis\simpax.natvis" />
+    <Natvis Include="..\src\naivis\ui_control.natvis" />
+    <Natvis Include="..\src\naivis\z_hash.natvis" />
+    <Natvis Include="..\src\naivis\z_sharedarray.natvis" />
+    <Natvis Include="..\src\naivis\z_string.natvis" />
+    <Natvis Include="..\src\naivis\z_string_view.natvis" />
+    <Natvis Include="..\src\naivis\z_vector.natvis" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

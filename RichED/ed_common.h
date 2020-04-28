@@ -349,6 +349,15 @@ namespace RichED {
         // screen to doc
         auto ScreenToDoc(Point) const noexcept->Point;
     };
+    // singe op for rich
+    struct RichSingeOp {
+        // under riched
+        RichData        riched;
+        // begin point
+        DocPoint        begin;
+        // end point
+        DocPoint        end;
+    };
 }
 
 

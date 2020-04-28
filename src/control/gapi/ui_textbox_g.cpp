@@ -27,6 +27,8 @@ namespace LongUI {
         // doc type
         //using doc_t = TextBC::CBCTextDocument;
         using doc_t = RichED::CEDTextDocument;
+        // longui -> riched
+        static void ToRichED(const TextFont& tf, RichED::RichData& rd) noexcept;
         // ctor
         Private() noexcept;
         // dtor
@@ -51,6 +53,8 @@ namespace LongUI {
         POD::Vector<DWRITE_CLUSTER_METRICS> cluster_buffer;
         // text
         CUIString                           text_cached;
+        // ime input
+        char16_t*                           ime_input = nullptr;
 #ifndef NDEBUG
         // debug color
         ColorF                              dbg_color[2];
@@ -116,8 +120,9 @@ namespace LongUI {
     void UITextBox::Private::create_doc(UITextBox& box) noexcept {
         // ARG
         using namespace RichED;
-        uint32_t u32color = box.m_tfBuffer.text.color.ToRGBA().primitive;
         const DocFlag flags = static_cast<DocFlag>(box.m_flag);
+        RichED::RichData rd = { 0 };
+        Private::ToRichED(box.m_tfBuffer, luiref rd);
         RichED::DocInitArg args {
             0, Direction_L2R, Direction_T2B,
             //0, Direction_T2B, Direction_R2L,
@@ -125,7 +130,7 @@ namespace LongUI {
             box.m_chPassword, 
             box.m_uMaxLength, 0,
             VAlign_Baseline, Mode_SpaceOrCJK,
-            {  box.m_tfBuffer.font.size, u32color, 0, Effect_None }
+            rd
         };
         RichED::IEDTextPlatform& platform = box;
         detail::ctor_dtor<doc_t>::create(&docbuf, platform, args);
@@ -134,6 +139,19 @@ namespace LongUI {
         assert(hr);
         created = true;
     }
+}
+
+
+/// <summary>
+/// To the rich ed.
+/// </summary>
+/// <param name="tf">The tf.</param>
+/// <param name="rd">The rd.</param>
+/// <returns></returns>
+void LongUI::UITextBox::Private::ToRichED(const TextFont& tf, RichED::RichData& rd) noexcept {
+    rd.size = tf.font.size;
+    rd.color = tf.text.color.ToRGBA().primitive;
+    // TODO: 富文本支持
 }
 
 
@@ -170,12 +188,36 @@ auto LongUI::UITextBox::Recreate(bool release_only) noexcept -> Result {
 /// </summary>
 /// <param name="ch">The char</param>
 /// <returns></returns>
-bool LongUI::UITextBox::private_char(char32_t ch) noexcept {
-    // 暂时使用次帧刷新
-    this->NextUpdate();
+bool LongUI::UITextBox::private_char(char32_t ch, uint16_t seq) noexcept {
     assert(m_private && "OOM");
-    //m_private->document().OnChar(ch);
-    return m_private->document().GuiChar(ch);
+    // U32字符转换成U16字符(串)
+    const auto utf32to16 = [](char32_t ch, char16_t* buffer) noexcept {
+        if (ch > 0xFFFF) {
+            buffer[0] = static_cast<char16_t>(0xD800 + (ch >> 10) - (0x10000 >> 10));
+            buffer[1] = static_cast<char16_t>(0xDC00 + (ch & 0x3FF));
+            return buffer + 2;
+        }
+        buffer[0] = static_cast<char16_t>(ch);
+        return buffer + 1;
+    };
+    // 暂时使用次帧刷新
+    if (!seq) this->NextUpdate();
+    // 使用IME输入
+    if (seq || m_private->ime_input) {
+        const auto buf = reinterpret_cast<char16_t*>(&UIManager.ime_common_buf);
+        // 避免双字爆舱 tail是最后一位字符的地址
+        const auto tail = buf + IME_COMMON_BUF_LENGTH / sizeof(*buf) - 1;
+        if (!m_private->ime_input) m_private->ime_input = buf;
+        m_private->ime_input = utf32to16(ch, m_private->ime_input);
+        // 满了或者结束
+        if (m_private->ime_input >= tail || seq == 0) {
+            const RichED::U16View text { buf , m_private->ime_input };
+            m_private->ime_input = nullptr;
+            return m_private->document().GuiText(text);
+        }
+        return true;
+    }
+    else return m_private->document().GuiChar(ch);
 }
 
 /// <summary>
@@ -292,19 +334,22 @@ bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::show_caret() noexcept {
+    if (m_state.world_changed) return;
     assert(m_private);
     auto caret = m_private->document().GetCaret();
     // 调整到内容区域
     const auto lt = this->GetBox().GetContentPos();
     caret.x += lt.x; caret.y += lt.y;
     // GetCaret返回的矩形宽度没有意义, 可以进行自定义
-    const float custom_width = 2.f;
+    const float custom_width = 1.0f;
     const float offset_rate = 0.0f;
+    const float border = 0.0f;
+
     RectF rect = {
-        caret.x - custom_width * offset_rate,       // 向前后偏移
-        caret.y + 1,                                // 上下保留一个单位的空白以保持美观
-        caret.x + custom_width * (1 - offset_rate), // 向后后偏移
-        caret.y + caret.height - 1                  // 上下保留一个单位的空白以保持美观
+        caret.x - custom_width * offset_rate,
+        caret.y + border,
+        caret.x + custom_width * (1 - offset_rate), 
+        caret.y + caret.height - border
     };
 
     m_private->doc_map(&rect.left);
@@ -347,6 +392,24 @@ void LongUI::UITextBox::private_resize(Size2F size) noexcept {
     m_private->document().Resize({ size.width, size.height });
 }
 
+
+/// <summary>
+/// Privates the font changed.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::private_tf_changed(bool layout) noexcept {
+    assert(m_private);
+    this->Invalidate();
+    auto& doc = m_private->document();
+    Private::ToRichED(m_tfBuffer, doc.default_riched);
+    // 文本布局发生修改
+    if (layout) {
+        this->NeedUpdate();
+        // 非富文本模式强制重置
+        if (!(m_flag & RichED::Flag_RichText))
+            doc.ForceResetAllRiched();
+    }
+}
 
 
 /// <summary>
@@ -492,14 +555,15 @@ bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
         // X, C 键
         if (ctrl) {
             // 获取选中文本
-            //CUIString text;
-            //doc.RequestSelected(text);
-            //// 无选择或其他原因
-            //if (text.empty()) break;
-            //LongUI::CopyTextToClipboard(text.view());
-            //// ctrl-x 是剪切
-            //if (key == CUIInputKM::KB_X)
-            //    doc.DeleteSelection();
+            CUIString text;
+            const auto range = doc.GetSelectionRange();
+            doc.GenText(&text, range.begin, range.end);
+            // 无选择或其他原因
+            if (text.empty()) break;
+            // 复制进去
+            LongUI::CopyTextToClipboard(text.view());
+            // ctrl-x 是剪切
+            if (key == CUIInputKM::KB_X) doc.GuiDelete(false);
         }
         break;
     case CUIInputKM::KB_V:
@@ -558,8 +622,9 @@ void LongUI::UITextBox::private_set_text() noexcept {
     const auto text = m_private->text_cached.view();
     //m_private->document().SetText({ text.begin(), text.end() });
     // 删除全部再添加 XXX: ???
-    m_private->document().RemoveText({ 0, 0 }, { uint32_t(-1), 0 });
-    m_private->document().InsertText({ 0, 0 }, { text.begin(), text.end() });
+    auto& doc = m_private->document();
+    doc.RemoveText({ 0, 0 }, { doc.GetLogicLineCount(), 0 });
+    doc.InsertText({ 0, 0 }, { text.begin(), text.end() });
 }
 
 /// <summary>
@@ -584,6 +649,17 @@ void LongUI::UITextBox::SetText(U16View view) noexcept {
     this->SetText(CUIString(view));
 }
 
+
+/// <summary>
+/// Requests the text.
+/// </summary>
+/// <returns></returns>
+auto LongUI::UITextBox::RequestText() noexcept -> const CUIString & {
+    assert(m_private);
+    auto& doc = m_private->document();
+    doc.GenText(&m_private->text_cached, {}, { doc.GetLogicLineCount() });
+    return m_private->text_cached;
+}
 
 // --------------------- IEDTextPlatform 实现 -------------------------
 
@@ -826,7 +902,7 @@ void LongUI::UITextBox::draw_selection(I::Renderer2D& renderer) const noexcept {
     const auto& vec = m_private->document().RefSelection();
     if (!vec.GetSize()) return;
     // XXX: 获取选择颜色
-    auto& brush = UIManager.RefCCBrush(ColorF::FromRGBA_CT<RGBA_TianyiBlue>());
+    auto& brush = UIManager.RefCCBrush(m_colorSelBg);
     for (auto& rect : vec) {
         D2D1_RECT_F rc;
         rc.left = rect.left;
@@ -879,8 +955,14 @@ void LongUI::UITextBox::draw_nom_context(CtxPtr ctx, CEDTextCell& cell, unit_t b
         }
 #endif
         m_private->doc_map(&point.x);
-        ColorF color; ColorF::FromRGBA_RT(color, { cell.RefRichED().color });
-        auto& brush = UIManager.RefCCBrush(color);
+        ColorF color; const ColorF* color_pass = &color;
+        // 富文本模式使用文本胞自带的
+        if (m_flag & RichED::Flag_RichText)
+            ColorF::FromRGBA_RT(color, { cell.RefRichED().color });
+        // 普通模式使用文本框的
+        else color_pass = &m_tfBuffer.text.color;
+
+        auto& brush = UIManager.RefCCBrush(*color_pass);
         renderer->DrawTextLayout(point, ptr, &brush);
     }
 
@@ -896,7 +978,7 @@ void LongUI::UITextBox::draw_nom_context(CtxPtr ctx, CEDTextCell& cell, unit_t b
 /// <returns></returns>
 void LongUI::UITextBox::draw_efx_context(CtxPtr ctx, CEDTextCell & cell, unit_t baseline) const noexcept {
     // TODO: 富文本效果
-    if (!(m_private->document().RefInfo().flags & RichED::Flag_RichText)) return;
+    if (!(m_flag & RichED::Flag_RichText)) return;
     const auto renderer = static_cast<I::Renderer2D*>(ctx);
     D2D1_POINT_2F point; assert(renderer);
     point.x = cell.metrics.pos + cell.metrics.offset.x;
@@ -930,9 +1012,11 @@ void LongUI::UITextBox::recreate_img_context(CEDTextCell& cell) noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::recreate_nom_context(CEDTextCell& cell) noexcept {
     // 释放之前的文本
-    auto prev_text = reinterpret_cast<I::Text*>(cell.ctx.context);
+    const auto prev_text = reinterpret_cast<I::Text*>(cell.ctx.context);
     cell.ctx.context = nullptr;
-    if (prev_text) prev_text->Release();
+    const auto cleanup = [prev_text]() noexcept {
+        if (prev_text) prev_text->Release();
+    };
     // 利用字符串创建CTL文本布局
     const auto& str = cell.RefString();
     // 空的场合
@@ -948,6 +1032,7 @@ void LongUI::UITextBox::recreate_nom_context(CEDTextCell& cell) noexcept {
             cell.metrics.bounding.bottom = h;
             cell.AsClean();
         }
+        cleanup();
         return;
     }
     // 创建对应字体
@@ -957,12 +1042,23 @@ void LongUI::UITextBox::recreate_nom_context(CEDTextCell& cell) noexcept {
     //m_private->document().RefInfo.flags & RichED::Flag_RichText;
     auto& text = reinterpret_cast<I::Text*&>(cell.ctx.context);
     // 密码帮助
-    Result hr = m_private->document().PWHelperView([&text](RichED::U16View view) noexcept {
+    Result hr = m_private->document().PWHelperView([=, &text](RichED::U16View view) noexcept {
         TextArg targ = {};
-        // TODO: 字体/富文本
+        targ.font = I::FontFromText(prev_text);
+        I::Font* created = nullptr;
+        // 没有就创建新的字体
+        if (!targ.font) {
+            // 富文本模式使用文本胞自带的
+            if (m_flag & RichED::Flag_RichText) assert(!"NOT IMPL");
+            // 普通模式使用文本框的
+            UIManager.CreateCtlFont(m_tfBuffer.font, luiref targ.font);
+            created = targ.font;
+        }
         targ.string = view.first;
         targ.length = view.second - view.first;
-        return UIManager.CreateCtlText(targ, luiref text);
+        const auto hr = UIManager.CreateCtlText(targ, luiref text);
+        if (created) created->Release();
+        return hr;
     }, cell);
     // 测量CELL
     if (cell.RefMetaInfo().dirty) {
@@ -1018,4 +1114,5 @@ void LongUI::UITextBox::recreate_nom_context(CEDTextCell& cell) noexcept {
         // CLEAN!
         cell.AsClean();
     }
+    cleanup();
 }

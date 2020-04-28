@@ -7,10 +7,6 @@
 
 // namespace Riched::detail
 namespace RichED { namespace detail {
-    // is_2nd_surrogate
-    static inline bool is_2nd_surrogate(uint16_t ch) noexcept { return ((ch) & 0xFC00) == 0xDC00; }
-    // is_1st_surrogate
-    static inline bool is_1st_surrogate(uint16_t ch) noexcept { return ((ch) & 0xFC00) == 0xD800; }
     // clear all
     inline auto&clear_all(CEDTextDocument& doc, CEDTextCell* cell) noexcept {
         std::memset(cell, 0, sizeof(*cell));
@@ -66,16 +62,13 @@ namespace RichED { namespace detail {
         std::memmove(obj.data + pos, obj.data + pos + len, moved);
         obj.length -= len;
     }
+    // is same?
+    inline auto not_same(const RichData& a, const RichData& b) noexcept {
+        return std::memcmp(&a, &b, sizeof(a));
+    }
 }}
 
 
-// riched namespace
-namespace RichED {
-    // RichData ==
-    inline bool operator==(const RichData& a, const RichData& b) noexcept {
-        return !std::memcmp(&a, &b, sizeof(a));
-    }
-}
 
 
 /// <summary>
@@ -195,7 +188,7 @@ bool RichED::CEDTextCell::MergeWithNext() noexcept {
         const auto all_len = m_string.length + next_cell->m_string.length;
         assert(m_string.capacity == TEXT_CELL_STR_MAXLEN);
         if (all_len > TEXT_CELL_STR_MAXLEN) return false;
-        if (!(m_riched == next_cell->m_riched)) return false;
+        if (detail::not_same(m_riched, next_cell->m_riched)) return false;
         U16View view;
         view.first = next_cell->m_string.data;
         view.second = next_cell->m_string.data + next_cell->m_string.length;

@@ -94,7 +94,7 @@ namespace RichED {
         static auto password_helper16(char32_t buf[], char32_t ch, bool mode, const CEDTextCell&) noexcept ->U16View;
     public:
         // private impl
-        struct Private;
+        struct Private; struct UndoPri;
         // ctor
         CEDTextDocument(IEDTextPlatform&, const DocInitArg&) noexcept;
         // ctor
@@ -133,6 +133,8 @@ namespace RichED {
         void SetLineFeed(LineFeed) noexcept;
         // get selection
         auto GetSelectionRange() const noexcept { return DocRange{ m_dpSelBegin, m_dpSelEnd }; }
+        // force change all riched
+        void ForceResetAllRiched() noexcept;
     public: // Low level 
         // begin an operation for undo-stack
         void BeginOp() noexcept;

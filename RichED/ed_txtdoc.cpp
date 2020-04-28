@@ -237,26 +237,6 @@ namespace RichED { namespace detail {
     }
 }}
 
-namespace RichED {
-    // create cell
-    auto CreatePublicCell(
-        CEDTextDocument& doc, 
-        const RichData& red,
-        uint32_t exlen, 
-        uint32_t capacity
-    ) noexcept->CEDTextCell*;
-
-    // singe op for rich
-    struct RichSingeOp {
-        // under riched
-        RichData        riched;
-        // begin point
-        DocPoint        begin;
-        // end point
-        DocPoint        end;
-    };
-}
-
 // namespace RichED::impl 
 namespace RichED { namespace impl {
     // selection mode
@@ -322,6 +302,13 @@ namespace RichED { namespace impl {
 
 // this namesapce
 namespace RichED {
+    // create cell
+    auto CreatePublicCell(
+        CEDTextDocument& doc,
+        const RichData& red,
+        uint32_t exlen,
+        uint32_t capacity
+    ) noexcept->CEDTextCell*;
     // init matrix
     void InitMatrix(DocMatrix& matrix, Direction read, Direction flow) noexcept;
     // check range
@@ -1047,6 +1034,26 @@ void RichED::CEDTextDocument::VAlignHelperH(unit_t ar, unit_t height, CellMetric
     }
 }
 
+
+/// <summary>
+/// Forces the reset all riched.
+/// </summary>
+/// <returns></returns>
+void RichED::CEDTextDocument::ForceResetAllRiched() noexcept {
+    // 遍历所有节点
+    auto cell = detail::next_cell(&m_head);
+    while (cell != &m_tail) {
+        const auto node = cell;
+        cell = detail::next_cell(cell);
+        node->SetRichED(this->default_riched);
+        node->Sleep();
+    }
+    // 标记为脏
+    m_vVisual.ReduceSize(1);
+    //Private::Dirty(*this, *detail::next_cell(&m_head), 0);
+    Private::NeedRedraw(*this);
+    Private::RefreshCaret(*this, m_dpCaret, nullptr);
+}
 
 /// <summary>
 /// Begins the op.

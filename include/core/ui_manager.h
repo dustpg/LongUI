@@ -219,6 +219,10 @@ namespace LongUI {
         bool                    m_flagRecreate = false;
         // window minsize changed flag
         bool                    m_flagWndMinSizeChanged = false;
+    public:
+        // common buffer[single ime once]
+        std::aligned_storage<IME_COMMON_BUF_LENGTH, sizeof(uint32_t)>::type
+                                ime_common_buf;
     };
     // int code
     inline auto IntCode(uintptr_t code) noexcept -> int {

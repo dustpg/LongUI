@@ -150,6 +150,10 @@ namespace LongUI {
     private:
         // text used font
         TextFont                m_tfBuffer;
+        // selection bgcolor
+        ColorF                  m_colorSelBg;
+        // caret color
+        ColorF                  m_colorCaret;
         // hovered curor
         CUICursor               m_hovered;
         // private data
@@ -193,11 +197,13 @@ namespace LongUI {
         // private key down
         bool private_keydown(uint32_t key) noexcept;
         // on char input
-        bool private_char(char32_t) noexcept;
+        bool private_char(char32_t, uint16_t seq) noexcept;
         // private update
         void private_update() noexcept;
         // private resized
         void private_resize(Size2F) noexcept;
+        // private font changed
+        void private_tf_changed(bool layout) noexcept;
 #ifdef LUI_TEXTBOX_USE_UNIFIED_INPUT
         // private left
         void private_left() noexcept;

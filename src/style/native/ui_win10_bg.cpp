@@ -22,7 +22,9 @@ void LongUI::CUINativeStyleWindows10::draw_selbg(const NativeDrawArgs& args) noe
         auto& brush = UIManager.RefCCBrush(color);
         auto rect = args.border;
         const auto width = rect.right - rect.left;
+        //if (args.to.selected)
         rect.right = rect.left + width * alpha;
+        //else rect.left = rect.right - width * alpha;
         renderer.FillRectangle(auto_cast(rect), &brush);
     };
     // 改变时

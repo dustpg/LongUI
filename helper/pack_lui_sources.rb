@@ -17,7 +17,7 @@ end
 work_dir = ARGV[0] + "/src"
 return if !work_dir
 traverse_dir work_dir
-traverse_dir work_dir + "/../TextBC"
+traverse_dir work_dir + "/../RichED"
 $inclist = {}
 $filelist_c = []
 $filelist_cpp = []

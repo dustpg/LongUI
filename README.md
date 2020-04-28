@@ -1,6 +1,6 @@
-﻿## LongUI
+﻿## LongUI 0.2.0
   
-Lightweight C++ GUI Library
+Lightweight C++ GUI Library 
 
 [INDEX索引](./INDEX.md) &nbsp; &nbsp; &nbsp; &nbsp; [Download Single File](./longui_single_file.7z)
 ## Features in LongUI

@@ -174,6 +174,8 @@ namespace LongUI {
     public:
         // show caret
         void ShowCaret(const UIControl&ctrl, const RectF& rect) noexcept;
+        // set caret color
+        void SetCaretColor(const ColorF&) noexcept;
         // hide caret
         void HideCaret() noexcept;
         // register access key

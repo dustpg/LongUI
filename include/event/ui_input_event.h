@@ -7,7 +7,7 @@ namespace LongUI {
     /// <summary>
     /// normal input event
     /// </summary>
-    enum class InputEvent : uint32_t {
+    enum class InputEvent : uint16_t {
         // event char
         Event_Char = 0,
         // event key
@@ -42,6 +42,8 @@ namespace LongUI {
     struct InputEventArg {
         // input event type
         InputEvent      event;
+        // sequence id  N...3->2->1->[0] in same frame
+        uint16_t        sequence;
         // character
         char32_t        character;
     };

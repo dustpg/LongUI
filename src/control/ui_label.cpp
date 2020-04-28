@@ -29,7 +29,7 @@ extern "C" void longui_open_href(const char* ref) noexcept;
 LongUI::UILabel::UILabel(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta), m_hrefCursor(CUICursor::Cursor_Hand) {
     // 本控件支持font属性
-    LongUI::MakeDefault(m_tfBuffer);
+    LongUI::MakeDefault(luiref m_tfBuffer);
     UILabel* const nilobj = nullptr;
     const auto style_offset = reinterpret_cast<char*>(&nilobj->m_oStyle);
     const auto tfbuf_offset = reinterpret_cast<char*>(&nilobj->m_tfBuffer);

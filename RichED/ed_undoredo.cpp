@@ -38,7 +38,7 @@ namespace RichED {
     // init callback
     void InitCallback(TrivialUndoRedo& op) noexcept;
     // private impl
-    struct CEDTextDocument::Private {
+    struct CEDTextDocument::UndoPri {
         // set caret data
         static void AnchorCaret(CEDTextDocument& doc,  TrivialUndoRedo& op) noexcept;
         // set riched
@@ -60,7 +60,7 @@ namespace RichED {
 /// <param name="f">The f.</param>
 /// <param name="g">if set to <c>true</c> [g].</param>
 /// <returns></returns>
-bool RichED::CEDTextDocument::Private::SetRichED(
+bool RichED::CEDTextDocument::UndoPri::SetRichED(
     CEDTextDocument&a, DocPoint b, DocPoint c, size_t d, size_t e, const void * f, bool g) noexcept {
     return a.set_riched(b, c, d, e, f, g);
 }
@@ -74,7 +74,7 @@ bool RichED::CEDTextDocument::Private::SetRichED(
 /// <param name="d">The d.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-bool RichED::CEDTextDocument::Private::SetFlagS(
+bool RichED::CEDTextDocument::UndoPri::SetFlagS(
     CEDTextDocument & a, DocPoint b, DocPoint c, uint16_t d, uint32_t e) noexcept {
     return a.set_flags(b, c, d, e);
 }
@@ -167,7 +167,7 @@ bool RichED::CEDUndoRedo::Redo(CEDTextDocument & doc) noexcept {
 /// <param name="doc">The document.</param>
 /// <param name="op">The op.</param>
 /// <returns></returns>
-void RichED::CEDTextDocument::Private::AnchorCaret(
+void RichED::CEDTextDocument::UndoPri::AnchorCaret(
     CEDTextDocument & doc, TrivialUndoRedo & op) noexcept {
     op.anchor = doc.m_dpAnchor;
     op.caret = doc.m_dpCaret;
@@ -180,7 +180,7 @@ void RichED::CEDTextDocument::Private::AnchorCaret(
 /// <param name="op">The op.</param>
 /// <returns></returns>
 void RichED::CEDUndoRedo::AddOp(CEDTextDocument& doc, TrivialUndoRedo& op) noexcept {
-    CEDTextDocument::Private::AnchorCaret(doc, op);
+    CEDTextDocument::UndoPri::AnchorCaret(doc, op);
     // 释放HEAD -> TOP
     while (m_head.next != m_pStackTop) {
         const auto ptr = m_head.next;
@@ -315,15 +315,6 @@ namespace RichED {
 
 
 namespace RichED {
-    // singe op for rich
-    struct RichSingeOp {
-        // under riched
-        RichData        riched;
-        // begin point
-        DocPoint        begin;
-        // end point
-        DocPoint        end;
-    };
     // group op for rich
     struct RichGroupOp {
         // op for rollback
@@ -344,7 +335,7 @@ namespace RichED {
         const auto data = reinterpret_cast<RichGroupOp*>(&op + 1);
         const auto ptr = reinterpret_cast<char*>(&data->back.riched) + data->back_offset;
         if (data->back_length) {
-            CEDTextDocument::Private::SetRichED(
+            CEDTextDocument::UndoPri::SetRichED(
                 doc, data->back.begin, data->back.end,
                 data->back_offset, data->back_length,
                 ptr, data->relayout
@@ -353,7 +344,7 @@ namespace RichED {
         // 长度为0则是设置FLAG
         else {
             const uint16_t flags = static_cast<uint16_t>(data->back.riched.fflags);
-            CEDTextDocument::Private::SetFlagS(
+            CEDTextDocument::UndoPri::SetFlagS(
                 doc, data->back.begin, data->back.end,
                 flags, data->back_offset
             );
@@ -366,7 +357,7 @@ namespace RichED {
         const auto end_itr = reinterpret_cast<RichSingeOp*>(end_ptr);
         const auto relayout = data->relayout;
         std::for_each(data->exec, end_itr, [&doc, relayout](const RichSingeOp& op)noexcept {
-            CEDTextDocument::Private::SetRichED(
+            CEDTextDocument::UndoPri::SetRichED(
                 doc, op.begin, op.end,
                 0, sizeof(op.riched),
                 &op.riched, relayout

@@ -1,7 +1,5 @@
 ﻿## INDEX
 
-Current Version : 0.1.3
-
 [css support list](./doc/css-support-list.md)
 
 #### bin-size within configuration
@@ -24,6 +22,4 @@ Current Version : 0.1.3
 
 ## 索引
   
-当前版本 : 0.1.2
-
 [css支持列表](./doc/css-support-list.md)

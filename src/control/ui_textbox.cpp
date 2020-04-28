@@ -8,10 +8,12 @@
 #include <core/ui_window.h>
 #include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
+#include <core/ui_color_list.h>
 #include <control/ui_textbox.h>
 #include <constexpr/const_bkdr.h>
+#include <graphics/ui_bg_renderer.h>
 // Private
-//#include "../private/ui_private_control.h"
+#include "../private/ui_private_control.h"
 // C++
 #include <cassert>
 #include <algorithm>
@@ -50,12 +52,14 @@ void LongUI::MakeDefault(TextFont& tf) noexcept {
 LongUI::UITextBox::UITextBox(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) , m_hovered(CUICursor::Cursor_Ibeam) {
     // 本控件支持font属性
-    LongUI::MakeDefault(m_tfBuffer);
+    LongUI::MakeDefault(luiref m_tfBuffer);
     UITextBox* const nilobj = nullptr;
     const auto address1 = reinterpret_cast<char*>(&nilobj->m_tfBuffer);
     const auto address2 = reinterpret_cast<char*>(&nilobj->m_oStyle);
     m_oStyle.offset_tf = static_cast<uint16_t>(address1 - address2);
-    // 默认间距
+    m_colorSelBg = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
+    m_colorCaret = ColorF::FromRGBA_CT<RGBA_Black>();
+    // XXX: 默认间距
     m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 2, 2, 2 };
     m_oStyle.appearance = Appearance_TextField;
@@ -88,9 +92,11 @@ void LongUI::UITextBox::Update() noexcept {
         this->private_set_text();
     }
     // 检查到大小修改
-    if (this->is_size_changed()) {
+    if (this->is_size_changed()) 
         this->private_resize(this->GetBox().GetContentSize());
-    }
+    // 文本布局/显示 修改了
+    if (m_state.textfont_display_changed || m_state.textfont_layout_changed)
+        this->private_tf_changed(m_state.textfont_layout_changed);
     // 污了
     this->private_update();
     // 父类处理
@@ -112,6 +118,7 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         // 更新插入符号位置大小[Focus 肯定有Window了]
         assert(m_pWindow);
         this->show_caret();
+        m_pWindow->SetCaretColor(m_colorCaret);
         code = Event_Accept;
         break;
     case LongUI::GuiEvent::Event_OnBlur:
@@ -164,6 +171,16 @@ auto LongUI::UITextBox::DoEvent(UIControl * sender,
         this->init_private();
         this->init_textbox();
         this->clear_change_could_trigger();
+        // 默认插入符号颜色是背景色的反色
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+        if (const auto obj = UIControlPrivate::GetBgRenderer(*this)) {
+            m_colorCaret = obj->color;
+            m_colorCaret.a = 1.f;
+            m_colorCaret.r = 1.f - m_colorCaret.r;
+            m_colorCaret.g = 1.f - m_colorCaret.g;
+            m_colorCaret.b = 1.f - m_colorCaret.b;
+        }
+#endif
         [[fallthrough]];
     default:
         // 基类处理
@@ -194,7 +211,7 @@ auto LongUI::UITextBox::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     switch (e.event)
     {
     case InputEvent::Event_Char:
-        op_ok = this->private_char(e.character);
+        op_ok = this->private_char(e.character, e.sequence);
         break;
     case InputEvent::Event_KeyDown:
         op_ok = this->private_keydown(e.character);

@@ -62,6 +62,19 @@ extern "C" {
 #include <text/ui_ctl_arg.h>
 #include <util/ui_fookgcc.h>
 
+
+
+const auto global_css = u8R"css(
+#multiline {
+  transition-duration: 1s;
+}
+
+#multiline:hover {
+  font-size: 40px;
+}
+
+)css";
+
 struct HelloConfig : public LongUI::CUIDefaultConfigure {
     // get def-font
     void DefaultFontArg(LongUI::FontArg& arg) noexcept override {
@@ -195,6 +208,7 @@ extern "C" int CALLBACK WinMain(HINSTANCE, HINSTANCE, char*, int) {
         //const auto ptr1 = LongUI::NormalAlloc(1024);
         //const auto ptr2 = LongUI::NormalRealloc(ptr1, 2048);
         //LongUI::NormalFree(ptr2);
+        UIManager.AddGlobalCssString(LongUI::U8View::FromCStyle(global_css));
         {
             LongUI::UIViewport viewport1{
                 nullptr,

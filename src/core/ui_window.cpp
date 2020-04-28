@@ -18,6 +18,9 @@
 #include <graphics/ui_graphics_decl.h>
 
 
+#include <resource/ui_image.h>
+
+
 // C++
 #include <cmath>
 #include <cassert>
@@ -275,6 +278,8 @@ namespace LongUI {
         CUICursor       cursor = { CUICursor::Cursor_Arrow };
         // rect of caret
         RectF           caret = {};
+        // color of caret
+        ColorF          caret_color = ColorF::FromRGBA_CT<RGBA_Black>();
         // rect of window
         RectWHL         rect = {};
         // window adjust
@@ -309,6 +314,8 @@ namespace LongUI {
         uint32_t        auto_sleep_count = 0;
         // unused
         PopupType       popup_type = PopupType::Type_Exclusive;
+        // ime input count
+        uint16_t        ime_count = 0;
         // save utf-16 char
         char16_t        saved_utf16 = 0;
         // ma return code
@@ -330,6 +337,8 @@ namespace LongUI {
         // layered window support
         bool            layered_window_support : 1;
     public:
+        // caret on
+        bool            caret_ok = false;
         // visible window
         bool            window_visible = false;
         // full render for update
@@ -352,8 +361,6 @@ namespace LongUI {
         UIControl*      access_key_map['Z' - 'A' + 1];
         // text render type
         uint32_t        text_antialias = 0;
-        // caret on
-        bool            caret_ok = false;
     private:
         // toggle access key display
         void toggle_access_key_display() noexcept;
@@ -810,8 +817,18 @@ void LongUI::CUIWindow::ShowCaret(const UIControl& ctrl, const RectF& rect) noex
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::HideCaret() noexcept {
+    assert(this && m_private);
     m_private->caret_ok = false;
+}
 
+/// <summary>
+/// Sets the color of the caret.
+/// </summary>
+/// <param name="color">The color.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::SetCaretColor(const ColorF& color) noexcept {
+    assert(this && m_private);
+    m_private->caret_color = color;
 }
 
 /// <summary>
@@ -1459,7 +1476,7 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
     case CUIInputKM::KB_RETURN:
         // 回车键: 直接将输入引导到默认控件
         if (const auto defc = this->now_default) {
-            if (defc->IsEnabled()) defc->DoInputEvent({ ekey, key });
+            if (defc->IsEnabled()) defc->DoInputEvent({ ekey, 0, key });
             return;
         }
         break;
@@ -1468,12 +1485,12 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
     if (const auto focused_ctrl = this->focused) {
         assert(focused_ctrl->IsEnabled());
         // 检查输出
-        const auto rv = focused_ctrl->DoInputEvent({ ekey, key });
+        const auto rv = focused_ctrl->DoInputEvent({ ekey, 0, key });
         // 回车键无视了?!
         if (rv == Event_Ignore && key == CUIInputKM::KB_RETURN) {
             // 直接将输入引导到默认控件
             if (const auto defc = this->now_default) {
-                if (defc->IsEnabled()) defc->DoInputEvent({ ekey, key });
+                if (defc->IsEnabled()) defc->DoInputEvent({ ekey, 0, key });
                 return;
             }
         }
@@ -1548,14 +1565,19 @@ void LongUI::CUIWindow::Private::OnChar(char16_t ch) noexcept {
 /// <param name="ch">The ch.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::OnCharTs(char32_t ch) noexcept {
+    // IME输入优化
+    if (this->ime_count) --this->ime_count;
     // TODO: 自己检查有效性?
-    if (ch >= 0x20 || ch == '\t') {
+    if ((ch >= 0x20 && ch != 0x7f) || ch == '\t') {
         // 直接将输入引导到焦点控件
         if (const auto focused_ctrl = this->focused) {
             CUIDataAutoLocker locker;
-            focused_ctrl->DoInputEvent({ LongUI::InputEvent::Event_Char, ch });
+            focused_ctrl->DoInputEvent({ 
+                LongUI::InputEvent::Event_Char, this->ime_count, ch 
+                });
         }
     }
+    else assert(this->ime_count == 0 && "IME cannot input control char");
 }
 
 /// <summary>
@@ -2171,7 +2193,9 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             }(reinterpret_cast<MINMAXINFO*>(lParam));
             return 0;
         case WM_IME_CHAR:
-            // TODO: 针对IME输入的优化
+            // 针对IME输入的优化 - 记录输入字符数量
+            if (!Unicode::IsHighSurrogate(static_cast<char16_t>(wParam))) 
+                this->ime_count++;
             break;
         case WM_CHAR:
             this->OnChar(static_cast<char16_t>(wParam));
@@ -2732,10 +2756,23 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
 /// <param name="renderer">The renderer.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noexcept {
-    // FIXME: 渲染插入符号
+    // 渲染插入符号
     if (this->caret_ok) {
-        const auto red = ColorF::FromRGBA_CT<RGBA_Red>();
-        renderer.FillRectangle(auto_cast(this->caret), &UIManager.RefCCBrush(red));
+        // 保持插入符号的清晰
+        renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+#if 0
+        // 反色操作, 但是较消耗GPU资源
+        renderer.DrawImage(
+            &img->RefBitmap(),
+            auto_cast(reinterpret_cast<Point2F*>(&des)), &auto_cast(rc),
+            D2D1_INTERPOLATION_MODE_LINEAR,
+            //D2D1_COMPOSITE_MODE_SOURCE_OVER
+            D2D1_COMPOSITE_MODE_MASK_INVERT
+        );
+#endif
+        auto& brush = UIManager.RefCCBrush(this->caret_color);
+        renderer.FillRectangle(auto_cast(this->caret), &brush);
+        renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
 }
 
