@@ -688,7 +688,9 @@ auto LongUI::CUIStyleValue::GetFontStretch()const noexcept->AttributeFontStretch
 void LongUI::CUIStyleValue::after_box_changed() {
     const auto ctrl = static_cast<UIControl*>(this);
     UIControlPrivate::MarkWindowMinsizeChanged(*ctrl);
-    ctrl->NeedUpdate();
+    // 单独修改Box可能性很低, 内部重新布局
+    ctrl->NeedRelayout();
+    //ctrl->NeedUpdate();
 }
 
 /// <summary>

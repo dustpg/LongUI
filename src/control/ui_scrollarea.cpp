@@ -173,10 +173,24 @@ auto LongUI::UIScrollArea::DoMouseEvent(const MouseEventArg & e) noexcept -> Eve
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollArea::Update() noexcept {
+#if 0
+    // 理论上应该这样写
+
     // 污了?
-    if (m_state.dirty) this->on_state_dirty();
+    if (this->is_need_relayout()) {
+        this->on_state_dirty();
+        if (this->is_need_relayout()) return;
+        m_state.dirty = true;
+        Super::Update();
+        m_state.dirty = false;
+    }
     // 链式调用
+    else return Super::Update();
+#else
+    // 这样好像没有BUG
     Super::Update();
+    if (this->is_need_relayout()) this->on_state_dirty();
+#endif
 }
 
 /// <summary>
@@ -187,12 +201,12 @@ void LongUI::UIScrollArea::on_state_dirty() noexcept {
     //if (std::strcmp("listbox::listboxbody", this->name_dbg) == 0) {
     //    int bk = 9;
     //}
-    const auto w = this->GetSize().width;
-    const auto h = this->GetSize().height;
     // 有面积才算数
-    if (w*h <= 0.f) return;
-    // 不污
-    m_state.dirty = false;
+    const auto s = this->GetSize();
+    if (s.width * s.height <= 0.f) return;
+
+    // 处理大小修改
+    this->size_change_handled();
     // 存在子控件才计算
     if (this->GetCount()) {
         // 更新布局

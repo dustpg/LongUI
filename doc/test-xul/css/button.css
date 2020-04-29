@@ -56,6 +56,7 @@ button.border-image {
 button.border-image:hover {
     border-image-source: url('../images/border2.png');
     border-image-slice: 33%;
+    border-width: 54px;
 }
 
 

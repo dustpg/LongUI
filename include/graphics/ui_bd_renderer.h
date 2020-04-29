@@ -23,7 +23,7 @@ namespace LongUI {
         // copy ctor
         CUIRendererBorder(const CUIRendererBorder&) = delete;
         // before render
-        void BeforeRender() noexcept;
+        void BeforeRender(const Box& box) noexcept;
         // render border
         void RenderBorder(const Box& box) const noexcept;
         // release device data
@@ -31,6 +31,8 @@ namespace LongUI {
         // create device data
         auto CreateDeviceData() noexcept->Result;
     public:
+        // mark size changed
+        void MarkSizeChanged() noexcept { m_bLayoutChanged = true; }
         // set image id
         void SetImageId(uint32_t ) noexcept;
         // set image repeat
@@ -53,6 +55,10 @@ namespace LongUI {
         void release_effect() noexcept;
         // refresh real slice
         void refresh_real_slice() noexcept;
+        // refresh draw count
+        void refresh_draw_count() noexcept;
+        // refresh image matrix
+        void refresh_image_matrix(const Box& box) noexcept;
         // render default border
         void render_default_border(const Box& box) const noexcept;
         // ----------- CACHE-DATA -----------

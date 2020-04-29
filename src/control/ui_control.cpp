@@ -465,6 +465,8 @@ void LongUI::UIControl::Update() noexcept {
     // 最基的不处理子控件索引更改
     m_state.child_i_changed = false;
     m_state.parent_changed = false;
+    // 自定义样式
+    this->custom_style_update();
 
     /*LUIDebug(Hint) LUI_FRAMEID
         << this 
@@ -482,7 +484,6 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
     // --------------------- 释放数据
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
-
     // 背景
     if (m_pBgRender) m_pBgRender->ReleaseDeviceData();
     // 边框
@@ -496,7 +497,6 @@ auto LongUI::UIControl::Recreate(bool release_only) noexcept -> Result {
     // --------------------- 创建数据
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
-
     // 背景
     if (m_pBgRender) hr = m_pBgRender->CreateDeviceData();
     // 边框

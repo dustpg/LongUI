@@ -73,8 +73,6 @@ void  LongUI::UILabel::Update() noexcept {
     }
     // 父类修改
     Super::Update();
-    // 次帧刷新
-    //this->NextUpdate();
     // 处理大小修改
     this->size_change_handled();
 }

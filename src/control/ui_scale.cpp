@@ -51,15 +51,15 @@ LongUI::UIScale::~UIScale() noexcept {
 /// <returns></returns>
 void LongUI::UIScale::Update() noexcept {
     // 污了
-    if (m_state.dirty) {
+    if (this->is_size_changed()) {
         // 本类只能存在唯一的子元素(thumb)
         assert(this->GetCount() == 1 && "thumb ony");
         assert(*this->begin() == this->thumb && "thumb ony");
         this->refresh_thumb_size();
         this->refresh_thumb_postion();
-        m_state.dirty = false;
     }
-    return Super::Update();
+    Super::Update();
+    this->size_change_handled();
 }
 
 /// <summary>

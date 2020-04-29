@@ -209,7 +209,7 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
     const float flex_sum = this->sum_children_flex();
     // 2. 加入SB布局
     const auto remaining = this->layout_scroll_bar();
-    // 需要重新布局
+    // 需要重新布局的话就没有必要继续算了
     if (this->is_need_relayout()) return;
     // 3. 计算每权重长度
     const float len_in_unit = flex_sum > 0.f ?

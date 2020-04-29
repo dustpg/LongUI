@@ -134,9 +134,7 @@ void LongUI::UIGroupBox::add_child(UIControl& child) noexcept {
 /// <returns></returns>
 //void LongUI::UIGroupBox::Update() noexcept {
 //    // 污了?
-//    if (m_state.dirty) {
-//        // 不污
-//        m_state.dirty = false;
+//    if (this->is_size_changed()) {
 //        // 更新布局
 //        this->relayout();
 //        // 更新子控件
@@ -147,6 +145,7 @@ void LongUI::UIGroupBox::add_child(UIControl& child) noexcept {
 //    }
 //    // 链式调用
 //    Super::Update();
+//    this->size_change_handled();
 //}
 
 

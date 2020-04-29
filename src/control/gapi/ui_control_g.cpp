@@ -77,6 +77,19 @@ bool LongUI::UIControl::native_style_render() const noexcept {
     return false;
 }
 
+
+/// <summary>
+/// Customs the style update.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::custom_style_update() noexcept {
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    if (this->is_size_changed() && m_pBdRender) {
+        m_pBdRender->MarkSizeChanged();
+    }
+#endif
+}
+
 /// <summary>
 /// Customs the style render.
 /// </summary>
@@ -110,7 +123,7 @@ void LongUI::UIControl::custom_style_render() const noexcept {
     // 边框渲染
     if (m_pBdRender) {
         // UPDATE#2
-        m_pBdRender->BeforeRender();
+        m_pBdRender->BeforeRender(this->GetBox());
         // C.
         m_pBdRender->RenderBorder(this->GetBox());
     }

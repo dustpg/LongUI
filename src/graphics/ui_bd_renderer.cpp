@@ -74,6 +74,8 @@ void LongUI::CUIRendererBorder::SetImageId(uint32_t id) noexcept {
     }
 #endif
     m_idImage = id;
+    // 没有就忽略
+    if (!m_pBorder) return;
     // XXX: 错误处理
     const auto code = this->refresh_image();
     assert(code && "TODO: ERROR HANDLE");
@@ -112,12 +114,9 @@ auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
     Result hr = { Result::RS_OK };
     // 没有就创建
     if (!m_pBorder && m_idImage) {
-        ID2D1Bitmap1* const bitmap = nullptr;
         auto& effect = reinterpret_cast<effect_t*&>(m_pBorder);
-        hr = { UIManager.Ref2DRenderer().CreateEffect(
-            GUID_LongUIEffect_BorderImage,
-            &effect
-        ) };
+        auto& guid = GUID_LongUIEffect_BorderImage;
+        hr.code = UIManager.Ref2DRenderer().CreateEffect(guid, &effect) ;
     }
     // 更新输入
     if (m_pBorder) {
@@ -136,9 +135,7 @@ auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
         // 设置输入
         m_pBorder->SetInput(0, &img->RefBitmap());
         // 获取输出
-        if (!m_pOutput) {
-            m_pBorder->GetOutput(&auto_cast(m_pOutput));
-        }
+        if (!m_pOutput) m_pBorder->GetOutput(&auto_cast(m_pOutput));
     }
     return hr;
 }
@@ -174,11 +171,13 @@ void LongUI::CUIRendererBorder::refresh_real_slice() noexcept {
 /// Befores the render.
 /// </summary>
 /// <returns></returns>
-void LongUI::CUIRendererBorder::BeforeRender() noexcept {
-    if (m_bLayoutChanged) {
-        m_bLayoutChanged = false;
+void LongUI::CUIRendererBorder::BeforeRender(const Box& box) noexcept {
+    if (m_pBorder && m_bLayoutChanged) {
         this->refresh_real_slice();
+        this->refresh_draw_count();
+        this->refresh_image_matrix(box);
     }
+    m_bLayoutChanged = false;
 }
 
 
@@ -286,13 +285,26 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
     if (!m_pOutput) return;
     // 记录
     const auto border_rect = box.GetBorderEdge();
-    const Size2F size = { 
-        border_rect.right - border_rect.left,
-        border_rect.bottom - border_rect.top
-    };
     auto& renderer = UIManager.Ref2DRenderer();
-    // 优化: 修改时再计算
+    // 正式渲染
+    Point2F offset = { border_rect.left, border_rect.top };
+    renderer.DrawImage(&auto_cast(*m_pOutput), &auto_cast(offset));
+}
 
+
+/// <summary>
+/// Refreshes the image matrix.
+/// </summary>
+/// <param name="box">The box.</param>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::CUIRendererBorder::refresh_image_matrix(const Box& box) noexcept {
+    // XXX: 修改时再计算
+    const auto border_rect = box.GetBorderEdge();
+    const Size2F size{
+        border_rect.right - border_rect.left,
+            border_rect.bottom - border_rect.top
+    };
     // 更新cbuffer
     Effect::BorderImageMatrix matrix;
     // 目标:
@@ -318,18 +330,19 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
     matrix.repeat = { 1.f, 1.f, 1.f, 1.f };
     this->calculate_repeat(luiref matrix.repeat, box, size);
     m_pBorder->SetValue(Effect::BImage_Matrix, matrix);
+}
+
+/// <summary>
+/// Refreshes the drawcount.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIRendererBorder::refresh_draw_count() noexcept {
     // FILL
     const uint32_t draw_count = m_bSliceFill
-        ? Effect::VERTEX_FULLCOUNT 
+        ? Effect::VERTEX_FULLCOUNT
         : Effect::VERTEX_NOFILLCOUNT
         ;
     m_pBorder->SetValue(Effect::BImage_Draw, draw_count);
-
-    // 正式渲染
-    Point2F offset = { border_rect.left, border_rect.top };
-    renderer.DrawImage(&auto_cast(*m_pOutput), &auto_cast(offset));
 }
-
-
 
 #endif

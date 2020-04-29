@@ -56,7 +56,7 @@ VSOut main(
         const float repeat_x1 = (index.y == 2) ? repeat.z : repeat.x;
         output.texelSpaceInput0.x 
             = output.texelSpaceInput0.x * repeat_x1
-            - (repeat_x1 - floor(repeat_x1)) * 0.5
+            + 0.5 - (repeat_x1* 0.5 - floor(repeat_x1* 0.5))
             ;
     }
     // X2
@@ -77,7 +77,7 @@ VSOut main(
         const float repeat_y1 = (index.x == 2) ? repeat.w : repeat.y;
         output.texelSpaceInput0.y
             = output.texelSpaceInput0.y * repeat_y1
-            - (repeat_y1 - floor(repeat_y1)) * 0.5
+            + 0.5 - (repeat_y1* 0.5 - floor(repeat_y1* 0.5))
             ;
     }
     // Y2

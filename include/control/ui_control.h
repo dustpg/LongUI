@@ -408,6 +408,8 @@ namespace LongUI {
         bool native_style_render() const noexcept;
         // custom style render
         void custom_style_render() const noexcept;
+        // custom style render
+        void custom_style_update() noexcept;
         // delete renderer
         void delete_renderer() noexcept;
         // exist basic animation ?

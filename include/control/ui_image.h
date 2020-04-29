@@ -28,7 +28,7 @@
 #include "ui_control.h"
 #include "../resource/ui_resource_id.h"
 
-#define LUI_IMAGE_ASICON_SUPPORT
+//#define LUI_IMAGE_ASICON_SUPPORT
 
 // ui namespace
 namespace LongUI {
