@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="::U8View">
+    <DisplayString>{first,[(second-first)]}</DisplayString>
+    <Expand>
+      <Item Name="[size]" ExcludeView="simple">second-first</Item>
+      <ArrayItems>
+        <Size>second-first</Size>
+        <ValuePointer>first</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="TextBC::U16View">
+    <DisplayString>{first,[(second-first)]}</DisplayString>
+    <Expand>
+      <Item Name="[size]" ExcludeView="simple">second-first</Item>
+      <ArrayItems>
+        <Size>second-first</Size>
+        <ValuePointer>first</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  <Type Name="TextBC::CBCTextCell">
+    <DisplayString>{m_text}</DisplayString>
+  </Type>
+  <Type Name="TextBC::CBCTextDocument">
+    <DisplayString>{{ len: {m_cTotalLen} anchor: {m_uAnchor} valid: {m_cValidLine} }}</DisplayString>
+    <Expand>
+      <CustomListItems>
+        <Variable Name="node" InitialValue="m_head.next"/>
+        <Loop>
+          <Break Condition="node->next == 0"/>
+          <!-->Item Condition="((CBCTextCell*)node)->m_bBeginOfLine">"[New Line]"</Item-->
+          <Item>*(CBCTextCell*)node</Item>
+          <Exec>node = node-&gt;next</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
+
+  <Type Name="TextBC::CBCBuffer&lt;*&gt;">
+    <DisplayString Condition="m_length == 0">{{ empty }}</DisplayString>
+    <DisplayString Condition="m_length != 0">{{ size = { m_length } }}</DisplayString>
+    <Expand>
+      <Item Name="[capacity]" ExcludeView="simple">m_capacity</Item>
+      <ArrayItems>
+        <Size>m_length</Size>
+        <ValuePointer>($T1*)m_data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>
