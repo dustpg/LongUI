@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2016 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2020 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -155,6 +155,11 @@ namespace LongUI {
         void Evaluation(U8View v, CUIWindow& w) noexcept { this->config->Evaluation(v, w); }
         // finalize window script if has script
         void FinalizeScript(CUIWindow& w) noexcept { this->config->FinalizeScript(w); };
+    public:
+        // set timer [0~7]
+        void SetTimer(UIControl&, uint32_t elapse, uint32_t id0_7) noexcept;
+        // kill timer [0~7]
+        void KillTimer(UIControl&, uint32_t id0_7) noexcept;
     private:
         // ctor
         CUIManager(IUIConfigure*, ConfigureFlag, Result& ) noexcept;
