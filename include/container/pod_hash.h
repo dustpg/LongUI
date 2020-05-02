@@ -157,6 +157,8 @@ namespace LongUI { namespace POD {
         auto find(const char* str) noexcept ->iterator { return{ hash_base::find(str) }; }
         // find item with string view
         auto find(const char* str, const char* end) noexcept ->iterator { return{ hash_base::find(str, end) }; }
+        // remove
+        bool remove(iterator itr) noexcept { return hash_base::remove(itr.m_itr); }
 #else
 #error not implement yet
 #endif

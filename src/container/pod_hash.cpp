@@ -397,7 +397,7 @@ bool LongUI::POD::detail::hash_base::remove(const char* str_begin, const char* s
 /// <returns></returns>
 bool LongUI::POD::detail::hash_base::remove(hash_iterator itr) noexcept {
     // 有效迭代器
-    if (*itr.bucket != end_symbol) {
+    if (itr.bucket != m_pBaseTableEnd) {
         assert(itr.cell && "YES?");
         assert(m_cItemSize && "NO?");
         // 链接前后节点

@@ -76,6 +76,7 @@ namespace LongUI {
         MIN_SCROLLBAR_DISPLAY_SIZE = 64,
         // default control max width/height :
         DEFAULT_CONTROL_MAX_SIZE = 100000,
+
 #ifdef NDEBUG
         // window auto into sleep mode time after window hide (in ms)
         WINDOW_AUTOSLEEP_TIME = 1000 * 60 * 1,
@@ -90,9 +91,10 @@ namespace LongUI {
         // Bitmap Bank bitmap size
         BITBANK_BITMAP_SIZE = 1024,
         // Bitmap Bank rect max size
-        BITBANK_BITMAP_RMAX = BITBANK_BITMAP_SIZE / 2,
+        BITBANK_BITMAP_RMAX = BITBANK_BITMAP_SIZE / 8,
         // Bitmap Bank bitmap move threshold
         BITBANK_BITMAP_MOVE_THRESHOLD = BITBANK_BITMAP_SIZE * BITBANK_BITMAP_SIZE / 2,
+
 
         // invalid minsize
         INVALID_MINSIZE = -1,
