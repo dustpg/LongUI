@@ -7,6 +7,7 @@
 #include "../core/ui_color.h"
 #include "../core/ui_object.h"
 #include "../style/ui_attribute.h"
+#include "../resource/ui_resource_id.h"
 
 namespace LongUI {
     // image output
@@ -34,13 +35,13 @@ namespace LongUI {
         // mark size changed
         void MarkSizeChanged() noexcept { m_bLayoutChanged = true; }
         // set image id
-        void SetImageId(uint32_t ) noexcept;
+        void SetImageId(uintptr_t id) noexcept;
         // set image repeat
         void SetImageRepeat(AttributeRepeat repeat) noexcept;
         // set image slice
         void SetImageSlice(const RectF&, bool fill) noexcept;
         // get image id
-        auto GetImageId() const noexcept { return m_idImage; }
+        auto GetImageId() const noexcept { return m_idImage.GetId(); }
         // get image repeat
         auto GetImageRepeat() const noexcept { return m_repeat; }
         // get image slice
@@ -64,6 +65,8 @@ namespace LongUI {
         // ----------- CACHE-DATA -----------
         // size of image
         Size2F              m_szImage = {};
+        // ratio of source
+        Size2F              m_szRatio = { 1,1 };
         // real slice rect
         RectF               m_rcRealSlice = { };
     private:
@@ -76,8 +79,10 @@ namespace LongUI {
         // ------------- CPU-RES ------------
         // rect for image slice
         RectF               m_rcSlice = {};
+        // rect for image source
+        RectF               m_rcSource = { 0,0,1,1 };
         // resource for image
-        uint32_t            m_idImage = 0;
+        CUIResourceID       m_idImage;
         // fill for image slice
         bool                m_bSliceFill = false;
         // [FLAG]image layout changed

@@ -2,8 +2,8 @@
 #include <core/ui_ctrlmeta.h>
 #include <core/ui_manager.h>
 #include <control/ui_image.h>
-#include <resource/ui_image.h>
 #include <container/pod_hash.h>
+#include <resource/ui_image_res.h>
 
 
 // ui namespace
@@ -77,29 +77,27 @@ void LongUI::UIImage::add_attribute(uint32_t key, U8View value) noexcept {
 /// </summary>
 /// <param name="src">The source.</param>
 void LongUI::UIImage::SetSource(U8View src) noexcept {
-    const auto old_src = m_pSharedSrc;
     constexpr auto RESTYPE = ResourceType::Type_Image;
-    const auto id = UIManager.LoadResource(src, RESTYPE, true);
+    const auto id = UIManager.LoadResource(src, /*RESTYPE,*/ true);
 #ifndef NDEBUG
     if (!id && src.end() != src.begin()) {
         LUIDebug(Error) LUI_FRAMEID
-            << "Resource not found: "
+            << "Resource [not found][create failed]: "
             << src
             << endl;
     }
 #endif
     // 重置数据
-    m_pSharedSrc = nullptr;
-    m_idSrc.SetId(id);
-    // 数据有效
-    if (id) {
-        assert(m_idSrc.GetResoureceType() == RESTYPE);
-        const auto obj = m_idSrc.GetResoureceObj();
-        m_pSharedSrc = static_cast<CUIImage*>(obj);
-        assert(m_pSharedSrc && "bug");
-    }
-    // 要求重新计算以及重绘
-    if (m_pSharedSrc != old_src) {
+    if (id != m_idSrc.GetId()) {
+        m_idSrc.SetId(id);
+        m_idFrame = 0;
+        m_uFrameCount = 1;
+        if (id) {
+            auto& res = m_idSrc.RefResource();
+            auto& img = static_cast<CUIImage&>(res);
+            m_uFrameCount = img.frame_count;
+            if (m_uFrameCount > 1) this->SetTimer(img.delay, 0);
+        }
         this->mark_window_minsize_changed();
         this->NeedUpdate();
         this->Invalidate();
@@ -129,13 +127,21 @@ auto LongUI::UIImage::DoEvent(UIControl* sender, const EventArg& e) noexcept -> 
     {
         Size2F minsize_set;
     case LongUI::NoticeEvent::Event_RefreshBoxMinSize:
+        // IMAGE最小尺寸就是图片大小
         minsize_set = { 0.f };
-        if (m_pSharedSrc) {
-            const auto size = m_pSharedSrc->GetSize();
-            minsize_set.width = static_cast<float>(size.width);
-            minsize_set.height = static_cast<float>(size.height);
+        if (m_idSrc.GetId()) {
+            auto& res = m_idSrc.RefResource();
+            auto& img = static_cast<CUIImage&>(res);
+            assert(res.RefData().GetType() == ResourceType::Type_Image);
+            minsize_set.width = static_cast<float>(img.size.width);
+            minsize_set.height = static_cast<float>(img.size.height);
         }
         this->set_contect_minsize(minsize_set);
+        return Event_Accept;
+    case LongUI::NoticeEvent::Event_Timer0:
+        // TIMER#0 作为帧动画使用
+        m_idFrame = (m_idFrame + 1) % m_uFrameCount;
+        this->Invalidate();
         return Event_Accept;
     }
     return Super::DoEvent(sender, e);
@@ -149,7 +155,7 @@ void LongUI::UIImage::Render() const noexcept {
     // 渲染背景
     Super::Render();
     // 图像有效
-    if (m_pSharedSrc) {
+    if (m_idSrc.GetId()) {
         // 将目标画在内容区
         auto des_rect = this->GetBox().GetContentEdge();
         // 居中显示
@@ -177,7 +183,10 @@ void LongUI::UIImage::Render() const noexcept {
             }
         }
 #endif
-        m_pSharedSrc->Render(UIManager.Ref2DRenderer(), &des_rect);
+        auto& res = m_idSrc.RefResource();
+        auto& img = static_cast<const CUIImage&>(res);
+        assert(res.RefData().GetType() == ResourceType::Type_Image);
+        img.Render(m_idFrame, UIManager.Ref2DRenderer(), &des_rect);
     }
 }
 

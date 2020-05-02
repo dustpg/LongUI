@@ -355,6 +355,23 @@ auto LongUI::CUIDebug::operator<<(const LongUI::RectF& rect) noexcept ->CUIDebug
     return *this;
 }
 
+
+/// <summary>
+/// Operators the specified rect.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+auto LongUI::CUIDebug::operator<<(const LongUI::RectWHU& rect) noexcept ->CUIDebug& {
+    CUIString str;
+    str.format(
+        u"RectWH(%4d,%4d,%4d,%4d)",
+        rect.left, rect.top, rect.width, rect.height
+    );
+    this->OutputNoFlush(m_lastLevel, str.c_str());
+    return *this;
+}
+
+
 /// <summary>
 /// Operators the specified rect.
 /// </summary>
@@ -381,6 +398,19 @@ auto LongUI::CUIDebug::operator<<(const LongUI::Point2F& pt) noexcept ->CUIDebug
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }
+
+/// <summary>
+/// Operators the specified pt.
+/// </summary>
+/// <param name="pt">The pt.</param>
+/// <returns></returns>
+auto LongUI::CUIDebug::operator<<(const LongUI::Size2U& pt) noexcept ->CUIDebug& {
+    CUIString str;
+    str.format(u"Size(%4d, %4d)", pt.width, pt.height);
+    this->OutputNoFlush(m_lastLevel, str.c_str());
+    return *this;
+}
+
 
 /// <summary>
 /// Operators the specified pt.
@@ -569,6 +599,32 @@ auto LongUI::CUIDebug::operator<<(const bool b) noexcept ->CUIDebug& {
 
 
 /// <summary>
+/// Operators the specified b.
+/// 布尔输出重载
+/// </summary>
+/// <param name="b">The b.</param>
+/// <returns></returns>
+auto LongUI::CUIDebug::operator<<(const Result hr) noexcept ->CUIDebug& {
+    CUIString str;
+    str.format(u"[0x%08x] ", hr.code);
+    const char16_t* text = nullptr;
+    ::FormatMessageW(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        hr.code,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPWSTR)&text,
+        0,
+        nullptr
+    );
+    this->OutputNoFlush(m_lastLevel, str.c_str());
+    this->OutputNoFlush(m_lastLevel, text ? text : u"UNKNOWN CODE");
+    if (text) ::LocalFree((HLOCAL)text);
+    return *this;
+}
+/// <summary>
 /// Operators the specified string.
 /// </summary>
 /// <param name="str">The string.</param>
@@ -664,6 +720,7 @@ auto LongUI::CUIDebug::operator<<(const char32_t ch) noexcept  ->CUIDebug& {
 /// <param name="s">The s.</param>
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const wchar_t* s) noexcept  ->CUIDebug& {
+    s = s ? s : L"";
     return (*this) << reinterpret_cast<const wcharxx_t*>(s);
 }
 

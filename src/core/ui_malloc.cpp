@@ -22,7 +22,9 @@ namespace LongUI {
 #endif
         using M = CUIManager::IMM;
         assert(M::Get() && "must call UIManager.Initialize() first");
-        return M::Get()->NormalAlloc(length);
+        const auto ptr = M::Get()->NormalAlloc(length);
+        assert((reinterpret_cast<uintptr_t>(ptr) & 7) == 0 && "at least alignas 8bytes");
+        return ptr;
     }
     // free for normal space
     PCN_NOINLINE void NormalFree(void* address) noexcept {

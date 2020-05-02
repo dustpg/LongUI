@@ -81,8 +81,20 @@ button.border-image:hover {
 }
 
 .imgButton {
-    -moz-appearance: none;
+    -moz-appearance: none;  
     border-width: 3px;
-    /* border-image-source: url(../images/btn.png); */
-    /* border-image-slice: 3 fill; */
+    border-image-source: url(../images/btn1.png);
+    border-image-slice: 3 fill;
+}
+
+.imgButton:hover {
+    border-image-source: url(../images/btn2.png);
+}
+
+.imgButton:active {
+    border-image-source: url(../images/btn3.png);
+}
+
+.imgButton:disabled {
+    border-image-source: url(../images/btn0.png);
 }

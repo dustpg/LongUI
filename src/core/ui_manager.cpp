@@ -99,7 +99,7 @@ namespace LongUI {
     // delete control
     void DeleteControl(UIControl*) noexcept;
     // mark control dl?
-    void OnTimer(UIControl&, uint32_t id) noexcept;
+    void OnTimer(uintptr_t) noexcept;
     // check control dl?
     bool CheckControlDeleteLater(const UIControl&) noexcept;
     // mark control dl?
@@ -441,6 +441,29 @@ void LongUI::CUIManager::try_recreate() noexcept {
 }
 
 /// <summary>
+/// Sets the timer.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="elapse">The elapse.</param>
+/// <param name="id0_7">The id0 7.</param>
+/// <returns></returns>
+void LongUI::CUIManager::SetTimer(UIControl& ctrl, uint32_t elapse, uint32_t id0_7) noexcept {
+    const uintptr_t id = reinterpret_cast<uintptr_t>(&ctrl) + id0_7;
+    ::SetTimer(m_hToolWnd, id, elapse, nullptr);
+}
+
+/// <summary>
+/// Kills the timer.
+/// </summary>
+/// <param name="">The .</param>
+/// <param name="id0_7">The id0 7.</param>
+/// <returns></returns>
+void LongUI::CUIManager::KillTimer(UIControl& ctrl, uint32_t id0_7) noexcept {
+    const uintptr_t id = reinterpret_cast<uintptr_t>(&ctrl) + id0_7;
+    ::KillTimer(m_hToolWnd, id);
+}
+
+/// <summary>
 /// Initializes the specified configuration.
 /// </summary>
 /// <param name="config">The configuration.</param>
@@ -520,17 +543,12 @@ auto LongUI::CUIManager::Initialize(
                     .Update(reinterpret_cast<HRAWINPUT>(lParam));
                 return 1;
 #endif
-#if 0
             case WM_TIMER:
             {
-                const WPARAM high = wParam & ~WPARAM(3);
-                const uint32_t low = wParam & 3;
-                const auto ctrl = reinterpret_cast<UIControl*>(high);
                 CUIDataAutoLocker locker;
-                LongUI::OnTimer(*ctrl, low);
+                LongUI::OnTimer(wParam);
                 return 0;
             }
-#endif
             case WM_SETTINGCHANGE:
                 UIManager.refresh_system_info();
                 break;
@@ -865,9 +883,11 @@ auto LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc,
 /// <param name="str">The string.</param>
 /// <returns></returns>
 bool LongUI::CUIManager::ShowError(Result hr, const wchar_t* str) noexcept {
+    if (hr) return false;
+    LUIDebug(Error) << hr << str << endl;
     assert(hr);
-    //this->config->OnError();
-    return 0;
+    //this->config->OnError(hr, str);
+    return true;
 }
 
 /// <summary>

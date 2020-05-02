@@ -8,7 +8,7 @@
 #include <graphics/ui_graphics_impl.h>
 // resource
 #include <effect/ui_effect_borderimage.h>
-#include <resource/ui_image.h>
+#include <resource/ui_image_res.h>
 // c++
 #include <cassert>
 
@@ -64,16 +64,16 @@ void LongUI::CUIRendererBorder::release_effect() noexcept {
 /// </summary>
 /// <param name="id">The identifier.</param>
 /// <returns></returns>
-void LongUI::CUIRendererBorder::SetImageId(uint32_t id) noexcept {
+void LongUI::CUIRendererBorder::SetImageId(uintptr_t id) noexcept {
 #ifndef NDEBUG
-    if (m_idImage == id) {
+    if (m_idImage.GetId() == id) {
         LUIDebug(Warning)
             << "set same image id: "
-            << id
+            << reinterpret_cast<void*>(id)
             << endl;
     }
 #endif
-    m_idImage = id;
+    m_idImage.SetId(id);
     // 没有就忽略
     if (!m_pBorder) return;
     // XXX: 错误处理
@@ -110,30 +110,36 @@ void LongUI::CUIRendererBorder::SetImageRepeat(AttributeRepeat repeat) noexcept 
 auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
     m_szImage = {};
     using effect_t = ID2D1Effect;
-    if (!m_idImage) return { Result::RS_FALSE };
+    if (!m_idImage.GetId()) return { Result::RS_FALSE };
     Result hr = { Result::RS_OK };
     // 没有就创建
-    if (!m_pBorder && m_idImage) {
+    if (!m_pBorder && m_idImage.GetId()) {
         auto& effect = reinterpret_cast<effect_t*&>(m_pBorder);
         auto& guid = GUID_LongUIEffect_BorderImage;
         hr.code = UIManager.Ref2DRenderer().CreateEffect(guid, &effect) ;
     }
     // 更新输入
     if (m_pBorder) {
-        auto& data = UIManager.GetResoureceData(m_idImage);
-        assert(data.type == ResourceType::Type_Image);
-        // 目前只支持IMAGE
-        const auto img = static_cast<CUIImage*>(data.obj);
+        auto& res = m_idImage.RefResource();
+        assert(res.RefData().GetType() == ResourceType::Type_Image);
+        auto& img = static_cast<CUIImage&>(res);
         // 检查大小
-        const auto osize = img->GetSize();
-        const auto fw = static_cast<float>(osize.width);
-        const auto fh = static_cast<float>(osize.height);
-        m_bLayoutChanged |= fw == m_szImage.width;
-        m_bLayoutChanged |= fh == m_szImage.height;
-        m_szImage.width = fw;
-        m_szImage.height = fh;
+        auto& frame = img.RefFrame(0);
+        const auto realsize = frame.bitmap->GetSize();
+        const auto fw = static_cast<float>(realsize.width);
+        const auto fh = static_cast<float>(realsize.height);
+        if (fw != m_szImage.width || fh != m_szImage.height) 
+            m_bLayoutChanged = true;
+        //m_szImage = { realsize.width, realsize.height };
+        m_szImage = img.size;
+        m_szRatio.width = img.size.width / realsize.width;
+        m_szRatio.height = img.size.height / realsize.height;
+        m_rcSource.left = frame.source.left / realsize.width;
+        m_rcSource.top = frame.source.top / realsize.height;
+        m_rcSource.right = frame.source.right / realsize.width;
+        m_rcSource.bottom = frame.source.bottom / realsize.height;
         // 设置输入
-        m_pBorder->SetInput(0, &img->RefBitmap());
+        m_pBorder->SetInput(0, frame.bitmap);
         // 获取输出
         if (!m_pOutput) m_pBorder->GetOutput(&auto_cast(m_pOutput));
     }
@@ -270,6 +276,11 @@ void LongUI::CUIRendererBorder::calculate_repeat(
         rect.bottom = 1.f;
         break;
     }
+    // RATIO
+    //rect.left *= m_szRatio.width;
+    //rect.top *= m_szRatio.height;
+    //rect.right *= m_szRatio.width;
+    //rect.bottom *= m_szRatio.height;
 }
 
 /// <summary>
@@ -280,7 +291,7 @@ void LongUI::CUIRendererBorder::calculate_repeat(
 void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
     assert(m_bLayoutChanged == false);
     // 渲染默认风格
-    if (!m_idImage) return this->render_default_border(box);
+    if (!m_idImage.GetId()) return this->render_default_border(box);
     // 渲染边框图片
     if (!m_pOutput) return;
     // 记录
@@ -299,7 +310,6 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
 /// <param name="size">The size.</param>
 /// <returns></returns>
 void LongUI::CUIRendererBorder::refresh_image_matrix(const Box& box) noexcept {
-    // XXX: 修改时再计算
     const auto border_rect = box.GetBorderEdge();
     const Size2F size{
         border_rect.right - border_rect.left,
@@ -316,16 +326,15 @@ void LongUI::CUIRendererBorder::refresh_image_matrix(const Box& box) noexcept {
     matrix.zone2.top = box.border.bottom;
     matrix.zone3.left = size.width;
     matrix.zone3.top = size.width;
-    // TODO: 支持图片中一小部分
-    // 源:
-    matrix.zone0.right = 0.f;
-    matrix.zone0.bottom = 0.f;
-    matrix.zone1.right = m_rcRealSlice.left;
-    matrix.zone1.bottom = m_rcRealSlice.top;
-    matrix.zone2.right = 1.f - m_rcRealSlice.right;
-    matrix.zone2.bottom = 1.f - m_rcRealSlice.bottom;
-    matrix.zone3.right = 1.f;
-    matrix.zone3.bottom = 1.f;
+    // 支持图片中一小部分
+    matrix.zone0.right = m_rcSource.left;
+    matrix.zone0.bottom = m_rcSource.top;
+    matrix.zone1.right = m_rcSource.left + m_rcRealSlice.left * m_szRatio.width;
+    matrix.zone1.bottom = m_rcSource.top + m_rcRealSlice.top* m_szRatio.height;
+    matrix.zone2.right = m_rcSource.right - m_rcRealSlice.right* m_szRatio.width;
+    matrix.zone2.bottom = m_rcSource.bottom - m_rcRealSlice.bottom* m_szRatio.height;
+    matrix.zone3.right = m_rcSource.right;
+    matrix.zone3.bottom = m_rcSource.bottom;
     // 重复
     matrix.repeat = { 1.f, 1.f, 1.f, 1.f };
     this->calculate_repeat(luiref matrix.repeat, box, size);

@@ -180,14 +180,18 @@ namespace LongUI {
         int16_t     i16[4];
         // single float data
         float       single[2];
-        // double float data
-        //double      double_;
         // byte data
         uint8_t     byte[8];
         // boolean data
         bool        boolean[8];
         // u8 string data
         const char* strptr;
+        // handle
+        uintptr_t   handle;
+#if 0
+        // double float data
+        double      double_;
+#endif
     };
     static_assert(sizeof(UniByte8) == sizeof(double), "same!");
     /// <summary>

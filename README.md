@@ -1,4 +1,4 @@
-﻿## LongUI 0.2.0
+﻿## LongUI 0.2.1
   
 Lightweight C++ GUI Library 
 
@@ -34,7 +34,7 @@ Lightweight C++ GUI Library
 
 **Hardware Acceleration**
   - gpu render based on direct2d now
-  - dynamic gpu change support(like surface book)
+  - support runtime gpu-switch (like surface book)
   - hardware acceleration layered window support(on win8.1 and higher)
 
 <div align="right">  
@@ -84,7 +84,7 @@ C++轻量级GUI库
 
 **硬件加速支持**
   - 目前使用基于Direct2D的GPU渲染
-  - 支持动态切换显卡(比如surface book, 微软SB)
+  - 支持运行时动态切换显卡(比如surface book, 微软SB)
   - 支持硬件加速的分层(允许透明)窗口(需要Win8.1以及以上)
 
 <div align="right">  

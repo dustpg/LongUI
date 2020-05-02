@@ -7,6 +7,7 @@
 #include "../core/ui_object.h"
 #include "../core/ui_basic_type.h"
 #include "../style/ui_attribute.h"
+#include "../resource/ui_resource_id.h"
 #include "../graphics/ui_graphics_decl.h"
 
 namespace LongUI {
@@ -44,12 +45,12 @@ namespace LongUI {
         I::Brush*           m_pImageBrush = nullptr;
     public:
         // ------------- CPU-RES ------------
+        // background-image
+        CUIResourceID       image_id;
         // background-color
         ColorF              color;
         // background-size
         //Size2F              size;
-        // background-image
-        uint32_t            image_id = 0;
         // background-clip
         AttributeBox        clip = Box_BorderBox;
         // background-repeat

@@ -60,6 +60,16 @@
 #include <core/ui_string.h>
 #endif
 
+
+// ui namespace
+namespace LongUI {
+    // const
+    enum {
+        // longui control alignas
+        CONTROL_ALIGNAS = 8
+    };
+}
+
 // ui namespace
 namespace LongUI {
     // meta info
@@ -71,7 +81,7 @@ namespace LongUI {
     // time capsule
     class CUITimeCapsule;
     // control
-    class UIControl :
+    class alignas(CONTROL_ALIGNAS) UIControl :
         public CUIEventHost,
         protected Node<UIControl>,
         public CUIObject {
@@ -196,10 +206,6 @@ namespace LongUI {
         bool IsLastChild() const noexcept;
         // is descendant or sibling
         bool IsDescendantOrSiblingFor(const UIControl&) const noexcept;
-        // set timer 0~3
-        //void SetTimer0123(uint32_t id0123, uint32_t elapse) noexcept;
-        // kill timer 0~3
-        //void KillTimer0123(uint32_t id0123) noexcept;
     public:
         // clear appearance and all margin/padding/border
         void ClearAppearance() noexcept;
@@ -313,6 +319,11 @@ namespace LongUI {
         void StartAnimation(StyleStateTypeChange) noexcept;
         // start general animation
 
+    public:
+        // set timer [0~7]
+        void SetTimer(uint32_t elapse, uint32_t id0_7) noexcept;
+        // kill timer [0~7]
+        void KillTimer(uint32_t id0_7) noexcept;
     public:
         // get style classes
         auto&GetStyleClasses() const noexcept { return m_classesStyle; }
@@ -468,11 +479,13 @@ namespace LongUI {
         // parent accessible data
         uint32_t                m_uData4Parent = 0;
         // ununsed u16
-        uint16_t                m_unused_u16 = 0;
+        uint8_t                 m_unused_u8 = 0;
+        // timer used flag
+        uint8_t                 m_flagTimer = 0;
         // accesskey char
         char                    m_chAccessKey = 0;
         // has timer
-        bool                    m_bHasTimer : 1;
+        //bool                    m_bHasTimer : 1;
         // has inline style
         bool                    m_bHasInlineStyle : 1;
         // text changed, use this if you support text display for optimization

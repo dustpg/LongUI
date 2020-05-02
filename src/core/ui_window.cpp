@@ -18,7 +18,7 @@
 #include <graphics/ui_graphics_decl.h>
 
 
-#include <resource/ui_image.h>
+//#include <resource/ui_image.h>
 
 
 // C++

@@ -99,9 +99,6 @@
     <Filter Include="header\text">
       <UniqueIdentifier>{89ec46fb-330d-4769-819a-9ebe01c65191}</UniqueIdentifier>
     </Filter>
-    <Filter Include="source\image">
-      <UniqueIdentifier>{7000f022-6db7-4930-8101-2693f5792911}</UniqueIdentifier>
-    </Filter>
     <Filter Include="source\text">
       <UniqueIdentifier>{181992d2-37ea-4f99-abb5-d1b0eb67990c}</UniqueIdentifier>
     </Filter>
@@ -512,6 +509,9 @@
     <ClCompile Include="..\RichED\ed_txtcell.cpp">
       <Filter>RichED</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\resource\ui_bitmap_bank.cpp">
+      <Filter>source\resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -798,9 +798,6 @@
     <ClInclude Include="..\include\resource\ui_resource.h">
       <Filter>header\resource</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\resource\ui_image.h">
-      <Filter>header\resource</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\resource\ui_resource_id.h">
       <Filter>header\resource</Filter>
     </ClInclude>
@@ -1082,6 +1079,12 @@
     </ClInclude>
     <ClInclude Include="..\RichED\ed_txtcell.h">
       <Filter>RichED</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\resource\ui_image_res.h">
+      <Filter>header\resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\resource\ui_bitmap_bank.h">
+      <Filter>header\resource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

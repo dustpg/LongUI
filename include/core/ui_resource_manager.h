@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2016 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2020 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -41,8 +41,6 @@ namespace LongUI {
 */
     // rgba-color
     union RGBA;
-    // priavte resmgr
-    struct PrivateResMgr;
     // config
     struct IUIConfigure;
     // configure flag
@@ -51,8 +49,6 @@ namespace LongUI {
     struct ColorF;
     // UI Window Manager
     class CUIResMgr {
-        // my friend
-        friend PrivateResMgr;
         // screen
         struct IScreen;
         // Debug
@@ -60,9 +56,9 @@ namespace LongUI {
         // private data
         enum : size_t {
             // pointer count
-            p_ptr_count = 4 + 2 + 4 + 1,
+            p_ptr_count = 12 ,
             // 32bit count
-            p_32b_count = 0 + 2 + 2 + 2 + 2 + 1,
+            p_32b_count = 10,
             // size count
             p_size =    p_ptr_count * sizeof(void*) + 
                         p_32b_count * sizeof(uint32_t)
@@ -70,6 +66,8 @@ namespace LongUI {
         // type of m_private
         struct private_t { alignas(void*) char buf[p_size]; };
     public:
+        // private impl
+        struct Private;
         // get graphics factory
         auto&RefGraphicsFactory() noexcept { return *m_pGraphicsFactory; }
         // get 2d renderer
@@ -90,16 +88,16 @@ namespace LongUI {
         // get default font data
         auto GetDefaultFont() const noexcept -> const FontArg&;
     public:
+        // set alpha ch. premultiply for reading image
+        void SetAlphaMode(bool premultiply) noexcept;
+#if 0
+        // load resource, return id
+        auto LoadResource(U8View, ResourceType, bool is_xul_dir) noexcept->uintptr_t;
+#endif
+        // load resource, return id, use CUIResourceID hanle this
+        auto LoadResource(U8View, bool is_xul_dir) noexcept ->uintptr_t;
         // save as png
         auto SaveAsPng(I::Bitmap& bmp, const wchar_t* file) noexcept->Result;
-        // load resource, return id
-        auto LoadResource(U8View, ResourceType, bool is_xul_dir) noexcept->uint32_t;
-        // get resource data
-        auto GetResoureceData(uint32_t id)const noexcept->const ResourceData&;
-        // add resource ref-count
-        void AddResourceRefCount(uint32_t id) noexcept;
-        // release resource ref-count
-        void ReleaseResourceRefCount(uint32_t id) noexcept;
         // create bitmap from system-supported image file
         auto CreateBitmapFromSSImageFile(U8View view, I::Bitmap*&) noexcept->Result;
         // create bitmap from system-supported image memory
@@ -107,8 +105,7 @@ namespace LongUI {
         // create bitmap with init-data
         auto CreateBitmap(Size2U size, const RGBA* color, uint32_t pitch, I::Bitmap*&) noexcept->Result;
         // create bitmap without init-data
-        auto CreateBitmap(Size2U size, I::Bitmap*& bmp) noexcept { 
-            return CreateBitmap(size, nullptr, 0, bmp); }
+        auto CreateBitmap(Size2U size, I::Bitmap*& bmp) noexcept { return CreateBitmap(size, nullptr, 0, bmp); }
     private:
         // create bitmap
         auto create_bitmap_private(uint8_t*, uint32_t, void*&) noexcept->Result;
@@ -139,9 +136,9 @@ namespace LongUI {
         // private data
         private_t               m_private;
         // PrivateResMgr data
-        auto&rm() noexcept { return reinterpret_cast<PrivateResMgr&>(m_private); }
+        auto&rm() noexcept { return reinterpret_cast<Private&>(m_private); }
         // PrivateResMgr data
-        auto&rm() const noexcept { return reinterpret_cast<const PrivateResMgr&>(m_private); }
+        auto&rm() const noexcept { return reinterpret_cast<const Private&>(m_private); }
         // release device
         void release_device() noexcept;
         // release res-list

@@ -71,10 +71,12 @@ namespace LongUI {
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
     protected:
-        // shared image
-        CUIImage*           m_pSharedSrc = nullptr;
         // image id
         CUIResourceID       m_idSrc;
+        // frame id
+        uint32_t            m_idFrame = 0;
+        // frame count
+        uint32_t            m_uFrameCount = 1;
 #ifdef LUI_IMAGE_ASICON_SUPPORT
         // as icon
         bool                m_bAsIcon = false;

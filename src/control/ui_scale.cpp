@@ -3,9 +3,9 @@
 #include <input/ui_kminput.h>
 #include <control/ui_scale.h>
 #include <control/ui_image.h>
-#include <resource/ui_image.h>
 #include <container/pod_hash.h>
 #include <util/ui_little_math.h>
+#include <resource/ui_image_res.h>
 // Private
 #include "../private/ui_private_control.h"
 // C++

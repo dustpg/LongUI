@@ -806,7 +806,6 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
 /// </summary>
 LongUI::UIControl::UIControl(UIControl* parent, const MetaControl& meta) noexcept : 
 m_pParent(nullptr), m_refMetaInfo(meta) {
-    m_bHasTimer = false;
     m_bHasInlineStyle = false;
     m_bTextChanged = false;
     Node::next = nullptr;
@@ -1095,12 +1094,14 @@ LongUI::UIControl::~UIControl() noexcept {
     }
 #endif
     // 检测计时器
-    //if (m_bHasTimer) {
-    //    this->KillTimer0123(0);
-    //    this->KillTimer0123(1);
-    //    this->KillTimer0123(2);
-    //    this->KillTimer0123(3);
-    //}
+    if (m_flagTimer) {
+        uint8_t mask = 1;
+        for (uint32_t i = 0; i != CONTROL_ALIGNAS; ++i) {
+            if (m_flagTimer & mask) UIManager.KillTimer(*this, i);
+            mask <<= 1;
+        }
+        m_flagTimer = 0;
+    }
     // 移除被触发列表
     this->remove_triggered();
     // 移除高层引用
@@ -1399,6 +1400,50 @@ bool LongUI::UIControl::IsVisibleToRoot() const noexcept {
 }
 
 /// <summary>
+/// Sets the timer.
+/// </summary>
+/// <param name="elapse">The elapse.</param>
+/// <param name="id0_7">The id0 7.</param>
+/// <returns></returns>
+void LongUI::UIControl::SetTimer(uint32_t elapse, uint32_t id0_7) noexcept {
+    assert(id0_7 < CONTROL_ALIGNAS);
+    const uint8_t flag = 1 << id0_7;
+    m_flagTimer |= flag;
+    UIManager.SetTimer(*this, elapse, id0_7);
+}
+
+/// <summary>
+/// Kills the timer.
+/// </summary>
+/// <param name="id0_7">The id0 7.</param>
+/// <returns></returns>
+void LongUI::UIControl::KillTimer(uint32_t id0_7) noexcept {
+    assert(id0_7 < CONTROL_ALIGNAS);
+    const uint8_t flag = 1 << id0_7;
+    assert(m_flagTimer & flag);
+    m_flagTimer &= ~flag;
+    UIManager.KillTimer(*this, id0_7);
+}
+
+namespace LongUI {
+    /// <summary>
+    /// Called when [timer].
+    /// </summary>
+    /// <param name="data">The data.</param>
+    /// <returns></returns>
+    void OnTimer(uintptr_t data) noexcept {
+        constexpr uintptr_t MASK_DTA = CONTROL_ALIGNAS - 1;
+        constexpr uintptr_t MASK_PTR = ~MASK_DTA;
+        const auto ctrl = reinterpret_cast<UIControl*>(data & MASK_PTR);
+        const auto id = static_cast<uint32_t>(data & MASK_DTA);
+        const auto eid = static_cast<uint32_t>(NoticeEvent::Event_Timer0) + id;
+        EventArg arg = { static_cast<NoticeEvent>(eid) };
+        assert(ctrl);
+        ctrl->DoEvent(nullptr, arg);
+    }
+}
+
+/// <summary>
 /// Starts the animation.
 /// </summary>
 /// <param name="change">The change.</param>
@@ -1678,7 +1723,7 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->SetBdRadius({ value.data8.single[0], value.data8.single[1] });
         break;
     case ValueType::Type_BorderImageSource:
-        this->SetBdImageSource_NCRC(value.data4.u32);
+        this->SetBdImageSourceID(value.data8.handle);
         break;
     case ValueType::Type_BorderImageSlice:
         LongUI::UniByte8ToSliceRect(value.data8, &tmp_rect.left);
@@ -1691,7 +1736,7 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         this->SetBgColor({ value.data4.u32 });
         break;
     case ValueType::Type_BackgroundImage:
-        this->SetBgImage_NCRC({ value.data4.u32 });
+        this->SetBgImageID({ value.data8.handle });
         break;
     case ValueType::Type_BackgroundRepeat:
         this->SetBgRepeat(detail::same_cast<AttributeRepeat>(value.data4.byte));
@@ -1846,7 +1891,7 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         detail::write_value(value.data8.single[1], tmp_size.height);
         break;
     case ValueType::Type_BorderImageSource:
-        detail::write_value(value.data4.u32, this->GetBdImageSource_NCRC());
+        detail::write_value(value.data8.handle, this->GetBdImageSourceID());
         break;
     case ValueType::Type_BorderImageSlice:
         detail::write_value(value.data4.boolean, this->GetBdImageSlice(tmp_rect));
@@ -1859,7 +1904,7 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
         detail::write_value(value.data4.u32, this->GetBgColor().primitive);
         break;
     case ValueType::Type_BackgroundImage:
-        detail::write_value(value.data4.u32, this->GetBgImage_NCRC());
+        detail::write_value(value.data8.handle, this->GetBgImageID());
         break;
     case ValueType::Type_BackgroundRepeat:
         detail::write_value(value.data4.byte, this->GetBgRepeat());

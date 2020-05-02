@@ -37,7 +37,7 @@ namespace LongUI {
         // set background color
         void SetBgColor(RGBA color) noexcept;
         // set background image from resource id
-        void SetBgImage_NCRC(uint32_t id) noexcept;
+        void SetBgImageID(uintptr_t id) noexcept;
         // set background repeat
         void SetBgRepeat(AttributeRepeat ar) noexcept;
         // set background origin
@@ -51,7 +51,7 @@ namespace LongUI {
         // set border radius
         void SetBdRadius(Size2F radius) noexcept;
         // set border image source from resource id
-        void SetBdImageSource_NCRC(uint32_t id) noexcept;
+        void SetBdImageSourceID(uintptr_t id) noexcept;
         // set border image slice
         void SetBdImageSlice(const RectF& slice, bool fill) noexcept;
         // set border image repeat
@@ -76,7 +76,7 @@ namespace LongUI {
         // get background color
         auto GetBgColor() const noexcept->RGBA;
         // get background image resource id
-        auto GetBgImage_NCRC() const noexcept->uint32_t;
+        auto GetBgImageID() const noexcept->uintptr_t;
         // get background repeat
         auto GetBgRepeat() const noexcept->AttributeRepeat;
         // get background origin
@@ -88,7 +88,7 @@ namespace LongUI {
         // get border radius
         auto GetBdRadius() const noexcept->Size2F;
         // get border image source [resource id]
-        auto GetBdImageSource_NCRC() const noexcept ->uint32_t;
+        auto GetBdImageSourceID() const noexcept ->uintptr_t;
         // get border image slice
         bool GetBdImageSlice(RectF& output) const noexcept;
         // get border image repeat

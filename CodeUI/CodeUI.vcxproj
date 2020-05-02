@@ -241,6 +241,7 @@
     <ClCompile Include="..\src\private\ui_private_control.cpp" />
     <ClCompile Include="..\src\private\ui_private_effect.cpp" />
     <ClCompile Include="..\src\private\ui_private_image.cpp" />
+    <ClCompile Include="..\src\resource\ui_bitmap_bank.cpp" />
     <ClCompile Include="..\src\resource\ui_resource_id.cpp" />
     <ClCompile Include="..\src\resource\ui_res_image.cpp" />
     <ClCompile Include="..\src\style\native\ui_win10.cpp" />
@@ -414,7 +415,8 @@
     <ClInclude Include="..\include\interface\ui_default_config.h" />
     <ClInclude Include="..\include\interface\ui_iconfig.h" />
     <ClInclude Include="..\include\luiconf.h" />
-    <ClInclude Include="..\include\resource\ui_image.h" />
+    <ClInclude Include="..\include\resource\ui_bitmap_bank.h" />
+    <ClInclude Include="..\include\resource\ui_image_res.h" />
     <ClInclude Include="..\include\resource\ui_resource.h" />
     <ClInclude Include="..\include\resource\ui_resource_id.h" />
     <ClInclude Include="..\include\style\ui_attribute.h" />

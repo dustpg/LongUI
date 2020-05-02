@@ -146,8 +146,12 @@ namespace LongUI {
         CUIDebug& operator<< (const ColorF& r) noexcept;
         // overload << operator for RectF
         CUIDebug& operator<< (const RectF& r) noexcept;
+        // overload << operator for RectF
+        CUIDebug& operator<< (const RectWHU& r) noexcept;
         // overload << operator for Point2F
         CUIDebug& operator<< (const Point2F& p) noexcept;
+        // overload << operator for Size2F
+        CUIDebug& operator<< (const Size2U& p) noexcept;
         // overload << operator for Size2F
         CUIDebug& operator<< (const Size2F& p) noexcept;
         // overload << operator for const char16_t*
@@ -168,6 +172,8 @@ namespace LongUI {
         CUIDebug& operator<< (const CUIString& s) noexcept;
         // overload << operator for utf-8 string-view
         CUIDebug& operator<< (const U8View s) noexcept;
+        // overload << operator for MouseEvent
+        CUIDebug& operator<< (Result) noexcept;
         // overload << operator for MouseEvent
         CUIDebug& operator<< (MouseEvent e) noexcept;
         // overload << operator for MouseEvent

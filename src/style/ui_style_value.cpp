@@ -203,17 +203,17 @@ auto LongUI::CUIStyleValue::GetTextStrokeWidth() const noexcept -> float {
 
 PCN_NOINLINE
 /// <summary>
-/// Sets the bg image.[No Changing Ref-Count]
+/// Sets the bg image.
 /// </summary>
 /// <param name="id">The identifier.</param>
 /// <remarks>
 /// won't change ref-count inside, you should do it out side
 /// </remarks>
 /// <returns></returns>
-void LongUI::CUIStyleValue::SetBgImage_NCRC(uint32_t id) noexcept {
+void LongUI::CUIStyleValue::SetBgImageID(uintptr_t id) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
-        r->image_id = id;
+        r->image_id.SetId(id);
         r->RefreshImage();
         ctrl->Invalidate();
     }
@@ -222,16 +222,16 @@ void LongUI::CUIStyleValue::SetBgImage_NCRC(uint32_t id) noexcept {
 
 PCN_NOINLINE
 /// <summary>
-/// Gets the bg image.[No Changing Ref-Count]
+/// Gets the bg image.
 /// </summary>
 /// <remarks>
 /// won't change ref-count inside, you should do it out side
 /// </remarks>
 /// <returns></returns>
-auto LongUI::CUIStyleValue::GetBgImage_NCRC() const noexcept -> uint32_t {
+auto LongUI::CUIStyleValue::GetBgImageID() const noexcept -> uintptr_t {
     const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBgRenderer(*ctrl)) {
-        return r->image_id;
+        return r->image_id.GetId();
     }
     return 0;
 }
@@ -395,14 +395,14 @@ void LongUI::CUIStyleValue::SetBdStyle(AttributeBStyle style) noexcept {
 
 PCN_NOINLINE
 /// <summary>
-/// Sets the bd image source.[No Changing Ref-Count]
+/// Sets the bd image source.
 /// </summary>
 /// <param name="id">The identifier.</param>
 /// <remarks>
 /// won't change ref-count inside, you should do it out side
 /// </remarks>
 /// <returns></returns>
-void LongUI::CUIStyleValue::SetBdImageSource_NCRC(uint32_t id) noexcept {
+void LongUI::CUIStyleValue::SetBdImageSourceID(uintptr_t id) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBdRenderer(*ctrl)) {
         r->SetImageId(id);
@@ -441,13 +441,13 @@ void LongUI::CUIStyleValue::SetBdImageRepeat(AttributeRepeat repeat) noexcept {
 
 PCN_NOINLINE
 /// <summary>
-/// Gets the bd image source.[No Changing Ref-Count]
+/// Gets the bd image source.
 /// </summary>
 /// <remarks>
 /// won't change ref-count inside, you should do it out side
 /// </remarks>
 /// <returns></returns>
-auto LongUI::CUIStyleValue::GetBdImageSource_NCRC() const noexcept -> uint32_t {
+auto LongUI::CUIStyleValue::GetBdImageSourceID() const noexcept -> uintptr_t {
     const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBdRenderer(*ctrl)) {
         return r->GetImageId();

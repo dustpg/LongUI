@@ -359,6 +359,6 @@ void LongUI::CUIWndMgr::refresh_display_frequency() noexcept {
 /// <returns></returns>
 void LongUI::CUIWndMgr::sleep_for_vblank() noexcept {
     // XXX: vblank
-    ::Sleep(15);
+    ::Sleep(16);
 }
 

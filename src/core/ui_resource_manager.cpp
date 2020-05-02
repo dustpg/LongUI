@@ -1,6 +1,8 @@
 ﻿#include <luiconf.h>
 // ui
 #include <graphics/ui_adapter_desc.h>
+#include <resource/ui_bitmap_bank.h>
+#include <resource/ui_resource_id.h>
 #include <interface/ui_iconfig.h>
 #include <resource/ui_resource.h>
 #include <filesystem/ui_pathop.h>
@@ -51,253 +53,374 @@ namespace LongUI {
     /// The iid identifier write text layout1
     /// </summary>
     const GUID IID_IDWriteTextLayout1 = {
-        0x9064d822, 0x80a7, 0x465c, { 
+        0x9064d822, 0x80a7, 0x465c, {
         0xa9, 0x86, 0xdf, 0x65, 0xf7, 0x8b, 0x8f, 0xeb }
     };
     /// <summary>
     /// The iid idxgi factory2
     /// </summary>
     const GUID IID_IDXGIFactory2 = {
-        0x50c83a1c, 0xe072, 0x4c48, { 
+        0x50c83a1c, 0xe072, 0x4c48, {
         0x87, 0xb0, 0x36, 0x30, 0xfa, 0x36, 0xa6, 0xd0 }
     };
-    // impl namespace
-    namespace impl { 
-        /// <summary>
-        /// args for save bitmap
-        /// </summary>
-        struct save_bitmap_args {
-            // data for bitmap
-            uint8_t*                bits;
-            // factory for WIC
-            IWICImagingFactory*     factory;
-            // format for source data, default: GUID_WICPixelFormat32bppBGRA
-            const GUID*             data_format;
-            // format for container, default: GUID_ContainerFormatPng
-            const GUID*             container_format;
-            // width of image
-            uint32_t                width;
-            // height of image
-            uint32_t                height;
-            // pitch of image
-            uint32_t                pitch;
-            // unused
-            uint32_t                unused;
-        };
-        // save bitmap
-        auto save_bitmap(
-            const save_bitmap_args& args, 
-            const wchar_t* file_name
-        ) noexcept -> HRESULT {
-            assert(args.bits && args.factory && file_name && file_name[0]);
-            if (!(args.bits && args.factory)) {
-                return E_INVALIDARG;
-            }
-            // 初始化
-            HRESULT hr = S_OK;
-            IWICBitmapEncoder *pEncoder = nullptr;
-            IWICBitmapFrameEncode *frame_encode = nullptr;
-            IWICStream *stream = nullptr;
-            IWICBitmap *wic_bitmap = nullptr;
-            // 创建WIC位图
-            if (SUCCEEDED(hr)) {
-                hr = args.factory->CreateBitmapFromMemory(
-                    args.width,
-                    args.height,
-                    args.data_format ? *args.data_format : GUID_WICPixelFormat32bppBGRA,
-                    args.pitch,
-                    args.pitch * args.height,
-                    args.bits,
-                    &wic_bitmap
-                );
-                longui_debug_hr(Result{ hr }, "failed: args.factory->CreateBitmapFromMemory");
-            }
-            // 创建流
-            if (SUCCEEDED(hr)) {
-                hr = args.factory->CreateStream(&stream);
-                longui_debug_hr(Result{ hr }, "failed: args.factory->CreateStream");
-            }
-            // 从文件初始化
-            if (SUCCEEDED(hr)) {
-                hr = stream->InitializeFromFilename(file_name, GENERIC_WRITE);
-                longui_debug_hr(Result{ hr }, "failed: stream->InitializeFromFilename  " << file_name);
-            }
-            // 创建编码器
-            if (SUCCEEDED(hr)) {
-                hr = args.factory->CreateEncoder(
-                    args.container_format ? *args.container_format : GUID_ContainerFormatPng,
-                    nullptr,
-                    &pEncoder
-                );
-                longui_debug_hr(Result{ hr }, "failed: args.factory->CreateEncoder");
-            }
-            // 初始化编码器
-            if (SUCCEEDED(hr)) {
-                hr = pEncoder->Initialize(stream, WICBitmapEncoderNoCache);
-                longui_debug_hr(Result{ hr }, "failed: pEncoder->Initialize");
-            }
-            // 创建新的一帧
-            if (SUCCEEDED(hr)) {
-                hr = pEncoder->CreateNewFrame(&frame_encode, nullptr);
-                longui_debug_hr(Result{ hr }, "failed: pEncoder->CreateNewFrame");
-            }
-            // 初始化帧编码器
-            if (SUCCEEDED(hr)) {
-                hr = frame_encode->Initialize(nullptr);
-                longui_debug_hr(Result{ hr }, "failed: frame_encode->Initialize");
-            }
-            // 设置大小
-            if (SUCCEEDED(hr)) {
-                hr = frame_encode->SetSize(args.width, args.height);
-                longui_debug_hr(Result{ hr }, "failed: frame_encode->SetSize " << int32_t(args.width) << L", " << int32_t(args.height));
-            }
-            // 设置格式
-            WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
-            if (SUCCEEDED(hr)) {
-                hr = frame_encode->SetPixelFormat(&format);
-                longui_debug_hr(Result{ hr }, "failed: frame_encode->SetPixelFormat");
-            }
-            // 写入源数据
-            if (SUCCEEDED(hr)) {
-                hr = frame_encode->WriteSource(wic_bitmap, nullptr);
-                longui_debug_hr(Result{ hr }, "failed: frame_encode->WriteSource");
-            }
-            // 提交帧编码器
-            if (SUCCEEDED(hr)) {
-                hr = frame_encode->Commit();
-                longui_debug_hr(Result{ hr }, "failed: frame_encode->Commit");
-            }
-            // 提交编码
-            if (SUCCEEDED(hr)) {
-                hr = pEncoder->Commit();
-                longui_debug_hr(Result{ hr }, "failed: pEncoder->Commit");
-            }
-            // 扫尾处理
-            LongUI::SafeRelease(wic_bitmap);
-            LongUI::SafeRelease(stream);
-            LongUI::SafeRelease(frame_encode);
-            LongUI::SafeRelease(pEncoder);
-            // 返回结果
-            return hr;
+}
+
+// ui-impl namespace
+namespace LongUI { namespace impl { 
+    /// <summary>
+    /// args for save bitmap
+    /// </summary>
+    struct save_bitmap_args {
+        // data for bitmap
+        uint8_t*                bits;
+        // factory for WIC
+        IWICImagingFactory*     factory;
+        // format for source data, default: GUID_WICPixelFormat32bppBGRA
+        const GUID*             data_format;
+        // format for container, default: GUID_ContainerFormatPng
+        const GUID*             container_format;
+        // width of image
+        uint32_t                width;
+        // height of image
+        uint32_t                height;
+        // pitch of image
+        uint32_t                pitch;
+        // unused
+        uint32_t                unused;
+    };
+    /// <summary>
+    /// Saves the bitmap.
+    /// </summary>
+    /// <param name="args">The arguments.</param>
+    /// <param name="file_name">Name of the file.</param>
+    /// <returns></returns>
+    auto save_bitmap(
+        const save_bitmap_args& args, 
+        const wchar_t* file_name
+    ) noexcept -> HRESULT {
+        assert(args.bits && args.factory && file_name && file_name[0]);
+        if (!(args.bits && args.factory)) {
+            return E_INVALIDARG;
         }
-        // load bitmap
-        template<typename Lambda> auto load_bitmap(
-            Lambda create,
-            IWICImagingFactory* pIWICFactory,
-            uint8_t* buf,
-            uint32_t len,
-            //HANDLE file,
-            I::Bitmap*&bitmap
-        ) noexcept -> HRESULT {
-            IWICBitmapDecoder *decoder = nullptr;
-            IWICBitmapFrameDecode *source = nullptr;
-            IWICFormatConverter *converter = nullptr;
-            IWICStream* stream = nullptr;
-            HRESULT hr = S_OK;
-            // 创建内存流
+        // 初始化
+        HRESULT hr = S_OK;
+        IWICBitmapEncoder *pEncoder = nullptr;
+        IWICBitmapFrameEncode *frame_encode = nullptr;
+        IWICStream *stream = nullptr;
+        IWICBitmap *wic_bitmap = nullptr;
+        // 创建WIC位图
+        if (SUCCEEDED(hr)) {
+            hr = args.factory->CreateBitmapFromMemory(
+                args.width,
+                args.height,
+                args.data_format ? *args.data_format : GUID_WICPixelFormat32bppBGRA,
+                args.pitch,
+                args.pitch * args.height,
+                args.bits,
+                &wic_bitmap
+            );
+            longui_debug_hr(Result{ hr }, "failed: args.factory->CreateBitmapFromMemory");
+        }
+        // 创建流
+        if (SUCCEEDED(hr)) {
+            hr = args.factory->CreateStream(&stream);
+            longui_debug_hr(Result{ hr }, "failed: args.factory->CreateStream");
+        }
+        // 从文件初始化
+        if (SUCCEEDED(hr)) {
+            hr = stream->InitializeFromFilename(file_name, GENERIC_WRITE);
+            longui_debug_hr(Result{ hr }, "failed: stream->InitializeFromFilename  " << file_name);
+        }
+        // 创建编码器
+        if (SUCCEEDED(hr)) {
+            hr = args.factory->CreateEncoder(
+                args.container_format ? *args.container_format : GUID_ContainerFormatPng,
+                nullptr,
+                &pEncoder
+            );
+            longui_debug_hr(Result{ hr }, "failed: args.factory->CreateEncoder");
+        }
+        // 初始化编码器
+        if (SUCCEEDED(hr)) {
+            hr = pEncoder->Initialize(stream, WICBitmapEncoderNoCache);
+            longui_debug_hr(Result{ hr }, "failed: pEncoder->Initialize");
+        }
+        // 创建新的一帧
+        if (SUCCEEDED(hr)) {
+            hr = pEncoder->CreateNewFrame(&frame_encode, nullptr);
+            longui_debug_hr(Result{ hr }, "failed: pEncoder->CreateNewFrame");
+        }
+        // 初始化帧编码器
+        if (SUCCEEDED(hr)) {
+            hr = frame_encode->Initialize(nullptr);
+            longui_debug_hr(Result{ hr }, "failed: frame_encode->Initialize");
+        }
+        // 设置大小
+        if (SUCCEEDED(hr)) {
+            hr = frame_encode->SetSize(args.width, args.height);
+            longui_debug_hr(Result{ hr }, "failed: frame_encode->SetSize " << int32_t(args.width) << L", " << int32_t(args.height));
+        }
+        // 设置格式
+        WICPixelFormatGUID format = GUID_WICPixelFormatDontCare;
+        if (SUCCEEDED(hr)) {
+            hr = frame_encode->SetPixelFormat(&format);
+            longui_debug_hr(Result{ hr }, "failed: frame_encode->SetPixelFormat");
+        }
+        // 写入源数据
+        if (SUCCEEDED(hr)) {
+            hr = frame_encode->WriteSource(wic_bitmap, nullptr);
+            longui_debug_hr(Result{ hr }, "failed: frame_encode->WriteSource");
+        }
+        // 提交帧编码器
+        if (SUCCEEDED(hr)) {
+            hr = frame_encode->Commit();
+            longui_debug_hr(Result{ hr }, "failed: frame_encode->Commit");
+        }
+        // 提交编码
+        if (SUCCEEDED(hr)) {
+            hr = pEncoder->Commit();
+            longui_debug_hr(Result{ hr }, "failed: pEncoder->Commit");
+        }
+        // 扫尾处理
+        LongUI::SafeRelease(wic_bitmap);
+        LongUI::SafeRelease(stream);
+        LongUI::SafeRelease(frame_encode);
+        LongUI::SafeRelease(pEncoder);
+        // 返回结果
+        return hr;
+    }
+    /// <summary>
+    /// Loads the bitmap.
+    /// </summary>
+    /// <param name="create">The create.</param>
+    /// <param name="pIWICFactory">The p iwic factory.</param>
+    /// <param name="buf">The buf.</param>
+    /// <param name="len">The length.</param>
+    /// <param name="bitmap">The bitmap.</param>
+    /// <returns></returns>
+    template<typename Func> inline auto load_bitmap(
+        Func& func,
+        IWICImagingFactory* pIWICFactory,
+        const GUID& alpha,
+        //HANDLE file,
+        uint8_t* buf,
+        uint32_t len
+    ) noexcept -> HRESULT {
+        IWICStream* stream = nullptr;
+        IWICBitmapDecoder *decoder = nullptr;
+        IWICBitmapFrameDecode *source = nullptr;
+        IWICFormatConverter *converter = nullptr;
+        HRESULT hr = S_OK;
+        Size2U size{ 0 };
+        uint8_t* ptr = nullptr;
+        UINT frame_count = 0, frame_delay = 0, bypch = 0, bylen = 0;
+        // 创建内存流
+        if (SUCCEEDED(hr)) {
+            hr = pIWICFactory->CreateStream(&stream);
+            longui_debug_hr(Result{ hr }, L"failed: pIWICFactory->CreateStream");
+        }
+        // 创建内存流
+        if (SUCCEEDED(hr)) {
+            hr = stream->InitializeFromMemory(buf, len);
+            longui_debug_hr(Result{ hr }, L"failed: stream->InitializeFromMemory");
+        }
+        // 创建解码器
+        if (SUCCEEDED(hr)) {
+            hr = pIWICFactory->CreateDecoderFromStream(
+                stream,
+                nullptr,
+                WICDecodeMetadataCacheOnLoad,
+                &decoder
+            );
+            longui_debug_hr(Result{ hr }, L"failed: pIWICFactory->CreateDecoderFromStream");
+        }
+        // 获取帧数
+        if (SUCCEEDED(hr)) {
+            decoder->GetFrameCount(&frame_count);
+            if (!frame_count) frame_count = 1;
+        }
+        // 获取第一帧
+        if (SUCCEEDED(hr)) {
+            hr = decoder->GetFrame(0, &source);
+            longui_debug_hr(Result{ hr }, L"failed: decoder->GetFrame");
+        }
+        // 获取大小
+        if (SUCCEEDED(hr)) {
+            hr = source->GetSize(&size.width, &size.height);
+            longui_debug_hr(Result{ hr }, L"failed: source->GetSize");
+        }
+        // 准备获取帧间隔
+        const uint32_t real_count = Func::ONLY1 ? 1 : frame_count;
+        if (real_count > 1) {
+            PROPVARIANT propValue;
+            ::PropVariantInit(&propValue);
+            IWICMetadataQueryReader* metareader = nullptr;
+            // 元信息读取
             if (SUCCEEDED(hr)) {
-                hr = pIWICFactory->CreateStream(&stream);
+                hr = source->GetMetadataQueryReader(&metareader);
+                longui_debug_hr(Result{ hr }, L"source->GetMetadataQueryReader");
             }
-            // 创建内存流
+            // 获取帧间隔
             if (SUCCEEDED(hr)) {
-                hr = stream->InitializeFromMemory(buf, len);
+                const auto delay = L"/grctlext/Delay";
+                hr = metareader->GetMetadataByName(delay, &propValue);
             }
-            // 创建解码器
+            // 获取帧间隔
             if (SUCCEEDED(hr)) {
-                hr = pIWICFactory->CreateDecoderFromStream(
-                    stream,
-                    nullptr,
-                    WICDecodeMetadataCacheOnLoad,
-                    &decoder
-                );
+                assert(propValue.vt == VT_UI2);
+                // 单位是10ms
+                frame_delay = static_cast<uint32_t>(propValue.uiVal) * 10;
             }
-            // 获取第一帧
+            ::PropVariantClear(&propValue);
+            LongUI::SafeRelease(metareader);
+            longui_debug_hr(Result{ hr }, L"failed: source->GetSize");
+        }
+        // 初始化帧信息
+        if (SUCCEEDED(hr)) {
+            hr = func.frame(real_count, frame_delay, size);
+            longui_debug_hr(Result{ hr }, L"failed: func.frame");
+        }
+        // 申请空间
+        if (SUCCEEDED(hr)) {
+            const auto sizeof_rgba = static_cast<uint32_t>(sizeof(RGBA));
+            bylen = size.width * size.height * sizeof_rgba;
+            bypch = size.width * sizeof_rgba;
+            ptr = LongUI::NormalAllocT<uint8_t>(bylen);
+            if (!ptr) hr = E_OUTOFMEMORY;
+            longui_debug_hr(Result{ hr }, L"failed: LongUI::NormalAllocT");
+        }
+        // 遍历所有帧
+        for (uint32_t i = 0; i != real_count; ++i) {
+            IWICBitmapFrameDecode * frame = nullptr;
+            WICRect rect = { 0, 0, int32_t(size.width), int32_t(size.height) };
+            // 直接初始化
             if (SUCCEEDED(hr)) {
-                hr = decoder->GetFrame(0, &source);
+                hr = decoder->GetFrame(i, &frame);
+                longui_debug_hr(Result{ hr }, L"failed: decoder->GetFrame");
             }
             // 创建格式转换器
             if (SUCCEEDED(hr)) {
                 hr = pIWICFactory->CreateFormatConverter(&converter);
+                longui_debug_hr(Result{ hr }, L"failed: pIWICFactory->CreateFormatConverter");
             }
             // 直接初始化
             if (SUCCEEDED(hr)) {
                 hr = converter->Initialize(
-                    source,
-                    GUID_WICPixelFormat32bppRGBA,
+                    frame,
+                    //GUID_WICPixelFormat32bppRGBA,
+                    GUID_WICPixelFormat32bppPRGBA,
                     WICBitmapDitherTypeNone,
                     nullptr,
                     0.f,
                     WICBitmapPaletteTypeMedianCut
                 );
+                longui_debug_hr(Result{ hr }, L"failed: converter->Initialize");
             }
-            Size2U size{0};
-            uint8_t* ptr = nullptr;
-            // 获取数据
-            if (SUCCEEDED(hr)) {
-                hr = converter->GetSize(&size.width, &size.height);
-            }
-            const auto sizeof_rgba = static_cast<uint32_t>(sizeof(RGBA));
-            const auto bylen = size.width * size.height * sizeof_rgba;
-            const auto bypch = size.width * sizeof_rgba;
-            // 申请空间
-            if (SUCCEEDED(hr)) {
-                ptr = LongUI::NormalAllocT<uint8_t>(bylen);
-                if (!ptr) hr = E_OUTOFMEMORY;
+            // 获取动画相关元信息
+            if (real_count > 1) {
+                PROPVARIANT propValue;
+                ::PropVariantInit(&propValue);
+                IWICMetadataQueryReader* metareader = nullptr;
+                // 元信息读取
+                if (SUCCEEDED(hr)) {
+                    hr = frame->GetMetadataQueryReader(&metareader);
+                    longui_debug_hr(Result{ hr }, L"source->GetMetadataQueryReader");
+                }
+                // X座标
+                if (SUCCEEDED(hr)) {
+                    hr = metareader->GetMetadataByName(L"/imgdesc/Left", &propValue);
+                    assert(propValue.vt == VT_UI2);
+                    rect.X = propValue.uiVal;
+                }
+                // Y座标
+                if (SUCCEEDED(hr)) {
+                    ::PropVariantClear(&propValue);
+                    hr = metareader->GetMetadataByName(L"/imgdesc/Top", &propValue);
+                    assert(propValue.vt == VT_UI2);
+                    rect.Y = propValue.uiVal;
+                }
+                // 宽度
+                if (SUCCEEDED(hr)) {
+                    ::PropVariantClear(&propValue);
+                    hr = metareader->GetMetadataByName(L"/imgdesc/Width", &propValue);
+                    assert(propValue.vt == VT_UI2);
+                    rect.Width = propValue.uiVal;
+                    ::PropVariantClear(&propValue);
+                }
+                // 高度
+                if (SUCCEEDED(hr)) {
+                    hr = metareader->GetMetadataByName(L"/imgdesc/Height", &propValue);
+                    assert(propValue.vt == VT_UI2);
+                    rect.Height = propValue.uiVal;
+                }
+                ::PropVariantClear(&propValue);
+                LongUI::SafeRelease(metareader);
             }
             // 复制数据
             if (SUCCEEDED(hr)) {
-                hr = converter->CopyPixels(nullptr, bypch, bylen, ptr);
+                const auto adjusted = ptr + rect.X * sizeof(RGBA) + rect.Y * bypch;
+                rect.X = rect.Y = 0;
+                hr = converter->CopyPixels(&rect, bypch, bylen, adjusted);
+                longui_debug_hr(Result{ hr }, L"converter->CopyPixels");
             }
             // 创建位图
             if (SUCCEEDED(hr)) {
-                hr = create(size, ptr, bypch, bitmap);
+                hr = func.create(i, size, ptr, bypch);
+                longui_debug_hr(Result{ hr }, L"func.create");
             }
-            LongUI::NormalFree(ptr);
-            LongUI::SafeRelease(stream);
+            LongUI::SafeRelease(frame);
             LongUI::SafeRelease(converter);
-            LongUI::SafeRelease(source);
-            LongUI::SafeRelease(decoder);
-            return hr;
-        };
-    }
-}
+        }
+        LongUI::NormalFree(ptr);
+        LongUI::SafeRelease(source);
+        LongUI::SafeRelease(stream);
+        LongUI::SafeRelease(decoder);
+        return hr;
+    };
+}}
 
 /// <summary>
 /// private data/func for resmgr
 /// </summary>
-struct LongUI::PrivateResMgr {
+struct LongUI::CUIResMgr::Private {
+    // remove_res_only
+    static inline void remove_res_only(const char* str) noexcept;
     // ctor
-    PrivateResMgr() noexcept {}
+    Private() noexcept {}
     // dtor
-    ~PrivateResMgr() noexcept {}
-    // resource list
-    using ResourceList = POD::Vector<ResourceData>;
+    ~Private() noexcept {}
     // resource map
-    using ResourceMap = POD::HashMap<uint32_t>;
+    using ResourceMap = POD::HashMap<uintptr_t>;
     // init
     auto init() noexcept->Result;
-    // recreate_device
-    auto recreate() noexcept->Result;
     // release
     void release() noexcept;
+    // release resource
+    void release_resource() noexcept;
     // push index0
     auto push_index0_res() noexcept ->Result;
+    // load & create
+    auto load_create(U8View) noexcept->CUISharedResource*;
+    // load & create
+    auto recreate(CUIImage&) noexcept->Result;
     // d2d factroy
-    ID2D1Factory1*      d2dfactroy;
+    ID2D1Factory1*          d2dfactroy;
     // dwrite factroy
-    IDWriteFactory1*    dwritefactroy;
+    IDWriteFactory1*        dwritefactroy;
     // wic factroy
-    IWICImagingFactory* wicfactroy;
+    IWICImagingFactory*     wicfactroy;
+    // alpha mode
+    const GUID*             alpha;
     // default font
-    I::Font*            deffont;
-    // resource list
-    ResourceList        reslist;
+    I::Font*                deffont;
     // resource data
-    ResourceMap         resmap;
+    ResourceMap             resmap;
+    // bitmap bank
+    CUIBitmapBank           bitbank;
     // default font
-    FontArg             defarg;
+    FontArg                 defarg;
     // resource count
-    uint32_t            rescount;
+    uint32_t                rescount;
 };
 
 
@@ -309,29 +432,27 @@ struct LongUI::PrivateResMgr {
 /// Recreates this instance.
 /// </summary>
 /// <returns></returns>
-inline auto LongUI::PrivateResMgr::recreate() noexcept -> Result {
-    assert(!"NOT IMPL");
-    return{};
-}
+//inline auto LongUI::CUIResMgr::Private::recreate() noexcept -> Result {
+//    assert(!"NOT IMPL");
+//    return{};
+//}
 
 /// <summary>
 /// Pushes the index0 resource.
 /// </summary>
 /// <returns></returns>
-auto LongUI::PrivateResMgr::push_index0_res() noexcept ->Result {
+auto LongUI::CUIResMgr::Private::push_index0_res() noexcept ->Result {
+    // 用不用一个永久有效节点代替NULL?
+#if 0
     assert(this->reslist.empty() && "bad list");
     reslist.reserve(128);
     // 内存不足
     if (!reslist.is_ok()) return { Result::RE_OUTOFMEMORY };
     // 资源数据
-    const auto data = ResourceData {
-        nullptr,
-        ":lui/index0",
-        0,
-        ResourceType::Type_Custom
-    };
+    const auto data = ResourceData { nullptr, ":lui/index0", 0 };
     this->rescount++;
     reslist.push_back(data);
+#endif
     return { Result::RS_OK };
 }
 
@@ -339,11 +460,11 @@ auto LongUI::PrivateResMgr::push_index0_res() noexcept ->Result {
 /// Initializes this instance.
 /// </summary>
 /// <returns></returns>
-inline auto LongUI::PrivateResMgr::init() noexcept -> Result {
+inline auto LongUI::CUIResMgr::Private::init() noexcept -> Result {
+    this->alpha = &GUID_WICPixelFormat32bppPRGBA;
     // 设置默认字体
     this->defarg = { 
-        "Arial", 
-        12.5f, 1.2f, 0.f, 
+        "Arial", 12.5f, 1.2f, 0.f, 
         Weight_Normal, Style_Normal, Stretch_Normal
     };
     Result hr = { Result::RS_OK };
@@ -393,11 +514,61 @@ inline auto LongUI::PrivateResMgr::init() noexcept -> Result {
     return hr;
 }
 
+inline
+/// <summary>
+/// Removes the resource only.
+/// </summary>
+/// <param name="str">The string.</param>
+/// <returns></returns>
+void LongUI::CUIResMgr::Private::remove_res_only(const char * str) noexcept {
+    auto& map = UIManager.rm().resmap;
+    const auto itr = map.find(str);
+    assert(str && itr != map.end());
+    map.remove(itr);
+}
+
+// longui namespace
+namespace LongUI { namespace detail { 
+    /// <summary>
+    /// Removes the resource only.
+    /// </summary>
+    /// <param name="">The .</param>
+    /// <returns></returns>
+    void remove_res_only(const char* text) noexcept {
+        CUIResMgr::Private::remove_res_only(text);
+    }
+}}
+
+/// <summary>
+/// Releases the standaone resource.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIResMgr::Private::release_resource() noexcept {
+    //for (auto& data : this->resmap) {
+
+    //}
+    const auto begin_itr = this->resmap.begin();
+    const auto end_itr = this->resmap.end();
+    for (auto itr = begin_itr; itr != end_itr; ++itr) {
+        assert(itr->second);
+        /*if (itr->second)*/ {
+            const auto ptr = CUIResourceID::Object(itr->second);
+            auto& img = static_cast<CUIImage&>(*ptr);
+            assert(ptr->RefData().GetType() == ResourceType::Type_Image);
+            // 强行置0以免出事?
+            //const_cast<const char*>(img.RefData().uri) = nullptr;
+            img.Destroy();
+        }
+    }
+}
+
 /// <summary>
 /// Releases this instance.
 /// </summary>
 /// <returns></returns>
-inline void LongUI::PrivateResMgr::release() noexcept {
+inline void LongUI::CUIResMgr::Private::release() noexcept {
+    this->release_resource();
+    this->bitbank.ReleaseAll();
     LongUI::SafeRelease(this->d2dfactroy);
     LongUI::SafeRelease(this->dwritefactroy);
     LongUI::SafeRelease(this->wicfactroy);
@@ -408,6 +579,7 @@ inline void LongUI::PrivateResMgr::release() noexcept {
 // -----------------------  SR - Shared Resource  -----------------------------
 // ----------------------------------------------------------------------------
 
+#if 0
 /// <summary>
 /// Gets the resourece data.
 /// </summary>
@@ -465,6 +637,7 @@ void LongUI::CUIResMgr::ReleaseResourceRefCount(uint32_t id) noexcept {
         counter--;
     }
 }
+#endif
 
 /// <summary>
 /// Saves as PNG.
@@ -552,6 +725,20 @@ auto LongUI::CUIResMgr::SaveAsPng(
     return hr;
 }
 
+
+/// <summary>
+/// Sets the alpha mode.
+/// </summary>
+/// <param name="premultiply">if set to <c>true</c> [premultiply].</param>
+/// <returns></returns>
+void LongUI::CUIResMgr::SetAlphaMode(bool premultiply) noexcept {
+    rm().alpha
+        = premultiply
+        ? &GUID_WICPixelFormat32bppPRGBA
+        : &GUID_WICPixelFormat32bppRGBA
+        ;
+}
+
 /// <summary>
 /// Loads the resource.
 /// </summary>
@@ -559,69 +746,193 @@ auto LongUI::CUIResMgr::SaveAsPng(
 /// <param name="type">The type.</param>
 /// <param name="is_xul_dir">if set to <c>true</c> [is xul dir].</param>
 /// <returns></returns>
-auto LongUI::CUIResMgr::LoadResource(
-    U8View uri, 
-    ResourceType type, 
-    bool is_xul_dir) noexcept -> uint32_t {
-    // 没有就算了
+auto LongUI::CUIResMgr::LoadResource(U8View uri, 
+    //ResourceType type, 
+    bool is_xul_dir) noexcept -> uintptr_t {
+    const ResourceType type = ResourceType::Type_Image;
+    // uri为空
     if (uri.end() == uri.begin()) return 0;
-    // 待用数据
+
+
+
+    // 路径信息
     PathOP::UriPath path_buf;
-    auto& list = rm().reslist;
-    auto& map = rm().resmap;
     auto get_dir = [is_xul_dir]() noexcept {
         return is_xul_dir ? UIManager.GetXulDir() : U8View{};
     };
-    const auto nsize = static_cast<uint32_t>(list.size());
-    assert(nsize >= rm().rescount && "???");
-    auto index = nsize;
-    // 复用已有的: 如果超过 3/4就直接末尾添加
-    if (rm().rescount >= nsize * 3 / 4 ) {
-        list.resize(list.size() + 1);
-        if (!list.is_ok()) return 0;
-    }
-    // 否则就复用已有的
-    else {
-        for (index = 1; index != nsize; ++index) {
-            if (list[index].obj == nullptr) break;
-        }
-        assert(index != nsize && "not found");
-    }
     // 转换统一URI字符串
-    uri = PathOP::MakeUriPath(path_buf, get_dir(), uri);
+    const auto real_uri = PathOP::MakeUriPath(path_buf, get_dir(), uri);
     // 检测问题
-    if (uri.end() == uri.begin()) { assert(!"ERROR"); return 0; }
-    // 插入URL
-    const auto re = map.insert(uri.begin(), uri.end(), index);
+    if (real_uri.end() == real_uri.begin()) { assert(!"ERROR"); return 0; }
+
+
+    // 插入URL 先占位子
+    auto& map = rm().resmap;
+    const auto re = map.insert(real_uri.begin(), real_uri.end(), 0);
     // 内存不足
     if (re.first == map.end()) { assert(!"ERROR"); return 0; }
     // 插入失败 而且 数据不为0就是已有的
     if (!re.second && re.first->second) {
         const auto id = re.first->second;
-        assert(type == list[id].type && "must be same");
+        //assert(type == list[id].GetType() && "must be same");
         return id;
     }
-    // -----------------------------------------
-    // 待插入数据
-    ResourceData data { nullptr, re.first->first, 0, type };
+
+    // 创建资源对象
+    const auto res = rm().load_create(real_uri);
+    if (!res) return 0;
+    // 写入数据
+    auto& data = const_cast<ResourceData&>(res->RefData());
+    data.uri = re.first->first;
+    data.ref = 0;
+    return re.first->second = CUIResourceID::ObjectId(res);
+}
+
+
+/// <summary>
+/// Loads the and create.
+/// </summary>
+/// <param name="uri">The URI.</param>
+/// <returns></returns>
+auto LongUI::CUIResMgr::Private::load_create(U8View uri) noexcept -> CUISharedResource* {
+    POD::Vector<uint8_t> buffer;
+    UIManager.LoadDataFromUrl(uri, buffer);
+    const auto len = static_cast<uint32_t>(buffer.size());
+    // XXX: 错误信息丢失?
+    if (!len) return nullptr;
+    const auto ptr = buffer.data();
+    // 渲染锁
+    CUIRenderAutoLocker locker;
     // 创建位图
-    I::Bitmap* bitmap = nullptr;
-    auto hr = this->CreateBitmapFromSSImageFile(uri, bitmap);
-    // 创建IMAGE资源
-    if (hr) {
-        hr = CUIImage::CreateImage(*bitmap, luiref data.obj);
+    struct create_bitmap_func {
+        enum { ONLY1 = false };
+        CUIImage*       image;
+        // 帧信息
+        auto frame(uint32_t c, uint32_t d, Size2U s) noexcept -> HRESULT {
+            // 创建图像
+            const auto img = CUIImage::Create(c, d, s);
+            if (!img) return Result::RE_OUTOFMEMORY;
+            this->image = img;
+            const auto frames = const_cast<BitmapFrame*>(&img->RefFrame(0));
+            // 根据大小分配
+            if (s.width < BITBANK_BITMAP_RMAX && s.height < BITBANK_BITMAP_RMAX) {
+                auto& bank = UIManager.rm().bitbank;
+                // 分配空间
+                for (uint32_t i = 0; i != c; ++i) {
+                    // 分配失败
+                    const auto hr = bank.Alloc(s, frames[i]);
+                    if (!hr) return hr.code;
+                }
+            }
+            // 直接分配
+            else {
+#ifndef NDEBUG
+                if (c > 1) {
+                    LUIDebug(Warning)
+                        << "UIManager.LoadResource is for small image and common use. "
+                        << "this animation-image is too big: " << s << 'x' << c << endl;
+                }
+#endif // !NDEBUG
+
+                // 分配位图
+                for (uint32_t i = 0; i != c; ++i) {
+                    const auto hr = UIManager.CreateBitmap(s, luiref frames[i].bitmap);
+                    frames[i].source.right = img->size.width;
+                    frames[i].source.bottom = img->size.height;
+                    frames[i].rect.width = s.width;
+                    frames[i].rect.height = s.height;
+                    // 分配失败
+                    if (!hr) return hr.code;
+                }
+            }
+            return Result::RS_OK;
+        }
+        // 创建
+        auto create(uint32_t i, Size2U, const uint8_t* color, uint32_t pitch) noexcept {
+            assert(image);
+            const auto rgba = reinterpret_cast<const RGBA*>(color);
+            const auto frame = this->image->RefFrame(i);
+            const D2D1_RECT_U des = {
+                frame.rect.left,
+                frame.rect.top,
+                frame.rect.left + frame.rect.width,
+                frame.rect.top + frame.rect.height,
+            };
+            return frame.bitmap->CopyFromMemory(&des, color, pitch);
+        }
+    } obj{ nullptr };
+    // 正式载入
+    const Result hr{ impl::load_bitmap(obj, this->wicfactroy, *alpha, ptr, len) };
+    // 载入失败
+    if (!hr) {
+        if (obj.image) obj.image->Destroy();
+        return nullptr;
     }
-    // 推入表中
-    if (hr) {
-        list[index] = data;
-        ++rm().rescount;
-    }
-    // TODO: 错误处理(信息丢失)
-    const auto rvcode = hr ? index : 0;
-    // 写入目前的位置
-    re.first->second = rvcode;
-    // 返回
-    return rvcode;
+    assert(obj.image);
+    return obj.image;
+}
+
+/// <summary>
+/// Recreates the specified img.
+/// </summary>
+/// <param name="img">The img.</param>
+/// <returns></returns>
+auto LongUI::CUIResMgr::Private::recreate(CUIImage& img) noexcept -> Result {
+    const auto uri = U8View::FromCStyle(img.RefData().uri);
+    POD::Vector<uint8_t> buffer;
+    UIManager.LoadDataFromUrl(uri, buffer);
+    const auto len = static_cast<uint32_t>(buffer.size());
+    // 内存不足
+    if (!len) return { Result::RE_OUTOFMEMORY };
+    const auto ptr = buffer.data();
+    // 渲染锁
+    CUIRenderAutoLocker locker;
+    // 重建位图
+    struct recreate_func {
+        enum { ONLY1 = false };
+        CUIImage&       image;
+        // 帧信息
+        auto frame(uint32_t c, uint32_t d, Size2U s) noexcept -> HRESULT {
+            const auto frames = const_cast<BitmapFrame*>(&this->image.RefFrame(0));
+            assert(this->image.delay == d);
+            assert(this->image.frame_count == c);
+            assert(static_cast<uint32_t>(this->image.size.width) == s.width);
+            assert(static_cast<uint32_t>(this->image.size.height) == s.height);
+            const auto fc = this->image.frame_count;
+            for (uint32_t i = 0; i != fc; ++i) {
+                auto& frame = frames[i];
+                assert(frame.bitmap == nullptr);
+                // 共享
+                if (frame.window) {
+                    assert(frame.window->bitmap && "BUG");
+                    frame.window->bitmap->AddRef();
+                    frame.bitmap = frame.window->bitmap;
+                }
+                // 单独
+                else {
+                    const auto hr = UIManager.CreateBitmap(s, luiref frames[i].bitmap);
+                    if (!hr) return hr;
+                }
+            }
+            return Result::RS_OK;
+        }
+        // 创建
+        auto create(uint32_t i, Size2U, const uint8_t* color, uint32_t pitch) noexcept {
+            const auto rgba = reinterpret_cast<const RGBA*>(color);
+            const auto frame = this->image.RefFrame(i);
+            const D2D1_RECT_U des = {
+                frame.rect.left,
+                frame.rect.top,
+                frame.rect.left + frame.rect.width,
+                frame.rect.top + frame.rect.height,
+            };
+            return frame.bitmap->CopyFromMemory(&des, color, pitch);
+        }
+    } obj{ img };
+    // 正式载入
+    const Result hr{ impl::load_bitmap(obj, this->wicfactroy, *alpha, ptr, len) };
+
+    return hr;
 }
 
 /// <summary>
@@ -660,10 +971,10 @@ auto LongUI::CUIResMgr::CreateBitmap(
 /// <returns></returns>
 auto LongUI::CUIResMgr::CreateBitmapFromSSImageFile(
     U8View view, I::Bitmap *& bitmap) noexcept -> Result {
-    // TODO: 可以SEEK的流以节约内存
+    // TODO: 实现可以SEEK的流 以节约内存
     POD::Vector<uint8_t> buffer;
     UIManager.LoadDataFromUrl(view, buffer);
-    if (const auto len = buffer.size()) {
+    if (const auto len = static_cast<uint32_t>(buffer.size())) {
         return CreateBitmapFromSSImageMemory(&buffer.front(), len, bitmap);
     }
     return Result{ Result::RE_FILENOTFOUND };
@@ -683,6 +994,7 @@ auto LongUI::CUIResMgr::CreateBitmapFromSSImageMemory(
     return create_bitmap_private(ptr, len, reinterpret_cast<void*&>(bitmap));
 }
 
+
 PCN_NOINLINE
 /// <summary>
 /// Creates the bitmap private.
@@ -695,28 +1007,25 @@ auto LongUI::CUIResMgr::create_bitmap_private(
     // 渲染锁
     CUIRenderAutoLocker locker;
     // 创建位图
-    auto create_bitmap = [this](
-        Size2U size, 
-        const uint8_t* color, 
-        uint32_t pitch, 
-        I::Bitmap*& bitmap
-        ) noexcept {
-        const auto rgba = reinterpret_cast<const RGBA*>(color);
-        //if (const auto file = std::fopen("output.raw", "wb")) {
-        //    std::fwrite(rgba, 4, size.width * size.height, file);
-        //    std::fclose(file);
-        //}
-        return this->CreateBitmap(size, rgba, pitch, bitmap).code;
-    };
-    return{
-        impl::load_bitmap(
-            create_bitmap,
-            rm().wicfactroy,
-            ptr,
-            len,
-            reinterpret_cast<I::Bitmap*&>(bitmap)
-            )
-    };
+    struct create_bitmap_func {
+        I::Bitmap*&     bitmap_ref;
+        enum { ONLY1 = true };
+        // 帧信息
+        auto frame(uint32_t, uint32_t, Size2U) noexcept {
+            return Result::RS_OK;
+        }
+        // 创建
+        auto create(uint32_t,Size2U size,const uint8_t* color, uint32_t pitch) noexcept {
+            const auto rgba = reinterpret_cast<const RGBA*>(color);
+            auto& bitmap = this->bitmap_ref;
+            //if (const auto file = std::fopen("output.raw", "wb")) {
+            //    std::fwrite(rgba, 4, size.width * size.height, file);
+            //    std::fclose(file);
+            //}
+            return UIManager.CreateBitmap(size, rgba, pitch, bitmap).code;
+        }
+    } obj{ reinterpret_cast<I::Bitmap*&>(bitmap) };
+    return { impl::load_bitmap(obj, rm().wicfactroy, *rm().alpha, ptr, len) };
 }
 
 
@@ -992,7 +1301,7 @@ LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
     // 本地字符集名称
     cfg->GetLocaleName(m_szLocaleName);
     // 创建rm
-    detail::ctor_dtor<PrivateResMgr>::create(&rm());
+    detail::ctor_dtor<CUIResMgr::Private>::create(&rm());
     // 初始化无关资源
     Result hr = rm().init();
     // 创建本地风格渲染器
@@ -1032,7 +1341,7 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
     // 释放无关资源
     rm().release();
     // 调用析构函数
-    rm().~PrivateResMgr();
+    rm().~Private();
 #ifndef NDEBUG
     delete m_pDebug;
 #endif
@@ -1046,9 +1355,8 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
 /// <param name="flag">The flag.</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg, ConfigureFlag flag) noexcept -> Result {
-    constexpr auto same_s = sizeof(PrivateResMgr) == sizeof(m_private);
-    constexpr auto same_a = alignof(PrivateResMgr) == alignof(private_t);
-    static_assert(same_s && same_a, "must be same");
+    constexpr auto same_s = sizeof(CUIResMgr::Private) == sizeof(private_t);
+    constexpr auto same_a = alignof(CUIResMgr::Private) == alignof(private_t);
     this->release_device();
     // 待用适配器
     IDXGIAdapter1* adapter = nullptr;
@@ -1283,6 +1591,7 @@ void LongUI::CUIResMgr::redirect_screen() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIResMgr::release_res_list() noexcept {
+#if 0
     auto& list = rm().reslist;
     // 释放未正确释放的资源(资源泄漏)
     for (auto& x : list) {
@@ -1295,7 +1604,7 @@ void LongUI::CUIResMgr::release_res_list() noexcept {
                 << ", ref: "
                 << x.ref
                 << ", type: "
-                << static_cast<int>(x.type)
+                << static_cast<int>(x.GetType())
                 << ")" << endl;
 #endif
             x.obj->Destroy();
@@ -1303,6 +1612,7 @@ void LongUI::CUIResMgr::release_res_list() noexcept {
         }
     }
     assert(rm().rescount == 1 && "rescount should be 1");
+#endif
 }
 
 /// <summary>
@@ -1311,31 +1621,32 @@ void LongUI::CUIResMgr::release_res_list() noexcept {
 /// <returns></returns>
 auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
     Result rv = { Result::RS_OK };
-    // XXX: 优化重建
-    // TODO: 蛋疼的错误处理
-    for (auto& x : rm().reslist) {
-        switch (x.type)
-        {
-        case ResourceType::Type_Image:
-        {
-            I::Bitmap* bitmap = nullptr;
-            const auto view = U8View::FromCStyle(x.uri);
-            const auto hr = this->CreateBitmapFromSSImageFile(view, bitmap);
-            if (hr) {
-                const auto img = static_cast<CUIImage*>(x.obj);
-                img->RecreateBitmap(*bitmap);
+    // 重建位图仓
+    rm().bitbank.Recreate();
+    // 重建, 即便错误也要继续, 目的是释放数据
+    {
+        const auto begin_itr = rm().resmap.begin();
+        const auto end_itr = rm().resmap.end();
+        for (auto itr = begin_itr; itr != end_itr; ++itr) {
+            assert(itr->second);
+            /*if (itr->second)*/ {
+                const auto ptr = CUIResourceID::Object(itr->second);
+                auto& img = static_cast<CUIImage&>(*ptr);
+                assert(ptr->RefData().GetType() == ResourceType::Type_Image);
+#ifdef LUI_MULTIPLE_RESOURCE
+#endif
+                // 即便错误也要继续, 目的是释放数据
+                img.Release();
+                if (rv) rv = rm().recreate(img);
             }
-            else rv = hr;
-        }
-            break;
         }
     }
-    // 正常重建
-    if (rv) {
-        rv = impl::recreate_native_style_renderer(m_pNativeStyle);
-    }
+    // 正常重建,  即便错误也要继续, 目的是释放数据
+    const auto naive = impl::recreate_native_style_renderer(m_pNativeStyle);
+    if (!naive) rv = naive;
     return rv;
 }
+
 
 /// <summary>
 /// Releases this instance.
@@ -1377,11 +1688,13 @@ void LongUI::CUIResMgr::release_device() noexcept {
 
 
 namespace LongUI { namespace detail {
+    // add ref res via id
+    void add_ref(uintptr_t handle) noexcept;
     // image to id
-    auto xul_image_to_id(U8View view) noexcept -> uint32_t {
+    auto xul_image_to_id(U8View view) noexcept -> uintptr_t {
         const auto type = ResourceType::Type_Image;
-        const auto id = UIManager.LoadResource(view, type, true);
-        if (id) UIManager.AddResourceRefCount(id);
+        const auto id = UIManager.LoadResource(view, /*type,*/ true);
+        if (id) detail::add_ref(id);
         return id;
     }
 }}

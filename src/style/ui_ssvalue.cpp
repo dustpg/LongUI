@@ -327,7 +327,7 @@ namespace LongUI {
             // 根据属性处理值
             LongUI::ValueTypeMakeValue(
                 m_nowProperty,
-                m_propertyValues.size(),
+                static_cast<uint32_t>(m_propertyValues.size()),
                 &m_propertyValues.front(),
                 &m_values
             );
@@ -374,6 +374,12 @@ LongUI::SSBlock::SSBlock(uint32_t len) noexcept: main_len(len) {
     std::memset(&this->main, 0, sizeof(this->main) * len);
 }
 
+
+namespace LongUI { namespace detail { 
+    // release res via id
+    void release_res(uintptr_t handle) noexcept;
+} }
+
 /// <summary>
 /// Finalizes an instance of the <see cref="SSBlock"/> class.
 /// </summary>
@@ -382,7 +388,7 @@ LongUI::SSBlock::~SSBlock() noexcept {
     // XXX: 释放表中的图像引用
     for (const auto x : this->list) {
         if (LongUI::IsImageType(x.type) && x.data4.u32) {
-            UIManager.ReleaseResourceRefCount(x.data4.u32);
+            detail::release_res(x.data8.handle);
         }
     }
     // 释放被触发器

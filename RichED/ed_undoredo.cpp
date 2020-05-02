@@ -42,7 +42,7 @@ namespace RichED {
         // set caret data
         static void AnchorCaret(CEDTextDocument& doc,  TrivialUndoRedo& op) noexcept;
         // set riched
-        static bool SetRichED(CEDTextDocument&, DocPoint, DocPoint, size_t, size_t, const void*, bool) noexcept;
+        static bool SetRichED(CEDTextDocument&, DocPoint, DocPoint, uint32_t, uint32_t, const void*, bool) noexcept;
         // set flags
         static bool SetFlagS(CEDTextDocument&, DocPoint, DocPoint, uint16_t, uint32_t) noexcept;
     };
@@ -61,7 +61,7 @@ namespace RichED {
 /// <param name="g">if set to <c>true</c> [g].</param>
 /// <returns></returns>
 bool RichED::CEDTextDocument::UndoPri::SetRichED(
-    CEDTextDocument&a, DocPoint b, DocPoint c, size_t d, size_t e, const void * f, bool g) noexcept {
+    CEDTextDocument&a, DocPoint b, DocPoint c, uint32_t d, uint32_t e, const void * f, bool g) noexcept {
     return a.set_riched(b, c, d, e, f, g);
 }
 
@@ -434,7 +434,7 @@ namespace RichED {
             if (ptr) {
                 const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
                 const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = len - offset;
+                op->bytes_from_here = static_cast<uint32_t>(len - offset);
             }
             return ptr;
         }
@@ -500,7 +500,7 @@ namespace RichED {
             if (ptr) {
                 const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
                 const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = len - offset;
+                op->bytes_from_here = static_cast<uint32_t>(len - offset);
                 const auto ops = reinterpret_cast<TextGroupOp*>(op + 1);
                 ops->length = count;
             }
@@ -588,7 +588,7 @@ namespace RichED {
             if (ptr) {
                 const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
                 const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = len - offset;
+                op->bytes_from_here = static_cast<uint32_t>(len - offset);
             }
             return ptr;
         }
@@ -605,7 +605,7 @@ namespace RichED {
             const auto obj = reinterpret_cast<RubySingeOp*>(op + 1);
             obj->riched = data;
             obj->begin = dp;
-            obj->ruby_length = view.second - view.first;
+            obj->ruby_length = static_cast<uint32_t>(view.second - view.first);
             obj->under_length = ch > 0xffff ? 2 : 1;
             obj->ch = ch;
             const size_t bl = sizeof(view.first[0]) * (view.second - view.first);
@@ -634,7 +634,7 @@ namespace RichED {
             if (ptr) {
                 const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
                 const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = len - offset;
+                op->bytes_from_here = static_cast<uint32_t>(len - offset);
             }
             return ptr;
         }

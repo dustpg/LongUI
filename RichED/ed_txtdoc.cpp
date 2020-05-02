@@ -1182,7 +1182,7 @@ bool RichED::CEDTextDocument::GuiText(U16View view) noexcept {
     // 只读
     if (m_info.flags & Flag_GuiReadOnly) return false;
     // 超过指定长度
-    const uint32_t view_len = view.second - view.first;
+    const uint32_t view_len = static_cast<uint32_t>(view.second - view.first);
     if (view_len + m_info.total_length > m_info.length_max) {
         view.second = view.first;
         if (m_info.length_max > m_info.total_length) {
@@ -2217,8 +2217,9 @@ bool RichED::CEDTextDocument::Private::Insert(
         Private::ValueChanged(doc, Changed_Text);
     };
     // 添加总长度
-    const auto add_total = [&doc](uint32_t l) noexcept {
-        doc.m_info.total_length += l; return l;
+    const auto add_total = [&doc](ptrdiff_t l) noexcept {
+        const uint32_t u32l = static_cast<uint32_t>(l);
+        doc.m_info.total_length += u32l; return u32l;
     };
     // 需要重绘
     Private::NeedRedraw(doc);
@@ -2311,7 +2312,7 @@ bool RichED::CEDTextDocument::Private::Insert(
     auto line_ptr = &doc.m_vLogic[dp.line];
     if (!lf_count) {
         // TODO: 插入双字UTF-16?
-        const auto len = view.second - view.first;
+        const auto len = static_cast<int32_t>(view.second - view.first);
         if (len <= cell->RefString().Left()) {
             cell->InsertText(pos, view);
             line_ptr->length += add_total(len);

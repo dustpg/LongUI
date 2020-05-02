@@ -91,7 +91,8 @@ auto LongUI::UILabel::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
         assert(m_pWindow && "no window no mouse");
         if (this->is_def_href()) {
             m_pWindow->SetNowCursor(m_hrefCursor);
-            m_text.SetUnderline(0, m_string.length(), true);
+            const auto u32l = static_cast<uint32_t>(m_string.length());
+            m_text.SetUnderline(0, u32l, true);
             this->Invalidate();
             //return Event_Accept;
         }
@@ -100,7 +101,8 @@ auto LongUI::UILabel::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
         assert(m_pWindow && "no window no mouse");
         if (this->is_def_href()) {
             m_pWindow->SetNowCursor(nullptr);
-            m_text.SetUnderline(0, m_string.length(), false);
+            const auto u32l = static_cast<uint32_t>(m_string.length());
+            m_text.SetUnderline(0, u32l, false);
             this->Invalidate();
             //return Event_Accept;
         }

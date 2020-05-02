@@ -90,11 +90,11 @@ namespace LongUI {
             a = static_cast<T>(b);
         }
         // xul image to id
-        auto xul_image_to_id(U8View) noexcept->uint32_t;
+        auto xul_image_to_id(U8View) noexcept->uintptr_t;
         // parse bgrepeat
         auto parse_bgrepeat(const FuncValue[], uint32_t) noexcept->uint8_t;
         // parse image
-        auto parse_image(FuncValue value) noexcept->uint32_t;
+        auto parse_image(FuncValue value) noexcept->uintptr_t;
         // parse time
         auto parse_time(U8View value) noexcept -> float;
         // parse float
@@ -230,7 +230,7 @@ void LongUI::ValueTypeMakeValue(
         //   -- border-image-source
         //   -- background-image
         assert(value_len == 1 && "unsupported");
-        detail::attribute(ssv.data4.u32, detail::parse_image(values[0]));
+        detail::attribute(ssv.data8.handle, detail::parse_image(values[0]));
         break;
     case ValueType::Type_BackgroundRepeat:
     case ValueType::Type_BorderImageRepeat:
@@ -597,6 +597,7 @@ auto LongUI::GetEasyType(ValueType type) noexcept -> ValueEasyType {
     case LongUI::ValueType::Type_BorderImageSource:
     case LongUI::ValueType::Type_BackgroundImage:
         // [IMAGE]
+        //return ValueEasyType::Type_NoAnimation;
     case LongUI::ValueType::Type_BorderStyle:
     case LongUI::ValueType::Type_BorderImageSlice:
     case LongUI::ValueType::Type_BorderImageRepeat:
@@ -707,7 +708,7 @@ namespace LongUI {
     // detail namespace
     namespace detail {
         // parse image
-        auto parse_image(SimpAC::FuncValue value) noexcept -> uint32_t {
+        auto parse_image(SimpAC::FuncValue value) noexcept -> uintptr_t {
             switch (value.func)
             {
             default: assert(!"unsupported"); break;

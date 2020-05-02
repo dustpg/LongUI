@@ -6,7 +6,7 @@
 #include <graphics/ui_bg_renderer.h>
 #include <graphics/ui_graphics_impl.h>
 // resource
-#include <resource/ui_image.h>
+#include <resource/ui_image_res.h>
 // c++
 #include <cassert>
 
@@ -50,8 +50,9 @@ auto LongUI::CUIRendererBackground::CreateDeviceData() noexcept -> Result {
 /// </summary>
 auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
     using brush_t = ID2D1BitmapBrush1;
-    if (!this->image_id) return { Result::RS_FALSE };
+    if (!this->image_id.GetId()) return { Result::RS_FALSE };
     Result hr = { Result::RS_OK };
+#if 0
     // 没有就创建
     if (!m_pImageBrush && this->image_id) {
         ID2D1Bitmap1* const bitmap = nullptr;
@@ -62,19 +63,20 @@ auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
     if (m_pImageBrush) {
         assert(this->image_id && "bad id");
         auto& data = UIManager.GetResoureceData(this->image_id);
-        assert(data.type == ResourceType::Type_Image);
+        assert(data.GetType() == ResourceType::Type_Image);
         // 目前只支持IMAGE
         const auto img = static_cast<CUIImage*>(data.obj);
         const auto brush = reinterpret_cast<brush_t*>(m_pImageBrush);
         // 获取大小
-        m_szImage.width = static_cast<float>(img->GetSize().width);
-        m_szImage.height = static_cast<float>(img->GetSize().height);
+        m_szImage.width = img->GetSize().width;
+        m_szImage.height = img->GetSize().height;
         // 图像
         brush->SetBitmap(&img->RefBitmap());
         // 扩展
         brush->SetExtendModeX(D2D1_EXTEND_MODE_WRAP);
         brush->SetExtendModeY(D2D1_EXTEND_MODE_WRAP);
     }
+#endif
     return hr;
 }
 
@@ -144,6 +146,7 @@ void LongUI::CUIRendererBackground::RenderColor(const Box& box, Size2F radius) c
 /// <param name="radius">The radius.</param>
 /// <returns></returns>
 void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F radius) const noexcept {
+#if 0
     // 渲染背景图片
     if (!this->image_id || !m_pImageBrush) return;
     // 图片大小
@@ -194,5 +197,6 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F r
     m_pImageBrush->SetTransform(&auto_cast(matrix));
     // 渲染笔刷
     render.FillRoundedRectangle(&rrect, m_pImageBrush);
+#endif
 }
 #endif

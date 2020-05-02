@@ -27,8 +27,10 @@ namespace LongUI {
         Event_ImplicitGroupChecked,
 
 
-        // ----------------------------
-#if 0
+        // ----------------
+        // timer event 0~7
+        // ----------------
+
         // timer event #0
         Event_Timer0,
         // timer event #1
@@ -37,7 +39,14 @@ namespace LongUI {
         Event_Timer2,
         // timer event #3
         Event_Timer3,
-#endif
+        // timer event #4
+        Event_Timer4,
+        // timer event #5
+        Event_Timer5,
+        // timer event #6
+        Event_Timer6,
+        // timer event #7
+        Event_Timer7,
     };
     /// <summary>
     /// event argument
