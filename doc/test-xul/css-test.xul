@@ -21,6 +21,7 @@ function get_text() {
   <spacer flex="1"/>
   <image id="img1" flex="1" src="images/25.png"/>
   <image id="img2" flex="1" src="images/owl.gif"/>
+  <image id="img3" flex="1" src="images/yes.gif"/>
   <spacer flex="1"/>
 </hbox>
 <hbox flex="1" id="layout">
@@ -44,10 +45,10 @@ function get_text() {
       <label class="border-image" value="按钮A" flex="10"/>
       <button class="border-image" id="this" label="按钮B" flex="10"/>
     </hbox>
-    <!-- <hbox flex="2">
+    <hbox flex="2">
       <button class="border-image" label="按钮" flex="10"/>
       <button class="border-image" label="按钮" flex="10"/>
-    </hbox> -->
+    </hbox>
   </hbox>
 </groupbox>
 
