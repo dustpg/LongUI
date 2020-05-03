@@ -163,6 +163,7 @@
       <File Name="../src/input/ui_kminput.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="resource">
+      <File Name="../src/resource/ui_bitmap_bank.cpp"/>
       <File Name="../src/resource/ui_resource_id.cpp"/>
       <File Name="../src/resource/ui_res_image.cpp"/>
     </VirtualDirectory>

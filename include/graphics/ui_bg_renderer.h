@@ -42,7 +42,7 @@ namespace LongUI {
         Size2F              m_szImage = {};
         // ------------- GPU-RES ------------
         // image brush
-        I::Brush*           m_pImageBrush = nullptr;
+        //I::Brush*           m_pImageBrush = nullptr;
     public:
         // ------------- CPU-RES ------------
         // background-image

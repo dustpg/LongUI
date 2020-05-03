@@ -1,4 +1,5 @@
-﻿// ui
+﻿#define NOMINMAX
+// ui
 #include <core/ui_manager.h>
 #include <container/pod_vector.h>
 #include <resource/ui_bitmap_bank.h>
@@ -7,6 +8,7 @@
 // c++
 #include <cassert>
 #include <algorithm>
+
 
 
 /// <summary>
@@ -82,6 +84,12 @@ auto LongUI::CUIBitmapBank::Alloc(Size2U size, BitmapFrame& frame) noexcept ->Re
         // 需要创建一个新窗口
         window = Private::AllocNewWindow(*this);
         if (!window) return { Result::RE_OUTOFMEMORY };
+#ifndef NDEBUG
+        if (m_count > 1) { LUIDebug(Warning);}
+        else { LUIDebug(Hint); }
+        _lui_inter_debug << "New Bitbank Window Alloced: " << m_count << endl;
+#endif // !NDEBUG
+
         const Size2U bank{ BITBANK_BITMAP_SIZE , BITBANK_BITMAP_SIZE };
         const auto hr = UIManager.CreateBitmap(bank, luiref window->bitmap);
         // 失败回退操作
@@ -99,9 +107,12 @@ auto LongUI::CUIBitmapBank::Alloc(Size2U size, BitmapFrame& frame) noexcept ->Re
     assert(window && window->bitmap);
     Private::AllocRect(*window, frame, size);
 #ifndef NDEBUG
+    const float aall = (float)BITBANK_BITMAP_SIZE * BITBANK_BITMAP_SIZE / 100.f;
     LUIDebug(Hint) 
         << "rect alloced @ " << frame.rect
-        << "  -  window: " << m_count
+        << DDFFloat2{ (float)window->area / aall }
+        //<< window->area
+        << "%%  -  window: " << m_count
         << endl;
 #endif // !NDEBUG
     return { Result::RS_OK };
@@ -113,40 +124,47 @@ auto LongUI::CUIBitmapBank::Alloc(Size2U size, BitmapFrame& frame) noexcept ->Re
 /// <param name="frame">The frame.</param>
 /// <returns></returns>
 void LongUI::CUIBitmapBank::Free(BitmapFrame& frame) noexcept {
-    assert(frame.window && frame.bitmap && "bad args");
+    assert(frame.window && "bad args");
     if (!frame.window) return;
+    const auto window = frame.window;
 #ifndef NDEBUG
+    const float aall = (float)BITBANK_BITMAP_SIZE * BITBANK_BITMAP_SIZE / 100.f;
     const auto cmp = [&](const BitbankWindow& w) noexcept { return &w == frame.window; };
     const auto itr = std::find_if(m_window.begin(), m_window.end(), cmp);
     assert(itr != m_window.end() && "window not find");
     LUIDebug(Hint)
         << "rect free on @" << frame.rect
+        << DDFFloat2{ (float)window->area / aall }
+        //<< window->area
+        << "%%"
         << endl;
 #endif
-    const auto window = frame.window;
-    // 如果是终节点
-    if (window->last == &frame) window->last = frame.prev;
     // 链接前后节点
     if (frame.prev) frame.prev->next = frame.next;
     if (frame.next) frame.next->prev = frame.prev;
     // 减少使用面积
     const uint32_t area = frame.rect.width * frame.rect.height;
-    assert(window->area > area);
+    assert(window->area >= area);
     window->area -= area;
-    // 面积少于阈值则进行位图移动
-    if (window->area < BITBANK_BITMAP_MOVE_THRESHOLD) {
-        // TODO: 尝试 数据移动
 
-        // 删除数据
-        if (!window->area) {
-            window->bitmap->Release();
+    // 完全释放
+    if (!window->area) {
+        window->bitmap->Release();
 #ifndef NDEBUG
-            std::memset(window, -1, sizeof(*window));
+        std::memset(window, -1, sizeof(*window));
 #endif
-            window->bitmap = nullptr;
-            assert(m_count);
-            m_count--;
-        }
+        window->bitmap = nullptr;
+        assert(m_count);
+        m_count--;
+        return;
+    }
+    // 如果是终节点
+    if (window->last == &frame) {
+        window->last = frame.prev;
+        return;
+    }
+    // TODO: 面积少于阈值则进行位图移动 
+    if (window->area < BITBANK_BITMAP_MOVE_THRESHOLD) {
     }
 }
 
@@ -213,8 +231,8 @@ bool LongUI::CUIBitmapBank::Private::RectAlloc(const BitbankWindow& win, Size2U 
         ret = true;
     }
     else {
+        uint32_t height_remain = 0;
         const auto& last_rect = win.last->rect;
-        uint32_t height_remain = BITBANK_BITMAP_SIZE - win.bottom;
         const uint32_t last_right = last_rect.left + last_rect.width;
         // 同行上一个下面还有空间?
         /*
@@ -241,16 +259,16 @@ bool LongUI::CUIBitmapBank::Private::RectAlloc(const BitbankWindow& win, Size2U 
         else {
             // 同一行还有横向空间
             if (last_right + size.width <= BITBANK_BITMAP_SIZE) {
-                height_remain += last_rect.height;
                 out.left = last_right; out.top = win.top;
-                new_bottom = win.bottom;
-                if (size.height > last_rect.height)
-                    new_bottom += size.height - last_rect.height;
+                height_remain = BITBANK_BITMAP_SIZE - win.top;
+                const uint32_t this_b = size.height + win.top;
+                new_bottom = std::max(this_b, win.bottom);
             }
             // 下一行
             else { 
                 new_top = out.top = win.bottom;
                 new_bottom += win.bottom; 
+                height_remain = BITBANK_BITMAP_SIZE - win.bottom;
             }
             ret = height_remain >= size.height;
         }
@@ -286,7 +304,8 @@ void LongUI::CUIBitmapBank::Private::AllocRect(BitbankWindow& win,
         win.last = &frame;
         win.top = nt;
         win.bottom = nb;
-        win.area += rect.width * rect.width;
+        //win.area += rect.width * rect.width;
+        win.area += rect.width * rect.height;
     });
 }
 

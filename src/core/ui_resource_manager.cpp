@@ -385,6 +385,8 @@ namespace LongUI { namespace impl {
 struct LongUI::CUIResMgr::Private {
     // remove_res_only
     static inline void remove_res_only(const char* str) noexcept;
+    // remove_res_only
+    static inline void free_rects(BitmapFrame& f) noexcept;
     // ctor
     Private() noexcept {}
     // dtor
@@ -527,6 +529,15 @@ void LongUI::CUIResMgr::Private::remove_res_only(const char * str) noexcept {
     map.remove(itr);
 }
 
+/// <summary>
+/// Frees the rects.
+/// </summary>
+/// <param name="f">The f.</param>
+/// <returns></returns>
+void LongUI::CUIResMgr::Private::free_rects(BitmapFrame& f) noexcept {
+    UIManager.rm().bitbank.Free(f);
+}
+
 // longui namespace
 namespace LongUI { namespace detail { 
     /// <summary>
@@ -536,6 +547,14 @@ namespace LongUI { namespace detail {
     /// <returns></returns>
     void remove_res_only(const char* text) noexcept {
         CUIResMgr::Private::remove_res_only(text);
+    }
+    /// <summary>
+    /// Frees the rects.
+    /// </summary>
+    /// <param name="f">The f.</param>
+    /// <returns></returns>
+    void free_rects(BitmapFrame& f) noexcept {
+        CUIResMgr::Private::free_rects(f);
     }
 }}
 

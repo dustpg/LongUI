@@ -40,7 +40,7 @@ void LongUI::CUIRendererBackground::ReleaseDeviceData() {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIRendererBackground::CreateDeviceData() noexcept -> Result {
-    assert(m_pImageBrush == nullptr && "must release first");
+    //assert(m_pImageBrush == nullptr && "must release first");
     // 创建笔刷
     return this->RefreshImage();
 }
@@ -85,10 +85,7 @@ auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIRendererBackground::release_brush() noexcept {
-    if (m_pImageBrush) {
-        m_pImageBrush->Release();
-        m_pImageBrush = nullptr;
-    }
+    //LongUI::SafeRelease(m_pImageBrush);
 }
 
 // longui::detail

@@ -20,10 +20,19 @@ function get_text() {
 <spacer flex="1"/>
 <hbox flex="1">
   <spacer flex="1"/>
-  <button class="imgButton" label="BUTTON" flex="1"/>
+  <button class="imgButton" label="BUTTON" id="btn1" flex="1"/>
+  <spacer flex="1"/>
+  <button class="imgButton" label="BUTTON" id="btn2" flex="1"/>
   <spacer flex="1"/>
 </hbox>
 <spacer flex="1"/>
-
+<hbox flex="1">
+  <spacer flex="1"/>
+  <button class="imgButton" label="BUTTON" id="btn3" flex="1"/>
+  <spacer flex="1"/>
+  <button class="imgButton" label="BUTTON" id="btn4" flex="1"/>
+  <spacer flex="1"/>
+</hbox>
+<spacer flex="1"/>
 
 </window>

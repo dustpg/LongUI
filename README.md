@@ -9,7 +9,6 @@ Lightweight C++ GUI Library
   - main target on LongUI
   - static-link framework, helloworld bin-file-size less than 200kb
   - for this, **no c++ exception** in LongUI
-  - **LongUI Single File** will be larger
 
 **XML User Interface Language**
   - partially compatible Mozilla's XUL (XML part)
@@ -60,7 +59,6 @@ C++轻量级GUI库
   - 这是LongUI的主要实现目标
   - 设计为静态库, helloworld二进制文件不足200kb
   - 为此, LongUI**没有使用C++异常**
-  - **单文件LongUI** 会大一点
 
 **XML User Interface Language**
   - 部分兼容 Mozilla的XUL (XML部分)

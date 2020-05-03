@@ -5,18 +5,22 @@
 #### bin-size within configuration
 
 
-|  FLAG                     | Bin-Size*  | Ratio |
-|  ----------               | --------   | ----- |
-|  default                  |   174kb    | 1.00 |
-|  LUI_WIN10_ONLY           |   172kb    | 0.99 |
-|  LUI_NO_ACCESSIBLE        |   163kb    | 0.94 |
-|  LUI_DISABLE_STYLE_SUPPORT|   143kb    | 0.82 |
-|  all of above             |   130kb    | 0.75 |
-|  LOngUI Single File       |   190kb    | 1.09 |
+|        FLAG                | Bin-SizeA* | Ratio|Bin-SizeB**| Ratio |
+|  ------------------------  | --------   | -----| --------  | ----- |
+|  default                   |   192kb    | 1.00 |   155kb   | 0.81  |
+|  LUI_WIN10_ONLY            |   190kb    | 0.99 |   153kb   | 0.80  |
+|  LUI_NO_ACCESSIBLE         |   181kb    | 0.94 |   149kb   | 0.78  |
+|  LUI_DISABLE_STYLE_SUPPORT |   161kb    | 0.84 |   130kb   | 0.68  |
+|  All of Above              |   148kb    | 0.75 |   119kb   | 0.62  |
+|  LongUI Single File        | - | - | - | - | 
+
+v0.2.1 - updated on May. 2020
+
+*: "hello world" release(/O2) version
+
+**: "hello world" release(/O1) version
 
 
-
-*: "hello world" release(/O2) version, updated on Aug 23, 2018
 
 ---
 

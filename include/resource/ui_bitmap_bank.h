@@ -69,7 +69,7 @@ namespace LongUI {
     public:
         // alloc rect
         auto Alloc(Size2U, BitmapFrame&) noexcept ->Result;
-        // free rect
+        // free rects
         void Free(BitmapFrame& f) noexcept;
     private:
         // window list, unit could be NUL

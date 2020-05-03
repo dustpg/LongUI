@@ -9,6 +9,8 @@
 
 
 namespace LongUI { namespace detail {
+    // free rects
+    void free_rects(BitmapFrame& f) noexcept;
     // u2->f2
     inline auto u2_f2(Size2U sz) noexcept {
         return Size2F{
@@ -26,7 +28,13 @@ namespace LongUI { namespace detail {
 void LongUI::CUIImage::Release() noexcept {
     const auto fc = this->frame_count;
     for (uint32_t i = 0; i != fc; ++i) {
-        LongUI::SafeRelease(m_frames[i].bitmap);
+        auto& frame = m_frames[i];
+        // 逆序释放
+        //auto& frame = m_frames[fc - 1 - i];
+        LongUI::SafeRelease(frame.bitmap);
+        if (frame.window) {
+            detail::free_rects(frame);
+        }
     }
 }
 
