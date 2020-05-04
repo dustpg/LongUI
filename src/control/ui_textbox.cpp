@@ -1,9 +1,4 @@
 ﻿// Gui
-/*#include <input/ui_kminput.h>
-#include <control/ui_scale.h>
-#include <control/ui_image.h>
-#include <resource/ui_image.h>
-#include <container/pod_hash.h>*/
 
 #include <core/ui_window.h>
 #include <core/ui_manager.h>

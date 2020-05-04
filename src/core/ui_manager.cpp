@@ -365,6 +365,10 @@ namespace LongUI {
         void init_high_dpi_support() noexcept;
         // uninit HiDPI
         void uninit_high_dpi_support() noexcept;
+        // init cursor
+        void init_cursor() noexcept;
+        // init cursor
+        void uninit_cursor() noexcept;
 #ifndef NDEBUG
         // create debug window
         auto create_debug_window() noexcept->CUIWindow*;
@@ -479,6 +483,8 @@ auto LongUI::CUIManager::Initialize(
     impl::init_high_dpi_support();
     // 设置DComp支持
     impl::init_dcomp_support();
+    // 初始化鼠标光标
+    impl::init_cursor();
     // 初始化COM
     {
         const Result hr = { ::CoInitialize(nullptr) };
@@ -831,6 +837,8 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     UIManager.~CUIManager();
     // 反初始化COM
     ::CoUninitialize();
+    // 反初始化鼠标光标
+    impl::uninit_cursor();
     // 反初始化DComp支持
     impl::uninit_dcomp_support();
     // 反初始化高DPI支持

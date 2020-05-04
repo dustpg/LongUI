@@ -1,4 +1,6 @@
-﻿LongUI::CUIBitmapBank::Free 测试 优化
+﻿空间初始化事件过长导致UPDATE?
+
+LongUI::CUIBitmapBank::Free 测试 优化
 
 tab功能?
 

@@ -8,10 +8,18 @@ button#button, #layout .button{
     margin-left: 2px;
 }
 
+#layout button {
+    font-family: KaiTi;
+    /* font-size: 30px; */
+    /* font-style: italic; */
+    /* font-weight: 600; */
+    /* color: cyan */
+}
+
 #layout button:hover {
     background-color: yellow;
     /* margin-left: 200px; */
-    font-family: KaiTi;
+    font-family: Arial;
     /* font-size: 30px; */
     /* font-style: italic; */
     /* font-weight: 600; */

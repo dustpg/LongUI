@@ -94,7 +94,9 @@ auto LongUI::CUIBitmapBank::Alloc(Size2U size, BitmapFrame& frame) noexcept ->Re
         const auto hr = UIManager.CreateBitmap(bank, luiref window->bitmap);
         // 失败回退操作
         if (!hr) {
-            --m_count;
+            // 保证最后一个是需要分配的
+            m_window.shrink_resize(m_window.size() - 1);
+            m_count--;
 #ifndef NDEBUG
             LUIDebug(Error)
                 << "rect(" << size
@@ -156,11 +158,17 @@ void LongUI::CUIBitmapBank::Free(BitmapFrame& frame) noexcept {
         window->bitmap = nullptr;
         assert(m_count);
         m_count--;
+        // 保证最后一个是需要分配的
+        if (window == &m_window.back())
+            m_window.shrink_resize(m_window.size() - 1);
         return;
     }
     // 如果是终节点
     if (window->last == &frame) {
         window->last = frame.prev;
+        assert(window->last && "BUG");
+        window->top = window->last->btop;
+        window->bottom = window->last->bbottom;
         return;
     }
     // TODO: 面积少于阈值则进行位图移动 
@@ -300,11 +308,10 @@ void LongUI::CUIBitmapBank::Private::AllocRect(BitbankWindow& win,
         frame.source.right = frame.source.left + static_cast<float>(rect.width);
         frame.source.bottom = frame.source.top + static_cast<float>(rect.height);
         frame.rect = rect;
+        frame.btop = win.top = nt;
+        frame.bbottom = win.bottom = nb;
 
         win.last = &frame;
-        win.top = nt;
-        win.bottom = nb;
-        //win.area += rect.width * rect.width;
         win.area += rect.width * rect.height;
     });
 }

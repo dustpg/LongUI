@@ -51,6 +51,10 @@ namespace LongUI {
         RectF                   source;
         // rect data
         RectWHU                 rect;
+        // bank top
+        uint32_t                btop;
+        // bank bottom
+        uint32_t                bbottom;
     };
     // Shared Image
     class CUIImage final : public CUISharedResource {
