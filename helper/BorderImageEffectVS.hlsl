@@ -39,7 +39,7 @@ VSOut main(
     output.clipSpaceOutput.z = posDes.z;
     output.clipSpaceOutput.w = posDes.w;
 
-    // ¶¥µãºÜÉÙ(50¸ö×óÓÒ), ¿ÉÒÔÊ¹ÓÃ·ÖÖ§ÅĞ¶Ï, ÀÁµÃĞŞ¸Ä¶¥µãÔ´Êı¾İ
+    // é¡¶ç‚¹å¾ˆå°‘(50ä¸ªå·¦å³), å¯ä»¥ä½¿ç”¨åˆ†æ”¯åˆ¤æ–­, æ‡’å¾—ä¿®æ”¹é¡¶ç‚¹æºæ•°æ®
     output.texelSpaceInput0.xy = pos1.zw;
     output.texelSpaceInput0.z = sceneToInput0X[0];
     output.texelSpaceInput0.w = sceneToInput0Y[0];
