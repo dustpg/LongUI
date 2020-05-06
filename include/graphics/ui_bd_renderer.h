@@ -10,8 +10,6 @@
 #include "../resource/ui_resource_id.h"
 
 namespace LongUI {
-    // image output
-    struct IImageOutput;
     // border renderer
     class CUIRendererBorder : public CUISmallObject {
     public:
@@ -73,8 +71,8 @@ namespace LongUI {
         // ------------- GPU-RES ------------
         // effect
         I::Effect*          m_pBorder = nullptr;
-        // iamge output
-        IImageOutput*       m_pOutput = nullptr;
+        // effect output
+        I::EOutput*         m_pOutput = nullptr;
     private:
         // ------------- CPU-RES ------------
         // rect for image slice

@@ -200,7 +200,6 @@ void LongUI::UIScrollArea::Update() noexcept {
 /// <returns></returns>
 void LongUI::UIScrollArea::on_state_dirty() noexcept {
     //if (std::strcmp("listbox::listboxbody", this->name_dbg) == 0) {
-    //if (std::strcmp("treecols", this->name_dbg) == 0) {
     //    int bk = 9;
     //}
     // 有面积才算数

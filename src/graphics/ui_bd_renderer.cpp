@@ -16,17 +16,6 @@
 
 extern "C" const GUID GUID_LongUIEffect_BorderImage;
 
-namespace LongUI {
-    // auto cast
-    inline auto&auto_cast(IImageOutput*& img) noexcept {
-        return reinterpret_cast<ID2D1Image*&>(img);
-    }
-    // auto cast
-    inline auto&auto_cast(IImageOutput& img) noexcept {
-        return reinterpret_cast<ID2D1Image&>(img);
-    }
-}
-
 /// <summary>
 /// Initializes a new instance of the <see cref="CUIRendererBorder"/> class.
 /// </summary>
@@ -56,7 +45,7 @@ void LongUI::CUIRendererBorder::ReleaseDeviceData() noexcept {
 /// <returns></returns>
 void LongUI::CUIRendererBorder::release_effect() noexcept {
     LongUI::SafeRelease(m_pBorder);
-    LongUI::SafeRelease(auto_cast(m_pOutput));
+    LongUI::SafeRelease(m_pOutput);
 }
 
 /// <summary>
@@ -141,7 +130,7 @@ auto LongUI::CUIRendererBorder::refresh_image() noexcept -> Result {
         // 设置输入
         m_pBorder->SetInput(0, frame.bitmap);
         // 获取输出
-        if (!m_pOutput) m_pBorder->GetOutput(&auto_cast(m_pOutput));
+        if (!m_pOutput) m_pBorder->GetOutput(AddrOf(m_pOutput));
     }
     return hr;
 }
@@ -299,7 +288,7 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
     auto& renderer = UIManager.Ref2DRenderer();
     // 正式渲染
     Point2F offset = { border_rect.left, border_rect.top };
-    renderer.DrawImage(&auto_cast(*m_pOutput), &auto_cast(offset));
+    renderer.DrawImage(m_pOutput, &auto_cast(offset));
 }
 
 

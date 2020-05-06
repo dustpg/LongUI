@@ -13,8 +13,6 @@
 namespace LongUI {
     // box
     struct Box;
-    // image output
-    struct IImageOutput;
     // background renderer
     class CUIRendererBackground : public CUISmallObject {
     public:
@@ -48,7 +46,7 @@ namespace LongUI {
         // effect
         I::Effect*          m_pBackground = nullptr;
         // iamge output
-        IImageOutput*       m_pOutput = nullptr;
+        I::EOutput*         m_pOutput = nullptr;
         // image brush
         //I::Brush*           m_pImageBrush = nullptr;
     public:

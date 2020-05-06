@@ -14,17 +14,6 @@
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 extern "C" const GUID GUID_LongUIEffect_BackImage;
 
-namespace LongUI {
-    // auto cast
-    inline auto&auto_cast(IImageOutput*& img) noexcept {
-        return reinterpret_cast<ID2D1Image*&>(img);
-    }
-    // auto cast
-    inline auto&auto_cast(IImageOutput& img) noexcept {
-        return reinterpret_cast<ID2D1Image&>(img);
-    }
-}
-
 /// <summary>
 /// Initializes a new instance of the <see cref="Background"/> class.
 /// </summary>
@@ -45,7 +34,7 @@ LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
 /// Releases the device data.
 /// </summary>
 void LongUI::CUIRendererBackground::ReleaseDeviceData() {
-    LongUI::SafeRelease(auto_cast(m_pOutput));
+    LongUI::SafeRelease(m_pOutput);
     LongUI::SafeRelease(m_pBackground);
     //LongUI::SafeRelease(m_pImageBrush);
 }
@@ -95,7 +84,7 @@ auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
         // 输入 
         m_pBackground->SetInput(0, frame.bitmap);
         // 获取输出
-        if (!m_pOutput) m_pBackground->GetOutput(&auto_cast(m_pOutput));
+        if (!m_pOutput) m_pBackground->GetOutput(AddrOf(m_pOutput));
     }
     return hr;
 #if 0
@@ -252,7 +241,7 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F r
 
     m_pBackground->SetValue(0, bim);
     const auto& point = reinterpret_cast<Point2F&>(rrect.rect.left);
-    renderer.DrawImage(&auto_cast(*m_pOutput), &auto_cast(point));
+    renderer.DrawImage(m_pOutput, &auto_cast(point));
 #if 0
     // 设置基本转换矩阵
     Matrix3X2F matrix = {

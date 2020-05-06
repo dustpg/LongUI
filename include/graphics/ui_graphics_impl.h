@@ -24,6 +24,8 @@ namespace LongUI { namespace I {
     struct PCN_NOVTABLE Brush : ID2D1Brush {};
     // effect
     struct PCN_NOVTABLE Effect : ID2D1Effect {};
+    // effect output
+    struct PCN_NOVTABLE EOutput : ID2D1Image { };
     // Swap
     struct PCN_NOVTABLE Swapchan : IDXGISwapChain1 {};
     // 3d device
@@ -36,6 +38,10 @@ namespace LongUI { namespace I {
 
 // ui namespace
 namespace LongUI {
+    // addr of 
+    inline auto AddrOf(I::EOutput*& ptr) noexcept {
+        return reinterpret_cast<ID2D1Image**>(&ptr);
+    }
     // safe release
     template<class T> inline void SafeRelease(T *& pi) {
         if (pi) { pi->Release(); pi = nullptr; }
@@ -49,6 +55,7 @@ namespace LongUI {
 
 // ui auto cast
 namespace LongUI {
+
     // ui auto cast: size 2u
     inline auto auto_cast(Size2U f) noexcept {
         return D2D1_SIZE_U{ f.width, f.height };

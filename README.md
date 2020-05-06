@@ -1,4 +1,4 @@
-﻿## LongUI 0.2.1
+﻿## LongUI 0.2.2
   
 Lightweight C++ GUI Library 
 

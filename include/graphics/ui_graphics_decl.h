@@ -12,6 +12,8 @@ namespace LongUI { namespace I {
     struct Brush;
     // effect
     struct Effect;
+    // effect output
+    struct EOutput;
     // image
     struct Drawable;
     // 3d device
