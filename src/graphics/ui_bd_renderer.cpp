@@ -314,7 +314,7 @@ void LongUI::CUIRendererBorder::refresh_image_matrix(const Box& box) noexcept {
     matrix.zone2.left = box.border.right;
     matrix.zone2.top = box.border.bottom;
     matrix.zone3.left = size.width;
-    matrix.zone3.top = size.width;
+    matrix.zone3.top = size.height;
     // 支持图片中一小部分
     matrix.zone0.right = m_rcSource.left;
     matrix.zone0.bottom = m_rcSource.top;
