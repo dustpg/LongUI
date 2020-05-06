@@ -2,6 +2,9 @@
 
 // modify this config-file if you want
 
+// impl RichED::Alloc/Free/ReAlloc
+#define RED_CUSTOM_ALLOCFUNC
+
 // x86 CPU cache-line = 64
 #define RED_LUT_ALIGNED alignas(64)
 #define RED_RICHED_ALIGNED alignas(8)
@@ -74,6 +77,12 @@ namespace RichED {
     inline unit_t half(unit_t a) noexcept { return a * 0.5f; }
     // half
     inline unit_t mask(unit_t a) noexcept { return a * 0.5f; }
+    // mem alloc
+    void*Alloc(size_t) noexcept;
+    // mem free
+    void Free(void*) noexcept;
+    // mem re-alloc
+    void*ReAlloc(void*, size_t) noexcept;
 }
 
 

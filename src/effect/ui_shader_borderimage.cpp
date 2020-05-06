@@ -3386,9 +3386,9 @@ static const unsigned char s_border_image_ps_asm_code[14620] = {
 
 #endif
 
-#define LUI_DEBUG_LOAD_FILE 0
+//#define LUI_DEBUG_LOAD_FILE
 
-#if LUI_DEBUG_LOAD_FILE
+#ifdef LUI_DEBUG_LOAD_FILE
 #include <filesystem/ui_file.h>
 #include <cstdlib>
 #include <cstring>
@@ -3398,7 +3398,7 @@ static const unsigned char s_border_image_ps_asm_code[14620] = {
 namespace LongUI { namespace impl {
     // get border image vs
     auto get_border_image_vs(const unsigned char* & ptr) noexcept -> uint32_t {
-#if LUI_DEBUG_LOAD_FILE
+#ifdef LUI_DEBUG_LOAD_FILE
         CUIFile file{ "../Win32/Debug/BorderImageEffectVS.cso", CUIFile::Flag_Read };
         const auto size = file.GetFilezize();
         const auto data = (unsigned char*)std::malloc(size);
@@ -3411,7 +3411,7 @@ namespace LongUI { namespace impl {
     }
     // get border image ps
     auto get_border_image_ps(const unsigned char* & ptr) noexcept -> uint32_t {
-#if LUI_DEBUG_LOAD_FILE
+#ifdef LUI_DEBUG_LOAD_FILE
         CUIFile file{ "../Win32/Debug/BorderImageEffectPS.cso", CUIFile::Flag_Read };
         const auto size = file.GetFilezize();
         const auto data = (unsigned char*)std::malloc(size);

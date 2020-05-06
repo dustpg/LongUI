@@ -58,7 +58,7 @@ button.border-image {
     border-width: 27px;
     border-image-source: url('../images/border.png');
     border-image-slice: 33% fill;
-    border-image-repeat: repeat;
+    border-image-repeat: space;
 }
 
 button.border-image:hover {
@@ -81,7 +81,11 @@ button.border-image:hover {
     border-width: 3px;
     background-image: url('../images/25.png');
     background-repeat: round;
-    background-origin: content-box
+    /* background-origin: content-box */
+}
+
+#bgimage:hover {
+    background-repeat: space;
 }
 
 #bgimage:hover {

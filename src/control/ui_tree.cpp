@@ -69,7 +69,7 @@ LongUI::UITree::~UITree() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 树节点即为自己
     m_pTree = this;
     // 默认为列表框
@@ -77,6 +77,8 @@ LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
     // 默认样式
     m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
     m_oBox.margin = { 4.f, 2.f, 4.f, 2.f };
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -417,6 +419,7 @@ namespace LongUI {
         twisty.name_dbg = "treerow::twisty";
         image.name_dbg = "treerow::image";
 #endif
+        UIControlPrivate::SetGuiEvent2Parent(twisty);
         UIControlPrivate::SetAppearance(twisty, Appearance_TreeTwisty);
     }
 }
@@ -521,7 +524,7 @@ void LongUI::UITreeRow::open_close(bool open) noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 暂时用ListItem?
     m_oStyle.appearance = Appearance_ListItem;
     // TODO: 默认是关闭状态?
@@ -532,6 +535,8 @@ LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcep
     this->ctor_failed_if(m_private);
     // 一开始假定没有数据
     if (m_private) this->SetHasChild(false);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -539,6 +544,10 @@ LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcep
 /// </summary>
 /// <returns></returns>
 void LongUI::UITreeRow::Update() noexcept {
+    // 其他的交给父类处理
+    Super::Update();
+    // 跳过
+    //if (skip_relayout) return;
     // 要求重新布局
     if (this->is_need_relayout()) {
         // 不脏了
@@ -546,8 +555,6 @@ void LongUI::UITreeRow::Update() noexcept {
         // 重新布局
         this->relayout();
     }
-    // 其他的交给父类处理
-    Super::Update();
 }
 
 /// <summary>
@@ -689,8 +696,10 @@ void LongUI::UITreeRow::relayout() noexcept {
         const auto tree = treeitem->GetTreeNode();
         assert(tree && "bad tree");
         // 获取树列
-        if (const auto cols = tree->GetCols()) 
+        if (const auto cols = tree->GetCols()) {
+            if (UIControlPrivate::IsNeedRelayout(*cols)) return;
             return when_cols(cols);
+        }
     }
     // 没有cols
     when_no_cols();
@@ -723,11 +732,13 @@ LongUI::UITreeItem::~UITreeItem() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeItem::UITreeItem(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
 #ifdef LUI_ACCESSIBLE
     // 默认逻辑对象为空
     m_pAccCtrl = nullptr;
 #endif
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 
@@ -988,9 +999,11 @@ void LongUI::UITreeChildren::SetLevelOffset(float offset) {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeChildren::UITreeChildren(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 垂直布局
     m_state.orient = Orient_Vertical;
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 
@@ -1004,10 +1017,11 @@ void LongUI::UITreeChildren::Update() noexcept {
     if (m_state.parent_changed || m_state.child_i_changed) {
         // 父节点必须是UITreeItem
         if (const auto item = longui_cast<UITreeItem*>(m_pParent)) {
-            // 子节点也必须是UITreeItem
+            // 子节点也必须是UITreeItem?
             for (auto& child : (*this)) {
-                const auto ptr = longui_cast<UITreeItem*>(&child);
-                ptr->AsSameTreeTo(*item);
+                // 也有可能是滚动条
+                if (const auto ptr = uisafe_cast<UITreeItem>(&child))
+                    ptr->AsSameTreeTo(*item);
             }
         }
     }
@@ -1099,6 +1113,7 @@ LongUI::UITreeCols::~UITreeCols() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UITreeCols::UITreeCols(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
+    m_state.orient = Orient_Horizontal;
 }
 
 /// <summary>
@@ -1122,6 +1137,21 @@ auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept-
     }
 }
 
+
+/// <summary>
+/// Relayouts this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITreeCols::relayout() noexcept {
+    this->relayout_h();
+    if (!this->is_need_relayout()) {
+        assert(m_pParent && "no parent");
+        // 父节点是tree
+        if (auto tc = longui_cast<UITree*>(m_pParent)->GetTreeChildren())
+            UITreeCols::do_update_for_item(*tc);
+    }
+}
+
 /// <summary>
 /// Does the update for item.
 /// </summary>
@@ -1129,12 +1159,11 @@ auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept-
 /// <returns></returns>
 void LongUI::UITreeCols::do_update_for_item(UIControl& ctrl) noexcept {
     for (auto& child : ctrl) {
-        if (uisafe_cast<UITreeItem>(&child)) {
-            if (auto row = static_cast<UITreeItem&>(child).GetRow())
+        if (const auto item = uisafe_cast<UITreeItem>(&child)) {
+            if (const auto row = item->GetRow())
                 row->NeedRelayout();
-        }
-        else {
-            UITreeCols::do_update_for_item(child);
+            if (const auto cldr = item->GetTreeChildren())
+                UITreeCols::do_update_for_item(*cldr);
         }
     }
 }

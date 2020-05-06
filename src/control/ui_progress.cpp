@@ -50,7 +50,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 原子性, 子控件为本控件的组成部分
     m_state.atomicity = true;
 #ifdef LUI_ACCESSIBLE
@@ -64,6 +64,8 @@ LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexc
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>

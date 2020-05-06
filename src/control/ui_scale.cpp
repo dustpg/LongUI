@@ -27,13 +27,15 @@ namespace LongUI {
 /// </summary>
 /// <param name="parent">The parent.</param>
 LongUI::UIScale::UIScale(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta), thumb(this) {
+    : Super(impl::ctor_lock(parent), meta), thumb(this) {
     m_state.focusable = true;
     //UIControlPrivate::SetFocusable(this->thumb, false);
 #ifndef NDEBUG
     assert(this->thumb.IsFocusable() == false);
     thumb.name_dbg = "scale::thumb";
 #endif
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>

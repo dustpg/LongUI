@@ -56,7 +56,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
@@ -73,6 +73,8 @@ LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 

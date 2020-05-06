@@ -119,7 +119,8 @@ void call() {
 
 #### 利用 UIControl::ControlMakingBegin/End 创建大量控件
 
-为了保证正确性, 请在大量创建控件时使用``` UIControl::ControlMakingBegin ``` 和 ``` UIControl::ControlMakingEnd ```包裹创建过程, 比如``` UIControl::SetXul ```是这样实现的:
+
+为了保证正确性, 请在创建大量控件时使用``` UIControl::ControlMakingBegin ``` 和 ``` UIControl::ControlMakingEnd ```包裹创建过程, 比如``` UIControl::SetXul ```是这样实现的:
 
 ```cpp
 void LongUI::UIControl::SetXul(const char* xul) noexcept {
@@ -129,4 +130,20 @@ void LongUI::UIControl::SetXul(const char* xul) noexcept {
 }
 ```
 
-这样做是为了保证这些控件是"同时"创建的, 否则可能前面的控件是上一帧创建, 后面的控件是后一帧创建.
+这样做是为了避免控件创建到一半就被渲染线程调用 —— 导致部分控件上一帧创建, 部分控件下一帧创建. 如果有其他更好地方法处理线程问题, 这两条函数将会删除(一个空函数壳子), 所以不建议直接调用```DataLock```
+
+### impl::ctor_lock 与 impl::ctor_unlock
+
+前面提到了可能部分控件上一帧创建, 部分控件下一帧创建. 那么如果一个控件被卡在中间怎么处理呢? 这就是 ```impl::ctor_lock``` 与 ```impl::ctor_unlock``` 这两条函数的作用. 
+
+如果**不能接受**一个控件在卡构造函数, 需要在构造函数写上:
+
+```cpp
+MyControl::MyControl(UIControl* parent, const MetaControl& meta) : Super(impl::ctor_lock(parent), meta) {
+    // ...
+    impl::ctor_unlock();
+}
+```
+
+同上, 不建议直接调用```DataLock```. (默认控件中, UIBoxLayout可以接受卡在构造函数, 但是其超类UIScrollArea不能接受.) (以防万一就都加上)
+

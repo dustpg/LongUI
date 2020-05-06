@@ -57,6 +57,9 @@ struct LongUI::UIControlPrivate {
     // set orient
     static void SetOrient(UIControl& ctrl, bool o) noexcept {
         ctrl.m_state.orient = o; }
+    // is need rerelayout
+    static auto IsNeedRelayout(const UIControl& ctrl) noexcept {
+        return ctrl.is_need_relayout(); }
     // is atomicity
     static auto IsAtomicity(const UIControl& ctrl) noexcept {
         return ctrl.m_state.atomicity; }

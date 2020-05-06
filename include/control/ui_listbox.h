@@ -79,6 +79,8 @@ namespace LongUI {
         void ClearAllSelected() noexcept;
         // get selected items
         auto&GetSelected() const noexcept { return m_selected; };
+        // set line size
+        void SetLineSize(Size2F) noexcept;
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;

@@ -17,7 +17,7 @@ function get_text() {
 ]]>
 </script>
 
-<hbox flex="1">
+<!-- <hbox flex="1">
   <spacer flex="1"/>
   <image id="img1" flex="1" src="images/25.png"/>
   <image id="img2" flex="1" src="images/owl.gif"/>
@@ -29,10 +29,10 @@ function get_text() {
   <spacer flex="1"/>
   <button class="  A   B  C D button E  " label="按钮" flex="1"/>
   <spacer flex="1"/>
-</hbox>
+</hbox> -->
 <button id="bgimage" label="BUTTON" flex="1"/>
 <spacer flex="1"/>
-<groupbox flex="1" > 
+<!-- <groupbox flex="1" > 
 <caption label="stack" />
   <stack>
      <label value="Stars" style="font-weight:bold" top="80px" />
@@ -50,6 +50,6 @@ function get_text() {
       <button class="border-image" label="按钮" flex="10"/>
     </hbox>
   </hbox>
-</groupbox>
+</groupbox> -->
 
 </window>

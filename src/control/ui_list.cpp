@@ -77,7 +77,7 @@ LongUI::UIListBox::~UIListBox() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 焦点允许
     //m_state.focusable = true;
     // 默认为列表框
@@ -97,22 +97,29 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
     }
     // OOM处理
     this->ctor_failed_if(m_pListboxBody);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
+
+/// <summary>
+/// Sets the size of the line.
+/// </summary>
+/// <param name="size">The size.</param>
+/// <returns></returns>
+void LongUI::UIListBox::SetLineSize(Size2F size) noexcept {
+    if (m_pListboxBody->line_size.height != size.height) {
+        m_pListboxBody->line_size = size;
+    }
+}
 
 /// <summary>
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
 void LongUI::UIListBox::Update() noexcept {
-    // 子节点添加删除
-    if (m_state.child_i_changed) {
-        // 更新行高
-        if (!m_list.empty()) {
-            m_pListboxBody->line_size.height =
-                (*m_list.begin())->GetBox().minsize.height;
-        }
-    }
+    // 其他的交给父类处理
+    Super::Update();
     // 要求重新布局
     if (this->is_need_relayout()) {
         // 不脏了
@@ -120,8 +127,6 @@ void LongUI::UIListBox::Update() noexcept {
         // 重新布局
         this->relayout();
     }
-    // 其他的交给父类处理
-    Super::Update();
 }
 
 
@@ -514,9 +519,7 @@ void LongUI::UIListBox::refresh_cols_minsize() noexcept {
 void LongUI::UIListBox::refresh_minsize() noexcept {
     Size2F msize = { 0.f };
     // 先确定Head
-    if (m_pHead) {
-        msize = m_pHead->GetBox().minsize;
-    }
+    if (m_pHead) msize = m_pHead->GetBox().minsize;
     // 再确定Body
     const auto line_height = m_pListboxBody->line_size.height;
     msize.height += m_displayRow * line_height;
@@ -599,7 +602,7 @@ auto LongUI::UIListItem::GetTextString() const noexcept -> const CUIString&{
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     m_state.focusable = true;
     // 原子性, 子控件为本控件的组成部分
     //m_state.atomicity = true;
@@ -611,6 +614,8 @@ LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexc
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 
@@ -761,14 +766,21 @@ void LongUI::UIListItem::Update() noexcept {
 /// <returns></returns>
 auto LongUI::UIListItem::DoEvent(UIControl * sender,
     const EventArg & e) noexcept -> EventAccept {
-    // 初始化
-    if (e.nevent == NoticeEvent::Event_Initialize) {
+    switch (e.nevent)
+    {
+    case NoticeEvent::Event_RefreshBoxMinSize:
+        Super::DoEvent(sender, e);
+        if (const auto list = m_pListBox)
+            list->SetLineSize(this->GetBox().minsize);
+        return Event_Accept;
+    case NoticeEvent::Event_Initialize:
         // 没子控件
         if (!this->GetCount()) {
             // TODO: 没有文本时候的处理
             m_private->label.SetAsDefaultMinsize();
             this->add_private_child();
         }
+        break;
     }
     // 基类处理
     return Super::DoEvent(sender, e);
@@ -816,6 +828,8 @@ LongUI::UIListCols::UIListCols(UIControl* parent, const MetaControl& meta) noexc
     : Super(parent, meta) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
+    // 构造锁
+    //impl::ctor_unlock();
 }
 
 /// <summary>
@@ -892,7 +906,8 @@ LongUI::UIListCol::~UIListCol() noexcept {
 /// <param name="meta">The meta.</param>
 LongUI::UIListCol::UIListCol(UIControl* parent, const MetaControl& meta) noexcept
     : Super(parent, meta) {
-
+    // 构造锁
+    //impl::ctor_unlock();
 }
 
 /// <summary>
@@ -924,6 +939,8 @@ LongUI::UIListHead::UIListHead(UIControl* parent, const MetaControl& meta) noexc
     : Super(parent, meta) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
+    // 构造锁
+    //impl::ctor_unlock();
 }
 
 
@@ -985,8 +1002,8 @@ namespace LongUI {
         //UIControlPrivate::SetFocusable(image, false);
         //UIControlPrivate::SetFocusable(label, false);
 #ifndef NDEBUG
-        image.name_dbg = "listitem::image";
-        label.name_dbg = "listitem::label";
+        image.name_dbg = "listheader::image";
+        label.name_dbg = "listheader::label";
         assert(image.IsFocusable() == false);
         assert(label.IsFocusable() == false);
 #endif
@@ -1001,7 +1018,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     m_state.focusable = true;
     // 内间距
     m_oBox.padding = { 4, 0, 4, 0 };
@@ -1013,6 +1030,8 @@ LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) n
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 

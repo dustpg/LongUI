@@ -1,4 +1,6 @@
-﻿#include "ed_txtbuf.h"
+﻿#include "ed_config.h"
+#include "ed_txtbuf.h"
+#include "ed_txtplat.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -17,26 +19,36 @@ RichED::detail::buffer_base::buffer_base() noexcept {
 RichED::detail::buffer_base::~buffer_base() noexcept {
     if (this->is_ok()) {
         assert(m_data && "cannot be nullptr");
-        std::free(m_data);
+        RichED::Free(m_data);
     }
 }
 
+PCN_NOINLINE
 /// <summary>
 /// Resizes the buffer.
 /// </summary>
 /// <param name="len">The length.</param>
 /// <param name="size_of">The size of.</param>
+/// <param name="plat">The plat.</param>
 /// <returns></returns>
-bool RichED::detail::buffer_base::resize_buffer(uint32_t len, size_t size_of) noexcept {
+bool RichED::detail::buffer_base::resize_buffer(
+    uint32_t len, size_t size_of, IEDTextPlatform& plat) noexcept {
     // 不够的情况
     if (len > m_capacity) {
         const auto old_ptr = m_data;
-        const auto new_ptr = std::realloc(old_ptr, size_of * len);
+        const auto myrealloc = [&](void* ptr, size_t len) noexcept ->void* {
+            for (uint32_t i = 0; ; ++i) {
+                if (const auto p = RichED::ReAlloc(ptr, len)) return p;
+                if (plat.OnOOM(i, len) == OOM_Ignore) break;
+            }
+            return nullptr;
+        };
+        const auto new_ptr = myrealloc(old_ptr, size_of * len);
         // 内存不足
         if (!new_ptr) {
             m_length = 0;
             m_capacity = 0;
-            std::free(old_ptr);
+            RichED::Free(old_ptr);
             m_data = nullptr;
             return false;
         }
@@ -52,3 +64,34 @@ bool RichED::detail::buffer_base::resize_buffer(uint32_t len, size_t size_of) no
     m_length = len;
     return true;
 }
+
+#ifndef RED_CUSTOM_ALLOCFUNC
+
+/// <summary>
+/// Allocs the specified sz.
+/// </summary>
+/// <param name="len">The length.</param>
+/// <returns></returns>
+void* RichED::Alloc(size_t len) noexcept {
+    return std::malloc(len);
+}
+
+/// <summary>
+/// Frees the specified .
+/// </summary>
+/// <param name="">The .</param>
+/// <returns></returns>
+void RichED::Free(void * ptr) noexcept {
+    return std::free(ptr);
+}
+
+/// <summary>
+/// Res the alloc.
+/// </summary>
+/// <param name="ptr">The PTR.</param>
+/// <param name="len">The length.</param>
+/// <returns></returns>
+void* RichED::ReAlloc(void* ptr, size_t len) noexcept {
+    return std::realloc(ptr, len);
+}
+#endif

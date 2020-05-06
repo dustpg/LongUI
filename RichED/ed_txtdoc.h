@@ -101,6 +101,8 @@ namespace RichED {
         ~CEDTextDocument() noexcept;
         // no copy ctor
         CEDTextDocument(const CEDTextDocument&) noexcept = delete;
+        // alloc mem
+        void*Alloc(size_t) noexcept;
         // update
         auto Update() noexcept->ValuedChanged;
         // render

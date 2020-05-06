@@ -114,7 +114,7 @@ void LongUI::UITab::SetText(const CUIString& str) noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // tab类型
@@ -134,6 +134,8 @@ LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
 #ifdef LUI_ACCESSIBLE
     m_pAccCtrl = nullptr;
 #endif
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 
@@ -251,11 +253,13 @@ LongUI::UITabs::~UITabs() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITabs::UITabs(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // TODO: 可以垂直布局
 
     // 水平布局
     m_state.orient = Orient_Horizontal;
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -397,8 +401,9 @@ LongUI::UITabBox::~UITabBox() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITabBox::UITabBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
-
+    : Super(impl::ctor_lock(parent), meta) {
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>

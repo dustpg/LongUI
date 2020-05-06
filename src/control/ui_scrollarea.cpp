@@ -24,9 +24,10 @@ namespace LongUI {
 /// <param name="meta">The meta.</param>
 /// <returns></returns>
 LongUI::UIScrollArea::UIScrollArea(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     this->line_size = { EMPTY_HEIGHT_PER_ROW, EMPTY_HEIGHT_PER_ROW };
     m_minScrollSize = {};
+    impl::ctor_unlock();
 }
 
 
@@ -199,6 +200,7 @@ void LongUI::UIScrollArea::Update() noexcept {
 /// <returns></returns>
 void LongUI::UIScrollArea::on_state_dirty() noexcept {
     //if (std::strcmp("listbox::listboxbody", this->name_dbg) == 0) {
+    //if (std::strcmp("treecols", this->name_dbg) == 0) {
     //    int bk = 9;
     //}
     // 有面积才算数

@@ -35,6 +35,8 @@ namespace LongUI {
         const char*         element_name;
         // create control
         auto (*create_func)(UIControl*) noexcept->UIControl*;
+        // size of class
+        decltype(sizeof(0)) size_of;
     };
 }
 
@@ -46,7 +48,8 @@ namespace LongUI {
     const MetaControl T::s_meta = {\
         &T::Super::s_meta,\
         ele,\
-        create_##T\
+        create_##T,\
+        sizeof(T)\
     };
 
 // control meta info 

@@ -88,7 +88,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
-    const MetaControl& meta) noexcept : Super(parent, meta) {
+    const MetaControl& meta) noexcept : Super(impl::ctor_lock(parent), meta) {
     // 检查长度
     constexpr auto sizeof_private = sizeof(*m_private);
 #ifdef LUI_ACCESSIBLE
@@ -104,6 +104,8 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
     m_state.orient = orient;
     if (m_private) 
         UIControlPrivate::SetOrient(m_private->slider, orient);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>

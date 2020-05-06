@@ -13,6 +13,8 @@
 namespace LongUI {
     // box
     struct Box;
+    // image output
+    struct IImageOutput;
     // background renderer
     class CUIRendererBackground : public CUISmallObject {
     public:
@@ -35,12 +37,18 @@ namespace LongUI {
         // release device data
         void ReleaseDeviceData();
     private:
-        // release brush
-        void release_brush() noexcept;
         // ----------- CACHE-DATA -----------
+        // image source
+        RectF               m_rcImage = {};
         // image size
-        Size2F              m_szImage = {};
+        Size2F              m_szImage = { 1, 1 };
         // ------------- GPU-RES ------------
+    private:
+        // ------------- GPU-RES ------------
+        // effect
+        I::Effect*          m_pBackground = nullptr;
+        // iamge output
+        IImageOutput*       m_pOutput = nullptr;
         // image brush
         //I::Brush*           m_pImageBrush = nullptr;
     public:

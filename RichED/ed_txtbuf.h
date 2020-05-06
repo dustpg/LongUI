@@ -30,6 +30,8 @@
 
 // RichED namespace
 namespace RichED {
+    // platform
+    struct IEDTextPlatform;
     // detail namespace
     namespace detail {
         // buffer base class
@@ -41,7 +43,7 @@ namespace RichED {
             ~buffer_base() noexcept;
         protected:
             // resize buffer
-            bool resize_buffer(uint32_t, size_t size_of) noexcept;
+            bool resize_buffer(uint32_t, size_t size_of, IEDTextPlatform&) noexcept;
             // is ok?
             bool is_ok() const noexcept { return !!m_data; }
             // is failed?
@@ -79,7 +81,7 @@ namespace RichED {
         // dtor
         ~CEDBuffer() noexcept {}
         // resize
-        bool Resize(uint32_t l) noexcept { return this->resize_buffer(l, sizeof(T)); }
+        bool Resize(uint32_t l, IEDTextPlatform& p) noexcept { return this->resize_buffer(l, sizeof(T), p); }
         // reduce size
         void ReduceSize(uint32_t l) noexcept { this->assert_size(l); m_length = l; }
         // full

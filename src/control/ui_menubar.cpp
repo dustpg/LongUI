@@ -68,11 +68,13 @@ LongUI::UIMenu::~UIMenu() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenu::UIMenu(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     m_bMenuBar = true;
     m_type = UIButton::Type_Menu;
     m_oBox.margin = { 0 };
     m_oBox.padding = { 2, 2, 2, 2 };
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 

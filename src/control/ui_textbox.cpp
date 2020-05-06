@@ -45,7 +45,7 @@ void LongUI::MakeDefault(TextFont& tf) noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITextBox::UITextBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) , m_hovered(CUICursor::Cursor_Ibeam) {
+    : Super(impl::ctor_lock(parent), meta) , m_hovered(CUICursor::Cursor_Ibeam) {
     // 本控件支持font属性
     LongUI::MakeDefault(luiref m_tfBuffer);
     UITextBox* const nilobj = nullptr;
@@ -64,6 +64,8 @@ LongUI::UITextBox::UITextBox(UIControl* parent, const MetaControl& meta) noexcep
     m_state.unified_input = true;
 #endif
     this->create_private();
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 

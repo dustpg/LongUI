@@ -801,6 +801,26 @@ void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
     point; assert(!"NOT IMPL");
 }
 
+
+/// <summary>
+/// Ctors the lock.
+/// </summary>
+/// <param name="p">The p.</param>
+/// <returns></returns>
+auto LongUI::impl::ctor_lock(UIControl* p) noexcept -> UIControl * {
+    UIManager.DataLock();
+    return p;
+}
+
+/// <summary>
+/// Ctors the unlock.
+/// </summary>
+/// <param name="p">The p.</param>
+/// <returns></returns>
+void LongUI::impl::ctor_unlock() noexcept {
+    UIManager.DataUnlock();
+}
+
 /// <summary>
 /// Initializes a new instance of the <see cref="UIControl"/> class.
 /// </summary>
@@ -818,6 +838,10 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     // 初始化一般数据
     m_oHead = { nullptr, static_cast<UIControl*>(&m_oTail) };
     m_oTail = { static_cast<UIControl*>(&m_oHead), nullptr };
+    // 清空后面数据
+    //if (meta.size_of > sizeof(*this)) {
+    //    const auto ptr = reinterpret_cast<char*>(this);
+    //}
     // 数据锁
     CUIDataAutoLocker locker;
     // 添加到父节点的子节点链表中

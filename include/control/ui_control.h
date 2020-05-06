@@ -566,6 +566,13 @@ namespace LongUI {
         // swap A-B node
         static void SwapAB(UIControl& a, UIControl& b) noexcept;
     };
+    // impl
+    namespace impl {
+        // ctor lock
+        auto ctor_lock(UIControl* p) noexcept->UIControl*;
+        // ctor unlock
+        void ctor_unlock() noexcept;
+    }
     // == operator
     inline bool operator==(const UIControl& a, const UIControl& b) noexcept {
         return &a == &b; }

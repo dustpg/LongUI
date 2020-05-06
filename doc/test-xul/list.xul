@@ -88,7 +88,7 @@ function setCount(listID,textID)
 
     <groupbox >
     <caption label="with multiple columns and a scrollbar" />
-    <listbox rows="5">
+    <listbox rows="5" id="multiple" >
       <listcols>
 	<listcol flex="1" />
 	<!-- <splitter class="tree-splitter" /> -->

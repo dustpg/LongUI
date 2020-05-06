@@ -88,6 +88,9 @@ namespace LongUI {
         bool                    m_bOpened = true;
         // node keep child
         bool                    m_bHasChild = false;
+    public:
+        // skip relayout
+        //bool                    skip_relayout = false;
     };
     // get meta info for UITreeRow
     LUI_DECLARE_METAINFO(UITreeRow);

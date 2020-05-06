@@ -61,3 +61,39 @@ namespace LongUI {
 }
 
 
+// ----------------------------------------------------------------------------
+//                         RichED Custom AllocFunc
+// ----------------------------------------------------------------------------
+
+#include "../../RichED/ed_config.h"
+
+#ifdef RED_CUSTOM_ALLOCFUNC
+
+/// <summary>
+/// Allocs the specified sz.
+/// </summary>
+/// <param name="len">The length.</param>
+/// <returns></returns>
+void* RichED::Alloc(size_t len) noexcept {
+    return LongUI::NormalAlloc(len);
+}
+
+/// <summary>
+/// Frees the specified .
+/// </summary>
+/// <param name="">The .</param>
+/// <returns></returns>
+void RichED::Free(void * ptr) noexcept {
+    return LongUI::NormalFree(ptr);
+}
+
+/// <summary>
+/// Res the alloc.
+/// </summary>
+/// <param name="ptr">The PTR.</param>
+/// <param name="len">The length.</param>
+/// <returns></returns>
+void* RichED::ReAlloc(void* ptr, size_t len) noexcept {
+    return LongUI::NormalRealloc(ptr, len);
+}
+#endif

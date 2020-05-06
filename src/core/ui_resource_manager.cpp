@@ -16,6 +16,7 @@
 #include <util/ui_unicode.h>
 #include <util/ui_unicode_cast.h>
 // Effect
+#include <effect/ui_effect_backimage.h>
 #include <effect/ui_effect_borderimage.h>
 
 // private
@@ -496,9 +497,8 @@ inline auto LongUI::CUIResMgr::Private::init() noexcept -> Result {
         longui_debug_hr(Result{ hr }, L"D2D1CreateFactory faild");
     }
 #ifndef LUI_DISABLE_STYLE_SUPPORT
-    if (hr) {
-        hr = Effect::RegisterBorderImage(this->d2dfactroy);
-    }
+    if (hr) hr = Effect::RegisterBackImage(this->d2dfactroy);
+    if (hr) hr = Effect::RegisterBorderImage(this->d2dfactroy);
 #endif
     // 创建DWrite工厂
     if (hr) {
@@ -1676,7 +1676,8 @@ void LongUI::CUIResMgr::release_device() noexcept {
     const auto d3d = m_p3DDevice;
 #endif
 #ifndef LUI_DISABLE_STYLE_SUPPORT
-     Effect::ReleaseBorderImage();
+    Effect::ReleaseBackImage();
+    Effect::ReleaseBorderImage();
 #endif
     //if (m_p3DRenderer) {
     //    m_p3DRenderer->ClearState();

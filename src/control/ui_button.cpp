@@ -79,7 +79,7 @@ auto LongUI::UIButton::GetTextString() const noexcept -> const CUIString&{
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     m_state.focusable = true;
     m_state.defaultable = true;
     // 原子性, 子控件为本控件的组成部分
@@ -99,6 +99,8 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     // OOM处理
     this->ctor_failed_if(m_private);
     //m_private->label.SetText(u"确定");
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 

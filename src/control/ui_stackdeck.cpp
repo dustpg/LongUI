@@ -48,8 +48,9 @@ LongUI::UIDeck::~UIDeck() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIDeck::UIDeck(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
-
+    : Super(impl::ctor_lock(parent), meta) {
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>

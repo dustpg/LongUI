@@ -112,7 +112,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Stretcht;
@@ -126,6 +126,8 @@ LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexc
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 
@@ -408,7 +410,7 @@ auto LongUI::UIMenuList::GetTextString() const noexcept -> const CUIString&{
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     m_state.focusable = true;
     m_state.defaultable = true;
     // 原子性, 子控件为本控件的组成部分
@@ -425,6 +427,8 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 
@@ -653,13 +657,15 @@ LongUI::UIMenuPopup::~UIMenuPopup() noexcept {
 /// <param name="hoster">The hoster.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuPopup::UIMenuPopup(UIControl* hoster, const MetaControl& meta) noexcept
-    : Super(*hoster, CUIWindow::Config_FixedSize | CUIWindow::Config_Popup, meta) {
+    : Super(*impl::ctor_lock(hoster), CUIWindow::Config_FixedSize | CUIWindow::Config_Popup, meta) {
     // 保存选择的认为是组合框
     if (this->is_save_selected())
         this->init_clear_color_for_default_combobox();
     // 否则认为是一般菜单
     else
         this->init_clear_color_for_default_ctxmenu();
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>

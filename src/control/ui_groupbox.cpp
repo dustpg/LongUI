@@ -44,7 +44,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // 垂直布局
     m_state.orient = Orient_Vertical;
     // 原子性, 子控件为本控件的组成部分
@@ -63,7 +63,8 @@ LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexc
     // 逻辑子控件是body
     m_pAccCtrl = &m_private->body;
 #endif
-
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>

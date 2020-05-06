@@ -106,7 +106,7 @@ void RichED::CEDUndoRedo::Clear() noexcept {
     while (node != &m_tail) {
         const auto ptr = node;
         node = node->next;
-        std::free(ptr);
+        RichED::Free(ptr);
     }
     m_head.next = m_pStackTop = &m_tail;
     m_tail.prev = &m_head;
@@ -186,7 +186,7 @@ void RichED::CEDUndoRedo::AddOp(CEDTextDocument& doc, TrivialUndoRedo& op) noexc
         const auto ptr = m_head.next;
         //const auto obj = static_cast<TrivialUndoRedo*>(ptr);
         m_head.next = m_head.next->next;
-        std::free(ptr);
+        RichED::Free(ptr);
     }
 
     RichED::InitCallback(op);
@@ -420,28 +420,36 @@ namespace RichED {
     };
     namespace impl {
         /// <summary>
-        /// Riches the undoredo.
+        /// Riches the length of the undoredo.
         /// </summary>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        void* rich_undoredo(uint32_t count) noexcept {
+        auto rich_undoredo_len(uint32_t count) noexcept ->size_t {
             assert(count);
             const size_t len = sizeof(TrivialUndoRedo)
                 + (sizeof(RichGroupOp) - sizeof(RichSingeOp))
                 + sizeof(RichSingeOp) * count
                 ;
-            const auto ptr = std::malloc(len);
-            if (ptr) {
-                const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
-                const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = static_cast<uint32_t>(len - offset);
-            }
-            return ptr;
+            return len;
+        }
+        /// <summary>
+        /// Riches the undoredo mk.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="len">The length.</param>
+        /// <returns></returns>
+        void rich_undoredo_mk(void* ptr, uint32_t count) noexcept {
+            assert(ptr);
+            const auto len = impl::rich_undoredo_len(count);
+            const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
+            const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
+            op->bytes_from_here = static_cast<uint32_t>(len - offset);
         }
         /// <summary>
         /// Riches as remove.
         /// </summary>
         /// <param name="ptr">The PTR.</param>
+        /// <param name="id">The identifier.</param>
         /// <returns></returns>
         void rich_as_remove(void* ptr, uint16_t id) noexcept {
             assert(ptr && id);
@@ -490,21 +498,28 @@ namespace RichED {
         /// </summary>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        void*text_undoredo(uint32_t count) noexcept {
+        auto text_undoredo_len(uint32_t count) noexcept -> size_t {
             assert(count);
             const size_t len = sizeof(TrivialUndoRedo)
                 + sizeof(TextGroupOp)
                 + sizeof(char16_t) * count
                 ;
-            const auto ptr = std::malloc(len);
-            if (ptr) {
-                const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
-                const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = static_cast<uint32_t>(len - offset);
-                const auto ops = reinterpret_cast<TextGroupOp*>(op + 1);
-                ops->length = count;
-            }
-            return ptr;
+            return len;
+        }
+        /// <summary>
+        /// Texts the undoredo mk.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="len">The length.</param>
+        /// <returns></returns>
+        void text_undoredo_mk(void* ptr, uint32_t count) noexcept {
+            assert(ptr);
+            const auto len = impl::text_undoredo_len(count);
+            const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
+            const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
+            op->bytes_from_here = static_cast<uint32_t>(len - offset);
+            const auto ops = reinterpret_cast<TextGroupOp*>(op + 1);
+            ops->length = count;
         }
         /// <summary>
         /// Texts as remove.
@@ -576,30 +591,55 @@ namespace RichED {
 #endif 
         }
     }
+    // impl
     namespace impl {
-        // ruby undoredo
-        void*ruby_undoredo(uint32_t length) noexcept {
+        /// <summary>
+        /// Rubies the length of the undoredo.
+        /// </summary>
+        /// <param name="length">The length.</param>
+        /// <returns></returns>
+        auto ruby_undoredo_len(uint32_t length) noexcept -> size_t {
             assert(length);
             const size_t len = sizeof(TrivialUndoRedo)
                 + sizeof(RubySingeOp)
                 + sizeof(char16_t) * length
                 ;
-            const auto ptr = std::malloc(len);
-            if (ptr) {
-                const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
-                const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = static_cast<uint32_t>(len - offset);
-            }
-            return ptr;
+            return len;
         }
-        // insert ruby
+        /// <summary>
+        /// Rubies the undoredo mk.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="length">The length.</param>
+        /// <returns></returns>
+        void ruby_undoredo_mk(void* ptr, size_t length) noexcept {
+            assert(ptr);
+            const auto len = impl::ruby_undoredo_len(length);
+            const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
+            const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
+            op->bytes_from_here = static_cast<uint32_t>(len - offset);
+        }
+        /// <summary>
+        /// Rubies as insert.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="id">The identifier.</param>
+        /// <returns></returns>
         void ruby_as_insert(void* ptr, uint16_t id) noexcept {
             assert(ptr && id);
             const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
             op->type = Op_InsertRuby;
             op->decorator = id - 1;
         }
-        // ruby set data
+        /// <summary>
+        /// Rubies the set data.
+        /// </summary>
+        /// <param name="ptr">The PTR.</param>
+        /// <param name="dp">The dp.</param>
+        /// <param name="ch">The ch.</param>
+        /// <param name="view">The view.</param>
+        /// <param name="data">The data.</param>
+        /// <returns></returns>
         void ruby_set_data(void* ptr, DocPoint dp, char32_t ch, U16View view, const RichData& data) noexcept {
             const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
             const auto obj = reinterpret_cast<RubySingeOp*>(op + 1);
@@ -623,20 +663,26 @@ namespace RichED {
         /// <param name="count">The count.</param>
         /// <param name="length">The length.</param>
         /// <returns></returns>
-        void* objs_undoredo(uint32_t count, uint32_t length) noexcept {
+        auto objs_undoredo_len(uint32_t count, uint32_t length) noexcept ->size_t {
             assert(count);
             assert((length & (alignof(TrivialUndoRedo) - 1)) == 0);
             const size_t len = sizeof(TrivialUndoRedo)
                 + sizeof(ObjectSingeOp) * count
                 + length
                 ;
-            const auto ptr = std::malloc(len);
-            if (ptr) {
-                const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
-                const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
-                op->bytes_from_here = static_cast<uint32_t>(len - offset);
-            }
-            return ptr;
+            return len;
+        }
+        /// <summary>
+        /// Objses the undoredo.
+        /// </summary>
+        /// <param name="count">The count.</param>
+        /// <param name="length">The length.</param>
+        /// <returns></returns>
+        void objs_undoredo_mk(void* ptr, uint32_t count, uint32_t length) noexcept {
+            const auto len = impl::objs_undoredo_len(count, length);
+            const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);
+            const size_t offset = offsetof(TrivialUndoRedo, bytes_from_here);
+            op->bytes_from_here = static_cast<uint32_t>(len - offset);
         }
         /// <summary>
         /// Objses as remove.

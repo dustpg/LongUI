@@ -53,6 +53,9 @@ namespace LongUI {
         // update
         //void Update() noexcept override;
     private:
+        // relayout
+        void relayout() noexcept override;
+    private:
         // do update for item
         static void do_update_for_item(UIControl&) noexcept;
     };

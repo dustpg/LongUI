@@ -222,7 +222,9 @@
     <ClCompile Include="..\src\debugger\ui_debug.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp" />
     <ClCompile Include="..\src\debugger\ui_tracer.cpp" />
+    <ClCompile Include="..\src\effect\ui_effect_backimage.cpp" />
     <ClCompile Include="..\src\effect\ui_effect_borderimage.cpp" />
+    <ClCompile Include="..\src\effect\ui_shader_backimage.cpp" />
     <ClCompile Include="..\src\effect\ui_shader_borderimage.cpp" />
     <ClCompile Include="..\src\event\ui_event_host.cpp" />
     <ClCompile Include="..\src\filesystem\ui_file.cpp" />
@@ -384,6 +386,7 @@
     <ClInclude Include="..\include\core\ui_window_manager.h" />
     <ClInclude Include="..\include\debugger\ui_debug.h" />
     <ClInclude Include="..\include\debugger\ui_tracer.h" />
+    <ClInclude Include="..\include\effect\ui_effect_backimage.h" />
     <ClInclude Include="..\include\effect\ui_effect_borderimage.h" />
     <ClInclude Include="..\include\event\ui_group_event.h" />
     <ClInclude Include="..\include\event\ui_gui_event.h" />
@@ -475,6 +478,26 @@
     <ClInclude Include="..\src\private\ui_wndarg.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\helper\BackRdImageEffectPS.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\helper\BackSpImageEffectPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
     <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>

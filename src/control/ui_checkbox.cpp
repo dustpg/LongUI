@@ -135,7 +135,7 @@ void LongUI::UICheckBox::changed() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(parent, meta) {
+    : Super(impl::ctor_lock(parent), meta) {
     // XXX: 硬编码
     m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
@@ -152,6 +152,8 @@ LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexc
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理
     this->ctor_failed_if(m_private);
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 

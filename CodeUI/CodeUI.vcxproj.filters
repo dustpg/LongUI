@@ -512,6 +512,12 @@
     <ClCompile Include="..\src\resource\ui_bitmap_bank.cpp">
       <Filter>source\resource</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\effect\ui_effect_backimage.cpp">
+      <Filter>source\effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\effect\ui_shader_backimage.cpp">
+      <Filter>source\effect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="..\src\naivis\z_string.natvis">
@@ -1086,12 +1092,21 @@
     <ClInclude Include="..\include\resource\ui_bitmap_bank.h">
       <Filter>header\resource</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\effect\ui_effect_backimage.h">
+      <Filter>header\effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">
       <Filter>shader</Filter>
     </FxCompile>
     <FxCompile Include="..\helper\BorderImageEffectVS.hlsl">
+      <Filter>shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\helper\BackRdImageEffectPS.hlsl">
+      <Filter>shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\helper\BackSpImageEffectPS.hlsl">
       <Filter>shader</Filter>
     </FxCompile>
   </ItemGroup>

@@ -18,11 +18,11 @@ extern "C" const GUID GUID_LongUIEffect_BorderImage;
 
 namespace LongUI {
     // auto cast
-    auto&auto_cast(IImageOutput*& img) noexcept {
+    inline auto&auto_cast(IImageOutput*& img) noexcept {
         return reinterpret_cast<ID2D1Image*&>(img);
     }
     // auto cast
-    auto&auto_cast(IImageOutput& img) noexcept {
+    inline auto&auto_cast(IImageOutput& img) noexcept {
         return reinterpret_cast<ID2D1Image&>(img);
     }
 }
