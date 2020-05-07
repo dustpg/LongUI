@@ -203,14 +203,12 @@ void LongUI::CUIManager::OneFrame() noexcept {
             << endl;
     }
 #endif
-    // 次帧刷新列表
-    this_()->push_next_update();
     // 更新世界
     this_()->refresh_window_world();
     // 脏矩形更新
     this_()->dirty_update();
     // 记录时间胶囊
-    const auto has_tc = this->has_time_capsule();
+    const auto has_tc = this_()->has_time_capsule();
     // 结束数据更新
     this_()->DataUnlock();
 #ifndef NDEBUG
@@ -220,14 +218,14 @@ void LongUI::CUIManager::OneFrame() noexcept {
     //meter.Start();
 #endif
     // 时间胶囊S1
-    if (has_tc) this->call_time_capsule_s1();
+    if (has_tc) this_()->call_time_capsule_s1();
     // 渲染所有窗口
     this_()->before_render_windows();
     this_()->RenderLock();
     const auto hr = this_()->render_windows();
     this_()->RenderUnlock();
     // 时间胶囊S2
-    if (has_tc) this->call_time_capsule_s2();
+    if (has_tc) this_()->call_time_capsule_s2();
 #ifndef NDEBUG
     // 记录渲染时间
     const auto t2 = meter.Delta_ms<float>();
@@ -269,7 +267,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
     DbgMgr().NextFrame();
 #endif
     // TODO: 错误处理
-    assert(hr);
+    if (!hr) this_()->OnErrorInfoLost(hr, Occasion_Frame);
 }
 
 
@@ -395,7 +393,7 @@ void LongUI::CUIManager::call_time_capsule_s1() noexcept {
     const HWND hwnd = UIManager.m_hToolWnd;
     const UINT msg = CallLater::Later_CallTimeCapsule;
     // 解除上级锁
-    this->DataUnlock();
+    this_()->DataUnlock();
     // 发送消息
     const auto wp = reinterpret_cast<WPARAM>(&m_uiTimeCapsuleWaiter);
     union { LPARAM lp; float time; };
@@ -423,14 +421,14 @@ void LongUI::CUIManager::try_recreate() noexcept {
     // LCK
     this_()->RenderLock();
     // 重建设备
-    auto hr = this->CUIResMgr::recreate_device(this->config, this->flag);
+    auto hr = this_()->CUIResMgr::recreate_device(this_()->config, this_()->flag);
     // 重建资源
     if (hr) {
-        hr = this->CUIResMgr::recreate_resource();
+        hr = this_()->CUIResMgr::recreate_resource();
     }
     // 重建窗口
     if (hr) {
-        hr = this->CUIWndMgr::recreate_windows();
+        hr = this_()->CUIWndMgr::recreate_windows();
     }
     // UNL
     this_()->RenderUnlock();
@@ -441,7 +439,7 @@ void LongUI::CUIManager::try_recreate() noexcept {
         << hr
         << endl;
 #endif // !NDEBUG
-    this->ShowError(hr);
+    if (!hr) this_()->config->OnErrorInfoLost(hr, Occasion_Recreate);
 }
 
 /// <summary>
@@ -732,13 +730,12 @@ auto LongUI::CUIManager::Initialize(
         // 注册控件
         if (list.is_ok()) for (auto info : list) {
             if (!this_()->pm().cclasses.insert({ info->element_name, info }).second) {
-                goto error_oom;
+                hr = { Result::RE_OUTOFMEMORY };
+                break;
             }
         }
         else {
-        error_oom:
             hr = { Result::RE_OUTOFMEMORY };
-            assert(!"check this");
         }
     }
     // 第一次重建设备资源
@@ -763,7 +760,7 @@ auto LongUI::CUIManager::Initialize(
 #endif // !NDEBUG
     // 开始渲染线程
     if (hr) {
-        hr = this->config->BeginRenderThread();
+        hr = this_()->config->BeginRenderThread();
     }
     return hr;
 }
@@ -885,29 +882,24 @@ auto LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc,
 
 
 /// <summary>
-/// Shows the error.
-/// </summary>
-/// <param name="hr">The hr.</param>
-/// <param name="str">The string.</param>
-/// <returns></returns>
-bool LongUI::CUIManager::ShowError(Result hr, const wchar_t* str) noexcept {
-    if (hr) return false;
-    LUIDebug(Error) << hr << str << endl;
-    assert(hr);
-    //this->config->OnError(hr, str);
-    return true;
-}
-
-/// <summary>
 /// Called when [oom].
 /// </summary>
 /// <param name="retry_count">The retry count.</param>
 /// <param name="try_alloc">The try alloc.</param>
 /// <returns></returns>
 auto LongUI::CUIManager::HandleOOM(uint32_t retry_count, size_t try_alloc) noexcept->CodeOOM {
-    return this->config->HandleOOM(retry_count, try_alloc);
+    return this_()->config->HandleOOM(retry_count, try_alloc);
 }
 
+/// <summary>
+/// Called when [error information lost].
+/// </summary>
+/// <param name="hr">The hr.</param>
+/// <param name="occ">The occ.</param>
+/// <returns></returns>
+void LongUI::CUIManager::OnErrorInfoLost(Result hr, ErrorOccasion occ) noexcept {
+    return this_()->config->OnErrorInfoLost(hr, occ);
+}
 
 PCN_NOINLINE
 /// <summary>
@@ -931,7 +923,7 @@ void LongUI::CUIManager::LoadDataFromUrl(
         return;
     }
     // 查找失败, 利用config接口读取
-    this->config->LoadDataFromUrl(url_in_utf8, url_utf16, buffer);
+    this_()->config->LoadDataFromUrl(url_in_utf8, url_utf16, buffer);
     // 载入失败
 #ifndef NDEBUG
     if (buffer.empty())
@@ -940,7 +932,6 @@ void LongUI::CUIManager::LoadDataFromUrl(
             << url_utf16
             << endl;
 #endif // !NDEBUG
-
 }
 
 #ifndef NDEBUG

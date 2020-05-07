@@ -53,14 +53,10 @@ struct LongUI::PrivateCC {
     inline PrivateCC() noexcept;
     // ctor
     inline ~PrivateCC() noexcept { }
-    // update list
-    POD::Vector<UIControl*> update_list;
-    // 2nd update list
-    POD::Vector<UIControl*> update_dofor;
-    // next frame update list
-    POD::Vector<UIControl*> next_update;
     // init list
-    POD::Vector<UIControl*> init_list;
+    ControlNode             init_list = { 0 };
+    // update list
+    ControlNode             update_list = { 0 };
     // style cache
     POD::Vector<UIControl*> style_cache;
     // animation list
@@ -134,9 +130,6 @@ void LongUI::CUIControlControl::AddGlobalCssFile(U8View file) noexcept {
 /// Initializes a new instance of the <see cref="PrivateCC"/> struct.
 /// </summary>
 inline LongUI::PrivateCC::PrivateCC() noexcept {
-    // TODO: reserve/OOM
-    //update_list.reserve;
-    // TODO: 次帧刷新列表...貌似不需要
 }
 
 /// <summary>
@@ -354,27 +347,22 @@ namespace LongUI {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIControlControl::ControlAttached(UIControl& ctrl) noexcept {
-    assert(!"TODO");
-    int b = 9;
     // 1.为控件链接新的样式表(有的话)
-    ctrl;
+    assert(!"TODO");
 }
 
 /// <summary>
 /// Removes the reference.
 /// </summary>
 void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
-    assert(cc().init_list.size_of_template() == sizeof(void*));
-    assert(cc().update_list.size_of_template() == sizeof(void*));
-    //assert(cc().dirty_update.size_of_template() == sizeof(void*));
     // 1. 移除初始化表中的引用
     if (!ctrl.is_inited()) {
-        LongUI::RemovePointerItem(reinterpret_cast<PointerVector&>(cc().init_list), &ctrl);
+        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list);
     }
     // 2. 移除刷新表中的引用
-    if (ctrl.is_in_update_list()) {
+    if (ctrl.is_in_update_list() && ctrl.is_inited()) {
         ctrl.remove_from_update_list();
-        LongUI::RemovePointerItem(reinterpret_cast<PointerVector&>(cc().update_list), &ctrl);
+        CUIControlControl::RemoveControlInList(ctrl, luiref cc().update_list);
     }
     // 3. 移除在脏矩形列表
     if (ctrl.is_in_dirty_list()) {
@@ -393,6 +381,87 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
     }
 }
 
+PCN_NOINLINE
+/// <summary>
+/// Removes the control in list.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="list">The list.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::RemoveControlInList(
+    UIControl& ctrl, ControlNode& list) noexcept {
+    //auto node = list.first;
+    auto prev_addr = &list.first;
+    // 获取节点对象
+    const auto get_node_addr = [](UIControl& c) noexcept {
+        return &c.m_oManager.next_initupd;
+    };
+    // 无效列表
+    if (!*prev_addr) {
+#ifndef NDEBUG
+        LUIDebug(Warning) << "list: nullptr" << endl;
+#endif
+        return;
+    }
+    // 删除的是唯一一个
+    if (list.last == &ctrl && list.last == list.first) {
+        list.last = list.first = nullptr;
+        return;
+    }
+#ifndef NDEBUG
+    bool ctrl_found = false;
+#endif
+    // 查找
+    UIControl* last = nullptr;
+    while (const auto node = *prev_addr) {
+        if (*prev_addr == &ctrl) {
+            // 前面节点链接后面
+            const auto next_node = *get_node_addr(ctrl);
+            *prev_addr = next_node;
+#ifndef NDEBUG
+            ctrl_found = true;
+#endif
+            break;
+        }
+        last = node;
+        prev_addr = get_node_addr(*node);
+    }
+    // 删除的是最后一个
+    if (list.last == &ctrl) list.last = last;
+#ifndef NDEBUG
+    if (!ctrl_found)
+        LUIDebug(Warning) << "ctrl not found in list-" << ctrl << endl;
+#endif
+}
+
+PCN_NOINLINE
+/// <summary>
+/// as the dd control to list.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="list">The list.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::AddControlToList(UIControl& ctrl, ControlNode& list) noexcept {
+    // 获取节点对象
+    const auto get_node_addr = [](UIControl& c) noexcept {
+        return &c.m_oManager.next_initupd;
+    };
+    const auto ptr = get_node_addr(ctrl);
+    assert(*ptr == nullptr);
+    // 保险
+    *ptr = nullptr;
+    // 表正常
+    if (list.first) {
+        *get_node_addr(*list.last) = &ctrl;
+        list.last = &ctrl;
+    }
+    // 表为空
+    else {
+        assert(list.last == nullptr);
+        list.first = list.last = &ctrl;
+    }
+}
+
 /// <summary>
 /// Removes the pointer item.
 /// </summary>
@@ -401,6 +470,7 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
 /// <returns></returns>
 void LongUI::RemovePointerItem(PointerVector& list, void* ptr) noexcept {
     auto& vector = reinterpret_cast<POD::Vector<void*>&>(list);
+    if (!vector) return;
     assert(!vector.empty() && "vector cannot be empty");
     assert(vector.size_of_template() == sizeof(ptr));
     // 优化 删除最后一个
@@ -428,7 +498,9 @@ void LongUI::CUIControlControl::AddUpdateList(UIControl& ctrl) noexcept {
     // TODO: [优化] 将越接近根节点的控件放在前面
     if (!ctrl.is_in_update_list()) {
         ctrl.add_into_update_list();
-        cc().update_list.push_back(&ctrl);
+        // 还没有初始化就算了
+        if (ctrl.is_inited())
+            CUIControlControl::AddControlToList(ctrl, luiref cc().update_list);
     }
 }
 
@@ -437,19 +509,10 @@ void LongUI::CUIControlControl::AddUpdateList(UIControl& ctrl) noexcept {
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::AddInitList(UIControl & ctrl) noexcept {
-    cc().init_list.push_back(&ctrl);
+void LongUI::CUIControlControl::AddInitList(UIControl& ctrl) noexcept {
+    assert(ctrl.is_inited() == false);
+    CUIControlControl::AddControlToList(ctrl, luiref cc().init_list);
 }
-
-/// <summary>
-/// Adds the next update list.
-/// </summary>
-/// <param name="ctrl">The control.</param>
-/// <returns></returns>
-void LongUI::CUIControlControl::AddNextUpdateList(UIControl & ctrl) noexcept {
-    cc().next_update.push_back(&ctrl);
-}
-
 
 
 /// <summary>
@@ -486,16 +549,25 @@ void LongUI::CUIControlControl::InvalidateControl(UIControl& ctrl/*, const RectF
 /// <returns></returns>
 bool LongUI::CUIControlControl::init_control_in_list() noexcept {
     auto& cc = this->cc();
+    auto node = cc.init_list.first;
+    cc.init_list = { nullptr, nullptr };
     // 遍历初始化列表
-    for (auto ctrl : cc.init_list) {
+    while (node) {
+        // 本次处理
+        const auto ctrl = node;
+        node = ctrl->m_oManager.next_initupd;
+        ctrl->m_oManager.next_initupd = nullptr;
         // 尝试初始化
         assert(!ctrl->is_inited() && "has been inited");
         // TODO: 错误处理
         ctrl->init();
+        // 添加到更新列表
+        if (ctrl->is_in_update_list())
+            // TODO: [优化] 将越接近根节点的控件放在前面
+            CUIControlControl::AddControlToList(*ctrl, luiref cc.update_list);
     }
-    cc.init_list.clear();
     // 存在更新列表
-    return !cc.update_list.empty();
+    return !!cc.update_list.first;
 }
 
 
@@ -523,37 +595,27 @@ void LongUI::CUIControlControl::update_control_in_list() noexcept {
         // 检测世界修改
         if (ctrl.m_state.world_changed && ctrl.GetWindow())
             ctrl.GetWindow()->SetControlWorldChanged(ctrl);
-    };
-    // 交换两者
-    cccc.update_dofor.clear();
-    cccc.update_list.swap(cccc.update_dofor);
-#if 1
-    // 单独刷新
-    for (auto* ctrl : cccc.update_dofor) update(*ctrl);
-#else
-    ++cc_debug_counter;
-    // 单独刷新
-    for (auto* ctrl : cccc.update_dofor) {
-        update(*ctrl);
+#if 0
         LUIDebug(Log) LUI_FRAMEID
             << '[' << cc_debug_counter << ']'
-            << ctrl->name_dbg
+            << ctrl.name_dbg
             << endl;
-    }
 #endif
-}
+    };
+    // 遍历更新表
+    auto node = cccc.update_list.first;
+    cccc.update_list = { nullptr, nullptr };
 
-/// <summary>
-/// Pushes the next update.
-/// </summary>
-/// <returns></returns>
-void LongUI::CUIControlControl::push_next_update() noexcept {
-#ifndef DEBUG
-    cc_debug_counter = 0;
-#endif
-    // 添加次帧刷新
-    for (auto ctrl : cc().next_update) this->AddUpdateList(*ctrl);
-    cc().next_update.clear();
+    // 遍历初始化列表
+    while (node) {
+        // 本次处理
+        const auto ctrl = node;
+        node = ctrl->m_oManager.next_initupd;
+        ctrl->m_oManager.next_initupd = nullptr;
+        // 更新
+        update(*ctrl);
+    }
+
 }
 
 

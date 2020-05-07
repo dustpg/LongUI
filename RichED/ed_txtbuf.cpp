@@ -37,7 +37,7 @@ bool RichED::detail::buffer_base::resize_buffer(
     if (len > m_capacity) {
         const auto old_ptr = m_data;
         const auto myrealloc = [&](void* ptr, size_t len) noexcept ->void* {
-            for (uint32_t i = 0; ; ++i) {
+            for (size_t i = 0; ; ++i) {
                 if (const auto p = RichED::ReAlloc(ptr, len)) return p;
                 if (plat.OnOOM(i, len) == OOM_Ignore) break;
             }

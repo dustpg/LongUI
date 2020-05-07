@@ -3551,7 +3551,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void* RichED::CEDTextDocument::Alloc(size_t len) noexcept {
     auto& plat = this->platform;
-    for (uint32_t i = 0; ; ++i) {
+    for (size_t i = 0; ; ++i) {
         if (const auto ptr = RichED::Alloc(len)) return ptr;
         if (plat.OnOOM(i, len) == OOM_Ignore) break;
     }

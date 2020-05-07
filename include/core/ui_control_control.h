@@ -17,9 +17,9 @@ namespace LongUI {
         // cc size
         template<size_t> struct cc;
         // 32bit
-        template<> struct cc<4> { enum { size = 16*9+24, align = 4 }; };
+        template<> struct cc<4> { enum { size = 16*5+24+4*4, align = 4 }; };
         // 64bit
-        template<> struct cc<8> { enum { size = 24*9+32, align = 8 };  };
+        template<> struct cc<8> { enum { size = 24*5+32+8*4, align = 8 };  };
     }
     // basic animation
     struct ControlAnimationBasic;
@@ -29,6 +29,13 @@ namespace LongUI {
     class CUIStyleSheet;
     // control
     class UIControl;
+    // node update
+    struct ControlNode {
+        // first node
+        UIControl*      first;
+        // last node
+        UIControl*      last;
+    };
     // control control
     class CUIControlControl {
         // friend struct
@@ -62,8 +69,6 @@ namespace LongUI {
         void AddInitList(UIControl& ctrl) noexcept;
         // add update list
         void AddUpdateList(UIControl& ctrl) noexcept;
-        // add next update list
-        void AddNextUpdateList(UIControl& ctrl) noexcept;
         // control attached
         void ControlAttached(UIControl& ctrl) noexcept;
         // control disattached
@@ -86,6 +91,10 @@ namespace LongUI {
         auto GetStyleCachedControlList() noexcept -> void*;
 #endif
     public:
+        // remove control from list
+        static void RemoveControlInList(UIControl& ctrl, ControlNode& list) noexcept;
+        // add control to list
+        static void AddControlToList(UIControl& ctrl, ControlNode& list) noexcept;
         // make xul tree
         static bool MakeXul(UIControl& ctrl, const char* xul) noexcept;
         // render 
@@ -105,8 +114,6 @@ namespace LongUI {
         bool init_control_in_list() noexcept;
         // update count
         //auto update_count() noexcept ->uint32_t;
-        // push next update
-        void push_next_update() noexcept;
         // normal update
         void normal_update() noexcept;
         // dirty update

@@ -132,15 +132,6 @@ void LongUI::UIControl::NeedUpdate() noexcept {
 }
 
 /// <summary>
-/// Nexts the update.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::NextUpdate() noexcept {
-    assert(this && "null this pointer");
-    UIManager.AddNextUpdateList(*this);
-}
-
-/// <summary>
 /// Needs the relayout.
 /// </summary>
 /// <returns></returns>
@@ -1591,7 +1582,6 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     // 移除被触发列表
     this->remove_triggered();
     // 最高支持32(默认)枚内联样式
-    LongUI::DEFAULT_CONTROL_MAX_SIZE;
     SSValue vbuf[SMALL_BUFFER_LENGTH]; uint32_t inline_size = 0;
     // 处理之前的内联样式
     if (m_bHasInlineStyle) {

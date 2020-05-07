@@ -49,7 +49,9 @@ namespace LongUI {
             RE_HANDLE       = (int32_t)0x80070006, // Handle that is not valid
             RE_OUTOFMEMORY  = (int32_t)0x8007000E, // Failed to allocate necessary memory
             RE_INVALIDARG   = (int32_t)0x80070057, // One or more arguments are not valid
+            RE_BUFFEROVER   = (int32_t)0x8007006f, // The file name is too long.
         };
+
         // operator bool
         operator bool() const noexcept { return code >= 0; }
         // operator !

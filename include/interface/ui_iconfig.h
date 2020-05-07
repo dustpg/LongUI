@@ -25,39 +25,6 @@ namespace LongUI {
         // noreturn
         OOM_NoReturn,
     };
-    // error info
-    struct ErrorInfo {
-        // sub error info
-        union SubInfo {
-            // handle id
-            uintptr_t   id;
-            // string
-            const char* u8str;
-            // sub info
-        }               sub;
-        // main error info
-        enum MainError : uint32_t {
-            // No Error, [just a holder]
-            Error_NoError = 0,
-            // file not found - sub[nullptr or filename]
-            Error_FileNotFound_U8,
-            // file not found - sub[nullptr or filename]
-            Error_FileNotFound_U16,
-            // xml parse failed - sub[0 or ]
-            Error_XmlParseFailed,
-            // main error info
-        }               main;
-        // error level
-        enum ErrorLevel : uint32_t {
-            // level: warning
-            Level_Warning = 0,
-            // level: error
-            Level_Error,
-            // level: fatal
-            Level_Fatal,
-            // level of error
-        }               level;
-    };
     // ConfigureFlag decl
     enum ConfigureFlag : uint32_t;
     // operator |
@@ -113,6 +80,17 @@ namespace LongUI {
         | Flag_DbgDrawTextCell
         | Flag_DbgDebugWindow
     };
+    // error occasion
+    enum ErrorOccasion : uint32_t {
+        // unknown
+        Occasion_Unknown = 0,
+        // when recreate
+        Occasion_Recreate,
+        // when resize window
+        Occasion_Resizing,
+        // when frame rendered
+        Occasion_Frame,
+    };
     // UI Configure Interface
     struct PCN_NOVTABLE IUIConfigure /*: IUIRefCount*/ {
 #ifndef NDEBUG
@@ -166,17 +144,19 @@ namespace LongUI {
         virtual auto ChooseAdapter(const GraphicsAdapterDesc adapters[/*length*/], const uint32_t length /*<=64*/) noexcept->uint32_t = 0;
 
         /// <summary>
-        /// Shows the error.
+        /// Called when [error information lost].
         /// </summary>
-        /// <param name="info">The information.</param>
-        virtual void OnError(ErrorInfo info) noexcept = 0;
+        /// <param name="">The .</param>
+        /// <param name="occ">The occ.</param>
+        /// <returns></returns>
+        virtual void OnErrorInfoLost(Result, ErrorOccasion occ) noexcept = 0;
         /// <summary>
         /// Called when out of memory, won't be called on ctor
         /// </summary>
         /// <param name="retry_count">The retry count.</param>
         /// <param name="try_alloc">The try alloc.</param>
         /// <returns></returns>
-        virtual auto HandleOOM(uint32_t retry_count, size_t try_alloc) noexcept->CodeOOM = 0;
+        virtual auto HandleOOM(size_t retry_count, size_t try_alloc) noexcept->CodeOOM = 0;
     public:
         // run a section script for event
         virtual bool Evaluation(ScriptUI, UIControl&) noexcept = 0;

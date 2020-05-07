@@ -34,7 +34,7 @@ namespace RichED {
     // text platform
     struct PCN_NOVTABLE IEDTextPlatform {
         // on out of memory, won't be called on ctor
-        virtual auto OnOOM(uint32_t retry_count, size_t try_alloc) noexcept ->HandleOOM = 0;
+        virtual auto OnOOM(size_t retry_count, size_t try_alloc) noexcept ->HandleOOM = 0;
         // is valid password
         virtual bool IsValidPassword(char32_t) noexcept = 0;
         // append text

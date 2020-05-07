@@ -17,7 +17,7 @@ namespace LongUI {
     /// 
     /// </summary>
     /// <seealso cref="CUIObject" />
-    class CUINativeStyle : public CUIObject {
+    class CUINativeStyle : public CUISmallObject {
 
     };
 #if 0

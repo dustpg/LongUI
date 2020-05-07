@@ -387,8 +387,8 @@ namespace LongUI { namespace detail {
 LongUI::SSBlock::~SSBlock() noexcept {
     // XXX: 释放表中的图像引用
     for (const auto x : this->list) {
-        if (LongUI::IsImageType(x.type) && x.data4.u32) {
-            detail::release_res(x.data8.handle);
+        if (LongUI::IsImageType(x.type)) {
+            if (const auto id = x.data8.handle) detail::release_res(id);
         }
     }
     // 释放被触发器

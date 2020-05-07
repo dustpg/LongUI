@@ -140,8 +140,8 @@ namespace LongUI {
         void RecursionMsgLoop() noexcept { this->config->RecursionMsgLoop(); }
         // On OOM
         auto HandleOOM(uint32_t retry_count, size_t try_alloc) noexcept->CodeOOM;
-        // show error with result code
-        bool ShowError(Result hr, const wchar_t* str_b = nullptr) noexcept;
+        // on error info lost
+        void OnErrorInfoLost(Result, ErrorOccasion occ) noexcept;
         // load data from url
         void LoadDataFromUrl(U8View url_utf8, POD::Vector<uint8_t>& buffer) noexcept;
     public:

@@ -1095,6 +1095,9 @@
     <ClInclude Include="..\include\effect\ui_effect_backimage.h">
       <Filter>header\effect</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\core\ui_manager_data.h">
+      <Filter>header\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\helper\BorderImageEffectPS.hlsl">

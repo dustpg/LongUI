@@ -200,8 +200,8 @@ bool LongUI::UITextBox::private_char(char32_t ch, uint16_t seq) noexcept {
         buffer[0] = static_cast<char16_t>(ch);
         return buffer + 1;
     };
-    // 暂时使用次帧刷新
-    if (!seq) this->NextUpdate();
+    // 输入完毕
+    if (!seq) this->NeedUpdate();
     // 使用IME输入
     if (seq || m_private->ime_input) {
         const auto buf = reinterpret_cast<char16_t*>(&UIManager.ime_common_buf);

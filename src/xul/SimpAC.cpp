@@ -49,7 +49,7 @@ namespace SimpAC { namespace impl {
     static inline bool is_quot(char ch) noexcept {
         return (ch == '"') || (ch == '\'');
     }
-    // is number start, TODO: remove ->
+    // is number start
     static auto is_valid_selector(char ch) noexcept -> uint32_t {
         return valid_selector_table[ch >> 5] & uint32_t(1 << (ch & 31));
     }

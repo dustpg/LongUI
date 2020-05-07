@@ -370,6 +370,7 @@ void LongUI::POD::detail::hash_base::growup() noexcept {
     // END迭代器
 }
 
+#if 0
 /// <summary>
 /// Removes the specified .
 /// </summary>
@@ -410,3 +411,4 @@ bool LongUI::POD::detail::hash_base::remove(hash_iterator itr) noexcept {
     }
     return false;
 }
+#endif

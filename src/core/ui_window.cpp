@@ -2527,10 +2527,11 @@ void LongUI::CUIWindow::Private::resize_window_buffer() noexcept {
             << ']'
             << LongUI::endl;
 #endif // !NDEBUG
+
         // TODO: 错误处理
         if (!hr) {
             LUIDebug(Error) << L" Recreate FAILED!" << LongUI::endl;
-            UIManager.ShowError(hr);
+            UIManager.OnErrorInfoLost(hr, Occasion_Resizing);
         }
     }
 }

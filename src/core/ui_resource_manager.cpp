@@ -398,8 +398,6 @@ struct LongUI::CUIResMgr::Private {
     auto init() noexcept->Result;
     // release
     void release() noexcept;
-    // release resource
-    void release_resource() noexcept;
     // push index0
     auto push_index0_res() noexcept ->Result;
     // load & create
@@ -526,7 +524,12 @@ void LongUI::CUIResMgr::Private::remove_res_only(const char * str) noexcept {
     auto& map = UIManager.rm().resmap;
     const auto itr = map.find(str);
     assert(str && itr != map.end());
+#if 0
     map.remove(itr);
+#else
+    // 仅仅标记0
+    if (itr != map.end()) itr->second = 0;
+#endif
 }
 
 /// <summary>
@@ -559,104 +562,16 @@ namespace LongUI { namespace detail {
 }}
 
 /// <summary>
-/// Releases the standaone resource.
-/// </summary>
-/// <returns></returns>
-void LongUI::CUIResMgr::Private::release_resource() noexcept {
-    //for (auto& data : this->resmap) {
-
-    //}
-    const auto begin_itr = this->resmap.begin();
-    const auto end_itr = this->resmap.end();
-    for (auto itr = begin_itr; itr != end_itr; ++itr) {
-        assert(itr->second);
-        /*if (itr->second)*/ {
-            const auto ptr = CUIResourceID::Object(itr->second);
-            auto& img = static_cast<CUIImage&>(*ptr);
-            assert(ptr->RefData().GetType() == ResourceType::Type_Image);
-            // 强行置0以免出事?
-            //const_cast<const char*>(img.RefData().uri) = nullptr;
-            img.Destroy();
-        }
-    }
-}
-
-/// <summary>
 /// Releases this instance.
 /// </summary>
 /// <returns></returns>
 inline void LongUI::CUIResMgr::Private::release() noexcept {
-    this->release_resource();
     this->bitbank.ReleaseAll();
     LongUI::SafeRelease(this->d2dfactroy);
     LongUI::SafeRelease(this->dwritefactroy);
     LongUI::SafeRelease(this->wicfactroy);
     LongUI::SafeRelease(this->deffont);
 }
-
-// ----------------------------------------------------------------------------
-// -----------------------  SR - Shared Resource  -----------------------------
-// ----------------------------------------------------------------------------
-
-#if 0
-/// <summary>
-/// Gets the resourece data.
-/// </summary>
-/// <param name="id">The identifier.</param>
-/// <returns></returns>
-auto LongUI::CUIResMgr::GetResoureceData(
-    uint32_t id) const noexcept -> const ResourceData& {
-    auto& list = rm().reslist;
-    assert(id && "id cannot be 0");
-    assert(id < list.size() && "id out of range");
-    return list[id];
-}
-
-/// <summary>
-/// Adds the resource reference count.
-/// </summary>
-/// <param name="id">The identifier.</param>
-/// <returns></returns>
-void LongUI::CUIResMgr::AddResourceRefCount(uint32_t id) noexcept {
-    auto& list = rm().reslist;
-    assert(id < list.size() && "out of range");
-    assert(list[id].obj && "object not found");
-    list[id].ref++;
-}
-
-/// <summary>
-/// Releases the resource reference count.
-/// </summary>
-/// <param name="id">The identifier.</param>
-/// <returns></returns>
-void LongUI::CUIResMgr::ReleaseResourceRefCount(uint32_t id) noexcept {
-    // 资源数量断言
-    auto& counter = rm().rescount;
-    assert(counter > 1 && "bad counter");
-    // 资源列表断言
-    auto& list = rm().reslist;
-    assert(id < list.size() && "out of range");
-    assert(list[id].obj && "object not found");
-    // 资源数据断言
-    auto& data = list[id];
-    assert(data.ref && "cannot release count 0");
-    // 引用计数归为0
-    if (--data.ref == 0) {
-        // 则释放数据
-        data.obj->Destroy();
-        // 字符映射表中删除
-        const auto itr = rm().resmap.find(data.uri);
-        assert(itr != rm().resmap.end());
-        itr->second = 0;
-        // 清空数据
-        data.obj = nullptr;
-        //data.uri = nullptr;
-        //data.type = ResourceType::Type_Custom;
-        // 减少资源数量
-        counter--;
-    }
-}
-#endif
 
 /// <summary>
 /// Saves as PNG.
@@ -781,8 +696,12 @@ auto LongUI::CUIResMgr::LoadResource(U8View uri,
     };
     // 转换统一URI字符串
     const auto real_uri = PathOP::MakeUriPath(path_buf, get_dir(), uri);
-    // 检测问题
-    if (real_uri.end() == real_uri.begin()) { assert(!"ERROR"); return 0; }
+    // TODO:检测问题
+    if (real_uri.end() == real_uri.begin()) { 
+        //RE_BUFFEROVER;
+        assert(!"ERROR"); 
+        return 0; 
+    }
 
 
     // 插入URL 先占位子
@@ -1605,33 +1524,43 @@ void LongUI::CUIResMgr::redirect_screen() noexcept {
     assert(!adapter && "bad action");
 }
 
+// ----------------------------------------------------------------------------
+// -----------------------  SR - Shared Resource  -----------------------------
+// ----------------------------------------------------------------------------
+
+
 /// <summary>
 /// Releases the resource list.
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIResMgr::release_res_list() noexcept {
-#if 0
-    auto& list = rm().reslist;
     // 释放未正确释放的资源(资源泄漏)
-    for (auto& x : list) {
-        if (x.obj) {
+    auto& map = this->rm().resmap;
+    const auto begin_itr = map.begin();
+    const auto end_itr = map.end();
+    for (auto itr = begin_itr; itr != end_itr; ++itr) {
+#if 0
+        {
+#else
+        if (itr->second) {
+#endif
+            assert(itr->second);
+            const auto ptr = CUIResourceID::Object(itr->second);
+            auto& img = static_cast<CUIImage&>(*ptr);
+            assert(ptr->RefData().GetType() == ResourceType::Type_Image);
 #ifndef NDEBUG
-            const auto index = &x - &list.front();
             LUIDebug(Error)
-                << "resource non-released:(index:"
-                << static_cast<int32_t>(index)
-                << ", ref: "
-                << x.ref
+                << "resource non-released:(ref: "
+                << ptr->RefData().ref
                 << ", type: "
-                << static_cast<int>(x.GetType())
+                << static_cast<int>(ptr->RefData().GetType())
                 << ")" << endl;
 #endif
-            x.obj->Destroy();
-            x.obj = nullptr;
+            // 强行置0以免出事?
+            //const_cast<const char*>(img.RefData().uri) = nullptr;
+            img.Destroy();
         }
     }
-    assert(rm().rescount == 1 && "rescount should be 1");
-#endif
 }
 
 /// <summary>
@@ -1718,3 +1647,4 @@ namespace LongUI { namespace detail {
         return id;
     }
 }}
+

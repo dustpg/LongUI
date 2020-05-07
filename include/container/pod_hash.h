@@ -47,12 +47,14 @@ namespace LongUI { namespace POD {
             auto insert(const char*, const char*) noexcept-> std::pair<hash_iterator, bool>;
             // insert
             auto insert(const char*, const char*, const char*) noexcept->std::pair<hash_iterator, bool>;
+#if 0
             // remove
             bool remove(const char*) noexcept;
             // remove
             bool remove(const char*, const char*) noexcept;
             // remove
             bool remove(hash_iterator) noexcept;
+#endif
 #ifndef UI_HASH_TABLE_NO_ITERATOR
             // begin iterator
             auto begin_itr() const noexcept -> hash_iterator { return m_itrFirst; }
@@ -157,8 +159,10 @@ namespace LongUI { namespace POD {
         auto find(const char* str) noexcept ->iterator { return{ hash_base::find(str) }; }
         // find item with string view
         auto find(const char* str, const char* end) noexcept ->iterator { return{ hash_base::find(str, end) }; }
+#if 0
         // remove
         bool remove(iterator itr) noexcept { return hash_base::remove(itr.m_itr); }
+#endif
 #else
 #error not implement yet
 #endif

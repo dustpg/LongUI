@@ -22,9 +22,13 @@ namespace LongUI {
 #endif
         using M = CUIManager::IMM;
         assert(M::Get() && "must call UIManager.Initialize() first");
-        const auto ptr = M::Get()->NormalAlloc(length);
-        assert((reinterpret_cast<uintptr_t>(ptr) & 7) == 0 && "at least alignas 8bytes");
-        return ptr;
+        for (size_t i = 0; ; ++i) {
+            const auto ptr = M::Get()->NormalAlloc(length);
+            assert((reinterpret_cast<uintptr_t>(ptr) & 7) == 0 && "at least alignas 8bytes");
+            if (ptr) return ptr;
+            if (UIManager.HandleOOM(i, length) == OOM_Ignore) break;
+        }
+        return nullptr;
     }
     // free for normal space
     PCN_NOINLINE void NormalFree(void* address) noexcept {
@@ -40,7 +44,14 @@ namespace LongUI {
 #endif
         using M = CUIManager::IMM;
         assert(M::Get() && "must call UIManager.Initialize() first");
-        return M::Get()->NormalRealloc(address, length);
+
+        for (size_t i = 0; ; ++i) {
+            const auto ptr = M::Get()->NormalRealloc(address, length);
+            assert((reinterpret_cast<uintptr_t>(ptr) & 7) == 0 && "at least alignas 8bytes");
+            if (ptr || length == 0) return ptr;
+            if (UIManager.HandleOOM(i, length) == OOM_Ignore) break;
+        }
+        return nullptr;
     }
     // alloc for small space
     PCN_NOINLINE void*SmallAlloc(size_t length) noexcept {
@@ -50,7 +61,14 @@ namespace LongUI {
 #endif
         using M = CUIManager::IMM;
         assert(M::Get() && "must call UIManager.Initialize() first");
-        return M::Get()->SmallAlloc(length);
+
+        for (size_t i = 0; ; ++i) {
+            const auto ptr = M::Get()->SmallAlloc(length);
+            assert((reinterpret_cast<uintptr_t>(ptr) & 7) == 0 && "at least alignas 8bytes");
+            if (ptr) return ptr;
+            if (UIManager.HandleOOM(i, length) == OOM_Ignore) break;
+        }
+        return nullptr;
     }
     // free for small space
     PCN_NOINLINE void SmallFree(void* address) noexcept {

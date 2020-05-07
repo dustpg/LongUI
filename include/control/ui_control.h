@@ -51,6 +51,8 @@
 #include "../graphics/ui_renderer_decl.h"
 // accessible
 #include "../accessible/ui_accessible.h"
+// manager data
+#include "../core/ui_manager_data.h"
 
 // assert
 #include <cstddef>
@@ -196,8 +198,6 @@ namespace LongUI {
         static void ControlMakingEnd() noexcept;
         // need update in this frame
         void NeedUpdate() noexcept;
-        // need update in next frame
-        void NextUpdate() noexcept;
         // need relayout in this freame
         void NeedRelayout() noexcept;
         // is first child?
@@ -241,7 +241,7 @@ namespace LongUI {
         // set a new parent
         void SetParent(UIControl& parent) noexcept;
         // set a new parent to null
-        void SetParent(std::nullptr_t parent) noexcept { this->clear_parent(); }
+        void SetParent(std::nullptr_t) noexcept { this->clear_parent(); }
         // set focus of this control, return true if set
         bool SetFocus() noexcept;
         // kill focus of this control
@@ -430,6 +430,8 @@ namespace LongUI {
         // setup basic animation
         void setup_basic_animation() noexcept { m_state.in_basic_animation = true; }
     protected:
+        // manager used data
+        ManagerData             m_oManager = { };
         // state
         CtrlState               m_state;
         // child count

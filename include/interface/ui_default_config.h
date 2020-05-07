@@ -55,10 +55,10 @@ namespace LongUI {
         auto ChooseAdapter(const GraphicsAdapterDesc adapters[], const uint32_t length) noexcept ->uint32_t override;
         // load data from url on file not found
         void LoadDataFromUrl(U8View url_in_utf8, const CUIString& url_in_utf16, POD::Vector<uint8_t>& buffer) noexcept override;
-        // show the error string
-        void OnError(ErrorInfo info) noexcept override;
+        // on error-info lost
+        void OnErrorInfoLost(Result, ErrorOccasion occ) noexcept override;
         // when OOM
-        auto HandleOOM(uint32_t count, size_t size) noexcept ->CodeOOM override;
+        auto HandleOOM(size_t count, size_t size) noexcept ->CodeOOM override;
     public:
         // run a section script for event
         bool Evaluation(ScriptUI, UIControl&) noexcept override;
@@ -93,6 +93,8 @@ namespace LongUI {
     private:
         // render thread handle
         uintptr_t               m_hRenderThread = 0;
+        // alloc tester
+        uint16_t                m_u16Alloc = 0;
         // exit flag
         bool                    m_bExitFlag = false;
     };

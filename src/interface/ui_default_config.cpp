@@ -2,6 +2,8 @@
 #include <core/ui_manager.h>
 #include <cassert>
 #include <cstdlib>
+// atomic
+#include <atomic>
 
 
 #ifndef NDEBUG
@@ -44,12 +46,12 @@ void LongUI::CUIDefaultConfigure::LoadDataFromUrl(
 /// <summary>
 /// Shows the error.
 /// </summary>
-/// <param name="info">The information.</param>
+/// <param name="hr">The hr.</param>
+/// <param name="occ">The occ.</param>
 /// <returns></returns>
-void LongUI::CUIDefaultConfigure::OnError(ErrorInfo info) noexcept {
-    assert(!"error");
+void LongUI::CUIDefaultConfigure::OnErrorInfoLost(Result hr, ErrorOccasion occ) noexcept {
+    assert(hr);
 }
-
 
 /// <summary>
 /// Called when [oom].
@@ -57,7 +59,8 @@ void LongUI::CUIDefaultConfigure::OnError(ErrorInfo info) noexcept {
 /// <param name="count">The count.</param>
 /// <param name="size">The size.</param>
 /// <returns></returns>
-auto LongUI::CUIDefaultConfigure::HandleOOM(uint32_t count, size_t size) noexcept -> CodeOOM {
+auto LongUI::CUIDefaultConfigure::HandleOOM(size_t count, size_t size) noexcept -> CodeOOM {
+    return OOM_Ignore;
     assert(!"OOM");
     std::exit(-1);
     return OOM_NoReturn;
@@ -143,6 +146,7 @@ namespace LongUI { enum { DEBUG_SMALL = 32 }; }
 /// <returns></returns>
 void*LongUI::CUIDefaultConfigure::NormalAlloc(size_t length) noexcept {
     assert(length && "cannot alloc 0 byte at here");
+    //return nullptr;
     return std::malloc(length);
 }
 
@@ -163,8 +167,18 @@ void LongUI::CUIDefaultConfigure::NormalFree(void* address) noexcept {
 /// <returns></returns>
 void*LongUI::CUIDefaultConfigure::NormalRealloc(void* address, size_t length) noexcept {
     assert((address || length) && "cannot call std::realloc(nullptr, 0)");
+
+    //if (length & 0) {
+    //    auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
+    //    const auto count = u16++;
+    //    if (count >= 4)
+    //        return nullptr;
+    //}
+
     return std::realloc(address, length);
 }
+
+#undef NDEBUG
 
 /// <summary>
 /// malloc for small space
@@ -176,9 +190,10 @@ void*LongUI::CUIDefaultConfigure::SmallAlloc(size_t length) noexcept {
 #ifdef NDEBUG
     return std::malloc(length);
 #else
-    const auto ptr = reinterpret_cast<char*>(
-        std::malloc(length + DEBUG_SMALL));
-    return ptr ? DEBUG_SMALL + ptr : nullptr;
+
+    const auto ptr = std::malloc(length + DEBUG_SMALL);
+    const auto data = reinterpret_cast<char*>(ptr);
+    return data ? data + DEBUG_SMALL : nullptr;
 #endif
 }
 
@@ -191,16 +206,13 @@ void LongUI::CUIDefaultConfigure::SmallFree(void* address) noexcept {
 #ifdef NDEBUG
     return std::free(address);
 #else
-    return std::free(
-        address 
-        ? reinterpret_cast<char*>(address) - DEBUG_SMALL
-        : nullptr);
+    const auto data = reinterpret_cast<char*>(address);
+    const auto ptr = data ? data - DEBUG_SMALL : nullptr;
+    return std::free(ptr);
 #endif
 }
 
 
-// atomic
-#include <atomic>
 // ui
 #include <core/ui_string.h>
 #include <text/ui_ctl_arg.h>
@@ -268,14 +280,12 @@ auto LongUI::CUIDefaultConfigure::BeginRenderThread() noexcept ->Result {
     auto& flag = reinterpret_cast<std::atomic<bool>&>(m_bExitFlag);
     // 退出flag
     flag.store(false, std::memory_order_relaxed);
-    //std::atomic_bool flag{ false };
     // 渲染线程
     const auto thr = ::_beginthread([](void* ptr) noexcept {
         const auto flag = reinterpret_cast<std::atomic_bool*>(ptr);
         while (!flag->load(std::memory_order_relaxed)) {
             UIManager.OneFrame();
             UIManager.WaitForVBlank();
-            //UIManager.WaitForVBlank();
         }
         ::_endthread();
     }, 0, &flag);

@@ -373,6 +373,7 @@
     <ClInclude Include="..\include\core\ui_core_type.h" />
     <ClInclude Include="..\include\core\ui_malloc.h" />
     <ClInclude Include="..\include\core\ui_manager.h" />
+    <ClInclude Include="..\include\core\ui_manager_data.h" />
     <ClInclude Include="..\include\core\ui_node.h" />
     <ClInclude Include="..\include\core\ui_object.h" />
     <ClInclude Include="..\include\core\ui_popup_window.h" />

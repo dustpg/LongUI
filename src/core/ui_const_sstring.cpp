@@ -31,7 +31,7 @@ void LongUI::CUIConstShortString::set_view(U8View view) noexcept {
     const size_t len = view.end() - view.begin();
     if (!len) return;
     // 申请新的空间
-    if (const auto ptr = LongUI::SmallAllocT<char>(len+1)) {
+    if (const auto ptr = LongUI::SmallAllocT<char>(len + 1)) {
         std::memcpy(ptr, view.begin(), len);
         ptr[len] = 0;
         m_string = ptr;
