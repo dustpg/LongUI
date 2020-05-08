@@ -1582,7 +1582,7 @@ auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
 #ifdef LUI_MULTIPLE_RESOURCE
 #endif
                 // 即便错误也要继续, 目的是释放数据
-                img.Release();
+                img.ReleaseOnly();
                 if (rv) rv = rm().recreate(img);
             }
         }

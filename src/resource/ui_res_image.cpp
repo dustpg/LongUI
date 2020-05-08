@@ -25,17 +25,25 @@ namespace LongUI { namespace detail {
 /// Releases this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::CUIImage::Release() noexcept {
+LongUI::CUIImage::~CUIImage() noexcept {
     const auto fc = this->frame_count;
     for (uint32_t i = 0; i != fc; ++i) {
         auto& frame = m_frames[i];
-        // 逆序释放
+        // 逆序释放?
         //auto& frame = m_frames[fc - 1 - i];
         LongUI::SafeRelease(frame.bitmap);
-        if (frame.window) {
-            detail::free_rects(frame);
-        }
+        if (frame.window) detail::free_rects(frame);
     }
+}
+
+/// <summary>
+/// Releases the only.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIImage::ReleaseOnly() noexcept {
+    const auto fc = this->frame_count;
+    for (uint32_t i = 0; i != fc; ++i)
+        LongUI::SafeRelease(m_frames[i].bitmap);
 }
 
 /// <summary>

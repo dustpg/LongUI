@@ -65,7 +65,7 @@ namespace LongUI {
         // mo copy
         CUIImage(const CUIImage&) noexcept = delete;
         // dtor
-        ~CUIImage() noexcept { this->Release(); };
+        ~CUIImage() noexcept;
         // ctor
         CUIImage(uint32_t f, uint32_t d, Size2U) noexcept;
     public:
@@ -73,8 +73,8 @@ namespace LongUI {
         //static auto MakeError(I::Bitmap&) noexcept->Result;
         // create image object
         static auto Create(uint32_t f, uint32_t d, Size2U) noexcept ->CUIImage*;
-        // release
-        void Release() noexcept;
+        // release only
+        void ReleaseOnly() noexcept;
         // destroy object
         void Destroy() noexcept LUI_MULTRES_OVERRIDE;
     public:

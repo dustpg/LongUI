@@ -180,24 +180,3 @@ void LongUI::UIControl::cancel_clip_rect() const noexcept {
     painter.PopAxisAlignedClip();
 }
 
-
-//PCN_NOINLINE
-///// <summary>
-///// Gets the color of the background.
-///// </summary>
-///// <param name="">The .</param>
-///// <returns></returns>
-//void LongUI::UIControl::GetBackgroundColor(ColorF& color) const noexcept {
-//    if (m_pBgRender) color = m_pBgRender->GetColor();
-//    else color = ColorF::FromRGBA_CT<RGBA_Transparent>();
-//}
-//
-//PCN_NOINLINE
-///// <summary>
-///// Gets the color of the foreground.
-///// </summary>
-///// <param name="">The .</param>
-///// <returns></returns>
-//void LongUI::UIControl::GetForegroundColor(ColorF& color) const noexcept {
-//    color = ColorF::FromRGBA_CT<RGBA_Black>();
-//}
