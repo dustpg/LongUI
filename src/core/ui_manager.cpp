@@ -206,7 +206,9 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 更新世界
     this_()->refresh_window_world();
     // 脏矩形更新
-    this_()->dirty_update();
+    //this_()->dirty_update();
+    // 渲染窗口预处理
+    this_()->before_render_windows();
     // 记录时间胶囊
     const auto has_tc = this_()->has_time_capsule();
     // 结束数据更新
@@ -220,7 +222,6 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 时间胶囊S1
     if (has_tc) this_()->call_time_capsule_s1();
     // 渲染所有窗口
-    this_()->before_render_windows();
     this_()->RenderLock();
     const auto hr = this_()->render_windows();
     this_()->RenderUnlock();

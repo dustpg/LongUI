@@ -32,6 +32,8 @@ struct LongUI::PrivateWndMgr {
     ~PrivateWndMgr() {}
     // high time-meter
     CUITimeMeterH           timemeter;
+    // top level windows
+    //Node<>
     // windows list for updating
     WindowVector            windowsu;
     // windows list for rendering
@@ -199,7 +201,7 @@ void LongUI::CUIWndMgr::remove_window(CUIWindow & window) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWndMgr::before_render_windows() noexcept {
-    // 进行预渲染
+    // 进行渲染预处理
     // XXX: 优化
     for (auto window : wm().windowsr) {
         window->BeforeRender();

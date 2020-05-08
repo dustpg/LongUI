@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 // ui
-#include "ui_node.h"
 #include "ui_object.h"
 #include "ui_core_type.h"
 #include "ui_basic_type.h"
@@ -202,8 +201,8 @@ namespace LongUI {
         void SetDefault(UIControl& ctrl) noexcept;
         // reset window default control(set window-default control to default)
         void ResetDefault() noexcept;
-        // mark dirty rect
-        void MarkDirtRect(const RectF& rect) noexcept;
+        // Invalidate control
+        void InvalidateControl(UIControl&, const RectF* r=nullptr) noexcept;
         // will do full render this frame?
         bool IsFullRenderThisFrame() const noexcept;
     public:
@@ -227,11 +226,11 @@ namespace LongUI {
         auto RefViewport() const noexcept->const UIViewport& { 
             return const_cast<CUIWindow*>(this)->RefViewport(); }
         // get parent
-        auto GetParent() const noexcept { return m_parent; }
+        auto GetParent() const noexcept { return m_pParent; }
         // get window handle
         HWND GetHwnd() const { return m_hwnd; }
         // is top level window
-        bool IsTopLevel() const noexcept { return !m_parent; }
+        bool IsTopLevel() const noexcept { return !m_pParent; }
         // is inline window
         bool IsInlineWindow() const noexcept { return false; }
         // mark: has script
@@ -264,7 +263,7 @@ namespace LongUI {
         CUIStyleSheet*      m_pStyleSheet = nullptr;
 #endif
         // parent window
-        CUIWindow*          m_parent = nullptr;
+        CUIWindow*          m_pParent = nullptr;
         // topest world changed control
         UIControl*          m_pTopestWcc = nullptr;
 #ifdef LUI_ACCESSIBLE

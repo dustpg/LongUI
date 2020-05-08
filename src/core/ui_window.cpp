@@ -49,6 +49,46 @@ namespace LongUI { namespace impl {
         window->MarkHasScript();
         UIManager.Evaluation(view, *window);
     }
+    // mark two rect
+    inline auto mark_two_rect_dirty(
+        const RectF& a,
+        const RectF& b,
+        const Size2F size,
+        RectF* output
+    ) noexcept {
+        const auto is_valid = [size](const RectF& rect) noexcept {
+            return LongUI::GetArea(rect) > 0.f
+                && rect.right > 0.f
+                && rect.bottom > 0.f
+                && rect.left < size.width
+                && rect.top < size.height
+                ;
+        };
+        // 判断有效性
+        const auto av = is_valid(a);
+        const auto bv = is_valid(b);
+        // 都无效
+        if (!av && !bv) return output;
+        // 合并矩形
+        RectF merged_rect = a;
+        // 都有效
+        if (av && bv) {
+            // 存在交集
+            if (LongUI::IsOverlap(a, b)) {
+                merged_rect.top = std::min(a.top, b.top);
+                merged_rect.left = std::min(a.left, b.left);
+                merged_rect.right = std::max(a.right, b.right);
+                merged_rect.bottom = std::max(a.bottom, b.bottom);
+            }
+            // 没有交集
+            else { *output = b; ++output; }
+        }
+        // 只有B有效
+        else if (bv) merged_rect = b;
+        // 标记
+        *output = merged_rect; ++output;
+        return output;
+    }
 }}
 
 // LongUI::detail
@@ -131,6 +171,13 @@ void LongUI::CUIWindow::Delete() noexcept {
 
 // ui namespace
 namespace LongUI {
+    // dirty rect
+    struct DirtyRect {
+        // control
+        UIControl*          control;
+        // rectangle
+        RectF               rectangle;
+    };
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // make style sheet
     auto MakeStyleSheet(U8View view, SSPtr old) noexcept->SSPtr;
@@ -160,7 +207,7 @@ namespace LongUI {
         // control map
         using CtrlMap = POD::HashMap<UIControl*>;
         // window list
-        using Windows = POD::Vector<CUIWindow*>;
+        //using Windows = POD::Vector<CUIWindow*>;
         // release data
         void release_data() noexcept;
         // release common tooltip
@@ -197,9 +244,9 @@ namespace LongUI {
         // render
         auto Render(const UIViewport& v) const noexcept->Result;
         // mark dirt rect
-        void MarkDirtRect(const RectF & rect) noexcept;
+        void MarkDirtRect(const DirtyRect& rect) noexcept;
         // before render
-        void BeforeRender() noexcept;
+        void BeforeRender(Size2F) noexcept;
         // close popup
         void ClosePopup() noexcept;
         // set common tooltip text
@@ -230,23 +277,25 @@ namespace LongUI {
         // IME postion
         bool OnIME(HWND hwnd) const noexcept;
     public:
-        // full render this frame?
-        inline bool is_full_render_for_update() const noexcept { return full_render_for_update; }
-        // mark full rendering
-        inline void mark_full_rendering_for_update() noexcept { full_render_for_update = true; }
-    private: // TODO: is_xxxx
-        // full render this frame?
-        inline bool is_full_render_for_render() const noexcept { return full_render_for_render; }
-        // mark full rendering
-        inline void mark_full_rendering_for_render() noexcept { full_render_for_render = true; }
-        // clear full rendering
-        inline void clear_full_rendering_for_update() noexcept { full_render_for_update = false; }
-        // clear full rendering
-        inline void clear_full_rendering_for_render() noexcept { full_render_for_render = false; }
+        // full-rendering this frame?
+        bool is_fr_for_update() const noexcept { return full_rendering_update; }
+        // mark as full-rendering
+        void mark_fr_for_update() noexcept { full_rendering_update = true; }
+        // clear full-rendering 
+        void clear_fr_for_update() noexcept { full_rendering_update = false; }
+    private:
+        // full-rendering this frame?
+        bool is_fr_for_render() const noexcept { return dirty_count_presenting == DIRTY_RECT_COUNT + 1; }
+        // will render in this frame?
+        auto is_r_for_render() const noexcept { return dirty_count_presenting; }
+        // mark as full-rendering
+        void mark_fr_for_render() noexcept { dirty_count_presenting = DIRTY_RECT_COUNT + 1; }
+        // mark as full-rendering
+        void clear_fr_for_render() noexcept { dirty_count_presenting = 0; }
         // using direct composition?
-        inline bool is_direct_composition() const noexcept { return dcomp_support; }
+        bool is_direct_composition() const noexcept { return dcomp_support; }
         // is skip render?
-        inline bool is_skip_render() const noexcept { return system_skip_rendering; }
+        bool is_skip_render() const noexcept { return system_skip_rendering; }
     public:
         // register the window class
         static void RegisterWindowClass() noexcept;
@@ -292,8 +341,10 @@ namespace LongUI {
     public:
         // named control map
         CtrlMap         ctrl_map;
-        // child windows
-        Windows         children;
+        // head
+        Node<CUIWindow> head;
+        // tail
+        Node<CUIWindow> tail;
         // focused control
         UIControl*      focused = nullptr;
         // captured control
@@ -338,26 +389,24 @@ namespace LongUI {
         bool            caret_ok = false;
         // visible window
         bool            window_visible = false;
-        // full render for update
-        bool            full_render_for_update = true;
-        // full render for render
-        bool            full_render_for_render = true;
         // access key display
         bool            access_key_display = false;
+        // full renderer in update
+        bool            full_rendering_update = false;
     public:
-        // dirty count#1
-        uint32_t        dirty_count_for_update = 0;
-        // dirty count#2
-        uint32_t        dirty_count_for_render = 0;
-        // dirty rect#1
-        RectF           dirty_rect_for_update[LongUI::DIRTY_RECT_COUNT];
-        // dirty rect#2
-        RectF           dirty_rect_for_render[LongUI::DIRTY_RECT_COUNT];
+        // text render type
+        uint32_t        text_antialias = 0;
+        // dirty count for recording
+        uint32_t        dirty_count_recording = 0;
+        // dirty count for presenting
+        uint32_t        dirty_count_presenting = 0;
+        // dirty rect for recording
+        DirtyRect       dirty_rect_recording[LongUI::DIRTY_RECT_COUNT];
+        // dirty rect for presenting [+ 2 for safty]
+        RectF           dirty_rect_presenting[LongUI::DIRTY_RECT_COUNT+2];
     public:
         // access key map
         UIControl*      access_key_map['Z' - 'A' + 1];
-        // text render type
-        uint32_t        text_antialias = 0;
     private:
         // toggle access key display
         void toggle_access_key_display() noexcept;
@@ -381,7 +430,11 @@ namespace LongUI {
         system_skip_rendering = false;
         layered_window_support = false;
         std::memset(access_key_map, 0, sizeof(access_key_map));
+        head.prev = nullptr;
+        head = { nullptr, static_cast<CUIWindow*>(&tail) };
+        tail = { static_cast<CUIWindow*>(&head), nullptr };
         impl::init_dcomp(dcomp_buf);
+        //sizeof(*this)
     }
 }
 
@@ -391,8 +444,8 @@ namespace LongUI {
 /// <param name="cfg">The config.</param>
 /// <param name="parent">The parent.</param>
 LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
-m_parent(parent), config(cfg),
-m_private(new(std::nothrow) Private) {
+    m_pParent(parent), config(cfg),
+    m_private(new(std::nothrow) Private) {
     // 初始化BF
     m_inDtor = false;
     m_bInExec = false;
@@ -479,9 +532,14 @@ void LongUI::CUIWindow::LoadCssString(U8View string) noexcept {
 /// <param name="child">The child.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::add_child(CUIWindow& child) noexcept {
-    // XXX: OOM 处理
+    // TODO: 在之前的父控件移除该控件
     assert(m_private);
-    m_private->children.push_back(&child);
+
+    // 连接前后节点
+    m_private->tail.prev->next = &child;
+    child.prev = m_private->tail.prev;
+    child.next = static_cast<CUIWindow*>(&m_private->tail);
+    m_private->tail.prev = &child;
 }
 
 /// <summary>
@@ -490,9 +548,12 @@ void LongUI::CUIWindow::add_child(CUIWindow& child) noexcept {
 /// <param name="child">The child.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::remove_child(CUIWindow& child) noexcept {
-    // XXX: OOM 处理
-    auto& vector = m_private->children;
-    LongUI::RemovePointerItem(reinterpret_cast<PointerVector&>(vector), &child);
+    // TODO: 更多检查
+    //assert(child.m_pParent == this && "no child for this");
+    // 连接前后节点
+    child.prev->next = child.next;
+    child.next->prev = child.prev;
+    child.prev = child.next = nullptr;
 }
 
 /// <summary>
@@ -511,9 +572,7 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     // 析构中
     m_inDtor = true;
     // 存在父窗口
-    if (m_parent) {
-        m_parent->remove_child(*this);
-    }
+    if (m_pParent) m_pParent->remove_child(*this);
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 释放样式表
     LongUI::DeleteStyleSheet(m_pStyleSheet);
@@ -523,8 +582,8 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         // 弹出窗口会在下一步删除
         m_private->popup = nullptr;
         // XXX: 删除自窗口?
-        auto& children = m_private->children;
-        while (!children.empty()) children.back()->Delete();
+        while (m_private->head.next != &m_private->tail) 
+            m_private->tail.prev->Delete();
         // 管理器层移除引用
         UIManager.remove_window(*this);
         // 摧毁窗口
@@ -539,8 +598,9 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::BeforeRender() noexcept {
-    CUIDataAutoLocker locker;
-    m_private->BeforeRender();
+    assert(m_private);
+    const auto size = this->RefViewport().GetRealSize();
+    m_private->BeforeRender(size);
 }
 
 /// <summary>
@@ -724,9 +784,32 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
 void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     // 没有承载窗口就算了
     if (!this) return;
+    // 3. 移除在脏矩形列表
+    if (UIControlPrivate::IsInDirty(ctrl)) {
+        UIControlPrivate::ClearInDirty(ctrl);
+        // TEST
+        assert(m_private);
+        // 查找
+        if (!m_private->is_fr_for_update()) {
+            const auto b = m_private->dirty_rect_recording;
+            const auto e = b + m_private->dirty_count_recording;
+            const auto itr = std::find_if(b, e, [&ctrl](const auto& x) noexcept {
+                return x.control == &ctrl;
+            });
+            // 安全起见
+            if (itr != e) {
+                // 最后一个和itr调换
+                // 特殊情况: itr == e[-1], 调换并不会出现问题
+                std::swap(*itr, e[-1]);
+                assert(m_private->dirty_count_recording);
+                m_private->dirty_count_recording--;
+            }
+            else assert(!"NOT FOUND");
+        }
+    }
     // 析构中
     if (m_inDtor) return;
-    // XXX: ControlDisattached
+
 
     // XXX: 暴力移除一般引用..?
     {
@@ -879,14 +962,21 @@ void LongUI::CUIWindow::ResetDefault() noexcept {
 }
 
 /// <summary>
-/// Marks the dirt rect.
+/// Invalidates the control.
 /// </summary>
+/// <param name="ctrl">The control.</param>
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::MarkDirtRect(const RectF& rect) noexcept {
-    assert(m_private && "bug: you shall not pass");
-    assert(LongUI::GetArea(rect) > 0.f);
-    m_private->MarkDirtRect(rect);
+void LongUI::CUIWindow::InvalidateControl(UIControl& ctrl, const RectF* rect) noexcept {
+    // 已经在里面就算了
+    if (UIControlPrivate::IsInDirty(ctrl)) return;
+    assert(m_private);
+    assert(ctrl.GetWindow() == this);
+    // 全渲染
+    if (m_private->is_fr_for_update()) return;
+    // TODO: 相对矩形
+    assert(rect == nullptr && "unsupported yet");
+    m_private->MarkDirtRect({ &ctrl, ctrl.GetBox().visible });
 }
 
 
@@ -895,7 +985,7 @@ void LongUI::CUIWindow::MarkDirtRect(const RectF& rect) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::MarkFullRendering() noexcept {
-    m_private->mark_full_rendering_for_update();
+    m_private->mark_fr_for_update();
 }
 
 /// <summary>
@@ -904,7 +994,7 @@ void LongUI::CUIWindow::MarkFullRendering() noexcept {
 /// <returns></returns>
 bool LongUI::CUIWindow::IsFullRenderThisFrame() const noexcept {
     assert(m_private && "bug: you shall not pass");
-    return m_private->is_full_render_for_update();
+    return m_private->is_fr_for_update();
 }
 
 /// <summary>
@@ -962,7 +1052,7 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
     // 数据锁
     CUIDataAutoLocker locker;
     //LUIDebug(Hint) << size.width << ", " << size.height << endl;
-    this->mark_full_rendering_for_update();
+    this->mark_fr_for_update();
     // 修改
     this->rect.width = size.width;
     this->rect.height = size.height;
@@ -991,7 +1081,7 @@ void LongUI::CUIWindow::ResizeAbsolute(Size2L size) noexcept {
     // 不一样才处理
     const auto& old = pimpl->rect;
     if (old.width == size.width && old.height == size.height) {
-        pimpl->mark_full_rendering_for_update();
+        pimpl->mark_fr_for_update();
         return;
     }
     // 睡眠模式
@@ -1146,9 +1236,9 @@ void LongUI::CUIWindow::WakeUp() noexcept {
         return;
     }
     // XXX: 0. 尝试唤醒父窗口
-    if (m_parent) m_parent->WakeUp();
+    if (m_pParent) m_pParent->WakeUp();
     // 1. 创建窗口
-    const auto pwnd = m_parent ? m_parent->GetHwnd() : nullptr;
+    const auto pwnd = m_pParent ? m_pParent->GetHwnd() : nullptr;
     m_hwnd = m_private->Init(pwnd, this->config);
     // 1.5 检测DPI支持
     this->HiDpiSupport();
@@ -1162,7 +1252,7 @@ void LongUI::CUIWindow::WakeUp() noexcept {
 /// </summary>
 void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
     if (this->IsInSleepMode()) return;
-    assert(m_private->children.empty());
+    assert(m_private->head.next == &m_private->tail);
     // 释放资源
     m_private->ReleaseDeviceData();
     // 摧毁窗口
@@ -1177,7 +1267,7 @@ void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
 void LongUI::CUIWindow::TrySleep() noexcept {
     if (this->IsInSleepMode()) return;
     if (!this->IsAutoSleep()) return;
-    if (!m_private->children.empty()) return;
+    if (m_private->head.next != &m_private->tail)return;
     m_private->auto_sleep_count = 1;
 }
 
@@ -1213,8 +1303,11 @@ auto LongUI::CUIWindow::Exec() noexcept->uintptr_t {
 /// <returns></returns>
 void LongUI::CUIWindow::recursive_set_result(uintptr_t result) noexcept {
     assert(this->IsInExec());
-    for (const auto wnd : m_private->children) {
-        if (wnd->IsInExec()) wnd->recursive_set_result(0);
+    auto node = m_private->head.next;
+    const auto tail = &m_private->tail;
+    while (node != tail) {
+        if (node->IsInExec()) node->recursive_set_result(0);
+        node = node->next;
     }
     UIManager.BreakMsgLoop(result);
 }
@@ -1886,7 +1979,35 @@ namespace LongUI {
 /// </summary>
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Private::MarkDirtRect(const RectF& rect) noexcept {
+void LongUI::CUIWindow::Private::MarkDirtRect(const DirtyRect& rect) noexcept {
+    auto& counter = this->dirty_count_recording;
+    assert(counter <= LongUI::DIRTY_RECT_COUNT);
+    // 满了/全渲染 就算了
+    if (counter == LongUI::DIRTY_RECT_COUNT) 
+        return this->mark_fr_for_update();
+    auto write = rect;
+    // 脏矩形(尽量?)将面积大的矩形放在前面
+    if (counter) {
+        // 第一个应该是最大的
+        auto& first = this->dirty_rect_recording[0];
+        // 包含就算了
+        if (LongUI::IsInclude(first.rectangle, rect.rectangle)) return;
+        const auto s0 = LongUI::GetArea(first.rectangle);
+        const auto s1 = LongUI::GetArea(rect.rectangle);
+        // 不包含放在最后面
+        if (s1 > s0) {
+            write = first;
+            first = rect;
+            // 反包含?
+            if (LongUI::IsInclude(rect.rectangle, write.rectangle)) return;
+        }
+    }
+    // 标记在表
+    UIControlPrivate::MarkInDirty(*write.control);
+    // 写入数据
+    this->dirty_rect_recording[counter] = write;
+    ++counter;
+#if 0
     // 已经全渲染就算了
     if (!this->is_full_render_for_update()) {
         // 还在范围内
@@ -1920,13 +2041,53 @@ void LongUI::CUIWindow::Private::MarkDirtRect(const RectF& rect) noexcept {
             this->mark_full_rendering_for_update();
         }
     }
+#endif
 }
 
 /// <summary>
 /// Befores the render.
 /// </summary>
+/// <param name="size">The size.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Private::BeforeRender() noexcept {
+void LongUI::CUIWindow::Private::BeforeRender(const Size2F size) noexcept {
+    // 先清除信息
+    this->clear_fr_for_render();
+    const uint32_t count = this->dirty_count_recording;
+    this->dirty_count_recording = 0;
+    std::for_each(
+        this->dirty_rect_recording,
+        this->dirty_rect_recording + count,
+        [](const DirtyRect& x) noexcept {
+        UIControlPrivate::ClearInDirty(*x.control);
+    });
+    // 全渲染
+    if (this->is_fr_for_update()) {
+        this->clear_fr_for_update();
+        this->mark_fr_for_render();
+        return;
+    }
+    // 初始化信息
+    auto itr = this->dirty_rect_presenting;
+    const auto endi = itr + LongUI::DIRTY_RECT_COUNT;
+    // 遍历脏矩形
+    for (uint32_t i = 0; i != count; ++i) {
+        const auto& data = this->dirty_rect_recording[i];
+        assert(data.control && data.control->GetWindow());
+        itr = impl::mark_two_rect_dirty(
+            data.rectangle,
+            data.control->GetBox().visible,
+            size,
+            itr
+        );
+        // 溢出->全渲染
+        if (itr > endi) 
+            return this->mark_fr_for_render();
+    }
+    // 写入数据
+    auto& precount = this->dirty_count_presenting;
+    precount = itr - this->dirty_rect_presenting;
+
+#if 0
     // 先清除
     this->clear_full_rendering_for_render();
     // 复制全渲染信息
@@ -1945,6 +2106,7 @@ void LongUI::CUIWindow::Private::BeforeRender() noexcept {
         this->dirty_rect_for_update,
         sizeof(this->dirty_rect_for_update[0]) * this->dirty_count_for_render
     );
+#endif
 }
 
 PCN_NOINLINE
@@ -2298,7 +2460,9 @@ auto LongUI::CUIWindow::Private::Recreate(HWND hwnd) noexcept -> Result {
     // 可能是节能模式?
     if (!hwnd) return { Result::RS_FALSE };
     if (this->is_skip_render()) return{ Result::RS_OK };
-
+    // 全渲染
+    this->mark_fr_for_update();
+    // 创建渲染资源, 需要渲染锁
     CUIRenderAutoLocker locker;
     assert(this->bitmap == nullptr && "call release first");
     assert(this->swapchan == nullptr && "call release first");
@@ -2544,14 +2708,14 @@ auto LongUI::CUIWindow::Private::Render(const UIViewport& v) const noexcept->Res
     // 跳过该帧?
     if (this->is_skip_render()) return { Result::RS_OK };
     // 请求渲染
-    const auto count = this->dirty_count_for_render;
-    if (this->is_full_render_for_render() || count) {
+    if (this->is_r_for_render()) {
         // 重置窗口缓冲帧大小
         if (this->flag_sized) this->force_resize_window_buffer();
         // 开始渲染
         this->begin_render();
         // 矩形列表
-        const auto rects = this->dirty_rect_for_render;
+        const auto rects = this->dirty_rect_presenting;
+        const auto count = this->is_fr_for_render() ? 0 : this->dirty_count_presenting;
         // 正式渲染
         CUIControlControl::RecursiveRender(v, rects, count);
 #if 0
@@ -2612,7 +2776,7 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     // 显示
     if (UIManager.flag & ConfigureFlag::Flag_DbgDrawDirtyRect) {
         // 水平扫描线: 全局渲染
-        if (this->is_full_render_for_render()) {
+        if (this->is_fr_for_render()) {
             assert(this->rect.height);
             const float y = float(dbg_full_render_counter % this->rect.height);
             renderer.PushAxisAlignedClip(
@@ -2629,13 +2793,15 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
             ColorSystem::HSLA hsl;
             hsl.a = 0.5f; hsl.s = 1.f; hsl.l = 0.36f; hsl.h = s_color_value;
             // 遍历脏矩形
-            for (uint32_t i = 0; i != this->dirty_count_for_render; ++i) {
-                const auto& src = this->dirty_rect_for_render[i];
+            std::for_each(
+                this->dirty_rect_presenting,
+                this->dirty_rect_presenting + this->dirty_count_presenting,
+                [&](const RectF& rect) noexcept {
                 auto& bursh = CUIManager::RefCCBrush(hsl.toRGBA());
-                renderer.FillRectangle(auto_cast(src), &bursh);
+                renderer.FillRectangle(auto_cast(rect), &bursh);
                 hsl.h += s_color_step;
                 if (hsl.h > 360.f) hsl.h = 0.f;
-            }
+            });
             s_color_value = hsl.h;
         }
     }
@@ -2645,7 +2811,7 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     // 清除目标
     renderer.SetTarget(nullptr);
     // TODO: 完全渲染
-    if (this->is_full_render_for_render()) {
+    if (this->is_fr_for_render()) {
 #ifndef NDEBUG
         CUITimeMeterH meter;
         meter.Start();
@@ -2673,8 +2839,9 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
         };
         RECT rects[LongUI::DIRTY_RECT_COUNT];
         // 转换为整型
-        for (uint32_t i = 0; i != this->dirty_count_for_render; ++i) {
-            const auto& src = this->dirty_rect_for_render[i];
+        const auto count = this->dirty_count_presenting;
+        for (uint32_t i = 0; i != count; ++i) {
+            const auto& src = this->dirty_rect_presenting[i];
             const auto right = static_cast<LONG>(std::ceil(src.right));
             const auto bottom = static_cast<LONG>(std::ceil(src.bottom));
             // 写入
@@ -2685,7 +2852,7 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
         }
         // 填充参数
         DXGI_PRESENT_PARAMETERS present_parameters;
-        present_parameters.DirtyRectsCount = this->dirty_count_for_render;
+        present_parameters.DirtyRectsCount = count;
         present_parameters.pDirtyRects = rects;
         present_parameters.pScrollRect = &scroll;
         present_parameters.pScrollOffset = nullptr;
@@ -2725,7 +2892,7 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
     }
     assert(hr);
     // 调试
-    if (this->is_full_render_for_render())
+    if (this->is_fr_for_render())
         ++const_cast<uint32_t&>(dbg_full_render_counter);
     else
         ++const_cast<uint32_t&>(dbg_dirty_render_counter);
@@ -2793,8 +2960,9 @@ auto LongUI::Result::GetSystemLastError() noexcept -> Result {
 void LongUI::CUIWindow::Private::EmptyRender() noexcept {
     if (this->bitmap) {
         CUIRenderAutoLocker locker;
-        this->mark_full_rendering_for_render();
+        this->mark_fr_for_render();
         this->begin_render();
+        // TODO: 错误处理
         this->end_render();
     }
 }

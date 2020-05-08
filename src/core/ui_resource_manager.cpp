@@ -1556,8 +1556,6 @@ void LongUI::CUIResMgr::release_res_list() noexcept {
                 << static_cast<int>(ptr->RefData().GetType())
                 << ")" << endl;
 #endif
-            // 强行置0以免出事?
-            //const_cast<const char*>(img.RefData().uri) = nullptr;
             img.Destroy();
         }
     }

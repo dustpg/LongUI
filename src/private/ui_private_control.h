@@ -63,6 +63,15 @@ struct LongUI::UIControlPrivate {
     // is atomicity
     static auto IsAtomicity(const UIControl& ctrl) noexcept {
         return ctrl.m_state.atomicity; }
+    // is dirty
+    static auto IsInDirty(const UIControl& ctrl) noexcept {
+        return ctrl.is_in_dirty_list(); }
+    // dirty = true
+    static auto MarkInDirty(UIControl& ctrl) noexcept {
+        return ctrl.m_state.in_dirty_list = true; }
+    // dirty = false
+    static auto ClearInDirty(UIControl& ctrl) noexcept {
+        return ctrl.m_state.in_dirty_list = false; }
     // get parent data
     static auto GetParentData(const UIControl& ctrl) noexcept {
         return ctrl.m_uData4Parent; }

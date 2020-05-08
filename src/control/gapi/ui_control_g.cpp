@@ -31,9 +31,7 @@ void LongUI::UIControl::Render() const noexcept {
     LUIDebug(Log) << buffer << this << endl;
 #endif
     assert(m_state.inited && "must init control first");
-    if (this->native_style_render()) {
-        this->custom_style_render();
-    }
+    if (this->native_style_render()) this->custom_style_render();
 }
 
 /// <summary>

@@ -16,15 +16,6 @@
 
 
 namespace LongUI {
-    // dirty Update
-    struct DirtyUpdate {
-        // ctrl
-        UIControl*      ctrl;
-        // rect
-        RectF           rect;
-        // window
-        //CUIWindow*      wnd;
-    };
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // delete style sheet
     void DeleteStyleSheet(CUIStyleSheet* ptr) noexcept;
@@ -54,15 +45,15 @@ struct LongUI::PrivateCC {
     // ctor
     inline ~PrivateCC() noexcept { }
     // init list
-    ControlNode             init_list = { 0 };
+    ControlNode             init_list = { nullptr };
     // update list
-    ControlNode             update_list = { 0 };
+    ControlNode             update_list = { nullptr };
     // style cache
     POD::Vector<UIControl*> style_cache;
     // animation list
     POD::Vector<BasicAnima> basic_anima;
     // dirty update
-    POD::Vector<DirtyUpdate>dirty_update;
+    //POD::Vector<DirtyUpdate>dirty_update;
 #ifdef LUI_DISABLE_STYLE_SUPPORT
     // unused1
     POD::Vector<UIControl*> unused1;
@@ -154,7 +145,7 @@ void LongUI::CUIControlControl::RecursiveRender(
     */
     // TODO: 脏矩形渲染: 没有交集就不渲染
     if (length && std::all_of(region, region + length, [&](const RectF& rect) {
-        return !(rect && ctrl.m_oBox.visible);
+        return !LongUI::IsOverlap(rect, ctrl.m_oBox.visible);
     })) return;
     // 看不到就不渲染
     const auto csize = ctrl.GetSize();
@@ -364,16 +355,19 @@ void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
         ctrl.remove_from_update_list();
         CUIControlControl::RemoveControlInList(ctrl, luiref cc().update_list);
     }
+#if 0
     // 3. 移除在脏矩形列表
     if (ctrl.is_in_dirty_list()) {
         ctrl.m_state.in_dirty_list = false;
-        auto& list = cc().dirty_update;
-        const auto itr = std::find_if(list.begin(), list.end(), [&ctrl](const auto& x) noexcept {
-            return x.ctrl == &ctrl;
-        });
-        assert(itr != list.end() && "not found in list");
-        list.erase(itr);
+        assert(ctrl.GetWindow());
+        //auto& list = cc().dirty_update;
+        //const auto itr = std::find_if(list.begin(), list.end(), [&ctrl](const auto& x) noexcept {
+        //    return x.ctrl == &ctrl;
+        //});
+        //assert(itr != list.end() && "not found in list");
+        //list.erase(itr);
     }
+#endif
     // 4. 移除时间胶囊
     if (ctrl.m_pLastEnd) {
         this->DisposeTimeCapsule(ctrl);
@@ -521,23 +515,26 @@ void LongUI::CUIControlControl::AddInitList(UIControl& ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::InvalidateControl(UIControl& ctrl/*, const RectF& rect*/) noexcept {
-    // 已经在里面就算了
-    if (ctrl.m_state.in_dirty_list) return;
-    auto& list = cc().dirty_update;
+void LongUI::CUIControlControl::InvalidateControl(UIControl& ctrl, const RectF* rect) noexcept {
+
+    if (const auto wnd = ctrl.GetWindow()) wnd->InvalidateControl(ctrl, rect);
+    
+#if 0
+    //auto& list = cc().dirty_update;
     //assert(LongUI::GetArea(rect) > 0.f);
     // 窗口储存渲染的矩形信息
     if (const auto wnd = ctrl.GetWindow()) {
         // XXX: [优化]如果已经全渲染则没有必要了
         
         // 加入脏更新表
-        list.push_back({ &ctrl, ctrl.GetBox().visible });
-        ctrl.m_state.in_dirty_list = true;
+        //list.push_back({ &ctrl, ctrl.GetBox().visible });
+        //ctrl.m_state.in_dirty_list = true;
         //// 将矩形映射到窗口坐标系
         //auto wndcs = rect; 
         //ctrl.MapToWindow(wndcs);
         //wnd->MarkDirtRect(wndcs);
     }
+#endif
 }
 
 // UI Window
@@ -621,6 +618,7 @@ void LongUI::CUIControlControl::update_control_in_list() noexcept {
 
 #include <control/ui_viewport.h>
 
+#if 0
 // longui::impl namespace
 namespace LongUI { namespace impl {
     // mark two rect
@@ -663,7 +661,9 @@ namespace LongUI { namespace impl {
         window.MarkDirtRect(merged_rect);
     }
 }}
+#endif
 
+#if 0
 /// <summary>
 /// Dirties the update.
 /// </summary>
@@ -687,6 +687,7 @@ void LongUI::CUIControlControl::dirty_update() noexcept {
     // 清空
     list.clear();
 }
+#endif
 
 /// <summary>
 /// Normals the update.

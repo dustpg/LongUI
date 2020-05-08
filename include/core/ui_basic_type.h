@@ -152,6 +152,7 @@ namespace LongUI {
     inline auto RoundInGuiLevel(float a) noexcept { return float(long(a + 0.5f)); }
     // round in gui level
     inline auto RoundInGuiLevel(double a) noexcept { return double(long(a + 0.5)); }
+#if 0
     // a && b
     inline bool operator &&(const RectF& a, const RectF& b) noexcept {
         return LongUI::IsOverlap(a, b);
@@ -164,6 +165,7 @@ namespace LongUI {
     inline bool operator !=(const RectF& a, const RectF& b) noexcept {
         return LongUI::IsSame(a, b);
     }
+#endif
     // gui size same
     inline bool IsSameInGuiLevel(const Size2F& a, const Size2F& b) noexcept {
         return IsSameInGuiLevel(
