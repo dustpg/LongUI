@@ -39,6 +39,12 @@ richlistitem:selected > label
     background-color: #ff8000bb;
 }
 
+
+richlistitem:selected > label
+{
+    color: red;
+}
+
 richlistitem:selected > label
 {
     margin-left: 0px;
