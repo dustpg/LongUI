@@ -82,15 +82,17 @@ namespace LongUI {
             //  ++itr
             auto operator++() noexcept ->Self { m_pTNode = static_cast<T*>(m_pTNode->prev); return *this; }
             // itr++
-            auto operator++(int) const noexcept ->Self { Self itr{ m_pTNode }; return ++itr; }
+            auto operator++(int) noexcept ->Self { Self itr{ m_pTNode }; ++itr; return itr; }
             //  --itr
             auto operator--() noexcept ->Self { m_pTNode = static_cast<T*>(m_pTNode->next); return *this; }
             // itr--
-            auto operator--(int) const noexcept ->Self { Self itr{ m_pTNode }; return --itr; }
+            auto operator--(int) noexcept ->Self { Self itr{ m_pTNode }; --itr; return itr; }
             // operator ==
             bool operator==(const Self& itr) const noexcept { return m_pTNode == itr.m_pTNode; }
             // operator !=
             bool operator!=(const Self& itr) const noexcept { return m_pTNode != itr.m_pTNode; }
+            // operator ->
+            auto operator->() const noexcept { return m_pTNode; }
             // operator *
             auto operator*() const noexcept -> T& { return *m_pTNode; }
             // operator *
