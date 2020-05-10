@@ -113,6 +113,7 @@ void LongUI::UIControl::custom_style_render() const noexcept {
             radius.height = m_pBdRender->radius_y;
         }
         // UPDATE#1
+        m_pBgRender->BeforeRender();
         // A.
         m_pBgRender->RenderColor(this->GetBox(), radius);
         // B.

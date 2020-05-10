@@ -62,6 +62,8 @@
 #include <core/ui_string.h>
 #endif
 
+// to save 2 pointer(16bytes on x64) for each control
+#define LUI_CONTROL_USE_SINLENODE
 
 // ui namespace
 namespace LongUI {
@@ -212,7 +214,7 @@ namespace LongUI {
         // set xul-string as content
         // remarks: SetXul accept null-terminated-string only
         // 注: SetXul目前只接受 NUL 结尾字符串
-        void SetXul(const char* xul) noexcept;
+        bool SetXul(const char* xul) noexcept;
         // set xul-file as content, return false if not-found
         bool SetXulFromFile(U8View url) noexcept;
         // find child via position 
@@ -448,8 +450,10 @@ namespace LongUI {
         Matrix3X2F              m_mtWorld;
         // child-control head node
         Node<UIControl>         m_oHead;
+#ifndef LUI_CONTROL_USE_SINLENODE
         // child-control tail node
         Node<UIControl>         m_oTail;
+#endif
         // children offset
         Point2F                 m_ptChildOffset;
         // parent
@@ -520,22 +524,33 @@ namespace LongUI {
         void SetDebugName(const char*) noexcept { }
 #endif
     public:
+#ifdef LUI_CONTROL_USE_SINLENODE
+        // end iterator
+        auto end()noexcept->Iterator { return{ static_cast<UIControl*>(&m_oHead) }; }
+        // rbegin iterator
+        auto rbegin()noexcept->RIterator { return{ static_cast<UIControl*>(m_oHead.prev) }; }
+        // const end iterator
+        auto end()const noexcept->CIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
+        // rbegin iterator
+        auto rbegin()const noexcept->CRIterator { return{ static_cast<const UIControl*>(m_oHead.prev) }; }
+#else
         // end iterator
         auto end()noexcept->Iterator { return{ static_cast<UIControl*>(&m_oTail) }; }
-        // begin iterator
-        auto begin()noexcept->Iterator { return{ static_cast<UIControl*>(m_oHead.next) }; }
-        // rend iterator
-        auto rend()noexcept->RIterator { return{ static_cast<UIControl*>(&m_oHead) }; }
         // rbegin iterator
         auto rbegin()noexcept->RIterator { return{ static_cast<UIControl*>(m_oTail.prev) }; }
         // const end iterator
         auto end()const noexcept->CIterator { return{ static_cast<const UIControl*>(&m_oTail) }; }
+        // rbegin iterator
+        auto rbegin()const noexcept->CRIterator { return{ static_cast<const UIControl*>(m_oTail.prev) }; }
+#endif
+        // begin iterator
+        auto begin()noexcept->Iterator { return{ static_cast<UIControl*>(m_oHead.next) }; }
+        // rend iterator
+        auto rend()noexcept->RIterator { return{ static_cast<UIControl*>(&m_oHead) }; }
         // begin iterator
         auto begin()const noexcept->CIterator { return{ static_cast<const UIControl*>(m_oHead.next) }; }
         // rend iterator
         auto rend()const noexcept->CRIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
-        // rbegin iterator
-        auto rbegin()const noexcept->CRIterator { return{ static_cast<const UIControl*>(m_oTail.prev) }; }
     protected:
         // ctor failed if
         void ctor_failed_if(const void* ptr) noexcept { if (!ptr) m_state.ctor_failed = true; }

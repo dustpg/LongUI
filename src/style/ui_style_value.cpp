@@ -213,8 +213,7 @@ PCN_NOINLINE
 void LongUI::CUIStyleValue::SetBgImageID(uintptr_t id) noexcept {
     const auto ctrl = static_cast<UIControl*>(this);
     if (auto r = UIControlPrivate::EnsureBgRenderer(*ctrl)) {
-        r->image_id.SetId(id);
-        r->RefreshImage();
+        r->SetImageId(id);
         ctrl->Invalidate();
     }
 }
@@ -231,7 +230,7 @@ PCN_NOINLINE
 auto LongUI::CUIStyleValue::GetBgImageID() const noexcept -> uintptr_t {
     const auto ctrl = static_cast<const UIControl*>(this);
     if (auto r = UIControlPrivate::GetBgRenderer(*ctrl)) {
-        return r->image_id.GetId();
+        return r->GetImageId();
     }
     return 0;
 }

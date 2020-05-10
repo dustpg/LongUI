@@ -1,4 +1,5 @@
-﻿// ui
+﻿#define NOMINMAX
+// ui
 #include <style/ui_style.h>
 #include <core/ui_manager.h>
 #include <core/ui_basic_type.h>
@@ -10,6 +11,7 @@
 #include <effect/ui_effect_backimage.h>
 // c++
 #include <cassert>
+#include <algorithm>
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 extern "C" const GUID GUID_LongUIEffect_BackImage;
@@ -46,26 +48,44 @@ void LongUI::CUIRendererBackground::ReleaseDeviceData() {
 auto LongUI::CUIRendererBackground::CreateDeviceData() noexcept -> Result {
     //assert(m_pImageBrush == nullptr && "must release first");
     // 创建笔刷
-    return this->RefreshImage();
+    return this->refresh_image();
+}
+
+/// <summary>
+/// Sets the image identifier.
+/// </summary>
+/// <param name="id">The identifier.</param>
+/// <returns></returns>
+void LongUI::CUIRendererBackground::SetImageId(uintptr_t id) noexcept {
+#ifndef NDEBUG
+    if (m_idImage.GetId() == id) {
+        LUIDebug(Warning)
+            << "set same image id: "
+            << reinterpret_cast<void*>(id)
+            << endl;
+    }
+#endif
+    m_idImage.SetId(id);
+    m_bIdChanged = true;
 }
 
 /// <summary>
 /// Sets the image.
 /// </summary>
-auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
+auto LongUI::CUIRendererBackground::refresh_image() noexcept->Result {
     using effect_t = ID2D1Effect;
     using brush_t = ID2D1BitmapBrush1;
-    if (!this->image_id.GetId()) return { Result::RS_FALSE };
+    if (!m_idImage.GetId()) return { Result::RS_FALSE };
     Result hr = { Result::RS_OK };
     // 没有就创建
-    if (!m_pBackground && this->image_id.GetId()) {
+    if (!m_pBackground && m_idImage.GetId()) {
         auto& effect = reinterpret_cast<effect_t*&>(m_pBackground);
         auto& guid = GUID_LongUIEffect_BackImage;
         hr.code = UIManager.Ref2DRenderer().CreateEffect(guid, &effect);
     }
     // 更新输入
     if (m_pBackground) {
-        auto& res = this->image_id.RefResource();
+        auto& res = m_idImage.RefResource();
         assert(res.RefData().GetType() == ResourceType::Type_Image);
         auto& img = static_cast<CUIImage&>(res);
         // 检查大小
@@ -79,39 +99,21 @@ auto LongUI::CUIRendererBackground::RefreshImage() noexcept->Result {
         m_szImage.height = frame.source.bottom - frame.source.top;
         m_rcImage.left = frame.source.left / fw;
         m_rcImage.top = frame.source.top / fh;
-        m_rcImage.right = m_szImage.width / fw;
-        m_rcImage.bottom = m_szImage.height / fh;
+        // 由于HLSL是偏移半像素的 宽度需要减去1 还要避免除以0
+        /*
+          |     |      图片宽度
+          v     v
+          |A|A|A|A
+           ^   ^
+           |   |       真实宽度
+        */
+        m_rcImage.right = std::max(m_szImage.width - 1.f, 1.f) / fw;
+        m_rcImage.bottom = std::max(m_szImage.height - 1.f, 1.f) / fh;
         // 输入 
         m_pBackground->SetInput(0, frame.bitmap);
         // 获取输出
         if (!m_pOutput) m_pBackground->GetOutput(AddrOf(m_pOutput));
     }
-    return hr;
-#if 0
-    // 没有就创建
-    if (!m_pImageBrush && this->image_id) {
-        ID2D1Bitmap1* const bitmap = nullptr;
-        auto& brush = reinterpret_cast<brush_t*&>(m_pImageBrush);
-        hr = { UIManager.Ref2DRenderer().CreateBitmapBrush(bitmap, &brush) };
-    }
-    // 设置属性
-    if (m_pImageBrush) {
-        assert(this->image_id && "bad id");
-        auto& data = UIManager.GetResoureceData(this->image_id);
-        assert(data.GetType() == ResourceType::Type_Image);
-        // 目前只支持IMAGE
-        const auto img = static_cast<CUIImage*>(data.obj);
-        const auto brush = reinterpret_cast<brush_t*>(m_pImageBrush);
-        // 获取大小
-        m_szImage.width = img->GetSize().width;
-        m_szImage.height = img->GetSize().height;
-        // 图像
-        brush->SetBitmap(&img->RefBitmap());
-        // 扩展
-        brush->SetExtendModeX(D2D1_EXTEND_MODE_WRAP);
-        brush->SetExtendModeY(D2D1_EXTEND_MODE_WRAP);
-    }
-#endif
     return hr;
 }
 
@@ -165,6 +167,18 @@ void LongUI::CUIRendererBackground::RenderColor(const Box& box, Size2F radius) c
 
 
 /// <summary>
+/// Befores the render.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIRendererBackground::BeforeRender() noexcept {
+    // XXX: m_bIdChanged 应该用原子类型保证数据安全?
+    if (m_bIdChanged) {
+        m_bIdChanged = false;
+        this->refresh_image();
+    }
+}
+
+/// <summary>
 /// Renders the image.
 /// </summary>
 /// <param name="box">The box.</param>
@@ -178,7 +192,7 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F r
     // 获取渲染矩阵
     D2D1_ROUNDED_RECT rrect;
     detail::get_render_rect(this->origin, box, auto_cast(rrect.rect));
-    // TODO: 实现圆角
+    // TODO: 实现圆角, Before优化
     rrect.radiusX = radius.width;
     rrect.radiusY = radius.height;
     // 填写数据
@@ -241,27 +255,9 @@ void LongUI::CUIRendererBackground::RenderImage(const LongUI::Box& box, Size2F r
 
     m_pBackground->SetValue(0, bim);
     const auto& point = reinterpret_cast<Point2F&>(rrect.rect.left);
-    renderer.DrawImage(m_pOutput, &auto_cast(point));
-#if 0
-    // 设置基本转换矩阵
-    Matrix3X2F matrix = {
-        1.f, 0.f, 
-        0.f, 1.f, 
-        rrect.rect.left, rrect.rect.top
-    };
-    // 计算ROUND
-    const auto cal_round = [&](int i) noexcept {
-        const auto size = i[&img_size.width];
-        const auto length = i[&rrect.rect.right] - i[&rrect.rect.left];
-        const auto count = length / size;
-        const auto count1 = count < 1.f ? 1.f : count;
-        const auto relen = float(int(count1 + 0.5f)) * size;
-        return length / relen;
-    };
-    // 计算宽度
-    m_pImageBrush->SetTransform(&auto_cast(matrix));
-    // 渲染笔刷
-    render.FillRoundedRectangle(&rrect, m_pImageBrush);
-#endif
+    renderer.DrawImage(
+        m_pOutput, &auto_cast(point)
+        , nullptr, D2D1_INTERPOLATION_MODE_NEAREST_NEIGHBOR
+    );
 }
 #endif

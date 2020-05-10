@@ -106,6 +106,23 @@ auto LongUI::UIViewport::AdjustZoomedSize(Size2F scale, Size2L size) const noexc
 }
 
 /// <summary>
+/// Does the event.
+/// </summary>
+/// <param name="sender">The sender.</param>
+/// <param name="e">The e.</param>
+/// <returns></returns>
+auto LongUI::UIViewport::DoEvent(
+    UIControl* sender, const EventArg & e) noexcept -> EventAccept {
+    switch (e.nevent)
+    {
+    case NoticeEvent::Event_Initialize:
+        m_window.init();
+        [[fallthrough]];
+    }
+    return Super::DoEvent(sender, e);
+}
+
+/// <summary>
 /// Resizes the window.
 /// </summary>
 /// <param name="size">The size.</param>

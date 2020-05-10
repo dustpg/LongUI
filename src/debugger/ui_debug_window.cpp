@@ -19,28 +19,38 @@ namespace LongUI {
         // ctor
         CUIDebugView() noexcept :
             Super(nullptr, CUIWindow::Config_ToolWindow) {
-            this->SetXul(debug_view_xul);
-            const auto window = this->GetWindow();
-            window->SetClearColor({ 1, 1, 1, 1 });
-            window->ShowWindow();
-            window->SetPos({ 0, 0 });
-            this->exit();
-            this->recreate();
-            this->force_render();
-            this->draw_text_cell();
-            this->draw_dirty_rect();
-            this->link_style_sheet();
-            //UIManager.CreateTimeCapsule([this](float t) noexcept {
-            //    if (t < 1.f) return;
-            //    const auto window = this->GetWindow();
-            //    const auto ctrl = window->FindControl("btn-exit");
-            //    const auto btn = longui_cast<UIButton*>(ctrl);
-            //    btn->SetText(L"EXIT"_sv);
-            //}, 5.f, this);
+            if (this->SetXul(debug_view_xul)) {
+                const auto window = this->GetWindow();
+                window->SetClearColor({ 1, 1, 1, 1 });
+                window->ShowWindow();
+                window->SetPos({ 0, 0 });
+                this->exit();
+                this->recreate();
+                this->force_render();
+                this->draw_text_cell();
+                this->draw_dirty_rect();
+                this->link_style_sheet();
+                //UIManager.CreateTimeCapsule([this](float t) noexcept {
+                //    if (t < 1.f) return;
+                //    const auto window = this->GetWindow();
+                //    const auto ctrl = window->FindControl("btn-exit");
+                //    const auto btn = longui_cast<UIButton*>(ctrl);
+                //    btn->SetText(L"EXIT"_sv);
+                //}, 5.f, this);
+            }
         }
         // dtor
         ~CUIDebugView() noexcept { }
     private:
+        // do all render
+        template<typename T>
+        static void do_all_render(T a, const T b) noexcept {
+            while (a != b) {
+                a->MarkFullRendering();
+                do_all_render(a->begin(), a->end());
+                a++;
+            }
+        }
         // do button
         auto do_button(const char* name) noexcept {
             const auto window = this->GetWindow();
@@ -61,10 +71,11 @@ namespace LongUI {
         void force_render() noexcept {
             do_button("btn-force")->AddGuiEventListener(
                 UIButton::_onCommand(), [](UIControl& control) noexcept {
-                const auto& o = UIManager.GetWindowList();
-                using List = POD::Vector<CUIWindow*>;
-                auto& list = reinterpret_cast<const List&>(o);
-                for (const auto x : list) x->MarkFullRendering();
+                //const auto& o = UIManager.GetWindowList();
+                //using List = POD::Vector<CUIWindow*>;
+                //auto& list = reinterpret_cast<const List&>(o);
+                //for (const auto x : list) x->MarkFullRendering();
+                do_all_render(UIManager.begin(), UIManager.end());
                 return Event_Accept;
             });
         }
@@ -149,7 +160,7 @@ const char* LongUI::debug_view_xul = u8R"(
     <caption label="Core Debug"/>
     <label href="https://github.com/dustpg/LongUI" value="LongUI on github"/>
     <hbox>
-        <button id="btn-force" label="force render x1" accesskey="f"/>
+        <button id="btn-force" label="force render" accesskey="f"/>
         <button id="btn-recreate" label="recreate res" accesskey="r"/>
         <button id="btn-exit" label="exit" default="true" accesskey="e"/>
     </hbox>

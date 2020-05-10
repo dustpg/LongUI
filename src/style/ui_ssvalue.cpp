@@ -14,8 +14,13 @@
 // css
 #include <xul/SimpAC.h>
 // c/c++
+#include <csetjmp>
 #include <cstring>
 #include <algorithm>
+
+#ifndef NDEBUG
+extern "C" bool lui_debug_oom;
+#endif
 
 #ifndef LUI_DISABLE_STYLE_SUPPORT
 
@@ -103,26 +108,29 @@ namespace LongUI {
         void MakeInlineStlye(SSValues& out) noexcept;
     public:
         // add comment
-        virtual void add_comment(StrPair) noexcept override;
+        void add_comment(StrPair) noexcept override;
         // add selector
-        virtual void add_selector(BasicSelectors, StrPair) noexcept override;
+        void add_selector(BasicSelectors, StrPair) noexcept override;
         // add selector combinator
-        virtual void add_selector_combinator(Combinators) noexcept override;
+        void add_selector_combinator(Combinators) noexcept override;
         // add selector comma
-        virtual void add_selector_comma() noexcept override;
+        void add_selector_comma() noexcept override;
         // begin properties
-        virtual void begin_properties() noexcept override;
+        void begin_properties() noexcept override;
         // end properties
-        virtual void end_properties() noexcept override;
+        void end_properties() noexcept override;
         // begin property
-        virtual void begin_property(StrPair) noexcept override;
+        void begin_property(StrPair) noexcept override;
         // add value
-        virtual void add_value(StrPair) noexcept override;
+        void add_value(StrPair) noexcept override;
         // add func value
-        virtual void add_func_value(FuncValue, StrPair) noexcept override;
+        void add_func_value(FuncValue, StrPair) noexcept override;
+    public:
+        // jmp env
+        std::jmp_buf                env;
     private:
         // write ptr
-        SSBlockPtr *                m_pBlockWrite;
+        SSBlockPtr*                 m_pBlockWrite;
         // main seletor list
         POD::Vector<SSSelector>     m_mainList;
         // pvalues
@@ -135,6 +143,8 @@ namespace LongUI {
         bool                        m_bNewSelector = true;
         // state: combinator
         Combinator                  m_combinator = Combinator_None;
+        //
+
     };
     /// <summary>
     /// Makes the inline stlye.
@@ -151,9 +161,9 @@ namespace LongUI {
     /// <param name="ptr">The PTR.</param>
     CUICssStream::CUICssStream(SSBlockPtr* ptr) noexcept:m_pBlockWrite(ptr) {
         m_nowProperty = {};
-        m_mainList.reserve(16);
-        m_values.reserve(16);
-        m_propertyValues.reserve(32);
+        //m_mainList.reserve(16);
+        //m_values.reserve(16);
+        //m_propertyValues.reserve(32);
     }
     /// <summary>
     /// Finalizes an instance of the <see cref="CUICssStream"/> class.
@@ -183,14 +193,16 @@ namespace LongUI {
     /// <param name="pair">The pair.</param>
     /// <returns></returns>
     void CUICssStream::add_selector(BasicSelectors bs, StrPair pair) noexcept {
-        if (!m_mainList.is_ok()) return;
+
+        //if (!m_mainList.is_ok()) return;
         const auto value = U8View{ pair.begin(), pair.end() };
         // 添加新的选择器
         if (m_bNewSelector) {
             SSSelector empty{};
             m_mainList.push_back(empty);
             m_bNewSelector = false;
-            if (!m_mainList.is_ok()) return;
+            // OOM处理
+            if (!m_mainList.is_ok()) std::longjmp(this->env, 1);
         }
         // 查找最后一个选择器
         assert(m_mainList.empty() == false);
@@ -305,6 +317,8 @@ namespace LongUI {
         static_assert(sizeof(fv.length) == sizeof(uint16_t), "SAME!");
         fv.func = SimpAC::FuncType::Type_None;
         m_propertyValues.push_back(fv);
+        // OOM处理
+        if (!m_propertyValues.is_ok()) std::longjmp(this->env, 1);
     }
     /// <summary>
     /// Adds the function value.
@@ -314,6 +328,8 @@ namespace LongUI {
     /// <returns></returns>
     void CUICssStream::add_func_value(FuncValue value, StrPair raw) noexcept {
         m_propertyValues.push_back(value);
+        // OOM处理
+        if (!m_propertyValues.is_ok()) std::longjmp(this->env, 1);
     }
     /// <summary>
     /// Properties the finished.
@@ -323,7 +339,6 @@ namespace LongUI {
         // 有效属性
         if (m_nowProperty != ValueType::Type_Unknown) {
             assert(m_propertyValues.size() && "bad size");
-            if (m_propertyValues.empty()) return;
             // 根据属性处理值
             LongUI::ValueTypeMakeValue(
                 m_nowProperty,
@@ -331,6 +346,8 @@ namespace LongUI {
                 &m_propertyValues.front(),
                 &m_values
             );
+            // OOM 处理
+            if (!m_values.is_ok()) std::longjmp(this->env, 2);
         }
         // 收尾处理
         m_propertyValues.clear();
@@ -341,9 +358,6 @@ namespace LongUI {
     /// </summary>
     /// <returns></returns>
     void CUICssStream::property_group_finished() noexcept {
-
-        // 错误处理
-
         // 添加一组
         const auto main_len = static_cast<uint32_t>(m_mainList.size());
         if (const auto block = SSBlock::Create(main_len)) {
@@ -358,6 +372,7 @@ namespace LongUI {
             // 值数据交换
             m_values.swap(block->list);
         }
+        else std::longjmp(this->env, 1);
         // 收尾处理
         m_values.clear();
         m_values.reserve(16);
@@ -484,10 +499,19 @@ namespace LongUI {
 #ifndef NDEBUG
         const char* dbg = view.begin();
         dbg = nullptr;
+        lui_debug_oom = false;
 #endif
+
         // css解析
         CUICssStream stream{ reinterpret_cast<SSBlockPtr*>(&ptr) };
-        stream.Load({ view.begin(), view.end() });
+        // 设置长跳转环境
+        const auto code = setjmp(stream.env);
+        // 错误处理
+        if (code) {
+            // TODO: 错误处理
+            assert(!"error handle");
+        }
+        else stream.Load({ view.begin(), view.end() });
         return ptr;
     }
     // detail namespace

@@ -19,12 +19,16 @@ namespace LongUI {
     class CUIWndMgr;
     // color
     struct ColorF;
+    // WindowsAlList
+    struct AllWindows;
     // popup type
     enum class PopupType : uint32_t;
     /// <summary>
     /// window base class
     /// </summary>
     class CUIWindow final : public CUIWindowEvent, public CUINoMo {
+        // itr
+        using Iterator = Node<CUIWindow>::Iterator;
         // private impl
         class Private;
         // friend class
@@ -206,6 +210,11 @@ namespace LongUI {
         // will do full render this frame?
         bool IsFullRenderThisFrame() const noexcept;
     public:
+        // end iterator
+        auto end()noexcept->Iterator { return{ static_cast<CUIWindow*>(&m_oTail) }; }
+        // begin iterator
+        auto begin()noexcept->Iterator { return{ static_cast<CUIWindow*>(m_oHead.next) }; }
+    public:
         // delete later
         void DeleteLater() noexcept;
         // delete now
@@ -230,18 +239,20 @@ namespace LongUI {
         // get window handle
         HWND GetHwnd() const { return m_hwnd; }
         // is top level window
-        bool IsTopLevel() const noexcept { return !m_pParent; }
+        //bool IsTopLevel() const noexcept { return !m_pParent; }
         // is inline window
         bool IsInlineWindow() const noexcept { return false; }
         // mark: has script
         void MarkHasScript() noexcept { m_bHasScript = true; }
     protected:
+        // init
+        void init() noexcept;
         // recursive set result
         void recursive_set_result(uintptr_t result) noexcept;
         // add child
         void add_child(CUIWindow& child) noexcept;
         // remove child
-        void remove_child(CUIWindow& child) noexcept;
+        //void remove_child(CUIWindow& child) noexcept;
         // recreate_device window
         auto recreate_window() noexcept->Result;
         // release window only device data
@@ -255,6 +266,12 @@ namespace LongUI {
     private:
         // private data
         Private*            m_private = nullptr;
+        // head
+        Node<CUIWindow>     m_oHead;
+        // tail
+        Node<CUIWindow>     m_oTail;
+        // all list node
+        Node<AllWindows>    m_oListNode;
     protected:
         // window handle
         HWND                m_hwnd = nullptr;

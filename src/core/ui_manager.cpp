@@ -188,7 +188,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
         this_()->update_control_in_list();
 #ifndef NDEBUG
         ++while_count;
-        if (while_count == 1000) {
+        if (while_count == 100) {
             LUIDebug(Error) << "MAYBE BUG!"
                 << LongUI::endl;
         }
@@ -208,7 +208,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 脏矩形更新
     //this_()->dirty_update();
     // 渲染窗口预处理
-    this_()->before_render_windows();
+    this_()->before_render_windows(this_()->begin(), this_()->end());
     // 记录时间胶囊
     const auto has_tc = this_()->has_time_capsule();
     // 结束数据更新
@@ -223,7 +223,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
     if (has_tc) this_()->call_time_capsule_s1();
     // 渲染所有窗口
     this_()->RenderLock();
-    const auto hr = this_()->render_windows();
+    const auto hr = this_()->render_windows(this_()->begin(), this_()->end());
     this_()->RenderUnlock();
     // 时间胶囊S2
     if (has_tc) this_()->call_time_capsule_s2();
@@ -267,7 +267,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
     }
     DbgMgr().NextFrame();
 #endif
-    // TODO: 错误处理
+    // 错误处理
     if (!hr) this_()->OnErrorInfoLost(hr, Occasion_Frame);
 }
 
@@ -429,7 +429,7 @@ void LongUI::CUIManager::try_recreate() noexcept {
     }
     // 重建窗口
     if (hr) {
-        hr = this_()->CUIWndMgr::recreate_windows();
+        hr = this_()->CUIWndMgr::recreate_windows(this_()->begin(), this_()->end());
     }
     // UNL
     this_()->RenderUnlock();
@@ -590,12 +590,10 @@ auto LongUI::CUIManager::Initialize(
                 break;
             }
             case CallLater::Later_Exit:
-            {
-                // 连续调用Break直到退出
+                // 连续调用Break直到退出, 防止因为消息嵌套而退出不了
                 UIManager.BreakMsgLoop(wParam);
                 ::PostMessageW(hwnd, CallLater::Later_Exit, wParam, 0);
                 break;
-            }
             default:
                 return ::DefWindowProcW(hwnd, message, wParam, lParam);
             }
@@ -680,9 +678,9 @@ auto LongUI::CUIManager::Initialize(
             longui_debug_hr(hr, "this_()->m_pDWriteFactory->GetSystemFontCollection faild");
         }*/
     }
-#ifndef NDEBUG
+#if 0
     // 枚举字体
-    /*if (hr && (this_()->flag & ConfigureFlag::Flag_DbgOutputFontFamily)) {
+    if (hr && (this_()->flag & ConfigureFlag::Flag_DbgOutputFontFamily)) {
         auto count = this_()->m_pFontCollection->GetFontFamilyCount();
         UIManager << DL_Log << "Font found: " << long(count) << "\r\n";
         // 遍历所有字体
@@ -701,7 +699,7 @@ auto LongUI::CUIManager::Initialize(
                     for (auto j = 0u; j < 1u; j++) {
                         string->GetLocaleName(j, buffer, LongUIStringBufferLength);
                         UIManager << DLevel_Log << buffer << " => ";
-                        // 有些语言在我的机器上显示不了(比如韩语), 会出现bug略过不少东西, 就显示第一个了
+                        // 有些语言在自己的机器上显示不了(比如韩语), 会出现bug略过不少东西, 就显示第一个了
                         string->GetString(j, buffer, LongUIStringBufferLength);
                         UIManager << DLevel_Log << buffer << "; ";
                     }
@@ -719,7 +717,7 @@ auto LongUI::CUIManager::Initialize(
         }
         // 刷新
         UIManager << DL_Log << LongUI::endl;
-    }*/
+    }
 #endif
     // 添加控件
     if (hr) {
@@ -830,7 +828,9 @@ void LongUI::CUIManager::Uninitialize() noexcept {
     // 强制退出
     UIManager.m_uiTimeCapsuleWaiter.Broadcast();
     // 结束掉渲染线程
-    config->EndRenderThread();
+    UIManager.config->EndRenderThread();
+    // 关闭所有窗口
+    UIManager.delete_all_window();
     // 手动调用析构函数
     UIManager.~CUIManager();
     // 反初始化COM

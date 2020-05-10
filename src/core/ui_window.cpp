@@ -341,10 +341,6 @@ namespace LongUI {
     public:
         // named control map
         CtrlMap         ctrl_map;
-        // head
-        Node<CUIWindow> head;
-        // tail
-        Node<CUIWindow> tail;
         // focused control
         UIControl*      focused = nullptr;
         // captured control
@@ -430,9 +426,6 @@ namespace LongUI {
         system_skip_rendering = false;
         layered_window_support = false;
         std::memset(access_key_map, 0, sizeof(access_key_map));
-        head.prev = nullptr;
-        head = { nullptr, static_cast<CUIWindow*>(&tail) };
-        tail = { static_cast<CUIWindow*>(&head), nullptr };
         impl::init_dcomp(dcomp_buf);
         //sizeof(*this)
     }
@@ -446,6 +439,10 @@ namespace LongUI {
 LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     m_pParent(parent), config(cfg),
     m_private(new(std::nothrow) Private) {
+    // 节点
+    m_oHead = { nullptr, static_cast<CUIWindow*>(&m_oTail) };
+    m_oTail = { static_cast<CUIWindow*>(&m_oHead), nullptr };
+    m_oListNode = { nullptr, nullptr };
     // 初始化BF
     m_inDtor = false;
     m_bInExec = false;
@@ -462,16 +459,27 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
         m_private->SetLayeredWindowSupport();
     // 初始化
     m_private->viewport = &this->RefViewport();
-    // 添加窗口
-    if (parent) parent->add_child(*this);
-    // 初始化默认大小位置
+
+    // TODO: 初始化默认大小位置
     m_private->InitWindowPos();
     // XXX: 自动睡眠?
     //if (this->IsAutoSleep()) {
 
     //}
-    //else this->WakeUp();
-    UIManager.add_window(*this);
+}
+
+
+/// <summary>
+/// Initializes this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWindow::init() noexcept {
+    // 存在父窗口则加入父窗口
+    if (m_pParent) m_pParent->add_child(*this);
+    // 否则加入窗口管理器的顶层管理
+    else UIManager.add_topwindow(*this);
+    // 为了方便遍历, 添加到全窗口列表
+    UIManager.add_to_allwindow(*this);
 }
 
 
@@ -533,15 +541,16 @@ void LongUI::CUIWindow::LoadCssString(U8View string) noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::add_child(CUIWindow& child) noexcept {
     // TODO: 在之前的父控件移除该控件
-    assert(m_private);
+    assert(child.GetParent() == this && this);
 
     // 连接前后节点
-    m_private->tail.prev->next = &child;
-    child.prev = m_private->tail.prev;
-    child.next = static_cast<CUIWindow*>(&m_private->tail);
-    m_private->tail.prev = &child;
+    m_oTail.prev->next = &child;
+    child.prev = m_oTail.prev;
+    child.next = static_cast<CUIWindow*>(&m_oTail);
+    m_oTail.prev = &child;
 }
 
+#if 0
 /// <summary>
 /// Removes the child.
 /// </summary>
@@ -555,6 +564,7 @@ void LongUI::CUIWindow::remove_child(CUIWindow& child) noexcept {
     child.next->prev = child.prev;
     child.prev = child.next = nullptr;
 }
+#endif
 
 /// <summary>
 /// Finalizes an instance of the <see cref="CUIWindow"/> class.
@@ -567,12 +577,23 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         m_pAccessible = nullptr;
     }
 #endif
+    // 需要即时修改节点信息, 只能上超级锁了
+    UIManager.DataLock();
+    UIManager.RenderLock();
     // 有脚本
     if (m_bHasScript) UIManager.FinalizeScript(*this);
     // 析构中
     m_inDtor = true;
+    // 未初始化就被删除的话节点为空
+    if (this->prev) {
+        // 连接前后节点
+        this->prev->next = this->next;
+        this->next->prev = this->prev;
+        this->prev = this->next = nullptr;
+    }
+    UIManager.remove_from_allwindow(*this);
     // 存在父窗口
-    if (m_pParent) m_pParent->remove_child(*this);
+    //m_pParent->remove_child(*this);
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 释放样式表
     LongUI::DeleteStyleSheet(m_pStyleSheet);
@@ -582,15 +603,17 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         // 弹出窗口会在下一步删除
         m_private->popup = nullptr;
         // XXX: 删除自窗口?
-        while (m_private->head.next != &m_private->tail) 
-            m_private->tail.prev->Delete();
+        while (m_oHead.next != &m_oTail) 
+            m_oTail.prev->Delete();
         // 管理器层移除引用
-        UIManager.remove_window(*this);
+        //UIManager.remove_window(*this);
         // 摧毁窗口
         if (m_hwnd) Private::DeleteWindow(m_hwnd);
         // 删除数据
         delete m_private;
     }
+    UIManager.RenderUnlock();
+    UIManager.DataUnlock();
 }
 
 /// <summary>
@@ -1252,7 +1275,7 @@ void LongUI::CUIWindow::WakeUp() noexcept {
 /// </summary>
 void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
     if (this->IsInSleepMode()) return;
-    assert(m_private->head.next == &m_private->tail);
+    assert(this->begin() == this->end());
     // 释放资源
     m_private->ReleaseDeviceData();
     // 摧毁窗口
@@ -1267,7 +1290,7 @@ void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
 void LongUI::CUIWindow::TrySleep() noexcept {
     if (this->IsInSleepMode()) return;
     if (!this->IsAutoSleep()) return;
-    if (m_private->head.next != &m_private->tail)return;
+    if (this->begin() == this->end()) return;
     m_private->auto_sleep_count = 1;
 }
 
@@ -1302,9 +1325,10 @@ auto LongUI::CUIWindow::Exec() noexcept->uintptr_t {
 /// <param name="result">The result.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::recursive_set_result(uintptr_t result) noexcept {
+    // TEST
     assert(this->IsInExec());
-    auto node = m_private->head.next;
-    const auto tail = &m_private->tail;
+    auto node = m_oHead.next;
+    const auto tail = &m_oTail;
     while (node != tail) {
         if (node->IsInExec()) node->recursive_set_result(0);
         node = node->next;
@@ -1996,14 +2020,14 @@ void LongUI::CUIWindow::Private::MarkDirtRect(const DirtyRect& rect) noexcept {
         const auto s1 = LongUI::GetArea(rect.rectangle);
         // 不包含放在最后面
         if (s1 > s0) {
+            // 反包含?
+            if (LongUI::IsInclude(rect.rectangle, first.rectangle)) return;
             write = first;
             first = rect;
-            // 反包含?
-            if (LongUI::IsInclude(rect.rectangle, write.rectangle)) return;
         }
     }
     // 标记在表
-    UIControlPrivate::MarkInDirty(*write.control);
+    UIControlPrivate::MarkInDirty(*rect.control);
     // 写入数据
     this->dirty_rect_recording[counter] = write;
     ++counter;

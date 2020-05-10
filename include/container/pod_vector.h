@@ -153,7 +153,9 @@ namespace LongUI { namespace POD {
             void shrink_to_fit() noexcept;
         private:
             // force_reset
-            void force_reset() noexcept;
+            inline void force_reset_set() noexcept;
+            // force_reset
+            inline void force_reset_oom() noexcept;
         private:
             // free memory
             static void free(char*) noexcept;

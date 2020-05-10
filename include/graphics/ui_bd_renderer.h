@@ -81,21 +81,24 @@ namespace LongUI {
         RectF               m_rcSource = { 0,0,1,1 };
         // resource for image
         CUIResourceID       m_idImage;
-        // fill for image slice
-        bool                m_bSliceFill = false;
-        // [FLAG]image layout changed
-        bool                m_bLayoutChanged = false;
-        // repeat for image
-        AttributeRepeat     m_repeat = Repeat_Stretch2;
     public:
-        // style
-        AttributeBStyle     style = Style_None;
         // border color
         ColorF              color = {};
         // radius x
         float               radius_x = 0.f;
         // radius y
         float               radius_y = 0.f;
+        // style
+        AttributeBStyle     style = Style_None;
+    private:
+        // image id changed
+        bool                m_bIdChanged = false;
+        // fill for image slice
+        bool                m_bSliceFill = false;
+        // [FLAG]image layout changed
+        bool                m_bLayoutChanged = false;
+        // repeat for image
+        AttributeRepeat     m_repeat = Repeat_Stretch2;
     };
 }
 #endif

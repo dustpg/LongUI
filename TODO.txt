@@ -1,4 +1,8 @@
-﻿空间初始化事件过长导致UPDATE?
+﻿合并 m_oHead m_oTail以节约一个指针?
+
+合并 m_oHead m_oTail以节约两个指针? 但是需要注意IsFirstChild这些用到nullptr的
+
+空间初始化事件过长导致UPDATE?
 
 LongUI::CUIBitmapBank::Free 测试 优化
 
@@ -79,8 +83,6 @@ LongUI::GetEasyType?
 控件自己走去出也要计算mouse hover leave
 
 GUI事件持续触发(比如一直按住鼠标左键)?
-
-合并 m_oHead m_oTail以节约一个指针?
 
 Tree的选择换为TreeRow而不是TreeItem?
 

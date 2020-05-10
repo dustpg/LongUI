@@ -18,30 +18,69 @@ namespace LongUI { namespace detail {
     void mark_wndmin_changed() noexcept;
 }}
 
+namespace LongUI {
+    // all
+    struct AllWindows : Node<AllWindows> {};
+}
+
 /// <summary>
 /// private data/func for WndMgr
 /// </summary>
-struct LongUI::PrivateWndMgr {
+struct LongUI::CUIWndMgr::Private {
+    // windows cast
+    static inline auto cast(CUIWindow* windows) noexcept {
+        assert(windows);
+        return reinterpret_cast<AllWindows*>(&windows->m_oListNode);
+    }
+    // windows cast
+    static inline auto cast(AllWindows* windows) noexcept {
+        assert(windows);
+        constexpr size_t of = offsetof(CUIWindow, m_oListNode);
+        const auto addr = reinterpret_cast<char*>(windows);
+        return reinterpret_cast<CUIWindow*>(addr - of);
+    }
+    // end iterator
+    auto end()noexcept ->Node<AllWindows>::Iterator {;
+        return { static_cast<AllWindows*>(&tail) };
+    }
+    // begin iterator
+    auto begin()noexcept->Node<AllWindows>::Iterator {
+        return { static_cast<AllWindows*>(head.next) };
+    }
     // windows
     using WindowVector = POD::Vector<CUIWindow*>;
     // viewports
     using ViewportVector = POD::Vector<UIViewport*>;
     // ctor
-    PrivateWndMgr() {};
+    Private() noexcept;
     // dtor
-    ~PrivateWndMgr() {}
+    ~Private() noexcept {}
     // high time-meter
-    CUITimeMeterH           timemeter;
-    // top level windows
-    //Node<>
+    CUITimeMeterH       timemeter;
+    // all window list - head
+    Node<AllWindows>    head;
+    // all window list - tail
+    Node<AllWindows>    tail;
+#if 0
     // windows list for updating
-    WindowVector            windowsu;
+    WindowVector        windowsu;
     // windows list for rendering
-    WindowVector            windowsr;
+    WindowVector        windowsr;
     // subviewports
-    ViewportVector          subviewports;
+    ViewportVector      subviewports;
+#endif
 };
 
+
+/// <summary>
+/// Initializes a new instance of the <see cref="PrivateWndMgr"/> struct.
+/// </summary>
+LongUI::CUIWndMgr::Private::Private() noexcept {
+    head = { nullptr, static_cast<AllWindows*>(&tail) };
+    tail = { static_cast<AllWindows*>(&head), nullptr };
+}
+
+#if 0
 
 /// <summary>
 /// Gets the window list.
@@ -71,6 +110,23 @@ auto LongUI::CUIWndMgr::FindSubViewportWithUnistr(const char* name)const noexcep
     return detail::find_viewport(wm().subviewports, name);
 }
 
+#endif
+
+
+/// <summary>
+/// Ends this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIWndMgr::end()noexcept->Iterator {
+    return { static_cast<CUIWindow*>(&m_oTail) };
+}
+/// <summary>
+/// Begins this instance.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIWndMgr::begin()noexcept->Iterator {
+    return { static_cast<CUIWindow*>(m_oHead.next) }; 
+}
 
 
 /// <summary>
@@ -79,15 +135,7 @@ auto LongUI::CUIWndMgr::FindSubViewportWithUnistr(const char* name)const noexcep
 /// <param name="window">The window.</param>
 /// <returns></returns>
 void LongUI::CUIWndMgr::MarkWindowMinsizeChanged(CUIWindow* window) noexcept {
-    if (window) {
-#ifndef NDEBUG
-        // 必须在窗口列表里面
-        const auto b = wm().windowsu.begin();
-        const auto e = wm().windowsu.end();
-        assert(std::find(b, e, window) != e && "not found");
-#endif
-        window->m_bMinsizeList = true;
-    }
+    if (window) window->m_bMinsizeList = true;
     detail::mark_wndmin_changed();
 }
 
@@ -95,38 +143,37 @@ void LongUI::CUIWndMgr::MarkWindowMinsizeChanged(CUIWindow* window) noexcept {
 /// Initializes a new instance of the <see cref="CUIWndMgr"/> class.
 /// </summary>
 LongUI::CUIWndMgr::CUIWndMgr(Result& out) noexcept {
+    // 节点
+    m_oHead = { nullptr, static_cast<CUIWindow*>(&m_oTail) };
+    m_oTail = { static_cast<CUIWindow*>(&m_oHead), nullptr };
     // 静态检查
     enum {
-        wm_size = sizeof(PrivateWndMgr),
+        wm_size = sizeof(Private),
         pw_size = detail::private_wndmgr<sizeof(void*)>::size,
 
-        wm_align = alignof(PrivateWndMgr),
+        wm_align = alignof(Private),
         pw_align = detail::private_wndmgr<sizeof(void*)>::align,
     };
     static_assert(wm_size == pw_size, "must be same");
     static_assert(wm_align == pw_align, "must be same");
+    detail::ctor_dtor<Private>::create(&wm());
+    // 开始计时
+    wm().timemeter.Start();
+    // 更新显示频率
+    this->refresh_display_frequency();
     // 已经发生错误
-    if (!out) return;
-    detail::ctor_dtor<PrivateWndMgr>::create(&wm());
-    Result hr = { Result::RS_OK };
-    // 尝试扩展窗口列表
-    if (hr) {
-        wm().windowsu.reserve(16);
-        wm().windowsr.reserve(16);
-        // 内存不足
-        if (!wm().windowsu.is_ok() || !wm().windowsr.is_ok())
-            hr = { Result::RE_OUTOFMEMORY };
-    }
-    // 初始化其他
-    if (hr) {
-        wm().windowsu.clear();
-        wm().windowsr.clear();
-        // 开始计时
-        wm().timemeter.Start();
-        // 更新显示频率
-        this->refresh_display_frequency();
-    }
-    out = hr;
+    //if (!out) return;
+}
+
+
+/// <summary>
+/// Deletes all window.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIWndMgr::delete_all_window() noexcept {
+    // 删除还存在的窗口
+    while (m_oHead.next != &m_oTail)
+        m_oTail.prev->Delete();
 }
 
 /// <summary>
@@ -134,14 +181,9 @@ LongUI::CUIWndMgr::CUIWndMgr(Result& out) noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIWndMgr::~CUIWndMgr() noexcept {
-    // 删除还存在的窗口
-    auto& list = wm().windowsu;
-    while (!list.empty()) {
-        assert(list.front()->IsTopLevel() && "top level must be front");
-        list.back()->Delete();
-    }
+    assert(m_oHead.next == &m_oTail);
     // 析构掉
-    wm().~PrivateWndMgr();
+    wm().~Private();
 }
 
 /// <summary>
@@ -158,40 +200,46 @@ auto LongUI::CUIWndMgr::update_delta_time() noexcept -> float {
 
 
 /// <summary>
-/// Adds the window.
+/// Adds the topwindow.
 /// </summary>
 /// <param name="window">The window.</param>
 /// <returns></returns>
-void LongUI::CUIWndMgr::add_window(CUIWindow& window) noexcept {
-    auto& wnds = wm().windowsu;
-    const auto ptr = &window;
-#ifndef NDEBUG
-    // 检查是否在里面
-    auto itr = std::find(wnds.begin(), wnds.end(), ptr);
-    assert(itr == wnds.end() && "bug");
-#endif
-    wnds.push_back(ptr);
+void LongUI::CUIWndMgr::add_topwindow(CUIWindow& window) noexcept {
+    // 连接前后节点
+    m_oTail.prev->next = &window;
+    window.prev = m_oTail.prev;
+    window.next = static_cast<CUIWindow*>(&m_oTail);
+    m_oTail.prev = &window;
 }
 
-
 /// <summary>
-/// Removes the window.
+/// Adds to allwindow.
 /// </summary>
 /// <param name="window">The window.</param>
 /// <returns></returns>
-void LongUI::CUIWndMgr::remove_window(CUIWindow & window) noexcept {
-    auto& wnds = wm().windowsu;
-    const auto ptr = &window;
-    assert(wnds.size() && "bug");
-    // 优化: 删除最后一个
-    /*if (wnds.back() == ptr) {
-        wnds.erase(wnds.size() - 1);
-    }
-    // 检查是否在里面
-    else*/ {
-        auto itr = std::find(wnds.begin(), wnds.end(), ptr);
-        assert(itr != wnds.end() && "bug");
-        wnds.erase(itr);
+void LongUI::CUIWndMgr::add_to_allwindow(CUIWindow& window) noexcept {
+    const auto allwin = Private::cast(&window);
+    auto& tail = wm().tail;
+    // 添加到全表中
+    tail.prev->next = allwin;
+    allwin->prev = tail.prev;
+    allwin->next = static_cast<AllWindows*>(&tail);
+    tail.prev = allwin;
+}
+
+/// <summary>
+/// Removes from allwindow.
+/// </summary>
+/// <param name="window">The window.</param>
+/// <returns></returns>
+void LongUI::CUIWndMgr::remove_from_allwindow(CUIWindow & window) noexcept {
+    const auto allwin = Private::cast(&window);
+    // 未初始化就被删除的话节点为空
+    if (allwin->prev) {
+        // 连接前后节点
+        allwin->prev->next = allwin->next;
+        allwin->next->prev = allwin->prev;
+        allwin->prev = allwin->next = nullptr;
     }
 }
 
@@ -199,54 +247,75 @@ void LongUI::CUIWndMgr::remove_window(CUIWindow & window) noexcept {
 /// <summary>
 /// Pres the render windows.
 /// </summary>
+/// <param name="itr">The itr.</param>
+/// <param name="endi">The endi.</param>
 /// <returns></returns>
-void LongUI::CUIWndMgr::before_render_windows() noexcept {
-    // 进行渲染预处理
+void LongUI::CUIWndMgr::before_render_windows(Iterator itr, const Iterator endi) noexcept {
     // XXX: 优化
-    for (auto window : wm().windowsr) {
-        window->BeforeRender();
+
+    // 进行渲染预处理, 途中不该会出现节点变化(下帧执行)
+    while (itr != endi) {
+        // 执行预处理
+        itr->BeforeRender();
+        // 预处理子窗口
+        before_render_windows(itr->begin(), itr->end());
+        // 递进
+        ++itr;
     }
 }
 
 /// <summary>
 /// Renders the windows.
 /// </summary>
+/// <param name="itr">The itr.</param>
+/// <param name="endi">The endi.</param>
 /// <returns></returns>
-auto LongUI::CUIWndMgr::render_windows() noexcept -> Result {
-    // 执行渲染
-    auto do_render = [](POD::Vector<CUIWindow*>& v) noexcept {
-        for (auto window : v) {
-            const auto hr = window->Render();
-            if (!hr) return hr;
-        }
-        return Result{ Result::RS_OK };
-    };
-    // 渲染记录
-    auto hr = do_render(wm().windowsr);
-    wm().windowsr.clear();
-    return hr;
+auto LongUI::CUIWndMgr::render_windows(const Iterator begini, const Iterator endi) noexcept -> Result {
+    auto itr = begini;
+    // 渲染途中不该会出现节点变化(下帧执行)
+    while (itr != endi) {
+        // 执行渲染
+        auto hr = itr->Render();
+        // 渲染子窗口
+        if (hr) hr = render_windows(itr->begin(), itr->end());
+        // 失败
+        if (!hr) return hr;
+        // 递进
+        ++itr;
+    }
+    // 成功
+    return Result{ Result::RS_OK };
 }
 
 /// <summary>
 /// Recreates the windows.
 /// </summary>
+/// <param name="begini">The begini.</param>
+/// <param name="endi">The endi.</param>
 /// <returns></returns>
-auto LongUI::CUIWndMgr::recreate_windows() noexcept -> Result {
-    auto& wnds = wm().windowsu;
+auto LongUI::CUIWndMgr::recreate_windows(const Iterator begini, const Iterator endi) noexcept -> Result {
     Result hr = { Result::RS_OK };
     // 第一次遍历
-    for (auto x : wnds) {
+    auto itr0 = begini;
+    while (itr0 != endi) {
         // 释放所有窗口的设备相关数据
-        x->ReleaseDeviceData();
+        itr0->ReleaseDeviceData();
         // 标记全刷新
-        x->MarkFullRendering();
+        itr0->MarkFullRendering();
+        // 递进
+        itr0++;
     }
     // 第二次遍历
-    for (auto x : wnds) {
+    auto itr1 = begini;
+    while (itr1 != endi) {
+        // 处理子节点
+        recreate_windows(itr1->begin(), itr1->end());
         // 只有重建了
-        const auto code = x->RecreateDeviceData();
+        const auto code = itr1->RecreateDeviceData();
         // 记录最新的错误数据
         if (!code) hr = code;
+        // 递进
+        itr1++;
     }
     return hr;
 }
@@ -259,13 +328,15 @@ auto LongUI::CUIWndMgr::recreate_windows() noexcept -> Result {
 /// <summary>
 /// Refreshes the window minsize.
 /// </summary>
+/// <param name="itr">The itr.</param>
+/// <param name="endi">The endi.</param>
 /// <returns></returns>
 void LongUI::CUIWndMgr::refresh_window_minsize() noexcept {
-    auto& list = wm().windowsu;
-    // 因为和渲染线程在同一线程所以无需加锁
-
-    // 检测窗口
-    for (auto window : list) {
+    auto& primpl = wm();
+    // 处理途中不该会出现节点变化(下帧执行)
+    for (auto& aw : primpl) {
+        const auto window = Private::cast(&aw);
+        assert(window);
         // 需要刷新最小大小
         if (window->m_bMinsizeList) {
             window->m_bMinsizeList = false;
@@ -276,7 +347,7 @@ void LongUI::CUIWndMgr::refresh_window_minsize() noexcept {
             // 修改了
             const auto a = reinterpret_cast<const uint64_t&>(minsize1);
             const auto b = reinterpret_cast<const uint64_t&>(minsize2);
-            // 在64位下可以只判断一次
+            static_assert(sizeof(minsize1) == sizeof(a), "must be same");
             if (a != b) root.NeedRelayout();
         }
     }
@@ -287,16 +358,18 @@ void LongUI::CUIWndMgr::refresh_window_minsize() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWndMgr::refresh_window_world() noexcept {
-    // 检测每个窗口的最小世界修改
-    for (auto window : wm().windowsu) {
+    auto& primpl = wm();
+    // 处理途中不该会出现节点变化(下帧执行)
+    for (auto& aw : primpl) {
+        const auto window = Private::cast(&aw);
+        assert(window);
+        // 检测每个窗口的最小世界修改
         if (const auto ctrl = window->m_pTopestWcc) {
             window->m_pTopestWcc = nullptr;
             const auto top = ctrl->IsTopLevel() ? ctrl : ctrl->GetParent();
             UIControlPrivate::UpdateWorld(*top);
         }
     }
-    // 复制窗口数据保证线程安全
-    wm().windowsr = wm().windowsu;
 }
 
 
@@ -317,13 +390,11 @@ void LongUI::CUIWndMgr::close_helper(CUIWindow& wnd) noexcept {
     // 最后一个窗口关闭即退出?
     if (this->is_quit_on_last_window_closed()) {
         // 遍历窗口
-        for (auto x : wm().windowsu) {
-            // 不考虑非顶层的
-            if (!x->IsTopLevel()) continue;
+        for (auto& x : (*this)) {
             // 不考虑工具窗口
-            if (x->config & CUIWindow::Config_ToolWindow) continue;
+            if (x.config & CUIWindow::Config_ToolWindow) continue;
             // 有一个在就算了
-            if (x->IsVisible()) return;
+            if (x.IsVisible()) return;
         }
         // 退出程序
         this->exit();

@@ -48,9 +48,19 @@ m_uExtra(x.m_uExtra) {
 /// Forces the reset.
 /// </summary>
 /// <returns></returns>
-void LongUI::POD::detail::vector_base::force_reset() noexcept {
+inline void LongUI::POD::detail::vector_base::force_reset_set() noexcept {
     m_pData = this->invalid_heap();
     m_uVecCap = this->get_extra_fbl();
+}
+
+
+/// <summary>
+/// Forces the reset.
+/// </summary>
+/// <returns></returns>
+inline void LongUI::POD::detail::vector_base::force_reset_oom() noexcept {
+    m_pData = this->invalid_heap();
+    m_uVecCap = 0;
 }
 
 PCN_NOINLINE
@@ -67,7 +77,7 @@ m_uExtra(x.m_uExtra) {
     assert(&x != this && "can not move same object");
     // 对面有效堆数据
     if (x.is_valid_heap(x.m_pData)) {
-        x.force_reset();
+        x.force_reset_set();
     }
     // 自己也必须是缓存数据
     else {
@@ -192,7 +202,7 @@ void LongUI::POD::detail::vector_base::alloc_memory(size_type len) noexcept {
     }
     // 内存不足
     else {
-        this->force_reset();
+        this->force_reset_oom();
     }
 }
 
@@ -417,7 +427,7 @@ void LongUI::POD::detail::vector_base::reserve(size_type n) noexcept {
         // 内存不足, 释放旧数据
         else {
             if (ptr) std::free(m_pData);
-            this->force_reset();
+            this->force_reset_oom();
         }
 #endif
     }
@@ -511,7 +521,7 @@ void LongUI::POD::detail::vector_base::shrink_to_fit() noexcept {
     // 为空直接释放
     if (m_uVecLen == 0) {
         this->free(m_pData);
-        this->force_reset();
+        this->force_reset_set();
         return;
     }
     // 因为使用使用realloc继续缩水

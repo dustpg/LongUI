@@ -21,12 +21,6 @@ namespace LongUI {
         // 64bit
         template<> struct cc<8> { enum { size = 24*4+32+8*4, align = 8 };  };
     }
-    // basic animation
-    struct ControlAnimationBasic;
-    // private data for control control
-    struct PrivateCC;
-    // style sheet
-    class CUIStyleSheet;
     // control
     class UIControl;
     // node update
@@ -36,10 +30,14 @@ namespace LongUI {
         // last node
         UIControl*      last;
     };
+    // style sheet
+    class CUIStyleSheet;
+    // basic animation
+    struct ControlAnimationBasic;
     // control control
     class CUIControlControl {
         // friend struct
-        friend PrivateCC;
+        struct Private;
         // CUIXulStream
         struct CUIXulStream;
         // after create time capsule
@@ -156,9 +154,9 @@ namespace LongUI {
             detail::cc<sizeof(void*)>::align
         >::type                 m_private;
         // get cc
-        auto&cc() noexcept { return reinterpret_cast<PrivateCC&>(m_private); }
+        auto&cc() noexcept { return reinterpret_cast<Private&>(m_private); }
         // get const cc
-        auto&cc() const noexcept { return reinterpret_cast<const PrivateCC&>(m_private); }
+        auto&cc() const noexcept { return reinterpret_cast<const Private&>(m_private); }
     };
 }
 

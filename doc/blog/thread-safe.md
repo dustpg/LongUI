@@ -80,7 +80,7 @@ class UILabel {
 
 换句话说时间胶囊中的函数应该是**无锁编程**, 安心地在时间胶囊中调用 ```UILabel::SetText``` 而不用加锁!
 
-#### 利用CUIBlockingGuiOpAutoUnlocker调用堵塞函数
+### 利用CUIBlockingGuiOpAutoUnlocker调用堵塞函数
 
 LongUI仅仅是一个简单的GUI库, 不是一套完整的解决方案, 不可能像Qt那样封装全部操作系统的函数. 有时可能需要调用一些操作系统GUI函数: 最简单的比如``` MessageBox ```, 稍微复杂点的 ``` GetOpenFileName ``` , 这些都是堵塞型的.
 
@@ -117,7 +117,7 @@ void call() {
 }
 ```
 
-#### 利用 UIControl::ControlMakingBegin/End 创建大量控件
+### 利用 UIControl::ControlMakingBegin/End 创建大量控件
 
 
 为了保证正确性, 请在创建大量控件时使用``` UIControl::ControlMakingBegin ``` 和 ``` UIControl::ControlMakingEnd ```包裹创建过程, 比如``` UIControl::SetXul ```是这样实现的:
@@ -147,3 +147,6 @@ MyControl::MyControl(UIControl* parent, const MetaControl& meta) : Super(impl::c
 
 同上, 不建议直接调用```DataLock```. (默认控件中, UIBoxLayout可以接受卡在构造函数, 但是其超类UIScrollArea不能接受.) (以防万一就都加上)
 
+### CUIWindow::~CUIWindow的超级锁
+
+与其他地方不同的是, CUIWindow析构操作会同时上两把锁, 因为Window数据(主窗口设计上)是放在栈上需要即时处理, 析构一个窗口需要保证绝对的安全

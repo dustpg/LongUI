@@ -24,17 +24,23 @@ namespace LongUI {
         CUIRendererBackground(CUIRendererBackground&&) = delete;
         // copy ctor
         CUIRendererBackground(const CUIRendererBackground&) = delete;
+        // befor render
+        void BeforeRender() noexcept;
         // render color
         void RenderColor(const Box& box, Size2F) const noexcept;
         // render image
         void RenderImage(const Box& box, Size2F) const noexcept;
-        // refresh image
-        auto RefreshImage() noexcept->Result;
         // create device data
         auto CreateDeviceData() noexcept->Result;
         // release device data
         void ReleaseDeviceData();
+        // set image id
+        void SetImageId(uintptr_t id) noexcept;
+        // get image id
+        auto GetImageId() const noexcept { return m_idImage.GetId(); }
     private:
+        // refresh image
+        auto refresh_image() noexcept->Result;
         // ----------- CACHE-DATA -----------
         // image source
         RectF               m_rcImage = {};
@@ -49,10 +55,10 @@ namespace LongUI {
         I::EOutput*         m_pOutput = nullptr;
         // image brush
         //I::Brush*           m_pImageBrush = nullptr;
-    public:
         // ------------- CPU-RES ------------
         // background-image
-        CUIResourceID       image_id;
+        CUIResourceID       m_idImage;
+    public:
         // background-color
         ColorF              color;
         // background-size
@@ -65,6 +71,9 @@ namespace LongUI {
         AttributeBox        origin = Box_PaddingBox;
         // background-attachment
         AttributeAttachment attachment = Attachment_Scroll;
+    private:
+        // id change
+        bool                m_bIdChanged = false;
     };
 }
 #endif

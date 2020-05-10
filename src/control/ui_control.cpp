@@ -145,7 +145,13 @@ void LongUI::UIControl::NeedRelayout() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UIControl::IsFirstChild() const noexcept {
+#ifdef LUI_CONTROL_USE_SINLENODE
+    assert(m_pParent && "orphan");
+    return this->prev == &m_pParent->m_oHead;
+#else
+    assert(this->prev && "orphan");
     return this->prev->prev == nullptr;
+#endif
 }
 
 
@@ -154,7 +160,13 @@ bool LongUI::UIControl::IsFirstChild() const noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UIControl::IsLastChild() const noexcept {
+#ifdef LUI_CONTROL_USE_SINLENODE
+    assert(m_pParent && "orphan");
+    return this->next == &m_pParent->m_oHead;
+#else
+    assert(this->next && "orphan");
     return this->next->next == nullptr;
+#endif
 }
 
 /// <summary>
@@ -827,8 +839,13 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     m_state.Init();
     m_oBox.size = { INVALID_CONTROL_SIZE, INVALID_CONTROL_SIZE };
     // 初始化一般数据
+#ifdef LUI_CONTROL_USE_SINLENODE
+    const auto pointer = static_cast<UIControl*>(&m_oHead);
+    m_oHead = { pointer, pointer };
+#else
     m_oHead = { nullptr, static_cast<UIControl*>(&m_oTail) };
     m_oTail = { static_cast<UIControl*>(&m_oHead), nullptr };
+#endif
     // 清空后面数据
     //if (meta.size_of > sizeof(*this)) {
     //    const auto ptr = reinterpret_cast<char*>(this);
@@ -1324,8 +1341,13 @@ void LongUI::UIControl::remove_child(UIControl& child) noexcept {
     child.next->prev = child.prev;
 #ifndef NDEBUG
     if (!m_cChildrenCount) {
+#ifdef LUI_CONTROL_USE_SINLENODE
+        assert(m_oHead.prev == &m_oHead);
+        assert(m_oHead.prev == m_oHead.next);
+#else
         assert(m_oHead.next == &m_oTail);
         assert(m_oTail.prev == &m_oHead);
+#endif
     }
 #endif
     // 要求刷新
@@ -1545,10 +1567,17 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     child.m_pParent = this;
     ++m_cChildrenCount;
     // 连接前后节点
+#ifdef LUI_CONTROL_USE_SINLENODE
+    m_oHead.prev->next = &child;
+    child.prev = m_oHead.prev;
+    child.next = static_cast<UIControl*>(&m_oHead);
+    m_oHead.prev = &child;
+#else
     m_oTail.prev->next = &child;
     child.prev = m_oTail.prev;
     child.next = static_cast<UIControl*>(&m_oTail);
     m_oTail.prev = &child;
+#endif
     // 要求刷新
     child.m_state.level = m_state.level + 1;
     assert(child.GetLevel() < 120 && "tree too deep");
@@ -2014,10 +2043,11 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
 /// SetXul目前只接受 NUL 结尾字符串
 /// </remarks>
 /// <returns></returns>
-void LongUI::UIControl::SetXul(const char* xul) noexcept {
+bool LongUI::UIControl::SetXul(const char* xul) noexcept {
     UIControl::ControlMakingBegin();
-    CUIControlControl::MakeXul(*this, xul);
+    const bool rvcode = CUIControlControl::MakeXul(*this, xul);
     UIControl::ControlMakingEnd();
+    return rvcode;
 }
 
 /// <summary>

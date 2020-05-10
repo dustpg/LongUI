@@ -134,6 +134,7 @@ bool LongUI::detail::string_helper::string_format(
     }
     // wchar
     else {
+        assert(bytesize == sizeof(wchar_t) && "unsupport");
         const auto buffer = reinterpret_cast<wchar_t*>(str.m_pData);
         const auto fmtwch = reinterpret_cast<const wchar_t*>(fmt);
         const auto newcode = std::vswprintf(buffer, str.m_uVecCap, fmtwch, args);

@@ -94,6 +94,7 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     m_oStyle.pack = Pack_Center;
     m_oStyle.align = Align_Center;
     m_oBox.margin = { 5, 5, 5, 5 };
+    m_oBox.padding = { 2, 2, 2, 2 };
     // 私有实现
     m_private = new(std::nothrow) Private{ *this };
     // OOM处理

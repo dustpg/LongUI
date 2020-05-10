@@ -97,6 +97,9 @@ namespace LongUI {
         uint16_t                m_u16Alloc = 0;
         // exit flag
         bool                    m_bExitFlag = false;
+    public:
+        // oom tester
+        //bool                    oom = false;
     };
 }
 

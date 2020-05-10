@@ -63,11 +63,15 @@ void LongUI::CUIRendererBorder::SetImageId(uintptr_t id) noexcept {
     }
 #endif
     m_idImage.SetId(id);
+    // 将数据延迟到渲染时处理避免线程隐患
+    m_bIdChanged = true;
+#if 0
     // 没有就忽略
     if (!m_pBorder) return;
     // XXX: 错误处理
     const auto code = this->refresh_image();
     assert(code && "TODO: ERROR HANDLE");
+#endif
 }
 
 /// <summary>
@@ -167,13 +171,24 @@ void LongUI::CUIRendererBorder::refresh_real_slice() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIRendererBorder::BeforeRender(const Box& box) noexcept {
-    if (m_pBorder && m_bLayoutChanged) {
-        this->refresh_real_slice();
-        this->refresh_draw_count();
-        this->refresh_image_matrix(box);
+    if (m_pBorder) {
+        // XXX: m_bIdChanged 应该用原子类型保证数据安全?
+        if (m_bIdChanged) {
+            m_bIdChanged = false;
+            this->refresh_image();
+            // XXX: 错误处理
+            const auto code = this->refresh_image();
+            assert(code && "TODO: ERROR HANDLE");
+        }
+        if (m_bLayoutChanged) {
+            this->refresh_real_slice();
+            this->refresh_draw_count();
+            this->refresh_image_matrix(box);
+        }
     }
     m_bLayoutChanged = false;
 }
+
 
 
 /// <summary>

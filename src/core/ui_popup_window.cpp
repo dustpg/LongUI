@@ -28,8 +28,8 @@ auto LongUI::PopupWindowFromName(
         auto& vp = wnd->RefViewport();
         // 优先查找发起者所在窗口
         target = vp.FindSubViewportWithUnistr(name);
-        // 没有就全局查找
-        if (!target) target = UIManager.FindSubViewportWithUnistr(name);
+        // TODO: 没有就全局查找
+        //if (!target) target = UIManager.FindSubViewportWithUnistr(name);
     }
     // 没有就无视掉
     if (!target) return Event_Ignore;

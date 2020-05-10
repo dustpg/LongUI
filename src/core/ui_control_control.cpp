@@ -33,7 +33,7 @@ namespace LongUI {
 /// <summary>
 /// private data/func for controlcontrol
 /// </summary>
-struct LongUI::PrivateCC {
+struct LongUI::CUIControlControl::Private {
     // control animation
     using BasicAnima = ControlAnimationBasic;
 #ifndef LUI_DISABLE_STYLE_SUPPORT
@@ -41,9 +41,9 @@ struct LongUI::PrivateCC {
     using ExtraAnima = ControlAnimationExtra;
 #endif
     // ctor
-    inline PrivateCC() noexcept;
+    inline Private() noexcept;
     // ctor
-    inline ~PrivateCC() noexcept { }
+    inline ~Private() noexcept { }
     // init list
     ControlNode             init_list = { nullptr };
     // update list
@@ -120,7 +120,14 @@ void LongUI::CUIControlControl::AddGlobalCssFile(U8View file) noexcept {
 /// <summary>
 /// Initializes a new instance of the <see cref="PrivateCC"/> struct.
 /// </summary>
-inline LongUI::PrivateCC::PrivateCC() noexcept {
+LongUI::CUIControlControl::Private::Private() noexcept {
+    enum {
+        pc_size = sizeof(Private),
+        cc_size = detail::cc<sizeof(void*)>::size,
+        cc_align = detail::cc<sizeof(void*)>::align,
+    };
+    static_assert(pc_size == cc_size, "must be same");
+    static_assert(alignof(Private) == cc_align, "must be same");
 }
 
 /// <summary>
@@ -186,7 +193,7 @@ void LongUI::CUIControlControl::RecursiveRender(
 LongUI::CUIControlControl::CUIControlControl() noexcept {
     m_oHeadTimeCapsule = { nullptr, static_cast<CUITimeCapsule*>(&m_oTailTimeCapsule) };
     m_oTailTimeCapsule = { static_cast<CUITimeCapsule*>(&m_oHeadTimeCapsule), nullptr };
-    detail::ctor_dtor<PrivateCC>::create(&cc());
+    detail::ctor_dtor<Private>::create(&cc());
     m_dwTimeTick = LongUI::GetTimeTick();
     m_dwDeltaTime = 0;
 }
@@ -200,7 +207,7 @@ LongUI::CUIControlControl::~CUIControlControl() noexcept {
     LongUI::DeleteStyleSheet(m_pStyleSheet);
 #endif
     this->dispose_all_time_capsule();
-    cc().~PrivateCC();
+    cc().~Private();
 }
 
 /// <summary>
@@ -321,16 +328,6 @@ bool LongUI::CUIControlControl::has_time_capsule() const noexcept {
     return tcbegin != tcend;
 }
 
-// ui namespace
-namespace LongUI {
-    enum {
-        pc_size = sizeof(PrivateCC),
-        cc_size = detail::cc<sizeof(void*)>::size,
-        cc_align = detail::cc<sizeof(void*)>::align,
-    };
-    static_assert(pc_size == cc_size, "must be same");
-    static_assert(alignof(PrivateCC) == cc_align, "must be same");
-}
 
 /// <summary>
 /// Controls the attached.
@@ -1525,7 +1522,11 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
     // 设置长跳转环境   顺便, setjmp是宏, 而非函数
     const auto code = setjmp(stream.env);
     // 先去掉所有子控件
-    while (ctrl.GetCount()) (*ctrl.begin()).SetParent(nullptr);
+    while (ctrl.GetCount()) {
+        auto& control = *ctrl.begin();
+        control.DeleteLater();
+        control.SetParent(nullptr);
+    }
     // 错误代码 
     bool rv = false;
     // 检查错误

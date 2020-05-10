@@ -27,12 +27,11 @@
 // basic type
 #include "ui_basic_type.h"
 #include "ui_core_type.h"
+#include "ui_node.h"
 #include <type_traits>
 
 // ui namespace
 namespace LongUI {
-    // priavte wndmgr
-    struct PrivateWndMgr;
     // window list
     struct WindowVector;
     // detail namespace
@@ -40,54 +39,69 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_wndmgr;
         // 32bit
-        template<> struct private_wndmgr<4> { enum { size = 72, align = 8 }; };
+        template<> struct private_wndmgr<4> { enum { size = 40, align = 8 }; };
         // 64bit
-        template<> struct private_wndmgr<8> { enum { size = 96, align = 8 }; };
+        template<> struct private_wndmgr<8> { enum { size = 56, align = 8 }; };
     }
     // UI Window Manager
     class CUIWndMgr {
+        // itr
+        using Iterator = Node<CUIWindow>::Iterator;
         // friend
         friend CUIWindow;
+        // private impl
+        struct Private;
     public:
         // get main dpi x
         auto GetMainDpiX() const noexcept { return m_uMainDpiX; }
         // get main dpi y
         auto GetMainDpiY() const noexcept { return m_uMainDpiY; }
-        // mark window minsize changed, donothing if null
-        void MarkWindowMinsizeChanged(CUIWindow* window) noexcept;
-        // get window list
-        auto GetWindowList() const noexcept->const WindowVector&;
         // move subviewport to global
         void MoveSubViewToGlobal(UIViewport&) noexcept;
         // find subviewport with unique string
         auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
+        // mark window minsize changed, donothing if null
+        static void MarkWindowMinsizeChanged(CUIWindow* window) noexcept;
     protected:
+        // delete all window
+        void delete_all_window() noexcept;
         // close helper
         void close_helper(CUIWindow& wnd) noexcept;
+        // add a top-window
+        void add_topwindow(CUIWindow&) noexcept;
         // add a window
-        void add_window(CUIWindow&) noexcept;
+        void add_to_allwindow(CUIWindow&) noexcept;
         // remove a window
-        void remove_window(CUIWindow&) noexcept;
-        // before all windows 
-        void before_render_windows() noexcept;
-        // render all windows
-        auto render_windows() noexcept->Result;
-        // recreate_device all windows
-        auto recreate_windows() noexcept->Result;
+        void remove_from_allwindow(CUIWindow&) noexcept;
         // update delta time
         auto update_delta_time() noexcept -> float;
         // sleep for vblank
         void sleep_for_vblank() noexcept;
-        // refresh window minsize
-        void refresh_window_minsize() noexcept;
-        // refresh control world in each window
+        // refresh control world in all windows
         void refresh_window_world() noexcept;
+        // refresh all given windows(and children) minsize
+        void refresh_window_minsize() noexcept;
+        // recreate_device all given windows(and children)
+        static auto recreate_windows(Iterator, Iterator) noexcept->Result;
+        // before all given windows(and children) render
+        static void before_render_windows(Iterator, Iterator) noexcept;
+        // render all given windows(and children)
+        static auto render_windows(Iterator, Iterator) noexcept->Result;
     private:
         // is quit on last window closed
         static bool is_quit_on_last_window_closed() noexcept;
         // exit
         static void exit() noexcept;
+    public:
+        // top lv end iterator
+        auto end()noexcept->Iterator;
+        // top lv begin iterator
+        auto begin()noexcept->Iterator;
     protected:
+        // head
+        Node<CUIWindow>         m_oHead;
+        // tail
+        Node<CUIWindow>         m_oTail;
         // main monitor dpi x
         uint16_t                m_uMainDpiX = 96;
         // main monitor dpi y
@@ -105,9 +119,9 @@ namespace LongUI {
             detail::private_wndmgr<sizeof(void*)>::align
         >::type                 m_private;
         // wm
-        auto& wm() noexcept { return reinterpret_cast<PrivateWndMgr&>(m_private); }
+        auto& wm() noexcept { return reinterpret_cast<Private&>(m_private); }
         // wm
-        auto& wm() const noexcept { return reinterpret_cast<const PrivateWndMgr&>(m_private); }
+        auto& wm() const noexcept { return reinterpret_cast<const Private&>(m_private); }
     protected:
         // refresh display frequency
         void refresh_display_frequency() noexcept;

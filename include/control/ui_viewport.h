@@ -39,6 +39,8 @@ namespace LongUI {
     public:
         // class meta
         static const  MetaControl   s_meta;
+        // do event
+        auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // [NEW] on window closed
         virtual void WindowClosed() noexcept;
         // [NEW] on subview popup

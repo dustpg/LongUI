@@ -159,6 +159,10 @@ void LongUI::CUIDefaultConfigure::NormalFree(void* address) noexcept {
     return std::free(address);
 }
 
+#ifndef NDEBUG
+extern "C" bool lui_debug_oom = false;
+#endif
+
 /// <summary>
 /// realloc for normal space
 /// </summary>
@@ -168,17 +172,21 @@ void LongUI::CUIDefaultConfigure::NormalFree(void* address) noexcept {
 void*LongUI::CUIDefaultConfigure::NormalRealloc(void* address, size_t length) noexcept {
     assert((address || length) && "cannot call std::realloc(nullptr, 0)");
 
-    //if (length & 0) {
-    //    auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
-    //    const auto count = u16++;
-    //    if (count >= 4)
-    //        return nullptr;
-    //}
+#ifndef NDEBUG
+    if (length) {
+
+        if (lui_debug_oom) return nullptr;
+
+        //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
+        //const auto count = u16++;
+        //if (count >= 4) return nullptr;
+
+    }
+#endif
 
     return std::realloc(address, length);
 }
 
-#undef NDEBUG
 
 /// <summary>
 /// malloc for small space
@@ -190,7 +198,6 @@ void*LongUI::CUIDefaultConfigure::SmallAlloc(size_t length) noexcept {
 #ifdef NDEBUG
     return std::malloc(length);
 #else
-
     const auto ptr = std::malloc(length + DEBUG_SMALL);
     const auto data = reinterpret_cast<char*>(ptr);
     return data ? data + DEBUG_SMALL : nullptr;
