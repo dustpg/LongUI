@@ -139,7 +139,7 @@ namespace LongUI {
         // msg-loop(could be in recursion)
         void RecursionMsgLoop() noexcept { this->config->RecursionMsgLoop(); }
         // On OOM
-        auto HandleOOM(uint32_t retry_count, size_t try_alloc) noexcept->CodeOOM;
+        auto HandleOOM(size_t retry_count, size_t try_alloc) noexcept->CodeOOM;
         // on error info lost
         void OnErrorInfoLost(Result, ErrorOccasion occ) noexcept;
         // load data from url

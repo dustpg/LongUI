@@ -2108,8 +2108,8 @@ void LongUI::CUIWindow::Private::BeforeRender(const Size2F size) noexcept {
             return this->mark_fr_for_render();
     }
     // 写入数据
-    auto& precount = this->dirty_count_presenting;
-    precount = itr - this->dirty_rect_presenting;
+    const auto pcount = itr - this->dirty_rect_presenting;
+    this->dirty_count_presenting = uint32_t(pcount);
 
 #if 0
     // 先清除

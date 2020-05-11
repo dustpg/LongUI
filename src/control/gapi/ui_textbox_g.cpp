@@ -671,7 +671,7 @@ auto LongUI::UITextBox::RequestText() noexcept -> const CUIString & {
 /// <param name="retry_count">The retry count.</param>
 /// <param name="size">The size.</param>
 /// <returns></returns>
-auto LongUI::UITextBox::OnOOM(uint32_t retry_count, size_t size) noexcept->RichED::HandleOOM {
+auto LongUI::UITextBox::OnOOM(size_t retry_count, size_t size) noexcept->RichED::HandleOOM {
 #ifdef RED_CUSTOM_ALLOCFUNC
     // 已经由LongUI处理了
     return RichED::OOM_Ignore;

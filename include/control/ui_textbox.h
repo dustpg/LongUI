@@ -91,7 +91,7 @@ namespace LongUI {
         auto Recreate(bool release_only) noexcept->Result override;
     protected:
         // on out of memory, won't be called on ctor
-        auto OnOOM(uint32_t retry_count, size_t size) noexcept->RichED::HandleOOM override;
+        auto OnOOM(size_t retry_count, size_t size) noexcept->RichED::HandleOOM override;
         // is valid password
         bool IsValidPassword(char32_t) noexcept override;
         // append text

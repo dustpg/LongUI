@@ -612,7 +612,7 @@ namespace RichED {
         /// <param name="ptr">The PTR.</param>
         /// <param name="length">The length.</param>
         /// <returns></returns>
-        void ruby_undoredo_mk(void* ptr, size_t length) noexcept {
+        void ruby_undoredo_mk(void* ptr, uint32_t length) noexcept {
             assert(ptr);
             const auto len = impl::ruby_undoredo_len(length);
             const auto op = reinterpret_cast<TrivialUndoRedo*>(ptr);

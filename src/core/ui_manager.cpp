@@ -890,7 +890,7 @@ auto LongUI::CUIControlControl::after_create_tc(CUITimeCapsule* tc,
 /// <param name="retry_count">The retry count.</param>
 /// <param name="try_alloc">The try alloc.</param>
 /// <returns></returns>
-auto LongUI::CUIManager::HandleOOM(uint32_t retry_count, size_t try_alloc) noexcept->CodeOOM {
+auto LongUI::CUIManager::HandleOOM(size_t retry_count, size_t try_alloc) noexcept->CodeOOM {
     return this_()->config->HandleOOM(retry_count, try_alloc);
 }
 
