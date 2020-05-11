@@ -19,9 +19,6 @@
 #include <effect/ui_effect_backimage.h>
 #include <effect/ui_effect_borderimage.h>
 
-// private
-#include "../private/ui_private_image.h"
-
 // c++
 #include <cassert>
 #include <cstring>
@@ -767,8 +764,8 @@ auto LongUI::CUIResMgr::Private::load_create(U8View uri) noexcept -> CUISharedRe
 #ifndef NDEBUG
                 if (c > 1) {
                     LUIDebug(Warning)
-                        << "UIManager.LoadResource is for small image and common use. "
-                        << "this animation-image is too big: " << s << 'x' << c << endl;
+                        << "UIManager.LoadResource is for small image/common use. "
+                        << "this animation-image is too big: " << s << " x " << c << endl;
                 }
 #endif // !NDEBUG
 
@@ -1309,14 +1306,14 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg, ConfigureFlag flag) n
         if (!tmp) return tmp;
         IDXGIAdapter1* apAdapters[MAX_GRAPHICS_ADAPTERS];
         GraphicsAdapterDesc gas[MAX_GRAPHICS_ADAPTERS];
-        uint32_t adnum = 0;
+        std::memset(apAdapters, 0, sizeof(apAdapters));
+        //std::memset(gas, 0, sizeof(gas));
+        uint32_t adnum;
         // 枚举适配器
         for (adnum = 0; adnum < MAX_GRAPHICS_ADAPTERS; ++adnum) {
             constexpr HRESULT nf = DXGI_ERROR_NOT_FOUND;
-            if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == nf) {
-                break;
-            }
-            DXGI_ADAPTER_DESC1 desc;
+            if (dxgifactory->EnumAdapters1(adnum, apAdapters + adnum) == nf) break;
+            DXGI_ADAPTER_DESC1 desc = { 0 };
             apAdapters[adnum]->GetDesc1(&desc);
             static_assert(sizeof(desc.Description) <= sizeof(gas->friend_name), "SMALL!");
             std::memcpy(gas[adnum].friend_name, desc.Description, sizeof(desc.Description));
@@ -1326,13 +1323,11 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg, ConfigureFlag flag) n
         }
         // 选择适配器
         const auto index = cfg->ChooseAdapter(gas, adnum);
-        if (index < adnum) {
+        if (index < adnum)
             adapter = LongUI::SafeAcquire(apAdapters[index]);
-        }
         // 释放适配器
-        for (size_t i = 0; i < adnum; ++i) {
+        for (uint32_t i = 0; i < adnum; ++i)
             LongUI::SafeRelease(apAdapters[i]);
-        }
         LongUI::SafeRelease(dxgifactory);
     }
     Result hr = { Result::RS_OK };

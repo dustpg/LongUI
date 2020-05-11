@@ -51,6 +51,7 @@ m_uExtra(x.m_uExtra) {
 inline void LongUI::POD::detail::vector_base::force_reset_set() noexcept {
     m_pData = this->invalid_heap();
     m_uVecCap = this->get_extra_fbl();
+    m_uVecLen = 0;
 }
 
 
@@ -61,6 +62,7 @@ inline void LongUI::POD::detail::vector_base::force_reset_set() noexcept {
 inline void LongUI::POD::detail::vector_base::force_reset_oom() noexcept {
     m_pData = this->invalid_heap();
     m_uVecCap = 0;
+    m_uVecLen = 0;
 }
 
 PCN_NOINLINE
@@ -305,9 +307,7 @@ PCN_NOINLINE
 /// <param name="data">The data.</param>
 /// <returns></returns>
 void LongUI::POD::detail::vector_base::push_back(const char* data) noexcept {
-    // XXX: 针对小于sizeof(void*)对象优化, 其他常用函数也是如此
     assert(m_uByteLen && "m_uByteLen cannot be 0");
-    assert(m_uVecLen <= m_uVecCap && "bad case");
     // 重新申请空间
     if (m_uVecLen == m_uVecCap) {
         // 分配策略: 在reserve中实现
@@ -315,6 +315,7 @@ void LongUI::POD::detail::vector_base::push_back(const char* data) noexcept {
         // 内存不足
         if (!is_ok()) return;
     }
+    assert(m_uVecLen <= m_uVecCap && "bad case");
     // 写入数据
     const auto write_ptr = m_pData + m_uByteLen * m_uVecLen;
     std::memcpy(write_ptr, data, m_uByteLen);

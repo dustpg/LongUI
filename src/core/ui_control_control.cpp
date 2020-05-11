@@ -1012,7 +1012,8 @@ void LongUI::UIControl::extra_animation_callback(
     // 检测参数有效性
     assert(ptr && "bad ptr");
     auto& vector = *reinterpret_cast<POD::Vector<SSFromTo>*>(ptr);
-    assert(vector.empty() && "not empty");
+    auto& blockv = *reinterpret_cast<POD::Vector<uintptr_t>*>(blocks);
+    //assert(vector.empty() && "not empty");
     // 判断
     const auto& matched = m_oStyle.matched;
     // 检测状态
@@ -1030,9 +1031,8 @@ void LongUI::UIControl::extra_animation_callback(
         const auto noo = reinterpret_cast<const uint32_t&>(x.noo);
         const auto matched1 = (now & yes) == yes && (now & noo) == 0;
         const auto matched2 = (too & yes) == yes && (too & noo) == 0;
-        if (matched1 != matched2) {
-            reinterpret_cast<POD::Vector<uintptr_t>*>(blocks)->push_back(x.tid + matched2);
-        }
+        if (matched1 != matched2)
+            blockv.push_back(x.tid + matched2);
     }
     // 修改的不为空
     if (matched.empty()) return;
@@ -1228,6 +1228,7 @@ void LongUI::CUIControlControl::StartExtraAnimation(
     blocks.clear();
     // 利用回调获取修改的属性
     auto& from_to_list = cc().from_to;
+    from_to_list.clear();
     ctrl.extra_animation_callback(type, &from_to_list, &blocks);
     this->do_animation_in_from_to(ctrl);
     // 检测blocks

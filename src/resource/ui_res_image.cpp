@@ -130,6 +130,7 @@ auto LongUI::CUIImage::Create(uint32_t f, uint32_t d, Size2U s) noexcept -> CUII
 //    return hr;
 //}
 
+
 /// <summary>
 /// Renders the specified render.
 /// </summary>
@@ -153,8 +154,13 @@ void LongUI::CUIImage::Render(
     assert(frame_id < this->frame_count);
     if (frame_id < this->frame_count) {
         const auto& frame = m_frames[frame_id];
+        if (!frame.bitmap) {
+#ifndef NDEBUG
+
+#endif
+            return;
+        }
         D2D1_MATRIX_4X4_F* const matrix = nullptr;
-        assert(frame.bitmap);
         // 调用NATIVE接口
         renderer.DrawBitmap(
             frame.bitmap,
@@ -165,10 +171,6 @@ void LongUI::CUIImage::Render(
             //nullptr,
             matrix
         );
-        //if (this->frame_count) {
-        //    UIManager.SaveAsPng(*frame.bitmap, L"test.png");
-        //    std::exit(1);
-        //}
     }
 }
 

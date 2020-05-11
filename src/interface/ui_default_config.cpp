@@ -24,8 +24,9 @@ auto LongUI::CUIDefaultConfigure::GetSimpleLogFileName() noexcept -> CUIString {
 /// <param name="length">The length.</param>
 /// <returns></returns>
 auto LongUI::CUIDefaultConfigure::ChooseAdapter(
-    const GraphicsAdapterDesc /*adapters*/[], 
+    const GraphicsAdapterDesc adapters[], 
     const uint32_t length) noexcept -> uint32_t {
+    adapters;
     return length;
 }
 
@@ -139,6 +140,10 @@ void LongUI::CUIDefaultConfigure::FinalizeScript(CUIWindow& window) noexcept {
 // ui namespace
 namespace LongUI { enum { DEBUG_SMALL = 32 }; }
 
+#ifndef NDEBUG
+extern "C" bool lui_debug_oom = false;
+#endif
+
 /// <summary>
 /// malloc for normal space
 /// </summary>
@@ -146,6 +151,12 @@ namespace LongUI { enum { DEBUG_SMALL = 32 }; }
 /// <returns></returns>
 void*LongUI::CUIDefaultConfigure::NormalAlloc(size_t length) noexcept {
     assert(length && "cannot alloc 0 byte at here");
+#ifndef NDEBUG
+    if (lui_debug_oom) return nullptr;
+    //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
+    //const auto count = u16++;
+    //if (count >= 200) return nullptr;
+#endif
     //return nullptr;
     return std::malloc(length);
 }
@@ -159,9 +170,6 @@ void LongUI::CUIDefaultConfigure::NormalFree(void* address) noexcept {
     return std::free(address);
 }
 
-#ifndef NDEBUG
-extern "C" bool lui_debug_oom = false;
-#endif
 
 /// <summary>
 /// realloc for normal space
@@ -179,7 +187,7 @@ void*LongUI::CUIDefaultConfigure::NormalRealloc(void* address, size_t length) no
 
         //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
         //const auto count = u16++;
-        //if (count >= 4) return nullptr;
+        //if (count >= 200) return nullptr;
 
     }
 #endif
@@ -195,6 +203,14 @@ void*LongUI::CUIDefaultConfigure::NormalRealloc(void* address, size_t length) no
 /// <returns></returns>
 void*LongUI::CUIDefaultConfigure::SmallAlloc(size_t length) noexcept {
     assert(length && "cannot alloc 0 byte at here");
+#ifndef NDEBUG
+    if (lui_debug_oom) return nullptr;
+    //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
+    //const auto count = u16++;
+    //if (count >= 200) return nullptr;
+#endif
+
+
 #ifdef NDEBUG
     return std::malloc(length);
 #else

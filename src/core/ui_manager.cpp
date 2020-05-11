@@ -419,27 +419,29 @@ void LongUI::CUIManager::try_recreate() noexcept {
     // 检查Flag
     if (!m_flagRecreate) return;
     m_flagRecreate = false;
-    // LCK
+    // 记录最后一次错误
+    Result hr = { Result::RS_OK };
+    const auto last_error = [&hr](Result code) {
+        if (!code) hr = code;
+    };
+    // 渲染锁
     this_()->RenderLock();
     // 重建设备
-    auto hr = this_()->CUIResMgr::recreate_device(this_()->config, this_()->flag);
+    last_error(this_()->CUIResMgr::recreate_device(this_()->config, this_()->flag));
     // 重建资源
-    if (hr) {
-        hr = this_()->CUIResMgr::recreate_resource();
-    }
+    last_error(this_()->CUIResMgr::recreate_resource());
     // 重建窗口
-    if (hr) {
-        hr = this_()->CUIWndMgr::recreate_windows(this_()->begin(), this_()->end());
-    }
-    // UNL
+    last_error(this_()->CUIWndMgr::recreate_windows(this_()->begin(), this_()->end()));
+    // 渲染锁
     this_()->RenderUnlock();
-    // TODO: 错误处理对策
+    // 调试信息
 #ifndef NDEBUG
     LUIDebug(Hint)
         << "[Recreate Resource]: "
         << hr
         << endl;
 #endif // !NDEBUG
+    // 错误处理 - 交给 IUIConfigure
     if (!hr) this_()->config->OnErrorInfoLost(hr, Occasion_Recreate);
 }
 

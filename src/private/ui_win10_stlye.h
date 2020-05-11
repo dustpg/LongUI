@@ -14,7 +14,7 @@ namespace LongUI {
     // control
     class UIControl;
     /// <summary>
-    /// 
+    /// native style
     /// </summary>
     /// <seealso cref="CUIObject" />
     class CUINativeStyle : public CUISmallObject {

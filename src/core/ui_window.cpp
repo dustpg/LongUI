@@ -2735,6 +2735,8 @@ auto LongUI::CUIWindow::Private::Render(const UIViewport& v) const noexcept->Res
     if (this->is_r_for_render()) {
         // 重置窗口缓冲帧大小
         if (this->flag_sized) this->force_resize_window_buffer();
+        // 数据无效
+        if (!this->bitmap) return { Result::RS_FALSE };
         // 开始渲染
         this->begin_render();
         // 矩形列表

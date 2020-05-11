@@ -501,7 +501,6 @@ namespace LongUI {
         dbg = nullptr;
         lui_debug_oom = false;
 #endif
-
         // css解析
         CUICssStream stream{ reinterpret_cast<SSBlockPtr*>(&ptr) };
         // 设置长跳转环境
@@ -509,7 +508,9 @@ namespace LongUI {
         // 错误处理
         if (code) {
             // TODO: 错误处理
-            assert(!"error handle");
+#ifndef NDEBUG
+            LUIDebug(Error) << "ERROR" << endl;
+#endif
         }
         else stream.Load({ view.begin(), view.end() });
         return ptr;
@@ -642,22 +643,30 @@ namespace LongUI {
 /// <returns></returns>
 bool LongUI::ParseInlineStlye(SSValues& values, U8View view) noexcept {
     CUICssStream stream{ nullptr };
-    stream.Load({ view.begin(), view.end() }, true);
-    stream.MakeInlineStlye(values);
-    const auto src_len = values.size();
-    if (!src_len) return false;
-    SSValuePCL marker;
-    // 0: 标记起始点与长度/标记伪类的状态(包括开始的这个)
-    marker.type = ValueType::Type_NewOne;
-    marker.length = static_cast<uint32_t>(src_len) + 1;
-    marker.yes = {};
-    marker.noo = {};
-    const auto a = reinterpret_cast<SSValue*>(&marker);
-    const auto b = reinterpret_cast<SSValue*>(&marker + 1);
-    static_assert(sizeof(marker) == sizeof(*a), "same!");
-    // 插入数据
-    values.insert(values.begin(), a, b);
-    return true;
+    const auto rv = [&]() noexcept {
+        // 设置长跳转环境
+        const auto code = setjmp(stream.env);
+        // 错误处理
+        if (code) return false;
+        stream.Load({ view.begin(), view.end() }, true);
+        stream.MakeInlineStlye(values);
+        const auto src_len = values.size();
+        if (!src_len) return false;
+        SSValuePCL marker;
+        // 0: 标记起始点与长度/标记伪类的状态(包括开始的这个)
+        marker.type = ValueType::Type_NewOne;
+        marker.length = static_cast<uint32_t>(src_len) + 1;
+        marker.yes = {};
+        marker.noo = {};
+        const auto a = reinterpret_cast<SSValue*>(&marker);
+        const auto b = reinterpret_cast<SSValue*>(&marker + 1);
+        static_assert(sizeof(marker) == sizeof(*a), "same!");
+        // 插入数据
+        values.insert(values.begin(), a, b);
+        return values.is_ok();
+    }();
+    return rv;
+
 }
 
 /// <summary>

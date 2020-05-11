@@ -91,8 +91,8 @@ namespace LongUI {
         // Bitmap Bank bitmap size
         BITBANK_BITMAP_SIZE = 1024,
         // Bitmap Bank rect max size
-        BITBANK_BITMAP_RMAX = BITBANK_BITMAP_SIZE / 2,
-        //BITBANK_BITMAP_RMAX = BITBANK_BITMAP_SIZE / 8,
+        //BITBANK_BITMAP_RMAX = 512,
+        BITBANK_BITMAP_RMAX = 196,
         // Bitmap Bank bitmap move threshold
         BITBANK_BITMAP_MOVE_THRESHOLD = BITBANK_BITMAP_SIZE * BITBANK_BITMAP_SIZE / 2,
 
@@ -106,7 +106,7 @@ namespace LongUI {
         // small buffer length
         SMALL_BUFFER_LENGTH = 32,
         // max number of graphics adapters
-        MAX_GRAPHICS_ADAPTERS = SMALL_BUFFER_LENGTH,
+        MAX_GRAPHICS_ADAPTERS = 16,
         // window class name buffer
         WNDCLASS_NAME_BUFFER_LENGTH = 48,
     };
