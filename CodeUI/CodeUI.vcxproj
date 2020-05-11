@@ -166,7 +166,6 @@
     <ClCompile Include="..\src\cfunciton\view_atof.c" />
     <ClCompile Include="..\src\cfunciton\view_atoi.c" />
     <ClCompile Include="..\src\cfunciton\view_unicode.c" />
-    <ClCompile Include="..\src\container\nonpod_vector.cpp" />
     <ClCompile Include="..\src\container\pod_hash.cpp" />
     <ClCompile Include="..\src\container\pod_sharedarray.cpp" />
     <ClCompile Include="..\src\container\pod_vector.cpp" />
@@ -217,7 +216,6 @@
     <ClCompile Include="..\src\core\ui_resource_manager.cpp" />
     <ClCompile Include="..\src\core\ui_time_capsule.cpp" />
     <ClCompile Include="..\src\core\ui_window.cpp" />
-    <ClCompile Include="..\src\core\ui_window_event.cpp" />
     <ClCompile Include="..\src\core\ui_window_manager.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug.cpp" />
     <ClCompile Include="..\src\debugger\ui_debug_window.cpp" />
@@ -242,7 +240,6 @@
     <ClCompile Include="..\src\interface\ui_default_config.cpp" />
     <ClCompile Include="..\src\private\ui_private_control.cpp" />
     <ClCompile Include="..\src\private\ui_private_effect.cpp" />
-    <ClCompile Include="..\src\private\ui_private_image.cpp" />
     <ClCompile Include="..\src\resource\ui_bitmap_bank.cpp" />
     <ClCompile Include="..\src\resource\ui_resource_id.cpp" />
     <ClCompile Include="..\src\resource\ui_res_image.cpp" />
@@ -303,7 +300,6 @@
     <ClInclude Include="..\include\accessible\ui_accessible_win.h" />
     <ClInclude Include="..\include\constexpr\const_bkdr.h" />
     <ClInclude Include="..\include\container\const_string_list.h" />
-    <ClInclude Include="..\include\container\nonpod_vector.h" />
     <ClInclude Include="..\include\container\pod_hash.h" />
     <ClInclude Include="..\include\container\pod_sharedarray.h" />
     <ClInclude Include="..\include\container\pod_vector.h" />
@@ -474,7 +470,6 @@
     <ClInclude Include="..\src\private\ui_memory_stream.h" />
     <ClInclude Include="..\src\private\ui_private_control.h" />
     <ClInclude Include="..\src\private\ui_private_effect.h" />
-    <ClInclude Include="..\src\private\ui_private_image.h" />
     <ClInclude Include="..\src\private\ui_win10_stlye.h" />
     <ClInclude Include="..\src\private\ui_wndarg.h" />
   </ItemGroup>

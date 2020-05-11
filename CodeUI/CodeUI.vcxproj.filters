@@ -317,9 +317,6 @@
     <ClCompile Include="..\src\private\ui_private_control.cpp">
       <Filter>source\private\source</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\private\ui_private_image.cpp">
-      <Filter>source\private\source</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\resource\ui_resource_id.cpp">
       <Filter>source\resource</Filter>
     </ClCompile>
@@ -385,9 +382,6 @@
     </ClCompile>
     <ClCompile Include="..\src\accessible\ui_accessible_win.cpp">
       <Filter>source\accessible</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\container\nonpod_vector.cpp">
-      <Filter>source\container</Filter>
     </ClCompile>
     <ClCompile Include="..\src\control\ui_radio.cpp">
       <Filter>source\control</Filter>
@@ -490,9 +484,6 @@
     </ClCompile>
     <ClCompile Include="..\src\effect\ui_shader_borderimage.cpp">
       <Filter>source\effect</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\core\ui_window_event.cpp">
-      <Filter>source\core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\control\ui_richlist.cpp">
       <Filter>source\control</Filter>
@@ -810,9 +801,6 @@
     <ClInclude Include="..\include\graphics\ui_attribute.h">
       <Filter>header\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\private\ui_private_image.h">
-      <Filter>source\private</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\private\ui_memory_stream.h">
       <Filter>source\private</Filter>
     </ClInclude>
@@ -884,9 +872,6 @@
     </ClInclude>
     <ClInclude Include="..\include\util\ui_ctordtor.h">
       <Filter>header\util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\container\nonpod_vector.h">
-      <Filter>header\container</Filter>
     </ClInclude>
     <ClInclude Include="..\include\container\ui_string_vector.h">
       <Filter>header\container</Filter>
