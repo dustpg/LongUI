@@ -182,13 +182,10 @@ void*LongUI::CUIDefaultConfigure::NormalRealloc(void* address, size_t length) no
 
 #ifndef NDEBUG
     if (length) {
-
         if (lui_debug_oom) return nullptr;
-
         //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
         //const auto count = u16++;
         //if (count >= 200) return nullptr;
-
     }
 #endif
 

@@ -36,8 +36,8 @@ void LongUI::UILabel::Render() const noexcept {
     // 文本偏移
     const float xoffset = rect.left + DEFUALT_TEXT_X_OFFSET;
     const float yoffset = rect.top + DEFUALT_TEXT_Y_OFFSET;
-    // 具体渲染
-    // -- 拥有描边?
+
+    // 描边文本
     if (m_tfBuffer.text.stroke_width > 0.f) {
         TextOutlineContext context;
         context.renderer = &UIManager.Ref2DRenderer();
@@ -46,8 +46,8 @@ void LongUI::UILabel::Render() const noexcept {
         context.outline_width = m_tfBuffer.text.stroke_width;
         m_outline.Render(context, m_text.GetCtlText(), { xoffset, yoffset });
     }
-    else {
+    // 普通文本
+    else
         m_text.Render(UIManager.Ref2DRenderer(), color, { xoffset, yoffset });
-    }
 }
 

@@ -74,6 +74,7 @@ LongUI::UITextBox::UITextBox(UIControl* parent, const MetaControl& meta) noexcep
 /// </summary>
 /// <returns></returns>
 LongUI::UITextBox::~UITextBox() noexcept {
+    m_state.destructing = true;
     this->delete_private();
 }
 

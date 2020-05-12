@@ -765,7 +765,8 @@ auto LongUI::CUIResMgr::Private::load_create(U8View uri) noexcept -> CUISharedRe
                 if (c > 1) {
                     LUIDebug(Warning)
                         << "UIManager.LoadResource is for small image/common use. "
-                        << "this animation-image is too big: " << s << " x " << c << endl;
+                        << "this animation-image is too large: "
+                        << s << " x " << c << endl;
                 }
 #endif // !NDEBUG
 
