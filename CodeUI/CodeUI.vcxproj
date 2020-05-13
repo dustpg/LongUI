@@ -362,6 +362,7 @@
     <ClInclude Include="..\include\control\ui_viewport.h" />
     <ClInclude Include="..\include\core\ui_basic_interface.h" />
     <ClInclude Include="..\include\core\ui_basic_type.h" />
+    <ClInclude Include="..\include\core\ui_unsafe.h" />
     <ClInclude Include="..\include\core\ui_color.h" />
     <ClInclude Include="..\include\core\ui_color_list.h" />
     <ClInclude Include="..\include\core\ui_const_sstring.h" />
