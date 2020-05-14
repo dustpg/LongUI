@@ -5,7 +5,6 @@
 #include <container/pod_hash.h>
 #include <resource/ui_image_res.h>
 
-
 // ui namespace
 namespace LongUI {
     // UIImage类 元信息
@@ -19,6 +18,7 @@ namespace LongUI {
 /// <param name="meta">The meta.</param>
 LongUI::UIImage::UIImage(UIControl* parent, const MetaControl& meta) noexcept
     : Super(impl::ctor_lock(parent), meta) {
+
     // 构造锁
     impl::ctor_unlock();
 }
@@ -160,7 +160,7 @@ void LongUI::UIImage::Render() const noexcept {
         // 将目标画在内容区
         auto des_rect = this->GetBox().GetContentEdge();
         // 居中显示
-#ifdef LUI_IMAGE_ASICON_SUPPORT
+#if 0
         if (m_bAsIcon) {
             const auto usize = m_pSharedSrc->GetSize();
             const auto src_w = static_cast<float>(usize.width);

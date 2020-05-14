@@ -65,18 +65,18 @@ CodeLiteDir:=C:\Program Files (x86)\CodeLite
 Objects0=$(IntermediateDirectory)/up_src_control_gapi_ui_textbox_g.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_abtn.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_cbx.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_group.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_radio.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_tree.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_namecolor.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_util.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_atof.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_unicode.c$(ObjectSuffix) \
 	$(IntermediateDirectory)/up_src_container_pod_hash.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_pod_sharedarray.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_pod_vector.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_ui_string_view.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_button.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_box.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_caption.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_image.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_label.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/up_src_control_ui_menubar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_menulist.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_progress.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_radio.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_easing.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_scale.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_scrollarea.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_spacer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_stringcolor.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_splitter.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_control_ui_checkbox.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_statusbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tab.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_test.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_toolbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_ssvalue.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_effect_backimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style_value.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_text_ui_text_layout.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_core_ui_time_capsule.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_text_ui_text_outline.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_xul_SimpAX.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_file.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_named_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_function.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_gapi_ui_control_g.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_thread_ui_rwlocker.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_basic_type.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_ui_string.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_color.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_cursor.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_colorsystem.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_txtdoc.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_all_control_info.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_resource_ui_res_image.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_unicode.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_matrix.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_btn.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_stackdeck.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_viewport.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_event_ui_event_host.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_fiber.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_bd_renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_groupbox.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_interface_ui_default_config.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_time_clipboard.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_window_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_tab.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_txtbuf.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_window.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_scrollbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_dcomp.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_graphics_ui_graphics_util.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_resource_ui_resource_id.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_resource_ui_bitmap_bank.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_slider.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_input_ui_kminput.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_double_click.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_bg_renderer.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_core_ui_control_state.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_color_sysem.cpp$(ObjectSuffix) 
+	$(IntermediateDirectory)/up_src_control_ui_checkbox.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_statusbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tab.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_test.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_toolbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_ssvalue.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_effect_backimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style_value.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_text_ui_text_layout.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_time_capsule.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_text_ui_text_outline.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_xul_SimpAX.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_file.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_named_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_function.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_control_gapi_ui_control_g.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_rwlocker.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_basic_type.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_container_ui_string.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_color.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_cursor.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_ui_colorsystem.c$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_txtdoc.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_all_control_info.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_resource_ui_res_image.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_util_ui_unicode.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_matrix.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_btn.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_stackdeck.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_viewport.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_event_ui_event_host.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_fiber.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_bd_renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_groupbox.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_interface_ui_default_config.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_time_clipboard.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_window_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_tab.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_txtbuf.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_window.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_scrollbar.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_dcomp.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_graphics_util.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_resource_ui_resource_id.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_resource_ui_bitmap_bank.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_native_ui_win10_slider.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_input_ui_kminput.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_mesh.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_util_ui_double_click.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_bg_renderer.cpp$(ObjectSuffix) 
 
-Objects1=$(IntermediateDirectory)/up_src_accessible_ui_accessible_win.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_findfile.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_atoi.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_fileop.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_gapi_ui_label_g.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_shader_borderimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_private_ui_private_effect.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_geometry.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_debugger_ui_debug_window.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_list.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_shader_backimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_effect_borderimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_resource_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_textbox.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_debug.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_popup_window.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_ssvalue_list.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_core_ui_malloc.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_hidpi.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_node.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_control_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_locker.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_const_sstring.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tree.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix) 
+Objects1=$(IntermediateDirectory)/up_src_core_ui_control_state.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_util_ui_color_sysem.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_accessible_ui_accessible_win.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_findfile.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_cfunciton_view_atoi.c$(ObjectSuffix) $(IntermediateDirectory)/up_src_filesystem_ui_fileop.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_gapi_ui_label_g.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_shader_borderimage.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_private_ui_private_effect.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_graphics_ui_geometry.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_debug_window.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_list.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_shader_backimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_effect_ui_effect_borderimage.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_resource_manager.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_tracer.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_textbox.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_debugger_ui_debug.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_core_ui_popup_window.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_ssvalue_list.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_malloc.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_hidpi.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_style_ui_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_node.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_control_control.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_thread_ui_locker.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_core_ui_const_sstring.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) $(IntermediateDirectory)/up_src_control_ui_tree.cpp$(ObjectSuffix) 
 
 
 
@@ -318,11 +318,17 @@ $(IntermediateDirectory)/up_src_control_ui_toolbar.cpp$(ObjectSuffix): ../src/co
 $(IntermediateDirectory)/up_src_control_ui_toolbar.cpp$(PreprocessSuffix): ../src/control/ui_toolbar.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_ui_toolbar.cpp$(PreprocessSuffix) ../src/control/ui_toolbar.cpp
 
-$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix): ../RichED/ed_txtcell.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(DependSuffix) -MM ../RichED/ed_txtcell.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/RichED/ed_txtcell.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(PreprocessSuffix): ../RichED/ed_txtcell.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(PreprocessSuffix) ../RichED/ed_txtcell.cpp
+$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix): ../src/control/ui_richlist.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(DependSuffix) -MM ../src/control/ui_richlist.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/ui_richlist.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(PreprocessSuffix): ../src/control/ui_richlist.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(PreprocessSuffix) ../src/control/ui_richlist.cpp
+
+$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix): ../src/control/ui_tooltip.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(DependSuffix) -MM ../src/control/ui_tooltip.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/ui_tooltip.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(PreprocessSuffix): ../src/control/ui_tooltip.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(PreprocessSuffix) ../src/control/ui_tooltip.cpp
 
 $(IntermediateDirectory)/up_src_style_ui_ssvalue.cpp$(ObjectSuffix): ../src/style/ui_ssvalue.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_style_ui_ssvalue.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_style_ui_ssvalue.cpp$(DependSuffix) -MM ../src/style/ui_ssvalue.cpp
@@ -384,23 +390,23 @@ $(IntermediateDirectory)/up_src_util_ui_function.cpp$(ObjectSuffix): ../src/util
 $(IntermediateDirectory)/up_src_util_ui_function.cpp$(PreprocessSuffix): ../src/util/ui_function.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_util_ui_function.cpp$(PreprocessSuffix) ../src/util/ui_function.cpp
 
-$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix): ../src/style/native/ui_win10_bg.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(DependSuffix) -MM ../src/style/native/ui_win10_bg.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/style/native/ui_win10_bg.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(PreprocessSuffix): ../src/style/native/ui_win10_bg.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(PreprocessSuffix) ../src/style/native/ui_win10_bg.cpp
-
-$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix): ../src/thread/ui_waiter.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(DependSuffix) -MM ../src/thread/ui_waiter.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/thread/ui_waiter.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(PreprocessSuffix): ../src/thread/ui_waiter.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(PreprocessSuffix) ../src/thread/ui_waiter.cpp
-
 $(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(ObjectSuffix): ../src/xul/SimpAC.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(DependSuffix) -MM ../src/xul/SimpAC.cpp
 	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/xul/SimpAC.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(PreprocessSuffix): ../src/xul/SimpAC.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_xul_SimpAC.cpp$(PreprocessSuffix) ../src/xul/SimpAC.cpp
+
+$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix): ../src/core/ui_manager.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(DependSuffix) -MM ../src/core/ui_manager.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/core/ui_manager.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(PreprocessSuffix): ../src/core/ui_manager.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_core_ui_manager.cpp$(PreprocessSuffix) ../src/core/ui_manager.cpp
+
+$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix): ../src/util/ui_animation.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(DependSuffix) -MM ../src/util/ui_animation.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/util/ui_animation.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(PreprocessSuffix): ../src/util/ui_animation.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_util_ui_animation.cpp$(PreprocessSuffix) ../src/util/ui_animation.cpp
 
 $(IntermediateDirectory)/up_src_control_gapi_ui_control_g.cpp$(ObjectSuffix): ../src/control/gapi/ui_control_g.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_gapi_ui_control_g.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_gapi_ui_control_g.cpp$(DependSuffix) -MM ../src/control/gapi/ui_control_g.cpp
@@ -443,18 +449,6 @@ $(IntermediateDirectory)/up_src_cfunciton_ui_colorsystem.c$(ObjectSuffix): ../sr
 	$(CC) $(SourceSwitch) "D:/github/LongUI/src/cfunciton/ui_colorsystem.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_cfunciton_ui_colorsystem.c$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_src_cfunciton_ui_colorsystem.c$(PreprocessSuffix): ../src/cfunciton/ui_colorsystem.c
 	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_cfunciton_ui_colorsystem.c$(PreprocessSuffix) ../src/cfunciton/ui_colorsystem.c
-
-$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix): ../src/core/ui_manager.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(DependSuffix) -MM ../src/core/ui_manager.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/core/ui_manager.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_core_ui_manager.cpp$(PreprocessSuffix): ../src/core/ui_manager.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_core_ui_manager.cpp$(PreprocessSuffix) ../src/core/ui_manager.cpp
-
-$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix): ../src/util/ui_animation.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(DependSuffix) -MM ../src/util/ui_animation.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/util/ui_animation.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_util_ui_animation.cpp$(PreprocessSuffix): ../src/util/ui_animation.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_util_ui_animation.cpp$(PreprocessSuffix) ../src/util/ui_animation.cpp
 
 $(IntermediateDirectory)/up_RichED_ed_txtdoc.cpp$(ObjectSuffix): ../RichED/ed_txtdoc.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_RichED_ed_txtdoc.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_RichED_ed_txtdoc.cpp$(DependSuffix) -MM ../RichED/ed_txtdoc.cpp
@@ -509,6 +503,12 @@ $(IntermediateDirectory)/up_src_event_ui_event_host.cpp$(ObjectSuffix): ../src/e
 	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/event/ui_event_host.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_event_ui_event_host.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_src_event_ui_event_host.cpp$(PreprocessSuffix): ../src/event/ui_event_host.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_event_ui_event_host.cpp$(PreprocessSuffix) ../src/event/ui_event_host.cpp
+
+$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix): ../RichED/ed_txtcell.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(DependSuffix) -MM ../RichED/ed_txtcell.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/RichED/ed_txtcell.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(PreprocessSuffix): ../RichED/ed_txtcell.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_RichED_ed_txtcell.cpp$(PreprocessSuffix) ../RichED/ed_txtcell.cpp
 
 $(IntermediateDirectory)/up_src_thread_ui_fiber.cpp$(ObjectSuffix): ../src/thread/ui_fiber.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_thread_ui_fiber.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_thread_ui_fiber.cpp$(DependSuffix) -MM ../src/thread/ui_fiber.cpp
@@ -570,6 +570,30 @@ $(IntermediateDirectory)/up_RichED_ed_txtbuf.cpp$(ObjectSuffix): ../RichED/ed_tx
 $(IntermediateDirectory)/up_RichED_ed_txtbuf.cpp$(PreprocessSuffix): ../RichED/ed_txtbuf.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_RichED_ed_txtbuf.cpp$(PreprocessSuffix) ../RichED/ed_txtbuf.cpp
 
+$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix): ../src/style/native/ui_win10_bg.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(DependSuffix) -MM ../src/style/native/ui_win10_bg.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/style/native/ui_win10_bg.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(PreprocessSuffix): ../src/style/native/ui_win10_bg.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_style_native_ui_win10_bg.cpp$(PreprocessSuffix) ../src/style/native/ui_win10_bg.cpp
+
+$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix): ../src/thread/ui_waiter.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(DependSuffix) -MM ../src/thread/ui_waiter.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/thread/ui_waiter.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(PreprocessSuffix): ../src/thread/ui_waiter.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_thread_ui_waiter.cpp$(PreprocessSuffix) ../src/thread/ui_waiter.cpp
+
+$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix): ../src/style/ui_style_state.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(DependSuffix) -MM ../src/style/ui_style_state.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/style/ui_style_state.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(PreprocessSuffix): ../src/style/ui_style_state.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(PreprocessSuffix) ../src/style/ui_style_state.cpp
+
+$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix): ../src/private/ui_private_control.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(DependSuffix) -MM ../src/private/ui_private_control.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/private/ui_private_control.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(PreprocessSuffix): ../src/private/ui_private_control.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(PreprocessSuffix) ../src/private/ui_private_control.cpp
+
 $(IntermediateDirectory)/up_src_core_ui_window.cpp$(ObjectSuffix): ../src/core/ui_window.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_core_ui_window.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_core_ui_window.cpp$(DependSuffix) -MM ../src/core/ui_window.cpp
 	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/core/ui_window.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_core_ui_window.cpp$(ObjectSuffix) $(IncludePath)
@@ -593,18 +617,6 @@ $(IntermediateDirectory)/up_src_graphics_ui_graphics_util.cpp$(ObjectSuffix): ..
 	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/graphics/ui_graphics_util.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_graphics_ui_graphics_util.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_src_graphics_ui_graphics_util.cpp$(PreprocessSuffix): ../src/graphics/ui_graphics_util.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_graphics_ui_graphics_util.cpp$(PreprocessSuffix) ../src/graphics/ui_graphics_util.cpp
-
-$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix): ../src/style/ui_style_state.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(DependSuffix) -MM ../src/style/ui_style_state.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/style/ui_style_state.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(PreprocessSuffix): ../src/style/ui_style_state.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_style_ui_style_state.cpp$(PreprocessSuffix) ../src/style/ui_style_state.cpp
-
-$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix): ../src/private/ui_private_control.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(DependSuffix) -MM ../src/private/ui_private_control.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/private/ui_private_control.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(PreprocessSuffix): ../src/private/ui_private_control.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_private_ui_private_control.cpp$(PreprocessSuffix) ../src/private/ui_private_control.cpp
 
 $(IntermediateDirectory)/up_src_resource_ui_resource_id.cpp$(ObjectSuffix): ../src/resource/ui_resource_id.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_resource_ui_resource_id.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_resource_ui_resource_id.cpp$(DependSuffix) -MM ../src/resource/ui_resource_id.cpp
@@ -810,35 +822,23 @@ $(IntermediateDirectory)/up_src_core_ui_const_sstring.cpp$(ObjectSuffix): ../src
 $(IntermediateDirectory)/up_src_core_ui_const_sstring.cpp$(PreprocessSuffix): ../src/core/ui_const_sstring.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_core_ui_const_sstring.cpp$(PreprocessSuffix) ../src/core/ui_const_sstring.cpp
 
-$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix): ../src/style/ui_native_style.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(DependSuffix) -MM ../src/style/ui_native_style.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/style/ui_native_style.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(PreprocessSuffix): ../src/style/ui_native_style.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(PreprocessSuffix) ../src/style/ui_native_style.cpp
-
 $(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(ObjectSuffix): ../RichED/ed_undoredo.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(DependSuffix) -MM ../RichED/ed_undoredo.cpp
 	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/RichED/ed_undoredo.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(PreprocessSuffix): ../RichED/ed_undoredo.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_RichED_ed_undoredo.cpp$(PreprocessSuffix) ../RichED/ed_undoredo.cpp
 
+$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix): ../src/style/ui_native_style.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(DependSuffix) -MM ../src/style/ui_native_style.cpp
+	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/style/ui_native_style.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(PreprocessSuffix): ../src/style/ui_native_style.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_style_ui_native_style.cpp$(PreprocessSuffix) ../src/style/ui_native_style.cpp
+
 $(IntermediateDirectory)/up_src_control_ui_tree.cpp$(ObjectSuffix): ../src/control/ui_tree.cpp
 	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_ui_tree.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_ui_tree.cpp$(DependSuffix) -MM ../src/control/ui_tree.cpp
 	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/ui_tree.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_ui_tree.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/up_src_control_ui_tree.cpp$(PreprocessSuffix): ../src/control/ui_tree.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_ui_tree.cpp$(PreprocessSuffix) ../src/control/ui_tree.cpp
-
-$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix): ../src/control/ui_richlist.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(DependSuffix) -MM ../src/control/ui_richlist.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/ui_richlist.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(PreprocessSuffix): ../src/control/ui_richlist.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_ui_richlist.cpp$(PreprocessSuffix) ../src/control/ui_richlist.cpp
-
-$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix): ../src/control/ui_tooltip.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(DependSuffix) -MM ../src/control/ui_tooltip.cpp
-	$(CXX) $(IncludePCH) $(SourceSwitch) "D:/github/LongUI/src/control/ui_tooltip.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(PreprocessSuffix): ../src/control/ui_tooltip.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/up_src_control_ui_tooltip.cpp$(PreprocessSuffix) ../src/control/ui_tooltip.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

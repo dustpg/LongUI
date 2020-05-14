@@ -9,8 +9,6 @@
 #include <core/ui_popup_window.h>
 #include <core/ui_string.h>
 // 控件
-#include <control/ui_image.h>
-#include <control/ui_label.h>
 #include <control/ui_button.h>
 #include <control/ui_boxlayout.h>
 #include <control/ui_menupopup.h>
@@ -105,7 +103,6 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     // 构造锁
     impl::ctor_unlock();
 }
-
 
 /// <summary>
 /// Finalizes an instance of the <see cref="UIButton"/> class.

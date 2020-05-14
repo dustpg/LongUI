@@ -7,18 +7,16 @@ void InitStyleSheet() noexcept;
 int main() {
     if (UIManager.Initialize()) {
         ::InitStyleSheet();
-        {
-            LongUI::UIViewport viewport;
-            if (viewport.SetXulFromFile([]()noexcept {
-                using namespace LongUI;
-                return u8"xul/main.xul"_sv;
-            }())) ::InitViewportCallback(viewport);
+        LongUI::UIViewport viewport;
+        if (viewport.SetXulFromFile([]()noexcept {
+            using namespace LongUI;
+            return u8"xul/main.xul"_sv;
+        }())) ::InitViewportCallback(viewport);
 
-            viewport.RefWindow().ShowWindow();
-            viewport.RefWindow().Exec();
-        }
-        UIManager.Uninitialize();
+        viewport.RefWindow().ShowWindow();
+        viewport.RefWindow().Exec();
     }
+    UIManager.Uninitialize();
     return 0;
 }
 

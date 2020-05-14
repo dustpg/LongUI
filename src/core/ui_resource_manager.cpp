@@ -1634,18 +1634,20 @@ void LongUI::CUIResMgr::release_device() noexcept {
     LongUI::SafeRelease(m_pGraphicsFactory);
 #ifndef NDEBUG
 #ifndef LUI_NO_DXGIDEBUG
-    if (auto inf = m_pDebug->d3d11debug) {
-        ::OutputDebugStringW(L"----> SUMMARY ReportLiveDeviceObjects\r\n");
-        inf->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
-        ::OutputDebugStringW(L"<----\r\n");
-        if (false) {
-            ::OutputDebugStringW(L"----> DETAIL ReportLiveDeviceObjects\r\n");
-            inf->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+    if (m_pDebug) {
+        if (auto inf = m_pDebug->d3d11debug) {
+            ::OutputDebugStringW(L"----> SUMMARY ReportLiveDeviceObjects\r\n");
+            inf->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
             ::OutputDebugStringW(L"<----\r\n");
+            if (false) {
+                ::OutputDebugStringW(L"----> DETAIL ReportLiveDeviceObjects\r\n");
+                inf->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+                ::OutputDebugStringW(L"<----\r\n");
+            }
+            auto c = inf->Release();
+            c = c;
+            m_pDebug->d3d11debug = nullptr;
         }
-        auto c = inf->Release();
-        c = c;
-        m_pDebug->d3d11debug = nullptr;
     }
 #endif
 #endif

@@ -47,8 +47,8 @@ int main() {
             code = LongUI::IntCode(rc);
         }
         LUIDebug(Hint) << "Battle Control Terminated." << LongUI::endl;
-        UIManager.Uninitialize();
     }
+    UIManager.Uninitialize();
     return code;
 }
 

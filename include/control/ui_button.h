@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2018 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2020 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -24,8 +24,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
 #include "../core/ui_core_type.h"
+// base
+#include "ui_image.h"
+#include "ui_label.h"
 
 // ui namespace
 namespace LongUI {

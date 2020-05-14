@@ -19,25 +19,24 @@ namespace LongUI {
         // ctor
         CUIDebugView() noexcept :
             Super(nullptr, CUIWindow::Config_ToolWindow) {
-            if (this->SetXul(debug_view_xul)) {
-                const auto window = this->GetWindow();
-                window->SetClearColor({ 1, 1, 1, 1 });
-                window->ShowWindow();
-                window->SetPos({ 0, 0 });
-                this->exit();
-                this->recreate();
-                this->force_render();
-                this->draw_text_cell();
-                this->draw_dirty_rect();
-                this->link_style_sheet();
-                //UIManager.CreateTimeCapsule([this](float t) noexcept {
-                //    if (t < 1.f) return;
-                //    const auto window = this->GetWindow();
-                //    const auto ctrl = window->FindControl("btn-exit");
-                //    const auto btn = longui_cast<UIButton*>(ctrl);
-                //    btn->SetText(L"EXIT"_sv);
-                //}, 5.f, this);
-            }
+            this->SetXul(debug_view_xul);
+            auto& window = this->RefWindow();
+            window.SetClearColor({ 1, 1, 1, 1 });
+            window.ShowWindow();
+            window.SetPos({ 0, 0 });
+            this->exit();
+            this->recreate();
+            this->force_render();
+            this->draw_text_cell();
+            this->draw_dirty_rect();
+            this->link_style_sheet();
+            //UIManager.CreateTimeCapsule([this](float t) noexcept {
+            //    if (t < 1.f) return;
+            //    const auto window = this->GetWindow();
+            //    const auto ctrl = window->FindControl("btn-exit");
+            //    const auto btn = longui_cast<UIButton*>(ctrl);
+            //    btn->SetText(L"EXIT"_sv);
+            //}, 5.f, this);
         }
         // dtor
         ~CUIDebugView() noexcept { }
@@ -55,7 +54,9 @@ namespace LongUI {
         auto do_button(const char* name) noexcept {
             const auto window = this->GetWindow();
             const auto ctrl = window->FindControl(name);
-            assert(ctrl && "404");
+#ifndef NDEBUG
+            if (!ctrl) LUIDebug(Error) << "control not found: " << name << endl;
+#endif
             const auto btn = longui_cast<UIButton*>(ctrl);
             return btn;
         }
@@ -63,13 +64,17 @@ namespace LongUI {
         auto do_checkbox(const char* name) noexcept {
             const auto window = this->GetWindow();
             const auto ctrl = window->FindControl(name);
-            assert(ctrl && "404");
+#ifndef NDEBUG
+            if (!ctrl) LUIDebug(Error) << "control not found: " << name << endl;
+#endif
             const auto btn = longui_cast<UICheckBox*>(ctrl);
             return btn;
         }
         // force render
         void force_render() noexcept {
-            do_button("btn-force")->AddGuiEventListener(
+            const auto btn = do_button("btn-force");
+            if (!btn) return;
+            btn->AddGuiEventListener(
                 UIButton::_onCommand(), [](UIControl& control) noexcept {
                 //const auto& o = UIManager.GetWindowList();
                 //using List = POD::Vector<CUIWindow*>;
@@ -81,7 +86,9 @@ namespace LongUI {
         }
         // exit
         void exit() noexcept {
-            do_button("btn-exit")->AddGuiEventListener(
+            const auto btn = do_button("btn-exit");
+            if (!btn) return;
+            btn->AddGuiEventListener(
                 UIButton::_onCommand(), [](UIControl& control) noexcept {
                 UIManager.Exit();
                 return Event_Accept;
@@ -89,7 +96,9 @@ namespace LongUI {
         }
         // recreate_device
         void recreate() noexcept {
-            do_button("btn-recreate")->AddGuiEventListener(
+            const auto btn = do_button("btn-recreate");
+            if (!btn) return;
+            btn->AddGuiEventListener(
                 UIButton::_onCommand(), [](UIControl& control) noexcept {
                 UIManager.NeedRecreate();
                 return Event_Accept;
@@ -98,6 +107,7 @@ namespace LongUI {
         // draw dirty rect
         void draw_dirty_rect() noexcept {
             const auto checkbox = do_checkbox("cbx-dirty");
+            if (!checkbox) return;
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & ConfigureFlag::Flag_DbgDrawDirtyRect));
             checkbox->AddGuiEventListener(
@@ -112,6 +122,7 @@ namespace LongUI {
         // draw text cell
         void draw_text_cell() noexcept {
             const auto checkbox = do_checkbox("cbx-cell");
+            if (!checkbox) return;
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!!(flag & ConfigureFlag::Flag_DbgDrawTextCell));
             checkbox->AddGuiEventListener(
@@ -126,6 +137,7 @@ namespace LongUI {
         // link style sheet
         void link_style_sheet() noexcept {
             const auto checkbox = do_checkbox("cbx-style");
+            if (!checkbox) return;
             const auto& flag = UIManager.flag;
             checkbox->SetChecked(!(flag & ConfigureFlag::Flag_DbgNoLinkStyle));
 #ifdef NDEBUG

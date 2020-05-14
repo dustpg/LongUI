@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2018 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2020 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -28,7 +28,6 @@
 #include "ui_control.h"
 #include "../resource/ui_resource_id.h"
 
-//#define LUI_IMAGE_ASICON_SUPPORT
 
 // ui namespace
 namespace LongUI {
@@ -41,13 +40,8 @@ namespace LongUI {
     public:
         // set image source
         void SetSource(U8View src) noexcept;
-#ifdef LUI_IMAGE_ASICON_SUPPORT
-        // just set center contain
-        void JustSetAsIcon() noexcept { m_bAsIcon = true; }
-#else
-        // just set center contain
+        // TODO: just set center contain?
         void JustSetAsIcon() noexcept { }
-#endif
     protected:
         // ctor
         UIImage(UIControl* parent, const MetaControl&) noexcept;
@@ -77,10 +71,6 @@ namespace LongUI {
         uint32_t            m_idFrame = 0;
         // frame count
         uint32_t            m_uFrameCount = 1;
-#ifdef LUI_IMAGE_ASICON_SUPPORT
-        // as icon
-        bool                m_bAsIcon = false;
-#endif
     };
     // get meta info for UIImage
     LUI_DECLARE_METAINFO(UIImage);

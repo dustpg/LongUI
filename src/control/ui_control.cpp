@@ -2043,11 +2043,10 @@ void LongUI::UIControl::GetValue(SSValue& value) const noexcept {
 /// SetXul目前只接受 NUL 结尾字符串
 /// </remarks>
 /// <returns></returns>
-bool LongUI::UIControl::SetXul(const char* xul) noexcept {
+void LongUI::UIControl::SetXul(const char* xul) noexcept {
     UIControl::ControlMakingBegin();
-    const bool rvcode = CUIControlControl::MakeXul(*this, xul);
+    CUIControlControl::MakeXul(*this, xul);
     UIControl::ControlMakingEnd();
-    return rvcode;
 }
 
 /// <summary>

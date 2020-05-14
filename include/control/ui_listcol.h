@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 /**
-* Copyright (c) 2014-2018 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2020 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation

@@ -1,6 +1,6 @@
 ﻿#pragma once
 /**
-* Copyright (c) 2014-2018 dustpg   mailto:dustpg@gmail.com
+* Copyright (c) 2014-2020 dustpg   mailto:dustpg@gmail.com
 *
 * Permission is hereby granted, free of charge, to any person
 * obtaining a copy of this software and associated documentation
@@ -218,7 +218,7 @@ namespace LongUI {
         // set xul-string as content
         // remarks: SetXul accept null-terminated-string only
         // 注: SetXul目前只接受 NUL 结尾字符串
-        bool SetXul(const char* xul) noexcept;
+        void SetXul(const char* xul) noexcept;
         // set xul-file as content, return false if not-found
         bool SetXulFromFile(U8View url) noexcept;
         // find child via position 

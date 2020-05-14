@@ -4,15 +4,13 @@
 
 int main() {
     if (UIManager.Initialize()) {
-        {
-            LongUI::UIViewport viewport;
-            LongUI::UILabel label{ &viewport };
+        LongUI::UIViewport viewport;
+        LongUI::UILabel label{ &viewport };
 
-            label.SetText(u"Hello world!");
-            viewport.GetWindow()->ShowWindow();
-            viewport.GetWindow()->Exec();
-        }
-        UIManager.Uninitialize();
+        label.SetText(u"Hello world!");
+        viewport.GetWindow()->ShowWindow();
+        viewport.GetWindow()->Exec();
     }
+    UIManager.Uninitialize();
     return 0;
 }

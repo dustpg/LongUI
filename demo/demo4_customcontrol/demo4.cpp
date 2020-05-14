@@ -32,16 +32,14 @@ int main() {
     int code = -1;
     Demo::Config config;
     if (UIManager.Initialize(&config)) {
-        {
-            LongUI::UIControl::ControlMakingBegin();
-            LongUI::UIViewport viewport;
-            viewport.SetXul(xul);
-            LongUI::UIControl::ControlMakingEnd();
+        LongUI::UIControl::ControlMakingBegin();
+        LongUI::UIViewport viewport;
+        viewport.SetXul(xul);
+        LongUI::UIControl::ControlMakingEnd();
 
-            viewport.GetWindow()->ShowWindow();
-            code = LongUI::IntCode(viewport.GetWindow()->Exec());
-        }
-        UIManager.Uninitialize();
+        viewport.GetWindow()->ShowWindow();
+        code = LongUI::IntCode(viewport.GetWindow()->Exec());
     }
+    UIManager.Uninitialize();
     return code;
 }

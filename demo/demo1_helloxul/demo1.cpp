@@ -27,14 +27,12 @@ int main() {
         using LongUI::U8View;
         UIManager.AddGlobalCssString(U8View::FromCStyle(global_css));
 #endif
-        {
-            LongUI::UIViewport viewport;
-            viewport.SetXul(xul);
+        LongUI::UIViewport viewport;
+        viewport.SetXul(xul);
 
-            viewport.GetWindow()->ShowWindow();
-            viewport.GetWindow()->Exec();
-        }
-        UIManager.Uninitialize();
+        viewport.GetWindow()->ShowWindow();
+        viewport.GetWindow()->Exec();
     }
+    UIManager.Uninitialize();
     return 0;
 }
