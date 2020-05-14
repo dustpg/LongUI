@@ -78,7 +78,8 @@ LongUI::UIListBox::~UIListBox() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oListboxBody(this) {
     // 焦点允许
     //m_state.focusable = true;
     // 默认为列表框
@@ -91,13 +92,11 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
     // TODO: OOM处理
 
     // 创建Body控件
-    m_pListboxBody = new(std::nothrow) UIScrollArea{ this };
-    if (m_pListboxBody) {
-        m_pListboxBody->SetAutoOverflow();
-        m_pListboxBody->SetDebugName("listbox::listboxbody");
-    }
-    // OOM处理
-    this->ctor_failed_if(m_pListboxBody);
+    m_oListboxBody.SetAutoOverflow();
+#ifndef NDEBUG
+    m_oListboxBody.SetDebugName("listbox::listboxbody");
+#endif // !NDEBUG
+
     // 构造锁
     impl::ctor_unlock();
 }
@@ -109,8 +108,8 @@ LongUI::UIListBox::UIListBox(UIControl* parent, const MetaControl& meta) noexcep
 /// <param name="size">The size.</param>
 /// <returns></returns>
 void LongUI::UIListBox::SetLineSize(Size2F size) noexcept {
-    if (m_pListboxBody->line_size.height != size.height) {
-        m_pListboxBody->line_size = size;
+    if (m_oListboxBody.line_size.height != size.height) {
+        m_oListboxBody.line_size = size;
     }
 }
 
@@ -158,8 +157,8 @@ void LongUI::UIListBox::relayout() noexcept {
         this->resize_child(*m_pHead, { ctsize.width, height });
     }
     // Body 位置大小
-    m_pListboxBody->SetPos(lt);
-    this->resize_child(*m_pListboxBody, ctsize);
+    m_oListboxBody.SetPos(lt);
+    this->resize_child(m_oListboxBody, ctsize);
 
     // == Item ==
     float item_offset = 0.f;
@@ -177,7 +176,7 @@ void LongUI::UIListBox::relayout() noexcept {
         item_offset += line_height;
     }
     // TODO: 宽度
-    m_pListboxBody->ForceUpdateScrollSize({ ctsize.width, item_offset });
+    m_oListboxBody.ForceUpdateScrollSize({ ctsize.width, item_offset });
 }
 
 
@@ -231,14 +230,14 @@ void LongUI::UIListBox::add_child(UIControl& child) noexcept {
         const auto ptr = static_cast<UIListItem*>(&child);
         m_list.push_back(ptr);
         this->mark_need_refresh_index();
-        return UIControlPrivate::CallAddChild(*m_pListboxBody, child);
+        return UIControlPrivate::CallAddChild(m_oListboxBody, child);
     }
     // 是ListCols
     else if (uisafe_cast<UIListCols>(&child)) {
         m_pCols = static_cast<UIListCols*>(&child);
         Super::add_child(child);
         // 交换body cols以提高优先级处理鼠标消息
-        this->SwapNode(child, *m_pListboxBody);
+        this->SwapNode(child, m_oListboxBody);
         // 正在添加节点, 没必要用SwapChildren?
         //this->SwapChildren(child, *m_pListboxBody);
         return;
@@ -522,7 +521,7 @@ void LongUI::UIListBox::refresh_minsize() noexcept {
     // 先确定Head
     if (m_pHead) msize = m_pHead->GetBox().minsize;
     // 再确定Body
-    const auto line_height = m_pListboxBody->line_size.height;
+    const auto line_height = m_oListboxBody.line_size.height;
     msize.height += m_displayRow * line_height;
     // 设置大小
     this->set_contect_minsize(msize);
@@ -536,35 +535,6 @@ void LongUI::UIListBox::refresh_minsize() noexcept {
 namespace LongUI {
     // UIListItem类 元信息
     LUI_CONTROL_META_INFO(UIListItem, "listitem");
-    // UIListItem私有信息
-    struct UIListItem::Private : CUIObject {
-        // 构造函数
-        Private(UIListItem& item) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-    };
-    /// <summary>
-    /// listitem privates data/method
-    /// </summary>
-    /// <param name="item">The item.</param>
-    /// <returns></returns>
-    UIListItem::Private::Private(UIListItem& item) noexcept
-        : image(nullptr), label(nullptr) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-#ifndef NDEBUG
-        image.name_dbg = "listitem::image";
-        label.name_dbg = "listitem::label";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-#endif
-    }
 }
 
 /// <summary>
@@ -572,8 +542,7 @@ namespace LongUI {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIListItem::GetText() const noexcept -> const char16_t* {
-    assert(m_private && "bad action");
-    return m_private->label.GetText();
+    return m_oLabel.GetText();
 }
 
 /// <summary>
@@ -592,8 +561,7 @@ auto LongUI::UIListItem::GetIndex() const noexcept -> uint32_t {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIListItem::GetTextString() const noexcept -> const CUIString&{
-    assert(m_private && "bad action");
-    return m_private->label.GetTextString();
+    return m_oLabel.GetTextString();
 }
 
 
@@ -603,7 +571,8 @@ auto LongUI::UIListItem::GetTextString() const noexcept -> const CUIString&{
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(nullptr), m_oLabel(nullptr) {
     m_state.focusable = true;
     // 原子性, 子控件为本控件的组成部分
     //m_state.atomicity = true;
@@ -612,9 +581,14 @@ LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexc
     // 列表项目
     m_oStyle.appearance = Appearance_ListItem;
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+#ifndef NDEBUG
+    m_oImage.name_dbg = "listitem::image";
+    m_oLabel.name_dbg = "listitem::label";
+    assert(m_oImage.IsFocusable() == false);
+    assert(m_oLabel.IsFocusable() == false);
+#endif
     // 构造锁
     impl::ctor_unlock();
 }
@@ -635,8 +609,6 @@ LongUI::UIListItem::~UIListItem() noexcept {
     if (const auto list = m_pListBox) {
         list->ItemRemoved(*this);
     }
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -644,9 +616,9 @@ LongUI::UIListItem::~UIListItem() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIListItem::add_private_child() noexcept {
-    if (!m_private->image.GetParent()) {
-        m_private->image.SetParent(*this);
-        m_private->label.SetParent(*this);
+    if (!m_oImage.GetParent()) {
+        m_oImage.SetParent(*this);
+        m_oLabel.SetParent(*this);
     }
 }
 
@@ -657,7 +629,7 @@ void LongUI::UIListItem::add_private_child() noexcept {
 /// <returns></returns>
 void LongUI::UIListItem::relayout() noexcept {
     // 检查是不是使用的默认控件
-    auto& maybe = m_private->image;
+    auto& maybe = m_oImage;
     // 根据列表的布局
     if (maybe.GetParent() != this) {
         // 获取UIListBox
@@ -730,9 +702,8 @@ auto LongUI::UIListItem::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIListItem::SetText(CUIString&& text) noexcept {
-    assert(m_private && "bad action");
     this->add_private_child();
-    if (m_private->label.SetText(std::move(text))) {
+    if (m_oLabel.SetText(std::move(text))) {
 #ifdef LUI_ACCESSIBLE
         //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
 #endif
@@ -778,7 +749,7 @@ auto LongUI::UIListItem::DoEvent(UIControl * sender,
         // 没子控件
         if (!this->GetCount()) {
             // TODO: 没有文本时候的处理
-            m_private->label.SetAsDefaultMinsize();
+            m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
         }
         break;
@@ -802,7 +773,7 @@ void LongUI::UIListItem::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     default:
         // 其他情况, 交给基类处理
@@ -978,37 +949,6 @@ void LongUI::UIListHead::relayout() noexcept {
 namespace LongUI {
     // UIListHeader类 元信息
     LUI_CONTROL_META_INFO(UIListHeader, "listheader");
-    // UIListHeader私有信息
-    struct UIListHeader::Private : CUIObject {
-        // 构造函数
-        Private(UIListHeader& header) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-        // 排序控件
-        UIImage             sortdir;
-    };
-    /// <summary>
-    /// listitem privates data/method
-    /// </summary>
-    /// <param name="item">The item.</param>
-    /// <returns></returns>
-    UIListHeader::Private::Private(UIListHeader& item) noexcept
-        : image(&item), label(&item), sortdir(&item) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-#ifndef NDEBUG
-        image.name_dbg = "listheader::image";
-        label.name_dbg = "listheader::label";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-#endif
-    }
 }
 
 
@@ -1028,9 +968,16 @@ LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) n
     // 属于HEADER CELL
     m_oStyle.appearance = Appearance_TreeHeaderCell;
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+#ifndef NDEBUG
+    m_oImage.name_dbg = "listheader::image";
+    m_oLabel.name_dbg = "listheader::label";
+    m_oSortDir.name_dbg = "listheader::sortdir";
+    assert(m_oImage.IsFocusable() == false);
+    assert(m_oLabel.IsFocusable() == false);
+    assert(m_oSortDir.IsFocusable() == false);
+#endif
     // 构造锁
     impl::ctor_unlock();
 }
@@ -1043,8 +990,6 @@ LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) n
 LongUI::UIListHeader::~UIListHeader() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -1061,7 +1006,7 @@ void LongUI::UIListHeader::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     default:
         // 其他情况, 交给基类处理
@@ -1077,7 +1022,7 @@ void LongUI::UIListHeader::add_attribute(uint32_t key, U8View value) noexcept {
 /// <returns></returns>
 void LongUI::UIListHeader::SetText(CUIString&& text) noexcept {
     // 设置
-    if (m_private->label.SetText(std::move(text))) {
+    if (m_oLabel.SetText(std::move(text))) {
 #ifdef LUI_ACCESSIBLE
         //LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
 #endif

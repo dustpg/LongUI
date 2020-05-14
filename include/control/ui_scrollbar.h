@@ -24,7 +24,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
+// base
+#include "ui_scale.h"
+#include "ui_image.h"
 
 namespace LongUI {
     // scroll bar
@@ -33,8 +37,6 @@ namespace LongUI {
         using Super = UIBoxLayout;
         // init bar
         void init_bar() noexcept;
-        // private impl
-        struct Private;
     protected:
         // ctor
         UIScrollBar(AttributeOrient o, UIControl* parent, const MetaControl&) noexcept;
@@ -70,9 +72,17 @@ namespace LongUI {
         // accessible event
         auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
 #endif
-    private:
-        // private data
-        Private*        m_private = nullptr;
+    private: // private impl
+        // up - top button
+        UIImage         m_oUpTop;
+        // down - top button
+        UIImage         m_oDownTop;
+        // slider
+        UIScale         m_oSlider;
+        // up - bottom button
+        UIImage         m_oUpBottom;
+        // down - bottom button
+        UIImage         m_oDownBottom;
     };
     // get meta info for UIScrollBar
     LUI_DECLARE_METAINFO(UIScrollBar);

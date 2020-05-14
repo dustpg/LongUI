@@ -21,37 +21,6 @@
 namespace LongUI {
     // UIButton类 元信息
     LUI_CONTROL_META_INFO(UIButton, "button");
-    // UIButton私有信息
-    struct UIButton::Private : CUIObject {
-        // 构造函数
-        Private(UIButton& btn) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-    };
-    /// <summary>
-    /// button privates data/method
-    /// </summary>
-    /// <param name="btn">The BTN.</param>
-    /// <returns></returns>
-    UIButton::Private::Private(UIButton& btn) noexcept
-        : image(nullptr), label(nullptr) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-#ifndef NDEBUG
-        image.name_dbg = "button::image";
-        label.name_dbg = "button::label";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-#endif
-        // 设置连接控件
-        label.SetControl(btn);
-    }
 }
 
 /// <summary>
@@ -59,8 +28,7 @@ namespace LongUI {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIButton::GetText() const noexcept -> const char16_t* {
-    assert(m_private && "bad action");
-    return m_private->label.GetText();
+    return m_oLabel.GetText();
 }
 
 /// <summary>
@@ -68,8 +36,7 @@ auto LongUI::UIButton::GetText() const noexcept -> const char16_t* {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIButton::GetTextString() const noexcept -> const CUIString&{
-    assert(m_private && "bad action");
-    return m_private->label.GetTextString();
+    return m_oLabel.GetTextString();
 }
 
 
@@ -79,7 +46,8 @@ auto LongUI::UIButton::GetTextString() const noexcept -> const CUIString&{
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(nullptr), m_oLabel(nullptr) {
     m_state.focusable = true;
     m_state.defaultable = true;
     // 原子性, 子控件为本控件的组成部分
@@ -95,11 +63,18 @@ LongUI::UIButton::UIButton(UIControl* parent, const MetaControl& meta) noexcept
     m_oStyle.align = Align_Center;
     m_oBox.margin = { 5, 5, 5, 5 };
     m_oBox.padding = { 2, 2, 2, 2 };
-    // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
-    //m_private->label.SetText(u"确定");
+
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+#ifndef NDEBUG
+    m_oImage.name_dbg = "button::image";
+    m_oLabel.name_dbg = "button::label";
+    assert(m_oImage.IsFocusable() == false);
+    assert(m_oLabel.IsFocusable() == false);
+#endif
+    // 设置连接控件
+    m_oLabel.SetControl(*this);
+    //m_oLabel.SetText(u"确定");
     // 构造锁
     impl::ctor_unlock();
 }
@@ -118,8 +93,6 @@ LongUI::UIButton::~UIButton() noexcept {
     else {
         if (m_pMenuPopup) delete m_pMenuPopup;
     }
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -130,9 +103,9 @@ LongUI::UIButton::~UIButton() noexcept {
 /// </remarks>
 /// <returns></returns>
 void LongUI::UIButton::add_private_child() noexcept {
-    if (!m_private->image.GetParent()) {
-        m_private->image.SetParent(*this);
-        m_private->label.SetParent(*this);
+    if (!m_oImage.GetParent()) {
+        m_oImage.SetParent(*this);
+        m_oLabel.SetParent(*this);
     }
 }
 
@@ -142,7 +115,7 @@ void LongUI::UIButton::add_private_child() noexcept {
 /// <param name="f">The f.</param>
 /// <returns></returns>
 void LongUI::UIButton::set_label_flex(float f) noexcept {
-    UIControlPrivate::SetFlex(m_private->label, f);
+    UIControlPrivate::SetFlex(m_oLabel, f);
 }
 
 /// <summary>
@@ -219,9 +192,8 @@ auto LongUI::UIButton::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIButton::SetText(CUIString&& text) noexcept {
-    assert(m_private && "bad action");
     this->add_private_child();
-    if (m_private->label.SetText(std::move(text))) {
+    if (m_oLabel.SetText(std::move(text))) {
         this->mark_window_minsize_changed();
 #ifdef LUI_ACCESSIBLE
         LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
@@ -261,7 +233,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
         // 没子控件
         if (!this->GetCount()) {
             // TODO: 没有文本时候的处理
-            m_private->label.SetAsDefaultMinsize();
+            m_oLabel.SetAsDefaultMinsize();
             this->add_private_child();
         }
         break;
@@ -319,8 +291,7 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
 /// <param name="src">The source.</param>
 /// <returns></returns>
 void LongUI::UIButton::SetImageSource(U8View src) noexcept {
-    assert(m_private && "bad action");
-    m_private->image.SetSource(src);
+    m_oImage.SetSource(src);
 }
 
 /// <summary>
@@ -329,7 +300,6 @@ void LongUI::UIButton::SetImageSource(U8View src) noexcept {
 /// <returns></returns>
 void LongUI::UIButton::Click() noexcept {
     if (this->IsDisabled()) return;
-    assert(m_private && "bad action");
     // 分类讨论
     switch (m_type)
     {
@@ -402,15 +372,15 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     case BKDR_ACCESSKEY:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, key, value);
+        Unsafe::AddAttrUninited(m_oLabel, key, value);
         break;
     case BKDR_IMAGE:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->image, BKDR_SRC, value);
+        Unsafe::AddAttrUninited(m_oImage, BKDR_SRC, value);
         break;
     case BKDR_TYPE:
         // type  : BUTTON类型
@@ -475,7 +445,7 @@ auto LongUI::UIButton::accessible(const AccessibleEventArg& args) noexcept -> Ev
     case AccessibleEvent::Event_All_GetAccessibleName:
         // 获取Acc名称
         *static_cast<const get2_t&>(args).name = 
-            m_private->label.GetTextString();
+            m_oLabel.GetTextString();
         return Event_Accept;
     case AccessibleEvent::Event_Value_SetValue:
         // 设置值

@@ -26,7 +26,7 @@ namespace LongUI {
 LongUI::UIScrollArea::UIScrollArea(UIControl* parent, const MetaControl& meta) noexcept
     : Super(impl::ctor_lock(parent), meta) {
     this->line_size = { EMPTY_HEIGHT_PER_ROW, EMPTY_HEIGHT_PER_ROW };
-    m_minScrollSize = {};
+    m_minScrollSize = { };
     impl::ctor_unlock();
 }
 

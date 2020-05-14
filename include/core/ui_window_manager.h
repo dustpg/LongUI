@@ -39,9 +39,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_wndmgr;
         // 32bit
-        template<> struct private_wndmgr<4> { enum { size = 40, align = 8 }; };
+        template<> struct private_wndmgr<4> { enum { size = 48, align = 8 }; };
         // 64bit
-        template<> struct private_wndmgr<8> { enum { size = 56, align = 8 }; };
+        template<> struct private_wndmgr<8> { enum { size = 72, align = 8 }; };
     }
     // UI Window Manager
     class CUIWndMgr {
@@ -56,8 +56,8 @@ namespace LongUI {
         auto GetMainDpiX() const noexcept { return m_uMainDpiX; }
         // get main dpi y
         auto GetMainDpiY() const noexcept { return m_uMainDpiY; }
-        // move subviewport to global
-        void MoveSubViewToGlobal(UIViewport&) noexcept;
+        // add subviewport to global
+        void AddGlobalSubView(UIViewport&) noexcept;
         // find subviewport with unique string
         auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
         // mark window minsize changed, donothing if null

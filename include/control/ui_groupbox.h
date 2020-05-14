@@ -37,8 +37,6 @@ namespace LongUI {
     class UIGroupBox : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     protected:
         // ctor
         UIGroupBox(UIControl* parent, const MetaControl&) noexcept;
@@ -61,12 +59,12 @@ namespace LongUI {
         // accessible api
         auto accessible(const AccessibleEventArg& args) noexcept->EventAccept;
 #endif
+    private: // private impl
+        // private head
+        UIHBoxLayout            m_oHeadLayout;
+        // private body
+        UIVBoxLayout            m_oBodyLayout;
     private:
-        // relayout this box
-        //void relayout() noexcept;
-    private:
-        // private data
-        Private*                m_private = nullptr;
         // caption
         UICaption*              m_pCaption = nullptr;
     };

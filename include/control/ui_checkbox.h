@@ -24,7 +24,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
+// base
+#include <control/ui_image.h>
+#include <control/ui_label.h>
 
 // ui namespace
 namespace LongUI {
@@ -34,8 +38,6 @@ namespace LongUI {
     class UICheckBox : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
         // init checkbox
         void init_checkbox() noexcept;
     public:
@@ -88,9 +90,12 @@ namespace LongUI {
         void change_indeterminate(bool) noexcept;
         // change state
         void changed() noexcept;
+    private: // private control impl
+        // private image
+        UIImage                 m_oImage;
+        // private label
+        UILabel                 m_oLabel;
     private:
-        // private data
-        Private*                m_private = nullptr;
         // image child
         UIImage*                m_pImageChild = nullptr;
     };

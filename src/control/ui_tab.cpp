@@ -4,8 +4,6 @@
 #include <control/ui_tabpanel.h>
 #include <control/ui_tabpanels.h>
 
-#include <control/ui_image.h>
-#include <control/ui_label.h>
 
 #include <core/ui_ctrlmeta.h>
 #include <constexpr/const_bkdr.h>
@@ -38,47 +36,14 @@ namespace LongUI {
     // UITabPanels类 元信息
     LUI_CONTROL_META_INFO(UITabPanels, "tabpanels");
     // find greatest child-minsize
-    namespace impl { Size2F greatest_minsize(UIControl& ctrl) noexcept; }
+    //namespace impl { Size2F greatest_minsize(UIControl& ctrl) noexcept; }
 }
-
 
 
 // ----------------------------------------------------------------------------
 // --------------------              Tab              -------------------------
 // ----------------------------------------------------------------------------
 
-// ui namespace
-namespace LongUI {
-    // UITab私有信息
-    struct UITab::Private : CUIObject {
-        // 构造函数
-        Private(UITab& btn) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-    };
-    /// <summary>
-    /// button privates data/method
-    /// </summary>
-    /// <param name="btn">The BTN.</param>
-    /// <returns></returns>
-    UITab::Private::Private(UITab& btn) noexcept
-        : image(&btn), label(&btn) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-#ifndef NDEBUG
-        image.name_dbg = "tab::image";
-        label.name_dbg = "tab::label";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-#endif
-    }
-}
 
 /// <summary>
 /// Finalizes an instance of the <see cref="UITab"/> class.
@@ -95,8 +60,6 @@ LongUI::UITab::~UITab() noexcept {
     if (const auto tabs = longui_cast<UITabs*>(m_pParent)) {
         tabs->TabRemoved(*this);
     }
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 
@@ -106,7 +69,7 @@ LongUI::UITab::~UITab() noexcept {
 /// <param name="str">The string.</param>
 /// <returns></returns>
 void LongUI::UITab::SetText(const CUIString& str) noexcept {
-    m_private->label.SetText(std::move(str));
+    m_oLabel.SetText(std::move(str));
 }
 
 /// <summary>
@@ -115,7 +78,8 @@ void LongUI::UITab::SetText(const CUIString& str) noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(this), m_oLabel(this) {
     // 水平布局
     m_state.orient = Orient_Horizontal;
     // tab类型
@@ -128,9 +92,14 @@ LongUI::UITab::UITab(UIControl* parent, const MetaControl& meta) noexcept
     // 原子控件
     m_state.atomicity = true;
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+#ifndef NDEBUG
+    m_oImage.name_dbg = "tab::image";
+    m_oLabel.name_dbg = "tab::label";
+    assert(m_oImage.IsFocusable() == false);
+    assert(m_oLabel.IsFocusable() == false);
+#endif
     // 独立控件
 #ifdef LUI_ACCESSIBLE
     m_pAccCtrl = nullptr;
@@ -155,7 +124,7 @@ void LongUI::UITab::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     default:
         // 其他情况, 交给基类处理
@@ -223,7 +192,7 @@ auto LongUI::UITab::accessible(const AccessibleEventArg& args) noexcept -> Event
     case AccessibleEvent::Event_All_GetAccessibleName:
         // 获取Acc名称
         *static_cast<const get2_t&>(args).name =
-            m_private->label.GetTextString();
+            m_oLabel.GetTextString();
         return Event_Accept;
     case AccessibleEvent::Event_Invoke_Invoke:
         // 调用

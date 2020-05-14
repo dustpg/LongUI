@@ -5,8 +5,6 @@
 #include <core/ui_unsafe.h>
 #include <control/ui_radiogroup.h>
 // 子控件
-#include <control/ui_image.h>
-#include <control/ui_label.h>
 #include <control/ui_boxlayout.h>
 // Private
 #include "../private/ui_private_control.h"
@@ -17,38 +15,6 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIRadio, "radio");
     // UIRadioGroup类 元信息
     LUI_CONTROL_META_INFO(UIRadioGroup, "radiogroup");
-    // UIRadio私有信息
-    struct UIRadio::Private : CUIObject {
-        // 构造函数
-        Private(UIRadio& btn) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-    };
-    /// <summary>
-    /// button privates data/method
-    /// </summary>
-    /// <param name="radio">The radio.</param>
-    /// <returns></returns>
-    UIRadio::Private::Private(UIRadio& radio) noexcept
-        : image(&radio), label(&radio) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-#ifndef NDEBUG
-        image.name_dbg = "radio::image";
-        label.name_dbg = "radio::label";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-        //label.SetText(u"单选框");
-#endif
-        // 设置连接控件
-        label.SetControl(radio);
-    }
 }
 
 /// <summary>
@@ -57,7 +23,8 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(this), m_oLabel(this) {
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
@@ -71,10 +38,18 @@ LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
     m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+#ifndef NDEBUG
+    m_oImage.name_dbg = "radio::image";
+    m_oLabel.name_dbg = "radio::label";
+    assert(m_oImage.IsFocusable() == false);
+    assert(m_oLabel.IsFocusable() == false);
+    //label.SetText(u"单选框");
+#endif
+    // 设置连接控件
+    m_oLabel.SetControl(*this);
     // OOM处理
-    this->ctor_failed_if(m_private);
-    // 构造锁
     impl::ctor_unlock();
 }
 
@@ -86,8 +61,6 @@ LongUI::UIRadio::UIRadio(UIControl* parent, const MetaControl& meta) noexcept
 LongUI::UIRadio::~UIRadio() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -133,21 +106,20 @@ auto LongUI::UIRadio::DoEvent(
 /// </summary>
 /// <returns></returns>
 void LongUI::UIRadio::init_radio() noexcept {
-    if (!m_private) return;
     if (m_oStyle.appearance == Appearance_NotSet) {
         UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
-        UIControlPrivate::SetAppearance(m_private->image, Appearance_Radio);
+        UIControlPrivate::SetAppearance(m_oImage, Appearance_Radio);
     }
     // 在attr中设置了checked状态?
     if (m_oStyle.state.checked) {
-        UIControlPrivate::RefStyleState(m_private->image).checked = true;
+        UIControlPrivate::RefStyleState(m_oImage).checked = true;
         if (const auto group = uisafe_cast<UIRadioGroup>(m_pParent)) {
             group->SetChecked(*this);
         }
     }
     // 同步image-disable状态
     if (m_oStyle.state.disabled) {
-        UIControlPrivate::RefStyleState(m_private->image).disabled = true;
+        UIControlPrivate::RefStyleState(m_oImage).disabled = true;
     }
 }
 
@@ -193,11 +165,11 @@ void LongUI::UIRadio::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_LABEL:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     case BKDR_ACCESSKEY:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, key, value);
+        Unsafe::AddAttrUninited(m_oLabel, key, value);
         break;
     case BKDR_SELECTED:
         // selected:  兼容checked
@@ -214,14 +186,13 @@ void LongUI::UIRadio::add_attribute(uint32_t key, U8View value) noexcept {
 /// </summary>
 /// <param name="checked">if set to <c>true</c> [checked].</param>
 void LongUI::UIRadio::SetChecked(bool checked) noexcept {
-    assert(m_private && "BUG");
     // 禁用状态
     if (this->IsDisabled()) return;
     if (this->GetStyle().state.checked == checked) return;
     // 修改状态
     const auto statetp = StyleStateType::Type_Checked;
     this->StartAnimation({ statetp , checked });
-    m_private->image.StartAnimation({ statetp , checked });
+    m_oImage.StartAnimation({ statetp , checked });
     // 检查回馈
     if (checked && m_pRadioGroup) {
         this->TriggerEvent(this->_onCommand());
@@ -236,11 +207,10 @@ void LongUI::UIRadio::SetChecked(bool checked) noexcept {
 /// <param name="src">The source.</param>
 /// <returns></returns>
 void LongUI::UIRadio::SetImageSource(U8View src) noexcept {
-    assert(m_private && "bad action");
     if (!m_pImageChild) {
         const auto img = new(std::nothrow) UIImage{ this };
         if (!img) return;
-        Super::SwapChildren(*img, m_private->label);
+        Super::SwapChildren(*img, m_oLabel);
         m_pImageChild = img;
     }
     m_pImageChild->SetSource(src);
@@ -253,7 +223,7 @@ void LongUI::UIRadio::SetImageSource(U8View src) noexcept {
 /// <param name="len">The length.</param>
 /// <returns></returns>
 void LongUI::UIRadio::SetText(CUIString&& text) noexcept {
-    m_private->label.SetText(std::move(text));
+    m_oLabel.SetText(std::move(text));
 }
 
 /// <summary>
@@ -283,7 +253,7 @@ void LongUI::UIRadio::SetText(U16View text) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIRadio::GetText() const noexcept -> const char16_t* {
-    return m_private->label.GetText();
+    return m_oLabel.GetText();
 }
 
 /// <summary>
@@ -291,7 +261,7 @@ auto LongUI::UIRadio::GetText() const noexcept -> const char16_t* {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIRadio::GetTextString() const noexcept -> const CUIString&{
-    return m_private->label.GetTextString();
+    return m_oLabel.GetTextString();
 }
 
 // ----------------------------------------------------------------------------

@@ -24,8 +24,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
 #include "../core/ui_core_type.h"
+// base
+#include "ui_image.h"
+#include "ui_label.h"
 
 // ui namespace
 namespace LongUI {
@@ -33,8 +37,6 @@ namespace LongUI {
     class UIListHeader : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     public:
         // class meta
         static const  MetaControl   s_meta;
@@ -78,9 +80,13 @@ namespace LongUI {
         // accessible event
         //auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
 #endif
-    private:
-        // private data
-        Private*                m_private = nullptr;
+    private:// private impl
+        // private image
+        UIImage             m_oImage;
+        // private label
+        UILabel             m_oLabel;
+        // private sort-direction marker
+        UIImage             m_oSortDir;
     };
     // get meta info for UIListHeader
     LUI_DECLARE_METAINFO(UIListHeader);

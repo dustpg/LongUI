@@ -28,14 +28,14 @@
 #include "../core/ui_window.h"
 
 namespace LongUI {
+    // window manager
+    class CUIWndMgr;
     // viewport, logic window viewport
     class UIViewport : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // viewports
-        using Viewports = POD::Vector<UIViewport*>;
         // friend window
-        friend CUIWindow;
+        friend CUIWindow; friend CUIWndMgr;
     public:
         // class meta
         static const  MetaControl   s_meta;
@@ -72,10 +72,6 @@ namespace LongUI {
         void HosterPopupEnd() noexcept;
         // add subviewport
         void AddSubViewport(UIViewport& sub) noexcept;
-        // find subviewport with unique string
-        auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
-        // find subviewport with normal string
-        auto FindSubViewport(U8View view) const noexcept->UIViewport*;
         // just reset zoom
         void JustResetZoom(float x, float y) noexcept;
         // get real size(size * scale)
@@ -84,18 +80,27 @@ namespace LongUI {
         auto AdjustSize(Size2F) const noexcept->Size2L;
         // Adjust size
         auto AdjustZoomedSize(Size2F, Size2L) const noexcept->Size2L;
+    public:
+        // find subviewport with unique string
+        static auto FindSubViewport(UIControl*, const Node<UIControl>&, const char*) noexcept->UIViewport*;
+        // find subviewport with normal string
+        auto FindSubViewport(U8View view) const noexcept->UIViewport*;
+        // find subviewport with unique string
+        auto FindSubViewportWithUnistr(const char* str) const noexcept {
+            return UIViewport::FindSubViewport(m_nSubview.next, m_nSubview, str);
+        }
     private:
         // resize window
         void resize_window(Size2F size) noexcept;
     protected:
         // real size
         Size2F              m_szReal = {};
+        // last hoster, will set null after closed 
+        UIControl*          m_pHoster = nullptr;
+        // subview node
+        Node<UIControl>     m_nSubview;
         // window
         CUIWindow           m_window;
-        // last hoster, will set null after closed
-        UIControl*          m_pHoster = nullptr;
-        // sub-viewports
-        Viewports           m_subviewports;
     };
     // get meta info for UIViewport
     LUI_DECLARE_METAINFO(UIViewport);

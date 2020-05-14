@@ -40,6 +40,8 @@
 
 // cursor
 #include <graphics/ui_cursor.h>
+// C++
+#include <type_traits>
 
 // ui namespace
 namespace LongUI {
@@ -47,6 +49,16 @@ namespace LongUI {
     using RichED::unit_t;
     using RichED::CtxPtr;
     using RichED::CEDTextCell;
+    // impl
+    namespace impl {
+        template<size_t> struct textbox_helper;
+        template<> struct textbox_helper<4> {
+            enum { uitextbox_private = 592 };
+        };
+        template<> struct textbox_helper<8> {
+            enum { uitextbox_private = 664 };
+        };
+    }
     // textbox
     class UITextBox : public UIControl, 
         protected RichED::IEDTextPlatform/*,
@@ -148,6 +160,16 @@ namespace LongUI {
         // request text, not const method
         auto RequestText() noexcept -> const CUIString&;
     private:
+        // private impl
+        std::aligned_storage<impl::textbox_helper<sizeof(void*)>::uitextbox_private, 8>
+            ::type              m_private;
+        // private impl
+        auto pimpl() noexcept { return reinterpret_cast<Private*>(&m_private); }
+        // private impl
+        auto pimpl() const noexcept { return reinterpret_cast<const Private*>(&m_private); }
+        // private impl - force
+        auto fpimpl() const noexcept { return const_cast<Private*>(reinterpret_cast<const Private*>(&m_private)); }
+    private:
         // text used font
         TextFont                m_tfBuffer;
         // selection bgcolor
@@ -156,8 +178,6 @@ namespace LongUI {
         ColorF                  m_colorCaret;
         // hovered curor
         CUICursor               m_hovered;
-        // private data
-        Private*                m_private = nullptr;
         // max length
         uint32_t                m_uMaxLength = 0x00ffffff;
         // flag
@@ -215,7 +235,12 @@ namespace LongUI {
         void private_down() noexcept;
 #endif
     public:
-
+#ifndef NDEBUG
+        // debug color
+        ColorF                  dbg_color[2];
+        // debug counter
+        uint32_t                dbg_counter = 0;
+#endif
     };
     // get meta info for UITextBox
     LUI_DECLARE_METAINFO(UITextBox);

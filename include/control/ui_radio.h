@@ -24,7 +24,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
+// base
+#include "ui_image.h"
+#include "ui_label.h"
 
 // ui namespace
 namespace LongUI {
@@ -36,8 +40,6 @@ namespace LongUI {
     class UIRadio : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
         // init radio
         void init_radio() noexcept;
     public:
@@ -79,11 +81,13 @@ namespace LongUI {
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
+        // private image
+        UIImage             m_oImage;
+        // private label
+        UILabel             m_oLabel;
     private:
         // radio group
         UIRadioGroup*       m_pRadioGroup = nullptr;
-        // private data
-        Private*            m_private = nullptr;
         // image child
         UIImage*            m_pImageChild = nullptr;
     };

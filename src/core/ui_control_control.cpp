@@ -1482,7 +1482,7 @@ namespace LongUI {
             // 创建控件
             const auto ctrl = impl::create_control(view.begin(), view.end(), parent);
             // 错误处理
-            if (!ctrl || ctrl->IsCtorFailed()) {
+            if (!ctrl/* || ctrl->IsCtorFailed()*/) {
                 //delete ctrl;
                 this->error = view;
                 LUIDebug(Error) 

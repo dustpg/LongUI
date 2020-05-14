@@ -14,28 +14,6 @@
 namespace LongUI {
     // UIGroupBox类 元信息
     LUI_CONTROL_META_INFO(UIGroupBox, "groupbox");
-    // PrivateGroupBox
-    struct UIGroupBox::Private : CUIObject {
-        // ctor
-        Private(UIGroupBox& parent) noexcept;
-#ifndef NDEBUG
-        // 占位指针位 调试
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 头布局
-        UIHBoxLayout        head;
-        // 体布局
-        UIVBoxLayout        body;
-    };
-    /// <summary>
-    /// Privates the group box.
-    /// </summary>
-    /// <param name="parent">The parent.</param>
-    /// <returns></returns>
-    UIGroupBox::Private::Private(UIGroupBox& parent) noexcept:
-        head(&parent), body(&parent) {
-        UIControlPrivate::SetFlex(body, 1.f);
-    }
 }
 
 
@@ -45,7 +23,8 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oHeadLayout(this), m_oBodyLayout(this) {
     // 垂直布局
     m_state.orient = Orient_Vertical;
     // 原子性, 子控件为本控件的组成部分
@@ -57,12 +36,10 @@ LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexc
     m_oBox.margin = { 3.f, 3.f, 3.f, 3.f };
     m_oBox.padding = { 3.f, 3.f, 3.f, 6.f };
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    UIControlPrivate::SetFlex(m_oBodyLayout, 1.f);
 #ifdef LUI_ACCESSIBLE
     // 逻辑子控件是body
-    m_pAccCtrl = &m_private->body;
+    m_pAccCtrl = &m_oBodyLayout;
 #endif
     // 构造锁
     impl::ctor_unlock();
@@ -73,8 +50,8 @@ LongUI::UIGroupBox::UIGroupBox(UIControl* parent, const MetaControl& meta) noexc
 /// </summary>
 /// <returns></returns>
 LongUI::UIGroupBox::~UIGroupBox() noexcept {
+    // 提前释放
     m_state.destructing = true;
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -97,7 +74,7 @@ void LongUI::UIGroupBox::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_ALIGN:
     case BKDR_ORIENT:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->body, key, value);
+        Unsafe::AddAttrUninited(m_oBodyLayout, key, value);
         break;
     default:
         // 父类处理
@@ -112,22 +89,20 @@ void LongUI::UIGroupBox::add_attribute(uint32_t key, U8View value) noexcept {
 /// <param name="child">The child.</param>
 /// <returns></returns>
 void LongUI::UIGroupBox::add_child(UIControl& child) noexcept {
-    // 已经连接好
-    if (m_private) {
-        // caption控件?
-        UIControl* target;
-        // 是UICaption?
-        if (const auto ptr = uisafe_cast<UICaption>(&child)) {
-            target = &m_private->head;
-            m_pCaption = ptr;
-        }
-        // 其他控件
-        else target = &m_private->body;
-        
-        UIControlPrivate::CallAddChild(*target, child);
+    // 自带
+    if (child == m_oBodyLayout || child == m_oHeadLayout)
+        return Super::add_child(child);
+    // caption控件?
+    UIControl* target;
+    // 是UICaption?
+    if (const auto ptr = uisafe_cast<UICaption>(&child)) {
+        target = &m_oHeadLayout;
+        m_pCaption = ptr;
     }
-    // 还未连接好
-    else Super::add_child(child);
+    // 其他控件
+    else target = &m_oBodyLayout;
+    // 添加给目标
+    UIControlPrivate::CallAddChild(*target, child);
 }
 
 /// <summary>

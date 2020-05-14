@@ -16,31 +16,6 @@
 namespace LongUI {
     // UIProgress类 元信息
     LUI_CONTROL_META_INFO(UIProgress, "progressmeter");
-    // PrivateProgress
-    struct UIProgress::Private : CUIObject {
-        // 构造函数
-        Private(UIProgress& parent) noexcept;
-#ifndef NDEBUG
-        // 占位指针位 调试
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 头布局
-        UIControl           bar;
-        // 体布局
-        UIControl           remainder;
-    };
-    /// <summary>
-    /// Privates the group box.
-    /// </summary>
-    /// <param name="parent">The parent.</param>
-    /// <returns></returns>
-    UIProgress::Private::Private(UIProgress& parent) noexcept:
-    bar(&parent), remainder(&parent) {
-#ifndef NDEBUG
-        bar.name_dbg        = "progress::bar";
-        remainder.name_dbg  = "progress::remainder";
-#endif
-    }
 }
 
 
@@ -50,7 +25,8 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oBar(this), m_oRemainder(this) {
     // 原子性, 子控件为本控件的组成部分
     m_state.atomicity = true;
 #ifdef LUI_ACCESSIBLE
@@ -61,9 +37,10 @@ LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexc
     m_oBox.margin = { 4.f, 2.f, 4.f, 1.f };
     m_oBox.border = { 1.f, 1.f, 1.f, 1.f };
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+#ifndef NDEBUG
+    m_oBar.name_dbg = "progress::bar";
+    m_oRemainder.name_dbg = "progress::remainder";
+#endif
     // 构造锁
     impl::ctor_unlock();
 }
@@ -73,8 +50,8 @@ LongUI::UIProgress::UIProgress(UIControl* parent, const MetaControl& meta) noexc
 /// </summary>
 /// <returns></returns>
 LongUI::UIProgress::~UIProgress() noexcept {
+    // 需要提前释放
     m_state.destructing = true;
-    if (m_private) delete m_private;
 }
 
 
@@ -191,7 +168,7 @@ void LongUI::UIProgress::init_bar() noexcept {
     }
     // 设置
     UIControlPrivate::SetAppearanceIfNotSet(*this, thisapp);
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->bar, barapp);
+    UIControlPrivate::SetAppearanceIfNotSet(m_oBar, barapp);
 }
 
 
@@ -206,12 +183,12 @@ void LongUI::UIProgress::adjust_flex() noexcept {
     m_value = detail::clamp(m_value, 0.f, m_max);
     // 不确定情况
     if (m_oStyle.state.indeterminate) {
-        UIControlPrivate::SetFlex(m_private->bar, 1.f);
-        UIControlPrivate::SetFlex(m_private->remainder, 0.f);
+        UIControlPrivate::SetFlex(m_oBar, 1.f);
+        UIControlPrivate::SetFlex(m_oRemainder, 0.f);
     }
     else {
-        UIControlPrivate::SetFlex(m_private->bar, m_value);
-        UIControlPrivate::SetFlex(m_private->remainder, m_max - m_value);
+        UIControlPrivate::SetFlex(m_oBar, m_value);
+        UIControlPrivate::SetFlex(m_oRemainder, m_max - m_value);
     }
 }
 

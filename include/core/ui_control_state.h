@@ -37,8 +37,6 @@ namespace LongUI {
 
         // has been inited
         bool        inited : 1;
-        // ctor failed
-        bool        ctor_failed : 1;
         // in dtor
         bool        destructing : 1;
 

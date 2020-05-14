@@ -39,8 +39,6 @@ namespace LongUI {
     class UIButton : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     public:
         // min button width
         //enum { MIN_BUTTON_WIDTH = 175 };
@@ -107,9 +105,12 @@ namespace LongUI {
 #endif
         // parse button type
         static auto parse_button_type(U8View) noexcept->ButtonType;
+    private: // private control impl
+        // private image
+        UIImage             m_oImage;
+        // private label
+        UILabel             m_oLabel;
     private:
-        // private data
-        Private*            m_private = nullptr;
         // group id
         const char*         m_pGroup = nullptr;
     protected:

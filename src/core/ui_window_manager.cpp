@@ -1,6 +1,7 @@
 ﻿#include <core/ui_window.h>
 #include <debugger/ui_debug.h>
 #include <util/ui_time_meter.h>
+#include <control/ui_viewport.h>
 #include <container/pod_vector.h> 
 #include <core/ui_window_manager.h>
 
@@ -19,6 +20,8 @@ namespace LongUI { namespace detail {
 }}
 
 namespace LongUI {
+    // 视口?
+    bool IsViewport(const UIControl&) noexcept;
     // all
     struct AllWindows : Node<AllWindows> {};
 }
@@ -61,6 +64,8 @@ struct LongUI::CUIWndMgr::Private {
     Node<AllWindows>    head;
     // all window list - tail
     Node<AllWindows>    tail;
+    // subviews
+    Node<UIControl>     subviews;
 #if 0
     // windows list for updating
     WindowVector        windowsu;
@@ -78,27 +83,23 @@ struct LongUI::CUIWndMgr::Private {
 LongUI::CUIWndMgr::Private::Private() noexcept {
     head = { nullptr, static_cast<AllWindows*>(&tail) };
     tail = { static_cast<AllWindows*>(&head), nullptr };
+    const auto ptr = static_cast<UIControl*>(&subviews);
+    subviews = { ptr, ptr };
 }
 
-#if 0
-
-/// <summary>
-/// Gets the window list.
-/// </summary>
-/// <returns></returns>
-auto LongUI::CUIWndMgr::GetWindowList() const noexcept -> const WindowVector& {
-    return reinterpret_cast<const WindowVector&>(wm().windowsu);
-}
 
 /// <summary>
 /// Moves the sub view to global.
 /// </summary>
 /// <param name="vp">The vp.</param>
 /// <returns></returns>
-void LongUI::CUIWndMgr::MoveSubViewToGlobal(UIViewport& vp) noexcept {
-    const auto ptr = &vp;
-    // XXX: OOM处理
-    wm().subviewports.push_back(ptr);
+void LongUI::CUIWndMgr::AddGlobalSubView(UIViewport& sub) noexcept {
+    auto& subviews = wm().subviews;
+    // 连接前后节点
+    static_cast<UIViewport*>(subviews.prev)->next = &sub;
+    sub.prev = static_cast<UIViewport*>(subviews.prev);
+    sub.next = static_cast<UIControl*>(&subviews);
+    subviews.prev = &sub;
 }
 
 /// <summary>
@@ -107,10 +108,10 @@ void LongUI::CUIWndMgr::MoveSubViewToGlobal(UIViewport& vp) noexcept {
 /// <param name="name">The name.</param>
 /// <returns></returns>
 auto LongUI::CUIWndMgr::FindSubViewportWithUnistr(const char* name)const noexcept->UIViewport*{
-    return detail::find_viewport(wm().subviewports, name);
+    auto& subviews = wm().subviews;
+    return UIViewport::FindSubViewport(subviews.next, subviews, name);
 }
 
-#endif
 
 
 /// <summary>
@@ -171,6 +172,15 @@ LongUI::CUIWndMgr::CUIWndMgr(Result& out) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWndMgr::delete_all_window() noexcept {
+    auto& subviews = wm().subviews;
+    // 释放sub列表?
+    auto node = subviews.next;
+    while (node != &subviews) {
+        assert(LongUI::IsViewport(*node));
+        const auto view = static_cast<UIViewport*>(node);
+        node = view->next;
+        delete view;
+    }
     // 删除还存在的窗口
     while (m_oHead.next != &m_oTail)
         m_oTail.prev->Delete();

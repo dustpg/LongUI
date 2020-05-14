@@ -1,8 +1,6 @@
 ﻿// Gui
 #include <core/ui_ctrlmeta.h>
-#include <control/ui_scale.h>
 #include <util/ui_aniamtion.h>
-#include <control/ui_image.h>
 #include <core/ui_color_list.h>
 #include <control/ui_scrollbar.h>
 // C++
@@ -14,70 +12,15 @@
 namespace LongUI {
     // UIScrollBar类 元信息
     LUI_CONTROL_META_INFO(UIScrollBar, "scrollbar");
-    // ScrollBar 私有数据
-    struct UIScrollBar::Private : CUIObject {
-        // 控件类型
-        enum ControlType : uint32_t {
-            Type_UpTop = 0,
-            Type_DownTop,
-            Type_Slider,
-            Type_UpBottom,
-            Type_DownBottom,
-            TYPE_COUNT,
-        };
-        // 按钮类
-        using SBButton = UIImage;
-        // 滑条类
-        using SBSlider = UIScale;
-        // 构造函数
-        Private(UIScrollBar& parent) noexcept;
-#ifndef NDEBUG
-        // 占位指针位 调试
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 滚动条按钮 顶上
-        SBButton            up_top;
-        // 滚动条按钮 顶下
-        SBButton            down_top;
-        // 滑动条控件 中央
-        SBSlider            slider;
-        // 滚动条按钮 底上
-        SBButton            up_bottom;
-        // 滚动条按钮 底下
-        SBButton            down_bottom;
+    // 控件类型
+    enum SBControlType : uint32_t {
+        Type_UpTop = 0,
+        Type_DownTop,
+        Type_Slider,
+        Type_UpBottom,
+        Type_DownBottom,
+        TYPE_COUNT,
     };
-    /// <summary>
-    /// Privates the scroll bar.
-    /// </summary>
-    /// <param name="parent">The parent.</param>
-    /// <returns></returns>
-    UIScrollBar::Private::Private(UIScrollBar& parent) noexcept
-        : up_top(&parent), down_top(&parent), slider(&parent)
-        , up_bottom(&parent), down_bottom(&parent) {
-#ifndef NDEBUG
-        up_top.name_dbg     = "scrollbar::up_top";
-        down_top.name_dbg   = "scrollbar::down_top";
-        slider.name_dbg     = "scrollbar::slider";
-        up_bottom.name_dbg  = "scrollbar::up_bottom";
-        down_bottom.name_dbg= "scrollbar::down_bottom";
-#endif
-        //UIControlPrivate::SetGuiEvent2Parent(up_top);
-        //UIControlPrivate::SetGuiEvent2Parent(down_top);
-        UIControlPrivate::SetGuiEvent2Parent(slider);
-        //UIControlPrivate::SetGuiEvent2Parent(up_bottom);
-        //UIControlPrivate::SetGuiEvent2Parent(down_bottom);
-
-        UIControlPrivate::SetParentData(up_top,   Type_UpTop);
-        UIControlPrivate::SetParentData(down_top, Type_DownTop);
-        UIControlPrivate::SetParentData(slider,   Type_Slider);
-        UIControlPrivate::SetParentData(up_bottom, Type_UpBottom);
-        UIControlPrivate::SetParentData(down_bottom, Type_DownBottom);
-        UIControlPrivate::SetFlex(slider, 1.f);
-
-        down_top.SetVisible(false);
-        up_bottom.SetVisible(false);
-        slider.SetMin(0.f);
-    }
 }
 
 
@@ -88,22 +31,42 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
-    const MetaControl& meta) noexcept : Super(impl::ctor_lock(parent), meta) {
+    const MetaControl& meta) noexcept : Super(impl::ctor_lock(parent), meta),
+    m_oUpTop(this), m_oDownTop(this), m_oSlider(this),
+    m_oUpBottom(this), m_oDownBottom(this) {
     // 检查长度
-    constexpr auto sizeof_private = sizeof(*m_private);
 #ifdef LUI_ACCESSIBLE
     // 子控件为本控件的组成部分
     m_pAccCtrl = nullptr;
 #endif
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+#ifndef NDEBUG
+    m_oUpTop.name_dbg = "scrollbar::up_top";
+    m_oDownTop.name_dbg = "scrollbar::down_top";
+    m_oSlider.name_dbg = "scrollbar::slider";
+    m_oUpBottom.name_dbg = "scrollbar::up_bottom";
+    m_oDownBottom.name_dbg = "scrollbar::down_bottom";
+#endif
+    //UIControlPrivate::SetGuiEvent2Parent(m_oUpTop);
+    //UIControlPrivate::SetGuiEvent2Parent(m_oDownTop);
+    UIControlPrivate::SetGuiEvent2Parent(m_oSlider);
+    //UIControlPrivate::SetGuiEvent2Parent(up_bottom);
+    //UIControlPrivate::SetGuiEvent2Parent(down_bottom);
+
+    UIControlPrivate::SetParentData(m_oUpTop, Type_UpTop);
+    UIControlPrivate::SetParentData(m_oDownTop, Type_DownTop);
+    UIControlPrivate::SetParentData(m_oSlider, Type_Slider);
+    UIControlPrivate::SetParentData(m_oUpBottom, Type_UpBottom);
+    UIControlPrivate::SetParentData(m_oDownBottom, Type_DownBottom);
+    UIControlPrivate::SetFlex(m_oSlider, 1.f);
+
+    m_oDownTop.SetVisible(false);
+    m_oUpBottom.SetVisible(false);
+    m_oSlider.SetMin(0.f);
     // 设置方向
     const bool orient = o & 1;
     m_state.orient = orient;
-    if (m_private) 
-        UIControlPrivate::SetOrient(m_private->slider, orient);
+    UIControlPrivate::SetOrient(m_oSlider, orient);
     // 构造锁
     impl::ctor_unlock();
 }
@@ -113,8 +76,8 @@ LongUI::UIScrollBar::UIScrollBar(AttributeOrient o, UIControl* parent,
 /// </summary>
 /// <returns></returns>
 LongUI::UIScrollBar::~UIScrollBar() noexcept {
+    // 提前释放
     m_state.destructing = true;
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -137,7 +100,7 @@ void LongUI::UIScrollBar::Update() noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIScrollBar::GetValue() const noexcept -> float {
-    return m_private->slider.GetValue();
+    return m_oSlider.GetValue();
 }
 
 
@@ -147,7 +110,7 @@ auto LongUI::UIScrollBar::GetValue() const noexcept -> float {
 /// <param name="v">The v.</param>
 /// <returns></returns>
 void LongUI::UIScrollBar::SetValue(float v) noexcept {
-    m_private->slider.SetValue(v);
+    m_oSlider.SetValue(v);
 }
 
 
@@ -157,7 +120,7 @@ void LongUI::UIScrollBar::SetValue(float v) noexcept {
 /// <param name="v">The v.</param>
 /// <returns></returns>
 void LongUI::UIScrollBar::SetMax(float v) noexcept {
-    m_private->slider.SetMax(v);
+    m_oSlider.SetMax(v);
 }
 
 /// <summary>
@@ -166,7 +129,7 @@ void LongUI::UIScrollBar::SetMax(float v) noexcept {
 /// <param name="pi">The pi.</param>
 /// <returns></returns>
 void LongUI::UIScrollBar::SetPageIncrement(float pi) noexcept {
-    m_private->slider.SetPageIncrement(pi);
+    m_oSlider.SetPageIncrement(pi);
 }
 
 /// <summary>
@@ -175,7 +138,7 @@ void LongUI::UIScrollBar::SetPageIncrement(float pi) noexcept {
 /// <param name="pi">The pi.</param>
 /// <returns></returns>
 void LongUI::UIScrollBar::SetIncrement(float pi) noexcept {
-    m_private->slider.increment = pi;
+    m_oSlider.increment = pi;
 }
 
 /// <summary>
@@ -205,12 +168,12 @@ void LongUI::UIScrollBar::init_bar() noexcept {
         ats = Appearance_ScrollbarTrackV;
     }
     // 设置Appearance类型
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->up_top, aut);
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->down_top, adt);
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->slider, asd);
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->slider.thumb, ast);
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->up_bottom, aub);
-    UIControlPrivate::SetAppearanceIfNotSet(m_private->down_bottom, adb);
+    UIControlPrivate::SetAppearanceIfNotSet(m_oUpTop, aut);
+    UIControlPrivate::SetAppearanceIfNotSet(m_oDownTop, adt);
+    UIControlPrivate::SetAppearanceIfNotSet(m_oSlider, asd);
+    UIControlPrivate::SetAppearanceIfNotSet(m_oSlider.thumb, ast);
+    UIControlPrivate::SetAppearanceIfNotSet(m_oUpBottom, aub);
+    UIControlPrivate::SetAppearanceIfNotSet(m_oDownBottom, adb);
     UIControlPrivate::SetAppearanceIfNotSet(*this, ats);
 }
 
@@ -232,7 +195,7 @@ auto LongUI::UIScrollBar::DoEvent(UIControl * sender,
         // Gui事件: 数据修改事件向上传递
     {
         const auto ge = static_cast<const EventGuiArg&>(e).GetEvent();
-        assert(sender == &m_private->slider);
+        assert(sender == &m_oSlider);
         return this->TriggerEvent(ge);
     }
     default:
@@ -257,21 +220,21 @@ auto LongUI::UIScrollBar::DoMouseEvent(
             // 分类讨论
             switch (UIControlPrivate::GetParentData(*m_pHovered))
             {
-            case Private::Type_UpTop:
+            case LongUI::Type_UpTop:
                 // 顶上
-                m_private->slider.Decrease();
+                m_oSlider.Decrease();
                 break;
-            case Private::Type_DownTop:
+            case LongUI::Type_DownTop:
                 // 顶下
-                m_private->slider.DecreasePage();
+                m_oSlider.DecreasePage();
                 break;
-            case Private::Type_UpBottom:
+            case LongUI::Type_UpBottom:
                 // 底上
-                m_private->slider.IncreasePage();
+                m_oSlider.IncreasePage();
                 break;
-            case Private::Type_DownBottom:
+            case LongUI::Type_DownBottom:
                 // 底下
-                m_private->slider.Increase();
+                m_oSlider.Increase();
                 break;
             };
         }
@@ -314,33 +277,33 @@ auto LongUI::UIScrollBar::accessible(const AccessibleEventArg& args) noexcept ->
     case AccessibleEvent::Event_Range_GetValue:
         // 获取当前值
         static_cast<const AccessibleRGetValueArg&>(args).value
-            = m_private->slider.GetValue();
+            = m_oSlider.GetValue();
         return Event_Accept;
     case AccessibleEvent::Event_Range_SetValue:
         // 设置当前值
-        m_private->slider.SetValue(static_cast<float>(
+        m_oSlider.SetValue(static_cast<float>(
             static_cast<const AccessibleRSetValueArg&>(args).value
             ));
         return Event_Accept;
     case AccessibleEvent::Event_Range_GetMax:
         // 获取最大值
         static_cast<const AccessibleRGetMaxArg&>(args).value
-            = m_private->slider.GetMax();
+            = m_oSlider.GetMax();
         return Event_Accept;
     case AccessibleEvent::Event_Range_GetMin:
         // 获取最小值
         static_cast<const AccessibleRGetMinArg&>(args).value
-            = m_private->slider.GetMin();
+            = m_oSlider.GetMin();
         return Event_Accept;
     case AccessibleEvent::Event_Range_GetLargeStep:
         // 获取大步长
         static_cast<const AccessibleRGetLargeStepArg&>(args).value
-            = m_private->slider.GetPage();
+            = m_oSlider.GetPage();
         return Event_Accept;
     case AccessibleEvent::Event_Range_GetSmallStep:
         // 获取小步长
         static_cast<const AccessibleRGetSmallStepArg&>(args).value
-            = m_private->slider.increment;
+            = m_oSlider.increment;
         return Event_Accept;
     }
     return Super::accessible(args);

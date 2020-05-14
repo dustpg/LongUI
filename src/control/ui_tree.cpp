@@ -11,7 +11,6 @@
 
 #include <core/ui_manager.h>
 #include <input/ui_kminput.h>
-#include <control/ui_image.h>
 #include <debugger/ui_debug.h>
 #include <constexpr/const_bkdr.h>
 
@@ -391,39 +390,6 @@ auto LongUI::UITree::accessible(const AccessibleEventArg& args) noexcept -> Even
 // --------------------           Tree Row            -------------------------
 // ----------------------------------------------------------------------------
 
-// ui 命名空间
-namespace LongUI {
-    // UITreeRow私有信息
-    struct UITreeRow::Private : CUIObject {
-        // 构造函数
-        Private(UITreeRow& item) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 开关控件
-        UIImage             twisty;
-        // 图像控件
-        UIImage             image;
-    };
-    /// <summary>
-    /// treerow privates data/method
-    /// </summary>
-    /// <param name="item">The item.</param>
-    /// <returns></returns>
-    UITreeRow::Private::Private(UITreeRow& item) noexcept
-        : twisty(&item), image(&item) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-#ifndef NDEBUG
-        twisty.name_dbg = "treerow::twisty";
-        image.name_dbg = "treerow::image";
-#endif
-        UIControlPrivate::SetGuiEvent2Parent(twisty);
-        UIControlPrivate::SetAppearance(twisty, Appearance_TreeTwisty);
-    }
-}
-
 /// <summary>
 /// Finalizes an instance of the <see cref="UITreeRow"/> class.
 /// </summary>
@@ -431,7 +397,6 @@ namespace LongUI {
 LongUI::UITreeRow::~UITreeRow() noexcept {
     // 拥有额外的操作, 先标记析构
     m_state.destructing = true;
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -440,7 +405,7 @@ LongUI::UITreeRow::~UITreeRow() noexcept {
 /// <param name="has">if set to <c>true</c> [has].</param>
 /// <returns></returns>
 void LongUI::UITreeRow::SetHasChild(bool has) noexcept {
-    auto& sstate = UIControlPrivate::RefStyleState(m_private->twisty);
+    auto& sstate = UIControlPrivate::RefStyleState(m_oTwisty);
     sstate.indeterminate = has;
     m_bHasChild = has;
 }
@@ -505,7 +470,7 @@ void LongUI::UITreeRow::SetLevelOffset(float offset) noexcept {
 void LongUI::UITreeRow::open_close(bool open) noexcept {
     m_bOpened = open;
     // 修改twisty状态
-    auto& twisty = m_private->twisty;
+    auto& twisty = m_oTwisty;
     const auto statetp = StyleStateType::Type_Closed;
     twisty.StartAnimation({ statetp, !open });
     // 父节点必须是UITreeItem
@@ -524,17 +489,23 @@ void LongUI::UITreeRow::open_close(bool open) noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oTwisty(this), m_oImage(this) {
     // 暂时用ListItem?
     m_oStyle.appearance = Appearance_ListItem;
     // TODO: 默认是关闭状态?
 
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+#ifndef NDEBUG
+    m_oTwisty.name_dbg = "treerow::twisty";
+    m_oImage.name_dbg = "treerow::image";
+#endif
+    UIControlPrivate::SetGuiEvent2Parent(m_oTwisty);
+    UIControlPrivate::SetAppearance(m_oTwisty, Appearance_TreeTwisty);
     // 一开始假定没有数据
-    if (m_private) this->SetHasChild(false);
+    this->SetHasChild(false);
     // 构造锁
     impl::ctor_unlock();
 }
@@ -568,7 +539,7 @@ auto LongUI::UITreeRow::DoEvent(UIControl* sender, const EventArg& e) noexcept->
     {
     case NoticeEvent::Event_UIEvent:
         // 点击了 twisty?
-        if (sender == &m_private->twisty) {
+        if (sender == &m_oTwisty) {
             switch (static_cast<const EventGuiArg&>(e).GetEvent())
             {
             case UIControl::_onClick():
@@ -666,12 +637,12 @@ void LongUI::UITreeRow::relayout() noexcept {
             xoffset += min.width;
         };
         // twisty
-        set_child(m_private->twisty);
+        set_child(m_oTwisty);
         // image
-        set_child(m_private->image);
+        set_child(m_oImage);
         
         // (image, end)
-        auto itr = ++Iterator{ &m_private->image };
+        auto itr = ++Iterator{ &m_oImage };
 
 
         for (auto& col : (*cols)) {

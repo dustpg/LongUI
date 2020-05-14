@@ -35,8 +35,6 @@ namespace LongUI {
     class UIProgress : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     protected:
         // ctor
         UIProgress(UIControl* parent, const MetaControl&) noexcept;
@@ -73,9 +71,12 @@ namespace LongUI {
         void init_bar() noexcept;
         // adjust flex
         void adjust_flex() noexcept;
+    private: // private impl
+        // the bar child
+        UIControl               m_oBar;
+        // the remainder child
+        UIControl               m_oRemainder;
     private:
-        // private data
-        Private*                m_private = nullptr;
         // max value
         float                   m_max = 100.f;
         // value

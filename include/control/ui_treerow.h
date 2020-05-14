@@ -24,8 +24,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_control.h"
 //#include "../util/ui_double_click.h"
+// base
+#include "ui_image.h"
 
 // ui namespace
 namespace LongUI {
@@ -33,8 +36,6 @@ namespace LongUI {
     class UITreeRow : public UIControl {
         // super class
         using Super = UIControl;
-        // private
-        struct Private;
     protected:
         // ctor
         UITreeRow(UIControl* parent, const MetaControl&) noexcept;
@@ -78,9 +79,11 @@ namespace LongUI {
         void relayout() noexcept;
         // refresh minsize
         void refresh_minsize() noexcept;
-    private:
-        // private data
-        Private*                m_private = nullptr;
+    private: // private impl
+        // private twisty[+]
+        UIImage                 m_oTwisty;
+        // private image
+        UIImage                 m_oImage;
     protected:
         // offset
         float                   m_fLevelOffset = 0.f;

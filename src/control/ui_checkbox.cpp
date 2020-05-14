@@ -4,8 +4,6 @@
 #include <control/ui_checkbox.h>
 // 子控件
 #include <control/ui_boxlayout.h>
-#include <control/ui_image.h>
-#include <control/ui_label.h>
 #include <core/ui_unsafe.h>
 #include <constexpr/const_bkdr.h>
 // Private
@@ -15,38 +13,6 @@
 namespace LongUI {
     // UICheckBox类 元信息
     LUI_CONTROL_META_INFO(UICheckBox, "checkbox");
-    // UICheckBox私有信息
-    struct UICheckBox::Private : CUIObject {
-        // 构造函数
-        Private(UICheckBox& btn) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-    };
-    /// <summary>
-    /// button privates data/method
-    /// </summary>
-    /// <param name="btn">The BTN.</param>
-    /// <returns></returns>
-    UICheckBox::Private::Private(UICheckBox& box) noexcept
-        : image(&box), label(&box) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-#ifndef NDEBUG
-        image.name_dbg = "checkbox::image";
-        label.name_dbg = "checkbox::label";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-        //label.SetText(u"复选框");
-#endif
-        // 设置连接控件
-        label.SetControl(box);
-    }
 }
 
 PCN_NOINLINE
@@ -70,11 +36,10 @@ void LongUI::UICheckBox::SetIndeterminate() noexcept {
 /// <param name="src">The source.</param>
 /// <returns></returns>
 void LongUI::UICheckBox::SetImageSource(U8View src) noexcept {
-    assert(m_private && "bad action");
     if (!m_pImageChild) {
         const auto img = new(std::nothrow) UIImage{ this };
         if (!img) return;
-        Super::SwapChildren(*img, m_private->label);
+        Super::SwapChildren(*img, m_oLabel);
         m_pImageChild = img;
     }
     m_pImageChild->SetSource(src);
@@ -100,7 +65,7 @@ void LongUI::UICheckBox::SetChecked(bool checked) noexcept {
         changed_flag = true;
         const auto statetp = StyleStateType::Type_Checked;
         this->StartAnimation({ statetp , checked });
-        m_private->image.StartAnimation({ statetp , checked });
+        m_oImage.StartAnimation({ statetp , checked });
     }
     // 修改状态
     if (changed_flag) this->changed();
@@ -115,7 +80,7 @@ void LongUI::UICheckBox::change_indeterminate(bool ndeterminate) noexcept {
     assert(this->GetIndeterminate() != ndeterminate);
     const auto statetp = StyleStateType::Type_Indeterminate;
     this->StartAnimation({ statetp , ndeterminate });
-    m_private->image.StartAnimation({ statetp , ndeterminate });
+    m_oImage.StartAnimation({ statetp , ndeterminate });
 }
 
 /// <summary>
@@ -136,7 +101,8 @@ void LongUI::UICheckBox::changed() noexcept {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(this), m_oLabel(this) {
     // XXX: 硬编码
     m_oBox.margin = { 4, 2, 4, 2 };
     m_oBox.padding = { 4, 1, 2, 1 };
@@ -150,9 +116,17 @@ LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexc
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Center;
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+#ifndef NDEBUG
+    m_oImage.name_dbg = "checkbox::image";
+    m_oLabel.name_dbg = "checkbox::label";
+    assert(m_oLabel.IsFocusable() == false);
+    assert(m_oImage.IsFocusable() == false);
+    //label.SetText(u"复选框");
+#endif
+    // 设置连接控件
+    m_oLabel.SetControl(*this);
     // 构造锁
     impl::ctor_unlock();
 }
@@ -165,8 +139,6 @@ LongUI::UICheckBox::UICheckBox(UIControl* parent, const MetaControl& meta) noexc
 LongUI::UICheckBox::~UICheckBox() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 
@@ -187,11 +159,11 @@ void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     case BKDR_ACCESSKEY:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, key, value);
+        Unsafe::AddAttrUninited(m_oLabel, key, value);
         break;
     case BKDR_SRC:
         // src: 使用图片
@@ -234,22 +206,21 @@ auto LongUI::UICheckBox::DoEvent(
 /// </summary>
 /// <returns></returns>
 void LongUI::UICheckBox::init_checkbox() noexcept {
-    if (!m_private) return;
     if (m_oStyle.appearance == Appearance_NotSet) {
         UIControlPrivate::SetAppearance(*this, Appearance_CheckBoxContainer);
-        UIControlPrivate::SetAppearance(m_private->image, Appearance_CheckBox);
+        UIControlPrivate::SetAppearance(m_oImage, Appearance_CheckBox);
     }
     // 在attr中设置了checked状态?
     if (m_oStyle.state.checked) {
-        UIControlPrivate::RefStyleState(m_private->image).checked = true;
+        UIControlPrivate::RefStyleState(m_oImage).checked = true;
     }
     // 在attr中设置了indeterminate状态?
     if (m_oStyle.state.indeterminate) {
-        UIControlPrivate::RefStyleState(m_private->image).indeterminate = true;
+        UIControlPrivate::RefStyleState(m_oImage).indeterminate = true;
     }
     // 同步image-disable状态
     if (m_oStyle.state.disabled) {
-        UIControlPrivate::RefStyleState(m_private->image).disabled = true;
+        UIControlPrivate::RefStyleState(m_oImage).disabled = true;
     }
 }
 
@@ -276,8 +247,7 @@ auto LongUI::UICheckBox::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
 /// </summary>
 /// <returns></returns>
 auto LongUI::UICheckBox::GetText() const noexcept -> const char16_t* {
-    assert(m_private && "bad action");
-    return m_private->label.GetText();
+    return m_oLabel.GetText();
 }
 
 /// <summary>
@@ -285,8 +255,7 @@ auto LongUI::UICheckBox::GetText() const noexcept -> const char16_t* {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UICheckBox::GetTextString() const noexcept -> const CUIString& {
-    assert(m_private && "bad action");
-    return m_private->label.GetTextString();
+    return m_oLabel.GetTextString();
 }
 
 /// <summary>
@@ -295,8 +264,7 @@ auto LongUI::UICheckBox::GetTextString() const noexcept -> const CUIString& {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UICheckBox::SetText(CUIString&& text) noexcept {
-    assert(m_private && "bad action");
-    m_private->label.SetText(std::move(text));
+    m_oLabel.SetText(std::move(text));
 }
 
 /// <summary>

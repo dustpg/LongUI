@@ -229,8 +229,6 @@ namespace LongUI {
         auto GetCount() const noexcept { return m_cChildrenCount; }
         // invalidate this control
         void Invalidate() noexcept;
-        // is ctor failed? if true you must delete/dtor it after ctor
-        auto IsCtorFailed() const noexcept { return m_state.ctor_failed; }
         // is top level of tree? -> no parent
         bool IsTopLevel() const noexcept { return !m_pParent; }
         // get style model
@@ -556,8 +554,6 @@ namespace LongUI {
         // rend iterator
         auto rend()const noexcept->CRIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
     protected:
-        // ctor failed if
-        void ctor_failed_if(const void* ptr) noexcept { if (!ptr) m_state.ctor_failed = true; }
         // size change handled
         void size_change_handled() noexcept { m_state.dirty = false; }
         // add into update list

@@ -24,8 +24,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
 //#include "../util/ui_double_click.h"
+// base
+#include "ui_image.h"
+#include "ui_label.h"
 
 // ui namespace
 namespace LongUI {
@@ -33,8 +37,6 @@ namespace LongUI {
     class UITab : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
     protected:
         // ctor
         UITab(UIControl* parent, const MetaControl&) noexcept;
@@ -74,9 +76,11 @@ namespace LongUI {
         // accessible api
         auto accessible(const AccessibleEventArg& args) noexcept->EventAccept override;
 #endif
-    private:
-        // private data
-        Private*            m_private = nullptr;
+    private: // private control impl
+        // private image
+        UIImage             m_oImage;
+        // private label
+        UILabel             m_oLabel;
     };
     // get meta info for UITab
     LUI_DECLARE_METAINFO(UITab);

@@ -108,8 +108,6 @@ namespace LongUI {
         bool IsVisible() const noexcept;
         // is in dtor
         bool IsInDtor() const noexcept { return m_inDtor; }
-        // is ctor failed?
-        bool IsCtorFailed() const noexcept { return m_bCtorFaild; }
         // mark full rendering
         void MarkFullRendering() noexcept;
         // is auto sleep?
@@ -310,8 +308,6 @@ namespace LongUI {
         bool                m_bInExec : 1;
         // has script
         bool                m_bHasScript : 1;
-        // ctor failed
-        bool                m_bCtorFaild : 1;
         // state: under "minsize changed" list
         bool                m_bMinsizeList = false;
     protected:

@@ -17,33 +17,7 @@ namespace LongUI {
         const auto view = longui_cast<UIViewport*>(&ctrl);
         win.RefViewport().AddSubViewport(*view);
     }
-    // detail namespace
-    namespace detail {
-        PCN_NOINLINE
-        // find viewport
-        UIViewport* find_viewport(const POD::Vector<UIViewport*>& v, 
-            const char* name) noexcept {
-            for (auto x : v) {
-                // 唯一字符串用==判断
-                if (x->GetID() == name) return x;
-#ifndef NDEBUG
-                if (!std::strcmp(x->GetID(), name)) {
-                    assert(!"use UIManager.GetUniqueText");
-                }
-#endif
-            }
-            return nullptr;
-        }
-    }
 }
-
-//// longui::impl
-//namespace LongUI { namespace impl {
-//    // parse config
-//    inline auto parse_config(CUIWindow::WindowConfig cfg) noexcept ->UIControl* {
-//        return nullptr;
-//    }
-//}}
 
 /// <summary>
 /// Initializes a new instance of the <see cref="UIViewport" /> class.
@@ -51,13 +25,11 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="config">The configuration.</param>
 LongUI::UIViewport::UIViewport(CUIWindow* parent, CUIWindow::WindowConfig config) noexcept
-    : Super(impl::ctor_lock(nullptr)), m_window(parent, config) {
-    //m_pWindow = m_window.IsCtorFailed() ? nullptr : &m_window;
-
-    if (m_window.IsCtorFailed()) m_state.ctor_failed = true;
+    : Super(impl::ctor_lock(nullptr)), 
+    m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
+    m_window(parent, config) {
     m_pWindow = &m_window;
     m_state.orient = Orient_Vertical;
-
 
     // 构造锁
     impl::ctor_unlock();
@@ -72,13 +44,17 @@ LongUI::UIViewport::UIViewport(CUIWindow* parent, CUIWindow::WindowConfig config
 LongUI::UIViewport::UIViewport(
     UIControl& pseudo_parent,
     CUIWindow::WindowConfig config,
-    const MetaControl& meta
-) noexcept 
-    : Super(&pseudo_parent, meta), m_pHoster(&pseudo_parent),
+    const MetaControl& meta) noexcept 
+    : Super(impl::ctor_lock(&pseudo_parent), meta), m_pHoster(&pseudo_parent),
+    m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
     m_window(pseudo_parent.GetWindow(), config) {
+
     assert(m_pParent == nullptr);
     m_pWindow = &m_window;
     m_state.orient = Orient_Vertical;
+
+    // 构造锁
+    impl::ctor_unlock();
 }
 
 /// <summary>
@@ -151,8 +127,16 @@ void LongUI::UIViewport::resize_window(Size2F size) noexcept {
 LongUI::UIViewport::~UIViewport() noexcept {
     m_state.destructing = true;
     // 释放sub列表?
-    for (auto x : m_subviewports) delete x;
-    m_subviewports.clear();
+    auto node = m_nSubview.next;
+    while (node != &m_nSubview) {
+        assert(LongUI::IsViewport(*node));
+        const auto view = static_cast<UIViewport*>(node);
+        node = view->next;
+        delete view;
+    }
+#ifndef NDEBUG
+    m_nSubview = { nullptr, nullptr };
+#endif
 }
 
 /// <summary>
@@ -161,20 +145,11 @@ LongUI::UIViewport::~UIViewport() noexcept {
 /// <param name="sub">The sub.</param>
 /// <returns></returns>
 void LongUI::UIViewport::AddSubViewport(UIViewport& sub) noexcept {
-    const auto ptr = &sub;
-    // XXX: OOM处理
-    m_subviewports.push_back(ptr);
-}
-
-
-/// <summary>
-/// Finds the sub viewport with unistr.
-/// </summary>
-/// <param name="str">The string.</param>
-/// <returns></returns>
-auto LongUI::UIViewport::FindSubViewportWithUnistr(
-    const char* str) const noexcept -> UIViewport * {
-    return detail::find_viewport(m_subviewports, str);
+    // 连接前后节点
+    static_cast<UIViewport*>(m_nSubview.prev)->next = &sub;
+    sub.prev = static_cast<UIViewport*>(m_nSubview.prev);
+    sub.next = static_cast<UIControl*>(&m_nSubview);
+    m_nSubview.prev = &sub;
 }
 
 
@@ -185,7 +160,7 @@ auto LongUI::UIViewport::FindSubViewportWithUnistr(
 /// <returns></returns>
 auto LongUI::UIViewport::FindSubViewport(U8View view) const noexcept -> UIViewport* {
     const auto unistr = UIManager.GetUniqueText(view);
-    return this->FindSubViewportWithUnistr(unistr);
+    return UIViewport::FindSubViewport(m_nSubview.next, m_nSubview, unistr);
 }
 
 /// <summary>
@@ -292,4 +267,32 @@ void LongUI::UIViewport::SubViewportPopupBegin(
 /// <returns></returns>
 void LongUI::UIViewport::SubViewportPopupEnd(
     UIViewport& view, PopupType type) noexcept {
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Finds the sub viewport.
+/// </summary>
+/// <param name="node">The node.</param>
+/// <param name="headtail">The headtail.</param>
+/// <param name="name">The name.</param>
+/// <returns></returns>
+auto LongUI::UIViewport::FindSubViewport(UIControl* node,
+    const Node<UIControl>& headtail,
+    const char* name) noexcept -> UIViewport * {
+    // 遍历所有节点
+    while (node != &headtail) {
+        assert(LongUI::IsViewport(*node));
+        const auto view = static_cast<UIViewport*>(node);
+
+        // 唯一字符串用==判断
+        if (view->GetID() == name) return view;
+#ifndef NDEBUG
+        if (!std::strcmp(view->GetID(), name)) {
+            assert(!"use UIManager.GetUniqueText");
+        }
+#endif
+        node = view->next;
+    }
+    return nullptr;
 }

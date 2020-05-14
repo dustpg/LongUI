@@ -28,6 +28,7 @@ LongUI::UICaption::UICaption(UIControl* parent, const MetaControl& meta) noexcep
 /// </summary>
 /// <returns></returns>
 LongUI::UICaption::~UICaption() noexcept {
+    // TODO: 取消groupbox引用
 }
 
 /// <summary>

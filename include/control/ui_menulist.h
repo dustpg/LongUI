@@ -24,7 +24,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
+// base
+#include "ui_image.h"
+#include "ui_label.h"
+
 
 // ui namespace
 namespace LongUI {
@@ -34,8 +39,6 @@ namespace LongUI {
     class UIMenuList : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
         // menu list
         void init_menulist();
     public:
@@ -91,11 +94,16 @@ namespace LongUI {
     protected:
         // on popup selected changed
         void on_selected_changed() noexcept;
+    private: // private impl
+        // private image
+        UIImage                 m_oImage;
+        // private label
+        UILabel                 m_oLabel;
+        // private marker
+        UIImage                 m_oMarker;
     private:
         // popup
         UIMenuPopup*            m_pMenuPopup = nullptr;
-        // private data
-        Private*                m_private = nullptr;
         // selected index
         long                    m_iSelected = -1;
     };

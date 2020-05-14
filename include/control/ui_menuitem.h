@@ -24,7 +24,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_boxlayout.h"
+// base
+#include "ui_image.h"
+#include "ui_label.h"
 
 // ui namespace
 namespace LongUI {
@@ -91,9 +95,11 @@ namespace LongUI {
         void do_checkbox() noexcept;
         // do radio
         void do_radio() noexcept;
-    private:
-        // private data
-        Private*            m_private = nullptr;
+    private: // private control impl
+        // private image
+        UIImage             m_oImage;
+        // private label
+        UILabel             m_oLabel;
     protected:
         // group name
         const char*         m_pName = nullptr;

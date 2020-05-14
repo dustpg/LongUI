@@ -11,8 +11,6 @@
 #include <control/ui_menupopup.h>
 #include <core/ui_popup_window.h>
 // 子控件
-#include <control/ui_image.h>
-#include <control/ui_label.h>
 #include <control/ui_boxlayout.h>
 // Private
 #include <core/ui_unsafe.h>
@@ -46,63 +44,8 @@ namespace LongUI {
     /// <returns></returns>
     UIMenuItem::Private::Private(UIMenuItem& btn) noexcept
         : image(&btn), label(&btn) {
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-        const_cast<RectF&>(image.GetBox().margin) = { 2.f, 2.f, 2.f, 2.f };
-        this->image.JustSetAsIcon();
-#ifndef NDEBUG
-        image.name_dbg = "menuitem::image";
-        label.name_dbg = "menuitem::label";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-#endif
+
     }
-    // UIMenuList私有信息
-    struct UIMenuList::Private : CUIObject {
-        // 构造函数
-        Private(UIMenuList& btn) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-        // 下拉标记
-        UIImage             marker;
-    };
-    /// <summary>
-    /// button privates data/method
-    /// </summary>
-    /// <param name="btn">The BTN.</param>
-    /// <returns></returns>
-    UIMenuList::Private::Private(UIMenuList& btn) noexcept
-        : image(&btn), label(&btn), marker(&btn) {
-        UIControlPrivate::SetFlex(label, 1.f);
-        //UIControlPrivate::SetFocusable(image, false);
-        //UIControlPrivate::SetFocusable(label, false);
-        //UIControlPrivate::SetFocusable(marker, false);
-#ifndef NDEBUG
-        image.name_dbg = "menulist::image";
-        label.name_dbg = "menulist::label";
-        marker.name_dbg = "menulist::marker";
-        assert(image.IsFocusable() == false);
-        assert(label.IsFocusable() == false);
-        assert(marker.IsFocusable() == false);
-        //label.SetText(u"Combo Box");
-#endif
-    }
-    
-    // Menu Popup私有信息
-//    struct PrivateMenuPopup : CUIObject {
-//        // 构造函数
-//        PrivateMenuPopup(UIMenuPopup& btn) noexcept;
-//#ifndef NDEBUG
-//        // 调试占位
-//        void*               placeholder_debug1 = nullptr;
-//#endif
-//    };
 }
 
 // --------------------------- UIMenuItem  ---------------------
@@ -113,7 +56,8 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexcept 
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(this), m_oLabel(this) {
     m_state.focusable = true;
     m_state.orient = Orient_Horizontal;
     m_oStyle.align = AttributeAlign::Align_Stretcht;
@@ -124,9 +68,16 @@ LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexc
     // 将事件传送给父节点
     UIControlPrivate::SetGuiEvent2Parent(*this);
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+    const_cast<RectF&>(m_oImage.GetBox().margin) = { 2.f, 2.f, 2.f, 2.f };
+    m_oImage.JustSetAsIcon();
+#ifndef NDEBUG
+    m_oImage.name_dbg = "menuitem::image";
+    m_oLabel.name_dbg = "menuitem::label";
+    assert(m_oImage.IsFocusable() == false);
+    assert(m_oLabel.IsFocusable() == false);
+#endif
     // 构造锁
     impl::ctor_unlock();
 }
@@ -139,8 +90,6 @@ LongUI::UIMenuItem::UIMenuItem(UIControl* parent, const MetaControl& meta) noexc
 LongUI::UIMenuItem::~UIMenuItem() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -149,7 +98,7 @@ LongUI::UIMenuItem::~UIMenuItem() noexcept {
 /// <param name="str">The string.</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::SetText(CUIString&& str) noexcept {
-    m_private->label.SetText(std::move(str));
+    m_oLabel.SetText(std::move(str));
 }
 
 /// <summary>
@@ -158,7 +107,7 @@ void LongUI::UIMenuItem::SetText(CUIString&& str) noexcept {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 void LongUI::UIMenuItem::SetText(U16View view) noexcept {
-    m_private->label.SetText(view);
+    m_oLabel.SetText(view);
 }
 
 /// <summary>
@@ -166,7 +115,7 @@ void LongUI::UIMenuItem::SetText(U16View view) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIMenuItem::GetText() const noexcept -> const char16_t * {
-    return m_private->label.GetText();
+    return m_oLabel.GetText();
 }
 
 /// <summary>
@@ -174,7 +123,7 @@ auto LongUI::UIMenuItem::GetText() const noexcept -> const char16_t * {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIMenuItem::GetTextString() const noexcept -> const CUIString &{
-    return m_private->label.GetTextString();
+    return m_oLabel.GetTextString();
 }
 
 
@@ -225,7 +174,7 @@ void LongUI::UIMenuItem::SetChecked(bool checked) noexcept {
 
     const auto statetp = StyleStateType::Type_Checked;
     this->StartAnimation({ statetp , checked });
-    m_private->image.StartAnimation({ statetp , checked });
+    m_oImage.StartAnimation({ statetp , checked });
 }
 
 /// <summary>
@@ -245,11 +194,11 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case BKDR_LABEL:
         // 传递给子控件
-        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_oLabel, BKDR_VALUE, value);
         break;
     case BKDR_SRC:
         // src  : 图片名
-        Unsafe::AddAttrUninited(m_private->image, BKDR_SRC, value);
+        Unsafe::AddAttrUninited(m_oImage, BKDR_SRC, value);
         break;
     case BKDR_NAME:
         // name :  组名
@@ -301,7 +250,6 @@ auto LongUI::UIMenuItem::view2type(U8View view)noexcept->ItemType {
 /// <returns></returns>
 void LongUI::UIMenuItem::init_menuitem() noexcept {
     UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_MenuItem);
-    if (!m_private) return;
     // 父节点必须是UIMenuPopup
     if (const auto ptr = longui_cast<UIMenuPopup*>(m_pParent)) {
         // 不是COMBOBOX
@@ -309,25 +257,24 @@ void LongUI::UIMenuItem::init_menuitem() noexcept {
             switch (m_type)
             {
             case LongUI::UIMenuItem::Type_CheckBox:
-                UIControlPrivate::SetAppearanceIfNotSet(m_private->image, Appearance_MenuCheckBox);
-                UIControlPrivate::RefStyleState(m_private->image).checked = m_oStyle.state.checked;
+                UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuCheckBox);
+                UIControlPrivate::RefStyleState(m_oImage).checked = m_oStyle.state.checked;
                 break;
             case LongUI::UIMenuItem::Type_Radio:
-                UIControlPrivate::SetAppearanceIfNotSet(m_private->image, Appearance_MenuRadio);
-                UIControlPrivate::RefStyleState(m_private->image).checked = m_oStyle.state.checked;
+                UIControlPrivate::SetAppearanceIfNotSet(m_oImage, Appearance_MenuRadio);
+                UIControlPrivate::RefStyleState(m_oImage).checked = m_oStyle.state.checked;
                 break;
             }
             // XXX: 标准化
             m_oBox.padding.right = float(ICON_WIDTH);
-            m_private->image.SetStyleMinSize({ float(ICON_WIDTH), 0.f });
+            m_oImage.SetStyleMinSize({ float(ICON_WIDTH), 0.f });
         }
     }
 
-
     //constexpr auto iapp = Appearance_CheckBox;
-    //UIControlPrivate::SetAppearanceIfNotSet(m_private->image, iapp);
+    //UIControlPrivate::SetAppearanceIfNotSet(m_oImage, iapp);
     // 标签数据
-    //auto& label = m_private->label;
+    //auto& label = m_oLabel;
     //const auto a = label.GetText();
 }
 
@@ -340,7 +287,7 @@ void LongUI::UIMenuItem::do_checkbox() noexcept {
     const auto statetp = StyleStateType::Type_Checked;
     const auto checked = !this->GetStyle().state.checked;
     this->StartAnimation({ statetp , checked });
-    m_private->image.StartAnimation({ statetp , checked });
+    m_oImage.StartAnimation({ statetp , checked });
 }
 
 /// <summary>
@@ -393,7 +340,7 @@ auto LongUI::UIMenuItem::DoMouseEvent(const MouseEventArg & e) noexcept -> Event
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIMenuList::GetText() const noexcept -> const char16_t* {
-    return m_private->label.GetText();
+    return m_oLabel.GetText();
 }
 
 /// <summary>
@@ -401,7 +348,7 @@ auto LongUI::UIMenuList::GetText() const noexcept -> const char16_t* {
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIMenuList::GetTextString() const noexcept -> const CUIString&{
-    return m_private->label.GetTextString();
+    return m_oLabel.GetTextString();
 }
 
 
@@ -411,7 +358,8 @@ auto LongUI::UIMenuList::GetTextString() const noexcept -> const CUIString&{
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(this), m_oLabel(this), m_oMarker(this) {
     m_state.focusable = true;
     m_state.defaultable = true;
     // 原子性, 子控件为本控件的组成部分
@@ -425,9 +373,19 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
     m_oBox.margin = { 5, 5, 5, 5 };
     m_oBox.padding.right = 5;
     // 私有实现
-    m_private = new(std::nothrow) Private{ *this };
-    // OOM处理
-    this->ctor_failed_if(m_private);
+    UIControlPrivate::SetFlex(m_oLabel, 1.f);
+    //UIControlPrivate::SetFocusable(image, false);
+    //UIControlPrivate::SetFocusable(label, false);
+    //UIControlPrivate::SetFocusable(marker, false);
+#ifndef NDEBUG
+    m_oImage.name_dbg = "menulist::image";
+    m_oLabel.name_dbg = "menulist::label";
+    m_oMarker.name_dbg = "menulist::marker";
+    assert(m_oImage.IsFocusable() == false);
+    assert(m_oLabel.IsFocusable() == false);
+    assert(m_oMarker.IsFocusable() == false);
+    //label.SetText(u"Combo Box");
+#endif
     // 构造锁
     impl::ctor_unlock();
 }
@@ -448,8 +406,6 @@ LongUI::UIMenuList::~UIMenuList() noexcept {
         // 释放
         if (m_pMenuPopup) delete m_pMenuPopup;
     }
-    // 释放私有数据
-    if (m_private) delete m_private;
 }
 
 /// <summary>
@@ -475,9 +431,8 @@ auto LongUI::UIMenuList::DoMouseEvent(const MouseEventArg& e) noexcept -> EventA
 /// Initializes the menulist.
 /// </summary>
 void LongUI::UIMenuList::init_menulist() {
-
+    auto& marker = m_oMarker;
     UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_Button);
-    auto& marker = m_private->marker;
     UIControlPrivate::SetAppearanceIfNotSet(marker, Appearance_DropDownMarker);
     // 没有选择的?
     if (m_pMenuPopup && !m_pMenuPopup->GetLastSelected()) {
@@ -556,8 +511,7 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
 /// <param name="text">The text.</param>
 /// <returns></returns>
 void LongUI::UIMenuList::SetText(CUIString&& text) noexcept {
-    assert(m_private && "bad action");
-    if (m_private->label.SetText(std::move(text))) {
+    if (m_oLabel.SetText(std::move(text))) {
 #ifdef LUI_ACCESSIBLE
         LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
 #endif

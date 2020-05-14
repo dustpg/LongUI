@@ -35,6 +35,10 @@
 #include <util/ui_time_meter.h>
 #endif
 
+#ifdef LUI_ACCESSIBLE
+#include <accessible/ui_accessible_win.h>
+#endif
+
 // error beep
 extern "C" void longui_error_beep() noexcept;
 
@@ -226,8 +230,6 @@ namespace LongUI {
         void EmptyRender() noexcept;
         // delete window
         static void DeleteWindow(HWND hwnd) noexcept;
-        // delete window
-        static void PostDeleteWindow(HWND hwnd) noexcept;
         // draw caret
         static void DrawCaret() noexcept {};
         // reelase device data
@@ -456,7 +458,7 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     m_inDtor = false;
     m_bInExec = false;
     m_bHasScript = false;
-    m_bCtorFaild = false;
+    //m_bCtorFaild = false;
     // XXX: 错误处理
     //if (!m_private) { m_bCtorFaild = true; return;}
     // 子像素渲染
@@ -1278,7 +1280,7 @@ void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
     // 释放资源
     pimpl()->ReleaseDeviceData();
     // 摧毁窗口
-    Private::PostDeleteWindow(m_hwnd);
+    Private::DeleteWindow(m_hwnd);
     m_hwnd = nullptr;
 }
 
@@ -1757,7 +1759,6 @@ namespace LongUI { namespace detail {
     // delete later
     enum msg : uint32_t {
         msg_custom = WM_USER + 10,
-        msg_post_delete_window,
         msg_post_set_title,
     };
 }}
@@ -1780,18 +1781,20 @@ void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
 /// <param name="hwnd">The HWND.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::DeleteWindow(HWND hwnd) noexcept {
-    const auto code = ::DestroyWindow(hwnd);
-    assert(code && "DestroyWindow failed");
+#ifdef LUI_ACCESSIBLE
+    const auto lptr = ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+    const auto window = reinterpret_cast<CUIWindow::Private*>(lptr);
+    if (window->accessibility) {
+        ::UiaReturnRawElementProvider(hwnd, 0, 0, nullptr);
+    }
+#endif
+    // 设置成1让其可以通过 if
+    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(0));
+    const auto code = ::PostMessageW(hwnd, WM_DESTROY, 0, 0);
+    //const auto code = ::PostMessageW(hwnd, detail::msg_post_delete_window, 0, 0);
+    assert(code && "PostMessage failed");
 }
 
-/// <summary>
-/// Posts the delete window.
-/// </summary>
-/// <param name="hwnd">The HWND.</param>
-/// <returns></returns>
-void LongUI::CUIWindow::Private::PostDeleteWindow(HWND hwnd) noexcept {
-    ::PostMessageW(hwnd, detail::msg_post_delete_window, 0, 0);
-}
 
 /// <summary>
 /// Initializes the window position.
@@ -2162,10 +2165,6 @@ void LongUI::CUIWindow::Private::DoMouseEventTs(const MouseEventArg & args) noex
     ctrl->DoMouseEvent(args);
 }
 
-#ifdef LUI_ACCESSIBLE
-#include <accessible/ui_accessible_win.h>
-
-#endif
 
 #ifndef NDEBUG
 volatile UINT g_dbgLastEventId = 0;
@@ -2268,9 +2267,6 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         switch (message)
         {
             PAINTSTRUCT ps;
-        case detail::msg_post_delete_window:
-            Private::DeleteWindow(hwnd);
-            return 0;
         case detail::msg_post_set_title:
             ::SetWindowTextW(hwnd, detail::sys(this->titlename.c_str()));
             return 0;
@@ -2281,11 +2277,6 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             ::SetCursor(reinterpret_cast<HCURSOR>(this->cursor.GetHandle()));
             break;
 #ifdef LUI_ACCESSIBLE
-        case WM_DESTROY:
-            if (this->accessibility) {
-                ::UiaReturnRawElementProvider(hwnd, 0, 0, nullptr);
-            }
-            break;
         case WM_GETOBJECT:
             if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId)) {
                 const auto window = this->viewport()->GetWindow();

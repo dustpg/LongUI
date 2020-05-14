@@ -24,9 +24,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// super
 #include "ui_control.h"
-#include <container/pod_vector.h>
+#include "../container/pod_vector.h"
 //#include "../util/ui_double_click.h"
+// base
+#include "ui_scrollarea.h"
 
 // ui namespace
 namespace LongUI {
@@ -36,8 +39,6 @@ namespace LongUI {
     class UIListItem;
     // list head
     class UIListHead;
-    // list body(ScrollArea)
-    class UIScrollArea;
     // listbox control
     class UIListBox : public UIControl {
         // super class
@@ -114,14 +115,14 @@ namespace LongUI {
         // clear need refresh index
         void mark_need_refresh_index() noexcept { m_state.custom_data = true; }
     private:
+        // listbox body
+        UIScrollArea        m_oListboxBody;
         // list cols
         UIListCols*         m_pCols = nullptr;
         // list head
         UIListHead*         m_pHead = nullptr;
         // last op
         UIListItem*         m_pLastOp = nullptr;
-        // listbox body
-        UIScrollArea*       m_pListboxBody = nullptr;
         // item list
         ItemList            m_list;
         // selected
