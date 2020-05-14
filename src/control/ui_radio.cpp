@@ -2,6 +2,7 @@
 #include <core/ui_ctrlmeta.h>
 #include <control/ui_radio.h>
 #include <debugger/ui_debug.h>
+#include <core/ui_unsafe.h>
 #include <control/ui_radiogroup.h>
 // 子控件
 #include <control/ui_image.h>
@@ -192,11 +193,11 @@ void LongUI::UIRadio::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_LABEL:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
         break;
     case BKDR_ACCESSKEY:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, key, value);
+        Unsafe::AddAttrUninited(m_private->label, key, value);
         break;
     case BKDR_SELECTED:
         // selected:  兼容checked

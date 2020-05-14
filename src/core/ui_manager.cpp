@@ -2,6 +2,7 @@
 // ui
 #include <interface/ui_default_config.h>
 #include <interface/ui_ctrlinfolist.h>
+#include <core/ui_const_sstring.h>
 #include <container/pod_vector.h>
 #include <core/ui_time_capsule.h>
 #include <container/pod_hash.h>
@@ -75,7 +76,7 @@ namespace LongUI { struct CUIManager::Private {
 // delete later
 namespace LongUI { enum CallLater : uint32_t {
     Later_First = WM_USER + 10,
-    Later_DeleteControl,
+    //Later_DeleteControl,
     Later_CallTimeCapsule,
     Later_Exit,
 };}
@@ -178,6 +179,8 @@ void LongUI::CUIManager::OneFrame() noexcept {
     this_()->m_fDeltaTime = this_()->update_delta_time();
     // 刷新控件控制
     this_()->normal_update();
+    // 删除队列中的控件
+    this_()->delete_controls();
     // 初始化控件
     while (this_()->init_control_in_list() || m_flagWndMinSizeChanged) {
         // 标记为空
@@ -309,7 +312,11 @@ void LongUI::CUIManager::Exit(uintptr_t code) noexcept {
 auto LongUI::CUIManager::GetUniqueText(
     U8View pair) noexcept -> const char* {
     assert(pair.second > pair.first && "bad string");
-    return this_()->pm().texts.insert(pair.first, pair.second, nullptr).first->first;
+    auto& texts = this_()->pm().texts;
+    const auto code = texts.insert(pair.first, pair.second, nullptr);
+    // OOM - 内存不足
+    if (code.first == texts.end()) return CUIConstShortString::EMPTY;
+    else return code.first->first;
 }
 
 // windows api
@@ -574,6 +581,7 @@ auto LongUI::CUIManager::Initialize(
             case WM_ENDSESSION:
                 return false;
 #endif
+#if 0
             case CallLater::Later_DeleteControl:
             {
                 // 延迟删除控件
@@ -581,6 +589,7 @@ auto LongUI::CUIManager::Initialize(
                 LongUI::DeleteControl(reinterpret_cast<UIControl*>(wParam));
                 break;
             }
+#endif
             case CallLater::Later_CallTimeCapsule:
             {
                 // 调用时间胶囊
@@ -774,14 +783,20 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIManager::DeleteLater(UIControl& ctrl) noexcept {
     // 检查删除性
-    if (LongUI::CheckControlDeleteLater(ctrl)) return;
-    LongUI::MarkControlDeleteLater(ctrl);
-    // 进行标记删除
-    const HWND hwnd = UIManager.m_hToolWnd;
-    const UINT msg = CallLater::Later_DeleteControl;
-    const auto wpa = reinterpret_cast<WPARAM>(&ctrl);
-    const auto rv = ::PostMessageW(hwnd, msg, wpa, 0); rv;
-    assert(rv && "post message failed, maybe too many messages");
+    if (!LongUI::CheckControlDeleteLater(ctrl)) {
+        LongUI::MarkControlDeleteLater(ctrl);
+        this_()->DataLock();
+        this_()->delete_later(ctrl);
+        this_()->DataUnlock();
+#if 0
+        // 进行标记删除
+        const HWND hwnd = UIManager.m_hToolWnd;
+        const UINT msg = CallLater::Later_DeleteControl;
+        const auto wpa = reinterpret_cast<WPARAM>(&ctrl);
+        const auto rv = ::PostMessageW(hwnd, msg, wpa, 0); rv;
+        assert(rv && "post message failed, maybe too many messages");
+#endif
+    }
 }
 
 /// <summary>

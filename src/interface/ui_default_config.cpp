@@ -153,9 +153,8 @@ void*LongUI::CUIDefaultConfigure::NormalAlloc(size_t length) noexcept {
     assert(length && "cannot alloc 0 byte at here");
 #ifndef NDEBUG
     if (lui_debug_oom) return nullptr;
-    //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
-    //const auto count = u16++;
-    //if (count >= 200) return nullptr;
+    //if (++reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc) >= 150)
+    //    return nullptr;
 #endif
     //return nullptr;
     return std::malloc(length);
@@ -183,9 +182,8 @@ void*LongUI::CUIDefaultConfigure::NormalRealloc(void* address, size_t length) no
 #ifndef NDEBUG
     if (length) {
         if (lui_debug_oom) return nullptr;
-        //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
-        //const auto count = u16++;
-        //if (count >= 200) return nullptr;
+        //if (++reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc) >= 300)
+        //    return nullptr;
     }
 #endif
 
@@ -202,9 +200,8 @@ void*LongUI::CUIDefaultConfigure::SmallAlloc(size_t length) noexcept {
     assert(length && "cannot alloc 0 byte at here");
 #ifndef NDEBUG
     if (lui_debug_oom) return nullptr;
-    //auto& u16 = reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc);
-    //const auto count = u16++;
-    //if (count >= 200) return nullptr;
+    //if (++reinterpret_cast<std::atomic<uint16_t>&>(m_u16Alloc) >= 10)
+    //    return nullptr;
 #endif
 
 

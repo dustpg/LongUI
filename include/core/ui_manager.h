@@ -87,7 +87,7 @@ namespace LongUI {
         // get instance
         static inline auto GetInstance() noexcept->CUIManager&;
         // delete later for control
-        static void DeleteLater(UIControl&) noexcept;
+        void DeleteLater(UIControl&) noexcept;
         // initialize
         auto Initialize(
             IUIConfigure* config = nullptr,

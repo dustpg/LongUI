@@ -417,8 +417,6 @@ struct LongUI::CUIResMgr::Private {
     CUIBitmapBank           bitbank;
     // default font
     FontArg                 defarg;
-    // resource count
-    uint32_t                rescount;
 };
 
 
@@ -680,7 +678,6 @@ void LongUI::CUIResMgr::SetAlphaMode(bool premultiply) noexcept {
 auto LongUI::CUIResMgr::LoadResource(U8View uri, 
     //ResourceType type, 
     bool is_xul_dir) noexcept -> uintptr_t {
-    const ResourceType type = ResourceType::Type_Image;
     // uri为空
     if (uri.end() == uri.begin()) return 0;
 
@@ -705,11 +702,12 @@ auto LongUI::CUIResMgr::LoadResource(U8View uri,
     auto& map = rm().resmap;
     const auto re = map.insert(real_uri.begin(), real_uri.end(), 0);
     // 内存不足
-    if (re.first == map.end()) { assert(!"ERROR"); return 0; }
+    if (re.first == map.end()) return 0;
     // 插入失败 而且 数据不为0就是已有的
     if (!re.second && re.first->second) {
         const auto id = re.first->second;
-        //assert(type == list[id].GetType() && "must be same");
+        const ResourceType type = ResourceType::Type_Image;
+        assert(type == CUIResourceID::Object(id)->RefData().GetType() && "must be same");
         return id;
     }
 
@@ -1112,8 +1110,12 @@ auto LongUI::CUIResMgr::Ref2DFactory() noexcept -> int& {
 // DXGI DEBUG
 #ifndef NDEBUG
 
+//#define LUI_NO_DXGIDEBUG
+
 #include <core/ui_object.h>
+#ifndef LUI_NO_DXGIDEBUG
 #include <dxgidebug.h>
+#endif
 /// <summary>
 /// debug data
 /// </summary>
@@ -1124,10 +1126,12 @@ struct LongUI::CUIResMgr::Debug : LongUI::CUIObject {
     ~Debug() noexcept;
     // debug dll
     HMODULE             dxgidebug_dll = nullptr;
+#ifndef LUI_NO_DXGIDEBUG
     // dxgi debug interface
     IDXGIDebug*         dxgidebug = nullptr;
     // d3d11 debug interface
     ID3D11Debug*        d3d11debug = nullptr;
+#endif
 };
 
 /// <summary>
@@ -1138,6 +1142,7 @@ LongUI::CUIResMgr::Debug::Debug() noexcept {
     dxgidebug_dll = ::LoadLibraryA("dxgidebug.dll");
     // 未找到
     if (!dxgidebug_dll) return;
+#ifndef LUI_NO_DXGIDEBUG
     // 定义接口GUID
     const GUID local_IID_IDXGIDebug = {
         0x119E7452, 0xDE9E, 0x40fe, 0x88, 0x06, 0x88,
@@ -1156,6 +1161,7 @@ LongUI::CUIResMgr::Debug::Debug() noexcept {
             reinterpret_cast<void**>(&dxgidebug)
         );
     }
+#endif
 }
 
 /// <summary>
@@ -1163,6 +1169,7 @@ LongUI::CUIResMgr::Debug::Debug() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIResMgr::Debug::~Debug() noexcept {
+#ifndef LUI_NO_DXGIDEBUG
     const GUID debug_all = {
         0xe48ae283, 0xda80, 0x490b, 0x87, 0xe6,
         0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8
@@ -1178,6 +1185,7 @@ LongUI::CUIResMgr::Debug::~Debug() noexcept {
     }
     if (dxgidebug) ::FreeLibrary(dxgidebug_dll);
     assert(!d3d11debug && "must be nullptr");
+#endif
 }
 
 
@@ -1195,7 +1203,7 @@ namespace LongUI {
     // impl
     namespace impl {
         // create native style renderer
-        auto create_native_style_renderer() noexcept -> void*;
+        auto create_native_style_renderer(void* ptr, size_t len) noexcept -> void*;
         // delete native style renderer
         void delete_native_style_renderer(void* ptr) noexcept;
         // recreate 
@@ -1223,6 +1231,9 @@ bool LongUI::CUIResMgr::wait_for_vblank() noexcept {
 /// <param name="out">The out hr.</param>
 LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
     if (!out) return;
+    constexpr auto same_s = sizeof(CUIResMgr::Private) == sizeof(private_t);
+    constexpr auto same_a = alignof(CUIResMgr::Private) == alignof(private_t);
+    static_assert(same_s && same_a, "bad buffer");
     // 初始化私有数据
     std::memset(&m_private, 0, sizeof(m_private));
 #ifndef NDEBUG
@@ -1242,8 +1253,12 @@ LongUI::CUIResMgr::CUIResMgr(IUIConfigure* cfg, Result& out) noexcept {
     Result hr = rm().init();
     // 创建本地风格渲染器
     if (hr) {
-        m_pNativeStyle = impl::create_native_style_renderer();
-        if (!m_pNativeStyle) hr = { Result::RE_OUTOFMEMORY };
+        const auto p = m_bufNative;
+        const auto l = sizeof(m_bufNative);
+        const auto ptr = impl::create_native_style_renderer(p, l);
+        if (!ptr) hr = { Result::RE_ABORT };
+        assert(ptr == p);
+        rm().bitbank.native = true;
     }
     // 返回结果
     out = hr;
@@ -1269,7 +1284,10 @@ auto LongUI::CUIResMgr::init_default_font(IUIConfigure* cfg) noexcept->Result {
 /// <returns></returns>
 LongUI::CUIResMgr::~CUIResMgr() noexcept {
     // 释放渲染器
-    impl::delete_native_style_renderer(m_pNativeStyle);
+    if (rm().bitbank.native) {
+        const auto ptr = this->GetNativeRenderer();
+        impl::delete_native_style_renderer(ptr);
+    }
     // 释放设备资源
     this->release_device();
     // 释放资源列表
@@ -1291,8 +1309,6 @@ LongUI::CUIResMgr::~CUIResMgr() noexcept {
 /// <param name="flag">The flag.</param>
 /// <returns></returns>
 auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg, ConfigureFlag flag) noexcept -> Result {
-    constexpr auto same_s = sizeof(CUIResMgr::Private) == sizeof(private_t);
-    constexpr auto same_a = alignof(CUIResMgr::Private) == alignof(private_t);
     this->release_device();
     // 待用适配器
     IDXGIAdapter1* adapter = nullptr;
@@ -1403,11 +1419,13 @@ auto LongUI::CUIResMgr::recreate_device(IUIConfigure* cfg, ConfigureFlag flag) n
     // 创建 ID3D11Debug对象
 #if !defined(NDEBUG)
     if (hr) {
+#ifndef LUI_NO_DXGIDEBUG
         const Result tmp = { m_p3DDevice->QueryInterface(
             IID_ID3D11Debug,
             reinterpret_cast<void**>(&m_pDebug->d3d11debug)
         ) };
         longui_debug_hr(tmp, L"m_pd3dDevice->QueryInterface(m_pd3dDebug) faild");
+#endif
     }
 #endif
     // TODO: MMF
@@ -1584,8 +1602,10 @@ auto LongUI::CUIResMgr::recreate_resource() noexcept -> Result {
         }
     }
     // 正常重建,  即便错误也要继续, 目的是释放数据
-    const auto naive = impl::recreate_native_style_renderer(m_pNativeStyle);
-    if (!naive) rv = naive;
+    assert(rm().bitbank.native);
+    const auto ptr = this->GetNativeRenderer();
+    const auto naive_hr = impl::recreate_native_style_renderer(ptr);
+    if (!naive_hr) rv = naive_hr;
     return rv;
 }
 
@@ -1613,6 +1633,7 @@ void LongUI::CUIResMgr::release_device() noexcept {
     LongUI::SafeRelease(m_p3DDevice);
     LongUI::SafeRelease(m_pGraphicsFactory);
 #ifndef NDEBUG
+#ifndef LUI_NO_DXGIDEBUG
     if (auto inf = m_pDebug->d3d11debug) {
         ::OutputDebugStringW(L"----> SUMMARY ReportLiveDeviceObjects\r\n");
         inf->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
@@ -1626,6 +1647,7 @@ void LongUI::CUIResMgr::release_device() noexcept {
         c = c;
         m_pDebug->d3d11debug = nullptr;
     }
+#endif
 #endif
 }
 

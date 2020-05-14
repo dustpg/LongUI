@@ -55,8 +55,10 @@ namespace LongUI {
         struct Debug;
         // private data
         enum : size_t {
+            // naive!
+            naive = 8,
             // pointer count
-            p_ptr_count = 12 ,
+            p_ptr_count = 12,
             // 32bit count
             p_32b_count = 10,
             // size count
@@ -75,7 +77,7 @@ namespace LongUI {
         // get 3d device
         auto&Ref3DDevice() noexcept { return *m_p3DDevice; }
         // get native renderer
-        auto GetNativeRenderer() const noexcept { return m_pNativeStyle; }
+        void*GetNativeRenderer() noexcept { return m_bufNative; }
         // get common color brush with color
         static auto RefCCBrush(const ColorF&) noexcept->I::Brush&;
         // ref 2d factory, use reinterpret_cast<XX&>
@@ -124,7 +126,9 @@ namespace LongUI {
         // main screen
         IScreen*                m_pMainScreen = nullptr;
         // native style renderer
-        void*                   m_pNativeStyle = nullptr;
+        //void*                   m_pNativeStyle = nullptr;
+        // native style rebderer buffer
+        void*                   m_bufNative[naive];
     protected:
         // common color brush
         I::Brush*               m_pCommonBrush = nullptr;

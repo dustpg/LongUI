@@ -17,9 +17,9 @@ namespace LongUI {
         // cc size
         template<size_t> struct cc;
         // 32bit
-        template<> struct cc<4> { enum { size = 16*4+24+4*4, align = 4 }; };
+        template<> struct cc<4> { enum { size = 16*4+24+4*6, align = 4 }; };
         // 64bit
-        template<> struct cc<8> { enum { size = 24*4+32+8*4, align = 8 };  };
+        template<> struct cc<8> { enum { size = 24*4+32+8*6, align = 8 };  };
     }
     // control
     class UIControl;
@@ -38,8 +38,6 @@ namespace LongUI {
     class CUIControlControl {
         // friend struct
         struct Private;
-        // CUIXulStream
-        struct CUIXulStream;
         // after create time capsule
         static auto after_create_tc(CUITimeCapsule*, UIControl* ctrl) noexcept->CUITimeCapsule*;
         // refresh time capsule
@@ -102,6 +100,10 @@ namespace LongUI {
             uint32_t length
         ) noexcept;
     protected:
+        // delete later
+        void delete_later(UIControl& ctrl) noexcept;
+        // delete control
+        void delete_controls() noexcept;
         // update time capsule
         void update_time_capsule(float delta) noexcept;
         // has time capsule?

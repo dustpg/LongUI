@@ -7,8 +7,8 @@ namespace LongUI {
     class UIControl;
     // Manager data for each control
     struct ManagerData {
-        // next init/update node
-        UIControl*          next_initupd;
+        // next delete/init/update node
+        UIControl*          next_delinitupd;
     };
 }
 

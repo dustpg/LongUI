@@ -56,6 +56,16 @@ namespace LongUI {
     // alloc for small space
     PCN_NOINLINE void*SmallAlloc(size_t length) noexcept {
 #ifndef  NDEBUG
+        if (length >= 256) {
+            CUIDebug* debug;
+            if (length >= 1024)  debug = &(LUIDebug(Error));
+            else debug = &(LUIDebug(Warning));
+            *debug
+                << "SmallAlloc for small space( < 256) : try alloc " 
+                << uint32_t(length)
+                << "bytes"
+                << endl;
+        }
         using atomic_t = std::atomic<size_t>;
         ++reinterpret_cast<atomic_t&>(UIManager.alloc_counter_s_dbg);
 #endif

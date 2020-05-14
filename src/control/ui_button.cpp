@@ -1,4 +1,5 @@
 ﻿// Gui
+#include <luiconf.h>
 #include <core/ui_window.h>
 #include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
@@ -15,6 +16,7 @@
 #include <control/ui_menupopup.h>
 #include <constexpr/const_bkdr.h>
 // Private
+#include <core/ui_unsafe.h>
 #include "../private/ui_private_control.h"
 
 // ui namespace
@@ -403,15 +405,15 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
         break;
     case BKDR_ACCESSKEY:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, key, value);
+        Unsafe::AddAttrUninited(m_private->label, key, value);
         break;
     case BKDR_IMAGE:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->image, BKDR_SRC, value);
+        Unsafe::AddAttrUninited(m_private->image, BKDR_SRC, value);
         break;
     case BKDR_TYPE:
         // type  : BUTTON类型

@@ -16,6 +16,8 @@
 #include <core/ui_popup_window.h>
 #include <util/ui_color_system.h>
 #include <graphics/ui_graphics_decl.h>
+// private
+#include "../private/ui_private_control.h"
 
 
 // C++
@@ -31,7 +33,6 @@
 
 #ifndef NDEBUG
 #include <util/ui_time_meter.h>
-#include "../private/ui_private_control.h"
 #endif
 
 // error beep
@@ -299,29 +300,37 @@ namespace LongUI {
     public:
         // register the window class
         static void RegisterWindowClass() noexcept;
+        // viewport
+        auto viewport() noexcept { 
+            const auto ptr = reinterpret_cast<char*>(this);
+            const auto offset = offsetof(CUIWindow, m_private);
+            const auto window = reinterpret_cast<CUIWindow*>(ptr - offset);
+            assert(this && window->pimpl() == this);
+            return &window->RefViewport();
+        }
     public:
         // swap chian
         I::Swapchan*    swapchan = nullptr;
         // bitmap buffer
         I::Bitmap*      bitmap = nullptr;
-        // dcomp
-        dcomp           dcomp_buf;
-        // window clear color
-        ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
-        // title name
-        CUIString       titlename;
-    public:
-        // mouse track data
-        TRACKMOUSEEVENT track_mouse;
-    public:
+        // focused control
+        UIControl*      focused = nullptr;
+        // captured control
+        UIControl*      captured = nullptr;
+        // now default control
+        UIControl*      now_default = nullptr;
+        // window default control
+        UIControl*      wnd_default = nullptr;
         // popup window
         CUIWindow*      popup = nullptr;
-        // viewport
-        UIViewport*     viewport = nullptr;
         // common tooltip viewport
         UIViewport*     common_tooltip = nullptr;
         // now cursor
         CUICursor       cursor = { CUICursor::Cursor_Arrow };
+        // dcomp
+        dcomp           dcomp_buf;
+        // window clear color
+        ColorF          clear_color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
         // rect of caret
         RectF           caret = {};
         // color of caret
@@ -341,14 +350,12 @@ namespace LongUI {
     public:
         // named control map
         CtrlMap         ctrl_map;
-        // focused control
-        UIControl*      focused = nullptr;
-        // captured control
-        UIControl*      captured = nullptr;
-        // now default control
-        UIControl*      now_default = nullptr;
-        // window default control
-        UIControl*      wnd_default = nullptr;
+        // title name
+        CUIString       titlename;
+        // mouse track data
+        TRACKMOUSEEVENT track_mouse;
+        // text render type
+        uint32_t        text_antialias = 0;
         // get first
         auto GetFirst() noexcept { return &this->focused; }
         // get last
@@ -390,8 +397,6 @@ namespace LongUI {
         // full renderer in update
         bool            full_rendering_update = false;
     public:
-        // text render type
-        uint32_t        text_antialias = 0;
         // dirty count for recording
         uint32_t        dirty_count_recording = 0;
         // dirty count for presenting
@@ -428,6 +433,9 @@ namespace LongUI {
         std::memset(access_key_map, 0, sizeof(access_key_map));
         impl::init_dcomp(dcomp_buf);
         //sizeof(*this)
+        using ty = detail::private_window<sizeof(void*)>;
+        static_assert(sizeof(Private) <= ty::size, "buffer not safe");
+        static_assert(alignof(Private) <= ty::align, "buffer not safe");
     }
 }
 
@@ -437,8 +445,9 @@ namespace LongUI {
 /// <param name="cfg">The config.</param>
 /// <param name="parent">The parent.</param>
 LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
-    m_pParent(parent), config(cfg),
-    m_private(new(std::nothrow) Private) {
+    m_pParent(parent), config(cfg) {
+    // 创建私有对象
+    detail::ctor_dtor<Private>::create(&m_private);
     // 节点
     m_oHead = { nullptr, static_cast<CUIWindow*>(&m_oTail) };
     m_oTail = { static_cast<CUIWindow*>(&m_oHead), nullptr };
@@ -449,19 +458,18 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     m_bHasScript = false;
     m_bCtorFaild = false;
     // XXX: 错误处理
-    if (!m_private) { m_bCtorFaild = true; return;}
+    //if (!m_private) { m_bCtorFaild = true; return;}
     // 子像素渲染
     if (UIManager.flag & ConfigureFlag::Flag_SubpixelTextRenderingAsDefault)
-        impl::get_subpixel_text_rendering(m_private->text_antialias);
+        impl::get_subpixel_text_rendering(pimpl()->text_antialias);
     // XXX: 内联窗口的场合
     // 添加分层窗口支持
     if ((cfg & Config_LayeredWindow)) 
-        m_private->SetLayeredWindowSupport();
+        pimpl()->SetLayeredWindowSupport();
     // 初始化
-    m_private->viewport = &this->RefViewport();
 
     // TODO: 初始化默认大小位置
-    m_private->InitWindowPos();
+    pimpl()->InitWindowPos();
     // XXX: 自动睡眠?
     //if (this->IsAutoSleep()) {
 
@@ -599,9 +607,9 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     LongUI::DeleteStyleSheet(m_pStyleSheet);
 #endif
     // 有效私有数据
-    if (m_private) {
+    {
         // 弹出窗口会在下一步删除
-        m_private->popup = nullptr;
+        pimpl()->popup = nullptr;
         // XXX: 删除自窗口?
         while (m_oHead.next != &m_oTail) 
             m_oTail.prev->Delete();
@@ -610,7 +618,7 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         // 摧毁窗口
         if (m_hwnd) Private::DeleteWindow(m_hwnd);
         // 删除数据
-        delete m_private;
+        pimpl()->~Private();
     }
     UIManager.RenderUnlock();
     UIManager.DataUnlock();
@@ -621,9 +629,8 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::BeforeRender() noexcept {
-    assert(m_private);
     const auto size = this->RefViewport().GetRealSize();
-    m_private->BeforeRender(size);
+    pimpl()->BeforeRender(size);
 }
 
 /// <summary>
@@ -631,15 +638,14 @@ void LongUI::CUIWindow::BeforeRender() noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIWindow::Render() noexcept -> Result {
-    assert(m_private && "bug: you shall not pass");
     // 可见可渲染
     if (this->IsVisible()) {
-        return m_private->Render(this->RefViewport());
+        return pimpl()->Render(this->RefViewport());
     }
     // 不可见增加
     else {
         static_assert(WINDOW_AUTOSLEEP_TIME > 10, "must large than 10");
-        auto& count = m_private->auto_sleep_count;
+        auto& count = pimpl()->auto_sleep_count;
         if (count) {
             count += UIManager.GetDeltaTimeMs();
             if (count > WINDOW_AUTOSLEEP_TIME) {
@@ -701,7 +707,7 @@ void LongUI::CUIWindow::ReleaseDeviceData() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::release_window_only_device() noexcept {
-    m_private->ReleaseDeviceData();
+    pimpl()->ReleaseDeviceData();
 }
 
 /// <summary>
@@ -709,15 +715,14 @@ void LongUI::CUIWindow::release_window_only_device() noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIWindow::recreate_window() noexcept -> Result {
-    assert(m_private && "bug: you shall not pass");
-    return m_private->Recreate(m_hwnd);
+    return pimpl()->Recreate(m_hwnd);
 }
 
 /// Gets the position.
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIWindow::GetPos() const noexcept -> Point2L {
-    return{ m_private->rect.left , m_private->rect.top };
+    return { pimpl()->rect.left , pimpl()->rect.top };
 }
 
 /// <summary>
@@ -729,7 +734,7 @@ void LongUI::CUIWindow::RegisterAccessKey(UIControl& ctrl) noexcept {
     const auto ch = ctrl.GetAccessKey();
     if (ch >= 'A' && ch <= 'Z') {
         const auto index = ch - 'A';
-        const auto map = m_private->access_key_map;
+        const auto map = pimpl()->access_key_map;
 #ifndef NDEBUG
         if (map[index]) {
             LUIDebug(Warning)
@@ -751,7 +756,7 @@ void LongUI::CUIWindow::RegisterAccessKey(UIControl& ctrl) noexcept {
 /// <returns></returns>
 auto LongUI::CUIWindow::FindControl(const char* id) noexcept -> UIControl* {
     assert(id && "bad id");
-    auto& map = m_private->ctrl_map;
+    auto& map = pimpl()->ctrl_map;
     const auto itr = map.find(id);
     return itr != map.end() ? itr->second : nullptr;
 }
@@ -791,7 +796,7 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
             }
 #endif
             // XXX: 错误处理
-            m_private->ctrl_map.insert({ ctrl.GetID(), &ctrl });
+            pimpl()->ctrl_map.insert({ ctrl.GetID(), &ctrl });
         }
     }
 }
@@ -810,12 +815,10 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     // 3. 移除在脏矩形列表
     if (UIControlPrivate::IsInDirty(ctrl)) {
         UIControlPrivate::ClearInDirty(ctrl);
-        // TEST
-        assert(m_private);
         // 查找
-        if (!m_private->is_fr_for_update()) {
-            const auto b = m_private->dirty_rect_recording;
-            const auto e = b + m_private->dirty_count_recording;
+        if (!pimpl()->is_fr_for_update()) {
+            const auto b = pimpl()->dirty_rect_recording;
+            const auto e = b + pimpl()->dirty_count_recording;
             const auto itr = std::find_if(b, e, [&ctrl](const auto& x) noexcept {
                 return x.control == &ctrl;
             });
@@ -824,8 +827,8 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
                 // 最后一个和itr调换
                 // 特殊情况: itr == e[-1], 调换并不会出现问题
                 std::swap(*itr, e[-1]);
-                assert(m_private->dirty_count_recording);
-                m_private->dirty_count_recording--;
+                assert(pimpl()->dirty_count_recording);
+                pimpl()->dirty_count_recording--;
             }
             else assert(!"NOT FOUND");
         }
@@ -836,8 +839,8 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
 
     // XXX: 暴力移除一般引用..?
     {
-        const auto b = m_private->GetFirst();
-        const auto e = m_private->GetLast() + 1;
+        const auto b = pimpl()->GetFirst();
+        const auto e = pimpl()->GetLast() + 1;
         for (auto itr = b; itr != e; ++itr) {
             if (&ctrl == *itr) *itr = nullptr;
         }
@@ -846,7 +849,7 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     const auto ch = ctrl.GetAccessKey();
     if (ch >= 'A' && ch <= 'Z') {
         const auto index = ch - 'A';
-        const auto map = m_private->access_key_map;
+        const auto map = pimpl()->access_key_map;
         // 移除引用
         if (map[index] == &ctrl) map[index] = nullptr;
         // 提出警告
@@ -864,10 +867,9 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     // 移除映射表中的引用
     if (*ctrl.GetID()) {
         // TODO: 实现删除接口
-        auto& map = m_private->ctrl_map;
+        auto& map = pimpl()->ctrl_map;
         const auto itr = map.find(ctrl.GetID());
-        assert(itr != map.end());
-        itr->second = nullptr;
+        if (itr != map.end()) itr->second = nullptr;
     }
 }
 
@@ -880,7 +882,7 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     // 不可聚焦
     if (!ctrl.IsFocusable()) return false;
     // 焦点控件
-    auto& focused = m_private->focused;
+    auto& focused = pimpl()->focused;
     // 当前焦点不能是待聚焦控件的祖先控件
 #ifndef DEBUG
     if (focused) {
@@ -909,10 +911,10 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::ShowCaret(const UIControl& ctrl, const RectF& rect) noexcept {
-    assert(this && m_private);
-    m_private->caret_ok = true;
-    m_private->caret = rect;
-    ctrl.MapToWindow(m_private->caret);
+    assert(this);
+    pimpl()->caret_ok = true;
+    pimpl()->caret = rect;
+    ctrl.MapToWindow(pimpl()->caret);
 }
 
 /// <summary>
@@ -920,8 +922,8 @@ void LongUI::CUIWindow::ShowCaret(const UIControl& ctrl, const RectF& rect) noex
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::HideCaret() noexcept {
-    assert(this && m_private);
-    m_private->caret_ok = false;
+    assert(this);
+    pimpl()->caret_ok = false;
 }
 
 /// <summary>
@@ -930,8 +932,8 @@ void LongUI::CUIWindow::HideCaret() noexcept {
 /// <param name="color">The color.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetCaretColor(const ColorF& color) noexcept {
-    assert(this && m_private);
-    m_private->caret_color = color;
+    assert(this);
+    pimpl()->caret_color = color;
 }
 
 /// <summary>
@@ -940,7 +942,7 @@ void LongUI::CUIWindow::SetCaretColor(const ColorF& color) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetCapture(UIControl& ctrl) noexcept {
-    m_private->captured = &ctrl;
+    pimpl()->captured = &ctrl;
     //LUIDebug(Hint) << ctrl << endl;
 }
 
@@ -950,10 +952,10 @@ void LongUI::CUIWindow::SetCapture(UIControl& ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 bool LongUI::CUIWindow::ReleaseCapture(UIControl& ctrl) noexcept {
-    if (&ctrl == m_private->captured) {
+    if (&ctrl == pimpl()->captured) {
         //LUIDebug(Hint) << ctrl << endl;
-        assert(m_private->captured);
-        m_private->captured = nullptr;
+        assert(pimpl()->captured);
+        pimpl()->captured = nullptr;
         return true;
     }
     return false;
@@ -965,8 +967,8 @@ bool LongUI::CUIWindow::ReleaseCapture(UIControl& ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
-    if (m_private->focused == &ctrl) {
-        m_private->focused = nullptr;
+    if (pimpl()->focused == &ctrl) {
+        pimpl()->focused = nullptr;
         //m_private->saved_focused = nullptr;
         ctrl.StartAnimation({ StyleStateType::Type_Focus, false });
         // Blur 事件
@@ -979,8 +981,8 @@ void LongUI::CUIWindow::KillFocus(UIControl& ctrl) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::ResetDefault() noexcept {
-    if (m_private->wnd_default) {
-        this->SetDefault(*m_private->wnd_default);
+    if (pimpl()->wnd_default) {
+        this->SetDefault(*pimpl()->wnd_default);
     }
 }
 
@@ -993,13 +995,12 @@ void LongUI::CUIWindow::ResetDefault() noexcept {
 void LongUI::CUIWindow::InvalidateControl(UIControl& ctrl, const RectF* rect) noexcept {
     // 已经在里面就算了
     if (UIControlPrivate::IsInDirty(ctrl)) return;
-    assert(m_private);
     assert(ctrl.GetWindow() == this);
     // 全渲染
-    if (m_private->is_fr_for_update()) return;
+    if (pimpl()->is_fr_for_update()) return;
     // TODO: 相对矩形
     assert(rect == nullptr && "unsupported yet");
-    m_private->MarkDirtRect({ &ctrl, ctrl.GetBox().visible });
+    pimpl()->MarkDirtRect({ &ctrl, ctrl.GetBox().visible });
 }
 
 
@@ -1008,7 +1009,7 @@ void LongUI::CUIWindow::InvalidateControl(UIControl& ctrl, const RectF* rect) no
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::MarkFullRendering() noexcept {
-    m_private->mark_fr_for_update();
+    pimpl()->mark_fr_for_update();
 }
 
 /// <summary>
@@ -1016,8 +1017,7 @@ void LongUI::CUIWindow::MarkFullRendering() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::CUIWindow::IsFullRenderThisFrame() const noexcept {
-    assert(m_private && "bug: you shall not pass");
-    return m_private->is_fr_for_update();
+    return pimpl()->is_fr_for_update();
 }
 
 /// <summary>
@@ -1029,7 +1029,7 @@ void LongUI::CUIWindow::SetDefault(UIControl& ctrl) noexcept {
     assert(this && "null this ptr");
     if (!ctrl.IsDefaultable()) return;
     constexpr auto dtype = StyleStateType::Type_Default;
-    auto& nowc = m_private->now_default;
+    auto& nowc = pimpl()->now_default;
     if (nowc) nowc->StartAnimation({ dtype, false });
     (nowc = &ctrl)->StartAnimation({ dtype, true });
 }
@@ -1040,7 +1040,7 @@ void LongUI::CUIWindow::SetDefault(UIControl& ctrl) noexcept {
 /// <param name="">The .</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetClearColor(const ColorF& color) noexcept {
-    m_private->clear_color = color;
+    pimpl()->clear_color = color;
 }
 
 /// <summary>
@@ -1049,7 +1049,7 @@ void LongUI::CUIWindow::SetClearColor(const ColorF& color) noexcept {
 /// <param name="cursor">The cursor.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetNowCursor(const CUICursor& cursor) noexcept {
-    m_private->cursor = cursor;
+    pimpl()->cursor = cursor;
 }
 
 /// <summary>
@@ -1058,7 +1058,7 @@ void LongUI::CUIWindow::SetNowCursor(const CUICursor& cursor) noexcept {
 /// <param name="">The .</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetNowCursor(std::nullptr_t) noexcept {
-    m_private->cursor = { CUICursor::Cursor_Arrow };
+    pimpl()->cursor = { CUICursor::Cursor_Arrow };
 }
 
 /// <summary>
@@ -1082,7 +1082,7 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
     const auto fw = static_cast<float>(size.width);
     const auto fh = static_cast<float>(size.height);
     // 重置大小
-    this->viewport->resize_window({ fw, fh });
+    this->viewport()->resize_window({ fw, fh });
     // 修改窗口缓冲帧大小
     this->flag_sized = true;
 }
@@ -1100,17 +1100,16 @@ void LongUI::CUIWindow::Private::OnResizeTs(Size2U size) noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::ResizeAbsolute(Size2L size) noexcept {
     assert(size.width && size.height);
-    const auto pimpl = m_private;
     // 不一样才处理
-    const auto& old = pimpl->rect;
+    const auto& old = pimpl()->rect;
     if (old.width == size.width && old.height == size.height) {
-        pimpl->mark_fr_for_update();
+        pimpl()->mark_fr_for_update();
         return;
     }
     // 睡眠模式
     if (this->IsInSleepMode()) { 
-        pimpl->rect.width = size.width;
-        pimpl->rect.height = size.height;
+        pimpl()->rect.width = size.width;
+        pimpl()->rect.height = size.height;
         return;
     }
     // 内联窗口
@@ -1119,8 +1118,8 @@ void LongUI::CUIWindow::ResizeAbsolute(Size2L size) noexcept {
     }
     else {
         // 调整大小
-        const auto realw = size.width + pimpl->adjust.right - pimpl->adjust.left;
-        const auto realh = size.height + pimpl->adjust.bottom - pimpl->adjust.top;
+        const auto realw = size.width + pimpl()->adjust.right - pimpl()->adjust.left;
+        const auto realh = size.height + pimpl()->adjust.bottom - pimpl()->adjust.top;
         // 改变窗口
         constexpr UINT flag = SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOZORDER | SWP_ASYNCWINDOWPOS;
         ::SetWindowPos(m_hwnd, nullptr, 0, 0, realw, realh, flag);
@@ -1230,12 +1229,12 @@ void LongUI::CUIWindow::show_window(TypeShow sw) noexcept {
     // 隐藏
     if (sw == Show_Hide) {
         this->TrySleep();
-        m_private->window_visible = false;
+        pimpl()->window_visible = false;
     }
     // 显示
     else {
         this->WakeUp();
-        m_private->window_visible = true;
+        pimpl()->window_visible = true;
     }
     assert(m_hwnd && "bad window");
     /*
@@ -1255,14 +1254,14 @@ void LongUI::CUIWindow::show_window(TypeShow sw) noexcept {
 void LongUI::CUIWindow::WakeUp() noexcept {
     // 不在睡眠状态强行渲染一帧
     if (!this->IsInSleepMode()) {
-        if (!m_private->window_visible) m_private->EmptyRender();
+        if (!pimpl()->window_visible) pimpl()->EmptyRender();
         return;
     }
     // XXX: 0. 尝试唤醒父窗口
     if (m_pParent) m_pParent->WakeUp();
     // 1. 创建窗口
     const auto pwnd = m_pParent ? m_pParent->GetHwnd() : nullptr;
-    m_hwnd = m_private->Init(pwnd, this->config);
+    m_hwnd = pimpl()->Init(pwnd, this->config);
     // 1.5 检测DPI支持
     this->HiDpiSupport();
     // 2. 创建资源
@@ -1277,7 +1276,7 @@ void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
     if (this->IsInSleepMode()) return;
     assert(this->begin() == this->end());
     // 释放资源
-    m_private->ReleaseDeviceData();
+    pimpl()->ReleaseDeviceData();
     // 摧毁窗口
     Private::PostDeleteWindow(m_hwnd);
     m_hwnd = nullptr;
@@ -1291,7 +1290,7 @@ void LongUI::CUIWindow::TrySleep() noexcept {
     if (this->IsInSleepMode()) return;
     if (!this->IsAutoSleep()) return;
     if (this->begin() == this->end()) return;
-    m_private->auto_sleep_count = 1;
+    pimpl()->auto_sleep_count = 1;
 }
 
 /// <summary>
@@ -1367,7 +1366,7 @@ void LongUI::CUIWindow::ActiveWindow() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::CUIWindow::IsVisible() const noexcept {
-    return m_private->window_visible;
+    return pimpl()->window_visible;
     //return !!::IsWindowVisible(m_hwnd);
 }
 
@@ -1387,7 +1386,7 @@ void LongUI::CUIWindow::SetTitleName(const char16_t* name) noexcept {
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIWindow::GetTitleName() const noexcept -> U16View {
-    return m_private->titlename.view();
+    return pimpl()->titlename.view();
 }
 
 /// <summary>
@@ -1398,7 +1397,7 @@ auto LongUI::CUIWindow::GetTitleName() const noexcept -> U16View {
 /// <param name="type">The type.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type) noexcept {
-    auto& this_popup = m_private->popup;
+    auto& this_popup = pimpl()->popup;
     // 再次显示就是关闭
     if (this_popup == &wnd) {
         this->ClosePopup();
@@ -1407,7 +1406,7 @@ void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type)
         this->ClosePopup();
         this_popup = &wnd;
         // 记录类型备用
-        m_private->popup_type = type;
+        pimpl()->popup_type = type;
         // 提示窗口
         auto& view = wnd.RefViewport();
         view.HosterPopupBegin();
@@ -1426,8 +1425,8 @@ void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type)
 /// <param name="text">The text.</param>
 /// <returns></returns>
 auto LongUI::CUIWindow::TooltipText(CUIString&& text)noexcept->UIViewport* {
-    m_private->SetTooltipText(std::move(text));
-    return m_private->common_tooltip;
+    pimpl()->SetTooltipText(std::move(text));
+    return pimpl()->common_tooltip;
 }
 
 /// <summary>
@@ -1436,7 +1435,7 @@ auto LongUI::CUIWindow::TooltipText(CUIString&& text)noexcept->UIViewport* {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::ClosePopup() noexcept {
-    m_private->ClosePopup();
+    pimpl()->ClosePopup();
 }
 
 /// <summary>
@@ -1447,7 +1446,7 @@ void LongUI::CUIWindow::ClosePopup() noexcept {
 /// <see cref="CUIWindow"/>指针, 当前没有弹出窗口则返回空指针
 ///</returns>
 auto LongUI::CUIWindow::GetNowPopup() const noexcept-> CUIWindow* {
-    return m_private->popup;
+    return pimpl()->popup;
 }
 
 /// <summary>
@@ -1459,7 +1458,7 @@ auto LongUI::CUIWindow::GetNowPopup() const noexcept-> CUIWindow* {
 /// <see cref="CUIWindow" />指针, 当前没有指定类型的弹出窗口则返回空指针
 /// </returns>
 auto LongUI::CUIWindow::GetNowPopup(PopupType type) const noexcept-> CUIWindow* {
-    return m_private->popup_type == type ? m_private->popup : nullptr;
+    return pimpl()->popup_type == type ? pimpl()->popup : nullptr;
 }
 
 /// <summary>
@@ -1485,8 +1484,8 @@ void LongUI::CUIWindow::ClosePopupHighLevel() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::CloseTooltip() noexcept {
-    if (m_private->popup_type == PopupType::Type_Tooltip) {
-        m_private->ClosePopup();
+    if (pimpl()->popup_type == PopupType::Type_Tooltip) {
+        pimpl()->ClosePopup();
     }
 }
 
@@ -1497,7 +1496,7 @@ void LongUI::CUIWindow::CloseTooltip() noexcept {
 /// <returns></returns>
 void LongUI::CUIWindow::SetAbsoluteRect(const RectL& rect) noexcept {
     // 懒得判断了
-    auto& write = m_private->rect;
+    auto& write = pimpl()->rect;
     write.left = rect.left;
     write.top = rect.top;
     write.width = rect.right - rect.left;
@@ -1525,8 +1524,7 @@ void LongUI::CUIWindow::SetAbsoluteRect(const RectL& rect) noexcept {
 /// <param name="pos">The position.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetPos(Point2L pos) noexcept {
-    assert(m_private && "bug: you shall not pass");
-    auto& this_pos = reinterpret_cast<Point2L&>(m_private->rect.left);
+    auto& this_pos = reinterpret_cast<Point2L&>(pimpl()->rect.left);
     // 无需移动窗口
     if (this_pos.x == pos.x && this_pos.y == pos.y) return; 
     this_pos = pos;
@@ -1560,7 +1558,7 @@ namespace LongUI {
 /// <returns></returns>
 void LongUI::CUIWindow::Private::SetTooltipText(CUIString&& text) noexcept {
     auto& ptr = this->common_tooltip;
-    if (!ptr) ptr = LongUI::CommonTooltipCreate(*this->viewport);
+    if (!ptr) ptr = LongUI::CommonTooltipCreate(*this->viewport());
     if (ptr) LongUI::CommonTooltipSetText(*ptr, std::move(text));
 }
 
@@ -1583,9 +1581,9 @@ void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
     switch (key)
     {
     case CUIInputKM::KB_ESCAPE:
-        if (this->viewport->RefWindow().config
+        if (this->viewport()->RefWindow().config
             & CUIWindow::Config_EscToCloseWindow)
-            return this->viewport->RefWindow().CloseWindow();
+            return this->viewport()->RefWindow().CloseWindow();
         break;
     case CUIInputKM::KB_RETURN:
         // 回车键: 直接将输入引导到默认控件
@@ -1708,7 +1706,7 @@ void LongUI::CUIWindow::Private::OnDpiChanged(uintptr_t wParam, const RectL& rec
     float x = xdpi / float(LongUI::BASIC_DPI);
     float y = ydpi / float(LongUI::BASIC_DPI);
     CUIDataAutoLocker locker;
-    auto& vp = *this->viewport;
+    auto& vp = *this->viewport();
     auto& window = vp.RefWindow();
     // 固定大小应该需要缩放窗口
     if (window.config & Config_FixedSize /*|| true*/) {
@@ -1720,7 +1718,7 @@ void LongUI::CUIWindow::Private::OnDpiChanged(uintptr_t wParam, const RectL& rec
         vp.JustResetZoom(x, y);
         const auto fw = static_cast<float>(this->rect.width);
         const auto fh = static_cast<float>(this->rect.height);
-        this->viewport->resize_window({ fw, fh });
+        this->viewport()->resize_window({ fw, fh });
     }
 }
 
@@ -1734,7 +1732,7 @@ void LongUI::CUIWindow::Private::OnAccessKey(uintptr_t i) noexcept {
     if (this->popup) {
         // TOOLTIP不算
         if (this->popup_type != PopupType::Type_Tooltip) {
-            const auto popprivate = this->popup->m_private;
+            const auto popprivate = this->popup->pimpl();
             popprivate->OnAccessKey(i);
             return;
         }
@@ -1771,7 +1769,7 @@ namespace LongUI { namespace detail {
 /// <param name="name">The name.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
-    m_private->titlename = std::move(name);
+    pimpl()->titlename = std::move(name);
     if (this->IsInSleepMode()) return;
     ::PostMessageW(m_hwnd, detail::msg_post_set_title, 0, 0);
 }
@@ -2144,7 +2142,7 @@ void LongUI::CUIWindow::Private::ClosePopup() noexcept {
         this->popup->ClosePopup();
         auto& sub = this->popup->RefViewport();
         sub.HosterPopupEnd();
-        this->viewport->SubViewportPopupEnd(sub, this->popup_type);
+        this->viewport()->SubViewportPopupEnd(sub, this->popup_type);
         this->popup->CloseWindow();
         this->popup = nullptr;
     }
@@ -2159,7 +2157,7 @@ void LongUI::CUIWindow::Private::ClosePopup() noexcept {
 void LongUI::CUIWindow::Private::DoMouseEventTs(const MouseEventArg & args) noexcept {
     CUIDataAutoLocker locker;
     UIControl* ctrl = this->captured;
-    if (!ctrl) ctrl = this->viewport;
+    if (!ctrl) ctrl = this->viewport();
     /*const auto code = */
     ctrl->DoMouseEvent(args);
 }
@@ -2247,7 +2245,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         case MouseEvent::Event_LButtonDown:
             // 有弹出窗口先关闭
             // FIXME: 自己也是弹出窗口的话怎么处理?
-            if (this->popup && !(viewport->RefWindow().config & Config_Popup)) {
+            if (this->popup && !(viewport()->RefWindow().config & Config_Popup)) {
                 this->ClosePopup(); 
                 return 0; 
             }
@@ -2290,7 +2288,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             break;
         case WM_GETOBJECT:
             if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId)) {
-                const auto window = this->viewport->GetWindow();
+                const auto window = this->viewport()->GetWindow();
                 assert(window && "cannot be null");
                 const auto root = CUIAccessibleWnd::FromWindow(*window);
                 this->accessibility = true;
@@ -2329,7 +2327,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             ::DestroyCaret();
 
 #endif
-            if (this->viewport->RefWindow().config & CUIWindow::Config_Popup) {
+            if (this->viewport()->RefWindow().config & CUIWindow::Config_Popup) {
                 // CloseWindow 仅仅最小化窗口
                 ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
             }
@@ -2359,7 +2357,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
         case WM_SYSKEYDOWN:
             // Alt+F4
             if (wParam == CUIInputKM::KB_F4) {
-                const auto cfg = this->viewport->RefWindow().config;
+                const auto cfg = this->viewport()->RefWindow().config;
                 if (cfg & CUIWindow::Config_AltF4ToCloseWindow)
                     ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
             }
@@ -2395,7 +2393,7 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             this->rect.left = reinterpret_cast<RECT*>(lParam)->left;
             return true;
         case WM_CLOSE:
-            this->viewport->RefWindow().close_window();
+            this->viewport()->RefWindow().close_window();
             return 0;
         case WM_MOUSEACTIVATE:
             return ma_return_code;
@@ -2745,7 +2743,7 @@ auto LongUI::CUIWindow::Private::Render(const UIViewport& v) const noexcept->Res
         // 正式渲染
         CUIControlControl::RecursiveRender(v, rects, count);
 #if 0
-        //if (this->viewport->GetWindow()->GetParent())
+        //if (this->viewport()->GetWindow()->GetParent())
         LUIDebug(Log) << "End of Frame" << this << endl;
 #endif
         // 结束渲染

@@ -22,6 +22,7 @@
 #endif
 
 // Private
+#include <core/ui_unsafe.h>
 #include "../private/ui_private_control.h"
 
 // ui namespace
@@ -154,7 +155,7 @@ void LongUI::UITab::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
         break;
     default:
         // 其他情况, 交给基类处理

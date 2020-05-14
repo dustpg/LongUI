@@ -55,12 +55,10 @@ namespace LongUI { namespace POD {
             // remove
             bool remove(hash_iterator) noexcept;
 #endif
-#ifndef UI_HASH_TABLE_NO_ITERATOR
             // begin iterator
             auto begin_itr() const noexcept -> hash_iterator { return m_itrFirst; }
             // end iterator
             auto end_itr() const noexcept -> hash_iterator { return{ m_pBaseTableEnd, nullptr }; }
-#endif
             // force insert cell
             auto force_insert(hash_cell& cell) noexcept ->uintptr_t*;
         private:
@@ -81,10 +79,8 @@ namespace LongUI { namespace POD {
             uintptr_t*          m_pBaseTable = nullptr;
             // base table end
             uintptr_t*          m_pBaseTableEnd = nullptr;
-#ifndef UI_HASH_TABLE_NO_ITERATOR
             // first item
-            hash_iterator       m_itrFirst = this->end_itr();
-#endif
+            hash_iterator       m_itrFirst;
             // item size
             uint32_t            m_cItemSize = 0;
             // item byte size
@@ -103,7 +99,6 @@ namespace LongUI { namespace POD {
         using value_type = std::pair<const key_type, mapped_type>;
         // size type
         using size_type = uint32_t;
-#ifndef UI_HASH_TABLE_NO_ITERATOR
         // hash iterator
         class iterator {
             // self type
@@ -135,16 +130,13 @@ namespace LongUI { namespace POD {
             // iterator
             detail::hash_iterator   m_itr;
         };
-#endif
     public:
         // check for pod
         static_assert(std::is_pod<T>::value, "type T must be POD type");
-#ifndef UI_HASH_TABLE_NO_ITERATOR
         // begin itr
         auto begin() noexcept ->iterator { return{ hash_base::begin_itr() }; }
         // end itr
         auto end() noexcept ->iterator { return{ hash_base::end_itr() }; }
-#endif
     public:
         // ctor
         HashMap() noexcept : detail::hash_base(sizeof(T)) {}
@@ -154,7 +146,6 @@ namespace LongUI { namespace POD {
         HashMap(const HashMap&) noexcept = delete;
         // move : not implement yet
         HashMap(HashMap&&) noexcept = delete;
-#ifndef UI_HASH_TABLE_NO_ITERATOR
         // find item with c-style string
         auto find(const char* str) noexcept ->iterator { return{ hash_base::find(str) }; }
         // find item with string view
@@ -162,9 +153,6 @@ namespace LongUI { namespace POD {
 #if 0
         // remove
         bool remove(iterator itr) noexcept { return hash_base::remove(itr.m_itr); }
-#endif
-#else
-#error not implement yet
 #endif
         // get size
         auto size() const noexcept ->size_type { return m_cItemSize; }

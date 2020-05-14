@@ -6,6 +6,10 @@
 // c++
 #include <cassert>
 
+
+// empty
+const char* LongUI::CUIConstShortString::EMPTY = "";
+
 PCN_NOINLINE
 /// <summary>
 /// Releases this instance.
@@ -13,6 +17,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::CUIConstShortString::release() noexcept {
     if (m_string != EMPTY) {
+        assert(m_string);
         const void* ptr = m_string;
         m_string = EMPTY;
         LongUI::SmallFree(const_cast<void*>(ptr));

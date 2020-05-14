@@ -12,7 +12,7 @@ namespace LongUI {
         // self type
         //using Self = CUIConstShortString;
         // empty string
-        static constexpr const char* EMPTY = "";
+        static const char* EMPTY;
     public:
         // ctor
         CUIConstShortString() noexcept {}

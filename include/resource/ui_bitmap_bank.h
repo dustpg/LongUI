@@ -75,6 +75,9 @@ namespace LongUI {
         // window list, unit could be NUL
         POD::Vector<BitbankWindow>  m_window;
         // list real count
-        uint32_t                    m_count = 0; 
+        uint32_t                    m_count = 0;
+    public:
+        // [alignas 8bytes in x64] native ok
+        uint32_t                    native = 0;
     };
 }

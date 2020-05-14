@@ -52,8 +52,13 @@ namespace LongUI {
 /// <param name="config">The configuration.</param>
 LongUI::UIViewport::UIViewport(CUIWindow* parent, CUIWindow::WindowConfig config) noexcept
     : Super(impl::ctor_lock(nullptr)), m_window(parent, config) {
+    //m_pWindow = m_window.IsCtorFailed() ? nullptr : &m_window;
+
+    if (m_window.IsCtorFailed()) m_state.ctor_failed = true;
     m_pWindow = &m_window;
     m_state.orient = Orient_Vertical;
+
+
     // 构造锁
     impl::ctor_unlock();
 }

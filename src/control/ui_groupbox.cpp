@@ -1,6 +1,7 @@
 ﻿// Gui
 #include <core/ui_ctrlmeta.h>
 #include <control/ui_caption.h>
+#include <core/ui_unsafe.h>
 #include <control/ui_groupbox.h>
 #include <control/ui_boxlayout.h>
 // Debug
@@ -96,7 +97,7 @@ void LongUI::UIGroupBox::add_attribute(uint32_t key, U8View value) noexcept {
     case BKDR_ALIGN:
     case BKDR_ORIENT:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->body, key, value);
+        Unsafe::AddAttrUninited(m_private->body, key, value);
         break;
     default:
         // 父类处理

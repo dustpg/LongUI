@@ -6,6 +6,7 @@
 #include <control/ui_boxlayout.h>
 #include <control/ui_image.h>
 #include <control/ui_label.h>
+#include <core/ui_unsafe.h>
 #include <constexpr/const_bkdr.h>
 // Private
 #include "../private/ui_private_control.h"
@@ -186,11 +187,11 @@ void LongUI::UICheckBox::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case "label"_bkdr:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
         break;
     case BKDR_ACCESSKEY:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, key, value);
+        Unsafe::AddAttrUninited(m_private->label, key, value);
         break;
     case BKDR_SRC:
         // src: 使用图片

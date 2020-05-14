@@ -143,7 +143,7 @@ auto LongUI::Mix(Point2F from, Point2F to, float progress) noexcept -> Point2F {
 /// <param name="to">To.</param>
 /// <param name="progress">The progress.</param>
 /// <returns></returns>
-auto LongUI::Mix(const RectF & from, const RectF& to, float progress) noexcept {
+auto LongUI::Mix(const RectF& from, const RectF& to, float progress) noexcept {
     const auto& f = reinterpret_cast<const ColorF&>(from);
     const auto& t = reinterpret_cast<const ColorF&>(to);
     auto rv = LongUI::Mix(f, t, progress);

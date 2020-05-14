@@ -3,6 +3,7 @@
 #include <style/ui_native_style.h>
 #include <container/pod_vector.h>
 #include <control/ui_control.h>
+#include <core/ui_unsafe.h>
 #include <util/ui_time_meter.h>
 #include <util/ui_aniamtion.h>
 #include <core/ui_window.h>
@@ -48,6 +49,8 @@ struct LongUI::CUIControlControl::Private {
     ControlNode             init_list = { nullptr };
     // update list
     ControlNode             update_list = { nullptr };
+    // delete list
+    ControlNode             delete_list = { nullptr };
     // style cache
     POD::Vector<UIControl*> style_cache;
     // animation list
@@ -385,7 +388,7 @@ void LongUI::CUIControlControl::RemoveControlInList(
     auto prev_addr = &list.first;
     // 获取节点对象
     const auto get_node_addr = [](UIControl& c) noexcept {
-        return &c.m_oManager.next_initupd;
+        return &c.m_oManager.next_delinitupd;
     };
     // 无效列表
     if (!*prev_addr) {
@@ -435,7 +438,7 @@ PCN_NOINLINE
 void LongUI::CUIControlControl::AddControlToList(UIControl& ctrl, ControlNode& list) noexcept {
     // 获取节点对象
     const auto get_node_addr = [](UIControl& c) noexcept {
-        return &c.m_oManager.next_initupd;
+        return &c.m_oManager.next_delinitupd;
     };
     const auto ptr = get_node_addr(ctrl);
     assert(*ptr == nullptr);
@@ -505,6 +508,28 @@ void LongUI::CUIControlControl::AddInitList(UIControl& ctrl) noexcept {
     CUIControlControl::AddControlToList(ctrl, luiref cc().init_list);
 }
 
+/// <summary>
+/// Deletes the later.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::CUIControlControl::delete_later(UIControl& ctrl) noexcept {
+    // 移除初始化表中的引用
+    if (!ctrl.is_inited()) {
+#ifndef NDEBUG
+        LUIDebug(Hint) << "delete_later: " << ctrl
+            << "but uninited" << endl;
+#endif // !NDEBUG
+
+        ctrl.m_state.inited = true;
+        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list);
+        ctrl.m_oManager.next_delinitupd = nullptr;
+    }
+    assert(ctrl.m_oManager.next_delinitupd == nullptr);
+    CUIControlControl::AddControlToList(ctrl, luiref cc().delete_list);
+}
+
+
 
 /// <summary>
 /// Invalidates the control.
@@ -549,8 +574,8 @@ bool LongUI::CUIControlControl::init_control_in_list() noexcept {
     while (node) {
         // 本次处理
         const auto ctrl = node;
-        node = ctrl->m_oManager.next_initupd;
-        ctrl->m_oManager.next_initupd = nullptr;
+        node = ctrl->m_oManager.next_delinitupd;
+        ctrl->m_oManager.next_delinitupd = nullptr;
         // 尝试初始化
         assert(!ctrl->is_inited() && "has been inited");
         // TODO: 错误处理
@@ -562,6 +587,23 @@ bool LongUI::CUIControlControl::init_control_in_list() noexcept {
     }
     // 存在更新列表
     return !!cc.update_list.first;
+}
+
+/// <summary>
+/// Deletes the controls.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUIControlControl::delete_controls() noexcept {
+    auto& cc = this->cc();
+    auto node = cc.delete_list.first;
+    cc.delete_list = { nullptr, nullptr };
+    // 遍历初始化列表
+    while (node) {
+        // 本次处理
+        const auto ctrl = node;
+        node = ctrl->m_oManager.next_delinitupd;
+        delete ctrl;
+    }
 }
 
 
@@ -604,8 +646,8 @@ void LongUI::CUIControlControl::update_control_in_list() noexcept {
     while (node) {
         // 本次处理
         const auto ctrl = node;
-        node = ctrl->m_oManager.next_initupd;
-        ctrl->m_oManager.next_initupd = nullptr;
+        node = ctrl->m_oManager.next_delinitupd;
+        ctrl->m_oManager.next_delinitupd = nullptr;
         // 更新
         update(*ctrl);
     }
@@ -1353,7 +1395,7 @@ namespace LongUI {
     /// <summary>
     /// xml stream 
     /// </summary>
-    struct CUIControlControl::CUIXulStream final : SimpAX::CAXStream {
+    struct CUIXulStream final : SimpAX::CAXStream {
         // string_view like
         using StrPair = SimpAX::StrPair;
     public:
@@ -1392,7 +1434,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="attr">The attribute.</param>
     /// <returns></returns>
-    void CUIControlControl::CUIXulStream::add_processing(const PIs& attr) noexcept {
+    void CUIXulStream::add_processing(const PIs& attr) noexcept {
 #ifndef LUI_DISABLE_STYLE_SUPPORT
         // 加载CSS
         if (attr.target == "xml-stylesheet"_pair) {
@@ -1418,7 +1460,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="view">The view.</param>
     /// <returns></returns>
-    void CUIControlControl::CUIXulStream::begin_element(const StrPair view) noexcept {
+    void CUIXulStream::begin_element(const StrPair view) noexcept {
         // window节点
         if (view == "window"_pair) {
             // 写入数据
@@ -1441,7 +1483,7 @@ namespace LongUI {
             const auto ctrl = impl::create_control(view.begin(), view.end(), parent);
             // 错误处理
             if (!ctrl || ctrl->IsCtorFailed()) {
-                delete ctrl;
+                //delete ctrl;
                 this->error = view;
                 LUIDebug(Error) 
                     << "failed to create control: " 
@@ -1458,7 +1500,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="tag">The tag.</param>
     /// <returns></returns>
-    void CUIControlControl::CUIXulStream::end_element(const StrPair tag) noexcept {
+    void CUIXulStream::end_element(const StrPair tag) noexcept {
 #ifndef LUI_NO_SCRIPT
         m_script = false;
 #endif
@@ -1468,7 +1510,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="pair">The pair.</param>
     /// <returns></returns>
-    void CUIControlControl::CUIXulStream::add_text(const StrPair pair) noexcept {
+    void CUIXulStream::add_text(const StrPair pair) noexcept {
 #ifndef LUI_NO_SCRIPT
         if (m_script)
             impl::eval_script_for_window({ pair.begin(), pair.end() }, m_root.GetWindow());
@@ -1479,7 +1521,7 @@ namespace LongUI {
     /// </summary>
     /// <param name="attr">The attribute.</param>
     /// <returns></returns>
-    void CUIControlControl::CUIXulStream::add_attribute(const ATTRs& attr) noexcept {
+    void CUIXulStream::add_attribute(const ATTRs& attr) noexcept {
         const auto& top = this->stack_top();
         const auto ctrl = static_cast<UIControl*>(top.user_ptr);
         // 检查有效性
@@ -1497,7 +1539,7 @@ namespace LongUI {
             // 计算键HASH
             const auto key = LongUI::BKDRHash(attr.key.a, attr.key.b);
             // 添加属性
-            ctrl->add_attribute(key, { attr.value.a, attr.value.b });
+            Unsafe::AddAttrUninited(*ctrl, key, { attr.value.a, attr.value.b });
         }
         // 特殊情况
         else {
@@ -1525,8 +1567,8 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
     // 先去掉所有子控件
     while (ctrl.GetCount()) {
         auto& control = *ctrl.begin();
-        control.DeleteLater();
         control.SetParent(nullptr);
+        control.DeleteLater();
     }
     // 错误代码 
     bool rv = false;
@@ -1534,8 +1576,7 @@ bool LongUI::CUIControlControl::MakeXul(UIControl& ctrl, const char* xul) noexce
     switch (code)
     {
     default:
-        // 基本错误处理
-        assert(!"TODO");
+        // TODO: 基本错误处理
         break;
     case 0:
         // 然后解析XML字符串

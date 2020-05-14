@@ -19,18 +19,25 @@ namespace LongUI {
     // impl
     namespace impl {
         // create native style renderer
-        auto create_native_style_renderer() noexcept -> void* {
-            return new(std::nothrow) CUINativeStyleNow;
+        auto create_native_style_renderer(void* ptr, size_t len) noexcept -> void* {
+            static_assert(alignof(CUINativeStyleNow) <= alignof(void*), "ERROR");
+            if (len < sizeof(CUINativeStyleNow)) {
+                assert(!"TOO SMALL");
+                return nullptr;
+            }
+            detail::ctor_dtor<CUINativeStyleNow>::create(ptr);
+            return ptr;
         }
         // recreate native style renderer
         auto recreate_native_style_renderer(void* ptr) noexcept ->Result {
+            assert(ptr && "recreate?");
             const auto obj = static_cast<CUINativeStyleNow*>(ptr);
             return obj->Recreate();
         }
         // delete native style renderer
         void delete_native_style_renderer(void* ptr) noexcept {
             const auto obj = static_cast<CUINativeStyleNow*>(ptr);
-            delete obj;
+            obj->~CUINativeStyleNow();
         }
     }
 }

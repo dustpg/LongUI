@@ -67,7 +67,7 @@ void LongUI::UIControlPrivate::SyncInitData(UIControl& ctrl) noexcept {
     for (auto& child : ctrl) {
         // 树节点深度
         child.m_state.level = ctrl.m_state.level + 1;
-        assert(child.GetLevel() < 100ui8 && "tree too deep");
+        assert(child.GetLevel() < 100 && "tree too deep");
         // 窗口
         child.m_pWindow = ctrl.m_pWindow;
 

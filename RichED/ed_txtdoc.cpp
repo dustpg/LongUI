@@ -1,9 +1,11 @@
-﻿#include "ed_txtdoc.h"
+﻿#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+#include "ed_txtdoc.h"
 #include "ed_txtplat.h"
 #include "ed_txtcell.h"
 
-#include <cstdlib>
-#include <cstring>
 #include <algorithm>
 
 enum { RED_INIT_ARRAY_BUFLEN = 32 };

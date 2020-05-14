@@ -23,6 +23,15 @@ namespace LongUI {
     struct AllWindows;
     // popup type
     enum class PopupType : uint32_t;
+    // detail namespace
+    namespace detail {
+        // private data for manager
+        template<size_t> struct private_window;
+        // 32bit
+        template<> struct private_window<4> { enum { size = 952, align = 4 }; };
+        // 64bit
+        template<> struct private_window<8> { enum { size = 1200, align = 8 }; };
+    }
     /// <summary>
     /// window base class
     /// </summary>
@@ -245,6 +254,10 @@ namespace LongUI {
         // mark: has script
         void MarkHasScript() noexcept { m_bHasScript = true; }
     protected:
+        // private impl
+        auto pimpl() noexcept { return reinterpret_cast<Private*>(&m_private); }
+        // private impl
+        auto pimpl() const noexcept { return reinterpret_cast<const Private*>(&m_private); }
         // init
         void init() noexcept;
         // recursive set result
@@ -264,8 +277,6 @@ namespace LongUI {
         // dtor
         ~CUIWindow() noexcept;
     private:
-        // private data
-        Private*            m_private = nullptr;
         // head
         Node<CUIWindow>     m_oHead;
         // tail
@@ -303,6 +314,12 @@ namespace LongUI {
         bool                m_bCtorFaild : 1;
         // state: under "minsize changed" list
         bool                m_bMinsizeList = false;
+    protected:
+        // private data
+        std::aligned_storage<
+            detail::private_window<sizeof(void*)>::size,
+            detail::private_window<sizeof(void*)>::align
+        >::type                 m_private;
     };
     // WindowConfig | WindowConfig
     inline CUIWindow::WindowConfig operator|(

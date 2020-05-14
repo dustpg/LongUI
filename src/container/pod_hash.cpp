@@ -119,7 +119,10 @@ void LongUI::POD::detail::hash_base::clear() noexcept {
 /// </summary>
 /// <param name="sizeof_T">The sizeof T.</param>
 LongUI::POD::detail::hash_base::hash_base(uint32_t sizeof_T) noexcept :
-m_cItemByteSize(LongUI::detail::nearest_psize(sizeof_T) + sizeof(hash_cell)) {
+m_cItemByteSize(LongUI::detail::nearest_psize(sizeof_T) + sizeof(hash_cell)),
+m_itrFirst(this->end_itr())
+{
+
 }
 
 /// <summary>
@@ -298,14 +301,15 @@ auto LongUI::POD::detail::hash_base::force_insert(
     const auto celln = m_pBaseTableEnd - m_pBaseTable;
     // 扩容判断(目前因子为1.0, 或许0.75?)
     if (m_cItemSize + 1 > static_cast<uint32_t>(celln)) {
-        this->growup(); if (m_pBaseTable == backup) return{ nullptr, nullptr };
+        this->growup(); 
+        if (m_pBaseTable == backup) return { m_pBaseTableEnd, nullptr };
     }
     // 内存不足
-    if (!this->is_ok()) return{ nullptr, nullptr };
+    if (!this->is_ok())  return { m_pBaseTableEnd, nullptr };
     // 创建单元
     auto cell = this->alloc_cell(str_begin, str_end, data);
     // 插入单元
-    uintptr_t* bucket = cell ? this->force_insert(*cell) : nullptr;
+    uintptr_t* bucket = cell ? this->force_insert(*cell) : m_pBaseTableEnd;
     // 返回单元
     return{ bucket, cell };
 }

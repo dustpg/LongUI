@@ -40,18 +40,12 @@
 // LongUI Need Win7-PlatformUpdate
 #define _WIN7_PLATFORM_UPDATE
 
-#ifdef _MSC_VER
-// Accessible
-#if !defined(NDEBUG) || !defined(LUI_NO_ACCESSIBLE)
+
+
 // MinGW unsupported yet?
-#define LUI_ACCESSIBLE
-#endif
-#else
 // Accessible
-#if !defined(LUI_NO_ACCESSIBLE)
-// MinGW unsupported yet?
+#ifndef LUI_NO_ACCESSIBLE
 #define LUI_ACCESSIBLE
-#endif
 #endif
 
 // Constant Setting

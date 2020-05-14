@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="LongUI" Version="10.0.0" InternalType="Console">
+<CodeLite_Project Name="LongUI" Version="11000" InternalType="Console">
   <Plugins>
     <Plugin Name="qmake">
-      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+      <![CDATA[00010001N0005Debug000000000000]]>
     </Plugin>
   </Plugins>
-  <VirtualDirectory Name="RichED">
+  <VirtualDirectory Name="inc"/>
+  <VirtualDirectory Name="red">
     <File Name="../RichED/ed_undoredo.h"/>
     <File Name="../RichED/ed_undoredo.cpp"/>
     <File Name="../RichED/ed_txtplat.h"/>
@@ -18,58 +19,102 @@
     <File Name="../RichED/ed_config.h"/>
     <File Name="../RichED/ed_common.h"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="include">
-    <VirtualDirectory Name="accessible">
-      <File Name="../include/accessible/ui_accessible_win.h"/>
-      <File Name="../include/accessible/ui_accessible_type.h"/>
-      <File Name="../include/accessible/ui_accessible_event.h"/>
-      <File Name="../include/accessible/ui_accessible_callback.h"/>
-      <File Name="../include/accessible/ui_accessible.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="container">
-      <File Name="../include/container/ui_string_vector.h"/>
-      <File Name="../include/container/pod_vector.h"/>
-      <File Name="../include/container/pod_sharedarray.h"/>
-      <File Name="../include/container/pod_hash.h"/>
-      <File Name="../include/container/nonpod_vector.h"/>
-      <File Name="../include/container/const_string_list.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="graphics">
-      <File Name="../include/graphics/ui_renderer_decl.h"/>
-      <File Name="../include/graphics/ui_mesh.h"/>
-      <File Name="../include/graphics/ui_matrix3x2.h"/>
-      <File Name="../include/graphics/ui_graphics_util.h"/>
-      <File Name="../include/graphics/ui_graphics_impl.h"/>
-      <File Name="../include/graphics/ui_graphics_decl.h"/>
-      <File Name="../include/graphics/ui_geometry.h"/>
-      <File Name="../include/graphics/ui_dcomp.h"/>
-      <File Name="../include/graphics/ui_cursor.h"/>
-      <File Name="../include/graphics/ui_bg_renderer.h"/>
-      <File Name="../include/graphics/ui_bd_renderer.h"/>
-      <File Name="../include/graphics/ui_attribute.h"/>
-      <File Name="../include/graphics/ui_adapter_desc.h"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="text">
-      <File Name="../include/text/ui_text_outline.h"/>
-      <File Name="../include/text/ui_text_layout.h"/>
-      <File Name="../include/text/ui_ctl_impl.h"/>
-      <File Name="../include/text/ui_ctl_decl.h"/>
-      <File Name="../include/text/ui_ctl_arg.h"/>
-      <File Name="../include/text/ui_attribute.h"/>
-    </VirtualDirectory>
-  </VirtualDirectory>
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <File Name="main.cpp"/>
     <VirtualDirectory Name="private">
-      <File Name="../src/private/ui_private_image.cpp"/>
+      <File Name="../src/private/ui_console.h"/>
       <File Name="../src/private/ui_private_effect.cpp"/>
       <File Name="../src/private/ui_private_control.cpp"/>
     </VirtualDirectory>
+    <VirtualDirectory Name="event">
+      <File Name="../src/event/ui_event_host.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="xul">
+      <File Name="../src/xul/SimpAX.cpp"/>
+      <File Name="../src/xul/SimpAC.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="util">
+      <File Name="../src/util/ui_unicode.cpp"/>
+      <File Name="../src/util/ui_time_clipboard.cpp"/>
+      <File Name="../src/util/ui_named_control.cpp"/>
+      <File Name="../src/util/ui_function.cpp"/>
+      <File Name="../src/util/ui_double_click.cpp"/>
+      <File Name="../src/util/ui_color_sysem.cpp"/>
+      <File Name="../src/util/ui_animation.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="thread">
+      <File Name="../src/thread/ui_waiter.cpp"/>
+      <File Name="../src/thread/ui_rwlocker.cpp"/>
+      <File Name="../src/thread/ui_locker.cpp"/>
+      <File Name="../src/thread/ui_fiber.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="text">
+      <File Name="../src/text/ui_text_outline.cpp"/>
+      <File Name="../src/text/ui_text_layout.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="style">
+      <VirtualDirectory Name="native">
+        <File Name="../src/style/native/ui_win10_tree.cpp"/>
+        <File Name="../src/style/native/ui_win10_tab.cpp"/>
+        <File Name="../src/style/native/ui_win10_slider.cpp"/>
+        <File Name="../src/style/native/ui_win10_radio.cpp"/>
+        <File Name="../src/style/native/ui_win10_group.cpp"/>
+        <File Name="../src/style/native/ui_win10_cbx.cpp"/>
+        <File Name="../src/style/native/ui_win10_btn.cpp"/>
+        <File Name="../src/style/native/ui_win10_bg.cpp"/>
+        <File Name="../src/style/native/ui_win10_abtn.cpp"/>
+        <File Name="../src/style/native/ui_win10.cpp"/>
+      </VirtualDirectory>
+      <File Name="../src/style/ui_style_value.cpp"/>
+      <File Name="../src/style/ui_style_state.cpp"/>
+      <File Name="../src/style/ui_style.cpp"/>
+      <File Name="../src/style/ui_ssvalue_list.cpp"/>
+      <File Name="../src/style/ui_ssvalue.cpp"/>
+      <File Name="../src/style/ui_native_style.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="resource">
+      <File Name="../src/resource/ui_resource_id.cpp"/>
+      <File Name="../src/resource/ui_res_image.cpp"/>
+      <File Name="../src/resource/ui_bitmap_bank.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="interface">
+      <File Name="../src/interface/ui_default_config.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="input">
+      <File Name="../src/input/ui_kminput.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="graphics">
+      <File Name="../src/graphics/ui_mesh.cpp"/>
+      <File Name="../src/graphics/ui_matrix.cpp"/>
+      <File Name="../src/graphics/ui_graphics_util.cpp"/>
+      <File Name="../src/graphics/ui_geometry.cpp"/>
+      <File Name="../src/graphics/ui_dcomp.cpp"/>
+      <File Name="../src/graphics/ui_cursor.cpp"/>
+      <File Name="../src/graphics/ui_bg_renderer.cpp"/>
+      <File Name="../src/graphics/ui_bd_renderer.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="accessible">
+      <File Name="../src/accessible/ui_accessible_win.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="filesystem">
+      <File Name="../src/filesystem/ui_findfile.cpp"/>
+      <File Name="../src/filesystem/ui_fileop.cpp"/>
+      <File Name="../src/filesystem/ui_file.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="effect">
+      <File Name="../src/effect/ui_shader_borderimage.cpp"/>
+      <File Name="../src/effect/ui_shader_backimage.cpp"/>
+      <File Name="../src/effect/ui_effect_borderimage.cpp"/>
+      <File Name="../src/effect/ui_effect_backimage.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="debugger">
+      <File Name="../src/debugger/ui_tracer.cpp"/>
+      <File Name="../src/debugger/ui_debug_window.cpp"/>
+      <File Name="../src/debugger/ui_debug.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="core">
       <File Name="../src/core/ui_window_manager.cpp"/>
-      <File Name="../src/core/ui_window_event.cpp"/>
       <File Name="../src/core/ui_window.cpp"/>
       <File Name="../src/core/ui_time_capsule.cpp"/>
       <File Name="../src/core/ui_resource_manager.cpp"/>
@@ -126,94 +171,8 @@
       <File Name="../src/container/pod_vector.cpp"/>
       <File Name="../src/container/pod_sharedarray.cpp"/>
       <File Name="../src/container/pod_hash.cpp"/>
-      <File Name="../src/container/nonpod_vector.cpp"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="accessible">
-      <File Name="../src/accessible/ui_accessible_win.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="debugger">
-      <File Name="../src/debugger/ui_tracer.cpp"/>
-      <File Name="../src/debugger/ui_debug_window.cpp"/>
-      <File Name="../src/debugger/ui_debug.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="event">
-      <File Name="../src/event/ui_event_host.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="effect">
-      <File Name="../src/effect/ui_shader_borderimage.cpp"/>
-      <File Name="../src/effect/ui_effect_borderimage.cpp" ExcludeProjConfig=""/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="filesystem">
-      <File Name="../src/filesystem/ui_findfile.cpp"/>
-      <File Name="../src/filesystem/ui_fileop.cpp"/>
-      <File Name="../src/filesystem/ui_file.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="graphics">
-      <File Name="../src/graphics/ui_mesh.cpp"/>
-      <File Name="../src/graphics/ui_matrix.cpp"/>
-      <File Name="../src/graphics/ui_graphics_util.cpp"/>
-      <File Name="../src/graphics/ui_geometry.cpp"/>
-      <File Name="../src/graphics/ui_dcomp.cpp"/>
-      <File Name="../src/graphics/ui_cursor.cpp"/>
-      <File Name="../src/graphics/ui_bg_renderer.cpp"/>
-      <File Name="../src/graphics/ui_bd_renderer.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="image"/>
-    <VirtualDirectory Name="input">
-      <File Name="../src/input/ui_kminput.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="resource">
-      <File Name="../src/resource/ui_bitmap_bank.cpp"/>
-      <File Name="../src/resource/ui_resource_id.cpp"/>
-      <File Name="../src/resource/ui_res_image.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="style">
-      <VirtualDirectory Name="native">
-        <File Name="../src/style/native/ui_win10_tree.cpp"/>
-        <File Name="../src/style/native/ui_win10_tab.cpp"/>
-        <File Name="../src/style/native/ui_win10_slider.cpp"/>
-        <File Name="../src/style/native/ui_win10_radio.cpp"/>
-        <File Name="../src/style/native/ui_win10_group.cpp"/>
-        <File Name="../src/style/native/ui_win10_cbx.cpp"/>
-        <File Name="../src/style/native/ui_win10_btn.cpp"/>
-        <File Name="../src/style/native/ui_win10_bg.cpp"/>
-        <File Name="../src/style/native/ui_win10_abtn.cpp"/>
-        <File Name="../src/style/native/ui_win10.cpp"/>
-      </VirtualDirectory>
-      <File Name="../src/style/ui_style_value.cpp"/>
-      <File Name="../src/style/ui_style_state.cpp"/>
-      <File Name="../src/style/ui_style.cpp"/>
-      <File Name="../src/style/ui_ssvalue_list.cpp"/>
-      <File Name="../src/style/ui_ssvalue.cpp"/>
-      <File Name="../src/style/ui_native_style.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="interface">
-      <File Name="../src/interface/ui_default_config.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="text">
-      <File Name="../src/text/ui_text_outline.cpp"/>
-      <File Name="../src/text/ui_text_layout.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="util">
-      <File Name="../src/util/ui_unicode.cpp"/>
-      <File Name="../src/util/ui_time_clipboard.cpp"/>
-      <File Name="../src/util/ui_named_control.cpp"/>
-      <File Name="../src/util/ui_function.cpp"/>
-      <File Name="../src/util/ui_double_click.cpp"/>
-      <File Name="../src/util/ui_color_sysem.cpp"/>
-      <File Name="../src/util/ui_animation.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="thread">
-      <File Name="../src/thread/ui_waiter.cpp"/>
-      <File Name="../src/thread/ui_rwlocker.cpp"/>
-      <File Name="../src/thread/ui_locker.cpp"/>
-      <File Name="../src/thread/ui_fiber.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="xul">
-      <File Name="../src/xul/SimpAX.cpp"/>
-      <File Name="../src/xul/SimpAC.cpp"/>
-    </VirtualDirectory>
-    <VirtualDirectory Name="cfunction">
+    <VirtualDirectory Name="cfunciton">
       <File Name="../src/cfunciton/view_unicode.c"/>
       <File Name="../src/cfunciton/view_atoi.c"/>
       <File Name="../src/cfunciton/view_atof.c"/>
@@ -223,6 +182,7 @@
       <File Name="../src/cfunciton/ui_easing.c"/>
       <File Name="../src/cfunciton/ui_colorsystem.c"/>
     </VirtualDirectory>
+    <File Name="main.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
@@ -235,14 +195,12 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="MinGW ( TDM-GCC-32 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-g;-O0;-std=c++14" C_Options="-g;-O0;-std=c99;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-g;-O0;-std=c++14;-Wall" C_Options="-g;-O0;-std=c99;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="../include/"/>
-        <IncludePath Value="C:\Program Files (x86)\mingw-w64\i686-8.1.0-posix-dwarf-rt_v6-rev0\mingw32\i686-w64-mingw32\include"/>
-        <Preprocessor Value="_WIN32_WINNT=_WIN32_WINNT_WIN8"/>
+        <Preprocessor Value="_WIN32_WINNT=0x0603"/>
         <Preprocessor Value="LUI_NO_ACCESSIBLE"/>
-        <Preprocessor Value="NDEBUG"/>
-        <Preprocessor Value="UI_NO_SSE2"/>
+        <Preprocessor Value="LUI_NO_DXGIDEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <Library Value="Gdi32"/>
@@ -259,7 +217,7 @@
         <Library Value="imm32"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -295,13 +253,12 @@
     <Configuration Name="Release" CompilerType="MinGW ( TDM-GCC-32 )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O2;-Wall" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
-        <IncludePath Value="../include/"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
-      <BuildSystem Name="Default"/>
+      <General OutputFile="$(ProjectName)" IntermediateDirectory="" Command="$(WorkspacePath)/build-$(WorkspaceConfiguration)/bin/$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(WorkspacePath)/build-$(WorkspaceConfiguration)/lib" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="CodeLite Make Generator"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>

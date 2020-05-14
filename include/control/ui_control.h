@@ -84,6 +84,8 @@ namespace LongUI {
     struct UIControlPrivate;
     // time capsule
     class CUITimeCapsule;
+    // becarefully
+    struct Unsafe;
     // control
     class alignas(CONTROL_ALIGNAS) UIControl :
         public CUIEventHost,
@@ -95,6 +97,8 @@ namespace LongUI {
         friend UIControlPrivate;
         // friend
         friend CUIControlControl;
+        // Unsafe
+        friend Unsafe;
     protected:
         // unique classes
         using UniqueClasses = POD::Vector<const char*>;

@@ -15,6 +15,7 @@
 #include <control/ui_label.h>
 #include <control/ui_boxlayout.h>
 // Private
+#include <core/ui_unsafe.h>
 #include "../private/ui_private_control.h"
 
 // ui namespace
@@ -244,11 +245,11 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
     {
     case BKDR_LABEL:
         // 传递给子控件
-        UIControlPrivate::AddAttribute(m_private->label, BKDR_VALUE, value);
+        Unsafe::AddAttrUninited(m_private->label, BKDR_VALUE, value);
         break;
     case BKDR_SRC:
         // src  : 图片名
-        UIControlPrivate::AddAttribute(m_private->image, BKDR_SRC, value);
+        Unsafe::AddAttrUninited(m_private->image, BKDR_SRC, value);
         break;
     case BKDR_NAME:
         // name :  组名
