@@ -52,7 +52,7 @@ namespace Demo {
     /// <returns></returns>
     void CustomConfig::DefaultFontArg(FontArg& arg) noexcept {
         arg.family = u8"KaiTi";
-        arg.size = 20.f;
+        arg.size = 16.f;
     }
     /// <summary>
     /// Registers the control.
@@ -126,12 +126,13 @@ namespace Demo {
         }
     }
     /// <summary>
-    /// Called when [error].
+    /// Called when [error information lost].
     /// </summary>
-    /// <param name="info">The information.</param>
+    /// <param name="hr">The hr.</param>
+    /// <param name="occ">The occ.</param>
     /// <returns></returns>
-    void CustomConfig::OnError(ErrorInfo info) noexcept {
-        assert(!"NOT IMPL");
+    void CustomConfig::OnErrorInfoLost(Result hr, ErrorOccasion occ) noexcept {
+        //assert(!"NOT IMPL");
+        //std::exit(-1);
     }
-
 }

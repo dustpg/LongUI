@@ -26,8 +26,8 @@ namespace Demo {
         auto ChooseAdapter(const GraphicsAdapterDesc adapters[], const uint32_t length) noexcept->uint32_t override;
         // load data from url on file not found
         void LoadDataFromUrl(U8View url_in_utf8, const CUIString& url_in_utf16, POD::Vector<uint8_t>& buffer) noexcept override;
-        // show the error string
-        void OnError(ErrorInfo info) noexcept override;
+        // on info lost
+        void OnErrorInfoLost(Result, ErrorOccasion occ) noexcept;
     public:
         // set adapter index
         void SetAdapterIndex(uint32_t i) noexcept { m_iAdapterId = i; }

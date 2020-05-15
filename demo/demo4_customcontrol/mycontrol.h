@@ -43,6 +43,8 @@ namespace Demo {
         ID2D1SolidColorBrush *  m_pBrush = nullptr;
         // color
         ColorF                  m_color = {};
+        // color
+        ColorF                  m_mc = {};
         // width
         float                   m_width = 0.5f;
         // color changed

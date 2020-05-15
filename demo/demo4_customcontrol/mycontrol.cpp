@@ -93,6 +93,9 @@ namespace Demo {
         case "value"_bkdr:
             ColorF::FromRGBA_RT(luiref m_color, { view.ColorRGBA32() });
             break;
+        case "mc"_bkdr:
+            ColorF::FromRGBA_RT(luiref m_mc, { view.ColorRGBA32() });
+            break;
         default:
             // others: 
             return Super::add_attribute(attr, view);
