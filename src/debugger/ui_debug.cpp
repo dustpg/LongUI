@@ -518,7 +518,7 @@ auto LongUI::CUIDebug::operator<<(const DDFFloat4 f) noexcept ->CUIDebug& {
 /// <returns></returns>
 auto LongUI::CUIDebug::operator<<(const void* ctrl) noexcept ->CUIDebug& {
     CUIString str;
-    str.format(u"[0x%p] ", ctrl);
+    str.format(u"[0x%p]", ctrl);
     this->OutputNoFlush(m_lastLevel, str.c_str());
     return *this;
 }

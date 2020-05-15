@@ -52,12 +52,21 @@ namespace LongUI {
     // impl
     namespace impl {
         template<size_t> struct textbox_helper;
+#ifndef NDEBUG
         template<> struct textbox_helper<4> {
             enum { uitextbox_private = 592 };
         };
         template<> struct textbox_helper<8> {
             enum { uitextbox_private = 664 };
         };
+#else
+        template<> struct textbox_helper<4> {
+            enum { uitextbox_private = 336 };
+        };
+        template<> struct textbox_helper<8> {
+            enum { uitextbox_private = 408 };
+        };
+#endif
     }
     // textbox
     class UITextBox : public UIControl, 
@@ -79,6 +88,28 @@ namespace LongUI {
         static constexpr auto _onInput() noexcept { return GuiEvent::Event_OnInput; }
         // selection changed
         //static inline constexpr auto _selectionChanged() noexcept { return GuiEvent::Event_Select; }
+    public:
+        // Gui OP - SelectAll
+        bool GuiSelectAll() noexcept;
+        // Gui OP - Undo
+        bool GuiUndo() noexcept;
+        // Gui OP - Redo
+        bool GuiRedo() noexcept;
+        // Gui OP - Copy to Clipboard
+        bool GuiCopyCut(bool cut) noexcept;
+        // Gui OP - Paste from Clipboard
+        bool GuiPaste() noexcept;
+    public:
+        // can do 'Copy'
+        bool CanCopy() const noexcept;
+        // can do 'Cut'
+        bool CanCut() const noexcept;
+#if 0
+        // can do 'Redo'
+        bool CanRedo() const noexcept;
+        // can do 'Redo'
+        bool CanUndo() const noexcept;
+#endif
     public:
         // class meta
         static const  MetaControl   s_meta;

@@ -227,8 +227,9 @@ void LongUI::CUIManager::OneFrame() noexcept {
     // 渲染所有窗口
     this_()->RenderLock();
     const auto hr = this_()->render_windows(this_()->begin(), this_()->end());
+    // 渲染完毕, 解除渲染锁
     this_()->RenderUnlock();
-    // 时间胶囊S2
+    // 时间胶囊S2阶段 - 等待时间胶囊执行完毕
     if (has_tc) this_()->call_time_capsule_s2();
 #ifndef NDEBUG
     // 记录渲染时间
@@ -250,9 +251,10 @@ void LongUI::CUIManager::OneFrame() noexcept {
                 << endl;
         }
     }
+
     // 计算FPS
     const auto time = DbgMgr().PushDelta(
-        this_()->m_fDeltaTime, 
+        this_()->m_fDeltaTime,
         this_()->m_dwDisplayFrequency
     );
     if (time > 0.f) {
@@ -263,6 +265,7 @@ void LongUI::CUIManager::OneFrame() noexcept {
             "delta: %.2fms -- %2.2f fps",
             time * 1000.f, 1.f / time
         );
+        CUIDataAutoLocker locker;
         if (this_()->flag & ConfigureFlag::Flag_DbgDebugWindow)
             ::ui_dbg_set_window_title(this_()->m_pDebugWindow, buffer);
         else
@@ -438,7 +441,7 @@ void LongUI::CUIManager::try_recreate() noexcept {
     // 重建资源
     last_error(this_()->CUIResMgr::recreate_resource());
     // 重建窗口
-    last_error(this_()->CUIWndMgr::recreate_windows(this_()->begin(), this_()->end()));
+    last_error(this_()->CUIWndMgr::recreate_windows());
     // 渲染锁
     this_()->RenderUnlock();
     // 调试信息
@@ -843,13 +846,20 @@ LongUI::CUIManager::~CUIManager() noexcept {
 /// <returns></returns>
 void LongUI::CUIManager::Uninitialize() noexcept {
     // 强制退出
-    UIManager.m_uiTimeCapsuleWaiter.Broadcast();
-    // 结束掉渲染线程
-    UIManager.config->EndRenderThread();
+    this_()->m_uiTimeCapsuleWaiter.Broadcast();
     // 关闭所有窗口
-    UIManager.delete_all_window();
+    this_()->delete_all_window();
+    // 取消窗口
+    ::DestroyWindow(m_hToolWnd); m_hToolWnd = nullptr;
+#ifndef NDEBUG
+    this_()->DataLock();
+    m_pDebugWindow = nullptr;
+    this_()->DataUnlock();
+#endif
+    // 结束掉渲染线程
+    this_()->config->EndRenderThread();
     // 手动调用析构函数
-    UIManager.~CUIManager();
+    this_()->~CUIManager();
     // 反初始化COM
     ::CoUninitialize();
     // 反初始化鼠标光标

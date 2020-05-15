@@ -41,7 +41,7 @@ namespace LongUI { auto get_frame_id() noexcept->uint32_t; }
 #define _lui_inter_debug LongUI::CUIDebug::GetInstance()
 #ifndef NDEBUG
 #define _lui_inter_extra << LongUI::Interfmt("<%4dL@%s>: ", int(__LINE__), __FUNCTION__)
-#define longui_debug_hr(hr, msg) if (!hr) LUIDebug(Error) << msg << LongUI::endl
+#define longui_debug_hr(hr, msg) if (!hr) LUIDebug(Error) << msg << hr << LongUI::endl
 #else
 #define _lui_inter_extra
 #define longui_debug_hr(hr, msg) (void)0

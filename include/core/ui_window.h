@@ -245,6 +245,8 @@ namespace LongUI {
         auto GetParent() const noexcept { return m_pParent; }
         // get window handle
         HWND GetHwnd() const { return m_hwnd; }
+        // set native icon data [MUST CALL AFTER SHOUWINDOW]
+        void SetNativeIconData(const wchar_t*, uintptr_t big=0) noexcept;
         // is top level window
         //bool IsTopLevel() const noexcept { return !m_pParent; }
         // is inline window
@@ -308,6 +310,8 @@ namespace LongUI {
         bool                m_bInExec : 1;
         // has script
         bool                m_bHasScript : 1;
+        // big icon
+        //bool                m_bBigIcon : 1;
         // state: under "minsize changed" list
         bool                m_bMinsizeList = false;
     protected:

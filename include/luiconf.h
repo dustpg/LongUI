@@ -112,5 +112,7 @@ namespace LongUI {
         static constexpr const wchar_t* WindowClassNameN = L"Windows.UI.LongUI.DirectWindow";
         // default popup window class name zhuangbilty
         static constexpr const wchar_t* WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
+        // default window icon name
+        static constexpr const wchar_t* WindowIconName = nullptr; // (const wchar_t*)1
     };
 }

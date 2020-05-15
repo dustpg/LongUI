@@ -37,6 +37,8 @@ namespace LongUI {
         void release_cached_bitmap() noexcept;
         // get doc object
         auto&document() noexcept { return reinterpret_cast<doc_t&>(docbuf); }
+        // get doc object
+        auto&document() const noexcept { return reinterpret_cast<const doc_t&>(docbuf); }
         // create doc
         void create_doc(UITextBox& box) noexcept;
         // release doc
@@ -539,32 +541,136 @@ bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
     case CUIInputKM::KB_X:
     case CUIInputKM::KB_C:
         // X, C 键
-        if (ctrl) {
-            // 获取选中文本
-            CUIString text;
-            const auto range = doc.GetSelectionRange();
-            doc.GenText(&text, range.begin, range.end);
-            // 无选择或其他原因
-            if (text.empty()) break;
-            // 复制进去
-            LongUI::CopyTextToClipboard(text.view());
-            // ctrl-x 是剪切
-            if (key == CUIInputKM::KB_X) doc.GuiDelete(false);
-        }
+        if (ctrl) error_code = this->GuiCopyCut(key == CUIInputKM::KB_X);
         break;
     case CUIInputKM::KB_V:
         // V 键
-        if (ctrl) {
-            CUIString text;
-            LongUI::PasteTextToClipboard(text);
-            static_assert(sizeof(*text.data()) == sizeof(char16_t), "");
-            const auto ptr = reinterpret_cast<const char16_t*>(text.c_str());
-            error_code = doc.GuiText({ ptr,  ptr + text.length() });
-        }
+        if (ctrl) error_code = this->GuiPaste();
         break;
     }
     return error_code;
 }
+
+/// <summary>
+/// GUIs the select all.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::GuiSelectAll() noexcept {
+    auto& doc = pimpl()->document();
+    return doc.GuiSelectAll();
+}
+
+/// <summary>
+/// GUIs the undo.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::GuiUndo() noexcept {
+    auto& doc = pimpl()->document();
+    return doc.GuiUndo();
+}
+
+
+/// <summary>
+/// GUIs the redo.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::GuiRedo() noexcept {
+    auto& doc = pimpl()->document();
+    return doc.GuiRedo();
+}
+
+PCN_NOINLINE
+/// <summary>
+/// GUIs the copy cut.
+/// </summary>
+/// <param name="cut">if set to <c>true</c> [cut].</param>
+/// <returns></returns>
+bool LongUI::UITextBox::GuiCopyCut(bool cut) noexcept {
+    auto& doc = pimpl()->document();
+    // 获取选中文本
+    CUIString text;
+    const auto range = doc.GetSelectionRange();
+    doc.GenText(&text, range.begin, range.end);
+    // 无选择或其他原因
+    if (text.empty()) return false;
+    // 复制进去
+    LongUI::CopyTextToClipboard(text.view());
+    bool code = true;
+    // ctrl-x 是剪切
+    if (cut) code = doc.GuiDelete(false);
+    return code;
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// GUIs the paste.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::GuiPaste() noexcept {
+    auto& doc = pimpl()->document();
+    CUIString text;
+    LongUI::PasteTextToClipboard(text);
+    if (text.empty()) return false;
+    static_assert(sizeof(*text.data()) == sizeof(char16_t), "");
+    const auto ptr = reinterpret_cast<const char16_t*>(text.c_str());
+    return doc.GuiText({ ptr,  ptr + text.length() });
+}
+
+// longui namespace
+namespace LongUI {
+    // cmp
+    inline auto Cmp(RichED::DocPoint dp) noexcept {
+        uint64_t u64;
+        u64 = (uint64_t(dp.line) << 32) | uint64_t(dp.pos);
+        return u64;
+    }
+}
+
+/// <summary>
+/// Determines whether this instance can copy.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::CanCopy() const noexcept {
+    auto& doc = pimpl()->document();
+    const auto range = doc.GetSelectionRange();
+    // 拥有选择区既可复制
+    return Cmp(range.begin) != Cmp(range.end);
+}
+
+
+/// <summary>
+/// Determines whether this instance can cut.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::CanCut() const noexcept {
+    const bool op1 = !(m_flag & RichED::Flag_GuiReadOnly);
+    auto& doc = pimpl()->document();
+    const auto range = doc.GetSelectionRange();
+    // 拥有选择区既可复制并且不只读
+    const bool op2 = Cmp(range.begin) != Cmp(range.end);
+    return op1 && op2;
+}
+
+#if 0
+/// <summary>
+/// Determines whether this instance can redo.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::CanRedo() const noexcept {
+    auto& doc = pimpl()->document();
+    return false;
+}
+
+/// <summary>
+/// Determines whether this instance can undo.
+/// </summary>
+/// <returns></returns>
+bool LongUI::UITextBox::CanUndo() const noexcept {
+    auto& doc = pimpl()->document();
+    return false;
+}
+#endif
 
 /// <summary>
 /// Renders this instance.

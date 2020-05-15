@@ -12,8 +12,9 @@
 bool LongUI::CUIInputKM::GetKeyState(KB key) noexcept {
 #ifdef LUI_RAWINPUT
 
-#endif
+#else
     return (::GetKeyState(key) & 0x80) != 0;
+#endif
 }
 #ifdef LUI_RAWINPUT
 

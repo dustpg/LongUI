@@ -174,6 +174,8 @@ void LongUI::CUIWindow::Delete() noexcept {
 }
 
 
+
+
 // ui namespace
 namespace LongUI {
     // dirty rect
@@ -189,8 +191,7 @@ namespace LongUI {
     // make style sheet
     auto MakeStyleSheetFromFile(U8View view, SSPtr old) noexcept->SSPtr;
 #endif
-    // private msg
-    struct PrivateMsg;
+
     /// <summary>
     /// Gets the size of the client.
     /// </summary>
@@ -226,12 +227,13 @@ namespace LongUI {
         // clean up
         //void cleanup() noexcept;
     public:
-        // empty render
-        void EmptyRender() noexcept;
-        // delete window
-        static void DeleteWindow(HWND hwnd) noexcept;
+        // destroy window only
+        static void Destroy(HWND hwnd, bool acc) noexcept;
         // draw caret
         static void DrawCaret() noexcept {};
+    public:
+        // empty render
+        void EmptyRender() noexcept;
         // reelase device data
         void ReleaseDeviceData() noexcept { this->release_data();  }
         // ctor
@@ -260,7 +262,7 @@ namespace LongUI {
         // mouse event[thread safe]
         void DoMouseEventTs(const MouseEventArg& args) noexcept;
         // do msg
-        auto DoMsg(const PrivateMsg&) noexcept ->intptr_t;
+        auto DoMsg(HWND, UINT, WPARAM, LPARAM) noexcept ->intptr_t;
         // when create
         void OnCreate(HWND) noexcept {}
         // when resize[thread safe]
@@ -307,7 +309,7 @@ namespace LongUI {
             const auto ptr = reinterpret_cast<char*>(this);
             const auto offset = offsetof(CUIWindow, m_private);
             const auto window = reinterpret_cast<CUIWindow*>(ptr - offset);
-            assert(this && window->pimpl() == this);
+            assert(this && window->pimpl() == (void*)this);
             return &window->RefViewport();
         }
     public:
@@ -417,7 +419,32 @@ namespace LongUI {
         void resize_window_buffer() noexcept;
         // forece resize
         void force_resize_window_buffer() const noexcept {
-            const_cast<Private*>(this)->resize_window_buffer(); }
+            const_cast<Private*>(this)->resize_window_buffer(); 
+        }
+    public:
+        // 处理函数
+        static LRESULT WINAPI WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) noexcept {
+            // 创建窗口时设置指针
+            if (message == WM_CREATE) {
+                // 获取指针
+                auto* window = reinterpret_cast<CUIWindow::Private*>(
+                    (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
+                    );
+                // 设置窗口指针
+                ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
+                // TODO: 创建完毕
+                window->OnCreate(hwnd);
+                // 返回1
+                return 1;
+            }
+            // 其他情况则获取储存的指针
+            else {
+                const auto lptr = ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
+                const auto window = reinterpret_cast<CUIWindow::Private*>(lptr);
+                if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
+                return window->DoMsg(hwnd, message, wParam, lParam );
+            }
+        };
     };
     /// <summary>
     /// Privates the window.
@@ -458,6 +485,7 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     m_inDtor = false;
     m_bInExec = false;
     m_bHasScript = false;
+    //m_bBigIcon = false;
     //m_bCtorFaild = false;
     // XXX: 错误处理
     //if (!m_private) { m_bCtorFaild = true; return;}
@@ -581,15 +609,15 @@ void LongUI::CUIWindow::remove_child(CUIWindow& child) noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIWindow::~CUIWindow() noexcept {
+    // 需要即时修改节点信息, 只能上超级锁了
+    UIManager.DataLock();
+    UIManager.RenderLock();
 #ifdef LUI_ACCESSIBLE
     if (m_pAccessible) {
         LongUI::FinalizeAccessible(*m_pAccessible);
         m_pAccessible = nullptr;
     }
 #endif
-    // 需要即时修改节点信息, 只能上超级锁了
-    UIManager.DataLock();
-    UIManager.RenderLock();
     // 有脚本
     if (m_bHasScript) UIManager.FinalizeScript(*this);
     // 析构中
@@ -618,7 +646,8 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         // 管理器层移除引用
         //UIManager.remove_window(*this);
         // 摧毁窗口
-        if (m_hwnd) Private::DeleteWindow(m_hwnd);
+        if (m_hwnd) Private::Destroy(m_hwnd, pimpl()->accessibility);
+        //m_hwnd = nullptr;
         // 删除数据
         pimpl()->~Private();
     }
@@ -641,19 +670,15 @@ void LongUI::CUIWindow::BeforeRender() noexcept {
 /// <returns></returns>
 auto LongUI::CUIWindow::Render() noexcept -> Result {
     // 可见可渲染
-    if (this->IsVisible()) {
+    if (this->IsVisible())
         return pimpl()->Render(this->RefViewport());
-    }
     // 不可见增加
-    else {
-        static_assert(WINDOW_AUTOSLEEP_TIME > 10, "must large than 10");
-        auto& count = pimpl()->auto_sleep_count;
-        if (count) {
-            count += UIManager.GetDeltaTimeMs();
-            if (count > WINDOW_AUTOSLEEP_TIME) {
-                this->IntoSleepImmediately();
-                count = 0;
-            }
+    static_assert(WINDOW_AUTOSLEEP_TIME > 10, "must large than 10");
+    if (auto& count = pimpl()->auto_sleep_count) {
+        count += UIManager.GetDeltaTimeMs();
+        if (count > WINDOW_AUTOSLEEP_TIME) {
+            this->IntoSleepImmediately();
+            count = 0;
         }
     }
     return{ Result::RS_OK };
@@ -1262,7 +1287,7 @@ void LongUI::CUIWindow::WakeUp() noexcept {
     // XXX: 0. 尝试唤醒父窗口
     if (m_pParent) m_pParent->WakeUp();
     // 1. 创建窗口
-    const auto pwnd = m_pParent ? m_pParent->GetHwnd() : nullptr;
+    const auto pwnd = /*m_pParent ? m_pParent->GetHwnd() :*/ nullptr;
     m_hwnd = pimpl()->Init(pwnd, this->config);
     // 1.5 检测DPI支持
     this->HiDpiSupport();
@@ -1276,11 +1301,16 @@ void LongUI::CUIWindow::WakeUp() noexcept {
 /// </summary>
 void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
     if (this->IsInSleepMode()) return;
-    assert(this->begin() == this->end());
+#ifndef NDEBUG
+    LUIDebug(Hint) 
+        << this << this->RefViewport()
+        << "into sleep mode" << endl;
+#endif // !NDEBUG
+    //assert(this->begin() == this->end());
+
     // 释放资源
     pimpl()->ReleaseDeviceData();
-    // 摧毁窗口
-    Private::DeleteWindow(m_hwnd);
+    Private::Destroy(m_hwnd, pimpl()->accessibility);
     m_hwnd = nullptr;
 }
 
@@ -1289,9 +1319,13 @@ void LongUI::CUIWindow::IntoSleepImmediately() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::TrySleep() noexcept {
+    // 已经进入就算了
     if (this->IsInSleepMode()) return;
+    // 必须是自动休眠
     if (!this->IsAutoSleep()) return;
-    if (this->begin() == this->end()) return;
+    // XXX: 存在子窗口就算了?
+    //if (this->begin() != this->end()) return;
+    // 增加1毫秒(+1ms)长度表示进入睡眠计时
     pimpl()->auto_sleep_count = 1;
 }
 
@@ -1759,6 +1793,7 @@ namespace LongUI { namespace detail {
     // delete later
     enum msg : uint32_t {
         msg_custom = WM_USER + 10,
+        msg_post_destroy,
         msg_post_set_title,
     };
 }}
@@ -1776,22 +1811,23 @@ void LongUI::CUIWindow::SetTitleName(CUIString&& name) noexcept {
 }
 
 /// <summary>
-/// Deletes the window.
+/// Destroys the window.
 /// </summary>
 /// <param name="hwnd">The HWND.</param>
+/// <param name="accessibility">if set to <c>true</c> [accessibility].</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Private::DeleteWindow(HWND hwnd) noexcept {
-#ifdef LUI_ACCESSIBLE
-    const auto lptr = ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-    const auto window = reinterpret_cast<CUIWindow::Private*>(lptr);
-    if (window->accessibility) {
-        ::UiaReturnRawElementProvider(hwnd, 0, 0, nullptr);
-    }
+void LongUI::CUIWindow::Private::Destroy(HWND hwnd, bool accessibility) noexcept {
+    //LUIDebug(Hint) LUI_FRAMEID << hwnd << endl;
+    // 尝试直接摧毁
+    if (::DestroyWindow(hwnd)) return;
+#ifndef NDEBUG
+    const auto laste = ::GetLastError();
+    assert(laste == ERROR_ACCESS_DENIED && "check the code");
 #endif
-    // 设置成1让其可以通过 if
-    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(0));
-    const auto code = ::PostMessageW(hwnd, WM_DESTROY, 0, 0);
-    //const auto code = ::PostMessageW(hwnd, detail::msg_post_delete_window, 0, 0);
+    // 不在消息线程就用 PostMessage
+    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(1));
+    const auto code = ::PostMessageW(hwnd, detail::msg_post_destroy, 0, 0);
+    const auto ec = ::GetLastError();
     assert(code && "PostMessage failed");
 }
 
@@ -1853,7 +1889,9 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
         uint32_t ex_flag = 0;
         if (this->is_direct_composition()) ex_flag |= WS_EX_NOREDIRECTIONBITMAP;
         //if (config & CUIWindow::Config_Popup) ex_flag |= WS_EX_TOPMOST | WS_EX_NOACTIVATE;
-        if (config & CUIWindow::Config_ToolWindow) ex_flag |= WS_EX_TOOLWINDOW;
+        // WS_EX_TOOLWINDOW 不会显示在任务栏
+        if (config & (CUIWindow::Config_ToolWindow | CUIWindow::Config_Popup))
+            ex_flag |= WS_EX_TOOLWINDOW;
         // 创建窗口
         hwnd = ::CreateWindowExW(
             //WS_EX_NOREDIRECTIONBITMAP | WS_EX_LAYERED | WS_EX_TOPMOST | WS_EX_TRANSPARENT,
@@ -1894,72 +1932,48 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
 
 
 /// <summary>
-/// private msg
-/// </summary>
-struct LongUI::PrivateMsg { HWND hwnd; UINT message; WPARAM wParam; LPARAM lParam; };
-
-
-/// <summary>
 /// Registers the window class.
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIWindow::Private::RegisterWindowClass() noexcept {
-    const auto ins = ::GetModuleHandleW(nullptr);
     WNDCLASSEXW wcex;
-    auto code = ::GetClassInfoExW(ins, Attribute::WindowClassNameN, &wcex);
+    const auto ins = ::GetModuleHandleW(nullptr);
+    // 已经注册过了
+    if (::GetClassInfoExW(ins, Attribute::WindowClassNameN, &wcex)) return;
+    // 注册一般窗口类
+    wcex = { 0 };
+    wcex.cbSize = sizeof(WNDCLASSEXW);
+    wcex.style = 0;
+    wcex.lpfnWndProc = Private::WndProc;
+    wcex.cbClsExtra = 0;
+    wcex.cbWndExtra = sizeof(void*);
+    wcex.hInstance = ins;
+    wcex.hCursor = nullptr;
+    wcex.hbrBackground = nullptr;
+    wcex.lpszMenuName = nullptr;
+    wcex.lpszClassName = Attribute::WindowClassNameN;
+    wcex.hIcon = ::LoadIconW(ins, Attribute::WindowIconName);
+    ::RegisterClassExW(&wcex);
+    // 注册弹出窗口类
+    wcex.style = CS_DROPSHADOW;
+    wcex.lpszClassName = Attribute::WindowClassNameP;
+    ::RegisterClassExW(&wcex);
+}
 
-    // 处理函数帮助器
-    struct WndProcHelper2 {
-        // 处理函数
-        static LRESULT WINAPI CALL(
-            HWND hwnd,
-            UINT message,
-            WPARAM wParam,
-            LPARAM lParam
-        ) noexcept {
-            // 创建窗口时设置指针
-            if (message == WM_CREATE) {
-                // 获取指针
-                auto* window = reinterpret_cast<CUIWindow::Private*>(
-                    (reinterpret_cast<LPCREATESTRUCT>(lParam))->lpCreateParams
-                    );
-                // 设置窗口指针
-                ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(window));
-                // TODO: 创建完毕
-                window->OnCreate(hwnd);
-                // 返回1
-                return 1;
-            }
-            // 其他情况则获取储存的指针
-            else {
-                const PrivateMsg msg{ hwnd, message, wParam, lParam };
-                const auto lptr = ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
-                const auto window = reinterpret_cast<CUIWindow::Private*>(lptr);
-                if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
-                return window->DoMsg(msg);
-            }
-        };
-    };
-    if (!code) {
-        // 注册一般窗口类
-        wcex = { 0 };
-        wcex.cbSize = sizeof(WNDCLASSEXW);
-        wcex.style = 0;
-        wcex.lpfnWndProc = WndProcHelper2::CALL;
-        wcex.cbClsExtra = 0;
-        wcex.cbWndExtra = sizeof(void*);
-        wcex.hInstance = ins;
-        wcex.hCursor = nullptr;
-        wcex.hbrBackground = nullptr;
-        wcex.lpszMenuName = nullptr;
-        wcex.lpszClassName = Attribute::WindowClassNameN;
-        wcex.hIcon = nullptr; // ::LoadIconW(ins, MAKEINTRESOURCEW(101));
-        ::RegisterClassExW(&wcex);
-        // 注册弹出窗口类
-        wcex.style = CS_DROPSHADOW;
-        wcex.lpszClassName = Attribute::WindowClassNameP;
-        ::RegisterClassExW(&wcex);
-    }
+
+/// <summary>
+/// Sets the native icon data.
+/// </summary>
+/// <param name="icon">The icon.</param>
+/// <param name="big">The big.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::SetNativeIconData(
+    const wchar_t* icon, uintptr_t big) noexcept {
+    assert(this->IsAutoSleep() == false && m_hwnd);
+    const auto ins = ::GetModuleHandleW(nullptr);
+    const auto lp = reinterpret_cast<LPARAM>(::LoadIconW(ins, icon));
+    //::SendMessageW(m_hwnd, WM_SETICON, big, lp);
+    ::PostMessageW(m_hwnd, WM_SETICON, big, lp);
 }
 
 // ui namespace
@@ -2176,15 +2190,13 @@ volatile UINT g_dbgLastEventId = 0;
 /// </summary>
 /// <param name="">The .</param>
 /// <returns></returns>
-auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intptr_t {
+auto LongUI::CUIWindow::Private::DoMsg(
+    const HWND hwnd, const UINT message, 
+    const WPARAM wParam, const LPARAM lParam) noexcept -> intptr_t {
 #ifndef NDEBUG
-    g_dbgLastEventId = prmsg.message;
+    g_dbgLastEventId = message;
 #endif
     MouseEventArg arg;
-    const auto hwnd = prmsg.hwnd;
-    const auto message = prmsg.message;
-    const auto lParam = prmsg.lParam;
-    const auto wParam = prmsg.wParam;
     // 鼠标离开
     if (message == WM_MOUSELEAVE) {
         // BUG: Alt + 快捷键也会触发?
@@ -2266,7 +2278,12 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
     else
         switch (message)
         {
+            BOOL rc;
             PAINTSTRUCT ps;
+        case detail::msg_post_destroy:
+            rc = ::DestroyWindow(hwnd);
+            assert(rc && "DestroyWindow failed");
+            return 0;
         case detail::msg_post_set_title:
             ::SetWindowTextW(hwnd, detail::sys(this->titlename.c_str()));
             return 0;
@@ -2277,6 +2294,9 @@ auto LongUI::CUIWindow::Private::DoMsg(const PrivateMsg& prmsg) noexcept -> intp
             ::SetCursor(reinterpret_cast<HCURSOR>(this->cursor.GetHandle()));
             break;
 #ifdef LUI_ACCESSIBLE
+        case WM_DESTROY:
+            ::UiaReturnRawElementProvider(hwnd, 0, 0, nullptr);
+            break;
         case WM_GETOBJECT:
             if (static_cast<long>(lParam) == static_cast<long>(UiaRootObjectId)) {
                 const auto window = this->viewport()->GetWindow();
@@ -2988,8 +3008,7 @@ void LongUI::CUIWindow::Private::EmptyRender() noexcept {
 void ui_dbg_set_window_title(
     LongUI::CUIWindow* pwnd,
     const char * title) noexcept {
-    assert(pwnd && "bad action");
-    pwnd->SetTitleName(LongUI::CUIString::FromUtf8(title));
+    if (pwnd) pwnd->SetTitleName(LongUI::CUIString::FromUtf8(title));
 }
 
 void ui_dbg_set_window_title(

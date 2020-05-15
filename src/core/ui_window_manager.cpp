@@ -93,9 +93,14 @@ LongUI::CUIWndMgr::Private::Private() noexcept {
 /// </summary>
 /// <param name="vp">The vp.</param>
 /// <returns></returns>
-void LongUI::CUIWndMgr::AddGlobalSubView(UIViewport& sub) noexcept {
-    auto& subviews = wm().subviews;
+void LongUI::CUIWndMgr::MoveToGlobalSubView(UIViewport& sub) noexcept {
+    // 之前的数据
+    if (sub.prev) static_cast<UIViewport*>(sub.prev)->next = sub.next;
+    if (sub.next) static_cast<UIViewport*>(sub.next)->prev = sub.prev;
+    // 清除数据
+    sub.RefWindow().m_pParent = nullptr;
     // 连接前后节点
+    auto& subviews = wm().subviews;
     static_cast<UIViewport*>(subviews.prev)->next = &sub;
     sub.prev = static_cast<UIViewport*>(subviews.prev);
     sub.next = static_cast<UIControl*>(&subviews);
@@ -184,6 +189,7 @@ void LongUI::CUIWndMgr::delete_all_window() noexcept {
     // 删除还存在的窗口
     while (m_oHead.next != &m_oTail)
         m_oTail.prev->Delete();
+
 }
 
 /// <summary>
@@ -303,30 +309,32 @@ auto LongUI::CUIWndMgr::render_windows(const Iterator begini, const Iterator end
 /// <param name="begini">The begini.</param>
 /// <param name="endi">The endi.</param>
 /// <returns></returns>
-auto LongUI::CUIWndMgr::recreate_windows(const Iterator begini, const Iterator endi) noexcept -> Result {
+auto LongUI::CUIWndMgr::recreate_windows() noexcept -> Result {
     Result hr = { Result::RS_OK };
     // 第一次遍历
-    auto itr0 = begini;
-    while (itr0 != endi) {
-        // 释放所有窗口的设备相关数据
-        itr0->ReleaseDeviceData();
-        // 标记全刷新
-        itr0->MarkFullRendering();
-        // 递进
-        itr0++;
-    }
-    // 第二次遍历
-    auto itr1 = begini;
-    while (itr1 != endi) {
-        // 处理子节点
-        recreate_windows(itr1->begin(), itr1->end());
-        // 只有重建了
-        const auto code = itr1->RecreateDeviceData();
-        // 记录最新的错误数据
-        if (!code) hr = code;
-        // 递进
-        itr1++;
-    }
+    const auto traverse_1st = [](Private& primpl) noexcept {
+        for (auto& aw : primpl) {
+            const auto window = Private::cast(&aw);
+            assert(window);
+            // 释放所有窗口的设备相关数据
+            window->ReleaseDeviceData();
+            // 标记全刷新
+            window->MarkFullRendering();
+        }
+    };
+    // 第一次遍历
+    const auto traverse_2nd = [&](Private& primpl) noexcept {
+        for (auto& aw : primpl) {
+            const auto window = Private::cast(&aw);
+            assert(window);
+            // 记录最新的错误数据
+            const auto code = window->RecreateDeviceData();
+            if (!code) hr = code;
+        }
+    };
+    // 正式处理
+    traverse_1st(wm());
+    traverse_2nd(wm());
     return hr;
 }
 

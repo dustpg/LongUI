@@ -56,8 +56,8 @@ namespace LongUI {
         auto GetMainDpiX() const noexcept { return m_uMainDpiX; }
         // get main dpi y
         auto GetMainDpiY() const noexcept { return m_uMainDpiY; }
-        // add subviewport to global
-        void AddGlobalSubView(UIViewport&) noexcept;
+        // move to global subviewport 
+        void MoveToGlobalSubView(UIViewport&) noexcept;
         // find subviewport with unique string
         auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
         // mark window minsize changed, donothing if null
@@ -81,8 +81,8 @@ namespace LongUI {
         void refresh_window_world() noexcept;
         // refresh all given windows(and children) minsize
         void refresh_window_minsize() noexcept;
-        // recreate_device all given windows(and children)
-        static auto recreate_windows(Iterator, Iterator) noexcept->Result;
+        // recreate_device all windows
+        auto recreate_windows() noexcept->Result;
         // before all given windows(and children) render
         static void before_render_windows(Iterator, Iterator) noexcept;
         // render all given windows(and children)

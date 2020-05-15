@@ -68,7 +68,8 @@ namespace LongUI {
 /// </summary>
 /// <returns></returns>
 LongUI::UIListBox::~UIListBox() noexcept {
-
+    // 需要提前释放
+    m_state.destructing = true;
 }
 
 
