@@ -556,6 +556,7 @@ bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiSelectAll() noexcept {
+    this->NeedUpdate();
     auto& doc = pimpl()->document();
     return doc.GuiSelectAll();
 }
@@ -565,6 +566,7 @@ bool LongUI::UITextBox::GuiSelectAll() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiUndo() noexcept {
+    this->NeedUpdate();
     auto& doc = pimpl()->document();
     return doc.GuiUndo();
 }
@@ -575,6 +577,7 @@ bool LongUI::UITextBox::GuiUndo() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiRedo() noexcept {
+    this->NeedUpdate();
     auto& doc = pimpl()->document();
     return doc.GuiRedo();
 }
@@ -586,6 +589,7 @@ PCN_NOINLINE
 /// <param name="cut">if set to <c>true</c> [cut].</param>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiCopyCut(bool cut) noexcept {
+    this->NeedUpdate();
     auto& doc = pimpl()->document();
     // 获取选中文本
     CUIString text;
@@ -608,6 +612,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiPaste() noexcept {
+    this->NeedUpdate();
     auto& doc = pimpl()->document();
     CUIString text;
     LongUI::PasteTextToClipboard(text);

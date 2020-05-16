@@ -8,6 +8,8 @@
 #include <core/ui_string.h>
 #include <style/ui_native_style.h>
 #include <event/ui_initialize_event.h>
+#include <input/ui_kminput.h>
+
 #include "../private/ui_private_control.h"
 
 #include <util/ui_little_math.h>
@@ -888,6 +890,12 @@ auto LongUI::UIControl::DoEvent(UIControl* sender, const EventArg& e) noexcept -
 /// <param name="e">The e.</param>
 /// <returns></returns>
 auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
+    switch (e.event)
+    {
+    case InputEvent::Event_KeyContext:
+        // XXX: 弹出位置
+        return LongUI::PopupWindowFromName(*this, m_pCtxCtrl, { 0 }, PopupType::Type_Context);
+    }
     return Event_Ignore;
 }
 
@@ -1103,7 +1111,6 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         }
         return LongUI::PopupWindowFromName(
             *this, m_pCtxCtrl, { e.px, e.py },  PopupType::Type_Context);
-
     }
     // 子控件有效则处理消息
     if (auto child = m_pHovered) {
@@ -1413,6 +1420,8 @@ void LongUI::UIControl::RemoveStyleClass(U8View pair) noexcept {
 /// <param name="disabled">if set to <c>true</c> [disabled].</param>
 /// <returns></returns>
 void LongUI::UIControl::SetDisabled(bool disabled) noexcept {
+    // 一样就算了
+    if (m_oStyle.state.disabled == disabled) return;
     // 标记自己和所有后代处于[enable]状态
     this->StartAnimation({ StyleStateType::Type_Disabled, disabled });
     // 禁止的话清除焦点状态

@@ -20,26 +20,26 @@ namespace LongUI {
     };
     // popup window from name
     auto PopupWindowFromName(
-        UIControl& ctrl,
+        UIControl& hoster,
         const char* name,
-        Point2F pos,
+        Point2F suggest,
         PopupType type
     ) noexcept ->EventAccept;
     // popup window from viewport
     void PopupWindowFromViewport(
-        UIControl& ctrl,
+        UIControl& hoster,
         UIViewport& viewport,
-        Point2F pos,
+        Point2F suggest,
         PopupType type
     ) noexcept;
     // popup window from tooltip text
     void PopupWindowFromTooltipText(
-        UIControl& ctrl,
+        UIControl& hoster,
         const char* text,
-        Point2F pos
+        Point2F suggest
     ) noexcept;
     // close tooltip window
     void PopupWindowCloseTooltip(
-        UIControl& ctrl
+        UIControl& hoster
     ) noexcept;
 }

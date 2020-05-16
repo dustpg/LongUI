@@ -10,8 +10,12 @@ namespace LongUI {
     enum class InputEvent : uint16_t {
         // event char
         Event_Char = 0,
-        // event key
+        // event key - down
         Event_KeyDown,
+        // event key - up
+        Event_KeyUp,
+        // event context menu
+        Event_KeyContext,
 #if 0
         // --------------------- Unified Input -----------------
         // event-left 

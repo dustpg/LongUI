@@ -117,6 +117,8 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         assert(m_pWindow);
         this->show_caret();
         m_pWindow->SetCaretColor(m_colorCaret);
+        // TODO: 选择区背景色
+        m_colorSelBg.a = 1.f;
         code = Event_Accept;
         break;
     case LongUI::GuiEvent::Event_OnBlur:
@@ -126,6 +128,8 @@ auto LongUI::UITextBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
         // 取消显示插入符号 [Blur 肯定有Window了]
         assert(m_pWindow);
         m_pWindow->HideCaret();
+        // TODO: 选择区背景色
+        m_colorSelBg.a = 0.5f;
         code = Event_Accept;
         break;
     }

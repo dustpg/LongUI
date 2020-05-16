@@ -263,12 +263,14 @@ namespace LongUI {
         void DoMouseEventTs(const MouseEventArg& args) noexcept;
         // do msg
         auto DoMsg(HWND, UINT, WPARAM, LPARAM) noexcept ->intptr_t;
+        // do msg
+        static auto DoMsgNull(HWND, UINT, WPARAM, LPARAM) noexcept->intptr_t;
         // when create
         void OnCreate(HWND) noexcept {}
         // when resize[thread safe]
         void OnResizeTs(Size2U) noexcept;
-        // when key down
-        void OnKeyDown(CUIInputKM::KB key) noexcept;
+        // when key down/ up
+        void OnKeyDownUp(InputEvent,CUIInputKM::KB key) noexcept;
         // when system key down
         void OnSystemKeyDown(CUIInputKM::KB key, uintptr_t lp) noexcept;
         // when input a utf-16 char
@@ -441,7 +443,7 @@ namespace LongUI {
             else {
                 const auto lptr = ::GetWindowLongPtrW(hwnd, GWLP_USERDATA);
                 const auto window = reinterpret_cast<CUIWindow::Private*>(lptr);
-                if (!window) return ::DefWindowProcW(hwnd, message, wParam, lParam);
+                if (!window) return DoMsgNull(hwnd, message, wParam, lParam);
                 return window->DoMsg(hwnd, message, wParam, lParam );
             }
         };
@@ -465,6 +467,7 @@ namespace LongUI {
         using ty = detail::private_window<sizeof(void*)>;
         static_assert(sizeof(Private) <= ty::size, "buffer not safe");
         static_assert(alignof(Private) <= ty::align, "buffer not safe");
+        // TODO: CONTROL MAP -> 朴素查找?
     }
 }
 
@@ -475,6 +478,7 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     m_pParent(parent), config(cfg) {
+    this->prev = this->next = nullptr;
     // 创建私有对象
     detail::ctor_dtor<Private>::create(&m_private);
     // 节点
@@ -1505,14 +1509,21 @@ auto LongUI::CUIWindow::GetNowPopup(PopupType type) const noexcept-> CUIWindow* 
 /// 该函数允许传递空this指针
 /// </remarks>
 void LongUI::CUIWindow::ClosePopupHighLevel() noexcept {
+#if 0
+    // 根据this信息
     auto winp = this;
+#else
+    // 根据Hoster信息
+    auto& view = this->RefViewport();
+    const auto hoster = view.GetHoster();
+    CUIWindow* winp = hoster ? hoster->GetWindow() : nullptr;
+#endif
+    // 正式处理
     while (winp && winp->config & Config_Popup) winp = winp->GetParent();
     if (winp) winp->ClosePopup();
 #ifndef NDEBUG
-    else {
-        LUIDebug(Error) << "winp -> null" << endl;
-    }
-#endif // !NDEBUG
+    else  LUIDebug(Error) << "winp -> null" << endl;
+#endif
 }
 
 /// <summary>
@@ -1612,8 +1623,7 @@ void LongUI::CUIWindow::Private::SetLayeredWindowSupport() noexcept {
 /// </summary>
 /// <param name="vk">The vk.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::Private::OnKeyDown(CUIInputKM::KB key) noexcept {
-    constexpr auto ekey = LongUI::InputEvent::Event_KeyDown;
+void LongUI::CUIWindow::Private::OnKeyDownUp(InputEvent ekey, CUIInputKM::KB key) noexcept {
     switch (key)
     {
     case CUIInputKM::KB_ESCAPE:
@@ -1825,7 +1835,7 @@ void LongUI::CUIWindow::Private::Destroy(HWND hwnd, bool accessibility) noexcept
     assert(laste == ERROR_ACCESS_DENIED && "check the code");
 #endif
     // 不在消息线程就用 PostMessage
-    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(1));
+    ::SetWindowLongPtrW(hwnd, GWLP_USERDATA, LONG_PTR(0));
     const auto code = ::PostMessageW(hwnd, detail::msg_post_destroy, 0, 0);
     const auto ec = ::GetLastError();
     assert(code && "PostMessage failed");
@@ -2281,6 +2291,9 @@ auto LongUI::CUIWindow::Private::DoMsg(
             BOOL rc;
             PAINTSTRUCT ps;
         case detail::msg_post_destroy:
+#ifndef NDEBUG
+            LUIDebug(Warning) << "msg_post_destroy but not null" << endl;
+#endif
             rc = ::DestroyWindow(hwnd);
             assert(rc && "DestroyWindow failed");
             return 0;
@@ -2360,10 +2373,20 @@ auto LongUI::CUIWindow::Private::DoMsg(
             this->OnResizeTs({ LOWORD(lParam), HIWORD(lParam) });
             return 0;
         case WM_KEYDOWN:
-        {
-            CUIDataAutoLocker locker;
-            this->OnKeyDown(static_cast<CUIInputKM::KB>(wParam));
-        }
+        case WM_KEYUP:
+            static_assert(WM_KEYUP == WM_KEYDOWN + 1, "bad code");
+            {
+                const uint32_t plus = message - WM_KEYDOWN;
+                const auto code = static_cast<uint32_t>(InputEvent::Event_KeyDown);
+                const auto inev = static_cast<InputEvent>(code + plus);
+                CUIDataAutoLocker locker;
+                this->OnKeyDownUp(inev, static_cast<CUIInputKM::KB>(wParam));
+            }
+            return 0;
+        case WM_CONTEXTMENU:
+            UIManager.DataLock();
+            this->OnKeyDownUp(InputEvent::Event_KeyContext, static_cast<CUIInputKM::KB>(0));
+            UIManager.DataUnlock();
             return 0;
         case WM_SYSKEYDOWN:
             // Alt+F4
@@ -2409,9 +2432,6 @@ auto LongUI::CUIWindow::Private::DoMsg(
         case WM_MOUSEACTIVATE:
             return ma_return_code;
         case WM_NCACTIVATE:
-            //LUIDebug(Log) << "WM_NCACTIVATE " << hwnd << LOWORD(wParam) << endl;
-            //LUIDebug(Log) << hwnd << '(' << ::GetParent(hwnd)
-            //    << ')' << LOWORD(wParam) << endl;
             // 非激活状态
             if (LOWORD(wParam) == WA_INACTIVE) {
                 // 释放弹出窗口
@@ -2423,20 +2443,46 @@ auto LongUI::CUIWindow::Private::DoMsg(
             }
             break;
         case WM_SYSCHAR:
-            if (wParam >= 'a' && wParam <= 'z') {
+            if (wParam >= 'a' && wParam <= 'z')
                 this->OnAccessKey(wParam - 'a');
-            }
             return 0;
         case WM_SYSCOMMAND:
             // 点击标题也要关闭弹出窗口
-            if (wParam == (SC_MOVE | HTCAPTION)) {
+            if (wParam == (SC_MOVE | HTCAPTION))
                 this->ClosePopup();
-            }
             break;
         case WM_DPICHANGED:
             this->OnDpiChanged(wParam, *reinterpret_cast<RectL*>(lParam));
             return 0;
         }
+    // 未处理消息
+    return ::DefWindowProcW(hwnd, message, wParam, lParam);
+}
+
+/// <summary>
+/// Does the MSG null.
+/// </summary>
+/// <param name="hwnd">The HWND.</param>
+/// <param name="message">The message.</param>
+/// <param name="wParam">The w parameter.</param>
+/// <param name="lParam">The l parameter.</param>
+/// <returns></returns>
+auto LongUI::CUIWindow::Private::DoMsgNull(
+    const HWND hwnd, const UINT message,
+    const WPARAM wParam, const LPARAM lParam) noexcept -> intptr_t {
+    switch (message)
+    {
+        BOOL rc;
+    case detail::msg_post_destroy:
+        rc = ::DestroyWindow(hwnd);
+        assert(rc && "DestroyWindow failed");
+        return 0;
+#ifdef LUI_ACCESSIBLE
+    case WM_DESTROY:
+        ::UiaReturnRawElementProvider(hwnd, 0, 0, nullptr);
+        break;
+#endif
+    }
     // 未处理消息
     return ::DefWindowProcW(hwnd, message, wParam, lParam);
 }
