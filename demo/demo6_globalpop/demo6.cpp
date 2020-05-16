@@ -1,6 +1,9 @@
 #include <core/ui_manager.h>
 #include <control/ui_label.h>
+#include <control/ui_textbox.h>
 #include <control/ui_viewport.h>
+#include <control/ui_menuitem.h>
+#include <cassert>
 
 const auto xul = u8R"xml(
 <?xml version="1.0"?>
@@ -27,17 +30,51 @@ const auto xul = u8R"xml(
 </window>
 )xml";
 
+class CTextboxContextMenu {
+    LongUI::UIMenuItem*     m_pUndo;
+    LongUI::UIMenuItem*     m_pCopy;
+    LongUI::UIMenuItem*     m_pCut;
+    LongUI::UIMenuItem*     m_pPaste;
+    LongUI::UIMenuItem*     m_pSelAll;
+public:
+    LongUI::UIViewport&     viewport;
+    CTextboxContextMenu(LongUI::UIViewport&) noexcept;
+    ~CTextboxContextMenu() noexcept = default;
+    void DoBeforePopup(LongUI::UITextBox&) noexcept;
+    template<typename T>
+    static auto EHelper(T call, LongUI::UIViewport& view) noexcept {
+        using LongUI::uisafe_cast;
+        if (const auto tbox = uisafe_cast<LongUI::UITextBox>(view.GetHoster())) {
+            return static_cast<LongUI::EventAccept>(call(*tbox));
+        }
+        return LongUI::Event_Ignore;
+    }
+};
+
+class CDemo6Viewport : public LongUI::UIViewport {
+    using Super = LongUI::UIViewport;
+    CTextboxContextMenu&        m_refTCMenu;
+public:
+    void SubViewportPopupBegin(UIViewport&, LongUI::PopupType) noexcept override;
+public:
+    CDemo6Viewport(CTextboxContextMenu& m) noexcept : m_refTCMenu(m) {}
+    ~CDemo6Viewport() noexcept override {};
+};
+
 LongUI::UIViewport* init_global_pupop() noexcept;
 
 
 int main() noexcept {
     if (UIManager.Initialize()) {
         const auto gpop = ::init_global_pupop();
-        LongUI::UIViewport viewport;
+        assert(gpop && "bad init");
+        CTextboxContextMenu menu(*gpop);
+        CDemo6Viewport viewport(menu);
         viewport.SetXul(xul);
 
         viewport.GetWindow()->ShowWindow();
         viewport.GetWindow()->Exec();
+
     }
     UIManager.Uninitialize();
     return 0;
@@ -51,13 +88,13 @@ LongUI::UIViewport* init_global_pupop() noexcept {
 <?xml version="1.0"?>
 <window>
     <popup id="global_context">
-        <menuitem label="撤销 - Undo"/>
+        <menuitem label="撤销 - Undo" id="undo"/>
         <menuseparator/>
-        <menuitem label="复制 - Copy"/>
-        <menuitem label="剪切 - Cut"/>
-        <menuitem label="粘贴 - Paste"/>
+        <menuitem label="复制 - Copy" id="copy"/>
+        <menuitem label="剪切 - Cut" id="cut"/>
+        <menuitem label="粘贴 - Paste" id="paste"/>
         <menuseparator/>
-        <menuitem label="全选 - Select All"/>
+        <menuitem label="全选 - Select All" id="selall"/>
     </popup>
 </window>
 )xml";
@@ -71,4 +108,71 @@ LongUI::UIViewport* init_global_pupop() noexcept {
         return viewport;
     }();
     return viewport;
+}
+
+
+
+CTextboxContextMenu::CTextboxContextMenu(LongUI::UIViewport& v) noexcept :
+    viewport(v)
+{
+    const auto find_item = [&v](const char* id) noexcept {
+        auto& wnd = v.RefWindow();
+        const auto ctrl = wnd.FindControl(id);
+        using LongUI::longui_cast;
+        return longui_cast<LongUI::UIMenuItem*>(ctrl);
+    };
+    m_pUndo = find_item("undo");
+    m_pCopy = find_item("copy");
+    m_pCut = find_item("cut");
+    m_pPaste = find_item("paste");
+    m_pSelAll = find_item("selall");
+    assert(m_pUndo && m_pCopy && m_pCut && m_pPaste && m_pSelAll);
+    // on - undo
+    m_pUndo->AddGuiEventListener(m_pUndo->_onCommand(), [&v](auto& c) noexcept {
+        return EHelper([](LongUI::UITextBox& tbox) noexcept {
+            return tbox.GuiUndo();
+        }, v);
+    });
+    // on - copy
+    m_pCopy->AddGuiEventListener(m_pUndo->_onCommand(), [&v](auto& c) noexcept {
+        return EHelper([](LongUI::UITextBox& tbox) noexcept {
+            return tbox.GuiCopyCut(false);
+        }, v);
+    });
+    // on - cut
+    m_pCut->AddGuiEventListener(m_pUndo->_onCommand(), [&v](auto& c) noexcept {
+        return EHelper([](LongUI::UITextBox& tbox) noexcept {
+            return tbox.GuiCopyCut(true);
+        }, v);
+    });
+    // on - paste
+    m_pPaste->AddGuiEventListener(m_pUndo->_onCommand(), [&v](auto& c) noexcept {
+        return EHelper([](LongUI::UITextBox& tbox) noexcept {
+            return tbox.GuiPaste();
+        }, v);
+    });
+    // on - select all
+    m_pSelAll->AddGuiEventListener(m_pUndo->_onCommand(), [&v](auto& c) noexcept {
+        return EHelper([](LongUI::UITextBox& tbox) noexcept {
+            return tbox.GuiSelectAll();
+        }, v);
+    });
+}
+
+void CDemo6Viewport::SubViewportPopupBegin(UIViewport& view, LongUI::PopupType pop) noexcept {
+    // if popup is global textbox context menu
+    if (view == m_refTCMenu.viewport) {
+        // if hoster is Textbox
+        using LongUI::uisafe_cast;
+        if (const auto tbox = uisafe_cast<LongUI::UITextBox>(view.GetHoster()))
+            // before popup, set some item to enable/disabled depend on textbox
+            m_refTCMenu.DoBeforePopup(*tbox);
+    }
+    Super::SubViewportPopupBegin(view, pop);
+}
+
+
+void CTextboxContextMenu::DoBeforePopup(LongUI::UITextBox& tbox) noexcept {
+    m_pCopy->SetEnabled(tbox.CanCopy());
+    m_pCut->SetEnabled(tbox.CanCut());
 }
