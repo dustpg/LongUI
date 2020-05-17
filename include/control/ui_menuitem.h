@@ -36,8 +36,6 @@ namespace LongUI {
     class UIMenuItem : public UIBoxLayout {
         // super class
         using Super = UIBoxLayout;
-        // private impl
-        struct Private;
         // init menuitem
         void init_menuitem() noexcept;
     protected:

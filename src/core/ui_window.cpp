@@ -1168,6 +1168,28 @@ void LongUI::CUIWindow::ResizeRelative(Size2F size) noexcept {
     return this->ResizeAbsolute(RefViewport().AdjustSize(size));
 }
 
+
+/// <summary>
+/// Maps to screen.
+/// </summary>
+/// <param name="rect">The rect.</param>
+/// <returns></returns>
+void LongUI::CUIWindow::MapToScreen(RectL& rect) const noexcept {
+    // 内联窗口
+    if (this->IsInlineWindow()) {
+        assert(!"NOT IMPL");
+    }
+    // 系统窗口
+    else {
+        POINT pt{ 0, 0 };
+        ::ClientToScreen(m_hwnd, &pt);
+        rect.left += pt.x;
+        rect.top += pt.y;
+        rect.right += pt.x;
+        rect.bottom += pt.y;
+    }
+}
+
 /// <summary>
 /// Maps to screen.
 /// </summary>
@@ -1196,12 +1218,11 @@ void LongUI::CUIWindow::MapToScreen(RectF& rect) const noexcept {
 /// </summary>
 /// <param name="pos">The position.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::MapToScreen(Point2F& pos) const noexcept {
+auto LongUI::CUIWindow::MapToScreenEx(Point2F pos) const noexcept ->Point2F {
     RectF rect = { pos.x, pos.y, pos.x, pos.y };
     this->MapToScreen(rect);
-    pos = { rect.left, rect.top };
+    return { rect.left, rect.top };
 }
-
 
 /// <summary>
 /// Maps from screen.
@@ -1291,7 +1312,7 @@ void LongUI::CUIWindow::WakeUp() noexcept {
     // XXX: 0. 尝试唤醒父窗口
     if (m_pParent) m_pParent->WakeUp();
     // 1. 创建窗口
-    const auto pwnd = /*m_pParent ? m_pParent->GetHwnd() :*/ nullptr;
+    const auto pwnd = m_pParent ? m_pParent->GetHwnd() : nullptr;
     m_hwnd = pimpl()->Init(pwnd, this->config);
     // 1.5 检测DPI支持
     this->HiDpiSupport();
@@ -1436,7 +1457,7 @@ auto LongUI::CUIWindow::GetTitleName() const noexcept -> U16View {
 /// <param name="pos">The position.</param>
 /// <param name="type">The type.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type) noexcept {
+void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2L pos, PopupType type) noexcept {
     auto& this_popup = pimpl()->popup;
     // 再次显示就是关闭
     if (this_popup == &wnd) {
@@ -1452,9 +1473,7 @@ void LongUI::CUIWindow::PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type)
         view.HosterPopupBegin();
         this->RefViewport().SubViewportPopupBegin(view, type);
         // 计算位置
-        this->MapToScreen(pos);
-        const auto x = static_cast<int32_t>(pos.x);
-        wnd.SetPos({ x, static_cast<int32_t>(pos.y) });
+        wnd.SetPos(pos);
         wnd.ShowNoActivate();
     }
 }
@@ -1881,8 +1900,7 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
             return style;
         }();
         // MA返回码
-        this->ma_return_code = config & CUIWindow::Config_Popup ?
-            MA_NOACTIVATE/*ANDEAT*/ : MA_ACTIVATE;
+        this->ma_return_code = config & CUIWindow::Config_Popup ? MA_NOACTIVATE : MA_ACTIVATE;
         // 调整大小
         static_assert(sizeof(RECT) == sizeof(this->adjust), "bad type");
         this->adjust = { 0 };
@@ -1897,9 +1915,10 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
         this->rect = { -1, -1, -1, -1 };
         // 额外
         uint32_t ex_flag = 0;
-        if (this->is_direct_composition()) ex_flag |= WS_EX_NOREDIRECTIONBITMAP;
-        //if (config & CUIWindow::Config_Popup) ex_flag |= WS_EX_TOPMOST | WS_EX_NOACTIVATE;
-        // WS_EX_TOOLWINDOW 不会显示在任务栏
+        // DirectComposition 支持
+        if (this->is_direct_composition()) 
+            ex_flag |= WS_EX_NOREDIRECTIONBITMAP;
+        // WS_EX_TOOLWINDOW 不会让窗口显示在任务栏
         if (config & (CUIWindow::Config_ToolWindow | CUIWindow::Config_Popup))
             ex_flag |= WS_EX_TOOLWINDOW;
         // 创建窗口
@@ -1912,31 +1931,19 @@ HWND LongUI::CUIWindow::Private::Init(HWND parent, CUIWindow::WindowConfig confi
             style,
             window_rect.left, window_rect.top,
             window_rect.width, window_rect.height,
-            parent,
+            // 弹出窗口使用NUL父窗口方便显示
+            config & CUIWindow::Config_Popup ? nullptr : parent ,
             nullptr,
             ::GetModuleHandleA(nullptr),
             this
         );
-        // TODO: 禁止 Alt + Enter 全屏
-        //UIManager_DXGIFactory.MakeWindowAssociation(hwnd, DXGI_MWA_NO_WINDOW_CHANGES | DXGI_MWA_NO_ALT_ENTER);
     }
     // 创建成功
-    if (hwnd) {
-
-        //MARGINS shadow_state{ 1,1,1,1 };
-        //::DwmExtendFrameIntoClientArea(hwnd, &shadow_state);
-        //::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
-
-        this->track_mouse.cbSize = sizeof(this->track_mouse);
-        this->track_mouse.dwFlags = TME_HOVER | TME_LEAVE;
-        this->track_mouse.hwndTrack = hwnd;
-        this->track_mouse.dwHoverTime = HOVER_DEFAULT;
-    }
-    // 测试: 模式窗口
-    if (parent) {
-        //::EnableWindow(parent, false);
-    }
-    //this->SetTooltipText({});
+    //if (hwnd)
+    this->track_mouse.cbSize = sizeof(this->track_mouse);
+    this->track_mouse.dwFlags = TME_HOVER | TME_LEAVE;
+    this->track_mouse.hwndTrack = hwnd;
+    this->track_mouse.dwHoverTime = HOVER_DEFAULT;
     return hwnd;
 }
 
@@ -2383,11 +2390,13 @@ auto LongUI::CUIWindow::Private::DoMsg(
                 this->OnKeyDownUp(inev, static_cast<CUIInputKM::KB>(wParam));
             }
             return 0;
+#if 0
         case WM_CONTEXTMENU:
             UIManager.DataLock();
             this->OnKeyDownUp(InputEvent::Event_KeyContext, static_cast<CUIInputKM::KB>(0));
             UIManager.DataUnlock();
             return 0;
+#endif
         case WM_SYSKEYDOWN:
             // Alt+F4
             if (wParam == CUIInputKM::KB_F4) {

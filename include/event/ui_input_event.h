@@ -14,8 +14,6 @@ namespace LongUI {
         Event_KeyDown,
         // event key - up
         Event_KeyUp,
-        // event context menu
-        Event_KeyContext,
 #if 0
         // --------------------- Unified Input -----------------
         // event-left 

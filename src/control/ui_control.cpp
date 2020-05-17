@@ -892,9 +892,14 @@ auto LongUI::UIControl::DoEvent(UIControl* sender, const EventArg& e) noexcept -
 auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     switch (e.event)
     {
-    case InputEvent::Event_KeyContext:
+    case InputEvent::Event_KeyUp:
         // XXX: 弹出位置
-        return LongUI::PopupWindowFromName(*this, m_pCtxCtrl, { 0 }, PopupType::Type_Context);
+        if (e.character != CUIInputKM::KB_APPS) break;
+        return LongUI::PopupWindowFromName(
+            *this, m_pCtxCtrl, { 0 }, 
+            PopupType::Type_Context,
+            PopupPosition::Position_Default
+        );
     }
     return Event_Ignore;
 }
@@ -974,7 +979,10 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
     case LongUI::MouseEvent::Event_RButtonUp:
         // 直接调用
         return LongUI::PopupWindowFromName(
-            *this, m_pCtxCtrl, { e.px, e.py }, PopupType::Type_Context);
+            *this, m_pCtxCtrl, { e.px, e.py }, 
+            PopupType::Type_Context,
+            PopupPosition::Position_Default
+        );
     }
     return Event_Ignore;
 }
@@ -987,15 +995,16 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
 auto LongUI::UIControl::do_tooltip(Point2F pos) noexcept -> EventAccept {
     if (m_state.tooltip_shown) return Event_Ignore;
     m_state.tooltip_shown = true;
+    const auto ppos = PopupPosition::Position_Default;
     // 显示TOOLTIP
     if (const auto tooltip = m_pTooltipCtrl) {
         constexpr auto type = PopupType::Type_Tooltip;
-        return LongUI::PopupWindowFromName(*this, tooltip, pos, type);
+        return LongUI::PopupWindowFromName(*this, tooltip, pos, type, ppos);
     }
     // 显示TOOLTIP TEXT
     if (!m_strTooltipText.empty()) {
         const auto text = m_strTooltipText.c_str();
-        LongUI::PopupWindowFromTooltipText(*this, text, pos);
+        LongUI::PopupWindowFromTooltipText(*this, text, pos, ppos);
         return Event_Accept;
     }
     m_state.tooltip_shown = false;
@@ -1110,7 +1119,10 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             if (m_pHovered->DoMouseEvent(e)) return Event_Accept;
         }
         return LongUI::PopupWindowFromName(
-            *this, m_pCtxCtrl, { e.px, e.py },  PopupType::Type_Context);
+            *this, m_pCtxCtrl, { e.px, e.py },
+            PopupType::Type_Context,
+            PopupPosition::Position_Default
+        );
     }
     // 子控件有效则处理消息
     if (auto child = m_pHovered) {

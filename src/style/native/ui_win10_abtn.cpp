@@ -216,8 +216,8 @@ void LongUI::CUINativeStyleWindows10::draw_sb_track(
 void LongUI::CUINativeStyleWindows10::draw_rasizer(const NativeDrawArgs& args) noexcept {
     // 背景
     auto rect = args.border;
-    // 测试用渲染
+    // 渲染
     auto& renderer = UIManager.Ref2DRenderer();
-    ColorF color = ColorF::FromRGBA_CT<RGBA_TianyiBlue>();
+    ColorF color = ColorF::FromRGBA_CT<0xF0F0F0FF_rgba>();
     renderer.FillRectangle(auto_cast(rect), &UIManager.RefCCBrush(color));
 }

@@ -2,6 +2,7 @@
 #include <control/ui_viewport.h>
 #include <control/ui_control.h>
 #include <core/ui_manager.h>
+#include <text/ui_ctl_arg.h>
 #include <core/ui_string.h>
 
 #include <cassert>
@@ -10,13 +11,38 @@
 
 // longui namespace
 namespace LongUI {
-    /// <summary>
-    /// Popup - adjust the suggested position
-    /// </summary>
-    /// <param name="inout">input and ouput of position</param>
-    /// <param name="hoster">popop hoster control</param>
-    void PopupAdjustSuggestedPosition(RectWHF& inout, UIControl& hoster) {
-
+    // BKDR Hash Function
+    auto BKDRHash(const char* a, const char* b) noexcept->uint32_t;
+    // impl
+    namespace impl {
+        // flip mode
+        enum flip_mode : uint32_t {
+            mode_flip_n = 0,
+            mode_flip_v = 1 << 0,
+            mode_flip_h = 1 << 1,
+        };
+        // get screen work area size
+        RectL work_area_from(HWND) noexcept;
+        // adjust via pos
+        void adjust_via(RectWHL& inout, const RectL&, PopupPosition) noexcept;
+        // adjust via wnd
+        void adjust_via(RectWHL& inout, const RectL&, const RectL&, flip_mode mode) noexcept;
+        // pos from string
+        auto poppos_from(U8View view) noexcept->PopupPosition;
+        // popuppos string table - rev
+        static const uint32_t rev_popuppos_table[] = {
+            0xc530a392,     // after_pointer
+            0x4d659161,     // at_pointer
+            0x44b850f3,     // overlap
+            0xd1e17258,     // end_after
+            0x4e76786f,     // end_before
+            0xc51d7557,     // start_after
+            0xc62c00ec,     // start_before
+            0x0c26f0e8,     // after_end
+            0x94f86be7,     // after_start
+            0xe29e56cf,     // before_end
+            0x5ed67606,     // before_start
+        };
     }
 }
 
@@ -25,14 +51,16 @@ namespace LongUI {
 /// </summary>
 /// <param name="hoster">The hoster control.</param>
 /// <param name="name">The name.</param>
-/// <param name="suggest">The suggested position.</param>
+/// <param name="pointer">The pointer position.</param>
 /// <param name="type">The type.</param>
+/// <param name="position">The position.</param>
 /// <returns></returns>
 auto LongUI::PopupWindowFromName(
     UIControl& hoster,
     const char* name, 
-    Point2F suggest,
-    PopupType type) noexcept ->EventAccept {
+    Point2F pointer,
+    PopupType type,
+    PopupPosition position) noexcept ->EventAccept {
     // 查找目标副视口
     UIViewport* target = nullptr;
     if (name) {
@@ -47,7 +75,7 @@ auto LongUI::PopupWindowFromName(
     // 没有就无视掉
     if (!target) return Event_Ignore;
     // 弹出窗口
-    LongUI::PopupWindowFromViewport(hoster, *target, suggest, type);
+    LongUI::PopupWindowFromViewport(hoster, *target, pointer, type, position);
     return Event_Accept;
 }
 
@@ -56,48 +84,78 @@ auto LongUI::PopupWindowFromName(
 /// </summary>
 /// <param name="hoster">The control.</param>
 /// <param name="viewport">The viewport.</param>
-/// <param name="suggested">The suggested position.</param>
+/// <param name="pointer">The pointer position.</param>
 /// <param name="type">The type.</param>
+/// <param name="position">The position.</param>
 /// <returns></returns>
 void LongUI::PopupWindowFromViewport(
     UIControl& hoster,
     UIViewport& viewport, 
-    Point2F suggested,
-    PopupType type) noexcept {
+    Point2F pointer,
+    PopupType type,
+    PopupPosition position) noexcept {
     // 获取窗口数据
     auto& window = viewport.RefWindow();
     const auto this_window = hoster.GetWindow();
     assert(this_window);
-    //LUIDebug(Hint) << pos << endl;
-    RectWHF position;
-    position = suggested;
-    position = viewport.GetMinSize();
+    pointer = this_window->MapToScreenEx(pointer);
+    auto area = viewport.GetMinSize();
+    impl::flip_mode mode = impl::mode_flip_n;
     // 讨论大小
     switch (type)
     {
     case LongUI::PopupType::Type_Exclusive:
-        position.width = hoster.GetBox().GetBorderSize().width;
+        //LUIDebug(Hint) << "Type_Exclusive" << endl;
+        area.width = hoster.GetBox().GetBorderSize().width;
+        mode = impl::mode_flip_v;
         break;
-    case LongUI::PopupType::Type_Popup:
-        position.width = std::max(position.width, float(DEFAULT_CONTROL_WIDTH));
+    case LongUI::PopupType::Type_PopupH:
+        //LUIDebug(Hint) << "Type_PopupH" << endl;
+        area.width = std::max(area.width, float(DEFAULT_CONTROL_WIDTH));
+        mode = impl::mode_flip_h;
+        break;
+    case LongUI::PopupType::Type_PopupV:
+        //LUIDebug(Hint) << "Type_PopupV" << endl;
+        area.width = std::max(area.width, float(DEFAULT_CONTROL_WIDTH));
+        mode = impl::mode_flip_v;
         break;
     case LongUI::PopupType::Type_Context:
-        position.width = std::max(position.width, float(DEFAULT_CONTROL_WIDTH));
+        //LUIDebug(Hint) << "Type_Context" << endl;
+        area.width = std::max(area.width, float(DEFAULT_CONTROL_WIDTH));
         break;
     case LongUI::PopupType::Type_Tooltip:
-        position.top += 10.f;
+        //LUIDebug(Hint) << "Type_Tooltip" << endl;
+        // XXX: 简单增加 字体高度 + 10?
+        pointer.y += UIManager.GetDefaultFont().size + 10.f;
         break;
     }
-    // TODO: DPI缩放
-
-    // 设置新的
+    // 新的主持
     viewport.AssignNewHoster(hoster);
-    // 调整座标
-    LongUI::PopupAdjustSuggestedPosition(position, hoster);
     // 调整大小
-    window.ResizeRelative(position.size());
+    window.ResizeRelative(area);
+    // DPI缩放
+    const auto zoomed = window.RefViewport().AdjustSize(area);
+    RectWHL target;
+    target.left = int32_t(pointer.x);
+    target.top = int32_t(pointer.y);
+    target.width = zoomed.width;
+    target.height = zoomed.height;
+    // 调整位置
+    const auto work = impl::work_area_from(this_window->GetHwnd());
+    const auto rect = [=, &hoster]() noexcept {
+        RectF rect = hoster.GetBox().visible;
+        RectL rv;
+        rv.left = int32_t(rect.left);
+        rv.top = int32_t(rect.top);
+        rv.right = int32_t(rect.right);
+        rv.bottom = int32_t(rect.bottom);
+        this_window->MapToScreen(rv);
+        return rv;
+    }();
+    impl::adjust_via(target, rect, position);
+    impl::adjust_via(target, rect, work, mode);
     // 正式弹出
-    this_window->PopupWindow(window, position.point(), type);
+    this_window->PopupWindow(window, { target.left, target.top }, type);
 }
 
 
@@ -106,20 +164,22 @@ void LongUI::PopupWindowFromViewport(
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <param name="text">The text.</param>
-/// <param name="pos">The position.</param>
+/// <param name="pointer">The pointer.</param>
+/// <param name="position">The position.</param>
 /// <returns></returns>
 void LongUI::PopupWindowFromTooltipText(
     UIControl& ctrl, 
     const char* text, 
-    Point2F suggest) noexcept {
+    Point2F pointer,
+    PopupPosition position) noexcept {
     assert(text && "can not send null");
     const auto window = ctrl.GetWindow();
     assert(window && "window cannot be null if tooltip");
     const auto ptr = window->TooltipText(CUIString::FromUtf8(text));
     if (!ptr) return;
-    UIManager.CreateTimeCapsule([&ctrl, ptr, suggest](float) noexcept {
+    UIManager.CreateTimeCapsule([=, &ctrl](float) noexcept {
         constexpr auto type = PopupType::Type_Tooltip;
-        LongUI::PopupWindowFromViewport(ctrl, *ptr, suggest, type);
+        LongUI::PopupWindowFromViewport(ctrl, *ptr, pointer, type, position);
         //const auto name = UIManager.GetUniqueText("moretip"_sv);
         //LongUI::PopupWindowFromName(ctrl, name, pos, type);
     }, 0.f, &ctrl);
@@ -134,4 +194,119 @@ void LongUI::PopupWindowCloseTooltip(UIControl& ctrl) noexcept {
     const auto window = ctrl.GetWindow();
     assert(window && "cannot close toolip for null");
     window->CloseTooltip();
+}
+
+/// <summary>
+/// adjust from
+/// </summary>
+/// <param name="inout"></param>
+/// <param name="area"></param>
+/// <param name="pos"></param>
+/// <returns></returns>
+void LongUI::impl::adjust_via(RectWHL& inout, const RectL& area, PopupPosition pos) noexcept {
+#ifndef NDEBUG
+    if (pos == PopupPosition::Position_Default) return;
+#endif
+    switch (pos)
+    {
+    case LongUI::PopupPosition::Position_Default:
+        break;
+    case LongUI::PopupPosition::Position_BeforeStart:
+        inout.left = area.left;
+        inout.top = area.top - inout.height;
+        break;
+    case LongUI::PopupPosition::Position_BeforeEnd:
+        inout.left = area.right - inout.width;
+        inout.top = area.top - inout.height;
+        break;
+    case LongUI::PopupPosition::Position_AfterStart:
+        inout.left = area.left;
+        inout.top = area.bottom;
+        break;
+    case LongUI::PopupPosition::Position_AfterEnd:
+        inout.left = area.right - inout.width;
+        inout.top = area.bottom;
+        break;
+    case LongUI::PopupPosition::Position_StartBefore:
+        inout.left = area.left - inout.width;
+        inout.top = area.top;
+        break;
+    case LongUI::PopupPosition::Position_StartAfter:
+        inout.left = area.left - inout.width;
+        inout.top = area.bottom - inout.height;
+        break;
+    case LongUI::PopupPosition::Position_EndBefore:
+        inout.left = area.right;
+        inout.top = area.top;
+        break;
+    case LongUI::PopupPosition::Position_EndStart:
+        inout.left = area.right;
+        inout.top = area.bottom - inout.height;
+        break;
+    case LongUI::PopupPosition::Position_Overlap:
+        inout.left = area.left;
+        inout.top = area.top;
+        break;
+    case LongUI::PopupPosition::Position_AtPointer:
+        break;
+    case LongUI::PopupPosition::Position_AfterPointer:
+        inout.top = area.bottom;
+        break;
+    }
+}
+
+/// <summary>
+/// adjust rect via screen
+/// </summary>
+/// <param name="inout"></param>
+/// <param name="hoster"></param>
+/// <param name="work"></param>
+/// <param name="mode">the flip mode</param>
+/// <returns></returns>
+void LongUI::impl::adjust_via(RectWHL& inout, const RectL& hoster, const RectL& work, flip_mode mode) noexcept {
+    const auto rassert = []() noexcept { assert(!"some bad"); };
+    // 工作区域过于小
+    if (work.right - work.left < DEFAULT_CONTROL_WIDTH) return rassert();
+    if (work.bottom - work.top < DEFAULT_CONTROL_HEIGHT) return rassert();
+    // TODO: 弹出窗口比屏幕还长/宽怎么处理
+
+    // 允许垂直翻转(初级菜单)?
+    if (mode & LongUI::impl::mode_flip_v) {
+        // Y座标超过一半并且显示越过下线 -> 翻转到上面
+        if (inout.top > (work.top + work.bottom) / 2)
+            if (inout.top + inout.height > work.bottom)
+                inout.top = hoster.top - inout.height;
+    }
+    else {
+        inout.top = std::min(inout.top, work.bottom - inout.height);
+        inout.top = std::max(inout.top, work.top);
+    }
+
+    // 允许水平翻转(次级菜单)?
+    if (mode & LongUI::impl::mode_flip_h) {
+        // X座标高度超过一半并且显示越过右线 -> 翻转到左边
+        if (inout.left > (work.left + work.right) / 2)
+            if (inout.left + inout.width > work.right)
+                inout.left = hoster.left - inout.width;
+    }
+    else {
+        inout.left = std::min(inout.left, work.right - inout.width);
+        inout.left = std::max(inout.left, work.left);
+    }
+}
+
+/// <summary>
+/// get <seealso cref="PopupPosition"/> from string
+/// </summary>
+/// <param name="view"></param>
+/// <returns></returns>
+auto LongUI::impl::poppos_from(U8View view) noexcept -> PopupPosition {
+    const auto code = LongUI::BKDRHash(view.first, view.second);
+    const auto bgein = std::begin(rev_popuppos_table);
+    const auto end = std::end(rev_popuppos_table);
+    const auto itr = std::find(bgein, end, code);
+#ifndef NDEBUG
+    if (itr == end) LUIDebug(Warning) << view << " not found" << end;
+#endif 
+    return static_cast<PopupPosition>(end - itr);
 }

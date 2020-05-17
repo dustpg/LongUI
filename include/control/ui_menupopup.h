@@ -26,6 +26,7 @@
 
 // ui
 #include "ui_viewport.h"
+#include "../core/ui_popup_window.h"
 
 // ui namespace
 namespace LongUI {
@@ -79,6 +80,8 @@ namespace LongUI {
         auto GetLastSelected() const noexcept { return m_pLastSelected; }
         // get selected index
         auto GetSelectedIndex() const noexcept { return m_iSelected; }
+        // get popup positon
+        auto GetPopupPosition() const noexcept { return m_posPopup; }
         // select first item
         void SelectFirstItem() noexcept;
         // clear select
@@ -88,6 +91,8 @@ namespace LongUI {
         // mark no delay closed popup
         void MarkNoDelayClosedPopup() noexcept;
     protected:
+        // add attribute
+        void add_attribute(uint32_t key, U8View view) noexcept override;
         // add child
         //void add_child(UIControl& child) noexcept override;
         // select child
@@ -116,6 +121,8 @@ namespace LongUI {
         UIControl*              m_pPerSelected = nullptr;
         // delay closed time capsule
         CUITimeCapsule*         m_pDelayClosed = nullptr;
+        // popup postion
+        PopupPosition           m_posPopup = PopupPosition::Position_Default;
         // selected index
         int32_t                 m_iSelected = -1;
         // mouse in

@@ -114,5 +114,7 @@ namespace LongUI {
         static constexpr const wchar_t* WindowClassNameP = L"Windows.UI.LongUI.PopupWindow";
         // default window icon name
         static constexpr const wchar_t* WindowIconName = nullptr; // (const wchar_t*)1
+        // bug dump file path, set nullptr to disable dump-file
+        static constexpr const char16_t*BugDumpFilePath = u"longui-v0.2.2.dmp";
     };
 }

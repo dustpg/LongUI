@@ -12,6 +12,7 @@
 #include <util/ui_unicode.h>
 #include <debugger/ui_debug.h>
 #include <filesystem/ui_file.h>
+#include <core/ui_string_view.h>
 #include <style/ui_style_state.h>
 
 #pragma comment(lib, "dbghelp")
@@ -91,10 +92,11 @@ extern "C" LONG WINAPI ui_unexp_filter(EXCEPTION_POINTERS* p) noexcept {
     }
 #else
     // 文件路径
-    constexpr size_t FILE_PATH_LENGTH = 1024;
-    char16_t file_path[FILE_PATH_LENGTH]; *file_path = 0;
+    //constexpr size_t FILE_PATH_LENGTH = 1024;
+    //char16_t file_path[FILE_PATH_LENGTH]; *file_path = 0;
     // 获取DUMP路径
-    std::memcpy(file_path, u"bug.dmp", 8 * sizeof(char16_t));
+    //detail::strlen;
+    const auto file_path = Attribute::BugDumpFilePath;
     //::MessageBoxW(nullptr, file_path, file_path, MB_OK | MB_ICONERROR);
     // 写入dump
     if (CUIFile bug_log{ file_path, flag }) {
@@ -106,7 +108,7 @@ extern "C" LONG WINAPI ui_unexp_filter(EXCEPTION_POINTERS* p) noexcept {
         ::MiniDumpWriteDump(
             ::GetCurrentProcess(),
             ::GetCurrentProcessId(),
-            static_cast<HANDLE>(bug_log.GetHandle()),
+            bug_log.GetHandle(),
             MiniDumpNormal,
             &ExInfo,
             nullptr,
@@ -135,7 +137,8 @@ extern "C" LONG WINAPI ui_unexp_filter(EXCEPTION_POINTERS* p) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIDebug::InitUnExpHandler() noexcept {
-    ::SetUnhandledExceptionFilter(ui_unexp_filter);
+    if (Attribute::BugDumpFilePath)
+        ::SetUnhandledExceptionFilter(ui_unexp_filter);
 }
 
 #ifndef NDEBUG

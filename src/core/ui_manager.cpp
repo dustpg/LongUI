@@ -847,15 +847,15 @@ LongUI::CUIManager::~CUIManager() noexcept {
 void LongUI::CUIManager::Uninitialize() noexcept {
     // 强制退出
     this_()->m_uiTimeCapsuleWaiter.Broadcast();
-    // 关闭所有窗口
-    this_()->delete_all_window();
-    // 取消窗口
-    ::DestroyWindow(m_hToolWnd); m_hToolWnd = nullptr;
 #ifndef NDEBUG
     this_()->DataLock();
     m_pDebugWindow = nullptr;
     this_()->DataUnlock();
 #endif
+    // 取消窗口
+    ::DestroyWindow(m_hToolWnd); m_hToolWnd = nullptr;
+    // 关闭所有窗口
+    this_()->delete_all_window();
     // 结束掉渲染线程
     this_()->config->EndRenderThread();
     // 手动调用析构函数

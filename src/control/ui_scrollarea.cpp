@@ -27,6 +27,7 @@ LongUI::UIScrollArea::UIScrollArea(UIControl* parent, const MetaControl& meta) n
     : Super(impl::ctor_lock(parent), meta) {
     this->line_size = { EMPTY_HEIGHT_PER_ROW, EMPTY_HEIGHT_PER_ROW };
     m_minScrollSize = { };
+    m_maxValue = { };
     impl::ctor_unlock();
 }
 
@@ -37,10 +38,10 @@ LongUI::UIScrollArea::UIScrollArea(UIControl* parent, const MetaControl& meta) n
 /// <returns></returns>
 LongUI::UIScrollArea::~UIScrollArea() noexcept {
 #ifndef NDEBUG
-    m_pVerticalSB = nullptr;
-    m_pVerticalSB++;
-    m_pHorizontalSB = nullptr;
-    m_pHorizontalSB++;
+    m_pSBVertical = nullptr;
+    m_pSBVertical++;
+    m_pSBHorizontal = nullptr;
+    m_pSBHorizontal++;
 #endif
 }
 
@@ -94,22 +95,17 @@ auto LongUI::UIScrollArea::DoEvent(
         assert(sender && "sender in gui event cannot be null");
         switch (static_cast<const EventGuiArg&>(arg).GetEvent())
         {
-        return_changed:
+        case GuiEvent::Event_OnChange:
+            if (sender == m_pSBHorizontal)
+                m_ptChildOffset.x = m_pSBHorizontal->GetValue();
+            else if (sender == m_pSBVertical)
+                m_ptChildOffset.y = m_pSBVertical->GetValue();
+            else break;
             // SB修改之后调用
             m_state.world_changed = true;
             this->NeedUpdate();
             this->Invalidate();
             return Event_Accept;
-        case GuiEvent::Event_OnChange:
-            if (sender == m_pHorizontalSB) {
-                m_ptChildOffset.x = m_pHorizontalSB->GetValue();
-                goto return_changed;
-            }
-            else if (sender == m_pVerticalSB) {
-                m_ptChildOffset.y = m_pVerticalSB->GetValue();
-                //LUIDebug(Hint) << m_ptChildOffset.y << endl;
-                goto return_changed;
-            }
         }
     }
     // 基类处理消息
@@ -123,28 +119,25 @@ auto LongUI::UIScrollArea::DoEvent(
 /// <param name="wheel">The wheel.</param>
 /// <returns></returns>
 auto LongUI::UIScrollArea::do_wheel(int index, float wheel) noexcept ->EventAccept {
-    // 检查内容区域是否满足
-    const auto content_size = this->GetBox().GetContentSize();
-    const auto cremainw = index[&m_minScrollSize.width] - index[&content_size.width];
-    if (cremainw <= 0.f) return Event_Ignore;
-    // 位置变动检查
-    auto& pos_o = index[&m_ptChildOffset.x];
-    const auto line_height = UIManager.GetWheelScrollLines();
-    float pos = pos_o - index[&this->line_size.width] * wheel * line_height;
-    pos = detail::clamp(pos, 0.f, cremainw);
-
-    EventAccept accept = Event_Ignore;
-    // 已经修改
-    if (pos != pos_o) {
-        pos_o = pos;
-        accept = Event_Accept;
-        m_state.world_changed = true;
-        this->NeedUpdate();
-        this->Invalidate();
+    const auto maxv = index[&m_maxValue.width];
+    if (maxv > 0) {
+        // 位置变动检查
+        auto& offset = index[&m_ptChildOffset.x];
+        const auto line_height = UIManager.GetWheelScrollLines();
+        float pos = offset - index[&this->line_size.width] * wheel * line_height;
+        pos = detail::clamp(pos, 0.f, maxv);
+        // 已经修改
+        if (pos != offset) {
+            offset = pos;
+            m_state.world_changed = true;
+            this->NeedUpdate();
+            this->Invalidate();
+            // 同步SB
+            this->sync_scroll_bar();
+            return Event_Accept;
+        }
     }
-    // 同步SB
-    this->sync_scroll_bar();
-    return accept;
+    return Event_Ignore;
 }
 
 /// <summary>
@@ -246,32 +239,68 @@ auto LongUI::UIScrollArea::sum_children_flex() const noexcept -> float {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIScrollArea::sync_scroll_bar() noexcept {
-    const bool hok = m_pHorizontalSB && m_pHorizontalSB->IsVisible();
-    const bool vok = m_pVerticalSB && m_pVerticalSB->IsVisible();
+    const bool hok = m_pSBHorizontal && m_pSBHorizontal->IsVisible();
+    const bool vok = m_pSBVertical && m_pSBVertical->IsVisible();
     // 交界区
-    Size2F cross_zone;
-    cross_zone.width = vok ? m_pVerticalSB->GetMinSize().width : 0.f;
-    cross_zone.height = hok ? m_pHorizontalSB->GetMinSize().height : 0.f;
-    auto csize = m_oBox.GetContentSize();
+    const Size2F corner = {
+        vok ? m_pSBVertical->GetMinSize().width : 0.f,
+        hok ? m_pSBHorizontal->GetMinSize().height : 0.f
+    };
+    const auto csize = m_oBox.GetContentSize();
+    m_maxValue = { 0, 0 };
     // 水平滚动条
     if (hok) {
-        m_pHorizontalSB->SetIncrement(this->line_size.width);
-        m_pHorizontalSB->SetPageIncrement(csize.width - cross_zone.width);
-        m_pHorizontalSB->SetMax(m_minScrollSize.width - csize.width);
-        m_pHorizontalSB->SetValue(m_ptChildOffset.x);
-        //m_pHorizontalSB->SetSingleStep(m_szSingleStep.width);
+        m_pSBHorizontal->SetIncrement(this->line_size.width);
+        m_pSBHorizontal->SetPageIncrement(csize.width - corner.width);
+        m_maxValue.width = m_minScrollSize.width - csize.width + corner.width;
+        m_pSBHorizontal->SetMax(m_maxValue.width);
+        m_pSBHorizontal->SetValue(m_ptChildOffset.x);
+        //m_pSBHorizontal->SetSingleStep(m_szSingleStep.width);
     }
     else m_ptChildOffset.x = 0.f;
     // 垂直滚动条
     if (vok) {
-        m_pVerticalSB->SetIncrement(this->line_size.height);
-        m_pVerticalSB->SetPageIncrement(csize.height - cross_zone.height);
-        m_pVerticalSB->SetMax(m_minScrollSize.height - csize.height);
-        m_pVerticalSB->SetValue(m_ptChildOffset.y);
-        //m_pVerticalSB->SetSingleStep(m_szSingleStep.height);
+        m_pSBVertical->SetIncrement(this->line_size.height);
+        m_pSBVertical->SetPageIncrement(csize.height - corner.height);
+        m_maxValue.height = m_minScrollSize.height - csize.height + corner.height;
+        m_pSBVertical->SetMax(m_maxValue.height);
+        m_pSBVertical->SetValue(m_ptChildOffset.y);
+        //m_pSBVertical->SetSingleStep(m_szSingleStep.height);
     }
     else m_ptChildOffset.y = 0.f;
-    
+    this->layout_corner(hok && vok, corner);
+}
+
+/// <summary>
+/// layout corner
+/// </summary>
+/// <param name="visible"></param>
+/// <returns></returns>
+void LongUI::UIScrollArea::layout_corner(bool visible, Size2F size) noexcept{
+    if (visible) {
+        // 这个是大前提
+        assert(m_pSBHorizontal && m_pSBVertical);
+        // 没有就尝试创建并且初始化
+        if (!m_pCorner) {
+            m_pCorner = new(std::nothrow) UIControl(this);
+            if (!m_pCorner) return;
+#ifndef NDEBUG
+            m_pCorner->name_dbg = "scrollarea::corner";
+#endif
+            this->set_child_fixed_attachment(*m_pCorner);
+            UIControlPrivate::SetAppearance(*m_pCorner, Appearance_Resizer);
+        }
+        // 有就进行设置
+        if (m_pCorner) {
+            m_pCorner->SetVisible(true);
+            m_pCorner->Resize(size);
+            const auto x = m_pSBVertical->GetPos().x;
+            const auto y = m_pSBHorizontal->GetPos().y;
+            m_pCorner->SetPos({ x, y });
+        }
+    }
+    // 有就有, 没有就算了
+    else if(m_pCorner) m_pCorner->SetVisible(false);
 }
 
 /// <summary>
@@ -288,13 +317,13 @@ auto LongUI::UIScrollArea::layout_hscrollbar(bool notenough) noexcept -> float {
     if (overflow == Overflow_Auto) {
         // 不够用就显示
         if (!notenough) {
-            if (m_pHorizontalSB) m_pHorizontalSB->SetVisible(false);
+            if (m_pSBHorizontal) m_pSBHorizontal->SetVisible(false);
             return 0.f;
         }
     }
     // 需要滚动条
-    if (!m_pHorizontalSB) m_pHorizontalSB = this->create_scrollbar(Orient_Horizontal);
-    return m_pHorizontalSB ? m_pHorizontalSB->GetMinSize().height : 0.0f;
+    if (!m_pSBHorizontal) m_pSBHorizontal = this->create_scrollbar(Orient_Horizontal);
+    return m_pSBHorizontal ? m_pSBHorizontal->GetMinSize().height : 0.0f;
 }
 
 /// <summary>
@@ -311,13 +340,13 @@ auto LongUI::UIScrollArea::layout_vscrollbar(bool notenough) noexcept -> float {
     if (overflow == Overflow_Auto) {
         // 不够用就显示
         if (!notenough) {
-            if (m_pVerticalSB) m_pVerticalSB->SetVisible(false);
+            if (m_pSBVertical) m_pSBVertical->SetVisible(false);
             return 0.f; 
         }
     }
     // 需要滚动条
-    if (!m_pVerticalSB) m_pVerticalSB = this->create_scrollbar(Orient_Vertical);
-    return m_pVerticalSB ? m_pVerticalSB->GetMinSize().width : 0.0f;
+    if (!m_pSBVertical) m_pSBVertical = this->create_scrollbar(Orient_Vertical);
+    return m_pSBVertical ? m_pSBVertical->GetMinSize().width : 0.0f;
 }
 
 /// <summary>
@@ -372,21 +401,21 @@ auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
     if (this->is_need_relayout()) return content_size;
     // 设置VSB位置: 正向-右侧 反向-左侧
     if (vsbar > 0.f) {
-        resize_child(*m_pVerticalSB, { vsbar, content_size.height - hsbar });
+        resize_child(*m_pSBVertical, { vsbar, content_size.height - hsbar });
         Point2F pos = {};
         const bool normaldir = m_state.dir == Dir_Normal;
         if (normaldir) pos.x = content_size.width - vsbar;
-        m_pVerticalSB->SetPos(pos);
-        m_pVerticalSB->SetVisible(true);
+        m_pSBVertical->SetPos(pos);
+        m_pSBVertical->SetVisible(true);
     }
     // 设置HSB位置: 正向-下侧 反向-上侧
     if (hsbar > 0.f) {
-        resize_child(*m_pHorizontalSB, { content_size.width - vsbar, hsbar });
+        resize_child(*m_pSBHorizontal, { content_size.width - vsbar, hsbar });
         Point2F pos = {};
         const bool normaldir = m_state.dir == Dir_Normal;
         if (normaldir) pos.y = content_size.height - hsbar;
-        m_pHorizontalSB->SetPos(pos);
-        m_pHorizontalSB->SetVisible(true);
+        m_pSBHorizontal->SetPos(pos);
+        m_pSBHorizontal->SetVisible(true);
     }
     // 同步SB显示
     this->sync_scroll_bar();
@@ -409,8 +438,8 @@ auto LongUI::UIScrollArea::get_layout_position() const noexcept -> Point2F {
     }
     // 反向- 左上角+[VSB, 0]
     else {
-        if (m_pVerticalSB && m_pVerticalSB->IsVisible()) {
-            return base + Point2F{ m_pVerticalSB->GetSize().width, 0.f };
+        if (m_pSBVertical && m_pSBVertical->IsVisible()) {
+            return base + Point2F{ m_pSBVertical->GetSize().width, 0.f };
         }
     }
     return base;

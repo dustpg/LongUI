@@ -95,9 +95,6 @@ struct LongUI::UIControlPrivate {
     // call add child
     static void CallAddChild(UIControl& ctrl, UIControl& child) noexcept {
         ctrl.add_child(child); }
-    // call add attribute
-    static void AddAttribute(UIControl& ctrl, uint32_t key, U8View value) noexcept {
-        ctrl.add_attribute(key, value); }
     // prev control
     static auto&Prev(UIControl& ctrl) noexcept {
         return static_cast<UIControl&>(*ctrl.prev); }

@@ -72,6 +72,8 @@ namespace LongUI {
     template<typename T> struct Point { T x; T y; };
     // rect
     template<typename T> struct Rect { T left; T top; T right; T bottom; };
+    // rect w/h model
+    template<typename T> struct RectWH { T left; T top; T width; T height; };
     // size
     template<typename T> struct Size { T width; T height; };
     // Point2U
@@ -86,14 +88,6 @@ namespace LongUI {
     struct Vector3F { float x; float y; float z; };
     // Vector4F
     struct Vector4F { float x; float y; float z; float w; };
-    // rect w/h model
-    template<typename T> struct RectWH { 
-        T left; T top; T width; T height; 
-        auto point() const noexcept { return Point<T>{ left, top }; }
-        auto size() const noexcept { return Size<T>{ width, height }; }
-        RectWH& operator=(Point<T> p) noexcept { left = p.x; top = p.y; return *this; }
-        RectWH& operator=(Size<T> s) noexcept { width = s.width; height = s.height; return *this; }
-    };
     // RectF
     using RectF = Rect<float>;
     // RectU

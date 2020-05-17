@@ -208,7 +208,8 @@ void LongUI::UIMenu::try_show_next_level_menu() noexcept {
         *this,
         *m_pMenuPopup,
         pos,
-        PopupType::Type_Popup
+        PopupType::Type_PopupH,
+        m_pMenuPopup->GetPopupPosition()
     );
 }
 

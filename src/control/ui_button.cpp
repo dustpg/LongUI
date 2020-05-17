@@ -1,5 +1,6 @@
 ﻿// Gui
 #include <luiconf.h>
+#include <core/ui_string.h>
 #include <core/ui_window.h>
 #include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
@@ -7,7 +8,6 @@
 #include <debugger/ui_debug.h>
 #include <event/ui_group_event.h>
 #include <core/ui_popup_window.h>
-#include <core/ui_string.h>
 // 控件
 #include <control/ui_button.h>
 #include <control/ui_boxlayout.h>
@@ -344,7 +344,8 @@ void LongUI::UIButton::Click() noexcept {
                 *this,
                 *m_pMenuPopup,
                 pos,
-                PopupType::Type_Popup
+                PopupType::Type_PopupV,
+                m_pMenuPopup->GetPopupPosition()
             );
         }
         break;

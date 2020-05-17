@@ -189,7 +189,6 @@ void LongUI::CUIWndMgr::delete_all_window() noexcept {
     // 删除还存在的窗口
     while (m_oHead.next != &m_oTail)
         m_oTail.prev->Delete();
-
 }
 
 /// <summary>

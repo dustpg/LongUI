@@ -64,13 +64,13 @@ namespace LongUI {
         // get layout direcition
         auto GetLayoutDirection() const noexcept ->AttributeDir { return AttributeDir(m_state.dir); }
         // get vertical ScrollBar
-        auto GetVerticalScrollBar() noexcept -> UIScrollBar* { return m_pVerticalSB; }
+        auto GetVerticalScrollBar() noexcept -> UIScrollBar* { return m_pSBVertical; }
         // get horizontal ScrollBar
-        auto GetHorizontalScrollBar() noexcept -> UIScrollBar* { return m_pHorizontalSB; }
+        auto GetHorizontalScrollBar() noexcept -> UIScrollBar* { return m_pSBHorizontal; }
         // get vertical ScrollBar | const overload
-        auto GetVerticalScrollBar() const noexcept -> const UIScrollBar*{ return m_pVerticalSB; }
+        auto GetVerticalScrollBar() const noexcept -> const UIScrollBar*{ return m_pSBVertical; }
         // get horizontal ScrollBar | const overload
-        auto GetHorizontalScrollBar() const noexcept -> const UIScrollBar*{ return m_pHorizontalSB; }
+        auto GetHorizontalScrollBar() const noexcept -> const UIScrollBar*{ return m_pSBHorizontal; }
     protected:
         // get child flex sum
         auto sum_children_flex() const noexcept -> float;
@@ -91,16 +91,22 @@ namespace LongUI {
         auto layout_vscrollbar(bool notenough) noexcept->float;
         // layout the scroll bar - v
         auto layout_hscrollbar(bool notenough) noexcept->float;
+        // layout corner
+        void layout_corner(bool visible, Size2F size) noexcept;
     public:
         // line size
         Size2F              line_size;
     protected:
         // min scroll size
         Size2F              m_minScrollSize;
+        // min scroll size
+        Size2F              m_maxValue;
         // horizontal scroll bar
-        UIScrollBar*        m_pHorizontalSB = nullptr;
+        UIScrollBar*        m_pSBHorizontal = nullptr;
         // vertical scroll bar
-        UIScrollBar*        m_pVerticalSB = nullptr;
+        UIScrollBar*        m_pSBVertical = nullptr;
+        // corner
+        UIControl*          m_pCorner = nullptr;
     };
     // get meta info for UIScrollArea
     LUI_DECLARE_METAINFO(UIScrollArea);

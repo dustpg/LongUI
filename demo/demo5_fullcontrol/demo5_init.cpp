@@ -66,10 +66,8 @@ void InitViewportCallback(LongUI::UIViewport& v) noexcept {
         p->RefWindow().SetClearColor({ 1,1,1,1 });
         p->RefWindow().ShowWindow();
 
-        if (modal->GetChecked()) {
+        if (modal->GetChecked())
             p->RefWindow().Exec();
-            //delete p;
-        }
     };
     // LAYOUT
     btn_layout->AddGuiEventListener(

@@ -139,7 +139,11 @@ namespace LongUI {
         // map to screen
         void MapToScreen(RectF& rect) const noexcept;
         // map to screen
-        void MapToScreen(Point2F& pos) const noexcept;
+        void MapToScreen(RectL& rect) const noexcept;
+        // map to screen
+        auto MapToScreenEx(Point2F pos) const noexcept ->Point2F;
+        // map to screen
+        //auto MapToScreenEx(Point2L pos) const noexcept->Point2L;
         // map from screen
         //void MapFromScreen(RectF& rect) const noexcept;
         // map from screen
@@ -148,7 +152,7 @@ namespace LongUI {
         void HiDpiSupport() noexcept;
     public:
         // show popup window
-        void PopupWindow(CUIWindow& wnd, Point2F pos, PopupType type) noexcept;
+        void PopupWindow(CUIWindow& wnd, Point2L pos, PopupType type) noexcept;
         // set tooltip text, return tooltip viewport pointer
         auto TooltipText(CUIString&&) noexcept ->UIViewport*;
         // close all popupwindow

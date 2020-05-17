@@ -24,27 +24,10 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIMenuItem, "menuitem");
     // UIMenuPopup类 元信息
     LUI_CONTROL_META_INFO(UIMenuPopup, "menupopup");
-    // UIMenuItem私有信息
-    struct UIMenuItem::Private : CUIObject {
-        // 构造函数
-        Private(UIMenuItem& btn) noexcept;
-#ifndef NDEBUG
-        // 调试占位
-        void*               placeholder_debug1 = nullptr;
-#endif
-        // 图像控件
-        UIImage             image;
-        // 标签控件
-        UILabel             label;
-    };
-    /// <summary>
-    /// button privates data/method
-    /// </summary>
-    /// <param name="btn">The BTN.</param>
-    /// <returns></returns>
-    UIMenuItem::Private::Private(UIMenuItem& btn) noexcept
-        : image(&btn), label(&btn) {
-
+    // impl
+    namespace impl {
+        // pos from string
+        auto poppos_from(U8View view) noexcept->PopupPosition;
     }
 }
 
@@ -567,7 +550,8 @@ void LongUI::UIMenuList::ShowPopup() noexcept {
             *this,
             *m_pMenuPopup,
             pos,
-            PopupType::Type_Exclusive
+            PopupType::Type_Exclusive,
+            m_pMenuPopup->GetPopupPosition()
         );
     }
     // 触发修改GUI事件
@@ -897,6 +881,23 @@ void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
     // 事件触发
     this->TriggerEvent(this->_onCommand());
     if (m_pHoster) m_pHoster->DoEvent(this, EventGuiArg{ _onCommand() });
+}
+
+/// <summary>
+/// add attribute for <seealso cref="UIMenuPopup"/>
+/// </summary>
+/// <param name="key">key</param>
+/// <param name="view">view</param>
+/// <returns></returns>
+void LongUI::UIMenuPopup::add_attribute(uint32_t key, U8View view) noexcept {
+    constexpr auto BKDR_POSITION = 0xd52a25f1_ui32;
+    switch (key)
+    {
+    case BKDR_POSITION:
+        m_posPopup = impl::poppos_from(view);
+        return;
+    }
+    return Super::add_attribute(key,view);
 }
 
 /// <summary>
