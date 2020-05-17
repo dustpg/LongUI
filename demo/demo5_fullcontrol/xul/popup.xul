@@ -134,7 +134,7 @@ function set_text(text)
 
    <groupbox orient="horizontal">
    <caption label="Regular Popups, Context Popups, and Tooltips" />
-     <button flex="1" label="Press Normal Button"  popup="popupmenu"/>
+     <button flex="1" label="Press Normal Button(unsupported yet)"  popup="popupmenu"/>
      <button flex="1" label="Press Context Button" context="contextpopup" oncommand="set_text('123')" />
      <button flex="1" label="Hover Mouse Here" 
                       tooltiptext="This is a tooltip" />
