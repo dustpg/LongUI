@@ -1,4 +1,5 @@
 ﻿// Gui
+#include <core/ui_window.h>
 #include <core/ui_ctrlmeta.h>
 #include <debugger/ui_debug.h>
 #include <control/ui_checkbox.h>
@@ -201,6 +202,29 @@ auto LongUI::UICheckBox::DoEvent(
     }
 }
 
+
+
+#ifdef LUI_DRAW_FOCUS_RECT
+/// <summary>
+/// render this
+/// </summary>
+/// <returns></returns>
+void LongUI::UICheckBox::Render() const noexcept {
+    Super::Render();
+    // 渲染焦点框
+    if (this->m_oStyle.state.focus && m_pWindow->IsDrawFocus()) {
+        // 复选框的焦点框在文本边上
+        auto rect = m_oLabel.GetBox().GetBorderEdge();
+        const auto pos = m_oLabel.GetPos();
+        rect.left += pos.x;
+        rect.top += pos.y;
+        rect.right += pos.x;
+        rect.bottom += pos.y;
+        this->draw_focus_rect(rect);
+    }
+}
+#endif
+
 /// <summary>
 /// Initializes the checkbox.
 /// </summary>
@@ -222,6 +246,13 @@ void LongUI::UICheckBox::init_checkbox() noexcept {
     if (m_oStyle.state.disabled) {
         UIControlPrivate::RefStyleState(m_oImage).disabled = true;
     }
+#ifdef LUI_DRAW_FOCUS_RECT
+    // 由于焦点位置特殊, 针对焦点的处理 
+    const auto invoncall = [](UIControl& c) noexcept {c.Invalidate(); return Event_Accept; };
+    // 再者仅仅是视觉处理, 不用针对OOM处理
+    this->AddGuiEventListener(this->_onFocus(), invoncall);
+    this->AddGuiEventListener(this->_onBlur(), invoncall);
+#endif
 }
 
 

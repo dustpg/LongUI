@@ -108,11 +108,11 @@ void LongUI::CUIWndMgr::MoveToGlobalSubView(UIViewport& sub) noexcept {
 }
 
 /// <summary>
-/// Finds the sub viewport with unistr.
+/// Finds the sub viewport with uid-string.
 /// </summary>
 /// <param name="name">The name.</param>
 /// <returns></returns>
-auto LongUI::CUIWndMgr::FindSubViewportWithUnistr(const char* name)const noexcept->UIViewport*{
+auto LongUI::CUIWndMgr::FindSubViewportWithUID(const char* name)const noexcept->UIViewport*{
     auto& subviews = wm().subviews;
     return UIViewport::FindSubViewport(subviews.next, subviews, name);
 }

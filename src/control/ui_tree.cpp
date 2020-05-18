@@ -351,6 +351,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::UITree::select_item(UITreeItem& item) noexcept {
     // 写入表内
+    // TODO: 链表实现m_selected
     m_selected.push_back(&item);
     item.StartAnimation({ StyleStateType::Type_Selected, true });
     if (const auto row = item.GetRow()) {

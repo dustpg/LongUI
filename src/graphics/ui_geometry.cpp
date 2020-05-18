@@ -120,7 +120,7 @@ auto LongUI::CUIGeometry::CreateFromPoints(CUIGeometry& obj,
     // 至少两个
     assert(count >= 2);
     auto& raw = CUIResMgr::Ref2DFactory();
-    auto& factory = reinterpret_cast<ID2D1Factory&>(raw);
+    auto& factory = reinterpret_cast<ID2D1Factory1&>(raw);
     // 创建几何体
     auto create_geo = [&](const Point2F* points,
         uint32_t length, I::Geometry*& out) noexcept {

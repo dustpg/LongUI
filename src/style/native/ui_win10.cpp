@@ -96,8 +96,9 @@ void LongUI::CUINativeStyleWindows10::DrawNative(const NativeDrawArgs& args) noe
     }
 }
 
-#ifdef LUI_DRAW_ARROW_IN_MESH
+
 namespace LongUI {
+#ifdef LUI_DRAW_ARROW_IN_MESH
     // win10 arrow mesh data
     static const TriangleF WIN10_ARROW_MESH[] = {
         {{-3.5, 0.0 },{ 0.0,-0.5 },{ 0.0,-3.5 }},
@@ -105,13 +106,36 @@ namespace LongUI {
         {{ 0.0,-0.5 },{ 3.5, 0.0 },{ 0.0,-3.5 }},
         {{ 0.0,-0.5 },{ 3.5, 3.0 },{ 3.5, 0.0 }},
     };
-}
 #endif
+    // I::StrokeStyle
+    namespace I { struct PCN_NOVTABLE StrokeStyle : ID2D1StrokeStyle1 {}; }
+}
+
+/// <summary>
+/// draw native style focus rect
+/// </summary>
+/// <param name="rect"></param>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::FocusNative(const RectF& rect) noexcept {
+    auto area = rect;
+    area.left++; area.top++; area.right--; area.bottom--;
+    // TODO: 虚线优化?
+    auto& renderer = UIManager.Ref2DRenderer();
+    const auto color = ColorF::FromRGBA_CT<0x111111FF_rgba>();
+    auto& bursh = UIManager.RefCCBrush(color);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
+    renderer.DrawRectangle(auto_cast(area), &bursh, 1.f, m_pStrokeStyle);
+    //renderer.FillRectangle(auto_cast(rect), &bursh);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+}
+
 
 /// <summary>
 /// Initializes a new instance of the <see cref="CUINativeStyleWindows10"/> class.
 /// </summary>
-LongUI::CUINativeStyleWindows10::CUINativeStyleWindows10() noexcept {
+/// <param name="hr"></param>
+/// <returns></returns>
+LongUI::CUINativeStyleWindows10::CUINativeStyleWindows10(Result& hr) noexcept {
 #ifdef LUI_DRAW_ARROW_IN_MESH
     // 创建箭头网格
     constexpr uint32_t tri_count = sizeof(WIN10_ARROW_MESH)
@@ -123,10 +147,8 @@ LongUI::CUINativeStyleWindows10::CUINativeStyleWindows10() noexcept {
         { 0.0,-0.5 },{ 3.5, 3.0 },{ 3.5, 0.0 },
     };
     for (auto&x : s) x.x += 0.5f;
-
-    auto hr = LongUI::CreateMesh(m_pMesh, (TriangleF*)s, tri_count);
-    // TODO: 错误处理
-    assert(hr);
+    hr = LongUI::CreateMesh(m_pMesh, (TriangleF*)s, tri_count);
+    if (!hr) return this->release_dd_resources();
 #else
     constexpr float WIDTH = ARRAW_WDITH;
     constexpr uint32_t ptsc = 3;
@@ -136,6 +158,20 @@ LongUI::CUINativeStyleWindows10::CUINativeStyleWindows10() noexcept {
     pts[2] = { WIDTH, 0.5f * WIDTH };
     CUIGeometry::CreateFromPoints(m_geoArrow, pts, ptsc);
 #endif
+    auto& factory = reinterpret_cast<ID2D1Factory1&>(UIManager.Ref2DFactory());
+    hr.code = factory.CreateStrokeStyle(
+        D2D1::StrokeStyleProperties1(
+            D2D1_CAP_STYLE_FLAT,
+            D2D1_CAP_STYLE_FLAT,
+            D2D1_CAP_STYLE_FLAT,
+            D2D1_LINE_JOIN_MITER,
+            10.0f,
+            D2D1_DASH_STYLE_DASH,
+            0.0f,
+            D2D1_STROKE_TRANSFORM_TYPE_HAIRLINE
+        ), nullptr, 0,
+        reinterpret_cast<ID2D1StrokeStyle1**>(&m_pStrokeStyle)
+    );
 }
 
 
@@ -147,6 +183,7 @@ void LongUI::CUINativeStyleWindows10::release_all_resources() noexcept {
     // 释放设备相关资源
     this->release_dd_resources();
     // 释放设备无关资源
+    this->release_di_resources();
 }
 
 /// <summary>
@@ -160,6 +197,14 @@ void LongUI::CUINativeStyleWindows10::release_dd_resources() noexcept {
 #else
 
 #endif
+}
+
+/// <summary>
+/// Releases the di resources.
+/// </summary>
+/// <returns></returns>
+void LongUI::CUINativeStyleWindows10::release_di_resources() noexcept {
+    LongUI::SafeRelease(m_pStrokeStyle);
 }
 
 /// <summary>

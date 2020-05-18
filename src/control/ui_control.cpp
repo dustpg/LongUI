@@ -892,6 +892,21 @@ auto LongUI::UIControl::DoEvent(UIControl* sender, const EventArg& e) noexcept -
 auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
     switch (e.event)
     {
+    case InputEvent::Event_KeyDown:
+        switch (static_cast<CUIInputKM::KB>(e.character))
+        {
+        case CUIInputKM::KB_LEFT:
+        case CUIInputKM::KB_UP:
+            // 左/上箭头键
+            assert(m_pWindow);
+            return EventAccept(m_pWindow->FocusPrev());
+        case CUIInputKM::KB_RIGHT:
+        case CUIInputKM::KB_DOWN:
+            // 右下箭头键
+            assert(m_pWindow);
+            return EventAccept(m_pWindow->FocusNext());
+        }
+        break;
     case InputEvent::Event_KeyUp:
         // XXX: 弹出位置
         if (e.character != CUIInputKM::KB_APPS) break;

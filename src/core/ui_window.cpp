@@ -49,11 +49,11 @@ namespace LongUI { namespace impl {
     // get subpixcel rendering level
     void get_subpixel_text_rendering(uint32_t&) noexcept;
     // eval script for window
-    void eval_script_for_window(U8View view, CUIWindow* window) noexcept {
-        assert(window && "eval script but no window");
-        window->MarkHasScript();
-        UIManager.Evaluation(view, *window);
-    }
+    //void eval_script_for_window(U8View view, CUIWindow* window) noexcept {
+    //    assert(window && "eval script but no window");
+    //    window->MarkHasScript();
+    //    UIManager.Evaluation(view, *window);
+    //}
     // mark two rect
     inline auto mark_two_rect_dirty(
         const RectF& a,
@@ -175,7 +175,6 @@ void LongUI::CUIWindow::Delete() noexcept {
 
 
 
-
 // ui namespace
 namespace LongUI {
     // dirty rect
@@ -210,8 +209,6 @@ namespace LongUI {
     class CUIWindow::Private : public CUIObject {
         // dcomp
         using dcomp = impl::dcomp_window_buf;
-        // control map
-        using CtrlMap = POD::HashMap<UIControl*>;
         // window list
         //using Windows = POD::Vector<CUIWindow*>;
         // release data
@@ -327,6 +324,10 @@ namespace LongUI {
         UIControl*      now_default = nullptr;
         // window default control
         UIControl*      wnd_default = nullptr;
+        // focus list
+        ControlNode     focus_list = { nullptr };
+        // named list
+        ControlNode     named_list = { nullptr };
         // popup window
         CUIWindow*      popup = nullptr;
         // common tooltip viewport
@@ -354,8 +355,6 @@ namespace LongUI {
         uint32_t        dbg_dirty_render_counter = 0;
 #endif
     public:
-        // named control map
-        CtrlMap         ctrl_map;
         // title name
         CUIString       titlename;
         // mouse track data
@@ -465,9 +464,9 @@ namespace LongUI {
         impl::init_dcomp(dcomp_buf);
         //sizeof(*this)
         using ty = detail::private_window<sizeof(void*)>;
+        //sizeof(Private);
         static_assert(sizeof(Private) <= ty::size, "buffer not safe");
         static_assert(alignof(Private) <= ty::align, "buffer not safe");
-        // TODO: CONTROL MAP -> 朴素查找?
     }
 }
 
@@ -488,7 +487,10 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     // 初始化BF
     m_inDtor = false;
     m_bInExec = false;
-    m_bHasScript = false;
+    m_bDrawFocus = false;
+#ifndef NDEBUG
+    m_bDrawFocus = true;
+#endif
     //m_bBigIcon = false;
     //m_bCtorFaild = false;
     // XXX: 错误处理
@@ -592,22 +594,6 @@ void LongUI::CUIWindow::add_child(CUIWindow& child) noexcept {
     m_oTail.prev = &child;
 }
 
-#if 0
-/// <summary>
-/// Removes the child.
-/// </summary>
-/// <param name="child">The child.</param>
-/// <returns></returns>
-void LongUI::CUIWindow::remove_child(CUIWindow& child) noexcept {
-    // TODO: 更多检查
-    //assert(child.m_pParent == this && "no child for this");
-    // 连接前后节点
-    child.prev->next = child.next;
-    child.next->prev = child.prev;
-    child.prev = child.next = nullptr;
-}
-#endif
-
 /// <summary>
 /// Finalizes an instance of the <see cref="CUIWindow"/> class.
 /// </summary>
@@ -623,7 +609,7 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     }
 #endif
     // 有脚本
-    if (m_bHasScript) UIManager.FinalizeScript(*this);
+    if (this->custom_script) UIManager.FinalizeScript(*this);
     // 析构中
     m_inDtor = true;
     // 未初始化就被删除的话节点为空
@@ -787,9 +773,37 @@ void LongUI::CUIWindow::RegisterAccessKey(UIControl& ctrl) noexcept {
 /// <returns></returns>
 auto LongUI::CUIWindow::FindControl(const char* id) noexcept -> UIControl* {
     assert(id && "bad id");
-    auto& map = pimpl()->ctrl_map;
-    const auto itr = map.find(id);
-    return itr != map.end() ? itr->second : nullptr;
+    U8View view = U8View::FromCStyle(id);
+    return this->FindControlWithUID(UIManager.GetUniqueText(view));
+}
+
+
+/// <summary>
+/// Finds the control.
+/// </summary>
+/// <param name="id">The identifier.</param>
+/// <returns></returns>
+auto LongUI::CUIWindow::FindControl(U8View id) noexcept -> UIControl* {
+    assert(id.size() && "bad id");
+    return this->FindControlWithUID(UIManager.GetUniqueText(id));
+}
+
+PCN_NOINLINE
+/// <summary>
+/// Finds the control.
+/// </summary>
+/// <param name="id">The identifier.</param>
+/// <returns></returns>
+auto LongUI::CUIWindow::FindControlWithUID(const char* id) noexcept -> UIControl * {
+    if (id == CUIConstShortString::EMPTY) return nullptr;
+    assert(id && *id && "bad string");
+    auto node = pimpl()->named_list.first;
+    // 遍历命名列表
+    while (node) {
+        if (node->GetID() == id) return node;
+        node = node->m_oManager.next_named;
+    }
+    return nullptr;
 }
 
 /// <summary>
@@ -809,26 +823,43 @@ void LongUI::CUIWindow::ControlAttached(UIControl& ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
+    if (!this) return;
+    // XXX: 自己就是窗口的场合
+    if (this->RefViewport() == ctrl) return;
     // 注册命名控件
-    if (this && *ctrl.GetID()) {
-        // XXX: 自己就是窗口的场合
-        if (&this->RefViewport() == &ctrl) {
-
-        }
-        else {
-            // 必须没有被注册过
+    if (ctrl.GetID() != CUIConstShortString::EMPTY) {
+        assert(ctrl.GetID() && ctrl.GetID()[0]);
 #ifndef NDEBUG
-            if (this->FindControl(ctrl.GetID())) {
-                LUIDebug(Error) LUI_FRAMEID
-                    << "add named control but id exist: "
-                    << ctrl.GetID()
-                    << endl;
-                assert(!"id exist!");
-            }
-#endif
-            // XXX: 错误处理
-            pimpl()->ctrl_map.insert({ ctrl.GetID(), &ctrl });
+        // 必须没有被注册过
+        if (this->FindControl(ctrl.GetID())) {
+            LUIDebug(Error) LUI_FRAMEID
+                << "add named control but id exist: "
+                << ctrl.GetID()
+                << endl;
         }
+#endif
+        auto& list = pimpl()->named_list;
+        const size_t offset = offsetof(UIControl, m_oManager.next_named);
+        CUIControlControl::AddControlToList(ctrl, list, offset);
+    }
+    // 注册焦点链
+    if (ctrl.IsFocusable()) {
+        auto& list = pimpl()->focus_list;
+#ifndef NDEBUG
+        // 必须不在里面
+        auto node = list.first;
+        while (node) { 
+            if (*node == ctrl) {
+                LUIDebug(Error) LUI_FRAMEID
+                    << "add focus control but control exist: "
+                    << ctrl
+                    << endl;
+            }
+            node = node->m_oManager.next_focus;
+        }
+#endif
+        const size_t offset = offsetof(UIControl, m_oManager.next_focus);
+        CUIControlControl::AddControlToList(ctrl, list, offset);
     }
 }
 
@@ -895,17 +926,23 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
 #endif
 
     }
-    // 移除映射表中的引用
+    // 移除查找表中的引用
     if (*ctrl.GetID()) {
-        // TODO: 实现删除接口
-        auto& map = pimpl()->ctrl_map;
-        const auto itr = map.find(ctrl.GetID());
-        if (itr != map.end()) itr->second = nullptr;
+        auto& list = pimpl()->named_list;
+        const size_t offset = offsetof(UIControl, m_oManager.next_named);
+        CUIControlControl::RemoveControlInList(ctrl, list, offset);
+    }
+    // 移除查找表中的引用
+    if (ctrl.IsFocusable()) {
+        auto& list = pimpl()->focus_list;
+        const size_t offset = offsetof(UIControl, m_oManager.next_focus);
+        CUIControlControl::RemoveControlInList(ctrl, list, offset);
     }
 }
 
 /// <summary>
 /// Sets the focus.
+/// 为目标控件设置键盘焦点
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
@@ -933,6 +970,62 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
     // Focus 事件
     ctrl.TriggerEvent(UIControl::_onFocus());
     return true;
+}
+
+
+/// <summary>
+/// set focus to prev control
+/// 设置键盘焦点至上一个焦点
+/// </summary>
+/// <returns></returns>
+bool LongUI::CUIWindow::FocusPrev() noexcept {
+    // 搜索上一个
+    const auto find_prev = [this](UIControl* focused) noexcept {
+        auto node = pimpl()->focus_list.first;
+        UIControl* rcode = nullptr;
+        while (node) {
+            if (node == focused) break;
+            if (node->IsEnabled()) rcode = node;
+            node = node->m_oManager.next_focus;
+        }
+        return rcode;
+    };
+    UIControl* target = nullptr;
+    // 当前焦点的下一个
+    if (pimpl()->focused) target = find_prev(pimpl()->focused);
+    // 没有就最后一个
+    // XXX: 最后一个无效时候怎么处理
+    if (!target) target = pimpl()->focus_list.last;
+    // 还没有就算了
+    if (!target) return false;
+    this->SetDefault(*target);
+    return this->SetFocus(*target);
+}
+
+/// <summary>
+/// set focus to next control
+/// 设置键盘焦点至下一个焦点
+/// </summary>
+/// <returns></returns>
+bool LongUI::CUIWindow::FocusNext() noexcept {
+    // 搜索下一个
+    const auto find_next = [](UIControl* node) noexcept {
+        while (true) {
+            if (!(node = node->m_oManager.next_focus)) break;
+            if (node->IsEnabled()) break;
+        }
+        return node;
+    };
+    UIControl* target = nullptr;
+    // 当前焦点的下一个
+    if (pimpl()->focused) target = find_next(pimpl()->focused);
+    // 没有就第一个
+    // XXX: 第一个无效时候怎么处理
+    if (!target) target = pimpl()->focus_list.first;
+    // 还没有就算了
+    if (!target) return false;
+    this->SetDefault(*target);
+    return this->SetFocus(*target);
 }
 
 /// <summary>
@@ -1646,6 +1739,7 @@ void LongUI::CUIWindow::Private::OnKeyDownUp(InputEvent ekey, CUIInputKM::KB key
     switch (key)
     {
     case CUIInputKM::KB_ESCAPE:
+        // 检查释放Esc关闭窗口
         if (this->viewport()->RefWindow().config
             & CUIWindow::Config_EscToCloseWindow)
             return this->viewport()->RefWindow().CloseWindow();
@@ -1657,6 +1751,16 @@ void LongUI::CUIWindow::Private::OnKeyDownUp(InputEvent ekey, CUIInputKM::KB key
             return;
         }
         break;
+    case CUIInputKM::KB_TAB:
+        // Tab键: 聚焦上/下键盘焦点
+        this->viewport()->RefWindow().m_bDrawFocus = true;
+        if (ekey == InputEvent::Event_KeyUp) {
+            if (CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT))
+                this->viewport()->RefWindow().FocusPrev();
+            else
+                this->viewport()->RefWindow().FocusNext();
+        }
+        return;
     }
     // 直接将输入引导到焦点控件
     if (const auto focused_ctrl = this->focused) {

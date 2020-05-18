@@ -28,9 +28,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_window;
         // 32bit
-        template<> struct private_window<4> { enum { size = 952, align = 4 }; };
+        template<> struct private_window<4> { enum { size = 944, align = 4 }; };
         // 64bit
-        template<> struct private_window<8> { enum { size = 1200, align = 8 }; };
+        template<> struct private_window<8> { enum { size = 1192, align = 8 }; };
     }
     /// <summary>
     /// window base class
@@ -110,6 +110,8 @@ namespace LongUI {
         bool IsInDtor() const noexcept { return m_inDtor; }
         // mark full rendering
         void MarkFullRendering() noexcept;
+        // will draw focus rect?
+        bool IsDrawFocus() const noexcept { return m_bDrawFocus; };
         // is auto sleep?
         bool IsAutoSleep() const noexcept { return !!(config & Config_Popup); }
         // is in sleep mode?
@@ -195,7 +197,11 @@ namespace LongUI {
         // register access key
         void RegisterAccessKey(UIControl& ctrl) noexcept;
         // find control, return null if notfound
-        auto FindControl(const char* id) noexcept ->UIControl*;
+        auto FindControl(const char* id) noexcept->UIControl*;
+        // find control, return null if notfound
+        auto FindControl(U8View view) noexcept ->UIControl*;
+        // find control with UID-String, return null if notfound
+        auto FindControlWithUID(const char* id) noexcept->UIControl*;
         // control attached
         void ControlAttached(UIControl& ctrl) noexcept;
         // control disattached              [null this ptr acceptable]
@@ -220,6 +226,10 @@ namespace LongUI {
         void InvalidateControl(UIControl&, const RectF* r=nullptr) noexcept;
         // will do full render this frame?
         bool IsFullRenderThisFrame() const noexcept;
+        // focus prev
+        bool FocusPrev() noexcept;
+        // focus next
+        bool FocusNext() noexcept;
     public:
         // end iterator
         auto end()noexcept->Iterator { return{ static_cast<CUIWindow*>(&m_oTail) }; }
@@ -251,12 +261,8 @@ namespace LongUI {
         HWND GetHwnd() const { return m_hwnd; }
         // set native icon data [MUST CALL AFTER SHOUWINDOW]
         void SetNativeIconData(const wchar_t*, uintptr_t big=0) noexcept;
-        // is top level window
-        //bool IsTopLevel() const noexcept { return !m_pParent; }
         // is inline window
         bool IsInlineWindow() const noexcept { return false; }
-        // mark: has script
-        void MarkHasScript() noexcept { m_bHasScript = true; }
     protected:
         // private impl
         auto pimpl() noexcept { return reinterpret_cast<Private*>(&m_private); }
@@ -304,7 +310,7 @@ namespace LongUI {
 #endif
     public:
         // custom script data
-        void*               custom_script_data = nullptr;
+        void*               custom_script = nullptr;
         // config
         WindowConfig  const config;
     protected:
@@ -312,8 +318,8 @@ namespace LongUI {
         bool                m_inDtor : 1;
         // in exec
         bool                m_bInExec : 1;
-        // has script
-        bool                m_bHasScript : 1;
+        // draw focus rect
+        bool                m_bDrawFocus : 1;
         // big icon
         //bool                m_bBigIcon : 1;
         // state: under "minsize changed" list

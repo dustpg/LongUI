@@ -285,6 +285,19 @@ auto LongUI::UIButton::DoEvent(UIControl * sender,
 }
 
 
+#ifdef LUI_DRAW_FOCUS_RECT
+/// <summary>
+/// render this
+/// </summary>
+/// <returns></returns>
+void LongUI::UIButton::Render() const noexcept {
+    Super::Render();
+    // 按钮的焦点矩形在里面
+    if (this->m_oStyle.state.focus && m_pWindow->IsDrawFocus())
+        this->draw_focus_rect(m_oBox.GetContentEdge());
+}
+#endif
+
 /// <summary>
 /// Sets the image source.
 /// </summary>

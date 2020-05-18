@@ -306,7 +306,7 @@ HRESULT LongUI::impl::outline_renderer::DrawGlyphRun(
     // 创建路径几何
     ID2D1PathGeometry* path_geometry = nullptr;
     auto& raw = CUIResMgr::Ref2DFactory();
-    auto& factory = reinterpret_cast<ID2D1Factory&>(raw);
+    auto& factory = reinterpret_cast<ID2D1Factory1&>(raw);
     hr = factory.CreatePathGeometry(&path_geometry);
     // 写入几何体
     ID2D1GeometrySink* sink = nullptr;

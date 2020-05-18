@@ -59,7 +59,7 @@ namespace LongUI {
         // move to global subviewport 
         void MoveToGlobalSubView(UIViewport&) noexcept;
         // find subviewport with unique string
-        auto FindSubViewportWithUnistr(const char*) const noexcept->UIViewport*;
+        auto FindSubViewportWithUID(const char*) const noexcept->UIViewport*;
         // mark window minsize changed, donothing if null
         static void MarkWindowMinsizeChanged(CUIWindow* window) noexcept;
     protected:

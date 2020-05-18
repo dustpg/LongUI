@@ -348,12 +348,14 @@ void LongUI::CUIControlControl::ControlAttached(UIControl& ctrl) noexcept {
 void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
     // 1. 移除初始化表中的引用
     if (!ctrl.is_inited()) {
-        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list);
+        const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list, offset);
     }
     // 2. 移除刷新表中的引用
     if (ctrl.is_in_update_list() && ctrl.is_inited()) {
+        const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
         ctrl.remove_from_update_list();
-        CUIControlControl::RemoveControlInList(ctrl, luiref cc().update_list);
+        CUIControlControl::RemoveControlInList(ctrl, luiref cc().update_list, offset);
     }
 #if 0
     // 3. 移除在脏矩形列表
@@ -381,14 +383,17 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <param name="list">The list.</param>
+/// <param name="offset">offset list.</param>
 /// <returns></returns>
 void LongUI::CUIControlControl::RemoveControlInList(
-    UIControl& ctrl, ControlNode& list) noexcept {
+    UIControl& ctrl, ControlNode& list, size_t offset) noexcept {
     //auto node = list.first;
     auto prev_addr = &list.first;
+    assert(offset % sizeof(void*) == 0);
     // 获取节点对象
-    const auto get_node_addr = [](UIControl& c) noexcept {
-        return &c.m_oManager.next_delinitupd;
+    const auto get_node_addr = [offset](UIControl& c) noexcept {
+        const auto ptr = reinterpret_cast<char*>(&c) + offset;
+        return reinterpret_cast<UIControl**>(ptr);
     };
     // 无效列表
     if (!*prev_addr) {
@@ -434,11 +439,15 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="ctrl">The control.</param>
 /// <param name="list">The list.</param>
+/// <param name="offset">offset list.</param>
 /// <returns></returns>
-void LongUI::CUIControlControl::AddControlToList(UIControl& ctrl, ControlNode& list) noexcept {
+void LongUI::CUIControlControl::AddControlToList(UIControl& ctrl, 
+    ControlNode& list, size_t offset) noexcept {
+    assert(offset % sizeof(void*) == 0);
     // 获取节点对象
-    const auto get_node_addr = [](UIControl& c) noexcept {
-        return &c.m_oManager.next_delinitupd;
+    const auto get_node_addr = [offset](UIControl& c) noexcept {
+        const auto ptr = reinterpret_cast<char*>(&c) + offset;
+        return reinterpret_cast<UIControl**>(ptr);
     };
     const auto ptr = get_node_addr(ctrl);
     assert(*ptr == nullptr);
@@ -493,8 +502,10 @@ void LongUI::CUIControlControl::AddUpdateList(UIControl& ctrl) noexcept {
     if (!ctrl.is_in_update_list()) {
         ctrl.add_into_update_list();
         // 还没有初始化就算了
-        if (ctrl.is_inited())
-            CUIControlControl::AddControlToList(ctrl, luiref cc().update_list);
+        if (ctrl.is_inited()) {
+            const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+            CUIControlControl::AddControlToList(ctrl, luiref cc().update_list, offset);
+        }
     }
 }
 
@@ -505,7 +516,8 @@ void LongUI::CUIControlControl::AddUpdateList(UIControl& ctrl) noexcept {
 /// <returns></returns>
 void LongUI::CUIControlControl::AddInitList(UIControl& ctrl) noexcept {
     assert(ctrl.is_inited() == false);
-    CUIControlControl::AddControlToList(ctrl, luiref cc().init_list);
+    const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+    CUIControlControl::AddControlToList(ctrl, luiref cc().init_list, offset);
 }
 
 /// <summary>
@@ -514,6 +526,7 @@ void LongUI::CUIControlControl::AddInitList(UIControl& ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIControlControl::delete_later(UIControl& ctrl) noexcept {
+    const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
     // 移除初始化表中的引用
     if (!ctrl.is_inited()) {
 #ifndef NDEBUG
@@ -522,11 +535,11 @@ void LongUI::CUIControlControl::delete_later(UIControl& ctrl) noexcept {
 #endif // !NDEBUG
 
         ctrl.m_state.inited = true;
-        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list);
+        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list, offset);
         ctrl.m_oManager.next_delinitupd = nullptr;
     }
     assert(ctrl.m_oManager.next_delinitupd == nullptr);
-    CUIControlControl::AddControlToList(ctrl, luiref cc().delete_list);
+    CUIControlControl::AddControlToList(ctrl, luiref cc().delete_list, offset);
 }
 
 
@@ -581,9 +594,11 @@ bool LongUI::CUIControlControl::init_control_in_list() noexcept {
         // TODO: 错误处理
         ctrl->init();
         // 添加到更新列表
-        if (ctrl->is_in_update_list())
+        if (ctrl->is_in_update_list()) {
             // TODO: [优化] 将越接近根节点的控件放在前面
-            CUIControlControl::AddControlToList(*ctrl, luiref cc.update_list);
+            const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+            CUIControlControl::AddControlToList(*ctrl, luiref cc.update_list, offset);
+        }
     }
     // 存在更新列表
     return !!cc.update_list.first;

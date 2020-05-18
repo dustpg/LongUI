@@ -214,10 +214,23 @@ void LongUI::CUINativeStyleWindows10::draw_sb_track(
 /// <param name="args">The arguments.</param>
 /// <returns></returns>
 void LongUI::CUINativeStyleWindows10::draw_rasizer(const NativeDrawArgs& args) noexcept {
-    // 背景
-    auto rect = args.border;
     // 渲染
+    auto rect = args.border;
     auto& renderer = UIManager.Ref2DRenderer();
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
     ColorF color = ColorF::FromRGBA_CT<0xF0F0F0FF_rgba>();
     renderer.FillRectangle(auto_cast(rect), &UIManager.RefCCBrush(color));
+    // 彩蛋: 会在这里画一个非常浅的L
+    color = ColorF::FromRGBA_CT<0xD0D0D0FF_rgba>();
+    auto& brush = UIManager.RefCCBrush(color);
+    Point2F points[3];
+    points[0].x = rect.left + (rect.right - rect.left) * 0.35f;
+    points[0].y = rect.top + (rect.bottom - rect.top) * 0.3f;
+    points[1].x = rect.left + (rect.right - rect.left) * 0.35f;
+    points[1].y = rect.top + (rect.bottom - rect.top) * 0.7f;
+    points[2].x = rect.left + (rect.right - rect.left) * 0.65f;
+    points[2].y = rect.top + (rect.bottom - rect.top) * 0.7f;
+    renderer.DrawLine(auto_cast(points[0]), auto_cast(points[1]), &brush);
+    renderer.DrawLine(auto_cast(points[1]), auto_cast(points[2]), &brush);
+    renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
 }

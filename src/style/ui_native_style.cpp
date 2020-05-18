@@ -25,8 +25,9 @@ namespace LongUI {
                 assert(!"TOO SMALL");
                 return nullptr;
             }
-            detail::ctor_dtor<CUINativeStyleNow>::create(ptr);
-            return ptr;
+            Result hr = { Result::RS_OK };
+            detail::ctor_dtor<CUINativeStyleNow>::create(ptr, luiref hr);
+            return hr ? ptr : nullptr;
         }
         // recreate native style renderer
         auto recreate_native_style_renderer(void* ptr) noexcept ->Result {
@@ -65,13 +66,14 @@ auto LongUI::NativeStyleDuration(const GetDurationArgs args) noexcept -> uint32_
     case LongUI::Appearance_StatusBarPanel:
     case LongUI::Appearance_ProgressChunkH:
     case LongUI::Appearance_ProgressChunkV:
+    case LongUI::Appearance_CheckBoxContainer:
     case LongUI::Appearance_ScrollbarTrackH:
     case LongUI::Appearance_ScrollbarTrackV:
     case LongUI::Appearance_DropDownMarker:
     case LongUI::Appearance_MenuSeparator:
     case LongUI::Appearance_MenuArrow:
     case LongUI::Appearance_Separator:
-    case LongUI::Appearance_CheckBoxContainer:
+    case LongUI::Appearance_Resizer:
         return 0;
     case LongUI::Appearance_Tab:
         return BASIC_ANIMATION_DURATION * 2;
@@ -100,6 +102,19 @@ void LongUI::NativeStyleDraw(const NativeDrawArgs& args) noexcept {
     const auto ptr = UIManager.GetNativeRenderer();
     const auto style = static_cast<CUINativeStyleNow*>(ptr);
     style->DrawNative(args);
+}
+
+/// <summary>
+/// Draws the native style focus rect.
+/// </summary>
+/// <param name="args">The arguments.</param>
+/// <returns></returns>
+void LongUI::NativeStyleFocus(const RectF& rect) noexcept {
+#ifdef LUI_DRAW_FOCUS_RECT
+    const auto ptr = UIManager.GetNativeRenderer();
+    const auto style = static_cast<CUINativeStyleNow*>(ptr);
+    style->FocusNative(rect);
+#endif
 }
 
 PCN_NOINLINE

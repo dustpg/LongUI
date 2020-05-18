@@ -312,6 +312,7 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::UIListBox::select_item(UIListItem& item) noexcept {
     // 写入表内
+    // TODO: 链表实现m_selected
     m_selected.push_back(&item);
     item.StartAnimation({ StyleStateType::Type_Selected, true });
 }
@@ -574,7 +575,7 @@ auto LongUI::UIListItem::GetTextString() const noexcept -> const CUIString&{
 LongUI::UIListItem::UIListItem(UIControl* parent, const MetaControl& meta) noexcept
     : Super(impl::ctor_lock(parent), meta),
     m_oImage(nullptr), m_oLabel(nullptr) {
-    m_state.focusable = true;
+    //m_state.focusable = true;
     // 原子性, 子控件为本控件的组成部分
     //m_state.atomicity = true;
     // 水平布局
@@ -942,6 +943,7 @@ void LongUI::UIListHead::relayout() noexcept {
     this->relayout_h();
 }
 
+
 // ----------------------------------------------------------------------------
 // --------------------         List Header           -------------------------
 // ----------------------------------------------------------------------------
@@ -960,8 +962,9 @@ namespace LongUI {
 /// <param name="parent">The parent.</param>
 /// <param name="meta">The meta.</param>
 LongUI::UIListHeader::UIListHeader(UIControl* parent, const MetaControl& meta) noexcept
-    : Super(impl::ctor_lock(parent), meta) {
-    m_state.focusable = true;
+    : Super(impl::ctor_lock(parent), meta),
+    m_oImage(this), m_oLabel(this), m_oSortDir(this) {
+    //m_state.focusable = true;
     // 内间距
     m_oBox.padding = { 4, 0, 4, 0 };
     // 水平布局

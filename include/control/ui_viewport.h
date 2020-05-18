@@ -85,8 +85,8 @@ namespace LongUI {
         static auto FindSubViewport(UIControl*, const Node<UIControl>&, const char*) noexcept->UIViewport*;
         // find subviewport with normal string
         auto FindSubViewport(U8View view) const noexcept->UIViewport*;
-        // find subviewport with unique string
-        auto FindSubViewportWithUnistr(const char* str) const noexcept {
+        // find subviewport with  with UID-String
+        auto FindSubViewportWithUID(const char* str) const noexcept {
             return UIViewport::FindSubViewport(m_nSubview.next, m_nSubview, str);
         }
     private:

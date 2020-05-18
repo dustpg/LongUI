@@ -96,7 +96,7 @@ namespace LongUI {
         // private impl
         friend UIControlPrivate;
         // friend
-        friend CUIControlControl;
+        friend CUIControlControl; friend CUIWindow;
         // Unsafe
         friend Unsafe;
     protected:
@@ -413,6 +413,8 @@ namespace LongUI {
         // start animation change
         bool start_animation_change(StyleStateTypeChange) noexcept;
     protected:
+        // draw focus rect
+        void draw_focus_rect(const RectF& rect) const noexcept;
         // apply world transform to renderer
         void apply_world_transform() const noexcept;
         // apply clip rect

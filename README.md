@@ -24,7 +24,7 @@ Lightweight C++ GUI Library
   - dynamic dpi monitor(e.g: 2 different dpi monitor) support
 
 **Accessible**
-  - support accessible even it's light-weight
+  - support accessible even light-weight
 
 <div align="right">  
 <img src="screenshots/accessible-with-inspect.png" width="40%"/>

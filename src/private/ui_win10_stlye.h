@@ -9,6 +9,8 @@
 
 // ui namespace
 namespace LongUI {
+    // I::StrokeStyle
+    namespace I { struct StrokeStyle; }
     // color
     struct ColorF;
     // control
@@ -41,6 +43,8 @@ namespace LongUI {
     class CUINativeStyleWindows10 final : public CUINativeStyle {
         // release device-dependent resources
         void release_dd_resources() noexcept;
+        // release device-independent resources
+        void release_di_resources() noexcept;
         // release all resources
         void release_all_resources() noexcept;
         // self type
@@ -84,13 +88,15 @@ namespace LongUI {
             SLIDER_TRACK_HHH = 2,
         };
         // ctor
-        CUINativeStyleWindows10() noexcept;
+        CUINativeStyleWindows10(Result& hr) noexcept;
         // dtor
         ~CUINativeStyleWindows10() noexcept { this->release_all_resources(); }
         // recreate_device resources
         auto Recreate() noexcept->Result;
         // draw native
         void DrawNative(const NativeDrawArgs& args) noexcept;
+        // draw native
+        void FocusNative(const RectF& rect) noexcept;
         // initialize control
         void InitCtrl(UIControl& ctrl, AttributeAppearance) noexcept;
     private:
@@ -173,6 +179,8 @@ namespace LongUI {
         // arrow geometry
         CUIGeometry             m_geoArrow;
 #endif
+        // stroke style
+        I::StrokeStyle*         m_pStrokeStyle = nullptr;
     };
 
 

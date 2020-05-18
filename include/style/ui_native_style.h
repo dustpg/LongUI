@@ -35,6 +35,8 @@ namespace LongUI {
     //void NativeStyleAdjustSubElement(SubElement sube, RectF& rect) noexcept;
     // draw native style
     void NativeStyleDraw(const NativeDrawArgs& args) noexcept;
+    // draw native focus rect
+    void NativeStyleFocus(const RectF& rect) noexcept;
     // init native style
     void NativeStyleInit(UIControl& ctrl, AttributeAppearance) noexcept;
     // get animation dur

@@ -19,8 +19,8 @@
 // no script support
 //#define LUI_NO_SCRIPT
 
-// longui implement a non-pod vector, define this if you want to use
-//#define LUI_NONPOD_VECTOR
+// longui will draw focus rect
+#define LUI_DRAW_FOCUS_RECT
 
 // give every control intptr_t c++: user_data/xml: data-user(int);
 //#define LUI_USER_INIPTR_DATA

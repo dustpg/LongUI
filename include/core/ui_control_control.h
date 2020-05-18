@@ -88,9 +88,9 @@ namespace LongUI {
 #endif
     public:
         // remove control from list
-        static void RemoveControlInList(UIControl& ctrl, ControlNode& list) noexcept;
+        static void RemoveControlInList(UIControl& ctrl, ControlNode& list, size_t offset) noexcept;
         // add control to list
-        static void AddControlToList(UIControl& ctrl, ControlNode& list) noexcept;
+        static void AddControlToList(UIControl& ctrl, ControlNode& list, size_t offset) noexcept;
         // make xul tree
         static bool MakeXul(UIControl& ctrl, const char* xul) noexcept;
         // render 

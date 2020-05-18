@@ -81,8 +81,10 @@ namespace LongUI {
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
     public:
+#ifdef LUI_DRAW_FOCUS_RECT
         // render
-        //void Render() const noexcept override;
+        void Render() const noexcept override;
+#endif
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;

@@ -70,12 +70,25 @@ void LongUI::CUINativeStyleWindows10::draw_list_item(
     //const auto bdcolor = LongUI::Mix(bdcolor1, bdcolor2, args.progress);
     const auto deprogress = 1.f - args.progress;
     //const auto border_halfw = w2 * args.progress + w1 * deprogress;
+#if 0
     // 边框中心位置
     auto center = args.border;
-    //center.top += border_halfw;
-    //center.left += border_halfw;
-    //center.right -= border_halfw;
-    //center.bottom -= border_halfw;
+    center.top += border_halfw;
+    center.left += border_halfw;
+    center.right -= border_halfw;
+    center.bottom -= border_halfw;
+
+
+    const auto get_alpha = [&]() noexcept {
+        if (args.to.hover == args.from.hover) return 1.f;
+        else return args.from.hover ? 1.f - args.progress : args.progress;
+    }();
+
+    const auto height = center.bottom - center.top;
+    const auto mid = (center.bottom + center.top) * 0.5f;
+    center.top = mid - height * get_alpha * 0.5f;
+    center.bottom = mid + height * get_alpha * 0.5f;
+#endif
     // 渲染器
     auto& renderer = UIManager.Ref2DRenderer();
     // 背景色彩
