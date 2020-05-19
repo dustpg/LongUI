@@ -402,7 +402,7 @@ void LongUI::UIButton::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_GROUP:
         // group : 按键组
-        m_pGroup = UIManager.GetUniqueText(value);
+        m_pGroup = UIManager.GetUniqueText(value).id;
         break;
     default:
         // 其他情况, 交给基类处理

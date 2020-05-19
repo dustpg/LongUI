@@ -443,7 +443,7 @@ namespace LongUI {
         // child count
         uint32_t                m_cChildrenCount = 0;
         // id of control
-        const char*             m_id = CUIConstShortString::EMPTY;
+        ULID                    m_id = { CUIConstShortString::EMPTY };
         // meta info of control
         const MetaControl&      m_refMetaInfo;
         // style model

@@ -105,27 +105,6 @@ void LongUI::UIGroupBox::add_child(UIControl& child) noexcept {
     UIControlPrivate::CallAddChild(*target, child);
 }
 
-/// <summary>
-/// Updates this instance.
-/// </summary>
-/// <returns></returns>
-//void LongUI::UIGroupBox::Update() noexcept {
-//    // 污了?
-//    if (this->is_size_changed()) {
-//        // 更新布局
-//        this->relayout();
-//        // 更新子控件
-//        m_private->head.NeedUpdate();
-//        m_private->head.NeedUpdate();
-//        // 这里, 世界不再改变
-//        //assert(m_state.world_changed == false);
-//    }
-//    // 链式调用
-//    Super::Update();
-//    this->size_change_handled();
-//}
-
-
 
 #ifdef LUI_ACCESSIBLE
 

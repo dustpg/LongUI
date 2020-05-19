@@ -108,7 +108,7 @@ namespace LongUI {
         void operator delete(void* ptr, const std::nothrow_t&) noexcept { LongUI::SmallFree(ptr); }
     protected:
         // is support ITextProvider
-        //auto is_support_text() const noexcept { return false; }
+        auto is_support_text() const noexcept { return false; }
         // is support IGridProvider
         auto is_support_grid() const noexcept { return false; }
         // is support ITableProvider
@@ -138,7 +138,7 @@ namespace LongUI {
         // is support IExpandCollapseProvider
         auto is_support_expand_collapse() const noexcept { return false; }
         // is support ILegacyIAccessibleProvider
-        //auto is_support_legacy_interface() const noexcept { return false; }
+        auto is_support_legacy_interface() const noexcept { return false; }
     public:
         // ctor
         CUIAccessible(UIControl& ctrl) noexcept;

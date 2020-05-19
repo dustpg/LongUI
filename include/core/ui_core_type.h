@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 namespace LongUI {
+    // LUID - Unique LongUI ID
+    struct ULID { const char* id; };
     // string view
     template<typename T> struct PodStringView;
     // UTF-8 String View

@@ -160,6 +160,8 @@ namespace LongUI {
         CUIDebug& operator<< (const char16_t* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
         // overload << operator for const char*
         CUIDebug& operator<< (const char* s) noexcept { this->OutputNoFlush(m_lastLevel, s); return *this; }
+        // overload << operator for const char*
+        CUIDebug& operator<< (ULID id) noexcept { return *this << id.id; }
         // overload << operator for char32_t
         CUIDebug& operator<< (const char32_t ch) noexcept;
         // overload << operator for char16_t

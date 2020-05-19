@@ -639,17 +639,17 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
             const auto splited = value.Split(' ');
             if (splited.end() > splited.begin()) {
                 const auto unitext = UIManager.GetUniqueText(splited);
-                m_classesStyle.push_back(unitext);
+                m_classesStyle.push_back(unitext.id);
             }
         }
         break;
     case BKDR_CONTEXT & MASK_HASH:
         // context    : 上下文菜单 
-        m_pCtxCtrl = UIManager.GetUniqueText(value);
+        m_pCtxCtrl = UIManager.GetUniqueText(value).id;
         break;
     case BKDR_TOOLTIP & MASK_HASH:
         // tooltip    : 提示窗口
-        m_pTooltipCtrl = UIManager.GetUniqueText(value);
+        m_pTooltipCtrl = UIManager.GetUniqueText(value).id;
         break;
     case BKDR_TOOLTIPTEXT & MASK_HASH:
         // tooltiptext: 提示文本
@@ -1077,7 +1077,6 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         if (m_pHovered) {
             UIControlPrivate::DoMouseLeave(*m_pHovered, { e.px, e.py });
             m_pHovered = nullptr;
-            this->NeedUpdate();
         }
         // 截断ENTER LEAVE消息
         this->release_tooltip();
@@ -1091,7 +1090,6 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             if (hover) UIControlPrivate::DoMouseLeave(*hover, { e.px, e.py });
             if (child) UIControlPrivate::DoMouseEnter(*child, { e.px, e.py });
             m_pHovered = child;
-            this->NeedUpdate();
         }
         if (child && child->IsEnabled()) return child->DoMouseEvent(e);
         // 处理MOUSE消息
@@ -1390,8 +1388,6 @@ void LongUI::UIControl::remove_child(UIControl& child) noexcept {
     if (m_state.destructing) return;
     this->mark_window_minsize_changed();
     this->NeedRelayout();
-    //this->Invalidate();
-    //this->NeedUpdate();
 }
 
 
@@ -1419,7 +1415,7 @@ bool LongUI::UIControl::IsVaildInLayout() const noexcept {
 /// <returns></returns>
 void LongUI::UIControl::AddStyleClass(U8View pair) noexcept {
     // 可能就几条甚至不超过一条, 直接插入即可
-    const auto style_class = UIManager.GetUniqueText(pair);
+    const auto style_class = UIManager.GetUniqueText(pair).id;
     const auto b = m_classesStyle.begin();
     const auto e = m_classesStyle.end();
     if (std::find(b, e, style_class) == e) 
@@ -1433,7 +1429,7 @@ void LongUI::UIControl::AddStyleClass(U8View pair) noexcept {
 /// <returns></returns>
 void LongUI::UIControl::RemoveStyleClass(U8View pair) noexcept {
     // 可能就几条甚至不超过一条, 直接删除即可
-    const auto style_class = UIManager.GetUniqueText(pair);
+    const auto style_class = UIManager.GetUniqueText(pair).id;
     const auto b = m_classesStyle.begin();
     const auto e = m_classesStyle.end();
     // NOTE: <UB说明> STL中, 这句是UB(out of range)
@@ -2115,6 +2111,7 @@ bool LongUI::UIControl::SetXulFromFile(U8View url) noexcept {
     return false;
 }
 
+
 PCN_NOINLINE
 /// <summary>
 /// Clears the application.
@@ -2150,15 +2147,15 @@ auto LongUI::UIControl::accessible(const AccessibleEventArg& args) noexcept -> E
         // 获取Acc名称
         *static_cast<const get1_t&>(args).name =
 #ifdef NDEBUG
-            CUIString::FromUtf8(!m_id[0] ? m_refMetaInfo.element_name : m_id);
+            CUIString::FromUtf8(!m_id.id[0] ? m_refMetaInfo.element_name : m_id.id);
 #else
-            CUIString::FromUtf8(!m_id[0] ? this->name_dbg : m_id);
+            CUIString::FromUtf8(!m_id.id[0] ? this->name_dbg : m_id.id);
 #endif
         return Event_Accept;
     case AccessibleEvent::Event_All_GetDescription:
         // 获取描述字符串
     {
-        const auto name = CUIString::FromUtf8(this->GetID());
+        const auto name = CUIString::FromUtf8(this->GetID().id);
         static_cast<const getd_t&>(args).description->format(
             u"element<%hs> id<%ls>",
             m_refMetaInfo.element_name,

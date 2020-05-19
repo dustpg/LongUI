@@ -324,23 +324,22 @@ bool LongUI::UITextBox::is_change_could_trigger() const noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UITextBox::show_caret() noexcept {
-    if (m_state.world_changed) return;
     auto caret = pimpl()->document().GetCaret();
     // 调整到内容区域
     const auto lt = this->GetBox().GetContentPos();
     caret.x += lt.x; caret.y += lt.y;
+    // FIXME: 为什么偏了2像素?
+    caret.x -= 2.f;
     // GetCaret返回的矩形宽度没有意义, 可以进行自定义
     const float custom_width = 1.0f;
     const float offset_rate = 0.0f;
     const float border = 0.0f;
-
     RectF rect = {
         caret.x - custom_width * offset_rate,
         caret.y + border,
         caret.x + custom_width * (1 - offset_rate), 
         caret.y + caret.height - border
     };
-
     pimpl()->doc_map(&rect.left);
     pimpl()->doc_map(&rect.right);
     m_pWindow->ShowCaret(*this, rect);

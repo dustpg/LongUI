@@ -201,7 +201,7 @@ namespace LongUI {
         // find control, return null if notfound
         auto FindControl(U8View view) noexcept ->UIControl*;
         // find control with UID-String, return null if notfound
-        auto FindControlWithUID(const char* id) noexcept->UIControl*;
+        auto FindControl(ULID) noexcept->UIControl*;
         // control attached
         void ControlAttached(UIControl& ctrl) noexcept;
         // control disattached              [null this ptr acceptable]

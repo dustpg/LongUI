@@ -159,7 +159,7 @@ void LongUI::UIViewport::AddSubViewport(UIViewport& sub) noexcept {
 /// <param name="view">The view.</param>
 /// <returns></returns>
 auto LongUI::UIViewport::FindSubViewport(U8View view) const noexcept -> UIViewport* {
-    const auto unistr = UIManager.GetUniqueText(view);
+    const auto unistr = UIManager.GetUniqueText(view).id;
     return UIViewport::FindSubViewport(m_nSubview.next, m_nSubview, unistr);
 }
 
@@ -286,9 +286,9 @@ auto LongUI::UIViewport::FindSubViewport(UIControl* node,
         const auto view = static_cast<UIViewport*>(node);
 
         // 唯一字符串用==判断
-        if (view->GetID() == name) return view;
+        if (view->GetID().id == name) return view;
 #ifndef NDEBUG
-        if (!std::strcmp(view->GetID(), name)) {
+        if (!std::strcmp(view->GetID().id, name)) {
             assert(!"use UIManager.GetUniqueText");
         }
 #endif

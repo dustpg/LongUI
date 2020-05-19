@@ -1140,13 +1140,6 @@ void LongUI::UITreeCols::do_update_for_item(UIControl& ctrl) noexcept {
     }
 }
 
-/// <summary>
-/// Updates this instance.
-/// </summary>
-/// <returns></returns>
-//void LongUI::UITreeCols::Update() noexcept {
-//    return Super::Update();
-//}
 
 // ----------------------------------------------------------------------------
 // --------------------           Tree Cell           -------------------------

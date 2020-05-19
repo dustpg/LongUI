@@ -885,7 +885,7 @@ void LongUI::InitDefaultState(UniByte4 buf[], UniByte8 buf2[]) noexcept {
 /// <param name="value">The value.</param>
 /// <returns></returns>
 auto LongUI::detail::parse_string(U8View value) noexcept -> const char* {
-    return UIManager.GetUniqueText(value);
+    return UIManager.GetUniqueText(value).id;
 }
 
 

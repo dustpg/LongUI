@@ -4,9 +4,9 @@
 #include <debugger/ui_debug.h>
 #include <control/ui_checkbox.h>
 // 子控件
-#include <control/ui_boxlayout.h>
 #include <core/ui_unsafe.h>
 #include <constexpr/const_bkdr.h>
+#include <control/ui_boxlayout.h>
 // Private
 #include "../private/ui_private_control.h"
 
@@ -205,6 +205,26 @@ auto LongUI::UICheckBox::DoEvent(
 
 
 #ifdef LUI_DRAW_FOCUS_RECT
+
+
+/// <summary>
+/// Triggers the event.
+/// </summary>
+/// <param name="event">The event.</param>
+/// <returns></returns>
+auto LongUI::UICheckBox::TriggerEvent(GuiEvent event) noexcept -> EventAccept {
+    // 由于焦点位置特殊, 针对焦点的处理 
+    EventAccept code = Event_Ignore;
+    switch (event)
+    {
+    case LongUI::GuiEvent::Event_OnFocus:
+    case LongUI::GuiEvent::Event_OnBlur:
+        this->Invalidate();
+        break;
+    }
+    return Super::TriggerEvent(event);
+}
+
 /// <summary>
 /// render this
 /// </summary>
@@ -246,13 +266,6 @@ void LongUI::UICheckBox::init_checkbox() noexcept {
     if (m_oStyle.state.disabled) {
         UIControlPrivate::RefStyleState(m_oImage).disabled = true;
     }
-#ifdef LUI_DRAW_FOCUS_RECT
-    // 由于焦点位置特殊, 针对焦点的处理 
-    const auto invoncall = [](UIControl& c) noexcept {c.Invalidate(); return Event_Accept; };
-    // 再者仅仅是视觉处理, 不用针对OOM处理
-    this->AddGuiEventListener(this->_onFocus(), invoncall);
-    this->AddGuiEventListener(this->_onBlur(), invoncall);
-#endif
 }
 
 

@@ -233,15 +233,15 @@ namespace LongUI {
         {
         case Selectors_Type:
             assert(!selector->stype && "not null?");
-            selector->stype = UIManager.GetUniqueText(value);
+            selector->stype = UIManager.GetUniqueText(value).id;
             break;
         case Selectors_Class:
             assert(!selector->sclass && "not null?");
-            selector->sclass = UIManager.GetUniqueText(value);
+            selector->sclass = UIManager.GetUniqueText(value).id;
             break;
         case Selectors_Id:
             assert(!selector->sid && "not null?");
-            selector->sid = UIManager.GetUniqueText(value);
+            selector->sid = UIManager.GetUniqueText(value).id;
             break;
         case Selectors_PseudoElement:
             assert(!"NOT IMPL");
@@ -544,7 +544,7 @@ namespace LongUI {
             if (s.sid) {
                 // 都是动态申请的Unique Text, 使用 == 比较
                 // HINT: 最后一个, 直接return
-                return c.GetID() == s.sid;
+                return c.GetID().id == s.sid;
             }
             return true;
         };

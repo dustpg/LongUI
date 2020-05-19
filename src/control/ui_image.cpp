@@ -32,25 +32,6 @@ LongUI::UIImage::~UIImage() noexcept {
 }
 
 
-
-/// <summary>
-/// Does the mouse event.
-/// </summary>
-/// <param name="e">The e.</param>
-/// <returns></returns>
-//auto LongUI::UIImage::DoMouseEvent(const MouseEventArg & e) noexcept -> EventAccept {
-//    // 左键弹起 修改状态
-//    switch (e.type)
-//    {
-//    case LongUI::MouseEvent::Event_LButtonUp:
-//        assert(m_pParent);
-//        m_pParent->DoEvent(this, { NoticeEvent::Event_ImageChildClicked });
-//        [[fallthrough]];
-//    default:
-//        return Super::DoMouseEvent(e);
-//    }
-//}
-
 /// <summary>
 /// Adds the attribute.
 /// </summary>
@@ -104,19 +85,6 @@ void LongUI::UIImage::SetSource(U8View src) noexcept {
         this->Invalidate();
     }
 }
-
-/// <summary>
-/// Recreates this instance.
-/// </summary>
-/// <returns></returns>
-//auto LongUI::UIImage::Recreate() noexcept->Result {
-//    // 获取Image对象
-//    if (m_idSrc.GetId()) {
-//    }
-//    // 基类处理
-//    return Super::Recreate();
-//}
-
 
 /// <summary>
 /// Does the event.

@@ -185,7 +185,7 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
         break;
     case BKDR_NAME:
         // name :  组名
-        m_pName = UIManager.GetUniqueText(value);
+        m_pName = UIManager.GetUniqueText(value).id;
         break;
     case BKDR_TYPE:
         // type : 类型

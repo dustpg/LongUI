@@ -49,8 +49,6 @@ namespace LongUI {
         auto DoEvent(UIControl*, const EventArg&)noexcept->EventAccept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        // update
-        void Update() noexcept override;
     protected:
         // add child
         void add_child(UIControl& child) noexcept override;
@@ -58,8 +56,6 @@ namespace LongUI {
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // try show next level menu
         void try_show_next_level_menu() noexcept;
-        // arrow item if UIMenu as child of UIMenuPopup
-        UIControl*          m_pMenuArrow = nullptr;
     };
     // get meta info for UIMenu
     LUI_DECLARE_METAINFO(UIMenu);

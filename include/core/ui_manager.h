@@ -103,7 +103,7 @@ namespace LongUI {
         void NeedRecreate() noexcept;
     public:
         // add [unique]/[release-free] text
-        auto GetUniqueText(U8View pair) noexcept->const char*;
+        ULID GetUniqueText(U8View pair) noexcept;
         // create control within element name
         auto CreateControl(U8View element, UIControl* parent) noexcept->UIControl*;
     public:

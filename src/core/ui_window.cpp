@@ -49,11 +49,10 @@ namespace LongUI { namespace impl {
     // get subpixcel rendering level
     void get_subpixel_text_rendering(uint32_t&) noexcept;
     // eval script for window
-    //void eval_script_for_window(U8View view, CUIWindow* window) noexcept {
-    //    assert(window && "eval script but no window");
-    //    window->MarkHasScript();
-    //    UIManager.Evaluation(view, *window);
-    //}
+    void eval_script_for_window(U8View view, CUIWindow* window) noexcept {
+        assert(window && "eval script but no window");
+        UIManager.Evaluation(view, *window);
+    }
     // mark two rect
     inline auto mark_two_rect_dirty(
         const RectF& a,
@@ -774,7 +773,7 @@ void LongUI::CUIWindow::RegisterAccessKey(UIControl& ctrl) noexcept {
 auto LongUI::CUIWindow::FindControl(const char* id) noexcept -> UIControl* {
     assert(id && "bad id");
     U8View view = U8View::FromCStyle(id);
-    return this->FindControlWithUID(UIManager.GetUniqueText(view));
+    return this->FindControl(UIManager.GetUniqueText(view));
 }
 
 
@@ -785,7 +784,7 @@ auto LongUI::CUIWindow::FindControl(const char* id) noexcept -> UIControl* {
 /// <returns></returns>
 auto LongUI::CUIWindow::FindControl(U8View id) noexcept -> UIControl* {
     assert(id.size() && "bad id");
-    return this->FindControlWithUID(UIManager.GetUniqueText(id));
+    return this->FindControl(UIManager.GetUniqueText(id));
 }
 
 PCN_NOINLINE
@@ -794,13 +793,13 @@ PCN_NOINLINE
 /// </summary>
 /// <param name="id">The identifier.</param>
 /// <returns></returns>
-auto LongUI::CUIWindow::FindControlWithUID(const char* id) noexcept -> UIControl * {
-    if (id == CUIConstShortString::EMPTY) return nullptr;
-    assert(id && *id && "bad string");
+auto LongUI::CUIWindow::FindControl(ULID id) noexcept -> UIControl * {
+    if (id.id == CUIConstShortString::EMPTY) return nullptr;
+    assert(id.id && *id.id && "bad string");
     auto node = pimpl()->named_list.first;
     // 遍历命名列表
     while (node) {
-        if (node->GetID() == id) return node;
+        if (node->GetID().id == id.id) return node;
         node = node->m_oManager.next_named;
     }
     return nullptr;
@@ -827,8 +826,8 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
     // XXX: 自己就是窗口的场合
     if (this->RefViewport() == ctrl) return;
     // 注册命名控件
-    if (ctrl.GetID() != CUIConstShortString::EMPTY) {
-        assert(ctrl.GetID() && ctrl.GetID()[0]);
+    if (ctrl.GetID().id != CUIConstShortString::EMPTY) {
+        assert(ctrl.GetID().id && ctrl.GetID().id[0]);
 #ifndef NDEBUG
         // 必须没有被注册过
         if (this->FindControl(ctrl.GetID())) {
@@ -927,7 +926,7 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
 
     }
     // 移除查找表中的引用
-    if (*ctrl.GetID()) {
+    if (ctrl.GetID().id[0]) {
         auto& list = pimpl()->named_list;
         const size_t offset = offsetof(UIControl, m_oManager.next_named);
         CUIControlControl::RemoveControlInList(ctrl, list, offset);
@@ -1622,20 +1621,23 @@ auto LongUI::CUIWindow::GetNowPopup(PopupType type) const noexcept-> CUIWindow* 
 /// </remarks>
 void LongUI::CUIWindow::ClosePopupHighLevel() noexcept {
 #if 0
-    // 根据this信息
+    // 根据Parent信息
     auto winp = this;
+    // 正式处理
+    while (winp && winp->config & Config_Popup) winp = winp->GetParent();
 #else
     // 根据Hoster信息
     auto& view = this->RefViewport();
-    const auto hoster = view.GetHoster();
-    CUIWindow* winp = hoster ? hoster->GetWindow() : nullptr;
+    auto hoster = view.GetHoster();
+    CUIWindow* winp = nullptr;
+    while (hoster) {
+        winp = hoster->GetWindow();
+        if (winp) hoster = winp->RefViewport().GetHoster();
+    }
+    assert(!winp || !(winp->config & Config_Popup));
 #endif
-    // 正式处理
-    while (winp && winp->config & Config_Popup) winp = winp->GetParent();
     if (winp) winp->ClosePopup();
-#ifndef NDEBUG
-    else  LUIDebug(Error) << "winp -> null" << endl;
-#endif
+    else LUIDebug(Error) << "winp -> null" << endl;
 }
 
 /// <summary>

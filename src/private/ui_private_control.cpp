@@ -113,6 +113,8 @@ void LongUI::UIControlPrivate::RefreshMinSize(UIControl& ctrl) noexcept {
 void LongUI::UIControlPrivate::UpdateWorld(UIControl& ctrl) noexcept {
     // 需要刷新
     if (ctrl.m_state.world_changed) {
+        //ctrl.Update();
+        ctrl.m_state.world_changed = false;
         Matrix3X2F matrix;
         // TODO: 根节点
         if (ctrl.IsTopLevel()) {
@@ -132,7 +134,6 @@ void LongUI::UIControlPrivate::UpdateWorld(UIControl& ctrl) noexcept {
             ctrl.m_mtWorld = matrix;
         }
 
-        ctrl.m_state.world_changed = false;
         auto& box = ctrl.m_oBox;
         auto ctrl_rect = ctrl.GetBox().GetSafeBorderEdge();
         ctrl.MapToWindow(ctrl_rect);

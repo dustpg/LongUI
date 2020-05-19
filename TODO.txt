@@ -1,14 +1,8 @@
-﻿pod_hash OOM 处理 测试
+﻿ m_state.world_changed 
+  >>
+UIControl::Update 改为非虚函数 追加 虚函数ChangedEvent
 
-合并 m_oHead m_oTail以节约一个指针?
-
-合并 m_oHead m_oTail以节约两个指针? 但是需要注意IsFirstChild这些用到nullptr的
-
-空间初始化事件过长导致UPDATE?
-
-LongUI::CUIBitmapBank::Free 测试 优化
-
-tab功能?
+pod_hash OOM 处理 测试
 
 CUIWaiter单独测试?
 
@@ -26,8 +20,6 @@ Demo2 点击几下后会重新布局.
 
 还有部分控件没有实现
 
-OnError
-
 读取资源方式修改以方便读取压缩包中的文件?
 
 bug.dmp
@@ -37,10 +29,6 @@ bug.dmp
 Timer
 
 LUI_NO_SCRIPT
-
-缓存字体TextFormat? 修改text-align就要创建一个新的字体.
-
-图片动画?
 
 赋予原子控件真正的意义
 ------------------------------------------------------------------
@@ -55,8 +43,6 @@ ResourceList
 SSBlock::~SSBlock
 
 Context Menu按键支持
-
-双滚动条 BUG1. 没有显示完 2.夹角处显示
 
 一些快捷键会有默认行为比如选择第一个?
 
@@ -100,17 +86,11 @@ set_child_parent_nnrivc 全面检查?
 
 Init事件有一个HR的返回值?
 
-安全检查, 无需static_cast<I::???*>
-
 OOM: [强制测试]申请函数使用静态变量按进度直接返回nullptr?
-
-TextBC: 仅仅插入符移动的优化?
 
 SimpAX: (ch == ' ') | (ch == '\t'); -> (ch == ' ') || (ch == '\t');
 
 SimpAX: 字节映射表使用每一位, 节约7倍
-
-CUIWindow 也使用树节点
 
 实现 fixedqueue
 
@@ -119,8 +99,6 @@ CUIWindow 也使用树节点
 CUIString::fromLatin1
 
 m_state.in_dtor ?
-
-UIControl::Update 改为非虚函数 追加 虚函数ChangedEvent
 
 异步加载?
 
@@ -132,10 +110,4 @@ CSS border-width 属性
 
 位域压缩属性
 
-CUINativeStyleWindows10 使用私有笔刷
-
-优化几何显示
-
-native style mix color
-
-目标状态立即生效?
+CUINativeStyleWindows10 使用私有笔刷 - > 没有必要?

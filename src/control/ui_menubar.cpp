@@ -79,21 +79,6 @@ LongUI::UIMenu::UIMenu(UIControl* parent, const MetaControl& meta) noexcept
 
 
 /// <summary>
-/// Updates this instance.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIMenu::Update() noexcept {
-    // 准备构造
-    if (m_pMenuArrow == reinterpret_cast<UIControl*>(-1)) {
-        if (m_pMenuArrow = new(std::nothrow) UIControl{ this }) {
-            constexpr auto app = Appearance_MenuArrow;
-            UIControlPrivate::SetAppearance(*m_pMenuArrow, app);
-        }
-    }
-    return Super::Update();
-}
-
-/// <summary>
 /// Does the event.
 /// </summary>
 /// <param name="sender">The sender.</param>
@@ -101,6 +86,7 @@ void LongUI::UIMenu::Update() noexcept {
 /// <returns></returns>
 auto LongUI::UIMenu::DoEvent(UIControl * sender,
     const EventArg& e) noexcept -> EventAccept {
+    constexpr auto tbbtn = Appearance_ToolBarButton;
     // 初始化
     switch (e.nevent)
     {
@@ -109,13 +95,17 @@ auto LongUI::UIMenu::DoEvent(UIControl * sender,
         if (uisafe_cast<UIMenuPopup>(m_pParent)) {
             UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_MenuItem);
             m_oBox.padding.left = UIMenuItem::ICON_WIDTH;
-            m_pMenuArrow = reinterpret_cast<UIControl*>(-1);
+            // !!! 基类处理
+            Super::DoEvent(sender, e);
+            if (const auto pMenuArrow = new(std::nothrow) UIControl{ this }) {
+                constexpr auto app = Appearance_MenuArrow;
+                UIControlPrivate::SetAppearance(*pMenuArrow, app);
+            }
             this->set_label_flex(1.f);
+            return Event_Accept;
         }
         // 其他情况
-        else {
-            UIControlPrivate::SetAppearanceIfNotSet(*this, Appearance_ToolBarButton);
-        }
+        else UIControlPrivate::SetAppearanceIfNotSet(*this, tbbtn);
         break;
     case NoticeEvent::Event_PopupBegin:
         // 弹出的是内建的菜单

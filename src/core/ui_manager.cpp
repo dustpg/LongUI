@@ -312,14 +312,13 @@ void LongUI::CUIManager::Exit(uintptr_t code) noexcept {
 /// </summary>
 /// <param name="pair">The pair.</param>
 /// <returns></returns>
-auto LongUI::CUIManager::GetUniqueText(
-    U8View pair) noexcept -> const char* {
+auto LongUI::CUIManager::GetUniqueText(U8View pair) noexcept ->ULID {
     assert(pair.second > pair.first && "bad string");
     auto& texts = this_()->pm().texts;
     const auto code = texts.insert(pair.first, pair.second, nullptr);
     // OOM - 内存不足
-    if (code.first == texts.end()) return CUIConstShortString::EMPTY;
-    else return code.first->first;
+    if (code.first == texts.end()) return { CUIConstShortString::EMPTY };
+    else return { code.first->first };
 }
 
 // windows api

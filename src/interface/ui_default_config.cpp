@@ -272,7 +272,7 @@ void LongUI::CUIDefaultConfigure::DefaultFontArg(FontArg& arg) noexcept {
         char buffer[buflen];
         const auto str = buf.log.lfFaceName;
         const auto len = Unicode::To<Unicode::UTF8>(buffer, buflen, str);
-        arg.family = UIManager.GetUniqueText({ buffer, buffer + len });
+        arg.family = UIManager.GetUniqueText({ buffer, buffer + len }).id;
     }
     // 斜体字
     arg.style = buf.log.lfItalic ? Style_Italic : Style_Normal;

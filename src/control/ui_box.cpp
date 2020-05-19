@@ -419,9 +419,9 @@ auto LongUI::UIBoxLayout::accessible(const AccessibleEventArg& args) noexcept->E
             CUIStringU8 string = m_state.orient == Orient_Horizontal ?
                 "hor-"_sv : "ver-"_sv;
             string.append(m_refMetaInfo.element_name);
-            if (m_id[0]) {
+            if (m_id.id[0]) {
                 string.append(": "_sv);
-                string.append(m_id);
+                string.append(m_id.id);
             }
             *output = CUIString::FromUtf8(string.view());
         }

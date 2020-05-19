@@ -384,6 +384,7 @@ void LongUI::CUIWndMgr::refresh_window_world() noexcept {
         if (const auto ctrl = window->m_pTopestWcc) {
             window->m_pTopestWcc = nullptr;
             const auto top = ctrl->IsTopLevel() ? ctrl : ctrl->GetParent();
+            //const auto top = ctrl;
             UIControlPrivate::UpdateWorld(*top);
         }
     }
