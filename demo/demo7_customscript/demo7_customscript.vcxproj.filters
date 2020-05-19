@@ -2,9 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="demo7.cpp" />
-    <ClCompile Include="mjs.c" />
+    <ClCompile Include="v7.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mjs.h" />
+    <ClInclude Include="v7.h" />
   </ItemGroup>
 </Project>

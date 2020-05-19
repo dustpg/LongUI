@@ -88,11 +88,11 @@ function imagize(btnID,imageID)
         <menupopup>
            <menu label="More!!!!!!!!!!!!!!!!!!!!!!!!!!!" >
              <menupopup>
-               <menuitem label="A" />
-               <menuitem label="B" />
-               <menuitem label="C" />
+               <menuitem label="A" acceltext="CTRL-A"/>
+               <menuitem label="B" acceltext="CTRL-B"/>
+               <menuitem label="C" acceltext="CTRL-C"/>
                <menuseparator />
-               <menu label="More" >
+               <menu label="More" acceltext="CTRL-M">
                  <menupopup>
                    <menuitem label="1" />
                    <menuitem label="2" />

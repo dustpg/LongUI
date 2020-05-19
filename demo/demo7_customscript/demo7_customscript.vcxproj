@@ -153,10 +153,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="demo7.cpp" />
-    <ClCompile Include="mjs.c" />
+    <ClCompile Include="v7.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mjs.h" />
+    <ClInclude Include="v7.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

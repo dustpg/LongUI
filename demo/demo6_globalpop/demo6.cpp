@@ -1,4 +1,4 @@
-#include <core/ui_manager.h>
+ï»¿#include <core/ui_manager.h>
 #include <control/ui_label.h>
 #include <control/ui_textbox.h>
 #include <control/ui_viewport.h>
@@ -27,6 +27,36 @@ const auto xul = u8R"xml(
         <textbox id="txt3" context="popupmenu" />
     </hbox>
   <spacer flex="1"/>
+</window>
+)xml";
+
+const auto text_context = u8R"xml(
+<?xml version="1.0"?>
+<window>
+    <popup id="global_context">
+        <menuitem label="æ’¤é”€" id="undo" acceltext="Ctrl+Z"/>
+        <menuseparator/>
+        <menuitem label="Copy" id="copy" acceltext="Ctrl+C"/>
+        <menuitem label="åˆ‡ã‚Šå–ã‚Š" id="cut" acceltext="Ctrl+X"/>
+        <menuitem label="Paste" id="paste" acceltext="Ctrl+V"/>
+        <menuseparator/>
+        <menuitem label="å…¨é€‰" id="selall" acceltext="Ctrl+A"/>
+        <menu label="More" >
+            <menupopup>
+            <menuitem label="A" />
+            <menuitem label="B" />
+            <menuitem label="C" />
+            <menuseparator />
+            <menu label="More" >
+                <menupopup>
+                    <menuitem label="1" />
+                    <menuitem label="2" />
+                    <menuitem label="3" />
+                </menupopup>
+            </menu>
+            </menupopup>
+        </menu>
+    </popup>
 </window>
 )xml";
 
@@ -84,20 +114,6 @@ int main() noexcept {
 
 
 LongUI::UIViewport* init_global_pupop() noexcept {
-    const auto text_context = u8R"xml(
-<?xml version="1.0"?>
-<window>
-    <popup id="global_context">
-        <menuitem label="³·Ïú - Undo" id="undo"/>
-        <menuseparator/>
-        <menuitem label="¸´ÖÆ - Copy" id="copy"/>
-        <menuitem label="¼ôÇÐ - Cut" id="cut"/>
-        <menuitem label="Õ³Ìù - Paste" id="paste"/>
-        <menuseparator/>
-        <menuitem label="È«Ñ¡ - Select All" id="selall"/>
-    </popup>
-</window>
-)xml";
     const auto viewport = [=]() noexcept{
         LongUI::UIViewport view;
         view.SetXul(text_context);
