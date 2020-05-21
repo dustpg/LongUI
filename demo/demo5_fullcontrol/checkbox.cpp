@@ -15,7 +15,7 @@ void InitViewport_CheckBox(LongUI::UIViewport& viewport) noexcept {
         UILabel*    display = nullptr;
         auto operator()(UIControl& ctrl) noexcept {
             const auto checkbox = longui_cast<UICheckBox*>(&ctrl);
-            display->SetText(checkbox->GetTextString());
+            display->SetText(checkbox->RefText());
             return Event_Accept;
         }
     } calllback;

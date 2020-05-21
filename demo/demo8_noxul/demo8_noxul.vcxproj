@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{591C1E9C-C94C-4BBD-88B9-84AAEB8D7A09}</ProjectGuid>
-    <RootNamespace>demo7customscript</RootNamespace>
+    <ProjectGuid>{591C1E9C-C94C-4BBD-88B9-84AAEB8D7A1A}</ProjectGuid>
+    <RootNamespace>demo8noxul</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -152,11 +152,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="demo7.cpp" />
-    <ClCompile Include="v7.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="v7.h" />
+    <ClCompile Include="demo8.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

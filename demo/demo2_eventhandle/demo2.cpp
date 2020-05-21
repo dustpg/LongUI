@@ -93,10 +93,10 @@ public:
             {
             case UIButton::_onCommand():
                 if (const auto btn = uisafe_cast<UIButton>(sender)) {
-                    const auto id = btn->GetID();
+                    const auto id = btn->GetID().id;
                     if (!std::strncmp(id, "btn", 3)) {
                         const auto index = id[3];
-                        auto& text = m_pDisplay->GetTextString();
+                        auto& text = m_pDisplay->RefText();
                         m_pDisplay->SetText(text + index);
                     }
                 }

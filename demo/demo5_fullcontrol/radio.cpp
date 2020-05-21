@@ -15,7 +15,7 @@ void InitViewport_Radio(LongUI::UIViewport& viewport) noexcept {
         UILabel*    display = nullptr;
         auto operator()(UIControl& ctrl) noexcept {
             const auto radio = longui_cast<UIRadio*>(&ctrl);
-            display->SetText(radio->GetTextString());
+            display->SetText(radio->RefText());
             return Event_Accept;
         }
     } calllback;
