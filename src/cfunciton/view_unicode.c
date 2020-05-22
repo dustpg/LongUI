@@ -134,6 +134,7 @@ uint32_t ui_utf16_to_utf32_get_buflen(const char16_t* src, const char16_t* end) 
     return length;
 }
 
+
 PCN_NOINLINE
 /// <summary>
 /// UIs the UTF16 to UTF8 get buflen.
@@ -172,6 +173,46 @@ uint32_t ui_utf8_to_utf32_get_buflen(const char* src, const char* end) {
     }
     assert(src == end && "end of string!");
     return length;
+}
+
+
+PCN_NOINLINE
+/// <summary>
+/// UIs the UTF16 to UTF32 get buflen.
+/// 将u16转换成u32
+/// </summary>
+/// <param name="src">The source.</param>
+/// <returns></returns>
+uint32_t ui_utf16_to_utf32(
+    char32_t* __restrict buf,
+    uint32_t buflen,
+    const char16_t* __restrict src,
+    const char16_t* end) {
+#ifndef NDEBUG
+    const uint32_t needed = ui_utf16_to_utf32_get_buflen(src, end);
+    assert(buflen >= needed && "buffer too small");
+#endif
+    assert(src && end && end >= src && "bad string");
+    uint32_t bufrm = buflen;
+    char32_t* __restrict des = buf;
+    // 遍历字符串
+    for (ptrdiff_t i = 0; i < (end - src); ++i) {
+        if (!bufrm) break; --bufrm;
+        char16_t ch = src[i];
+        // 双字区
+        if (is_high_surrogate(ch)) {
+            const char16_t ch2 = src[i + 1];
+            assert(is_low_surrogate(ch2) && "illegal utf-16 string");
+            *des = impl_char16x2_to_char32(ch, ch2);
+            ++i;
+            assert((end - src) != i && "end of string");
+        }
+        else *des = (char32_t)ch;
+        ++des;
+    }
+    // 收尾检查
+    assert((uint32_t)(des - buf) == needed && "bug");
+    return (uint32_t)(des - buf);
 }
 
 PCN_NOINLINE
