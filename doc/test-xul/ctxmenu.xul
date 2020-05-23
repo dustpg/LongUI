@@ -20,7 +20,6 @@
       <menuitem label="Checkbox" type="checkbox" />
       <menuitem label="Checked"  type="checkbox" checked="true" />
      </menupopup>
-
     </menulist>
 
 <popupset>

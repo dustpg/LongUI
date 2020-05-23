@@ -3,3 +3,5 @@
 大数据放在尾部
 多控制台
 SmallAlloc
+Changed延迟处理
+强弱引用 [m_pMiniWorldChange 不是清零]

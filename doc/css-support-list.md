@@ -111,7 +111,7 @@
   - class selector: .win10-button
   - id selector: #button0
   - universal selector: *
-  - **remarks**: becareful on "type selector" with "c++ inheritance class": "type" is control now type, has no relations with super/base classes. [UIButton based on UIBoxLayout, but "box" won't match "button". in other words, if you implement MyButton based on UIButton, "button" won't match your control]
+  - **remarks**: becareful on "type selector" with "c++ inheritance class": "type" is control current type, has no relations with super/base classes. [UIButton based on UIBoxLayout, but "box" won't match "button". in other words, if you implement MyButton based on UIButton, "button" won't match your control]
   - **注**: 小心"类型选择器"与"C++继承类", "类型"是指控件的当前类型, 和它的基类/超类无关. [比如UIButton继承于UIBoxLayout, 但是"box"是匹配不了"button"的. 换句话说, 您继承于UIButton实现了MyButton, "button"是匹配不到您的控件的]
 
   2. Combinators

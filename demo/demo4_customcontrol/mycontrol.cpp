@@ -1,10 +1,11 @@
 #include "mycontrol.h"
 #include <core/ui_manager.h>
 #include <core/ui_ctrlmeta.h>
-#include <constexpr/const_bkdr.h>
-#include <core/ui_color_list.h>
 #include <util/ui_aniamtion.h>
+#include <core/ui_color_list.h>
+#include <constexpr/const_bkdr.h>
 #include <util/ui_color_system.h>
+#include <core/ui_control_state.h>
 
 
 // LUI_CONTROL_META_INFO should under class-own-namespace
@@ -77,8 +78,7 @@ namespace Demo {
     /// <returns></returns>
     void MyControl::SetColor(const ColorF& color) noexcept {
         m_color = color;
-        m_bColorChanged = true;
-        this->NeedUpdate();
+        this->NeedUpdate(Reason_ValueTextChanged);
     }
     /// <summary>
     /// Adds the attribute.
@@ -112,16 +112,15 @@ namespace Demo {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void Demo::MyControl::Update() noexcept {
+void Demo::MyControl::Update(LongUI::UpdateReason reason) noexcept {
     // color changed
-    if (m_bColorChanged) {
-        m_bColorChanged = false;
+    if (reason & Reason_ValueTextChanged) {
         m_width = m_color.a * 0.5f;
         m_pBrush->SetColor(auto_cast(m_color));
         this->Invalidate();
     }
     // super
-    return Super::Update();
+    return Super::Update(reason);
 }
 
 /// <summary>

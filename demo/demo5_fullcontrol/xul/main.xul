@@ -14,11 +14,11 @@
   </hbox>
   <hbox>
     <button flex="1" label="checkbox" id="checkbox"/>
-    <button flex="1" label="radio_" id="radio"/>
+    <button flex="1" label="radio" id="radio"/>
   </hbox>
   <hbox>
     <button flex="1" label="scrolling" id="scrolling" disabled="true"/>
-    <button flex="1" label="_popup_" id="popup"/>
+    <button flex="1" label="popup" id="popup"/>
   </hbox>
   <hbox>
     <button flex="1" label="menubar" id="menubar"/>
@@ -28,5 +28,4 @@
     <button flex="1" label="button" id="button"/>
     <button flex="1" label="image" id="image"/>
   </hbox>
-  <spacer flex="1"/>
 </window>
