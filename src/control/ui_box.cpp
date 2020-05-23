@@ -89,6 +89,16 @@ void LongUI::UIBoxLayout::refresh_min_content_size() noexcept {
 
 }*/
 
+
+
+/// <summary>
+/// need relayout ?
+/// </summary>
+/// <returns></returns>
+auto LongUI::UIBoxLayout::is_need_relayout() noexcept -> UpdateReason {
+    return m_state.reason & Reason_BasicRelayout;
+};
+
 PCN_NOINLINE
 /// <summary>
 /// Relayouts the vbox
@@ -242,10 +252,18 @@ void LongUI::UIBoxLayout::relayout_h() noexcept {
 }
 
 /// <summary>
-/// Relayouts this instance.
+/// updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIBoxLayout::relayout() noexcept {
+void LongUI::UIBoxLayout::Update(UpdateReason reason) noexcept {
+    // TODO: 修改
+    constexpr UpdateReason relayout_reason
+        = Reason_ParentChanged
+        | Reason_ChildIndexChanged
+        | Reason_SizeChanged
+        | Reason_BoxChanged
+        | Reason_ChildLayoutChanged
+        ;
     /*
         偏向于小的大小进行布局
 
@@ -258,8 +276,38 @@ void LongUI::UIBoxLayout::relayout() noexcept {
           |___E(1)          样大小, 其余设为0
 
     */
-    const auto ishor = m_state.orient == Orient_Horizontal;
-    return ishor ? this->relayout_h() : this->relayout_v();
+    if (reason & Reason_BasicRelayout) this->relayout_this();
+    return Super::Update(reason);
+}
+
+/// <summary>
+/// relayout this
+/// </summary>
+/// <returns></returns>
+void LongUI::UIBoxLayout::relayout_this() noexcept {
+    /*
+        偏向于小的大小进行布局
+
+        A(0)__B(0)__C(0)    布局A时, 只有B, B权重0,
+                |___D(0)    没有设置最小, 则B设为0
+                |___E(1)
+
+        B(0)__C(0)          布局B时, 有B,C,D, E权重1,
+          |___D(0)          没有设置最小, 则E设为B一
+          |___E(1)          样大小, 其余设为0
+
+    */
+    const auto s = this->GetSize();
+    if (s.width * s.height <= 0.f) return;
+    // 存在子控件才计算
+    if (this->GetCount()) {
+        // 更新布局
+        const auto ishor = m_state.orient == Orient_Horizontal;
+        return ishor ? this->relayout_h() : this->relayout_v();
+        // 更新子控件
+        for (auto& child : *this)
+            child.NeedUpdate(Reason_NonChanged);
+    }
 }
 
 
@@ -307,8 +355,7 @@ void LongUI::UIBoxLayout::refresh_min() noexcept {
 /// </summary>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UIBoxLayout::DoEvent(
-    UIControl* sender, const EventArg& e) noexcept -> EventAccept {
+auto LongUI::UIBoxLayout::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
     // ---------------- 事件处理分支
     switch (e.nevent)
     {
@@ -372,10 +419,10 @@ LongUI::UIBoxLayout::~UIBoxLayout() noexcept {
 /// <param name="o">The o.</param>
 /// <returns></returns>
 void LongUI::UIBoxLayout::SetOrient(AttributeOrient o) noexcept {
-    const bool booooool = o & 1;
-    if (booooool != m_state.orient) {
-        m_state.orient = booooool;
-        this->NeedRelayout();
+    const bool orient = o & 1;
+    if (orient != m_state.orient) {
+        m_state.orient = orient;
+        this->NeedUpdate(Reason_ChildLayoutChanged);
     }
 }
 

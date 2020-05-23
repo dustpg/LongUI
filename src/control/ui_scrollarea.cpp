@@ -63,7 +63,8 @@ void LongUI::UIScrollArea::SetAutoOverflow() noexcept {
 /// <returns></returns>
 void LongUI::UIScrollArea::ForceUpdateScrollSize(Size2F ss) noexcept {
     m_minScrollSize = ss;
-    this->NeedRelayout();
+    // XXX: 新的理由
+    this->NeedUpdate(Reason_ChildLayoutChanged);
 }
 
 /// <summary>
@@ -102,8 +103,7 @@ auto LongUI::UIScrollArea::DoEvent(
                 m_ptChildOffset.y = m_pSBVertical->GetValue();
             else break;
             // SB修改之后调用
-            m_state.world_changed = true;
-            this->NeedUpdate();
+            this->mark_world_changed();
             this->Invalidate();
             return Event_Accept;
         }
@@ -129,8 +129,7 @@ auto LongUI::UIScrollArea::do_wheel(int index, float wheel) noexcept ->EventAcce
         // 已经修改
         if (pos != offset) {
             offset = pos;
-            m_state.world_changed = true;
-            this->NeedUpdate();
+            this->mark_world_changed();
             this->Invalidate();
             // 同步SB
             this->sync_scroll_bar();
@@ -163,64 +162,42 @@ auto LongUI::UIScrollArea::DoMouseEvent(const MouseEventArg & e) noexcept -> Eve
 }
 
 /// <summary>
-/// Updates this instance.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIScrollArea::Update() noexcept {
-#if 0
-    // 理论上应该这样写
-
-    // 污了?
-    if (this->is_need_relayout()) {
-        this->on_state_dirty();
-        if (this->is_need_relayout()) return;
-        m_state.dirty = true;
-        Super::Update();
-        m_state.dirty = false;
-    }
-    // 链式调用
-    else return Super::Update();
-#else
-    // 这样好像没有BUG
-    Super::Update();
-    if (this->is_need_relayout()) this->on_state_dirty();
-#endif
-}
-
-/// <summary>
 /// Ons the state dirty.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScrollArea::on_state_dirty() noexcept {
-    //if (std::strcmp("listbox::listboxbody", this->name_dbg) == 0) {
-    //    int bk = 9;
-    //}
-    // 有面积才算数
-    const auto s = this->GetSize();
-    if (s.width * s.height <= 0.f) return;
-
-    // 处理大小修改
-    this->size_change_handled();
-    // 存在子控件才计算
-    if (this->GetCount()) {
-        // 更新布局
-        this->relayout();
-        // 更新子控件
-        for (auto& child : *this)
-            child.NeedUpdate();
-    }
-    // 这里, 世界不再改变
-    //assert(m_state.world_changed == false);
-}
+//void LongUI::UIScrollArea::on_state_dirty() noexcept {
+//    // 有面积才算数
+//    const auto s = this->GetSize();
+//    if (s.width * s.height <= 0.f) return;
+//
+//    // 处理大小修改
+//    this->size_change_handled();
+//    // 存在子控件才计算
+//    if (this->GetCount()) {
+//        // 更新布局
+//        this->relayout();
+//        // 更新子控件
+//        for (auto& child : *this)
+//            child.NeedUpdate();
+//    }
+//}
 
 /// <summary>
 /// Relayouts this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScrollArea::relayout() noexcept {
+void LongUI::UIScrollArea::Update(UpdateReason reason) noexcept {
+    constexpr UpdateReason relayout_reason
+        = Reason_ParentChanged
+        | Reason_ChildIndexChanged
+        | Reason_SizeChanged
+        | Reason_BoxChanged
+        | Reason_ChildLayoutChanged
+        ;
     // TODO: 基本布局
-
-    this->layout_scroll_bar();
+    if (reason & relayout_reason)
+        this->layout_scroll_bar();
+    return Super::Update(reason);
 }
 
 /// <summary>
@@ -377,6 +354,17 @@ auto LongUI::UIScrollArea::create_scrollbar(AttributeOrient o) noexcept -> UIScr
 /// </summary>
 /// <returns></returns>
 auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
+    // TODO: 修改
+    const auto is_need_relayout = [this]() noexcept {
+        constexpr UpdateReason relayout_reason
+            = Reason_ParentChanged
+            | Reason_ChildIndexChanged
+            | Reason_SizeChanged
+            | Reason_BoxChanged
+            | Reason_ChildLayoutChanged
+            ;
+        return m_state.reason & relayout_reason;
+    };
     Size2F rv;
     constexpr float MDW = MIN_SCROLLBAR_DISPLAY_SIZE;
     constexpr float MDH = MIN_SCROLLBAR_DISPLAY_SIZE;
@@ -398,12 +386,12 @@ auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
     // 获取HSB长度
     const auto hsbar = this->layout_hscrollbar(hsbdisplay);
     // 需要再次布局
-    if (this->is_need_relayout()) return content_size;
+    if (is_need_relayout()) return content_size;
     // 设置VSB位置: 正向-右侧 反向-左侧
     if (vsbar > 0.f) {
         resize_child(*m_pSBVertical, { vsbar, content_size.height - hsbar });
         Point2F pos = {};
-        const bool normaldir = m_state.dir == Dir_Normal;
+        const bool normaldir = m_state.direction == Dir_Normal;
         if (normaldir) pos.x = content_size.width - vsbar;
         m_pSBVertical->SetPos(pos);
         m_pSBVertical->SetVisible(true);
@@ -412,7 +400,7 @@ auto LongUI::UIScrollArea::layout_scroll_bar() noexcept -> Size2F {
     if (hsbar > 0.f) {
         resize_child(*m_pSBHorizontal, { content_size.width - vsbar, hsbar });
         Point2F pos = {};
-        const bool normaldir = m_state.dir == Dir_Normal;
+        const bool normaldir = m_state.direction == Dir_Normal;
         if (normaldir) pos.y = content_size.height - hsbar;
         m_pSBHorizontal->SetPos(pos);
         m_pSBHorizontal->SetVisible(true);
@@ -433,7 +421,7 @@ auto LongUI::UIScrollArea::get_layout_position() const noexcept -> Point2F {
     const auto base = this->GetBox().GetContentPos();
     //const auto base = Point2F{};
     // 正向- 左上角
-    if (m_state.dir == Dir_Normal) {
+    if (m_state.direction == Dir_Normal) {
 
     }
     // 反向- 左上角+[VSB, 0]

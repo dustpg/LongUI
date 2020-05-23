@@ -57,17 +57,17 @@ LongUI::UIDeck::UIDeck(UIControl* parent, const MetaControl& meta) noexcept
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIDeck::Update() noexcept {
+void LongUI::UIDeck::Update(UpdateReason reason) noexcept {
     // 有变数
-    if (m_state.child_i_changed) {
+    if (reason & Reason_ChildIndexChanged) {
         uint32_t index = 0;
         for (auto& child : (*this)) {
             child.SetVisible(index == m_index);
             ++index;
         }
     }
-    // 父类处理
-    return Super::Update();
+    // 超类处理
+    return Super::Update(reason);
 }
 
 /// <summary>
@@ -134,16 +134,14 @@ LongUI::UIStack::UIStack(UIControl* parent, const MetaControl& meta) noexcept
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIStack::Update() noexcept {
+void LongUI::UIStack::Update(UpdateReason reason) noexcept {
     // 要求重新布局
-    if (this->is_need_relayout()) {
-        // 不脏了
-        m_state.dirty = false;
+    if (reason & Reason_BasicRelayout) {
         // 重新布局
         this->relayout_stack();
     }
     // 其他的交给父类处理
-    Super::Update();
+    Super::Update(reason);
 }
 
 

@@ -122,8 +122,8 @@ namespace LongUI {
         auto TriggerEvent(GuiEvent event) noexcept->EventAccept override;
         // normal event
         auto DoEvent(UIControl*, const EventArg& e) noexcept->EventAccept override;
-        // update
-        void Update() noexcept override;
+        // update this
+        void Update(UpdateReason reason) noexcept override;
         // render
         void Render() const noexcept override;
         // mouse event
@@ -171,6 +171,8 @@ namespace LongUI {
         // recreate normal context
         void recreate_nom_context(CEDTextCell& cell) noexcept;
     protected:
+        // need update
+        void need_update() noexcept;
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;
         // try trigger change event

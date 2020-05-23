@@ -59,12 +59,14 @@ namespace LongUI {
     public:
         // class meta
         static const  MetaControl   s_meta;
+        // ctor form UIViewport
+        UIMenuPopup(CUIWindow::WindowConfig config) noexcept : Super(nullptr, config, UIMenuPopup::s_meta) {};
         // dtor
         ~UIMenuPopup() noexcept;
         // ctor
         UIMenuPopup(UIControl* hoster) noexcept : UIMenuPopup(hoster, UIMenuPopup::s_meta) {}
         // update
-        void Update() noexcept override;
+        void Update(UpdateReason) noexcept override;
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event
@@ -100,11 +102,11 @@ namespace LongUI {
         // change select
         static void change_select(UIControl* old, UIControl* now) noexcept;
         // save selected?
-        auto is_save_selected() const noexcept { return m_state.custom_data; }
+        auto is_save_selected() const noexcept { return m_bSaveSelected; }
         // save selected: true
-        auto save_selected_true() noexcept { m_state.custom_data = true; }
+        auto save_selected_true() noexcept { m_bSaveSelected = true; }
         // save selected: false
-        auto save_selected_false() noexcept { m_state.custom_data = false; }
+        auto save_selected_false() noexcept { m_bSaveSelected = false; }
         // init clear color for defualt ctxmenu
         void init_clear_color_for_default_ctxmenu() noexcept;
         // init clear color for defualt combobox
@@ -122,13 +124,15 @@ namespace LongUI {
         // delay closed time capsule
         CUITimeCapsule*         m_pDelayClosed = nullptr;
         // popup postion
-        PopupPosition           m_posPopup = PopupPosition::Position_Default;
+        AttributePopupPosition  m_posPopup = AttributePopupPosition::Position_Default;
         // selected index
         int32_t                 m_iSelected = -1;
         // mouse in
         bool                    m_bMouseIn = false;
         // no delay closed once
         bool                    m_bNoClosedOnce = false;
+        // no delay closed once
+        bool                    m_bSaveSelected = false;
     };
     // get meta info for UIMenuPopup
     LUI_DECLARE_METAINFO(UIMenuPopup);

@@ -44,11 +44,13 @@ namespace LongUI {
         ~UIListHead() noexcept;
         // ctor
         UIListHead(UIControl* parent = nullptr) noexcept : UIListHead(parent, UIListHead::s_meta) {}
+        // update
+        void Update(UpdateReason) noexcept override;
     protected:
         // add child
         //void add_child(UIControl& child) noexcept override;
         // re-layout
-        void relayout() noexcept override;
+        void relayout() noexcept ;
     private:
     };
     // get meta info for UIListHead

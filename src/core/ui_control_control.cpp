@@ -8,6 +8,7 @@
 #include <util/ui_aniamtion.h>
 #include <core/ui_window.h>
 #include <core/ui_string.h>
+#include <core/ui_manager.h>
 // debug
 #include <debugger/ui_debug.h>
 
@@ -47,7 +48,7 @@ struct LongUI::CUIControlControl::Private {
     inline ~Private() noexcept { }
     // init list
     ControlNode             init_list = { nullptr };
-    // update list
+    // relayout list
     ControlNode             update_list = { nullptr };
     // delete list
     ControlNode             delete_list = { nullptr };
@@ -70,6 +71,13 @@ struct LongUI::CUIControlControl::Private {
 #endif
     // xul dir
     CUIStringU8             xul_dir;
+
+
+    // add into update list
+    void add_into_update_list(UIControl& ctrl) noexcept {
+        const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+        CUIControlControl::AddControlToList(ctrl, luiref update_list, offset);
+    }
 };
 
 
@@ -144,7 +152,6 @@ void LongUI::CUIControlControl::RecursiveRender(
     const UIControl& ctrl,
     const RectF region[], 
     uint32_t length) noexcept {
-    // ???: 设定了region裁剪区域
     /*
     块呈现器的堆栈顺序如下：
         background color
@@ -153,7 +160,7 @@ void LongUI::CUIControlControl::RecursiveRender(
         children
         outline
     */
-    // TODO: 脏矩形渲染: 没有交集就不渲染
+    // 脏矩形渲染: 没有交集就不渲染
     if (length && std::all_of(region, region + length, [&](const RectF& rect) {
         return !LongUI::IsOverlap(rect, ctrl.m_oBox.visible);
     })) return;
@@ -346,34 +353,29 @@ void LongUI::CUIControlControl::ControlAttached(UIControl& ctrl) noexcept {
 /// Removes the reference.
 /// </summary>
 void LongUI::CUIControlControl::ControlDisattached(UIControl& ctrl) noexcept {
-    // 1. 移除初始化表中的引用
-    if (!ctrl.is_inited()) {
-        const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
-        CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list, offset);
-    }
-    // 2. 移除刷新表中的引用
-    if (ctrl.is_in_update_list() && ctrl.is_inited()) {
-        const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
-        ctrl.remove_from_update_list();
-        CUIControlControl::RemoveControlInList(ctrl, luiref cc().update_list, offset);
-    }
-#if 0
-    // 3. 移除在脏矩形列表
-    if (ctrl.is_in_dirty_list()) {
-        ctrl.m_state.in_dirty_list = false;
-        assert(ctrl.GetWindow());
-        //auto& list = cc().dirty_update;
-        //const auto itr = std::find_if(list.begin(), list.end(), [&ctrl](const auto& x) noexcept {
-        //    return x.ctrl == &ctrl;
-        //});
-        //assert(itr != list.end() && "not found in list");
-        //list.erase(itr);
-    }
-#endif
-    // 4. 移除时间胶囊
-    if (ctrl.m_pLastEnd) {
-        this->DisposeTimeCapsule(ctrl);
-        ctrl.m_pLastEnd = nullptr;
+    // 检查引用
+    if (!ctrl.is_inited() || ctrl.m_state.in_update_list || ctrl.m_pLastEnd) {
+        CUIDataAutoLocker locker;
+        // 1. 移除初始化表中的引用
+        if (!ctrl.is_inited()) {
+            const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+            CUIControlControl::RemoveControlInList(ctrl, luiref cc().init_list, offset);
+        }
+        // 2. 移除刷新表中的引用
+        if (ctrl.is_inited() && ctrl.m_state.in_update_list) {
+            const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
+            CUIControlControl::RemoveControlInList(ctrl, luiref cc().update_list, offset);
+        }
+        // 3. 移除状态表中的引用
+        //if (ctrl.m_state.in_ccstate_list) {
+        //    const size_t offset = offsetof(UIControl, m_oManager.next_ccstate);
+        //    CUIControlControl::RemoveControlInList(ctrl, luiref cc().ccstate_list, offset);
+        //}
+        // 4. 移除时间胶囊
+        if (ctrl.m_pLastEnd) {
+            this->DisposeTimeCapsule(ctrl);
+            ctrl.m_pLastEnd = nullptr;
+        }
     }
 }
 
@@ -453,6 +455,8 @@ void LongUI::CUIControlControl::AddControlToList(UIControl& ctrl,
     assert(*ptr == nullptr);
     // 保险
     *ptr = nullptr;
+    // TODO: 使用二级指针取消分支判断
+
     // 表正常
     if (list.first) {
         *get_node_addr(*list.last) = &ctrl;
@@ -498,14 +502,12 @@ void LongUI::RemovePointerItem(PointerVector& list, void* ptr) noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIControlControl::AddUpdateList(UIControl& ctrl) noexcept {
-    // TODO: [优化] 将越接近根节点的控件放在前面
-    if (!ctrl.is_in_update_list()) {
-        ctrl.add_into_update_list();
+    // 首先要不在表中
+    if (!ctrl.m_state.in_update_list) {
+        ctrl.m_state.in_update_list = true;
         // 还没有初始化就算了
-        if (ctrl.is_inited()) {
-            const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
-            CUIControlControl::AddControlToList(ctrl, luiref cc().update_list, offset);
-        }
+        if (!ctrl.is_inited()) return;
+        cc().add_into_update_list(ctrl);
     }
 }
 
@@ -551,25 +553,7 @@ void LongUI::CUIControlControl::delete_later(UIControl& ctrl) noexcept {
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
 void LongUI::CUIControlControl::InvalidateControl(UIControl& ctrl, const RectF* rect) noexcept {
-
     if (const auto wnd = ctrl.GetWindow()) wnd->InvalidateControl(ctrl, rect);
-    
-#if 0
-    //auto& list = cc().dirty_update;
-    //assert(LongUI::GetArea(rect) > 0.f);
-    // 窗口储存渲染的矩形信息
-    if (const auto wnd = ctrl.GetWindow()) {
-        // XXX: [优化]如果已经全渲染则没有必要了
-        
-        // 加入脏更新表
-        //list.push_back({ &ctrl, ctrl.GetBox().visible });
-        //ctrl.m_state.in_dirty_list = true;
-        //// 将矩形映射到窗口坐标系
-        //auto wndcs = rect; 
-        //ctrl.MapToWindow(wndcs);
-        //wnd->MarkDirtRect(wndcs);
-    }
-#endif
 }
 
 // UI Window
@@ -594,13 +578,10 @@ bool LongUI::CUIControlControl::init_control_in_list() noexcept {
         // TODO: 错误处理
         ctrl->init();
         // 添加到更新列表
-        if (ctrl->is_in_update_list()) {
-            // TODO: [优化] 将越接近根节点的控件放在前面
-            const size_t offset = offsetof(UIControl, m_oManager.next_delinitupd);
-            CUIControlControl::AddControlToList(*ctrl, luiref cc.update_list, offset);
-        }
+        if (ctrl->m_state.reason)
+            cc.add_into_update_list(*ctrl);
     }
-    // 存在更新列表
+    // 存在布局列表
     return !!cc.update_list.first;
 }
 
@@ -630,28 +611,30 @@ namespace LongUI {
 #endif
 
 /// <summary>
-/// Updates the control in list.
+/// update the control in list.
 /// </summary>
 /// <returns></returns>
 void LongUI::CUIControlControl::update_control_in_list() noexcept {
     auto& cccc = cc();
-    // 更新控件
+    // 刷新控件
     auto update = [](UIControl& ctrl) noexcept {
-        //LUIDebug(Log) << ctrl << (void*)&ctrl << endl;
-        // 标记移除(可能在Update里面再次标记)
-        ctrl.remove_from_update_list();
-        //const auto casdasd = ctrl.is_in_update_list();
+        // 标记移除(可能在update里面再次标记)
+        ctrl.m_state.in_update_list = false;
+        const auto reason = ctrl.m_state.reason;
+        ctrl.m_state.reason = Reason_NonChanged;
+#ifndef NDEBUG
         // 进行刷新
-        ctrl.Update();
-        // 检测世界修改
-        if (ctrl.m_state.world_changed && ctrl.GetWindow())
+        ctrl.m_state.dbg_in_update = true;
+        ctrl.Update(reason);
+        ctrl.m_state.dbg_in_update = false;
+#else
+        // 进行刷新
+        ctrl.Update(reason);
+#endif // !NDEBUG
+
+        // XXX: 这里调用 检测世界修改?
+        if ((ctrl.m_state.world_changed) && ctrl.GetWindow())
             ctrl.GetWindow()->SetControlWorldChanged(ctrl);
-#if 0
-        LUIDebug(Log) LUI_FRAMEID
-            << '[' << cc_debug_counter << ']'
-            << ctrl.name_dbg
-            << endl;
-#endif
     };
     // 遍历更新表
     auto node = cccc.update_list.first;
@@ -666,7 +649,6 @@ void LongUI::CUIControlControl::update_control_in_list() noexcept {
         // 更新
         update(*ctrl);
     }
-
 }
 
 
@@ -908,7 +890,7 @@ void LongUI::CUIControlControl::StartBasicAnimation(
         // OOM处理: 变了就不管了
         if (!anima.is_ok()) {
             ctrl.start_animation_change(type);
-            ctrl.NeedUpdate();
+            //ctrl.NeedUpdate();
             return;
         };
         cab = &anima.back();
@@ -1377,8 +1359,12 @@ bool LongUI::UIControl::start_animation_change(StyleStateTypeChange change) noex
     const auto changed = m_oStyle.state.Change(change);
 #ifndef NDEBUG
     if (!changed) {
+        if (change.type == StyleStateType::Type_Focus) {
+            int bk = 9;
+        }
         LUIDebug(Warning) LUI_FRAMEID
-            << "animation not changed("
+            << this
+            << "not changed("
             << change
             << ")"
             << endl;

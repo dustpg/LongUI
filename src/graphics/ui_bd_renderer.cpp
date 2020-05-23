@@ -28,6 +28,8 @@ LongUI::CUIRendererBorder::CUIRendererBorder() noexcept {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIRendererBorder::~CUIRendererBorder() noexcept {
+    // 需要释放设备资源
+    CUIRenderAutoLocker locker;
     this->ReleaseDeviceData();
 }
 
@@ -315,6 +317,7 @@ void LongUI::CUIRendererBorder::RenderBorder(const Box& box) const noexcept {
 /// <returns></returns>
 void LongUI::CUIRendererBorder::refresh_image_matrix(const Box& box) noexcept {
     const auto border_rect = box.GetBorderEdge();
+    //LUIDebug(Hint) << this << border_rect << endl;
     const Size2F size{
         border_rect.right - border_rect.left,
             border_rect.bottom - border_rect.top

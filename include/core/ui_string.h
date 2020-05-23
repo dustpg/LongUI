@@ -46,6 +46,12 @@ namespace LongUI {
         // move ctor
         CUIBasicString(Self&& str) noexcept : m_vector(std::move(str.m_vector)) {  }
     public:
+        // from utf-16
+        static auto FromUtf16(const char16_t* a, const char16_t* b) noexcept->Self;
+        // from utf-16
+        static auto FromUtf16(PodStringView<char16_t> view) noexcept->Self { return FromUtf16(view.begin(), view.end()); }
+        // from utf-16
+        static auto FromUtf16(const char16_t* str) noexcept ->Self { return FromUtf16(str, str + detail::strlen(str)); }
         // from utf-8
         static auto FromUtf8(const char* a, const char* b) noexcept->Self;
         // from utf-8
@@ -265,6 +271,14 @@ namespace LongUI {
         const char* b) noexcept -> CUIBasicString<T, B> {
         CUIBasicString<T, B> str;
         detail::string_helper::string_u8(T{}, str.m_vector, a, b);
+        return str;
+    }
+    // string from utf-16
+    template<typename T, unsigned B> inline
+        auto CUIBasicString<T, B>::FromUtf16(const char16_t* a,
+            const char16_t* b) noexcept -> CUIBasicString<T, B> {
+        CUIBasicString<T, B> str;
+        detail::string_helper::string_u16(T{}, str.m_vector, a, b);
         return str;
     }
 }

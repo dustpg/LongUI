@@ -180,7 +180,7 @@ auto LongUI::CUIEventHost::TriggerEvent(GuiEvent event) noexcept ->EventAccept {
         // 监听
         if (node->func.IsOK()) func = node->func(*ctrl);
     }
-    // 直接管理则为父类
+    // 直接管理则为超类
     assert(ctrl->GetWindow() && "cannot trigger event not under window");
     UIControl* const handler = ctrl->IsGuiEvent2Parent() ?
         ctrl->GetParent() : &ctrl->GetWindow()->RefViewport();

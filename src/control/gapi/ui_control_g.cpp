@@ -94,11 +94,10 @@ void LongUI::UIControl::draw_focus_rect(const RectF& rect) const noexcept {
 /// Customs the style update.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIControl::custom_style_update() noexcept {
+void LongUI::UIControl::custom_style_size_changed() noexcept {
 #ifndef LUI_DISABLE_STYLE_SUPPORT
-    if (this->is_size_changed() && m_pBdRender) {
-        m_pBdRender->MarkSizeChanged();
-    }
+    if (!m_pBdRender) return;
+    m_pBdRender->MarkSizeChanged();
 #endif
 }
 

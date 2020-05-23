@@ -157,7 +157,7 @@ auto LongUI::UITextBox::Recreate(bool release_only) noexcept -> Result {
         pimpl()->release_cached_bitmap();
     }
 
-    // 重建父类设备资源
+    // 重建超类设备资源
     Result hr = Super::Recreate(release_only);
     // 仅仅释放?
     if (release_only) return hr;
@@ -169,7 +169,7 @@ auto LongUI::UITextBox::Recreate(bool release_only) noexcept -> Result {
         // 创建待使用位图
         hr = pimpl()->create_cached_bitmap();
     }
-    // 父类
+    // 超类
     return hr;
 }
 
@@ -190,7 +190,7 @@ bool LongUI::UITextBox::private_char(char32_t ch, uint16_t seq) noexcept {
         return buffer + 1;
     };
     // 输入完毕
-    if (!seq) this->NeedUpdate();
+    //if (!seq) this->need_update();
     // 使用IME输入
     if (seq || pimpl()->ime_input) {
         const auto buf = reinterpret_cast<char16_t*>(&UIManager.ime_common_buf);
@@ -351,9 +351,8 @@ void LongUI::UITextBox::show_caret() noexcept {
 /// <returns></returns>
 void LongUI::UITextBox::private_update() noexcept {
     auto& doc = pimpl()->document();
-    const auto values = doc.Update();
-    // 所有修改需要重绘
-    if (values) {
+    if (const auto values = doc.Update()) {
+        // 所有修改需要重绘
         this->Invalidate();
         // 选择修改
         //if (values & RichED::Changed_Selection) {
@@ -370,7 +369,6 @@ void LongUI::UITextBox::private_update() noexcept {
     }
 }
 
-
 /// <summary>
 /// Privates the resize.
 /// </summary>
@@ -380,6 +378,15 @@ void LongUI::UITextBox::private_resize(Size2F size) noexcept {
     pimpl()->document().Resize({ size.width, size.height });
 }
 
+
+
+/// <summary>
+/// textbox need update
+/// </summary>
+/// <returns></returns>
+void LongUI::UITextBox::need_update() noexcept {
+    this->NeedUpdate(Reason_NonChanged);
+}
 
 /// <summary>
 /// Privates the font changed.
@@ -391,7 +398,7 @@ void LongUI::UITextBox::private_tf_changed(bool layout) noexcept {
     Private::ToRichED(m_tfBuffer, doc.default_riched);
     // 文本布局发生修改
     if (layout) {
-        this->NeedUpdate();
+        this->need_update();
         // 非富文本模式强制重置
         if (!(m_flag & RichED::Flag_RichText))
             doc.ForceResetAllRiched();
@@ -406,7 +413,7 @@ void LongUI::UITextBox::private_tf_changed(bool layout) noexcept {
 /// <param name="shift">if set to <c>true</c> [shift].</param>
 /// <returns></returns>
 bool LongUI::UITextBox::private_mouse_down(Point2F pos, bool shift) noexcept {
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     const auto lt = this->GetBox().GetContentPos();
     //doc.OnLButtonDown({ pos.x - lt.x, pos.y - lt.y }, shift);
@@ -433,7 +440,7 @@ bool LongUI::UITextBox::private_mouse_up(Point2F pos) noexcept {
 /// <param name="pos">The position.</param>
 /// <returns></returns>
 bool LongUI::UITextBox::private_mouse_move(Point2F pos) noexcept {
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     const auto lt = this->GetBox().GetContentPos();
     //doc.OnLButtonHold({ pos.x - lt.x, pos.y - lt.y });
@@ -488,7 +495,7 @@ void LongUI::UITextBox::private_down() noexcept {
 /// <returns></returns>
 bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
     bool error_code = true;
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     const auto ctrl = CUIInputKM::GetKeyState(CUIInputKM::KB_CONTROL);
     const auto shift = CUIInputKM::GetKeyState(CUIInputKM::KB_SHIFT);
@@ -555,7 +562,7 @@ bool LongUI::UITextBox::private_keydown(uint32_t key) noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiSelectAll() noexcept {
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     return doc.GuiSelectAll();
 }
@@ -565,7 +572,7 @@ bool LongUI::UITextBox::GuiSelectAll() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiUndo() noexcept {
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     return doc.GuiUndo();
 }
@@ -576,7 +583,7 @@ bool LongUI::UITextBox::GuiUndo() noexcept {
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiRedo() noexcept {
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     return doc.GuiRedo();
 }
@@ -588,7 +595,7 @@ PCN_NOINLINE
 /// <param name="cut">if set to <c>true</c> [cut].</param>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiCopyCut(bool cut) noexcept {
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     // 获取选中文本
     CUIString text;
@@ -611,7 +618,7 @@ PCN_NOINLINE
 /// </summary>
 /// <returns></returns>
 bool LongUI::UITextBox::GuiPaste() noexcept {
-    this->NeedUpdate();
+    this->need_update();
     auto& doc = pimpl()->document();
     CUIString text;
     LongUI::PasteTextToClipboard(text);
@@ -732,8 +739,7 @@ void LongUI::UITextBox::SetText(CUIString&& text) noexcept {
     //this->SetText(text.view());
     auto& cached = pimpl()->text_cached;
     cached = std::move(text);
-    m_bTextChanged = true;
-    this->NeedUpdate();
+    this->NeedUpdate(Reason_ValueTextChanged);
 }
 
 /// <summary>
@@ -985,7 +991,7 @@ auto LongUI::UITextBox::GetCharMetrics(CEDTextCell& cell, uint32_t pos) noexcept
 void LongUI::UITextBox::DebugOutput(const char* txt, bool high) noexcept {
     if (high) 
         LUIDebug(Error) << CUIString::FromUtf8(txt) << endl;
-    else if (this->dbg_output) 
+    else if (m_state.dbg_output) 
         LUIDebug(Hint) << CUIString::FromUtf8(txt) << endl;
 }
 #endif

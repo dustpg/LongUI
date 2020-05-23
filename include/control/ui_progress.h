@@ -49,7 +49,7 @@ namespace LongUI {
         // do normal event
         auto DoEvent(UIControl*, const EventArg&) noexcept->EventAccept override;
         // update
-        void Update() noexcept override;
+        void Update(UpdateReason) noexcept override;
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept override;

@@ -27,25 +27,25 @@ namespace LongUI {
             // copy as latin1
             static void copy_from_latin1(wchar_t* des, const char* src_begin, const char* src_end) noexcept;
             // copy as latin1
-            static void copy_from_latin1(char* des, const char* src_begin, const char* src_end) noexcept {
-                std::memcpy(des, src_begin, src_end - src_begin);
-            }
+            static void copy_from_latin1(char* des, const char* begin, const char* end) noexcept { std::memcpy(des, begin, end - begin); }
+            // string utf-16 to utf32
+            static void string_u16_u32(base_str& str, const char16_t*, const char16_t*) noexcept;
+            // string utf-16 to utf8
+            static void string_u16_u8(base_str& str, const char16_t*, const char16_t*) noexcept;
+            // string utf8 to utf-xx
+            static void string_u16(char32_t, base_str& str, const char16_t* a, const char16_t* b) noexcept { string_u16_u32(str, a, b); }
+            // string utf8 to utf-xx
+            static void string_u16(char, base_str& str, const char16_t* a, const char16_t* b) noexcept { string_u16_u8(str, a, b); }
             // string utf8 to utf-16
             static void string_u8_u16(base_str& str, const char*, const char*) noexcept;
             // string utf8 to utf-32
             static void string_u8_u32(base_str& str, const char*, const char*) noexcept;
             // string utf8 to utf-xx
-            static void string_u8(char32_t, base_str& str, const char* a, const char* b) noexcept {
-                string_u8_u32(str, a, b);
-            }
+            static void string_u8(char32_t, base_str& str, const char* a, const char* b) noexcept { string_u8_u32(str, a, b); }
             // string utf8 to utf-xx
-            static void string_u8(char16_t, base_str& str, const char* a, const char* b) noexcept {
-                string_u8_u16(str, a, b);
-            }
+            static void string_u8(char16_t, base_str& str, const char* a, const char* b) noexcept { string_u8_u16(str, a, b); }
             // string utf8 to utf-xx
-            static void string_u8(wchar_t, base_str& str, const char* a, const char* b) noexcept {
-                string_u8(wcharxx_t{}, str, a, b);
-            }
+            static void string_u8(wchar_t, base_str& str, const char* a, const char* b) noexcept { string_u8(wcharxx_t{}, str, a, b); }
 #ifdef OPTIMIZATION_STRING_SPLIT_WITHIN_SINGLE_CHAR
             // string split with single char
             static auto string_split(base_str& str, POD::Vector<PodStringView<char>>&, char ch) noexcept->views<char>;

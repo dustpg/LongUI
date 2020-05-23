@@ -52,7 +52,7 @@ namespace LongUI {
         // get text
         auto GetText() const noexcept->const char16_t*;
         // get text object
-        auto GetTextString() const noexcept->const CUIString&;
+        auto RefText() const noexcept->const CUIString&;
         // set text
         void SetText(CUIString&&) noexcept;
         // set text

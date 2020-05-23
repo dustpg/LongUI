@@ -1,9 +1,11 @@
 ﻿#include <core/ui_ctrlmeta.h>
-#include <control/ui_caption.h>
 #include <debugger/ui_debug.h>
+#include <control/ui_caption.h>
 #include <core/ui_color_list.h>
+#include <control/ui_groupbox.h>
 #include <constexpr/const_bkdr.h>
 
+#include "../private/ui_private_control.h"
 
 // ui namespace
 namespace LongUI {
@@ -29,6 +31,9 @@ LongUI::UICaption::UICaption(UIControl* parent, const MetaControl& meta) noexcep
 /// <returns></returns>
 LongUI::UICaption::~UICaption() noexcept {
     // TODO: 取消groupbox引用
+    //if (m_pParent && !m_pParent->m_state.destructing) {
+
+    //}
 }
 
 /// <summary>

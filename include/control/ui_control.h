@@ -65,27 +65,21 @@
 // to save 2 pointer(16bytes on x64) for each control
 #define LUI_CONTROL_USE_SINLENODE
 
-// ui namespace
-namespace LongUI {
-    // const
-    enum {
-        // longui control alignas
-        CONTROL_ALIGNAS = 8
-    };
-}
 
 // ui namespace
 namespace LongUI {
-    // meta info
-    struct MetaControl;
-    // control control
-    class CUIControlControl;
-    // control private function
-    struct UIControlPrivate;
-    // time capsule
-    class CUITimeCapsule;
+    // longui control alignas
+    enum { CONTROL_ALIGNAS = 8 };
     // becarefully
     struct Unsafe;
+    // meta info
+    struct MetaControl;
+    // control private function
+    struct UIControlPrivate;
+    // control control
+    class CUIControlControl;
+    // time capsule
+    class CUITimeCapsule;
     // control
     class alignas(CONTROL_ALIGNAS) UIControl :
         public CUIEventHost,
@@ -150,8 +144,8 @@ namespace LongUI {
         UIControl(const UIControl&) = delete;
         // no move ctor
         UIControl(UIControl&&) = delete;
-        // ctor
-        UIControl(UIControl* parent = nullptr) noexcept : UIControl(parent, UIControl::s_meta) {}
+        // explicit ctor(because of param)
+        explicit UIControl(UIControl* parent = nullptr) noexcept : UIControl(parent, UIControl::s_meta) {}
         // delete later
         void DeleteLater() noexcept;
         // dtor
@@ -162,12 +156,10 @@ namespace LongUI {
         virtual auto DoInputEvent(InputEventArg e) noexcept->EventAccept;
         // do mouse event
         virtual auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept;
-        // update, postpone change some data
-        virtual void Update() noexcept;
+        // update this. [state maybe State_NonChanged]
+        virtual void Update(UpdateReason reason) noexcept;
         // render this control only
         virtual void Render() const noexcept;
-        // render this and all descendant
-        //virtual void RenderAll() const noexcept;
         // recreate/init device(gpu) resource
         virtual auto Recreate(bool release_only) noexcept->Result;
     protected:
@@ -202,10 +194,8 @@ namespace LongUI {
         static void ControlMakingBegin() noexcept;
         // call this after lots of controls maked
         static void ControlMakingEnd() noexcept;
-        // need update in this frame
-        void NeedUpdate() noexcept;
-        // need relayout in this freame
-        void NeedRelayout() noexcept;
+        // need update
+        void NeedUpdate(UpdateReason) noexcept;
         // is first child?
         bool IsFirstChild() const noexcept;
         // is last child
@@ -290,7 +280,7 @@ namespace LongUI {
         // set visible
         void SetVisible(bool visible) noexcept;
         // get access key
-        auto GetAccessKey() const noexcept { return m_chAccessKey; }
+        auto GetAccessKey() const noexcept { return m_state.accessKey; }
         // get id, default as ""
         auto GetID() const noexcept { return m_id; }
         // set tooltip text
@@ -426,7 +416,7 @@ namespace LongUI {
         // custom style render
         void custom_style_render() const noexcept;
         // custom style render
-        void custom_style_update() noexcept;
+        void custom_style_size_changed() noexcept;
         // delete renderer
         void delete_renderer() noexcept;
         // exist basic animation ?
@@ -442,6 +432,8 @@ namespace LongUI {
         CtrlState               m_state;
         // child count
         uint32_t                m_cChildrenCount = 0;
+        // parent accessible data
+        uint32_t                m_uData4Parent = 0;
         // id of control
         ULID                    m_id = { CUIConstShortString::EMPTY };
         // meta info of control
@@ -484,26 +476,6 @@ namespace LongUI {
         CUIRendererBackground*  m_pBgRender = nullptr;
         // bd renderer
         CUIRendererBorder*      m_pBdRender = nullptr;
-#endif
-    protected:
-        // parent accessible data
-        uint32_t                m_uData4Parent = 0;
-        // ununsed u16
-        uint8_t                 m_unused_u8 = 0;
-        // timer used flag
-        uint8_t                 m_flagTimer = 0;
-        // accesskey char
-        char                    m_chAccessKey = 0;
-        // has timer
-        //bool                    m_bHasTimer : 1;
-        // has inline style
-        bool                    m_bHasInlineStyle : 1;
-        // text changed, use this if you support text display for optimization
-        bool                    m_bTextChanged : 1;
-    public:
-#ifndef NDEBUG
-        // debug out
-        bool                    dbg_output : 1;
 #endif
     public:
 #ifdef LUI_USER_INIPTR_DATA
@@ -556,24 +528,12 @@ namespace LongUI {
         // rend iterator
         auto rend()const noexcept->CRIterator { return{ static_cast<const UIControl*>(&m_oHead) }; }
     protected:
-        // size change handled
-        void size_change_handled() noexcept { m_state.dirty = false; }
-        // add into update list
-        void add_into_update_list() noexcept { m_state.in_update_list = true; }
-        // remove from update list
-        void remove_from_update_list() noexcept { m_state.in_update_list = false; }
+        // mark world changed
+        void mark_world_changed() noexcept;
         // is inited?
         bool is_inited() const noexcept { return m_state.inited; }
-        // is need relayout
-        bool is_need_relayout() const noexcept { return m_state.dirty; }
-        // is size changed?
-        bool is_size_changed() const noexcept { return m_state.dirty; }
-        // is in update list?
-        bool is_in_update_list() const noexcept { return m_state.in_update_list; }
         // is in dirty list?
         bool is_in_dirty_list() const noexcept { return m_state.in_dirty_list; }
-        // mark child world changed
-        static void mark_child_world_changed(UIControl& c) noexcept { c.m_state.world_changed = true; }
         // resize child
         static void resize_child(UIControl& child, Size2F size) noexcept;
         // set child fixed attachment

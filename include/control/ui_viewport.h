@@ -56,10 +56,11 @@ namespace LongUI {
         // ctor
         UIViewport(
             CUIWindow* parent = nullptr,
-            CUIWindow::WindowConfig config = CUIWindow::Config_Default
+            CUIWindow::WindowConfig config = CUIWindow::Config_Default,
+            const MetaControl& meta = UIViewport::s_meta
         ) noexcept;
         // dtor
-        ~UIViewport() noexcept;
+        ~UIViewport() noexcept override;
         // ref the window
         auto&RefWindow() noexcept { return m_window; }
         // get hoster

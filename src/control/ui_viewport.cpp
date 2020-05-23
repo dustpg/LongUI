@@ -24,13 +24,15 @@ namespace LongUI {
 /// </summary>
 /// <param name="parent">The parent.</param>
 /// <param name="config">The configuration.</param>
-LongUI::UIViewport::UIViewport(CUIWindow* parent, CUIWindow::WindowConfig config) noexcept
-    : Super(impl::ctor_lock(nullptr)), 
+/// <param name="meta">The meta data.</param>
+LongUI::UIViewport::UIViewport(CUIWindow* parent,
+    CUIWindow::WindowConfig config,
+    const MetaControl& meta) noexcept
+    : Super(impl::ctor_lock(nullptr), meta),
     m_nSubview({ static_cast<UIControl*>(&m_nSubview), static_cast<UIControl*>(&m_nSubview) }),
     m_window(parent, config) {
     m_pWindow = &m_window;
     m_state.orient = Orient_Vertical;
-
     // 构造锁
     impl::ctor_unlock();
 }
@@ -109,14 +111,15 @@ auto LongUI::UIViewport::DoEvent(
 /// <param name="size">The size.</param>
 /// <returns></returns>
 void LongUI::UIViewport::resize_window(Size2F size) noexcept {
+    // 在这里修改以免
+    m_oBox.visible.right = size.width;
+    m_oBox.visible.bottom = size.height;
     //m_pWindow = &m_window;
     m_szReal = size;
     size.width /= m_mtWorld._11;
     size.height /= m_mtWorld._22;
     this->Resize(size);
-    m_window.m_pTopestWcc = this;
-    m_state.world_changed = true;
-    //m_window.SetControlWorldChanged(*this);
+    m_window.m_pMiniWorldChange = this;
 }
 
 
@@ -200,9 +203,9 @@ void LongUI::UIViewport::add_attribute(uint32_t key, U8View value) noexcept {
     //    // sizemode         : maximized/normal
     //    break;
     default:
-        // Viewport::add_attribute部分操作对象属于窗口, 允许在初始化后调用
+        // XXX: Viewport::add_attribute部分操作对象属于窗口, 允许在初始化后调用
         if (this->is_inited()) return;
-        // 其他的交给父类处理
+        // 其他的交给超类处理
         return Super::add_attribute(key, value);
     }
 }

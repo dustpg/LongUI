@@ -60,7 +60,7 @@ namespace LongUI {
         // get text
         auto GetText() const noexcept ->const char16_t*;
         // get text- string object
-        auto GetTextString() const noexcept -> const CUIString&;
+        auto RefText() const noexcept -> const CUIString&;
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -70,15 +70,13 @@ namespace LongUI {
     public:
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
-        // render
-        //void Render() const noexcept override;
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
-        void Update() noexcept override;
+        void Update(UpdateReason) noexcept override;
     protected:
         // relayout
-        void relayout() noexcept override;
+        void relayout() noexcept;
         // add private child
         void add_private_child() noexcept;
         // add attribute

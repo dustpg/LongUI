@@ -55,7 +55,7 @@ namespace LongUI {
         // get text
         auto GetText() const noexcept ->const char16_t*;
         // get text- string object
-        auto GetTextString() const noexcept -> const CUIString&;
+        auto RefText() const noexcept -> const CUIString&;
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -72,8 +72,8 @@ namespace LongUI {
         ~UIRadio() noexcept;
         // ctor
         UIRadio(UIControl* parent = nullptr) noexcept : UIRadio(parent, UIRadio::s_meta) {}
-        // update
-        void Update() noexcept override;
+        // update this
+        void Update(UpdateReason) noexcept override;
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event

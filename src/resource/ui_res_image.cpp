@@ -26,6 +26,9 @@ namespace LongUI { namespace detail {
 /// </summary>
 /// <returns></returns>
 LongUI::CUIImage::~CUIImage() noexcept {
+    // 需要释放设备资源
+    CUIRenderAutoLocker locker;
+
     const auto fc = this->frame_count;
     for (uint32_t i = 0; i != fc; ++i) {
         auto& frame = m_frames[i];

@@ -35,8 +35,9 @@ auto LongUI::UIButton::GetText() const noexcept -> const char16_t* {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIButton::GetTextString() const noexcept -> const CUIString&{
-    return m_oLabel.GetTextString();
+auto LongUI::UIButton::RefText() const noexcept -> const CUIString&{
+    // TODO: 拥有自定义label情况?
+    return m_oLabel.RefText();
 }
 
 
@@ -459,7 +460,7 @@ auto LongUI::UIButton::accessible(const AccessibleEventArg& args) noexcept -> Ev
     case AccessibleEvent::Event_All_GetAccessibleName:
         // 获取Acc名称
         *static_cast<const get2_t&>(args).name = 
-            m_oLabel.GetTextString();
+            m_oLabel.RefText();
         return Event_Accept;
     case AccessibleEvent::Event_Value_SetValue:
         // 设置值
@@ -472,7 +473,7 @@ auto LongUI::UIButton::accessible(const AccessibleEventArg& args) noexcept -> Ev
     case AccessibleEvent::Event_Value_GetValue:
         // 读取值
         *static_cast<const AccessibleVGetValueArg&>(args).value =
-            this->GetTextString();
+            this->RefText();
         return Event_Accept;
     case AccessibleEvent::Event_Invoke_Invoke:
         this->Click();

@@ -1,6 +1,12 @@
-﻿ m_state.world_changed 
-  >>
-UIControl::Update 改为非虚函数 追加 虚函数ChangedEvent
+﻿MinSizeChange [针对文本] 测试
+
+树节点最差应该是重新渲染树
+
+TAB 会移动视口
+
+使用接口释放设备资源避免上锁?
+
+复杂控件弱引用全面消除[UIMenuList::m_pMenuPopup] 测试
 
 pod_hash OOM 处理 测试
 

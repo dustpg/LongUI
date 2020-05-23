@@ -28,9 +28,9 @@ namespace LongUI {
         // private data for manager
         template<size_t> struct private_window;
         // 32bit
-        template<> struct private_window<4> { enum { size = 944, align = 4 }; };
+        template<> struct private_window<4> { enum { size = 948, align = 4 }; };
         // 64bit
-        template<> struct private_window<8> { enum { size = 1192, align = 8 }; };
+        template<> struct private_window<8> { enum { size = 1200, align = 8 }; };
     }
     /// <summary>
     /// window base class
@@ -175,6 +175,8 @@ namespace LongUI {
         void SetPos(Point2L pos) noexcept;
         // get pos of window
         auto GetPos() const noexcept->Point2L;
+        // get absolute size of window
+        auto GetAbsoluteSize() const noexcept->Size2L;
         // set absolute rect(= set pos + resize)
         void SetAbsoluteRect(const RectL& rect) noexcept;
         // resize window  : absolute
@@ -189,7 +191,7 @@ namespace LongUI {
         void SetNowCursor(std::nullptr_t) noexcept;
     public:
         // show caret
-        void ShowCaret(const UIControl&ctrl, const RectF& rect) noexcept;
+        void ShowCaret(UIControl&ctrl, const RectF& rect) noexcept;
         // set caret color
         void SetCaretColor(const ColorF&) noexcept;
         // hide caret
@@ -303,7 +305,7 @@ namespace LongUI {
         // parent window
         CUIWindow*          m_pParent = nullptr;
         // topest world changed control
-        UIControl*          m_pTopestWcc = nullptr;
+        UIControl*          m_pMiniWorldChange = nullptr;
 #ifdef LUI_ACCESSIBLE
         // accessible
         CUIAccessibleWnd*   m_pAccessible = nullptr;

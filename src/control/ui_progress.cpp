@@ -78,17 +78,30 @@ auto LongUI::UIProgress::DoEvent(UIControl * sender,
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIProgress::Update() noexcept {
-    // 重新设置
-    if (m_state.custom_data) {
-        m_state.custom_data = false;
+//void LongUI::UIProgress::Update() noexcept {
+//    // 重新设置
+//    if (m_state.custom_data) {
+//        m_state.custom_data = false;
+//        this->adjust_flex();
+//        this->Invalidate();
+//    }
+//    // 超类处理
+//    return Super::Update();
+//}
+
+/// <summary>
+/// Updates this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UIProgress::Update(UpdateReason reason) noexcept {
+    // 数据修改
+    if (reason & Reason_ValueTextChanged) {
         this->adjust_flex();
         this->Invalidate();
     }
-    // 父类处理
-    return Super::Update();
+    // 超类处理
+    return Super::Update(reason);
 }
-
 
 /// <summary>
 /// Adds the attribute.
@@ -118,7 +131,7 @@ void LongUI::UIProgress::add_attribute(uint32_t key, U8View value) noexcept {
         m_oStyle.state.indeterminate = *value.begin() == 'u';
         break;
     default:
-        // 父类处理
+        // 超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -132,8 +145,7 @@ void LongUI::UIProgress::SetMax(float max) noexcept {
     assert(max >= 1.f);
     if (m_max != max) {
         m_max = max;
-        m_state.custom_data = true;
-        this->NeedRelayout();
+        this->NeedUpdate(Reason_ChildLayoutChanged | Reason_ValueTextChanged);
     }
 }
 
@@ -145,8 +157,7 @@ void LongUI::UIProgress::SetMax(float max) noexcept {
 void LongUI::UIProgress::SetValue(float value) noexcept {
     if (m_value != value) {
         m_value = value;
-        m_state.custom_data = true;
-        this->NeedRelayout();
+        this->NeedUpdate(Reason_ChildLayoutChanged | Reason_ValueTextChanged);
     }
 }
 

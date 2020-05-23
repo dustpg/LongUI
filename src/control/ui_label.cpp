@@ -51,35 +51,31 @@ LongUI::UILabel::~UILabel() noexcept {
 }
 
 
+
 /// <summary>
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void  LongUI::UILabel::Update() noexcept {
-    // 文本显示 修改了
-    if (m_state.textfont_display_changed) 
-        this->Invalidate();
+void  LongUI::UILabel::Update(UpdateReason reason) noexcept {
+    constexpr UpdateReason need_redraw 
+        = Reason_TextFontDisplayChanged
+        | Reason_TextFontLayoutChanged
+        | Reason_ValueTextChanged
+        ;
+    // 需要刷新显示
+    if (reason & need_redraw) this->Invalidate();
     // 文本布局 修改了
-    if (m_state.textfont_layout_changed) {
-        this->reset_font();
-        this->Invalidate();
-    }
+    if (reason & Reason_TextFontLayoutChanged) this->reset_font();
     // 文本修改了
-    if (m_bTextChanged) {
-        m_bTextChanged = false;
-        this->on_text_changed();
-    }
-    // TODO: 处理BOX修改 SpecifyMinContectSize
+    if (reason & Reason_ValueTextChanged) this->on_text_changed();
     // 检查到大小修改
-    if (this->is_size_changed()) {
+    if (reason & Reason_SizeChanged) 
         m_text.Resize(this->GetBox().GetContentSize());
-    }
-    // 父类修改
-    Super::Update();
-    // 处理大小修改
-    this->size_change_handled();
-}
+    // TODO: 处理BOX修改 SpecifyMinContectSize
 
+    // 超类处理
+    Super::Update(reason);
+}
 
 /// <summary>
 /// Does the mouse event.
@@ -123,9 +119,7 @@ auto LongUI::UILabel::DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept
 /// <param name="sender">The sender.</param>
 /// <param name="e">The e.</param>
 /// <returns></returns>
-auto LongUI::UILabel::DoEvent(
-    UIControl* sender, 
-    const EventArg& e) noexcept -> EventAccept {
+auto LongUI::UILabel::DoEvent(UIControl* sender, const EventArg& e) noexcept -> EventAccept {
     // 分类讨论
     switch (e.nevent)
     {
@@ -147,6 +141,7 @@ auto LongUI::UILabel::DoEvent(
         // 初始化
         if (!m_string.empty()) {
             this->SetText(CUIString{ std::move(m_string) });
+            this->NeedUpdate(Reason_ValueTextChanged);
         }
         m_control.FindControl(m_pWindow);
         [[fallthrough]];
@@ -173,7 +168,7 @@ void LongUI::UILabel::SetAsDefaultMinsize() noexcept {
 /// <param name="ch">The ch.</param>
 /// <returns></returns>
 void LongUI::UILabel::setup_access_key() noexcept {
-    const auto ch = m_chAccessKey;
+    const auto ch = m_state.accessKey;
     if (ch >= 'A' && ch <= 'Z') {
         // 查找字符串是否存在指定字符
         m_uPosAkey = 0;
@@ -193,7 +188,7 @@ void LongUI::UILabel::setup_access_key() noexcept {
 /// <param name="show">if set to <c>true</c> [show].</param>
 /// <returns></returns>
 void LongUI::UILabel::ShowAccessKey(bool show) noexcept {
-    if (m_chAccessKey && m_text) {
+    if (m_state.accessKey && m_text) {
         m_text.SetUnderline(m_uPosAkey, 1, show);
         this->Invalidate();
     }
@@ -239,7 +234,7 @@ void LongUI::UILabel::on_text_changed() noexcept {
     // 需要额外的字符
     const auto base_len = m_string.length();
     if (m_uPosAkey == base_len + 1)
-        detail::append_ass_key(m_string, m_chAccessKey);
+        detail::append_ass_key(m_string, m_state.accessKey);
     // 创建文本布局
     auto hr = m_text.SetText(m_string.c_str(), m_string.length());
     m_string.erase(base_len);
@@ -260,8 +255,7 @@ bool LongUI::UILabel::SetText(CUIString&& text) noexcept {
     // 相同自然不需要
     if (m_string == text) return false;
     m_string = std::move(text);
-    m_bTextChanged = true;
-    this->NeedUpdate();
+    this->NeedUpdate(Reason_ValueTextChanged);
     return true;
 }
 
@@ -285,13 +279,15 @@ PCN_NOINLINE
 /// <returns></returns>
 void LongUI::UILabel::after_set_text() noexcept {
     const auto size = m_text.GetSize();
-    const auto width = std::ceil(size.width);
-    const auto height = std::ceil(size.height);
-    this->set_contect_minsize({ width, height });
+    const Size2F ceil_size{ std::ceil(size.width) , std::ceil(size.height) };
+    if (LongUI::IsSameInGuiLevel(m_szOld, ceil_size)) return;
+    this->set_contect_minsize(m_szOld = ceil_size);
     this->mark_window_minsize_changed();
+    this->mark_world_changed();
 #ifdef LUI_ACCESSIBLE
     LongUI::Accessible(m_pAccessible, Callback_PropertyChanged);
 #endif
+    
 }
 
 /// <summary>
@@ -352,7 +348,7 @@ auto LongUI::UILabel::accessible(const AccessibleEventArg& args) noexcept -> Eve
         return Event_Accept;
     case AccessibleEvent::Event_All_GetAccessibleName:
         // 获取Acc名称
-        *static_cast<const get2_t&>(args).name = this->GetTextString();
+        *static_cast<const get2_t&>(args).name = this->RefText();
         return Event_Accept;
     //case AccessibleEvent::Event_Value_SetValue:
     //    // 设置值

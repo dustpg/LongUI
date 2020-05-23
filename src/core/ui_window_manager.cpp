@@ -365,7 +365,9 @@ void LongUI::CUIWndMgr::refresh_window_minsize() noexcept {
             const auto a = reinterpret_cast<const uint64_t&>(minsize1);
             const auto b = reinterpret_cast<const uint64_t&>(minsize2);
             static_assert(sizeof(minsize1) == sizeof(a), "must be same");
-            if (a != b) root.NeedRelayout();
+            // XXX: 最小大小?
+            if (a != b) root.NeedUpdate(Reason_ChildLayoutChanged);
+            //if (a != b) root.NeedUpdate(Reason_MinSizeChanged);
         }
     }
 }
@@ -381,11 +383,12 @@ void LongUI::CUIWndMgr::refresh_window_world() noexcept {
         const auto window = Private::cast(&aw);
         assert(window);
         // 检测每个窗口的最小世界修改
-        if (const auto ctrl = window->m_pTopestWcc) {
-            window->m_pTopestWcc = nullptr;
-            const auto top = ctrl->IsTopLevel() ? ctrl : ctrl->GetParent();
-            //const auto top = ctrl;
-            UIControlPrivate::UpdateWorld(*top);
+        if (const auto ctrl = window->m_pMiniWorldChange) {
+            window->m_pMiniWorldChange = nullptr;
+            if (ctrl->IsTopLevel())
+                UIControlPrivate::UpdateWorldTop(*ctrl, window->GetAbsoluteSize());
+            else
+                UIControlPrivate::UpdateWorld(*ctrl);
         }
     }
 }

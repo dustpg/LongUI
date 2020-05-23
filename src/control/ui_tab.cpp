@@ -192,7 +192,7 @@ auto LongUI::UITab::accessible(const AccessibleEventArg& args) noexcept -> Event
     case AccessibleEvent::Event_All_GetAccessibleName:
         // 获取Acc名称
         *static_cast<const get2_t&>(args).name =
-            m_oLabel.GetTextString();
+            m_oLabel.RefText();
         return Event_Accept;
     case AccessibleEvent::Event_Invoke_Invoke:
         // 调用
@@ -401,16 +401,14 @@ void LongUI::UITabBox::SetSelectedIndex(uint32_t index) noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITabBox::Update() noexcept {
-    // 要求重新布局
-    if (this->is_need_relayout()) {
-        // 不脏了
-        m_state.dirty = false;
+void LongUI::UITabBox::Update(UpdateReason reason) noexcept {
+    // XXX: 要求重新布局
+    if (reason & Reason_BasicRelayout) {
         // 重新布局
         this->relayout();
     }
-    // 其他的交给父类处理
-    Super::Update();
+    // 其他的交给超类处理
+    Super::Update(reason);
 }
 
 /// <summary>

@@ -75,8 +75,8 @@ namespace LongUI {
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        // update, postpone change some data
-        void Update() noexcept override;
+        // update with some reason
+        void Update(UpdateReason) noexcept override;
         // render this control only, [Global rendering and Incremental rendering]
         //void Render() const noexcept override;
         // recreate/init device(gpu) resource
@@ -92,6 +92,8 @@ namespace LongUI {
         void relayout_base(UIControl* head) noexcept;
         // refresh minsize
         void refresh_minsize(UIControl* head) noexcept;
+        // is last item
+        bool cal_is_last_item() const noexcept;
     protected:
         // tree root
         UITree*                 m_pTree = nullptr;

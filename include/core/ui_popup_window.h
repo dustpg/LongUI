@@ -7,6 +7,8 @@
 #include <cstddef>
 
 namespace LongUI {
+    // position type
+    enum class AttributePopupPosition : uint32_t;
     // popup type
     enum class PopupType : uint32_t {
         // type exclusive : invoke via exclusive hoster, will keep same width as hoster
@@ -20,40 +22,13 @@ namespace LongUI {
         // type tooltip   : maybe by hover(leave to release)
         Type_Tooltip,
     };
-    // popup pos
-    enum class PopupPosition : uint32_t {
-        // default
-        Position_Default = 0,
-        // BEFORE_START
-        Position_BeforeStart,
-        // BEFORE_END
-        Position_BeforeEnd,
-        // AFTER_START
-        Position_AfterStart,
-        // AFTER_END
-        Position_AfterEnd,
-        // START_BEFORE
-        Position_StartBefore,
-        // START_AFTER
-        Position_StartAfter,
-        // END_BEFORE
-        Position_EndBefore,
-        // END_AFTER
-        Position_EndStart,
-        // OVERLAP
-        Position_Overlap,
-        // AT_POINTER
-        Position_AtPointer,
-        // AFTER_POINTER
-        Position_AfterPointer,
-    };
     // popup window from name
     auto PopupWindowFromName(
         UIControl& hoster,
         const char* name,
         Point2F pointer,
         PopupType type,
-        PopupPosition position
+        AttributePopupPosition position
     ) noexcept ->EventAccept;
     // popup window from viewport
     void PopupWindowFromViewport(
@@ -61,14 +36,14 @@ namespace LongUI {
         UIViewport& viewport,
         Point2F pointer,
         PopupType type,
-        PopupPosition position
+        AttributePopupPosition position
     ) noexcept;
     // popup window from tooltip text
     void PopupWindowFromTooltipText(
         UIControl& hoster,
         const char* text,
         Point2F pointer,
-        PopupPosition position
+        AttributePopupPosition position
     ) noexcept;
     // close tooltip window
     void PopupWindowCloseTooltip(

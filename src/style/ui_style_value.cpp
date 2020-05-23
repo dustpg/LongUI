@@ -13,7 +13,7 @@
 //#define PCN_NOINLINE
 
 // longui::detail
-namespace LongUI { namespace detail{
+namespace LongUI { namespace detail {
     // last
     static UIControl* g_pLastTextFont = nullptr;
     // get text font
@@ -21,6 +21,20 @@ namespace LongUI { namespace detail{
     // get text font
     auto get_text_font(const UIControl& ctrl) noexcept->const TextFont*{
         return get_text_font(const_cast<UIControl&>(ctrl));
+    }
+    // mark tf display changed
+    inline void mark_td_display_changed() noexcept {
+        assert(g_pLastTextFont);
+        auto& ctrl = *g_pLastTextFont;
+        // 标记文本显示属性修改
+        ctrl.NeedUpdate(Reason_TextFontDisplayChanged);
+    }
+    // mark tf layout changed
+    inline void mark_td_layout_changed() noexcept {
+        assert(g_pLastTextFont);
+        auto& ctrl = *g_pLastTextFont;
+        // 标记文本显示属性修改
+        ctrl.NeedUpdate(Reason_TextFontLayoutChanged);
     }
 }}
 
@@ -42,10 +56,7 @@ void LongUI::CUIStyleValue::SetFgColor(RGBA color) noexcept {
     // 存在TF对象
     if (const auto tf = detail::get_text_font(*ctrl)) {
         ColorF::FromRGBA_RT(tf->text.color, color);
-        const auto hastf = detail::g_pLastTextFont;
-        // 标记文本显示属性修改
-        UIControlPrivate::MarkTFDisplayChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_display_changed();
     }
 }
 
@@ -76,10 +87,8 @@ void LongUI::CUIStyleValue::SetTextAlign(AttributeTextAlign talign) noexcept {
     // 存在TF对象
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->text.alignment = talign;
-        const auto hastf = detail::g_pLastTextFont;
-        // 标记文本显示属性修改
-        UIControlPrivate::MarkTFLayoutChanged(*hastf);
-        hastf->NeedUpdate();
+        // 标记文本布局属性修改
+        detail::mark_td_layout_changed();
     }
 }
 
@@ -116,10 +125,8 @@ void LongUI::CUIStyleValue::SetTextStrokeColor(RGBA color) noexcept {
     // 存在TF对象
     if (const auto tf = detail::get_text_font(*ctrl)) {
         ColorF::FromRGBA_RT(tf->text.stroke_color, color);
-        const auto hastf = detail::g_pLastTextFont;
         // 标记文本显示属性修改
-        UIControlPrivate::MarkTFDisplayChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_display_changed();
     }
 }
 
@@ -136,10 +143,8 @@ void LongUI::CUIStyleValue::SetTextStrokeWidth(float width) noexcept {
     // 存在TF对象
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->text.stroke_width = width;
-        const auto hastf = detail::g_pLastTextFont;
         // 标记文本显示属性修改
-        UIControlPrivate::MarkTFDisplayChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_display_changed();
     }
 }
 
@@ -522,10 +527,8 @@ void LongUI::CUIStyleValue::SetFontSize(float size) noexcept {
     detail::g_pLastTextFont = nullptr;
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.size = size;
-        const auto hastf = detail::g_pLastTextFont;
         // 标记文本布局属性修改
-        UIControlPrivate::MarkTFLayoutChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_layout_changed();
     }
 }
 
@@ -556,10 +559,8 @@ void LongUI::CUIStyleValue::SetFontStyle(AttributeFontStyle style) noexcept {
     detail::g_pLastTextFont = nullptr;
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.style = style;
-        const auto hastf = detail::g_pLastTextFont;
         // 标记文本布局属性修改
-        UIControlPrivate::MarkTFLayoutChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_layout_changed();
     }
 }
 
@@ -594,10 +595,8 @@ void LongUI::CUIStyleValue::SetFontFamily(const char* family) noexcept {
     detail::g_pLastTextFont = nullptr;
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.family = family;
-        const auto hastf = detail::g_pLastTextFont;
         // 标记文本布局属性修改
-        UIControlPrivate::MarkTFLayoutChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_layout_changed();
     }
 }
 
@@ -627,10 +626,8 @@ void LongUI::CUIStyleValue::SetFontWeight(AttributeFontWeight weight) noexcept {
     detail::g_pLastTextFont = nullptr;
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.weight = weight;
-        const auto hastf = detail::g_pLastTextFont;
         // 标记文本布局属性修改
-        UIControlPrivate::MarkTFLayoutChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_layout_changed();
     }
 }
 
@@ -660,10 +657,8 @@ void LongUI::CUIStyleValue::SetFontStretch(AttributeFontStretch stretch) noexcep
     detail::g_pLastTextFont = nullptr;
     if (const auto tf = detail::get_text_font(*ctrl)) {
         tf->font.stretch = stretch;
-        const auto hastf = detail::g_pLastTextFont;
         // 标记文本布局属性修改
-        UIControlPrivate::MarkTFLayoutChanged(*hastf);
-        hastf->NeedUpdate();
+        detail::mark_td_layout_changed();
     }
 }
 
@@ -687,9 +682,8 @@ auto LongUI::CUIStyleValue::GetFontStretch()const noexcept->AttributeFontStretch
 void LongUI::CUIStyleValue::after_box_changed() {
     const auto ctrl = static_cast<UIControl*>(this);
     UIControlPrivate::MarkWindowMinsizeChanged(*ctrl);
-    // 单独修改Box可能性很低, 内部重新布局
-    ctrl->NeedRelayout();
-    //ctrl->NeedUpdate();
+    // XXX: 单独修改Box可能性很低, 内部重新布局
+    ctrl->NeedUpdate(Reason_BoxChanged);
 }
 
 /// <summary>

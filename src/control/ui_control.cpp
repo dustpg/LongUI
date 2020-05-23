@@ -9,6 +9,7 @@
 #include <style/ui_native_style.h>
 #include <event/ui_initialize_event.h>
 #include <input/ui_kminput.h>
+//#include <style/ui_attribute.h>
 
 #include "../private/ui_private_control.h"
 
@@ -125,21 +126,19 @@ void LongUI::UIControl::ControlMakingEnd() noexcept {
 }
 
 /// <summary>
-/// Needs the update.
+/// need update this
 /// </summary>
+/// <param name="reason"></param>
 /// <returns></returns>
-void LongUI::UIControl::NeedUpdate() noexcept {
-    assert(this && "null this pointer");
-    UIManager.AddUpdateList(*this);
-}
+void LongUI::UIControl::NeedUpdate(UpdateReason reason) noexcept {
+#ifndef NDEBUG
+    //if (LongUI::IsViewport(*this)) {
+    //    int bk = 9;
+    //}
+#endif // NDEBUG
 
-/// <summary>
-/// Needs the relayout.
-/// </summary>
-/// <returns></returns>
-void LongUI::UIControl::NeedRelayout() noexcept {
-    m_state.dirty = true; 
-    this->NeedUpdate();
+    m_state.reason = m_state.reason | reason;
+    UIManager.AddUpdateList(*this);
 }
 
 /// <summary>
@@ -185,26 +184,6 @@ bool LongUI::UIControl::IsDescendantOrSiblingFor(const UIControl& ctrl) const no
 }
 
 /// <summary>
-/// Sets the timer[0123]
-/// </summary>
-/// <param name="id0123">The id0123.</param>
-/// <param name="elapse">The elapse.</param>
-/// <returns></returns>
-//void LongUI::UIControl::SetTimer0123(uint32_t id0123, uint32_t elapse) noexcept {
-//    m_bHasTimer = true;
-//}
-
-/// <summary>
-/// Kills the timer[0123]
-/// </summary>
-/// <param name="id0123">The id0123.</param>
-/// <param name="elapse">The elapse.</param>
-/// <returns></returns>
-//void LongUI::UIControl::KillTimer0123(uint32_t id0123) noexcept {
-//
-//}
-
-/// <summary>
 /// Resizes the child.
 /// </summary>
 /// <param name="child">The child.</param>
@@ -212,10 +191,12 @@ bool LongUI::UIControl::IsDescendantOrSiblingFor(const UIControl& ctrl) const no
 void LongUI::UIControl::resize_child(UIControl& child, Size2F size) noexcept {
     // 无需修改
     if (IsSameInGuiLevel(child.m_oBox.size, size)) return;
-    // XXX: 需要修改世界矩阵
-    child.m_state.world_changed = true;
+    // XXX: 需要修改世界矩阵?
+    if (!std::strcmp(child.m_id.id, "this")) {
+        int bk = 9;
+    }
     // 需要重新布局
-    child.NeedRelayout();
+    child.NeedUpdate(Reason_SizeChanged);
     // 重新渲染
     child.Invalidate();
     // 确定修改
@@ -230,15 +211,24 @@ void LongUI::UIControl::resize_child(UIControl& child, Size2F size) noexcept {
 bool LongUI::UIControl::Resize(Size2F size) noexcept {
     // 无需修改
     if (IsSameInGuiLevel(m_oBox.size, size)) return false;
-    // 修改布局
-    //const auto layout = this->IsTopLevel() ? this : m_pParent;
-    if (m_pParent) m_pParent->NeedRelayout();
-    this->NeedRelayout();
-    // XXX: 需要修改世界矩阵
-    m_state.world_changed = true;
+    // XXX: 如果与父节点布局不相关可以略过?
+    if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
     // 修改了数据
+    this->NeedUpdate(Reason_SizeChanged);
+    this->mark_world_changed();
     m_oBox.size = size;
+
     return true;
+}
+
+
+/// <summary>
+/// mark world changed
+/// </summary>
+/// <returns></returns>
+void LongUI::UIControl::mark_world_changed() noexcept {
+    m_state.world_changed = true;
+    this->NeedUpdate(Reason_NonChanged);
 }
 
 PCN_NOINLINE
@@ -399,7 +389,7 @@ auto LongUI::UIControl::init() noexcept -> Result {
     assert(m_state.inited == false && "this control has been inited");
     m_state.inited = true;
     // XXX: 注册访问按键
-    if (m_chAccessKey >= 'A' && m_chAccessKey <= 'Z' && m_pWindow)
+    if (m_state.accessKey >= 'A' && m_state.accessKey <= 'Z' && m_pWindow)
         m_pWindow->RegisterAccessKey(*this);
 #ifndef LUI_DISABLE_STYLE_SUPPORT
     // 重新连接样式表
@@ -457,27 +447,15 @@ void LongUI::UIControl::remove_triggered() noexcept {
 }
 
 /// <summary>
-/// Updates the self.
+/// state changed, update this
 /// </summary>
 /// <returns></returns>
-void LongUI::UIControl::Update() noexcept {
-    // 调用update前必须初始化
+void LongUI::UIControl::Update(UpdateReason reason) noexcept {
     assert(m_state.inited && "must init control first");
-    // 状态修改
-    m_state.style_state_changed = false;
-    m_state.textfont_display_changed = false;
-    m_state.textfont_layout_changed = false;
-    // 最基的不处理子控件索引更改
-    m_state.child_i_changed = false;
-    m_state.parent_changed = false;
-    // 自定义样式
-    this->custom_style_update();
-
-    /*LUIDebug(Hint) LUI_FRAMEID
-        << this 
-        << LongUI::endl;*/
+    // 提示样式渲染器大小修改
+    if (reason & Reason_SizeChanged)
+        this->custom_style_size_changed();
 }
-
 
 /// <summary>
 /// Recreates this instance.
@@ -563,77 +541,74 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
     constexpr auto BKDR_DATAU16     = 0xc036b6f7_ui32;
     constexpr auto BKDR_DATAU8      = 0xe4278072_ui32;
    
-    // 优化用HASH掩码
-    constexpr auto MASK_HASH        = 0xffffffff_ui32;
-    //constexpr auto MASK_HASH        = 0x00000fff_ui32;
 
     // HASH 一致就认为一致即可
-    switch (key & MASK_HASH)
+    switch (key)
     {
 #ifndef NDEBUG
     case "debug"_bkdr:
-        this->dbg_output = value.ToBool();
+        m_state.dbg_output = value.ToBool();
         break;
 #endif
-    case BKDR_ID & MASK_HASH:
+    case BKDR_ID:
         // id         : 窗口唯一id
         m_id = UIManager.GetUniqueText(value);
         // 尝试添加命名控件
         if (m_pWindow) m_pWindow->AddNamedControl(*this);
         break;
-    case BKDR_LEFT & MASK_HASH:
+    case BKDR_LEFT:
         // left
         // TODO: 单位?
         //const auto unit = LongUI::SplitUnit(luiref value);
         m_oBox.pos.x = value.ToFloat();
         break;
-    case BKDR_TOP & MASK_HASH:
+    case BKDR_TOP:
         // top
         // TODO: 单位?
         //const auto unit = LongUI::SplitUnit(luiref value);
         m_oBox.pos.y = value.ToFloat();
         break;
-    case BKDR_WIDTH & MASK_HASH:
+    case BKDR_WIDTH:
         // width
         m_oStyle.maxsize.width =
             m_oStyle.minsize.width =
             m_oBox.size.width = value.ToFloat();
         break;
-    case BKDR_HEIGHT & MASK_HASH:
+    case BKDR_HEIGHT:
         // height
         m_oStyle.maxsize.height =
             m_oStyle.minsize.height =
             m_oBox.size.width = value.ToFloat();
         break;
 #ifndef LUI_DISABLE_STYLE_SUPPORT
-    case BKDR_STYLE & MASK_HASH:
+    case BKDR_STYLE:
         // style      : 内联样式表
         if (LongUI::ParseInlineStlye(m_oStyle.matched, value))
-            m_bHasInlineStyle = true;
+            m_state.has_inline_style = true;
 
         break;
 #endif
-    case BKDR_DISABLED & MASK_HASH:
+    case BKDR_DISABLED:
         // disabled   : 禁用状态
         //if (value) m_oStyle.state.disabled = true;
         m_oStyle.state.disabled = value.ToBool();
         break;
-    case BKDR_CHECKED & MASK_HASH:
+    case BKDR_CHECKED:
         // checked
         m_oStyle.state.checked = value.ToBool();
         break;
-    case BKDR_DEFAULT & MASK_HASH:
+    case BKDR_DEFAULT:
         // default    : 窗口初始默认控件
         if (m_pWindow && value.ToBool()) m_pWindow->SetDefault(*this);
         break;
-    case BKDR_VISIBLE & MASK_HASH:
+    case BKDR_VISIBLE:
         // visible    : 是否可见
         m_state.visible = value.ToBool();
         break;
     //case BKDR_TABINDEX:
     //    // tabindex   : tab键索引
     //    break;
-    case BKDR_CLASS & MASK_HASH:
+    case BKDR_CLASS:
         // class      : 样式表用类名
         while (value.begin() < value.end()) {
             const auto splited = value.Split(' ');
@@ -643,65 +618,65 @@ void LongUI::UIControl::add_attribute(uint32_t key, U8View value) noexcept {
             }
         }
         break;
-    case BKDR_CONTEXT & MASK_HASH:
+    case BKDR_CONTEXT:
         // context    : 上下文菜单 
         m_pCtxCtrl = UIManager.GetUniqueText(value).id;
         break;
-    case BKDR_TOOLTIP & MASK_HASH:
+    case BKDR_TOOLTIP:
         // tooltip    : 提示窗口
         m_pTooltipCtrl = UIManager.GetUniqueText(value).id;
         break;
-    case BKDR_TOOLTIPTEXT & MASK_HASH:
+    case BKDR_TOOLTIPTEXT:
         // tooltiptext: 提示文本
         m_strTooltipText = value;
         break;
-    case BKDR_ACCESSKEY & MASK_HASH:
+    case BKDR_ACCESSKEY:
         // accesskey  : 快捷访问键
         assert(value.end() > value.begin() && "bad accesskey");
         //if (value.end() > value.begin()) {
         if (true) {
             auto ch = *value.begin();
             if (ch >= 'a' && ch <= 'z') ch -= 'a' - 'A';
-            m_chAccessKey = ch;
+            m_state.accessKey = ch;
         }
         break;
-    case BKDR_DRAGGABLE & MASK_HASH:
+    case BKDR_DRAGGABLE:
         // draggable  : 允许拖拽
         break;
-    case BKDR_FLEX & MASK_HASH:
+    case BKDR_FLEX:
         // flex       : 布局弹性系数
         m_oStyle.flex = value.ToFloat();
         break;
-    case BKDR_ORIENT & MASK_HASH:
+    case BKDR_ORIENT:
         // orient     : 布局方向
         m_state.orient = *value.begin() == 'v';
         break;
-    case BKDR_DIR & MASK_HASH:
+    case BKDR_DIR:
         // dir        : 排列方向
-        m_state.dir = *value.begin() == 'r';
+        m_state.direction = *value.begin() == 'r';
         break;
-    case BKDR_ALIGN & MASK_HASH:
+    case BKDR_ALIGN:
         // align      : 布局方向垂直对齐方法
         m_oStyle.align = AttrParser::Align(value);
         break;
-    case BKDR_PACK & MASK_HASH:
+    case BKDR_PACK:
         // pack       : 布局方向平行对齐方法
         m_oStyle.pack = AttrParser::Pack(value);
         break;
 #ifdef LUI_USER_INIPTR_DATA
-    case BKDR_DATAUSER & MASK_HASH:
+    case BKDR_DATAUSER:
         // data-user
         this->user_data = value.ToInt32();
         break;
 #endif
 #ifdef LUI_USER_U16STR_DATA
-    case BKDR_DATAU16 & MASK_HASH:
+    case BKDR_DATAU16:
         // data-u16
         this->user_u16str = CUIString::FromUtf8(value);
         break;
 #endif
 #ifdef LUI_USER_U8STR_DATA
-    case BKDR_DATAU8 & MASK_HASH:
+    case BKDR_DATAU8:
         // data-u8
         this->user_u8str = value;
         break;
@@ -728,7 +703,11 @@ bool LongUI::UIControl::IsPointInsideBorder(Point2F pos) const noexcept {
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapToWindow(RectF& rect) const noexcept {
-    assert(m_state.world_changed == false && "world changed!");
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     auto ptr = reinterpret_cast<Point2F*>(&rect);
     ptr[0] = LongUI::TransformPoint(m_mtWorld, ptr[0]);
     ptr[1] = LongUI::TransformPoint(m_mtWorld, ptr[1]);
@@ -740,6 +719,11 @@ void LongUI::UIControl::MapToWindow(RectF& rect) const noexcept {
 /// <param name="point">The point.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapToParent(RectF& rect) const noexcept {
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     rect;
     if (this->IsTopLevel()) {
         assert(!"NOT IMPL");
@@ -755,7 +739,11 @@ void LongUI::UIControl::MapToParent(RectF& rect) const noexcept {
 /// <param name="pt">The pt.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapToWindow(Point2F& pt) const noexcept {
-    assert(m_state.world_changed == false && "world changed!");
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     pt = LongUI::TransformPoint(m_mtWorld, pt);
 }
 
@@ -766,6 +754,11 @@ void LongUI::UIControl::MapToWindow(Point2F& pt) const noexcept {
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapFromWindow(RectF& rect) const noexcept {
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     assert(!"NOT IMPL");
 }
 
@@ -775,6 +768,11 @@ void LongUI::UIControl::MapFromWindow(RectF& rect) const noexcept {
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapFromParent(RectF & rect) const noexcept {
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     assert(!"NOT IMPL");
 }
 
@@ -784,7 +782,11 @@ void LongUI::UIControl::MapFromParent(RectF & rect) const noexcept {
 /// <param name="point">The point.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapFromWindow(Point2F& point) const noexcept {
-    assert(m_state.world_changed == false && "world changed!");
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     point = TransformPointInverse(m_mtWorld, point);
 }
 
@@ -794,6 +796,11 @@ void LongUI::UIControl::MapFromWindow(Point2F& point) const noexcept {
 /// <param name="point">The point.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapFromParent(Point2F & point) const noexcept {
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     point; assert(!"NOT IMPL");
 }
 
@@ -803,6 +810,11 @@ void LongUI::UIControl::MapFromParent(Point2F & point) const noexcept {
 /// <param name="point">The point.</param>
 /// <returns></returns>
 void LongUI::UIControl::MapToParent(Point2F& point) const noexcept {
+#ifndef NDEBUG
+    if (m_state.dbg_in_update) {
+        LUIDebug(Warning) << "cannot call this in update" << endl;
+    }
+#endif // !NDEBUG
     point; assert(!"NOT IMPL");
 }
 
@@ -831,8 +843,6 @@ void LongUI::impl::ctor_unlock() noexcept {
 /// </summary>
 LongUI::UIControl::UIControl(UIControl* parent, const MetaControl& meta) noexcept : 
 m_pParent(nullptr), m_refMetaInfo(meta) {
-    m_bHasInlineStyle = false;
-    m_bTextChanged = false;
     Node::next = nullptr;
     Node::prev = nullptr;
     m_ptChildOffset = { 0, 0 };
@@ -848,21 +858,15 @@ m_pParent(nullptr), m_refMetaInfo(meta) {
     m_oHead = { nullptr, static_cast<UIControl*>(&m_oTail) };
     m_oTail = { static_cast<UIControl*>(&m_oHead), nullptr };
 #endif
-    // 清空后面数据
-    //if (meta.size_of > sizeof(*this)) {
-    //    const auto ptr = reinterpret_cast<char*>(this);
-    //}
     // 数据锁
     CUIDataAutoLocker locker;
     // 添加到父节点的子节点链表中
     if (parent) parent->add_child(*this);
-    // 更新世界
-    m_state.world_changed = true;
     // 延迟初始化
     UIManager.AddInitList(*this);
 #ifndef NDEBUG
     this->name_dbg = meta.element_name;
-    this->dbg_output = false;
+    m_state.dbg_output = false;
 #endif
 }
 
@@ -913,7 +917,7 @@ auto LongUI::UIControl::DoInputEvent(InputEventArg e) noexcept -> EventAccept {
         return LongUI::PopupWindowFromName(
             *this, m_pCtxCtrl, { 0 }, 
             PopupType::Type_Context,
-            PopupPosition::Position_Default
+            AttributePopupPosition::Position_Default
         );
     }
     return Event_Ignore;
@@ -996,7 +1000,7 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
         return LongUI::PopupWindowFromName(
             *this, m_pCtxCtrl, { e.px, e.py }, 
             PopupType::Type_Context,
-            PopupPosition::Position_Default
+            AttributePopupPosition::Position_Default
         );
     }
     return Event_Ignore;
@@ -1010,7 +1014,7 @@ auto LongUI::UIControl::mouse_under_atomicity(const MouseEventArg& e) noexcept -
 auto LongUI::UIControl::do_tooltip(Point2F pos) noexcept -> EventAccept {
     if (m_state.tooltip_shown) return Event_Ignore;
     m_state.tooltip_shown = true;
-    const auto ppos = PopupPosition::Position_Default;
+    const auto ppos = AttributePopupPosition::Position_Default;
     // 显示TOOLTIP
     if (const auto tooltip = m_pTooltipCtrl) {
         constexpr auto type = PopupType::Type_Tooltip;
@@ -1077,6 +1081,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         if (m_pHovered) {
             UIControlPrivate::DoMouseLeave(*m_pHovered, { e.px, e.py });
             m_pHovered = nullptr;
+            this->NeedUpdate(Reason_HoveredChanged);
         }
         // 截断ENTER LEAVE消息
         this->release_tooltip();
@@ -1090,6 +1095,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
             if (hover) UIControlPrivate::DoMouseLeave(*hover, { e.px, e.py });
             if (child) UIControlPrivate::DoMouseEnter(*child, { e.px, e.py });
             m_pHovered = child;
+            this->NeedUpdate(Reason_HoveredChanged);
         }
         if (child && child->IsEnabled()) return child->DoMouseEvent(e);
         // 处理MOUSE消息
@@ -1134,7 +1140,7 @@ auto LongUI::UIControl::DoMouseEvent(const MouseEventArg& e) noexcept -> EventAc
         return LongUI::PopupWindowFromName(
             *this, m_pCtxCtrl, { e.px, e.py },
             PopupType::Type_Context,
-            PopupPosition::Position_Default
+            AttributePopupPosition::Position_Default
         );
     }
     // 子控件有效则处理消息
@@ -1158,13 +1164,13 @@ LongUI::UIControl::~UIControl() noexcept {
     }
 #endif
     // 检测计时器
-    if (m_flagTimer) {
+    if (m_state.timer) {
         uint8_t mask = 1;
         for (uint32_t i = 0; i != CONTROL_ALIGNAS; ++i) {
-            if (m_flagTimer & mask) UIManager.KillTimer(*this, i);
+            if (m_state.timer & mask) UIManager.KillTimer(*this, i);
             mask <<= 1;
         }
-        m_flagTimer = 0;
+        m_state.timer = 0;
     }
     // 移除被触发列表
     this->remove_triggered();
@@ -1203,7 +1209,8 @@ bool LongUI::UIControl::IsAncestorForThis(const UIControl& node) const noexcept 
     // 先检查深度做为优化
     if (m_state.level <= node.m_state.level) return false;
     auto ctrl = this;
-    while (!ctrl->IsTopLevel()) {
+    // TODO: 没有必要遍历到IsTopLevel
+    while (ctrl->m_state.level != node.m_state.level) {
         if (ctrl->m_pParent == &node) return true;
         ctrl = ctrl->m_pParent;
     }
@@ -1259,10 +1266,9 @@ void LongUI::UIControl::SwapChildren(UIControl& a, UIControl& b) noexcept {
     assert(a.GetParent() == this && "not child for this");
     assert(b.GetParent() == this && "not child for this");
     if (a == b) return;
-    m_state.child_i_changed = true;
+    this->NeedUpdate(Reason_ChildIndexChanged);
     this->mark_window_minsize_changed();
     UIControl::SwapNode(a, b);
-    this->NeedRelayout();
 }
 
 /// <summary>
@@ -1301,9 +1307,8 @@ auto LongUI::UIControl::FindChild(const Point2F pos) noexcept -> UIControl* {
 /// <returns></returns>
 void LongUI::UIControl::SetPos(Point2F pos) noexcept {
     if (IsSameInGuiLevel(m_oBox.pos, pos)) return;
-    m_state.world_changed = true;
     m_oBox.pos = pos;
-    this->NeedUpdate();
+    this->mark_world_changed();
     this->Invalidate();
 }
 
@@ -1325,17 +1330,16 @@ void LongUI::UIControl::SetTooltipText(U8View view) noexcept {
 void LongUI::UIControl::SetVisible(bool visible) noexcept {
     if (this->IsVisible() != visible) {
         m_state.visible = visible;
-        // TODO: 顶级控件?
-        //if (this->IsTopLevel()) {
-        //}
+        if (!m_pParent) return;
         // XXX: 优化其他情况
+
         // 布局相关
         this->Invalidate();
         if (m_state.attachment == Attachment_Fixed) {
 
         }
         else {
-            m_pParent->NeedRelayout();
+            m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
             this->mark_window_minsize_changed();
         }
     }
@@ -1382,12 +1386,11 @@ void LongUI::UIControl::remove_child(UIControl& child) noexcept {
 #endif
     }
 #endif
-    // 要求刷新
-    m_state.child_i_changed = true;
     // 在析构中?
     if (m_state.destructing) return;
+    // 要求刷新
     this->mark_window_minsize_changed();
-    this->NeedRelayout();
+    this->NeedUpdate(Reason_ChildIndexChanged);
 }
 
 
@@ -1477,7 +1480,7 @@ bool LongUI::UIControl::IsVisibleToRoot() const noexcept {
 void LongUI::UIControl::SetTimer(uint32_t elapse, uint32_t id0_7) noexcept {
     assert(id0_7 < CONTROL_ALIGNAS);
     const uint8_t flag = 1 << id0_7;
-    m_flagTimer |= flag;
+    m_state.timer |= flag;
     UIManager.SetTimer(*this, elapse, id0_7);
 }
 
@@ -1489,8 +1492,8 @@ void LongUI::UIControl::SetTimer(uint32_t elapse, uint32_t id0_7) noexcept {
 void LongUI::UIControl::KillTimer(uint32_t id0_7) noexcept {
     assert(id0_7 < CONTROL_ALIGNAS);
     const uint8_t flag = 1 << id0_7;
-    assert(m_flagTimer & flag);
-    m_flagTimer &= ~flag;
+    assert(m_state.timer & flag);
+    m_state.timer &= ~flag;
     UIManager.KillTimer(*this, id0_7);
 }
 
@@ -1562,7 +1565,7 @@ void LongUI::UIControl::clear_parent() noexcept {
     // 清除父节点
     if (m_pParent) {
         m_pParent->remove_child(*this);
-        m_state.parent_changed = true;
+        this->NeedUpdate(Reason_ParentChanged);
         m_pParent = nullptr;
     }
 }
@@ -1593,7 +1596,7 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     }
     // 无需再次添加
     if (child.m_pParent == this) return;
-    child.m_state.parent_changed = true;
+    child.NeedUpdate(Reason_ParentChanged);
     // 在之前的父控件移除该控件
     if (child.m_pParent) child.m_pParent->remove_child(child);
     child.m_pParent = this;
@@ -1621,10 +1624,8 @@ void LongUI::UIControl::add_child(UIControl& child) noexcept {
     //child.m_pWindow->ControlAttached(child);
     // 同步
     if (child.GetCount()) UIControlPrivate::SyncInitData(child);
-    m_state.child_i_changed = true;
+    this->NeedUpdate(Reason_ChildIndexChanged);
     this->mark_window_minsize_changed();
-    //this->NeedUpdate();
-    this->NeedRelayout();
     // 提示管理器新的控件被添加到控件树中
     //UIManager.ControlAttached(child);
 }
@@ -1645,7 +1646,7 @@ void LongUI::UIControl::link_style_sheet() noexcept {
     // 最高支持32(默认)枚内联样式
     SSValue vbuf[SMALL_BUFFER_LENGTH]; uint32_t inline_size = 0;
     // 处理之前的内联样式
-    if (m_bHasInlineStyle) {
+    if (m_state.has_inline_style) {
         auto last = &style_matched.back();
         while (true) {
             assert(last >= &style_matched.front());
@@ -1741,27 +1742,25 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         break;
     case ValueType::Type_PositionLeft:
         detail::write_value(m_oBox.pos.x, value.data4.single);
-        m_state.world_changed = true;
-        this->NeedUpdate();
+        this->mark_world_changed();
         break;
     case ValueType::Type_PositionTop:
         detail::write_value(m_oBox.pos.y, value.data4.single);
-        m_state.world_changed = true;
-        this->NeedUpdate();
+        this->mark_world_changed();
         break;
     case ValueType::Type_DimensionWidth:
         detail::write_value(m_oStyle.minsize.width, value.data4.single);
         detail::write_value(m_oStyle.maxsize.width, value.data4.single);
         detail::write_value(m_oBox.size.width, value.data4.single);
         this->mark_window_minsize_changed();
-        this->NeedRelayout();
+        this->NeedUpdate(Reason_SizeChanged);
         break;
     case ValueType::Type_DimensionHeight:
         detail::write_value(m_oStyle.minsize.height, value.data4.single);
         detail::write_value(m_oStyle.maxsize.height, value.data4.single);
         detail::write_value(m_oBox.size.height, value.data4.single);
         this->mark_window_minsize_changed();
-        this->NeedRelayout();
+        this->NeedUpdate(Reason_SizeChanged);
         break;
     case ValueType::Type_DimensionMinWidth:
         detail::write_value(m_oStyle.minsize.width, value.data4.single);
@@ -1778,15 +1777,15 @@ void LongUI::UIControl::ApplyValue(const SSValue& value) noexcept {
         //    detail::write_value(m_oStyle.maxsize.width, p);
         //}
         detail::write_value(m_oStyle.maxsize.width, value.data4.single);
-        if (m_pParent) m_pParent->NeedRelayout();
+        if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         break;
     case ValueType::Type_DimensionMaxHeight:
         detail::write_value(m_oStyle.maxsize.height, value.data4.single);
-        if (m_pParent) m_pParent->NeedRelayout();
+        if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         break;
     case ValueType::Type_BoxFlex:
         detail::write_value(m_oStyle.flex, value.data4.single);
-        if (m_pParent) m_pParent->NeedRelayout();
+        if (m_pParent) m_pParent->NeedUpdate(Reason_ChildLayoutChanged);
         break;
     case ValueType::Type_BorderStyle:
         this->SetBdStyle(detail::same_cast<AttributeBStyle>(value.data4.byte));

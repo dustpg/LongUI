@@ -65,17 +65,17 @@ LongUI::UIRadio::~UIRadio() noexcept {
 }
 
 /// <summary>
-/// UIs the radio.
+/// UIRadio: state changed
 /// </summary>
 /// <returns></returns>
-void LongUI::UIRadio::Update() noexcept {
+void LongUI::UIRadio::Update(UpdateReason reason) noexcept {
     // 父节点修改了?
-    if (m_state.parent_changed) {
+    if (reason & Reason_ParentChanged) {
         // uisafe_cast 空指针安全
         m_pRadioGroup = uisafe_cast<UIRadioGroup>(m_pParent);
     }
-    // 父类调用
-    Super::Update();
+    // 超类调用
+    Super::Update(reason);
 }
 
 
@@ -217,7 +217,7 @@ void LongUI::UIRadio::add_attribute(uint32_t key, U8View value) noexcept {
         Super::add_attribute(BKDR_CHECKED, value);
         break;
     default:
-        // 交个父类处理
+        // 交个超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -301,8 +301,8 @@ auto LongUI::UIRadio::GetText() const noexcept -> const char16_t* {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIRadio::GetTextString() const noexcept -> const CUIString&{
-    return m_oLabel.GetTextString();
+auto LongUI::UIRadio::RefText() const noexcept -> const CUIString&{
+    return m_oLabel.RefText();
 }
 
 // ----------------------------------------------------------------------------
@@ -322,7 +322,7 @@ LongUI::UIRadioGroup::~UIRadioGroup() noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIRadioGroup::Update() noexcept {
+void LongUI::UIRadioGroup::Update(UpdateReason reason) noexcept {
     // 清理checked标记
     auto clear_checked = [this]() noexcept {
         // 查找已有的
@@ -334,12 +334,12 @@ void LongUI::UIRadioGroup::Update() noexcept {
         this->TriggerEvent(_onCommand());
     };
     // 子节点修改过?
-    if (m_state.child_i_changed) {
+    if (reason & Reason_ChildIndexChanged) {
         // 有才查找
         if (m_pChecked) clear_checked();
     }
-    // 父类处理
-    Super::Update();
+    // 超类处理
+    Super::Update(reason);
 }
 
 /// <summary>

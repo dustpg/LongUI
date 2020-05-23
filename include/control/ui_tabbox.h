@@ -61,8 +61,8 @@ namespace LongUI {
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        // update, postpone change some data
-        void Update() noexcept override;
+        // update
+        void Update(UpdateReason) noexcept override;
         // render this control only, [Global rendering and Incremental rendering]
         //void Render() const noexcept override;
         // recreate/init device(gpu) resource
@@ -71,7 +71,7 @@ namespace LongUI {
         // add child
         void add_child(UIControl& child) noexcept override;
         // relayout
-        void relayout() noexcept;
+        void relayout() noexcept ;
         // init tabbox
         void init_tabbox() noexcept;
     protected:

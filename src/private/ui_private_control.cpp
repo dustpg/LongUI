@@ -99,10 +99,74 @@ void LongUI::UIControlPrivate::RefreshMinSize(UIControl& ctrl) noexcept {
         const auto a = reinterpret_cast<const uint64_t&>(minsize1);
         const auto b = reinterpret_cast<const uint64_t&>(minsize2);
         // 在64位下可以只判断一次
-        if (a != b) { ctrl.NeedRelayout(); child.NeedRelayout(); }
+        if (a != b) { 
+            ctrl.NeedUpdate(Reason_ChildLayoutChanged);
+            // XXX: 最小大小?
+            child.NeedUpdate(Reason_ChildLayoutChanged);
+            //child.NeedUpdate(Reason_MinSizeChanged);
+        }
     }
     // 刷新大小
     ctrl.DoEvent(&ctrl, { NoticeEvent::Event_RefreshBoxMinSize });
+}
+
+
+/// <summary>
+/// Updates the world.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <param name="size">The size of window.</param>
+/// <returns></returns>
+void LongUI::UIControlPrivate::UpdateWorldTop(UIControl& ctrl, Size2L size) noexcept {
+    // 根节点
+    if (ctrl.m_state.world_changed) {
+        ctrl.m_state.world_changed = false;
+        // UIViewport::resize_window 中修改了box.visible
+        ctrl.m_oBox.visible;
+        // 强行刷新子对象
+        for (auto& child : ctrl) {
+            child.m_state.world_changed = true;
+            UIControlPrivate::UpdateWorldForce(child);
+        }
+        return;
+    }
+    // 刷新子对象
+    for (auto& child : ctrl) UIControlPrivate::UpdateWorld(child);
+}
+
+
+/// <summary>
+/// FORCE Updates the world.
+/// </summary>
+/// <param name="ctrl">The control.</param>
+/// <returns></returns>
+void LongUI::UIControlPrivate::UpdateWorldForce(UIControl & ctrl) noexcept {
+    // XXX: 优化
+    ctrl.m_state.world_changed = false;
+    Matrix3X2F matrix;
+    const auto parent = ctrl.GetParent();
+    matrix = parent->GetWorld();
+    matrix._31 += ctrl.GetPos().x * matrix._11;
+    matrix._32 += ctrl.GetPos().y * matrix._22;
+    // 固定位置? 不是!
+    if (ctrl.m_state.attachment == Attachment_Scroll) {
+        matrix._31 -= parent->m_ptChildOffset.x * matrix._11;
+        matrix._32 -= parent->m_ptChildOffset.y * matrix._22;
+    }
+    ctrl.m_mtWorld = matrix;
+
+    auto& box = ctrl.m_oBox;
+    auto ctrl_rect = ctrl.GetBox().GetSafeBorderEdge();
+    ctrl.MapToWindow(ctrl_rect);
+    // 检查父控件
+    const auto ctn = parent->GetBox().visible;
+    ctrl_rect.top = std::max(ctn.top, ctrl_rect.top);
+    ctrl_rect.left = std::max(ctn.left, ctrl_rect.left);
+    ctrl_rect.right = std::min(ctn.right, ctrl_rect.right);
+    ctrl_rect.bottom = std::min(ctn.bottom, ctrl_rect.bottom);
+    box.visible = ctrl_rect;
+    // 强行刷新子对象
+    for (auto& child : ctrl) UIControlPrivate::UpdateWorldForce(child);
 }
 
 /// <summary>
@@ -111,51 +175,10 @@ void LongUI::UIControlPrivate::RefreshMinSize(UIControl& ctrl) noexcept {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::UIControlPrivate::UpdateWorld(UIControl& ctrl) noexcept {
-    // 需要刷新
-    if (ctrl.m_state.world_changed) {
-        //ctrl.Update();
-        ctrl.m_state.world_changed = false;
-        Matrix3X2F matrix;
-        // TODO: 根节点
-        if (ctrl.IsTopLevel()) {
-
-        }
-        // 子节点
-        else {
-            auto parent = ctrl.GetParent();
-            matrix = parent->GetWorld();
-            matrix._31 += ctrl.GetPos().x * matrix._11;
-            matrix._32 += ctrl.GetPos().y * matrix._22;
-            // 固定位置? 不是!
-            if (ctrl.m_state.attachment == Attachment_Scroll) {
-                matrix._31 -= parent->m_ptChildOffset.x * matrix._11;
-                matrix._32 -= parent->m_ptChildOffset.y * matrix._22;
-            }
-            ctrl.m_mtWorld = matrix;
-        }
-
-        auto& box = ctrl.m_oBox;
-        auto ctrl_rect = ctrl.GetBox().GetSafeBorderEdge();
-        ctrl.MapToWindow(ctrl_rect);
-        // 检查父控件
-        if (!ctrl.IsTopLevel()) {
-            auto parent = ctrl.m_pParent;
-            auto ctn = parent->GetBox().visible;
-            ctrl_rect.top = std::max(ctn.top, ctrl_rect.top);
-            ctrl_rect.left = std::max(ctn.left, ctrl_rect.left);
-            ctrl_rect.right = std::min(ctn.right, ctrl_rect.right);
-            ctrl_rect.bottom = std::min(ctn.bottom, ctrl_rect.bottom);
-        }
-        box.visible = ctrl_rect;
-        // 强行刷新子对象
-        for (auto& child : ctrl) {
-            child.m_state.world_changed = true;
-            UIControlPrivate::UpdateWorld(child);
-        }
-        return;
-    }
+    // 需要更新
+    if (ctrl.m_state.world_changed) UIControlPrivate::UpdateWorldForce(ctrl);
     // 刷新子对象
-    for (auto& child : ctrl) UIControlPrivate::UpdateWorld(child);
+    else for (auto& child : ctrl) UIControlPrivate::UpdateWorld(child);
 }
 
 /// <summary>

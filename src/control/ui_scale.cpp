@@ -51,17 +51,18 @@ LongUI::UIScale::~UIScale() noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIScale::Update() noexcept {
+void LongUI::UIScale::Update(UpdateReason reason) noexcept {
     // 污了
-    if (this->is_size_changed()) {
+    if (reason & (Reason_SizeChanged | Reason_ValueTextChanged)) {
         // 本类只能存在唯一的子元素(thumb)
         assert(this->GetCount() == 1 && "thumb ony");
         assert(*this->begin() == this->thumb && "thumb ony");
         this->refresh_thumb_size();
         this->refresh_thumb_postion();
+        this->Invalidate();
     }
-    Super::Update();
-    this->size_change_handled();
+    // 超类处理
+    Super::Update(reason);
 }
 
 /// <summary>
@@ -129,12 +130,7 @@ void LongUI::UIScale::SetValue(float value) noexcept {
     m_fValue = newv;
     // 触发修改GUI事件
     this->TriggerEvent(this->_onChange());
-    // 脏了
-    m_state.dirty = true;
-    // 需要渲染
-    this->Invalidate();
-    // 需要更新
-    this->NeedUpdate();
+    this->NeedUpdate(Reason_ValueTextChanged);
 }
 
 /// <summary>
@@ -146,7 +142,7 @@ void LongUI::UIScale::SetMin(float min_value) noexcept {
     m_fMin = std::min(min_value, m_fMax);
     // 越界检查
     if (m_fMin > m_fValue) this->SetValue(m_fMin);
-    else { m_state.dirty = true; this->NeedUpdate(); }
+    else this->NeedUpdate(Reason_ValueTextChanged);
 }
 
 
@@ -157,8 +153,7 @@ void LongUI::UIScale::SetMin(float min_value) noexcept {
 /// <returns></returns>
 void LongUI::UIScale::SetPageIncrement(float pi) noexcept {
     m_fPageIncrement = pi;
-    m_state.dirty = true;
-    this->NeedUpdate();
+    this->NeedUpdate(Reason_ValueTextChanged);
 }
 
 /// <summary>
@@ -169,8 +164,7 @@ void LongUI::UIScale::SetPageIncrement(float pi) noexcept {
 void LongUI::UIScale::SetMax(float max_value) noexcept {
     m_fMax = std::max(max_value, m_fMin);
     if (m_fMax < m_fValue) this->SetValue(m_fMax);
-    m_state.dirty = true;
-    this->NeedUpdate();
+    this->NeedUpdate(Reason_ChildLayoutChanged);
 }
 
 /// <summary>

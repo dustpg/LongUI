@@ -49,7 +49,7 @@ namespace LongUI {
         // ctor
         UIListCols(UIControl* parent = nullptr) noexcept : UIListCols(parent, UIListCols::s_meta) {}
         // will relayout?
-        bool WillRelayout() const noexcept { return this->is_need_relayout(); }
+        bool WillRelayout() const noexcept;
         // match layout
         void MatchLayout(UIControl&) noexcept;
     protected:

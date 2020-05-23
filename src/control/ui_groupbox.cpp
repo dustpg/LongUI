@@ -77,7 +77,7 @@ void LongUI::UIGroupBox::add_attribute(uint32_t key, U8View value) noexcept {
         Unsafe::AddAttrUninited(m_oBodyLayout, key, value);
         break;
     default:
-        // 父类处理
+        // 超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -137,7 +137,7 @@ auto LongUI::UIGroupBox::accessible(const AccessibleEventArg& args) noexcept -> 
         // 获取Acc名称
         if (m_pCaption) {
             *static_cast<const get2_t&>(args).name =
-                m_pCaption->GetTextString();
+                m_pCaption->RefText();
             return Event_Accept;
         }
     }

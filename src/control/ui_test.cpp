@@ -94,8 +94,8 @@ void LongUI::UITest::Render() const noexcept {
 /// update this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITest::Update() noexcept {
-    return Super::Update();
+void LongUI::UITest::Update(UpdateReason reason) noexcept {
+    return Super::Update(reason);
 }
 
 /// <summary>

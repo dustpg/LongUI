@@ -112,7 +112,7 @@ auto LongUI::CUITextLayout::set_text(TextArg & arg) noexcept -> Result {
         m_text = nullptr;
     }
     // 创建布局
-    const auto hr = UIManager.CreateCtlText(arg, m_text);
+    const auto hr = UIManager.CreateCtlText(arg, luiref m_text);
     // 获取首行测量值计算半行距
     if (hr) {
         DWRITE_LINE_METRICS lm; uint32_t c;
@@ -175,7 +175,5 @@ auto LongUI::CUITextLayout::GetSize() const noexcept -> Size2F {
         m_text->GetMetrics(&metrics);
         return{ metrics.widthIncludingTrailingWhitespace, metrics.height };
     }
-    else {
-        return{ 0, 12.f };
-    }
+    else return{ 0, 12.f };
 }

@@ -24,11 +24,6 @@ namespace LongUI {
     LUI_CONTROL_META_INFO(UIMenuItem, "menuitem");
     // UIMenuPopup类 元信息
     LUI_CONTROL_META_INFO(UIMenuPopup, "menupopup");
-    // impl
-    namespace impl {
-        // pos from string
-        auto poppos_from(U8View view) noexcept->PopupPosition;
-    }
 }
 
 // --------------------------- UIMenuItem  ---------------------
@@ -105,8 +100,8 @@ auto LongUI::UIMenuItem::GetText() const noexcept -> const char16_t * {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIMenuItem::GetTextString() const noexcept -> const CUIString &{
-    return m_oLabel.GetTextString();
+auto LongUI::UIMenuItem::RefText() const noexcept -> const CUIString &{
+    return m_oLabel.RefText();
 }
 
 
@@ -199,7 +194,7 @@ void LongUI::UIMenuItem::add_attribute(uint32_t key, U8View value) noexcept {
         }
         break;
     default:
-        // 其他的交给父类处理
+        // 其他的交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -330,8 +325,8 @@ auto LongUI::UIMenuList::GetText() const noexcept -> const char16_t* {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIMenuList::GetTextString() const noexcept -> const CUIString&{
-    return m_oLabel.GetTextString();
+auto LongUI::UIMenuList::RefText() const noexcept -> const CUIString&{
+    return m_oLabel.RefText();
 }
 
 
@@ -381,8 +376,10 @@ LongUI::UIMenuList::UIMenuList(UIControl* parent, const MetaControl& meta) noexc
 LongUI::UIMenuList::~UIMenuList() noexcept {
     // 存在提前释放子控件, 需要标记"在析构中"
     m_state.destructing = true;
+    // 如果没有初始化就释放
+
     // XXX: 窗口处于析构状态时无需释放窗口
-    if (m_pWindow && m_pWindow->IsInDtor()) {
+    if (this->is_inited() && m_pWindow && m_pWindow->IsInDtor()) {
 
     }
     else {
@@ -474,7 +471,7 @@ void LongUI::UIMenuList::on_selected_changed() noexcept {
     m_iSelected = m_pMenuPopup->GetSelectedIndex();
     const auto ctrl = m_pMenuPopup->GetLastSelected();
     // 修改事件
-    if (ctrl) this->SetText(ctrl->GetTextString());
+    if (ctrl) this->SetText(ctrl->RefText());
     else this->SetText(CUIString{});
     // 触发事件
     this->TriggerEvent(this->_onCommand());
@@ -527,12 +524,27 @@ void LongUI::UIMenuList::SetText(const CUIString& text) noexcept {
 void LongUI::UIMenuList::add_child(UIControl& child) noexcept {
     // 检查是不是 Menu Popup
     if (const auto ptr = uisafe_cast<UIMenuPopup>(&child)) {
-        // HACK: ptr目前可能只是UIControl, 但是现在修改的正是UIControl
-        ptr->save_selected_true();
         m_pMenuPopup = ptr;
+        this->NeedUpdate(Reason_ChildIndexChanged);
+        // 仅仅是弱引用, 直接返回
         return;
     }
     return Super::add_child(child);
+}
+
+/// <summary>
+/// update this 
+/// </summary>
+/// <param name="reason"></param>
+/// <returns></returns>
+void LongUI::UIMenuList::Update(UpdateReason reason) noexcept {
+    // 添加
+    if (reason & Reason_ChildIndexChanged) {
+        // 针对combobox(menupopup) 每次打开保存选择
+        if (m_pMenuPopup) m_pMenuPopup->save_selected_true();
+    }
+    // 超类处理
+    return Super::Update(reason);
 }
 
 /// <summary>
@@ -635,19 +647,21 @@ void LongUI::UIMenuPopup::init_clear_color_for_default_combobox() noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIMenuPopup::Update() noexcept {
-    // 检测是否
-    if (m_pHovered || m_bMouseIn) {
-        m_bMouseIn = true;
-        if (m_pPerSelected != m_pHovered) {
-            this->change_select(m_pPerSelected, m_pHovered);
-            m_pPerSelected = m_pHovered;
-            // 没有m_pDelayClosed? 尝试关闭
-            //if (!m_pDelayClosed) SetDelayClosedPopup();
-        }
+void LongUI::UIMenuPopup::Update(UpdateReason reason) noexcept {
+    // 悬浮控件修改的情况
+    if (reason & Reason_HoveredChanged) {
+        //if (m_pHovered || m_bMouseIn) {
+        //    m_bMouseIn = true;
+            if (m_pPerSelected != m_pHovered) {
+                this->change_select(m_pPerSelected, m_pHovered);
+                m_pPerSelected = m_pHovered;
+                // 没有m_pDelayClosed? 尝试关闭
+                //if (!m_pDelayClosed) SetDelayClosedPopup();
+            }
+        //}
     }
-    // 父类更新
-    Super::Update();
+    // 超类更新
+    Super::Update(reason);
 }
 
 
@@ -656,7 +670,7 @@ void LongUI::UIMenuPopup::Update() noexcept {
 /// </summary>
 /// <returns></returns>
 void LongUI::UIMenuPopup::WindowClosed() noexcept {
-    m_bMouseIn = false;
+    //m_bMouseIn = false;
     // 保存
     if (this->is_save_selected()) {
         // 不同的选择就归位
@@ -729,7 +743,7 @@ auto LongUI::UIMenuPopup::DoEvent(
         }
         [[fallthrough]];
     }
-    // 父类处理
+    // 超类处理
     return Super::DoEvent(sender, arg);
 }
 
@@ -883,6 +897,10 @@ void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
     if (m_pHoster) m_pHoster->DoEvent(this, EventGuiArg{ _onCommand() });
 }
 
+#ifndef NDEBUG
+extern "C" void ui_debug_output_info(char*) noexcept;
+#endif // !NDEBUG
+
 /// <summary>
 /// add attribute for <seealso cref="UIMenuPopup"/>
 /// </summary>
@@ -890,12 +908,28 @@ void LongUI::UIMenuPopup::select(UIControl* child) noexcept {
 /// <param name="view">view</param>
 /// <returns></returns>
 void LongUI::UIMenuPopup::add_attribute(uint32_t key, U8View view) noexcept {
-    constexpr auto BKDR_POSITION = 0xd52a25f1_ui32;
+    constexpr auto BKDR_ID          = 0x0000361f_ui32;
+    constexpr auto BKDR_POSITION    = 0xd52a25f1_ui32;
     switch (key)
     {
     case BKDR_POSITION:
-        m_posPopup = impl::poppos_from(view);
+        m_posPopup = AttrParser::PopupPosition(view);
         return;
+#ifndef NDEBUG
+    case BKDR_ID:
+    {
+        char buf[128];
+        std::snprintf(
+            buf, 128, "0x%p - %.*s\r\n", 
+            this, 
+            view.end()- view.begin(), 
+            view.begin()
+        );
+        ::ui_debug_output_info(buf);
+    }
+        return Super::add_attribute(key, view);
+#endif // !NDEBUG
+
     }
     return Super::add_attribute(key,view);
 }

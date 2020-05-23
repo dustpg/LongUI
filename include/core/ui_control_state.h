@@ -27,77 +27,149 @@
 #include <cstdint>
 
 namespace LongUI {
+#if 0
+    // state changed
+    enum CCState : uint8_t {
+        // non changed was acceptable
+        State_NonChanged            =  0,
+        // parent changed
+        State_ParentChanged         = 1 << 0,
+        // child index changed(include child removed/added)
+        State_ChildIndexChanged     = 1 << 1,
+        // size changed
+        State_SizeChanged           = 1 << 2,
+        // world matrix changed[include UIScrollArea scroll]
+        State_WorldChanged          = 1 << 3,
+        // text-font attr changed
+        State_TextFontChanged       = 1 << 4,
+        // text/value changed, use this if you support text display for optimization
+        //  - textbox   : text  changed
+        //  - scale     : value/max/min changed
+        //  - progress  : value/max changed
+        State_ValueTextChanged      = 1 << 5,
+    };
+    // relayout reason
+    enum RelayoutReason : uint8_t {
+        // text layout(e.g. font-name) changed
+        Reason_TextLayoutChanged = 1 << 0,
+        // size changed
+        Reason_SizeChanged = 1 << 1,
+        // minsize changed(e.g. text changed) changed
+        Reason_MinSizeChanged = 1 << 3,
+        // text/value changed
+        Reason_ValueTextChanged = 1 << 5,
+    };
+#endif
+    // update reason
+    enum UpdateReason : uint16_t {
+        // non-changed was acceptable
+        Reason_NonChanged               = 0,
+        // parent changed
+        Reason_ParentChanged            = 1 << 0,
+        // child index changed(include child removed/added/swapped)
+        Reason_ChildIndexChanged        = 1 << 1,
+        // size changed
+        Reason_SizeChanged              = 1 << 2,
+        // box changed
+        Reason_BoxChanged               = 1 << 3,
+        // text-font display attribute(e.g. text color) changed
+        Reason_TextFontDisplayChanged   = 1 << 4,
+        // text-font layout attribute(e.g. font-name) changed
+        Reason_TextFontLayoutChanged    = 1 << 5,
+        // text/value changed
+        //  - textbox   : text  changed
+        //  - scale     : value/max/min changed
+        //  - progress  : value/max changed
+        Reason_ValueTextChanged         = 1 << 6,
+        // child layout changed
+        Reason_ChildLayoutChanged       = 1 << 7,
+        // m_pHovered changed
+        Reason_HoveredChanged           = 1 << 8,
+
+
+        // basic relayout reason
+        Reason_BasicRelayout 
+            = Reason_ParentChanged
+            | Reason_ChildIndexChanged
+            | Reason_SizeChanged
+            | Reason_BoxChanged
+            | Reason_ChildLayoutChanged
+        ,
+    };
     // control state
-    struct CtrlState {
+    struct alignas(uint32_t) CtrlState {
         // ctor
         void Init() noexcept;
+        // relayout reason
+        UpdateReason    reason;
         // tree level
-        uint8_t     level;
-        // ------------ life
+        uint8_t         level;
+        // timer used flag
+        uint8_t         timer;
+        // accesskey char
+        char            accessKey;
+        // BYTE#0
 
-        // has been inited
-        bool        inited : 1;
-        // in dtor
-        bool        destructing : 1;
-
-        // ------------ attr
-
+        // gui event to parent[true to parent, false to viewport]
+        bool        gui_event_to_parent : 1;
+        // defaultable
+        bool        defaultable : 1;
+        // atomicity (children will keep same input-state with parent)
+        bool        atomicity : 1;
         // attachment 
         bool        attachment : 1;
         // focusable
         bool        focusable : 1;
+        // layout direction
+        bool        direction : 1;
+        // has been inited
+        bool        inited : 1;
         // orientation
         bool        orient : 1;
-        // layout direction
-        bool        dir : 1;
 
-        // ---------- unstable interface
+        // BYTE#1
 
-        // is delete later?
-        bool        delete_later : 1;
-        // gui event to parent[true, to parent, false to viewport]
-        bool        gui_event_to_parent : 1;
-        // in animation
-        bool        in_basic_animation : 1;
-        // defaultable
-        bool        defaultable : 1;
-        // atomicity (children will keep same input-state with parent)
-        bool        atomicity   : 1;
+        // has inline style
+        bool        has_inline_style : 1;
+        // in dtor
+        bool        destructing : 1;
         // tooltip shown?
         bool        tooltip_shown : 1;
-
-
-        // ----------- custom data
-
-        // custom data, defined via control self, donot use this if you donot know
-        //  - listbox   : need refresh index flag
-        //  - progress  : data changed flag
-        //  - menu popup: save selected
-        bool        custom_data : 1;
-
-
-        // ----------- state
-
-        // text-font display attr changed
-        bool        textfont_display_changed : 1;
-        // text-font layout attr changed
-        bool        textfont_layout_changed : 1;
-        // layout dirty
-        bool        dirty : 1;
-        // visible                          [S-falg]
+        // visible
         bool        visible : 1;
-        // world matrix changed             [N-flag]
-        bool        world_changed : 1;
-        // state changed if [animated]      [N-flag]
-        bool        style_state_changed : 1;
-        // in update list                   [O-flag]
-        bool        in_update_list : 1;
-        // in render-dirty list             [O-flag]
+        // is delete later?
+        bool        delete_later : 1;
+        // in render-dirty list
         bool        in_dirty_list : 1;
-        // child index changed(+ - child)   [N-flag]
-        bool        child_i_changed : 1;
-        // parent changed                   [N-flag]
-        bool        parent_changed : 1;
+        // in update list
+        bool        in_update_list : 1;
+        // in animation
+        bool        in_basic_animation : 1;
 
+        // BYTE#2
+        // world changed
+        bool        world_changed : 1;
+        // dbg output
+        bool        dbg_output : 1;
+        // debug in update
+        bool        dbg_in_update : 1;
     };
+    // operator |
+    inline constexpr UpdateReason operator|(UpdateReason a, UpdateReason b) noexcept {
+        using reason_t = uint16_t;
+        static_assert(sizeof(reason_t) == sizeof(a), "bad type");
+        return UpdateReason(reason_t(a) | reason_t(b));
+    }
+    // operator &
+    inline constexpr UpdateReason operator&(UpdateReason a, UpdateReason b) noexcept {
+        using reason_t = uint16_t;
+        static_assert(sizeof(reason_t) == sizeof(a), "bad type");
+        return UpdateReason(reason_t(a) & reason_t(b));
+    }
+    // operator ~
+    inline constexpr UpdateReason operator~(UpdateReason a) noexcept {
+        using reason_t = uint16_t;
+        static_assert(sizeof(reason_t) == sizeof(a), "bad type");
+        return UpdateReason(~reason_t(a));
+    }
 }

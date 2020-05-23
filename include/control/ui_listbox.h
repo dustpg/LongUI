@@ -85,21 +85,13 @@ namespace LongUI {
     public:
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
-        // do mouse event
-        //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        // update, postpone change some data
-        void Update() noexcept override;
-        // render this control only, [Global rendering and Incremental rendering]
-        //void Render() const noexcept override;
-        // recreate/init device(gpu) resource
-        //auto Recreate() noexcept->Result override;
+        // Update
+        void Update(UpdateReason) noexcept override;
     protected:
         // add attribute
         void add_attribute(uint32_t key, U8View value) noexcept;
         // add child
         void add_child(UIControl& child) noexcept override;
-        // re-layout
-        void relayout() noexcept;
         // refresh cols min size
         void refresh_cols_minsize() noexcept;
         // refresh this min size
@@ -108,12 +100,14 @@ namespace LongUI {
         void select_item(UIListItem& item) noexcept;
         // refresh items index
         void refresh_item_index() noexcept;
+        // re-layout
+        void relayout() noexcept;
         // need refresh index
-        bool need_refresh_index() const noexcept { return m_state.custom_data; }
+        bool need_refresh_index() const noexcept { return m_bRefreshTndex; }
         // clear need refresh index
-        void clear_need_refresh_index() noexcept { m_state.custom_data = false; }
+        void clear_need_refresh_index() noexcept { m_bRefreshTndex = false; }
         // clear need refresh index
-        void mark_need_refresh_index() noexcept { m_state.custom_data = true; }
+        void mark_need_refresh_index() noexcept { m_bRefreshTndex = true; }
     private:
         // listbox body
         UIScrollArea        m_oListboxBody;
@@ -131,8 +125,8 @@ namespace LongUI {
         POD::Vector<float>  m_minwidth;
         // display row | xul::rows related
         uint16_t            m_displayRow = 4;
-        // unused u8
-        char                m_unusedU8 = 0;
+        // need refresh index
+        bool                m_bRefreshTndex = false;
         // select type
         AttributeSeltype    m_seltype = Seltype_Single;
     };

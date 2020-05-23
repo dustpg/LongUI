@@ -33,7 +33,7 @@ namespace LongUI {
         // mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
         // update
-        void Update() noexcept override;
+        void Update(UpdateReason) noexcept override;
         // render
         void Render() const noexcept override;
     protected:
@@ -60,8 +60,8 @@ namespace LongUI {
     public:
         // get text
         auto GetText() const noexcept { return m_string.c_str(); }
-        // get text- string object
-        auto&GetTextString() const noexcept { return m_string; }
+        // ref text- string object
+        auto&RefText() const noexcept { return m_string; }
         // set text, return true if changed
         bool SetText(const CUIString& text) noexcept;
         // set text, return true if changed
@@ -76,6 +76,8 @@ namespace LongUI {
         // show access key
         void ShowAccessKey(bool show = true) noexcept;
     protected:
+        // old size of text
+        Size2F                  m_szOld = {};
         // hovered curor
         CUICursor               m_hrefCursor;
         // connection control

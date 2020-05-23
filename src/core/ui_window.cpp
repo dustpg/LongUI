@@ -73,7 +73,7 @@ namespace LongUI { namespace impl {
         const auto bv = is_valid(b);
         // 都无效
         if (!av && !bv) return output;
-        // 合并矩形
+        // 默认处理包含仅有A有效的情况
         RectF merged_rect = a;
         // 都有效
         if (av && bv) {
@@ -146,12 +146,9 @@ namespace LongUI { namespace detail {
 /// <param name="ctrl">The control.</param>
 /// <returns></returns>
 void LongUI::CUIWindow::SetControlWorldChanged(UIControl& ctrl) noexcept {
-    assert(UIControlPrivate::TestWorldChanged(ctrl));
     assert(ctrl.GetWindow() == this);
-    m_pTopestWcc = detail::lowest_common_ancestor(&ctrl, m_pTopestWcc);
+    m_pMiniWorldChange = detail::lowest_common_ancestor(&ctrl, m_pMiniWorldChange);
     //LUIDebug(Log) << ctrl << ctrl.GetLevel() << endl;
-    //if (m_pTopestWcc && m_pTopestWcc->GetLevel() < ctrl.GetLevel()) return;
-    //m_pTopestWcc = &ctrl;
 }
 
 /// <summary>
@@ -319,6 +316,8 @@ namespace LongUI {
         UIControl*      focused = nullptr;
         // captured control
         UIControl*      captured = nullptr;
+        // caret display control
+        UIControl*      careted = nullptr;
         // now default control
         UIControl*      now_default = nullptr;
         // window default control
@@ -487,9 +486,6 @@ LongUI::CUIWindow::CUIWindow(CUIWindow* parent, WindowConfig cfg) noexcept :
     m_inDtor = false;
     m_bInExec = false;
     m_bDrawFocus = false;
-#ifndef NDEBUG
-    m_bDrawFocus = true;
-#endif
     //m_bBigIcon = false;
     //m_bCtorFaild = false;
     // XXX: 错误处理
@@ -607,6 +603,11 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
         m_pAccessible = nullptr;
     }
 #endif
+#ifndef LUI_DISABLE_STYLE_SUPPORT
+    // 释放样式表
+    LongUI::DeleteStyleSheet(m_pStyleSheet);
+    m_pStyleSheet = nullptr;
+#endif
     // 有脚本
     if (this->custom_script) UIManager.FinalizeScript(*this);
     // 析构中
@@ -621,10 +622,6 @@ LongUI::CUIWindow::~CUIWindow() noexcept {
     UIManager.remove_from_allwindow(*this);
     // 存在父窗口
     //m_pParent->remove_child(*this);
-#ifndef LUI_DISABLE_STYLE_SUPPORT
-    // 释放样式表
-    LongUI::DeleteStyleSheet(m_pStyleSheet);
-#endif
     // 有效私有数据
     {
         // 弹出窗口会在下一步删除
@@ -734,11 +731,20 @@ auto LongUI::CUIWindow::recreate_window() noexcept -> Result {
     return pimpl()->Recreate(m_hwnd);
 }
 
+/// <summary>
 /// Gets the position.
 /// </summary>
 /// <returns></returns>
 auto LongUI::CUIWindow::GetPos() const noexcept -> Point2L {
     return { pimpl()->rect.left , pimpl()->rect.top };
+}
+
+/// <summary>
+/// Gets the position.
+/// </summary>
+/// <returns></returns>
+auto LongUI::CUIWindow::GetAbsoluteSize() const noexcept -> Size2L {
+    return { pimpl()->rect.width , pimpl()->rect.height };
 }
 
 /// <summary>
@@ -873,6 +879,22 @@ void LongUI::CUIWindow::AddNamedControl(UIControl& ctrl) noexcept {
 void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
     // 没有承载窗口就算了
     if (!this) return;
+    // 清除
+    const auto cleanup = [this]() noexcept {
+        m_pMiniWorldChange = nullptr;
+        pimpl()->dirty_count_recording = 0;
+    };
+    // 析构中
+    if (m_inDtor) return cleanup();
+    // 移除相关弱引用
+
+    CUIDataAutoLocker locker;
+    // 2. 移除最小世界修改
+    if (m_pMiniWorldChange == &ctrl) {
+        // TEST THIS
+        assert(m_pMiniWorldChange != &RefViewport());
+        m_pMiniWorldChange = m_pMiniWorldChange->GetParent();
+    }
     // 3. 移除在脏矩形列表
     if (UIControlPrivate::IsInDirty(ctrl)) {
         UIControlPrivate::ClearInDirty(ctrl);
@@ -894,19 +916,13 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
             else assert(!"NOT FOUND");
         }
     }
-    // 析构中
-    if (m_inDtor) return;
-
-
-    // XXX: 暴力移除一般引用..?
-    {
-        const auto b = pimpl()->GetFirst();
-        const auto e = pimpl()->GetLast() + 1;
-        for (auto itr = b; itr != e; ++itr) {
-            if (&ctrl == *itr) *itr = nullptr;
-        }
-    }
-    // 移除访问键引用
+    // 4. 移除普通弱引用
+    std::for_each(
+        pimpl()->GetFirst(), 
+        pimpl()->GetLast() + 1, 
+        [&](auto& p) noexcept { if (p == &ctrl) p = nullptr; }
+    );
+    // 5. 移除快捷弱引用
     const auto ch = ctrl.GetAccessKey();
     if (ch >= 'A' && ch <= 'Z') {
         const auto index = ch - 'A';
@@ -925,13 +941,13 @@ void LongUI::CUIWindow::ControlDisattached(UIControl& ctrl) noexcept {
 #endif
 
     }
-    // 移除查找表中的引用
+    // 5. 移除查找表中的弱引用
     if (ctrl.GetID().id[0]) {
         auto& list = pimpl()->named_list;
         const size_t offset = offsetof(UIControl, m_oManager.next_named);
         CUIControlControl::RemoveControlInList(ctrl, list, offset);
     }
-    // 移除查找表中的引用
+    // 6. 移除焦点表中的弱引用
     if (ctrl.IsFocusable()) {
         auto& list = pimpl()->focus_list;
         const size_t offset = offsetof(UIControl, m_oManager.next_focus);
@@ -958,6 +974,7 @@ bool LongUI::CUIWindow::SetFocus(UIControl& ctrl) noexcept {
             "cannot set focus to control that ancestor was focused"
         );
     }
+    const auto old_focused = focused;
 #endif
     // 已为焦点
     if (focused == &ctrl) return true;
@@ -1010,8 +1027,8 @@ bool LongUI::CUIWindow::FocusNext() noexcept {
     // 搜索下一个
     const auto find_next = [](UIControl* node) noexcept {
         while (true) {
-            if (!(node = node->m_oManager.next_focus)) break;
-            if (node->IsEnabled()) break;
+            node = node->m_oManager.next_focus;
+            if (!node || node->IsEnabled()) break;
         }
         return node;
     };
@@ -1033,11 +1050,12 @@ bool LongUI::CUIWindow::FocusNext() noexcept {
 /// <param name="ctrl">The control.</param>
 /// <param name="rect">The rect.</param>
 /// <returns></returns>
-void LongUI::CUIWindow::ShowCaret(const UIControl& ctrl, const RectF& rect) noexcept {
+void LongUI::CUIWindow::ShowCaret(UIControl& ctrl, const RectF& rect) noexcept {
     assert(this);
+    pimpl()->careted = &ctrl;
     pimpl()->caret_ok = true;
     pimpl()->caret = rect;
-    ctrl.MapToWindow(pimpl()->caret);
+    //ctrl.MapToWindow(pimpl()->caret);
 }
 
 /// <summary>
@@ -1046,6 +1064,7 @@ void LongUI::CUIWindow::ShowCaret(const UIControl& ctrl, const RectF& rect) noex
 /// <returns></returns>
 void LongUI::CUIWindow::HideCaret() noexcept {
     assert(this);
+    pimpl()->careted = nullptr;
     pimpl()->caret_ok = false;
 }
 
@@ -2147,63 +2166,17 @@ void LongUI::CUIWindow::Private::MarkDirtRect(const DirtyRect& rect) noexcept {
     // 满了/全渲染 就算了
     if (counter == LongUI::DIRTY_RECT_COUNT) 
         return this->mark_fr_for_update();
-    auto write = rect;
-    // 脏矩形(尽量?)将面积大的矩形放在前面
-    if (counter) {
-        // 第一个应该是最大的
-        auto& first = this->dirty_rect_recording[0];
-        // 包含就算了
-        if (LongUI::IsInclude(first.rectangle, rect.rectangle)) return;
-        const auto s0 = LongUI::GetArea(first.rectangle);
-        const auto s1 = LongUI::GetArea(rect.rectangle);
-        // 不包含放在最后面
-        if (s1 > s0) {
-            // 反包含?
-            if (LongUI::IsInclude(rect.rectangle, first.rectangle)) return;
-            write = first;
-            first = rect;
-        }
+    // 如果脏矩形列表存在祖先节点就算了
+    const auto ctrl = rect.control;
+    for (uint32_t i = 0; i != counter; ++i) {
+        if (ctrl->IsAncestorForThis(*this->dirty_rect_recording[i].control))
+            return;
     }
     // 标记在表
     UIControlPrivate::MarkInDirty(*rect.control);
     // 写入数据
-    this->dirty_rect_recording[counter] = write;
+    this->dirty_rect_recording[counter] = rect;
     ++counter;
-#if 0
-    // 已经全渲染就算了
-    if (!this->is_full_render_for_update()) {
-        // 还在范围内
-        if (this->dirty_count_for_update < LongUI::DIRTY_RECT_COUNT) {
-            // 短名字而已
-            const auto index = this->dirty_count_for_update;
-            // 写入
-            RectF write = rect;
-            // 比较第一个
-            if (index) {
-                // 将面积最大的放在前面, 每次比较面积最大的
-                const auto& first = this->dirty_rect_for_update[0];
-                // 包含就算了
-                if (LongUI::IsInclude(first, rect)) return;
-                const auto s0 = LongUI::GetArea(first);
-                const auto s1 = LongUI::GetArea(rect);
-                // 不包含放在最后面
-                if (s1 > s0) {
-                    write = first;
-                    this->dirty_rect_for_update[0] = rect;
-                    // 反包含?
-                    if (LongUI::IsInclude(rect, write)) return;
-                }
-            }
-            // 写入数据
-            this->dirty_rect_for_update[index] = write;
-            ++this->dirty_count_for_update;
-        }
-        // 标记全渲染
-        else {
-            this->mark_full_rendering_for_update();
-        }
-    }
-#endif
 }
 
 /// <summary>
@@ -2608,16 +2581,19 @@ auto LongUI::CUIWindow::Private::DoMsgNull(
 /// <returns></returns>
 bool LongUI::CUIWindow::Private::OnIME(HWND hwnd) const noexcept {
     // 有效性
-    if (!this->caret_ok) return false;
+    if (!this->careted) return false;
+    auto rect = this->caret;
+    this->careted->MapToWindow(rect);
+
     bool code = false;
-    const auto caret_x = static_cast<LONG>(this->caret.left);
-    const auto caret_y = static_cast<LONG>(this->caret.top);
+    const auto caret_x = static_cast<LONG>(rect.left);
+    const auto caret_y = static_cast<LONG>(rect.top);
     const auto ctrl_w = this->rect.width;
     const auto ctrl_h = this->rect.height;
     if (caret_x >= 0 && caret_y >= 0 && caret_x < ctrl_w && caret_y < ctrl_h) {
         HIMC imc = ::ImmGetContext(hwnd);
         // TODO: caret 高度可能不是字体高度
-        const auto caret_h = static_cast<LONG>(this->caret.bottom - this->caret.top);
+        const auto caret_h = static_cast<LONG>(rect.bottom - rect.top);
         if (::ImmGetOpenStatus(imc)) {
             COMPOSITIONFORM cf = { 0 };
             cf.dwStyle = CFS_POINT;
@@ -3118,7 +3094,7 @@ auto LongUI::CUIWindow::Private::end_render() const noexcept->Result {
 /// <returns></returns>
 void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noexcept {
     // 渲染插入符号
-    if (this->caret_ok) {
+    if (this->careted /*&& this->caret_ok*/) {
         // 保持插入符号的清晰
         renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_ALIASED);
 #if 0
@@ -3131,8 +3107,10 @@ void LongUI::CUIWindow::Private::render_caret(I::Renderer2D& renderer) const noe
             D2D1_COMPOSITE_MODE_MASK_INVERT
         );
 #endif
+        auto rect = this->caret;
+        this->careted->MapToWindow(rect);
         auto& brush = UIManager.RefCCBrush(this->caret_color);
-        renderer.FillRectangle(auto_cast(this->caret), &brush);
+        renderer.FillRectangle(auto_cast(rect), &brush);
         renderer.SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
     }
 }

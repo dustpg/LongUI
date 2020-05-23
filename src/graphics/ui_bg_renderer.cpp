@@ -28,7 +28,9 @@ LongUI::CUIRendererBackground::CUIRendererBackground() noexcept {
 /// Finalizes an instance of the <see cref="Background"/> class.
 /// </summary>
 /// <returns></returns>
-LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {
+LongUI::CUIRendererBackground::~CUIRendererBackground() noexcept {  
+    // 需要释放设备资源
+    CUIRenderAutoLocker locker;
     this->ReleaseDeviceData();
 }
 

@@ -24,25 +24,9 @@ namespace LongUI {
         // get screen work area size
         RectL work_area_from(HWND) noexcept;
         // adjust via pos
-        void adjust_via(RectWHL& inout, const RectL&, PopupPosition) noexcept;
+        void adjust_via(RectWHL& inout, const RectL&, AttributePopupPosition) noexcept;
         // adjust via wnd
         void adjust_via(RectWHL& inout, const RectL&, const RectL&, flip_mode mode) noexcept;
-        // pos from string
-        auto poppos_from(U8View view) noexcept->PopupPosition;
-        // popuppos string table - rev
-        static const uint32_t rev_popuppos_table[] = {
-            0xc530a392,     // after_pointer
-            0x4d659161,     // at_pointer
-            0x44b850f3,     // overlap
-            0xd1e17258,     // end_after
-            0x4e76786f,     // end_before
-            0xc51d7557,     // start_after
-            0xc62c00ec,     // start_before
-            0x0c26f0e8,     // after_end
-            0x94f86be7,     // after_start
-            0xe29e56cf,     // before_end
-            0x5ed67606,     // before_start
-        };
     }
 }
 
@@ -60,7 +44,7 @@ auto LongUI::PopupWindowFromName(
     const char* name, 
     Point2F pointer,
     PopupType type,
-    PopupPosition position) noexcept ->EventAccept {
+    AttributePopupPosition position) noexcept ->EventAccept {
     // 查找目标副视口
     UIViewport* target = nullptr;
     if (name) {
@@ -93,7 +77,7 @@ void LongUI::PopupWindowFromViewport(
     UIViewport& viewport, 
     Point2F pointer,
     PopupType type,
-    PopupPosition position) noexcept {
+    AttributePopupPosition position) noexcept {
     // 获取窗口数据
     auto& window = viewport.RefWindow();
     const auto this_window = hoster.GetWindow();
@@ -171,7 +155,7 @@ void LongUI::PopupWindowFromTooltipText(
     UIControl& ctrl, 
     const char* text, 
     Point2F pointer,
-    PopupPosition position) noexcept {
+    AttributePopupPosition position) noexcept {
     assert(text && "can not send null");
     const auto window = ctrl.GetWindow();
     assert(window && "window cannot be null if tooltip");
@@ -203,53 +187,53 @@ void LongUI::PopupWindowCloseTooltip(UIControl& ctrl) noexcept {
 /// <param name="area"></param>
 /// <param name="pos"></param>
 /// <returns></returns>
-void LongUI::impl::adjust_via(RectWHL& inout, const RectL& area, PopupPosition pos) noexcept {
+void LongUI::impl::adjust_via(RectWHL& inout, const RectL& area, AttributePopupPosition pos) noexcept {
 #ifndef NDEBUG
-    if (pos == PopupPosition::Position_Default) return;
+    if (pos == AttributePopupPosition::Position_Default) return;
 #endif
     switch (pos)
     {
-    case LongUI::PopupPosition::Position_Default:
+    case LongUI::AttributePopupPosition::Position_Default:
         break;
-    case LongUI::PopupPosition::Position_BeforeStart:
+    case LongUI::AttributePopupPosition::Position_BeforeStart:
         inout.left = area.left;
         inout.top = area.top - inout.height;
         break;
-    case LongUI::PopupPosition::Position_BeforeEnd:
+    case LongUI::AttributePopupPosition::Position_BeforeEnd:
         inout.left = area.right - inout.width;
         inout.top = area.top - inout.height;
         break;
-    case LongUI::PopupPosition::Position_AfterStart:
+    case LongUI::AttributePopupPosition::Position_AfterStart:
         inout.left = area.left;
         inout.top = area.bottom;
         break;
-    case LongUI::PopupPosition::Position_AfterEnd:
+    case LongUI::AttributePopupPosition::Position_AfterEnd:
         inout.left = area.right - inout.width;
         inout.top = area.bottom;
         break;
-    case LongUI::PopupPosition::Position_StartBefore:
+    case LongUI::AttributePopupPosition::Position_StartBefore:
         inout.left = area.left - inout.width;
         inout.top = area.top;
         break;
-    case LongUI::PopupPosition::Position_StartAfter:
+    case LongUI::AttributePopupPosition::Position_StartAfter:
         inout.left = area.left - inout.width;
         inout.top = area.bottom - inout.height;
         break;
-    case LongUI::PopupPosition::Position_EndBefore:
+    case LongUI::AttributePopupPosition::Position_EndBefore:
         inout.left = area.right;
         inout.top = area.top;
         break;
-    case LongUI::PopupPosition::Position_EndStart:
+    case LongUI::AttributePopupPosition::Position_EndStart:
         inout.left = area.right;
         inout.top = area.bottom - inout.height;
         break;
-    case LongUI::PopupPosition::Position_Overlap:
+    case LongUI::AttributePopupPosition::Position_Overlap:
         inout.left = area.left;
         inout.top = area.top;
         break;
-    case LongUI::PopupPosition::Position_AtPointer:
+    case LongUI::AttributePopupPosition::Position_AtPointer:
         break;
-    case LongUI::PopupPosition::Position_AfterPointer:
+    case LongUI::AttributePopupPosition::Position_AfterPointer:
         inout.top = area.bottom;
         break;
     }
@@ -293,20 +277,4 @@ void LongUI::impl::adjust_via(RectWHL& inout, const RectL& hoster, const RectL& 
         inout.left = std::min(inout.left, work.right - inout.width);
         inout.left = std::max(inout.left, work.left);
     }
-}
-
-/// <summary>
-/// get <seealso cref="PopupPosition"/> from string
-/// </summary>
-/// <param name="view"></param>
-/// <returns></returns>
-auto LongUI::impl::poppos_from(U8View view) noexcept -> PopupPosition {
-    const auto code = LongUI::BKDRHash(view.first, view.second);
-    const auto bgein = std::begin(rev_popuppos_table);
-    const auto end = std::end(rev_popuppos_table);
-    const auto itr = std::find(bgein, end, code);
-#ifndef NDEBUG
-    if (itr == end) LUIDebug(Warning) << view << " not found" << end;
-#endif 
-    return static_cast<PopupPosition>(end - itr);
 }

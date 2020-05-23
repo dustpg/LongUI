@@ -248,6 +248,33 @@ namespace LongUI {
         // percentage%
         Unit_Percentage,
     };
+    // popup pos
+    enum class AttributePopupPosition : uint32_t {
+        // default
+        Position_Default = 0,
+        // BEFORE_START
+        Position_BeforeStart,
+        // BEFORE_END
+        Position_BeforeEnd,
+        // AFTER_START
+        Position_AfterStart,
+        // AFTER_END
+        Position_AfterEnd,
+        // START_BEFORE
+        Position_StartBefore,
+        // START_AFTER
+        Position_StartAfter,
+        // END_BEFORE
+        Position_EndBefore,
+        // END_AFTER
+        Position_EndStart,
+        // OVERLAP
+        Position_Overlap,
+        // AT_POINTER
+        Position_AtPointer,
+        // AFTER_POINTER
+        Position_AfterPointer,
+    };
     // BKDR Hash Function
     auto BKDRHash(const char* a, const char* b) noexcept->uint32_t;
     // Hash find index
@@ -268,5 +295,7 @@ namespace LongUI {
         static auto Appearance(U8View) noexcept->AttributeAppearance;
         // view to repeat
         static auto Repeat2(U8View, U8View) noexcept ->AttributeRepeat;
+        // view to repeat
+        static auto PopupPosition(U8View) noexcept->AttributePopupPosition;
     };
 }

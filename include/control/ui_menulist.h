@@ -64,7 +64,7 @@ namespace LongUI {
         // get text
         auto GetText() const noexcept ->const char16_t*;
         // get text- string object
-        auto GetTextString() const noexcept -> const CUIString&;
+        auto RefText() const noexcept -> const CUIString&;
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text
@@ -77,7 +77,7 @@ namespace LongUI {
         long GetSelectedIndex() const noexcept { return m_iSelected; }
     public:
         // update
-        //void Update() noexcept override;
+        void Update(UpdateReason) noexcept override;
         // do event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept->EventAccept override;
         // render

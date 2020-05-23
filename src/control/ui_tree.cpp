@@ -56,6 +56,7 @@ namespace LongUI {
 /// </summary>
 /// <returns></returns>
 LongUI::UITree::~UITree() noexcept {
+
 }
 
 
@@ -84,9 +85,9 @@ LongUI::UITree::UITree(UIControl* parent, const MetaControl& meta) noexcept
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITree::Update() noexcept {
+void LongUI::UITree::Update(UpdateReason reason) noexcept {
     // 更新行高
-    if (m_state.child_i_changed) {
+    if (reason & Reason_ChildIndexChanged) {
         // 判断DISPLAY ROWS
         if (m_pChildren) {
             UIControl* ctrl = m_pChildren;
@@ -96,16 +97,17 @@ void LongUI::UITree::Update() noexcept {
             m_pChildren->line_size.height = mh;
         }
     }
-    // 要求重新布局
-    if (this->is_need_relayout()) {
-        // 不脏了
-        m_state.dirty = false;
+    // XXX: 要求重新布局
+    if (reason & Reason_BasicRelayout) {
         // 重新布局
         this->relayout_base(m_pCols);
-        // 更新行高
+        // 更新行高?
+
+        // 截断消息
+        return UIControl::Update(reason);
     }
     // 其他的交给父类处理
-    Super::Update();
+    Super::Update(reason);
 }
 
 
@@ -420,7 +422,7 @@ void LongUI::UITreeRow::GetRowString(CUIString& text) const noexcept {
     for (auto& child : (*this)) {
         if (const auto cell = uisafe_cast<const UITreeCell>(&child)) {
             if (!text.empty()) text += L' ';
-            text += cell->GetTextString();
+            text += cell->RefText();
         }
     }
 }
@@ -515,18 +517,14 @@ LongUI::UITreeRow::UITreeRow(UIControl* parent, const MetaControl& meta) noexcep
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITreeRow::Update() noexcept {
-    // 其他的交给父类处理
-    Super::Update();
-    // 跳过
-    //if (skip_relayout) return;
-    // 要求重新布局
-    if (this->is_need_relayout()) {
-        // 不脏了
-        m_state.dirty = false;
+void LongUI::UITreeRow::Update(UpdateReason reason) noexcept {
+    // XXX: 要求重新布局
+    if (reason & Reason_BasicRelayout) {
         // 重新布局
         this->relayout();
     }
+    // 其他的交给父类处理
+    Super::Update(reason);
 }
 
 /// <summary>
@@ -752,11 +750,9 @@ void LongUI::UITreeItem::add_child(UIControl& child) noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITreeItem::Update() noexcept {
-    // 要求重新布局
-    if (this->is_need_relayout()) {
-        // 不脏了
-        m_state.dirty = false;
+void LongUI::UITreeItem::Update(UpdateReason reason) noexcept {
+    // XXX: 要求重新布局
+    if (reason & Reason_BasicRelayout) {
         // 重新布局
         this->relayout_base(m_pRow);
         // 偏移
@@ -766,7 +762,7 @@ void LongUI::UITreeItem::Update() noexcept {
         }
     }
     // 其他的交给父类处理
-    Super::Update();
+    Super::Update(reason);
 }
 
 
@@ -802,15 +798,30 @@ void LongUI::UITreeItem::Select(bool exsel) noexcept {
 #endif
 
 /// <summary>
+/// calculate: this is last item?
+/// </summary>
+/// <param name="open">if set to <c>true</c> [open].</param>
+/// <returns></returns>
+bool LongUI::UITreeItem::cal_is_last_item() const noexcept {
+    assert(m_pParent && "bad parent");
+    const UIControl* ctrl = this;
+    while (!ctrl->IsLastChild()) {
+        ctrl = UIControlPrivate::Next(ctrl);
+        if (uisafe_cast<const UITreeItem>(ctrl)) return false;
+    }
+    return true;
+}
+
+/// <summary>
 /// Trees the children close.
 /// </summary>
 /// <param name="open">if set to <c>true</c> [open].</param>
 /// <returns></returns>
 void LongUI::UITreeItem::TreeChildrenOpenClose(bool open) noexcept {
+    // 节点不是最后一个的话重绘父节点减少脏矩形压力
+    if (!this->cal_is_last_item()) m_pParent->Invalidate();
     assert(m_pChildren && "bad apple??");
-    if (m_pChildren) {
-        m_pChildren->SetVisible(open);
-    }
+    if (m_pChildren) m_pChildren->SetVisible(open);
 }
 
 /// <summary>
@@ -984,9 +995,9 @@ LongUI::UITreeChildren::UITreeChildren(UIControl* parent, const MetaControl& met
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITreeChildren::Update() noexcept {
+void LongUI::UITreeChildren::Update(UpdateReason reason) noexcept {
     // 父节点修改/子节点添加删除
-    if (m_state.parent_changed || m_state.child_i_changed) {
+    if (reason & (Reason_ChildIndexChanged | Reason_ParentChanged)) {
         // 父节点必须是UITreeItem
         if (const auto item = longui_cast<UITreeItem*>(m_pParent)) {
             // 子节点也必须是UITreeItem?
@@ -998,7 +1009,7 @@ void LongUI::UITreeChildren::Update() noexcept {
         }
     }
     // 子节点添加删除
-    if (m_state.child_i_changed) {
+    if (reason & Reason_ChildIndexChanged) {
         const auto has = !!this->GetCount();
         if (has != m_bHasChild) {
             m_bHasChild = has;
@@ -1008,7 +1019,7 @@ void LongUI::UITreeChildren::Update() noexcept {
             }
         }
     }
-    return Super::Update();
+    return Super::Update(reason);
 }
 
 
@@ -1098,7 +1109,7 @@ auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept-
     {
     case NoticeEvent::Event_Splitter:
         assert(m_pParent && "no parent");
-        this->NeedRelayout();
+        this->NeedUpdate(Reason_ChildLayoutChanged);
         // 父节点是tree
         if (auto tc = longui_cast<UITree*>(m_pParent)->GetTreeChildren())
             UITreeCols::do_update_for_item(*tc);
@@ -1114,14 +1125,28 @@ auto LongUI::UITreeCols::DoEvent(UIControl* sender, const EventArg& e) noexcept-
 /// Relayouts this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITreeCols::relayout() noexcept {
-    this->relayout_h();
-    if (!this->is_need_relayout()) {
-        assert(m_pParent && "no parent");
-        // 父节点是tree
-        if (auto tc = longui_cast<UITree*>(m_pParent)->GetTreeChildren())
-            UITreeCols::do_update_for_item(*tc);
+void LongUI::UITreeCols::Update(UpdateReason reason) noexcept {
+    // XXX: 需要布局
+    if (reason & Reason_BasicRelayout) {
+        this->relayout_h();
+        // 优化: 不再需要时候再处理
+        if (!(m_state.reason & Reason_BasicRelayout))
+            this->relayout_final();
+        return;
     }
+    // 超类处理
+    Super::Update(reason);
+}
+
+/// <summary>
+/// Relayouts this instance.
+/// </summary>
+/// <returns></returns>
+void LongUI::UITreeCols::relayout_final() noexcept {
+    assert(m_pParent && "no parent");
+    // 父节点是tree
+    if (auto tc = longui_cast<UITree*>(m_pParent)->GetTreeChildren())
+        UITreeCols::do_update_for_item(*tc);
 }
 
 /// <summary>
@@ -1132,8 +1157,9 @@ void LongUI::UITreeCols::relayout() noexcept {
 void LongUI::UITreeCols::do_update_for_item(UIControl& ctrl) noexcept {
     for (auto& child : ctrl) {
         if (const auto item = uisafe_cast<UITreeItem>(&child)) {
+            // XXX: 理由
             if (const auto row = item->GetRow())
-                row->NeedRelayout();
+                row->NeedUpdate(Reason_ChildLayoutChanged);
             if (const auto cldr = item->GetTreeChildren())
                 UITreeCols::do_update_for_item(*cldr);
         }

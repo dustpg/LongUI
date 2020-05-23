@@ -51,10 +51,10 @@ namespace LongUI {
         // do event
         auto DoEvent(UIControl* s, const EventArg& e) noexcept->EventAccept override;
         // update
-        //void Update() noexcept override;
+        void Update(UpdateReason) noexcept override;
     private:
         // relayout
-        void relayout() noexcept override;
+        void relayout_final() noexcept;
     private:
         // do update for item
         static void do_update_for_item(UIControl&) noexcept;

@@ -82,25 +82,26 @@ LongUI::UITextBox::~UITextBox() noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UITextBox::Update() noexcept {
+void LongUI::UITextBox::Update(UpdateReason reason) noexcept {
+    constexpr UpdateReason tf_changed
+        = Reason_TextFontDisplayChanged
+        | Reason_TextFontLayoutChanged
+        ;
     // [SetText接口文本]修改
-    if (m_bTextChanged) {
-        m_bTextChanged = false;
+    if (reason & Reason_ValueTextChanged) {
         this->mark_change_could_trigger();
         this->private_set_text();
     }
     // 检查到大小修改
-    if (this->is_size_changed()) 
+    if (reason & Reason_SizeChanged) 
         this->private_resize(this->GetBox().GetContentSize());
     // 文本布局/显示 修改了
-    if (m_state.textfont_display_changed || m_state.textfont_layout_changed)
-        this->private_tf_changed(m_state.textfont_layout_changed);
+    if (reason & tf_changed)
+        this->private_tf_changed(!!(reason & Reason_TextFontLayoutChanged));
     // 污了
     this->private_update();
     // 父类处理
-    Super::Update();
-    // 处理大小修改
-    this->size_change_handled();
+    Super::Update(reason);
 }
 
 /// <summary>
@@ -332,7 +333,7 @@ void LongUI::UITextBox::add_attribute(uint32_t key, U8View value) noexcept {
         }();
         break;
     default:
-       // 其他交给父类处理
+       // 其他交给超类处理
         return Super::add_attribute(key, value);
     }
 }

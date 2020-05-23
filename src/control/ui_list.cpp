@@ -118,16 +118,12 @@ void LongUI::UIListBox::SetLineSize(Size2F size) noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIListBox::Update() noexcept {
-    // 其他的交给父类处理
-    Super::Update();
+void LongUI::UIListBox::Update(UpdateReason reason) noexcept {
+    // 其他的交给超类处理
+    Super::Update(reason);
     // 要求重新布局
-    if (this->is_need_relayout()) {
-        // 不脏了
-        m_state.dirty = false;
-        // 重新布局
-        this->relayout();
-    }
+    // XXX: 检查重新布局的情况
+    if (reason & Reason_BasicRelayout) this->relayout();
 }
 
 
@@ -147,7 +143,8 @@ void LongUI::UIListBox::relayout() noexcept {
         this->resize_child(*m_pCols, ctsize);
         // 下次再来
         if (m_pCols->WillRelayout())
-            return this->NeedRelayout();
+            return this->NeedUpdate(Reason_ChildLayoutChanged);
+        //int bk = 9;
     }
     // 拥有头对象?
     if (m_pHead) {
@@ -214,7 +211,7 @@ void LongUI::UIListBox::add_attribute(uint32_t key, U8View value) noexcept {
         m_displayRow = value.ToInt32();
         break;
     default:
-        // 其他交给父类处理
+        // 其他交给超类处理
         return Super::add_attribute(key, value);
     }
 }
@@ -247,7 +244,7 @@ void LongUI::UIListBox::add_child(UIControl& child) noexcept {
     else if (uisafe_cast<UIListHead>(&child)) {
         m_pHead = static_cast<UIListHead*>(&child);
     }
-    // 调用父类接口
+    // 调用超类接口
     Super::add_child(child);
 }
 
@@ -496,8 +493,8 @@ auto LongUI::UIListItem::GetIndex() const noexcept -> uint32_t {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UIListItem::GetTextString() const noexcept -> const CUIString&{
-    return m_oLabel.GetTextString();
+auto LongUI::UIListItem::RefText() const noexcept -> const CUIString&{
+    return m_oLabel.RefText();
 }
 
 
@@ -577,7 +574,7 @@ void LongUI::UIListItem::relayout() noexcept {
         }
     }
     // 默认的水平布局
-    this->relayout_h();
+    //this->relayout_h();
 }
 
 
@@ -651,9 +648,9 @@ void LongUI::UIListItem::SetText(CUIString&& text) noexcept {
 /// Updates this instance.
 /// </summary>
 /// <returns></returns>
-void LongUI::UIListItem::Update() noexcept {
+void LongUI::UIListItem::Update(UpdateReason reason) noexcept {
     // 获取listbox
-    if (m_state.parent_changed) {
+    if (reason & Reason_ParentChanged) {
         UIListBox* listbox = nullptr;
         if (m_pParent) {
             const auto ppp = m_pParent->GetParent();
@@ -661,8 +658,20 @@ void LongUI::UIListItem::Update() noexcept {
         }
         m_pListBox = listbox;
     }
-    // 父类处理
-    Super::Update();
+    // TODO: 布局
+    if (reason & Reason_BasicRelayout) {
+        this->relayout();
+#if 1
+        // XXX: 直接调用最基的
+        UIControl::Update(reason);
+#else
+        // 取消布局
+        Super::Update(reason & ~Reason_BasicRelayout);
+#endif
+        return;
+    }
+    // 超类处理
+    Super::Update(reason);
 }
 
 
@@ -760,6 +769,17 @@ LongUI::UIListCols::~UIListCols() noexcept {
 //    }
 //    Super::add_child(child);
 //}
+
+/// <summary>
+/// will relayout
+/// </summary>
+/// <param name="child">The child.</param>
+/// <returns></returns>
+bool LongUI::UIListCols::WillRelayout() const noexcept {
+    // XXX: 理由
+    return !!(m_state.reason & Reason_BasicRelayout);
+}
+
 
 /// <summary>
 /// Matches the layout.
@@ -866,6 +886,21 @@ LongUI::UIListHead::~UIListHead() noexcept {
 /// Relayouts this instance.
 /// </summary>
 /// <returns></returns>
+void LongUI::UIListHead::Update(UpdateReason reason) noexcept {
+    // 布局
+    if (reason & Reason_BasicRelayout) {
+        this->relayout();
+        // 略过布局
+        return UIControl::Update(reason);
+    }
+    // 超类处理
+    return Super::Update(reason);
+}
+
+/// <summary>
+/// Relayouts this instance.
+/// </summary>
+/// <returns></returns>
 void LongUI::UIListHead::relayout() noexcept {
     // 获取UIListBox
     if (const auto list = longui_cast<UIListBox*>(m_pParent)) {
@@ -874,7 +909,7 @@ void LongUI::UIListHead::relayout() noexcept {
         }
     }
     // 默认的水平布局
-    this->relayout_h();
+    //this->relayout_h();
 }
 
 

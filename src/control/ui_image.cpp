@@ -81,7 +81,8 @@ void LongUI::UIImage::SetSource(U8View src) noexcept {
             if (m_uFrameCount > 1) this->SetTimer(img.delay, 0);
         }
         this->mark_window_minsize_changed();
-        this->NeedUpdate();
+        // XXX: 新的理由?
+        this->NeedUpdate(Reason_SizeChanged);
         this->Invalidate();
     }
 }

@@ -58,8 +58,8 @@ namespace LongUI {
         void Toggle() noexcept { return this->SetChecked(!this->GetChecked()); }
         // get text
         auto GetText() const noexcept ->const char16_t*;
-        // get text- string object
-        auto GetTextString() const noexcept -> const CUIString&;
+        // ref text- string object
+        auto RefText() const noexcept -> const CUIString&;
         // set text
         void SetText(const CUIString& text) noexcept;
         // set text

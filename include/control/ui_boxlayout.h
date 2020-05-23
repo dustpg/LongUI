@@ -41,22 +41,26 @@ namespace LongUI {
         // class meta
         static const  MetaControl   s_meta;
         // dtor
-        ~UIBoxLayout() noexcept;
+        ~UIBoxLayout() noexcept override;
         // ctor
         UIBoxLayout(UIControl* parent = nullptr) noexcept : UIBoxLayout(parent, UIBoxLayout::s_meta) {}
         // do event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
+        // update
+        void Update(UpdateReason) noexcept override;
     protected:
         // lui std ctor
         UIBoxLayout(UIControl* parent, const MetaControl& ) noexcept;
     private:
-        // relayout
-        void relayout() noexcept override;
+        // need relayout
+        auto is_need_relayout() noexcept ->UpdateReason;
         // move splitter
         void move_splitter(UISplitter& splitter, Point2F offset) noexcept;
     protected:
          //add attribute
         //void add_attribute(uint32_t key, U8View value) noexcept override;
+        // relayout this
+        void relayout_this() noexcept;
         // relayout h
         void relayout_h() noexcept;
         // relayout v

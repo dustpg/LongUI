@@ -298,8 +298,8 @@ auto LongUI::UICheckBox::GetText() const noexcept -> const char16_t* {
 /// Gets the text string.
 /// </summary>
 /// <returns></returns>
-auto LongUI::UICheckBox::GetTextString() const noexcept -> const CUIString& {
-    return m_oLabel.GetTextString();
+auto LongUI::UICheckBox::RefText() const noexcept -> const CUIString& {
+    return m_oLabel.RefText();
 }
 
 /// <summary>

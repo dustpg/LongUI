@@ -55,14 +55,14 @@ namespace LongUI {
         //auto Recreate() noexcept->Result override;
         // render
         //void Render() const noexcept override;
-        // update
-        void Update() noexcept override;
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept -> EventAccept override;
-#ifdef LUI_ACCESSIBLE
+        // update
+        void Update(UpdateReason) noexcept override;
     protected:
+#ifdef LUI_ACCESSIBLE
         // accessible event
         auto accessible(const AccessibleEventArg&) noexcept->EventAccept override;
 #endif

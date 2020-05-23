@@ -27,7 +27,7 @@
 #include "ui_control.h"
 
 namespace LongUI {
-        // scroll bar
+    // scroll bar
     class UIScrollBar;
     // scroll area
     class UIScrollArea : public UIControl {
@@ -40,19 +40,15 @@ namespace LongUI {
         // meta info
         static const MetaControl    s_meta;
         // dtor
-        ~UIScrollArea() noexcept;
+        ~UIScrollArea() noexcept override;
         // ctor
         UIScrollArea(UIControl* parent = nullptr) noexcept : UIScrollArea(parent, UIScrollArea::s_meta) {}
         // do normal event
         auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         // do mouse event
         auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        // update
-        void Update() noexcept override;
-    private:
-        // [NEW] relayout
-        virtual void relayout() noexcept;
-    public:
+        // Update
+        void Update(UpdateReason) noexcept override;
         // set auto overflow
         void SetAutoOverflow() noexcept;
         // force update scroll size
@@ -62,7 +58,7 @@ namespace LongUI {
         // get min scroll size
         auto GetMinScrollSize() const noexcept { return m_minScrollSize; }
         // get layout direcition
-        auto GetLayoutDirection() const noexcept ->AttributeDir { return AttributeDir(m_state.dir); }
+        auto GetLayoutDirection() const noexcept ->AttributeDir { return AttributeDir(m_state.direction); }
         // get vertical ScrollBar
         auto GetVerticalScrollBar() noexcept -> UIScrollBar* { return m_pSBVertical; }
         // get horizontal ScrollBar
@@ -82,7 +78,7 @@ namespace LongUI {
         auto get_layout_position() const noexcept->Point2F;
     private:
         // on state dirty
-        void on_state_dirty() noexcept;
+        //void on_state_dirty() noexcept;
         // do wheel
         auto do_wheel(int index, float wheel) noexcept->EventAccept;
         // create scroll bar

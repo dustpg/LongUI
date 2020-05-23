@@ -49,8 +49,6 @@ namespace LongUI {
         UIScrollBar(UIControl* parent) noexcept : UIScrollBar(Orient_Vertical, parent, UIScrollBar::s_meta) {}
         // dtor
         ~UIScrollBar() noexcept;
-        // update
-        void Update() noexcept override;
         // do normal event
         auto DoEvent(UIControl * sender, const EventArg & e) noexcept ->EventAccept override;
         // do mouse event

@@ -208,8 +208,6 @@ void LongUI::CUIManager::OneFrame() noexcept {
 #endif
     // 更新世界
     this_()->refresh_window_world();
-    // 脏矩形更新
-    //this_()->dirty_update();
     // 渲染窗口预处理
     this_()->before_render_windows(this_()->begin(), this_()->end());
     // 记录时间胶囊
@@ -853,10 +851,10 @@ void LongUI::CUIManager::Uninitialize() noexcept {
 #endif
     // 取消窗口
     ::DestroyWindow(m_hToolWnd); m_hToolWnd = nullptr;
-    // 关闭所有窗口
-    this_()->delete_all_window();
     // 结束掉渲染线程
     this_()->config->EndRenderThread();
+    // 关闭所有窗口
+    this_()->delete_all_window();
     // 手动调用析构函数
     this_()->~CUIManager();
     // 反初始化COM

@@ -3,7 +3,26 @@
 #include <util/ui_unimacro.h>
 #include <core/ui_color_list.h>
 #include <core/ui_control_state.h>
+#include <debugger/ui_debug.h>
+#include <algorithm>
 
+// longui::impl
+namespace LongUI { namespace impl {
+    // popuppos string table - rev
+    static const uint32_t rev_popuppos_table[] = {
+        0xc530a392,     // after_pointer
+        0x4d659161,     // at_pointer
+        0x44b850f3,     // overlap
+        0xd1e17258,     // end_after
+        0x4e76786f,     // end_before
+        0xc51d7557,     // start_after
+        0xc62c00ec,     // start_before
+        0x0c26f0e8,     // after_end
+        0x94f86be7,     // after_start
+        0xe29e56cf,     // before_end
+        0x5ed67606,     // before_start
+    };
+} }
 
 /// <summary>
 /// Initializes a new instance of the <see cref="Box"/> struct.
@@ -263,6 +282,24 @@ auto LongUI::AttrParser::Appearance(U8View view) noexcept -> AttributeAppearance
 }
 
 
+/// <summary>
+/// get <seealso cref="PopupPosition"/> from string
+/// </summary>
+/// <param name="view"></param>
+/// <returns></returns>
+auto LongUI::AttrParser::PopupPosition(U8View view) noexcept -> AttributePopupPosition {
+    const auto code = LongUI::BKDRHash(view.first, view.second);
+    const auto bgein = std::begin(impl::rev_popuppos_table);
+    const auto end = std::end(impl::rev_popuppos_table);
+    const auto itr = std::find(bgein, end, code);
+#ifndef NDEBUG
+    if (itr == end) LUIDebug(Warning) << view << " not found" << end;
+#endif 
+    return static_cast<AttributePopupPosition>(end - itr);
+}
+
+
+
 // longui
 namespace LongUI {
     // repeat data
@@ -446,3 +483,4 @@ auto LongUI::TFAttrParser::Stretch(U8View view)noexcept->AttributeFontStretch {
     }
     return static_cast<AttributeFontStretch>(index + 1);
 }
+

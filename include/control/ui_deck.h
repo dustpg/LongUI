@@ -56,12 +56,8 @@ namespace LongUI {
         //auto DoEvent(UIControl* sender, const EventArg& e) noexcept->EventAccept override;
         //// do mouse event
         //auto DoMouseEvent(const MouseEventArg& e) noexcept->EventAccept override;
-        //// update, postpone change some data
-        void Update() noexcept override;
-        //// render this control only, [Global rendering and Incremental rendering]
-        //void Render() const noexcept override;
-        //// recreate/init device(gpu) resource
-        //auto Recreate() noexcept->Result override;
+        // some state changed
+        void Update(UpdateReason reason) noexcept override;
     protected:
         // on index changed
         void on_index_changed() noexcept;

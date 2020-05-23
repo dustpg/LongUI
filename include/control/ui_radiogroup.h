@@ -58,8 +58,8 @@ namespace LongUI {
         ~UIRadioGroup() noexcept;
         // ctor
         UIRadioGroup(UIControl* parent = nullptr) noexcept : UIRadioGroup(parent, UIRadioGroup::s_meta) {}
-        // update
-        void Update() noexcept override;
+        // update this
+        void Update(UpdateReason) noexcept override;
         //// do normal event
         //auto DoEvent(UIControl* sender, const EventArg& arg) noexcept->EventAccept override;
         //// do mouse event
